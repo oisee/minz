@@ -1,0 +1,301 @@
+package ast
+
+// Node is the base interface for all AST nodes
+type Node interface {
+	Pos() Position
+	End() Position
+}
+
+// Position represents a position in the source file
+type Position struct {
+	Line   int
+	Column int
+	Offset int
+}
+
+// File represents a MinZ source file
+type File struct {
+	Name        string
+	Imports     []*ImportStmt
+	Declarations []Declaration
+	StartPos    Position
+	EndPos      Position
+}
+
+func (f *File) Pos() Position { return f.StartPos }
+func (f *File) End() Position { return f.EndPos }
+
+// Statement nodes
+type Statement interface {
+	Node
+	stmtNode()
+}
+
+// Declaration nodes
+type Declaration interface {
+	Statement
+	declNode()
+}
+
+// Expression nodes
+type Expression interface {
+	Node
+	exprNode()
+}
+
+// ImportStmt represents an import statement
+type ImportStmt struct {
+	Path     string
+	Alias    string
+	StartPos Position
+	EndPos   Position
+}
+
+func (i *ImportStmt) Pos() Position { return i.StartPos }
+func (i *ImportStmt) End() Position { return i.EndPos }
+
+// FunctionDecl represents a function declaration
+type FunctionDecl struct {
+	Name       string
+	Params     []*Parameter
+	ReturnType Type
+	Body       *BlockStmt
+	IsPublic   bool
+	IsExport   bool
+	StartPos   Position
+	EndPos     Position
+}
+
+func (f *FunctionDecl) Pos() Position { return f.StartPos }
+func (f *FunctionDecl) End() Position { return f.EndPos }
+func (f *FunctionDecl) stmtNode()    {}
+func (f *FunctionDecl) declNode()    {}
+
+// Parameter represents a function parameter
+type Parameter struct {
+	Name     string
+	Type     Type
+	StartPos Position
+	EndPos   Position
+}
+
+// Type nodes
+type Type interface {
+	Node
+	typeNode()
+}
+
+// PrimitiveType represents primitive types (u8, u16, i8, i16, bool, void)
+type PrimitiveType struct {
+	Name     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (p *PrimitiveType) Pos() Position { return p.StartPos }
+func (p *PrimitiveType) End() Position { return p.EndPos }
+func (p *PrimitiveType) typeNode()    {}
+
+// ArrayType represents array types
+type ArrayType struct {
+	ElementType Type
+	Size        Expression
+	StartPos    Position
+	EndPos      Position
+}
+
+func (a *ArrayType) Pos() Position { return a.StartPos }
+func (a *ArrayType) End() Position { return a.EndPos }
+func (a *ArrayType) typeNode()    {}
+
+// PointerType represents pointer types
+type PointerType struct {
+	BaseType   Type
+	IsMutable  bool
+	StartPos   Position
+	EndPos     Position
+}
+
+func (p *PointerType) Pos() Position { return p.StartPos }
+func (p *PointerType) End() Position { return p.EndPos }
+func (p *PointerType) typeNode()    {}
+
+// StructType represents struct types
+type StructType struct {
+	Fields   []*Field
+	StartPos Position
+	EndPos   Position
+}
+
+func (s *StructType) Pos() Position { return s.StartPos }
+func (s *StructType) End() Position { return s.EndPos }
+func (s *StructType) typeNode()    {}
+
+// Field represents a struct field
+type Field struct {
+	Name     string
+	Type     Type
+	IsPublic bool
+	StartPos Position
+	EndPos   Position
+}
+
+// Statements
+
+// BlockStmt represents a block statement
+type BlockStmt struct {
+	Statements []Statement
+	StartPos   Position
+	EndPos     Position
+}
+
+func (b *BlockStmt) Pos() Position { return b.StartPos }
+func (b *BlockStmt) End() Position { return b.EndPos }
+func (b *BlockStmt) stmtNode()    {}
+
+// VarDecl represents a variable declaration
+type VarDecl struct {
+	Name      string
+	Type      Type
+	Value     Expression
+	IsMutable bool
+	StartPos  Position
+	EndPos    Position
+}
+
+func (v *VarDecl) Pos() Position { return v.StartPos }
+func (v *VarDecl) End() Position { return v.EndPos }
+func (v *VarDecl) stmtNode()    {}
+func (v *VarDecl) declNode()    {}
+
+// ReturnStmt represents a return statement
+type ReturnStmt struct {
+	Value    Expression
+	StartPos Position
+	EndPos   Position
+}
+
+func (r *ReturnStmt) Pos() Position { return r.StartPos }
+func (r *ReturnStmt) End() Position { return r.EndPos }
+func (r *ReturnStmt) stmtNode()    {}
+
+// IfStmt represents an if statement
+type IfStmt struct {
+	Condition Expression
+	Then      *BlockStmt
+	Else      Statement
+	StartPos  Position
+	EndPos    Position
+}
+
+func (i *IfStmt) Pos() Position { return i.StartPos }
+func (i *IfStmt) End() Position { return i.EndPos }
+func (i *IfStmt) stmtNode()    {}
+
+// WhileStmt represents a while statement
+type WhileStmt struct {
+	Condition Expression
+	Body      *BlockStmt
+	StartPos  Position
+	EndPos    Position
+}
+
+func (w *WhileStmt) Pos() Position { return w.StartPos }
+func (w *WhileStmt) End() Position { return w.EndPos }
+func (w *WhileStmt) stmtNode()    {}
+
+// Expressions
+
+// Identifier represents an identifier
+type Identifier struct {
+	Name     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (i *Identifier) Pos() Position { return i.StartPos }
+func (i *Identifier) End() Position { return i.EndPos }
+func (i *Identifier) exprNode()    {}
+
+// NumberLiteral represents a number literal
+type NumberLiteral struct {
+	Value    int64
+	StartPos Position
+	EndPos   Position
+}
+
+func (n *NumberLiteral) Pos() Position { return n.StartPos }
+func (n *NumberLiteral) End() Position { return n.EndPos }
+func (n *NumberLiteral) exprNode()    {}
+
+// BooleanLiteral represents a boolean literal
+type BooleanLiteral struct {
+	Value    bool
+	StartPos Position
+	EndPos   Position
+}
+
+func (b *BooleanLiteral) Pos() Position { return b.StartPos }
+func (b *BooleanLiteral) End() Position { return b.EndPos }
+func (b *BooleanLiteral) exprNode()    {}
+
+// BinaryExpr represents a binary expression
+type BinaryExpr struct {
+	Left     Expression
+	Operator string
+	Right    Expression
+	StartPos Position
+	EndPos   Position
+}
+
+func (b *BinaryExpr) Pos() Position { return b.StartPos }
+func (b *BinaryExpr) End() Position { return b.EndPos }
+func (b *BinaryExpr) exprNode()    {}
+
+// UnaryExpr represents a unary expression
+type UnaryExpr struct {
+	Operator string
+	Operand  Expression
+	StartPos Position
+	EndPos   Position
+}
+
+func (u *UnaryExpr) Pos() Position { return u.StartPos }
+func (u *UnaryExpr) End() Position { return u.EndPos }
+func (u *UnaryExpr) exprNode()    {}
+
+// CallExpr represents a function call
+type CallExpr struct {
+	Function  Expression
+	Arguments []Expression
+	StartPos  Position
+	EndPos    Position
+}
+
+func (c *CallExpr) Pos() Position { return c.StartPos }
+func (c *CallExpr) End() Position { return c.EndPos }
+func (c *CallExpr) exprNode()    {}
+
+// FieldExpr represents field access
+type FieldExpr struct {
+	Object   Expression
+	Field    string
+	StartPos Position
+	EndPos   Position
+}
+
+func (f *FieldExpr) Pos() Position { return f.StartPos }
+func (f *FieldExpr) End() Position { return f.EndPos }
+func (f *FieldExpr) exprNode()    {}
+
+// IndexExpr represents array indexing
+type IndexExpr struct {
+	Array    Expression
+	Index    Expression
+	StartPos Position
+	EndPos   Position
+}
+
+func (i *IndexExpr) Pos() Position { return i.StartPos }
+func (i *IndexExpr) End() Position { return i.EndPos }
+func (i *IndexExpr) exprNode()    {}
