@@ -3,7 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
+	"github.com/minz/minzc/pkg/codegen"
+	"github.com/minz/minzc/pkg/parser"
+	"github.com/minz/minzc/pkg/semantic"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +46,41 @@ func main() {
 }
 
 func compile(sourceFile string) error {
-	// TODO: Implement compilation pipeline
 	fmt.Printf("Compiling %s...\n", sourceFile)
-	return fmt.Errorf("compiler not yet implemented")
+
+	// Parse the source file
+	parser := parser.New()
+	astFile, err := parser.ParseFile(sourceFile)
+	if err != nil {
+		return fmt.Errorf("parse error: %w", err)
+	}
+
+	// Perform semantic analysis
+	analyzer := semantic.NewAnalyzer()
+	irModule, err := analyzer.Analyze(astFile)
+	if err != nil {
+		return fmt.Errorf("semantic error: %w", err)
+	}
+
+	// Determine output filename
+	if outputFile == "" {
+		base := filepath.Base(sourceFile)
+		ext := filepath.Ext(base)
+		outputFile = base[:len(base)-len(ext)] + ".a80"
+	}
+
+	// Generate Z80 assembly
+	outFile, err := os.Create(outputFile)
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %w", err)
+	}
+	defer outFile.Close()
+
+	generator := codegen.NewZ80Generator(outFile)
+	if err := generator.Generate(irModule); err != nil {
+		return fmt.Errorf("code generation error: %w", err)
+	}
+
+	fmt.Printf("Successfully compiled to %s\n", outputFile)
+	return nil
 }

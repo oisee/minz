@@ -1,0 +1,52 @@
+// Simple sprite rendering example
+type Sprite = struct {
+    x: u8,
+    y: u8,
+    width: u8,
+    height: u8,
+    data: *u8
+};
+
+// Calculate screen address from coordinates
+fn screen_addr(x: u8, y: u8) -> u16 {
+    // ZX Spectrum screen memory layout
+    let y_high: u8 = y & 0xC0;
+    let y_mid: u8 = (y & 0x38) << 2;
+    let y_low: u8 = (y & 0x07) << 8;
+    let addr: u16 = 0x4000 | y_low | y_mid | (y_high << 5) | (x >> 3);
+    return addr;
+}
+
+// Draw 8x8 sprite
+fn draw_sprite(x: u8, y: u8, data: *u8) -> void {
+    let mut row: u8 = 0;
+    
+    while row < 8 {
+        let addr = screen_addr(x, y + row);
+        let byte = data[row];
+        
+        asm("
+            ld a, {0}
+            ld ({1}), a
+        " : : "r"(byte), "r"(addr));
+        
+        row = row + 1;
+    }
+}
+
+// Player sprite data (8x8 pixels)
+const player_sprite: [u8; 8] = [
+    0b00111100,
+    0b01111110,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b01111110,
+    0b00111100,
+    0b00000000
+];
+
+fn main() -> void {
+    // Draw player sprite at position (128, 96)
+    draw_sprite(128, 96, &player_sprite[0]);
+}
