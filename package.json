@@ -1,0 +1,34 @@
+{
+  "name": "tree-sitter-minz",
+  "version": "0.8.0",
+  "description": "Tree-sitter parser for MinZ language",
+  "main": "bindings/node",
+  "keywords": [
+    "parsing",
+    "incremental",
+    "minz"
+  ],
+  "scripts": {
+    "test": "tree-sitter test",
+    "generate": "tree-sitter generate",
+    "parse": "tree-sitter parse"
+  },
+  "dependencies": {
+    "nan": "^2.17.0",
+    "tree-sitter": "^0.25.0"
+  },
+  "devDependencies": {
+    "tree-sitter-cli": "^0.20.8"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.minz",
+      "file-types": [
+        "minz",
+        "mz"
+      ],
+      "highlights": "queries/highlights.scm",
+      "injection-regex": "minz"
+    }
+  ]
+}

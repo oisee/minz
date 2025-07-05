@@ -1,0 +1,4405 @@
+{
+  "type": "source_file",
+  "children": [
+    {
+      "type": "comment"
+    },
+    {
+      "type": "import_statement",
+      "children": [
+        {
+          "type": "import_path",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "identifier"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "import_statement",
+      "children": [
+        {
+          "type": "import_path",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "identifier"
+            }
+          ]
+        },
+        {
+          "type": "identifier"
+        }
+      ]
+    },
+    {
+      "type": "comment"
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "type_alias",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "type",
+              "children": [
+                {
+                  "type": "primitive_type"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "type_alias",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "type",
+              "children": [
+                {
+                  "type": "primitive_type"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "type_alias",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "type",
+              "children": [
+                {
+                  "type": "array_type",
+                  "children": [
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "expression",
+                      "children": [
+                        {
+                          "type": "postfix_expression",
+                          "children": [
+                            {
+                              "type": "primary_expression",
+                              "children": [
+                                {
+                                  "type": "number_literal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment"
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "enum_declaration",
+          "children": [
+            {
+              "type": "visibility"
+            },
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "enum_variant",
+              "children": [
+                {
+                  "type": "identifier"
+                }
+              ]
+            },
+            {
+              "type": "enum_variant",
+              "children": [
+                {
+                  "type": "identifier"
+                }
+              ]
+            },
+            {
+              "type": "enum_variant",
+              "children": [
+                {
+                  "type": "identifier"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment"
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "struct_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "field_declaration",
+              "children": [
+                {
+                  "type": "identifier"
+                },
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "field_declaration",
+              "children": [
+                {
+                  "type": "identifier"
+                },
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "struct_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "field_declaration",
+              "children": [
+                {
+                  "type": "visibility"
+                },
+                {
+                  "type": "identifier"
+                },
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "type_identifier",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "field_declaration",
+              "children": [
+                {
+                  "type": "visibility"
+                },
+                {
+                  "type": "identifier"
+                },
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "field_declaration",
+              "children": [
+                {
+                  "type": "visibility"
+                },
+                {
+                  "type": "identifier"
+                },
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "field_declaration",
+              "children": [
+                {
+                  "type": "identifier"
+                },
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "type_identifier",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment"
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "constant_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "type",
+              "children": [
+                {
+                  "type": "primitive_type"
+                }
+              ]
+            },
+            {
+              "type": "expression",
+              "children": [
+                {
+                  "type": "postfix_expression",
+                  "children": [
+                    {
+                      "type": "primary_expression",
+                      "children": [
+                        {
+                          "type": "number_literal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "constant_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "type",
+              "children": [
+                {
+                  "type": "primitive_type"
+                }
+              ]
+            },
+            {
+              "type": "expression",
+              "children": [
+                {
+                  "type": "postfix_expression",
+                  "children": [
+                    {
+                      "type": "primary_expression",
+                      "children": [
+                        {
+                          "type": "number_literal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "constant_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "type",
+              "children": [
+                {
+                  "type": "primitive_type"
+                }
+              ]
+            },
+            {
+              "type": "expression",
+              "children": [
+                {
+                  "type": "postfix_expression",
+                  "children": [
+                    {
+                      "type": "primary_expression",
+                      "children": [
+                        {
+                          "type": "number_literal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment"
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "parameter_list",
+              "children": [
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                },
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "if_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "number_literal"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "block",
+                          "children": [
+                            {
+                              "type": "statement",
+                              "children": [
+                                {
+                                  "type": "return_statement",
+                                  "children": [
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "tuple_literal",
+                                                  "children": [
+                                                    {
+                                                      "type": "expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "postfix_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "primary_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "number_literal"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    {
+                                                      "type": "expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "postfix_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "primary_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "number_literal"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "variable_declaration",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        },
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "variable_declaration",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        },
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "return_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "primary_expression",
+                                  "children": [
+                                    {
+                                      "type": "tuple_literal",
+                                      "children": [
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "primary_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "identifier"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "primary_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "identifier"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment"
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "parameter_list",
+              "children": [
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "union_type",
+                      "children": [
+                        {
+                          "type": "type",
+                          "children": [
+                            {
+                              "type": "primitive_type"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "type",
+                          "children": [
+                            {
+                              "type": "error_type"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "if_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "number_literal"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "block",
+                          "children": [
+                            {
+                              "type": "statement",
+                              "children": [
+                                {
+                                  "type": "return_statement",
+                                  "children": [
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "error_literal",
+                                                  "children": [
+                                                    {
+                                                      "type": "identifier"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "return_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment"
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "visibility"
+            },
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "variable_declaration",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        },
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "primary_expression",
+                                  "children": [
+                                    {
+                                      "type": "struct_literal",
+                                      "children": [
+                                        {
+                                          "type": "type_identifier",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "field_initializer",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            },
+                                            {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "struct_literal",
+                                                          "children": [
+                                                            {
+                                                              "type": "type_identifier",
+                                                              "children": [
+                                                                {
+                                                                  "type": "identifier"
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "type": "field_initializer",
+                                                              "children": [
+                                                                {
+                                                                  "type": "identifier"
+                                                                },
+                                                                {
+                                                                  "type": "expression",
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "postfix_expression",
+                                                                      "children": [
+                                                                        {
+                                                                          "type": "primary_expression",
+                                                                          "children": [
+                                                                            {
+                                                                              "type": "number_literal"
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            },
+                                                            {
+                                                              "type": "field_initializer",
+                                                              "children": [
+                                                                {
+                                                                  "type": "identifier"
+                                                                },
+                                                                {
+                                                                  "type": "expression",
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "postfix_expression",
+                                                                      "children": [
+                                                                        {
+                                                                          "type": "primary_expression",
+                                                                          "children": [
+                                                                            {
+                                                                              "type": "number_literal"
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "field_initializer",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            },
+                                            {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "number_literal"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "field_initializer",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            },
+                                            {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "number_literal"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "field_initializer",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            },
+                                            {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "field_expression",
+                                                      "fields": {
+                                                        "object": {
+                                                          "type": "postfix_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "primary_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "identifier"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        "field": {
+                                                          "type": "identifier"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "expression_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "primary_expression",
+                                  "children": [
+                                    {
+                                      "type": "metaprogramming_expression",
+                                      "children": [
+                                        {
+                                          "type": "compile_time_assert",
+                                          "children": [
+                                            {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "binary_expression",
+                                                  "fields": {
+                                                    "left": {
+                                                      "type": "expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "postfix_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "primary_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "identifier"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    "right": {
+                                                      "type": "expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "postfix_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "primary_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "number_literal"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "string_literal"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "expression_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "primary_expression",
+                                  "children": [
+                                    {
+                                      "type": "metaprogramming_expression",
+                                      "children": [
+                                        {
+                                          "type": "compile_time_print",
+                                          "children": [
+                                            {
+                                              "type": "string_literal"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "variable_declaration",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        },
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "primary_expression",
+                                  "children": [
+                                    {
+                                      "type": "metaprogramming_expression",
+                                      "children": [
+                                        {
+                                          "type": "compile_time_if",
+                                          "children": [
+                                            {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "identifier"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "boolean_literal"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "boolean_literal"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "loop_statement",
+                      "children": [
+                        {
+                          "type": "block",
+                          "children": [
+                            {
+                              "type": "comment"
+                            },
+                            {
+                              "type": "statement",
+                              "children": [
+                                {
+                                  "type": "variable_declaration",
+                                  "children": [
+                                    {
+                                      "type": "identifier"
+                                    },
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "call_expression",
+                                              "fields": {
+                                                "function": {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "identifier"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "comment"
+                            },
+                            {
+                              "type": "statement",
+                              "children": [
+                                {
+                                  "type": "case_statement",
+                                  "children": [
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "identifier"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "case_arm",
+                                      "children": [
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "literal_pattern",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "primary_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "identifier"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "case_arm",
+                                      "children": [
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "literal_pattern",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "field_expression",
+                                                  "fields": {
+                                                    "object": {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "field_expression",
+                                                          "fields": {
+                                                            "object": {
+                                                              "type": "postfix_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "primary_expression",
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "identifier"
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            },
+                                                            "field": {
+                                                              "type": "identifier"
+                                                            }
+                                                          }
+                                                        }
+                                                      ]
+                                                    },
+                                                    "field": {
+                                                      "type": "identifier"
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "ERROR",
+                                      "children": [
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "literal_pattern",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "case_arm",
+                                      "children": [
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "literal_pattern",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "field_expression",
+                                                  "fields": {
+                                                    "object": {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "field_expression",
+                                                          "fields": {
+                                                            "object": {
+                                                              "type": "postfix_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "primary_expression",
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "identifier"
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            },
+                                                            "field": {
+                                                              "type": "identifier"
+                                                            }
+                                                          }
+                                                        }
+                                                      ]
+                                                    },
+                                                    "field": {
+                                                      "type": "identifier"
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "ERROR",
+                                      "children": [
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "pattern",
+                                          "children": [
+                                            {
+                                              "type": "literal_pattern",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "case_arm",
+                                      "children": [
+                                        {
+                                          "type": "pattern"
+                                        },
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "primary_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "block"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "comment"
+                            },
+                            {
+                              "type": "statement",
+                              "children": [
+                                {
+                                  "type": "expression_statement",
+                                  "children": [
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "call_expression",
+                                              "children": [
+                                                {
+                                                  "type": "argument_list",
+                                                  "children": [
+                                                    {
+                                                      "type": "expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "unary_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "postfix_expression",
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "primary_expression",
+                                                                      "children": [
+                                                                        {
+                                                                          "type": "identifier"
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ],
+                                              "fields": {
+                                                "function": {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "identifier"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "comment"
+                            },
+                            {
+                              "type": "statement",
+                              "children": [
+                                {
+                                  "type": "expression_statement",
+                                  "children": [
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "call_expression",
+                                              "children": [
+                                                {
+                                                  "type": "argument_list",
+                                                  "children": [
+                                                    {
+                                                      "type": "expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "unary_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "postfix_expression",
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "primary_expression",
+                                                                      "children": [
+                                                                        {
+                                                                          "type": "identifier"
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ],
+                                              "fields": {
+                                                "function": {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "identifier"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "comment"
+                            },
+                            {
+                              "type": "statement",
+                              "children": [
+                                {
+                                  "type": "if_statement",
+                                  "children": [
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "binary_expression",
+                                          "fields": {
+                                            "left": {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "field_expression",
+                                                      "fields": {
+                                                        "object": {
+                                                          "type": "postfix_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "primary_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "identifier"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ]
+                                                        },
+                                                        "field": {
+                                                          "type": "identifier"
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "number_literal"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "block",
+                                      "children": [
+                                        {
+                                          "type": "statement",
+                                          "children": [
+                                            {
+                                              "type": "expression_statement",
+                                              "children": [
+                                                {
+                                                  "type": "expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "field_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "ERROR",
+                                                              "children": [
+                                                                {
+                                                                  "type": "identifier"
+                                                                }
+                                                              ]
+                                                            }
+                                                          ],
+                                                          "fields": {
+                                                            "object": {
+                                                              "type": "postfix_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "field_expression",
+                                                                  "fields": {
+                                                                    "object": {
+                                                                      "type": "postfix_expression",
+                                                                      "children": [
+                                                                        {
+                                                                          "type": "primary_expression",
+                                                                          "children": [
+                                                                            {
+                                                                              "type": "identifier"
+                                                                            }
+                                                                          ]
+                                                                        }
+                                                                      ]
+                                                                    },
+                                                                    "field": {
+                                                                      "type": "identifier"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              ]
+                                                            },
+                                                            "field": {
+                                                              "type": "identifier"
+                                                            }
+                                                          }
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "statement",
+                                          "children": [
+                                            {
+                                              "type": "break_statement"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "defer_statement",
+                      "children": [
+                        {
+                          "type": "statement",
+                          "children": [
+                            {
+                              "type": "expression_statement",
+                              "children": [
+                                {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "call_expression",
+                                          "fields": {
+                                            "function": {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "primary_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "identifier"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment"
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "parameter_list",
+              "children": [
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "return_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "parameter_list",
+              "children": [
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "return_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment"
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "variable_declaration",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        },
+                        {
+                          "type": "type",
+                          "children": [
+                            {
+                              "type": "primitive_type"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "expression_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "primary_expression",
+                                  "children": [
+                                    {
+                                      "type": "inline_assembly",
+                                      "children": [
+                                        {
+                                          "type": "string_literal"
+                                        },
+                                        {
+                                          "type": "asm_output_list",
+                                          "children": [
+                                            {
+                                              "type": "asm_output",
+                                              "children": [
+                                                {
+                                                  "type": "string_literal"
+                                                },
+                                                {
+                                                  "type": "identifier"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "return_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "primary_expression",
+                                  "children": [
+                                    {
+                                      "type": "identifier"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "comment"
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "attributed_declaration",
+          "children": [
+            {
+              "type": "attribute",
+              "children": [
+                {
+                  "type": "identifier"
+                },
+                {
+                  "type": "argument_list",
+                  "children": [
+                    {
+                      "type": "expression",
+                      "children": [
+                        {
+                          "type": "postfix_expression",
+                          "children": [
+                            {
+                              "type": "primary_expression",
+                              "children": [
+                                {
+                                  "type": "number_literal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "declaration",
+              "children": [
+                {
+                  "type": "constant_declaration",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "array_type",
+                          "children": [
+                            {
+                              "type": "type",
+                              "children": [
+                                {
+                                  "type": "primitive_type"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "expression",
+                              "children": [
+                                {
+                                  "type": "postfix_expression",
+                                  "children": [
+                                    {
+                                      "type": "primary_expression",
+                                      "children": [
+                                        {
+                                          "type": "number_literal"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "expression",
+                      "children": [
+                        {
+                          "type": "postfix_expression",
+                          "children": [
+                            {
+                              "type": "primary_expression",
+                              "children": [
+                                {
+                                  "type": "array_literal",
+                                  "children": [
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "identifier"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "attributed_declaration",
+          "children": [
+            {
+              "type": "attribute",
+              "children": [
+                {
+                  "type": "identifier"
+                }
+              ]
+            },
+            {
+              "type": "declaration",
+              "children": [
+                {
+                  "type": "variable_declaration",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "array_type",
+                          "children": [
+                            {
+                              "type": "type",
+                              "children": [
+                                {
+                                  "type": "primitive_type"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "expression",
+                              "children": [
+                                {
+                                  "type": "postfix_expression",
+                                  "children": [
+                                    {
+                                      "type": "primary_expression",
+                                      "children": [
+                                        {
+                                          "type": "number_literal"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "parameter_list",
+              "children": [
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "pointer_type",
+                          "children": [
+                            {
+                              "type": "type",
+                              "children": [
+                                {
+                                  "type": "type_identifier",
+                                  "children": [
+                                    {
+                                      "type": "identifier"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "expression_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "field_expression",
+                                          "children": [
+                                            {
+                                              "type": "ERROR",
+                                              "children": [
+                                                {
+                                                  "type": "identifier"
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "fields": {
+                                            "object": {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "field_expression",
+                                                  "fields": {
+                                                    "object": {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "primary_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "identifier"
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    "field": {
+                                                      "type": "identifier"
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            "field": {
+                                              "type": "identifier"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "number_literal"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "if_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "field_expression",
+                                          "fields": {
+                                            "object": {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "primary_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "identifier"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            "field": {
+                                              "type": "identifier"
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "block",
+                          "children": [
+                            {
+                              "type": "statement",
+                              "children": [
+                                {
+                                  "type": "expression_statement",
+                                  "children": [
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "field_expression",
+                                              "fields": {
+                                                "object": {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "identifier"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                "field": {
+                                                  "type": "identifier"
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "ERROR",
+                                      "children": [
+                                        {
+                                          "type": "identifier"
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "variable_declaration",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        },
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "try_expression",
+                                  "fields": {
+                                    "expression": {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "call_expression",
+                                          "children": [
+                                            {
+                                              "type": "argument_list",
+                                              "children": [
+                                                {
+                                                  "type": "expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "primary_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "number_literal"
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "type": "expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "primary_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "number_literal"
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "fields": {
+                                            "function": {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "primary_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "identifier"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "variable_declaration",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        },
+                        {
+                          "type": "type",
+                          "children": [
+                            {
+                              "type": "array_type",
+                              "children": [
+                                {
+                                  "type": "type",
+                                  "children": [
+                                    {
+                                      "type": "primitive_type"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "number_literal"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "for_statement",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        },
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "number_literal"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "number_literal"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "block",
+                          "children": [
+                            {
+                              "type": "statement",
+                              "children": [
+                                {
+                                  "type": "expression_statement",
+                                  "children": [
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "cast_expression",
+                                              "children": [
+                                                {
+                                                  "type": "ERROR",
+                                                  "children": [
+                                                    {
+                                                      "type": "identifier"
+                                                    }
+                                                  ]
+                                                }
+                                              ],
+                                              "fields": {
+                                                "expression": {
+                                                  "type": "expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "index_expression",
+                                                          "fields": {
+                                                            "object": {
+                                                              "type": "postfix_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "primary_expression",
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "identifier"
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            },
+                                                            "index": {
+                                                              "type": "expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "postfix_expression",
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "primary_expression",
+                                                                      "children": [
+                                                                        {
+                                                                          "type": "identifier"
+                                                                        }
+                                                                      ]
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            }
+                                                          }
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                },
+                                                "type": {
+                                                  "type": "type",
+                                                  "children": [
+                                                    {
+                                                      "type": "primitive_type"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "variable_declaration",
+                      "children": [
+                        {
+                          "type": "identifier"
+                        },
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "primary_expression",
+                                  "children": [
+                                    {
+                                      "type": "number_literal"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "while_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "binary_expression",
+                              "fields": {
+                                "left": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "type": "expression",
+                                  "children": [
+                                    {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "number_literal"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "type": "block",
+                          "children": [
+                            {
+                              "type": "statement",
+                              "children": [
+                                {
+                                  "type": "expression_statement",
+                                  "children": [
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "binary_expression",
+                                          "children": [
+                                            {
+                                              "type": "ERROR",
+                                              "children": [
+                                                {
+                                                  "type": "identifier"
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "fields": {
+                                            "left": {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "identifier"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            },
+                                            "right": {
+                                              "type": "expression",
+                                              "children": [
+                                                {
+                                                  "type": "postfix_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "primary_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "number_literal"
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "parameter_list",
+              "children": [
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "pointer_type",
+                          "children": [
+                            {
+                              "type": "type",
+                              "children": [
+                                {
+                                  "type": "type_identifier",
+                                  "children": [
+                                    {
+                                      "type": "identifier"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "expression_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "call_expression",
+                                  "fields": {
+                                    "function": {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "expression_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "call_expression",
+                                  "children": [
+                                    {
+                                      "type": "argument_list",
+                                      "children": [
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "field_expression",
+                                                  "fields": {
+                                                    "object": {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "field_expression",
+                                                          "fields": {
+                                                            "object": {
+                                                              "type": "postfix_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "primary_expression",
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "identifier"
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            },
+                                                            "field": {
+                                                              "type": "identifier"
+                                                            }
+                                                          }
+                                                        }
+                                                      ]
+                                                    },
+                                                    "field": {
+                                                      "type": "identifier"
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "field_expression",
+                                                  "fields": {
+                                                    "object": {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "field_expression",
+                                                          "fields": {
+                                                            "object": {
+                                                              "type": "postfix_expression",
+                                                              "children": [
+                                                                {
+                                                                  "type": "primary_expression",
+                                                                  "children": [
+                                                                    {
+                                                                      "type": "identifier"
+                                                                    }
+                                                                  ]
+                                                                }
+                                                              ]
+                                                            },
+                                                            "field": {
+                                                              "type": "identifier"
+                                                            }
+                                                          }
+                                                        }
+                                                      ]
+                                                    },
+                                                    "field": {
+                                                      "type": "identifier"
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "unary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "primary_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "identifier"
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "fields": {
+                                    "function": {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "comment"
+                },
+                {
+                  "type": "statement",
+                  "children": [
+                    {
+                      "type": "expression_statement",
+                      "children": [
+                        {
+                          "type": "expression",
+                          "children": [
+                            {
+                              "type": "postfix_expression",
+                              "children": [
+                                {
+                                  "type": "call_expression",
+                                  "children": [
+                                    {
+                                      "type": "argument_list",
+                                      "children": [
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "primary_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "number_literal"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "primary_expression",
+                                                  "children": [
+                                                    {
+                                                      "type": "number_literal"
+                                                    }
+                                                  ]
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "type": "expression",
+                                          "children": [
+                                            {
+                                              "type": "postfix_expression",
+                                              "children": [
+                                                {
+                                                  "type": "field_expression",
+                                                  "fields": {
+                                                    "object": {
+                                                      "type": "postfix_expression",
+                                                      "children": [
+                                                        {
+                                                          "type": "primary_expression",
+                                                          "children": [
+                                                            {
+                                                              "type": "identifier"
+                                                            }
+                                                          ]
+                                                        }
+                                                      ]
+                                                    },
+                                                    "field": {
+                                                      "type": "identifier"
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "fields": {
+                                    "function": {
+                                      "type": "postfix_expression",
+                                      "children": [
+                                        {
+                                          "type": "primary_expression",
+                                          "children": [
+                                            {
+                                              "type": "identifier"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "comment"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "parameter_list",
+              "children": [
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "pointer_type",
+                          "children": [
+                            {
+                              "type": "type",
+                              "children": [
+                                {
+                                  "type": "array_type",
+                                  "children": [
+                                    {
+                                      "type": "type",
+                                      "children": [
+                                        {
+                                          "type": "primitive_type"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "type": "expression",
+                                      "children": [
+                                        {
+                                          "type": "postfix_expression",
+                                          "children": [
+                                            {
+                                              "type": "primary_expression",
+                                              "children": [
+                                                {
+                                                  "type": "number_literal"
+                                                }
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "comment"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "parameter_list",
+              "children": [
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "parameter",
+                  "children": [
+                    {
+                      "type": "identifier"
+                    },
+                    {
+                      "type": "type",
+                      "children": [
+                        {
+                          "type": "primitive_type"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "comment"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "declaration",
+      "children": [
+        {
+          "type": "function_declaration",
+          "children": [
+            {
+              "type": "identifier"
+            },
+            {
+              "type": "return_type",
+              "children": [
+                {
+                  "type": "type",
+                  "children": [
+                    {
+                      "type": "primitive_type"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "block",
+              "children": [
+                {
+                  "type": "comment"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

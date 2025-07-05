@@ -1,0 +1,90 @@
+==================
+Number literals
+==================
+
+let x = 42;
+let y = 0xFF;
+let z = 0b1010;
+
+---
+
+(source_file
+  (declaration
+    (variable_declaration
+      (identifier)
+      (expression
+        (postfix_expression
+          (primary_expression
+            (number_literal))))))
+  (statement
+    (variable_declaration
+      (identifier)
+      (expression
+        (postfix_expression
+          (primary_expression
+            (number_literal))))))
+  (statement
+    (variable_declaration
+      (identifier)
+      (expression
+        (postfix_expression
+          (primary_expression
+            (number_literal)))))))
+
+==================
+String and char literals
+==================
+
+let s = "hello world";
+let c = 'A';
+let escaped = "line\nbreak";
+
+---
+
+(source_file
+  (declaration
+    (variable_declaration
+      (identifier)
+      (expression
+        (postfix_expression
+          (primary_expression
+            (string_literal))))))
+  (statement
+    (variable_declaration
+      (identifier)
+      (expression
+        (postfix_expression
+          (primary_expression
+            (char_literal))))))
+  (statement
+    (variable_declaration
+      (identifier)
+      (expression
+        (postfix_expression
+          (primary_expression
+            (string_literal)))))))
+
+==================
+Boolean literals
+==================
+
+let t = true;
+let f = false;
+
+---
+
+(source_file
+  (declaration
+    (variable_declaration
+      (identifier)
+      (expression
+        (postfix_expression
+          (primary_expression
+            (boolean_literal))))))
+  (statement
+    (variable_declaration
+      (identifier)
+      (expression
+        (postfix_expression
+          (primary_expression
+            (boolean_literal)))))))

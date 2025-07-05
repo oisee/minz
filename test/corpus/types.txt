@@ -1,0 +1,143 @@
+==================
+Basic types
+==================
+
+let a: u8 = 255;
+let b: i16 = -1000;
+let c: bool = true;
+
+---
+
+(source_file
+  (statement
+    (variable_declaration
+      (identifier)
+      (type (primitive_type))
+      (expression
+        (postfix_expression
+          (primary_expression
+            (number_literal))))))
+  (statement
+    (variable_declaration
+      (identifier)
+      (type (primitive_type))
+      (expression
+        (unary_expression
+          (expression
+            (postfix_expression
+              (primary_expression
+                (number_literal))))))))
+  (statement
+    (variable_declaration
+      (identifier)
+      (type (primitive_type))
+      (expression
+        (postfix_expression
+          (primary_expression
+            (boolean_literal)))))))
+
+==================
+Array types
+==================
+
+let arr: [u8; 10];
+let matrix: [u16; 256] = [0; 256];
+
+---
+
+(source_file
+  (statement
+    (variable_declaration
+      (identifier)
+      (type
+        (array_type
+          (type (primitive_type))
+          (expression
+            (postfix_expression
+              (primary_expression
+                (number_literal))))))))
+  (statement
+    (variable_declaration
+      (identifier)
+      (type
+        (array_type
+          (type (primitive_type))
+          (expression
+            (postfix_expression
+              (primary_expression
+                (number_literal))))))
+      (expression
+        (postfix_expression
+          (primary_expression
+            (array_literal
+              (expression
+                (postfix_expression
+                  (primary_expression
+                    (number_literal))))
+              (expression
+                (postfix_expression
+                  (primary_expression
+                    (number_literal)))))))))))
+
+==================
+Pointer types
+==================
+
+let p: *const u8;
+let q: *mut u16;
+
+---
+
+(source_file
+  (statement
+    (variable_declaration
+      (identifier)
+      (type
+        (pointer_type
+          (type (primitive_type))))))
+  (statement
+    (variable_declaration
+      (identifier)
+      (type
+        (pointer_type
+          (type (primitive_type)))))))
+
+==================
+Union types
+==================
+
+fn divide(a: u16, b: u16) -> u16 | Error {
+    return a / b;
+}
+
+---
+
+(source_file
+  (declaration
+    (function_declaration
+      (identifier)
+      (parameter_list
+        (parameter
+          (identifier)
+          (type (primitive_type)))
+        (parameter
+          (identifier)
+          (type (primitive_type))))
+      (return_type
+        (type
+          (union_type
+            (type (primitive_type))
+            (type (error_type)))))
+      (block
+        (statement
+          (return_statement
+            (expression
+              (binary_expression
+                left: (expression
+                  (postfix_expression
+                    (primary_expression
+                      (identifier))))
+                right: (expression
+                  (postfix_expression
+                    (primary_expression
+                      (identifier)))))))))))

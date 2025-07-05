@@ -1,0 +1,113 @@
+==================
+Simple function
+==================
+
+fn add(x: u8, y: u8) -> u8 {
+    return x + y;
+}
+
+---
+
+(source_file
+  (declaration
+    (function_declaration
+      (identifier)
+      (parameter_list
+        (parameter
+          (identifier)
+          (type (primitive_type)))
+        (parameter
+          (identifier)
+          (type (primitive_type))))
+      (return_type
+        (type (primitive_type)))
+      (block
+        (statement
+          (return_statement
+            (expression
+              (binary_expression
+                left: (expression
+                  (postfix_expression
+                    (primary_expression
+                      (identifier))))
+                right: (expression
+                  (postfix_expression
+                    (primary_expression
+                      (identifier)))))))))))
+
+==================
+Multiple return values
+==================
+
+fn divmod(a: u16, b: u16) -> (u16, u16) {
+    return (a / b, a % b);
+}
+
+---
+
+(source_file
+  (declaration
+    (function_declaration
+      (identifier)
+      (parameter_list
+        (parameter
+          (identifier)
+          (type (primitive_type)))
+        (parameter
+          (identifier)
+          (type (primitive_type))))
+      (return_type
+        (type (primitive_type))
+        (type (primitive_type)))
+      (block
+        (statement
+          (return_statement
+            (expression
+              (postfix_expression
+                (primary_expression
+                  (tuple_literal
+                    (expression
+                      (binary_expression
+                        left: (expression
+                          (postfix_expression
+                            (primary_expression
+                              (identifier))))
+                        right: (expression
+                          (postfix_expression
+                            (primary_expression
+                              (identifier))))))
+                    (expression
+                      (binary_expression
+                        left: (expression
+                          (postfix_expression
+                            (primary_expression
+                              (identifier))))
+                        right: (expression
+                          (postfix_expression
+                            (primary_expression
+                              (identifier)))))))))))))))
+
+==================
+Function with attributes
+==================
+
+@inline
+pub export fn critical_path() -> void {
+    // performance critical
+}
+
+---
+
+(source_file
+  (declaration
+    (attributed_declaration
+      (attribute
+        (identifier))
+      (declaration
+        (function_declaration
+          (visibility)
+          (identifier)
+          (return_type
+            (type (primitive_type)))
+          (block
+            (comment)))))))

@@ -1,0 +1,1988 @@
+Warning: You have not configured any parser directories!
+Please run `tree-sitter init-config` and edit the resulting
+configuration file to indicate where we should look for
+language grammars.
+
+<source_file>
+  <comment>// MinZ v0.8 Test File</comment>
+
+  <import_statement>import
+    <import_path>
+      <identifier>std</identifier>
+.
+      <identifier>io</identifier>
+</import_path>
+;</import_statement>
+
+  <import_statement>import
+    <import_path>
+      <identifier>hardware</identifier>
+.
+      <identifier>z80</identifier>
+</import_path>
+as
+    <identifier>z80</identifier>
+;</import_statement>
+
+  <comment>// Type aliases</comment>
+
+  <declaration>
+    <type_alias>type
+      <identifier>Byte</identifier>
+=
+      <type>
+        <primitive_type>u8</primitive_type>
+</type>
+;</type_alias>
+</declaration>
+
+  <declaration>
+    <type_alias>type
+      <identifier>Word</identifier>
+=
+      <type>
+        <primitive_type>u16</primitive_type>
+</type>
+;</type_alias>
+</declaration>
+
+  <declaration>
+    <type_alias>type
+      <identifier>Buffer</identifier>
+=
+      <type>
+        <array_type>[
+          <type>
+            <primitive_type>u8</primitive_type>
+</type>
+;
+          <expression>
+            <postfix_expression>
+              <primary_expression>
+                <number_literal>256</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+]</array_type>
+</type>
+;</type_alias>
+</declaration>
+
+  <comment>// Enums</comment>
+
+  <declaration>
+    <enum_declaration>
+      <visibility>pub</visibility>
+enum
+      <identifier>Status</identifier>
+{
+      <enum_variant>
+        <identifier>Ok</identifier>
+</enum_variant>
+,
+      <enum_variant>
+        <identifier>Error</identifier>
+</enum_variant>
+,
+      <enum_variant>
+        <identifier>Pending</identifier>
+</enum_variant>
+}</enum_declaration>
+</declaration>
+
+  <comment>// Structs</comment>
+
+  <declaration>
+    <struct_declaration>struct
+      <identifier>Point</identifier>
+{
+      <field_declaration>
+        <identifier>x</identifier>
+:
+        <type>
+          <primitive_type>i16</primitive_type>
+</type>
+</field_declaration>
+,
+      <field_declaration>
+        <identifier>y</identifier>
+:
+        <type>
+          <primitive_type>i16</primitive_type>
+</type>
+</field_declaration>
+}</struct_declaration>
+</declaration>
+
+  <declaration>
+    <struct_declaration>struct
+      <identifier>GameState</identifier>
+{
+      <field_declaration>
+        <visibility>pub</visibility>
+
+        <identifier>player_pos</identifier>
+:
+        <type>
+          <type_identifier>
+            <identifier>Point</identifier>
+</type_identifier>
+</type>
+</field_declaration>
+,
+      <field_declaration>
+        <visibility>pub</visibility>
+
+        <identifier>score</identifier>
+:
+        <type>
+          <primitive_type>u16</primitive_type>
+</type>
+</field_declaration>
+,
+      <field_declaration>
+        <visibility>pub</visibility>
+
+        <identifier>lives</identifier>
+:
+        <type>
+          <primitive_type>u8</primitive_type>
+</type>
+</field_declaration>
+,
+      <field_declaration>
+        <identifier>status</identifier>
+:
+        <type>
+          <type_identifier>
+            <identifier>Status</identifier>
+</type_identifier>
+</type>
+</field_declaration>
+}</struct_declaration>
+</declaration>
+
+  <comment>// Constants</comment>
+
+  <declaration>
+    <constant_declaration>const
+      <identifier>MAX_SCORE</identifier>
+:
+      <type>
+        <primitive_type>u16</primitive_type>
+</type>
+=
+      <expression>
+        <postfix_expression>
+          <primary_expression>
+            <number_literal>9999</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</constant_declaration>
+</declaration>
+
+  <declaration>
+    <constant_declaration>const
+      <identifier>SCREEN_WIDTH</identifier>
+:
+      <type>
+        <primitive_type>u16</primitive_type>
+</type>
+=
+      <expression>
+        <postfix_expression>
+          <primary_expression>
+            <number_literal>256</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</constant_declaration>
+</declaration>
+
+  <declaration>
+    <constant_declaration>const
+      <identifier>SCREEN_HEIGHT</identifier>
+:
+      <type>
+        <primitive_type>u16</primitive_type>
+</type>
+=
+      <expression>
+        <postfix_expression>
+          <primary_expression>
+            <number_literal>192</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</constant_declaration>
+</declaration>
+
+  <comment>// Function with multiple return values</comment>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>divide</identifier>
+(
+      <parameter_list>
+        <parameter>
+          <identifier>a</identifier>
+:
+          <type>
+            <primitive_type>u16</primitive_type>
+</type>
+</parameter>
+,
+        <parameter>
+          <identifier>b</identifier>
+:
+          <type>
+            <primitive_type>u16</primitive_type>
+</type>
+</parameter>
+</parameter_list>
+)
+      <return_type>-&gt;(
+        <type>
+          <primitive_type>u16</primitive_type>
+</type>
+,
+        <type>
+          <primitive_type>u16</primitive_type>
+</type>
+)</return_type>
+
+      <block>{
+        <statement>
+          <if_statement>if
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>b</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+==
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <number_literal>0</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+
+            <block>{
+              <statement>
+                <return_statement>return
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <tuple_literal>(
+                          <expression>
+                            <postfix_expression>
+                              <primary_expression>
+                                <number_literal>0</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                          <expression>
+                            <postfix_expression>
+                              <primary_expression>
+                                <number_literal>0</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+)</tuple_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</return_statement>
+</statement>
+}</block>
+</if_statement>
+</statement>
+
+        <statement>
+          <variable_declaration>let
+            <identifier>quotient</identifier>
+=
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>a</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+/
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>b</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+;</variable_declaration>
+</statement>
+
+        <statement>
+          <variable_declaration>let
+            <identifier>remainder</identifier>
+=
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>a</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+%
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>b</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+;</variable_declaration>
+</statement>
+
+        <statement>
+          <return_statement>return
+            <expression>
+              <postfix_expression>
+                <primary_expression>
+                  <tuple_literal>(
+                    <expression>
+                      <postfix_expression>
+                        <primary_expression>
+                          <identifier>quotient</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                    <expression>
+                      <postfix_expression>
+                        <primary_expression>
+                          <identifier>remainder</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+)</tuple_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</return_statement>
+</statement>
+}</block>
+</function_declaration>
+</declaration>
+
+  <comment>// Function with error handling</comment>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>safe_divide</identifier>
+(
+      <parameter_list>
+        <parameter>
+          <identifier>a</identifier>
+:
+          <type>
+            <primitive_type>u16</primitive_type>
+</type>
+</parameter>
+,
+        <parameter>
+          <identifier>b</identifier>
+:
+          <type>
+            <primitive_type>u16</primitive_type>
+</type>
+</parameter>
+</parameter_list>
+)
+      <return_type>-&gt;
+        <type>
+          <union_type>
+            <type>
+              <primitive_type>u16</primitive_type>
+</type>
+|
+            <type>
+              <error_type>Error</error_type>
+</type>
+</union_type>
+</type>
+</return_type>
+
+      <block>{
+        <statement>
+          <if_statement>if
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>b</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+==
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <number_literal>0</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+
+            <block>{
+              <statement>
+                <return_statement>return
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <error_literal>Error.
+                          <identifier>DivisionByZero</identifier>
+</error_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</return_statement>
+</statement>
+}</block>
+</if_statement>
+</statement>
+
+        <statement>
+          <return_statement>return
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>a</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+/
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>b</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+;</return_statement>
+</statement>
+}</block>
+</function_declaration>
+</declaration>
+
+  <comment>// Main game loop</comment>
+
+  <declaration>
+    <function_declaration>
+      <visibility>pub</visibility>
+exportfn
+      <identifier>main</identifier>
+()
+      <return_type>-&gt;
+        <type>
+          <primitive_type>void</primitive_type>
+</type>
+</return_type>
+
+      <block>{
+        <statement>
+          <variable_declaration>letmut
+            <identifier>game</identifier>
+=
+            <expression>
+              <postfix_expression>
+                <primary_expression>
+                  <struct_literal>
+                    <type_identifier>
+                      <identifier>GameState</identifier>
+</type_identifier>
+{
+                    <field_initializer>
+                      <identifier>player_pos</identifier>
+:
+                      <expression>
+                        <postfix_expression>
+                          <primary_expression>
+                            <struct_literal>
+                              <type_identifier>
+                                <identifier>Point</identifier>
+</type_identifier>
+{
+                              <field_initializer>
+                                <identifier>x</identifier>
+:
+                                <expression>
+                                  <postfix_expression>
+                                    <primary_expression>
+                                      <number_literal>128</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</field_initializer>
+,
+                              <field_initializer>
+                                <identifier>y</identifier>
+:
+                                <expression>
+                                  <postfix_expression>
+                                    <primary_expression>
+                                      <number_literal>96</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</field_initializer>
+}</struct_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</field_initializer>
+,
+                    <field_initializer>
+                      <identifier>score</identifier>
+:
+                      <expression>
+                        <postfix_expression>
+                          <primary_expression>
+                            <number_literal>0</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</field_initializer>
+,
+                    <field_initializer>
+                      <identifier>lives</identifier>
+:
+                      <expression>
+                        <postfix_expression>
+                          <primary_expression>
+                            <number_literal>3</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</field_initializer>
+,
+                    <field_initializer>
+                      <identifier>status</identifier>
+:
+                      <expression>
+                        <postfix_expression>
+                          <field_expression>
+                            <postfix_expression type="object">
+                              <primary_expression>
+                                <identifier>Status</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                            <identifier type="field">Ok</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
+</field_initializer>
+,}</struct_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</variable_declaration>
+</statement>
+
+        <comment>// Test metaprogramming</comment>
+
+        <statement>
+          <expression_statement>
+            <expression>
+              <postfix_expression>
+                <primary_expression>
+                  <metaprogramming_expression>
+                    <compile_time_assert>@assert(
+                      <expression>
+                        <binary_expression>
+                          <expression type="left">
+                            <postfix_expression>
+                              <primary_expression>
+                                <identifier>SCREEN_WIDTH</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+==
+                          <expression type="right">
+                            <postfix_expression>
+                              <primary_expression>
+                                <number_literal>256</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+,
+                      <string_literal>""</string_literal>
+)</compile_time_assert>
+</metaprogramming_expression>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+
+        <statement>
+          <expression_statement>
+            <expression>
+              <postfix_expression>
+                <primary_expression>
+                  <metaprogramming_expression>
+                    <compile_time_print>@print(
+                      <string_literal>""</string_literal>
+)</compile_time_print>
+</metaprogramming_expression>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+
+        <comment>// Conditional compilation</comment>
+
+        <statement>
+          <variable_declaration>let
+            <identifier>debug_mode</identifier>
+=
+            <expression>
+              <postfix_expression>
+                <primary_expression>
+                  <metaprogramming_expression>
+                    <compile_time_if>@if(
+                      <expression>
+                        <postfix_expression>
+                          <primary_expression>
+                            <identifier>DEBUG</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                      <expression>
+                        <postfix_expression>
+                          <primary_expression>
+                            <boolean_literal>true</boolean_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                      <expression>
+                        <postfix_expression>
+                          <primary_expression>
+                            <boolean_literal>false</boolean_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+)</compile_time_if>
+</metaprogramming_expression>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</variable_declaration>
+</statement>
+
+        <comment>// Main loop</comment>
+
+        <statement>
+          <loop_statement>loop
+            <block>{
+              <comment>// Handle input</comment>
+
+              <statement>
+                <variable_declaration>let
+                  <identifier>input</identifier>
+=
+                  <expression>
+                    <postfix_expression>
+                      <call_expression>
+                        <postfix_expression type="function">
+                          <primary_expression>
+                            <identifier>read_input</identifier>
+</primary_expression>
+</postfix_expression>
+()</call_expression>
+</postfix_expression>
+</expression>
+;</variable_declaration>
+</statement>
+
+              <comment>// Pattern matching</comment>
+
+              <statement>
+                <case_statement>case
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <identifier>input</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+{
+                  <case_arm>
+                    <pattern>
+                      <literal_pattern>
+                        <number_literal>0</number_literal>
+</literal_pattern>
+</pattern>
+=&gt;
+                    <expression>
+                      <postfix_expression>
+                        <primary_expression>
+                          <identifier>break</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+,</case_arm>
+
+                  <case_arm>
+                    <pattern>
+                      <literal_pattern>
+                        <number_literal>1</number_literal>
+</literal_pattern>
+</pattern>
+=&gt;
+                    <expression>
+                      <postfix_expression>
+                        <field_expression>
+                          <postfix_expression type="object">
+                            <field_expression>
+                              <postfix_expression type="object">
+                                <primary_expression>
+                                  <identifier>game</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                              <identifier type="field">player_pos</identifier>
+</field_expression>
+</postfix_expression>
+.
+                          <identifier type="field">x</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
+</case_arm>
+
+                  <ERROR>=
+                    <pattern>
+                      <identifier>game</identifier>
+</pattern>
+.
+                    <pattern>
+                      <identifier>player_pos</identifier>
+</pattern>
+.
+                    <pattern>
+                      <identifier>x</identifier>
+</pattern>
+-
+                    <pattern>
+                      <literal_pattern>
+                        <number_literal>1</number_literal>
+</literal_pattern>
+</pattern>
+,</ERROR>
+
+                  <case_arm>
+                    <pattern>
+                      <literal_pattern>
+                        <number_literal>2</number_literal>
+</literal_pattern>
+</pattern>
+=&gt;
+                    <expression>
+                      <postfix_expression>
+                        <field_expression>
+                          <postfix_expression type="object">
+                            <field_expression>
+                              <postfix_expression type="object">
+                                <primary_expression>
+                                  <identifier>game</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                              <identifier type="field">player_pos</identifier>
+</field_expression>
+</postfix_expression>
+.
+                          <identifier type="field">x</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
+</case_arm>
+
+                  <ERROR>=
+                    <pattern>
+                      <identifier>game</identifier>
+</pattern>
+.
+                    <pattern>
+                      <identifier>player_pos</identifier>
+</pattern>
+.
+                    <pattern>
+                      <identifier>x</identifier>
+</pattern>
++
+                    <pattern>
+                      <literal_pattern>
+                        <number_literal>1</number_literal>
+</literal_pattern>
+</pattern>
+,</ERROR>
+
+                  <case_arm>
+                    <pattern>_</pattern>
+=&gt;
+                    <expression>
+                      <postfix_expression>
+                        <primary_expression>
+                          <block>{}</block>
+</primary_expression>
+</postfix_expression>
+</expression>
+,</case_arm>
+}</case_statement>
+</statement>
+
+              <comment>// Update game state</comment>
+
+              <statement>
+                <expression_statement>
+                  <expression>
+                    <postfix_expression>
+                      <call_expression>
+                        <postfix_expression type="function">
+                          <primary_expression>
+                            <identifier>update_game</identifier>
+</primary_expression>
+</postfix_expression>
+(
+                        <argument_list>
+                          <expression>
+                            <unary_expression>&amp;mut
+                              <expression>
+                                <postfix_expression>
+                                  <primary_expression>
+                                    <identifier>game</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+</unary_expression>
+</expression>
+</argument_list>
+)</call_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+
+              <comment>// Render</comment>
+
+              <statement>
+                <expression_statement>
+                  <expression>
+                    <postfix_expression>
+                      <call_expression>
+                        <postfix_expression type="function">
+                          <primary_expression>
+                            <identifier>render</identifier>
+</primary_expression>
+</postfix_expression>
+(
+                        <argument_list>
+                          <expression>
+                            <unary_expression>&amp;
+                              <expression>
+                                <postfix_expression>
+                                  <primary_expression>
+                                    <identifier>game</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+</unary_expression>
+</expression>
+</argument_list>
+)</call_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+
+              <comment>// Check game over</comment>
+
+              <statement>
+                <if_statement>if
+                  <expression>
+                    <binary_expression>
+                      <expression type="left">
+                        <postfix_expression>
+                          <field_expression>
+                            <postfix_expression type="object">
+                              <primary_expression>
+                                <identifier>game</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                            <identifier type="field">lives</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
+==
+                      <expression type="right">
+                        <postfix_expression>
+                          <primary_expression>
+                            <number_literal>0</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+
+                  <block>{
+                    <statement>
+                      <expression_statement>
+                        <expression>
+                          <postfix_expression>
+                            <field_expression>
+                              <postfix_expression type="object">
+                                <field_expression>
+                                  <postfix_expression type="object">
+                                    <primary_expression>
+                                      <identifier>game</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                                  <identifier type="field">status</identifier>
+</field_expression>
+</postfix_expression>
+
+                              <ERROR>=
+                                <identifier>Status</identifier>
+</ERROR>
+.
+                              <identifier type="field">Error</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+
+                    <statement>
+                      <break_statement>break;</break_statement>
+</statement>
+}</block>
+</if_statement>
+</statement>
+}</block>
+</loop_statement>
+</statement>
+
+        <comment>// Cleanup with defer</comment>
+
+        <statement>
+          <defer_statement>defer
+            <statement>
+              <expression_statement>
+                <expression>
+                  <postfix_expression>
+                    <call_expression>
+                      <postfix_expression type="function">
+                        <primary_expression>
+                          <identifier>cleanup</identifier>
+</primary_expression>
+</postfix_expression>
+()</call_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+</defer_statement>
+</statement>
+}</block>
+</function_declaration>
+</declaration>
+
+  <comment>// Function overloading</comment>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>add</identifier>
+(
+      <parameter_list>
+        <parameter>
+          <identifier>a</identifier>
+:
+          <type>
+            <primitive_type>u8</primitive_type>
+</type>
+</parameter>
+,
+        <parameter>
+          <identifier>b</identifier>
+:
+          <type>
+            <primitive_type>u8</primitive_type>
+</type>
+</parameter>
+</parameter_list>
+)
+      <return_type>-&gt;
+        <type>
+          <primitive_type>u8</primitive_type>
+</type>
+</return_type>
+
+      <block>{
+        <statement>
+          <return_statement>return
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>a</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
++
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>b</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+;</return_statement>
+</statement>
+}</block>
+</function_declaration>
+</declaration>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>add</identifier>
+(
+      <parameter_list>
+        <parameter>
+          <identifier>a</identifier>
+:
+          <type>
+            <primitive_type>u16</primitive_type>
+</type>
+</parameter>
+,
+        <parameter>
+          <identifier>b</identifier>
+:
+          <type>
+            <primitive_type>u16</primitive_type>
+</type>
+</parameter>
+</parameter_list>
+)
+      <return_type>-&gt;
+        <type>
+          <primitive_type>u16</primitive_type>
+</type>
+</return_type>
+
+      <block>{
+        <statement>
+          <return_statement>return
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>a</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
++
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>b</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+;</return_statement>
+</statement>
+}</block>
+</function_declaration>
+</declaration>
+
+  <comment>// Inline assembly</comment>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>read_input</identifier>
+()
+      <return_type>-&gt;
+        <type>
+          <primitive_type>u8</primitive_type>
+</type>
+</return_type>
+
+      <block>{
+        <statement>
+          <variable_declaration>let
+            <identifier>result</identifier>
+:
+            <type>
+              <primitive_type>u8</primitive_type>
+</type>
+;</variable_declaration>
+</statement>
+
+        <statement>
+          <expression_statement>
+            <expression>
+              <postfix_expression>
+                <primary_expression>
+                  <inline_assembly>asm(
+                    <string_literal>""</string_literal>
+:
+                    <asm_output_list>
+                      <asm_output>
+                        <string_literal>""</string_literal>
+(
+                        <identifier>result</identifier>
+)</asm_output>
+</asm_output_list>
+)</inline_assembly>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+
+        <statement>
+          <return_statement>return
+            <expression>
+              <postfix_expression>
+                <primary_expression>
+                  <identifier>result</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</return_statement>
+</statement>
+}</block>
+</function_declaration>
+</declaration>
+
+  <comment>// Memory optimization</comment>
+
+  <declaration>
+    <attributed_declaration>
+      <attribute>@
+        <identifier>aligned</identifier>
+(
+        <argument_list>
+          <expression>
+            <postfix_expression>
+              <primary_expression>
+                <number_literal>256</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</argument_list>
+)</attribute>
+
+      <declaration>
+        <constant_declaration>const
+          <identifier>SPRITE_DATA</identifier>
+:
+          <type>
+            <array_type>[
+              <type>
+                <primitive_type>u8</primitive_type>
+</type>
+;
+              <expression>
+                <postfix_expression>
+                  <primary_expression>
+                    <number_literal>8</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+]</array_type>
+</type>
+=
+          <expression>
+            <postfix_expression>
+              <primary_expression>
+                <array_literal>[
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <number_literal>0b00111100</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <number_literal>0b01000010</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <number_literal>0b10100101</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <number_literal>0b10000001</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <number_literal>0b10100101</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <number_literal>0b10011001</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <number_literal>0b01000010</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <number_literal>0b00111100</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <identifier></identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+]</array_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</constant_declaration>
+</declaration>
+</attributed_declaration>
+</declaration>
+
+  <declaration>
+    <attributed_declaration>
+      <attribute>@
+        <identifier>static_buffer</identifier>
+</attribute>
+
+      <declaration>
+        <variable_declaration>letmut
+          <identifier>screen_buffer</identifier>
+:
+          <type>
+            <array_type>[
+              <type>
+                <primitive_type>u8</primitive_type>
+</type>
+;
+              <expression>
+                <postfix_expression>
+                  <primary_expression>
+                    <number_literal>6144</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+]</array_type>
+</type>
+;</variable_declaration>
+</declaration>
+</attributed_declaration>
+</declaration>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>update_game</identifier>
+(
+      <parameter_list>
+        <parameter>
+          <identifier>state</identifier>
+:
+          <type>
+            <pointer_type>*mut
+              <type>
+                <type_identifier>
+                  <identifier>GameState</identifier>
+</type_identifier>
+</type>
+</pointer_type>
+</type>
+</parameter>
+</parameter_list>
+)
+      <return_type>-&gt;
+        <type>
+          <primitive_type>void</primitive_type>
+</type>
+</return_type>
+
+      <block>{
+        <comment>// Update score</comment>
+
+        <statement>
+          <expression_statement>
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <field_expression>
+                      <postfix_expression type="object">
+                        <field_expression>
+                          <postfix_expression type="object">
+                            <primary_expression>
+                              <identifier>state</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                          <identifier type="field">score</identifier>
+</field_expression>
+</postfix_expression>
+
+                      <ERROR>=
+                        <identifier>state</identifier>
+</ERROR>
+.
+                      <identifier type="field">score</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
++
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <number_literal>1</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+;</expression_statement>
+</statement>
+
+        <statement>
+          <if_statement>if
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <field_expression>
+                      <postfix_expression type="object">
+                        <primary_expression>
+                          <identifier>state</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                      <identifier type="field">score</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
+&gt;
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>MAX_SCORE</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+
+            <block>{
+              <statement>
+                <expression_statement>
+                  <expression>
+                    <postfix_expression>
+                      <field_expression>
+                        <postfix_expression type="object">
+                          <primary_expression>
+                            <identifier>state</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                        <identifier type="field">score</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
+
+                  <ERROR>=
+                    <identifier>MAX_SCORE</identifier>
+</ERROR>
+;</expression_statement>
+</statement>
+}</block>
+</if_statement>
+</statement>
+
+        <comment>// Test error handling</comment>
+
+        <statement>
+          <variable_declaration>let
+            <identifier>result</identifier>
+=
+            <expression>
+              <postfix_expression>
+                <try_expression>
+                  <postfix_expression type="expression">
+                    <call_expression>
+                      <postfix_expression type="function">
+                        <primary_expression>
+                          <identifier>safe_divide</identifier>
+</primary_expression>
+</postfix_expression>
+(
+                      <argument_list>
+                        <expression>
+                          <postfix_expression>
+                            <primary_expression>
+                              <number_literal>100</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                        <expression>
+                          <postfix_expression>
+                            <primary_expression>
+                              <number_literal>5</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</argument_list>
+)</call_expression>
+</postfix_expression>
+?</try_expression>
+</postfix_expression>
+</expression>
+;</variable_declaration>
+</statement>
+
+        <comment>// Arrays and loops</comment>
+
+        <statement>
+          <variable_declaration>letmut
+            <identifier>data</identifier>
+:
+            <type>
+              <array_type>[
+                <type>
+                  <primitive_type>u8</primitive_type>
+</type>
+;
+                <expression>
+                  <postfix_expression>
+                    <primary_expression>
+                      <number_literal>10</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+]</array_type>
+</type>
+;</variable_declaration>
+</statement>
+
+        <statement>
+          <for_statement>for
+            <identifier>i</identifier>
+in
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <primary_expression>
+                      <number_literal>0</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+..
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <number_literal>10</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+
+            <block>{
+              <statement>
+                <expression_statement>
+                  <expression>
+                    <postfix_expression>
+                      <cast_expression>
+                        <expression type="expression">
+                          <postfix_expression>
+                            <index_expression>
+                              <postfix_expression type="object">
+                                <primary_expression>
+                                  <identifier>data</identifier>
+</primary_expression>
+</postfix_expression>
+[
+                              <expression type="index">
+                                <postfix_expression>
+                                  <primary_expression>
+                                    <identifier>i</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+]</index_expression>
+</postfix_expression>
+</expression>
+
+                        <ERROR>=
+                          <identifier>i</identifier>
+</ERROR>
+as
+                        <type type="type">
+                          <primitive_type>u8</primitive_type>
+</type>
+</cast_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+}</block>
+</for_statement>
+</statement>
+
+        <comment>// While loop</comment>
+
+        <statement>
+          <variable_declaration>letmut
+            <identifier>count</identifier>
+=
+            <expression>
+              <postfix_expression>
+                <primary_expression>
+                  <number_literal>0</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+;</variable_declaration>
+</statement>
+
+        <statement>
+          <while_statement>while
+            <expression>
+              <binary_expression>
+                <expression type="left">
+                  <postfix_expression>
+                    <primary_expression>
+                      <identifier>count</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+&lt;
+                <expression type="right">
+                  <postfix_expression>
+                    <primary_expression>
+                      <number_literal>10</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+
+            <block>{
+              <statement>
+                <expression_statement>
+                  <expression>
+                    <binary_expression>
+                      <expression type="left">
+                        <postfix_expression>
+                          <primary_expression>
+                            <identifier>count</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+
+                      <ERROR>=
+                        <identifier>count</identifier>
+</ERROR>
++
+                      <expression type="right">
+                        <postfix_expression>
+                          <primary_expression>
+                            <number_literal>1</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+</binary_expression>
+</expression>
+;</expression_statement>
+</statement>
+}</block>
+</while_statement>
+</statement>
+}</block>
+</function_declaration>
+</declaration>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>render</identifier>
+(
+      <parameter_list>
+        <parameter>
+          <identifier>state</identifier>
+:
+          <type>
+            <pointer_type>*const
+              <type>
+                <type_identifier>
+                  <identifier>GameState</identifier>
+</type_identifier>
+</type>
+</pointer_type>
+</type>
+</parameter>
+</parameter_list>
+)
+      <return_type>-&gt;
+        <type>
+          <primitive_type>void</primitive_type>
+</type>
+</return_type>
+
+      <block>{
+        <comment>// Clear screen</comment>
+
+        <statement>
+          <expression_statement>
+            <expression>
+              <postfix_expression>
+                <call_expression>
+                  <postfix_expression type="function">
+                    <primary_expression>
+                      <identifier>clear_screen</identifier>
+</primary_expression>
+</postfix_expression>
+()</call_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+
+        <comment>// Draw player</comment>
+
+        <statement>
+          <expression_statement>
+            <expression>
+              <postfix_expression>
+                <call_expression>
+                  <postfix_expression type="function">
+                    <primary_expression>
+                      <identifier>draw_sprite</identifier>
+</primary_expression>
+</postfix_expression>
+(
+                  <argument_list>
+                    <expression>
+                      <postfix_expression>
+                        <field_expression>
+                          <postfix_expression type="object">
+                            <field_expression>
+                              <postfix_expression type="object">
+                                <primary_expression>
+                                  <identifier>state</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                              <identifier type="field">player_pos</identifier>
+</field_expression>
+</postfix_expression>
+.
+                          <identifier type="field">x</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
+,
+                    <expression>
+                      <postfix_expression>
+                        <field_expression>
+                          <postfix_expression type="object">
+                            <field_expression>
+                              <postfix_expression type="object">
+                                <primary_expression>
+                                  <identifier>state</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                              <identifier type="field">player_pos</identifier>
+</field_expression>
+</postfix_expression>
+.
+                          <identifier type="field">y</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
+,
+                    <expression>
+                      <unary_expression>&amp;
+                        <expression>
+                          <postfix_expression>
+                            <primary_expression>
+                              <identifier>SPRITE_DATA</identifier>
+</primary_expression>
+</postfix_expression>
+</expression>
+</unary_expression>
+</expression>
+</argument_list>
+)</call_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+
+        <comment>// Draw score</comment>
+
+        <statement>
+          <expression_statement>
+            <expression>
+              <postfix_expression>
+                <call_expression>
+                  <postfix_expression type="function">
+                    <primary_expression>
+                      <identifier>draw_number</identifier>
+</primary_expression>
+</postfix_expression>
+(
+                  <argument_list>
+                    <expression>
+                      <postfix_expression>
+                        <primary_expression>
+                          <number_literal>0</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                    <expression>
+                      <postfix_expression>
+                        <primary_expression>
+                          <number_literal>0</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+,
+                    <expression>
+                      <postfix_expression>
+                        <field_expression>
+                          <postfix_expression type="object">
+                            <primary_expression>
+                              <identifier>state</identifier>
+</primary_expression>
+</postfix_expression>
+.
+                          <identifier type="field">score</identifier>
+</field_expression>
+</postfix_expression>
+</expression>
+</argument_list>
+)</call_expression>
+</postfix_expression>
+</expression>
+;</expression_statement>
+</statement>
+}</block>
+</function_declaration>
+</declaration>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>clear_screen</identifier>
+()
+      <return_type>-&gt;
+        <type>
+          <primitive_type>void</primitive_type>
+</type>
+</return_type>
+
+      <block>{
+        <comment>// Implementation</comment>
+}</block>
+</function_declaration>
+</declaration>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>draw_sprite</identifier>
+(
+      <parameter_list>
+        <parameter>
+          <identifier>x</identifier>
+:
+          <type>
+            <primitive_type>i16</primitive_type>
+</type>
+</parameter>
+,
+        <parameter>
+          <identifier>y</identifier>
+:
+          <type>
+            <primitive_type>i16</primitive_type>
+</type>
+</parameter>
+,
+        <parameter>
+          <identifier>data</identifier>
+:
+          <type>
+            <pointer_type>*const
+              <type>
+                <array_type>[
+                  <type>
+                    <primitive_type>u8</primitive_type>
+</type>
+;
+                  <expression>
+                    <postfix_expression>
+                      <primary_expression>
+                        <number_literal>8</number_literal>
+</primary_expression>
+</postfix_expression>
+</expression>
+]</array_type>
+</type>
+</pointer_type>
+</type>
+</parameter>
+</parameter_list>
+)
+      <return_type>-&gt;
+        <type>
+          <primitive_type>void</primitive_type>
+</type>
+</return_type>
+
+      <block>{
+        <comment>// Implementation</comment>
+}</block>
+</function_declaration>
+</declaration>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>draw_number</identifier>
+(
+      <parameter_list>
+        <parameter>
+          <identifier>x</identifier>
+:
+          <type>
+            <primitive_type>i16</primitive_type>
+</type>
+</parameter>
+,
+        <parameter>
+          <identifier>y</identifier>
+:
+          <type>
+            <primitive_type>i16</primitive_type>
+</type>
+</parameter>
+,
+        <parameter>
+          <identifier>num</identifier>
+:
+          <type>
+            <primitive_type>u16</primitive_type>
+</type>
+</parameter>
+</parameter_list>
+)
+      <return_type>-&gt;
+        <type>
+          <primitive_type>void</primitive_type>
+</type>
+</return_type>
+
+      <block>{
+        <comment>// Implementation</comment>
+}</block>
+</function_declaration>
+</declaration>
+
+  <declaration>
+    <function_declaration>fn
+      <identifier>cleanup</identifier>
+()
+      <return_type>-&gt;
+        <type>
+          <primitive_type>void</primitive_type>
+</type>
+</return_type>
+
+      <block>{
+        <comment>// Cleanup code</comment>
+}</block>
+</function_declaration>
+</declaration>
+</source_file>
+
+test.minz	0 ms	(ERROR [77, 35] - [77, 59])

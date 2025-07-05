@@ -1,0 +1,180 @@
+// MinZ v0.8 Test File
+import std.io;
+import hardware.z80 as z80;
+
+// Type aliases
+type Byte = u8;
+type Word = u16;
+type Buffer = [u8; 256];
+
+// Enums
+pub enum Status {
+    Ok,
+    Error,
+    Pending
+}
+
+// Structs
+struct Point {
+    x: i16,
+    y: i16
+}
+
+struct GameState {
+    pub player_pos: Point,
+    pub score: u16,
+    pub lives: u8,
+    status: Status
+}
+
+// Constants
+const MAX_SCORE: u16 = 9999;
+const SCREEN_WIDTH: u16 = 256;
+const SCREEN_HEIGHT: u16 = 192;
+
+// Function with multiple return values
+fn divide(a: u16, b: u16) -> (u16, u16) {
+    if b == 0 {
+        return (0, 0);
+    }
+    
+    let quotient = a / b;
+    let remainder = a % b;
+    return (quotient, remainder);
+}
+
+// Function with error handling
+fn safe_divide(a: u16, b: u16) -> u16 | Error {
+    if b == 0 {
+        return Error.DivisionByZero;
+    }
+    return a / b;
+}
+
+// Main game loop
+pub export fn main() -> void {
+    let mut game = GameState {
+        player_pos: Point { x: 128, y: 96 },
+        score: 0,
+        lives: 3,
+        status: Status.Ok,
+    };
+    
+    // Test metaprogramming
+    @assert(SCREEN_WIDTH == 256, "Screen width must be 256");
+    @print("Starting game...");
+    
+    // Conditional compilation
+    let debug_mode = @if(DEBUG, true, false);
+    
+    // Main loop
+    loop {
+        // Handle input
+        let input = read_input();
+        
+        // Pattern matching
+        case input {
+            0 => break,
+            1 => game.player_pos.x = game.player_pos.x - 1,
+            2 => game.player_pos.x = game.player_pos.x + 1,
+            _ => {},
+        }
+        
+        // Update game state
+        update_game(&mut game);
+        
+        // Render
+        render(&game);
+        
+        // Check game over
+        if game.lives == 0 {
+            game.status = Status.Error;
+            break;
+        }
+    }
+    
+    // Cleanup with defer
+    defer cleanup();
+}
+
+// Function overloading
+fn add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fn add(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+// Inline assembly
+fn read_input() -> u8 {
+    let result: u8;
+    asm("in a, (0xFE)" : "=a"(result));
+    return result;
+}
+
+// Memory optimization
+@aligned(256)
+const SPRITE_DATA: [u8; 8] = [
+    0b00111100,
+    0b01000010,
+    0b10100101,
+    0b10000001,
+    0b10100101,
+    0b10011001,
+    0b01000010,
+    0b00111100,
+];
+
+@static_buffer
+let mut screen_buffer: [u8; 6144];
+
+fn update_game(state: *mut GameState) -> void {
+    // Update score
+    state.score = state.score + 1;
+    if state.score > MAX_SCORE {
+        state.score = MAX_SCORE;
+    }
+    
+    // Test error handling
+    let result = safe_divide(100, 5)?;
+    
+    // Arrays and loops
+    let mut data: [u8; 10];
+    for i in 0..10 {
+        data[i] = i as u8;
+    }
+    
+    // While loop
+    let mut count = 0;
+    while count < 10 {
+        count = count + 1;
+    }
+}
+
+fn render(state: *const GameState) -> void {
+    // Clear screen
+    clear_screen();
+    
+    // Draw player
+    draw_sprite(state.player_pos.x, state.player_pos.y, &SPRITE_DATA);
+    
+    // Draw score
+    draw_number(0, 0, state.score);
+}
+
+fn clear_screen() -> void {
+    // Implementation
+}
+
+fn draw_sprite(x: i16, y: i16, data: *const [u8; 8]) -> void {
+    // Implementation
+}
+
+fn draw_number(x: i16, y: i16, num: u16) -> void {
+    // Implementation
+}
+
+fn cleanup() -> void {
+    // Cleanup code
+}
