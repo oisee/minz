@@ -56,7 +56,7 @@ func compile(sourceFile string) error {
 	projectRoot := filepath.Dir(sourceFile)
 	
 	// Create module manager
-	moduleManager := module.NewModuleManager(projectRoot)
+	_ = module.NewModuleManager(projectRoot)
 
 	// Parse the source file
 	parser := parser.New()

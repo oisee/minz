@@ -71,7 +71,7 @@ func (p *SelfModifyingCodePass) optimizeFunction(fn *ir.Function) bool {
 	
 	// Apply SMC transformation to suitable candidates
 	changed := false
-	for reg, candidate := range p.smcCandidates {
+	for _, candidate := range p.smcCandidates {
 		if p.isSuitableForSMC(candidate, fn) {
 			if p.transformToSMC(candidate, fn) {
 				changed = true
@@ -87,12 +87,13 @@ func (p *SelfModifyingCodePass) analyzeCandidates(fn *ir.Function) {
 	p.smcCandidates = make(map[ir.Register]*SMCCandidate)
 	
 	// First pass: find all constant loads and parameter loads
-	for i, inst := range fn.Instructions {
+	for i := range fn.Instructions {
+		inst := &fn.Instructions[i]
 		switch inst.Op {
 		case ir.OpLoadConst:
 			p.smcCandidates[inst.Dest] = &SMCCandidate{
 				Reg:        inst.Dest,
-				LoadInst:   &fn.Instructions[i],
+				LoadInst:   inst,
 				LoadIndex:  i,
 				IsConstant: true,
 			}
@@ -102,7 +103,7 @@ func (p *SelfModifyingCodePass) analyzeCandidates(fn *ir.Function) {
 			if inst.Src1 < ir.Register(fn.NumParams) {
 				p.smcCandidates[inst.Dest] = &SMCCandidate{
 					Reg:         inst.Dest,
-					LoadInst:    &fn.Instructions[i],
+					LoadInst:    inst,
 					LoadIndex:   i,
 					IsParameter: true,
 				}

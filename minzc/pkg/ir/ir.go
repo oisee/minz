@@ -2,6 +2,72 @@ package ir
 
 import "fmt"
 
+// Z80Register represents a physical Z80 register
+type Z80Register uint32
+
+// Z80 register definitions
+const (
+	// 8-bit registers
+	Z80_A Z80Register = 1 << iota
+	Z80_F
+	Z80_B
+	Z80_C
+	Z80_D
+	Z80_E
+	Z80_H
+	Z80_L
+	
+	// 16-bit register pairs
+	Z80_AF
+	Z80_BC
+	Z80_DE
+	Z80_HL
+	Z80_IX
+	Z80_IY
+	Z80_SP
+	
+	// Shadow registers
+	Z80_A_SHADOW
+	Z80_F_SHADOW
+	Z80_B_SHADOW
+	Z80_C_SHADOW
+	Z80_D_SHADOW
+	Z80_E_SHADOW
+	Z80_H_SHADOW
+	Z80_L_SHADOW
+	Z80_AF_SHADOW
+	Z80_BC_SHADOW
+	Z80_DE_SHADOW
+	Z80_HL_SHADOW
+)
+
+// RegisterSet tracks which Z80 registers are used
+type RegisterSet uint32
+
+// Add adds a register to the set
+func (rs *RegisterSet) Add(reg Z80Register) {
+	*rs |= RegisterSet(reg)
+}
+
+// Contains checks if a register is in the set
+func (rs RegisterSet) Contains(reg Z80Register) bool {
+	return rs&RegisterSet(reg) != 0
+}
+
+// Clear removes all registers from the set
+func (rs *RegisterSet) Clear() {
+	*rs = 0
+}
+
+// Count returns the number of registers in the set
+func (rs RegisterSet) Count() int {
+	count := 0
+	for i := uint32(rs); i != 0; i &= i - 1 {
+		count++
+	}
+	return count
+}
+
 // Opcode represents an IR operation
 type Opcode uint8
 
@@ -226,6 +292,12 @@ type Function struct {
 	IsSMCEnabled bool     // Whether self-modifying code is enabled for this function
 	IsRecursive  bool     // Whether this function is recursive
 	SMCLocations map[string]int // Maps SMC labels to instruction indices
+	
+	// Register usage tracking for optimal prologue/epilogue
+	UsedRegisters    RegisterSet // Which Z80 registers are actually used
+	ModifiedRegisters RegisterSet // Which registers are modified (need saving)
+	CalleeSavedRegs  RegisterSet // Registers this function must preserve
+	MaxStackDepth    int         // Maximum stack depth for this function
 }
 
 // Parameter represents a function parameter

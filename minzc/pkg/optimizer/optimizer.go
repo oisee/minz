@@ -35,8 +35,9 @@ func NewOptimizer(level OptimizationLevel) *Optimizer {
 	
 	// Configure passes based on optimization level
 	if level >= OptLevelBasic {
-		// Basic optimizations
+		// Basic optimizations - always run register analysis first
 		opt.passes = append(opt.passes,
+			NewRegisterAnalysisPass(),
 			NewConstantFoldingPass(),
 			NewDeadCodeEliminationPass(),
 		)

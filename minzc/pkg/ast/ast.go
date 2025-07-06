@@ -452,6 +452,20 @@ func (l *LuaExpression) Pos() Position { return l.StartPos }
 func (l *LuaExpression) End() Position { return l.EndPos }
 func (l *LuaExpression) exprNode()    {}
 
+// LuaExpr is an alias for compatibility
+type LuaExpr = LuaExpression
+
+// StringLiteral represents a string literal
+type StringLiteral struct {
+	Value    string
+	StartPos Position
+	EndPos   Position
+}
+
+func (s *StringLiteral) Pos() Position { return s.StartPos }
+func (s *StringLiteral) End() Position { return s.EndPos }
+func (s *StringLiteral) exprNode()    {}
+
 // LuaEval represents @lua_eval(...) that generates MinZ code
 type LuaEval struct {
 	Code     string

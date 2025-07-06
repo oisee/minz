@@ -1,0 +1,678 @@
+package parser
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strconv"
+	
+	"github.com/minz/minzc/pkg/ast"
+)
+
+// SimpleParser is a basic recursive descent parser for MinZ
+// This is a temporary solution until tree-sitter integration is fixed
+type SimpleParser struct {
+	scanner *bufio.Scanner
+	current string
+	line    int
+	col     int
+	tokens  []Token
+	pos     int
+}
+
+// Token represents a lexical token
+type Token struct {
+	Type   TokenType
+	Value  string
+	Line   int
+	Column int
+}
+
+// TokenType represents the type of a token
+type TokenType int
+
+const (
+	TokenEOF TokenType = iota
+	TokenIdent
+	TokenNumber
+	TokenString
+	TokenKeyword
+	TokenOperator
+	TokenPunc
+	TokenComment
+)
+
+// NewSimpleParser creates a new simple parser
+func NewSimpleParser() *SimpleParser {
+	return &SimpleParser{}
+}
+
+// ParseFile parses a MinZ source file
+func (p *SimpleParser) ParseFile(filename string) (*ast.File, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	
+	// Tokenize the file
+	if err := p.tokenize(file); err != nil {
+		return nil, fmt.Errorf("tokenization error: %w", err)
+	}
+	
+	// Parse tokens into AST
+	return p.parseSourceFile(filename)
+}
+
+// tokenize converts the input into tokens
+func (p *SimpleParser) tokenize(file *os.File) error {
+	scanner := bufio.NewScanner(file)
+	p.line = 1
+	
+	for scanner.Scan() {
+		line := scanner.Text()
+		p.tokenizeLine(line)
+		p.line++
+	}
+	
+	// Add EOF token
+	p.tokens = append(p.tokens, Token{Type: TokenEOF, Line: p.line, Column: 0})
+	
+	return scanner.Err()
+}
+
+// tokenizeLine tokenizes a single line
+func (p *SimpleParser) tokenizeLine(line string) {
+	p.col = 1
+	i := 0
+	
+	for i < len(line) {
+		// Skip whitespace
+		if isSpace(line[i]) {
+			i++
+			p.col++
+			continue
+		}
+		
+		// Comments
+		if i+1 < len(line) && line[i:i+2] == "//" {
+			// Rest of line is comment
+			break
+		}
+		
+		start := i
+		startCol := p.col
+		
+		// Numbers
+		if isDigit(line[i]) {
+			for i < len(line) && (isDigit(line[i]) || line[i] == 'x' || isHexDigit(line[i])) {
+				i++
+				p.col++
+			}
+			p.tokens = append(p.tokens, Token{
+				Type:   TokenNumber,
+				Value:  line[start:i],
+				Line:   p.line,
+				Column: startCol,
+			})
+			continue
+		}
+		
+		// Identifiers and keywords
+		if isAlpha(line[i]) || line[i] == '_' || line[i] == '@' {
+			for i < len(line) && (isAlnum(line[i]) || line[i] == '_') {
+				i++
+				p.col++
+			}
+			value := line[start:i]
+			tokenType := TokenIdent
+			if isKeyword(value) {
+				tokenType = TokenKeyword
+			}
+			p.tokens = append(p.tokens, Token{
+				Type:   tokenType,
+				Value:  value,
+				Line:   p.line,
+				Column: startCol,
+			})
+			continue
+		}
+		
+		// Strings
+		if line[i] == '"' {
+			i++ // skip opening quote
+			p.col++
+			strStart := i
+			for i < len(line) && line[i] != '"' {
+				if line[i] == '\\' && i+1 < len(line) {
+					i++ // skip escaped char
+					p.col++
+				}
+				i++
+				p.col++
+			}
+			if i < len(line) {
+				p.tokens = append(p.tokens, Token{
+					Type:   TokenString,
+					Value:  line[strStart:i],
+					Line:   p.line,
+					Column: startCol,
+				})
+				i++ // skip closing quote
+				p.col++
+			}
+			continue
+		}
+		
+		// Multi-char operators
+		if i+1 < len(line) {
+			twoChar := line[i:i+2]
+			if isOperator(twoChar) {
+				p.tokens = append(p.tokens, Token{
+					Type:   TokenOperator,
+					Value:  twoChar,
+					Line:   p.line,
+					Column: startCol,
+				})
+				i += 2
+				p.col += 2
+				continue
+			}
+		}
+		
+		// Single char operators and punctuation
+		ch := string(line[i])
+		if isOperator(ch) {
+			p.tokens = append(p.tokens, Token{
+				Type:   TokenOperator,
+				Value:  ch,
+				Line:   p.line,
+				Column: startCol,
+			})
+		} else if isPunctuation(ch) {
+			p.tokens = append(p.tokens, Token{
+				Type:   TokenPunc,
+				Value:  ch,
+				Line:   p.line,
+				Column: startCol,
+			})
+		}
+		
+		i++
+		p.col++
+	}
+}
+
+// Parser methods
+
+// parseSourceFile parses the entire source file
+func (p *SimpleParser) parseSourceFile(filename string) (*ast.File, error) {
+	file := &ast.File{
+		Name:         filename,
+		Imports:      []*ast.ImportStmt{},
+		Declarations: []ast.Declaration{},
+		StartPos:     ast.Position{Line: 1, Column: 1},
+	}
+	
+	p.pos = 0
+	
+	// Parse module declaration if present
+	if p.peek().Type == TokenKeyword && p.peek().Value == "module" {
+		p.advance() // consume 'module'
+		if p.peek().Type == TokenIdent {
+			file.ModuleName = p.advance().Value
+		}
+		p.expect(TokenPunc, ";")
+	}
+	
+	// Parse imports and declarations
+	for !p.isAtEnd() {
+		if p.peek().Type == TokenKeyword {
+			switch p.peek().Value {
+			case "import":
+				imp := p.parseImport()
+				if imp != nil {
+					file.Imports = append(file.Imports, imp)
+				}
+			case "fn", "pub":
+				decl := p.parseFunctionDecl()
+				if decl != nil {
+					file.Declarations = append(file.Declarations, decl)
+				}
+			case "struct":
+				decl := p.parseStructDecl()
+				if decl != nil {
+					file.Declarations = append(file.Declarations, decl)
+				}
+			case "let", "mut":
+				decl := p.parseVarDecl()
+				if decl != nil {
+					file.Declarations = append(file.Declarations, decl)
+				}
+			default:
+				p.advance() // skip unknown keyword
+			}
+		} else {
+			p.advance() // skip unknown token
+		}
+	}
+	
+	file.EndPos = ast.Position{Line: p.line, Column: p.col}
+	return file, nil
+}
+
+// parseImport parses an import statement
+func (p *SimpleParser) parseImport() *ast.ImportStmt {
+	p.expect(TokenKeyword, "import")
+	
+	imp := &ast.ImportStmt{
+		StartPos: p.currentPos(),
+	}
+	
+	// Parse import path
+	if p.peek().Type == TokenIdent {
+		imp.Path = p.advance().Value
+	}
+	
+	// Optional alias
+	if p.peek().Type == TokenKeyword && p.peek().Value == "as" {
+		p.advance() // consume 'as'
+		if p.peek().Type == TokenIdent {
+			imp.Alias = p.advance().Value
+		}
+	}
+	
+	p.expect(TokenPunc, ";")
+	imp.EndPos = p.currentPos()
+	
+	return imp
+}
+
+// parseFunctionDecl parses a function declaration
+func (p *SimpleParser) parseFunctionDecl() *ast.FunctionDecl {
+	fn := &ast.FunctionDecl{
+		StartPos: p.currentPos(),
+		Params:   []*ast.Parameter{},
+	}
+	
+	// Check for pub
+	if p.peek().Value == "pub" {
+		fn.IsPublic = true
+		p.advance()
+	}
+	
+	p.expect(TokenKeyword, "fn")
+	
+	// Function name
+	if p.peek().Type == TokenIdent {
+		fn.Name = p.advance().Value
+	}
+	
+	// Parameters
+	p.expect(TokenPunc, "(")
+	for p.peek().Value != ")" && !p.isAtEnd() {
+		param := p.parseParameter()
+		if param != nil {
+			fn.Params = append(fn.Params, param)
+		}
+		
+		if p.peek().Value == "," {
+			p.advance()
+		}
+	}
+	p.expect(TokenPunc, ")")
+	
+	// Return type
+	if p.peek().Value == "->" {
+		p.advance()
+		fn.ReturnType = p.parseType()
+	} else {
+		// Default to void
+		fn.ReturnType = &ast.PrimitiveType{Name: "void"}
+	}
+	
+	// Function body
+	fn.Body = p.parseBlock()
+	fn.EndPos = p.currentPos()
+	
+	return fn
+}
+
+// parseParameter parses a function parameter
+func (p *SimpleParser) parseParameter() *ast.Parameter {
+	param := &ast.Parameter{
+		StartPos: p.currentPos(),
+	}
+	
+	// Parameter name
+	if p.peek().Type == TokenIdent {
+		param.Name = p.advance().Value
+	}
+	
+	// Type
+	p.expect(TokenPunc, ":")
+	param.Type = p.parseType()
+	
+	param.EndPos = p.currentPos()
+	return param
+}
+
+// parseType parses a type
+func (p *SimpleParser) parseType() ast.Type {
+	startPos := p.currentPos()
+	
+	// Pointer types
+	if p.peek().Value == "*" {
+		p.advance()
+		isMut := false
+		if p.peek().Value == "mut" {
+			isMut = true
+			p.advance()
+		}
+		return &ast.PointerType{
+			BaseType:  p.parseType(),
+			IsMutable: isMut,
+			StartPos:  startPos,
+			EndPos:    p.currentPos(),
+		}
+	}
+	
+	// Array types
+	if p.peek().Value == "[" {
+		p.advance()
+		elemType := p.parseType()
+		p.expect(TokenPunc, ";")
+		
+		var size ast.Expression
+		if p.peek().Type == TokenNumber {
+			val, _ := strconv.ParseInt(p.peek().Value, 0, 64)
+			size = &ast.NumberLiteral{
+				Value:    val,
+				StartPos: p.currentPos(),
+				EndPos:   p.currentPos(),
+			}
+			p.advance()
+		}
+		
+		p.expect(TokenPunc, "]")
+		
+		return &ast.ArrayType{
+			ElementType: elemType,
+			Size:        size,
+			StartPos:    startPos,
+			EndPos:      p.currentPos(),
+		}
+	}
+	
+	// Primitive types and type identifiers
+	if p.peek().Type == TokenIdent {
+		name := p.advance().Value
+		if isPrimitiveType(name) {
+			return &ast.PrimitiveType{
+				Name:     name,
+				StartPos: startPos,
+				EndPos:   p.currentPos(),
+			}
+		}
+		return &ast.TypeIdentifier{
+			Name:     name,
+			StartPos: startPos,
+			EndPos:   p.currentPos(),
+		}
+	}
+	
+	return nil
+}
+
+// parseBlock parses a block statement
+func (p *SimpleParser) parseBlock() *ast.BlockStmt {
+	block := &ast.BlockStmt{
+		StartPos:   p.currentPos(),
+		Statements: []ast.Statement{},
+	}
+	
+	p.expect(TokenPunc, "{")
+	
+	for p.peek().Value != "}" && !p.isAtEnd() {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			block.Statements = append(block.Statements, stmt)
+		}
+	}
+	
+	p.expect(TokenPunc, "}")
+	block.EndPos = p.currentPos()
+	
+	return block
+}
+
+// parseStatement parses a statement
+func (p *SimpleParser) parseStatement() ast.Statement {
+	if p.peek().Type == TokenKeyword {
+		switch p.peek().Value {
+		case "return":
+			return p.parseReturnStmt()
+		case "if":
+			return p.parseIfStmt()
+		case "while":
+			return p.parseWhileStmt()
+		case "let", "mut":
+			return p.parseVarDecl()
+		}
+	}
+	
+	// Expression statement or assignment
+	// For now, skip
+	p.advance()
+	return nil
+}
+
+// parseReturnStmt parses a return statement
+func (p *SimpleParser) parseReturnStmt() *ast.ReturnStmt {
+	ret := &ast.ReturnStmt{
+		StartPos: p.currentPos(),
+	}
+	
+	p.expect(TokenKeyword, "return")
+	
+	// Optional return value
+	if p.peek().Value != ";" {
+		ret.Value = p.parseExpression()
+	}
+	
+	p.expect(TokenPunc, ";")
+	ret.EndPos = p.currentPos()
+	
+	return ret
+}
+
+// parseExpression parses an expression (simplified)
+func (p *SimpleParser) parseExpression() ast.Expression {
+	// For now, just parse simple expressions
+	if p.peek().Type == TokenNumber {
+		val, _ := strconv.ParseInt(p.peek().Value, 0, 64)
+		expr := &ast.NumberLiteral{
+			Value:    val,
+			StartPos: p.currentPos(),
+			EndPos:   p.currentPos(),
+		}
+		p.advance()
+		return expr
+	}
+	
+	if p.peek().Type == TokenIdent {
+		expr := &ast.Identifier{
+			Name:     p.peek().Value,
+			StartPos: p.currentPos(),
+			EndPos:   p.currentPos(),
+		}
+		p.advance()
+		return expr
+	}
+	
+	return nil
+}
+
+// Helper methods
+
+func (p *SimpleParser) peek() Token {
+	if p.pos >= len(p.tokens) {
+		return Token{Type: TokenEOF}
+	}
+	return p.tokens[p.pos]
+}
+
+func (p *SimpleParser) advance() Token {
+	tok := p.peek()
+	p.pos++
+	return tok
+}
+
+func (p *SimpleParser) expect(typ TokenType, value string) Token {
+	tok := p.peek()
+	if tok.Type != typ || tok.Value != value {
+		// Error handling - for now just advance
+		p.advance()
+		return tok
+	}
+	return p.advance()
+}
+
+func (p *SimpleParser) isAtEnd() bool {
+	return p.peek().Type == TokenEOF
+}
+
+func (p *SimpleParser) currentPos() ast.Position {
+	tok := p.peek()
+	return ast.Position{
+		Line:   tok.Line,
+		Column: tok.Column,
+	}
+}
+
+// Utility functions
+
+func isSpace(ch byte) bool {
+	return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n'
+}
+
+func isDigit(ch byte) bool {
+	return ch >= '0' && ch <= '9'
+}
+
+func isHexDigit(ch byte) bool {
+	return isDigit(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')
+}
+
+func isAlpha(ch byte) bool {
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
+}
+
+func isAlnum(ch byte) bool {
+	return isAlpha(ch) || isDigit(ch)
+}
+
+func isKeyword(s string) bool {
+	keywords := []string{
+		"fn", "let", "mut", "if", "else", "while", "for", "return",
+		"struct", "enum", "impl", "pub", "mod", "use", "import",
+		"true", "false", "as", "module",
+	}
+	for _, kw := range keywords {
+		if s == kw {
+			return true
+		}
+	}
+	return false
+}
+
+func isPrimitiveType(s string) bool {
+	types := []string{"void", "bool", "u8", "u16", "i8", "i16", "i32", "u32"}
+	for _, t := range types {
+		if s == t {
+			return true
+		}
+	}
+	return false
+}
+
+func isOperator(s string) bool {
+	ops := []string{
+		"==", "!=", "<=", ">=", "<<", ">>", "&&", "||", "->",
+		"+", "-", "*", "/", "%", "&", "|", "^", "!", "~",
+		"<", ">", "=",
+	}
+	for _, op := range ops {
+		if s == op {
+			return true
+		}
+	}
+	return false
+}
+
+func isPunctuation(s string) bool {
+	puncs := []string{
+		"(", ")", "{", "}", "[", "]", ";", ",", ".", ":",
+	}
+	for _, p := range puncs {
+		if s == p {
+			return true
+		}
+	}
+	return false
+}
+
+// Stub implementations for missing statement parsers
+func (p *SimpleParser) parseIfStmt() *ast.IfStmt {
+	// TODO: Implement if statement parsing
+	p.advance() // skip 'if'
+	return nil
+}
+
+func (p *SimpleParser) parseWhileStmt() *ast.WhileStmt {
+	// TODO: Implement while statement parsing
+	p.advance() // skip 'while'
+	return nil
+}
+
+func (p *SimpleParser) parseVarDecl() *ast.VarDecl {
+	varDecl := &ast.VarDecl{
+		StartPos: p.currentPos(),
+	}
+	
+	// Check for mut
+	if p.peek().Value == "mut" {
+		varDecl.IsMutable = true
+		p.advance()
+	} else {
+		p.expect(TokenKeyword, "let")
+	}
+	
+	// Variable name
+	if p.peek().Type == TokenIdent {
+		varDecl.Name = p.advance().Value
+	}
+	
+	// Type annotation
+	if p.peek().Value == ":" {
+		p.advance()
+		varDecl.Type = p.parseType()
+	}
+	
+	// Initializer
+	if p.peek().Value == "=" {
+		p.advance()
+		varDecl.Value = p.parseExpression()
+	}
+	
+	p.expect(TokenPunc, ";")
+	varDecl.EndPos = p.currentPos()
+	
+	return varDecl
+}
+
+func (p *SimpleParser) parseStructDecl() *ast.StructDecl {
+	// TODO: Implement struct declaration parsing
+	p.advance() // skip 'struct'
+	return nil
+}

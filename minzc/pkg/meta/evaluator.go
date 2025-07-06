@@ -7,6 +7,9 @@ import (
 	"github.com/minz/minzc/pkg/ast"
 )
 
+// LuaExpression is an alias for ast.LuaExpression
+type LuaExpression = ast.LuaExpression
+
 // Evaluator performs compile-time evaluation
 type Evaluator struct {
 	constants map[string]Value

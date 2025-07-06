@@ -3,7 +3,6 @@ package codegen
 import (
 	"fmt"
 	"io"
-	"strings"
 	"time"
 
 	"github.com/minz/minzc/pkg/ir"
@@ -125,15 +124,39 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 
 // generatePrologue generates function prologue
 func (g *Z80Generator) generatePrologue(fn *ir.Function) {
-	// Check if function uses shadow registers (e.g., interrupt handler)
-	if g.useShadowRegs {
-		g.emit("    EX AF, AF'    ; Save AF")
-		g.emit("    EXX           ; Save BC, DE, HL")
+	// Generate lean prologue based on actual register usage
+	
+	// For interrupt handlers, save all modified registers
+	if fn.IsInterrupt {
+		g.generateInterruptPrologue(fn)
+		return
 	}
 	
-	// Save frame pointer
-	g.emit("    PUSH IX")
-	g.emit("    LD IX, SP")
+	// Save only the registers we actually modify
+	if fn.ModifiedRegisters.Contains(ir.Z80_AF) {
+		g.emit("    PUSH AF")
+	}
+	if fn.ModifiedRegisters.Contains(ir.Z80_BC) {
+		g.emit("    PUSH BC")
+	}
+	if fn.ModifiedRegisters.Contains(ir.Z80_DE) {
+		g.emit("    PUSH DE")
+	}
+	if fn.ModifiedRegisters.Contains(ir.Z80_HL) {
+		g.emit("    PUSH HL")
+	}
+	
+	// Always save frame pointer for functions with locals or parameters
+	if len(fn.Locals) > 0 || len(fn.Params) > 0 {
+		g.emit("    PUSH IX")
+		g.emit("    LD IX, SP")
+	}
+	
+	// Check if we should use shadow registers for this function
+	if fn.UsedRegisters.Contains(ir.Z80_BC_SHADOW | ir.Z80_DE_SHADOW | ir.Z80_HL_SHADOW) {
+		g.useShadowRegs = true
+		g.emit("    EXX           ; Switch to shadow registers")
+	}
 
 	// Allocate space for locals
 	localSpace := len(fn.Locals) * 2 // 2 bytes per local
@@ -164,21 +187,85 @@ func (g *Z80Generator) generatePrologue(fn *ir.Function) {
 
 // generateEpilogue generates function epilogue
 func (g *Z80Generator) generateEpilogue() {
-	// Restore stack pointer
-	g.emit("    LD SP, IX")
+	// Generate lean epilogue based on what we saved
+	fn := g.currentFunc
 	
-	// Restore frame pointer
-	g.emit("    POP IX")
-	
-	// Restore shadow registers if used
-	if g.useShadowRegs {
-		g.emit("    EXX           ; Restore BC, DE, HL")
-		g.emit("    EX AF, AF'    ; Restore AF")
-		g.emit("    RETI          ; Return from interrupt")
-	} else {
-		// Normal return
-		g.emit("    RET")
+	// For interrupt handlers
+	if fn.IsInterrupt {
+		g.generateInterruptEpilogue(fn)
+		return
 	}
+	
+	// Restore shadow register state if used
+	if g.useShadowRegs {
+		g.emit("    EXX           ; Restore main registers")
+	}
+	
+	// Restore stack frame if we used it
+	if len(fn.Locals) > 0 || len(fn.Params) > 0 {
+		g.emit("    LD SP, IX")
+		g.emit("    POP IX")
+	}
+	
+	// Restore registers in reverse order
+	if fn.ModifiedRegisters.Contains(ir.Z80_HL) {
+		g.emit("    POP HL")
+	}
+	if fn.ModifiedRegisters.Contains(ir.Z80_DE) {
+		g.emit("    POP DE")
+	}
+	if fn.ModifiedRegisters.Contains(ir.Z80_BC) {
+		g.emit("    POP BC")
+	}
+	if fn.ModifiedRegisters.Contains(ir.Z80_AF) {
+		g.emit("    POP AF")
+	}
+	
+	g.emit("    RET")
+}
+
+// generateInterruptPrologue generates prologue for interrupt handlers
+func (g *Z80Generator) generateInterruptPrologue(fn *ir.Function) {
+	// Interrupt handlers must save ALL registers they modify
+	// Use EX and EXX for efficiency when possible
+	
+	if fn.ModifiedRegisters.Contains(ir.Z80_AF) {
+		g.emit("    EX AF, AF'    ; Save AF to shadow")
+	}
+	
+	if fn.ModifiedRegisters.Contains(ir.Z80_BC | ir.Z80_DE | ir.Z80_HL) {
+		g.emit("    EXX           ; Save BC, DE, HL to shadows")
+	}
+	
+	// If we need more than shadow registers can hold, use stack
+	if fn.ModifiedRegisters.Contains(ir.Z80_IX) {
+		g.emit("    PUSH IX")
+	}
+	if fn.ModifiedRegisters.Contains(ir.Z80_IY) {
+		g.emit("    PUSH IY")
+	}
+}
+
+// generateInterruptEpilogue generates epilogue for interrupt handlers
+func (g *Z80Generator) generateInterruptEpilogue(fn *ir.Function) {
+	// Restore in reverse order
+	if fn.ModifiedRegisters.Contains(ir.Z80_IY) {
+		g.emit("    POP IY")
+	}
+	if fn.ModifiedRegisters.Contains(ir.Z80_IX) {
+		g.emit("    POP IX")
+	}
+	
+	if fn.ModifiedRegisters.Contains(ir.Z80_BC | ir.Z80_DE | ir.Z80_HL) {
+		g.emit("    EXX           ; Restore BC, DE, HL")
+	}
+	
+	if fn.ModifiedRegisters.Contains(ir.Z80_AF) {
+		g.emit("    EX AF, AF'    ; Restore AF")
+	}
+	
+	g.emit("    EI            ; Re-enable interrupts")
+	g.emit("    RETI          ; Return from interrupt")
 }
 
 // generateInstruction generates code for a single IR instruction

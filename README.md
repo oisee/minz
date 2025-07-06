@@ -407,24 +407,61 @@ let ptr: *mut u8 = &mut arr[0];
 asm("ld ({0}), a" : : "r"(0x5800));
 ```
 
+## Technical Documentation
+
+### Architecture and Implementation
+
+- **[MinZ Compiler Architecture](docs/minz-compiler-architecture.md)** - Detailed guide to the compiler implementation, including register allocation, optimization passes, and Z80-specific features
+- **[ZVDB Implementation Guide](docs/zvdb-implementation-guide.md)** - Complete documentation of the Zero-Copy Vector Database implementation in MinZ, showcasing advanced optimization techniques
+
+### Examples and Applications
+
+The `examples/` directory contains practical MinZ programs demonstrating:
+- Basic language features and syntax
+- Z80-optimized algorithms
+- ZVDB vector similarity search implementation
+- Register allocation optimization examples
+- Interrupt handlers with shadow register usage
+
 ## Contributing
 
-Contributions are welcome! Please see the [COMPILER_ARCHITECTURE.md](COMPILER_ARCHITECTURE.md) file for details on the compiler's internal structure.
+Contributions are welcome! Please see the technical documentation above for details on the compiler's internal structure.
 
 ## License
 
 MinZ is released under the MIT License. See LICENSE file for details.
 
+## Recent Developments
+
+### Latest Features (2024)
+
+- **✅ Advanced Register Allocation** - Lean prologue/epilogue generation that only saves registers actually used by functions
+- **✅ Shadow Register Optimization** - Automatic use of Z80 alternative registers (EXX, EX AF,AF') for high-performance code
+- **✅ Interrupt Handler Optimization** - Ultra-fast interrupt handlers using shadow registers (16 vs 50+ T-states overhead)
+- **✅ Self-Modifying Code (SMC)** - Runtime optimization of frequently accessed constants and parameters
+- **✅ ZVDB Implementation** - Complete vector similarity search database optimized for Z80 architecture
+- **✅ Register Usage Analysis** - Compile-time tracking of register usage for optimal code generation
+
+### Architecture Highlights
+
+- **Register-aware compilation**: Functions are analyzed for register usage patterns
+- **Z80-specific optimizations**: Takes advantage of unique Z80 features like shadow registers
+- **Memory-efficient design**: Optimized for 64KB address space with smart paging
+- **Performance-critical focus**: Designed for real-time applications and interrupt-driven code
+
 ## Roadmap
 
 - [x] Struct support
-- [x] Enum types
+- [x] Enum types  
 - [x] Module system with imports and visibility
 - [x] Standard library (std.mem, zx.screen, zx.input)
 - [x] Alternative register set support (EXX, EX AF,AF')
 - [x] Lua Metaprogramming (full Lua 5.1 at compile time)
-- [x] Optimization passes (constant folding, dead code, peephole, register allocation)
+- [x] Advanced optimization passes (register allocation, SMC, lean prologue/epilogue)
 - [x] Self-modifying code optimization
+- [x] ZVDB vector database implementation
+- [ ] Inline assembly improvements
+- [ ] Advanced memory management
 - [ ] Debugger support
 - [ ] VS Code extension
 - [ ] Package manager

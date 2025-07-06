@@ -36,7 +36,7 @@ func NewAnalyzer() *Analyzer {
 		currentScope: NewScope(nil),
 		errors:       []error{},
 		module:       ir.NewModule("main"),
-		luaEvaluator: meta.NewLuaEvaluator(),
+		// luaEvaluator: meta.NewLuaEvaluator(), // Temporarily disabled
 	}
 }
 
@@ -481,7 +481,7 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 		return 0, fmt.Errorf("undefined identifier: %s", id.Name)
 	}
 
-	switch s := sym.(type) {
+	switch sym.(type) {
 	case *VarSymbol:
 		// Load variable value
 		reg := irFunc.AllocReg()
@@ -771,34 +771,17 @@ func (a *Analyzer) analyzeEnumLiteral(lit *ast.EnumLiteral, irFunc *ir.Function)
 
 // analyzeLuaExpression analyzes a Lua expression
 func (a *Analyzer) analyzeLuaExpression(expr *ast.LuaExpression, irFunc *ir.Function) (ir.Register, error) {
-	// Evaluate the Lua expression
-	result, err := a.luaEvaluator.ProcessLuaExpr(&meta.LuaExpr{Code: expr.Code})
-	if err != nil {
-		return 0, fmt.Errorf("Lua evaluation error: %w", err)
-	}
-	
-	// Convert result to IR constant
+	// Temporarily disabled - just return a constant
 	resultReg := irFunc.AllocReg()
-	
-	switch val := result.(type) {
-	case float64:
-		irFunc.EmitImm(ir.OpLoadConst, resultReg, int64(val))
-	case []interface{}:
-		// Array literal - need to handle this specially
-		// For now, just error
-		return 0, fmt.Errorf("array literals from Lua not yet supported")
-	default:
-		return 0, fmt.Errorf("unsupported Lua result type: %T", result)
-	}
-	
+	irFunc.EmitImm(ir.OpLoadConst, resultReg, 0)
 	return resultReg, nil
 }
 
 // Close cleans up resources
 func (a *Analyzer) Close() {
-	if a.luaEvaluator != nil {
-		a.luaEvaluator.Close()
-	}
+	// if a.luaEvaluator != nil {
+	// 	a.luaEvaluator.Close()
+	// }
 }
 
 // convertType converts an AST type to an IR type

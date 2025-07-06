@@ -3,7 +3,6 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -23,10 +22,12 @@ func New() *Parser {
 
 // ParseFile parses a MinZ source file and returns an AST
 func (p *Parser) ParseFile(filename string) (*ast.File, error) {
-	// Use the tree-sitter CLI to parse the file to JSON
+	// Try tree-sitter first
 	jsonAST, err := p.parseToJSON(filename)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse file: %w", err)
+		// Fall back to simple parser
+		simpleParser := NewSimpleParser()
+		return simpleParser.ParseFile(filename)
 	}
 
 	// Convert the JSON AST to our Go AST
