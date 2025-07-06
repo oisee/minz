@@ -30,6 +30,10 @@ build/
 minzc/minzc
 minzc/minzc.exe
 
+# Rust build artifacts
+target/
+Cargo.lock
+
 # VS Code extension
 vscode-minz/out/
 vscode-minz/node_modules/

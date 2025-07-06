@@ -113,14 +113,26 @@
     "keybindings": [
       {
         "command": "minz.compile",
-        "key": "ctrl+shift+b",
-        "mac": "cmd+shift+b",
+        "key": "ctrl+alt+b",
+        "mac": "cmd+alt+b",
         "when": "editorLangId == minz"
       },
       {
         "command": "minz.compileOptimized",
-        "key": "ctrl+shift+o",
-        "mac": "cmd+shift+o",
+        "key": "ctrl+alt+o",
+        "mac": "cmd+alt+o",
+        "when": "editorLangId == minz"
+      },
+      {
+        "command": "minz.compileToIR",
+        "key": "ctrl+alt+i",
+        "mac": "cmd+alt+i",
+        "when": "editorLangId == minz"
+      },
+      {
+        "command": "minz.showAST",
+        "key": "ctrl+alt+a",
+        "mac": "cmd+alt+a",
         "when": "editorLangId == minz"
       }
     ],
