@@ -48,6 +48,7 @@ func NewOptimizer(level OptimizationLevel) *Optimizer {
 			NewPeepholeOptimizationPass(),
 			NewRegisterAllocationPass(),
 			NewInliningPass(),
+			NewSelfModifyingCodePass(),
 		)
 	}
 	
@@ -59,6 +60,10 @@ func (o *Optimizer) Optimize(module *ir.Module) error {
 	if o.level == OptLevelNone {
 		return nil
 	}
+	
+	// First, detect recursive functions
+	recursionDetector := NewRecursionDetector()
+	recursionDetector.AnalyzeModule(module)
 	
 	// Keep running passes until no more changes
 	maxIterations := 10

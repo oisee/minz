@@ -26,6 +26,10 @@ const (
 	OpStoreIndex
 	OpMove
 	
+	// Self-modifying code operations
+	OpSMCLoadConst
+	OpSMCStoreConst
+	
 	// Arithmetic
 	OpAdd
 	OpSub
@@ -75,6 +79,8 @@ type Instruction struct {
 	Type         Type
 	Comment      string
 	PhysicalRegs map[string]string // Maps virtual to physical registers
+	SMCLabel     string            // Label for self-modifying code location
+	SMCTarget    string            // Target label for SMC store operations
 }
 
 // Register represents a virtual register
@@ -217,6 +223,9 @@ type Function struct {
 	NumParams    int
 	IsInterrupt  bool
 	NextRegister Register // Same as NextReg but more clearly named
+	IsSMCEnabled bool     // Whether self-modifying code is enabled for this function
+	IsRecursive  bool     // Whether this function is recursive
+	SMCLocations map[string]int // Maps SMC labels to instruction indices
 }
 
 // Parameter represents a function parameter

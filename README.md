@@ -12,6 +12,7 @@ MinZ is a minimal systems programming language designed for Z80-based computers,
 - **Z80 Optimized**: Generates efficient Z80 assembly code
 - **Shadow Registers**: Full support for Z80's alternative register set
 - **Lua Metaprogramming**: Full Lua interpreter at compile time for code generation
+- **Self-Modifying Code**: Advanced optimization using SMC for performance-critical code
 - **Standard Library**: Built-in modules for common operations
 
 ## Language Overview
@@ -242,6 +243,9 @@ make build
 # Enable optimizations
 ./minzc program.minz -O
 
+# Enable self-modifying code optimization
+./minzc program.minz -O --enable-smc
+
 # Enable debug output
 ./minzc program.minz -d
 ```
@@ -419,7 +423,8 @@ MinZ is released under the MIT License. See LICENSE file for details.
 - [x] Standard library (std.mem, zx.screen, zx.input)
 - [x] Alternative register set support (EXX, EX AF,AF')
 - [x] Lua Metaprogramming (full Lua 5.1 at compile time)
-- [ ] Optimization passes (peephole, register allocation)
+- [x] Optimization passes (constant folding, dead code, peephole, register allocation)
+- [x] Self-modifying code optimization
 - [ ] Debugger support
 - [ ] VS Code extension
 - [ ] Package manager

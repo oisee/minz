@@ -229,6 +229,31 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.storeFromHL(inst.Dest)
 		}
 		
+	case ir.OpSMCLoadConst:
+		// Self-modifying code: load constant that can be modified
+		if inst.SMCLabel != "" {
+			g.emit("%s:", inst.SMCLabel)
+		}
+		if inst.Imm < 256 {
+			g.emit("    LD A, %d      ; SMC constant", inst.Imm)
+			g.storeFromA(inst.Dest)
+		} else {
+			g.emit("    LD HL, %d     ; SMC constant", inst.Imm)
+			g.storeFromHL(inst.Dest)
+		}
+		
+	case ir.OpSMCStoreConst:
+		// Self-modifying code: modify a previous SMC constant
+		// Src1 contains the new value
+		// SMCTarget contains the label of the instruction to modify
+		g.loadToHL(inst.Src1)
+		g.emit("    LD (%s+1), HL ; Modify SMC constant", inst.SMCTarget)
+		// For 8-bit values, only modify the low byte
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			g.emit("    LD A, L")
+			g.emit("    LD (%s+1), A  ; Modify SMC 8-bit constant", inst.SMCTarget)
+		}
+		
 	case ir.OpLoadVar:
 		// Load variable - for now, assume it's a local
 		offset := g.getLocalOffset(inst.Dest)

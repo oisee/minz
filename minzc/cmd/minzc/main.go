@@ -14,10 +14,11 @@ import (
 )
 
 var (
-	version   = "0.1.0"
+	version    = "0.1.0"
 	outputFile string
-	optimize  bool
-	debug     bool
+	optimize   bool
+	debug      bool
+	enableSMC  bool
 )
 
 var rootCmd = &cobra.Command{
@@ -38,6 +39,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file (default: input.a80)")
 	rootCmd.Flags().BoolVarP(&optimize, "optimize", "O", false, "enable optimizations")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
+	rootCmd.Flags().BoolVar(&enableSMC, "enable-smc", false, "enable self-modifying code optimization (requires code in RAM)")
 }
 
 func main() {
@@ -76,6 +78,16 @@ func compile(sourceFile string) error {
 		return fmt.Errorf("semantic error: %w", err)
 	}
 	defer analyzer.Close()
+	
+	// Enable SMC for all functions if flag is set
+	if enableSMC {
+		for _, fn := range irModule.Functions {
+			fn.IsSMCEnabled = true
+		}
+		if debug {
+			fmt.Println("Self-modifying code optimization enabled")
+		}
+	}
 
 	// Run optimization passes if requested
 	if optimize {
