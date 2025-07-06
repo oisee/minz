@@ -6,17 +6,25 @@ yarn-error.log*
 
 # Build outputs
 build/
+dist/
 out/
 *.a80
 *.ir
 *.o
 *.exe
+*.a
+*.so
+*.dylib
 
 # Tree-sitter generated files
 src/parser.c
 src/tree_sitter/
 bindings/
 build/
+
+# Package lock files (optional - you might want to keep these)
+# package-lock.json
+# yarn.lock
 
 # MinZ compiler binary
 minzc/minzc
@@ -27,6 +35,10 @@ vscode-minz/out/
 vscode-minz/node_modules/
 vscode-minz/*.vsix
 vscode-minz/.vscode-test/
+
+# Example outputs (optional - uncomment if you want to exclude)
+# examples/*.a80
+# examples/*.ir
 
 # IDE files
 .vscode/
