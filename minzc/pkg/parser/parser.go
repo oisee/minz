@@ -110,6 +110,16 @@ func (p *Parser) jsonToAST(filename string, jsonAST map[string]interface{}) (*as
 			if enumDecl := p.parseEnumDecl(childNode); enumDecl != nil {
 				file.Declarations = append(file.Declarations, enumDecl)
 			}
+		case "lua_block":
+			if luaBlock := p.parseLuaBlock(childNode); luaBlock != nil {
+				// Lua blocks are statements that get processed at compile time
+				// For now, we'll track them separately
+			}
+		case "lua_eval":
+			if luaEval := p.parseLuaEval(childNode); luaEval != nil {
+				// Lua eval generates code, so it acts like a declaration
+				// For now, we'll need special handling in semantic analysis
+			}
 		}
 	}
 
@@ -599,6 +609,8 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 		return p.parseStructLiteral(node)
 	case "error_literal":
 		return p.parseEnumLiteral(node)
+	case "lua_expression":
+		return p.parseLuaExpression(node)
 	}
 	
 	return nil
@@ -803,6 +815,66 @@ func (p *Parser) parseEnumLiteral(node map[string]interface{}) *ast.EnumLiteral 
 	}
 	
 	return enumLit
+}
+
+// parseLuaBlock parses a @lua[[...]] block
+func (p *Parser) parseLuaBlock(node map[string]interface{}) *ast.LuaBlock {
+	luaBlock := &ast.LuaBlock{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	// Extract the Lua code
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		if childNode["type"] == "lua_code" {
+			luaBlock.Code = p.getText(childNode)
+			break
+		}
+	}
+	
+	return luaBlock
+}
+
+// parseLuaExpression parses a @lua(...) expression
+func (p *Parser) parseLuaExpression(node map[string]interface{}) *ast.LuaExpression {
+	luaExpr := &ast.LuaExpression{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	// Extract the Lua code
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		if childNode["type"] == "lua_code" {
+			luaExpr.Code = p.getText(childNode)
+			break
+		}
+	}
+	
+	return luaExpr
+}
+
+// parseLuaEval parses a @lua_eval(...) statement
+func (p *Parser) parseLuaEval(node map[string]interface{}) *ast.LuaEval {
+	luaEval := &ast.LuaEval{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	// Extract the Lua code
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		if childNode["type"] == "lua_code" {
+			luaEval.Code = p.getText(childNode)
+			break
+		}
+	}
+	
+	return luaEval
 }
 
 // Helper functions

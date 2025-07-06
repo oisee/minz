@@ -981,6 +981,51 @@
     }
   },
   {
+    "type": "lua_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "lua_code",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "lua_eval",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "lua_code",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "lua_expression",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "lua_code",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "metaprogramming_expression",
     "named": true,
     "fields": {},
@@ -1002,6 +1047,18 @@
         },
         {
           "type": "compile_time_print",
+          "named": true
+        },
+        {
+          "type": "lua_block",
+          "named": true
+        },
+        {
+          "type": "lua_eval",
+          "named": true
+        },
+        {
+          "type": "lua_expression",
           "named": true
         }
       ]
@@ -1704,6 +1761,14 @@
     "named": false
   },
   {
+    "type": "@lua",
+    "named": false
+  },
+  {
+    "type": "@lua_eval",
+    "named": false
+  },
+  {
     "type": "@print",
     "named": false
   },
@@ -1716,7 +1781,15 @@
     "named": false
   },
   {
+    "type": "[[",
+    "named": false
+  },
+  {
     "type": "]",
+    "named": false
+  },
+  {
+    "type": "]]",
     "named": false
   },
   {
@@ -1826,6 +1899,10 @@
   {
     "type": "loop",
     "named": false
+  },
+  {
+    "type": "lua_code",
+    "named": true
   },
   {
     "type": "mut",

@@ -11,7 +11,7 @@ MinZ is a minimal systems programming language designed for Z80-based computers,
 - **Low-Level Control**: Direct memory access and inline assembly
 - **Z80 Optimized**: Generates efficient Z80 assembly code
 - **Shadow Registers**: Full support for Z80's alternative register set
-- **Metaprogramming**: Compile-time evaluation and code generation
+- **Lua Metaprogramming**: Full Lua interpreter at compile time for code generation
 - **Standard Library**: Built-in modules for common operations
 
 ## Language Overview
@@ -161,27 +161,43 @@ fn main() -> void {
 }
 ```
 
-#### Metaprogramming
+#### Lua Metaprogramming
 ```minz
-// Compile-time constants and evaluation
-const DEBUG: bool = true;
-const MAX_ITEMS: u8 = @if(DEBUG, 32, 128);
+// Full Lua interpreter at compile time
+@lua[[
+    function generate_sine_table()
+        local table = {}
+        for i = 0, 255 do
+            local angle = (i * 2 * math.pi) / 256
+            table[i + 1] = math.floor(math.sin(angle) * 127 + 0.5)
+        end
+        return table
+    end
+    
+    -- Load external data
+    function load_sprite(filename)
+        local file = io.open(filename, "rb")
+        local data = file:read("*all")
+        file:close()
+        return data
+    end
+]]
 
-// Compile-time assertions
-@assert(MAX_ITEMS > 0, "MAX_ITEMS must be positive");
+// Use Lua-generated data
+const SINE_TABLE: [i8; 256] = @lua(generate_sine_table());
 
-// Compile-time code generation
-@const_eval
-fn generate_lookup_table() -> [u8; 256] {
-    let table: [u8; 256];
-    for i in 0..256 {
-        table[i] = (i * i) >> 8;
-    }
-    return table;
-}
+// Generate optimized code
+@lua_eval(generate_fast_multiply(10))  // Generates optimal mul by 10
 
-const SQUARE_TABLE: [u8; 256] = @eval generate_lookup_table();
+// Conditional compilation
+@lua_if(os.getenv("DEBUG") == "1")
+const MAX_SPRITES: u8 = 16;
+@lua_else
+const MAX_SPRITES: u8 = 64;
+@lua_endif
 ```
+
+See [LUA_METAPROGRAMMING.md](LUA_METAPROGRAMMING.md) for the complete guide.
 
 #### Shadow Registers
 ```minz
@@ -402,7 +418,7 @@ MinZ is released under the MIT License. See LICENSE file for details.
 - [x] Module system with imports and visibility
 - [x] Standard library (std.mem, zx.screen, zx.input)
 - [x] Alternative register set support (EXX, EX AF,AF')
-- [x] Metaprogramming (@if, @print, @assert, @eval)
+- [x] Lua Metaprogramming (full Lua 5.1 at compile time)
 - [ ] Optimization passes (peephole, register allocation)
 - [ ] Debugger support
 - [ ] VS Code extension

@@ -563,6 +563,9 @@ module.exports = grammar({
       $.compile_time_print,
       $.compile_time_assert,
       $.attribute,
+      $.lua_block,
+      $.lua_expression,
+      $.lua_eval,
     ),
 
     compile_time_if: $ => seq(
@@ -599,6 +602,30 @@ module.exports = grammar({
         ')',
       )),
     )),
+
+    // Lua metaprogramming
+    lua_block: $ => seq(
+      '@lua',
+      '[[',
+      $.lua_code,
+      ']]',
+    ),
+
+    lua_expression: $ => seq(
+      '@lua',
+      '(',
+      $.lua_code,
+      ')',
+    ),
+
+    lua_eval: $ => seq(
+      '@lua_eval',
+      '(',
+      $.lua_code,
+      ')',
+    ),
+
+    lua_code: $ => /[^(\]\])]+/,
 
     // Import statements
     import_statement: $ => seq(

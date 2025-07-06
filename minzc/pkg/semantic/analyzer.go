@@ -6,6 +6,7 @@ import (
 
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/meta"
 )
 
 // ModuleResolver is an interface for resolving module imports
@@ -26,6 +27,7 @@ type Analyzer struct {
 	module         *ir.Module
 	moduleResolver ModuleResolver
 	currentFile    string
+	luaEvaluator   *meta.LuaEvaluator
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -34,6 +36,7 @@ func NewAnalyzer() *Analyzer {
 		currentScope: NewScope(nil),
 		errors:       []error{},
 		module:       ir.NewModule("main"),
+		luaEvaluator: meta.NewLuaEvaluator(),
 	}
 }
 
@@ -464,6 +467,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeFieldExpr(e, irFunc)
 	case *ast.EnumLiteral:
 		return a.analyzeEnumLiteral(e, irFunc)
+	case *ast.LuaExpression:
+		return a.analyzeLuaExpression(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -762,6 +767,38 @@ func (a *Analyzer) analyzeEnumLiteral(lit *ast.EnumLiteral, irFunc *ir.Function)
 	irFunc.EmitImm(ir.OpLoadConst, resultReg, int64(value))
 	
 	return resultReg, nil
+}
+
+// analyzeLuaExpression analyzes a Lua expression
+func (a *Analyzer) analyzeLuaExpression(expr *ast.LuaExpression, irFunc *ir.Function) (ir.Register, error) {
+	// Evaluate the Lua expression
+	result, err := a.luaEvaluator.ProcessLuaExpr(&meta.LuaExpr{Code: expr.Code})
+	if err != nil {
+		return 0, fmt.Errorf("Lua evaluation error: %w", err)
+	}
+	
+	// Convert result to IR constant
+	resultReg := irFunc.AllocReg()
+	
+	switch val := result.(type) {
+	case float64:
+		irFunc.EmitImm(ir.OpLoadConst, resultReg, int64(val))
+	case []interface{}:
+		// Array literal - need to handle this specially
+		// For now, just error
+		return 0, fmt.Errorf("array literals from Lua not yet supported")
+	default:
+		return 0, fmt.Errorf("unsupported Lua result type: %T", result)
+	}
+	
+	return resultReg, nil
+}
+
+// Close cleans up resources
+func (a *Analyzer) Close() {
+	if a.luaEvaluator != nil {
+		a.luaEvaluator.Close()
+	}
 }
 
 // convertType converts an AST type to an IR type

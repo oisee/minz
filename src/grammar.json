@@ -2869,6 +2869,18 @@
         {
           "type": "SYMBOL",
           "name": "attribute"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lua_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lua_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lua_eval"
         }
       ]
     },
@@ -3034,6 +3046,73 @@
           }
         ]
       }
+    },
+    "lua_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@lua"
+        },
+        {
+          "type": "STRING",
+          "value": "[["
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lua_code"
+        },
+        {
+          "type": "STRING",
+          "value": "]]"
+        }
+      ]
+    },
+    "lua_expression": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@lua"
+        },
+        {
+          "type": "STRING",
+          "value": "("
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lua_code"
+        },
+        {
+          "type": "STRING",
+          "value": ")"
+        }
+      ]
+    },
+    "lua_eval": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@lua_eval"
+        },
+        {
+          "type": "STRING",
+          "value": "("
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lua_code"
+        },
+        {
+          "type": "STRING",
+          "value": ")"
+        }
+      ]
+    },
+    "lua_code": {
+      "type": "PATTERN",
+      "value": "[^(\\]\\])]+"
     },
     "import_statement": {
       "type": "SEQ",

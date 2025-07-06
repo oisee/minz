@@ -429,3 +429,36 @@ type Attribute struct {
 func (a *Attribute) Pos() Position { return a.StartPos }
 func (a *Attribute) End() Position { return a.EndPos }
 func (a *Attribute) exprNode()    {}
+
+// LuaBlock represents @lua[[...]] compile-time Lua code
+type LuaBlock struct {
+	Code     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (l *LuaBlock) Pos() Position { return l.StartPos }
+func (l *LuaBlock) End() Position { return l.EndPos }
+func (l *LuaBlock) stmtNode()     {}
+
+// LuaExpression represents @lua(...) compile-time Lua expression
+type LuaExpression struct {
+	Code     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (l *LuaExpression) Pos() Position { return l.StartPos }
+func (l *LuaExpression) End() Position { return l.EndPos }
+func (l *LuaExpression) exprNode()    {}
+
+// LuaEval represents @lua_eval(...) that generates MinZ code
+type LuaEval struct {
+	Code     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (l *LuaEval) Pos() Position { return l.StartPos }
+func (l *LuaEval) End() Position { return l.EndPos }
+func (l *LuaEval) stmtNode()     {}
