@@ -102,6 +102,14 @@ func (p *Parser) jsonToAST(filename string, jsonAST map[string]interface{}) (*as
 			if varDecl := p.parseVarDecl(childNode); varDecl != nil {
 				file.Declarations = append(file.Declarations, varDecl)
 			}
+		case "struct_declaration":
+			if structDecl := p.parseStructDecl(childNode); structDecl != nil {
+				file.Declarations = append(file.Declarations, structDecl)
+			}
+		case "enum_declaration":
+			if enumDecl := p.parseEnumDecl(childNode); enumDecl != nil {
+				file.Declarations = append(file.Declarations, enumDecl)
+			}
 		}
 	}
 
@@ -195,6 +203,100 @@ func (p *Parser) parseVarDecl(node map[string]interface{}) *ast.VarDecl {
 	varDecl.EndPos = p.getPosition(node, "endPosition")
 	
 	return varDecl
+}
+
+// parseStructDecl parses a struct declaration
+func (p *Parser) parseStructDecl(node map[string]interface{}) *ast.StructDecl {
+	structDecl := &ast.StructDecl{
+		Fields: []*ast.Field{},
+	}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "visibility":
+			if p.getText(childNode) == "pub" {
+				structDecl.IsPublic = true
+			}
+		case "identifier":
+			if structDecl.Name == "" {
+				structDecl.Name = p.getText(childNode)
+			}
+		case "field_declaration":
+			if field := p.parseField(childNode); field != nil {
+				structDecl.Fields = append(structDecl.Fields, field)
+			}
+		}
+	}
+	
+	structDecl.StartPos = p.getPosition(node, "startPosition")
+	structDecl.EndPos = p.getPosition(node, "endPosition")
+	
+	return structDecl
+}
+
+// parseEnumDecl parses an enum declaration
+func (p *Parser) parseEnumDecl(node map[string]interface{}) *ast.EnumDecl {
+	enumDecl := &ast.EnumDecl{
+		Variants: []string{},
+	}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "visibility":
+			if p.getText(childNode) == "pub" {
+				enumDecl.IsPublic = true
+			}
+		case "identifier":
+			if enumDecl.Name == "" {
+				enumDecl.Name = p.getText(childNode)
+			}
+		case "enum_variant":
+			variant := p.getText(childNode)
+			if variant != "" {
+				enumDecl.Variants = append(enumDecl.Variants, variant)
+			}
+		}
+	}
+	
+	enumDecl.StartPos = p.getPosition(node, "startPosition")
+	enumDecl.EndPos = p.getPosition(node, "endPosition")
+	
+	return enumDecl
+}
+
+// parseField parses a struct field
+func (p *Parser) parseField(node map[string]interface{}) *ast.Field {
+	field := &ast.Field{}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "visibility":
+			if p.getText(childNode) == "pub" {
+				field.IsPublic = true
+			}
+		case "identifier":
+			field.Name = p.getText(childNode)
+		case "type":
+			field.Type = p.parseType(childNode)
+		}
+	}
+	
+	field.StartPos = p.getPosition(node, "startPosition")
+	field.EndPos = p.getPosition(node, "endPosition")
+	
+	return field
 }
 
 // parseParameters parses a parameter list
@@ -493,6 +595,10 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 		return p.parseFieldExpr(node)
 	case "index_expression":
 		return p.parseIndexExpr(node)
+	case "struct_literal":
+		return p.parseStructLiteral(node)
+	case "error_literal":
+		return p.parseEnumLiteral(node)
 	}
 	
 	return nil
@@ -623,6 +729,80 @@ func (p *Parser) parseIndexExpr(node map[string]interface{}) *ast.IndexExpr {
 	}
 	
 	return indexExpr
+}
+
+// parseStructLiteral parses a struct literal expression
+func (p *Parser) parseStructLiteral(node map[string]interface{}) *ast.StructLiteral {
+	structLit := &ast.StructLiteral{
+		Fields:   []*ast.FieldInit{},
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "type_identifier":
+			structLit.TypeName = p.getText(childNode)
+		case "field_initializer":
+			if fieldInit := p.parseFieldInit(childNode); fieldInit != nil {
+				structLit.Fields = append(structLit.Fields, fieldInit)
+			}
+		}
+	}
+	
+	return structLit
+}
+
+// parseFieldInit parses a field initialization in a struct literal
+func (p *Parser) parseFieldInit(node map[string]interface{}) *ast.FieldInit {
+	fieldInit := &ast.FieldInit{}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "identifier":
+			if fieldInit.Name == "" {
+				fieldInit.Name = p.getText(childNode)
+			}
+		case "expression":
+			fieldInit.Value = p.parseExpression(childNode)
+		}
+	}
+	
+	return fieldInit
+}
+
+// parseEnumLiteral parses an enum literal (Error.variant style)
+func (p *Parser) parseEnumLiteral(node map[string]interface{}) *ast.EnumLiteral {
+	enumLit := &ast.EnumLiteral{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	children, _ := node["children"].([]interface{})
+	identCount := 0
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		if nodeType == "identifier" {
+			if identCount == 0 {
+				enumLit.EnumName = p.getText(childNode)
+			} else {
+				enumLit.Variant = p.getText(childNode)
+			}
+			identCount++
+		}
+	}
+	
+	return enumLit
 }
 
 // Helper functions

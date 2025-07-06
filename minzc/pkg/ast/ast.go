@@ -131,6 +131,29 @@ func (s *StructType) Pos() Position { return s.StartPos }
 func (s *StructType) End() Position { return s.EndPos }
 func (s *StructType) typeNode()    {}
 
+// EnumType represents enum types
+type EnumType struct {
+	Name     string
+	Variants []string
+	StartPos Position
+	EndPos   Position
+}
+
+func (e *EnumType) Pos() Position { return e.StartPos }
+func (e *EnumType) End() Position { return e.EndPos }
+func (e *EnumType) typeNode()    {}
+
+// TypeIdentifier represents a named type reference
+type TypeIdentifier struct {
+	Name     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (t *TypeIdentifier) Pos() Position { return t.StartPos }
+func (t *TypeIdentifier) End() Position { return t.EndPos }
+func (t *TypeIdentifier) typeNode()    {}
+
 // Field represents a struct field
 type Field struct {
 	Name     string
@@ -167,6 +190,34 @@ func (v *VarDecl) Pos() Position { return v.StartPos }
 func (v *VarDecl) End() Position { return v.EndPos }
 func (v *VarDecl) stmtNode()    {}
 func (v *VarDecl) declNode()    {}
+
+// StructDecl represents a struct declaration
+type StructDecl struct {
+	Name     string
+	Fields   []*Field
+	IsPublic bool
+	StartPos Position
+	EndPos   Position
+}
+
+func (s *StructDecl) Pos() Position { return s.StartPos }
+func (s *StructDecl) End() Position { return s.EndPos }
+func (s *StructDecl) stmtNode()    {}
+func (s *StructDecl) declNode()    {}
+
+// EnumDecl represents an enum declaration
+type EnumDecl struct {
+	Name     string
+	Variants []string
+	IsPublic bool
+	StartPos Position
+	EndPos   Position
+}
+
+func (e *EnumDecl) Pos() Position { return e.StartPos }
+func (e *EnumDecl) End() Position { return e.EndPos }
+func (e *EnumDecl) stmtNode()    {}
+func (e *EnumDecl) declNode()    {}
 
 // ReturnStmt represents a return statement
 type ReturnStmt struct {
@@ -299,3 +350,33 @@ type IndexExpr struct {
 func (i *IndexExpr) Pos() Position { return i.StartPos }
 func (i *IndexExpr) End() Position { return i.EndPos }
 func (i *IndexExpr) exprNode()    {}
+
+// StructLiteral represents a struct literal expression
+type StructLiteral struct {
+	TypeName string
+	Fields   []*FieldInit
+	StartPos Position
+	EndPos   Position
+}
+
+func (s *StructLiteral) Pos() Position { return s.StartPos }
+func (s *StructLiteral) End() Position { return s.EndPos }
+func (s *StructLiteral) exprNode()    {}
+
+// FieldInit represents a field initialization in a struct literal
+type FieldInit struct {
+	Name  string
+	Value Expression
+}
+
+// EnumLiteral represents an enum variant reference
+type EnumLiteral struct {
+	EnumName string
+	Variant  string
+	StartPos Position
+	EndPos   Position
+}
+
+func (e *EnumLiteral) Pos() Position { return e.StartPos }
+func (e *EnumLiteral) End() Position { return e.EndPos }
+func (e *EnumLiteral) exprNode()    {}

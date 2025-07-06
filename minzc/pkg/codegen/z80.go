@@ -266,6 +266,48 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Result is in HL
 		g.storeFromHL(inst.Dest)
 		
+	case ir.OpAlloc:
+		// Allocate memory on stack
+		// For now, just reserve space by adjusting SP
+		g.emit("    LD HL, -%d", inst.Imm)
+		g.emit("    ADD HL, SP")
+		g.emit("    LD SP, HL")
+		// Return pointer in result register
+		g.emit("    EX DE, HL")
+		g.emit("    LD HL, SP")
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpLoadField:
+		// Load field from struct
+		// Src1 = struct pointer, Imm = field offset
+		g.loadToHL(inst.Src1)
+		if inst.Imm > 0 {
+			g.emit("    LD DE, %d", inst.Imm)
+			g.emit("    ADD HL, DE")
+		}
+		// Load value at offset
+		g.emit("    LD E, (HL)")
+		g.emit("    INC HL")
+		g.emit("    LD D, (HL)")
+		g.emit("    EX DE, HL")
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpStoreField:
+		// Store to field in struct
+		// Src1 = struct pointer, Src2 = value, Imm = field offset
+		g.loadToHL(inst.Src1)
+		if inst.Imm > 0 {
+			g.emit("    LD DE, %d", inst.Imm)
+			g.emit("    ADD HL, DE")
+		}
+		g.emit("    PUSH HL")
+		g.loadToHL(inst.Src2)
+		g.emit("    POP DE")
+		// Store value at offset
+		g.emit("    LD (DE), L")
+		g.emit("    INC DE")
+		g.emit("    LD (DE), H")
+		
 	default:
 		return fmt.Errorf("unsupported opcode: %v", inst.Op)
 	}

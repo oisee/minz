@@ -165,6 +165,43 @@ func (t *ArrayType) String() string {
 	return fmt.Sprintf("[%d]%s", t.Length, t.Element.String())
 }
 
+// StructType represents struct types
+type StructType struct {
+	Name       string
+	Fields     map[string]Type
+	FieldOrder []string // Preserves field order for layout
+}
+
+func (t *StructType) Size() int {
+	size := 0
+	for _, fieldName := range t.FieldOrder {
+		size += t.Fields[fieldName].Size()
+	}
+	return size
+}
+
+func (t *StructType) String() string {
+	return t.Name
+}
+
+// EnumType represents enum types
+type EnumType struct {
+	Name     string
+	Variants map[string]int
+}
+
+func (t *EnumType) Size() int {
+	// Enums are represented as u8 or u16 depending on variant count
+	if len(t.Variants) <= 256 {
+		return 1
+	}
+	return 2
+}
+
+func (t *EnumType) String() string {
+	return t.Name
+}
+
 // Function represents a function in IR
 type Function struct {
 	Name         string

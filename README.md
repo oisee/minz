@@ -6,6 +6,7 @@ MinZ is a minimal systems programming language designed for Z80-based computers,
 
 - **Modern Syntax**: Rust-inspired syntax with type inference
 - **Type Safety**: Static typing with compile-time checks
+- **Structured Types**: Structs and enums for organized data
 - **Low-Level Control**: Direct memory access and inline assembly
 - **Z80 Optimized**: Generates efficient Z80 assembly code
 - **Error Handling**: Built-in error types and propagation
@@ -74,6 +75,50 @@ fn sum_array(arr: *u8, len: u8) -> u16 {
     }
     
     return sum;
+}
+```
+
+#### Structs
+```minz
+struct Point {
+    x: i16,
+    y: i16,
+}
+
+struct Player {
+    position: Point,
+    health: u8,
+    score: u16,
+}
+
+fn move_player(player: *mut Player, dx: i16, dy: i16) -> void {
+    player.position.x = player.position.x + dx;
+    player.position.y = player.position.y + dy;
+}
+```
+
+#### Enums
+```minz
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+enum GameState {
+    Menu,
+    Playing,
+    GameOver,
+}
+
+fn turn_right(dir: Direction) -> Direction {
+    case dir {
+        Direction.North => Direction.East,
+        Direction.East => Direction.South,
+        Direction.South => Direction.West,
+        Direction.West => Direction.North,
+    }
 }
 ```
 
@@ -281,11 +326,13 @@ MinZ is released under the MIT License. See LICENSE file for details.
 
 ## Roadmap
 
-- [ ] Struct support
-- [ ] Enum types
+- [x] Struct support
+- [x] Enum types
 - [ ] Module system
 - [ ] Standard library
 - [ ] Optimization passes
+- [ ] Alternative register set support (EXX, EX AF,AF')
+- [ ] Metaprogramming and compile-time evaluation
 - [ ] Debugger support
 - [ ] VS Code extension
 - [ ] Package manager

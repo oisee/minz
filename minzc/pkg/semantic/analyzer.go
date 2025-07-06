@@ -66,6 +66,10 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 		return a.analyzeFunctionDecl(d)
 	case *ast.VarDecl:
 		return a.analyzeVarDecl(d)
+	case *ast.StructDecl:
+		return a.analyzeStructDecl(d)
+	case *ast.EnumDecl:
+		return a.analyzeEnumDecl(d)
 	default:
 		return fmt.Errorf("unsupported declaration type: %T", decl)
 	}
@@ -152,6 +156,67 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 		IsMutable: v.IsMutable,
 	})
 
+	return nil
+}
+
+// analyzeStructDecl analyzes a struct declaration
+func (a *Analyzer) analyzeStructDecl(s *ast.StructDecl) error {
+	// Create struct type
+	fields := make(map[string]ir.Type)
+	fieldOrder := []string{}
+	
+	for _, field := range s.Fields {
+		fieldType, err := a.convertType(field.Type)
+		if err != nil {
+			return fmt.Errorf("invalid type for field %s in struct %s: %w", field.Name, s.Name, err)
+		}
+		
+		if _, exists := fields[field.Name]; exists {
+			return fmt.Errorf("duplicate field %s in struct %s", field.Name, s.Name)
+		}
+		
+		fields[field.Name] = fieldType
+		fieldOrder = append(fieldOrder, field.Name)
+	}
+	
+	// Create struct type
+	structType := &ir.StructType{
+		Name:       s.Name,
+		Fields:     fields,
+		FieldOrder: fieldOrder,
+	}
+	
+	// Register struct type
+	a.currentScope.Define(s.Name, &TypeSymbol{
+		Name: s.Name,
+		Type: structType,
+	})
+	
+	return nil
+}
+
+// analyzeEnumDecl analyzes an enum declaration
+func (a *Analyzer) analyzeEnumDecl(e *ast.EnumDecl) error {
+	// Create enum type
+	enumType := &ir.EnumType{
+		Name:     e.Name,
+		Variants: make(map[string]int),
+	}
+	
+	// Assign values to variants
+	for i, variant := range e.Variants {
+		if _, exists := enumType.Variants[variant]; exists {
+			return fmt.Errorf("duplicate variant %s in enum %s", variant, e.Name)
+		}
+		enumType.Variants[variant] = i
+	}
+	
+	// Register enum type
+	a.currentScope.Define(e.Name, &TypeSymbol{
+		Name: e.Name,
+		Type: enumType,
+	})
+	
 	return nil
 }
 
@@ -345,6 +410,12 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeUnaryExpr(e, irFunc)
 	case *ast.CallExpr:
 		return a.analyzeCallExpr(e, irFunc)
+	case *ast.StructLiteral:
+		return a.analyzeStructLiteral(e, irFunc)
+	case *ast.FieldExpr:
+		return a.analyzeFieldExpr(e, irFunc)
+	case *ast.EnumLiteral:
+		return a.analyzeEnumLiteral(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -520,6 +591,131 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 	return resultReg, nil
 }
 
+// analyzeStructLiteral analyzes a struct literal expression
+func (a *Analyzer) analyzeStructLiteral(lit *ast.StructLiteral, irFunc *ir.Function) (ir.Register, error) {
+	// Look up the struct type
+	sym := a.currentScope.Lookup(lit.TypeName)
+	if sym == nil {
+		return 0, fmt.Errorf("undefined type: %s", lit.TypeName)
+	}
+	
+	typeSym, ok := sym.(*TypeSymbol)
+	if !ok {
+		return 0, fmt.Errorf("%s is not a type", lit.TypeName)
+	}
+	
+	structType, ok := typeSym.Type.(*ir.StructType)
+	if !ok {
+		return 0, fmt.Errorf("%s is not a struct type", lit.TypeName)
+	}
+	
+	// Allocate space for the struct
+	resultReg := irFunc.AllocReg()
+	
+	// TODO: Generate IR for struct allocation
+	// For now, just allocate on stack
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpAlloc,
+		Dest: resultReg,
+		Imm:  int64(structType.Size()),
+		Type: structType,
+		Comment: fmt.Sprintf("Allocate struct %s", lit.TypeName),
+	})
+	
+	// Initialize fields
+	for _, fieldInit := range lit.Fields {
+		// Check field exists
+		fieldType, exists := structType.Fields[fieldInit.Name]
+		if !exists {
+			return 0, fmt.Errorf("no field %s in struct %s", fieldInit.Name, lit.TypeName)
+		}
+		
+		// Analyze field value
+		valueReg, err := a.analyzeExpression(fieldInit.Value, irFunc)
+		if err != nil {
+			return 0, err
+		}
+		
+		// Calculate field offset
+		offset := 0
+		for _, fname := range structType.FieldOrder {
+			if fname == fieldInit.Name {
+				break
+			}
+			offset += structType.Fields[fname].Size()
+		}
+		
+		// Store to field
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpStoreField,
+			Src1: resultReg,
+			Src2: valueReg,
+			Imm:  int64(offset),
+			Type: fieldType,
+			Comment: fmt.Sprintf("Store to %s.%s", lit.TypeName, fieldInit.Name),
+		})
+	}
+	
+	return resultReg, nil
+}
+
+// analyzeFieldExpr analyzes a field access expression
+func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Analyze the object
+	objReg, err := a.analyzeExpression(field.Object, irFunc)
+	if err != nil {
+		return 0, err
+	}
+	
+	// Get object type - for now, assume it's a struct
+	// TODO: Proper type tracking for registers
+	
+	// Allocate result register
+	resultReg := irFunc.AllocReg()
+	
+	// Generate field load
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoadField,
+		Dest: resultReg,
+		Src1: objReg,
+		Symbol: field.Field,
+		Comment: fmt.Sprintf("Load field %s", field.Field),
+	})
+	
+	return resultReg, nil
+}
+
+// analyzeEnumLiteral analyzes an enum literal
+func (a *Analyzer) analyzeEnumLiteral(lit *ast.EnumLiteral, irFunc *ir.Function) (ir.Register, error) {
+	// Look up the enum type
+	sym := a.currentScope.Lookup(lit.EnumName)
+	if sym == nil {
+		return 0, fmt.Errorf("undefined enum: %s", lit.EnumName)
+	}
+	
+	typeSym, ok := sym.(*TypeSymbol)
+	if !ok {
+		return 0, fmt.Errorf("%s is not a type", lit.EnumName)
+	}
+	
+	enumType, ok := typeSym.Type.(*ir.EnumType)
+	if !ok {
+		return 0, fmt.Errorf("%s is not an enum type", lit.EnumName)
+	}
+	
+	// Get variant value
+	value, exists := enumType.Variants[lit.Variant]
+	if !exists {
+		return 0, fmt.Errorf("no variant %s in enum %s", lit.Variant, lit.EnumName)
+	}
+	
+	// Generate constant load
+	resultReg := irFunc.AllocReg()
+	irFunc.EmitImm(ir.OpLoadConst, resultReg, int64(value))
+	
+	return resultReg, nil
+}
+
 // convertType converts an AST type to an IR type
 func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 	switch t := astType.(type) {
@@ -559,6 +755,17 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 			}, nil
 		}
 		return nil, fmt.Errorf("array size must be a constant")
+	case *ast.TypeIdentifier:
+		// Look up the type in the symbol table
+		sym := a.currentScope.Lookup(t.Name)
+		if sym == nil {
+			return nil, fmt.Errorf("undefined type: %s", t.Name)
+		}
+		typeSym, ok := sym.(*TypeSymbol)
+		if !ok {
+			return nil, fmt.Errorf("%s is not a type", t.Name)
+		}
+		return typeSym.Type, nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %T", astType)
 	}
