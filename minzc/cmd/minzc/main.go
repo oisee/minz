@@ -7,6 +7,7 @@ import (
 
 	"github.com/minz/minzc/pkg/codegen"
 	"github.com/minz/minzc/pkg/module"
+	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/semantic"
 	"github.com/spf13/cobra"
@@ -73,6 +74,24 @@ func compile(sourceFile string) error {
 	irModule, err := analyzer.Analyze(astFile)
 	if err != nil {
 		return fmt.Errorf("semantic error: %w", err)
+	}
+	defer analyzer.Close()
+
+	// Run optimization passes if requested
+	if optimize {
+		level := optimizer.OptLevelBasic
+		if optimize { // Could add -O2 flag for full optimization
+			level = optimizer.OptLevelFull
+		}
+		
+		opt := optimizer.NewOptimizer(level)
+		if err := opt.Optimize(irModule); err != nil {
+			return fmt.Errorf("optimization error: %w", err)
+		}
+		
+		if debug {
+			fmt.Println("Optimization completed")
+		}
 	}
 
 	// Determine output filename

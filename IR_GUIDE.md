@@ -235,17 +235,13 @@ Z80: CALL func
      LD (IX-offset), HL   ; Return value in HL
 ```
 
-## Optimization Opportunities
+## Optimization Passes
 
-The IR enables several optimizations:
+The MinZ compiler implements several optimization passes that operate on the IR:
 
-1. **Constant Folding**: Evaluate constant expressions at compile time
-2. **Dead Code Elimination**: Remove unreachable code
-3. **Common Subexpression Elimination**: Reuse computed values
-4. **Register Allocation**: Minimize memory accesses
-5. **Peephole Optimization**: Replace instruction sequences with more efficient ones
+### 1. Constant Folding
 
-Example optimization:
+Evaluates constant expressions at compile time:
 ```
 ; Before optimization
 r1 = 10
@@ -257,6 +253,99 @@ store x, r3
 r1 = 30
 store x, r1
 ```
+
+The pass also handles:
+- Arithmetic operations: `+`, `-`, `*`, `/`, `%`
+- Bitwise operations: `&`, `|`, `^`, `<<`, `>>`
+- Comparisons: `==`, `!=`, `<`, `>`, `<=`, `>=`
+- Conditional jumps with constant conditions
+
+### 2. Dead Code Elimination
+
+Removes instructions that don't affect program output:
+```
+; Before optimization
+r1 = 10
+r2 = 20
+r3 = r1 + r2    ; Result never used
+return r1
+
+; After dead code elimination
+r1 = 10
+return r1
+```
+
+Also removes:
+- Unreachable code after returns/jumps
+- Unused labels
+- Redundant jumps to the next instruction
+
+### 3. Peephole Optimization
+
+Applies Z80-specific pattern matching for better code:
+
+**Load Zero Optimization:**
+```
+; Before
+r1 = 0           ; LD A, 0 (2 bytes, 7 cycles)
+
+; After  
+r1 = r1 ^ r1     ; XOR A, A (1 byte, 4 cycles)
+```
+
+**Increment/Decrement Optimization:**
+```
+; Before
+r1 = 1
+r2 = r3 + r1     ; ADD with constant 1
+
+; After
+r2 = inc r3      ; INC instruction (faster)
+```
+
+**Multiply by Power of 2:**
+```
+; Before
+r1 = 8
+r2 = r3 * r1     ; Multiply by 8
+
+; After
+r1 = 3
+r2 = r3 << r1    ; Shift left by 3 (8 = 2^3)
+```
+
+### 4. Register Allocation
+
+Maps virtual registers to Z80 physical registers using a linear scan algorithm:
+
+- Computes live ranges for each virtual register
+- Assigns physical registers based on usage patterns
+- Spills to memory when necessary
+- Considers 8-bit vs 16-bit operations
+
+Available Z80 registers:
+- 8-bit: A, B, C, D, E, H, L
+- 16-bit pairs: BC, DE, HL
+
+### 5. Function Inlining
+
+Replaces small function calls with their bodies:
+```
+; Before inlining
+r1 = 5
+r2 = 3
+r3 = call add    ; Function call overhead
+
+; After inlining
+r1 = 5
+r2 = 3
+r3 = r1 + r2     ; Direct computation
+```
+
+Inlining criteria:
+- Function size < 10 instructions
+- No recursive calls
+- No loops in function body
 
 ## Future Enhancements
 
@@ -277,14 +366,65 @@ To see the IR for a MinZ program (when debug mode is enabled):
 minzc -d program.minz
 ```
 
+### Optimization Levels
+
+The compiler supports different optimization levels:
+- **No optimization** (default): Fast compilation, easier debugging
+- **-O**: Basic optimizations (constant folding, dead code elimination)
+- **-O** (full): All optimizations including peephole, register allocation, and inlining
+
+Example:
+```bash
+minzc -O program.minz    # Enable optimizations
+minzc -d -O program.minz # Debug output with optimizations
+```
+
 ### IR Passes
 
 The compiler performs these passes on the IR:
 1. **Generation**: AST → IR
 2. **Validation**: Ensure IR is well-formed
-3. **Optimization**: Apply optimizations
+3. **Optimization**: Apply enabled optimization passes
 4. **Register Allocation**: Assign virtual to physical registers
 5. **Code Generation**: IR → Z80 assembly
+
+### Writing New Optimization Passes
+
+To add a new optimization pass:
+
+1. Implement the `Pass` interface:
+```go
+type MyPass struct {}
+
+func (p *MyPass) Name() string {
+    return "My Optimization"
+}
+
+func (p *MyPass) Run(module *ir.Module) (bool, error) {
+    changed := false
+    for _, function := range module.Functions {
+        // Transform function IR
+        if optimizeFunction(function) {
+            changed = true
+        }
+    }
+    return changed, nil
+}
+```
+
+2. Add to the optimizer configuration:
+```go
+// In optimizer.go
+if level >= OptLevelBasic {
+    opt.passes = append(opt.passes, NewMyPass())
+}
+```
+
+3. Consider these guidelines:
+   - Preserve program semantics
+   - Track whether changes were made
+   - Handle all IR instruction types
+   - Test with the optimizer test suite
 
 ## Example: Complete Program Flow
 

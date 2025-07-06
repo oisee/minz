@@ -24,6 +24,7 @@ const (
 	OpStoreField
 	OpLoadIndex
 	OpStoreIndex
+	OpMove
 	
 	// Arithmetic
 	OpAdd
@@ -32,6 +33,8 @@ const (
 	OpDiv
 	OpMod
 	OpNeg
+	OpInc
+	OpDec
 	
 	// Bitwise
 	OpAnd
@@ -62,15 +65,16 @@ const (
 
 // Instruction represents a single IR instruction
 type Instruction struct {
-	Op       Opcode
-	Dest     Register
-	Src1     Register
-	Src2     Register
-	Imm      int64
-	Label    string
-	Symbol   string
-	Type     Type
-	Comment  string
+	Op           Opcode
+	Dest         Register
+	Src1         Register
+	Src2         Register
+	Imm          int64
+	Label        string
+	Symbol       string
+	Type         Type
+	Comment      string
+	PhysicalRegs map[string]string // Maps virtual to physical registers
 }
 
 // Register represents a virtual register
@@ -210,6 +214,9 @@ type Function struct {
 	Locals       []Local
 	Instructions []Instruction
 	NextReg      Register
+	NumParams    int
+	IsInterrupt  bool
+	NextRegister Register // Same as NextReg but more clearly named
 }
 
 // Parameter represents a function parameter
@@ -230,9 +237,10 @@ type Local struct {
 // NewFunction creates a new IR function
 func NewFunction(name string, returnType Type) *Function {
 	return &Function{
-		Name:       name,
-		ReturnType: returnType,
-		NextReg:    1, // Start from 1, 0 is reserved
+		Name:         name,
+		ReturnType:   returnType,
+		NextReg:      1, // Start from 1, 0 is reserved
+		NextRegister: 1, // Same as NextReg
 	}
 }
 
@@ -251,6 +259,7 @@ func (f *Function) AddParam(name string, typ Type) Register {
 		Type: typ,
 		Reg:  reg,
 	})
+	f.NumParams++
 	return reg
 }
 
