@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/minz/minzc/pkg/codegen"
+	"github.com/minz/minzc/pkg/module"
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/semantic"
 	"github.com/spf13/cobra"
@@ -48,6 +49,12 @@ func main() {
 func compile(sourceFile string) error {
 	fmt.Printf("Compiling %s...\n", sourceFile)
 
+	// Find project root (directory containing the source file or its parent)
+	projectRoot := filepath.Dir(sourceFile)
+	
+	// Create module manager
+	moduleManager := module.NewModuleManager(projectRoot)
+
 	// Parse the source file
 	parser := parser.New()
 	astFile, err := parser.ParseFile(sourceFile)
@@ -55,8 +62,14 @@ func compile(sourceFile string) error {
 		return fmt.Errorf("parse error: %w", err)
 	}
 
-	// Perform semantic analysis
+	// Set up module name if not explicitly declared
+	if astFile.ModuleName == "" {
+		astFile.ModuleName = module.ExtractModuleName(sourceFile)
+	}
+
+	// Perform semantic analysis with module support
 	analyzer := semantic.NewAnalyzer()
+	// TODO: Set module resolver on analyzer
 	irModule, err := analyzer.Analyze(astFile)
 	if err != nil {
 		return fmt.Errorf("semantic error: %w", err)

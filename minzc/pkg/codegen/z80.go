@@ -17,6 +17,7 @@ type Z80Generator struct {
 	regAlloc      *RegisterAllocator
 	stackOffset   int
 	labelCounter  int
+	useShadowRegs bool // Whether to use shadow registers for current function
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -124,6 +125,12 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 
 // generatePrologue generates function prologue
 func (g *Z80Generator) generatePrologue(fn *ir.Function) {
+	// Check if function uses shadow registers (e.g., interrupt handler)
+	if g.useShadowRegs {
+		g.emit("    EX AF, AF'    ; Save AF")
+		g.emit("    EXX           ; Save BC, DE, HL")
+	}
+	
 	// Save frame pointer
 	g.emit("    PUSH IX")
 	g.emit("    LD IX, SP")
@@ -163,8 +170,15 @@ func (g *Z80Generator) generateEpilogue() {
 	// Restore frame pointer
 	g.emit("    POP IX")
 	
-	// Return
-	g.emit("    RET")
+	// Restore shadow registers if used
+	if g.useShadowRegs {
+		g.emit("    EXX           ; Restore BC, DE, HL")
+		g.emit("    EX AF, AF'    ; Restore AF")
+		g.emit("    RETI          ; Return from interrupt")
+	} else {
+		// Normal return
+		g.emit("    RET")
+	}
 }
 
 // generateInstruction generates code for a single IR instruction

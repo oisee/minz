@@ -7,10 +7,12 @@ MinZ is a minimal systems programming language designed for Z80-based computers,
 - **Modern Syntax**: Rust-inspired syntax with type inference
 - **Type Safety**: Static typing with compile-time checks
 - **Structured Types**: Structs and enums for organized data
+- **Module System**: Organize code with imports and visibility control
 - **Low-Level Control**: Direct memory access and inline assembly
 - **Z80 Optimized**: Generates efficient Z80 assembly code
-- **Error Handling**: Built-in error types and propagation
+- **Shadow Registers**: Full support for Z80's alternative register set
 - **Metaprogramming**: Compile-time evaluation and code generation
+- **Standard Library**: Built-in modules for common operations
 
 ## Language Overview
 
@@ -129,6 +131,75 @@ fn set_border_color(color: u8) -> void {
         ld a, {0}
         out ($fe), a
     " : : "r"(color));
+}
+```
+
+#### Modules and Imports
+```minz
+// math/vector.minz
+module math.vector;
+
+pub struct Vec2 {
+    x: i16,
+    y: i16,
+}
+
+pub fn add(a: Vec2, b: Vec2) -> Vec2 {
+    return Vec2 { x: a.x + b.x, y: a.y + b.y };
+}
+
+// main.minz
+import math.vector;
+import zx.screen;
+
+fn main() -> void {
+    let v1 = vector.Vec2 { x: 10, y: 20 };
+    let v2 = vector.Vec2 { x: 5, y: 3 };
+    let sum = vector.add(v1, v2);
+    
+    screen.set_border(screen.BLUE);
+}
+```
+
+#### Metaprogramming
+```minz
+// Compile-time constants and evaluation
+const DEBUG: bool = true;
+const MAX_ITEMS: u8 = @if(DEBUG, 32, 128);
+
+// Compile-time assertions
+@assert(MAX_ITEMS > 0, "MAX_ITEMS must be positive");
+
+// Compile-time code generation
+@const_eval
+fn generate_lookup_table() -> [u8; 256] {
+    let table: [u8; 256];
+    for i in 0..256 {
+        table[i] = (i * i) >> 8;
+    }
+    return table;
+}
+
+const SQUARE_TABLE: [u8; 256] = @eval generate_lookup_table();
+```
+
+#### Shadow Registers
+```minz
+// Interrupt handler using shadow registers
+@interrupt
+@shadow_registers
+fn vblank_handler() -> void {
+    // Automatically uses EXX and EX AF,AF'
+    // No need to save/restore registers manually
+    frame_counter = frame_counter + 1;
+    update_animations();
+}
+
+// Fast operations with shadow registers
+@shadow
+fn fast_copy(dst: *mut u8, src: *u8, len: u16) -> void {
+    // Can use both main and shadow register sets
+    // for maximum performance
 }
 ```
 
@@ -328,11 +399,11 @@ MinZ is released under the MIT License. See LICENSE file for details.
 
 - [x] Struct support
 - [x] Enum types
-- [ ] Module system
-- [ ] Standard library
-- [ ] Optimization passes
-- [ ] Alternative register set support (EXX, EX AF,AF')
-- [ ] Metaprogramming and compile-time evaluation
+- [x] Module system with imports and visibility
+- [x] Standard library (std.mem, zx.screen, zx.input)
+- [x] Alternative register set support (EXX, EX AF,AF')
+- [x] Metaprogramming (@if, @print, @assert, @eval)
+- [ ] Optimization passes (peephole, register allocation)
 - [ ] Debugger support
 - [ ] VS Code extension
 - [ ] Package manager

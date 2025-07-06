@@ -37,6 +37,15 @@ type TypeSymbol struct {
 
 func (t *TypeSymbol) symbol() {}
 
+// NamespaceSymbol represents an imported module namespace
+type NamespaceSymbol struct {
+	Name    string
+	Module  string
+	Exports map[string]Symbol
+}
+
+func (n *NamespaceSymbol) symbol() {}
+
 // Scope represents a lexical scope
 type Scope struct {
 	parent  *Scope

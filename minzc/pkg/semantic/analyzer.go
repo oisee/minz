@@ -2,16 +2,30 @@ package semantic
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/ir"
 )
 
+// ModuleResolver is an interface for resolving module imports
+type ModuleResolver interface {
+	ResolveModule(path string) (*ModuleInfo, error)
+}
+
+// ModuleInfo contains information about an imported module
+type ModuleInfo struct {
+	Name    string
+	Exports map[string]Symbol
+}
+
 // Analyzer performs semantic analysis on the AST
 type Analyzer struct {
-	currentScope *Scope
-	errors       []error
-	module       *ir.Module
+	currentScope   *Scope
+	errors         []error
+	module         *ir.Module
+	moduleResolver ModuleResolver
+	currentFile    string
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -30,8 +44,9 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 
 	// Process imports
 	for _, imp := range file.Imports {
-		// TODO: Handle imports
-		_ = imp
+		if err := a.processImport(imp); err != nil {
+			a.errors = append(a.errors, err)
+		}
 	}
 
 	// Process declarations
@@ -57,6 +72,39 @@ func (a *Analyzer) addBuiltins() {
 	a.currentScope.Define("i16", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeI16}})
 	a.currentScope.Define("bool", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeBool}})
 	a.currentScope.Define("void", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeVoid}})
+}
+
+// processImport processes an import statement
+func (a *Analyzer) processImport(imp *ast.ImportStmt) error {
+	// For now, just track the import
+	// Full module resolution will be implemented with the module system
+	
+	// Check if we have a module resolver
+	if a.moduleResolver != nil {
+		modInfo, err := a.moduleResolver.ResolveModule(imp.Path)
+		if err != nil {
+			return fmt.Errorf("failed to import %s: %w", imp.Path, err)
+		}
+		
+		// Import symbols into current scope
+		importName := imp.Alias
+		if importName == "" {
+			// Use last part of module path as default name
+			parts := strings.Split(imp.Path, ".")
+			importName = parts[len(parts)-1]
+		}
+		
+		// Create a namespace for the import
+		namespace := &NamespaceSymbol{
+			Name:    importName,
+			Module:  imp.Path,
+			Exports: modInfo.Exports,
+		}
+		
+		a.currentScope.Define(importName, namespace)
+	}
+	
+	return nil
 }
 
 // analyzeDeclaration analyzes a declaration

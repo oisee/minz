@@ -15,11 +15,12 @@ type Position struct {
 
 // File represents a MinZ source file
 type File struct {
-	Name        string
-	Imports     []*ImportStmt
+	Name         string
+	ModuleName   string        // Explicit module declaration (optional)
+	Imports      []*ImportStmt
 	Declarations []Declaration
-	StartPos    Position
-	EndPos      Position
+	StartPos     Position
+	EndPos       Position
 }
 
 func (f *File) Pos() Position { return f.StartPos }
@@ -380,3 +381,51 @@ type EnumLiteral struct {
 func (e *EnumLiteral) Pos() Position { return e.StartPos }
 func (e *EnumLiteral) End() Position { return e.EndPos }
 func (e *EnumLiteral) exprNode()    {}
+
+// CompileTimeIf represents @if compile-time conditional
+type CompileTimeIf struct {
+	Condition Expression
+	ThenExpr  Expression
+	ElseExpr  Expression // Optional
+	StartPos  Position
+	EndPos    Position
+}
+
+func (c *CompileTimeIf) Pos() Position { return c.StartPos }
+func (c *CompileTimeIf) End() Position { return c.EndPos }
+func (c *CompileTimeIf) exprNode()    {}
+
+// CompileTimePrint represents @print compile-time output
+type CompileTimePrint struct {
+	Message  string
+	StartPos Position
+	EndPos   Position
+}
+
+func (c *CompileTimePrint) Pos() Position { return c.StartPos }
+func (c *CompileTimePrint) End() Position { return c.EndPos }
+func (c *CompileTimePrint) exprNode()    {}
+
+// CompileTimeAssert represents @assert compile-time assertion
+type CompileTimeAssert struct {
+	Condition Expression
+	Message   string // Optional
+	StartPos  Position
+	EndPos    Position
+}
+
+func (c *CompileTimeAssert) Pos() Position { return c.StartPos }
+func (c *CompileTimeAssert) End() Position { return c.EndPos }
+func (c *CompileTimeAssert) exprNode()    {}
+
+// Attribute represents @attribute declarations
+type Attribute struct {
+	Name      string
+	Arguments []Expression
+	StartPos  Position
+	EndPos    Position
+}
+
+func (a *Attribute) Pos() Position { return a.StartPos }
+func (a *Attribute) End() Position { return a.EndPos }
+func (a *Attribute) exprNode()    {}
