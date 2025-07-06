@@ -1,0 +1,56 @@
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+build/
+out/
+*.a80
+*.ir
+*.o
+*.exe
+
+# Tree-sitter generated files
+src/parser.c
+src/tree_sitter/
+bindings/
+build/
+
+# MinZ compiler binary
+minzc/minzc
+minzc/minzc.exe
+
+# VS Code extension
+vscode-minz/out/
+vscode-minz/node_modules/
+vscode-minz/*.vsix
+vscode-minz/.vscode-test/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test outputs
+test-output/
+*.test
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Coverage
+coverage/
+*.lcov
+
+# Debug files
+*.dSYM/

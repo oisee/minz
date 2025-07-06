@@ -220,34 +220,50 @@ fn fast_copy(dst: *mut u8, src: *u8, len: u16) -> void {
 }
 ```
 
+## Installation
+
+See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/minz-lang/minz.git
+cd minz
+
+# Install dependencies and build
+npm install -g tree-sitter-cli
+npm install
+tree-sitter generate
+cd minzc && make build
+
+# Install VS Code extension
+cd ../vscode-minz
+npm install && npm run compile
+code --install-extension .
+```
+
 ## Compiler (minzc)
 
 The MinZ compiler (`minzc`) translates MinZ source code to Z80 assembly in sjasmplus `.a80` format.
-
-### Installation
-
-```bash
-cd minzc
-make build
-```
 
 ### Usage
 
 ```bash
 # Compile a MinZ file to Z80 assembly
-./minzc program.minz
+minzc program.minz
 
 # Specify output file
-./minzc program.minz -o output.a80
+minzc program.minz -o output.a80
 
 # Enable optimizations
-./minzc program.minz -O
+minzc program.minz -O
 
 # Enable self-modifying code optimization
-./minzc program.minz -O --enable-smc
+minzc program.minz -O --enable-smc
 
 # Enable debug output
-./minzc program.minz -d
+minzc program.minz -d
 ```
 
 ### Compilation Pipeline

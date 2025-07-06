@@ -1,0 +1,81 @@
+// Test MinZ file for VS Code extension
+import std.mem;
+import zx.screen;
+
+struct Point {
+    x: i16,
+    y: i16,
+}
+
+struct Player {
+    position: Point,
+    health: u8,
+    score: u16,
+}
+
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+@lua[[
+    function generate_lookup_table(size)
+        local table = {}
+        for i = 0, size - 1 do
+            table[i + 1] = i * 2
+        end
+        return table
+    end
+]]
+
+const LOOKUP_TABLE: [u8; 256] = @lua_eval(generate_lookup_table(256));
+
+@shadow
+fn fast_multiply(a: u8, b: u8) -> u16 {
+    return a * b;
+}
+
+@interrupt
+@shadow_registers
+fn vblank_handler() -> void {
+    // Interrupt handler using shadow registers
+    frame_counter = frame_counter + 1;
+}
+
+fn move_player(player: *mut Player, direction: Direction) -> void {
+    case direction {
+        Direction.North => player.position.y = player.position.y - 1,
+        Direction.South => player.position.y = player.position.y + 1,
+        Direction.East => player.position.x = player.position.x + 1,
+        Direction.West => player.position.x = player.position.x - 1,
+    }
+}
+
+fn set_border_color(color: u8) -> void {
+    asm("
+        ld a, {0}
+        out ($fe), a
+    " : : "r"(color));
+}
+
+fn main() -> void {
+    let mut player = Player {
+        position: Point { x: 128, y: 96 },
+        health: 100,
+        score: 0,
+    };
+    
+    let color: u8 = 2; // Green border
+    set_border_color(color);
+    
+    // Game loop
+    while player.health > 0 {
+        move_player(&mut player, Direction.North);
+        
+        if player.position.y < 0 {
+            break;
+        }
+    }
+}

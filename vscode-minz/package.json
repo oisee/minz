@@ -1,0 +1,177 @@
+{
+  "name": "minz-language-support",
+  "displayName": "MinZ Language Support",
+  "description": "Language support for MinZ - a systems programming language for Z80",
+  "version": "0.1.0",
+  "publisher": "minz-lang",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "minz",
+    "z80",
+    "assembly",
+    "systems programming",
+    "zx spectrum"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "minz",
+        "aliases": [
+          "MinZ",
+          "minz"
+        ],
+        "extensions": [
+          ".minz",
+          ".mz"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/minz-light.svg",
+          "dark": "./icons/minz-dark.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "minz",
+        "scopeName": "source.minz",
+        "path": "./syntaxes/minz.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "minz",
+        "path": "./snippets/minz-snippets.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "minz.compile",
+        "title": "MinZ: Compile to Z80 Assembly",
+        "icon": "$(play)"
+      },
+      {
+        "command": "minz.compileToIR",
+        "title": "MinZ: Compile to IR",
+        "icon": "$(symbol-misc)"
+      },
+      {
+        "command": "minz.compileOptimized",
+        "title": "MinZ: Compile Optimized",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "minz.showAST",
+        "title": "MinZ: Show AST",
+        "icon": "$(symbol-structure)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorLangId == minz",
+          "command": "minz.compile",
+          "group": "minz@1"
+        },
+        {
+          "when": "editorLangId == minz",
+          "command": "minz.compileToIR",
+          "group": "minz@2"
+        },
+        {
+          "when": "editorLangId == minz",
+          "command": "minz.compileOptimized",
+          "group": "minz@3"
+        },
+        {
+          "when": "editorLangId == minz",
+          "command": "minz.showAST",
+          "group": "minz@4"
+        }
+      ],
+      "editor/title": [
+        {
+          "when": "editorLangId == minz",
+          "command": "minz.compile",
+          "group": "navigation@1"
+        },
+        {
+          "when": "editorLangId == minz",
+          "command": "minz.compileOptimized",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "minz.compile",
+        "key": "ctrl+shift+b",
+        "mac": "cmd+shift+b",
+        "when": "editorLangId == minz"
+      },
+      {
+        "command": "minz.compileOptimized",
+        "key": "ctrl+shift+o",
+        "mac": "cmd+shift+o",
+        "when": "editorLangId == minz"
+      }
+    ],
+    "configuration": {
+      "title": "MinZ",
+      "properties": {
+        "minz.compilerPath": {
+          "type": "string",
+          "default": "minzc",
+          "description": "Path to the MinZ compiler (minzc)"
+        },
+        "minz.outputDirectory": {
+          "type": "string",
+          "default": "./build",
+          "description": "Directory for compiled output files"
+        },
+        "minz.enableOptimizations": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable optimizations by default"
+        },
+        "minz.enableSMC": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable self-modifying code optimizations"
+        },
+        "minz.showCompilerOutput": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show compiler output in terminal"
+        }
+      }
+    }
+  },
+  "activationEvents": [
+    "onLanguage:minz"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "^18.x",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "tree-sitter": "^0.25.0",
+    "tree-sitter-cli": "^0.20.8"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,261 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "MinZ",
+  "scopeName": "source.minz",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#attributes"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#literals"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#punctuation"
+    },
+    {
+      "include": "#identifiers"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.minz",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.minz",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.minz",
+          "match": "\\b(if|else|while|for|in|loop|break|continue|return|case|defer)\\b"
+        },
+        {
+          "name": "keyword.declaration.minz",
+          "match": "\\b(fn|let|mut|const|type|struct|enum|import|as|export|pub)\\b"
+        },
+        {
+          "name": "keyword.other.minz",
+          "match": "\\b(asm|sizeof|alignof)\\b"
+        },
+        {
+          "name": "storage.modifier.visibility.minz",
+          "match": "\\b(pub|priv)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.primitive.minz",
+          "match": "\\b(u8|u16|i8|i16|bool|void|Error)\\b"
+        },
+        {
+          "name": "entity.name.type.minz",
+          "match": "\\b[A-Z][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    },
+    "attributes": {
+      "patterns": [
+        {
+          "name": "meta.attribute.minz",
+          "begin": "@",
+          "end": "(?=\\s|$|\\[)",
+          "patterns": [
+            {
+              "name": "entity.name.function.attribute.minz",
+              "match": "[a-zA-Z_][a-zA-Z0-9_]*"
+            }
+          ]
+        },
+        {
+          "name": "meta.attribute.lua.minz",
+          "begin": "@lua\\[\\[",
+          "end": "\\]\\]",
+          "contentName": "source.lua.embedded.minz"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "meta.function.declaration.minz",
+          "begin": "\\b(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
+          "beginCaptures": {
+            "1": {
+              "name": "keyword.declaration.function.minz"
+            },
+            "2": {
+              "name": "entity.name.function.minz"
+            }
+          },
+          "end": "\\)",
+          "patterns": [
+            {
+              "include": "#function-parameters"
+            }
+          ]
+        },
+        {
+          "name": "meta.function.call.minz",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.call.minz"
+            }
+          }
+        }
+      ]
+    },
+    "function-parameters": {
+      "patterns": [
+        {
+          "name": "variable.parameter.minz",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        },
+        {
+          "include": "#types"
+        },
+        {
+          "include": "#punctuation"
+        }
+      ]
+    },
+    "literals": {
+      "patterns": [
+        {
+          "name": "constant.numeric.decimal.minz",
+          "match": "\\b[0-9]+\\b"
+        },
+        {
+          "name": "constant.numeric.hexadecimal.minz",
+          "match": "\\b0x[0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.binary.minz",
+          "match": "\\b0b[01]+\\b"
+        },
+        {
+          "name": "string.quoted.double.minz",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.minz",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.minz",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.minz",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "constant.language.boolean.minz",
+          "match": "\\b(true|false)\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.assignment.minz",
+          "match": "="
+        },
+        {
+          "name": "keyword.operator.comparison.minz",
+          "match": "(==|!=|<|>|<=|>=)"
+        },
+        {
+          "name": "keyword.operator.arithmetic.minz",
+          "match": "(\\+|-|\\*|/|%)"
+        },
+        {
+          "name": "keyword.operator.bitwise.minz",
+          "match": "(<<|>>|&|\\||\\^|~)"
+        },
+        {
+          "name": "keyword.operator.logical.minz",
+          "match": "\\b(and|or|not)\\b|!"
+        },
+        {
+          "name": "keyword.operator.arrow.minz",
+          "match": "(->|=>)"
+        },
+        {
+          "name": "keyword.operator.other.minz",
+          "match": "(\\?|&)"
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.section.brackets.minz",
+          "match": "[\\[\\]]"
+        },
+        {
+          "name": "punctuation.section.braces.minz",
+          "match": "[{}]"
+        },
+        {
+          "name": "punctuation.section.parens.minz",
+          "match": "[()]"
+        },
+        {
+          "name": "punctuation.separator.comma.minz",
+          "match": ","
+        },
+        {
+          "name": "punctuation.terminator.semicolon.minz",
+          "match": ";"
+        },
+        {
+          "name": "punctuation.separator.colon.minz",
+          "match": ":"
+        },
+        {
+          "name": "punctuation.separator.dot.minz",
+          "match": "\\."
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.minz",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}
