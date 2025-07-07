@@ -1,0 +1,24 @@
+// Test various variable declaration patterns
+fn test_var_declarations() -> void {
+    // Test 1: Simple let
+    let a = 5;
+    
+    // Test 2: let with type annotation
+    let b: u8 = 10;
+    
+    // Test 3: let mut
+    let mut c = 15;
+    
+    // Test 4: let mut with type annotation  
+    let mut d: u16 = 20;
+    
+    // Test 5: let with expression
+    let e = a + b;
+    
+    // Test 6: let mut with expression
+    let mut f = c + d;
+}
+
+fn main() -> void {
+    test_var_declarations();
+}

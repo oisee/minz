@@ -129,12 +129,13 @@ func (p *SimpleParser) tokenizeLine(line string) {
 			if isKeyword(value) {
 				tokenType = TokenKeyword
 			}
-			p.tokens = append(p.tokens, Token{
+			tok := Token{
 				Type:   tokenType,
 				Value:  value,
 				Line:   p.line,
 				Column: startCol,
-			})
+			}
+			p.tokens = append(p.tokens, tok)
 			continue
 		}
 		
@@ -244,7 +245,7 @@ func (p *SimpleParser) parseSourceFile(filename string) (*ast.File, error) {
 				if decl != nil {
 					file.Declarations = append(file.Declarations, decl)
 				}
-			case "let", "mut":
+			case "let":
 				decl := p.parseVarDecl()
 				if decl != nil {
 					file.Declarations = append(file.Declarations, decl)
@@ -456,14 +457,20 @@ func (p *SimpleParser) parseStatement() ast.Statement {
 			return p.parseIfStmt()
 		case "while":
 			return p.parseWhileStmt()
-		case "let", "mut":
+		case "let":
 			return p.parseVarDecl()
 		}
 	}
 	
 	// Expression statement or assignment
-	// For now, skip
-	p.advance()
+	// TODO: Implement assignment statements
+	// For now, skip unknown statements
+	for !p.isAtEnd() && p.peek().Value != ";" && p.peek().Value != "}" {
+		p.advance()
+	}
+	if p.peek().Value == ";" {
+		p.advance()
+	}
 	return nil
 }
 
@@ -488,7 +495,42 @@ func (p *SimpleParser) parseReturnStmt() *ast.ReturnStmt {
 
 // parseExpression parses an expression (simplified)
 func (p *SimpleParser) parseExpression() ast.Expression {
-	// For now, just parse simple expressions
+	return p.parseBinaryExpression(0)
+}
+
+// parseBinaryExpression parses binary expressions with precedence
+func (p *SimpleParser) parseBinaryExpression(minPrec int) ast.Expression {
+	left := p.parsePrimaryExpression()
+	
+	for {
+		tok := p.peek()
+		if tok.Type != TokenOperator || !isOperator(tok.Value) {
+			break
+		}
+		
+		prec := operatorPrecedence(tok.Value)
+		if prec < minPrec {
+			break
+		}
+		
+		op := p.advance().Value
+		right := p.parseBinaryExpression(prec + 1)
+		
+		left = &ast.BinaryExpr{
+			Left:     left,
+			Right:    right,
+			Operator: op,
+			StartPos: p.currentPos(), // For simplicity, use current position
+			EndPos:   p.currentPos(),
+		}
+	}
+	
+	return left
+}
+
+// parsePrimaryExpression parses primary expressions
+func (p *SimpleParser) parsePrimaryExpression() ast.Expression {
+	// Number literals
 	if p.peek().Type == TokenNumber {
 		val, _ := strconv.ParseInt(p.peek().Value, 0, 64)
 		expr := &ast.NumberLiteral{
@@ -500,9 +542,11 @@ func (p *SimpleParser) parseExpression() ast.Expression {
 		return expr
 	}
 	
-	if p.peek().Type == TokenIdent {
-		expr := &ast.Identifier{
-			Name:     p.peek().Value,
+	// Boolean literals
+	if p.peek().Type == TokenKeyword && (p.peek().Value == "true" || p.peek().Value == "false") {
+		val := p.peek().Value == "true"
+		expr := &ast.BooleanLiteral{
+			Value:    val,
 			StartPos: p.currentPos(),
 			EndPos:   p.currentPos(),
 		}
@@ -510,7 +554,88 @@ func (p *SimpleParser) parseExpression() ast.Expression {
 		return expr
 	}
 	
+	// Identifiers and function calls
+	if p.peek().Type == TokenIdent {
+		name := p.peek().Value
+		startPos := p.currentPos()
+		p.advance()
+		
+		// Check for function call
+		if p.peek().Value == "(" {
+			return p.parseFunctionCall(name, startPos)
+		}
+		
+		// Just an identifier
+		return &ast.Identifier{
+			Name:     name,
+			StartPos: startPos,
+			EndPos:   p.currentPos(),
+		}
+	}
+	
+	// Parenthesized expressions
+	if p.peek().Value == "(" {
+		p.advance() // consume '('
+		expr := p.parseExpression()
+		p.expect(TokenPunc, ")")
+		return expr
+	}
+	
 	return nil
+}
+
+// parseFunctionCall parses a function call
+func (p *SimpleParser) parseFunctionCall(name string, startPos ast.Position) *ast.CallExpr {
+	p.expect(TokenPunc, "(")
+	
+	call := &ast.CallExpr{
+		Function: &ast.Identifier{
+			Name:     name,
+			StartPos: startPos,
+			EndPos:   p.currentPos(),
+		},
+		Arguments: []ast.Expression{},
+		StartPos:  startPos,
+	}
+	
+	// Parse arguments
+	for p.peek().Value != ")" && !p.isAtEnd() {
+		arg := p.parseExpression()
+		if arg != nil {
+			call.Arguments = append(call.Arguments, arg)
+		}
+		
+		if p.peek().Value == "," {
+			p.advance()
+		} else if p.peek().Value != ")" {
+			break
+		}
+	}
+	
+	p.expect(TokenPunc, ")")
+	call.EndPos = p.currentPos()
+	
+	return call
+}
+
+// operatorPrecedence returns the precedence of an operator
+func operatorPrecedence(op string) int {
+	switch op {
+	case "||":
+		return 1
+	case "&&":
+		return 2
+	case "==", "!=":
+		return 3
+	case "<", ">", "<=", ">=":
+		return 4
+	case "+", "-":
+		return 5
+	case "*", "/", "%":
+		return 6
+	default:
+		return 0
+	}
 }
 
 // Helper methods
@@ -624,15 +749,49 @@ func isPunctuation(s string) bool {
 
 // Stub implementations for missing statement parsers
 func (p *SimpleParser) parseIfStmt() *ast.IfStmt {
-	// TODO: Implement if statement parsing
-	p.advance() // skip 'if'
-	return nil
+	ifStmt := &ast.IfStmt{
+		StartPos: p.currentPos(),
+	}
+	
+	p.expect(TokenKeyword, "if")
+	
+	// Parse condition
+	ifStmt.Condition = p.parseExpression()
+	
+	// Parse then block
+	ifStmt.Then = p.parseBlock()
+	
+	// Optional else
+	if p.peek().Type == TokenKeyword && p.peek().Value == "else" {
+		p.advance() // consume 'else'
+		
+		// Check for else if
+		if p.peek().Type == TokenKeyword && p.peek().Value == "if" {
+			ifStmt.Else = p.parseIfStmt()
+		} else {
+			ifStmt.Else = p.parseBlock()
+		}
+	}
+	
+	ifStmt.EndPos = p.currentPos()
+	return ifStmt
 }
 
 func (p *SimpleParser) parseWhileStmt() *ast.WhileStmt {
-	// TODO: Implement while statement parsing
-	p.advance() // skip 'while'
-	return nil
+	whileStmt := &ast.WhileStmt{
+		StartPos: p.currentPos(),
+	}
+	
+	p.expect(TokenKeyword, "while")
+	
+	// Parse condition
+	whileStmt.Condition = p.parseExpression()
+	
+	// Parse body
+	whileStmt.Body = p.parseBlock()
+	
+	whileStmt.EndPos = p.currentPos()
+	return whileStmt
 }
 
 func (p *SimpleParser) parseVarDecl() *ast.VarDecl {
@@ -640,12 +799,13 @@ func (p *SimpleParser) parseVarDecl() *ast.VarDecl {
 		StartPos: p.currentPos(),
 	}
 	
-	// Check for mut
-	if p.peek().Value == "mut" {
+	// Parse 'let' keyword
+	p.expect(TokenKeyword, "let")
+	
+	// Check for mut after let
+	if p.peek().Type == TokenKeyword && p.peek().Value == "mut" {
 		varDecl.IsMutable = true
-		p.advance()
-	} else {
-		p.expect(TokenKeyword, "let")
+		p.advance() // consume 'mut'
 	}
 	
 	// Variable name

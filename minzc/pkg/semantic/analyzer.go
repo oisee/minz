@@ -52,7 +52,16 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		}
 	}
 
-	// Process declarations
+	// First pass: Register all function signatures
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
+			if err := a.registerFunctionSignature(fn); err != nil {
+				a.errors = append(a.errors, err)
+			}
+		}
+	}
+
+	// Second pass: Process all declarations
 	for _, decl := range file.Declarations {
 		if err := a.analyzeDeclaration(decl); err != nil {
 			a.errors = append(a.errors, err)
@@ -60,7 +69,15 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 	}
 
 	if len(a.errors) > 0 {
-		return nil, fmt.Errorf("semantic analysis failed with %d errors", len(a.errors))
+		// Build detailed error message
+		var errMsg string
+		for i, err := range a.errors {
+			if i > 0 {
+				errMsg += "\n"
+			}
+			errMsg += fmt.Sprintf("  %d. %v", i+1, err)
+		}
+		return nil, fmt.Errorf("semantic analysis failed with %d errors:\n%s", len(a.errors), errMsg)
 	}
 
 	return a.module, nil
@@ -126,16 +143,40 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 	}
 }
 
-// analyzeFunctionDecl analyzes a function declaration
-func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
+// registerFunctionSignature registers a function's signature in the symbol table
+// This is called in the first pass to allow forward references
+func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 	// Convert return type
 	returnType, err := a.convertType(fn.ReturnType)
 	if err != nil {
-		return fmt.Errorf("invalid return type: %w", err)
+		return fmt.Errorf("invalid return type for function %s: %w", fn.Name, err)
+	}
+
+	// Register function in global scope
+	a.currentScope.Define(fn.Name, &FuncSymbol{
+		Name:       fn.Name,
+		ReturnType: returnType,
+		Params:     fn.Params,
+	})
+
+	return nil
+}
+
+// analyzeFunctionDecl analyzes a function declaration
+func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
+	// Function signature already registered in first pass
+	// Get the registered symbol
+	sym := a.currentScope.Lookup(fn.Name)
+	if sym == nil {
+		return fmt.Errorf("function %s not found in symbol table", fn.Name)
+	}
+	funcSym, ok := sym.(*FuncSymbol)
+	if !ok {
+		return fmt.Errorf("symbol %s is not a function", fn.Name)
 	}
 
 	// Create IR function
-	irFunc := ir.NewFunction(fn.Name, returnType)
+	irFunc := ir.NewFunction(fn.Name, funcSym.ReturnType)
 
 	// Enter new scope for function
 	a.currentScope = NewScope(a.currentScope)
@@ -169,13 +210,6 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	// Add function to module
 	a.module.AddFunction(irFunc)
 
-	// Register function in global scope
-	a.currentScope.parent.Define(fn.Name, &FuncSymbol{
-		Name:       fn.Name,
-		ReturnType: returnType,
-		Params:     fn.Params,
-	})
-
 	return nil
 }
 
@@ -183,19 +217,44 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 	// Determine type
 	var varType ir.Type
+	var inferredType ir.Type
+	
+	// Get the declared type if present
 	if v.Type != nil {
 		t, err := a.convertType(v.Type)
 		if err != nil {
 			return fmt.Errorf("invalid type for variable %s: %w", v.Name, err)
 		}
 		varType = t
-	} else if v.Value != nil {
-		// Type inference from value
+	}
+	
+	// Get the inferred type from value if present
+	if v.Value != nil {
 		t, err := a.inferType(v.Value)
 		if err != nil {
-			return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
+			// If we have an explicit type, use it even if inference fails
+			if varType == nil {
+				return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
+			}
+			// Otherwise, we'll use the explicit type
+		} else {
+			inferredType = t
 		}
-		varType = t
+	}
+	
+	// Determine final type and check compatibility
+	if varType != nil && inferredType != nil {
+		// Both type annotation and initializer present - check compatibility
+		if !a.typesCompatible(varType, inferredType) {
+			return fmt.Errorf("type mismatch for variable %s: declared type %s but initializer has type %s", 
+				v.Name, varType.String(), inferredType.String())
+		}
+		// Use the declared type
+	} else if varType != nil {
+		// Only type annotation, no initializer
+	} else if inferredType != nil {
+		// Only initializer, use inferred type
+		varType = inferredType
 	} else {
 		return fmt.Errorf("variable %s must have either a type or an initial value", v.Name)
 	}
@@ -309,19 +368,44 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) error {
 	// Determine type
 	var varType ir.Type
+	var inferredType ir.Type
+	
+	// Get the declared type if present
 	if v.Type != nil {
 		t, err := a.convertType(v.Type)
 		if err != nil {
 			return fmt.Errorf("invalid type for variable %s: %w", v.Name, err)
 		}
 		varType = t
-	} else if v.Value != nil {
-		// Type inference from value
+	}
+	
+	// Get the inferred type from value if present
+	if v.Value != nil {
 		t, err := a.inferType(v.Value)
 		if err != nil {
-			return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
+			// If we have an explicit type, use it even if inference fails
+			if varType == nil {
+				return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
+			}
+			// Otherwise, we'll use the explicit type
+		} else {
+			inferredType = t
 		}
-		varType = t
+	}
+	
+	// Determine final type and check compatibility
+	if varType != nil && inferredType != nil {
+		// Both type annotation and initializer present - check compatibility
+		if !a.typesCompatible(varType, inferredType) {
+			return fmt.Errorf("type mismatch for variable %s: declared type %s but initializer has type %s", 
+				v.Name, varType.String(), inferredType.String())
+		}
+		// Use the declared type
+	} else if varType != nil {
+		// Only type annotation, no initializer
+	} else if inferredType != nil {
+		// Only initializer, use inferred type
+		varType = inferredType
 	} else {
 		return fmt.Errorf("variable %s must have either a type or an initial value", v.Name)
 	}
@@ -843,8 +927,20 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 	switch e := expr.(type) {
 	case *ast.NumberLiteral:
-		// Default to i16 for now
-		return &ir.BasicType{Kind: ir.TypeI16}, nil
+		// Infer type based on value
+		if e.Value >= 0 && e.Value <= 255 {
+			// Small positive values default to u8
+			return &ir.BasicType{Kind: ir.TypeU8}, nil
+		} else if e.Value >= -128 && e.Value <= 127 {
+			// Small signed values default to i8
+			return &ir.BasicType{Kind: ir.TypeI8}, nil
+		} else if e.Value >= 0 && e.Value <= 65535 {
+			// Larger positive values default to u16
+			return &ir.BasicType{Kind: ir.TypeU16}, nil
+		} else {
+			// Default to i16 for negative or large values
+			return &ir.BasicType{Kind: ir.TypeI16}, nil
+		}
 	case *ast.BooleanLiteral:
 		return &ir.BasicType{Kind: ir.TypeBool}, nil
 	case *ast.Identifier:
@@ -856,9 +952,106 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			return varSym.Type, nil
 		}
 		return nil, fmt.Errorf("cannot infer type from %s", e.Name)
+	case *ast.CallExpr:
+		// Infer type from function return type
+		id, ok := e.Function.(*ast.Identifier)
+		if !ok {
+			return nil, fmt.Errorf("indirect function calls not yet supported for type inference")
+		}
+		
+		sym := a.currentScope.Lookup(id.Name)
+		if sym == nil {
+			return nil, fmt.Errorf("undefined function: %s", id.Name)
+		}
+		
+		funcSym, ok := sym.(*FuncSymbol)
+		if !ok {
+			return nil, fmt.Errorf("cannot infer type from %s", id.Name)
+		}
+		
+		return funcSym.ReturnType, nil
+	case *ast.BinaryExpr:
+		// Infer type from binary expression
+		leftType, err := a.inferType(e.Left)
+		if err != nil {
+			return nil, err
+		}
+		
+		rightType, err := a.inferType(e.Right)
+		if err != nil {
+			return nil, err
+		}
+		
+		// For arithmetic operations, use the larger type
+		// For comparison operations, return bool
+		switch e.Operator {
+		case "==", "!=", "<", ">", "<=", ">=":
+			return &ir.BasicType{Kind: ir.TypeBool}, nil
+		case "+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>":
+			// Check if types match
+			if !a.typesCompatible(leftType, rightType) {
+				return nil, fmt.Errorf("type mismatch in binary expression: %s vs %s", 
+					leftType.String(), rightType.String())
+			}
+			// For now, just return the left type
+			// TODO: Implement proper type promotion rules
+			return leftType, nil
+		default:
+			return nil, fmt.Errorf("cannot infer type for binary operator %s", e.Operator)
+		}
+	case *ast.UnaryExpr:
+		// Infer type from unary expression
+		operandType, err := a.inferType(e.Operand)
+		if err != nil {
+			return nil, err
+		}
+		
+		switch e.Operator {
+		case "-", "~":
+			// Negation and bitwise not preserve the type
+			return operandType, nil
+		case "!":
+			// Logical not returns bool
+			return &ir.BasicType{Kind: ir.TypeBool}, nil
+		default:
+			return nil, fmt.Errorf("cannot infer type for unary operator %s", e.Operator)
+		}
 	default:
 		return nil, fmt.Errorf("cannot infer type from expression of type %T", expr)
 	}
+}
+
+// typesCompatible checks if two types are compatible for assignment
+func (a *Analyzer) typesCompatible(declared, inferred ir.Type) bool {
+	declBasic, declOk := declared.(*ir.BasicType)
+	infBasic, infOk := inferred.(*ir.BasicType)
+	
+	if declOk && infOk {
+		// Same type is always compatible
+		if declBasic.Kind == infBasic.Kind {
+			return true
+		}
+		
+		// Check for numeric compatibility
+		// Allow implicit conversions that don't lose data
+		switch declBasic.Kind {
+		case ir.TypeU8:
+			// u8 can accept values from other types if they fit
+			return infBasic.Kind == ir.TypeU8
+		case ir.TypeU16:
+			// u16 can accept u8 and u16
+			return infBasic.Kind == ir.TypeU8 || infBasic.Kind == ir.TypeU16
+		case ir.TypeI8:
+			// i8 can only accept i8
+			return infBasic.Kind == ir.TypeI8
+		case ir.TypeI16:
+			// i16 can accept i8, i16, u8
+			return infBasic.Kind == ir.TypeI8 || infBasic.Kind == ir.TypeI16 || infBasic.Kind == ir.TypeU8
+		}
+	}
+	
+	// For other types, use string comparison for now
+	return declared.String() == inferred.String()
 }
 
 var labelCounter int
