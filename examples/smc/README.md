@@ -3,9 +3,9 @@
 This directory contains all MinZ examples compiled with Self-Modifying Code (SMC) enabled by default.
 
 ## Summary
-- **Total Examples**: 21
-- **Successfully Compiled**: 10 (4 more fixed)
-- **Failed**: 11
+- **Total Examples**: 22
+- **Successfully Compiled**: 10
+- **Failed**: 12
 
 ## Successfully Compiled Examples
 

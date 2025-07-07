@@ -60,13 +60,22 @@ add_param_b:
 - Some ZVDB examples timeout
 
 ## Successfully Compiling (10 examples)
-- fibonacci
-- game_sprite  
-- main
-- screen_color
-- simple_add
-- smc_optimization_simple
-- tail_recursive
-- tail_sum
-- test_simple_vars
-- test_var_decls
+1. **fibonacci** - Iterative Fibonacci with SMC parameters
+2. **game_sprite** - Sprite rendering with SMC parameters
+3. **main** - Simple game loop (fixed to remove module imports)
+4. **screen_color** - Screen attribute manipulation (fixed constants)
+5. **simple_add** - Basic addition demonstrating SMC parameters
+6. **smc_optimization_simple** - Various SMC optimization examples
+7. **tail_recursive** - Tail recursion examples with SMC
+8. **tail_sum** - Tail recursive sum with SMC context save/restore
+9. **test_simple_vars** - Variable declarations with absolute addressing
+10. **test_var_decls** - Type casting and variable declarations
+
+## Failed Examples (12)
+- **enums** - Enum support not implemented
+- **register_test** - Causes memory corruption in compiler
+- **shadow_registers** - Causes memory corruption in compiler  
+- **smc_optimization** - Original version with unsupported decorators
+- **structs** - Struct support not implemented
+- **test_registers** - Causes memory corruption in compiler
+- **zvdb_*** (6 examples) - Module system and metaprogramming not implemented
