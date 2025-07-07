@@ -17,6 +17,8 @@ type Z80Generator struct {
 	stackOffset   int
 	labelCounter  int
 	useShadowRegs bool // Whether to use shadow registers for current function
+	localVarBase  uint16 // Base address for local variables (absolute addressing)
+	useAbsoluteLocals bool // Whether to use absolute addressing for locals
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -24,6 +26,7 @@ func NewZ80Generator(w io.Writer) *Z80Generator {
 	return &Z80Generator{
 		writer:   w,
 		regAlloc: NewRegisterAllocator(),
+		localVarBase: 0xF000, // Default local variable area at 0xF000
 	}
 }
 
@@ -135,6 +138,18 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
 	g.emit("%s:", fn.Name)
 	
+	// Decide whether to use absolute addressing for locals
+	// Use absolute addressing for non-recursive functions
+	g.useAbsoluteLocals = !fn.IsRecursive
+	
+	// Comment about optimization strategy
+	g.emit("; IsSMCDefault=%v, IsSMCEnabled=%v", fn.IsSMCDefault, fn.IsSMCEnabled)
+	if g.useAbsoluteLocals {
+		g.emit("; Using absolute addressing for locals (non-recursive)")
+	} else {
+		g.emit("; Using IX-relative addressing for locals (recursive)")
+	}
+	
 	// Generate SMC parameter slots
 	for _, param := range fn.Params {
 		offset := fn.SMCParamOffsets[param.Name]
@@ -152,6 +167,17 @@ func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
 	// For recursive functions, we need special handling
 	if fn.IsRecursive && fn.RequiresContext {
 		g.emit("    ; Recursive function - will need context save/restore")
+		// Set up stack frame for recursive functions
+		g.emit("    PUSH IX")
+		g.emit("    LD IX, SP")
+		// Allocate space for locals
+		localSpace := len(fn.Locals) * 2
+		if localSpace > 0 {
+			g.emit("    LD HL, -%d", localSpace)
+			g.emit("    ADD HL, SP")
+			g.emit("    LD SP, HL")
+			g.stackOffset = localSpace
+		}
 	}
 	
 	// If this has tail recursion, add the start label
@@ -347,6 +373,27 @@ func (g *Z80Generator) generateEpilogue() {
 		return
 	}
 	
+	// For SMC functions
+	if fn.IsSMCDefault || fn.IsSMCEnabled {
+		// Only recursive SMC functions use IX
+		if fn.IsRecursive && fn.RequiresContext {
+			g.emit("    LD SP, IX")
+			g.emit("    POP IX")
+		}
+		// Non-recursive SMC functions have minimal epilogue
+		if fn.UsedRegisters != 0 && !fn.IsRecursive {
+			if fn.ModifiedRegisters.Contains(ir.Z80_DE) {
+				g.emit("    POP DE")
+			}
+			if fn.ModifiedRegisters.Contains(ir.Z80_BC) {
+				g.emit("    POP BC")
+			}
+		}
+		g.emit("    RET")
+		return
+	}
+	
+	// Traditional function epilogue
 	// Restore shadow register state if used
 	if g.useShadowRegs {
 		g.emit("    EXX           ; Restore main registers")
@@ -494,17 +541,27 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpLoadVar:
 		// Load variable - for now, assume it's a local
-		offset := g.getLocalOffset(inst.Dest)
-		g.emit("    LD L, (IX-%d)", offset)
-		g.emit("    LD H, (IX-%d)", offset-1)
+		if g.useAbsoluteLocals {
+			addr := g.getAbsoluteAddr(inst.Src1) // Note: source register for load
+			g.emit("    LD HL, ($%04X)", addr)
+		} else {
+			offset := g.getLocalOffset(inst.Src1)
+			g.emit("    LD L, (IX-%d)", offset)
+			g.emit("    LD H, (IX-%d)", offset-1)
+		}
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpStoreVar:
 		// Store to variable
 		g.loadToHL(inst.Src1)
-		offset := g.getLocalOffset(inst.Dest)
-		g.emit("    LD (IX-%d), L", offset)
-		g.emit("    LD (IX-%d), H", offset-1)
+		if g.useAbsoluteLocals {
+			addr := g.getAbsoluteAddr(inst.Dest)
+			g.emit("    LD ($%04X), HL", addr)
+		} else {
+			offset := g.getLocalOffset(inst.Dest)
+			g.emit("    LD (IX-%d), L", offset)
+			g.emit("    LD (IX-%d), H", offset-1)
+		}
 		
 	case ir.OpAdd:
 		// Load operands
@@ -722,14 +779,24 @@ func (g *Z80Generator) loadToA(reg ir.Register) {
 		return
 	}
 	
-	offset := g.getLocalOffset(reg)
-	g.emit("    LD A, (IX-%d)", offset)
+	if g.useAbsoluteLocals {
+		addr := g.getAbsoluteAddr(reg)
+		g.emit("    LD A, ($%04X)", addr)
+	} else {
+		offset := g.getLocalOffset(reg)
+		g.emit("    LD A, (IX-%d)", offset)
+	}
 }
 
 // storeFromA stores A to a virtual register
 func (g *Z80Generator) storeFromA(reg ir.Register) {
-	offset := g.getLocalOffset(reg)
-	g.emit("    LD (IX-%d), A", offset)
+	if g.useAbsoluteLocals {
+		addr := g.getAbsoluteAddr(reg)
+		g.emit("    LD ($%04X), A", addr)
+	} else {
+		offset := g.getLocalOffset(reg)
+		g.emit("    LD (IX-%d), A", offset)
+	}
 }
 
 // loadToHL loads a virtual register to HL
@@ -739,16 +806,26 @@ func (g *Z80Generator) loadToHL(reg ir.Register) {
 		return
 	}
 	
-	offset := g.getLocalOffset(reg)
-	g.emit("    LD L, (IX-%d)", offset)
-	g.emit("    LD H, (IX-%d)", offset-1)
+	if g.useAbsoluteLocals {
+		addr := g.getAbsoluteAddr(reg)
+		g.emit("    LD HL, ($%04X)", addr)
+	} else {
+		offset := g.getLocalOffset(reg)
+		g.emit("    LD L, (IX-%d)", offset)
+		g.emit("    LD H, (IX-%d)", offset-1)
+	}
 }
 
 // storeFromHL stores HL to a virtual register
 func (g *Z80Generator) storeFromHL(reg ir.Register) {
-	offset := g.getLocalOffset(reg)
-	g.emit("    LD (IX-%d), L", offset)
-	g.emit("    LD (IX-%d), H", offset-1)
+	if g.useAbsoluteLocals {
+		addr := g.getAbsoluteAddr(reg)
+		g.emit("    LD ($%04X), HL", addr)
+	} else {
+		offset := g.getLocalOffset(reg)
+		g.emit("    LD (IX-%d), L", offset)
+		g.emit("    LD (IX-%d), H", offset-1)
+	}
 }
 
 // allocateLocal allocates stack space for a local variable
@@ -762,6 +839,12 @@ func (g *Z80Generator) allocateLocal(reg ir.Register) int {
 func (g *Z80Generator) getLocalOffset(reg ir.Register) int {
 	// For now, simple mapping
 	return g.stackOffset + int(reg)*2
+}
+
+// getAbsoluteAddr gets the absolute address for a local variable
+func (g *Z80Generator) getAbsoluteAddr(reg ir.Register) uint16 {
+	// Each register gets 2 bytes
+	return g.localVarBase + uint16(reg)*2
 }
 
 // newLabel generates a new label

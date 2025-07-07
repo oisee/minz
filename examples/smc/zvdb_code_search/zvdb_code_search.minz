@@ -1,0 +1,354 @@
+// ZVDB Code Search - Find similar Z80 assembly code patterns
+// Uses ZVDB to index and search assembly code snippets
+
+module zvdb_code_search;
+
+import zvdb_paged;
+
+// Code snippet metadata
+struct CodeSnippet {
+    file_id: u16,        // Which source file
+    line_start: u16,     // Starting line number
+    line_count: u8,      // Number of lines
+    instruction_count: u8, // Number of instructions
+    flags: u8,           // Various flags (has_loop, has_call, etc.)
+    reserved: u8,
+}
+
+// Z80 instruction features for vectorization
+@lua[[
+    -- Instruction categories for feature extraction
+    INST_CATEGORIES = {
+        -- Data movement
+        LD = 1, PUSH = 2, POP = 3, EX = 4, EXX = 5,
+        -- Arithmetic
+        ADD = 6, SUB = 7, INC = 8, DEC = 9, CP = 10,
+        -- Logic
+        AND = 11, OR = 12, XOR = 13, BIT = 14, SET = 15, RES = 16,
+        -- Control flow
+        JP = 17, JR = 18, CALL = 19, RET = 20, RST = 21,
+        -- Block ops
+        LDI = 22, LDIR = 23, CPD = 24, CPIR = 25,
+        -- I/O
+        IN = 26, OUT = 27, INI = 28, OUTI = 29,
+        -- Special
+        NOP = 30, HALT = 31, DI = 32, EI = 33
+    }
+    
+    -- Register usage bits
+    REG_A = 0, REG_B = 1, REG_C = 2, REG_D = 3,
+    REG_E = 4, REG_H = 5, REG_L = 6, REG_F = 7,
+    REG_BC = 8, REG_DE = 9, REG_HL = 10, REG_SP = 11,
+    REG_IX = 12, REG_IY = 13, REG_AF = 14, REG_SHADOW = 15
+]]
+
+// Extended vector for code features
+struct CodeVector {
+    base: Vector256,           // Standard 256-bit vector
+    snippet: CodeSnippet,      // Associated metadata
+    features: CodeFeatures,    // Extracted features
+}
+
+struct CodeFeatures {
+    instruction_histogram: [u8; 34],  // Count of each instruction type
+    register_usage: u16,              // Bitmap of registers used
+    memory_access: u8,                // Memory access pattern
+    stack_depth: u8,                  // Max stack depth
+    complexity: u8,                   // Cyclomatic complexity
+    style_flags: u8,                  // Coding style indicators
+}
+
+// Convert code snippet to feature vector
+pub fn vectorize_code(code: *u8, length: u16) -> CodeVector {
+    let mut vec: CodeVector;
+    let mut features = &vec.features;
+    
+    // Clear everything
+    mem.set(&vec as *mut u8, 0, sizeof(CodeVector));
+    
+    // Parse instructions and extract features
+    let mut pos: u16 = 0;
+    let mut inst_count: u8 = 0;
+    let mut stack_depth: u8 = 0;
+    let mut max_stack: u8 = 0;
+    
+    while pos < length && inst_count < 255 {
+        let (inst_type, inst_len, regs) = parse_instruction(&code[pos]);
+        
+        // Update instruction histogram
+        if inst_type < 34 {
+            let count = features.instruction_histogram[inst_type];
+            if count < 255 {
+                features.instruction_histogram[inst_type] = count + 1;
+            }
+        }
+        
+        // Update register usage
+        features.register_usage = features.register_usage | regs;
+        
+        // Track stack depth
+        if inst_type == @lua(INST_CATEGORIES.PUSH) {
+            stack_depth = stack_depth + 2;
+            if stack_depth > max_stack {
+                max_stack = stack_depth;
+            }
+        } else if inst_type == @lua(INST_CATEGORIES.POP) {
+            if stack_depth >= 2 {
+                stack_depth = stack_depth - 2;
+            }
+        } else if inst_type == @lua(INST_CATEGORIES.CALL) {
+            stack_depth = stack_depth + 2;
+            features.complexity = features.complexity + 1;
+        } else if inst_type == @lua(INST_CATEGORIES.RET) {
+            if stack_depth >= 2 {
+                stack_depth = stack_depth - 2;
+            }
+        }
+        
+        // Detect patterns
+        if inst_type == @lua(INST_CATEGORIES.LDIR) || 
+           inst_type == @lua(INST_CATEGORIES.CPIR) {
+            features.style_flags = features.style_flags | 0x01; // Uses block ops
+        }
+        
+        if inst_type == @lua(INST_CATEGORIES.EXX) {
+            features.style_flags = features.style_flags | 0x02; // Uses shadow regs
+        }
+        
+        pos = pos + inst_len;
+        inst_count = inst_count + 1;
+    }
+    
+    features.stack_depth = max_stack;
+    vec.snippet.instruction_count = inst_count;
+    
+    // Convert features to bit vector
+    features_to_bitvector(&vec.features, &vec.base);
+    
+    return vec;
+}
+
+// Convert features to 256-bit vector
+fn features_to_bitvector(features: *CodeFeatures, vec: *Vector256) -> void {
+    // Bit allocation:
+    // 0-33: Instruction presence (1 bit each)
+    // 34-67: Instruction frequency (1 bit = above median)
+    // 68-83: Register usage (direct copy)
+    // 84-91: Stack depth (8 levels)
+    // 92-99: Complexity (8 levels) 
+    // 100-107: Memory patterns
+    // 108-115: Style flags
+    // 116-255: Reserved/padding
+    
+    let mut bit_pos: u16 = 0;
+    
+    // Instruction presence bits
+    for i in 0..34 {
+        if features.instruction_histogram[i] > 0 {
+            set_bit(vec, bit_pos + i as u16);
+        }
+    }
+    bit_pos = bit_pos + 34;
+    
+    // Instruction frequency bits (above threshold = 1)
+    for i in 0..34 {
+        if features.instruction_histogram[i] > 2 {  // Threshold
+            set_bit(vec, bit_pos + i as u16);
+        }
+    }
+    bit_pos = bit_pos + 34;
+    
+    // Register usage (16 bits)
+    for i in 0..16 {
+        if (features.register_usage & (1 << i)) != 0 {
+            set_bit(vec, bit_pos + i as u16);
+        }
+    }
+    bit_pos = bit_pos + 16;
+    
+    // Stack depth (quantized to 8 levels)
+    let stack_bits = (features.stack_depth >> 1) & 0x07;
+    for i in 0..3 {
+        if (stack_bits & (1 << i)) != 0 {
+            set_bit(vec, bit_pos + i as u16);
+        }
+    }
+    
+    // Add noise/randomization to remaining bits for better distribution
+    hash_padding(vec, bit_pos + 8);
+}
+
+// Set a bit in the vector
+fn set_bit(vec: *mut Vector256, bit_pos: u16) -> void {
+    let byte_idx = bit_pos >> 3;
+    let bit_idx = bit_pos & 7;
+    vec.bits[byte_idx] = vec.bits[byte_idx] | (1 << bit_idx);
+}
+
+// Parse a single Z80 instruction (simplified)
+fn parse_instruction(code: *u8) -> (u8, u8, u16) {
+    let opcode = code[0];
+    let mut inst_type: u8 = 0;
+    let mut length: u8 = 1;
+    let mut regs: u16 = 0;
+    
+    // Simplified instruction decoding
+    if opcode >= 0x40 && opcode <= 0x7F {
+        // LD r, r'
+        inst_type = @lua(INST_CATEGORIES.LD);
+        regs = decode_reg_usage_ld(opcode);
+    } else if opcode >= 0x80 && opcode <= 0x87 {
+        // ADD A, r
+        inst_type = @lua(INST_CATEGORIES.ADD);
+        regs = (1 << @lua(REG_A)) | decode_reg_usage_low(opcode);
+    } else if opcode == 0xC3 {
+        // JP nn
+        inst_type = @lua(INST_CATEGORIES.JP);
+        length = 3;
+    } else if opcode == 0xCD {
+        // CALL nn
+        inst_type = @lua(INST_CATEGORIES.CALL);
+        length = 3;
+        regs = 1 << @lua(REG_SP);
+    } else if opcode == 0xC9 {
+        // RET
+        inst_type = @lua(INST_CATEGORIES.RET);
+        regs = 1 << @lua(REG_SP);
+    } else if opcode == 0xED {
+        // Extended instructions
+        if code[1] == 0xB0 {
+            inst_type = @lua(INST_CATEGORIES.LDIR);
+            regs = (1 << @lua(REG_BC)) | (1 << @lua(REG_DE)) | (1 << @lua(REG_HL));
+            length = 2;
+        }
+    }
+    // ... more instruction decoding ...
+    
+    return (inst_type, length, regs);
+}
+
+// Code search database
+struct CodeSearchDB {
+    vector_db: *mut VectorDB,      // Base ZVDB
+    code_vectors: *mut CodeVector, // Extended vectors
+    file_index: *mut FileIndex,    // Source file information
+    total_snippets: u16,
+}
+
+// Search for similar code patterns
+pub fn search_similar_code(db: *CodeSearchDB, query_code: *u8, 
+                          query_len: u16, k: u8) -> [CodeSearchResult; 10] {
+    // Vectorize the query code
+    let query_vec = vectorize_code(query_code, query_len);
+    
+    // Search using ZVDB
+    let results = zvdb_paged.search_knn(db.vector_db, &query_vec.base, k);
+    
+    // Convert to code search results
+    let mut code_results: [CodeSearchResult; 10];
+    
+    for i in 0..k {
+        if results[i].index < db.total_snippets {
+            let snippet = &db.code_vectors[results[i].index].snippet;
+            
+            code_results[i] = CodeSearchResult {
+                file_id: snippet.file_id,
+                line_start: snippet.line_start,
+                line_count: snippet.line_count,
+                similarity: results[i].similarity,
+                match_type: classify_match(&query_vec.features, 
+                                         &db.code_vectors[results[i].index].features),
+            };
+        }
+    }
+    
+    return code_results;
+}
+
+struct CodeSearchResult {
+    file_id: u16,
+    line_start: u16,
+    line_count: u8,
+    similarity: i16,
+    match_type: u8,  // 0=exact, 1=similar, 2=pattern, 3=style
+}
+
+// Classify the type of match
+fn classify_match(query: *CodeFeatures, found: *CodeFeatures) -> u8 {
+    // Check instruction histogram similarity
+    let mut hist_diff: u16 = 0;
+    for i in 0..34 {
+        let diff = abs_diff(query.instruction_histogram[i], 
+                           found.instruction_histogram[i]);
+        hist_diff = hist_diff + diff as u16;
+    }
+    
+    if hist_diff < 5 {
+        return 0;  // Exact match
+    } else if hist_diff < 20 {
+        return 1;  // Similar code
+    } else if (query.style_flags & found.style_flags) != 0 {
+        return 3;  // Similar style
+    } else {
+        return 2;  // Pattern match
+    }
+}
+
+// Demo: Index and search assembly files
+fn demo_code_search() -> void {
+    // Initialize code search database
+    let db = init_code_search_db();
+    
+    // Index some example code snippets
+    
+    // Example 1: Memory copy routine
+    let code1 = [
+        0x21, 0x00, 0x80,  // LD HL, 8000h
+        0x11, 0x00, 0x40,  // LD DE, 4000h
+        0x01, 0x00, 0x10,  // LD BC, 1000h
+        0xED, 0xB0,        // LDIR
+        0xC9,              // RET
+    ];
+    index_code_snippet(db, &code1[0], 14, 100, 5);
+    
+    // Example 2: Screen clear routine
+    let code2 = [
+        0x21, 0x00, 0x40,  // LD HL, 4000h
+        0x11, 0x01, 0x40,  // LD DE, 4001h
+        0x01, 0xFF, 0x17,  // LD BC, 17FFh
+        0x36, 0x00,        // LD (HL), 0
+        0xED, 0xB0,        // LDIR
+        0xC9,              // RET
+    ];
+    index_code_snippet(db, &code2[0], 16, 200, 6);
+    
+    // Example 3: Different memory copy (using loop)
+    let code3 = [
+        0x21, 0x00, 0x80,  // LD HL, 8000h
+        0x11, 0x00, 0x40,  // LD DE, 4000h
+        0x06, 0x10,        // LD B, 10h
+        0x7E,              // LD A, (HL)
+        0x12,              // LD (DE), A
+        0x23,              // INC HL
+        0x13,              // INC DE
+        0x10, 0xFA,        // DJNZ -6
+        0xC9,              // RET
+    ];
+    index_code_snippet(db, &code3[0], 17, 300, 9);
+    
+    // Search for similar memory copy code
+    let query = [
+        0x21, 0x00, 0x90,  // LD HL, 9000h (different address)
+        0x11, 0x00, 0x50,  // LD DE, 5000h  
+        0x01, 0x00, 0x08,  // LD BC, 0800h (different size)
+        0xED, 0xB0,        // LDIR
+        0xC9,              // RET
+    ];
+    
+    let results = search_similar_code(db, &query[0], 14, 3);
+    
+    // Results should show:
+    // 1. Code1 - very high similarity (same pattern)
+    // 2. Code2 - high similarity (LDIR pattern)  
+    // 3. Code3 - lower similarity (different approach)
+}
