@@ -19,6 +19,7 @@ type Z80Generator struct {
 	useShadowRegs bool // Whether to use shadow registers for current function
 	localVarBase  uint16 // Base address for local variables (absolute addressing)
 	useAbsoluteLocals bool // Whether to use absolute addressing for locals
+	emittedParams map[string]bool // Track which SMC parameters have been emitted
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -138,46 +139,15 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
 	g.emit("%s:", fn.Name)
 	
-	// Decide whether to use absolute addressing for locals
-	// Use absolute addressing for non-recursive functions
-	g.useAbsoluteLocals = !fn.IsRecursive
+	// Always use absolute addressing for SMC functions
+	g.useAbsoluteLocals = true
+	g.emittedParams = make(map[string]bool)
 	
 	// Comment about optimization strategy
 	g.emit("; IsSMCDefault=%v, IsSMCEnabled=%v", fn.IsSMCDefault, fn.IsSMCEnabled)
-	if g.useAbsoluteLocals {
-		g.emit("; Using absolute addressing for locals (non-recursive)")
-	} else {
-		g.emit("; Using IX-relative addressing for locals (recursive)")
-	}
-	
-	// Generate SMC parameter slots
-	for _, param := range fn.Params {
-		offset := fn.SMCParamOffsets[param.Name]
-		paramLabel := fmt.Sprintf("%s_param_%s", fn.Name, param.Name)
-		g.emit("%s EQU %s + %d", paramLabel, fn.Name, offset)
-		
-		// Emit the actual parameter instruction
-		if param.Type.Size() == 1 {
-			g.emit("    LD A, #00      ; Parameter %s", param.Name)
-		} else {
-			g.emit("    LD HL, #0000   ; Parameter %s", param.Name)
-		}
-	}
-	
-	// For recursive functions, we need special handling
-	if fn.IsRecursive && fn.RequiresContext {
-		g.emit("    ; Recursive function - will need context save/restore")
-		// Set up stack frame for recursive functions
-		g.emit("    PUSH IX")
-		g.emit("    LD IX, SP")
-		// Allocate space for locals
-		localSpace := len(fn.Locals) * 2
-		if localSpace > 0 {
-			g.emit("    LD HL, -%d", localSpace)
-			g.emit("    ADD HL, SP")
-			g.emit("    LD SP, HL")
-			g.stackOffset = localSpace
-		}
+	g.emit("; Using absolute addressing for locals (SMC style)")
+	if fn.IsRecursive {
+		g.emit("; Recursive context handled via stack push/pop of SMC parameters")
 	}
 	
 	// If this has tail recursion, add the start label
@@ -231,17 +201,51 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 		return g.generateInstruction(inst)
 		
 	case ir.OpLoadParam:
-		// For SMC, parameters are already in immediate values
-		// Just reference the SMC location
+		// For SMC, emit the parameter instruction at point of FIRST use
+		// The instruction itself contains the parameter value!
 		paramName := inst.Symbol
 		paramLabel := fmt.Sprintf("%s_param_%s", g.currentFunc.Name, paramName)
 		
-		if inst.Type != nil && inst.Type.Size() == 1 {
-			g.emit("    LD A, (%s)", paramLabel)
-			g.storeFromA(inst.Dest)
+		// Check if we've already emitted this parameter
+		if !g.emittedParams[paramName] {
+			// First use - emit the parameter instruction
+			g.emittedParams[paramName] = true
+			
+			// Find the parameter info
+			var param *ir.Parameter
+			for _, p := range g.currentFunc.Params {
+				if p.Name == paramName {
+					param = &p
+					break
+				}
+			}
+			
+			if param == nil {
+				return fmt.Errorf("parameter %s not found", paramName)
+			}
+			
+			// Emit the parameter label and instruction
+			// The instruction's immediate value IS the parameter
+			g.emit("%s:", paramLabel)
+			if param.Type.Size() == 1 {
+				g.emit("    LD A, #00      ; SMC parameter %s", paramName)
+				// A already has the value, just store it
+				g.storeFromA(inst.Dest)
+			} else {
+				g.emit("    LD HL, #0000   ; SMC parameter %s", paramName)
+				// HL already has the value, just store it
+				g.storeFromHL(inst.Dest)
+			}
 		} else {
-			g.emit("    LD HL, (%s)", paramLabel)
-			g.storeFromHL(inst.Dest)
+			// Subsequent use - load from the parameter location
+			// The parameter value is embedded in the instruction
+			if inst.Type != nil && inst.Type.Size() == 1 {
+				g.emit("    LD A, (%s)", paramLabel)
+				g.storeFromA(inst.Dest)
+			} else {
+				g.emit("    LD HL, (%s)", paramLabel)
+				g.storeFromHL(inst.Dest)
+			}
 		}
 		return nil
 		
@@ -375,12 +379,8 @@ func (g *Z80Generator) generateEpilogue() {
 	
 	// For SMC functions
 	if fn.IsSMCDefault || fn.IsSMCEnabled {
-		// Only recursive SMC functions use IX
-		if fn.IsRecursive && fn.RequiresContext {
-			g.emit("    LD SP, IX")
-			g.emit("    POP IX")
-		}
-		// Non-recursive SMC functions have minimal epilogue
+		// No IX usage at all - even recursive functions don't need it!
+		// SMC parameter context is handled via stack push/pop
 		if fn.UsedRegisters != 0 && !fn.IsRecursive {
 			if fn.ModifiedRegisters.Contains(ir.Z80_DE) {
 				g.emit("    POP DE")
