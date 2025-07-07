@@ -1,0 +1,253 @@
+; MinZ generated code
+; Generated: 2025-07-07 23:05:49
+
+
+; Code section
+    ORG $8000
+
+
+; Function: screen_addr
+screen_addr:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+screen_addr_param_y:
+    LD A, #00      ; SMC parameter y
+    LD ($F008), A
+    ; r5 = 192
+    LD A, 192
+    LD ($F00A), A
+    ; unknown op 30
+    LD HL, ($F008)
+    PUSH HL
+    LD HL, ($F00A)
+    POP DE
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F00C), HL
+    ; store , r6
+    LD HL, ($F00C)
+    LD ($F006), HL
+    LD A, (screen_addr_param_y)
+    LD ($F010), A
+    ; r9 = 56
+    LD A, 56
+    LD ($F012), A
+    ; unknown op 30
+    LD HL, ($F010)
+    PUSH HL
+    LD HL, ($F012)
+    POP DE
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F014), HL
+    ; r11 = 2
+    LD A, 2
+    LD ($F016), A
+    ; unknown op 34
+    ; TODO: Shift left
+    LD HL, ($F014)
+    LD ($F018), HL
+    ; store , r12
+    LD HL, ($F018)
+    LD ($F00E), HL
+    LD A, (screen_addr_param_y)
+    LD ($F01C), A
+    ; r15 = 7
+    LD A, 7
+    LD ($F01E), A
+    ; unknown op 30
+    LD HL, ($F01C)
+    PUSH HL
+    LD HL, ($F01E)
+    POP DE
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F020), HL
+    ; r17 = 8
+    LD A, 8
+    LD ($F022), A
+    ; unknown op 34
+    ; TODO: Shift left
+    LD HL, ($F020)
+    LD ($F024), HL
+    ; store , r18
+    LD HL, ($F024)
+    LD ($F01A), HL
+    ; r20 = 16384
+    LD HL, 16384
+    LD ($F028), HL
+    ; r21 = load y_low
+    LD HL, ($F000)
+    LD ($F02A), HL
+    ; unknown op 31
+    LD HL, ($F028)
+    PUSH HL
+    LD HL, ($F02A)
+    POP DE
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    LD ($F02C), HL
+    ; r23 = load y_mid
+    LD HL, ($F000)
+    LD ($F02E), HL
+    ; unknown op 31
+    LD HL, ($F02C)
+    PUSH HL
+    LD HL, ($F02E)
+    POP DE
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    LD ($F030), HL
+    ; r25 = load y_high
+    LD HL, ($F000)
+    LD ($F032), HL
+    ; r26 = 5
+    LD A, 5
+    LD ($F034), A
+    ; unknown op 34
+    ; TODO: Shift left
+    LD HL, ($F032)
+    LD ($F036), HL
+    ; unknown op 31
+    LD HL, ($F030)
+    PUSH HL
+    LD HL, ($F036)
+    POP DE
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    LD ($F038), HL
+screen_addr_param_x:
+    LD A, #00      ; SMC parameter x
+    LD ($F03A), A
+    ; r30 = 3
+    LD A, 3
+    LD ($F03C), A
+    ; unknown op 35
+    ; TODO: Shift right
+    LD HL, ($F03A)
+    LD ($F03E), HL
+    ; unknown op 31
+    LD HL, ($F038)
+    PUSH HL
+    LD HL, ($F03E)
+    POP DE
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    LD ($F040), HL
+    ; store , r32
+    LD HL, ($F040)
+    LD ($F026), HL
+    ; r33 = load addr
+    LD HL, ($F000)
+    LD ($F042), HL
+    ; return r33
+    LD HL, ($F042)
+    RET
+
+; Function: draw_sprite
+draw_sprite:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = 0
+    LD A, 0
+    LD ($F00A), A
+    ; store , r5
+    LD HL, ($F00A)
+    LD ($F008), HL
+    ; loop_1:
+loop_1:
+    ; r6 = load row
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; r7 = 8
+    LD A, 8
+    LD ($F00E), A
+    ; r8 = r6 < r7
+    LD HL, ($F00C)
+    PUSH HL
+    LD HL, ($F00E)
+    POP DE
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    LD ($F010), HL
+    ; jump_if_not r8, end_loop_2
+    LD A, ($F010)
+    OR A
+    JP Z, end_loop_2
+draw_sprite_param_x:
+    LD A, #00      ; SMC parameter x
+    LD ($F014), A
+draw_sprite_param_y:
+    LD A, #00      ; SMC parameter y
+    LD ($F016), A
+    ; r12 = load row
+    LD HL, ($F000)
+    LD ($F018), HL
+    ; r13 = r11 + r12
+    LD HL, ($F016)
+    PUSH HL
+    LD HL, ($F018)
+    POP DE
+    ADD HL, DE
+    LD ($F01A), HL
+    ; r14 = call screen_addr
+    CALL screen_addr
+    LD ($F01C), HL
+    ; store , r14
+    LD HL, ($F01C)
+    LD ($F012), HL
+draw_sprite_param_data:
+    LD HL, #0000   ; SMC parameter data
+    LD ($F020), HL
+    ; store , r16
+    LD HL, ($F020)
+    LD ($F01E), HL
+    ; jump loop_1
+    JP loop_1
+    ; end_loop_2:
+end_loop_2:
+    ; return
+    RET
+
+; Function: main
+main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+
+    END main

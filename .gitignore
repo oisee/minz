@@ -8,7 +8,6 @@ yarn-error.log*
 build/
 dist/
 out/
-*.a80
 *.ir
 *.o
 *.exe

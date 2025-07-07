@@ -1,0 +1,32 @@
+; MinZ generated code
+; Generated: 2025-07-07 21:24:57
+
+
+; Code section
+    ORG $8000
+
+
+; Function: factorial_tail
+factorial_tail:
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; Parameter acc
+    LD L, (IX+6)
+    LD H, (IX+7)
+    LD (IX-4), L
+    LD (IX-3), H
+    ; r3 = load n
+    LD L, (IX-6)
+    LD H, (IX-5)
+    LD (IX-6), L
+    LD (IX-5), H
+    ; XOR A,A (optimized from LD A,0)

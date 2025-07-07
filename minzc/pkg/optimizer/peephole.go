@@ -222,6 +222,56 @@ func (p *PeepholeOptimizationPass) initializePatterns() {
 				}
 			},
 		},
+		
+		// Pattern: Load parameter then store to local -> Just use parameter directly
+		{
+			Name: "param_load_store_elimination",
+			Match: func(insts []ir.Instruction, i int) (bool, int) {
+				if i+1 >= len(insts) {
+					return false, 0
+				}
+				// Match: LoadParam r1, param; StoreVar local, r1
+				if insts[i].Op == ir.OpLoadParam && insts[i+1].Op == ir.OpStoreVar && 
+				   insts[i+1].Src1 == insts[i].Dest {
+					return true, 2
+				}
+				return false, 0
+			},
+			Replace: func(insts []ir.Instruction, i int) []ir.Instruction {
+				// Skip the store, just keep the load
+				return []ir.Instruction{insts[i]}
+			},
+		},
+		
+		// Pattern: Store then immediately load same location -> Keep value in register
+		{
+			Name: "store_load_elimination", 
+			Match: func(insts []ir.Instruction, i int) (bool, int) {
+				if i+1 >= len(insts) {
+					return false, 0
+				}
+				// Match: StoreVar addr, r1; LoadVar r2, addr
+				if insts[i].Op == ir.OpStoreVar && insts[i+1].Op == ir.OpLoadVar &&
+				   insts[i].Dest == insts[i+1].Src1 {
+					// Replace load with move
+					return true, 2
+				}
+				return false, 0
+			},
+			Replace: func(insts []ir.Instruction, i int) []ir.Instruction {
+				storeInst := &insts[i]
+				loadInst := &insts[i+1]
+				return []ir.Instruction{
+					*storeInst, // Keep the store
+					{
+						Op:   ir.OpMove,
+						Dest: loadInst.Dest,
+						Src1: storeInst.Src1,
+						Comment: "Move (optimized from store/load)",
+					},
+				}
+			},
+		},
 	}
 }
 

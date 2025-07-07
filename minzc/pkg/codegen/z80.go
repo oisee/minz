@@ -20,6 +20,7 @@ type Z80Generator struct {
 	localVarBase  uint16 // Base address for local variables (absolute addressing)
 	useAbsoluteLocals bool // Whether to use absolute addressing for locals
 	emittedParams map[string]bool // Track which SMC parameters have been emitted
+	currentRegister ir.Register // Track which virtual register is currently in HL
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -227,13 +228,16 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 			// Emit the parameter label and instruction
 			// The instruction's immediate value IS the parameter
 			g.emit("%s:", paramLabel)
+			
+			// For the first use, we need to emit the load instruction
 			if param.Type.Size() == 1 {
-				g.emit("    LD A, #00      ; SMC parameter %s", paramName)
-				// A already has the value, just store it
-				g.storeFromA(inst.Dest)
+				// For u8, load into HL as u16 to avoid conversions
+				g.emit("    LD HL, #0000   ; SMC parameter %s (u8->u16)", paramName)
+				// Store to the destination
+				g.storeFromHL(inst.Dest)
 			} else {
 				g.emit("    LD HL, #0000   ; SMC parameter %s", paramName)
-				// HL already has the value, just store it
+				// Store to the destination
 				g.storeFromHL(inst.Dest)
 			}
 		} else {
@@ -564,20 +568,20 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		}
 		
 	case ir.OpAdd:
-		// Load operands
+		// Load operands efficiently
 		g.loadToHL(inst.Src1)
-		g.emit("    PUSH HL")
+		g.emit("    LD D, H")
+		g.emit("    LD E, L")
 		g.loadToHL(inst.Src2)
-		g.emit("    POP DE")
 		g.emit("    ADD HL, DE")
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpSub:
 		// HL = Src1 - Src2
 		g.loadToHL(inst.Src1)
-		g.emit("    PUSH HL")
+		g.emit("    LD D, H")
+		g.emit("    LD E, L")
 		g.loadToHL(inst.Src2)
-		g.emit("    POP DE")
 		g.emit("    EX DE, HL")
 		g.emit("    OR A      ; Clear carry")
 		g.emit("    SBC HL, DE")
@@ -593,9 +597,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 	case ir.OpAnd:
 		// Bitwise AND
 		g.loadToHL(inst.Src1)
-		g.emit("    PUSH HL")
+		g.emit("    LD D, H")
+		g.emit("    LD E, L")
 		g.loadToHL(inst.Src2)
-		g.emit("    POP DE")
 		g.emit("    LD A, L")
 		g.emit("    AND E")
 		g.emit("    LD L, A")
@@ -607,9 +611,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 	case ir.OpOr:
 		// Bitwise OR
 		g.loadToHL(inst.Src1)
-		g.emit("    PUSH HL")
+		g.emit("    LD D, H")
+		g.emit("    LD E, L")
 		g.loadToHL(inst.Src2)
-		g.emit("    POP DE")
 		g.emit("    LD A, L")
 		g.emit("    OR E")
 		g.emit("    LD L, A")
@@ -627,9 +631,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.storeFromA(inst.Dest)
 		} else {
 			g.loadToHL(inst.Src1)
-			g.emit("    PUSH HL")
+			g.emit("    LD D, H")
+			g.emit("    LD E, L")
 			g.loadToHL(inst.Src2)
-			g.emit("    POP DE")
 			g.emit("    LD A, L")
 			g.emit("    XOR E")
 			g.emit("    LD L, A")
@@ -727,11 +731,12 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 	// Load operands
 	g.loadToHL(inst.Src1)
-	g.emit("    PUSH HL")
+	g.emit("    LD D, H")
+	g.emit("    LD E, L")
 	g.loadToHL(inst.Src2)
-	g.emit("    POP DE")
 	
-	// Compare HL with DE
+	// Compare DE with HL (reversed for correct comparison)
+	g.emit("    EX DE, HL")
 	g.emit("    OR A      ; Clear carry")
 	g.emit("    SBC HL, DE")
 	

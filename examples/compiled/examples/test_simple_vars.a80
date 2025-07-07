@@ -1,0 +1,49 @@
+; MinZ generated code
+; Generated: 2025-07-07 21:42:26
+
+
+; Code section
+    ORG $8000
+
+
+; Function: main
+; IsSMCDefault=true, IsSMCEnabled=true
+main:
+    ; r2 = 5
+    LD A, 5
+    LD (IX-4), A
+    ; store , r2
+    LD L, (IX-4)
+    LD H, (IX-3)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; r4 = 10
+    LD A, 10
+    LD (IX-8), A
+    ; store , r4
+    LD L, (IX-8)
+    LD H, (IX-7)
+    LD (IX-6), L
+    LD (IX-5), H
+    ; r6 = 100
+    LD A, 100
+    LD (IX-12), A
+    ; store , r6
+    LD L, (IX-12)
+    LD H, (IX-11)
+    LD (IX-10), L
+    LD (IX-9), H
+    ; r8 = 200
+    LD A, 200
+    LD (IX-16), A
+    ; store , r8
+    LD L, (IX-16)
+    LD H, (IX-15)
+    LD (IX-14), L
+    LD (IX-13), H
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+
+    END main

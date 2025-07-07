@@ -1,0 +1,31 @@
+; MinZ generated code - IDEAL SMC output
+; This is what the compiler SHOULD generate
+
+; Code section
+    ORG $8000
+
+; Function: add
+add:
+; Pure SMC style - parameters used directly
+add_param_a:
+    LD HL, #0000   ; SMC parameter a - HL = a
+    LD D, H        ; Save a in DE
+    LD E, L
+add_param_b:
+    LD HL, #0000   ; SMC parameter b - HL = b
+    ADD HL, DE     ; HL = a + b
+    RET
+
+; Function: main
+main:
+    ; Set up parameters for add(10, 20)
+    LD HL, 10
+    LD (add_param_a + 1), HL
+    LD HL, 20
+    LD (add_param_b + 1), HL
+    
+    CALL add
+    ; Result is in HL
+    RET
+
+    END main
