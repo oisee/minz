@@ -1,0 +1,6 @@
+Error: semantic error: semantic analysis failed with 5 errors:
+  1. invalid return type for function opposite: undefined type: Direction
+  2. invalid return type for function next_state: undefined type: GameState
+  3. function opposite not found in symbol table
+  4. function next_state not found in symbol table
+  5. error in function main: cannot infer type for variable state: undefined identifier: GameState

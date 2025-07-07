@@ -1,0 +1,7 @@
+Error: semantic error: semantic analysis failed with 6 errors:
+  1. invalid return type for function Sprite: undefined type: Sprite
+  2. function Sprite not found in symbol table
+  3. invalid parameter type for s: undefined type: Sprite
+  4. invalid parameter type for s: undefined type: Sprite
+  5. invalid parameter type for s: undefined type: Sprite
+  6. invalid parameter type for s1: undefined type: Sprite

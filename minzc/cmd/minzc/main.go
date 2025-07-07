@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/minz/minzc/pkg/codegen"
+	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/module"
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
@@ -113,6 +114,16 @@ func compile(sourceFile string) error {
 		outputFile = base[:len(base)-len(ext)] + ".a80"
 	}
 
+	// Save IR to .mir file
+	mirFile := outputFile[:len(outputFile)-len(filepath.Ext(outputFile))] + ".mir"
+	if err := saveIRModule(irModule, mirFile); err != nil {
+		if debug {
+			fmt.Printf("Warning: failed to save MIR file: %v\n", err)
+		}
+	} else if debug {
+		fmt.Printf("Saved IR to %s\n", mirFile)
+	}
+
 	// Generate Z80 assembly
 	outFile, err := os.Create(outputFile)
 	if err != nil {
@@ -126,5 +137,127 @@ func compile(sourceFile string) error {
 	}
 
 	fmt.Printf("Successfully compiled to %s\n", outputFile)
+	return nil
+}
+
+// saveIRModule saves the IR module to a .mir file
+func saveIRModule(module *ir.Module, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Write header
+	fmt.Fprintf(file, "; MinZ Intermediate Representation (MIR)\n")
+	fmt.Fprintf(file, "; Module: %s\n\n", module.Name)
+
+	// Write globals if any
+	if len(module.Globals) > 0 {
+		fmt.Fprintf(file, "; Globals:\n")
+		for _, g := range module.Globals {
+			fmt.Fprintf(file, ";   %s: %s\n", g.Name, g.Type.String())
+		}
+		fmt.Fprintf(file, "\n")
+	}
+
+	// Write each function
+	for _, fn := range module.Functions {
+		fmt.Fprintf(file, "Function %s(", fn.Name)
+		for i, param := range fn.Params {
+			if i > 0 {
+				fmt.Fprintf(file, ", ")
+			}
+			fmt.Fprintf(file, "%s: %s", param.Name, param.Type.String())
+		}
+		fmt.Fprintf(file, ") -> %s\n", fn.ReturnType.String())
+
+		// Function attributes
+		if fn.IsSMCEnabled {
+			fmt.Fprintf(file, "  @smc\n")
+		}
+		if fn.IsRecursive {
+			fmt.Fprintf(file, "  @recursive\n")
+		}
+		if fn.IsInterrupt {
+			fmt.Fprintf(file, "  @interrupt\n")
+		}
+
+		// Locals
+		if len(fn.Locals) > 0 {
+			fmt.Fprintf(file, "  Locals:\n")
+			for _, local := range fn.Locals {
+				fmt.Fprintf(file, "    r%d = %s: %s\n", local.Reg, local.Name, local.Type.String())
+			}
+		}
+
+		// Instructions
+		fmt.Fprintf(file, "  Instructions:\n")
+		for i, inst := range fn.Instructions {
+			fmt.Fprintf(file, "    %3d: ", i)
+			
+			// Format instruction based on opcode
+			switch inst.Op {
+			case ir.OpLoadConst:
+				fmt.Fprintf(file, "r%d = %d", inst.Dest, inst.Imm)
+			case ir.OpMove:
+				fmt.Fprintf(file, "r%d = r%d", inst.Dest, inst.Src1)
+			case ir.OpLoadVar:
+				fmt.Fprintf(file, "r%d = load %s", inst.Dest, inst.Symbol)
+			case ir.OpStoreVar:
+				fmt.Fprintf(file, "store %s, r%d", inst.Symbol, inst.Src1)
+			case ir.OpAdd:
+				fmt.Fprintf(file, "r%d = r%d + r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpSub:
+				fmt.Fprintf(file, "r%d = r%d - r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpMul:
+				fmt.Fprintf(file, "r%d = r%d * r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpAnd:
+				fmt.Fprintf(file, "r%d = r%d & r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpOr:
+				fmt.Fprintf(file, "r%d = r%d | r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpXor:
+				fmt.Fprintf(file, "r%d = r%d ^ r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpNot:
+				fmt.Fprintf(file, "r%d = ~r%d", inst.Dest, inst.Src1)
+			case ir.OpEq:
+				fmt.Fprintf(file, "r%d = r%d == r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpNe:
+				fmt.Fprintf(file, "r%d = r%d != r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpLt:
+				fmt.Fprintf(file, "r%d = r%d < r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpGt:
+				fmt.Fprintf(file, "r%d = r%d > r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpLe:
+				fmt.Fprintf(file, "r%d = r%d <= r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpGe:
+				fmt.Fprintf(file, "r%d = r%d >= r%d", inst.Dest, inst.Src1, inst.Src2)
+			case ir.OpCall:
+				fmt.Fprintf(file, "r%d = call %s", inst.Dest, inst.Symbol)
+			case ir.OpReturn:
+				if inst.Src1 != 0 {
+					fmt.Fprintf(file, "return r%d", inst.Src1)
+				} else {
+					fmt.Fprintf(file, "return")
+				}
+			case ir.OpJump:
+				fmt.Fprintf(file, "jump %s", inst.Label)
+			case ir.OpJumpIfNot:
+				fmt.Fprintf(file, "jump_if_not r%d, %s", inst.Src1, inst.Label)
+			case ir.OpLabel:
+				fmt.Fprintf(file, "%s:", inst.Label)
+			default:
+				fmt.Fprintf(file, "%v", inst.Op)
+			}
+
+			// Add comment if present
+			if inst.Comment != "" {
+				fmt.Fprintf(file, " ; %s", inst.Comment)
+			}
+			fmt.Fprintf(file, "\n")
+		}
+		fmt.Fprintf(file, "\n")
+	}
+
 	return nil
 }

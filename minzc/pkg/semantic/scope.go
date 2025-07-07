@@ -12,10 +12,11 @@ type Symbol interface {
 
 // VarSymbol represents a variable
 type VarSymbol struct {
-	Name      string
-	Type      ir.Type
-	Reg       ir.Register
-	IsMutable bool
+	Name        string
+	Type        ir.Type
+	Reg         ir.Register
+	IsMutable   bool
+	IsParameter bool
 }
 
 func (v *VarSymbol) symbol() {}

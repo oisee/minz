@@ -49,6 +49,7 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 
 	// Generate functions
 	for _, fn := range module.Functions {
+		// fmt.Printf("DEBUG CodeGen: Function %s: IsSMCDefault=%v, IsSMCEnabled=%v, ptr=%p\n", fn.Name, fn.IsSMCDefault, fn.IsSMCEnabled, fn)
 		if err := g.generateFunction(fn); err != nil {
 			return err
 		}
@@ -102,6 +103,14 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	// Function label
 	g.emit("")
 	g.emit("; Function: %s", fn.Name)
+	// g.emit("; IsSMCDefault=%v, IsSMCEnabled=%v", fn.IsSMCDefault, fn.IsSMCEnabled)
+	
+	// Check if this is an SMC function
+	if fn.IsSMCDefault || fn.IsSMCEnabled {
+		return g.generateSMCFunction(fn)
+	}
+	
+	// Traditional function generation
 	g.emit("%s:", fn.Name)
 
 	// Function prologue
@@ -119,6 +128,148 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 		g.generateEpilogue()
 	}
 
+	return nil
+}
+
+// generateSMCFunction generates an SMC-based function
+func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
+	g.emit("%s:", fn.Name)
+	
+	// Generate SMC parameter slots
+	for _, param := range fn.Params {
+		offset := fn.SMCParamOffsets[param.Name]
+		paramLabel := fmt.Sprintf("%s_param_%s", fn.Name, param.Name)
+		g.emit("%s EQU %s + %d", paramLabel, fn.Name, offset)
+		
+		// Emit the actual parameter instruction
+		if param.Type.Size() == 1 {
+			g.emit("    LD A, #00      ; Parameter %s", param.Name)
+		} else {
+			g.emit("    LD HL, #0000   ; Parameter %s", param.Name)
+		}
+	}
+	
+	// For recursive functions, we need special handling
+	if fn.IsRecursive && fn.RequiresContext {
+		g.emit("    ; Recursive function - will need context save/restore")
+	}
+	
+	// If this has tail recursion, add the start label
+	if fn.HasTailRecursion {
+		g.emit("%s_start:", fn.Name)
+	}
+	
+	// Generate minimal prologue if needed
+	if fn.UsedRegisters != 0 && !fn.IsRecursive {
+		// Only save registers if not recursive (recursive saves in context)
+		if fn.ModifiedRegisters.Contains(ir.Z80_BC) {
+			g.emit("    PUSH BC")
+		}
+		if fn.ModifiedRegisters.Contains(ir.Z80_DE) {
+			g.emit("    PUSH DE")
+		}
+	}
+	
+	// Generate instructions with SMC awareness
+	for _, inst := range fn.Instructions {
+		if err := g.generateSMCInstruction(inst); err != nil {
+			return err
+		}
+	}
+	
+	// Epilogue if needed
+	if len(fn.Instructions) == 0 || fn.Instructions[len(fn.Instructions)-1].Op != ir.OpReturn {
+		if fn.UsedRegisters != 0 && !fn.IsRecursive {
+			if fn.ModifiedRegisters.Contains(ir.Z80_DE) {
+				g.emit("    POP DE")
+			}
+			if fn.ModifiedRegisters.Contains(ir.Z80_BC) {
+				g.emit("    POP BC")
+			}
+		}
+		g.emit("    RET")
+	}
+	
+	return nil
+}
+
+// generateSMCInstruction generates an instruction for SMC function
+func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
+	switch inst.Op {
+	case ir.OpCall:
+		// Check if this is a recursive call
+		if inst.Symbol == g.currentFunc.Name && g.currentFunc.RequiresContext {
+			return g.generateSMCRecursiveCall(inst)
+		}
+		// Fall through to regular instruction generation
+		return g.generateInstruction(inst)
+		
+	case ir.OpLoadParam:
+		// For SMC, parameters are already in immediate values
+		// Just reference the SMC location
+		paramName := inst.Symbol
+		paramLabel := fmt.Sprintf("%s_param_%s", g.currentFunc.Name, paramName)
+		
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			g.emit("    LD A, (%s)", paramLabel)
+			g.storeFromA(inst.Dest)
+		} else {
+			g.emit("    LD HL, (%s)", paramLabel)
+			g.storeFromHL(inst.Dest)
+		}
+		return nil
+		
+	default:
+		// Use regular instruction generation
+		return g.generateInstruction(inst)
+	}
+}
+
+// generateSMCRecursiveCall generates a recursive call with context save/restore
+func (g *Z80Generator) generateSMCRecursiveCall(inst ir.Instruction) error {
+	fn := g.currentFunc
+	
+	g.emit("    ; === SMC Recursive Context Save ===")
+	
+	// Save all SMC parameters
+	for _, param := range fn.Params {
+		paramLabel := fmt.Sprintf("%s_param_%s", fn.Name, param.Name)
+		
+		if param.Type.Size() == 1 {
+			g.emit("    LD A, (%s)", paramLabel)
+			g.emit("    PUSH AF")
+		} else {
+			g.emit("    LD HL, (%s)", paramLabel)
+			g.emit("    PUSH HL")
+		}
+	}
+	
+	g.emit("    ; === Update SMC Parameters ===")
+	// Note: The semantic analyzer should have generated instructions to
+	// set up the new parameter values before the call
+	
+	g.emit("    CALL %s", inst.Symbol)
+	
+	g.emit("    ; === SMC Recursive Context Restore ===")
+	// Restore in reverse order
+	for i := len(fn.Params) - 1; i >= 0; i-- {
+		param := fn.Params[i]
+		paramLabel := fmt.Sprintf("%s_param_%s", fn.Name, param.Name)
+		
+		if param.Type.Size() == 1 {
+			g.emit("    POP AF")
+			g.emit("    LD (%s), A", paramLabel)
+		} else {
+			g.emit("    POP HL")
+			g.emit("    LD (%s), HL", paramLabel)
+		}
+	}
+	
+	// Store the result if needed
+	if inst.Dest != 0 {
+		g.storeFromHL(inst.Dest)
+	}
+	
 	return nil
 }
 
@@ -380,6 +531,80 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// TODO: Implement proper 16-bit multiplication
 		g.emit("    ; TODO: Multiplication")
 		g.emit("    LD HL, 0")
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpAnd:
+		// Bitwise AND
+		g.loadToHL(inst.Src1)
+		g.emit("    PUSH HL")
+		g.loadToHL(inst.Src2)
+		g.emit("    POP DE")
+		g.emit("    LD A, L")
+		g.emit("    AND E")
+		g.emit("    LD L, A")
+		g.emit("    LD A, H")
+		g.emit("    AND D")
+		g.emit("    LD H, A")
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpOr:
+		// Bitwise OR
+		g.loadToHL(inst.Src1)
+		g.emit("    PUSH HL")
+		g.loadToHL(inst.Src2)
+		g.emit("    POP DE")
+		g.emit("    LD A, L")
+		g.emit("    OR E")
+		g.emit("    LD L, A")
+		g.emit("    LD A, H")
+		g.emit("    OR D")
+		g.emit("    LD H, A")
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpXor:
+		// Bitwise XOR
+		// Special case for XOR with self (zeroing)
+		if inst.Src1 == inst.Src2 && inst.Src1 == inst.Dest {
+			// XOR A,A is a common way to zero A register
+			g.emit("    XOR A")
+			g.storeFromA(inst.Dest)
+		} else {
+			g.loadToHL(inst.Src1)
+			g.emit("    PUSH HL")
+			g.loadToHL(inst.Src2)
+			g.emit("    POP DE")
+			g.emit("    LD A, L")
+			g.emit("    XOR E")
+			g.emit("    LD L, A")
+			g.emit("    LD A, H")
+			g.emit("    XOR D")
+			g.emit("    LD H, A")
+			g.storeFromHL(inst.Dest)
+		}
+		
+	case ir.OpNot:
+		// Bitwise NOT (one's complement)
+		g.loadToHL(inst.Src1)
+		g.emit("    LD A, L")
+		g.emit("    CPL")
+		g.emit("    LD L, A")
+		g.emit("    LD A, H")
+		g.emit("    CPL")
+		g.emit("    LD H, A")
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpShl:
+		// Shift left
+		// TODO: Implement shift left
+		g.emit("    ; TODO: Shift left")
+		g.loadToHL(inst.Src1)
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpShr:
+		// Shift right
+		// TODO: Implement shift right
+		g.emit("    ; TODO: Shift right")
+		g.loadToHL(inst.Src1)
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpEq, ir.OpNe, ir.OpLt, ir.OpGt, ir.OpLe, ir.OpGe:

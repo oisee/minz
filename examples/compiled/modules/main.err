@@ -1,0 +1,2 @@
+Error: semantic error: semantic analysis failed with 1 errors:
+  1. error in function main: cannot infer type for variable p: undefined identifier: player

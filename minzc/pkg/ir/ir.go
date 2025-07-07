@@ -95,6 +95,10 @@ const (
 	// Self-modifying code operations
 	OpSMCLoadConst
 	OpSMCStoreConst
+	OpSMCParam      // SMC parameter slot
+	OpSMCSave       // Save SMC parameter to stack
+	OpSMCRestore    // Restore SMC parameter from stack
+	OpSMCUpdate     // Update SMC parameter value
 	
 	// Arithmetic
 	OpAdd
@@ -292,6 +296,10 @@ type Function struct {
 	IsSMCEnabled bool     // Whether self-modifying code is enabled for this function
 	IsRecursive  bool     // Whether this function is recursive
 	SMCLocations map[string]int // Maps SMC labels to instruction indices
+	IsSMCDefault     bool                    // Use SMC by default (true)
+	SMCParamOffsets  map[string]int          // Parameter name -> SMC offset
+	RequiresContext  bool                    // True for recursive functions
+	HasTailRecursion bool                    // True if function has tail recursive calls
 	
 	// Register usage tracking for optimal prologue/epilogue
 	UsedRegisters    RegisterSet // Which Z80 registers are actually used
@@ -318,10 +326,13 @@ type Local struct {
 // NewFunction creates a new IR function
 func NewFunction(name string, returnType Type) *Function {
 	return &Function{
-		Name:         name,
-		ReturnType:   returnType,
-		NextReg:      1, // Start from 1, 0 is reserved
-		NextRegister: 1, // Same as NextReg
+		Name:            name,
+		ReturnType:      returnType,
+		NextReg:         1, // Start from 1, 0 is reserved
+		NextRegister:    1, // Same as NextReg
+		IsSMCDefault:    true, // SMC is the default!
+		IsSMCEnabled:    true, // Enable SMC by default
+		SMCParamOffsets: make(map[string]int),
 	}
 }
 

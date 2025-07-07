@@ -1,0 +1,8 @@
+// Simple test for SMC generation
+fn add(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+fn main() -> void {
+    let result = add(10, 20);
+}

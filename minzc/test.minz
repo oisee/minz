@@ -1,3 +1,0 @@
-fn main() -> void {
-    let x: u8 = 42;
-}

@@ -1,0 +1,16 @@
+// Recursive fibonacci to test SMC context save/restore
+fn fibonacci(n: u8) -> u16 {
+    if n <= 1 {
+        return n;
+    }
+    
+    // Recursive calls
+    let a = fibonacci(n - 1);
+    let b = fibonacci(n - 2);
+    
+    return a + b;
+}
+
+fn main() -> void {
+    let result = fibonacci(10);
+}

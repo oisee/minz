@@ -66,6 +66,13 @@ func (o *Optimizer) Optimize(module *ir.Module) error {
 	recursionDetector := NewRecursionDetector()
 	recursionDetector.AnalyzeModule(module)
 	
+	// Apply tail recursion optimization
+	for _, fn := range module.Functions {
+		if fn.IsRecursive {
+			OptimizeTailRecursion(fn)
+		}
+	}
+	
 	// Keep running passes until no more changes
 	maxIterations := 10
 	for iteration := 0; iteration < maxIterations; iteration++ {

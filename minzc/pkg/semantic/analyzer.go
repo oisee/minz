@@ -28,14 +28,17 @@ type Analyzer struct {
 	moduleResolver ModuleResolver
 	currentFile    string
 	luaEvaluator   *meta.LuaEvaluator
+	currentFunc    *ir.Function
+	functionCalls  map[string][]string // Track which functions call which
 }
 
 // NewAnalyzer creates a new semantic analyzer
 func NewAnalyzer() *Analyzer {
 	return &Analyzer{
-		currentScope: NewScope(nil),
-		errors:       []error{},
-		module:       ir.NewModule("main"),
+		currentScope:  NewScope(nil),
+		errors:        []error{},
+		module:        ir.NewModule("main"),
+		functionCalls: make(map[string][]string),
 		// luaEvaluator: meta.NewLuaEvaluator(), // Temporarily disabled
 	}
 }
@@ -177,6 +180,38 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 
 	// Create IR function
 	irFunc := ir.NewFunction(fn.Name, funcSym.ReturnType)
+	
+	// Default to SMC unless impossible
+	irFunc.IsSMCDefault = true
+	irFunc.SMCParamOffsets = make(map[string]int)
+	
+	// Debug: confirm SMC is enabled
+	// fmt.Printf("DEBUG: After setting SMC for %s: IsSMCDefault=%v, IsSMCEnabled=%v, ptr=%p\n", fn.Name, irFunc.IsSMCDefault, irFunc.IsSMCEnabled, irFunc)
+	
+	// Allocate SMC parameter slots
+	offset := 1 // Start after opcode
+	for _, param := range fn.Params {
+		// Get parameter type
+		paramType, err := a.convertType(param.Type)
+		if err != nil {
+			// Default to u16 if type conversion fails
+			paramType = &ir.BasicType{Kind: ir.TypeU16}
+		}
+		
+		irFunc.SMCParamOffsets[param.Name] = offset
+		
+		// Calculate next offset based on parameter size
+		if paramType.Size() == 1 {
+			offset += 2 // LD A, #xx (2 bytes)
+		} else {
+			offset += 3 // LD HL, #xxxx (3 bytes)
+		}
+	}
+	
+	// Set current function for tracking
+	prevFunc := a.currentFunc
+	a.currentFunc = irFunc
+	defer func() { a.currentFunc = prevFunc }()
 
 	// Enter new scope for function
 	a.currentScope = NewScope(a.currentScope)
@@ -191,9 +226,10 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 
 		reg := irFunc.AddParam(param.Name, paramType)
 		a.currentScope.Define(param.Name, &VarSymbol{
-			Name: param.Name,
-			Type: paramType,
-			Reg:  reg,
+			Name:        param.Name,
+			Type:        paramType,
+			Reg:         reg,
+			IsParameter: true,
 		})
 	}
 
@@ -209,6 +245,8 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 
 	// Add function to module
 	a.module.AddFunction(irFunc)
+	
+	// fmt.Printf("DEBUG: Before adding to module %s: IsSMCDefault=%v, IsSMCEnabled=%v, ptr=%p\n", fn.Name, irFunc.IsSMCDefault, irFunc.IsSMCEnabled, irFunc)
 
 	return nil
 }
@@ -565,15 +603,26 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 		return 0, fmt.Errorf("undefined identifier: %s", id.Name)
 	}
 
-	switch sym.(type) {
+	switch s := sym.(type) {
 	case *VarSymbol:
 		// Load variable value
 		reg := irFunc.AllocReg()
-		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-			Op:     ir.OpLoadVar,
-			Dest:   reg,
-			Symbol: id.Name,
-		})
+		
+		// Check if this is a parameter in an SMC function
+		if s.IsParameter && irFunc.IsSMCDefault {
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:     ir.OpLoadParam,
+				Dest:   reg,
+				Symbol: id.Name,
+				Type:   s.Type,
+			})
+		} else {
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:     ir.OpLoadVar,
+				Dest:   reg,
+				Symbol: id.Name,
+			})
+		}
 		return reg, nil
 	default:
 		return 0, fmt.Errorf("cannot use %s as value", id.Name)
@@ -699,6 +748,17 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 	funcSym, ok := sym.(*FuncSymbol)
 	if !ok {
 		return 0, fmt.Errorf("%s is not a function", id.Name)
+	}
+	
+	// Track function calls for recursion detection
+	if a.currentFunc != nil {
+		a.functionCalls[a.currentFunc.Name] = append(a.functionCalls[a.currentFunc.Name], id.Name)
+		
+		// Check if this is a recursive call
+		if id.Name == a.currentFunc.Name {
+			a.currentFunc.IsRecursive = true
+			a.currentFunc.RequiresContext = true
+		}
 	}
 
 	// Check argument count
