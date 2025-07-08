@@ -15,8 +15,8 @@ fn test_var_declarations() -> void {
     // Test 5: let with expression
     let e = a + b;
     
-    // Test 6: let mut with expression
-    let mut f = c + d;
+    // Test 6: let mut with expression (cast to match types)
+    let mut f: u16 = (c as u16) + d;
 }
 
 fn main() -> void {

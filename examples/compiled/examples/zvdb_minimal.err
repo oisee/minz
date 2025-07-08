@@ -1,4 +1,0 @@
-Error: semantic error: semantic analysis failed with 3 errors:
-  1. invalid parameter type for store: undefined type: VectorStore
-  2. invalid parameter type for store: undefined type: VectorStore
-  3. error in function main: invalid type for variable store: undefined type: VectorStore

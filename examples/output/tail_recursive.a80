@@ -1,0 +1,217 @@
+; MinZ generated code
+; Generated: 2025-07-07 23:08:03
+
+
+; Code section
+    ORG $8000
+
+
+; Function: factorial_tail
+factorial_tail:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+factorial_tail_param_n:
+    LD A, #00      ; SMC parameter n
+    LD ($F006), A
+    ; r4 = 0
+    LD A, 0
+    LD ($F008), A
+    ; r5 = r3 == r4
+    LD HL, ($F006)
+    PUSH HL
+    LD HL, ($F008)
+    POP DE
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    LD ($F00A), HL
+    ; jump_if_not r5, else_1
+    LD A, ($F00A)
+    OR A
+    JP Z, else_1
+factorial_tail_param_acc:
+    LD HL, #0000   ; SMC parameter acc
+    LD ($F00C), HL
+    ; return r6
+    LD HL, ($F00C)
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    LD A, (factorial_tail_param_n)
+    LD ($F00E), A
+    ; r8 = 1
+    LD A, 1
+    LD ($F010), A
+    ; r9 = r7 - r8
+    LD HL, ($F00E)
+    PUSH HL
+    LD HL, ($F010)
+    POP DE
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    LD ($F012), HL
+    LD A, (factorial_tail_param_n)
+    LD ($F014), A
+    LD HL, (factorial_tail_param_acc)
+    LD ($F016), HL
+    ; r12 = r10 * r11
+    ; TODO: Multiplication
+    LD HL, 0
+    LD ($F018), HL
+    ; === SMC Recursive Context Save ===
+    LD A, (factorial_tail_param_n)
+    PUSH AF
+    LD HL, (factorial_tail_param_acc)
+    PUSH HL
+    ; === Update SMC Parameters ===
+    CALL factorial_tail
+    ; === SMC Recursive Context Restore ===
+    POP HL
+    LD (factorial_tail_param_acc), HL
+    POP AF
+    LD (factorial_tail_param_n), A
+    LD ($F01A), HL
+    ; return r13
+    LD HL, ($F01A)
+    RET
+
+; Function: factorial
+factorial:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+factorial_param_n:
+    LD A, #00      ; SMC parameter n
+    LD ($F004), A
+    ; r3 = 1
+    LD A, 1
+    LD ($F006), A
+    ; r4 = call factorial_tail
+    CALL factorial_tail
+    LD ($F008), HL
+    ; return r4
+    LD HL, ($F008)
+    RET
+
+; Function: sum_tail
+sum_tail:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+sum_tail_param_n:
+    LD HL, #0000   ; SMC parameter n
+    LD ($F006), HL
+    ; r4 = 0
+    LD A, 0
+    LD ($F008), A
+    ; r5 = r3 == r4
+    LD HL, ($F006)
+    PUSH HL
+    LD HL, ($F008)
+    POP DE
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    LD ($F00A), HL
+    ; jump_if_not r5, else_3
+    LD A, ($F00A)
+    OR A
+    JP Z, else_3
+sum_tail_param_acc:
+    LD HL, #0000   ; SMC parameter acc
+    LD ($F00C), HL
+    ; return r6
+    LD HL, ($F00C)
+    RET
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; end_if_4:
+end_if_4:
+    LD HL, (sum_tail_param_n)
+    LD ($F00E), HL
+    ; r8 = 1
+    LD A, 1
+    LD ($F010), A
+    ; r9 = r7 - r8
+    LD HL, ($F00E)
+    PUSH HL
+    LD HL, ($F010)
+    POP DE
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    LD ($F012), HL
+    LD HL, (sum_tail_param_acc)
+    LD ($F014), HL
+    LD HL, (sum_tail_param_n)
+    LD ($F016), HL
+    ; r12 = r10 + r11
+    LD HL, ($F014)
+    PUSH HL
+    LD HL, ($F016)
+    POP DE
+    ADD HL, DE
+    LD ($F018), HL
+    ; === SMC Recursive Context Save ===
+    LD HL, (sum_tail_param_n)
+    PUSH HL
+    LD HL, (sum_tail_param_acc)
+    PUSH HL
+    ; === Update SMC Parameters ===
+    CALL sum_tail
+    ; === SMC Recursive Context Restore ===
+    POP HL
+    LD (sum_tail_param_acc), HL
+    POP HL
+    LD (sum_tail_param_n), HL
+    LD ($F01A), HL
+    ; return r13
+    LD HL, ($F01A)
+    RET
+
+; Function: main
+main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A
+    ; r3 = call factorial
+    CALL factorial
+    LD ($F006), HL
+    ; store , r3
+    LD HL, ($F006)
+    LD ($F002), HL
+    ; r5 = 100
+    LD A, 100
+    LD ($F00A), A
+    ; r6 = 0
+    LD A, 0
+    LD ($F00C), A
+    ; r7 = call sum_tail
+    CALL sum_tail
+    LD ($F00E), HL
+    ; store , r7
+    LD HL, ($F00E)
+    LD ($F008), HL
+    ; return
+    RET
+
+    END main

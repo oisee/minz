@@ -13,13 +13,13 @@ fn set_border(color: u8) -> void {
 
 // Fill screen attributes with a color
 fn fill_screen(ink: u8, paper: u8, bright: bool) -> void {
-    let attr: u8 = ink | (paper << 3);
+    let mut attr: u8 = ink | (paper << 3);
     if bright {
         attr = attr | 0x40;
     }
     
-    let mut addr: u16 = ATTR_START;
-    let end: u16 = ATTR_START + ATTR_SIZE;
+    let mut addr: u16 = 0x5800;  // Use literal instead of const
+    let end: u16 = 0x5800 + 768;  // Use literals
     
     while addr < end {
         asm("

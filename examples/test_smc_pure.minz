@@ -1,8 +1,0 @@
-// Test pure SMC approach
-fn add(a: u16, b: u16) -> u16 {
-    return a + b;
-}
-
-fn main() {
-    let x = add(10, 20);
-}
