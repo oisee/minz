@@ -1,0 +1,214 @@
+// MNIST Digit Editor for ZX Spectrum
+// Interactive 16x16 pixel editor with attribute-based UI
+// Controls: Q/A=up/down, O/P=left/right, SPACE=toggle pixel, C=clear
+
+module mnist_editor;
+
+// Editor state
+type Editor = struct {
+    cursor_x: u8,     // 0-15
+    cursor_y: u8,     // 0-15
+    canvas: [256]bool  // 16x16 pixel canvas flattened
+};
+
+// Initialize editor
+fn editor_init() -> Editor {
+    let mut editor: Editor;
+    editor.cursor_x = 8;
+    editor.cursor_y = 8;
+    
+    // Clear canvas
+    let mut i: u16 = 0;
+    while i < 256 {
+        editor.canvas[i] = false;
+        i = i + 1;
+    }
+    
+    return editor;
+}
+
+// Draw the UI frame
+fn draw_frame() -> void {
+    // Clear screen - white on black
+    screen.clear(screen.WHITE, screen.BLACK, false, false);
+    
+    // Set border to blue
+    screen.set_border(screen.BLUE);
+    
+    // Draw title at top (char position 0,0)
+    draw_text(0, 0, "MNIST DIGIT EDITOR", screen.WHITE, screen.BLUE);
+    
+    // Draw instructions
+    draw_text(0, 22, "Q/A:UP/DN O/P:L/R SPC:DRAW C:CLR", screen.YELLOW, screen.BLACK);
+    
+    // Draw 16x16 grid border
+    // Grid starts at pixel (64, 48) = char (8, 6)
+    let grid_x: u8 = 64;
+    let grid_y: u8 = 48;
+    
+    // Draw border around grid (18x18 to include borders)
+    screen.draw_rect(grid_x - 1, grid_y - 1, 18, 18);
+}
+
+// Draw text at character position with attributes
+fn draw_text(x: u8, y: u8, text: *const u8, ink: u8, paper: u8) -> void {
+    // Set attributes for text area
+    let attr_addr = screen.attr_addr(x, y);
+    let attr: u8 = ink | (paper << 3) | screen.BRIGHT;
+    
+    let mut i: u8 = 0;
+    while text[i] != 0 {
+        // For simplicity, we'll just set attributes
+        // In a real implementation, we'd also draw the characters
+        asm("
+            ld hl, {0}
+            ld a, {1}
+            ld (hl), a
+            inc hl
+        " : : "r"(attr_addr + i), "r"(attr));
+        i = i + 1;
+    }
+}
+
+// Draw the 16x16 canvas
+fn draw_canvas(editor: *Editor) -> void {
+    let grid_x: u8 = 64;  // Start X pixel
+    let grid_y: u8 = 48;  // Start Y pixel
+    
+    let mut y: u8 = 0;
+    while y < 16 {
+        let mut x: u8 = 0;
+        while x < 16 {
+            let px = grid_x + x;
+            let py = grid_y + y;
+            let idx: u16 = (y as u16) * 16 + (x as u16);
+            
+            if editor.canvas[idx] {
+                screen.set_pixel(px, py);
+            } else {
+                screen.clear_pixel(px, py);
+            }
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}
+
+// Draw cursor (flashing pixel)
+fn draw_cursor(editor: *Editor, flash: bool) -> void {
+    let grid_x: u8 = 64;
+    let grid_y: u8 = 48;
+    
+    let px = grid_x + editor.cursor_x;
+    let py = grid_y + editor.cursor_y;
+    
+    // Set attribute for cursor position to make it visible
+    let char_x = px / 8;
+    let char_y = py / 8;
+    let attr_addr = screen.attr_addr(char_x, char_y);
+    
+    if flash {
+        // Invert colors for cursor
+        asm("
+            ld hl, {0}
+            ld a, (hl)
+            xor $07  ; Invert ink bits
+            ld (hl), a
+        " : : "r"(attr_addr));
+    }
+}
+
+// Handle keyboard input
+fn handle_input(editor: *Editor) -> bool {
+    // Check movement keys
+    if input.is_key_pressed(input.KEY_Q) {
+        // Move up
+        if editor.cursor_y > 0 {
+            editor.cursor_y = editor.cursor_y - 1;
+        }
+        return true;
+    }
+    
+    if input.is_key_pressed(input.KEY_A) {
+        // Move down
+        if editor.cursor_y < 15 {
+            editor.cursor_y = editor.cursor_y + 1;
+        }
+        return true;
+    }
+    
+    if input.is_key_pressed(input.KEY_O) {
+        // Move left
+        if editor.cursor_x > 0 {
+            editor.cursor_x = editor.cursor_x - 1;
+        }
+        return true;
+    }
+    
+    if input.is_key_pressed(input.KEY_P) {
+        // Move right
+        if editor.cursor_x < 15 {
+            editor.cursor_x = editor.cursor_x + 1;
+        }
+        return true;
+    }
+    
+    if input.is_key_pressed(input.KEY_SPACE) {
+        // Toggle pixel
+        let x = editor.cursor_x;
+        let y = editor.cursor_y;
+        let idx: u16 = (y as u16) * 16 + (x as u16);
+        editor.canvas[idx] = !editor.canvas[idx];
+        return true;
+    }
+    
+    if input.is_key_pressed(input.KEY_C) {
+        // Clear canvas
+        let mut i: u16 = 0;
+        while i < 256 {
+            editor.canvas[i] = false;
+            i = i + 1;
+        }
+        return true;
+    }
+    
+    return false;
+}
+
+// Simple delay for key repeat
+fn delay() -> void {
+    let mut count: u16 = 0;
+    while count < 5000 {
+        count = count + 1;
+    }
+}
+
+// Main program
+fn main() -> void {
+    // Initialize editor
+    let mut editor = editor_init();
+    
+    // Draw initial UI
+    draw_frame();
+    
+    // Main loop
+    let mut flash_counter: u8 = 0;
+    while true {
+        // Draw canvas
+        draw_canvas(&editor);
+        
+        // Draw cursor with flashing
+        let flash = (flash_counter & 0x10) != 0;
+        draw_cursor(&editor, flash);
+        flash_counter = flash_counter + 1;
+        
+        // Handle input
+        if handle_input(&editor) {
+            // Debounce delay after key press
+            delay();
+        }
+        
+        // Small delay for main loop
+        delay();
+    }
+}
