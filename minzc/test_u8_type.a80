@@ -1,0 +1,19 @@
+; MinZ generated code
+; Generated: 2025-07-23 23:25:30
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_u8_type.main
+...examples.test_u8_type.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load x
+    LD HL, ($F000)
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

@@ -1,0 +1,27 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_direct_return.calculate_once(a: u8, b: u8) -> u16
+  @smc
+  Instructions:
+      0: 10
+      1: return r3
+
+Function ...examples.test_direct_return.calculate_once2(a: u8, b: u8) -> u16
+  @smc
+  Instructions:
+      0: 10
+      1: return r3
+
+Function ...examples.test_direct_return.main() -> void
+  @smc
+  Locals:
+    r3 = temp: u16
+  Instructions:
+      0: r1 = load result
+      1: r2 = 12
+      2: r4 = 5
+      3: r5 = load result
+      4: r6 = 10
+      5: return
+

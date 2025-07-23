@@ -1,21 +1,20 @@
 // Minimal MNIST Editor
 // Test basic functionality first
 
-// Screen constants
-const SCREEN_ADDR: u16 = 0x4000;
-
 // Set a pixel
 fn set_pixel(x: u8, y: u8) -> void {
     // Calculate address
-    let addr: u16 = SCREEN_ADDR + ((y as u16) * 32) + ((x >> 3) as u16);
+    let screen_addr: u16 = 0x4000;
+    let addr: u16 = screen_addr + ((y as u16) * 32) + ((x >> 3) as u16);
     let bit: u8 = 0x80 >> (x & 7);
     
-    asm("
-        ld hl, {0}
+    asm {
+        ld hl, (!addr)
         ld a, (hl)
-        or {1}
+        or a, (!bit)
         ld (hl), a
-    " : : "r"(addr), "r"(bit));
+    }
+    return;
 }
 
 fn main() -> void {

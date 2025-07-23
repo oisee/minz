@@ -1,0 +1,18 @@
+// Test basic MinZ compilation
+
+// Simple function
+fn add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fn main() -> void {
+    let x: u8 = 5;
+    let y: u8 = 3;
+    let result: u8 = add(x, y);
+    
+    // Simple loop
+    let mut i: u8 = 0;
+    while i < 10 {
+        i = i + 1;
+    }
+}

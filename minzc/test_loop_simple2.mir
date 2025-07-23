@@ -1,0 +1,32 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_loop_simple2.main() -> void
+  @smc
+  Locals:
+    r14 = x: u8
+  Instructions:
+      0: r1 = load items
+      1: r2 = 0
+      2: 13 ; Load array element
+      3: 11 ; Load field value
+      4: r5 = load items
+      5: r6 = 1
+      6: 13 ; Load array element
+      7: 11 ; Load field value
+      8: r9 = load items
+      9: 53 ; Load table base address
+     10: 53 ; Load table base for end calculation
+     11: 58 ; Calculate table end (+ 2 elements * 1 bytes)
+     12: 57 ; Load loop counter
+     13: loop_start_1:
+     14: 39 ; Check if reached end of table
+     15: 3 ; Exit if done
+     16: 54 ; Copy element to buffer at $F000
+     17: 17 ; Load item.value from buffer at $F000
+     18: 55 ; Copy buffer back to element at $F000
+     19: 58 ; Advance to next element (+1 bytes)
+     20: 56 ; Decrement counter and loop if not zero
+     21: loop_end_2:
+     22: return
+

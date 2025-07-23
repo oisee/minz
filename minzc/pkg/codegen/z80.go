@@ -538,8 +538,15 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpReturn:
 		if inst.Src1 != 0 {
-			// Load return value to HL (Z80 convention)
-			g.loadToHL(inst.Src1)
+			// Check if this function has direct return optimization
+			if target, ok := g.currentFunc.GetMetadata("direct_return_target"); ok {
+				// Directly store to the target location instead of returning in HL
+				g.loadToHL(inst.Src1)
+				g.emit("    LD (%s), HL    ; Direct return optimization", target)
+			} else {
+				// Normal return: Load return value to HL (Z80 convention)
+				g.loadToHL(inst.Src1)
+			}
 		}
 		g.generateEpilogue()
 		
@@ -628,6 +635,34 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    ; TODO: Multiplication")
 		g.emit("    LD HL, 0")
 		g.storeFromHL(inst.Dest)
+		
+	case ir.OpInc:
+		// Increment register
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			// For byte values
+			g.loadToA(inst.Src1)
+			g.emit("    INC A")
+			g.storeFromA(inst.Dest)
+		} else {
+			// For word values
+			g.loadToHL(inst.Src1)
+			g.emit("    INC HL")
+			g.storeFromHL(inst.Dest)
+		}
+		
+	case ir.OpDec:
+		// Decrement register
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			// For byte values
+			g.loadToA(inst.Src1)
+			g.emit("    DEC A")
+			g.storeFromA(inst.Dest)
+		} else {
+			// For word values
+			g.loadToHL(inst.Src1)
+			g.emit("    DEC HL")
+			g.storeFromHL(inst.Dest)
+		}
 		
 	case ir.OpAnd:
 		// Bitwise AND
@@ -793,6 +828,93 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD A, (HL)")
 		g.storeFromA(inst.Dest)
 		
+	// Loop operations
+	case ir.OpLoadAddr:
+		// Load address of a variable/array
+		if inst.Symbol != "" {
+			g.emit("    LD HL, %s", inst.Symbol)
+		} else {
+			// Load address from register (for arrays)
+			g.loadToHL(inst.Src1)
+		}
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpCopyToBuffer:
+		// Copy memory block to static buffer
+		// Src1 = source pointer, Imm = buffer address, Imm2 = size
+		g.loadToHL(inst.Src1)
+		g.emit("    LD DE, $%04X    ; Buffer address", inst.Imm)
+		g.emit("    LD BC, %d       ; Size", inst.Imm2)
+		g.emit("    LDIR            ; Copy to buffer")
+		
+	case ir.OpCopyFromBuffer:
+		// Copy static buffer back to memory
+		// Dest = destination pointer, Imm = buffer address, Imm2 = size  
+		g.loadToHL(inst.Dest)
+		g.emit("    EX DE, HL       ; DE = destination")
+		g.emit("    LD HL, $%04X    ; Buffer address", inst.Imm)
+		g.emit("    LD BC, %d       ; Size", inst.Imm2)
+		g.emit("    LDIR            ; Copy from buffer")
+		
+	case ir.OpDJNZ:
+		// Decrement and jump if not zero
+		// Uses B register for Z80's native DJNZ instruction
+		g.loadToB(inst.Src1)
+		g.emit("    DJNZ %s", inst.Label)
+		// Store updated value back
+		g.emit("    LD A, B")
+		g.storeFromA(inst.Src1)
+		
+	case ir.OpLoadImm:
+		// Load immediate value
+		if inst.Imm <= 255 {
+			g.emit("    LD A, %d", inst.Imm)
+			g.storeFromA(inst.Dest)
+		} else {
+			g.emit("    LD HL, %d", inst.Imm)
+			g.storeFromHL(inst.Dest)
+		}
+		
+	case ir.OpAddImm:
+		// Add immediate to register
+		g.loadToHL(inst.Src1)
+		g.emit("    LD DE, %d", inst.Imm)
+		g.emit("    ADD HL, DE")
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpCmp:
+		// Compare two values (sets flags but no result)
+		g.loadToHL(inst.Src1)
+		g.emit("    LD D, H")
+		g.emit("    LD E, L")
+		g.loadToHL(inst.Src2)
+		g.emit("    OR A      ; Clear carry")
+		g.emit("    SBC HL, DE")
+		
+	case ir.OpLoadDirect:
+		// Load from direct memory address
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			// For byte values, use A register
+			g.emit("    LD A, ($%04X)", inst.Imm)
+			g.storeFromA(inst.Dest)
+		} else {
+			// For word values, use HL register
+			g.emit("    LD HL, ($%04X)", inst.Imm)
+			g.storeFromHL(inst.Dest)
+		}
+		
+	case ir.OpStoreDirect:
+		// Store to direct memory address
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			// For byte values, use A register
+			g.loadToA(inst.Src1)
+			g.emit("    LD ($%04X), A", inst.Imm)
+		} else {
+			// For word values, use HL register
+			g.loadToHL(inst.Src1)
+			g.emit("    LD ($%04X), HL", inst.Imm)
+		}
+		
 	default:
 		return fmt.Errorf("unsupported opcode: %v", inst.Op)
 	}
@@ -833,6 +955,104 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 	case ir.OpLe:
 		g.emit("    JP M, %s", trueLabel)
 		g.emit("    JP Z, %s", trueLabel)
+		
+	// Loop operations
+	case ir.OpLoadAddr:
+		// Load address of a variable/array
+		if inst.Symbol != "" {
+			g.emit("    LD HL, %s", inst.Symbol)
+		} else {
+			// Load address from register (for arrays)
+			g.loadToHL(inst.Src1)
+		}
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpCopyToBuffer:
+		// Copy memory block to static buffer
+		// Src1 = source pointer, Imm = buffer address, Imm2 = size
+		g.loadToHL(inst.Src1)
+		g.emit("    LD DE, $%04X    ; Buffer address", inst.Imm)
+		g.emit("    LD BC, %d       ; Size", inst.Imm2)
+		g.emit("    LDIR            ; Copy to buffer")
+		
+	case ir.OpCopyFromBuffer:
+		// Copy static buffer back to memory
+		// Dest = destination pointer, Imm = buffer address, Imm2 = size  
+		g.loadToHL(inst.Dest)
+		g.emit("    EX DE, HL       ; DE = destination")
+		g.emit("    LD HL, $%04X    ; Buffer address", inst.Imm)
+		g.emit("    LD BC, %d       ; Size", inst.Imm2)
+		g.emit("    LDIR            ; Copy from buffer")
+		
+	case ir.OpDJNZ:
+		// Decrement and jump if not zero
+		// Src1 = counter register, Label = target
+		g.loadToB(inst.Src1)
+		g.emit("    DJNZ %s", inst.Label)
+		// Update register with new value
+		g.emit("    LD A, B")
+		g.storeFromA(inst.Src1)
+		
+	case ir.OpLoadImm:
+		// Load immediate value
+		if inst.Imm < 256 {
+			g.emit("    LD A, %d", inst.Imm)
+			g.storeFromA(inst.Dest)
+		} else {
+			g.emit("    LD HL, %d", inst.Imm)
+			g.storeFromHL(inst.Dest)
+		}
+		
+	case ir.OpAddImm:
+		// Add immediate to register
+		g.loadToHL(inst.Src1)
+		if inst.Imm < 256 {
+			g.emit("    LD DE, %d", inst.Imm)
+			g.emit("    ADD HL, DE")
+		} else {
+			g.emit("    LD DE, %d", inst.Imm)
+			g.emit("    ADD HL, DE")
+		}
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpCmp:
+		// Compare two registers
+		g.loadToHL(inst.Src1)
+		g.emit("    PUSH HL")
+		g.loadToHL(inst.Src2)
+		g.emit("    EX DE, HL")
+		g.emit("    POP HL")
+		g.emit("    OR A            ; Clear carry")
+		g.emit("    SBC HL, DE      ; HL = Src1 - Src2")
+		// Result in flags, store comparison result
+		g.emit("    LD HL, 0        ; Default false")
+		g.emit("    JR NZ, cmp_%d", g.labelCounter)
+		g.emit("    INC HL          ; Equal")
+		g.emit("cmp_%d:", g.labelCounter)
+		g.labelCounter++
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpLoadDirect:
+		// Load from direct memory address
+		addr := uint16(inst.Imm)
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			g.emit("    LD A, ($%04X)", addr)
+			g.storeFromA(inst.Dest)
+		} else {
+			g.emit("    LD HL, ($%04X)", addr)
+			g.storeFromHL(inst.Dest)
+		}
+		
+	case ir.OpStoreDirect:
+		// Store to direct memory address
+		addr := uint16(inst.Imm)
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			g.loadToA(inst.Src1)
+			g.emit("    LD ($%04X), A", addr)
+		} else {
+			g.loadToHL(inst.Src1)
+			g.emit("    LD ($%04X), HL", addr)
+		}
 	}
 	
 	// False path
@@ -1114,4 +1334,10 @@ func (r *RegisterAllocator) Allocate(reg ir.Register) string {
 // Free releases a Z80 register
 func (r *RegisterAllocator) Free(z80reg string) {
 	r.inUse[z80reg] = false
+}
+
+// loadToB loads a virtual register to B
+func (g *Z80Generator) loadToB(reg ir.Register) {
+	g.loadToA(reg)
+	g.emit("    LD B, A")
 }

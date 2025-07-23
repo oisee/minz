@@ -1,0 +1,53 @@
+; MinZ generated code
+; Generated: 2025-07-23 22:37:32
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_direct_return.calculate_once
+...examples.test_direct_return.calculate_once:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+...examples.test_direct_return.calculate_once_param_a:
+    LD HL, #0000   ; SMC parameter a (u8->u16)
+    LD ($F006), HL
+    ; return r3
+    LD HL, ($F006)
+    RET
+
+; Function: ...examples.test_direct_return.calculate_once2
+...examples.test_direct_return.calculate_once2:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+...examples.test_direct_return.calculate_once2_param_a:
+    LD HL, #0000   ; SMC parameter a (u8->u16)
+    LD ($F006), HL
+    ; return r3
+    LD HL, ($F006)
+    RET
+
+; Function: ...examples.test_direct_return.main
+...examples.test_direct_return.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load result
+    LD HL, ($F000)
+    LD ($F002), HL
+    ; r2 = 12
+    LD A, 12
+    LD ($F004), A
+    ; r4 = 5
+    LD A, 5
+    LD ($F008), A
+    ; r5 = load result
+    LD HL, ($F000)
+    LD ($F00A), HL
+    ; r6 = 10
+    LD A, 10
+    LD ($F00C), A
+    ; return
+    RET
+
+    END main

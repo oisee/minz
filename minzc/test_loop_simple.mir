@@ -1,0 +1,68 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_loop_simple.main() -> void
+  @smc
+  Instructions:
+      0: r1 = load points
+      1: r2 = 0
+      2: 13 ; Load array element
+      3: 11 ; Load field x
+      4: r5 = load points
+      5: r6 = 0
+      6: 13 ; Load array element
+      7: 11 ; Load field y
+      8: r9 = load points
+      9: r10 = 1
+     10: 13 ; Load array element
+     11: 11 ; Load field x
+     12: r13 = load points
+     13: r14 = 1
+     14: 13 ; Load array element
+     15: 11 ; Load field y
+     16: r17 = load points
+     17: r18 = 2
+     18: 13 ; Load array element
+     19: 11 ; Load field x
+     20: r21 = load points
+     21: r22 = 2
+     22: 13 ; Load array element
+     23: 11 ; Load field y
+     24: r25 = load points
+     25: r26 = 3
+     26: 13 ; Load array element
+     27: 11 ; Load field x
+     28: r29 = load points
+     29: r30 = 3
+     30: 13 ; Load array element
+     31: 11 ; Load field y
+     32: r33 = load points
+     33: 53 ; Load table base address
+     34: 53 ; Load table base for end calculation
+     35: 58 ; Calculate table end (+ 4 elements * 2 bytes)
+     36: 57 ; Load loop counter
+     37: loop_start_1:
+     38: 39 ; Check if reached end of table
+     39: 3 ; Exit if done
+     40: 54 ; Copy element to buffer at $F000
+     41: 17 ; Load p.x from buffer at $F000
+     42: 17 ; Load p.y from buffer at $F001
+     43: 55 ; Copy buffer back to element at $F000
+     44: 58 ; Advance to next element (+2 bytes)
+     45: 56 ; Decrement counter and loop if not zero
+     46: loop_end_2:
+     47: r40 = load points
+     48: 53 ; Load table base address
+     49: 53 ; Load table base for end calculation
+     50: 58 ; Calculate table end (+ 4 elements * 2 bytes)
+     51: 57 ; Load loop counter
+     52: loop_start_3:
+     53: 39 ; Check if reached end of table
+     54: 3 ; Exit if done
+     55: r45 = load p
+     56: 11 ; Load field x
+     57: 58 ; Advance to next element (+2 bytes)
+     58: 56 ; Decrement counter and loop if not zero
+     59: loop_end_4:
+     60: return
+

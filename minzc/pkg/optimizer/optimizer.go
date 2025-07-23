@@ -50,6 +50,7 @@ func NewOptimizer(level OptimizationLevel) *Optimizer {
 			NewRegisterAllocationPass(),
 			NewInliningPass(),
 			NewSelfModifyingCodePass(),
+			NewCallReturnOptimizationPass(),
 		)
 	}
 	

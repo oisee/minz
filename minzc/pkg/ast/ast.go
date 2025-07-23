@@ -282,12 +282,59 @@ func (a *AsmStmt) Pos() Position { return a.StartPos }
 func (a *AsmStmt) End() Position { return a.EndPos }
 func (a *AsmStmt) stmtNode()    {}
 
+// LoopStmt represents a loop statement for iterating over tables
+type LoopStmt struct {
+	Table      Expression  // Table/array to iterate over
+	Mode       LoopMode    // INTO or REF_TO
+	Iterator   string      // Variable name for current element
+	Index      string      // Optional index variable (for indexed loops)
+	Condition  Expression  // Optional where clause (future)
+	Body       *BlockStmt  // Loop body
+	StartPos   Position
+	EndPos     Position
+}
+
+// LoopMode represents the iteration mode
+type LoopMode int
+
+const (
+	LoopInto  LoopMode = iota // Copy element to buffer
+	LoopRefTo                  // Reference to element
+)
+
+func (l *LoopStmt) Pos() Position { return l.StartPos }
+func (l *LoopStmt) End() Position { return l.EndPos }
+func (l *LoopStmt) stmtNode()    {}
+
 // ExpressionStmt represents an expression used as a statement
 type ExpressionStmt struct {
 	Expression Expression
 	StartPos   Position
 	EndPos     Position
 }
+
+// AssignStmt represents an assignment statement
+type AssignStmt struct {
+	Target   Expression
+	Value    Expression
+	StartPos Position
+	EndPos   Position
+}
+
+func (a *AssignStmt) Pos() Position { return a.StartPos }
+func (a *AssignStmt) End() Position { return a.EndPos }
+func (a *AssignStmt) stmtNode()    {}
+
+// InlineAsmExpr represents inline assembly used as an expression (GCC-style)
+type InlineAsmExpr struct {
+	Code     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (i *InlineAsmExpr) Pos() Position { return i.StartPos }
+func (i *InlineAsmExpr) End() Position { return i.EndPos }
+func (i *InlineAsmExpr) exprNode()    {}
 
 func (e *ExpressionStmt) Pos() Position { return e.StartPos }
 func (e *ExpressionStmt) End() Position { return e.EndPos }

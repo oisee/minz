@@ -1,0 +1,38 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_array() -> u8
+  @smc
+  Locals:
+    r1 = arr: [10]u8
+    r2 = x: u8
+    r6 = y: u8
+    r10 = i: u8
+    r12 = z: u8
+  Instructions:
+      0: r3 = load arr
+      1: r4 = 0
+      2: 13 ; Load array element
+      3: store , r5
+      4: r7 = load arr
+      5: r8 = 5
+      6: 13 ; Load array element
+      7: store , r9
+      8: r11 = 3
+      9: store , r11
+     10: r13 = load arr
+     11: r14 = load i
+     12: 13 ; Load array element
+     13: store , r15
+     14: r16 = load z
+     15: return r16
+
+Function main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: r2 = call test_array
+      1: store , r2
+      2: return
+

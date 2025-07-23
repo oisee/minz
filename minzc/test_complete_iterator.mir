@@ -1,0 +1,72 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_complete_iterator.main() -> void
+  @smc
+  Locals:
+    r8 = sum: u16
+    r15 = val: u8
+  Instructions:
+      0: r1 = load points
+      1: 53 ; Load table base address
+      2: 53 ; Load table base for end calculation
+      3: 58 ; Calculate table end (+ 4 elements * 2 bytes)
+      4: 57 ; Load loop counter
+      5: loop_start_1:
+      6: 39 ; Check if reached end of table
+      7: 3 ; Exit if done
+      8: 54 ; Copy element to buffer at $F000
+      9: r6 = 100
+     10: 18 ; Store to p.x at buffer $F000
+     11: r7 = 200
+     12: 18 ; Store to p.y at buffer $F001
+     13: 55 ; Copy buffer back to element at $F000
+     14: 58 ; Advance to next element (+2 bytes)
+     15: 56 ; Decrement counter and loop if not zero
+     16: loop_end_2:
+     17: r9 = 0
+     18: store , r9
+     19: r10 = load points
+     20: 53 ; Load table base address
+     21: 53 ; Load table base for end calculation
+     22: 58 ; Calculate table end (+ 4 elements * 2 bytes)
+     23: 57 ; Load loop counter
+     24: loop_start_3:
+     25: 39 ; Check if reached end of table
+     26: 3 ; Exit if done
+     27: r16 = load p
+     28: 11 ; Load field x
+     29: store , r17
+     30: r18 = load sum
+     31: r19 = load val
+     32: r20 = r18 + r19
+     33: store sum, r20
+     34: 58 ; Advance to next element (+2 bytes)
+     35: 56 ; Decrement counter and loop if not zero
+     36: loop_end_4:
+     37: r21 = load points
+     38: 53 ; Load table base address
+     39: 53 ; Load table base for end calculation
+     40: 58 ; Calculate table end (+ 4 elements * 2 bytes)
+     41: 57 ; Load loop counter
+     42: 57
+     43: loop_start_5:
+     44: 39 ; Check if reached end of table
+     45: 3 ; Exit if done
+     46: 54 ; Copy element to buffer at $F000
+     47: r27 = load idx
+     48: r28 = 0
+     49: r29 = r27 == r28
+     50: jump_if_not r29, else_7
+     51: r30 = 255
+     52: 18 ; Store to point.x at buffer $F000
+     53: jump end_if_8
+     54: else_7:
+     55: end_if_8:
+     56: 55 ; Copy buffer back to element at $F000
+     57: 31
+     58: 58 ; Advance to next element (+2 bytes)
+     59: 56 ; Decrement counter and loop if not zero
+     60: loop_end_6:
+     61: return
+

@@ -1,0 +1,13 @@
+// Test module imports
+
+import zx.screen;
+
+fn main() -> void {
+    // Use screen functions
+    screen.set_pixel(10, 20);
+    screen.clear_pixel(30, 40);
+    
+    let addr = screen.attr_addr(5, 5);
+    
+    return;
+}

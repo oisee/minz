@@ -13,6 +13,7 @@ MinZ is a minimal systems programming language designed for Z80-based computers,
 - **Shadow Registers**: Full support for Z80's alternative register set
 - **Lua Metaprogramming**: Full Lua interpreter at compile time for code generation
 - **Self-Modifying Code**: Advanced optimization using SMC for performance-critical code
+- **High-Performance Iterators**: Two specialized modes for array processing with minimal overhead
 - **Standard Library**: Built-in modules for common operations
 
 ## Language Overview
@@ -22,7 +23,7 @@ MinZ is a minimal systems programming language designed for Z80-based computers,
 - `i8`, `i16`: Signed integers (8-bit, 16-bit)
 - `bool`: Boolean type
 - `void`: No return value
-- Arrays: `[T; N]` where T is element type, N is size
+- Arrays: `[T; N]` or `[N]T` where T is element type, N is size
 - Pointers: `*T`, `*mut T`
 
 ### Example Programs
@@ -132,6 +133,63 @@ fn set_border_color(color: u8) -> void {
         ld a, {0}
         out ($fe), a
     " : : "r"(color));
+}
+```
+
+#### High-Performance Iterators
+
+MinZ provides two specialized iterator modes for efficient array processing:
+
+##### INTO Mode - Ultra-Fast Field Access
+```minz
+struct Particle {
+    x: u8,
+    y: u8,
+    velocity: i8,
+}
+
+let particles: [Particle; 100];
+
+fn update_particles() -> void {
+    // INTO mode copies each element to a static buffer
+    // Fields are accessed with direct memory addressing (7 T-states)
+    loop particles into p {
+        p.x = p.x + p.velocity;
+        p.y = p.y + 1;
+        // Modified element is automatically copied back
+    }
+}
+```
+
+##### REF TO Mode - Memory-Efficient Access
+```minz
+let scores: [u16; 50];
+
+fn calculate_total() -> u16 {
+    let mut total: u16 = 0;
+    
+    // REF TO mode uses pointer access (11 T-states)
+    // No copying overhead - ideal for read operations
+    loop scores ref to score {
+        total = total + score;
+    }
+    
+    return total;
+}
+```
+
+##### Indexed Iteration
+```minz
+let enemies: [Enemy; 20];
+
+fn find_boss() -> u8 {
+    // Both modes support indexed iteration
+    loop enemies indexed to enemy, idx {
+        if enemy.type == EnemyType.Boss {
+            return idx;
+        }
+    }
+    return 255; // Not found
 }
 ```
 
@@ -485,11 +543,21 @@ add_param_a:
 
 ### Technical Documentation
 
+- **[Latest Improvements (2025)](minzc/docs/latest-improvements.md)** - High-performance iterators, modern array syntax, and bug fixes
+- **[Iterator Design](minzc/docs/iterator-design.md)** - Deep dive into the memory-optimized iterator implementation
 - **[Self-Modifying Code Philosophy](docs/SMC_PHILOSOPHY.md)** - The complete MinZ SMC-first approach
 - **[Optimization Guide](examples/ideal/OPTIMIZATION_GUIDE.md)** - Current vs ideal code generation examples
 - **[Compiler Architecture](docs/minz-compiler-architecture.md)** - Updated with SMC-first design principles
 
-### Latest Features (2024)
+### Latest Features (2025)
+
+- **✅ High-Performance Iterators** - Two specialized modes (INTO/REF TO) for optimal array processing with minimal overhead
+- **✅ Modern Array Syntax** - Support for both `[Type; size]` and `[size]Type` array declarations
+- **✅ Indexed Iteration** - Built-in support for element indices in loops
+- **✅ Direct Memory Operations** - Buffer-aware field access for ultra-fast struct member updates
+- **✅ Enhanced Assignment Parsing** - Fixed critical tokenization issues for reliable code generation
+
+### Previous Features (2024)
 
 - **✅ Advanced Register Allocation** - Lean prologue/epilogue generation that only saves registers actually used by functions
 - **✅ Shadow Register Optimization** - Automatic use of Z80 alternative registers (EXX, EX AF,AF') for high-performance code
@@ -516,8 +584,13 @@ add_param_a:
 - [x] Advanced optimization passes (register allocation, SMC, lean prologue/epilogue)
 - [x] Self-modifying code optimization
 - [x] ZVDB vector database implementation
+- [x] High-performance iterators with INTO/REF TO modes
+- [x] Modern array syntax ([Type; size])
+- [x] Direct memory operations for struct fields
+- [ ] Array element assignment (e.g., arr[i].field = value)
+- [ ] Iterator chaining and filtering
 - [ ] Inline assembly improvements
 - [ ] Advanced memory management
 - [ ] Debugger support
-- [ ] VS Code extension
+- [ ] VS Code extension improvements
 - [ ] Package manager

@@ -1,0 +1,258 @@
+; MinZ generated code
+; Generated: 2025-07-23 23:43:50
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_complete_iterator.main
+...examples.test_complete_iterator.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load points
+    LD HL, ($F000)
+    LD ($F002), HL
+    ; Load table base address
+    LD HL, ($F002)
+    LD ($F004), HL
+    ; Load table base for end calculation
+    LD HL, ($F002)
+    LD ($F006), HL
+    ; Calculate table end (+ 4 elements * 2 bytes)
+    LD HL, ($F006)
+    LD DE, 8
+    ADD HL, DE
+    LD ($F006), HL
+    ; Load loop counter
+    LD A, 4
+    LD ($F008), A
+    ; loop_start_1:
+loop_start_1:
+    ; Check if reached end of table
+    LD HL, ($F004)
+    LD D, H
+    LD E, L
+    LD HL, ($F006)
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; Exit if done
+    LD A, ($F00A)
+    OR A
+    JP NZ, loop_end_2
+    ; Copy element to buffer at $F000
+    LD HL, ($F004)
+    LD DE, $F000    ; Buffer address
+    LD BC, 2       ; Size
+    LDIR            ; Copy to buffer
+    ; r6 = 100
+    LD A, 100
+    LD ($F00C), A
+    ; Store to p.x at buffer $F000
+    LD A, ($F00C)
+    LD ($F000), A
+    ; r7 = 200
+    LD A, 200
+    LD ($F00E), A
+    ; Store to p.y at buffer $F001
+    LD A, ($F00E)
+    LD ($F001), A
+    ; Copy buffer back to element at $F000
+    LD HL, ($F004)
+    EX DE, HL       ; DE = destination
+    LD HL, $F000    ; Buffer address
+    LD BC, 2       ; Size
+    LDIR            ; Copy from buffer
+    ; Advance to next element (+2 bytes)
+    LD HL, ($F004)
+    LD DE, 2
+    ADD HL, DE
+    LD ($F004), HL
+    ; Decrement counter and loop if not zero
+    LD A, ($F008)
+    LD B, A
+    DJNZ loop_start_1
+    LD A, B
+    LD ($F008), A
+    ; loop_end_2:
+loop_end_2:
+    ; r9 = 0
+    LD A, 0
+    LD ($F012), A
+    ; store , r9
+    LD HL, ($F012)
+    LD ($F010), HL
+    ; r10 = load points
+    LD HL, ($F000)
+    LD ($F014), HL
+    ; Load table base address
+    LD HL, ($F014)
+    LD ($F016), HL
+    ; Load table base for end calculation
+    LD HL, ($F014)
+    LD ($F018), HL
+    ; Calculate table end (+ 4 elements * 2 bytes)
+    LD HL, ($F018)
+    LD DE, 8
+    ADD HL, DE
+    LD ($F018), HL
+    ; Load loop counter
+    LD A, 4
+    LD ($F01A), A
+    ; loop_start_3:
+loop_start_3:
+    ; Check if reached end of table
+    LD HL, ($F016)
+    LD D, H
+    LD E, L
+    LD HL, ($F018)
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; Exit if done
+    LD A, ($F01C)
+    OR A
+    JP NZ, loop_end_4
+    ; r16 = load p
+    LD HL, ($F000)
+    LD ($F020), HL
+    ; Load field x
+    LD HL, ($F020)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F022), HL
+    ; store , r17
+    LD HL, ($F022)
+    LD ($F01E), HL
+    ; r18 = load sum
+    LD HL, ($F000)
+    LD ($F024), HL
+    ; r19 = load val
+    LD HL, ($F000)
+    LD ($F026), HL
+    ; r20 = r18 + r19
+    LD HL, ($F024)
+    LD D, H
+    LD E, L
+    LD HL, ($F026)
+    ADD HL, DE
+    LD ($F028), HL
+    ; store sum, r20
+    LD HL, ($F028)
+    LD ($F010), HL
+    ; Advance to next element (+2 bytes)
+    LD HL, ($F016)
+    LD DE, 2
+    ADD HL, DE
+    LD ($F016), HL
+    ; Decrement counter and loop if not zero
+    LD A, ($F01A)
+    LD B, A
+    DJNZ loop_start_3
+    LD A, B
+    LD ($F01A), A
+    ; loop_end_4:
+loop_end_4:
+    ; r21 = load points
+    LD HL, ($F000)
+    LD ($F02A), HL
+    ; Load table base address
+    LD HL, ($F02A)
+    LD ($F02C), HL
+    ; Load table base for end calculation
+    LD HL, ($F02A)
+    LD ($F02E), HL
+    ; Calculate table end (+ 4 elements * 2 bytes)
+    LD HL, ($F02E)
+    LD DE, 8
+    ADD HL, DE
+    LD ($F02E), HL
+    ; Load loop counter
+    LD A, 4
+    LD ($F030), A
+    ; r25 = 0
+    LD A, 0
+    LD ($F032), A
+    ; loop_start_5:
+loop_start_5:
+    ; Check if reached end of table
+    LD HL, ($F02C)
+    LD D, H
+    LD E, L
+    LD HL, ($F02E)
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; Exit if done
+    LD A, ($F034)
+    OR A
+    JP NZ, loop_end_6
+    ; Copy element to buffer at $F000
+    LD HL, ($F02C)
+    LD DE, $F000    ; Buffer address
+    LD BC, 2       ; Size
+    LDIR            ; Copy to buffer
+    ; r27 = load idx
+    LD HL, ($F000)
+    LD ($F036), HL
+    ; r28 = 0
+    LD A, 0
+    LD ($F038), A
+    ; r29 = r27 == r28
+    LD HL, ($F036)
+    LD D, H
+    LD E, L
+    LD HL, ($F038)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    LD ($F03A), HL
+    ; jump_if_not r29, else_7
+    LD A, ($F03A)
+    OR A
+    JP Z, else_7
+    ; r30 = 255
+    LD A, 255
+    LD ($F03C), A
+    ; Store to point.x at buffer $F000
+    LD A, ($F03C)
+    LD ($F000), A
+    ; jump end_if_8
+    JP end_if_8
+    ; else_7:
+else_7:
+    ; end_if_8:
+end_if_8:
+    ; Copy buffer back to element at $F000
+    LD HL, ($F02C)
+    EX DE, HL       ; DE = destination
+    LD HL, $F000    ; Buffer address
+    LD BC, 2       ; Size
+    LDIR            ; Copy from buffer
+    ; unknown op 31
+    LD HL, ($F032)
+    INC HL
+    LD ($F032), HL
+    ; Advance to next element (+2 bytes)
+    LD HL, ($F02C)
+    LD DE, 2
+    ADD HL, DE
+    LD ($F02C), HL
+    ; Decrement counter and loop if not zero
+    LD A, ($F030)
+    LD B, A
+    DJNZ loop_start_5
+    LD A, B
+    LD ($F030), A
+    ; loop_end_6:
+loop_end_6:
+    ; return
+    RET
+
+    END main

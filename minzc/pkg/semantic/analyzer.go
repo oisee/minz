@@ -2,7 +2,6 @@ package semantic
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -33,6 +32,7 @@ type Analyzer struct {
 	luaEvaluator   *meta.LuaEvaluator
 	currentFunc    *ir.Function
 	functionCalls  map[string][]string // Track which functions call which
+	exprTypes      map[ast.Expression]ir.Type // Type information for expressions
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -42,6 +42,7 @@ func NewAnalyzer() *Analyzer {
 		errors:        []error{},
 		module:        ir.NewModule("main"),
 		functionCalls: make(map[string][]string),
+		exprTypes:     make(map[ast.Expression]ir.Type),
 		// luaEvaluator: meta.NewLuaEvaluator(), // Temporarily disabled
 	}
 }
@@ -594,6 +595,10 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 		// Analyze the expression but ignore the result
 		_, err := a.analyzeExpression(s.Expression, irFunc)
 		return err
+	case *ast.AssignStmt:
+		return a.analyzeAssignStmt(s, irFunc)
+	case *ast.LoopStmt:
+		return a.analyzeLoopStmt(s, irFunc)
 	default:
 		return fmt.Errorf("unsupported statement type: %T", stmt)
 	}
@@ -786,6 +791,310 @@ func (a *Analyzer) analyzeAsmStmt(asmStmt *ast.AsmStmt, irFunc *ir.Function) err
 	return nil
 }
 
+// analyzeAssignStmt analyzes an assignment statement
+func (a *Analyzer) analyzeAssignStmt(stmt *ast.AssignStmt, irFunc *ir.Function) error {
+	// Analyze the right-hand side first
+	valueReg, err := a.analyzeExpression(stmt.Value, irFunc)
+	if err != nil {
+		return err
+	}
+	
+	// Handle different types of assignment targets
+	switch target := stmt.Target.(type) {
+	case *ast.Identifier:
+		// Simple variable assignment
+		sym := a.currentScope.Lookup(target.Name)
+		if sym == nil {
+			// Try with module prefix
+			prefixedName := a.prefixSymbol(target.Name)
+			sym = a.currentScope.Lookup(prefixedName)
+			if sym == nil {
+				return fmt.Errorf("undefined variable: %s", target.Name)
+			}
+			target.Name = prefixedName
+		}
+		
+		// Get the variable's register from the symbol
+		varSym := sym.(*VarSymbol)
+		
+		// Generate store instruction
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:     ir.OpStoreVar,
+			Dest:   varSym.Reg,
+			Src1:   valueReg,
+			Symbol: target.Name, // Keep for debugging
+		})
+		
+	case *ast.IndexExpr:
+		// Array element assignment
+		// TODO: Implement array assignment
+		return fmt.Errorf("array assignment not yet implemented")
+		
+	case *ast.FieldExpr:
+		// Struct field assignment
+		// Check if this is a buffer field (loop iterator in INTO mode)
+		if id, ok := target.Object.(*ast.Identifier); ok {
+			sym := a.currentScope.Lookup(id.Name)
+			if varSym, ok := sym.(*VarSymbol); ok && varSym.BufferAddr != 0 {
+				// This is a buffer field - use direct memory store
+				structType, ok := varSym.Type.(*ir.StructType)
+				if !ok {
+					return fmt.Errorf("field access on non-struct iterator %s", id.Name)
+				}
+				
+				// Find field offset
+				offset := 0
+				found := false
+				for _, fname := range structType.FieldOrder {
+					if fname == target.Field {
+						found = true
+						break
+					}
+					offset += structType.Fields[fname].Size()
+				}
+				
+				if !found {
+					return fmt.Errorf("struct %s has no field %s", structType.Name, target.Field)
+				}
+				
+				// Generate direct memory store to buffer
+				directAddr := varSym.BufferAddr + uint16(offset)
+				
+				irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+					Op:      ir.OpStoreDirect,
+					Src1:    valueReg,
+					Imm:     int64(directAddr),
+					Type:    structType.Fields[target.Field],
+					Comment: fmt.Sprintf("Store to %s.%s at buffer $%04X", id.Name, target.Field, directAddr),
+				})
+				
+				return nil
+			}
+		}
+		
+		// TODO: Implement regular field assignment
+		return fmt.Errorf("field assignment not yet implemented for non-buffer fields")
+		
+	default:
+		return fmt.Errorf("invalid assignment target: %T", target)
+	}
+	
+	return nil
+}
+
+// analyzeLoopStmt analyzes a loop statement
+func (a *Analyzer) analyzeLoopStmt(loop *ast.LoopStmt, irFunc *ir.Function) error {
+	// Analyze the table expression
+	tableReg, err := a.analyzeExpression(loop.Table, irFunc)
+	if err != nil {
+		return fmt.Errorf("invalid table expression: %w", err)
+	}
+	
+	// Get table type
+	tableType := a.exprTypes[loop.Table]
+	if tableType == nil {
+		return fmt.Errorf("cannot determine type of table")
+	}
+	
+	// Extract element type from array type
+	var elementType ir.Type
+	var elementSize int
+	var tableSize int
+	
+	switch t := tableType.(type) {
+	case *ir.ArrayType:
+		elementType = t.Element
+		elementSize = t.Element.Size()
+		tableSize = t.Length
+	case *ir.PointerType:
+		// Pointer to array
+		if arrType, ok := t.Base.(*ir.ArrayType); ok {
+			elementType = arrType.Element
+			elementSize = arrType.Element.Size()
+			tableSize = arrType.Length
+		} else {
+			return fmt.Errorf("loop requires array type, got pointer to %s", t.Base.String())
+		}
+	default:
+		return fmt.Errorf("loop requires array type, got %s", tableType.String())
+	}
+	
+	// Generate loop labels
+	startLabel := a.generateLabel("loop_start")
+	endLabel := a.generateLabel("loop_end")
+	
+	// Allocate registers for loop control
+	ptrReg := irFunc.AllocReg()      // Current element pointer
+	endReg := irFunc.AllocReg()      // End pointer
+	countReg := irFunc.AllocReg()    // Loop counter (for DJNZ)
+	
+	// Load table base address
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpLoadAddr,
+		Dest:    ptrReg,
+		Src1:    tableReg,
+		Comment: "Load table base address",
+	})
+	
+	// Calculate end address
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpLoadAddr,
+		Dest:    endReg,
+		Src1:    tableReg,
+		Comment: "Load table base for end calculation",
+	})
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpAddImm,
+		Dest:    endReg,
+		Src1:    endReg,
+		Imm:     int64(tableSize * elementSize),
+		Comment: fmt.Sprintf("Calculate table end (+ %d elements * %d bytes)", tableSize, elementSize),
+	})
+	
+	// Load counter for DJNZ optimization
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpLoadImm,
+		Dest:    countReg,
+		Imm:     int64(tableSize),
+		Comment: "Load loop counter",
+	})
+	
+	// Create new scope for loop body
+	loopScope := NewScope(a.currentScope)
+	oldScope := a.currentScope
+	a.currentScope = loopScope
+	defer func() { a.currentScope = oldScope }()
+	
+	// Setup iterator variable based on mode
+	if loop.Mode == ast.LoopInto {
+		// INTO mode: Allocate static buffer
+		bufferAddr := uint16(0xF000) // TODO: Make this configurable
+		
+		// Define iterator as a "virtual" variable pointing to buffer
+		iteratorSym := &VarSymbol{
+			Name:       loop.Iterator,
+			Type:       elementType,
+			Reg:        ir.Register(-1), // Special marker for static buffer
+			IsMutable:  true,
+			BufferAddr: bufferAddr,      // Store buffer address
+		}
+		a.currentScope.Define(loop.Iterator, iteratorSym)
+		
+		// Store buffer info in function metadata
+		irFunc.SetMetadata("loop_buffer_addr", fmt.Sprintf("%d", bufferAddr))
+		irFunc.SetMetadata("loop_element_size", fmt.Sprintf("%d", elementSize))
+		
+	} else {
+		// REF TO mode: Iterator is a pointer
+		iteratorSym := &VarSymbol{
+			Name:      loop.Iterator,
+			Type:      &ir.PointerType{Base: elementType},
+			Reg:       ptrReg,
+			IsMutable: false,
+		}
+		a.currentScope.Define(loop.Iterator, iteratorSym)
+	}
+	
+	// Define index variable if present
+	if loop.Index != "" {
+		indexReg := irFunc.AllocReg()
+		indexSym := &VarSymbol{
+			Name:      loop.Index,
+			Type:      &ir.BasicType{Kind: ir.TypeU8},
+			Reg:       indexReg,
+			IsMutable: false,
+		}
+		a.currentScope.Define(loop.Index, indexSym)
+		
+		// Initialize index to 0
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpLoadImm,
+			Dest: indexReg,
+			Imm:  0,
+		})
+	}
+	
+	// Loop start label
+	irFunc.EmitLabel(startLabel)
+	
+	// Check if done (compare pointer with end)
+	cmpReg := irFunc.AllocReg()
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpCmp,
+		Dest:    cmpReg,
+		Src1:    ptrReg,
+		Src2:    endReg,
+		Comment: "Check if reached end of table",
+	})
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpJumpIf,
+		Src1:    cmpReg,
+		Label:   endLabel,
+		Comment: "Exit if done",
+	})
+	
+	// INTO mode: Copy element to buffer
+	if loop.Mode == ast.LoopInto {
+		bufferAddr := uint16(0xF000) // Same as above
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCopyToBuffer,
+			Src1:    ptrReg,
+			Imm:     int64(bufferAddr),
+			Imm2:    int64(elementSize),
+			Comment: fmt.Sprintf("Copy element to buffer at $%04X", bufferAddr),
+		})
+	}
+	
+	// Analyze loop body
+	if err := a.analyzeBlock(loop.Body, irFunc); err != nil {
+		return fmt.Errorf("error in loop body: %w", err)
+	}
+	
+	// INTO mode: Copy buffer back if modified
+	if loop.Mode == ast.LoopInto {
+		bufferAddr := uint16(0xF000) // Same as above
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCopyFromBuffer,
+			Dest:    ptrReg,
+			Imm:     int64(bufferAddr),
+			Imm2:    int64(elementSize),
+			Comment: fmt.Sprintf("Copy buffer back to element at $%04X", bufferAddr),
+		})
+	}
+	
+	// Increment index if present
+	if loop.Index != "" {
+		indexSym := a.currentScope.Lookup(loop.Index).(*VarSymbol)
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpInc,
+			Dest: indexSym.Reg,
+			Src1: indexSym.Reg,
+		})
+	}
+	
+	// Advance pointer
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpAddImm,
+		Dest:    ptrReg,
+		Src1:    ptrReg,
+		Imm:     int64(elementSize),
+		Comment: fmt.Sprintf("Advance to next element (+%d bytes)", elementSize),
+	})
+	
+	// Decrement counter and loop if not zero (DJNZ optimization)
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpDJNZ,
+		Src1:    countReg,
+		Label:   startLabel,
+		Comment: "Decrement counter and loop if not zero",
+	})
+	
+	// End label
+	irFunc.EmitLabel(endLabel)
+	
+	return nil
+}
+
 // analyzeExpression analyzes an expression and returns the register containing the result
 func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (ir.Register, error) {
 	switch e := expr.(type) {
@@ -813,7 +1122,7 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeLuaExpression(e, irFunc)
 	case *ast.StringLiteral:
 		return a.analyzeStringLiteral(e, irFunc)
-	case *ast.AsmStmt:
+	case *ast.InlineAsmExpr:
 		// Inline assembly expressions
 		return a.analyzeInlineAsmExpr(e, irFunc)
 	default:
@@ -849,6 +1158,9 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 		// Module identifiers are not values - they're only used in field expressions
 		return 0, fmt.Errorf("module %s cannot be used as a value", s.Name)
 	case *VarSymbol:
+		// Store the type for later use
+		a.exprTypes[id] = s.Type
+		
 		// Load variable value
 		reg := irFunc.AllocReg()
 		
@@ -1118,6 +1430,50 @@ func (a *Analyzer) analyzeStructLiteral(lit *ast.StructLiteral, irFunc *ir.Funct
 
 // analyzeFieldExpr analyzes a field access expression
 func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Special handling for loop iterator field access in INTO mode
+	if id, ok := field.Object.(*ast.Identifier); ok {
+		sym := a.currentScope.Lookup(id.Name)
+		if varSym, ok := sym.(*VarSymbol); ok && varSym.BufferAddr != 0 {
+			// This is a loop iterator in INTO mode - use direct buffer address
+			structType, ok := varSym.Type.(*ir.StructType)
+			if !ok {
+				return 0, fmt.Errorf("field access on non-struct iterator %s", id.Name)
+			}
+			
+			// Find field offset
+			offset := 0
+			found := false
+			for _, fname := range structType.FieldOrder {
+				if fname == field.Field {
+					found = true
+					break
+				}
+				offset += structType.Fields[fname].Size()
+			}
+			
+			if !found {
+				return 0, fmt.Errorf("struct %s has no field %s", structType.Name, field.Field)
+			}
+			
+			// Generate direct memory access to buffer
+			resultReg := irFunc.AllocReg()
+			directAddr := varSym.BufferAddr + uint16(offset)
+			
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpLoadDirect,
+				Dest:    resultReg,
+				Imm:     int64(directAddr),
+				Type:    structType.Fields[field.Field],
+				Comment: fmt.Sprintf("Load %s.%s from buffer at $%04X", id.Name, field.Field, directAddr),
+			})
+			
+			// Store type information
+			a.exprTypes[field] = structType.Fields[field.Field]
+			
+			return resultReg, nil
+		}
+	}
+	
 	// Special handling for module field access (e.g., screen.set_pixel)
 	if id, ok := field.Object.(*ast.Identifier); ok {
 		// Check if this is a module function call
@@ -1162,85 +1518,12 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 	return resultReg, nil
 }
 
-// analyzeFieldExpr analyzes a field expression (e.g., obj.field or module.function)
-func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (ir.Register, error) {
-	// Check if this is a module function call
-	if id, ok := field.Object.(*ast.Identifier); ok {
-		// Check if it's a module
-		modSym := a.currentScope.Lookup(id.Name)
-		if modSym != nil {
-			if _, isModule := modSym.(*ModuleSymbol); isModule {
-				// This is a module function reference
-				// Try to look up the full function name
-				fullName := id.Name + "." + field.Field
-				funcSym := a.currentScope.Lookup(fullName)
-				if funcSym == nil {
-					return 0, fmt.Errorf("undefined function: %s", fullName)
-				}
-				
-				// For now, we can't directly load a function reference
-				// This will be handled when it's called
-				return 0, fmt.Errorf("cannot use function %s as a value", fullName)
-			}
-		}
-	}
-	
-	// Analyze the object expression
-	objReg, err := a.analyzeExpression(field.Object, irFunc)
-	if err != nil {
-		return 0, err
-	}
-	
-	// Get the type of the object
-	objType, err := a.inferType(field.Object)
-	if err != nil {
-		return 0, fmt.Errorf("cannot determine type of object for field access: %w", err)
-	}
-	
-	// Check if it's a struct type
-	structType, ok := objType.(*ir.StructType)
-	if !ok {
-		return 0, fmt.Errorf("field access on non-struct type %s", objType.String())
-	}
-	
-	// Check if the field exists
-	fieldType, exists := structType.Fields[field.Field]
-	if !exists {
-		return 0, fmt.Errorf("struct %s has no field %s", structType.Name, field.Field)
-	}
-	
-	// Calculate field offset
-	offset := 0
-	for _, fname := range structType.FieldOrder {
-		if fname == field.Field {
-			break
-		}
-		offset += structType.Fields[fname].Size()
-	}
-	
-	// Allocate result register
-	resultReg := irFunc.AllocReg()
-	
-	// Generate field load instruction
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:      ir.OpLoadField,
-		Dest:    resultReg,
-		Src1:    objReg,
-		Imm:     int64(offset),
-		Type:    fieldType,
-		Comment: fmt.Sprintf("Load field %s", field.Field),
-	})
-	
-	return resultReg, nil
-}
 
 // analyzeInlineAsmExpr analyzes inline assembly as an expression
-func (a *Analyzer) analyzeInlineAsmExpr(asm *ast.AsmStmt, irFunc *ir.Function) (ir.Register, error) {
-	// Process the assembly code for symbol resolution
-	resolvedCode, err := a.resolveAsmSymbols(asm.Code)
-	if err != nil {
-		return 0, err
-	}
+func (a *Analyzer) analyzeInlineAsmExpr(asm *ast.InlineAsmExpr, irFunc *ir.Function) (ir.Register, error) {
+	// For now, inline assembly expressions don't have a return value
+	// Just emit the assembly code
+	resolvedCode := asm.Code
 	
 	// Generate inline assembly instruction
 	// Inline asm expressions don't return a value, so we return a dummy register

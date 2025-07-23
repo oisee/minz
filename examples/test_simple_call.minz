@@ -1,0 +1,9 @@
+// Simple test for function calls
+
+fn add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fn main() -> void {
+    let x: u8 = add(5, 3);
+}

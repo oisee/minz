@@ -1,0 +1,68 @@
+; MinZ generated code
+; Generated: 2025-07-23 23:29:28
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_array_syntax.main
+...examples.test_array_syntax.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load old_array
+    LD HL, ($F000)
+    LD ($F002), HL
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A
+    ; Load array element
+    LD HL, ($F002)
+    PUSH HL
+    LD HL, ($F004)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F006), A
+    ; r4 = load new_array
+    LD HL, ($F000)
+    LD ($F008), HL
+    ; r5 = 0
+    LD A, 0
+    LD ($F00A), A
+    ; Load array element
+    LD HL, ($F008)
+    PUSH HL
+    LD HL, ($F00A)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F00C), A
+    ; r7 = load items
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; r8 = 0
+    LD A, 0
+    LD ($F010), A
+    ; Load array element
+    LD HL, ($F00E)
+    PUSH HL
+    LD HL, ($F010)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F012), A
+    ; Load field id
+    LD HL, ($F012)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F014), HL
+    ; return
+    RET
+
+    END main

@@ -1,0 +1,44 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.mnist_simple.editor_init() -> ...examples.mnist_simple.Editor
+  @smc
+  Locals:
+    r1 = editor: ...examples.mnist_simple.Editor
+    r2 = i: u16
+  Instructions:
+      0: r3 = 0
+      1: store , r3
+      2: loop_1:
+      3: r4 = load i
+      4: r5 = 256
+      5: r6 = r4 < r5
+      6: jump_if_not r6, end_loop_2
+      7: jump loop_1
+      8: end_loop_2:
+      9: r7 = load editor
+     10: return r7
+
+Function ...examples.mnist_simple.test_field_access(editor: *...examples.mnist_simple.Editor) -> void
+  @smc
+  Locals:
+    r2 = x: u8
+    r5 = y: u8
+  Instructions:
+      0: 10
+      1: 11 ; Load field cursor_x
+      2: store , r4
+      3: 10
+      4: 11 ; Load field cursor_y
+      5: store , r7
+      6: return
+
+Function ...examples.mnist_simple.main() -> void
+  @smc
+  Locals:
+    r1 = editor: ...examples.mnist_simple.Editor
+  Instructions:
+      0: r2 = call editor_init
+      1: store , r2
+      2: return
+

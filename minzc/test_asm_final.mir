@@ -1,0 +1,16 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function set_pixel(x: u8, y: u8) -> void
+  @smc
+  Instructions:
+      0: 48
+      1: return
+
+Function main() -> void
+  @smc
+  Instructions:
+      0: 48
+      1: 48
+      2: return
+

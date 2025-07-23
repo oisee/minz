@@ -1,0 +1,38 @@
+// Test loop iterator with INTO mode (copy to buffer)
+
+struct Person {
+    age: u8,
+    score: u16,
+    active: bool
+}
+
+// Array of people
+let people: [Person; 5] = [
+    Person { age: 25, score: 100, active: true },
+    Person { age: 30, score: 200, active: false },
+    Person { age: 35, score: 300, active: true },
+    Person { age: 40, score: 400, active: true },
+    Person { age: 45, score: 500, active: false }
+];
+
+fn main() -> void {
+    let total_score: u16 = 0;
+    let active_count: u8 = 0;
+    
+    // Loop with INTO mode - copies each element to buffer
+    loop people into person {
+        // Field access compiles to direct memory address!
+        if person.active {
+            person.score = person.score + 10;  // Bonus for active
+            total_score = total_score + person.score;
+            active_count = active_count + 1;
+        }
+        
+        // Age everyone by 1
+        person.age = person.age + 1;
+    }
+    
+    // Print results (placeholder)
+    // print(f"Total score: {total_score}")
+    // print(f"Active count: {active_count}")
+}

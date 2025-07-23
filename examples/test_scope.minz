@@ -1,0 +1,10 @@
+// Test if we can access module-level let from function
+let global_x: u8 = 42;
+
+fn uses_global() -> u8 {
+    return global_x;
+}
+
+fn main() -> void {
+    let y = uses_global();
+}

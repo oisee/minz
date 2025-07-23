@@ -1,0 +1,31 @@
+; MinZ generated code
+; Generated: 2025-07-23 23:26:18
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_old_array.main
+...examples.test_old_array.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load old_array
+    LD HL, ($F000)
+    LD ($F002), HL
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A
+    ; Load array element
+    LD HL, ($F002)
+    PUSH HL
+    LD HL, ($F004)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F006), A
+    ; return
+    RET
+
+    END main

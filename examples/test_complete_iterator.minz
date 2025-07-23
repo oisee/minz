@@ -1,0 +1,30 @@
+// Complete iterator test
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+let points: [Point; 4];
+
+fn main() -> void {
+    // Test loop with INTO mode (modifying)
+    loop points into p {
+        p.x = 100;
+        p.y = 200;
+    }
+    
+    // Test loop with REF TO mode (read-only access)
+    let mut sum: u16 = 0;
+    loop points ref to p {
+        let val: u8 = p.x;
+        sum = sum + (val as u16);
+    }
+    
+    // Test indexed iteration
+    loop points indexed to point, idx {
+        if idx == 0 {
+            point.x = 255;
+        }
+    }
+}

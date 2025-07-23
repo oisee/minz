@@ -92,6 +92,8 @@ const (
 	OpStoreIndex
 	OpMove
 	OpLoadLabel  // Load address of a label
+	OpLoadDirect // Load from direct memory address
+	OpStoreDirect // Store to direct memory address
 	
 	// Self-modifying code operations
 	OpSMCLoadConst
@@ -120,6 +122,7 @@ const (
 	OpShr
 	
 	// Comparison
+	OpCmp // Generic comparison
 	OpEq
 	OpNe
 	OpLt
@@ -139,6 +142,14 @@ const (
 	
 	// Inline assembly
 	OpAsm
+	
+	// Loop operations
+	OpLoadAddr       // Load address of variable/array
+	OpCopyToBuffer   // Copy memory to static buffer
+	OpCopyFromBuffer // Copy static buffer to memory
+	OpDJNZ          // Decrement and jump if not zero
+	OpLoadImm       // Load immediate value
+	OpAddImm        // Add immediate to register
 )
 
 // Instruction represents a single IR instruction
@@ -148,6 +159,7 @@ type Instruction struct {
 	Src1         Register
 	Src2         Register
 	Imm          int64
+	Imm2         int64  // Second immediate for some operations
 	Label        string
 	Symbol       string
 	Type         Type
@@ -316,6 +328,9 @@ type Function struct {
 	// Register usage tracking for optimal prologue/epilogue
 	UsedRegisters    RegisterSet // Which Z80 registers are actually used
 	ModifiedRegisters RegisterSet // Which registers are modified (need saving)
+	
+	// Metadata for optimization passes
+	Metadata map[string]string // Generic metadata storage
 	CalleeSavedRegs  RegisterSet // Registers this function must preserve
 	MaxStackDepth    int         // Maximum stack depth for this function
 }
@@ -517,7 +532,42 @@ func (i *Instruction) String() string {
 			return fmt.Sprintf("asm %s { %s }", i.AsmName, i.AsmCode)
 		}
 		return fmt.Sprintf("asm { %s }", i.AsmCode)
+	case OpLoadAddr:
+		return fmt.Sprintf("r%d = addr(%s)", i.Dest, i.Symbol)
+	case OpCopyToBuffer:
+		return fmt.Sprintf("copy [r%d] to buffer@%d size=%d", i.Src1, i.Imm, i.Imm2)
+	case OpCopyFromBuffer:
+		return fmt.Sprintf("copy buffer@%d to [r%d] size=%d", i.Imm, i.Dest, i.Imm2)
+	case OpDJNZ:
+		return fmt.Sprintf("djnz r%d, %s", i.Src1, i.Label)
+	case OpLoadImm:
+		return fmt.Sprintf("r%d = %d", i.Dest, i.Imm)
+	case OpAddImm:
+		return fmt.Sprintf("r%d = r%d + %d", i.Dest, i.Src1, i.Imm)
+	case OpCmp:
+		return fmt.Sprintf("cmp r%d, r%d", i.Src1, i.Src2)
+	case OpLoadDirect:
+		return fmt.Sprintf("r%d = [$%04X]", i.Dest, i.Imm)
+	case OpStoreDirect:
+		return fmt.Sprintf("[$%04X] = r%d", i.Imm, i.Src1)
 	default:
 		return fmt.Sprintf("unknown op %d", i.Op)
 	}
+}
+
+// SetMetadata sets a metadata value for the function
+func (f *Function) SetMetadata(key, value string) {
+	if f.Metadata == nil {
+		f.Metadata = make(map[string]string)
+	}
+	f.Metadata[key] = value
+}
+
+// GetMetadata retrieves a metadata value for the function
+func (f *Function) GetMetadata(key string) (string, bool) {
+	if f.Metadata == nil {
+		return "", false
+	}
+	value, ok := f.Metadata[key]
+	return value, ok
 }

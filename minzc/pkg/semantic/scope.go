@@ -17,6 +17,7 @@ type VarSymbol struct {
 	Reg         ir.Register
 	IsMutable   bool
 	IsParameter bool
+	BufferAddr  uint16  // For loop iterator in INTO mode
 }
 
 func (v *VarSymbol) symbol() {}
