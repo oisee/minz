@@ -1,23 +1,10 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
-Function test_struct() -> void
+Function ...examples.mnist.test_struct.main() -> void
   @smc
   Locals:
-    r1 = p: Point
-    r2 = a: u8
-    r5 = b: u8
-  Instructions:
-      0: r3 = load p
-      1: 11 ; Load field x
-      2: store , r4
-      3: r6 = load p
-      4: 11 ; Load field y
-      5: store , r7
-      6: return
-
-Function main() -> void
-  @smc
+    r1 = p: ...examples.mnist.test_struct.Point
   Instructions:
       0: return
 

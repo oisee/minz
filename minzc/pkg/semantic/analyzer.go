@@ -168,7 +168,59 @@ func (a *Analyzer) registerScreenModule() {
 		Name: "screen",
 	})
 	
-	// Also register individual functions with full names
+	// Register color constants
+	a.currentScope.Define("screen.BLACK", &ConstSymbol{
+		Name:  "screen.BLACK",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 0,
+	})
+	a.currentScope.Define("screen.BLUE", &ConstSymbol{
+		Name:  "screen.BLUE",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 1,
+	})
+	a.currentScope.Define("screen.RED", &ConstSymbol{
+		Name:  "screen.RED",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 2,
+	})
+	a.currentScope.Define("screen.MAGENTA", &ConstSymbol{
+		Name:  "screen.MAGENTA",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 3,
+	})
+	a.currentScope.Define("screen.GREEN", &ConstSymbol{
+		Name:  "screen.GREEN",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 4,
+	})
+	a.currentScope.Define("screen.CYAN", &ConstSymbol{
+		Name:  "screen.CYAN",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 5,
+	})
+	a.currentScope.Define("screen.YELLOW", &ConstSymbol{
+		Name:  "screen.YELLOW",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 6,
+	})
+	a.currentScope.Define("screen.WHITE", &ConstSymbol{
+		Name:  "screen.WHITE",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 7,
+	})
+	a.currentScope.Define("screen.BRIGHT", &ConstSymbol{
+		Name:  "screen.BRIGHT",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 0x40,
+	})
+	a.currentScope.Define("screen.FLASH", &ConstSymbol{
+		Name:  "screen.FLASH",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 0x80,
+	})
+	
+	// Register functions
 	a.currentScope.Define("screen.set_pixel", &FuncSymbol{
 		Name:       "screen.set_pixel",
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
@@ -192,10 +244,65 @@ func (a *Analyzer) registerScreenModule() {
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
 		Params:     nil,
 	})
+	
+	a.currentScope.Define("screen.set_border", &FuncSymbol{
+		Name:       "screen.set_border",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params:     nil,
+	})
+	
+	a.currentScope.Define("screen.clear", &FuncSymbol{
+		Name:       "screen.clear",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params:     nil,
+	})
+	
+	a.currentScope.Define("screen.draw_rect", &FuncSymbol{
+		Name:       "screen.draw_rect",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params:     nil,
+	})
 }
 
 // registerInputModule registers input module functions
 func (a *Analyzer) registerInputModule() {
+	// Register input as a module
+	a.currentScope.Define("input", &ModuleSymbol{
+		Name: "input",
+	})
+	
+	// Register key constants
+	a.currentScope.Define("input.KEY_Q", &ConstSymbol{
+		Name:  "input.KEY_Q",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 10,  // From input.minz
+	})
+	a.currentScope.Define("input.KEY_A", &ConstSymbol{
+		Name:  "input.KEY_A",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 5,   // From input.minz
+	})
+	a.currentScope.Define("input.KEY_O", &ConstSymbol{
+		Name:  "input.KEY_O",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 26,  // From input.minz
+	})
+	a.currentScope.Define("input.KEY_P", &ConstSymbol{
+		Name:  "input.KEY_P",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 25,  // From input.minz
+	})
+	a.currentScope.Define("input.KEY_SPACE", &ConstSymbol{
+		Name:  "input.KEY_SPACE",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 30,  // From input.minz (KEY_SPC)
+	})
+	a.currentScope.Define("input.KEY_C", &ConstSymbol{
+		Name:  "input.KEY_C",
+		Type:  &ir.BasicType{Kind: ir.TypeU8},
+		Value: 3,   // From input.minz
+	})
+	
 	// Register input functions with module prefix
 	a.currentScope.Define("input.read_key", &FuncSymbol{
 		Name:       "input.read_key",
@@ -205,6 +312,12 @@ func (a *Analyzer) registerInputModule() {
 	
 	a.currentScope.Define("input.key_pressed", &FuncSymbol{
 		Name:       "input.key_pressed",
+		ReturnType: &ir.BasicType{Kind: ir.TypeBool},
+		Params:     nil,
+	})
+	
+	a.currentScope.Define("input.is_key_pressed", &FuncSymbol{
+		Name:       "input.is_key_pressed",
 		ReturnType: &ir.BasicType{Kind: ir.TypeBool},
 		Params:     nil,
 	})
@@ -872,8 +985,56 @@ func (a *Analyzer) analyzeAssignStmt(stmt *ast.AssignStmt, irFunc *ir.Function) 
 			}
 		}
 		
-		// TODO: Implement regular field assignment
-		return fmt.Errorf("field assignment not yet implemented for non-buffer fields")
+		// Regular field assignment (struct.field = value)
+		objReg, err := a.analyzeExpression(target.Object, irFunc)
+		if err != nil {
+			return fmt.Errorf("error analyzing field object: %v", err)
+		}
+		
+		// Get the struct type
+		objType := a.exprTypes[target.Object]
+		var structType *ir.StructType
+		
+		// Handle both direct struct and pointer to struct
+		switch t := objType.(type) {
+		case *ir.StructType:
+			structType = t
+		case *ir.PointerType:
+			if st, ok := t.Base.(*ir.StructType); ok {
+				structType = st
+			} else {
+				return fmt.Errorf("field access on non-struct pointer")
+			}
+		default:
+			return fmt.Errorf("field access on non-struct type: %T", objType)
+		}
+		
+		// Find field offset
+		offset := 0
+		found := false
+		for _, fname := range structType.FieldOrder {
+			if fname == target.Field {
+				found = true
+				break
+			}
+			offset += structType.Fields[fname].Size()
+		}
+		
+		if !found {
+			return fmt.Errorf("struct %s has no field %s", structType.Name, target.Field)
+		}
+		
+		// Generate store field instruction
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpStoreField,
+			Src1:    objReg,     // struct pointer
+			Src2:    valueReg,   // value to store
+			Imm:     int64(offset),
+			Type:    structType.Fields[target.Field],
+			Comment: fmt.Sprintf("Store to field %s (offset %d)", target.Field, offset),
+		})
+		
+		return nil
 		
 	default:
 		return fmt.Errorf("invalid assignment target: %T", target)
@@ -1179,6 +1340,19 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 				Symbol: s.Name, // Use the symbol's actual name (prefixed)
 			})
 		}
+		return reg, nil
+	case *ConstSymbol:
+		// Store the type for later use
+		a.exprTypes[id] = s.Type
+		
+		// Load constant value
+		reg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpLoadConst,
+			Dest: reg,
+			Imm:  s.Value,
+			Type: s.Type,
+		})
 		return reg, nil
 	default:
 		return 0, fmt.Errorf("cannot use %s as value", id.Name)
@@ -1500,19 +1674,59 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 		return 0, err
 	}
 	
-	// Get object type - for now, assume it's a struct
-	// TODO: Proper type tracking for registers
+	// Get the object type
+	objType := a.exprTypes[field.Object]
+	if objType == nil {
+		return 0, fmt.Errorf("cannot determine type of field object")
+	}
+	
+	var structType *ir.StructType
+	var fieldType ir.Type
+	
+	// Handle both direct struct and pointer to struct
+	switch t := objType.(type) {
+	case *ir.StructType:
+		structType = t
+	case *ir.PointerType:
+		if st, ok := t.Base.(*ir.StructType); ok {
+			structType = st
+		} else {
+			return 0, fmt.Errorf("field access on non-struct pointer")
+		}
+	default:
+		return 0, fmt.Errorf("field access on non-struct type: %T", objType)
+	}
+	
+	// Find field offset and type
+	offset := 0
+	found := false
+	for _, fname := range structType.FieldOrder {
+		if fname == field.Field {
+			fieldType = structType.Fields[fname]
+			found = true
+			break
+		}
+		offset += structType.Fields[fname].Size()
+	}
+	
+	if !found {
+		return 0, fmt.Errorf("struct %s has no field %s", structType.Name, field.Field)
+	}
+	
+	// Store type information for the field expression
+	a.exprTypes[field] = fieldType
 	
 	// Allocate result register
 	resultReg := irFunc.AllocReg()
 	
 	// Generate field load
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpLoadField,
-		Dest: resultReg,
-		Src1: objReg,
-		Symbol: field.Field,
-		Comment: fmt.Sprintf("Load field %s", field.Field),
+		Op:      ir.OpLoadField,
+		Dest:    resultReg,
+		Src1:    objReg,
+		Imm:     int64(offset),
+		Type:    fieldType,
+		Comment: fmt.Sprintf("Load field %s (offset %d)", field.Field, offset),
 	})
 	
 	return resultReg, nil

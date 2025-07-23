@@ -1,0 +1,12 @@
+// Test struct support
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fn main() -> void {
+    let p: Point;
+    // TODO: Test field assignment when implemented
+    return;
+}

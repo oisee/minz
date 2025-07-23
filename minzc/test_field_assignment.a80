@@ -1,0 +1,78 @@
+; MinZ generated code
+; Generated: 2025-07-24 00:02:15
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.mnist.test_field_assignment.main
+...examples.mnist.test_field_assignment.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD ($F004), A
+    ; r3 = load p
+    LD HL, ($F000)
+    LD ($F006), HL
+    ; Store to field x (offset 0)
+    LD HL, ($F006)
+    PUSH HL
+    LD HL, ($F004)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r4 = 20
+    LD A, 20
+    LD ($F008), A
+    ; r5 = load p
+    LD HL, ($F000)
+    LD ($F00A), HL
+    ; Store to field y (offset 1)
+    LD HL, ($F00A)
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F008)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r7 = load p
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; Load field x (offset 0)
+    LD HL, ($F00E)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F010), HL
+    ; r9 = load p
+    LD HL, ($F000)
+    LD ($F012), HL
+    ; Load field y (offset 1)
+    LD HL, ($F012)
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F014), HL
+    ; r11 = r8 + r10
+    LD HL, ($F010)
+    LD D, H
+    LD E, L
+    LD HL, ($F014)
+    ADD HL, DE
+    LD ($F016), HL
+    ; store , r11
+    LD HL, ($F016)
+    LD ($F00C), HL
+    ; return
+    RET
+
+    END main

@@ -22,6 +22,15 @@ type VarSymbol struct {
 
 func (v *VarSymbol) symbol() {}
 
+// ConstSymbol represents a constant
+type ConstSymbol struct {
+	Name  string
+	Type  ir.Type
+	Value int64
+}
+
+func (c *ConstSymbol) symbol() {}
+
 // FuncSymbol represents a function
 type FuncSymbol struct {
 	Name       string

@@ -1,0 +1,7 @@
+// Minimal test without imports
+
+fn main() -> void {
+    let x: u8 = 42;
+    let y: u8 = x + 1;
+    return;
+}
