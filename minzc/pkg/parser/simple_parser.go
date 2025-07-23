@@ -250,6 +250,16 @@ func (p *SimpleParser) parseSourceFile(filename string) (*ast.File, error) {
 				if decl != nil {
 					file.Declarations = append(file.Declarations, decl)
 				}
+			case "const":
+				decl := p.parseConstDecl()
+				if decl != nil {
+					file.Declarations = append(file.Declarations, decl)
+				}
+			case "type":
+				decl := p.parseTypeDecl()
+				if decl != nil {
+					file.Declarations = append(file.Declarations, decl)
+				}
 			default:
 				p.advance() // skip unknown keyword
 			}
@@ -366,10 +376,19 @@ func (p *SimpleParser) parseType() ast.Type {
 	if p.peek().Value == "*" {
 		p.advance()
 		isMut := false
-		if p.peek().Value == "mut" {
-			isMut = true
-			p.advance()
+		
+		// Check for const or mut after *
+		if p.peek().Type == TokenKeyword {
+			if p.peek().Value == "mut" {
+				isMut = true
+				p.advance()
+			} else if p.peek().Value == "const" {
+				// const pointers are immutable by default
+				isMut = false
+				p.advance()
+			}
 		}
+		
 		return &ast.PointerType{
 			BaseType:  p.parseType(),
 			IsMutable: isMut,
@@ -381,9 +400,8 @@ func (p *SimpleParser) parseType() ast.Type {
 	// Array types
 	if p.peek().Value == "[" {
 		p.advance()
-		elemType := p.parseType()
-		p.expect(TokenPunc, ";")
 		
+		// Parse size first
 		var size ast.Expression
 		if p.peek().Type == TokenNumber {
 			val, _ := strconv.ParseInt(p.peek().Value, 0, 64)
@@ -396,6 +414,9 @@ func (p *SimpleParser) parseType() ast.Type {
 		}
 		
 		p.expect(TokenPunc, "]")
+		
+		// Then parse element type
+		elemType := p.parseType()
 		
 		return &ast.ArrayType{
 			ElementType: elemType,
@@ -459,12 +480,33 @@ func (p *SimpleParser) parseStatement() ast.Statement {
 			return p.parseWhileStmt()
 		case "let":
 			return p.parseVarDecl()
+		case "const":
+			return p.parseConstDecl()
+		case "asm":
+			return p.parseAsmStmt()
 		}
 	}
 	
 	// Expression statement or assignment
-	// TODO: Implement assignment statements
-	// For now, skip unknown statements
+	expr := p.parseExpression()
+	if expr != nil {
+		// Check for assignment
+		if p.peek().Value == "=" {
+			// TODO: Implement assignment
+			p.advance() // skip =
+			p.parseExpression() // skip RHS
+		}
+		p.expect(TokenPunc, ";")
+		// For now, return the expression as a statement
+		// We should create an ExpressionStatement type
+		return &ast.ExpressionStmt{
+			Expression: expr,
+			StartPos:   expr.Pos(),
+			EndPos:     p.currentPos(),
+		}
+	}
+	
+	// Skip unknown statements
 	for !p.isAtEnd() && p.peek().Value != ";" && p.peek().Value != "}" {
 		p.advance()
 	}
@@ -554,6 +596,18 @@ func (p *SimpleParser) parsePrimaryExpression() ast.Expression {
 		return expr
 	}
 	
+	// String literals
+	if p.peek().Type == TokenString {
+		value := p.peek().Value
+		expr := &ast.StringLiteral{
+			Value:    value,
+			StartPos: p.currentPos(),
+			EndPos:   p.currentPos(),
+		}
+		p.advance()
+		return expr
+	}
+	
 	// Identifiers and function calls
 	if p.peek().Type == TokenIdent {
 		name := p.peek().Value
@@ -565,12 +619,13 @@ func (p *SimpleParser) parsePrimaryExpression() ast.Expression {
 			return p.parseFunctionCall(name, startPos)
 		}
 		
-		// Just an identifier
-		return &ast.Identifier{
+		// Just an identifier (will be handled by parsePostfixExpression)
+		expr := &ast.Identifier{
 			Name:     name,
 			StartPos: startPos,
 			EndPos:   p.currentPos(),
 		}
+		return p.parsePostfixExpression(expr)
 	}
 	
 	// Parenthesized expressions
@@ -581,7 +636,82 @@ func (p *SimpleParser) parsePrimaryExpression() ast.Expression {
 		return expr
 	}
 	
+	// Inline assembly expression (GCC-style)
+	if p.peek().Type == TokenKeyword && p.peek().Value == "asm" {
+		return p.parseInlineAsmExpr()
+	}
+	
 	return nil
+}
+
+// parseInlineAsmExpr parses GCC-style inline assembly expressions
+func (p *SimpleParser) parseInlineAsmExpr() ast.Expression {
+	startPos := p.currentPos()
+	p.expect(TokenKeyword, "asm")
+	p.expect(TokenPunc, "(")
+	
+	// Parse the assembly code string
+	if p.peek().Type != TokenString {
+		panic("expected string literal after asm(")
+	}
+	code := p.peek().Value
+	p.advance()
+	
+	// For now, skip the constraint parsing (: : :)
+	// Just consume tokens until closing paren
+	colonCount := 0
+	for !p.isAtEnd() && p.peek().Value != ")" {
+		if p.peek().Value == ":" {
+			colonCount++
+		}
+		p.advance()
+	}
+	
+	p.expect(TokenPunc, ")")
+	
+	// Return as AsmStmt wrapped in expression context
+	// For now, treat inline asm as a statement that returns void
+	return &ast.AsmStmt{
+		Name:     "", // No name for inline asm
+		Code:     code,
+		StartPos: startPos,
+		EndPos:   p.currentPos(),
+	}
+}
+
+// parsePostfixExpression handles postfix operations like array access and field access
+func (p *SimpleParser) parsePostfixExpression(expr ast.Expression) ast.Expression {
+	for {
+		switch p.peek().Value {
+		case "[":
+			// Array indexing
+			p.advance() // consume '['
+			index := p.parseExpression()
+			p.expect(TokenPunc, "]")
+			expr = &ast.IndexExpr{
+				Array:    expr,
+				Index:    index,
+				StartPos: expr.Pos(),
+				EndPos:   p.currentPos(),
+			}
+		case ".":
+			// Field access
+			p.advance() // consume '.'
+			if p.peek().Type != TokenIdent {
+				panic("expected field name after '.'")
+			}
+			fieldName := p.peek().Value
+			p.advance()
+			expr = &ast.FieldExpr{
+				Object:   expr,
+				Field:    fieldName,
+				StartPos: expr.Pos(),
+				EndPos:   p.currentPos(),
+			}
+		default:
+			return expr
+		}
+	}
 }
 
 // parseFunctionCall parses a function call
@@ -701,7 +831,7 @@ func isKeyword(s string) bool {
 	keywords := []string{
 		"fn", "let", "mut", "if", "else", "while", "for", "return",
 		"struct", "enum", "impl", "pub", "mod", "use", "import",
-		"true", "false", "as", "module",
+		"true", "false", "as", "module", "asm", "const", "type",
 	}
 	for _, kw := range keywords {
 		if s == kw {
@@ -794,6 +924,104 @@ func (p *SimpleParser) parseWhileStmt() *ast.WhileStmt {
 	return whileStmt
 }
 
+func (p *SimpleParser) parseAsmStmt() *ast.AsmStmt {
+	asmStmt := &ast.AsmStmt{
+		StartPos: p.currentPos(),
+	}
+	
+	p.expect(TokenKeyword, "asm")
+	
+	// Check for optional name
+	if p.peek().Type == TokenIdent {
+		asmStmt.Name = p.peek().Value
+		p.advance()
+	}
+	
+	// Expect opening brace
+	p.expect(TokenPunc, "{")
+	
+	// Collect all tokens until closing brace
+	// We need to track brace depth for nested braces
+	braceDepth := 1
+	codeTokens := []Token{}
+	
+	for !p.isAtEnd() && braceDepth > 0 {
+		tok := p.peek()
+		
+		if tok.Type == TokenPunc && tok.Value == "{" {
+			braceDepth++
+		} else if tok.Type == TokenPunc && tok.Value == "}" {
+			braceDepth--
+			if braceDepth == 0 {
+				break
+			}
+		}
+		
+		codeTokens = append(codeTokens, tok)
+		p.advance()
+	}
+	
+	// Expect closing brace
+	p.expect(TokenPunc, "}")
+	
+	// Convert tokens back to raw text
+	// This preserves the exact assembly code as written
+	code := ""
+	prevLine := -1
+	for i, tok := range codeTokens {
+		// Add newline if we're on a different line
+		if tok.Line > prevLine && prevLine != -1 {
+			code += "\n"
+		}
+		prevLine = tok.Line
+		
+		if i > 0 && tok.Line == codeTokens[i-1].Line {
+			// Add appropriate spacing on the same line
+			prevTok := codeTokens[i-1]
+			if needsSpace(prevTok, tok) {
+				code += " "
+			}
+		}
+		code += tok.Value
+	}
+	
+	asmStmt.Code = code
+	asmStmt.EndPos = p.currentPos()
+	return asmStmt
+}
+
+// needsSpace determines if space is needed between two tokens
+func needsSpace(prev, curr Token) bool {
+	// Special cases
+	if prev.Value == "(" || curr.Value == ")" || curr.Value == "," {
+		return false
+	}
+	if prev.Value == ")" || prev.Value == "," {
+		return true
+	}
+	
+	// Always add space after keywords, identifiers, and numbers
+	if prev.Type == TokenKeyword || prev.Type == TokenIdent || prev.Type == TokenNumber {
+		// Except before certain punctuation
+		if curr.Value == ")" || curr.Value == "," || curr.Value == ":" {
+			return false
+		}
+		return true
+	}
+	
+	// Add space before keywords, identifiers, and numbers
+	if curr.Type == TokenKeyword || curr.Type == TokenIdent || curr.Type == TokenNumber {
+		// Except after certain punctuation
+		if prev.Value == "(" || prev.Value == "$" {
+			return false
+		}
+		return true
+	}
+	
+	// No space between punctuation by default
+	return false
+}
+
 func (p *SimpleParser) parseVarDecl() *ast.VarDecl {
 	varDecl := &ast.VarDecl{
 		StartPos: p.currentPos(),
@@ -831,8 +1059,103 @@ func (p *SimpleParser) parseVarDecl() *ast.VarDecl {
 	return varDecl
 }
 
+func (p *SimpleParser) parseConstDecl() *ast.ConstDecl {
+	constDecl := &ast.ConstDecl{
+		StartPos: p.currentPos(),
+	}
+	
+	// Parse 'const' keyword
+	p.expect(TokenKeyword, "const")
+	
+	// Constant name
+	if p.peek().Type == TokenIdent {
+		constDecl.Name = p.advance().Value
+	}
+	
+	// Type annotation
+	if p.peek().Value == ":" {
+		p.advance()
+		constDecl.Type = p.parseType()
+	}
+	
+	// Initializer (required for const)
+	p.expect(TokenOperator, "=")
+	constDecl.Value = p.parseExpression()
+	
+	p.expect(TokenPunc, ";")
+	constDecl.EndPos = p.currentPos()
+	
+	return constDecl
+}
+
 func (p *SimpleParser) parseStructDecl() *ast.StructDecl {
 	// TODO: Implement struct declaration parsing
 	p.advance() // skip 'struct'
 	return nil
+}
+
+func (p *SimpleParser) parseTypeDecl() ast.Declaration {
+	p.expect(TokenKeyword, "type")
+	
+	// Get type name
+	if p.peek().Type != TokenIdent {
+		return nil
+	}
+	name := p.advance().Value
+	
+	// Expect =
+	p.expect(TokenOperator, "=")
+	
+	// Parse the type (for now, only struct)
+	if p.peek().Type == TokenKeyword && p.peek().Value == "struct" {
+		p.advance() // consume 'struct'
+		
+		structDecl := &ast.StructDecl{
+			Name:     name,
+			Fields:   []*ast.Field{},
+			IsPublic: false,
+			StartPos: p.currentPos(),
+		}
+		
+		// Parse struct body
+		p.expect(TokenPunc, "{")
+		
+		for p.peek().Value != "}" && !p.isAtEnd() {
+			// Parse field
+			field := p.parseStructField()
+			if field != nil {
+				structDecl.Fields = append(structDecl.Fields, field)
+			}
+			
+			// Skip optional comma or semicolon
+			if p.peek().Value == "," || p.peek().Value == ";" {
+				p.advance()
+			}
+		}
+		
+		p.expect(TokenPunc, "}")
+		p.expect(TokenPunc, ";")
+		
+		structDecl.EndPos = p.currentPos()
+		return structDecl
+	}
+	
+	return nil
+}
+
+func (p *SimpleParser) parseStructField() *ast.Field {
+	if p.peek().Type != TokenIdent {
+		return nil
+	}
+	
+	field := &ast.Field{
+		Name:     p.advance().Value,
+		StartPos: p.currentPos(),
+	}
+	
+	p.expect(TokenPunc, ":")
+	field.Type = p.parseType()
+	field.EndPos = p.currentPos()
+	
+	return field
 }

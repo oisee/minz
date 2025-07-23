@@ -47,6 +47,13 @@ type NamespaceSymbol struct {
 
 func (n *NamespaceSymbol) symbol() {}
 
+// ModuleSymbol represents a module for simple module system
+type ModuleSymbol struct {
+	Name string
+}
+
+func (m *ModuleSymbol) symbol() {}
+
 // Scope represents a lexical scope
 type Scope struct {
 	parent  *Scope

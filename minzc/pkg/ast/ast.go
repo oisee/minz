@@ -192,6 +192,20 @@ func (v *VarDecl) End() Position { return v.EndPos }
 func (v *VarDecl) stmtNode()    {}
 func (v *VarDecl) declNode()    {}
 
+// ConstDecl represents a constant declaration
+type ConstDecl struct {
+	Name     string
+	Type     Type
+	Value    Expression
+	StartPos Position
+	EndPos   Position
+}
+
+func (c *ConstDecl) Pos() Position { return c.StartPos }
+func (c *ConstDecl) End() Position { return c.EndPos }
+func (c *ConstDecl) stmtNode()    {}
+func (c *ConstDecl) declNode()    {}
+
 // StructDecl represents a struct declaration
 type StructDecl struct {
 	Name     string
@@ -255,6 +269,29 @@ type WhileStmt struct {
 func (w *WhileStmt) Pos() Position { return w.StartPos }
 func (w *WhileStmt) End() Position { return w.EndPos }
 func (w *WhileStmt) stmtNode()    {}
+
+// AsmStmt represents an inline assembly block
+type AsmStmt struct {
+	Name     string   // Optional name for named blocks
+	Code     string   // Raw assembly text
+	StartPos Position
+	EndPos   Position
+}
+
+func (a *AsmStmt) Pos() Position { return a.StartPos }
+func (a *AsmStmt) End() Position { return a.EndPos }
+func (a *AsmStmt) stmtNode()    {}
+
+// ExpressionStmt represents an expression used as a statement
+type ExpressionStmt struct {
+	Expression Expression
+	StartPos   Position
+	EndPos     Position
+}
+
+func (e *ExpressionStmt) Pos() Position { return e.StartPos }
+func (e *ExpressionStmt) End() Position { return e.EndPos }
+func (e *ExpressionStmt) stmtNode()    {}
 
 // Expressions
 

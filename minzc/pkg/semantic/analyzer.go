@@ -2,6 +2,8 @@ package semantic
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/minz/minzc/pkg/ast"
@@ -27,6 +29,7 @@ type Analyzer struct {
 	module         *ir.Module
 	moduleResolver ModuleResolver
 	currentFile    string
+	currentModule  string // Current module name for prefixing
 	luaEvaluator   *meta.LuaEvaluator
 	currentFunc    *ir.Function
 	functionCalls  map[string][]string // Track which functions call which
@@ -45,6 +48,14 @@ func NewAnalyzer() *Analyzer {
 
 // Analyze performs semantic analysis on a file
 func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
+	// Set current module name
+	if file.ModuleName != "" {
+		a.currentModule = file.ModuleName
+	} else {
+		// Use filename without extension as module name
+		a.currentModule = strings.TrimSuffix(filepath.Base(file.Name), filepath.Ext(file.Name))
+	}
+	
 	// Add built-in types and functions
 	a.addBuiltins()
 
@@ -55,10 +66,21 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		}
 	}
 
-	// First pass: Register all function signatures
+	// First pass: Register all type and function signatures, and constants
 	for _, decl := range file.Declarations {
-		if fn, ok := decl.(*ast.FunctionDecl); ok {
-			if err := a.registerFunctionSignature(fn); err != nil {
+		switch d := decl.(type) {
+		case *ast.FunctionDecl:
+			if err := a.registerFunctionSignature(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
+		case *ast.StructDecl:
+			// Register struct types early so they can be used in function signatures
+			if err := a.analyzeStructDecl(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
+		case *ast.EnumDecl:
+			// Register enum types early as well
+			if err := a.analyzeEnumDecl(d); err != nil {
 				a.errors = append(a.errors, err)
 			}
 		}
@@ -86,6 +108,25 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 	return a.module, nil
 }
 
+// prefixSymbol adds module prefix to a symbol name if needed
+func (a *Analyzer) prefixSymbol(name string) string {
+	// Don't prefix built-in types
+	if name == "u8" || name == "u16" || name == "i8" || name == "i16" || name == "bool" || name == "void" {
+		return name
+	}
+	
+	// Check if already prefixed with current module
+	if a.currentModule != "" && strings.HasPrefix(name, a.currentModule+".") {
+		return name
+	}
+	
+	// Add module prefix
+	if a.currentModule != "" && a.currentModule != "main" {
+		return a.currentModule + "." + name
+	}
+	return name
+}
+
 // addBuiltins adds built-in types and functions
 func (a *Analyzer) addBuiltins() {
 	// Built-in types
@@ -99,35 +140,73 @@ func (a *Analyzer) addBuiltins() {
 
 // processImport processes an import statement
 func (a *Analyzer) processImport(imp *ast.ImportStmt) error {
-	// For now, just track the import
-	// Full module resolution will be implemented with the module system
+	// For the simple prefix-based approach, we register known modules
+	// In a real implementation, this would load and parse the module file
 	
-	// Check if we have a module resolver
-	if a.moduleResolver != nil {
-		modInfo, err := a.moduleResolver.ResolveModule(imp.Path)
-		if err != nil {
-			return fmt.Errorf("failed to import %s: %w", imp.Path, err)
-		}
-		
-		// Import symbols into current scope
-		importName := imp.Alias
-		if importName == "" {
-			// Use last part of module path as default name
-			parts := strings.Split(imp.Path, ".")
-			importName = parts[len(parts)-1]
-		}
-		
-		// Create a namespace for the import
-		namespace := &NamespaceSymbol{
-			Name:    importName,
-			Module:  imp.Path,
-			Exports: modInfo.Exports,
-		}
-		
-		a.currentScope.Define(importName, namespace)
+	moduleName := imp.Path
+	
+	// Handle known standard library modules
+	if moduleName == "zx.screen" || moduleName == "screen" {
+		// Add screen module functions with module prefix
+		a.registerScreenModule()
+	} else if moduleName == "zx.input" || moduleName == "input" {
+		// Add input module functions
+		a.registerInputModule()
 	}
 	
+	// If there's an alias, we need to handle identifier resolution differently
+	// For now, we'll just note the import
+	
 	return nil
+}
+
+// registerScreenModule registers screen module functions
+func (a *Analyzer) registerScreenModule() {
+	// Register screen as a module
+	a.currentScope.Define("screen", &ModuleSymbol{
+		Name: "screen",
+	})
+	
+	// Also register individual functions with full names
+	a.currentScope.Define("screen.set_pixel", &FuncSymbol{
+		Name:       "screen.set_pixel",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params:     nil, // TODO: Add proper parameter types
+	})
+	
+	a.currentScope.Define("screen.clear_pixel", &FuncSymbol{
+		Name:       "screen.clear_pixel",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params:     nil,
+	})
+	
+	a.currentScope.Define("screen.attr_addr", &FuncSymbol{
+		Name:       "screen.attr_addr",
+		ReturnType: &ir.BasicType{Kind: ir.TypeU16},
+		Params:     nil,
+	})
+	
+	a.currentScope.Define("screen.set_attributes", &FuncSymbol{
+		Name:       "screen.set_attributes",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params:     nil,
+	})
+}
+
+// registerInputModule registers input module functions
+func (a *Analyzer) registerInputModule() {
+	// Register input functions with module prefix
+	a.currentScope.Define("input.read_key", &FuncSymbol{
+		Name:       "input.read_key",
+		ReturnType: &ir.BasicType{Kind: ir.TypeU8},
+		Params:     nil,
+	})
+	
+	a.currentScope.Define("input.key_pressed", &FuncSymbol{
+		Name:       "input.key_pressed",
+		ReturnType: &ir.BasicType{Kind: ir.TypeBool},
+		Params:     nil,
+	})
 }
 
 // analyzeDeclaration analyzes a declaration
@@ -137,10 +216,14 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 		return a.analyzeFunctionDecl(d)
 	case *ast.VarDecl:
 		return a.analyzeVarDecl(d)
+	case *ast.ConstDecl:
+		return a.analyzeConstDecl(d)
 	case *ast.StructDecl:
-		return a.analyzeStructDecl(d)
+		// Already processed in first pass
+		return nil
 	case *ast.EnumDecl:
-		return a.analyzeEnumDecl(d)
+		// Already processed in first pass
+		return nil
 	default:
 		return fmt.Errorf("unsupported declaration type: %T", decl)
 	}
@@ -155,12 +238,24 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 		return fmt.Errorf("invalid return type for function %s: %w", fn.Name, err)
 	}
 
-	// Register function in global scope
-	a.currentScope.Define(fn.Name, &FuncSymbol{
-		Name:       fn.Name,
+	// Get prefixed name
+	prefixedName := a.prefixSymbol(fn.Name)
+	
+	// Register function in global scope with prefixed name
+	a.currentScope.Define(prefixedName, &FuncSymbol{
+		Name:       prefixedName,
 		ReturnType: returnType,
 		Params:     fn.Params,
 	})
+	
+	// Also register without prefix for local access
+	if a.currentModule != "" && a.currentModule != "main" {
+		a.currentScope.Define(fn.Name, &FuncSymbol{
+			Name:       prefixedName,
+			ReturnType: returnType,
+			Params:     fn.Params,
+		})
+	}
 
 	return nil
 }
@@ -178,8 +273,11 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 		return fmt.Errorf("symbol %s is not a function", fn.Name)
 	}
 
-	// Create IR function
-	irFunc := ir.NewFunction(fn.Name, funcSym.ReturnType)
+	// Get prefixed name
+	prefixedName := a.prefixSymbol(fn.Name)
+	
+	// Create IR function with prefixed name
+	irFunc := ir.NewFunction(prefixedName, funcSym.ReturnType)
 	
 	// Default to SMC unless impossible
 	irFunc.IsSMCDefault = true
@@ -307,6 +405,88 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 	return nil
 }
 
+// analyzeConstDecl analyzes a constant declaration
+func (a *Analyzer) analyzeConstDecl(c *ast.ConstDecl) error {
+	// Constants must have a value
+	if c.Value == nil {
+		return fmt.Errorf("constant %s must have a value", c.Name)
+	}
+	
+	// Determine type
+	var constType ir.Type
+	var inferredType ir.Type
+	
+	// Get the declared type if present
+	if c.Type != nil {
+		t, err := a.convertType(c.Type)
+		if err != nil {
+			return fmt.Errorf("invalid type for constant %s: %w", c.Name, err)
+		}
+		constType = t
+	}
+	
+	// Get the inferred type from value
+	t, err := a.inferType(c.Value)
+	if err != nil {
+		if constType == nil {
+			return fmt.Errorf("cannot infer type for constant %s: %w", c.Name, err)
+		}
+		// Use the explicit type
+	} else {
+		inferredType = t
+	}
+	
+	// Determine final type and check compatibility
+	if constType != nil && inferredType != nil {
+		// Both type annotation and initializer present - check compatibility
+		if !a.typesCompatible(constType, inferredType) {
+			return fmt.Errorf("type mismatch for constant %s: declared type %s but initializer has type %s", 
+				c.Name, constType.String(), inferredType.String())
+		}
+		// Use the declared type
+	} else if constType != nil {
+		// Only type annotation
+	} else if inferredType != nil {
+		// Only initializer, use inferred type
+		constType = inferredType
+	} else {
+		return fmt.Errorf("cannot determine type for constant %s", c.Name)
+	}
+	
+	// Get prefixed name
+	prefixedName := a.prefixSymbol(c.Name)
+	
+	// Define constant in current scope (should be global scope)
+	a.currentScope.Define(c.Name, &VarSymbol{
+		Name:      c.Name,
+		Type:      constType,
+		IsMutable: false, // Constants are immutable
+	})
+	
+	// Also define with prefix if needed
+	if prefixedName != c.Name {
+		a.currentScope.Define(prefixedName, &VarSymbol{
+			Name:      c.Name, // Still use unprefixed name in the symbol
+			Type:      constType,
+			IsMutable: false,
+		})
+	}
+	
+	
+	// Generate global constant definition
+	// TODO: For now, don't generate globals for constants
+	// globalVar := ir.Global{
+	// 	Name:     prefixedName,
+	// 	Type:     constType,
+	// 	Value:    c.Value, // Store AST expression for later evaluation
+	// 	Constant: true,
+	// }
+	
+	// a.module.Globals = append(a.module.Globals, globalVar)
+	
+	return nil
+}
+
 // analyzeStructDecl analyzes a struct declaration
 func (a *Analyzer) analyzeStructDecl(s *ast.StructDecl) error {
 	// Create struct type
@@ -327,18 +507,29 @@ func (a *Analyzer) analyzeStructDecl(s *ast.StructDecl) error {
 		fieldOrder = append(fieldOrder, field.Name)
 	}
 	
-	// Create struct type
+	// Get prefixed name
+	prefixedName := a.prefixSymbol(s.Name)
+	
+	// Create struct type with prefixed name
 	structType := &ir.StructType{
-		Name:       s.Name,
+		Name:       prefixedName,
 		Fields:     fields,
 		FieldOrder: fieldOrder,
 	}
 	
-	// Register struct type
-	a.currentScope.Define(s.Name, &TypeSymbol{
-		Name: s.Name,
+	// Register struct type with prefixed name
+	a.currentScope.Define(prefixedName, &TypeSymbol{
+		Name: prefixedName,
 		Type: structType,
 	})
+	
+	// Also register without prefix for local access
+	if a.currentModule != "" && a.currentModule != "main" {
+		a.currentScope.Define(s.Name, &TypeSymbol{
+			Name: prefixedName,
+			Type: structType,
+		})
+	}
 	
 	return nil
 }
@@ -397,6 +588,12 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 		return a.analyzeWhileStmt(s, irFunc)
 	case *ast.BlockStmt:
 		return a.analyzeBlock(s, irFunc)
+	case *ast.AsmStmt:
+		return a.analyzeAsmStmt(s, irFunc)
+	case *ast.ExpressionStmt:
+		// Analyze the expression but ignore the result
+		_, err := a.analyzeExpression(s.Expression, irFunc)
+		return err
 	default:
 		return fmt.Errorf("unsupported statement type: %T", stmt)
 	}
@@ -568,6 +765,27 @@ func (a *Analyzer) analyzeWhileStmt(whileStmt *ast.WhileStmt, irFunc *ir.Functio
 	return nil
 }
 
+// analyzeAsmStmt analyzes an inline assembly statement
+func (a *Analyzer) analyzeAsmStmt(asmStmt *ast.AsmStmt, irFunc *ir.Function) error {
+	// Create IR instruction with OpAsm
+	asmInst := ir.Instruction{
+		Op:      ir.OpAsm,
+		AsmCode: asmStmt.Code,
+		AsmName: asmStmt.Name,
+	}
+	
+	// If named, register in symbol table
+	if asmStmt.Name != "" {
+		// TODO: Add AsmSymbol type to symbols
+		// For now, just track the name
+	}
+	
+	// Add to function instructions
+	irFunc.Instructions = append(irFunc.Instructions, asmInst)
+	
+	return nil
+}
+
 // analyzeExpression analyzes an expression and returns the register containing the result
 func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (ir.Register, error) {
 	switch e := expr.(type) {
@@ -587,10 +805,17 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeStructLiteral(e, irFunc)
 	case *ast.FieldExpr:
 		return a.analyzeFieldExpr(e, irFunc)
+	case *ast.IndexExpr:
+		return a.analyzeIndexExpr(e, irFunc)
 	case *ast.EnumLiteral:
 		return a.analyzeEnumLiteral(e, irFunc)
 	case *ast.LuaExpression:
 		return a.analyzeLuaExpression(e, irFunc)
+	case *ast.StringLiteral:
+		return a.analyzeStringLiteral(e, irFunc)
+	case *ast.AsmStmt:
+		// Inline assembly expressions
+		return a.analyzeInlineAsmExpr(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -598,12 +823,31 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 
 // analyzeIdentifier analyzes an identifier
 func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (ir.Register, error) {
+	
+	// First try direct lookup
 	sym := a.currentScope.Lookup(id.Name)
+	
+	// If not found, try with module prefix
+	if sym == nil && a.currentModule != "" && a.currentModule != "main" {
+		// Try with module prefix
+		prefixedName := a.prefixSymbol(id.Name)
+		sym = a.currentScope.Lookup(prefixedName)
+	}
+	
+	// If not found and name contains a dot, it might be a module reference
+	if sym == nil && strings.Contains(id.Name, ".") {
+		// Try looking up the full dotted name
+		sym = a.currentScope.Lookup(id.Name)
+	}
+	
 	if sym == nil {
 		return 0, fmt.Errorf("undefined identifier: %s", id.Name)
 	}
 
 	switch s := sym.(type) {
+	case *ModuleSymbol:
+		// Module identifiers are not values - they're only used in field expressions
+		return 0, fmt.Errorf("module %s cannot be used as a value", s.Name)
 	case *VarSymbol:
 		// Load variable value
 		reg := irFunc.AllocReg()
@@ -613,14 +857,14 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 				Op:     ir.OpLoadParam,
 				Dest:   reg,
-				Symbol: id.Name,
+				Symbol: s.Name, // Use the symbol's actual name (prefixed)
 				Type:   s.Type,
 			})
 		} else {
 			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 				Op:     ir.OpLoadVar,
 				Dest:   reg,
-				Symbol: id.Name,
+				Symbol: s.Name, // Use the symbol's actual name (prefixed)
 			})
 		}
 		return reg, nil
@@ -733,29 +977,45 @@ func (a *Analyzer) analyzeUnaryExpr(un *ast.UnaryExpr, irFunc *ir.Function) (ir.
 
 // analyzeCallExpr analyzes a function call
 func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.Register, error) {
-	// For now, only support direct function calls
-	id, ok := call.Function.(*ast.Identifier)
-	if !ok {
+	var funcName string
+	var sym Symbol
+	
+	switch fn := call.Function.(type) {
+	case *ast.Identifier:
+		// Direct function call
+		funcName = fn.Name
+		sym = a.currentScope.Lookup(funcName)
+		if sym == nil {
+			return 0, fmt.Errorf("undefined function: %s", funcName)
+		}
+		
+	case *ast.FieldExpr:
+		// Module function call (e.g., screen.set_pixel)
+		if id, ok := fn.Object.(*ast.Identifier); ok {
+			funcName = id.Name + "." + fn.Field
+			sym = a.currentScope.Lookup(funcName)
+			if sym == nil {
+				return 0, fmt.Errorf("undefined function: %s", funcName)
+			}
+		} else {
+			return 0, fmt.Errorf("complex function calls not yet supported")
+		}
+		
+	default:
 		return 0, fmt.Errorf("indirect function calls not yet supported")
-	}
-
-	// Look up function
-	sym := a.currentScope.Lookup(id.Name)
-	if sym == nil {
-		return 0, fmt.Errorf("undefined function: %s", id.Name)
 	}
 
 	funcSym, ok := sym.(*FuncSymbol)
 	if !ok {
-		return 0, fmt.Errorf("%s is not a function", id.Name)
+		return 0, fmt.Errorf("%s is not a function", funcName)
 	}
 	
 	// Track function calls for recursion detection
 	if a.currentFunc != nil {
-		a.functionCalls[a.currentFunc.Name] = append(a.functionCalls[a.currentFunc.Name], id.Name)
+		a.functionCalls[a.currentFunc.Name] = append(a.functionCalls[a.currentFunc.Name], funcName)
 		
 		// Check if this is a recursive call
-		if id.Name == a.currentFunc.Name {
+		if funcName == a.currentFunc.Name {
 			a.currentFunc.IsRecursive = true
 			a.currentFunc.RequiresContext = true
 		}
@@ -764,7 +1024,7 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 	// Check argument count
 	if len(call.Arguments) != len(funcSym.Params) {
 		return 0, fmt.Errorf("function %s expects %d arguments, got %d", 
-			id.Name, len(funcSym.Params), len(call.Arguments))
+			funcName, len(funcSym.Params), len(call.Arguments))
 	}
 
 	// Analyze arguments
@@ -782,7 +1042,7 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:     ir.OpCall,
 		Dest:   resultReg,
-		Symbol: id.Name,
+		Symbol: funcName,
 	})
 
 	return resultReg, nil
@@ -858,7 +1118,27 @@ func (a *Analyzer) analyzeStructLiteral(lit *ast.StructLiteral, irFunc *ir.Funct
 
 // analyzeFieldExpr analyzes a field access expression
 func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (ir.Register, error) {
-	// Analyze the object
+	// Special handling for module field access (e.g., screen.set_pixel)
+	if id, ok := field.Object.(*ast.Identifier); ok {
+		// Check if this is a module function call
+		fullName := id.Name + "." + field.Field
+		sym := a.currentScope.Lookup(fullName)
+		if sym != nil {
+			// This is a module function - treat it as a function identifier
+			// Return a special register that indicates this is a function reference
+			// The actual call will be handled by analyzeCallExpr
+			reg := irFunc.AllocReg()
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpLoadLabel,
+				Dest:    reg,
+				Symbol:  fullName,
+				Comment: fmt.Sprintf("Load function %s", fullName),
+			})
+			return reg, nil
+		}
+	}
+	
+	// Normal field access - analyze the object
 	objReg, err := a.analyzeExpression(field.Object, irFunc)
 	if err != nil {
 		return 0, err
@@ -880,6 +1160,155 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 	})
 	
 	return resultReg, nil
+}
+
+// analyzeFieldExpr analyzes a field expression (e.g., obj.field or module.function)
+func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Check if this is a module function call
+	if id, ok := field.Object.(*ast.Identifier); ok {
+		// Check if it's a module
+		modSym := a.currentScope.Lookup(id.Name)
+		if modSym != nil {
+			if _, isModule := modSym.(*ModuleSymbol); isModule {
+				// This is a module function reference
+				// Try to look up the full function name
+				fullName := id.Name + "." + field.Field
+				funcSym := a.currentScope.Lookup(fullName)
+				if funcSym == nil {
+					return 0, fmt.Errorf("undefined function: %s", fullName)
+				}
+				
+				// For now, we can't directly load a function reference
+				// This will be handled when it's called
+				return 0, fmt.Errorf("cannot use function %s as a value", fullName)
+			}
+		}
+	}
+	
+	// Analyze the object expression
+	objReg, err := a.analyzeExpression(field.Object, irFunc)
+	if err != nil {
+		return 0, err
+	}
+	
+	// Get the type of the object
+	objType, err := a.inferType(field.Object)
+	if err != nil {
+		return 0, fmt.Errorf("cannot determine type of object for field access: %w", err)
+	}
+	
+	// Check if it's a struct type
+	structType, ok := objType.(*ir.StructType)
+	if !ok {
+		return 0, fmt.Errorf("field access on non-struct type %s", objType.String())
+	}
+	
+	// Check if the field exists
+	fieldType, exists := structType.Fields[field.Field]
+	if !exists {
+		return 0, fmt.Errorf("struct %s has no field %s", structType.Name, field.Field)
+	}
+	
+	// Calculate field offset
+	offset := 0
+	for _, fname := range structType.FieldOrder {
+		if fname == field.Field {
+			break
+		}
+		offset += structType.Fields[fname].Size()
+	}
+	
+	// Allocate result register
+	resultReg := irFunc.AllocReg()
+	
+	// Generate field load instruction
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpLoadField,
+		Dest:    resultReg,
+		Src1:    objReg,
+		Imm:     int64(offset),
+		Type:    fieldType,
+		Comment: fmt.Sprintf("Load field %s", field.Field),
+	})
+	
+	return resultReg, nil
+}
+
+// analyzeInlineAsmExpr analyzes inline assembly as an expression
+func (a *Analyzer) analyzeInlineAsmExpr(asm *ast.AsmStmt, irFunc *ir.Function) (ir.Register, error) {
+	// Process the assembly code for symbol resolution
+	resolvedCode, err := a.resolveAsmSymbols(asm.Code)
+	if err != nil {
+		return 0, err
+	}
+	
+	// Generate inline assembly instruction
+	// Inline asm expressions don't return a value, so we return a dummy register
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpAsm,
+		AsmCode: resolvedCode,
+		Comment: "Inline assembly expression",
+	})
+	
+	// Return register 0 as a placeholder (inline asm has no return value)
+	return 0, nil
+}
+
+// analyzeIndexExpr analyzes an array index expression
+func (a *Analyzer) analyzeIndexExpr(index *ast.IndexExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Analyze the array expression
+	arrayReg, err := a.analyzeExpression(index.Array, irFunc)
+	if err != nil {
+		return 0, err
+	}
+	
+	// Analyze the index expression
+	indexReg, err := a.analyzeExpression(index.Index, irFunc)
+	if err != nil {
+		return 0, err
+	}
+	
+	// TODO: Type check that array is actually an array type
+	// For now, we'll just generate the load instruction
+	
+	// Allocate result register
+	resultReg := irFunc.AllocReg()
+	
+	// Generate indexed load
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoadIndex,
+		Dest: resultReg,
+		Src1: arrayReg,
+		Src2: indexReg,
+		Comment: "Load array element",
+	})
+	
+	return resultReg, nil
+}
+
+// analyzeStringLiteral analyzes a string literal
+func (a *Analyzer) analyzeStringLiteral(str *ast.StringLiteral, irFunc *ir.Function) (ir.Register, error) {
+	// Create a unique label for the string
+	label := fmt.Sprintf("str_%d", len(a.module.Strings))
+	
+	// Add string to module's string table
+	a.module.Strings = append(a.module.Strings, &ir.String{
+		Label: label,
+		Value: str.Value,
+	})
+	
+	// Allocate register for the pointer
+	reg := irFunc.AllocReg()
+	
+	// Generate instruction to load string address
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpLoadLabel,
+		Dest:    reg,
+		Symbol:  label,
+		Comment: fmt.Sprintf("Load string \"%s\"", str.Value),
+	})
+	
+	return reg, nil
 }
 
 // analyzeEnumLiteral analyzes an enum literal
@@ -970,6 +1399,13 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 	case *ast.TypeIdentifier:
 		// Look up the type in the symbol table
 		sym := a.currentScope.Lookup(t.Name)
+		
+		// If not found, try with module prefix
+		if sym == nil && a.currentModule != "" && a.currentModule != "main" {
+			prefixedName := a.prefixSymbol(t.Name)
+			sym = a.currentScope.Lookup(prefixedName)
+		}
+		
 		if sym == nil {
 			return nil, fmt.Errorf("undefined type: %s", t.Name)
 		}
@@ -1005,28 +1441,59 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		return &ir.BasicType{Kind: ir.TypeBool}, nil
 	case *ast.Identifier:
 		sym := a.currentScope.Lookup(e.Name)
+		
+		// If not found, try with module prefix
+		if sym == nil && a.currentModule != "" && a.currentModule != "main" {
+			prefixedName := a.prefixSymbol(e.Name)
+			sym = a.currentScope.Lookup(prefixedName)
+		}
+		
 		if sym == nil {
 			return nil, fmt.Errorf("undefined identifier: %s", e.Name)
 		}
-		if varSym, ok := sym.(*VarSymbol); ok {
-			return varSym.Type, nil
+		switch s := sym.(type) {
+		case *VarSymbol:
+			return s.Type, nil
+		case *ModuleSymbol:
+			return nil, fmt.Errorf("module %s cannot be used as a value", s.Name)
+		default:
+			return nil, fmt.Errorf("cannot infer type from %s", e.Name)
 		}
-		return nil, fmt.Errorf("cannot infer type from %s", e.Name)
 	case *ast.CallExpr:
 		// Infer type from function return type
-		id, ok := e.Function.(*ast.Identifier)
-		if !ok {
+		var funcName string
+		var sym Symbol
+		
+		switch fn := e.Function.(type) {
+		case *ast.Identifier:
+			funcName = fn.Name
+			sym = a.currentScope.Lookup(funcName)
+			
+			// If not found, try with module prefix
+			if sym == nil && a.currentModule != "" && a.currentModule != "main" {
+				prefixedName := a.prefixSymbol(funcName)
+				sym = a.currentScope.Lookup(prefixedName)
+				funcName = prefixedName
+			}
+			
+		case *ast.FieldExpr:
+			// Module function call
+			if id, ok := fn.Object.(*ast.Identifier); ok {
+				funcName = id.Name + "." + fn.Field
+				sym = a.currentScope.Lookup(funcName)
+			}
+			
+		default:
 			return nil, fmt.Errorf("indirect function calls not yet supported for type inference")
 		}
 		
-		sym := a.currentScope.Lookup(id.Name)
 		if sym == nil {
-			return nil, fmt.Errorf("undefined function: %s", id.Name)
+			return nil, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
 		funcSym, ok := sym.(*FuncSymbol)
 		if !ok {
-			return nil, fmt.Errorf("cannot infer type from %s", id.Name)
+			return nil, fmt.Errorf("cannot infer type from %s", funcName)
 		}
 		
 		return funcSym.ReturnType, nil
@@ -1076,6 +1543,61 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		default:
 			return nil, fmt.Errorf("cannot infer type for unary operator %s", e.Operator)
 		}
+	case *ast.IndexExpr:
+		// Infer element type from array type
+		arrayType, err := a.inferType(e.Array)
+		if err != nil {
+			return nil, err
+		}
+		
+		// Check if it's an array type
+		if arrType, ok := arrayType.(*ir.ArrayType); ok {
+			return arrType.Element, nil
+		}
+		
+		return nil, fmt.Errorf("cannot index non-array type %s", arrayType.String())
+	case *ast.StringLiteral:
+		// String literals are pointers to u8
+		return &ir.PointerType{
+			Base: &ir.BasicType{Kind: ir.TypeU8},
+		}, nil
+	case *ast.FieldExpr:
+		// Check if this is a module field access
+		if id, ok := e.Object.(*ast.Identifier); ok {
+			// Check if the object is a module
+			sym := a.currentScope.Lookup(id.Name)
+			if _, isModule := sym.(*ModuleSymbol); isModule {
+				// This is a module function - it's not a value by itself
+				// The type will be determined by the CallExpr that uses it
+				return nil, fmt.Errorf("module functions must be called, not used as values")
+			}
+		}
+		
+		// Normal struct field access - infer type from struct field
+		objType, err := a.inferType(e.Object)
+		if err != nil {
+			return nil, err
+		}
+		
+		// Handle pointer dereferencing
+		actualType := objType
+		if ptrType, ok := objType.(*ir.PointerType); ok {
+			actualType = ptrType.Base
+		}
+		
+		// Check if it's a struct type
+		structType, ok := actualType.(*ir.StructType)
+		if !ok {
+			return nil, fmt.Errorf("cannot access field %s on non-struct type %s", e.Field, actualType.String())
+		}
+		
+		// Look up field type
+		fieldType, exists := structType.Fields[e.Field]
+		if !exists {
+			return nil, fmt.Errorf("struct %s has no field %s", structType.Name, e.Field)
+		}
+		
+		return fieldType, nil
 	default:
 		return nil, fmt.Errorf("cannot infer type from expression of type %T", expr)
 	}

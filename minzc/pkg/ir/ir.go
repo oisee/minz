@@ -91,6 +91,7 @@ const (
 	OpLoadIndex
 	OpStoreIndex
 	OpMove
+	OpLoadLabel  // Load address of a label
 	
 	// Self-modifying code operations
 	OpSMCLoadConst
@@ -135,6 +136,9 @@ const (
 	// Stack
 	OpPush
 	OpPop
+	
+	// Inline assembly
+	OpAsm
 )
 
 // Instruction represents a single IR instruction
@@ -151,6 +155,14 @@ type Instruction struct {
 	PhysicalRegs map[string]string // Maps virtual to physical registers
 	SMCLabel     string            // Label for self-modifying code location
 	SMCTarget    string            // Target label for SMC store operations
+	AsmCode      string            // Raw assembly code for OpAsm instructions
+	AsmName      string            // Optional name for named asm blocks
+}
+
+// AsmBlock represents an inline assembly block
+type AsmBlock struct {
+	Name string
+	Code string
 }
 
 // Register represents a virtual register
@@ -415,13 +427,22 @@ type Module struct {
 	Name      string
 	Functions []*Function
 	Globals   []Global
+	Strings   []*String
 }
 
 // Global represents a global variable
 type Global struct {
-	Name  string
-	Type  Type
-	Init  interface{} // Initial value
+	Name     string
+	Type     Type
+	Init     interface{} // Initial value
+	Value    interface{} // AST expression for constants
+	Constant bool        // Whether this is a constant
+}
+
+// String represents a string literal
+type String struct {
+	Label string
+	Value string
 }
 
 // NewModule creates a new IR module
@@ -491,6 +512,11 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("r%d = r%d <= r%d", i.Dest, i.Src1, i.Src2)
 	case OpGe:
 		return fmt.Sprintf("r%d = r%d >= r%d", i.Dest, i.Src1, i.Src2)
+	case OpAsm:
+		if i.AsmName != "" {
+			return fmt.Sprintf("asm %s { %s }", i.AsmName, i.AsmCode)
+		}
+		return fmt.Sprintf("asm { %s }", i.AsmCode)
 	default:
 		return fmt.Sprintf("unknown op %d", i.Op)
 	}

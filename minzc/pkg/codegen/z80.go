@@ -3,6 +3,7 @@ package codegen
 import (
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/minz/minzc/pkg/ir"
@@ -40,10 +41,15 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	g.writeHeader()
 
 	// Generate data section
-	if len(module.Globals) > 0 {
+	if len(module.Globals) > 0 || len(module.Strings) > 0 {
 		g.emit("\n; Data section")
 		for _, global := range module.Globals {
 			g.generateGlobal(global)
+		}
+		
+		// Generate string literals
+		for _, str := range module.Strings {
+			g.generateString(str)
 		}
 	}
 
@@ -97,6 +103,35 @@ func (g *Z80Generator) generateGlobal(global ir.Global) {
 	default:
 		g.emit("    ; TODO: %s type", global.Type.String())
 	}
+}
+
+// generateString generates a string literal
+func (g *Z80Generator) generateString(str *ir.String) {
+	g.emit("%s:", str.Label)
+	
+	// Escape special characters and emit as DB directive
+	escaped := ""
+	for _, ch := range str.Value {
+		if ch >= 32 && ch <= 126 && ch != '"' && ch != '\\' {
+			escaped += string(ch)
+		} else {
+			// If we have accumulated string content, emit it
+			if escaped != "" {
+				g.emit("    DB \"%s\"", escaped)
+				escaped = ""
+			}
+			// Emit special character as numeric value
+			g.emit("    DB %d", ch)
+		}
+	}
+	
+	// Emit any remaining string content
+	if escaped != "" {
+		g.emit("    DB \"%s\"", escaped)
+	}
+	
+	// Null terminator
+	g.emit("    DB 0")
 }
 
 // generateFunction generates code for a function
@@ -720,6 +755,44 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    INC DE")
 		g.emit("    LD (DE), H")
 		
+	case ir.OpAsm:
+		// Emit named label if provided
+		if inst.AsmName != "" {
+			g.emit("%s:", inst.AsmName)
+		}
+		
+		// Process inline assembly code
+		g.emitAsmBlock(inst.AsmCode)
+		
+	case ir.OpLoadLabel:
+		// Load address of a label
+		g.emit("    LD HL, %s", inst.Symbol)
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpLoadIndex:
+		// Load element from array
+		// Src1 = array pointer, Src2 = index
+		g.loadToHL(inst.Src1)
+		// Save array pointer
+		g.emit("    PUSH HL")
+		// Load index to DE
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			// For byte index, load to A first then to DE
+			g.loadToA(inst.Src2)
+			g.emit("    LD E, A")
+			g.emit("    LD D, 0")
+		} else {
+			g.loadToDE(inst.Src2)
+		}
+		// Restore array pointer
+		g.emit("    POP HL")
+		// Multiply index by element size (assuming 1 byte elements for now)
+		// TODO: Handle different element sizes
+		g.emit("    ADD HL, DE")
+		// Load value at array[index]
+		g.emit("    LD A, (HL)")
+		g.storeFromA(inst.Dest)
+		
 	default:
 		return fmt.Errorf("unsupported opcode: %v", inst.Op)
 	}
@@ -821,6 +894,25 @@ func (g *Z80Generator) loadToHL(reg ir.Register) {
 	}
 }
 
+// loadToDE loads a virtual register to DE
+func (g *Z80Generator) loadToDE(reg ir.Register) {
+	if reg == ir.RegZero {
+		g.emit("    LD DE, 0")
+		return
+	}
+	
+	if g.useAbsoluteLocals {
+		addr := g.getAbsoluteAddr(reg)
+		// Z80 doesn't have direct LD DE, (addr), so we use HL as intermediate
+		g.emit("    LD HL, ($%04X)", addr)
+		g.emit("    EX DE, HL")
+	} else {
+		offset := g.getLocalOffset(reg)
+		g.emit("    LD E, (IX-%d)", offset)
+		g.emit("    LD D, (IX-%d)", offset-1)
+	}
+}
+
 // storeFromHL stores HL to a virtual register
 func (g *Z80Generator) storeFromHL(reg ir.Register) {
 	if g.useAbsoluteLocals {
@@ -865,6 +957,129 @@ func (g *Z80Generator) emit(format string, args ...interface{}) {
 	} else {
 		fmt.Fprintln(g.writer, format)
 	}
+}
+
+// emitAsmBlock processes and emits inline assembly code
+func (g *Z80Generator) emitAsmBlock(code string) {
+	// Process the assembly code line by line
+	lines := strings.Split(code, "\n")
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		if trimmedLine == "" {
+			continue
+		}
+		
+		// Process !symbol references
+		processedLine := g.resolveAsmSymbols(trimmedLine)
+		
+		// Emit the processed line with proper indentation
+		if strings.Contains(processedLine, ":") && !strings.Contains(processedLine, "(") {
+			// Labels go at the beginning of the line
+			g.emit(processedLine)
+		} else {
+			// Instructions are indented
+			g.emit("    %s", processedLine)
+		}
+	}
+}
+
+// resolveAsmSymbols replaces !symbol references with actual values
+func (g *Z80Generator) resolveAsmSymbols(line string) string {
+	// Simple replacement for !symbol patterns
+	result := line
+	
+	// Find all !symbol references
+	for i := 0; i < len(line); i++ {
+		if line[i] == '!' && i+1 < len(line) && (isAlpha(line[i+1]) || line[i+1] == '_') {
+			// Find the end of the symbol
+			start := i
+			i++
+			for i < len(line) && (isAlnum(line[i]) || line[i] == '_' || line[i] == '.') {
+				i++
+			}
+			
+			// Extract the symbol
+			symbol := line[start+1:i]
+			
+			// Resolve the symbol
+			replacement := g.resolveSymbol(symbol)
+			
+			// Replace in the result
+			result = result[:start] + replacement + result[i:]
+			
+			// Adjust index for the replacement
+			i = start + len(replacement) - 1
+		}
+	}
+	
+	return result
+}
+
+// resolveSymbol resolves a symbol to its address or value
+func (g *Z80Generator) resolveSymbol(symbol string) string {
+	// Check for dotted notation (e.g., block.label)
+	if strings.Contains(symbol, ".") {
+		parts := strings.Split(symbol, ".")
+		if len(parts) == 2 {
+			// For now, just return the full symbol as a label
+			return symbol
+		}
+	}
+	
+	// Check if it's a global variable
+	for _, global := range g.module.Globals {
+		if global.Name == symbol {
+			return global.Name // Use the label directly
+		}
+	}
+	
+	// Check if it's a function
+	for _, fn := range g.module.Functions {
+		if fn.Name == symbol {
+			return fn.Name // Use the function label directly
+		}
+	}
+	
+	// Check if it's a local variable
+	if g.currentFunc != nil {
+		for i, local := range g.currentFunc.Locals {
+			if local.Name == symbol {
+				// Return the stack offset or memory location
+				if g.useAbsoluteLocals {
+					return fmt.Sprintf("$%04X", g.localVarBase + uint16(i*2))
+				} else {
+					// Calculate offset directly for local variables
+					offset := g.stackOffset + i*2
+					return fmt.Sprintf("(IX-%d)", offset)
+				}
+			}
+		}
+		
+		// Check parameters
+		for i, param := range g.currentFunc.Params {
+			if param.Name == symbol {
+				// Parameters are above the return address
+				offset := 4 + (len(g.currentFunc.Params)-i-1)*2
+				return fmt.Sprintf("(IX+%d)", offset)
+			}
+		}
+	}
+	
+	// If not found, return the symbol unchanged (let sjasmplus handle it)
+	return "!" + symbol
+}
+
+// Helper functions for character checking
+func isAlpha(ch byte) bool {
+	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
+}
+
+func isDigit(ch byte) bool {
+	return ch >= '0' && ch <= '9'
+}
+
+func isAlnum(ch byte) bool {
+	return isAlpha(ch) || isDigit(ch)
 }
 
 // RegisterAllocator manages Z80 register allocation
