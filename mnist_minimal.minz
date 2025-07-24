@@ -1,0 +1,48 @@
+// Minimal MNIST test
+module mnist_minimal;
+
+import zx.screen;
+import zx.input;
+
+fn main() -> void {
+    // Set border color
+    screen.set_border(screen.BLUE);
+    
+    // Draw a 16x16 grid
+    let grid_x: u8 = 64;
+    let grid_y: u8 = 48;
+    
+    // Draw border
+    screen.draw_rect(grid_x - 1, grid_y - 1, 18, 18, screen.WHITE, false);
+    
+    // Draw some pixels
+    screen.set_pixel(grid_x + 5, grid_y + 5, screen.WHITE);
+    screen.set_pixel(grid_x + 6, grid_y + 5, screen.WHITE);
+    screen.set_pixel(grid_x + 7, grid_y + 5, screen.WHITE);
+    
+    // Simple array test
+    let mut pixels: [16]bool;
+    pixels[0] = true;
+    pixels[1] = false;
+    pixels[2] = true;
+    
+    // Draw based on array
+    let mut i: u8 = 0;
+    while i < 16 {
+        if pixels[i] {
+            screen.set_pixel(grid_x + i, grid_y + 10, screen.WHITE);
+        }
+        i = i + 1;
+    }
+    
+    // Wait for key
+    while true {
+        let key = input.read_key();
+        if key == input.KEY_SPACE {
+            screen.set_border(screen.RED);
+        }
+        if key == input.KEY_C {
+            screen.set_border(screen.BLUE);
+        }
+    }
+}

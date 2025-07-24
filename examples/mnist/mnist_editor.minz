@@ -4,6 +4,9 @@
 
 module mnist_editor;
 
+import zx.screen;
+import zx.input;
+
 // Editor state
 type Editor = struct {
     cursor_x: u8,     // 0-15
@@ -47,7 +50,7 @@ fn draw_frame() -> void {
     let grid_y: u8 = 48;
     
     // Draw border around grid (18x18 to include borders)
-    screen.draw_rect(grid_x - 1, grid_y - 1, 18, 18);
+    screen.draw_rect(grid_x - 1, grid_y - 1, 18, 18, screen.WHITE, false);
 }
 
 // Draw text at character position with attributes

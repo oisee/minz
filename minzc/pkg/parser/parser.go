@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/minz/minzc/pkg/ast"
 )
@@ -26,6 +27,7 @@ func (p *Parser) ParseFile(filename string) (*ast.File, error) {
 	jsonAST, err := p.parseToJSON(filename)
 	if err != nil {
 		// Fall back to simple parser
+		// Silently fall back - tree-sitter may have node issues
 		simpleParser := NewSimpleParser()
 		return simpleParser.ParseFile(filename)
 	}
@@ -137,7 +139,13 @@ func (p *Parser) parseImport(node map[string]interface{}) *ast.ImportStmt {
 		nodeType, _ := childNode["type"].(string)
 		
 		if nodeType == "import_path" {
-			imp.Path = p.getText(childNode)
+			// Handle import paths that may have dots (e.g., zx.screen)
+			pathText := p.getText(childNode)
+			if pathText == "" {
+				// If no text, try to reconstruct from children
+				pathText = p.reconstructImportPath(childNode)
+			}
+			imp.Path = pathText
 		} else if nodeType == "identifier" {
 			imp.Alias = p.getText(childNode)
 		}
@@ -596,6 +604,17 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 			StartPos: p.getPosition(node, "startPosition"),
 			EndPos:   p.getPosition(node, "endPosition"),
 		}
+	case "string_literal":
+		text := p.getText(node)
+		// Remove quotes
+		if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
+			text = text[1 : len(text)-1]
+		}
+		return &ast.StringLiteral{
+			Value:    text,
+			StartPos: p.getPosition(node, "startPosition"),
+			EndPos:   p.getPosition(node, "endPosition"),
+		}
 	case "binary_expression":
 		return p.parseBinaryExpr(node)
 	case "unary_expression":
@@ -889,6 +908,31 @@ func (p *Parser) getText(node map[string]interface{}) string {
 		return text
 	}
 	return ""
+}
+
+// reconstructImportPath reconstructs an import path from its children
+func (p *Parser) reconstructImportPath(node map[string]interface{}) string {
+	children, ok := node["children"].([]interface{})
+	if !ok {
+		return ""
+	}
+	
+	var parts []string
+	for _, child := range children {
+		childNode, ok := child.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		
+		nodeType, _ := childNode["type"].(string)
+		if nodeType == "identifier" {
+			if text := p.getText(childNode); text != "" {
+				parts = append(parts, text)
+			}
+		}
+	}
+	
+	return strings.Join(parts, ".")
 }
 
 // getPosition extracts a position from a node

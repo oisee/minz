@@ -915,6 +915,78 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    LD ($%04X), HL", inst.Imm)
 		}
 		
+	case ir.OpLoadPtr:
+		// Load value through pointer (indirect load)
+		// Src1 = pointer to load from
+		g.loadToHL(inst.Src1)
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			// For byte values
+			g.emit("    LD A, (HL)")
+			g.storeFromA(inst.Dest)
+		} else {
+			// For word values
+			g.emit("    LD E, (HL)")
+			g.emit("    INC HL")
+			g.emit("    LD D, (HL)")
+			g.emit("    EX DE, HL")
+			g.storeFromHL(inst.Dest)
+		}
+		
+	case ir.OpStorePtr:
+		// Store value through pointer (indirect store)
+		// Src1 = pointer to store to, Src2 = value to store
+		g.loadToHL(inst.Src1)
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			// For byte values
+			g.emit("    PUSH HL")
+			g.loadToA(inst.Src2)
+			g.emit("    POP HL")
+			g.emit("    LD (HL), A")
+		} else {
+			// For word values
+			g.emit("    PUSH HL")
+			g.loadToHL(inst.Src2)
+			g.emit("    EX DE, HL")
+			g.emit("    POP HL")
+			g.emit("    LD (HL), E")
+			g.emit("    INC HL")
+			g.emit("    LD (HL), D")
+		}
+		
+	case ir.OpStoreIndex:
+		// Store element to array
+		// Src1 = array pointer, Src2 = index, Imm = value to store (packed in immediate)
+		// Note: This is a limitation - we need a third source operand
+		// For now, assume the value is in a fixed location or use a workaround
+		g.loadToHL(inst.Src1)
+		// Save array pointer
+		g.emit("    PUSH HL")
+		// Load index
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			// For byte arrays
+			g.loadToA(inst.Src2)
+			g.emit("    LD E, A")
+			g.emit("    LD D, 0")
+		} else {
+			// For word arrays
+			g.loadToDE(inst.Src2)
+			// Multiply by 2 for word-sized elements
+			g.emit("    SLA E")
+			g.emit("    RL D")
+		}
+		// Restore array pointer and add index
+		g.emit("    POP HL")
+		g.emit("    ADD HL, DE")
+		// Store value at array[index]
+		// TODO: This needs the value source - for now using immediate
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			g.emit("    LD (HL), %d    ; TODO: Need value source", inst.Imm)
+		} else {
+			g.emit("    LD (HL), %d    ; TODO: Need value source (low)", inst.Imm & 0xFF)
+			g.emit("    INC HL")
+			g.emit("    LD (HL), %d    ; TODO: Need value source (high)", (inst.Imm >> 8) & 0xFF)
+		}
+		
 	default:
 		return fmt.Errorf("unsupported opcode: %v", inst.Op)
 	}

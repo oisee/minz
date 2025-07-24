@@ -153,6 +153,9 @@ func (a *Analyzer) processImport(imp *ast.ImportStmt) error {
 	} else if moduleName == "zx.input" || moduleName == "input" {
 		// Add input module functions
 		a.registerInputModule()
+	} else {
+		// Unknown module
+		return fmt.Errorf("unknown module: %s", moduleName)
 	}
 	
 	// If there's an alias, we need to handle identifier resolution differently
@@ -224,43 +227,74 @@ func (a *Analyzer) registerScreenModule() {
 	a.currentScope.Define("screen.set_pixel", &FuncSymbol{
 		Name:       "screen.set_pixel",
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
-		Params:     nil, // TODO: Add proper parameter types
+		Params: []*ast.Parameter{
+			{Name: "x", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "y", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "color", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
 	})
 	
 	a.currentScope.Define("screen.clear_pixel", &FuncSymbol{
 		Name:       "screen.clear_pixel",
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
-		Params:     nil,
+		Params: []*ast.Parameter{
+			{Name: "x", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "y", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
 	})
 	
 	a.currentScope.Define("screen.attr_addr", &FuncSymbol{
 		Name:       "screen.attr_addr",
 		ReturnType: &ir.BasicType{Kind: ir.TypeU16},
-		Params:     nil,
+		Params: []*ast.Parameter{
+			{Name: "x", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "y", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
 	})
 	
 	a.currentScope.Define("screen.set_attributes", &FuncSymbol{
 		Name:       "screen.set_attributes",
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
-		Params:     nil,
+		Params: []*ast.Parameter{
+			{Name: "x", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "y", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "ink", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "paper", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "bright", Type: &ast.PrimitiveType{Name: "bool"}},
+			{Name: "flash", Type: &ast.PrimitiveType{Name: "bool"}},
+		},
 	})
 	
 	a.currentScope.Define("screen.set_border", &FuncSymbol{
 		Name:       "screen.set_border",
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
-		Params:     nil,
+		Params: []*ast.Parameter{
+			{Name: "color", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
 	})
 	
 	a.currentScope.Define("screen.clear", &FuncSymbol{
 		Name:       "screen.clear",
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
-		Params:     nil,
+		Params: []*ast.Parameter{
+			{Name: "ink", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "paper", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "bright", Type: &ast.PrimitiveType{Name: "bool"}},
+			{Name: "flash", Type: &ast.PrimitiveType{Name: "bool"}},
+		},
 	})
 	
 	a.currentScope.Define("screen.draw_rect", &FuncSymbol{
 		Name:       "screen.draw_rect",
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
-		Params:     nil,
+		Params: []*ast.Parameter{
+			{Name: "x", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "y", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "width", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "height", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "color", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "fill", Type: &ast.PrimitiveType{Name: "bool"}},
+		},
 	})
 }
 
@@ -307,19 +341,23 @@ func (a *Analyzer) registerInputModule() {
 	a.currentScope.Define("input.read_key", &FuncSymbol{
 		Name:       "input.read_key",
 		ReturnType: &ir.BasicType{Kind: ir.TypeU8},
-		Params:     nil,
+		Params:     []*ast.Parameter{}, // No parameters
 	})
 	
 	a.currentScope.Define("input.key_pressed", &FuncSymbol{
 		Name:       "input.key_pressed",
 		ReturnType: &ir.BasicType{Kind: ir.TypeBool},
-		Params:     nil,
+		Params: []*ast.Parameter{
+			{Name: "key_code", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
 	})
 	
 	a.currentScope.Define("input.is_key_pressed", &FuncSymbol{
 		Name:       "input.is_key_pressed",
 		ReturnType: &ir.BasicType{Kind: ir.TypeBool},
-		Params:     nil,
+		Params: []*ast.Parameter{
+			{Name: "key_code", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
 	})
 }
 
@@ -940,8 +978,69 @@ func (a *Analyzer) analyzeAssignStmt(stmt *ast.AssignStmt, irFunc *ir.Function) 
 		
 	case *ast.IndexExpr:
 		// Array element assignment
-		// TODO: Implement array assignment
-		return fmt.Errorf("array assignment not yet implemented")
+		// Analyze the array expression
+		arrayReg, err := a.analyzeExpression(target.Array, irFunc)
+		if err != nil {
+			return err
+		}
+		
+		// Analyze the index expression
+		indexReg, err := a.analyzeExpression(target.Index, irFunc)
+		if err != nil {
+			return err
+		}
+		
+		// Get the type of the array to validate and get element type
+		arrayType, err := a.inferType(target.Array)
+		if err != nil {
+			return fmt.Errorf("cannot determine array type: %v", err)
+		}
+		
+		// Validate that it's an array or pointer type
+		var elementType ir.Type
+		switch t := arrayType.(type) {
+		case *ir.ArrayType:
+			elementType = t.Element
+		case *ir.PointerType:
+			// For pointers, assume they point to u8 (byte arrays)
+			elementType = &ir.BasicType{Kind: ir.TypeU8}
+		default:
+			return fmt.Errorf("cannot index non-array type %s", arrayType)
+		}
+		
+		// Type check the value against the element type
+		valueType, err := a.inferType(stmt.Value)
+		if err != nil {
+			return fmt.Errorf("cannot determine value type: %v", err)
+		}
+		
+		if !a.typesCompatible(elementType, valueType) {
+			return fmt.Errorf("type mismatch: array element is %s, value is %s", elementType, valueType)
+		}
+		
+		// Generate IR using two instructions approach
+		// First, calculate the address (array + index)
+		tempReg := irFunc.AllocReg()
+		
+		// For byte arrays, index is already the offset
+		// For larger elements, we'd need to multiply by element size
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpAdd,
+			Dest: tempReg,
+			Src1: arrayReg,
+			Src2: indexReg,
+			Type: &ir.PointerType{Base: elementType},
+			Comment: "Calculate array element address",
+		})
+		
+		// Store the value at the calculated address using pointer store
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpStorePtr,
+			Src1: tempReg, // address in Src1
+			Src2: valueReg, // value in Src2
+			Type: elementType,
+			Comment: fmt.Sprintf("Store to array[index] (%s)", elementType),
+		})
 		
 	case *ast.FieldExpr:
 		// Struct field assignment
@@ -1258,6 +1357,13 @@ func (a *Analyzer) analyzeLoopStmt(loop *ast.LoopStmt, irFunc *ir.Function) erro
 
 // analyzeExpression analyzes an expression and returns the register containing the result
 func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (ir.Register, error) {
+	// Debug: print expression type
+	if fieldExpr, ok := expr.(*ast.FieldExpr); ok {
+		if id, ok := fieldExpr.Object.(*ast.Identifier); ok && id.Name == "screen" {
+			// This is a screen.X expression - should be handled by analyzeFieldExpr
+		}
+	}
+	
 	switch e := expr.(type) {
 	case *ast.Identifier:
 		return a.analyzeIdentifier(e, irFunc)
@@ -1311,6 +1417,10 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 	}
 	
 	if sym == nil {
+		// Add stack trace for debugging
+		if id.Name == "screen" {
+			return 0, fmt.Errorf("undefined identifier: %s (this should have been handled as a module)", id.Name)
+		}
 		return 0, fmt.Errorf("undefined identifier: %s", id.Name)
 	}
 
@@ -1604,10 +1714,53 @@ func (a *Analyzer) analyzeStructLiteral(lit *ast.StructLiteral, irFunc *ir.Funct
 
 // analyzeFieldExpr analyzes a field access expression
 func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (ir.Register, error) {
-	// Special handling for loop iterator field access in INTO mode
+	// Special handling for module field access (e.g., screen.set_pixel)
+	// Check this FIRST before trying to analyze the object as an expression
 	if id, ok := field.Object.(*ast.Identifier); ok {
+		// Check if the identifier is a module
 		sym := a.currentScope.Lookup(id.Name)
-		if varSym, ok := sym.(*VarSymbol); ok && varSym.BufferAddr != 0 {
+		if sym != nil {
+			if _, isModule := sym.(*ModuleSymbol); isModule {
+				// This is a module - look up the full qualified name
+				fullName := id.Name + "." + field.Field
+				sym := a.currentScope.Lookup(fullName)
+				if sym != nil {
+					// Check if this is a constant or function
+					if constSym, ok := sym.(*ConstSymbol); ok {
+						// This is a module constant - load its value
+						reg := irFunc.AllocReg()
+						irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+							Op:      ir.OpLoadConst,
+							Dest:    reg,
+							Imm:     constSym.Value,
+							Type:    constSym.Type,
+							Comment: fmt.Sprintf("Load constant %s = %d", fullName, constSym.Value),
+						})
+						// Store type information for this expression
+						a.exprTypes[field] = constSym.Type
+						return reg, nil
+					} else if _, ok := sym.(*FuncSymbol); ok {
+						// This is a module function - treat it as a function identifier
+						// Return a special register that indicates this is a function reference
+						// The actual call will be handled by analyzeCallExpr
+						reg := irFunc.AllocReg()
+						irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+							Op:      ir.OpLoadLabel,
+							Dest:    reg,
+							Symbol:  fullName,
+							Comment: fmt.Sprintf("Load function %s", fullName),
+						})
+						return reg, nil
+					}
+				}
+				// If we get here, the module member was not found
+				return 0, fmt.Errorf("undefined module member: %s", fullName)
+			}
+		}
+		
+		// Special handling for loop iterator field access in INTO mode
+		if sym != nil {
+			if varSym, ok := sym.(*VarSymbol); ok && varSym.BufferAddr != 0 {
 			// This is a loop iterator in INTO mode - use direct buffer address
 			structType, ok := varSym.Type.(*ir.StructType)
 			if !ok {
@@ -1645,41 +1798,6 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 			a.exprTypes[field] = structType.Fields[field.Field]
 			
 			return resultReg, nil
-		}
-	}
-	
-	// Special handling for module field access (e.g., screen.set_pixel)
-	if id, ok := field.Object.(*ast.Identifier); ok {
-		// Check if this is a module function call
-		fullName := id.Name + "." + field.Field
-		sym := a.currentScope.Lookup(fullName)
-		if sym != nil {
-			// Check if this is a constant or function
-			if constSym, ok := sym.(*ConstSymbol); ok {
-				// This is a module constant - load its value
-				reg := irFunc.AllocReg()
-				irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-					Op:      ir.OpLoadConst,
-					Dest:    reg,
-					Imm:     constSym.Value,
-					Type:    constSym.Type,
-					Comment: fmt.Sprintf("Load constant %s = %d", fullName, constSym.Value),
-				})
-				// Store type information for this expression
-				a.exprTypes[field] = constSym.Type
-				return reg, nil
-			} else if _, ok := sym.(*FuncSymbol); ok {
-				// This is a module function - treat it as a function identifier
-				// Return a special register that indicates this is a function reference
-				// The actual call will be handled by analyzeCallExpr
-				reg := irFunc.AllocReg()
-				irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-					Op:      ir.OpLoadLabel,
-					Dest:    reg,
-					Symbol:  fullName,
-					Comment: fmt.Sprintf("Load function %s", fullName),
-				})
-				return reg, nil
 			}
 		}
 	}
@@ -1781,20 +1899,39 @@ func (a *Analyzer) analyzeIndexExpr(index *ast.IndexExpr, irFunc *ir.Function) (
 		return 0, err
 	}
 	
-	// TODO: Type check that array is actually an array type
-	// For now, we'll just generate the load instruction
+	// Get the type of the array expression
+	arrayType, err := a.inferType(index.Array)
+	if err != nil {
+		return 0, fmt.Errorf("cannot determine array type: %v", err)
+	}
+	
+	// Validate that it's an array or pointer type
+	var elementType ir.Type
+	switch t := arrayType.(type) {
+	case *ir.ArrayType:
+		elementType = t.Element
+	case *ir.PointerType:
+		// For pointers, assume they point to u8 (byte arrays)
+		elementType = &ir.BasicType{Kind: ir.TypeU8}
+	default:
+		return 0, fmt.Errorf("cannot index non-array type %s", arrayType)
+	}
 	
 	// Allocate result register
 	resultReg := irFunc.AllocReg()
 	
-	// Generate indexed load
+	// Generate indexed load with element type info
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:   ir.OpLoadIndex,
 		Dest: resultReg,
 		Src1: arrayReg,
 		Src2: indexReg,
-		Comment: "Load array element",
+		Type: elementType,
+		Comment: fmt.Sprintf("Load array element (%s)", elementType),
 	})
+	
+	// Store the type of this expression for later use
+	a.exprTypes[index] = elementType
 	
 	return resultReg, nil
 }
@@ -1962,6 +2099,10 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		}
 		
 		if sym == nil {
+			// Debug for screen
+			if e.Name == "screen" {
+				return nil, fmt.Errorf("undefined identifier: %s (inferType - module should have been found)", e.Name)
+			}
 			return nil, fmt.Errorf("undefined identifier: %s", e.Name)
 		}
 		switch s := sym.(type) {
@@ -2080,9 +2221,20 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			// Check if the object is a module
 			sym := a.currentScope.Lookup(id.Name)
 			if _, isModule := sym.(*ModuleSymbol); isModule {
-				// This is a module function - it's not a value by itself
-				// The type will be determined by the CallExpr that uses it
-				return nil, fmt.Errorf("module functions must be called, not used as values")
+				// This is a module member - look up the full qualified name
+				fullName := id.Name + "." + e.Field
+				memberSym := a.currentScope.Lookup(fullName)
+				if memberSym != nil {
+					// Check if this is a constant
+					if constSym, ok := memberSym.(*ConstSymbol); ok {
+						return constSym.Type, nil
+					} else if _, ok := memberSym.(*FuncSymbol); ok {
+						// This is a module function - it's not a value by itself
+						// The type will be determined by the CallExpr that uses it
+						return nil, fmt.Errorf("module function %s must be called, not used as a value", fullName)
+					}
+				}
+				return nil, fmt.Errorf("undefined module member: %s", fullName)
 			}
 		}
 		

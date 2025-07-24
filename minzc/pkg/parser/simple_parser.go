@@ -288,9 +288,17 @@ func (p *SimpleParser) parseImport() *ast.ImportStmt {
 		StartPos: p.currentPos(),
 	}
 	
-	// Parse import path
+	// Parse import path (handle dotted paths like zx.screen)
 	if p.peek().Type == TokenIdent {
-		imp.Path = p.advance().Value
+		path := p.advance().Value
+		// Check for dotted path
+		for p.peek().Value == "." {
+			p.advance() // consume '.'
+			if p.peek().Type == TokenIdent {
+				path += "." + p.advance().Value
+			}
+		}
+		imp.Path = path
 	}
 	
 	// Optional alias
@@ -782,6 +790,33 @@ func (p *SimpleParser) parsePostfixExpression(expr ast.Expression) ast.Expressio
 				StartPos: expr.Pos(),
 				EndPos:   p.currentPos(),
 			}
+		case "(":
+			// Function call on the expression
+			p.advance() // consume '('
+			
+			call := &ast.CallExpr{
+				Function:  expr,
+				Arguments: []ast.Expression{},
+				StartPos:  expr.Pos(),
+			}
+			
+			// Parse arguments
+			for p.peek().Value != ")" && !p.isAtEnd() {
+				arg := p.parseExpression()
+				if arg != nil {
+					call.Arguments = append(call.Arguments, arg)
+				}
+				
+				if p.peek().Value == "," {
+					p.advance()
+				} else if p.peek().Value != ")" {
+					break
+				}
+			}
+			
+			p.expect(TokenPunc, ")")
+			call.EndPos = p.currentPos()
+			expr = call
 		default:
 			return expr
 		}
