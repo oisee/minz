@@ -1654,17 +1654,33 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 		fullName := id.Name + "." + field.Field
 		sym := a.currentScope.Lookup(fullName)
 		if sym != nil {
-			// This is a module function - treat it as a function identifier
-			// Return a special register that indicates this is a function reference
-			// The actual call will be handled by analyzeCallExpr
-			reg := irFunc.AllocReg()
-			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-				Op:      ir.OpLoadLabel,
-				Dest:    reg,
-				Symbol:  fullName,
-				Comment: fmt.Sprintf("Load function %s", fullName),
-			})
-			return reg, nil
+			// Check if this is a constant or function
+			if constSym, ok := sym.(*ConstSymbol); ok {
+				// This is a module constant - load its value
+				reg := irFunc.AllocReg()
+				irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+					Op:      ir.OpLoadConst,
+					Dest:    reg,
+					Imm:     constSym.Value,
+					Type:    constSym.Type,
+					Comment: fmt.Sprintf("Load constant %s = %d", fullName, constSym.Value),
+				})
+				// Store type information for this expression
+				a.exprTypes[field] = constSym.Type
+				return reg, nil
+			} else if _, ok := sym.(*FuncSymbol); ok {
+				// This is a module function - treat it as a function identifier
+				// Return a special register that indicates this is a function reference
+				// The actual call will be handled by analyzeCallExpr
+				reg := irFunc.AllocReg()
+				irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+					Op:      ir.OpLoadLabel,
+					Dest:    reg,
+					Symbol:  fullName,
+					Comment: fmt.Sprintf("Load function %s", fullName),
+				})
+				return reg, nil
+			}
 		}
 	}
 	
