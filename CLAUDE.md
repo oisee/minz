@@ -113,8 +113,13 @@ MinZ supports modern programming constructs while targeting Z80:
 ### Documentation
 - `README.md`: Complete language reference with examples
 - `COMPILER_ARCHITECTURE.md`: Detailed compiler design documentation
-- `docs/`: Technical guides for compiler architecture and ZVDB implementation
-- **`docs/018_TRUE_SMC_Design_v2.md`**: CURRENT DESIGN for TRUE SMC (Self-Modifying Code) implementation
+- `DESIGN.md`: Language design philosophy and feature overview
+- `docs/`: Technical guides including:
+  - **`018_TRUE_SMC_Design_v2.md`**: CURRENT DESIGN for TRUE SMC implementation
+  - **`029_MinZ_Strategic_Roadmap.md`**: Long-term vision and phases
+  - **`030_TRUE_SMC_Lambdas_Design.md`**: Lambda implementation via SMC
+  - **`031_Next_Steps_Prioritized.md`**: 70-day action plan
+  - **`032_Architecture_Decision_Records.md`**: Key design decisions
 
 ### Examples and Testing
 - `examples/`: Comprehensive MinZ programs showcasing all language features
