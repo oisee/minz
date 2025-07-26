@@ -1,0 +1,5 @@
+// Test with variable declaration
+
+fun main() -> void {
+    let x = 5;
+}

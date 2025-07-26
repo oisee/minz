@@ -1,0 +1,152 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test.arithmetic_test.test_multiplication() -> bool
+  @smc
+  Locals:
+    r1 = a: u8
+    r3 = b: u8
+    r5 = result: u8
+  Instructions:
+      0: r2 = 5
+      1: store , r2
+      2: r4 = 6
+      3: store , r4
+      4: r6 = load a
+      5: r7 = load b
+      6: r8 = r6 * r7
+      7: store , r8
+      8: r9 = load result
+      9: r10 = 30
+     10: r11 = r9 == r10
+     11: return r11
+
+Function test.arithmetic_test.test_division() -> bool
+  @smc
+  Locals:
+    r1 = a: u8
+    r3 = b: u8
+    r5 = result: u8
+  Instructions:
+      0: r2 = 20
+      1: store , r2
+      2: r4 = 4
+      3: store , r4
+      4: r6 = load a
+      5: r7 = load b
+      6: 36
+      7: store , r8
+      8: r9 = load result
+      9: r10 = 5
+     10: r11 = r9 == r10
+     11: return r11
+
+Function test.arithmetic_test.test_modulo() -> bool
+  @smc
+  Locals:
+    r1 = a: u8
+    r3 = b: u8
+    r5 = result: u8
+  Instructions:
+      0: r2 = 17
+      1: store , r2
+      2: r4 = 5
+      3: store , r4
+      4: r6 = load a
+      5: r7 = load b
+      6: 37
+      7: store , r8
+      8: r9 = load result
+      9: r10 = 2
+     10: r11 = r9 == r10
+     11: return r11
+
+Function test.arithmetic_test.test_shift_left() -> bool
+  @smc
+  Locals:
+    r1 = a: u8
+    r3 = result: u8
+  Instructions:
+      0: r2 = 3
+      1: store , r2
+      2: r4 = load a
+      3: r5 = 2
+      4: 45
+      5: store , r6
+      6: r7 = load result
+      7: r8 = 12
+      8: r9 = r7 == r8
+      9: return r9
+
+Function test.arithmetic_test.test_shift_right() -> bool
+  @smc
+  Locals:
+    r1 = a: u8
+    r3 = result: u8
+  Instructions:
+      0: r2 = 12
+      1: store , r2
+      2: r4 = load a
+      3: r5 = 2
+      4: 46
+      5: store , r6
+      6: r7 = load result
+      7: r8 = 3
+      8: r9 = r7 == r8
+      9: return r9
+
+Function test.arithmetic_test.main() -> void
+  @smc
+  Locals:
+    r1 = passed: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r3 = call test_multiplication
+      3: jump_if_not r3, else_1
+      4: r4 = load passed
+      5: r5 = 1
+      6: r6 = r4 + r5
+      7: store passed, r6
+      8: jump end_if_2
+      9: else_1:
+     10: end_if_2:
+     11: r7 = call test_division
+     12: jump_if_not r7, else_3
+     13: r8 = load passed
+     14: r9 = 1
+     15: r10 = r8 + r9
+     16: store passed, r10
+     17: jump end_if_4
+     18: else_3:
+     19: end_if_4:
+     20: r11 = call test_modulo
+     21: jump_if_not r11, else_5
+     22: r12 = load passed
+     23: r13 = 1
+     24: r14 = r12 + r13
+     25: store passed, r14
+     26: jump end_if_6
+     27: else_5:
+     28: end_if_6:
+     29: r15 = call test_shift_left
+     30: jump_if_not r15, else_7
+     31: r16 = load passed
+     32: r17 = 1
+     33: r18 = r16 + r17
+     34: store passed, r18
+     35: jump end_if_8
+     36: else_7:
+     37: end_if_8:
+     38: r19 = call test_shift_right
+     39: jump_if_not r19, else_9
+     40: r20 = load passed
+     41: r21 = 1
+     42: r22 = r20 + r21
+     43: store passed, r22
+     44: jump end_if_10
+     45: else_9:
+     46: end_if_10:
+     47: 61
+     48: return
+

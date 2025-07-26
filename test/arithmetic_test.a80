@@ -1,0 +1,517 @@
+; MinZ generated code
+; Generated: 2025-07-26 21:05:50
+
+
+; Code section
+    ORG $8000
+
+
+; Function: test.arithmetic_test.test_multiplication
+test.arithmetic_test.test_multiplication:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = 6
+    LD A, 6
+    LD ($F008), A
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+    ; r6 = load a
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; r7 = load b
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; r8 = r6 * r7
+    ; 8-bit multiplication
+    LD A, ($F00C)
+    LD B, A       ; B = multiplicand
+    LD A, ($F00E)
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_0
+.mul_loop_0:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_0
+.mul_done_0:
+    LD ($F010), HL
+    ; store , r8
+    LD HL, ($F010)
+    LD ($F00A), HL
+    ; r9 = load result
+    LD HL, ($F000)
+    LD ($F012), HL
+    ; r10 = 30
+    LD A, 30
+    LD ($F014), A
+    ; r11 = r9 == r10
+    LD HL, ($F012)
+    LD D, H
+    LD E, L
+    LD HL, ($F014)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L2
+    LD HL, 0
+    JP .L3
+.L2:
+    LD HL, 1
+.L3:
+    LD ($F016), HL
+    ; return r11
+    LD HL, ($F016)
+    RET
+
+; Function: test.arithmetic_test.test_division
+test.arithmetic_test.test_division:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 20
+    LD A, 20
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = 4
+    LD A, 4
+    LD ($F008), A
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+    ; r6 = load a
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; r7 = load b
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; r8 = r6 / r7
+    ; 8-bit division
+    LD A, ($F00C)
+    LD D, A       ; D = dividend
+    LD A, ($F00E)
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .div_by_zero_3
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+.div_loop_3:
+    CP E          ; Compare remainder with divisor
+    JR C, .div_done_3
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR .div_loop_3
+.div_by_zero_3:
+    LD B, 0       ; Return 0 for divide by zero
+.div_done_3:
+    LD L, B       ; Result in L
+    LD H, 0
+    LD ($F010), HL
+    ; store , r8
+    LD HL, ($F010)
+    LD ($F00A), HL
+    ; r9 = load result
+    LD HL, ($F000)
+    LD ($F012), HL
+    ; r10 = 5
+    LD A, 5
+    LD ($F014), A
+    ; r11 = r9 == r10
+    LD HL, ($F012)
+    LD D, H
+    LD E, L
+    LD HL, ($F014)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L5
+    LD HL, 0
+    JP .L6
+.L5:
+    LD HL, 1
+.L6:
+    LD ($F016), HL
+    ; return r11
+    LD HL, ($F016)
+    RET
+
+; Function: test.arithmetic_test.test_modulo
+test.arithmetic_test.test_modulo:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 17
+    LD A, 17
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = 5
+    LD A, 5
+    LD ($F008), A
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+    ; r6 = load a
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; r7 = load b
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; unknown op 37
+    ; 8-bit modulo
+    LD A, ($F00C)
+    LD D, A       ; D = dividend
+    LD A, ($F00E)
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .mod_by_zero_6
+    LD A, D       ; A = dividend
+.mod_loop_6:
+    CP E          ; Compare with divisor
+    JR C, .mod_done_6
+    SUB E         ; Subtract divisor
+    JR .mod_loop_6
+.mod_by_zero_6:
+    LD A, 0       ; Return 0 for modulo by zero
+.mod_done_6:
+    LD L, A       ; Result (remainder) in L
+    LD H, 0
+    LD ($F010), HL
+    ; store , r8
+    LD HL, ($F010)
+    LD ($F00A), HL
+    ; r9 = load result
+    LD HL, ($F000)
+    LD ($F012), HL
+    ; r10 = 2
+    LD A, 2
+    LD ($F014), A
+    ; r11 = r9 == r10
+    LD HL, ($F012)
+    LD D, H
+    LD E, L
+    LD HL, ($F014)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L8
+    LD HL, 0
+    JP .L9
+.L8:
+    LD HL, 1
+.L9:
+    LD ($F016), HL
+    ; return r11
+    LD HL, ($F016)
+    RET
+
+; Function: test.arithmetic_test.test_shift_left
+test.arithmetic_test.test_shift_left:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 3
+    LD A, 3
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = load a
+    LD HL, ($F000)
+    LD ($F008), HL
+    ; r5 = 2
+    LD A, 2
+    LD ($F00A), A
+    ; unknown op 45
+    ; Shift left
+    LD A, ($F008)
+    LD B, A       ; B = value to shift
+    LD A, ($F00A)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_9
+    LD B, C       ; B = counter
+.shl_loop_9:
+    DEC B
+    JP M, .shl_done_9
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_9
+.shl_done_9:
+    LD L, A
+    LD H, 0
+    LD ($F00C), HL
+    ; store , r6
+    LD HL, ($F00C)
+    LD ($F006), HL
+    ; r7 = load result
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; r8 = 12
+    LD A, 12
+    LD ($F010), A
+    ; r9 = r7 == r8
+    LD HL, ($F00E)
+    LD D, H
+    LD E, L
+    LD HL, ($F010)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L11
+    LD HL, 0
+    JP .L12
+.L11:
+    LD HL, 1
+.L12:
+    LD ($F012), HL
+    ; return r9
+    LD HL, ($F012)
+    RET
+
+; Function: test.arithmetic_test.test_shift_right
+test.arithmetic_test.test_shift_right:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 12
+    LD A, 12
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = load a
+    LD HL, ($F000)
+    LD ($F008), HL
+    ; r5 = 2
+    LD A, 2
+    LD ($F00A), A
+    ; unknown op 46
+    ; Shift right
+    LD A, ($F008)
+    LD B, A       ; B = value to shift
+    LD A, ($F00A)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_12
+    LD B, C       ; B = counter
+.shr_loop_12:
+    DEC B
+    JP M, .shr_done_12
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_12
+.shr_done_12:
+    LD L, A
+    LD H, 0
+    LD ($F00C), HL
+    ; store , r6
+    LD HL, ($F00C)
+    LD ($F006), HL
+    ; r7 = load result
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; r8 = 3
+    LD A, 3
+    LD ($F010), A
+    ; r9 = r7 == r8
+    LD HL, ($F00E)
+    LD D, H
+    LD E, L
+    LD HL, ($F010)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L14
+    LD HL, 0
+    JP .L15
+.L14:
+    LD HL, 1
+.L15:
+    LD ($F012), HL
+    ; return r9
+    LD HL, ($F012)
+    RET
+
+; Function: test.arithmetic_test.main
+test.arithmetic_test.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r3 = call test_multiplication
+    ; Call to test_multiplication (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_multiplication
+    LD ($F006), HL
+    ; jump_if_not r3, else_1
+    LD A, ($F006)
+    OR A
+    JP Z, else_1
+    ; r4 = load passed
+    LD HL, ($F000)
+    LD ($F008), HL
+    ; r5 = 1
+    LD A, 1
+    LD ($F00A), A
+    ; r6 = r4 + r5
+    LD HL, ($F008)
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)
+    ADD HL, DE
+    LD ($F00C), HL
+    ; store passed, r6
+    LD HL, ($F00C)
+    LD ($F002), HL
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    ; r7 = call test_division
+    ; Call to test_division (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_division
+    LD ($F00E), HL
+    ; jump_if_not r7, else_3
+    LD A, ($F00E)
+    OR A
+    JP Z, else_3
+    ; r8 = load passed
+    LD HL, ($F000)
+    LD ($F010), HL
+    ; r9 = 1
+    LD A, 1
+    LD ($F012), A
+    ; r10 = r8 + r9
+    LD HL, ($F010)
+    LD D, H
+    LD E, L
+    LD HL, ($F012)
+    ADD HL, DE
+    LD ($F014), HL
+    ; store passed, r10
+    LD HL, ($F014)
+    LD ($F002), HL
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; end_if_4:
+end_if_4:
+    ; r11 = call test_modulo
+    ; Call to test_modulo (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_modulo
+    LD ($F016), HL
+    ; jump_if_not r11, else_5
+    LD A, ($F016)
+    OR A
+    JP Z, else_5
+    ; r12 = load passed
+    LD HL, ($F000)
+    LD ($F018), HL
+    ; r13 = 1
+    LD A, 1
+    LD ($F01A), A
+    ; r14 = r12 + r13
+    LD HL, ($F018)
+    LD D, H
+    LD E, L
+    LD HL, ($F01A)
+    ADD HL, DE
+    LD ($F01C), HL
+    ; store passed, r14
+    LD HL, ($F01C)
+    LD ($F002), HL
+    ; jump end_if_6
+    JP end_if_6
+    ; else_5:
+else_5:
+    ; end_if_6:
+end_if_6:
+    ; r15 = call test_shift_left
+    ; Call to test_shift_left (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_shift_left
+    LD ($F01E), HL
+    ; jump_if_not r15, else_7
+    LD A, ($F01E)
+    OR A
+    JP Z, else_7
+    ; r16 = load passed
+    LD HL, ($F000)
+    LD ($F020), HL
+    ; r17 = 1
+    LD A, 1
+    LD ($F022), A
+    ; r18 = r16 + r17
+    LD HL, ($F020)
+    LD D, H
+    LD E, L
+    LD HL, ($F022)
+    ADD HL, DE
+    LD ($F024), HL
+    ; store passed, r18
+    LD HL, ($F024)
+    LD ($F002), HL
+    ; jump end_if_8
+    JP end_if_8
+    ; else_7:
+else_7:
+    ; end_if_8:
+end_if_8:
+    ; r19 = call test_shift_right
+    ; Call to test_shift_right (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_shift_right
+    LD ($F026), HL
+    ; jump_if_not r19, else_9
+    LD A, ($F026)
+    OR A
+    JP Z, else_9
+    ; r20 = load passed
+    LD HL, ($F000)
+    LD ($F028), HL
+    ; r21 = 1
+    LD A, 1
+    LD ($F02A), A
+    ; r22 = r20 + r21
+    LD HL, ($F028)
+    LD D, H
+    LD E, L
+    LD HL, ($F02A)
+    ADD HL, DE
+    LD ($F02C), HL
+    ; store passed, r22
+    LD HL, ($F02C)
+    LD ($F002), HL
+    ; jump end_if_10
+    JP end_if_10
+    ; else_9:
+else_9:
+    ; end_if_10:
+end_if_10:
+    ; asm { ld a, (passed)
+ld (0x4000), a }
+    ld a, (passed)
+    ld (0x4000), a
+    ; return
+    RET
+
+    END main

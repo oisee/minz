@@ -1,0 +1,8 @@
+// Simplest possible TRUE SMC test
+fun identity(x: u8) -> u8 {
+    return x
+}
+
+fun main() -> void {
+    let result = identity(42)
+}

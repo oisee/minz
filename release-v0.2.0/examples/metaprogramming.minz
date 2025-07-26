@@ -1,0 +1,103 @@
+// Example demonstrating MinZ metaprogramming features
+
+// Compile-time constants
+const DEBUG: bool = true;
+const PLATFORM: str = "ZX_SPECTRUM";
+const MAX_SPRITES: u8 = @if(DEBUG, 16, 64);
+
+// Compile-time assertions
+@assert(MAX_SPRITES > 0, "MAX_SPRITES must be positive");
+@assert(PLATFORM == "ZX_SPECTRUM", "This code is for ZX Spectrum only");
+
+// Compile-time print for build information
+@print("Building with MAX_SPRITES = " + MAX_SPRITES);
+@print("Debug mode: " + DEBUG);
+
+// Conditional compilation
+const SCREEN_WIDTH: u16 = @if(PLATFORM == "ZX_SPECTRUM", 256, 320);
+const SCREEN_HEIGHT: u16 = @if(PLATFORM == "ZX_SPECTRUM", 192, 200);
+
+// Generate lookup table at compile time
+@const_eval
+fun generate_sine_table() -> [i8; 256] {
+    let table: [i8; 256];
+    let mut i: u16 = 0;
+    
+    while i < 256 {
+        // Approximate sine calculation
+        // Real implementation would use proper math
+        let angle = (i * 360) / 256;
+        let value = 0; // Placeholder
+        table[i] = value;
+        i = i + 1;
+    }
+    
+    return table;
+}
+
+const SINE_TABLE: [i8; 256] = @eval generate_sine_table();
+
+// Compile-time code generation
+@generate
+fun make_sprite_id_enum(count: u8) -> str {
+    let code = "enum SpriteID {\n";
+    let mut i: u8 = 0;
+    
+    while i < count {
+        code = code + "    Sprite" + i + ",\n";
+        i = i + 1;
+    }
+    
+    code = code + "}\n";
+    return code;
+}
+
+// This generates the enum at compile time
+@eval make_sprite_id_enum(MAX_SPRITES);
+
+// Platform-specific implementations
+@if(PLATFORM == "ZX_SPECTRUM")
+fun set_border_color(color: u8) -> void {
+    asm("
+        ld a, {0}
+        out ($fe), a
+    " : : "r"(color));
+}
+@else
+fun set_border_color(color: u8) -> void {
+    // Different implementation for other platforms
+}
+@endif
+
+// Debug-only functions
+@if(DEBUG)
+fun debug_print(msg: str) -> void {
+    // Implementation for debug output
+}
+
+fun assert_sprite_valid(id: u8) -> void {
+    if id >= MAX_SPRITES {
+        debug_print("Invalid sprite ID");
+        // Halt in debug mode
+        asm("halt");
+    }
+}
+@else
+fun assert_sprite_valid(id: u8) -> void {
+    // No-op in release mode
+}
+@endif
+
+// Main program
+fun main() -> void {
+    @print("Compilation complete!");
+    
+    // Use compile-time generated values
+    set_border_color(1);
+    
+    // Access lookup table
+    let sine_val = SINE_TABLE[128];
+    
+    // Debug assertions
+    assert_sprite_valid(5);
+}

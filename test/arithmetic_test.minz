@@ -1,0 +1,65 @@
+// Test arithmetic operations
+// This file tests multiplication, division, modulo, and bit shifts
+
+fun test_multiplication() -> bool {
+    let a: u8 = 5;
+    let b: u8 = 6;
+    let result: u8 = a * b;
+    return result == 30;
+}
+
+fun test_division() -> bool {
+    let a: u8 = 20;
+    let b: u8 = 4;
+    let result: u8 = a / b;
+    return result == 5;
+}
+
+fun test_modulo() -> bool {
+    let a: u8 = 17;
+    let b: u8 = 5;
+    let result: u8 = a % b;
+    return result == 2;
+}
+
+fun test_shift_left() -> bool {
+    let a: u8 = 3;  // 0000_0011
+    let result: u8 = a << 2;  // Should be 0000_1100 = 12
+    return result == 12;
+}
+
+fun test_shift_right() -> bool {
+    let a: u8 = 12;  // 0000_1100
+    let result: u8 = a >> 2;  // Should be 0000_0011 = 3
+    return result == 3;
+}
+
+fun main() -> void {
+    let mut passed: u8 = 0;
+    
+    if test_multiplication() {
+        passed = passed + 1;
+    }
+    
+    if test_division() {
+        passed = passed + 1;
+    }
+    
+    if test_modulo() {
+        passed = passed + 1;
+    }
+    
+    if test_shift_left() {
+        passed = passed + 1;
+    }
+    
+    if test_shift_right() {
+        passed = passed + 1;
+    }
+    
+    // Write number of passed tests to screen
+    asm {
+        ld a, (passed)
+        ld (0x4000), a
+    }
+}

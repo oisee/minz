@@ -878,24 +878,75 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpMul:
-		// Simple multiplication for small numbers
-		// TODO: Implement proper 16-bit multiplication
-		g.emit("    ; TODO: Multiplication")
-		g.emit("    LD HL, 0")
+		// 8-bit multiplication using repeated addition
+		// Src1 * Src2 -> Dest
+		g.emit("    ; 8-bit multiplication")
+		g.loadToA(inst.Src1)
+		g.emit("    LD B, A       ; B = multiplicand")
+		g.loadToA(inst.Src2)
+		g.emit("    LD C, A       ; C = multiplier")
+		g.emit("    LD HL, 0      ; HL = result")
+		g.emit("    LD A, C")
+		g.emit("    OR A          ; Check if multiplier is 0")
+		g.emit("    JR Z, .mul_done_%d", g.labelCounter)
+		g.emit(".mul_loop_%d:", g.labelCounter)
+		g.emit("    LD D, 0")
+		g.emit("    LD E, B")
+		g.emit("    ADD HL, DE    ; Add multiplicand to result")
+		g.emit("    DEC C")
+		g.emit("    JR NZ, .mul_loop_%d", g.labelCounter)
+		g.emit(".mul_done_%d:", g.labelCounter)
+		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpDiv:
-		// Division operation
-		// TODO: Implement proper 16-bit division
-		g.emit("    ; TODO: Division")
-		g.emit("    LD HL, 1  ; Placeholder result")
+		// 8-bit division using repeated subtraction
+		// Src1 / Src2 -> Dest
+		g.emit("    ; 8-bit division")
+		g.loadToA(inst.Src1)
+		g.emit("    LD D, A       ; D = dividend")
+		g.loadToA(inst.Src2)
+		g.emit("    LD E, A       ; E = divisor")
+		g.emit("    OR A          ; Check for divide by zero")
+		g.emit("    JR Z, .div_by_zero_%d", g.labelCounter)
+		g.emit("    LD B, 0       ; B = quotient")
+		g.emit("    LD A, D       ; A = remainder")
+		g.emit(".div_loop_%d:", g.labelCounter)
+		g.emit("    CP E          ; Compare remainder with divisor")
+		g.emit("    JR C, .div_done_%d", g.labelCounter)
+		g.emit("    SUB E         ; Subtract divisor")
+		g.emit("    INC B         ; Increment quotient")
+		g.emit("    JR .div_loop_%d", g.labelCounter)
+		g.emit(".div_by_zero_%d:", g.labelCounter)
+		g.emit("    LD B, 0       ; Return 0 for divide by zero")
+		g.emit(".div_done_%d:", g.labelCounter)
+		g.emit("    LD L, B       ; Result in L")
+		g.emit("    LD H, 0")
+		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpMod:
-		// Modulo operation  
-		// TODO: Implement proper 16-bit modulo
-		g.emit("    ; TODO: Modulo")
-		g.emit("    LD HL, 0  ; Placeholder result")
+		// Modulo operation - remainder after division
+		// Src1 % Src2 -> Dest
+		g.emit("    ; 8-bit modulo")
+		g.loadToA(inst.Src1)
+		g.emit("    LD D, A       ; D = dividend")
+		g.loadToA(inst.Src2)
+		g.emit("    LD E, A       ; E = divisor")
+		g.emit("    OR A          ; Check for divide by zero")
+		g.emit("    JR Z, .mod_by_zero_%d", g.labelCounter)
+		g.emit("    LD A, D       ; A = dividend")
+		g.emit(".mod_loop_%d:", g.labelCounter)
+		g.emit("    CP E          ; Compare with divisor")
+		g.emit("    JR C, .mod_done_%d", g.labelCounter)
+		g.emit("    SUB E         ; Subtract divisor")
+		g.emit("    JR .mod_loop_%d", g.labelCounter)
+		g.emit(".mod_by_zero_%d:", g.labelCounter)
+		g.emit("    LD A, 0       ; Return 0 for modulo by zero")
+		g.emit(".mod_done_%d:", g.labelCounter)
+		g.emit("    LD L, A       ; Result (remainder) in L")
+		g.emit("    LD H, 0")
+		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpInc:
@@ -992,17 +1043,47 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpShl:
-		// Shift left
-		// TODO: Implement shift left
-		g.emit("    ; TODO: Shift left")
-		g.loadToHL(inst.Src1)
+		// Shift left - Src1 << Src2
+		g.emit("    ; Shift left")
+		g.loadToA(inst.Src1)
+		g.emit("    LD B, A       ; B = value to shift")
+		g.loadToA(inst.Src2)
+		g.emit("    LD C, A       ; C = shift count")
+		g.emit("    LD A, B       ; A = value")
+		g.emit("    OR A          ; Clear carry")
+		g.emit("    JR Z, .shl_done_%d", g.labelCounter)
+		g.emit("    LD B, C       ; B = counter")
+		g.emit(".shl_loop_%d:", g.labelCounter)
+		g.emit("    DEC B")
+		g.emit("    JP M, .shl_done_%d", g.labelCounter)
+		g.emit("    SLA A         ; Shift left, 0 into bit 0")
+		g.emit("    JR .shl_loop_%d", g.labelCounter)
+		g.emit(".shl_done_%d:", g.labelCounter)
+		g.emit("    LD L, A")
+		g.emit("    LD H, 0")
+		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpShr:
-		// Shift right
-		// TODO: Implement shift right
-		g.emit("    ; TODO: Shift right")
-		g.loadToHL(inst.Src1)
+		// Shift right - Src1 >> Src2
+		g.emit("    ; Shift right")
+		g.loadToA(inst.Src1)
+		g.emit("    LD B, A       ; B = value to shift")
+		g.loadToA(inst.Src2)
+		g.emit("    LD C, A       ; C = shift count")
+		g.emit("    LD A, B       ; A = value")
+		g.emit("    OR A          ; Clear carry")
+		g.emit("    JR Z, .shr_done_%d", g.labelCounter)
+		g.emit("    LD B, C       ; B = counter")
+		g.emit(".shr_loop_%d:", g.labelCounter)
+		g.emit("    DEC B")
+		g.emit("    JP M, .shr_done_%d", g.labelCounter)
+		g.emit("    SRL A         ; Shift right, 0 into bit 7")
+		g.emit("    JR .shr_loop_%d", g.labelCounter)
+		g.emit(".shr_done_%d:", g.labelCounter)
+		g.emit("    LD L, A")
+		g.emit("    LD H, 0")
+		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpEq, ir.OpNe, ir.OpLt, ir.OpGt, ir.OpLe, ir.OpGe:

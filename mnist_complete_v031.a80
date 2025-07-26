@@ -1,0 +1,3156 @@
+; MinZ generated code
+; Generated: 2025-07-26 21:07:09
+
+
+; Data section
+canvas:
+    DS 32
+cursor_x:
+    DW 0
+cursor_y:
+    DW 0
+flash_counter:
+    DW 0
+
+; Code section
+    ORG $8000
+
+
+; Function: mnist_complete.init_editor
+mnist_complete.init_editor:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 8
+    LD A, 8
+    LD ($F002), A
+    ; store cursor_x, r1
+    LD HL, ($F002)
+    LD ($F020), HL
+    ; r2 = 8
+    LD A, 8
+    LD ($F004), A
+    ; store cursor_y, r2
+    LD HL, ($F004)
+    LD ($F040), HL
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A
+    ; store flash_counter, r3
+    LD HL, ($F006)
+    LD ($F060), HL
+    ; r5 = 0
+    LD A, 0
+    LD ($F00A), A
+    ; store , r5
+    LD HL, ($F00A)
+    LD ($F008), HL
+    ; loop_1:
+loop_1:
+    ; r6 = load i
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; r7 = 32
+    LD A, 32
+    LD ($F00E), A
+    ; r8 = r6 < r7
+    LD HL, ($F00C)
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    LD ($F010), HL
+    ; jump_if_not r8, end_loop_2
+    LD A, ($F010)
+    OR A
+    JP Z, end_loop_2
+    ; r9 = 0
+    LD A, 0
+    LD ($F012), A
+    ; r10 = addr(canvas)
+    LD HL, canvas
+    LD ($F014), HL
+    ; r11 = load i
+    LD HL, ($F000)
+    LD ($F016), HL
+    ; Calculate array element address
+    LD HL, ($F014)
+    LD D, H
+    LD E, L
+    LD HL, ($F016)
+    ADD HL, DE
+    LD ($F018), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F018)
+    PUSH HL
+    LD A, ($F012)
+    POP HL
+    LD (HL), A
+    ; r13 = load i
+    LD HL, ($F000)
+    LD ($F01A), HL
+    ; r14 = 1
+    LD A, 1
+    LD ($F01C), A
+    ; r15 = r13 + r14
+    LD HL, ($F01A)
+    LD D, H
+    LD E, L
+    LD HL, ($F01C)
+    ADD HL, DE
+    LD ($F01E), HL
+    ; store i, r15
+    LD HL, ($F01E)
+    LD ($F008), HL
+    ; jump loop_1
+    JP loop_1
+    ; end_loop_2:
+end_loop_2:
+    ; return
+    RET
+
+; Function: mnist_complete.set_pixel
+mnist_complete.set_pixel:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+mnist_complete.set_pixel_param_y:
+    LD HL, #0000   ; SMC parameter y (u8->u16)
+    LD ($F008), HL
+    ; r5 = 2
+    LD A, 2
+    LD ($F00A), A
+    ; r6 = r4 * r5
+    ; 8-bit multiplication
+    LD A, ($F008)
+    LD B, A       ; B = multiplicand
+    LD A, ($F00A)
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_2
+.mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_2
+.mul_done_2:
+    LD ($F00C), HL
+mnist_complete.set_pixel_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    LD ($F00E), HL
+    ; r8 = 8
+    LD A, 8
+    LD ($F010), A
+    ; r9 = r7 / r8
+    ; 8-bit division
+    LD A, ($F00E)
+    LD D, A       ; D = dividend
+    LD A, ($F010)
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .div_by_zero_3
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+.div_loop_3:
+    CP E          ; Compare remainder with divisor
+    JR C, .div_done_3
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR .div_loop_3
+.div_by_zero_3:
+    LD B, 0       ; Return 0 for divide by zero
+.div_done_3:
+    LD L, B       ; Result in L
+    LD H, 0
+    LD ($F012), HL
+    ; r10 = r6 + r9
+    LD HL, ($F00C)
+    LD D, H
+    LD E, L
+    LD HL, ($F012)
+    ADD HL, DE
+    LD ($F014), HL
+    ; store , r10
+    LD HL, ($F014)
+    LD ($F006), HL
+    LD A, (mnist_complete.set_pixel_param_x)
+    LD ($F018), A
+    ; r13 = 7
+    LD A, 7
+    LD ($F01A), A
+    ; unknown op 41
+    LD HL, ($F018)
+    LD D, H
+    LD E, L
+    LD HL, ($F01A)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F01C), HL
+    ; store , r14
+    LD HL, ($F01C)
+    LD ($F016), HL
+    ; r16 = 128
+    LD A, 128
+    LD ($F020), A
+    ; r17 = load bit_idx
+    LD HL, ($F000)
+    LD ($F022), HL
+    ; unknown op 46
+    ; Shift right
+    LD A, ($F020)
+    LD B, A       ; B = value to shift
+    LD A, ($F022)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_4
+    LD B, C       ; B = counter
+.shr_loop_4:
+    DEC B
+    JP M, .shr_done_4
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_4
+.shr_done_4:
+    LD L, A
+    LD H, 0
+    LD ($F024), HL
+    ; store , r18
+    LD HL, ($F024)
+    LD ($F01E), HL
+    ; r19 = addr(canvas)
+    LD HL, canvas
+    LD ($F026), HL
+    ; r20 = load byte_idx
+    LD HL, ($F000)
+    LD ($F028), HL
+    ; Load array element (u8)
+    LD HL, ($F026)
+    PUSH HL
+    LD A, ($F028)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F02A), A
+    ; r22 = load mask
+    LD HL, ($F000)
+    LD ($F02C), HL
+    ; unknown op 42
+    LD HL, ($F02A)
+    LD D, H
+    LD E, L
+    LD HL, ($F02C)
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    LD ($F02E), HL
+    ; r24 = addr(canvas)
+    LD HL, canvas
+    LD ($F030), HL
+    ; r25 = load byte_idx
+    LD HL, ($F000)
+    LD ($F032), HL
+    ; Calculate array element address
+    LD HL, ($F030)
+    LD D, H
+    LD E, L
+    LD HL, ($F032)
+    ADD HL, DE
+    LD ($F034), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F034)
+    PUSH HL
+    LD A, ($F02E)
+    POP HL
+    LD (HL), A
+    ; return
+    RET
+
+; Function: mnist_complete.clear_pixel
+mnist_complete.clear_pixel:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+mnist_complete.clear_pixel_param_y:
+    LD HL, #0000   ; SMC parameter y (u8->u16)
+    LD ($F008), HL
+    ; r5 = 2
+    LD A, 2
+    LD ($F00A), A
+    ; r6 = r4 * r5
+    ; 8-bit multiplication
+    LD A, ($F008)
+    LD B, A       ; B = multiplicand
+    LD A, ($F00A)
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_5
+.mul_loop_5:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_5
+.mul_done_5:
+    LD ($F00C), HL
+mnist_complete.clear_pixel_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    LD ($F00E), HL
+    ; r8 = 8
+    LD A, 8
+    LD ($F010), A
+    ; r9 = r7 / r8
+    ; 8-bit division
+    LD A, ($F00E)
+    LD D, A       ; D = dividend
+    LD A, ($F010)
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .div_by_zero_6
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+.div_loop_6:
+    CP E          ; Compare remainder with divisor
+    JR C, .div_done_6
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR .div_loop_6
+.div_by_zero_6:
+    LD B, 0       ; Return 0 for divide by zero
+.div_done_6:
+    LD L, B       ; Result in L
+    LD H, 0
+    LD ($F012), HL
+    ; r10 = r6 + r9
+    LD HL, ($F00C)
+    LD D, H
+    LD E, L
+    LD HL, ($F012)
+    ADD HL, DE
+    LD ($F014), HL
+    ; store , r10
+    LD HL, ($F014)
+    LD ($F006), HL
+    LD A, (mnist_complete.clear_pixel_param_x)
+    LD ($F018), A
+    ; r13 = 7
+    LD A, 7
+    LD ($F01A), A
+    ; unknown op 41
+    LD HL, ($F018)
+    LD D, H
+    LD E, L
+    LD HL, ($F01A)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F01C), HL
+    ; store , r14
+    LD HL, ($F01C)
+    LD ($F016), HL
+    ; r16 = 128
+    LD A, 128
+    LD ($F020), A
+    ; r17 = load bit_idx
+    LD HL, ($F000)
+    LD ($F022), HL
+    ; unknown op 46
+    ; Shift right
+    LD A, ($F020)
+    LD B, A       ; B = value to shift
+    LD A, ($F022)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_7
+    LD B, C       ; B = counter
+.shr_loop_7:
+    DEC B
+    JP M, .shr_done_7
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_7
+.shr_done_7:
+    LD L, A
+    LD H, 0
+    LD ($F024), HL
+    ; store , r18
+    LD HL, ($F024)
+    LD ($F01E), HL
+    ; r19 = addr(canvas)
+    LD HL, canvas
+    LD ($F026), HL
+    ; r20 = load byte_idx
+    LD HL, ($F000)
+    LD ($F028), HL
+    ; Load array element (u8)
+    LD HL, ($F026)
+    PUSH HL
+    LD A, ($F028)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F02A), A
+    ; r22 = load mask
+    LD HL, ($F000)
+    LD ($F02C), HL
+    ; unknown op 41
+    LD HL, ($F02A)
+    LD D, H
+    LD E, L
+    LD HL, ($F02C)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F02E), HL
+    ; r24 = 0
+    LD A, 0
+    LD ($F030), A
+    ; r25 = r23 != r24
+    LD HL, ($F02E)
+    LD D, H
+    LD E, L
+    LD HL, ($F030)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP NZ, .L9
+    LD HL, 0
+    JP .L10
+.L9:
+    LD HL, 1
+.L10:
+    LD ($F032), HL
+    ; jump_if_not r25, else_3
+    LD A, ($F032)
+    OR A
+    JP Z, else_3
+    ; r26 = addr(canvas)
+    LD HL, canvas
+    LD ($F034), HL
+    ; r27 = load byte_idx
+    LD HL, ($F000)
+    LD ($F036), HL
+    ; Load array element (u8)
+    LD HL, ($F034)
+    PUSH HL
+    LD A, ($F036)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F038), A
+    ; r29 = load mask
+    LD HL, ($F000)
+    LD ($F03A), HL
+    ; unknown op 43
+    LD HL, ($F038)
+    LD D, H
+    LD E, L
+    LD HL, ($F03A)
+    LD A, L
+    XOR E
+    LD L, A
+    LD A, H
+    XOR D
+    LD H, A
+    LD ($F03C), HL
+    ; r31 = addr(canvas)
+    LD HL, canvas
+    LD ($F03E), HL
+    ; r32 = load byte_idx
+    LD HL, ($F000)
+    LD ($F040), HL
+    ; Calculate array element address
+    LD HL, ($F03E)
+    LD D, H
+    LD E, L
+    LD HL, ($F040)
+    ADD HL, DE
+    LD ($F042), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F042)
+    PUSH HL
+    LD A, ($F03C)
+    POP HL
+    LD (HL), A
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; end_if_4:
+end_if_4:
+    ; return
+    RET
+
+; Function: mnist_complete.toggle_pixel
+mnist_complete.toggle_pixel:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = load cursor_x
+    LD HL, ($F020)
+    LD ($F004), HL
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = load cursor_y
+    LD HL, ($F040)
+    LD ($F008), HL
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+    ; r6 = load y
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; r7 = 2
+    LD A, 2
+    LD ($F00E), A
+    ; r8 = r6 * r7
+    ; 8-bit multiplication
+    LD A, ($F00C)
+    LD B, A       ; B = multiplicand
+    LD A, ($F00E)
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_10
+.mul_loop_10:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_10
+.mul_done_10:
+    LD ($F010), HL
+    ; r9 = load x
+    LD HL, ($F000)
+    LD ($F012), HL
+    ; r10 = 8
+    LD A, 8
+    LD ($F014), A
+    ; r11 = r9 / r10
+    ; 8-bit division
+    LD A, ($F012)
+    LD D, A       ; D = dividend
+    LD A, ($F014)
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .div_by_zero_11
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+.div_loop_11:
+    CP E          ; Compare remainder with divisor
+    JR C, .div_done_11
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR .div_loop_11
+.div_by_zero_11:
+    LD B, 0       ; Return 0 for divide by zero
+.div_done_11:
+    LD L, B       ; Result in L
+    LD H, 0
+    LD ($F016), HL
+    ; r12 = r8 + r11
+    LD HL, ($F010)
+    LD D, H
+    LD E, L
+    LD HL, ($F016)
+    ADD HL, DE
+    LD ($F018), HL
+    ; store , r12
+    LD HL, ($F018)
+    LD ($F00A), HL
+    ; r14 = load x
+    LD HL, ($F000)
+    LD ($F01C), HL
+    ; r15 = 7
+    LD A, 7
+    LD ($F01E), A
+    ; unknown op 41
+    LD HL, ($F01C)
+    LD D, H
+    LD E, L
+    LD HL, ($F01E)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F020), HL
+    ; store , r16
+    LD HL, ($F020)
+    LD ($F01A), HL
+    ; r18 = 128
+    LD A, 128
+    LD ($F024), A
+    ; r19 = load bit_idx
+    LD HL, ($F000)
+    LD ($F026), HL
+    ; unknown op 46
+    ; Shift right
+    LD A, ($F024)
+    LD B, A       ; B = value to shift
+    LD A, ($F026)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_12
+    LD B, C       ; B = counter
+.shr_loop_12:
+    DEC B
+    JP M, .shr_done_12
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_12
+.shr_done_12:
+    LD L, A
+    LD H, 0
+    LD ($F028), HL
+    ; store , r20
+    LD HL, ($F028)
+    LD ($F022), HL
+    ; r21 = addr(canvas)
+    LD HL, canvas
+    LD ($F02A), HL
+    ; r22 = load byte_idx
+    LD HL, ($F000)
+    LD ($F02C), HL
+    ; Load array element (u8)
+    LD HL, ($F02A)
+    PUSH HL
+    LD A, ($F02C)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F02E), A
+    ; r24 = load mask
+    LD HL, ($F000)
+    LD ($F030), HL
+    ; unknown op 43
+    LD HL, ($F02E)
+    LD D, H
+    LD E, L
+    LD HL, ($F030)
+    LD A, L
+    XOR E
+    LD L, A
+    LD A, H
+    XOR D
+    LD H, A
+    LD ($F032), HL
+    ; r26 = addr(canvas)
+    LD HL, canvas
+    LD ($F034), HL
+    ; r27 = load byte_idx
+    LD HL, ($F000)
+    LD ($F036), HL
+    ; Calculate array element address
+    LD HL, ($F034)
+    LD D, H
+    LD E, L
+    LD HL, ($F036)
+    ADD HL, DE
+    LD ($F038), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F038)
+    PUSH HL
+    LD A, ($F032)
+    POP HL
+    LD (HL), A
+    ; return
+    RET
+
+; Function: mnist_complete.is_pixel_set
+mnist_complete.is_pixel_set:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+mnist_complete.is_pixel_set_param_y:
+    LD HL, #0000   ; SMC parameter y (u8->u16)
+    LD ($F008), HL
+    ; r5 = 2
+    LD A, 2
+    LD ($F00A), A
+    ; r6 = r4 * r5
+    ; 8-bit multiplication
+    LD A, ($F008)
+    LD B, A       ; B = multiplicand
+    LD A, ($F00A)
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_13
+.mul_loop_13:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_13
+.mul_done_13:
+    LD ($F00C), HL
+mnist_complete.is_pixel_set_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    LD ($F00E), HL
+    ; r8 = 8
+    LD A, 8
+    LD ($F010), A
+    ; r9 = r7 / r8
+    ; 8-bit division
+    LD A, ($F00E)
+    LD D, A       ; D = dividend
+    LD A, ($F010)
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .div_by_zero_14
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+.div_loop_14:
+    CP E          ; Compare remainder with divisor
+    JR C, .div_done_14
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR .div_loop_14
+.div_by_zero_14:
+    LD B, 0       ; Return 0 for divide by zero
+.div_done_14:
+    LD L, B       ; Result in L
+    LD H, 0
+    LD ($F012), HL
+    ; r10 = r6 + r9
+    LD HL, ($F00C)
+    LD D, H
+    LD E, L
+    LD HL, ($F012)
+    ADD HL, DE
+    LD ($F014), HL
+    ; store , r10
+    LD HL, ($F014)
+    LD ($F006), HL
+    LD A, (mnist_complete.is_pixel_set_param_x)
+    LD ($F018), A
+    ; r13 = 7
+    LD A, 7
+    LD ($F01A), A
+    ; unknown op 41
+    LD HL, ($F018)
+    LD D, H
+    LD E, L
+    LD HL, ($F01A)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F01C), HL
+    ; store , r14
+    LD HL, ($F01C)
+    LD ($F016), HL
+    ; r16 = 128
+    LD A, 128
+    LD ($F020), A
+    ; r17 = load bit_idx
+    LD HL, ($F000)
+    LD ($F022), HL
+    ; unknown op 46
+    ; Shift right
+    LD A, ($F020)
+    LD B, A       ; B = value to shift
+    LD A, ($F022)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_15
+    LD B, C       ; B = counter
+.shr_loop_15:
+    DEC B
+    JP M, .shr_done_15
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_15
+.shr_done_15:
+    LD L, A
+    LD H, 0
+    LD ($F024), HL
+    ; store , r18
+    LD HL, ($F024)
+    LD ($F01E), HL
+    ; r19 = addr(canvas)
+    LD HL, canvas
+    LD ($F026), HL
+    ; r20 = load byte_idx
+    LD HL, ($F000)
+    LD ($F028), HL
+    ; Load array element (u8)
+    LD HL, ($F026)
+    PUSH HL
+    LD A, ($F028)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F02A), A
+    ; r22 = load mask
+    LD HL, ($F000)
+    LD ($F02C), HL
+    ; unknown op 41
+    LD HL, ($F02A)
+    LD D, H
+    LD E, L
+    LD HL, ($F02C)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F02E), HL
+    ; r24 = 0
+    LD A, 0
+    LD ($F030), A
+    ; r25 = r23 != r24
+    LD HL, ($F02E)
+    LD D, H
+    LD E, L
+    LD HL, ($F030)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP NZ, .L17
+    LD HL, 0
+    JP .L18
+.L17:
+    LD HL, 1
+.L18:
+    LD ($F032), HL
+    ; return r25
+    LD HL, ($F032)
+    RET
+
+; Function: mnist_complete.move_cursor_up
+mnist_complete.move_cursor_up:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load cursor_y
+    LD HL, ($F040)
+    LD ($F002), HL
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A
+    ; r3 = r1 > r2
+    LD HL, ($F002)
+    LD D, H
+    LD E, L
+    LD HL, ($F004)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L20
+    JP P, .L19
+    LD HL, 0
+    JP .L20
+.L19:
+    LD HL, 1
+.L20:
+    LD ($F006), HL
+    ; jump_if_not r3, else_5
+    LD A, ($F006)
+    OR A
+    JP Z, else_5
+    ; r4 = load cursor_y
+    LD HL, ($F040)
+    LD ($F008), HL
+    ; r5 = 1
+    LD A, 1
+    LD ($F00A), A
+    ; r6 = r4 - r5
+    LD HL, ($F008)
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    LD ($F00C), HL
+    ; store cursor_y, r6
+    LD HL, ($F00C)
+    LD ($F040), HL
+    ; jump end_if_6
+    JP end_if_6
+    ; else_5:
+else_5:
+    ; end_if_6:
+end_if_6:
+    ; return
+    RET
+
+; Function: mnist_complete.move_cursor_down
+mnist_complete.move_cursor_down:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load cursor_y
+    LD HL, ($F040)
+    LD ($F002), HL
+    ; r2 = 15
+    LD A, 15
+    LD ($F004), A
+    ; r3 = r1 < r2
+    LD HL, ($F002)
+    LD D, H
+    LD E, L
+    LD HL, ($F004)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L21
+    LD HL, 0
+    JP .L22
+.L21:
+    LD HL, 1
+.L22:
+    LD ($F006), HL
+    ; jump_if_not r3, else_7
+    LD A, ($F006)
+    OR A
+    JP Z, else_7
+    ; r4 = load cursor_y
+    LD HL, ($F040)
+    LD ($F008), HL
+    ; r5 = 1
+    LD A, 1
+    LD ($F00A), A
+    ; r6 = r4 + r5
+    LD HL, ($F008)
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)
+    ADD HL, DE
+    LD ($F00C), HL
+    ; store cursor_y, r6
+    LD HL, ($F00C)
+    LD ($F040), HL
+    ; jump end_if_8
+    JP end_if_8
+    ; else_7:
+else_7:
+    ; end_if_8:
+end_if_8:
+    ; return
+    RET
+
+; Function: mnist_complete.move_cursor_left
+mnist_complete.move_cursor_left:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load cursor_x
+    LD HL, ($F020)
+    LD ($F002), HL
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A
+    ; r3 = r1 > r2
+    LD HL, ($F002)
+    LD D, H
+    LD E, L
+    LD HL, ($F004)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L24
+    JP P, .L23
+    LD HL, 0
+    JP .L24
+.L23:
+    LD HL, 1
+.L24:
+    LD ($F006), HL
+    ; jump_if_not r3, else_9
+    LD A, ($F006)
+    OR A
+    JP Z, else_9
+    ; r4 = load cursor_x
+    LD HL, ($F020)
+    LD ($F008), HL
+    ; r5 = 1
+    LD A, 1
+    LD ($F00A), A
+    ; r6 = r4 - r5
+    LD HL, ($F008)
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    LD ($F00C), HL
+    ; store cursor_x, r6
+    LD HL, ($F00C)
+    LD ($F020), HL
+    ; jump end_if_10
+    JP end_if_10
+    ; else_9:
+else_9:
+    ; end_if_10:
+end_if_10:
+    ; return
+    RET
+
+; Function: mnist_complete.move_cursor_right
+mnist_complete.move_cursor_right:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load cursor_x
+    LD HL, ($F020)
+    LD ($F002), HL
+    ; r2 = 15
+    LD A, 15
+    LD ($F004), A
+    ; r3 = r1 < r2
+    LD HL, ($F002)
+    LD D, H
+    LD E, L
+    LD HL, ($F004)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L25
+    LD HL, 0
+    JP .L26
+.L25:
+    LD HL, 1
+.L26:
+    LD ($F006), HL
+    ; jump_if_not r3, else_11
+    LD A, ($F006)
+    OR A
+    JP Z, else_11
+    ; r4 = load cursor_x
+    LD HL, ($F020)
+    LD ($F008), HL
+    ; r5 = 1
+    LD A, 1
+    LD ($F00A), A
+    ; r6 = r4 + r5
+    LD HL, ($F008)
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)
+    ADD HL, DE
+    LD ($F00C), HL
+    ; store cursor_x, r6
+    LD HL, ($F00C)
+    LD ($F020), HL
+    ; jump end_if_12
+    JP end_if_12
+    ; else_11:
+else_11:
+    ; end_if_12:
+end_if_12:
+    ; return
+    RET
+
+; Function: mnist_complete.clear_canvas
+mnist_complete.clear_canvas:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r3 = 32
+    LD A, 32
+    LD ($F006), A
+    ; Initialize loop counter
+    LD HL, ($F006)
+    LD ($F008), HL
+    ; Skip if count is zero
+    LD A, ($F008)
+    OR A
+    JP Z, do_end_14
+    ; do_times_13:
+do_times_13:
+    ; r5 = 0
+    LD A, 0
+    LD ($F00A), A
+    ; r6 = addr(canvas)
+    LD HL, canvas
+    LD ($F00C), HL
+    ; r7 = load i
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; Calculate array element address
+    LD HL, ($F00C)
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)
+    ADD HL, DE
+    LD ($F010), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F010)
+    PUSH HL
+    LD A, ($F00A)
+    POP HL
+    LD (HL), A
+    ; r9 = load i
+    LD HL, ($F000)
+    LD ($F012), HL
+    ; r10 = 1
+    LD A, 1
+    LD ($F014), A
+    ; r11 = r9 + r10
+    LD HL, ($F012)
+    LD D, H
+    LD E, L
+    LD HL, ($F014)
+    ADD HL, DE
+    LD ($F016), HL
+    ; store i, r11
+    LD HL, ($F016)
+    LD ($F002), HL
+    ; Decrement counter
+    LD HL, ($F008)
+    DEC HL
+    LD ($F008), HL
+    ; Loop if counter not zero (DJNZ pattern)
+    LD A, ($F008)
+    OR A
+    JP NZ, do_times_13
+    ; do_end_14:
+do_end_14:
+    ; return
+    RET
+
+; Function: mnist_complete.calc_screen_addr
+mnist_complete.calc_screen_addr:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r4 = 16384
+    LD HL, 16384
+    LD ($F008), HL
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+mnist_complete.calc_screen_addr_param_y:
+    LD HL, #0000   ; SMC parameter y (u8->u16)
+    LD ($F00C), HL
+    ; r7 = 7
+    LD A, 7
+    LD ($F00E), A
+    ; unknown op 41
+    LD HL, ($F00C)
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F010), HL
+    ; store , r8
+    LD HL, ($F010)
+    LD ($F00A), HL
+    LD A, (mnist_complete.calc_screen_addr_param_y)
+    LD ($F014), A
+    ; r11 = 3
+    LD A, 3
+    LD ($F016), A
+    ; unknown op 46
+    ; Shift right
+    LD A, ($F014)
+    LD B, A       ; B = value to shift
+    LD A, ($F016)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_26
+    LD B, C       ; B = counter
+.shr_loop_26:
+    DEC B
+    JP M, .shr_done_26
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_26
+.shr_done_26:
+    LD L, A
+    LD H, 0
+    LD ($F018), HL
+    ; r13 = 7
+    LD A, 7
+    LD ($F01A), A
+    ; unknown op 41
+    LD HL, ($F018)
+    LD D, H
+    LD E, L
+    LD HL, ($F01A)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F01C), HL
+    ; store , r14
+    LD HL, ($F01C)
+    LD ($F012), HL
+    LD A, (mnist_complete.calc_screen_addr_param_y)
+    LD ($F020), A
+    ; r17 = 6
+    LD A, 6
+    LD ($F022), A
+    ; unknown op 46
+    ; Shift right
+    LD A, ($F020)
+    LD B, A       ; B = value to shift
+    LD A, ($F022)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_27
+    LD B, C       ; B = counter
+.shr_loop_27:
+    DEC B
+    JP M, .shr_done_27
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_27
+.shr_done_27:
+    LD L, A
+    LD H, 0
+    LD ($F024), HL
+    ; store , r18
+    LD HL, ($F024)
+    LD ($F01E), HL
+    ; r20 = load screen_base
+    LD HL, ($F000)
+    LD ($F028), HL
+    ; store , r20
+    LD HL, ($F028)
+    LD ($F026), HL
+    ; r21 = load addr
+    LD HL, ($F000)
+    LD ($F02A), HL
+    ; r22 = load y_high
+    LD HL, ($F000)
+    LD ($F02C), HL
+    ; r23 = 2048
+    LD HL, 2048
+    LD ($F02E), HL
+    ; r24 = r22 * r23
+    ; 8-bit multiplication
+    LD A, ($F02C)
+    LD B, A       ; B = multiplicand
+    LD A, ($F02E)
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_28
+.mul_loop_28:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_28
+.mul_done_28:
+    LD ($F030), HL
+    ; r25 = r21 + r24
+    LD HL, ($F02A)
+    LD D, H
+    LD E, L
+    LD HL, ($F030)
+    ADD HL, DE
+    LD ($F032), HL
+    ; store addr, r25
+    LD HL, ($F032)
+    LD ($F026), HL
+    ; r26 = load addr
+    LD HL, ($F000)
+    LD ($F034), HL
+    ; r27 = load y_mid
+    LD HL, ($F000)
+    LD ($F036), HL
+    ; r28 = 32
+    LD A, 32
+    LD ($F038), A
+    ; r29 = r27 * r28
+    ; 8-bit multiplication
+    LD A, ($F036)
+    LD B, A       ; B = multiplicand
+    LD A, ($F038)
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_29
+.mul_loop_29:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_29
+.mul_done_29:
+    LD ($F03A), HL
+    ; r30 = r26 + r29
+    LD HL, ($F034)
+    LD D, H
+    LD E, L
+    LD HL, ($F03A)
+    ADD HL, DE
+    LD ($F03C), HL
+    ; store addr, r30
+    LD HL, ($F03C)
+    LD ($F026), HL
+    ; r31 = load addr
+    LD HL, ($F000)
+    LD ($F03E), HL
+    ; r32 = load y_low
+    LD HL, ($F000)
+    LD ($F040), HL
+    ; r33 = 256
+    LD HL, 256
+    LD ($F042), HL
+    ; r34 = r32 * r33
+    ; 8-bit multiplication
+    LD A, ($F040)
+    LD B, A       ; B = multiplicand
+    LD A, ($F042)
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_30
+.mul_loop_30:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_30
+.mul_done_30:
+    LD ($F044), HL
+    ; r35 = r31 + r34
+    LD HL, ($F03E)
+    LD D, H
+    LD E, L
+    LD HL, ($F044)
+    ADD HL, DE
+    LD ($F046), HL
+    ; store addr, r35
+    LD HL, ($F046)
+    LD ($F026), HL
+    ; r36 = load addr
+    LD HL, ($F000)
+    LD ($F048), HL
+mnist_complete.calc_screen_addr_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    LD ($F04A), HL
+    ; r38 = 8
+    LD A, 8
+    LD ($F04C), A
+    ; r39 = r37 / r38
+    ; 8-bit division
+    LD A, ($F04A)
+    LD D, A       ; D = dividend
+    LD A, ($F04C)
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .div_by_zero_31
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+.div_loop_31:
+    CP E          ; Compare remainder with divisor
+    JR C, .div_done_31
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR .div_loop_31
+.div_by_zero_31:
+    LD B, 0       ; Return 0 for divide by zero
+.div_done_31:
+    LD L, B       ; Result in L
+    LD H, 0
+    LD ($F04E), HL
+    ; r40 = r36 + r39
+    LD HL, ($F048)
+    LD D, H
+    LD E, L
+    LD HL, ($F04E)
+    ADD HL, DE
+    LD ($F050), HL
+    ; store addr, r40
+    LD HL, ($F050)
+    LD ($F026), HL
+    ; r41 = load addr
+    LD HL, ($F000)
+    LD ($F052), HL
+    ; return r41
+    LD HL, ($F052)
+    RET
+
+; Function: mnist_complete.render_to_screen
+mnist_complete.render_to_screen:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 64
+    LD A, 64
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = 48
+    LD A, 48
+    LD ($F008), A
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+    ; r6 = 0
+    LD A, 0
+    LD ($F00C), A
+    ; store , r6
+    LD HL, ($F00C)
+    LD ($F00A), HL
+    ; loop_15:
+loop_15:
+    ; r7 = load y
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; r8 = 16
+    LD A, 16
+    LD ($F010), A
+    ; r9 = r7 < r8
+    LD HL, ($F00E)
+    LD D, H
+    LD E, L
+    LD HL, ($F010)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L33
+    LD HL, 0
+    JP .L34
+.L33:
+    LD HL, 1
+.L34:
+    LD ($F012), HL
+    ; jump_if_not r9, end_loop_16
+    LD A, ($F012)
+    OR A
+    JP Z, end_loop_16
+    ; r11 = 0
+    LD A, 0
+    LD ($F016), A
+    ; store , r11
+    LD HL, ($F016)
+    LD ($F014), HL
+    ; loop_17:
+loop_17:
+    ; r12 = load x
+    LD HL, ($F000)
+    LD ($F018), HL
+    ; r13 = 16
+    LD A, 16
+    LD ($F01A), A
+    ; r14 = r12 < r13
+    LD HL, ($F018)
+    LD D, H
+    LD E, L
+    LD HL, ($F01A)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L35
+    LD HL, 0
+    JP .L36
+.L35:
+    LD HL, 1
+.L36:
+    LD ($F01C), HL
+    ; jump_if_not r14, end_loop_18
+    LD A, ($F01C)
+    OR A
+    JP Z, end_loop_18
+    ; r16 = load x
+    LD HL, ($F000)
+    LD ($F020), HL
+    ; r17 = load y
+    LD HL, ($F000)
+    LD ($F022), HL
+    ; r18 = call is_pixel_set
+    ; Call to is_pixel_set (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL is_pixel_set
+    LD ($F024), HL
+    ; store , r18
+    LD HL, ($F024)
+    LD ($F01E), HL
+    ; r20 = load grid_x
+    LD HL, ($F000)
+    LD ($F028), HL
+    ; r21 = load x
+    LD HL, ($F000)
+    LD ($F02A), HL
+    ; r22 = r20 + r21
+    LD HL, ($F028)
+    LD D, H
+    LD E, L
+    LD HL, ($F02A)
+    ADD HL, DE
+    LD ($F02C), HL
+    ; store , r22
+    LD HL, ($F02C)
+    LD ($F026), HL
+    ; r24 = load grid_y
+    LD HL, ($F000)
+    LD ($F030), HL
+    ; r25 = load y
+    LD HL, ($F000)
+    LD ($F032), HL
+    ; r26 = r24 + r25
+    LD HL, ($F030)
+    LD D, H
+    LD E, L
+    LD HL, ($F032)
+    ADD HL, DE
+    LD ($F034), HL
+    ; store , r26
+    LD HL, ($F034)
+    LD ($F02E), HL
+    ; r28 = load screen_x
+    LD HL, ($F000)
+    LD ($F038), HL
+    ; r29 = load screen_y
+    LD HL, ($F000)
+    LD ($F03A), HL
+    ; r30 = call calc_screen_addr
+    ; Call to calc_screen_addr (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL calc_screen_addr
+    LD ($F03C), HL
+    ; store , r30
+    LD HL, ($F03C)
+    LD ($F036), HL
+    ; r32 = 128
+    LD A, 128
+    LD ($F040), A
+    ; r33 = load screen_x
+    LD HL, ($F000)
+    LD ($F042), HL
+    ; r34 = 7
+    LD A, 7
+    LD ($F044), A
+    ; unknown op 41
+    LD HL, ($F042)
+    LD D, H
+    LD E, L
+    LD HL, ($F044)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F046), HL
+    ; unknown op 46
+    ; Shift right
+    LD A, ($F040)
+    LD B, A       ; B = value to shift
+    LD A, ($F046)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_36
+    LD B, C       ; B = counter
+.shr_loop_36:
+    DEC B
+    JP M, .shr_done_36
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_36
+.shr_done_36:
+    LD L, A
+    LD H, 0
+    LD ($F048), HL
+    ; store , r36
+    LD HL, ($F048)
+    LD ($F03E), HL
+    ; r37 = load x
+    LD HL, ($F000)
+    LD ($F04A), HL
+    ; r38 = 1
+    LD A, 1
+    LD ($F04C), A
+    ; r39 = r37 + r38
+    LD HL, ($F04A)
+    LD D, H
+    LD E, L
+    LD HL, ($F04C)
+    ADD HL, DE
+    LD ($F04E), HL
+    ; store x, r39
+    LD HL, ($F04E)
+    LD ($F014), HL
+    ; jump loop_17
+    JP loop_17
+    ; end_loop_18:
+end_loop_18:
+    ; r40 = load y
+    LD HL, ($F000)
+    LD ($F050), HL
+    ; r41 = 1
+    LD A, 1
+    LD ($F052), A
+    ; r42 = r40 + r41
+    LD HL, ($F050)
+    LD D, H
+    LD E, L
+    LD HL, ($F052)
+    ADD HL, DE
+    LD ($F054), HL
+    ; store y, r42
+    LD HL, ($F054)
+    LD ($F00A), HL
+    ; jump loop_15
+    JP loop_15
+    ; end_loop_16:
+end_loop_16:
+    ; return
+    RET
+
+; Function: mnist_complete.render_cursor
+mnist_complete.render_cursor:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = load flash_counter
+    LD HL, ($F060)
+    LD ($F004), HL
+    ; r3 = 16
+    LD A, 16
+    LD ($F006), A
+    ; unknown op 41
+    LD HL, ($F004)
+    LD D, H
+    LD E, L
+    LD HL, ($F006)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F008), HL
+    ; r5 = 0
+    LD A, 0
+    LD ($F00A), A
+    ; r6 = r4 != r5
+    LD HL, ($F008)
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP NZ, .L38
+    LD HL, 0
+    JP .L39
+.L38:
+    LD HL, 1
+.L39:
+    LD ($F00C), HL
+    ; store , r6
+    LD HL, ($F00C)
+    LD ($F002), HL
+    ; r7 = load flash_counter
+    LD HL, ($F060)
+    LD ($F00E), HL
+    ; r8 = 1
+    LD A, 1
+    LD ($F010), A
+    ; r9 = r7 + r8
+    LD HL, ($F00E)
+    LD D, H
+    LD E, L
+    LD HL, ($F010)
+    ADD HL, DE
+    LD ($F012), HL
+    ; store flash_counter, r9
+    LD HL, ($F012)
+    LD ($F060), HL
+    ; r10 = load flash
+    LD HL, ($F000)
+    LD ($F014), HL
+    ; jump_if_not r10, else_19
+    LD A, ($F014)
+    OR A
+    JP Z, else_19
+    ; r12 = 64
+    LD A, 64
+    LD ($F018), A
+    ; store , r12
+    LD HL, ($F018)
+    LD ($F016), HL
+    ; r14 = 48
+    LD A, 48
+    LD ($F01C), A
+    ; store , r14
+    LD HL, ($F01C)
+    LD ($F01A), HL
+    ; r16 = load grid_x
+    LD HL, ($F000)
+    LD ($F020), HL
+    ; r17 = load cursor_x
+    LD HL, ($F020)
+    LD ($F022), HL
+    ; r18 = r16 + r17
+    LD HL, ($F020)
+    LD D, H
+    LD E, L
+    LD HL, ($F022)
+    ADD HL, DE
+    LD ($F024), HL
+    ; store , r18
+    LD HL, ($F024)
+    LD ($F01E), HL
+    ; r20 = load grid_y
+    LD HL, ($F000)
+    LD ($F028), HL
+    ; r21 = load cursor_y
+    LD HL, ($F040)
+    LD ($F02A), HL
+    ; r22 = r20 + r21
+    LD HL, ($F028)
+    LD D, H
+    LD E, L
+    LD HL, ($F02A)
+    ADD HL, DE
+    LD ($F02C), HL
+    ; store , r22
+    LD HL, ($F02C)
+    LD ($F026), HL
+    ; r24 = load cursor_screen_x
+    LD HL, ($F000)
+    LD ($F030), HL
+    ; r25 = load cursor_screen_y
+    LD HL, ($F000)
+    LD ($F032), HL
+    ; r26 = call calc_screen_addr
+    ; Call to calc_screen_addr (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL calc_screen_addr
+    LD ($F034), HL
+    ; store , r26
+    LD HL, ($F034)
+    LD ($F02E), HL
+    ; r28 = 128
+    LD A, 128
+    LD ($F038), A
+    ; r29 = load cursor_screen_x
+    LD HL, ($F000)
+    LD ($F03A), HL
+    ; r30 = 7
+    LD A, 7
+    LD ($F03C), A
+    ; unknown op 41
+    LD HL, ($F03A)
+    LD D, H
+    LD E, L
+    LD HL, ($F03C)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F03E), HL
+    ; unknown op 46
+    ; Shift right
+    LD A, ($F038)
+    LD B, A       ; B = value to shift
+    LD A, ($F03E)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_39
+    LD B, C       ; B = counter
+.shr_loop_39:
+    DEC B
+    JP M, .shr_done_39
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_39
+.shr_done_39:
+    LD L, A
+    LD H, 0
+    LD ($F040), HL
+    ; store , r32
+    LD HL, ($F040)
+    LD ($F036), HL
+    ; jump end_if_20
+    JP end_if_20
+    ; else_19:
+else_19:
+    ; end_if_20:
+end_if_20:
+    ; return
+    RET
+
+; Function: mnist_complete.simulate_input
+mnist_complete.simulate_input:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = load flash_counter
+    LD HL, ($F060)
+    LD ($F004), HL
+    ; r3 = 15
+    LD A, 15
+    LD ($F006), A
+    ; unknown op 41
+    LD HL, ($F004)
+    LD D, H
+    LD E, L
+    LD HL, ($F006)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F008), HL
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F002), HL
+    ; r5 = load sim_input
+    LD HL, ($F000)
+    LD ($F00A), HL
+    ; r6 = 4
+    LD A, 4
+    LD ($F00C), A
+    ; r7 = r5 < r6
+    LD HL, ($F00A)
+    LD D, H
+    LD E, L
+    LD HL, ($F00C)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L41
+    LD HL, 0
+    JP .L42
+.L41:
+    LD HL, 1
+.L42:
+    LD ($F00E), HL
+    ; jump_if_not r7, else_21
+    LD A, ($F00E)
+    OR A
+    JP Z, else_21
+    ; r8 = 1
+    LD A, 1
+    LD ($F010), A
+    ; return r8
+    LD HL, ($F010)
+    RET
+    ; jump end_if_22
+    JP end_if_22
+    ; else_21:
+else_21:
+    ; r9 = load sim_input
+    LD HL, ($F000)
+    LD ($F012), HL
+    ; r10 = 8
+    LD A, 8
+    LD ($F014), A
+    ; r11 = r9 < r10
+    LD HL, ($F012)
+    LD D, H
+    LD E, L
+    LD HL, ($F014)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L43
+    LD HL, 0
+    JP .L44
+.L43:
+    LD HL, 1
+.L44:
+    LD ($F016), HL
+    ; jump_if_not r11, else_23
+    LD A, ($F016)
+    OR A
+    JP Z, else_23
+    ; r12 = 2
+    LD A, 2
+    LD ($F018), A
+    ; return r12
+    LD HL, ($F018)
+    RET
+    ; jump end_if_24
+    JP end_if_24
+    ; else_23:
+else_23:
+    ; r13 = load sim_input
+    LD HL, ($F000)
+    LD ($F01A), HL
+    ; r14 = 12
+    LD A, 12
+    LD ($F01C), A
+    ; r15 = r13 < r14
+    LD HL, ($F01A)
+    LD D, H
+    LD E, L
+    LD HL, ($F01C)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L45
+    LD HL, 0
+    JP .L46
+.L45:
+    LD HL, 1
+.L46:
+    LD ($F01E), HL
+    ; jump_if_not r15, else_25
+    LD A, ($F01E)
+    OR A
+    JP Z, else_25
+    ; r16 = 3
+    LD A, 3
+    LD ($F020), A
+    ; return r16
+    LD HL, ($F020)
+    RET
+    ; jump end_if_26
+    JP end_if_26
+    ; else_25:
+else_25:
+    ; r17 = 0
+    LD A, 0
+    LD ($F022), A
+    ; return r17
+    LD HL, ($F022)
+    RET
+    ; end_if_26:
+end_if_26:
+    ; end_if_24:
+end_if_24:
+    ; end_if_22:
+end_if_22:
+    ; return
+    RET
+
+; Function: mnist_complete.handle_input
+mnist_complete.handle_input:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call simulate_input
+    ; Call to simulate_input (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL simulate_input
+    LD ($F004), HL
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = 0
+    LD A, 0
+    LD ($F008), A
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+    ; r5 = load input
+    LD HL, ($F000)
+    LD ($F00A), HL
+    ; r6 = 1
+    LD A, 1
+    LD ($F00C), A
+    ; r7 = r5 == r6
+    LD HL, ($F00A)
+    LD D, H
+    LD E, L
+    LD HL, ($F00C)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L47
+    LD HL, 0
+    JP .L48
+.L47:
+    LD HL, 1
+.L48:
+    LD ($F00E), HL
+    ; jump_if_not r7, else_27
+    LD A, ($F00E)
+    OR A
+    JP Z, else_27
+    ; r9 = load flash_counter
+    LD HL, ($F060)
+    LD ($F012), HL
+    ; r10 = 3
+    LD A, 3
+    LD ($F014), A
+    ; unknown op 41
+    LD HL, ($F012)
+    LD D, H
+    LD E, L
+    LD HL, ($F014)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F016), HL
+    ; store , r11
+    LD HL, ($F016)
+    LD ($F010), HL
+    ; r12 = load direction
+    LD HL, ($F000)
+    LD ($F018), HL
+    ; r13 = 0
+    LD A, 0
+    LD ($F01A), A
+    ; r14 = r12 == r13
+    LD HL, ($F018)
+    LD D, H
+    LD E, L
+    LD HL, ($F01A)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L49
+    LD HL, 0
+    JP .L50
+.L49:
+    LD HL, 1
+.L50:
+    LD ($F01C), HL
+    ; jump_if_not r14, else_29
+    LD A, ($F01C)
+    OR A
+    JP Z, else_29
+    ; r15 = call move_cursor_up
+    ; Call to move_cursor_up (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL move_cursor_up
+    LD ($F01E), HL
+    ; jump end_if_30
+    JP end_if_30
+    ; else_29:
+else_29:
+    ; r16 = load direction
+    LD HL, ($F000)
+    LD ($F020), HL
+    ; r17 = 1
+    LD A, 1
+    LD ($F022), A
+    ; r18 = r16 == r17
+    LD HL, ($F020)
+    LD D, H
+    LD E, L
+    LD HL, ($F022)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L51
+    LD HL, 0
+    JP .L52
+.L51:
+    LD HL, 1
+.L52:
+    LD ($F024), HL
+    ; jump_if_not r18, else_31
+    LD A, ($F024)
+    OR A
+    JP Z, else_31
+    ; r19 = call move_cursor_down
+    ; Call to move_cursor_down (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL move_cursor_down
+    LD ($F026), HL
+    ; jump end_if_32
+    JP end_if_32
+    ; else_31:
+else_31:
+    ; r20 = load direction
+    LD HL, ($F000)
+    LD ($F028), HL
+    ; r21 = 2
+    LD A, 2
+    LD ($F02A), A
+    ; r22 = r20 == r21
+    LD HL, ($F028)
+    LD D, H
+    LD E, L
+    LD HL, ($F02A)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L53
+    LD HL, 0
+    JP .L54
+.L53:
+    LD HL, 1
+.L54:
+    LD ($F02C), HL
+    ; jump_if_not r22, else_33
+    LD A, ($F02C)
+    OR A
+    JP Z, else_33
+    ; r23 = call move_cursor_left
+    ; Call to move_cursor_left (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL move_cursor_left
+    LD ($F02E), HL
+    ; jump end_if_34
+    JP end_if_34
+    ; else_33:
+else_33:
+    ; r24 = call move_cursor_right
+    ; Call to move_cursor_right (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL move_cursor_right
+    LD ($F030), HL
+    ; end_if_34:
+end_if_34:
+    ; end_if_32:
+end_if_32:
+    ; end_if_30:
+end_if_30:
+    ; r25 = 1
+    LD A, 1
+    LD ($F032), A
+    ; store handled, r25
+    LD HL, ($F032)
+    LD ($F006), HL
+    ; jump end_if_28
+    JP end_if_28
+    ; else_27:
+else_27:
+    ; r26 = load input
+    LD HL, ($F000)
+    LD ($F034), HL
+    ; r27 = 2
+    LD A, 2
+    LD ($F036), A
+    ; r28 = r26 == r27
+    LD HL, ($F034)
+    LD D, H
+    LD E, L
+    LD HL, ($F036)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L55
+    LD HL, 0
+    JP .L56
+.L55:
+    LD HL, 1
+.L56:
+    LD ($F038), HL
+    ; jump_if_not r28, else_35
+    LD A, ($F038)
+    OR A
+    JP Z, else_35
+    ; r29 = call toggle_pixel
+    ; Call to toggle_pixel (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL toggle_pixel
+    LD ($F03A), HL
+    ; r30 = 1
+    LD A, 1
+    LD ($F03C), A
+    ; store handled, r30
+    LD HL, ($F03C)
+    LD ($F006), HL
+    ; jump end_if_36
+    JP end_if_36
+    ; else_35:
+else_35:
+    ; r31 = load input
+    LD HL, ($F000)
+    LD ($F03E), HL
+    ; r32 = 3
+    LD A, 3
+    LD ($F040), A
+    ; r33 = r31 == r32
+    LD HL, ($F03E)
+    LD D, H
+    LD E, L
+    LD HL, ($F040)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L57
+    LD HL, 0
+    JP .L58
+.L57:
+    LD HL, 1
+.L58:
+    LD ($F042), HL
+    ; jump_if_not r33, else_37
+    LD A, ($F042)
+    OR A
+    JP Z, else_37
+    ; r34 = call clear_canvas
+    ; Call to clear_canvas (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL clear_canvas
+    LD ($F044), HL
+    ; r35 = 1
+    LD A, 1
+    LD ($F046), A
+    ; store handled, r35
+    LD HL, ($F046)
+    LD ($F006), HL
+    ; jump end_if_38
+    JP end_if_38
+    ; else_37:
+else_37:
+    ; end_if_38:
+end_if_38:
+    ; end_if_36:
+end_if_36:
+    ; end_if_28:
+end_if_28:
+    ; r36 = load handled
+    LD HL, ($F000)
+    LD ($F048), HL
+    ; return r36
+    LD HL, ($F048)
+    RET
+
+; Function: mnist_complete.count_set_pixels
+mnist_complete.count_set_pixels:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = 0
+    LD A, 0
+    LD ($F008), A
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+    ; loop_39:
+loop_39:
+    ; r5 = load i
+    LD HL, ($F000)
+    LD ($F00A), HL
+    ; r6 = 32
+    LD A, 32
+    LD ($F00C), A
+    ; r7 = r5 < r6
+    LD HL, ($F00A)
+    LD D, H
+    LD E, L
+    LD HL, ($F00C)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L59
+    LD HL, 0
+    JP .L60
+.L59:
+    LD HL, 1
+.L60:
+    LD ($F00E), HL
+    ; jump_if_not r7, end_loop_40
+    LD A, ($F00E)
+    OR A
+    JP Z, end_loop_40
+    ; r9 = addr(canvas)
+    LD HL, canvas
+    LD ($F012), HL
+    ; r10 = load i
+    LD HL, ($F000)
+    LD ($F014), HL
+    ; Load array element (u8)
+    LD HL, ($F012)
+    PUSH HL
+    LD A, ($F014)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F016), A
+    ; store , r11
+    LD HL, ($F016)
+    LD ($F010), HL
+    ; r13 = 0
+    LD A, 0
+    LD ($F01A), A
+    ; store , r13
+    LD HL, ($F01A)
+    LD ($F018), HL
+    ; loop_41:
+loop_41:
+    ; r14 = load bit_pos
+    LD HL, ($F000)
+    LD ($F01C), HL
+    ; r15 = 8
+    LD A, 8
+    LD ($F01E), A
+    ; r16 = r14 < r15
+    LD HL, ($F01C)
+    LD D, H
+    LD E, L
+    LD HL, ($F01E)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L61
+    LD HL, 0
+    JP .L62
+.L61:
+    LD HL, 1
+.L62:
+    LD ($F020), HL
+    ; jump_if_not r16, end_loop_42
+    LD A, ($F020)
+    OR A
+    JP Z, end_loop_42
+    ; r18 = 1
+    LD A, 1
+    LD ($F024), A
+    ; r19 = load bit_pos
+    LD HL, ($F000)
+    LD ($F026), HL
+    ; unknown op 45
+    ; Shift left
+    LD A, ($F024)
+    LD B, A       ; B = value to shift
+    LD A, ($F026)
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_62
+    LD B, C       ; B = counter
+.shl_loop_62:
+    DEC B
+    JP M, .shl_done_62
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_62
+.shl_done_62:
+    LD L, A
+    LD H, 0
+    LD ($F028), HL
+    ; store , r20
+    LD HL, ($F028)
+    LD ($F022), HL
+    ; r21 = load byte_val
+    LD HL, ($F000)
+    LD ($F02A), HL
+    ; r22 = load test_mask
+    LD HL, ($F000)
+    LD ($F02C), HL
+    ; unknown op 41
+    LD HL, ($F02A)
+    LD D, H
+    LD E, L
+    LD HL, ($F02C)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F02E), HL
+    ; r24 = 0
+    LD A, 0
+    LD ($F030), A
+    ; r25 = r23 != r24
+    LD HL, ($F02E)
+    LD D, H
+    LD E, L
+    LD HL, ($F030)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP NZ, .L64
+    LD HL, 0
+    JP .L65
+.L64:
+    LD HL, 1
+.L65:
+    LD ($F032), HL
+    ; jump_if_not r25, else_43
+    LD A, ($F032)
+    OR A
+    JP Z, else_43
+    ; r26 = load count
+    LD HL, ($F000)
+    LD ($F034), HL
+    ; r27 = 1
+    LD A, 1
+    LD ($F036), A
+    ; r28 = r26 + r27
+    LD HL, ($F034)
+    LD D, H
+    LD E, L
+    LD HL, ($F036)
+    ADD HL, DE
+    LD ($F038), HL
+    ; store count, r28
+    LD HL, ($F038)
+    LD ($F002), HL
+    ; jump end_if_44
+    JP end_if_44
+    ; else_43:
+else_43:
+    ; end_if_44:
+end_if_44:
+    ; r29 = load bit_pos
+    LD HL, ($F000)
+    LD ($F03A), HL
+    ; r30 = 1
+    LD A, 1
+    LD ($F03C), A
+    ; r31 = r29 + r30
+    LD HL, ($F03A)
+    LD D, H
+    LD E, L
+    LD HL, ($F03C)
+    ADD HL, DE
+    LD ($F03E), HL
+    ; store bit_pos, r31
+    LD HL, ($F03E)
+    LD ($F018), HL
+    ; jump loop_41
+    JP loop_41
+    ; end_loop_42:
+end_loop_42:
+    ; r32 = load i
+    LD HL, ($F000)
+    LD ($F040), HL
+    ; r33 = 1
+    LD A, 1
+    LD ($F042), A
+    ; r34 = r32 + r33
+    LD HL, ($F040)
+    LD D, H
+    LD E, L
+    LD HL, ($F042)
+    ADD HL, DE
+    LD ($F044), HL
+    ; store i, r34
+    LD HL, ($F044)
+    LD ($F006), HL
+    ; jump loop_39
+    JP loop_39
+    ; end_loop_40:
+end_loop_40:
+    ; r35 = load count
+    LD HL, ($F000)
+    LD ($F046), HL
+    ; return r35
+    LD HL, ($F046)
+    RET
+
+; Function: mnist_complete.draw_welcome_pattern
+mnist_complete.draw_welcome_pattern:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; loop_45:
+loop_45:
+    ; r3 = load edge
+    LD HL, ($F000)
+    LD ($F006), HL
+    ; r4 = 16
+    LD A, 16
+    LD ($F008), A
+    ; r5 = r3 < r4
+    LD HL, ($F006)
+    LD D, H
+    LD E, L
+    LD HL, ($F008)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L66
+    LD HL, 0
+    JP .L67
+.L66:
+    LD HL, 1
+.L67:
+    LD ($F00A), HL
+    ; jump_if_not r5, end_loop_46
+    LD A, ($F00A)
+    OR A
+    JP Z, end_loop_46
+    ; r6 = load edge
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; r7 = 0
+    LD A, 0
+    LD ($F00E), A
+    ; r8 = call set_pixel
+    ; Call to set_pixel (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL set_pixel
+    LD ($F010), HL
+    ; r9 = load edge
+    LD HL, ($F000)
+    LD ($F012), HL
+    ; r10 = 15
+    LD A, 15
+    LD ($F014), A
+    ; r11 = call set_pixel
+    ; Call to set_pixel (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL set_pixel
+    LD ($F016), HL
+    ; r12 = 0
+    LD A, 0
+    LD ($F018), A
+    ; r13 = load edge
+    LD HL, ($F000)
+    LD ($F01A), HL
+    ; r14 = call set_pixel
+    ; Call to set_pixel (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL set_pixel
+    LD ($F01C), HL
+    ; r15 = 15
+    LD A, 15
+    LD ($F01E), A
+    ; r16 = load edge
+    LD HL, ($F000)
+    LD ($F020), HL
+    ; r17 = call set_pixel
+    ; Call to set_pixel (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL set_pixel
+    LD ($F022), HL
+    ; r18 = load edge
+    LD HL, ($F000)
+    LD ($F024), HL
+    ; r19 = 1
+    LD A, 1
+    LD ($F026), A
+    ; r20 = r18 + r19
+    LD HL, ($F024)
+    LD D, H
+    LD E, L
+    LD HL, ($F026)
+    ADD HL, DE
+    LD ($F028), HL
+    ; store edge, r20
+    LD HL, ($F028)
+    LD ($F002), HL
+    ; jump loop_45
+    JP loop_45
+    ; end_loop_46:
+end_loop_46:
+    ; r22 = 2
+    LD A, 2
+    LD ($F02C), A
+    ; store , r22
+    LD HL, ($F02C)
+    LD ($F02A), HL
+    ; loop_47:
+loop_47:
+    ; r23 = load diag
+    LD HL, ($F000)
+    LD ($F02E), HL
+    ; r24 = 14
+    LD A, 14
+    LD ($F030), A
+    ; r25 = r23 < r24
+    LD HL, ($F02E)
+    LD D, H
+    LD E, L
+    LD HL, ($F030)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L68
+    LD HL, 0
+    JP .L69
+.L68:
+    LD HL, 1
+.L69:
+    LD ($F032), HL
+    ; jump_if_not r25, end_loop_48
+    LD A, ($F032)
+    OR A
+    JP Z, end_loop_48
+    ; r26 = load diag
+    LD HL, ($F000)
+    LD ($F034), HL
+    ; r27 = load diag
+    LD HL, ($F000)
+    LD ($F036), HL
+    ; r28 = call set_pixel
+    ; Call to set_pixel (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL set_pixel
+    LD ($F038), HL
+    ; r29 = load diag
+    LD HL, ($F000)
+    LD ($F03A), HL
+    ; r30 = 1
+    LD A, 1
+    LD ($F03C), A
+    ; r31 = r29 + r30
+    LD HL, ($F03A)
+    LD D, H
+    LD E, L
+    LD HL, ($F03C)
+    ADD HL, DE
+    LD ($F03E), HL
+    ; store diag, r31
+    LD HL, ($F03E)
+    LD ($F02A), HL
+    ; jump loop_47
+    JP loop_47
+    ; end_loop_48:
+end_loop_48:
+    ; r32 = 7
+    LD A, 7
+    LD ($F040), A
+    ; r33 = 8
+    LD A, 8
+    LD ($F042), A
+    ; r34 = call set_pixel
+    ; Call to set_pixel (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL set_pixel
+    LD ($F044), HL
+    ; r35 = 8
+    LD A, 8
+    LD ($F046), A
+    ; r36 = 8
+    LD A, 8
+    LD ($F048), A
+    ; r37 = call set_pixel
+    ; Call to set_pixel (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL set_pixel
+    LD ($F04A), HL
+    ; r38 = 9
+    LD A, 9
+    LD ($F04C), A
+    ; r39 = 8
+    LD A, 8
+    LD ($F04E), A
+    ; r40 = call set_pixel
+    ; Call to set_pixel (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL set_pixel
+    LD ($F050), HL
+    ; r41 = 8
+    LD A, 8
+    LD ($F052), A
+    ; r42 = 7
+    LD A, 7
+    LD ($F054), A
+    ; r43 = call set_pixel
+    ; Call to set_pixel (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL set_pixel
+    LD ($F056), HL
+    ; r44 = 8
+    LD A, 8
+    LD ($F058), A
+    ; r45 = 9
+    LD A, 9
+    LD ($F05A), A
+    ; r46 = call set_pixel
+    ; Call to set_pixel (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL set_pixel
+    LD ($F05C), HL
+    ; return
+    RET
+
+; Function: mnist_complete.test_modern_loops
+mnist_complete.test_modern_loops:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; loop_49:
+loop_49:
+    ; r3 = load i
+    LD HL, ($F000)
+    LD ($F006), HL
+    ; r4 = 32
+    LD A, 32
+    LD ($F008), A
+    ; r5 = r3 < r4
+    LD HL, ($F006)
+    LD D, H
+    LD E, L
+    LD HL, ($F008)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L70
+    LD HL, 0
+    JP .L71
+.L70:
+    LD HL, 1
+.L71:
+    LD ($F00A), HL
+    ; jump_if_not r5, end_loop_50
+    LD A, ($F00A)
+    OR A
+    JP Z, end_loop_50
+    ; r7 = addr(canvas)
+    LD HL, canvas
+    LD ($F00E), HL
+    ; r8 = load i
+    LD HL, ($F000)
+    LD ($F010), HL
+    ; Load array element (u8)
+    LD HL, ($F00E)
+    PUSH HL
+    LD A, ($F010)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F012), A
+    ; store , r9
+    LD HL, ($F012)
+    LD ($F00C), HL
+    ; r10 = load current
+    LD HL, ($F000)
+    LD ($F014), HL
+    ; r11 = 240
+    LD A, 240
+    LD ($F016), A
+    ; unknown op 41
+    LD HL, ($F014)
+    LD D, H
+    LD E, L
+    LD HL, ($F016)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F018), HL
+    ; r13 = addr(canvas)
+    LD HL, canvas
+    LD ($F01A), HL
+    ; r14 = load i
+    LD HL, ($F000)
+    LD ($F01C), HL
+    ; Calculate array element address
+    LD HL, ($F01A)
+    LD D, H
+    LD E, L
+    LD HL, ($F01C)
+    ADD HL, DE
+    LD ($F01E), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F01E)
+    PUSH HL
+    LD A, ($F018)
+    POP HL
+    LD (HL), A
+    ; r16 = load i
+    LD HL, ($F000)
+    LD ($F020), HL
+    ; r17 = 1
+    LD A, 1
+    LD ($F022), A
+    ; r18 = r16 + r17
+    LD HL, ($F020)
+    LD D, H
+    LD E, L
+    LD HL, ($F022)
+    ADD HL, DE
+    LD ($F024), HL
+    ; store i, r18
+    LD HL, ($F024)
+    LD ($F002), HL
+    ; jump loop_49
+    JP loop_49
+    ; end_loop_50:
+end_loop_50:
+    ; return
+    RET
+
+; Function: mnist_complete.delay
+mnist_complete.delay:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; loop_51:
+loop_51:
+    ; r3 = load count
+    LD HL, ($F000)
+    LD ($F006), HL
+    ; r4 = 300
+    LD HL, 300
+    LD ($F008), HL
+    ; r5 = r3 < r4
+    LD HL, ($F006)
+    LD D, H
+    LD E, L
+    LD HL, ($F008)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L72
+    LD HL, 0
+    JP .L73
+.L72:
+    LD HL, 1
+.L73:
+    LD ($F00A), HL
+    ; jump_if_not r5, end_loop_52
+    LD A, ($F00A)
+    OR A
+    JP Z, end_loop_52
+    ; r6 = load count
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; r7 = 1
+    LD A, 1
+    LD ($F00E), A
+    ; r8 = r6 + r7
+    LD HL, ($F00C)
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)
+    ADD HL, DE
+    LD ($F010), HL
+    ; store count, r8
+    LD HL, ($F010)
+    LD ($F002), HL
+    ; jump loop_51
+    JP loop_51
+    ; end_loop_52:
+end_loop_52:
+    ; return
+    RET
+
+; Function: mnist_complete.main
+mnist_complete.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call init_editor
+    ; Call to init_editor (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL init_editor
+    LD ($F002), HL
+    ; r2 = call draw_welcome_pattern
+    ; Call to draw_welcome_pattern (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL draw_welcome_pattern
+    LD ($F004), HL
+    ; r4 = 0
+    LD A, 0
+    LD ($F008), A
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+    ; loop_53:
+loop_53:
+    ; r5 = load frame
+    LD HL, ($F000)
+    LD ($F00A), HL
+    ; r6 = 150
+    LD A, 150
+    LD ($F00C), A
+    ; r7 = r5 < r6
+    LD HL, ($F00A)
+    LD D, H
+    LD E, L
+    LD HL, ($F00C)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L74
+    LD HL, 0
+    JP .L75
+.L74:
+    LD HL, 1
+.L75:
+    LD ($F00E), HL
+    ; jump_if_not r7, end_loop_54
+    LD A, ($F00E)
+    OR A
+    JP Z, end_loop_54
+    ; r8 = call render_to_screen
+    ; Call to render_to_screen (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL render_to_screen
+    LD ($F010), HL
+    ; r9 = call render_cursor
+    ; Call to render_cursor (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL render_cursor
+    LD ($F012), HL
+    ; r10 = call handle_input
+    ; Call to handle_input (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL handle_input
+    LD ($F014), HL
+    ; jump_if_not r10, else_55
+    LD A, ($F014)
+    OR A
+    JP Z, else_55
+    ; r11 = call delay
+    ; Call to delay (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL delay
+    LD ($F016), HL
+    ; jump end_if_56
+    JP end_if_56
+    ; else_55:
+else_55:
+    ; end_if_56:
+end_if_56:
+    ; r12 = load frame
+    LD HL, ($F000)
+    LD ($F018), HL
+    ; r13 = 31
+    LD A, 31
+    LD ($F01A), A
+    ; unknown op 41
+    LD HL, ($F018)
+    LD D, H
+    LD E, L
+    LD HL, ($F01A)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F01C), HL
+    ; r15 = 0
+    LD A, 0
+    LD ($F01E), A
+    ; r16 = r14 == r15
+    LD HL, ($F01C)
+    LD D, H
+    LD E, L
+    LD HL, ($F01E)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L76
+    LD HL, 0
+    JP .L77
+.L76:
+    LD HL, 1
+.L77:
+    LD ($F020), HL
+    ; jump_if_not r16, else_57
+    LD A, ($F020)
+    OR A
+    JP Z, else_57
+    ; r18 = call count_set_pixels
+    ; Call to count_set_pixels (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL count_set_pixels
+    LD ($F024), HL
+    ; store , r18
+    LD HL, ($F024)
+    LD ($F022), HL
+    ; r19 = load pixel_count
+    LD HL, ($F000)
+    LD ($F026), HL
+    ; r20 = 80
+    LD A, 80
+    LD ($F028), A
+    ; r21 = r19 > r20
+    LD HL, ($F026)
+    LD D, H
+    LD E, L
+    LD HL, ($F028)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L79
+    JP P, .L78
+    LD HL, 0
+    JP .L79
+.L78:
+    LD HL, 1
+.L79:
+    LD ($F02A), HL
+    ; jump_if_not r21, else_59
+    LD A, ($F02A)
+    OR A
+    JP Z, else_59
+    ; r22 = call test_modern_loops
+    ; Call to test_modern_loops (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_modern_loops
+    LD ($F02C), HL
+    ; jump end_if_60
+    JP end_if_60
+    ; else_59:
+else_59:
+    ; end_if_60:
+end_if_60:
+    ; jump end_if_58
+    JP end_if_58
+    ; else_57:
+else_57:
+    ; end_if_58:
+end_if_58:
+    ; r23 = call delay
+    ; Call to delay (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL delay
+    LD ($F02E), HL
+    ; r24 = load frame
+    LD HL, ($F000)
+    LD ($F030), HL
+    ; r25 = 1
+    LD A, 1
+    LD ($F032), A
+    ; r26 = r24 + r25
+    LD HL, ($F030)
+    LD D, H
+    LD E, L
+    LD HL, ($F032)
+    ADD HL, DE
+    LD ($F034), HL
+    ; store frame, r26
+    LD HL, ($F034)
+    LD ($F006), HL
+    ; jump loop_53
+    JP loop_53
+    ; end_loop_54:
+end_loop_54:
+    ; r27 = call clear_canvas
+    ; Call to clear_canvas (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL clear_canvas
+    LD ($F036), HL
+    ; r28 = 5
+    LD A, 5
+    LD ($F038), A
+    ; store cursor_x, r28
+    LD HL, ($F038)
+    LD ($F020), HL
+    ; r29 = 5
+    LD A, 5
+    LD ($F03A), A
+    ; store cursor_y, r29
+    LD HL, ($F03A)
+    LD ($F040), HL
+    ; r30 = call toggle_pixel
+    ; Call to toggle_pixel (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL toggle_pixel
+    LD ($F03C), HL
+    ; r31 = 10
+    LD A, 10
+    LD ($F03E), A
+    ; store cursor_x, r31
+    LD HL, ($F03E)
+    LD ($F020), HL
+    ; r32 = 10
+    LD A, 10
+    LD ($F040), A
+    ; store cursor_y, r32
+    LD HL, ($F040)
+    LD ($F040), HL
+    ; r33 = call toggle_pixel
+    ; Call to toggle_pixel (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL toggle_pixel
+    LD ($F042), HL
+    ; r34 = 5
+    LD A, 5
+    LD ($F044), A
+    ; store cursor_x, r34
+    LD HL, ($F044)
+    LD ($F020), HL
+    ; r35 = 10
+    LD A, 10
+    LD ($F046), A
+    ; store cursor_y, r35
+    LD HL, ($F046)
+    LD ($F040), HL
+    ; r36 = call toggle_pixel
+    ; Call to toggle_pixel (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL toggle_pixel
+    LD ($F048), HL
+    ; r37 = 10
+    LD A, 10
+    LD ($F04A), A
+    ; store cursor_x, r37
+    LD HL, ($F04A)
+    LD ($F020), HL
+    ; r38 = 5
+    LD A, 5
+    LD ($F04C), A
+    ; store cursor_y, r38
+    LD HL, ($F04C)
+    LD ($F040), HL
+    ; r39 = call toggle_pixel
+    ; Call to toggle_pixel (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL toggle_pixel
+    LD ($F04E), HL
+    ; r41 = call count_set_pixels
+    ; Call to count_set_pixels (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL count_set_pixels
+    LD ($F052), HL
+    ; store , r41
+    LD HL, ($F052)
+    LD ($F050), HL
+    ; return
+    RET
+
+    END main
