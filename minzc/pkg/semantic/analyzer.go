@@ -1115,8 +1115,32 @@ func (a *Analyzer) analyzeAssignStmt(stmt *ast.AssignStmt, irFunc *ir.Function) 
 			return fmt.Errorf("error analyzing field object: %v", err)
 		}
 		
-		// Get the struct type
+		// Get the object type
 		objType := a.exprTypes[target.Object]
+		
+		// Check if it's a bit struct
+		if bitStructType, ok := objType.(*ir.BitStructType); ok {
+			// Handle bit field assignment
+			bitField, exists := bitStructType.Fields[target.Field]
+			if !exists {
+				return fmt.Errorf("bit struct has no field %s", target.Field)
+			}
+			
+			// Generate bit field store instruction
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpStoreBitField,
+				Src1:    objReg,
+				Src2:    valueReg,
+				Imm:     int64(bitField.BitOffset),
+				Imm2:    int64(bitField.BitWidth),
+				Type:    bitStructType.UnderlyingType,
+				Comment: fmt.Sprintf("Store bit field %s (offset %d, width %d)", target.Field, bitField.BitOffset, bitField.BitWidth),
+			})
+			
+			return nil
+		}
+		
+		// Handle regular struct types
 		var structType *ir.StructType
 		
 		// Handle both direct struct and pointer to struct

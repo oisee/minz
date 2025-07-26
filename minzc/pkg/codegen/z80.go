@@ -1022,33 +1022,40 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpStoreBitField:
 		// Store bit field value
-		// Src1 = target register containing bit struct
-		// Src2 = new field value
+		// Src1 = register containing bit struct (target)
+		// Src2 = register containing value to store
 		// Imm = bit offset, Imm2 = bit width
 		bitOffset := int(inst.Imm)
 		bitWidth := int(inst.Imm2)
 		
-		// Create field mask
-		fieldMask := ((1 << bitWidth) - 1) << bitOffset
-		clearMask := ^uint8(fieldMask)
-		
-		// Load current value and clear field bits
+		// First, load the current value
 		g.loadToA(inst.Src1)
-		g.emit("    AND %d        ; Clear field bits", clearMask)
-		g.emit("    LD B, A      ; Save cleared value")
+		g.emit("    LD B, A        ; Save original value")
 		
-		// Load new field value and shift to position
+		// Create mask for clearing the field bits
+		fieldMask := ((1 << bitWidth) - 1) << bitOffset
+		clearMask := ^fieldMask & 0xFF
+		
+		// Clear the field bits
+		g.emit("    AND %d         ; Clear field bits", clearMask)
+		g.emit("    LD C, A        ; Save cleared value")
+		
+		// Load the new value and prepare it
 		g.loadToA(inst.Src2)
-		if bitOffset > 0 {
-			for i := 0; i < bitOffset; i++ {
-				g.emit("    SLA A")
-			}
+		
+		// Mask to ensure value fits in field width
+		valueMask := (1 << bitWidth) - 1
+		g.emit("    AND %d         ; Mask to field width", valueMask)
+		
+		// Shift left to position
+		for i := 0; i < bitOffset; i++ {
+			g.emit("    SLA A          ; Shift to bit position")
 		}
 		
 		// Combine with cleared value
-		g.emit("    OR B         ; Combine with cleared value")
+		g.emit("    OR C           ; Combine with cleared original")
 		
-		// Store result back
+		// Store back
 		g.storeFromA(inst.Src1)
 		
 	case ir.OpAsm:
