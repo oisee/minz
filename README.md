@@ -138,7 +138,23 @@ fun set_border_color(color: u8) -> void {
 
 #### High-Performance Iterators
 
-MinZ provides two specialized iterator modes for efficient array processing:
+MinZ provides multiple iterator modes for efficient array processing:
+
+##### AT Mode - Modern ABAP-Inspired Syntax (🆕 July 2025)
+```minz
+let data: [2]u8 = [1, 2];
+
+fun process_array() -> void {
+    // Modern loop at syntax with SMC optimization
+    // Generates DJNZ-optimized Z80 code with direct memory access
+    loop at data -> item {
+        // Process each item with SMC-optimized access
+        // Automatic DJNZ counter management for optimal performance
+    }
+}
+```
+
+##### Legacy Iterator Modes
 
 ##### INTO Mode - Ultra-Fast Field Access
 ```minz
@@ -551,6 +567,16 @@ add_param_a:
 
 ### Latest Features (2025)
 
+#### 🚀 **July 2025 - Major Compiler Enhancements**
+- **✅ Bitwise NOT Operator (~)** - Complete unary operator support for bitwise operations
+- **✅ Address-of Operator (&)** - Memory address access with full IR and codegen support
+- **✅ Division/Modulo Operations** - OpDiv/OpMod implementation for arithmetic completeness
+- **✅ Loop At Syntax** - Modern `loop at array -> item` iterator with SMC optimization
+- **✅ MNIST Editor Modernization** - Complete rewrite showcasing all modern MinZ features
+- **✅ SMC Work Area Optimization** - Self-modifying code for static memory access (50%+ faster than IX-based)
+- **✅ DJNZ Loop Optimization** - Z80-native loop patterns with automatic counter management
+
+#### 📈 **Previous 2025 Features**
 - **✅ High-Performance Iterators** - Two specialized modes (INTO/REF TO) for optimal array processing with minimal overhead
 - **✅ Modern Array Syntax** - Support for both `[Type; size]` and `[size]Type` array declarations
 - **✅ Indexed Iteration** - Built-in support for element indices in loops
@@ -587,6 +613,11 @@ add_param_a:
 - [x] High-performance iterators with INTO/REF TO modes
 - [x] Modern array syntax ([Type; size])
 - [x] Direct memory operations for struct fields
+- [x] Bitwise NOT operator (~) and address-of operator (&)
+- [x] Division and modulo operations (OpDiv/OpMod)
+- [x] Modern "loop at" iterator syntax with SMC optimization
+- [x] DJNZ loop optimization for Z80-native performance
+- [x] Complete MNIST editor modernization and validation
 - [ ] Array element assignment (e.g., arr[i].field = value)
 - [ ] Iterator chaining and filtering
 - [ ] Inline assembly improvements

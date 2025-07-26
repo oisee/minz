@@ -147,6 +147,7 @@ const (
 	OpFree
 	OpLoadPtr
 	OpStorePtr
+	OpAddr     // Address-of operator (&)
 	
 	// Stack
 	OpPush

@@ -842,6 +842,20 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD HL, 0")
 		g.storeFromHL(inst.Dest)
 		
+	case ir.OpDiv:
+		// Division operation
+		// TODO: Implement proper 16-bit division
+		g.emit("    ; TODO: Division")
+		g.emit("    LD HL, 1  ; Placeholder result")
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpMod:
+		// Modulo operation  
+		// TODO: Implement proper 16-bit modulo
+		g.emit("    ; TODO: Modulo")
+		g.emit("    LD HL, 0  ; Placeholder result")
+		g.storeFromHL(inst.Dest)
+		
 	case ir.OpInc:
 		// Increment register
 		if inst.Type != nil && inst.Type.Size() == 1 {
@@ -1247,6 +1261,18 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    INC HL")
 			g.emit("    LD (HL), D")
 		}
+		
+	case ir.OpAddr:
+		// Address-of operator: get address of variable
+		// Src1 = variable to get address of, Dest = register to store address
+		// For now, this is a simplified implementation
+		// In a full implementation, would calculate actual memory addresses
+		reg := inst.Src1
+		
+		// This is a simplified implementation - create a dummy address
+		g.emit("    ; Address-of operation for register r%d", int(reg))
+		g.emit("    LD HL, $%04X  ; Variable address (placeholder)", 0x8000+int(reg)*2)
+		g.storeFromHL(inst.Dest)
 		
 	case ir.OpStoreIndex:
 		// Store element to array

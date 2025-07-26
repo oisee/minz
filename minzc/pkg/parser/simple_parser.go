@@ -555,7 +555,7 @@ func (p *SimpleParser) parseStatement() ast.Statement {
 		case "asm":
 			return p.parseAsmStmt()
 		case "loop":
-			return p.parseLoopStmt()
+			return p.parseLoopStatement()
 		case "do":
 			return p.parseDoStatement()
 		}
@@ -679,6 +679,27 @@ func (p *SimpleParser) parseBinaryExpression(minPrec int) ast.Expression {
 
 // parsePrimaryExpression parses primary expressions
 func (p *SimpleParser) parsePrimaryExpression() ast.Expression {
+	// Unary operators: !, ~, -, +, &
+	if p.peek().Type == TokenOperator {
+		op := p.peek().Value
+		if op == "!" || op == "~" || op == "-" || op == "+" || op == "&" {
+			startPos := p.currentPos()
+			p.advance() // consume operator
+			
+			operand := p.parsePrimaryExpression()
+			if operand == nil {
+				return nil
+			}
+			
+			return &ast.UnaryExpr{
+				Operator: op,
+				Operand:  operand,
+				StartPos: startPos,
+				EndPos:   p.currentPos(),
+			}
+		}
+	}
+	
 	// Number literals
 	if p.peek().Type == TokenNumber {
 		val, _ := strconv.ParseInt(p.peek().Value, 0, 64)
@@ -964,7 +985,7 @@ func isKeyword(s string) bool {
 		"fun", "let", "mut", "if", "else", "while", "for", "return",
 		"struct", "enum", "impl", "pub", "mod", "use", "import",
 		"true", "false", "as", "module", "asm", "const", "type",
-		"loop", "into", "ref", "to", "indexed", "bits",
+		"loop", "into", "ref", "to", "indexed", "bits", "at",
 		"do", "times",
 	}
 	for _, kw := range keywords {
@@ -1068,8 +1089,7 @@ func (p *SimpleParser) parseLoopStmt() *ast.LoopStmt {
 		Mode:     ast.LoopInto, // Default mode
 	}
 	
-	p.expect(TokenKeyword, "loop")
-	
+	// Note: "loop" token already consumed by parseLoopStatement()
 	// Parse table expression
 	loopStmt.Table = p.parseExpression()
 	
@@ -1113,6 +1133,65 @@ func (p *SimpleParser) parseLoopStmt() *ast.LoopStmt {
 	
 	loopStmt.EndPos = p.currentPos()
 	return loopStmt
+}
+
+// parseLoopStatement parses both old and new loop syntax
+func (p *SimpleParser) parseLoopStatement() ast.Statement {
+	startPos := p.currentPos()
+	
+	p.expect(TokenKeyword, "loop")
+	
+	// Check for new syntax: "loop at array -> item"
+	if p.peek().Type == TokenKeyword && p.peek().Value == "at" {
+		return p.parseLoopAtStatement(startPos)
+	}
+	
+	// Fall back to old syntax for now
+	return p.parseLoopStmt()
+}
+
+// parseLoopAtStatement parses "loop at array -> item" syntax
+func (p *SimpleParser) parseLoopAtStatement(startPos ast.Position) ast.Statement {
+	p.expect(TokenKeyword, "at")
+	
+	// Parse array/table identifier (not full expression to avoid consuming ->)
+	if p.peek().Type != TokenIdent {
+		return nil
+	}
+	tableName := p.advance().Value
+	table := &ast.Identifier{
+		Name: tableName,
+		StartPos: p.currentPos(),
+		EndPos: p.currentPos(),
+	}
+	
+	// Expect "->"
+	p.expect(TokenOperator, "->")
+	
+	// Check for ! modifier (modification intent)
+	isModifying := false
+	if p.peek().Value == "!" {
+		isModifying = true
+		p.advance()
+	}
+	
+	// Parse iterator variable name
+	if p.peek().Type != TokenIdent {
+		return nil
+	}
+	iterator := p.advance().Value
+	
+	// Parse body
+	body := p.parseBlock()
+	
+	return &ast.LoopAtStmt{
+		Table:       table,
+		Iterator:    iterator,
+		IsModifying: isModifying,
+		Body:        body,
+		StartPos:    startPos,
+		EndPos:      p.currentPos(),
+	}
 }
 
 // parseDoStatement parses a "do N times" statement

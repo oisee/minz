@@ -754,6 +754,9 @@ func (a *Analyzer) analyzeBlock(block *ast.BlockStmt, irFunc *ir.Function) error
 
 // analyzeStatement analyzes a statement
 func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) error {
+	if stmt == nil {
+		return fmt.Errorf("encountered nil statement - likely a parsing error")
+	}
 	switch s := stmt.(type) {
 	case *ast.VarDecl:
 		return a.analyzeVarDeclInFunc(s, irFunc)
@@ -777,6 +780,8 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 		return a.analyzeLoopStmt(s, irFunc)
 	case *ast.DoTimesStmt:
 		return a.analyzeDoTimesStmt(s, irFunc)
+	case *ast.LoopAtStmt:
+		return a.analyzeLoopAtStmt(s, irFunc)
 	default:
 		return fmt.Errorf("unsupported statement type: %T", stmt)
 	}
@@ -1467,6 +1472,204 @@ func (a *Analyzer) analyzeDoTimesStmt(stmt *ast.DoTimesStmt, irFunc *ir.Function
 	return nil
 }
 
+// analyzeLoopAtStmt analyzes a loop at array -> item statement
+func (a *Analyzer) analyzeLoopAtStmt(stmt *ast.LoopAtStmt, irFunc *ir.Function) error {
+	// Analyze the array/table expression
+	arrayReg, err := a.analyzeExpression(stmt.Table, irFunc)
+	if err != nil {
+		return fmt.Errorf("invalid array expression: %w", err)
+	}
+	
+	// Get array type information from the symbol table
+	var arrayType ir.Type
+	if ident, ok := stmt.Table.(*ast.Identifier); ok {
+		// Look up the identifier in the symbol table
+		sym := a.currentScope.Lookup(ident.Name)
+		if sym == nil {
+			// Try with module prefix
+			prefixedName := a.prefixSymbol(ident.Name)
+			sym = a.currentScope.Lookup(prefixedName)
+			if sym == nil {
+				return fmt.Errorf("undefined array variable: %s", ident.Name)
+			}
+		}
+		
+		if varSym, ok := sym.(*VarSymbol); ok {
+			arrayType = varSym.Type
+		} else {
+			return fmt.Errorf("loop at requires a variable, got %T", sym)
+		}
+	} else {
+		return fmt.Errorf("loop at currently only supports simple variable references")
+	}
+	
+	// Verify it's an array type
+	var elementType ir.Type
+	var arraySize int
+	switch t := arrayType.(type) {
+	case *ir.ArrayType:
+		elementType = t.Element
+		arraySize = t.Length
+	default:
+		return fmt.Errorf("loop at requires an array type, got %T", arrayType)
+	}
+	
+	// Generate labels
+	loopLabel := a.generateLabel("loop_at")
+	endLabel := a.generateLabel("loop_end")
+	
+	// Allocate registers for iteration
+	indexReg := irFunc.AllocReg()     // Current index (counter)
+	baseReg := irFunc.AllocReg()      // Array base address
+	workAreaReg := irFunc.AllocReg()  // Work area for current element
+	
+	// Get array base address (for now, assume array is at arrayReg)
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpMove,
+		Dest:    baseReg,
+		Src1:    arrayReg,
+		Comment: "Get array base address",
+	})
+	
+	// Initialize index to array size (we'll decrement down to 0)
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpLoadImm,
+		Dest:    indexReg,
+		Imm:     int64(arraySize),
+		Comment: "Initialize index to array size",
+	})
+	
+	// Check if array is empty (skip loop entirely)
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpJumpIfZero,
+		Src1:    indexReg,
+		Symbol:  endLabel,
+		Comment: "Skip if array is empty",
+	})
+	
+	// Loop start label
+	irFunc.EmitLabel(loopLabel)
+	
+	// Decrement index first (so we go from size-1 down to 0)
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpDec,
+		Dest:    indexReg,
+		Src1:    indexReg,
+		Comment: "Decrement index",
+	})
+	
+	// Calculate element address: base + (index * element_size)
+	// For now, assume 1-byte elements, will be optimized later
+	elementSize := a.getTypeSize(elementType)
+	if elementSize > 1 {
+		// Need to multiply index by element size
+		offsetReg := irFunc.AllocReg()
+		sizeReg := irFunc.AllocReg()
+		
+		// Load element size into register
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpLoadImm,
+			Dest:    sizeReg,
+			Imm:     int64(elementSize),
+			Comment: "Load element size",
+		})
+		
+		// Multiply index by element size
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpMul,
+			Dest:    offsetReg,
+			Src1:    indexReg,
+			Src2:    sizeReg,
+			Comment: "Calculate element offset",
+		})
+		
+		// Add to base address
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpAdd,
+			Dest:    workAreaReg,
+			Src1:    baseReg,
+			Src2:    offsetReg,
+			Comment: "Calculate element address",
+		})
+	} else {
+		// Simple case: 1-byte elements
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpAdd,
+			Dest:    workAreaReg,
+			Src1:    baseReg,
+			Src2:    indexReg,
+			Comment: "Calculate element address",
+		})
+	}
+	
+	// Load element into work area (for now, just use the address)
+	// In a full implementation, this would copy the element data
+	
+	// Create a new scope for the loop body with the iterator variable
+	a.currentScope = NewScope(a.currentScope)
+	defer func() {
+		a.currentScope = a.currentScope.parent
+	}()
+	
+	// Add iterator variable to scope
+	iteratorSym := &VarSymbol{
+		Name:      stmt.Iterator,
+		Type:      elementType,
+		Reg:       workAreaReg,
+		IsMutable: stmt.IsModifying, // Only mutable if ! modifier is used
+	}
+	a.currentScope.Define(stmt.Iterator, iteratorSym)
+	
+	// Analyze loop body
+	if err := a.analyzeStatement(stmt.Body, irFunc); err != nil {
+		return err
+	}
+	
+	// If modifying (!), write back the work area to the array
+	if stmt.IsModifying {
+		// TODO: Implement write-back logic
+		// For now, add a comment indicating where write-back would happen
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpNop,
+			Comment: "TODO: Write back modified element",
+		})
+	}
+	
+	// Loop if index not zero (DJNZ pattern)
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpJumpIfNotZero,
+		Src1:    indexReg,
+		Symbol:  loopLabel,
+		Comment: "Loop if more elements (DJNZ pattern)",
+	})
+	
+	// End label
+	irFunc.EmitLabel(endLabel)
+	
+	return nil
+}
+
+// getTypeSize returns the size in bytes of a type
+func (a *Analyzer) getTypeSize(t ir.Type) int {
+	switch typ := t.(type) {
+	case *ir.BasicType:
+		switch typ.Kind {
+		case ir.TypeU8, ir.TypeI8, ir.TypeBool:
+			return 1
+		case ir.TypeU16, ir.TypeI16:
+			return 2
+		default:
+			return 1 // Default to 1 byte
+		}
+	case *ir.ArrayType:
+		return a.getTypeSize(typ.Element) * typ.Length
+	case *ir.PointerType:
+		return 2 // Pointers are 16-bit on Z80
+	default:
+		return 1 // Default fallback
+	}
+}
+
 // analyzeExpression analyzes an expression and returns the register containing the result
 func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (ir.Register, error) {
 	// Debug: print expression type
@@ -1688,6 +1891,9 @@ func (a *Analyzer) analyzeUnaryExpr(un *ast.UnaryExpr, irFunc *ir.Function) (ir.
 	case "~":
 		// Bitwise not
 		irFunc.Emit(ir.OpNot, resultReg, operandReg, 0)
+	case "&":
+		// Address-of operator
+		irFunc.Emit(ir.OpAddr, resultReg, operandReg, 0)
 	default:
 		return 0, fmt.Errorf("unsupported unary operator: %s", un.Operator)
 	}
@@ -2485,6 +2691,9 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		case "!":
 			// Logical not returns bool
 			return &ir.BasicType{Kind: ir.TypeBool}, nil
+		case "&":
+			// Address-of returns pointer to operand type
+			return &ir.PointerType{Base: operandType}, nil
 		default:
 			return nil, fmt.Errorf("cannot infer type for unary operator %s", e.Operator)
 		}
