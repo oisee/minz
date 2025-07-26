@@ -15,9 +15,15 @@ Function ...examples.test_bit_structs.set_screen_attr(x: u8, y: u8, attr: bits<u
 Function ...examples.test_bit_structs.test_bit_structs() -> void
   @smc
   Locals:
-    r1 = raw: u8
+    r1 = attr_raw: u8
   Instructions:
       0: r2 = 71
       1: store , r2
       2: return
+
+Function ...examples.test_bit_structs.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_bit_structs
+      1: return
 

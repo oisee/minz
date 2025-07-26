@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-26 15:40:21
+; Generated: 2025-07-26 16:10:43
 
 
 ; Code section
@@ -38,6 +38,18 @@
     LD ($F004), A
     ; store , r2
     LD HL, ($F004)
+    LD ($F002), HL
+    ; return
+    RET
+
+; Function: ...examples.test_bit_structs.main
+...examples.test_bit_structs.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call test_bit_structs
+    ; Call to test_bit_structs (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_bit_structs
     LD ($F002), HL
     ; return
     RET

@@ -998,6 +998,59 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    INC DE")
 		g.emit("    LD (DE), H")
 		
+	case ir.OpLoadBitField:
+		// Load bit field value
+		// Src1 = source register containing bit struct
+		// Imm = bit offset, Imm2 = bit width
+		bitOffset := int(inst.Imm)
+		bitWidth := int(inst.Imm2)
+		
+		// Load source value
+		g.loadToA(inst.Src1)
+		
+		// Shift right to get field to LSB
+		for i := 0; i < bitOffset; i++ {
+			g.emit("    SRL A")
+		}
+		
+		// Mask to get only the field bits
+		mask := (1 << bitWidth) - 1
+		g.emit("    AND %d", mask)
+		
+		// Store result
+		g.storeFromA(inst.Dest)
+		
+	case ir.OpStoreBitField:
+		// Store bit field value
+		// Src1 = target register containing bit struct
+		// Src2 = new field value
+		// Imm = bit offset, Imm2 = bit width
+		bitOffset := int(inst.Imm)
+		bitWidth := int(inst.Imm2)
+		
+		// Create field mask
+		fieldMask := ((1 << bitWidth) - 1) << bitOffset
+		clearMask := ^uint8(fieldMask)
+		
+		// Load current value and clear field bits
+		g.loadToA(inst.Src1)
+		g.emit("    AND %d        ; Clear field bits", clearMask)
+		g.emit("    LD B, A      ; Save cleared value")
+		
+		// Load new field value and shift to position
+		g.loadToA(inst.Src2)
+		if bitOffset > 0 {
+			for i := 0; i < bitOffset; i++ {
+				g.emit("    SLA A")
+			}
+		}
+		
+		// Combine with cleared value
+		g.emit("    OR B         ; Combine with cleared value")
+		
+		// Store result back
+		g.storeFromA(inst.Src1)
+		
 	case ir.OpAsm:
 		// Emit named label if provided
 		if inst.AsmName != "" {

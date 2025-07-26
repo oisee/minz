@@ -25,11 +25,17 @@ fn set_screen_attr(x: u8, y: u8, attr: ScreenAttr) -> void {
 }
 
 fn test_bit_structs() -> void {
-    // Test bit struct as parameter type
-    let mut raw: u8 = 0x47
+    // Test bit field access with a raw u8 for now
+    let mut attr_raw: u8 = 0x47  // 01000111 = paper=0, ink=7, bright=1
     
-    // For now, just test that bit struct types are recognized
-    // TODO: Add field access once we implement the IR operations
+    // For now test with regular variables since we need type conversion
+    // This will test the bit field operations are generated
+    let mut test_value: u8 = attr_raw
+    
+    // TODO: Once we have type conversion, we can do:
+    // let mut attr: ScreenAttr = 0x47 as ScreenAttr
+    // let ink = attr.ink     // Should extract bits 0-2
+    // attr.paper = 5         // Should set bits 3-5
 }
 
 fn main() -> void {
