@@ -1,0 +1,4 @@
+fun main() -> void {
+    // Simple assignment that we know works
+    let x: u8 = 5;
+}

@@ -1,0 +1,15 @@
+// Test arrays
+
+type Editor = struct {
+    x: u8,
+    data: [4]u8
+};
+
+fun main() -> void {
+    let mut editor: Editor;
+    editor.x = 5;
+    editor.data[0] = 1;
+    editor.data[1] = 2;
+    
+    let val: u8 = editor.data[0];
+}

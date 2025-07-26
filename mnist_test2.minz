@@ -1,0 +1,18 @@
+// Test function calls
+
+type Editor = struct {
+    x: u8,
+    y: u8
+};
+
+fun make_editor() -> Editor {
+    let mut editor: Editor;
+    editor.x = 5;
+    editor.y = 10;
+    return editor;
+}
+
+fun main() -> void {
+    let editor: Editor = make_editor();
+    let sum: u8 = editor.x + editor.y;
+}

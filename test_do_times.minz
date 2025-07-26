@@ -1,0 +1,5 @@
+fun main() -> void {
+    do 3 times {
+        // Simple counting loop
+    }
+}

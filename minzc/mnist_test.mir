@@ -1,0 +1,23 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...mnist_test.main() -> void
+  @smc
+  Locals:
+    r1 = editor: ...mnist_test.Editor
+    r6 = sum: u8
+  Instructions:
+      0: r2 = 5
+      1: r3 = load editor
+      2: 14 ; Store to field x (offset 0)
+      3: r4 = 10
+      4: r5 = load editor
+      5: 14 ; Store to field y (offset 1)
+      6: r7 = load editor
+      7: 13 ; Load field x (offset 0)
+      8: r9 = load editor
+      9: 13 ; Load field y (offset 1)
+     10: r11 = r8 + r10
+     11: store , r11
+     12: return
+

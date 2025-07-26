@@ -1,0 +1,6 @@
+fun main() -> void {
+    let numbers: [3]u8 = [1, 2, 3];
+    
+    loop at numbers -> item {
+    }
+}

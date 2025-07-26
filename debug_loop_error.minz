@@ -1,0 +1,7 @@
+fun main() -> void {
+    let numbers: [3]u8 = [1, 2, 3];
+    
+    loop at invalid_variable -> num {
+        // This should cause an error
+    }
+}

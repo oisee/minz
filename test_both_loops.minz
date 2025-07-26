@@ -1,0 +1,14 @@
+// Test both loop syntaxes
+
+fun main() -> void {
+    let arr1: [2]u8 = [1, 2];
+    let arr2: [2]u8 = [3, 4];
+    
+    // Old syntax - this works
+    loop arr1 into item1 {
+    }
+    
+    // New syntax - this doesn't work  
+    loop at arr2 -> item2 {
+    }
+}

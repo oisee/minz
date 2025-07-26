@@ -1,0 +1,25 @@
+; MinZ generated code
+; Generated: 2025-07-26 19:04:36
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...debug_loop_error.main
+...debug_loop_error.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 1
+    LD A, 1
+    LD ($F004), A
+    ; r3 = 2
+    LD A, 2
+    LD ($F006), A
+    ; r4 = 3
+    LD A, 3
+    LD ($F008), A
+    ; return
+    RET
+
+    END main

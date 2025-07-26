@@ -1,0 +1,179 @@
+; MinZ generated code
+; Generated: 2025-07-26 19:22:12
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...test_nil.test_simple
+...test_nil.test_simple:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 5
+    LD A, 5
+    LD ($F002), A
+    ; r2 = load canvas
+    LD HL, ($F000)
+    LD ($F004), HL
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A
+    ; Calculate array element address
+    LD HL, ($F004)
+    LD D, H
+    LD E, L
+    LD HL, ($F006)
+    ADD HL, DE
+    LD ($F008), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F008)
+    PUSH HL
+    LD A, ($F002)
+    POP HL
+    LD (HL), A
+    ; return
+    RET
+
+; Function: ...test_nil.test_math
+...test_nil.test_math:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 7
+    LD A, 7
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = load x
+    LD HL, ($F000)
+    LD ($F008), HL
+    ; r5 = 3
+    LD A, 3
+    LD ($F00A), A
+    ; unknown op 41
+    LD HL, ($F008)
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F00C), HL
+    ; store , r6
+    LD HL, ($F00C)
+    LD ($F006), HL
+    ; r8 = 128
+    LD A, 128
+    LD ($F010), A
+    ; r9 = load shift
+    LD HL, ($F000)
+    LD ($F012), HL
+    ; unknown op 46
+    ; TODO: Shift right
+    LD HL, ($F010)
+    LD ($F014), HL
+    ; store , r10
+    LD HL, ($F014)
+    LD ($F00E), HL
+    ; r11 = load mask
+    LD HL, ($F000)
+    LD ($F016), HL
+    ; r12 = load canvas
+    LD HL, ($F000)
+    LD ($F018), HL
+    ; r13 = 0
+    LD A, 0
+    LD ($F01A), A
+    ; Calculate array element address
+    LD HL, ($F018)
+    LD D, H
+    LD E, L
+    LD HL, ($F01A)
+    ADD HL, DE
+    LD ($F01C), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F01C)
+    PUSH HL
+    LD A, ($F016)
+    POP HL
+    LD (HL), A
+    ; return
+    RET
+
+; Function: ...test_nil.test_not
+...test_nil.test_not:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 128
+    LD A, 128
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = load mask
+    LD HL, ($F000)
+    LD ($F008), HL
+    ; unknown op 44
+    LD HL, ($F008)
+    LD A, L
+    CPL
+    LD L, A
+    LD A, H
+    CPL
+    LD H, A
+    LD ($F00A), HL
+    ; store , r5
+    LD HL, ($F00A)
+    LD ($F006), HL
+    ; r6 = load inv
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; r7 = load canvas
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; r8 = 0
+    LD A, 0
+    LD ($F010), A
+    ; Calculate array element address
+    LD HL, ($F00E)
+    LD D, H
+    LD E, L
+    LD HL, ($F010)
+    ADD HL, DE
+    LD ($F012), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F012)
+    PUSH HL
+    LD A, ($F00C)
+    POP HL
+    LD (HL), A
+    ; return
+    RET
+
+; Function: ...test_nil.main
+...test_nil.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call test_simple
+    ; Call to test_simple (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_simple
+    LD ($F002), HL
+    ; r2 = call test_math
+    ; Call to test_math (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_math
+    LD ($F004), HL
+    ; r3 = call test_not
+    ; Call to test_not (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_not
+    LD ($F006), HL
+    ; return
+    RET
+
+    END main

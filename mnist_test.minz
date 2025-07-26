@@ -1,0 +1,14 @@
+// Test basic functionality
+
+type Editor = struct {
+    x: u8,
+    y: u8
+};
+
+fun main() -> void {
+    let mut editor: Editor;
+    editor.x = 5;
+    editor.y = 10;
+    
+    let sum: u8 = editor.x + editor.y;
+}

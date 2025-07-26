@@ -1,0 +1,7 @@
+// Simple test to trigger opcode 36
+
+fun main() -> void {
+    let x: u8 = 5;
+    let y: u8 = 10;
+    let z: u8 = x << y;
+}

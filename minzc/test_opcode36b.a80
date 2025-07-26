@@ -1,0 +1,54 @@
+; MinZ generated code
+; Generated: 2025-07-26 19:27:33
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...test_opcode36b.main
+...test_opcode36b.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD ($F004), A
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = 3
+    LD A, 3
+    LD ($F008), A
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+    ; r6 = load x
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; r7 = load y
+    LD HL, ($F000)
+    LD ($F00E), HL
+    ; r8 = r6 / r7
+    ; TODO: Division
+    LD HL, 1  ; Placeholder result
+    LD ($F010), HL
+    ; store , r8
+    LD HL, ($F010)
+    LD ($F00A), HL
+    ; r10 = load x
+    LD HL, ($F000)
+    LD ($F014), HL
+    ; r11 = load y
+    LD HL, ($F000)
+    LD ($F016), HL
+    ; unknown op 37
+    ; TODO: Modulo
+    LD HL, 0  ; Placeholder result
+    LD ($F018), HL
+    ; store , r12
+    LD HL, ($F018)
+    LD ($F012), HL
+    ; return
+    RET
+
+    END main

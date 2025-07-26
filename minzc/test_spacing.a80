@@ -1,0 +1,54 @@
+; MinZ generated code
+; Generated: 2025-07-26 19:35:48
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...test_spacing.main
+...test_spacing.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 1
+    LD A, 1
+    LD ($F004), A
+    ; r3 = 2
+    LD A, 2
+    LD ($F006), A
+    ; r4 = load arr
+    LD HL, ($F000)
+    LD ($F008), HL
+    ; Get array base address
+    LD HL, ($F008)
+    LD ($F00C), HL
+    ; Initialize index to array size
+    LD A, 2
+    LD ($F00A), A
+    ; Skip if array is empty
+    LD A, ($F00A)
+    OR A
+    JP Z, loop_end_2
+    ; loop_at_1:
+loop_at_1:
+    ; Decrement index
+    LD HL, ($F00A)
+    DEC HL
+    LD ($F00A), HL
+    ; Calculate element address
+    LD HL, ($F00C)
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)
+    ADD HL, DE
+    LD ($F00E), HL
+    ; Loop if more elements (DJNZ pattern)
+    LD A, ($F00A)
+    OR A
+    JP NZ, loop_at_1
+    ; loop_end_2:
+loop_end_2:
+    ; return
+    RET
+
+    END main

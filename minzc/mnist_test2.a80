@@ -1,0 +1,97 @@
+; MinZ generated code
+; Generated: 2025-07-26 19:13:49
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...mnist_test2.make_editor
+...mnist_test2.make_editor:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A
+    ; r3 = load editor
+    LD HL, ($F000)
+    LD ($F006), HL
+    ; Store to field x (offset 0)
+    LD HL, ($F006)
+    PUSH HL
+    LD HL, ($F004)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r4 = 10
+    LD A, 10
+    LD ($F008), A
+    ; r5 = load editor
+    LD HL, ($F000)
+    LD ($F00A), HL
+    ; Store to field y (offset 1)
+    LD HL, ($F00A)
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F008)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r6 = load editor
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; return r6
+    LD HL, ($F00C)
+    RET
+
+; Function: ...mnist_test2.main
+...mnist_test2.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call make_editor
+    ; Call to make_editor (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL make_editor
+    LD ($F004), HL
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = load editor
+    LD HL, ($F000)
+    LD ($F008), HL
+    ; Load field x (offset 0)
+    LD HL, ($F008)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F00A), HL
+    ; r6 = load editor
+    LD HL, ($F000)
+    LD ($F00C), HL
+    ; Load field y (offset 1)
+    LD HL, ($F00C)
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F00E), HL
+    ; r8 = r5 + r7
+    LD HL, ($F00A)
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)
+    ADD HL, DE
+    LD ($F010), HL
+    ; store , r8
+    LD HL, ($F010)
+    LD ($F006), HL
+    ; return
+    RET
+
+    END main

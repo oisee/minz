@@ -1,0 +1,8 @@
+// Debug loop parsing - very simple case
+
+fun main() -> void {
+    let arr: [2]u8 = [1, 2];
+    
+    loop at arr -> item {
+    }
+}

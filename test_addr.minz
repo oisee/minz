@@ -1,0 +1,10 @@
+// Test address operator
+
+fun test(x: *u8) -> void {
+    // Simple test
+}
+
+fun main() -> void {
+    let mut val: u8 = 5;
+    test(&val);
+}

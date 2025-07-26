@@ -1,0 +1,26 @@
+// Test what causes nil expression
+
+let mut canvas: [4]u8;
+
+fun test_simple() -> void {
+    canvas[0] = 5;
+}
+
+fun test_math() -> void {
+    let x: u8 = 7;
+    let shift: u8 = x & 3;
+    let mask: u8 = 128 >> shift;
+    canvas[0] = mask;
+}
+
+fun test_not() -> void {
+    let mask: u8 = 128;
+    let inv: u8 = ~mask;
+    canvas[0] = inv;
+}
+
+fun main() -> void {
+    test_simple();
+    test_math(); 
+    test_not();
+}

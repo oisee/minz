@@ -1,0 +1,279 @@
+// Modern MNIST Editor with SMC Work Areas
+// Avoids pointer syntax issues while demonstrating SMC optimization
+
+// Constants  
+const GRID_SIZE: u8 = 16;
+const CANVAS_BYTES: u8 = 32;
+const SCREEN_BASE: u16 = 16384;
+
+// Editor state with SMC-optimized work area
+type Editor = struct {
+    cursor_x: u8,
+    cursor_y: u8,
+    canvas: [32]u8,     // Work area for 16x16 bitmap
+    flash_counter: u8
+};
+
+// Global editor instance (avoids pointer issues)
+let mut g_editor: Editor;
+
+// Initialize the global editor
+fun init_editor() -> void {
+    g_editor.cursor_x = 8;
+    g_editor.cursor_y = 8;
+    g_editor.flash_counter = 0;
+    
+    // Clear canvas using modern approach
+    // This will be SMC-optimized for direct memory access
+    let mut i: u8 = 0;
+    while i < CANVAS_BYTES {
+        g_editor.canvas[i] = 0;  // SMC patches to direct store
+        i = i + 1;
+    }
+}
+
+// Toggle pixel in work area using SMC
+fun toggle_pixel() -> void {
+    let x: u8 = g_editor.cursor_x;
+    let y: u8 = g_editor.cursor_y;
+    
+    // Calculate position in work area
+    let byte_idx: u8 = (y * 2) + (x / 8);
+    let bit_pos: u8 = x & 7;
+    let bit_mask: u8 = 128 >> bit_pos;
+    
+    // SMC will optimize this to direct memory XOR
+    let current: u8 = g_editor.canvas[byte_idx];
+    g_editor.canvas[byte_idx] = current ^ bit_mask;
+}
+
+// Clear work area using SMC optimization
+fun clear_canvas() -> void {
+    // Modern MinZ approach using do times and SMC
+    let mut i: u8 = 0;
+    
+    // This loop will be SMC-optimized for efficiency
+    do 32 times {
+        g_editor.canvas[i] = 0;  // SMC direct store
+        i = i + 1;
+    }
+}
+
+// Check if pixel is set using SMC work area
+fun is_pixel_set(x: u8, y: u8) -> bool {
+    let byte_idx: u8 = (y * 2) + (x / 8);
+    let bit_pos: u8 = x & 7;
+    let bit_mask: u8 = 128 >> bit_pos;
+    
+    // SMC optimizes this work area access
+    let canvas_byte: u8 = g_editor.canvas[byte_idx];
+    return (canvas_byte & bit_mask) != 0;
+}
+
+// Movement functions using global state
+fun move_cursor_up() -> void {
+    if g_editor.cursor_y > 0 {
+        g_editor.cursor_y = g_editor.cursor_y - 1;
+    }
+}
+
+fun move_cursor_down() -> void {
+    if g_editor.cursor_y < 15 {
+        g_editor.cursor_y = g_editor.cursor_y + 1;
+    }
+}
+
+fun move_cursor_left() -> void {
+    if g_editor.cursor_x > 0 {
+        g_editor.cursor_x = g_editor.cursor_x - 1;
+    }
+}
+
+fun move_cursor_right() -> void {
+    if g_editor.cursor_x < 15 {
+        g_editor.cursor_x = g_editor.cursor_x + 1;
+    }
+}
+
+// Simulate ZX Spectrum pixel operations
+fun set_screen_pixel(x: u8, y: u8) -> void {
+    // Calculate ZX Spectrum screen address
+    let y_low: u8 = y & 7;
+    let y_mid: u8 = (y >> 3) & 7; 
+    let y_high: u8 = y >> 6;
+    
+    let addr: u16 = SCREEN_BASE + (y_high * 2048) + (y_mid * 32) + (y_low * 256) + (x / 8);
+    let bit_mask: u8 = 128 >> (x & 7);
+    
+    // SMC would optimize this memory access
+    // For now, just simulate the operation
+}
+
+fun clear_screen_pixel(x: u8, y: u8) -> void {
+    // Similar to set_screen_pixel but clears
+    let y_low: u8 = y & 7;
+    let y_mid: u8 = (y >> 3) & 7;
+    let y_high: u8 = y >> 6;
+    
+    let addr: u16 = SCREEN_BASE + (y_high * 2048) + (y_mid * 32) + (y_low * 256) + (x / 8);
+    let inv_mask: u8 = ~(128 >> (x & 7));
+    
+    // SMC optimization point
+}
+
+// Render canvas to ZX Spectrum screen
+fun render_canvas() -> void {
+    let grid_x: u8 = 64;  // Screen position
+    let grid_y: u8 = 48;
+    
+    // Render using SMC-optimized work area access
+    let mut y: u8 = 0;
+    while y < GRID_SIZE {
+        let mut x: u8 = 0;
+        while x < GRID_SIZE {
+            let pixel_on: bool = is_pixel_set(x, y);
+            let screen_x: u8 = grid_x + x;
+            let screen_y: u8 = grid_y + y;
+            
+            if pixel_on {
+                set_screen_pixel(screen_x, screen_y);
+            } else {
+                clear_screen_pixel(screen_x, screen_y);
+            }
+            
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}
+
+// Render cursor with flashing
+fun render_cursor() -> void {
+    let flash: bool = (g_editor.flash_counter & 16) != 0;
+    
+    if flash {
+        let grid_x: u8 = 64;
+        let grid_y: u8 = 48;
+        let cursor_screen_x: u8 = grid_x + g_editor.cursor_x;
+        let cursor_screen_y: u8 = grid_y + g_editor.cursor_y;
+        
+        // Invert pixel at cursor position
+        set_screen_pixel(cursor_screen_x, cursor_screen_y);
+    }
+    
+    g_editor.flash_counter = g_editor.flash_counter + 1;
+}
+
+// Simple keyboard simulation
+fun read_keyboard() -> u8 {
+    // Return dummy value for compilation
+    // Real version would read ZX Spectrum keyboard ports
+    return 255;
+}
+
+// Handle keyboard input
+fun handle_input() -> bool {
+    let key: u8 = read_keyboard();
+    let mut input_handled: bool = false;
+    
+    // Simulate different key presses based on frame counter
+    let sim_key: u8 = g_editor.flash_counter & 7;
+    
+    if sim_key == 0 {
+        move_cursor_right();
+        input_handled = true;
+    } else if sim_key == 1 {
+        move_cursor_down();
+        input_handled = true;
+    } else if sim_key == 2 {
+        toggle_pixel();
+        input_handled = true;
+    } else if sim_key == 3 {
+        move_cursor_left();
+        input_handled = true;
+    } else if sim_key == 4 {
+        move_cursor_up();
+        input_handled = true;
+    }
+    
+    return input_handled;
+}
+
+// Delay function
+fun delay() -> void {
+    let mut count: u16 = 0;
+    while count < 200 {
+        count = count + 1;
+    }
+}
+
+// Calculate canvas statistics using SMC work area
+fun calc_canvas_stats() -> u16 {
+    let mut pixel_count: u16 = 0;
+    
+    // Scan work area efficiently with SMC
+    let mut i: u8 = 0;
+    while i < CANVAS_BYTES {
+        let byte_val: u8 = g_editor.canvas[i];  // SMC optimized
+        
+        // Count set bits in this byte
+        let mut temp: u8 = byte_val;
+        while temp != 0 {
+            if (temp & 1) != 0 {
+                pixel_count = pixel_count + 1;
+            }
+            temp = temp >> 1;
+        }
+        
+        i = i + 1;
+    }
+    
+    return pixel_count;
+}
+
+// Main program demonstrating modern MinZ with SMC work areas
+fun main() -> void {
+    // Initialize editor with SMC work area
+    init_editor();
+    
+    // Main loop - demonstrate SMC efficiency
+    let mut frame: u16 = 0;
+    
+    while frame < 200 {  // Limited for testing
+        
+        // Render canvas using SMC-optimized work area
+        render_canvas();
+        
+        // Render cursor with flashing
+        render_cursor();
+        
+        // Handle input modifying work area via SMC
+        if handle_input() {
+            delay();
+        }
+        
+        // Periodic canvas operations
+        if (frame & 31) == 0 {
+            // Every 32 frames, calculate stats
+            let pixel_count: u16 = calc_canvas_stats();
+            
+            // Do something with the count (in real version, display it)
+            if pixel_count > 50 {
+                clear_canvas();  // SMC-optimized clear
+            }
+        }
+        
+        delay();
+        frame = frame + 1;
+    }
+    
+    // Final demonstration of SMC work area operations
+    clear_canvas();
+    
+    // Set a pattern using SMC
+    toggle_pixel();
+    move_cursor_right();
+    toggle_pixel();
+    move_cursor_right();
+    toggle_pixel();
+}

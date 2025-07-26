@@ -1,0 +1,13 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...debug_array.main() -> void
+  @smc
+  Locals:
+    r1 = numbers: [3]u8
+  Instructions:
+      0: r2 = 1
+      1: r3 = 2
+      2: r4 = 3
+      3: return
+

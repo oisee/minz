@@ -249,6 +249,9 @@ async function showAST() {
     }
 
     const filePath = activeEditor.document.fileName;
+    const config = vscode.workspace.getConfiguration('minz');
+    const compilerPath = config.get<string>('compilerPath', 'minzc');
+    
     await activeEditor.document.save();
     
     outputChannel.clear();
@@ -258,11 +261,13 @@ async function showAST() {
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(activeEditor.document.uri);
     const workingDir = workspaceFolder?.uri.fsPath || path.dirname(filePath);
     
-    // Use tree-sitter to parse and show AST
-    exec(`npx tree-sitter parse "${filePath}"`, { cwd: workingDir }, (error, stdout, stderr) => {
+    // Use minzc compiler to show AST (if it supports --ast flag)
+    exec(`${compilerPath} --ast "${filePath}"`, { cwd: workingDir }, (error, stdout, stderr) => {
         if (error) {
-            outputChannel.appendLine(`Error: ${error.message}`);
-            vscode.window.showErrorMessage(`AST generation failed: ${error.message}`);
+            // Fallback message if compiler doesn't support AST generation
+            outputChannel.appendLine(`Note: AST generation is not available in the current MinZ compiler`);
+            outputChannel.appendLine(`To view AST, use tree-sitter parse command directly`);
+            vscode.window.showWarningMessage('AST generation not available in current MinZ compiler');
             return;
         }
         

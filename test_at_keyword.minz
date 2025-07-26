@@ -1,0 +1,6 @@
+// Test if 'at' is properly recognized as keyword
+
+fun main() -> void {
+    // This should fail if 'at' is a keyword
+    let at: u8 = 5;
+}

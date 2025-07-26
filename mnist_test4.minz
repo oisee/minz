@@ -1,0 +1,20 @@
+// Test pointers
+
+type Editor = struct {
+    x: u8,
+    data: [4]u8
+};
+
+fun modify_editor(editor: *Editor) -> void {
+    editor.x = 10;
+    editor.data[0] = 99;
+}
+
+fun main() -> void {
+    let mut editor: Editor;
+    editor.x = 5;
+    
+    modify_editor(&editor);
+    
+    let val: u8 = editor.x;
+}

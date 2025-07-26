@@ -1,0 +1,18 @@
+fun main() -> void {
+    let numbers: [3]u8 = [1, 2, 3];
+    
+    // Test basic loop at syntax
+    loop at numbers -> num {
+        // Just access the element (read-only)
+    }
+    
+    // Test with modification syntax
+    loop at numbers -> !num {
+        // Modify the element (write-back)
+    }
+    
+    // Test do times
+    do 5 times {
+        // Simple counting loop
+    }
+}

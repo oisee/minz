@@ -1,19 +1,19 @@
 ; MinZ generated code
-; Generated: 2025-07-26 19:54:03
+; Generated: 2025-07-26 19:14:35
 
 
 ; Code section
     ORG $8000
 
 
-; Function: simple_add.add
-simple_add.add:
+; Function: ...examples.simple_add.add
+...examples.simple_add.add:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-simple_add.add_param_a:
+...examples.simple_add.add_param_a:
     LD HL, #0000   ; SMC parameter a
     LD ($F006), HL
-simple_add.add_param_b:
+...examples.simple_add.add_param_b:
     LD HL, #0000   ; SMC parameter b
     LD ($F008), HL
     ; r5 = r3 + r4
@@ -27,8 +27,8 @@ simple_add.add_param_b:
     LD HL, ($F00A)
     RET
 
-; Function: simple_add.main
-simple_add.main:
+; Function: ...examples.simple_add.main
+...examples.simple_add.main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 10

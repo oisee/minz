@@ -1,0 +1,328 @@
+// Modern MNIST Digit Editor for ZX Spectrum
+// Rewritten with modern MinZ syntax including new iterator constructs
+// Controls: Q/A=up/down, O/P=left/right, SPACE=toggle pixel, C=clear
+
+// ZX Spectrum constants
+const SCREEN_ADDR: u16 = 16384;  // 0x4000
+const ATTR_ADDR: u16 = 22528;    // 0x5800
+
+// Color constants
+const BLACK: u8 = 0;
+const BLUE: u8 = 1;
+const RED: u8 = 2;
+const MAGENTA: u8 = 3;
+const GREEN: u8 = 4;
+const CYAN: u8 = 5;
+const YELLOW: u8 = 6;
+const WHITE: u8 = 7;
+
+// Editor state
+type Editor = struct {
+    cursor_x: u8,        // 0-15
+    cursor_y: u8,        // 0-15
+    canvas: [32]u8       // 16x16 bits = 256 bits = 32 bytes
+};
+
+// Keyboard port constants
+const PORT_QWERTY: u8 = 251;    // 0xFB - Q,W,E,R,T
+const PORT_ASDFG: u8 = 253;     // 0xFD - A,S,D,F,G
+const PORT_SHIFT: u8 = 254;     // 0xFE - CAPS,Z,X,C,V
+const PORT_SPACE: u8 = 127;     // 0x7F - SPACE,SYM,M,N,B
+const PORT_ENTER: u8 = 191;     // 0xBF - ENTER,L,K,J,H
+const PORT_POIUY: u8 = 223;     // 0xDF - P,O,I,U,Y
+
+// Initialize a new editor
+fun editor_new() -> Editor {
+    let mut editor: Editor;
+    
+    // Set initial cursor position
+    editor.cursor_x = 8;
+    editor.cursor_y = 8;
+    
+    // Clear canvas using modern do times syntax
+    do 32 times {
+        editor.canvas[0] = 0;  // Will be optimized with proper indexing
+    }
+    
+    // Manual clear for now since array initialization needs work
+    let mut i: u8 = 0;
+    while i < 32 {
+        editor.canvas[i] = 0;
+        i = i + 1;
+    }
+    
+    return editor;
+}
+
+// Calculate ZX Spectrum screen address from pixel coordinates
+fun pixel_addr(x: u8, y: u8) -> u16 {
+    // ZX Spectrum screen layout: Y is split into thirds
+    let y_low: u8 = y & 7;        // Bottom 3 bits (row within character)
+    let y_mid: u8 = (y >> 3) & 7; // Middle 3 bits (character row within third)
+    let y_high: u8 = y >> 6;      // Top 2 bits (screen third)
+    
+    let addr: u16 = SCREEN_ADDR;
+    
+    // Build address: SCREEN_ADDR + Y_HIGH*2048 + Y_MID*32 + Y_LOW*256 + X/8
+    addr = addr + (y_high * 2048);
+    addr = addr + (y_mid * 32);  
+    addr = addr + (y_low * 256);
+    addr = addr + (x / 8);
+    
+    return addr;
+}
+
+// Set a pixel at coordinates
+fun set_pixel(x: u8, y: u8) -> void {
+    let addr: u16 = pixel_addr(x, y);
+    let bit_mask: u8 = 128 >> (x & 7); // 0x80 >> (x % 8)
+    
+    // For now, use a simple memory poke approach
+    // In real implementation, this would use inline assembly
+    let current_byte: u8 = 0; // Would read from addr
+    current_byte = current_byte | bit_mask;
+    // Would write current_byte to addr
+}
+
+// Clear a pixel at coordinates
+fun clear_pixel(x: u8, y: u8) -> void {
+    let addr: u16 = pixel_addr(x, y);
+    let bit_mask: u8 = ~(128 >> (x & 7)); // Inverted mask
+    
+    // For now, use a simple memory poke approach
+    let current_byte: u8 = 0; // Would read from addr
+    current_byte = current_byte & bit_mask;
+    // Would write current_byte to addr
+}
+
+// Read keyboard port
+fun read_keyboard(port: u8) -> u8 {
+    // For now, return dummy value
+    // In real implementation, would use: IN A,(0xFE)
+    return 255; // All keys released
+}
+
+// Check if a specific key is pressed
+fun is_key_pressed(port: u8, bit: u8) -> bool {
+    let value: u8 = read_keyboard(port);
+    let mask: u8 = 1 << bit;
+    return (value & mask) == 0; // ZX Spectrum keyboard is active low
+}
+
+// Clear the entire screen
+fun clear_screen() -> void {
+    // Clear pixel data using modern loop syntax
+    let mut addr: u16 = SCREEN_ADDR;
+    
+    // Clear 6144 bytes of screen data
+    do 6144 times {
+        // In real implementation: poke addr, 0
+        addr = addr + 1;
+    }
+    
+    // Set attributes to white on black
+    addr = ATTR_ADDR;
+    do 768 times {
+        // In real implementation: poke addr, WHITE
+        addr = addr + 1;
+    }
+}
+
+// Draw the 16x16 canvas
+fun draw_canvas(editor: *Editor) -> void {
+    let grid_x: u8 = 64;  // Center the grid on screen
+    let grid_y: u8 = 48;
+    
+    // Use modern loop syntax for Y coordinate
+    let mut y: u8 = 0;
+    while y < 16 {
+        let mut x: u8 = 0;
+        while x < 16 {
+            // Calculate canvas byte and bit position
+            let byte_idx: u8 = (y * 2) + (x / 8);
+            let bit_idx: u8 = x & 7;
+            let bit_mask: u8 = 128 >> bit_idx;
+            
+            // Check if pixel is set in canvas
+            let pixel_set: bool = (editor.canvas[byte_idx] & bit_mask) != 0;
+            
+            let px: u8 = grid_x + x;
+            let py: u8 = grid_y + y;
+            
+            if pixel_set {
+                set_pixel(px, py);
+            } else {
+                clear_pixel(px, py);
+            }
+            
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}
+
+// Draw cursor (flashing square)
+fun draw_cursor(editor: *Editor, flash: bool) -> void {
+    if !flash {
+        return;
+    }
+    
+    let grid_x: u8 = 64;
+    let grid_y: u8 = 48;
+    
+    let px: u8 = grid_x + editor.cursor_x;
+    let py: u8 = grid_y + editor.cursor_y;
+    
+    // Draw a simple cursor by inverting the pixel
+    let addr: u16 = pixel_addr(px, py);
+    let bit_mask: u8 = 128 >> (px & 7);
+    
+    // In real implementation, would XOR the pixel
+    // For now, just set it
+    set_pixel(px, py);
+}
+
+// Toggle pixel in canvas at cursor position
+fun toggle_pixel(editor: *Editor) -> void {
+    let x: u8 = editor.cursor_x;
+    let y: u8 = editor.cursor_y;
+    
+    let byte_idx: u8 = (y * 2) + (x / 8);
+    let bit_idx: u8 = x & 7;
+    let bit_mask: u8 = 128 >> bit_idx;
+    
+    // Toggle the bit
+    editor.canvas[byte_idx] = editor.canvas[byte_idx] ^ bit_mask;
+}
+
+// Clear the entire canvas
+fun clear_canvas(editor: *Editor) -> void {
+    // Use modern loop at syntax when it's working
+    // For now, use traditional loop
+    let mut i: u8 = 0;
+    while i < 32 {
+        editor.canvas[i] = 0;
+        i = i + 1;
+    }
+}
+
+// Handle keyboard input
+fun handle_input(editor: *Editor) -> bool {
+    let mut key_pressed: bool = false;
+    
+    // Q key - move up
+    if is_key_pressed(PORT_QWERTY, 0) {
+        if editor.cursor_y > 0 {
+            editor.cursor_y = editor.cursor_y - 1;
+            key_pressed = true;
+        }
+    }
+    
+    // A key - move down  
+    if is_key_pressed(PORT_ASDFG, 0) {
+        if editor.cursor_y < 15 {
+            editor.cursor_y = editor.cursor_y + 1;
+            key_pressed = true;
+        }
+    }
+    
+    // O key - move left
+    if is_key_pressed(PORT_POIUY, 1) {
+        if editor.cursor_x > 0 {
+            editor.cursor_x = editor.cursor_x - 1;
+            key_pressed = true;
+        }
+    }
+    
+    // P key - move right
+    if is_key_pressed(PORT_POIUY, 0) {
+        if editor.cursor_x < 15 {
+            editor.cursor_x = editor.cursor_x + 1;
+            key_pressed = true;
+        }
+    }
+    
+    // SPACE - toggle pixel
+    if is_key_pressed(PORT_SPACE, 0) {
+        toggle_pixel(editor);
+        key_pressed = true;
+    }
+    
+    // C key - clear canvas
+    if is_key_pressed(PORT_SHIFT, 2) {
+        clear_canvas(editor);
+        key_pressed = true;
+    }
+    
+    return key_pressed;
+}
+
+// Simple delay function
+fun delay() -> void {
+    // Use modern do times syntax for delay loop
+    do 1000 times {
+        // Empty loop for timing
+    }
+}
+
+// Draw a simple border around the editing area
+fun draw_border() -> void {
+    let grid_x: u8 = 63;  // One pixel left of grid
+    let grid_y: u8 = 47;  // One pixel above grid
+    
+    // Draw top and bottom borders
+    let mut x: u8 = 0;
+    while x < 18 {
+        set_pixel(grid_x + x, grid_y);         // Top
+        set_pixel(grid_x + x, grid_y + 17);    // Bottom
+        x = x + 1;
+    }
+    
+    // Draw left and right borders
+    let mut y: u8 = 0;
+    while y < 18 {
+        set_pixel(grid_x, grid_y + y);         // Left
+        set_pixel(grid_x + 17, grid_y + y);    // Right
+        y = y + 1;
+    }
+}
+
+// Main program
+fun main() -> void {
+    // Initialize editor
+    let mut editor: Editor = editor_new();
+    
+    // Setup screen
+    clear_screen();
+    draw_border();
+    
+    // Main loop
+    let mut flash_counter: u8 = 0;
+    let mut running: bool = true;
+    
+    while running {
+        // Draw the canvas
+        draw_canvas(&editor);
+        
+        // Draw cursor with flashing effect
+        let flash: bool = (flash_counter & 16) != 0;
+        draw_cursor(&editor, flash);
+        flash_counter = flash_counter + 1;
+        
+        // Handle input
+        if handle_input(&editor) {
+            // Add delay after key press for debouncing
+            delay();
+        }
+        
+        // Small delay for main loop timing
+        delay();
+        
+        // For development, exit after a while to prevent infinite loop
+        // Remove this in production
+        if flash_counter == 0 {
+            // Overflow occurred, been running for a while
+            running = false;
+        }
+    }
+}

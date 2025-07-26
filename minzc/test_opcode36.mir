@@ -1,0 +1,20 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_opcode36.main() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u8
+    r5 = z: u8
+  Instructions:
+      0: r2 = 5
+      1: store , r2
+      2: r4 = 10
+      3: store , r4
+      4: r6 = load x
+      5: r7 = load y
+      6: 45
+      7: store , r8
+      8: return
+

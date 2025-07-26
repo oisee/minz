@@ -1,0 +1,76 @@
+; MinZ generated code
+; Generated: 2025-07-26 19:28:52
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...test_old_loop.main
+...test_old_loop.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 1
+    LD A, 1
+    LD ($F004), A
+    ; r3 = 2
+    LD A, 2
+    LD ($F006), A
+    ; r4 = load arr
+    LD HL, ($F000)
+    LD ($F008), HL
+    ; Load table base address
+    LD HL, ($F008)
+    LD ($F00A), HL
+    ; Load table base for end calculation
+    LD HL, ($F008)
+    LD ($F00C), HL
+    ; Calculate table end (+ 2 elements * 1 bytes)
+    LD HL, ($F00C)
+    LD DE, 2
+    ADD HL, DE
+    LD ($F00C), HL
+    ; Load loop counter
+    LD A, 2
+    LD ($F00E), A
+    ; loop_start_1:
+loop_start_1:
+    ; Check if reached end of table
+    LD HL, ($F00A)
+    LD D, H
+    LD E, L
+    LD HL, ($F00C)
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; Exit if done
+    LD A, ($F010)
+    OR A
+    JP NZ, loop_end_2
+    ; Copy element to buffer at $F000
+    LD HL, ($F00A)
+    LD DE, $F000    ; Buffer address
+    LD BC, 1       ; Size
+    LDIR            ; Copy to buffer
+    ; Copy buffer back to element at $F000
+    LD HL, ($F00A)
+    EX DE, HL       ; DE = destination
+    LD HL, $F000    ; Buffer address
+    LD BC, 1       ; Size
+    LDIR            ; Copy from buffer
+    ; Advance to next element (+1 bytes)
+    LD HL, ($F00A)
+    LD DE, 1
+    ADD HL, DE
+    LD ($F00A), HL
+    ; Decrement counter and loop if not zero
+    LD A, ($F00E)
+    LD B, A
+    DJNZ loop_start_1
+    LD A, B
+    LD ($F00E), A
+    ; loop_end_2:
+loop_end_2:
+    ; return
+    RET
+
+    END main
