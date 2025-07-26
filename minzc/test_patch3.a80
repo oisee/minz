@@ -1,0 +1,70 @@
+; MinZ generated code
+; Generated: 2025-07-26 13:45:34
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_patch.add
+...examples.test_patch.add:
+; TRUE SMC function with immediate anchors
+x$immOP:
+    LD A, 0        ; x anchor (will be patched)
+x$imm0 EQU x$immOP+1
+    LD ($F006), A
+y$immOP:
+    LD A, 0        ; y anchor (will be patched)
+y$imm0 EQU y$immOP+1
+    LD ($F008), A
+    ; r5 = r3 + r4
+    LD HL, ($F006)
+    LD D, H
+    LD E, L
+    LD HL, ($F008)
+    ADD HL, DE
+    LD ($F00A), HL
+    ; return r5
+    LD HL, ($F00A)
+    RET
+
+; Function: ...examples.test_patch.main
+...examples.test_patch.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r4 = call add
+    ; Call to add (args: 2)
+    CALL add
+    LD ($F008), HL
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F002), HL
+    ; r8 = call add
+    ; Call to add (args: 2)
+    CALL add
+    LD ($F010), HL
+    ; store , r8
+    LD HL, ($F010)
+    LD ($F00A), HL
+    ; r9 = load a
+    LD HL, ($F000)
+    LD ($F012), HL
+    ; r10 = load b
+    LD HL, ($F000)
+    LD ($F014), HL
+    ; r11 = r9 + r10
+    LD HL, ($F012)
+    LD D, H
+    LD E, L
+    LD HL, ($F014)
+    ADD HL, DE
+    LD ($F016), HL
+    ; return r11
+    LD HL, ($F016)
+    POP DE
+    POP BC
+    RET
+
+    END main

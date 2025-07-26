@@ -1,0 +1,31 @@
+; MinZ generated code
+; Generated: 2025-07-26 13:43:08
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_true_smc_call.add
+...examples.test_true_smc_call.add:
+; TRUE SMC function with immediate anchors
+x$immOP:
+    LD A, 0        ; x anchor (will be patched)
+x$imm0 EQU x$immOP+1
+    LD ($F006), A
+y$immOP:
+    LD A, 0        ; y anchor (will be patched)
+y$imm0 EQU y$immOP+1
+    LD ($F008), A
+    ; r5 = r3 + r4
+    LD HL, ($F006)
+    LD D, H
+    LD E, L
+    LD HL, ($F008)
+    ADD HL, DE
+    LD ($F00A), HL
+    ; return r5
+    LD HL, ($F00A)
+    RET
+
+    END main
