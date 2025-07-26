@@ -1,0 +1,75 @@
+// Test 2: Bit Struct Operations
+// Tests bit field read/write with various configurations
+
+type StatusFlags = bits {
+    carry: 1,
+    zero: 1,
+    interrupt: 1,
+    decimal: 1,
+    break_flag: 1,
+    unused: 1,
+    overflow: 1,
+    negative: 1
+};
+
+type ColorPacked = bits {
+    red: 2,      // 0-3 levels
+    green: 3,    // 0-7 levels  
+    blue: 3      // 0-7 levels
+};
+
+type GameState = bits {
+    lives: 3,        // 0-7 lives
+    level: 4,        // 0-15 levels
+    has_powerup: 1   // boolean flag
+};
+
+fn test_single_bit_fields() -> void {
+    let flags: u8 = 0b10110101;
+    let status: StatusFlags = flags as StatusFlags;
+    
+    // Read operations
+    let c: u8 = status.carry;
+    let z: u8 = status.zero;
+    let n: u8 = status.negative;
+    
+    // Write operations
+    status.interrupt = 1;
+    status.decimal = 0;
+    status.overflow = 1;
+}
+
+fn test_multi_bit_fields() -> void {
+    let packed: u8 = 0;
+    let color: ColorPacked = packed as ColorPacked;
+    
+    // Set RGB values
+    color.red = 3;    // Maximum red
+    color.green = 7;  // Maximum green
+    color.blue = 4;   // Medium blue
+    
+    // Read back
+    let r: u8 = color.red;
+    let g: u8 = color.green;
+    let b: u8 = color.blue;
+}
+
+fn test_mixed_fields() -> void {
+    let state_byte: u8 = 0;
+    let game: GameState = state_byte as GameState;
+    
+    // Complex bit manipulation
+    game.lives = 3;
+    game.level = 10;
+    game.has_powerup = 1;
+    
+    // Modify existing
+    game.lives = game.lives - 1;  // Decrement lives
+    game.level = game.level + 1;  // Next level
+}
+
+fn main() -> void {
+    test_single_bit_fields();
+    test_multi_bit_fields();
+    test_mixed_fields();
+}

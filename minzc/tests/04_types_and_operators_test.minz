@@ -1,0 +1,102 @@
+// Test 4: Type System and Operators
+// Tests arithmetic, logical, bitwise operations and type conversions
+
+fn test_arithmetic() -> void {
+    // Basic arithmetic on different types
+    let a: u8 = 100;
+    let b: u8 = 50;
+    
+    let sum: u8 = a + b;
+    let diff: u8 = a - b;
+    let prod: u8 = a * 2;  // Note: full multiply might overflow
+    
+    // 16-bit arithmetic
+    let x: u16 = 1000;
+    let y: u16 = 500;
+    
+    let sum16: u16 = x + y;
+    let diff16: u16 = x - y;
+    let prod16: u16 = x * 3;
+}
+
+fn test_bitwise() -> u8 {
+    let a: u8 = 0b11110000;
+    let b: u8 = 0b10101010;
+    
+    let and_result: u8 = a & b;
+    let or_result: u8 = a | b;
+    let xor_result: u8 = a ^ b;
+    let not_result: u8 = ~a;
+    
+    // Shifts - not implemented yet
+    // let left_shift: u8 = b << 1;
+    // let right_shift: u8 = b >> 1;
+    
+    return xor_result;
+}
+
+fn test_comparisons() -> void {
+    let x: u8 = 10;
+    let y: u8 = 20;
+    
+    let eq: bool = x == y;
+    let ne: bool = x != y;
+    let lt: bool = x < y;
+    let gt: bool = x > y;
+    let le: bool = x <= y;
+    let ge: bool = x >= y;
+}
+
+fn test_logical() -> bool {
+    let a: bool = true;
+    let b: bool = false;
+    
+    // Logical operators not implemented yet
+    // let and_result: bool = a && b;
+    // let or_result: bool = a || b;
+    let not_result: bool = !a;
+    
+    // For now, use simple comparison
+    let complex: bool = 5 > 3;
+    
+    return complex;
+}
+
+fn test_type_conversions() -> void {
+    // Widening conversions (safe)
+    let small: u8 = 100;
+    let big: u16 = small as u16;
+    
+    // Multiple conversions
+    let a: u8 = 50;
+    let b: u16 = (a as u16) * 10;
+    // let c: u8 = (b >> 2) as u8;  // shift not implemented
+    
+    // Bool conversions not supported yet
+    // let flag: bool = true;
+    // let num: u8 = flag as u8;  // Should be 1
+}
+
+fn test_complex_expressions() -> u16 {
+    let a: u8 = 10;
+    let b: u8 = 20;
+    let c: u8 = 30;
+    
+    // Complex expression with precedence
+    let temp: u8 = (a + b) * c;
+    let result: u16 = (temp as u16) + 100;
+    
+    // Nested operations
+    let complex: u8 = (a & 0x0F) | (b & 0xF0);
+    
+    return result;
+}
+
+fn main() -> void {
+    test_arithmetic();
+    let bit_result: u8 = test_bitwise();
+    test_comparisons();
+    let logic_result: bool = test_logical();
+    test_type_conversions();
+    let expr_result: u16 = test_complex_expressions();
+}

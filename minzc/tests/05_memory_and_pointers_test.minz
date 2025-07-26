@@ -1,0 +1,71 @@
+// Test 5: Memory Operations and Pointers
+// Tests pointer operations, memory access, arrays
+
+fn test_basic_pointers() -> void {
+    let value: u8 = 42;
+    let ptr: *u8 = &value;
+    
+    // Dereference
+    let retrieved: u8 = *ptr;
+    
+    // Pointer arithmetic (if supported)
+    let array: [u8; 5] = [1, 2, 3, 4, 5];
+    let array_ptr: *u8 = &array[0];
+}
+
+fn test_array_operations() -> u8 {
+    let data: [u8; 10] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    
+    // Read operations
+    let first: u8 = data[0];
+    let middle: u8 = data[5];
+    let last: u8 = data[9];
+    
+    // Index with variable
+    let mut i: u8 = 3;
+    let indexed: u8 = data[i];
+    
+    return indexed + middle;
+}
+
+fn test_memory_peek_poke() -> void {
+    // Direct memory access (ZX Spectrum screen memory)
+    let screen_start: u16 = 0x4000;
+    
+    // Write to screen memory
+    poke(screen_start, 0xFF);
+    poke(screen_start + 1, 0xAA);
+    
+    // Read from memory
+    let byte1: u8 = peek(screen_start);
+    let byte2: u8 = peek(screen_start + 1);
+}
+
+fn test_array_init() -> void {
+    // Different array initialization patterns
+    let zeros: [u8; 5] = [0, 0, 0, 0, 0];
+    let sequence: [u8; 4] = [10, 20, 30, 40];
+    let mixed: [u16; 3] = [100, 200, 300];
+}
+
+fn sum_array(data: [u8; 5]) -> u8 {
+    let mut sum: u8 = 0;
+    let mut i: u8 = 0;
+    
+    while i < 5 {
+        sum = sum + data[i];
+        i = i + 1;
+    }
+    
+    return sum;
+}
+
+fn main() -> void {
+    test_basic_pointers();
+    let array_result: u8 = test_array_operations();
+    test_memory_peek_poke();
+    test_array_init();
+    
+    let test_data: [u8; 5] = [1, 2, 3, 4, 5];
+    let sum: u8 = sum_array(test_data);
+}
