@@ -28,6 +28,32 @@ MinZ is a minimal systems programming language designed for Z80-based computers,
 - Arrays: `[T; N]` or `[N]T` where T is element type, N is size
 - Pointers: `*T`, `*mut T`
 
+### What's New in v0.3.2
+
+#### Global Variable Initializers
+```minz
+// Initialize globals with compile-time constant expressions
+global u8 VERSION = 3;
+global u16 SCREEN_ADDR = 0x4000;
+global u8 MAX_LIVES = 3 + 2;        // Evaluated at compile time: 5
+global u16 BUFFER_SIZE = 256 * 2;   // Evaluated at compile time: 512
+global u8 MASK = 0xFF & 0x0F;       // Evaluated at compile time: 15
+```
+
+#### Enhanced 16-bit Arithmetic
+```minz
+fun calculate_area(width: u16, height: u16) -> u16 {
+    // Compiler automatically uses 16-bit multiplication
+    return width * height;
+}
+
+fun shift_operations() -> void {
+    let u16 value = 1000;
+    let u16 doubled = value << 1;    // 16-bit shift left
+    let u16 halved = value >> 1;     // 16-bit shift right
+}
+```
+
 ### Example Programs
 
 #### Hello World
@@ -323,6 +349,14 @@ code --install-extension .
 
 The MinZ compiler (`minzc`) translates MinZ source code to Z80 assembly in sjasmplus `.a80` format.
 
+### Current Version: v0.3.2 (July 2025)
+
+**Recent Improvements:**
+- Global variable initializers with constant expressions
+- Full 16-bit arithmetic support with automatic type detection
+- Fixed local variable addressing (each variable gets unique memory)
+- Type-aware code generation for optimal instruction selection
+
 ### Usage
 
 ```bash
@@ -345,9 +379,10 @@ minzc program.minz -d
 ### Compilation Pipeline
 
 1. **Parsing**: Uses tree-sitter to parse MinZ source into an AST
-2. **Semantic Analysis**: Type checking and symbol resolution
-3. **IR Generation**: Converts AST to intermediate representation
-4. **Code Generation**: Produces optimized Z80 assembly
+2. **Semantic Analysis**: Type checking, symbol resolution, and constant evaluation
+3. **IR Generation**: Converts AST to typed intermediate representation
+4. **Optimization**: Register allocation, type-based operation selection
+5. **Code Generation**: Produces optimized Z80 assembly
 
 ### Intermediate Representation (IR)
 
@@ -578,7 +613,11 @@ add_param_a:
 - **✅ SMC Work Area Optimization** - Self-modifying code for static memory access (50%+ faster than IX-based)
 - **✅ DJNZ Loop Optimization** - Z80-native loop patterns with automatic counter management
 
-#### 📈 **Previous 2025 Features**
+#### 📈 **Recent 2025 Features**
+- **✅ Global Variable Initializers** (v0.3.2) - Initialize globals with constant expressions evaluated at compile time
+- **✅ 16-bit Arithmetic Operations** (v0.3.2) - Full support for 16-bit mul/div/shift with automatic type detection
+- **✅ Type-Aware Code Generation** (v0.3.2) - Compiler selects optimal 8/16-bit operations based on types
+- **✅ Local Variable Addressing Fix** (v0.3.2) - Fixed critical bug where all locals shared same memory address
 - **✅ High-Performance Iterators** - Two specialized modes (INTO/REF TO) for optimal array processing with minimal overhead
 - **✅ Modern Array Syntax** - Support for both `[Type; size]` and `[size]Type` array declarations
 - **✅ Indexed Iteration** - Built-in support for element indices in loops
