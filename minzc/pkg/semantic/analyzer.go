@@ -562,6 +562,16 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 		IsMutable: v.IsMutable,
 	})
 
+	// Add global variable to IR module
+	// Create IR global variable
+	global := ir.Global{
+		Name: v.Name,
+		Type: varType,
+	}
+	
+	// Add to module globals
+	a.module.Globals = append(a.module.Globals, global)
+
 	return nil
 }
 
@@ -1771,11 +1781,42 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 				Type:   s.Type,
 			})
 		} else {
-			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-				Op:     ir.OpLoadVar,
-				Dest:   reg,
-				Symbol: s.Name, // Use the symbol's actual name (prefixed)
-			})
+			// Check if this is an array type
+			if arrayType, isArray := s.Type.(*ir.ArrayType); isArray {
+				// For arrays, we need to load the address, not the value
+				// Check if this is a global array
+				isGlobal := false
+				for _, global := range a.module.Globals {
+					if global.Name == s.Name {
+						isGlobal = true
+						break
+					}
+				}
+				
+				if isGlobal {
+					// For global arrays, load the address directly
+					irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+						Op:     ir.OpLoadAddr,
+						Dest:   reg,
+						Symbol: s.Name,
+						Type:   arrayType,
+					})
+				} else {
+					// For local arrays, use regular load
+					irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+						Op:     ir.OpLoadVar,
+						Dest:   reg,
+						Symbol: s.Name,
+					})
+				}
+			} else {
+				// Regular variable load
+				irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+					Op:     ir.OpLoadVar,
+					Dest:   reg,
+					Symbol: s.Name, // Use the symbol's actual name (prefixed)
+				})
+			}
 		}
 		return reg, nil
 	case *ConstSymbol:

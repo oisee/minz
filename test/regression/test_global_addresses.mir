@@ -1,0 +1,112 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   global_a: u8
+;   global_b: u8
+;   global_c: u8
+;   array_data: [4]u8
+
+Function test.regression.test_global_addresses.test_globals() -> bool
+  @smc
+  Instructions:
+      0: r1 = 17
+      1: 62
+      2: r3 = 0
+      3: r4 = r2 + r3 ; Calculate array element address
+      4: 57 ; Store to array[index] (u8)
+      5: r5 = 34
+      6: 62
+      7: r7 = 1
+      8: r8 = r6 + r7 ; Calculate array element address
+      9: 57 ; Store to array[index] (u8)
+     10: r9 = 51
+     11: 62
+     12: r11 = 2
+     13: r12 = r10 + r11 ; Calculate array element address
+     14: 57 ; Store to array[index] (u8)
+     15: r13 = 68
+     16: 62
+     17: r15 = 3
+     18: r16 = r14 + r15 ; Calculate array element address
+     19: 57 ; Store to array[index] (u8)
+     20: r17 = load global_a
+     21: r18 = 170
+     22: r19 = r17 != r18
+     23: jump_if_not r19, else_1
+     24: r20 = 0
+     25: return r20
+     26: jump end_if_2
+     27: else_1:
+     28: end_if_2:
+     29: r21 = load global_b
+     30: r22 = 187
+     31: r23 = r21 != r22
+     32: jump_if_not r23, else_3
+     33: r24 = 0
+     34: return r24
+     35: jump end_if_4
+     36: else_3:
+     37: end_if_4:
+     38: r25 = load global_c
+     39: r26 = 204
+     40: r27 = r25 != r26
+     41: jump_if_not r27, else_5
+     42: r28 = 0
+     43: return r28
+     44: jump end_if_6
+     45: else_5:
+     46: end_if_6:
+     47: 62
+     48: r30 = 0
+     49: 15 ; Load array element (u8)
+     50: r32 = 17
+     51: r33 = r31 != r32
+     52: jump_if_not r33, else_7
+     53: r34 = 0
+     54: return r34
+     55: jump end_if_8
+     56: else_7:
+     57: end_if_8:
+     58: 62
+     59: r36 = 3
+     60: 15 ; Load array element (u8)
+     61: r38 = 68
+     62: r39 = r37 != r38
+     63: jump_if_not r39, else_9
+     64: r40 = 0
+     65: return r40
+     66: jump end_if_10
+     67: else_9:
+     68: end_if_10:
+     69: r41 = 85
+     70: store global_a, r41
+     71: r42 = 102
+     72: store global_b, r42
+     73: r43 = load global_c
+     74: r44 = 204
+     75: r45 = r43 != r44
+     76: jump_if_not r45, else_11
+     77: r46 = 0
+     78: return r46
+     79: jump end_if_12
+     80: else_11:
+     81: end_if_12:
+     82: r47 = 1
+     83: return r47
+
+Function test.regression.test_global_addresses.main() -> void
+  @smc
+  Locals:
+    r2 = screen: u16
+  Instructions:
+      0: r1 = call test_globals
+      1: jump_if_not r1, else_13
+      2: r3 = 16384
+      3: store , r3
+      4: 61
+      5: jump end_if_14
+      6: else_13:
+      7: end_if_14:
+      8: return
+

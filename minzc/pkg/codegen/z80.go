@@ -787,27 +787,69 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		}
 		
 	case ir.OpLoadVar:
-		// Load variable - for now, assume it's a local
-		if g.useAbsoluteLocals {
-			addr := g.getAbsoluteAddr(inst.Src1) // Note: source register for load
-			g.emit("    LD HL, ($%04X)", addr)
+		// Check if this is a global variable by symbol name
+		if inst.Symbol != "" {
+			// Look up global variable address
+			globalAddr := g.getGlobalAddr(inst.Symbol)
+			if globalAddr != 0 {
+				g.emit("    LD HL, ($%04X)", globalAddr)
+				g.storeFromHL(inst.Dest)
+			} else {
+				// Fall back to local variable
+				if g.useAbsoluteLocals {
+					addr := g.getAbsoluteAddr(inst.Src1)
+					g.emit("    LD HL, ($%04X)", addr)
+				} else {
+					offset := g.getLocalOffset(inst.Src1)
+					g.emit("    LD L, (IX-%d)", offset)
+					g.emit("    LD H, (IX-%d)", offset-1)
+				}
+				g.storeFromHL(inst.Dest)
+			}
 		} else {
-			offset := g.getLocalOffset(inst.Src1)
-			g.emit("    LD L, (IX-%d)", offset)
-			g.emit("    LD H, (IX-%d)", offset-1)
+			// Local variable
+			if g.useAbsoluteLocals {
+				addr := g.getAbsoluteAddr(inst.Src1)
+				g.emit("    LD HL, ($%04X)", addr)
+			} else {
+				offset := g.getLocalOffset(inst.Src1)
+				g.emit("    LD L, (IX-%d)", offset)
+				g.emit("    LD H, (IX-%d)", offset-1)
+			}
+			g.storeFromHL(inst.Dest)
 		}
-		g.storeFromHL(inst.Dest)
 		
 	case ir.OpStoreVar:
 		// Store to variable
 		g.loadToHL(inst.Src1)
-		if g.useAbsoluteLocals {
-			addr := g.getAbsoluteAddr(inst.Dest)
-			g.emit("    LD ($%04X), HL", addr)
+		
+		// Check if this is a global variable by symbol name
+		if inst.Symbol != "" {
+			// Look up global variable address
+			globalAddr := g.getGlobalAddr(inst.Symbol)
+			if globalAddr != 0 {
+				g.emit("    LD ($%04X), HL", globalAddr)
+			} else {
+				// Fall back to local variable
+				if g.useAbsoluteLocals {
+					addr := g.getAbsoluteAddr(inst.Dest)
+					g.emit("    LD ($%04X), HL", addr)
+				} else {
+					offset := g.getLocalOffset(inst.Dest)
+					g.emit("    LD (IX-%d), L", offset)
+					g.emit("    LD (IX-%d), H", offset-1)
+				}
+			}
 		} else {
-			offset := g.getLocalOffset(inst.Dest)
-			g.emit("    LD (IX-%d), L", offset)
-			g.emit("    LD (IX-%d), H", offset-1)
+			// Local variable
+			if g.useAbsoluteLocals {
+				addr := g.getAbsoluteAddr(inst.Dest)
+				g.emit("    LD ($%04X), HL", addr)
+			} else {
+				offset := g.getLocalOffset(inst.Dest)
+				g.emit("    LD (IX-%d), L", offset)
+				g.emit("    LD (IX-%d), H", offset-1)
+			}
 		}
 		
 	case ir.OpMove:
@@ -1557,6 +1599,18 @@ func (g *Z80Generator) getAbsoluteAddr(reg ir.Register) uint16 {
 	return g.localVarBase + uint16(reg)*2
 }
 
+// getGlobalAddr gets the absolute address for a global variable
+func (g *Z80Generator) getGlobalAddr(name string) uint16 {
+	globalBase := uint16(0xF000)
+	for i, global := range g.module.Globals {
+		if global.Name == name {
+			// Each global gets 32 bytes of space
+			return globalBase + uint16(i*32)
+		}
+	}
+	return 0 // Not found
+}
+
 // newLabel generates a new label
 func (g *Z80Generator) newLabel() string {
 	g.labelCounter++
@@ -1701,6 +1755,16 @@ func (g *Z80Generator) resolveSymbol(symbol string) string {
 	for _, fn := range g.module.Functions {
 		if fn.Name == symbol {
 			return fn.Name // Use the function label directly
+		}
+	}
+	
+	// Check if it's a global variable
+	globalBase := uint16(0xF000)
+	for i, global := range g.module.Globals {
+		if global.Name == symbol {
+			// Each global gets 32 bytes of space
+			addr := globalBase + uint16(i*32)
+			return fmt.Sprintf("$%04X", addr)
 		}
 	}
 	

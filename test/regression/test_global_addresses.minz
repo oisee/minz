@@ -1,0 +1,56 @@
+// Regression test for global variable address collision bug
+// Each global MUST have a unique memory address
+
+let mut global_a: u8 = 0xAA;
+let mut global_b: u8 = 0xBB;  
+let mut global_c: u8 = 0xCC;
+let mut array_data: [4]u8;
+
+fun test_globals() -> bool {
+    // Initialize array
+    array_data[0] = 0x11;
+    array_data[1] = 0x22;
+    array_data[2] = 0x33;
+    array_data[3] = 0x44;
+    
+    // Test that globals maintain separate values
+    if global_a != 0xAA {
+        return false;
+    }
+    if global_b != 0xBB {
+        return false;
+    }
+    if global_c != 0xCC {
+        return false;
+    }
+    
+    // Test array access
+    if array_data[0] != 0x11 {
+        return false;
+    }
+    if array_data[3] != 0x44 {
+        return false;
+    }
+    
+    // Modify globals
+    global_a = 0x55;
+    global_b = 0x66;
+    
+    // Verify other globals unchanged
+    if global_c != 0xCC {
+        return false;
+    }
+    
+    return true;
+}
+
+fun main() -> void {
+    if test_globals() {
+        // Success - write marker to screen
+        let screen: u16 = 0x4000;
+        asm {
+            ld a, 0xFF
+            ld (0x4000), a  ; Write success marker
+        }
+    }
+}

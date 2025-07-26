@@ -8,6 +8,17 @@ let outputChannel: vscode.OutputChannel;
 export function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel('MinZ');
     
+    // Log activation details
+    outputChannel.appendLine('MinZ Language Support activating...');
+    outputChannel.appendLine(`Extension path: ${context.extensionPath}`);
+    
+    // Check if any MinZ files are currently open
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+        outputChannel.appendLine(`Active file: ${activeEditor.document.fileName}`);
+        outputChannel.appendLine(`Language ID: ${activeEditor.document.languageId}`);
+    }
+    
     // Register commands
     context.subscriptions.push(
         vscode.commands.registerCommand('minz.compile', () => compileMinZ()),
@@ -35,8 +46,16 @@ export function activate(context: vscode.ExtensionContext) {
             { open: "'", close: "'" }
         ]
     });
+    
+    // Listen for document open events
+    vscode.workspace.onDidOpenTextDocument((document) => {
+        if (document.fileName.endsWith('.minz') || document.fileName.endsWith('.mz')) {
+            outputChannel.appendLine(`MinZ file opened: ${document.fileName}`);
+            outputChannel.appendLine(`Language ID: ${document.languageId}`);
+        }
+    });
 
-    outputChannel.appendLine('MinZ Language Support activated');
+    outputChannel.appendLine('MinZ Language Support activated successfully');
 }
 
 export function deactivate() {
@@ -47,8 +66,22 @@ export function deactivate() {
 
 async function compileMinZ() {
     const activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor || activeEditor.document.languageId !== 'minz') {
-        vscode.window.showErrorMessage('No MinZ file is currently open');
+    if (!activeEditor) {
+        vscode.window.showErrorMessage('No file is currently open');
+        return;
+    }
+    
+    // Log current file info for debugging
+    outputChannel.appendLine(`\nCompile command invoked:`);
+    outputChannel.appendLine(`File: ${activeEditor.document.fileName}`);
+    outputChannel.appendLine(`Language ID: ${activeEditor.document.languageId}`);
+    
+    // Check if it's a MinZ file by extension
+    const isMinzFile = activeEditor.document.fileName.endsWith('.minz') || 
+                       activeEditor.document.fileName.endsWith('.mz');
+    
+    if (!isMinzFile && activeEditor.document.languageId !== 'minz') {
+        vscode.window.showErrorMessage('No MinZ file is currently open. Please ensure the file has a .minz extension.');
         return;
     }
 
@@ -115,8 +148,16 @@ async function compileMinZ() {
 
 async function compileToIR() {
     const activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor || activeEditor.document.languageId !== 'minz') {
-        vscode.window.showErrorMessage('No MinZ file is currently open');
+    if (!activeEditor) {
+        vscode.window.showErrorMessage('No file is currently open');
+        return;
+    }
+    
+    const isMinzFile = activeEditor.document.fileName.endsWith('.minz') || 
+                       activeEditor.document.fileName.endsWith('.mz');
+    
+    if (!isMinzFile && activeEditor.document.languageId !== 'minz') {
+        vscode.window.showErrorMessage('No MinZ file is currently open. Please ensure the file has a .minz extension.');
         return;
     }
 
@@ -177,8 +218,16 @@ async function compileToIR() {
 
 async function compileOptimized() {
     const activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor || activeEditor.document.languageId !== 'minz') {
-        vscode.window.showErrorMessage('No MinZ file is currently open');
+    if (!activeEditor) {
+        vscode.window.showErrorMessage('No file is currently open');
+        return;
+    }
+    
+    const isMinzFile = activeEditor.document.fileName.endsWith('.minz') || 
+                       activeEditor.document.fileName.endsWith('.mz');
+    
+    if (!isMinzFile && activeEditor.document.languageId !== 'minz') {
+        vscode.window.showErrorMessage('No MinZ file is currently open. Please ensure the file has a .minz extension.');
         return;
     }
 
@@ -243,8 +292,16 @@ async function compileOptimized() {
 
 async function showAST() {
     const activeEditor = vscode.window.activeTextEditor;
-    if (!activeEditor || activeEditor.document.languageId !== 'minz') {
-        vscode.window.showErrorMessage('No MinZ file is currently open');
+    if (!activeEditor) {
+        vscode.window.showErrorMessage('No file is currently open');
+        return;
+    }
+    
+    const isMinzFile = activeEditor.document.fileName.endsWith('.minz') || 
+                       activeEditor.document.fileName.endsWith('.mz');
+    
+    if (!isMinzFile && activeEditor.document.languageId !== 'minz') {
+        vscode.window.showErrorMessage('No MinZ file is currently open. Please ensure the file has a .minz extension.');
         return;
     }
 

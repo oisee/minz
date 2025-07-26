@@ -1,0 +1,694 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function mnist_complete.init_editor() -> void
+  @smc
+  Locals:
+    r4 = i: u8
+  Instructions:
+      0: r1 = 8
+      1: store cursor_x, r1
+      2: r2 = 8
+      3: store cursor_y, r2
+      4: r3 = r3 ^ r3 ; XOR A,A (optimized from LD A,0)
+      5: store flash_counter, r3
+      6: r5 = r5 ^ r5 ; XOR A,A (optimized from LD A,0)
+      7: store , r5
+      8: loop_1:
+      9: r6 = load i
+     10: r7 = 32
+     11: r8 = r6 < r7
+     12: jump_if_not r8, end_loop_2
+     13: 57 ; Store to array[index] (u8)
+     14: 39 ; INC (optimized from ADD 1)
+     15: store i, r15
+     16: jump loop_1
+     17: end_loop_2:
+     18: return
+
+Function mnist_complete.set_pixel(x: u8, y: u8) -> void
+  @smc
+  Locals:
+    r3 = byte_idx: u8
+    r11 = bit_idx: u8
+    r15 = mask: u8
+  Instructions:
+      0: 29 ; Load from anchor y$imm0
+      1: r5 = 1
+      2: 45 ; SHL (optimized from MUL by power of 2)
+      3: 29 ; Load from anchor x$imm0
+      4: r8 = 8
+      5: 36
+      6: r10 = r6 + r9
+      7: store , r10
+      8: 29 ; Load from anchor x$imm0
+      9: r13 = 7
+     10: r14 = r12 & r13
+     11: store , r14
+     12: r16 = 128
+     13: r17 = load bit_idx
+     14: 46
+     15: store , r18
+     16: 15 ; Load array element (u8)
+     17: 57 ; Store to array[index] (u8)
+     18: return
+
+Function mnist_complete.clear_pixel(x: u8, y: u8) -> void
+  @smc
+  Locals:
+    r3 = byte_idx: u8
+    r11 = bit_idx: u8
+    r15 = mask: u8
+  Instructions:
+      0: 29 ; Load from anchor y$imm0
+      1: r5 = 1
+      2: 45 ; SHL (optimized from MUL by power of 2)
+      3: 29 ; Load from anchor x$imm0
+      4: r8 = 8
+      5: 36
+      6: r10 = r6 + r9
+      7: store , r10
+      8: 29 ; Load from anchor x$imm0
+      9: r13 = 7
+     10: r14 = r12 & r13
+     11: store , r14
+     12: r16 = 128
+     13: r17 = load bit_idx
+     14: 46
+     15: store , r18
+     16: 15 ; Load array element (u8)
+     17: r22 = load mask
+     18: r23 = r21 & r22
+     19: r24 = r24 ^ r24 ; XOR A,A (optimized from LD A,0)
+     20: r25 = r23 != r24
+     21: jump_if_not r25, else_3
+     22: 15 ; Load array element (u8)
+     23: 57 ; Store to array[index] (u8)
+     24: jump end_if_4
+     25: else_3:
+     26: end_if_4:
+     27: return
+
+Function mnist_complete.toggle_pixel() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u8
+    r5 = byte_idx: u8
+    r13 = bit_idx: u8
+    r17 = mask: u8
+  Instructions:
+      0: r2 = load cursor_x
+      1: store , r2
+      2: r4 = load cursor_y
+      3: store , r4
+      4: r6 = load y
+      5: r7 = 1
+      6: 45 ; SHL (optimized from MUL by power of 2)
+      7: r9 = load x
+      8: r10 = 8
+      9: 36
+     10: r12 = r8 + r11
+     11: store , r12
+     12: r14 = load x
+     13: r15 = 7
+     14: r16 = r14 & r15
+     15: store , r16
+     16: r18 = 128
+     17: r19 = load bit_idx
+     18: 46
+     19: store , r20
+     20: 15 ; Load array element (u8)
+     21: 57 ; Store to array[index] (u8)
+     22: return
+
+Function mnist_complete.is_pixel_set(x: u8, y: u8) -> bool
+  @smc
+  Locals:
+    r3 = byte_idx: u8
+    r11 = bit_idx: u8
+    r15 = mask: u8
+  Instructions:
+      0: 29 ; Load from anchor y$imm0
+      1: r5 = 1
+      2: 45 ; SHL (optimized from MUL by power of 2)
+      3: 29 ; Load from anchor x$imm0
+      4: r8 = 8
+      5: 36
+      6: r10 = r6 + r9
+      7: store , r10
+      8: 29 ; Load from anchor x$imm0
+      9: r13 = 7
+     10: r14 = r12 & r13
+     11: store , r14
+     12: r16 = 128
+     13: r17 = load bit_idx
+     14: 46
+     15: store , r18
+     16: 15 ; Load array element (u8)
+     17: r22 = load mask
+     18: r23 = r21 & r22
+     19: r24 = r24 ^ r24 ; XOR A,A (optimized from LD A,0)
+     20: r25 = r23 != r24
+     21: return r25
+
+Function mnist_complete.move_cursor_up() -> void
+  @smc
+  Instructions:
+      0: r1 = load cursor_y
+      1: r2 = r2 ^ r2 ; XOR A,A (optimized from LD A,0)
+      2: r3 = r1 > r2
+      3: jump_if_not r3, else_5
+      4: 40 ; DEC (optimized from SUB 1)
+      5: store cursor_y, r6
+      6: jump end_if_6
+      7: else_5:
+      8: end_if_6:
+      9: return
+
+Function mnist_complete.move_cursor_down() -> void
+  @smc
+  Instructions:
+      0: r1 = load cursor_y
+      1: r2 = 15
+      2: r3 = r1 < r2
+      3: jump_if_not r3, else_7
+      4: 39 ; INC (optimized from ADD 1)
+      5: store cursor_y, r6
+      6: jump end_if_8
+      7: else_7:
+      8: end_if_8:
+      9: return
+
+Function mnist_complete.move_cursor_left() -> void
+  @smc
+  Instructions:
+      0: r1 = load cursor_x
+      1: r2 = r2 ^ r2 ; XOR A,A (optimized from LD A,0)
+      2: r3 = r1 > r2
+      3: jump_if_not r3, else_9
+      4: 40 ; DEC (optimized from SUB 1)
+      5: store cursor_x, r6
+      6: jump end_if_10
+      7: else_9:
+      8: end_if_10:
+      9: return
+
+Function mnist_complete.move_cursor_right() -> void
+  @smc
+  Instructions:
+      0: r1 = load cursor_x
+      1: r2 = 15
+      2: r3 = r1 < r2
+      3: jump_if_not r3, else_11
+      4: 39 ; INC (optimized from ADD 1)
+      5: store cursor_x, r6
+      6: jump end_if_12
+      7: else_11:
+      8: end_if_12:
+      9: return
+
+Function mnist_complete.clear_canvas() -> void
+  @smc
+  Locals:
+    r1 = i: u8
+  Instructions:
+      0: r2 = r2 ^ r2 ; XOR A,A (optimized from LD A,0)
+      1: store , r2
+      2: r4 = r3 ; Initialize loop counter
+      3: 5 ; Skip if count is zero
+      4: 57 ; Store to array[index] (u8)
+      5: 39 ; INC (optimized from ADD 1)
+      6: store i, r11
+      7: 40 ; Decrement counter
+      8: 6 ; Loop if counter not zero (DJNZ pattern)
+      9: return
+
+Function mnist_complete.calc_screen_addr(x: u8, y: u8) -> u16
+  @smc
+  Locals:
+    r3 = screen_base: u16
+    r5 = y_low: u8
+    r9 = y_mid: u8
+    r15 = y_high: u8
+    r19 = addr: u16
+  Instructions:
+      0: r4 = 16384
+      1: store , r4
+      2: 29 ; Load from anchor y$imm0
+      3: r7 = 7
+      4: r8 = r6 & r7
+      5: store , r8
+      6: 29 ; Load from anchor y$imm0
+      7: r11 = 3
+      8: 46
+      9: r13 = 7
+     10: r14 = r12 & r13
+     11: store , r14
+     12: 29 ; Load from anchor y$imm0
+     13: r17 = 6
+     14: 46
+     15: store , r18
+     16: r20 = load screen_base
+     17: store , r20
+     18: r21 = load addr
+     19: r22 = load y_high
+     20: r23 = 11
+     21: 45 ; SHL (optimized from MUL by power of 2)
+     22: r25 = r21 + r24
+     23: store addr, r25
+     24: r26 = load addr
+     25: r27 = load y_mid
+     26: r28 = 5
+     27: 45 ; SHL (optimized from MUL by power of 2)
+     28: r30 = r26 + r29
+     29: store addr, r30
+     30: r31 = load addr
+     31: r32 = load y_low
+     32: r33 = 8
+     33: 45 ; SHL (optimized from MUL by power of 2)
+     34: r35 = r31 + r34
+     35: store addr, r35
+     36: r36 = load addr
+     37: 29 ; Load from anchor x$imm0
+     38: r38 = 8
+     39: 36
+     40: r40 = r36 + r39
+     41: store addr, r40
+     42: r41 = load addr
+     43: return r41
+
+Function mnist_complete.render_to_screen() -> void
+  @smc
+  Locals:
+    r1 = grid_x: u8
+    r3 = grid_y: u8
+    r5 = y: u8
+    r10 = x: u8
+    r15 = pixel_on: bool
+    r19 = screen_x: u8
+    r23 = screen_y: u8
+    r27 = screen_addr: u16
+    r31 = pixel_mask: u8
+  Instructions:
+      0: r2 = 64
+      1: store , r2
+      2: r4 = 48
+      3: store , r4
+      4: r6 = r6 ^ r6 ; XOR A,A (optimized from LD A,0)
+      5: store , r6
+      6: loop_15:
+      7: r7 = load y
+      8: r8 = 16
+      9: r9 = r7 < r8
+     10: jump_if_not r9, end_loop_16
+     11: r11 = r11 ^ r11 ; XOR A,A (optimized from LD A,0)
+     12: store , r11
+     13: loop_17:
+     14: r12 = load x
+     15: r13 = 16
+     16: r14 = r12 < r13
+     17: jump_if_not r14, end_loop_18
+     18: r18 = call is_pixel_set ; Optimized: return value directly stored to 
+     19: r20 = load grid_x
+     20: r21 = load x
+     21: r22 = r20 + r21
+     22: store , r22
+     23: r24 = load grid_y
+     24: r25 = load y
+     25: r26 = r24 + r25
+     26: store , r26
+     27: r30 = call calc_screen_addr
+     28: store , r30
+     29: r32 = 128
+     30: r33 = load screen_x
+     31: r34 = 7
+     32: r35 = r33 & r34
+     33: 46
+     34: store , r36
+     35: 39 ; INC (optimized from ADD 1)
+     36: store x, r39
+     37: jump loop_17
+     38: end_loop_18:
+     39: 39 ; INC (optimized from ADD 1)
+     40: store y, r42
+     41: jump loop_15
+     42: end_loop_16:
+     43: return
+
+Function mnist_complete.render_cursor() -> void
+  @smc
+  Locals:
+    r1 = flash: bool
+    r11 = grid_x: u8
+    r13 = grid_y: u8
+    r15 = cursor_screen_x: u8
+    r19 = cursor_screen_y: u8
+    r23 = cursor_addr: u16
+    r27 = cursor_mask: u8
+  Instructions:
+      0: r2 = load flash_counter
+      1: r3 = 16
+      2: r4 = r2 & r3
+      3: r5 = r5 ^ r5 ; XOR A,A (optimized from LD A,0)
+      4: r6 = r4 != r5
+      5: store , r6
+      6: 39 ; INC (optimized from ADD 1)
+      7: store flash_counter, r9
+      8: r10 = r9 ; Move (optimized from store/load)
+      9: jump_if_not r10, else_19
+     10: r12 = 64
+     11: store , r12
+     12: r14 = 48
+     13: store , r14
+     14: r16 = load grid_x
+     15: r17 = load cursor_x
+     16: r18 = r16 + r17
+     17: store , r18
+     18: r20 = load grid_y
+     19: r21 = load cursor_y
+     20: r22 = r20 + r21
+     21: store , r22
+     22: r26 = call calc_screen_addr
+     23: store , r26
+     24: r28 = 128
+     25: r29 = load cursor_screen_x
+     26: r30 = 7
+     27: r31 = r29 & r30
+     28: 46
+     29: store , r32
+     30: jump end_if_20
+     31: else_19:
+     32: end_if_20:
+     33: return
+
+Function mnist_complete.simulate_input() -> u8
+  @smc
+  Locals:
+    r1 = sim_input: u8
+  Instructions:
+      0: r2 = load flash_counter
+      1: r3 = 15
+      2: r4 = r2 & r3
+      3: store , r4
+      4: r5 = load sim_input
+      5: r6 = 4
+      6: r7 = r5 < r6
+      7: jump_if_not r7, else_21
+      8: r8 = 1
+      9: return r8
+     10: else_21:
+     11: r9 = load sim_input
+     12: r10 = 8
+     13: r11 = r9 < r10
+     14: jump_if_not r11, else_23
+     15: r12 = 2
+     16: return r12
+     17: else_23:
+     18: r13 = load sim_input
+     19: r14 = 12
+     20: r15 = r13 < r14
+     21: jump_if_not r15, else_25
+     22: r16 = 3
+     23: return r16
+     24: else_25:
+     25: r17 = r17 ^ r17 ; XOR A,A (optimized from LD A,0)
+     26: return r17
+
+Function mnist_complete.handle_input() -> bool
+  @smc
+  Locals:
+    r1 = input: u8
+    r3 = handled: bool
+    r8 = direction: u8
+  Instructions:
+      0: r2 = call simulate_input ; Optimized: return value directly stored to 
+      1: r4 = r4 ^ r4 ; XOR A,A (optimized from LD A,0)
+      2: store , r4
+      3: r5 = load input
+      4: r6 = 1
+      5: r7 = r5 == r6
+      6: jump_if_not r7, else_27
+      7: r9 = load flash_counter
+      8: r10 = 3
+      9: r11 = r9 & r10
+     10: store , r11
+     11: r12 = load direction
+     12: r13 = r13 ^ r13 ; XOR A,A (optimized from LD A,0)
+     13: r14 = r12 == r13
+     14: jump_if_not r14, else_29
+     15: r15 = call move_cursor_up
+     16: jump end_if_30
+     17: else_29:
+     18: r16 = load direction
+     19: r17 = 1
+     20: r18 = r16 == r17
+     21: jump_if_not r18, else_31
+     22: r19 = call move_cursor_down
+     23: jump end_if_32
+     24: else_31:
+     25: r20 = load direction
+     26: r21 = 2
+     27: r22 = r20 == r21
+     28: jump_if_not r22, else_33
+     29: r23 = call move_cursor_left
+     30: jump end_if_34
+     31: else_33:
+     32: r24 = call move_cursor_right
+     33: end_if_34:
+     34: end_if_32:
+     35: end_if_30:
+     36: r25 = 1
+     37: store handled, r25
+     38: jump end_if_28
+     39: else_27:
+     40: r26 = load input
+     41: r27 = 2
+     42: r28 = r26 == r27
+     43: jump_if_not r28, else_35
+     44: r29 = call toggle_pixel
+     45: r30 = 1
+     46: store handled, r30
+     47: jump end_if_36
+     48: else_35:
+     49: r31 = load input
+     50: r32 = 3
+     51: r33 = r31 == r32
+     52: jump_if_not r33, else_37
+     53: r34 = call clear_canvas
+     54: r35 = 1
+     55: store handled, r35
+     56: jump end_if_38
+     57: else_37:
+     58: end_if_38:
+     59: end_if_36:
+     60: end_if_28:
+     61: r36 = load handled
+     62: return r36
+
+Function mnist_complete.count_set_pixels() -> u16
+  @smc
+  Locals:
+    r1 = count: u16
+    r3 = i: u8
+    r8 = byte_val: u8
+    r12 = bit_pos: u8
+    r17 = test_mask: u8
+  Instructions:
+      0: r2 = r2 ^ r2 ; XOR A,A (optimized from LD A,0)
+      1: store , r2
+      2: r4 = r4 ^ r4 ; XOR A,A (optimized from LD A,0)
+      3: store , r4
+      4: loop_39:
+      5: r5 = load i
+      6: r6 = 32
+      7: r7 = r5 < r6
+      8: jump_if_not r7, end_loop_40
+      9: 15 ; Load array element (u8)
+     10: store , r11
+     11: r13 = r13 ^ r13 ; XOR A,A (optimized from LD A,0)
+     12: store , r13
+     13: loop_41:
+     14: r14 = load bit_pos
+     15: r15 = 8
+     16: r16 = r14 < r15
+     17: jump_if_not r16, end_loop_42
+     18: r18 = 1
+     19: r19 = load bit_pos
+     20: 45
+     21: store , r20
+     22: r21 = load byte_val
+     23: r22 = load test_mask
+     24: r23 = r21 & r22
+     25: r24 = r24 ^ r24 ; XOR A,A (optimized from LD A,0)
+     26: r25 = r23 != r24
+     27: jump_if_not r25, else_43
+     28: 39 ; INC (optimized from ADD 1)
+     29: store count, r28
+     30: jump end_if_44
+     31: else_43:
+     32: end_if_44:
+     33: 39 ; INC (optimized from ADD 1)
+     34: store bit_pos, r31
+     35: jump loop_41
+     36: end_loop_42:
+     37: 39 ; INC (optimized from ADD 1)
+     38: store i, r34
+     39: jump loop_39
+     40: end_loop_40:
+     41: r35 = load count
+     42: return r35
+
+Function mnist_complete.draw_welcome_pattern() -> void
+  @smc
+  Locals:
+    r1 = edge: u8
+    r21 = diag: u8
+  Instructions:
+      0: r2 = r2 ^ r2 ; XOR A,A (optimized from LD A,0)
+      1: store , r2
+      2: loop_45:
+      3: r3 = load edge
+      4: r4 = 16
+      5: r5 = r3 < r4
+      6: jump_if_not r5, end_loop_46
+      7: r8 = call set_pixel
+      8: r11 = call set_pixel
+      9: r14 = call set_pixel
+     10: r17 = call set_pixel
+     11: 39 ; INC (optimized from ADD 1)
+     12: store edge, r20
+     13: jump loop_45
+     14: end_loop_46:
+     15: r22 = 2
+     16: store , r22
+     17: loop_47:
+     18: r23 = load diag
+     19: r24 = 14
+     20: r25 = r23 < r24
+     21: jump_if_not r25, end_loop_48
+     22: r28 = call set_pixel
+     23: 39 ; INC (optimized from ADD 1)
+     24: store diag, r31
+     25: jump loop_47
+     26: end_loop_48:
+     27: r34 = call set_pixel
+     28: r37 = call set_pixel
+     29: r40 = call set_pixel
+     30: r43 = call set_pixel
+     31: r46 = call set_pixel
+     32: return
+
+Function mnist_complete.test_modern_loops() -> void
+  @smc
+  Locals:
+    r1 = i: u8
+    r6 = current: u8
+  Instructions:
+      0: r2 = r2 ^ r2 ; XOR A,A (optimized from LD A,0)
+      1: store , r2
+      2: loop_49:
+      3: r3 = load i
+      4: r4 = 32
+      5: r5 = r3 < r4
+      6: jump_if_not r5, end_loop_50
+      7: 15 ; Load array element (u8)
+      8: store , r9
+      9: 57 ; Store to array[index] (u8)
+     10: 39 ; INC (optimized from ADD 1)
+     11: store i, r18
+     12: jump loop_49
+     13: end_loop_50:
+     14: return
+
+Function mnist_complete.delay() -> void
+  @smc
+  Locals:
+    r1 = count: u16
+  Instructions:
+      0: r2 = r2 ^ r2 ; XOR A,A (optimized from LD A,0)
+      1: store , r2
+      2: loop_51:
+      3: r3 = load count
+      4: r4 = 300
+      5: r5 = r3 < r4
+      6: jump_if_not r5, end_loop_52
+      7: 39 ; INC (optimized from ADD 1)
+      8: store count, r8
+      9: jump loop_51
+     10: end_loop_52:
+     11: return
+
+Function mnist_complete.main() -> void
+  @smc
+  Locals:
+    r3 = frame: u16
+    r17 = pixel_count: u16
+    r40 = final_count: u16
+  Instructions:
+      0: r1 = call init_editor
+      1: r2 = call draw_welcome_pattern
+      2: r4 = r4 ^ r4 ; XOR A,A (optimized from LD A,0)
+      3: store , r4
+      4: loop_53:
+      5: r5 = load frame
+      6: r6 = 150
+      7: r7 = r5 < r6
+      8: jump_if_not r7, end_loop_54
+      9: r8 = call render_to_screen
+     10: r9 = call render_cursor
+     11: r10 = call handle_input
+     12: jump_if_not r10, else_55
+     13: r11 = call delay
+     14: jump end_if_56
+     15: else_55:
+     16: end_if_56:
+     17: r12 = load frame
+     18: r13 = 31
+     19: r14 = r12 & r13
+     20: r15 = r15 ^ r15 ; XOR A,A (optimized from LD A,0)
+     21: r16 = r14 == r15
+     22: jump_if_not r16, else_57
+     23: r18 = call count_set_pixels
+     24: store , r18
+     25: r19 = load pixel_count
+     26: r20 = 80
+     27: r21 = r19 > r20
+     28: jump_if_not r21, else_59
+     29: r22 = call test_modern_loops
+     30: jump end_if_60
+     31: else_59:
+     32: end_if_60:
+     33: jump end_if_58
+     34: else_57:
+     35: end_if_58:
+     36: r23 = call delay
+     37: 39 ; INC (optimized from ADD 1)
+     38: store frame, r26
+     39: jump loop_53
+     40: end_loop_54:
+     41: r27 = call clear_canvas
+     42: r28 = 5
+     43: store cursor_x, r28
+     44: r29 = 5
+     45: store cursor_y, r29
+     46: r30 = call toggle_pixel
+     47: r31 = 10
+     48: store cursor_x, r31
+     49: r32 = 10
+     50: store cursor_y, r32
+     51: r33 = call toggle_pixel
+     52: r34 = 5
+     53: store cursor_x, r34
+     54: r35 = 10
+     55: store cursor_y, r35
+     56: r36 = call toggle_pixel
+     57: r37 = 10
+     58: store cursor_x, r37
+     59: r38 = 5
+     60: store cursor_y, r38
+     61: r39 = call toggle_pixel
+     62: r41 = call count_set_pixels
+     63: store , r41
+     64: return
+
