@@ -1,9 +1,0 @@
-; MinZ Intermediate Representation (MIR)
-; Module: main
-
-Function ...examples.test_true_smc_simple.identity(x: u8) -> u8
-  @smc
-  Instructions:
-      0: 25 ; Load from anchor x$imm0
-      1: return r2
-
