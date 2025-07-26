@@ -1,0 +1,175 @@
+; MinZ generated code
+; Generated: 2025-07-26 21:35:50
+
+
+; Data section
+    ORG $F000
+
+g_sum:
+    DW 0
+g_diff:
+    DW 0
+g_product:
+    DW 0
+
+; Code section
+    ORG $8000
+
+
+; Function: test_16bit_arithmetic.test_16bit_ops
+test_16bit_arithmetic.test_16bit_ops:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 4660
+    LD HL, 4660
+    LD ($F004), HL
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; r4 = 22136
+    LD HL, 22136
+    LD ($F008), HL
+    ; store , r4
+    LD HL, ($F008)
+    LD ($F006), HL
+    ; r5 = load a
+    LD HL, ($F002)
+    LD ($F00A), HL
+    ; r6 = load b
+    LD HL, ($F006)
+    LD ($F00C), HL
+    ; r7 = r5 + r6
+    LD HL, ($F00A)
+    LD D, H
+    LD E, L
+    LD HL, ($F00C)
+    ADD HL, DE
+    LD ($F00E), HL
+    ; store g_sum, r7
+    LD HL, ($F00E)
+    LD ($F000), HL
+    ; r8 = load b
+    LD HL, ($F006)
+    LD ($F010), HL
+    ; r9 = load a
+    LD HL, ($F002)
+    LD ($F012), HL
+    ; r10 = r8 - r9
+    LD HL, ($F010)
+    LD D, H
+    LD E, L
+    LD HL, ($F012)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    LD ($F014), HL
+    ; store g_diff, r10
+    LD HL, ($F014)
+    LD ($F020), HL
+    ; r12 = 100
+    LD A, 100
+    LD ($F018), A
+    ; store , r12
+    LD HL, ($F018)
+    LD ($F016), HL
+    ; r14 = 200
+    LD A, 200
+    LD ($F01C), A
+    ; store , r14
+    LD HL, ($F01C)
+    LD ($F01A), HL
+    ; r15 = load c
+    LD HL, ($F016)
+    LD ($F01E), HL
+    ; r16 = load d
+    LD HL, ($F01A)
+    LD ($F020), HL
+    ; r17 = r15 * r16
+    ; 16-bit multiplication
+    LD HL, ($F01E)
+    LD (mul_src1_0), HL  ; Save multiplicand
+    LD HL, ($F020)
+    LD (mul_src2_0), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_0)  ; DE = multiplicand
+    LD BC, (mul_src2_0)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_0
+.mul16_loop_0:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_0
+.mul16_done_0:
+mul_src1_0: DW 0
+mul_src2_0: DW 0
+    LD ($F022), HL
+    ; store g_product, r17
+    LD HL, ($F022)
+    LD ($F040), HL
+    ; r19 = 65280
+    LD HL, 65280
+    LD ($F026), HL
+    ; store , r19
+    LD HL, ($F026)
+    LD ($F024), HL
+    ; r21 = load b
+    LD HL, ($F006)
+    LD ($F02A), HL
+    ; r22 = load mask
+    LD HL, ($F024)
+    LD ($F02C), HL
+    ; unknown op 41
+    LD HL, ($F02A)
+    LD D, H
+    LD E, L
+    LD HL, ($F02C)
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F02E), HL
+    ; store , r23
+    LD HL, ($F02E)
+    LD ($F028), HL
+    ; r25 = load a
+    LD HL, ($F002)
+    LD ($F032), HL
+    ; r26 = 4
+    LD A, 4
+    LD ($F034), A
+    ; unknown op 45
+    ; 16-bit shift left
+    LD HL, ($F032)
+    LD A, ($F034)
+    LD B, A       ; B = shift count
+    OR A
+    JR Z, .shl16_done_1
+.shl16_loop_1:
+    ADD HL, HL    ; Shift left by 1
+    DJNZ .shl16_loop_1
+.shl16_done_1:
+    LD ($F036), HL
+    ; store , r27
+    LD HL, ($F036)
+    LD ($F030), HL
+    ; return
+    RET
+
+; Function: test_16bit_arithmetic.main
+test_16bit_arithmetic.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call test_16bit_ops
+    ; Call to test_16bit_ops (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_16bit_ops
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

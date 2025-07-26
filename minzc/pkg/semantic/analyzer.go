@@ -569,6 +569,17 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 		Type: varType,
 	}
 	
+	// If there's an initializer, evaluate it
+	if v.Value != nil {
+		// Try to evaluate the initializer as a constant
+		if val, err := a.evaluateConstExpr(v.Value); err == nil {
+			global.Init = val
+		} else {
+			// For non-constant initializers, store the AST expression
+			global.Value = v.Value
+		}
+	}
+	
 	// Add to module globals
 	a.module.Globals = append(a.module.Globals, global)
 
@@ -1840,7 +1851,31 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 // analyzeNumberLiteral analyzes a number literal
 func (a *Analyzer) analyzeNumberLiteral(num *ast.NumberLiteral, irFunc *ir.Function) (ir.Register, error) {
 	reg := irFunc.AllocReg()
-	irFunc.EmitImm(ir.OpLoadConst, reg, num.Value)
+	
+	// Infer type based on value
+	var numType ir.Type
+	if num.Value >= 0 && num.Value <= 255 {
+		numType = &ir.BasicType{Kind: ir.TypeU8}
+	} else if num.Value >= -128 && num.Value <= 127 {
+		numType = &ir.BasicType{Kind: ir.TypeI8}
+	} else if num.Value >= 0 && num.Value <= 65535 {
+		numType = &ir.BasicType{Kind: ir.TypeU16}
+	} else {
+		numType = &ir.BasicType{Kind: ir.TypeI16}
+	}
+	
+	// Store the type
+	a.exprTypes[num] = numType
+	
+	// Emit typed instruction
+	inst := ir.Instruction{
+		Op:   ir.OpLoadConst,
+		Dest: reg,
+		Imm:  num.Value,
+		Type: numType,
+	}
+	irFunc.Instructions = append(irFunc.Instructions, inst)
+	
 	return reg, nil
 }
 
@@ -1909,7 +1944,27 @@ func (a *Analyzer) analyzeBinaryExpr(bin *ast.BinaryExpr, irFunc *ir.Function) (
 		return 0, fmt.Errorf("unsupported binary operator: %s", bin.Operator)
 	}
 
-	irFunc.Emit(op, resultReg, leftReg, rightReg)
+	// Determine result type
+	leftType := a.exprTypes[bin.Left]
+	rightType := a.exprTypes[bin.Right]
+	
+	// For now, use the left operand's type as the result type
+	// TODO: Implement proper type promotion rules
+	resultType := leftType
+	if resultType == nil && rightType != nil {
+		resultType = rightType
+	}
+	
+	// Store the result type
+	a.exprTypes[bin] = resultType
+	
+	// Emit typed instruction
+	if resultType != nil {
+		irFunc.EmitTyped(op, resultReg, leftReg, rightReg, resultType)
+	} else {
+		irFunc.Emit(op, resultReg, leftReg, rightReg)
+	}
+	
 	return resultReg, nil
 }
 
@@ -2487,6 +2542,106 @@ func (a *Analyzer) typesEqual(t1, t2 ir.Type) bool {
 	
 	// For other types, use string comparison (not ideal but works for now)
 	return t1.String() == t2.String()
+}
+
+// evaluateConstExpr evaluates a constant expression and returns its value
+func (a *Analyzer) evaluateConstExpr(expr ast.Expression) (interface{}, error) {
+	switch e := expr.(type) {
+	case *ast.NumberLiteral:
+		return e.Value, nil
+	case *ast.StringLiteral:
+		return e.Value, nil
+	case *ast.BooleanLiteral:
+		return e.Value, nil
+	case *ast.UnaryExpr:
+		// Handle unary operators on constants
+		operand, err := a.evaluateConstExpr(e.Operand)
+		if err != nil {
+			return nil, err
+		}
+		switch e.Operator {
+		case "-":
+			if val, ok := operand.(int64); ok {
+				return -val, nil
+			} else if val, ok := operand.(int); ok {
+				return -val, nil
+			}
+		case "!":
+			if val, ok := operand.(bool); ok {
+				return !val, nil
+			}
+		case "~":
+			if val, ok := operand.(int64); ok {
+				return ^val, nil
+			} else if val, ok := operand.(int); ok {
+				return ^val, nil
+			}
+		}
+		return nil, fmt.Errorf("cannot evaluate unary operator %s on constant", e.Operator)
+	case *ast.BinaryExpr:
+		// Handle binary operators on constants
+		left, err := a.evaluateConstExpr(e.Left)
+		if err != nil {
+			return nil, err
+		}
+		right, err := a.evaluateConstExpr(e.Right)
+		if err != nil {
+			return nil, err
+		}
+		
+		// Try integer operations - handle both int and int64
+		var lInt, rInt int64
+		switch l := left.(type) {
+		case int64:
+			lInt = l
+		case int:
+			lInt = int64(l)
+		default:
+			return nil, fmt.Errorf("left operand is not an integer")
+		}
+		
+		switch r := right.(type) {
+		case int64:
+			rInt = r
+		case int:
+			rInt = int64(r)
+		default:
+			return nil, fmt.Errorf("right operand is not an integer")
+		}
+		
+		switch e.Operator {
+		case "+":
+			return lInt + rInt, nil
+		case "-":
+			return lInt - rInt, nil
+		case "*":
+			return lInt * rInt, nil
+		case "/":
+			if rInt != 0 {
+				return lInt / rInt, nil
+			}
+			return nil, fmt.Errorf("division by zero")
+		case "%":
+			if rInt != 0 {
+				return lInt % rInt, nil
+			}
+			return nil, fmt.Errorf("modulo by zero")
+		case "&":
+			return lInt & rInt, nil
+		case "|":
+			return lInt | rInt, nil
+		case "^":
+			return lInt ^ rInt, nil
+		case "<<":
+			return lInt << uint(rInt), nil
+		case ">>":
+			return lInt >> uint(rInt), nil
+		}
+		
+		return nil, fmt.Errorf("cannot evaluate binary operator %s on constants", e.Operator)
+	default:
+		return nil, fmt.Errorf("expression is not a constant")
+	}
 }
 
 // Close cleans up resources

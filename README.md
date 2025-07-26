@@ -5,7 +5,9 @@ MinZ is a minimal systems programming language designed for Z80-based computers,
 ## Features
 
 - **Modern Syntax**: Rust-inspired syntax with type inference
-- **Type Safety**: Static typing with compile-time checks
+- **Type Safety**: Static typing with compile-time checks and type-aware code generation
+- **Global Initializers**: Initialize globals with constant expressions (v0.3.2)
+- **16-bit Arithmetic**: Full support for 16-bit operations with automatic detection (v0.3.2)
 - **Structured Types**: Structs and enums for organized data
 - **Module System**: Organize code with imports and visibility control
 - **Low-Level Control**: Direct memory access and inline assembly

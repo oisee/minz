@@ -263,6 +263,11 @@ func (p *SimpleParser) parseSourceFile(filename string) (*ast.File, error) {
 				if decl != nil {
 					file.Declarations = append(file.Declarations, decl)
 				}
+			case "global":
+				decl := p.parseGlobalDecl()
+				if decl != nil {
+					file.Declarations = append(file.Declarations, decl)
+				}
 			case "type":
 				decl := p.parseTypeDecl()
 				if decl != nil {
@@ -986,7 +991,7 @@ func isKeyword(s string) bool {
 		"struct", "enum", "impl", "pub", "mod", "use", "import",
 		"true", "false", "as", "module", "asm", "const", "type",
 		"loop", "into", "ref", "to", "indexed", "bits", "at",
-		"do", "times",
+		"do", "times", "global",
 	}
 	for _, kw := range keywords {
 		if s == kw {
@@ -1328,15 +1333,25 @@ func (p *SimpleParser) parseVarDecl() *ast.VarDecl {
 		p.advance() // consume 'mut'
 	}
 	
-	// Variable name
-	if p.peek().Type == TokenIdent {
-		varDecl.Name = p.advance().Value
-	}
-	
-	// Type annotation
-	if p.peek().Value == ":" {
+	// Check if next token is a type name or variable name
+	tok := p.peek()
+	if tok.Type == TokenIdent {
+		// Could be type or name
+		// Look ahead to see if next is another identifier
 		p.advance()
-		varDecl.Type = p.parseType()
+		if p.peek().Type == TokenIdent {
+			// First was type, second is name (e.g., "let u16 x")
+			varDecl.Type = &ast.PrimitiveType{Name: tok.Value}
+			varDecl.Name = p.advance().Value
+		} else if p.peek().Value == ":" {
+			// Just name, type annotation follows (e.g., "let x:")
+			varDecl.Name = tok.Value
+			p.advance() // consume ':'
+			varDecl.Type = p.parseType()
+		} else {
+			// Just name, no type (e.g., "let x =")
+			varDecl.Name = tok.Value
+		}
 	}
 	
 	// Initializer
@@ -1378,6 +1393,49 @@ func (p *SimpleParser) parseConstDecl() *ast.ConstDecl {
 	constDecl.EndPos = p.currentPos()
 	
 	return constDecl
+}
+
+func (p *SimpleParser) parseGlobalDecl() *ast.VarDecl {
+	globalDecl := &ast.VarDecl{
+		StartPos:  p.currentPos(),
+		IsMutable: true, // Globals are mutable by default
+	}
+	
+	// Parse 'global' keyword
+	p.expect(TokenKeyword, "global")
+	
+	// Type or name
+	tok := p.peek()
+	if tok.Type == TokenIdent {
+		// Could be type or name
+		// Look ahead to see if next is another identifier
+		p.advance()
+		if p.peek().Type == TokenIdent {
+			// First was type, second is name
+			globalDecl.Type = &ast.PrimitiveType{Name: tok.Value}
+			globalDecl.Name = p.advance().Value
+		} else {
+			// Just name, type will be inferred
+			globalDecl.Name = tok.Value
+		}
+	}
+	
+	// Optional type annotation
+	if p.peek().Value == ":" {
+		p.advance()
+		globalDecl.Type = p.parseType()
+	}
+	
+	// Optional initializer
+	if p.peek().Value == "=" {
+		p.advance()
+		globalDecl.Value = p.parseExpression()
+	}
+	
+	p.expect(TokenPunc, ";")
+	globalDecl.EndPos = p.currentPos()
+	
+	return globalDecl
 }
 
 func (p *SimpleParser) parseStructDecl() *ast.StructDecl {

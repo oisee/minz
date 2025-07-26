@@ -17,6 +17,7 @@ type Z80Generator struct {
 	currentFunction *ir.Function // For DJNZ optimization
 	currentInstructionIndex int  // For DJNZ optimization
 	regAlloc      *RegisterAllocator
+	usePhysicalRegs bool // Use physical registers instead of memory
 	stackOffset   int
 	labelCounter  int
 	useShadowRegs bool // Whether to use shadow registers for current function
@@ -45,6 +46,8 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	// Generate data section
 	if len(module.Globals) > 0 || len(module.Strings) > 0 {
 		g.emit("\n; Data section")
+		g.emit("    ORG $F000")  // Data section at $F000
+		g.emit("")
 		for _, global := range module.Globals {
 			g.generateGlobal(global)
 		}
@@ -144,15 +147,49 @@ func (g *Z80Generator) generatePatchTable() {
 func (g *Z80Generator) generateGlobal(global ir.Global) {
 	g.emit("%s:", global.Name)
 	
-	switch global.Type.(type) {
+	switch t := global.Type.(type) {
 	case *ir.BasicType:
+		// Handle basic type initialization
 		if global.Init != nil {
-			g.emit("    DW %v", global.Init)
+			// Init contains the evaluated constant value
+			switch t.Kind {
+			case ir.TypeU8, ir.TypeI8:
+				g.emit("    DB %v", global.Init)
+			case ir.TypeU16, ir.TypeI16:
+				g.emit("    DW %v", global.Init)
+			case ir.TypeBool:
+				val := 0
+				if v, ok := global.Init.(bool); ok && v {
+					val = 1
+				}
+				g.emit("    DB %d", val)
+			default:
+				g.emit("    DW %v", global.Init)
+			}
 		} else {
-			g.emit("    DW 0")
+			// No initializer, use zero
+			switch t.Kind {
+			case ir.TypeU8, ir.TypeI8, ir.TypeBool:
+				g.emit("    DB 0")
+			case ir.TypeU16, ir.TypeI16:
+				g.emit("    DW 0")
+			default:
+				g.emit("    DW 0")
+			}
 		}
 	case *ir.ArrayType:
-		// TODO: Handle array initialization
+		// Handle array initialization
+		if global.Init != nil {
+			// TODO: Support array initializers
+			g.emit("    ; Array with initializer")
+			size := global.Type.Size()
+			g.emit("    DS %d", size)
+		} else {
+			size := global.Type.Size()
+			g.emit("    DS %d", size)
+		}
+	case *ir.StructType:
+		// Handle struct initialization
 		size := global.Type.Size()
 		g.emit("    DS %d", size)
 	default:
@@ -210,6 +247,16 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	// Traditional function generation
 	g.emit("%s:", fn.Name)
 
+	// Allocate addresses for local variables
+	localOffset := uint16(0)
+	localAddresses := make(map[string]uint16)
+	for _, local := range fn.Locals {
+		addr := g.localVarBase + localOffset
+		localAddresses[local.Name] = addr
+		g.regAlloc.SetAddress(local.Reg, addr)
+		localOffset += uint16(local.Type.Size())
+	}
+	
 	// Function prologue
 	g.generatePrologue(fn)
 
@@ -795,12 +842,21 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				g.emit("    LD HL, ($%04X)", globalAddr)
 				g.storeFromHL(inst.Dest)
 			} else {
+				// Try to find local variable by name
+				localReg := ir.Register(0)
+				for _, local := range g.currentFunc.Locals {
+					if local.Name == inst.Symbol {
+						localReg = local.Reg
+						break
+					}
+				}
+				
 				// Fall back to local variable
 				if g.useAbsoluteLocals {
-					addr := g.getAbsoluteAddr(inst.Src1)
+					addr := g.getAbsoluteAddr(localReg)
 					g.emit("    LD HL, ($%04X)", addr)
 				} else {
-					offset := g.getLocalOffset(inst.Src1)
+					offset := g.getLocalOffset(localReg)
 					g.emit("    LD L, (IX-%d)", offset)
 					g.emit("    LD H, (IX-%d)", offset-1)
 				}
@@ -830,12 +886,21 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			if globalAddr != 0 {
 				g.emit("    LD ($%04X), HL", globalAddr)
 			} else {
+				// Try to find local variable by name
+				localReg := ir.Register(0)
+				for _, local := range g.currentFunc.Locals {
+					if local.Name == inst.Symbol {
+						localReg = local.Reg
+						break
+					}
+				}
+				
 				// Fall back to local variable
 				if g.useAbsoluteLocals {
-					addr := g.getAbsoluteAddr(inst.Dest)
+					addr := g.getAbsoluteAddr(localReg)
 					g.emit("    LD ($%04X), HL", addr)
 				} else {
-					offset := g.getLocalOffset(inst.Dest)
+					offset := g.getLocalOffset(localReg)
 					g.emit("    LD (IX-%d), L", offset)
 					g.emit("    LD (IX-%d), H", offset-1)
 				}
@@ -878,8 +943,38 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpMul:
-		// 8-bit multiplication using repeated addition
-		// Src1 * Src2 -> Dest
+		// Check if this is 16-bit multiplication based on type
+		if inst.Type != nil {
+			if basicType, ok := inst.Type.(*ir.BasicType); ok && 
+			   (basicType.Kind == ir.TypeU16 || basicType.Kind == ir.TypeI16) {
+				// 16-bit multiplication using repeated addition
+				g.emit("    ; 16-bit multiplication")
+				g.loadToHL(inst.Src1)
+				g.emit("    LD (mul_src1_%d), HL  ; Save multiplicand", g.labelCounter)
+				g.loadToHL(inst.Src2)
+				g.emit("    LD (mul_src2_%d), HL  ; Save multiplier", g.labelCounter)
+				g.emit("    LD HL, 0             ; Result = 0")
+				g.emit("    LD DE, (mul_src1_%d)  ; DE = multiplicand", g.labelCounter)
+				g.emit("    LD BC, (mul_src2_%d)  ; BC = multiplier", g.labelCounter)
+				g.emit("    LD A, B")
+				g.emit("    OR C                 ; Check if multiplier is 0")
+				g.emit("    JR Z, .mul16_done_%d", g.labelCounter)
+				g.emit(".mul16_loop_%d:", g.labelCounter)
+				g.emit("    ADD HL, DE           ; Result += multiplicand")
+				g.emit("    DEC BC")
+				g.emit("    LD A, B")
+				g.emit("    OR C")
+				g.emit("    JR NZ, .mul16_loop_%d", g.labelCounter)
+				g.emit(".mul16_done_%d:", g.labelCounter)
+				g.emit("mul_src1_%d: DW 0", g.labelCounter)
+				g.emit("mul_src2_%d: DW 0", g.labelCounter)
+				g.labelCounter++
+				g.storeFromHL(inst.Dest)
+				break
+			}
+		}
+		
+		// Default 8-bit multiplication
 		g.emit("    ; 8-bit multiplication")
 		g.loadToA(inst.Src1)
 		g.emit("    LD B, A       ; B = multiplicand")
@@ -1031,19 +1126,30 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.storeFromHL(inst.Dest)
 		}
 		
-	case ir.OpNot:
-		// Bitwise NOT (one's complement)
-		g.loadToHL(inst.Src1)
-		g.emit("    LD A, L")
-		g.emit("    CPL")
-		g.emit("    LD L, A")
-		g.emit("    LD A, H")
-		g.emit("    CPL")
-		g.emit("    LD H, A")
-		g.storeFromHL(inst.Dest)
-		
 	case ir.OpShl:
-		// Shift left - Src1 << Src2
+		// Shift left
+		// Check if 16-bit or 8-bit based on type
+		if inst.Type != nil {
+			if basicType, ok := inst.Type.(*ir.BasicType); ok && 
+			   (basicType.Kind == ir.TypeU16 || basicType.Kind == ir.TypeI16) {
+				// 16-bit shift left
+				g.emit("    ; 16-bit shift left")
+				g.loadToHL(inst.Src1)
+				g.loadToA(inst.Src2)
+				g.emit("    LD B, A       ; B = shift count")
+				g.emit("    OR A")
+				g.emit("    JR Z, .shl16_done_%d", g.labelCounter)
+				g.emit(".shl16_loop_%d:", g.labelCounter)
+				g.emit("    ADD HL, HL    ; Shift left by 1")
+				g.emit("    DJNZ .shl16_loop_%d", g.labelCounter)
+				g.emit(".shl16_done_%d:", g.labelCounter)
+				g.labelCounter++
+				g.storeFromHL(inst.Dest)
+				break
+			}
+		}
+		
+		// Default 8-bit shift left
 		g.emit("    ; Shift left")
 		g.loadToA(inst.Src1)
 		g.emit("    LD B, A       ; B = value to shift")
@@ -1065,7 +1171,30 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpShr:
-		// Shift right - Src1 >> Src2
+		// Shift right (logical)
+		// Check if 16-bit or 8-bit based on type
+		if inst.Type != nil {
+			if basicType, ok := inst.Type.(*ir.BasicType); ok && 
+			   (basicType.Kind == ir.TypeU16 || basicType.Kind == ir.TypeI16) {
+				// 16-bit shift right
+				g.emit("    ; 16-bit shift right")
+				g.loadToHL(inst.Src1)
+				g.loadToA(inst.Src2)
+				g.emit("    LD B, A       ; B = shift count")
+				g.emit("    OR A")
+				g.emit("    JR Z, .shr16_done_%d", g.labelCounter)
+				g.emit(".shr16_loop_%d:", g.labelCounter)
+				g.emit("    SRL H         ; Shift high byte right")
+				g.emit("    RR L          ; Rotate right through carry")
+				g.emit("    DJNZ .shr16_loop_%d", g.labelCounter)
+				g.emit(".shr16_done_%d:", g.labelCounter)
+				g.labelCounter++
+				g.storeFromHL(inst.Dest)
+				break
+			}
+		}
+		
+		// Default 8-bit shift right
 		g.emit("    ; Shift right")
 		g.loadToA(inst.Src1)
 		g.emit("    LD B, A       ; B = value to shift")
@@ -1084,6 +1213,17 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD L, A")
 		g.emit("    LD H, 0")
 		g.labelCounter++
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpNot:
+		// Bitwise NOT (one's complement)
+		g.loadToHL(inst.Src1)
+		g.emit("    LD A, L")
+		g.emit("    CPL")
+		g.emit("    LD L, A")
+		g.emit("    LD A, H")
+		g.emit("    CPL")
+		g.emit("    LD H, A")
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpEq, ir.OpNe, ir.OpLt, ir.OpGt, ir.OpLe, ir.OpGe:
@@ -1676,7 +1816,11 @@ func (g *Z80Generator) getLocalOffset(reg ir.Register) int {
 
 // getAbsoluteAddr gets the absolute address for a local variable
 func (g *Z80Generator) getAbsoluteAddr(reg ir.Register) uint16 {
-	// Each register gets 2 bytes
+	// Check if we have a pre-allocated address for this register
+	if addr, ok := g.regAlloc.GetAddress(reg); ok && addr != 0 {
+		return addr
+	}
+	// Default: Each register gets 2 bytes
 	return g.localVarBase + uint16(reg)*2
 }
 
@@ -1897,6 +2041,8 @@ type RegisterAllocator struct {
 	allocation map[ir.Register]string
 	// Tracks which Z80 registers are in use
 	inUse map[string]bool
+	// Maps virtual registers to memory addresses
+	addresses map[ir.Register]uint16
 }
 
 // NewRegisterAllocator creates a new register allocator
@@ -1904,6 +2050,7 @@ func NewRegisterAllocator() *RegisterAllocator {
 	return &RegisterAllocator{
 		allocation: make(map[ir.Register]string),
 		inUse:      make(map[string]bool),
+		addresses:  make(map[ir.Register]uint16),
 	}
 }
 
@@ -1911,6 +2058,7 @@ func NewRegisterAllocator() *RegisterAllocator {
 func (r *RegisterAllocator) Reset() {
 	r.allocation = make(map[ir.Register]string)
 	r.inUse = make(map[string]bool)
+	r.addresses = make(map[ir.Register]uint16)
 }
 
 // Allocate assigns a Z80 register to a virtual register
@@ -1923,6 +2071,17 @@ func (r *RegisterAllocator) Allocate(reg ir.Register) string {
 // Free releases a Z80 register
 func (r *RegisterAllocator) Free(z80reg string) {
 	r.inUse[z80reg] = false
+}
+
+// SetAddress assigns a memory address to a virtual register
+func (r *RegisterAllocator) SetAddress(reg ir.Register, addr uint16) {
+	r.addresses[reg] = addr
+}
+
+// GetAddress returns the memory address for a virtual register
+func (r *RegisterAllocator) GetAddress(reg ir.Register) (uint16, bool) {
+	addr, ok := r.addresses[reg]
+	return addr, ok
 }
 
 // loadToB loads a virtual register to B

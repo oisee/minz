@@ -1,0 +1,213 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   g_version: u8
+;   g_magic: u16
+;   g_enabled: bool
+;   g_computed: u8
+;   g_shifted: u16
+;   g_masked: u8
+
+Function test_all_features.test_locals() -> u16
+  @smc
+  Locals:
+    r1 = a: u8
+    r3 = b: u8
+    r5 = c: u8
+    r7 = sum: u16
+    r13 = d: u8
+    r15 = e: u8
+    r17 = f: u8
+  Instructions:
+      0: r2 = 10
+      1: store , r2
+      2: r4 = 20
+      3: store , r4
+      4: r6 = 30
+      5: store , r6
+      6: r8 = load a
+      7: r9 = load b
+      8: r10 = r8 + r9
+      9: r11 = load c
+     10: r12 = r10 + r11
+     11: store , r12
+     12: r14 = load a
+     13: store , r14
+     14: r16 = load b
+     15: store , r16
+     16: r18 = load c
+     17: store , r18
+     18: r19 = load sum
+     19: r20 = load d
+     20: r21 = r19 + r20
+     21: r22 = load e
+     22: r23 = r21 + r22
+     23: r24 = load f
+     24: r25 = r23 + r24
+     25: return r25
+
+Function test_all_features.test_16bit_ops() -> void
+  @smc
+  Locals:
+    r1 = x: u16
+    r3 = y: u16
+    r5 = product: u16
+    r9 = left_shift: u16
+    r13 = right_shift: u16
+  Instructions:
+      0: r2 = 1000
+      1: store , r2
+      2: r4 = 234
+      3: store , r4
+      4: r6 = load x
+      5: r7 = load y
+      6: r8 = r6 * r7
+      7: store , r8
+      8: r10 = load x
+      9: r11 = 2
+     10: 45
+     11: store , r12
+     12: r14 = load x
+     13: r15 = 2
+     14: 46
+     15: store , r16
+     16: r17 = load product
+     17: r18 = 65535
+     18: r19 = r17 & r18
+     19: store g_magic, r19
+     20: return
+
+Function test_all_features.test_type_aware_ops() -> u16
+  @smc
+  Locals:
+    r1 = small_a: u8
+    r3 = small_b: u8
+    r5 = small_product: u8
+    r9 = large_a: u16
+    r11 = large_b: u16
+    r13 = large_product: u16
+    r17 = mixed: u16
+  Instructions:
+      0: r2 = 5
+      1: store , r2
+      2: r4 = 10
+      3: store , r4
+      4: r6 = load small_a
+      5: r7 = load small_b
+      6: r8 = r6 * r7
+      7: store , r8
+      8: r10 = 500
+      9: store , r10
+     10: r12 = 100
+     11: store , r12
+     12: r14 = load large_a
+     13: r15 = load large_b
+     14: r16 = r14 * r15
+     15: store , r16
+     16: r18 = load large_a
+     17: r19 = load small_a
+     18: r20 = r18 + r19
+     19: store , r20
+     20: r21 = load mixed
+     21: return r21
+
+Function test_all_features.test_complex_expr() -> bool
+  @smc
+  Locals:
+    r1 = base: u16
+    r3 = offset: u8
+    r5 = result: u16
+  Instructions:
+      0: r2 = 1000
+      1: store , r2
+      2: r4 = 50
+      3: store , r4
+      4: r6 = load base
+      5: r7 = 1
+      6: 45
+      7: r9 = load offset
+      8: r10 = 2
+      9: r11 = r9 * r10
+     10: r12 = r8 + r11
+     11: r13 = 100
+     12: r14 = r12 - r13
+     13: store , r14
+     14: r15 = load result
+     15: r16 = 2000
+     16: r17 = r15 == r16
+     17: return r17
+
+Function test_all_features.main() -> void
+  @smc
+  Locals:
+    r13 = local_result: u16
+    r19 = type_result: u16
+    r24 = complex_result: bool
+  Instructions:
+      0: r1 = load g_version
+      1: r2 = 3
+      2: r3 = r1 != r2
+      3: jump_if_not r3, else_1
+      4: return
+      5: jump end_if_2
+      6: else_1:
+      7: end_if_2:
+      8: r4 = load g_computed
+      9: r5 = 30
+     10: r6 = r4 != r5
+     11: jump_if_not r6, else_3
+     12: return
+     13: jump end_if_4
+     14: else_3:
+     15: end_if_4:
+     16: r7 = load g_shifted
+     17: r8 = 1024
+     18: r9 = r7 != r8
+     19: jump_if_not r9, else_5
+     20: return
+     21: jump end_if_6
+     22: else_5:
+     23: end_if_6:
+     24: r10 = load g_masked
+     25: r11 = 60
+     26: r12 = r10 != r11
+     27: jump_if_not r12, else_7
+     28: return
+     29: jump end_if_8
+     30: else_7:
+     31: end_if_8:
+     32: r14 = call test_locals
+     33: store , r14
+     34: r15 = load local_result
+     35: r16 = 120
+     36: r17 = r15 != r16
+     37: jump_if_not r17, else_9
+     38: return
+     39: jump end_if_10
+     40: else_9:
+     41: end_if_10:
+     42: r18 = call test_16bit_ops
+     43: r20 = call test_type_aware_ops
+     44: store , r20
+     45: r21 = load type_result
+     46: r22 = 505
+     47: r23 = r21 != r22
+     48: jump_if_not r23, else_11
+     49: return
+     50: jump end_if_12
+     51: else_11:
+     52: end_if_12:
+     53: r25 = call test_complex_expr
+     54: store , r25
+     55: r26 = load complex_result
+     56: r27 = ~r26
+     57: jump_if_not r27, else_13
+     58: return
+     59: jump end_if_14
+     60: else_13:
+     61: end_if_14:
+     62: r28 = 1
+     63: store g_enabled, r28
+     64: return
+

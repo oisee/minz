@@ -443,6 +443,17 @@ func (f *Function) Emit(op Opcode, dest, src1, src2 Register) {
 	})
 }
 
+// EmitTyped adds an instruction with type information
+func (f *Function) EmitTyped(op Opcode, dest, src1, src2 Register, typ Type) {
+	f.Instructions = append(f.Instructions, Instruction{
+		Op:   op,
+		Dest: dest,
+		Src1: src1,
+		Src2: src2,
+		Type: typ,
+	})
+}
+
 // EmitImm adds an instruction with immediate value
 func (f *Function) EmitImm(op Opcode, dest Register, imm int64) {
 	f.Instructions = append(f.Instructions, Instruction{

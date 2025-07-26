@@ -1,0 +1,29 @@
+; MinZ generated code
+; Generated: 2025-07-26 21:18:04
+
+
+; Data section
+    ORG $F000
+
+g_byte:
+    DB 42
+g_word:
+    DW 4660
+g_flag:
+    DB 1
+g_calc:
+    DB 15
+g_shift:
+    DW 256
+g_masked:
+    DB 15
+g_uninit_byte:
+    DB 0
+g_uninit_word:
+    DW 0
+
+; Code section
+    ORG $8000
+
+
+    END main
