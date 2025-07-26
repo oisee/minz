@@ -1,0 +1,10 @@
+// Test explicit return at end of main
+
+fun add(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+fun main() -> void {
+    let x = add(10, 20);
+    // No explicit return
+}

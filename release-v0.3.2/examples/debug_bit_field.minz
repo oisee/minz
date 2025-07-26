@@ -1,0 +1,20 @@
+// Debug bit field access
+
+type TestBits = bits {
+    low: 4,
+    high: 4
+};
+
+fun main() -> void {
+    // Start with a known value
+    let mut value: u8 = 0xAB  // 10101011
+    
+    // Cast to bit struct
+    let mut bits: TestBits = value as TestBits
+    
+    // Try to read a field - this should generate OpLoadBitField
+    let mut low_nibble: u8 = bits.low  // Should be 0x0B (11)
+    
+    // Modify to prevent optimization
+    low_nibble = low_nibble + 1
+}

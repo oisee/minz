@@ -1,0 +1,22 @@
+// Test imports
+
+import zx.screen;
+import zx.input;
+
+fun main() -> void {
+    // Test screen constants
+    let black = screen.BLACK;
+    let white = screen.WHITE;
+    
+    // Test screen functions
+    screen.set_border(screen.BLUE);
+    screen.clear(white, black, false, false);
+    
+    // Test input constants
+    let key_q = input.KEY_Q;
+    
+    // Test input functions
+    let pressed = input.is_key_pressed(key_q);
+    
+    return;
+}

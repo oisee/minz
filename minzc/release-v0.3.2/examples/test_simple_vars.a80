@@ -1,0 +1,53 @@
+; MinZ generated code
+; Generated: 2025-07-07 20:11:53
+
+
+; Code section
+    ORG $8000
+
+
+; Function: main
+main:
+    PUSH IX
+    LD IX, SP
+    LD HL, -8
+    ADD HL, SP
+    LD SP, HL
+    ; r2 = 5
+    LD A, 5
+    LD (IX-12), A
+    ; store , r2
+    LD L, (IX-12)
+    LD H, (IX-11)
+    LD (IX-10), L
+    LD (IX-9), H
+    ; r4 = 10
+    LD A, 10
+    LD (IX-16), A
+    ; store , r4
+    LD L, (IX-16)
+    LD H, (IX-15)
+    LD (IX-14), L
+    LD (IX-13), H
+    ; r6 = 100
+    LD A, 100
+    LD (IX-20), A
+    ; store , r6
+    LD L, (IX-20)
+    LD H, (IX-19)
+    LD (IX-18), L
+    LD (IX-17), H
+    ; r8 = 200
+    LD A, 200
+    LD (IX-24), A
+    ; store , r8
+    LD L, (IX-24)
+    LD H, (IX-23)
+    LD (IX-22), L
+    LD (IX-21), H
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+
+    END main

@@ -1,0 +1,25 @@
+// Debug loop test
+
+struct Item {
+    value: u8
+}
+
+let items: [Item; 2];
+
+fun main() -> void {
+    // Initialize
+    items[0].value = 10;
+    items[1].value = 20;
+    
+    // Test loop with INTO mode and explicit operations
+    loop items into item {
+        // First load item.value
+        let old_val: u8 = item.value;
+        
+        // Then compute new value
+        let new_val: u8 = old_val + 1;
+        
+        // Finally store back
+        item.value = new_val;
+    }
+}

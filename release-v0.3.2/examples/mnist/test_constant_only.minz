@@ -1,0 +1,8 @@
+// Test only constant access
+
+import zx.screen;
+
+fun main() -> void {
+    let color = screen.BLUE;
+    return;
+}

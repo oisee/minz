@@ -1,0 +1,185 @@
+// MNIST Digit Editor for ZX Spectrum - Simplified for TRUE SMC
+// This version is simplified to work with current MinZ compiler features
+
+// ZX Spectrum constants
+const SCREEN_START: u16 = 0x4000
+const ATTR_START: u16 = 0x5800
+const BORDER_PORT: u16 = 0xFE
+
+// Global editor state (simplified)
+let cursor_x: u8 = 8
+let cursor_y: u8 = 8
+
+// Set border color using direct port output
+fun set_border(color: u8) -> void {
+    // Simplified border setting
+    asm {
+        LD A, color
+        OUT (0xFE), A
+    }
+}
+
+// Fill screen memory with pattern
+fun fill_screen_memory(pattern: u8) -> void {
+    asm {
+        LD HL, 0x4000    ; Screen start
+        LD BC, 0x1800    ; Screen size  
+        LD A, pattern
+        fill_loop:
+        LD (HL), A
+        INC HL
+        DEC BC
+        LD A, B
+        OR C
+        JR NZ, fill_loop
+    }
+}
+
+// Fill attribute memory  
+fun fill_attr_memory(attr: u8) -> void {
+    asm {
+        LD HL, 0x5800    ; Attr start
+        LD BC, 0x0300    ; Attr size
+        LD A, attr
+        fill_attr_loop:
+        LD (HL), A
+        INC HL
+        DEC BC
+        LD A, B
+        OR C
+        JR NZ, fill_attr_loop
+    }
+}
+
+// Calculate attribute address
+fun calc_attr_addr(x: u8, y: u8) -> u16 {
+    let y_offset = (y as u16) * 32
+    let result = ATTR_START + y_offset + (x as u16)
+    return result
+}
+
+// XOR attribute at position to show cursor
+fun toggle_cursor_at(x: u8, y: u8) -> void {
+    let addr = calc_attr_addr(x, y)
+    asm {
+        LD HL, addr
+        LD A, (HL)
+        XOR 0x04       ; Toggle blue bit for visibility
+        LD (HL), A
+    }
+}
+
+// Read keyboard input from port
+fun read_keyboard_port(port: u8) -> u8 {
+    asm {
+        LD A, port
+        IN A, (0xFE)
+        ; Result in A register
+    }
+    return 0  // Simplified - actual result would be in A
+}
+
+// Simple movement functions with TRUE SMC
+fun move_cursor_up() -> void {
+    if cursor_y > 0 {
+        cursor_y = cursor_y - 1
+    }
+}
+
+fun move_cursor_down() -> void {
+    if cursor_y < 23 {
+        cursor_y = cursor_y + 1
+    }
+}
+
+fun move_cursor_left() -> void {
+    if cursor_x > 0 {
+        cursor_x = cursor_x - 1
+    }
+}
+
+fun move_cursor_right() -> void {
+    if cursor_x < 31 {
+        cursor_x = cursor_x + 1
+    }
+}
+
+// Toggle pixel at cursor position
+fun toggle_pixel() -> void {
+    // Map to 16x16 area in top-left
+    let pixel_x = cursor_x & 15
+    let pixel_y = cursor_y & 15
+    
+    // Simple pixel toggle using screen address calculation
+    let screen_line = (pixel_y as u16) * 32
+    let byte_addr = SCREEN_START + screen_line + (pixel_x >> 3)
+    let bit_mask = 0x80 >> (pixel_x & 7)
+    
+    asm {
+        LD HL, byte_addr
+        LD A, (HL)
+        XOR bit_mask
+        LD (HL), A
+    }
+}
+
+// Main editor loop
+fun main_editor_loop() -> void {
+    let running: bool = true
+    
+    while running {
+        // Show cursor
+        toggle_cursor_at(cursor_x, cursor_y)
+        
+        // Simple delay
+        delay_loop()
+        
+        // Hide cursor  
+        toggle_cursor_at(cursor_x, cursor_y)
+        
+        // Handle input (simplified)
+        handle_simple_input()
+        
+        // Small delay
+        delay_loop()
+    }
+}
+
+// Simple delay function
+fun delay_loop() -> void {
+    asm {
+        LD BC, 0x1000
+        delay_wait:
+        DEC BC
+        LD A, B
+        OR C
+        JR NZ, delay_wait
+    }
+}
+
+// Simplified input handling
+fun handle_simple_input() -> void {
+    // This would read keyboard and call movement functions
+    // For now, just some basic movement simulation
+    move_cursor_right()
+    if cursor_x > 20 {
+        move_cursor_down()
+        cursor_x = 8
+    }
+    if cursor_y > 15 {
+        cursor_y = 8
+    }
+}
+
+// Initialize screen
+fun init_screen() -> void {
+    set_border(4)  // Blue border
+    fill_screen_memory(0x00)  // Clear screen
+    fill_attr_memory(0x07)    // White on black
+}
+
+// Main entry point
+fun main() -> void {
+    init_screen()
+    main_editor_loop()
+}

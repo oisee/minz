@@ -1,0 +1,8 @@
+// Test simple variable declarations
+fun main() -> void {
+    // Test various declaration patterns with explicit types
+    let a: u8 = 5;
+    let mut b: u8 = 10;
+    let c: u16 = 100;
+    let mut d: u16 = 200;
+}

@@ -1,0 +1,15 @@
+// test4_mixed_types.minz
+module test4
+
+fun calculate(x: u8, y: u16, z: u8) -> u16 {
+    let result: u16 = x as u16
+    result = result + y
+    if z > 0 {
+        result = result * (z as u16)
+    }
+    return result
+}
+
+fun main() -> void {
+    let answer = calculate(5, 1000, 2)
+}

@@ -1,0 +1,6 @@
+// Debug const issue - simplest possible case
+const X: u8 = 42;
+
+fun main() -> void {
+    let y: u8 = X;
+}

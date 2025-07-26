@@ -1,0 +1,29 @@
+// test_true_smc_calls.minz - Test TRUE SMC call-site patching
+fun add(x: u8, y: u8) -> u8 {
+    return x + y
+}
+
+fun multiply(a: u8, b: u8) -> u8 {
+    // Simple multiplication by repeated addition
+    let result: u8 = 0
+    let count: u8 = b
+    while count > 0 {
+        result = add(result, a)  // This should patch add's anchors
+        count = count - 1
+    }
+    return result
+}
+
+// Entry point - this ensures it doesn't get optimized away
+export fun test_entry() -> u8 {
+    // First call to add
+    let sum1 = test_true_smc_calls.add(5, 3)
+    
+    // Second call with different values 
+    let sum2 = test_true_smc_calls.add(10, 20)
+    
+    // Call multiply which calls add internally
+    let product = test_true_smc_calls.multiply(4, 3)
+    
+    return 42  // Fixed return for now
+}

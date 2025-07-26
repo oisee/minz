@@ -1,0 +1,147 @@
+// Example: Self-modifying code optimization
+// This demonstrates how SMC can optimize frequently accessed "constants"
+// and function parameters
+
+// Non-recursive function with parameter that could use SMC
+@smc_optimize
+fun draw_horizontal_line(y: u8, color: u8, length: u8) -> void {
+    // The 'y' parameter can be embedded in the code itself
+    // since this function is non-recursive
+    
+    let mut x: u8 = 0;
+    while x < length {
+        // In traditional code, 'y' would be loaded from stack each time
+        // With SMC, it's embedded directly in the instruction
+        screen.set_pixel(x, y, color);
+        x = x + 1;
+    }
+}
+
+// Example with modifiable "constant"
+@smc_optimize
+fun animation_frame() -> void {
+    // This "constant" can be modified between calls
+    let frame_offset: u8 = 0;  // Will be optimized to SMC
+    
+    // Draw sprite at position with frame offset
+    draw_sprite(64, 96, sprite_data + frame_offset);
+    
+    // Update frame offset for next call
+    frame_offset = (frame_offset + 8) & 63;  // Cycle through 8 frames
+}
+
+// Game state using SMC for frequently accessed values
+@smc_optimize
+fun game_loop() -> void {
+    // These values are read frequently but modified rarely
+    // Perfect candidates for SMC optimization
+    let player_lives: u8 = 3;
+    let score: u16 = 0;
+    let level: u8 = 1;
+    
+    loop {
+        // Clear screen
+        screen.clear();
+        
+        // Draw UI (these values are embedded in code)
+        draw_number(8, 8, score);
+        draw_number(8, 16, player_lives);
+        draw_text(8, 24, "LEVEL");
+        draw_number(48, 24, level);
+        
+        // Game logic
+        if check_collision() {
+            player_lives = player_lives - 1;
+            if player_lives == 0 {
+                break;
+            }
+        }
+        
+        // Score points
+        let points = collect_items();
+        if points > 0 {
+            score = score + points;
+        }
+        
+        // Check level completion
+        if all_items_collected() {
+            level = level + 1;
+            reset_level();
+        }
+        
+        // Wait for frame
+        wait_vblank();
+    }
+}
+
+// Example showing why recursive functions can't use SMC
+fun countdown(n: u8) -> void {
+    if n > 0 {
+        print_number(n);
+        countdown(n - 1);  // Recursive call - parameters must be on stack
+    }
+}
+
+// Main function demonstrating SMC benefits
+fun main() -> void {
+    // Initialize screen
+    screen.set_border(screen.BLACK);
+    
+    // Draw multiple horizontal lines
+    // Each call modifies the SMC location for the y parameter
+    draw_horizontal_line(10, screen.RED, 32);
+    draw_horizontal_line(20, screen.GREEN, 32);
+    draw_horizontal_line(30, screen.BLUE, 32);
+    
+    // Run game with SMC-optimized state
+    game_loop();
+}
+
+// Helper functions (implementations would be in stdlib)
+declare fun draw_sprite(x: u8, y: u8, data: *u8) -> void;
+declare fun draw_number(x: u8, y: u8, num: u16) -> void;
+declare fun draw_text(x: u8, y: u8, text: str) -> void;
+declare fun check_collision() -> bool;
+declare fun collect_items() -> u16;
+declare fun all_items_collected() -> bool;
+declare fun reset_level() -> void;
+declare fun wait_vblank() -> void;
+declare fun print_number(n: u8) -> void;
+
+// Global sprite data
+const sprite_data: [u8; 64] = [
+    // 8 frames of 8 bytes each
+    0xFF, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xFF,  // Frame 0
+    0x7E, 0x42, 0x42, 0x42, 0x42, 0x42, 0x42, 0x7E,  // Frame 1
+    // ... more frames
+];
+
+/*
+Benefits of SMC optimization in this example:
+
+1. draw_horizontal_line():
+   - Parameter 'y' is embedded directly in the pixel-setting code
+   - No stack access needed for each pixel
+   - Significant speedup for line drawing
+
+2. animation_frame():
+   - frame_offset is modified by self-modifying code
+   - No memory location needed for storage
+   - Direct immediate value in instruction
+
+3. game_loop():
+   - Game state (lives, score, level) embedded in code
+   - Fast access for UI drawing
+   - Modified only when game events occur
+
+4. Performance gains:
+   - Eliminated stack/memory accesses for parameters
+   - Reduced register pressure
+   - Smaller code size in some cases
+   - Faster execution for hot paths
+
+5. Limitations shown:
+   - countdown() can't use SMC due to recursion
+   - Code must be in RAM (not ROM)
+   - Debugging is more complex
+*/

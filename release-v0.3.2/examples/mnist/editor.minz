@@ -1,0 +1,245 @@
+// MNIST Digit Editor for ZX Spectrum
+// Attribute-based editor with XOR cursor for digit drawing
+// 
+// Features:
+// - Fill screen with 0xFF pattern, attributes with 0x00 (black on black)
+// - Cursor applies XOR 0x04 to attribute under cursor for visibility
+// - 16x16 bitmap interpretation in top-left corner of screen
+// - SPACE/M toggles pixel at cursor position
+// - CTRL+SPACE (Symbol Shift + Space) exits
+//
+// Controls:
+// - Q/A: Move cursor up/down
+// - O/P: Move cursor left/right
+// - SPACE/M: Toggle pixel
+// - Symbol Shift + SPACE: Exit
+
+module mnist.editor;
+
+// ZX Spectrum hardware constants
+const SCREEN_START: u16 = 0x4000;
+const ATTR_START: u16 = 0x5800;
+const SCREEN_SIZE: u16 = 6144;
+const ATTR_SIZE: u16 = 768;
+const BORDER_PORT: u8 = 0xFE;
+
+// Keyboard port addresses
+const KB_PORT_QAOP: u8 = 0xDF;  // O, P keys
+const KB_PORT_ASDF: u8 = 0xFD;  // A key
+const KB_PORT_QWER: u8 = 0xFB;  // Q key
+const KB_PORT_SPACE: u8 = 0x7F; // SPACE, SYM SHIFT, M
+
+// Editor state
+struct Editor {
+    cursor_x: u8,  // 0-31 (attribute column)
+    cursor_y: u8,  // 0-23 (attribute row)
+}
+
+// Set border color
+fun set_border(color: u8) -> void {
+    asm("
+        ld a, {0}
+        out ($fe), a
+    " : : "r"(color));
+}
+
+// Fill screen with 0xFF pattern
+fun fill_screen() -> void {
+    // Use LDIR for faster fill
+    asm("
+        ld hl, $4000      ; SCREEN_START
+        ld de, $4001
+        ld bc, $17FF      ; SCREEN_SIZE - 1
+        ld (hl), $FF
+        ldir
+    ");
+}
+
+// Fill attributes with 0x00 (black on black)
+fun fill_attributes() -> void {
+    // Use LDIR for faster fill
+    asm("
+        ld hl, $5800      ; ATTR_START
+        ld de, $5801
+        ld bc, $02FF      ; ATTR_SIZE - 1
+        ld (hl), $00
+        ldir
+    ");
+}
+
+// Calculate attribute address from cursor position
+fun get_attr_addr(x: u8, y: u8) -> u16 {
+    return ATTR_START + ((y as u16) * 32) + (x as u16);
+}
+
+// Update cursor by XORing attribute with 0x04
+fun update_cursor(editor: *Editor) -> void {
+    let attr_addr = get_attr_addr(editor.cursor_x, editor.cursor_y);
+    
+    asm("
+        ld hl, {0}
+        ld a, (hl)
+        xor $04        ; Toggle bit 2
+        ld (hl), a
+    " : : "r"(attr_addr));
+}
+
+// Read keyboard port
+fun read_port(port: u8) -> u8 {
+    let result: u8;
+    asm("
+        ld a, {0}
+        in a, ($fe)
+        ld {1}, a
+    " : "=r"(result) : "r"(port));
+    return result;
+}
+
+// Check if key is pressed (active low)
+fun is_key_pressed(port: u8, bit: u8) -> bool {
+    let value = read_port(port);
+    return (value & (1 << bit)) == 0;
+}
+
+// Calculate ZX Spectrum screen address for pixel coordinates
+fun pixel_addr(x: u8, y: u8) -> u16 {
+    // ZX Spectrum screen memory layout
+    let y_low: u8 = y & 0x07;
+    let y_mid: u8 = (y & 0x38) >> 3;
+    let y_high: u8 = (y & 0xC0) >> 6;
+    
+    let addr: u16 = SCREEN_START;
+    addr = addr | ((y_low as u16) << 8);
+    addr = addr | ((y_mid as u16) << 5);
+    addr = addr | ((y_high as u16) << 11);
+    addr = addr | ((x >> 3) as u16);
+    
+    return addr;
+}
+
+// Toggle pixel in 16x16 representation (top-left corner)
+fun toggle_pixel(editor: *Editor) -> void {
+    // Map cursor position to 16x16 grid
+    let bit_x = editor.cursor_x & 0x0F;  // 0-15
+    let bit_y = editor.cursor_y & 0x0F;  // 0-15
+    
+    // Calculate screen address for this pixel
+    let screen_addr = pixel_addr(bit_x, bit_y);
+    let bit_mask: u8 = 0x80 >> (bit_x & 7);
+    
+    asm("
+        ld hl, {0}
+        ld a, (hl)
+        xor {1}
+        ld (hl), a
+    " : : "r"(screen_addr), "r"(bit_mask));
+}
+
+// Simple delay for key repeat
+fun delay() -> void {
+    asm("
+        ld bc, $0200
+delay_loop:
+        dec bc
+        ld a, b
+        or c
+        jr nz, delay_loop
+    ");
+}
+
+// Handle keyboard input
+fun handle_input(editor: *Editor) -> bool {
+    // Q - up (port 0xFB, bit 0)
+    if is_key_pressed(KB_PORT_QWER, 0) {
+        if editor.cursor_y > 0 {
+            update_cursor(editor);  // Remove cursor
+            editor.cursor_y = editor.cursor_y - 1;
+            update_cursor(editor);  // Draw cursor
+            delay();
+        }
+    }
+    
+    // A - down (port 0xFD, bit 0)
+    if is_key_pressed(KB_PORT_ASDF, 0) {
+        if editor.cursor_y < 23 {
+            update_cursor(editor);  // Remove cursor
+            editor.cursor_y = editor.cursor_y + 1;
+            update_cursor(editor);  // Draw cursor
+            delay();
+        }
+    }
+    
+    // O - left (port 0xDF, bit 1)
+    if is_key_pressed(KB_PORT_QAOP, 1) {
+        if editor.cursor_x > 0 {
+            update_cursor(editor);  // Remove cursor
+            editor.cursor_x = editor.cursor_x - 1;
+            update_cursor(editor);  // Draw cursor
+            delay();
+        }
+    }
+    
+    // P - right (port 0xDF, bit 0)
+    if is_key_pressed(KB_PORT_QAOP, 0) {
+        if editor.cursor_x < 31 {
+            update_cursor(editor);  // Remove cursor
+            editor.cursor_x = editor.cursor_x + 1;
+            update_cursor(editor);  // Draw cursor
+            delay();
+        }
+    }
+    
+    // SPACE - toggle pixel (port 0x7F, bit 0)
+    if is_key_pressed(KB_PORT_SPACE, 0) {
+        toggle_pixel(editor);
+        delay();
+        delay();  // Extra delay for toggle
+    }
+    
+    // M - toggle pixel (port 0x7F, bit 2)
+    if is_key_pressed(KB_PORT_SPACE, 2) {
+        toggle_pixel(editor);
+        delay();
+        delay();  // Extra delay for toggle
+    }
+    
+    // CTRL+SPACE (Symbol Shift + Space) - exit
+    if is_key_pressed(KB_PORT_SPACE, 1) {  // Symbol Shift
+        if is_key_pressed(KB_PORT_SPACE, 0) {  // Space
+            return true;  // Exit
+        }
+    }
+    
+    return false;  // Continue
+}
+
+// Main program entry point
+fun main() -> void {
+    // Initialize screen
+    set_border(0);      // Black border
+    fill_screen();      // Fill with 0xFF
+    fill_attributes();  // Fill with 0x00
+    
+    // Initialize editor state
+    let mut editor: Editor;
+    editor.cursor_x = 8;   // Start in 16x16 area
+    editor.cursor_y = 8;   // Start in 16x16 area
+    
+    // Show initial cursor
+    update_cursor(&editor);
+    
+    // Main editor loop
+    while true {
+        if handle_input(&editor) {
+            break;  // Exit requested
+        }
+        
+        // Small delay for main loop
+        delay();
+    }
+    
+    // Reset on exit
+    asm("
+        jp 0
+    ");
+}

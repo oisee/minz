@@ -1,0 +1,166 @@
+// Practical example: Generate sine/cosine tables using Lua
+
+@lua[[
+-- Generate high-precision sine/cosine tables
+function generate_sine_table()
+    local table = {}
+    for i = 0, 255 do
+        local angle = (i * 2 * math.pi) / 256
+        -- Convert to signed 8-bit fixed point (-128 to 127)
+        local value = math.floor(math.sin(angle) * 127 + 0.5)
+        table[i + 1] = value  -- Lua arrays are 1-indexed
+    end
+    return table
+end
+
+function generate_cosine_table()
+    local table = {}
+    for i = 0, 255 do
+        local angle = (i * 2 * math.pi) / 256
+        local value = math.floor(math.cos(angle) * 127 + 0.5)
+        table[i + 1] = value
+    end
+    return table
+end
+
+-- Generate atan2 approximation table
+function generate_atan2_table()
+    -- For simplicity, just a small example
+    local table = {}
+    for y = -8, 7 do
+        for x = -8, 7 do
+            local angle = math.atan2(y, x)
+            -- Convert to 0-255 range
+            local value = math.floor((angle + math.pi) * 128 / math.pi)
+            table[(y + 8) * 16 + (x + 8) + 1] = value
+        end
+    end
+    return table
+end
+
+-- Helper to format table as MinZ array literal
+function format_array(table, items_per_line)
+    items_per_line = items_per_line or 16
+    local result = "[\n    "
+    for i, v in ipairs(table) do
+        result = result .. string.format("%4d", v)
+        if i < #table then
+            result = result .. ","
+            if i % items_per_line == 0 then
+                result = result .. "\n    "
+            else
+                result = result .. " "
+            end
+        end
+    end
+    result = result .. "\n]"
+    return result
+end
+
+-- Export formatted tables
+sine_table_literal = format_array(generate_sine_table())
+cosine_table_literal = format_array(generate_cosine_table())
+]]
+
+// Use Lua-generated tables
+const SINE_TABLE: [i8; 256] = @lua(sine_table_literal);
+const COSINE_TABLE: [i8; 256] = @lua(cosine_table_literal);
+
+// Fast sine/cosine using lookup tables
+fun fast_sin(angle: u8) -> i8 {
+    return SINE_TABLE[angle];
+}
+
+fun fast_cos(angle: u8) -> i8 {
+    return COSINE_TABLE[angle];
+}
+
+// Example: Rotate a point around origin
+fun rotate_point(x: i16, y: i16, angle: u8) -> (i16, i16) {
+    let sin = fast_sin(angle) as i16;
+    let cos = fast_cos(angle) as i16;
+    
+    // Fixed point multiplication (8.8 format)
+    let new_x = (x * cos - y * sin) >> 7;  // Shift by 7 instead of 8 for better precision
+    let new_y = (x * sin + y * cos) >> 7;
+    
+    return (new_x, new_y);
+}
+
+// Generate optimized drawing routine
+@lua[[
+function generate_circle_points(radius)
+    local points = {}
+    local n = radius * 8  -- Number of points
+    
+    for i = 0, n - 1 do
+        local angle = (i * 2 * math.pi) / n
+        local x = math.floor(radius * math.cos(angle) + 0.5)
+        local y = math.floor(radius * math.sin(angle) + 0.5)
+        table.insert(points, {x = x, y = y})
+    end
+    
+    return points
+end
+
+function generate_draw_circle(radius)
+    local points = generate_circle_points(radius)
+    local code = "fun draw_circle_" .. radius .. "(cx: u8, cy: u8) -> void {\n"
+    
+    -- Generate optimized unrolled loop
+    for i, p in ipairs(points) do
+        code = code .. string.format("    screen.set_pixel(cx + %d, cy + %d);\n", p.x, p.y)
+    end
+    
+    code = code .. "}\n"
+    return code
+end
+]]
+
+// Generate specialized circle drawing functions
+@lua_eval(generate_draw_circle(5))
+@lua_eval(generate_draw_circle(10))
+@lua_eval(generate_draw_circle(15))
+
+// Demo program
+fun main() -> void {
+    // Clear screen
+    screen.clear(screen.BLACK, screen.BLUE, true, false);
+    
+    // Draw rotating circles
+    let mut angle: u8 = 0;
+    
+    loop {
+        // Calculate position
+        let (x, y) = rotate_point(30, 0, angle);
+        let cx = 128 + (x as u8);
+        let cy = 96 + (y as u8);
+        
+        // Draw circles at rotating position
+        draw_circle_5(cx, cy);
+        draw_circle_10(cx - 20, cy);
+        draw_circle_15(cx + 20, cy);
+        
+        // Update angle
+        angle = angle + 1;
+        
+        // Small delay
+        delay(1000);
+        
+        // Clear for next frame (simple animation)
+        screen.clear(screen.BLACK, screen.BLUE, true, false);
+        
+        // Exit on Q
+        if input.is_key_pressed(input.KEY_Q) {
+            break;
+        }
+    }
+}
+
+fun delay(count: u16) -> void {
+    let mut i: u16 = 0;
+    while i < count {
+        asm("nop");
+        i = i + 1;
+    }
+}

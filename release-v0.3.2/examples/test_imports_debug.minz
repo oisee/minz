@@ -1,0 +1,13 @@
+// Debug test for imports
+
+import zx.screen;
+
+fun main() -> void {
+    // First, try just referencing screen functions without assignment
+    screen.set_pixel(10, 20);
+    
+    // This line causes the error:
+    // let addr = screen.attr_addr(5, 5);
+    
+    return;
+}

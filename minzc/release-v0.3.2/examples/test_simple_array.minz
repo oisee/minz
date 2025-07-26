@@ -1,0 +1,8 @@
+// Test simple array parsing
+
+// Only new syntax
+let new_array: [u8; 10];
+
+fun main() -> void {
+    new_array[0] = 43;
+}

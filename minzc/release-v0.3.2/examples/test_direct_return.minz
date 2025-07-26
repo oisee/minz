@@ -1,0 +1,24 @@
+// Test direct return optimization
+// When a function is called only once and its result is immediately stored,
+// the function can directly write to the target location
+
+let result: u16 = 0;
+
+// This function should be optimized to directly write to 'result'
+fun calculate_once(a: u8, b: u8) -> u16 {
+    return (a as u16) * (b as u16);
+}
+
+// Test with 'fun' keyword too
+fun calculate_once2(a: u8, b: u8) -> u16 {
+    return (a as u16) + (b as u16);
+}
+
+fun main() -> void {
+    // This should trigger direct return optimization
+    result = calculate_once(12, 23);
+    
+    // This won't be optimized (second call)
+    let temp: u16 = calculate_once2(5, 7);
+    result = calculate_once2(10, 20);
+}

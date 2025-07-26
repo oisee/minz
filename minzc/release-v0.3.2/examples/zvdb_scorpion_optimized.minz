@@ -1,0 +1,423 @@
+// ZVDB Scorpion-Optimized Implementation
+// Leverages Scorpion ZS-256 Turbo+ specific features:
+// - 256-bit native operations
+// - Enhanced paging mechanism
+// - Shadow registers for interrupt-driven updates
+// - DMA for fast vector copying
+
+module zvdb_scorpion;
+
+import zx.screen;
+import std.mem;
+
+// Scorpion-specific hardware addresses
+@lua[[
+    -- Scorpion extended features
+    SCORPION_DMA_SRC = 0x1FFD
+    SCORPION_DMA_DST = 0x2FFD
+    SCORPION_DMA_LEN = 0x3FFD
+    SCORPION_DMA_CMD = 0x4FFD
+    
+    -- Extended paging
+    PAGE_EXT_CTRL = 0x7FFD
+    PAGE_RAM_CTRL = 0xDFFD
+]]
+
+// Vector operation using shadow registers
+@shadow_registers
+fun fast_hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
+    // Use shadow registers for parallel processing
+    let mut dist: u8 = 0;
+    
+    asm("
+        ; Save main registers automatically via @shadow_registers
+        ld ix, {0}      ; Vector A
+        ld iy, {1}      ; Vector B
+        ld c, 0         ; Distance accumulator
+        ld b, 32        ; Loop counter
+        
+    .loop:
+        ld a, (ix)      ; Load byte from A
+        xor (iy)        ; XOR with B
+        inc ix
+        inc iy
+        
+        ; Count bits using lookup table
+        ld h, high POPCOUNT
+        ld l, a
+        ld a, (hl)
+        add a, c
+        ld c, a
+        
+        djnz .loop
+        
+        ld {2}, c       ; Store result
+    " : : "r"(a), "r"(b), "=r"(dist));
+    
+    return dist;
+}
+
+// DMA-accelerated vector copy
+fun dma_copy_vector(dst: *mut Vector256, src: *Vector256) -> void {
+    asm("
+        ; Setup DMA transfer
+        ld hl, {0}
+        ld (SCORPION_DMA_SRC), hl
+        ld hl, {1}
+        ld (SCORPION_DMA_DST), hl
+        ld hl, 32
+        ld (SCORPION_DMA_LEN), hl
+        ld a, 1         ; Start DMA
+        out (SCORPION_DMA_CMD), a
+    " : : "r"(src), "r"(dst));
+}
+
+// Interrupt-driven background indexing
+@interrupt
+@shadow_registers
+fun vblank_reindex_handler() -> void {
+    // Check if reindexing is needed
+    let status = REINDEX_STATUS as *mut u8;
+    if *status == 0 {
+        return;
+    }
+    
+    // Process one vector per interrupt
+    let current = REINDEX_CURRENT as *mut u16;
+    let db = CURRENT_DB as *mut *mut VectorDB;
+    
+    if *current < (*db).total_vectors {
+        // Reindex one vector
+        let meta = &(*db).vector_meta[*current];
+        let vec = load_vector_fast(*db, meta);
+        
+        // Update hash
+        meta.hash = compute_hash_turbo(vec, *db);
+        
+        *current = *current + 1;
+    } else {
+        // Reindexing complete
+        *status = 0;
+        rebuild_buckets(*db);
+    }
+}
+
+// Global state for interrupt handler
+const REINDEX_STATUS: u16 = 0x5B00;
+const REINDEX_CURRENT: u16 = 0x5B01;
+const CURRENT_DB: u16 = 0x5B03;
+
+// Turbo hash computation using unrolled loops
+@smc_optimize
+fun compute_hash_turbo(vec: *Vector256, db: *VectorDB) -> u8 {
+    let mut hash: u8 = 0;
+    
+    // Unroll for 8 hyperplanes
+    @lua_eval(generate_unrolled_hash())
+    
+    return hash;
+}
+
+@lua[[
+function generate_unrolled_hash()
+    local code = ""
+    for i = 0, 7 do
+        code = code .. string.format([[
+        ; Hyperplane %d
+        ld hl, db.hyperplanes[%d]
+        call dot_product_fast
+        rl c  ; Rotate result into C
+        ]], i, i)
+    end
+    code = code .. [[
+        ld a, c
+        ld hash, a
+    ]]
+    return code
+end
+]]
+
+// Optimized dot product using Scorpion's extended instructions
+fun dot_product_fast(a: *Vector256, b: *Vector256) -> bool {
+    let positive: bool;
+    
+    asm("
+        ; Scorpion has faster block operations
+        ld bc, 32       ; Vector size
+        ld de, 0        ; Hamming accumulator
+        
+    .dot_loop:
+        ld a, (hl)
+        xor (ix)
+        inc hl
+        inc ix
+        
+        ; Count bits inline (faster than table lookup)
+        ld e, a
+        xor a
+        
+        ; Bit counting using shift and add
+        srl e : adc a, 0
+        srl e : adc a, 0
+        srl e : adc a, 0
+        srl e : adc a, 0
+        srl e : adc a, 0
+        srl e : adc a, 0
+        srl e : adc a, 0
+        srl e : adc a, 0
+        
+        add a, d
+        ld d, a
+        
+        dec c
+        jr nz, .dot_loop
+        
+        ; Check if similarity > 0
+        ld a, d
+        cp 128
+        ccf             ; Complement carry
+    " : "=c"(positive) : : "a", "bc", "de", "hl", "ix");
+    
+    return positive;
+}
+
+// Multi-level hash index for better selectivity
+struct MultiHashIndex {
+    // Level 1: 8-bit hash (256 buckets)
+    level1: [HashBucket; 256],
+    
+    // Level 2: 16-bit hash (4096 fine buckets)
+    level2_enabled: bool,
+    level2: *mut [u16; 4096],  // Allocated separately
+    
+    // Bloom filter for fast rejection
+    bloom_filter: [u8; 512],   // 4096 bits
+}
+
+// Parallel search using both register sets
+fun parallel_search(db: *mut VectorDB, queries: *[Vector256; 2]) -> [SearchResult; 2] {
+    let mut results: [SearchResult; 2];
+    
+    asm("
+        ; Main registers process query 0
+        ld hl, queries[0]
+        call search_single
+        ld (results[0]), de
+        
+        ; Shadow registers process query 1
+        exx
+        ex af, af'
+        ld hl, queries[1]
+        call search_single
+        ld (results[1]), de
+        ex af, af'
+        exx
+    ");
+    
+    return results;
+}
+
+// Batch operations with prefetching
+pub fun batch_knn_search(db: *mut VectorDB, queries: *Vector256, 
+                       count: u16, k: u8, results: *mut SearchResult) -> void {
+    // Enable turbo mode for Scorpion
+    asm("
+        ld a, 0x07      ; Turbo mode
+        out (0xFF), a
+    ");
+    
+    // Pre-sort queries by hash for cache efficiency
+    let mut query_data: [(u16, u8); 256];  // (index, hash)
+    
+    for i in 0..count {
+        query_data[i] = (i, compute_hash_turbo(&queries[i], db));
+    }
+    
+    // Sort by hash (bubble sort for simplicity)
+    for i in 0..count {
+        for j in 0..count-1-i {
+            if query_data[j].1 > query_data[j+1].1 {
+                let tmp = query_data[j];
+                query_data[j] = query_data[j+1];
+                query_data[j+1] = tmp;
+            }
+        }
+    }
+    
+    // Process in sorted order with prefetching
+    let mut current_page = 255;
+    
+    for i in 0..count {
+        let idx = query_data[i].0;
+        let hash = query_data[i].1;
+        
+        // Prefetch next page if different
+        if i + 1 < count {
+            let next_hash = query_data[i+1].1;
+            let next_page = predict_page_for_hash(next_hash, db);
+            if next_page != current_page {
+                prefetch_page(next_page);
+            }
+        }
+        
+        // Search with current query
+        let k_results = search_knn_optimized(db, &queries[idx], k, hash);
+        
+        // Copy results
+        for j in 0..k {
+            results[idx * k as u16 + j as u16] = k_results[j];
+        }
+    }
+    
+    // Restore normal mode
+    asm("
+        ld a, 0x00
+        out (0xFF), a
+    ");
+}
+
+// Predict which page will be needed for a hash bucket
+fun predict_page_for_hash(hash: u8, db: *VectorDB) -> u8 {
+    let bucket = &db.hash_index[hash];
+    if bucket.count > 0 {
+        let first_idx = bucket.indices[0];
+        return db.vector_meta[first_idx].page;
+    }
+    return 255;
+}
+
+// Asynchronous page prefetching
+fun prefetch_page(page: u8) -> void {
+    if page < 128 {
+        asm("
+            ld a, {0}
+            or 0x80         ; Set prefetch bit
+            out (PAGE_EXT_CTRL), a
+        " : : "r"(page));
+    }
+}
+
+// Optimized KNN with pre-computed hash
+fun search_knn_optimized(db: *mut VectorDB, query: *Vector256, 
+                       k: u8, hash: u8) -> [SearchResult; 10] {
+    let mut results: [SearchResult; 10];
+    
+    // Initialize with worst scores
+    for i in 0..10 {
+        results[i].similarity = -256;
+    }
+    
+    // Use multi-level index if available
+    let index = &db.multi_index as *MultiHashIndex;
+    if index.level2_enabled {
+        // Fine-grained search
+        let hash16 = compute_hash16(query, db);
+        let candidates = index.level2[hash16];
+        
+        // Check bloom filter first
+        if !bloom_check(&index.bloom_filter, hash16) {
+            // Definitely not in this bucket
+            return results;
+        }
+    }
+    
+    // Standard search with optimizations
+    let bucket = &db.hash_index[hash];
+    
+    // Process vectors in groups of 4 for better cache usage
+    let mut i: u8 = 0;
+    while i < bucket.count {
+        let remaining = bucket.count - i;
+        let batch_size = if remaining >= 4 { 4 } else { remaining };
+        
+        process_vector_batch(db, query, &bucket.indices[i], batch_size, &mut results, k);
+        i = i + batch_size;
+    }
+    
+    return results;
+}
+
+// Process multiple vectors in a single pass
+fun process_vector_batch(db: *mut VectorDB, query: *Vector256, 
+                       indices: *u16, count: u8,
+                       results: *mut SearchResult, k: u8) -> void {
+    // Load all vectors first
+    let mut vectors: [*Vector256; 4];
+    let mut metas: [*VectorMeta; 4];
+    
+    for i in 0..count {
+        let idx = indices[i];
+        metas[i] = &db.vector_meta[idx];
+        vectors[i] = load_vector_fast(db, metas[i]);
+    }
+    
+    // Compute similarities in a tight loop
+    for i in 0..count {
+        let sim = dot_product_1bit(query, vectors[i]);
+        insert_result_fast(results, k, indices[i], sim, metas[i]);
+    }
+}
+
+// Fast result insertion without full sorting
+fun insert_result_fast(results: *mut SearchResult, k: u8, index: u16,
+                     similarity: i16, meta: *VectorMeta) -> void {
+    // Quick check against worst result
+    if similarity <= results[k-1].similarity {
+        return;
+    }
+    
+    // Binary search for insertion point
+    let mut left: u8 = 0;
+    let mut right: u8 = k - 1;
+    
+    while left < right {
+        let mid = (left + right) / 2;
+        if results[mid].similarity < similarity {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+    
+    // Shift and insert
+    for i in (left+1..k).rev() {
+        results[i] = results[i-1];
+    }
+    
+    results[left] = SearchResult {
+        index: index,
+        similarity: similarity,
+        page: meta.page,
+        offset: meta.offset,
+    };
+}
+
+// Demonstration of all optimizations
+fun main() -> void {
+    // Initialize with Scorpion optimizations
+    let db = init_database_turbo();
+    
+    // Enable interrupt-driven reindexing
+    *(CURRENT_DB as *mut *mut VectorDB) = db;
+    
+    // Load vectors with DMA
+    load_vectors_dma(db, "VECTORS.BIN");
+    
+    // Create test queries
+    let mut queries: [Vector256; 16];
+    for i in 0..16 {
+        generate_test_query(&mut queries[i], i);
+    }
+    
+    // Batch search with all optimizations
+    let mut results: [SearchResult; 160];  // 16 queries × 10 results
+    batch_knn_search(db, &queries[0], 16, 10, &mut results[0]);
+    
+    // Display results on screen
+    for i in 0..16 {
+        screen.print_at(0, i as u8, "Query ");
+        screen.print_hex8(i as u8);
+        screen.print(": ");
+        screen.print_hex16(results[i * 10].similarity as u16);
+    }
+}

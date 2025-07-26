@@ -1,0 +1,7 @@
+// Simplest possible const test
+const MAGIC: u8 = 42;
+
+fun main() -> void {
+    // This should work if const is in scope
+    let x: u8 = MAGIC;
+}

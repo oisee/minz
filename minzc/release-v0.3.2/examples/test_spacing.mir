@@ -1,0 +1,21 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_spacing.main() -> void
+  @smc
+  Locals:
+    r1 = arr: [2]u8
+  Instructions:
+      0: r2 = 1
+      1: r3 = 2
+      2: r4 = load arr
+      3: r6 = r4 ; Get array base address
+      4: 66 ; Initialize index to array size
+      5: 5 ; Skip if array is empty
+      6: loop_at_1:
+      7: 40 ; Decrement index
+      8: r7 = r6 + r5 ; Calculate element address
+      9: 6 ; Loop if more elements (DJNZ pattern)
+     10: loop_end_2:
+     11: return
+

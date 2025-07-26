@@ -1,0 +1,20 @@
+// Test array access syntax
+
+fun test_array() -> u8 {
+    let arr: [10]u8;
+    
+    // Test reading from array
+    let x = arr[0];
+    let y = arr[5];
+    
+    // Test with computed index
+    let i: u8 = 3;
+    let z = arr[i];
+    
+    return z;
+}
+
+fun main() -> void {
+    let result = test_array();
+    return;
+}

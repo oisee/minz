@@ -1,0 +1,6 @@
+// Test with return statement
+
+fun main() -> void {
+    let x = 5;
+    return;
+}
