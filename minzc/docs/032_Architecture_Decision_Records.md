@@ -222,6 +222,29 @@ Every architectural decision should be evaluated against:
 4. **Value**: Does it enable better programs?
 5. **Uniqueness**: Does it differentiate MinZ?
 
+---
+
+## ADR-013: Z80-Native Iterator Design
+
+**Status**: Accepted
+
+**Context**: Need efficient iteration without expensive array indexing or unsafe pointers.
+
+**Decision**: Implement ABAP-inspired iterators with:
+- `do N times` mapping to DJNZ
+- `loop at` with work areas
+- Explicit `!` for modification intent
+- No general references or pointers
+
+**Consequences**:
+- ✅ Optimal Z80 code generation
+- ✅ Safe by default
+- ✅ Clear modification semantics
+- ❌ Different from mainstream syntax
+- ❌ No arbitrary indexing
+
+---
+
 ## Open Questions
 
 1. Should we support recursive functions with TRUE SMC?

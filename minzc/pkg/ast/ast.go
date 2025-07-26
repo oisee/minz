@@ -340,6 +340,32 @@ func (l *LoopStmt) Pos() Position { return l.StartPos }
 func (l *LoopStmt) End() Position { return l.EndPos }
 func (l *LoopStmt) stmtNode()    {}
 
+// DoTimesStmt represents a counting loop (do N times)
+type DoTimesStmt struct {
+	Count    Expression // Number of iterations
+	Body     *BlockStmt
+	StartPos Position
+	EndPos   Position
+}
+
+func (d *DoTimesStmt) Pos() Position { return d.StartPos }
+func (d *DoTimesStmt) End() Position { return d.EndPos }
+func (d *DoTimesStmt) stmtNode()    {}
+
+// LoopAtStmt represents array iteration (loop at array -> item)
+type LoopAtStmt struct {
+	Table       Expression // Array/table to iterate
+	Iterator    string     // Iterator variable name
+	IsModifying bool       // Has ! prefix (auto write-back)
+	Body        *BlockStmt
+	StartPos    Position
+	EndPos      Position
+}
+
+func (l *LoopAtStmt) Pos() Position { return l.StartPos }
+func (l *LoopAtStmt) End() Position { return l.EndPos }
+func (l *LoopAtStmt) stmtNode()    {}
+
 // ExpressionStmt represents an expression used as a statement
 type ExpressionStmt struct {
 	Expression Expression

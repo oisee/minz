@@ -78,6 +78,8 @@ const (
 	OpJump
 	OpJumpIf
 	OpJumpIfNot
+	OpJumpIfZero
+	OpJumpIfNotZero
 	OpCall
 	OpReturn
 	

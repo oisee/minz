@@ -775,6 +775,8 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 		return a.analyzeAssignStmt(s, irFunc)
 	case *ast.LoopStmt:
 		return a.analyzeLoopStmt(s, irFunc)
+	case *ast.DoTimesStmt:
+		return a.analyzeDoTimesStmt(s, irFunc)
 	default:
 		return fmt.Errorf("unsupported statement type: %T", stmt)
 	}
@@ -1396,6 +1398,67 @@ func (a *Analyzer) analyzeLoopStmt(loop *ast.LoopStmt, irFunc *ir.Function) erro
 		Src1:    countReg,
 		Label:   startLabel,
 		Comment: "Decrement counter and loop if not zero",
+	})
+	
+	// End label
+	irFunc.EmitLabel(endLabel)
+	
+	return nil
+}
+
+// analyzeDoTimesStmt analyzes a "do N times" statement
+func (a *Analyzer) analyzeDoTimesStmt(stmt *ast.DoTimesStmt, irFunc *ir.Function) error {
+	// Analyze count expression
+	countReg, err := a.analyzeExpression(stmt.Count, irFunc)
+	if err != nil {
+		return fmt.Errorf("invalid count expression: %w", err)
+	}
+	
+	// Generate labels
+	loopLabel := a.generateLabel("do_times")
+	endLabel := a.generateLabel("do_end")
+	
+	// Allocate counter register
+	counterReg := irFunc.AllocReg()
+	
+	// Initialize counter with count value
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpMove,
+		Dest:    counterReg,
+		Src1:    countReg,
+		Comment: "Initialize loop counter",
+	})
+	
+	// Check if count is zero (skip loop entirely)
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpJumpIfZero,
+		Src1:    counterReg,
+		Symbol:  endLabel,
+		Comment: "Skip if count is zero",
+	})
+	
+	// Loop start label
+	irFunc.EmitLabel(loopLabel)
+	
+	// Analyze loop body
+	if err := a.analyzeStatement(stmt.Body, irFunc); err != nil {
+		return err
+	}
+	
+	// Decrement counter and loop if not zero
+	// This pattern will be optimized to DJNZ in code generation
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpDec,
+		Dest:    counterReg,
+		Src1:    counterReg,
+		Comment: "Decrement counter",
+	})
+	
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpJumpIfNotZero,
+		Src1:    counterReg,
+		Symbol:  loopLabel,
+		Comment: "Loop if counter not zero (DJNZ pattern)",
 	})
 	
 	// End label

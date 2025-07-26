@@ -14,6 +14,8 @@ type Z80Generator struct {
 	writer        io.Writer
 	module        *ir.Module
 	currentFunc   *ir.Function
+	currentFunction *ir.Function // For DJNZ optimization
+	currentInstructionIndex int  // For DJNZ optimization
 	regAlloc      *RegisterAllocator
 	stackOffset   int
 	labelCounter  int
@@ -190,6 +192,8 @@ func (g *Z80Generator) generateString(str *ir.String) {
 // generateFunction generates code for a function
 func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	g.currentFunc = fn
+	g.currentFunction = fn
+	g.currentInstructionIndex = 0
 	g.stackOffset = 0
 	g.regAlloc.Reset()
 
@@ -210,7 +214,8 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	g.generatePrologue(fn)
 
 	// Generate instructions
-	for _, inst := range fn.Instructions {
+	for i, inst := range fn.Instructions {
+		g.currentInstructionIndex = i
 		if err := g.generateInstruction(inst); err != nil {
 			return err
 		}
@@ -720,6 +725,18 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    OR A")
 		g.emit("    JP Z, %s", inst.Label)
 		
+	case ir.OpJumpIfZero:
+		// Load value to A and test if zero
+		g.loadToA(inst.Src1)
+		g.emit("    OR A")
+		g.emit("    JP Z, %s", inst.Symbol)
+		
+	case ir.OpJumpIfNotZero:
+		// Load value to A and test if not zero
+		g.loadToA(inst.Src1)
+		g.emit("    OR A")
+		g.emit("    JP NZ, %s", inst.Symbol)
+		
 	case ir.OpReturn:
 		if inst.Src1 != 0 {
 			// Check if this function has direct return optimization
@@ -793,6 +810,11 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    LD (IX-%d), H", offset-1)
 		}
 		
+	case ir.OpMove:
+		// Move from source to destination register
+		g.loadToHL(inst.Src1)
+		g.storeFromHL(inst.Dest)
+		
 	case ir.OpAdd:
 		// Load operands efficiently
 		g.loadToHL(inst.Src1)
@@ -835,6 +857,11 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		}
 		
 	case ir.OpDec:
+		// Check for DJNZ optimization pattern
+		if g.canOptimizeToDJNZ(inst) {
+			return g.generateDJNZ(inst)
+		}
+		
 		// Decrement register
 		if inst.Type != nil && inst.Type.Size() == 1 {
 			// For byte values
@@ -1256,7 +1283,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		}
 		
 	default:
-		return fmt.Errorf("unsupported opcode: %v", inst.Op)
+		return fmt.Errorf("unsupported opcode: %v (%d)", inst.Op, int(inst.Op))
 	}
 
 	return nil
@@ -1731,4 +1758,37 @@ func (r *RegisterAllocator) Free(z80reg string) {
 func (g *Z80Generator) loadToB(reg ir.Register) {
 	g.loadToA(reg)
 	g.emit("    LD B, A")
+}
+
+// canOptimizeToDJNZ checks if we can optimize DEC + JUMP_IF_NOT_ZERO to DJNZ
+func (g *Z80Generator) canOptimizeToDJNZ(decInst ir.Instruction) bool {
+	// Check if this is the start of a DJNZ pattern
+	idx := g.currentInstructionIndex
+	if idx+1 >= len(g.currentFunction.Instructions) {
+		return false
+	}
+	
+	nextInst := g.currentFunction.Instructions[idx+1]
+	
+	// Pattern: DEC reg, JUMP_IF_NOT_ZERO same_reg, label
+	return nextInst.Op == ir.OpJumpIfNotZero && 
+		   decInst.Dest == nextInst.Src1 &&
+		   decInst.Src1 == nextInst.Src1
+}
+
+// generateDJNZ generates optimized DJNZ instruction
+func (g *Z80Generator) generateDJNZ(decInst ir.Instruction) error {
+	// Get the next instruction (JUMP_IF_NOT_ZERO)
+	nextInst := g.currentFunction.Instructions[g.currentInstructionIndex+1]
+	
+	// Load counter to B register
+	g.loadToB(decInst.Src1)
+	
+	// Generate DJNZ
+	g.emit("    DJNZ %s", nextInst.Symbol)
+	
+	// Skip the next instruction since we've handled it
+	g.currentInstructionIndex++
+	
+	return nil
 }

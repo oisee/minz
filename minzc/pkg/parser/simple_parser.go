@@ -556,6 +556,8 @@ func (p *SimpleParser) parseStatement() ast.Statement {
 			return p.parseAsmStmt()
 		case "loop":
 			return p.parseLoopStmt()
+		case "do":
+			return p.parseDoStatement()
 		}
 	}
 	
@@ -963,6 +965,7 @@ func isKeyword(s string) bool {
 		"struct", "enum", "impl", "pub", "mod", "use", "import",
 		"true", "false", "as", "module", "asm", "const", "type",
 		"loop", "into", "ref", "to", "indexed", "bits",
+		"do", "times",
 	}
 	for _, kw := range keywords {
 		if s == kw {
@@ -1110,6 +1113,28 @@ func (p *SimpleParser) parseLoopStmt() *ast.LoopStmt {
 	
 	loopStmt.EndPos = p.currentPos()
 	return loopStmt
+}
+
+// parseDoStatement parses a "do N times" statement
+func (p *SimpleParser) parseDoStatement() ast.Statement {
+	startPos := p.currentPos()
+	
+	p.expect(TokenKeyword, "do")
+	
+	// Parse count expression
+	count := p.parseExpression()
+	
+	p.expect(TokenKeyword, "times")
+	
+	// Parse body
+	body := p.parseBlock()
+	
+	return &ast.DoTimesStmt{
+		Count:    count,
+		Body:     body,
+		StartPos: startPos,
+		EndPos:   p.currentPos(),
+	}
 }
 
 func (p *SimpleParser) parseAsmStmt() *ast.AsmStmt {
