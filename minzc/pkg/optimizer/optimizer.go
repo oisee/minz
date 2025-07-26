@@ -29,6 +29,11 @@ type Optimizer struct {
 
 // NewOptimizer creates a new optimizer with the specified level
 func NewOptimizer(level OptimizationLevel) *Optimizer {
+	return NewOptimizerWithOptions(level, false)
+}
+
+// NewOptimizerWithOptions creates a new optimizer with options
+func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optimizer {
 	opt := &Optimizer{
 		level: level,
 	}
@@ -49,7 +54,16 @@ func NewOptimizer(level OptimizationLevel) *Optimizer {
 			NewPeepholeOptimizationPass(),
 			NewRegisterAllocationPass(),
 			NewInliningPass(),
-			NewSelfModifyingCodePass(),
+		)
+		
+		// Add TRUE SMC if enabled, otherwise use old SMC
+		if enableTrueSMC {
+			opt.passes = append(opt.passes, NewTrueSMCPass(false))
+		} else {
+			opt.passes = append(opt.passes, NewSelfModifyingCodePass())
+		}
+		
+		opt.passes = append(opt.passes,
 			NewCallReturnOptimizationPass(),
 		)
 	}

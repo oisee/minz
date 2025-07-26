@@ -1,0 +1,17 @@
+// Test implicit return in void functions
+
+fn test_no_return() -> void {
+    let x = 5;
+    // No explicit return
+}
+
+fn test_with_return() -> void {
+    let x = 5;
+    return;
+}
+
+fn main() -> void {
+    test_no_return();
+    test_with_return();
+    // No explicit return in main either
+}

@@ -1,0 +1,54 @@
+; MinZ generated code
+; Generated: 2025-07-26 12:32:29
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_asm_final.set_pixel
+...examples.test_asm_final.set_pixel:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; asm { ld a, 0xFF
+ld (0x4000), a }
+    ld a, 0xFF
+    ld (0x4000), a
+    ; return
+    RET
+
+; Function: ...examples.test_asm_final.main
+...examples.test_asm_final.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; asm { ; Set border to red
+ld a, 2
+out (FE), a
+; Clear screen
+ld hl, 4000
+ld de, 4001
+ld bc, 17FF
+ld (hl), 0
+ldir }
+    ; Set border to red
+    ld a, 2
+    out (FE), a
+    ; Clear screen
+    ld hl, 4000
+    ld de, 4001
+    ld bc, 17FF
+    ld (hl), 0
+    ldir
+    ; r3 = call set_pixel
+    CALL set_pixel
+    LD ($F006), HL
+    ; asm { halt }
+    halt
+    ; return
+    POP DE
+    POP BC
+    RET
+
+    END main

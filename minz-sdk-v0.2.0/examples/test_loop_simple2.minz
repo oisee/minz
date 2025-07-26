@@ -1,0 +1,19 @@
+// Simple loop test 2
+
+struct Item {
+    value: u8
+}
+
+let items: [Item; 2];
+
+fn main() -> void {
+    // Initialize
+    items[0].value = 10;
+    items[1].value = 20;
+    
+    // Test loop with INTO mode
+    loop items into item {
+        let x: u8 = item.value;
+        item.value = 42;
+    }
+}

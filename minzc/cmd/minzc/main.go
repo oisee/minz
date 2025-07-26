@@ -15,11 +15,12 @@ import (
 )
 
 var (
-	version    = "0.1.0"
-	outputFile string
-	optimize   bool
-	debug      bool
-	enableSMC  bool
+	version     = "0.1.0"
+	outputFile  string
+	optimize    bool
+	debug       bool
+	enableSMC   bool
+	enableTrueSMC bool
 )
 
 var rootCmd = &cobra.Command{
@@ -41,6 +42,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&optimize, "optimize", "O", false, "enable optimizations")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
 	rootCmd.Flags().BoolVar(&enableSMC, "enable-smc", false, "enable self-modifying code optimization (requires code in RAM)")
+	rootCmd.Flags().BoolVar(&enableTrueSMC, "enable-true-smc", false, "enable TRUE SMC with immediate anchors (experimental)")
 }
 
 func main() {
@@ -97,7 +99,7 @@ func compile(sourceFile string) error {
 			level = optimizer.OptLevelFull
 		}
 		
-		opt := optimizer.NewOptimizer(level)
+		opt := optimizer.NewOptimizerWithOptions(level, enableTrueSMC)
 		if err := opt.Optimize(irModule); err != nil {
 			return fmt.Errorf("optimization error: %w", err)
 		}

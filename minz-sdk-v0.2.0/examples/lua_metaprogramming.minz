@@ -1,0 +1,271 @@
+// Advanced metaprogramming with embedded Lua
+
+@lua[[
+-- Lua code block for complex compile-time computation
+
+-- Generate sine/cosine lookup tables with proper fixed-point math
+function generate_trig_tables()
+    local sin_table = {}
+    local cos_table = {}
+    
+    for i = 0, 255 do
+        local angle = (i * 2 * math.pi) / 256
+        -- Convert to 8.8 fixed point
+        sin_table[i] = math.floor(math.sin(angle) * 256)
+        cos_table[i] = math.floor(math.cos(angle) * 256)
+    end
+    
+    return sin_table, cos_table
+end
+
+-- Load sprite data from file
+function load_sprite_sheet(filename, sprite_width, sprite_height)
+    local file = io.open(filename, "rb")
+    if not file then
+        error("Cannot open sprite file: " .. filename)
+    end
+    
+    local data = file:read("*all")
+    file:close()
+    
+    local sprites = {}
+    local bytes_per_sprite = (sprite_width / 8) * sprite_height
+    
+    for i = 0, #data / bytes_per_sprite - 1 do
+        local sprite = {}
+        for j = 1, bytes_per_sprite do
+            sprite[j] = string.byte(data, i * bytes_per_sprite + j)
+        end
+        sprites[i] = sprite
+    end
+    
+    return sprites
+end
+
+-- Generate optimized unrolled loops
+function unroll_copy_loop(size)
+    if size % 8 ~= 0 then
+        error("Size must be multiple of 8 for unrolling")
+    end
+    
+    local code = ""
+    for i = 0, size - 1, 8 do
+        code = code .. string.format([[
+        ld a, (hl)
+        ld (de), a
+        inc hl
+        inc de
+        ld a, (hl)
+        ld (de), a
+        inc hl
+        inc de
+        ld a, (hl)
+        ld (de), a
+        inc hl
+        inc de
+        ld a, (hl)
+        ld (de), a
+        inc hl
+        inc de
+        ld a, (hl)
+        ld (de), a
+        inc hl
+        inc de
+        ld a, (hl)
+        ld (de), a
+        inc hl
+        inc de
+        ld a, (hl)
+        ld (de), a
+        inc hl
+        inc de
+        ld a, (hl)
+        ld (de), a
+        inc hl
+        inc de
+        ]])
+    end
+    
+    return code
+end
+
+-- Generate state machine from table
+function generate_state_machine(name, states)
+    local code = "enum " .. name .. "State {\n"
+    local handler_code = ""
+    
+    for i, state in ipairs(states) do
+        code = code .. "    " .. state.name .. ",\n"
+        
+        handler_code = handler_code .. string.format([[
+fn handle_%s_%s(state: *mut %s) -> void {
+    %s
+}
+
+]], name:lower(), state.name:lower(), name, state.code or "// TODO")
+    end
+    
+    code = code .. "}\n\n" .. handler_code
+    
+    -- Generate dispatch function
+    code = code .. string.format([[
+fn update_%s(state: *mut %s) -> void {
+    case state.current {
+]], name:lower(), name)
+    
+    for i, state in ipairs(states) do
+        code = code .. string.format([[
+        %sState.%s => handle_%s_%s(state),
+]], name, state.name, name:lower(), state.name:lower())
+    end
+    
+    code = code .. "    }\n}\n"
+    
+    return code
+end
+
+-- Platform-specific configuration
+platform_config = {
+    ZX_SPECTRUM = {
+        screen_width = 256,
+        screen_height = 192,
+        border_port = 0xFE,
+        colors = { BLACK=0, BLUE=1, RED=2, MAGENTA=3, GREEN=4, CYAN=5, YELLOW=6, WHITE=7 }
+    },
+    ZX_SPECTRUM_128 = {
+        screen_width = 256,
+        screen_height = 192,
+        border_port = 0xFE,
+        colors = { BLACK=0, BLUE=1, RED=2, MAGENTA=3, GREEN=4, CYAN=5, YELLOW=6, WHITE=7 },
+        sound_chip = "AY-3-8912"
+    }
+}
+
+-- Get current platform config
+function get_platform()
+    local platform = os.getenv("TARGET_PLATFORM") or "ZX_SPECTRUM"
+    return platform_config[platform] or platform_config.ZX_SPECTRUM
+end
+]]
+
+// Use Lua to generate lookup tables
+const SINE_TABLE: [i16; 256] = @lua((function() 
+    local sin, _ = generate_trig_tables()
+    return sin
+end)());
+
+const COSINE_TABLE: [i16; 256] = @lua((function()
+    local _, cos = generate_trig_tables()
+    return cos
+end)());
+
+// Load sprites at compile time (commented out as it needs actual file)
+// const SPRITE_DATA: [[u8; 64]; 16] = @lua(load_sprite_sheet("sprites.bin", 8, 8));
+
+// Generate platform-specific constants
+const SCREEN_WIDTH: u16 = @lua(get_platform().screen_width);
+const SCREEN_HEIGHT: u16 = @lua(get_platform().screen_height);
+const BORDER_PORT: u8 = @lua(get_platform().border_port);
+
+// Generate optimized memory copy function
+fn fast_memcpy_256(dst: *mut u8, src: *u8) -> void {
+    asm(@lua(unroll_copy_loop(256)));
+}
+
+// Generate state machine code
+@lua_eval(generate_state_machine("Game", {
+    { name = "Menu", code = [[
+        if input.is_key_pressed(input.KEY_SPACE) {
+            state.current = GameState.Playing;
+            init_game(state);
+        }
+    ]] },
+    { name = "Playing", code = [[
+        update_player(&mut state.player);
+        update_enemies(&mut state.enemies);
+        check_collisions(state);
+        
+        if state.player.health == 0 {
+            state.current = GameState.GameOver;
+        }
+    ]] },
+    { name = "Paused", code = [[
+        if input.is_key_pressed(input.KEY_P) {
+            state.current = GameState.Playing;
+        }
+    ]] },
+    { name = "GameOver", code = [[
+        draw_game_over_screen();
+        if input.is_key_pressed(input.KEY_SPACE) {
+            state.current = GameState.Menu;
+        }
+    ]] }
+}))
+
+// Use Lua for conditional compilation based on features
+@lua[[
+features = {
+    music = os.getenv("FEATURE_MUSIC") == "1",
+    debug_mode = os.getenv("DEBUG") == "1",
+    cheats = os.getenv("ENABLE_CHEATS") == "1"
+}
+]]
+
+@lua_if(features.music)
+import zx.sound;
+
+fn play_music(track: u8) -> void {
+    sound.play_track(track);
+}
+@lua_else
+fn play_music(track: u8) -> void {
+    // No music support compiled in
+}
+@lua_endif
+
+// Generate optimized fixed-point math operations
+@lua[[
+function generate_fixed_mul(bits)
+    return string.format([[
+    ; Fixed point multiply %d.%d
+    ; HL = first operand, DE = second operand
+    ; Result in HL
+    push bc
+    ld b, h
+    ld c, l
+    call multiply_16x16_32  ; Result in HLDE
+    ; Shift right by %d bits
+    ld b, %d
+.shift_loop:
+    srl h
+    rr l
+    rr d
+    rr e
+    djnz .shift_loop
+    ; Result in HL
+    pop bc
+]], bits, bits, bits, bits)
+end
+]]
+
+fn fixed_mul_8_8(a: i16, b: i16) -> i16 {
+    asm(@lua(generate_fixed_mul(8)));
+}
+
+fn main() -> void {
+    // Initialize game with generated code
+    let mut game_state = Game {
+        current: GameState.Menu,
+        player: Player { x: 128, y: 96, health: 100 },
+        enemies: [Enemy { x: 0, y: 0, active: false }; 8],
+    };
+    
+    // Main loop using generated state machine
+    loop {
+        update_game(&mut game_state);
+        
+        if input.is_key_pressed(input.KEY_Q) {
+            break;
+        }
+    }
+}

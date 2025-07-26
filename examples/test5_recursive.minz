@@ -1,0 +1,13 @@
+// test5_recursive.minz
+module test5
+
+fn factorial(n: u8) -> u16 {
+    if n <= 1 {
+        return 1
+    }
+    return (n as u16) * factorial(n - 1)
+}
+
+fn main() -> void {
+    let result = factorial(5)
+}

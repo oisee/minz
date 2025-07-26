@@ -1,0 +1,10 @@
+// Very simple test case
+
+fn add(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+fn main() -> void {
+    let x = add(10, 20);
+    return;
+}

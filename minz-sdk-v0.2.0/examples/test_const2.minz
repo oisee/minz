@@ -1,0 +1,6 @@
+// Test without module declaration
+const MAGIC: u16 = 0x1234;
+
+fn main() -> void {
+    let x: u16 = MAGIC;
+}

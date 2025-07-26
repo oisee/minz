@@ -1,0 +1,15 @@
+// Test field assignment
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fn main() -> void {
+    let mut p: Point;
+    p.x = 10;
+    p.y = 20;
+    
+    let val = p.x + p.y;
+    return;
+}

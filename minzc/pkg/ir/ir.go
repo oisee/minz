@@ -103,6 +103,14 @@ const (
 	OpSMCRestore    // Restore SMC parameter from stack
 	OpSMCUpdate     // Update SMC parameter value
 	
+	// TRUE SMC operations (истинный SMC)
+	OpTrueSMCLoad   // Load from anchor address
+	OpTrueSMCPatch  // Patch anchor before call
+	
+	// Error handling (Carry-flag ABI)
+	OpSetError      // Set carry flag and error code in A
+	OpCheckError    // Check carry flag for error
+	
 	// Arithmetic
 	OpAdd
 	OpSub
@@ -329,6 +337,10 @@ type Function struct {
 	UsedRegisters    RegisterSet // Which Z80 registers are actually used
 	ModifiedRegisters RegisterSet // Which registers are modified (need saving)
 	
+	// TRUE SMC support
+	UsesTrueSMC  bool                    // Uses TRUE SMC anchors (not fixed slots)
+	SMCAnchors   map[string]*SMCAnchorInfo // Parameter -> anchor info
+	
 	// Metadata for optimization passes
 	Metadata map[string]string // Generic metadata storage
 	CalleeSavedRegs  RegisterSet // Registers this function must preserve
@@ -443,6 +455,7 @@ type Module struct {
 	Functions []*Function
 	Globals   []Global
 	Strings   []*String
+	PatchTable []PatchEntry // TRUE SMC patch table
 }
 
 // Global represents a global variable
@@ -570,4 +583,22 @@ func (f *Function) GetMetadata(key string) (string, bool) {
 	}
 	value, ok := f.Metadata[key]
 	return value, ok
+}
+
+// SMCAnchorInfo represents information about a TRUE SMC anchor
+type SMCAnchorInfo struct {
+	Symbol      string    // Anchor symbol (e.g., "x$imm0")
+	Address     uint16    // Address in generated code
+	Size        uint8     // 1 or 2 bytes
+	Instruction Opcode    // The instruction containing the immediate
+}
+
+// PatchEntry represents an entry in the PATCH-TABLE
+type PatchEntry struct {
+	Symbol   string    // Anchor symbol (e.g., "x$imm0")
+	Address  uint16    // Address to patch
+	Size     uint8     // 1 or 2 bytes
+	Bank     uint8     // Memory bank
+	ParamTag string    // Parameter name
+	Function string    // Function name
 }

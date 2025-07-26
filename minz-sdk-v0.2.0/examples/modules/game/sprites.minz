@@ -1,0 +1,83 @@
+// Sprite handling module
+module game.sprites;
+
+import zx.screen;
+
+pub struct Sprite {
+    x: u8,
+    y: u8,
+    width: u8,
+    height: u8,
+    data: *u8,
+}
+
+pub fn create(x: u8, y: u8, data: *u8) -> Sprite {
+    return Sprite {
+        x: x,
+        y: y,
+        width: 8,
+        height: 8,
+        data: data,
+    };
+}
+
+pub fn draw(s: *Sprite) -> void {
+    let mut row: u8 = 0;
+    
+    while row < s.height {
+        let addr = screen.pixel_addr(s.x, s.y + row);
+        let byte = s.data[row];
+        
+        asm("
+            ld a, {0}
+            ld ({1}), a
+        " : : "r"(byte), "r"(addr));
+        
+        row = row + 1;
+    }
+}
+
+pub fn clear(s: *Sprite) -> void {
+    let mut row: u8 = 0;
+    
+    while row < s.height {
+        let addr = screen.pixel_addr(s.x, s.y + row);
+        
+        asm("
+            xor a
+            ld ({0}), a
+        " : : "r"(addr));
+        
+        row = row + 1;
+    }
+}
+
+pub fn move(s: *mut Sprite, new_x: u8, new_y: u8) -> void {
+    // Clear old position
+    clear(s);
+    
+    // Update position
+    s.x = new_x;
+    s.y = new_y;
+    
+    // Draw at new position
+    draw(s);
+}
+
+pub fn collides(s1: *Sprite, s2: *Sprite) -> bool {
+    // Simple bounding box collision
+    if s1.x + s1.width <= s2.x {
+        return false;
+    }
+    if s1.x >= s2.x + s2.width {
+        return false;
+    }
+    if s1.y + s1.height <= s2.y {
+        return false;
+    }
+    if s1.y >= s2.y + s2.height {
+        return false;
+    }
+    
+    return true;
+}

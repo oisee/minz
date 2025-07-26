@@ -1,0 +1,79 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_loop_indexed.main() -> void
+  @smc
+  Locals:
+    r1 = i: u8
+    r19 = max_score: u16
+    r21 = max_index: u8
+  Instructions:
+      0: r2 = r2 ^ r2 ; XOR A,A (optimized from LD A,0)
+      1: store , r2
+      2: loop_1:
+      3: r3 = load i
+      4: r4 = 8
+      5: r5 = r3 < r4
+      6: jump_if_not r5, end_loop_2
+      7: r6 = load i
+      8: r7 = 10
+      9: r8 = r6 + r7
+     10: 13 ; Load array element (...examples.test_loop_indexed.Score)
+     11: 12 ; Store to field player_id (offset 0)
+     12: r12 = load i
+     13: 13 ; Load array element (...examples.test_loop_indexed.Score)
+     14: 12 ; Store to field points (offset 1)
+     15: 33 ; INC (optimized from ADD 1)
+     16: store i, r18
+     17: jump loop_1
+     18: end_loop_2:
+     19: r20 = r20 ^ r20 ; XOR A,A (optimized from LD A,0)
+     20: store , r20
+     21: r22 = r22 ^ r22 ; XOR A,A (optimized from LD A,0)
+     22: store , r22
+     23: 55 ; Load table base address
+     24: 55 ; Load table base for end calculation
+     25: 60 ; Calculate table end (+ 8 elements * 3 bytes)
+     26: 59 ; Load loop counter
+     27: 59
+     28: 41 ; Check if reached end of table
+     29: 3 ; Exit if done
+     30: 56 ; Copy element to buffer at $F000
+     31: 17 ; Load score.points from buffer at $F001
+     32: r30 = load max_score
+     33: r31 = r29 > r30
+     34: jump_if_not r31, else_5
+     35: 17 ; Load score.points from buffer at $F001
+     36: store max_score, r32
+     37: r33 = load idx
+     38: store max_index, r33
+     39: jump end_if_6
+     40: else_5:
+     41: end_if_6:
+     42: 57 ; Copy buffer back to element at $F000
+     43: 33
+     44: 60 ; Advance to next element (+3 bytes)
+     45: 58 ; Decrement counter and loop if not zero
+     46: 55 ; Load table base address
+     47: 55 ; Load table base for end calculation
+     48: 60 ; Calculate table end (+ 8 elements * 3 bytes)
+     49: 59 ; Load loop counter
+     50: 59
+     51: 41 ; Check if reached end of table
+     52: 3 ; Exit if done
+     53: 56 ; Copy element to buffer at $F000
+     54: r40 = load idx
+     55: r41 = load max_index
+     56: r42 = r40 == r41
+     57: jump_if_not r42, else_9
+     58: 17 ; Load score.points from buffer at $F001
+     59: 18 ; Store to score.points at buffer $F001
+     60: jump end_if_10
+     61: else_9:
+     62: end_if_10:
+     63: 57 ; Copy buffer back to element at $F000
+     64: 33
+     65: 60 ; Advance to next element (+3 bytes)
+     66: 58 ; Decrement counter and loop if not zero
+     67: return
+

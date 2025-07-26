@@ -1,0 +1,32 @@
+// Simple loop test without complex initialization
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+// Simple array declaration
+let points: [Point; 4];
+
+fn main() -> void {
+    // Initialize manually
+    points[0].x = 10;
+    points[0].y = 20;
+    points[1].x = 30;
+    points[1].y = 40;
+    points[2].x = 50;
+    points[2].y = 60;
+    points[3].x = 70;
+    points[3].y = 80;
+    
+    // Test loop with INTO mode
+    loop points into p {
+        p.x = p.x + 1;
+        p.y = p.y + 1;
+    }
+    
+    // Test loop with REF TO mode
+    loop points ref to p {
+        p.x = p.x + 2;
+    }
+}

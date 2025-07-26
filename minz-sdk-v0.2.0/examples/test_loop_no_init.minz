@@ -1,0 +1,14 @@
+// Loop test without initialization
+
+struct Item {
+    value: u8
+}
+
+let items: [Item; 3];
+
+fn main() -> void {
+    // Test loop with INTO mode
+    loop items into item {
+        item.value = 42;
+    }
+}

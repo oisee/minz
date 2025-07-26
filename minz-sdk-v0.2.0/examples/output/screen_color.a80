@@ -1,0 +1,123 @@
+; MinZ generated code
+; Generated: 2025-07-07 23:07:09
+
+
+; Code section
+    ORG $8000
+
+
+; Function: set_border
+set_border:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+
+; Function: fill_screen
+fill_screen:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+fill_screen_param_ink:
+    LD A, #00      ; SMC parameter ink
+    LD ($F00A), A
+fill_screen_param_paper:
+    LD A, #00      ; SMC parameter paper
+    LD ($F00C), A
+    ; r7 = 3
+    LD A, 3
+    LD ($F00E), A
+    ; unknown op 34
+    ; TODO: Shift left
+    LD HL, ($F00C)
+    LD ($F010), HL
+    ; unknown op 31
+    LD HL, ($F00A)
+    PUSH HL
+    LD HL, ($F010)
+    POP DE
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    LD ($F012), HL
+    ; store , r9
+    LD HL, ($F012)
+    LD ($F008), HL
+fill_screen_param_bright:
+    LD A, #00      ; SMC parameter bright
+    LD ($F014), A
+    ; jump_if_not r10, else_1
+    LD A, ($F014)
+    OR A
+    JP Z, else_1
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    ; r12 = 22528
+    LD HL, 22528
+    LD ($F018), HL
+    ; store , r12
+    LD HL, ($F018)
+    LD ($F016), HL
+    ; r14 = 22528
+    LD HL, 22528
+    LD ($F01C), HL
+    ; r15 = 768
+    LD HL, 768
+    LD ($F01E), HL
+    ; r16 = r14 + r15
+    LD HL, ($F01C)
+    PUSH HL
+    LD HL, ($F01E)
+    POP DE
+    ADD HL, DE
+    LD ($F020), HL
+    ; store , r16
+    LD HL, ($F020)
+    LD ($F01A), HL
+    ; loop_3:
+loop_3:
+    ; r17 = load addr
+    LD HL, ($F000)
+    LD ($F022), HL
+    ; r18 = load end
+    LD HL, ($F000)
+    LD ($F024), HL
+    ; r19 = r17 < r18
+    LD HL, ($F022)
+    PUSH HL
+    LD HL, ($F024)
+    POP DE
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    LD ($F026), HL
+    ; jump_if_not r19, end_loop_4
+    LD A, ($F026)
+    OR A
+    JP Z, end_loop_4
+    ; jump loop_3
+    JP loop_3
+    ; end_loop_4:
+end_loop_4:
+    ; return
+    RET
+
+; Function: main
+main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+
+    END main

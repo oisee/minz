@@ -1,8 +1,0 @@
-; MinZ Intermediate Representation (MIR)
-; Module: main
-
-Function ...examples.mnist.test_void_main.main() -> void
-  @smc
-  Instructions:
-      0: return
-

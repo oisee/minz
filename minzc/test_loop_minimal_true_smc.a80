@@ -1,0 +1,134 @@
+; MinZ generated code
+; Generated: 2025-07-26 12:32:36
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_loop_minimal.main
+...examples.test_loop_minimal.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH DE
+    ; r1 = 10
+    LD A, 10
+    LD ($F002), A
+    ; Load array element (...examples.test_loop_minimal.Item)
+    LD HL, ($F004)
+    PUSH HL
+    LD A, ($F006)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F008), A
+    ; Store to field value (offset 0)
+    LD HL, ($F008)
+    PUSH HL
+    LD HL, ($F002)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r5 = 20
+    LD A, 20
+    LD ($F00A), A
+    ; Load array element (...examples.test_loop_minimal.Item)
+    LD HL, ($F00C)
+    PUSH HL
+    LD A, ($F00E)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F010), A
+    ; Store to field value (offset 0)
+    LD HL, ($F010)
+    PUSH HL
+    LD HL, ($F00A)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r9 = 30
+    LD A, 30
+    LD ($F012), A
+    ; Load array element (...examples.test_loop_minimal.Item)
+    LD HL, ($F014)
+    PUSH HL
+    LD A, ($F016)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F018), A
+    ; Store to field value (offset 0)
+    LD HL, ($F018)
+    PUSH HL
+    LD HL, ($F012)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; Load table base address
+    LD HL, ($F01A)
+    LD ($F01C), HL
+    ; Load table base for end calculation
+    LD HL, ($F01A)
+    LD ($F01E), HL
+    ; Calculate table end (+ 3 elements * 1 bytes)
+    LD HL, ($F01E)
+    LD DE, 3
+    ADD HL, DE
+    LD ($F01E), HL
+    ; Load loop counter
+    LD A, 3
+    LD ($F020), A
+    ; Check if reached end of table
+    LD HL, ($F01C)
+    LD D, H
+    LD E, L
+    LD HL, ($F01E)
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; Exit if done
+    LD A, ($F022)
+    OR A
+    JP NZ, loop_end_2
+    ; Copy element to buffer at $F000
+    LD HL, ($F01C)
+    LD DE, $F000    ; Buffer address
+    LD BC, 1       ; Size
+    LDIR            ; Copy to buffer
+    ; Load item.value from buffer at $F000
+    LD A, ($F000)
+    LD ($F024), A
+    ; Store to item.value at buffer $F000
+    LD A, ($F028)
+    LD ($F000), A
+    ; Copy buffer back to element at $F000
+    LD HL, ($F01C)
+    EX DE, HL       ; DE = destination
+    LD HL, $F000    ; Buffer address
+    LD BC, 1       ; Size
+    LDIR            ; Copy from buffer
+    ; Advance to next element (+1 bytes)
+    LD HL, ($F01C)
+    LD DE, 1
+    ADD HL, DE
+    LD ($F01C), HL
+    ; Decrement counter and loop if not zero
+    LD A, ($F020)
+    LD B, A
+    DJNZ loop_start_1
+    LD A, B
+    LD ($F020), A
+    ; return
+    POP DE
+    RET
+
+    END main

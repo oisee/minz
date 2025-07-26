@@ -1,0 +1,9 @@
+module simple_true_smc
+
+fn add(x: u8, y: u8) -> u8 {
+    return x + y
+}
+
+fn main() -> void {
+    let result = add(5, 3)
+}

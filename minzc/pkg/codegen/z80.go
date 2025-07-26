@@ -171,8 +171,52 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	return nil
 }
 
+// generateTrueSMCFunction generates a TRUE SMC function with anchor-based parameters
+func (g *Z80Generator) generateTrueSMCFunction(fn *ir.Function) error {
+	g.emit("%s:", fn.Name)
+	g.emit("; TRUE SMC function with immediate anchors")
+	
+	// Always use absolute addressing for SMC functions
+	g.useAbsoluteLocals = true
+	
+	// Generate anchors for each parameter
+	for i, param := range fn.Params {
+		anchorSymbol := fmt.Sprintf("%s$imm0", param.Name)
+		g.emit("%s:", anchorSymbol)
+		
+		if param.Type.Size() == 1 {
+			// 8-bit parameter - use LD A, n
+			g.emit("    LD A, 0        ; %s anchor (will be patched)", param.Name)
+			// Store to virtual register for first use
+			g.storeFromA(ir.Register(i))
+		} else {
+			// 16-bit parameter - use LD HL, nn
+			g.emit("    LD HL, 0       ; %s anchor (will be patched)", param.Name)
+			// Store to virtual register for first use
+			g.storeFromHL(ir.Register(i))
+		}
+	}
+	
+	// Generate function body
+	for _, inst := range fn.Instructions {
+		if err := g.generateSMCInstruction(inst); err != nil {
+			return err
+		}
+	}
+	
+	// Return instruction
+	g.emit("    RET")
+	
+	return nil
+}
+
 // generateSMCFunction generates an SMC-based function
 func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
+	// Check if this uses TRUE SMC with anchors
+	if fn.UsesTrueSMC {
+		return g.generateTrueSMCFunction(fn)
+	}
+	
 	g.emit("%s:", fn.Name)
 	
 	// Always use absolute addressing for SMC functions
@@ -235,6 +279,45 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 		}
 		// Fall through to regular instruction generation
 		return g.generateInstruction(inst)
+		
+	case ir.OpTrueSMCLoad:
+		// TRUE SMC: Load from anchor address (повторное использование)
+		anchorAddr := inst.Symbol
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			g.emit("    LD A, (%s)    ; Reuse from anchor", anchorAddr)
+			g.storeFromA(inst.Dest)
+		} else {
+			g.emit("    LD HL, (%s)   ; Reuse from anchor", anchorAddr)
+			g.storeFromHL(inst.Dest)
+		}
+		return nil
+		
+	case ir.OpTrueSMCPatch:
+		// TRUE SMC: Patch anchor before call
+		// This is handled in generateCall when we see a call to SMC function
+		g.emit("    ; TRUE SMC patch handled at call site")
+		return nil
+		
+	case ir.OpSetError:
+		// Carry-flag error ABI: Set CY=1 and error code in A
+		if inst.Imm != 0 {
+			g.emit("    LD A, %d       ; Error code", inst.Imm)
+		} else {
+			g.loadToA(inst.Src1) // Load error code from register
+		}
+		g.emit("    SCF              ; Set carry flag (error)")
+		return nil
+		
+	case ir.OpCheckError:
+		// Carry-flag error ABI: Check CY flag
+		// Dest = 1 if error (CY=1), 0 if success (CY=0)
+		g.emit("    LD HL, 0       ; Assume success")
+		g.emit("    JR NC, .no_err_%d", g.labelCounter)
+		g.emit("    INC HL         ; Error detected")
+		g.emit(".no_err_%d:", g.labelCounter)
+		g.labelCounter++
+		g.storeFromHL(inst.Dest)
+		return nil
 		
 	case ir.OpLoadParam:
 		// For SMC, emit the parameter instruction at point of FIRST use
@@ -742,9 +825,16 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.generateComparison(inst)
 		
 	case ir.OpCall:
-		// Push arguments (in reverse order for C calling convention)
-		// TODO: Handle arguments properly
-		g.emit("    CALL %s", inst.Symbol)
+		// Check if calling a TRUE SMC function
+		targetFunc := g.findFunction(inst.Symbol)
+		if targetFunc != nil && targetFunc.UsesTrueSMC {
+			// Generate TRUE SMC patching before call
+			g.generateTrueSMCCall(inst, targetFunc)
+		} else {
+			// Regular call
+			// TODO: Handle arguments properly
+			g.emit("    CALL %s", inst.Symbol)
+		}
 		// Result is in HL
 		g.storeFromHL(inst.Dest)
 		
@@ -1249,6 +1339,49 @@ func (g *Z80Generator) emit(format string, args ...interface{}) {
 	} else {
 		fmt.Fprintln(g.writer, format)
 	}
+}
+
+// findFunction finds a function in the current module
+func (g *Z80Generator) findFunction(name string) *ir.Function {
+	if g.module == nil {
+		return nil
+	}
+	for _, fn := range g.module.Functions {
+		if fn.Name == name {
+			return fn
+		}
+	}
+	return nil
+}
+
+// generateTrueSMCCall generates patching code for TRUE SMC function call
+func (g *Z80Generator) generateTrueSMCCall(inst ir.Instruction, targetFunc *ir.Function) {
+	g.emit("    ; TRUE SMC call to %s", targetFunc.Name)
+	
+	// TODO: In a complete implementation, we would:
+	// 1. Load argument values into registers
+	// 2. For each parameter, patch the anchor address
+	// 3. Handle DI/EI for 16-bit patches if ISR enabled
+	
+	// For now, generate basic patching
+	for i, param := range targetFunc.Params {
+		anchorAddr := fmt.Sprintf("%s$imm0+1", param.Name) // +1 to skip opcode
+		
+		if param.Type.Size() == 1 {
+			// 8-bit patch
+			g.emit("    LD A, <arg%d>      ; Load argument %s", i, param.Name)
+			g.emit("    LD (%s), A        ; Patch anchor", anchorAddr)
+		} else {
+			// 16-bit patch - needs DI/EI if interrupts enabled
+			g.emit("    LD HL, <arg%d>    ; Load argument %s", i, param.Name)
+			g.emit("    DI                ; Atomic 16-bit patch")
+			g.emit("    LD (%s), HL       ; Patch anchor", anchorAddr)
+			g.emit("    EI")
+		}
+	}
+	
+	// Make the call
+	g.emit("    CALL %s", targetFunc.Name)
 }
 
 // emitAsmBlock processes and emits inline assembly code

@@ -1,0 +1,56 @@
+// Example demonstrating struct usage in MinZ
+
+// Define a Point struct
+struct Point {
+    x: i16,
+    y: i16,
+}
+
+// Define a Rectangle struct
+struct Rectangle {
+    top_left: Point,
+    width: u16,
+    height: u16,
+}
+
+// Function to create a point
+fn make_point(x: i16, y: i16) -> Point {
+    return Point { x: x, y: y };
+}
+
+// Function to calculate rectangle area
+fn area(rect: Rectangle) -> u16 {
+    return rect.width * rect.height;
+}
+
+// Function to move a point
+fn move_point(p: Point, dx: i16, dy: i16) -> Point {
+    return Point {
+        x: p.x + dx,
+        y: p.y + dy
+    };
+}
+
+fn main() -> void {
+    // Create a point using struct literal
+    let p1 = Point { x: 10, y: 20 };
+    
+    // Create another point using function
+    let p2 = make_point(30, 40);
+    
+    // Access struct fields
+    let x_sum = p1.x + p2.x;
+    
+    // Create a rectangle
+    let rect = Rectangle {
+        top_left: p1,
+        width: 100,
+        height: 50
+    };
+    
+    // Calculate area
+    let rect_area = area(rect);
+    
+    // Move a point
+    let p3 = move_point(p1, 5, -3);
+}

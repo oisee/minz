@@ -1,0 +1,69 @@
+; MinZ generated code
+; Generated: 2025-07-26 12:32:30
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_asm.set_border
+...examples.test_asm.set_border:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; asm { ld a, (! color)
+out (! BORDER), a }
+    ld a, (! color)
+    out (! BORDER), a
+    ; return
+    RET
+
+; Function: ...examples.test_asm.delay
+...examples.test_asm.delay:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; asm { ld b, 255
+delay_loop:
+djnz delay_loop }
+    ld b, 255
+delay_loop:
+    djnz delay_loop
+    ; return
+    RET
+
+; Function: ...examples.test_asm.clear_screen
+...examples.test_asm.clear_screen:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; asm { call ! fast_clear }
+    call ! fast_clear
+    ; return
+    RET
+
+; Function: ...examples.test_asm.main
+...examples.test_asm.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r1 = call set_border
+    CALL set_border
+    LD ($F002), HL
+    ; r2 = call clear_screen
+    CALL clear_screen
+    LD ($F004), HL
+    ; asm { ld a, 7
+out (! BORDER), a }
+    ld a, 7
+    out (! BORDER), a
+    ; loop_1:
+loop_1:
+    ; r4 = call delay
+    CALL delay
+    LD ($F008), HL
+    ; jump loop_1
+    JP loop_1
+    POP DE
+    POP BC
+    RET
+
+    END main

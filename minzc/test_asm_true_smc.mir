@@ -1,0 +1,31 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_asm.set_border() -> void
+  @smc
+  Instructions:
+      0: 54
+      1: return
+
+Function ...examples.test_asm.delay() -> void
+  @smc
+  Instructions:
+      0: 54
+      1: return
+
+Function ...examples.test_asm.clear_screen() -> void
+  @smc
+  Instructions:
+      0: 54
+      1: return
+
+Function ...examples.test_asm.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call set_border
+      1: r2 = call clear_screen
+      2: 54
+      3: loop_1:
+      4: r4 = call delay
+      5: jump loop_1
+

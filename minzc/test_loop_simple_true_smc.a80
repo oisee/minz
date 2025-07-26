@@ -1,0 +1,312 @@
+; MinZ generated code
+; Generated: 2025-07-26 12:32:37
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_loop_simple.main
+...examples.test_loop_simple.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH DE
+    ; r1 = 10
+    LD A, 10
+    LD ($F002), A
+    ; Load array element (...examples.test_loop_simple.Point)
+    LD HL, ($F004)
+    PUSH HL
+    LD HL, ($F006)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F008), A
+    ; Store to field x (offset 0)
+    LD HL, ($F008)
+    PUSH HL
+    LD HL, ($F002)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r5 = 20
+    LD A, 20
+    LD ($F00A), A
+    ; Load array element (...examples.test_loop_simple.Point)
+    LD HL, ($F00C)
+    PUSH HL
+    LD HL, ($F00E)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F010), A
+    ; Store to field y (offset 1)
+    LD HL, ($F010)
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F00A)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r9 = 30
+    LD A, 30
+    LD ($F012), A
+    ; Load array element (...examples.test_loop_simple.Point)
+    LD HL, ($F014)
+    PUSH HL
+    LD HL, ($F016)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F018), A
+    ; Store to field x (offset 0)
+    LD HL, ($F018)
+    PUSH HL
+    LD HL, ($F012)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r13 = 40
+    LD A, 40
+    LD ($F01A), A
+    ; Load array element (...examples.test_loop_simple.Point)
+    LD HL, ($F01C)
+    PUSH HL
+    LD HL, ($F01E)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F020), A
+    ; Store to field y (offset 1)
+    LD HL, ($F020)
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F01A)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r17 = 50
+    LD A, 50
+    LD ($F022), A
+    ; Load array element (...examples.test_loop_simple.Point)
+    LD HL, ($F024)
+    PUSH HL
+    LD HL, ($F026)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F028), A
+    ; Store to field x (offset 0)
+    LD HL, ($F028)
+    PUSH HL
+    LD HL, ($F022)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r21 = 60
+    LD A, 60
+    LD ($F02A), A
+    ; Load array element (...examples.test_loop_simple.Point)
+    LD HL, ($F02C)
+    PUSH HL
+    LD HL, ($F02E)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F030), A
+    ; Store to field y (offset 1)
+    LD HL, ($F030)
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F02A)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r25 = 70
+    LD A, 70
+    LD ($F032), A
+    ; Load array element (...examples.test_loop_simple.Point)
+    LD HL, ($F034)
+    PUSH HL
+    LD HL, ($F036)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F038), A
+    ; Store to field x (offset 0)
+    LD HL, ($F038)
+    PUSH HL
+    LD HL, ($F032)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r29 = 80
+    LD A, 80
+    LD ($F03A), A
+    ; Load array element (...examples.test_loop_simple.Point)
+    LD HL, ($F03C)
+    PUSH HL
+    LD HL, ($F03E)
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F040), A
+    ; Store to field y (offset 1)
+    LD HL, ($F040)
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F03A)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; Load table base address
+    LD HL, ($F042)
+    LD ($F044), HL
+    ; Load table base for end calculation
+    LD HL, ($F042)
+    LD ($F046), HL
+    ; Calculate table end (+ 4 elements * 2 bytes)
+    LD HL, ($F046)
+    LD DE, 8
+    ADD HL, DE
+    LD ($F046), HL
+    ; Load loop counter
+    LD A, 4
+    LD ($F048), A
+    ; Check if reached end of table
+    LD HL, ($F044)
+    LD D, H
+    LD E, L
+    LD HL, ($F046)
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; Exit if done
+    LD A, ($F04A)
+    OR A
+    JP NZ, loop_end_2
+    ; Copy element to buffer at $F000
+    LD HL, ($F044)
+    LD DE, $F000    ; Buffer address
+    LD BC, 2       ; Size
+    LDIR            ; Copy to buffer
+    ; Load p.x from buffer at $F000
+    LD A, ($F000)
+    LD ($F04C), A
+    ; Store to p.x at buffer $F000
+    LD A, ($F050)
+    LD ($F000), A
+    ; Load p.y from buffer at $F001
+    LD A, ($F001)
+    LD ($F052), A
+    ; Store to p.y at buffer $F001
+    LD A, ($F056)
+    LD ($F001), A
+    ; Copy buffer back to element at $F000
+    LD HL, ($F044)
+    EX DE, HL       ; DE = destination
+    LD HL, $F000    ; Buffer address
+    LD BC, 2       ; Size
+    LDIR            ; Copy from buffer
+    ; Advance to next element (+2 bytes)
+    LD HL, ($F044)
+    LD DE, 2
+    ADD HL, DE
+    LD ($F044), HL
+    ; Decrement counter and loop if not zero
+    LD A, ($F048)
+    LD B, A
+    DJNZ loop_start_1
+    LD A, B
+    LD ($F048), A
+    ; Load table base address
+    LD HL, ($F058)
+    LD ($F05A), HL
+    ; Load table base for end calculation
+    LD HL, ($F058)
+    LD ($F05C), HL
+    ; Calculate table end (+ 4 elements * 2 bytes)
+    LD HL, ($F05C)
+    LD DE, 8
+    ADD HL, DE
+    LD ($F05C), HL
+    ; Load loop counter
+    LD A, 4
+    LD ($F05E), A
+    ; Check if reached end of table
+    LD HL, ($F05A)
+    LD D, H
+    LD E, L
+    LD HL, ($F05C)
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; Exit if done
+    LD A, ($F060)
+    OR A
+    JP NZ, loop_end_4
+    ; r49 = load p
+    LD HL, ($F000)
+    LD ($F062), HL
+    ; Load field x (offset 0)
+    LD HL, ($F062)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F064), HL
+    ; r51 = 2
+    LD A, 2
+    LD ($F066), A
+    ; r52 = r50 + r51
+    LD HL, ($F064)
+    LD D, H
+    LD E, L
+    LD HL, ($F066)
+    ADD HL, DE
+    LD ($F068), HL
+    ; r53 = load p
+    LD HL, ($F000)
+    LD ($F06A), HL
+    ; Store to field x (offset 0)
+    LD HL, ($F06A)
+    PUSH HL
+    LD HL, ($F068)
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; Advance to next element (+2 bytes)
+    LD HL, ($F05A)
+    LD DE, 2
+    ADD HL, DE
+    LD ($F05A), HL
+    ; Decrement counter and loop if not zero
+    LD A, ($F05E)
+    LD B, A
+    DJNZ loop_start_3
+    LD A, B
+    LD ($F05E), A
+    ; return
+    POP DE
+    RET
+
+    END main

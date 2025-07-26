@@ -1,0 +1,15 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_const.main() -> void
+  @smc
+  Locals:
+    r1 = x: u16
+    r3 = y: u8
+  Instructions:
+      0: r2 = load MAGIC
+      1: store , r2
+      2: r4 = load ANSWER
+      3: store , r4
+      4: return
+

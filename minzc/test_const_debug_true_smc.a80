@@ -1,0 +1,22 @@
+; MinZ generated code
+; Generated: 2025-07-26 12:32:31
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_const_debug.main
+...examples.test_const_debug.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = load MAGIC
+    LD HL, ($F000)
+    LD ($F004), HL
+    ; store , r2
+    LD HL, ($F004)
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

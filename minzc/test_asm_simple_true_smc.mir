@@ -1,0 +1,36 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_asm_simple.set_border() -> void
+  @smc
+  Instructions:
+      0: 54
+      1: return
+
+Function ...examples.test_asm_simple.delay() -> void
+  @smc
+  Instructions:
+      0: 54
+      1: return
+
+Function ...examples.test_asm_simple.main() -> void
+  @smc
+  Locals:
+    r2 = i: u8
+  Instructions:
+      0: r1 = call set_border
+      1: 54
+      2: r3 = r3 ^ r3 ; XOR A,A (optimized from LD A,0)
+      3: store , r3
+      4: loop_1:
+      5: r4 = load i
+      6: r5 = 10
+      7: r6 = r4 < r5
+      8: jump_if_not r6, end_loop_2
+      9: r7 = call delay
+     10: 33 ; INC (optimized from ADD 1)
+     11: store i, r10
+     12: jump loop_1
+     13: end_loop_2:
+     14: return
+

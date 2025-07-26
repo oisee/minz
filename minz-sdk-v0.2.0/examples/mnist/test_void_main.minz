@@ -1,0 +1,5 @@
+// Absolute minimal test - just main function
+
+fn main() -> void {
+    // Do nothing
+}

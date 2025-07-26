@@ -1,0 +1,56 @@
+// Test inline assembly support
+
+const BORDER: u8 = 0xFE;
+let color: u8 = 2;
+
+fn set_border() -> void {
+    asm {
+        ld a, (!color)
+        out (!BORDER), a
+    }
+    return;
+}
+
+fn delay() -> void {
+    asm {
+        ld b, 255
+delay_loop:
+        djnz delay_loop
+    }
+    return;
+}
+
+// Named assembly block
+asm fast_clear {
+    ld hl, 0x4000
+    ld de, 0x4001
+    ld bc, 0x1AFF
+    ld (hl), 0
+    ldir
+    ret
+}
+
+fn clear_screen() -> void {
+    asm {
+        call !fast_clear
+    }
+    return;
+}
+
+fn main() -> void {
+    set_border();
+    clear_screen();
+    
+    // Test direct port access
+    asm {
+        ld a, 7
+        out (!BORDER), a
+    }
+    
+    // Infinite loop
+    while true {
+        delay();
+    }
+    
+    return;
+}

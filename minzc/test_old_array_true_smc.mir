@@ -1,0 +1,10 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_old_array.main() -> void
+  @smc
+  Instructions:
+      0: r3 = r3 ^ r3 ; XOR A,A (optimized from LD A,0)
+      1: 51 ; Store to array[index] (u8)
+      2: return
+

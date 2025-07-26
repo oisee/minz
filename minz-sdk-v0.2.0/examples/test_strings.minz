@@ -1,0 +1,12 @@
+// Test string literals
+
+fn test_strings() -> void {
+    let msg: *u8 = "Hello, World!";
+    let ch: u8 = msg[0];  // Should be 'H'
+    return;
+}
+
+fn main() -> void {
+    test_strings();
+    return;
+}
