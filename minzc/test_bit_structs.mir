@@ -1,0 +1,23 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_bit_structs.set_screen_attr(x: u8, y: u8, attr: bits<u8>) -> void
+  @smc
+  Locals:
+    r4 = addr: u16
+  Instructions:
+      0: r5 = 22528
+      1: 10
+      2: r7 = r5 + r6
+      3: store , r7
+      4: return
+
+Function ...examples.test_bit_structs.test_bit_structs() -> void
+  @smc
+  Locals:
+    r1 = raw: u8
+  Instructions:
+      0: r2 = 71
+      1: store , r2
+      2: return
+

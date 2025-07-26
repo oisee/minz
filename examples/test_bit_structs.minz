@@ -1,0 +1,37 @@
+// Test bit-struct types
+
+// 8-bit ZX Spectrum screen attributes
+type ScreenAttr = bits {
+    ink: 3,      // Bits 0-2
+    paper: 3,    // Bits 3-5
+    bright: 1,   // Bit 6
+    flash: 1     // Bit 7
+};
+
+// 16-bit sprite control
+type SpriteCtrl = bits<u16> {
+    x_pos: 9,      // Bits 0-8 (0-511)
+    visible: 1,    // Bit 9
+    collision: 1,  // Bit 10
+    palette: 2,    // Bits 11-12
+    priority: 2,   // Bits 13-14
+    flip_x: 1      // Bit 15
+};
+
+// Test functions
+fn set_screen_attr(x: u8, y: u8, attr: ScreenAttr) -> void {
+    let addr = 0x5800 + (y as u16) * 32 + (x as u16)
+    // TODO: poke(addr, attr as u8)
+}
+
+fn test_bit_structs() -> void {
+    // Test bit struct as parameter type
+    let mut raw: u8 = 0x47
+    
+    // For now, just test that bit struct types are recognized
+    // TODO: Add field access once we implement the IR operations
+}
+
+fn main() -> void {
+    test_bit_structs()
+}

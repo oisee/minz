@@ -90,6 +90,8 @@ const (
 	OpStoreField
 	OpLoadIndex
 	OpStoreIndex
+	OpLoadBitField  // Load bit field value
+	OpStoreBitField // Store bit field value
 	OpMove
 	OpLoadLabel  // Load address of a label
 	OpLoadDirect // Load from direct memory address
@@ -313,6 +315,28 @@ func (t *EnumType) Size() int {
 
 func (t *EnumType) String() string {
 	return t.Name
+}
+
+// BitStructType represents bit-struct types
+type BitStructType struct {
+	UnderlyingType Type               // u8 or u16
+	Fields         map[string]*BitField
+	FieldOrder     []string           // Preserve field declaration order
+}
+
+func (t *BitStructType) Size() int {
+	return t.UnderlyingType.Size()
+}
+
+func (t *BitStructType) String() string {
+	return fmt.Sprintf("bits<%s>", t.UnderlyingType.String())
+}
+
+// BitField represents a field in a bit struct
+type BitField struct {
+	Name      string
+	BitOffset int    // Starting bit position
+	BitWidth  int    // Number of bits
 }
 
 // Function represents a function in IR

@@ -1,0 +1,124 @@
+// MNIST Digit Editor - Working version for TRUE SMC testing
+
+// Set border color (TRUE SMC function)
+fn set_border(color: u8) -> void {
+    asm {
+        LD A, color
+        OUT (0xFE), A
+    }
+}
+
+// Simple screen clear (TRUE SMC function)  
+fn clear_screen() -> void {
+    asm {
+        LD HL, 0x4000
+        LD BC, 0x1800
+        LD A, 0
+clear_loop:
+        LD (HL), A
+        INC HL
+        DEC BC
+        LD A, B
+        OR C
+        JR NZ, clear_loop
+    }
+}
+
+// Set single attribute (TRUE SMC function)
+fn set_attr(x: u8, y: u8) -> void {
+    // Calculate 0x5800 + y*32 + x
+    let addr = 0x5800 + (y as u16) * 32 + (x as u16)
+    asm {
+        LD HL, addr
+        LD A, 71
+        LD (HL), A
+    }
+}
+
+// Simple pixel drawing (TRUE SMC function)
+fn set_pixel(x: u8, y: u8) -> void {
+    // Simple screen address: 0x4000 + y*32 + x/8
+    let addr = 0x4000 + (y as u16) * 32 + ((x >> 3) as u16)
+    let mask = 0x80 >> (x & 7)
+    
+    asm {
+        LD HL, addr
+        LD A, (HL)
+        OR mask
+        LD (HL), A
+    }
+}
+
+// Delay function (TRUE SMC function)
+fn delay(loops: u16) -> void {
+    asm {
+        LD BC, loops
+delay_loop:
+        DEC BC
+        LD A, B
+        OR C
+        JR NZ, delay_loop
+    }
+}
+
+// Test pattern drawing (TRUE SMC function)
+fn draw_test_pattern(start_x: u8, start_y: u8) -> void {
+    // Draw 8x8 test pattern
+    let i: u8 = 0
+    while i < 8 {
+        let j: u8 = 0
+        while j < 8 {
+            // Checkerboard pattern
+            if (i + j) & 1 == 0 {
+                set_pixel(start_x + i, start_y + j)
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+}
+
+// Animation function (TRUE SMC function)
+fn animate_border(cycles: u8) -> void {
+    let i: u8 = 0
+    while i < cycles {
+        set_border(i & 7)
+        delay(0x800)
+        i = i + 1
+    }
+}
+
+// Setup screen (TRUE SMC function)
+fn setup_screen() -> void {
+    clear_screen()
+    
+    // Set some attributes for visibility
+    set_attr(10, 10)
+    set_attr(11, 10) 
+    set_attr(10, 11)
+    set_attr(11, 11)
+}
+
+// Main MNIST editor (TRUE SMC function)
+fn mnist_main() -> u8 {
+    // Initialize screen
+    set_border(0)
+    setup_screen()
+    
+    // Draw test pattern
+    draw_test_pattern(80, 80)
+    
+    // Animate border
+    animate_border(16)
+    
+    // Final cleanup
+    set_border(7)
+    
+    return 42
+}
+
+// Entry point
+fn main() -> void {
+    let result = mnist_main()
+    set_border(result & 7)
+}

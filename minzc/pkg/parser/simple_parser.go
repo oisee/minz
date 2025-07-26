@@ -941,7 +941,7 @@ func isKeyword(s string) bool {
 		"fn", "fun", "let", "mut", "if", "else", "while", "for", "return",
 		"struct", "enum", "impl", "pub", "mod", "use", "import",
 		"true", "false", "as", "module", "asm", "const", "type",
-		"loop", "into", "ref", "to", "indexed",
+		"loop", "into", "ref", "to", "indexed", "bits",
 	}
 	for _, kw := range keywords {
 		if s == kw {
@@ -1291,6 +1291,7 @@ func (p *SimpleParser) parseStructDecl() *ast.StructDecl {
 }
 
 func (p *SimpleParser) parseTypeDecl() ast.Declaration {
+	startPos := p.currentPos()
 	p.expect(TokenKeyword, "type")
 	
 	// Get type name
@@ -1302,38 +1303,91 @@ func (p *SimpleParser) parseTypeDecl() ast.Declaration {
 	// Expect =
 	p.expect(TokenOperator, "=")
 	
-	// Parse the type (for now, only struct)
-	if p.peek().Type == TokenKeyword && p.peek().Value == "struct" {
-		p.advance() // consume 'struct'
-		
-		structDecl := &ast.StructDecl{
-			Name:     name,
-			Fields:   []*ast.Field{},
-			IsPublic: false,
-			StartPos: p.currentPos(),
-		}
-		
-		// Parse struct body
-		p.expect(TokenPunc, "{")
-		
-		for p.peek().Value != "}" && !p.isAtEnd() {
-			// Parse field
-			field := p.parseStructField()
-			if field != nil {
-				structDecl.Fields = append(structDecl.Fields, field)
+	// Parse the type
+	if p.peek().Type == TokenKeyword {
+		switch p.peek().Value {
+		case "struct":
+			p.advance() // consume 'struct'
+			
+			structDecl := &ast.StructDecl{
+				Name:     name,
+				Fields:   []*ast.Field{},
+				IsPublic: false,
+				StartPos: startPos,
 			}
 			
-			// Skip optional comma or semicolon
-			if p.peek().Value == "," || p.peek().Value == ";" {
-				p.advance()
+			// Parse struct body
+			p.expect(TokenPunc, "{")
+			
+			for p.peek().Value != "}" && !p.isAtEnd() {
+				// Parse field
+				field := p.parseStructField()
+				if field != nil {
+					structDecl.Fields = append(structDecl.Fields, field)
+				}
+				
+				// Skip optional comma or semicolon
+				if p.peek().Value == "," || p.peek().Value == ";" {
+					p.advance()
+				}
 			}
+			
+			p.expect(TokenPunc, "}")
+			p.expect(TokenPunc, ";")
+			
+			structDecl.EndPos = p.currentPos()
+			return structDecl
+			
+		case "bits":
+			p.advance() // consume 'bits'
+			
+			// Parse optional underlying type
+			var underlyingType ast.Type
+			if p.peek().Value == "<" {
+				p.advance() // consume '<'
+				underlyingType = p.parseType()
+				p.expect(TokenPunc, ">")
+			}
+			
+			// Parse bit fields
+			bitStruct := &ast.BitStructType{
+				UnderlyingType: underlyingType,
+				Fields:         []*ast.BitField{},
+				StartPos:       startPos,
+			}
+			
+			p.expect(TokenPunc, "{")
+			
+			for p.peek().Value != "}" && !p.isAtEnd() {
+				// Parse bit field
+				field := p.parseBitField()
+				if field != nil {
+					bitStruct.Fields = append(bitStruct.Fields, field)
+				}
+				
+				// Skip optional comma or semicolon
+				if p.peek().Value == "," || p.peek().Value == ";" {
+					p.advance()
+				}
+			}
+			
+			p.expect(TokenPunc, "}")
+			
+			bitStruct.EndPos = p.currentPos()
+			
+			// Create TypeDecl wrapper
+			typeDecl := &ast.TypeDecl{
+				Name:     name,
+				Type:     bitStruct,
+				IsPublic: false,
+				StartPos: startPos,
+				EndPos:   p.currentPos(),
+			}
+			
+			p.expect(TokenPunc, ";")
+			
+			return typeDecl
 		}
-		
-		p.expect(TokenPunc, "}")
-		p.expect(TokenPunc, ";")
-		
-		structDecl.EndPos = p.currentPos()
-		return structDecl
 	}
 	
 	return nil
@@ -1351,6 +1405,34 @@ func (p *SimpleParser) parseStructField() *ast.Field {
 	
 	p.expect(TokenPunc, ":")
 	field.Type = p.parseType()
+	field.EndPos = p.currentPos()
+	
+	return field
+}
+
+func (p *SimpleParser) parseBitField() *ast.BitField {
+	if p.peek().Type != TokenIdent {
+		return nil
+	}
+	
+	field := &ast.BitField{
+		Name:     p.advance().Value,
+		StartPos: p.currentPos(),
+	}
+	
+	p.expect(TokenPunc, ":")
+	
+	// Parse bit width
+	if p.peek().Type != TokenNumber {
+		return nil
+	}
+	
+	width, err := strconv.Atoi(p.advance().Value)
+	if err != nil || width < 1 || width > 16 {
+		return nil
+	}
+	
+	field.BitWidth = width
 	field.EndPos = p.currentPos()
 	
 	return field

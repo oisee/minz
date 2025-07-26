@@ -84,6 +84,11 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 			if err := a.analyzeEnumDecl(d); err != nil {
 				a.errors = append(a.errors, err)
 			}
+		case *ast.TypeDecl:
+			// Register type aliases (including bit structs)
+			if err := a.analyzeTypeDecl(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
 		}
 	}
 
@@ -374,6 +379,9 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 		// Already processed in first pass
 		return nil
 	case *ast.EnumDecl:
+		// Already processed in first pass
+		return nil
+	case *ast.TypeDecl:
 		// Already processed in first pass
 		return nil
 	default:
@@ -706,6 +714,23 @@ func (a *Analyzer) analyzeEnumDecl(e *ast.EnumDecl) error {
 	a.currentScope.Define(e.Name, &TypeSymbol{
 		Name: e.Name,
 		Type: enumType,
+	})
+	
+	return nil
+}
+
+// analyzeTypeDecl analyzes a type declaration (including bit structs)
+func (a *Analyzer) analyzeTypeDecl(t *ast.TypeDecl) error {
+	// Convert the underlying type
+	underlyingType, err := a.convertType(t.Type)
+	if err != nil {
+		return fmt.Errorf("invalid type in type declaration %s: %w", t.Name, err)
+	}
+	
+	// Register the type alias
+	a.currentScope.Define(t.Name, &TypeSymbol{
+		Name: t.Name,
+		Type: underlyingType,
 	})
 	
 	return nil
@@ -1838,6 +1863,32 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 		} else {
 			return 0, fmt.Errorf("field access on non-struct pointer")
 		}
+	case *ir.BitStructType:
+		// Handle bit struct field access
+		bitField, exists := t.Fields[field.Field]
+		if !exists {
+			return 0, fmt.Errorf("bit struct has no field %s", field.Field)
+		}
+		
+		// For bit field access, we need to generate bit manipulation code
+		// For now, just allocate a register and mark it for special handling
+		resultReg := irFunc.AllocReg()
+		
+		// Store type information - bit fields are treated as their underlying type
+		a.exprTypes[field] = t.UnderlyingType
+		
+		// Generate bit field load instruction
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpLoadBitField,
+			Dest:    resultReg,
+			Src1:    objReg,
+			Imm:     int64(bitField.BitOffset),
+			Imm2:    int64(bitField.BitWidth),
+			Type:    t.UnderlyingType,
+			Comment: fmt.Sprintf("Load bit field %s (offset %d, width %d)", field.Field, bitField.BitOffset, bitField.BitWidth),
+		})
+		
+		return resultReg, nil
 	default:
 		return 0, fmt.Errorf("field access on non-struct type: %T", objType)
 	}
@@ -2075,6 +2126,55 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 			return nil, fmt.Errorf("%s is not a type", t.Name)
 		}
 		return typeSym.Type, nil
+	case *ast.BitStructType:
+		// Determine underlying type (default to u8)
+		var underlyingKind ir.TypeKind = ir.TypeU8
+		if t.UnderlyingType != nil {
+			// Get the underlying type
+			if prim, ok := t.UnderlyingType.(*ast.PrimitiveType); ok && prim.Name == "u16" {
+				underlyingKind = ir.TypeU16
+			}
+		}
+		
+		// Create bit struct type
+		bitStruct := &ir.BitStructType{
+			UnderlyingType: &ir.BasicType{Kind: underlyingKind},
+			Fields: make(map[string]*ir.BitField),
+			FieldOrder: []string{},
+		}
+		
+		// Process fields
+		bitOffset := 0
+		for _, field := range t.Fields {
+			if _, exists := bitStruct.Fields[field.Name]; exists {
+				return nil, fmt.Errorf("duplicate field %s in bit struct", field.Name)
+			}
+			
+			// Validate bit width
+			maxBits := 8
+			if underlyingKind == ir.TypeU16 {
+				maxBits = 16
+			}
+			if field.BitWidth < 1 || field.BitWidth > maxBits {
+				return nil, fmt.Errorf("bit field %s width %d out of range (1-%d)", field.Name, field.BitWidth, maxBits)
+			}
+			
+			// Check if field fits
+			if bitOffset + field.BitWidth > maxBits {
+				return nil, fmt.Errorf("bit field %s exceeds %d-bit boundary", field.Name, maxBits)
+			}
+			
+			// Add field
+			bitStruct.Fields[field.Name] = &ir.BitField{
+				Name:      field.Name,
+				BitOffset: bitOffset,
+				BitWidth:  field.BitWidth,
+			}
+			bitStruct.FieldOrder = append(bitStruct.FieldOrder, field.Name)
+			bitOffset += field.BitWidth
+		}
+		
+		return bitStruct, nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %T", astType)
 	}

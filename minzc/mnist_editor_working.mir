@@ -1,0 +1,91 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.mnist.editor_working.set_border(color: u8) -> void
+  @smc
+  Instructions:
+      0: 56
+      1: return
+
+Function ...examples.mnist.editor_working.clear_screen() -> void
+  @smc
+  Instructions:
+      0: 56
+      1: return
+
+Function ...examples.mnist.editor_working.set_attr(x: u8, y: u8) -> void
+  @smc
+  Locals:
+    r3 = addr: u16
+  Instructions:
+      0: r4 = 22528
+      1: 25 ; Load from anchor y$imm0
+      2: r6 = r4 + r5
+      3: store , r6
+      4: return
+
+Function ...examples.mnist.editor_working.set_pixel(x: u8, y: u8) -> void
+  @smc
+  Locals:
+    r3 = addr: u16
+  Instructions:
+      0: r4 = 16384
+      1: 25 ; Load from anchor y$imm0
+      2: r6 = r4 + r5
+      3: store , r6
+      4: return
+
+Function ...examples.mnist.editor_working.delay(loops: u16) -> void
+  @smc
+  Instructions:
+      0: 56
+      1: return
+
+Function ...examples.mnist.editor_working.draw_test_pattern(start_x: u8, start_y: u8) -> void
+  @smc
+  Locals:
+    r3 = i: u8
+    r8 = j: u8
+  Instructions:
+      0: r4 = r4 ^ r4 ; XOR A,A (optimized from LD A,0)
+      1: store , r4
+      2: r9 = r9 ^ r9 ; XOR A,A (optimized from LD A,0)
+      3: store , r9
+      4: r13 = load i
+      5: r14 = load j
+      6: r15 = r13 + r14
+      7: r18 = r18 ^ r18 ; XOR A,A (optimized from LD A,0)
+      8: r19 = r15 & r18
+      9: jump_if_not r19, else_1
+     10: 25 ; Load from anchor start_x$imm0
+     11: 25 ; Load from anchor start_y$imm0
+     12: r26 = call set_pixel
+     13: 35 ; INC (optimized from ADD 1)
+     14: store j, r29
+     15: 35 ; INC (optimized from ADD 1)
+     16: store i, r32
+     17: jump end_if_2
+     18: else_1:
+     19: end_if_2:
+     20: return
+
+Function ...examples.mnist.editor_working.setup_screen() -> void
+  @smc
+  Instructions:
+      0: r1 = call clear_screen
+      1: return
+
+Function ...examples.mnist.editor_working.mnist_main() -> u8
+  @smc
+  Instructions:
+      0: r2 = call set_border
+      1: return
+
+Function ...examples.mnist.editor_working.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: r2 = call mnist_main ; Optimized: return value directly stored to 
+      1: return
+

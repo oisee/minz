@@ -155,6 +155,26 @@ func (t *TypeIdentifier) Pos() Position { return t.StartPos }
 func (t *TypeIdentifier) End() Position { return t.EndPos }
 func (t *TypeIdentifier) typeNode()    {}
 
+// BitStructType represents bit-struct types
+type BitStructType struct {
+	UnderlyingType Type        // nil for u8 (default), or u16
+	Fields         []*BitField
+	StartPos       Position
+	EndPos         Position
+}
+
+func (b *BitStructType) Pos() Position { return b.StartPos }
+func (b *BitStructType) End() Position { return b.EndPos }
+func (b *BitStructType) typeNode()    {}
+
+// BitField represents a field in a bit struct
+type BitField struct {
+	Name     string
+	BitWidth int        // Number of bits (1-16)
+	StartPos Position
+	EndPos   Position
+}
+
 // Field represents a struct field
 type Field struct {
 	Name     string
@@ -233,6 +253,20 @@ func (e *EnumDecl) Pos() Position { return e.StartPos }
 func (e *EnumDecl) End() Position { return e.EndPos }
 func (e *EnumDecl) stmtNode()    {}
 func (e *EnumDecl) declNode()    {}
+
+// TypeDecl represents a type alias declaration (including bit structs)
+type TypeDecl struct {
+	Name     string
+	Type     Type    // Can be BitStructType
+	IsPublic bool
+	StartPos Position
+	EndPos   Position
+}
+
+func (t *TypeDecl) Pos() Position { return t.StartPos }
+func (t *TypeDecl) End() Position { return t.EndPos }
+func (t *TypeDecl) stmtNode()    {}
+func (t *TypeDecl) declNode()    {}
 
 // ReturnStmt represents a return statement
 type ReturnStmt struct {
