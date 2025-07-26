@@ -1649,6 +1649,7 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		Op:     ir.OpCall,
 		Dest:   resultReg,
 		Symbol: funcName,
+		Args:   argRegs,  // Store argument registers for TRUE SMC patching
 	})
 
 	return resultReg, nil

@@ -177,6 +177,7 @@ type Instruction struct {
 	SMCTarget    string            // Target label for SMC store operations
 	AsmCode      string            // Raw assembly code for OpAsm instructions
 	AsmName      string            // Optional name for named asm blocks
+	Args         []Register        // Argument registers for OpCall
 }
 
 // AsmBlock represents an inline assembly block

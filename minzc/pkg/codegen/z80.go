@@ -66,6 +66,9 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 		}
 	}
 
+	// Generate PATCH-TABLE if there are any TRUE SMC functions
+	g.generatePatchTable()
+	
 	// Write footer
 	g.writeFooter()
 
@@ -83,6 +86,56 @@ func (g *Z80Generator) writeHeader() {
 func (g *Z80Generator) writeFooter() {
 	g.emit("")
 	g.emit("    END main")
+}
+
+// generatePatchTable generates the PATCH-TABLE for TRUE SMC functions
+func (g *Z80Generator) generatePatchTable() {
+	// Collect all TRUE SMC functions and their anchors
+	var patchEntries []struct {
+		funcName string
+		paramName string
+		anchorSymbol string
+		size int
+	}
+	
+	for _, fn := range g.module.Functions {
+		if fn.UsesTrueSMC {
+			for _, param := range fn.Params {
+				entry := struct {
+					funcName string
+					paramName string
+					anchorSymbol string
+					size int
+				}{
+					funcName: fn.Name,
+					paramName: param.Name,
+					anchorSymbol: fmt.Sprintf("%s$imm0", param.Name),
+					size: param.Type.Size(),
+				}
+				patchEntries = append(patchEntries, entry)
+			}
+		}
+	}
+	
+	if len(patchEntries) == 0 {
+		return // No TRUE SMC functions
+	}
+	
+	// Emit PATCH-TABLE
+	g.emit("")
+	g.emit("; TRUE SMC PATCH-TABLE")
+	g.emit("; Format: DW anchor_addr, DB size, DB param_tag")
+	g.emit("PATCH_TABLE:")
+	
+	for _, entry := range patchEntries {
+		g.emit("    DW %s           ; %s.%s", entry.anchorSymbol, entry.funcName, entry.paramName)
+		g.emit("    DB %d              ; Size in bytes", entry.size)
+		g.emit("    DB 0              ; Reserved for param tag")
+	}
+	
+	// End marker
+	g.emit("    DW 0              ; End of table")
+	g.emit("PATCH_TABLE_END:")
 }
 
 // generateGlobal generates code for a global variable
@@ -874,14 +927,31 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpCall:
 		// Check if calling a TRUE SMC function
+		g.emit("    ; Call to %s (args: %d)", inst.Symbol, len(inst.Args))
 		targetFunc := g.findFunction(inst.Symbol)
-		if targetFunc != nil && targetFunc.UsesTrueSMC {
-			// Generate TRUE SMC patching before call
-			g.generateTrueSMCCall(inst, targetFunc)
+		if targetFunc != nil {
+			g.emit("    ; Found function, UsesTrueSMC=%v", targetFunc.UsesTrueSMC)
+			if targetFunc.UsesTrueSMC {
+				// Generate TRUE SMC patching before call
+				g.generateTrueSMCCall(inst, targetFunc)
+			} else {
+				g.emit("    CALL %s", inst.Symbol)
+			}
 		} else {
-			// Regular call
-			// TODO: Handle arguments properly
-			g.emit("    CALL %s", inst.Symbol)
+			// Try with just the function name (without module prefix)
+			shortName := inst.Symbol
+			if idx := strings.LastIndex(inst.Symbol, "."); idx >= 0 {
+				shortName = inst.Symbol[idx+1:]
+			}
+			targetFunc = g.findFunction(shortName)
+			if targetFunc != nil && targetFunc.UsesTrueSMC {
+				// Generate TRUE SMC patching before call
+				g.generateTrueSMCCall(inst, targetFunc)
+			} else {
+				// Regular call
+				// TODO: Handle arguments properly
+				g.emit("    CALL %s", shortName)
+			}
 		}
 		// Result is in HL
 		g.storeFromHL(inst.Dest)
@@ -1398,6 +1468,13 @@ func (g *Z80Generator) findFunction(name string) *ir.Function {
 		if fn.Name == name {
 			return fn
 		}
+		// Also check if the short name matches
+		if idx := strings.LastIndex(fn.Name, "."); idx >= 0 {
+			shortName := fn.Name[idx+1:]
+			if shortName == name {
+				return fn
+			}
+		}
 	}
 	return nil
 }
@@ -1406,22 +1483,26 @@ func (g *Z80Generator) findFunction(name string) *ir.Function {
 func (g *Z80Generator) generateTrueSMCCall(inst ir.Instruction, targetFunc *ir.Function) {
 	g.emit("    ; TRUE SMC call to %s", targetFunc.Name)
 	
-	// TODO: In a complete implementation, we need to:
-	// 1. Track which registers contain the arguments
-	// 2. Generate proper loads from those registers
+	// Validate we have the right number of arguments
+	if len(inst.Args) != len(targetFunc.Params) {
+		g.emit("    ; ERROR: argument count mismatch")
+		g.emit("    CALL %s", inst.Symbol)
+		return
+	}
 	
-	// For now, generate placeholder patching
+	// Patch each parameter anchor with the argument value
 	for i, param := range targetFunc.Params {
-		anchorAddr := fmt.Sprintf("%s.%s$imm0", targetFunc.Name, param.Name)
+		argReg := inst.Args[i]
+		anchorAddr := fmt.Sprintf("%s$imm0", param.Name)
 		
 		if param.Type.Size() == 1 {
 			// 8-bit patch
-			g.emit("    ; TODO: Load arg%d for %s", i, param.Name)
-			g.emit("    LD (%s), A        ; Patch anchor", anchorAddr)
+			g.loadToA(argReg)
+			g.emit("    LD (%s), A        ; Patch %s", anchorAddr, param.Name)
 		} else {
 			// 16-bit patch - NO DI/EI needed (atomic instruction)
-			g.emit("    ; TODO: Load arg%d for %s", i, param.Name) 
-			g.emit("    LD (%s), HL       ; Patch anchor (atomic)", anchorAddr)
+			g.loadToHL(argReg)
+			g.emit("    LD (%s), HL       ; Patch %s (atomic)", anchorAddr, param.Name)
 		}
 	}
 	
