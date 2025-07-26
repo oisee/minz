@@ -30,7 +30,7 @@ MinZ is a systems programming language specifically designed for Z80-based compu
 - Bit structs: Hardware register abstraction
 
 **Special Types**:
-- Function pointers: `fn(T) -> U`
+- Function pointers: `fun(T) -> U`
 - Lambdas: `|T| -> U` (via TRUE SMC)
 
 ### Memory Model
@@ -49,7 +49,7 @@ Heap: NONE - static allocation only
 Our revolutionary approach to parameter passing:
 
 ```minz
-fn draw_pixel(x: u8, y: u8) -> void {
+fun draw_pixel(x: u8, y: u8) -> void {
     // Parameters are patched directly into code
 }
 
@@ -87,7 +87,7 @@ Simple and effective:
 
 ```minz
 // In graphics.minz
-export fn draw_line(x1: u8, y1: u8, x2: u8, y2: u8);
+export fun draw_line(x1: u8, y1: u8, x2: u8, y2: u8);
 
 // In main.minz
 import graphics;
@@ -170,7 +170,7 @@ Two-tier approach:
 2. **User Code**: `Result<T, E>` types
 
 ```minz
-fn read_byte(addr: u16) -> Result<u8, Error> {
+fun read_byte(addr: u16) -> Result<u8, Error> {
     if addr >= 0x4000 {
         Ok(peek(addr))
     } else {

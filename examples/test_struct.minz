@@ -5,7 +5,7 @@ type Point = struct {
     y: u8
 };
 
-fn test_struct() -> void {
+fun test_struct() -> void {
     let mut p: Point;
     p.x = 10;
     p.y = 20;
@@ -16,7 +16,7 @@ fn test_struct() -> void {
     return;
 }
 
-fn main() -> void {
+fun main() -> void {
     test_struct();
     return;
 }

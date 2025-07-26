@@ -1,7 +1,7 @@
 // test3_param_reuse.minz
 module test3
 
-fn process(value: u8) -> u8 {
+fun process(value: u8) -> u8 {
     let temp = value + 10    // First use (anchor)
     if value > 50 {          // Second use (reuse)
         return value * 2     // Third use (reuse)
@@ -9,7 +9,7 @@ fn process(value: u8) -> u8 {
     return temp + value      // Fourth use (reuse)
 }
 
-fn main() -> void {
+fun main() -> void {
     let r1 = process(30)
     let r2 = process(60)
 }

@@ -29,13 +29,13 @@ const PAGE0_ADDR: u16 = 0xC000;
 const PAGE1_ADDR: u16 = 0x8000;
 
 // TRDOS file operations (external implementation)
-declare fn trdos_open(filename: *u8) -> u8;
-declare fn trdos_read_16k(file_handle: u8, page_number: u8) -> bool;
-declare fn trdos_close(file_handle: u8) -> void;
+declare fun trdos_open(filename: *u8) -> u8;
+declare fun trdos_read_16k(file_handle: u8, page_number: u8) -> bool;
+declare fun trdos_close(file_handle: u8) -> void;
 
 // Scorpion paging control
-declare fn set_page(slot: u8, page: u8) -> void;
-declare fn get_current_page(slot: u8) -> u8;
+declare fun set_page(slot: u8, page: u8) -> void;
+declare fun get_current_page(slot: u8) -> u8;
 
 // Vector structure (256 bits = 32 bytes)
 struct Vector256 {
@@ -95,7 +95,7 @@ end
 const POPCOUNT: [u8; 256] = @lua(generate_popcount());
 
 // Initialize database
-pub fn init_database() -> *mut VectorDB {
+pub fun init_database() -> *mut VectorDB {
     let db = DB_ADDR as *mut VectorDB;
     
     // Clear database structure
@@ -115,7 +115,7 @@ pub fn init_database() -> *mut VectorDB {
 }
 
 // Initialize hyperplanes using LFSR for reproducible randomness
-fn init_hyperplanes(db: *mut VectorDB) -> void {
+fun init_hyperplanes(db: *mut VectorDB) -> void {
     let mut lfsr: u16 = 0xACE1;  // Seed
     
     for h in 0..8 {
@@ -129,7 +129,7 @@ fn init_hyperplanes(db: *mut VectorDB) -> void {
 }
 
 // Load vectors from TRDOS file
-pub fn load_vectors_file(db: *mut VectorDB, filename: *u8, start_page: u8) -> bool {
+pub fun load_vectors_file(db: *mut VectorDB, filename: *u8, start_page: u8) -> bool {
     let fh = trdos_open(filename);
     if fh == 0 {
         return false;
@@ -177,7 +177,7 @@ pub fn load_vectors_file(db: *mut VectorDB, filename: *u8, start_page: u8) -> bo
 
 // Ensure a vector's page is loaded and return pointer
 @smc_optimize
-fn load_vector(db: *mut VectorDB, meta: *VectorMeta) -> *Vector256 {
+fun load_vector(db: *mut VectorDB, meta: *VectorMeta) -> *Vector256 {
     // Check if page is already loaded
     if meta.page == db.current_page0 {
         return (PAGE0_ADDR + meta.offset) as *Vector256;
@@ -208,7 +208,7 @@ fn load_vector(db: *mut VectorDB, meta: *VectorMeta) -> *Vector256 {
 }
 
 // Compute hash using multiple hyperplanes
-fn compute_hash_multi(vec: *Vector256, db: *VectorDB) -> u8 {
+fun compute_hash_multi(vec: *Vector256, db: *VectorDB) -> u8 {
     let mut hash: u8 = 0;
     
     for i in 0..8 {
@@ -222,7 +222,7 @@ fn compute_hash_multi(vec: *Vector256, db: *VectorDB) -> u8 {
 }
 
 // 1-bit dot product
-fn dot_product_1bit(a: *Vector256, b: *Vector256) -> i16 {
+fun dot_product_1bit(a: *Vector256, b: *Vector256) -> i16 {
     let mut hamming: u16 = 0;
     
     for i in 0..32 {
@@ -235,7 +235,7 @@ fn dot_product_1bit(a: *Vector256, b: *Vector256) -> i16 {
 }
 
 // Rebuild hash index for all vectors
-fn rebuild_hash_index(db: *mut VectorDB) -> void {
+fun rebuild_hash_index(db: *mut VectorDB) -> void {
     // Clear hash buckets
     for i in 0..256 {
         db.hash_index[i].count = 0;
@@ -268,7 +268,7 @@ struct SearchResult {
 }
 
 // Find K nearest neighbors
-pub fn search_knn(db: *mut VectorDB, query: *Vector256, k: u8) -> [SearchResult; 10] {
+pub fun search_knn(db: *mut VectorDB, query: *Vector256, k: u8) -> [SearchResult; 10] {
     let mut results: [SearchResult; 10];
     
     // Initialize results with worst scores
@@ -315,7 +315,7 @@ pub fn search_knn(db: *mut VectorDB, query: *Vector256, k: u8) -> [SearchResult;
 }
 
 // Search a specific hash bucket
-fn search_bucket(db: *mut VectorDB, query: *Vector256, bucket: *HashBucket, 
+fun search_bucket(db: *mut VectorDB, query: *Vector256, bucket: *HashBucket, 
                  results: *mut SearchResult, k: u8) -> void {
     for i in 0..bucket.count {
         let idx = bucket.indices[i];
@@ -328,7 +328,7 @@ fn search_bucket(db: *mut VectorDB, query: *Vector256, bucket: *HashBucket,
 }
 
 // Brute force search through all vectors
-fn brute_force_knn(db: *mut VectorDB, query: *Vector256, 
+fun brute_force_knn(db: *mut VectorDB, query: *Vector256, 
                    results: *mut SearchResult, k: u8) -> void {
     // Track which pages we've already loaded
     let mut loaded_page0 = db.current_page0;
@@ -350,7 +350,7 @@ fn brute_force_knn(db: *mut VectorDB, query: *Vector256,
 }
 
 // Insert result maintaining sorted order
-fn insert_result(results: *mut SearchResult, k: u8, index: u16, 
+fun insert_result(results: *mut SearchResult, k: u8, index: u16, 
                  similarity: i16, meta: *VectorMeta) -> void {
     // Find insertion point
     let mut pos: u8 = k;
@@ -378,7 +378,7 @@ fn insert_result(results: *mut SearchResult, k: u8, index: u16,
 }
 
 // Demonstration of batch operations
-pub fn batch_search(db: *mut VectorDB, queries: *Vector256, 
+pub fun batch_search(db: *mut VectorDB, queries: *Vector256, 
                     count: u8, k: u8) -> void {
     // Pre-sort queries by their hash to maximize cache hits
     let mut query_hashes: [u8; 256];
@@ -397,7 +397,7 @@ pub fn batch_search(db: *mut VectorDB, queries: *Vector256,
 }
 
 // Main demo
-fn main() -> void {
+fun main() -> void {
     // Initialize database
     let db = init_database();
     

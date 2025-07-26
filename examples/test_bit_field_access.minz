@@ -11,7 +11,7 @@ type ScreenAttr = bits {
 // Global to force code generation
 let mut g_result: u8 = 0
 
-fn main() -> void {
+fun main() -> void {
     // Create a bit struct via cast
     let mut attr_value: u8 = 0x47  // 01000111 = bright=1, paper=0, ink=7
     let mut attr: ScreenAttr = attr_value as ScreenAttr

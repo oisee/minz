@@ -5,16 +5,16 @@
 let result: u16 = 0;
 
 // This function should be optimized to directly write to 'result'
-fn calculate_once(a: u8, b: u8) -> u16 {
+fun calculate_once(a: u8, b: u8) -> u16 {
     return (a as u16) * (b as u16);
 }
 
 // Test with 'fun' keyword too
-fn calculate_once2(a: u8, b: u8) -> u16 {
+fun calculate_once2(a: u8, b: u8) -> u16 {
     return (a as u16) + (b as u16);
 }
 
-fn main() -> void {
+fun main() -> void {
     // This should trigger direct return optimization
     result = calculate_once(12, 23);
     

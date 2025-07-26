@@ -27,7 +27,7 @@ const PLAYER_DATA: [u8; 8] = [
     0b00000000,
 ];
 
-pub fn create(x: u8, y: u8) -> Player {
+pub fun create(x: u8, y: u8) -> Player {
     let sprite = sprites.create(x, y, &PLAYER_DATA[0]);
     return Player {
         x: x,
@@ -41,7 +41,7 @@ pub fn create(x: u8, y: u8) -> Player {
     };
 }
 
-pub fn move_left(p: *mut Player, speed: u8) -> void {
+pub fun move_left(p: *mut Player, speed: u8) -> void {
     if p.x > speed {
         p.old_x = p.x;
         p.old_y = p.y;
@@ -52,7 +52,7 @@ pub fn move_left(p: *mut Player, speed: u8) -> void {
     }
 }
 
-pub fn move_right(p: *mut Player, speed: u8) -> void {
+pub fun move_right(p: *mut Player, speed: u8) -> void {
     if p.x < 248 - speed {
         p.old_x = p.x;
         p.old_y = p.y;
@@ -63,7 +63,7 @@ pub fn move_right(p: *mut Player, speed: u8) -> void {
     }
 }
 
-pub fn move_up(p: *mut Player, speed: u8) -> void {
+pub fun move_up(p: *mut Player, speed: u8) -> void {
     if p.y > speed + 16 {  // Leave space for UI
         p.old_x = p.x;
         p.old_y = p.y;
@@ -74,7 +74,7 @@ pub fn move_up(p: *mut Player, speed: u8) -> void {
     }
 }
 
-pub fn move_down(p: *mut Player, speed: u8) -> void {
+pub fun move_down(p: *mut Player, speed: u8) -> void {
     if p.y < 184 - speed {
         p.old_x = p.x;
         p.old_y = p.y;
@@ -85,11 +85,11 @@ pub fn move_down(p: *mut Player, speed: u8) -> void {
     }
 }
 
-pub fn draw(p: *Player) -> void {
+pub fun draw(p: *Player) -> void {
     sprites.draw(&p.sprite);
 }
 
-pub fn take_damage(p: *mut Player, damage: u8) -> void {
+pub fun take_damage(p: *mut Player, damage: u8) -> void {
     if damage >= p.health {
         p.health = 0;
     } else {
@@ -97,6 +97,6 @@ pub fn take_damage(p: *mut Player, damage: u8) -> void {
     }
 }
 
-pub fn add_score(p: *mut Player, points: u16) -> void {
+pub fun add_score(p: *mut Player, points: u16) -> void {
     p.score = p.score + points;
 }

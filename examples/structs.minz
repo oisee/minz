@@ -14,24 +14,24 @@ struct Rectangle {
 }
 
 // Function to create a point
-fn make_point(x: i16, y: i16) -> Point {
+fun make_point(x: i16, y: i16) -> Point {
     return Point { x: x, y: y };
 }
 
 // Function to calculate rectangle area
-fn area(rect: Rectangle) -> u16 {
+fun area(rect: Rectangle) -> u16 {
     return rect.width * rect.height;
 }
 
 // Function to move a point
-fn move_point(p: Point, dx: i16, dy: i16) -> Point {
+fun move_point(p: Point, dx: i16, dy: i16) -> Point {
     return Point {
         x: p.x + dx,
         y: p.y + dy
     };
 }
 
-fn main() -> void {
+fun main() -> void {
     // Create a point using struct literal
     let p1 = Point { x: 10, y: 20 };
     

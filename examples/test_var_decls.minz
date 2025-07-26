@@ -1,5 +1,5 @@
 // Test various variable declaration patterns
-fn test_var_declarations() -> void {
+fun test_var_declarations() -> void {
     // Test 1: Simple let
     let a = 5;
     
@@ -19,6 +19,6 @@ fn test_var_declarations() -> void {
     let mut f: u16 = (c as u16) + d;
 }
 
-fn main() -> void {
+fun main() -> void {
     test_var_declarations();
 }

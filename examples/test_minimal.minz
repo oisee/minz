@@ -1,5 +1,5 @@
 // Minimal test
-fn main() -> void {
+fun main() -> void {
     let mut x: u8 = 42
     x = 43  // Test assignment
 }

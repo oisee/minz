@@ -4,7 +4,7 @@
 
 // Non-recursive function with parameter that could use SMC
 @smc_optimize
-fn draw_horizontal_line(y: u8, color: u8, length: u8) -> void {
+fun draw_horizontal_line(y: u8, color: u8, length: u8) -> void {
     // The 'y' parameter can be embedded in the code itself
     // since this function is non-recursive
     
@@ -19,7 +19,7 @@ fn draw_horizontal_line(y: u8, color: u8, length: u8) -> void {
 
 // Example with modifiable "constant"
 @smc_optimize
-fn animation_frame() -> void {
+fun animation_frame() -> void {
     // This "constant" can be modified between calls
     let frame_offset: u8 = 0;  // Will be optimized to SMC
     
@@ -32,7 +32,7 @@ fn animation_frame() -> void {
 
 // Game state using SMC for frequently accessed values
 @smc_optimize
-fn game_loop() -> void {
+fun game_loop() -> void {
     // These values are read frequently but modified rarely
     // Perfect candidates for SMC optimization
     let player_lives: u8 = 3;
@@ -75,7 +75,7 @@ fn game_loop() -> void {
 }
 
 // Example showing why recursive functions can't use SMC
-fn countdown(n: u8) -> void {
+fun countdown(n: u8) -> void {
     if n > 0 {
         print_number(n);
         countdown(n - 1);  // Recursive call - parameters must be on stack
@@ -83,7 +83,7 @@ fn countdown(n: u8) -> void {
 }
 
 // Main function demonstrating SMC benefits
-fn main() -> void {
+fun main() -> void {
     // Initialize screen
     screen.set_border(screen.BLACK);
     
@@ -98,15 +98,15 @@ fn main() -> void {
 }
 
 // Helper functions (implementations would be in stdlib)
-declare fn draw_sprite(x: u8, y: u8, data: *u8) -> void;
-declare fn draw_number(x: u8, y: u8, num: u16) -> void;
-declare fn draw_text(x: u8, y: u8, text: str) -> void;
-declare fn check_collision() -> bool;
-declare fn collect_items() -> u16;
-declare fn all_items_collected() -> bool;
-declare fn reset_level() -> void;
-declare fn wait_vblank() -> void;
-declare fn print_number(n: u8) -> void;
+declare fun draw_sprite(x: u8, y: u8, data: *u8) -> void;
+declare fun draw_number(x: u8, y: u8, num: u16) -> void;
+declare fun draw_text(x: u8, y: u8, text: str) -> void;
+declare fun check_collision() -> bool;
+declare fun collect_items() -> u16;
+declare fun all_items_collected() -> bool;
+declare fun reset_level() -> void;
+declare fun wait_vblank() -> void;
+declare fun print_number(n: u8) -> void;
 
 // Global sprite data
 const sprite_data: [u8; 64] = [

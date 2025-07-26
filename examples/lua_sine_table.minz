@@ -67,16 +67,16 @@ const SINE_TABLE: [i8; 256] = @lua(sine_table_literal);
 const COSINE_TABLE: [i8; 256] = @lua(cosine_table_literal);
 
 // Fast sine/cosine using lookup tables
-fn fast_sin(angle: u8) -> i8 {
+fun fast_sin(angle: u8) -> i8 {
     return SINE_TABLE[angle];
 }
 
-fn fast_cos(angle: u8) -> i8 {
+fun fast_cos(angle: u8) -> i8 {
     return COSINE_TABLE[angle];
 }
 
 // Example: Rotate a point around origin
-fn rotate_point(x: i16, y: i16, angle: u8) -> (i16, i16) {
+fun rotate_point(x: i16, y: i16, angle: u8) -> (i16, i16) {
     let sin = fast_sin(angle) as i16;
     let cos = fast_cos(angle) as i16;
     
@@ -105,7 +105,7 @@ end
 
 function generate_draw_circle(radius)
     local points = generate_circle_points(radius)
-    local code = "fn draw_circle_" .. radius .. "(cx: u8, cy: u8) -> void {\n"
+    local code = "fun draw_circle_" .. radius .. "(cx: u8, cy: u8) -> void {\n"
     
     -- Generate optimized unrolled loop
     for i, p in ipairs(points) do
@@ -123,7 +123,7 @@ end
 @lua_eval(generate_draw_circle(15))
 
 // Demo program
-fn main() -> void {
+fun main() -> void {
     // Clear screen
     screen.clear(screen.BLACK, screen.BLUE, true, false);
     
@@ -157,7 +157,7 @@ fn main() -> void {
     }
 }
 
-fn delay(count: u16) -> void {
+fun delay(count: u16) -> void {
     let mut i: u16 = 0;
     while i < count {
         asm("nop");

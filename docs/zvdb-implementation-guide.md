@@ -58,7 +58,7 @@ The heart of ZVDB is the Hamming distance function, optimized to use Z80's shado
 ```minz
 @inline
 @optimize_registers
-fn hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
+fun hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
     let mut dist: u8 = 0;
     let mut i: u8 = 0;
     
@@ -92,7 +92,7 @@ Efficient bit counting using parallel bit manipulation:
 
 ```minz
 @inline
-fn popcount(x: u8) -> u8 {
+fun popcount(x: u8) -> u8 {
     let mut count = x;
     count = (count & 0x55) + ((count >> 1) & 0x55);
     count = (count & 0x33) + ((count >> 2) & 0x33);
@@ -109,7 +109,7 @@ The main search function demonstrates several optimizations:
 
 ```minz
 @optimize_registers
-pub fn zvdb_search(db: *VectorDB, query: *Vector256, k: u8) -> [SearchResult; 10] {
+pub fun zvdb_search(db: *VectorDB, query: *Vector256, k: u8) -> [SearchResult; 10] {
     let mut results: [SearchResult; 10];
     
     // Initialize results
@@ -173,7 +173,7 @@ For systems with DMA controllers, ZVDB supports async page loading:
 ```minz
 @interrupt
 @port(0x5B)
-fn dma_complete_handler() -> void {
+fun dma_complete_handler() -> void {
     // Ultra-fast interrupt handler using shadow registers
     port_out(0x5B, 0);  // Clear interrupt
     
@@ -242,7 +242,7 @@ For frequently used constants, MinZ can generate self-modifying code:
 @smc_const
 const VECTOR_DIM: u16 = 256;
 
-fn process_vectors() {
+fun process_vectors() {
     for i in 0..VECTOR_DIM {  // This constant gets embedded in code
         // ...
     }
@@ -261,12 +261,12 @@ loop_start:
 For larger databases, ZVDB implements hierarchical hashing:
 
 ```minz
-fn hash_vector(v: *Vector256) -> u16 {
+fun hash_vector(v: *Vector256) -> u16 {
     // Use first 16 bits as hash
     return (v.bits[0] as u16) | ((v.bits[1] as u16) << 8);
 }
 
-fn search_with_hash(db: *VectorDB, query: *Vector256) -> [SearchResult; 10] {
+fun search_with_hash(db: *VectorDB, query: *Vector256) -> [SearchResult; 10] {
     let hash = hash_vector(query);
     let bucket = hash >> 8;  // 256 buckets
     
@@ -291,7 +291,7 @@ For systems with vector extensions:
 
 ```minz
 @target("scorpion")
-fn hamming_distance_256bit(a: *Vector256, b: *Vector256) -> u8 {
+fun hamming_distance_256bit(a: *Vector256, b: *Vector256) -> u8 {
     // Single instruction for 256-bit XOR
     let xor_result = __builtin_scorpion_xor256(a, b);
     
@@ -313,7 +313,7 @@ struct CodeVector {
     line_number: u16,
 }
 
-fn vectorize_code(instructions: *u8, len: u16) -> Vector256 {
+fun vectorize_code(instructions: *u8, len: u16) -> Vector256 {
     // Extract features like:
     // - Instruction types used
     // - Register usage patterns  
@@ -333,7 +333,7 @@ struct MusicVector {
     timestamp: u16,
 }
 
-fn vectorize_pattern(notes: *Note, len: u8) -> Vector256 {
+fun vectorize_pattern(notes: *Note, len: u8) -> Vector256 {
     // Features: pitch intervals, rhythm, effects
 }
 ```
@@ -349,7 +349,7 @@ struct TileVector {
     palette: u8,
 }
 
-fn vectorize_tile(pixels: *u8) -> Vector256 {
+fun vectorize_tile(pixels: *u8) -> Vector256 {
     // Edge detection, color histogram, patterns
 }
 ```
@@ -371,7 +371,7 @@ minzc zvdb_scorpion.minz -O2 --target=scorpion -o zvdb_zs.a80
 ```minz
 import zvdb;
 
-fn main() {
+fun main() {
     // Allocate 64KB for vectors
     let memory: [u8; 65536];
     let mut db: VectorDB;

@@ -51,7 +51,7 @@ The TRUE SMC (истинный SMC) implementation has reached a functional stat
 ### Example Output
 ```asm
 ; Function with TRUE SMC anchors
-fn$name:
+fun$name:
 ; TRUE SMC function with immediate anchors
 x$immOP:
     LD A, 0        ; x anchor (will be patched)

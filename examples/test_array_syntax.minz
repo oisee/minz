@@ -14,7 +14,7 @@ let new_array: [u8; 10];
 // Test new syntax with struct type
 let items: [Item; 5];
 
-fn main() -> void {
+fun main() -> void {
     // Just declare to test parsing
     old_array[0] = 42;
     new_array[0] = 43;

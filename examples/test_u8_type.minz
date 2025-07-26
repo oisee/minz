@@ -2,6 +2,6 @@
 
 let x: u8;
 
-fn main() -> void {
+fun main() -> void {
     x = 42;
 }

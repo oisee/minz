@@ -243,7 +243,7 @@ func (p *SimpleParser) parseSourceFile(filename string) (*ast.File, error) {
 				if imp != nil {
 					file.Imports = append(file.Imports, imp)
 				}
-			case "fn", "fun", "pub":
+			case "fun", "pub":
 				decl := p.parseFunctionDecl()
 				if decl != nil {
 					file.Declarations = append(file.Declarations, decl)
@@ -328,9 +328,9 @@ func (p *SimpleParser) parseFunctionDecl() *ast.FunctionDecl {
 		p.advance()
 	}
 	
-	// Accept both "fn" and "fun"
-	if p.peek().Value != "fn" && p.peek().Value != "fun" {
-		// Error: expected 'fn' or 'fun'
+	// Accept only "fun"
+	if p.peek().Value != "fun" {
+		// Error: expected 'fun'
 		return nil
 	}
 	p.advance()
@@ -959,7 +959,7 @@ func isAlnum(ch byte) bool {
 
 func isKeyword(s string) bool {
 	keywords := []string{
-		"fn", "fun", "let", "mut", "if", "else", "while", "for", "return",
+		"fun", "let", "mut", "if", "else", "while", "for", "return",
 		"struct", "enum", "impl", "pub", "mod", "use", "import",
 		"true", "false", "as", "module", "asm", "const", "type",
 		"loop", "into", "ref", "to", "indexed", "bits",

@@ -45,7 +45,7 @@ enum Error {
     OutOfBounds = 3
 }
 
-fn divide?(a: u16, b: u16) -> u16 ? Error {
+fun divide?(a: u16, b: u16) -> u16 ? Error {
     if b == 0 {
         @error(Error.DivisionByZero)  // Sets CY=1, A=error code
     }
@@ -91,7 +91,7 @@ divide:
 ### Return Value Alias ($)
 
 ```minz
-fn add(a: i16, b: i16) -> i16 {
+fun add(a: i16, b: i16) -> i16 {
     $ = a + b  // $ is alias for return value
 }
 // Equivalent to: return a + b
@@ -109,7 +109,7 @@ Current compiler uses fixed addresses like `$F000`. True SMC patches immediates:
 
 ```minz
 @abi(smc)
-fn draw(x: u8, y: u8, color: u8) {
+fun draw(x: u8, y: u8, color: u8) {
     LD A, 0      ; x$imm0 - will be patched to actual x value
     OUT (FE), A
     
@@ -126,7 +126,7 @@ fn draw(x: u8, y: u8, color: u8) {
 ### Function Argument Propagation
 
 ```minz
-fn parent(x: u8) {
+fun parent(x: u8) {
     child(x)  // Read from parent's x$imm0, patch child's x$imm0
 }
 ```
@@ -149,7 +149,7 @@ for i in 10..0 {    // Compiles to DJNZ
 
 ### Defer Blocks
 ```minz
-fn with_border() {
+fun with_border() {
     screen.set_border(1)
     defer { screen.set_border(0) }  // Guaranteed cleanup
     // ...

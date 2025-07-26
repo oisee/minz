@@ -14,7 +14,7 @@ This document presents real-world examples of TRUE SMC (истинный SMC) im
 // MNIST Digit Editor - Working version for TRUE SMC testing
 
 // Set border color (TRUE SMC function)
-fn set_border(color: u8) -> void {
+fun set_border(color: u8) -> void {
     asm {
         LD A, color
         OUT (0xFE), A
@@ -22,7 +22,7 @@ fn set_border(color: u8) -> void {
 }
 
 // Set single attribute (TRUE SMC function)
-fn set_attr(x: u8, y: u8) -> void {
+fun set_attr(x: u8, y: u8) -> void {
     // Calculate 0x5800 + y*32 + x
     let addr = 0x5800 + (y as u16) * 32 + (x as u16)
     asm {
@@ -33,7 +33,7 @@ fn set_attr(x: u8, y: u8) -> void {
 }
 
 // Simple pixel drawing (TRUE SMC function)
-fn set_pixel(x: u8, y: u8) -> void {
+fun set_pixel(x: u8, y: u8) -> void {
     // Simple screen address: 0x4000 + y*32 + x/8
     let addr = 0x4000 + (y as u16) * 32 + ((x >> 3) as u16)
     let mask = 0x80 >> (x & 7)
@@ -47,7 +47,7 @@ fn set_pixel(x: u8, y: u8) -> void {
 }
 
 // Test pattern drawing (TRUE SMC function)
-fn draw_test_pattern(start_x: u8, start_y: u8) -> void {
+fun draw_test_pattern(start_x: u8, start_y: u8) -> void {
     // Draw 8x8 test pattern
     let i: u8 = 0
     while i < 8 {
@@ -70,7 +70,7 @@ fn draw_test_pattern(start_x: u8, start_y: u8) -> void {
 
 **Input Function**:
 ```minz
-fn set_attr(x: u8, y: u8) -> void {
+fun set_attr(x: u8, y: u8) -> void {
     let addr = 0x5800 + (y as u16) * 32 + (x as u16)
     asm { LD HL, addr; LD A, 71; LD (HL), A }
 }
@@ -250,7 +250,7 @@ y$imm0 EQU y$immOP+1
 
 **Cursor Movement Function**:
 ```minz
-fn update_cursor(x: u8, y: u8) -> void {
+fun update_cursor(x: u8, y: u8) -> void {
     clear_old_cursor()      // TRUE SMC call
     set_attr(x, y)         // TRUE SMC call  
     set_pixel(x*8, y*8)    // TRUE SMC call
@@ -446,7 +446,7 @@ $5B00-$FFFF: Program memory (42K)
 
 **Typical Game Loop with MNIST Editor**:
 ```minz
-fn game_loop() -> void {
+fun game_loop() -> void {
     while true {
         read_input()          // TRUE SMC: 57 T-states
         update_cursor()       // TRUE SMC: 4 × 97 = 388 T-states

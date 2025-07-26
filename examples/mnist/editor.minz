@@ -36,7 +36,7 @@ struct Editor {
 }
 
 // Set border color
-fn set_border(color: u8) -> void {
+fun set_border(color: u8) -> void {
     asm("
         ld a, {0}
         out ($fe), a
@@ -44,7 +44,7 @@ fn set_border(color: u8) -> void {
 }
 
 // Fill screen with 0xFF pattern
-fn fill_screen() -> void {
+fun fill_screen() -> void {
     // Use LDIR for faster fill
     asm("
         ld hl, $4000      ; SCREEN_START
@@ -56,7 +56,7 @@ fn fill_screen() -> void {
 }
 
 // Fill attributes with 0x00 (black on black)
-fn fill_attributes() -> void {
+fun fill_attributes() -> void {
     // Use LDIR for faster fill
     asm("
         ld hl, $5800      ; ATTR_START
@@ -68,12 +68,12 @@ fn fill_attributes() -> void {
 }
 
 // Calculate attribute address from cursor position
-fn get_attr_addr(x: u8, y: u8) -> u16 {
+fun get_attr_addr(x: u8, y: u8) -> u16 {
     return ATTR_START + ((y as u16) * 32) + (x as u16);
 }
 
 // Update cursor by XORing attribute with 0x04
-fn update_cursor(editor: *Editor) -> void {
+fun update_cursor(editor: *Editor) -> void {
     let attr_addr = get_attr_addr(editor.cursor_x, editor.cursor_y);
     
     asm("
@@ -85,7 +85,7 @@ fn update_cursor(editor: *Editor) -> void {
 }
 
 // Read keyboard port
-fn read_port(port: u8) -> u8 {
+fun read_port(port: u8) -> u8 {
     let result: u8;
     asm("
         ld a, {0}
@@ -96,13 +96,13 @@ fn read_port(port: u8) -> u8 {
 }
 
 // Check if key is pressed (active low)
-fn is_key_pressed(port: u8, bit: u8) -> bool {
+fun is_key_pressed(port: u8, bit: u8) -> bool {
     let value = read_port(port);
     return (value & (1 << bit)) == 0;
 }
 
 // Calculate ZX Spectrum screen address for pixel coordinates
-fn pixel_addr(x: u8, y: u8) -> u16 {
+fun pixel_addr(x: u8, y: u8) -> u16 {
     // ZX Spectrum screen memory layout
     let y_low: u8 = y & 0x07;
     let y_mid: u8 = (y & 0x38) >> 3;
@@ -118,7 +118,7 @@ fn pixel_addr(x: u8, y: u8) -> u16 {
 }
 
 // Toggle pixel in 16x16 representation (top-left corner)
-fn toggle_pixel(editor: *Editor) -> void {
+fun toggle_pixel(editor: *Editor) -> void {
     // Map cursor position to 16x16 grid
     let bit_x = editor.cursor_x & 0x0F;  // 0-15
     let bit_y = editor.cursor_y & 0x0F;  // 0-15
@@ -136,7 +136,7 @@ fn toggle_pixel(editor: *Editor) -> void {
 }
 
 // Simple delay for key repeat
-fn delay() -> void {
+fun delay() -> void {
     asm("
         ld bc, $0200
 delay_loop:
@@ -148,7 +148,7 @@ delay_loop:
 }
 
 // Handle keyboard input
-fn handle_input(editor: *Editor) -> bool {
+fun handle_input(editor: *Editor) -> bool {
     // Q - up (port 0xFB, bit 0)
     if is_key_pressed(KB_PORT_QWER, 0) {
         if editor.cursor_y > 0 {
@@ -214,7 +214,7 @@ fn handle_input(editor: *Editor) -> bool {
 }
 
 // Main program entry point
-fn main() -> void {
+fun main() -> void {
     // Initialize screen
     set_border(0);      // Black border
     fill_screen();      // Fill with 0xFF

@@ -1,5 +1,5 @@
 // Tail recursive factorial example
-fn factorial_tail(n: u8, acc: u16) -> u16 {
+fun factorial_tail(n: u8, acc: u16) -> u16 {
     if n == 0 {
         return acc;
     }
@@ -7,12 +7,12 @@ fn factorial_tail(n: u8, acc: u16) -> u16 {
     return factorial_tail(n - 1, n * acc);
 }
 
-fn factorial(n: u8) -> u16 {
+fun factorial(n: u8) -> u16 {
     return factorial_tail(n, 1);
 }
 
 // Tail recursive sum
-fn sum_tail(n: u16, acc: u16) -> u16 {
+fun sum_tail(n: u16, acc: u16) -> u16 {
     if n == 0 {
         return acc;
     }
@@ -20,7 +20,7 @@ fn sum_tail(n: u16, acc: u16) -> u16 {
     return sum_tail(n - 1, acc + n);
 }
 
-fn main() -> void {
+fun main() -> void {
     let result = factorial(5);  // Should be 120
     let sum = sum_tail(100, 0);  // Should be 5050
 }

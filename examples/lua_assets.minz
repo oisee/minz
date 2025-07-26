@@ -84,7 +84,7 @@ end
 
 -- Generate optimized sprite blitting code
 function generate_sprite_blit(width, height, mask)
-    local code = string.format("fn blit_sprite_%dx%d(x: u8, y: u8, data: *u8) -> void {\n", width, height)
+    local code = string.format("fun blit_sprite_%dx%d(x: u8, y: u8, data: *u8) -> void {\n", width, height)
     
     for row = 0, height - 1 do
         local addr_calc = string.format("    let addr%d = screen.pixel_addr(x, y + %d);\n", row, row)
@@ -157,14 +157,14 @@ const PLAYER_SPEED: u8 = @lua(load_config("game.conf").player_speed);
 @lua_if(build_config.debug)
 const DEBUG_MODE: bool = true;
 
-fn debug_log(msg: str) -> void {
+fun debug_log(msg: str) -> void {
     // Debug output implementation
     print_string(0, 0, msg);
 }
 @lua_else
 const DEBUG_MODE: bool = false;
 
-fn debug_log(msg: str) -> void {
+fun debug_log(msg: str) -> void {
     // No-op in release
 }
 @lua_endif
@@ -173,11 +173,11 @@ fn debug_log(msg: str) -> void {
 @lua_if(build_config.platform == "ZX_SPECTRUM_128")
 import zx.ay_sound;
 
-fn init_sound() -> void {
+fun init_sound() -> void {
     ay_sound.init();
 }
 @lua_else
-fn init_sound() -> void {
+fun init_sound() -> void {
     // No sound chip on 48K
 }
 @lua_endif
@@ -207,7 +207,7 @@ struct Enemy {
     active: bool,
 }
 
-fn main() -> void {
+fun main() -> void {
     // Initialize with compile-time constants
     let mut game = Game {
         player_lives: START_LIVES,

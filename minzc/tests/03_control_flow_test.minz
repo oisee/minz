@@ -1,7 +1,7 @@
 // Test 3: Control Flow Structures
 // Tests if/else, while, loop statements
 
-fn test_if_else(x: u8) -> u8 {
+fun test_if_else(x: u8) -> u8 {
     if x > 10 {
         return x * 2;
     } else if x > 5 {
@@ -11,7 +11,7 @@ fn test_if_else(x: u8) -> u8 {
     }
 }
 
-fn test_nested_if(a: u8, b: u8) -> u8 {
+fun test_nested_if(a: u8, b: u8) -> u8 {
     if a > b {
         if a > 100 {
             return 100;
@@ -27,7 +27,7 @@ fn test_nested_if(a: u8, b: u8) -> u8 {
     }
 }
 
-fn test_while_loop() -> u8 {
+fun test_while_loop() -> u8 {
     let mut count: u8 = 0;
     let mut sum: u8 = 0;
     
@@ -39,7 +39,7 @@ fn test_while_loop() -> u8 {
     return sum;
 }
 
-fn test_nested_while() -> u16 {
+fun test_nested_while() -> u16 {
     let mut i: u8 = 0;
     let mut total: u16 = 0;
     
@@ -55,7 +55,7 @@ fn test_nested_while() -> u16 {
     return total;
 }
 
-fn test_loop_statement() -> u8 {
+fun test_loop_statement() -> u8 {
     let mut counter: u8 = 0;
     
     // Use while instead of loop for now
@@ -66,7 +66,7 @@ fn test_loop_statement() -> u8 {
     return counter;
 }
 
-fn test_complex_control() -> u8 {
+fun test_complex_control() -> u8 {
     let mut result: u8 = 0;
     let mut i: u8 = 0;
     
@@ -82,7 +82,7 @@ fn test_complex_control() -> u8 {
     return result;
 }
 
-fn main() -> void {
+fun main() -> void {
     let r1: u8 = test_if_else(7);
     let r2: u8 = test_nested_if(50, 75);
     let r3: u8 = test_while_loop();

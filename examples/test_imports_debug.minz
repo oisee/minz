@@ -2,7 +2,7 @@
 
 import zx.screen;
 
-fn main() -> void {
+fun main() -> void {
     // First, try just referencing screen functions without assignment
     screen.set_pixel(10, 20);
     

@@ -6,7 +6,7 @@ type Editor = struct {
     canvas: [256]bool
 };
 
-fn editor_init() -> Editor {
+fun editor_init() -> Editor {
     let mut editor: Editor;
     editor.cursor_x = 8;
     editor.cursor_y = 8;
@@ -20,7 +20,7 @@ fn editor_init() -> Editor {
     return editor;
 }
 
-fn test_field_access(editor: *Editor) -> void {
+fun test_field_access(editor: *Editor) -> void {
     let x: u8 = editor.cursor_x;
     let y: u8 = editor.cursor_y;
     
@@ -30,7 +30,7 @@ fn test_field_access(editor: *Editor) -> void {
     return;
 }
 
-fn main() -> void {
+fun main() -> void {
     let editor = editor_init();
     test_field_access(&editor);
     return;

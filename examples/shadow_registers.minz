@@ -6,7 +6,7 @@ const IM2_TABLE: u16 = 0xFE00;
 // Interrupt handler using shadow registers
 @interrupt
 @shadow_registers
-fn vblank_handler() -> void {
+fun vblank_handler() -> void {
     // This function automatically uses EXX and EX AF,AF'
     // to save/restore registers, making it very fast
     
@@ -24,7 +24,7 @@ fn vblank_handler() -> void {
 
 // Fast memory copy using shadow registers
 @shadow_registers
-fn fast_memcpy(dst: *mut u8, src: *u8, len: u16) -> void {
+fun fast_memcpy(dst: *mut u8, src: *u8, len: u16) -> void {
     // Main registers: HL = src, DE = dst, BC = len
     // Shadow registers: used for temporary calculations
     
@@ -70,7 +70,7 @@ struct Coroutine {
 }
 
 @shadow
-fn coroutine_yield(co: *mut Coroutine) -> void {
+fun coroutine_yield(co: *mut Coroutine) -> void {
     // Save current state to shadow registers
     asm("exx");
     asm("ex af, af'");
@@ -87,7 +87,7 @@ let mut frame_count: u16 = 0;
 let mut animation_timer: u8 = 0;
 let mut sprites: [Sprite; 8];
 
-fn update_sprites() -> void {
+fun update_sprites() -> void {
     // Quick sprite update using shadow registers
     let mut i: u8 = 0;
     while i < 8 {
@@ -98,7 +98,7 @@ fn update_sprites() -> void {
     }
 }
 
-fn setup_interrupts() -> void {
+fun setup_interrupts() -> void {
     // Set up interrupt mode 2
     asm("
         di                  ; Disable interrupts
@@ -123,7 +123,7 @@ fn setup_interrupts() -> void {
     }
 }
 
-fn main() -> void {
+fun main() -> void {
     // Set up interrupt handling
     setup_interrupts();
     

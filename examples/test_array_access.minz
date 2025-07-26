@@ -1,6 +1,6 @@
 // Test array access syntax
 
-fn test_array() -> u8 {
+fun test_array() -> u8 {
     let arr: [10]u8;
     
     // Test reading from array
@@ -14,7 +14,7 @@ fn test_array() -> u8 {
     return z;
 }
 
-fn main() -> void {
+fun main() -> void {
     let result = test_array();
     return;
 }

@@ -1,6 +1,6 @@
 // Debug const issue - simplest possible case
 const X: u8 = 42;
 
-fn main() -> void {
+fun main() -> void {
     let y: u8 = X;
 }

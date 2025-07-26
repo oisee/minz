@@ -207,7 +207,7 @@ type ScreenAttr = bits {
     flash: 1
 }
 
-fn set_attr(x: u8, y: u8, attr: ScreenAttr) -> void {
+fun set_attr(x: u8, y: u8, attr: ScreenAttr) -> void {
     let addr = 0x5800 + (y as u16) * 32 + (x as u16)
     poke(addr, attr as u8)
 }

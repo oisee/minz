@@ -6,7 +6,7 @@ struct Vector8 {
 }
 
 // Hamming distance for 8-bit vectors
-fn hamming8(a: u8, b: u8) -> u8 {
+fun hamming8(a: u8, b: u8) -> u8 {
     let xor = a ^ b;
     
     // Count set bits
@@ -25,7 +25,7 @@ struct VectorStore {
 }
 
 // Add vector
-fn add_vector(store: *mut VectorStore, vec: u8) -> bool {
+fun add_vector(store: *mut VectorStore, vec: u8) -> bool {
     if store.count >= 255 {
         return false;
     }
@@ -36,7 +36,7 @@ fn add_vector(store: *mut VectorStore, vec: u8) -> bool {
 }
 
 // Find nearest vector
-fn find_nearest(store: *VectorStore, query: u8) -> u8 {
+fun find_nearest(store: *VectorStore, query: u8) -> u8 {
     let mut best_idx: u8 = 0;
     let mut best_dist: u8 = 255;
     
@@ -54,7 +54,7 @@ fn find_nearest(store: *VectorStore, query: u8) -> u8 {
 }
 
 // Main demo
-fn main() -> void {
+fun main() -> void {
     let mut store: VectorStore;
     store.count = 0;
     

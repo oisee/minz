@@ -1,7 +1,7 @@
 // Test 4: Type System and Operators
 // Tests arithmetic, logical, bitwise operations and type conversions
 
-fn test_arithmetic() -> void {
+fun test_arithmetic() -> void {
     // Basic arithmetic on different types
     let a: u8 = 100;
     let b: u8 = 50;
@@ -19,7 +19,7 @@ fn test_arithmetic() -> void {
     let prod16: u16 = x * 3;
 }
 
-fn test_bitwise() -> u8 {
+fun test_bitwise() -> u8 {
     let a: u8 = 0b11110000;
     let b: u8 = 0b10101010;
     
@@ -35,7 +35,7 @@ fn test_bitwise() -> u8 {
     return xor_result;
 }
 
-fn test_comparisons() -> void {
+fun test_comparisons() -> void {
     let x: u8 = 10;
     let y: u8 = 20;
     
@@ -47,7 +47,7 @@ fn test_comparisons() -> void {
     let ge: bool = x >= y;
 }
 
-fn test_logical() -> bool {
+fun test_logical() -> bool {
     let a: bool = true;
     let b: bool = false;
     
@@ -62,7 +62,7 @@ fn test_logical() -> bool {
     return complex;
 }
 
-fn test_type_conversions() -> void {
+fun test_type_conversions() -> void {
     // Widening conversions (safe)
     let small: u8 = 100;
     let big: u16 = small as u16;
@@ -77,7 +77,7 @@ fn test_type_conversions() -> void {
     // let num: u8 = flag as u8;  // Should be 1
 }
 
-fn test_complex_expressions() -> u16 {
+fun test_complex_expressions() -> u16 {
     let a: u8 = 10;
     let b: u8 = 20;
     let c: u8 = 30;
@@ -92,7 +92,7 @@ fn test_complex_expressions() -> u16 {
     return result;
 }
 
-fn main() -> void {
+fun main() -> void {
     test_arithmetic();
     let bit_result: u8 = test_bitwise();
     test_comparisons();

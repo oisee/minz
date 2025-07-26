@@ -1,12 +1,12 @@
 // Test to show register allocation improvements
 
 // Function with minimal register usage - should have lean prologue
-fn simple_add(a: u8, b: u8) -> u8 {
+fun simple_add(a: u8, b: u8) -> u8 {
     return a + b;
 }
 
 // Function with more registers - should save only what's used
-fn complex_calc(x: u16, y: u16, z: u16) -> u16 {
+fun complex_calc(x: u16, y: u16, z: u16) -> u16 {
     let t1 = x + y;
     let t2 = y + z;
     let t3 = x + z;
@@ -15,13 +15,13 @@ fn complex_calc(x: u16, y: u16, z: u16) -> u16 {
 
 // Interrupt handler - should use EXX for fast save/restore
 @interrupt
-fn timer_isr() -> void {
+fun timer_isr() -> void {
     let counter: u8 = 0;
     counter = counter + 1;
     return;
 }
 
-fn main() -> void {
+fun main() -> void {
     let a = simple_add(5, 10);
     let b = complex_calc(100, 200, 300);
     return;

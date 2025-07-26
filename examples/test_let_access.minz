@@ -1,5 +1,5 @@
 let Y: u8 = 43;
 
-fn main() -> void {
+fun main() -> void {
     let z = Y;  // Access global let
 }

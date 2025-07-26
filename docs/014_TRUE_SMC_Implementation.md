@@ -19,7 +19,7 @@ TRUE SMC (Self-Modifying Code) is a technique where function parameters are patc
 ### Example
 
 ```minz
-fn add(x: u8, y: u8) -> u8 {
+fun add(x: u8, y: u8) -> u8 {
     return x + y
 }
 ```

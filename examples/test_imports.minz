@@ -2,7 +2,7 @@
 
 import zx.screen;
 
-fn main() -> void {
+fun main() -> void {
     // Use screen functions
     screen.set_pixel(10, 20);
     screen.clear_pixel(30, 40);

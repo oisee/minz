@@ -5,13 +5,13 @@ module true_smc_test
 
 // Simple function with SMC anchors
 @abi(smc)
-fn add(x: u8, y: u8) -> u8 {
+fun add(x: u8, y: u8) -> u8 {
     return x + y
 }
 
 // Function that uses 16-bit parameters
 @abi(smc)
-fn multiply(a: u16, b: u16) -> u16 {
+fun multiply(a: u16, b: u16) -> u16 {
     // Simple multiplication by repeated addition
     let result: u16 = 0
     let count: u16 = b
@@ -26,7 +26,7 @@ fn multiply(a: u16, b: u16) -> u16 {
 
 // Test reuse of anchor values
 @abi(smc)
-fn process(value: u8) -> u8 {
+fun process(value: u8) -> u8 {
     // First use creates anchor
     let temp = value + 10
     
@@ -38,7 +38,7 @@ fn process(value: u8) -> u8 {
     }
 }
 
-fn main() -> void {
+fun main() -> void {
     // Test 8-bit SMC
     let sum = add(5, 3)
     print("5 + 3 = ")

@@ -22,12 +22,12 @@ Created `editor_working.minz` that maintains core MNIST editor functionality whi
 
 ```minz
 // Key functions for ZX Spectrum MNIST editor
-fn set_border(color: u8) -> void        // Border color control
-fn clear_screen() -> void               // Screen memory management  
-fn set_attr(x: u8, y: u8) -> void      // Attribute memory control
-fn set_pixel(x: u8, y: u8) -> void     // Pixel-level graphics
-fn delay(loops: u16) -> void            // Timing control
-fn draw_test_pattern(start_x: u8, start_y: u8) -> void  // Pattern drawing
+fun set_border(color: u8) -> void        // Border color control
+fun clear_screen() -> void               // Screen memory management  
+fun set_attr(x: u8, y: u8) -> void      // Attribute memory control
+fun set_pixel(x: u8, y: u8) -> void     // Pixel-level graphics
+fun delay(loops: u16) -> void            // Timing control
+fun draw_test_pattern(start_x: u8, start_y: u8) -> void  // Pattern drawing
 ```
 
 ## 2. AST Level Analysis ✅

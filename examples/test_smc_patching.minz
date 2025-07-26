@@ -1,12 +1,12 @@
 // test_smc_patching.minz - Test TRUE SMC call-site patching
 
 // Simple add function that will use TRUE SMC
-fn add_nums(x: u8, y: u8) -> u8 {
+fun add_nums(x: u8, y: u8) -> u8 {
     return x + y
 }
 
 // Function that calls add_nums multiple times
-fn calculate() -> u8 {
+fun calculate() -> u8 {
     // These calls should generate patching code
     let a = add_nums(5, 3)      // Should patch: x=5, y=3
     let b = add_nums(10, 20)    // Should patch: x=10, y=20
@@ -15,6 +15,6 @@ fn calculate() -> u8 {
 }
 
 // Export to prevent optimization
-export fn start() -> u8 {
+export fun start() -> u8 {
     return calculate()
 }

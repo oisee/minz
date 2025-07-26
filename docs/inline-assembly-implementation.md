@@ -203,7 +203,7 @@ func (s *AsmSymbol) SymbolName() string { return s.Name }
 const BORDER: u8 = $FE;
 let color: u8 = 2;
 
-fn set_border() -> void {
+fun set_border() -> void {
     asm {
         ld a, !color
         out (!BORDER), a
@@ -211,7 +211,7 @@ fn set_border() -> void {
     return;
 }
 
-fn main() -> void {
+fun main() -> void {
     set_border();
     return;
 }

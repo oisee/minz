@@ -6,7 +6,7 @@ struct Item {
 
 let items: [Item; 3];
 
-fn main() -> void {
+fun main() -> void {
     // Test loop with INTO mode
     loop items into item {
         item.value = 42;

@@ -33,7 +33,7 @@
 - **SHOULD** повторно использовать живой регистр, если это корректно по liveness;
 - иначе **MUST** читать значение из **адреса якоря** `p$imm0` (`LD A,(p$imm0)` / `LD HL,(p$imm0)`).
 
-**SPEC‑06 (MUST).** Компилятор **MUST** формировать `PATCH‑TABLE` для каждого `fn`: список `(symbol, addr, size, bank, param_tag)`.
+**SPEC‑06 (MUST).** Компилятор **MUST** формировать `PATCH‑TABLE` для каждого `fun`: список `(symbol, addr, size, bank, param_tag)`.
 
 ---
 

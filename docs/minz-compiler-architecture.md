@@ -18,7 +18,7 @@ MinZ provides a modern syntax inspired by Rust and Zig, while being tailored for
 
 ```minz
 // Modern syntax for Z80 development
-fn process_buffer(data: *mut u8, len: u16) -> u16 {
+fun process_buffer(data: *mut u8, len: u16) -> u16 {
     let mut checksum: u16 = 0;
     let mut i: u16 = 0;
     
@@ -33,7 +33,7 @@ fn process_buffer(data: *mut u8, len: u16) -> u16 {
 // Interrupt handler with automatic register saving
 @interrupt
 @port(0x38)
-fn timer_interrupt() -> void {
+fun timer_interrupt() -> void {
     update_system_tick();
 }
 ```
@@ -291,7 +291,7 @@ Here's how MinZ compiles a simple function with SMC:
 
 **MinZ Source:**
 ```minz
-fn add(a: u16, b: u16) -> u16 {
+fun add(a: u16, b: u16) -> u16 {
     return a + b;
 }
 ```

@@ -106,7 +106,7 @@ This clarifies usage:
 ### Code Generation:
 ```asm
 ; Generate anchors with EQU
-fn:
+fun:
 x$immOP:
     LD A, 0
 x$imm0  EQU x$immOP+1

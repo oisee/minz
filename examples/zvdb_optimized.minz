@@ -40,7 +40,7 @@ struct VectorDB {
 // This function will benefit from shadow registers
 @inline
 @optimize_registers
-fn hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
+fun hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
     let mut dist: u8 = 0;
     let mut i: u8 = 0;
     
@@ -66,7 +66,7 @@ fn hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
 // Population count (number of set bits)
 // Small function - will have minimal prologue/epilogue
 @inline
-fn popcount(x: u8) -> u8 {
+fun popcount(x: u8) -> u8 {
     let mut count = x;
     count = (count & 0x55) + ((count >> 1) & 0x55);
     count = (count & 0x33) + ((count >> 2) & 0x33);
@@ -75,7 +75,7 @@ fn popcount(x: u8) -> u8 {
 }
 
 // Initialize database
-pub fn zvdb_init(db: *mut VectorDB, memory: *mut u8, max_pages: u16) -> void {
+pub fun zvdb_init(db: *mut VectorDB, memory: *mut u8, max_pages: u16) -> void {
     db.pages = memory as *mut VectorPage;
     db.num_pages = max_pages;
     db.total_vectors = 0;
@@ -90,7 +90,7 @@ pub fn zvdb_init(db: *mut VectorDB, memory: *mut u8, max_pages: u16) -> void {
 
 // Add vector to database
 // Uses efficient register allocation
-pub fn zvdb_add(db: *mut VectorDB, vector: *Vector256, norm: u16, metadata: u16) -> bool {
+pub fun zvdb_add(db: *mut VectorDB, vector: *Vector256, norm: u16, metadata: u16) -> bool {
     // Find page with space
     let page_idx = find_available_page(db);
     if page_idx >= db.num_pages {
@@ -116,7 +116,7 @@ pub fn zvdb_add(db: *mut VectorDB, vector: *Vector256, norm: u16, metadata: u16)
 
 // Find page with available space
 // Simple function - minimal register usage
-fn find_available_page(db: *VectorDB) -> u16 {
+fun find_available_page(db: *VectorDB) -> u16 {
     let mut i: u16 = 0;
     
     while i < db.num_pages {
@@ -141,7 +141,7 @@ fn find_available_page(db: *VectorDB) -> u16 {
 // Search k-nearest neighbors
 // This is the hot path - will benefit from all optimizations
 @optimize_registers
-pub fn zvdb_search(db: *VectorDB, query: *Vector256, k: u8) -> [SearchResult; 10] {
+pub fun zvdb_search(db: *VectorDB, query: *Vector256, k: u8) -> [SearchResult; 10] {
     let mut results: [SearchResult; 10];
     let mut num_results: u8 = 0;
     
@@ -184,7 +184,7 @@ pub fn zvdb_search(db: *VectorDB, query: *Vector256, k: u8) -> [SearchResult; 10
 
 // Insert result in sorted order
 // Uses minimal registers for efficiency
-fn insert_result(results: *mut [SearchResult; 10], count: u8, index: u16, dist: i16) -> void {
+fun insert_result(results: *mut [SearchResult; 10], count: u8, index: u16, dist: i16) -> void {
     let mut pos: i8 = count as i8 - 1;
     
     // Find insertion position
@@ -206,7 +206,7 @@ fn insert_result(results: *mut [SearchResult; 10], count: u8, index: u16, dist: 
 // Uses efficient register saving with EXX
 @interrupt
 @port(0x5B)
-fn dma_complete_handler() -> void {
+fun dma_complete_handler() -> void {
     // Clear interrupt flag
     port_out(0x5B, 0);
     
@@ -220,7 +220,7 @@ fn dma_complete_handler() -> void {
 
 // Fast memory operations using block instructions
 @inline
-fn fast_copy(dst: *mut u8, src: *u8, len: u16) -> void {
+fun fast_copy(dst: *mut u8, src: *u8, len: u16) -> void {
     // This will compile to LDIR instruction
     let mut i: u16 = 0;
     while i < len {
@@ -231,19 +231,19 @@ fn fast_copy(dst: *mut u8, src: *u8, len: u16) -> void {
 
 // Port I/O functions
 @inline
-fn port_out(port: u8, value: u8) -> void {
+fun port_out(port: u8, value: u8) -> void {
     // Compiler will generate OUT instruction
     *((0xFF00 + port as u16) as *mut u8) = value;
 }
 
 @inline 
-fn port_in(port: u8) -> u8 {
+fun port_in(port: u8) -> u8 {
     // Compiler will generate IN instruction
     return *((0xFF00 + port as u16) as *u8);
 }
 
 // Demo usage
-fn demo() -> void {
+fun demo() -> void {
     // Allocate 64KB for vectors (4 pages)
     let memory: [u8; 65536];
     let mut db: VectorDB;

@@ -8,7 +8,7 @@ import game.sprites;
 // Game constants
 const GAME_SPEED: u8 = 2;
 
-fn main() -> void {
+fun main() -> void {
     // Initialize screen
     screen.clear(screen.BLACK, screen.BLUE, true, false);
     screen.set_border(screen.BLUE);
@@ -52,7 +52,7 @@ fn main() -> void {
     screen.clear(screen.WHITE, screen.BLACK, false, false);
 }
 
-fn draw_ui() -> void {
+fun draw_ui() -> void {
     // Draw border
     screen.draw_rect(0, 0, 255, 191);
     
@@ -60,7 +60,7 @@ fn draw_ui() -> void {
     screen.draw_rect(0, 0, 255, 16);
 }
 
-fn delay(count: u16) -> void {
+fun delay(count: u16) -> void {
     let mut i: u16 = 0;
     while i < count {
         // Simple delay loop

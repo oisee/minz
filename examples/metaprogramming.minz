@@ -19,7 +19,7 @@ const SCREEN_HEIGHT: u16 = @if(PLATFORM == "ZX_SPECTRUM", 192, 200);
 
 // Generate lookup table at compile time
 @const_eval
-fn generate_sine_table() -> [i8; 256] {
+fun generate_sine_table() -> [i8; 256] {
     let table: [i8; 256];
     let mut i: u16 = 0;
     
@@ -39,7 +39,7 @@ const SINE_TABLE: [i8; 256] = @eval generate_sine_table();
 
 // Compile-time code generation
 @generate
-fn make_sprite_id_enum(count: u8) -> str {
+fun make_sprite_id_enum(count: u8) -> str {
     let code = "enum SpriteID {\n";
     let mut i: u8 = 0;
     
@@ -57,25 +57,25 @@ fn make_sprite_id_enum(count: u8) -> str {
 
 // Platform-specific implementations
 @if(PLATFORM == "ZX_SPECTRUM")
-fn set_border_color(color: u8) -> void {
+fun set_border_color(color: u8) -> void {
     asm("
         ld a, {0}
         out ($fe), a
     " : : "r"(color));
 }
 @else
-fn set_border_color(color: u8) -> void {
+fun set_border_color(color: u8) -> void {
     // Different implementation for other platforms
 }
 @endif
 
 // Debug-only functions
 @if(DEBUG)
-fn debug_print(msg: str) -> void {
+fun debug_print(msg: str) -> void {
     // Implementation for debug output
 }
 
-fn assert_sprite_valid(id: u8) -> void {
+fun assert_sprite_valid(id: u8) -> void {
     if id >= MAX_SPRITES {
         debug_print("Invalid sprite ID");
         // Halt in debug mode
@@ -83,13 +83,13 @@ fn assert_sprite_valid(id: u8) -> void {
     }
 }
 @else
-fn assert_sprite_valid(id: u8) -> void {
+fun assert_sprite_valid(id: u8) -> void {
     // No-op in release mode
 }
 @endif
 
 // Main program
-fn main() -> void {
+fun main() -> void {
     @print("Compilation complete!");
     
     // Use compile-time generated values

@@ -1,5 +1,5 @@
 // test_param_reuse.minz - Test TRUE SMC with parameter reuse
-fn calculate(x: u8, y: u8) -> u8 {
+fun calculate(x: u8, y: u8) -> u8 {
     // First use of x and y creates anchors
     let sum = x + y
     
@@ -15,6 +15,6 @@ fn calculate(x: u8, y: u8) -> u8 {
     return sum + diff
 }
 
-fn main() -> void {
+fun main() -> void {
     let result = calculate(10, 6)
 }

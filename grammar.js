@@ -99,7 +99,7 @@ module.exports = grammar({
     ),
 
     function_type: $ => seq(
-      choice('fn', 'fun'),
+      'fun',
       '(',
       optional($.parameter_list),
       ')',
@@ -159,7 +159,7 @@ module.exports = grammar({
     function_declaration: $ => seq(
       optional($.visibility),
       optional('export'),
-      choice('fn', 'fun'),
+      'fun',
       $.identifier,
       '(',
       optional($.parameter_list),

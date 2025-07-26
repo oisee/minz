@@ -15,7 +15,7 @@ let people: [Person; 5] = [
     Person { age: 45, score: 500, active: false }
 ];
 
-fn main() -> void {
+fun main() -> void {
     let total_score: u16 = 0;
     let active_count: u8 = 0;
     

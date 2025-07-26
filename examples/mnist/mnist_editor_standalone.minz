@@ -6,14 +6,14 @@ struct Editor {
 }
 
 // Initialize editor
-fn editor_init() -> Editor {
+fun editor_init() -> Editor {
     let editor: Editor;
     // TODO: Field assignment in initializer
     return editor;
 }
 
 // Simple border color function
-fn set_border(color: u8) -> void {
+fun set_border(color: u8) -> void {
     asm("
         ld a, {0}
         out ($fe), a
@@ -21,7 +21,7 @@ fn set_border(color: u8) -> void {
 }
 
 // Main program
-fn main() -> void {
+fun main() -> void {
     // Initialize
     let mut editor = editor_init();
     

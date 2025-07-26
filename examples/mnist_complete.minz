@@ -7,22 +7,22 @@ type Editor = struct {
 };
 
 // Mock screen functions
-fn set_pixel(x: u8, y: u8) -> void {
+fun set_pixel(x: u8, y: u8) -> void {
     // Mock implementation
     return;
 }
 
-fn clear_pixel(x: u8, y: u8) -> void {
+fun clear_pixel(x: u8, y: u8) -> void {
     // Mock implementation
     return;
 }
 
-fn attr_addr(x: u8, y: u8) -> u16 {
+fun attr_addr(x: u8, y: u8) -> u16 {
     // ZX Spectrum attribute address calculation
     return 0x5800 + (y * 32 + x);
 }
 
-fn editor_init() -> Editor {
+fun editor_init() -> Editor {
     let mut editor: Editor;
     editor.cursor_x = 8;
     editor.cursor_y = 8;
@@ -37,7 +37,7 @@ fn editor_init() -> Editor {
 }
 
 // Draw the canvas
-fn draw_canvas(editor: *Editor) -> void {
+fun draw_canvas(editor: *Editor) -> void {
     let grid_x: u8 = 64;
     let grid_y: u8 = 48;
     
@@ -61,7 +61,7 @@ fn draw_canvas(editor: *Editor) -> void {
 }
 
 // Draw cursor
-fn draw_cursor(editor: *Editor, flash: bool) -> void {
+fun draw_cursor(editor: *Editor, flash: bool) -> void {
     let grid_x: u8 = 64;
     let grid_y: u8 = 48;
     
@@ -76,7 +76,7 @@ fn draw_cursor(editor: *Editor, flash: bool) -> void {
 }
 
 // Handle keyboard input
-fn handle_input(editor: *Editor, key: u8) -> bool {
+fun handle_input(editor: *Editor, key: u8) -> bool {
     if key == 81 {  // 'Q' - up
         if editor.cursor_y > 0 {
             editor.cursor_y = editor.cursor_y - 1;
@@ -109,7 +109,7 @@ fn handle_input(editor: *Editor, key: u8) -> bool {
     return true;
 }
 
-fn main() -> void {
+fun main() -> void {
     let mut editor = editor_init();
     
     // Main loop

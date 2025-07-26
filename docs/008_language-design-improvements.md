@@ -38,9 +38,9 @@ editor.cursor_x = 10;  // Even better!
 
 ### 2.2 Function Pointers
 ```minz
-type DrawFunc = fn(x: u8, y: u8) -> void;
+type DrawFunc = fun(x: u8, y: u8) -> void;
 
-fn draw_with_callback(callback: DrawFunc) -> void {
+fun draw_with_callback(callback: DrawFunc) -> void {
     callback(10, 20);
 }
 ```
@@ -48,7 +48,7 @@ fn draw_with_callback(callback: DrawFunc) -> void {
 ### 2.3 Simple Generics
 ```minz
 // Generic array utilities
-fn swap<T>(arr: *[T], i: u16, j: u16) -> void {
+fun swap<T>(arr: *[T], i: u16, j: u16) -> void {
     let temp = arr[i];
     arr[i] = arr[j];
     arr[j] = temp;
@@ -58,7 +58,7 @@ fn swap<T>(arr: *[T], i: u16, j: u16) -> void {
 ### 2.4 Inline Functions
 ```minz
 // For zero-cost abstractions
-inline fn set_bit(value: u8, bit: u8) -> u8 {
+inline fun set_bit(value: u8, bit: u8) -> u8 {
     return value | (1 << bit);
 }
 ```
@@ -66,7 +66,7 @@ inline fn set_bit(value: u8, bit: u8) -> u8 {
 ### 2.5 Better Metaprogramming
 ```minz
 // Compile-time code generation
-meta fn generate_lookup_table() -> [256]u8 {
+meta fun generate_lookup_table() -> [256]u8 {
     let mut table: [256]u8;
     for i in 0..256 {
         table[i] = calculate_value(i);
@@ -103,7 +103,7 @@ Combining the best features for Z80 development:
 ### 4.1 Zero-Cost Abstractions
 ```z80+
 // Inline functions compile to direct code
-inline fn peek(addr: u16) -> u8 {
+inline fun peek(addr: u16) -> u8 {
     asm { ld hl, {addr}; ld a, (hl) }
 }
 
@@ -139,7 +139,7 @@ let attr: Attributes = { ink: 7, paper: 0, bright: true, flash: false };
 ### 4.4 Interrupt-Safe Constructs
 ```z80+
 // Automatic register preservation
-interrupt fn vblank_handler() {
+interrupt fun vblank_handler() {
     frame_counter += 1;  // Compiler saves/restores registers
 }
 ```
@@ -149,7 +149,7 @@ interrupt fn vblank_handler() {
 // First-class support for banking
 bank[3] const SPRITE_DATA: [1024]u8 = include("sprites.bin");
 
-fn draw_sprite(id: u8) {
+fun draw_sprite(id: u8) {
     using bank[3] {  // Automatic bank switching
         let sprite = &SPRITE_DATA[id * 16];
         // ... draw sprite ...
@@ -169,7 +169,7 @@ fn draw_sprite(id: u8) {
 ### 5.2 Medium-Term (Significant Work)
 1. **Function pointers** - Requires IR changes
 2. **User modules** - File-based module system
-3. **Struct methods** - `impl Editor { fn new() -> Editor {} }`
+3. **Struct methods** - `impl Editor { fun new() -> Editor {} }`
 4. **Better arrays** - Slices and views
 5. **Conditional compilation** - `#[cfg(debug)]`
 
@@ -185,7 +185,7 @@ fn draw_sprite(id: u8) {
 ### 6.1 Register Allocation
 ```minz
 // Compiler should recognize these patterns
-fn swap_bytes(x: u16) -> u16 {
+fun swap_bytes(x: u16) -> u16 {
     return (x >> 8) | (x << 8);
 }
 // Should compile to: LD H, L; LD L, H

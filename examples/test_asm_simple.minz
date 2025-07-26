@@ -1,6 +1,6 @@
 // Test inline assembly support - simplified version
 
-fn set_border() -> void {
+fun set_border() -> void {
     asm {
         ld a, 2
         out ($FE), a
@@ -8,7 +8,7 @@ fn set_border() -> void {
     return;
 }
 
-fn delay() -> void {
+fun delay() -> void {
     asm {
         ld b, 255
 delay_loop:
@@ -17,7 +17,7 @@ delay_loop:
     return;
 }
 
-fn main() -> void {
+fun main() -> void {
     set_border();
     
     // Test direct port access

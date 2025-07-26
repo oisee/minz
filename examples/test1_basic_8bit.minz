@@ -1,8 +1,8 @@
 // test1_basic_8bit.minz
-fn add(x: u8, y: u8) -> u8 {
+fun add(x: u8, y: u8) -> u8 {
     return x + y
 }
 
-fn main() -> void {
+fun main() -> void {
     let result = add(5, 3)
 }

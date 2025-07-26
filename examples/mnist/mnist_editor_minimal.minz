@@ -2,7 +2,7 @@
 // Test basic functionality first
 
 // Set a pixel
-fn set_pixel(x: u8, y: u8) -> void {
+fun set_pixel(x: u8, y: u8) -> void {
     // Calculate address
     let screen_addr: u16 = 0x4000;
     let addr: u16 = screen_addr + ((y as u16) * 32) + ((x >> 3) as u16);
@@ -17,7 +17,7 @@ fn set_pixel(x: u8, y: u8) -> void {
     return;
 }
 
-fn main() -> void {
+fun main() -> void {
     // Draw a simple pattern
     let mut x: u8 = 0;
     while x < 16 {

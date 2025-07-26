@@ -11,7 +11,7 @@ let cursor_x: u8 = 8
 let cursor_y: u8 = 8
 
 // Set border color using direct port output
-fn set_border(color: u8) -> void {
+fun set_border(color: u8) -> void {
     // Simplified border setting
     asm {
         LD A, color
@@ -20,7 +20,7 @@ fn set_border(color: u8) -> void {
 }
 
 // Fill screen memory with pattern
-fn fill_screen_memory(pattern: u8) -> void {
+fun fill_screen_memory(pattern: u8) -> void {
     asm {
         LD HL, 0x4000    ; Screen start
         LD BC, 0x1800    ; Screen size  
@@ -36,7 +36,7 @@ fn fill_screen_memory(pattern: u8) -> void {
 }
 
 // Fill attribute memory  
-fn fill_attr_memory(attr: u8) -> void {
+fun fill_attr_memory(attr: u8) -> void {
     asm {
         LD HL, 0x5800    ; Attr start
         LD BC, 0x0300    ; Attr size
@@ -52,14 +52,14 @@ fn fill_attr_memory(attr: u8) -> void {
 }
 
 // Calculate attribute address
-fn calc_attr_addr(x: u8, y: u8) -> u16 {
+fun calc_attr_addr(x: u8, y: u8) -> u16 {
     let y_offset = (y as u16) * 32
     let result = ATTR_START + y_offset + (x as u16)
     return result
 }
 
 // XOR attribute at position to show cursor
-fn toggle_cursor_at(x: u8, y: u8) -> void {
+fun toggle_cursor_at(x: u8, y: u8) -> void {
     let addr = calc_attr_addr(x, y)
     asm {
         LD HL, addr
@@ -70,7 +70,7 @@ fn toggle_cursor_at(x: u8, y: u8) -> void {
 }
 
 // Read keyboard input from port
-fn read_keyboard_port(port: u8) -> u8 {
+fun read_keyboard_port(port: u8) -> u8 {
     asm {
         LD A, port
         IN A, (0xFE)
@@ -80,32 +80,32 @@ fn read_keyboard_port(port: u8) -> u8 {
 }
 
 // Simple movement functions with TRUE SMC
-fn move_cursor_up() -> void {
+fun move_cursor_up() -> void {
     if cursor_y > 0 {
         cursor_y = cursor_y - 1
     }
 }
 
-fn move_cursor_down() -> void {
+fun move_cursor_down() -> void {
     if cursor_y < 23 {
         cursor_y = cursor_y + 1
     }
 }
 
-fn move_cursor_left() -> void {
+fun move_cursor_left() -> void {
     if cursor_x > 0 {
         cursor_x = cursor_x - 1
     }
 }
 
-fn move_cursor_right() -> void {
+fun move_cursor_right() -> void {
     if cursor_x < 31 {
         cursor_x = cursor_x + 1
     }
 }
 
 // Toggle pixel at cursor position
-fn toggle_pixel() -> void {
+fun toggle_pixel() -> void {
     // Map to 16x16 area in top-left
     let pixel_x = cursor_x & 15
     let pixel_y = cursor_y & 15
@@ -124,7 +124,7 @@ fn toggle_pixel() -> void {
 }
 
 // Main editor loop
-fn main_editor_loop() -> void {
+fun main_editor_loop() -> void {
     let running: bool = true
     
     while running {
@@ -146,7 +146,7 @@ fn main_editor_loop() -> void {
 }
 
 // Simple delay function
-fn delay_loop() -> void {
+fun delay_loop() -> void {
     asm {
         LD BC, 0x1000
         delay_wait:
@@ -158,7 +158,7 @@ fn delay_loop() -> void {
 }
 
 // Simplified input handling
-fn handle_simple_input() -> void {
+fun handle_simple_input() -> void {
     // This would read keyboard and call movement functions
     // For now, just some basic movement simulation
     move_cursor_right()
@@ -172,14 +172,14 @@ fn handle_simple_input() -> void {
 }
 
 // Initialize screen
-fn init_screen() -> void {
+fun init_screen() -> void {
     set_border(4)  // Blue border
     fill_screen_memory(0x00)  // Clear screen
     fill_attr_memory(0x07)    // White on black
 }
 
 // Main entry point
-fn main() -> void {
+fun main() -> void {
     init_screen()
     main_editor_loop()
 }

@@ -59,7 +59,7 @@ struct CodeFeatures {
 }
 
 // Convert code snippet to feature vector
-pub fn vectorize_code(code: *u8, length: u16) -> CodeVector {
+pub fun vectorize_code(code: *u8, length: u16) -> CodeVector {
     let mut vec: CodeVector;
     let mut features = &vec.features;
     
@@ -129,7 +129,7 @@ pub fn vectorize_code(code: *u8, length: u16) -> CodeVector {
 }
 
 // Convert features to 256-bit vector
-fn features_to_bitvector(features: *CodeFeatures, vec: *Vector256) -> void {
+fun features_to_bitvector(features: *CodeFeatures, vec: *Vector256) -> void {
     // Bit allocation:
     // 0-33: Instruction presence (1 bit each)
     // 34-67: Instruction frequency (1 bit = above median)
@@ -179,14 +179,14 @@ fn features_to_bitvector(features: *CodeFeatures, vec: *Vector256) -> void {
 }
 
 // Set a bit in the vector
-fn set_bit(vec: *mut Vector256, bit_pos: u16) -> void {
+fun set_bit(vec: *mut Vector256, bit_pos: u16) -> void {
     let byte_idx = bit_pos >> 3;
     let bit_idx = bit_pos & 7;
     vec.bits[byte_idx] = vec.bits[byte_idx] | (1 << bit_idx);
 }
 
 // Parse a single Z80 instruction (simplified)
-fn parse_instruction(code: *u8) -> (u8, u8, u16) {
+fun parse_instruction(code: *u8) -> (u8, u8, u16) {
     let opcode = code[0];
     let mut inst_type: u8 = 0;
     let mut length: u8 = 1;
@@ -236,7 +236,7 @@ struct CodeSearchDB {
 }
 
 // Search for similar code patterns
-pub fn search_similar_code(db: *CodeSearchDB, query_code: *u8, 
+pub fun search_similar_code(db: *CodeSearchDB, query_code: *u8, 
                           query_len: u16, k: u8) -> [CodeSearchResult; 10] {
     // Vectorize the query code
     let query_vec = vectorize_code(query_code, query_len);
@@ -274,7 +274,7 @@ struct CodeSearchResult {
 }
 
 // Classify the type of match
-fn classify_match(query: *CodeFeatures, found: *CodeFeatures) -> u8 {
+fun classify_match(query: *CodeFeatures, found: *CodeFeatures) -> u8 {
     // Check instruction histogram similarity
     let mut hist_diff: u16 = 0;
     for i in 0..34 {
@@ -295,7 +295,7 @@ fn classify_match(query: *CodeFeatures, found: *CodeFeatures) -> u8 {
 }
 
 // Demo: Index and search assembly files
-fn demo_code_search() -> void {
+fun demo_code_search() -> void {
     // Initialize code search database
     let db = init_code_search_db();
     

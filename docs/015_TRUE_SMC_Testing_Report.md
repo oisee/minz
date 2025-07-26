@@ -72,11 +72,11 @@ param$imm0:
 // test1_basic_8bit.minz
 module test1
 
-fn add(x: u8, y: u8) -> u8 {
+fun add(x: u8, y: u8) -> u8 {
     return x + y
 }
 
-fn main() -> void {
+fun main() -> void {
     let result = add(5, 3)
 }
 ```
@@ -118,11 +118,11 @@ y$imm0:
 // test2_16bit_params.minz
 module test2
 
-fn multiply_add(a: u16, b: u16, c: u16) -> u16 {
+fun multiply_add(a: u16, b: u16, c: u16) -> u16 {
     return a * b + c
 }
 
-fn main() -> void {
+fun main() -> void {
     let result = multiply_add(10, 20, 5)
 }
 ```
@@ -166,7 +166,7 @@ c$imm0:
 // test3_param_reuse.minz
 module test3
 
-fn process(value: u8) -> u8 {
+fun process(value: u8) -> u8 {
     let temp = value + 10    // First use (anchor)
     if value > 50 {          // Second use (reuse)
         return value * 2     // Third use (reuse)
@@ -174,7 +174,7 @@ fn process(value: u8) -> u8 {
     return temp + value      // Fourth use (reuse)
 }
 
-fn main() -> void {
+fun main() -> void {
     let r1 = process(30)
     let r2 = process(60)
 }
@@ -217,7 +217,7 @@ value$imm0:
 // test4_mixed_types.minz
 module test4
 
-fn calculate(x: u8, y: u16, z: u8) -> u16 {
+fun calculate(x: u8, y: u16, z: u8) -> u16 {
     let result: u16 = x as u16
     result = result + y
     if z > 0 {
@@ -226,7 +226,7 @@ fn calculate(x: u8, y: u16, z: u8) -> u16 {
     return result
 }
 
-fn main() -> void {
+fun main() -> void {
     let answer = calculate(5, 1000, 2)
 }
 ```
@@ -244,14 +244,14 @@ fn main() -> void {
 // test5_recursive.minz
 module test5
 
-fn factorial(n: u8) -> u16 {
+fun factorial(n: u8) -> u16 {
     if n <= 1 {
         return 1
     }
     return (n as u16) * factorial(n - 1)
 }
 
-fn main() -> void {
+fun main() -> void {
     let result = factorial(5)
 }
 ```
@@ -423,17 +423,17 @@ if __name__ == "__main__":
 module true_smc_tests
 
 // Test 1: Basic anchor creation
-fn test_basic_anchor(x: u8) -> u8 {
+fun test_basic_anchor(x: u8) -> u8 {
     return x + 1  // Should create x$imm0
 }
 
 // Test 2: Multiple parameters
-fn test_multi_param(a: u8, b: u8, c: u8) -> u8 {
+fun test_multi_param(a: u8, b: u8, c: u8) -> u8 {
     return a + b + c  // Should create 3 anchors
 }
 
 // Test 3: Parameter reuse
-fn test_reuse(val: u8) -> u8 {
+fun test_reuse(val: u8) -> u8 {
     let x = val + 1    // First use (anchor)
     let y = val * 2    // Reuse
     let z = val - 1    // Reuse
@@ -441,17 +441,17 @@ fn test_reuse(val: u8) -> u8 {
 }
 
 // Test 4: 16-bit parameters
-fn test_16bit(addr: u16, size: u16) -> u16 {
+fun test_16bit(addr: u16, size: u16) -> u16 {
     return addr + size
 }
 
 // Test 5: Mixed with locals
-fn test_mixed(param: u8) -> u8 {
+fun test_mixed(param: u8) -> u8 {
     let local: u8 = 10
     return param + local  // param should use anchor, local should not
 }
 
-fn run_tests() -> void {
+fun run_tests() -> void {
     print("Test 1: ")
     print(test_basic_anchor(5))
     print("\n")

@@ -5,7 +5,7 @@ struct Point {
     y: u8
 }
 
-fn main() -> void {
+fun main() -> void {
     let mut p: Point;
     p.x = 10;
     p.y = 20;

@@ -17,7 +17,7 @@ The simple parser has a bug where it only parses the first statement in a block 
 
 Example that fails:
 ```minz
-fn main() -> void {
+fun main() -> void {
     let mut a: u8 = 1;    // This is parsed
     let mut b: u8 = 2;    // This is NOT parsed
     let mut c: u8 = 3;    // This is NOT parsed

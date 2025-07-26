@@ -1,10 +1,10 @@
 // test2_16bit_params.minz
 module test2
 
-fn multiply_add(a: u16, b: u16, c: u16) -> u16 {
+fun multiply_add(a: u16, b: u16, c: u16) -> u16 {
     return a * b + c
 }
 
-fn main() -> void {
+fun main() -> void {
     let result = multiply_add(10, 20, 5)
 }

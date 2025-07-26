@@ -15,7 +15,7 @@ type Editor = struct {
 };
 
 // Initialize editor
-fn editor_init() -> Editor {
+fun editor_init() -> Editor {
     let mut editor: Editor;
     editor.cursor_x = 8;
     editor.cursor_y = 8;
@@ -31,7 +31,7 @@ fn editor_init() -> Editor {
 }
 
 // Draw the UI frame
-fn draw_frame() -> void {
+fun draw_frame() -> void {
     // Clear screen - white on black
     screen.clear(screen.WHITE, screen.BLACK, false, false);
     
@@ -54,7 +54,7 @@ fn draw_frame() -> void {
 }
 
 // Draw text at character position with attributes
-fn draw_text(x: u8, y: u8, text: *const u8, ink: u8, paper: u8) -> void {
+fun draw_text(x: u8, y: u8, text: *const u8, ink: u8, paper: u8) -> void {
     // Set attributes for text area
     let attr_addr = screen.attr_addr(x, y);
     let attr: u8 = ink | (paper << 3) | screen.BRIGHT;
@@ -74,7 +74,7 @@ fn draw_text(x: u8, y: u8, text: *const u8, ink: u8, paper: u8) -> void {
 }
 
 // Draw the 16x16 canvas
-fn draw_canvas(editor: *Editor) -> void {
+fun draw_canvas(editor: *Editor) -> void {
     let grid_x: u8 = 64;  // Start X pixel
     let grid_y: u8 = 48;  // Start Y pixel
     
@@ -98,7 +98,7 @@ fn draw_canvas(editor: *Editor) -> void {
 }
 
 // Draw cursor (flashing pixel)
-fn draw_cursor(editor: *Editor, flash: bool) -> void {
+fun draw_cursor(editor: *Editor, flash: bool) -> void {
     let grid_x: u8 = 64;
     let grid_y: u8 = 48;
     
@@ -122,7 +122,7 @@ fn draw_cursor(editor: *Editor, flash: bool) -> void {
 }
 
 // Handle keyboard input
-fn handle_input(editor: *Editor) -> bool {
+fun handle_input(editor: *Editor) -> bool {
     // Check movement keys
     if input.is_key_pressed(input.KEY_Q) {
         // Move up
@@ -179,7 +179,7 @@ fn handle_input(editor: *Editor) -> bool {
 }
 
 // Simple delay for key repeat
-fn delay() -> void {
+fun delay() -> void {
     let mut count: u16 = 0;
     while count < 5000 {
         count = count + 1;
@@ -187,7 +187,7 @@ fn delay() -> void {
 }
 
 // Main program
-fn main() -> void {
+fun main() -> void {
     // Initialize editor
     let mut editor = editor_init();
     

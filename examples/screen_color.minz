@@ -4,7 +4,7 @@ const ATTR_START: u16 = 0x5800;
 const ATTR_SIZE: u16 = 768;
 
 // Set border color (0-7)
-fn set_border(color: u8) -> void {
+fun set_border(color: u8) -> void {
     asm("
         ld a, {0}
         out ($fe), a
@@ -12,7 +12,7 @@ fn set_border(color: u8) -> void {
 }
 
 // Fill screen attributes with a color
-fn fill_screen(ink: u8, paper: u8, bright: bool) -> void {
+fun fill_screen(ink: u8, paper: u8, bright: bool) -> void {
     let mut attr: u8 = ink | (paper << 3);
     if bright {
         attr = attr | 0x40;
@@ -30,7 +30,7 @@ fn fill_screen(ink: u8, paper: u8, bright: bool) -> void {
     }
 }
 
-fn main() -> void {
+fun main() -> void {
     // Blue border
     set_border(1);
     

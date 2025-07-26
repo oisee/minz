@@ -3,7 +3,7 @@
 import zx.screen;
 import zx.input;
 
-fn main() -> void {
+fun main() -> void {
     // Test screen constants
     let black = screen.BLACK;
     let white = screen.WHITE;

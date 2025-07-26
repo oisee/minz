@@ -4,7 +4,7 @@
 
 ### Simple Port Output
 ```minz
-fn set_border_red() -> void {
+fun set_border_red() -> void {
     asm {
         ld a, 2
         out ($FE), a
@@ -15,7 +15,7 @@ fn set_border_red() -> void {
 
 ### Working with Constants
 ```minz
-fn clear_screen() -> void {
+fun clear_screen() -> void {
     asm {
         ld hl, $4000      ; Screen start
         ld de, $4001
@@ -29,7 +29,7 @@ fn clear_screen() -> void {
 
 ### Labels in Assembly
 ```minz
-fn delay() -> void {
+fun delay() -> void {
     asm {
         ld b, 255
 delay_loop:
@@ -41,7 +41,7 @@ delay_loop:
 
 ### Multiple Instructions
 ```minz
-fn draw_pattern() -> void {
+fun draw_pattern() -> void {
     asm {
         ; Draw vertical line
         ld hl, $4000
@@ -69,7 +69,7 @@ Example (will work in future):
 ```minz
 let screen_buffer: u16 = 0x4000;
 
-fn clear_buffer() -> void {
+fun clear_buffer() -> void {
     asm {
         ld hl, (!screen_buffer)
         ld de, (!screen_buffer + 1)
@@ -85,7 +85,7 @@ fn clear_buffer() -> void {
 
 ### Complete Program - Border Flash
 ```minz
-fn flash_border() -> void {
+fun flash_border() -> void {
     let mut i: u8 = 0;
     while i < 10 {
         asm {
@@ -105,7 +105,7 @@ fn flash_border() -> void {
     return;
 }
 
-fn delay() -> void {
+fun delay() -> void {
     asm {
         ld bc, $FFFF
 delay_loop:
@@ -117,7 +117,7 @@ delay_loop:
     return;
 }
 
-fn main() -> void {
+fun main() -> void {
     flash_border();
     
     asm {
@@ -130,7 +130,7 @@ fn main() -> void {
 
 ### Pixel Plotting (Direct)
 ```minz
-fn plot_pixel() -> void {
+fun plot_pixel() -> void {
     // Plot at (0,0)
     asm {
         ld hl, $4000      ; Screen address

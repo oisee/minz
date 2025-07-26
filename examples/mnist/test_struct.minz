@@ -5,7 +5,7 @@ struct Point {
     y: u8
 }
 
-fn main() -> void {
+fun main() -> void {
     let p: Point;
     // TODO: Test field assignment when implemented
     return;

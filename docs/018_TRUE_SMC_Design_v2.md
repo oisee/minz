@@ -198,7 +198,7 @@ threshold$imm0 EQU threshold$immOP+1
 ## 8. Example: Complete Function
 
 ```asm
-; MinZ: fn add(x: u8, y: u8) -> u8 { return x + y }
+; MinZ: fun add(x: u8, y: u8) -> u8 { return x + y }
 
 add:
 x$immOP:

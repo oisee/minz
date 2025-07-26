@@ -57,7 +57,7 @@ struct VectorDB {
 const DB_ADDRESS: u16 = 0x8000;
 
 // Initialize database
-fn init_database() -> *mut VectorDB {
+fun init_database() -> *mut VectorDB {
     let db = DB_ADDRESS as *mut VectorDB;
     
     // Clear all data
@@ -70,7 +70,7 @@ fn init_database() -> *mut VectorDB {
 }
 
 // Count set bits in XOR result (Hamming distance)
-fn hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
+fun hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
     let mut distance: u8 = 0;
     
     // XOR and count differing bits
@@ -83,7 +83,7 @@ fn hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
 }
 
 // Calculate 1-bit dot product similarity
-fn dot_product_1bit(a: *Vector256, b: *Vector256) -> i16 {
+fun dot_product_1bit(a: *Vector256, b: *Vector256) -> i16 {
     let hamming = hamming_distance(a, b) as i16;
     // Similarity = total_bits - 2 * differing_bits
     return 256 - (hamming << 1);
@@ -91,7 +91,7 @@ fn dot_product_1bit(a: *Vector256, b: *Vector256) -> i16 {
 
 // Fast vector address calculation using shift-by-5
 @smc_optimize
-fn get_vector_ptr(db: *VectorDB, index: u8) -> *Vector256 {
+fun get_vector_ptr(db: *VectorDB, index: u8) -> *Vector256 {
     // Each vector is 32 bytes, so multiply index by 32
     // Using inline assembly for fast shift
     let offset: u16;
@@ -111,7 +111,7 @@ fn get_vector_ptr(db: *VectorDB, index: u8) -> *Vector256 {
 }
 
 // Simple hash function (sum of first 4 bytes mod 16)
-fn compute_hash(vec: *Vector256) -> u8 {
+fun compute_hash(vec: *Vector256) -> u8 {
     let mut hash: u8 = 0;
     for i in 0..4 {
         hash = hash + vec.bits[i];
@@ -120,7 +120,7 @@ fn compute_hash(vec: *Vector256) -> u8 {
 }
 
 // Add vector to database
-fn add_vector(db: *mut VectorDB, data: *u8) -> bool {
+fun add_vector(db: *mut VectorDB, data: *u8) -> bool {
     if db.count >= MAX_VECTORS {
         return false;  // Database full
     }
@@ -146,7 +146,7 @@ fn add_vector(db: *mut VectorDB, data: *u8) -> bool {
 }
 
 // Brute force search
-fn search_brute_force(db: *VectorDB, query: *Vector256) -> SearchResult {
+fun search_brute_force(db: *VectorDB, query: *Vector256) -> SearchResult {
     let mut best = SearchResult {
         index: 255,
         distance: 255,
@@ -168,7 +168,7 @@ fn search_brute_force(db: *VectorDB, query: *Vector256) -> SearchResult {
 }
 
 // Hash-accelerated search
-fn search_nearest(db: *VectorDB, query: *Vector256) -> SearchResult {
+fun search_nearest(db: *VectorDB, query: *Vector256) -> SearchResult {
     let hash = compute_hash(query);
     let bucket_count = db.bucket_counts[hash];
     
@@ -200,7 +200,7 @@ fn search_nearest(db: *VectorDB, query: *Vector256) -> SearchResult {
 }
 
 // Demo: Create test vectors and search
-fn main() -> void {
+fun main() -> void {
     // Initialize database
     let db = init_database();
     
@@ -266,7 +266,7 @@ const HYPERPLANE_1: Vector256 = Vector256 {
 };
 
 // Advanced: Use hyperplane for better hash function
-fn compute_hyperplane_hash(vec: *Vector256) -> u8 {
+fun compute_hyperplane_hash(vec: *Vector256) -> u8 {
     // Dot product with fixed hyperplane
     let dot = dot_product_1bit(vec, &HYPERPLANE_1);
     

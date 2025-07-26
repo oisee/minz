@@ -1,5 +1,5 @@
 // Fibonacci sequence calculator
-fn fibonacci(n: u8) -> u16 {
+fun fibonacci(n: u8) -> u16 {
     if n <= 1 {
         return n;
     }
@@ -18,7 +18,7 @@ fn fibonacci(n: u8) -> u16 {
     return b;
 }
 
-fn main() -> void {
+fun main() -> void {
     // Calculate 10th Fibonacci number
     let result = fibonacci(10);
 }

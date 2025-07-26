@@ -2,7 +2,7 @@
 
 import zx.screen;
 
-fn main() -> void {
+fun main() -> void {
     // Test direct usage of screen constants
     screen.set_border(screen.BLUE);
     

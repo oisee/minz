@@ -6,7 +6,7 @@ type Nibbles = bits {
     high: 4   // Bits 4-7
 };
 
-fn main() -> void {
+fun main() -> void {
     // Test basic casts
     let byte_val: u8 = 0xAB
     

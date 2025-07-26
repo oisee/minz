@@ -1,5 +1,5 @@
 // Test with variable declaration
 
-fn main() -> void {
+fun main() -> void {
     let x = 5;
 }

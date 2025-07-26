@@ -26,7 +26,7 @@ enum Key {
 }
 
 // Function to get opposite direction
-fn opposite(dir: Direction) -> Direction {
+fun opposite(dir: Direction) -> Direction {
     if dir == Direction.Up {
         return Direction.Down;
     } else if dir == Direction.Down {
@@ -39,7 +39,7 @@ fn opposite(dir: Direction) -> Direction {
 }
 
 // Function to handle game state transitions
-fn next_state(current: GameState, input: Key) -> GameState {
+fun next_state(current: GameState, input: Key) -> GameState {
     if current == GameState.Menu {
         if input == Key.KeySpace {
             return GameState.Playing;
@@ -59,7 +59,7 @@ fn next_state(current: GameState, input: Key) -> GameState {
     return current;
 }
 
-fn main() -> void {
+fun main() -> void {
     // Initialize game state
     let mut state = GameState.Menu;
     let mut player_dir = Direction.Right;

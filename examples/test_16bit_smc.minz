@@ -1,8 +1,8 @@
 // test_16bit_smc.minz - Test TRUE SMC with 16-bit parameters
-fn multiply_add(a: u16, b: u16, c: u16) -> u16 {
+fun multiply_add(a: u16, b: u16, c: u16) -> u16 {
     return a * b + c
 }
 
-fn main() -> void {
+fun main() -> void {
     let result = multiply_add(10, 20, 5)
 }

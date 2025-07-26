@@ -16,7 +16,7 @@ struct Editor {
 }
 
 // Calculate screen address from pixel coordinates
-fn pixel_addr(x: u8, y: u8) -> u16 {
+fun pixel_addr(x: u8, y: u8) -> u16 {
     let y_low: u8 = y & 0x07;
     let y_mid: u8 = (y & 0x38) >> 3;
     let y_high: u8 = (y & 0xC0) >> 6;
@@ -31,7 +31,7 @@ fn pixel_addr(x: u8, y: u8) -> u16 {
 }
 
 // Set pixel at coordinates
-fn set_pixel(x: u8, y: u8) -> void {
+fun set_pixel(x: u8, y: u8) -> void {
     let addr = pixel_addr(x, y);
     let bit: u8 = 0x80 >> (x & 0x07);
     
@@ -44,7 +44,7 @@ fn set_pixel(x: u8, y: u8) -> void {
 }
 
 // Clear pixel at coordinates
-fn clear_pixel(x: u8, y: u8) -> void {
+fun clear_pixel(x: u8, y: u8) -> void {
     let addr = pixel_addr(x, y);
     let bit: u8 = ~(0x80 >> (x & 0x07));
     
@@ -57,7 +57,7 @@ fn clear_pixel(x: u8, y: u8) -> void {
 }
 
 // Read keyboard port
-fn read_keyboard(port: u8) -> u8 {
+fun read_keyboard(port: u8) -> u8 {
     let result: u8;
     asm("
         ld a, {0}
@@ -68,13 +68,13 @@ fn read_keyboard(port: u8) -> u8 {
 }
 
 // Check if a key is pressed (active low)
-fn is_key_pressed(port: u8, bit: u8) -> bool {
+fun is_key_pressed(port: u8, bit: u8) -> bool {
     let value = read_keyboard(port);
     return (value & (1 << bit)) == 0;
 }
 
 // Clear screen
-fn clear_screen() -> void {
+fun clear_screen() -> void {
     // Clear bitmap
     let mut addr: u16 = SCREEN_ADDR;
     let end: u16 = SCREEN_ADDR + 6144;
@@ -101,7 +101,7 @@ fn clear_screen() -> void {
 }
 
 // Draw the 16x16 canvas
-fn draw_canvas(editor: *Editor) -> void {
+fun draw_canvas(editor: *Editor) -> void {
     let grid_x: u8 = 64;  // Start X pixel (center of screen)
     let grid_y: u8 = 48;  // Start Y pixel
     
@@ -130,7 +130,7 @@ fn draw_canvas(editor: *Editor) -> void {
 }
 
 // Draw cursor
-fn draw_cursor(editor: *Editor) -> void {
+fun draw_cursor(editor: *Editor) -> void {
     let grid_x: u8 = 64;
     let grid_y: u8 = 48;
     
@@ -150,7 +150,7 @@ fn draw_cursor(editor: *Editor) -> void {
 }
 
 // Toggle pixel in canvas
-fn toggle_pixel(editor: *Editor) -> void {
+fun toggle_pixel(editor: *Editor) -> void {
     let x = editor.cursor_x;
     let y = editor.cursor_y;
     
@@ -162,7 +162,7 @@ fn toggle_pixel(editor: *Editor) -> void {
 }
 
 // Simple delay
-fn delay() -> void {
+fun delay() -> void {
     let mut count: u16 = 0;
     while count < 2000 {
         count = count + 1;
@@ -170,7 +170,7 @@ fn delay() -> void {
 }
 
 // Main program
-fn main() -> void {
+fun main() -> void {
     // Initialize editor
     let mut editor: Editor;
     editor.cursor_x = 8;

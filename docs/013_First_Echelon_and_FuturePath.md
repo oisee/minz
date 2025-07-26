@@ -95,7 +95,7 @@
 
 ### Carry-`with` пример
 ```minz
-fn read_u8() -> {ok, u8} | {error, u8};
+fun read_u8() -> {ok, u8} | {error, u8};
 
 with {ok, a} <- read_u8(),
      {ok, b} <- read_u8(),
@@ -134,7 +134,7 @@ for i in 10..0 {
 ### `smc_bind`
 ```minz
 @abi(smc)
-fn plot(x: u8, y: u8, col: u8) -> void { ... }
+fun plot(x: u8, y: u8, col: u8) -> void { ... }
 
 let plot_white = smc_bind plot(col=7);  // зашит col$imm0=7
 plot_white(10, 20);                     // патчатся только якоря x/y
@@ -180,7 +180,7 @@ plot_white(10, 20);                     // патчатся только яко�
 flowchart LR
   P02[Phase 0.2<br/>Named args, match,<br/>defer, DJNZ, &i, reports] --> P03[Phase 0.3<br/>Carry ABI + with,<br/>smc_guard, smc_bind,<br/>annotated .a80]
   P03 --> P04[Phase 0.4<br/>TRUE SMC anchors impl,<br/>PATCH-TABLE stabilize]
-  P04 --> P05[Phase 0.5<br/>Function pointers (min),<br/>smc_bind 2.0 for fn-ptr]
+  P04 --> P05[Phase 0.5<br/>Function pointers (min),<br/>smc_bind 2.0 for fun-ptr]
   P05 --> P06[Phase 0.6<br/>Tooling polish,<br/>source-maps, warnings]
   P06 --> P07[Phase 0.7<br/>Concurrency Lite,<br/>channels (ring), select]
   P07 --> P10[Phase 1.0<br/>MinZ-native meta,<br/>const-eval, specialization]

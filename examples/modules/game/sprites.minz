@@ -11,7 +11,7 @@ pub struct Sprite {
     data: *u8,
 }
 
-pub fn create(x: u8, y: u8, data: *u8) -> Sprite {
+pub fun create(x: u8, y: u8, data: *u8) -> Sprite {
     return Sprite {
         x: x,
         y: y,
@@ -21,7 +21,7 @@ pub fn create(x: u8, y: u8, data: *u8) -> Sprite {
     };
 }
 
-pub fn draw(s: *Sprite) -> void {
+pub fun draw(s: *Sprite) -> void {
     let mut row: u8 = 0;
     
     while row < s.height {
@@ -37,7 +37,7 @@ pub fn draw(s: *Sprite) -> void {
     }
 }
 
-pub fn clear(s: *Sprite) -> void {
+pub fun clear(s: *Sprite) -> void {
     let mut row: u8 = 0;
     
     while row < s.height {
@@ -52,7 +52,7 @@ pub fn clear(s: *Sprite) -> void {
     }
 }
 
-pub fn move(s: *mut Sprite, new_x: u8, new_y: u8) -> void {
+pub fun move(s: *mut Sprite, new_x: u8, new_y: u8) -> void {
     // Clear old position
     clear(s);
     
@@ -64,7 +64,7 @@ pub fn move(s: *mut Sprite, new_x: u8, new_y: u8) -> void {
     draw(s);
 }
 
-pub fn collides(s1: *Sprite, s2: *Sprite) -> bool {
+pub fun collides(s1: *Sprite, s2: *Sprite) -> bool {
     // Simple bounding box collision
     if s1.x + s1.width <= s2.x {
         return false;

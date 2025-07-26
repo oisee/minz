@@ -283,17 +283,8 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "fn"
-            },
-            {
-              "type": "STRING",
-              "value": "fun"
-            }
-          ]
+          "type": "STRING",
+          "value": "fun"
         },
         {
           "type": "STRING",
@@ -591,17 +582,8 @@
           ]
         },
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "fn"
-            },
-            {
-              "type": "STRING",
-              "value": "fun"
-            }
-          ]
+          "type": "STRING",
+          "value": "fun"
         },
         {
           "type": "SYMBOL",

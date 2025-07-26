@@ -2,7 +2,7 @@
 // Demonstrates basic SMC concepts without complex dependencies
 
 // Simple function that could benefit from SMC
-fn draw_horizontal_line(y: u8, color: u8, length: u8) -> void {
+fun draw_horizontal_line(y: u8, color: u8, length: u8) -> void {
     // The 'y' parameter can be embedded in the code itself
     let mut x: u8 = 0;
     while x < length {
@@ -17,7 +17,7 @@ fn draw_horizontal_line(y: u8, color: u8, length: u8) -> void {
 }
 
 // Example with modifiable constant
-fn animation_frame() -> void {
+fun animation_frame() -> void {
     // This "constant" can be modified between calls
     let mut frame_offset: u8 = 0;  // Will be optimized to SMC
     
@@ -35,7 +35,7 @@ fn animation_frame() -> void {
 }
 
 // Game state using SMC for frequently accessed values
-fn game_loop() -> void {
+fun game_loop() -> void {
     // These values are read frequently but modified rarely
     let mut player_lives: u8 = 3;
     let mut score: u16 = 0;
@@ -60,13 +60,13 @@ fn game_loop() -> void {
 }
 
 // Non-recursive function showing parameter optimization
-fn add_constant(x: u8) -> u8 {
+fun add_constant(x: u8) -> u8 {
     // In SMC mode, the constant 42 could be embedded directly
     return x + 42;
 }
 
 // Main function
-fn main() -> void {
+fun main() -> void {
     // Test SMC functions
     draw_horizontal_line(10, 7, 32);
     animation_frame();

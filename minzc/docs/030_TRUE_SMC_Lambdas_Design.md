@@ -7,7 +7,7 @@ You're absolutely right - TRUE SMC provides the perfect mechanism for ultra-effi
 ## Core Concept
 
 ```minz
-fn make_adder(x: u8) -> fn(u8) -> u8 {
+fun make_adder(x: u8) -> fun(u8) -> u8 {
     return |y| x + y  // x is captured and patched into the lambda!
 }
 
@@ -61,7 +61,7 @@ make_adder:
 ## Multiple Captures
 
 ```minz
-fn make_rect_area(width: u8, height: u8) -> fn() -> u16 {
+fun make_rect_area(width: u8, height: u8) -> fun() -> u16 {
     return || width * height
 }
 ```

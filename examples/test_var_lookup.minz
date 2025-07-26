@@ -1,6 +1,6 @@
 // Test if global variables work
 let x: u8 = 42;
 
-fn main() -> void {
+fun main() -> void {
     let y: u8 = x;
 }

@@ -7,7 +7,7 @@ struct Point {
 
 let points: [Point; 4];
 
-fn main() -> void {
+fun main() -> void {
     // Test loop with INTO mode (modifying)
     loop points into p {
         p.x = 100;

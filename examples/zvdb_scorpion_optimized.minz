@@ -25,7 +25,7 @@ import std.mem;
 
 // Vector operation using shadow registers
 @shadow_registers
-fn fast_hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
+fun fast_hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
     // Use shadow registers for parallel processing
     let mut dist: u8 = 0;
     
@@ -58,7 +58,7 @@ fn fast_hamming_distance(a: *Vector256, b: *Vector256) -> u8 {
 }
 
 // DMA-accelerated vector copy
-fn dma_copy_vector(dst: *mut Vector256, src: *Vector256) -> void {
+fun dma_copy_vector(dst: *mut Vector256, src: *Vector256) -> void {
     asm("
         ; Setup DMA transfer
         ld hl, {0}
@@ -75,7 +75,7 @@ fn dma_copy_vector(dst: *mut Vector256, src: *Vector256) -> void {
 // Interrupt-driven background indexing
 @interrupt
 @shadow_registers
-fn vblank_reindex_handler() -> void {
+fun vblank_reindex_handler() -> void {
     // Check if reindexing is needed
     let status = REINDEX_STATUS as *mut u8;
     if *status == 0 {
@@ -109,7 +109,7 @@ const CURRENT_DB: u16 = 0x5B03;
 
 // Turbo hash computation using unrolled loops
 @smc_optimize
-fn compute_hash_turbo(vec: *Vector256, db: *VectorDB) -> u8 {
+fun compute_hash_turbo(vec: *Vector256, db: *VectorDB) -> u8 {
     let mut hash: u8 = 0;
     
     // Unroll for 8 hyperplanes
@@ -138,7 +138,7 @@ end
 ]]
 
 // Optimized dot product using Scorpion's extended instructions
-fn dot_product_fast(a: *Vector256, b: *Vector256) -> bool {
+fun dot_product_fast(a: *Vector256, b: *Vector256) -> bool {
     let positive: bool;
     
     asm("
@@ -195,7 +195,7 @@ struct MultiHashIndex {
 }
 
 // Parallel search using both register sets
-fn parallel_search(db: *mut VectorDB, queries: *[Vector256; 2]) -> [SearchResult; 2] {
+fun parallel_search(db: *mut VectorDB, queries: *[Vector256; 2]) -> [SearchResult; 2] {
     let mut results: [SearchResult; 2];
     
     asm("
@@ -218,7 +218,7 @@ fn parallel_search(db: *mut VectorDB, queries: *[Vector256; 2]) -> [SearchResult
 }
 
 // Batch operations with prefetching
-pub fn batch_knn_search(db: *mut VectorDB, queries: *Vector256, 
+pub fun batch_knn_search(db: *mut VectorDB, queries: *Vector256, 
                        count: u16, k: u8, results: *mut SearchResult) -> void {
     // Enable turbo mode for Scorpion
     asm("
@@ -277,7 +277,7 @@ pub fn batch_knn_search(db: *mut VectorDB, queries: *Vector256,
 }
 
 // Predict which page will be needed for a hash bucket
-fn predict_page_for_hash(hash: u8, db: *VectorDB) -> u8 {
+fun predict_page_for_hash(hash: u8, db: *VectorDB) -> u8 {
     let bucket = &db.hash_index[hash];
     if bucket.count > 0 {
         let first_idx = bucket.indices[0];
@@ -287,7 +287,7 @@ fn predict_page_for_hash(hash: u8, db: *VectorDB) -> u8 {
 }
 
 // Asynchronous page prefetching
-fn prefetch_page(page: u8) -> void {
+fun prefetch_page(page: u8) -> void {
     if page < 128 {
         asm("
             ld a, {0}
@@ -298,7 +298,7 @@ fn prefetch_page(page: u8) -> void {
 }
 
 // Optimized KNN with pre-computed hash
-fn search_knn_optimized(db: *mut VectorDB, query: *Vector256, 
+fun search_knn_optimized(db: *mut VectorDB, query: *Vector256, 
                        k: u8, hash: u8) -> [SearchResult; 10] {
     let mut results: [SearchResult; 10];
     
@@ -338,7 +338,7 @@ fn search_knn_optimized(db: *mut VectorDB, query: *Vector256,
 }
 
 // Process multiple vectors in a single pass
-fn process_vector_batch(db: *mut VectorDB, query: *Vector256, 
+fun process_vector_batch(db: *mut VectorDB, query: *Vector256, 
                        indices: *u16, count: u8,
                        results: *mut SearchResult, k: u8) -> void {
     // Load all vectors first
@@ -359,7 +359,7 @@ fn process_vector_batch(db: *mut VectorDB, query: *Vector256,
 }
 
 // Fast result insertion without full sorting
-fn insert_result_fast(results: *mut SearchResult, k: u8, index: u16,
+fun insert_result_fast(results: *mut SearchResult, k: u8, index: u16,
                      similarity: i16, meta: *VectorMeta) -> void {
     // Quick check against worst result
     if similarity <= results[k-1].similarity {
@@ -393,7 +393,7 @@ fn insert_result_fast(results: *mut SearchResult, k: u8, index: u16,
 }
 
 // Demonstration of all optimizations
-fn main() -> void {
+fun main() -> void {
     // Initialize with Scorpion optimizations
     let db = init_database_turbo();
     

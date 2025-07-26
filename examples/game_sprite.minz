@@ -8,7 +8,7 @@ type Sprite = struct {
 };
 
 // Calculate screen address from coordinates
-fn screen_addr(x: u8, y: u8) -> u16 {
+fun screen_addr(x: u8, y: u8) -> u16 {
     // ZX Spectrum screen memory layout
     let y_high: u8 = y & 0xC0;
     let y_mid: u8 = (y & 0x38) << 2;
@@ -18,7 +18,7 @@ fn screen_addr(x: u8, y: u8) -> u16 {
 }
 
 // Draw 8x8 sprite
-fn draw_sprite(x: u8, y: u8, data: *u8) -> void {
+fun draw_sprite(x: u8, y: u8, data: *u8) -> void {
     let mut row: u8 = 0;
     
     while row < 8 {
@@ -46,7 +46,7 @@ const player_sprite: [u8; 8] = [
     0b00000000
 ];
 
-fn main() -> void {
+fun main() -> void {
     // Draw player sprite at position (128, 96)
     draw_sprite(128, 96, &player_sprite[0]);
 }

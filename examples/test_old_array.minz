@@ -2,6 +2,6 @@
 
 let old_array: [10]u8;
 
-fn main() -> void {
+fun main() -> void {
     old_array[0] = 42;
 }

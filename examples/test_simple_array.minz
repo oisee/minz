@@ -3,6 +3,6 @@
 // Only new syntax
 let new_array: [u8; 10];
 
-fn main() -> void {
+fun main() -> void {
     new_array[0] = 43;
 }

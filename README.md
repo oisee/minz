@@ -30,7 +30,7 @@ MinZ is a minimal systems programming language designed for Z80-based computers,
 
 #### Hello World
 ```minz
-fn main() -> void {
+fun main() -> void {
     // Simple function that returns
     let x: u8 = 42;
 }
@@ -38,20 +38,20 @@ fn main() -> void {
 
 #### Arithmetic Operations
 ```minz
-fn calculate(a: u8, b: u8) -> u16 {
+fun calculate(a: u8, b: u8) -> u16 {
     let sum: u16 = a + b;
     let product: u16 = a * b;
     return sum + product;
 }
 
-fn main() -> void {
+fun main() -> void {
     let result = calculate(5, 10);
 }
 ```
 
 #### Control Flow
 ```minz
-fn max(a: i16, b: i16) -> i16 {
+fun max(a: i16, b: i16) -> i16 {
     if a > b {
         return a;
     } else {
@@ -59,7 +59,7 @@ fn max(a: i16, b: i16) -> i16 {
     }
 }
 
-fn count_to_ten() -> void {
+fun count_to_ten() -> void {
     let mut i: u8 = 0;
     while i < 10 {
         i = i + 1;
@@ -69,7 +69,7 @@ fn count_to_ten() -> void {
 
 #### Arrays and Pointers
 ```minz
-fn sum_array(arr: *u8, len: u8) -> u16 {
+fun sum_array(arr: *u8, len: u8) -> u16 {
     let mut sum: u16 = 0;
     let mut i: u8 = 0;
     
@@ -95,7 +95,7 @@ struct Player {
     score: u16,
 }
 
-fn move_player(player: *mut Player, dx: i16, dy: i16) -> void {
+fun move_player(player: *mut Player, dx: i16, dy: i16) -> void {
     player.position.x = player.position.x + dx;
     player.position.y = player.position.y + dy;
 }
@@ -116,7 +116,7 @@ enum GameState {
     GameOver,
 }
 
-fn turn_right(dir: Direction) -> Direction {
+fun turn_right(dir: Direction) -> Direction {
     case dir {
         Direction.North => Direction.East,
         Direction.East => Direction.South,
@@ -128,7 +128,7 @@ fn turn_right(dir: Direction) -> Direction {
 
 #### Inline Assembly
 ```minz
-fn set_border_color(color: u8) -> void {
+fun set_border_color(color: u8) -> void {
     asm("
         ld a, {0}
         out ($fe), a
@@ -150,7 +150,7 @@ struct Particle {
 
 let particles: [Particle; 100];
 
-fn update_particles() -> void {
+fun update_particles() -> void {
     // INTO mode copies each element to a static buffer
     // Fields are accessed with direct memory addressing (7 T-states)
     loop particles into p {
@@ -165,7 +165,7 @@ fn update_particles() -> void {
 ```minz
 let scores: [u16; 50];
 
-fn calculate_total() -> u16 {
+fun calculate_total() -> u16 {
     let mut total: u16 = 0;
     
     // REF TO mode uses pointer access (11 T-states)
@@ -182,7 +182,7 @@ fn calculate_total() -> u16 {
 ```minz
 let enemies: [Enemy; 20];
 
-fn find_boss() -> u8 {
+fun find_boss() -> u8 {
     // Both modes support indexed iteration
     loop enemies indexed to enemy, idx {
         if enemy.type == EnemyType.Boss {
@@ -203,7 +203,7 @@ pub struct Vec2 {
     y: i16,
 }
 
-pub fn add(a: Vec2, b: Vec2) -> Vec2 {
+pub fun add(a: Vec2, b: Vec2) -> Vec2 {
     return Vec2 { x: a.x + b.x, y: a.y + b.y };
 }
 
@@ -211,7 +211,7 @@ pub fn add(a: Vec2, b: Vec2) -> Vec2 {
 import math.vector;
 import zx.screen;
 
-fn main() -> void {
+fun main() -> void {
     let v1 = vector.Vec2 { x: 10, y: 20 };
     let v2 = vector.Vec2 { x: 5, y: 3 };
     let sum = vector.add(v1, v2);
@@ -263,7 +263,7 @@ See [LUA_METAPROGRAMMING.md](LUA_METAPROGRAMMING.md) for the complete guide.
 // Interrupt handler using shadow registers
 @interrupt
 @shadow_registers
-fn vblank_handler() -> void {
+fun vblank_handler() -> void {
     // Automatically uses EXX and EX AF,AF'
     // No need to save/restore registers manually
     frame_counter = frame_counter + 1;
@@ -272,7 +272,7 @@ fn vblank_handler() -> void {
 
 // Fast operations with shadow registers
 @shadow
-fn fast_copy(dst: *mut u8, src: *u8, len: u16) -> void {
+fun fast_copy(dst: *mut u8, src: *u8, len: u16) -> void {
     // Can use both main and shadow register sets
     // for maximum performance
 }
@@ -412,17 +412,17 @@ make build
 ### Functions
 ```minz
 // Basic function
-fn add(a: u8, b: u8) -> u8 {
+fun add(a: u8, b: u8) -> u8 {
     return a + b;
 }
 
 // Public function (can be exported)
-pub fn get_version() -> u8 {
+pub fun get_version() -> u8 {
     return 1;
 }
 
 // Multiple return values
-fn divmod(n: u16, d: u16) -> (u16, u16) {
+fun divmod(n: u16, d: u16) -> (u16, u16) {
     return (n / d, n % d);
 }
 ```

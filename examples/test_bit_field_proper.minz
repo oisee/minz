@@ -3,7 +3,7 @@ type Nibbles = bits {
     high: 4
 };
 
-fn main() -> void {
+fun main() -> void {
     let mut value: u8 = 0xAB;
     let mut bits: Nibbles = value as Nibbles;
     let mut low: u8 = bits.low;

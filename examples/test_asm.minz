@@ -3,7 +3,7 @@
 const BORDER: u8 = 0xFE;
 let color: u8 = 2;
 
-fn set_border() -> void {
+fun set_border() -> void {
     asm {
         ld a, (!color)
         out (!BORDER), a
@@ -11,7 +11,7 @@ fn set_border() -> void {
     return;
 }
 
-fn delay() -> void {
+fun delay() -> void {
     asm {
         ld b, 255
 delay_loop:
@@ -30,14 +30,14 @@ asm fast_clear {
     ret
 }
 
-fn clear_screen() -> void {
+fun clear_screen() -> void {
     asm {
         call !fast_clear
     }
     return;
 }
 
-fn main() -> void {
+fun main() -> void {
     set_border();
     clear_screen();
     

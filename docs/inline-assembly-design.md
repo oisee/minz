@@ -8,7 +8,7 @@ MinZ inline assembly provides a thin layer over raw Z80 assembly, performing onl
 
 ### Basic Inline Assembly Block
 ```minz
-fn set_pixel(x: u8, y: u8) -> void {
+fun set_pixel(x: u8, y: u8) -> void {
     let addr: u16 = calculate_address(x, y);
     let mask: u8 = 1 << (x & 7);
     
@@ -33,7 +33,7 @@ asm fast_clear {
     ret
 }
 
-fn clear_screen() -> void {
+fun clear_screen() -> void {
     asm {
         call !fast_clear   ; Reference named asm block
     }
@@ -130,7 +130,7 @@ Input MinZ:
 const SCREEN: u16 = $4000;
 let counter: u8 = 0;
 
-fn increment() -> void {
+fun increment() -> void {
     asm {
         ld hl, !counter
         inc (hl)

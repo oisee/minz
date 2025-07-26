@@ -2,7 +2,7 @@
 // Focuses on testing TRUE SMC optimization with ZX Spectrum operations
 
 // Set border color (TRUE SMC function)
-fn set_border_color(color: u8) -> void {
+fun set_border_color(color: u8) -> void {
     asm {
         LD A, color
         OUT (0xFE), A
@@ -10,7 +10,7 @@ fn set_border_color(color: u8) -> void {
 }
 
 // Clear screen memory (TRUE SMC function)
-fn clear_screen_area(start_addr: u16, size: u16) -> void {
+fun clear_screen_area(start_addr: u16, size: u16) -> void {
     asm {
         LD HL, start_addr
         LD BC, size
@@ -26,7 +26,7 @@ clear_loop:
 }
 
 // Set attribute at position (TRUE SMC function)
-fn set_attribute(x: u8, y: u8, attr: u8) -> void {
+fun set_attribute(x: u8, y: u8, attr: u8) -> void {
     let base_addr: u16 = 0x5800
     let offset = (y as u16) * 32 + (x as u16)
     let addr = base_addr + offset
@@ -39,7 +39,7 @@ fn set_attribute(x: u8, y: u8, attr: u8) -> void {
 }
 
 // Draw pixel in screen memory (TRUE SMC function)
-fn draw_pixel(x: u8, y: u8, pixel_on: u8) -> void {
+fun draw_pixel(x: u8, y: u8, pixel_on: u8) -> void {
     // Simplified ZX Spectrum screen address calculation
     let line_base: u16 = 0x4000
     let line_offset = (y as u16) * 32
@@ -66,7 +66,7 @@ fn draw_pixel(x: u8, y: u8, pixel_on: u8) -> void {
 }
 
 // Simple delay (TRUE SMC function)
-fn wait_delay(loops: u16) -> void {
+fun wait_delay(loops: u16) -> void {
     asm {
         LD BC, loops
 delay_loop:
@@ -78,7 +78,7 @@ delay_loop:
 }
 
 // Read keyboard port (TRUE SMC function)
-fn read_keyboard(port_addr: u8) -> u8 {
+fun read_keyboard(port_addr: u8) -> u8 {
     asm {
         LD A, port_addr
         IN A, (0xFE)
@@ -88,7 +88,7 @@ fn read_keyboard(port_addr: u8) -> u8 {
 }
 
 // Initialize MNIST editor (TRUE SMC function)
-fn init_editor(border_color: u8, screen_attr: u8) -> void {
+fun init_editor(border_color: u8, screen_attr: u8) -> void {
     // Set border
     set_border_color(border_color)
     
@@ -106,7 +106,7 @@ fn init_editor(border_color: u8, screen_attr: u8) -> void {
 }
 
 // Draw a simple pattern (TRUE SMC function)
-fn draw_pattern(start_x: u8, start_y: u8, size: u8) -> void {
+fun draw_pattern(start_x: u8, start_y: u8, size: u8) -> void {
     let i: u8 = 0
     while i < size {
         let j: u8 = 0
@@ -126,7 +126,7 @@ fn draw_pattern(start_x: u8, start_y: u8, size: u8) -> void {
 }
 
 // Main editor function (TRUE SMC function)
-fn run_editor() -> u8 {
+fun run_editor() -> u8 {
     // Initialize
     init_editor(4, 0x47)  // Blue border, white on blue
     
@@ -152,7 +152,7 @@ fn run_editor() -> u8 {
 }
 
 // Entry point
-fn main() -> void {
+fun main() -> void {
     let result = run_editor()
     
     // Final border color based on result

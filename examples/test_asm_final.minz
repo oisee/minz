@@ -1,6 +1,6 @@
 // Test inline assembly - final version
 
-fn set_pixel(x: u8, y: u8) -> void {
+fun set_pixel(x: u8, y: u8) -> void {
     // Simple inline assembly
     asm {
         ld a, 0xFF
@@ -9,7 +9,7 @@ fn set_pixel(x: u8, y: u8) -> void {
     return;
 }
 
-fn main() -> void {
+fun main() -> void {
     // Test multiple assembly instructions
     asm {
         ; Set border to red

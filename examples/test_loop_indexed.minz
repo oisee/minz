@@ -7,7 +7,7 @@ struct Score {
 
 let scores: [Score; 8];
 
-fn main() -> void {
+fun main() -> void {
     // Initialize with test data
     let i: u8 = 0;
     while i < 8 {

@@ -1,7 +1,7 @@
 // MNIST Digit Editor - Working version for TRUE SMC testing
 
 // Set border color (TRUE SMC function)
-fn set_border(color: u8) -> void {
+fun set_border(color: u8) -> void {
     asm {
         LD A, color
         OUT (0xFE), A
@@ -9,7 +9,7 @@ fn set_border(color: u8) -> void {
 }
 
 // Simple screen clear (TRUE SMC function)  
-fn clear_screen() -> void {
+fun clear_screen() -> void {
     asm {
         LD HL, 0x4000
         LD BC, 0x1800
@@ -25,7 +25,7 @@ clear_loop:
 }
 
 // Set single attribute (TRUE SMC function)
-fn set_attr(x: u8, y: u8) -> void {
+fun set_attr(x: u8, y: u8) -> void {
     // Calculate 0x5800 + y*32 + x
     let addr = 0x5800 + (y as u16) * 32 + (x as u16)
     asm {
@@ -36,7 +36,7 @@ fn set_attr(x: u8, y: u8) -> void {
 }
 
 // Simple pixel drawing (TRUE SMC function)
-fn set_pixel(x: u8, y: u8) -> void {
+fun set_pixel(x: u8, y: u8) -> void {
     // Simple screen address: 0x4000 + y*32 + x/8
     let addr = 0x4000 + (y as u16) * 32 + ((x >> 3) as u16)
     let mask = 0x80 >> (x & 7)
@@ -50,7 +50,7 @@ fn set_pixel(x: u8, y: u8) -> void {
 }
 
 // Delay function (TRUE SMC function)
-fn delay(loops: u16) -> void {
+fun delay(loops: u16) -> void {
     asm {
         LD BC, loops
 delay_loop:
@@ -62,7 +62,7 @@ delay_loop:
 }
 
 // Test pattern drawing (TRUE SMC function)
-fn draw_test_pattern(start_x: u8, start_y: u8) -> void {
+fun draw_test_pattern(start_x: u8, start_y: u8) -> void {
     // Draw 8x8 test pattern
     let i: u8 = 0
     while i < 8 {
@@ -79,7 +79,7 @@ fn draw_test_pattern(start_x: u8, start_y: u8) -> void {
 }
 
 // Animation function (TRUE SMC function)
-fn animate_border(cycles: u8) -> void {
+fun animate_border(cycles: u8) -> void {
     let i: u8 = 0
     while i < cycles {
         set_border(i & 7)
@@ -89,7 +89,7 @@ fn animate_border(cycles: u8) -> void {
 }
 
 // Setup screen (TRUE SMC function)
-fn setup_screen() -> void {
+fun setup_screen() -> void {
     clear_screen()
     
     // Set some attributes for visibility
@@ -100,7 +100,7 @@ fn setup_screen() -> void {
 }
 
 // Main MNIST editor (TRUE SMC function)
-fn mnist_main() -> u8 {
+fun mnist_main() -> u8 {
     // Initialize screen
     set_border(0)
     setup_screen()
@@ -118,7 +118,7 @@ fn mnist_main() -> u8 {
 }
 
 // Entry point
-fn main() -> void {
+fun main() -> void {
     let result = mnist_main()
     set_border(result & 7)
 }

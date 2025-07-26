@@ -5,7 +5,7 @@ type TestBits = bits {
     high: 4
 };
 
-fn main() -> void {
+fun main() -> void {
     // Start with a known value
     let mut value: u8 = 0xAB  // 10101011
     

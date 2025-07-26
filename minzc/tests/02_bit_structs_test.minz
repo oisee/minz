@@ -24,7 +24,7 @@ type GameState = bits {
     has_powerup: 1   // boolean flag
 };
 
-fn test_single_bit_fields() -> void {
+fun test_single_bit_fields() -> void {
     let flags: u8 = 0b10110101;
     let status: StatusFlags = flags as StatusFlags;
     
@@ -39,7 +39,7 @@ fn test_single_bit_fields() -> void {
     status.overflow = 1;
 }
 
-fn test_multi_bit_fields() -> void {
+fun test_multi_bit_fields() -> void {
     let packed: u8 = 0;
     let color: ColorPacked = packed as ColorPacked;
     
@@ -54,7 +54,7 @@ fn test_multi_bit_fields() -> void {
     let b: u8 = color.blue;
 }
 
-fn test_mixed_fields() -> void {
+fun test_mixed_fields() -> void {
     let state_byte: u8 = 0;
     let game: GameState = state_byte as GameState;
     
@@ -68,7 +68,7 @@ fn test_mixed_fields() -> void {
     game.level = game.level + 1;  // Next level
 }
 
-fn main() -> void {
+fun main() -> void {
     test_single_bit_fields();
     test_multi_bit_fields();
     test_mixed_fields();

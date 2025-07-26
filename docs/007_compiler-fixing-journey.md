@@ -184,7 +184,7 @@ After implementing all these fixes, we created a test file:
 module test_fixes;
 import zx.screen;
 
-fn main() -> void {
+fun main() -> void {
     // Test 1: Module constants
     screen.set_border(screen.BLACK);  // ✓ Works!
     
@@ -220,7 +220,7 @@ Unable to fix all language limitations quickly, we created a minimal MNIST examp
 module mnist_minimal;
 import zx.screen;
 
-fn main() -> void {
+fun main() -> void {
     screen.set_border(screen.BLUE);
     
     // Draw a 16x16 grid

@@ -1,26 +1,26 @@
 // Test 1: TRUE SMC Parameter Passing
 // Tests the revolutionary immediate operand patching optimization
 
-fn add_numbers(a: u8, b: u8) -> u8 {
+fun add_numbers(a: u8, b: u8) -> u8 {
     return a + b;
 }
 
-fn multiply(x: u16, y: u16) -> u16 {
+fun multiply(x: u16, y: u16) -> u16 {
     return x * y;
 }
 
-fn triple_params(a: u8, b: u16, c: u8) -> u16 {
+fun triple_params(a: u8, b: u16, c: u8) -> u16 {
     return (a as u16) + b + (c as u16);
 }
 
 // Test nested calls with SMC
-fn calculate(x: u8, y: u8) -> u16 {
+fun calculate(x: u8, y: u8) -> u16 {
     let sum: u8 = add_numbers(x, y);
     let doubled: u16 = multiply(sum as u16, 2);
     return doubled;
 }
 
-fn main() -> void {
+fun main() -> void {
     // Simple parameter passing
     let result1: u8 = add_numbers(5, 7);  // Should patch 5 and 7 into code
     
