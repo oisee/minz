@@ -1,0 +1,21 @@
+// Test cast expressions
+
+// Simple bit struct for testing
+type Nibbles = bits {
+    low: 4,   // Bits 0-3
+    high: 4   // Bits 4-7
+};
+
+fn main() -> void {
+    // Test basic casts
+    let byte_val: u8 = 0xAB
+    
+    // Cast to bit struct
+    let nibbles: Nibbles = byte_val as Nibbles
+    
+    // Cast back to u8
+    let back: u8 = nibbles as u8
+    
+    // Test widening cast
+    let wide: u16 = byte_val as u16
+}

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-26 16:10:43
+; Generated: 2025-07-26 16:18:03
 
 
 ; Code section
@@ -16,41 +16,33 @@
 ...examples.test_bit_structs.set_screen_attr_param_y:
     LD HL, #0000   ; SMC parameter y (u8->u16)
     LD ($F00C), HL
-    ; r7 = r5 + r6
+    ; r7 = 32
+    LD A, 32
+    LD ($F00E), A
+    ; r8 = r6 * r7
+    ; TODO: Multiplication
+    LD HL, 0
+    LD ($F010), HL
+    ; r9 = r5 + r8
     LD HL, ($F00A)
     LD D, H
     LD E, L
-    LD HL, ($F00C)
+    LD HL, ($F010)
     ADD HL, DE
-    LD ($F00E), HL
-    ; store , r7
-    LD HL, ($F00E)
+    LD ($F012), HL
+...examples.test_bit_structs.set_screen_attr_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    LD ($F014), HL
+    ; r11 = r9 + r10
+    LD HL, ($F012)
+    LD D, H
+    LD E, L
+    LD HL, ($F014)
+    ADD HL, DE
+    LD ($F016), HL
+    ; store , r11
+    LD HL, ($F016)
     LD ($F008), HL
-    ; return
-    RET
-
-; Function: ...examples.test_bit_structs.test_bit_structs
-...examples.test_bit_structs.test_bit_structs:
-; IsSMCDefault=true, IsSMCEnabled=true
-; Using absolute addressing for locals (SMC style)
-    ; r2 = 71
-    LD A, 71
-    LD ($F004), A
-    ; store , r2
-    LD HL, ($F004)
-    LD ($F002), HL
-    ; return
-    RET
-
-; Function: ...examples.test_bit_structs.main
-...examples.test_bit_structs.main:
-; IsSMCDefault=true, IsSMCEnabled=true
-; Using absolute addressing for locals (SMC style)
-    ; r1 = call test_bit_structs
-    ; Call to test_bit_structs (args: 0)
-    ; Found function, UsesTrueSMC=false
-    CALL test_bit_structs
-    LD ($F002), HL
     ; return
     RET
 

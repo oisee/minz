@@ -1417,6 +1417,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 	case *ast.InlineAsmExpr:
 		// Inline assembly expressions
 		return a.analyzeInlineAsmExpr(e, irFunc)
+	case *ast.CastExpr:
+		return a.analyzeCastExpr(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -2062,6 +2064,97 @@ func (a *Analyzer) analyzeLuaExpression(expr *ast.LuaExpression, irFunc *ir.Func
 	return resultReg, nil
 }
 
+// analyzeCastExpr analyzes a type cast expression
+func (a *Analyzer) analyzeCastExpr(cast *ast.CastExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Analyze the expression being cast
+	exprReg, err := a.analyzeExpression(cast.Expr, irFunc)
+	if err != nil {
+		return 0, err
+	}
+	
+	// Convert the target type
+	targetType, err := a.convertType(cast.TargetType)
+	if err != nil {
+		return 0, fmt.Errorf("invalid cast target type: %w", err)
+	}
+	
+	// Get the source type
+	sourceType := a.exprTypes[cast.Expr]
+	if sourceType == nil {
+		return 0, fmt.Errorf("cannot determine type of expression being cast")
+	}
+	
+	// Check if cast is valid
+	if !a.isValidCast(sourceType, targetType) {
+		return 0, fmt.Errorf("invalid cast from %s to %s", sourceType, targetType)
+	}
+	
+	// For now, casts between compatible types are no-ops at the IR level
+	// The type system ensures safety, but the bits are the same
+	// Store the target type for the cast expression
+	a.exprTypes[cast] = targetType
+	
+	// In most cases, the cast is just a reinterpretation of the bits
+	// Special handling may be needed for:
+	// - Widening conversions (u8 -> u16)
+	// - Sign extensions (i8 -> i16)
+	// - Bit struct conversions
+	
+	// For bit structs, the underlying representation is the same as the base type
+	if _, ok := targetType.(*ir.BitStructType); ok {
+		// Bit struct cast - just change the type interpretation
+		return exprReg, nil
+	}
+	if _, ok := sourceType.(*ir.BitStructType); ok {
+		// Cast from bit struct - just use the underlying value
+		return exprReg, nil
+	}
+	
+	// For basic type conversions, we might need actual conversion code
+	// For now, return the same register - the code generator will handle it
+	return exprReg, nil
+}
+
+// isValidCast checks if a cast from source to target type is valid
+func (a *Analyzer) isValidCast(source, target ir.Type) bool {
+	// Allow casts between bit structs and their underlying types
+	if bitStruct, ok := source.(*ir.BitStructType); ok {
+		return a.typesEqual(bitStruct.UnderlyingType, target)
+	}
+	if bitStruct, ok := target.(*ir.BitStructType); ok {
+		return a.typesEqual(source, bitStruct.UnderlyingType)
+	}
+	
+	// Allow casts between compatible basic types
+	sourceBasic, sourceOk := source.(*ir.BasicType)
+	targetBasic, targetOk := target.(*ir.BasicType)
+	if sourceOk && targetOk {
+		// Allow casts between integer types
+		switch sourceBasic.Kind {
+		case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+			switch targetBasic.Kind {
+			case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+				return true
+			}
+		}
+	}
+	
+	return false
+}
+
+// typesEqual checks if two types are equal
+func (a *Analyzer) typesEqual(t1, t2 ir.Type) bool {
+	// Simple comparison for basic types
+	b1, ok1 := t1.(*ir.BasicType)
+	b2, ok2 := t2.(*ir.BasicType)
+	if ok1 && ok2 {
+		return b1.Kind == b2.Kind
+	}
+	
+	// For other types, use string comparison (not ideal but works for now)
+	return t1.String() == t2.String()
+}
+
 // Close cleans up resources
 func (a *Analyzer) Close() {
 	// if a.luaEvaluator != nil {
@@ -2374,6 +2467,13 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		}
 		
 		return fieldType, nil
+	case *ast.CastExpr:
+		// The type of a cast expression is its target type
+		targetType, err := a.convertType(e.TargetType)
+		if err != nil {
+			return nil, fmt.Errorf("invalid cast target type: %w", err)
+		}
+		return targetType, nil
 	default:
 		return nil, fmt.Errorf("cannot infer type from expression of type %T", expr)
 	}

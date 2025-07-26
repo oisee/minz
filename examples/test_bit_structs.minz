@@ -24,20 +24,17 @@ fn set_screen_attr(x: u8, y: u8, attr: ScreenAttr) -> void {
     // TODO: poke(addr, attr as u8)
 }
 
-fn test_bit_structs() -> void {
-    // Test bit field access with a raw u8 for now
-    let mut attr_raw: u8 = 0x47  // 01000111 = paper=0, ink=7, bright=1
+fn main() -> void {
+    // Test type conversion with bit structs
+    let raw_value: u8 = 0x47  // 01000111 = paper=0, ink=7, bright=1
     
-    // For now test with regular variables since we need type conversion
-    // This will test the bit field operations are generated
-    let mut test_value: u8 = attr_raw
+    // Cast u8 to bit struct
+    let attr: ScreenAttr = raw_value as ScreenAttr
     
-    // TODO: Once we have type conversion, we can do:
-    // let mut attr: ScreenAttr = 0x47 as ScreenAttr
+    // Cast bit struct back to u8
+    let back_to_raw: u8 = attr as u8
+    
+    // TODO: Test field access once fully integrated
     // let ink = attr.ink     // Should extract bits 0-2
     // attr.paper = 5         // Should set bits 3-5
-}
-
-fn main() -> void {
-    test_bit_structs()
 }

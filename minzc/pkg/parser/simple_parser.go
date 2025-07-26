@@ -630,6 +630,27 @@ func (p *SimpleParser) parseBinaryExpression(minPrec int) ast.Expression {
 		if tok.Value == "=" {
 			break
 		}
+		
+		// Handle "as" for type casts
+		if tok.Type == TokenKeyword && tok.Value == "as" {
+			// "as" has low precedence (lower than arithmetic but higher than assignment)
+			if 1 < minPrec {
+				break
+			}
+			
+			startPos := p.currentPos()
+			p.advance() // consume "as"
+			targetType := p.parseType()
+			
+			left = &ast.CastExpr{
+				Expr:       left,
+				TargetType: targetType,
+				StartPos:   startPos,
+				EndPos:     p.currentPos(),
+			}
+			continue
+		}
+		
 		if tok.Type != TokenOperator || !isOperator(tok.Value) {
 			break
 		}

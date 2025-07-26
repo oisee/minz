@@ -584,6 +584,18 @@ func (s *StringLiteral) Pos() Position { return s.StartPos }
 func (s *StringLiteral) End() Position { return s.EndPos }
 func (s *StringLiteral) exprNode()    {}
 
+// CastExpr represents a type cast expression (e.g., value as Type)
+type CastExpr struct {
+	Expr     Expression
+	TargetType Type
+	StartPos Position
+	EndPos   Position
+}
+
+func (c *CastExpr) Pos() Position { return c.StartPos }
+func (c *CastExpr) End() Position { return c.EndPos }
+func (c *CastExpr) exprNode()    {}
+
 // LuaEval represents @lua_eval(...) that generates MinZ code
 type LuaEval struct {
 	Code     string
