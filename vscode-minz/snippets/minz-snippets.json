@@ -1,18 +1,28 @@
 {
   "Function Declaration": {
-    "prefix": "fn",
+    "prefix": "fun",
+    "body": [
+      "fun ${1:function_name}(${2:params}) -> ${3:return_type} {",
+      "\t${4:// function body}",
+      "\treturn ${5:value};",
+      "}"
+    ],
+    "description": "MinZ function declaration (modern syntax)"
+  },
+  "Legacy Function Declaration": {
+    "prefix": "fn", 
     "body": [
       "fn ${1:function_name}(${2:params}) -> ${3:return_type} {",
       "\t${4:// function body}",
       "\treturn ${5:value};",
       "}"
     ],
-    "description": "MinZ function declaration"
+    "description": "MinZ function declaration (legacy syntax)"
   },
   "Public Function": {
-    "prefix": "pubfn",
+    "prefix": "pubfun",
     "body": [
-      "pub fn ${1:function_name}(${2:params}) -> ${3:return_type} {",
+      "pub fun ${1:function_name}(${2:params}) -> ${3:return_type} {",
       "\t${4:// function body}",
       "\treturn ${5:value};",
       "}"
@@ -22,7 +32,7 @@
   "Main Function": {
     "prefix": "main",
     "body": [
-      "fn main() -> void {",
+      "fun main() -> void {",
       "\t${1:// main function body}",
       "}"
     ],
@@ -84,6 +94,24 @@
       "}"
     ],
     "description": "For loop"
+  },
+  "Loop At (Modern Iterator)": {
+    "prefix": "loopat",
+    "body": [
+      "loop at ${1:array} -> ${2:item} {",
+      "\t${3:// process each item with SMC optimization}",
+      "}"
+    ],
+    "description": "Modern loop at syntax with SMC optimization"
+  },
+  "Do Times Loop": {
+    "prefix": "dotimes",
+    "body": [
+      "do ${1:count} times {",
+      "\t${2:// repeat this many times}",
+      "}"
+    ],
+    "description": "Do N times loop"
   },
   "Let Declaration": {
     "prefix": "let",
@@ -147,10 +175,10 @@
     "description": "Z80 register operation"
   },
   "Shadow Register Function": {
-    "prefix": "shadowfn",
+    "prefix": "shadowfun",
     "body": [
       "@shadow",
-      "fn ${1:function_name}(${2:params}) -> ${3:return_type} {",
+      "fun ${1:function_name}(${2:params}) -> ${3:return_type} {",
       "\t${4:// function using shadow registers}",
       "}"
     ],
@@ -161,7 +189,7 @@
     "body": [
       "@interrupt",
       "@shadow_registers",
-      "fn ${1:handler_name}() -> void {",
+      "fun ${1:handler_name}() -> void {",
       "\t${2:// interrupt handler body}",
       "}"
     ],

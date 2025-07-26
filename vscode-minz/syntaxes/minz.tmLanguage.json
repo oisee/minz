@@ -49,11 +49,11 @@
       "patterns": [
         {
           "name": "keyword.control.minz",
-          "match": "\\b(if|else|while|for|in|loop|break|continue|return|case|defer)\\b"
+          "match": "\\b(if|else|while|for|in|loop|at|break|continue|return|case|defer|do|times)\\b"
         },
         {
           "name": "keyword.declaration.minz",
-          "match": "\\b(fn|let|mut|const|type|struct|enum|import|as|export|pub)\\b"
+          "match": "\\b(fun|fn|let|mut|const|type|struct|enum|import|as|export|pub)\\b"
         },
         {
           "name": "keyword.other.minz",
