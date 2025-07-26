@@ -179,34 +179,76 @@ func (g *Z80Generator) generateTrueSMCFunction(fn *ir.Function) error {
 	// Always use absolute addressing for SMC functions
 	g.useAbsoluteLocals = true
 	
-	// Generate anchors for each parameter
-	for i, param := range fn.Params {
-		anchorSymbol := fmt.Sprintf("%s$imm0", param.Name)
-		g.emit("%s:", anchorSymbol)
-		
-		if param.Type.Size() == 1 {
-			// 8-bit parameter - use LD A, n
-			g.emit("    LD A, 0        ; %s anchor (will be patched)", param.Name)
-			// Store to virtual register for first use
-			g.storeFromA(ir.Register(i))
-		} else {
-			// 16-bit parameter - use LD HL, nn
-			g.emit("    LD HL, 0       ; %s anchor (will be patched)", param.Name)
-			// Store to virtual register for first use
-			g.storeFromHL(ir.Register(i))
-		}
-	}
+	// Track which parameters have been anchored
+	anchoredParams := make(map[string]bool)
+	
+	// Don't generate anchors here - wait for first use
+	// Store function for later reference
+	g.currentFunc = fn
 	
 	// Generate function body
 	for _, inst := range fn.Instructions {
+		// Check if this is first use of a parameter (could be OpTrueSMCLoad already)
+		if (inst.Op == ir.OpLoadParam || inst.Op == ir.OpTrueSMCLoad) && inst.Symbol != "" {
+			paramName := inst.Symbol
+			// Extract parameter name from symbol (might be "x$imm0" format)
+			if idx := strings.Index(paramName, "$"); idx > 0 {
+				paramName = paramName[:idx]
+			}
+			
+			if !anchoredParams[paramName] {
+				// Generate anchor at first use
+				param := g.findParameter(fn, paramName)
+				if param != nil {
+					anchoredParams[paramName] = true
+					g.generateParameterAnchor(param, inst.Dest)
+					continue
+				}
+			}
+		}
+		
 		if err := g.generateSMCInstruction(inst); err != nil {
 			return err
 		}
 	}
 	
-	// Return instruction
-	g.emit("    RET")
+	// Add RET if not already present
+	if len(fn.Instructions) == 0 || fn.Instructions[len(fn.Instructions)-1].Op != ir.OpReturn {
+		g.emit("    RET")
+	}
 	
+	return nil
+}
+
+// generateParameterAnchor generates an anchor for a parameter at first use
+func (g *Z80Generator) generateParameterAnchor(param *ir.Parameter, destReg ir.Register) {
+	anchorOp := fmt.Sprintf("%s$immOP", param.Name)
+	anchorImm := fmt.Sprintf("%s$imm0", param.Name)
+	
+	g.emit("%s:", anchorOp)
+	
+	if param.Type.Size() == 1 {
+		// 8-bit parameter - use LD A, n
+		g.emit("    LD A, 0        ; %s anchor (will be patched)", param.Name)
+		g.emit("%s EQU %s+1", anchorImm, anchorOp)
+		// Value is now in A, store to destination
+		g.storeFromA(destReg)
+	} else {
+		// 16-bit parameter - use LD HL, nn
+		g.emit("    LD HL, 0       ; %s anchor (will be patched)", param.Name)
+		g.emit("%s EQU %s+1", anchorImm, anchorOp)
+		// Value is now in HL, store to destination
+		g.storeFromHL(destReg)
+	}
+}
+
+// findParameter finds a parameter by name in a function
+func (g *Z80Generator) findParameter(fn *ir.Function, name string) *ir.Parameter {
+	for i := range fn.Params {
+		if fn.Params[i].Name == name {
+			return &fn.Params[i]
+		}
+	}
 	return nil
 }
 
@@ -282,7 +324,13 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 		
 	case ir.OpTrueSMCLoad:
 		// TRUE SMC: Load from anchor address (повторное использование)
+		// The symbol should already include $imm0
 		anchorAddr := inst.Symbol
+		if !strings.HasSuffix(anchorAddr, "$imm0") {
+			// Legacy format - add $imm0
+			anchorAddr = strings.TrimSuffix(anchorAddr, "$immOP") + "$imm0"
+		}
+		
 		if inst.Type != nil && inst.Type.Size() == 1 {
 			g.emit("    LD A, (%s)    ; Reuse from anchor", anchorAddr)
 			g.storeFromA(inst.Dest)
@@ -1358,25 +1406,22 @@ func (g *Z80Generator) findFunction(name string) *ir.Function {
 func (g *Z80Generator) generateTrueSMCCall(inst ir.Instruction, targetFunc *ir.Function) {
 	g.emit("    ; TRUE SMC call to %s", targetFunc.Name)
 	
-	// TODO: In a complete implementation, we would:
-	// 1. Load argument values into registers
-	// 2. For each parameter, patch the anchor address
-	// 3. Handle DI/EI for 16-bit patches if ISR enabled
+	// TODO: In a complete implementation, we need to:
+	// 1. Track which registers contain the arguments
+	// 2. Generate proper loads from those registers
 	
-	// For now, generate basic patching
+	// For now, generate placeholder patching
 	for i, param := range targetFunc.Params {
-		anchorAddr := fmt.Sprintf("%s$imm0+1", param.Name) // +1 to skip opcode
+		anchorAddr := fmt.Sprintf("%s.%s$imm0", targetFunc.Name, param.Name)
 		
 		if param.Type.Size() == 1 {
 			// 8-bit patch
-			g.emit("    LD A, <arg%d>      ; Load argument %s", i, param.Name)
+			g.emit("    ; TODO: Load arg%d for %s", i, param.Name)
 			g.emit("    LD (%s), A        ; Patch anchor", anchorAddr)
 		} else {
-			// 16-bit patch - needs DI/EI if interrupts enabled
-			g.emit("    LD HL, <arg%d>    ; Load argument %s", i, param.Name)
-			g.emit("    DI                ; Atomic 16-bit patch")
-			g.emit("    LD (%s), HL       ; Patch anchor", anchorAddr)
-			g.emit("    EI")
+			// 16-bit patch - NO DI/EI needed (atomic instruction)
+			g.emit("    ; TODO: Load arg%d for %s", i, param.Name) 
+			g.emit("    LD (%s), HL       ; Patch anchor (atomic)", anchorAddr)
 		}
 	}
 	

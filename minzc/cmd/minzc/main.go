@@ -42,7 +42,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&optimize, "optimize", "O", false, "enable optimizations")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
 	rootCmd.Flags().BoolVar(&enableSMC, "enable-smc", false, "enable self-modifying code optimization (requires code in RAM)")
-	rootCmd.Flags().BoolVar(&enableTrueSMC, "enable-true-smc", false, "enable TRUE SMC with immediate anchors (experimental)")
+	rootCmd.Flags().BoolVar(&enableTrueSMC, "enable-true-smc", true, "enable TRUE SMC with immediate anchors (default)")
 }
 
 func main() {
@@ -99,7 +99,14 @@ func compile(sourceFile string) error {
 			level = optimizer.OptLevelFull
 		}
 		
-		opt := optimizer.NewOptimizerWithOptions(level, enableTrueSMC)
+		// TRUE SMC is enabled by default for optimizations
+		useTrueSMC := true
+		if enableSMC && !enableTrueSMC {
+			// User explicitly wants old SMC
+			useTrueSMC = false
+		}
+		
+		opt := optimizer.NewOptimizerWithOptions(level, useTrueSMC)
 		if err := opt.Optimize(irModule); err != nil {
 			return fmt.Errorf("optimization error: %w", err)
 		}

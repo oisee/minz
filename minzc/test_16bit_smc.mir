@@ -1,0 +1,13 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_16bit_smc.multiply_add(a: u16, b: u16, c: u16) -> u16
+  @smc
+  Instructions:
+      0: 25 ; Load from anchor a$imm0
+      1: 25 ; Load from anchor b$imm0
+      2: r6 = r4 * r5
+      3: 25 ; Load from anchor c$imm0
+      4: r8 = r6 + r7
+      5: return r8
+

@@ -89,6 +89,10 @@ cd minzc && ./minzc ../examples/fibonacci.minz -O --enable-smc
 - **Interrupt Optimization**: Ultra-fast handlers using shadow registers (16 vs 50+ T-states)
 - **Memory Layout**: Organized for 64KB address space with paging support
 - **Register Allocation**: Z80-aware allocation considering 8/16-bit register relationships
+- **TRUE SMC (истинный SMC)**: Parameters patched directly into instruction immediates
+  - Enable with `--enable-true-smc` flag
+  - See `docs/018_TRUE_SMC_Design_v2.md` for current design
+  - Provides 3-5x performance improvement for function calls
 
 ## Language Features
 
@@ -110,6 +114,7 @@ MinZ supports modern programming constructs while targeting Z80:
 - `README.md`: Complete language reference with examples
 - `COMPILER_ARCHITECTURE.md`: Detailed compiler design documentation
 - `docs/`: Technical guides for compiler architecture and ZVDB implementation
+- **`docs/018_TRUE_SMC_Design_v2.md`**: CURRENT DESIGN for TRUE SMC (Self-Modifying Code) implementation
 
 ### Examples and Testing
 - `examples/`: Comprehensive MinZ programs showcasing all language features

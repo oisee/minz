@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-26 12:32:35
+; Generated: 2025-07-26 13:15:40
 
 
 ; Code section
@@ -202,7 +202,7 @@ end_if_6:
     LD HL, $F000    ; Buffer address
     LD BC, 3       ; Size
     LDIR            ; Copy from buffer
-    ; unknown op 33
+    ; unknown op 35
     LD HL, ($F036)
     INC HL
     LD ($F036), HL
@@ -293,7 +293,7 @@ end_if_10:
     LD HL, $F000    ; Buffer address
     LD BC, 3       ; Size
     LDIR            ; Copy from buffer
-    ; unknown op 33
+    ; unknown op 35
     LD HL, ($F04C)
     INC HL
     LD ($F04C), HL

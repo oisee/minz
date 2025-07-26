@@ -4,16 +4,16 @@
 Function ...examples.test_loop_no_init.main() -> void
   @smc
   Instructions:
-      0: 55 ; Load table base address
-      1: 55 ; Load table base for end calculation
-      2: 60 ; Calculate table end (+ 3 elements * 1 bytes)
-      3: 59 ; Load loop counter
-      4: 41 ; Check if reached end of table
+      0: 57 ; Load table base address
+      1: 57 ; Load table base for end calculation
+      2: 62 ; Calculate table end (+ 3 elements * 1 bytes)
+      3: 61 ; Load loop counter
+      4: 43 ; Check if reached end of table
       5: 3 ; Exit if done
-      6: 56 ; Copy element to buffer at $F000
+      6: 58 ; Copy element to buffer at $F000
       7: 18 ; Store to item.value at buffer $F000
-      8: 57 ; Copy buffer back to element at $F000
-      9: 60 ; Advance to next element (+1 bytes)
-     10: 58 ; Decrement counter and loop if not zero
+      8: 59 ; Copy buffer back to element at $F000
+      9: 62 ; Advance to next element (+1 bytes)
+     10: 60 ; Decrement counter and loop if not zero
      11: return
 

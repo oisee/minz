@@ -8,6 +8,6 @@ Function ...examples.test_inline_asm_expr.test() -> void
   Instructions:
       0: r2 = 4660
       1: store , r2
-      2: 54
+      2: 56
       3: return
 

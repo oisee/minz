@@ -1,0 +1,18 @@
+; MinZ generated code
+; Generated: 2025-07-26 13:08:35
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_true_smc_simple.identity
+...examples.test_true_smc_simple.identity:
+; TRUE SMC function with immediate anchors
+    LD A, (x$imm0)    ; Reuse from anchor
+    LD ($F004), A
+    ; return r2
+    LD HL, ($F004)
+    RET
+
+    END main

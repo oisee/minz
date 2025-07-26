@@ -1,0 +1,41 @@
+; MinZ generated code
+; Generated: 2025-07-26 13:23:39
+
+
+; Code section
+    ORG $8000
+
+
+; Function: ...examples.test_16bit_smc.multiply_add
+...examples.test_16bit_smc.multiply_add:
+; TRUE SMC function with immediate anchors
+a$immOP:
+    LD HL, 0       ; a anchor (will be patched)
+a$imm0 EQU a$immOP+1
+    LD ($F008), HL
+b$immOP:
+    LD HL, 0       ; b anchor (will be patched)
+b$imm0 EQU b$immOP+1
+    LD ($F00A), HL
+    ; r6 = r4 * r5
+    ; TODO: Multiplication
+    LD HL, 0
+    LD ($F00C), HL
+c$immOP:
+    LD HL, 0       ; c anchor (will be patched)
+c$imm0 EQU c$immOP+1
+    LD ($F00E), HL
+    ; r8 = r6 + r7
+    LD HL, ($F00C)
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)
+    ADD HL, DE
+    LD ($F010), HL
+    ; return r8
+    LD HL, ($F010)
+    POP DE
+    POP BC
+    RET
+
+    END main

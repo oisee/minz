@@ -1,0 +1,11 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test1_basic_8bit.add(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: 25 ; Load from anchor x$imm0
+      1: 25 ; Load from anchor x$imm0
+      2: r5 = r3 + r4
+      3: return r5
+

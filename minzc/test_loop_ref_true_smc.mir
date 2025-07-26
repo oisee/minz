@@ -22,15 +22,15 @@ Function ...examples.test_loop_ref.main() -> void
      12: r12 = r10 + r11
      13: 13 ; Load array element (...examples.test_loop_ref.Counter)
      14: 12 ; Store to field max (offset 1)
-     15: 33 ; INC (optimized from ADD 1)
+     15: 35 ; INC (optimized from ADD 1)
      16: store i, r18
      17: jump loop_1
      18: end_loop_2:
-     19: 55 ; Load table base address
-     20: 55 ; Load table base for end calculation
-     21: 60 ; Calculate table end (+ 10 elements * 2 bytes)
-     22: 59 ; Load loop counter
-     23: 41 ; Check if reached end of table
+     19: 57 ; Load table base address
+     20: 57 ; Load table base for end calculation
+     21: 62 ; Calculate table end (+ 10 elements * 2 bytes)
+     22: 61 ; Load loop counter
+     23: 43 ; Check if reached end of table
      24: 3 ; Exit if done
      25: r24 = load counter
      26: 11 ; Load field value (offset 0)
@@ -38,21 +38,21 @@ Function ...examples.test_loop_ref.main() -> void
      28: 11 ; Load field max (offset 1)
      29: r28 = r25 < r27
      30: jump_if_not r28, else_5
-     31: 33 ; INC (optimized from ADD 1)
+     31: 35 ; INC (optimized from ADD 1)
      32: r33 = load counter
      33: 12 ; Store to field value (offset 0)
      34: jump end_if_6
      35: else_5:
      36: end_if_6:
-     37: 60 ; Advance to next element (+2 bytes)
-     38: 58 ; Decrement counter and loop if not zero
+     37: 62 ; Advance to next element (+2 bytes)
+     38: 60 ; Decrement counter and loop if not zero
      39: r35 = r35 ^ r35 ; XOR A,A (optimized from LD A,0)
      40: store , r35
-     41: 55 ; Load table base address
-     42: 55 ; Load table base for end calculation
-     43: 60 ; Calculate table end (+ 10 elements * 2 bytes)
-     44: 59 ; Load loop counter
-     45: 41 ; Check if reached end of table
+     41: 57 ; Load table base address
+     42: 57 ; Load table base for end calculation
+     43: 62 ; Calculate table end (+ 10 elements * 2 bytes)
+     44: 61 ; Load loop counter
+     45: 43 ; Check if reached end of table
      46: 3 ; Exit if done
      47: r41 = load counter
      48: 11 ; Load field value (offset 0)
@@ -60,12 +60,12 @@ Function ...examples.test_loop_ref.main() -> void
      50: 11 ; Load field max (offset 1)
      51: r45 = r42 == r44
      52: jump_if_not r45, else_9
-     53: 33 ; INC (optimized from ADD 1)
+     53: 35 ; INC (optimized from ADD 1)
      54: store at_max, r48
      55: jump end_if_10
      56: else_9:
      57: end_if_10:
-     58: 60 ; Advance to next element (+2 bytes)
-     59: 58 ; Decrement counter and loop if not zero
+     58: 62 ; Advance to next element (+2 bytes)
+     59: 60 ; Decrement counter and loop if not zero
      60: return
 

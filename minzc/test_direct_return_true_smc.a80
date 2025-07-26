@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-26 12:32:33
+; Generated: 2025-07-26 13:15:38
 
 
 ; Code section
@@ -9,34 +9,24 @@
 ; Function: ...examples.test_direct_return.calculate_once
 ...examples.test_direct_return.calculate_once:
 ; TRUE SMC function with immediate anchors
-a$imm0:
+a$immOP:
     LD A, 0        ; a anchor (will be patched)
-    LD ($F000), A
-b$imm0:
-    LD A, 0        ; b anchor (will be patched)
-    LD ($F002), A
-    LD A, (a$imm0)    ; Reuse from anchor
+a$imm0 EQU a$immOP+1
     LD ($F006), A
     ; return r3
     LD HL, ($F006)
     LD (result), HL    ; Direct return optimization
     RET
-    RET
 
 ; Function: ...examples.test_direct_return.calculate_once2
 ...examples.test_direct_return.calculate_once2:
 ; TRUE SMC function with immediate anchors
-a$imm0:
+a$immOP:
     LD A, 0        ; a anchor (will be patched)
-    LD ($F000), A
-b$imm0:
-    LD A, 0        ; b anchor (will be patched)
-    LD ($F002), A
-    LD A, (a$imm0)    ; Reuse from anchor
+a$imm0 EQU a$immOP+1
     LD ($F006), A
     ; return r3
     LD HL, ($F006)
-    RET
     RET
 
 ; Function: ...examples.test_direct_return.main

@@ -1437,9 +1437,19 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 		
 		// Check if this is a parameter in an SMC function
 		if s.IsParameter && irFunc.IsSMCDefault {
+			// Find the parameter index
+			paramIndex := -1
+			for i, param := range irFunc.Params {
+				if param.Name == s.Name {
+					paramIndex = i
+					break
+				}
+			}
+			
 			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 				Op:     ir.OpLoadParam,
 				Dest:   reg,
+				Src1:   ir.Register(paramIndex), // Store parameter index in Src1
 				Symbol: s.Name, // Use the symbol's actual name (prefixed)
 				Type:   s.Type,
 			})

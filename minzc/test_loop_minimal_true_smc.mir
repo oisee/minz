@@ -13,17 +13,17 @@ Function ...examples.test_loop_minimal.main() -> void
       6: r9 = 30
       7: 13 ; Load array element (...examples.test_loop_minimal.Item)
       8: 12 ; Store to field value (offset 0)
-      9: 55 ; Load table base address
-     10: 55 ; Load table base for end calculation
-     11: 60 ; Calculate table end (+ 3 elements * 1 bytes)
-     12: 59 ; Load loop counter
-     13: 41 ; Check if reached end of table
+      9: 57 ; Load table base address
+     10: 57 ; Load table base for end calculation
+     11: 62 ; Calculate table end (+ 3 elements * 1 bytes)
+     12: 61 ; Load loop counter
+     13: 43 ; Check if reached end of table
      14: 3 ; Exit if done
-     15: 56 ; Copy element to buffer at $F000
+     15: 58 ; Copy element to buffer at $F000
      16: 17 ; Load item.value from buffer at $F000
      17: 18 ; Store to item.value at buffer $F000
-     18: 57 ; Copy buffer back to element at $F000
-     19: 60 ; Advance to next element (+1 bytes)
-     20: 58 ; Decrement counter and loop if not zero
+     18: 59 ; Copy buffer back to element at $F000
+     19: 62 ; Advance to next element (+1 bytes)
+     20: 60 ; Decrement counter and loop if not zero
      21: return
 

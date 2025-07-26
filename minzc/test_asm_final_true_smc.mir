@@ -4,14 +4,14 @@
 Function ...examples.test_asm_final.set_pixel(x: u8, y: u8) -> void
   @smc
   Instructions:
-      0: 54
+      0: 56
       1: return
 
 Function ...examples.test_asm_final.main() -> void
   @smc
   Instructions:
-      0: 54
+      0: 56
       1: r3 = call set_pixel
-      2: 54
+      2: 56
       3: return
 

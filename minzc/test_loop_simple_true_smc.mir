@@ -28,25 +28,25 @@ Function ...examples.test_loop_simple.main() -> void
      21: r29 = 80
      22: 13 ; Load array element (...examples.test_loop_simple.Point)
      23: 12 ; Store to field y (offset 1)
-     24: 55 ; Load table base address
-     25: 55 ; Load table base for end calculation
-     26: 60 ; Calculate table end (+ 4 elements * 2 bytes)
-     27: 59 ; Load loop counter
-     28: 41 ; Check if reached end of table
+     24: 57 ; Load table base address
+     25: 57 ; Load table base for end calculation
+     26: 62 ; Calculate table end (+ 4 elements * 2 bytes)
+     27: 61 ; Load loop counter
+     28: 43 ; Check if reached end of table
      29: 3 ; Exit if done
-     30: 56 ; Copy element to buffer at $F000
+     30: 58 ; Copy element to buffer at $F000
      31: 17 ; Load p.x from buffer at $F000
      32: 18 ; Store to p.x at buffer $F000
      33: 17 ; Load p.y from buffer at $F001
      34: 18 ; Store to p.y at buffer $F001
-     35: 57 ; Copy buffer back to element at $F000
-     36: 60 ; Advance to next element (+2 bytes)
-     37: 58 ; Decrement counter and loop if not zero
-     38: 55 ; Load table base address
-     39: 55 ; Load table base for end calculation
-     40: 60 ; Calculate table end (+ 4 elements * 2 bytes)
-     41: 59 ; Load loop counter
-     42: 41 ; Check if reached end of table
+     35: 59 ; Copy buffer back to element at $F000
+     36: 62 ; Advance to next element (+2 bytes)
+     37: 60 ; Decrement counter and loop if not zero
+     38: 57 ; Load table base address
+     39: 57 ; Load table base for end calculation
+     40: 62 ; Calculate table end (+ 4 elements * 2 bytes)
+     41: 61 ; Load loop counter
+     42: 43 ; Check if reached end of table
      43: 3 ; Exit if done
      44: r49 = load p
      45: 11 ; Load field x (offset 0)
@@ -54,7 +54,7 @@ Function ...examples.test_loop_simple.main() -> void
      47: r52 = r50 + r51
      48: r53 = load p
      49: 12 ; Store to field x (offset 0)
-     50: 60 ; Advance to next element (+2 bytes)
-     51: 58 ; Decrement counter and loop if not zero
+     50: 62 ; Advance to next element (+2 bytes)
+     51: 60 ; Decrement counter and loop if not zero
      52: return
 

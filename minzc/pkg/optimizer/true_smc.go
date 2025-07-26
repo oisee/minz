@@ -103,6 +103,10 @@ func (p *TrueSMCPass) transformFunction(fn *ir.Function) bool {
 			anchors = append(anchors, anchor)
 			anchorKey := fmt.Sprintf("%s_%s", fn.Name, param.Name)
 			p.anchors[anchorKey] = anchor
+			
+			if p.diagnostics {
+				fmt.Printf("TRUE SMC: Created anchor for param %s (index %d) with symbol %s\n", param.Name, i, anchor.Symbol)
+			}
 		}
 	}
 	
@@ -300,20 +304,34 @@ func (p *TrueSMCPass) insertAnchors(fn *ir.Function, anchors []*SMCAnchor) bool 
 	changed := false
 	insertedCount := 0
 	
+	// First, create a map from parameter index to anchor for efficient lookup
+	paramIndexToAnchor := make(map[int]*SMCAnchor)
 	for _, anchor := range anchors {
-		// Mark original parameter loads to use anchor
-		for i := range fn.Instructions {
-			inst := &fn.Instructions[i]
-			if inst.Op == ir.OpLoadParam && inst.Src1 == ir.Register(anchor.ParamIndex) {
+		paramIndexToAnchor[anchor.ParamIndex] = anchor
+	}
+	
+	// Transform parameter loads to use their specific anchors
+	for i := range fn.Instructions {
+		inst := &fn.Instructions[i]
+		if inst.Op == ir.OpLoadParam {
+			// Find the anchor for this specific parameter
+			paramIndex := int(inst.Src1)
+			if anchor, ok := paramIndexToAnchor[paramIndex]; ok {
 				// Transform to anchor load
 				inst.Op = ir.OpTrueSMCLoad
 				inst.Symbol = anchor.Symbol
 				inst.Comment = fmt.Sprintf("Load from anchor %s", anchor.Symbol)
 				changed = true
+				
+				if p.diagnostics {
+					fmt.Printf("TRUE SMC: Transformed OpLoadParam for param %d to use anchor %s\n", paramIndex, anchor.Symbol)
+				}
 			}
 		}
-		
-		// Add to patch table
+	}
+	
+	// Add all anchors to patch table
+	for _, anchor := range anchors {
 		p.patchTable = append(p.patchTable, PatchEntry{
 			Symbol:   anchor.Symbol,
 			Size:     uint8(anchor.Type.Size()),

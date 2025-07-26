@@ -56,10 +56,11 @@ func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optim
 			NewInliningPass(),
 		)
 		
-		// Add TRUE SMC if enabled, otherwise use old SMC
+		// Use TRUE SMC by default (this is the whole point of our language)
 		if enableTrueSMC {
-			opt.passes = append(opt.passes, NewTrueSMCPass(false))
+			opt.passes = append(opt.passes, NewTrueSMCPass(false)) // false = no diagnostics in production
 		} else {
+			// Fall back to old SMC if explicitly disabled
 			opt.passes = append(opt.passes, NewSelfModifyingCodePass())
 		}
 		
