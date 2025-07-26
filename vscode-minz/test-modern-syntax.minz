@@ -1,0 +1,59 @@
+// Test file for MinZ VSCode Extension
+// Tests all modern syntax features
+
+// Modern function syntax with new keywords
+fun main() -> void {
+    // Variable declarations
+    let data: [4]u8 = [1, 2, 3, 4];
+    let mut counter: u8 = 0;
+    
+    // Modern loop at syntax (should be highlighted)
+    loop at data -> item {
+        // Process each item with SMC optimization
+        counter = counter + item;
+    }
+    
+    // Do times loop
+    do 5 times {
+        counter = counter + 1;
+    }
+    
+    // Bitwise operations with new operators
+    let mask: u8 = 0xFF;
+    let inverted: u8 = ~mask;  // Bitwise NOT
+    let address: *u8 = &data[0];  // Address-of operator
+    
+    // Arithmetic with division/modulo
+    let result: u8 = counter / 2;
+    let remainder: u8 = counter % 3;
+}
+
+// Test modern function features
+fun calculate_checksum(data: *u8, len: u8) -> u8 {
+    let mut checksum: u8 = 0;
+    let mut i: u8 = 0;
+    
+    while i < len {
+        checksum = checksum ^ data[i];
+        i = i + 1;
+    }
+    
+    return checksum;
+}
+
+// Shadow register function (should highlight @shadow)
+@shadow
+fun fast_interrupt() -> void {
+    // Ultra-fast interrupt using shadow registers
+    // This should compile to EXX/EX AF,AF' optimized code
+}
+
+// SMC function (should highlight @smc)
+@smc  
+fun optimized_array_access() -> void {
+    let work_area: [16]u8;
+    
+    // This should generate SMC-optimized code
+    work_area[0] = 42;
+    work_area[1] = work_area[0] + 1;
+}
