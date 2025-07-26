@@ -2,6 +2,41 @@
 
 MinZ is a minimal systems programming language designed for Z80-based computers, particularly the ZX Spectrum. It provides a modern, type-safe syntax while compiling to efficient Z80 assembly code.
 
+## 🎉 Latest Release: v0.3.2 "Memory Matters" (July 26, 2025)
+
+**[Download v0.3.2](https://github.com/oisee/minz-ts/releases/tag/v0.3.2)** - Now with full cross-platform support!
+
+### What's New
+- ✨ **Global Variable Initializers** - Compile-time constant expressions
+- 🚀 **16-bit Arithmetic** - Full multiplication, shift operations
+- 🐛 **Critical Bug Fix** - Fixed local variable memory corruption
+- 🎯 **Type-Aware Codegen** - Optimal 8/16-bit operation selection
+- 💻 **Cross-Platform** - Windows, Linux (x64/ARM64), macOS (Intel/ARM)
+
+## Quick Start
+
+```bash
+# Download the latest release for your platform
+# macOS/Linux:
+tar -xzf minzc-<platform>.tar.gz
+./minzc hello.minz -o hello.a80
+
+# Windows:
+unzip minzc-windows-amd64.zip
+minzc.exe hello.minz -o hello.a80
+```
+
+Example program:
+```minz
+global u16 SCREEN = 0x4000;
+
+fun main() -> void {
+    let u16 pixels = 256 * 192;  // 16-bit multiplication
+    let u8 color = 7;             // White
+    // Your Z80 code here!
+}
+```
+
 ## Features
 
 - **Modern Syntax**: Rust-inspired syntax with type inference
@@ -536,10 +571,31 @@ asm("ld ({0}), a" : : "r"(0x5800));
 
 ## Technical Documentation
 
-### Architecture and Implementation
+### Core Architecture & Design
 
 - **[MinZ Compiler Architecture](docs/minz-compiler-architecture.md)** - Detailed guide to the compiler implementation, including register allocation, optimization passes, and Z80-specific features
 - **[ZVDB Implementation Guide](docs/zvdb-implementation-guide.md)** - Complete documentation of the Zero-Copy Vector Database implementation in MinZ, showcasing advanced optimization techniques
+- **[Self-Modifying Code (SMC) Design](minzc/docs/014_TRUE_SMC_Implementation.md)** - Revolutionary SMC-first compilation approach achieving 54% instruction reduction
+- **[Iterator Design](docs/iterator-design.md)** - High-performance INTO/REF TO iterator modes with memory-optimized access patterns
+
+### Development Journey & Insights
+
+- **[Compiler Fixing Journey](docs/007_compiler-fixing-journey.md)** - The complete story of making MinZ a working compiler
+- **[v0.3.2 Release Notes](minzc/docs/048_MinZ_v0.3.2_Release_Notes.md)** - Latest features: global initializers, 16-bit arithmetic, critical bug fixes
+- **[Local Variable Memory Fix](minzc/docs/045_RCA_Local_Variable_Address_Collision.md)** - Root cause analysis of the critical v0.3.1 memory corruption bug
+- **[Type Propagation Implementation](minzc/docs/047_Type_Propagation_Implementation.md)** - How MinZ achieves type-aware code generation
+
+### Language Design & Future
+
+- **[Language Design Improvements](docs/008_language-design-improvements.md)** - Planned enhancements and language evolution
+- **[MinZ Strategic Roadmap](minzc/docs/029_MinZ_Strategic_Roadmap.md)** - Long-term vision for MinZ ecosystem
+- **[Architecture Decision Records](minzc/docs/032_Architecture_Decision_Records.md)** - Key design decisions and their rationale
+
+### Implementation Deep-Dives
+
+- **[Latest Improvements (2025)](minzc/docs/001_latest-improvements.md)** - Recent compiler enhancements and bug fixes
+- **[Inline Assembly Design](docs/inline-assembly-design.md)** - Z80 assembly integration with register constraints
+- **[Unit Testing Z80 Assembly](docs/unit-testing-z80-assembly.md)** - Testing framework for generated code
 
 ### Examples and Applications
 
@@ -549,6 +605,7 @@ The `examples/` directory contains practical MinZ programs demonstrating:
 - ZVDB vector similarity search implementation
 - Register allocation optimization examples
 - Interrupt handlers with shadow register usage
+- MNIST editor with modern MinZ features
 
 ## Contributing
 
