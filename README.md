@@ -152,7 +152,7 @@ fun fib_fast(n: u8, a: u16, b: u16) -> u16 {
 - **📊 SMC+Tail Synergy** - **~10 T-states per recursive iteration** (5x faster than traditional)
 
 ### 🎯 **Core Language Features**
-- **Modern Syntax**: Rust-inspired with type inference and memory safety
+- **Modern Syntax**: Clean, expressive syntax drawing from Go, C, and modern systems languages
 - **Type Safety**: Static typing with compile-time checks and type-aware code generation
 - **Hierarchical Register Allocation**: Physical → Shadow → Memory for 3-6x faster operations
 - **Length-Prefixed Strings**: O(1) length access, 5-57x faster string operations
