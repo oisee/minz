@@ -16,8 +16,12 @@ type Z80Generator struct {
 	currentFunc   *ir.Function
 	currentFunction *ir.Function // For DJNZ optimization
 	currentInstructionIndex int  // For DJNZ optimization
-	regAlloc      *RegisterAllocator
-	usePhysicalRegs bool // Use physical registers instead of memory
+	
+	// Hierarchical register allocation system
+	regAlloc         *RegisterAllocator      // Simple memory-based allocator (fallback)
+	physicalAlloc    *Z80RegisterAllocator   // Sophisticated physical register allocator
+	usePhysicalRegs  bool                    // Enable physical register allocation
+	
 	stackOffset   int
 	labelCounter  int
 	useShadowRegs bool // Whether to use shadow registers for current function
@@ -29,10 +33,16 @@ type Z80Generator struct {
 
 // NewZ80Generator creates a new Z80 code generator
 func NewZ80Generator(w io.Writer) *Z80Generator {
+	physicalAlloc := NewZ80RegisterAllocator()
+	// Enable shadow registers for advanced allocation
+	physicalAlloc.EnableShadowRegisters()
+	
 	return &Z80Generator{
-		writer:   w,
-		regAlloc: NewRegisterAllocator(),
-		localVarBase: 0xF000, // Default local variable area at 0xF000
+		writer:          w,
+		regAlloc:        NewRegisterAllocator(),  // Fallback memory allocator
+		physicalAlloc:   physicalAlloc,           // Physical register allocator
+		usePhysicalRegs: true,                    // Enable hierarchical allocation
+		localVarBase:    0xF000,                  // Default local variable area at 0xF000
 	}
 }
 
@@ -197,33 +207,42 @@ func (g *Z80Generator) generateGlobal(global ir.Global) {
 	}
 }
 
-// generateString generates a string literal
+// generateString generates a length-prefixed string literal
 func (g *Z80Generator) generateString(str *ir.String) {
 	g.emit("%s:", str.Label)
 	
-	// Escape special characters and emit as DB directive
-	escaped := ""
-	for _, ch := range str.Value {
-		if ch >= 32 && ch <= 126 && ch != '"' && ch != '\\' {
-			escaped += string(ch)
-		} else {
-			// If we have accumulated string content, emit it
-			if escaped != "" {
-				g.emit("    DB \"%s\"", escaped)
-				escaped = ""
+	// Length prefix (single byte for strings up to 255 chars)
+	length := len(str.Value)
+	if length > 255 {
+		// For longer strings, use 16-bit length prefix
+		g.emit("    DW %d    ; Length (16-bit)", length)
+	} else {
+		g.emit("    DB %d    ; Length", length)
+	}
+	
+	// String content
+	if length > 0 {
+		// Escape special characters and emit as DB directive
+		escaped := ""
+		for _, ch := range str.Value {
+			if ch >= 32 && ch <= 126 && ch != '"' && ch != '\\' {
+				escaped += string(ch)
+			} else {
+				// If we have accumulated string content, emit it
+				if escaped != "" {
+					g.emit("    DB \"%s\"", escaped)
+					escaped = ""
+				}
+				// Emit special character as numeric value
+				g.emit("    DB %d", ch)
 			}
-			// Emit special character as numeric value
-			g.emit("    DB %d", ch)
+		}
+		
+		// Emit any remaining string content
+		if escaped != "" {
+			g.emit("    DB \"%s\"", escaped)
 		}
 	}
-	
-	// Emit any remaining string content
-	if escaped != "" {
-		g.emit("    DB \"%s\"", escaped)
-	}
-	
-	// Null terminator
-	g.emit("    DB 0")
 }
 
 // generateFunction generates code for a function
@@ -233,6 +252,12 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	g.currentInstructionIndex = 0
 	g.stackOffset = 0
 	g.regAlloc.Reset()
+
+	// Perform hierarchical register allocation if enabled
+	if g.usePhysicalRegs {
+		g.physicalAlloc.AllocateFunction(fn)
+		g.emit("; Using hierarchical register allocation (physical → shadow → memory)")
+	}
 
 	// Function label
 	g.emit("")
@@ -1733,23 +1758,93 @@ func (g *Z80Generator) loadToA(reg ir.Register) {
 		return
 	}
 	
-	if g.useAbsoluteLocals {
-		addr := g.getAbsoluteAddr(reg)
-		g.emit("    LD A, ($%04X)", addr)
-	} else {
-		offset := g.getLocalOffset(reg)
-		g.emit("    LD A, (IX-%d)", offset)
+	// Use hierarchical register allocation
+	location, value := g.getRegisterLocation(reg)
+	
+	switch location {
+	case LocationPhysical:
+		physReg := value.(PhysicalReg)
+		if physReg == RegA {
+			// Already in A, no operation needed
+			g.emit("    ; Register %d already in A", reg)
+			return
+		}
+		// Move from physical register to A
+		regName := g.physicalRegToAssembly(physReg)
+		if physReg == RegBC || physReg == RegDE || physReg == RegHL {
+			// 16-bit register, take low byte
+			g.emit("    LD A, %s", regName[1:]) // BC->C, DE->E, HL->L
+		} else {
+			g.emit("    LD A, %s", regName)
+		}
+		
+	case LocationShadow:
+		physReg := value.(PhysicalReg)
+		// Access shadow register (need to switch register set)
+		if physReg == RegA_Shadow {
+			g.emit("    EX AF, AF'        ; Switch to shadow A")
+			g.emit("    ; Register %d now in A (shadow)", reg)
+		} else {
+			g.emit("    EXX               ; Switch to shadow registers")
+			regName := g.physicalRegToAssembly(physReg)
+			if physReg == RegBC_Shadow || physReg == RegDE_Shadow || physReg == RegHL_Shadow {
+				g.emit("    LD A, %s         ; From shadow %s", regName[1:], regName)
+			} else {
+				g.emit("    LD A, %s         ; From shadow %s", regName, regName)
+			}
+			g.emit("    EXX               ; Switch back to main registers")
+		}
+		
+	case LocationMemory:
+		// Fallback to memory-based allocation
+		addr := value.(uint16)
+		g.emit("    LD A, ($%04X)     ; Virtual register %d from memory", addr, reg)
 	}
 }
 
 // storeFromA stores A to a virtual register
 func (g *Z80Generator) storeFromA(reg ir.Register) {
-	if g.useAbsoluteLocals {
-		addr := g.getAbsoluteAddr(reg)
-		g.emit("    LD ($%04X), A", addr)
-	} else {
-		offset := g.getLocalOffset(reg)
-		g.emit("    LD (IX-%d), A", offset)
+	// Use hierarchical register allocation
+	location, value := g.getRegisterLocation(reg)
+	
+	switch location {
+	case LocationPhysical:
+		physReg := value.(PhysicalReg)
+		if physReg == RegA {
+			// Already in A, no operation needed
+			g.emit("    ; Register %d already in A", reg)
+			return
+		}
+		// Move from A to physical register
+		regName := g.physicalRegToAssembly(physReg)
+		if physReg == RegBC || physReg == RegDE || physReg == RegHL {
+			// 16-bit register, store to low byte (need to preserve high byte)
+			g.emit("    LD %s, A         ; Store to %s (low byte)", regName[1:], regName)
+		} else {
+			g.emit("    LD %s, A         ; Store to physical register %s", regName, regName)
+		}
+		
+	case LocationShadow:
+		physReg := value.(PhysicalReg)
+		// Store to shadow register (need to switch register set)
+		if physReg == RegA_Shadow {
+			g.emit("    EX AF, AF'        ; Switch to shadow A")
+			g.emit("    ; Register %d now stored in A (shadow)", reg)
+		} else {
+			g.emit("    EXX               ; Switch to shadow registers")
+			regName := g.physicalRegToAssembly(physReg)
+			if physReg == RegBC_Shadow || physReg == RegDE_Shadow || physReg == RegHL_Shadow {
+				g.emit("    LD %s, A         ; Store to shadow %s", regName[1:], regName)
+			} else {
+				g.emit("    LD %s, A         ; Store to shadow %s", regName, regName)
+			}
+			g.emit("    EXX               ; Switch back to main registers")
+		}
+		
+	case LocationMemory:
+		// Fallback to memory-based allocation
+		addr := value.(uint16)
+		g.emit("    LD ($%04X), A     ; Virtual register %d to memory", addr, reg)
 	}
 }
 
@@ -2082,6 +2177,66 @@ func (r *RegisterAllocator) SetAddress(reg ir.Register, addr uint16) {
 func (r *RegisterAllocator) GetAddress(reg ir.Register) (uint16, bool) {
 	addr, ok := r.addresses[reg]
 	return addr, ok
+}
+
+// Hierarchical register allocation helpers
+
+// getRegisterLocation determines how a virtual register should be accessed
+type RegisterLocation int
+
+const (
+	LocationPhysical RegisterLocation = iota // Allocated to physical Z80 register
+	LocationShadow                           // Allocated to shadow register  
+	LocationMemory                           // Fallback to memory address
+)
+
+// getRegisterLocation determines where a virtual register is allocated
+func (g *Z80Generator) getRegisterLocation(reg ir.Register) (RegisterLocation, interface{}) {
+	if !g.usePhysicalRegs {
+		// Physical allocation disabled, use memory
+		return LocationMemory, g.getAbsoluteAddr(reg)
+	}
+	
+	// Check physical register allocation first
+	if physReg, allocated := g.physicalAlloc.GetAllocation(reg); allocated && physReg != RegNone {
+		if physReg >= RegA_Shadow && physReg <= RegHL_Shadow {
+			return LocationShadow, physReg
+		}
+		return LocationPhysical, physReg
+	}
+	
+	// Fallback to memory
+	return LocationMemory, g.getAbsoluteAddr(reg)
+}
+
+// physicalRegToAssembly converts PhysicalReg to assembly string
+func (g *Z80Generator) physicalRegToAssembly(reg PhysicalReg) string {
+	switch reg {
+	case RegA: return "A"
+	case RegB: return "B"
+	case RegC: return "C"
+	case RegD: return "D"
+	case RegE: return "E"
+	case RegH: return "H"
+	case RegL: return "L"
+	case RegBC: return "BC"
+	case RegDE: return "DE"
+	case RegHL: return "HL"
+	case RegIX: return "IX"
+	case RegIY: return "IY"
+	// Shadow registers require EXX/EX AF,AF' for access
+	case RegA_Shadow: return "A'"
+	case RegB_Shadow: return "B'"
+	case RegC_Shadow: return "C'"
+	case RegD_Shadow: return "D'"
+	case RegE_Shadow: return "E'"
+	case RegH_Shadow: return "H'"
+	case RegL_Shadow: return "L'"
+	case RegBC_Shadow: return "BC'"
+	case RegDE_Shadow: return "DE'"
+	case RegHL_Shadow: return "HL'"
+	default: return "???"
+	}
 }
 
 // loadToB loads a virtual register to B

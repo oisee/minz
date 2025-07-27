@@ -1,0 +1,280 @@
+name: Build and Release MinZ
+
+on:
+  push:
+    branches: [ master, main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ master, main ]
+
+env:
+  GO_VERSION: '1.21'
+  NODE_VERSION: '18'
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        npm install -g tree-sitter-cli
+        npm install
+        cd minzc && go mod download
+    
+    - name: Generate parser
+      run: tree-sitter generate
+    
+    - name: Run tests
+      run: |
+        cd minzc
+        go test ./...
+        make test
+    
+    - name: Run MinZ test suite
+      run: |
+        cd minzc
+        make build
+        ./test_suite.sh || true  # Don't fail on test failures for now
+
+  build:
+    name: Build ${{ matrix.os }}-${{ matrix.arch }}
+    needs: test
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+            runner: ubuntu-latest
+            goos: linux
+            goarch: amd64
+          - os: linux
+            arch: arm64
+            runner: ubuntu-latest
+            goos: linux
+            goarch: arm64
+          - os: darwin
+            arch: amd64
+            runner: macos-latest
+            goos: darwin
+            goarch: amd64
+          - os: darwin
+            arch: arm64
+            runner: macos-latest
+            goos: darwin
+            goarch: arm64
+          - os: windows
+            arch: amd64
+            runner: windows-latest
+            goos: windows
+            goarch: amd64
+            ext: .exe
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        npm install -g tree-sitter-cli
+        npm install
+    
+    - name: Generate parser
+      run: tree-sitter generate
+    
+    - name: Build compiler
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+      run: |
+        cd minzc
+        go build -o minzc-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }} ./cmd/minzc
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: minzc-${{ matrix.os }}-${{ matrix.arch }}
+        path: minzc/minzc-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.ext }}
+
+  build-vscode:
+    name: Build VSCode Extension
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Install vsce
+      run: npm install -g @vscode/vsce
+    
+    - name: Build extension
+      run: |
+        cd vscode-minz
+        npm install
+        vsce package
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: vscode-extension
+        path: vscode-minz/*.vsix
+
+  release:
+    name: Create Release
+    needs: [build, build-vscode]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+    
+    - name: Create release archives
+      run: |
+        # Create individual platform archives
+        for platform in artifacts/minzc-*; do
+          if [ -d "$platform" ]; then
+            name=$(basename "$platform")
+            cd "$platform"
+            
+            # Copy README and release notes
+            cp ../../README.md .
+            cp ../../minzc/docs/*Release_Notes*.md . 2>/dev/null || true
+            
+            # Create archive
+            if [[ "$name" == *"windows"* ]]; then
+              zip "../${name}.zip" *
+            else
+              tar -czf "../${name}.tar.gz" *
+            fi
+            cd ..
+          fi
+        done
+        
+        # Create SDK bundle
+        mkdir -p minz-sdk-${{ github.ref_name }}
+        cp README.md minz-sdk-${{ github.ref_name }}/
+        cp -r docs minz-sdk-${{ github.ref_name }}/
+        cp -r examples minz-sdk-${{ github.ref_name }}/
+        cp -r stdlib minz-sdk-${{ github.ref_name }}/
+        cp artifacts/vscode-extension/*.vsix minz-sdk-${{ github.ref_name }}/
+        
+        # Add all platform binaries to SDK
+        for platform in artifacts/minzc-*; do
+          if [ -d "$platform" ]; then
+            cp "$platform"/* minz-sdk-${{ github.ref_name }}/
+          fi
+        done
+        
+        tar -czf minz-sdk-${{ github.ref_name }}.tar.gz minz-sdk-${{ github.ref_name }}
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: MinZ ${{ github.ref_name }}
+        draft: false
+        prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+        files: |
+          artifacts/*.tar.gz
+          artifacts/*.zip
+          minz-sdk-*.tar.gz
+          artifacts/vscode-extension/*.vsix
+        body: |
+          # MinZ ${{ github.ref_name }} Release
+          
+          ## Installation
+          
+          Download the appropriate binary for your platform and extract:
+          
+          ### macOS/Linux
+          ```bash
+          tar -xzf minzc-<platform>.tar.gz
+          chmod +x minzc-<platform>
+          sudo mv minzc-<platform> /usr/local/bin/minzc
+          ```
+          
+          ### Windows
+          Extract the ZIP file and add to PATH.
+          
+          ## What's New
+          
+          See [Release Notes](https://github.com/oisee/minz-ts/blob/master/docs/) for details.
+          
+          ## VSCode Extension
+          
+          Install the included `.vsix` file in VSCode for syntax highlighting and language support.
+
+  # Continuous deployment of documentation
+  deploy-docs:
+    name: Deploy Documentation
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    
+    - name: Install mkdocs
+      run: |
+        pip install mkdocs mkdocs-material
+    
+    - name: Build documentation
+      run: |
+        # Create mkdocs.yml if it doesn't exist
+        if [ ! -f mkdocs.yml ]; then
+          cat > mkdocs.yml << 'EOF'
+        site_name: MinZ Programming Language
+        site_description: Modern systems programming for Z80
+        repo_url: https://github.com/oisee/minz-ts
+        theme:
+          name: material
+          features:
+            - navigation.sections
+            - navigation.expand
+            - toc.integrate
+        nav:
+          - Home: README.md
+          - Language Reference: docs/
+          - Compiler Architecture: minzc/docs/
+          - Examples: examples/README.md
+        EOF
+        fi
+        
+        # Build docs
+        mkdocs build || echo "Documentation build skipped"

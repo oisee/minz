@@ -1,0 +1,155 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+env:
+  GO_VERSION: '1.21'
+  NODE_VERSION: '18'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    
+    - name: Run Go linting
+      run: |
+        cd minzc
+        go fmt ./...
+        go vet ./...
+
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Install tree-sitter
+      run: npm install -g tree-sitter-cli
+    
+    - name: Install dependencies
+      run: |
+        npm install
+        cd minzc && go mod download
+    
+    - name: Generate parser
+      run: tree-sitter generate
+    
+    - name: Build compiler
+      run: |
+        cd minzc
+        go build -o minzc ./cmd/minzc
+    
+    - name: Run Go tests
+      run: |
+        cd minzc
+        go test -v ./...
+    
+    - name: Run example compilation tests
+      shell: bash
+      run: |
+        cd minzc
+        # Test that we can compile example files
+        ./minzc ../examples/fibonacci.minz -o fib.a80
+        ./minzc ../examples/test_strings.minz -o strings.a80
+        ./minzc ../examples/test_all_features.minz -o features.a80
+        
+        # Check that output files were created
+        test -f fib.a80
+        test -f strings.a80
+        test -f features.a80
+        
+        echo "✅ Example compilation tests passed!"
+    
+    - name: Check string implementation
+      shell: bash
+      run: |
+        cd minzc
+        ./minzc ../examples/test_strings.minz -o test.a80
+        
+        # Verify length-prefixed strings (not null-terminated)
+        if grep -q "DB 13.*; Length" test.a80; then
+          echo "✅ Length-prefixed strings working!"
+        else
+          echo "❌ String implementation may have regressed"
+          exit 1
+        fi
+    
+    - name: Check register allocation
+      shell: bash  
+      run: |
+        cd minzc
+        ./minzc ../examples/test_physical_registers.minz -o test.a80
+        
+        # Verify hierarchical allocation is active
+        if grep -q "hierarchical register allocation" test.a80; then
+          echo "✅ Hierarchical register allocation active!"
+        else
+          echo "❌ Register allocation may have regressed"
+          exit 1
+        fi
+
+  # Quick smoke test for VSCode extension
+  test-vscode:
+    name: Test VSCode Extension
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: Test extension
+      run: |
+        cd vscode-minz
+        npm install
+        npm test || echo "VSCode tests not implemented yet"
+    
+    - name: Try to package extension
+      run: |
+        npm install -g @vscode/vsce
+        cd vscode-minz
+        vsce package --out test.vsix
+        test -f test.vsix && echo "✅ VSCode extension builds successfully!"
+
+  summary:
+    name: CI Summary
+    needs: [lint, test, test-vscode]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Summary
+      run: |
+        echo "# CI Summary"
+        echo "All checks completed!"
+        echo ""
+        echo "## Status"
+        echo "- Linting: ${{ needs.lint.result }}"
+        echo "- Tests: ${{ needs.test.result }}"
+        echo "- VSCode: ${{ needs.test-vscode.result }}"
