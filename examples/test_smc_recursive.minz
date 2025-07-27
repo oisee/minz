@@ -1,0 +1,34 @@
+// Test SMC with recursive support
+
+// Factorial with SMC - should use context save/restore
+fun factorial_smc(n: u8) -> u16 {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial_smc(n - 1);
+}
+
+// Fibonacci with SMC
+fun fib_smc(n: u8) -> u16 {
+    if n <= 1 {
+        return n;
+    }
+    return fib_smc(n - 1) + fib_smc(n - 2);
+}
+
+// Function with too many params - should NOT use SMC
+fun many_params_recursive(a: u8, b: u8, c: u8, d: u8, e: u8) -> u8 {
+    if a == 0 {
+        return b + c + d + e;
+    }
+    return a + many_params_recursive(a - 1, b, c, d, e);
+}
+
+fun main() -> void {
+    // Test SMC recursive
+    let f5 = factorial_smc(5);      // Should be 120
+    let fib10 = fib_smc(10);        // Should be 55
+    
+    // Test stack-based recursive  
+    let result = many_params_recursive(3, 1, 2, 3, 4);
+}

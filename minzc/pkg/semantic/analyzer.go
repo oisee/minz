@@ -502,15 +502,26 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	}
 
 	// Finalize SMC decision based on function properties
-	if irFunc.IsRecursive {
-		// Recursive functions cannot use SMC
+	if irFunc.IsRecursive && len(irFunc.Params) > 3 {
+		// Recursive functions with many parameters should use stack
+		// (too much overhead to save/restore many SMC parameters)
 		irFunc.IsSMCDefault = false
 		irFunc.IsSMCEnabled = false
 	} else if len(irFunc.Locals) > 6 {
 		// Functions with many locals should use stack
 		irFunc.IsSMCDefault = false
 		irFunc.IsSMCEnabled = false
+	} else if !irFunc.IsRecursive && len(irFunc.Params) <= 3 && len(irFunc.Params) > 0 {
+		// Simple non-recursive functions with few parameters use register passing
+		// (but keep SMC for parameter-less functions)
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
 	}
+	// Otherwise keep SMC (including for recursive functions with few parameters)
+
+	// Debug output
+	fmt.Printf("Function %s: IsRecursive=%v, Params=%d, SMC=%v\n", 
+		fn.Name, irFunc.IsRecursive, len(irFunc.Params), irFunc.IsSMCEnabled)
 
 	// Add function to module
 	a.module.AddFunction(irFunc)
@@ -2048,7 +2059,21 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		a.functionCalls[a.currentFunc.Name] = append(a.functionCalls[a.currentFunc.Name], funcName)
 		
 		// Check if this is a recursive call
+		// Need to check both simple name and prefixed name since function calls
+		// might use simple names but currentFunc.Name is prefixed
+		isRecursiveCall := false
 		if funcName == a.currentFunc.Name {
+			// Direct match (prefixed name)
+			isRecursiveCall = true
+		} else if a.currentModule != "" && a.currentModule != "main" {
+			// Check if funcName is the simple name of current function
+			expectedSimpleName := strings.TrimPrefix(a.currentFunc.Name, a.currentModule+".")
+			if funcName == expectedSimpleName {
+				isRecursiveCall = true
+			}
+		}
+		
+		if isRecursiveCall {
 			a.currentFunc.IsRecursive = true
 			a.currentFunc.RequiresContext = true
 		}

@@ -65,7 +65,8 @@ func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optim
 		}
 		
 		opt.passes = append(opt.passes,
-			NewCallReturnOptimizationPass(),
+			NewTailRecursionPass(),  // Add tail recursion optimization
+			// NewCallReturnOptimizationPass(),  // Temporarily disabled due to crash
 		)
 	}
 	

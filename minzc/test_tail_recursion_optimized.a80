@@ -1,0 +1,887 @@
+; MinZ generated code
+; Generated: 2025-07-27 08:53:26
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.factorial_tail
+test_tail_recursion.factorial_tail:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    ; Register 3 already in A
+    ; Tail recursion loop start
+test_tail_recursion.factorial_tail_tail_loop:
+    ; r4 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 <= r4
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r5, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+acc$immOP:
+    LD HL, 0       ; acc anchor (will be patched)
+acc$imm0 EQU acc$immOP+1
+    ; Register 6 already in HL
+    ; return r6
+    ; Register 6 already in HL
+    RET
+    ; else_1:
+else_1:
+    LD A, (n$imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    LD HL, (acc$imm0)   ; Reuse from anchor
+    LD B, H
+    LD C, L
+    LD A, (n$imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; Tail recursion optimized to loop
+    JP test_tail_recursion.factorial_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.factorial
+test_tail_recursion.factorial:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; r4 = call factorial_tail
+    ; Call to factorial_tail (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    PUSH HL       ; Argument 1
+    EXX               ; Switch to shadow registers
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.factorial_tail
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD (n$imm0), A        ; Patch n
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD (acc$imm0), HL       ; Patch acc (atomic)
+    CALL test_tail_recursion.factorial_tail
+    EXX               ; Switch to shadow registers
+    ; return r4
+    EXX               ; Switch to shadow registers
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.sum_tail
+test_tail_recursion.sum_tail:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    LD L, A         ; Store to HL (low byte)
+    ; Tail recursion loop start
+test_tail_recursion.sum_tail_tail_loop:
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 == r4
+    ; Register 3 already in HL
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    ; jump_if_not r5, else_3
+    LD A, L
+    OR A
+    JP Z, else_3
+acc$immOP:
+    LD HL, 0       ; acc anchor (will be patched)
+acc$imm0 EQU acc$immOP+1
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; return r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    RET
+    ; else_3:
+else_3:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to HL (low byte)
+    LD HL, (acc$imm0)   ; Reuse from anchor
+    LD ($F014), HL    ; Virtual register 10 to memory
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to HL (low byte)
+    ; Tail recursion optimized to loop
+    JP test_tail_recursion.sum_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.countdown_tail
+test_tail_recursion.countdown_tail:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    LD H, A         ; Store to physical register H
+    ; Tail recursion loop start
+test_tail_recursion.countdown_tail_tail_loop:
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD L, A         ; Store to physical register L
+    ; r4 = r2 == r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L5
+    LD HL, 0
+    JP .L6
+.L5:
+    LD HL, 1
+.L6:
+    ; Register 4 already in HL
+    ; jump_if_not r4, else_5
+    LD A, L
+    OR A
+    JP Z, else_5
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD H, A         ; Store to physical register H
+    ; return r5
+    RET
+    ; else_5:
+else_5:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; Tail recursion optimized to loop
+    JP test_tail_recursion.countdown_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.factorial_non_tail
+test_tail_recursion.factorial_non_tail:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r4 = r2 <= r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L7
+    JP Z, .L7
+    LD HL, 0
+    JP .L8
+.L7:
+    LD HL, 1
+.L8:
+    ; jump_if_not r4, else_7
+    LD A, L
+    OR A
+    JP Z, else_7
+    ; r5 = 1
+    LD A, 1
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; return r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    RET
+    ; else_7:
+else_7:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; r10 = call factorial_non_tail
+    ; Call to factorial_non_tail (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.factorial_non_tail
+    LD A, ($F012)     ; Virtual register 9 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL test_tail_recursion.factorial_non_tail
+    ; Register 10 already in HL
+    ; r11 = r6 * r10
+    ; 8-bit multiplication
+    LD A, H
+    LD B, A       ; B = multiplicand
+    LD A, L
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_8
+.mul_loop_8:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_8
+.mul_done_8:
+    ; return r11
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.fibonacci_non_tail
+test_tail_recursion.fibonacci_non_tail:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    LD L, A         ; Store to physical register L
+    ; r3 = 1
+    LD A, 1
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = r2 <= r3
+    LD D, H
+    LD E, L
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L10
+    JP Z, .L10
+    LD HL, 0
+    JP .L11
+.L10:
+    LD HL, 1
+.L11:
+    ; jump_if_not r4, else_9
+    LD A, H
+    OR A
+    JP Z, else_9
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; return r5
+    RET
+    ; else_9:
+else_9:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r9 = call fibonacci_non_tail
+    ; Call to fibonacci_non_tail (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.fibonacci_non_tail
+    LD A, ($F010)     ; Virtual register 8 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL test_tail_recursion.fibonacci_non_tail
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; r13 = call fibonacci_non_tail
+    ; Call to fibonacci_non_tail (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.fibonacci_non_tail
+    LD A, ($F018)     ; Virtual register 12 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL test_tail_recursion.fibonacci_non_tail
+    ; Register 13 already in HL
+    ; r14 = r9 + r13
+    LD D, H
+    LD E, L
+    ; Register 13 already in HL
+    ADD HL, DE
+    ; return r14
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.fib_tail_helper
+test_tail_recursion.fib_tail_helper:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    LD L, A         ; Store to physical register L
+    ; Tail recursion loop start
+test_tail_recursion.fib_tail_helper_tail_loop:
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD L, A         ; Store to HL (low byte)
+    ; r6 = r4 == r5
+    LD D, H
+    LD E, L
+    ; Register 5 already in HL
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L12
+    LD HL, 0
+    JP .L13
+.L12:
+    LD HL, 1
+.L13:
+    ; jump_if_not r6, else_11
+    LD A, H
+    OR A
+    JP Z, else_11
+a$immOP:
+    LD HL, 0       ; a anchor (will be patched)
+a$imm0 EQU a$immOP+1
+    ; return r7
+    RET
+    ; else_11:
+else_11:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; r9 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r10 = r8 == r9
+    LD D, H
+    LD E, L
+    ; Register 9 already in HL
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L14
+    LD HL, 0
+    JP .L15
+.L14:
+    LD HL, 1
+.L15:
+    ; jump_if_not r10, else_13
+    LD A, H
+    OR A
+    JP Z, else_13
+b$immOP:
+    LD HL, 0       ; b anchor (will be patched)
+b$imm0 EQU b$immOP+1
+    ; return r11
+    RET
+    ; else_13:
+else_13:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    LD HL, (b$imm0)   ; Reuse from anchor
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    LD HL, (a$imm0)   ; Reuse from anchor
+    ; Register 16 already in HL
+    LD HL, (b$imm0)   ; Reuse from anchor
+    ; Register 17 already in HL
+    ; Tail recursion optimized to loop
+    JP test_tail_recursion.fib_tail_helper_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.fibonacci_tail
+test_tail_recursion.fibonacci_tail:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; r5 = call fib_tail_helper
+    ; Call to fib_tail_helper (args: 3)
+    ; Stack-based parameter passing
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    PUSH HL       ; Argument 2
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.fib_tail_helper
+    LD A, H
+    LD (n$imm0), A        ; Patch n
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD (a$imm0), HL       ; Patch a (atomic)
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD (b$imm0), HL       ; Patch b (atomic)
+    CALL test_tail_recursion.fib_tail_helper
+    ; return r5
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.gcd_tail
+test_tail_recursion.gcd_tail:
+; TRUE SMC function with immediate anchors
+b$immOP:
+    LD HL, 0       ; b anchor (will be patched)
+b$imm0 EQU b$immOP+1
+    ; Register 3 already in HL
+    ; Tail recursion loop start
+test_tail_recursion.gcd_tail_tail_loop:
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 == r4
+    ; Register 3 already in HL
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L16
+    LD HL, 0
+    JP .L17
+.L16:
+    LD HL, 1
+.L17:
+    ; jump_if_not r5, else_15
+    LD A, H
+    OR A
+    JP Z, else_15
+a$immOP:
+    LD HL, 0       ; a anchor (will be patched)
+a$imm0 EQU a$immOP+1
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; return r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    RET
+    ; else_15:
+else_15:
+    LD HL, (b$imm0)   ; Reuse from anchor
+    ; Register 7 already in HL
+    LD HL, (a$imm0)   ; Reuse from anchor
+    LD ($F010), HL    ; Virtual register 8 to memory
+    LD HL, (b$imm0)   ; Reuse from anchor
+    ; Register 9 already in HL
+    ; Tail recursion optimized to loop
+    JP test_tail_recursion.gcd_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.power_tail
+test_tail_recursion.power_tail:
+; TRUE SMC function with immediate anchors
+exp$immOP:
+    LD A, 0        ; exp anchor (will be patched)
+exp$imm0 EQU exp$immOP+1
+    LD H, A         ; Store to physical register H
+    ; Tail recursion loop start
+test_tail_recursion.power_tail_tail_loop:
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD L, A         ; Store to HL (low byte)
+    ; r6 = r4 == r5
+    LD D, H
+    LD E, L
+    ; Register 5 already in HL
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L18
+    LD HL, 0
+    JP .L19
+.L18:
+    LD HL, 1
+.L19:
+    ; jump_if_not r6, else_17
+    LD A, H
+    OR A
+    JP Z, else_17
+acc$immOP:
+    LD HL, 0       ; acc anchor (will be patched)
+acc$imm0 EQU acc$immOP+1
+    ; return r7
+    RET
+    ; else_17:
+else_17:
+base$immOP:
+    LD A, 0        ; base anchor (will be patched)
+base$imm0 EQU base$immOP+1
+    LD L, A         ; Store to physical register L
+    LD A, (exp$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to HL (low byte)
+    LD HL, (acc$imm0)   ; Reuse from anchor
+    LD ($F018), HL    ; Virtual register 12 to memory
+    LD A, (base$imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    ; Tail recursion optimized to loop
+    JP test_tail_recursion.power_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.power
+test_tail_recursion.power:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter base from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; Parameter exp from stack
+    LD L, (IX+6)
+    LD H, (IX+7)
+    LD (IX-4), L
+    LD (IX-3), H
+    ; unknown op 12
+    ; Load parameter base
+    ; unknown op 12
+    ; Load parameter exp
+    ; r6 = call power_tail
+    ; Call to power_tail (args: 3)
+    ; Stack-based parameter passing
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 2
+    ; Register 4 already in HL
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.power_tail
+    LD A, L
+    LD (base$imm0), A        ; Patch base
+    LD A, L
+    LD (exp$imm0), A        ; Patch exp
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD (acc$imm0), HL       ; Patch acc (atomic)
+    CALL test_tail_recursion.power_tail
+    ; return r6
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.complex_tail
+test_tail_recursion.complex_tail:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    LD L, A         ; Store to HL (low byte)
+    ; Tail recursion loop start
+test_tail_recursion.complex_tail_tail_loop:
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD H, A         ; Store to physical register H
+    ; r6 = r4 == r5
+    ; Register 4 already in HL
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L20
+    LD HL, 0
+    JP .L21
+.L20:
+    LD HL, 1
+.L21:
+    ; jump_if_not r6, else_19
+    LD A, L
+    OR A
+    JP Z, else_19
+acc$immOP:
+    LD HL, 0       ; acc anchor (will be patched)
+acc$imm0 EQU acc$immOP+1
+    ; return r7
+    RET
+    ; else_19:
+else_19:
+flag$immOP:
+    LD A, 0        ; flag anchor (will be patched)
+flag$imm0 EQU flag$immOP+1
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r8, else_21
+    LD A, L
+    OR A
+    JP Z, else_21
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    LD HL, (acc$imm0)   ; Reuse from anchor
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    ; Tail recursion optimized to loop
+    JP test_tail_recursion.complex_tail_tail_loop
+    ; else_21:
+else_21:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    LD HL, (acc$imm0)   ; Reuse from anchor
+    ; Register 21 already in HL
+    ; Tail recursion optimized to loop
+    JP test_tail_recursion.complex_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_recursion.main
+test_tail_recursion.main:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    LD HL, -17
+    ADD HL, SP
+    LD SP, HL
+    ; r3 = call factorial
+    ; Call to factorial (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL factorial
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; store , r3
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD (IX-2), L
+    LD (IX-1), H
+    ; r7 = call sum_tail
+    ; Call to sum_tail (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.sum_tail
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD (n$imm0), A        ; Patch n
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD (acc$imm0), HL       ; Patch acc (atomic)
+    CALL test_tail_recursion.sum_tail
+    ; store , r7
+    LD (IX-4), L
+    LD (IX-3), H
+    ; r10 = call countdown_tail
+    ; Call to countdown_tail (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.countdown_tail
+    LD A, ($F012)     ; Virtual register 9 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL test_tail_recursion.countdown_tail
+    ; store , r10
+    LD (IX-5), L
+    LD (IX-4), H
+    ; r13 = call fibonacci_tail
+    ; Call to fibonacci_tail (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL fibonacci_tail
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    ; store , r13
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    LD (IX-7), L
+    LD (IX-6), H
+    ; r17 = call gcd_tail
+    ; Call to gcd_tail (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F020)    ; Virtual register 16 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.gcd_tail
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    LD (a$imm0), HL       ; Patch a (atomic)
+    LD HL, ($F020)    ; Virtual register 16 from memory
+    LD (b$imm0), HL       ; Patch b (atomic)
+    CALL test_tail_recursion.gcd_tail
+    ; store , r17
+    LD (IX-9), L
+    LD (IX-8), H
+    ; r21 = call power
+    ; Call to power (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F026)    ; Virtual register 19 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL power
+    ; store , r21
+    LD (IX-11), L
+    LD (IX-10), H
+    ; r26 = call complex_tail
+    ; Call to complex_tail (args: 3)
+    ; Stack-based parameter passing
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    PUSH HL       ; Argument 2
+    LD HL, ($F030)    ; Virtual register 24 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F02E)    ; Virtual register 23 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.complex_tail
+    LD A, ($F02E)     ; Virtual register 23 from memory
+    LD (n$imm0), A        ; Patch n
+    LD A, ($F030)     ; Virtual register 24 from memory
+    LD (flag$imm0), A        ; Patch flag
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    LD (acc$imm0), HL       ; Patch acc (atomic)
+    CALL test_tail_recursion.complex_tail
+    LD ($F034), HL    ; Virtual register 26 to memory
+    ; store , r26
+    LD HL, ($F034)    ; Virtual register 26 from memory
+    LD (IX-13), L
+    LD (IX-12), H
+    ; r29 = call factorial_non_tail
+    ; Call to factorial_non_tail (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F038)    ; Virtual register 28 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.factorial_non_tail
+    LD A, ($F038)     ; Virtual register 28 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL test_tail_recursion.factorial_non_tail
+    ; store , r29
+    LD (IX-15), L
+    LD (IX-14), H
+    ; r32 = call fibonacci_non_tail
+    ; Call to fibonacci_non_tail (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F03E)    ; Virtual register 31 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_tail_recursion.fibonacci_non_tail
+    LD A, ($F03E)     ; Virtual register 31 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL test_tail_recursion.fibonacci_non_tail
+    ; store , r32
+    LD (IX-17), L
+    LD (IX-16), H
+    ; return
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW n$imm0           ; test_tail_recursion.factorial_tail.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW acc$imm0           ; test_tail_recursion.factorial_tail.acc
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n$imm0           ; test_tail_recursion.sum_tail.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW acc$imm0           ; test_tail_recursion.sum_tail.acc
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n$imm0           ; test_tail_recursion.countdown_tail.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n$imm0           ; test_tail_recursion.factorial_non_tail.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n$imm0           ; test_tail_recursion.fibonacci_non_tail.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n$imm0           ; test_tail_recursion.fib_tail_helper.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW a$imm0           ; test_tail_recursion.fib_tail_helper.a
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW b$imm0           ; test_tail_recursion.fib_tail_helper.b
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW a$imm0           ; test_tail_recursion.gcd_tail.a
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW b$imm0           ; test_tail_recursion.gcd_tail.b
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW base$imm0           ; test_tail_recursion.power_tail.base
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW exp$imm0           ; test_tail_recursion.power_tail.exp
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW acc$imm0           ; test_tail_recursion.power_tail.acc
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n$imm0           ; test_tail_recursion.complex_tail.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW flag$imm0           ; test_tail_recursion.complex_tail.flag
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW acc$imm0           ; test_tail_recursion.complex_tail.acc
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+    END main

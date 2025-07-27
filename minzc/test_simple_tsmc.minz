@@ -1,0 +1,11 @@
+// Simple True SMC test
+fun factorial(n: u8) -> u16 {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+fun main() -> void {
+    let result = factorial(5);
+}

@@ -1,0 +1,312 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_abi_comprehensive.add_smc(a: u8, b: u8) -> u8
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 + r4
+      3: return r5
+
+Function test_abi_comprehensive.calculate_smc(x: u8, y: u8, z: u8) -> u16
+  Instructions:
+      0: 12
+      1: 12
+      2: r6 = r4 * r5
+      3: 12
+      4: r8 = r6 + r7
+      5: return r8
+
+Function test_abi_comprehensive.factorial_tsmc(n: u8) -> u16
+  Instructions:
+      0: 12
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: 12
+     10: 12
+     11: r8 = 1
+     12: r9 = r7 - r8
+     13: r10 = call factorial_tsmc
+     14: r11 = r6 * r10
+     15: return r11
+
+Function test_abi_comprehensive.fib_tsmc(n: u8) -> u16
+  Instructions:
+      0: 12
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_3
+      4: 12
+      5: return r5
+      6: jump end_if_4
+      7: else_3:
+      8: end_if_4:
+      9: 12
+     10: r7 = 1
+     11: r8 = r6 - r7
+     12: r9 = call fib_tsmc
+     13: 12
+     14: r11 = 2
+     15: r12 = r10 - r11
+     16: r13 = call fib_tsmc
+     17: r14 = r9 + r13
+     18: return r14
+
+Function test_abi_comprehensive.multiply_register(a: u8, b: u8) -> u16
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 * r4
+      3: return r5
+
+Function test_abi_comprehensive.sum3_register(a: u8, b: u8, c: u8) -> u16
+  Instructions:
+      0: 12
+      1: 12
+      2: r6 = r4 + r5
+      3: 12
+      4: r8 = r6 + r7
+      5: return r8
+
+Function test_abi_comprehensive.sum5_stack(a: u8, b: u8, c: u8, d: u8, e: u8) -> u16
+  @smc
+  Instructions:
+      0: 12
+      1: 12
+      2: r8 = r6 + r7
+      3: 12
+      4: r10 = r8 + r9
+      5: 12
+      6: r12 = r10 + r11
+      7: 12
+      8: r14 = r12 + r13
+      9: return r14
+
+Function test_abi_comprehensive.countdown_stack(n: u8, step: u8, min: u8, mult: u8, offset: u8) -> u16
+  @smc
+  Instructions:
+      0: 12
+      1: 12
+      2: r8 = r6 <= r7
+      3: jump_if_not r8, else_5
+      4: 12
+      5: return r9
+      6: jump end_if_6
+      7: else_5:
+      8: end_if_6:
+      9: 12
+     10: 12
+     11: 12
+     12: r13 = r11 - r12
+     13: 12
+     14: 12
+     15: 12
+     16: 12
+     17: r18 = call countdown_stack
+     18: r19 = r10 + r18
+     19: return r19
+
+Function test_abi_comprehensive.complex_calculation(a: u8, b: u8, c: u8, d: u8) -> u16
+  Locals:
+    r5 = temp1: u8
+    r9 = temp2: u8
+    r13 = temp3: u8
+    r17 = temp4: u8
+    r21 = sum1: u8
+    r25 = sum2: u8
+    r29 = final_result: u8
+  Instructions:
+      0: 12
+      1: r7 = 2
+      2: r8 = r6 * r7
+      3: store , r8
+      4: 12
+      5: r11 = 3
+      6: r12 = r10 * r11
+      7: store , r12
+      8: 12
+      9: r15 = 4
+     10: r16 = r14 * r15
+     11: store , r16
+     12: 12
+     13: r19 = 5
+     14: r20 = r18 * r19
+     15: store , r20
+     16: r22 = load temp1
+     17: r23 = load temp2
+     18: r24 = r22 + r23
+     19: store , r24
+     20: r26 = load temp3
+     21: r27 = load temp4
+     22: r28 = r26 + r27
+     23: store , r28
+     24: r30 = load sum1
+     25: r31 = load sum2
+     26: r32 = r30 * r31
+     27: store , r32
+     28: r33 = load final_result
+     29: return r33
+
+Function test_abi_comprehensive.test_mixed_calls() -> u16
+  @smc
+  Locals:
+    r1 = smc_result: u8
+    r5 = tsmc_result: u16
+    r8 = register_result: u16
+    r12 = stack_result: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = 3
+      2: r4 = call add_smc
+      3: store , r4
+      4: r6 = 4
+      5: r7 = call factorial_tsmc
+      6: store , r7
+      7: r9 = 6
+      8: r10 = 7
+      9: r11 = call multiply_register
+     10: store , r11
+     11: r13 = 1
+     12: r14 = 2
+     13: r15 = 3
+     14: r16 = 4
+     15: r17 = 5
+     16: r18 = call sum5_stack
+     17: store , r18
+     18: r19 = load smc_result
+     19: r20 = load tsmc_result
+     20: r21 = r19 + r20
+     21: r22 = load register_result
+     22: r23 = r21 + r22
+     23: r24 = load stack_result
+     24: r25 = r23 + r24
+     25: return r25
+
+Function test_abi_comprehensive.boundary_3params(a: u8, b: u8, c: u8) -> u8
+  Instructions:
+      0: 12
+      1: 12
+      2: r6 = r4 + r5
+      3: 12
+      4: r8 = r6 + r7
+      5: return r8
+
+Function test_abi_comprehensive.boundary_4params(a: u8, b: u8, c: u8, d: u8) -> u8
+  @smc
+  Instructions:
+      0: 12
+      1: 12
+      2: r7 = r5 + r6
+      3: 12
+      4: r9 = r7 + r8
+      5: 12
+      6: r11 = r9 + r10
+      7: return r11
+
+Function test_abi_comprehensive.recursive_3params(n: u8, mult: u8, base: u8) -> u16
+  Instructions:
+      0: 12
+      1: r5 = 0
+      2: r6 = r4 == r5
+      3: jump_if_not r6, else_7
+      4: 12
+      5: return r7
+      6: jump end_if_8
+      7: else_7:
+      8: end_if_8:
+      9: 12
+     10: 12
+     11: r10 = 1
+     12: r11 = r9 - r10
+     13: 12
+     14: 12
+     15: r14 = call recursive_3params
+     16: r15 = r8 + r14
+     17: return r15
+
+Function test_abi_comprehensive.main() -> void
+  Locals:
+    r1 = smc1: u8
+    r5 = smc2: u16
+    r10 = tsmc1: u16
+    r13 = tsmc2: u16
+    r16 = reg1: u16
+    r20 = reg2: u16
+    r25 = stack1: u16
+    r32 = stack2: u16
+    r39 = stack3: u16
+    r45 = mixed: u16
+    r47 = bound3: u8
+    r52 = bound4: u8
+    r58 = rec3: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = 20
+      2: r4 = call add_smc
+      3: store , r4
+      4: r6 = 3
+      5: r7 = 4
+      6: r8 = 5
+      7: r9 = call calculate_smc
+      8: store , r9
+      9: r11 = 5
+     10: r12 = call factorial_tsmc
+     11: store , r12
+     12: r14 = 6
+     13: r15 = call fib_tsmc
+     14: store , r15
+     15: r17 = 8
+     16: r18 = 9
+     17: r19 = call multiply_register
+     18: store , r19
+     19: r21 = 1
+     20: r22 = 2
+     21: r23 = 3
+     22: r24 = call sum3_register
+     23: store , r24
+     24: r26 = 1
+     25: r27 = 2
+     26: r28 = 3
+     27: r29 = 4
+     28: r30 = 5
+     29: r31 = call sum5_stack
+     30: store , r31
+     31: r33 = 5
+     32: r34 = 1
+     33: r35 = 0
+     34: r36 = 2
+     35: r37 = 10
+     36: r38 = call countdown_stack
+     37: store , r38
+     38: r40 = 1
+     39: r41 = 2
+     40: r42 = 3
+     41: r43 = 4
+     42: r44 = call complex_calculation
+     43: store , r44
+     44: r46 = call test_mixed_calls
+     45: store , r46
+     46: r48 = 1
+     47: r49 = 2
+     48: r50 = 3
+     49: r51 = call boundary_3params
+     50: store , r51
+     51: r53 = 1
+     52: r54 = 2
+     53: r55 = 3
+     54: r56 = 4
+     55: r57 = call boundary_4params
+     56: store , r57
+     57: r59 = 3
+     58: r60 = 5
+     59: r61 = 10
+     60: r62 = call recursive_3params
+     61: store , r62
+     62: return
+

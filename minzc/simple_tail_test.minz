@@ -1,0 +1,11 @@
+// Simple tail recursion test for debugging
+fun countdown(n: u8) -> u8 {
+    if n == 0 {
+        return 0;
+    }
+    return countdown(n - 1);  // This should be detected as tail recursion
+}
+
+fun main() -> void {
+    let result = countdown(5);
+}

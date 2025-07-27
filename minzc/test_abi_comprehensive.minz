@@ -1,0 +1,132 @@
+// Comprehensive ABI Test Suite
+// Tests all calling conventions: SMC, TSMC, Register-based, Stack-based
+
+// ========== SMC TESTS ==========
+
+// Pure SMC - simple non-recursive function
+fun add_smc(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// SMC with multiple parameters (should stay SMC)
+fun calculate_smc(x: u8, y: u8, z: u8) -> u16 {
+    return (x * y) + z;
+}
+
+// ========== TSMC (True SMC) TESTS ==========
+
+// TSMC recursive - should use immediate save/restore
+fun factorial_tsmc(n: u8) -> u16 {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial_tsmc(n - 1);
+}
+
+// TSMC fibonacci - recursive with multiple params
+fun fib_tsmc(n: u8) -> u16 {
+    if n <= 1 {
+        return n;
+    }
+    return fib_tsmc(n - 1) + fib_tsmc(n - 2);
+}
+
+// ========== REGISTER-BASED TESTS ==========
+
+// Simple register-based - non-recursive, few params
+fun multiply_register(a: u8, b: u8) -> u16 {
+    return a * b;
+}
+
+// Register-based with 3 parameters (max for register passing)
+fun sum3_register(a: u8, b: u8, c: u8) -> u16 {
+    return a + b + c;
+}
+
+// ========== STACK-BASED TESTS ==========
+
+// Stack-based - many parameters
+fun sum5_stack(a: u8, b: u8, c: u8, d: u8, e: u8) -> u16 {
+    return a + b + c + d + e;
+}
+
+// Stack-based recursive - many params + recursion
+fun countdown_stack(n: u8, step: u8, min: u8, mult: u8, offset: u8) -> u16 {
+    if n <= min {
+        return offset;
+    }
+    return mult + countdown_stack(n - step, step, min, mult, offset);
+}
+
+// Stack-based with many locals
+fun complex_calculation(a: u8, b: u8, c: u8, d: u8) -> u16 {
+    let temp1 = a * 2;
+    let temp2 = b * 3;
+    let temp3 = c * 4;
+    let temp4 = d * 5;
+    let sum1 = temp1 + temp2;
+    let sum2 = temp3 + temp4;
+    let final_result = sum1 * sum2;
+    return final_result;
+}
+
+// ========== MIXED ABI TESTS ==========
+
+// Function that calls different ABI functions
+fun test_mixed_calls() -> u16 {
+    let smc_result = add_smc(5, 3);                              // SMC call
+    let tsmc_result = factorial_tsmc(4);                         // TSMC call  
+    let register_result = multiply_register(6, 7);               // Register call
+    let stack_result = sum5_stack(1, 2, 3, 4, 5);              // Stack call
+    
+    return smc_result + tsmc_result + register_result + stack_result;
+}
+
+// ========== EDGE CASES ==========
+
+// Function with exactly 3 params (boundary case)
+fun boundary_3params(a: u8, b: u8, c: u8) -> u8 {
+    return a + b + c;
+}
+
+// Function with exactly 4 params (should force stack)
+fun boundary_4params(a: u8, b: u8, c: u8, d: u8) -> u8 {
+    return a + b + c + d;
+}
+
+// Recursive with exactly 3 params (should test TSMC boundary)
+fun recursive_3params(n: u8, mult: u8, base: u8) -> u16 {
+    if n == 0 {
+        return base;
+    }
+    return mult + recursive_3params(n - 1, mult, base);
+}
+
+// ========== MAIN TEST DRIVER ==========
+
+fun main() -> void {
+    // Test SMC functions
+    let smc1 = add_smc(10, 20);                    // Expected: 30
+    let smc2 = calculate_smc(3, 4, 5);             // Expected: 17
+    
+    // Test TSMC functions  
+    let tsmc1 = factorial_tsmc(5);                 // Expected: 120
+    let tsmc2 = fib_tsmc(6);                       // Expected: 8
+    
+    // Test register-based functions
+    let reg1 = multiply_register(8, 9);            // Expected: 72
+    let reg2 = sum3_register(1, 2, 3);             // Expected: 6
+    
+    // Test stack-based functions
+    let stack1 = sum5_stack(1, 2, 3, 4, 5);       // Expected: 15
+    let stack2 = countdown_stack(5, 1, 0, 2, 10); // Expected: 20
+    let stack3 = complex_calculation(1, 2, 3, 4);  // Expected: 154
+    
+    // Test mixed calls
+    let mixed = test_mixed_calls();                // Expected: 157
+    
+    // Test boundary cases
+    let bound3 = boundary_3params(1, 2, 3);        // Expected: 6
+    let bound4 = boundary_4params(1, 2, 3, 4);     // Expected: 10
+    let rec3 = recursive_3params(3, 5, 10);        // Expected: 25
+}

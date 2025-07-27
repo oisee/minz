@@ -1,0 +1,32 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_debug_recursion.simple_factorial(n: u8) -> u16
+  Instructions:
+      0: 12
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: 12
+     10: 12
+     11: r8 = 1
+     12: r9 = r7 - r8
+     13: r10 = call simple_factorial
+     14: r11 = r6 * r10
+     15: return r11
+
+Function test_debug_recursion.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = call simple_factorial
+      2: store , r3
+      3: return
+

@@ -681,22 +681,31 @@ func (g *Z80Generator) generatePrologue(fn *ir.Function) {
 		g.emit("    EXX           ; Switch to shadow registers")
 	}
 
-	// Load parameters from stack to registers/locals
-	for i, param := range fn.Params {
-		// Parameters are at positive offsets from IX
-		// First param at IX+4 (after return address and saved IX)
-		offset := 4 + i*2
-		g.emit("    ; Parameter %s", param.Name)
-		
-		// For now, load to accumulator then store to local
-		g.emit("    LD L, (IX+%d)", offset)
-		g.emit("    LD H, (IX+%d)", offset+1)
-		
-		// Store in local variable space
-		// Get offset for this parameter's register
-		localOffset := g.getLocalOffset(param.Reg)
-		g.emit("    LD (IX%+d), L", localOffset)
-		g.emit("    LD (IX%+d), H", localOffset+1)
+	// Load parameters based on calling convention
+	if fn.IsRecursive || fn.IsSMCEnabled || len(fn.Params) > 3 {
+		// Stack-based parameters (traditional)
+		for i, param := range fn.Params {
+			// Parameters are at positive offsets from IX
+			// First param at IX+4 (after return address and saved IX)
+			offset := 4 + i*2
+			g.emit("    ; Parameter %s from stack", param.Name)
+			
+			// Load from stack
+			g.emit("    LD L, (IX+%d)", offset)
+			g.emit("    LD H, (IX+%d)", offset+1)
+			
+			// Store in local variable space
+			if g.useAbsoluteLocals {
+				g.storeFromHL(param.Reg)
+			} else {
+				localOffset := g.getLocalOffset(param.Reg)
+				g.emit("    LD (IX%+d), L", localOffset)
+				g.emit("    LD (IX%+d), H", localOffset+1)
+			}
+		}
+	} else {
+		// Register-based parameters (optimized)
+		g.loadParametersFromRegisters(fn)
 	}
 }
 
@@ -754,6 +763,107 @@ func (g *Z80Generator) generateEpilogue() {
 	}
 	
 	g.emit("    RET")
+}
+
+// prepareCallArguments prepares arguments for a function call
+func (g *Z80Generator) prepareCallArguments(args []ir.Register, targetFunc *ir.Function) {
+	// Determine calling convention
+	useRegisterPassing := false
+	if targetFunc != nil && !targetFunc.IsRecursive && !targetFunc.IsSMCEnabled && len(args) <= 3 {
+		useRegisterPassing = true
+	}
+	
+	if useRegisterPassing && targetFunc != nil {
+		// Register-based parameter passing
+		g.emit("    ; Register-based parameter passing")
+		
+		// Map arguments to registers based on type and position
+		for i, arg := range args {
+			if i >= len(targetFunc.Params) {
+				break
+			}
+			param := targetFunc.Params[i]
+			
+			if param.Type.Size() == 1 {
+				// 8-bit parameter
+				switch i {
+				case 0:
+					g.loadToA(arg)
+					g.emit("    ; Parameter %s in A", param.Name)
+				case 1:
+					g.loadToA(arg)
+					g.emit("    LD E, A       ; Parameter %s in E", param.Name)
+				case 2:
+					g.loadToA(arg)
+					g.emit("    LD D, A       ; Parameter %s in D", param.Name)
+				}
+			} else {
+				// 16-bit parameter
+				switch i {
+				case 0:
+					g.loadToHL(arg)
+					g.emit("    ; Parameter %s in HL", param.Name)
+				case 1:
+					g.loadToDE(arg)
+					g.emit("    ; Parameter %s in DE", param.Name)
+				case 2:
+					g.loadToHL(arg)
+					g.emit("    PUSH HL       ; Parameter %s on stack", param.Name)
+				}
+			}
+		}
+	} else {
+		// Stack-based parameter passing (traditional)
+		g.emit("    ; Stack-based parameter passing")
+		
+		// Push arguments in reverse order (rightmost first)
+		for i := len(args) - 1; i >= 0; i-- {
+			g.loadToHL(args[i])
+			g.emit("    PUSH HL       ; Argument %d", i)
+		}
+	}
+}
+
+// loadParametersFromRegisters loads function parameters from registers
+func (g *Z80Generator) loadParametersFromRegisters(fn *ir.Function) {
+	// Check if this function uses register-based parameters
+	if fn.IsRecursive || fn.IsSMCEnabled || len(fn.Params) > 3 {
+		// Use traditional stack-based parameters
+		return
+	}
+	
+	g.emit("    ; Load parameters from registers")
+	
+	for i, param := range fn.Params {
+		if param.Type.Size() == 1 {
+			// 8-bit parameter
+			switch i {
+			case 0:
+				// Parameter already in A
+				g.storeFromA(param.Reg)
+			case 1:
+				g.emit("    LD A, E       ; Get parameter %s", param.Name)
+				g.storeFromA(param.Reg)
+			case 2:
+				g.emit("    LD A, D       ; Get parameter %s", param.Name)
+				g.storeFromA(param.Reg)
+			}
+		} else {
+			// 16-bit parameter
+			switch i {
+			case 0:
+				// Parameter already in HL
+				g.storeFromHL(param.Reg)
+			case 1:
+				g.emit("    EX DE, HL     ; Get parameter %s from DE", param.Name)
+				g.storeFromHL(param.Reg)
+			case 2:
+				// Parameter on stack
+				g.emit("    POP HL        ; Get parameter %s from stack", param.Name)
+				g.storeFromHL(param.Reg)
+			}
+		}
+	}
 }
 
 // generateInterruptPrologue generates prologue for interrupt handlers
@@ -1296,6 +1406,12 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Check if calling a TRUE SMC function
 		g.emit("    ; Call to %s (args: %d)", inst.Symbol, len(inst.Args))
 		targetFunc := g.findFunction(inst.Symbol)
+		
+		// Prepare arguments before the call
+		if len(inst.Args) > 0 {
+			g.prepareCallArguments(inst.Args, targetFunc)
+		}
+		
 		if targetFunc != nil {
 			g.emit("    ; Found function, UsesTrueSMC=%v", targetFunc.UsesTrueSMC)
 			if targetFunc.UsesTrueSMC {
@@ -1316,7 +1432,6 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				g.generateTrueSMCCall(inst, targetFunc)
 			} else {
 				// Regular call
-				// TODO: Handle arguments properly
 				g.emit("    CALL %s", shortName)
 			}
 		}
@@ -1633,6 +1748,13 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    INC HL")
 			g.emit("    LD (HL), %d    ; TODO: Need value source (high)", (inst.Imm >> 8) & 0xFF)
 		}
+		
+	case ir.OpLoadParam:
+		// For non-SMC functions, parameters are already in registers/memory
+		// Just need to move to the destination register
+		g.emit("    ; Load parameter %s", inst.Symbol)
+		// The parameter value should already be in the correct location
+		// from the function prologue
 		
 	default:
 		return fmt.Errorf("unsupported opcode: %v (%d)", inst.Op, int(inst.Op))

@@ -1,0 +1,987 @@
+; MinZ generated code
+; Generated: 2025-07-27 08:51:07
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.factorial_direct
+test_mutual_recursion.factorial_direct:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    ; Register 2 already in A
+    ; r3 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 <= r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; return r5
+    RET
+    ; else_1:
+else_1:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD E, A         ; Store to physical register E
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    ; r10 = call factorial_direct
+    ; Call to factorial_direct (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_mutual_recursion.factorial_direct
+    LD A, ($F012)     ; Virtual register 9 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL test_mutual_recursion.factorial_direct
+    ; r11 = r6 * r10
+    ; 8-bit multiplication
+    LD A, E
+    LD B, A       ; B = multiplicand
+    LD A, L
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_2
+.mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_2
+.mul_done_2:
+    EXX               ; Switch to shadow registers
+    ; return r11
+    EXX               ; Switch to shadow registers
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.is_even_mutual
+test_mutual_recursion.is_even_mutual:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r4 = r2 == r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    EXX               ; Switch to shadow registers
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L4
+    LD HL, 0
+    JP .L5
+.L4:
+    LD HL, 1
+.L5:
+    EXX               ; Switch to shadow registers
+    ; jump_if_not r4, else_3
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_3
+    ; r5 = 1
+    LD A, 1
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; return r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+    ; else_3:
+else_3:
+    ; unknown op 12
+    ; Load parameter n
+    ; r9 = call is_odd_mutual
+    ; Call to is_odd_mutual (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL is_odd_mutual
+    ; return r9
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.is_odd_mutual
+test_mutual_recursion.is_odd_mutual:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD L, A         ; Store to physical register L
+    ; r4 = r2 == r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L6
+    LD HL, 0
+    JP .L7
+.L6:
+    LD HL, 1
+.L7:
+    ; jump_if_not r4, else_5
+    LD A, L
+    OR A
+    JP Z, else_5
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD H, A         ; Store to physical register H
+    ; return r5
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+    ; else_5:
+else_5:
+    ; unknown op 12
+    ; Load parameter n
+    ; r9 = call is_even_mutual
+    ; Call to is_even_mutual (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL is_even_mutual
+    ; return r9
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.func_a
+test_mutual_recursion.func_a:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 == r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L8
+    LD HL, 0
+    JP .L9
+.L8:
+    LD HL, 1
+.L9:
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; jump_if_not r4, else_7
+    LD A, ($F008)     ; Virtual register 4 from memory
+    OR A
+    JP Z, else_7
+    ; r5 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; return r5
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+    ; else_7:
+else_7:
+    ; unknown op 12
+    ; Load parameter n
+    ; r9 = call func_b
+    ; Call to func_b (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL func_b
+    EXX               ; Switch to shadow registers
+    ; INC (optimized from ADD 1)
+    EXX               ; Switch to shadow registers
+    INC HL
+    EXX               ; Switch to shadow registers
+    ; return r11
+    EXX               ; Switch to shadow registers
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.func_b
+test_mutual_recursion.func_b:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD E, A         ; Store to physical register E
+    ; r4 = r2 == r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L10
+    LD HL, 0
+    JP .L11
+.L10:
+    LD HL, 1
+.L11:
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; jump_if_not r4, else_9
+    LD A, ($F008)     ; Virtual register 4 from memory
+    OR A
+    JP Z, else_9
+    ; r5 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; return r5
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+    ; else_9:
+else_9:
+    ; unknown op 12
+    ; Load parameter n
+    ; r9 = call func_c
+    ; Call to func_c (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL func_c
+    ; r10 = 2
+    LD A, 2
+    ; Register 10 already in A
+    ; r11 = r9 + r10
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r11
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.func_c
+test_mutual_recursion.func_c:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = r2 == r3
+    LD D, H
+    LD E, L
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L12
+    LD HL, 0
+    JP .L13
+.L12:
+    LD HL, 1
+.L13:
+    EXX               ; Switch to shadow registers
+    ; jump_if_not r4, else_11
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_11
+    ; r5 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; return r5
+    EXX               ; Switch to shadow registers
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+    ; else_11:
+else_11:
+    ; unknown op 12
+    ; Load parameter n
+    ; r9 = call func_a
+    ; Call to func_a (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL func_a
+    ; r10 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    ; r11 = r9 + r10
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r11
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.deep_a
+test_mutual_recursion.deep_a:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = r2 == r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L14
+    LD HL, 0
+    JP .L15
+.L14:
+    LD HL, 1
+.L15:
+    ; jump_if_not r4, else_13
+    LD A, D
+    OR A
+    JP Z, else_13
+    ; r5 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; return r5
+    EXX               ; Switch to shadow registers
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+    ; else_13:
+else_13:
+    ; unknown op 12
+    ; Load parameter n
+    ; r9 = call deep_b
+    ; Call to deep_b (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL deep_b
+    ; return r9
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.deep_b
+test_mutual_recursion.deep_b:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    ; Register 3 already in A
+    ; r4 = r2 == r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L16
+    LD HL, 0
+    JP .L17
+.L16:
+    LD HL, 1
+.L17:
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; jump_if_not r4, else_15
+    LD A, ($F008)     ; Virtual register 4 from memory
+    OR A
+    JP Z, else_15
+    ; r5 = 2
+    LD A, 2
+    ; Register 5 already in A
+    ; return r5
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+    ; else_15:
+else_15:
+    ; unknown op 12
+    ; Load parameter n
+    ; r9 = call deep_c
+    ; Call to deep_c (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL deep_c
+    ; return r9
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.deep_c
+test_mutual_recursion.deep_c:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = r2 == r3
+    LD D, H
+    LD E, L
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L18
+    LD HL, 0
+    JP .L19
+.L18:
+    LD HL, 1
+.L19:
+    EXX               ; Switch to shadow registers
+    ; jump_if_not r4, else_17
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_17
+    ; r5 = 3
+    LD A, 3
+    LD C, A         ; Store to physical register C
+    ; return r5
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+    ; else_17:
+else_17:
+    ; unknown op 12
+    ; Load parameter n
+    ; r9 = call deep_d
+    ; Call to deep_d (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL deep_d
+    ; return r9
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.deep_d
+test_mutual_recursion.deep_d:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Parameter n from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; unknown op 12
+    ; Load parameter n
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD C, A         ; Store to physical register C
+    ; r4 = r2 == r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L20
+    LD HL, 0
+    JP .L21
+.L20:
+    LD HL, 1
+.L21:
+    ; jump_if_not r4, else_19
+    LD A, C
+    OR A
+    JP Z, else_19
+    ; r5 = 4
+    LD A, 4
+    ; Register 5 already in A
+    ; return r5
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+    ; else_19:
+else_19:
+    ; unknown op 12
+    ; Load parameter n
+    ; r9 = call deep_a
+    ; Call to deep_a (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL deep_a
+    ; return r9
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.simple_add
+test_mutual_recursion.simple_add:
+; Using absolute addressing for locals
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD E, A         ; Store to physical register E
+    LD A, E       ; Get parameter b
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; unknown op 12
+    ; Load parameter a
+    ; unknown op 12
+    ; Load parameter b
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    LD SP, IX
+    POP IX
+    POP HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.chain_caller
+test_mutual_recursion.chain_caller:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; unknown op 12
+    ; Load parameter n
+    ; r4 = call simple_add
+    ; Call to simple_add (args: 2)
+    ; Register-based parameter passing
+    LD A, H
+    ; Parameter a in A
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD E, A       ; Parameter b in E
+    ; Found function, UsesTrueSMC=false
+    CALL simple_add
+    EXX               ; Switch to shadow registers
+    ; return r4
+    EXX               ; Switch to shadow registers
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.mixed_recursive
+test_mutual_recursion.mixed_recursive:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r3 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r4 = r2 <= r3
+    EXX               ; Switch to shadow registers
+    LD D, H
+    LD E, L
+    EXX               ; Switch to shadow registers
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L22
+    JP Z, .L22
+    LD HL, 0
+    JP .L23
+.L22:
+    LD HL, 1
+.L23:
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; jump_if_not r4, else_21
+    LD A, ($F008)     ; Virtual register 4 from memory
+    OR A
+    JP Z, else_21
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD B, A         ; Store to physical register B
+    ; r7 = call simple_add
+    ; Call to simple_add (args: 2)
+    ; Register-based parameter passing
+    LD A, B
+    ; Parameter a in A
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD E, A       ; Parameter b in E
+    ; Found function, UsesTrueSMC=false
+    CALL simple_add
+    ; return r7
+    RET
+    ; else_21:
+else_21:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD C, A         ; Store to physical register C
+    ; r9 = call is_even_mutual
+    ; Call to is_even_mutual (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL is_even_mutual
+    LD A, (n$imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r13 = call mixed_recursive
+    ; Call to mixed_recursive (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_mutual_recursion.mixed_recursive
+    LD A, ($F018)     ; Virtual register 12 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL test_mutual_recursion.mixed_recursive
+    EXX               ; Switch to shadow registers
+    ; r14 = r9 + r13
+    LD D, H
+    LD E, L
+    EXX               ; Switch to shadow registers
+    ADD HL, DE
+    ; return r14
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mutual_recursion.main
+test_mutual_recursion.main:
+; Using stack-based locals (IX+offset)
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    LD IX, SP
+    LD HL, -10
+    ADD HL, SP
+    LD SP, HL
+    ; r3 = call factorial_direct
+    ; Call to factorial_direct (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_mutual_recursion.factorial_direct
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL test_mutual_recursion.factorial_direct
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; store , r3
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD (IX-2), L
+    LD (IX-1), H
+    ; r6 = call is_even_mutual
+    ; Call to is_even_mutual (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL is_even_mutual
+    ; store , r6
+    LD (IX-3), L
+    LD (IX-2), H
+    ; r9 = call is_odd_mutual
+    ; Call to is_odd_mutual (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL is_odd_mutual
+    ; store , r9
+    LD (IX-4), L
+    LD (IX-3), H
+    ; r12 = call func_a
+    ; Call to func_a (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL func_a
+    ; store , r12
+    LD (IX-6), L
+    LD (IX-5), H
+    ; r15 = call deep_a
+    ; Call to deep_a (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL deep_a
+    ; store , r15
+    LD (IX-7), L
+    LD (IX-6), H
+    ; r18 = call mixed_recursive
+    ; Call to mixed_recursive (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F022)    ; Virtual register 17 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to test_mutual_recursion.mixed_recursive
+    LD A, ($F022)     ; Virtual register 17 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL test_mutual_recursion.mixed_recursive
+    EXX               ; Switch to shadow registers
+    ; store , r18
+    EXX               ; Switch to shadow registers
+    LD (IX-9), L
+    LD (IX-8), H
+    ; r22 = call simple_add
+    ; Call to simple_add (args: 2)
+    ; Register-based parameter passing
+    LD A, ($F028)     ; Virtual register 20 from memory
+    ; Parameter a in A
+    LD A, ($F02A)     ; Virtual register 21 from memory
+    LD E, A       ; Parameter b in E
+    ; Found function, UsesTrueSMC=false
+    CALL simple_add
+    ; store , r22
+    LD (IX-10), L
+    LD (IX-9), H
+    ; return
+    LD SP, IX
+    POP IX
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW n$imm0           ; test_mutual_recursion.factorial_direct.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n$imm0           ; test_mutual_recursion.mixed_recursive.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+    END main

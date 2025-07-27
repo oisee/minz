@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function simple_tail_test.countdown(n: u8) -> u8
+  @smc
+  @recursive
+  Instructions:
+      0: 29 ; Load from anchor n$imm0
+      1: simple_tail_test.countdown_tail_loop: ; Tail recursion loop start
+      2: r3 = r3 ^ r3 ; XOR A,A (optimized from LD A,0)
+      3: r4 = r2 == r3
+      4: jump_if_not r4, else_1
+      5: r5 = r5 ^ r5 ; XOR A,A (optimized from LD A,0)
+      6: return r5
+      7: else_1:
+      8: 29 ; Load from anchor n$imm0
+      9: jump simple_tail_test.countdown_tail_loop ; Tail recursion optimized to loop
+
+Function simple_tail_test.main() -> void
+  @smc
+  @recursive
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: r3 = call countdown
+      1: store , r3
+      2: return
+

@@ -1,0 +1,122 @@
+; MinZ generated code
+; Generated: 2025-07-27 08:42:18
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_debug_recursion.simple_factorial
+test_debug_recursion.simple_factorial:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; unknown op 12
+    ; Load parameter n
+    ; r3 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 <= r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; return r5
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    ; unknown op 12
+    ; Load parameter n
+    ; unknown op 12
+    ; Load parameter n
+    ; r8 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r9 = r7 - r8
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    EXX               ; Switch to shadow registers
+    ; r10 = call simple_factorial
+    ; Call to simple_factorial (args: 1)
+    ; Register-based parameter passing
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    ; Parameter n in A
+    ; Found function, UsesTrueSMC=false
+    CALL simple_factorial
+    EXX               ; Switch to shadow registers
+    ; r11 = r6 * r10
+    ; 8-bit multiplication
+    LD A, E
+    LD B, A       ; B = multiplicand
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_2
+.mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_2
+.mul_done_2:
+    EXX               ; Switch to shadow registers
+    ; return r11
+    EXX               ; Switch to shadow registers
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_debug_recursion.main
+test_debug_recursion.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = call simple_factorial
+    ; Call to simple_factorial (args: 1)
+    ; Register-based parameter passing
+    LD A, ($F004)     ; Virtual register 2 from memory
+    ; Parameter n in A
+    ; Found function, UsesTrueSMC=false
+    CALL simple_factorial
+    ; store , r3
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main
