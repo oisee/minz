@@ -1,0 +1,19 @@
+// Simple test for stack-based locals
+
+// Function with many locals to force stack usage
+fun test_stack() -> u8 {
+    let a: u8 = 1;
+    let b: u8 = 2; 
+    let c: u8 = 3;
+    let d: u8 = 4;
+    let e: u8 = 5;
+    let f: u8 = 6;
+    let g: u8 = 7;
+    let h: u8 = 8;
+    
+    return a + b + c + d + e + f + g + h;  // Should be 36
+}
+
+fun main() -> void {
+    let result = test_stack();
+}

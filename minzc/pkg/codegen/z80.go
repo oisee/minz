@@ -272,14 +272,37 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	// Traditional function generation
 	g.emit("%s:", fn.Name)
 
-	// Allocate addresses for local variables
-	localOffset := uint16(0)
-	localAddresses := make(map[string]uint16)
-	for _, local := range fn.Locals {
-		addr := g.localVarBase + localOffset
-		localAddresses[local.Name] = addr
-		g.regAlloc.SetAddress(local.Reg, addr)
-		localOffset += uint16(local.Type.Size())
+	// Determine if we should use stack-based locals
+	useStackLocals := g.shouldUseStackLocals(fn)
+	if useStackLocals {
+		g.emit("; Using stack-based locals (IX+offset)")
+		g.useAbsoluteLocals = false
+	} else {
+		g.emit("; Using absolute addressing for locals")
+		g.useAbsoluteLocals = true
+	}
+
+	// Allocate addresses/offsets for local variables
+	if g.useAbsoluteLocals {
+		// Absolute addressing mode
+		localOffset := uint16(0)
+		localAddresses := make(map[string]uint16)
+		for _, local := range fn.Locals {
+			addr := g.localVarBase + localOffset
+			localAddresses[local.Name] = addr
+			g.regAlloc.SetAddress(local.Reg, addr)
+			localOffset += uint16(local.Type.Size())
+		}
+	} else {
+		// Stack-based addressing mode (IX+offset)
+		// Locals are at negative offsets from IX
+		localOffset := 0
+		for _, local := range fn.Locals {
+			localOffset += local.Type.Size()
+			// Store negative offset (locals grow downward)
+			g.regAlloc.SetAddress(local.Reg, uint16(localOffset))
+		}
+		g.stackOffset = localOffset
 	}
 	
 	// Function prologue
@@ -627,8 +650,27 @@ func (g *Z80Generator) generatePrologue(fn *ir.Function) {
 		g.emit("    PUSH HL")
 	}
 	
-	// Always save frame pointer for functions with locals or parameters
-	if len(fn.Locals) > 0 || len(fn.Params) > 0 {
+	// Setup stack frame if using stack-based locals
+	if !g.useAbsoluteLocals && (len(fn.Locals) > 0 || len(fn.Params) > 0) {
+		g.emit("    PUSH IX")
+		g.emit("    LD IX, SP")
+		
+		// Allocate space for locals
+		if g.stackOffset > 0 {
+			if g.stackOffset <= 127 {
+				// Small frame - use ADD SP
+				g.emit("    LD HL, -%d", g.stackOffset)
+				g.emit("    ADD HL, SP")
+				g.emit("    LD SP, HL")
+			} else {
+				// Large frame
+				g.emit("    LD HL, -%d", g.stackOffset)
+				g.emit("    ADD HL, SP")
+				g.emit("    LD SP, HL")
+			}
+		}
+	} else if len(fn.Locals) > 0 || len(fn.Params) > 0 {
+		// Even in absolute mode, we might need IX for parameters
 		g.emit("    PUSH IX")
 		g.emit("    LD IX, SP")
 	}
@@ -637,15 +679,6 @@ func (g *Z80Generator) generatePrologue(fn *ir.Function) {
 	if fn.UsedRegisters.Contains(ir.Z80_BC_SHADOW | ir.Z80_DE_SHADOW | ir.Z80_HL_SHADOW) {
 		g.useShadowRegs = true
 		g.emit("    EXX           ; Switch to shadow registers")
-	}
-
-	// Allocate space for locals
-	localSpace := len(fn.Locals) * 2 // 2 bytes per local
-	if localSpace > 0 {
-		g.emit("    LD HL, -%d", localSpace)
-		g.emit("    ADD HL, SP")
-		g.emit("    LD SP, HL")
-		g.stackOffset = localSpace
 	}
 
 	// Load parameters from stack to registers/locals
@@ -660,9 +693,10 @@ func (g *Z80Generator) generatePrologue(fn *ir.Function) {
 		g.emit("    LD H, (IX+%d)", offset+1)
 		
 		// Store in local variable space
-		localOffset := g.allocateLocal(param.Reg)
-		g.emit("    LD (IX-%d), L", localOffset)
-		g.emit("    LD (IX-%d), H", localOffset-1)
+		// Get offset for this parameter's register
+		localOffset := g.getLocalOffset(param.Reg)
+		g.emit("    LD (IX%+d), L", localOffset)
+		g.emit("    LD (IX%+d), H", localOffset+1)
 	}
 }
 
@@ -882,8 +916,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 					g.emit("    LD HL, ($%04X)", addr)
 				} else {
 					offset := g.getLocalOffset(localReg)
-					g.emit("    LD L, (IX-%d)", offset)
-					g.emit("    LD H, (IX-%d)", offset-1)
+					g.emit("    LD L, (IX%+d)", offset)
+					g.emit("    LD H, (IX%+d)", offset+1)
 				}
 				g.storeFromHL(inst.Dest)
 			}
@@ -894,15 +928,19 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				g.emit("    LD HL, ($%04X)", addr)
 			} else {
 				offset := g.getLocalOffset(inst.Src1)
-				g.emit("    LD L, (IX-%d)", offset)
-				g.emit("    LD H, (IX-%d)", offset-1)
+				g.emit("    LD L, (IX%+d)", offset)
+				g.emit("    LD H, (IX%+d)", offset+1)
 			}
 			g.storeFromHL(inst.Dest)
 		}
 		
 	case ir.OpStoreVar:
 		// Store to variable
-		g.loadToHL(inst.Src1)
+		// Check if we have a source to load
+		if inst.Src1 != ir.RegZero {
+			g.loadToHL(inst.Src1)
+		}
+		// Otherwise assume value is already in HL or the appropriate register
 		
 		// Check if this is a global variable by symbol name
 		if inst.Symbol != "" {
@@ -926,8 +964,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 					g.emit("    LD ($%04X), HL", addr)
 				} else {
 					offset := g.getLocalOffset(localReg)
-					g.emit("    LD (IX-%d), L", offset)
-					g.emit("    LD (IX-%d), H", offset-1)
+					g.emit("    LD (IX%+d), L", offset)
+					g.emit("    LD (IX%+d), H", offset+1)
 				}
 			}
 		} else {
@@ -937,8 +975,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				g.emit("    LD ($%04X), HL", addr)
 			} else {
 				offset := g.getLocalOffset(inst.Dest)
-				g.emit("    LD (IX-%d), L", offset)
-				g.emit("    LD (IX-%d), H", offset-1)
+				g.emit("    LD (IX%+d), L", offset)
+				g.emit("    LD (IX%+d), H", offset+1)
 			}
 		}
 		
@@ -1798,7 +1836,14 @@ func (g *Z80Generator) loadToA(reg ir.Register) {
 	case LocationMemory:
 		// Fallback to memory-based allocation
 		addr := value.(uint16)
-		g.emit("    LD A, ($%04X)     ; Virtual register %d from memory", addr, reg)
+		if !g.useAbsoluteLocals && g.isLocalRegister(reg) {
+			// Stack-based local variable - use IX+offset
+			offset := g.getLocalOffset(reg)
+			g.emit("    LD A, (IX%+d)     ; Virtual register %d from stack", offset, reg)
+		} else {
+			// Absolute addressing
+			g.emit("    LD A, ($%04X)     ; Virtual register %d from memory", addr, reg)
+		}
 	}
 }
 
@@ -1844,7 +1889,14 @@ func (g *Z80Generator) storeFromA(reg ir.Register) {
 	case LocationMemory:
 		// Fallback to memory-based allocation
 		addr := value.(uint16)
-		g.emit("    LD ($%04X), A     ; Virtual register %d to memory", addr, reg)
+		if !g.useAbsoluteLocals && g.isLocalRegister(reg) {
+			// Stack-based local variable - use IX+offset
+			offset := g.getLocalOffset(reg)
+			g.emit("    LD (IX%+d), A     ; Virtual register %d to stack", offset, reg)
+		} else {
+			// Absolute addressing
+			g.emit("    LD ($%04X), A     ; Virtual register %d to memory", addr, reg)
+		}
 	}
 }
 
@@ -1855,58 +1907,152 @@ func (g *Z80Generator) loadToHL(reg ir.Register) {
 		return
 	}
 	
-	if g.useAbsoluteLocals {
-		addr := g.getAbsoluteAddr(reg)
-		g.emit("    LD HL, ($%04X)", addr)
-	} else {
-		offset := g.getLocalOffset(reg)
-		g.emit("    LD L, (IX-%d)", offset)
-		g.emit("    LD H, (IX-%d)", offset-1)
+	// Use hierarchical register allocation for 16-bit loads
+	location, value := g.getRegisterLocation(reg)
+	
+	switch location {
+	case LocationPhysical:
+		physReg := value.(PhysicalReg)
+		if physReg == RegHL {
+			// Already in HL
+			g.emit("    ; Register %d already in HL", reg)
+			return
+		}
+		// Move from physical register to HL
+		regName := g.physicalRegToAssembly(physReg)
+		if physReg == RegBC || physReg == RegDE {
+			g.emit("    LD H, %s", regName[:1]) // BC->B, DE->D
+			g.emit("    LD L, %s", regName[1:]) // BC->C, DE->E
+		}
+		
+	case LocationShadow:
+		physReg := value.(PhysicalReg)
+		g.emit("    EXX               ; Switch to shadow registers")
+		regName := g.physicalRegToAssembly(physReg)
+		if physReg == RegHL_Shadow {
+			g.emit("    ; Register %d in shadow HL", reg)
+			g.emit("    EXX               ; Keep shadow HL in HL")
+		} else if physReg == RegBC_Shadow || physReg == RegDE_Shadow {
+			g.emit("    LD H, %s", regName[:1])
+			g.emit("    LD L, %s", regName[1:])
+			g.emit("    EXX               ; Switch back")
+		}
+		
+	case LocationMemory:
+		addr := value.(uint16)
+		if !g.useAbsoluteLocals && g.isLocalRegister(reg) {
+			// Stack-based local variable - use IX+offset
+			offset := g.getLocalOffset(reg)
+			g.emit("    LD L, (IX%+d)     ; Virtual register %d from stack (low)", offset, reg)
+			g.emit("    LD H, (IX%+d)     ; Virtual register %d from stack (high)", offset+1, reg)
+		} else {
+			// Absolute addressing
+			g.emit("    LD HL, ($%04X)    ; Virtual register %d from memory", addr, reg)
+		}
 	}
 }
 
-// loadToDE loads a virtual register to DE
+// loadToDE loads a virtual register to DE  
 func (g *Z80Generator) loadToDE(reg ir.Register) {
 	if reg == ir.RegZero {
 		g.emit("    LD DE, 0")
 		return
 	}
 	
-	if g.useAbsoluteLocals {
-		addr := g.getAbsoluteAddr(reg)
-		// Z80 doesn't have direct LD DE, (addr), so we use HL as intermediate
-		g.emit("    LD HL, ($%04X)", addr)
-		g.emit("    EX DE, HL")
-	} else {
-		offset := g.getLocalOffset(reg)
-		g.emit("    LD E, (IX-%d)", offset)
-		g.emit("    LD D, (IX-%d)", offset-1)
+	// Use hierarchical register allocation
+	location, value := g.getRegisterLocation(reg)
+	
+	switch location {
+	case LocationPhysical:
+		physReg := value.(PhysicalReg)
+		if physReg == RegDE {
+			// Already in DE
+			g.emit("    ; Register %d already in DE", reg)
+			return
+		}
+		// Move from physical register to DE
+		regName := g.physicalRegToAssembly(physReg)
+		if physReg == RegBC || physReg == RegHL {
+			g.emit("    LD D, %s", regName[:1])
+			g.emit("    LD E, %s", regName[1:])
+		}
+		
+	case LocationShadow:
+		physReg := value.(PhysicalReg)
+		g.emit("    EXX               ; Switch to shadow registers")
+		regName := g.physicalRegToAssembly(physReg)
+		if physReg == RegDE_Shadow {
+			g.emit("    ; Register %d in shadow DE", reg)
+			// Need to transfer shadow DE to main DE
+			g.emit("    PUSH DE")
+			g.emit("    EXX")
+			g.emit("    POP DE")
+		} else if physReg == RegBC_Shadow || physReg == RegHL_Shadow {
+			g.emit("    LD D, %s", regName[:1])
+			g.emit("    LD E, %s", regName[1:])
+			g.emit("    EXX               ; Switch back")
+		}
+		
+	case LocationMemory:
+		addr := value.(uint16)
+		if !g.useAbsoluteLocals && g.isLocalRegister(reg) {
+			// Stack-based local variable - use IX+offset
+			offset := g.getLocalOffset(reg)
+			g.emit("    LD E, (IX%+d)     ; Virtual register %d from stack (low)", offset, reg)
+			g.emit("    LD D, (IX%+d)     ; Virtual register %d from stack (high)", offset+1, reg)
+		} else {
+			// Z80 doesn't have direct LD DE, (addr), so we use HL as intermediate
+			g.emit("    LD HL, ($%04X)    ; Virtual register %d from memory", addr, reg)
+			g.emit("    EX DE, HL")
+		}
 	}
 }
 
 // storeFromHL stores HL to a virtual register
 func (g *Z80Generator) storeFromHL(reg ir.Register) {
-	if g.useAbsoluteLocals {
-		addr := g.getAbsoluteAddr(reg)
-		g.emit("    LD ($%04X), HL", addr)
-	} else {
-		offset := g.getLocalOffset(reg)
-		g.emit("    LD (IX-%d), L", offset)
-		g.emit("    LD (IX-%d), H", offset-1)
+	// Use hierarchical register allocation
+	location, value := g.getRegisterLocation(reg)
+	
+	switch location {
+	case LocationPhysical:
+		physReg := value.(PhysicalReg)
+		if physReg == RegHL {
+			// Already in HL
+			g.emit("    ; Register %d already in HL", reg)
+			return
+		}
+		// Move from HL to physical register
+		regName := g.physicalRegToAssembly(physReg)
+		if physReg == RegBC || physReg == RegDE {
+			g.emit("    LD %s, H", regName[:1])
+			g.emit("    LD %s, L", regName[1:])
+		}
+		
+	case LocationShadow:
+		physReg := value.(PhysicalReg)
+		g.emit("    EXX               ; Switch to shadow registers")
+		regName := g.physicalRegToAssembly(physReg)
+		if physReg == RegHL_Shadow {
+			g.emit("    ; Store to shadow HL")
+			g.emit("    EXX               ; HL now in shadow HL")
+		} else if physReg == RegBC_Shadow || physReg == RegDE_Shadow {
+			g.emit("    LD %s, H", regName[:1])
+			g.emit("    LD %s, L", regName[1:])
+			g.emit("    EXX               ; Switch back")
+		}
+		
+	case LocationMemory:
+		addr := value.(uint16)
+		if !g.useAbsoluteLocals && g.isLocalRegister(reg) {
+			// Stack-based local variable - use IX+offset
+			offset := g.getLocalOffset(reg)
+			g.emit("    LD (IX%+d), L     ; Virtual register %d to stack (low)", offset, reg)
+			g.emit("    LD (IX%+d), H     ; Virtual register %d to stack (high)", offset+1, reg)
+		} else {
+			// Absolute addressing
+			g.emit("    LD ($%04X), HL    ; Virtual register %d to memory", addr, reg)
+		}
 	}
-}
-
-// allocateLocal allocates stack space for a local variable
-func (g *Z80Generator) allocateLocal(reg ir.Register) int {
-	// For now, simple allocation - each register gets 2 bytes
-	offset := g.stackOffset + int(reg)*2
-	return offset
-}
-
-// getLocalOffset gets the stack offset for a register
-func (g *Z80Generator) getLocalOffset(reg ir.Register) int {
-	// For now, simple mapping
-	return g.stackOffset + int(reg)*2
 }
 
 // getAbsoluteAddr gets the absolute address for a local variable
@@ -2277,3 +2423,65 @@ func (g *Z80Generator) generateDJNZ(decInst ir.Instruction) error {
 	
 	return nil
 }
+
+// shouldUseStackLocals determines if a function should use stack-based locals
+func (g *Z80Generator) shouldUseStackLocals(fn *ir.Function) bool {
+	// Use stack locals for:
+	// 1. Recursive functions (required)
+	if g.isRecursive(fn) {
+		return true
+	}
+	
+	// 2. Functions with many locals (> 6)
+	if len(fn.Locals) > 6 {
+		return true
+	}
+	
+	// 3. Functions that call other functions (preserve locals across calls)
+	for _, inst := range fn.Instructions {
+		if inst.Op == ir.OpCall {
+			return true
+		}
+	}
+	
+	// Otherwise use absolute addressing for speed
+	return false
+}
+
+// isRecursive checks if a function is recursive
+func (g *Z80Generator) isRecursive(fn *ir.Function) bool {
+	// Check if function calls itself
+	for _, inst := range fn.Instructions {
+		if inst.Op == ir.OpCall && inst.Symbol == fn.Name {
+			return true
+		}
+	}
+	return false
+}
+
+// getLocalOffset calculates the IX+offset for a local variable
+func (g *Z80Generator) getLocalOffset(reg ir.Register) int {
+	// Get the stored offset (positive value)
+	addr, ok := g.regAlloc.GetAddress(reg)
+	if !ok {
+		// Default offset if not found
+		return -int(reg) * 2
+	}
+	// Convert to negative offset from IX
+	return -int(addr)
+}
+
+// isLocalRegister checks if a register represents a local variable
+func (g *Z80Generator) isLocalRegister(reg ir.Register) bool {
+	// Check if this register is in the current function's locals
+	if g.currentFunc == nil {
+		return false
+	}
+	for _, local := range g.currentFunc.Locals {
+		if local.Reg == reg {
+			return true
+		}
+	}
+	return false
+}
+

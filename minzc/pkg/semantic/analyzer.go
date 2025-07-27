@@ -501,6 +501,17 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{Op: ir.OpReturn})
 	}
 
+	// Finalize SMC decision based on function properties
+	if irFunc.IsRecursive {
+		// Recursive functions cannot use SMC
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
+	} else if len(irFunc.Locals) > 6 {
+		// Functions with many locals should use stack
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
+	}
+
 	// Add function to module
 	a.module.AddFunction(irFunc)
 	
