@@ -41,7 +41,7 @@ npm install -g tree-sitter-cli
 
 ### Testing Individual Files
 ```bash
-# Parse a specific MinZ file
+# Parse a specific MinZ file  
 tree-sitter parse examples/fibonacci.minz
 
 # Compile a MinZ file to Z80 assembly
@@ -49,6 +49,9 @@ cd minzc && ./minzc ../examples/fibonacci.minz -o fibonacci.a80
 
 # Enable optimizations
 cd minzc && ./minzc ../examples/fibonacci.minz -O --enable-smc
+
+# Test @abi assembly integration
+cd minzc && ./minzc ../examples/simple_abi_demo.minz -o simple_abi_demo.a80
 ```
 
 ## Compiler Architecture
@@ -93,6 +96,10 @@ cd minzc && ./minzc ../examples/fibonacci.minz -O --enable-smc
   - Enable with `--enable-true-smc` flag
   - See `docs/018_TRUE_SMC_Design_v2.md` for current design
   - Provides 3-5x performance improvement for function calls
+- **@abi Annotations**: Seamless integration with existing assembly functions
+  - Use existing ROM routines, drivers, libraries without modification
+  - Precise register mapping: `@abi("register: A=param1, HL=param2")`
+  - Zero overhead assembly integration
 
 ## Language Features
 
@@ -100,6 +107,7 @@ MinZ supports modern programming constructs while targeting Z80:
 - **Type System**: Static typing with inference (u8, u16, i8, i16, bool, arrays, pointers)
 - **Structs and Enums**: Organized data structures with memory-efficient layout
 - **Module System**: Import/export with visibility control
+- **@abi Attributes**: Revolutionary seamless assembly integration system
 - **Lua Metaprogramming**: Full Lua 5.1 interpreter at compile time for code generation
 - **Inline Assembly**: Direct Z80 assembly integration with register constraints
 
@@ -123,6 +131,8 @@ MinZ supports modern programming constructs while targeting Z80:
 
 ### Examples and Testing
 - `examples/`: Comprehensive MinZ programs showcasing all language features
+- `examples/simple_abi_demo.minz`: Complete @abi demonstration with assembly integration
+- `examples/asm_integration_tests.minz`: Comprehensive @abi test suite
 - `test/`: Tree-sitter test corpus
 - `stdlib/`: Standard library modules (std.mem, zx.screen, zx.input)
 

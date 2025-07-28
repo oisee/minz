@@ -373,6 +373,7 @@ type Function struct {
 	Metadata map[string]string // Generic metadata storage
 	CalleeSavedRegs  RegisterSet // Registers this function must preserve
 	MaxStackDepth    int         // Maximum stack depth for this function
+	CallingConvention string     // ABI calling convention ("smc", "register", "stack", etc.)
 }
 
 // Parameter represents a function parameter
@@ -559,6 +560,8 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("r%d = load %s", i.Dest, i.Symbol)
 	case OpStoreVar:
 		return fmt.Sprintf("store %s, r%d", i.Symbol, i.Src1)
+	case OpLoadParam:
+		return fmt.Sprintf("r%d = param %s", i.Dest, i.Symbol)
 	case OpAdd:
 		return fmt.Sprintf("r%d = r%d + r%d", i.Dest, i.Src1, i.Src2)
 	case OpSub:

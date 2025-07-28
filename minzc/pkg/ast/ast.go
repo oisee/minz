@@ -63,6 +63,7 @@ type FunctionDecl struct {
 	Body       *BlockStmt
 	IsPublic   bool
 	IsExport   bool
+	Attributes []*Attribute
 	StartPos   Position
 	EndPos     Position
 }
@@ -79,6 +80,7 @@ type Parameter struct {
 	StartPos Position
 	EndPos   Position
 }
+
 
 // Type nodes
 type Type interface {

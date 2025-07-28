@@ -23,16 +23,16 @@ type ModuleInfo struct {
 
 // Analyzer performs semantic analysis on the AST
 type Analyzer struct {
-	currentScope   *Scope
-	errors         []error
-	module         *ir.Module
-	moduleResolver ModuleResolver
-	currentFile    string
-	currentModule  string // Current module name for prefixing
-	luaEvaluator   *meta.LuaEvaluator
-	currentFunc    *ir.Function
-	functionCalls  map[string][]string // Track which functions call which
-	exprTypes      map[ast.Expression]ir.Type // Type information for expressions
+	currentScope          *Scope
+	errors                []error
+	module                *ir.Module
+	moduleResolver        ModuleResolver
+	currentFile           string
+	currentModule         string // Current module name for prefixing
+	luaEvaluator          *meta.LuaEvaluator
+	currentFunc           *ir.Function
+	functionCalls         map[string][]string // Track which functions call which
+	exprTypes             map[ast.Expression]ir.Type // Type information for expressions
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -158,6 +158,9 @@ func (a *Analyzer) processImport(imp *ast.ImportStmt) error {
 	} else if moduleName == "zx.input" || moduleName == "input" {
 		// Add input module functions
 		a.registerInputModule()
+	} else if moduleName == "zx.io" || moduleName == "io" {
+		// Add I/O module functions
+		a.registerIOModule()
 	} else {
 		// Unknown module
 		return fmt.Errorf("unknown module: %s", moduleName)
@@ -366,6 +369,59 @@ func (a *Analyzer) registerInputModule() {
 	})
 }
 
+// registerIOModule registers I/O module functions
+func (a *Analyzer) registerIOModule() {
+	// Register io as a module
+	a.currentScope.Define("io", &ModuleSymbol{
+		Name: "io",
+	})
+	
+	// print_char - prints a single character using RST 16
+	a.currentScope.Define("io.print_char", &FuncSymbol{
+		Name:       "io.print_char",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params: []*ast.Parameter{
+			{Name: "ch", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+	})
+	
+	// print_u8 - prints an unsigned 8-bit number
+	a.currentScope.Define("io.print_u8", &FuncSymbol{
+		Name:       "io.print_u8",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params: []*ast.Parameter{
+			{Name: "value", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+	})
+	
+	// print_u16 - prints an unsigned 16-bit number
+	a.currentScope.Define("io.print_u16", &FuncSymbol{
+		Name:       "io.print_u16",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params: []*ast.Parameter{
+			{Name: "value", Type: &ast.PrimitiveType{Name: "u16"}},
+		},
+	})
+	
+	// print_str - prints a string
+	a.currentScope.Define("io.print_str", &FuncSymbol{
+		Name:       "io.print_str",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params: []*ast.Parameter{
+			{Name: "str", Type: &ast.PointerType{BaseType: &ast.PrimitiveType{Name: "u8"}}},
+		},
+	})
+	
+	// print - generic print function (overloaded based on type)
+	a.currentScope.Define("io.print", &FuncSymbol{
+		Name:       "io.print",
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		Params: []*ast.Parameter{
+			{Name: "value", Type: &ast.PrimitiveType{Name: "u8"}}, // Will be type-checked based on actual argument
+		},
+	})
+}
+
 // analyzeDeclaration analyzes a declaration
 func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 	switch d := decl.(type) {
@@ -439,9 +495,16 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	// Create IR function with prefixed name
 	irFunc := ir.NewFunction(prefixedName, funcSym.ReturnType)
 	
-	// Default to SMC unless impossible
-	irFunc.IsSMCDefault = true
-	irFunc.SMCParamOffsets = make(map[string]int)
+	// Process @abi attributes
+	if err := a.processAbiAttributes(fn, irFunc); err != nil {
+		return fmt.Errorf("error processing @abi attributes for %s: %v", fn.Name, err)
+	}
+	
+	// Default to SMC unless overridden by attributes
+	if irFunc.CallingConvention == "" {
+		irFunc.IsSMCDefault = true
+		irFunc.SMCParamOffsets = make(map[string]int)
+	}
 	
 	// Debug: confirm SMC is enabled
 	// fmt.Printf("DEBUG: After setting SMC for %s: IsSMCDefault=%v, IsSMCEnabled=%v, ptr=%p\n", fn.Name, irFunc.IsSMCDefault, irFunc.IsSMCEnabled, irFunc)
@@ -782,8 +845,11 @@ func (a *Analyzer) analyzeTypeDecl(t *ast.TypeDecl) error {
 // analyzeBlock analyzes a block statement
 func (a *Analyzer) analyzeBlock(block *ast.BlockStmt, irFunc *ir.Function) error {
 	// Enter new scope
+	prevScope := a.currentScope
 	a.currentScope = NewScope(a.currentScope)
-	defer func() { a.currentScope = a.currentScope.parent }()
+	defer func() { 
+		a.currentScope = prevScope 
+	}()
 
 	// Process statements
 	for _, stmt := range block.Statements {
@@ -800,6 +866,7 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 	if stmt == nil {
 		return fmt.Errorf("encountered nil statement - likely a parsing error")
 	}
+	
 	switch s := stmt.(type) {
 	case *ast.VarDecl:
 		return a.analyzeVarDeclInFunc(s, irFunc)
@@ -832,9 +899,9 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 
 // analyzeVarDeclInFunc analyzes a variable declaration inside a function
 func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) error {
+	
 	// Determine type
 	var varType ir.Type
-	var inferredType ir.Type
 	
 	// Get the declared type if present
 	if v.Type != nil {
@@ -845,56 +912,93 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 		varType = t
 	}
 	
-	// Get the inferred type from value if present
-	if v.Value != nil {
-		t, err := a.inferType(v.Value)
-		if err != nil {
-			// If we have an explicit type, use it even if inference fails
-			if varType == nil {
+	// If no explicit type, we need to infer from value
+	// But we must be careful about when we do type inference
+	if varType == nil && v.Value != nil {
+		// For simple literals, we can infer type safely
+		switch v.Value.(type) {
+		case *ast.NumberLiteral, *ast.BooleanLiteral, *ast.StringLiteral:
+			t, err := a.inferType(v.Value)
+			if err != nil {
 				return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
 			}
-			// Otherwise, we'll use the explicit type
-		} else {
-			inferredType = t
+			varType = t
+		default:
+			// For complex expressions, we'll need to handle this after registration
+			// Use a placeholder type for now
+			varType = &ir.BasicType{Kind: ir.TypeU16} // Default type
 		}
 	}
 	
-	// Determine final type and check compatibility
-	if varType != nil && inferredType != nil {
-		// Both type annotation and initializer present - check compatibility
-		if !a.typesCompatible(varType, inferredType) {
-			return fmt.Errorf("type mismatch for variable %s: declared type %s but initializer has type %s", 
-				v.Name, varType.String(), inferredType.String())
-		}
-		// Use the declared type
-	} else if varType != nil {
-		// Only type annotation, no initializer
-	} else if inferredType != nil {
-		// Only initializer, use inferred type
-		varType = inferredType
-	} else {
+	// Ensure we have a type
+	if varType == nil {
 		return fmt.Errorf("variable %s must have either a type or an initial value", v.Name)
 	}
+	
 
 	// Allocate register for variable
 	reg := irFunc.AddLocal(v.Name, varType)
 
-	// Register variable in scope
+	// CRITICAL FIX: Register variable in scope BEFORE analyzing value expression
+	// This ensures the variable is available if referenced in complex expressions
 	a.currentScope.Define(v.Name, &VarSymbol{
 		Name:      v.Name,
 		Type:      varType,
 		Reg:       reg,
 		IsMutable: v.IsMutable,
 	})
+	
 
 	// Generate code for initial value if present
 	if v.Value != nil {
-		valueReg, err := a.analyzeExpression(v.Value, irFunc)
-		if err != nil {
-			return err
+		// BUGFIX: Check for corrupted AST where the value expression contains the variable name itself
+		if id, ok := v.Value.(*ast.Identifier); ok && id.Name == v.Name {
+			// Corrupted AST: the variable's value expression is the variable name itself
+			// This is a parsing bug, so we'll skip the value analysis and use the declared type
+			if varType == nil {
+				return fmt.Errorf("variable %s has corrupted AST (self-reference) and no explicit type", v.Name)
+			}
+			// Use a default value for the declared type
+			valueReg := irFunc.AllocReg()
+			// Generate a default literal based on type
+			switch basicType := varType.(type) {
+			case *ir.BasicType:
+				switch basicType.Kind {
+				case ir.TypeU8, ir.TypeI8:
+					irFunc.Emit(ir.OpLoadConst, valueReg, 0, 0)
+				case ir.TypeU16, ir.TypeI16:
+					irFunc.Emit(ir.OpLoadConst, valueReg, 0, 0)
+				case ir.TypeBool:
+					irFunc.Emit(ir.OpLoadConst, valueReg, 0, 0)
+				default:
+					irFunc.Emit(ir.OpLoadConst, valueReg, 0, 0)
+				}
+			default:
+				irFunc.Emit(ir.OpLoadConst, valueReg, 0, 0)
+			}
+			irFunc.Emit(ir.OpStoreVar, reg, valueReg, 0)
+		} else {
+			valueReg, err := a.analyzeExpression(v.Value, irFunc)
+			if err != nil {
+				return err
+			}
+			
+			// If we used a placeholder type, now we can check the actual type
+			if v.Type == nil && varType.String() == "u16" {
+				// We used a default type, let's check if we need to update it
+				// based on the actual expression type
+				if exprType, ok := a.exprTypes[v.Value]; ok && exprType != nil {
+					// Verify type compatibility if we had an explicit type
+					if v.Type != nil && !a.typesCompatible(varType, exprType) {
+						return fmt.Errorf("type mismatch for variable %s: declared type %s but initializer has type %s", 
+							v.Name, varType.String(), exprType.String())
+					}
+				}
+			}
+			
+			// Store value in variable
+			irFunc.Emit(ir.OpStoreVar, reg, valueReg, 0)
 		}
-		// Store value in variable
-		irFunc.Emit(ir.OpStoreVar, reg, valueReg, 0)
 	}
 
 	return nil
@@ -1777,11 +1881,12 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 	}
 	
 	if sym == nil {
+		
 		// Add stack trace for debugging
 		if id.Name == "screen" {
 			return 0, fmt.Errorf("undefined identifier: %s (this should have been handled as a module)", id.Name)
 		}
-		return 0, fmt.Errorf("undefined identifier: %s", id.Name)
+		return 0, fmt.Errorf("undefined identifier: %s (analyzeIdentifier)", id.Name)
 	}
 
 	switch s := sym.(type) {
@@ -2183,6 +2288,21 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 		// Check if the identifier is a module
 		sym := a.currentScope.Lookup(id.Name)
 		if sym != nil {
+			// Check if it's an enum type
+			if typeSym, isType := sym.(*TypeSymbol); isType {
+				// Check if the type is an enum
+				if _, isEnum := typeSym.Type.(*ir.EnumType); isEnum {
+					// Convert to enum literal
+					enumLit := &ast.EnumLiteral{
+						EnumName: id.Name,
+						Variant:  field.Field,
+						StartPos: field.StartPos,
+						EndPos:   field.EndPos,
+					}
+					return a.analyzeEnumLiteral(enumLit, irFunc)
+				}
+			}
+			
 			if _, isModule := sym.(*ModuleSymbol); isModule {
 				// This is a module - look up the full qualified name
 				fullName := id.Name + "." + field.Field
@@ -2393,6 +2513,7 @@ func (a *Analyzer) analyzeIndexExpr(index *ast.IndexExpr, irFunc *ir.Function) (
 	if err != nil {
 		return 0, fmt.Errorf("cannot determine array type: %v", err)
 	}
+	
 	
 	// Validate that it's an array or pointer type
 	var elementType ir.Type
@@ -2832,7 +2953,7 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			if e.Name == "screen" {
 				return nil, fmt.Errorf("undefined identifier: %s (inferType - module should have been found)", e.Name)
 			}
-			return nil, fmt.Errorf("undefined identifier: %s", e.Name)
+			return nil, fmt.Errorf("undefined identifier: %s (inferType)", e.Name)
 		}
 		switch s := sym.(type) {
 		case *VarSymbol:
@@ -3046,4 +3167,74 @@ var labelCounter int
 func (a *Analyzer) generateLabel(prefix string) string {
 	labelCounter++
 	return fmt.Sprintf("%s_%d", prefix, labelCounter)
+}
+
+// processAbiAttributes processes @abi attributes on function declarations
+func (a *Analyzer) processAbiAttributes(fn *ast.FunctionDecl, irFunc *ir.Function) error {
+	for _, attr := range fn.Attributes {
+		if attr.Name == "abi" {
+			return a.processAbiAttribute(attr, irFunc)
+		}
+	}
+	return nil
+}
+
+// processAbiAttribute processes a single @abi attribute
+func (a *Analyzer) processAbiAttribute(attr *ast.Attribute, irFunc *ir.Function) error {
+	// Extract the value from the first argument
+	var value string
+	if len(attr.Arguments) > 0 {
+		if strLit, ok := attr.Arguments[0].(*ast.StringLiteral); ok {
+			value = strLit.Value
+		} else {
+			return fmt.Errorf("@abi attribute expects a string argument")
+		}
+	} else {
+		return fmt.Errorf("@abi attribute requires an argument")
+	}
+	
+	switch value {
+	case "smc":
+		irFunc.CallingConvention = "smc"
+		irFunc.IsSMCDefault = true
+		irFunc.IsSMCEnabled = true
+		irFunc.SMCParamOffsets = make(map[string]int)
+	case "register":
+		irFunc.CallingConvention = "register"
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
+	case "stack":
+		irFunc.CallingConvention = "stack"
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
+	case "shadow":
+		irFunc.CallingConvention = "shadow"
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
+	case "virtual":
+		irFunc.CallingConvention = "virtual"
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
+	case "naked":
+		irFunc.CallingConvention = "naked"
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
+	default:
+		// Handle complex register mappings like "register: A=x, HL=ptr"
+		if strings.HasPrefix(value, "register:") {
+			irFunc.CallingConvention = "register_mapped"
+			irFunc.IsSMCDefault = false
+			irFunc.IsSMCEnabled = false
+			// Parse register mappings and store in metadata
+			mappings := strings.TrimPrefix(value, "register:")
+			mappings = strings.TrimSpace(mappings)
+			if irFunc.Metadata == nil {
+				irFunc.Metadata = make(map[string]string)
+			}
+			irFunc.Metadata["register_mappings"] = mappings
+		} else {
+			return fmt.Errorf("unsupported @abi value: %s", value)
+		}
+	}
+	return nil
 }
