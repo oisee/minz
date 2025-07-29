@@ -1,0 +1,251 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:38
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.tail_recursive.factorial_tail
+...examples.tail_recursive.factorial_tail:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+...examples.tail_recursive.factorial_tail_param_n:
+    LD HL, #0000   ; SMC parameter n (u8->u16)
+    ; r4 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 == r4
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r5, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+...examples.tail_recursive.factorial_tail_param_acc:
+    LD HL, #0000   ; SMC parameter acc
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; return r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    LD A, (...examples.tail_recursive.factorial_tail_param_n)
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r8 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r9 = r7 - r8
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    LD A, (...examples.tail_recursive.factorial_tail_param_n)
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    LD HL, (...examples.tail_recursive.factorial_tail_param_acc)
+    LD B, H
+    LD C, L
+    ; r12 = r10 * r11
+    ; 8-bit multiplication
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = multiplicand
+    LD A, C
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_2
+.mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_2
+.mul_done_2:
+    ; Register 12 already in HL
+    ; r13 = call factorial_tail
+    ; Call to factorial_tail (args: 2)
+    ; Stack-based parameter passing
+    ; Register 12 already in HL
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL factorial_tail
+    ; return r13
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.tail_recursive.factorial
+...examples.tail_recursive.factorial:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; r2 = param n
+    ; Load parameter n
+    ; r3 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r4 = call factorial_tail
+    ; Call to factorial_tail (args: 2)
+    ; Stack-based parameter passing
+    ; Register 3 already in HL
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL factorial_tail
+    ; return r4
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.tail_recursive.sum_tail
+...examples.tail_recursive.sum_tail:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+...examples.tail_recursive.sum_tail_param_n:
+    LD HL, #0000   ; SMC parameter n
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r4 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; r5 = r3 == r4
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD D, H
+    LD E, L
+    ; Register 4 already in HL
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L4
+    LD HL, 0
+    JP .L5
+.L4:
+    LD HL, 1
+.L5:
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; jump_if_not r5, else_3
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    OR A
+    JP Z, else_3
+...examples.tail_recursive.sum_tail_param_acc:
+    LD HL, #0000   ; SMC parameter acc
+    ; Register 6 already in HL
+    ; return r6
+    ; Register 6 already in HL
+    RET
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; end_if_4:
+end_if_4:
+    LD HL, (...examples.tail_recursive.sum_tail_param_n)
+    ; Register 7 already in HL
+    ; r8 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r9 = r7 - r8
+    ; Register 7 already in HL
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    LD ($F012), HL    ; Virtual register 9 to memory
+    LD HL, (...examples.tail_recursive.sum_tail_param_acc)
+    ; Register 10 already in HL
+    LD HL, (...examples.tail_recursive.sum_tail_param_n)
+    ; Register 11 already in HL
+    ; r12 = r10 + r11
+    ; Register 10 already in HL
+    LD D, H
+    LD E, L
+    ; Register 11 already in HL
+    ADD HL, DE
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; r13 = call sum_tail
+    ; Call to sum_tail (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL sum_tail
+    ; Register 13 already in HL
+    ; return r13
+    ; Register 13 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.tail_recursive.main
+...examples.tail_recursive.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r3 = call factorial
+    ; Call to factorial (args: 1)
+    ; Register-based parameter passing
+    LD A, H
+    ; Parameter n in A
+    ; Found function, UsesTrueSMC=false
+    CALL factorial
+    ; store , r3
+    LD ($F002), HL
+    ; r5 = 100
+    LD A, 100
+    LD H, A         ; Store to physical register H
+    ; r6 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r7 = call sum_tail
+    ; Call to sum_tail (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL sum_tail
+    ; Register 7 already in HL
+    ; store , r7
+    ; Register 7 already in HL
+    LD ($F008), HL
+    ; return
+    RET
+
+    END main

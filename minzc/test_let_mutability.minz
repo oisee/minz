@@ -1,0 +1,5 @@
+fun test() -> u8 {
+    let x: u8 = 10;
+    x = 20;  // This should work if let is mutable
+    return x;
+}

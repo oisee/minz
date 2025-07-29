@@ -1,0 +1,84 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.zvdb_minimal.hamming8(a: u8, b: u8) -> u8
+  Locals:
+    r3 = xor: u16
+    r7 = count: u16
+  Instructions:
+      0: 12
+      1: 12
+      2: r6 = r4 ^ r5
+      3: store , r6
+      4: r8 = load xor
+      5: store , r8
+      6: r9 = load count
+      7: return r9
+
+Function ...examples.zvdb_minimal.add_vector(store: *...examples.zvdb_minimal.VectorStore, vec: u8) -> bool
+  Instructions:
+      0: 12
+      1: 13 ; Load field count (offset 256)
+      2: r5 = 255
+      3: r6 = r4 >= r5
+      4: jump_if_not r6, else_1
+      5: return
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: return
+
+Function ...examples.zvdb_minimal.find_nearest(store: *...examples.zvdb_minimal.VectorStore, query: u8) -> u8
+  Locals:
+    r3 = best_idx: u8
+    r5 = best_dist: u8
+    r7 = i: u8
+    r13 = dist: u16
+  Instructions:
+      0: r4 = 0
+      1: store , r4
+      2: r6 = 255
+      3: store , r6
+      4: r8 = 0
+      5: store , r8
+      6: loop_3:
+      7: r9 = load i
+      8: 12
+      9: 13 ; Load field count (offset 256)
+     10: r12 = r9 < r11
+     11: jump_if_not r12, end_loop_4
+     12: 12
+     13: 12
+     14: 13 ; Load field vectors (offset 0)
+     15: r17 = load i
+     16: 15 ; Load array element (u8)
+     17: r19 = call hamming8
+     18: store , r19
+     19: r20 = load dist
+     20: r21 = load best_dist
+     21: r22 = r20 < r21
+     22: jump_if_not r22, else_5
+     23: jump end_if_6
+     24: else_5:
+     25: end_if_6:
+     26: jump loop_3
+     27: end_loop_4:
+     28: r23 = load best_idx
+     29: return r23
+
+Function ...examples.zvdb_minimal.main() -> void
+  @smc
+  Locals:
+    r1 = store: ...examples.zvdb_minimal.VectorStore
+    r2 = query: u8
+    r4 = nearest: u16
+  Instructions:
+      0: r3 = 171
+      1: store , r3
+      2: r5 = load store
+      3: 58
+      4: r7 = load query
+      5: r8 = call find_nearest
+      6: store , r8
+      7: return
+

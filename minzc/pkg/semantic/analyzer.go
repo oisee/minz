@@ -67,7 +67,7 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		}
 	}
 
-	// First pass: Register all type and function signatures, and constants
+	// First pass: Register all type and function signatures, constants, and global variables
 	for _, decl := range file.Declarations {
 		switch d := decl.(type) {
 		case *ast.FunctionDecl:
@@ -87,6 +87,16 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		case *ast.TypeDecl:
 			// Register type aliases (including bit structs)
 			if err := a.analyzeTypeDecl(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
+		case *ast.VarDecl:
+			// Register global variables early so functions can reference them
+			if err := a.analyzeVarDecl(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
+		case *ast.ConstDecl:
+			// Register constants early as well
+			if err := a.analyzeConstDecl(d); err != nil {
 				a.errors = append(a.errors, err)
 			}
 		}
@@ -142,6 +152,78 @@ func (a *Analyzer) addBuiltins() {
 	a.currentScope.Define("i16", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeI16}})
 	a.currentScope.Define("bool", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeBool}})
 	a.currentScope.Define("void", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeVoid}})
+	
+	// Built-in functions
+	// print - outputs a single character
+	a.currentScope.Define("print", &FuncSymbol{
+		Name: "print",
+		Params: []*ast.Parameter{
+			{Name: "ch", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.BasicType{Kind: ir.TypeU8}}, // char to print
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// len - returns length of an array
+	// Note: We'll handle type checking specially for len() since it's generic
+	a.currentScope.Define("len", &FuncSymbol{
+		Name: "len",
+		Params: []*ast.Parameter{
+			{Name: "arr", Type: &ast.PrimitiveType{Name: "void"}}, // Generic - checked specially
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{
+				&ir.BasicType{Kind: ir.TypeVoid}, // Generic parameter
+			},
+			Return: &ir.BasicType{Kind: ir.TypeU16},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeU16},
+		IsBuiltin: true,
+	})
+	
+	// memcpy - copy memory
+	a.currentScope.Define("memcpy", &FuncSymbol{
+		Name: "memcpy",
+		Params: []*ast.Parameter{
+			{Name: "dest", Type: &ast.PointerType{BaseType: &ast.PrimitiveType{Name: "u8"}, IsMutable: true}},
+			{Name: "src", Type: &ast.PointerType{BaseType: &ast.PrimitiveType{Name: "u8"}}},
+			{Name: "size", Type: &ast.PrimitiveType{Name: "u16"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{
+				&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}, IsMutable: true}, // dest
+				&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, // src
+				&ir.BasicType{Kind: ir.TypeU16}, // size
+			},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// memset - fill memory
+	a.currentScope.Define("memset", &FuncSymbol{
+		Name: "memset",
+		Params: []*ast.Parameter{
+			{Name: "dest", Type: &ast.PointerType{BaseType: &ast.PrimitiveType{Name: "u8"}, IsMutable: true}},
+			{Name: "value", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "size", Type: &ast.PrimitiveType{Name: "u16"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{
+				&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}, IsMutable: true}, // dest
+				&ir.BasicType{Kind: ir.TypeU8},  // value
+				&ir.BasicType{Kind: ir.TypeU16}, // size
+			},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
 }
 
 // processImport processes an import statement
@@ -428,9 +510,11 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 	case *ast.FunctionDecl:
 		return a.analyzeFunctionDecl(d)
 	case *ast.VarDecl:
-		return a.analyzeVarDecl(d)
+		// Already processed in first pass
+		return nil
 	case *ast.ConstDecl:
-		return a.analyzeConstDecl(d)
+		// Already processed in first pass
+		return nil
 	case *ast.StructDecl:
 		// Already processed in first pass
 		return nil
@@ -551,6 +635,7 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 			Type:        paramType,
 			Reg:         reg,
 			IsParameter: true,
+			IsMutable:   true, // Parameters are mutable for TSMC references
 		})
 	}
 
@@ -565,24 +650,36 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	}
 
 	// Finalize SMC decision based on function properties
-	if irFunc.IsRecursive && len(irFunc.Params) > 3 {
-		// Recursive functions with many parameters should use stack
-		// (too much overhead to save/restore many SMC parameters)
-		irFunc.IsSMCDefault = false
-		irFunc.IsSMCEnabled = false
-	} else if len(irFunc.Locals) > 6 {
-		// Functions with many locals should use stack
-		irFunc.IsSMCDefault = false
-		irFunc.IsSMCEnabled = false
-	} else if !irFunc.IsRecursive && len(irFunc.Params) <= 3 && len(irFunc.Params) > 0 {
-		// Simple non-recursive functions with few parameters use register passing
-		// (but keep SMC for parameter-less functions)
-		irFunc.IsSMCDefault = false
-		irFunc.IsSMCEnabled = false
+	// ONLY if no explicit @abi attribute was set
+	if irFunc.CallingConvention == "" {
+		if irFunc.IsRecursive && len(irFunc.Params) > 3 {
+			// Recursive functions with many parameters should use stack
+			// (too much overhead to save/restore many SMC parameters)
+			irFunc.IsSMCDefault = false
+			irFunc.IsSMCEnabled = false
+		} else if len(irFunc.Locals) > 6 {
+			// Functions with many locals should use stack
+			irFunc.IsSMCDefault = false
+			irFunc.IsSMCEnabled = false
+		} else if !irFunc.IsRecursive && len(irFunc.Params) <= 3 && len(irFunc.Params) > 0 {
+			// Simple non-recursive functions with few parameters use register passing
+			// (but keep SMC for parameter-less functions)
+			irFunc.IsSMCDefault = false
+			irFunc.IsSMCEnabled = false
+		}
 	}
 	// Otherwise keep SMC (including for recursive functions with few parameters)
 
 	// Debug output
+	// Update parameter TSMC flags based on final SMC decision
+	if irFunc.IsSMCEnabled {
+		for i := range irFunc.Params {
+			if _, isPtr := irFunc.Params[i].Type.(*ir.PointerType); isPtr {
+				irFunc.Params[i].IsTSMCRef = true
+			}
+		}
+	}
+	
 	fmt.Printf("Function %s: IsRecursive=%v, Params=%d, SMC=%v\n", 
 		fn.Name, irFunc.IsRecursive, len(irFunc.Params), irFunc.IsSMCEnabled)
 
@@ -640,9 +737,10 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 		return fmt.Errorf("variable %s must have either a type or an initial value", v.Name)
 	}
 
-	// Register variable
-	a.currentScope.Define(v.Name, &VarSymbol{
-		Name:      v.Name,
+	// Register variable with module prefix
+	prefixedName := a.prefixSymbol(v.Name)
+	a.currentScope.Define(prefixedName, &VarSymbol{
+		Name:      prefixedName,
 		Type:      varType,
 		IsMutable: v.IsMutable,
 	})
@@ -650,7 +748,7 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 	// Add global variable to IR module
 	// Create IR global variable
 	global := ir.Global{
-		Name: v.Name,
+		Name: prefixedName,
 		Type: varType,
 	}
 	
@@ -773,6 +871,11 @@ func (a *Analyzer) analyzeStructDecl(s *ast.StructDecl) error {
 		fieldOrder = append(fieldOrder, field.Name)
 	}
 	
+	// Debug output
+	if len(s.Fields) > 0 {
+		fmt.Printf("Struct %s has %d fields: %v\n", s.Name, len(fieldOrder), fieldOrder)
+	}
+	
 	// Get prefixed name
 	prefixedName := a.prefixSymbol(s.Name)
 	
@@ -842,6 +945,36 @@ func (a *Analyzer) analyzeTypeDecl(t *ast.TypeDecl) error {
 	return nil
 }
 
+// isTSMCReference checks if a variable symbol is a TSMC reference parameter
+func (a *Analyzer) isTSMCReference(sym *VarSymbol, irFunc *ir.Function) bool {
+	if !sym.IsParameter {
+		return false
+	}
+	
+	if irFunc.CallingConvention != "smc" {
+		return false
+	}
+	
+	// Check if the parameter is marked as TSMC ref
+	for _, param := range irFunc.Params {
+		if param.Name == sym.Name {
+			return param.IsTSMCRef
+		}
+	}
+	
+	return false
+}
+
+// analyzeTSMCAssignment generates code for TSMC reference assignment
+func (a *Analyzer) analyzeTSMCAssignment(varName string, valueReg ir.Register, irFunc *ir.Function) {
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpStoreTSMCRef,
+		Src1:    valueReg,
+		Symbol:  varName,
+		Comment: fmt.Sprintf("Update TSMC reference %s", varName),
+	})
+}
+
 // analyzeBlock analyzes a block statement
 func (a *Analyzer) analyzeBlock(block *ast.BlockStmt, irFunc *ir.Function) error {
 	// Enter new scope
@@ -876,6 +1009,8 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 		return a.analyzeIfStmt(s, irFunc)
 	case *ast.WhileStmt:
 		return a.analyzeWhileStmt(s, irFunc)
+	case *ast.ForStmt:
+		return a.analyzeForStmt(s, irFunc)
 	case *ast.BlockStmt:
 		return a.analyzeBlock(s, irFunc)
 	case *ast.AsmStmt:
@@ -1100,6 +1235,114 @@ func (a *Analyzer) analyzeWhileStmt(whileStmt *ast.WhileStmt, irFunc *ir.Functio
 	return nil
 }
 
+// analyzeForStmt analyzes a for-in statement
+func (a *Analyzer) analyzeForStmt(forStmt *ast.ForStmt, irFunc *ir.Function) error {
+	// Enter new scope for loop variable
+	prevScope := a.currentScope
+	a.currentScope = NewScope(a.currentScope)
+	defer func() { a.currentScope = prevScope }()
+	
+	// Note: We don't need to analyze the whole range expression,
+	// just check its structure
+	
+	// Check if the range is a binary expression with ".." operator
+	binExpr, ok := forStmt.Range.(*ast.BinaryExpr)
+	if !ok {
+		return fmt.Errorf("for loop requires range expression, got %T", forStmt.Range)
+	}
+	if binExpr.Operator != ".." {
+		return fmt.Errorf("for loop requires '..' operator, got '%s'", binExpr.Operator)
+	}
+	
+	// Analyze start and end expressions
+	startReg, err := a.analyzeExpression(binExpr.Left, irFunc)
+	if err != nil {
+		return fmt.Errorf("error analyzing range start: %w", err)
+	}
+	
+	endReg, err := a.analyzeExpression(binExpr.Right, irFunc)
+	if err != nil {
+		return fmt.Errorf("error analyzing range end: %w", err)
+	}
+	
+	// Create loop variable
+	iteratorReg := irFunc.AllocReg()
+	iteratorType := &ir.BasicType{Kind: ir.TypeU8} // Default to u8 for now
+	
+	// Define loop variable in scope
+	a.currentScope.Define(forStmt.Iterator, &VarSymbol{
+		Name:      forStmt.Iterator,
+		Type:      iteratorType,
+		Reg:       iteratorReg,
+		IsMutable: true,
+	})
+	
+	// Initialize iterator with start value
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpMove,
+		Dest: iteratorReg,
+		Src1: startReg,
+		Type: iteratorType,
+		Comment: fmt.Sprintf("Initialize loop variable %s", forStmt.Iterator),
+	})
+	
+	// Generate loop structure
+	loopLabel := a.generateLabel("for_loop")
+	endLabel := a.generateLabel("for_end")
+	
+	// Loop start
+	irFunc.EmitLabel(loopLabel)
+	
+	// Check if iterator < end
+	condReg := irFunc.AllocReg()
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLt,
+		Dest: condReg,
+		Src1: iteratorReg,
+		Src2: endReg,
+		Type: &ir.BasicType{Kind: ir.TypeBool},
+		Comment: fmt.Sprintf("Check %s < end", forStmt.Iterator),
+	})
+	
+	// Jump to end if condition is false
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:    ir.OpJumpIfNot,
+		Src1:  condReg,
+		Label: endLabel,
+	})
+	
+	// Generate body
+	if err := a.analyzeBlock(forStmt.Body, irFunc); err != nil {
+		return err
+	}
+	
+	// Increment iterator
+	oneReg := irFunc.AllocReg()
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoadConst,
+		Dest: oneReg,
+		Imm:  1,
+		Type: iteratorType,
+	})
+	
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpAdd,
+		Dest: iteratorReg,
+		Src1: iteratorReg,
+		Src2: oneReg,
+		Type: iteratorType,
+		Comment: fmt.Sprintf("Increment %s", forStmt.Iterator),
+	})
+	
+	// Jump back to loop
+	irFunc.EmitJump(loopLabel)
+	
+	// End label
+	irFunc.EmitLabel(endLabel)
+	
+	return nil
+}
+
 // analyzeAsmStmt analyzes an inline assembly statement
 func (a *Analyzer) analyzeAsmStmt(asmStmt *ast.AsmStmt, irFunc *ir.Function) error {
 	// Create IR instruction with OpAsm
@@ -1147,13 +1390,19 @@ func (a *Analyzer) analyzeAssignStmt(stmt *ast.AssignStmt, irFunc *ir.Function) 
 		// Get the variable's register from the symbol
 		varSym := sym.(*VarSymbol)
 		
-		// Generate store instruction
-		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-			Op:     ir.OpStoreVar,
-			Dest:   varSym.Reg,
-			Src1:   valueReg,
-			Symbol: target.Name, // Keep for debugging
-		})
+		// Check if this is a TSMC reference parameter
+		if a.isTSMCReference(varSym, irFunc) {
+			// For TSMC references, we need to update the immediate operand
+			a.analyzeTSMCAssignment(target.Name, valueReg, irFunc)
+		} else {
+			// Regular variable store
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:     ir.OpStoreVar,
+				Dest:   varSym.Reg,
+				Src1:   valueReg,
+				Symbol: target.Name, // Keep for debugging
+			})
+		}
 		
 	case *ast.IndexExpr:
 		// Array element assignment
@@ -1334,6 +1583,51 @@ func (a *Analyzer) analyzeAssignStmt(stmt *ast.AssignStmt, irFunc *ir.Function) 
 			Imm:     int64(offset),
 			Type:    structType.Fields[target.Field],
 			Comment: fmt.Sprintf("Store to field %s (offset %d)", target.Field, offset),
+		})
+		
+		return nil
+		
+	case *ast.UnaryExpr:
+		// Handle pointer dereference assignment (*ptr = value)
+		if target.Operator != "*" {
+			return fmt.Errorf("invalid assignment target: unary %s", target.Operator)
+		}
+		
+		// Analyze the pointer expression
+		ptrReg, err := a.analyzeExpression(target.Operand, irFunc)
+		if err != nil {
+			return err
+		}
+		
+		// Verify it's a pointer type
+		ptrType, err := a.inferType(target.Operand)
+		if err != nil {
+			return fmt.Errorf("cannot determine type of pointer expression: %v", err)
+		}
+		
+		ptr, ok := ptrType.(*ir.PointerType)
+		if !ok {
+			return fmt.Errorf("cannot dereference non-pointer type: %s", ptrType.String())
+		}
+		
+		// Type check the value against the pointed-to type
+		valueType, err := a.inferType(stmt.Value)
+		if err != nil {
+			return fmt.Errorf("cannot determine type of value: %v", err)
+		}
+		
+		if !a.typesCompatible(ptr.Base, valueType) {
+			return fmt.Errorf("type mismatch: cannot assign %s to %s", 
+				valueType.String(), ptr.Base.String())
+		}
+		
+		// Generate store through pointer instruction
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpStore,
+			Src1:    ptrReg,     // pointer
+			Src2:    valueReg,   // value to store
+			Type:    ptr.Base,
+			Comment: "Store through pointer",
 		})
 		
 		return nil
@@ -1851,14 +2145,59 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeLuaExpression(e, irFunc)
 	case *ast.StringLiteral:
 		return a.analyzeStringLiteral(e, irFunc)
-	case *ast.InlineAsmExpr:
+	case *ast.InlineAssembly:
 		// Inline assembly expressions
-		return a.analyzeInlineAsmExpr(e, irFunc)
+		return a.analyzeInlineAssembly(e, irFunc)
 	case *ast.CastExpr:
 		return a.analyzeCastExpr(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
+}
+
+// analyzeInlineAssembly analyzes inline assembly
+func (a *Analyzer) analyzeInlineAssembly(asm *ast.InlineAssembly, irFunc *ir.Function) (ir.Register, error) {
+	// Create an IR instruction for inline assembly
+	inst := &ir.Instruction{
+		Op:      ir.OpAsm,
+		AsmCode: asm.Code,
+	}
+	
+	// Process input operands
+	for _, input := range asm.Inputs {
+		// Analyze the input expression
+		reg, err := a.analyzeExpression(input.Expr, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("failed to analyze inline assembly input: %w", err)
+		}
+		
+		// For now, we'll store the register in the instruction
+		// In a full implementation, we'd need to handle constraints properly
+		if inst.Src1 == 0 {
+			inst.Src1 = reg
+		} else if inst.Src2 == 0 {
+			inst.Src2 = reg
+		}
+	}
+	
+	// Process output operands
+	var outputReg ir.Register
+	for range asm.Outputs {
+		// For outputs, we need to allocate a register
+		outputReg = irFunc.NextRegister
+		irFunc.NextRegister++
+		
+		// Store the output register
+		if inst.Dest == 0 {
+			inst.Dest = outputReg
+		}
+	}
+	
+	// Add the instruction
+	irFunc.Instructions = append(irFunc.Instructions, *inst)
+	
+	// Return the output register if any, otherwise 0
+	return outputReg, nil
 }
 
 // analyzeIdentifier analyzes an identifier
@@ -1868,7 +2207,7 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 	sym := a.currentScope.Lookup(id.Name)
 	
 	// If not found, try with module prefix
-	if sym == nil && a.currentModule != "" && a.currentModule != "main" {
+	if sym == nil && a.currentModule != "" {
 		// Try with module prefix
 		prefixedName := a.prefixSymbol(id.Name)
 		sym = a.currentScope.Lookup(prefixedName)
@@ -1970,6 +2309,28 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 			Type: s.Type,
 		})
 		return reg, nil
+	case *FuncSymbol:
+		// Function identifiers can only be used with address-of operator
+		// Return a special marker register that will be handled by OpAddr
+		reg := irFunc.AllocReg()
+		// Store the function symbol for address-of handling
+		if s.Type != nil {
+			a.exprTypes[id] = s.Type
+		} else {
+			// Create a basic function type if not available
+			a.exprTypes[id] = &ir.FunctionType{
+				Params: []ir.Type{},
+				Return: s.ReturnType,
+			}
+		}
+		// Mark this register as holding a function reference
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpLoadLabel,
+			Dest:    reg,
+			Symbol:  s.Name,
+			Comment: fmt.Sprintf("Function reference: %s", s.Name),
+		})
+		return reg, nil
 	default:
 		return 0, fmt.Errorf("cannot use %s as value", id.Name)
 	}
@@ -2019,6 +2380,17 @@ func (a *Analyzer) analyzeBooleanLiteral(b *ast.BooleanLiteral, irFunc *ir.Funct
 
 // analyzeBinaryExpr analyzes a binary expression
 func (a *Analyzer) analyzeBinaryExpr(bin *ast.BinaryExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Check if this is an assignment first (including compound assignments)
+	if bin.Operator == "=" {
+		// Assignment is handled specially - don't analyze operands here
+		return a.analyzeAssignment(bin, irFunc)
+	}
+	if bin.Operator == "+=" || bin.Operator == "-=" || bin.Operator == "*=" || 
+	   bin.Operator == "/=" || bin.Operator == "%=" {
+		// Compound assignment is handled specially
+		return a.analyzeCompoundAssignment(bin, irFunc)
+	}
+	
 	// Analyze operands
 	leftReg, err := a.analyzeExpression(bin.Left, irFunc)
 	if err != nil {
@@ -2117,10 +2489,394 @@ func (a *Analyzer) analyzeUnaryExpr(un *ast.UnaryExpr, irFunc *ir.Function) (ir.
 	case "&":
 		// Address-of operator
 		irFunc.Emit(ir.OpAddr, resultReg, operandReg, 0)
+	case "*":
+		// Dereference operator
+		// First check that operand is a pointer type
+		operandType := a.exprTypes[un.Operand]
+		if operandType == nil {
+			return 0, fmt.Errorf("cannot determine type of expression to dereference")
+		}
+		ptrType, ok := operandType.(*ir.PointerType)
+		if !ok {
+			return 0, fmt.Errorf("cannot dereference non-pointer type: %s", operandType.String())
+		}
+		// Set the result type to the pointed-to type
+		a.exprTypes[un] = ptrType.Base
+		// Emit load through pointer with type information
+		irFunc.EmitTyped(ir.OpLoad, resultReg, operandReg, 0, ptrType.Base)
 	default:
 		return 0, fmt.Errorf("unsupported unary operator: %s", un.Operator)
 	}
 
+	return resultReg, nil
+}
+
+// analyzeAssignment analyzes an assignment expression
+func (a *Analyzer) analyzeAssignment(bin *ast.BinaryExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Analyze the right-hand side first
+	valueReg, err := a.analyzeExpression(bin.Right, irFunc)
+	if err != nil {
+		return 0, err
+	}
+	
+	// Handle different types of assignment targets
+	switch target := bin.Left.(type) {
+	case *ast.Identifier:
+		// Simple variable assignment
+		sym := a.currentScope.Lookup(target.Name)
+		if sym == nil {
+			// Try with module prefix
+			prefixedName := a.prefixSymbol(target.Name)
+			sym = a.currentScope.Lookup(prefixedName)
+			if sym == nil {
+				return 0, fmt.Errorf("undefined variable: %s", target.Name)
+			}
+			target.Name = prefixedName
+		}
+		
+		// Check if variable is mutable (unless it's a pointer that will be auto-deref'd)
+		varSym := sym.(*VarSymbol)
+		
+		// First check if this is a TSMC reference parameter
+		isTSMCRef := a.isTSMCReference(varSym, irFunc)
+		
+		// Check if this is a pointer that needs auto-dereferencing
+		// But NOT if it's a TSMC reference (those are special)
+		needsAutoDeref := false
+		if !isTSMCRef {
+			if ptrType, ok := varSym.Type.(*ir.PointerType); ok {
+				// Check if the value type matches the pointed-to type
+				valueType := a.exprTypes[bin.Right]
+				if valueType != nil && a.typesCompatible(ptrType.Base, valueType) {
+					needsAutoDeref = true
+				} else if valueType == nil {
+					// If we couldn't determine the type, check if it's a literal that matches
+					if _, ok := bin.Right.(*ast.NumberLiteral); ok {
+						// Number literal being assigned to pointer - auto-deref
+						needsAutoDeref = true
+					}
+				}
+			}
+		}
+		
+		if needsAutoDeref {
+			// Auto-deref: p = 42 becomes *p = 42
+			// Get the pointer value
+			ptrReg := varSym.Reg
+			if !varSym.IsParameter {
+				// For local variables, need to load first
+				ptrReg = irFunc.AllocReg()
+				irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+					Op:     ir.OpLoadVar,
+					Dest:   ptrReg,
+					Symbol: target.Name,
+				})
+			}
+			
+			// Then store through the pointer
+			ptrType := varSym.Type.(*ir.PointerType)
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpStore,
+				Dest:    ptrReg,
+				Src1:    valueReg,
+				Type:    ptrType.Base,
+				Comment: "Auto-deref assignment",
+			})
+			
+			// Assignment expressions return the assigned value
+			return valueReg, nil
+		}
+		
+		// Check mutability for regular assignments
+		if !varSym.IsMutable && !isTSMCRef {
+			return 0, fmt.Errorf("cannot assign to immutable variable: %s", target.Name)
+		}
+		
+		if isTSMCRef {
+			// For TSMC references, we need to update the immediate operand
+			a.analyzeTSMCAssignment(target.Name, valueReg, irFunc)
+		} else {
+			// Regular variable store
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:     ir.OpStoreVar,
+				Dest:   varSym.Reg,
+				Src1:   valueReg,
+				Symbol: target.Name, // Keep for debugging
+			})
+		}
+		
+		// Assignment expressions return the assigned value
+		return valueReg, nil
+		
+	case *ast.IndexExpr:
+		// Array element assignment
+		// Analyze the array expression
+		arrayReg, err := a.analyzeExpression(target.Array, irFunc)
+		if err != nil {
+			return 0, err
+		}
+		
+		// Analyze the index expression
+		indexReg, err := a.analyzeExpression(target.Index, irFunc)
+		if err != nil {
+			return 0, err
+		}
+		
+		// Get the type of the array to validate and get element type
+		arrayType, err := a.inferType(target.Array)
+		if err != nil {
+			return 0, fmt.Errorf("cannot determine array type: %v", err)
+		}
+		
+		// Validate that it's an array or pointer type
+		var elementType ir.Type
+		switch t := arrayType.(type) {
+		case *ir.ArrayType:
+			elementType = t.Element
+		case *ir.PointerType:
+			// For pointers, assume they point to u8 (byte arrays)
+			elementType = &ir.BasicType{Kind: ir.TypeU8}
+		default:
+			return 0, fmt.Errorf("cannot index non-array type %s", arrayType)
+		}
+		
+		// Type check the value against the element type
+		valueType, err := a.inferType(bin.Right)
+		if err != nil {
+			return 0, fmt.Errorf("cannot determine value type: %v", err)
+		}
+		
+		if !a.typesCompatible(elementType, valueType) {
+			return 0, fmt.Errorf("type mismatch: array element is %s, value is %s", elementType, valueType)
+		}
+		
+		// Generate IR using two instructions approach
+		// First, calculate the address (array + index)
+		tempReg := irFunc.AllocReg()
+		
+		// For byte arrays, index is already the offset
+		// For larger elements, we'd need to multiply by element size
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpAdd,
+			Dest: tempReg,
+			Src1: arrayReg,
+			Src2: indexReg,
+			Type: &ir.PointerType{Base: elementType},
+			Comment: "Calculate array element address",
+		})
+		
+		// Store the value at the calculated address using pointer store
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpStorePtr,
+			Src1: tempReg, // address in Src1
+			Src2: valueReg, // value in Src2
+			Type: elementType,
+			Comment: fmt.Sprintf("Store to array[index] (%s)", elementType),
+		})
+		
+		// Assignment expressions return the assigned value
+		return valueReg, nil
+		
+	case *ast.FieldExpr:
+		// Struct field assignment
+		objReg, err := a.analyzeExpression(target.Object, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("error analyzing field object: %v", err)
+		}
+		
+		// Get the object type
+		objType := a.exprTypes[target.Object]
+		
+		// Handle regular struct types
+		var structType *ir.StructType
+		
+		// Handle both direct struct and pointer to struct
+		switch t := objType.(type) {
+		case *ir.StructType:
+			structType = t
+		case *ir.PointerType:
+			if st, ok := t.Base.(*ir.StructType); ok {
+				structType = st
+			} else {
+				return 0, fmt.Errorf("field access on non-struct pointer")
+			}
+		default:
+			return 0, fmt.Errorf("field access on non-struct type: %T", objType)
+		}
+		
+		// Find field offset
+		offset := 0
+		found := false
+		for _, fname := range structType.FieldOrder {
+			if fname == target.Field {
+				found = true
+				break
+			}
+			offset += structType.Fields[fname].Size()
+		}
+		
+		if !found {
+			// Debug: print available fields
+			availableFields := []string{}
+			for _, fname := range structType.FieldOrder {
+				availableFields = append(availableFields, fname)
+			}
+			return 0, fmt.Errorf("struct %s has no field %s (available: %v)", structType.Name, target.Field, availableFields)
+		}
+		
+		// Generate store field instruction
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpStoreField,
+			Src1:    objReg,     // struct pointer
+			Src2:    valueReg,   // value to store
+			Imm:     int64(offset),
+			Type:    structType.Fields[target.Field],
+			Comment: fmt.Sprintf("Store to field %s (offset %d)", target.Field, offset),
+		})
+		
+		// Assignment expressions return the assigned value
+		return valueReg, nil
+		
+	case *ast.UnaryExpr:
+		// Handle pointer dereference assignment (*ptr = value)
+		if target.Operator != "*" {
+			return 0, fmt.Errorf("invalid assignment target: unary %s", target.Operator)
+		}
+		
+		// Analyze the pointer expression
+		ptrReg, err := a.analyzeExpression(target.Operand, irFunc)
+		if err != nil {
+			return 0, err
+		}
+		
+		// Verify it's a pointer type
+		ptrType, err := a.inferType(target.Operand)
+		if err != nil {
+			return 0, fmt.Errorf("cannot determine type of pointer expression: %v", err)
+		}
+		
+		ptr, ok := ptrType.(*ir.PointerType)
+		if !ok {
+			return 0, fmt.Errorf("cannot dereference non-pointer type: %s", ptrType.String())
+		}
+		
+		// Type check the value against the pointed-to type
+		valueType, err := a.inferType(bin.Right)
+		if err != nil {
+			return 0, fmt.Errorf("cannot determine type of value: %v", err)
+		}
+		
+		if !a.typesCompatible(ptr.Base, valueType) {
+			return 0, fmt.Errorf("type mismatch: cannot assign %s to %s", 
+				valueType.String(), ptr.Base.String())
+		}
+		
+		// Generate store through pointer instruction
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpStore,
+			Src1:    ptrReg,     // pointer
+			Src2:    valueReg,   // value to store
+			Type:    ptr.Base,
+			Comment: "Store through pointer",
+		})
+		
+		// Assignment expressions return the assigned value
+		return valueReg, nil
+		
+	default:
+		return 0, fmt.Errorf("unsupported assignment target: %T", target)
+	}
+}
+
+// analyzeCompoundAssignment analyzes compound assignment expressions (+=, -=, etc)
+func (a *Analyzer) analyzeCompoundAssignment(bin *ast.BinaryExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Compound assignment: x += y is equivalent to x = x + y
+	// But we need to evaluate the left side only once (important for array/field access)
+	
+	// Get the base operator (+ from +=, - from -=, etc)
+	baseOp := bin.Operator[:len(bin.Operator)-1]  // Remove '='
+	
+	// Only support simple variable targets for now
+	target, ok := bin.Left.(*ast.Identifier)
+	if !ok {
+		return 0, fmt.Errorf("compound assignment only supports simple variables, got %T", bin.Left)
+	}
+	
+	// Look up the variable
+	sym := a.currentScope.Lookup(target.Name)
+	if sym == nil {
+		// Try with module prefix
+		prefixedName := a.prefixSymbol(target.Name)
+		sym = a.currentScope.Lookup(prefixedName)
+		if sym == nil {
+			return 0, fmt.Errorf("undefined variable: %s", target.Name)
+		}
+		target.Name = prefixedName
+	}
+	
+	varSym := sym.(*VarSymbol)
+	
+	// Check mutability
+	if !varSym.IsMutable {
+		return 0, fmt.Errorf("cannot assign to immutable variable: %s", target.Name)
+	}
+	
+	// Analyze the right-hand side
+	rightReg, err := a.analyzeExpression(bin.Right, irFunc)
+	if err != nil {
+		return 0, err
+	}
+	
+	// Load the current value of the variable
+	currentReg := irFunc.AllocReg()
+	if varSym.IsParameter {
+		// Parameter values are already in registers
+		currentReg = varSym.Reg
+	} else {
+		// Local variables need OpLoadVar
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:     ir.OpLoadVar,
+			Dest:   currentReg,
+			Symbol: target.Name,
+		})
+	}
+	
+	// Perform the operation
+	resultReg := irFunc.AllocReg()
+	var op ir.Opcode
+	switch baseOp {
+	case "+":
+		op = ir.OpAdd
+	case "-":
+		op = ir.OpSub
+	case "*":
+		op = ir.OpMul
+	case "/":
+		op = ir.OpDiv
+	case "%":
+		op = ir.OpMod
+	default:
+		return 0, fmt.Errorf("unsupported compound assignment operator: %s", bin.Operator)
+	}
+	
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   op,
+		Dest: resultReg,
+		Src1: currentReg,
+		Src2: rightReg,
+		Type: varSym.Type,
+		Comment: fmt.Sprintf("Compound assignment %s %s", target.Name, bin.Operator),
+	})
+	
+	// Store the result back to the variable
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:     ir.OpStoreVar,
+		Dest:   varSym.Reg,
+		Src1:   resultReg,
+		Symbol: target.Name,
+	})
+	
+	// Compound assignment expressions return the new value
 	return resultReg, nil
 }
 
@@ -2184,7 +2940,12 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		}
 	}
 
-	// Check argument count
+	// Handle built-in functions specially
+	if funcSym.IsBuiltin {
+		return a.analyzeBuiltinCall(funcName, funcSym, call, irFunc)
+	}
+
+	// Check argument count for regular functions
 	if len(call.Arguments) != len(funcSym.Params) {
 		return 0, fmt.Errorf("function %s expects %d arguments, got %d", 
 			funcName, len(funcSym.Params), len(call.Arguments))
@@ -2210,6 +2971,151 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 	})
 
 	return resultReg, nil
+}
+
+// analyzeBuiltinCall analyzes a built-in function call
+func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call *ast.CallExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Check argument count based on built-in function type
+	funcType := funcSym.Type
+	if funcType == nil {
+		return 0, fmt.Errorf("built-in function %s has no type information", funcName)
+	}
+	
+	expectedArgs := len(funcType.Params)
+	if len(call.Arguments) != expectedArgs {
+		return 0, fmt.Errorf("function %s expects %d arguments, got %d", 
+			funcName, expectedArgs, len(call.Arguments))
+	}
+	
+	// Analyze arguments
+	argRegs := []ir.Register{}
+	for i, arg := range call.Arguments {
+		reg, err := a.analyzeExpression(arg, irFunc)
+		if err != nil {
+			return 0, err
+		}
+		argRegs = append(argRegs, reg)
+		
+		// Type check the argument
+		argType, err := a.inferType(arg)
+		if err != nil {
+			return 0, fmt.Errorf("cannot infer type of argument %d to %s: %v", i, funcName, err)
+		}
+		
+		// Special handling for built-in functions
+		if funcName == "len" && i == 0 {
+			// Accept pointer to array or array directly
+			switch argType.(type) {
+			case *ir.ArrayType:
+				// Direct array is OK
+			case *ir.PointerType:
+				// Pointer to array is OK
+			default:
+				return 0, fmt.Errorf("argument to len must be an array or pointer to array, got %s", argType)
+			}
+		} else if (funcName == "memset" || funcName == "memcpy") && i == 0 {
+			// First argument to memset/memcpy should be a pointer
+			// Accept *[N]T as *T for compatibility
+			if ptr, ok := argType.(*ir.PointerType); ok {
+				if arr, ok := ptr.Base.(*ir.ArrayType); ok {
+					// Pointer to array - check if element type matches
+					expectedPtr := funcType.Params[i].(*ir.PointerType)
+					if !a.typesCompatible(expectedPtr.Base, arr.Element) {
+						return 0, fmt.Errorf("argument %d to %s: expected %s, got pointer to array of %s", 
+							i, funcName, funcType.Params[i], arr.Element)
+					}
+					// Type is compatible
+				} else {
+					// Regular pointer - normal type check
+					if !a.typesCompatible(funcType.Params[i], argType) {
+						return 0, fmt.Errorf("argument %d to %s: expected %s, got %s", 
+							i, funcName, funcType.Params[i], argType)
+					}
+				}
+			} else {
+				return 0, fmt.Errorf("argument %d to %s must be a pointer, got %s", 
+					i, funcName, argType)
+			}
+		} else if funcName == "memcpy" && i == 1 {
+			// Second argument to memcpy (src) - similar handling but without mutability requirement
+			if ptr, ok := argType.(*ir.PointerType); ok {
+				if arr, ok := ptr.Base.(*ir.ArrayType); ok {
+					// Pointer to array - check element type
+					expectedPtr := funcType.Params[i].(*ir.PointerType)
+					if !a.typesCompatible(expectedPtr.Base, arr.Element) {
+						return 0, fmt.Errorf("argument %d to %s: expected %s, got pointer to array of %s", 
+							i, funcName, funcType.Params[i], arr.Element)
+					}
+				} else {
+					// Regular pointer - normal check
+					if !a.typesCompatible(funcType.Params[i], argType) {
+						return 0, fmt.Errorf("argument %d to %s: expected %s, got %s", 
+							i, funcName, funcType.Params[i], argType)
+					}
+				}
+			} else {
+				return 0, fmt.Errorf("argument %d to %s must be a pointer, got %s", 
+					i, funcName, argType)
+			}
+		} else {
+			// Normal type checking for other arguments
+			expectedType := funcType.Params[i]
+			if !a.typesCompatible(expectedType, argType) {
+				return 0, fmt.Errorf("argument %d to %s: expected %s, got %s", 
+					i, funcName, expectedType, argType)
+			}
+		}
+	}
+	
+	// Generate appropriate IR for each built-in function
+	switch funcName {
+	case "print":
+		// For print, we'll generate a special OpPrint instruction
+		// The code generator will handle the Z80 implementation
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpPrint,
+			Src1:    argRegs[0],
+			Comment: "Built-in print function",
+		})
+		// print returns void, so return a dummy register
+		return 0, nil
+		
+	case "len":
+		// For len, we need to get the length of an array or string
+		resultReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpLen,
+			Dest:    resultReg,
+			Src1:    argRegs[0],
+			Comment: "Built-in len function",
+		})
+		return resultReg, nil
+		
+	case "memcpy":
+		// memcpy(dest: *mut u8, src: *u8, size: u16)
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpMemcpy,
+			Src1:    argRegs[0], // dest
+			Src2:    argRegs[1], // src
+			Args:    []ir.Register{argRegs[2]}, // size
+			Comment: "Built-in memcpy function",
+		})
+		return 0, nil
+		
+	case "memset":
+		// memset(dest: *mut u8, value: u8, size: u16)
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpMemset,
+			Src1:    argRegs[0], // dest
+			Src2:    argRegs[1], // value
+			Args:    []ir.Register{argRegs[2]}, // size
+			Comment: "Built-in memset function",
+		})
+		return 0, nil
+		
+	default:
+		return 0, fmt.Errorf("unknown built-in function: %s", funcName)
+	}
 }
 
 // analyzeStructLiteral analyzes a struct literal expression
@@ -2612,6 +3518,7 @@ func (a *Analyzer) analyzeLuaExpression(expr *ast.LuaExpression, irFunc *ir.Func
 
 // analyzeCastExpr analyzes a type cast expression
 func (a *Analyzer) analyzeCastExpr(cast *ast.CastExpr, irFunc *ir.Function) (ir.Register, error) {
+	
 	// Analyze the expression being cast
 	exprReg, err := a.analyzeExpression(cast.Expr, irFunc)
 	if err != nil {
@@ -2846,7 +3753,11 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 				Length:  int(num.Value),
 			}, nil
 		}
-		return nil, fmt.Errorf("array size must be a constant")
+		// Check if it's nil (which shouldn't happen but let's be safe)
+		if t.Size == nil {
+			return nil, fmt.Errorf("array size is nil")
+		}
+		return nil, fmt.Errorf("array size must be a constant, got %T", t.Size)
 	case *ast.TypeIdentifier:
 		// Look up the type in the symbol table
 		sym := a.currentScope.Lookup(t.Name)
@@ -3027,6 +3938,12 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			// For now, just return the left type
 			// TODO: Implement proper type promotion rules
 			return leftType, nil
+		case "=":
+			// Assignment returns the type of the assigned value
+			return rightType, nil
+		case "+=", "-=", "*=", "/=", "%=":
+			// Compound assignment returns the type of the left operand
+			return leftType, nil
 		default:
 			return nil, fmt.Errorf("cannot infer type for binary operator %s", e.Operator)
 		}
@@ -3047,6 +3964,12 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		case "&":
 			// Address-of returns pointer to operand type
 			return &ir.PointerType{Base: operandType}, nil
+		case "*":
+			// Dereference returns the pointed-to type
+			if ptrType, ok := operandType.(*ir.PointerType); ok {
+				return ptrType.Base, nil
+			}
+			return nil, fmt.Errorf("cannot dereference non-pointer type: %s", operandType.String())
 		default:
 			return nil, fmt.Errorf("cannot infer type for unary operator %s", e.Operator)
 		}
@@ -3130,6 +4053,7 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 
 // typesCompatible checks if two types are compatible for assignment
 func (a *Analyzer) typesCompatible(declared, inferred ir.Type) bool {
+	// Handle basic types
 	declBasic, declOk := declared.(*ir.BasicType)
 	infBasic, infOk := inferred.(*ir.BasicType)
 	
@@ -3154,10 +4078,44 @@ func (a *Analyzer) typesCompatible(declared, inferred ir.Type) bool {
 		case ir.TypeI16:
 			// i16 can accept i8, i16, u8
 			return infBasic.Kind == ir.TypeI8 || infBasic.Kind == ir.TypeI16 || infBasic.Kind == ir.TypeU8
+		case ir.TypeVoid:
+			// Void matches void
+			return infBasic.Kind == ir.TypeVoid
 		}
 	}
 	
-	// For other types, use string comparison for now
+	// Handle pointer types
+	declPtr, declPtrOk := declared.(*ir.PointerType)
+	infPtr, infPtrOk := inferred.(*ir.PointerType)
+	
+	if declPtrOk && infPtrOk {
+		// Check mutability - mutable pointer can't be assigned to immutable
+		if !declPtr.IsMutable && infPtr.IsMutable {
+			return false
+		}
+		// Check base types
+		return a.typesCompatible(declPtr.Base, infPtr.Base)
+	}
+	
+	// Handle array-to-pointer conversion
+	if declPtrOk {
+		if infArray, ok := inferred.(*ir.ArrayType); ok {
+			// Can convert array to pointer if element types match
+			return a.typesCompatible(declPtr.Base, infArray.Element)
+		}
+	}
+	
+	// Handle array types
+	declArray, declArrayOk := declared.(*ir.ArrayType)
+	infArray, infArrayOk := inferred.(*ir.ArrayType)
+	
+	if declArrayOk && infArrayOk {
+		// Arrays must have same length and element type
+		return declArray.Length == infArray.Length && 
+			a.typesCompatible(declArray.Element, infArray.Element)
+	}
+	
+	// For other types, use exact match
 	return declared.String() == inferred.String()
 }
 

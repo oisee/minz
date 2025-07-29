@@ -1,0 +1,265 @@
+Testing MinZ Examples Compilation Report
+=======================================
+
+❌ FAIL: ../examples/arithmetic_demo.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/const_only.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/debug_bit_field.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/debug_const.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/debug_scope.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/debug_tokenize.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/enums.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/fibonacci.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/game_sprite.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/lua_assets.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/lua_metaprogramming.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/lua_sine_table.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/main.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/metaprogramming.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist_complete.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist_simple.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/editor_minimal_smc.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/editor_simple_true_smc.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/editor_working.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/editor.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/mnist_attr_editor.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/mnist_editor_fixed.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/mnist_editor_minimal.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/mnist_editor_simple.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/mnist_editor_standalone.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/mnist_editor.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_basic.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_constant_only.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_explicit_return.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_field_assignment.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_imports.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_minimal.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_simple_import.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_struct.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_void_main.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_with_let.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/mnist/test_with_return.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/modules/game/player.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/modules/game/sprites.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/modules/main.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/register_test.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/screen_color.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/shadow_registers.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/simple_add.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/simple_test.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/simple_true_smc.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/smc_optimization_simple.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/smc_optimization.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/structs.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/tail_recursive.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/tail_sum.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_16bit_arithmetic.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_16bit_smc.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_abi_comparison.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_all_features.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_array_access.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_array_syntax.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_asm_final.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_asm_simple.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_asm.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_assignment.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_bit_field_access.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_bit_field_proper.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_bit_structs.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_cast.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_complete_iterator.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_const_debug.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_const_simple_fix.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_const.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_const2.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_direct_return.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_global_init.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_implicit_return.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_imports_debug.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_imports.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_inline_asm_expr.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_let_access.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_loop_debug.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_loop_indexed.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_loop_into.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_loop_minimal.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_loop_no_init.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_loop_ref.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_loop_simple.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_loop_simple2.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_minimal.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_multiline.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_old_array.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_oneline.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_param_reuse_simple.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_param_reuse.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_parse_only.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_patch.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_physical_registers.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_register_params.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_registers.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_scope.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_simple_array.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_simple_call.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_simple_scope.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_simple_stack.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_simple_vars.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_smc_patching.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_smc_recursive.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_stack_locals.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_string_lengths.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_strings.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_struct.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_true_smc_call.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_true_smc_calls.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_true_smc_simple.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_u8_type.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_var_decls.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test_var_lookup.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test1_basic_8bit.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test2_16bit_params.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test3_param_reuse.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test4_mixed_types.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/test5_recursive.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/true_smc_test.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/working_demo.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/zvdb_code_search.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/zvdb_demo.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/zvdb_minimal.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/zvdb_optimized.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/zvdb_paged.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+❌ FAIL: ../examples/zvdb_scorpion_optimized.minz
+   Error: ./test_all_examples.sh: line 22: timeout: command not found
+
+Summary:
+========
+✅ Passed: 0
+❌ Failed: 127
+⏱️  Timeout: 0
+📊 Total: 127
+🎯 Success Rate: 0%

@@ -1,0 +1,18 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   people: [5]...examples.test_loop_into.Person
+
+Function ...examples.test_loop_into.main() -> void
+  @smc
+  Locals:
+    r1 = total_score: u16
+    r3 = active_count: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = 0
+      3: store , r4
+      4: return
+

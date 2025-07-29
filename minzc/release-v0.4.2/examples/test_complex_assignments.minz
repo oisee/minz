@@ -1,0 +1,86 @@
+// Test complex assignment targets
+
+// Test struct
+struct Point {
+    x: u8;
+    y: u8;
+}
+
+// Test array assignments
+fun test_array_assignments() {
+    var arr: [10]u8;
+    var i: u8 = 0;
+    
+    // Direct array element assignment
+    arr[0] = 42;
+    arr[1] = 100;
+    arr[5] = 255;
+    
+    // Variable index assignment
+    arr[i] = 10;
+    i = 3;
+    arr[i] = 30;
+    
+    // Expression as index
+    arr[i + 1] = 40;
+    arr[2 * 2] = 44;
+}
+
+// Test struct field assignments
+fun test_struct_assignments() {
+    var p: Point;
+    
+    // Direct field assignment
+    p.x = 10;
+    p.y = 20;
+    
+    // Field assignment with expressions
+    p.x = p.x + 5;
+    p.y = p.x * 2;
+}
+
+// Test pointer to struct
+fun test_pointer_struct() {
+    var p: Point;
+    var ptr: *Point = &p;
+    
+    // Assignment through pointer
+    ptr.x = 50;
+    ptr.y = 60;
+}
+
+// Test combined patterns
+fun test_combined() {
+    var points: [5]Point;
+    var i: u8 = 0;
+    
+    // Array of structs
+    points[0].x = 10;
+    points[0].y = 15;
+    
+    points[i].x = 20;
+    points[i].y = 25;
+    
+    // More complex
+    i = 2;
+    points[i].x = points[0].x + 10;
+    points[i].y = points[i-1].y * 2;
+}
+
+// Test with pointers
+fun modify_array_element(arr: *u8, index: u8, value: u8) {
+    // Pointer arithmetic for array access
+    var ptr: *u8 = arr + index;
+    *ptr = value;
+}
+
+fun main() {
+    test_array_assignments();
+    test_struct_assignments();
+    test_pointer_struct();
+    test_combined();
+    
+    // Test pointer arithmetic
+    var data: [5]u8;
+    modify_array_element(&data[0], 2, 99);
+}

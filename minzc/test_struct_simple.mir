@@ -1,0 +1,15 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_struct_simple.test_struct() -> void
+  @smc
+  Locals:
+    r1 = p: test_struct_simple.Point
+  Instructions:
+      0: return
+
+Function test_struct_simple.main() -> void
+  @smc
+  Instructions:
+      0: return
+

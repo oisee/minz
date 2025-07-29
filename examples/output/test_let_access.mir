@@ -1,0 +1,15 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   Y: u8
+
+Function ...examples.test_let_access.main() -> void
+  @smc
+  Locals:
+    r1 = z: u16
+  Instructions:
+      0: r2 = load Y
+      1: store , r2
+      2: return
+

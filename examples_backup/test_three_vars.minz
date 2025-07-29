@@ -1,0 +1,10 @@
+// Test three variable declarations
+fun test() -> void {
+    let x: u16 = 10
+    let y: u16 = 20
+    let z: u16 = 30
+}
+
+fun main() -> void {
+    test()
+}

@@ -1,0 +1,4 @@
+fun test() -> void {
+    var x: u8 = 5;
+    var y: u8 = 10;
+}

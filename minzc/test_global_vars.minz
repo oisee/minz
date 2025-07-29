@@ -1,0 +1,8 @@
+// Test global variable declarations
+let x: u8 = 42;
+let arr: [u8; 5];
+
+fun main() -> u8 {
+    arr[0] = x;
+    return arr[0];
+}

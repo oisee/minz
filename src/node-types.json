@@ -211,6 +211,10 @@
             "named": false
           },
           {
+            "type": "%=",
+            "named": false
+          },
+          {
             "type": "&",
             "named": false
           },
@@ -219,11 +223,23 @@
             "named": false
           },
           {
+            "type": "*=",
+            "named": false
+          },
+          {
             "type": "+",
             "named": false
           },
           {
+            "type": "+=",
+            "named": false
+          },
+          {
             "type": "-",
+            "named": false
+          },
+          {
+            "type": "-=",
             "named": false
           },
           {
@@ -232,6 +248,10 @@
           },
           {
             "type": "/",
+            "named": false
+          },
+          {
+            "type": "/=",
             "named": false
           },
           {
@@ -244,6 +264,10 @@
           },
           {
             "type": "<=",
+            "named": false
+          },
+          {
+            "type": "=",
             "named": false
           },
           {
@@ -1654,6 +1678,10 @@
     "named": false
   },
   {
+    "type": "%=",
+    "named": false
+  },
+  {
     "type": "&",
     "named": false
   },
@@ -1674,7 +1702,15 @@
     "named": false
   },
   {
+    "type": "*=",
+    "named": false
+  },
+  {
     "type": "+",
+    "named": false
+  },
+  {
+    "type": "+=",
     "named": false
   },
   {
@@ -1683,6 +1719,10 @@
   },
   {
     "type": "-",
+    "named": false
+  },
+  {
+    "type": "-=",
     "named": false
   },
   {
@@ -1699,6 +1739,10 @@
   },
   {
     "type": "/",
+    "named": false
+  },
+  {
+    "type": "/=",
     "named": false
   },
   {
@@ -1940,6 +1984,10 @@
   },
   {
     "type": "u8",
+    "named": false
+  },
+  {
+    "type": "var",
     "named": false
   },
   {

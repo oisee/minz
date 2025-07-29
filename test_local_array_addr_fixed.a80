@@ -1,0 +1,79 @@
+; MinZ generated code
+; Generated: 2025-07-29 17:22:16
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_local_array_addr.test_local_array_address
+...test_local_array_addr.test_local_array_address:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = load arr
+    LD HL, ($F002)
+    ; r4 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; Load array element (u8)
+    PUSH HL
+    LD A, B
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD C, A         ; Store to physical register C
+    ; r6 = &r5
+    ; Address-of operation for register r5
+    LD HL, $F00A  ; Variable address
+    ; store , r6
+    LD ($F004), HL
+    ; r8 = load ptr
+    LD HL, ($F004)
+    ; r9 = *r8
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; store , r9
+    LD A, L
+    LD ($F00E), A
+    ; r10 = load ptr
+    LD HL, ($F004)
+    ; r11 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r12 = r10 + r11
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; store ptr, r12
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    LD ($F004), HL
+    ; r13 = load ptr
+    LD HL, ($F004)
+    ; r14 = *r13
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; store val, r14
+    LD A, L
+    LD ($F00E), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_local_array_addr.main
+...test_local_array_addr.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call test_local_array_address
+    ; Call to test_local_array_address (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_local_array_address
+    ; return
+    RET
+
+    END main

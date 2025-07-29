@@ -1,0 +1,4 @@
+fun main() -> void {
+    let mut x = 10
+    x = 42
+}

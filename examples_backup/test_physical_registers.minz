@@ -1,0 +1,12 @@
+// Test hierarchical register allocation
+fun test_registers() -> u8 {
+    let a: u8 = 10;
+    let b: u8 = 20;
+    let c: u8 = 30;
+    let result: u8 = a + b + c;
+    return result;
+}
+
+fun main() -> void {
+    let value = test_registers();
+}

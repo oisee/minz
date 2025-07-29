@@ -1,0 +1,49 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.asm_integration_tests.test_smc(x: u8, y: u8) -> u8
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...examples.asm_integration_tests.test_register(a: u8, b: u8) -> u8
+  Instructions:
+      0: r3 = load a
+      1: r4 = load b
+      2: r5 = r3 * r4
+      3: return r5
+
+Function ...examples.asm_integration_tests.test_stack(data: u16, count: u8) -> u16
+  Instructions:
+      0: r3 = load data
+      1: r4 = load count
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...examples.asm_integration_tests.test_shadow(x: u8) -> u8
+  Instructions:
+      0: r2 = load x
+      1: r3 = 1
+      2: 45
+      3: return r4
+
+Function ...examples.asm_integration_tests.test_virtual(a: u16, b: u16) -> u16
+  Instructions:
+      0: r3 = load a
+      1: r4 = load b
+      2: r5 = r3 - r4
+      3: return r5
+
+Function ...examples.asm_integration_tests.process_with_assembly(data: u16) -> u16
+  Locals:
+    r2 = result: u16
+  Instructions:
+      0: r3 = load data
+      1: r4 = 2
+      2: r5 = r3 * r4
+      3: store , r5
+      4: r6 = load result
+      5: return r6
+

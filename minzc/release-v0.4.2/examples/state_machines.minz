@@ -1,0 +1,80 @@
+// State Machine Example
+enum GameState {
+    MENU = 0,
+    PLAYING = 1,
+    PAUSED = 2,
+    GAME_OVER = 3
+}
+
+enum MenuOption {
+    START_GAME = 0,
+    SETTINGS = 1,
+    QUIT = 2
+}
+
+struct Game {
+    state: GameState,
+    lives: u8,
+    score: u16,
+    level: u8
+}
+
+fun init_game(game: *Game) -> void {
+    game->state = GameState.MENU;
+    game->lives = 3;
+    game->score = 0;
+    game->level = 1;
+}
+
+fun handle_menu_input(game: *Game, input: u8) -> void {
+    if input == 1 {  // Start button
+        game->state = GameState.PLAYING;
+    } else if input == 2 {  // Quit
+        // Exit game
+    }
+}
+
+fun handle_game_input(game: *Game, input: u8) -> void {
+    if input == 3 {  // Pause button
+        game->state = GameState.PAUSED;
+    }
+}
+
+fun handle_pause_input(game: *Game, input: u8) -> void {
+    if input == 3 {  // Unpause
+        game->state = GameState.PLAYING;
+    } else if input == 4 {  // Return to menu
+        game->state = GameState.MENU;
+        init_game(game);
+    }
+}
+
+fun update_game_state(game: *Game, input: u8) -> void {
+    if game->state == GameState.MENU {
+        handle_menu_input(game, input);
+    } else if game->state == GameState.PLAYING {
+        handle_game_input(game, input);
+        
+        // Check game over condition
+        if game->lives == 0 {
+            game->state = GameState.GAME_OVER;
+        }
+    } else if game->state == GameState.PAUSED {
+        handle_pause_input(game, input);
+    } else if game->state == GameState.GAME_OVER {
+        if input != 0 {  // Any key to return to menu
+            game->state = GameState.MENU;
+            init_game(game);
+        }
+    }
+}
+
+fun main() {
+    let game: Game;
+    init_game(&game);
+    
+    // Simulate game loop
+    update_game_state(&game, 1);  // Start game
+    update_game_state(&game, 3);  // Pause
+    update_game_state(&game, 3);  // Unpause
+}

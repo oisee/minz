@@ -1,0 +1,15 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_let_mutability.test() -> u8
+  @smc
+  Locals:
+    r1 = x: u8
+  Instructions:
+      0: r2 = 10
+      1: store , r2
+      2: r3 = 20
+      3: store x, r3
+      4: r4 = load x
+      5: return r4
+

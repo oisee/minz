@@ -3,6 +3,7 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 // Parser handles parsing MinZ source files using tree-sitter
 type Parser struct {
 	treeSitterPath string
+	sourceCode     string
 }
 
 // New creates a new parser
@@ -23,17 +25,86 @@ func New() *Parser {
 
 // ParseFile parses a MinZ source file and returns an AST
 func (p *Parser) ParseFile(filename string) (*ast.File, error) {
-	// Try tree-sitter first
-	jsonAST, err := p.parseToJSON(filename)
+	// Use tree-sitter - no fallback since it's the only parser
+	sexpAST, err := p.parseToSExp(filename)
 	if err != nil {
-		// Fall back to simple parser
-		// Silently fall back - tree-sitter may have node issues
-		simpleParser := NewSimpleParser()
-		return simpleParser.ParseFile(filename)
+		return nil, fmt.Errorf("tree-sitter parse failed: %w", err)
 	}
 
-	// Convert the JSON AST to our Go AST
-	return p.jsonToAST(filename, jsonAST)
+	// Convert the S-expression AST to our Go AST
+	// Create a new Parser instance for S-expression conversion with source code
+	sexpParser := &Parser{sourceCode: p.sourceCode}
+	return sexpParser.convertSExpToAST(filename, sexpAST)
+}
+
+// parseToSExp uses tree-sitter to parse the file and output S-expression
+func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
+	// Read the source file
+	sourceCode, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+	p.sourceCode = string(sourceCode)
+	
+	// Get the absolute path to the tree-sitter grammar
+	// Find the directory containing grammar.js
+	currentDir, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	
+	// Look for grammar.js in current directory and parent directories
+	grammarPath := currentDir
+	for {
+		if _, err := os.Stat(filepath.Join(grammarPath, "grammar.js")); err == nil {
+			break
+		}
+		parent := filepath.Dir(grammarPath)
+		if parent == grammarPath {
+			// Reached root without finding grammar.js
+			return nil, fmt.Errorf("could not find grammar.js in any parent directory")
+		}
+		grammarPath = parent
+	}
+	
+	// Get absolute path to the file
+	absFilename, err := filepath.Abs(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute path: %w", err)
+	}
+
+	// Run tree-sitter parse command directly (not through npx)
+	cmd := exec.Command("tree-sitter", "parse", absFilename)
+	cmd.Dir = grammarPath
+	
+	output, err := cmd.CombinedOutput()
+	if len(output) > 0 && string(output) == "No language found\n" {
+		return nil, fmt.Errorf("tree-sitter: no language found - wrong directory?")
+	}
+	// Tree-sitter may return non-zero exit code for parse errors but still output S-expression
+	if err != nil && len(output) == 0 {
+		return nil, fmt.Errorf("failed to run tree-sitter: %w", err)
+	}
+
+	// Parse the S-expression output
+	// Remove the statistics line at the end
+	outputStr := string(output)
+	
+	lines := strings.Split(outputStr, "\n")
+	var sexpLines []string
+	for _, line := range lines {
+		// Skip empty lines and the statistics line
+		if line != "" && !strings.Contains(line, "\tParse:") {
+			sexpLines = append(sexpLines, line)
+		}
+	}
+	sexpOutput := strings.Join(sexpLines, "\n")
+	
+	if sexpOutput == "" {
+		return nil, fmt.Errorf("empty S-expression output from tree-sitter")
+	}
+	
+	return parseSExpression(sexpOutput)
 }
 
 // parseToJSON uses tree-sitter to parse the file and output JSON
@@ -44,15 +115,13 @@ func (p *Parser) parseToJSON(filename string) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	// Run tree-sitter parse command
-	cmd := exec.Command("npx", "tree-sitter", "parse", filename, "--json")
+	// Run tree-sitter parse command directly (not through npx)
+	cmd := exec.Command("tree-sitter", "parse", filename, "--json")
 	cmd.Dir = grammarPath
 	
-	output, err := cmd.Output()
-	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			return nil, fmt.Errorf("tree-sitter parse failed: %s", exitErr.Stderr)
-		}
+	output, err := cmd.CombinedOutput()
+	// Tree-sitter may return non-zero exit code for parse errors but still output JSON
+	if err != nil && len(output) == 0 {
 		return nil, fmt.Errorf("failed to run tree-sitter: %w", err)
 	}
 
@@ -112,6 +181,10 @@ func (p *Parser) jsonToAST(filename string, jsonAST map[string]interface{}) (*as
 		case "enum_declaration":
 			if enumDecl := p.parseEnumDecl(childNode); enumDecl != nil {
 				file.Declarations = append(file.Declarations, enumDecl)
+			}
+		case "constant_declaration":
+			if constDecl := p.parseConstDecl(childNode); constDecl != nil {
+				file.Declarations = append(file.Declarations, constDecl)
 			}
 		case "lua_block":
 			if luaBlock := p.parseLuaBlock(childNode); luaBlock != nil {
@@ -205,8 +278,10 @@ func (p *Parser) parseVarDecl(node map[string]interface{}) *ast.VarDecl {
 		text := p.getText(childNode)
 		
 		switch nodeType {
-		case "mut":
+		case "var":
 			varDecl.IsMutable = true
+		case "let":
+			varDecl.IsMutable = true  // let variables are mutable in MinZ
 		case "identifier":
 			if varDecl.Name == "" {
 				varDecl.Name = text
@@ -255,6 +330,31 @@ func (p *Parser) parseStructDecl(node map[string]interface{}) *ast.StructDecl {
 	structDecl.EndPos = p.getPosition(node, "endPosition")
 	
 	return structDecl
+}
+
+// parseConstDecl parses a constant declaration
+func (p *Parser) parseConstDecl(node map[string]interface{}) *ast.ConstDecl {
+	constDecl := &ast.ConstDecl{}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "identifier":
+			constDecl.Name = p.getText(childNode)
+		case "type":
+			constDecl.Type = p.parseType(childNode)
+		case "expression":
+			constDecl.Value = p.parseExpression(childNode)
+		}
+	}
+	
+	constDecl.StartPos = p.getPosition(node, "startPosition")
+	constDecl.EndPos = p.getPosition(node, "endPosition")
+	
+	return constDecl
 }
 
 // parseEnumDecl parses an enum declaration
@@ -488,8 +588,7 @@ func (p *Parser) parseStatement(node map[string]interface{}) ast.Statement {
 	case "variable_declaration":
 		return p.parseVarDecl(node)
 	case "expression_statement":
-		// For now, skip expression statements
-		return nil
+		return p.parseExpressionStmt(node)
 	}
 	
 	return nil
@@ -552,6 +651,26 @@ func (p *Parser) parseIfStmt(node map[string]interface{}) *ast.IfStmt {
 	}
 	
 	return ifStmt
+}
+
+// parseExpressionStmt parses an expression statement
+func (p *Parser) parseExpressionStmt(node map[string]interface{}) *ast.ExpressionStmt {
+	stmt := &ast.ExpressionStmt{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		if nodeType == "expression" {
+			stmt.Expression = p.parseExpression(childNode)
+		}
+	}
+	
+	return stmt
 }
 
 // parseWhileStmt parses a while statement
@@ -631,9 +750,142 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 		return p.parseEnumLiteral(node)
 	case "lua_expression":
 		return p.parseLuaExpression(node)
+	case "postfix_expression", "expression", "primary_expression":
+		// Handle nested expression nodes
+		children, _ := node["children"].([]interface{})
+		if len(children) > 0 {
+			child, _ := children[0].(map[string]interface{})
+			return p.parseExpression(child)
+		}
+		return nil
+	case "cast_expression":
+		return p.parseCastExpression(node)
+	case "inline_assembly":
+		return p.parseInlineAssembly(node)
 	}
 	
 	return nil
+}
+
+// parseCastExpression parses a cast expression (e.g., x as u16)
+func (p *Parser) parseCastExpression(node map[string]interface{}) *ast.CastExpr {
+	castExpr := &ast.CastExpr{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	// Get fields for expression and type
+	fields, _ := node["fields"].(map[string]interface{})
+	
+	// Get expression field
+	if exprField, ok := fields["expression"].(map[string]interface{}); ok {
+		castExpr.Expr = p.parseExpression(exprField)
+	}
+	
+	// Get type field
+	if typeField, ok := fields["type"].(map[string]interface{}); ok {
+		castExpr.TargetType = p.parseType(typeField)
+	}
+	
+	// Also check children if fields are empty
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		if nodeType == "expression" && castExpr.Expr == nil {
+			castExpr.Expr = p.parseExpression(childNode)
+		} else if nodeType == "type" && castExpr.TargetType == nil {
+			castExpr.TargetType = p.parseType(childNode)
+		}
+	}
+	
+	return castExpr
+}
+
+// parseInlineAssembly parses an inline assembly expression
+func (p *Parser) parseInlineAssembly(node map[string]interface{}) *ast.InlineAssembly {
+	asm := &ast.InlineAssembly{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	// Get children nodes
+	children, _ := node["children"].([]interface{})
+	
+	// First child after 'asm' and '(' should be the assembly code string
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "string_literal":
+			// Parse the assembly code
+			asm.Code = p.parseStringLiteral(childNode)
+			
+		case "asm_output_list":
+			// Parse output operands
+			asm.Outputs = p.parseAsmOperands(childNode, true)
+			
+		case "asm_input_list":
+			// Parse input operands
+			asm.Inputs = p.parseAsmOperands(childNode, false)
+			
+		case "asm_clobber_list":
+			// Parse clobber list
+			clobberChildren, _ := childNode["children"].([]interface{})
+			for _, clobber := range clobberChildren {
+				clobberNode, _ := clobber.(map[string]interface{})
+				if clobberNode["type"] == "string_literal" {
+					asm.Clobbers = append(asm.Clobbers, p.parseStringLiteral(clobberNode))
+				}
+			}
+		}
+	}
+	
+	return asm
+}
+
+// parseAsmOperands parses assembly operand lists (inputs or outputs)
+func (p *Parser) parseAsmOperands(node map[string]interface{}, isOutput bool) []*ast.AsmOperand {
+	var operands []*ast.AsmOperand
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		if nodeType == "asm_output" || nodeType == "asm_input" {
+			operand := &ast.AsmOperand{}
+			
+			// Get the constraint and expression
+			opChildren, _ := childNode["children"].([]interface{})
+			for i, opChild := range opChildren {
+				opChildNode, _ := opChild.(map[string]interface{})
+				opChildType, _ := opChildNode["type"].(string)
+				
+				if opChildType == "string_literal" && i == 0 {
+					// First string literal is the constraint
+					operand.Constraint = p.parseStringLiteral(opChildNode)
+				} else if opChildType == "identifier" || opChildType == "expression" {
+					// The expression or identifier
+					if opChildType == "identifier" {
+						operand.Expr = &ast.Identifier{
+							Name:     p.getText(opChildNode),
+							StartPos: p.getPosition(opChildNode, "startPosition"),
+							EndPos:   p.getPosition(opChildNode, "endPosition"),
+						}
+					} else {
+						operand.Expr = p.parseExpression(opChildNode)
+					}
+				}
+			}
+			
+			operands = append(operands, operand)
+		}
+	}
+	
+	return operands
 }
 
 // parseBinaryExpr parses a binary expression
@@ -933,6 +1185,16 @@ func (p *Parser) reconstructImportPath(node map[string]interface{}) string {
 	}
 	
 	return strings.Join(parts, ".")
+}
+
+// parseStringLiteral extracts string literal content without quotes
+func (p *Parser) parseStringLiteral(node map[string]interface{}) string {
+	text := p.getText(node)
+	// Remove quotes
+	if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
+		text = text[1 : len(text)-1]
+	}
+	return text
 }
 
 // getPosition extracts a position from a node

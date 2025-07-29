@@ -1,0 +1,13 @@
+// Test function address operator
+fun callback() -> void {
+    // Do something
+}
+
+fun call_with_callback(fn: *void) -> void {
+    // In a real implementation, would call the function pointer
+}
+
+fun main() -> void {
+    let fn_ptr: *void = &callback;
+    call_with_callback(fn_ptr);
+}

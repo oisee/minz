@@ -1,0 +1,77 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.true_smc_test.add(x: u8, y: u8) -> u8
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...examples.true_smc_test.multiply(a: u16, b: u16) -> u16
+  Locals:
+    r3 = result: u16
+    r5 = count: u16
+  Instructions:
+      0: r4 = 0
+      1: store , r4
+      2: 12
+      3: store , r6
+      4: loop_1:
+      5: r7 = load count
+      6: r8 = 0
+      7: r9 = r7 > r8
+      8: jump_if_not r9, end_loop_2
+      9: jump loop_1
+     10: end_loop_2:
+     11: r10 = load result
+     12: return r10
+
+Function ...examples.true_smc_test.process(value: u8) -> u8
+  Locals:
+    r2 = temp: u16
+  Instructions:
+      0: 12
+      1: r4 = 10
+      2: r5 = r3 + r4
+      3: store , r5
+      4: 12
+      5: r7 = 50
+      6: r8 = r6 > r7
+      7: jump_if_not r8, else_3
+      8: 12
+      9: r10 = 2
+     10: r11 = r9 * r10
+     11: return r11
+     12: jump end_if_4
+     13: else_3:
+     14: 12
+     15: r13 = load temp
+     16: r14 = r12 + r13
+     17: return r14
+     18: end_if_4:
+     19: return
+
+Function ...examples.true_smc_test.main() -> void
+  @smc
+  Locals:
+    r1 = sum: u16
+    r4 = product: u16
+    r8 = result1: u16
+    r11 = result2: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = call io.print_char
+      2: store , r3
+      3: r5 = 6
+      4: r6 = 7
+      5: r7 = call multiply
+      6: store , r7
+      7: r9 = 30
+      8: r10 = call process
+      9: store , r10
+     10: r12 = 60
+     11: r13 = call process
+     12: store , r13
+     13: return
+

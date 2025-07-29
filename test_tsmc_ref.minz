@@ -1,0 +1,10 @@
+// Test TSMC reference parameters
+@abi("smc")
+fun test_ref(ptr: *u8) -> u8 {
+    return *ptr;
+}
+
+fun main() -> void {
+    let x: u8 = 42;
+    let result = test_ref(&x);
+}

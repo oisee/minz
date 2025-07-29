@@ -1,0 +1,8 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_block_parse.test() -> void
+  @smc
+  Instructions:
+      0: return
+

@@ -1,0 +1,418 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:37
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.enums.opposite
+...examples.enums.opposite:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; r2 = param dir
+    ; Load parameter dir
+    ; r3 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 == r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; return r5
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; r6 = param dir
+    ; Load parameter dir
+    ; r7 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r8 = r6 == r7
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    ; jump_if_not r8, else_3
+    LD A, L
+    OR A
+    JP Z, else_3
+    ; r9 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; return r9
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; r10 = param dir
+    ; Load parameter dir
+    ; r11 = 2
+    LD A, 2
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r12 = r10 == r11
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L5
+    LD HL, 0
+    JP .L6
+.L5:
+    LD HL, 1
+.L6:
+    ; jump_if_not r12, else_5
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_5
+    ; r13 = 3
+    LD A, 3
+    ; Register 13 already in A
+    ; return r13
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_6
+    JP end_if_6
+    ; else_5:
+else_5:
+    ; r14 = 2
+    LD A, 2
+    ; Register 14 already in A
+    ; return r14
+    LD SP, IX
+    POP IX
+    RET
+    ; end_if_6:
+end_if_6:
+    ; end_if_4:
+end_if_4:
+    ; end_if_2:
+end_if_2:
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.enums.next_state
+...examples.enums.next_state:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD L, A         ; Store to physical register L
+    LD A, E       ; Get parameter input
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = param current
+    ; Load parameter current
+    ; r4 = 0
+    LD A, 0
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = r3 == r4
+    LD D, H
+    LD E, L
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L7
+    LD HL, 0
+    JP .L8
+.L7:
+    LD HL, 1
+.L8:
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; jump_if_not r5, else_7
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    OR A
+    JP Z, else_7
+    ; r6 = param input
+    ; Load parameter input
+    ; r7 = 4
+    LD A, 4
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = r6 == r7
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L9
+    LD HL, 0
+    JP .L10
+.L9:
+    LD HL, 1
+.L10:
+    ; jump_if_not r8, else_9
+    ; Register 8 already in A
+    OR A
+    JP Z, else_9
+    ; r9 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; return r9
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_10
+    JP end_if_10
+    ; else_9:
+else_9:
+    ; end_if_10:
+end_if_10:
+    ; jump end_if_8
+    JP end_if_8
+    ; else_7:
+else_7:
+    ; r10 = param current
+    ; Load parameter current
+    ; r11 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r12 = r10 == r11
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L11
+    LD HL, 0
+    JP .L12
+.L11:
+    LD HL, 1
+.L12:
+    ; jump_if_not r12, else_11
+    LD A, L
+    OR A
+    JP Z, else_11
+    ; r13 = param input
+    ; Load parameter input
+    ; r14 = 3
+    LD A, 3
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; r15 = r13 == r14
+    LD D, H
+    LD E, L
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L13
+    LD HL, 0
+    JP .L14
+.L13:
+    LD HL, 1
+.L14:
+    ; jump_if_not r15, else_13
+    LD A, C
+    OR A
+    JP Z, else_13
+    ; r16 = 2
+    LD A, 2
+    LD C, A         ; Store to physical register C
+    ; return r16
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_14
+    JP end_if_14
+    ; else_13:
+else_13:
+    ; r17 = param input
+    ; Load parameter input
+    ; r18 = 0
+    LD A, 0
+    LD ($F024), A     ; Virtual register 18 to memory
+    ; r19 = r17 == r18
+    LD D, H
+    LD E, L
+    LD HL, ($F024)    ; Virtual register 18 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L15
+    LD HL, 0
+    JP .L16
+.L15:
+    LD HL, 1
+.L16:
+    ; jump_if_not r19, else_15
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_15
+    ; r20 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; return r20
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_16
+    JP end_if_16
+    ; else_15:
+else_15:
+    ; end_if_16:
+end_if_16:
+    ; end_if_14:
+end_if_14:
+    ; jump end_if_12
+    JP end_if_12
+    ; else_11:
+else_11:
+    ; r21 = param current
+    ; Load parameter current
+    ; r22 = 2
+    LD A, 2
+    LD D, A         ; Store to physical register D
+    ; r23 = r21 == r22
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L17
+    LD HL, 0
+    JP .L18
+.L17:
+    LD HL, 1
+.L18:
+    ; jump_if_not r23, else_17
+    ; Register 23 already in A
+    OR A
+    JP Z, else_17
+    ; r24 = param input
+    ; Load parameter input
+    ; r25 = 3
+    LD A, 3
+    ; Register 25 already in A
+    ; r26 = r24 == r25
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L19
+    LD HL, 0
+    JP .L20
+.L19:
+    LD HL, 1
+.L20:
+    ; jump_if_not r26, else_19
+    ; Register 26 already in A
+    OR A
+    JP Z, else_19
+    ; r27 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; return r27
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_20
+    JP end_if_20
+    ; else_19:
+else_19:
+    ; end_if_20:
+end_if_20:
+    ; jump end_if_18
+    JP end_if_18
+    ; else_17:
+else_17:
+    ; end_if_18:
+end_if_18:
+    ; end_if_12:
+end_if_12:
+    ; end_if_8:
+end_if_8:
+    ; r28 = param current
+    ; Load parameter current
+    ; return r28
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.enums.main
+...examples.enums.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD E, A         ; Store to physical register E
+    ; store , r2
+    LD ($F002), HL
+    ; r4 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; store , r4
+    LD ($F006), HL
+    ; r6 = load player_dir
+    LD HL, ($F006)
+    ; r7 = call opposite
+    ; Call to opposite (args: 1)
+    ; Register-based parameter passing
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    ; Parameter dir in A
+    ; Found function, UsesTrueSMC=false
+    CALL opposite
+    ; store , r7
+    LD ($F00A), HL
+    ; return
+    RET
+
+    END main

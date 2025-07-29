@@ -1,0 +1,9 @@
+// Test simple variable scoping issue
+fun test_variables() -> u8 {
+    let a: u16 = 10
+    return a as u8
+}
+
+fun main() -> void {
+    let result = test_variables()
+}

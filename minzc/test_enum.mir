@@ -1,0 +1,64 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_enum.open_file(name: *u8) -> Result
+  Instructions:
+      0: r2 = 1
+      1: return r2
+
+Function test_enum.turn_right(dir: Direction) -> Direction
+  Instructions:
+      0: 12
+      1: r3 = 0
+      2: r4 = r2 == r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: 12
+     10: r7 = 1
+     11: r8 = r6 == r7
+     12: jump_if_not r8, else_3
+     13: r9 = 2
+     14: return r9
+     15: jump end_if_4
+     16: else_3:
+     17: end_if_4:
+     18: 12
+     19: r11 = 2
+     20: r12 = r10 == r11
+     21: jump_if_not r12, else_5
+     22: r13 = 3
+     23: return r13
+     24: jump end_if_6
+     25: else_5:
+     26: end_if_6:
+     27: r14 = 0
+     28: return r14
+
+Function test_enum.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+    r7 = dir: u16
+    r9 = new_dir: u16
+  Instructions:
+      0: 20 ; Load string "test.txt"
+      1: r3 = call open_file
+      2: store , r3
+      3: r4 = load result
+      4: r5 = 0
+      5: r6 = r4 != r5
+      6: jump_if_not r6, else_7
+      7: jump end_if_8
+      8: else_7:
+      9: end_if_8:
+     10: r8 = 0
+     11: store , r8
+     12: r10 = load dir
+     13: r11 = call turn_right
+     14: store , r11
+     15: return
+

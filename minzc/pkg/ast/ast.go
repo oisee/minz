@@ -306,6 +306,19 @@ func (w *WhileStmt) Pos() Position { return w.StartPos }
 func (w *WhileStmt) End() Position { return w.EndPos }
 func (w *WhileStmt) stmtNode()    {}
 
+// ForStmt represents a for-in statement
+type ForStmt struct {
+	Iterator string     // Loop variable name
+	Range    Expression // Range expression (e.g., 0..10)
+	Body     *BlockStmt
+	StartPos Position
+	EndPos   Position
+}
+
+func (f *ForStmt) Pos() Position { return f.StartPos }
+func (f *ForStmt) End() Position { return f.EndPos }
+func (f *ForStmt) stmtNode()    {}
+
 // AsmStmt represents an inline assembly block
 type AsmStmt struct {
 	Name     string   // Optional name for named blocks
@@ -633,4 +646,24 @@ type LuaEval struct {
 
 func (l *LuaEval) Pos() Position { return l.StartPos }
 func (l *LuaEval) End() Position { return l.EndPos }
+
+// InlineAssembly represents inline assembly code
+type InlineAssembly struct {
+	Code     string         // The assembly code
+	Outputs  []*AsmOperand  // Output operands
+	Inputs   []*AsmOperand  // Input operands
+	Clobbers []string       // Clobbered registers
+	StartPos Position
+	EndPos   Position
+}
+
+func (i *InlineAssembly) Pos() Position { return i.StartPos }
+func (i *InlineAssembly) End() Position { return i.EndPos }
+func (i *InlineAssembly) exprNode()    {}
+
+// AsmOperand represents an inline assembly operand
+type AsmOperand struct {
+	Constraint string     // Constraint string (e.g., "r", "m", "i")
+	Expr       Expression // The expression for this operand
+}
 func (l *LuaEval) stmtNode()     {}

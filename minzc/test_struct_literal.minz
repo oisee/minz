@@ -1,0 +1,8 @@
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun main() {
+    let p = Point { x: 10, y: 20 };
+}

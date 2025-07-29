@@ -1,0 +1,43 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   points: [4]...examples.iterators.Point
+
+Function ...examples.iterators.main() -> void
+  @smc
+  Locals:
+    r6 = sum: u16
+    r13 = val: u8
+  Instructions:
+      0: 62
+      1: 62 ; Load table base address
+      2: 62 ; Load table base for end calculation
+      3: 67 ; Calculate table end (+ 4 elements * 2 bytes)
+      4: 66 ; Load loop counter
+      5: loop_start_1:
+      6: 47 ; Check if reached end of table
+      7: 3 ; Exit if done
+      8: 63 ; Copy element to buffer at $F000
+      9: 64 ; Copy buffer back to element at $F000
+     10: 67 ; Advance to next element (+2 bytes)
+     11: 65 ; Decrement counter and loop if not zero
+     12: loop_end_2:
+     13: r7 = 0
+     14: store , r7
+     15: 62
+     16: 62 ; Load table base address
+     17: 62 ; Load table base for end calculation
+     18: 67 ; Calculate table end (+ 4 elements * 2 bytes)
+     19: 66 ; Load loop counter
+     20: loop_start_3:
+     21: 47 ; Check if reached end of table
+     22: 3 ; Exit if done
+     23: r14 = load p
+     24: 13 ; Load field x (offset 0)
+     25: store , r15
+     26: 67 ; Advance to next element (+2 bytes)
+     27: 65 ; Decrement counter and loop if not zero
+     28: loop_end_4:
+     29: return
+

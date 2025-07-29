@@ -1,0 +1,10 @@
+// Debug scope resolution
+fun test() -> u8 {
+    let a: u16 = 10
+    let b: u16 = a + 5
+    return b as u8
+}
+
+fun main() -> void {
+    let result = test()
+}

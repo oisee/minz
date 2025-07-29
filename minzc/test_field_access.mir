@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_field_access.test_field_read() -> u8
+  @smc
+  Locals:
+    r1 = p: test_field_access.Point
+  Instructions:
+      0: r2 = load p
+      1: 13 ; Load field x (offset 0)
+      2: return r3
+
+Function test_field_access.test_field_write() -> void
+  @smc
+  Locals:
+    r1 = p: test_field_access.Point
+  Instructions:
+      0: return
+
+Function test_field_access.main() -> void
+  @smc
+  Locals:
+    r1 = val: u16
+  Instructions:
+      0: r2 = call test_field_read
+      1: store , r2
+      2: return
+

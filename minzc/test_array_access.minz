@@ -1,0 +1,15 @@
+// Test array access parsing
+fun test_array() -> void {
+    let arr: [u8; 5]
+    let x = arr[0]
+}
+
+fun test_assignment() -> void {
+    let mut arr: [u8; 5]
+    arr[1] = 10
+}
+
+fun main() -> void {
+    test_array()
+    test_assignment()
+}

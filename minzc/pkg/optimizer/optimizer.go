@@ -59,6 +59,8 @@ func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optim
 		// Use TRUE SMC by default (this is the whole point of our language)
 		if enableTrueSMC {
 			opt.passes = append(opt.passes, NewTrueSMCPass(false)) // false = no diagnostics in production
+			// Add TSMC pattern optimization after TRUE SMC
+			opt.passes = append(opt.passes, &tsmcPatternAdapter{NewTSMCPatternOptimizer(false)})
 		} else {
 			// Fall back to old SMC if explicitly disabled
 			opt.passes = append(opt.passes, NewSelfModifyingCodePass())
@@ -149,4 +151,35 @@ func ReplaceRegister(inst *ir.Instruction, oldReg, newReg ir.Register) {
 	if inst.Dest == oldReg {
 		inst.Dest = newReg
 	}
+}
+
+// tsmcPatternAdapter adapts TSMCPatternOptimizer to the Pass interface
+type tsmcPatternAdapter struct {
+	optimizer *TSMCPatternOptimizer
+}
+
+func (a *tsmcPatternAdapter) Name() string {
+	return a.optimizer.GetName()
+}
+
+func (a *tsmcPatternAdapter) Run(module *ir.Module) (bool, error) {
+	// Track initial state (simplified - just counts instructions)
+	initialInstrCount := 0
+	for _, f := range module.Functions {
+		initialInstrCount += len(f.Instructions)
+	}
+	
+	// Run optimization
+	err := a.optimizer.OptimizeModule(module)
+	if err != nil {
+		return false, err
+	}
+	
+	// Check if anything changed
+	finalInstrCount := 0
+	for _, f := range module.Functions {
+		finalInstrCount += len(f.Instructions)
+	}
+	
+	return initialInstrCount != finalInstrCount, nil
 }

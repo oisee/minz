@@ -544,30 +544,70 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 				return fmt.Errorf("parameter %s not found", paramName)
 			}
 			
-			// Emit the parameter label and instruction
-			// The instruction's immediate value IS the parameter
-			g.emit("%s:", paramLabel)
-			
-			// For the first use, we need to emit the load instruction
-			if param.Type.Size() == 1 {
-				// For u8, load into HL as u16 to avoid conversions
-				g.emit("    LD HL, #0000   ; SMC parameter %s (u8->u16)", paramName)
-				// Store to the destination
-				g.storeFromHL(inst.Dest)
+			// Check if this is a TSMC reference parameter
+			if param.IsTSMCRef {
+				// TSMC reference: Create anchor for indirect memory operations
+				g.emit("; TSMC reference parameter %s", paramName)
+				g.emit("%s$immOP:", paramName)
+				
+				// For pointers, we emit instructions that will have their immediates patched
+				if _, ok := param.Type.(*ir.PointerType); ok {
+					// ALL pointers load the ADDRESS into HL, not the value!
+					g.emit("    LD HL, 0000      ; TSMC ref address for %s", paramName)
+					g.emit("%s$imm0 EQU %s$immOP+1", paramName, paramName)
+					// Store the address (not dereferenced value)
+					g.storeFromHL(inst.Dest)
+				} else {
+					// Non-pointer TSMC ref (future extension)
+					g.emit("    LD HL, 0000      ; TSMC ref %s", paramName)
+					g.emit("%s$imm0 EQU %s$immOP+1", paramName, paramName)
+					g.storeFromHL(inst.Dest)
+				}
 			} else {
-				g.emit("    LD HL, #0000   ; SMC parameter %s", paramName)
-				// Store to the destination
-				g.storeFromHL(inst.Dest)
+				// Regular SMC parameter
+				g.emit("%s:", paramLabel)
+				
+				// For the first use, we need to emit the load instruction
+				if param.Type.Size() == 1 {
+					// For u8, load into HL as u16 to avoid conversions
+					g.emit("    LD HL, #0000   ; SMC parameter %s (u8->u16)", paramName)
+					// Store to the destination
+					g.storeFromHL(inst.Dest)
+				} else {
+					g.emit("    LD HL, #0000   ; SMC parameter %s", paramName)
+					// Store to the destination
+					g.storeFromHL(inst.Dest)
+				}
 			}
 		} else {
-			// Subsequent use - load from the parameter location
-			// The parameter value is embedded in the instruction
-			if inst.Type != nil && inst.Type.Size() == 1 {
-				g.emit("    LD A, (%s)", paramLabel)
-				g.storeFromA(inst.Dest)
+			// Subsequent use - need to check if TSMC ref or regular param
+			var param *ir.Parameter
+			for _, p := range g.currentFunc.Params {
+				if p.Name == paramName {
+					param = &p
+					break
+				}
+			}
+			
+			if param != nil && param.IsTSMCRef {
+				// TSMC reference - reload the address from immediate
+				if _, ok := param.Type.(*ir.PointerType); ok {
+					// Reload the address from the immediate
+					g.emit("    LD HL, (%s$imm0) ; Reload TSMC ref address", paramName)
+					g.storeFromHL(inst.Dest)
+				} else {
+					g.emit("    LD HL, (%s$imm0) ; Reload TSMC ref value", paramName)
+					g.storeFromHL(inst.Dest)
+				}
 			} else {
-				g.emit("    LD HL, (%s)", paramLabel)
-				g.storeFromHL(inst.Dest)
+				// Regular SMC parameter - load from the parameter location
+				if inst.Type != nil && inst.Type.Size() == 1 {
+					g.emit("    LD A, (%s)", paramLabel)
+					g.storeFromA(inst.Dest)
+				} else {
+					g.emit("    LD HL, (%s)", paramLabel)
+					g.storeFromHL(inst.Dest)
+				}
 			}
 		}
 		return nil
@@ -1003,92 +1043,218 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		}
 		
 	case ir.OpLoadVar:
+		// First, determine the type of the variable
+		var varType ir.Type
+		var localReg ir.Register
+		
 		// Check if this is a global variable by symbol name
 		if inst.Symbol != "" {
-			// Look up global variable address
+			// Look up global variable
 			globalAddr := g.getGlobalAddr(inst.Symbol)
 			if globalAddr != 0 {
-				g.emit("    LD HL, ($%04X)", globalAddr)
-				g.storeFromHL(inst.Dest)
+				// For now, assume 16-bit for globals
+				varType = &ir.BasicType{Kind: ir.TypeU16}
 			} else {
 				// Try to find local variable by name
-				localReg := ir.Register(0)
 				for _, local := range g.currentFunc.Locals {
 					if local.Name == inst.Symbol {
 						localReg = local.Reg
+						varType = local.Type
 						break
 					}
 				}
-				
-				// Fall back to local variable
+			}
+		} else {
+			// Local variable by register
+			localReg = inst.Src1
+			// Find type from locals
+			for _, local := range g.currentFunc.Locals {
+				if local.Reg == inst.Src1 {
+					varType = local.Type
+					break
+				}
+			}
+		}
+		
+		// Load value based on type
+		isU8 := false
+		if basicType, ok := varType.(*ir.BasicType); ok {
+			isU8 = basicType.Kind == ir.TypeU8 || basicType.Kind == ir.TypeI8
+		}
+		
+		if isU8 {
+			// For 8-bit values, load to A
+			if inst.Symbol != "" {
+				globalAddr := g.getGlobalAddr(inst.Symbol)
+				if globalAddr != 0 {
+					g.emit("    LD A, ($%04X)", globalAddr)
+				} else {
+					// Local variable
+					if g.useAbsoluteLocals {
+						addr := g.getAbsoluteAddr(localReg)
+						g.emit("    LD A, ($%04X)", addr)
+					} else {
+						offset := g.getLocalOffset(localReg)
+						g.emit("    LD A, (IX%+d)", offset)
+					}
+				}
+			} else {
+				// Local variable
 				if g.useAbsoluteLocals {
-					addr := g.getAbsoluteAddr(localReg)
+					addr := g.getAbsoluteAddr(inst.Src1)
+					g.emit("    LD A, ($%04X)", addr)
+				} else {
+					offset := g.getLocalOffset(inst.Src1)
+					g.emit("    LD A, (IX%+d)", offset)
+				}
+			}
+			g.storeFromA(inst.Dest)
+		} else {
+			// For 16-bit values, load to HL
+			if inst.Symbol != "" {
+				globalAddr := g.getGlobalAddr(inst.Symbol)
+				if globalAddr != 0 {
+					g.emit("    LD HL, ($%04X)", globalAddr)
+				} else {
+					// Local variable
+					if g.useAbsoluteLocals {
+						addr := g.getAbsoluteAddr(localReg)
+						g.emit("    LD HL, ($%04X)", addr)
+					} else {
+						offset := g.getLocalOffset(localReg)
+						g.emit("    LD L, (IX%+d)", offset)
+						g.emit("    LD H, (IX%+d)", offset+1)
+					}
+				}
+			} else {
+				// Local variable
+				if g.useAbsoluteLocals {
+					addr := g.getAbsoluteAddr(inst.Src1)
 					g.emit("    LD HL, ($%04X)", addr)
 				} else {
-					offset := g.getLocalOffset(localReg)
+					offset := g.getLocalOffset(inst.Src1)
 					g.emit("    LD L, (IX%+d)", offset)
 					g.emit("    LD H, (IX%+d)", offset+1)
 				}
-				g.storeFromHL(inst.Dest)
-			}
-		} else {
-			// Local variable
-			if g.useAbsoluteLocals {
-				addr := g.getAbsoluteAddr(inst.Src1)
-				g.emit("    LD HL, ($%04X)", addr)
-			} else {
-				offset := g.getLocalOffset(inst.Src1)
-				g.emit("    LD L, (IX%+d)", offset)
-				g.emit("    LD H, (IX%+d)", offset+1)
 			}
 			g.storeFromHL(inst.Dest)
 		}
 		
 	case ir.OpStoreVar:
 		// Store to variable
-		// Check if we have a source to load
-		if inst.Src1 != ir.RegZero {
-			g.loadToHL(inst.Src1)
-		}
-		// Otherwise assume value is already in HL or the appropriate register
+		// First, determine the type of the variable
+		var varType ir.Type
+		var localReg ir.Register
 		
 		// Check if this is a global variable by symbol name
 		if inst.Symbol != "" {
-			// Look up global variable address
+			// Look up global variable
 			globalAddr := g.getGlobalAddr(inst.Symbol)
 			if globalAddr != 0 {
-				g.emit("    LD ($%04X), HL", globalAddr)
+				// For now, assume 16-bit for globals
+				varType = &ir.BasicType{Kind: ir.TypeU16}
 			} else {
 				// Try to find local variable by name
-				localReg := ir.Register(0)
 				for _, local := range g.currentFunc.Locals {
 					if local.Name == inst.Symbol {
 						localReg = local.Reg
+						varType = local.Type
 						break
 					}
 				}
-				
-				// Fall back to local variable
+			}
+		} else {
+			// Local variable by register
+			localReg = inst.Dest
+			// Find type from locals
+			for _, local := range g.currentFunc.Locals {
+				if local.Reg == inst.Dest {
+					varType = local.Type
+					break
+				}
+			}
+		}
+		
+		// Load value based on type
+		isU8 := false
+		if basicType, ok := varType.(*ir.BasicType); ok {
+			isU8 = basicType.Kind == ir.TypeU8 || basicType.Kind == ir.TypeI8
+		}
+		
+		if isU8 {
+			// For 8-bit values, load to A
+			if inst.Src1 != ir.RegZero {
+				g.loadToA(inst.Src1)
+			}
+			
+			// Store 8-bit value
+			if inst.Symbol != "" {
+				globalAddr := g.getGlobalAddr(inst.Symbol)
+				if globalAddr != 0 {
+					g.emit("    LD ($%04X), A", globalAddr)
+				} else {
+					// Local variable
+					if g.useAbsoluteLocals {
+						addr := g.getAbsoluteAddr(localReg)
+						g.emit("    LD ($%04X), A", addr)
+					} else {
+						offset := g.getLocalOffset(localReg)
+						g.emit("    LD (IX%+d), A", offset)
+					}
+				}
+			} else {
+				// Local variable
 				if g.useAbsoluteLocals {
-					addr := g.getAbsoluteAddr(localReg)
+					addr := g.getAbsoluteAddr(inst.Dest)
+					g.emit("    LD ($%04X), A", addr)
+				} else {
+					offset := g.getLocalOffset(inst.Dest)
+					g.emit("    LD (IX%+d), A", offset)
+				}
+			}
+		} else {
+			// For 16-bit values, load to HL
+			if inst.Src1 != ir.RegZero {
+				g.loadToHL(inst.Src1)
+			}
+			
+			// Store 16-bit value
+			if inst.Symbol != "" {
+				globalAddr := g.getGlobalAddr(inst.Symbol)
+				if globalAddr != 0 {
+					g.emit("    LD ($%04X), HL", globalAddr)
+				} else {
+					// Local variable
+					if g.useAbsoluteLocals {
+						addr := g.getAbsoluteAddr(localReg)
+						g.emit("    LD ($%04X), HL", addr)
+					} else {
+						offset := g.getLocalOffset(localReg)
+						g.emit("    LD (IX%+d), L", offset)
+						g.emit("    LD (IX%+d), H", offset+1)
+					}
+				}
+			} else {
+				// Local variable
+				if g.useAbsoluteLocals {
+					addr := g.getAbsoluteAddr(inst.Dest)
 					g.emit("    LD ($%04X), HL", addr)
 				} else {
-					offset := g.getLocalOffset(localReg)
+					offset := g.getLocalOffset(inst.Dest)
 					g.emit("    LD (IX%+d), L", offset)
 					g.emit("    LD (IX%+d), H", offset+1)
 				}
 			}
-		} else {
-			// Local variable
-			if g.useAbsoluteLocals {
-				addr := g.getAbsoluteAddr(inst.Dest)
-				g.emit("    LD ($%04X), HL", addr)
-			} else {
-				offset := g.getLocalOffset(inst.Dest)
-				g.emit("    LD (IX%+d), L", offset)
-				g.emit("    LD (IX%+d), H", offset+1)
-			}
 		}
+		
+	case ir.OpStoreTSMCRef:
+		// Store to TSMC reference immediate operand
+		// This modifies the immediate field of the instruction that loads the parameter
+		g.loadToHL(inst.Src1)
+		
+		// The label for the immediate operand is paramName$imm0
+		immLabel := fmt.Sprintf("%s$imm0", inst.Symbol)
+		g.emit("    LD (%s), HL    ; Update TSMC reference immediate", immLabel)
 		
 	case ir.OpMove:
 		// Move from source to destination register
@@ -1113,6 +1279,56 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    EX DE, HL")
 		g.emit("    OR A      ; Clear carry")
 		g.emit("    SBC HL, DE")
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpNeg:
+		// Negate the value (two's complement)
+		g.loadToHL(inst.Src1)
+		// Check if 8-bit or 16-bit based on type
+		if inst.Type != nil {
+			if basicType, ok := inst.Type.(*ir.BasicType); ok {
+				switch basicType.Kind {
+				case ir.TypeI8, ir.TypeU8:
+					// 8-bit negation
+					g.emit("    LD A, L       ; Get low byte")
+					g.emit("    NEG           ; Negate A")
+					g.emit("    LD L, A       ; Store back")
+					g.emit("    LD H, 0       ; Clear high byte")
+				case ir.TypeI16, ir.TypeU16:
+					// 16-bit negation
+					g.emit("    XOR A         ; Clear A")
+					g.emit("    SUB L         ; 0 - L")
+					g.emit("    LD L, A")
+					g.emit("    LD A, 0")
+					g.emit("    SBC A, H      ; 0 - H with borrow")
+					g.emit("    LD H, A")
+				default:
+					// Default to 16-bit
+					g.emit("    XOR A         ; Clear A")
+					g.emit("    SUB L         ; 0 - L")
+					g.emit("    LD L, A")
+					g.emit("    LD A, 0")
+					g.emit("    SBC A, H      ; 0 - H with borrow")
+					g.emit("    LD H, A")
+				}
+			} else {
+				// Default to 16-bit negation
+				g.emit("    XOR A         ; Clear A")
+				g.emit("    SUB L         ; 0 - L")
+				g.emit("    LD L, A")
+				g.emit("    LD A, 0")
+				g.emit("    SBC A, H      ; 0 - H with borrow")
+				g.emit("    LD H, A")
+			}
+		} else {
+			// Default to 16-bit negation
+			g.emit("    XOR A         ; Clear A")
+			g.emit("    SUB L         ; 0 - L")
+			g.emit("    LD L, A")
+			g.emit("    LD A, 0")
+			g.emit("    SBC A, H      ; 0 - H with borrow")
+			g.emit("    LD H, A")
+		}
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpMul:
@@ -1390,14 +1606,31 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpNot:
 		// Bitwise NOT (one's complement)
-		g.loadToHL(inst.Src1)
-		g.emit("    LD A, L")
-		g.emit("    CPL")
-		g.emit("    LD L, A")
-		g.emit("    LD A, H")
-		g.emit("    CPL")
-		g.emit("    LD H, A")
-		g.storeFromHL(inst.Dest)
+		// Check if 16-bit or 8-bit based on type
+		if inst.Type != nil {
+			if basicType, ok := inst.Type.(*ir.BasicType); ok && 
+			   (basicType.Kind == ir.TypeU16 || basicType.Kind == ir.TypeI16) {
+				// 16-bit NOT
+				g.loadToHL(inst.Src1)
+				g.emit("    LD A, L")
+				g.emit("    CPL           ; Complement low byte")
+				g.emit("    LD L, A")
+				g.emit("    LD A, H")
+				g.emit("    CPL           ; Complement high byte")
+				g.emit("    LD H, A")
+				g.storeFromHL(inst.Dest)
+			} else {
+				// 8-bit NOT
+				g.loadToA(inst.Src1)
+				g.emit("    CPL           ; Complement A")
+				g.storeFromA(inst.Dest)
+			}
+		} else {
+			// Default to 8-bit
+			g.loadToA(inst.Src1)
+			g.emit("    CPL           ; Complement A")
+			g.storeFromA(inst.Dest)
+		}
 		
 	case ir.OpEq, ir.OpNe, ir.OpLt, ir.OpGt, ir.OpLe, ir.OpGe:
 		g.generateComparison(inst)
@@ -1448,6 +1681,44 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    EX DE, HL")
 		g.emit("    LD HL, SP")
 		g.storeFromHL(inst.Dest)
+		
+	case ir.OpLoad:
+		// Load through pointer
+		// Src1 = pointer
+		g.loadToHL(inst.Src1)
+		// Check type size
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			// 8-bit load
+			g.emit("    LD A, (HL)")
+			g.storeFromA(inst.Dest)
+		} else {
+			// 16-bit load
+			g.emit("    LD E, (HL)")
+			g.emit("    INC HL")
+			g.emit("    LD D, (HL)")
+			g.emit("    EX DE, HL")
+			g.storeFromHL(inst.Dest)
+		}
+		
+	case ir.OpStore:
+		// Store through pointer
+		// Src1 = pointer, Src2 = value
+		g.loadToHL(inst.Src1)
+		g.emit("    PUSH HL")
+		// Check type size
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			// 8-bit store
+			g.loadToA(inst.Src2)
+			g.emit("    POP HL")
+			g.emit("    LD (HL), A")
+		} else {
+			// 16-bit store
+			g.loadToHL(inst.Src2)
+			g.emit("    POP DE")
+			g.emit("    LD (DE), L")
+			g.emit("    INC DE")
+			g.emit("    LD (DE), H")
+		}
 		
 	case ir.OpLoadField:
 		// Load field from struct
@@ -1548,6 +1819,64 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 		// Process inline assembly code
 		g.emitAsmBlock(inst.AsmCode)
+		
+	case ir.OpPrint:
+		// Built-in print function - print a u8 character
+		// Character is in Src1
+		g.loadToA(inst.Src1)
+		// Use RST 16 (0x10) - standard ROM print routine on ZX Spectrum
+		g.emit("    RST 16         ; Print character in A")
+		
+	case ir.OpLen:
+		// Built-in len function - get length of array/string
+		// Array/string pointer is in Src1, result goes to Dest
+		// For now, assume arrays store their length at offset -2
+		g.loadToHL(inst.Src1)
+		g.emit("    DEC HL")
+		g.emit("    DEC HL         ; Point to length field")
+		g.emit("    LD E, (HL)")
+		g.emit("    INC HL")
+		g.emit("    LD D, (HL)     ; Load 16-bit length")
+		g.emit("    EX DE, HL      ; Result in HL")
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpMemcpy:
+		// Built-in memcpy - copy memory block
+		// Src1 = dest, Src2 = src, Args[0] = size
+		g.emit("    ; memcpy(dest, src, size)")
+		// Load destination to DE
+		g.loadToHL(inst.Src1)
+		g.emit("    EX DE, HL      ; Dest in DE")
+		// Load source to HL
+		g.loadToHL(inst.Src2)
+		// Load size to BC
+		g.loadToHL(inst.Args[0])
+		g.emit("    LD B, H")
+		g.emit("    LD C, L        ; Size in BC")
+		// Use LDIR for block copy
+		g.emit("    LDIR           ; Copy BC bytes from HL to DE")
+		
+	case ir.OpMemset:
+		// Built-in memset - set memory block
+		// Src1 = dest, Src2 = value, Args[0] = size
+		g.emit("    ; memset(dest, value, size)")
+		// Load destination to HL
+		g.loadToHL(inst.Src1)
+		// Load value to A
+		g.loadToA(inst.Src2)
+		// Load size to BC
+		g.loadToHL(inst.Args[0])
+		g.emit("    LD B, H")
+		g.emit("    LD C, L        ; Size in BC")
+		// Fill memory
+		g.emit(".memset_loop_%d:", g.labelCounter)
+		g.emit("    LD (HL), A     ; Store value")
+		g.emit("    INC HL         ; Next address")
+		g.emit("    DEC BC         ; Decrement count")
+		g.emit("    LD D, B")
+		g.emit("    OR C")
+		g.emit("    JR NZ, .memset_loop_%d", g.labelCounter)
+		g.labelCounter++
 		
 	case ir.OpLoadLabel:
 		// Load address of a label
@@ -1706,13 +2035,12 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 	case ir.OpAddr:
 		// Address-of operator: get address of variable
 		// Src1 = variable to get address of, Dest = register to store address
-		// For now, this is a simplified implementation
-		// In a full implementation, would calculate actual memory addresses
 		reg := inst.Src1
 		
-		// This is a simplified implementation - create a dummy address
+		// Calculate the actual address of the variable
+		addr := g.getAbsoluteAddr(reg)
 		g.emit("    ; Address-of operation for register r%d", int(reg))
-		g.emit("    LD HL, $%04X  ; Variable address (placeholder)", 0x8000+int(reg)*2)
+		g.emit("    LD HL, $%04X  ; Variable address", addr)
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpStoreIndex:
@@ -1753,8 +2081,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// For non-SMC functions, parameters are already in registers/memory
 		// Just need to move to the destination register
 		g.emit("    ; Load parameter %s", inst.Symbol)
-		// The parameter value should already be in the correct location
-		// from the function prologue
+		// In the current implementation, parameters are loaded at function entry
+		// This instruction is just a marker - the actual load happens in prologue
 		
 	default:
 		return fmt.Errorf("unsupported opcode: %v (%d)", inst.Op, int(inst.Op))
@@ -2049,12 +2377,15 @@ func (g *Z80Generator) loadToHL(reg ir.Register) {
 		
 	case LocationShadow:
 		physReg := value.(PhysicalReg)
-		g.emit("    EXX               ; Switch to shadow registers")
 		regName := g.physicalRegToAssembly(physReg)
 		if physReg == RegHL_Shadow {
-			g.emit("    ; Register %d in shadow HL", reg)
-			g.emit("    EXX               ; Keep shadow HL in HL")
+			// To load shadow HL to main HL, we need to use stack
+			g.emit("    EXX               ; Switch to shadow registers")
+			g.emit("    PUSH HL           ; Save shadow HL")
+			g.emit("    EXX               ; Switch back to main registers")
+			g.emit("    POP HL            ; Load shadow HL into main HL")
 		} else if physReg == RegBC_Shadow || physReg == RegDE_Shadow {
+			g.emit("    EXX               ; Switch to shadow registers")
 			g.emit("    LD H, %s", regName[:1])
 			g.emit("    LD L, %s", regName[1:])
 			g.emit("    EXX               ; Switch back")
@@ -2152,12 +2483,15 @@ func (g *Z80Generator) storeFromHL(reg ir.Register) {
 		
 	case LocationShadow:
 		physReg := value.(PhysicalReg)
-		g.emit("    EXX               ; Switch to shadow registers")
 		regName := g.physicalRegToAssembly(physReg)
 		if physReg == RegHL_Shadow {
-			g.emit("    ; Store to shadow HL")
-			g.emit("    EXX               ; HL now in shadow HL")
+			// To store HL to shadow HL, we need to use stack
+			g.emit("    PUSH HL           ; Save current HL")
+			g.emit("    EXX               ; Switch to shadow registers")
+			g.emit("    POP HL            ; Load into shadow HL")
+			g.emit("    EXX               ; Switch back to main registers")
 		} else if physReg == RegBC_Shadow || physReg == RegDE_Shadow {
+			g.emit("    EXX               ; Switch to shadow registers")
 			g.emit("    LD %s, H", regName[:1])
 			g.emit("    LD %s, L", regName[1:])
 			g.emit("    EXX               ; Switch back")

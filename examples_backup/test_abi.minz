@@ -1,0 +1,32 @@
+// Test @abi attribute support
+
+@abi("smc")
+fun smc_function(x: u8, y: u8) -> u8 {
+    return x + y;
+}
+
+@abi("register")
+fun register_function(a: u8, b: u8) -> u8 {
+    return a * b;
+}
+
+@abi("register: A=x, E=y")
+fun mapped_function(x: u8, y: u8) -> u8 {
+    return x - y;
+}
+
+@abi("stack")
+fun stack_function(data: u16, count: u8) -> u16 {
+    return data + count;
+}
+
+@abi("register: HL=ptr, BC=size")
+@extern
+fun external_function(ptr: *u8, size: u16) -> void;
+
+fun main() {
+    let result1 = smc_function(5, 10);
+    let result2 = register_function(3, 4);
+    let result3 = mapped_function(20, 5);
+    let result4 = stack_function(1000, 50);
+}

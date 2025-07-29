@@ -1,0 +1,6 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   counter: u8
+

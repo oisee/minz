@@ -1,0 +1,57 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.tail_recursive.factorial_tail(n: u8, acc: u16) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: 29 ; Load from anchor n$imm0
+      1: ...examples.tail_recursive.factorial_tail_tail_loop: ; Tail recursion loop start
+      2: r4 = r4 ^ r4 ; XOR A,A (optimized from LD A,0)
+      3: r5 = r3 == r4
+      4: jump_if_not r5, else_1
+      5: 29 ; Load from anchor acc$imm0
+      6: return r6
+      7: else_1:
+      8: 29 ; Load from anchor n$imm0
+      9: 29 ; Load from anchor n$imm0
+     10: 29 ; Load from anchor acc$imm0
+     11: jump ...examples.tail_recursive.factorial_tail_tail_loop ; Tail recursion optimized to loop
+
+Function ...examples.tail_recursive.factorial(n: u8) -> u16
+  @recursive
+  Instructions:
+      0: 12
+      1: r4 = call factorial_tail
+      2: return r4
+
+Function ...examples.tail_recursive.sum_tail(n: u16, acc: u16) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: 29 ; Load from anchor n$imm0
+      1: ...examples.tail_recursive.sum_tail_tail_loop: ; Tail recursion loop start
+      2: r4 = r4 ^ r4 ; XOR A,A (optimized from LD A,0)
+      3: r5 = r3 == r4
+      4: jump_if_not r5, else_3
+      5: 29 ; Load from anchor acc$imm0
+      6: return r6
+      7: else_3:
+      8: 29 ; Load from anchor n$imm0
+      9: 29 ; Load from anchor acc$imm0
+     10: 29 ; Load from anchor n$imm0
+     11: jump ...examples.tail_recursive.sum_tail_tail_loop ; Tail recursion optimized to loop
+
+Function ...examples.tail_recursive.main() -> void
+  @smc
+  @recursive
+  Locals:
+    r1 = result: u16
+    r4 = sum: u16
+  Instructions:
+      0: r3 = call factorial
+      1: store , r3
+      2: r7 = call sum_tail
+      3: store , r7
+      4: return
+

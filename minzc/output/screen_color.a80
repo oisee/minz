@@ -1,0 +1,160 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:38
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.screen_color.set_border
+...examples.screen_color.set_border:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.screen_color.fill_screen
+...examples.screen_color.fill_screen:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD C, A         ; Store to physical register C
+    LD A, E       ; Get parameter paper
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    LD A, D       ; Get parameter bright
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r5 = param ink
+    ; Load parameter ink
+    ; r6 = param paper
+    ; Load parameter paper
+    ; r7 = 3
+    LD A, 3
+    LD D, A         ; Store to physical register D
+    ; unknown op 45
+    ; Shift left
+    LD A, B
+    LD B, A       ; B = value to shift
+    LD A, D
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_0
+    LD B, C       ; B = counter
+.shl_loop_0:
+    DEC B
+    JP M, .shl_done_0
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_0
+.shl_done_0:
+    LD L, A
+    LD H, 0
+    ; unknown op 42
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    ; store , r9
+    LD ($F000), HL
+    ; r10 = param bright
+    ; Load parameter bright
+    ; jump_if_not r10, else_1
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_1
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    ; r12 = 22528
+    LD HL, 22528
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; store , r12
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    LD ($F001), HL
+    ; r14 = 22528
+    LD HL, 22528
+    LD D, H
+    LD E, L
+    ; r15 = 768
+    LD HL, 768
+    LD B, H
+    LD C, L
+    ; r16 = r14 + r15
+    LD H, D
+    LD L, E
+    LD D, H
+    LD E, L
+    LD H, B
+    LD L, C
+    ADD HL, DE
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; store , r16
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD ($F003), HL
+    ; loop_3:
+loop_3:
+    ; r17 = load addr
+    LD HL, ($F001)
+    ; Register 17 already in HL
+    ; r18 = load end
+    LD HL, ($F003)
+    ; r19 = r17 < r18
+    ; Register 17 already in HL
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L2
+    LD HL, 0
+    JP .L3
+.L2:
+    LD HL, 1
+.L3:
+    ; Register 19 already in HL
+    ; jump_if_not r19, end_loop_4
+    LD A, L
+    OR A
+    JP Z, end_loop_4
+    ; jump loop_3
+    JP loop_3
+    ; end_loop_4:
+end_loop_4:
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.screen_color.main
+...examples.screen_color.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+
+    END main

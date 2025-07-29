@@ -1,0 +1,9 @@
+// Test two variable declarations
+fun test() -> void {
+    let x: u16 = 10
+    let y: u16 = 20
+}
+
+fun main() -> void {
+    test()
+}

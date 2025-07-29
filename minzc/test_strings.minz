@@ -1,0 +1,10 @@
+// Test string literal support
+fun test_strings() -> void {
+    let msg = "Hello, World!"
+    let name = "MinZ"
+    let empty = ""
+}
+
+fun main() -> void {
+    test_strings()
+}

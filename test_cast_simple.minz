@@ -1,0 +1,19 @@
+// Test basic cast expressions without bit structs
+
+fun main() -> void {
+    // Test basic casts
+    let byte_val: u8 = 0xAB;
+    
+    // Test widening cast u8 to u16
+    let wide: u16 = byte_val as u16;
+    
+    // Test narrowing cast u16 to u8  
+    let narrow: u8 = wide as u8;
+    
+    // Test signed/unsigned casts
+    let signed_val: i8 = -10;
+    let unsigned_val: u8 = signed_val as u8;
+    
+    // Test cast from literal
+    let from_literal: u16 = 255 as u16;
+}

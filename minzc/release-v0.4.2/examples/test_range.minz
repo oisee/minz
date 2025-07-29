@@ -1,0 +1,34 @@
+// Test range expressions
+
+fun test_simple_range() {
+    // Basic range
+    for i in 0..10 {
+        // Just iterate
+    }
+}
+
+fun test_range_with_vars() {
+    var start: u8 = 5;
+    var end: u8 = 15;
+    
+    // Range with variables
+    for i in start..end {
+        // Do something
+    }
+}
+
+fun sum_range(n: u8) -> u16 {
+    var sum: u16 = 0;
+    
+    // Sum numbers from 0 to n-1
+    for i in 0..n {
+        sum = sum + i;
+    }
+    
+    return sum;
+}
+
+fun main() {
+    // Test sum of 0..10 (should be 45)
+    var result: u16 = sum_range(10);
+}

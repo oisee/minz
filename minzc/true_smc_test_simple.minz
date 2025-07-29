@@ -1,0 +1,36 @@
+// Simple TRUE SMC test without print
+
+// Simple function with SMC anchors
+fun add(x: u8, y: u8) -> u8 {
+    return x + y
+}
+
+// Function that uses 16-bit parameters
+fun multiply(a: u16, b: u16) -> u16 {
+    // Simple multiplication by repeated addition
+    let result: u16 = 0
+    let count: u16 = b
+    
+    while count > 0 {
+        result = result + a
+        count = count - 1
+    }
+    
+    return result
+}
+
+fun main() -> void {
+    // Test 8-bit SMC
+    let sum = add(5, 3)
+    
+    // Test 16-bit SMC  
+    let product = multiply(6, 7)
+    
+    // Store results to memory for verification
+    asm("
+        ld hl, {0}
+        ld ($C000), hl
+        ld hl, {1} 
+        ld ($C002), hl
+    ", sum, product)
+}

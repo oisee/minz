@@ -325,6 +325,8 @@ func (p *Parser) convertStatement(node *SExpNode) ast.Statement {
 		return p.convertIfStmt(node)
 	case "while_statement":
 		return p.convertWhileStmt(node)
+	case "for_statement":
+		return p.convertForStmt(node)
 	case "expression_statement":
 		return p.convertExpressionStmt(node)
 	case "assignment_statement":
@@ -339,6 +341,21 @@ func (p *Parser) convertVarDecl(node *SExpNode) *ast.VarDecl {
 	varDecl := &ast.VarDecl{
 		StartPos: node.StartPos,
 		EndPos:   node.EndPos,
+	}
+	
+	// Extract var/let keyword from source code
+	if p.sourceCode != "" {
+		lines := strings.Split(p.sourceCode, "\n")
+		if node.StartPos.Line > 0 && node.StartPos.Line <= len(lines) {
+			line := lines[node.StartPos.Line-1]
+			// Look for "var" or "let" at the start of the declaration
+			trimmed := strings.TrimSpace(line[node.StartPos.Column-1:])
+			if strings.HasPrefix(trimmed, "var ") {
+				varDecl.IsMutable = true
+			} else if strings.HasPrefix(trimmed, "let ") {
+				varDecl.IsMutable = true  // let variables are mutable in MinZ
+			}
+		}
 	}
 	
 	for _, child := range node.Children {
@@ -443,10 +460,55 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 	case "field_expression":
 		return p.convertFieldExpr(node)
 	case "cast_expression":
-		// Convert cast to binary expression with "as" operator
-		return p.convertCastToBinary(node)
+		// Convert cast expression properly
+		return p.convertCastExpr(node)
+	case "parenthesized_expression":
+		// Extract the inner expression from parentheses
+		if len(node.Children) > 0 {
+			for _, child := range node.Children {
+				if child.Type == "expression" && len(child.Children) > 0 {
+					return p.convertExpressionNode(child.Children[0])
+				}
+			}
+		}
+	case "unary_expression":
+		return p.convertUnaryExpr(node)
 	}
 	return nil
+}
+
+func (p *Parser) convertUnaryExpr(node *SExpNode) *ast.UnaryExpr {
+	unaryExpr := &ast.UnaryExpr{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Tree-sitter format: (unary_expression (expression ...))
+	// The operator is in the source between start of unary_expression and start of inner expression
+	var exprNode *SExpNode
+	for _, child := range node.Children {
+		if child.Type == "expression" && len(child.Children) > 0 {
+			exprNode = child
+			unaryExpr.Operand = p.convertExpressionNode(child.Children[0])
+			break
+		}
+	}
+	
+	// Extract operator from source code
+	if exprNode != nil && p.sourceCode != "" {
+		lines := strings.Split(p.sourceCode, "\n")
+		if node.StartPos.Line > 0 && node.StartPos.Line <= len(lines) {
+			line := lines[node.StartPos.Line-1]
+			startCol := node.StartPos.Column - 1
+			endCol := exprNode.StartPos.Column - 1
+			if startCol >= 0 && endCol <= len(line) && startCol < endCol {
+				operatorText := strings.TrimSpace(line[startCol:endCol])
+				unaryExpr.Operator = operatorText
+			}
+		}
+	}
+	
+	return unaryExpr
 }
 
 func (p *Parser) convertBinaryExpr(node *SExpNode) *ast.BinaryExpr {
@@ -603,9 +665,8 @@ func (p *Parser) convertFieldExpr(node *SExpNode) *ast.FieldExpr {
 	return fieldExpr
 }
 
-func (p *Parser) convertCastToBinary(node *SExpNode) *ast.BinaryExpr {
-	binExpr := &ast.BinaryExpr{
-		Operator: "as",
+func (p *Parser) convertCastExpr(node *SExpNode) *ast.CastExpr {
+	castExpr := &ast.CastExpr{
 		StartPos: node.StartPos,
 		EndPos:   node.EndPos,
 	}
@@ -620,17 +681,12 @@ func (p *Parser) convertCastToBinary(node *SExpNode) *ast.BinaryExpr {
 				switch fieldName {
 				case "expression":
 					if fieldValue.Type == "expression" && len(fieldValue.Children) > 0 {
-						binExpr.Left = p.convertExpressionNode(fieldValue.Children[0])
+						castExpr.Expr = p.convertExpressionNode(fieldValue.Children[0])
 					}
 				case "type":
-					// For "as" operator, right side is a type identifier
-					if fieldValue.Type == "type" && len(fieldValue.Children) > 0 {
-						typeNode := fieldValue.Children[0]
-						binExpr.Right = &ast.Identifier{
-							Name: p.getNodeText(typeNode),
-							StartPos: typeNode.StartPos,
-							EndPos: typeNode.EndPos,
-						}
+					// Parse the type properly
+					if fieldValue.Type == "type" {
+						castExpr.TargetType = p.convertType(fieldValue)
 					}
 				}
 				i++
@@ -638,7 +694,7 @@ func (p *Parser) convertCastToBinary(node *SExpNode) *ast.BinaryExpr {
 		}
 	}
 	
-	return binExpr
+	return castExpr
 }
 
 func (p *Parser) getNodeText(node *SExpNode) string {
@@ -905,11 +961,56 @@ func (p *Parser) convertWhileStmt(node *SExpNode) *ast.WhileStmt {
 	return whileStmt
 }
 
+func (p *Parser) convertForStmt(node *SExpNode) *ast.ForStmt {
+	forStmt := &ast.ForStmt{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Debug output
+	if false {  // Set to true for debugging
+		fmt.Printf("convertForStmt: %d children\n", len(node.Children))
+		for i, child := range node.Children {
+			fmt.Printf("  [%d] %s: %s\n", i, child.Type, p.getNodeText(child))
+		}
+	}
+	
+	// Parse for statement components
+	// The tree-sitter output doesn't include "for" and "in" as separate tokens
+	// It goes: identifier, expression, block
+	for _, child := range node.Children {
+		switch child.Type {
+		case "identifier":
+			if forStmt.Iterator == "" {
+				forStmt.Iterator = p.getNodeText(child)
+			}
+		case "expression":
+			if forStmt.Range == nil {
+				forStmt.Range = p.convertExpression(child)
+			}
+		case "block":
+			forStmt.Body = p.convertBlock(child)
+		}
+	}
+	
+	return forStmt
+}
+
 func (p *Parser) convertExpressionStmt(node *SExpNode) ast.Statement {
-	// Expression statements might contain assignments or other expressions
-	// For now, just return nil to avoid crashes
-	// TODO: Properly handle expression statements
-	return nil
+	stmt := &ast.ExpressionStmt{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Find the expression child
+	for _, child := range node.Children {
+		if child.Type == "expression" {
+			stmt.Expression = p.convertExpression(child)
+			break
+		}
+	}
+	
+	return stmt
 }
 
 func (p *Parser) convertAssignmentStmt(node *SExpNode) *ast.AssignStmt {

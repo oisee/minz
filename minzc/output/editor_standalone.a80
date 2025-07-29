@@ -1,0 +1,80 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:37
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.editor_standalone.editor_init
+...examples.editor_standalone.editor_init:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = load editor
+    LD HL, ($F002)
+    ; return r2
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.editor_standalone.set_border
+...examples.editor_standalone.set_border:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.editor_standalone.main
+...examples.editor_standalone.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call editor_init
+    ; Call to editor_init (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL editor_init
+    ; store , r2
+    LD ($F002), HL
+    ; r4 = 0
+    LD A, 0
+    LD D, A         ; Store to physical register D
+    ; store , r4
+    LD ($F006), HL
+    ; loop_1:
+loop_1:
+    ; r5 = load counter
+    LD HL, ($F006)
+    ; r6 = 100
+    LD A, 100
+    LD L, A         ; Store to physical register L
+    ; r7 = r5 < r6
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r7, end_loop_2
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, end_loop_2
+    ; jump loop_1
+    JP loop_1
+    ; end_loop_2:
+end_loop_2:
+    ; return
+    RET
+
+    END main

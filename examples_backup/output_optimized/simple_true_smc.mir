@@ -1,0 +1,20 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.simple_true_smc.add(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: 29 ; Load from anchor x$imm0
+      1: 29 ; Load from anchor y$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...examples.simple_true_smc.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r4 = call add
+      1: store , r4
+      2: return
+

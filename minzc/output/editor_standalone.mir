@@ -1,0 +1,34 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.editor_standalone.editor_init() -> ...examples.editor_standalone.Editor
+  @smc
+  Locals:
+    r1 = editor: ...examples.editor_standalone.Editor
+  Instructions:
+      0: r2 = load editor
+      1: return r2
+
+Function ...examples.editor_standalone.set_border(color: u8) -> void
+  Instructions:
+      0: return
+
+Function ...examples.editor_standalone.main() -> void
+  @smc
+  Locals:
+    r1 = editor: u16
+    r3 = counter: u8
+  Instructions:
+      0: r2 = call editor_init
+      1: store , r2
+      2: r4 = 0
+      3: store , r4
+      4: loop_1:
+      5: r5 = load counter
+      6: r6 = 100
+      7: r7 = r5 < r6
+      8: jump_if_not r7, end_loop_2
+      9: jump loop_1
+     10: end_loop_2:
+     11: return
+

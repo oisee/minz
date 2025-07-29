@@ -1,0 +1,53 @@
+; MinZ generated code
+; Generated: 2025-07-29 17:25:13
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_func_addr.callback
+...test_func_addr.callback:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_func_addr.call_with_callback
+...test_func_addr.call_with_callback:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), HL    ; Virtual register 1 to memory
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_func_addr.main
+...test_func_addr.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Function reference: ...test_func_addr.callback
+    LD HL, ...test_func_addr.callback
+    ; r3 = &r2
+    ; Address-of operation for register r2
+    LD HL, $F004  ; Variable address
+    ; store , r3
+    LD ($F002), HL
+    ; r4 = load fn_ptr
+    LD HL, ($F002)
+    ; r5 = call call_with_callback
+    ; Call to call_with_callback (args: 1)
+    ; Register-based parameter passing
+    ; Parameter fn in HL
+    ; Found function, UsesTrueSMC=false
+    CALL call_with_callback
+    ; return
+    RET
+
+    END main

@@ -95,19 +95,32 @@ read_input:
 
 ## Implementation Language
 
-The compiler will be written in:
-- **Rust** (recommended) - Performance, safety, good AST manipulation
-- **TypeScript** - Easy tree-sitter integration, good tooling
-- **C** - Direct tree-sitter integration, maximum performance
+The compiler is written in **Go** with tree-sitter integration via S-expressions.
 
-## Next Implementation Steps
+## Current Implementation Status
 
-1. Create basic CLI tool that reads MinZ and outputs AST
-2. Implement symbol table and type checker
-3. Design and implement IR
-4. Create code generator for basic operations
-5. Add register allocation
-6. Implement function calls and stack management
-7. Add struct/array support
-8. Optimize generated code
-9. Add debugging information
+### Completed Features
+1. ✅ Tree-sitter grammar and parser
+2. ✅ S-expression to AST conversion
+3. ✅ Symbol table and type checker
+4. ✅ IR generation with SSA-style registers
+5. ✅ Advanced register allocation (physical → shadow → memory)
+6. ✅ Function calls with multiple calling conventions
+7. ✅ Self-modifying code (SMC) support
+8. ✅ TSMC references (parameters as immediate operands)
+9. ✅ Basic optimizations (constant folding, dead code elimination)
+10. ✅ Assignment statements with mutability checking
+11. ✅ Type-aware code generation (u8 vs u16)
+
+### Advanced Features
+- **TSMC (Tree-Structured Machine Code)**: Parameters become self-modifying immediate operands
+- **Shadow Register Optimization**: Automatic use of Z80's alternate register set
+- **SMC Calling Convention**: Functions modify their own code for performance
+- **Hierarchical Register Allocation**: Physical → Shadow → Memory spilling
+
+### Next Steps
+1. Complex assignment targets (arrays, structs)
+2. Compound assignments (+=, -=)
+3. Auto-dereferencing
+4. Advanced TSMC patterns
+5. Module system implementation

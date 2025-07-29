@@ -1,0 +1,181 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:37
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.control_flow.test_if
+...examples.control_flow.test_if:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; r2 = param x
+    ; Load parameter x
+    ; r3 = 10
+    LD A, 10
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 > r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L2
+    JP P, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    ; r5 = param x
+    ; Load parameter x
+    ; r6 = 2
+    LD A, 2
+    LD E, A         ; Store to physical register E
+    ; r7 = r5 * r6
+    ; 8-bit multiplication
+    LD A, D
+    LD B, A       ; B = multiplicand
+    LD A, E
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_2
+.mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_2
+.mul_done_2:
+    ; return r7
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; r8 = param x
+    ; Load parameter x
+    ; r9 = 5
+    LD A, 5
+    LD ($F012), A     ; Virtual register 9 to memory
+    ; r10 = r8 > r9
+    LD D, H
+    LD E, L
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L5
+    JP P, .L4
+    LD HL, 0
+    JP .L5
+.L4:
+    LD HL, 1
+.L5:
+    ; jump_if_not r10, else_3
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_3
+    ; r11 = param x
+    ; Load parameter x
+    ; r12 = 10
+    LD A, 10
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; r13 = r11 + r12
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r13
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; r14 = param x
+    ; Load parameter x
+    ; return r14
+    LD SP, IX
+    POP IX
+    RET
+    ; end_if_4:
+end_if_4:
+    ; end_if_2:
+end_if_2:
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.control_flow.test_while
+...examples.control_flow.test_while:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; store , r3
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD ($F000), HL
+    ; r5 = 0
+    LD A, 0
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; store , r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD ($F001), HL
+    ; loop_5:
+loop_5:
+    ; r6 = load i
+    LD HL, ($F001)
+    ; r7 = param n
+    ; Load parameter n
+    ; r8 = r6 < r7
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L6
+    LD HL, 0
+    JP .L7
+.L6:
+    LD HL, 1
+.L7:
+    ; jump_if_not r8, end_loop_6
+    ; Register 8 already in A
+    OR A
+    JP Z, end_loop_6
+    ; jump loop_5
+    JP loop_5
+    ; end_loop_6:
+end_loop_6:
+    ; r9 = load sum
+    LD HL, ($F000)
+    ; return r9
+    LD SP, IX
+    POP IX
+    RET
+
+    END main

@@ -1,0 +1,19 @@
+MinZ Examples Compilation Analysis Report
+========================================
+Date: Sun 27 Jul 2025 20:39:08 IST
+
+✅ PASS: ../examples/arithmetic_demo.minz
+✅ PASS: ../examples/const_only.minz
+✅ PASS: ../examples/debug_bit_field.minz
+✅ PASS: ../examples/debug_const.minz
+❌ FAIL: ../examples/debug_scope.minz
+   Error: Error: semantic error: semantic analysis failed with 1 errors:
+✅ PASS: ../examples/debug_tokenize.minz
+❌ FAIL: ../examples/enums.minz
+   Error: Error: semantic error: semantic analysis failed with 5 errors:
+✅ PASS: ../examples/fibonacci.minz
+❌ FAIL: ../examples/game_sprite.minz
+   Error: Error: semantic error: semantic analysis failed with 1 errors:
+./comprehensive_test.sh: line 34: 86826 Killed: 9               ./minzc "$file" -o "$output_file" > /tmp/compile_stdout.txt 2> /tmp/compile_stderr.txt
+❌ FAIL: ../examples/lua_assets.minz
+   Error: Exit code: 137

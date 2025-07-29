@@ -1,0 +1,67 @@
+; MinZ generated code
+; Generated: 2025-07-28 08:45:59
+
+
+; Data section
+    ORG $F000
+
+items:
+    DS 3
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_loop_no_init.main
+...examples.test_loop_no_init.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = addr(items)
+    LD HL, items
+    ; Register 1 already in HL
+    ; Load table base address
+    ; Register 1 already in HL
+    ; Load table base for end calculation
+    ; Register 1 already in HL
+    ; Calculate table end (+ 3 elements * 1 bytes)
+    LD DE, 3
+    ADD HL, DE
+    ; Load loop counter
+    LD A, 3
+    LD C, A         ; Store to physical register C
+    ; loop_start_1:
+loop_start_1:
+    ; Check if reached end of table
+    LD D, H
+    LD E, L
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; Exit if done
+    LD A, D
+    OR A
+    JP NZ, loop_end_2
+    ; Copy element to buffer at $F000
+    LD DE, $F000    ; Buffer address
+    LD BC, 1       ; Size
+    LDIR            ; Copy to buffer
+    ; Copy buffer back to element at $F000
+    EX DE, HL       ; DE = destination
+    LD HL, $F000    ; Buffer address
+    LD BC, 1       ; Size
+    LDIR            ; Copy from buffer
+    ; Advance to next element (+1 bytes)
+    LD DE, 1
+    ADD HL, DE
+    ; Decrement counter and loop if not zero
+    LD A, C
+    LD B, A
+    DJNZ loop_start_1
+    LD A, B
+    LD C, A         ; Store to physical register C
+    ; loop_end_2:
+loop_end_2:
+    ; return
+    RET
+
+    END main

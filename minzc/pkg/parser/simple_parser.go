@@ -566,6 +566,25 @@ func (p *SimpleParser) parseStatement() ast.Statement {
 		}
 	}
 	
+	// Check for GCC-style inline assembly first (asm with parentheses)
+	if p.peek().Type == TokenKeyword && p.peek().Value == "asm" {
+		// Look ahead to see if it's GCC-style (asm with parentheses) or block style (asm with braces)
+		nextIdx := p.pos + 1
+		if nextIdx < len(p.tokens) && p.tokens[nextIdx].Value == "(" {
+			// This is GCC-style inline assembly - parse as expression
+			expr := p.parseExpression()
+			if expr != nil {
+				p.expect(TokenPunc, ";")
+				return &ast.ExpressionStmt{
+					Expression: expr,
+					StartPos:   expr.Pos(),
+					EndPos:     p.currentPos(),
+				}
+			}
+		}
+		// Otherwise fall through to block-style asm statement parsing
+	}
+	
 	// Expression statement or assignment
 	expr := p.parseExpression()
 	if expr != nil {
@@ -785,7 +804,8 @@ func (p *SimpleParser) parseInlineAsmExpr() ast.Expression {
 	
 	// Parse the assembly code string
 	if p.peek().Type != TokenString {
-		panic("expected string literal after asm(")
+		// Instead of panicking, return nil to let caller handle the error gracefully
+		return nil
 	}
 	code := p.peek().Value
 	p.advance()
@@ -867,7 +887,20 @@ func (p *SimpleParser) parsePostfixExpression(expr ast.Expression) ast.Expressio
 			call.EndPos = p.currentPos()
 			expr = call
 		default:
-			return expr
+			// Check for 'as' keyword for cast expressions
+			if p.peek().Type == TokenKeyword && p.peek().Value == "as" {
+				startPos := expr.Pos()
+				p.advance() // consume 'as'
+				targetType := p.parseType()
+				expr = &ast.CastExpr{
+					Expr:       expr,
+					TargetType: targetType,
+					StartPos:   startPos,
+					EndPos:     p.currentPos(),
+				}
+			} else {
+				return expr
+			}
 		}
 	}
 }
@@ -1321,13 +1354,14 @@ func needsSpace(prev, curr Token) bool {
 
 func (p *SimpleParser) parseVarDecl() *ast.VarDecl {
 	varDecl := &ast.VarDecl{
-		StartPos: p.currentPos(),
+		StartPos:  p.currentPos(),
+		IsMutable: true, // let variables are mutable by default in MinZ
 	}
 	
 	// Parse 'let' keyword
 	p.expect(TokenKeyword, "let")
 	
-	// Check for mut after let
+	// Check for mut after let (redundant but allowed)
 	if p.peek().Type == TokenKeyword && p.peek().Value == "mut" {
 		varDecl.IsMutable = true
 		p.advance() // consume 'mut'

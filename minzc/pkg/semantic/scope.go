@@ -36,6 +36,8 @@ type FuncSymbol struct {
 	Name       string
 	Params     []*ast.Parameter
 	ReturnType ir.Type
+	Type       *ir.FunctionType  // For built-in functions
+	IsBuiltin  bool
 }
 
 func (f *FuncSymbol) symbol() {}

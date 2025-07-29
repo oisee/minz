@@ -1,0 +1,24 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:37
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.abi_test_with_main.test_func
+...examples.abi_test_with_main.test_func:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; r2 = param x
+    ; Load parameter x
+    ; return r2
+    LD SP, IX
+    POP IX
+    RET
+
+    END main

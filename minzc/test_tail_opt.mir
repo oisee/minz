@@ -1,0 +1,74 @@
+; MinZ generated code
+; Generated: 2025-07-28 07:34:55
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tail_opt.simple_tail
+test_tail_opt.simple_tail:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    ; Register 3 already in A
+    ; Tail recursion loop start
+test_tail_opt.simple_tail_tail_loop:
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 == r4
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r5, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+acc$immOP:
+    LD HL, 0       ; acc anchor (will be patched)
+acc$imm0 EQU acc$immOP+1
+    ; Register 6 already in HL
+    ; return r6
+    ; Register 6 already in HL
+    RET
+    ; else_1:
+else_1:
+    LD A, (n$imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    LD HL, (acc$imm0)   ; Reuse from anchor
+    LD B, H
+    LD C, L
+    LD A, (n$imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; Tail recursion optimized to loop
+    JP test_tail_opt.simple_tail_tail_loop
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW n$imm0           ; test_tail_opt.simple_tail.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW acc$imm0           ; test_tail_opt.simple_tail.acc
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+    END main

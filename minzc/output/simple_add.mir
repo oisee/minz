@@ -1,0 +1,21 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.simple_add.add(a: u16, b: u16) -> u16
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...examples.simple_add.main() -> void
+  @smc
+  Locals:
+    r1 = x: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = 20
+      2: r4 = call add
+      3: store , r4
+      4: return
+

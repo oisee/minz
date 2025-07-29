@@ -1,0 +1,57 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:38
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.simple_true_smc.add
+...examples.simple_true_smc.add:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD C, A         ; Store to physical register C
+    LD A, E       ; Get parameter y
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = param x
+    ; Load parameter x
+    ; r4 = param y
+    ; Load parameter y
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.simple_true_smc.main
+...examples.simple_true_smc.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD E, A         ; Store to physical register E
+    ; r3 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; r4 = call add
+    ; Call to add (args: 2)
+    ; Register-based parameter passing
+    LD A, E
+    ; Parameter x in A
+    LD A, H
+    LD E, A       ; Parameter y in E
+    ; Found function, UsesTrueSMC=false
+    CALL add
+    ; store , r4
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

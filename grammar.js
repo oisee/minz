@@ -14,6 +14,7 @@ module.exports = grammar({
     [$.block_statement, $.primary_expression],
     [$.type_identifier, $.primary_expression],
     [$.case_arm, $.primary_expression],
+    [$.array_type, $.array_literal],
   ],
 
   word: $ => $.identifier,
@@ -84,12 +85,22 @@ module.exports = grammar({
       'u8', 'u16', 'i8', 'i16', 'bool', 'void',
     ),
 
-    array_type: $ => seq(
-      '[',
-      $.type,
-      ';',
-      $.expression,
-      ']',
+    array_type: $ => choice(
+      // Old syntax: [size]type
+      seq(
+        '[',
+        $.expression,
+        ']',
+        $.type,
+      ),
+      // New syntax: [type; size]
+      seq(
+        '[',
+        $.type,
+        ';',
+        $.expression,
+        ']',
+      ),
     ),
 
     pointer_type: $ => seq(
@@ -177,7 +188,7 @@ module.exports = grammar({
     ),
 
     variable_declaration: $ => seq(
-      'let',
+      choice('let', 'var'),
       optional('mut'),
       $.identifier,
       optional(seq(':', $.type)),
@@ -353,6 +364,18 @@ module.exports = grammar({
     ),
 
     binary_expression: $ => choice(
+      // Assignment has lowest precedence and is right-associative
+      prec.right(1, seq(
+        field('left', $.expression),
+        field('operator', '='),
+        field('right', $.expression),
+      )),
+      // Compound assignment operators
+      ...['+=', '-=', '*=', '/=', '%='].map(operator => prec.right(1, seq(
+        field('left', $.expression),
+        field('operator', operator),
+        field('right', $.expression),
+      ))),
       ...['or', 'and'].map(operator => prec.left(2, seq(
         field('left', $.expression),
         field('operator', operator),

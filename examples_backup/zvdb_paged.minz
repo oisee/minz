@@ -1,0 +1,421 @@
+// ZVDB Paged Implementation for Scorpion ZS-256
+// Uses 16KB pages for vector storage with TRDOS file loading
+// Optimized for 256-dimensional 1-bit quantized vectors
+
+module zvdb_paged;
+
+// Memory layout constants
+@lua[[
+    -- Scorpion memory map
+    PAGE0_ADDR = 0xC000  -- Page 0 (16KB)
+    PAGE1_ADDR = 0x8000  -- Page 1 (16KB)
+    PAGE2_ADDR = 0x4000  -- Page 2 (16KB)
+    PAGE3_ADDR = 0x0000  -- Page 3 (16KB, usually ROM)
+    
+    -- Vector constants
+    VECTOR_BITS = 256
+    VECTOR_BYTES = 32
+    VECTORS_PER_PAGE = 512  -- 16KB / 32 bytes
+    MAX_PAGES = 128         -- Up to 2MB of vectors
+    
+    -- Hash index in main RAM
+    HASH_INDEX_ADDR = 0x7000
+    WORK_BUFFER_ADDR = 0x7800
+]]
+
+const VECTOR_BYTES: u8 = 32;
+const VECTORS_PER_PAGE: u16 = 512;
+const PAGE0_ADDR: u16 = 0xC000;
+const PAGE1_ADDR: u16 = 0x8000;
+
+// TRDOS file operations (external implementation)
+declare fun trdos_open(filename: *u8) -> u8;
+declare fun trdos_read_16k(file_handle: u8, page_number: u8) -> bool;
+declare fun trdos_close(file_handle: u8) -> void;
+
+// Scorpion paging control
+declare fun set_page(slot: u8, page: u8) -> void;
+declare fun get_current_page(slot: u8) -> u8;
+
+// Vector structure (256 bits = 32 bytes)
+struct Vector256 {
+    bits: [u8; 32],
+}
+
+// Metadata for each vector (stored separately)
+struct VectorMeta {
+    page: u8,           // Which 16KB page contains this vector
+    offset: u16,        // Offset within the page
+    hash: u8,           // Pre-computed hash value
+    reserved: u8,       // For alignment
+}
+
+// Hash bucket for fast lookup
+struct HashBucket {
+    count: u8,
+    indices: [u16; 15],  // Vector indices in this bucket
+}
+
+// Main database structure (in fixed RAM)
+struct VectorDB {
+    total_vectors: u16,
+    loaded_pages: u8,
+    current_page0: u8,   // Currently loaded page in slot 0
+    current_page1: u8,   // Currently loaded page in slot 1
+    
+    // Hash index with 256 buckets
+    hash_index: [HashBucket; 256],
+    
+    // Metadata for all vectors
+    vector_meta: [VectorMeta; 4096],  // Supports up to 4K vectors
+    
+    // Hyperplanes for hashing (8 x 32 bytes)
+    hyperplanes: [Vector256; 8],
+}
+
+// Global database pointer
+const DB_ADDR: u16 = 0x6000;
+
+// Popcount lookup table (generated at compile time)
+@lua[[
+function generate_popcount()
+    local table = {}
+    for i = 0, 255 do
+        local count = 0
+        local n = i
+        while n > 0 do
+            count = count + (n & 1)
+            n = n >> 1
+        end
+        table[i + 1] = count
+    end
+    return table
+end
+]]
+const POPCOUNT: [u8; 256] = @lua(generate_popcount());
+
+// Initialize database
+pub fun init_database() -> *mut VectorDB {
+    let db = DB_ADDR as *mut VectorDB;
+    
+    // Clear database structure
+    let ptr = db as *mut u8;
+    for i in 0..sizeof(VectorDB) {
+        ptr[i] = 0;
+    }
+    
+    // Initialize random hyperplanes
+    init_hyperplanes(db);
+    
+    // Set invalid page numbers
+    db.current_page0 = 255;
+    db.current_page1 = 255;
+    
+    return db;
+}
+
+// Initialize hyperplanes using LFSR for reproducible randomness
+fun init_hyperplanes(db: *mut VectorDB) -> void {
+    let mut lfsr: u16 = 0xACE1;  // Seed
+    
+    for h in 0..8 {
+        for b in 0..32 {
+            // Simple LFSR for pseudo-random bytes
+            let bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5)) & 1;
+            lfsr = (lfsr >> 1) | (bit << 15);
+            db.hyperplanes[h].bits[b] = (lfsr & 0xFF) as u8;
+        }
+    }
+}
+
+// Load vectors from TRDOS file
+pub fun load_vectors_file(db: *mut VectorDB, filename: *u8, start_page: u8) -> bool {
+    let fh = trdos_open(filename);
+    if fh == 0 {
+        return false;
+    }
+    
+    let mut page = start_page;
+    let mut vector_idx = db.total_vectors;
+    
+    // Load up to MAX_PAGES of vectors
+    while page < MAX_PAGES as u8 {
+        // Load 16KB page from file
+        if !trdos_read_16k(fh, page - start_page) {
+            break;  // End of file
+        }
+        
+        // Process vectors in this page
+        for offset in 0..VECTORS_PER_PAGE {
+            if vector_idx >= 4096 {
+                break;  // Database full
+            }
+            
+            // Store metadata
+            db.vector_meta[vector_idx] = VectorMeta {
+                page: page,
+                offset: offset * VECTOR_BYTES as u16,
+                hash: 0,  // Will compute later
+                reserved: 0,
+            };
+            
+            vector_idx = vector_idx + 1;
+        }
+        
+        page = page + 1;
+        db.loaded_pages = db.loaded_pages + 1;
+    }
+    
+    db.total_vectors = vector_idx;
+    trdos_close(fh);
+    
+    // Build hash index
+    rebuild_hash_index(db);
+    
+    return true;
+}
+
+// Ensure a vector's page is loaded and return pointer
+@smc_optimize
+fun load_vector(db: *mut VectorDB, meta: *VectorMeta) -> *Vector256 {
+    // Check if page is already loaded
+    if meta.page == db.current_page0 {
+        return (PAGE0_ADDR + meta.offset) as *Vector256;
+    }
+    if meta.page == db.current_page1 {
+        return (PAGE1_ADDR + meta.offset) as *Vector256;
+    }
+    
+    // Need to load the page - use LRU policy
+    let slot: u8;
+    let addr: u16;
+    
+    // Simple alternating policy for demo
+    if db.current_page0 == 255 || db.current_page1 != 255 {
+        slot = 0;
+        addr = PAGE0_ADDR;
+        db.current_page0 = meta.page;
+    } else {
+        slot = 1;
+        addr = PAGE1_ADDR;
+        db.current_page1 = meta.page;
+    }
+    
+    // Switch page
+    set_page(slot, meta.page);
+    
+    return (addr + meta.offset) as *Vector256;
+}
+
+// Compute hash using multiple hyperplanes
+fun compute_hash_multi(vec: *Vector256, db: *VectorDB) -> u8 {
+    let mut hash: u8 = 0;
+    
+    for i in 0..8 {
+        let dot = dot_product_1bit(vec, &db.hyperplanes[i]);
+        if dot > 0 {
+            hash = hash | (1 << i);
+        }
+    }
+    
+    return hash;
+}
+
+// 1-bit dot product
+fun dot_product_1bit(a: *Vector256, b: *Vector256) -> i16 {
+    let mut hamming: u16 = 0;
+    
+    for i in 0..32 {
+        let xor = a.bits[i] ^ b.bits[i];
+        hamming = hamming + POPCOUNT[xor] as u16;
+    }
+    
+    // Convert Hamming distance to similarity
+    return 256 - ((hamming << 1) as i16);
+}
+
+// Rebuild hash index for all vectors
+fun rebuild_hash_index(db: *mut VectorDB) -> void {
+    // Clear hash buckets
+    for i in 0..256 {
+        db.hash_index[i].count = 0;
+    }
+    
+    // Process each vector
+    for i in 0..db.total_vectors {
+        let meta = &db.vector_meta[i];
+        let vec = load_vector(db, meta);
+        
+        // Compute and store hash
+        let hash = compute_hash_multi(vec, db);
+        meta.hash = hash;
+        
+        // Add to hash bucket
+        let bucket = &mut db.hash_index[hash];
+        if bucket.count < 15 {
+            bucket.indices[bucket.count] = i;
+            bucket.count = bucket.count + 1;
+        }
+    }
+}
+
+// Search result structure
+struct SearchResult {
+    index: u16,
+    similarity: i16,
+    page: u8,
+    offset: u16,
+}
+
+// Find K nearest neighbors
+pub fun search_knn(db: *mut VectorDB, query: *Vector256, k: u8) -> [SearchResult; 10] {
+    let mut results: [SearchResult; 10];
+    
+    // Initialize results with worst scores
+    for i in 0..10 {
+        results[i] = SearchResult {
+            index: 0xFFFF,
+            similarity: -256,
+            page: 255,
+            offset: 0,
+        };
+    }
+    
+    // Phase 1: Search hash bucket
+    let query_hash = compute_hash_multi(query, db);
+    let bucket = &db.hash_index[query_hash];
+    
+    for i in 0..bucket.count {
+        let idx = bucket.indices[i];
+        let meta = &db.vector_meta[idx];
+        let vec = load_vector(db, meta);
+        
+        let sim = dot_product_1bit(query, vec);
+        insert_result(&mut results[0], k, idx, sim, meta);
+    }
+    
+    // Phase 2: Search nearby buckets if needed
+    if results[k-1].similarity < 128 {  // Threshold
+        // Search adjacent hash buckets
+        for delta in 1..4 {
+            let hash1 = (query_hash + delta) & 0xFF;
+            let hash2 = (query_hash - delta) & 0xFF;
+            
+            search_bucket(db, query, &db.hash_index[hash1], &mut results[0], k);
+            search_bucket(db, query, &db.hash_index[hash2], &mut results[0], k);
+        }
+    }
+    
+    // Phase 3: Brute force if still poor results
+    if results[k-1].similarity < 64 {
+        brute_force_knn(db, query, &mut results[0], k);
+    }
+    
+    return results;
+}
+
+// Search a specific hash bucket
+fun search_bucket(db: *mut VectorDB, query: *Vector256, bucket: *HashBucket, 
+                 results: *mut SearchResult, k: u8) -> void {
+    for i in 0..bucket.count {
+        let idx = bucket.indices[i];
+        let meta = &db.vector_meta[idx];
+        let vec = load_vector(db, meta);
+        
+        let sim = dot_product_1bit(query, vec);
+        insert_result(results, k, idx, sim, meta);
+    }
+}
+
+// Brute force search through all vectors
+fun brute_force_knn(db: *mut VectorDB, query: *Vector256, 
+                   results: *mut SearchResult, k: u8) -> void {
+    // Track which pages we've already loaded
+    let mut loaded_page0 = db.current_page0;
+    let mut loaded_page1 = db.current_page1;
+    
+    for i in 0..db.total_vectors {
+        let meta = &db.vector_meta[i];
+        
+        // Optimize page loading order
+        if meta.page != loaded_page0 && meta.page != loaded_page1 {
+            // This will cause a page swap
+            // Could batch vectors by page for efficiency
+        }
+        
+        let vec = load_vector(db, meta);
+        let sim = dot_product_1bit(query, vec);
+        insert_result(results, k, i, sim, meta);
+    }
+}
+
+// Insert result maintaining sorted order
+fun insert_result(results: *mut SearchResult, k: u8, index: u16, 
+                 similarity: i16, meta: *VectorMeta) -> void {
+    // Find insertion point
+    let mut pos: u8 = k;
+    for i in 0..k {
+        if similarity > results[i].similarity {
+            pos = i;
+            break;
+        }
+    }
+    
+    if pos < k {
+        // Shift worse results down
+        for i in (pos+1..k).rev() {
+            results[i] = results[i-1];
+        }
+        
+        // Insert new result
+        results[pos] = SearchResult {
+            index: index,
+            similarity: similarity,
+            page: meta.page,
+            offset: meta.offset,
+        };
+    }
+}
+
+// Demonstration of batch operations
+pub fun batch_search(db: *mut VectorDB, queries: *Vector256, 
+                    count: u8, k: u8) -> void {
+    // Pre-sort queries by their hash to maximize cache hits
+    let mut query_hashes: [u8; 256];
+    
+    for i in 0..count {
+        query_hashes[i] = compute_hash_multi(&queries[i], db);
+    }
+    
+    // Process queries in hash order for better locality
+    // (Implementation detail: would need sorting)
+    
+    for i in 0..count {
+        let results = search_knn(db, &queries[i], k);
+        // Store results...
+    }
+}
+
+// Main demo
+fun main() -> void {
+    // Initialize database
+    let db = init_database();
+    
+    // Load vector pages from TRDOS files
+    // Files are pre-split into 16KB chunks
+    load_vectors_file(db, "VECTORS.001", 0);   // Pages 0-7
+    load_vectors_file(db, "VECTORS.002", 8);   // Pages 8-15
+    load_vectors_file(db, "VECTORS.003", 16);  // Pages 16-23
+    
+    // Create query vector
+    let query: Vector256;
+    for i in 0..32 {
+        query.bits[i] = i as u8;  // Some pattern
+    }
+    
+    // Find 5 nearest neighbors
+    let results = search_knn(db, &query, 5);
+    
+    // Results are now in the array
+    // In real use, would display or process them
+}

@@ -1,0 +1,4 @@
+// Test inline asm simple
+fun test() -> void {
+    asm("ld hl, 0x1234");
+}

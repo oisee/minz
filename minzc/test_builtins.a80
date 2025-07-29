@@ -1,0 +1,160 @@
+; MinZ generated code
+; Generated: 2025-07-29 06:00:58
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_builtins.main
+test_builtins.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 72
+    LD A, 72
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; Built-in print function
+    LD A, ($F002)     ; Virtual register 1 from memory
+    RST 16         ; Print character in A
+    ; r2 = 101
+    LD A, 101
+    LD B, A         ; Store to physical register B
+    ; Built-in print function
+    LD A, B
+    RST 16         ; Print character in A
+    ; r3 = 108
+    LD A, 108
+    LD C, A         ; Store to physical register C
+    ; Built-in print function
+    LD A, C
+    RST 16         ; Print character in A
+    ; r4 = 108
+    LD A, 108
+    LD D, A         ; Store to physical register D
+    ; Built-in print function
+    LD A, D
+    RST 16         ; Print character in A
+    ; r5 = 111
+    LD A, 111
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; Built-in print function
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    RST 16         ; Print character in A
+    ; r6 = 32
+    LD A, 32
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; Built-in print function
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    RST 16         ; Print character in A
+    ; r7 = 87
+    LD A, 87
+    LD L, A         ; Store to physical register L
+    ; Built-in print function
+    LD A, L
+    RST 16         ; Print character in A
+    ; r8 = 111
+    LD A, 111
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; Built-in print function
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    RST 16         ; Print character in A
+    ; r9 = 114
+    LD A, 114
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; Built-in print function
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    RST 16         ; Print character in A
+    ; r10 = 108
+    LD A, 108
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; Built-in print function
+    LD A, ($F014)     ; Virtual register 10 from memory
+    RST 16         ; Print character in A
+    ; r11 = 100
+    LD A, 100
+    LD ($F016), A     ; Virtual register 11 to memory
+    ; Built-in print function
+    LD A, ($F016)     ; Virtual register 11 from memory
+    RST 16         ; Print character in A
+    ; r12 = 33
+    LD A, 33
+    ; Register 12 already in A
+    ; Built-in print function
+    ; Register 12 already in A
+    RST 16         ; Print character in A
+    ; r13 = 10
+    LD A, 10
+    LD ($F01A), A     ; Virtual register 13 to memory
+    ; Built-in print function
+    LD A, ($F01A)     ; Virtual register 13 from memory
+    RST 16         ; Print character in A
+    ; r16 = load arr
+    LD HL, ($F01C)
+    ; unknown op 62
+    ; Address-of operation for register r16
+    LD HL, $8020  ; Variable address (placeholder)
+    ; Built-in len function
+    DEC HL
+    DEC HL         ; Point to length field
+    LD E, (HL)
+    INC HL
+    LD D, (HL)     ; Load 16-bit length
+    EX DE, HL      ; Result in HL
+    ; store , r18
+    LD ($F01E), HL
+    ; r20 = load buffer
+    LD HL, ($F026)
+    ; unknown op 62
+    ; Address-of operation for register r20
+    LD HL, $8028  ; Variable address (placeholder)
+    ; r22 = 0
+    LD A, 0
+    ; Register 22 already in A
+    ; r23 = 100
+    LD A, 100
+    LD ($F02E), A     ; Virtual register 23 to memory
+    ; Built-in memset function
+    ; memset(dest, value, size)
+    ; Register 22 already in A
+    LD HL, ($F02E)    ; Virtual register 23 from memory
+    LD B, H
+    LD C, L        ; Size in BC
+.memset_loop_0:
+    LD (HL), A     ; Store value
+    INC HL         ; Next address
+    DEC BC         ; Decrement count
+    LD D, B
+    OR C
+    JR NZ, .memset_loop_0
+    ; r26 = load dest
+    LD HL, ($F032)
+    ; unknown op 62
+    ; Address-of operation for register r26
+    LD HL, $8034  ; Variable address (placeholder)
+    ; r28 = load src
+    LD HL, ($F030)
+    ; unknown op 62
+    ; Address-of operation for register r28
+    LD HL, $8038  ; Variable address (placeholder)
+    ; r30 = 10
+    LD A, 10
+    ; Register 30 already in A
+    ; Built-in memcpy function
+    ; memcpy(dest, src, size)
+    EX DE, HL      ; Dest in DE
+    LD B, H
+    LD C, L        ; Size in BC
+    LDIR           ; Copy BC bytes from HL to DE
+    ; return
+    RET
+
+    END main

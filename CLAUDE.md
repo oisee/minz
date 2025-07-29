@@ -111,6 +111,32 @@ MinZ supports modern programming constructs while targeting Z80:
 - **Lua Metaprogramming**: Full Lua 5.1 interpreter at compile time for code generation
 - **Inline Assembly**: Direct Z80 assembly integration with register constraints
 
+## Design Philosophy
+
+### TSMC Reference Philosophy (Revolutionary - Article 040)
+MinZ is evolving beyond traditional pointers to **TSMC-native references** where:
+
+1. **References ARE addresses of data inside opcodes** - The data lives in immediate fields of instructions
+2. **Zero indirection** - `&T` parameters become direct immediate values in instructions
+3. **Self-modifying by design** - Functions modify their own immediates for iteration
+4. **Code IS the data structure** - Parameters live in instruction stream, not memory
+
+Example of the vision:
+```asm
+; Traditional pointer approach:
+LD HL, string_addr  ; Load pointer
+LD A, (HL)         ; Dereference
+
+; TSMC reference approach:
+str$immOP:
+    LD A, (0000)   ; The 0000 IS the reference - patched at call time!
+str$imm0 EQU str$immOP+1
+```
+
+Currently, syntax uses `*T` but semantics are evolving to true TSMC references where every pointer parameter becomes a self-modifying immediate operand. This eliminates register pressure, memory usage, and indirection overhead.
+
+See `docs/040_TSMC_Reference_Philosophy.md` for the complete revolutionary vision and `POINTER_PHILOSOPHY.md` for the migration path.
+
 ## Important Files and Directories
 
 ### Core Implementation
@@ -128,6 +154,7 @@ MinZ supports modern programming constructs while targeting Z80:
   - **`030_TRUE_SMC_Lambdas_Design.md`**: Lambda implementation via SMC
   - **`031_Next_Steps_Prioritized.md`**: 70-day action plan
   - **`032_Architecture_Decision_Records.md`**: Key design decisions
+  - **`040_TSMC_Reference_Philosophy.md`**: Revolutionary vision - references as immediate operands
 
 ### Examples and Testing
 - `examples/`: Comprehensive MinZ programs showcasing all language features

@@ -1,6 +1,9 @@
 package ir
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Z80Register represents a physical Z80 register
 type Z80Register uint32
@@ -106,10 +109,16 @@ const (
 	OpSMCSave       // Save SMC parameter to stack
 	OpSMCRestore    // Restore SMC parameter from stack
 	OpSMCUpdate     // Update SMC parameter value
+	OpStoreTSMCRef  // Store to TSMC reference immediate
 	
 	// TRUE SMC operations (истинный SMC)
 	OpTrueSMCLoad   // Load from anchor address
 	OpTrueSMCPatch  // Patch anchor before call
+	
+	// TSMC Reference operations
+	OpTSMCRefAnchor // Create anchor for TSMC reference parameter
+	OpTSMCRefLoad   // Load from TSMC reference (immediate)
+	OpTSMCRefPatch  // Patch TSMC reference at call site
 	
 	// Error handling (Carry-flag ABI)
 	OpSetError      // Set carry flag and error code in A
@@ -148,6 +157,8 @@ const (
 	OpLoadPtr
 	OpStorePtr
 	OpAddr     // Address-of operator (&)
+	OpLoad     // Load from memory address (indirect)
+	OpStore    // Store to memory address (indirect)
 	
 	// Stack
 	OpPush
@@ -163,6 +174,12 @@ const (
 	OpDJNZ          // Decrement and jump if not zero
 	OpLoadImm       // Load immediate value
 	OpAddImm        // Add immediate to register
+	
+	// Built-in functions
+	OpPrint         // Print a u8 character
+	OpLen           // Get length of array/string
+	OpMemcpy        // Copy memory block
+	OpMemset        // Set memory block
 )
 
 // Instruction represents a single IR instruction
@@ -258,7 +275,8 @@ func (t *BasicType) String() string {
 
 // PointerType represents pointer types
 type PointerType struct {
-	Base Type
+	Base      Type
+	IsMutable bool
 }
 
 func (t *PointerType) Size() int {
@@ -266,6 +284,9 @@ func (t *PointerType) Size() int {
 }
 
 func (t *PointerType) String() string {
+	if t.IsMutable {
+		return "*mut " + t.Base.String()
+	}
 	return "*" + t.Base.String()
 }
 
@@ -327,6 +348,24 @@ type BitStructType struct {
 	FieldOrder     []string           // Preserve field declaration order
 }
 
+// FunctionType represents function types
+type FunctionType struct {
+	Params []Type
+	Return Type
+}
+
+func (t *FunctionType) Size() int {
+	return 2 // Function pointers are 16-bit addresses on Z80
+}
+
+func (t *FunctionType) String() string {
+	params := []string{}
+	for _, p := range t.Params {
+		params = append(params, p.String())
+	}
+	return fmt.Sprintf("fun(%s) -> %s", strings.Join(params, ", "), t.Return.String())
+}
+
 func (t *BitStructType) Size() int {
 	return t.UnderlyingType.Size()
 }
@@ -381,6 +420,7 @@ type Parameter struct {
 	Name string
 	Type Type
 	Reg  Register
+	IsTSMCRef bool // True if this should use TSMC reference passing
 }
 
 // Local represents a local variable
@@ -414,10 +454,19 @@ func (f *Function) AllocReg() Register {
 // AddParam adds a parameter to the function
 func (f *Function) AddParam(name string, typ Type) Register {
 	reg := f.AllocReg()
+	
+	// Check if this should be a TSMC reference parameter
+	isTSMCRef := false
+	if _, isPtr := typ.(*PointerType); isPtr && f.IsSMCEnabled {
+		// Pointer parameters in SMC functions become TSMC references
+		isTSMCRef = true
+	}
+	
 	f.Params = append(f.Params, Parameter{
 		Name: name,
 		Type: typ,
 		Reg:  reg,
+		IsTSMCRef: isTSMCRef,
 	})
 	f.NumParams++
 	return reg
@@ -560,6 +609,8 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("r%d = load %s", i.Dest, i.Symbol)
 	case OpStoreVar:
 		return fmt.Sprintf("store %s, r%d", i.Symbol, i.Src1)
+	case OpStoreTSMCRef:
+		return fmt.Sprintf("store_tsmc_ref %s, r%d", i.Symbol, i.Src1)
 	case OpLoadParam:
 		return fmt.Sprintf("r%d = param %s", i.Dest, i.Symbol)
 	case OpAdd:
@@ -605,6 +656,46 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("r%d = [$%04X]", i.Dest, i.Imm)
 	case OpStoreDirect:
 		return fmt.Sprintf("[$%04X] = r%d", i.Imm, i.Src1)
+	case OpLoad:
+		return fmt.Sprintf("r%d = *r%d", i.Dest, i.Src1)
+	case OpStore:
+		return fmt.Sprintf("*r%d = r%d", i.Src1, i.Src2)
+	case OpMod:
+		return fmt.Sprintf("r%d = r%d %% r%d", i.Dest, i.Src1, i.Src2)
+	case OpNeg:
+		return fmt.Sprintf("r%d = -r%d", i.Dest, i.Src1)
+	case OpInc:
+		return fmt.Sprintf("r%d++", i.Src1)
+	case OpDec:
+		return fmt.Sprintf("r%d--", i.Src1)
+	case OpAnd:
+		return fmt.Sprintf("r%d = r%d & r%d", i.Dest, i.Src1, i.Src2)
+	case OpOr:
+		return fmt.Sprintf("r%d = r%d | r%d", i.Dest, i.Src1, i.Src2)
+	case OpXor:
+		return fmt.Sprintf("r%d = r%d ^ r%d", i.Dest, i.Src1, i.Src2)
+	case OpNot:
+		return fmt.Sprintf("r%d = ~r%d", i.Dest, i.Src1)
+	case OpShl:
+		return fmt.Sprintf("r%d = r%d << r%d", i.Dest, i.Src1, i.Src2)
+	case OpShr:
+		return fmt.Sprintf("r%d = r%d >> r%d", i.Dest, i.Src1, i.Src2)
+	case OpPrint:
+		return fmt.Sprintf("print(r%d)", i.Src1)
+	case OpLen:
+		return fmt.Sprintf("r%d = len(r%d)", i.Dest, i.Src1)
+	case OpMemcpy:
+		return fmt.Sprintf("memcpy([r%d], [r%d], r%d)", i.Dest, i.Src1, i.Src2)
+	case OpMemset:
+		return fmt.Sprintf("memset([r%d], r%d, r%d)", i.Dest, i.Src1, i.Src2)
+	case OpLoadField:
+		return fmt.Sprintf("r%d = r%d.field[%d]", i.Dest, i.Src1, i.Imm)
+	case OpStoreField:
+		return fmt.Sprintf("r%d.field[%d] = r%d", i.Src1, i.Imm, i.Src2)
+	case OpAddr:
+		return fmt.Sprintf("r%d = &r%d", i.Dest, i.Src1)
+	case OpLoadLabel:
+		return fmt.Sprintf("r%d = label %s", i.Dest, i.Symbol)
 	default:
 		return fmt.Sprintf("unknown op %d", i.Op)
 	}

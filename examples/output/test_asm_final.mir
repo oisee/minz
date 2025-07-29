@@ -1,0 +1,12 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_asm_final.set_pixel(x: u8, y: u8) -> void
+  Instructions:
+      0: return
+
+Function ...examples.test_asm_final.main() -> void
+  @smc
+  Instructions:
+      0: return
+

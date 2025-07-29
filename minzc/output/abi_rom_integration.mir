@@ -1,0 +1,7 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.abi_rom_integration.rom_print_string(str: *u8) -> void
+  Instructions:
+      0: return
+

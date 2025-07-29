@@ -1,0 +1,207 @@
+; MinZ generated code
+; Generated: 2025-07-28 07:45:41
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.tail_recursive.factorial_tail
+...examples.tail_recursive.factorial_tail:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    ; Register 3 already in A
+    ; Tail recursion loop start
+...examples.tail_recursive.factorial_tail_tail_loop:
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 == r4
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r5, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+acc$immOP:
+    LD HL, 0       ; acc anchor (will be patched)
+acc$imm0 EQU acc$immOP+1
+    ; Register 6 already in HL
+    ; return r6
+    ; Register 6 already in HL
+    RET
+    ; else_1:
+else_1:
+    LD A, (n$imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    LD A, (n$imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    LD HL, (acc$imm0)   ; Reuse from anchor
+    LD B, H
+    LD C, L
+    ; Tail recursion optimized to loop
+    JP ...examples.tail_recursive.factorial_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.tail_recursive.factorial
+...examples.tail_recursive.factorial:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r4 = call factorial_tail
+    ; Call to factorial_tail (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ...examples.tail_recursive.factorial_tail
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD (n$imm0), A        ; Patch n
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD (acc$imm0), HL       ; Patch acc (atomic)
+    CALL ...examples.tail_recursive.factorial_tail
+    ; return r4
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.tail_recursive.sum_tail
+...examples.tail_recursive.sum_tail:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD HL, 0       ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; Tail recursion loop start
+...examples.tail_recursive.sum_tail_tail_loop:
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD L, A         ; Store to HL (low byte)
+    ; r5 = r3 == r4
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD D, H
+    LD E, L
+    ; Register 4 already in HL
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; jump_if_not r5, else_3
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    OR A
+    JP Z, else_3
+acc$immOP:
+    LD HL, 0       ; acc anchor (will be patched)
+acc$imm0 EQU acc$immOP+1
+    ; Register 6 already in HL
+    ; return r6
+    ; Register 6 already in HL
+    RET
+    ; else_3:
+else_3:
+    LD HL, (n$imm0)   ; Reuse from anchor
+    ; Register 7 already in HL
+    LD HL, (acc$imm0)   ; Reuse from anchor
+    LD ($F014), HL    ; Virtual register 10 to memory
+    LD HL, (n$imm0)   ; Reuse from anchor
+    ; Register 11 already in HL
+    ; Tail recursion optimized to loop
+    JP ...examples.tail_recursive.sum_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.tail_recursive.main
+...examples.tail_recursive.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+    ; r3 = call factorial
+    ; Call to factorial (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ...examples.tail_recursive.factorial
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL ...examples.tail_recursive.factorial
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; store , r3
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD ($F002), HL
+    ; r7 = call sum_tail
+    ; Call to sum_tail (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ...examples.tail_recursive.sum_tail
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD (n$imm0), HL       ; Patch n (atomic)
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD (acc$imm0), HL       ; Patch acc (atomic)
+    CALL ...examples.tail_recursive.sum_tail
+    ; store , r7
+    LD ($F008), HL
+    ; return
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW n$imm0           ; ...examples.tail_recursive.factorial_tail.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW acc$imm0           ; ...examples.tail_recursive.factorial_tail.acc
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n$imm0           ; ...examples.tail_recursive.factorial.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n$imm0           ; ...examples.tail_recursive.sum_tail.n
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW acc$imm0           ; ...examples.tail_recursive.sum_tail.acc
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+    END main

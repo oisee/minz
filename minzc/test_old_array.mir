@@ -1,0 +1,16 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   test_old_array_syntax.old_array: [10]u8
+
+Function test_old_array_syntax.main() -> void
+  @smc
+  Instructions:
+      0: r1 = 42
+      1: 68
+      2: r3 = 0
+      3: r4 = r2 + r3 ; Calculate array element address
+      4: 61 ; Store to array[index] (u8)
+      5: return
+

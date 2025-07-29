@@ -1,0 +1,20 @@
+// Test missing features
+
+// Test match expressions
+enum Color {
+    Red = 1,
+    Green = 2,
+    Blue = 3
+}
+
+fun test_match(color: Color) -> u8 {
+    match color {
+        Color.Red => 1,
+        Color.Green => 2,
+        Color.Blue => 3
+    }
+}
+
+fun main() -> u8 {
+    return test_match(Color.Red);
+}

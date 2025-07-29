@@ -1,0 +1,41 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.basic_functions.add(a: u8, b: u8) -> u8
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...examples.basic_functions.main() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u8
+    r5 = result: u8
+    r9 = i: u8
+  Instructions:
+      0: r2 = 5
+      1: store , r2
+      2: r4 = 3
+      3: store , r4
+      4: r6 = load x
+      5: r7 = load y
+      6: r8 = call add
+      7: store , r8
+      8: r10 = 0
+      9: store , r10
+     10: loop_1:
+     11: r11 = load i
+     12: r12 = 10
+     13: r13 = r11 < r12
+     14: jump_if_not r13, end_loop_2
+     15: r14 = load i
+     16: r15 = 1
+     17: r16 = r14 + r15
+     18: store i, r16
+     19: jump loop_1
+     20: end_loop_2:
+     21: return
+

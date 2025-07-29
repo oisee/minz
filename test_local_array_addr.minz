@@ -1,0 +1,18 @@
+// Test local array address calculation
+fun test_local_array_address() -> void {
+    let arr: [10]u8 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    
+    // Take address of array
+    let ptr: *u8 = &arr[0];
+    
+    // Access through pointer
+    let val: u8 = *ptr;
+    
+    // Pointer arithmetic
+    ptr = ptr + 1;
+    val = *ptr;
+}
+
+fun main() -> void {
+    test_local_array_address();
+}

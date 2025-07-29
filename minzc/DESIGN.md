@@ -66,6 +66,45 @@ Benefits:
 - Reduces register pressure
 - Smaller code size
 
+### TSMC References (Revolutionary Vision)
+
+Going beyond traditional pointers, MinZ is evolving to treat references as **immediate operand slots**:
+
+```minz
+fun strlen(str: &u8) -> u16 {  // & means TSMC reference
+    let mut len = 0;
+    while str != 0 {            // Direct immediate access!
+        len += 1;
+        // Self-modifying for next char
+    }
+    return len;
+}
+
+// Compiles to:
+strlen:
+    LD BC, 0
+.loop:
+str$immOP:
+    LD A, (0000)    ; This 0000 IS the string address!
+str$imm0 EQU str$immOP+1
+    OR A
+    RET Z
+    INC BC
+    ; Self-modify the immediate
+    LD HL, (str$imm0)
+    INC HL
+    LD (str$imm0), HL
+    JR .loop
+```
+
+This paradigm shift means:
+- **No pointer registers needed** - Addresses live in instruction immediates
+- **No memory indirection** - Direct immediate operand access
+- **Self-modifying by design** - Loops update their own addresses
+- **Code IS the data structure** - Parameters exist in the instruction stream
+
+See `docs/040_TSMC_Reference_Philosophy.md` for the complete vision.
+
 ### Bit Structs
 
 Zero-cost bit field manipulation:

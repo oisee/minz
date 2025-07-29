@@ -1,0 +1,88 @@
+; MinZ generated code
+; Generated: 2025-07-28 08:45:59
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_patch.add
+...examples.test_patch.add:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD C, A         ; Store to physical register C
+    LD A, E       ; Get parameter y
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = param x
+    ; Load parameter x
+    ; r4 = param y
+    ; Load parameter y
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_patch.main
+...examples.test_patch.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD E, A         ; Store to physical register E
+    ; r3 = 3
+    LD A, 3
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = call add
+    ; Call to add (args: 2)
+    ; Register-based parameter passing
+    LD A, E
+    ; Parameter x in A
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD E, A       ; Parameter y in E
+    ; Found function, UsesTrueSMC=false
+    CALL add
+    ; store , r4
+    LD ($F002), HL
+    ; r6 = 10
+    LD A, 10
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r7 = 20
+    LD A, 20
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r8 = call add
+    ; Call to add (args: 2)
+    ; Register-based parameter passing
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    ; Parameter x in A
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD E, A       ; Parameter y in E
+    ; Found function, UsesTrueSMC=false
+    CALL add
+    ; store , r8
+    LD ($F00A), HL
+    ; r9 = load a
+    LD HL, ($F002)
+    ; r10 = load b
+    LD HL, ($F00A)
+    ; r11 = r9 + r10
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 11 already in HL
+    ; return r11
+    ; Register 11 already in HL
+    RET
+
+    END main

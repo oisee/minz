@@ -1,0 +1,132 @@
+// ZX Spectrum screen operations
+module zx.screen;
+
+// Screen constants
+pub const SCREEN_WIDTH: u16 = 256;
+pub const SCREEN_HEIGHT: u16 = 192;
+pub const SCREEN_ADDR: u16 = 0x4000;
+pub const ATTR_ADDR: u16 = 0x5800;
+pub const ATTR_SIZE: u16 = 768;
+
+// Color constants
+pub const BLACK: u8 = 0;
+pub const BLUE: u8 = 1;
+pub const RED: u8 = 2;
+pub const MAGENTA: u8 = 3;
+pub const GREEN: u8 = 4;
+pub const CYAN: u8 = 5;
+pub const YELLOW: u8 = 6;
+pub const WHITE: u8 = 7;
+
+// Attribute flags
+pub const BRIGHT: u8 = 0x40;
+pub const FLASH: u8 = 0x80;
+
+// Calculate screen address from pixel coordinates
+pub fn pixel_addr(x: u8, y: u8) -> u16 {
+    // ZX Spectrum screen memory layout
+    let y_high: u8 = y & 0xC0;
+    let y_mid: u8 = (y & 0x38) >> 3;
+    let y_low: u8 = (y & 0x07);
+    
+    let addr: u16 = SCREEN_ADDR | (y_low << 8) | (y_mid << 5) | (y_high << 5) | (x >> 3);
+    return addr;
+}
+
+// Calculate attribute address from character coordinates
+pub fn attr_addr(x: u8, y: u8) -> u16 {
+    return ATTR_ADDR + (y * 32) + x;
+}
+
+// Set border color
+pub fn set_border(color: u8) -> void {
+    asm("
+        ld a, {0}
+        out ($fe), a
+    " : : "r"(color & 0x07));
+}
+
+// Clear screen with given attribute
+pub fn clear(ink: u8, paper: u8, bright: bool, flash: bool) -> void {
+    // Clear pixel data
+    let mut addr: u16 = SCREEN_ADDR;
+    let end: u16 = SCREEN_ADDR + 6144;
+    while addr < end {
+        asm("
+            xor a
+            ld ({0}), a
+        " : : "r"(addr));
+        addr = addr + 1;
+    }
+    
+    // Set attributes
+    let mut attr: u8 = ink | (paper << 3);
+    if bright {
+        attr = attr | BRIGHT;
+    }
+    if flash {
+        attr = attr | FLASH;
+    }
+    
+    addr = ATTR_ADDR;
+    end = ATTR_ADDR + ATTR_SIZE;
+    while addr < end {
+        asm("
+            ld a, {0}
+            ld ({1}), a
+        " : : "r"(attr), "r"(addr));
+        addr = addr + 1;
+    }
+}
+
+// Set pixel at coordinates
+pub fn set_pixel(x: u8, y: u8) -> void {
+    let addr = pixel_addr(x, y);
+    let bit: u8 = 0x80 >> (x & 0x07);
+    
+    asm("
+        ld hl, {0}
+        ld a, (hl)
+        or {1}
+        ld (hl), a
+    " : : "r"(addr), "r"(bit));
+}
+
+// Clear pixel at coordinates
+pub fn clear_pixel(x: u8, y: u8) -> void {
+    let addr = pixel_addr(x, y);
+    let bit: u8 = ~(0x80 >> (x & 0x07));
+    
+    asm("
+        ld hl, {0}
+        ld a, (hl)
+        and {1}
+        ld (hl), a
+    " : : "r"(addr), "r"(bit));
+}
+
+// Draw horizontal line
+pub fn draw_hline(x: u8, y: u8, len: u8) -> void {
+    let mut i: u8 = 0;
+    while i < len {
+        set_pixel(x + i, y);
+        i = i + 1;
+    }
+}
+
+// Draw vertical line
+pub fn draw_vline(x: u8, y: u8, len: u8) -> void {
+    let mut i: u8 = 0;
+    while i < len {
+        set_pixel(x, y + i);
+        i = i + 1;
+    }
+}
+
+// Draw rectangle
+pub fn draw_rect(x: u8, y: u8, width: u8, height: u8) -> void {
+    draw_hline(x, y, width);
+    draw_hline(x, y + height - 1, width);
+    draw_vline(x, y, height);
+    draw_vline(x + width - 1, y, height);
+}
