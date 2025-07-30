@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...tests.test_cast_simple.main() -> void
+  @smc
+  Locals:
+    r1 = byte_val: u8
+    r3 = wide: u16
+    r5 = narrow: u8
+    r7 = signed_val: i8
+    r10 = unsigned_val: u8
+    r12 = from_literal: u16
+  Instructions:
+      0: r2 = 171
+      1: store , r2
+      2: r4 = load byte_val
+      3: store , r4
+      4: r6 = load wide
+      5: store , r6
+      6: r8 = 10
+      7: 42
+      8: store , r9
+      9: r11 = load signed_val
+     10: store , r11
+     11: r13 = 255
+     12: store , r13
+     13: return
+

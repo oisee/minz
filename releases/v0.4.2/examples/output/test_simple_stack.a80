@@ -1,0 +1,148 @@
+; MinZ generated code
+; Generated: 2025-07-28 08:45:59
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_simple_stack.test_stack
+...examples.test_simple_stack.test_stack:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -8
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    ; r2 = 1
+    LD A, 1
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store , r2
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD (IX-1), L
+    LD (IX+0), H
+    ; r4 = 2
+    LD A, 2
+    LD C, A         ; Store to physical register C
+    ; store , r4
+    LD (IX-2), L
+    LD (IX-1), H
+    ; r6 = 3
+    LD A, 3
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; store , r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD (IX-3), L
+    LD (IX-2), H
+    ; r8 = 4
+    LD A, 4
+    LD L, A         ; Store to physical register L
+    ; store , r8
+    LD (IX-4), L
+    LD (IX-3), H
+    ; r10 = 5
+    LD A, 5
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; store , r10
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD (IX-5), L
+    LD (IX-4), H
+    ; r12 = 6
+    LD A, 6
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; store , r12
+    LD (IX-6), L
+    LD (IX-5), H
+    ; r14 = 7
+    LD A, 7
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; store , r14
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    LD (IX-7), L
+    LD (IX-6), H
+    ; r16 = 8
+    LD A, 8
+    LD D, A         ; Store to physical register D
+    ; store , r16
+    LD (IX-8), L
+    LD (IX-7), H
+    ; r17 = load a
+    LD L, (IX-1)
+    LD H, (IX+0)
+    LD ($F022), HL    ; Virtual register 17 to memory
+    ; r18 = load b
+    LD L, (IX-2)
+    LD H, (IX-1)
+    ; r19 = r17 + r18
+    LD HL, ($F022)    ; Virtual register 17 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r20 = load c
+    LD L, (IX-3)
+    LD H, (IX-2)
+    ; r21 = r19 + r20
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r22 = load d
+    LD L, (IX-4)
+    LD H, (IX-3)
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; r23 = r21 + r22
+    LD D, H
+    LD E, L
+    LD HL, ($F02C)    ; Virtual register 22 from memory
+    ADD HL, DE
+    ; r24 = load e
+    LD L, (IX-5)
+    LD H, (IX-4)
+    ; r25 = r23 + r24
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r26 = load f
+    LD L, (IX-6)
+    LD H, (IX-5)
+    ; r27 = r25 + r26
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r28 = load g
+    LD L, (IX-7)
+    LD H, (IX-6)
+    ; r29 = r27 + r28
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r30 = load h
+    LD L, (IX-8)
+    LD H, (IX-7)
+    ; r31 = r29 + r30
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r31
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_simple_stack.main
+...examples.test_simple_stack.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call test_stack
+    ; Call to test_stack (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_stack
+    ; store , r2
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

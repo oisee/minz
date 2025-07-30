@@ -1,0 +1,68 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.bit_manipulation.set_bit(value: u8, bit: u8) -> u8
+  Instructions:
+      0: 12
+      1: r4 = 1
+      2: 12
+      3: 49
+      4: r7 = r3 | r6
+      5: return r7
+
+Function examples.bit_manipulation.clear_bit(value: u8, bit: u8) -> u8
+  Instructions:
+      0: 12
+      1: r4 = 1
+      2: 12
+      3: 49
+      4: r7 = ~r6
+      5: r8 = r3 & r7
+      6: return r8
+
+Function examples.bit_manipulation.toggle_bit(value: u8, bit: u8) -> u8
+  Instructions:
+      0: 12
+      1: r4 = 1
+      2: 12
+      3: 49
+      4: r7 = r3 ^ r6
+      5: return r7
+
+Function examples.bit_manipulation.test_bit(value: u8, bit: u8) -> bool
+  Instructions:
+      0: 12
+      1: r4 = 1
+      2: 12
+      3: 49
+      4: r7 = r3 & r6
+      5: r8 = 0
+      6: r9 = r7 != r8
+      7: return r9
+
+Function examples.bit_manipulation.count_bits(value: u8) -> u8
+  Locals:
+    r2 = count: u8
+  Instructions:
+      0: r3 = 0
+      1: store , r3
+      2: loop_1:
+      3: 12
+      4: r5 = 0
+      5: r6 = r4 != r5
+      6: jump_if_not r6, end_loop_2
+      7: r7 = load count
+      8: 12
+      9: r9 = 1
+     10: r10 = r8 & r9
+     11: r11 = r7 + r10
+     12: store count, r11
+     13: 12
+     14: r13 = 1
+     15: 50
+     16: store value, r14
+     17: jump loop_1
+     18: end_loop_2:
+     19: r15 = load count
+     20: return r15
+

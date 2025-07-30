@@ -1,0 +1,10 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...tests.test_loop_at.main() -> void
+  @smc
+  Locals:
+    r1 = numbers: [3]u8
+  Instructions:
+      0: return
+

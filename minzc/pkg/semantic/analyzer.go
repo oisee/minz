@@ -2192,6 +2192,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeInlineAssembly(e, irFunc)
 	case *ast.CastExpr:
 		return a.analyzeCastExpr(e, irFunc)
+	case *ast.CompileTimePrint:
+		return a.analyzePrintExpr(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -3595,6 +3597,205 @@ func (a *Analyzer) analyzeLuaExpression(expr *ast.LuaExpression, irFunc *ir.Func
 	}
 	
 	return resultReg, nil
+}
+
+// analyzePrintExpr analyzes @print expressions with string interpolation
+func (a *Analyzer) analyzePrintExpr(print *ast.CompileTimePrint, irFunc *ir.Function) (ir.Register, error) {
+	// Check if the expression is a string literal for interpolation
+	if strLit, ok := print.Expr.(*ast.StringLiteral); ok {
+		// Process string interpolation using Lua
+		err := a.processStringInterpolation(strLit.Value, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("failed to process string interpolation: %w", err)
+		}
+	} else {
+		// For non-string expressions, evaluate and print the value
+		reg, err := a.analyzeExpression(print.Expr, irFunc)
+		if err != nil {
+			return 0, err
+		}
+		
+		// Generate print instruction based on type
+		exprType := a.exprTypes[print.Expr]
+		a.generatePrintValue(reg, exprType, irFunc)
+	}
+	
+	// @print doesn't return a value
+	return 0, nil
+}
+
+// processStringInterpolation handles string interpolation for @print
+func (a *Analyzer) processStringInterpolation(format string, irFunc *ir.Function) error {
+	// TODO: Use Lua to parse the format string and generate optimal print code
+	// For now, implement a simple version without full Lua integration
+	// Split the string by {} placeholders
+	parts := []struct {
+		isExpr bool
+		value  string
+	}{}
+	
+	current := ""
+	i := 0
+	for i < len(format) {
+		if i+1 < len(format) && format[i] == '{' && format[i+1] == '{' {
+			// Escaped brace
+			current += "{"
+			i += 2
+		} else if i+1 < len(format) && format[i] == '}' && format[i+1] == '}' {
+			// Escaped brace
+			current += "}"
+			i += 2
+		} else if format[i] == '{' {
+			// Start of expression
+			if current != "" {
+				parts = append(parts, struct{isExpr bool; value string}{false, current})
+				current = ""
+			}
+			i++
+			// Find matching }
+			exprStart := i
+			for i < len(format) && format[i] != '}' {
+				i++
+			}
+			if i < len(format) {
+				expr := format[exprStart:i]
+				parts = append(parts, struct{isExpr bool; value string}{true, expr})
+				i++
+			}
+		} else {
+			current += string(format[i])
+			i++
+		}
+	}
+	if current != "" {
+		parts = append(parts, struct{isExpr bool; value string}{false, current})
+	}
+	
+	// Generate print instructions for each part
+	for _, part := range parts {
+		if part.isExpr {
+			// Parse and evaluate the expression
+			// For now, just handle simple identifiers
+			expr := a.parseSimpleExpression(part.value, irFunc)
+			if expr != nil {
+				reg, err := a.analyzeExpression(expr, irFunc)
+				if err != nil {
+					return fmt.Errorf("failed to evaluate expression %s: %w", part.value, err)
+				}
+				exprType := a.exprTypes[expr]
+				a.generatePrintValue(reg, exprType, irFunc)
+			}
+		} else {
+			// Print string literal
+			a.generatePrintString(part.value, irFunc)
+		}
+	}
+	
+	return nil
+}
+
+// parseSimpleExpression creates an AST node from a simple expression string
+func (a *Analyzer) parseSimpleExpression(expr string, irFunc *ir.Function) ast.Expression {
+	// For now, just handle identifiers
+	// TODO: Use proper expression parser
+	expr = strings.TrimSpace(expr)
+	if expr == "" {
+		return nil
+	}
+	
+	// Simple identifier
+	if isValidIdentifier(expr) {
+		return &ast.Identifier{
+			Name: expr,
+		}
+	}
+	
+	// TODO: Handle more complex expressions
+	return nil
+}
+
+// isValidIdentifier checks if a string is a valid identifier
+func isValidIdentifier(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	// First character must be letter or underscore
+	if !((s[0] >= 'a' && s[0] <= 'z') || (s[0] >= 'A' && s[0] <= 'Z') || s[0] == '_') {
+		return false
+	}
+	// Rest can be letters, digits, or underscore
+	for i := 1; i < len(s); i++ {
+		if !((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z') || 
+		     (s[i] >= '0' && s[i] <= '9') || s[i] == '_') {
+			return false
+		}
+	}
+	return true
+}
+
+// generatePrintString generates instructions to print a string literal
+func (a *Analyzer) generatePrintString(str string, irFunc *ir.Function) {
+	// Create string literal and add to module
+	stringLabel := fmt.Sprintf("str_%d", len(a.module.Strings))
+	a.module.Strings = append(a.module.Strings, &ir.String{
+		Label: stringLabel,
+		Value: str,
+	})
+	
+	// Create a string constant
+	strReg := irFunc.AllocReg()
+	
+	// Generate instruction to load string address
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:     ir.OpLoadString,
+		Dest:   strReg,
+		Symbol: stringLabel,
+	})
+	
+	// Generate print instruction
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpPrintString,
+		Src1: strReg,
+	})
+}
+
+// generatePrintValue generates instructions to print a value based on its type
+func (a *Analyzer) generatePrintValue(reg ir.Register, typ ir.Type, irFunc *ir.Function) {
+	// Determine print opcode based on type
+	var op ir.Opcode
+	
+	if typ == nil {
+		op = ir.OpPrintU8 // Default to u8
+	} else {
+		switch t := typ.(type) {
+		case *ir.BasicType:
+			switch t.Kind {
+			case ir.TypeU8, ir.TypeI8:
+				op = ir.OpPrintU8
+			case ir.TypeU16, ir.TypeI16:
+				op = ir.OpPrintU16
+			case ir.TypeBool:
+				op = ir.OpPrintBool
+			default:
+				op = ir.OpPrintU8
+			}
+		case *ir.PointerType:
+			// For string pointers, use print string
+			if basicType, ok := t.Base.(*ir.BasicType); ok && basicType.Kind == ir.TypeU8 {
+				op = ir.OpPrintString
+			} else {
+				op = ir.OpPrintU16 // Print pointer as u16
+			}
+		default:
+			op = ir.OpPrintU8
+		}
+	}
+	
+	// Generate print instruction
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   op,
+		Src1: reg,
+	})
 }
 
 // analyzeCastExpr analyzes a type cast expression

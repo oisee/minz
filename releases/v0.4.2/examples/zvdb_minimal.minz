@@ -1,0 +1,72 @@
+// Minimal ZVDB implementation for testing
+
+// Simple 8-bit vector for testing
+struct Vector8 {
+    bits: u8,
+}
+
+// Hamming distance for 8-bit vectors
+fun hamming8(a: u8, b: u8) -> u8 {
+    let xor = a ^ b;
+    
+    // Count set bits
+    let mut count = xor;
+    count = (count & 0x55) + ((count >> 1) & 0x55);
+    count = (count & 0x33) + ((count >> 2) & 0x33);
+    count = (count & 0x0F) + ((count >> 4) & 0x0F);
+    
+    return count;
+}
+
+// Simple vector store
+struct VectorStore {
+    vectors: [256]u8,
+    count: u8,
+}
+
+// Add vector
+fun add_vector(store: *mut VectorStore, vec: u8) -> bool {
+    if store.count >= 255 {
+        return false;
+    }
+    
+    store.vectors[store.count] = vec;
+    store.count = store.count + 1;
+    return true;
+}
+
+// Find nearest vector
+fun find_nearest(store: *VectorStore, query: u8) -> u8 {
+    let mut best_idx: u8 = 0;
+    let mut best_dist: u8 = 255;
+    
+    let mut i: u8 = 0;
+    while i < store.count {
+        let dist = hamming8(query, store.vectors[i]);
+        if dist < best_dist {
+            best_dist = dist;
+            best_idx = i;
+        }
+        i = i + 1;
+    }
+    
+    return best_idx;
+}
+
+// Main demo
+fun main() -> void {
+    let mut store: VectorStore;
+    store.count = 0;
+    
+    // Add some vectors
+    add_vector(&store, 0b10101010);
+    add_vector(&store, 0b01010101);
+    add_vector(&store, 0b11110000);
+    add_vector(&store, 0b00001111);
+    
+    // Search
+    let query: u8 = 0b10101011;
+    let nearest = find_nearest(&store, query);
+    
+    return;
+}

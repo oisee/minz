@@ -1,0 +1,37 @@
+// Test inline assembly support - simplified version
+
+fun set_border() -> void {
+    asm {
+        ld a, 2
+        out ($FE), a
+    }
+    return;
+}
+
+fun delay() -> void {
+    asm {
+        ld b, 255
+delay_loop:
+        djnz delay_loop
+    }
+    return;
+}
+
+fun main() -> void {
+    set_border();
+    
+    // Test direct port access
+    asm {
+        ld a, 7
+        out ($FE), a
+    }
+    
+    // Simple loop with delay
+    let mut i: u8 = 0;
+    while i < 10 {
+        delay();
+        i = i + 1;
+    }
+    
+    return;
+}

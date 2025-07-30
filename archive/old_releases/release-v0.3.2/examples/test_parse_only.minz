@@ -1,0 +1,5 @@
+const X: u8 = 42;
+let Y: u8 = 43;
+
+fun main() -> void {
+}

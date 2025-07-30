@@ -84,6 +84,9 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	// Generate PATCH-TABLE if there are any TRUE SMC functions
 	g.generatePatchTable()
 	
+	// Generate runtime helper functions for print
+	g.generatePrintHelpers()
+	
 	// Write footer
 	g.writeFooter()
 
@@ -243,6 +246,9 @@ func (g *Z80Generator) generateString(str *ir.String) {
 			g.emit("    DB \"%s\"", escaped)
 		}
 	}
+	
+	// Add null terminator for C-style strings
+	g.emit("    DB 0               ; Null terminator")
 }
 
 // generateFunction generates code for a function
@@ -1827,6 +1833,41 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Use RST 16 (0x10) - standard ROM print routine on ZX Spectrum
 		g.emit("    RST 16         ; Print character in A")
 		
+	case ir.OpPrintU8:
+		// Print u8 as decimal number
+		g.loadToA(inst.Src1)
+		g.emit("    CALL print_u8_decimal")
+		
+	case ir.OpPrintU16:
+		// Print u16 as decimal number
+		g.loadToHL(inst.Src1)
+		g.emit("    CALL print_u16_decimal")
+		
+	case ir.OpPrintI8:
+		// Print i8 as signed decimal
+		g.loadToA(inst.Src1)
+		g.emit("    CALL print_i8_decimal")
+		
+	case ir.OpPrintI16:
+		// Print i16 as signed decimal
+		g.loadToHL(inst.Src1)
+		g.emit("    CALL print_i16_decimal")
+		
+	case ir.OpPrintBool:
+		// Print bool as "true" or "false"
+		g.loadToA(inst.Src1)
+		g.emit("    CALL print_bool")
+		
+	case ir.OpPrintString:
+		// Print null-terminated string
+		g.loadToHL(inst.Src1)
+		g.emit("    CALL print_string")
+		
+	case ir.OpLoadString:
+		// Load address of string literal
+		g.emit(fmt.Sprintf("    LD HL, %s", inst.Symbol))
+		g.storeFromHL(inst.Dest)
+		
 	case ir.OpLen:
 		// Built-in len function - get length of array/string
 		// Array/string pointer is in Src1, result goes to Dest
@@ -2939,5 +2980,107 @@ func (g *Z80Generator) isLocalRegister(reg ir.Register) bool {
 		}
 	}
 	return false
+}
+
+// generatePrintHelpers generates runtime helper functions for print operations
+func (g *Z80Generator) generatePrintHelpers() {
+	g.emit("\n; Runtime print helper functions")
+	
+	// Print string function - prints null-terminated string pointed to by HL
+	g.emit("print_string:")
+	g.emit("    LD A, (HL)")
+	g.emit("    OR A               ; Check for null terminator")
+	g.emit("    RET Z              ; Return if null")
+	g.emit("    RST 16             ; Print character")
+	g.emit("    INC HL             ; Next character")
+	g.emit("    JR print_string")
+	g.emit("")
+	
+	// Print u8 as decimal
+	g.emit("print_u8_decimal:")
+	g.emit("    LD H, 0            ; HL = A (zero extend)")
+	g.emit("    LD L, A")
+	g.emit("    CALL print_u16_decimal")
+	g.emit("    RET")
+	g.emit("")
+	
+	// Print u16 as decimal
+	g.emit("print_u16_decimal:")
+	g.emit("    LD BC, -10000")
+	g.emit("    LD DE, -1000")
+	g.emit("    CALL print_digit")
+	g.emit("    LD BC, -1000")
+	g.emit("    LD DE, -100")
+	g.emit("    CALL print_digit")
+	g.emit("    LD BC, -100")
+	g.emit("    LD DE, -10")
+	g.emit("    CALL print_digit")
+	g.emit("    LD BC, -10")
+	g.emit("    LD DE, -1")
+	g.emit("    CALL print_digit")
+	g.emit("    LD A, L")
+	g.emit("    ADD A, '0'         ; Convert to ASCII")
+	g.emit("    RST 16             ; Print last digit")
+	g.emit("    RET")
+	g.emit("")
+	
+	// Helper function for printing digits
+	g.emit("print_digit:")
+	g.emit("    LD A, '0'-1")
+	g.emit("print_digit_loop:")
+	g.emit("    INC A")
+	g.emit("    ADD HL, BC         ; Subtract power of 10")
+	g.emit("    JR C, print_digit_loop")
+	g.emit("    ADD HL, DE         ; Add back one power of 10")
+	g.emit("    RST 16             ; Print digit")
+	g.emit("    RET")
+	g.emit("")
+	
+	// Print signed integers (same as unsigned for now)
+	g.emit("print_i8_decimal:")
+	g.emit("    BIT 7, A           ; Check sign bit")
+	g.emit("    JR Z, print_u8_decimal")
+	g.emit("    PUSH AF")
+	g.emit("    LD A, '-'          ; Print minus sign")
+	g.emit("    RST 16")
+	g.emit("    POP AF")
+	g.emit("    NEG                ; Make positive")
+	g.emit("    JR print_u8_decimal")
+	g.emit("")
+	
+	g.emit("print_i16_decimal:")
+	g.emit("    BIT 7, H           ; Check sign bit")
+	g.emit("    JR Z, print_u16_decimal")
+	g.emit("    PUSH HL")
+	g.emit("    LD A, '-'          ; Print minus sign")
+	g.emit("    RST 16")
+	g.emit("    POP HL")
+	g.emit("    LD A, H            ; Negate HL")
+	g.emit("    CPL")
+	g.emit("    LD H, A")
+	g.emit("    LD A, L")
+	g.emit("    CPL")
+	g.emit("    LD L, A")
+	g.emit("    INC HL")
+	g.emit("    JR print_u16_decimal")
+	g.emit("")
+	
+	// Print boolean
+	g.emit("print_bool:")
+	g.emit("    OR A               ; Test if A is zero")
+	g.emit("    JR NZ, print_true")
+	g.emit("    LD HL, bool_false_str")
+	g.emit("    JR print_string")
+	g.emit("print_true:")
+	g.emit("    LD HL, bool_true_str")
+	g.emit("    JR print_string")
+	g.emit("")
+	
+	// Boolean string constants
+	g.emit("bool_true_str:")
+	g.emit("    DB \"true\", 0")
+	g.emit("bool_false_str:")
+	g.emit("    DB \"false\", 0")
+	g.emit("")
 }
 

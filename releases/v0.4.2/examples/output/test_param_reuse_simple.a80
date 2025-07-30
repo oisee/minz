@@ -1,0 +1,106 @@
+; MinZ generated code
+; Generated: 2025-07-28 08:45:59
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_param_reuse_simple.calculate
+...examples.test_param_reuse_simple.calculate:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    LD A, E       ; Get parameter y
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r4 = param x
+    ; Load parameter x
+    ; r5 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r6 = r4 + r5
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store , r6
+    LD ($F000), HL
+    ; r8 = param x
+    ; Load parameter x
+    ; r9 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; r10 = r8 + r9
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store , r10
+    LD ($F002), HL
+    ; r12 = param x
+    ; Load parameter x
+    ; r13 = param y
+    ; Load parameter y
+    ; r14 = r12 + r13
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store , r14
+    LD ($F004), HL
+    ; r15 = load a
+    LD HL, ($F000)
+    ; r16 = load b
+    LD HL, ($F002)
+    ; r17 = r15 + r16
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD D, H
+    LD E, L
+    ; r18 = load c
+    LD HL, ($F004)
+    ; Register 18 already in HL
+    ; r19 = r17 + r18
+    LD H, D
+    LD L, E
+    LD D, H
+    LD E, L
+    ; Register 18 already in HL
+    ADD HL, DE
+    ; Register 19 already in HL
+    ; return r19
+    ; Register 19 already in HL
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_param_reuse_simple.main
+...examples.test_param_reuse_simple.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 6
+    LD A, 6
+    LD H, A         ; Store to physical register H
+    ; r4 = call calculate
+    ; Call to calculate (args: 2)
+    ; Register-based parameter passing
+    LD A, ($F004)     ; Virtual register 2 from memory
+    ; Parameter x in A
+    LD A, H
+    LD E, A       ; Parameter y in E
+    ; Found function, UsesTrueSMC=false
+    CALL calculate
+    ; store , r4
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

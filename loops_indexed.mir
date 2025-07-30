@@ -1,0 +1,46 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   examples.loops_indexed.scores: [8]examples.loops_indexed.Score
+
+Function examples.loops_indexed.main() -> void
+  @smc
+  Locals:
+    r1 = i: u8
+    r21 = max_score: u16
+    r23 = max_index: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: loop_1:
+      3: r3 = load i
+      4: r4 = 8
+      5: r5 = r3 < r4
+      6: jump_if_not r5, end_loop_2
+      7: r6 = load i
+      8: r7 = 10
+      9: r8 = r6 + r7
+     10: 68
+     11: r10 = load i
+     12: 15 ; Load array element (examples.loops_indexed.Score)
+     13: 14 ; Store to field player_id (offset 0)
+     14: r12 = load i
+     15: r13 = 100
+     16: r14 = r12 * r13
+     17: 68
+     18: r16 = load i
+     19: 15 ; Load array element (examples.loops_indexed.Score)
+     20: 14 ; Store to field points (offset 1)
+     21: r18 = load i
+     22: r19 = 1
+     23: r20 = r18 + r19
+     24: store i, r20
+     25: jump loop_1
+     26: end_loop_2:
+     27: r22 = 0
+     28: store , r22
+     29: r24 = 0
+     30: store , r24
+     31: return
+

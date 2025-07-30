@@ -1,0 +1,64 @@
+// Test TRUE SMC (истинный SMC) implementation
+// This tests immediate operand patching as described in ADR-001
+
+module true_smc_test
+
+// Simple function with SMC anchors
+@abi(smc)
+fun add(x: u8, y: u8) -> u8 {
+    return x + y
+}
+
+// Function that uses 16-bit parameters
+@abi(smc)
+fun multiply(a: u16, b: u16) -> u16 {
+    // Simple multiplication by repeated addition
+    let result: u16 = 0
+    let count: u16 = b
+    
+    while count > 0 {
+        result = result + a
+        count = count - 1
+    }
+    
+    return result
+}
+
+// Test reuse of anchor values
+@abi(smc)
+fun process(value: u8) -> u8 {
+    // First use creates anchor
+    let temp = value + 10
+    
+    // Subsequent uses should load from anchor address
+    if value > 50 {
+        return value * 2
+    } else {
+        return value + temp
+    }
+}
+
+fun main() -> void {
+    // Test 8-bit SMC
+    let sum = add(5, 3)
+    print("5 + 3 = ")
+    print(sum)
+    print("\n")
+    
+    // Test 16-bit SMC  
+    let product = multiply(6, 7)
+    print("6 * 7 = ")
+    print(product)
+    print("\n")
+    
+    // Test anchor reuse
+    let result1 = process(30)
+    print("process(30) = ")
+    print(result1)
+    print("\n")
+    
+    let result2 = process(60)
+    print("process(60) = ")
+    print(result2)
+    print("\n")
+}

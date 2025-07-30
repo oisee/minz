@@ -556,7 +556,7 @@ func (c *CompileTimeIf) exprNode()    {}
 
 // CompileTimePrint represents @print compile-time output
 type CompileTimePrint struct {
-	Message  string
+	Expr     Expression // Changed from Message to support interpolation
 	StartPos Position
 	EndPos   Position
 }

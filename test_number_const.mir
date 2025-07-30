@@ -1,0 +1,15 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_number_const.main() -> void
+  @smc
+  Locals:
+    r1 = a: u16
+    r3 = b: u16
+  Instructions:
+      0: r2 = 10
+      1: store , r2
+      2: r4 = 20
+      3: store , r4
+      4: return
+

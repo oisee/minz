@@ -1,0 +1,22 @@
+// Test struct support
+
+type Point = struct {
+    x: u8,
+    y: u8
+};
+
+fun test_struct() -> void {
+    let mut p: Point;
+    p.x = 10;
+    p.y = 20;
+    
+    let a: u8 = p.x;
+    let b: u8 = p.y;
+    
+    return;
+}
+
+fun main() -> void {
+    test_struct();
+    return;
+}

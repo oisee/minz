@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.implicit_returns.test_no_return() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+  Instructions:
+      0: r2 = 5
+      1: store , r2
+      2: return
+
+Function examples.implicit_returns.test_with_return() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+  Instructions:
+      0: r2 = 5
+      1: store , r2
+      2: return
+
+Function examples.implicit_returns.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_no_return
+      1: r2 = call test_with_return
+      2: return
+

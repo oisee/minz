@@ -15,7 +15,7 @@ clean:
 
 # Build and run on test file
 run: build
-	./minzc ../test_simple.minz
+	./minzc ../examples/simple_add.minz
 
 # Install dependencies
 deps:

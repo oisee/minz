@@ -317,6 +317,40 @@
     }
   },
   {
+    "type": "bit_field",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "number_literal",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "bit_struct_type",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "bit_field",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "block",
     "named": true,
     "fields": {},
@@ -512,7 +546,7 @@
       "required": true,
       "types": [
         {
-          "type": "string_literal",
+          "type": "expression",
           "named": true
         }
       ]
@@ -568,6 +602,10 @@
         },
         {
           "type": "function_declaration",
+          "named": true
+        },
+        {
+          "type": "lua_block",
           "named": true
         },
         {
@@ -1013,7 +1051,7 @@
       "required": true,
       "types": [
         {
-          "type": "lua_code",
+          "type": "lua_code_block",
           "named": true
         }
       ]
@@ -1071,10 +1109,6 @@
         },
         {
           "type": "compile_time_print",
-          "named": true
-        },
-        {
-          "type": "lua_block",
           "named": true
         },
         {
@@ -1521,6 +1555,10 @@
           "named": true
         },
         {
+          "type": "bit_struct_type",
+          "named": true
+        },
+        {
           "type": "enum_type",
           "named": true
         },
@@ -1826,7 +1864,7 @@
     "named": false
   },
   {
-    "type": "[[",
+    "type": "[[[",
     "named": false
   },
   {
@@ -1834,7 +1872,7 @@
     "named": false
   },
   {
-    "type": "]]",
+    "type": "]]]",
     "named": false
   },
   {
@@ -1859,6 +1897,18 @@
   },
   {
     "type": "asm",
+    "named": false
+  },
+  {
+    "type": "bits",
+    "named": false
+  },
+  {
+    "type": "bits_16",
+    "named": false
+  },
+  {
+    "type": "bits_8",
     "named": false
   },
   {
@@ -1948,6 +1998,10 @@
   },
   {
     "type": "lua_code",
+    "named": true
+  },
+  {
+    "type": "lua_code_block",
     "named": true
   },
   {

@@ -1,0 +1,40 @@
+// Comprehensive bit struct pipeline test
+
+// Test all three syntaxes
+type Test8Old = bits {
+    field1: 4,
+    field2: 4
+};
+
+type Test8New = bits_8 {
+    field1: 4,
+    field2: 4  
+};
+
+type Test16 = bits_16 {
+    field1: 8,
+    field2: 8
+};
+
+fun main() -> void {
+    // Test 8-bit old syntax
+    let val8: u8 = 0xAB;  // 10101011 = field2=0xA, field1=0xB
+    let bits8old: Test8Old = val8 as Test8Old;
+    let f1_old: u8 = bits8old.field1;  // Should be 0xB (11)
+    let f2_old: u8 = bits8old.field2;  // Should be 0xA (10)
+    
+    // Test 8-bit new syntax
+    let bits8new: Test8New = val8 as Test8New;
+    let f1_new: u8 = bits8new.field1;  // Should be 0xB (11)
+    let f2_new: u8 = bits8new.field2;  // Should be 0xA (10)
+    
+    // Test 16-bit 
+    let val16: u16 = 0x1234;  // field2=0x12, field1=0x34
+    let bits16: Test16 = val16 as Test16;
+    let f1_16: u8 = bits16.field1 as u8;  // Should be 0x34
+    let f2_16: u8 = bits16.field2 as u8;  // Should be 0x12
+    
+    // Test casting back
+    let back8: u8 = bits8old as u8;  // Should be 0xAB
+    let back16: u16 = bits16 as u16;  // Should be 0x1234
+}

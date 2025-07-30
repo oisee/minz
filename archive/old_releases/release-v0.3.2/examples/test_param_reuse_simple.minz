@@ -1,0 +1,17 @@
+// test_param_reuse_simple.minz - Test TRUE SMC with parameter reuse
+fun calculate(x: u8, y: u8) -> u8 {
+    // First use of x creates anchor
+    let a = x + 1
+    
+    // Second use should load from anchor address
+    let b = x + 2
+    
+    // Third use also from anchor
+    let c = x + y
+    
+    return a + b + c
+}
+
+fun main() -> void {
+    let result = calculate(10, 6)
+}

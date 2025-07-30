@@ -1,0 +1,110 @@
+// Test file for MinZ v0.4.2 features
+// This file tests all new syntax highlighting features
+
+fun test_mutable_variables() -> void {
+    // Test mutable variable declarations
+    let mut counter: u8 = 0;
+    let mut buffer: [256]u8;
+    let mut ptr: *u8 = &buffer[0];
+    
+    // Modify mutable variables
+    counter = counter + 1;
+    ptr = ptr + 10;
+}
+
+fun test_cast_expressions() -> void {
+    let byte_val: u8 = 100;
+    
+    // Test cast expressions
+    let word_val = byte_val as u16;
+    let signed_val = byte_val as i8;
+    let ptr_val = 0x8000 as *u8;
+    
+    // Complex cast expressions
+    let result = (byte_val + 50) as u16;
+    let shifted = (word_val >> 8) as u8;
+}
+
+fun test_function_addresses() -> void {
+    // Test function address operator
+    let fn_ptr = &test_cast_expressions;
+    let handler = &interrupt_handler;
+    
+    // Pass function addresses
+    register_handler(&my_callback);
+}
+
+fun test_builtin_functions() -> void {
+    // Test print built-in
+    print('H');
+    print('i');
+    print('!');
+    print('\n');
+    
+    // Test len built-in
+    let array: [50]u8;
+    let size = len(array);  // Should return 50
+    
+    let string: [10]u8 = "Hello";
+    let str_len = len(string);
+    
+    // Test memcpy built-in
+    let src: [10]u8 = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    let dst: [10]u8;
+    memcpy(&dst[0], &src[0], 10);
+    
+    // Test memset built-in
+    let buffer: [256]u8;
+    memset(&buffer[0], 0, 256);  // Clear buffer
+    memset(&buffer[0], 0xFF, 128);  // Fill first half
+}
+
+// Test combined features
+fun process_data(data: *u8, size: u16) -> u8 {
+    let mut checksum: u8 = 0;
+    let mut i: u16 = 0;
+    
+    while i < size {
+        checksum = checksum ^ data[i as u16];
+        i = i + 1;
+    }
+    
+    // Print result
+    print('C');
+    print(':');
+    print((checksum >> 4) as u8 + '0');
+    print((checksum & 0x0F) as u8 + '0');
+    
+    return checksum;
+}
+
+// Function to test address-of
+fun my_callback() -> void {
+    print('!');
+}
+
+fun interrupt_handler() -> void {
+    // Interrupt handling code
+}
+
+fun register_handler(handler: *void) -> void {
+    // Register the handler
+}
+
+// Test all features together
+fun main() -> void {
+    test_mutable_variables();
+    test_cast_expressions();
+    test_function_addresses();
+    test_builtin_functions();
+    
+    let data: [5]u8 = {10, 20, 30, 40, 50};
+    let result = process_data(&data[0], len(data) as u16);
+    
+    print('\n');
+    print('D');
+    print('o');
+    print('n');
+    print('e');
+    print('!');
+}

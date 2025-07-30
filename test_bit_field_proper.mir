@@ -1,0 +1,23 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_bit_field_proper.main() -> void
+  @smc
+  Locals:
+    r1 = value: u8
+    r3 = bits: bits<u8>
+    r5 = low: u8
+  Instructions:
+      0: r2 = 171
+      1: store , r2
+      2: r4 = load value
+      3: store , r4
+      4: r6 = load bits
+      5: 17 ; Load bit field low (offset 0, width 4)
+      6: store , r7
+      7: r8 = load low
+      8: r9 = 1
+      9: r10 = r8 + r9
+     10: store low, r10
+     11: return
+

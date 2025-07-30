@@ -1,0 +1,10 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...tests.test_array_parse.test() -> void
+  @smc
+  Locals:
+    r1 = x: [10]u8
+  Instructions:
+      0: return
+

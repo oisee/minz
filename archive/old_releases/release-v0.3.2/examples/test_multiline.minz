@@ -1,0 +1,5 @@
+fun main() -> void {
+    let mut a: u8 = 1
+    let mut b: u8 = 2
+    let mut c: u8 = 3
+}

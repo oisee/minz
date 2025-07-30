@@ -1,4 +1,4 @@
-#\!/bin/bash
+#!/bin/bash
 
 # Compile all examples with output
 echo "Compiling all MinZ examples..."
@@ -46,4 +46,3 @@ echo "Summary: $success/$total examples compiled successfully"
 echo "Success rate: $(( success * 100 / total ))%"
 echo
 echo "Output files are in: examples/output/"
-EOF < /dev/null

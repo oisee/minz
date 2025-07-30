@@ -1,0 +1,5 @@
+// Test inline asm expression syntax
+fun test() -> void {
+    let x: u16 = 0x1234;
+    asm("ld hl, {0}" : : "r"(x));
+}

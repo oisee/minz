@@ -815,6 +815,11 @@ func (p *SimpleParser) parsePrimaryExpression() ast.Expression {
 		return p.parseLuaExpression()
 	}
 	
+	// @print expression
+	if p.peek().Type == TokenIdent && p.peek().Value == "@print" {
+		return p.parsePrintExpression()
+	}
+	
 	// Debug for testing
 	if p.pos < len(p.tokens) {
 		tok := p.peek()
@@ -900,6 +905,36 @@ func (p *SimpleParser) parseLuaExpression() ast.Expression {
 	
 	return &ast.LuaExpression{
 		Code:     code,
+		StartPos: startPos,
+		EndPos:   p.currentPos(),
+	}
+}
+
+// parsePrintExpression parses @print(...) expressions
+func (p *SimpleParser) parsePrintExpression() ast.Expression {
+	startPos := p.currentPos()
+	p.advance() // consume '@print'
+	
+	// Expect opening parenthesis
+	if p.peek().Value != "(" {
+		return nil
+	}
+	p.advance() // consume '('
+	
+	// Parse the expression inside
+	expr := p.parseExpression()
+	if expr == nil {
+		return nil
+	}
+	
+	// Expect closing parenthesis
+	if p.peek().Value != ")" {
+		return nil
+	}
+	p.advance() // consume ')'
+	
+	return &ast.CompileTimePrint{
+		Expr:     expr,
 		StartPos: startPos,
 		EndPos:   p.currentPos(),
 	}

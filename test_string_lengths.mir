@@ -1,0 +1,18 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_string_lengths.main() -> void
+  @smc
+  Locals:
+    r1 = short: *u8
+    r3 = medium: *u8
+    r5 = long: *u8
+  Instructions:
+      0: 20 ; Load string "Hi"
+      1: store , r2
+      2: 20 ; Load string "This is a medium length string for testing"
+      3: store , r4
+      4: 20 ; Load string "This is a very long string that contains many characters and should test the string generation thoroughly with various content including special characters like newlines and tabs and other stuff"
+      5: store , r6
+      6: return
+

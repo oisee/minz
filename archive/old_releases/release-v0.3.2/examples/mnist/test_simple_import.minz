@@ -1,0 +1,10 @@
+// Test simple import
+
+import zx.screen;
+
+fun main() -> void {
+    // Test direct usage of screen constants
+    screen.set_border(screen.BLUE);
+    
+    return;
+}

@@ -1,0 +1,26 @@
+// Simple Lua metaprogramming test
+
+// Test basic Lua expression evaluation
+const PLATFORM_BITS: u8 = @lua(8);
+const MAGIC_NUMBER: u16 = @lua(42 * 100);
+
+// Test Lua table to array conversion
+const SMALL_TABLE: [u8; 4] = @lua({10, 20, 30, 40});
+
+// Test Lua function call
+@lua[[
+function double(x)
+    return x * 2
+end
+]]
+
+const DOUBLED: u8 = @lua(double(21));
+
+fun main() -> void {
+    let x: u8 = PLATFORM_BITS;
+    let y: u16 = MAGIC_NUMBER;
+    let z: u8 = DOUBLED;
+    
+    // Should compile if Lua metaprogramming works
+    return;
+}

@@ -1,0 +1,12 @@
+type TestBits = bits {
+    field1: 3,
+    field2: 5
+};
+
+fun main() -> void {
+    let val: u8 = 0x42;
+    let mut bits_val: TestBits = val as TestBits;
+    
+    // Only test field write access
+    bits_val.field1 = 5;
+}

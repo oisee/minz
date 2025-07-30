@@ -1,0 +1,13 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...tests.test_unary.clear_bit(value: u8, bit: u8) -> u8
+  Instructions:
+      0: 12
+      1: r4 = 1
+      2: 12
+      3: 49
+      4: r7 = ~r6
+      5: r8 = r3 & r7
+      6: return r8
+

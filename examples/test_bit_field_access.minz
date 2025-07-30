@@ -8,8 +8,8 @@ type ScreenAttr = bits {
     flash: 1     // Bit 7
 };
 
-// Global to force code generation
-let mut g_result: u8 = 0
+// Global to force code generation  
+var mut g_result: u8 = 0;
 
 fun main() -> void {
     // Create a bit struct via cast

@@ -215,6 +215,8 @@ func (p *Parser) convertDeclaration(node *SExpNode) ast.Declaration {
 		return p.convertEnumDecl(node)
 	case "constant_declaration":
 		return p.convertConstDecl(node)
+	case "type_alias":
+		return p.convertTypeAlias(node)
 	case "lua_block":
 		return p.convertLuaBlock(node)
 	}
@@ -395,6 +397,8 @@ func (p *Parser) convertTypeNode(node *SExpNode) ast.Type {
 		return p.convertArrayType(node)
 	case "pointer_type":
 		return p.convertPointerType(node)
+	case "bit_struct_type":
+		return p.convertBitStructType(node)
 	case "type_identifier":
 		// User-defined types (structs, enums, type aliases)
 		name := ""
@@ -438,6 +442,18 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 				code := p.getNodeText(child)
 				return &ast.LuaExpression{
 					Code:     code,
+					StartPos: node.StartPos,
+					EndPos:   node.EndPos,
+				}
+			}
+		}
+	case "compile_time_print":
+		// @print(expression)
+		for _, child := range node.Children {
+			if child.Type == "expression" {
+				expr := p.convertExpression(child)
+				return &ast.CompileTimePrint{
+					Expr:     expr,
 					StartPos: node.StartPos,
 					EndPos:   node.EndPos,
 				}
@@ -1182,6 +1198,70 @@ func (p *Parser) convertPointerType(node *SExpNode) *ast.PointerType {
 	}
 	
 	return pointerType
+}
+
+func (p *Parser) convertBitStructType(node *SExpNode) *ast.BitStructType {
+	bitStruct := &ast.BitStructType{
+		Fields:   []*ast.BitField{},
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Determine underlying type from the keyword
+	nodeText := p.getNodeText(node)
+	if strings.HasPrefix(nodeText, "bits_16") {
+		bitStruct.UnderlyingType = &ast.PrimitiveType{Name: "u16"}
+	} else {
+		// Default to u8 for both "bits" and "bits_8"
+		bitStruct.UnderlyingType = &ast.PrimitiveType{Name: "u8"}
+	}
+	
+	for _, child := range node.Children {
+		switch child.Type {
+		case "bit_field":
+			field := &ast.BitField{
+				StartPos: child.StartPos,
+				EndPos:   child.EndPos,
+			}
+			
+			for _, fieldChild := range child.Children {
+				switch fieldChild.Type {
+				case "identifier":
+					field.Name = p.getNodeText(fieldChild)
+				case "number_literal":
+					// Parse bit width as integer
+					val, _ := strconv.ParseInt(p.getNodeText(fieldChild), 0, 64)
+					field.BitWidth = int(val)
+				}
+			}
+			
+			if field.Name != "" && field.BitWidth > 0 {
+				bitStruct.Fields = append(bitStruct.Fields, field)
+			}
+		}
+	}
+	
+	return bitStruct
+}
+
+func (p *Parser) convertTypeAlias(node *SExpNode) *ast.TypeDecl {
+	typeDecl := &ast.TypeDecl{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	for _, child := range node.Children {
+		switch child.Type {
+		case "identifier":
+			typeDecl.Name = p.getNodeText(child)
+		case "type":
+			if len(child.Children) > 0 {
+				typeDecl.Type = p.convertTypeNode(child.Children[0])
+			}
+		}
+	}
+	
+	return typeDecl
 }
 
 func (p *Parser) convertImportStmt(node *SExpNode) *ast.ImportStmt {

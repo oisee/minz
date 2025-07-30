@@ -25,10 +25,13 @@ func New() *Parser {
 
 // ParseFile parses a MinZ source file and returns an AST
 func (p *Parser) ParseFile(filename string) (*ast.File, error) {
-	// Use tree-sitter - no fallback since it's the only parser
+	// Try tree-sitter first
 	sexpAST, err := p.parseToSExp(filename)
 	if err != nil {
-		return nil, fmt.Errorf("tree-sitter parse failed: %w", err)
+		// Fall back to simple parser if tree-sitter fails
+		// This is especially useful for new language features like @lua
+		simpleParser := NewSimpleParser()
+		return simpleParser.ParseFile(filename)
 	}
 
 	// Convert the S-expression AST to our Go AST

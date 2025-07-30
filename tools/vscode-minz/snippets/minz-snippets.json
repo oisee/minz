@@ -1,0 +1,296 @@
+{
+  "Function Declaration": {
+    "prefix": "fun",
+    "body": [
+      "fun ${1:function_name}(${2:params}) -> ${3:return_type} {",
+      "\t${4:// function body}",
+      "\treturn ${5:value};",
+      "}"
+    ],
+    "description": "MinZ function declaration (modern syntax)"
+  },
+  "Legacy Function Declaration": {
+    "prefix": "fn", 
+    "body": [
+      "fn ${1:function_name}(${2:params}) -> ${3:return_type} {",
+      "\t${4:// function body}",
+      "\treturn ${5:value};",
+      "}"
+    ],
+    "description": "MinZ function declaration (legacy syntax)"
+  },
+  "Public Function": {
+    "prefix": "pubfun",
+    "body": [
+      "pub fun ${1:function_name}(${2:params}) -> ${3:return_type} {",
+      "\t${4:// function body}",
+      "\treturn ${5:value};",
+      "}"
+    ],
+    "description": "Public MinZ function declaration"
+  },
+  "Main Function": {
+    "prefix": "main",
+    "body": [
+      "fun main() -> void {",
+      "\t${1:// main function body}",
+      "}"
+    ],
+    "description": "Main function"
+  },
+  "Struct Definition": {
+    "prefix": "struct",
+    "body": [
+      "struct ${1:StructName} {",
+      "\t${2:field_name}: ${3:field_type},",
+      "}"
+    ],
+    "description": "Struct definition"
+  },
+  "Enum Definition": {
+    "prefix": "enum",
+    "body": [
+      "enum ${1:EnumName} {",
+      "\t${2:Variant1},",
+      "\t${3:Variant2},",
+      "}"
+    ],
+    "description": "Enum definition"
+  },
+  "If Statement": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition} {",
+      "\t${2:// if body}",
+      "}"
+    ],
+    "description": "If statement"
+  },
+  "If-Else Statement": {
+    "prefix": "ifelse",
+    "body": [
+      "if ${1:condition} {",
+      "\t${2:// if body}",
+      "} else {",
+      "\t${3:// else body}",
+      "}"
+    ],
+    "description": "If-else statement"
+  },
+  "While Loop": {
+    "prefix": "while",
+    "body": [
+      "while ${1:condition} {",
+      "\t${2:// loop body}",
+      "}"
+    ],
+    "description": "While loop"
+  },
+  "For Loop": {
+    "prefix": "for",
+    "body": [
+      "for ${1:variable} in ${2:range} {",
+      "\t${3:// loop body}",
+      "}"
+    ],
+    "description": "For loop"
+  },
+  "Loop At (Modern Iterator)": {
+    "prefix": "loopat",
+    "body": [
+      "loop at ${1:array} -> ${2:item} {",
+      "\t${3:// process each item with SMC optimization}",
+      "}"
+    ],
+    "description": "Modern loop at syntax with SMC optimization"
+  },
+  "Do Times Loop": {
+    "prefix": "dotimes",
+    "body": [
+      "do ${1:count} times {",
+      "\t${2:// repeat this many times}",
+      "}"
+    ],
+    "description": "Do N times loop"
+  },
+  "Let Declaration": {
+    "prefix": "let",
+    "body": [
+      "let ${1:variable_name}: ${2:type} = ${3:value};"
+    ],
+    "description": "Let variable declaration"
+  },
+  "Mutable Let Declaration": {
+    "prefix": "letmut",
+    "body": [
+      "let mut ${1:variable_name}: ${2:type} = ${3:value};"
+    ],
+    "description": "Mutable let variable declaration"
+  },
+  "Constant Declaration": {
+    "prefix": "const",
+    "body": [
+      "const ${1:CONSTANT_NAME}: ${2:type} = ${3:value};"
+    ],
+    "description": "Constant declaration"
+  },
+  "Import Statement": {
+    "prefix": "import",
+    "body": [
+      "import ${1:module_path};"
+    ],
+    "description": "Import statement"
+  },
+  "Module Declaration": {
+    "prefix": "module",
+    "body": [
+      "module ${1:module_name};"
+    ],
+    "description": "Module declaration"
+  },
+  "Case Expression": {
+    "prefix": "case",
+    "body": [
+      "case ${1:expression} {",
+      "\t${2:Pattern1} => ${3:result1},",
+      "\t${4:Pattern2} => ${5:result2},",
+      "}"
+    ],
+    "description": "Case expression"
+  },
+  "Inline Assembly": {
+    "prefix": "asm",
+    "body": [
+      "asm(\"${1:assembly_code}\" : ${2:outputs} : ${3:inputs} : ${4:clobbers});"
+    ],
+    "description": "Inline assembly"
+  },
+  "Z80 Register Operation": {
+    "prefix": "z80reg",
+    "body": [
+      "asm(\"",
+      "\tld ${1:register}, ${2:value}",
+      "\" : : \"r\"(${3:input}));"
+    ],
+    "description": "Z80 register operation"
+  },
+  "Shadow Register Function": {
+    "prefix": "shadowfun",
+    "body": [
+      "@shadow",
+      "fun ${1:function_name}(${2:params}) -> ${3:return_type} {",
+      "\t${4:// function using shadow registers}",
+      "}"
+    ],
+    "description": "Function with shadow register optimization"
+  },
+  "Interrupt Handler": {
+    "prefix": "interrupt",
+    "body": [
+      "@interrupt",
+      "@shadow_registers",
+      "fun ${1:handler_name}() -> void {",
+      "\t${2:// interrupt handler body}",
+      "}"
+    ],
+    "description": "Interrupt handler with shadow registers"
+  },
+  "Lua Metaprogramming": {
+    "prefix": "lua",
+    "body": [
+      "@lua[[",
+      "\t${1:-- Lua code here}",
+      "]]"
+    ],
+    "description": "Lua metaprogramming block"
+  },
+  "Lua Evaluation": {
+    "prefix": "luaeval",
+    "body": [
+      "@lua_eval(${1:lua_expression})"
+    ],
+    "description": "Lua evaluation expression"
+  },
+  "Array Declaration": {
+    "prefix": "array",
+    "body": [
+      "let ${1:array_name}: [${2:element_type}; ${3:size}] = [${4:initial_values}];"
+    ],
+    "description": "Array declaration"
+  },
+  "Pointer Declaration": {
+    "prefix": "ptr",
+    "body": [
+      "let ${1:pointer_name}: *${2:mut }${3:type} = &${4:mut }${5:variable};"
+    ],
+    "description": "Pointer declaration"
+  },
+  "ZX Spectrum Border": {
+    "prefix": "border",
+    "body": [
+      "asm(\"",
+      "\tld a, ${1:color}",
+      "\tout ($fe), a",
+      "\" : : \"r\"(${2:color_value}));"
+    ],
+    "description": "Set ZX Spectrum border color"
+  },
+  "Memory Copy Loop": {
+    "prefix": "memcopy",
+    "body": [
+      "let mut src: *u8 = ${1:source_ptr};",
+      "let mut dst: *mut u8 = ${2:dest_ptr};",
+      "let mut count: u16 = ${3:byte_count};",
+      "",
+      "while count > 0 {",
+      "\t*dst = *src;",
+      "\tsrc = src + 1;",
+      "\tdst = dst + 1;",
+      "\tcount = count - 1;",
+      "}"
+    ],
+    "description": "Memory copy loop"
+  },
+  "Print Character": {
+    "prefix": "print",
+    "body": [
+      "print(${1:'A'});"
+    ],
+    "description": "Print character to screen (RST 16)"
+  },
+  "Get Length": {
+    "prefix": "len",
+    "body": [
+      "len(${1:array})"
+    ],
+    "description": "Get array/string length"
+  },
+  "Memory Copy": {
+    "prefix": "memcpy",
+    "body": [
+      "memcpy(${1:dest}, ${2:src}, ${3:size});"
+    ],
+    "description": "Fast memory copy (LDIR-based)"
+  },
+  "Memory Set": {
+    "prefix": "memset",
+    "body": [
+      "memset(${1:buffer}, ${2:value}, ${3:size});"
+    ],
+    "description": "Fill memory with value"
+  },
+  "Cast Expression": {
+    "prefix": "cast",
+    "body": [
+      "${1:value} as ${2:type}"
+    ],
+    "description": "Type cast expression"
+  },
+  "Function Address": {
+    "prefix": "faddr",
+    "body": [
+      "&${1:function_name}"
+    ],
+    "description": "Get function address"
+  }
+}

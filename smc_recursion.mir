@@ -1,0 +1,100 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.smc_recursion.factorial_smc(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: 12
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: 12
+     10: 12
+     11: r8 = 1
+     12: r9 = r7 - r8
+     13: r10 = call factorial_smc
+     14: r11 = r6 * r10
+     15: return r11
+
+Function examples.smc_recursion.fib_smc(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: 12
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_3
+      4: 12
+      5: return r5
+      6: jump end_if_4
+      7: else_3:
+      8: end_if_4:
+      9: 12
+     10: r7 = 1
+     11: r8 = r6 - r7
+     12: r9 = call fib_smc
+     13: 12
+     14: r11 = 2
+     15: r12 = r10 - r11
+     16: r13 = call fib_smc
+     17: r14 = r9 + r13
+     18: return r14
+
+Function examples.smc_recursion.many_params_recursive(a: u8, b: u8, c: u8, d: u8, e: u8) -> u8
+  @recursive
+  Instructions:
+      0: 12
+      1: r7 = 0
+      2: r8 = r6 == r7
+      3: jump_if_not r8, else_5
+      4: 12
+      5: 12
+      6: r11 = r9 + r10
+      7: 12
+      8: r13 = r11 + r12
+      9: 12
+     10: r15 = r13 + r14
+     11: return r15
+     12: jump end_if_6
+     13: else_5:
+     14: end_if_6:
+     15: 12
+     16: 12
+     17: r18 = 1
+     18: r19 = r17 - r18
+     19: 12
+     20: 12
+     21: 12
+     22: 12
+     23: r24 = call many_params_recursive
+     24: r25 = r16 + r24
+     25: return r25
+
+Function examples.smc_recursion.main() -> void
+  @smc
+  Locals:
+    r1 = f5: u16
+    r4 = fib10: u16
+    r7 = result: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = call factorial_smc
+      2: store , r3
+      3: r5 = 10
+      4: r6 = call fib_smc
+      5: store , r6
+      6: r8 = 3
+      7: r9 = 1
+      8: r10 = 2
+      9: r11 = 3
+     10: r12 = 4
+     11: r13 = call many_params_recursive
+     12: store , r13
+     13: return
+

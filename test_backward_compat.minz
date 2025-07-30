@@ -1,0 +1,31 @@
+// Test backward compatibility - all should work
+
+type OldStyle = bits {
+    field1: 4,
+    field2: 4
+};
+
+type NewStyle8 = bits_8 {
+    field1: 4,
+    field2: 4  
+};
+
+type NewStyle16 = bits_16 {
+    field1: 8,
+    field2: 8
+};
+
+fun main() -> void {
+    let val8: u8 = 0x42;
+    let val16: u16 = 0x1234;
+    
+    // All these should work
+    let old: OldStyle = val8 as OldStyle;
+    let new8: NewStyle8 = val8 as NewStyle8;  
+    let new16: NewStyle16 = val16 as NewStyle16;
+    
+    // All field accesses should work
+    let f1: u8 = old.field1;
+    let f2: u8 = new8.field1;
+    let f3: u8 = new16.field1 as u8;
+}

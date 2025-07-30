@@ -1,0 +1,12 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_type_alias.main() -> void
+  @smc
+  Locals:
+    r1 = val: u8
+  Instructions:
+      0: r2 = 42
+      1: store , r2
+      2: return
+

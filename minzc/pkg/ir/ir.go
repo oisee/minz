@@ -177,6 +177,13 @@ const (
 	
 	// Built-in functions
 	OpPrint         // Print a u8 character
+	OpPrintU8       // Print u8 as decimal
+	OpPrintU16      // Print u16 as decimal
+	OpPrintI8       // Print i8 as decimal 
+	OpPrintI16      // Print i16 as decimal
+	OpPrintBool     // Print bool as "true"/"false"
+	OpPrintString   // Print null-terminated string
+	OpLoadString    // Load string literal address
 	OpLen           // Get length of array/string
 	OpMemcpy        // Copy memory block
 	OpMemset        // Set memory block
@@ -682,6 +689,20 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("r%d = r%d >> r%d", i.Dest, i.Src1, i.Src2)
 	case OpPrint:
 		return fmt.Sprintf("print(r%d)", i.Src1)
+	case OpPrintU8:
+		return fmt.Sprintf("print_u8(r%d)", i.Src1)
+	case OpPrintU16:
+		return fmt.Sprintf("print_u16(r%d)", i.Src1)
+	case OpPrintI8:
+		return fmt.Sprintf("print_i8(r%d)", i.Src1)
+	case OpPrintI16:
+		return fmt.Sprintf("print_i16(r%d)", i.Src1)
+	case OpPrintBool:
+		return fmt.Sprintf("print_bool(r%d)", i.Src1)
+	case OpPrintString:
+		return fmt.Sprintf("print_string(r%d)", i.Src1)
+	case OpLoadString:
+		return fmt.Sprintf("r%d = string(%s)", i.Dest, i.Symbol)
 	case OpLen:
 		return fmt.Sprintf("r%d = len(r%d)", i.Dest, i.Src1)
 	case OpMemcpy:

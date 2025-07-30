@@ -69,3 +69,8 @@ coverage/
 
 # Debug files
 *.dSYM/
+
+# Additional ignores for new structure
+build/artifacts/
+archive/temp-files/
+archive/backups/temp/

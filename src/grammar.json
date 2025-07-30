@@ -179,6 +179,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "bit_struct_type"
+        },
+        {
+          "type": "SYMBOL",
           "name": "type_identifier"
         },
         {
@@ -518,6 +522,98 @@
       "type": "SYMBOL",
       "name": "identifier"
     },
+    "bit_struct_type": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "bits"
+            },
+            {
+              "type": "STRING",
+              "value": "bits_8"
+            },
+            {
+              "type": "STRING",
+              "value": "bits_16"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "REPEAT",
+                  "content": {
+                    "type": "SEQ",
+                    "members": [
+                      {
+                        "type": "SYMBOL",
+                        "name": "bit_field"
+                      },
+                      {
+                        "type": "STRING",
+                        "value": ","
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "bit_field"
+                },
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "STRING",
+                      "value": ","
+                    },
+                    {
+                      "type": "BLANK"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
+    "bit_field": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "identifier"
+        },
+        {
+          "type": "STRING",
+          "value": ":"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "number_literal"
+        }
+      ]
+    },
     "type_identifier": {
       "type": "SYMBOL",
       "name": "identifier"
@@ -577,6 +673,10 @@
         {
           "type": "SYMBOL",
           "name": "attributed_declaration"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "lua_block"
         }
       ]
     },
@@ -3106,10 +3206,6 @@
         },
         {
           "type": "SYMBOL",
-          "name": "lua_block"
-        },
-        {
-          "type": "SYMBOL",
           "name": "lua_expression"
         },
         {
@@ -3181,7 +3277,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "string_literal"
+          "name": "expression"
         },
         {
           "type": "STRING",
@@ -3290,15 +3386,15 @@
         },
         {
           "type": "STRING",
-          "value": "[["
+          "value": "[[["
         },
         {
           "type": "SYMBOL",
-          "name": "lua_code"
+          "name": "lua_code_block"
         },
         {
           "type": "STRING",
-          "value": "]]"
+          "value": "]]]"
         }
       ]
     },
@@ -3346,7 +3442,11 @@
     },
     "lua_code": {
       "type": "PATTERN",
-      "value": "[^(\\]\\])]+"
+      "value": "[^)]+"
+    },
+    "lua_code_block": {
+      "type": "PATTERN",
+      "value": "([^\\]]+|\\][^\\]]+|\\]\\][^\\]]+)*"
     },
     "import_statement": {
       "type": "SEQ",

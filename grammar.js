@@ -76,6 +76,7 @@ module.exports = grammar({
       $.function_type,
       $.struct_type,
       $.enum_type,
+      $.bit_struct_type,
       $.type_identifier,
       $.error_type,
       $.union_type,
@@ -145,6 +146,23 @@ module.exports = grammar({
     ),
 
     enum_variant: $ => $.identifier,
+
+    bit_struct_type: $ => seq(
+      choice('bits', 'bits_8', 'bits_16'),
+      '{',
+      optional(seq(
+        repeat(seq($.bit_field, ',')),
+        $.bit_field,
+        optional(',')
+      )),
+      '}',
+    ),
+
+    bit_field: $ => seq(
+      $.identifier,
+      ':',
+      $.number_literal,
+    ),
 
     type_identifier: $ => $.identifier,
 
@@ -604,7 +622,7 @@ module.exports = grammar({
     compile_time_print: $ => seq(
       '@print',
       '(',
-      $.string_literal,
+      $.expression,
       ')',
     ),
 

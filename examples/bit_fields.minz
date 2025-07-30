@@ -1,7 +1,7 @@
-// Test bit-struct types
+// Test bit-struct types with improved syntax
 
 // 8-bit ZX Spectrum screen attributes
-type ScreenAttr = bits {
+type ScreenAttr = bits_8 {
     ink: 3,      // Bits 0-2
     paper: 3,    // Bits 3-5
     bright: 1,   // Bit 6
@@ -9,7 +9,7 @@ type ScreenAttr = bits {
 };
 
 // 16-bit sprite control
-type SpriteCtrl = bits<u16> {
+type SpriteCtrl = bits_16 {
     x_pos: 9,      // Bits 0-8 (0-511)
     visible: 1,    // Bit 9
     collision: 1,  // Bit 10

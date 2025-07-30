@@ -1,0 +1,37 @@
+// Test new bit struct syntax
+type Attr8 = bits_8 {
+    ink: 3,      // Bits 0-2
+    paper: 3,    // Bits 3-5
+    bright: 1,   // Bit 6
+    flash: 1     // Bit 7
+};
+
+type Sprite16 = bits_16 {
+    x_pos: 9,      // Bits 0-8 (0-511)
+    visible: 1,    // Bit 9
+    collision: 1,  // Bit 10
+    palette: 2,    // Bits 11-12
+    priority: 2,   // Bits 13-14
+    flip_x: 1      // Bit 15
+};
+
+// Test backward compatibility - "bits" should still work as bits_8
+type OldSyntax = bits {
+    field1: 4,
+    field2: 4
+};
+
+fun main() -> void {
+    let attr: u8 = 0x47;
+    let sprite: u16 = 0x1234;
+    
+    // Convert to bit structs
+    let attr_bits: Attr8 = attr as Attr8;
+    let sprite_bits: Sprite16 = sprite as Sprite16;
+    let old_bits: OldSyntax = attr as OldSyntax;
+    
+    // Test field access
+    let ink: u8 = attr_bits.ink;
+    let x_pos: u8 = sprite_bits.x_pos as u8;  // Need cast from 9-bit to u8
+    let field1: u8 = old_bits.field1;
+}

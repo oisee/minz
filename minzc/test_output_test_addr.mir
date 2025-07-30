@@ -1,0 +1,19 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...tests.test_addr.test(x: *u8) -> void
+  Instructions:
+      0: return
+
+Function ...tests.test_addr.main() -> void
+  @smc
+  Locals:
+    r1 = val: u8
+  Instructions:
+      0: r2 = 5
+      1: store , r2
+      2: r3 = load val
+      3: 62
+      4: r5 = call test
+      5: return
+
