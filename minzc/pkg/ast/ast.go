@@ -57,15 +57,16 @@ func (i *ImportStmt) End() Position { return i.EndPos }
 
 // FunctionDecl represents a function declaration
 type FunctionDecl struct {
-	Name       string
-	Params     []*Parameter
-	ReturnType Type
-	Body       *BlockStmt
-	IsPublic   bool
-	IsExport   bool
-	Attributes []*Attribute
-	StartPos   Position
-	EndPos     Position
+	Name          string
+	GenericParams []*GenericParam
+	Params        []*Parameter
+	ReturnType    Type
+	Body          *BlockStmt
+	IsPublic      bool
+	IsExport      bool
+	Attributes    []*Attribute
+	StartPos      Position
+	EndPos        Position
 }
 
 func (f *FunctionDecl) Pos() Position { return f.StartPos }
@@ -77,6 +78,7 @@ func (f *FunctionDecl) declNode()    {}
 type Parameter struct {
 	Name     string
 	Type     Type
+	IsSelf   bool  // true if this is a 'self' parameter
 	StartPos Position
 	EndPos   Position
 }
@@ -205,6 +207,7 @@ type VarDecl struct {
 	Type      Type
 	Value     Expression
 	IsMutable bool
+	IsPublic  bool
 	StartPos  Position
 	EndPos    Position
 }
@@ -219,6 +222,7 @@ type ConstDecl struct {
 	Name     string
 	Type     Type
 	Value    Expression
+	IsPublic bool
 	StartPos Position
 	EndPos   Position
 }
@@ -269,6 +273,52 @@ func (t *TypeDecl) Pos() Position { return t.StartPos }
 func (t *TypeDecl) End() Position { return t.EndPos }
 func (t *TypeDecl) stmtNode()    {}
 func (t *TypeDecl) declNode()    {}
+
+// InterfaceDecl represents an interface declaration
+type InterfaceDecl struct {
+	Name           string
+	GenericParams  []*GenericParam
+	Methods        []*InterfaceMethod
+	IsPublic       bool
+	StartPos       Position
+	EndPos         Position
+}
+
+func (i *InterfaceDecl) Pos() Position { return i.StartPos }
+func (i *InterfaceDecl) End() Position { return i.EndPos }
+func (i *InterfaceDecl) stmtNode()    {}
+func (i *InterfaceDecl) declNode()    {}
+
+// InterfaceMethod represents a method signature in an interface
+type InterfaceMethod struct {
+	Name       string
+	Params     []*Parameter
+	ReturnType Type
+	StartPos   Position
+	EndPos     Position
+}
+
+// ImplBlock represents an implementation of an interface for a type
+type ImplBlock struct {
+	InterfaceName string
+	ForType       Type
+	Methods       []*FunctionDecl
+	StartPos      Position
+	EndPos        Position
+}
+
+func (i *ImplBlock) Pos() Position { return i.StartPos }
+func (i *ImplBlock) End() Position { return i.EndPos }
+func (i *ImplBlock) stmtNode()    {}
+func (i *ImplBlock) declNode()    {}
+
+// GenericParam represents a generic type parameter
+type GenericParam struct {
+	Name       string
+	Bounds     []string  // Interface bounds
+	StartPos   Position
+	EndPos     Position
+}
 
 // ReturnStmt represents a return statement
 type ReturnStmt struct {
@@ -380,6 +430,67 @@ type LoopAtStmt struct {
 func (l *LoopAtStmt) Pos() Position { return l.StartPos }
 func (l *LoopAtStmt) End() Position { return l.EndPos }
 func (l *LoopAtStmt) stmtNode()    {}
+
+// CaseStmt represents a case (pattern matching) statement
+type CaseStmt struct {
+	Expr     Expression
+	Arms     []*CaseArm
+	StartPos Position
+	EndPos   Position
+}
+
+func (c *CaseStmt) Pos() Position { return c.StartPos }
+func (c *CaseStmt) End() Position { return c.EndPos }
+func (c *CaseStmt) stmtNode()    {}
+
+// CaseArm represents a single arm of a case statement
+type CaseArm struct {
+	Pattern  Pattern
+	Body     Node // Can be Expression or BlockStmt
+	StartPos Position
+	EndPos   Position
+}
+
+func (c *CaseArm) Pos() Position { return c.StartPos }
+func (c *CaseArm) End() Position { return c.EndPos }
+
+// Pattern represents a pattern in pattern matching
+type Pattern interface {
+	Node
+	patternNode()
+}
+
+// IdentifierPattern represents an identifier pattern (including enum variants)
+type IdentifierPattern struct {
+	Name     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (i *IdentifierPattern) Pos() Position { return i.StartPos }
+func (i *IdentifierPattern) End() Position { return i.EndPos }
+func (i *IdentifierPattern) patternNode() {}
+
+// LiteralPattern represents a literal pattern
+type LiteralPattern struct {
+	Value    Expression // NumberLiteral, StringLiteral, BooleanLiteral, etc.
+	StartPos Position
+	EndPos   Position
+}
+
+func (l *LiteralPattern) Pos() Position { return l.StartPos }
+func (l *LiteralPattern) End() Position { return l.EndPos }
+func (l *LiteralPattern) patternNode() {}
+
+// WildcardPattern represents the wildcard pattern (_)
+type WildcardPattern struct {
+	StartPos Position
+	EndPos   Position
+}
+
+func (w *WildcardPattern) Pos() Position { return w.StartPos }
+func (w *WildcardPattern) End() Position { return w.EndPos }
+func (w *WildcardPattern) patternNode() {}
 
 // ExpressionStmt represents an expression used as a statement
 type ExpressionStmt struct {
@@ -625,6 +736,17 @@ type StringLiteral struct {
 func (s *StringLiteral) Pos() Position { return s.StartPos }
 func (s *StringLiteral) End() Position { return s.EndPos }
 func (s *StringLiteral) exprNode()    {}
+
+// ArrayInitializer represents an array initializer expression with {...} syntax
+type ArrayInitializer struct {
+	Elements []Expression
+	StartPos Position
+	EndPos   Position
+}
+
+func (a *ArrayInitializer) Pos() Position { return a.StartPos }
+func (a *ArrayInitializer) End() Position { return a.EndPos }
+func (a *ArrayInitializer) exprNode()    {}
 
 // CastExpr represents a type cast expression (e.g., value as Type)
 type CastExpr struct {

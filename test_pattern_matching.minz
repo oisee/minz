@@ -1,0 +1,26 @@
+// Test basic pattern matching for enums
+
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+fun turn_right(dir: Direction) -> Direction {
+    case dir {
+        Direction.North => Direction.East,
+        Direction.East => Direction.South,
+        Direction.South => Direction.West,
+        Direction.West => Direction.North,
+    }
+}
+
+fun main() -> void {
+    let dir = Direction.North;
+    let new_dir = turn_right(dir);
+    
+    @print("Started facing North, turned right, now facing: ");
+    @print(new_dir);
+    @print("\n");
+}

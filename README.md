@@ -4,17 +4,45 @@
 
 MinZ is a revolutionary systems programming language that delivers **unprecedented performance** for Z80-based computers. Combining cutting-edge compiler theory with Z80-native optimizations, MinZ achieves **hand-optimized assembly performance** automatically.
 
-## 🏆 **v0.4.1 "Compiler Maturity" - STABLE RELEASE**
+## 🏆 **v0.6.0 "Pattern Matching Revolution" - LATEST RELEASE**
 
-**Building on v0.4.0's revolutionary SMC + Tail Recursion breakthrough!**
+**Revolutionary pattern matching transforms state machines and control flow on Z80!**
 
-### 📅 **Latest Release (2025-07-29)**
-- **🎯 NEW**: **Built-in Functions** - `print()`, `len()`, `memcpy()`, `memset()` as compiler intrinsics
-- **📈 Compilation Success**: **66/120 examples (55%)** compile successfully (+8.3% improvement)
-- **✨ Language Features**: Mutable variables (`let mut`), pointer dereference assignment
-- **🔧 Parser Fixes**: Tree-sitter integration improvements, better error messages
-- **🚀 Code Generation**: All IR opcodes properly implemented, improved debugging
-- **💪 Type System**: Enhanced array-to-pointer conversions, better type checking
+### 📅 **Latest Release (2025-01-30)**
+- **🎯 NEW**: **Pattern Matching** - Modern `case` expressions with exhaustive enum matching
+- **🎉 NEW**: **Array Initializers** - Clean `{1, 2, 3}` syntax for array initialization
+- **🔥 NEW**: **Module System Overhaul** - File-based modules with smart import resolution
+- **✨ Language Features**: Wildcard patterns (`_`), nested pattern matching, literal patterns
+- **📈 State Machine Support**: Traffic lights, protocols, parsers - all elegantly expressible
+- **⚡ Zero-Cost Abstraction**: Pattern matching compiles to optimal jump tables
+
+### 🎨 **Pattern Matching Examples**
+
+```minz
+// Elegant state machines with pattern matching
+fun transition(state: TrafficState, event: Event) -> TrafficState {
+    case state {
+        TrafficState.Red => {
+            case event {
+                Event.Timer => TrafficState.Green,
+                Event.Emergency => TrafficState.Flashing,
+                _ => TrafficState.Red,
+            }
+        },
+        TrafficState.Green => {
+            case event {
+                Event.Timer => TrafficState.Yellow,
+                _ => TrafficState.Green,
+            }
+        },
+        // ... crystal clear state logic
+    }
+}
+
+// Array initialization made simple
+let data = {1, 2, 3, 4, 5};
+let matrix = {{1, 0}, {0, 1}};
+```
 
 ### ⚡ **Revolutionary Performance Features**
 
@@ -77,9 +105,15 @@ memset(buffer, 0, 256);   // Efficient memory clear
 - `len()`: 2.9x faster, compile-time optimization
 - `memcpy()`: 2.1x faster than manual loops
 
-### 📦 Previous Stable: v0.3.2 "Memory Matters"
-**[Download v0.3.2](https://github.com/oisee/minz/releases/tag/v0.3.2)**
+### 📦 Previous Releases
 
+#### v0.4.1 "Compiler Maturity" (2025-07-29)
+- **Built-in Functions** - `print()`, `len()`, `memcpy()`, `memset()` as compiler intrinsics
+- **Compilation Success**: 66/120 examples (55%) compile successfully
+- **Language Features**: Mutable variables (`let mut`), pointer dereference assignment
+
+#### v0.3.2 "Memory Matters"
+**[Download v0.3.2](https://github.com/oisee/minz/releases/tag/v0.3.2)**
 - ✨ **Global Variable Initializers** - Compile-time constant expressions
 - 🚀 **16-bit Arithmetic** - Full multiplication, shift operations
 - 🐛 **Critical Bug Fix** - Fixed local variable memory corruption
@@ -924,6 +958,7 @@ asm("ld ({0}), a" : : "r"(0x5800));
 ### Language Design & Future
 
 - **[Language Design Improvements](docs/008_language-design-improvements.md)** - Planned enhancements and language evolution
+- **[Pattern Matching Revolution](minzc/docs/041_Pattern_Matching_Revolution.md)** - MinZ v0.6.0's pattern matching deep dive
 - **[MinZ Strategic Roadmap](minzc/docs/029_MinZ_Strategic_Roadmap.md)** - Long-term vision for MinZ ecosystem
 - **[Architecture Decision Records](minzc/docs/032_Architecture_Decision_Records.md)** - Key design decisions and their rationale
 
@@ -1071,10 +1106,22 @@ add_param_a:
 - [x] Modern "loop at" iterator syntax with SMC optimization
 - [x] DJNZ loop optimization for Z80-native performance
 - [x] Complete MNIST editor modernization and validation
+- [x] Pattern matching with exhaustive enum support
+- [x] Array initializers with {...} syntax
+- [x] Module system with file-based imports
+- [ ] Struct literals (partially implemented)
+- [ ] Pattern guards and bindings
 - [ ] Array element assignment (e.g., arr[i].field = value)
 - [ ] Iterator chaining and filtering
 - [ ] Inline assembly improvements
 - [ ] Advanced memory management
 - [ ] Debugger support
 - [ ] VS Code extension improvements
+
+### Future Advanced Features
+- [ ] **Dedicated State Machine Types** - Native syntax for state machines and finite automata
+- [ ] **Markov Chain Support** - Built-in probabilistic state transitions for AI and procedural generation
+- [ ] **Pattern Matching Extensions** - Guards, destructuring, and or-patterns
+- [ ] **Compile-Time Pattern Optimization** - Pattern reordering for performance
+- [ ] **Algebraic Data Types** - Full sum types with pattern exhaustiveness
 - [ ] Package manager

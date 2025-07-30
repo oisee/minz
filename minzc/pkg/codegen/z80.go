@@ -1657,22 +1657,14 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				// Generate TRUE SMC patching before call
 				g.generateTrueSMCCall(inst, targetFunc)
 			} else {
-				g.emit("    CALL %s", inst.Symbol)
+				// Use the full function name (including module prefix)
+				// Z80 assembler will handle the dots in the label
+				g.emit("    CALL %s", targetFunc.Name)
 			}
 		} else {
-			// Try with just the function name (without module prefix)
-			shortName := inst.Symbol
-			if idx := strings.LastIndex(inst.Symbol, "."); idx >= 0 {
-				shortName = inst.Symbol[idx+1:]
-			}
-			targetFunc = g.findFunction(shortName)
-			if targetFunc != nil && targetFunc.UsesTrueSMC {
-				// Generate TRUE SMC patching before call
-				g.generateTrueSMCCall(inst, targetFunc)
-			} else {
-				// Regular call
-				g.emit("    CALL %s", shortName)
-			}
+			// Function not found in current module - might be external
+			// Use the symbol as-is
+			g.emit("    CALL %s", inst.Symbol)
 		}
 		// Result is in HL
 		g.storeFromHL(inst.Dest)
@@ -2124,6 +2116,115 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    ; Load parameter %s", inst.Symbol)
 		// In the current implementation, parameters are loaded at function entry
 		// This instruction is just a marker - the actual load happens in prologue
+		
+	case ir.OpArrayInit:
+		// Initialize array
+		// The array will be allocated on the stack or in absolute memory
+		// This is just a marker, actual initialization happens with OpArrayElement
+		if inst.Type != nil {
+			if arrayType, ok := inst.Type.(*ir.ArrayType); ok {
+				g.emit("    ; Initialize array with %d elements", arrayType.Length)
+				// Allocate space for the array
+				// size := arrayType.Length * arrayType.Element.Size() // TODO: Use when allocating
+				if g.useAbsoluteLocals {
+					// For absolute locals, allocate space in memory
+					// Use the register allocator to track the memory location
+					// g.regAlloc.AllocateLocal(inst.Dest, int(size)) // TODO: Implement
+					addr := g.getAbsoluteAddr(inst.Dest)
+					g.emit("    ; Array allocated at $%04X", addr)
+					// Store the address in the register
+					g.emit("    LD HL, $%04X", addr)
+					g.storeFromHL(inst.Dest)
+				} else {
+					// Stack-based allocation
+					g.emit("    ; Array allocated on stack")
+					// Allocate space on the stack
+					// g.regAlloc.AllocateLocal(inst.Dest, int(size)) // TODO: Implement
+					offset := g.getLocalOffset(inst.Dest)
+					g.emit("    ; Array at IX%+d", offset)
+					// Calculate and store the address
+					g.emit("    PUSH IX")
+					g.emit("    POP HL")
+					g.emit("    LD DE, %d", offset)
+					g.emit("    ADD HL, DE")
+					g.storeFromHL(inst.Dest)
+				}
+			}
+		}
+		
+	case ir.OpArrayElement:
+		// Set array element during initialization
+		// Dest = array register, Src1 = element value, Imm = index
+		if g.useAbsoluteLocals {
+			// Load array base address
+			g.loadToHL(inst.Dest)
+			g.emit("    PUSH HL        ; Save array base")
+			
+			// Calculate offset for element
+			if inst.Type != nil && inst.Type.Size() == 2 {
+				// 16-bit elements
+				g.emit("    LD DE, %d", inst.Imm * 2)
+			} else {
+				// 8-bit elements (default)
+				g.emit("    LD DE, %d", inst.Imm)
+			}
+			g.emit("    ADD HL, DE     ; Calculate element address")
+			
+			// Store the value
+			if inst.Type != nil && inst.Type.Size() == 2 {
+				// Store 16-bit value
+				g.emit("    PUSH HL        ; Save element address")
+				g.loadToHL(inst.Src1)
+				g.emit("    EX DE, HL      ; Value in DE")
+				g.emit("    POP HL         ; Restore element address")
+				g.emit("    LD (HL), E")
+				g.emit("    INC HL")
+				g.emit("    LD (HL), D")
+			} else {
+				// Store 8-bit value
+				g.emit("    PUSH HL        ; Save element address")
+				g.loadToA(inst.Src1)
+				g.emit("    POP HL         ; Restore element address")
+				g.emit("    LD (HL), A")
+			}
+			
+			g.emit("    POP HL         ; Restore array base")
+		} else {
+			// Stack-based array
+			// Calculate the offset of the array element
+			baseOffset := g.getLocalOffset(inst.Dest)
+			elementOffset := baseOffset + int(inst.Imm) * int(inst.Type.Size())
+			
+			// Store the value
+			if inst.Type != nil && inst.Type.Size() == 2 {
+				// Store 16-bit value
+				g.loadToHL(inst.Src1)
+				g.emit("    LD (IX%+d), L", elementOffset)
+				g.emit("    LD (IX%+d), H", elementOffset+1)
+			} else {
+				// Store 8-bit value
+				g.loadToA(inst.Src1)
+				g.emit("    LD (IX%+d), A", elementOffset)
+			}
+		}
+		
+		// These cases are already handled above
+		if inst.Type != nil && inst.Type.Size() == 2 {
+			// Store 16-bit value
+			g.emit("    PUSH HL        ; Save field address")
+			g.loadToHL(inst.Src2)
+			g.emit("    EX DE, HL      ; Value in DE")
+			g.emit("    POP HL         ; Restore field address")
+			g.emit("    LD (HL), E")
+			g.emit("    INC HL")
+			g.emit("    LD (HL), D")
+		} else {
+			// Store 8-bit value
+			g.emit("    PUSH HL        ; Save field address")
+			g.loadToA(inst.Src2)
+			g.emit("    POP HL         ; Restore field address")
+			g.emit("    LD (HL), A")
+		}
 		
 	default:
 		return fmt.Errorf("unsupported opcode: %v (%d)", inst.Op, int(inst.Op))

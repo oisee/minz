@@ -219,6 +219,10 @@ func (p *Parser) convertDeclaration(node *SExpNode) ast.Declaration {
 		return p.convertTypeAlias(node)
 	case "lua_block":
 		return p.convertLuaBlock(node)
+	case "interface_declaration":
+		return p.convertInterfaceDecl(node)
+	case "impl_block":
+		return p.convertImplBlock(node)
 	}
 	return nil
 }
@@ -232,10 +236,18 @@ func (p *Parser) convertFunction(node *SExpNode) *ast.FunctionDecl {
 	
 	for _, child := range node.Children {
 		switch child.Type {
+		case "visibility":
+			if p.getNodeText(child) == "pub" {
+				fn.IsPublic = true
+			}
+		case "export":
+			fn.IsExport = true
 		case "identifier":
 			if fn.Name == "" {
 				fn.Name = p.getNodeText(child)
 			}
+		case "generic_parameters":
+			fn.GenericParams = p.convertGenericParameters(child)
 		case "parameter_list":
 			fn.Params = p.convertParameters(child)
 		case "return_type":
@@ -331,6 +343,8 @@ func (p *Parser) convertStatement(node *SExpNode) ast.Statement {
 		return p.convertWhileStmt(node)
 	case "for_statement":
 		return p.convertForStmt(node)
+	case "case_statement":
+		return p.convertCaseStmt(node)
 	case "expression_statement":
 		return p.convertExpressionStmt(node)
 	case "assignment_statement":
@@ -364,6 +378,10 @@ func (p *Parser) convertVarDecl(node *SExpNode) *ast.VarDecl {
 	
 	for _, child := range node.Children {
 		switch child.Type {
+		case "visibility":
+			if p.getNodeText(child) == "pub" {
+				varDecl.IsPublic = true
+			}
 		case "identifier":
 			if varDecl.Name == "" {
 				varDecl.Name = p.getNodeText(child)
@@ -379,6 +397,12 @@ func (p *Parser) convertVarDecl(node *SExpNode) *ast.VarDecl {
 }
 
 func (p *Parser) convertType(node *SExpNode) ast.Type {
+	// If this is already a type node (e.g., primitive_type), handle it directly
+	if node.Type == "primitive_type" || node.Type == "type_identifier" || 
+	   node.Type == "array_type" || node.Type == "pointer_type" {
+		return p.convertTypeNode(node)
+	}
+	// Otherwise, it's a wrapper node with children
 	if len(node.Children) > 0 {
 		return p.convertTypeNode(node.Children[0])
 	}
@@ -789,23 +813,34 @@ func (p *Parser) convertParameters(node *SExpNode) []*ast.Parameter {
 	// Look for parameter nodes
 	for _, child := range node.Children {
 		if child.Type == "parameter" {
-			param := &ast.Parameter{
-				StartPos: child.StartPos,
-				EndPos:   child.EndPos,
-			}
-			
-			// Parse parameter children (identifier and type)
-			for _, pChild := range child.Children {
-				switch pChild.Type {
-				case "identifier":
-					param.Name = p.getNodeText(pChild)
-				case "type":
-					param.Type = p.convertType(pChild)
+			// Check if it's just "self"
+			if len(child.Children) == 0 && p.getNodeText(child) == "self" {
+				param := &ast.Parameter{
+					Name:     "self",
+					IsSelf:   true,
+					StartPos: child.StartPos,
+					EndPos:   child.EndPos,
 				}
-			}
-			
-			if param.Name != "" && param.Type != nil {
 				params = append(params, param)
+			} else {
+				param := &ast.Parameter{
+					StartPos: child.StartPos,
+					EndPos:   child.EndPos,
+				}
+				
+				// Parse parameter children (identifier and type)
+				for _, pChild := range child.Children {
+					switch pChild.Type {
+					case "identifier":
+						param.Name = p.getNodeText(pChild)
+					case "type":
+						param.Type = p.convertType(pChild)
+					}
+				}
+				
+				if param.Name != "" && param.Type != nil {
+					params = append(params, param)
+				}
 			}
 		}
 	}
@@ -891,6 +926,10 @@ func (p *Parser) convertConstDecl(node *SExpNode) *ast.ConstDecl {
 	
 	for _, child := range node.Children {
 		switch child.Type {
+		case "visibility":
+			if p.getNodeText(child) == "pub" {
+				constDecl.IsPublic = true
+			}
 		case "identifier":
 			constDecl.Name = p.getNodeText(child)
 		case "type":
@@ -1287,6 +1326,229 @@ func (p *Parser) convertImportStmt(node *SExpNode) *ast.ImportStmt {
 	}
 	
 	return imp
+}
+
+// convertCaseStmt converts a case statement
+func (p *Parser) convertCaseStmt(node *SExpNode) *ast.CaseStmt {
+	caseStmt := &ast.CaseStmt{
+		Arms:     []*ast.CaseArm{},
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	for _, child := range node.Children {
+		switch child.Type {
+		case "expression":
+			if caseStmt.Expr == nil {
+				caseStmt.Expr = p.convertExpression(child)
+			}
+		case "case_arm":
+			if arm := p.convertCaseArm(child); arm != nil {
+				caseStmt.Arms = append(caseStmt.Arms, arm)
+			}
+		}
+	}
+	
+	return caseStmt
+}
+
+// convertCaseArm converts a case arm
+func (p *Parser) convertCaseArm(node *SExpNode) *ast.CaseArm {
+	arm := &ast.CaseArm{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	for _, child := range node.Children {
+		switch child.Type {
+		case "pattern":
+			arm.Pattern = p.convertPattern(child)
+		case "expression":
+			arm.Body = p.convertExpression(child)
+		case "block":
+			arm.Body = p.convertBlock(child)
+		}
+	}
+	
+	return arm
+}
+
+// convertPattern converts a pattern
+func (p *Parser) convertPattern(node *SExpNode) ast.Pattern {
+	if len(node.Children) == 0 {
+		return nil
+	}
+	
+	child := node.Children[0]
+	switch child.Type {
+	case "_":
+		return &ast.WildcardPattern{
+			StartPos: child.StartPos,
+			EndPos:   child.EndPos,
+		}
+	case "field_expression":
+		// Parse field expression like Direction.North
+		obj := ""
+		field := ""
+		for _, fc := range child.Children {
+			if fc.Type == "postfix_expression" || fc.Type == "primary_expression" {
+				// This is the object part (Direction)
+				if obj == "" {
+					obj = p.getNodeText(fc)
+				}
+			} else if fc.Type == "identifier" {
+				// This is the field part (North)
+				field = p.getNodeText(fc)
+			}
+		}
+		return &ast.IdentifierPattern{
+			Name:     obj + "." + field,
+			StartPos: child.StartPos,
+			EndPos:   child.EndPos,
+		}
+	case "identifier":
+		return &ast.IdentifierPattern{
+			Name:     p.getNodeText(child),
+			StartPos: child.StartPos,
+			EndPos:   child.EndPos,
+		}
+	case "literal_pattern":
+		// Parse the nested literal
+		if len(child.Children) > 0 {
+			literal := child.Children[0]
+			return &ast.LiteralPattern{
+				Value:    p.convertExpression(literal),
+				StartPos: child.StartPos,
+				EndPos:   child.EndPos,
+			}
+		}
+	}
+	
+	return nil
+}
+
+// convertInterfaceDecl converts interface declaration from S-expression
+func (p *Parser) convertInterfaceDecl(node *SExpNode) *ast.InterfaceDecl {
+	decl := &ast.InterfaceDecl{
+		Methods:  []*ast.InterfaceMethod{},
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	for _, child := range node.Children {
+		switch child.Type {
+		case "visibility":
+			if p.getNodeText(child) == "pub" {
+				decl.IsPublic = true
+			}
+		case "identifier":
+			if decl.Name == "" {
+				decl.Name = p.getNodeText(child)
+			}
+		case "generic_parameters":
+			decl.GenericParams = p.convertGenericParameters(child)
+		case "interface_method":
+			method := p.convertInterfaceMethod(child)
+			if method != nil {
+				decl.Methods = append(decl.Methods, method)
+			}
+		}
+	}
+	
+	return decl
+}
+
+// convertInterfaceMethod converts interface method from S-expression
+func (p *Parser) convertInterfaceMethod(node *SExpNode) *ast.InterfaceMethod {
+	method := &ast.InterfaceMethod{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	for _, child := range node.Children {
+		switch child.Type {
+		case "identifier":
+			if method.Name == "" {
+				method.Name = p.getNodeText(child)
+			}
+		case "parameter_list":
+			method.Params = p.convertParameters(child)
+		case "return_type":
+			method.ReturnType = p.convertReturnType(child)
+		}
+	}
+	
+	return method
+}
+
+// convertGenericParameters converts generic parameters from S-expression
+func (p *Parser) convertGenericParameters(node *SExpNode) []*ast.GenericParam {
+	var params []*ast.GenericParam
+	
+	for _, child := range node.Children {
+		if child.Type == "generic_parameter" {
+			param := p.convertGenericParameter(child)
+			if param != nil {
+				params = append(params, param)
+			}
+		}
+	}
+	
+	return params
+}
+
+// convertGenericParameter converts a single generic parameter from S-expression
+func (p *Parser) convertGenericParameter(node *SExpNode) *ast.GenericParam {
+	param := &ast.GenericParam{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	var inBounds bool
+	for _, child := range node.Children {
+		switch child.Type {
+		case "identifier":
+			if !inBounds && param.Name == "" {
+				param.Name = p.getNodeText(child)
+			} else if inBounds {
+				param.Bounds = append(param.Bounds, p.getNodeText(child))
+			}
+		case ":":
+			inBounds = true
+		}
+	}
+	
+	return param
+}
+
+// convertImplBlock converts implementation block from S-expression
+func (p *Parser) convertImplBlock(node *SExpNode) *ast.ImplBlock {
+	impl := &ast.ImplBlock{
+		Methods:  []*ast.FunctionDecl{},
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// The structure is: identifier (interface name), type (implementing type), function_declaration(s)
+	for i, child := range node.Children {
+		switch child.Type {
+		case "identifier":
+			if i == 0 && impl.InterfaceName == "" {
+				impl.InterfaceName = p.getNodeText(child)
+			}
+		case "type":
+			if i == 1 && impl.ForType == nil {
+				impl.ForType = p.convertType(child)
+			}
+		case "function_declaration":
+			method := p.convertFunction(child)
+			if method != nil {
+				impl.Methods = append(impl.Methods, method)
+			}
+		}
+	}
+	
+	return impl
 }
 
 // Use the isAlpha and isDigit functions from simple_parser.go

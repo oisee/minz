@@ -1181,10 +1181,10 @@ func isAlnum(ch byte) bool {
 func isKeyword(s string) bool {
 	keywords := []string{
 		"fun", "let", "mut", "if", "else", "while", "for", "return",
-		"struct", "enum", "impl", "pub", "mod", "use", "import",
+		"struct", "enum", "impl", "interface", "pub", "mod", "use", "import",
 		"true", "false", "as", "module", "asm", "const", "type",
 		"loop", "into", "ref", "to", "indexed", "bits", "at",
-		"do", "times", "global",
+		"do", "times", "global", "self",
 	}
 	for _, kw := range keywords {
 		if s == kw {

@@ -1,0 +1,10 @@
+// Test module function IR generation
+import zx.screen as screen;
+
+fun main() -> void {
+    // Test calling a module function
+    let addr = screen.pixel_addr(10, 20);
+    @print("Pixel address: ");
+    @print(addr);
+    @print("\n");
+}

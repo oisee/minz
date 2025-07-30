@@ -66,6 +66,30 @@ type ModuleSymbol struct {
 
 func (m *ModuleSymbol) symbol() {}
 
+// InterfaceSymbol represents an interface
+type InterfaceSymbol struct {
+	Name    string
+	Methods map[string]*InterfaceMethod
+}
+
+func (i *InterfaceSymbol) symbol() {}
+
+// InterfaceMethod represents a method in an interface
+type InterfaceMethod struct {
+	Name       string
+	Params     []*ast.Parameter
+	ReturnType ir.Type
+}
+
+// ImplSymbol represents an implementation of an interface for a type
+type ImplSymbol struct {
+	InterfaceName string
+	TypeName      string
+	Methods       map[string]*FuncSymbol
+}
+
+func (i *ImplSymbol) symbol() {}
+
 // Scope represents a lexical scope
 type Scope struct {
 	parent  *Scope

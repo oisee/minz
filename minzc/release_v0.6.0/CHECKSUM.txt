@@ -1,0 +1,8 @@
+SHA256 Checksum for MinZ v0.6.0 Release
+=======================================
+
+minz_v0.6.0_release.tar.gz:
+e604553a591e4c55073cbcf98eb88ca415ee989009d3392db083b06353ef250a
+
+To verify:
+shasum -a 256 -c CHECKSUM.txt

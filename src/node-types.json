@@ -30,6 +30,21 @@
     }
   },
   {
+    "type": "array_initializer",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "array_literal",
     "named": true,
     "fields": {},
@@ -571,6 +586,10 @@
         {
           "type": "type",
           "named": true
+        },
+        {
+          "type": "visibility",
+          "named": true
         }
       ]
     }
@@ -602,6 +621,14 @@
         },
         {
           "type": "function_declaration",
+          "named": true
+        },
+        {
+          "type": "impl_block",
+          "named": true
+        },
+        {
+          "type": "interface_declaration",
           "named": true
         },
         {
@@ -853,6 +880,10 @@
           "named": true
         },
         {
+          "type": "generic_parameters",
+          "named": true
+        },
+        {
           "type": "identifier",
           "named": true
         },
@@ -891,6 +922,36 @@
     }
   },
   {
+    "type": "generic_parameter",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "generic_parameters",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "generic_parameter",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "if_statement",
     "named": true,
     "fields": {},
@@ -908,6 +969,29 @@
         },
         {
           "type": "if_statement",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "impl_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "function_declaration",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "type",
           "named": true
         }
       ]
@@ -995,6 +1079,56 @@
         },
         {
           "type": "string_literal",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "interface_declaration",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "generic_parameters",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "interface_method",
+          "named": true
+        },
+        {
+          "type": "visibility",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "interface_method",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "parameter_list",
+          "named": true
+        },
+        {
+          "type": "return_type",
           "named": true
         }
       ]
@@ -1133,7 +1267,7 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "identifier",
@@ -1184,6 +1318,10 @@
       "multiple": false,
       "required": false,
       "types": [
+        {
+          "type": "field_expression",
+          "named": true
+        },
         {
           "type": "identifier",
           "named": true
@@ -1255,6 +1393,10 @@
       "types": [
         {
           "type": "alignof_expression",
+          "named": true
+        },
+        {
+          "type": "array_initializer",
           "named": true
         },
         {
@@ -1676,6 +1818,10 @@
         {
           "type": "type",
           "named": true
+        },
+        {
+          "type": "visibility",
+          "named": true
         }
       ]
     }
@@ -1981,11 +2127,19 @@
     "named": false
   },
   {
+    "type": "impl",
+    "named": false
+  },
+  {
     "type": "import",
     "named": false
   },
   {
     "type": "in",
+    "named": false
+  },
+  {
+    "type": "interface",
     "named": false
   },
   {
@@ -2014,6 +2168,10 @@
   },
   {
     "type": "return",
+    "named": false
+  },
+  {
+    "type": "self",
     "named": false
   },
   {

@@ -281,6 +281,10 @@ func (p *Parser) parseVarDecl(node map[string]interface{}) *ast.VarDecl {
 		text := p.getText(childNode)
 		
 		switch nodeType {
+		case "visibility":
+			if text == "pub" {
+				varDecl.IsPublic = true
+			}
 		case "var":
 			varDecl.IsMutable = true
 		case "let":
@@ -345,6 +349,10 @@ func (p *Parser) parseConstDecl(node map[string]interface{}) *ast.ConstDecl {
 		nodeType, _ := childNode["type"].(string)
 		
 		switch nodeType {
+		case "visibility":
+			if p.getText(childNode) == "pub" {
+				constDecl.IsPublic = true
+			}
 		case "identifier":
 			constDecl.Name = p.getText(childNode)
 		case "type":
@@ -588,6 +596,8 @@ func (p *Parser) parseStatement(node map[string]interface{}) ast.Statement {
 		return p.parseIfStmt(node)
 	case "while_statement":
 		return p.parseWhileStmt(node)
+	case "case_statement":
+		return p.parseCaseStmt(node)
 	case "variable_declaration":
 		return p.parseVarDecl(node)
 	case "expression_statement":
@@ -737,6 +747,10 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 			StartPos: p.getPosition(node, "startPosition"),
 			EndPos:   p.getPosition(node, "endPosition"),
 		}
+	case "array_literal":
+		return p.parseArrayLiteral(node)
+	case "array_initializer":
+		return p.parseArrayInitializer(node)
 	case "binary_expression":
 		return p.parseBinaryExpr(node)
 	case "unary_expression":
@@ -1044,6 +1058,35 @@ func (p *Parser) parseStructLiteral(node map[string]interface{}) *ast.StructLite
 	return structLit
 }
 
+// parseArrayLiteral parses an array literal with [...] syntax
+func (p *Parser) parseArrayLiteral(node map[string]interface{}) *ast.ArrayInitializer {
+	arrayLit := &ast.ArrayInitializer{
+		Elements: []ast.Expression{},
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		if nodeType == "expression" {
+			if expr := p.parseExpression(childNode); expr != nil {
+				arrayLit.Elements = append(arrayLit.Elements, expr)
+			}
+		}
+	}
+	
+	return arrayLit
+}
+
+// parseArrayInitializer parses an array initializer with {...} syntax
+func (p *Parser) parseArrayInitializer(node map[string]interface{}) *ast.ArrayInitializer {
+	// Array initializers have the same structure as array literals
+	return p.parseArrayLiteral(node)
+}
+
 // parseFieldInit parses a field initialization in a struct literal
 func (p *Parser) parseFieldInit(node map[string]interface{}) *ast.FieldInit {
 	fieldInit := &ast.FieldInit{}
@@ -1214,4 +1257,116 @@ func (p *Parser) getPosition(node map[string]interface{}, key string) ast.Positi
 	}
 	
 	return pos
+}
+
+// parseCaseStmt parses a case statement
+func (p *Parser) parseCaseStmt(node map[string]interface{}) *ast.CaseStmt {
+	caseStmt := &ast.CaseStmt{
+		Arms:     []*ast.CaseArm{},
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "expression":
+			if caseStmt.Expr == nil {
+				caseStmt.Expr = p.parseExpression(childNode)
+			}
+		case "case_arm":
+			if arm := p.parseCaseArm(childNode); arm != nil {
+				caseStmt.Arms = append(caseStmt.Arms, arm)
+			}
+		}
+	}
+	
+	return caseStmt
+}
+
+// parseCaseArm parses a case arm
+func (p *Parser) parseCaseArm(node map[string]interface{}) *ast.CaseArm {
+	arm := &ast.CaseArm{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "pattern":
+			arm.Pattern = p.parsePattern(childNode)
+		case "expression":
+			arm.Body = p.parseExpression(childNode)
+		case "block":
+			arm.Body = p.parseBlock(childNode)
+		}
+	}
+	
+	return arm
+}
+
+// parsePattern parses a pattern
+func (p *Parser) parsePattern(node map[string]interface{}) ast.Pattern {
+	children, _ := node["children"].([]interface{})
+	if len(children) == 0 {
+		return nil
+	}
+	
+	childNode, _ := children[0].(map[string]interface{})
+	nodeType, _ := childNode["type"].(string)
+	
+	switch nodeType {
+	case "_":
+		return &ast.WildcardPattern{
+			StartPos: p.getPosition(childNode, "startPosition"),
+			EndPos:   p.getPosition(childNode, "endPosition"),
+		}
+	case "field_expression":
+		// Parse field expression like Direction.North
+		obj := ""
+		field := ""
+		fieldChildren, _ := childNode["children"].([]interface{})
+		for _, fc := range fieldChildren {
+			fcNode, _ := fc.(map[string]interface{})
+			fcType, _ := fcNode["type"].(string)
+			if fcType == "identifier" {
+				if obj == "" {
+					obj = p.getText(fcNode)
+				} else {
+					field = p.getText(fcNode)
+				}
+			}
+		}
+		return &ast.IdentifierPattern{
+			Name:     obj + "." + field,
+			StartPos: p.getPosition(childNode, "startPosition"),
+			EndPos:   p.getPosition(childNode, "endPosition"),
+		}
+	case "identifier":
+		return &ast.IdentifierPattern{
+			Name:     p.getText(childNode),
+			StartPos: p.getPosition(childNode, "startPosition"),
+			EndPos:   p.getPosition(childNode, "endPosition"),
+		}
+	case "literal_pattern":
+		// Parse the nested literal
+		literalChildren, _ := childNode["children"].([]interface{})
+		if len(literalChildren) > 0 {
+			literal, _ := literalChildren[0].(map[string]interface{})
+			return &ast.LiteralPattern{
+				Value:    p.parseExpression(literal),
+				StartPos: p.getPosition(childNode, "startPosition"),
+				EndPos:   p.getPosition(childNode, "endPosition"),
+			}
+		}
+	}
+	
+	return nil
 }

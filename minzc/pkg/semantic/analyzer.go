@@ -27,6 +27,7 @@ type Analyzer struct {
 	errors                []error
 	module                *ir.Module
 	moduleResolver        ModuleResolver
+	moduleLoader          *ModuleLoader
 	currentFile           string
 	currentModule         string // Current module name for prefixing
 	luaEvaluator          *meta.LuaEvaluator
@@ -41,6 +42,7 @@ func NewAnalyzer() *Analyzer {
 		currentScope:  NewScope(nil),
 		errors:        []error{},
 		module:        ir.NewModule("main"),
+		moduleLoader:  NewModuleLoader(),
 		functionCalls: make(map[string][]string),
 		exprTypes:     make(map[ast.Expression]ir.Type),
 		luaEvaluator: meta.NewLuaEvaluator(),
@@ -102,6 +104,11 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		case *ast.LuaBlock:
 			// Process Lua blocks early so functions defined in them are available
 			if err := a.analyzeLuaBlock(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
+		case *ast.InterfaceDecl:
+			// Register interfaces early so they can be used in impl blocks
+			if err := a.analyzeInterfaceDecl(d); err != nil {
 				a.errors = append(a.errors, err)
 			}
 		}
@@ -233,28 +240,167 @@ func (a *Analyzer) addBuiltins() {
 
 // processImport processes an import statement
 func (a *Analyzer) processImport(imp *ast.ImportStmt) error {
-	// For the simple prefix-based approach, we register known modules
-	// In a real implementation, this would load and parse the module file
-	
 	moduleName := imp.Path
 	
-	// Handle known standard library modules
-	if moduleName == "zx.screen" || moduleName == "screen" {
-		// Add screen module functions with module prefix
-		a.registerScreenModule()
-	} else if moduleName == "zx.input" || moduleName == "input" {
-		// Add input module functions
-		a.registerInputModule()
-	} else if moduleName == "zx.io" || moduleName == "io" {
-		// Add I/O module functions
-		a.registerIOModule()
-	} else {
-		// Unknown module
-		return fmt.Errorf("unknown module: %s", moduleName)
+	
+	// Try to load the module from file
+	loadedModule, err := a.moduleLoader.LoadModule(moduleName)
+	if err != nil {
+		// Fall back to hardcoded modules for backward compatibility
+		if moduleName == "zx.screen" || moduleName == "screen" {
+			a.registerScreenModule()
+			return nil
+		} else if moduleName == "zx.input" || moduleName == "input" {
+			a.registerInputModule()
+			return nil
+		} else if moduleName == "zx.io" || moduleName == "io" {
+			a.registerIOModule()
+			return nil
+		}
+		return fmt.Errorf("failed to load module %s: %w", moduleName, err)
 	}
 	
-	// If there's an alias, we need to handle identifier resolution differently
-	// For now, we'll just note the import
+	// Process the loaded module
+	if err := a.processLoadedModule(loadedModule, imp); err != nil {
+		return fmt.Errorf("failed to process module %s: %w", moduleName, err)
+	}
+	
+	return nil
+}
+
+// processLoadedModule analyzes a loaded module and registers its exports
+func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt) error {
+	// Determine the module prefix for symbols
+	modulePrefix := imp.Path
+	if imp.Alias != "" {
+		modulePrefix = imp.Alias
+	} else {
+		// Use the last part of the module path as the default prefix
+		// e.g., "zx.screen" -> "screen"
+		parts := strings.Split(imp.Path, ".")
+		modulePrefix = parts[len(parts)-1]
+	}
+	
+	// Register the module itself
+	a.currentScope.Define(modulePrefix, &ModuleSymbol{
+		Name: modulePrefix,
+	})
+	
+	// Save current module context
+	prevModule := a.currentModule
+	a.currentModule = module.Name
+	defer func() { a.currentModule = prevModule }()
+	
+	// First pass: register all exported symbols
+	for _, item := range module.File.Declarations {
+		switch decl := item.(type) {
+		case *ast.FunctionDecl:
+			if decl.IsPublic || decl.IsExport {
+				// Register exported function
+				fnName := modulePrefix + "." + decl.Name
+				returnType, err := a.convertType(decl.ReturnType)
+				if err != nil {
+					return fmt.Errorf("invalid return type for function %s: %w", decl.Name, err)
+				}
+				
+				
+				a.currentScope.Define(fnName, &FuncSymbol{
+					Name:       fnName,
+					ReturnType: returnType,
+					Params:     decl.Params,
+				})
+			}
+		case *ast.ConstDecl:
+			if decl.IsPublic {
+				// Register exported constant
+				constName := modulePrefix + "." + decl.Name
+				constType, err := a.convertType(decl.Type)
+				if err != nil {
+					return fmt.Errorf("invalid type for constant %s: %w", decl.Name, err)
+				}
+				
+				// For now, we can't evaluate the value without full analysis
+				// So we'll just register the type
+				a.currentScope.Define(constName, &ConstSymbol{
+					Name: constName,
+					Type: constType,
+				})
+			}
+		case *ast.VarDecl:
+			if decl.IsPublic {
+				// Register exported variable
+				varName := modulePrefix + "." + decl.Name
+				varType, err := a.convertType(decl.Type)
+				if err != nil {
+					return fmt.Errorf("invalid type for variable %s: %w", decl.Name, err)
+				}
+				
+				a.currentScope.Define(varName, &VarSymbol{
+					Name: varName,
+					Type: varType,
+				})
+			}
+		}
+	}
+	
+	// Second pass: analyze all module declarations (constants, types, etc.)
+	// This ensures that module functions can reference module-level symbols
+	for _, decl := range module.File.Declarations {
+		switch d := decl.(type) {
+		case *ast.ConstDecl:
+			// Analyze all constants (not just public ones) so functions can use them
+			if err := a.analyzeConstDecl(d); err != nil {
+				// Log warning but continue
+				fmt.Printf("Warning: failed to analyze constant %s: %v\n", d.Name, err)
+			}
+		case *ast.VarDecl:
+			// Analyze all variables
+			if err := a.analyzeVarDecl(d); err != nil {
+				// Log warning but continue
+				fmt.Printf("Warning: failed to analyze variable %s: %v\n", d.Name, err)
+			}
+		case *ast.StructDecl:
+			// Analyze struct types
+			if err := a.analyzeStructDecl(d); err != nil {
+				// Log warning but continue
+				fmt.Printf("Warning: failed to analyze struct %s: %v\n", d.Name, err)
+			}
+		case *ast.EnumDecl:
+			// Analyze enum types
+			if err := a.analyzeEnumDecl(d); err != nil {
+				// Log warning but continue
+				fmt.Printf("Warning: failed to analyze enum %s: %v\n", d.Name, err)
+			}
+		}
+	}
+	
+	// Third pass: analyze exported functions to generate IR
+	for _, item := range module.File.Declarations {
+		switch decl := item.(type) {
+		case *ast.FunctionDecl:
+			if decl.IsPublic || decl.IsExport {
+				// Register the function in the symbol table first
+				fnSym := a.currentScope.Lookup(modulePrefix + "." + decl.Name)
+				if fnSym == nil {
+					fmt.Printf("Warning: function %s.%s not found in symbol table\n", modulePrefix, decl.Name)
+					continue
+				}
+				
+				// Create a copy of the function decl with prefixed name
+				// This ensures the IR function has the correct qualified name
+				prefixedDecl := *decl
+				prefixedDecl.Name = modulePrefix + "." + decl.Name
+				
+				// Analyze the function to generate IR
+				if err := a.analyzeFunctionDecl(&prefixedDecl); err != nil {
+					// Skip functions that fail to analyze (e.g., due to inline assembly)
+					// but still allow the module to load
+					fmt.Printf("Warning: skipping function %s due to analysis error: %v\n", decl.Name, err)
+					continue
+				}
+			}
+		}
+	}
 	
 	return nil
 }
@@ -532,6 +678,12 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 	case *ast.LuaBlock:
 		// Process Lua block
 		return a.analyzeLuaBlock(d)
+	case *ast.InterfaceDecl:
+		// Already processed in first pass
+		return nil
+	case *ast.ImplBlock:
+		// Process implementation blocks
+		return a.analyzeImplBlock(d)
 	default:
 		return fmt.Errorf("unsupported declaration type: %T", decl)
 	}
@@ -547,7 +699,11 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 	}
 
 	// Get prefixed name
-	prefixedName := a.prefixSymbol(fn.Name)
+	prefixedName := fn.Name
+	// Only add prefix if the name doesn't already contain a dot (module prefix)
+	if !strings.Contains(fn.Name, ".") {
+		prefixedName = a.prefixSymbol(fn.Name)
+	}
 	
 	// Register function in global scope with prefixed name
 	a.currentScope.Define(prefixedName, &FuncSymbol{
@@ -582,7 +738,11 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	}
 
 	// Get prefixed name
-	prefixedName := a.prefixSymbol(fn.Name)
+	prefixedName := fn.Name
+	// Only add prefix if the name doesn't already contain a dot (module prefix)
+	if !strings.Contains(fn.Name, ".") {
+		prefixedName = a.prefixSymbol(fn.Name)
+	}
 	
 	// Create IR function with prefixed name
 	irFunc := ir.NewFunction(prefixedName, funcSym.ReturnType)
@@ -1053,6 +1213,8 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 		return a.analyzeWhileStmt(s, irFunc)
 	case *ast.ForStmt:
 		return a.analyzeForStmt(s, irFunc)
+	case *ast.CaseStmt:
+		return a.analyzeCaseStmt(s, irFunc)
 	case *ast.BlockStmt:
 		return a.analyzeBlock(s, irFunc)
 	case *ast.AsmStmt:
@@ -1111,6 +1273,7 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 	if varType == nil {
 		return fmt.Errorf("variable %s must have either a type or an initial value", v.Name)
 	}
+	
 	
 
 	// Allocate register for variable
@@ -1173,8 +1336,90 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 				}
 			}
 			
-			// Store value in variable
-			irFunc.Emit(ir.OpStoreVar, reg, valueReg, 0)
+			// Check if this is an array initializer
+			if arrayInit, ok := v.Value.(*ast.ArrayInitializer); ok {
+				// Special handling for array initializers
+				// The array space should already be allocated for the variable
+				// Now we need to initialize each element
+				if arrayType, ok := varType.(*ir.ArrayType); ok {
+					// Generate element initialization code
+					for i, elem := range arrayInit.Elements {
+						// Analyze the element expression
+						elemReg, err := a.analyzeExpression(elem, irFunc)
+						if err != nil {
+							return fmt.Errorf("error analyzing array element %d: %w", i, err)
+						}
+						
+						// Generate code to store element at array[i]
+						// First, get the array base address
+						irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+							Op:      ir.OpLoadVar,
+							Dest:    irFunc.AllocReg(),
+							Symbol:  v.Name,
+							Type:    &ir.PointerType{Base: arrayType.Element},
+							Comment: fmt.Sprintf("Load array %s base address", v.Name),
+						})
+						baseReg := irFunc.LastAllocatedReg()
+						
+						// Calculate offset and store element
+						if i == 0 {
+							// First element - store directly
+							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+								Op:      ir.OpStoreIndex,
+								Dest:    baseReg,
+								Src1:    elemReg,
+								Imm:     0,
+								Type:    arrayType.Element,
+								Comment: fmt.Sprintf("Store element %d", i),
+							})
+						} else {
+							// Other elements - calculate offset
+							offsetReg := irFunc.AllocReg()
+							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+								Op:      ir.OpLoadConst,
+								Dest:    offsetReg,
+								Imm:     int64(i * int(arrayType.Element.Size())),
+								Type:    &ir.BasicType{Kind: ir.TypeU16},
+							})
+							
+							// Add offset to base
+							addrReg := irFunc.AllocReg()
+							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+								Op:      ir.OpAdd,
+								Dest:    addrReg,
+								Src1:    baseReg,
+								Src2:    offsetReg,
+								Type:    &ir.PointerType{Base: arrayType.Element},
+							})
+							
+							// Store element at calculated address
+							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+								Op:      ir.OpStoreDirect,
+								Dest:    addrReg,
+								Src1:    elemReg,
+								Type:    arrayType.Element,
+								Comment: fmt.Sprintf("Store element %d", i),
+							})
+						}
+					}
+				}
+			} else {
+				// Check if we're storing a struct literal
+				if structLit, ok := v.Value.(*ast.StructLiteral); ok {
+					// The struct literal returns a pointer to the struct
+					// But the variable should hold the struct value itself
+					// So we need to update the variable's type info
+					if structType, ok := a.exprTypes[structLit].(*ir.StructType); ok {
+						// Update the variable symbol with the correct type
+						if varSym, ok := a.currentScope.Lookup(v.Name).(*VarSymbol); ok {
+							varSym.Type = structType
+						}
+					}
+				}
+				
+				// Normal value assignment
+				irFunc.Emit(ir.OpStoreVar, reg, valueReg, 0)
+			}
 		}
 	}
 
@@ -1238,6 +1483,148 @@ func (a *Analyzer) analyzeIfStmt(ifStmt *ast.IfStmt, irFunc *ir.Function) error 
 	// End label
 	irFunc.EmitLabel(endLabel)
 
+	return nil
+}
+
+// analyzeCaseStmt analyzes a case statement (pattern matching)
+func (a *Analyzer) analyzeCaseStmt(caseStmt *ast.CaseStmt, irFunc *ir.Function) error {
+	// Analyze the expression to match against
+	exprReg, err := a.analyzeExpression(caseStmt.Expr, irFunc)
+	if err != nil {
+		return err
+	}
+	
+	// Get the type of the expression
+	exprType := a.exprTypes[caseStmt.Expr]
+	
+	// Generate labels for each arm and the end
+	endLabel := a.generateLabel("case_end")
+	armLabels := make([]string, len(caseStmt.Arms))
+	for i := range caseStmt.Arms {
+		armLabels[i] = a.generateLabel(fmt.Sprintf("case_arm_%d", i))
+	}
+	
+	// Generate comparison and jump code for each pattern
+	for i, arm := range caseStmt.Arms {
+		nextArmLabel := endLabel
+		if i < len(caseStmt.Arms)-1 {
+			nextArmLabel = armLabels[i+1]
+		}
+		
+		// Analyze the pattern and generate comparison
+		if err := a.analyzePattern(arm.Pattern, exprReg, exprType, armLabels[i], nextArmLabel, irFunc); err != nil {
+			return err
+		}
+	}
+	
+	// Generate code for each arm body
+	for i, arm := range caseStmt.Arms {
+		irFunc.EmitLabel(armLabels[i])
+		
+		// Analyze the arm body
+		switch body := arm.Body.(type) {
+		case ast.Expression:
+			// Expression body - just analyze it
+			_, err := a.analyzeExpression(body, irFunc)
+			if err != nil {
+				return err
+			}
+		case *ast.BlockStmt:
+			// Block body
+			if err := a.analyzeBlock(body, irFunc); err != nil {
+				return err
+			}
+		}
+		
+		// Jump to end (unless this is the last arm)
+		if i < len(caseStmt.Arms)-1 {
+			irFunc.EmitJump(endLabel)
+		}
+	}
+	
+	// End label
+	irFunc.EmitLabel(endLabel)
+	return nil
+}
+
+// analyzePattern analyzes a pattern and generates comparison code
+func (a *Analyzer) analyzePattern(pattern ast.Pattern, exprReg ir.Register, exprType ir.Type, 
+                                  matchLabel, nextLabel string, irFunc *ir.Function) error {
+	switch p := pattern.(type) {
+	case *ast.WildcardPattern:
+		// Wildcard pattern always matches - jump directly to arm
+		irFunc.EmitJump(matchLabel)
+		
+	case *ast.IdentifierPattern:
+		// For enum variants like Direction.North
+		if strings.Contains(p.Name, ".") {
+			// This is an enum variant
+			parts := strings.Split(p.Name, ".")
+			if len(parts) == 2 {
+				variantName := parts[1]
+				
+				// Look up the enum type and variant value
+				if enumType, ok := exprType.(*ir.EnumType); ok {
+					variantValue, exists := enumType.Variants[variantName]
+					if !exists {
+						return fmt.Errorf("unknown enum variant: %s in enum %s", variantName, enumType.Name)
+					}
+					
+					// Generate comparison: if (expr == variant_value) goto match_label
+					irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+						Op:   ir.OpEq,
+						Dest: irFunc.AllocReg(),
+						Src1: exprReg,
+						Imm:  int64(variantValue),
+					})
+					condReg := irFunc.LastAllocatedReg()
+					
+					irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+						Op:    ir.OpJumpIf,
+						Src1:  condReg,
+						Label: matchLabel,
+					})
+					
+					// If not equal, continue to next pattern
+					irFunc.EmitJump(nextLabel)
+				} else {
+					return fmt.Errorf("pattern %s is not an enum variant", p.Name)
+				}
+			}
+		} else {
+			// Simple identifier - treat as variable binding (not implemented yet)
+			return fmt.Errorf("variable binding patterns not implemented yet")
+		}
+		
+	case *ast.LiteralPattern:
+		// Compare against literal value
+		litReg, err := a.analyzeExpression(p.Value, irFunc)
+		if err != nil {
+			return err
+		}
+		
+		// Generate comparison
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpEq,
+			Dest: irFunc.AllocReg(),
+			Src1: exprReg,
+			Src2: litReg,
+		})
+		condReg := irFunc.LastAllocatedReg()
+		
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:    ir.OpJumpIf,
+			Src1:  condReg,
+			Label: matchLabel,
+		})
+		
+		// If not equal, continue to next pattern
+		irFunc.EmitJump(nextLabel)
+		
+	default:
+		return fmt.Errorf("unsupported pattern type: %T", pattern)
+	}
+	
 	return nil
 }
 
@@ -2187,6 +2574,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeLuaExpression(e, irFunc)
 	case *ast.StringLiteral:
 		return a.analyzeStringLiteral(e, irFunc)
+	case *ast.ArrayInitializer:
+		return a.analyzeArrayInitializer(e, irFunc)
 	case *ast.InlineAssembly:
 		// Inline assembly expressions
 		return a.analyzeInlineAssembly(e, irFunc)
@@ -2962,10 +3351,33 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		}
 		
 	case *ast.FieldExpr:
-		// Module function call (e.g., screen.set_pixel)
+		// Could be either:
+		// 1. Module function call (e.g., screen.set_pixel)
+		// 2. Type method call (e.g., u8.print)
 		if id, ok := fn.Object.(*ast.Identifier); ok {
 			funcName = id.Name + "." + fn.Field
 			sym = a.currentScope.Lookup(funcName)
+			
+			// If not found as module function, try as type method
+			if sym == nil {
+				// Check if id.Name is a type and fn.Field is a method
+				typeSym := a.currentScope.Lookup(id.Name)
+				if typeSym != nil {
+					if typeSymbol, ok := typeSym.(*TypeSymbol); ok {
+						// This is a Type.method() call
+						// We need to find the impl block that implements the method for this type
+						sym = a.findTypeMethod(typeSymbol.Type, fn.Field)
+						if sym == nil {
+							return 0, fmt.Errorf("type %s has no method %s", id.Name, fn.Field)
+						}
+						// Update funcName to the actual method name for proper function call
+						if funcSym, ok := sym.(*FuncSymbol); ok {
+							funcName = funcSym.Name
+						}
+					}
+				}
+			}
+			
 			if sym == nil {
 				return 0, fmt.Errorf("undefined function: %s", funcName)
 			}
@@ -3206,8 +3618,10 @@ func (a *Analyzer) analyzeStructLiteral(lit *ast.StructLiteral, irFunc *ir.Funct
 	// Allocate space for the struct
 	resultReg := irFunc.AllocReg()
 	
-	// TODO: Generate IR for struct allocation
-	// For now, just allocate on stack
+	// Store the type information for the result
+	a.exprTypes[lit] = structType
+	
+	// Generate IR for struct allocation
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:   ir.OpAlloc,
 		Dest: resultReg,
@@ -3369,6 +3783,7 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 	if objType == nil {
 		return 0, fmt.Errorf("cannot determine type of field object")
 	}
+	
 	
 	var structType *ir.StructType
 	var fieldType ir.Type
@@ -4532,6 +4947,258 @@ func (a *Analyzer) processAbiAttribute(attr *ast.Attribute, irFunc *ir.Function)
 		} else {
 			return fmt.Errorf("unsupported @abi value: %s", value)
 		}
+	}
+	return nil
+}
+
+// analyzeArrayInitializer analyzes an array initializer expression
+func (a *Analyzer) analyzeArrayInitializer(arr *ast.ArrayInitializer, irFunc *ir.Function) (ir.Register, error) {
+	// Allocate a register for the array
+	reg := irFunc.AllocReg()
+	
+	// If no elements, this is an empty array
+	if len(arr.Elements) == 0 {
+		// Store type info for empty array
+		a.exprTypes[arr] = &ir.ArrayType{
+			Element: &ir.BasicType{Kind: ir.TypeU8}, // Default to u8 for empty arrays
+			Length:  0,
+		}
+		return reg, nil
+	}
+	
+	// Analyze all elements to determine their types
+	elementRegs := make([]ir.Register, len(arr.Elements))
+	var elementType ir.Type
+	
+	for i, elem := range arr.Elements {
+		elemReg, err := a.analyzeExpression(elem, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("error analyzing array element %d: %w", i, err)
+		}
+		elementRegs[i] = elemReg
+		
+		// Get the type of the element
+		elemType := a.exprTypes[elem]
+		if elemType == nil {
+			return 0, fmt.Errorf("unable to determine type of array element %d", i)
+		}
+		
+		// For the first element, set the expected type
+		if i == 0 {
+			elementType = elemType
+		} else {
+			// Check type consistency
+			// TODO: Implement type compatibility check
+			if elementType.String() != elemType.String() {
+				return 0, fmt.Errorf("array element %d has incompatible type: expected %s, got %s", 
+					i, elementType.String(), elemType.String())
+			}
+		}
+	}
+	
+	// Create array type
+	arrayType := &ir.ArrayType{
+		Element: elementType,
+		Length:  len(arr.Elements),
+	}
+	
+	// Store the type
+	a.exprTypes[arr] = arrayType
+	
+	// Generate IR for array initialization
+	// This will be handled during code generation
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpArrayInit,
+		Dest:    reg,
+		Type:    arrayType,
+		Comment: fmt.Sprintf("Array initializer with %d elements", len(arr.Elements)),
+	})
+	
+	// Store element registers in metadata for code generation
+	for i, elemReg := range elementRegs {
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpArrayElement,
+			Dest:    reg,
+			Src1:    elemReg,
+			Imm:     int64(i),
+			Type:    elementType,
+			Comment: fmt.Sprintf("Initialize array[%d]", i),
+		})
+	}
+	
+	return reg, nil
+}
+
+// analyzeStringLiteral analyzes a string literal
+// Duplicate method removed - see line 3686
+
+// analyzeInterfaceDecl analyzes an interface declaration
+func (a *Analyzer) analyzeInterfaceDecl(decl *ast.InterfaceDecl) error {
+	// Create interface symbol
+	methods := make(map[string]*InterfaceMethod)
+	
+	for _, method := range decl.Methods {
+		// Convert parameter types
+		params := make([]*ast.Parameter, len(method.Params))
+		for i, p := range method.Params {
+			params[i] = p
+		}
+		
+		// Convert return type
+		returnType, err := a.convertType(method.ReturnType)
+		if err != nil {
+			return fmt.Errorf("invalid return type for method %s in interface %s: %w", 
+				method.Name, decl.Name, err)
+		}
+		
+		methods[method.Name] = &InterfaceMethod{
+			Name:       method.Name,
+			Params:     params,
+			ReturnType: returnType,
+		}
+	}
+	
+	// Get prefixed name
+	prefixedName := a.prefixSymbol(decl.Name)
+	
+	// Register interface in scope
+	interfaceSym := &InterfaceSymbol{
+		Name:    prefixedName,
+		Methods: methods,
+	}
+	
+	a.currentScope.Define(prefixedName, interfaceSym)
+	
+	// Also register without prefix for local access
+	if a.currentModule != "" && a.currentModule != "main" {
+		a.currentScope.Define(decl.Name, interfaceSym)
+	}
+	
+	return nil
+}
+
+// analyzeImplBlock analyzes an implementation block
+func (a *Analyzer) analyzeImplBlock(impl *ast.ImplBlock) error {
+	// Look up the interface
+	interfaceSym := a.currentScope.Lookup(impl.InterfaceName)
+	if interfaceSym == nil {
+		return fmt.Errorf("unknown interface: %s", impl.InterfaceName)
+	}
+	
+	iface, ok := interfaceSym.(*InterfaceSymbol)
+	if !ok {
+		return fmt.Errorf("%s is not an interface", impl.InterfaceName)
+	}
+	
+	// Get the implementing type
+	implType, err := a.convertType(impl.ForType)
+	if err != nil {
+		return fmt.Errorf("invalid type in impl block: %w", err)
+	}
+	
+	// Create implementation symbol
+	implSym := &ImplSymbol{
+		InterfaceName: impl.InterfaceName,
+		TypeName:      implType.String(),
+		Methods:       make(map[string]*FuncSymbol),
+	}
+	
+	// Process each method implementation
+	for _, method := range impl.Methods {
+		// Check if this method is required by the interface
+		ifaceMethod, ok := iface.Methods[method.Name]
+		if !ok {
+			return fmt.Errorf("method %s is not part of interface %s", method.Name, impl.InterfaceName)
+		}
+		
+		// Verify method signature matches interface
+		if len(method.Params) != len(ifaceMethod.Params) {
+			return fmt.Errorf("method %s has wrong number of parameters: expected %d, got %d", 
+				method.Name, len(ifaceMethod.Params), len(method.Params))
+		}
+		
+		// Check first parameter is 'self'
+		if len(method.Params) == 0 || !method.Params[0].IsSelf {
+			return fmt.Errorf("method %s must have 'self' as first parameter", method.Name)
+		}
+		
+		// For methods with 'self', we need to set the self parameter type
+		if len(method.Params) > 0 && method.Params[0].IsSelf {
+			// Set the type of 'self' to the implementing type
+			method.Params[0].Type = impl.ForType
+		}
+		
+		// Give the method a unique name based on the implementing type to avoid conflicts
+		implTypeIR, err := a.convertType(impl.ForType)
+		if err != nil {
+			return fmt.Errorf("invalid type in impl block: %w", err)
+		}
+		
+		// Create a unique method name for registration
+		originalMethodName := method.Name
+		uniqueMethodName := implTypeIR.String() + "." + originalMethodName
+		
+		// Register the method function with a unique name
+		returnType, err := a.convertType(method.ReturnType)
+		if err != nil {
+			return fmt.Errorf("invalid return type for method %s: %w", originalMethodName, err)
+		}
+		
+		methodSymbol := &FuncSymbol{
+			Name:       uniqueMethodName,
+			ReturnType: returnType,
+			Params:     method.Params,
+		}
+		
+		// Register in the current scope
+		a.currentScope.Define(uniqueMethodName, methodSymbol)
+		
+		// Temporarily change the method name for IR generation
+		method.Name = uniqueMethodName
+		
+		// Analyze the method as a regular function
+		if err := a.analyzeFunctionDecl(method); err != nil {
+			return fmt.Errorf("error analyzing method %s: %w", originalMethodName, err)
+		}
+		
+		// Restore original name but add to implementation with the unique function symbol
+		method.Name = originalMethodName
+		implSym.Methods[originalMethodName] = methodSymbol
+	}
+	
+	// Verify all interface methods are implemented
+	for methodName := range iface.Methods {
+		if _, ok := implSym.Methods[methodName]; !ok {
+			return fmt.Errorf("type %s does not implement method %s of interface %s", 
+				implType.String(), methodName, impl.InterfaceName)
+		}
+	}
+	
+	// Register the implementation
+	implKey := fmt.Sprintf("%s_for_%s", impl.InterfaceName, implType.String())
+	a.currentScope.Define(implKey, implSym)
+	
+	return nil
+}
+
+// findTypeMethod searches for a method implementation for the given type
+func (a *Analyzer) findTypeMethod(targetType ir.Type, methodName string) Symbol {
+	// Iterate through all symbols in the current scope to find impl blocks
+	// We need to check all scopes, not just current
+	scope := a.currentScope
+	for scope != nil {
+		for _, sym := range scope.symbols {
+			if implSym, ok := sym.(*ImplSymbol); ok {
+				// Check if this impl block is for the target type
+				if implSym.TypeName == targetType.String() {
+					// Check if this impl block has the requested method
+					if methodSym, exists := implSym.Methods[methodName]; exists {
+						return methodSym
+					}
+				}
+			}
+		}
+		scope = scope.parent
 	}
 	return nil
 }

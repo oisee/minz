@@ -1,0 +1,16 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_fn_syntax.test_fun() -> void
+  @smc
+  Instructions:
+      0: 81
+      1: 80
+      2: return
+
+Function ...test_fn_syntax.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_fun
+      1: return
+

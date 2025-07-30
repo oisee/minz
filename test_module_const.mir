@@ -1,0 +1,36 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_module_const.main() -> void
+  @smc
+  Locals:
+    r1 = black: u16
+    r3 = red: u16
+    r5 = green: u16
+  Instructions:
+      0: r2 = 0 ; Load constant screen.BLACK = 0
+      1: store , r2
+      2: r4 = 0 ; Load constant screen.RED = 0
+      3: store , r4
+      4: r6 = 0 ; Load constant screen.GREEN = 0
+      5: store , r6
+      6: 83
+      7: 82
+      8: r8 = load black
+      9: 78
+     10: 83
+     11: 82
+     12: 83
+     13: 82
+     14: r11 = load red
+     15: 78
+     16: 83
+     17: 82
+     18: 83
+     19: 82
+     20: r14 = load green
+     21: 78
+     22: 83
+     23: 82
+     24: return
+

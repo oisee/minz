@@ -124,6 +124,10 @@ const (
 	OpSetError      // Set carry flag and error code in A
 	OpCheckError    // Check carry flag for error
 	
+	// Array operations
+	OpArrayInit     // Initialize array
+	OpArrayElement  // Set array element during initialization
+	
 	// Arithmetic
 	OpAdd
 	OpSub
@@ -456,6 +460,11 @@ func (f *Function) AllocReg() Register {
 	reg := f.NextReg
 	f.NextReg++
 	return reg
+}
+
+// LastAllocatedReg returns the last allocated register
+func (f *Function) LastAllocatedReg() Register {
+	return f.NextReg - 1
 }
 
 // AddParam adds a parameter to the function

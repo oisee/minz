@@ -1,0 +1,56 @@
+// Test compile-time interfaces
+
+// Define a Printable interface
+interface Printable {
+    fun print(self) -> void;
+}
+
+// Implement Printable for u8
+impl Printable for u8 {
+    fun print(self) -> void {
+        @print(self);
+    }
+}
+
+// Implement Printable for u16
+impl Printable for u16 {
+    fun print(self) -> void {
+        @print(self);
+    }
+}
+
+// A struct
+struct Point {
+    x: u8,
+    y: u8,
+}
+
+// Implement Printable for Point
+impl Printable for Point {
+    fun print(self) -> void {
+        @print("Point(");
+        @print(self.x);
+        @print(", ");
+        @print(self.y);
+        @print(")");
+    }
+}
+
+// Generic function with interface bound
+fun debug<T: Printable>(value: T) -> void {
+    @print("Debug: ");
+    // For now, call print as a function
+    // value.print() will be implemented later
+    @print("\n");
+}
+
+fun main() -> void {
+    // Test basic interface implementation
+    let x: u8 = 42;
+    // debug(x);
+    
+    let p = Point{x: 10, y: 20};
+    // debug(p);
+    
+    @print("Interface test compiled!\n");
+}

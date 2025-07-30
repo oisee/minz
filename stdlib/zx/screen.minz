@@ -23,7 +23,7 @@ pub const BRIGHT: u8 = 0x40;
 pub const FLASH: u8 = 0x80;
 
 // Calculate screen address from pixel coordinates
-pub fn pixel_addr(x: u8, y: u8) -> u16 {
+pub fun pixel_addr(x: u8, y: u8) -> u16 {
     // ZX Spectrum screen memory layout
     let y_high: u8 = y & 0xC0;
     let y_mid: u8 = (y & 0x38) >> 3;
@@ -34,12 +34,12 @@ pub fn pixel_addr(x: u8, y: u8) -> u16 {
 }
 
 // Calculate attribute address from character coordinates
-pub fn attr_addr(x: u8, y: u8) -> u16 {
+pub fun attr_addr(x: u8, y: u8) -> u16 {
     return ATTR_ADDR + (y * 32) + x;
 }
 
 // Set border color
-pub fn set_border(color: u8) -> void {
+pub fun set_border(color: u8) -> void {
     asm("
         ld a, {0}
         out ($fe), a
@@ -47,7 +47,7 @@ pub fn set_border(color: u8) -> void {
 }
 
 // Clear screen with given attribute
-pub fn clear(ink: u8, paper: u8, bright: bool, flash: bool) -> void {
+pub fun clear(ink: u8, paper: u8, bright: bool, flash: bool) -> void {
     // Clear pixel data
     let mut addr: u16 = SCREEN_ADDR;
     let end: u16 = SCREEN_ADDR + 6144;
@@ -80,7 +80,7 @@ pub fn clear(ink: u8, paper: u8, bright: bool, flash: bool) -> void {
 }
 
 // Set pixel at coordinates
-pub fn set_pixel(x: u8, y: u8) -> void {
+pub fun set_pixel(x: u8, y: u8) -> void {
     let addr = pixel_addr(x, y);
     let bit: u8 = 0x80 >> (x & 0x07);
     
@@ -93,7 +93,7 @@ pub fn set_pixel(x: u8, y: u8) -> void {
 }
 
 // Clear pixel at coordinates
-pub fn clear_pixel(x: u8, y: u8) -> void {
+pub fun clear_pixel(x: u8, y: u8) -> void {
     let addr = pixel_addr(x, y);
     let bit: u8 = ~(0x80 >> (x & 0x07));
     
@@ -106,7 +106,7 @@ pub fn clear_pixel(x: u8, y: u8) -> void {
 }
 
 // Draw horizontal line
-pub fn draw_hline(x: u8, y: u8, len: u8) -> void {
+pub fun draw_hline(x: u8, y: u8, len: u8) -> void {
     let mut i: u8 = 0;
     while i < len {
         set_pixel(x + i, y);
@@ -115,7 +115,7 @@ pub fn draw_hline(x: u8, y: u8, len: u8) -> void {
 }
 
 // Draw vertical line
-pub fn draw_vline(x: u8, y: u8, len: u8) -> void {
+pub fun draw_vline(x: u8, y: u8, len: u8) -> void {
     let mut i: u8 = 0;
     while i < len {
         set_pixel(x, y + i);
@@ -124,7 +124,7 @@ pub fn draw_vline(x: u8, y: u8, len: u8) -> void {
 }
 
 // Draw rectangle
-pub fn draw_rect(x: u8, y: u8, width: u8, height: u8) -> void {
+pub fun draw_rect(x: u8, y: u8, width: u8, height: u8) -> void {
     draw_hline(x, y, width);
     draw_hline(x, y + height - 1, width);
     draw_vline(x, y, height);

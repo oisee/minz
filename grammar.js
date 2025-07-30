@@ -15,6 +15,8 @@ module.exports = grammar({
     [$.type_identifier, $.primary_expression],
     [$.case_arm, $.primary_expression],
     [$.array_type, $.array_literal],
+    [$.array_initializer, $.block],
+    [$.array_initializer, $.struct_literal],
   ],
 
   word: $ => $.identifier,
@@ -182,6 +184,8 @@ module.exports = grammar({
       $.type_alias,
       $.struct_declaration,
       $.enum_declaration,
+      $.interface_declaration,
+      $.impl_block,
       $.attributed_declaration,
       $.lua_block,
     ),
@@ -191,6 +195,7 @@ module.exports = grammar({
       optional('export'),
       'fun',
       $.identifier,
+      optional($.generic_parameters),
       '(',
       optional($.parameter_list),
       ')',
@@ -200,13 +205,17 @@ module.exports = grammar({
 
     parameter_list: $ => commaSep1($.parameter),
 
-    parameter: $ => seq(
-      $.identifier,
-      ':',
-      $.type,
+    parameter: $ => choice(
+      'self',  // self parameter for methods
+      seq(
+        $.identifier,
+        ':',
+        $.type,
+      )
     ),
 
     variable_declaration: $ => seq(
+      optional($.visibility),
       choice('let', 'var'),
       optional('mut'),
       $.identifier,
@@ -216,6 +225,7 @@ module.exports = grammar({
     ),
 
     constant_declaration: $ => seq(
+      optional($.visibility),
       'const',
       $.identifier,
       ':',
@@ -267,6 +277,47 @@ module.exports = grammar({
     ),
 
     visibility: $ => 'pub',
+
+    interface_declaration: $ => seq(
+      optional($.visibility),
+      'interface',
+      $.identifier,
+      optional($.generic_parameters),
+      '{',
+      repeat($.interface_method),
+      '}',
+    ),
+
+    interface_method: $ => seq(
+      'fun',
+      $.identifier,
+      '(',
+      optional($.parameter_list),
+      ')',
+      $.return_type,
+      ';',
+    ),
+
+    impl_block: $ => seq(
+      'impl',
+      $.identifier,  // interface name
+      'for',
+      $.type,        // implementing type
+      '{',
+      repeat($.function_declaration),
+      '}',
+    ),
+
+    generic_parameters: $ => seq(
+      '<',
+      commaSep1($.generic_parameter),
+      '>',
+    ),
+
+    generic_parameter: $ => seq(
+      $.identifier,
+      optional(seq(':', sep1($.identifier, '+')))  // trait bounds
+    ),
 
     attributed_declaration: $ => seq(
       $.attribute,
@@ -363,6 +414,7 @@ module.exports = grammar({
     ),
 
     pattern: $ => choice(
+      $.field_expression,
       $.identifier,
       $.literal_pattern,
       '_',
@@ -489,6 +541,7 @@ module.exports = grammar({
       $.char_literal,
       $.boolean_literal,
       $.array_literal,
+      $.array_initializer,
       $.struct_literal,
       $.tuple_literal,
       $.parenthesized_expression,
@@ -504,6 +557,12 @@ module.exports = grammar({
       '[',
       optional(commaSep1($.expression)),
       ']',
+    ),
+
+    array_initializer: $ => seq(
+      '{',
+      optional(commaSep1($.expression)),
+      '}',
     ),
 
     struct_literal: $ => seq(
