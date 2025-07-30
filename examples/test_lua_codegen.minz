@@ -1,0 +1,60 @@
+// Test Lua for code generation patterns
+
+@lua[[[
+-- Generate a series of constants programmatically
+function generate_powers_of_2()
+    local result = {}
+    for i = 0, 7 do
+        result[i] = math.pow(2, i)
+    end
+    return result
+end
+
+powers = generate_powers_of_2()
+
+-- Generate bit masks
+function bit_mask(bits)
+    return math.pow(2, bits) - 1
+end
+
+-- Screen memory addresses for ZX Spectrum
+SCREEN_BASE = 0x4000
+ATTR_BASE = 0x5800
+
+-- Calculate screen addresses
+function screen_addr(x, y)
+    -- ZX Spectrum screen memory layout
+    local third = math.floor(y / 64)
+    local line_in_third = y % 8
+    local char_row = math.floor((y % 64) / 8)
+    return SCREEN_BASE + (third * 2048) + (line_in_third * 256) + (char_row * 32) + math.floor(x / 8)
+end
+]]]
+
+// Use Lua-generated constants
+const POW_0: u8 = @lua(powers[0]);   // 1
+const POW_1: u8 = @lua(powers[1]);   // 2
+const POW_2: u8 = @lua(powers[2]);   // 4
+const POW_3: u8 = @lua(powers[3]);   // 8
+const POW_4: u8 = @lua(powers[4]);   // 16
+const POW_5: u8 = @lua(powers[5]);   // 32
+const POW_6: u8 = @lua(powers[6]);   // 64
+const POW_7: u8 = @lua(powers[7]);   // 128
+
+// Bit masks
+const MASK_3_BITS: u8 = @lua(bit_mask(3));   // 7
+const MASK_4_BITS: u8 = @lua(bit_mask(4));   // 15
+const MASK_5_BITS: u8 = @lua(bit_mask(5));   // 31
+
+// Screen addresses for specific positions
+const SCREEN_0_0: u16 = @lua(screen_addr(0, 0));      // Top-left
+const SCREEN_128_96: u16 = @lua(screen_addr(128, 96)); // Center
+
+fun main() -> void {
+    // All values were computed at compile time
+    let mask = MASK_4_BITS;
+    let power = POW_7;
+    let screen = SCREEN_0_0;
+    
+    return;
+}
