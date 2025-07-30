@@ -599,6 +599,7 @@ type LuaBlock struct {
 func (l *LuaBlock) Pos() Position { return l.StartPos }
 func (l *LuaBlock) End() Position { return l.EndPos }
 func (l *LuaBlock) stmtNode()     {}
+func (l *LuaBlock) declNode()     {} // LuaBlock can be a top-level declaration
 
 // LuaExpression represents @lua(...) compile-time Lua expression
 type LuaExpression struct {

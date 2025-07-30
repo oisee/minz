@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	
 	"github.com/minz/minzc/pkg/ast"
 )
@@ -118,8 +119,13 @@ func (p *SimpleParser) tokenizeLine(line string) {
 			continue
 		}
 		
-		// Identifiers and keywords
+		// Identifiers and keywords (including @lua)
 		if isAlpha(line[i]) || line[i] == '_' || line[i] == '@' {
+			// Special handling for @ tokens
+			if line[i] == '@' {
+				i++
+				p.col++
+			}
 			for i < len(line) && (isAlnum(line[i]) || line[i] == '_') {
 				i++
 				p.col++
@@ -275,6 +281,17 @@ func (p *SimpleParser) parseSourceFile(filename string) (*ast.File, error) {
 				}
 			default:
 				p.advance() // skip unknown keyword
+			}
+		} else if p.peek().Type == TokenIdent && p.peek().Value == "@lua" {
+			// Check if it's a @lua[[[ block
+			if p.peekAhead(1).Value == "[" && p.peekAhead(2).Value == "[" && p.peekAhead(3).Value == "[" {
+				block := p.parseLuaBlock()
+				if block != nil {
+					// LuaBlock implements both Statement and Declaration interfaces
+					file.Declarations = append(file.Declarations, block)
+				}
+			} else {
+				p.advance() // skip @lua without block
 			}
 		} else {
 			p.advance() // skip unknown token
@@ -793,6 +810,19 @@ func (p *SimpleParser) parsePrimaryExpression() ast.Expression {
 		return p.parseInlineAsmExpr()
 	}
 	
+	// Lua metaprogramming expression
+	if p.peek().Type == TokenIdent && p.peek().Value == "@lua" {
+		return p.parseLuaExpression()
+	}
+	
+	// Debug for testing
+	if p.pos < len(p.tokens) {
+		tok := p.peek()
+		if strings.HasPrefix(tok.Value, "@") {
+			fmt.Printf("DEBUG parsePrimary: Token type=%v value='%s' (looking for '@lua')\n", tok.Type, tok.Value)
+		}
+	}
+	
 	return nil
 }
 
@@ -825,6 +855,94 @@ func (p *SimpleParser) parseInlineAsmExpr() ast.Expression {
 	// Return as InlineAsmExpr for GCC-style inline assembly
 	return &ast.InlineAsmExpr{
 		Code:     code,
+		StartPos: startPos,
+		EndPos:   p.currentPos(),
+	}
+}
+
+// parseLuaExpression parses @lua(...) expressions
+func (p *SimpleParser) parseLuaExpression() ast.Expression {
+	startPos := p.currentPos()
+	p.advance() // consume '@lua'
+	
+	// Expect opening parenthesis
+	if p.peek().Value != "(" {
+		return nil
+	}
+	p.advance() // consume '('
+	
+	// Parse the Lua code - for now, just collect tokens until matching ')'
+	parenCount := 1
+	var codeTokens []string
+	
+	for parenCount > 0 && !p.isAtEnd() {
+		tok := p.peek()
+		if tok.Value == "(" {
+			parenCount++
+		} else if tok.Value == ")" {
+			parenCount--
+			if parenCount == 0 {
+				break
+			}
+		}
+		codeTokens = append(codeTokens, tok.Value)
+		p.advance()
+	}
+	
+	if parenCount != 0 {
+		return nil // Unmatched parentheses
+	}
+	
+	p.advance() // consume final ')'
+	
+	// Join tokens to form Lua code
+	code := strings.Join(codeTokens, " ")
+	
+	return &ast.LuaExpression{
+		Code:     code,
+		StartPos: startPos,
+		EndPos:   p.currentPos(),
+	}
+}
+
+// parseLuaBlock parses @lua[[[ ... ]]] blocks
+func (p *SimpleParser) parseLuaBlock() *ast.LuaBlock {
+	startPos := p.currentPos()
+	p.advance() // consume '@lua'
+	
+	// Expect triple brackets
+	if p.peek().Value != "[" || p.peekAhead(1).Value != "[" || p.peekAhead(2).Value != "[" {
+		return nil
+	}
+	p.advance() // consume first '['
+	p.advance() // consume second '['
+	p.advance() // consume third '['
+	
+	// Collect all tokens until ]]]
+	var codeBuilder strings.Builder
+	
+	for !p.isAtEnd() {
+		tok := p.peek()
+		
+		// Check for ]]]
+		if tok.Value == "]" && p.peekAhead(1).Value == "]" && p.peekAhead(2).Value == "]" {
+			// Found closing ]]]
+			p.advance() // consume first ']'
+			p.advance() // consume second ']'
+			p.advance() // consume third ']'
+			break
+		}
+		
+		// Add token to code
+		if codeBuilder.Len() > 0 && tok.Type != TokenPunc {
+			codeBuilder.WriteString(" ")
+		}
+		codeBuilder.WriteString(tok.Value)
+		p.advance()
+	}
+	
+	return &ast.LuaBlock{
+		Code:     codeBuilder.String(),
 		StartPos: startPos,
 		EndPos:   p.currentPos(),
 	}
@@ -966,6 +1084,13 @@ func (p *SimpleParser) peek() Token {
 		return Token{Type: TokenEOF}
 	}
 	return p.tokens[p.pos]
+}
+
+func (p *SimpleParser) peekAhead(offset int) Token {
+	if p.pos+offset >= len(p.tokens) {
+		return Token{Type: TokenEOF}
+	}
+	return p.tokens[p.pos+offset]
 }
 
 func (p *SimpleParser) advance() Token {
@@ -1421,7 +1546,18 @@ func (p *SimpleParser) parseConstDecl() *ast.ConstDecl {
 	
 	// Initializer (required for const)
 	p.expect(TokenOperator, "=")
+	
+	// Debug: check what token we have before parseExpression
+	if p.pos < len(p.tokens) {
+		fmt.Printf("DEBUG parseConstDecl: Before parseExpression, next token is type=%v value='%s'\n", p.peek().Type, p.peek().Value)
+	}
+	
 	constDecl.Value = p.parseExpression()
+	
+	// Debug: check result
+	if constDecl.Value == nil {
+		fmt.Printf("DEBUG parseConstDecl: parseExpression returned nil\n")
+	}
 	
 	p.expect(TokenPunc, ";")
 	constDecl.EndPos = p.currentPos()

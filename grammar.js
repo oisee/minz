@@ -165,6 +165,7 @@ module.exports = grammar({
       $.struct_declaration,
       $.enum_declaration,
       $.attributed_declaration,
+      $.lua_block,
     ),
 
     function_declaration: $ => seq(
@@ -586,7 +587,6 @@ module.exports = grammar({
       $.compile_time_print,
       $.compile_time_assert,
       $.attribute,
-      $.lua_block,
       $.lua_expression,
       $.lua_eval,
     ),
@@ -629,9 +629,9 @@ module.exports = grammar({
     // Lua metaprogramming
     lua_block: $ => seq(
       '@lua',
-      '[[',
-      $.lua_code,
-      ']]',
+      '[[[',
+      $.lua_code_block,
+      ']]]',
     ),
 
     lua_expression: $ => seq(
@@ -648,7 +648,10 @@ module.exports = grammar({
       ')',
     ),
 
-    lua_code: $ => /[^(\]\])]+/,
+    lua_code: $ => /[^)]+/,
+    
+    // Lua code block that can contain anything including [[ ]]
+    lua_code_block: $ => /([^\]]+|\][^\]]+|\]\][^\]]+)*/,
 
     // Import statements
     import_statement: $ => seq(

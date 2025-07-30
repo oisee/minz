@@ -43,7 +43,7 @@ func NewAnalyzer() *Analyzer {
 		module:        ir.NewModule("main"),
 		functionCalls: make(map[string][]string),
 		exprTypes:     make(map[ast.Expression]ir.Type),
-		// luaEvaluator: meta.NewLuaEvaluator(), // Temporarily disabled
+		luaEvaluator: meta.NewLuaEvaluator(),
 	}
 }
 
@@ -97,6 +97,11 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		case *ast.ConstDecl:
 			// Register constants early as well
 			if err := a.analyzeConstDecl(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
+		case *ast.LuaBlock:
+			// Process Lua blocks early so functions defined in them are available
+			if err := a.analyzeLuaBlock(d); err != nil {
 				a.errors = append(a.errors, err)
 			}
 		}
@@ -524,6 +529,9 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 	case *ast.TypeDecl:
 		// Already processed in first pass
 		return nil
+	case *ast.LuaBlock:
+		// Process Lua block
+		return a.analyzeLuaBlock(d)
 	default:
 		return fmt.Errorf("unsupported declaration type: %T", decl)
 	}
@@ -820,19 +828,53 @@ func (a *Analyzer) analyzeConstDecl(c *ast.ConstDecl) error {
 	// Get prefixed name
 	prefixedName := a.prefixSymbol(c.Name)
 	
+	// Evaluate the constant value
+	var constValue int64
+	if luaExpr, ok := c.Value.(*ast.LuaExpression); ok {
+		// Evaluate Lua expression
+		result, err := a.luaEvaluator.ProcessLuaExpr(&ast.LuaExpr{Code: luaExpr.Code})
+		if err != nil {
+			return fmt.Errorf("failed to evaluate Lua expression for constant %s: %w", c.Name, err)
+		}
+		
+		// Convert result to appropriate type
+		switch v := result.(type) {
+		case float64:
+			constValue = int64(v)
+		case []interface{}:
+			// For array constants, we need a different approach
+			// TODO: Handle array constants
+			return fmt.Errorf("array constants from Lua not yet supported")
+		default:
+			return fmt.Errorf("unsupported Lua result type for constant: %T", result)
+		}
+	} else if numLit, ok := c.Value.(*ast.NumberLiteral); ok {
+		constValue = numLit.Value
+	} else if boolLit, ok := c.Value.(*ast.BooleanLiteral); ok {
+		if boolLit.Value {
+			constValue = 1
+		} else {
+			constValue = 0
+		}
+	} else {
+		// For other expressions, we can't evaluate at compile time yet
+		// TODO: Implement constant expression evaluation
+		constValue = 0
+	}
+	
 	// Define constant in current scope (should be global scope)
-	a.currentScope.Define(c.Name, &VarSymbol{
-		Name:      c.Name,
-		Type:      constType,
-		IsMutable: false, // Constants are immutable
+	a.currentScope.Define(c.Name, &ConstSymbol{
+		Name:  c.Name,
+		Type:  constType,
+		Value: constValue,
 	})
 	
 	// Also define with prefix if needed
 	if prefixedName != c.Name {
-		a.currentScope.Define(prefixedName, &VarSymbol{
-			Name:      c.Name, // Still use unprefixed name in the symbol
-			Type:      constType,
-			IsMutable: false,
+		a.currentScope.Define(prefixedName, &ConstSymbol{
+			Name:  c.Name, // Still use unprefixed name in the symbol
+			Type:  constType,
+			Value: constValue,
 		})
 	}
 	
@@ -3508,11 +3550,50 @@ func (a *Analyzer) analyzeEnumLiteral(lit *ast.EnumLiteral, irFunc *ir.Function)
 	return resultReg, nil
 }
 
+// analyzeLuaBlock analyzes a @lua[[[ ... ]]] block
+func (a *Analyzer) analyzeLuaBlock(block *ast.LuaBlock) error {
+	// Execute the Lua code block
+	err := a.luaEvaluator.EvaluateLuaBlock(block.Code)
+	if err != nil {
+		return fmt.Errorf("failed to evaluate Lua block: %w", err)
+	}
+	return nil
+}
+
 // analyzeLuaExpression analyzes a Lua expression
 func (a *Analyzer) analyzeLuaExpression(expr *ast.LuaExpression, irFunc *ir.Function) (ir.Register, error) {
-	// Temporarily disabled - just return a constant
+	// Evaluate the Lua expression at compile time
+	result, err := a.luaEvaluator.ProcessLuaExpr(&ast.LuaExpr{Code: expr.Code})
+	if err != nil {
+		return 0, fmt.Errorf("failed to evaluate Lua expression: %w", err)
+	}
+	
+	// Allocate register for result
 	resultReg := irFunc.AllocReg()
-	irFunc.EmitImm(ir.OpLoadConst, resultReg, 0)
+	
+	// Convert the result to an IR constant
+	switch v := result.(type) {
+	case float64:
+		// Lua numbers are always float64, convert to int
+		irFunc.EmitImm(ir.OpLoadConst, resultReg, int64(v))
+		// Determine type based on value
+		if v >= 0 && v <= 255 {
+			a.exprTypes[expr] = &ir.BasicType{Kind: ir.TypeU8}
+		} else {
+			a.exprTypes[expr] = &ir.BasicType{Kind: ir.TypeU16}
+		}
+	case []interface{}:
+		// Array literal - for now just return error
+		// TODO: Implement array literal support
+		return 0, fmt.Errorf("Lua array literals not yet supported in expressions")
+	case string:
+		// String literal - for now just return error
+		// TODO: Implement string literal support
+		return 0, fmt.Errorf("Lua string literals not yet supported in expressions")
+	default:
+		return 0, fmt.Errorf("unsupported Lua expression result type: %T", result)
+	}
+	
 	return resultReg, nil
 }
 
@@ -3850,6 +3931,40 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		}
 	case *ast.BooleanLiteral:
 		return &ir.BasicType{Kind: ir.TypeBool}, nil
+	case *ast.LuaExpression:
+		// Evaluate the Lua expression to determine its type
+		result, err := a.luaEvaluator.ProcessLuaExpr(&ast.LuaExpr{Code: e.Code})
+		if err != nil {
+			return nil, fmt.Errorf("failed to evaluate Lua expression: %w", err)
+		}
+		
+		// Infer type based on the result
+		switch v := result.(type) {
+		case float64:
+			// Lua numbers are always float64, infer based on value
+			if v >= 0 && v <= 255 {
+				return &ir.BasicType{Kind: ir.TypeU8}, nil
+			} else if v >= 0 && v <= 65535 {
+				return &ir.BasicType{Kind: ir.TypeU16}, nil
+			} else {
+				return &ir.BasicType{Kind: ir.TypeI16}, nil
+			}
+		case []interface{}:
+			// Array literal - need to determine element type
+			if len(v) == 0 {
+				return nil, fmt.Errorf("cannot infer type of empty Lua array")
+			}
+			// For now, assume u8 array
+			return &ir.ArrayType{
+				Element: &ir.BasicType{Kind: ir.TypeU8},
+				Length:  len(v),
+			}, nil
+		case string:
+			// String literal
+			return &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, nil
+		default:
+			return nil, fmt.Errorf("unsupported Lua expression result type: %T", result)
+		}
 	case *ast.Identifier:
 		sym := a.currentScope.Lookup(e.Name)
 		

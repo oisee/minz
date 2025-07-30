@@ -215,6 +215,8 @@ func (p *Parser) convertDeclaration(node *SExpNode) ast.Declaration {
 		return p.convertEnumDecl(node)
 	case "constant_declaration":
 		return p.convertConstDecl(node)
+	case "lua_block":
+		return p.convertLuaBlock(node)
 	}
 	return nil
 }
@@ -424,6 +426,28 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 	case "primary_expression":
 		if len(node.Children) > 0 {
 			return p.convertExpressionNode(node.Children[0])
+		}
+	case "metaprogramming_expression":
+		if len(node.Children) > 0 {
+			return p.convertExpressionNode(node.Children[0])
+		}
+	case "lua_expression":
+		// Extract the lua_code child
+		for _, child := range node.Children {
+			if child.Type == "lua_code" {
+				code := p.getNodeText(child)
+				return &ast.LuaExpression{
+					Code:     code,
+					StartPos: node.StartPos,
+					EndPos:   node.EndPos,
+				}
+			}
+		}
+		// If no lua_code child, use the whole text
+		return &ast.LuaExpression{
+			Code:     p.getNodeText(node),
+			StartPos: node.StartPos,
+			EndPos:   node.EndPos,
 		}
 	case "number_literal":
 		val, _ := strconv.ParseInt(p.getNodeText(node), 0, 64)
@@ -861,6 +885,23 @@ func (p *Parser) convertConstDecl(node *SExpNode) *ast.ConstDecl {
 	}
 	
 	return constDecl
+}
+
+func (p *Parser) convertLuaBlock(node *SExpNode) *ast.LuaBlock {
+	luaBlock := &ast.LuaBlock{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Find the lua_code_block child
+	for _, child := range node.Children {
+		if child.Type == "lua_code_block" {
+			luaBlock.Code = p.getNodeText(child)
+			break
+		}
+	}
+	
+	return luaBlock
 }
 
 func (p *Parser) convertEnumDecl(node *SExpNode) *ast.EnumDecl {
