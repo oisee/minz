@@ -110,7 +110,7 @@ The VS Code extension directory is appropriately placed.
 
 ## New Directory Structure
 ```
-minz-ts/
+minz/
 ├── README.md
 ├── CLAUDE.md
 ├── LICENSE (create if missing)

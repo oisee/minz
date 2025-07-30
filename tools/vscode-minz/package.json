@@ -6,8 +6,8 @@
   "publisher": "minz-lang",
   "repository": {
     "type": "git",
-    "url": "https://github.com/minz-lang/minz-ts.git",
-    "directory": "vscode-minz"
+    "url": "https://github.com/oisee/minz.git",
+    "directory": "tools/vscode-minz"
   },
   "engines": {
     "vscode": "^1.74.0"

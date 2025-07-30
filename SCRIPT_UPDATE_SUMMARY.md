@@ -56,13 +56,13 @@ This document summarizes the updates made to scripts in the MinZ project to work
 
 The MinZ project uses the following directory structure for test files:
 
-1. **`/Users/alice/dev/minz-ts/examples/`** - Contains 120+ example programs demonstrating MinZ features
-2. **`/Users/alice/dev/minz-ts/tests/`** - Contains 22+ test files for specific language features
+1. **`/Users/alice/dev/minz/examples/`** - Contains 120+ example programs demonstrating MinZ features
+2. **`/Users/alice/dev/minz/tests/`** - Contains 22+ test files for specific language features
    - `tests/debug/` - Debug-specific test files
 
 ## Notes
 
-1. All scripts assume they are run from the root directory (`/Users/alice/dev/minz-ts`)
+1. All scripts assume they are run from the root directory (`/Users/alice/dev/minz`)
 2. The MinZ compiler binary is located at `minzc/minzc`
 3. Compiled output goes to `examples/compiled/` when using the build scripts
 4. The `timeout` command was removed from scripts as it's not available by default on macOS
@@ -77,7 +77,7 @@ To verify all scripts work correctly:
 
 ```bash
 # From the root directory:
-cd /Users/alice/dev/minz-ts
+cd /Users/alice/dev/minz
 
 # Test compilation scripts
 bash scripts/build/compile_all_examples.sh

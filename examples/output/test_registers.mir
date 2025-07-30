@@ -36,6 +36,19 @@ Function ...examples.test_registers.complex_calc(x: u16, y: u16, z: u16) -> u16
      18: r22 = r20 + r21
      19: return r22
 
+Function ...examples.test_registers.timer_interrupt() -> void
+  @smc
+  Locals:
+    r1 = counter: u16
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r3 = load counter
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: store counter, r5
+      6: return
+
 Function ...examples.test_registers.process_array(data: *u8, len: u16) -> u16
   Locals:
     r3 = sum: u16
@@ -50,10 +63,20 @@ Function ...examples.test_registers.process_array(data: *u8, len: u16) -> u16
       6: 12
       7: r9 = r7 < r8
       8: jump_if_not r9, end_loop_2
-      9: jump loop_1
-     10: end_loop_2:
-     11: r10 = load sum
-     12: return r10
+      9: r10 = load sum
+     10: 12
+     11: r12 = load i
+     12: 15 ; Load array element (u8)
+     13: r14 = r10 + r13
+     14: store sum, r14
+     15: r15 = load i
+     16: r16 = 1
+     17: r17 = r15 + r16
+     18: store i, r17
+     19: jump loop_1
+     20: end_loop_2:
+     21: r18 = load sum
+     22: return r18
 
 Function ...examples.test_registers.main() -> void
   @smc

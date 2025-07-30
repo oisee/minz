@@ -1,0 +1,8 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.abi_test_with_main.test_func(x: u8) -> u8
+  Instructions:
+      0: 12
+      1: return r2
+

@@ -2,23 +2,43 @@
 ; Module: main
 
 ; Globals:
-;   items: [3]...examples.test_loop_minimal.Item
+;   ...examples.test_loop_minimal.items: [3]...examples.test_loop_minimal.Item
 
 Function ...examples.test_loop_minimal.main() -> void
   @smc
   Instructions:
-      0: 62
-      1: 62 ; Load table base address
-      2: 62 ; Load table base for end calculation
-      3: 67 ; Calculate table end (+ 3 elements * 1 bytes)
-      4: 66 ; Load loop counter
-      5: loop_start_1:
-      6: 47 ; Check if reached end of table
-      7: 3 ; Exit if done
-      8: 63 ; Copy element to buffer at $F000
-      9: 64 ; Copy buffer back to element at $F000
-     10: 67 ; Advance to next element (+1 bytes)
-     11: 65 ; Decrement counter and loop if not zero
-     12: loop_end_2:
-     13: return
+      0: r1 = 10
+      1: 68
+      2: r3 = 0
+      3: 15 ; Load array element (...examples.test_loop_minimal.Item)
+      4: 14 ; Store to field value (offset 0)
+      5: r5 = 20
+      6: 68
+      7: r7 = 1
+      8: 15 ; Load array element (...examples.test_loop_minimal.Item)
+      9: 14 ; Store to field value (offset 0)
+     10: r9 = 30
+     11: 68
+     12: r11 = 2
+     13: 15 ; Load array element (...examples.test_loop_minimal.Item)
+     14: 14 ; Store to field value (offset 0)
+     15: 68
+     16: 68 ; Load table base address
+     17: 68 ; Load table base for end calculation
+     18: 73 ; Calculate table end (+ 3 elements * 1 bytes)
+     19: 72 ; Load loop counter
+     20: loop_start_1:
+     21: 51 ; Check if reached end of table
+     22: 3 ; Exit if done
+     23: 69 ; Copy element to buffer at $F000
+     24: 21 ; Load item.value from buffer at $F000
+     25: r19 = 1
+     26: r20 = r18 + r19
+     27: r21 = load item
+     28: 14 ; Store to field value (offset 0)
+     29: 70 ; Copy buffer back to element at $F000
+     30: 73 ; Advance to next element (+1 bytes)
+     31: 71 ; Decrement counter and loop if not zero
+     32: loop_end_2:
+     33: return
 

@@ -101,14 +101,24 @@ Function ...examples.enums.main() -> void
   Locals:
     r1 = state: u16
     r3 = player_dir: u16
-    r5 = opposite_dir: u16
+    r9 = opposite_dir: u16
   Instructions:
       0: r2 = 0
       1: store , r2
       2: r4 = 3
       3: store , r4
-      4: r6 = load player_dir
-      5: r7 = call opposite
-      6: store , r7
-      7: return
+      4: r5 = load state
+      5: r6 = 4
+      6: r7 = call next_state
+      7: store state, r7
+      8: r8 = 0
+      9: store player_dir, r8
+     10: r10 = load player_dir
+     11: r11 = call opposite
+     12: store , r11
+     13: r12 = load state
+     14: r13 = 3
+     15: r14 = call next_state
+     16: store state, r14
+     17: return
 

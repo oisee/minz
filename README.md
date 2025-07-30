@@ -78,7 +78,7 @@ memset(buffer, 0, 256);   // Efficient memory clear
 - `memcpy()`: 2.1x faster than manual loops
 
 ### 📦 Previous Stable: v0.3.2 "Memory Matters"
-**[Download v0.3.2](https://github.com/oisee/minz-ts/releases/tag/v0.3.2)**
+**[Download v0.3.2](https://github.com/oisee/minz/releases/tag/v0.3.2)**
 
 - ✨ **Global Variable Initializers** - Compile-time constant expressions
 - 🚀 **16-bit Arithmetic** - Full multiplication, shift operations
@@ -695,7 +695,7 @@ See [INSTALLATION.md](INSTALLATION.md) for detailed installation instructions.
 
 ```bash
 # Clone the repository
-git clone https://github.com/minz-lang/minz.git
+git clone https://github.com/oisee/minz.git
 cd minz
 
 # Install dependencies and build

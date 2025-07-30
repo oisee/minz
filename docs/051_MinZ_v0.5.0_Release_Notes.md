@@ -253,8 +253,8 @@ MinZ is now the **most advanced systems programming language for Z80 platforms**
 
 ```bash
 # Clone repository
-git clone https://github.com/yourorg/minz-ts
-cd minz-ts
+git clone https://github.com/oisee/minz
+cd minz
 
 # Generate parser
 npm install

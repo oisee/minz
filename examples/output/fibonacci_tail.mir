@@ -5,49 +5,42 @@ Function ...examples.fibonacci_tail.fib_tail(n: u8, a: u16, b: u16) -> u16
   @smc
   @recursive
   Instructions:
-      0: 12
-      1: r5 = 0
-      2: r6 = r4 == r5
-      3: jump_if_not r6, else_1
-      4: 12
-      5: return r7
-      6: jump end_if_2
+      0: 30 ; Load from anchor n$imm0
+      1: ...examples.fibonacci_tail.fib_tail_tail_loop: ; Tail recursion loop start
+      2: r5 = r5 ^ r5 ; XOR A,A (optimized from LD A,0)
+      3: r6 = r4 == r5
+      4: jump_if_not r6, else_1
+      5: 30 ; Load from anchor a$imm0
+      6: return r7
       7: else_1:
-      8: end_if_2:
-      9: 12
-     10: r9 = 1
-     11: r10 = r8 == r9
-     12: jump_if_not r10, else_3
-     13: 12
-     14: return r11
-     15: jump end_if_4
-     16: else_3:
-     17: end_if_4:
-     18: 12
-     19: r13 = 1
-     20: r14 = r12 - r13
-     21: 12
-     22: 12
-     23: 12
-     24: r18 = r16 + r17
-     25: r19 = call fib_tail
-     26: return r19
+      8: 30 ; Load from anchor n$imm0
+      9: r9 = 1
+     10: r10 = r8 == r9
+     11: jump_if_not r10, else_3
+     12: 30 ; Load from anchor b$imm0
+     13: return r11
+     14: else_3:
+     15: 30 ; Load from anchor n$imm0
+     16: 30 ; Load from anchor b$imm0
+     17: 30 ; Load from anchor a$imm0
+     18: 30 ; Load from anchor b$imm0
+     19: jump ...examples.fibonacci_tail.fib_tail_tail_loop ; Tail recursion optimized to loop
 
 Function ...examples.fibonacci_tail.fibonacci(n: u8) -> u16
+  @smc
+  @recursive
   Instructions:
-      0: 12
-      1: r3 = 0
-      2: r4 = 1
-      3: r5 = call fib_tail
-      4: return r5
+      0: 30 ; Load from anchor n$imm0
+      1: r5 = call fib_tail
+      2: return r5
 
 Function ...examples.fibonacci_tail.main() -> void
   @smc
+  @recursive
   Locals:
     r1 = result: u16
   Instructions:
-      0: r2 = 10
-      1: r3 = call fibonacci
-      2: store , r3
-      3: return
+      0: r3 = call fibonacci
+      1: store , r3
+      2: return
 

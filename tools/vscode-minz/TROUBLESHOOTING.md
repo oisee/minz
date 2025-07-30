@@ -85,7 +85,7 @@ Add these to your `keybindings.json`:
 2. If not found, set the full path in VS Code settings:
    - Open Settings (`Ctrl+,` or `Cmd+,`)
    - Search for "minz.compilerPath"
-   - Set the full path, e.g., `/Users/alice/dev/minz-ts/minzc/minzc`
+   - Set the full path, e.g., `/Users/alice/dev/minz/minzc/minzc`
 
 ### Common Issues
 

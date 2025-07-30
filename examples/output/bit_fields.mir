@@ -1,0 +1,33 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.bit_fields.set_screen_attr(x: u8, y: u8, attr: bits<u8>) -> void
+  @smc
+  Locals:
+    r4 = addr: u16
+  Instructions:
+      0: r5 = 22528
+      1: 30 ; Load from anchor y$imm0
+      2: r7 = 5
+      3: 49 ; SHL (optimized from MUL by power of 2)
+      4: r9 = r5 + r8
+      5: 30 ; Load from anchor x$imm0
+      6: r11 = r9 + r10
+      7: store , r11
+      8: return
+
+Function ...examples.bit_fields.main() -> void
+  @smc
+  Locals:
+    r1 = raw_value: u8
+    r3 = attr: bits<u8>
+    r5 = back_to_raw: u8
+  Instructions:
+      0: r2 = 71
+      1: store , r2
+      2: r4 = load raw_value
+      3: store , r4
+      4: r6 = load attr
+      5: store , r6
+      6: return
+

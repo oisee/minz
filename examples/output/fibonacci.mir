@@ -32,10 +32,18 @@ Function ...examples.fibonacci.fibonacci(n: u8) -> u16
      21: r17 = load b
      22: r18 = r16 + r17
      23: store , r18
-     24: jump loop_3
-     25: end_loop_4:
-     26: r19 = load b
-     27: return r19
+     24: r19 = load b
+     25: store a, r19
+     26: r20 = load temp
+     27: store b, r20
+     28: r21 = load i
+     29: r22 = 1
+     30: r23 = r21 + r22
+     31: store i, r23
+     32: jump loop_3
+     33: end_loop_4:
+     34: r24 = load b
+     35: return r24
 
 Function ...examples.fibonacci.main() -> void
   @smc

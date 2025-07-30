@@ -128,7 +128,7 @@ This will:
 - **Name**: MinZ Language Support
 - **Version**: 0.1.2 (auto-incremented)
 - **Publisher**: minz-lang
-- **Repository**: https://github.com/minz-lang/minz-ts
+- **Repository**: https://github.com/oisee/minz
 
 ## 🎯 What's New (July 2025)
 

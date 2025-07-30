@@ -1,0 +1,33 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_print_interpolation.main() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u16
+    r5 = flag: bool
+  Instructions:
+      0: r2 = 42
+      1: store , r2
+      2: r4 = 1000
+      3: store , r4
+      4: 81
+      5: 80
+      6: 75
+      7: 81
+      8: 80
+      9: 75
+     10: 81
+     11: 80
+     12: 76
+     13: 81
+     14: 80
+     15: 79
+     16: 75
+     17: 76
+     18: 79
+     19: 81
+     20: 80
+     21: return
+

@@ -20,7 +20,6 @@ var (
 	optimize    bool
 	debug       bool
 	enableSMC   bool
-	enableTrueSMC bool
 )
 
 var rootCmd = &cobra.Command{
@@ -41,8 +40,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file (default: input.a80)")
 	rootCmd.Flags().BoolVarP(&optimize, "optimize", "O", false, "enable optimizations")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
-	rootCmd.Flags().BoolVar(&enableSMC, "enable-smc", false, "enable self-modifying code optimization (requires code in RAM)")
-	rootCmd.Flags().BoolVar(&enableTrueSMC, "enable-true-smc", true, "enable TRUE SMC with immediate anchors (default)")
+	rootCmd.Flags().BoolVar(&enableSMC, "enable-smc", false, "enable all self-modifying code optimizations including TRUE SMC (requires code in RAM)")
 }
 
 func main() {
@@ -82,29 +80,29 @@ func compile(sourceFile string) error {
 	}
 	defer analyzer.Close()
 	
-	// Enable SMC for all functions if flag is set
-	if enableSMC {
+	// Enable SMC for all functions if flag is set OR if optimizing
+	if enableSMC || optimize {
 		for _, fn := range irModule.Functions {
 			fn.IsSMCEnabled = true
 		}
 		if debug {
-			fmt.Println("Self-modifying code optimization enabled")
+			if enableSMC {
+				fmt.Println("Self-modifying code optimization enabled (including TRUE SMC)")
+			} else {
+				fmt.Println("SMC enabled automatically with -O optimization")
+			}
 		}
 	}
 
 	// Run optimization passes if requested
-	if optimize {
+	if optimize || enableSMC {
 		level := optimizer.OptLevelBasic
-		if optimize { // Could add -O2 flag for full optimization
+		if optimize {
 			level = optimizer.OptLevelFull
 		}
 		
-		// TRUE SMC is enabled by default for optimizations
-		useTrueSMC := true
-		if enableSMC && !enableTrueSMC {
-			// User explicitly wants old SMC
-			useTrueSMC = false
-		}
+		// Use TRUE SMC when optimizing OR when SMC explicitly enabled
+		useTrueSMC := optimize || enableSMC
 		
 		opt := optimizer.NewOptimizerWithOptions(level, useTrueSMC)
 		if err := opt.Optimize(irModule); err != nil {

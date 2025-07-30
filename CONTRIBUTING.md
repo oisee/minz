@@ -5,7 +5,7 @@ Thank you for your interest in contributing to the MinZ programming language! Th
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/yourusername/minz-ts.git`
+2. Clone your fork: `git clone https://github.com/yourusername/minz.git`
 3. Create a feature branch: `git checkout -b feature/your-feature-name`
 4. Make your changes
 5. Test your changes (see Testing section)

@@ -33,6 +33,19 @@ Function ...examples.register_test.complex_calc(x: u16, y: u16, z: u16) -> u16
      16: r20 = r18 + r19
      17: return r20
 
+Function ...examples.register_test.timer_isr() -> void
+  @smc
+  Locals:
+    r1 = counter: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r3 = load counter
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: store counter, r5
+      6: return
+
 Function ...examples.register_test.main() -> void
   @smc
   Locals:
