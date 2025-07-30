@@ -1,0 +1,25 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .tmp.test_bit_minimal.test() -> void
+  @smc
+  Locals:
+    r1 = flags: u8
+    r3 = status: bits<u8>
+    r5 = c: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = load flags
+      3: store , r4
+      4: r6 = load status
+      5: 17 ; Load bit field carry (offset 0, width 1)
+      6: store , r7
+      7: return
+
+Function .tmp.test_bit_minimal.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test
+      1: return
+

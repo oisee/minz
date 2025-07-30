@@ -1,0 +1,110 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function tests.02_bit_structs_test.test_single_bit_fields() -> void
+  @smc
+  Locals:
+    r1 = flags: u8
+    r3 = status: bits<u8>
+    r5 = c: u8
+    r8 = z: u8
+    r11 = n: u8
+  Instructions:
+      0: r2 = 181
+      1: store , r2
+      2: r4 = load flags
+      3: store , r4
+      4: r6 = load status
+      5: 17 ; Load bit field carry (offset 0, width 1)
+      6: store , r7
+      7: r9 = load status
+      8: 17 ; Load bit field zero (offset 1, width 1)
+      9: store , r10
+     10: r12 = load status
+     11: 17 ; Load bit field negative (offset 7, width 1)
+     12: store , r13
+     13: r14 = 1
+     14: r15 = load status
+     15: 18 ; Store bit field interrupt (offset 2, width 1)
+     16: r16 = 0
+     17: r17 = load status
+     18: 18 ; Store bit field decimal (offset 3, width 1)
+     19: r18 = 1
+     20: r19 = load status
+     21: 18 ; Store bit field overflow (offset 6, width 1)
+     22: return
+
+Function tests.02_bit_structs_test.test_multi_bit_fields() -> void
+  @smc
+  Locals:
+    r1 = packed: u8
+    r3 = color: bits<u8>
+    r11 = r: u8
+    r14 = g: u8
+    r17 = b: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = load packed
+      3: store , r4
+      4: r5 = 3
+      5: r6 = load color
+      6: 18 ; Store bit field red (offset 0, width 2)
+      7: r7 = 7
+      8: r8 = load color
+      9: 18 ; Store bit field green (offset 2, width 3)
+     10: r9 = 4
+     11: r10 = load color
+     12: 18 ; Store bit field blue (offset 5, width 3)
+     13: r12 = load color
+     14: 17 ; Load bit field red (offset 0, width 2)
+     15: store , r13
+     16: r15 = load color
+     17: 17 ; Load bit field green (offset 2, width 3)
+     18: store , r16
+     19: r18 = load color
+     20: 17 ; Load bit field blue (offset 5, width 3)
+     21: store , r19
+     22: return
+
+Function tests.02_bit_structs_test.test_mixed_fields() -> void
+  @smc
+  Locals:
+    r1 = state_byte: u8
+    r3 = game: bits<u8>
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = load state_byte
+      3: store , r4
+      4: r5 = 3
+      5: r6 = load game
+      6: 18 ; Store bit field lives (offset 0, width 3)
+      7: r7 = 10
+      8: r8 = load game
+      9: 18 ; Store bit field level (offset 3, width 4)
+     10: r9 = 1
+     11: r10 = load game
+     12: 18 ; Store bit field has_powerup (offset 7, width 1)
+     13: r11 = load game
+     14: 17 ; Load bit field lives (offset 0, width 3)
+     15: r13 = 1
+     16: r14 = r12 - r13
+     17: r15 = load game
+     18: 18 ; Store bit field lives (offset 0, width 3)
+     19: r16 = load game
+     20: 17 ; Load bit field level (offset 3, width 4)
+     21: r18 = 1
+     22: r19 = r17 + r18
+     23: r20 = load game
+     24: 18 ; Store bit field level (offset 3, width 4)
+     25: return
+
+Function tests.02_bit_structs_test.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_single_bit_fields
+      1: r2 = call test_multi_bit_fields
+      2: r3 = call test_mixed_fields
+      3: return
+

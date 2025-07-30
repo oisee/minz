@@ -1,7 +1,7 @@
 // Test 2: Bit Struct Operations
 // Tests bit field read/write with various configurations
 
-type StatusFlags = bits {
+type StatusFlags = bits_8 {
     carry: 1,
     zero: 1,
     interrupt: 1,
@@ -12,13 +12,13 @@ type StatusFlags = bits {
     negative: 1
 };
 
-type ColorPacked = bits {
+type ColorPacked = bits_8 {
     red: 2,      // 0-3 levels
     green: 3,    // 0-7 levels  
     blue: 3      // 0-7 levels
 };
 
-type GameState = bits {
+type GameState = bits_8 {
     lives: 3,        // 0-7 lives
     level: 4,        // 0-15 levels
     has_powerup: 1   // boolean flag

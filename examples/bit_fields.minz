@@ -34,7 +34,7 @@ fun main() -> void {
     // Cast bit struct back to u8
     let back_to_raw: u8 = attr as u8
     
-    // TODO: Test field access once fully integrated
-    // let ink = attr.ink     // Should extract bits 0-2
-    // attr.paper = 5         // Should set bits 3-5
+    // Test field access
+    let ink = attr.ink     // Should extract bits 0-2
+    attr.paper = 5         // Should set bits 3-5
 }
