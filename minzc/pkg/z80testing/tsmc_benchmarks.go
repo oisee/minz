@@ -886,3 +886,8 @@ func (suite *TSMCBenchmarkSuite) SaveReport(filename string) error {
 	report := suite.GenerateReport()
 	return os.WriteFile(filename, []byte(report), 0644)
 }
+
+// GetResults returns the benchmark results
+func (suite *TSMCBenchmarkSuite) GetResults() []BenchmarkResult {
+	return suite.results
+}

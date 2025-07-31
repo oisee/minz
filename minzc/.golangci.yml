@@ -1,0 +1,86 @@
+run:
+  timeout: 5m
+  tests: true
+  skip-dirs:
+    - vendor
+    - testdata
+  skip-files:
+    - ".*_test.go"
+
+linters:
+  enable:
+    - gofmt
+    - golint
+    - govet
+    - errcheck
+    - staticcheck
+    - gosimple
+    - ineffassign
+    - typecheck
+    - goconst
+    - gocyclo
+    - misspell
+    - unconvert
+    - goimports
+    - prealloc
+    - nakedret
+    - lll
+    - dupl
+  disable:
+    - godox # Allow TODO/FIXME comments
+    - funlen # Z80 code generation can have long functions
+    - gocognit # Complex optimization logic is acceptable
+
+linters-settings:
+  govet:
+    check-shadowing: true
+  gocyclo:
+    min-complexity: 15
+  dupl:
+    threshold: 100
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  lll:
+    line-length: 120
+  nakedret:
+    max-func-lines: 30
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: true
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on test files
+    - path: _test\.go
+      linters:
+        - dupl
+        - gosec
+        - goconst
+    
+    # Exclude generated files
+    - path: generated\.go
+      linters:
+        - golint
+        - stylecheck
+    
+    # Allow complex functions in optimizer package
+    - path: pkg/optimizer/
+      linters:
+        - gocyclo
+        - gocognit
+    
+    # Allow long lines in code generation
+    - path: pkg/codegen/
+      linters:
+        - lll
+
+  # Maximum issues count per one linter. Set to 0 to disable
+  max-issues-per-linter: 0
+
+  # Maximum count of issues with the same text. Set to 0 to disable
+  max-same-issues: 0
+
+  # Show only new issues created after git revision
+  new: false

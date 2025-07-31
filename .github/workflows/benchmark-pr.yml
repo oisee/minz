@@ -1,0 +1,179 @@
+name: Benchmark PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'minzc/**'
+      - 'examples/**'
+      - '.github/workflows/benchmark-pr.yml'
+
+env:
+  SJASMPLUS_VERSION: v1.20.3
+
+jobs:
+  benchmark:
+    name: Benchmark Performance
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout PR
+      uses: actions/checkout@v4
+    
+    - name: Checkout base branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.base_ref }}
+        path: base
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+        cache: true
+        cache-dependency-path: minzc/go.sum
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Cache sjasmplus
+      id: cache-sjasmplus
+      uses: actions/cache@v4
+      with:
+        path: ~/sjasmplus
+        key: ${{ runner.os }}-sjasmplus-${{ env.SJASMPLUS_VERSION }}
+    
+    - name: Install sjasmplus
+      if: steps.cache-sjasmplus.outputs.cache-hit != 'true'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+        git clone --branch ${{ env.SJASMPLUS_VERSION }} https://github.com/z00m128/sjasmplus.git ~/sjasmplus-src
+        cd ~/sjasmplus-src
+        mkdir build && cd build
+        cmake ..
+        make -j$(nproc)
+        mkdir -p ~/sjasmplus/bin
+        cp sjasmplus ~/sjasmplus/bin/
+        echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
+    
+    - name: Add cached sjasmplus to PATH
+      if: steps.cache-sjasmplus.outputs.cache-hit == 'true'
+      run: echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
+    
+    - name: Install dependencies (PR)
+      run: |
+        npm install
+        npm run generate
+        cd minzc && make deps && make build
+    
+    - name: Install dependencies (base)
+      working-directory: base
+      run: |
+        npm install
+        npm run generate
+        cd minzc && make deps && make build
+    
+    - name: Run benchmarks (base)
+      working-directory: base/minzc
+      run: |
+        go test -v -timeout 30m ./pkg/z80testing -run TestTSMCBenchmark > base_benchmark.txt
+        cp tsmc_benchmark_report.md ../tsmc_benchmark_base.md || true
+      env:
+        MINZC_TEST_VERBOSE: "1"
+    
+    - name: Run benchmarks (PR)
+      working-directory: minzc
+      run: |
+        go test -v -timeout 30m ./pkg/z80testing -run TestTSMCBenchmark > pr_benchmark.txt
+      env:
+        MINZC_TEST_VERBOSE: "1"
+    
+    - name: Compare benchmarks
+      run: |
+        echo "# Benchmark Comparison Report" > benchmark_comparison.md
+        echo "## PR: #${{ github.event.pull_request.number }}" >> benchmark_comparison.md
+        echo "## Base: ${{ github.base_ref }} | PR: ${{ github.head_ref }}" >> benchmark_comparison.md
+        echo "" >> benchmark_comparison.md
+        
+        # Extract key metrics from both reports
+        if [ -f base/tsmc_benchmark_base.md ] && [ -f minzc/tsmc_benchmark_report.md ]; then
+          echo "### TSMC Performance Impact" >> benchmark_comparison.md
+          echo "" >> benchmark_comparison.md
+          
+          # Compare average improvements
+          base_avg=$(grep -E "Average.*improvement" base/tsmc_benchmark_base.md | grep -oE "[0-9]+\.[0-9]+" | head -1 || echo "0")
+          pr_avg=$(grep -E "Average.*improvement" minzc/tsmc_benchmark_report.md | grep -oE "[0-9]+\.[0-9]+" | head -1 || echo "0")
+          
+          echo "- Base average improvement: ${base_avg}%" >> benchmark_comparison.md
+          echo "- PR average improvement: ${pr_avg}%" >> benchmark_comparison.md
+          
+          # Calculate difference
+          diff=$(echo "$pr_avg - $base_avg" | bc -l || echo "0")
+          if (( $(echo "$diff > 0" | bc -l) )); then
+            echo "- **Performance gain: +${diff}%**" >> benchmark_comparison.md
+          elif (( $(echo "$diff < 0" | bc -l) )); then
+            echo "- **Performance regression: ${diff}%**" >> benchmark_comparison.md
+          else
+            echo "- **No performance change**" >> benchmark_comparison.md
+          fi
+          
+          echo "" >> benchmark_comparison.md
+          echo "### Detailed Results" >> benchmark_comparison.md
+          echo "" >> benchmark_comparison.md
+          echo "See artifacts for full benchmark reports." >> benchmark_comparison.md
+        else
+          echo "⚠️ Could not generate comparison - missing benchmark data" >> benchmark_comparison.md
+        fi
+    
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results-pr-${{ github.event.pull_request.number }}
+        path: |
+          benchmark_comparison.md
+          minzc/tsmc_benchmark_report.md
+          base/tsmc_benchmark_base.md
+          minzc/pr_benchmark.txt
+          base/minzc/base_benchmark.txt
+    
+    - name: Comment PR with results
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const comparison = fs.readFileSync('benchmark_comparison.md', 'utf8');
+          
+          const comment = {
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: comparison
+          };
+          
+          // Find existing comment
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number
+          });
+          
+          const botComment = comments.data.find(comment => 
+            comment.user.type === 'Bot' && comment.body.includes('Benchmark Comparison Report')
+          );
+          
+          if (botComment) {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: comparison
+            });
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment(comment);
+          }

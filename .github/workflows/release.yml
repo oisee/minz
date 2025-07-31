@@ -1,0 +1,178 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  SJASMPLUS_VERSION: v1.20.3
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: MinZ ${{ github.ref }}
+        draft: false
+        prerelease: false
+  
+  build-release:
+    name: Build Release (${{ matrix.os }})
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-amd64
+            artifact_name: minzc
+            asset_name: minzc-linux-amd64
+          - os: macos-latest
+            target: darwin-amd64
+            artifact_name: minzc
+            asset_name: minzc-darwin-amd64
+          - os: macos-latest
+            target: darwin-arm64
+            artifact_name: minzc
+            asset_name: minzc-darwin-arm64
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+        cache: true
+        cache-dependency-path: minzc/go.sum
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install Node dependencies
+      run: npm install
+    
+    - name: Generate tree-sitter parser
+      run: npm run generate
+    
+    - name: Cache sjasmplus
+      id: cache-sjasmplus
+      uses: actions/cache@v4
+      with:
+        path: ~/sjasmplus
+        key: ${{ runner.os }}-sjasmplus-${{ env.SJASMPLUS_VERSION }}
+    
+    - name: Install sjasmplus (Linux)
+      if: steps.cache-sjasmplus.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+        git clone --branch ${{ env.SJASMPLUS_VERSION }} https://github.com/z00m128/sjasmplus.git ~/sjasmplus-src
+        cd ~/sjasmplus-src
+        mkdir build && cd build
+        cmake ..
+        make -j$(nproc)
+        mkdir -p ~/sjasmplus/bin
+        cp sjasmplus ~/sjasmplus/bin/
+        echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
+    
+    - name: Install sjasmplus (macOS)
+      if: steps.cache-sjasmplus.outputs.cache-hit != 'true' && runner.os == 'macOS'
+      run: |
+        brew install cmake
+        git clone --branch ${{ env.SJASMPLUS_VERSION }} https://github.com/z00m128/sjasmplus.git ~/sjasmplus-src
+        cd ~/sjasmplus-src
+        mkdir build && cd build
+        cmake ..
+        make -j$(sysctl -n hw.ncpu)
+        mkdir -p ~/sjasmplus/bin
+        cp sjasmplus ~/sjasmplus/bin/
+        echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
+    
+    - name: Add cached sjasmplus to PATH
+      if: steps.cache-sjasmplus.outputs.cache-hit == 'true'
+      run: echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
+    
+    - name: Build MinZ compiler
+      working-directory: minzc
+      run: |
+        if [[ "${{ matrix.target }}" == "darwin-arm64" ]]; then
+          GOARCH=arm64 go build -ldflags="-s -w" -o ${{ matrix.artifact_name }} cmd/minzc/main.go
+        else
+          go build -ldflags="-s -w" -o ${{ matrix.artifact_name }} cmd/minzc/main.go
+        fi
+    
+    - name: Run tests
+      working-directory: minzc
+      run: go test -v ./...
+    
+    - name: Run TSMC benchmarks
+      working-directory: minzc
+      run: |
+        go test -v -timeout 30m ./pkg/z80testing -run TestTSMCBenchmark
+      env:
+        MINZC_TEST_VERBOSE: "1"
+    
+    - name: Generate performance report
+      working-directory: minzc
+      run: |
+        echo "# MinZ Compiler Performance Report" > performance_report.md
+        echo "## Version: ${{ github.ref_name }}" >> performance_report.md
+        echo "## Date: $(date)" >> performance_report.md
+        echo "" >> performance_report.md
+        if [ -f tsmc_benchmark_report.md ]; then
+          cat tsmc_benchmark_report.md >> performance_report.md
+        fi
+    
+    - name: Package release
+      run: |
+        mkdir -p release
+        cp minzc/${{ matrix.artifact_name }} release/
+        cp -r examples release/
+        cp -r stdlib release/
+        cp README.md release/
+        cp COMPILER_ARCHITECTURE.md release/
+        cp DESIGN.md release/
+        if [ -f minzc/performance_report.md ]; then
+          cp minzc/performance_report.md release/
+        fi
+        cd release
+        tar -czf ../${{ matrix.asset_name }}.tar.gz *
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./${{ matrix.asset_name }}.tar.gz
+        asset_name: ${{ matrix.asset_name }}.tar.gz
+        asset_content_type: application/gzip
+    
+    - name: Upload Performance Report
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./minzc/performance_report.md
+        asset_name: performance_report.md
+        asset_content_type: text/markdown

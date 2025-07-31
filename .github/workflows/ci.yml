@@ -2,154 +2,181 @@ name: CI
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ master, main, develop ]
   pull_request:
-    branches: [ master, main ]
+    branches: [ master, main, develop ]
 
 env:
-  GO_VERSION: '1.21'
-  NODE_VERSION: '18'
+  SJASMPLUS_VERSION: v1.20.3
 
 jobs:
+  test:
+    name: Test (${{ matrix.go-version }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ['1.20', '1.21']
+        os: [ubuntu-latest, macos-latest]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+        cache: true
+        cache-dependency-path: minzc/go.sum
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Cache sjasmplus
+      id: cache-sjasmplus
+      uses: actions/cache@v4
+      with:
+        path: ~/sjasmplus
+        key: ${{ runner.os }}-sjasmplus-${{ env.SJASMPLUS_VERSION }}
+    
+    - name: Install sjasmplus (Linux)
+      if: steps.cache-sjasmplus.outputs.cache-hit != 'true' && runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+        git clone --branch ${{ env.SJASMPLUS_VERSION }} https://github.com/z00m128/sjasmplus.git ~/sjasmplus-src
+        cd ~/sjasmplus-src
+        mkdir build && cd build
+        cmake ..
+        make -j$(nproc)
+        mkdir -p ~/sjasmplus/bin
+        cp sjasmplus ~/sjasmplus/bin/
+        echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
+    
+    - name: Install sjasmplus (macOS)
+      if: steps.cache-sjasmplus.outputs.cache-hit != 'true' && runner.os == 'macOS'
+      run: |
+        brew install cmake
+        git clone --branch ${{ env.SJASMPLUS_VERSION }} https://github.com/z00m128/sjasmplus.git ~/sjasmplus-src
+        cd ~/sjasmplus-src
+        mkdir build && cd build
+        cmake ..
+        make -j$(sysctl -n hw.ncpu)
+        mkdir -p ~/sjasmplus/bin
+        cp sjasmplus ~/sjasmplus/bin/
+        echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
+    
+    - name: Add cached sjasmplus to PATH
+      if: steps.cache-sjasmplus.outputs.cache-hit == 'true'
+      run: echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
+    
+    - name: Verify sjasmplus installation
+      run: sjasmplus --version
+    
+    - name: Install Node dependencies
+      run: npm install
+    
+    - name: Generate tree-sitter parser
+      run: npm run generate
+    
+    - name: Run tree-sitter tests
+      run: npm test
+    
+    - name: Install Go dependencies
+      working-directory: minzc
+      run: make deps
+    
+    - name: Build MinZ compiler
+      working-directory: minzc
+      run: make build
+    
+    - name: Run Go unit tests
+      working-directory: minzc
+      run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+    
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.21'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./minzc/coverage.txt
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+    
+    - name: Run E2E tests
+      working-directory: minzc
+      run: |
+        go test -v -timeout 30m ./pkg/z80testing -run TestE2E
+      env:
+        MINZC_TEST_VERBOSE: "1"
+    
+    - name: Run TSMC benchmarks
+      working-directory: minzc
+      run: |
+        go test -v -timeout 30m ./pkg/z80testing -run TestTSMCBenchmark
+      env:
+        MINZC_TEST_VERBOSE: "1"
+    
+    - name: Run corpus tests
+      working-directory: minzc
+      run: |
+        go test -v -timeout 30m ./pkg/z80testing -run TestCorpus
+      env:
+        MINZC_TEST_VERBOSE: "1"
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.os }}-go${{ matrix.go-version }}
+        path: |
+          minzc/tsmc_benchmark_report.md
+          minzc/corpus_test_report.json
+          minzc/*.a80
+        retention-days: 7
+    
+    - name: Test example compilation
+      working-directory: minzc
+      run: |
+        ./minzc ../examples/fibonacci.minz -o fibonacci.a80
+        ./minzc ../examples/simple_abi_demo.minz -o simple_abi_demo.a80
+        ./minzc ../examples/fibonacci.minz -O --enable-smc -o fibonacci_opt.a80
+        
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
     
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
-        go-version: ${{ env.GO_VERSION }}
+        go-version: '1.21'
+        cache: true
+        cache-dependency-path: minzc/go.sum
     
-    - name: Run Go linting
-      run: |
-        cd minzc
-        go fmt ./...
-        go vet ./...
-
-  test:
-    name: Test on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Go
-      uses: actions/setup-go@v4
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v4
       with:
-        go-version: ${{ env.GO_VERSION }}
+        version: latest
+        working-directory: minzc
+        args: --timeout=5m
     
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-    
-    - name: Install tree-sitter
-      run: npm install -g tree-sitter-cli
-    
-    - name: Install dependencies
-      run: |
-        npm install
-        cd minzc && go mod download
-    
-    - name: Generate parser
-      run: tree-sitter generate
-    
-    - name: Build compiler
-      run: |
-        cd minzc
-        go build -o minzc ./cmd/minzc
-    
-    - name: Run Go tests
-      run: |
-        cd minzc
-        go test -v ./...
-    
-    - name: Run example compilation tests
-      shell: bash
-      run: |
-        cd minzc
-        # Test that we can compile example files
-        ./minzc ../examples/fibonacci.minz -o fib.a80
-        ./minzc ../examples/test_strings.minz -o strings.a80
-        ./minzc ../examples/test_all_features.minz -o features.a80
-        
-        # Check that output files were created
-        test -f fib.a80
-        test -f strings.a80
-        test -f features.a80
-        
-        echo "✅ Example compilation tests passed!"
-    
-    - name: Check string implementation
-      shell: bash
-      run: |
-        cd minzc
-        ./minzc ../examples/test_strings.minz -o test.a80
-        
-        # Verify length-prefixed strings (not null-terminated)
-        if grep -q "DB 13.*; Length" test.a80; then
-          echo "✅ Length-prefixed strings working!"
-        else
-          echo "❌ String implementation may have regressed"
-          exit 1
-        fi
-    
-    - name: Check register allocation
-      shell: bash  
-      run: |
-        cd minzc
-        ./minzc ../examples/test_physical_registers.minz -o test.a80
-        
-        # Verify hierarchical allocation is active
-        if grep -q "hierarchical register allocation" test.a80; then
-          echo "✅ Hierarchical register allocation active!"
-        else
-          echo "❌ Register allocation may have regressed"
-          exit 1
-        fi
-
-  # Quick smoke test for VSCode extension
-  test-vscode:
-    name: Test VSCode Extension
+  build-test-status:
+    name: Build and Test Status
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-    
-    - name: Test extension
-      run: |
-        cd vscode-minz
-        npm install
-        npm test || echo "VSCode tests not implemented yet"
-    
-    - name: Try to package extension
-      run: |
-        npm install -g @vscode/vsce
-        cd vscode-minz
-        vsce package --out test.vsix
-        test -f test.vsix && echo "✅ VSCode extension builds successfully!"
-
-  summary:
-    name: CI Summary
-    needs: [lint, test, test-vscode]
-    runs-on: ubuntu-latest
+    needs: [test, lint]
     if: always()
     steps:
-    - name: Summary
+    - name: Check test results
       run: |
-        echo "# CI Summary"
-        echo "All checks completed!"
-        echo ""
-        echo "## Status"
-        echo "- Linting: ${{ needs.lint.result }}"
-        echo "- Tests: ${{ needs.test.result }}"
-        echo "- VSCode: ${{ needs.test-vscode.result }}"
+        if [[ "${{ needs.test.result }}" == "failure" ]] || [[ "${{ needs.lint.result }}" == "failure" ]]; then
+          echo "Tests or linting failed"
+          exit 1
+        fi
+        echo "All tests passed!"

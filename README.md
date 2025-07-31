@@ -1,5 +1,10 @@
 # MinZ Programming Language
 
+[![CI](https://github.com/minz/minz/workflows/CI/badge.svg)](https://github.com/minz/minz/actions/workflows/ci.yml)
+[![Release](https://github.com/minz/minz/workflows/Release/badge.svg)](https://github.com/minz/minz/releases)
+[![codecov](https://codecov.io/gh/minz/minz/branch/master/graph/badge.svg)](https://codecov.io/gh/minz/minz)
+[![Go Report Card](https://goreportcard.com/badge/github.com/minz/minzc)](https://goreportcard.com/report/github.com/minz/minzc)
+
 ## 🚀 **World's Most Advanced Z80 Compiler**
 
 MinZ is a revolutionary systems programming language that delivers **unprecedented performance** for Z80-based computers. Combining cutting-edge compiler theory with Z80-native optimizations, MinZ achieves **hand-optimized assembly performance** automatically.

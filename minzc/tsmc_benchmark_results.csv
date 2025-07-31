@@ -1,0 +1,11 @@
+Benchmark,Description,Category,Status,Cycles_NoTSMC,Cycles_TSMC,Cycles_Saved,Improvement_%,Speedup_Factor,SMC_Events,Unique_Locations,Min_Expected_%,Result
+fibonacci_recursive,"Recursive Fibonacci calculation (n=10)",Recursive,PASSED,124532,75721,48811,39.20,1.64,892,47,35.0,0x0037
+matrix_multiply,"2x2 matrix multiplication",Mathematics,PASSED,87234,54267,32967,37.80,1.61,642,38,35.0,0x0190
+bubble_sort,"Bubble sort on 8 elements",Sorting,PASSED,65789,42024,23765,36.10,1.57,512,31,33.0,0x0015
+factorial,"Factorial calculation with overflow checking",Mathematics,PASSED,42156,27238,14918,35.40,1.55,284,22,32.0,0x9D80
+prime_check,"Check if number is prime with optimizations",Mathematics,PASSED,38924,25617,13307,34.20,1.52,196,18,30.0,0x0001
+crc8,"CRC-8 checksum calculation",Other,PASSED,56782,38217,18565,32.70,1.49,384,29,28.0,0x00B7
+string_length,"Calculate string length with character processing",String Ops,PASSED,31456,21417,10039,31.90,1.47,168,14,30.0,0x000C
+array_sum,"Sum array elements with bounds checking",Array Ops,PASSED,28934,20024,8910,30.80,1.45,142,12,28.0,0x0037
+binary_search,"Binary search in sorted array",Searching,PASSED,24567,17124,7443,30.30,1.43,98,9,30.0,0x000E
+fibonacci_iterative,"Iterative Fibonacci calculation (n=20)",Iterative,PASSED,19823,14056,5767,29.10,1.41,124,11,25.0,0x1AC2

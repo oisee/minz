@@ -21,3 +21,14 @@ run: build
 deps:
 	go mod download
 	go mod tidy
+
+# Run TSMC benchmarks
+benchmark:
+	go test -v ./pkg/z80testing -run TestTSMCBenchmarkSuite
+
+# Generate performance report
+perf-report:
+	go run scripts/generate_performance_report.go -output .
+
+# Run benchmarks and generate report
+benchmark-report: benchmark perf-report
