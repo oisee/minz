@@ -1,4 +1,4 @@
-package testing
+package z80testing
 
 import (
 	"testing"

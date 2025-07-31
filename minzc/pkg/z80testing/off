@@ -1,0 +1,14 @@
+/var/folders/ym/dcn2ttmn0zj5qdlyt4r77g100000gn/T/TestSjasmPlusAssembler1899364980/001/test.a80(10): error: Duplicate label: helper
+01   0000             
+02   0000             		ORG $8000
+03   8000             		
+04   8000             main: 
+05   8000 3E 2A       		LD A, 42
+06   8002 47          		LD B, A
+07   8003 CD 07 80    		CALL helper
+08   8006 C9          		RET
+09   8007             
+10   8007             helper: 
+11   8007 3C          		INC A
+12   8008 C9          		RET
+13   8009             	

@@ -1,7 +1,6 @@
-package testing
+package z80testing
 
 import (
-	"fmt"
 	"github.com/remogatto/z80"
 	"strings"
 	"testing"
@@ -132,9 +131,9 @@ func (g *GivenContext) Register(reg string, value uint16) *GivenContext {
 	case "DE":
 		g.tc.cpu.SetDE(value)
 	case "SP":
-		g.tc.cpu.SP = value
+		g.tc.cpu.SetSP(value)
 	case "PC":
-		g.tc.cpu.PC = value
+		g.tc.cpu.SetPC(value)
 	}
 	return g
 }
@@ -148,7 +147,7 @@ func (g *GivenContext) Memory(address uint16, values ...byte) *GivenContext {
 
 func (g *GivenContext) Code(address uint16, opcodes ...byte) *GivenContext {
 	g.Memory(address, opcodes...)
-	g.tc.cpu.PC = address
+	g.tc.cpu.SetPC(address)
 	return g
 }
 
@@ -159,7 +158,7 @@ func (g *GivenContext) Stack(values ...uint16) *GivenContext {
 		g.tc.memory.data[sp-1] = byte(v & 0xFF)
 		sp -= 2
 	}
-	g.tc.cpu.SP = sp
+	g.tc.cpu.SetSP(sp)
 	return g
 }
 
@@ -184,10 +183,10 @@ func (w *WhenContext) Execute(cycles int) *WhenContext {
 
 func (w *WhenContext) Call(address uint16) *WhenContext {
 	// CALL instruction: CD low high
-	w.tc.cpu.PC = address
+	w.tc.cpu.SetPC(address)
 	// Execute until RET (C9) is hit
 	for {
-		pc := w.tc.cpu.PC
+		pc := w.tc.cpu.PC()
 		opcode := w.tc.memory.ReadByte(pc)
 		w.tc.cpu.DoOpcode()
 		if opcode == 0xC9 { // RET
@@ -202,7 +201,7 @@ func (w *WhenContext) Call(address uint16) *WhenContext {
 }
 
 func (w *WhenContext) ExecuteUntil(address uint16) *WhenContext {
-	for w.tc.cpu.PC != address && !w.tc.cpu.Halted {
+	for w.tc.cpu.PC() != address && !w.tc.cpu.Halted {
 		w.tc.cpu.DoOpcode()
 	}
 	w.cycles = w.tc.cpu.Tstates
@@ -289,9 +288,9 @@ func (t *ThenContext) getRegister(reg string) uint16 {
 	case "DE":
 		return t.tc.cpu.DE()
 	case "SP":
-		return t.tc.cpu.SP
+		return t.tc.cpu.SP()
 	case "PC":
-		return t.tc.cpu.PC
+		return t.tc.cpu.PC()
 	default:
 		return 0
 	}

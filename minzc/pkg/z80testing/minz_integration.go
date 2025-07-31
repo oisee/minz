@@ -1,4 +1,4 @@
-package testing
+package z80testing
 
 import (
 	"bufio"
@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"testing"
 )
 
 // MinZTest extends TestContext with MinZ-specific features
@@ -35,7 +36,7 @@ func (m *MinZTest) LoadA80(filename string) error {
 
 	scanner := bufio.NewScanner(file)
 	currentAddr := uint16(0)
-	inData := false
+	// inData := false // unused for now
 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -132,13 +133,13 @@ func (m *MinZTest) CallFunction(name string, args ...uint16) {
 	}
 	if len(args) > 2 {
 		// Additional args on stack
-		sp := m.cpu.SP
+		sp := m.cpu.SP()
 		for i := len(args) - 1; i >= 2; i-- {
 			sp -= 2
 			m.memory.data[sp] = byte(args[i] & 0xFF)
 			m.memory.data[sp+1] = byte(args[i] >> 8)
 		}
-		m.cpu.SP = sp
+		m.cpu.SetSP(sp)
 	}
 
 	// Call the function
