@@ -1386,3 +1386,27 @@ MinZ provides maximum value for:
 **🚀 Refined Vision: "Revolutionary performance for register-constrained classic processors"**
 
 MinZ isn't trying to be everything to everyone - it's the **BEST solution** for specific architectures where modern tools fall short and our optimizations shine. On 6502/Z80/6809, MinZ enables performance previously thought impossible!
+
+### 📚 Distant Future Roadmap - Research Complete
+
+Comprehensive feasibility studies have been conducted for potential MinZ expansion:
+
+**✅ Recommended Targets (High ROI):**
+- **6502** → [Article 044](minzc/docs/044_MIR_to_6502_Compilation_Feasibility.md) & [Article 045](minzc/docs/045_TSMC_on_6502_Analysis.md) & [Article 046](minzc/docs/046_MinZ_6502_Complete_Analysis.md)
+  - TSMC potentially superior to Z80 implementation
+  - 30-40% performance gains, revolutionary impact
+- **6809** → [Article 047](minzc/docs/047_MinZ_Multi_Processor_Target_Analysis.md)
+  - Excellent architecture for TSMC, underserved market
+- **65816** → [Article 047](minzc/docs/047_MinZ_Multi_Processor_Target_Analysis.md)
+  - Natural 6502 extension, SNES homebrew community
+
+**❌ Not Recommended (Low ROI):**
+- **68000** → [Article 048](minzc/docs/048_MinZ_Value_Proposition_Analysis.md)
+  - Already has excellent tools, minimal TSMC benefit
+- **Modern MCUs (AVR/PIC)** → [Article 049](minzc/docs/049_MinZ_Modern_MCU_Analysis_AVR_PIC.md)
+  - Flash memory makes TSMC impossible
+  - No register pressure with 32+ registers
+- **Modern ARM/x86** → [Article 047](minzc/docs/047_MinZ_Multi_Processor_Target_Analysis.md)
+  - Cache coherency kills TSMC, well-served by GCC/LLVM
+
+**Research Conclusion:** Focus on register-constrained processors (≤4 general registers) with RAM-based code where TSMC provides 25%+ performance gains.
