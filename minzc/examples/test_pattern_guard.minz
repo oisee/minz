@@ -1,0 +1,19 @@
+// Simple test for pattern guards
+
+fun test_simple_guard(n: i16) -> u8 {
+    case n {
+        0 => 0,
+        n if n > 0 => 1,
+        _ => 2,
+    }
+}
+
+pub fun main() -> u8 {
+    var result: u8 = test_simple_guard(5);
+    if result != 1 { return 1; }
+    
+    result = test_simple_guard(-5);
+    if result != 2 { return 2; }
+    
+    return 0;
+}

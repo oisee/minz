@@ -446,7 +446,8 @@ func (c *CaseStmt) stmtNode()    {}
 // CaseArm represents a single arm of a case statement
 type CaseArm struct {
 	Pattern  Pattern
-	Body     Node // Can be Expression or BlockStmt
+	Guard    Expression // Optional guard expression (if clause)
+	Body     Node       // Can be Expression or BlockStmt
 	StartPos Position
 	EndPos   Position
 }

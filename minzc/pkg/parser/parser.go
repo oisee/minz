@@ -1295,6 +1295,22 @@ func (p *Parser) parseCaseArm(node map[string]interface{}) *ast.CaseArm {
 	}
 	
 	children, _ := node["children"].([]interface{})
+	
+	// First pass: count expressions to determine if we have a guard
+	expressionCount := 0
+	patternSeen := false
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		if nodeType == "pattern" {
+			patternSeen = true
+		} else if nodeType == "expression" && patternSeen {
+			expressionCount++
+		}
+	}
+	
+	// Second pass: parse with knowledge of structure
+	exprIndex := 0
 	for _, child := range children {
 		childNode, _ := child.(map[string]interface{})
 		nodeType, _ := childNode["type"].(string)
@@ -1303,7 +1319,19 @@ func (p *Parser) parseCaseArm(node map[string]interface{}) *ast.CaseArm {
 		case "pattern":
 			arm.Pattern = p.parsePattern(childNode)
 		case "expression":
-			arm.Body = p.parseExpression(childNode)
+			if arm.Pattern != nil {
+				exprIndex++
+				if expressionCount == 2 && exprIndex == 1 {
+					// Two expressions: first is guard
+					arm.Guard = p.parseExpression(childNode)
+				} else if expressionCount == 2 && exprIndex == 2 {
+					// Two expressions: second is body
+					arm.Body = p.parseExpression(childNode)
+				} else if expressionCount == 1 {
+					// One expression: it's the body
+					arm.Body = p.parseExpression(childNode)
+				}
+			}
 		case "block":
 			arm.Body = p.parseBlock(childNode)
 		}
@@ -1314,8 +1342,28 @@ func (p *Parser) parseCaseArm(node map[string]interface{}) *ast.CaseArm {
 
 // parsePattern parses a pattern
 func (p *Parser) parsePattern(node map[string]interface{}) ast.Pattern {
+	if node == nil {
+		return nil
+	}
+	
+	// Check if this is a wildcard pattern by examining the text
+	if text := p.getText(node); text == "_" {
+		return &ast.WildcardPattern{
+			StartPos: p.getPosition(node, "startPosition"),
+			EndPos:   p.getPosition(node, "endPosition"),
+		}
+	}
+	
 	children, _ := node["children"].([]interface{})
 	if len(children) == 0 {
+		// If no children but we have text, it might be an identifier pattern
+		if text := p.getText(node); text != "" {
+			return &ast.IdentifierPattern{
+				Name:     text,
+				StartPos: p.getPosition(node, "startPosition"),
+				EndPos:   p.getPosition(node, "endPosition"),
+			}
+		}
 		return nil
 	}
 	

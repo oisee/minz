@@ -1573,20 +1573,73 @@ func (a *Analyzer) analyzeCaseStmt(caseStmt *ast.CaseStmt, irFunc *ir.Function) 
 	for i, arm := range caseStmt.Arms {
 		irFunc.EmitLabel(armLabels[i])
 		
+		// Create new scope for pattern variables
+		prevScope := a.currentScope
+		a.currentScope = NewScope(a.currentScope)
+		
+		// Bind pattern variables if this is an identifier pattern
+		if idPattern, ok := arm.Pattern.(*ast.IdentifierPattern); ok && !strings.Contains(idPattern.Name, ".") {
+			// This is a variable binding pattern
+			// Create a new variable in the current scope with the matched value
+			varReg := irFunc.AllocReg()
+			irFunc.Emit(ir.OpMove, varReg, exprReg, 0)
+			
+			a.currentScope.Define(idPattern.Name, &VarSymbol{
+				Name:      idPattern.Name,
+				Type:      exprType,
+				Reg:       varReg,
+				IsMutable: false, // Pattern variables are immutable
+			})
+		}
+		
+		// If there's a guard, check it
+		if arm.Guard != nil {
+			// Analyze the guard expression
+			guardReg, err := a.analyzeExpression(arm.Guard, irFunc)
+			if err != nil {
+				return err
+			}
+			
+			// Check that guard is boolean
+			guardType := a.exprTypes[arm.Guard]
+			if guardType == nil || guardType.String() != "bool" {
+				return fmt.Errorf("pattern guard must be of type bool, got %v", guardType)
+			}
+			
+			// Jump to next arm if guard fails
+			nextArmLabel := endLabel
+			if i < len(caseStmt.Arms)-1 {
+				nextArmLabel = armLabels[i+1]
+			}
+			
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:    ir.OpJumpIfNot,
+				Src1:  guardReg,
+				Label: nextArmLabel,
+			})
+		}
+		
 		// Analyze the arm body
 		switch body := arm.Body.(type) {
 		case ast.Expression:
 			// Expression body - just analyze it
 			_, err := a.analyzeExpression(body, irFunc)
 			if err != nil {
+				// Restore scope before returning error
+				a.currentScope = prevScope
 				return err
 			}
 		case *ast.BlockStmt:
 			// Block body
 			if err := a.analyzeBlock(body, irFunc); err != nil {
+				// Restore scope before returning error
+				a.currentScope = prevScope
 				return err
 			}
 		}
+		
+		// Restore scope after analyzing arm
+		a.currentScope = prevScope
 		
 		// Jump to end (unless this is the last arm)
 		if i < len(caseStmt.Arms)-1 {
@@ -1644,8 +1697,10 @@ func (a *Analyzer) analyzePattern(pattern ast.Pattern, exprReg ir.Register, expr
 				}
 			}
 		} else {
-			// Simple identifier - treat as variable binding (not implemented yet)
-			return fmt.Errorf("variable binding patterns not implemented yet")
+			// Simple identifier - treat as variable binding
+			// This pattern always matches and binds the value to a variable
+			// Jump directly to the match label
+			irFunc.EmitJump(matchLabel)
 		}
 		
 	case *ast.LiteralPattern:

@@ -1678,6 +1678,27 @@
           "name": "pattern"
         },
         {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "if"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "expression"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
           "type": "STRING",
           "value": "=>"
         },

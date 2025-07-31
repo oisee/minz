@@ -405,6 +405,7 @@ module.exports = grammar({
 
     case_arm: $ => seq(
       $.pattern,
+      optional(seq('if', $.expression)),  // Pattern guard
       '=>',
       choice(
         $.expression,

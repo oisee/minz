@@ -1,0 +1,152 @@
+// Pattern guards example - demonstrating conditional patterns in MinZ
+
+// Simple enum for demonstrating guards
+enum Status {
+    Active,
+    Inactive,
+    Pending,
+    Error,
+}
+
+// Structure to test guards with
+struct User {
+    id: u16,
+    status: Status,
+    balance: i16,
+}
+
+// Function to demonstrate pattern guards with literals
+fun categorize_number(n: i16) -> u8 {
+    case n {
+        0 => 0,  // Zero
+        1 => 1,  // One
+        n if n > 0 => 2,  // Positive (guard)
+        n if n < -10 => 3,  // Very negative (guard)
+        _ => 4,  // Other negative
+    }
+}
+
+// Function to demonstrate guards with enum patterns
+fun process_user_status(user: User) -> u8 {
+    case user.status {
+        Status.Active if user.balance > 0 => 1,    // Active with positive balance
+        Status.Active if user.balance == 0 => 2,   // Active with zero balance
+        Status.Active => 3,                        // Active with negative balance
+        Status.Pending if user.id < 1000 => 4,     // New pending user
+        Status.Pending => 5,                       // Regular pending user
+        Status.Error => 6,                         // Error status
+        _ => 7,                                    // Other
+    }
+}
+
+// Complex guards with boolean expressions
+fun complex_guard_test(x: u8, y: u8) -> u8 {
+    case x {
+        0 if y > 0 => 1,
+        0 => 2,
+        n if n > 10 and y < 5 => 3,
+        n if n > 10 or y > 10 => 4,
+        _ => 5,
+    }
+}
+
+// Guards with function calls
+fun is_even(n: u8) -> bool {
+    return n % 2 == 0;
+}
+
+fun is_prime(n: u8) -> bool {
+    if n < 2 { return false; }
+    if n == 2 { return true; }
+    if n % 2 == 0 { return false; }
+    
+    var i: u8 = 3;
+    while i * i <= n {
+        if n % i == 0 { return false; }
+        i = i + 2;
+    }
+    return true;
+}
+
+fun classify_with_functions(n: u8) -> u8 {
+    case n {
+        0 => 0,
+        n if is_even(n) and is_prime(n) => 1,  // Even prime (only 2)
+        n if is_even(n) => 2,                   // Even non-prime
+        n if is_prime(n) => 3,                  // Odd prime
+        _ => 4,                                 // Odd non-prime
+    }
+}
+
+// Multiple patterns with guards
+fun multi_pattern_guards(x: u8, flag: bool) -> u8 {
+    case x {
+        1 if flag => 10,
+        2 if flag => 20,
+        3 if flag => 30,
+        1 => 1,
+        2 => 2,
+        3 => 3,
+        _ if flag => 99,
+        _ => 0,
+    }
+}
+
+// Nested case statements with guards
+fun nested_patterns(outer: u8, inner: u8) -> u8 {
+    case outer {
+        0 => {
+            case inner {
+                n if n > 10 => 1,
+                n if n > 5 => 2,
+                _ => 3,
+            }
+        },
+        n if n > 50 => {
+            case inner {
+                0 => 4,
+                m if m == n => 5,
+                _ => 6,
+            }
+        },
+        _ => 7,
+    }
+}
+
+// Main function to test pattern guards
+pub fun main() -> u8 {
+    // Test literal guards
+    var pos: i16 = 5;
+    var neg: i16 = -15;
+    var zero: i16 = 0;
+    
+    if categorize_number(pos) != 2 { return 1; }
+    if categorize_number(neg) != 3 { return 2; }
+    if categorize_number(zero) != 0 { return 3; }
+    
+    // Test enum guards
+    var user1: User = User { id: 500, status: Status.Active, balance: 100 };
+    var user2: User = User { id: 1500, status: Status.Pending, balance: 0 };
+    
+    if process_user_status(user1) != 1 { return 4; }
+    if process_user_status(user2) != 5 { return 5; }
+    
+    // Test complex guards
+    if complex_guard_test(0, 5) != 1 { return 6; }
+    if complex_guard_test(15, 2) != 3 { return 7; }
+    
+    // Test function call guards
+    if classify_with_functions(2) != 1 { return 8; }
+    if classify_with_functions(4) != 2 { return 9; }
+    if classify_with_functions(7) != 3 { return 10; }
+    
+    // Test multiple pattern guards
+    if multi_pattern_guards(1, true) != 10 { return 11; }
+    if multi_pattern_guards(1, false) != 1 { return 12; }
+    
+    // Test nested patterns
+    if nested_patterns(0, 15) != 1 { return 13; }
+    if nested_patterns(60, 60) != 5 { return 14; }
+    
+    return 0; // All tests passed
+}

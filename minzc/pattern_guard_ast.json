@@ -1,0 +1,30 @@
+{
+  "parse_summaries": [
+    {
+      "file": "minzc/examples/test_pattern_guard_simple.minz",
+      "successful": true,
+      "start": {
+        "row": 0,
+        "column": 0
+      },
+      "end": {
+        "row": 12,
+        "column": 1
+      },
+      "duration": {
+        "secs": 0,
+        "nanos": 40833
+      },
+      "bytes": 202
+    }
+  ],
+  "cumulative_stats": {
+    "successful_parses": 0,
+    "total_parses": 0,
+    "total_bytes": 0,
+    "total_duration": {
+      "secs": 0,
+      "nanos": 0
+    }
+  }
+}
