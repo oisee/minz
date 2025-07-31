@@ -1363,30 +1363,26 @@ The 6502 presents an **exceptional opportunity** for MinZ:
 
 **The analysis shows TSMC on 6502 could be revolutionary - potentially more powerful than the Z80 implementation!**
 
-### 🔮 Additional Future Targets
+### 🔮 Strategic Future Targets
 
-MinZ's revolutionary MIR architecture enables targeting virtually any classic processor. Comprehensive analysis ([Article 047](minzc/docs/047_MinZ_Multi_Processor_Target_Analysis.md)) identifies these exceptional candidates:
+Based on comprehensive analysis ([Article 047](minzc/docs/047_MinZ_Multi_Processor_Target_Analysis.md) & [Article 048](minzc/docs/048_MinZ_Value_Proposition_Analysis.md)), MinZ will focus on platforms where it provides **revolutionary advantages**:
 
-**🌟 Tier 1 - Excellent Targets:**
-- **Motorola 6809** - "Most advanced 8-bit CPU" with superior architecture for TSMC
-- **WDC 65816** - 16-bit 6502 extension (Apple IIgs, SNES)
-- **Intel 8086/8088** - x86 origins (IBM PC, DOS era)
+**🌟 High Priority - Register-Constrained Targets:**
+- **Motorola 6809** - Superior 8-bit architecture, 30% TSMC performance gains
+- **WDC 65816** - 16-bit 6502 extension (Apple IIgs, SNES), 35% gains
+- **Intel 8086 Real Mode** - DOS renaissance, underserved by modern tools
 
-**💎 Tier 2 - Strong Candidates:**
-- **Motorola 68000** - 16/32-bit powerhouse (Amiga, Atari ST, Mac, Genesis)
-- **ARM2/ARM3** - Early RISC architecture (Acorn Archimedes)
-- **TMS9900** - Unique workspace registers (TI-99/4A)
+**❌ Not Recommended - Well-Served Platforms:**
+- ~~Motorola 68000~~ - Already has excellent tools (VBCC, GCC), minimal TSMC benefit
+- ~~Modern ARM~~ - Cache coherency incompatible with TSMC
+- ~~x86 Protected Mode~~ - Dominated by major compilers
 
-**🎯 Why MinZ Can Target All These Processors:**
-- **MIR abstraction layer** handles architectural differences elegantly
-- **TSMC optimization** applicable to most architectures
-- **Consistent language features** across all platforms
-- **Write once, run on any retro system** philosophy
+**🎯 MinZ Sweet Spot:**
+MinZ provides maximum value for:
+- **Register-constrained processors** (≤4 general registers)
+- **Platforms with poor/outdated tools**
+- **Architectures where TSMC provides 25%+ performance gains**
 
-**🚀 Vision: MinZ as "The Rosetta Stone of Retro Computing"**
-- One modern language for ALL classic platforms
-- Performance approaching hand-optimized assembly
-- Preserve optimization techniques across architectures
-- Enable cross-platform retro development
+**🚀 Refined Vision: "Revolutionary performance for register-constrained classic processors"**
 
-When mature, MinZ will let developers write modern, high-performance code for virtually any classic computer or game console from the 1970s-1990s!
+MinZ isn't trying to be everything to everyone - it's the **BEST solution** for specific architectures where modern tools fall short and our optimizations shine. On 6502/Z80/6809, MinZ enables performance previously thought impossible!
