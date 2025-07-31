@@ -1,0 +1,135 @@
+// MinZ TSMC Performance Demonstration
+// This file showcases functions that benefit significantly from TRUE SMC optimization
+
+// Function with immediate values that can be patched
+fn scale_value(x: u16, scale: u16) -> u16 {
+    // With TSMC, the scale factor can be patched directly into the instruction
+    return x * scale;
+}
+
+// Array processing with TSMC-optimizable bounds
+fn sum_array_slice(arr: *u16, start: u16, end: u16) -> u16 {
+    var sum: u16 = 0;
+    var i: u16 = start;
+    
+    // TSMC can patch the end value directly into the comparison
+    while i < end {
+        sum = sum + arr[i];
+        i = i + 1;
+    }
+    
+    return sum;
+}
+
+// Conditional processing that benefits from TSMC
+fn threshold_count(arr: *u8, len: u16, threshold: u8) -> u16 {
+    var count: u16 = 0;
+    var i: u16 = 0;
+    
+    while i < len {
+        // TSMC can patch the threshold directly into the comparison
+        if arr[i] > threshold {
+            count = count + 1;
+        }
+        i = i + 1;
+    }
+    
+    return count;
+}
+
+// Matrix-like operation (1D array treated as 2D)
+fn matrix_sum_row(matrix: *u16, width: u16, row: u16) -> u16 {
+    var sum: u16 = 0;
+    var col: u16 = 0;
+    var base: u16 = row * width;
+    
+    // TSMC optimizes the width parameter in the loop
+    while col < width {
+        sum = sum + matrix[base + col];
+        col = col + 1;
+    }
+    
+    return sum;
+}
+
+// Polynomial evaluation - ideal for TSMC
+fn polynomial3(x: u16, a: u16, b: u16, c: u16, d: u16) -> u16 {
+    // Computes ax^3 + bx^2 + cx + d
+    // TSMC can patch all coefficients directly
+    return a * x * x * x + b * x * x + c * x + d;
+}
+
+// String processing with TSMC-optimizable patterns
+fn count_char(str: *u8, target: u8) -> u16 {
+    var count: u16 = 0;
+    var i: u16 = 0;
+    
+    while str[i] != 0 {
+        // TSMC patches the target character directly
+        if str[i] == target {
+            count = count + 1;
+        }
+        i = i + 1;
+    }
+    
+    return count;
+}
+
+// Bit manipulation function
+fn count_bits_in_range(start: u16, end: u16) -> u16 {
+    var count: u16 = 0;
+    var num: u16 = start;
+    
+    // TSMC optimizes the range bounds
+    while num <= end {
+        // Count set bits in num
+        var temp: u16 = num;
+        while temp != 0 {
+            if temp & 1 {
+                count = count + 1;
+            }
+            temp = temp >> 1;
+        }
+        num = num + 1;
+    }
+    
+    return count;
+}
+
+// Function that calls other functions (tests TSMC call optimization)
+fn process_data(data: *u16, len: u16, scale: u16, threshold: u16) -> u16 {
+    var result: u16 = 0;
+    var i: u16 = 0;
+    
+    while i < len {
+        var scaled = scale_value(data[i], scale);
+        if scaled > threshold {
+            result = result + scaled;
+        }
+        i = i + 1;
+    }
+    
+    return result;
+}
+
+// Main entry point for testing
+fn main() {
+    // Set up test data
+    var test_array: [10]u16 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    var test_string: [14]u8 = "Hello, World!";
+    
+    // Run tests
+    let r1 = scale_value(100, 3);                    // 300
+    let r2 = sum_array_slice(&test_array, 2, 5);     // 3+4+5 = 12
+    let r3 = threshold_count(&test_string, 13, 72);  // chars > 'H' = 8
+    let r4 = polynomial3(2, 1, 2, 3, 4);            // 1*8 + 2*4 + 3*2 + 4 = 26
+    let r5 = count_char(&test_string, 'l');          // 3 'l's
+    let r6 = count_bits_in_range(7, 10);            // bits in 7,8,9,10
+    
+    // Complex test
+    let r7 = process_data(&test_array, 10, 2, 15);   // Process with scale=2, threshold=15
+    
+    @asm {
+        HALT
+    }
+}

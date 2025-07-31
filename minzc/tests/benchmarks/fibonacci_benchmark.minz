@@ -1,0 +1,63 @@
+// Fibonacci Benchmark - Demonstrates TSMC benefits in recursive algorithms
+// 
+// This benchmark compares recursive vs iterative Fibonacci implementations
+// and shows how TSMC optimizes function call overhead in deep recursion.
+
+module fibonacci_benchmark;
+
+// Recursive Fibonacci - Maximum benefit from TSMC
+// Each recursive call patches parameters directly into CALL instructions
+export fn fib_recursive(n: u16) -> u16 {
+    if (n <= 1) {
+        return n;
+    }
+    // Two recursive calls create significant overhead without TSMC
+    return fib_recursive(n - 1) + fib_recursive(n - 2);
+}
+
+// Iterative Fibonacci with helper functions - Moderate TSMC benefit
+export fn fib_iterative(n: u16) -> u16 {
+    if (n <= 1) {
+        return n;
+    }
+    
+    let a: u16 = 0;
+    let b: u16 = 1;
+    let i: u16 = 2;
+    
+    while (i <= n) {
+        let temp: u16 = add_values(a, b);  // TSMC optimizes these calls
+        a = b;
+        b = temp;
+        i = increment(i);  // Another optimization point
+    }
+    
+    return b;
+}
+
+// Helper functions that benefit from TSMC parameter patching
+fn add_values(x: u16, y: u16) -> u16 {
+    return x + y;
+}
+
+fn increment(val: u16) -> u16 {
+    return val + 1;
+}
+
+// Benchmark runner - calculates multiple Fibonacci numbers
+export fn run_benchmark() -> u16 {
+    let sum: u16 = 0;
+    
+    // Calculate Fibonacci for multiple values
+    sum = sum + fib_recursive(8);   // F(8) = 21
+    sum = sum + fib_recursive(10);  // F(10) = 55
+    sum = sum + fib_iterative(15);  // F(15) = 610
+    sum = sum + fib_iterative(20);  // F(20) = 6765
+    
+    return sum; // Expected: 21 + 55 + 610 + 6765 = 7451
+}
+
+// Entry point
+export fn main() -> u16 {
+    return run_benchmark();
+}

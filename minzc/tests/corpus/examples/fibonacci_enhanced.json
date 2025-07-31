@@ -1,0 +1,80 @@
+{
+  "name": "fibonacci_enhanced",
+  "source_file": "examples/fibonacci.minz",
+  "category": "basic",
+  "description": "Enhanced test for Fibonacci sequence calculation with detailed performance tracking",
+  "expected_result": {
+    "compile_success": true,
+    "run_success": true,
+    "exit_code": 0,
+    "compile_error": "",
+    "runtime_error": ""
+  },
+  "performance": {
+    "max_cycles": 5000,
+    "tsmc_improvement": 35.0,
+    "memory_usage": 256,
+    "code_size": 512
+  },
+  "compiler_flags": ["-O", "--enable-true-smc"],
+  "tags": ["algorithm", "loops", "benchmark"],
+  "function_tests": [
+    {
+      "function_name": "fibonacci",
+      "arguments": [0],
+      "expected": 0,
+      "max_cycles": 100
+    },
+    {
+      "function_name": "fibonacci",
+      "arguments": [1],
+      "expected": 1,
+      "max_cycles": 100
+    },
+    {
+      "function_name": "fibonacci",
+      "arguments": [2],
+      "expected": 1,
+      "max_cycles": 200
+    },
+    {
+      "function_name": "fibonacci",
+      "arguments": [5],
+      "expected": 5,
+      "max_cycles": 500
+    },
+    {
+      "function_name": "fibonacci",
+      "arguments": [10],
+      "expected": 55,
+      "max_cycles": 1500
+    },
+    {
+      "function_name": "fibonacci",
+      "arguments": [15],
+      "expected": 610,
+      "max_cycles": 3000
+    },
+    {
+      "function_name": "fibonacci",
+      "arguments": [20],
+      "expected": 6765,
+      "max_cycles": 5000
+    }
+  ],
+  "memory_checks": [
+    {
+      "address": 16384,
+      "expected": [],
+      "mask": [],
+      "description": "Stack should be restored after function call"
+    }
+  ],
+  "known_issues": [],
+  "notes": [
+    "This is a classic iterative Fibonacci implementation",
+    "Performance scales linearly with input value",
+    "Good test case for loop optimization and register allocation",
+    "TSMC optimization should improve loop performance significantly"
+  ]
+}

@@ -1,0 +1,1990 @@
+{
+  "version": "1.0",
+  "description": "MinZ Test Corpus Manifest",
+  "categories": {
+    "basic": {
+      "description": "Basic language features (arithmetic, control flow, functions)",
+      "tests": [
+        "arithmetic_16bit",
+        "arithmetic_demo",
+        "basic_functions",
+        "const_only",
+        "control_flow",
+        "fibonacci",
+        "field_assignment",
+        "global_variables",
+        "implicit_returns",
+        "loops_indexed",
+        "lua_assets",
+        "lua_constants",
+        "lua_metaprogramming",
+        "lua_sine_table",
+        "lua_working_demo",
+        "main",
+        "math_functions",
+        "metaprogramming",
+        "nested_loops",
+        "pointer_arithmetic",
+        "recursion_examples",
+        "register_test",
+        "simple_add",
+        "simple_test",
+        "stack_variables",
+        "test_all_features",
+        "test_assign_complete",
+        "test_assign_stmt",
+        "test_assignment",
+        "test_auto_deref",
+        "test_auto_deref_param",
+        "test_cast",
+        "test_complex_assign_simple",
+        "test_complex_assignments",
+        "test_compound_assignment",
+        "test_const",
+        "test_const_simple_fix",
+        "test_for_simple",
+        "test_loop_into",
+        "test_loop_minimal",
+        "test_loop_no_init",
+        "test_loop_ref",
+        "test_lua_blocks",
+        "test_lua_codegen",
+        "test_lua_const",
+        "test_lua_math",
+        "test_lua_simple",
+        "test_lua_tables",
+        "test_lua_v2",
+        "test_number_const",
+        "test_print_interpolation",
+        "test_range",
+        "test_range_comprehensive",
+        "test_range_simple",
+        "test_register_params",
+        "test_registers",
+        "test_simple",
+        "test_simple_assign",
+        "test_string_lengths",
+        "test_strings",
+        "test_strings_simple",
+        "test_what_works",
+        "traffic_light_fsm",
+        "types_demo",
+        "working_demo"
+      ]
+    },
+    "advanced": {
+      "description": "Advanced features (structs, arrays, modules)",
+      "tests": [
+        "array_initializers",
+        "arrays",
+        "bit_fields",
+        "bit_manipulation",
+        "data_structures",
+        "enums",
+        "iterators",
+        "memory_operations",
+        "string_operations",
+        "structs",
+        "test_array_access",
+        "test_bit_field_access",
+        "test_bit_field_comprehensive",
+        "test_bit_field_proper",
+        "test_struct",
+        "test_struct_simple"
+      ]
+    },
+    "optimization": {
+      "description": "Optimization features (TSMC, tail recursion)",
+      "tests": [
+        "fibonacci_tail",
+        "performance_tricks",
+        "register_allocation",
+        "shadow_registers",
+        "simple_true_smc",
+        "smc_optimization",
+        "smc_optimization_simple",
+        "smc_recursion",
+        "tail_recursive",
+        "tail_sum",
+        "test_16bit_smc",
+        "test_smc_patching",
+        "test_true_smc_call",
+        "true_smc_demo",
+        "true_smc_test",
+        "tsmc_loops",
+        "tsmc_loops_simple",
+        "tsmc_strlen"
+      ]
+    },
+    "integration": {
+      "description": "Integration features (@abi, inline assembly)",
+      "tests": [
+        "abi_hardware_drivers",
+        "abi_rom_integration",
+        "abi_test_with_main",
+        "asm_integration_tests",
+        "hardware_ports",
+        "hardware_registers",
+        "inline_assembly",
+        "interrupt_handlers",
+        "real_world_asm_examples",
+        "simple_abi_demo",
+        "simple_abi_test",
+        "test_abi",
+        "test_abi_comparison",
+        "test_asm",
+        "test_asm_final",
+        "test_imports",
+        "working_asm_integration"
+      ]
+    },
+    "real_world": {
+      "description": "Real-world examples (games, utilities)",
+      "tests": [
+        "editor_demo",
+        "editor_standalone",
+        "game_sprite",
+        "game_state_machine",
+        "lookup_tables",
+        "mnist_complete",
+        "mnist_simple",
+        "parser_state_machine",
+        "protocol_state_machine",
+        "screen_color",
+        "state_machines",
+        "zvdb_code_search",
+        "zvdb_demo",
+        "zvdb_minimal",
+        "zvdb_optimized",
+        "zvdb_paged",
+        "zvdb_scorpion_optimized"
+      ]
+    }
+  },
+  "tests": [
+    {
+      "name": "abi_hardware_drivers",
+      "source_file": "examples/abi_hardware_drivers.minz",
+      "category": "integration",
+      "description": "Test for abi hardware drivers with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "abi_rom_integration",
+      "source_file": "examples/abi_rom_integration.minz",
+      "category": "integration",
+      "description": "Test for abi rom integration with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "abi_test_with_main",
+      "source_file": "examples/abi_test_with_main.minz",
+      "category": "integration",
+      "description": "Test for abi test with main with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "arithmetic_16bit",
+      "source_file": "examples/arithmetic_16bit.minz",
+      "category": "basic",
+      "description": "Test for arithmetic 16bit",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "arithmetic_demo",
+      "source_file": "examples/arithmetic_demo.minz",
+      "category": "basic",
+      "description": "Test for arithmetic demo",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "inline_asm"
+      ]
+    },
+    {
+      "name": "array_initializers",
+      "source_file": "examples/array_initializers.minz",
+      "category": "advanced",
+      "description": "Test for array initializers",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "arrays",
+      "source_file": "examples/arrays.minz",
+      "category": "advanced",
+      "description": "Test for arrays",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "asm_integration_tests",
+      "source_file": "examples/asm_integration_tests.minz",
+      "category": "integration",
+      "description": "Test for asm integration tests with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "basic_functions",
+      "source_file": "examples/basic_functions.minz",
+      "category": "basic",
+      "description": "Test for basic functions",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "bit_fields",
+      "source_file": "examples/bit_fields.minz",
+      "category": "advanced",
+      "description": "Test for bit fields",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "bit_manipulation",
+      "source_file": "examples/bit_manipulation.minz",
+      "category": "advanced",
+      "description": "Test for bit manipulation",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "const_only",
+      "source_file": "examples/const_only.minz",
+      "category": "basic",
+      "description": "Test for const only",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "control_flow",
+      "source_file": "examples/control_flow.minz",
+      "category": "basic",
+      "description": "Test for control flow",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "data_structures",
+      "source_file": "examples/data_structures.minz",
+      "category": "advanced",
+      "description": "Test for data structures",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "editor_demo",
+      "source_file": "examples/editor_demo.minz",
+      "category": "real_world",
+      "description": "Test for editor demo",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "inline_asm"
+      ]
+    },
+    {
+      "name": "editor_standalone",
+      "source_file": "examples/editor_standalone.minz",
+      "category": "real_world",
+      "description": "Test for editor standalone",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "enums",
+      "source_file": "examples/enums.minz",
+      "category": "advanced",
+      "description": "Test for enums",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "fibonacci",
+      "source_file": "examples/fibonacci.minz",
+      "category": "basic",
+      "description": "Test for fibonacci",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {
+        "max_cycles": 5000
+      },
+      "tags": []
+    },
+    {
+      "name": "fibonacci_tail",
+      "source_file": "examples/fibonacci_tail.minz",
+      "category": "optimization",
+      "description": "Test for fibonacci tail",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {
+        "max_cycles": 5000
+      },
+      "tags": []
+    },
+    {
+      "name": "field_assignment",
+      "source_file": "examples/field_assignment.minz",
+      "category": "basic",
+      "description": "Test for field assignment",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "game_sprite",
+      "source_file": "examples/game_sprite.minz",
+      "category": "real_world",
+      "description": "Test for game sprite",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "game_state_machine",
+      "source_file": "examples/game_state_machine.minz",
+      "category": "real_world",
+      "description": "Test for game state machine",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "global_variables",
+      "source_file": "examples/global_variables.minz",
+      "category": "basic",
+      "description": "Test for global variables",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "hardware_ports",
+      "source_file": "examples/hardware_ports.minz",
+      "category": "integration",
+      "description": "Test for hardware ports with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "hardware_registers",
+      "source_file": "examples/hardware_registers.minz",
+      "category": "integration",
+      "description": "Test for hardware registers",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "implicit_returns",
+      "source_file": "examples/implicit_returns.minz",
+      "category": "basic",
+      "description": "Test for implicit returns",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "inline_assembly",
+      "source_file": "examples/inline_assembly.minz",
+      "category": "integration",
+      "description": "Test for inline assembly",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "interrupt_handlers",
+      "source_file": "examples/interrupt_handlers.minz",
+      "category": "integration",
+      "description": "Test for interrupt handlers with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi",
+        "inline_asm"
+      ]
+    },
+    {
+      "name": "iterators",
+      "source_file": "examples/iterators.minz",
+      "category": "advanced",
+      "description": "Test for iterators",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "lookup_tables",
+      "source_file": "examples/lookup_tables.minz",
+      "category": "real_world",
+      "description": "Test for lookup tables",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "loops_indexed",
+      "source_file": "examples/loops_indexed.minz",
+      "category": "basic",
+      "description": "Test for loops indexed",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "lua_assets",
+      "source_file": "examples/lua_assets.minz",
+      "category": "basic",
+      "description": "Test for lua assets",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "lua_constants",
+      "source_file": "examples/lua_constants.minz",
+      "category": "basic",
+      "description": "Test for lua constants",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "lua_metaprogramming",
+      "source_file": "examples/lua_metaprogramming.minz",
+      "category": "basic",
+      "description": "Test for lua metaprogramming",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "lua_sine_table",
+      "source_file": "examples/lua_sine_table.minz",
+      "category": "basic",
+      "description": "Test for lua sine table",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "lua_working_demo",
+      "source_file": "examples/lua_working_demo.minz",
+      "category": "basic",
+      "description": "Test for lua working demo",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "main",
+      "source_file": "examples/main.minz",
+      "category": "basic",
+      "description": "Test for main",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "math_functions",
+      "source_file": "examples/math_functions.minz",
+      "category": "basic",
+      "description": "Test for math functions",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "memory_operations",
+      "source_file": "examples/memory_operations.minz",
+      "category": "advanced",
+      "description": "Test for memory operations",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "metaprogramming",
+      "source_file": "examples/metaprogramming.minz",
+      "category": "basic",
+      "description": "Test for metaprogramming",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "mnist_complete",
+      "source_file": "examples/mnist_complete.minz",
+      "category": "real_world",
+      "description": "Test for mnist complete",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "mnist_simple",
+      "source_file": "examples/mnist_simple.minz",
+      "category": "real_world",
+      "description": "Test for mnist simple",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "nested_loops",
+      "source_file": "examples/nested_loops.minz",
+      "category": "basic",
+      "description": "Test for nested loops",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "parser_state_machine",
+      "source_file": "examples/parser_state_machine.minz",
+      "category": "real_world",
+      "description": "Test for parser state machine",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "performance_tricks",
+      "source_file": "examples/performance_tricks.minz",
+      "category": "optimization",
+      "description": "Test for performance tricks with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi",
+        "inline_asm"
+      ]
+    },
+    {
+      "name": "pointer_arithmetic",
+      "source_file": "examples/pointer_arithmetic.minz",
+      "category": "basic",
+      "description": "Test for pointer arithmetic",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "protocol_state_machine",
+      "source_file": "examples/protocol_state_machine.minz",
+      "category": "real_world",
+      "description": "Test for protocol state machine",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "real_world_asm_examples",
+      "source_file": "examples/real_world_asm_examples.minz",
+      "category": "integration",
+      "description": "Test for real world asm examples with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi",
+        "inline_asm"
+      ]
+    },
+    {
+      "name": "recursion_examples",
+      "source_file": "examples/recursion_examples.minz",
+      "category": "basic",
+      "description": "Test for recursion examples",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "register_allocation",
+      "source_file": "examples/register_allocation.minz",
+      "category": "optimization",
+      "description": "Test for register allocation",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "register_test",
+      "source_file": "examples/register_test.minz",
+      "category": "basic",
+      "description": "Test for register test",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "screen_color",
+      "source_file": "examples/screen_color.minz",
+      "category": "real_world",
+      "description": "Test for screen color",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [],
+      "memory_checks": [
+        {
+          "address": 22528,
+          "expected": [
+            56
+          ]
+        }
+      ]
+    },
+    {
+      "name": "shadow_registers",
+      "source_file": "examples/shadow_registers.minz",
+      "category": "optimization",
+      "description": "Test for shadow registers",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "simple_abi_demo",
+      "source_file": "examples/simple_abi_demo.minz",
+      "category": "integration",
+      "description": "Test for simple abi demo with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "simple_abi_test",
+      "source_file": "examples/simple_abi_test.minz",
+      "category": "integration",
+      "description": "Test for simple abi test with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "simple_add",
+      "source_file": "examples/simple_add.minz",
+      "category": "basic",
+      "description": "Test for simple add",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "simple_test",
+      "source_file": "examples/simple_test.minz",
+      "category": "basic",
+      "description": "Test for simple test",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "simple_true_smc",
+      "source_file": "examples/simple_true_smc.minz",
+      "category": "optimization",
+      "description": "Test for simple true smc",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "smc_optimization",
+      "source_file": "examples/smc_optimization.minz",
+      "category": "optimization",
+      "description": "Test for smc optimization",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "smc_optimization_simple",
+      "source_file": "examples/smc_optimization_simple.minz",
+      "category": "optimization",
+      "description": "Test for smc optimization simple",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "smc_recursion",
+      "source_file": "examples/smc_recursion.minz",
+      "category": "optimization",
+      "description": "Test for smc recursion",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "stack_variables",
+      "source_file": "examples/stack_variables.minz",
+      "category": "basic",
+      "description": "Test for stack variables",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "state_machines",
+      "source_file": "examples/state_machines.minz",
+      "category": "real_world",
+      "description": "Test for state machines",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "string_operations",
+      "source_file": "examples/string_operations.minz",
+      "category": "advanced",
+      "description": "Test for string operations",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "structs",
+      "source_file": "examples/structs.minz",
+      "category": "advanced",
+      "description": "Test for structs",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "tail_recursive",
+      "source_file": "examples/tail_recursive.minz",
+      "category": "optimization",
+      "description": "Test for tail recursive",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "tail_sum",
+      "source_file": "examples/tail_sum.minz",
+      "category": "optimization",
+      "description": "Test for tail sum",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_16bit_smc",
+      "source_file": "examples/test_16bit_smc.minz",
+      "category": "optimization",
+      "description": "Test for test 16bit smc",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_abi",
+      "source_file": "examples/test_abi.minz",
+      "category": "integration",
+      "description": "Test for test abi with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "test_abi_comparison",
+      "source_file": "examples/test_abi_comparison.minz",
+      "category": "integration",
+      "description": "Test for test abi comparison with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "test_all_features",
+      "source_file": "examples/test_all_features.minz",
+      "category": "basic",
+      "description": "Test for test all features",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_array_access",
+      "source_file": "examples/test_array_access.minz",
+      "category": "advanced",
+      "description": "Test for test array access",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_asm",
+      "source_file": "examples/test_asm.minz",
+      "category": "integration",
+      "description": "Test for test asm",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "inline_asm"
+      ]
+    },
+    {
+      "name": "test_asm_final",
+      "source_file": "examples/test_asm_final.minz",
+      "category": "integration",
+      "description": "Test for test asm final",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "inline_asm"
+      ]
+    },
+    {
+      "name": "test_assign_complete",
+      "source_file": "examples/test_assign_complete.minz",
+      "category": "basic",
+      "description": "Test for test assign complete",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_assign_stmt",
+      "source_file": "examples/test_assign_stmt.minz",
+      "category": "basic",
+      "description": "Test for test assign stmt",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_assignment",
+      "source_file": "examples/test_assignment.minz",
+      "category": "basic",
+      "description": "Test for test assignment",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_auto_deref",
+      "source_file": "examples/test_auto_deref.minz",
+      "category": "basic",
+      "description": "Test for test auto deref with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "test_auto_deref_param",
+      "source_file": "examples/test_auto_deref_param.minz",
+      "category": "basic",
+      "description": "Test for test auto deref param",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_bit_field_access",
+      "source_file": "examples/test_bit_field_access.minz",
+      "category": "advanced",
+      "description": "Test for test bit field access",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_bit_field_comprehensive",
+      "source_file": "examples/test_bit_field_comprehensive.minz",
+      "category": "advanced",
+      "description": "Test for test bit field comprehensive",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_bit_field_proper",
+      "source_file": "examples/test_bit_field_proper.minz",
+      "category": "advanced",
+      "description": "Test for test bit field proper",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_cast",
+      "source_file": "examples/test_cast.minz",
+      "category": "basic",
+      "description": "Test for test cast",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_complex_assign_simple",
+      "source_file": "examples/test_complex_assign_simple.minz",
+      "category": "basic",
+      "description": "Test for test complex assign simple",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_complex_assignments",
+      "source_file": "examples/test_complex_assignments.minz",
+      "category": "basic",
+      "description": "Test for test complex assignments",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_compound_assignment",
+      "source_file": "examples/test_compound_assignment.minz",
+      "category": "basic",
+      "description": "Test for test compound assignment",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_const",
+      "source_file": "examples/test_const.minz",
+      "category": "basic",
+      "description": "Test for test const",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_const_simple_fix",
+      "source_file": "examples/test_const_simple_fix.minz",
+      "category": "basic",
+      "description": "Test for test const simple fix",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_for_simple",
+      "source_file": "examples/test_for_simple.minz",
+      "category": "basic",
+      "description": "Test for test for simple",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_imports",
+      "source_file": "examples/test_imports.minz",
+      "category": "integration",
+      "description": "Test for test imports",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_loop_into",
+      "source_file": "examples/test_loop_into.minz",
+      "category": "basic",
+      "description": "Test for test loop into",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_loop_minimal",
+      "source_file": "examples/test_loop_minimal.minz",
+      "category": "basic",
+      "description": "Test for test loop minimal",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_loop_no_init",
+      "source_file": "examples/test_loop_no_init.minz",
+      "category": "basic",
+      "description": "Test for test loop no init",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_loop_ref",
+      "source_file": "examples/test_loop_ref.minz",
+      "category": "basic",
+      "description": "Test for test loop ref",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_lua_blocks",
+      "source_file": "examples/test_lua_blocks.minz",
+      "category": "basic",
+      "description": "Test for test lua blocks",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "test_lua_codegen",
+      "source_file": "examples/test_lua_codegen.minz",
+      "category": "basic",
+      "description": "Test for test lua codegen",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "test_lua_const",
+      "source_file": "examples/test_lua_const.minz",
+      "category": "basic",
+      "description": "Test for test lua const",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "test_lua_math",
+      "source_file": "examples/test_lua_math.minz",
+      "category": "basic",
+      "description": "Test for test lua math",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "test_lua_simple",
+      "source_file": "examples/test_lua_simple.minz",
+      "category": "basic",
+      "description": "Test for test lua simple",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "test_lua_tables",
+      "source_file": "examples/test_lua_tables.minz",
+      "category": "basic",
+      "description": "Test for test lua tables",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "test_lua_v2",
+      "source_file": "examples/test_lua_v2.minz",
+      "category": "basic",
+      "description": "Test for test lua v2",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "test_number_const",
+      "source_file": "examples/test_number_const.minz",
+      "category": "basic",
+      "description": "Test for test number const",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "test_print_interpolation",
+      "source_file": "examples/test_print_interpolation.minz",
+      "category": "basic",
+      "description": "Test for test print interpolation",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_range",
+      "source_file": "examples/test_range.minz",
+      "category": "basic",
+      "description": "Test for test range",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_range_comprehensive",
+      "source_file": "examples/test_range_comprehensive.minz",
+      "category": "basic",
+      "description": "Test for test range comprehensive",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_range_simple",
+      "source_file": "examples/test_range_simple.minz",
+      "category": "basic",
+      "description": "Test for test range simple",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_register_params",
+      "source_file": "examples/test_register_params.minz",
+      "category": "basic",
+      "description": "Test for test register params",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_registers",
+      "source_file": "examples/test_registers.minz",
+      "category": "basic",
+      "description": "Test for test registers",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_simple",
+      "source_file": "examples/test_simple.minz",
+      "category": "basic",
+      "description": "Test for test simple",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_simple_assign",
+      "source_file": "examples/test_simple_assign.minz",
+      "category": "basic",
+      "description": "Test for test simple assign",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_smc_patching",
+      "source_file": "examples/test_smc_patching.minz",
+      "category": "optimization",
+      "description": "Test for test smc patching",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_string_lengths",
+      "source_file": "examples/test_string_lengths.minz",
+      "category": "basic",
+      "description": "Test for test string lengths",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_strings",
+      "source_file": "examples/test_strings.minz",
+      "category": "basic",
+      "description": "Test for test strings",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_strings_simple",
+      "source_file": "examples/test_strings_simple.minz",
+      "category": "basic",
+      "description": "Test for test strings simple",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_struct",
+      "source_file": "examples/test_struct.minz",
+      "category": "advanced",
+      "description": "Test for test struct",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_struct_simple",
+      "source_file": "examples/test_struct_simple.minz",
+      "category": "advanced",
+      "description": "Test for test struct simple",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_true_smc_call",
+      "source_file": "examples/test_true_smc_call.minz",
+      "category": "optimization",
+      "description": "Test for test true smc call",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "test_what_works",
+      "source_file": "examples/test_what_works.minz",
+      "category": "basic",
+      "description": "Test for test what works with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "traffic_light_fsm",
+      "source_file": "examples/traffic_light_fsm.minz",
+      "category": "basic",
+      "description": "Test for traffic light fsm",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "true_smc_demo",
+      "source_file": "examples/true_smc_demo.minz",
+      "category": "optimization",
+      "description": "Test for true smc demo",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "true_smc_test",
+      "source_file": "examples/true_smc_test.minz",
+      "category": "optimization",
+      "description": "Test for true smc test",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "tsmc_loops",
+      "source_file": "examples/tsmc_loops.minz",
+      "category": "optimization",
+      "description": "Test for tsmc loops with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "tsmc_loops_simple",
+      "source_file": "examples/tsmc_loops_simple.minz",
+      "category": "optimization",
+      "description": "Test for tsmc loops simple with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "tsmc_strlen",
+      "source_file": "examples/tsmc_strlen.minz",
+      "category": "optimization",
+      "description": "Test for tsmc strlen with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "types_demo",
+      "source_file": "examples/types_demo.minz",
+      "category": "basic",
+      "description": "Test for types demo",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "working_asm_integration",
+      "source_file": "examples/working_asm_integration.minz",
+      "category": "integration",
+      "description": "Test for working asm integration with @abi integration",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "abi"
+      ]
+    },
+    {
+      "name": "working_demo",
+      "source_file": "examples/working_demo.minz",
+      "category": "basic",
+      "description": "Test for working demo",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "inline_asm"
+      ]
+    },
+    {
+      "name": "zvdb_code_search",
+      "source_file": "examples/zvdb_code_search.minz",
+      "category": "real_world",
+      "description": "Test for zvdb code search",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "zvdb_demo",
+      "source_file": "examples/zvdb_demo.minz",
+      "category": "real_world",
+      "description": "Test for zvdb demo",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "zvdb_minimal",
+      "source_file": "examples/zvdb_minimal.minz",
+      "category": "real_world",
+      "description": "Test for zvdb minimal",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "zvdb_optimized",
+      "source_file": "examples/zvdb_optimized.minz",
+      "category": "real_world",
+      "description": "Test for zvdb optimized",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": []
+    },
+    {
+      "name": "zvdb_paged",
+      "source_file": "examples/zvdb_paged.minz",
+      "category": "real_world",
+      "description": "Test for zvdb paged",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    },
+    {
+      "name": "zvdb_scorpion_optimized",
+      "source_file": "examples/zvdb_scorpion_optimized.minz",
+      "category": "real_world",
+      "description": "Test for zvdb scorpion optimized",
+      "expected_result": {
+        "compile_success": true,
+        "run_success": true,
+        "exit_code": 0
+      },
+      "performance": {},
+      "tags": [
+        "lua"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+// String Operations Benchmark - TSMC optimization for pointer operations
+//
+// Demonstrates how TSMC optimizes string processing by patching
+// pointer arithmetic directly into instructions.
+
+module string_operations;
+
+// Custom string length with character validation
+export fn strlen_optimized(str: *u8) -> u16 {
+    let len: u16 = 0;
+    let ptr: *u8 = str;
+    
+    while (*ptr != 0) {
+        // TSMC optimizes these function calls
+        if (is_printable(*ptr)) {
+            len = increment_count(len);
+        }
+        ptr = advance_pointer(ptr);
+    }
+    
+    return len;
+}
+
+// String copy with transformation
+export fn strcpy_transform(dest: *u8, src: *u8) -> u16 {
+    let count: u16 = 0;
+    let s: *u8 = src;
+    let d: *u8 = dest;
+    
+    while (*s != 0) {
+        *d = transform_char(*s);
+        s = next_char(s);
+        d = next_char(d);
+        count = increment_count(count);
+    }
+    
+    *d = 0; // Null terminate
+    return count;
+}
+
+// String comparison with case insensitivity
+export fn strcmp_nocase(s1: *u8, s2: *u8) -> u16 {
+    let p1: *u8 = s1;
+    let p2: *u8 = s2;
+    
+    while (*p1 != 0 && *p2 != 0) {
+        let c1: u8 = to_upper(*p1);
+        let c2: u8 = to_upper(*p2);
+        
+        if (c1 != c2) {
+            return calc_difference(c1, c2);
+        }
+        
+        p1 = next_char(p1);
+        p2 = next_char(p2);
+    }
+    
+    return calc_difference(*p1, *p2);
+}
+
+// Helper functions optimized by TSMC
+fn is_printable(ch: u8) -> bool {
+    return ch >= 32 && ch < 127;
+}
+
+fn increment_count(val: u16) -> u16 {
+    return val + 1;
+}
+
+fn advance_pointer(ptr: *u8) -> *u8 {
+    return ptr + 1;
+}
+
+fn next_char(ptr: *u8) -> *u8 {
+    return ptr + 1;
+}
+
+fn transform_char(ch: u8) -> u8 {
+    // Simple ROT13-style transformation
+    if (ch >= 'A' as u8 && ch <= 'Z' as u8) {
+        return ((ch - 'A' as u8 + 13) % 26) + 'A' as u8;
+    }
+    if (ch >= 'a' as u8 && ch <= 'z' as u8) {
+        return ((ch - 'a' as u8 + 13) % 26) + 'a' as u8;
+    }
+    return ch;
+}
+
+fn to_upper(ch: u8) -> u8 {
+    if (ch >= 'a' as u8 && ch <= 'z' as u8) {
+        return ch - ('a' as u8 - 'A' as u8);
+    }
+    return ch;
+}
+
+fn calc_difference(a: u8, b: u8) -> u16 {
+    if (a > b) {
+        return (a - b) as u16;
+    } else {
+        return (b - a) as u16;
+    }
+}
+
+// Benchmark runner
+export fn run_string_benchmark() -> u16 {
+    // Set up test strings at 0x9000
+    let str1: *u8 = 0x9000 as *u8;
+    let str2: *u8 = 0x9100 as *u8;
+    let dest: *u8 = 0x9200 as *u8;
+    
+    // Initialize test string 1: "Hello, World!"
+    *str1 = 'H' as u8; *(str1+1) = 'e' as u8; *(str1+2) = 'l' as u8;
+    *(str1+3) = 'l' as u8; *(str1+4) = 'o' as u8; *(str1+5) = ',' as u8;
+    *(str1+6) = ' ' as u8; *(str1+7) = 'W' as u8; *(str1+8) = 'o' as u8;
+    *(str1+9) = 'r' as u8; *(str1+10) = 'l' as u8; *(str1+11) = 'd' as u8;
+    *(str1+12) = '!' as u8; *(str1+13) = 0;
+    
+    // Initialize test string 2: "HELLO, WORLD!"
+    *str2 = 'H' as u8; *(str2+1) = 'E' as u8; *(str2+2) = 'L' as u8;
+    *(str2+3) = 'L' as u8; *(str2+4) = 'O' as u8; *(str2+5) = ',' as u8;
+    *(str2+6) = ' ' as u8; *(str2+7) = 'W' as u8; *(str2+8) = 'O' as u8;
+    *(str2+9) = 'R' as u8; *(str2+10) = 'L' as u8; *(str2+11) = 'D' as u8;
+    *(str2+12) = '!' as u8; *(str2+13) = 0;
+    
+    let result: u16 = 0;
+    
+    // Run string operations
+    result = result + strlen_optimized(str1);        // Length = 13
+    result = result + strcpy_transform(dest, str1);  // Copy count = 13
+    result = result + strcmp_nocase(str1, str2);     // Should be 0 (equal)
+    
+    return result; // Expected: 13 + 13 + 0 = 26
+}
+
+export fn main() -> u16 {
+    return run_string_benchmark();
+}

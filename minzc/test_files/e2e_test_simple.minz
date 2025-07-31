@@ -1,0 +1,60 @@
+// Simple MinZ test program for E2E harness verification
+
+// Basic arithmetic function
+fn add(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+// Function with loop - ideal for TSMC optimization
+fn sum_to_n(n: u16) -> u16 {
+    var sum: u16 = 0;
+    var i: u16 = 1;
+    
+    while i <= n {
+        sum = sum + i;
+        i = i + 1;
+    }
+    
+    return sum;
+}
+
+// Fibonacci function - recursive would be ideal but using iterative
+fn fibonacci(n: u16) -> u16 {
+    if n <= 1 {
+        return n;
+    }
+    
+    var a: u16 = 0;
+    var b: u16 = 1;
+    var i: u16 = 2;
+    
+    while i <= n {
+        var temp: u16 = a + b;
+        a = b;
+        b = temp;
+        i = i + 1;
+    }
+    
+    return b;
+}
+
+// Function that benefits from TSMC parameter patching
+fn multiply_add(x: u16, y: u16, z: u16) -> u16 {
+    // With TSMC, these operations can be optimized
+    // by patching immediates directly
+    return x * y + z;
+}
+
+// Main entry point
+fn main() {
+    // Test functions
+    let r1 = add(10, 20);        // Should be 30
+    let r2 = sum_to_n(10);       // Should be 55 (1+2+...+10)
+    let r3 = fibonacci(10);      // Should be 55
+    let r4 = multiply_add(5, 6, 7); // Should be 37
+    
+    // Halt the CPU
+    @asm {
+        HALT
+    }
+}
