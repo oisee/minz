@@ -1,0 +1,10 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_struct_forward_ref.make_node(value: u8) -> test_struct_forward_ref.Node
+  Instructions:
+      0: 60 ; Allocate struct Node
+      1: 12
+      2: 14 ; Store to Node.data
+      3: return r2
+

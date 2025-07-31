@@ -1,0 +1,27 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function tests.test_struct_edge_cases.create_a() -> tests.test_struct_edge_cases.A
+  @smc
+  Instructions:
+      0: 60 ; Allocate struct A
+      1: r2 = 1
+      2: 14 ; Store to A.value
+      3: return r1
+
+Function tests.test_struct_edge_cases.create_b() -> tests.test_struct_edge_cases.B
+  @smc
+  Instructions:
+      0: 60 ; Allocate struct B
+      1: r2 = 2
+      2: 14 ; Store to B.value
+      3: return r1
+
+Function tests.test_struct_edge_cases.create_c() -> tests.test_struct_edge_cases.C
+  @smc
+  Instructions:
+      0: 60 ; Allocate struct C
+      1: r2 = 3
+      2: 14 ; Store to C.value
+      3: return r1
+

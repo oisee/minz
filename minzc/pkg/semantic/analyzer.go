@@ -69,26 +69,52 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		}
 	}
 
-	// First pass: Register all type and function signatures, constants, and global variables
+	// First pass, phase 1a: Register all type names (without processing fields/members)
+	// This allows for self-referential and mutually-referential types
 	for _, decl := range file.Declarations {
 		switch d := decl.(type) {
-		case *ast.FunctionDecl:
-			if err := a.registerFunctionSignature(d); err != nil {
-				a.errors = append(a.errors, err)
-			}
 		case *ast.StructDecl:
-			// Register struct types early so they can be used in function signatures
-			if err := a.analyzeStructDecl(d); err != nil {
+			// Register just the struct name, not the fields yet
+			if err := a.registerStructName(d); err != nil {
 				a.errors = append(a.errors, err)
 			}
 		case *ast.EnumDecl:
-			// Register enum types early as well
+			// Enums don't have forward reference issues, so we can fully register them
 			if err := a.analyzeEnumDecl(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
+		case *ast.InterfaceDecl:
+			// Skip interface registration for now - not fully implemented
+			continue
+		}
+	}
+
+	// First pass, phase 1b: Now process struct fields and type aliases
+	// All type names are now registered, so we can safely resolve field types
+	for _, decl := range file.Declarations {
+		switch d := decl.(type) {
+		case *ast.StructDecl:
+			// Now process the struct fields
+			if err := a.analyzeStructDecl(d); err != nil {
 				a.errors = append(a.errors, err)
 			}
 		case *ast.TypeDecl:
 			// Register type aliases (including bit structs)
 			if err := a.analyzeTypeDecl(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
+		case *ast.InterfaceDecl:
+			// Skip interface processing for now - not fully implemented
+			continue
+		}
+	}
+
+	// First pass, phase 2: Register function signatures, constants, and global variables
+	// Now that all types are registered, we can safely process function signatures
+	for _, decl := range file.Declarations {
+		switch d := decl.(type) {
+		case *ast.FunctionDecl:
+			if err := a.registerFunctionSignature(d); err != nil {
 				a.errors = append(a.errors, err)
 			}
 		case *ast.VarDecl:
@@ -104,11 +130,6 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		case *ast.LuaBlock:
 			// Process Lua blocks early so functions defined in them are available
 			if err := a.analyzeLuaBlock(d); err != nil {
-				a.errors = append(a.errors, err)
-			}
-		case *ast.InterfaceDecl:
-			// Register interfaces early so they can be used in impl blocks
-			if err := a.analyzeInterfaceDecl(d); err != nil {
 				a.errors = append(a.errors, err)
 			}
 		}
@@ -1053,9 +1074,60 @@ func (a *Analyzer) analyzeConstDecl(c *ast.ConstDecl) error {
 	return nil
 }
 
-// analyzeStructDecl analyzes a struct declaration
+// registerStructName registers just the struct name without processing fields
+// This allows for forward references and self-referential structs
+func (a *Analyzer) registerStructName(s *ast.StructDecl) error {
+	// Get prefixed name
+	prefixedName := a.prefixSymbol(s.Name)
+	
+	// Create a placeholder struct type
+	structType := &ir.StructType{
+		Name:       prefixedName,
+		Fields:     nil, // Will be filled in later
+		FieldOrder: nil,
+	}
+	
+	// Register struct type with prefixed name
+	a.currentScope.Define(prefixedName, &TypeSymbol{
+		Name: prefixedName,
+		Type: structType,
+	})
+	
+	// Also register without prefix for local access
+	if a.currentModule != "" && a.currentModule != "main" {
+		a.currentScope.Define(s.Name, &TypeSymbol{
+			Name: prefixedName,
+			Type: structType,
+		})
+	}
+	
+	return nil
+}
+
+
+// analyzeStructDecl analyzes a struct declaration (now assumes the name is already registered)
 func (a *Analyzer) analyzeStructDecl(s *ast.StructDecl) error {
-	// Create struct type
+	// Get the already registered struct type
+	prefixedName := a.prefixSymbol(s.Name)
+	sym := a.currentScope.Lookup(prefixedName)
+	if sym == nil {
+		sym = a.currentScope.Lookup(s.Name)
+	}
+	if sym == nil {
+		return fmt.Errorf("struct %s not found in symbol table", s.Name)
+	}
+	
+	typeSym, ok := sym.(*TypeSymbol)
+	if !ok {
+		return fmt.Errorf("%s is not a type", s.Name)
+	}
+	
+	structType, ok := typeSym.Type.(*ir.StructType)
+	if !ok {
+		return fmt.Errorf("%s is not a struct type", s.Name)
+	}
+	
+	// Now process the fields
 	fields := make(map[string]ir.Type)
 	fieldOrder := []string{}
 	
@@ -1073,33 +1145,13 @@ func (a *Analyzer) analyzeStructDecl(s *ast.StructDecl) error {
 		fieldOrder = append(fieldOrder, field.Name)
 	}
 	
+	// Update the struct type with the processed fields
+	structType.Fields = fields
+	structType.FieldOrder = fieldOrder
+	
 	// Debug output
 	if len(s.Fields) > 0 {
 		fmt.Printf("Struct %s has %d fields: %v\n", s.Name, len(fieldOrder), fieldOrder)
-	}
-	
-	// Get prefixed name
-	prefixedName := a.prefixSymbol(s.Name)
-	
-	// Create struct type with prefixed name
-	structType := &ir.StructType{
-		Name:       prefixedName,
-		Fields:     fields,
-		FieldOrder: fieldOrder,
-	}
-	
-	// Register struct type with prefixed name
-	a.currentScope.Define(prefixedName, &TypeSymbol{
-		Name: prefixedName,
-		Type: structType,
-	})
-	
-	// Also register without prefix for local access
-	if a.currentModule != "" && a.currentModule != "main" {
-		a.currentScope.Define(s.Name, &TypeSymbol{
-			Name: prefixedName,
-			Type: structType,
-		})
 	}
 	
 	return nil

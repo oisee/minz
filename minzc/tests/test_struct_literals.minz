@@ -1,0 +1,115 @@
+// Comprehensive test suite for struct literals and forward references
+
+// Test 1: Basic struct literal
+struct Point {
+    x: u16,
+    y: u16
+}
+
+// Test 2: Forward reference - function before struct
+fun create_vec3(x: u16, y: u16, z: u16) -> Vec3 {
+    return Vec3 { x: x, y: y, z: z };
+}
+
+struct Vec3 {
+    x: u16,
+    y: u16,
+    z: u16
+}
+
+// Test 3: Self-referential struct
+struct ListNode {
+    value: u8,
+    next: *ListNode
+}
+
+// Test 4: Mutually referential structs
+struct TreeNode {
+    value: u16,
+    left: *TreeNode,
+    right: *TreeNode,
+    parent: *TreeNode
+}
+
+// Test 5: Nested struct types
+struct Color {
+    r: u8,
+    g: u8,
+    b: u8
+}
+
+struct Pixel {
+    pos: Point,
+    color: Color
+}
+
+struct Image {
+    width: u16,
+    height: u16,
+    origin: Point,
+    pixels: *Pixel
+}
+
+// Test functions using struct literals
+fun test_basic_literal() -> Point {
+    return Point { x: 100, y: 200 };
+}
+
+fun test_nested_literal() -> Pixel {
+    return Pixel {
+        pos: Point { x: 10, y: 20 },
+        color: Color { r: 255, g: 128, b: 64 }
+    };
+}
+
+fun test_self_referential() -> ListNode {
+    return ListNode {
+        value: 42,
+        next: @as(*ListNode, 0)
+    };
+}
+
+fun test_complex_nested() -> Image {
+    return Image {
+        width: 320,
+        height: 200,
+        origin: Point { x: 0, y: 0 },
+        pixels: @as(*Pixel, 0)
+    };
+}
+
+// Test struct literal in various contexts
+fun main() {
+    // Direct assignment
+    let p1 = Point { x: 50, y: 75 };
+    
+    // Function return
+    let p2 = test_basic_literal();
+    
+    // Nested initialization
+    let pixel = Pixel {
+        pos: p1,
+        color: Color { r: 200, g: 100, b: 50 }
+    };
+    
+    // Array of struct literals
+    let points: [Point; 4] = [
+        Point { x: 0, y: 0 },
+        Point { x: 100, y: 0 },
+        Point { x: 100, y: 100 },
+        Point { x: 0, y: 100 }
+    ];
+    
+    // Struct literal as function argument
+    let v = create_vec3(p1.x, p1.y, 0);
+    
+    // Conditional struct literal
+    let origin = if p1.x > 0 {
+        Point { x: 0, y: 0 }
+    } else {
+        p1
+    };
+    
+    // Struct field update with literal
+    pixel.color = Color { r: 0, g: 0, b: 0 };
+}

@@ -1,0 +1,27 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_struct_literal.make_point(x: u8, y: u8) -> test_struct_literal.Point
+  Instructions:
+      0: 60 ; Allocate struct Point
+      1: 12
+      2: 14 ; Store to Point.x
+      3: 12
+      4: 14 ; Store to Point.y
+      5: return r3
+
+Function test_struct_literal.offset_point(p: test_struct_literal.Point, dx: u8, dy: u8) -> test_struct_literal.Point
+  Instructions:
+      0: 60 ; Allocate struct Point
+      1: 12
+      2: 13 ; Load field x (offset 0)
+      3: 12
+      4: r8 = r6 + r7
+      5: 14 ; Store to Point.x
+      6: 12
+      7: 13 ; Load field y (offset 1)
+      8: 12
+      9: r12 = r10 + r11
+     10: 14 ; Store to Point.y
+     11: return r4
+

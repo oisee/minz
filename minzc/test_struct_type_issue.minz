@@ -1,0 +1,56 @@
+// Test for potential struct literal type resolution issues
+
+struct Vec2 {
+    x: u16,
+    y: u16
+}
+
+struct Player {
+    pos: Vec2,
+    health: u8,
+    score: u16
+}
+
+// Generic function that might confuse type resolution
+fun process_vec(v: Vec2) -> u16 {
+    return v.x + v.y;
+}
+
+// Function returning anonymous struct literal
+fun get_origin() -> Vec2 {
+    // This might cause type resolution issues
+    return Vec2 { x: 0, y: 0 };
+}
+
+// Test with type inference
+fun main() {
+    // Test 1: Direct struct literal assignment with type inference
+    let v1 = Vec2 { x: 100, y: 200 };
+    
+    // Test 2: Struct literal in function call
+    let sum = process_vec(Vec2 { x: 10, y: 20 });
+    
+    // Test 3: Nested struct literal with partial inference
+    let player = Player {
+        pos: Vec2 { x: 50, y: 75 },
+        health: 100,
+        score: 0
+    };
+    
+    // Test 4: Struct literal in array without explicit type
+    let positions = [
+        Vec2 { x: 0, y: 0 },
+        Vec2 { x: 10, y: 10 },
+        get_origin()
+    ];
+    
+    // Test 5: Struct literal in conditional expression
+    let v2 = if sum > 0 {
+        Vec2 { x: sum, y: 0 }
+    } else {
+        get_origin()
+    };
+    
+    // Test 6: Struct field assignment with struct literal
+    player.pos = Vec2 { x: 100, y: 100 };
+}

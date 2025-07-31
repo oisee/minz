@@ -3,6 +3,60 @@ struct Point {
     y: u8
 }
 
+struct Rectangle {
+    top_left: Point,
+    bottom_right: Point
+}
+
+struct ComplexStruct {
+    id: u16,
+    pos: Point,
+    bounds: Rectangle
+}
+
+// Test function that returns a struct literal
+fun make_point(x: u8, y: u8) -> Point {
+    return Point { x: x, y: y };
+}
+
+// Test function that takes struct and returns struct literal
+fun offset_point(p: Point, dx: u8, dy: u8) -> Point {
+    return Point { x: p.x + dx, y: p.y + dy };
+}
+
 fun main() {
+    // Basic struct literal
     let p = Point { x: 10, y: 20 };
+    
+    // Nested struct literal - this might fail
+    let rect = Rectangle {
+        top_left: Point { x: 0, y: 0 },
+        bottom_right: Point { x: 100, y: 100 }
+    };
+    
+    // Using struct literal in expression
+    let p2 = Point { x: p.x + 5, y: p.y + 5 };
+    
+    // Struct literal as function argument
+    let p3 = offset_point(Point { x: 50, y: 60 }, 10, 15);
+    
+    // Deeply nested struct literal
+    let complex = ComplexStruct {
+        id: 42,
+        pos: Point { x: 25, y: 30 },
+        bounds: Rectangle {
+            top_left: Point { x: 0, y: 0 },
+            bottom_right: Point { x: 200, y: 150 }
+        }
+    };
+    
+    // Array of struct literals
+    let points: [Point; 3] = [
+        Point { x: 0, y: 0 },
+        Point { x: 10, y: 10 },
+        Point { x: 20, y: 20 }
+    ];
+    
+    // Struct literal in conditional
+    let origin = if p.x > 0 { Point { x: 0, y: 0 } } else { p };
 }

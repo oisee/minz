@@ -1,0 +1,102 @@
+// Edge case tests for struct literals
+
+// Test 1: Empty struct
+struct Empty {
+}
+
+// Test 2: Single field struct
+struct Single {
+    value: u16
+}
+
+// Test 3: Large struct
+struct LargeStruct {
+    a: u8,
+    b: u8,
+    c: u8,
+    d: u8,
+    e: u16,
+    f: u16,
+    g: u16,
+    h: u16
+}
+
+// Test 4: Struct with array field
+struct ArrayContainer {
+    size: u8,
+    data: [u8; 10]
+}
+
+// Test 5: Forward reference with complex dependency chain
+fun create_a() -> A {
+    return A { 
+        b_ptr: @as(*B, 0),
+        value: 1
+    };
+}
+
+fun create_b() -> B {
+    return B {
+        c_ptr: @as(*C, 0),
+        value: 2
+    };
+}
+
+fun create_c() -> C {
+    return C {
+        a_ptr: @as(*A, 0),
+        value: 3
+    };
+}
+
+// Mutually dependent structs defined after functions
+struct A {
+    b_ptr: *B,
+    value: u8
+}
+
+struct B {
+    c_ptr: *C,
+    value: u8
+}
+
+struct C {
+    a_ptr: *A,
+    value: u8
+}
+
+// Test 6: Type alias with struct
+type Point2D = Point;
+
+struct Point {
+    x: i16,
+    y: i16
+}
+
+fun main() {
+    // Empty struct literal
+    let empty = Empty {};
+    
+    // Single field struct
+    let single = Single { value: 42 };
+    
+    // Large struct literal
+    let large = LargeStruct {
+        a: 1, b: 2, c: 3, d: 4,
+        e: 1000, f: 2000, g: 3000, h: 4000
+    };
+    
+    // Struct with array field
+    let container = ArrayContainer {
+        size: 5,
+        data: [1, 2, 3, 4, 5, 0, 0, 0, 0, 0]
+    };
+    
+    // Test forward reference chain
+    let a = create_a();
+    let b = create_b();
+    let c = create_c();
+    
+    // Test type alias
+    let p: Point2D = Point { x: -10, y: 20 };
+}

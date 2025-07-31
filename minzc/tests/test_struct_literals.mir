@@ -1,0 +1,68 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function tests.test_struct_literals.create_vec3(x: u16, y: u16, z: u16) -> tests.test_struct_literals.Vec3
+  Instructions:
+      0: 60 ; Allocate struct Vec3
+      1: 12
+      2: 14 ; Store to Vec3.x
+      3: 12
+      4: 14 ; Store to Vec3.y
+      5: 12
+      6: 14 ; Store to Vec3.z
+      7: return r4
+
+Function tests.test_struct_literals.test_basic_literal() -> tests.test_struct_literals.Point
+  @smc
+  Instructions:
+      0: 60 ; Allocate struct Point
+      1: r2 = 100
+      2: 14 ; Store to Point.x
+      3: r3 = 200
+      4: 14 ; Store to Point.y
+      5: return r1
+
+Function tests.test_struct_literals.test_nested_literal() -> tests.test_struct_literals.Pixel
+  @smc
+  Instructions:
+      0: 60 ; Allocate struct Pixel
+      1: 60 ; Allocate struct Point
+      2: r3 = 10
+      3: 14 ; Store to Point.x
+      4: r4 = 20
+      5: 14 ; Store to Point.y
+      6: 14 ; Store to Pixel.pos
+      7: 60 ; Allocate struct Color
+      8: r6 = 255
+      9: 14 ; Store to Color.r
+     10: r7 = 128
+     11: 14 ; Store to Color.g
+     12: r8 = 64
+     13: 14 ; Store to Color.b
+     14: 14 ; Store to Pixel.color
+     15: return r1
+
+Function tests.test_struct_literals.test_self_referential() -> tests.test_struct_literals.ListNode
+  @smc
+  Instructions:
+      0: 60 ; Allocate struct ListNode
+      1: r2 = 42
+      2: 14 ; Store to ListNode.value
+      3: return r1
+
+Function tests.test_struct_literals.test_complex_nested() -> tests.test_struct_literals.Image
+  @smc
+  Instructions:
+      0: 60 ; Allocate struct Image
+      1: r2 = 320
+      2: 14 ; Store to Image.width
+      3: r3 = 200
+      4: 14 ; Store to Image.height
+      5: 60 ; Allocate struct Point
+      6: r5 = 0
+      7: 14 ; Store to Point.x
+      8: r6 = 0
+      9: 14 ; Store to Point.y
+     10: 14 ; Store to Image.origin
+     11: return r1
+

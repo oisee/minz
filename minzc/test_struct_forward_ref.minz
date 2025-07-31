@@ -1,0 +1,19 @@
+// Test struct literal type resolution with forward references
+
+// Function using struct before it's defined (forward reference)
+fun make_node(value: u8) -> Node {
+    return Node { 
+        data: value, 
+        next: @as(*Node, 0)  // Use null pointer instead of nil
+    };
+}
+
+// Struct defined after usage
+struct Node {
+    data: u8,
+    next: *Node
+}
+
+fun main() {
+    let n = make_node(42);
+}
