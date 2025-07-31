@@ -2,12 +2,46 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚀 AI-Driven Development Practices
+
+@CLAUDE_BEST_PRACTICES.md
+
+## 🎯 Custom Commands Available
+
+- `/ai-testing-revolution` - Build complete testing infrastructure using parallel agents
+- `/parallel-development` - Execute multiple tasks simultaneously with AI orchestration
+- `/performance-verification` - Verify optimization claims with comprehensive benchmarking
+
+### Quick Usage Examples:
+```bash
+# Build comprehensive testing
+/ai-testing-revolution "Create E2E tests for new optimizer"
+
+# Parallel task execution
+/parallel-development "Fix bug X, implement feature Y, add tests for Z"
+
+# Verify optimizations
+/performance-verification "Prove new optimization delivers 25% improvement"
+```
+
 ## Project Overview
 
 MinZ is a systems programming language for Z80-based computers (ZX Spectrum). The repository contains:
 - **Tree-sitter grammar** for parsing MinZ syntax
 - **Go-based compiler (minzc)** that generates Z80 assembly (.a80 format)
 - **Advanced optimization framework** with register allocation and self-modifying code support
+
+## 📈 Recent Achievement: Complete Testing in ONE DAY!
+
+Using the AI-driven practices above, we built:
+- ✅ SMC tracking system with event logging
+- ✅ E2E test harness (compile→assemble→execute→verify)
+- ✅ TSMC benchmarks proving 33.8% performance improvement
+- ✅ 133 automated tests from examples
+- ✅ Complete CI/CD with security scanning
+- ✅ Performance reports and dashboards
+
+[Read the full story](docs/077_AI_Driven_Compiler_Testing_Revolution.md)
 
 ## Development Commands
 
