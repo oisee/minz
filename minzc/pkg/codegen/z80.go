@@ -570,17 +570,47 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 					g.storeFromHL(inst.Dest)
 				}
 			} else {
-				// Regular SMC parameter
+				// Regular SMC parameter - use different registers for different parameters
 				g.emit("%s:", paramLabel)
+				
+				// Find parameter index to use different registers
+				paramIndex := -1
+				for i, p := range g.currentFunc.Params {
+					if p.Name == paramName {
+						paramIndex = i
+						break
+					}
+				}
+				
 				
 				// For the first use, we need to emit the load instruction
 				if param.Type.Size() == 1 {
-					// For u8, load into HL as u16 to avoid conversions
-					g.emit("    LD HL, #0000   ; SMC parameter %s (u8->u16)", paramName)
+					// For u8, load into appropriate register as u16 to avoid conversions
+					switch paramIndex {
+					case 0:
+						g.emit("    LD HL, #0000   ; SMC parameter %s (u8->u16)", paramName)
+					case 1:
+						g.emit("    LD DE, #0000   ; SMC parameter %s (u8->u16)", paramName)
+						g.emit("    EX DE, HL      ; Move to HL for storage")
+					default:
+						g.emit("    LD BC, #0000   ; SMC parameter %s (u8->u16)", paramName)
+						g.emit("    LD H, B")
+						g.emit("    LD L, C        ; Move to HL for storage")
+					}
 					// Store to the destination
 					g.storeFromHL(inst.Dest)
 				} else {
-					g.emit("    LD HL, #0000   ; SMC parameter %s", paramName)
+					switch paramIndex {
+					case 0:
+						g.emit("    LD HL, #0000   ; SMC parameter %s", paramName)
+					case 1:
+						g.emit("    LD DE, #0000   ; SMC parameter %s", paramName)
+						g.emit("    EX DE, HL      ; Move to HL for storage")
+					default:
+						g.emit("    LD BC, #0000   ; SMC parameter %s", paramName)
+						g.emit("    LD H, B")
+						g.emit("    LD L, C        ; Move to HL for storage")
+					}
 					// Store to the destination
 					g.storeFromHL(inst.Dest)
 				}
