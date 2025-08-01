@@ -4,6 +4,32 @@ import "fmt"
 
 // This file contains the remaining instruction set registration functions
 
+// registerVirtualInstructions registers sjasmplus-style virtual instructions
+func registerVirtualInstructions() {
+	// LD HL, DE -> LD H, D : LD L, E
+	addInstruction("LD", &InstructionDef{
+		Mnemonic: "LD",
+		Operands: []OperandType{OpReg16, OpReg16},
+		Size:     2,
+		Encoder:  encodeVirtualLD16,
+	})
+	
+	// LD HL, BC -> LD H, B : LD L, C
+	// (Covered by above OpReg16, OpReg16 pattern)
+	
+	// Multi-operand instructions
+	// SRL A, A, A -> SRL A : SRL A : SRL A (3 shifts)
+	addInstruction("SRL", &InstructionDef{
+		Mnemonic: "SRL",
+		Operands: []OperandType{OpReg8, OpReg8, OpReg8}, // Same register 3 times
+		Size:     6, // 3 x CB + opcode
+		Encoder:  encodeVirtualShiftTriple,
+	})
+	
+	// XOR A, B -> XOR A : XOR B (but this doesn't make sense - XOR A clears A!)
+	// Maybe they meant XOR B, C -> XOR B : XOR C?
+}
+
 // registerBitInstructions registers bit manipulation instructions
 func registerBitInstructions() {
 	// Rotate instructions

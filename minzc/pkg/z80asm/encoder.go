@@ -4,6 +4,69 @@ import (
 	"fmt"
 )
 
+// Virtual instruction encoders for sjasmplus compatibility
+
+// encodeVirtualLD16 encodes LD HL, DE as LD H, D : LD L, E
+func encodeVirtualLD16(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
+	if len(line.Operands) != 2 {
+		return nil, fmt.Errorf("LD expects 2 operands")
+	}
+	
+	dst := line.Operands[0]
+	src := line.Operands[1]
+	
+	// Only handle specific register pairs for now
+	if dst == "HL" && src == "DE" {
+		return []byte{0x62, 0x6B}, nil // LD H, D : LD L, E
+	} else if dst == "HL" && src == "BC" {
+		return []byte{0x60, 0x69}, nil // LD H, B : LD L, C
+	} else if dst == "DE" && src == "HL" {
+		return []byte{0x54, 0x5D}, nil // LD D, H : LD E, L
+	} else if dst == "BC" && src == "HL" {
+		return []byte{0x44, 0x4D}, nil // LD B, H : LD C, L
+	}
+	
+	return nil, fmt.Errorf("unsupported virtual LD %s, %s", dst, src)
+}
+
+// encodeVirtualShiftTriple encodes SRL A, A, A as SRL A : SRL A : SRL A
+func encodeVirtualShiftTriple(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
+	if len(line.Operands) != 3 {
+		return nil, fmt.Errorf("virtual SRL expects 3 operands")
+	}
+	
+	// All operands should be the same register
+	reg := line.Operands[0]
+	if line.Operands[1] != reg || line.Operands[2] != reg {
+		return nil, fmt.Errorf("virtual SRL operands must be the same register")
+	}
+	
+	// Get register encoding (A=7, B=0, C=1, etc.)
+	regCode, ok := getRegisterCode(reg)
+	if !ok {
+		return nil, fmt.Errorf("invalid register: %s", reg)
+	}
+	
+	// SRL r = CB 38+r (repeat 3 times)
+	opcode := 0x38 + regCode
+	return []byte{0xCB, opcode, 0xCB, opcode, 0xCB, opcode}, nil
+}
+
+// getRegisterCode returns the 3-bit encoding for 8-bit registers
+func getRegisterCode(reg string) (byte, bool) {
+	switch reg {
+	case "B": return 0, true
+	case "C": return 1, true  
+	case "D": return 2, true
+	case "E": return 3, true
+	case "H": return 4, true
+	case "L": return 5, true
+	case "(HL)": return 6, true
+	case "A": return 7, true
+	default: return 0, false
+	}
+}
+
 // Standard encoders for common instruction patterns
 
 // encodeNoOperand handles instructions with no operands (NOP, HALT, etc.)
