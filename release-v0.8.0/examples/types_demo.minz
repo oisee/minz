@@ -1,0 +1,27 @@
+// Type System Demonstration
+fun test_u8(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun test_u16(x: u16, y: u16) -> u16 {
+    return x * y;
+}
+
+fun test_i8(a: i8, b: i8) -> i8 {
+    return a - b;
+}
+
+fun test_bool(x: u8) -> bool {
+    return x > 10;
+}
+
+fun test_pointers(ptr: *u8, value: u8) -> void {
+    *ptr = value;
+}
+
+fun main() {
+    let byte_result = test_u8(10, 20);
+    let word_result = test_u16(100, 200);
+    let signed_result = test_i8(-5, 10);
+    let bool_result = test_bool(15);
+}

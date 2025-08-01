@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   ...examples.arrays.old_array: [10]u8
+;   ...examples.arrays.new_array: [10]u8
+;   ...examples.arrays.items: [5]...examples.arrays.Item
+
+Function ...examples.arrays.main() -> void
+  @smc
+  Instructions:
+      0: r1 = 42
+      1: 70
+      2: r3 = 0
+      3: r4 = r2 + r3 ; Calculate array element address
+      4: 63 ; Store to array[index] (u8)
+      5: r5 = 43
+      6: 70
+      7: r7 = 0
+      8: r8 = r6 + r7 ; Calculate array element address
+      9: 63 ; Store to array[index] (u8)
+     10: r9 = 1
+     11: 70
+     12: r11 = 0
+     13: 15 ; Load array element (...examples.arrays.Item)
+     14: 14 ; Store to field id (offset 0)
+     15: return
+

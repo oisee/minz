@@ -1,0 +1,28 @@
+// Test specific missing features
+
+fun test_range_as_value() -> u8 {
+    // Can we use .. as a binary operator outside for loops?
+    var range_result: u8 = 5..10;  // This should fail
+    return range_result;
+}
+
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun test_function_pointers() -> u8 {
+    // Function pointers
+    var func_ptr: fun(u8, u8) -> u8 = add;  // This should fail
+    return func_ptr(5, 10);
+}
+
+fun test_lua_metaprogramming() -> u8 {
+    // Lua metaprogramming
+    lua {
+        return 42
+    }
+}
+
+fun main() -> u8 {
+    return 42;
+}

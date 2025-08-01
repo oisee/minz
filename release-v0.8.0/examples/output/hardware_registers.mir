@@ -1,0 +1,54 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.hardware_registers.main() -> void
+  Locals:
+    r1 = border_val: u8
+    r3 = border: bits<u8>
+    r5 = color: u8
+    r8 = mem_val: u16
+    r18 = mapper: bits<u16>
+    r20 = page: u8
+    r23 = sprite_val: u16
+    r29 = sprite: bits<u16>
+    r31 = sprite_x: u8
+    r34 = sprite_y: u8
+  Instructions:
+      0: r2 = 18
+      1: store , r2
+      2: r4 = load border_val
+      3: store , r4
+      4: r6 = load border
+      5: 17 ; Load bit field border_color (offset 0, width 3)
+      6: store , r7
+      7: r9 = 1
+      8: r10 = 10
+      9: 51
+     10: r12 = 1
+     11: r13 = 8
+     12: 51
+     13: r15 = r11 | r14
+     14: r16 = 42
+     15: r17 = r15 | r16
+     16: store , r17
+     17: r19 = load mem_val
+     18: store , r19
+     19: r21 = load mapper
+     20: 17 ; Load bit field page_number (offset 0, width 8)
+     21: store , r22
+     22: r24 = 150
+     23: r25 = 8
+     24: 51
+     25: r27 = 100
+     26: r28 = r26 | r27
+     27: store , r28
+     28: r30 = load sprite_val
+     29: store , r30
+     30: r32 = load sprite
+     31: 17 ; Load bit field x_coord (offset 0, width 8)
+     32: store , r33
+     33: r35 = load sprite
+     34: 17 ; Load bit field y_coord (offset 8, width 8)
+     35: store , r36
+     36: return
+

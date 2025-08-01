@@ -1,0 +1,358 @@
+// Complete Modern MNIST Editor with SMC Work Areas
+// Demonstrates TRUE SMC optimization while avoiding unsupported operators
+
+// Work area for 16x16 pixel canvas
+let mut canvas: [32]u8;      // SMC-optimized work area
+let mut cursor_x: u8;        // Current cursor position
+let mut cursor_y: u8;
+let mut flash_counter: u8;   // For cursor flashing
+
+// Initialize the work area and editor state
+fun init_editor() -> void {
+    cursor_x = 8;
+    cursor_y = 8;
+    flash_counter = 0;
+    
+    // Clear canvas using SMC-optimized array access
+    let mut i: u8 = 0;
+    while i < 32 {
+        canvas[i] = 0;  // SMC patches each access for direct memory store
+        i = i + 1;
+    }
+}
+
+// Set pixel using SMC work area (avoids ~ operator)
+fun set_pixel(x: u8, y: u8) -> void {
+    let byte_idx: u8 = (y * 2) + (x / 8);
+    let bit_idx: u8 = x & 7;
+    let mask: u8 = 128 >> bit_idx;
+    
+    // SMC optimizes this to direct memory OR
+    canvas[byte_idx] = canvas[byte_idx] | mask;
+}
+
+// Clear pixel using SMC (avoids ~ operator by using XOR after OR)
+fun clear_pixel(x: u8, y: u8) -> void {
+    let byte_idx: u8 = (y * 2) + (x / 8);
+    let bit_idx: u8 = x & 7;
+    let mask: u8 = 128 >> bit_idx;
+    
+    // Clear bit by: if set, XOR to clear; if clear, do nothing
+    if (canvas[byte_idx] & mask) != 0 {
+        canvas[byte_idx] = canvas[byte_idx] ^ mask;  // SMC optimized
+    }
+}
+
+// Toggle pixel using SMC work area
+fun toggle_pixel() -> void {
+    let x: u8 = cursor_x;
+    let y: u8 = cursor_y;
+    
+    let byte_idx: u8 = (y * 2) + (x / 8);
+    let bit_idx: u8 = x & 7;
+    let mask: u8 = 128 >> bit_idx;
+    
+    // SMC optimizes this to direct memory XOR
+    canvas[byte_idx] = canvas[byte_idx] ^ mask;
+}
+
+// Check if pixel is set using SMC work area
+fun is_pixel_set(x: u8, y: u8) -> bool {
+    let byte_idx: u8 = (y * 2) + (x / 8);
+    let bit_idx: u8 = x & 7;
+    let mask: u8 = 128 >> bit_idx;
+    
+    // SMC optimized memory read and test
+    return (canvas[byte_idx] & mask) != 0;
+}
+
+// Movement functions
+fun move_cursor_up() -> void {
+    if cursor_y > 0 {
+        cursor_y = cursor_y - 1;
+    }
+}
+
+fun move_cursor_down() -> void {
+    if cursor_y < 15 {
+        cursor_y = cursor_y + 1;
+    }
+}
+
+fun move_cursor_left() -> void {
+    if cursor_x > 0 {
+        cursor_x = cursor_x - 1;
+    }
+}
+
+fun move_cursor_right() -> void {
+    if cursor_x < 15 {
+        cursor_x = cursor_x + 1;
+    }
+}
+
+// Clear entire canvas using SMC work area
+fun clear_canvas() -> void {
+    // Modern MinZ syntax with SMC optimization
+    let mut i: u8 = 0;
+    
+    // Each array access will be SMC-patched for direct memory clear
+    while i < 32 {
+        canvas[i] = 0;  // SMC: direct memory store instruction
+        i = i + 1;
+    }
+}
+
+// ZX Spectrum screen address calculation
+fun calc_screen_addr(x: u8, y: u8) -> u16 {
+    let screen_base: u16 = 16384;  // 0x4000
+    
+    let y_low: u8 = y & 7;        // Bottom 3 bits
+    let y_mid: u8 = (y >> 3) & 7; // Middle 3 bits  
+    let y_high: u8 = y >> 6;      // Top 2 bits
+    
+    let addr: u16 = screen_base;
+    addr = addr + (y_high * 2048);  // Third selection
+    addr = addr + (y_mid * 32);     // Character row
+    addr = addr + (y_low * 256);    // Pixel row
+    addr = addr + (x / 8);          // Byte within row
+    
+    return addr;
+}
+
+// Render work area to ZX Spectrum screen
+fun render_to_screen() -> void {
+    let grid_x: u8 = 64;  // Center on screen
+    let grid_y: u8 = 48;
+    
+    // Scan work area using SMC-optimized access
+    let mut y: u8 = 0;
+    while y < 16 {
+        let mut x: u8 = 0;
+        while x < 16 {
+            // SMC-optimized work area read
+            let pixel_on: bool = is_pixel_set(x, y);
+            
+            let screen_x: u8 = grid_x + x;
+            let screen_y: u8 = grid_y + y;
+            
+            // Calculate screen position
+            let screen_addr: u16 = calc_screen_addr(screen_x, screen_y);
+            let pixel_mask: u8 = 128 >> (screen_x & 7);
+            
+            // In real implementation, would poke screen memory
+            // SMC would optimize these screen writes too
+            
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}
+
+// Render cursor with flashing effect
+fun render_cursor() -> void {
+    let flash: bool = (flash_counter & 16) != 0;
+    flash_counter = flash_counter + 1;
+    
+    if flash {
+        let grid_x: u8 = 64;
+        let grid_y: u8 = 48;
+        let cursor_screen_x: u8 = grid_x + cursor_x;
+        let cursor_screen_y: u8 = grid_y + cursor_y;
+        
+        // Calculate cursor screen position
+        let cursor_addr: u16 = calc_screen_addr(cursor_screen_x, cursor_screen_y);
+        let cursor_mask: u8 = 128 >> (cursor_screen_x & 7);
+        
+        // In real implementation: XOR cursor pixel for visibility
+        // SMC would optimize cursor rendering
+    }
+}
+
+// Simulate keyboard input
+fun simulate_input() -> u8 {
+    // Return simulated key based on flash counter
+    let sim_input: u8 = flash_counter & 15;
+    
+    if sim_input < 4 {
+        return 1;  // Move commands
+    } else if sim_input < 8 {
+        return 2;  // Toggle pixel
+    } else if sim_input < 12 {
+        return 3;  // Clear command
+    } else {
+        return 0;  // No input
+    }
+}
+
+// Handle input and update work area via SMC
+fun handle_input() -> bool {
+    let input: u8 = simulate_input();
+    let mut handled: bool = false;
+    
+    if input == 1 {
+        // Simulate movement
+        let direction: u8 = flash_counter & 3;
+        if direction == 0 {
+            move_cursor_up();
+        } else if direction == 1 {
+            move_cursor_down();
+        } else if direction == 2 {
+            move_cursor_left();
+        } else {
+            move_cursor_right();
+        }
+        handled = true;
+    } else if input == 2 {
+        // Toggle pixel using SMC work area
+        toggle_pixel();
+        handled = true;
+    } else if input == 3 {
+        // Clear canvas using SMC
+        clear_canvas();
+        handled = true;
+    }
+    
+    return handled;
+}
+
+// Count pixels in work area using SMC
+fun count_set_pixels() -> u16 {
+    let mut count: u16 = 0;
+    
+    // Scan work area with SMC optimization
+    let mut i: u8 = 0;
+    while i < 32 {
+        let byte_val: u8 = canvas[i];  // SMC-optimized read
+        
+        // Count set bits without using ~ operator
+        let mut bit_pos: u8 = 0;
+        while bit_pos < 8 {
+            let test_mask: u8 = 1 << bit_pos;
+            if (byte_val & test_mask) != 0 {
+                count = count + 1;
+            }
+            bit_pos = bit_pos + 1;
+        }
+        
+        i = i + 1;
+    }
+    
+    return count;
+}
+
+// Draw initial pattern using SMC work area
+fun draw_welcome_pattern() -> void {
+    // Draw border
+    let mut edge: u8 = 0;
+    while edge < 16 {
+        set_pixel(edge, 0);      // Top edge
+        set_pixel(edge, 15);     // Bottom edge
+        set_pixel(0, edge);      // Left edge  
+        set_pixel(15, edge);     // Right edge
+        edge = edge + 1;
+    }
+    
+    // Draw diagonal
+    let mut diag: u8 = 2;
+    while diag < 14 {
+        set_pixel(diag, diag);
+        diag = diag + 1;
+    }
+    
+    // Draw center cross
+    set_pixel(7, 8);
+    set_pixel(8, 8);
+    set_pixel(9, 8);
+    set_pixel(8, 7);
+    set_pixel(8, 9);
+}
+
+// Test modern loop syntax when it works
+fun test_modern_loops() -> void {
+    // Future: Use loop at syntax for canvas operations
+    // loop at canvas -> !byte {
+    //     byte = byte & 0xF0;  // Clear lower nibble
+    // }
+    
+    // For now, traditional approach with SMC optimization
+    let mut i: u8 = 0;
+    while i < 32 {
+        let current: u8 = canvas[i];
+        canvas[i] = current & 240;  // SMC optimizes this
+        i = i + 1;
+    }
+}
+
+// Delay function
+fun delay() -> void {
+    let mut count: u16 = 0;
+    while count < 300 {
+        count = count + 1;
+    }
+}
+
+// Main program demonstrating modern MinZ with SMC work areas
+fun main() -> void {
+    // Initialize SMC-optimized work area
+    init_editor();
+    
+    // Draw welcome pattern using SMC
+    draw_welcome_pattern();
+    
+    // Main editing loop
+    let mut frame: u16 = 0;
+    while frame < 150 {  // Run for 150 frames
+        
+        // Render work area to screen (SMC optimized)
+        render_to_screen();
+        
+        // Render cursor with flashing
+        render_cursor();
+        
+        // Handle input modifying work area via SMC
+        if handle_input() {
+            delay();
+        }
+        
+        // Periodic statistics using SMC work area
+        if (frame & 31) == 0 {
+            let pixel_count: u16 = count_set_pixels();
+            
+            // If too many pixels, thin them out
+            if pixel_count > 80 {
+                test_modern_loops();  // SMC-optimized filtering
+            }
+        }
+        
+        delay();
+        frame = frame + 1;
+    }
+    
+    // Final demonstration of SMC work area efficiency
+    
+    // Clear and redraw
+    clear_canvas();
+    
+    // Draw final pattern
+    cursor_x = 5;
+    cursor_y = 5;
+    toggle_pixel();
+    
+    cursor_x = 10;
+    cursor_y = 10;
+    toggle_pixel();
+    
+    cursor_x = 5;
+    cursor_y = 10;
+    toggle_pixel();
+    
+    cursor_x = 10;
+    cursor_y = 5;
+    toggle_pixel();
+    
+    // Count final pixels
+    let final_count: u16 = count_set_pixels();
+    
+    // SMC work area has efficiently managed all pixel operations
+}

@@ -1,0 +1,54 @@
+// Test Lua tables and more complex metaprogramming
+
+// Define Lua functions and tables in a block
+@lua[[[
+-- Create a lookup table for sine values (scaled to u8)
+sine_table = {}
+for i = 0, 15 do
+    local angle = (i * math.pi * 2) / 16
+    local value = math.floor((math.sin(angle) + 1) * 127.5)
+    sine_table[i] = value
+end
+
+-- Function to get table value
+function get_sine(index)
+    return sine_table[index % 16]
+end
+
+-- Create color palette
+colors = {
+    black = 0,
+    blue = 1,
+    red = 2,
+    magenta = 3,
+    green = 4,
+    cyan = 5,
+    yellow = 6,
+    white = 7
+}
+
+-- Helper for bit manipulation
+function make_attr(ink, paper, bright)
+    return ink + (paper * 8) + (bright and 64 or 0)
+end
+]]]
+
+// Use the Lua-generated values
+const SINE_0: u8 = @lua(get_sine(0));     // 127
+const SINE_4: u8 = @lua(get_sine(4));     // 255
+const SINE_8: u8 = @lua(get_sine(8));     // 127
+const SINE_12: u8 = @lua(get_sine(12));   // 0
+
+// Use color palette
+const ATTR_WHITE_ON_BLUE: u8 = @lua(make_attr(colors.white, colors.blue, true));
+const ATTR_YELLOW_ON_BLACK: u8 = @lua(make_attr(colors.yellow, colors.black, true));
+
+fun main() -> void {
+    // These are all compile-time constants
+    let s0 = SINE_0;
+    let s4 = SINE_4;
+    let attr1 = ATTR_WHITE_ON_BLUE;
+    let attr2 = ATTR_YELLOW_ON_BLACK;
+    
+    return;
+}

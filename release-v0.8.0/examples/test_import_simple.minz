@@ -1,0 +1,10 @@
+// Test simple module import with full path
+
+import zx.screen;
+
+fun main() -> void {
+    // Use with full path
+    zx.screen.draw_rect(10, 10, 50, 30);
+    
+    return;
+}

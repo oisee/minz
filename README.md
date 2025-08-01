@@ -9,21 +9,21 @@
 
 MinZ is a revolutionary systems programming language that delivers **unprecedented performance** for Z80-based computers. Combining cutting-edge compiler theory with Z80-native optimizations, MinZ achieves **hand-optimized assembly performance** automatically.
 
-## 🎉 **BREAKING NEWS: TRUE SMC Lambdas + Revolutionary Diagnostic System!**
+## 🎉 **NEW: TRUE SMC Lambda Support + Advanced Diagnostics!**
 
-### 🚀 **[August 1, 2025] WORLD FIRST: TRUE SMC Lambda Implementation**
+### 🚀 **[August 1, 2025] TRUE SMC Lambda Implementation**
 
-**MinZ achieves the IMPOSSIBLE: Functional programming FASTER than manual assembly!**
+**MinZ introduces advanced lambda support with measurable performance improvements over traditional approaches.**
 
-#### **🔥 TRUE SMC Lambda Revolution:**
-- **14.4% fewer instructions** than traditional approaches
+#### **🔥 TRUE SMC Lambda Features:**
+- **14.4% fewer instructions** than traditional function+struct approaches
 - **1.2x performance speedup** with zero allocation overhead  
 - **Absolute address capture** - Variables captured by memory location, not value
 - **Live state evolution** - Lambda behavior changes automatically as captured variables change
 - **Self-modifying optimization** - Lambda functions adapt at runtime
 - **Compiler-optimized** - Full optimization pipeline applied to lambda functions
 
-**🎯 This proves functional programming can be faster than hand-coded assembly!**
+**🎯 Demonstrates that functional programming can achieve superior performance on Z80 systems!**
 
 ### 🚀 **Previous Achievement: Article 083 Production-Ready TSMC**
 
@@ -57,42 +57,42 @@ MinZ is a revolutionary systems programming language that delivers **unprecedent
 
 **[Read the incredible story](minzc/docs/077_AI_Driven_Compiler_Testing_Revolution.md)** of how we built professional-grade compiler testing infrastructure through AI-human collaboration, achieving in hours what normally takes months!
 
-## 🏆 **v0.7.0 "Revolutionary Diagnostics" - LATEST RELEASE**
+## 🏆 **v0.8.0 "TRUE SMC Lambda Support" - LATEST RELEASE**
 
-**🚀 [Download MinZ v0.7.0](https://github.com/oisee/minz/releases/tag/v0.7.0) - Revolutionary AI-powered diagnostic system with production-ready TSMC optimization!**
+**🚀 [Download MinZ v0.8.0](https://github.com/oisee/minz/releases/tag/v0.8.0) - Advanced lambda implementation with proven performance improvements!**
 
 ### 📥 **Quick Installation**
 
 #### **Linux/macOS:**
 ```bash
 # Linux x64
-wget https://github.com/oisee/minz/releases/download/v0.7.0/minzc-linux-amd64.tar.gz
+wget https://github.com/oisee/minz/releases/download/v0.8.0/minzc-linux-amd64.tar.gz
 tar -xzf minzc-linux-amd64.tar.gz && sudo mv minzc-linux-amd64 /usr/local/bin/minzc
 
 # macOS Apple Silicon
-wget https://github.com/oisee/minz/releases/download/v0.7.0/minzc-darwin-arm64.tar.gz
+wget https://github.com/oisee/minz/releases/download/v0.8.0/minzc-darwin-arm64.tar.gz
 tar -xzf minzc-darwin-arm64.tar.gz && sudo mv minzc-darwin-arm64 /usr/local/bin/minzc
 ```
 
 #### **Windows:**
-1. Download [minzc-windows-amd64.zip](https://github.com/oisee/minz/releases/download/v0.7.0/minzc-windows-amd64.zip)
-2. Extract and add to PATH
+1. Download [minzc-windows-amd64.exe](https://github.com/oisee/minz/releases/download/v0.8.0/minzc-windows-amd64.exe)
+2. Place in your PATH
 
 #### **VS Code Extension:**
 ```bash
-# Download and install the language support
-wget https://github.com/oisee/minz/releases/download/v0.7.0/minz-language-support-0.5.0.vsix
-code --install-extension minz-language-support-0.5.0.vsix
+# Download and install the enhanced language support
+wget https://github.com/oisee/minz/releases/download/v0.8.0/minz-language-support-0.8.0.vsix
+code --install-extension minz-language-support-0.8.0.vsix
 ```
 
-### 🎉 **What's New in v0.7.0:**
-- **🧠 World's First AI-Powered Compiler Diagnostics** - Deep root cause analysis
-- **⚡ 3x Faster Small Offset Optimization** - Smart `LD DE,n + ADD HL,DE` → `INC HL` conversion  
-- **📊 Production-Ready TSMC Foundation** - Zero-indirection programming architecture
-- **🔧 94%+ Compilation Success Rate** - Critical stability fixes (up from 70.6%)
-- **📈 15-40% Overall Speedup** - Intelligent optimization with 25-60% code size reduction
+### 🎉 **What's New in v0.8.0:**
+- **🚀 TRUE SMC Lambda Support** - Advanced functional programming with performance benefits
+- **📈 14.4% Performance Improvement** - Measured instruction count reduction over traditional approaches
+- **⚡ Zero Allocation Overhead** - Variables captured by absolute memory address
+- **🔄 Live State Evolution** - Lambda behavior updates as captured variables change
+- **🎯 Enhanced VSCode Extension** - Lambda syntax highlighting and language support
 
-### 🚀 **Getting Started with MinZ v0.7.0**
+### 🚀 **Getting Started with MinZ v0.8.0**
 
 #### **1. Your First MinZ Program**
 ```minz
@@ -337,12 +337,12 @@ fun demo() {
 
 ## 🚀 **Revolutionary Examples**
 
-### 🔥 **TRUE SMC Lambda Showcase - WORLD FIRST!**
+### 🔥 **TRUE SMC Lambda Showcase**
 
-Experience the world's most efficient lambda implementation - **functional programming faster than assembly**:
+MinZ's advanced lambda implementation delivers measurable performance improvements:
 
 ```minz
-// TRUE SMC Lambda Magic - Variables captured by absolute address!
+// TRUE SMC Lambda Implementation - Variables captured by absolute address
 fun adaptive_graphics() -> void {
     let brightness = 5;
     let contrast = 2;
@@ -352,32 +352,32 @@ fun adaptive_graphics() -> void {
         return (pixel_value * brightness + contrast) & 0xFF;
     };
     
-    // Generated Z80: Direct memory access - ZERO indirection!
-    // LD A, ($F002)    ; brightness directly from memory!
-    // LD B, ($F003)    ; contrast directly from memory!
+    // Generated Z80: Direct memory access - zero indirection
+    // LD A, ($F002)    ; brightness directly from memory
+    // LD B, ($F003)    ; contrast directly from memory
     
     process_frame(adjust_pixel);
     
-    // 🔥 TRUE SMC Magic: Change variables - lambda behavior evolves automatically!
-    brightness = 7;  // Lambda automatically sees new value!
-    contrast = 4;    // No lambda recreation needed!
+    // TRUE SMC Feature: Change variables - lambda behavior updates automatically
+    brightness = 7;  // Lambda automatically sees new value
+    contrast = 4;    // No lambda recreation needed
     
-    process_frame(adjust_pixel);  // Same lambda, different behavior!
+    process_frame(adjust_pixel);  // Same lambda, updated behavior
 }
 
-// Event Handler Lambda - Ultra-Fast Game Programming
+// Event Handler Lambda - Efficient Game Programming
 fun game_engine() -> void {
     let player_score = 0;
     let combo_multiplier = 1;
     
-    // Ultra-fast event handler with zero overhead
+    // Efficient event handler with direct memory access
     let on_enemy_hit = |damage| {
         player_score = player_score + (damage * combo_multiplier);
-        combo_multiplier = combo_multiplier + 1;  // Combo grows automatically!
+        combo_multiplier = combo_multiplier + 1;  // Combo grows automatically
     };
     
     // Generated: Direct memory access, no struct indirection
-    // 14.4% fewer instructions than traditional approaches!
+    // 14.4% fewer instructions than traditional approaches
     register_event_handler(on_enemy_hit);
 }
 ```
@@ -525,7 +525,7 @@ fun fib_fast(n: u8, a: u16, b: u16) -> u16 {
 - **📊 SMC+Tail Synergy** - **~10 T-states per recursive iteration** (5x faster than traditional)
 
 ### 🎯 **Core Language Features**
-- **🚀 TRUE SMC Lambdas**: Revolutionary lambda implementation faster than manual assembly
+- **🚀 TRUE SMC Lambdas**: Advanced lambda implementation with measurable performance benefits
 - **Modern Syntax**: Clean, expressive syntax drawing from Go, C, and modern systems languages
 - **Type Safety**: Static typing with compile-time checks and type-aware code generation
 - **Hierarchical Register Allocation**: Physical → Shadow → Memory for 3-6x faster operations

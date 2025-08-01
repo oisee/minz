@@ -1,0 +1,16 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_assignment.test() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+  Instructions:
+      0: r2 = 5
+      1: store , r2
+      2: r3 = load x
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: store x, r5
+      6: return
+

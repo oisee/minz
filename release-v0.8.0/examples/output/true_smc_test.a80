@@ -1,0 +1,290 @@
+; MinZ generated code
+; Generated: 2025-07-30 12:27:36
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.true_smc_test.add
+...examples.true_smc_test.add:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD C, A         ; Store to physical register C
+    LD A, E       ; Get parameter y
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = param x
+    ; Load parameter x
+    ; r4 = param y
+    ; Load parameter y
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.true_smc_test.multiply
+...examples.true_smc_test.multiply:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD D, H
+    LD E, L
+    EX DE, HL     ; Get parameter b from DE
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; r4 = 0
+    LD A, 0
+    LD E, A         ; Store to physical register E
+    ; store , r4
+    LD ($F000), HL
+    ; r6 = param b
+    ; Load parameter b
+    ; store , r6
+    ; Register 6 already in HL
+    LD ($F002), HL
+    ; loop_1:
+loop_1:
+    ; r7 = load count
+    LD HL, ($F002)
+    ; r8 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r9 = r7 > r8
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L2
+    JP P, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    LD B, H
+    LD C, L
+    ; jump_if_not r9, end_loop_2
+    LD A, C
+    OR A
+    JP Z, end_loop_2
+    ; jump loop_1
+    JP loop_1
+    ; end_loop_2:
+end_loop_2:
+    ; r10 = load result
+    LD HL, ($F000)
+    ; return r10
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.true_smc_test.process
+...examples.true_smc_test.process:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; r3 = param value
+    ; Load parameter value
+    ; r4 = 10
+    LD A, 10
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 + r4
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store , r5
+    LD ($F000), HL
+    ; r6 = param value
+    ; Load parameter value
+    ; r7 = 50
+    LD A, 50
+    LD L, A         ; Store to physical register L
+    ; r8 = r6 > r7
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L4
+    JP P, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    LD ($F010), HL    ; Virtual register 8 to memory
+    ; jump_if_not r8, else_3
+    LD A, ($F010)     ; Virtual register 8 from memory
+    OR A
+    JP Z, else_3
+    ; r9 = param value
+    ; Load parameter value
+    ; r10 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; r11 = r9 * r10
+    ; 8-bit multiplication
+    LD A, H
+    LD B, A       ; B = multiplicand
+    LD A, L
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_4
+.mul_loop_4:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_4
+.mul_done_4:
+    LD ($F016), HL    ; Virtual register 11 to memory
+    ; return r11
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; r12 = param value
+    ; Load parameter value
+    ; r13 = load temp
+    LD HL, ($F000)
+    ; r14 = r12 + r13
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 14 already in HL
+    ; return r14
+    ; Register 14 already in HL
+    LD SP, IX
+    POP IX
+    RET
+    ; end_if_4:
+end_if_4:
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.true_smc_test.main
+...examples.true_smc_test.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD H, A         ; Store to physical register H
+    ; r3 = call io.print_char
+    ; Call to io.print_char (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_char
+    ; store , r3
+    LD ($F002), HL
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main

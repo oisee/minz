@@ -1,0 +1,75 @@
+// Simplified MNIST Digit Editor for ZX Spectrum
+
+// Editor state
+struct Editor {
+    cursor_x: u8,
+    cursor_y: u8,
+    canvas: [256]bool
+}
+
+// Draw a pixel on the 16x16 grid
+fun draw_pixel(x: u8, y: u8, set: bool) -> void {
+    let grid_x: u8 = 64;
+    let grid_y: u8 = 48;
+    let px = grid_x + x;
+    let py = grid_y + y;
+    
+    if set {
+        // Set pixel at px, py
+    } else {
+        // Clear pixel at px, py
+    }
+}
+
+// Draw the entire canvas
+fun draw_canvas(canvas: *[256]bool) -> void {
+    let mut y: u8 = 0;
+    while y < 16 {
+        let mut x: u8 = 0;
+        while x < 16 {
+            let idx: u16 = (y as u16) * 16 + (x as u16);
+            draw_pixel(x, y, canvas[idx]);
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}
+
+// Main program
+fun main() -> void {
+    // Clear screen
+    // Set border color to blue
+    
+    // Initialize canvas
+    let mut canvas: [256]bool;
+    let mut i: u16 = 0;
+    while i < 256 {
+        canvas[i] = false;
+        i = i + 1;
+    }
+    
+    // Draw a simple pattern
+    canvas[0] = true;
+    canvas[17] = true;
+    canvas[34] = true;
+    canvas[51] = true;
+    
+    // Draw the canvas
+    draw_canvas(&canvas);
+    
+    // Simple input loop
+    while true {
+        // Simulate key press
+        let key = 32;  // SPACE key
+        if key == 32 {
+            // Toggle center pixel
+            // Toggle center pixel - would use XOR in assembly
+            if canvas[136] {
+                canvas[136] = false;
+            } else {
+                canvas[136] = true;
+            }
+            draw_canvas(&canvas);
+        }
+    }
+}

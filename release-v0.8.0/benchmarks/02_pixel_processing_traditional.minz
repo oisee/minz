@@ -1,0 +1,42 @@
+// BENCHMARK 2: Traditional Pixel Processing (Function + Context)
+// This shows the old way with function pointers and context structs
+
+struct PixelContext {
+    brightness: u8,
+    contrast: u8,
+    processed_pixels: u16,
+}
+
+fun adjust_pixel_traditional(pixel_value: u8, ctx: *mut PixelContext) -> u8 {
+    // Traditional approach: indirect access through struct
+    let brightness = ctx.brightness;
+    let contrast = ctx.contrast;
+    ctx.processed_pixels = ctx.processed_pixels + 1;
+    
+    return (pixel_value * brightness + contrast) & 0xFF;
+}
+
+fun benchmark_traditional_pixel_processing() -> u16 {
+    let ctx = PixelContext {
+        brightness: 5,
+        contrast: 3,  
+        processed_pixels: 0,
+    };
+    
+    // Traditional approach - must pass context everywhere
+    let i = 0;
+    while i < 1000 {
+        let pixel = (i & 0xFF) as u8;
+        let result = adjust_pixel_traditional(pixel, &mut ctx);
+        
+        // Changing conditions requires manual struct updates
+        if i == 500 {
+            ctx.brightness = 7;
+            ctx.contrast = 4;
+        }
+        
+        i = i + 1;
+    }
+    
+    return ctx.processed_pixels;
+}

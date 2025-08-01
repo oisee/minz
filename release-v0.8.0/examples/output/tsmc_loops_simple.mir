@@ -1,0 +1,39 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   ...examples.tsmc_loops_simple.i: u16
+
+Function ...examples.tsmc_loops_simple.sum_array_tsmc(arr: *u8, count: u16) -> u16
+  @smc
+  Locals:
+    r3 = sum: u16
+    r5 = i: u16
+  Instructions:
+      0: r4 = 0
+      1: store , r4
+      2: r6 = 0
+      3: store , r6
+      4: loop_1:
+      5: r7 = load i
+      6: 12
+      7: r9 = r7 < r8
+      8: jump_if_not r9, end_loop_2
+      9: r10 = load sum
+     10: 12
+     11: 65
+     12: r13 = r10 + r12
+     13: store sum, r13
+     14: 12
+     15: r15 = 1
+     16: r16 = r14 + r15
+     17: 29 ; Update TSMC reference arr
+     18: r17 = load i
+     19: r18 = 1
+     20: r19 = r17 + r18
+     21: store i, r19
+     22: jump loop_1
+     23: end_loop_2:
+     24: r20 = load sum
+     25: return r20
+

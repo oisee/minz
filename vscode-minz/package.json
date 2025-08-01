@@ -1,0 +1,58 @@
+{
+    "name": "minz-language-support",
+    "displayName": "MinZ Language Support",
+    "description": "Syntax highlighting and language support for MinZ - The revolutionary systems programming language with TRUE SMC lambdas",
+    "version": "0.8.0",
+    "publisher": "minz",
+    "engines": {
+        "vscode": "^1.80.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Syntax Highlighting"
+    ],
+    "keywords": [
+        "minz",
+        "systems programming",
+        "z80",
+        "assembly",
+        "lambdas",
+        "functional programming",
+        "self-modifying code",
+        "embedded"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "minz",
+                "aliases": [
+                    "MinZ",
+                    "minz"
+                ],
+                "extensions": [
+                    ".minz"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "minz",
+                "scopeName": "source.minz",
+                "path": "./syntaxes/minz.tmLanguage.json"
+            }
+        ]
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/oisee/minz.git"
+    },
+    "bugs": {
+        "url": "https://github.com/oisee/minz/issues"
+    },
+    "homepage": "https://github.com/oisee/minz#readme",
+    "author": {
+        "name": "MinZ Team"
+    },
+    "license": "MIT"
+}

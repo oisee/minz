@@ -1,0 +1,2 @@
+Error: semantic error: semantic analysis failed with 1 errors:
+  1. error in function test_16bit_ops: undefined identifier: a (analyzeIdentifier)

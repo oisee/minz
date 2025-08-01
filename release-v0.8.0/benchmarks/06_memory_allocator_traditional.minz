@@ -1,0 +1,49 @@
+// BENCHMARK 6: Traditional Memory Allocator (Global State)
+// Shows traditional approach with global variables and function calls
+
+let global_pool_start: u16 = 0;
+let global_current_offset: u16 = 0;
+let global_pool_size: u16 = 0;
+let global_allocations_made: u16 = 0;
+
+fun init_traditional_allocator(pool_start: u16, pool_size: u16) -> void {
+    global_pool_start = pool_start;
+    global_pool_size = pool_size;
+    global_current_offset = 0;
+    global_allocations_made = 0;
+}
+
+fun traditional_alloc(size: u16) -> u16 {
+    // Traditional: access global state (slower on Z80)
+    global_allocations_made = global_allocations_made + 1;
+    
+    if global_current_offset + size > global_pool_size {
+        return 0;  // Out of memory
+    }
+    
+    let result = global_pool_start + global_current_offset;
+    global_current_offset = global_current_offset + size;
+    
+    return result;
+}
+
+fun benchmark_traditional_allocator() -> u16 {
+    init_traditional_allocator(0x8000, 1024);
+    
+    let successful_allocs = 0;
+    let i = 0;
+    
+    // Same allocation pattern as lambda version
+    while i < 100 {
+        let size = ((i % 16) + 1) as u16;
+        let ptr = traditional_alloc(size);
+        
+        if ptr != 0 {
+            successful_allocs = successful_allocs + 1;
+        }
+        
+        i = i + 1;
+    }
+    
+    return successful_allocs as u16;
+}

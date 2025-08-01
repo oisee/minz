@@ -1,0 +1,2 @@
+Error: semantic error: semantic analysis failed with 1 errors:
+  1. error in function rom_print_string: undefined function: rom_print_char

@@ -1,0 +1,256 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "MinZ",
+    "scopeName": "source.minz",
+    "patterns": [
+        {"include": "#comments"},
+        {"include": "#strings"},
+        {"include": "#characters"},
+        {"include": "#numbers"},
+        {"include": "#keywords"},
+        {"include": "#lambda-expressions"},
+        {"include": "#types"},
+        {"include": "#functions"},
+        {"include": "#variables"},
+        {"include": "#operators"},
+        {"include": "#metaprogramming"},
+        {"include": "#inline-assembly"}
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-slash.minz",
+                    "match": "//.*$"
+                },
+                {
+                    "name": "comment.block.minz",
+                    "begin": "/\\*",
+                    "end": "\\*/"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.minz",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.minz",
+                            "match": "\\\\."
+                        }
+                    ]
+                }
+            ]
+        },
+        "characters": {
+            "patterns": [
+                {
+                    "name": "string.quoted.single.minz", 
+                    "match": "'([^'\\\\]|\\\\.)'"
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.hex.minz",
+                    "match": "\\b0x[0-9a-fA-F]+\\b"
+                },
+                {
+                    "name": "constant.numeric.binary.minz",
+                    "match": "\\b0b[01]+\\b"
+                },
+                {
+                    "name": "constant.numeric.decimal.minz",
+                    "match": "\\b\\d+\\b"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.minz",
+                    "match": "\\b(if|else|while|for|loop|break|continue|return|case|defer)\\b"
+                },
+                {
+                    "name": "keyword.declaration.minz",
+                    "match": "\\b(fun|let|var|const|mut|pub|export|struct|enum|interface|impl|type)\\b"
+                },
+                {
+                    "name": "keyword.other.minz",
+                    "match": "\\b(self|in|as|sizeof|alignof|true|false|void|null)\\b"
+                },
+                {
+                    "name": "keyword.import.minz",
+                    "match": "\\b(import)\\b"
+                }
+            ]
+        },
+        "lambda-expressions": {
+            "patterns": [
+                {
+                    "name": "meta.lambda.minz",
+                    "begin": "\\|",
+                    "end": "\\|",
+                    "beginCaptures": {
+                        "0": {"name": "punctuation.definition.lambda.begin.minz"}
+                    },
+                    "endCaptures": {
+                        "0": {"name": "punctuation.definition.lambda.end.minz"}
+                    },
+                    "patterns": [
+                        {
+                            "name": "variable.parameter.lambda.minz",
+                            "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+                        },
+                        {
+                            "name": "punctuation.separator.lambda.minz",
+                            "match": ","
+                        },
+                        {
+                            "name": "punctuation.separator.type.minz",
+                            "match": ":"
+                        },
+                        {"include": "#types"}
+                    ]
+                },
+                {
+                    "name": "keyword.operator.lambda.arrow.minz",
+                    "match": "->"
+                }
+            ]
+        },
+        "types": {
+            "patterns": [
+                {
+                    "name": "storage.type.primitive.minz",
+                    "match": "\\b(u8|u16|i8|i16|bool|void)\\b"
+                },
+                {
+                    "name": "storage.type.custom.minz",
+                    "match": "\\b[A-Z][a-zA-Z0-9_]*\\b"
+                },
+                {
+                    "name": "storage.type.pointer.minz",
+                    "match": "\\*\\s*(mut|const)?\\b"
+                }
+            ]
+        },
+        "functions": {
+            "patterns": [
+                {
+                    "name": "meta.function.minz",
+                    "begin": "\\b(fun)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
+                    "beginCaptures": {
+                        "1": {"name": "keyword.declaration.function.minz"},
+                        "2": {"name": "entity.name.function.minz"}
+                    },
+                    "end": "\\)",
+                    "patterns": [
+                        {"include": "#types"},
+                        {"include": "#variables"}
+                    ]
+                },
+                {
+                    "name": "entity.name.function.call.minz",
+                    "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+                }
+            ]
+        },
+        "variables": {
+            "patterns": [
+                {
+                    "name": "variable.other.minz",
+                    "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.assignment.minz",
+                    "match": "(=|\\+=|-=|\\*=|/=|%=)"
+                },
+                {
+                    "name": "keyword.operator.comparison.minz", 
+                    "match": "(==|!=|<|>|<=|>=)"
+                },
+                {
+                    "name": "keyword.operator.logical.minz",
+                    "match": "(and|or|!|&&|\\|\\|)"
+                },
+                {
+                    "name": "keyword.operator.arithmetic.minz",
+                    "match": "(\\+|-|\\*|/|%)"
+                },
+                {
+                    "name": "keyword.operator.bitwise.minz",
+                    "match": "(&|\\||\\^|~|<<|>>)"
+                },
+                {
+                    "name": "keyword.operator.range.minz",
+                    "match": "\\.\\."
+                },
+                {
+                    "name": "keyword.operator.reference.minz",
+                    "match": "&"
+                },
+                {
+                    "name": "keyword.operator.dereference.minz",
+                    "match": "\\*"
+                }
+            ]
+        },
+        "metaprogramming": {
+            "patterns": [
+                {
+                    "name": "meta.preprocessor.minz",
+                    "match": "@\\w+",
+                    "captures": {
+                        "0": {"name": "entity.name.function.preprocessor.minz"}
+                    }
+                },
+                {
+                    "name": "meta.lua-block.minz",
+                    "begin": "@lua\\[\\[\\[",
+                    "end": "\\]\\]\\]",
+                    "beginCaptures": {
+                        "0": {"name": "punctuation.definition.lua-block.begin.minz"}
+                    },
+                    "endCaptures": {
+                        "0": {"name": "punctuation.definition.lua-block.end.minz"}
+                    },
+                    "contentName": "source.lua.embedded.minz"
+                },
+                {
+                    "name": "meta.lua-expression.minz",
+                    "begin": "@lua\\(",
+                    "end": "\\)",
+                    "beginCaptures": {
+                        "0": {"name": "punctuation.definition.lua-expression.begin.minz"}
+                    },
+                    "endCaptures": {
+                        "0": {"name": "punctuation.definition.lua-expression.end.minz"}
+                    },
+                    "contentName": "source.lua.embedded.minz"
+                }
+            ]
+        },
+        "inline-assembly": {
+            "patterns": [
+                {
+                    "name": "meta.inline-assembly.minz",
+                    "begin": "\\basm\\s*\\{",
+                    "end": "\\}",
+                    "beginCaptures": {
+                        "0": {"name": "keyword.other.asm.minz"}
+                    },
+                    "contentName": "source.asm.embedded.minz"
+                }
+            ]
+        }
+    }
+}

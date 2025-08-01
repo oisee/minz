@@ -1,0 +1,19 @@
+; MinZ generated code
+; Generated: 2025-07-30 07:28:30
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.abi_test_with_main.test_func
+examples.abi_test_with_main.test_func:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.abi_test_with_main.test_func_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    ; return r2
+    RET
+
+    END main

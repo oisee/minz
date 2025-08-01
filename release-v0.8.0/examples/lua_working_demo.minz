@@ -1,0 +1,34 @@
+// Demonstration of working Lua metaprogramming in MinZ
+
+// Compile-time constants computed with Lua
+const SCREEN_WIDTH: u16 = @lua(256);
+const SCREEN_HEIGHT: u16 = @lua(192);
+const TOTAL_PIXELS: u16 = @lua(256 * 192 / 256);  // 192 (avoiding overflow)
+
+// Math at compile time
+const PI_APPROX: u8 = @lua(58);      // floor(3.14159 * 100) % 256
+const GOLDEN_RATIO: u8 = @lua(161);  // floor(1.618 * 100) % 256
+
+// Platform configuration
+const Z80_CLOCK_MHZ: u8 = @lua(3.5 * 2);  // 7 (ZX Spectrum 128 is 3.5469 MHz)
+const FRAMES_PER_SEC: u8 = @lua(50);      // PAL
+
+fun calculate_timing(frames: u8) -> u16 {
+    // Calculate milliseconds for given frames at 50Hz
+    return (frames as u16) * 20;  // 20ms per frame
+}
+
+fun main() -> void {
+    // Use compile-time computed constants
+    let width = SCREEN_WIDTH;
+    let height = SCREEN_HEIGHT;
+    
+    // Animation timing
+    let frame_time = calculate_timing(FRAMES_PER_SEC);
+    
+    // Mathematical constants
+    let pi = PI_APPROX;
+    let phi = GOLDEN_RATIO;
+    
+    return;
+}

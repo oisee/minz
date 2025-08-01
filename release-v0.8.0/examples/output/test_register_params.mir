@@ -1,0 +1,118 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_register_params.add_bytes(a: u8, b: u8) -> u8
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...examples.test_register_params.add_words(x: u16, y: u16) -> u16
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...examples.test_register_params.process(value: u8, ptr: *u8, count: u16) -> u8
+  Locals:
+    r4 = sum: u8
+  Instructions:
+      0: 12
+      1: store , r5
+      2: r6 = 0
+      3: 12
+      4: r8 = r6 ; Initialize loop variable i
+      5: for_loop_1:
+      6: r9 = r8 < r7 ; Check i < end
+      7: jump_if_not r9, for_end_2
+      8: r10 = load sum
+      9: 12
+     10: 65
+     11: r13 = r10 + r12
+     12: store sum, r13
+     13: 12
+     14: r15 = 1
+     15: r16 = r14 + r15
+     16: store ptr, r16
+     17: r17 = 1
+     18: r8 = r8 + r17 ; Increment i
+     19: jump for_loop_1
+     20: for_end_2:
+     21: r18 = load sum
+     22: return r18
+
+Function ...examples.test_register_params.many_params(a: u8, b: u8, c: u8, d: u8, e: u8) -> u8
+  @smc
+  Instructions:
+      0: 12
+      1: 12
+      2: r8 = r6 + r7
+      3: 12
+      4: r10 = r8 + r9
+      5: 12
+      6: r12 = r10 + r11
+      7: 12
+      8: r14 = r12 + r13
+      9: return r14
+
+Function ...examples.test_register_params.recursive_sum(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: 12
+      1: r3 = 0
+      2: r4 = r2 == r3
+      3: jump_if_not r4, else_3
+      4: r5 = 0
+      5: return r5
+      6: jump end_if_4
+      7: else_3:
+      8: end_if_4:
+      9: 12
+     10: 12
+     11: r8 = 1
+     12: r9 = r7 - r8
+     13: r10 = call recursive_sum
+     14: r11 = r6 + r10
+     15: return r11
+
+Function ...examples.test_register_params.main() -> void
+  @smc
+  Locals:
+    r1 = r1: u16
+    r5 = r2: u16
+    r9 = data: [5]u8
+    r10 = r3: u16
+    r18 = r4: u16
+    r25 = r5: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = 20
+      2: r4 = call add_bytes
+      3: store , r4
+      4: r6 = 1000
+      5: r7 = 2000
+      6: r8 = call add_words
+      7: store , r8
+      8: r11 = 100
+      9: r12 = load data
+     10: r13 = 0
+     11: 15 ; Load array element (u8)
+     12: 64
+     13: r16 = 5
+     14: r17 = call process
+     15: store , r17
+     16: r19 = 1
+     17: r20 = 2
+     18: r21 = 3
+     19: r22 = 4
+     20: r23 = 5
+     21: r24 = call many_params
+     22: store , r24
+     23: r26 = 10
+     24: r27 = call recursive_sum
+     25: store , r27
+     26: return
+

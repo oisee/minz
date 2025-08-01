@@ -1,0 +1,29 @@
+// BENCHMARK 3: Event Handler with TRUE SMC Lambda
+// Shows ultra-fast event processing with live state capture
+
+fun benchmark_lambda_event_handler() -> u16 {
+    let score = 0;
+    let multiplier = 1;
+    let events_processed = 0;
+    
+    // Lambda captures game state directly - ZERO indirection!
+    let handle_enemy_hit = |damage| {
+        score = score + (damage * multiplier);
+        events_processed = events_processed + 1;
+        
+        // Multiplier grows with score - lambda evolves automatically!
+        if score > 100 {
+            multiplier = multiplier + 1;
+        }
+    };
+    
+    // Simulate 500 enemy hit events
+    let i = 0;
+    while i < 500 {
+        let damage = ((i % 10) + 1) as u8;  // 1-10 damage
+        handle_enemy_hit(damage);
+        i = i + 1;
+    }
+    
+    return events_processed as u16;
+}

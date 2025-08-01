@@ -1,0 +1,38 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.types_demo.test_u8(a: u8, b: u8) -> u8
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...examples.types_demo.test_u16(x: u16, y: u16) -> u16
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 * r4
+      3: return r5
+
+Function ...examples.types_demo.test_i8(a: i8, b: i8) -> i8
+  Instructions:
+      0: 12
+      1: 12
+      2: r5 = r3 - r4
+      3: return r5
+
+Function ...examples.types_demo.test_bool(x: u8) -> bool
+  Instructions:
+      0: 12
+      1: r3 = 10
+      2: r4 = r2 > r3
+      3: return r4
+
+Function ...examples.types_demo.test_pointers(ptr: *u8, value: u8) -> void
+  Instructions:
+      0: 12
+      1: 12
+      2: 66 ; Store through pointer
+      3: return
+
