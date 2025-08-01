@@ -1,0 +1,44 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   .Users.alice.dev.minz-ts.examples.test_loop_minimal.items: [3].Users.alice.dev.minz-ts.examples.test_loop_minimal.Item
+
+Function .Users.alice.dev.minz-ts.examples.test_loop_minimal.main() -> void
+  @smc
+  Instructions:
+      0: r1 = 10
+      1: UNKNOWN_OP_70
+      2: r3 = 0
+      3: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_minimal.Item)
+      4: STORE_FIELD ; Store to field value (offset 0)
+      5: r5 = 20
+      6: UNKNOWN_OP_70
+      7: r7 = 1
+      8: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_minimal.Item)
+      9: STORE_FIELD ; Store to field value (offset 0)
+     10: r9 = 30
+     11: UNKNOWN_OP_70
+     12: r11 = 2
+     13: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_minimal.Item)
+     14: STORE_FIELD ; Store to field value (offset 0)
+     15: UNKNOWN_OP_70
+     16: UNKNOWN_OP_70 ; Load table base address
+     17: UNKNOWN_OP_70 ; Load table base for end calculation
+     18: UNKNOWN_OP_75 ; Calculate table end (+ 3 elements * 1 bytes)
+     19: UNKNOWN_OP_74 ; Load loop counter
+     20: loop_start_1:
+     21: UNKNOWN_OP_53 ; Check if reached end of table
+     22: JUMP_IF ; Exit if done
+     23: UNKNOWN_OP_71 ; Copy element to buffer at $F000
+     24: LOAD_DIRECT ; Load item.value from buffer at $F000
+     25: r19 = 1
+     26: r20 = r18 + r19
+     27: r21 = load item
+     28: STORE_FIELD ; Store to field value (offset 0)
+     29: UNKNOWN_OP_72 ; Copy buffer back to element at $F000
+     30: UNKNOWN_OP_75 ; Advance to next element (+1 bytes)
+     31: UNKNOWN_OP_73 ; Decrement counter and loop if not zero
+     32: loop_end_2:
+     33: return
+

@@ -1,0 +1,21 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   .Users.alice.dev.minz-ts.examples.arrays.old_array: [10]u8
+;   .Users.alice.dev.minz-ts.examples.arrays.new_array: [10]u8
+;   .Users.alice.dev.minz-ts.examples.arrays.items: [5].Users.alice.dev.minz-ts.examples.arrays.Item
+
+Function .Users.alice.dev.minz-ts.examples.arrays.main() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_70
+      1: UNKNOWN_OP_63 ; Store to array[index] (u8)
+      2: UNKNOWN_OP_70
+      3: UNKNOWN_OP_63 ; Store to array[index] (u8)
+      4: r9 = 1
+      5: UNKNOWN_OP_70
+      6: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.arrays.Item)
+      7: STORE_FIELD ; Store to field id (offset 0)
+      8: return
+

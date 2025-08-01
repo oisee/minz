@@ -1,0 +1,135 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_range_comprehensive.matrix_sum(rows: u8, cols: u8) -> u16
+  @smc
+  Locals:
+    r3 = sum: u16
+    r13 = element: u8
+  Instructions:
+      0: r4 = 0
+      1: store , r4
+      2: r5 = 0
+      3: LOAD_PARAM
+      4: r7 = r5 ; Initialize loop variable r
+      5: for_loop_1:
+      6: r8 = r7 < r6 ; Check r < end
+      7: jump_if_not r8, for_end_2
+      8: r9 = 0
+      9: LOAD_PARAM
+     10: r11 = r9 ; Initialize loop variable c
+     11: for_loop_3:
+     12: r12 = r11 < r10 ; Check c < end
+     13: jump_if_not r12, for_end_4
+     14: r14 = load r
+     15: LOAD_PARAM
+     16: r16 = r14 * r15
+     17: r17 = load c
+     18: r18 = r16 + r17
+     19: store , r18
+     20: r19 = load sum
+     21: r20 = load element
+     22: r21 = r19 + r20
+     23: store sum, r21
+     24: r22 = 1
+     25: r11 = r11 + r22 ; Increment c
+     26: jump for_loop_3
+     27: for_end_4:
+     28: r23 = 1
+     29: r7 = r7 + r23 ; Increment r
+     30: jump for_loop_1
+     31: for_end_2:
+     32: r24 = load sum
+     33: return r24
+
+Function .Users.alice.dev.minz-ts.examples.test_range_comprehensive.array_process() -> u8
+  @smc
+  Locals:
+    r1 = arr: [10]u8
+    r13 = sum: u8
+  Instructions:
+      0: r2 = 0
+      1: r3 = 10
+      2: r4 = r2 ; Initialize loop variable i
+      3: for_loop_5:
+      4: r5 = r4 < r3 ; Check i < end
+      5: jump_if_not r5, for_end_6
+      6: r6 = load i
+      7: r7 = 2
+      8: r8 = r6 * r7
+      9: r9 = load arr
+     10: r10 = load i
+     11: r11 = r9 + r10 ; Calculate array element address
+     12: UNKNOWN_OP_63 ; Store to array[index] (u8)
+     13: r12 = 1
+     14: r4 = r4 + r12 ; Increment i
+     15: jump for_loop_5
+     16: for_end_6:
+     17: r14 = 0
+     18: store , r14
+     19: r15 = 0
+     20: r16 = 10
+     21: r17 = r15 ; Initialize loop variable i
+     22: for_loop_7:
+     23: r18 = r17 < r16 ; Check i < end
+     24: jump_if_not r18, for_end_8
+     25: r19 = load sum
+     26: r20 = load arr
+     27: r21 = load i
+     28: LOAD_INDEX ; Load array element (u8)
+     29: r23 = r19 + r22
+     30: store sum, r23
+     31: r24 = 1
+     32: r17 = r17 + r24 ; Increment i
+     33: jump for_loop_7
+     34: for_end_8:
+     35: r25 = load sum
+     36: return r25
+
+Function .Users.alice.dev.minz-ts.examples.test_range_comprehensive.dynamic_range(n: u8) -> u16
+  @smc
+  Locals:
+    r2 = result: u16
+  Instructions:
+      0: r3 = 1
+      1: store , r3
+      2: r4 = 1
+      3: LOAD_PARAM
+      4: r6 = r4 ; Initialize loop variable i
+      5: for_loop_9:
+      6: r7 = r6 < r5 ; Check i < end
+      7: jump_if_not r7, for_end_10
+      8: r8 = load result
+      9: r9 = load i
+     10: r10 = r8 * r9
+     11: store result, r10
+     12: r11 = 1
+     13: r6 = r6 + r11 ; Increment i
+     14: jump for_loop_9
+     15: for_end_10:
+     16: r12 = load result
+     17: return r12
+
+Function .Users.alice.dev.minz-ts.examples.test_range_comprehensive.main() -> u16
+  @smc
+  Locals:
+    r1 = a: u16
+    r5 = b: u8
+    r7 = c: u16
+  Instructions:
+      0: r2 = 3
+      1: r3 = 4
+      2: r4 = call matrix_sum
+      3: store , r4
+      4: r6 = call array_process
+      5: store , r6
+      6: r8 = 5
+      7: r9 = call dynamic_range
+      8: store , r9
+      9: r10 = load a
+     10: r11 = load b
+     11: r12 = r10 + r11
+     12: r13 = load c
+     13: r14 = r12 + r13
+     14: return r14
+

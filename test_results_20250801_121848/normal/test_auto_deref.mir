@@ -1,0 +1,53 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_auto_deref.test_basic_auto_deref() -> u8
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = p: *u8
+  Instructions:
+      0: r2 = 10
+      1: store , r2
+      2: r4 = load x
+      3: UNKNOWN_OP_64
+      4: store , r5
+      5: r6 = 20
+      6: r7 = load p
+      7: UNKNOWN_OP_66 ; Auto-deref assignment
+      8: r8 = load x
+      9: return r8
+
+Function .Users.alice.dev.minz-ts.examples.test_auto_deref.test_pointer_arithmetic() -> u8
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = p: *u8
+  Instructions:
+      0: r2 = 10
+      1: store , r2
+      2: r4 = load x
+      3: UNKNOWN_OP_64
+      4: store , r5
+      5: r6 = load p
+      6: r7 = 1
+      7: r8 = r6 + r7
+      8: store p, r8
+      9: r9 = load x
+     10: return r9
+
+Function .Users.alice.dev.minz-ts.examples.test_auto_deref.increment_ptr(ptr: *u8) -> void
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 + r3
+      3: UNKNOWN_OP_29 ; Update TSMC reference ptr
+      4: return
+
+Function .Users.alice.dev.minz-ts.examples.test_auto_deref.main() -> u8
+  @smc
+  Instructions:
+      0: r1 = call test_basic_auto_deref
+      1: return r1
+

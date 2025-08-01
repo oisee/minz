@@ -1,0 +1,103 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_register_params.add_bytes(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.test_register_params.add_words(x: u16, y: u16) -> u16
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor y$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.test_register_params.process(value: u8, ptr: *u8, count: u16) -> u8
+  @smc
+  Locals:
+    r4 = sum: u8
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor value$imm0
+      1: store , r5
+      2: UNKNOWN_OP_30 ; Load from anchor count$imm0
+      3: r8 = r6 ; Initialize loop variable i
+      4: for_loop_1:
+      5: r9 = r8 < r7 ; Check i < end
+      6: jump_if_not r9, for_end_2
+      7: r10 = load sum
+      8: UNKNOWN_OP_30 ; Load from anchor ptr$imm0
+      9: UNKNOWN_OP_65
+     10: r13 = r10 + r12
+     11: store sum, r13
+     12: UNKNOWN_OP_30 ; Load from anchor ptr$imm0
+     13: r15 = 1
+     14: r16 = r14 + r15
+     15: store ptr, r16
+     16: r17 = 1
+     17: r8 = r8 + r17 ; Increment i
+     18: jump for_loop_1
+     19: for_end_2:
+     20: r18 = load sum
+     21: return r18
+
+Function .Users.alice.dev.minz-ts.examples.test_register_params.many_params(a: u8, b: u8, c: u8, d: u8, e: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor b$imm0
+      2: r8 = r6 + r7
+      3: UNKNOWN_OP_30 ; Load from anchor c$imm0
+      4: r10 = r8 + r9
+      5: UNKNOWN_OP_30 ; Load from anchor d$imm0
+      6: r12 = r10 + r11
+      7: UNKNOWN_OP_30 ; Load from anchor e$imm0
+      8: r14 = r12 + r13
+      9: return r14
+
+Function .Users.alice.dev.minz-ts.examples.test_register_params.recursive_sum(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor n$imm0
+      1: r3 = 0
+      2: r4 = r2 == r3
+      3: jump_if_not r4, else_3
+      4: r5 = 0
+      5: return r5
+      6: else_3:
+      7: UNKNOWN_OP_30 ; Load from anchor n$imm0
+      8: UNKNOWN_OP_30 ; Load from anchor n$imm0
+      9: r10 = call recursive_sum
+     10: r11 = r6 + r10
+     11: return r11
+
+Function .Users.alice.dev.minz-ts.examples.test_register_params.main() -> void
+  @smc
+  @recursive
+  Locals:
+    r1 = r1: u16
+    r5 = r2: u16
+    r9 = data: [5]u8
+    r10 = r3: u16
+    r18 = r4: u16
+    r25 = r5: u16
+  Instructions:
+      0: r4 = call add_bytes
+      1: store , r4
+      2: r8 = call add_words
+      3: store , r8
+      4: LOAD_INDEX ; Load array element (u8)
+      5: UNKNOWN_OP_64
+      6: r17 = call process
+      7: store , r17
+      8: r24 = call many_params
+      9: store , r24
+     10: r27 = call recursive_sum
+     11: store , r27
+     12: return
+

@@ -1,0 +1,87 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.array_initializers.main() -> void
+  @smc
+  Locals:
+    r1 = colors: [3]u8
+    r2 = matrix: [2][2]u8
+    r3 = empty: [0]u8
+    r4 = traditional: [3]u8
+  Instructions:
+      0: UNKNOWN_OP_83
+      1: UNKNOWN_OP_82
+      2: LOAD_INDEX ; Load array element (u8)
+      3: UNKNOWN_OP_77
+      4: UNKNOWN_OP_83
+      5: UNKNOWN_OP_82
+      6: LOAD_INDEX ; Load array element (u8)
+      7: UNKNOWN_OP_77
+      8: UNKNOWN_OP_83
+      9: UNKNOWN_OP_82
+     10: LOAD_INDEX ; Load array element (u8)
+     11: UNKNOWN_OP_77
+     12: UNKNOWN_OP_83
+     13: UNKNOWN_OP_82
+     14: UNKNOWN_OP_83
+     15: UNKNOWN_OP_82
+     16: LOAD_INDEX ; Load array element ([2]u8)
+     17: LOAD_INDEX ; Load array element (u8)
+     18: UNKNOWN_OP_77
+     19: UNKNOWN_OP_83
+     20: UNKNOWN_OP_82
+     21: LOAD_INDEX ; Load array element ([2]u8)
+     22: LOAD_INDEX ; Load array element (u8)
+     23: UNKNOWN_OP_77
+     24: UNKNOWN_OP_83
+     25: UNKNOWN_OP_82
+     26: LOAD_INDEX ; Load array element ([2]u8)
+     27: LOAD_INDEX ; Load array element (u8)
+     28: UNKNOWN_OP_77
+     29: UNKNOWN_OP_83
+     30: UNKNOWN_OP_82
+     31: LOAD_INDEX ; Load array element ([2]u8)
+     32: LOAD_INDEX ; Load array element (u8)
+     33: UNKNOWN_OP_77
+     34: UNKNOWN_OP_83
+     35: UNKNOWN_OP_82
+     36: return
+
+Function .Users.alice.dev.minz-ts.examples.array_initializers.sum_array(arr: *[4]u8) -> u8
+  @smc
+  Locals:
+    r2 = sum: u8
+  Instructions:
+      0: r3 = 0
+      1: store , r3
+      2: r5 = 4
+      3: r6 = r4 ; Initialize loop variable i
+      4: for_loop_1:
+      5: r7 = r6 < r5 ; Check i < end
+      6: jump_if_not r7, for_end_2
+      7: r8 = load sum
+      8: UNKNOWN_OP_30 ; Load from anchor arr$imm0
+      9: LOAD_INDEX ; Load array element (u8)
+     10: r12 = r8 + r11
+     11: store sum, r12
+     12: r13 = 1
+     13: r6 = r6 + r13 ; Increment i
+     14: jump for_loop_1
+     15: for_end_2:
+     16: r14 = load sum
+     17: return r14
+
+Function .Users.alice.dev.minz-ts.examples.array_initializers.test_sum() -> void
+  @smc
+  Locals:
+    r1 = numbers: [4]u8
+    r2 = total: u16
+  Instructions:
+      0: UNKNOWN_OP_64
+      1: r5 = call sum_array
+      2: store , r5
+      3: UNKNOWN_OP_83
+      4: UNKNOWN_OP_82
+      5: UNKNOWN_OP_78
+      6: return
+

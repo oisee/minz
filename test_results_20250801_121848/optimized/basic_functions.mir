@@ -1,0 +1,40 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.basic_functions.add(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.basic_functions.main() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u8
+    r5 = result: u8
+    r9 = i: u8
+  Instructions:
+      0: r2 = 5
+      1: store , r2
+      2: r4 = 3
+      3: store , r4
+      4: r8 = call add
+      5: store , r8
+      6: r10 = 0
+      7: store , r10
+      8: loop_1:
+      9: r11 = load i
+     10: r12 = 10
+     11: r13 = r11 < r12
+     12: jump_if_not r13, end_loop_2
+     13: r14 = load i
+     14: r15 = 1
+     15: r16 = r14 + r15
+     16: store i, r16
+     17: jump loop_1
+     18: end_loop_2:
+     19: return
+

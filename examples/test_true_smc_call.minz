@@ -5,10 +5,10 @@ fun add(x: u8, y: u8) -> u8 {
 
 fun main() -> u8 {
     // This should generate patching code before the call
-    let result = test_true_smc_call.add(5, 3)
+    let result = add(5, 3)
     
     // Second call with different values
-    let result2 = test_true_smc_call.add(10, 20)
+    let result2 = add(10, 20)
     
     return result + result2
 }

@@ -1,0 +1,140 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.zvdb_minimal.hamming8(a: u8, b: u8) -> u8
+  @smc
+  Locals:
+    r3 = xor: u16
+    r7 = count: u16
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor b$imm0
+      2: r6 = r4 ^ r5
+      3: store , r6
+      4: r8 = load xor
+      5: store , r8
+      6: r9 = load count
+      7: r10 = 85
+      8: r11 = r9 & r10
+      9: r12 = load count
+     10: r13 = 1
+     11: SHR
+     12: r15 = 85
+     13: r16 = r14 & r15
+     14: r17 = r11 + r16
+     15: store count, r17
+     16: r18 = load count
+     17: r19 = 51
+     18: r20 = r18 & r19
+     19: r21 = load count
+     20: r22 = 2
+     21: SHR
+     22: r24 = 51
+     23: r25 = r23 & r24
+     24: r26 = r20 + r25
+     25: store count, r26
+     26: r27 = load count
+     27: r28 = 15
+     28: r29 = r27 & r28
+     29: r30 = load count
+     30: r31 = 4
+     31: SHR
+     32: r33 = 15
+     33: r34 = r32 & r33
+     34: r35 = r29 + r34
+     35: store count, r35
+     36: r36 = load count
+     37: return r36
+
+Function .Users.alice.dev.minz-ts.examples.zvdb_minimal.add_vector(store: *.Users.alice.dev.minz-ts.examples.zvdb_minimal.VectorStore, vec: u8) -> bool
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor store$imm0
+      1: LOAD_FIELD ; Load field count (offset 256)
+      2: r5 = 255
+      3: r6 = r4 >= r5
+      4: jump_if_not r6, else_1
+      5: return
+      6: else_1:
+      7: UNKNOWN_OP_30 ; Load from anchor vec$imm0
+      8: UNKNOWN_OP_30 ; Load from anchor store$imm0
+      9: UNKNOWN_OP_30 ; Load from anchor store$imm0
+     10: UNKNOWN_OP_63 ; Store to array[index] (u8)
+     11: UNKNOWN_OP_30 ; Load from anchor store$imm0
+     12: LOAD_FIELD ; Load field count (offset 256)
+     13: r15 = 1
+     14: r16 = r14 + r15
+     15: UNKNOWN_OP_30 ; Load from anchor store$imm0
+     16: STORE_FIELD ; Store to field count (offset 256)
+     17: return
+
+Function .Users.alice.dev.minz-ts.examples.zvdb_minimal.find_nearest(store: *.Users.alice.dev.minz-ts.examples.zvdb_minimal.VectorStore, query: u8) -> u8
+  @smc
+  Locals:
+    r3 = best_idx: u8
+    r5 = best_dist: u8
+    r7 = i: u8
+    r13 = dist: u16
+  Instructions:
+      0: r4 = 0
+      1: store , r4
+      2: r6 = 255
+      3: store , r6
+      4: r8 = 0
+      5: store , r8
+      6: loop_3:
+      7: r9 = load i
+      8: UNKNOWN_OP_30 ; Load from anchor store$imm0
+      9: LOAD_FIELD ; Load field count (offset 256)
+     10: r12 = r9 < r11
+     11: jump_if_not r12, end_loop_4
+     12: UNKNOWN_OP_30 ; Load from anchor query$imm0
+     13: UNKNOWN_OP_30 ; Load from anchor store$imm0
+     14: LOAD_INDEX ; Load array element (u8)
+     15: r19 = call hamming8
+     16: store , r19
+     17: r20 = load dist
+     18: r21 = load best_dist
+     19: r22 = r20 < r21
+     20: jump_if_not r22, else_5
+     21: r23 = load dist
+     22: store best_dist, r23
+     23: r24 = load i
+     24: store best_idx, r24
+     25: jump end_if_6
+     26: else_5:
+     27: end_if_6:
+     28: r25 = load i
+     29: r26 = 1
+     30: r27 = r25 + r26
+     31: store i, r27
+     32: jump loop_3
+     33: end_loop_4:
+     34: r28 = load best_idx
+     35: return r28
+
+Function .Users.alice.dev.minz-ts.examples.zvdb_minimal.main() -> void
+  @smc
+  Locals:
+    r1 = store: .Users.alice.dev.minz-ts.examples.zvdb_minimal.VectorStore
+    r20 = query: u8
+    r22 = nearest: u16
+  Instructions:
+      0: r2 = 0
+      1: r3 = load store
+      2: STORE_FIELD ; Store to field count (offset 256)
+      3: UNKNOWN_OP_64
+      4: r7 = call add_vector
+      5: UNKNOWN_OP_64
+      6: r11 = call add_vector
+      7: UNKNOWN_OP_64
+      8: r15 = call add_vector
+      9: UNKNOWN_OP_64
+     10: r19 = call add_vector
+     11: r21 = 171
+     12: store , r21
+     13: UNKNOWN_OP_64
+     14: r26 = call find_nearest
+     15: store , r26
+     16: return
+

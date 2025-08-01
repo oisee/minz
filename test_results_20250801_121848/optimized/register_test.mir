@@ -1,0 +1,62 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.register_test.simple_add(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.register_test.complex_calc(x: u16, y: u16, z: u16) -> u16
+  @smc
+  Locals:
+    r4 = t1: u16
+    r8 = t2: u16
+    r12 = t3: u16
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor y$imm0
+      2: r7 = r5 + r6
+      3: store , r7
+      4: UNKNOWN_OP_30 ; Load from anchor y$imm0
+      5: UNKNOWN_OP_30 ; Load from anchor z$imm0
+      6: r11 = r9 + r10
+      7: store , r11
+      8: UNKNOWN_OP_30 ; Load from anchor x$imm0
+      9: UNKNOWN_OP_30 ; Load from anchor z$imm0
+     10: r15 = r13 + r14
+     11: store , r15
+     12: r16 = load t1
+     13: r17 = load t2
+     14: r18 = r16 + r17
+     15: r19 = load t3
+     16: r20 = r18 + r19
+     17: return r20
+
+Function .Users.alice.dev.minz-ts.examples.register_test.timer_isr() -> void
+  @smc
+  Locals:
+    r1 = counter: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r3 = load counter
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: store counter, r5
+      6: return
+
+Function .Users.alice.dev.minz-ts.examples.register_test.main() -> void
+  @smc
+  Locals:
+    r1 = a: u16
+    r5 = b: u16
+  Instructions:
+      0: r4 = call simple_add
+      1: store , r4
+      2: r9 = call complex_calc
+      3: store , r9
+      4: return
+

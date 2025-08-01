@@ -1,0 +1,27 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   .Users.alice.dev.minz-ts.examples.test_loop_no_init.items: [3].Users.alice.dev.minz-ts.examples.test_loop_no_init.Item
+
+Function .Users.alice.dev.minz-ts.examples.test_loop_no_init.main() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_70
+      1: UNKNOWN_OP_70 ; Load table base address
+      2: UNKNOWN_OP_70 ; Load table base for end calculation
+      3: UNKNOWN_OP_75 ; Calculate table end (+ 3 elements * 1 bytes)
+      4: UNKNOWN_OP_74 ; Load loop counter
+      5: loop_start_1:
+      6: UNKNOWN_OP_53 ; Check if reached end of table
+      7: JUMP_IF ; Exit if done
+      8: UNKNOWN_OP_71 ; Copy element to buffer at $F000
+      9: r6 = 42
+     10: r7 = load item
+     11: STORE_FIELD ; Store to field value (offset 0)
+     12: UNKNOWN_OP_72 ; Copy buffer back to element at $F000
+     13: UNKNOWN_OP_75 ; Advance to next element (+1 bytes)
+     14: UNKNOWN_OP_73 ; Decrement counter and loop if not zero
+     15: loop_end_2:
+     16: return
+

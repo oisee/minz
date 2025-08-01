@@ -1,0 +1,785 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MinZ Performance Report</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .chart-container {
+            width: 48%;
+            display: inline-block;
+            margin: 1%;
+            height: 400px;
+        }
+        .summary {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .improved {
+            color: green;
+            font-weight: bold;
+        }
+        .regression {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 MinZ Optimization Performance Report</h1>
+        <p style="text-align: center; color: #666;">Generated: 2025-08-01 12:19:14</p>
+        
+        <div class="summary">
+            <h2>📊 Summary Statistics</h2>
+            <ul>
+                <li>Total Examples Tested: <strong>76</strong></li>
+                <li>Average Cycle Improvement: <strong>4.3%</strong></li>
+                <li>Best Performer: <strong>traffic_light_fsm.minz (50.0%)</strong></li>
+                <li>Examples with Improvements: <strong>23</strong></li>
+            </ul>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="cycleChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="sizeChart"></canvas>
+        </div>
+        
+        <h2>📋 Detailed Results</h2>
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th>Example File</th>
+                    <th>Size Reduction</th>
+                    <th>Instruction Reduction</th>
+                    <th>Cycle Improvement</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>test_abi_comparison.minz</td>
+                    <td>-8.9%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_complex_assign_simple.minz</td>
+                    <td>28.4%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>loops_indexed.minz</td>
+                    <td>4.4%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>tsmc_strlen.minz</td>
+                    <td>4.3%</td>
+                    <td>5.0%</td>
+                    <td class="improved">5.0%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>recursion_examples.minz</td>
+                    <td>7.8%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_bit_field_proper.minz</td>
+                    <td>1.3%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_bit_field_comprehensive.minz</td>
+                    <td>10.9%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>types_demo.minz</td>
+                    <td>-23.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>interrupt_handlers.minz</td>
+                    <td>-1.1%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>control_flow.minz</td>
+                    <td>-4.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_assignment.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>tsmc_loops_simple.minz</td>
+                    <td>-1.1%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_assign_complete.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_16bit_smc.minz</td>
+                    <td>-12.6%</td>
+                    <td>25.0%</td>
+                    <td class="improved">25.0%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>simple_abi_test.minz</td>
+                    <td>-7.2%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>smc_recursion.minz</td>
+                    <td>-15.9%</td>
+                    <td>7.5%</td>
+                    <td class="improved">7.5%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>test_range_comprehensive.minz</td>
+                    <td>3.5%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>enums.minz</td>
+                    <td>-2.4%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>tail_recursive.minz</td>
+                    <td>5.1%</td>
+                    <td>12.5%</td>
+                    <td class="improved">12.5%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>test_cast.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>tsmc_loops.minz</td>
+                    <td>-3.6%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_missing_features.minz</td>
+                    <td>-1.7%</td>
+                    <td>25.0%</td>
+                    <td class="improved">25.0%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>stack_variables.minz</td>
+                    <td>-8.3%</td>
+                    <td>1.8%</td>
+                    <td class="improved">1.8%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>bit_manipulation.minz</td>
+                    <td>-14.6%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_strings_simple.minz</td>
+                    <td>-1.6%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>simple_test.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_lua_v2.minz</td>
+                    <td>-1.7%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>array_initializers.minz</td>
+                    <td>7.5%</td>
+                    <td>6.9%</td>
+                    <td class="improved">6.9%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>fibonacci.minz</td>
+                    <td>-4.4%</td>
+                    <td>7.1%</td>
+                    <td class="improved">7.1%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>simple_abi_demo.minz</td>
+                    <td>-2.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_const.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_lua_const.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>field_assignment.minz</td>
+                    <td>-0.8%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_print_interpolation.minz</td>
+                    <td>12.1%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_abi.minz</td>
+                    <td>4.7%</td>
+                    <td>3.8%</td>
+                    <td class="improved">3.8%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>test_auto_deref.minz</td>
+                    <td>0.4%</td>
+                    <td>18.5%</td>
+                    <td class="improved">18.5%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>test_array_access.minz</td>
+                    <td>4.9%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_assign_stmt.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_simple_assign.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>arrays.minz</td>
+                    <td>16.9%</td>
+                    <td>10.0%</td>
+                    <td class="improved">10.0%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>test_assign_debug.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_registers.minz</td>
+                    <td>-14.3%</td>
+                    <td>12.2%</td>
+                    <td class="improved">12.2%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>memory_operations.minz</td>
+                    <td>-12.8%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>simple_true_smc.minz</td>
+                    <td>-20.9%</td>
+                    <td>22.2%</td>
+                    <td class="improved">22.2%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>fibonacci_tail.minz</td>
+                    <td>-0.4%</td>
+                    <td>15.8%</td>
+                    <td class="improved">15.8%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>lua_working_demo.minz</td>
+                    <td>-10.7%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>working_demo.minz</td>
+                    <td>6.2%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_number_const.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>simple_add.minz</td>
+                    <td>-14.5%</td>
+                    <td>22.2%</td>
+                    <td class="improved">22.2%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>register_allocation.minz</td>
+                    <td>-1.5%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>lua_constants.minz</td>
+                    <td>5.6%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_strings.minz</td>
+                    <td>2.2%</td>
+                    <td>22.2%</td>
+                    <td class="improved">22.2%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>hardware_registers.minz</td>
+                    <td>48.9%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_auto_deref_param.minz</td>
+                    <td>-13.7%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_smc_patching.minz</td>
+                    <td>-18.7%</td>
+                    <td>12.5%</td>
+                    <td class="improved">12.5%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>traffic_light_fsm.minz</td>
+                    <td>24.5%</td>
+                    <td>50.0%</td>
+                    <td class="improved">50.0%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>performance_tricks.minz</td>
+                    <td>-0.5%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_range.minz</td>
+                    <td>-6.2%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_loop_no_init.minz</td>
+                    <td>1.1%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_register_params.minz</td>
+                    <td>-21.8%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>editor_demo.minz</td>
+                    <td>-7.8%</td>
+                    <td>6.7%</td>
+                    <td class="improved">6.7%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>test_string_lengths.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>string_operations.minz</td>
+                    <td>-13.1%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>tail_sum.minz</td>
+                    <td>6.7%</td>
+                    <td>13.3%</td>
+                    <td class="improved">13.3%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>abi_test_with_main.minz</td>
+                    <td>-11.5%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>implicit_returns.minz</td>
+                    <td>-1.4%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_what_works.minz</td>
+                    <td>0.9%</td>
+                    <td>8.2%</td>
+                    <td class="improved">8.2%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>register_test.minz</td>
+                    <td>-13.0%</td>
+                    <td>16.1%</td>
+                    <td class="improved">16.1%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>test_loop_minimal.minz</td>
+                    <td>7.9%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>bit_fields.minz</td>
+                    <td>-13.6%</td>
+                    <td>5.3%</td>
+                    <td class="improved">5.3%</td>
+                    <td>✅ Improved</td>
+                </tr>
+            
+                <tr>
+                    <td>test_loop_ref.minz</td>
+                    <td>-1.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>arithmetic_demo.minz</td>
+                    <td>-8.1%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_compound_assignment.minz</td>
+                    <td>-4.3%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>test_simple.minz</td>
+                    <td>0.0%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>basic_functions.minz</td>
+                    <td>-14.6%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+                <tr>
+                    <td>zvdb_minimal.minz</td>
+                    <td>-7.4%</td>
+                    <td>0.0%</td>
+                    <td class="">0.0%</td>
+                    <td>➖ No change</td>
+                </tr>
+            
+            </tbody>
+        </table>
+    </div>
+    
+    <script>
+        // Cycle Improvement Chart
+        const cycleCtx = document.getElementById('cycleChart').getContext('2d');
+        const cycleChart = new Chart(cycleCtx, {
+            type: 'bar',
+            data: {
+                labels: ["test_abi_comparison.minz", "test_complex_assign_simple.minz", "loops_indexed.minz", "tsmc_strlen.minz", "recursion_examples.minz", "test_bit_field_proper.minz", "test_bit_field_comprehensive.minz", "types_demo.minz", "interrupt_handlers.minz", "control_flow.minz", "test_assignment.minz", "tsmc_loops_simple.minz", "test_assign_complete.minz", "test_16bit_smc.minz", "simple_abi_test.minz", "smc_recursion.minz", "test_range_comprehensive.minz", "enums.minz", "tail_recursive.minz", "test_cast.minz", "tsmc_loops.minz", "test_missing_features.minz", "stack_variables.minz", "bit_manipulation.minz", "test_strings_simple.minz", "simple_test.minz", "test_lua_v2.minz", "array_initializers.minz", "fibonacci.minz", "simple_abi_demo.minz", "test_const.minz", "test_lua_const.minz", "field_assignment.minz", "test_print_interpolation.minz", "test_abi.minz", "test_auto_deref.minz", "test_array_access.minz", "test_assign_stmt.minz", "test_simple_assign.minz", "arrays.minz", "test_assign_debug.minz", "test_registers.minz", "memory_operations.minz", "simple_true_smc.minz", "fibonacci_tail.minz", "lua_working_demo.minz", "working_demo.minz", "test_number_const.minz", "simple_add.minz", "register_allocation.minz", "lua_constants.minz", "test_strings.minz", "hardware_registers.minz", "test_auto_deref_param.minz", "test_smc_patching.minz", "traffic_light_fsm.minz", "performance_tricks.minz", "test_range.minz", "test_loop_no_init.minz", "test_register_params.minz", "editor_demo.minz", "test_string_lengths.minz", "string_operations.minz", "tail_sum.minz", "abi_test_with_main.minz", "implicit_returns.minz", "test_what_works.minz", "register_test.minz", "test_loop_minimal.minz", "bit_fields.minz", "test_loop_ref.minz", "arithmetic_demo.minz", "test_compound_assignment.minz", "test_simple.minz", "basic_functions.minz", "zvdb_minimal.minz"],
+                datasets: [{
+                    label: 'Cycle Improvement %',
+                    data: [0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 25.0, 0.0, 7.5, 0.0, 0.0, 12.5, 0.0, 0.0, 25.0, 1.8, 0.0, 0.0, 0.0, 0.0, 6.9, 7.1, 0.0, 0.0, 0.0, 0.0, 0.0, 3.8, 18.5, 0.0, 0.0, 0.0, 10.0, 0.0, 12.2, 0.0, 22.2, 15.8, 0.0, 0.0, 0.0, 22.2, 0.0, 0.0, 22.2, 0.0, 0.0, 12.5, 50.0, 0.0, 0.0, 0.0, 0.0, 6.7, 0.0, 0.0, 13.3, 0.0, 0.0, 8.2, 16.1, 0.0, 5.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Estimated Cycle Improvements by Example'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Size Reduction Chart
+        const sizeCtx = document.getElementById('sizeChart').getContext('2d');
+        const sizeChart = new Chart(sizeCtx, {
+            type: 'bar',
+            data: {
+                labels: ["test_abi_comparison.minz", "test_complex_assign_simple.minz", "loops_indexed.minz", "tsmc_strlen.minz", "recursion_examples.minz", "test_bit_field_proper.minz", "test_bit_field_comprehensive.minz", "types_demo.minz", "interrupt_handlers.minz", "control_flow.minz", "test_assignment.minz", "tsmc_loops_simple.minz", "test_assign_complete.minz", "test_16bit_smc.minz", "simple_abi_test.minz", "smc_recursion.minz", "test_range_comprehensive.minz", "enums.minz", "tail_recursive.minz", "test_cast.minz", "tsmc_loops.minz", "test_missing_features.minz", "stack_variables.minz", "bit_manipulation.minz", "test_strings_simple.minz", "simple_test.minz", "test_lua_v2.minz", "array_initializers.minz", "fibonacci.minz", "simple_abi_demo.minz", "test_const.minz", "test_lua_const.minz", "field_assignment.minz", "test_print_interpolation.minz", "test_abi.minz", "test_auto_deref.minz", "test_array_access.minz", "test_assign_stmt.minz", "test_simple_assign.minz", "arrays.minz", "test_assign_debug.minz", "test_registers.minz", "memory_operations.minz", "simple_true_smc.minz", "fibonacci_tail.minz", "lua_working_demo.minz", "working_demo.minz", "test_number_const.minz", "simple_add.minz", "register_allocation.minz", "lua_constants.minz", "test_strings.minz", "hardware_registers.minz", "test_auto_deref_param.minz", "test_smc_patching.minz", "traffic_light_fsm.minz", "performance_tricks.minz", "test_range.minz", "test_loop_no_init.minz", "test_register_params.minz", "editor_demo.minz", "test_string_lengths.minz", "string_operations.minz", "tail_sum.minz", "abi_test_with_main.minz", "implicit_returns.minz", "test_what_works.minz", "register_test.minz", "test_loop_minimal.minz", "bit_fields.minz", "test_loop_ref.minz", "arithmetic_demo.minz", "test_compound_assignment.minz", "test_simple.minz", "basic_functions.minz", "zvdb_minimal.minz"],
+                datasets: [{
+                    label: 'Size Reduction %',
+                    data: [-8.9, 28.4, 4.4, 4.3, 7.8, 1.3, 10.9, -23.0, -1.1, -4.0, 0.0, -1.1, 0.0, -12.6, -7.2, -15.9, 3.5, -2.4, 5.1, 0.0, -3.6, -1.7, -8.3, -14.6, -1.6, 0.0, -1.7, 7.5, -4.4, -2.0, 0.0, 0.0, -0.8, 12.1, 4.7, 0.4, 4.9, 0.0, 0.0, 16.9, 0.0, -14.3, -12.8, -20.9, -0.4, -10.7, 6.2, 0.0, -14.5, -1.5, 5.6, 2.2, 48.9, -13.7, -18.7, 24.5, -0.5, -6.2, 1.1, -21.8, -7.8, 0.0, -13.1, 6.7, -11.5, -1.4, 0.9, -13.0, 7.9, -13.6, -1.0, -8.1, -4.3, 0.0, -14.6, -7.4],
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                    borderColor: 'rgba(255, 159, 64, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Code Size Reductions by Example'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.string_operations.str_length(str: *u8) -> u16
+  @smc
+  Locals:
+    r2 = len: u16
+  Instructions:
+      0: r3 = 0
+      1: store , r3
+      2: loop_1:
+      3: UNKNOWN_OP_30 ; Load from anchor str$imm0
+      4: UNKNOWN_OP_65
+      5: r6 = 0
+      6: r7 = r5 != r6
+      7: jump_if_not r7, end_loop_2
+      8: r8 = load len
+      9: r9 = 1
+     10: r10 = r8 + r9
+     11: store len, r10
+     12: UNKNOWN_OP_30 ; Load from anchor str$imm0
+     13: r12 = 1
+     14: r13 = r11 + r12
+     15: store str, r13
+     16: jump loop_1
+     17: end_loop_2:
+     18: r14 = load len
+     19: return r14
+
+Function .Users.alice.dev.minz-ts.examples.string_operations.str_copy(dest: *u8, src: *u8) -> void
+  @smc
+  Instructions:
+      0: loop_3:
+      1: UNKNOWN_OP_30 ; Load from anchor src$imm0
+      2: UNKNOWN_OP_65
+      3: r5 = 0
+      4: r6 = r4 != r5
+      5: jump_if_not r6, end_loop_4
+      6: UNKNOWN_OP_30 ; Load from anchor src$imm0
+      7: UNKNOWN_OP_65
+      8: UNKNOWN_OP_30 ; Load from anchor dest$imm0
+      9: UNKNOWN_OP_66 ; Store through pointer
+     10: UNKNOWN_OP_30 ; Load from anchor dest$imm0
+     11: r11 = 1
+     12: r12 = r10 + r11
+     13: store dest, r12
+     14: UNKNOWN_OP_30 ; Load from anchor src$imm0
+     15: r14 = 1
+     16: r15 = r13 + r14
+     17: store src, r15
+     18: jump loop_3
+     19: end_loop_4:
+     20: UNKNOWN_OP_30 ; Load from anchor dest$imm0
+     21: UNKNOWN_OP_66 ; Store through pointer
+     22: return
+

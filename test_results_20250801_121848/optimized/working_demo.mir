@@ -1,0 +1,90 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   .Users.alice.dev.minz-ts.examples.working_demo.counter: u8
+;   .Users.alice.dev.minz-ts.examples.working_demo.buffer: [16]u8
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.init() -> void
+  @smc
+  Locals:
+    r2 = i: u8
+  Instructions:
+      0: r1 = 0
+      1: store .Users.alice.dev.minz-ts.examples.working_demo.counter, r1
+      2: r3 = 0
+      3: store , r3
+      4: loop_1:
+      5: r4 = load i
+      6: r5 = 16
+      7: r6 = r4 < r5
+      8: jump_if_not r6, end_loop_2
+      9: UNKNOWN_OP_70
+     10: UNKNOWN_OP_63 ; Store to array[index] (u8)
+     11: r11 = load i
+     12: r12 = 1
+     13: r13 = r11 + r12
+     14: store i, r13
+     15: jump loop_1
+     16: end_loop_2:
+     17: return
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.process() -> void
+  @smc
+  Locals:
+    r1 = i: u8
+    r6 = val: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: loop_3:
+      3: r3 = load i
+      4: r4 = 16
+      5: r5 = r3 < r4
+      6: jump_if_not r5, end_loop_4
+      7: UNKNOWN_OP_70
+      8: LOAD_INDEX ; Load array element (u8)
+      9: store , r9
+     10: UNKNOWN_OP_70
+     11: UNKNOWN_OP_63 ; Store to array[index] (u8)
+     12: r16 = load i
+     13: r17 = 1
+     14: r18 = r16 + r17
+     15: store i, r18
+     16: jump loop_3
+     17: end_loop_4:
+     18: r19 = load .Users.alice.dev.minz-ts.examples.working_demo.counter
+     19: r20 = 1
+     20: r21 = r19 + r20
+     21: store .Users.alice.dev.minz-ts.examples.working_demo.counter, r21
+     22: return
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.is_done() -> bool
+  @smc
+  Instructions:
+      0: r1 = load .Users.alice.dev.minz-ts.examples.working_demo.counter
+      1: r2 = 10
+      2: r3 = r1 >= r2
+      3: return r3
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call init
+      1: loop_5:
+      2: r2 = call is_done
+      3: r3 = ~r2
+      4: jump_if_not r3, end_loop_6
+      5: r4 = call process
+      6: jump loop_5
+      7: end_loop_6:
+      8: UNKNOWN_OP_70
+      9: LOAD_INDEX ; Load array element (u8)
+     10: r8 = 10
+     11: r9 = r7 == r8
+     12: jump_if_not r9, else_7
+     13: jump end_if_8
+     14: else_7:
+     15: end_if_8:
+     16: return
+

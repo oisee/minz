@@ -319,6 +319,66 @@ func (p *PeepholeOptimizationPass) initializePatterns() {
 				return result
 			},
 		},
+		
+		// SMC to register optimization - convert simple parameter patching to register passing
+		{
+			Name: "smc_parameter_to_register",
+			Match: func(insts []ir.Instruction, i int) (bool, int) {
+				// Look for pattern:
+				// LOAD_CONST r1, value
+				// SMC_PARAM paramName, r1  
+				// LOAD_CONST r2, value2
+				// SMC_PARAM paramName2, r2
+				// CALL function
+				
+				if i+4 >= len(insts) {
+					return false, 0
+				}
+				
+				// Check for simple SMC parameter pattern with constants
+				if insts[i].Op == ir.OpLoadConst &&
+				   insts[i+1].Op == ir.OpSMCParam &&
+				   insts[i+2].Op == ir.OpLoadConst &&
+				   insts[i+3].Op == ir.OpSMCParam &&
+				   insts[i+4].Op == ir.OpCall {
+					
+					// Check if parameters are simple constants
+					if insts[i].Imm != 0 && insts[i+2].Imm != 0 {
+						return true, 5 // Match 5 instructions (including CALL)
+					}
+				}
+				
+				return false, 0
+			},
+			Replace: func(insts []ir.Instruction, i int) []ir.Instruction {
+				// Transform SMC parameter setup to direct register loads + register call:
+				// This eliminates SMC overhead for simple constant parameters
+				
+				result := []ir.Instruction{
+					{
+						Op:       ir.OpLoadConst,
+						Dest:     1, // Use virtual register 1 for first param
+						Imm:      insts[i].Imm,
+						Comment:  "Param 1 (SMC→register)",
+					},
+					{
+						Op:       ir.OpLoadConst, 
+						Dest:     2, // Use virtual register 2 for second param
+						Imm:      insts[i+2].Imm,
+						Comment:  "Param 2 (SMC→register)",
+					},
+					{
+						Op:       ir.OpCall,
+						Symbol:   insts[i+4].Symbol, // Keep original call target
+						Src1:     1, // First parameter
+						Src2:     2, // Second parameter  
+						Comment:  "Register call (SMC optimized)",
+					},
+				}
+				
+				return result
+			},
+		},
 	}
 }
 

@@ -1,0 +1,46 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.fibonacci_tail.fib_tail(n: u8, a: u16, b: u16) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor n$imm0
+      1: .Users.alice.dev.minz-ts.examples.fibonacci_tail.fib_tail_tail_loop: ; Tail recursion loop start
+      2: r5 = 0
+      3: r6 = r4 == r5
+      4: jump_if_not r6, else_1
+      5: UNKNOWN_OP_30 ; Load from anchor a$imm0
+      6: return r7
+      7: else_1:
+      8: UNKNOWN_OP_30 ; Load from anchor n$imm0
+      9: r9 = 1
+     10: r10 = r8 == r9
+     11: jump_if_not r10, else_3
+     12: UNKNOWN_OP_30 ; Load from anchor b$imm0
+     13: return r11
+     14: else_3:
+     15: UNKNOWN_OP_30 ; Load from anchor n$imm0
+     16: UNKNOWN_OP_30 ; Load from anchor b$imm0
+     17: UNKNOWN_OP_30 ; Load from anchor a$imm0
+     18: UNKNOWN_OP_30 ; Load from anchor b$imm0
+     19: jump .Users.alice.dev.minz-ts.examples.fibonacci_tail.fib_tail_tail_loop ; Tail recursion optimized to loop
+
+Function .Users.alice.dev.minz-ts.examples.fibonacci_tail.fibonacci(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor n$imm0
+      1: r5 = call fib_tail
+      2: return r5
+
+Function .Users.alice.dev.minz-ts.examples.fibonacci_tail.main() -> void
+  @smc
+  @recursive
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r3 = call fibonacci
+      1: store , r3
+      2: return
+

@@ -850,9 +850,9 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 			// Functions with many locals should use stack
 			irFunc.IsSMCDefault = false
 			irFunc.IsSMCEnabled = false
-		} else if !irFunc.IsRecursive && len(irFunc.Params) <= 3 && len(irFunc.Params) > 0 {
-			// Simple non-recursive functions with few parameters use register passing
-			// (but keep SMC for parameter-less functions)
+		} else if !irFunc.IsRecursive && len(irFunc.Params) > 4 {
+			// Non-recursive functions with many parameters should use register passing
+			// to avoid excessive SMC overhead
 			irFunc.IsSMCDefault = false
 			irFunc.IsSMCEnabled = false
 		}

@@ -1,0 +1,18 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_lua_v2.test_lua() -> u8
+  @smc
+  Instructions:
+      0: r1 = 42
+      1: return r1
+
+Function .Users.alice.dev.minz-ts.examples.test_lua_v2.main() -> void
+  @smc
+  Locals:
+    r1 = x: u16
+  Instructions:
+      0: r2 = call test_lua
+      1: store , r2
+      2: return
+

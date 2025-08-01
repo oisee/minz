@@ -1,0 +1,166 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.traffic_light_fsm.transition(current: TrafficState, event: Event) -> TrafficState
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = r3 == r0
+      2: JUMP_IF
+      3: jump case_arm_1_3
+      4: r5 = r3 == r0
+      5: JUMP_IF
+      6: jump case_arm_2_4
+      7: r6 = r3 == r0
+      8: JUMP_IF
+      9: jump case_arm_3_5
+     10: r7 = r3 == r0
+     11: JUMP_IF
+     12: jump case_end_1
+     13: case_arm_0_2:
+     14: jump case_end_1
+     15: case_arm_1_3:
+     16: jump case_end_1
+     17: case_arm_2_4:
+     18: jump case_end_1
+     19: case_arm_3_5:
+     20: case_end_1:
+     21: return
+
+Function .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_timing(state: TrafficState) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = r2 == r0
+      2: JUMP_IF
+      3: jump case_arm_1_8
+      4: r4 = r2 == r0
+      5: JUMP_IF
+      6: jump case_arm_2_9
+      7: r5 = r2 == r0
+      8: JUMP_IF
+      9: jump case_arm_3_10
+     10: r6 = r2 == r0
+     11: JUMP_IF
+     12: jump case_end_6
+     13: case_arm_0_7:
+     14: r7 = 30
+     15: jump case_end_6
+     16: case_arm_1_8:
+     17: r8 = 5
+     18: jump case_end_6
+     19: case_arm_2_9:
+     20: r9 = 25
+     21: jump case_end_6
+     22: case_arm_3_10:
+     23: r10 = 1
+     24: case_end_6:
+     25: return
+
+Function .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_color_code(state: TrafficState) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = r2 == r0
+      2: JUMP_IF
+      3: jump case_arm_1_13
+      4: r4 = r2 == r0
+      5: JUMP_IF
+      6: jump case_arm_2_14
+      7: r5 = r2 == r0
+      8: JUMP_IF
+      9: jump case_arm_3_15
+     10: r6 = r2 == r0
+     11: JUMP_IF
+     12: jump case_end_11
+     13: case_arm_0_12:
+     14: r7 = 1
+     15: jump case_end_11
+     16: case_arm_1_13:
+     17: r8 = 2
+     18: jump case_end_11
+     19: case_arm_2_14:
+     20: r9 = 3
+     21: jump case_end_11
+     22: case_arm_3_15:
+     23: r10 = 4
+     24: case_end_11:
+     25: return
+
+Function .Users.alice.dev.minz-ts.examples.traffic_light_fsm.simulate_traffic_light() -> void
+  @smc
+  Locals:
+    r1 = state: u16
+    r3 = cycle_count: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = 0
+      3: store , r4
+      4: UNKNOWN_OP_83
+      5: UNKNOWN_OP_82
+      6: loop_16:
+      7: r6 = load cycle_count
+      8: r7 = 10
+      9: r8 = r6 < r7
+     10: jump_if_not r8, end_loop_17
+     11: UNKNOWN_OP_83
+     12: UNKNOWN_OP_82
+     13: r10 = load cycle_count
+     14: UNKNOWN_OP_77
+     15: UNKNOWN_OP_83
+     16: UNKNOWN_OP_82
+     17: r12 = load state
+     18: r13 = call get_color_code
+     19: UNKNOWN_OP_77
+     20: UNKNOWN_OP_83
+     21: UNKNOWN_OP_82
+     22: r15 = load state
+     23: r16 = call get_timing
+     24: UNKNOWN_OP_77
+     25: UNKNOWN_OP_83
+     26: UNKNOWN_OP_82
+     27: r18 = load state
+     28: r19 = 0
+     29: r20 = call transition
+     30: store state, r20
+     31: r21 = load cycle_count
+     32: r22 = 1
+     33: r23 = r21 + r22
+     34: store cycle_count, r23
+     35: jump loop_16
+     36: end_loop_17:
+     37: UNKNOWN_OP_83
+     38: UNKNOWN_OP_82
+     39: r25 = load state
+     40: r26 = 1
+     41: r27 = call transition
+     42: store state, r27
+     43: UNKNOWN_OP_83
+     44: UNKNOWN_OP_82
+     45: r29 = load state
+     46: r30 = call get_color_code
+     47: UNKNOWN_OP_77
+     48: UNKNOWN_OP_83
+     49: UNKNOWN_OP_82
+     50: UNKNOWN_OP_83
+     51: UNKNOWN_OP_82
+     52: r33 = load state
+     53: r34 = 2
+     54: r35 = call transition
+     55: store state, r35
+     56: UNKNOWN_OP_83
+     57: UNKNOWN_OP_82
+     58: r37 = load state
+     59: r38 = call get_color_code
+     60: UNKNOWN_OP_77
+     61: UNKNOWN_OP_83
+     62: UNKNOWN_OP_82
+     63: return
+
+Function .Users.alice.dev.minz-ts.examples.traffic_light_fsm.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call simulate_traffic_light
+      1: return
+

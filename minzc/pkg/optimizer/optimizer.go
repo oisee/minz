@@ -49,9 +49,9 @@ func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optim
 	}
 	
 	if level >= OptLevelFull {
-		// Advanced optimizations
+		// Advanced optimizations - reorder before peephole for maximum pattern exposure
 		opt.passes = append(opt.passes,
-			NewPeepholeOptimizationPass(),
+			NewSmartPeepholeOptimizationPass(), // NEW: Smart peephole with integrated reordering!
 			NewRegisterAllocationPass(),
 			NewInliningPass(),
 		)

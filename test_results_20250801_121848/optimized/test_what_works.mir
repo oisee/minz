@@ -1,0 +1,152 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_what_works.add_numbers(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.test_what_works.test_for_loops() -> u16
+  @smc
+  Locals:
+    r1 = sum: u16
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = 10
+      3: r5 = r3 ; Initialize loop variable i
+      4: for_loop_1:
+      5: r6 = r5 < r4 ; Check i < end
+      6: jump_if_not r6, for_end_2
+      7: r7 = load sum
+      8: r8 = load i
+      9: r9 = r7 + r8
+     10: store sum, r9
+     11: r10 = 1
+     12: r5 = r5 + r10 ; Increment i
+     13: jump for_loop_1
+     14: for_end_2:
+     15: r11 = load sum
+     16: return r11
+
+Function .Users.alice.dev.minz-ts.examples.test_what_works.test_arrays() -> u8
+  @smc
+  Locals:
+    r1 = arr: [5]u8
+  Instructions:
+      0: UNKNOWN_OP_63 ; Store to array[index] (u8)
+      1: UNKNOWN_OP_63 ; Store to array[index] (u8)
+      2: LOAD_INDEX ; Load array element (u8)
+      3: LOAD_INDEX ; Load array element (u8)
+      4: r16 = r12 + r15
+      5: return r16
+
+Function .Users.alice.dev.minz-ts.examples.test_what_works.test_structs() -> u8
+  @smc
+  Locals:
+    r1 = p: .Users.alice.dev.minz-ts.examples.test_what_works.Point
+  Instructions:
+      0: r2 = 15
+      1: r3 = load p
+      2: STORE_FIELD ; Store to field x (offset 0)
+      3: r4 = 25
+      4: r5 = load p
+      5: STORE_FIELD ; Store to field y (offset 1)
+      6: r6 = load p
+      7: LOAD_FIELD ; Load field x (offset 0)
+      8: r8 = load p
+      9: LOAD_FIELD ; Load field y (offset 1)
+     10: r10 = r7 + r9
+     11: return r10
+
+Function .Users.alice.dev.minz-ts.examples.test_what_works.test_while() -> u8
+  @smc
+  Locals:
+    r1 = i: u8
+    r3 = sum: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = 0
+      3: store , r4
+      4: loop_3:
+      5: r5 = load i
+      6: r6 = 5
+      7: r7 = r5 < r6
+      8: jump_if_not r7, end_loop_4
+      9: r8 = load sum
+     10: r9 = load i
+     11: r10 = r8 + r9
+     12: store sum, r10
+     13: r11 = load i
+     14: r12 = 1
+     15: r13 = r11 + r12
+     16: store i, r13
+     17: jump loop_3
+     18: end_loop_4:
+     19: r14 = load sum
+     20: return r14
+
+Function .Users.alice.dev.minz-ts.examples.test_what_works.test_if(x: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor x$imm0
+      1: r3 = 10
+      2: r4 = r2 > r3
+      3: jump_if_not r4, else_5
+      4: UNKNOWN_OP_30 ; Load from anchor x$imm0
+      5: r6 = 2
+      6: r7 = r5 * r6
+      7: return r7
+      8: else_5:
+      9: UNKNOWN_OP_30 ; Load from anchor x$imm0
+     10: r9 = 5
+     11: r10 = r8 + r9
+     12: return r10
+
+Function .Users.alice.dev.minz-ts.examples.test_what_works.test_tsmc(ptr: *u8) -> u8
+  @smc
+  Locals:
+    r2 = result: u8
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor ptr$imm0
+      1: UNKNOWN_OP_65
+      2: store , r4
+      3: UNKNOWN_OP_30 ; Load from anchor ptr$imm0
+      4: UNKNOWN_OP_29 ; Update TSMC reference ptr
+      5: r8 = load result
+      6: return r8
+
+Function .Users.alice.dev.minz-ts.examples.test_what_works.main() -> u16
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r3 = load result
+      3: r4 = call test_for_loops
+      4: r5 = r3 + r4
+      5: store result, r5
+      6: r6 = load result
+      7: r7 = call test_arrays
+      8: r8 = r6 + r7
+      9: store result, r8
+     10: r9 = load result
+     11: r10 = call test_structs
+     12: r11 = r9 + r10
+     13: store result, r11
+     14: r12 = load result
+     15: r13 = call test_while
+     16: r14 = r12 + r13
+     17: store result, r14
+     18: r15 = load result
+     19: r17 = call test_if
+     20: r18 = r15 + r17
+     21: store result, r18
+     22: r19 = load result
+     23: return r19
+

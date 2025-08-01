@@ -1,0 +1,97 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.memory_operations.mem_set(dest: *u8, value: u8, count: u16) -> void
+  @smc
+  Instructions:
+      0: loop_1:
+      1: UNKNOWN_OP_30 ; Load from anchor count$imm0
+      2: r5 = 0
+      3: r6 = r4 > r5
+      4: jump_if_not r6, end_loop_2
+      5: UNKNOWN_OP_30 ; Load from anchor value$imm0
+      6: UNKNOWN_OP_30 ; Load from anchor dest$imm0
+      7: UNKNOWN_OP_66 ; Store through pointer
+      8: UNKNOWN_OP_30 ; Load from anchor dest$imm0
+      9: r10 = 1
+     10: r11 = r9 + r10
+     11: store dest, r11
+     12: UNKNOWN_OP_30 ; Load from anchor count$imm0
+     13: r13 = 1
+     14: r14 = r12 - r13
+     15: store count, r14
+     16: jump loop_1
+     17: end_loop_2:
+     18: return
+
+Function .Users.alice.dev.minz-ts.examples.memory_operations.mem_copy(dest: *u8, src: *u8, count: u16) -> void
+  @smc
+  Instructions:
+      0: loop_3:
+      1: UNKNOWN_OP_30 ; Load from anchor count$imm0
+      2: r5 = 0
+      3: r6 = r4 > r5
+      4: jump_if_not r6, end_loop_4
+      5: UNKNOWN_OP_30 ; Load from anchor src$imm0
+      6: UNKNOWN_OP_65
+      7: UNKNOWN_OP_30 ; Load from anchor dest$imm0
+      8: UNKNOWN_OP_66 ; Store through pointer
+      9: UNKNOWN_OP_30 ; Load from anchor dest$imm0
+     10: r11 = 1
+     11: r12 = r10 + r11
+     12: store dest, r12
+     13: UNKNOWN_OP_30 ; Load from anchor src$imm0
+     14: r14 = 1
+     15: r15 = r13 + r14
+     16: store src, r15
+     17: UNKNOWN_OP_30 ; Load from anchor count$imm0
+     18: r17 = 1
+     19: r18 = r16 - r17
+     20: store count, r18
+     21: jump loop_3
+     22: end_loop_4:
+     23: return
+
+Function .Users.alice.dev.minz-ts.examples.memory_operations.mem_compare(ptr1: *u8, ptr2: *u8, count: u16) -> i8
+  @smc
+  Instructions:
+      0: loop_5:
+      1: UNKNOWN_OP_30 ; Load from anchor count$imm0
+      2: r5 = 0
+      3: r6 = r4 > r5
+      4: jump_if_not r6, end_loop_6
+      5: UNKNOWN_OP_30 ; Load from anchor ptr1$imm0
+      6: UNKNOWN_OP_65
+      7: UNKNOWN_OP_30 ; Load from anchor ptr2$imm0
+      8: UNKNOWN_OP_65
+      9: r11 = r8 != r10
+     10: jump_if_not r11, else_7
+     11: UNKNOWN_OP_30 ; Load from anchor ptr1$imm0
+     12: UNKNOWN_OP_65
+     13: UNKNOWN_OP_30 ; Load from anchor ptr2$imm0
+     14: UNKNOWN_OP_65
+     15: r16 = r13 < r15
+     16: jump_if_not r16, else_9
+     17: r18 = -1 ; Folded: 
+     18: return r18
+     19: else_9:
+     20: else_9:
+     21: return r19
+     22: else_7:
+     23: UNKNOWN_OP_30 ; Load from anchor ptr1$imm0
+     24: r21 = 1
+     25: r22 = r20 + r21
+     26: store ptr1, r22
+     27: UNKNOWN_OP_30 ; Load from anchor ptr2$imm0
+     28: r24 = 1
+     29: r25 = r23 + r24
+     30: store ptr2, r25
+     31: UNKNOWN_OP_30 ; Load from anchor count$imm0
+     32: r27 = 1
+     33: r28 = r26 - r27
+     34: store count, r28
+     35: jump loop_5
+     36: end_loop_6:
+     37: r29 = 0
+     38: return r29
+

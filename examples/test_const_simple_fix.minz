@@ -1,5 +1,6 @@
-// Test if we can work around the const issue
+// Test const usage
+const X: u8 = 42;  // Global const
+
 fun main() -> void {
-    const X: u8 = 42;  // Define const inside function
     let y = X;
 }

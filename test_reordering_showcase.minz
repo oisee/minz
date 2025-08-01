@@ -1,0 +1,21 @@
+// Complex example to showcase MIR reordering benefits
+
+fun complex_math(a: u8, b: u8, c: u8) -> u16 {
+    // This creates a pattern where constants and operations are interleaved
+    let x: u8 = 10;           // Constant load
+    let temp1 = a + b;        // Uses parameters
+    let y: u8 = 20;           // Another constant (separated from x)
+    let temp2 = c * 3;        // Uses parameter and constant
+    let z: u8 = 5;            // Another constant (separated from x,y)
+    
+    // Now use all the constants together - reordering should group them
+    let final_const = x + y + z;  // 10 + 20 + 5 = 35 (should be constant folded)
+    
+    // Final computation
+    return (temp1 + temp2 + final_const) as u16;
+}
+
+fun main() -> void {
+    let result = complex_math(1, 2, 4);
+    return;
+}

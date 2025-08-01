@@ -97,7 +97,7 @@ fun clear_canvas() -> void {
     let mut i: u8 = 0;
     
     // Each array access will be SMC-patched for direct memory clear
-    do 32 times {
+    while i < 32 {
         canvas[i] = 0;  // SMC: direct memory store instruction
         i = i + 1;
     }

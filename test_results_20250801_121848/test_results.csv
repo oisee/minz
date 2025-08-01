@@ -1,0 +1,145 @@
+File,Status,Details
+mnist/mnist_complete.minz,FAIL,Compilation failed
+mnist/mnist_simple.minz,FAIL,Compilation failed
+mnist/mnist_attr_editor.minz,FAIL,Compilation failed
+test_abi_comparison.minz,PASS,All tests passed
+game_sprite.minz,FAIL,Compilation failed
+working_asm_integration.minz,FAIL,Compilation failed
+test_complex_assign_simple.minz,PASS,All tests passed
+zvdb_paged.minz,FAIL,Compilation failed
+test_struct_simple.minz,PASS,All tests passed
+test_all_features.minz,FAIL,Compilation failed
+loops_indexed.minz,PASS,All tests passed
+real_world_asm_examples.minz,FAIL,Compilation failed
+tsmc_strlen.minz,PASS,All tests passed
+recursion_examples.minz,PASS,All tests passed
+mnist_complete.minz,FAIL,Compilation failed
+test_bit_field_proper.minz,PASS,All tests passed
+test_bit_field_comprehensive.minz,PASS,All tests passed
+test_complex_assignments.minz,PASS,All tests passed
+test_for_simple.minz,PASS,All tests passed
+types_demo.minz,PASS,All tests passed
+true_smc_demo.minz,FAIL,Compilation failed
+interrupt_handlers.minz,PASS,All tests passed
+control_flow.minz,PASS,All tests passed
+test_assignment.minz,PASS,All tests passed
+test_lua_codegen.minz,FAIL,Compilation failed
+tsmc_loops_simple.minz,PASS,All tests passed
+test_assign_complete.minz,PASS,All tests passed
+mnist_simple.minz,FAIL,Compilation failed
+test_16bit_smc.minz,PASS,All tests passed
+arithmetic_16bit.minz,PASS,All tests passed
+simple_abi_test.minz,PASS,All tests passed
+editor_standalone.minz,FAIL,Compilation failed
+smc_recursion.minz,PASS,All tests passed
+structs.minz,FAIL,Compilation failed
+protocol_state_machine.minz,FAIL,Compilation failed
+test_range_comprehensive.minz,PASS,All tests passed
+hardware_ports.minz,FAIL,Compilation failed
+abi_rom_integration.minz,FAIL,Compilation failed
+enums.minz,PASS,All tests passed
+asm_integration_tests.minz,FAIL,Compilation failed
+tail_recursive.minz,PASS,All tests passed
+iterators.minz,FAIL,Compilation failed
+test_cast.minz,PASS,All tests passed
+tsmc_loops.minz,PASS,All tests passed
+test_missing_features.minz,PASS,All tests passed
+stack_variables.minz,PASS,All tests passed
+bit_manipulation.minz,PASS,All tests passed
+test_strings_simple.minz,PASS,All tests passed
+true_smc_test.minz,FAIL,Compilation failed
+data_structures.minz,FAIL,Compilation failed
+lua_metaprogramming.minz,FAIL,Compilation failed
+simple_test.minz,PASS,All tests passed
+smc_optimization_simple.minz,FAIL,Compilation failed
+test_lua_v2.minz,PASS,All tests passed
+array_initializers.minz,PASS,All tests passed
+fibonacci.minz,PASS,All tests passed
+simple_abi_demo.minz,PASS,All tests passed
+shadow_registers.minz,FAIL,Compilation failed
+test_const.minz,PASS,All tests passed
+test_lua_const.minz,PASS,All tests passed
+field_assignment.minz,PASS,All tests passed
+math_functions.minz,FAIL,Compilation failed
+test_print_interpolation.minz,PASS,All tests passed
+test_lua_simple.minz,FAIL,Compilation failed
+zvdb_scorpion_optimized.minz,FAIL,Compilation failed
+test_abi.minz,PASS,All tests passed
+lua_assets.minz,PASS,All tests passed
+test_auto_deref.minz,PASS,All tests passed
+test_range_simple.minz,PASS,All tests passed
+test_lua_math.minz,FAIL,Compilation failed
+parser_state_machine.minz,FAIL,Compilation failed
+test_array_access.minz,PASS,All tests passed
+test_bit_field_access.minz,FAIL,Compilation failed
+abi_hardware_drivers.minz,PASS,All tests passed
+test_assign_stmt.minz,PASS,All tests passed
+test_simple_assign.minz,PASS,All tests passed
+metaprogramming.minz,FAIL,Compilation failed
+arrays.minz,PASS,All tests passed
+test_assign_debug.minz,PASS,All tests passed
+test_registers.minz,PASS,All tests passed
+nested_loops.minz,FAIL,Compilation failed
+memory_operations.minz,PASS,All tests passed
+simple_true_smc.minz,PASS,All tests passed
+fibonacci_tail.minz,PASS,All tests passed
+lua_working_demo.minz,PASS,All tests passed
+working_demo.minz,PASS,All tests passed
+smc_optimization.minz,FAIL,Compilation failed
+test_number_const.minz,PASS,All tests passed
+simple_add.minz,PASS,All tests passed
+register_allocation.minz,PASS,All tests passed
+inline_assembly.minz,FAIL,Compilation failed
+test_advanced_missing.minz,FAIL,Compilation failed
+test_missing_specific.minz,FAIL,Compilation failed
+lua_constants.minz,PASS,All tests passed
+test_strings.minz,PASS,All tests passed
+hardware_registers.minz,PASS,All tests passed
+const_only.minz,PASS,All tests passed
+test_auto_deref_param.minz,PASS,All tests passed
+test_smc_patching.minz,PASS,All tests passed
+test_imports.minz,FAIL,Optimization failed
+test_const_simple_fix.minz,FAIL,Compilation failed
+test_true_smc_call.minz,FAIL,Compilation failed
+traffic_light_fsm.minz,PASS,All tests passed
+zvdb_demo.minz,FAIL,Compilation failed
+performance_tricks.minz,PASS,All tests passed
+test_asm_final.minz,FAIL,Compilation failed
+test_asm.minz,FAIL,Compilation failed
+test_loop_into.minz,FAIL,Compilation failed
+zvdb_optimized.minz,FAIL,Compilation failed
+test_range.minz,PASS,All tests passed
+test_lua_blocks.minz,FAIL,Compilation failed
+game_state_machine.minz,FAIL,Compilation failed
+lookup_tables.minz,FAIL,Compilation failed
+test_loop_no_init.minz,PASS,All tests passed
+test_register_params.minz,PASS,All tests passed
+editor_demo.minz,PASS,All tests passed
+modules/game/sprites.minz,FAIL,Compilation failed
+modules/game/player.minz,FAIL,Compilation failed
+modules/main.minz,FAIL,Compilation failed
+pointer_arithmetic.minz,FAIL,Compilation failed
+screen_color.minz,FAIL,Compilation failed
+test_string_lengths.minz,PASS,All tests passed
+string_operations.minz,PASS,All tests passed
+tail_sum.minz,PASS,All tests passed
+abi_test_with_main.minz,PASS,All tests passed
+test_struct.minz,FAIL,Compilation failed
+state_machines.minz,FAIL,Compilation failed
+main.minz,FAIL,Compilation failed
+implicit_returns.minz,PASS,All tests passed
+test_what_works.minz,PASS,All tests passed
+test_language_coverage.minz,FAIL,Compilation failed
+register_test.minz,PASS,All tests passed
+test_loop_minimal.minz,PASS,All tests passed
+bit_fields.minz,PASS,All tests passed
+global_variables.minz,PASS,All tests passed
+test_loop_ref.minz,PASS,All tests passed
+lua_sine_table.minz,FAIL,Compilation failed
+test_lua_tables.minz,FAIL,Compilation failed
+zvdb_code_search.minz,FAIL,Compilation failed
+arithmetic_demo.minz,PASS,All tests passed
+test_compound_assignment.minz,PASS,All tests passed
+test_simple.minz,PASS,All tests passed
+basic_functions.minz,PASS,All tests passed
+zvdb_minimal.minz,PASS,All tests passed

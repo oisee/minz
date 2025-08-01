@@ -1,0 +1,159 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.add_auto(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.add_register(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: r3 = load a
+      1: r4 = load b
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.add_stack(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: r3 = load a
+      1: r4 = load b
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.add_smc(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.add_virtual(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: r3 = load a
+      1: r4 = load b
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.complex_calc(a: u8, b: u8, c: u16, d: u16, e: u8, f: u8) -> u16
+  @smc
+  Locals:
+    r7 = sum1: u16
+    r15 = sum2: u16
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_30 ; Load from anchor b$imm0
+      2: r10 = r8 + r9
+      3: UNKNOWN_OP_30 ; Load from anchor e$imm0
+      4: r12 = r10 + r11
+      5: UNKNOWN_OP_30 ; Load from anchor f$imm0
+      6: r14 = r12 + r13
+      7: store , r14
+      8: UNKNOWN_OP_30 ; Load from anchor c$imm0
+      9: UNKNOWN_OP_30 ; Load from anchor d$imm0
+     10: r18 = r16 + r17
+     11: store , r18
+     12: r19 = load sum1
+     13: r20 = load sum2
+     14: r21 = r19 + r20
+     15: return r21
+
+Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.factorial(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: UNKNOWN_OP_30 ; Load from anchor n$imm0
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: else_1:
+      7: UNKNOWN_OP_30 ; Load from anchor n$imm0
+      8: UNKNOWN_OP_30 ; Load from anchor n$imm0
+      9: r10 = call factorial
+     10: r11 = r6 * r10
+     11: return r11
+
+Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.timer_interrupt() -> void
+  @smc
+  Locals:
+    r1 = counter: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r3 = load counter
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: store counter, r5
+      6: return
+
+Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.memcpy(dst: *u8, src: *u8, count: u16) -> void
+  @smc
+  Instructions:
+      0: loop_3:
+      1: UNKNOWN_OP_30 ; Load from anchor count$imm0
+      2: r5 = 0
+      3: r6 = r4 > r5
+      4: jump_if_not r6, end_loop_4
+      5: UNKNOWN_OP_30 ; Load from anchor src$imm0
+      6: UNKNOWN_OP_65
+      7: UNKNOWN_OP_30 ; Load from anchor dst$imm0
+      8: UNKNOWN_OP_66 ; Store through pointer
+      9: UNKNOWN_OP_30 ; Load from anchor dst$imm0
+     10: r11 = 1
+     11: r12 = r10 + r11
+     12: store dst, r12
+     13: UNKNOWN_OP_30 ; Load from anchor src$imm0
+     14: r14 = 1
+     15: r15 = r13 + r14
+     16: store src, r15
+     17: UNKNOWN_OP_30 ; Load from anchor count$imm0
+     18: r17 = 1
+     19: r18 = r16 - r17
+     20: store count, r18
+     21: jump loop_3
+     22: end_loop_4:
+     23: return
+
+Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.main() -> void
+  @smc
+  @recursive
+  Locals:
+    r1 = r1: u16
+    r5 = r2: u16
+    r9 = r3: u16
+    r13 = r4: u16
+    r17 = r5: u16
+    r21 = r6: u16
+    r29 = r7: u16
+    r32 = src: [10]u8
+    r33 = dst: [10]u8
+  Instructions:
+      0: r4 = call add_auto
+      1: store , r4
+      2: r8 = call add_register
+      3: store , r8
+      4: r12 = call add_stack
+      5: store , r12
+      6: r16 = call add_smc
+      7: store , r16
+      8: r20 = call add_virtual
+      9: store , r20
+     10: r28 = call complex_calc
+     11: store , r28
+     12: r31 = call factorial
+     13: store , r31
+     14: LOAD_INDEX ; Load array element (u8)
+     15: UNKNOWN_OP_64
+     16: LOAD_INDEX ; Load array element (u8)
+     17: UNKNOWN_OP_64
+     18: r43 = call memcpy
+     19: return
+

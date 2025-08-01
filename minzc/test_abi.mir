@@ -1,0 +1,25 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.simple_abi_demo.smc_add(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...examples.simple_abi_demo.register_multiply(a: u8, b: u8) -> u8
+  Instructions:
+      0: r3 = load a
+      1: r4 = load b
+      2: r5 = r3 * r4
+      3: return r5
+
+Function ...examples.simple_abi_demo.stack_process(data: u16, offset: u8) -> u16
+  Instructions:
+      0: r3 = load data
+      1: r4 = load offset
+      2: r5 = r3 + r4
+      3: return r5
+

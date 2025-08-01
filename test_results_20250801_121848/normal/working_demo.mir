@@ -1,0 +1,100 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   .Users.alice.dev.minz-ts.examples.working_demo.counter: u8
+;   .Users.alice.dev.minz-ts.examples.working_demo.buffer: [16]u8
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.init() -> void
+  @smc
+  Locals:
+    r2 = i: u8
+  Instructions:
+      0: r1 = 0
+      1: store .Users.alice.dev.minz-ts.examples.working_demo.counter, r1
+      2: r3 = 0
+      3: store , r3
+      4: loop_1:
+      5: r4 = load i
+      6: r5 = 16
+      7: r6 = r4 < r5
+      8: jump_if_not r6, end_loop_2
+      9: r7 = load i
+     10: UNKNOWN_OP_70
+     11: r9 = load i
+     12: r10 = r8 + r9 ; Calculate array element address
+     13: UNKNOWN_OP_63 ; Store to array[index] (u8)
+     14: r11 = load i
+     15: r12 = 1
+     16: r13 = r11 + r12
+     17: store i, r13
+     18: jump loop_1
+     19: end_loop_2:
+     20: return
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.process() -> void
+  @smc
+  Locals:
+    r1 = i: u8
+    r6 = val: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: loop_3:
+      3: r3 = load i
+      4: r4 = 16
+      5: r5 = r3 < r4
+      6: jump_if_not r5, end_loop_4
+      7: UNKNOWN_OP_70
+      8: r8 = load i
+      9: LOAD_INDEX ; Load array element (u8)
+     10: store , r9
+     11: r10 = load val
+     12: r11 = 1
+     13: r12 = r10 + r11
+     14: UNKNOWN_OP_70
+     15: r14 = load i
+     16: r15 = r13 + r14 ; Calculate array element address
+     17: UNKNOWN_OP_63 ; Store to array[index] (u8)
+     18: r16 = load i
+     19: r17 = 1
+     20: r18 = r16 + r17
+     21: store i, r18
+     22: jump loop_3
+     23: end_loop_4:
+     24: r19 = load .Users.alice.dev.minz-ts.examples.working_demo.counter
+     25: r20 = 1
+     26: r21 = r19 + r20
+     27: store .Users.alice.dev.minz-ts.examples.working_demo.counter, r21
+     28: return
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.is_done() -> bool
+  @smc
+  Instructions:
+      0: r1 = load .Users.alice.dev.minz-ts.examples.working_demo.counter
+      1: r2 = 10
+      2: r3 = r1 >= r2
+      3: return r3
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call init
+      1: loop_5:
+      2: r2 = call is_done
+      3: r3 = ~r2
+      4: jump_if_not r3, end_loop_6
+      5: r4 = call process
+      6: jump loop_5
+      7: end_loop_6:
+      8: UNKNOWN_OP_70
+      9: r6 = 0
+     10: LOAD_INDEX ; Load array element (u8)
+     11: r8 = 10
+     12: r9 = r7 == r8
+     13: jump_if_not r9, else_7
+     14: jump end_if_8
+     15: else_7:
+     16: end_if_8:
+     17: return
+
