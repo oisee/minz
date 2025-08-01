@@ -1,0 +1,110 @@
+// Zero-Cost Abstractions Test
+// Comprehensive test of lambdas and interfaces without external dependencies
+
+// Interface definitions
+interface Drawable {
+    fun draw(self) -> u8;
+    fun get_size(self) -> u8;
+}
+
+interface Scalable {
+    fun scale(self, factor: u8) -> u8;
+}
+
+// Type definitions
+struct Circle {
+    radius: u8,
+}
+
+struct Rectangle {
+    width: u8,
+    height: u8,
+}
+
+// Interface implementations
+impl Drawable for Circle {
+    fun draw(self) -> u8 {
+        self.radius * 6  // Circumference approximation
+    }
+    
+    fun get_size(self) -> u8 {
+        self.radius * self.radius * 3  // Area approximation
+    }
+}
+
+impl Scalable for Circle {
+    fun scale(self, factor: u8) -> u8 {
+        self.radius * factor
+    }
+}
+
+impl Drawable for Rectangle {
+    fun draw(self) -> u8 {
+        (self.width + self.height) * 2  // Perimeter
+    }
+    
+    fun get_size(self) -> u8 {
+        self.width * self.height  // Area
+    }
+}
+
+impl Scalable for Rectangle {
+    fun scale(self, factor: u8) -> u8 {
+        (self.width + self.height) * factor
+    }
+}
+
+// Test zero-cost lambdas
+fun test_lambdas() -> u8 {
+    let double = |x: u8| => u8 { x * 2 };
+    let add_five = |x: u8| => u8 { x + 5 };
+    let multiply = |a: u8, b: u8| => u8 { a * b };
+    
+    let result1 = double(7);        // Should be 14
+    let result2 = add_five(result1); // Should be 19
+    let result3 = multiply(result2, 2); // Should be 38
+    
+    result3
+}
+
+// Test zero-cost interfaces
+fun test_interfaces() -> u8 {
+    let circle = Circle { radius: 3 };
+    let rect = Rectangle { width: 4, height: 5 };
+    
+    // Direct interface method calls - compile to direct CALLs
+    let c_draw = circle.draw();      // CALL Circle_draw
+    let c_size = circle.get_size();  // CALL Circle_get_size
+    let c_scale = circle.scale(2);   // CALL Circle_scale
+    
+    let r_draw = rect.draw();        // CALL Rectangle_draw
+    let r_size = rect.get_size();    // CALL Rectangle_get_size
+    let r_scale = rect.scale(3);     // CALL Rectangle_scale
+    
+    // Sum all results
+    c_draw + c_size + c_size + r_draw + r_size + r_scale
+}
+
+// Performance comparison - lambda vs traditional
+fun traditional_function(x: u8, y: u8) -> u8 {
+    x + y
+}
+
+fun test_performance_equivalence() -> u8 {
+    let lambda_add = |x: u8, y: u8| => u8 { x + y };
+    
+    // Both should generate identical assembly
+    let lambda_result = lambda_add(20, 22);      // Should be 42
+    let traditional_result = traditional_function(20, 22); // Should be 42
+    
+    lambda_result + traditional_result  // Should be 84
+}
+
+fun main() -> u8 {
+    let lambda_test = test_lambdas();            // 38
+    let interface_test = test_interfaces();      // Variable result
+    let performance_test = test_performance_equivalence(); // 84
+    
+    // Return combined result for verification
+    lambda_test + interface_test + performance_test
+}

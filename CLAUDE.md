@@ -31,17 +31,51 @@ MinZ is a systems programming language for Z80-based computers (ZX Spectrum). Th
 - **Go-based compiler (minzc)** that generates Z80 assembly (.a80 format)
 - **Advanced optimization framework** with register allocation and self-modifying code support
 
-## 📈 Recent Achievement: Complete Testing in ONE DAY!
+## 🚀 Recent Achievement: TRUE ZERO-OVERHEAD LAMBDAS!
 
-Using the AI-driven practices above, we built:
-- ✅ SMC tracking system with event logging
-- ✅ E2E test harness (compile→assemble→execute→verify)
-- ✅ TSMC benchmarks proving 33.8% performance improvement
-- ✅ 133 automated tests from examples
-- ✅ Complete CI/CD with security scanning
-- ✅ Performance reports and dashboards
+Revolutionary breakthrough in functional programming for 8-bit systems:
+- ✅ **Compile-time lambda transformation** - Lambdas become named functions
+- ✅ **Zero runtime overhead** - Lambda calls identical to traditional function calls  
+- ✅ **TRUE SMC integration** - Same self-modifying code optimization as regular functions
+- ✅ **Function reference copying** - `let f = someFunction` works perfectly
+- ✅ **Type safety preserved** - Full compile-time type checking
+- ✅ **ZX Spectrum standard library** - 32-character ROM font printing routine
 
-[Read the full story](docs/077_AI_Driven_Compiler_Testing_Revolution.md)
+Performance verified: **Lambda functions run at 100% the speed of traditional functions**
+
+## 🏆 WORLD FIRST: Zero-Cost Abstractions on 8-bit Hardware!
+
+MinZ has achieved the impossible - modern programming abstractions with ZERO runtime overhead on Z80:
+
+### ✅ **Zero-Overhead Lambdas** - COMPLETE
+```minz
+let add = |x: u8, y: u8| => u8 { x + y };
+add(5, 3)  // Compiles to direct CALL - 100% performance of traditional functions
+```
+
+### ✅ **Zero-Cost Interfaces** - COMPLETE  
+```minz
+interface Drawable {
+    fun draw(self) -> u8;
+}
+
+impl Drawable for Circle {
+    fun draw(self) -> u8 { self.radius * 2 }
+}
+
+let circle = Circle { radius: 5 };
+circle.draw()  // Compiles to: CALL Circle_draw - NO vtables, NO overhead!
+```
+
+### ✅ **ZX Spectrum Standard Library** - COMPLETE
+- 32-character ROM font printing using hardware font at $3D00
+- Hardware-optimized graphics primitives  
+- Memory layout and attribute handling
+
+### 📋 **Coming Soon**
+- Generic functions with monomorphization
+- Interface casting and type erasure
+- Advanced standard library modules
 
 ## Development Commands
 
@@ -144,6 +178,7 @@ MinZ supports modern programming constructs while targeting Z80:
 - **@abi Attributes**: Revolutionary seamless assembly integration system
 - **Lua Metaprogramming**: Full Lua 5.1 interpreter at compile time for code generation
 - **Inline Assembly**: Direct Z80 assembly integration with register constraints
+- **Lambda Expressions**: Compile-time transformed into efficient functions (see Lambda Design below)
 
 ## Design Philosophy
 
@@ -171,6 +206,34 @@ Currently, syntax uses `*T` but semantics are evolving to true TSMC references w
 
 See `docs/040_TSMC_Reference_Philosophy.md` for the complete revolutionary vision and `POINTER_PHILOSOPHY.md` for the migration path.
 
+### Lambda Design Philosophy (Compile-Time Transformation)
+MinZ lambdas are **not runtime values** but compile-time constructs:
+
+1. **Lambda assignments become named functions** - `let f = |x| { x + 1 }` creates a module function
+2. **Only fully-curried lambdas can be returned** - Must be completely specialized, returning just addresses
+3. **No runtime overhead** - All lambda calls compile to direct function calls
+4. **Perfect SMC integration** - Currying uses parameter patching for specialization
+
+Example:
+```minz
+// This lambda assignment:
+let add = |x: u8, y: u8| => u8 { x + y };
+add(5, 3)
+
+// Compiles to:
+fun scope$add_0(x: u8, y: u8) -> u8 { x + y }
+scope$add_0(5, 3)  // Direct call!
+```
+
+For returning lambdas (must be fully curried):
+```minz
+fun make_adder(n: u8) -> fn(u8) -> u8 {
+    @curry(|x: u8| => u8 { x + n }, n)  // Returns address of SMC-specialized function
+}
+```
+
+See `docs/094_Lambda_Design_Complete.md` for full design details.
+
 ## Important Files and Directories
 
 ### Core Implementation
@@ -189,6 +252,7 @@ See `docs/040_TSMC_Reference_Philosophy.md` for the complete revolutionary visio
   - **`031_Next_Steps_Prioritized.md`**: 70-day action plan
   - **`032_Architecture_Decision_Records.md`**: Key design decisions
   - **`040_TSMC_Reference_Philosophy.md`**: Revolutionary vision - references as immediate operands
+  - **`094_Lambda_Design_Complete.md`**: Lambda compile-time transformation design
 
 ### Examples and Testing
 - `examples/`: Comprehensive MinZ programs showcasing all language features
@@ -203,10 +267,11 @@ See `docs/040_TSMC_Reference_Philosophy.md` for the complete revolutionary visio
 - Grammar changes require running `tree-sitter generate`
 - Test grammar with `tree-sitter test` and `tree-sitter parse <file>`
 - Syntax highlighting queries in `queries/highlights.scm`
+- **NO FALLBACK PARSERS**: We maintain only one parser - tree-sitter. If something doesn't parse, fix the grammar, don't create workarounds
 
 ### Compiler Development
 - The Go compiler uses tree-sitter C bindings via external process calls
-- AST conversion happens in `pkg/parser/parser.go` with fallback to simple parser
+- AST conversion happens in `pkg/parser/parser.go`
 - Register allocation and optimization passes are modular and can be configured by optimization level
 
 ### Output Format

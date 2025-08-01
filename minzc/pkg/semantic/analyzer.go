@@ -2,6 +2,7 @@ package semantic
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -9,6 +10,8 @@ import (
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/meta"
 )
+
+var debug = os.Getenv("DEBUG") != ""
 
 // ModuleResolver is an interface for resolving module imports
 type ModuleResolver interface {
@@ -87,8 +90,9 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 				a.errors = append(a.errors, err)
 			}
 		case *ast.InterfaceDecl:
-			// Skip interface registration for now - not fully implemented
-			continue
+			if err := a.analyzeInterfaceDecl(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
 		}
 	}
 
@@ -107,7 +111,7 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 				a.errors = append(a.errors, err)
 			}
 		case *ast.InterfaceDecl:
-			// Skip interface processing for now - not fully implemented
+			// Interface already processed in first pass
 			continue
 		}
 	}
@@ -1352,6 +1356,39 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 
 // analyzeVarDeclInFunc analyzes a variable declaration inside a function
 func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) error {
+	if debug {
+		fmt.Printf("DEBUG: analyzeVarDeclInFunc: %s\n", v.Name)
+		fmt.Printf("  Value type: %T\n", v.Value)
+	}
+	
+	// CRITICAL: Check for lambda assignment FIRST, before any type inference
+	// Type inference would call analyzeLambdaExpr which creates runtime lambdas
+	if lambdaExpr, ok := v.Value.(*ast.LambdaExpr); ok {
+		if debug {
+			fmt.Printf("DEBUG: Found lambda assignment for %s, calling transformLambdaAssignment\n", v.Name)
+		}
+		// Transform lambda assignment into a function
+		// This completely handles the lambda - it creates a function and registers a FuncSymbol
+		return a.transformLambdaAssignment(v, lambdaExpr, irFunc)
+	}
+	
+	// Check for function reference copying: let f = someFunction;
+	if identExpr, ok := v.Value.(*ast.Identifier); ok {
+		if funcSymbol := a.currentScope.Lookup(identExpr.Name); funcSymbol != nil {
+			if fs, ok := funcSymbol.(*FuncSymbol); ok {
+				if debug {
+					fmt.Printf("DEBUG: Found function reference copy: %s = %s\n", v.Name, identExpr.Name)
+				}
+				// Create a new FuncSymbol with the same properties
+				a.currentScope.Define(v.Name, &FuncSymbol{
+					Name:       fs.Name,       // Same underlying function
+					ReturnType: fs.ReturnType,
+					Params:     fs.Params,
+				})
+				return nil // Don't generate IR code for function reference copies
+			}
+		}
+	}
 	
 	// Determine type
 	var varType ir.Type
@@ -3630,8 +3667,16 @@ func (a *Analyzer) buildQualifiedName(expr ast.Expression) string {
 }
 
 func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.Register, error) {
+	if debug {
+		fmt.Printf("DEBUG: analyzeCallExpr called\n")
+		if ident, ok := call.Function.(*ast.Identifier); ok {
+			fmt.Printf("  Calling function: %s\n", ident.Name)
+		}
+	}
 	var funcName string
 	var sym Symbol
+	var isMethodCall bool
+	var methodReceiver ast.Expression
 	
 	switch fn := call.Function.(type) {
 	case *ast.Identifier:
@@ -3654,25 +3699,70 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 			return 0, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
+		if debug {
+			fmt.Printf("DEBUG: Found symbol %s of type %T\n", funcName, sym)
+		}
+		
+		// Check if this is a lambda variable before treating as function
+		if varSymbol, ok := sym.(*VarSymbol); ok {
+			if debug {
+				fmt.Printf("DEBUG: Found variable %s, type: %T\n", funcName, varSymbol.Type)
+				if varSymbol.Type != nil {
+					fmt.Printf("  Type string: %s\n", varSymbol.Type.String())
+				}
+			}
+			if lambdaType, ok := varSymbol.Type.(*ir.LambdaType); ok {
+				if debug {
+					fmt.Printf("DEBUG: Variable %s is a lambda!\n", funcName)
+				}
+				// This is a lambda call - treat it as indirect function call
+				return a.analyzeLambdaCall(call, lambdaType, funcName, irFunc)
+			} else {
+				if debug {
+					fmt.Printf("DEBUG: Variable %s is NOT a lambda, type assertion failed\n", funcName)
+				}
+			}
+		}
+		
 	case *ast.FieldExpr:
 		// Build the full qualified name by traversing the field expression chain
 		funcName = a.buildQualifiedName(fn)
 		sym = a.currentScope.Lookup(funcName)
 		
 		if sym == nil {
-			// Try as type method if it's a simple field expression
+			// Try as instance method call (obj.method())
 			if id, ok := fn.Object.(*ast.Identifier); ok {
-				typeSym := a.currentScope.Lookup(id.Name)
-				if typeSym != nil {
-					if typeSymbol, ok := typeSym.(*TypeSymbol); ok {
-						// This is a Type.method() call
-						sym = a.findTypeMethod(typeSymbol.Type, fn.Field)
-						if sym == nil {
-							return 0, fmt.Errorf("type %s has no method %s", id.Name, fn.Field)
+				// Look up the variable to get its type
+				varSym := a.currentScope.Lookup(id.Name)
+				if varSymbol, ok := varSym.(*VarSymbol); ok {
+					// Find interface implementations for this type
+					methodFunc := a.findInterfaceMethod(varSymbol.Type, fn.Field)
+					if methodFunc != nil {
+						sym = methodFunc
+						funcName = methodFunc.Name
+						isMethodCall = true
+						methodReceiver = id  // Store the receiver for self parameter
+						
+						if debug {
+							fmt.Printf("DEBUG: Resolved interface method %s.%s to %s\n", id.Name, fn.Field, funcName)
 						}
-						// Update funcName to the actual method name for proper function call
-						if funcSym, ok := sym.(*FuncSymbol); ok {
-							funcName = funcSym.Name
+					}
+				}
+				
+				// Fallback: Try as type method if it's a simple field expression
+				if sym == nil {
+					typeSym := a.currentScope.Lookup(id.Name)
+					if typeSym != nil {
+						if typeSymbol, ok := typeSym.(*TypeSymbol); ok {
+							// This is a Type.method() call
+							sym = a.findTypeMethod(typeSymbol.Type, fn.Field)
+							if sym == nil {
+								return 0, fmt.Errorf("type %s has no method %s", id.Name, fn.Field)
+							}
+							// Update funcName to the actual method name for proper function call
+							if funcSym, ok := sym.(*FuncSymbol); ok {
+								funcName = funcSym.Name
+							}
 						}
 					}
 				}
@@ -3683,20 +3773,15 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 			return 0, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
-		// Check if this is a lambda variable before treating as function
-		if varSymbol, ok := sym.(*VarSymbol); ok {
-			if lambdaType, ok := varSymbol.Type.(*ir.LambdaType); ok {
-				// This is a lambda call - treat it as indirect function call
-				return a.analyzeLambdaCall(call, lambdaType, funcName, irFunc)
-			}
-		}
-		
 	default:
 		return 0, fmt.Errorf("unsupported function call expression")
 	}
 
 	funcSym, ok := sym.(*FuncSymbol)
 	if !ok {
+		if debug {
+			fmt.Printf("DEBUG: Symbol %s is not a FuncSymbol, it's %T\n", funcName, sym)
+		}
 		return 0, fmt.Errorf("%s is not a function", funcName)
 	}
 	
@@ -3730,15 +3815,28 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		return a.analyzeBuiltinCall(funcName, funcSym, call, irFunc)
 	}
 
+	// Prepare arguments (inject self for method calls)
+	actualArgs := call.Arguments
+	if isMethodCall && methodReceiver != nil {
+		// For method calls, inject the receiver as the first argument (self parameter)
+		actualArgs = make([]ast.Expression, len(call.Arguments)+1)
+		actualArgs[0] = methodReceiver
+		copy(actualArgs[1:], call.Arguments)
+		
+		if debug {
+			fmt.Printf("DEBUG: Injected self parameter for method call, now %d args\n", len(actualArgs))
+		}
+	}
+
 	// Check argument count for regular functions
-	if len(call.Arguments) != len(funcSym.Params) {
+	if len(actualArgs) != len(funcSym.Params) {
 		return 0, fmt.Errorf("function %s expects %d arguments, got %d", 
-			funcName, len(funcSym.Params), len(call.Arguments))
+			funcName, len(funcSym.Params), len(actualArgs))
 	}
 
 	// Analyze arguments
 	argRegs := []ir.Register{}
-	for _, arg := range call.Arguments {
+	for _, arg := range actualArgs {
 		reg, err := a.analyzeExpression(arg, irFunc)
 		if err != nil {
 			return 0, err
@@ -5107,6 +5205,10 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		}
 		return targetType, nil
 	case *ast.LambdaExpr:
+		// DEBUG: Lambda type inference
+		if debug {
+			fmt.Printf("DEBUG: Inferring type for lambda expression\n")
+		}
 		// Infer lambda type from its parameters and return type
 		paramTypes := make([]ir.Type, len(e.Params))
 		for i, param := range e.Params {
@@ -5379,6 +5481,10 @@ func (a *Analyzer) analyzeArrayInitializer(arr *ast.ArrayInitializer, irFunc *ir
 
 // analyzeInterfaceDecl analyzes an interface declaration
 func (a *Analyzer) analyzeInterfaceDecl(decl *ast.InterfaceDecl) error {
+	if debug {
+		fmt.Printf("DEBUG: Analyzing interface %s with %d methods\n", decl.Name, len(decl.Methods))
+	}
+	
 	// Create interface symbol
 	methods := make(map[string]*InterfaceMethod)
 	
@@ -5417,6 +5523,10 @@ func (a *Analyzer) analyzeInterfaceDecl(decl *ast.InterfaceDecl) error {
 	// Also register without prefix for local access
 	if a.currentModule != "" && a.currentModule != "main" {
 		a.currentScope.Define(decl.Name, interfaceSym)
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: Registered interface %s (prefixed: %s) with %d methods\n", decl.Name, prefixedName, len(methods))
 	}
 	
 	return nil
@@ -5548,20 +5658,258 @@ func (a *Analyzer) findTypeMethod(targetType ir.Type, methodName string) Symbol 
 	return nil
 }
 
+// transformLambdaAssignment transforms a lambda assignment into a function
+func (a *Analyzer) transformLambdaAssignment(varDecl *ast.VarDecl, lambda *ast.LambdaExpr, parentFunc *ir.Function) error {
+	if debug {
+		fmt.Printf("DEBUG: transformLambdaAssignment called for %s\n", varDecl.Name)
+		fmt.Printf("  Lambda body type: %T\n", lambda.Body)
+	}
+	
+	// Check for captures first
+	if err := a.checkLambdaCaptures(lambda); err != nil {
+		return err
+	}
+	
+	// Generate unique function name
+	funcName := fmt.Sprintf("%s$%s_%d", parentFunc.Name, varDecl.Name, a.lambdaCounter)
+	a.lambdaCounter++
+	
+	// Create IR function - use same conventions as traditional functions
+	lambdaFunc := &ir.Function{
+		Name:              funcName,
+		CallingConvention: "smc",    // TRUE SMC like traditional functions
+		IsSMCDefault:      true,     // Enable SMC by default
+		IsSMCEnabled:      true,     // Full SMC support
+	}
+	
+	// Add parameters
+	for _, param := range lambda.Params {
+		paramType := ir.Type(&ir.BasicType{Kind: ir.TypeU8}) // Default type
+		if param.Type != nil {
+			var err error
+			paramType, err = a.convertType(param.Type)
+			if err != nil {
+				return fmt.Errorf("lambda param type: %w", err)
+			}
+		}
+		lambdaFunc.Params = append(lambdaFunc.Params, ir.Parameter{
+			Name: param.Name,
+			Type: paramType,
+		})
+	}
+	
+	// Set return type
+	if lambda.ReturnType != nil {
+		retType, err := a.convertType(lambda.ReturnType)
+		if err != nil {
+			return fmt.Errorf("lambda return type: %w", err)
+		}
+		lambdaFunc.ReturnType = retType
+	} else {
+		// Default to u8 for now
+		lambdaFunc.ReturnType = &ir.BasicType{Kind: ir.TypeU8}
+	}
+	
+	// Analyze lambda body in new scope
+	lambdaScope := NewScope(a.currentScope)
+	prevFunc := a.currentFunc
+	a.currentFunc = lambdaFunc
+	
+	// Add parameters to scope (parameters already added to lambdaFunc.Params above)
+	for _, param := range lambdaFunc.Params {
+		reg := lambdaFunc.AllocReg() // Just allocate register, don't re-add parameter
+		lambdaScope.Define(param.Name, &VarSymbol{
+			Name:        param.Name,
+			Type:        param.Type,
+			Reg:         reg,
+			IsParameter: true,
+		})
+	}
+	
+	// Analyze body
+	prevScope := a.currentScope
+	a.currentScope = lambdaScope
+	
+	// Handle lambda body - it should be a BlockStmt
+	var err error
+	if blockStmt, ok := lambda.Body.(*ast.BlockStmt); ok {
+		err = a.analyzeBlock(blockStmt, lambdaFunc)
+	} else {
+		// Single expression body - analyze it directly
+		if _, err = a.analyzeExpression(lambda.Body.(ast.Expression), lambdaFunc); err == nil {
+			// Add implicit return for expression body
+			lambdaFunc.Instructions = append(lambdaFunc.Instructions, ir.Instruction{
+				Op: ir.OpReturn,
+			})
+		}
+	}
+	
+	a.currentScope = prevScope
+	a.currentFunc = prevFunc
+	
+	if err != nil {
+		return fmt.Errorf("analyzing lambda body: %w", err)
+	}
+	
+	// Add implicit return if needed (basic implementation)
+	// TODO: Check if function already has return
+	if lambdaFunc.ReturnType != nil {
+		// Add default return if no explicit return was added
+		needsReturn := true
+		if len(lambdaFunc.Instructions) > 0 {
+			lastInstr := lambdaFunc.Instructions[len(lambdaFunc.Instructions)-1]
+			if lastInstr.Op == ir.OpReturn {
+				needsReturn = false
+			}
+		}
+		
+		if needsReturn {
+			lambdaFunc.Instructions = append(lambdaFunc.Instructions, ir.Instruction{
+				Op: ir.OpReturn,
+			})
+		}
+	}
+	
+	// Add to module
+	a.module.Functions = append(a.module.Functions, lambdaFunc)
+	
+	// Register in parent scope as function reference
+	// Convert ir.Parameter to ast.Parameter for compatibility
+	astParams := make([]*ast.Parameter, len(lambdaFunc.Params))
+	for i, irParam := range lambdaFunc.Params {
+		// Convert ir.Type back to ast.Type for the symbol
+		var astType ast.Type
+		if basicType, ok := irParam.Type.(*ir.BasicType); ok {
+			switch basicType.Kind {
+			case ir.TypeU8:
+				astType = &ast.PrimitiveType{Name: "u8"}
+			case ir.TypeU16:
+				astType = &ast.PrimitiveType{Name: "u16"}
+			case ir.TypeI8:
+				astType = &ast.PrimitiveType{Name: "i8"}
+			case ir.TypeI16:
+				astType = &ast.PrimitiveType{Name: "i16"}
+			case ir.TypeBool:
+				astType = &ast.PrimitiveType{Name: "bool"}
+			default:
+				astType = &ast.PrimitiveType{Name: "u8"}
+			}
+		} else {
+			astType = &ast.PrimitiveType{Name: "u8"} // fallback
+		}
+		
+		astParams[i] = &ast.Parameter{
+			Name: irParam.Name,
+			Type: astType,
+		}
+	}
+	
+	funcSymbol := &FuncSymbol{
+		Name:       funcName,
+		ReturnType: lambdaFunc.ReturnType,
+		Params:     astParams,
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: Created FuncSymbol for %s with %d parameters\n", varDecl.Name, len(astParams))
+		for i, param := range astParams {
+			fmt.Printf("  Param %d: %s %s\n", i, param.Name, param.Type.(*ast.PrimitiveType).Name)
+		}
+	}
+	
+	a.currentScope.Define(varDecl.Name, funcSymbol)
+	
+	return nil
+}
+
+// findInterfaceMethod finds the concrete implementation function for an interface method
+// This is the core of zero-cost interfaces - compile-time method resolution
+func (a *Analyzer) findInterfaceMethod(objType ir.Type, methodName string) *FuncSymbol {
+	if debug {
+		fmt.Printf("DEBUG: findInterfaceMethod called for type %s, method %s\n", objType.String(), methodName)
+	}
+	
+	// Convert IR type back to type name for lookup
+	var typeName string
+	switch t := objType.(type) {
+	case *ir.StructType:
+		typeName = t.Name
+	case *ir.BasicType:
+		// Basic types don't have interface implementations for now
+		return nil
+	default:
+		if debug {
+			fmt.Printf("DEBUG: Unsupported type for interface method: %T\n", objType)
+		}
+		return nil
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: Looking for implementations of %s.%s\n", typeName, methodName)
+	}
+	
+	// Look for implementation functions
+	// Implementation functions are named: TypeName_InterfaceName_MethodName or TypeName_MethodName
+	possibleNames := []string{
+		fmt.Sprintf("%s_%s", typeName, methodName),  // Simple naming: Circle_draw
+		fmt.Sprintf("%s.%s", typeName, methodName),  // Dot notation: Circle.draw
+	}
+	
+	for _, name := range possibleNames {
+		if sym := a.currentScope.Lookup(name); sym != nil {
+			if funcSym, ok := sym.(*FuncSymbol); ok {
+				if debug {
+					fmt.Printf("DEBUG: Found implementation function: %s\n", name)
+				}
+				return funcSym
+			}
+		}
+		
+		// Try with module prefix
+		if a.currentModule != "" && a.currentModule != "main" {
+			prefixedName := a.prefixSymbol(name)
+			if sym := a.currentScope.Lookup(prefixedName); sym != nil {
+				if funcSym, ok := sym.(*FuncSymbol); ok {
+					if debug {
+						fmt.Printf("DEBUG: Found prefixed implementation function: %s\n", prefixedName)
+					}
+					return funcSym
+				}
+			}
+		}
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: No implementation found for %s.%s\n", typeName, methodName)
+	}
+	return nil
+}
+
+// checkLambdaCaptures ensures lambda doesn't capture variables (for now)
+func (a *Analyzer) checkLambdaCaptures(lambda *ast.LambdaExpr) error {
+	// For now, just return nil - no capture detection
+	// TODO: Implement proper capture detection
+	return nil
+}
+
 // analyzeLambdaExpr analyzes lambda expressions
 func (a *Analyzer) analyzeLambdaExpr(lambda *ast.LambdaExpr, irFunc *ir.Function) (ir.Register, error) {
+	if debug {
+		fmt.Printf("DEBUG: analyzeLambdaExpr called\n")
+	}
 	// Generate unique lambda name
 	lambdaName := fmt.Sprintf("lambda_%s_%d", irFunc.Name, a.lambdaCounter)
 	a.lambdaCounter++
 	
 	// Create a new function for the lambda template
 	lambdaFunc := &ir.Function{
-		Name:         lambdaName,
-		Params:       []ir.Parameter{},
-		ReturnType:   &ir.BasicType{Kind: ir.TypeU8}, // Default for now
-		Instructions: []ir.Instruction{},
-		IsSMCDefault: true, // TRUE SMC lambdas!
-		IsSMCEnabled: true,
+		Name:             lambdaName,
+		Params:           []ir.Parameter{},
+		ReturnType:       &ir.BasicType{Kind: ir.TypeU8}, // Default for now
+		Instructions:     []ir.Instruction{},
+		IsSMCDefault:     false, // Lambdas use stack parameters for now
+		IsSMCEnabled:     false,
+		CallingConvention: "stack", // Explicitly use stack calling convention
 	}
 	
 	// Add lambda parameters to function
@@ -5610,8 +5958,15 @@ func (a *Analyzer) analyzeLambdaExpr(lambda *ast.LambdaExpr, irFunc *ir.Function
 	var bodyReg ir.Register
 	var err error
 	
+	if debug {
+		fmt.Printf("DEBUG: Lambda body type: %T\n", lambda.Body)
+	}
+	
 	switch body := lambda.Body.(type) {
 	case ast.Expression:
+		if debug {
+			fmt.Printf("DEBUG: Analyzing lambda expression body\n")
+		}
 		bodyReg, err = a.analyzeExpression(body, lambdaFunc)
 		if err != nil {
 			a.currentScope = prevScope
@@ -5624,11 +5979,31 @@ func (a *Analyzer) analyzeLambdaExpr(lambda *ast.LambdaExpr, irFunc *ir.Function
 			Src1: bodyReg,
 		})
 	case *ast.BlockStmt:
+		if debug {
+			fmt.Printf("DEBUG: Analyzing lambda block body with %d statements\n", len(body.Statements))
+		}
 		err = a.analyzeBlock(body, lambdaFunc)
 		if err != nil {
 			a.currentScope = prevScope
 			a.currentFunc = prevFunc
 			return 0, fmt.Errorf("failed to analyze lambda block: %w", err)
+		}
+		// Check if block ends with an expression that should be returned
+		if len(body.Statements) > 0 {
+			if exprStmt, ok := body.Statements[len(body.Statements)-1].(*ast.ExpressionStmt); ok {
+				if debug {
+					fmt.Printf("DEBUG: Lambda block ends with expression, analyzing for implicit return\n")
+				}
+				// Re-analyze the last expression to get its register
+				exprReg, err := a.analyzeExpression(exprStmt.Expression, lambdaFunc)
+				if err == nil {
+					// Add implicit return
+					lambdaFunc.Instructions = append(lambdaFunc.Instructions, ir.Instruction{
+						Op:   ir.OpReturn,
+						Src1: exprReg,
+					})
+				}
+			}
 		}
 	}
 	
@@ -5703,17 +6078,13 @@ func (a *Analyzer) analyzeLambdaCall(call *ast.CallExpr, lambdaType *ir.LambdaTy
 		Src1: varSymbol.Reg,
 	})
 	
-	// Prepare call arguments by moving them to appropriate registers
-	// For now, we'll assume arguments are already in the right registers
-	// In a more sophisticated implementation, we'd handle calling conventions
-	_ = argRegs // Mark as used to avoid compiler warning
-	
-	// Make indirect call through lambda address
+	// Make indirect call through lambda address with arguments
 	resultReg := irFunc.AllocReg()
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:   ir.OpCallIndirect,
 		Dest: resultReg,
 		Src1: lambdaAddrReg,
+		Args: argRegs,  // Pass the arguments for SMC patching
 	})
 	
 	return resultReg, nil
