@@ -1,37 +1,22 @@
 version: 2
 updates:
-  # Enable version updates for npm
+  # Disable automatic PRs for npm (keep security alerts only)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "npm"
-    reviewers:
-      - "minz/maintainers"
+      interval: "monthly"
+    open-pull-requests-limit: 0
 
-  # Enable version updates for Go modules
+  # Disable automatic PRs for Go modules (keep security alerts only)
   - package-ecosystem: "gomod"
     directory: "/minzc"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "go"
-    reviewers:
-      - "minz/maintainers"
+      interval: "monthly"
+    open-pull-requests-limit: 0
 
-  # Enable version updates for GitHub Actions
+  # Disable automatic PRs for GitHub Actions (keep security alerts only)
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "github-actions"
-    reviewers:
-      - "minz/maintainers"
+      interval: "monthly"
+    open-pull-requests-limit: 0
