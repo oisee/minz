@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -38,7 +38,8 @@
     OR A
     JP Z, else_1
 ...examples.tail_sum.sum_tail_param_acc:
-    LD HL, #0000   ; SMC parameter acc
+    LD DE, #0000   ; SMC parameter acc
+    EX DE, HL      ; Move to HL for storage
     LD B, H
     LD C, L
     ; return r6
@@ -79,7 +80,7 @@ end_if_2:
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL sum_tail
+    CALL ...examples.tail_sum.sum_tail
     ; Register 13 already in HL
     ; return r13
     ; Register 13 already in HL
@@ -102,7 +103,7 @@ end_if_2:
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL sum_tail
+    CALL ...examples.tail_sum.sum_tail
     ; Register 4 already in HL
     ; store , r4
     ; Register 4 already in HL

@@ -31,7 +31,7 @@ Function ...examples.arithmetic_demo.test_arithmetic() -> void
      11: store , r12
      12: r14 = load c
      13: r15 = load d
-     14: 40
+     14: 42
      15: store , r16
      16: r18 = 17
      17: store , r18
@@ -39,19 +39,19 @@ Function ...examples.arithmetic_demo.test_arithmetic() -> void
      19: store , r20
      20: r22 = load e
      21: r23 = load f
-     22: 41
+     22: 43
      23: store , r24
      24: r26 = 3
      25: store , r26
      26: r28 = load g
      27: r29 = 2
-     28: 49
+     28: 51
      29: store , r30
      30: r32 = 12
      31: store , r32
      32: r34 = load h
      33: r35 = 2
-     34: 50
+     34: 52
      35: store , r36
      36: return
 

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -25,7 +25,7 @@
     ; r2 = call test_lua
     ; Call to test_lua (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_lua
+    CALL ...examples.test_lua_v2.test_lua
     ; store , r2
     LD ($F002), HL
     ; return

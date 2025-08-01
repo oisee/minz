@@ -21,7 +21,7 @@ Function ...examples.tsmc_loops_simple.sum_array_tsmc(arr: *u8, count: u16) -> u
       8: jump_if_not r9, end_loop_2
       9: r10 = load sum
      10: 12
-     11: 63
+     11: 65
      12: r13 = r10 + r12
      13: store sum, r13
      14: 12

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -20,7 +20,6 @@
     LD A, 10
     LD B, A         ; Store to physical register B
     ; r4 = r2 > r3
-    LD HL, ($F004)    ; Virtual register 2 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -75,6 +74,7 @@ else_1:
     LD B', A         ; Store to shadow B'
     EXX               ; Switch back to main registers
     ; r10 = r8 > r9
+    LD HL, ($F010)    ; Virtual register 8 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -152,13 +152,14 @@ loop_5:
     ; r6 = load i
     LD A, ($F001)
     EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
+    LD E', A         ; Store to shadow E'
     EXX               ; Switch back to main registers
     ; r7 = param n
     ; Load parameter n
     ; r8 = r6 < r7
     LD D, H
     LD E, L
+    LD HL, ($F00E)    ; Virtual register 7 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -168,41 +169,39 @@ loop_5:
 .L6:
     LD HL, 1
 .L7:
-    LD ($F010), HL    ; Virtual register 8 to memory
     ; jump_if_not r8, end_loop_6
-    LD A, ($F010)     ; Virtual register 8 from memory
+    LD A, B
     OR A
     JP Z, end_loop_6
     ; r9 = load sum
     LD A, ($F000)
-    LD B, A         ; Store to physical register B
+    LD ($F012), A     ; Virtual register 9 to memory
     ; r10 = load i
     LD A, ($F001)
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD ($F014), A     ; Virtual register 10 to memory
     ; r11 = r9 + r10
+    LD HL, ($F012)    ; Virtual register 9 from memory
     LD D, H
     LD E, L
+    LD HL, ($F014)    ; Virtual register 10 from memory
     ADD HL, DE
     ; store sum, r11
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
+    LD A, H
     LD ($F000), A
     ; r12 = load i
     LD A, ($F001)
     LD L, A         ; Store to physical register L
     ; r13 = 1
     LD A, 1
-    ; Register 13 already in A
+    LD L, A         ; Store to physical register L
     ; r14 = r12 + r13
     LD D, H
     LD E, L
     ADD HL, DE
-    LD ($F01C), HL    ; Virtual register 14 to memory
     ; store i, r14
-    LD A, ($F01C)     ; Virtual register 14 from memory
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     LD ($F001), A
     ; jump loop_5
     JP loop_5
@@ -210,7 +209,7 @@ loop_5:
 end_loop_6:
     ; r15 = load sum
     LD A, ($F000)
-    ; Register 15 already in A
+    LD B, A         ; Store to physical register B
     ; return r15
     LD SP, IX
     POP IX

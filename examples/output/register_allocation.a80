@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -13,9 +13,9 @@
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 10
     LD A, 10
-    ; Register 2 already in A
+    LD ($F004), A     ; Virtual register 2 to memory
     ; store , r2
-    ; Register 2 already in A
+    LD A, ($F004)     ; Virtual register 2 from memory
     LD ($F002), A
     ; r4 = 20
     LD A, 20
@@ -57,7 +57,7 @@
     LD ($F00E), A
     ; r13 = load result
     LD A, ($F00E)
-    LD B, A         ; Store to physical register B
+    ; Register 13 already in A
     ; return r13
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -69,7 +69,7 @@
     ; r2 = call test_registers
     ; Call to test_registers (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_registers
+    CALL ...examples.register_allocation.test_registers
     ; store , r2
     LD ($F002), HL
     ; return

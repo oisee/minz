@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Data section
@@ -32,7 +32,8 @@ loop_1:
     ; r7 = load i
     LD HL, ($F00A)
 ...examples.tsmc_loops_simple.sum_array_tsmc_param_count:
-    LD HL, #0000   ; SMC parameter count
+    LD DE, #0000   ; SMC parameter count
+    EX DE, HL      ; Move to HL for storage
     LD ($F010), HL    ; Virtual register 8 to memory
     ; r9 = r7 < r8
     LD D, H

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -105,6 +105,14 @@ mul_src2_0: DW 0
     ; store , r6
     LD A, L
     LD ($F00A), A
+    ; r8 = load attr
+    LD HL, ($F006)
+    ; Load bit field ink (offset 0, width 3)
+    LD A, H
+    AND 7
+    LD L, A         ; Store to physical register L
+    ; store , r9
+    LD ($F00E), HL
     ; return
     RET
 

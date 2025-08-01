@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -287,7 +287,7 @@ end_loop_2:
     ; Parameter a in HL
     ; Parameter b in DE
     ; Found function, UsesTrueSMC=false
-    CALL add_numbers
+    CALL ...examples.test_registers.add_numbers
     LD ($F008), HL    ; Virtual register 4 to memory
     ; store , r4
     LD HL, ($F008)    ; Virtual register 4 from memory
@@ -310,7 +310,7 @@ end_loop_2:
     ; Parameter y in DE
     PUSH HL       ; Parameter z on stack
     ; Found function, UsesTrueSMC=false
-    CALL complex_calc
+    CALL ...examples.test_registers.complex_calc
     ; store , r9
     LD ($F00A), HL
     ; return

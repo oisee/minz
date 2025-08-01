@@ -38,7 +38,7 @@ Function ...examples.recursion_examples.gcd(a: u8, b: u8) -> u8
       9: 12
      10: 12
      11: 12
-     12: 41
+     12: 43
      13: r11 = call gcd
      14: return r11
 
@@ -53,7 +53,7 @@ Function ...examples.recursion_examples.binary_search(arr: *u8, target: u8, left
       2: r7 = r5 > r6
       3: jump_if_not r7, else_5
       4: r8 = 1
-      5: 42
+      5: 44
       6: return r9
       7: jump end_if_6
       8: else_5:
@@ -63,13 +63,13 @@ Function ...examples.recursion_examples.binary_search(arr: *u8, target: u8, left
      12: 12
      13: r14 = r12 - r13
      14: r15 = 2
-     15: 40
+     15: 42
      16: r17 = r11 + r16
      17: store , r17
      18: 12
      19: r20 = load mid
      20: r21 = r19 + r20
-     21: 63
+     21: 65
      22: store , r22
      23: r23 = load value
      24: 12

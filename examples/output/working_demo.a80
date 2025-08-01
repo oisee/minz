@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Data section
@@ -260,14 +260,14 @@ end_loop_4:
     ; r1 = call init
     ; Call to init (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL init
+    CALL ...examples.working_demo.init
     LD ($F002), HL    ; Virtual register 1 to memory
     ; loop_5:
 loop_5:
     ; r2 = call is_done
     ; Call to is_done (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL is_done
+    CALL ...examples.working_demo.is_done
     ; r3 = ~r2
     LD A, H
     CPL           ; Complement A
@@ -279,7 +279,7 @@ loop_5:
     ; r4 = call process
     ; Call to process (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL process
+    CALL ...examples.working_demo.process
     ; Register 4 already in HL
     ; jump loop_5
     JP loop_5

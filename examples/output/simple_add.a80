@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -61,7 +61,7 @@
     EXX               ; Switch to shadow registers
     ; Parameter b in DE
     ; Found function, UsesTrueSMC=false
-    CALL add
+    CALL ...examples.simple_add.add
     ; store , r4
     LD ($F002), HL
     ; return

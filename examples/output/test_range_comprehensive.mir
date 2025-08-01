@@ -59,7 +59,7 @@ Function ...examples.test_range_comprehensive.array_process() -> u8
       9: r9 = load arr
      10: r10 = load i
      11: r11 = r9 + r10 ; Calculate array element address
-     12: 61 ; Store to array[index] (u8)
+     12: 63 ; Store to array[index] (u8)
      13: r12 = 1
      14: r4 = r4 + r12 ; Increment i
      15: jump for_loop_5

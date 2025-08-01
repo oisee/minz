@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -165,7 +165,8 @@ for_end_2:
 ...examples.test_register_params.many_params_param_a:
     LD HL, #0000   ; SMC parameter a (u8->u16)
 ...examples.test_register_params.many_params_param_b:
-    LD HL, #0000   ; SMC parameter b (u8->u16)
+    LD DE, #0000   ; SMC parameter b (u8->u16)
+    EX DE, HL      ; Move to HL for storage
     LD ($F00E), HL    ; Virtual register 7 to memory
     ; r8 = r6 + r7
     LD D, H
@@ -173,7 +174,9 @@ for_end_2:
     LD HL, ($F00E)    ; Virtual register 7 from memory
     ADD HL, DE
 ...examples.test_register_params.many_params_param_c:
-    LD HL, #0000   ; SMC parameter c (u8->u16)
+    LD BC, #0000   ; SMC parameter c (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
     LD ($F012), HL    ; Virtual register 9 to memory
     ; r10 = r8 + r9
     LD D, H
@@ -181,7 +184,9 @@ for_end_2:
     LD HL, ($F012)    ; Virtual register 9 from memory
     ADD HL, DE
 ...examples.test_register_params.many_params_param_d:
-    LD HL, #0000   ; SMC parameter d (u8->u16)
+    LD BC, #0000   ; SMC parameter d (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
     LD ($F016), HL    ; Virtual register 11 to memory
     ; r12 = r10 + r11
     LD D, H
@@ -189,7 +194,9 @@ for_end_2:
     LD HL, ($F016)    ; Virtual register 11 from memory
     ADD HL, DE
 ...examples.test_register_params.many_params_param_e:
-    LD HL, #0000   ; SMC parameter e (u8->u16)
+    LD BC, #0000   ; SMC parameter e (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
     ; Register 13 already in HL
     ; r14 = r12 + r13
     LD D, H
@@ -259,7 +266,7 @@ end_if_4:
     ; Stack-based parameter passing
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL recursive_sum
+    CALL ...examples.test_register_params.recursive_sum
     ; r11 = r6 + r10
     LD D, H
     LD E, L
@@ -288,7 +295,7 @@ end_if_4:
     LD A, L
     LD E, A       ; Parameter b in E
     ; Found function, UsesTrueSMC=false
-    CALL add_bytes
+    CALL ...examples.test_register_params.add_bytes
     ; Register 4 already in HL
     ; store , r4
     ; Register 4 already in HL
@@ -308,7 +315,7 @@ end_if_4:
     EX DE, HL
     ; Parameter y in DE
     ; Found function, UsesTrueSMC=false
-    CALL add_words
+    CALL ...examples.test_register_params.add_words
     ; store , r8
     LD ($F00A), HL
     ; r11 = 100
@@ -342,7 +349,7 @@ end_if_4:
     ; Parameter ptr in DE
     PUSH HL       ; Parameter count on stack
     ; Found function, UsesTrueSMC=false
-    CALL process
+    CALL ...examples.test_register_params.process
     LD ($F022), HL    ; Virtual register 17 to memory
     ; store , r17
     LD HL, ($F022)    ; Virtual register 17 from memory
@@ -373,7 +380,7 @@ end_if_4:
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL many_params
+    CALL ...examples.test_register_params.many_params
     ; store , r24
     LD ($F024), HL
     ; r26 = 10
@@ -385,7 +392,7 @@ end_if_4:
     ; Register 26 already in HL
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL recursive_sum
+    CALL ...examples.test_register_params.recursive_sum
     ; store , r27
     LD ($F032), HL
     ; return

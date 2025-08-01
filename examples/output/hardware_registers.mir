@@ -23,10 +23,10 @@ Function ...examples.hardware_registers.main() -> void
       6: store , r7
       7: r9 = 1
       8: r10 = 10
-      9: 49
+      9: 51
      10: r12 = 1
      11: r13 = 8
-     12: 49
+     12: 51
      13: r15 = r11 | r14
      14: r16 = 42
      15: r17 = r15 | r16
@@ -38,7 +38,7 @@ Function ...examples.hardware_registers.main() -> void
      21: store , r22
      22: r24 = 150
      23: r25 = 8
-     24: 49
+     24: 51
      25: r27 = 100
      26: r28 = r26 | r27
      27: store , r28

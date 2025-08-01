@@ -5,28 +5,51 @@ Function ...examples.string_operations.str_length(str: *u8) -> u16
   Locals:
     r2 = len: u16
   Instructions:
-      0: r3 = r3 ^ r3 ; XOR A,A (optimized from LD A,0)
+      0: r3 = 0
       1: store , r3
       2: loop_1:
       3: 12
-      4: 59
-      5: r6 = r6 ^ r6 ; XOR A,A (optimized from LD A,0)
+      4: 65
+      5: r6 = 0
       6: r7 = r5 != r6
       7: jump_if_not r7, end_loop_2
-      8: jump loop_1
-      9: end_loop_2:
-     10: r8 = load len
-     11: return r8
+      8: r8 = load len
+      9: r9 = 1
+     10: r10 = r8 + r9
+     11: store len, r10
+     12: 12
+     13: r12 = 1
+     14: r13 = r11 + r12
+     15: store str, r13
+     16: jump loop_1
+     17: end_loop_2:
+     18: r14 = load len
+     19: return r14
 
 Function ...examples.string_operations.str_copy(dest: *u8, src: *u8) -> void
   Instructions:
       0: loop_3:
       1: 12
-      2: 59
-      3: r5 = r5 ^ r5 ; XOR A,A (optimized from LD A,0)
+      2: 65
+      3: r5 = 0
       4: r6 = r4 != r5
       5: jump_if_not r6, end_loop_4
-      6: jump loop_3
-      7: end_loop_4:
-      8: return
+      6: 12
+      7: 65
+      8: 12
+      9: 66 ; Store through pointer
+     10: 12
+     11: r11 = 1
+     12: r12 = r10 + r11
+     13: store dest, r12
+     14: 12
+     15: r14 = 1
+     16: r15 = r13 + r14
+     17: store src, r15
+     18: jump loop_3
+     19: end_loop_4:
+     20: r16 = 0
+     21: 12
+     22: 66 ; Store through pointer
+     23: return
 

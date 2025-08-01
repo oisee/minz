@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -130,7 +130,7 @@ end_loop_2:
     ; Stack-based parameter passing
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL strlen_tsmc
+    CALL ...examples.tsmc_strlen.strlen_tsmc
     ; return r9
     RET
 

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -84,12 +84,11 @@ else_3:
     ; Load parameter dir
     ; r11 = 2
     LD A, 2
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD ($F016), A     ; Virtual register 11 to memory
     ; r12 = r10 == r11
     LD D, H
     LD E, L
+    LD HL, ($F016)    ; Virtual register 11 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -99,15 +98,16 @@ else_3:
 .L5:
     LD HL, 1
 .L6:
-    LD ($F018), HL    ; Virtual register 12 to memory
     ; jump_if_not r12, else_5
-    LD A, ($F018)     ; Virtual register 12 from memory
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, else_5
     ; r13 = 3
     LD A, 3
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD D', A         ; Store to shadow D'
     EXX               ; Switch back to main registers
     ; return r13
     LD SP, IX
@@ -120,7 +120,7 @@ else_5:
     ; r14 = 2
     LD A, 2
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD D', A         ; Store to shadow D'
     EXX               ; Switch back to main registers
     ; return r14
     LD SP, IX
@@ -144,21 +144,18 @@ end_if_2:
     PUSH IX
     LD IX, SP
     ; Load parameters from registers
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD L, A         ; Store to physical register L
     LD A, E       ; Get parameter input
     LD ($F004), A     ; Virtual register 2 to memory
     ; r3 = param current
     ; Load parameter current
     ; r4 = 0
     LD A, 0
-    LD ($F008), A     ; Virtual register 4 to memory
+    LD C, A         ; Store to physical register C
     ; r5 = r3 == r4
     LD HL, ($F006)    ; Virtual register 3 from memory
     LD D, H
     LD E, L
-    LD HL, ($F008)    ; Virtual register 4 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -168,21 +165,19 @@ end_if_2:
 .L7:
     LD HL, 1
 .L8:
-    LD ($F00A), HL    ; Virtual register 5 to memory
     ; jump_if_not r5, else_7
-    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD A, B
     OR A
     JP Z, else_7
     ; r6 = param input
     ; Load parameter input
     ; r7 = 4
     LD A, 4
-    LD ($F00E), A     ; Virtual register 7 to memory
+    LD B, A         ; Store to physical register B
     ; r8 = r6 == r7
     LD HL, ($F00C)    ; Virtual register 6 from memory
     LD D, H
     LD E, L
-    LD HL, ($F00E)    ; Virtual register 7 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -219,8 +214,9 @@ else_7:
     ; Load parameter current
     ; r11 = 1
     LD A, 1
-    LD B, A         ; Store to physical register B
+    ; Register 11 already in A
     ; r12 = r10 == r11
+    LD HL, ($F014)    ; Virtual register 10 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -233,7 +229,7 @@ else_7:
     LD HL, 1
 .L12:
     ; jump_if_not r12, else_11
-    LD A, B
+    ; Register 12 already in A
     OR A
     JP Z, else_11
     ; r13 = param input
@@ -255,14 +251,17 @@ else_7:
     LD HL, 1
 .L14:
     ; jump_if_not r15, else_13
-    LD A, D
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, else_13
     ; r16 = 2
     LD A, 2
-    LD ($F020), A     ; Virtual register 16 to memory
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; return r16
-    LD HL, ($F020)    ; Virtual register 16 from memory
     LD SP, IX
     POP IX
     RET
@@ -274,12 +273,11 @@ else_13:
     ; Load parameter input
     ; r18 = 0
     LD A, 0
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    LD ($F024), A     ; Virtual register 18 to memory
     ; r19 = r17 == r18
     LD D, H
     LD E, L
+    LD HL, ($F024)    ; Virtual register 18 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -290,14 +288,17 @@ else_13:
     LD HL, 1
 .L16:
     ; jump_if_not r19, else_15
-    LD A, E
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, else_15
     ; r20 = 3
     LD A, 3
-    LD ($F028), A     ; Virtual register 20 to memory
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; return r20
-    LD HL, ($F028)    ; Virtual register 20 from memory
     LD SP, IX
     POP IX
     RET
@@ -317,10 +318,11 @@ else_11:
     ; Load parameter current
     ; r22 = 2
     LD A, 2
-    ; Register 22 already in A
+    LD ($F02C), A     ; Virtual register 22 to memory
     ; r23 = r21 == r22
     LD D, H
     LD E, L
+    LD HL, ($F02C)    ; Virtual register 22 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -331,14 +333,14 @@ else_11:
     LD HL, 1
 .L18:
     ; jump_if_not r23, else_17
-    LD A, D
+    LD A, B
     OR A
     JP Z, else_17
     ; r24 = param input
     ; Load parameter input
     ; r25 = 3
     LD A, 3
-    LD H, A         ; Store to physical register H
+    LD E, A         ; Store to physical register E
     ; r26 = r24 == r25
     LD D, H
     LD E, L
@@ -352,12 +354,12 @@ else_11:
     LD HL, 1
 .L20:
     ; jump_if_not r26, else_19
-    LD A, H
+    LD A, B
     OR A
     JP Z, else_19
     ; r27 = 1
     LD A, 1
-    LD E, A         ; Store to physical register E
+    LD B, A         ; Store to physical register B
     ; return r27
     LD SP, IX
     POP IX
@@ -392,13 +394,15 @@ end_if_8:
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 0
     LD A, 0
-    LD D, A         ; Store to physical register D
+    LD ($F004), A     ; Virtual register 2 to memory
     ; store , r2
+    LD HL, ($F004)    ; Virtual register 2 from memory
     LD ($F002), HL
     ; r4 = 3
     LD A, 3
-    LD D, A         ; Store to physical register D
+    LD ($F008), A     ; Virtual register 4 to memory
     ; store , r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
     LD ($F006), HL
     ; r5 = load state
     LD HL, ($F002)
@@ -408,19 +412,19 @@ end_if_8:
     ; r7 = call next_state
     ; Call to next_state (args: 2)
     ; Register-based parameter passing
-    LD A, B
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     ; Parameter current in A
     LD A, ($F00C)     ; Virtual register 6 from memory
     LD E, A       ; Parameter input in E
     ; Found function, UsesTrueSMC=false
-    CALL next_state
+    CALL ...examples.enums.next_state
     ; store state, r7
     LD ($F002), HL
     ; r8 = 0
     LD A, 0
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD H, A         ; Store to physical register H
     ; store player_dir, r8
     LD ($F006), HL
     ; r10 = load player_dir
@@ -428,12 +432,10 @@ end_if_8:
     ; r11 = call opposite
     ; Call to opposite (args: 1)
     ; Register-based parameter passing
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
+    LD A, B
     ; Parameter dir in A
     ; Found function, UsesTrueSMC=false
-    CALL opposite
+    CALL ...examples.enums.opposite
     ; store , r11
     LD ($F012), HL
     ; r12 = load state
@@ -441,7 +443,7 @@ end_if_8:
     ; r13 = 3
     LD A, 3
     EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
+    LD C', A         ; Store to shadow C'
     EXX               ; Switch back to main registers
     ; r14 = call next_state
     ; Call to next_state (args: 2)
@@ -451,11 +453,11 @@ end_if_8:
     EXX               ; Switch back to main registers
     ; Parameter current in A
     EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
+    LD A, C'         ; From shadow C'
     EXX               ; Switch back to main registers
     LD E, A       ; Parameter input in E
     ; Found function, UsesTrueSMC=false
-    CALL next_state
+    CALL ...examples.enums.next_state
     ; store state, r14
     LD ($F002), HL
     ; return

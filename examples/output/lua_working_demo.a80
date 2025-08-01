@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -77,7 +77,7 @@ mul_src2_0: DW 0
     EXX               ; Switch back to main registers
     ; Parameter frames in A
     ; Found function, UsesTrueSMC=false
-    CALL calculate_timing
+    CALL ...examples.lua_working_demo.calculate_timing
     ; store , r7
     LD ($F00A), HL
     ; r9 = 58

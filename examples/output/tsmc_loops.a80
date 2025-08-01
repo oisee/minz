@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Data section
@@ -32,7 +32,8 @@ loop_1:
     ; r7 = load i
     LD HL, ($F00A)
 ...examples.tsmc_loops.sum_array_tsmc_param_count:
-    LD HL, #0000   ; SMC parameter count
+    LD DE, #0000   ; SMC parameter count
+    EX DE, HL      ; Move to HL for storage
     LD ($F010), HL    ; Virtual register 8 to memory
     ; r9 = r7 < r8
     LD D, H
@@ -123,7 +124,8 @@ end_loop_2:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
 ...examples.tsmc_loops.find_max_tsmc_param_count:
-    LD HL, #0000   ; SMC parameter count
+    LD DE, #0000   ; SMC parameter count
+    EX DE, HL      ; Move to HL for storage
     ; Register 3 already in HL
     ; r4 = 0
     LD A, 0
@@ -523,7 +525,8 @@ str$imm0 EQU str$immOP+1
     LD A, (HL)
     LD L, A         ; Store to physical register L
 ...examples.tsmc_loops.count_char_tsmc_param_ch:
-    LD HL, #0000   ; SMC parameter ch (u8->u16)
+    LD DE, #0000   ; SMC parameter ch (u8->u16)
+    EX DE, HL      ; Move to HL for storage
     ; r12 = r10 == r11
     LD D, H
     LD E, L

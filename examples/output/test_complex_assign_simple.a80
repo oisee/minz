@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -250,14 +250,14 @@
     ; r2 = call test_arrays
     ; Call to test_arrays (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_arrays
+    CALL ...examples.test_complex_assign_simple.test_arrays
     ; store , r2
     LD A, L
     LD ($F002), A
     ; r4 = call test_structs
     ; Call to test_structs (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_structs
+    CALL ...examples.test_complex_assign_simple.test_structs
     ; store , r4
     LD A, H
     LD ($F006), A

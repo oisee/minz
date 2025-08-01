@@ -2,6 +2,7 @@
 ; Module: main
 
 Function ...examples.test_abi.smc_function(x: u8, y: u8) -> u8
+  @smc
   Instructions:
       0: 12
       1: 12

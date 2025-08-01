@@ -4,7 +4,8 @@
 Function ...examples.test_lua_v2.test_lua() -> u8
   @smc
   Instructions:
-      0: return
+      0: r1 = 42
+      1: return r1
 
 Function ...examples.test_lua_v2.main() -> void
   @smc

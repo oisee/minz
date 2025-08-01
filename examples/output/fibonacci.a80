@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -18,10 +18,11 @@
     ; Load parameter n
     ; r3 = 1
     LD A, 1
-    LD B, A         ; Store to physical register B
+    LD ($F006), A     ; Virtual register 3 to memory
     ; r4 = r2 <= r3
     LD D, H
     LD E, L
+    LD HL, ($F006)    ; Virtual register 3 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -39,7 +40,6 @@
     ; r5 = param n
     ; Load parameter n
     ; return r5
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     LD SP, IX
     POP IX
     RET
@@ -56,9 +56,8 @@ end_if_2:
     LD ($F000), HL
     ; r9 = 1
     LD A, 1
-    LD ($F012), A     ; Virtual register 9 to memory
+    LD L, A         ; Store to physical register L
     ; store , r9
-    LD HL, ($F012)    ; Virtual register 9 from memory
     LD ($F002), HL
     ; r11 = 2
     LD A, 2
@@ -74,9 +73,7 @@ end_if_2:
 loop_3:
     ; r12 = load i
     LD A, ($F004)
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD B, A         ; Store to physical register B
     ; r13 = param n
     ; Load parameter n
     ; r14 = r12 <= r13
@@ -93,7 +90,9 @@ loop_3:
     LD HL, 1
 .L4:
     ; jump_if_not r14, end_loop_4
-    LD A, D
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, end_loop_4
     ; r16 = load a
@@ -104,29 +103,31 @@ loop_3:
     LD D, H
     LD E, L
     ADD HL, DE
+    LD ($F024), HL    ; Virtual register 18 to memory
     ; store , r18
+    LD HL, ($F024)    ; Virtual register 18 from memory
     LD ($F005), HL
     ; r19 = load b
     LD HL, ($F002)
+    LD ($F026), HL    ; Virtual register 19 to memory
     ; store a, r19
+    LD HL, ($F026)    ; Virtual register 19 from memory
     LD ($F000), HL
     ; r20 = load temp
     LD HL, ($F005)
-    LD ($F028), HL    ; Virtual register 20 to memory
     ; store b, r20
-    LD HL, ($F028)    ; Virtual register 20 from memory
     LD ($F002), HL
     ; r21 = load i
     LD A, ($F004)
-    LD H, A         ; Store to physical register H
+    LD ($F02A), A     ; Virtual register 21 to memory
     ; r22 = 1
     LD A, 1
-    LD L, A         ; Store to physical register L
+    LD H, A         ; Store to physical register H
     ; r23 = r21 + r22
+    LD HL, ($F02A)    ; Virtual register 21 from memory
     LD D, H
     LD E, L
     ADD HL, DE
-    ; Register 23 already in HL
     ; store i, r23
     LD A, L
     LD ($F004), A
@@ -136,7 +137,9 @@ loop_3:
 end_loop_4:
     ; r24 = load b
     LD HL, ($F002)
+    ; Register 24 already in HL
     ; return r24
+    ; Register 24 already in HL
     LD SP, IX
     POP IX
     RET
@@ -148,17 +151,15 @@ end_loop_4:
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 10
     LD A, 10
-    LD L, A         ; Store to physical register L
+    LD H, A         ; Store to physical register H
     ; r3 = call fibonacci
     ; Call to fibonacci (args: 1)
     ; Register-based parameter passing
-    LD A, L
+    LD A, H
     ; Parameter n in A
     ; Found function, UsesTrueSMC=false
-    CALL fibonacci
-    ; Register 3 already in HL
+    CALL ...examples.fibonacci.fibonacci
     ; store , r3
-    ; Register 3 already in HL
     LD ($F002), HL
     ; return
     RET

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Data section
@@ -51,7 +51,7 @@ str_0:
     ; r1 = call test_strings
     ; Call to test_strings (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_strings
+    CALL ...examples.test_strings.test_strings
     ; return
     RET
 

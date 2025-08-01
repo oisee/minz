@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -44,15 +44,14 @@
     LD L, A         ; Store to physical register L
     ; r4 = 10
     LD A, 10
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    LD ($F008), A     ; Virtual register 4 to memory
     ; Initialize loop variable i
     ; for_loop_1:
 for_loop_1:
     ; Check i < end
     LD D, H
     LD E, L
+    LD HL, ($F008)    ; Virtual register 4 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -82,11 +81,10 @@ for_loop_1:
     LD ($F002), HL
     ; r10 = 1
     LD A, 1
-    LD L, A         ; Store to HL (low byte)
+    LD B, A         ; Store to physical register B
     ; Increment i
     LD D, H
     LD E, L
-    ; Register 10 already in HL
     ADD HL, DE
     ; jump for_loop_1
     JP for_loop_1
@@ -94,7 +92,9 @@ for_loop_1:
 for_end_2:
     ; r11 = load sum
     LD HL, ($F002)
+    ; Register 11 already in HL
     ; return r11
+    ; Register 11 already in HL
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
@@ -104,23 +104,22 @@ for_end_2:
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 10
     LD A, 10
-    LD L, A         ; Store to physical register L
+    LD H, A         ; Store to physical register H
     ; r3 = load arr
     LD HL, ($F002)
-    ; Register 3 already in HL
     ; r4 = 0
     LD A, 0
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to HL (low byte)
     ; Calculate array element address
-    ; Register 3 already in HL
     LD D, H
     LD E, L
+    ; Register 4 already in HL
     ADD HL, DE
     LD ($F00A), HL    ; Virtual register 5 to memory
     ; Store to array[index] (u8)
     LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL
-    LD A, L
+    LD A, H
     POP HL
     LD (HL), A
     ; r6 = 20
@@ -455,7 +454,7 @@ ptr$imm0 EQU ptr$immOP+1
     ; r4 = call test_for_loops
     ; Call to test_for_loops (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_for_loops
+    CALL ...examples.test_what_works.test_for_loops
     ; r5 = r3 + r4
     ; Register 3 already in HL
     LD D, H
@@ -471,7 +470,7 @@ ptr$imm0 EQU ptr$immOP+1
     ; r7 = call test_arrays
     ; Call to test_arrays (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_arrays
+    CALL ...examples.test_what_works.test_arrays
     ; r8 = r6 + r7
     ; Register 6 already in HL
     LD D, H
@@ -487,7 +486,7 @@ ptr$imm0 EQU ptr$immOP+1
     ; r10 = call test_structs
     ; Call to test_structs (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_structs
+    CALL ...examples.test_what_works.test_structs
     ; r11 = r9 + r10
     ; Register 9 already in HL
     LD D, H
@@ -503,7 +502,7 @@ ptr$imm0 EQU ptr$immOP+1
     ; r13 = call test_while
     ; Call to test_while (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_while
+    CALL ...examples.test_what_works.test_while
     ; r14 = r12 + r13
     ; Register 12 already in HL
     LD D, H
@@ -525,7 +524,7 @@ ptr$imm0 EQU ptr$immOP+1
     LD A, H
     ; Parameter x in A
     ; Found function, UsesTrueSMC=false
-    CALL test_if
+    CALL ...examples.test_what_works.test_if
     ; r18 = r15 + r17
     ; Register 15 already in HL
     LD D, H

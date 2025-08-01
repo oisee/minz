@@ -21,7 +21,7 @@ Function ...examples.tsmc_loops.sum_array_tsmc(arr: *u8, count: u16) -> u16
       8: jump_if_not r9, end_loop_2
       9: r10 = load sum
      10: 12
-     11: 63
+     11: 65
      12: r13 = r10 + r12
      13: store sum, r13
      14: 12
@@ -53,7 +53,7 @@ Function ...examples.tsmc_loops.find_max_tsmc(arr: *u8, count: u16) -> u8
       7: else_3:
       8: end_if_4:
       9: 12
-     10: 63
+     10: 65
      11: store , r9
      12: 12
      13: r11 = 1
@@ -67,12 +67,12 @@ Function ...examples.tsmc_loops.find_max_tsmc(arr: *u8, count: u16) -> u8
      21: r17 = r15 < r16
      22: jump_if_not r17, end_loop_6
      23: 12
-     24: 63
+     24: 65
      25: r20 = load max
      26: r21 = r19 > r20
      27: jump_if_not r21, else_7
      28: 12
-     29: 63
+     29: 65
      30: store max, r23
      31: jump end_if_8
      32: else_7:
@@ -95,15 +95,15 @@ Function ...examples.tsmc_loops.strcmp_tsmc(s1: *u8, s2: *u8) -> i8
   Instructions:
       0: loop_9:
       1: 12
-      2: 63
+      2: 65
       3: r5 = 0
       4: 12
-      5: 63
-      6: 62
+      5: 65
+      6: 64
       7: r9 = r5 & r8
       8: r10 = r4 != r9
       9: 12
-     10: 63
+     10: 65
      11: r13 = r10 == r12
      12: jump_if_not r13, end_loop_10
      13: 12
@@ -117,20 +117,20 @@ Function ...examples.tsmc_loops.strcmp_tsmc(s1: *u8, s2: *u8) -> i8
      21: jump loop_9
      22: end_loop_10:
      23: 12
-     24: 63
+     24: 65
      25: 12
-     26: 63
+     26: 65
      27: r24 = r21 < r23
      28: jump_if_not r24, else_11
      29: r25 = 1
-     30: 42
+     30: 44
      31: return r26
      32: jump end_if_12
      33: else_11:
      34: 12
-     35: 63
+     35: 65
      36: 12
-     37: 63
+     37: 65
      38: r31 = r28 > r30
      39: jump_if_not r31, else_13
      40: r32 = 1
@@ -152,12 +152,12 @@ Function ...examples.tsmc_loops.count_char_tsmc(str: *u8, ch: u8) -> u16
       1: store , r4
       2: loop_15:
       3: 12
-      4: 63
+      4: 65
       5: r7 = 0
       6: r8 = r6 != r7
       7: jump_if_not r8, end_loop_16
       8: 12
-      9: 63
+      9: 65
      10: 12
      11: r12 = r10 == r11
      12: jump_if_not r12, else_17

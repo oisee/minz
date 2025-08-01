@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -83,7 +83,8 @@
 ...examples.test_abi_comparison.add_smc_param_a:
     LD HL, #0000   ; SMC parameter a (u8->u16)
 ...examples.test_abi_comparison.add_smc_param_b:
-    LD HL, #0000   ; SMC parameter b (u8->u16)
+    LD DE, #0000   ; SMC parameter b (u8->u16)
+    EX DE, HL      ; Move to HL for storage
     ; r5 = r3 + r4
     LD D, H
     LD E, L
@@ -122,19 +123,24 @@
 ...examples.test_abi_comparison.complex_calc_param_a:
     LD HL, #0000   ; SMC parameter a (u8->u16)
 ...examples.test_abi_comparison.complex_calc_param_b:
-    LD HL, #0000   ; SMC parameter b (u8->u16)
+    LD DE, #0000   ; SMC parameter b (u8->u16)
+    EX DE, HL      ; Move to HL for storage
     ; r10 = r8 + r9
     LD D, H
     LD E, L
     ADD HL, DE
 ...examples.test_abi_comparison.complex_calc_param_e:
-    LD HL, #0000   ; SMC parameter e (u8->u16)
+    LD BC, #0000   ; SMC parameter e (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
     ; r12 = r10 + r11
     LD D, H
     LD E, L
     ADD HL, DE
 ...examples.test_abi_comparison.complex_calc_param_f:
-    LD HL, #0000   ; SMC parameter f (u8->u16)
+    LD BC, #0000   ; SMC parameter f (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
     ; r14 = r12 + r13
     LD D, H
     LD E, L
@@ -142,10 +148,14 @@
     ; store , r14
     LD ($F00E), HL
 ...examples.test_abi_comparison.complex_calc_param_c:
-    LD HL, #0000   ; SMC parameter c
+    LD BC, #0000   ; SMC parameter c
+    LD H, B
+    LD L, C        ; Move to HL for storage
     LD ($F020), HL    ; Virtual register 16 to memory
 ...examples.test_abi_comparison.complex_calc_param_d:
-    LD HL, #0000   ; SMC parameter d
+    LD BC, #0000   ; SMC parameter d
+    LD H, B
+    LD L, C        ; Move to HL for storage
     LD B, H
     LD C, L
     ; r18 = r16 + r17
@@ -155,9 +165,7 @@
     LD H, B
     LD L, C
     ADD HL, DE
-    ; Register 18 already in HL
     ; store , r18
-    ; Register 18 already in HL
     LD ($F01E), HL
     ; r19 = load sum1
     LD HL, ($F00E)
@@ -233,7 +241,7 @@ end_if_2:
     ; Stack-based parameter passing
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL factorial
+    CALL ...examples.test_abi_comparison.factorial
     ; r11 = r6 * r10
     ; 8-bit multiplication
     LD A, H
@@ -409,7 +417,7 @@ end_loop_4:
     LD A, ($F006)     ; Virtual register 3 from memory
     LD E, A       ; Parameter b in E
     ; Found function, UsesTrueSMC=false
-    CALL add_auto
+    CALL ...examples.test_abi_comparison.add_auto
     ; store , r4
     LD (IX-2), L
     LD (IX-1), H
@@ -427,7 +435,7 @@ end_loop_4:
     LD A, H
     LD E, A       ; Parameter b in E
     ; Found function, UsesTrueSMC=false
-    CALL add_register
+    CALL ...examples.test_abi_comparison.add_register
     ; store , r8
     LD (IX-4), L
     LD (IX-3), H
@@ -445,7 +453,7 @@ end_loop_4:
     LD A, L
     LD E, A       ; Parameter b in E
     ; Found function, UsesTrueSMC=false
-    CALL add_stack
+    CALL ...examples.test_abi_comparison.add_stack
     LD ($F018), HL    ; Virtual register 12 to memory
     ; store , r12
     LD HL, ($F018)    ; Virtual register 12 from memory
@@ -464,7 +472,7 @@ end_loop_4:
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL add_smc
+    CALL ...examples.test_abi_comparison.add_smc
     ; store , r16
     LD (IX-8), L
     LD (IX-7), H
@@ -482,7 +490,7 @@ end_loop_4:
     LD A, H
     LD E, A       ; Parameter b in E
     ; Found function, UsesTrueSMC=false
-    CALL add_virtual
+    CALL ...examples.test_abi_comparison.add_virtual
     ; store , r20
     LD (IX-10), L
     LD (IX-9), H
@@ -516,7 +524,7 @@ end_loop_4:
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL complex_calc
+    CALL ...examples.test_abi_comparison.complex_calc
     LD ($F038), HL    ; Virtual register 28 to memory
     ; store , r28
     LD HL, ($F038)    ; Virtual register 28 from memory
@@ -530,7 +538,7 @@ end_loop_4:
     ; Stack-based parameter passing
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL factorial
+    CALL ...examples.test_abi_comparison.factorial
     LD ($F03E), HL    ; Virtual register 31 to memory
     ; store , r31
     LD HL, ($F03E)    ; Virtual register 31 from memory
@@ -587,7 +595,7 @@ end_loop_4:
     ; Parameter src in DE
     PUSH HL       ; Parameter count on stack
     ; Found function, UsesTrueSMC=false
-    CALL memcpy
+    CALL ...examples.test_abi_comparison.memcpy
     ; return
     LD SP, IX
     POP IX

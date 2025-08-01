@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -34,7 +34,8 @@
     OR A
     JP Z, else_1
 ...examples.fibonacci_tail.fib_tail_param_a:
-    LD HL, #0000   ; SMC parameter a
+    LD DE, #0000   ; SMC parameter a
+    EX DE, HL      ; Move to HL for storage
     LD ($F00E), HL    ; Virtual register 7 to memory
     ; return r7
     LD HL, ($F00E)    ; Virtual register 7 from memory
@@ -73,7 +74,9 @@ end_if_2:
     OR A
     JP Z, else_3
 ...examples.fibonacci_tail.fib_tail_param_b:
-    LD HL, #0000   ; SMC parameter b
+    LD BC, #0000   ; SMC parameter b
+    LD H, B
+    LD L, C        ; Move to HL for storage
     LD B, H
     LD C, L
     ; return r11
@@ -122,7 +125,7 @@ end_if_4:
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL fib_tail
+    CALL ...examples.fibonacci_tail.fib_tail
     ; Register 19 already in HL
     ; return r19
     ; Register 19 already in HL
@@ -152,7 +155,7 @@ end_if_4:
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL fib_tail
+    CALL ...examples.fibonacci_tail.fib_tail
     ; return r5
     LD SP, IX
     POP IX
@@ -172,7 +175,7 @@ end_if_4:
     LD A, L
     ; Parameter n in A
     ; Found function, UsesTrueSMC=false
-    CALL fibonacci
+    CALL ...examples.fibonacci_tail.fibonacci
     ; Register 3 already in HL
     ; store , r3
     ; Register 3 already in HL

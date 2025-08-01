@@ -6,7 +6,7 @@ Function ...examples.bit_manipulation.set_bit(value: u8, bit: u8) -> u8
       0: 12
       1: r4 = 1
       2: 12
-      3: 49
+      3: 51
       4: r7 = r3 | r6
       5: return r7
 
@@ -15,7 +15,7 @@ Function ...examples.bit_manipulation.clear_bit(value: u8, bit: u8) -> u8
       0: 12
       1: r4 = 1
       2: 12
-      3: 49
+      3: 51
       4: r7 = ~r6
       5: r8 = r3 & r7
       6: return r8
@@ -25,7 +25,7 @@ Function ...examples.bit_manipulation.toggle_bit(value: u8, bit: u8) -> u8
       0: 12
       1: r4 = 1
       2: 12
-      3: 49
+      3: 51
       4: r7 = r3 ^ r6
       5: return r7
 
@@ -34,7 +34,7 @@ Function ...examples.bit_manipulation.test_bit(value: u8, bit: u8) -> bool
       0: 12
       1: r4 = 1
       2: 12
-      3: 49
+      3: 51
       4: r7 = r3 & r6
       5: r8 = 0
       6: r9 = r7 != r8
@@ -59,7 +59,7 @@ Function ...examples.bit_manipulation.count_bits(value: u8) -> u8
      12: store count, r11
      13: 12
      14: r13 = 1
-     15: 50
+     15: 52
      16: store value, r14
      17: jump loop_1
      18: end_loop_2:

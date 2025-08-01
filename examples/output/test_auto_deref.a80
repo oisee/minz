@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -72,7 +72,7 @@
     LD HL, ($F006)
     ; r7 = 1
     LD A, 1
-    LD L, A         ; Store to physical register L
+    LD H, A         ; Store to physical register H
     ; r8 = r6 + r7
     LD D, H
     LD E, L
@@ -124,7 +124,7 @@ ptr$imm0 EQU ptr$immOP+1
     ; r1 = call test_basic_auto_deref
     ; Call to test_basic_auto_deref (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_basic_auto_deref
+    CALL ...examples.test_auto_deref.test_basic_auto_deref
     ; Register 1 already in HL
     ; return r1
     ; Register 1 already in HL

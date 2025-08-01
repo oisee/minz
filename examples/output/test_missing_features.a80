@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -33,7 +33,7 @@
     ; Register 1 already in A
     ; Parameter color in A
     ; Found function, UsesTrueSMC=false
-    CALL test_match
+    CALL ...examples.test_missing_features.test_match
     ; return r2
     RET
 

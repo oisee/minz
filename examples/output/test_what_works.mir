@@ -41,12 +41,12 @@ Function ...examples.test_what_works.test_arrays() -> u8
       1: r3 = load arr
       2: r4 = 0
       3: r5 = r3 + r4 ; Calculate array element address
-      4: 61 ; Store to array[index] (u8)
+      4: 63 ; Store to array[index] (u8)
       5: r6 = 20
       6: r7 = load arr
       7: r8 = 1
       8: r9 = r7 + r8 ; Calculate array element address
-      9: 61 ; Store to array[index] (u8)
+      9: 63 ; Store to array[index] (u8)
      10: r10 = load arr
      11: r11 = 0
      12: 15 ; Load array element (u8)
@@ -127,7 +127,7 @@ Function ...examples.test_what_works.test_tsmc(ptr: *u8) -> u8
     r2 = result: u8
   Instructions:
       0: 12
-      1: 63
+      1: 65
       2: store , r4
       3: 12
       4: r6 = 1

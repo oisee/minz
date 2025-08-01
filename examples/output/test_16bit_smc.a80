@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -90,7 +90,7 @@ mul_src2_0: DW 0
     ; Register 4 already in HL
     PUSH HL       ; Parameter c on stack
     ; Found function, UsesTrueSMC=false
-    CALL multiply_add
+    CALL ...examples.test_16bit_smc.multiply_add
     ; store , r5
     LD ($F002), HL
     ; return

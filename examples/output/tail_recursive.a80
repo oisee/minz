@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -34,7 +34,8 @@
     OR A
     JP Z, else_1
 ...examples.tail_recursive.factorial_tail_param_acc:
-    LD HL, #0000   ; SMC parameter acc
+    LD DE, #0000   ; SMC parameter acc
+    EX DE, HL      ; Move to HL for storage
     LD ($F00C), HL    ; Virtual register 6 to memory
     ; return r6
     LD HL, ($F00C)    ; Virtual register 6 from memory
@@ -94,7 +95,7 @@ end_if_2:
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL factorial_tail
+    CALL ...examples.tail_recursive.factorial_tail
     ; return r13
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -118,7 +119,7 @@ end_if_2:
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL factorial_tail
+    CALL ...examples.tail_recursive.factorial_tail
     ; return r4
     LD SP, IX
     POP IX
@@ -162,7 +163,8 @@ end_if_2:
     OR A
     JP Z, else_3
 ...examples.tail_recursive.sum_tail_param_acc:
-    LD HL, #0000   ; SMC parameter acc
+    LD DE, #0000   ; SMC parameter acc
+    EX DE, HL      ; Move to HL for storage
     ; Register 6 already in HL
     ; return r6
     ; Register 6 already in HL
@@ -205,7 +207,7 @@ end_if_4:
     LD HL, ($F012)    ; Virtual register 9 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL sum_tail
+    CALL ...examples.tail_recursive.sum_tail
     ; Register 13 already in HL
     ; return r13
     ; Register 13 already in HL
@@ -225,7 +227,7 @@ end_if_4:
     LD A, H
     ; Parameter n in A
     ; Found function, UsesTrueSMC=false
-    CALL factorial
+    CALL ...examples.tail_recursive.factorial
     ; store , r3
     LD ($F002), HL
     ; r5 = 100
@@ -240,7 +242,7 @@ end_if_4:
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL sum_tail
+    CALL ...examples.tail_recursive.sum_tail
     ; Register 7 already in HL
     ; store , r7
     ; Register 7 already in HL

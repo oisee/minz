@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -29,12 +29,14 @@
     LD ($F004), HL
     ; r7 = load arr
     LD HL, ($F002)
+    LD ($F00E), HL    ; Virtual register 7 to memory
     ; r8 = 5
     LD A, 5
-    LD H, A         ; Store to physical register H
+    LD ($F010), A     ; Virtual register 8 to memory
     ; Load array element (u8)
+    LD HL, ($F00E)    ; Virtual register 7 from memory
     PUSH HL
-    LD A, H
+    LD A, ($F010)     ; Virtual register 8 from memory
     LD E, A
     LD D, 0
     POP HL
@@ -45,30 +47,29 @@
     LD ($F00C), HL
     ; r11 = 3
     LD A, 3
-    LD ($F016), A     ; Virtual register 11 to memory
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; store , r11
-    LD A, ($F016)     ; Virtual register 11 from memory
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     LD ($F014), A
     ; r13 = load arr
     LD HL, ($F002)
     ; r14 = load i
     LD A, ($F014)
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD E, A         ; Store to physical register E
     ; Load array element (u8)
     PUSH HL
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
+    LD A, E
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    LD ($F01E), A     ; Virtual register 15 to memory
+    LD E, A         ; Store to physical register E
     ; store , r15
-    LD HL, ($F01E)    ; Virtual register 15 from memory
     LD ($F018), HL
     ; r16 = load z
     LD HL, ($F018)
@@ -83,7 +84,7 @@
     ; r2 = call test_array
     ; Call to test_array (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_array
+    CALL ...examples.test_array_access.test_array
     ; store , r2
     LD ($F002), HL
     ; return

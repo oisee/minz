@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -39,16 +39,16 @@
     LD ($F004), A     ; Virtual register 2 to memory
     ; r3 = 3
     LD A, 3
-    LD ($F006), A     ; Virtual register 3 to memory
+    LD H, A         ; Store to physical register H
     ; r4 = call add_nums
     ; Call to add_nums (args: 2)
     ; Register-based parameter passing
     LD A, ($F004)     ; Virtual register 2 from memory
     ; Parameter x in A
-    LD A, ($F006)     ; Virtual register 3 from memory
+    LD A, H
     LD E, A       ; Parameter y in E
     ; Found function, UsesTrueSMC=false
-    CALL add_nums
+    CALL ...examples.test_smc_patching.add_nums
     ; store , r4
     LD ($F002), HL
     ; r6 = 10
@@ -73,7 +73,7 @@
     EXX               ; Switch back to main registers
     LD E, A       ; Parameter y in E
     ; Found function, UsesTrueSMC=false
-    CALL add_nums
+    CALL ...examples.test_smc_patching.add_nums
     ; store , r8
     LD ($F00A), HL
     ; r10 = load a
@@ -83,12 +83,14 @@
     ; r12 = call add_nums
     ; Call to add_nums (args: 2)
     ; Register-based parameter passing
-    ; Register 10 already in A
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     ; Parameter x in A
-    LD A, D
+    LD A, C
     LD E, A       ; Parameter y in E
     ; Found function, UsesTrueSMC=false
-    CALL add_nums
+    CALL ...examples.test_smc_patching.add_nums
     ; store , r12
     LD ($F012), HL
     ; r13 = load c
@@ -104,7 +106,7 @@
     ; r1 = call calculate
     ; Call to calculate (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL calculate
+    CALL ...examples.test_smc_patching.calculate
     ; return r1
     RET
 

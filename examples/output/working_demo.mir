@@ -20,10 +20,10 @@ Function ...examples.working_demo.init() -> void
       7: r6 = r4 < r5
       8: jump_if_not r6, end_loop_2
       9: r7 = load i
-     10: 68
+     10: 70
      11: r9 = load i
      12: r10 = r8 + r9 ; Calculate array element address
-     13: 61 ; Store to array[index] (u8)
+     13: 63 ; Store to array[index] (u8)
      14: r11 = load i
      15: r12 = 1
      16: r13 = r11 + r12
@@ -45,17 +45,17 @@ Function ...examples.working_demo.process() -> void
       4: r4 = 16
       5: r5 = r3 < r4
       6: jump_if_not r5, end_loop_4
-      7: 68
+      7: 70
       8: r8 = load i
       9: 15 ; Load array element (u8)
      10: store , r9
      11: r10 = load val
      12: r11 = 1
      13: r12 = r10 + r11
-     14: 68
+     14: 70
      15: r14 = load i
      16: r15 = r13 + r14 ; Calculate array element address
-     17: 61 ; Store to array[index] (u8)
+     17: 63 ; Store to array[index] (u8)
      18: r16 = load i
      19: r17 = 1
      20: r18 = r16 + r17
@@ -87,7 +87,7 @@ Function ...examples.working_demo.main() -> void
       5: r4 = call process
       6: jump loop_5
       7: end_loop_6:
-      8: 68
+      8: 70
       9: r6 = 0
      10: 15 ; Load array element (u8)
      11: r8 = 10

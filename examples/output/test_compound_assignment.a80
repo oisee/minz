@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -19,9 +19,8 @@
     LD ($F002), A
     ; r4 = 100
     LD A, 100
-    LD ($F008), A     ; Virtual register 4 to memory
+    LD C, A         ; Store to physical register C
     ; store , r4
-    LD HL, ($F008)    ; Virtual register 4 from memory
     LD ($F006), HL
     ; r5 = 5
     LD A, 5
@@ -33,12 +32,15 @@
     LD D, H
     LD E, L
     ADD HL, DE
+    LD ($F00E), HL    ; Virtual register 7 to memory
     ; store x, r7
-    LD A, L
+    LD A, ($F00E)     ; Virtual register 7 from memory
     LD ($F002), A
     ; r8 = 3
     LD A, 3
-    LD ($F010), A     ; Virtual register 8 to memory
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r9 = load x
     LD A, ($F002)
     EXX               ; Switch to shadow registers
@@ -47,7 +49,6 @@
     ; Compound assignment x -=
     LD D, H
     LD E, L
-    LD HL, ($F010)    ; Virtual register 8 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -63,10 +64,10 @@
     EXX               ; Switch back to main registers
     ; r12 = load x
     LD A, ($F002)
-    LD D, A         ; Store to physical register D
+    ; Register 12 already in A
     ; Compound assignment x *=
     ; 8-bit multiplication
-    LD A, D
+    ; Register 12 already in A
     LD B, A       ; B = multiplicand
     EXX               ; Switch to shadow registers
     LD A, E'         ; From shadow E'
@@ -83,12 +84,13 @@
     DEC C
     JR NZ, .mul_loop_0
 .mul_done_0:
+    LD ($F01A), HL    ; Virtual register 13 to memory
     ; store x, r13
-    LD A, D
+    LD A, ($F01A)     ; Virtual register 13 from memory
     LD ($F002), A
     ; r14 = 4
     LD A, 4
-    LD B, A         ; Store to physical register B
+    ; Register 14 already in A
     ; r15 = load x
     LD A, ($F002)
     LD ($F01E), A     ; Virtual register 15 to memory
@@ -96,7 +98,7 @@
     ; 8-bit division
     LD A, ($F01E)     ; Virtual register 15 from memory
     LD D, A       ; D = dividend
-    LD A, B
+    ; Register 14 already in A
     LD E, A       ; E = divisor
     OR A          ; Check for divide by zero
     JR Z, .div_by_zero_1
@@ -114,13 +116,11 @@
     LD L, B       ; Result in L
     LD H, 0
     ; store x, r16
-    EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
-    EXX               ; Switch back to main registers
+    LD A, L
     LD ($F002), A
     ; r17 = 4
     LD A, 4
-    ; Register 17 already in A
+    LD ($F022), A     ; Virtual register 17 to memory
     ; r18 = load x
     LD A, ($F002)
     ; Register 18 already in A
@@ -128,7 +128,7 @@
     ; 8-bit modulo
     ; Register 18 already in A
     LD D, A       ; D = dividend
-    ; Register 17 already in A
+    LD A, ($F022)     ; Virtual register 17 from memory
     LD E, A       ; E = divisor
     OR A          ; Check for divide by zero
     JR Z, .mod_by_zero_2
@@ -144,11 +144,11 @@
     LD L, A       ; Result (remainder) in L
     LD H, 0
     ; store x, r19
-    LD A, C
+    ; Register 19 already in A
     LD ($F002), A
     ; r20 = 50
     LD A, 50
-    LD C, A         ; Store to physical register C
+    LD L, A         ; Store to physical register L
     ; r21 = load y
     LD HL, ($F006)
     ; Compound assignment y +=
@@ -330,13 +330,13 @@ mul_src2_3: DW 0
     ; r2 = call test_compound_ops
     ; Call to test_compound_ops (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_compound_ops
+    CALL ...examples.test_compound_assignment.test_compound_ops
     ; store , r2
     LD ($F002), HL
     ; r4 = call test_compound_in_expressions
     ; Call to test_compound_in_expressions (args: 0)
     ; Found function, UsesTrueSMC=false
-    CALL test_compound_in_expressions
+    CALL ...examples.test_compound_assignment.test_compound_in_expressions
     LD ($F008), HL    ; Virtual register 4 to memory
     ; store , r4
     LD A, ($F008)     ; Virtual register 4 from memory

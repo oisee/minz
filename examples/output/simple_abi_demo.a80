@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -14,7 +14,8 @@
 ...examples.simple_abi_demo.smc_add_param_x:
     LD HL, #0000   ; SMC parameter x (u8->u16)
 ...examples.simple_abi_demo.smc_add_param_y:
-    LD HL, #0000   ; SMC parameter y (u8->u16)
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
     ; r5 = r3 + r4
     LD D, H
     LD E, L

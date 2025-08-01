@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -158,7 +158,7 @@
     LD A, ($F006)     ; Virtual register 3 from memory
     LD E, A       ; Parameter b in E
     ; Found function, UsesTrueSMC=false
-    CALL simple_add
+    CALL ...examples.register_test.simple_add
     ; store , r4
     LD ($F002), HL
     ; r6 = 100
@@ -179,7 +179,7 @@
     LD HL, ($F010)    ; Virtual register 8 from memory
     PUSH HL       ; Parameter z on stack
     ; Found function, UsesTrueSMC=false
-    CALL complex_calc
+    CALL ...examples.register_test.complex_calc
     ; Register 9 already in HL
     ; store , r9
     ; Register 9 already in HL

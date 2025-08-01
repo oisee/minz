@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -63,7 +63,7 @@ end_if_2:
     ; Stack-based parameter passing
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL factorial
+    CALL ...examples.recursion_examples.factorial
     ; r11 = r6 * r10
     ; 16-bit multiplication
     LD (mul_src1_2), HL  ; Save multiplicand
@@ -95,7 +95,8 @@ mul_src2_2: DW 0
 ; Using absolute addressing for locals (SMC style)
 ; Recursive context handled via stack push/pop of SMC parameters
 ...examples.recursion_examples.gcd_param_b:
-    LD HL, #0000   ; SMC parameter b (u8->u16)
+    LD DE, #0000   ; SMC parameter b (u8->u16)
+    EX DE, HL      ; Move to HL for storage
     ; r4 = 0
     LD A, 0
     LD ($F008), A     ; Virtual register 4 to memory
@@ -160,7 +161,7 @@ end_if_4:
     LD HL, ($F00E)    ; Virtual register 7 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL gcd
+    CALL ...examples.recursion_examples.gcd
     ; return r11
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -390,7 +391,7 @@ else_7:
     LD L, C
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL binary_search
+    CALL ...examples.recursion_examples.binary_search
     ; return r36
     LD SP, IX
     POP IX
@@ -430,7 +431,7 @@ else_9:
     LD HL, ($F04A)    ; Virtual register 37 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL binary_search
+    CALL ...examples.recursion_examples.binary_search
     ; Register 43 already in HL
     ; return r43
     ; Register 43 already in HL

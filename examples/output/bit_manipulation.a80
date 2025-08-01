@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:35
+; Generated: 2025-08-01 09:30:34
 
 
 ; Code section
@@ -82,7 +82,9 @@
     LD A, B'         ; From shadow B'
     EXX               ; Switch back to main registers
     LD B, A       ; B = value to shift
-    LD A, ($F00A)     ; Virtual register 5 from memory
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -123,21 +125,25 @@
     PUSH IX
     LD IX, SP
     ; Load parameters from registers
-    LD E, A         ; Store to physical register E
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     LD A, E       ; Get parameter bit
     LD ($F004), A     ; Virtual register 2 to memory
     ; r3 = param value
     ; Load parameter value
     ; r4 = 1
     LD A, 1
-    LD ($F008), A     ; Virtual register 4 to memory
+    LD E, A         ; Store to physical register E
     ; r5 = param bit
     ; Load parameter bit
     ; r6 = r4 << r5
     ; Shift left
-    LD A, ($F008)     ; Virtual register 4 from memory
+    LD A, E
     LD B, A       ; B = value to shift
-    LD A, L
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -172,21 +178,25 @@
     PUSH IX
     LD IX, SP
     ; Load parameters from registers
-    ; Register 1 already in A
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     LD A, E       ; Get parameter bit
     LD ($F004), A     ; Virtual register 2 to memory
     ; r3 = param value
     ; Load parameter value
     ; r4 = 1
     LD A, 1
-    ; Register 4 already in A
+    LD ($F008), A     ; Virtual register 4 to memory
     ; r5 = param bit
     ; Load parameter bit
     ; r6 = r4 << r5
     ; Shift left
-    ; Register 4 already in A
+    LD A, ($F008)     ; Virtual register 4 from memory
     LD B, A       ; B = value to shift
-    LD A, ($F00A)     ; Virtual register 5 from memory
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -200,11 +210,9 @@
 .shl_done_3:
     LD L, A
     LD H, 0
-    LD ($F00C), HL    ; Virtual register 6 to memory
     ; r7 = r3 & r6
     LD D, H
     LD E, L
-    LD HL, ($F00C)    ; Virtual register 6 from memory
     LD A, L
     AND E
     LD L, A
@@ -213,7 +221,7 @@
     LD H, A
     ; r8 = 0
     LD A, 0
-    LD L, A         ; Store to physical register L
+    LD E, A         ; Store to physical register E
     ; r9 = r7 != r8
     LD D, H
     LD E, L
@@ -238,9 +246,7 @@
     PUSH IX
     LD IX, SP
     ; Load parameters from registers
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD E, A         ; Store to physical register E
     ; r3 = 0
     LD A, 0
     LD ($F006), A     ; Virtual register 3 to memory
@@ -253,10 +259,9 @@ loop_1:
     ; Load parameter value
     ; r5 = 0
     LD A, 0
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD L, A         ; Store to physical register L
     ; r6 = r4 != r5
+    LD HL, ($F008)    ; Virtual register 4 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -268,20 +273,20 @@ loop_1:
 .L7:
     LD HL, 1
 .L8:
-    LD ($F00C), HL    ; Virtual register 6 to memory
     ; jump_if_not r6, end_loop_2
-    LD A, ($F00C)     ; Virtual register 6 from memory
+    ; Register 6 already in A
     OR A
     JP Z, end_loop_2
     ; r7 = load count
     LD A, ($F000)
-    LD ($F00E), A     ; Virtual register 7 to memory
+    ; Register 7 already in A
     ; r8 = param value
     ; Load parameter value
     ; r9 = 1
     LD A, 1
-    LD E, A         ; Store to physical register E
+    LD D, A         ; Store to physical register D
     ; r10 = r8 & r9
+    LD HL, ($F010)    ; Virtual register 8 from memory
     LD D, H
     LD E, L
     LD A, L
@@ -291,28 +296,28 @@ loop_1:
     AND D
     LD H, A
     ; r11 = r7 + r10
-    LD HL, ($F00E)    ; Virtual register 7 from memory
     LD D, H
     LD E, L
     ADD HL, DE
+    LD ($F016), HL    ; Virtual register 11 to memory
     ; store count, r11
-    LD A, D
+    LD A, ($F016)     ; Virtual register 11 from memory
     LD ($F000), A
     ; r12 = param value
     ; Load parameter value
     ; r13 = 1
     LD A, 1
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD C', A         ; Store to shadow C'
     EXX               ; Switch back to main registers
     ; r14 = r12 >> r13
     ; Shift right
     EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
+    LD A, C'         ; From shadow C'
     EXX               ; Switch back to main registers
     LD B, A       ; B = value to shift
     EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
+    LD A, C'         ; From shadow C'
     EXX               ; Switch back to main registers
     LD C, A       ; C = shift count
     LD A, B       ; A = value
@@ -335,9 +340,7 @@ loop_1:
 end_loop_2:
     ; r15 = load count
     LD A, ($F000)
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    LD B, A         ; Store to physical register B
     ; return r15
     LD SP, IX
     POP IX

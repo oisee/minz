@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-07-30 12:27:36
+; Generated: 2025-08-01 09:30:35
 
 
 ; Code section
@@ -14,7 +14,8 @@
 ...examples.test_abi.smc_function_param_x:
     LD HL, #0000   ; SMC parameter x (u8->u16)
 ...examples.test_abi.smc_function_param_y:
-    LD HL, #0000   ; SMC parameter y (u8->u16)
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
     ; r5 = r3 + r4
     LD D, H
     LD E, L
@@ -127,57 +128,57 @@
     LD ($F004), HL    ; Virtual register 2 to memory
     ; r4 = 5
     LD A, 5
-    ; Register 4 already in A
+    LD ($F008), A     ; Virtual register 4 to memory
     ; r5 = 10
     LD A, 10
-    LD ($F00A), A     ; Virtual register 5 to memory
+    LD H, A         ; Store to physical register H
     ; r6 = call smc_function
     ; Call to smc_function (args: 2)
     ; Stack-based parameter passing
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL       ; Argument 1
+    LD HL, ($F008)    ; Virtual register 4 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
-    CALL smc_function
+    CALL ...examples.test_abi.smc_function
     ; store , r6
     LD (IX-2), L
     LD (IX-1), H
     ; r8 = 3
     LD A, 3
-    LD ($F010), A     ; Virtual register 8 to memory
+    LD H, A         ; Store to physical register H
     ; r9 = 4
     LD A, 4
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
     ; r10 = call register_function
     ; Call to register_function (args: 2)
     ; Register-based parameter passing
-    LD A, ($F010)     ; Virtual register 8 from memory
-    ; Parameter a in A
     LD A, H
+    ; Parameter a in A
+    LD A, L
     LD E, A       ; Parameter b in E
     ; Found function, UsesTrueSMC=false
-    CALL register_function
+    CALL ...examples.test_abi.register_function
+    LD ($F014), HL    ; Virtual register 10 to memory
     ; store , r10
+    LD HL, ($F014)    ; Virtual register 10 from memory
     LD (IX-4), L
     LD (IX-3), H
     ; r12 = 20
     LD A, 20
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
     ; r13 = 5
     LD A, 5
-    LD L, A         ; Store to physical register L
+    LD L, A         ; Store to HL (low byte)
     ; r14 = call mapped_function
     ; Call to mapped_function (args: 2)
     ; Register-based parameter passing
-    LD A, H
+    LD A, L
     ; Parameter x in A
     LD A, L
     LD E, A       ; Parameter y in E
     ; Found function, UsesTrueSMC=false
-    CALL mapped_function
-    ; Register 14 already in HL
+    CALL ...examples.test_abi.mapped_function
     ; store , r14
-    ; Register 14 already in HL
     LD (IX-6), L
     LD (IX-5), H
     ; r16 = 1000
@@ -194,7 +195,7 @@
     LD A, L
     LD E, A       ; Parameter count in E
     ; Found function, UsesTrueSMC=false
-    CALL stack_function
+    CALL ...examples.test_abi.stack_function
     ; store , r18
     LD (IX-8), L
     LD (IX-7), H

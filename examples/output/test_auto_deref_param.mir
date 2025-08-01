@@ -4,7 +4,7 @@
 Function ...examples.test_auto_deref_param.modify_through_ptr(p: *u8) -> void
   Instructions:
       0: r2 = 42
-      1: 64 ; Auto-deref assignment
+      1: 66 ; Auto-deref assignment
       2: return
 
 Function ...examples.test_auto_deref_param.add_through_ptr(p: *u8) -> void

@@ -7,21 +7,21 @@
 Function ...examples.test_loop_no_init.main() -> void
   @smc
   Instructions:
-      0: 68
-      1: 68 ; Load table base address
-      2: 68 ; Load table base for end calculation
-      3: 73 ; Calculate table end (+ 3 elements * 1 bytes)
-      4: 72 ; Load loop counter
+      0: 70
+      1: 70 ; Load table base address
+      2: 70 ; Load table base for end calculation
+      3: 75 ; Calculate table end (+ 3 elements * 1 bytes)
+      4: 74 ; Load loop counter
       5: loop_start_1:
-      6: 51 ; Check if reached end of table
+      6: 53 ; Check if reached end of table
       7: 3 ; Exit if done
-      8: 69 ; Copy element to buffer at $F000
+      8: 71 ; Copy element to buffer at $F000
       9: r6 = 42
      10: r7 = load item
      11: 14 ; Store to field value (offset 0)
-     12: 70 ; Copy buffer back to element at $F000
-     13: 73 ; Advance to next element (+1 bytes)
-     14: 71 ; Decrement counter and loop if not zero
+     12: 72 ; Copy buffer back to element at $F000
+     13: 75 ; Advance to next element (+1 bytes)
+     14: 73 ; Decrement counter and loop if not zero
      15: loop_end_2:
      16: return
 

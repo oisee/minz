@@ -1,23 +1,23 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
-Function test_strings.test_strings() -> void
+Function ...examples.test_strings.test_strings() -> void
   @smc
   Locals:
     r1 = msg: *u8
-    r3 = name: *u8
-    r5 = empty: *u8
+    r3 = ch: u8
   Instructions:
       0: 20 ; Load string "Hello, World!"
       1: store , r2
-      2: 20 ; Load string "MinZ"
-      3: store , r4
-      4: 20 ; Load string ""
+      2: r4 = load msg
+      3: r5 = 0
+      4: 15 ; Load array element (u8)
       5: store , r6
       6: return
 
-Function test_strings.main() -> void
+Function ...examples.test_strings.main() -> void
   @smc
   Instructions:
-      0: return
+      0: r1 = call test_strings
+      1: return
 

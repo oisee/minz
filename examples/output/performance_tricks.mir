@@ -17,11 +17,11 @@ Function ...examples.performance_tricks.lookup_mul_by_10(x: u8) -> u16
   Instructions:
       0: 12
       1: r4 = 1
-      2: 49
+      2: 51
       3: store , r5
       4: 12
       5: r8 = 3
-      6: 49
+      6: 51
       7: store , r9
       8: r10 = load x2
       9: r11 = load x8

@@ -1,14 +1,73 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
+Function screen.pixel_addr(x: u8, y: u8) -> u16
+  Locals:
+    r3 = y_high: u8
+    r7 = y_mid: u8
+    r13 = y_low: u8
+    r17 = addr: u16
+  Instructions:
+      0: 12
+      1: r5 = 192
+      2: r6 = r4 & r5
+      3: store , r6
+      4: 12
+      5: r9 = 56
+      6: r10 = r8 & r9
+      7: r11 = 3
+      8: 52
+      9: store , r12
+     10: 12
+     11: r15 = 7
+     12: r16 = r14 & r15
+     13: store , r16
+     14: r18 = 16384
+     15: r19 = load y_low
+     16: r20 = 8
+     17: 51
+     18: r22 = r18 | r21
+     19: r23 = load y_mid
+     20: r24 = 5
+     21: 51
+     22: r26 = r22 | r25
+     23: r27 = load y_high
+     24: r28 = 5
+     25: 51
+     26: r30 = r26 | r29
+     27: 12
+     28: r32 = 3
+     29: 52
+     30: r34 = r30 | r33
+     31: store , r34
+     32: r35 = load addr
+     33: return r35
+
+Function screen.attr_addr(x: u8, y: u8) -> u16
+  Instructions:
+      0: r3 = 22528
+      1: 12
+      2: r5 = 32
+      3: r6 = r4 * r5
+      4: r7 = r3 + r6
+      5: 12
+      6: r9 = r7 + r8
+      7: return r9
+
 Function ...examples.test_imports.main() -> void
   @smc
   Locals:
-    r1 = addr: u16
+    r7 = addr: u16
   Instructions:
-      0: r2 = 5
-      1: r3 = 5
-      2: r4 = call screen.attr_addr
-      3: store , r4
-      4: return
+      0: r1 = 10
+      1: r2 = 20
+      2: r3 = call screen.set_pixel
+      3: r4 = 30
+      4: r5 = 40
+      5: r6 = call screen.clear_pixel
+      6: r8 = 5
+      7: r9 = 5
+      8: r10 = call screen.attr_addr
+      9: store , r10
+     10: return
 
