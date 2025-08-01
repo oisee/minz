@@ -17,6 +17,7 @@ module.exports = grammar({
     [$.array_type, $.array_literal],
     [$.array_initializer, $.block],
     [$.array_initializer, $.struct_literal],
+    [$.lambda_expression, $.union_type],
   ],
 
   word: $ => $.identifier,
@@ -743,13 +744,13 @@ module.exports = grammar({
     import_path: $ => sep1($.identifier, '.'),
 
     // Lambda expressions  
-    lambda_expression: $ => prec(15, seq(
+    lambda_expression: $ => prec(20, seq(
       '|',
       optional($.lambda_parameter_list),
       '|',
       choice(
         $.expression,                    // |x| x + 1
-        seq('->', $.type, $.block),     // |x| -> u8 { x + 1 }
+        seq('=>', $.type, $.block),     // |x| => u8 { x + 1 }
         $.block,                         // |x| { x + 1 }
       ),
     )),

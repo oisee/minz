@@ -1699,6 +1699,25 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Result is in HL
 		g.storeFromHL(inst.Dest)
 		
+	case ir.OpCallIndirect:
+		// Indirect function call through register
+		g.emit("    ; Indirect call through r%d", inst.Src1)
+		
+		// Load function address into HL
+		g.loadToHL(inst.Src1)
+		
+		// Make indirect call through HL
+		// Push return address
+		g.emit("    CALL .call_indirect_%d", g.labelCounter)
+		g.emit("    JR .call_indirect_end_%d", g.labelCounter)
+		g.emit(".call_indirect_%d:", g.labelCounter)
+		g.emit("    JP (HL)       ; Jump to function address")
+		g.emit(".call_indirect_end_%d:", g.labelCounter)
+		g.labelCounter++
+		
+		// Result is in HL
+		g.storeFromHL(inst.Dest)
+		
 	case ir.OpAlloc:
 		// Allocate memory on stack
 		// For now, just reserve space by adjusting SP

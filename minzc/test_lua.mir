@@ -1,3 +1,29 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
+Function ...examples.lua_constants.main() -> void
+  Locals:
+    r1 = base: u16
+    r3 = stack: u16
+    r5 = size: u16
+    r7 = bit: u16
+    r9 = mask: u16
+    r11 = attr1: u16
+    r13 = attr2: u16
+  Instructions:
+      0: r2 = 32768
+      1: store , r2
+      2: r4 = 33792
+      3: store , r4
+      4: r6 = 768
+      5: store , r6
+      6: r8 = 128
+      7: store , r8
+      8: r10 = 15
+      9: store , r10
+     10: r12 = 79
+     11: store , r12
+     12: r14 = 70
+     13: store , r14
+     14: return
+

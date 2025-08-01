@@ -10,19 +10,19 @@ Function ...examples.arrays.main() -> void
   @smc
   Instructions:
       0: r1 = 42
-      1: 68
+      1: UNKNOWN_OP_71
       2: r3 = 0
       3: r4 = r2 + r3 ; Calculate array element address
-      4: 61 ; Store to array[index] (u8)
+      4: UNKNOWN_OP_64 ; Store to array[index] (u8)
       5: r5 = 43
-      6: 68
+      6: UNKNOWN_OP_71
       7: r7 = 0
       8: r8 = r6 + r7 ; Calculate array element address
-      9: 61 ; Store to array[index] (u8)
+      9: UNKNOWN_OP_64 ; Store to array[index] (u8)
      10: r9 = 1
-     11: 68
+     11: UNKNOWN_OP_71
      12: r11 = 0
-     13: 15 ; Load array element (...examples.arrays.Item)
-     14: 14 ; Store to field id (offset 0)
+     13: LOAD_INDEX ; Load array element (...examples.arrays.Item)
+     14: STORE_FIELD ; Store to field id (offset 0)
      15: return
 

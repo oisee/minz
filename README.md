@@ -9,21 +9,21 @@
 
 MinZ is a revolutionary systems programming language that delivers **unprecedented performance** for Z80-based computers. Combining cutting-edge compiler theory with Z80-native optimizations, MinZ achieves **hand-optimized assembly performance** automatically.
 
-## 🎉 **NEW: TRUE SMC Lambda Support + Advanced Diagnostics!**
+## 🎉 **NEW: Enhanced Lambda Syntax + Robust Import System!**
 
-### 🚀 **[August 1, 2025] TRUE SMC Lambda Implementation**
+### 🚀 **[August 1, 2025] Lambda & Import System Improvements**
 
-**MinZ introduces advanced lambda support with measurable performance improvements over traditional approaches.**
+**MinZ achieves enhanced developer experience with improved lambda syntax and bulletproof import system.**
 
-#### **🔥 TRUE SMC Lambda Features:**
-- **14.4% fewer instructions** than traditional function+struct approaches
-- **1.2x performance speedup** with zero allocation overhead  
-- **Absolute address capture** - Variables captured by memory location, not value
-- **Live state evolution** - Lambda behavior changes automatically as captured variables change
-- **Self-modifying optimization** - Lambda functions adapt at runtime
-- **Compiler-optimized** - Full optimization pipeline applied to lambda functions
+#### **🔥 Latest Language Enhancements:**
+- **Improved Lambda Syntax** - Clean `|x| => u8 { }` syntax for typed lambda returns
+- **Robust Import System** - Eliminated double registration issues with module aliases
+- **Enhanced Grammar** - Resolved precedence conflicts between lambda expressions and union types
+- **Regression Verified** - All core examples compile successfully with zero regressions
+- **Better Debugging** - Enhanced import resolution with comprehensive debug output
+- **Tree-sitter Integration** - Advanced parsing for complex lambda expressions
 
-**🎯 Demonstrates that functional programming can achieve superior performance on Z80 systems!**
+**🎯 Rock-solid foundation for advanced functional programming on Z80!**
 
 ### 🚀 **Previous Achievement: Article 083 Production-Ready TSMC**
 
@@ -43,6 +43,7 @@ MinZ is a revolutionary systems programming language that delivers **unprecedent
 - **3x faster struct field access** for small offsets
 
 **📚 Essential Reading:**
+- **[Article 092: Lambda & Import System Progress](docs/092_Lambda_Import_System_Progress.md)** - Latest improvements to lambda syntax and import system reliability
 - **[Article 091: TRUE SMC Lambda Performance Study](docs/091_TRUE_SMC_Lambda_Performance_Study.md)** - Comprehensive performance analysis proving functional programming beats assembly
 - **[Article 090: SMC Lambda Implementation Design](docs/090_SMC_Lambda_Implementation.md)** - Complete technical implementation of revolutionary lambda system
 - **[Performance Report (HTML)](performance_report.html)** - Beautiful visual performance comparison with detailed analysis

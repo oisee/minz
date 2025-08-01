@@ -84,6 +84,7 @@ const (
 	OpJumpIfZero
 	OpJumpIfNotZero
 	OpCall
+	OpCallIndirect  // Indirect function call through register
 	OpReturn
 	
 	// Data movement
@@ -313,6 +314,24 @@ func (t *ArrayType) Size() int {
 
 func (t *ArrayType) String() string {
 	return fmt.Sprintf("[%d]%s", t.Length, t.Element.String())
+}
+
+// LambdaType represents function pointer types (lambda closures)
+type LambdaType struct {
+	ParamTypes []Type
+	ReturnType Type
+}
+
+func (t *LambdaType) Size() int {
+	return 2 // Function pointer is 16-bit on Z80
+}
+
+func (t *LambdaType) String() string {
+	params := make([]string, len(t.ParamTypes))
+	for i, p := range t.ParamTypes {
+		params[i] = p.String()
+	}
+	return fmt.Sprintf("|%s| -> %s", strings.Join(params, ", "), t.ReturnType.String())
 }
 
 // StructType represents struct types
@@ -614,6 +633,8 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("jump_if_not r%d, %s", i.Src1, i.Label)
 	case OpCall:
 		return fmt.Sprintf("r%d = call %s", i.Dest, i.Symbol)
+	case OpCallIndirect:
+		return fmt.Sprintf("r%d = call_indirect r%d", i.Dest, i.Src1)
 	case OpReturn:
 		if i.Src1 != 0 {
 			return fmt.Sprintf("return r%d", i.Src1)
@@ -777,6 +798,7 @@ func (op Opcode) String() string {
 	case OpJumpIfZero: return "JUMP_IF_ZERO"
 	case OpJumpIfNotZero: return "JUMP_IF_NOT_ZERO"
 	case OpCall: return "CALL"
+	case OpCallIndirect: return "CALL_INDIRECT"
 	case OpReturn: return "RETURN"
 	case OpLoadConst: return "LOAD_CONST"
 	case OpLoadVar: return "LOAD_VAR"

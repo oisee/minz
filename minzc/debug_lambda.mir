@@ -1,7 +1,7 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
-Function test.main() -> void
+Function ...examples.debug_lambda.main() -> void
   @smc
   Locals:
     r1 = x: u8

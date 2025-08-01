@@ -3863,7 +3863,7 @@
     },
     "lambda_expression": {
       "type": "PREC",
-      "value": 15,
+      "value": 20,
       "content": {
         "type": "SEQ",
         "members": [
@@ -3899,7 +3899,7 @@
                 "members": [
                   {
                     "type": "STRING",
-                    "value": "->"
+                    "value": "=>"
                   },
                   {
                     "type": "SYMBOL",
@@ -4026,6 +4026,10 @@
     [
       "array_initializer",
       "struct_literal"
+    ],
+    [
+      "lambda_expression",
+      "union_type"
     ]
   ],
   "precedences": [],

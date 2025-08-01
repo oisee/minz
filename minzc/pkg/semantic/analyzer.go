@@ -35,18 +35,20 @@ type Analyzer struct {
 	functionCalls         map[string][]string // Track which functions call which
 	exprTypes             map[ast.Expression]ir.Type // Type information for expressions
 	lambdaCounter         int // Counter for generating unique lambda names
+	registeredModules     map[string]bool // Track already registered modules to prevent duplicates
 }
 
 // NewAnalyzer creates a new semantic analyzer
 func NewAnalyzer() *Analyzer {
 	return &Analyzer{
-		currentScope:  NewScope(nil),
-		errors:        []error{},
-		module:        ir.NewModule("main"),
-		moduleLoader:  NewModuleLoader(),
-		functionCalls: make(map[string][]string),
-		exprTypes:     make(map[ast.Expression]ir.Type),
-		luaEvaluator: meta.NewLuaEvaluator(),
+		currentScope:      NewScope(nil),
+		errors:            []error{},
+		module:            ir.NewModule("main"),
+		moduleLoader:      NewModuleLoader(),
+		functionCalls:     make(map[string][]string),
+		exprTypes:         make(map[ast.Expression]ir.Type),
+		registeredModules: make(map[string]bool),
+		luaEvaluator:      meta.NewLuaEvaluator(),
 	}
 }
 
@@ -265,18 +267,44 @@ func (a *Analyzer) processImport(imp *ast.ImportStmt) error {
 	moduleName := imp.Path
 	
 	
+	// Check if module is already loaded
+	if a.registeredModules[moduleName] {
+		// Module already loaded - no need to do anything for duplicate imports
+		return nil
+	}
+	
 	// Try to load the module from file
 	loadedModule, err := a.moduleLoader.LoadModule(moduleName)
 	if err != nil {
 		// Fall back to hardcoded modules for backward compatibility
 		if moduleName == "zx.screen" || moduleName == "screen" {
-			a.registerScreenModule()
+			// Check if screen module is already registered
+			if !a.registeredModules["zx.screen"] {
+				a.registerScreenModule()
+				a.registeredModules["zx.screen"] = true
+			}
+			// Now register the alias if needed
+			if imp.Alias != "" && imp.Alias != "zx.screen" {
+				a.registerModuleAlias("zx.screen", imp.Alias)
+			}
 			return nil
 		} else if moduleName == "zx.input" || moduleName == "input" {
-			a.registerInputModule()
+			if !a.registeredModules["zx.input"] {
+				a.registerInputModule()
+				a.registeredModules["zx.input"] = true
+			}
+			if imp.Alias != "" && imp.Alias != "zx.input" {
+				a.registerModuleAlias("zx.input", imp.Alias)
+			}
 			return nil
 		} else if moduleName == "zx.io" || moduleName == "io" {
-			a.registerIOModule()
+			if !a.registeredModules["zx.io"] {
+				a.registerIOModule()
+				a.registeredModules["zx.io"] = true
+			}
+			if imp.Alias != "" && imp.Alias != "zx.io" {
+				a.registerModuleAlias("zx.io", imp.Alias)
+			}
 			return nil
 		}
 		return fmt.Errorf("failed to load module %s: %w", moduleName, err)
@@ -287,7 +315,44 @@ func (a *Analyzer) processImport(imp *ast.ImportStmt) error {
 		return fmt.Errorf("failed to process module %s: %w", moduleName, err)
 	}
 	
+	// Mark module as registered
+	a.registeredModules[moduleName] = true
+	
 	return nil
+}
+
+// registerModuleAlias creates alias symbols for an already registered module
+func (a *Analyzer) registerModuleAlias(originalModule, alias string) {
+	// Register the module alias itself
+	a.currentScope.Define(alias, &ModuleSymbol{
+		Name: alias,
+	})
+	
+	// Find all symbols that start with the original module prefix and create aliases
+	aliasCount := 0
+	for name, symbol := range a.currentScope.symbols {
+		if strings.HasPrefix(name, originalModule+".") {
+			// Extract the function/symbol name after the module prefix
+			symbolName := strings.TrimPrefix(name, originalModule+".")
+			aliasName := alias + "." + symbolName
+			
+			// Create an alias symbol pointing to the original
+			a.currentScope.Define(aliasName, symbol)
+			aliasCount++
+		}
+	}
+	
+	// Debug: if no aliases created, something is wrong
+	if aliasCount == 0 {
+		fmt.Printf("Warning: No symbols found with prefix '%s.' to alias to '%s.'\n", originalModule, alias)
+		fmt.Printf("Available symbols: ")
+		for name := range a.currentScope.symbols {
+			if strings.Contains(name, originalModule) {
+				fmt.Printf("%s ", name)
+			}
+		}
+		fmt.Printf("\n")
+	}
 }
 
 // processLoadedModule analyzes a loaded module and registers its exports
@@ -1303,9 +1368,9 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 	// If no explicit type, we need to infer from value
 	// But we must be careful about when we do type inference
 	if varType == nil && v.Value != nil {
-		// For simple literals, we can infer type safely
+		// For simple literals and lambda expressions, we can infer type safely
 		switch v.Value.(type) {
-		case *ast.NumberLiteral, *ast.BooleanLiteral, *ast.StringLiteral:
+		case *ast.NumberLiteral, *ast.BooleanLiteral, *ast.StringLiteral, *ast.LambdaExpr:
 			t, err := a.inferType(v.Value)
 			if err != nil {
 				return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
@@ -1374,13 +1439,40 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 			
 			// If we used a placeholder type, now we can check the actual type
 			if v.Type == nil && varType.String() == "u16" {
-				// We used a default type, let's check if we need to update it
-				// based on the actual expression type
-				if exprType, ok := a.exprTypes[v.Value]; ok && exprType != nil {
-					// Verify type compatibility if we had an explicit type
-					if v.Type != nil && !a.typesCompatible(varType, exprType) {
-						return fmt.Errorf("type mismatch for variable %s: declared type %s but initializer has type %s", 
-							v.Name, varType.String(), exprType.String())
+				// Check if this is a lambda expression specifically
+				if lambdaExpr, ok := v.Value.(*ast.LambdaExpr); ok {
+					// This is a lambda - infer the lambda type
+					lambdaType, err := a.inferType(lambdaExpr)
+					if err == nil && lambdaType != nil {
+						// Update the variable type to the lambda type
+						varType = lambdaType
+						
+						// Update the variable symbol with the correct type
+						if varSym := a.currentScope.Lookup(v.Name); varSym != nil {
+							if vs, ok := varSym.(*VarSymbol); ok {
+								vs.Type = varType
+							}
+						}
+					}
+				} else {
+					// We used a default type, let's check if we need to update it
+					// based on the actual expression type
+					if exprType, ok := a.exprTypes[v.Value]; ok && exprType != nil {
+						// Update the variable type to the actual expression type
+						varType = exprType
+						
+						// Update the variable symbol with the correct type
+						if varSym := a.currentScope.Lookup(v.Name); varSym != nil {
+							if vs, ok := varSym.(*VarSymbol); ok {
+								vs.Type = varType
+							}
+						}
+						
+						// Verify type compatibility if we had an explicit type
+						if v.Type != nil && !a.typesCompatible(varType, exprType) {
+							return fmt.Errorf("type mismatch for variable %s: declared type %s but initializer has type %s", 
+								v.Name, varType.String(), exprType.String())
+						}
 					}
 				}
 			}
@@ -3591,8 +3683,16 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 			return 0, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
+		// Check if this is a lambda variable before treating as function
+		if varSymbol, ok := sym.(*VarSymbol); ok {
+			if lambdaType, ok := varSymbol.Type.(*ir.LambdaType); ok {
+				// This is a lambda call - treat it as indirect function call
+				return a.analyzeLambdaCall(call, lambdaType, funcName, irFunc)
+			}
+		}
+		
 	default:
-		return 0, fmt.Errorf("indirect function calls not yet supported")
+		return 0, fmt.Errorf("unsupported function call expression")
 	}
 
 	funcSym, ok := sym.(*FuncSymbol)
@@ -5006,6 +5106,45 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			return nil, fmt.Errorf("invalid cast target type: %w", err)
 		}
 		return targetType, nil
+	case *ast.LambdaExpr:
+		// Infer lambda type from its parameters and return type
+		paramTypes := make([]ir.Type, len(e.Params))
+		for i, param := range e.Params {
+			if param.Type == nil {
+				return nil, fmt.Errorf("lambda parameter %s must have explicit type", param.Name)
+			}
+			paramType, err := a.convertType(param.Type)
+			if err != nil {
+				return nil, fmt.Errorf("invalid lambda parameter type for %s: %w", param.Name, err)
+			}
+			paramTypes[i] = paramType
+		}
+		
+		var returnType ir.Type
+		if e.ReturnType != nil {
+			var err error
+			returnType, err = a.convertType(e.ReturnType)
+			if err != nil {
+				return nil, fmt.Errorf("invalid lambda return type: %w", err)
+			}
+		} else {
+			// Try to infer return type from body if it's an expression
+			if expr, ok := e.Body.(ast.Expression); ok {
+				var err error
+				returnType, err = a.inferType(expr)
+				if err != nil {
+					return nil, fmt.Errorf("cannot infer lambda return type: %w", err)
+				}
+			} else {
+				// Block body - assume void for now
+				returnType = &ir.BasicType{Kind: ir.TypeVoid}
+			}
+		}
+		
+		return &ir.LambdaType{
+			ParamTypes: paramTypes,
+			ReturnType: returnType,
+		}, nil
 	default:
 		return nil, fmt.Errorf("cannot infer type from expression of type %T", expr)
 	}
@@ -5506,6 +5645,75 @@ func (a *Analyzer) analyzeLambdaExpr(lambda *ast.LambdaExpr, irFunc *ir.Function
 		Op:    ir.OpLoadAddr,
 		Dest:  resultReg,
 		Label: lambdaName,
+	})
+	
+	// Store the lambda type for the expression so variable declaration can use it
+	// Build parameter types list
+	paramTypes := make([]ir.Type, len(lambda.Params))
+	for i, param := range lambda.Params {
+		if param.Type != nil {
+			// Convert the parameter type
+			pType, err := a.convertType(param.Type)
+			if err != nil {
+				paramTypes[i] = &ir.BasicType{Kind: ir.TypeU8} // Fallback
+			} else {
+				paramTypes[i] = pType
+			}
+		} else {
+			paramTypes[i] = &ir.BasicType{Kind: ir.TypeU8} // Default for now
+		}
+	}
+	
+	lambdaType := &ir.LambdaType{
+		ParamTypes: paramTypes,
+		ReturnType: lambdaFunc.ReturnType,
+	}
+	a.exprTypes[lambda] = lambdaType
+	
+	return resultReg, nil
+}
+
+// analyzeLambdaCall handles calling a lambda variable as a function pointer
+func (a *Analyzer) analyzeLambdaCall(call *ast.CallExpr, lambdaType *ir.LambdaType, varName string, irFunc *ir.Function) (ir.Register, error) {
+	// Analyze arguments
+	if len(call.Arguments) != len(lambdaType.ParamTypes) {
+		return 0, fmt.Errorf("lambda call argument count mismatch: expected %d, got %d", 
+			len(lambdaType.ParamTypes), len(call.Arguments))
+	}
+	
+	// Evaluate arguments
+	argRegs := make([]ir.Register, len(call.Arguments))
+	for i, arg := range call.Arguments {
+		argReg, err := a.analyzeExpression(arg, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("failed to analyze lambda call argument %d: %w", i, err)
+		}
+		argRegs[i] = argReg
+	}
+	
+	// Get lambda function address
+	lambdaAddrReg := irFunc.AllocReg()
+	varSym := a.currentScope.Lookup(varName)
+	varSymbol := varSym.(*VarSymbol)
+	
+	// Load lambda function address from variable
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoadVar,
+		Dest: lambdaAddrReg,
+		Src1: varSymbol.Reg,
+	})
+	
+	// Prepare call arguments by moving them to appropriate registers
+	// For now, we'll assume arguments are already in the right registers
+	// In a more sophisticated implementation, we'd handle calling conventions
+	_ = argRegs // Mark as used to avoid compiler warning
+	
+	// Make indirect call through lambda address
+	resultReg := irFunc.AllocReg()
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpCallIndirect,
+		Dest: resultReg,
+		Src1: lambdaAddrReg,
 	})
 	
 	return resultReg, nil

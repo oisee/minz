@@ -1,0 +1,1 @@
+fun main() -> void { let add_five = |x| x + 5; let result = add_five(10); }

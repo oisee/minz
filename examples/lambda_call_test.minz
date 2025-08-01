@@ -1,0 +1,25 @@
+// Lambda call test - Testing ability to invoke lambdas as function pointers
+
+fun main() -> void {
+    // Create a simple lambda
+    let add_five = |x: u8| => u8 { x + 5 };
+    
+    // Call the lambda
+    let result = add_five(10);
+    
+    // More complex lambda with captured variables
+    let multiplier = 3;
+    let triple = |x: u8| => u8 { x * multiplier };
+    
+    // Call lambda with captured variable
+    let tripled = triple(7);
+    
+    // Lambda as a parameter to another function
+    let apply_twice = |func, x: u8| => u8 {
+        let temp = func(x);
+        func(temp)
+    };
+    
+    // This should add 5 twice: 10 + 5 + 5 = 20
+    let final_result = apply_twice(add_five, 10);
+}
