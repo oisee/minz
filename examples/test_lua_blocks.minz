@@ -16,8 +16,8 @@ string inside a Lua block]]
 ]]]
 
 // Use the Lua functions in constants
-const DOUBLED_10: u8 = @lua(double(10));
-const TRIPLED_5: u8 = @lua(triple(5));
+const DOUBLED_10: u8 = @lua(double(10))
+const TRIPLED_5: u8 = @lua(triple(5))
 
 fun main() -> void {
     let x = DOUBLED_10;  // 20

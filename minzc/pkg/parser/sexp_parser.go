@@ -537,6 +537,8 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 		}
 	case "unary_expression":
 		return p.convertUnaryExpr(node)
+	case "lambda_expression":
+		return p.convertLambdaExpr(node)
 	}
 	return nil
 }
@@ -1549,6 +1551,61 @@ func (p *Parser) convertImplBlock(node *SExpNode) *ast.ImplBlock {
 	}
 	
 	return impl
+}
+
+// convertLambdaExpr converts lambda expression from S-expression
+func (p *Parser) convertLambdaExpr(node *SExpNode) *ast.LambdaExpr {
+	lambda := &ast.LambdaExpr{
+		Params:   []*ast.LambdaParam{},
+		Captures: []string{}, // Will be filled during semantic analysis
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	for _, child := range node.Children {
+		switch child.Type {
+		case "lambda_parameter_list":
+			lambda.Params = p.convertLambdaParams(child)
+		case "type":
+			// Return type from |x| -> u8 { ... }
+			lambda.ReturnType = p.convertType(child)
+		case "expression":
+			// Body expression from |x| x + 1
+			lambda.Body = p.convertExpression(child)
+		case "block":
+			// Body block from |x| { x + 1 }
+			lambda.Body = p.convertBlock(child)
+		}
+	}
+	
+	return lambda
+}
+
+// convertLambdaParams converts lambda parameter list from S-expression
+func (p *Parser) convertLambdaParams(node *SExpNode) []*ast.LambdaParam {
+	var params []*ast.LambdaParam
+	
+	for _, child := range node.Children {
+		if child.Type == "lambda_parameter" {
+			param := &ast.LambdaParam{
+				StartPos: child.StartPos,
+				EndPos:   child.EndPos,
+			}
+			
+			for _, paramChild := range child.Children {
+				switch paramChild.Type {
+				case "identifier":
+					param.Name = p.getNodeText(paramChild)
+				case "type":
+					param.Type = p.convertType(paramChild)
+				}
+			}
+			
+			params = append(params, param)
+		}
+	}
+	
+	return params
 }
 
 // Use the isAlpha and isDigit functions from simple_parser.go

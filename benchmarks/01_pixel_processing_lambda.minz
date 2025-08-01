@@ -1,0 +1,31 @@
+// BENCHMARK 1: Pixel Processing with TRUE SMC Lambda
+// This shows lambda with live state capture vs traditional approach
+
+fun benchmark_lambda_pixel_processing() -> u16 {
+    let brightness = 5;
+    let contrast = 3;
+    let processed_pixels = 0;
+    
+    // TRUE SMC Lambda - captures brightness/contrast by absolute address
+    let adjust_pixel = |pixel_value| {
+        processed_pixels = processed_pixels + 1;  // Live counter update!
+        return (pixel_value * brightness + contrast) & 0xFF;
+    };
+    
+    // Simulate processing 1000 pixels
+    let i = 0;
+    while i < 1000 {
+        let pixel = (i & 0xFF) as u8;
+        let result = adjust_pixel(pixel);
+        
+        // Simulate changing conditions - lambda adapts automatically!
+        if i == 500 {
+            brightness = 7;  // Lambda behavior changes live!
+            contrast = 4;
+        }
+        
+        i = i + 1;
+    }
+    
+    return processed_pixels as u16;
+}

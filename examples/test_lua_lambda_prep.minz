@@ -1,0 +1,55 @@
+// Lua metaprogramming for lambda preparation
+
+@lua[[[
+-- Helper function to generate lambda templates
+function generate_lambda_template(name, capture_count)
+    local template = string.format([[
+; Lambda template: %s
+%s_template:
+]], name, name)
+    
+    -- Add capture slots
+    for i = 1, capture_count do
+        template = template .. string.format([[
+%s_capture_%d:
+    LD A, 0     ; Capture slot %d - will be patched
+]], name, i, i)
+    end
+    
+    -- Add lambda body placeholder
+    template = template .. [[
+    ; Lambda body goes here
+    RET
+]]
+    
+    return template
+end
+
+-- Generate an adder lambda template
+function make_adder_template()
+    return [[
+; Adder lambda template (captures one value)
+adder_template:
+    LD B, 0         ; Captured value - will be patched
+    ADD A, B        ; A = parameter + captured
+    RET
+]]
+end
+]]]
+
+// Use Lua to define constants for lambda sizes
+const LAMBDA_ADDER_SIZE: u8 = @lua(5)  // Size of adder template
+
+// Test function that would use lambdas (placeholder for now)
+fun test_lambda_concept() -> void {
+    // In the future, this would create a lambda:
+    // let add5 = |x| x + 5
+    
+    // For now, just use the constant
+    let size = LAMBDA_ADDER_SIZE
+}
+
+fun main() -> void {
+    test_lambda_concept()
+    return
+}

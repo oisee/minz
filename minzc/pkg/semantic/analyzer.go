@@ -34,6 +34,7 @@ type Analyzer struct {
 	currentFunc           *ir.Function
 	functionCalls         map[string][]string // Track which functions call which
 	exprTypes             map[ast.Expression]ir.Type // Type information for expressions
+	lambdaCounter         int // Counter for generating unique lambda names
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -292,14 +293,9 @@ func (a *Analyzer) processImport(imp *ast.ImportStmt) error {
 // processLoadedModule analyzes a loaded module and registers its exports
 func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt) error {
 	// Determine the module prefix for symbols
-	modulePrefix := imp.Path
+	modulePrefix := imp.Path  // Use full path by default
 	if imp.Alias != "" {
-		modulePrefix = imp.Alias
-	} else {
-		// Use the last part of the module path as the default prefix
-		// e.g., "zx.screen" -> "screen"
-		parts := strings.Split(imp.Path, ".")
-		modulePrefix = parts[len(parts)-1]
+		modulePrefix = imp.Alias  // Use alias if specified
 	}
 	
 	// Register the module itself
@@ -309,7 +305,8 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 	
 	// Save current module context
 	prevModule := a.currentModule
-	a.currentModule = module.Name
+	// Set current module to the prefix being used for symbols
+	a.currentModule = modulePrefix
 	defer func() { a.currentModule = prevModule }()
 	
 	// First pass: register all exported symbols
@@ -2690,6 +2687,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeCastExpr(e, irFunc)
 	case *ast.CompileTimePrint:
 		return a.analyzePrintExpr(e, irFunc)
+	case *ast.LambdaExpr:
+		return a.analyzeLambdaExpr(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -3525,6 +3524,19 @@ func (a *Analyzer) analyzeCompoundAssignment(bin *ast.BinaryExpr, irFunc *ir.Fun
 }
 
 // analyzeCallExpr analyzes a function call
+// buildQualifiedName builds a qualified name from a field expression chain
+func (a *Analyzer) buildQualifiedName(expr ast.Expression) string {
+	switch e := expr.(type) {
+	case *ast.Identifier:
+		return e.Name
+	case *ast.FieldExpr:
+		objName := a.buildQualifiedName(e.Object)
+		return objName + "." + e.Field
+	default:
+		return ""
+	}
+}
+
 func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.Register, error) {
 	var funcName string
 	var sym Symbol
@@ -3534,26 +3546,34 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		// Direct function call
 		funcName = fn.Name
 		sym = a.currentScope.Lookup(funcName)
+		
+		// If not found, try with module prefix
+		if sym == nil && a.currentModule != "" && a.currentModule != "main" {
+			prefixedName := a.prefixSymbol(funcName)
+			sym = a.currentScope.Lookup(prefixedName)
+			if sym != nil {
+				funcName = prefixedName
+				// Update the AST node to use the prefixed name
+				fn.Name = prefixedName
+			}
+		}
+		
 		if sym == nil {
 			return 0, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
 	case *ast.FieldExpr:
-		// Could be either:
-		// 1. Module function call (e.g., screen.set_pixel)
-		// 2. Type method call (e.g., u8.print)
-		if id, ok := fn.Object.(*ast.Identifier); ok {
-			funcName = id.Name + "." + fn.Field
-			sym = a.currentScope.Lookup(funcName)
-			
-			// If not found as module function, try as type method
-			if sym == nil {
-				// Check if id.Name is a type and fn.Field is a method
+		// Build the full qualified name by traversing the field expression chain
+		funcName = a.buildQualifiedName(fn)
+		sym = a.currentScope.Lookup(funcName)
+		
+		if sym == nil {
+			// Try as type method if it's a simple field expression
+			if id, ok := fn.Object.(*ast.Identifier); ok {
 				typeSym := a.currentScope.Lookup(id.Name)
 				if typeSym != nil {
 					if typeSymbol, ok := typeSym.(*TypeSymbol); ok {
 						// This is a Type.method() call
-						// We need to find the impl block that implements the method for this type
 						sym = a.findTypeMethod(typeSymbol.Type, fn.Field)
 						if sym == nil {
 							return 0, fmt.Errorf("type %s has no method %s", id.Name, fn.Field)
@@ -3565,12 +3585,10 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 					}
 				}
 			}
-			
-			if sym == nil {
-				return 0, fmt.Errorf("undefined function: %s", funcName)
-			}
-		} else {
-			return 0, fmt.Errorf("complex function calls not yet supported")
+		}
+		
+		if sym == nil {
+			return 0, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
 	default:
@@ -5389,4 +5407,106 @@ func (a *Analyzer) findTypeMethod(targetType ir.Type, methodName string) Symbol 
 		scope = scope.parent
 	}
 	return nil
+}
+
+// analyzeLambdaExpr analyzes lambda expressions
+func (a *Analyzer) analyzeLambdaExpr(lambda *ast.LambdaExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Generate unique lambda name
+	lambdaName := fmt.Sprintf("lambda_%s_%d", irFunc.Name, a.lambdaCounter)
+	a.lambdaCounter++
+	
+	// Create a new function for the lambda template
+	lambdaFunc := &ir.Function{
+		Name:         lambdaName,
+		Params:       []ir.Parameter{},
+		ReturnType:   &ir.BasicType{Kind: ir.TypeU8}, // Default for now
+		Instructions: []ir.Instruction{},
+		IsSMCDefault: true, // TRUE SMC lambdas!
+		IsSMCEnabled: true,
+	}
+	
+	// Add lambda parameters to function
+	for _, param := range lambda.Params {
+		paramType := ir.Type(&ir.BasicType{Kind: ir.TypeU8}) // Default type
+		if param.Type != nil {
+			var err error
+			paramType, err = a.convertType(param.Type)
+			if err != nil {
+				return 0, fmt.Errorf("failed to convert parameter type: %w", err)
+			}
+		}
+		lambdaFunc.Params = append(lambdaFunc.Params, ir.Parameter{
+			Name: param.Name,
+			Type: paramType,
+		})
+	}
+	
+	// Create a new scope for lambda analysis
+	lambdaScope := NewScope(a.currentScope)
+	prevScope := a.currentScope
+	prevFunc := a.currentFunc
+	a.currentScope = lambdaScope
+	a.currentFunc = lambdaFunc
+	
+	// Add lambda parameters to scope
+	for _, param := range lambda.Params {
+		paramType := ir.Type(&ir.BasicType{Kind: ir.TypeU8})
+		if param.Type != nil {
+			var err error
+			paramType, err = a.convertType(param.Type)
+			if err != nil {
+				a.currentScope = prevScope
+				a.currentFunc = prevFunc
+				return 0, fmt.Errorf("failed to convert parameter type: %w", err)
+			}
+		}
+		symbol := &VarSymbol{
+			Name: param.Name,
+			Type: paramType,
+		}
+		lambdaScope.Define(param.Name, symbol)
+	}
+	
+	// Analyze lambda body - this will automatically capture variables by absolute address!
+	var bodyReg ir.Register
+	var err error
+	
+	switch body := lambda.Body.(type) {
+	case ast.Expression:
+		bodyReg, err = a.analyzeExpression(body, lambdaFunc)
+		if err != nil {
+			a.currentScope = prevScope
+			a.currentFunc = prevFunc
+			return 0, fmt.Errorf("failed to analyze lambda body: %w", err)
+		}
+		// Return the result
+		lambdaFunc.Instructions = append(lambdaFunc.Instructions, ir.Instruction{
+			Op:   ir.OpReturn,
+			Src1: bodyReg,
+		})
+	case *ast.BlockStmt:
+		err = a.analyzeBlock(body, lambdaFunc)
+		if err != nil {
+			a.currentScope = prevScope
+			a.currentFunc = prevFunc
+			return 0, fmt.Errorf("failed to analyze lambda block: %w", err)
+		}
+	}
+	
+	// Restore previous scope and function
+	a.currentScope = prevScope
+	a.currentFunc = prevFunc
+	
+	// Add lambda function to module
+	a.module.Functions = append(a.module.Functions, lambdaFunc)
+	
+	// Return address of lambda function
+	resultReg := irFunc.AllocReg()
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:    ir.OpLoadAddr,
+		Dest:  resultReg,
+		Label: lambdaName,
+	})
+	
+	return resultReg, nil
 }

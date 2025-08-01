@@ -552,6 +552,7 @@ module.exports = grammar({
       $.alignof_expression,
       $.metaprogramming_expression,
       $.error_literal,
+      $.lambda_expression,
     ),
 
     array_literal: $ => seq(
@@ -740,6 +741,25 @@ module.exports = grammar({
     ),
 
     import_path: $ => sep1($.identifier, '.'),
+
+    // Lambda expressions  
+    lambda_expression: $ => prec(15, seq(
+      '|',
+      optional($.lambda_parameter_list),
+      '|',
+      choice(
+        $.expression,                    // |x| x + 1
+        seq('->', $.type, $.block),     // |x| -> u8 { x + 1 }
+        $.block,                         // |x| { x + 1 }
+      ),
+    )),
+
+    lambda_parameter_list: $ => commaSep1($.lambda_parameter),
+
+    lambda_parameter: $ => seq(
+      $.identifier,
+      optional(seq(':', $.type)),
+    ),
   }
 });
 

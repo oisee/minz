@@ -1,0 +1,43 @@
+// BENCHMARK 5: Custom Memory Allocator with TRUE SMC Lambda
+// Shows lambda-based allocator with zero-overhead state management
+
+fun create_smc_allocator(pool_start: u16, pool_size: u16) -> fun(u16) -> u16 {
+    let current_offset = 0;
+    let allocations_made = 0;
+    
+    // Lambda captures allocator state by absolute address - REVOLUTIONARY!
+    return |size| {
+        allocations_made = allocations_made + 1;
+        
+        if current_offset + size > pool_size {
+            return 0;  // Out of memory
+        }
+        
+        let result = pool_start + current_offset;
+        current_offset = current_offset + size;
+        
+        return result;
+    };
+}
+
+fun benchmark_lambda_allocator() -> u16 {
+    // Create custom allocator starting at 0x8000
+    let my_alloc = create_smc_allocator(0x8000, 1024);
+    
+    let successful_allocs = 0;
+    let i = 0;
+    
+    // Try to allocate 100 blocks of varying sizes
+    while i < 100 {
+        let size = ((i % 16) + 1) as u16;  // 1-16 bytes
+        let ptr = my_alloc(size);
+        
+        if ptr != 0 {
+            successful_allocs = successful_allocs + 1;
+        }
+        
+        i = i + 1;
+    }
+    
+    return successful_allocs as u16;
+}

@@ -1,0 +1,50 @@
+// ULTIMATE BENCHMARK RUNNER
+// Runs all benchmarks and collects performance data
+
+import std.print;
+
+fun run_all_benchmarks() -> void {
+    std.print.print_string("=== TRUE SMC LAMBDA PERFORMANCE BENCHMARKS ===\n");
+    
+    // Benchmark 1: Pixel Processing
+    std.print.print_string("\n1. PIXEL PROCESSING BENCHMARK:\n");
+    std.print.print_string("Lambda approach: ");
+    let lambda_pixels = benchmark_lambda_pixel_processing();
+    std.print.print_u16(lambda_pixels);
+    std.print.print_string(" pixels processed\n");
+    
+    std.print.print_string("Traditional approach: ");
+    let trad_pixels = benchmark_traditional_pixel_processing();
+    std.print.print_u16(trad_pixels);
+    std.print.print_string(" pixels processed\n");
+    
+    // Benchmark 2: Event Handler
+    std.print.print_string("\n2. EVENT HANDLER BENCHMARK:\n");
+    std.print.print_string("Lambda approach: ");
+    let lambda_events = benchmark_lambda_event_handler();
+    std.print.print_u16(lambda_events);
+    std.print.print_string(" events processed\n");
+    
+    std.print.print_string("Traditional approach: ");
+    let trad_events = benchmark_traditional_event_handler();
+    std.print.print_u16(trad_events);
+    std.print.print_string(" events processed\n");
+    
+    // Benchmark 3: Memory Allocator
+    std.print.print_string("\n3. MEMORY ALLOCATOR BENCHMARK:\n");
+    std.print.print_string("Lambda approach: ");
+    let lambda_allocs = benchmark_lambda_allocator();
+    std.print.print_u16(lambda_allocs);
+    std.print.print_string(" successful allocations\n");
+    
+    std.print.print_string("Traditional approach: ");
+    let trad_allocs = benchmark_traditional_allocator();
+    std.print.print_u16(trad_allocs);
+    std.print.print_string(" successful allocations\n");
+    
+    std.print.print_string("\n=== BENCHMARK COMPLETE ===\n");
+}
+
+fun main() -> void {
+    run_all_benchmarks();
+}

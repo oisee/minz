@@ -1,0 +1,37 @@
+// BENCHMARK 4: Traditional Event Handler (OOP Style)  
+// Shows traditional approach with method calls and object state
+
+struct GameState {
+    score: u16,
+    multiplier: u8,
+    events_processed: u16,
+}
+
+fun handle_enemy_hit_traditional(damage: u8, state: *mut GameState) -> void {
+    // Traditional: must access through struct pointer indirection
+    state.score = state.score + (damage * state.multiplier);
+    state.events_processed = state.events_processed + 1;
+    
+    // Must manually check and update state
+    if state.score > 100 {
+        state.multiplier = state.multiplier + 1;
+    }
+}
+
+fun benchmark_traditional_event_handler() -> u16 {
+    let state = GameState {
+        score: 0,
+        multiplier: 1,
+        events_processed: 0,
+    };
+    
+    // Traditional approach - function pointer would be even slower!
+    let i = 0;
+    while i < 500 {
+        let damage = ((i % 10) + 1) as u8;
+        handle_enemy_hit_traditional(damage, &mut state);
+        i = i + 1;
+    }
+    
+    return state.events_processed;
+}

@@ -1,0 +1,5 @@
+// Test simple lambda creation
+fun main() -> void {
+    let add5 = |x| x + 5;
+    return;
+}

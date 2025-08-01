@@ -1,0 +1,33 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function benchmarks.simple_traditional_test.double_it_traditional(x: u8, ctx: *benchmarks.simple_traditional_test.Context) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: LOAD_FIELD ; Load field multiplier (offset 0)
+      3: r6 = r3 * r5
+      4: return r6
+
+Function benchmarks.simple_traditional_test.test_traditional() -> u8
+  @smc
+  Locals:
+    r1 = ctx: u16
+  Instructions:
+      0: UNKNOWN_OP_60 ; Allocate struct Context
+      1: r3 = 5
+      2: STORE_FIELD ; Store to Context.multiplier
+      3: store , r2
+      4: r4 = 42
+      5: return r4
+
+Function benchmarks.simple_traditional_test.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r2 = call test_traditional
+      1: store , r2
+      2: return
+

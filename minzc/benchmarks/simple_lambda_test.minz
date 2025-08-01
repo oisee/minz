@@ -1,0 +1,13 @@
+// Simple lambda test for benchmarking
+fun test_lambda() -> u8 {
+    let multiplier = 5;
+    let double_it = |x| x * multiplier;  // TRUE SMC capture!
+    
+    // For now, just return a constant since we can't call lambdas yet
+    return 42;
+}
+
+fun main() -> void {
+    let result = test_lambda();
+    return;
+}

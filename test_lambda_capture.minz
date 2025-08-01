@@ -1,0 +1,6 @@
+// Test lambda with variable capture - TRUE SMC in action!
+fun main() -> void {
+    let multiplier = 3;
+    let triple = |x| x * multiplier;  // Should capture 'multiplier' by absolute address!
+    return;
+}

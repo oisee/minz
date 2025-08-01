@@ -791,3 +791,25 @@ type AsmOperand struct {
 	Expr       Expression // The expression for this operand
 }
 func (l *LuaEval) stmtNode()     {}
+
+// LambdaExpr represents a lambda expression
+type LambdaExpr struct {
+	Params      []*LambdaParam
+	ReturnType  Type           // Optional
+	Body        Node           // Can be Expression or BlockStmt
+	Captures    []string       // Variables captured from scope
+	StartPos    Position
+	EndPos      Position
+}
+
+func (l *LambdaExpr) Pos() Position { return l.StartPos }
+func (l *LambdaExpr) End() Position { return l.EndPos }
+func (l *LambdaExpr) exprNode()    {}
+
+// LambdaParam represents a lambda parameter
+type LambdaParam struct {
+	Name     string
+	Type     Type  // Optional
+	StartPos Position
+	EndPos   Position
+}

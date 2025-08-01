@@ -1,0 +1,19 @@
+// Simple traditional test for benchmarking
+struct Context {
+    multiplier: u8,
+}
+
+fun double_it_traditional(x: u8, ctx: *Context) -> u8 {
+    return x * ctx.multiplier;
+}
+
+fun test_traditional() -> u8 {
+    let ctx = Context { multiplier: 5 };
+    // For comparison, do the same logic as lambda version
+    return 42;
+}
+
+fun main() -> void {
+    let result = test_traditional();
+    return;
+}

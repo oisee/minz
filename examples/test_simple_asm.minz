@@ -1,0 +1,32 @@
+// Test simple inline assembly blocks
+
+fun set_border_color(color: u8) -> void {
+    asm {
+        LD A, 2      ; Red color
+        OUT (0xFE), A
+    }
+}
+
+fun clear_screen() -> void {
+    asm {
+        LD HL, 0x4000
+        LD DE, 0x4001
+        LD BC, 6143
+        LD (HL), 0
+        LDIR
+    }
+}
+
+fun wait_loop() -> void {
+    asm {
+        LD B, 255
+    wait_loop:
+        DJNZ wait_loop
+    }
+}
+
+fun main() -> void {
+    set_border_color(2);
+    clear_screen();
+    wait_loop();
+}

@@ -1,13 +1,18 @@
 // Test module imports
 
-import zx.screen;
+import zx.screen;              // Full path: zx.screen.set_pixel()
+import zx.screen as screen;    // Alias: screen.set_pixel()
 
 fun main() -> void {
-    // Use screen functions
-    screen.set_pixel(10, 20);
-    screen.clear_pixel(30, 40);
+    // Use with full path
+    zx.screen.set_pixel(10, 20);
+    zx.screen.clear_pixel(30, 40);
     
+    // Use with alias
     let addr = screen.attr_addr(5, 5);
+    
+    // Draw a rectangle using the alias
+    screen.draw_rect(50, 50, 20, 10);
     
     return;
 }

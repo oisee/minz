@@ -1,0 +1,690 @@
+; MinZ generated code
+; Generated: 2025-08-01 13:06:01
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.pixel_addr
+zx.screen.pixel_addr:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+zx.screen.pixel_addr_param_y:
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r5 = 192
+    LD A, 192
+    LD C, A         ; Store to physical register C
+    ; r6 = r4 & r5
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; store , r6
+    LD A, D
+    LD ($F006), A
+    LD A, (zx.screen.pixel_addr_param_y)
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; r9 = 56
+    LD A, 56
+    LD L, A         ; Store to physical register L
+    ; r10 = r8 & r9
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; r11 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r12 = r10 >> r11
+    ; Shift right
+    LD A, ($F014)     ; Virtual register 10 from memory
+    LD B, A       ; B = value to shift
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_0
+    LD B, C       ; B = counter
+.shr_loop_0:
+    DEC B
+    JP M, .shr_done_0
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_0
+.shr_done_0:
+    LD L, A
+    LD H, 0
+    ; store , r12
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD ($F00E), A
+    LD A, (zx.screen.pixel_addr_param_y)
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r15 = 7
+    LD A, 7
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r16 = r14 & r15
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; store , r16
+    LD A, H
+    LD ($F01A), A
+    ; r18 = 16384
+    LD HL, 16384
+    LD D, H
+    LD E, L
+    ; r19 = load y_low
+    LD A, ($F01A)
+    LD L, A         ; Store to HL (low byte)
+    ; r20 = 8
+    LD A, 8
+    LD H, A         ; Store to physical register H
+    ; r21 = r19 << r20
+    ; Shift left
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, H
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_1
+    LD B, C       ; B = counter
+.shl_loop_1:
+    DEC B
+    JP M, .shl_done_1
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_1
+.shl_done_1:
+    LD L, A
+    LD H, 0
+    ; r22 = r18 | r21
+    LD H, D
+    LD L, E
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    LD B, H
+    LD C, L
+    ; r23 = load y_mid
+    LD A, ($F00E)
+    LD L, A         ; Store to HL (low byte)
+    ; r24 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r25 = r23 << r24
+    ; Shift left
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, H
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_2
+    LD B, C       ; B = counter
+.shl_loop_2:
+    DEC B
+    JP M, .shl_done_2
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_2
+.shl_done_2:
+    LD L, A
+    LD H, 0
+    ; r26 = r22 | r25
+    LD H, B
+    LD L, C
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r27 = load y_high
+    LD A, ($F006)
+    LD L, A         ; Store to HL (low byte)
+    ; r28 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r29 = r27 << r28
+    ; Shift left
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, H
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_3
+    LD B, C       ; B = counter
+.shl_loop_3:
+    DEC B
+    JP M, .shl_done_3
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_3
+.shl_done_3:
+    LD L, A
+    LD H, 0
+    ; r30 = r26 | r29
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    LD ($F03C), HL    ; Virtual register 30 to memory
+zx.screen.pixel_addr_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    ; Register 31 already in HL
+    ; r32 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; r33 = r31 >> r32
+    ; Shift right
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, H
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_4
+    LD B, C       ; B = counter
+.shr_loop_4:
+    DEC B
+    JP M, .shr_done_4
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_4
+.shr_done_4:
+    LD L, A
+    LD H, 0
+    ; r34 = r30 | r33
+    LD HL, ($F03C)    ; Virtual register 30 from memory
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    ; store , r34
+    LD ($F022), HL
+    ; r35 = load addr
+    LD HL, ($F022)
+    ; Register 35 already in HL
+    ; return r35
+    ; Register 35 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.attr_addr
+zx.screen.attr_addr:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = 22528
+    LD HL, 22528
+    ; Register 3 already in HL
+zx.screen.attr_addr_param_y:
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r5 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; r6 = r4 * r5
+    ; 8-bit multiplication
+    LD A, H
+    LD B, A       ; B = multiplicand
+    LD A, L
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_5
+.mul_loop_5:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_5
+.mul_done_5:
+    ; Register 6 already in HL
+    ; r7 = r3 + r6
+    ; Register 3 already in HL
+    LD D, H
+    LD E, L
+    ; Register 6 already in HL
+    ADD HL, DE
+    ; Register 7 already in HL
+zx.screen.attr_addr_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    ; r9 = r7 + r8
+    ; Register 7 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r9
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.draw_hline
+zx.screen.draw_hline:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; store , r5
+    LD A, L
+    LD ($F008), A
+    ; loop_3:
+loop_3:
+    ; r6 = load i
+    LD A, ($F008)
+    LD H, A         ; Store to physical register H
+zx.screen.draw_hline_param_len:
+    LD BC, #0000   ; SMC parameter len (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; r8 = r6 < r7
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L7
+    LD HL, 0
+    JP .L8
+.L7:
+    LD HL, 1
+.L8:
+    ; jump_if_not r8, end_loop_4
+    LD A, H
+    OR A
+    JP Z, end_loop_4
+zx.screen.draw_hline_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    ; r10 = load i
+    LD A, ($F008)
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; r11 = r9 + r10
+    LD D, H
+    LD E, L
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    ADD HL, DE
+zx.screen.draw_hline_param_y:
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r13 = call zx.screen.set_pixel
+    ; Call to zx.screen.set_pixel (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    CALL zx.screen.set_pixel
+    ; r14 = load i
+    LD A, ($F008)
+    LD L, A         ; Store to physical register L
+    ; r15 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r16 = r14 + r15
+    LD D, H
+    LD E, L
+    ; Register 15 already in HL
+    ADD HL, DE
+    ; store i, r16
+    LD A, H
+    LD ($F008), A
+    ; jump loop_3
+    JP loop_3
+    ; end_loop_4:
+end_loop_4:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.draw_vline
+zx.screen.draw_vline:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = 0
+    LD A, 0
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; store , r5
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD ($F008), A
+    ; loop_5:
+loop_5:
+    ; r6 = load i
+    LD A, ($F008)
+    LD L, A         ; Store to physical register L
+zx.screen.draw_vline_param_len:
+    LD BC, #0000   ; SMC parameter len (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = r6 < r7
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L9
+    LD HL, 0
+    JP .L10
+.L9:
+    LD HL, 1
+.L10:
+    ; jump_if_not r8, end_loop_6
+    LD A, L
+    OR A
+    JP Z, end_loop_6
+zx.screen.draw_vline_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    LD ($F012), HL    ; Virtual register 9 to memory
+zx.screen.draw_vline_param_y:
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r11 = load i
+    LD A, ($F008)
+    LD ($F016), A     ; Virtual register 11 to memory
+    ; r12 = r10 + r11
+    LD D, H
+    LD E, L
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    ADD HL, DE
+    ; r13 = call zx.screen.set_pixel
+    ; Call to zx.screen.set_pixel (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL       ; Argument 0
+    CALL zx.screen.set_pixel
+    ; r14 = load i
+    LD A, ($F008)
+    LD L, A         ; Store to HL (low byte)
+    ; r15 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r16 = r14 + r15
+    ; Register 14 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store i, r16
+    LD A, L
+    LD ($F008), A
+    ; jump loop_5
+    JP loop_5
+    ; end_loop_6:
+end_loop_6:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.draw_rect
+zx.screen.draw_rect:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+zx.screen.draw_rect_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    LD ($F00A), HL    ; Virtual register 5 to memory
+zx.screen.draw_rect_param_y:
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+zx.screen.draw_rect_param_width:
+    LD BC, #0000   ; SMC parameter width (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = call zx.screen.draw_hline
+    ; Call to zx.screen.draw_hline (args: 3)
+    ; Stack-based parameter passing
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL zx.screen.draw_hline
+    LD A, (zx.screen.draw_rect_param_x)
+    LD ($F012), A     ; Virtual register 9 to memory
+    LD A, (zx.screen.draw_rect_param_y)
+    LD H, A         ; Store to physical register H
+zx.screen.draw_rect_param_height:
+    LD BC, #0000   ; SMC parameter height (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; r12 = r10 + r11
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r13 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r14 = r12 - r13
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    LD A, (zx.screen.draw_rect_param_width)
+    LD H, A         ; Store to physical register H
+    ; r16 = call zx.screen.draw_hline
+    ; Call to zx.screen.draw_hline (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL zx.screen.draw_hline
+    LD A, (zx.screen.draw_rect_param_x)
+    LD ($F022), A     ; Virtual register 17 to memory
+    LD A, (zx.screen.draw_rect_param_y)
+    LD H, A         ; Store to physical register H
+    LD A, (zx.screen.draw_rect_param_height)
+    LD L, A         ; Store to physical register L
+    ; r20 = call zx.screen.draw_vline
+    ; Call to zx.screen.draw_vline (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    LD HL, ($F022)    ; Virtual register 17 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL zx.screen.draw_vline
+    LD A, (zx.screen.draw_rect_param_x)
+    LD L, A         ; Store to physical register L
+    LD A, (zx.screen.draw_rect_param_width)
+    LD ($F02C), A     ; Virtual register 22 to memory
+    ; r23 = r21 + r22
+    LD D, H
+    LD E, L
+    LD HL, ($F02C)    ; Virtual register 22 from memory
+    ADD HL, DE
+    ; r24 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r25 = r23 - r24
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    LD ($F032), HL    ; Virtual register 25 to memory
+    LD A, (zx.screen.draw_rect_param_y)
+    LD H, A         ; Store to physical register H
+    LD A, (zx.screen.draw_rect_param_height)
+    LD L, A         ; Store to physical register L
+    ; r28 = call zx.screen.draw_vline
+    ; Call to zx.screen.draw_vline (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL zx.screen.draw_vline
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_import_simple.main
+...examples.test_import_simple.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; r2 = 10
+    LD A, 10
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 50
+    LD A, 50
+    LD H, A         ; Store to physical register H
+    ; r4 = 30
+    LD A, 30
+    LD L, A         ; Store to physical register L
+    ; r5 = call zx.screen.draw_rect
+    ; Call to zx.screen.draw_rect (args: 4)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 3
+    PUSH HL       ; Argument 2
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL zx.screen.draw_rect
+    ; Register 5 already in HL
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main
