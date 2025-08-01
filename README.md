@@ -28,7 +28,9 @@ MinZ is a revolutionary systems programming language that delivers **unprecedent
 - **Zero-indirection I/O** through TSMC reference reading
 - **3x faster struct field access** for small offsets
 
-**[Read Article 083: Advanced TSMC + Peephole Integration](minzc/docs/083_Advanced_TSMC_Peephole_Integration.md)** for the complete revolutionary strategy!
+**📚 Essential Reading:**
+- **[Article 084: MinZ Revolutionary Journey - What Makes It Unique](minzc/docs/084_MinZ_Revolutionary_Journey_and_Breakthroughs.md)** - Complete analysis of breakthrough achievements
+- **[Article 083: Advanced TSMC + Peephole Integration](minzc/docs/083_Advanced_TSMC_Peephole_Integration.md)** - Revolutionary optimization strategy
 
 ---
 
