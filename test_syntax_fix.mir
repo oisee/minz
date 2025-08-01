@@ -1,0 +1,15 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_syntax_fix.test() -> void
+  @smc
+  Locals:
+    r1 = a: u16
+    r3 = b: u16
+  Instructions:
+      0: r2 = 10
+      1: store , r2
+      2: r4 = load a
+      3: store , r4
+      4: return
+

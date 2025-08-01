@@ -29,6 +29,7 @@ MinZ is a revolutionary systems programming language that delivers **unprecedent
 - **3x faster struct field access** for small offsets
 
 **📚 Essential Reading:**
+- **[Article 086: Test-Driven Development for MinZ](minzc/docs/086_TDD_For_MinZ_Development.md)** - Complete TDD methodology from language features to Z80 assembly
 - **[Article 085: Complete Language Feature Examples](minzc/docs/085_Language_Feature_Examples_with_Transformations.md)** - MinZ → MIR → Assembly transformations for all features
 - **[Article 084: MinZ Revolutionary Journey - What Makes It Unique](minzc/docs/084_MinZ_Revolutionary_Journey_and_Breakthroughs.md)** - Complete analysis of breakthrough achievements
 - **[Article 083: Advanced TSMC + Peephole Integration](minzc/docs/083_Advanced_TSMC_Peephole_Integration.md)** - Revolutionary optimization strategy

@@ -1,0 +1,7 @@
+// Test let variable scoping
+fun test_scoping() -> void {
+    let a: u16 = 0x1234;
+    let b: u16 = 0x5678;
+    
+    let sum: u16 = a + b;  // This should work if a and b are in scope
+}

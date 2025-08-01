@@ -1,0 +1,29 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_pointer_field_fix.test_pointer_assignment(p: *...test_pointer_field_fix.Point) -> void
+  Instructions:
+      0: r2 = 10
+      1: 12
+      2: 14 ; Store to ptr->x (offset 0)
+      3: r4 = 20
+      4: 12
+      5: 14 ; Store to ptr->y (offset 1)
+      6: return
+
+Function ...test_pointer_field_fix.main() -> void
+  @smc
+  Locals:
+    r1 = pt: ...test_pointer_field_fix.Point
+  Instructions:
+      0: 60 ; Allocate struct Point
+      1: r3 = 0
+      2: 14 ; Store to Point.x
+      3: r4 = 0
+      4: 14 ; Store to Point.y
+      5: store , r2
+      6: r5 = load pt
+      7: 64
+      8: r7 = call test_pointer_assignment
+      9: return
+

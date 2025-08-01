@@ -1,0 +1,20 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_let_scoping.test_scoping() -> void
+  @smc
+  Locals:
+    r1 = a: u16
+    r3 = b: u16
+    r5 = sum: u16
+  Instructions:
+      0: r2 = 4660
+      1: store , r2
+      2: r4 = 22136
+      3: store , r4
+      4: r6 = load a
+      5: r7 = load b
+      6: r8 = r6 + r7
+      7: store , r8
+      8: return
+

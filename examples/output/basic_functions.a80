@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-01 09:30:34
+; Generated: 2025-08-01 09:41:02
 
 
 ; Code section
@@ -42,9 +42,9 @@
     LD ($F002), A
     ; r4 = 3
     LD A, 3
-    LD ($F008), A     ; Virtual register 4 to memory
+    LD L, A         ; Store to physical register L
     ; store , r4
-    LD A, ($F008)     ; Virtual register 4 from memory
+    LD A, L
     LD ($F006), A
     ; r6 = load x
     LD A, ($F002)
@@ -72,20 +72,18 @@
     LD ($F00A), A
     ; r10 = 0
     LD A, 0
-    LD B, A         ; Store to physical register B
+    LD D, A         ; Store to physical register D
     ; store , r10
-    LD A, B
+    LD A, D
     LD ($F012), A
     ; loop_1:
 loop_1:
     ; r11 = load i
     LD A, ($F012)
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD H, A         ; Store to physical register H
     ; r12 = 10
     LD A, 10
-    ; Register 12 already in A
+    LD H, A         ; Store to physical register H
     ; r13 = r11 < r12
     LD D, H
     LD E, L
@@ -99,7 +97,9 @@ loop_1:
     LD HL, 1
 .L2:
     ; jump_if_not r13, end_loop_2
-    ; Register 13 already in A
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, end_loop_2
     ; r14 = load i
@@ -109,17 +109,13 @@ loop_1:
     EXX               ; Switch back to main registers
     ; r15 = 1
     LD A, 1
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    ; Register 15 already in A
     ; r16 = r14 + r15
     LD D, H
     LD E, L
     ADD HL, DE
     ; store i, r16
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
+    ; Register 16 already in A
     LD ($F012), A
     ; jump loop_1
     JP loop_1

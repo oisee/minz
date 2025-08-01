@@ -1,0 +1,15 @@
+// Test pointer field access fix
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun test_pointer_assignment(p: *Point) -> void {
+    p->x = 10;
+    p->y = 20;
+}
+
+fun main() -> void {
+    let mut pt: Point = Point { x: 0, y: 0 };
+    test_pointer_assignment(&pt);
+}

@@ -1,0 +1,5 @@
+// Test immediate variable use
+fun test() -> void {
+    let u16 a = 10;
+    let u16 b = a;  // Use a immediately after declaration
+}

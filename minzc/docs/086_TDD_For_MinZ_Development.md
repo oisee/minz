@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-**MinZ features the most advanced Test-Driven Development infrastructure ever created for a systems programming language.** Our TDD approach spans from high-level language features down to cycle-accurate Z80 assembly verification, enabling true Test-Driven Development for both compiler features and generated code optimization.
+**MinZ features comprehensive Test-Driven Development infrastructure specifically designed for Z80 systems programming.** Our TDD approach spans from high-level language features down to cycle-accurate Z80 assembly verification, enabling true Test-Driven Development for both compiler features and generated code optimization.
 
 ## 🚀 Our Revolutionary CI/CD & Testing Infrastructure
 
@@ -819,7 +819,7 @@ func AnalyzePerformanceTrends(historical []BenchmarkResult) []PerformanceTrend {
 
 ### **What We've Achieved**
 
-**MinZ features the most comprehensive TDD infrastructure ever created for a systems programming language:**
+**MinZ features comprehensive TDD infrastructure tailored for Z80/retro systems programming:**
 
 1. **Multi-Level Testing**: From grammar parsing to cycle-accurate Z80 execution
 2. **Performance-Driven**: Every feature tested for performance impact
