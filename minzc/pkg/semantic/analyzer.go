@@ -3346,6 +3346,87 @@ func (a *Analyzer) analyzeAssignment(bin *ast.BinaryExpr, irFunc *ir.Function) (
 		// Assignment expressions return the assigned value
 		return valueReg, nil
 		
+	case *ast.BinaryExpr:
+		// Handle pointer field access assignment (ptr->field = value)
+		if target.Operator != "->" {
+			return 0, fmt.Errorf("unsupported binary assignment target: %s", target.Operator)
+		}
+		
+		// Analyze the pointer expression
+		ptrReg, err := a.analyzeExpression(target.Left, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("error analyzing pointer in field access: %v", err)
+		}
+		
+		// Get the field name
+		fieldExpr, ok := target.Right.(*ast.Identifier)
+		if !ok {
+			return 0, fmt.Errorf("right side of -> must be an identifier, got %T", target.Right)
+		}
+		
+		// Verify the left side is a pointer type
+		ptrType, err := a.inferType(target.Left)
+		if err != nil {
+			return 0, fmt.Errorf("cannot determine type of pointer expression: %v", err)
+		}
+		
+		ptr, ok := ptrType.(*ir.PointerType)
+		if !ok {
+			return 0, fmt.Errorf("left side of -> must be a pointer, got %s", ptrType.String())
+		}
+		
+		// Verify the pointed-to type is a struct
+		structType, ok := ptr.Base.(*ir.StructType)
+		if !ok {
+			return 0, fmt.Errorf("cannot access field of non-struct type: %s", ptr.Base.String())
+		}
+		
+		// Find field offset
+		fieldName := fieldExpr.Name
+		offset := 0
+		found := false
+		var fieldType ir.Type
+		
+		for _, fname := range structType.FieldOrder {
+			if fname == fieldName {
+				found = true
+				fieldType = structType.Fields[fname]
+				break
+			}
+			offset += structType.Fields[fname].Size()
+		}
+		
+		if !found {
+			availableFields := []string{}
+			for _, fname := range structType.FieldOrder {
+				availableFields = append(availableFields, fname)
+			}
+			return 0, fmt.Errorf("struct %s has no field %s (available: %v)", structType.Name, fieldName, availableFields)
+		}
+		
+		// Type check the value against the field type
+		valueType, err := a.inferType(bin.Right)
+		if err != nil {
+			return 0, fmt.Errorf("cannot determine type of value: %v", err)
+		}
+		
+		if !a.typesCompatible(fieldType, valueType) {
+			return 0, fmt.Errorf("type mismatch: field %s is %s, value is %s", fieldName, fieldType.String(), valueType.String())
+		}
+		
+		// Generate pointer field store instruction
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpStoreField,
+			Src1:    ptrReg,     // pointer to struct
+			Src2:    valueReg,   // value to store
+			Imm:     int64(offset),
+			Type:    fieldType,
+			Comment: fmt.Sprintf("Store to ptr->%s (offset %d)", fieldName, offset),
+		})
+		
+		// Assignment expressions return the assigned value
+		return valueReg, nil
+		
 	default:
 		return 0, fmt.Errorf("unsupported assignment target: %T", target)
 	}

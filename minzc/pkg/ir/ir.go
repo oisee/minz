@@ -765,3 +765,47 @@ type PatchEntry struct {
 	ParamTag string    // Parameter name
 	Function string    // Function name
 }
+
+// String returns the string representation of an Opcode
+func (op Opcode) String() string {
+	switch op {
+	case OpNop: return "NOP"
+	case OpLabel: return "LABEL"
+	case OpJump: return "JUMP"
+	case OpJumpIf: return "JUMP_IF"
+	case OpJumpIfNot: return "JUMP_IF_NOT"
+	case OpJumpIfZero: return "JUMP_IF_ZERO"
+	case OpJumpIfNotZero: return "JUMP_IF_NOT_ZERO"
+	case OpCall: return "CALL"
+	case OpReturn: return "RETURN"
+	case OpLoadConst: return "LOAD_CONST"
+	case OpLoadVar: return "LOAD_VAR"
+	case OpStoreVar: return "STORE_VAR"
+	case OpLoadParam: return "LOAD_PARAM"
+	case OpLoadField: return "LOAD_FIELD"
+	case OpStoreField: return "STORE_FIELD"
+	case OpLoadIndex: return "LOAD_INDEX"
+	case OpStoreIndex: return "STORE_INDEX"
+	case OpLoadBitField: return "LOAD_BIT_FIELD"
+	case OpStoreBitField: return "STORE_BIT_FIELD"
+	case OpMove: return "MOVE"
+	case OpLoadLabel: return "LOAD_LABEL"
+	case OpLoadDirect: return "LOAD_DIRECT"
+	case OpStoreDirect: return "STORE_DIRECT"
+	case OpAdd: return "ADD"
+	case OpSub: return "SUB"
+	case OpMul: return "MUL"
+	case OpDiv: return "DIV"
+	case OpMod: return "MOD"
+	case OpNeg: return "NEG"
+	case OpInc: return "INC"
+	case OpDec: return "DEC"
+	case OpAnd: return "AND"
+	case OpOr: return "OR"
+	case OpXor: return "XOR"
+	case OpNot: return "NOT"
+	case OpShl: return "SHL"
+	case OpShr: return "SHR"
+	default: return fmt.Sprintf("UNKNOWN_OP_%d", int(op))
+	}
+}

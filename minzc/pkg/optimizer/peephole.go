@@ -1,12 +1,14 @@
 package optimizer
 
 import (
+	"fmt"
 	"github.com/minz/minzc/pkg/ir"
 )
 
 // PeepholeOptimizationPass performs Z80-specific peephole optimizations
 type PeepholeOptimizationPass struct {
 	patterns []PeepholePattern
+	diagnostic *DiagnosticCollector // Revolutionary diagnostic analysis
 }
 
 // PeepholePattern represents a pattern to match and replace
@@ -18,7 +20,9 @@ type PeepholePattern struct {
 
 // NewPeepholeOptimizationPass creates a new peephole optimization pass
 func NewPeepholeOptimizationPass() Pass {
-	p := &PeepholeOptimizationPass{}
+	p := &PeepholeOptimizationPass{
+		diagnostic: NewDiagnosticCollector("https://github.com/user/minz-ts"),
+	}
 	p.initializePatterns()
 	return p
 }
@@ -36,6 +40,12 @@ func (p *PeepholeOptimizationPass) Run(module *ir.Module) (bool, error) {
 		if p.optimizeFunction(function) {
 			changed = true
 		}
+	}
+	
+	// Generate diagnostic report after optimization
+	report := p.diagnostic.GenerateReport()
+	if len(report) > 100 { // Only print if we have diagnostics
+		fmt.Printf("\n📊 Peephole Optimization Report:\n%s\n", report)
 	}
 	
 	return changed, nil
@@ -272,6 +282,43 @@ func (p *PeepholeOptimizationPass) initializePatterns() {
 				}
 			},
 		},
+		
+		// Pattern: Small offset addition -> INC sequence (your brilliant optimization!)
+		{
+			Name: "small_offset_to_inc",
+			Match: func(insts []ir.Instruction, i int) (bool, int) {
+				if i+1 >= len(insts) {
+					return false, 0
+				}
+				// Match: LoadConst reg_offset, small_const; Add reg_ptr, reg_ptr, reg_offset
+				if insts[i].Op == ir.OpLoadConst && 
+				   insts[i].Imm >= 1 && insts[i].Imm <= 3 { // Only optimize 1-3 (performance sweet spot)
+					if insts[i+1].Op == ir.OpAdd && 
+					   insts[i+1].Src2 == insts[i].Dest &&  // Using the loaded constant
+					   insts[i+1].Src1 == insts[i+1].Dest { // Adding to same register (ptr += offset)
+						return true, 2
+					}
+				}
+				return false, 0
+			},
+			Replace: func(insts []ir.Instruction, i int) []ir.Instruction {
+				constInst := &insts[i]
+				addInst := &insts[i+1]
+				offset := int(constInst.Imm)
+				
+				// Generate INC sequence
+				result := make([]ir.Instruction, offset)
+				for j := 0; j < offset; j++ {
+					result[j] = ir.Instruction{
+						Op:      ir.OpInc,
+						Dest:    addInst.Dest, // Same destination register
+						Src1:    addInst.Dest, // Increment itself
+						Comment: fmt.Sprintf("INC (optimized small offset %d/%d)", j+1, offset),
+					}
+				}
+				return result
+			},
+		},
 	}
 }
 
@@ -292,6 +339,10 @@ func (p *PeepholeOptimizationPass) optimizeFunction(fn *ir.Function) bool {
 			// Try each pattern
 			for _, pattern := range p.patterns {
 				if match, length := pattern.Match(fn.Instructions, i); match {
+					// Collect diagnostic before applying replacement
+					optimizedInstructions := fn.Instructions[i:i+length]
+					p.diagnostic.CollectDiagnostic(pattern.Name, fn, optimizedInstructions, i)
+					
 					// Apply the replacement
 					replacement := pattern.Replace(fn.Instructions, i)
 					newInstructions = append(newInstructions, replacement...)
