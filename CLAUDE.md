@@ -322,3 +322,67 @@ See `docs/094_Lambda_Design_Complete.md` for full design details.
 - Tree-sitter corpus tests for grammar validation
 - Go unit tests in optimizer packages (e.g., `optimizer_test.go`, `smc_optimization_test.go`)
 - Integration tests with sample MinZ programs in examples/
+
+## 🛠️ Release and Build Tools
+
+### Release Pipeline
+```bash
+# Create full release package with binaries for all platforms
+./scripts/release.sh
+
+# Create release with specific version
+VERSION=v0.9.2 ./scripts/release.sh
+
+# Create development package with source
+./scripts/package.sh
+```
+
+The release pipeline includes:
+- Cross-platform binaries (macOS Intel/ARM, Linux x64/ARM, Windows)
+- Standard library and documentation bundling
+- Platform-specific installers
+- Docker image generation
+- GitHub Actions automation
+
+See `RELEASE_PIPELINE.md` for complete details.
+
+### E2E Testing
+```bash
+# Run comprehensive E2E tests on all examples
+cd minzc && go test -v ./pkg/e2e -run TestE2ECompilation
+
+# Generate performance report
+cd minzc && make benchmark-report
+```
+
+### Docker Usage
+```bash
+# Build Docker image
+docker build -t minz:latest -f scripts/Dockerfile .
+
+# Run compiler in container
+docker run -v $(pwd):/workspace minz:latest minzc program.minz -O --enable-smc
+```
+
+## 📊 Optimization Pipeline
+
+The MinZ compiler implements a sophisticated multi-pass optimization pipeline:
+
+### Optimization Passes
+1. **Register Analysis** - Tracks usage patterns
+2. **MIR Reordering** - Exposes optimization opportunities
+3. **Smart Peephole** - Z80-specific pattern matching
+4. **Constant Folding** - Compile-time evaluation
+5. **Dead Code Elimination** - Removes unused code
+6. **Register Allocation** - Hierarchical allocation
+7. **Inlining** - Small function expansion
+8. **TRUE SMC** - Self-modifying code transformation
+9. **Tail Recursion** - Loop transformation
+
+### Key Optimizations
+- **Instruction Reordering**: Clusters related operations, sinks stores, hoists invariants
+- **Z80 Patterns**: Inc/Dec for ±1, zero comparison optimization, shift unrolling
+- **Multiply by Power of 2**: Converts to shifts
+- **Shadow Register Usage**: Automatic for interrupts and performance
+
+See `docs/108_Optimization_Pipeline.md` for detailed documentation.

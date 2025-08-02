@@ -50,8 +50,8 @@ jobs:
     
     - name: Build release
       run: |
-        chmod +x build/release.sh
-        VERSION=${{ env.VERSION }} build/release.sh
+        chmod +x scripts/release.sh
+        VERSION=${{ env.VERSION }} scripts/release.sh
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
@@ -123,7 +123,7 @@ jobs:
         fi
     
     - name: Build Docker image
-      run: docker build -t minz:${{ env.VERSION }} -f build/Dockerfile .
+      run: docker build -t minz:${{ env.VERSION }} -f scripts/Dockerfile .
     
     - name: Save Docker image
       run: docker save minz:${{ env.VERSION }} | gzip > minz-docker-${{ env.VERSION }}.tar.gz
