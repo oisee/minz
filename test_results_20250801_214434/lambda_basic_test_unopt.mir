@@ -1,0 +1,85 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.lambda_basic_test.add_five_traditional(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 5
+      2: r4 = r2 + r3
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_basic_test.test_lambda_basic$add_five_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_basic_test.test_lambda_basic() -> u8
+  @smc
+  Instructions:
+      0: r1 = 10
+      1: r2 = call add_five
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_basic_test.test_lambda_direct$f_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_basic_test.test_lambda_direct() -> u8
+  @smc
+  Instructions:
+      0: r1 = 10
+      1: r2 = call f
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_basic_test.test_lambda_multiple$add_2(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_basic_test.test_lambda_multiple() -> u8
+  @smc
+  Locals:
+    r1 = a: u16
+    r4 = b: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = call add
+      2: store , r3
+      3: r5 = 20
+      4: r6 = call add
+      5: store , r6
+      6: r7 = load a
+      7: r8 = load b
+      8: r9 = r7 + r8
+      9: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_basic_test.main() -> void
+  @smc
+  Locals:
+    r1 = t1: u16
+    r4 = t2: u16
+    r6 = t3: u16
+    r8 = t4: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = call add_five_traditional
+      2: store , r3
+      3: r5 = call test_lambda_basic
+      4: store , r5
+      5: r7 = call test_lambda_direct
+      6: store , r7
+      7: r9 = call test_lambda_multiple
+      8: store , r9
+      9: return
+

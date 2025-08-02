@@ -18,7 +18,7 @@ Function ...tests.test_cast_simple.main() -> void
       4: r6 = load wide
       5: store , r6
       6: r8 = 10
-      7: 42
+      7: NEG
       8: store , r9
       9: r11 = load signed_val
      10: store , r11

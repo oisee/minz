@@ -2,6 +2,7 @@
 ; Module: main
 
 Function ...examples.test_missing_features.test_match(color: Color) -> u8
+  @smc
   Instructions:
       0: return
 

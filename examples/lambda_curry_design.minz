@@ -1,0 +1,49 @@
+// Design example for compile-time lambda transformation
+
+// Simple lambda - becomes a module function
+fun test_simple() -> u8 {
+    let add5 = |x: u8| => u8 { x + 5 };
+    // Transforms to: call examples.lambda_curry_design.test_simple.add5_0
+    add5(10)  // Direct call, not indirect!
+}
+
+// Curry example - only fully applied lambdas can be returned
+fun make_adder(n: u8) -> fn(u8) -> u8 {
+    // This lambda captures 'n', so we need to curry it
+    let adder = |x: u8| => u8 { x + n };
+    
+    // Manual curry: create a new function with n baked in
+    // This would be done by compiler, not user
+    @curry(adder, n)  // Returns address of generated function
+}
+
+// Usage
+fun test_curry() -> u8 {
+    let add5 = make_adder(5);   // Just a function address
+    let add10 = make_adder(10); // Different function address
+    
+    // These are simple indirect calls - no parameter magic needed!
+    add5(15) + add10(15)  // Returns 20 + 25 = 45
+}
+
+// Partial application example
+fun test_partial() -> u8 {
+    let add = |x: u8, y: u8| => u8 { x + y };
+    
+    // Partial application generates new function
+    let add5 = @partial(add, 5);  // Compiler generates wrapper
+    
+    add5(10)  // Calls generated wrapper which has 5 patched in
+}
+
+// What compiler generates for make_adder:
+// fun make_adder_curry_0() -> u8 {  // n=5 version
+//     ; TRUE SMC - n is patched here
+//     LD A, 5      ; <-- This 5 gets patched
+//     ADD A, L     ; x is in L
+//     RET
+// }
+
+fun main() -> u8 {
+    test_curry()
+}

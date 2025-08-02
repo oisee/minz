@@ -15,11 +15,11 @@ Function ...tests.test_opcode36b.main() -> void
       3: store , r4
       4: r6 = load x
       5: r7 = load y
-      6: 40
+      6: DIV
       7: store , r8
       8: r10 = load x
       9: r11 = load y
-     10: 41
+     10: MOD
      11: store , r12
      12: return
 

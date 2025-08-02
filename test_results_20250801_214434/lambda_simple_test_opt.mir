@@ -1,0 +1,23 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function lambda_.Users.alice.dev.minz-ts.examples.lambda_simple_test.main_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: r0 = load x
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_simple_test.main() -> void
+  @smc
+  Locals:
+    r1 = add_five: u16
+    r5 = result: u16
+  Instructions:
+      0: r2 = addr()
+      1: r3 = 5
+      2: r4 = r2 + r3
+      3: store , r4
+      4: r8 = call_indirect r7 (args: r6)
+      5: store , r8
+      6: return
+

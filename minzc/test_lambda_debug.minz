@@ -1,0 +1,8 @@
+// Debug lambda test
+fun main() -> void {
+    // Simple lambda with explicit type
+    let add_one = |x: u8| => u8 { x + 1 };
+    
+    // Try to call it
+    let result = add_one(5);
+}

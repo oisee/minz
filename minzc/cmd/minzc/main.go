@@ -211,6 +211,8 @@ func saveIRModule(module *ir.Module, filename string) error {
 				fmt.Fprintf(file, "r%d = r%d", inst.Dest, inst.Src1)
 			case ir.OpLoadVar:
 				fmt.Fprintf(file, "r%d = load %s", inst.Dest, inst.Symbol)
+			case ir.OpLoadAddr:
+				fmt.Fprintf(file, "r%d = addr(%s)", inst.Dest, inst.Symbol)
 			case ir.OpStoreVar:
 				fmt.Fprintf(file, "store %s, r%d", inst.Symbol, inst.Src1)
 			case ir.OpAdd:
@@ -241,6 +243,19 @@ func saveIRModule(module *ir.Module, filename string) error {
 				fmt.Fprintf(file, "r%d = r%d >= r%d", inst.Dest, inst.Src1, inst.Src2)
 			case ir.OpCall:
 				fmt.Fprintf(file, "r%d = call %s", inst.Dest, inst.Symbol)
+			case ir.OpCallIndirect:
+				if len(inst.Args) > 0 {
+					fmt.Fprintf(file, "r%d = call_indirect r%d (args:", inst.Dest, inst.Src1)
+					for i, arg := range inst.Args {
+						if i > 0 {
+							fmt.Fprintf(file, ",")
+						}
+						fmt.Fprintf(file, " r%d", arg)
+					}
+					fmt.Fprintf(file, ")")
+				} else {
+					fmt.Fprintf(file, "r%d = call_indirect r%d", inst.Dest, inst.Src1)
+				}
 			case ir.OpReturn:
 				if inst.Src1 != 0 {
 					fmt.Fprintf(file, "return r%d", inst.Src1)

@@ -1,0 +1,57 @@
+// Test zero-cost interfaces
+// This should demonstrate compile-time polymorphism
+
+interface Drawable {
+    fun draw(self) -> u8;
+    fun get_size(self) -> u8;
+}
+
+struct Circle {
+    radius: u8,
+}
+
+impl Drawable for Circle {
+    fun draw(self) -> u8 {
+        // Simple draw implementation - return perimeter
+        self.radius * 6  // Approximation of 2πr 
+    }
+    
+    fun get_size(self) -> u8 {
+        self.radius
+    }
+}
+
+struct Rectangle {
+    width: u8,
+    height: u8,
+}
+
+impl Drawable for Rectangle {
+    fun draw(self) -> u8 {
+        // Draw rectangle - return perimeter
+        (self.width + self.height) * 2
+    }
+    
+    fun get_size(self) -> u8 {
+        self.width * self.height  // Area
+    }
+}
+
+// Generic function with interface bounds - should be monomorphized
+fun render<T: Drawable>(shape: T) -> u8 {
+    let size = shape.get_size();
+    let draw_result = shape.draw();
+    size + draw_result
+}
+
+fun main() -> u8 {
+    let circle = Circle { radius: 5 };
+    let rect = Rectangle { width: 4, height: 3 };
+    
+    // These calls should be monomorphized at compile time:
+    // render_Circle and render_Rectangle functions should be generated
+    let circle_result = render(circle);     // Should call Circle_draw directly
+    let rect_result = render(rect);         // Should call Rectangle_draw directly
+    
+    circle_result + rect_result
+}

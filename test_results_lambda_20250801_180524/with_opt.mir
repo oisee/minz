@@ -1,0 +1,89 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.lambda_basic_test.add_five_traditional(x: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: return
+
+Function lambda_examples.lambda_basic_test.test_lambda_basic_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: r0 = load x
+      1: r3 = load x
+      2: r4 = 5
+      3: r5 = r3 + r4
+      4: return r5
+
+Function examples.lambda_basic_test.test_lambda_basic() -> u8
+  @smc
+  Locals:
+    r1 = add_five: |u8| -> u8
+  Instructions:
+      0: UNKNOWN_OP_71
+      1: store , r2
+      2: CALL_INDIRECT
+      3: return
+
+Function lambda_examples.lambda_basic_test.test_lambda_direct_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: r0 = load x
+      1: r3 = load x
+      2: r4 = 5
+      3: r5 = r3 + r4
+      4: return r5
+
+Function examples.lambda_basic_test.test_lambda_direct() -> u8
+  @smc
+  Locals:
+    r1 = f: |u8| -> u8
+  Instructions:
+      0: UNKNOWN_OP_71
+      1: store , r2
+      2: CALL_INDIRECT
+      3: return
+
+Function lambda_examples.lambda_basic_test.test_lambda_multiple_2(x: u8) -> u8
+  @smc
+  Instructions:
+      0: r0 = load x
+      1: r3 = load x
+      2: r4 = 5
+      3: r5 = r3 + r4
+      4: return r5
+
+Function examples.lambda_basic_test.test_lambda_multiple() -> u8
+  @smc
+  Locals:
+    r1 = add: |u8| -> u8
+    r3 = a: u16
+    r7 = b: u16
+  Instructions:
+      0: UNKNOWN_OP_71
+      1: store , r2
+      2: CALL_INDIRECT
+      3: store , r6
+      4: CALL_INDIRECT
+      5: store , r10
+      6: return
+
+Function examples.lambda_basic_test.main() -> void
+  @smc
+  Locals:
+    r1 = t1: u16
+    r4 = t2: u16
+    r6 = t3: u16
+    r8 = t4: u16
+  Instructions:
+      0: r3 = call add_five_traditional
+      1: store , r3
+      2: r5 = call test_lambda_basic
+      3: store , r5
+      4: r7 = call test_lambda_direct
+      5: store , r7
+      6: r9 = call test_lambda_multiple
+      7: store , r9
+      8: return
+

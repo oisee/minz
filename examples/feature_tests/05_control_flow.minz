@@ -1,0 +1,196 @@
+// Test 05: Control Flow
+// Tests: if/else, while, for, break, continue, match
+
+fun test_if_else() -> bool {
+    let x = 10;
+    
+    // Simple if
+    if x == 10 {
+        // OK
+    } else {
+        return false;
+    }
+    
+    // if-else
+    if x > 20 {
+        return false;
+    } else {
+        // OK
+    }
+    
+    // if-else if-else chain
+    if x < 5 {
+        return false;
+    } else if x > 15 {
+        return false;
+    } else if x == 10 {
+        // OK
+    } else {
+        return false;
+    }
+    
+    // Nested if
+    if x > 5 {
+        if x < 15 {
+            if x == 10 {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+fun test_while_loop() -> bool {
+    let mut i = 0;
+    let mut sum = 0;
+    
+    // Basic while
+    while i < 10 {
+        sum = sum + i;
+        i = i + 1;
+    }
+    
+    // 0 + 1 + 2 + ... + 9 = 45
+    if sum != 45 { return false; }
+    
+    // While with break
+    i = 0;
+    while true {
+        if i == 5 { break; }
+        i = i + 1;
+    }
+    if i != 5 { return false; }
+    
+    // While with continue
+    i = 0;
+    sum = 0;
+    while i < 10 {
+        i = i + 1;
+        if i % 2 == 0 { continue; }
+        sum = sum + i;  // Only odd numbers
+    }
+    // 1 + 3 + 5 + 7 + 9 = 25
+    if sum != 25 { return false; }
+    
+    return true;
+}
+
+fun test_for_loop() -> bool {
+    let mut sum = 0;
+    
+    // Range for loop
+    for i in 0..5 {
+        sum = sum + i;
+    }
+    // 0 + 1 + 2 + 3 + 4 = 10
+    if sum != 10 { return false; }
+    
+    // For with break
+    sum = 0;
+    for i in 0..10 {
+        if i == 5 { break; }
+        sum = sum + i;
+    }
+    // 0 + 1 + 2 + 3 + 4 = 10
+    if sum != 10 { return false; }
+    
+    // For with continue
+    sum = 0;
+    for i in 0..10 {
+        if i % 2 == 0 { continue; }
+        sum = sum + i;  // Only odd numbers
+    }
+    // 1 + 3 + 5 + 7 + 9 = 25
+    if sum != 25 { return false; }
+    
+    return true;
+}
+
+fun test_for_array() -> bool {
+    let arr: [u8; 5] = [1, 2, 3, 4, 5];
+    let mut sum = 0;
+    
+    // Iterate over array
+    for val in arr {
+        sum = sum + val;
+    }
+    if sum != 15 { return false; }
+    
+    // Modify array elements (with ! modifier)
+    let mut arr2: [u8; 3] = [10, 20, 30];
+    for val! in arr2 {
+        val = val + 1;
+    }
+    if arr2[0] != 11 { return false; }
+    if arr2[1] != 21 { return false; }
+    if arr2[2] != 31 { return false; }
+    
+    return true;
+}
+
+fun test_nested_loops() -> bool {
+    let mut count = 0;
+    
+    // Nested for loops
+    for i in 0..3 {
+        for j in 0..3 {
+            count = count + 1;
+        }
+    }
+    if count != 9 { return false; }
+    
+    // Break from inner loop
+    count = 0;
+    for i in 0..3 {
+        for j in 0..3 {
+            if j == 1 { break; }
+            count = count + 1;
+        }
+    }
+    if count != 3 { return false; }  // 3 iterations of outer * 1 of inner
+    
+    return true;
+}
+
+fun test_match() -> bool {
+    // Match on enum (when implemented)
+    enum Color {
+        Red,
+        Green,
+        Blue,
+        RGB(u8, u8, u8),
+    }
+    
+    let color = Color.Blue;
+    
+    match color {
+        Color.Red => return false,
+        Color.Green => return false,
+        Color.Blue => return true,
+        Color.RGB(_, _, _) => return false,
+    }
+}
+
+fun test_match_with_guards() -> bool {
+    let x = 10;
+    
+    match x {
+        n if n < 5 => return false,
+        n if n > 15 => return false,
+        n if n == 10 => return true,
+        _ => return false,
+    }
+}
+
+fun main() -> u8 {
+    if !test_if_else() { return 1; }
+    if !test_while_loop() { return 2; }
+    if !test_for_loop() { return 3; }
+    if !test_for_array() { return 4; }
+    if !test_nested_loops() { return 5; }
+    if !test_match() { return 6; }
+    if !test_match_with_guards() { return 7; }
+    
+    return 0;  // All tests passed
+}

@@ -1,0 +1,94 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_registers.add_numbers(a: u16, b: u16) -> u16
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.test_registers.complex_calc(x: u16, y: u16, z: u16) -> u16
+  @smc
+  Locals:
+    r4 = a: u16
+    r8 = b: u16
+    r12 = c: u16
+    r16 = d: u16
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
+      2: r7 = r5 + r6
+      3: store , r7
+      4: UNKNOWN_OP_31 ; Load from anchor y$imm0
+      5: UNKNOWN_OP_31 ; Load from anchor z$imm0
+      6: r11 = r9 + r10
+      7: store , r11
+      8: r13 = load a
+      9: r14 = 2
+     10: r15 = r13 * r14
+     11: store , r15
+     12: r17 = load b
+     13: r18 = 3
+     14: r19 = r17 * r18
+     15: store , r19
+     16: r20 = load c
+     17: r21 = load d
+     18: r22 = r20 + r21
+     19: return r22
+
+Function .Users.alice.dev.minz-ts.examples.test_registers.timer_interrupt() -> void
+  @smc
+  Locals:
+    r1 = counter: u16
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r3 = load counter
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: store counter, r5
+      6: return
+
+Function .Users.alice.dev.minz-ts.examples.test_registers.process_array(data: *u8, len: u16) -> u16
+  @smc
+  Locals:
+    r3 = sum: u16
+    r5 = i: u16
+  Instructions:
+      0: r4 = 0
+      1: store , r4
+      2: r6 = 0
+      3: store , r6
+      4: loop_1:
+      5: r7 = load i
+      6: UNKNOWN_OP_31 ; Load from anchor len$imm0
+      7: r9 = r7 < r8
+      8: jump_if_not r9, end_loop_2
+      9: r10 = load sum
+     10: UNKNOWN_OP_31 ; Load from anchor data$imm0
+     11: LOAD_INDEX ; Load array element (u8)
+     12: r14 = r10 + r13
+     13: store sum, r14
+     14: r15 = load i
+     15: r16 = 1
+     16: r17 = r15 + r16
+     17: store i, r17
+     18: jump loop_1
+     19: end_loop_2:
+     20: r18 = load sum
+     21: return r18
+
+Function .Users.alice.dev.minz-ts.examples.test_registers.main() -> void
+  @smc
+  Locals:
+    r1 = x: u16
+    r5 = y: u16
+  Instructions:
+      0: r4 = call add_numbers
+      1: store , r4
+      2: r9 = call complex_calc
+      3: store , r9
+      4: return
+

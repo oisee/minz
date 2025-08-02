@@ -1,0 +1,90 @@
+// Test 01: Basic Types and Operations
+// Tests: u8, u16, i8, i16, bool, basic arithmetic, comparisons
+
+fun test_unsigned_types() -> bool {
+    // u8 tests
+    let a: u8 = 255;
+    let b: u8 = 1;
+    let c = a + b;  // Should wrap to 0
+    if c != 0 { return false; }
+    
+    // u16 tests
+    let x: u16 = 65535;
+    let y: u16 = 1;
+    let z = x + y;  // Should wrap to 0
+    if z != 0 { return false; }
+    
+    return true;
+}
+
+fun test_signed_types() -> bool {
+    // i8 tests
+    let a: i8 = 127;
+    let b: i8 = 1;
+    let c = a + b;  // Should wrap to -128
+    if c != -128 { return false; }
+    
+    // i16 tests
+    let x: i16 = 32767;
+    let y: i16 = 1;
+    let z = x + y;  // Should wrap to -32768
+    if z != -32768 { return false; }
+    
+    return true;
+}
+
+fun test_boolean_ops() -> bool {
+    let t: bool = true;
+    let f: bool = false;
+    
+    // Logical operations
+    if !(t && t) { return false; }
+    if t && f { return false; }
+    if !(t || f) { return false; }
+    if f || f { return false; }
+    if !t { return false; }
+    if !!f { return false; }
+    
+    return true;
+}
+
+fun test_comparisons() -> bool {
+    let a: u8 = 10;
+    let b: u8 = 20;
+    
+    if !(a < b) { return false; }
+    if !(b > a) { return false; }
+    if !(a <= 10) { return false; }
+    if !(b >= 20) { return false; }
+    if a == b { return false; }
+    if !(a != b) { return false; }
+    
+    return true;
+}
+
+fun test_type_casting() -> bool {
+    let a: u8 = 100;
+    let b: u16 = a as u16;
+    if b != 100 { return false; }
+    
+    let c: i8 = -50;
+    let d: i16 = c as i16;
+    if d != -50 { return false; }
+    
+    // Truncation
+    let e: u16 = 300;
+    let f: u8 = e as u8;  // Should truncate to 44
+    if f != 44 { return false; }
+    
+    return true;
+}
+
+fun main() -> u8 {
+    if !test_unsigned_types() { return 1; }
+    if !test_signed_types() { return 2; }
+    if !test_boolean_ops() { return 3; }
+    if !test_comparisons() { return 4; }
+    if !test_type_casting() { return 5; }
+    
+    return 0;  // All tests passed
+}

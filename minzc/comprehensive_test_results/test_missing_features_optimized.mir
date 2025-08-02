@@ -1,0 +1,14 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_missing_features.test_match(color: Color) -> u8
+  @smc
+  Instructions:
+      0: return
+
+Function .Users.alice.dev.minz-ts.examples.test_missing_features.main() -> u8
+  @smc
+  Instructions:
+      0: r2 = call test_match
+      1: return r2
+

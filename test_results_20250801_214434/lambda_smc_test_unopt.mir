@@ -1,0 +1,66 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.lambda_smc_test.test_lambda_smc$add_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_smc_test.test_lambda_smc() -> u8
+  @smc
+  Locals:
+    r1 = r1: u16
+    r4 = r2: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = call add
+      2: store , r3
+      3: r5 = 20
+      4: r6 = call add
+      5: store , r6
+      6: r7 = load r1
+      7: r8 = load r2
+      8: r9 = r7 + r8
+      9: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_smc_test.add_traditional(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 5
+      2: r4 = r2 + r3
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_smc_test.test_traditional() -> u8
+  @smc
+  Locals:
+    r1 = r1: u16
+    r4 = r2: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = call add_traditional
+      2: store , r3
+      3: r5 = 20
+      4: r6 = call add_traditional
+      5: store , r6
+      6: r7 = load r1
+      7: r8 = load r2
+      8: r9 = r7 + r8
+      9: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_smc_test.main() -> u8
+  @smc
+  Locals:
+    r1 = lambda_result: u16
+    r3 = traditional_result: u16
+  Instructions:
+      0: r2 = call test_lambda_smc
+      1: store , r2
+      2: r4 = call test_traditional
+      3: store , r4
+      4: r5 = load lambda_result
+      5: return
+

@@ -1,0 +1,173 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle.draw(self: .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle.get_size(self: .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle.scale(self: .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle, factor: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor factor$imm0
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.draw(self: .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.get_size(self: .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.scale(self: .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle, factor: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      2: UNKNOWN_OP_31 ; Load from anchor factor$imm0
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.test_lambdas$double_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.test_lambdas$add_five_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.test_lambdas$multiply_2(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor b$imm0
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.test_lambdas() -> u8
+  @smc
+  Locals:
+    r1 = result1: u16
+    r4 = result2: u16
+    r7 = result3: u16
+  Instructions:
+      0: r3 = call double
+      1: store , r3
+      2: r6 = call add_five
+      3: store , r6
+      4: r10 = call multiply
+      5: store , r10
+      6: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.test_interfaces() -> u8
+  @smc
+  Locals:
+    r1 = circle: u16
+    r4 = rect: u16
+    r8 = c_draw: u16
+    r11 = c_size: u16
+    r14 = c_scale: u16
+    r18 = r_draw: u16
+    r21 = r_size: u16
+    r24 = r_scale: u16
+  Instructions:
+      0: UNKNOWN_OP_61 ; Allocate struct Circle
+      1: r3 = 3
+      2: STORE_FIELD ; Store to Circle.radius
+      3: store , r2
+      4: UNKNOWN_OP_61 ; Allocate struct Rectangle
+      5: r6 = 4
+      6: STORE_FIELD ; Store to Rectangle.width
+      7: r7 = 5
+      8: STORE_FIELD ; Store to Rectangle.height
+      9: store , r5
+     10: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle.draw
+     11: LOAD_FIELD ; Inlined: Load field radius (offset 0)
+     12: r3 = 6 ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle.draw
+     13: store , r10
+     14: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle.get_size
+     15: LOAD_FIELD ; Inlined: Load field radius (offset 0)
+     16: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle.get_size
+     17: LOAD_FIELD ; Inlined: Load field radius (offset 0)
+     18: store , r13
+     19: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle.scale
+     20: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Circle.scale
+     21: store , r17
+     22: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.draw
+     23: LOAD_FIELD ; Inlined: Load field width (offset 0)
+     24: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.draw
+     25: LOAD_FIELD ; Inlined: Load field height (offset 1)
+     26: r17 = r14 + r16 ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.draw
+     27: store , r20
+     28: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.get_size
+     29: LOAD_FIELD ; Inlined: Load field width (offset 0)
+     30: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.get_size
+     31: store , r23
+     32: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.scale
+     33: LOAD_FIELD ; Inlined: Load field width (offset 0)
+     34: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.scale
+     35: LOAD_FIELD ; Inlined: Load field height (offset 1)
+     36: r27 = r24 + r26 ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.scale
+     37: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.zero_cost_test.Rectangle.scale
+     38: store , r27
+     39: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.traditional_function(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.test_performance_equivalence$lambda_add_3(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.test_performance_equivalence() -> u8
+  @smc
+  Locals:
+    r1 = lambda_result: u16
+    r5 = traditional_result: u16
+  Instructions:
+      0: r4 = call lambda_add
+      1: store , r4
+      2: r8 = call traditional_function
+      3: store , r8
+      4: return
+
+Function .Users.alice.dev.minz-ts.examples.zero_cost_test.main() -> u8
+  @smc
+  Locals:
+    r1 = lambda_test: u16
+    r3 = interface_test: u16
+    r5 = performance_test: u16
+  Instructions:
+      0: r2 = call test_lambdas
+      1: store , r2
+      2: r4 = call test_interfaces
+      3: store , r4
+      4: r6 = call test_performance_equivalence
+      5: store , r6
+      6: return
+

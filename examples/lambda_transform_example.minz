@@ -1,0 +1,88 @@
+// Example showing how lambda transformation would work
+
+// Before transformation:
+/*
+fun calculate() -> u8 {
+    let add = |x: u8, y: u8| => u8 { x + y };
+    let mul = |x: u8, y: u8| => u8 { x * y };
+    
+    let a = add(5, 3);   // 8
+    let b = mul(4, 2);   // 8
+    add(a, b)            // 16
+}
+*/
+
+// After transformation (what compiler generates):
+fun calculate_add_0(x: u8, y: u8) -> u8 {
+    x + y
+}
+
+fun calculate_mul_1(x: u8, y: u8) -> u8 {
+    x * y
+}
+
+fun calculate() -> u8 {
+    // let add = calculate_add_0;  // Just a function reference
+    // let mul = calculate_mul_1;  // Just a function reference
+    
+    let a = calculate_add_0(5, 3);   // Direct call
+    let b = calculate_mul_1(4, 2);   // Direct call
+    calculate_add_0(a, b)            // Direct call
+}
+
+// For returning lambdas - must be fully applied:
+/*
+fun make_adder(n: u8) -> fn(u8) -> u8 {
+    let adder = |x: u8| => u8 { x + n };  // Captures n
+    @curry(adder, n)  // Returns address of generated function
+}
+*/
+
+// Compiler generates specialized functions:
+fun make_adder_curry_5() -> u8 {  // Version with n=5
+    ; TRUE SMC function
+    LD A, L           ; x parameter in L
+    ADD A, 5          ; n=5 is hardcoded
+    RET
+}
+
+fun make_adder_curry_10() -> u8 {  // Version with n=10
+    ; TRUE SMC function
+    LD A, L           ; x parameter in L
+    ADD A, 10         ; n=10 is hardcoded
+    RET
+}
+
+// Or with TRUE SMC:
+fun make_adder_template() -> u8 {
+make_adder_n_anchor:
+    LD A, 0           ; <-- This gets patched
+    ADD A, L          ; x parameter in L
+    RET
+}
+
+fun make_adder(n: u8) -> u16 {  // Returns function address
+    ; Patch template with n value
+    LD A, n
+    LD (make_adder_n_anchor + 1), A
+    
+    ; Return address of template
+    LD HL, make_adder_template
+    RET
+}
+
+// Usage remains clean:
+fun test() -> u8 {
+    let add5 = make_adder(5);    // Get function address
+    let add10 = make_adder(10);  // Get function address
+    
+    ; These become indirect calls through address
+    let a = add5(15);   // CALL (HL) with 15 in L -> returns 20
+    let b = add10(15);  // CALL (HL) with 15 in L -> returns 25
+    
+    a + b  // 45
+}
+
+fun main() -> u8 {
+    calculate()
+}

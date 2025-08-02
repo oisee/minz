@@ -1,0 +1,62 @@
+// E2E Test: Lambda vs Traditional Functions
+// Tests performance, optimization, and code generation
+
+// Traditional function approach
+fun add_traditional(x: u8, y: u8) -> u8 {
+    x + y
+}
+
+fun multiply_traditional(x: u8, y: u8) -> u8 {
+    x * y
+}
+
+// Lambda approach
+fun test_lambdas() -> void {
+    // Basic lambda
+    let add = |x: u8, y: u8| => u8 { x + y };
+    let result1 = add(5, 3);  // Should be 8
+    
+    // Lambda with single parameter
+    let double = |x: u8| => u8 { x * 2 };
+    let result2 = double(7);  // Should be 14
+    
+    // Lambda with closure (capturing local variable)
+    let multiplier = 3;
+    let triple = |x: u8| => u8 { x * multiplier };
+    let result3 = triple(4);  // Should be 12
+    
+    // Higher-order function with lambda
+    let apply_twice = |f: fn(u8) -> u8, x: u8| => u8 {
+        f(f(x))
+    };
+    let result4 = apply_twice(double, 5);  // Should be 20
+    
+    // Currying example!
+    let curry_add = |x: u8| => fn(u8) -> u8 {
+        |y: u8| => u8 { x + y }
+    };
+    let add5 = curry_add(5);
+    let result5 = add5(10);  // Should be 15
+}
+
+// Performance comparison
+fun benchmark_traditional() -> void {
+    let sum = 0;
+    for i in 0..100 {
+        sum = add_traditional(sum, 1);
+    }
+}
+
+fun benchmark_lambda() -> void {
+    let add = |x: u8, y: u8| => u8 { x + y };
+    let sum = 0;
+    for i in 0..100 {
+        sum = add(sum, 1);
+    }
+}
+
+fun main() -> void {
+    test_lambdas();
+    benchmark_traditional();
+    benchmark_lambda();
+}

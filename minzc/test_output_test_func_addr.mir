@@ -7,6 +7,7 @@ Function ...tests.test_func_addr.callback() -> void
       0: return
 
 Function ...tests.test_func_addr.call_with_callback(fn: *void) -> void
+  @smc
   Instructions:
       0: return
 
@@ -15,8 +16,8 @@ Function ...tests.test_func_addr.main() -> void
   Locals:
     r1 = fn_ptr: *void
   Instructions:
-      0: 20 ; Function reference: ...tests.test_func_addr.callback
-      1: 62
+      0: LOAD_LABEL ; Function reference: ...tests.test_func_addr.callback
+      1: UNKNOWN_OP_65
       2: store , r3
       3: r4 = load fn_ptr
       4: r5 = call call_with_callback

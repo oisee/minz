@@ -1,0 +1,36 @@
+// Simple E2E Test: Lambda vs Traditional Functions
+
+// Traditional function
+fun add_trad(x: u8, y: u8) -> u8 {
+    x + y
+}
+
+// Lambda function test
+fun test_lambda() -> u8 {
+    let add = |x: u8, y: u8| => u8 { x + y };
+    add(5, 3)  // Should return 8
+}
+
+// Lambda with single parameter
+fun test_double() -> u8 {
+    let double = |x: u8| => u8 { x + x };
+    double(7)  // Should return 14
+}
+
+// Chain of operations
+fun test_chain() -> u8 {
+    let inc = |x: u8| => u8 { x + 1 };
+    let double = |x: u8| => u8 { x + x };
+    
+    let x = 5;
+    let y = inc(x);      // 6
+    let z = double(y);   // 12
+    z
+}
+
+fun main() -> void {
+    let r1 = add_trad(5, 3);
+    let r2 = test_lambda();
+    let r3 = test_double();
+    let r4 = test_chain();
+}

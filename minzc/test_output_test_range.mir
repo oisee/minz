@@ -2,13 +2,14 @@
 ; Module: main
 
 Function ...examples.test_range.sum_range(n: u8) -> u16
+  @smc
   Locals:
     r2 = sum: u16
   Instructions:
       0: r3 = 0
       1: store , r3
       2: r4 = 0
-      3: 12
+      3: LOAD_PARAM
       4: r6 = r4 ; Initialize loop variable i
       5: for_loop_1:
       6: r7 = r6 < r5 ; Check i < end

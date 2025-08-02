@@ -1,0 +1,84 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.recursion_examples.factorial(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: else_1:
+      7: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      8: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      9: r10 = call factorial
+     10: r11 = r6 * r10
+     11: return r11
+
+Function .Users.alice.dev.minz-ts.examples.recursion_examples.gcd(a: u8, b: u8) -> u8
+  @smc
+  @recursive
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor b$imm0
+      1: .Users.alice.dev.minz-ts.examples.recursion_examples.gcd_tail_loop: ; Tail recursion loop start
+      2: r4 = 0
+      3: r5 = r3 == r4
+      4: jump_if_not r5, else_3
+      5: UNKNOWN_OP_31 ; Load from anchor a$imm0
+      6: return r6
+      7: else_3:
+      8: UNKNOWN_OP_31 ; Load from anchor b$imm0
+      9: UNKNOWN_OP_31 ; Load from anchor a$imm0
+     10: UNKNOWN_OP_31 ; Load from anchor b$imm0
+     11: jump .Users.alice.dev.minz-ts.examples.recursion_examples.gcd_tail_loop ; Tail recursion optimized to loop
+
+Function .Users.alice.dev.minz-ts.examples.recursion_examples.binary_search(arr: *u8, target: u8, left: u8, right: u8) -> i8
+  @smc
+  @recursive
+  Locals:
+    r10 = mid: u16
+    r18 = value: u16
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor left$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor right$imm0
+      2: .Users.alice.dev.minz-ts.examples.recursion_examples.binary_search_tail_loop: ; Tail recursion loop start
+      3: r7 = r5 > r6
+      4: jump_if_not r7, else_5
+      5: r9 = -1 ; Folded: 
+      6: return r9
+      7: else_5:
+      8: UNKNOWN_OP_31 ; Load from anchor left$imm0
+      9: UNKNOWN_OP_31 ; Load from anchor right$imm0
+     10: UNKNOWN_OP_31 ; Load from anchor left$imm0
+     11: r14 = r12 - r13
+     12: r15 = 2
+     13: DIV
+     14: r17 = r11 + r16
+     15: store , r17
+     16: UNKNOWN_OP_31 ; Load from anchor arr$imm0
+     17: UNKNOWN_OP_66
+     18: store , r22
+     19: r23 = load value
+     20: UNKNOWN_OP_31 ; Load from anchor target$imm0
+     21: r25 = r23 == r24
+     22: jump_if_not r25, else_7
+     23: r26 = load mid
+     24: return r26
+     25: else_7:
+     26: r27 = load value
+     27: UNKNOWN_OP_31 ; Load from anchor target$imm0
+     28: r29 = r27 < r28
+     29: jump_if_not r29, else_9
+     30: UNKNOWN_OP_31 ; Load from anchor arr$imm0
+     31: UNKNOWN_OP_31 ; Load from anchor target$imm0
+     32: UNKNOWN_OP_31 ; Load from anchor right$imm0
+     33: jump .Users.alice.dev.minz-ts.examples.recursion_examples.binary_search_tail_loop ; Tail recursion optimized to loop
+     34: else_9:
+     35: UNKNOWN_OP_31 ; Load from anchor arr$imm0
+     36: UNKNOWN_OP_31 ; Load from anchor target$imm0
+     37: UNKNOWN_OP_31 ; Load from anchor left$imm0
+     38: jump .Users.alice.dev.minz-ts.examples.recursion_examples.binary_search_tail_loop ; Tail recursion optimized to loop
+

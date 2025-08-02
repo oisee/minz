@@ -7,17 +7,17 @@ Function ...tests.test_old_loop.main() -> void
     r1 = arr: [2]u8
   Instructions:
       0: r2 = load arr
-      1: 68 ; Load table base address
-      2: 68 ; Load table base for end calculation
-      3: 73 ; Calculate table end (+ 2 elements * 1 bytes)
-      4: 72 ; Load loop counter
+      1: UNKNOWN_OP_71 ; Load table base address
+      2: UNKNOWN_OP_71 ; Load table base for end calculation
+      3: UNKNOWN_OP_76 ; Calculate table end (+ 2 elements * 1 bytes)
+      4: UNKNOWN_OP_75 ; Load loop counter
       5: loop_start_1:
-      6: 51 ; Check if reached end of table
-      7: 3 ; Exit if done
-      8: 69 ; Copy element to buffer at $F000
-      9: 70 ; Copy buffer back to element at $F000
-     10: 73 ; Advance to next element (+1 bytes)
-     11: 71 ; Decrement counter and loop if not zero
+      6: UNKNOWN_OP_54 ; Check if reached end of table
+      7: JUMP_IF ; Exit if done
+      8: UNKNOWN_OP_72 ; Copy element to buffer at $F000
+      9: UNKNOWN_OP_73 ; Copy buffer back to element at $F000
+     10: UNKNOWN_OP_76 ; Advance to next element (+1 bytes)
+     11: UNKNOWN_OP_74 ; Decrement counter and loop if not zero
      12: loop_end_2:
      13: return
 

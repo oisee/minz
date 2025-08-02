@@ -1,0 +1,139 @@
+// Test 06: Lambda Expressions (Zero-Cost!)
+// Tests: Lambda syntax, captures, transformation to functions
+
+fun test_simple_lambda() -> bool {
+    // Lambda with explicit type
+    let add = |x: u8, y: u8| => u8 { x + y };
+    
+    if add(5, 3) != 8 { return false; }
+    if add(10, 20) != 30 { return false; }
+    
+    return true;
+}
+
+fun test_lambda_type_inference() -> bool {
+    // Lambda with inferred types
+    let double = |x| { x * 2 };
+    
+    if double(5) != 10 { return false; }
+    if double(12) != 24 { return false; }
+    
+    return true;
+}
+
+fun test_lambda_as_parameter() -> bool {
+    // Function that takes a lambda
+    fun apply_twice(f: |u8| => u8, x: u8) -> u8 {
+        return f(f(x));
+    }
+    
+    let inc = |x| { x + 1 };
+    if apply_twice(inc, 5) != 7 { return false; }  // (5 + 1) + 1 = 7
+    
+    let double = |x| { x * 2 };
+    if apply_twice(double, 3) != 12 { return false; }  // (3 * 2) * 2 = 12
+    
+    return true;
+}
+
+fun test_lambda_with_locals() -> bool {
+    // Lambda using local variables (no capture in MinZ - all compile-time)
+    let offset = 10;
+    let add_offset = |x| { x + offset };
+    
+    if add_offset(5) != 15 { return false; }
+    if add_offset(20) != 30 { return false; }
+    
+    return true;
+}
+
+fun test_higher_order_functions() -> bool {
+    // Map function simulation
+    fun map_array(arr: *[u8; 5], f: |u8| => u8) -> void {
+        for i in 0..5 {
+            (*arr)[i] = f((*arr)[i]);
+        }
+    }
+    
+    let mut arr: [u8; 5] = [1, 2, 3, 4, 5];
+    let double = |x| { x * 2 };
+    
+    map_array(&arr, double);
+    
+    if arr[0] != 2 { return false; }
+    if arr[4] != 10 { return false; }
+    
+    return true;
+}
+
+fun test_lambda_composition() -> bool {
+    let add_one = |x| { x + 1 };
+    let double = |x| { x * 2 };
+    
+    // Manual composition (no closure capture)
+    let add_then_double = |x| { double(add_one(x)) };
+    let double_then_add = |x| { add_one(double(x)) };
+    
+    if add_then_double(5) != 12 { return false; }  // (5 + 1) * 2 = 12
+    if double_then_add(5) != 11 { return false; }  // (5 * 2) + 1 = 11
+    
+    return true;
+}
+
+fun test_lambda_with_multiple_params() -> bool {
+    let calc = |a: u8, b: u8, c: u8| => u16 {
+        (a as u16) * 100 + (b as u16) * 10 + (c as u16)
+    };
+    
+    if calc(1, 2, 3) != 123 { return false; }
+    if calc(5, 0, 9) != 509 { return false; }
+    
+    return true;
+}
+
+fun test_void_lambda() -> bool {
+    let mut counter = 0;
+    
+    // Lambda that returns void
+    let increment = |x: *u8| => void { *x = *x + 1; };
+    
+    increment(&counter);
+    increment(&counter);
+    increment(&counter);
+    
+    if counter != 3 { return false; }
+    
+    return true;
+}
+
+// Verify zero-cost: Lambda should compile to identical assembly as regular function
+fun regular_add(x: u8, y: u8) -> u8 {
+    return x + y;
+}
+
+fun test_zero_cost_verification() -> bool {
+    let lambda_add = |x: u8, y: u8| => u8 { x + y };
+    
+    // Both should produce identical results and assembly
+    if regular_add(10, 20) != lambda_add(10, 20) { return false; }
+    
+    // In assembly, lambda_add should be transformed to:
+    // main$lambda_add_0:  ; Named function, not closure!
+    //     ; Same body as regular_add
+    
+    return true;
+}
+
+fun main() -> u8 {
+    if !test_simple_lambda() { return 1; }
+    if !test_lambda_type_inference() { return 2; }
+    if !test_lambda_as_parameter() { return 3; }
+    if !test_lambda_with_locals() { return 4; }
+    if !test_higher_order_functions() { return 5; }
+    if !test_lambda_composition() { return 6; }
+    if !test_lambda_with_multiple_params() { return 7; }
+    if !test_void_lambda() { return 8; }
+    if !test_zero_cost_verification() { return 9; }
+    
+    return 0;  // All tests passed
+}

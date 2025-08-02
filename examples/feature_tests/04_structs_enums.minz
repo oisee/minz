@@ -1,0 +1,164 @@
+// Test 04: Structs and Enums
+// Tests: Struct definition, field access, enums, pattern matching
+
+// Basic struct
+struct Point {
+    x: u8,
+    y: u8,
+}
+
+// Struct with mixed types
+struct Player {
+    x: u16,
+    y: u16,
+    health: u8,
+    alive: bool,
+}
+
+// Nested struct
+struct Rectangle {
+    top_left: Point,
+    bottom_right: Point,
+}
+
+// Enum without data
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+// Enum with data
+enum Option<T> {
+    Some(T),
+    None,
+}
+
+// Enum for results
+enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+
+fun test_basic_struct() -> bool {
+    // Struct literal
+    let p = Point { x: 10, y: 20 };
+    
+    // Field access
+    if p.x != 10 { return false; }
+    if p.y != 20 { return false; }
+    
+    // Field modification
+    let mut p2 = Point { x: 0, y: 0 };
+    p2.x = 5;
+    p2.y = 15;
+    if p2.x != 5 { return false; }
+    if p2.y != 15 { return false; }
+    
+    return true;
+}
+
+fun test_complex_struct() -> bool {
+    let player = Player {
+        x: 100,
+        y: 200,
+        health: 100,
+        alive: true,
+    };
+    
+    if player.x != 100 { return false; }
+    if player.health != 100 { return false; }
+    if !player.alive { return false; }
+    
+    return true;
+}
+
+fun test_nested_struct() -> bool {
+    let rect = Rectangle {
+        top_left: Point { x: 0, y: 0 },
+        bottom_right: Point { x: 10, y: 10 },
+    };
+    
+    if rect.top_left.x != 0 { return false; }
+    if rect.bottom_right.y != 10 { return false; }
+    
+    // Modify nested field
+    let mut rect2 = rect;
+    rect2.top_left.x = 5;
+    if rect2.top_left.x != 5 { return false; }
+    
+    return true;
+}
+
+fun test_enum_without_data() -> bool {
+    let dir = Direction.North;
+    
+    // Pattern matching (when implemented)
+    match dir {
+        Direction.North => return true,
+        _ => return false,
+    }
+}
+
+fun test_enum_with_data() -> bool {
+    let some_value: Option<u8> = Option.Some(42);
+    let no_value: Option<u8> = Option.None;
+    
+    // Pattern matching (when implemented)
+    match some_value {
+        Option.Some(val) => {
+            if val != 42 { return false; }
+        }
+        Option.None => return false,
+    }
+    
+    match no_value {
+        Option.Some(_) => return false,
+        Option.None => return true,
+    }
+}
+
+fun test_struct_pointers() -> bool {
+    let p = Point { x: 10, y: 20 };
+    let ptr: *Point = &p;
+    
+    // Access through pointer
+    if (*ptr).x != 10 { return false; }
+    if (*ptr).y != 20 { return false; }
+    
+    // Modify through pointer
+    (*ptr).x = 15;
+    if p.x != 15 { return false; }
+    
+    return true;
+}
+
+// Test struct as function parameter
+fun distance_squared(p1: Point, p2: Point) -> u16 {
+    let dx = (p2.x as i16) - (p1.x as i16);
+    let dy = (p2.y as i16) - (p1.y as i16);
+    return (dx * dx + dy * dy) as u16;
+}
+
+fun test_struct_parameters() -> bool {
+    let p1 = Point { x: 0, y: 0 };
+    let p2 = Point { x: 3, y: 4 };
+    
+    // 3² + 4² = 9 + 16 = 25
+    if distance_squared(p1, p2) != 25 { return false; }
+    
+    return true;
+}
+
+fun main() -> u8 {
+    if !test_basic_struct() { return 1; }
+    if !test_complex_struct() { return 2; }
+    if !test_nested_struct() { return 3; }
+    if !test_enum_without_data() { return 4; }
+    if !test_enum_with_data() { return 5; }
+    if !test_struct_pointers() { return 6; }
+    if !test_struct_parameters() { return 7; }
+    
+    return 0;  // All tests passed
+}

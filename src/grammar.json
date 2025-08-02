@@ -188,10 +188,6 @@
         {
           "type": "SYMBOL",
           "name": "error_type"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "union_type"
         }
       ]
     },
@@ -621,27 +617,6 @@
     "error_type": {
       "type": "STRING",
       "value": "Error"
-    },
-    "union_type": {
-      "type": "PREC_LEFT",
-      "value": 1,
-      "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "SYMBOL",
-            "name": "type"
-          },
-          {
-            "type": "STRING",
-            "value": "|"
-          },
-          {
-            "type": "SYMBOL",
-            "name": "type"
-          }
-        ]
-      }
     },
     "declaration": {
       "type": "CHOICE",
@@ -3863,7 +3838,7 @@
     },
     "lambda_expression": {
       "type": "PREC",
-      "value": 20,
+      "value": 25,
       "content": {
         "type": "SEQ",
         "members": [
@@ -4026,10 +4001,6 @@
     [
       "array_initializer",
       "struct_literal"
-    ],
-    [
-      "lambda_expression",
-      "union_type"
     ]
   ],
   "precedences": [],

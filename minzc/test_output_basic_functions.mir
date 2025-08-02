@@ -2,9 +2,10 @@
 ; Module: main
 
 Function ...examples.basic_functions.add(a: u8, b: u8) -> u8
+  @smc
   Instructions:
-      0: 12
-      1: 12
+      0: LOAD_PARAM
+      1: LOAD_PARAM
       2: r5 = r3 + r4
       3: return r5
 

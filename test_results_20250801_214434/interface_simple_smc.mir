@@ -1,0 +1,23 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.interface_simple.Circle.draw(self: .Users.alice.dev.minz-ts.examples.interface_simple.Circle) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor self$imm0
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.interface_simple.main() -> u8
+  @smc
+  Locals:
+    r1 = circle: u16
+  Instructions:
+      0: UNKNOWN_OP_61 ; Allocate struct Circle
+      1: r3 = 5
+      2: STORE_FIELD ; Store to Circle.radius
+      3: store , r2
+      4: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.interface_simple.Circle.draw
+      5: LOAD_FIELD ; Inlined: Load field radius (offset 0)
+      6: r3 = 2 ; Inlined from .Users.alice.dev.minz-ts.examples.interface_simple.Circle.draw
+      7: return
+

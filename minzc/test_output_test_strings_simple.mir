@@ -6,7 +6,7 @@ Function ...examples.test_strings_simple.test_strings() -> *u8
   Locals:
     r1 = hello: *u8
   Instructions:
-      0: 20 ; Load string "Hello, World!"
+      0: LOAD_LABEL ; Load string "Hello, World!"
       1: store , r2
       2: r3 = load hello
       3: return r3

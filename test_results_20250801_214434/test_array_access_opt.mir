@@ -1,0 +1,32 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_array_access.test_array() -> u8
+  @smc
+  Locals:
+    r1 = arr: [10]u8
+    r2 = x: u16
+    r6 = y: u16
+    r10 = i: u8
+    r12 = z: u16
+  Instructions:
+      0: LOAD_INDEX ; Load array element (u8)
+      1: store , r5
+      2: LOAD_INDEX ; Load array element (u8)
+      3: store , r9
+      4: r11 = 3
+      5: store , r11
+      6: LOAD_INDEX ; Load array element (u8)
+      7: store , r15
+      8: r16 = load z
+      9: return r16
+
+Function .Users.alice.dev.minz-ts.examples.test_array_access.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r2 = call test_array
+      1: store , r2
+      2: return
+

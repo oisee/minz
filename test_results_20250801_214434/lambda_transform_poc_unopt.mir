@@ -1,0 +1,102 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_local_lambda$add5_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_local_lambda() -> u8
+  @smc
+  Locals:
+    r1 = a: u16
+    r4 = b: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = call add5
+      2: store , r3
+      3: r5 = 20
+      4: r6 = call add5
+      5: store , r6
+      6: r7 = load a
+      7: r8 = load b
+      8: r9 = r7 + r8
+      9: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_reuse$double_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 2
+      2: r3 = r1 * r2
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_reuse$triple_2(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 3
+      2: r3 = r1 * r2
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_reuse() -> u8
+  @smc
+  Locals:
+    r1 = a: u16
+    r4 = b: u16
+    r7 = c: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = call double
+      2: store , r3
+      3: r5 = 5
+      4: r6 = call triple
+      5: store , r6
+      6: r8 = 10
+      7: r9 = call double
+      8: store , r9
+      9: r10 = load a
+     10: r11 = load b
+     11: r12 = r10 + r11
+     12: r13 = load c
+     13: r14 = r12 + r13
+     14: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_no_capture$good_3(y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_no_capture() -> u8
+  @smc
+  Locals:
+    r1 = x: u8
+  Instructions:
+      0: r2 = 10
+      1: store , r2
+      2: r3 = load x
+      3: r4 = call good
+      4: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_poc.main() -> u8
+  @smc
+  Locals:
+    r1 = r1: u16
+    r3 = r2: u16
+    r5 = r3: u16
+  Instructions:
+      0: r2 = call test_local_lambda
+      1: store , r2
+      2: r4 = call test_reuse
+      3: store , r4
+      4: r6 = call test_no_capture
+      5: store , r6
+      6: r7 = load r1
+      7: return
+

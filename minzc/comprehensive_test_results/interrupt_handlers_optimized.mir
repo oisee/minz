@@ -1,0 +1,18 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.interrupt_handlers.fast_interrupt_handler() -> void
+  @smc
+  Instructions:
+      0: return
+
+Function .Users.alice.dev.minz-ts.examples.interrupt_handlers.timer_interrupt() -> void
+  @smc
+  Instructions:
+      0: return
+
+Function .Users.alice.dev.minz-ts.examples.interrupt_handlers.setup_interrupts() -> void
+  @smc
+  Instructions:
+      0: return
+

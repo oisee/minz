@@ -1,0 +1,50 @@
+// Proof of concept for compile-time lambda transformation
+
+// Test 1: Simple local lambda
+fun test_local_lambda() -> u8 {
+    // This should become a function: test_local_lambda_add5_0
+    let add5 = |x: u8| => u8 { x + 5 };
+    
+    // These should be direct calls
+    let a = add5(10);  // 15
+    let b = add5(20);  // 25
+    
+    a + b  // 40
+}
+
+// Test 2: Lambda with multiple uses
+fun test_reuse() -> u8 {
+    let double = |x: u8| => u8 { x * 2 };
+    let triple = |x: u8| => u8 { x * 3 };
+    
+    let a = double(5);   // 10
+    let b = triple(5);   // 15
+    let c = double(10);  // 20
+    
+    a + b + c  // 45
+}
+
+// Test 3: No captures allowed for now
+fun test_no_capture() -> u8 {
+    let x = 10;
+    // This would error: lambda captures 'x'
+    // let bad = |y: u8| => u8 { x + y };
+    
+    // This is OK: no captures
+    let good = |y: u8| => u8 { y + 5 };
+    good(x)  // 15
+}
+
+// Test 4: Returning function addresses (future)
+// fun make_constant(val: u8) -> fn() -> u8 {
+//     // Would need to generate SMC function with val patched
+//     @curry(|| => u8 { val })
+// }
+
+fun main() -> u8 {
+    let r1 = test_local_lambda();  // 40
+    let r2 = test_reuse();         // 45
+    let r3 = test_no_capture();    // 15
+    
+    r1  // Just return first result
+}

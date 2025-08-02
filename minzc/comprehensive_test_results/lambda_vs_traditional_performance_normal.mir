@@ -1,0 +1,142 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_add(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_multiply(x: u8, factor: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 * r4
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex(a: u8, b: u8, c: u8) -> u8
+  @smc
+  Locals:
+    r4 = sum: u16
+    r8 = result: u16
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r7 = call traditional_add
+      3: store , r7
+      4: r9 = load sum
+      5: LOAD_PARAM
+      6: r11 = call traditional_multiply
+      7: store , r11
+      8: r12 = load result
+      9: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$add_0(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r4 = r2 + r3
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$multiply_1(x: u8, factor: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r4 = r2 * r3
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach(a: u8, b: u8, c: u8) -> u8
+  @smc
+  Locals:
+    r4 = sum: u16
+    r8 = result: u16
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r7 = call add
+      3: store , r7
+      4: r9 = load sum
+      5: LOAD_PARAM
+      6: r11 = call multiply
+      7: store , r11
+      8: r12 = load result
+      9: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_traditional_performance() -> u8
+  @smc
+  Locals:
+    r1 = result1: u16
+    r6 = result2: u16
+    r11 = result3: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = 3
+      2: r4 = 2
+      3: r5 = call traditional_complex
+      4: store , r5
+      5: r7 = 10
+      6: r8 = 7
+      7: r9 = 3
+      8: r10 = call traditional_complex
+      9: store , r10
+     10: r12 = 1
+     11: r13 = 9
+     12: r14 = 4
+     13: r15 = call traditional_complex
+     14: store , r15
+     15: r16 = load result1
+     16: r17 = load result2
+     17: r18 = r16 + r17
+     18: r19 = load result3
+     19: r20 = r18 + r19
+     20: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_lambda_performance() -> u8
+  @smc
+  Locals:
+    r1 = result1: u16
+    r6 = result2: u16
+    r11 = result3: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = 3
+      2: r4 = 2
+      3: r5 = call lambda_approach
+      4: store , r5
+      5: r7 = 10
+      6: r8 = 7
+      7: r9 = 3
+      8: r10 = call lambda_approach
+      9: store , r10
+     10: r12 = 1
+     11: r13 = 9
+     12: r14 = 4
+     13: r15 = call lambda_approach
+     14: store , r15
+     15: r16 = load result1
+     16: r17 = load result2
+     17: r18 = r16 + r17
+     18: r19 = load result3
+     19: r20 = r18 + r19
+     20: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.main() -> u8
+  @smc
+  Locals:
+    r1 = traditional_result: u16
+    r3 = lambda_result: u16
+  Instructions:
+      0: r2 = call test_traditional_performance
+      1: store , r2
+      2: r4 = call test_lambda_performance
+      3: store , r4
+      4: r5 = load traditional_result
+      5: r6 = load lambda_result
+      6: r7 = r5 + r6
+      7: return
+

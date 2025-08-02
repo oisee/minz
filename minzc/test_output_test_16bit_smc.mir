@@ -2,11 +2,12 @@
 ; Module: main
 
 Function ...examples.test_16bit_smc.multiply_add(a: u16, b: u16, c: u16) -> u16
+  @smc
   Instructions:
-      0: 12
-      1: 12
+      0: LOAD_PARAM
+      1: LOAD_PARAM
       2: r6 = r4 * r5
-      3: 12
+      3: LOAD_PARAM
       4: r8 = r6 + r7
       5: return r8
 

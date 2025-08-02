@@ -1,0 +1,202 @@
+; MinZ generated code
+; Generated: 2025-08-01 21:44:41
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_smc_patching.add_nums
+.Users.alice.dev.minz-ts.examples.test_smc_patching.add_nums:
+; TRUE SMC function with immediate anchors
+x$immOP:
+    LD A, 0        ; x anchor (will be patched)
+x$imm0 EQU x$immOP+1
+    ; Register 3 already in A
+y$immOP:
+    LD A, 0        ; y anchor (will be patched)
+y$imm0 EQU y$immOP+1
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_smc_patching.calculate
+.Users.alice.dev.minz-ts.examples.test_smc_patching.calculate:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r4 = call add_nums
+    ; Call to add_nums (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.test_smc_patching.add_nums
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD (x$imm0), A        ; Patch x
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD (y$imm0), A        ; Patch y
+    CALL .Users.alice.dev.minz-ts.examples.test_smc_patching.add_nums
+    ; store , r4
+    LD ($F002), HL
+    ; r8 = call add_nums
+    ; Call to add_nums (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.test_smc_patching.add_nums
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD (x$imm0), A        ; Patch x
+    LD A, ($F00E)     ; Virtual register 7 from memory
+    LD (y$imm0), A        ; Patch y
+    CALL .Users.alice.dev.minz-ts.examples.test_smc_patching.add_nums
+    ; store , r8
+    LD ($F00A), HL
+    ; r12 = call add_nums
+    ; Call to add_nums (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.test_smc_patching.add_nums
+    LD A, ($F014)     ; Virtual register 10 from memory
+    LD (x$imm0), A        ; Patch x
+    LD A, ($F016)     ; Virtual register 11 from memory
+    LD (y$imm0), A        ; Patch y
+    CALL .Users.alice.dev.minz-ts.examples.test_smc_patching.add_nums
+    ; store , r12
+    LD ($F012), HL
+    ; r13 = load c
+    LD HL, ($F012)
+    ; return r13
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_smc_patching.start
+.Users.alice.dev.minz-ts.examples.test_smc_patching.start:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r1 = call calculate
+    ; Call to calculate (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.test_smc_patching.calculate
+    ; return r1
+    POP DE
+    POP BC
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW x$imm0           ; .Users.alice.dev.minz-ts.examples.test_smc_patching.add_nums.x
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW y$imm0           ; .Users.alice.dev.minz-ts.examples.test_smc_patching.add_nums.y
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main

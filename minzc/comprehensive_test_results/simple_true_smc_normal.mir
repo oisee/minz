@@ -1,0 +1,22 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.simple_true_smc.add(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.simple_true_smc.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = 3
+      2: r4 = call add
+      3: store , r4
+      4: return
+

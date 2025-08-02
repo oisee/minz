@@ -1,0 +1,26 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_simple_asm.set_border_color(color: u8) -> void
+  @smc
+  Instructions:
+      0: return
+
+Function .Users.alice.dev.minz-ts.examples.test_simple_asm.clear_screen() -> void
+  @smc
+  Instructions:
+      0: return
+
+Function .Users.alice.dev.minz-ts.examples.test_simple_asm.wait_loop() -> void
+  @smc
+  Instructions:
+      0: return
+
+Function .Users.alice.dev.minz-ts.examples.test_simple_asm.main() -> void
+  @smc
+  Instructions:
+      0: r2 = call set_border_color
+      1: r3 = call clear_screen
+      2: r4 = call wait_loop
+      3: return
+

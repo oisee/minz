@@ -1,0 +1,39 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.lambda_curry_test.curry_demo$make_adder_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_curry_test.curry_demo() -> u8
+  @smc
+  Instructions:
+      0: r1 = 10
+      1: r2 = call make_adder
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_curry_test.traditional_add(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 5
+      2: r4 = r2 + r3
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_curry_test.main() -> void
+  @smc
+  Locals:
+    r1 = r1: u16
+    r3 = r2: u16
+  Instructions:
+      0: r2 = call curry_demo
+      1: store , r2
+      2: r4 = 10
+      3: r5 = call traditional_add
+      4: store , r5
+      5: return
+

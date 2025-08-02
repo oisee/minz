@@ -1,0 +1,40 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.bit_fields.set_screen_attr(x: u8, y: u8, attr: bits<u8>) -> void
+  @smc
+  Locals:
+    r4 = addr: u16
+  Instructions:
+      0: r5 = 22528
+      1: LOAD_PARAM
+      2: r7 = 32
+      3: r8 = r6 * r7
+      4: r9 = r5 + r8
+      5: LOAD_PARAM
+      6: r11 = r9 + r10
+      7: store , r11
+      8: return
+
+Function .Users.alice.dev.minz-ts.examples.bit_fields.main() -> void
+  @smc
+  Locals:
+    r1 = raw_value: u8
+    r3 = attr: bits<u8>
+    r5 = back_to_raw: u8
+    r7 = ink: u16
+  Instructions:
+      0: r2 = 71
+      1: store , r2
+      2: r4 = load raw_value
+      3: store , r4
+      4: r6 = load attr
+      5: store , r6
+      6: r8 = load attr
+      7: LOAD_BIT_FIELD ; Load bit field ink (offset 0, width 3)
+      8: store , r9
+      9: r10 = 5
+     10: r11 = load attr
+     11: STORE_BIT_FIELD ; Store bit field paper (offset 3, width 3)
+     12: return
+

@@ -11,17 +11,18 @@ Function ...examples.performance_tricks.unrolled_copy(dest: *u8, src: *u8) -> vo
       0: return
 
 Function ...examples.performance_tricks.lookup_mul_by_10(x: u8) -> u16
+  @smc
   Locals:
     r2 = x2: u16
     r6 = x8: u16
   Instructions:
-      0: 12
+      0: LOAD_PARAM
       1: r4 = 1
-      2: 49
+      2: SHL
       3: store , r5
-      4: 12
+      4: LOAD_PARAM
       5: r8 = 3
-      6: 49
+      6: SHL
       7: store , r9
       8: r10 = load x2
       9: r11 = load x8

@@ -1,0 +1,513 @@
+; MinZ generated code
+; Generated: 2025-08-02 09:30:02
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.enums.opposite
+.Users.alice.dev.minz-ts.examples.enums.opposite:
+; TRUE SMC function with immediate anchors
+dir$immOP:
+    LD A, 0        ; dir anchor (will be patched)
+dir$imm0 EQU dir$immOP+1
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 == r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; return r5
+    RET
+    ; else_1:
+else_1:
+    LD A, (dir$imm0)    ; Reuse from anchor
+    LD E, A         ; Store to physical register E
+    ; r7 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r8 = r6 == r7
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    ; jump_if_not r8, else_3
+    LD A, L
+    OR A
+    JP Z, else_3
+    ; r9 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; return r9
+    RET
+    ; else_3:
+else_3:
+    LD A, (dir$imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r11 = 2
+    LD A, 2
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r12 = r10 == r11
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L5
+    LD HL, 0
+    JP .L6
+.L5:
+    LD HL, 1
+.L6:
+    ; jump_if_not r12, else_5
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_5
+    ; r13 = 3
+    LD A, 3
+    ; Register 13 already in A
+    ; return r13
+    RET
+    ; else_5:
+else_5:
+    ; r14 = 2
+    LD A, 2
+    ; Register 14 already in A
+    ; return r14
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.enums.next_state
+.Users.alice.dev.minz-ts.examples.enums.next_state:
+; TRUE SMC function with immediate anchors
+current$immOP:
+    LD A, 0        ; current anchor (will be patched)
+current$imm0 EQU current$immOP+1
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 0
+    LD A, 0
+    LD C, A         ; Store to physical register C
+    ; r5 = r3 == r4
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L7
+    LD HL, 0
+    JP .L8
+.L7:
+    LD HL, 1
+.L8:
+    ; jump_if_not r5, else_7
+    LD A, C
+    OR A
+    JP Z, else_7
+input$immOP:
+    LD A, 0        ; input anchor (will be patched)
+input$imm0 EQU input$immOP+1
+    LD L, A         ; Store to physical register L
+    ; r7 = 4
+    LD A, 4
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r8 = r6 == r7
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L9
+    LD HL, 0
+    JP .L10
+.L9:
+    LD HL, 1
+.L10:
+    LD ($F010), HL    ; Virtual register 8 to memory
+    ; jump_if_not r8, else_9
+    LD A, ($F010)     ; Virtual register 8 from memory
+    OR A
+    JP Z, else_9
+    ; r9 = 1
+    LD A, 1
+    ; Register 9 already in A
+    ; return r9
+    RET
+    ; else_9:
+else_9:
+    ; jump end_if_8
+    JP end_if_8
+    ; else_7:
+else_7:
+    LD A, (current$imm0)    ; Reuse from anchor
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; r11 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r12 = r10 == r11
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L11
+    LD HL, 0
+    JP .L12
+.L11:
+    LD HL, 1
+.L12:
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; jump_if_not r12, else_11
+    LD A, ($F018)     ; Virtual register 12 from memory
+    OR A
+    JP Z, else_11
+    LD A, (input$imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r14 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r15 = r13 == r14
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L13
+    LD HL, 0
+    JP .L14
+.L13:
+    LD HL, 1
+.L14:
+    ; jump_if_not r15, else_13
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_13
+    ; r16 = 2
+    LD A, 2
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; return r16
+    RET
+    ; else_13:
+else_13:
+    LD A, (input$imm0)    ; Reuse from anchor
+    LD B, A         ; Store to physical register B
+    ; r18 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r19 = r17 == r18
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L15
+    LD HL, 0
+    JP .L16
+.L15:
+    LD HL, 1
+.L16:
+    ; jump_if_not r19, else_15
+    ; Register 19 already in A
+    OR A
+    JP Z, else_15
+    ; r20 = 3
+    LD A, 3
+    LD ($F028), A     ; Virtual register 20 to memory
+    ; return r20
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    RET
+    ; else_15:
+else_15:
+    ; jump end_if_12
+    JP end_if_12
+    ; else_11:
+else_11:
+    LD A, (current$imm0)    ; Reuse from anchor
+    ; Register 21 already in A
+    ; r22 = 2
+    LD A, 2
+    LD ($F02C), A     ; Virtual register 22 to memory
+    ; r23 = r21 == r22
+    LD D, H
+    LD E, L
+    LD HL, ($F02C)    ; Virtual register 22 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L17
+    LD HL, 0
+    JP .L18
+.L17:
+    LD HL, 1
+.L18:
+    ; jump_if_not r23, else_17
+    ; Register 23 already in A
+    OR A
+    JP Z, else_17
+    LD A, (input$imm0)    ; Reuse from anchor
+    ; Register 24 already in A
+    ; r25 = 3
+    LD A, 3
+    LD ($F032), A     ; Virtual register 25 to memory
+    ; r26 = r24 == r25
+    LD D, H
+    LD E, L
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L19
+    LD HL, 0
+    JP .L20
+.L19:
+    LD HL, 1
+.L20:
+    ; jump_if_not r26, else_19
+    ; Register 26 already in A
+    OR A
+    JP Z, else_19
+    ; r27 = 1
+    LD A, 1
+    ; Register 27 already in A
+    ; return r27
+    RET
+    ; else_19:
+else_19:
+    ; jump end_if_18
+    JP end_if_18
+    ; else_17:
+else_17:
+    ; end_if_18:
+end_if_18:
+    ; end_if_12:
+end_if_12:
+    ; end_if_8:
+end_if_8:
+    LD A, (current$imm0)    ; Reuse from anchor
+    ; Register 28 already in A
+    ; return r28
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.enums.main
+.Users.alice.dev.minz-ts.examples.enums.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r2 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; store , r2
+    LD ($F002), HL
+    ; r4 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; store , r4
+    LD ($F006), HL
+    ; r7 = call next_state
+    ; Call to next_state (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.enums.next_state
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD (current$imm0), A        ; Patch current
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD (input$imm0), A        ; Patch input
+    CALL .Users.alice.dev.minz-ts.examples.enums.next_state
+    ; store state, r7
+    LD ($F002), HL
+    ; r8 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; store player_dir, r8
+    LD ($F006), HL
+    ; r11 = call opposite
+    ; Call to opposite (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.enums.opposite
+    LD A, ($F014)     ; Virtual register 10 from memory
+    LD (dir$imm0), A        ; Patch dir
+    CALL .Users.alice.dev.minz-ts.examples.enums.opposite
+    ; store , r11
+    LD ($F012), HL
+    ; r14 = call next_state
+    ; Call to next_state (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.enums.next_state
+    LD A, ($F018)     ; Virtual register 12 from memory
+    LD (current$imm0), A        ; Patch current
+    LD A, ($F01A)     ; Virtual register 13 from memory
+    LD (input$imm0), A        ; Patch input
+    CALL .Users.alice.dev.minz-ts.examples.enums.next_state
+    ; store state, r14
+    LD ($F002), HL
+    ; return
+    POP DE
+    POP BC
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW dir$imm0           ; .Users.alice.dev.minz-ts.examples.enums.opposite.dir
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW current$imm0           ; .Users.alice.dev.minz-ts.examples.enums.next_state.current
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW input$imm0           ; .Users.alice.dev.minz-ts.examples.enums.next_state.input
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main

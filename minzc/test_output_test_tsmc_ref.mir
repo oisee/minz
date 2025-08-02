@@ -4,8 +4,8 @@
 Function ...tests.test_tsmc_ref.test_ref(ptr: *u8) -> u8
   @smc
   Instructions:
-      0: 12
-      1: 63
+      0: LOAD_PARAM
+      1: UNKNOWN_OP_66
       2: return r3
 
 Function ...tests.test_tsmc_ref.main() -> void
@@ -17,7 +17,7 @@ Function ...tests.test_tsmc_ref.main() -> void
       0: r2 = 42
       1: store , r2
       2: r4 = load x
-      3: 62
+      3: UNKNOWN_OP_65
       4: r6 = call test_ref
       5: store , r6
       6: return

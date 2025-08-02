@@ -8,10 +8,10 @@ Function ...tests.test_nil.test_simple() -> void
   @smc
   Instructions:
       0: r1 = 5
-      1: 68
+      1: UNKNOWN_OP_71
       2: r3 = 0
       3: r4 = r2 + r3 ; Calculate array element address
-      4: 61 ; Store to array[index] (u8)
+      4: UNKNOWN_OP_64 ; Store to array[index] (u8)
       5: return
 
 Function ...tests.test_nil.test_math() -> void
@@ -29,13 +29,13 @@ Function ...tests.test_nil.test_math() -> void
       5: store , r6
       6: r8 = 128
       7: r9 = load shift
-      8: 50
+      8: SHR
       9: store , r10
      10: r11 = load mask
-     11: 68
+     11: UNKNOWN_OP_71
      12: r13 = 0
      13: r14 = r12 + r13 ; Calculate array element address
-     14: 61 ; Store to array[index] (u8)
+     14: UNKNOWN_OP_64 ; Store to array[index] (u8)
      15: return
 
 Function ...tests.test_nil.test_not() -> void
@@ -50,10 +50,10 @@ Function ...tests.test_nil.test_not() -> void
       3: r5 = ~r4
       4: store , r5
       5: r6 = load inv
-      6: 68
+      6: UNKNOWN_OP_71
       7: r8 = 0
       8: r9 = r7 + r8 ; Calculate array element address
-      9: 61 ; Store to array[index] (u8)
+      9: UNKNOWN_OP_64 ; Store to array[index] (u8)
      10: return
 
 Function ...tests.test_nil.main() -> void

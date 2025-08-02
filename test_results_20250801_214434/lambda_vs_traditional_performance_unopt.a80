@@ -1,0 +1,483 @@
+; MinZ generated code
+; Generated: 2025-08-01 21:44:36
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_add
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_add:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_add_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_add_param_y:
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_multiply
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_multiply:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_multiply_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_multiply_param_factor:
+    LD DE, #0000   ; SMC parameter factor (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r5 = r3 * r4
+    ; 8-bit multiplication
+    LD A, E
+    LD B, A       ; B = multiplicand
+    LD A, H
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_0
+.mul_loop_0:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_0
+.mul_done_0:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex_param_a:
+    LD HL, #0000   ; SMC parameter a (u8->u16)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex_param_b:
+    LD DE, #0000   ; SMC parameter b (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r7 = call traditional_add
+    ; Call to traditional_add (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_add
+    ; store , r7
+    LD ($F008), HL
+    ; r9 = load sum
+    LD HL, ($F008)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex_param_c:
+    LD BC, #0000   ; SMC parameter c (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; r11 = call traditional_multiply
+    ; Call to traditional_multiply (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_multiply
+    LD ($F016), HL    ; Virtual register 11 to memory
+    ; store , r11
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    LD ($F010), HL
+    ; r12 = load result
+    LD HL, ($F010)
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$add_0
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$add_0:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$add_0_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$add_0_param_y:
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r4 = r2 + r3
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$multiply_1
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$multiply_1:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$multiply_1_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$multiply_1_param_factor:
+    LD DE, #0000   ; SMC parameter factor (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r4 = r2 * r3
+    ; 8-bit multiplication
+    LD A, C
+    LD B, A       ; B = multiplicand
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_1
+.mul_loop_1:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_1
+.mul_done_1:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach_param_a:
+    LD HL, #0000   ; SMC parameter a (u8->u16)
+    LD ($F00A), HL    ; Virtual register 5 to memory
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach_param_b:
+    LD DE, #0000   ; SMC parameter b (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r7 = call add
+    ; Call to add (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 0
+    CALL add
+    ; store , r7
+    LD ($F008), HL
+    ; r9 = load sum
+    LD HL, ($F008)
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach_param_c:
+    LD BC, #0000   ; SMC parameter c (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; r11 = call multiply
+    ; Call to multiply (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    CALL multiply
+    ; store , r11
+    LD ($F010), HL
+    ; r12 = load result
+    LD HL, ($F010)
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_traditional_performance
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_traditional_performance:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r3 = 3
+    LD A, 3
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 2
+    LD A, 2
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = call traditional_complex
+    ; Call to traditional_complex (args: 3)
+    ; Stack-based parameter passing
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    PUSH HL       ; Argument 2
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; store , r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD ($F002), HL
+    ; r7 = 10
+    LD A, 10
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = 7
+    LD A, 7
+    LD E, A         ; Store to physical register E
+    ; r9 = 3
+    LD A, 3
+    LD E, A         ; Store to physical register E
+    ; r10 = call traditional_complex
+    ; Call to traditional_complex (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex
+    ; store , r10
+    LD ($F00C), HL
+    ; r12 = 1
+    LD A, 1
+    ; Register 12 already in A
+    ; r13 = 9
+    LD A, 9
+    ; Register 13 already in A
+    ; r14 = 4
+    LD A, 4
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r15 = call traditional_complex
+    ; Call to traditional_complex (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex
+    ; store , r15
+    LD ($F016), HL
+    ; r16 = load result1
+    LD HL, ($F002)
+    ; r17 = load result2
+    LD HL, ($F00C)
+    ; r18 = r16 + r17
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 18 already in HL
+    ; r19 = load result3
+    LD HL, ($F016)
+    ; r20 = r18 + r19
+    ; Register 18 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD D, H
+    LD E, L
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_lambda_performance
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_lambda_performance:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; r4 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; r5 = call lambda_approach
+    ; Call to lambda_approach (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; store , r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD ($F002), HL
+    ; r7 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; r8 = 7
+    LD A, 7
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; r9 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; r10 = call lambda_approach
+    ; Call to lambda_approach (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach
+    ; store , r10
+    LD ($F00C), HL
+    ; r12 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r13 = 9
+    LD A, 9
+    LD L, A         ; Store to physical register L
+    ; r14 = 4
+    LD A, 4
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; r15 = call lambda_approach
+    ; Call to lambda_approach (args: 3)
+    ; Stack-based parameter passing
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach
+    ; store , r15
+    LD ($F016), HL
+    ; r16 = load result1
+    LD HL, ($F002)
+    ; Register 16 already in HL
+    ; r17 = load result2
+    LD HL, ($F00C)
+    ; r18 = r16 + r17
+    ; Register 16 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD B, H
+    LD C, L
+    ; r19 = load result3
+    LD HL, ($F016)
+    ; Register 19 already in HL
+    ; r20 = r18 + r19
+    LD H, B
+    LD L, C
+    LD D, H
+    LD E, L
+    ; Register 19 already in HL
+    ADD HL, DE
+    ; Register 20 already in HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.main
+.Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call test_traditional_performance
+    ; Call to test_traditional_performance (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_traditional_performance
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; store , r2
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD ($F002), HL
+    ; r4 = call test_lambda_performance
+    ; Call to test_lambda_performance (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_lambda_performance
+    ; store , r4
+    LD ($F006), HL
+    ; r5 = load traditional_result
+    LD HL, ($F002)
+    ; r6 = load lambda_result
+    LD HL, ($F006)
+    ; r7 = r5 + r6
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 7 already in HL
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main

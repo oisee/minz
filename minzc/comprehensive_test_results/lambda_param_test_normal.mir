@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.lambda_param_test.test_lambda_params$add5_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_param_test.test_lambda_params() -> u8
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = call add5
+      2: store , r3
+      3: r4 = load result
+      4: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_param_test.main() -> u8
+  @smc
+  Instructions:
+      0: r1 = call test_lambda_params
+      1: return
+

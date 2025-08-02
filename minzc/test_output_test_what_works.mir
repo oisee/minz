@@ -2,9 +2,10 @@
 ; Module: main
 
 Function ...examples.test_what_works.add_numbers(a: u8, b: u8) -> u8
+  @smc
   Instructions:
-      0: 12
-      1: 12
+      0: LOAD_PARAM
+      1: LOAD_PARAM
       2: r5 = r3 + r4
       3: return r5
 
@@ -41,18 +42,18 @@ Function ...examples.test_what_works.test_arrays() -> u8
       1: r3 = load arr
       2: r4 = 0
       3: r5 = r3 + r4 ; Calculate array element address
-      4: 61 ; Store to array[index] (u8)
+      4: UNKNOWN_OP_64 ; Store to array[index] (u8)
       5: r6 = 20
       6: r7 = load arr
       7: r8 = 1
       8: r9 = r7 + r8 ; Calculate array element address
-      9: 61 ; Store to array[index] (u8)
+      9: UNKNOWN_OP_64 ; Store to array[index] (u8)
      10: r10 = load arr
      11: r11 = 0
-     12: 15 ; Load array element (u8)
+     12: LOAD_INDEX ; Load array element (u8)
      13: r13 = load arr
      14: r14 = 1
-     15: 15 ; Load array element (u8)
+     15: LOAD_INDEX ; Load array element (u8)
      16: r16 = r12 + r15
      17: return r16
 
@@ -63,14 +64,14 @@ Function ...examples.test_what_works.test_structs() -> u8
   Instructions:
       0: r2 = 15
       1: r3 = load p
-      2: 14 ; Store to field x (offset 0)
+      2: STORE_FIELD ; Store to field x (offset 0)
       3: r4 = 25
       4: r5 = load p
-      5: 14 ; Store to field y (offset 1)
+      5: STORE_FIELD ; Store to field y (offset 1)
       6: r6 = load p
-      7: 13 ; Load field x (offset 0)
+      7: LOAD_FIELD ; Load field x (offset 0)
       8: r8 = load p
-      9: 13 ; Load field y (offset 1)
+      9: LOAD_FIELD ; Load field y (offset 1)
      10: r10 = r7 + r9
      11: return r10
 
@@ -103,18 +104,19 @@ Function ...examples.test_what_works.test_while() -> u8
      20: return r14
 
 Function ...examples.test_what_works.test_if(x: u8) -> u8
+  @smc
   Instructions:
-      0: 12
+      0: LOAD_PARAM
       1: r3 = 10
       2: r4 = r2 > r3
       3: jump_if_not r4, else_5
-      4: 12
+      4: LOAD_PARAM
       5: r6 = 2
       6: r7 = r5 * r6
       7: return r7
       8: jump end_if_6
       9: else_5:
-     10: 12
+     10: LOAD_PARAM
      11: r9 = 5
      12: r10 = r8 + r9
      13: return r10
@@ -126,13 +128,13 @@ Function ...examples.test_what_works.test_tsmc(ptr: *u8) -> u8
   Locals:
     r2 = result: u8
   Instructions:
-      0: 12
-      1: 63
+      0: LOAD_PARAM
+      1: UNKNOWN_OP_66
       2: store , r4
-      3: 12
+      3: LOAD_PARAM
       4: r6 = 1
       5: r7 = r5 + r6
-      6: 29 ; Update TSMC reference ptr
+      6: UNKNOWN_OP_30 ; Update TSMC reference ptr
       7: r8 = load result
       8: return r8
 

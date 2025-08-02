@@ -1,0 +1,4 @@
+Configuration,TotalLines,CodeLines,Calls,SMC,IndirectCalls
+no_opt,     346,     182,13,21,20
+with_opt,     288,     145,13,21,20
+with_smc,     293,     150,13,21,20

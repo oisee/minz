@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"strconv"
 	"github.com/minz/minzc/pkg/ast"
@@ -324,6 +325,16 @@ func (p *Parser) convertBlock(node *SExpNode) *ast.BlockStmt {
 			stmt := p.convertStatement(child.Children[0])
 			if stmt != nil {
 				block.Statements = append(block.Statements, stmt)
+			}
+		} else if child.Type == "expression" {
+			// Handle bare expressions in blocks (common in lambda bodies)
+			expr := p.convertExpression(child)
+			if expr != nil {
+				block.Statements = append(block.Statements, &ast.ExpressionStmt{
+					Expression: expr,
+					StartPos:   child.StartPos,
+					EndPos:     child.EndPos,
+				})
 			}
 		}
 	}
@@ -1555,6 +1566,14 @@ func (p *Parser) convertImplBlock(node *SExpNode) *ast.ImplBlock {
 
 // convertLambdaExpr converts lambda expression from S-expression
 func (p *Parser) convertLambdaExpr(node *SExpNode) *ast.LambdaExpr {
+	if os.Getenv("DEBUG") != "" {
+		fmt.Printf("DEBUG: convertLambdaExpr called\n")
+		fmt.Printf("  Node type: %s\n", node.Type)
+		fmt.Printf("  Children count: %d\n", len(node.Children))
+		for i, child := range node.Children {
+			fmt.Printf("  Child %d: type=%s\n", i, child.Type)
+		}
+	}
 	lambda := &ast.LambdaExpr{
 		Params:   []*ast.LambdaParam{},
 		Captures: []string{}, // Will be filled during semantic analysis

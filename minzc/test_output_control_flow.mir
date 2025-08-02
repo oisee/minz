@@ -2,34 +2,36 @@
 ; Module: main
 
 Function ...examples.control_flow.test_if(x: u8) -> u8
+  @smc
   Instructions:
-      0: 12
+      0: LOAD_PARAM
       1: r3 = 10
       2: r4 = r2 > r3
       3: jump_if_not r4, else_1
-      4: 12
+      4: LOAD_PARAM
       5: r6 = 2
       6: r7 = r5 * r6
       7: return r7
       8: jump end_if_2
       9: else_1:
-     10: 12
+     10: LOAD_PARAM
      11: r9 = 5
      12: r10 = r8 > r9
      13: jump_if_not r10, else_3
-     14: 12
+     14: LOAD_PARAM
      15: r12 = 10
      16: r13 = r11 + r12
      17: return r13
      18: jump end_if_4
      19: else_3:
-     20: 12
+     20: LOAD_PARAM
      21: return r14
      22: end_if_4:
      23: end_if_2:
      24: return
 
 Function ...examples.control_flow.test_while(n: u8) -> u8
+  @smc
   Locals:
     r2 = sum: u8
     r4 = i: u8
@@ -40,7 +42,7 @@ Function ...examples.control_flow.test_while(n: u8) -> u8
       3: store , r5
       4: loop_5:
       5: r6 = load i
-      6: 12
+      6: LOAD_PARAM
       7: r8 = r6 < r7
       8: jump_if_not r8, end_loop_6
       9: r9 = load sum

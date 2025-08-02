@@ -1,0 +1,191 @@
+// Test 10: Advanced Features
+// Tests: Tail recursion, pattern matching, multiple returns, metaprogramming
+
+// Test tail recursion optimization
+fun test_tail_recursion() -> bool {
+    // Tail recursive factorial
+    fun factorial_tail(n: u8, acc: u16) -> u16 {
+        if n <= 1 {
+            return acc;
+        }
+        return factorial_tail(n - 1, n as u16 * acc);  // Tail call!
+    }
+    
+    fun factorial(n: u8) -> u16 {
+        return factorial_tail(n, 1);
+    }
+    
+    if factorial(5) != 120 { return false; }
+    if factorial(6) != 720 { return false; }
+    
+    // This should compile to a loop, not recursive calls!
+    return true;
+}
+
+// Test mutual tail recursion
+fun test_mutual_tail_recursion() -> bool {
+    fun is_even(n: u8) -> bool {
+        if n == 0 { return true; }
+        return is_odd(n - 1);  // Tail call
+    }
+    
+    fun is_odd(n: u8) -> bool {
+        if n == 0 { return false; }
+        return is_even(n - 1);  // Tail call
+    }
+    
+    if !is_even(10) { return false; }
+    if is_even(11) { return false; }
+    if !is_odd(11) { return false; }
+    if is_odd(10) { return false; }
+    
+    return true;
+}
+
+// Test pattern matching with enums
+fun test_pattern_matching() -> bool {
+    enum Message {
+        Quit,
+        Move { x: u8, y: u8 },
+        Write(*u8),
+        ChangeColor(u8, u8, u8),
+    }
+    
+    fun process_message(msg: Message) -> u8 {
+        match msg {
+            Message.Quit => return 0,
+            Message.Move { x, y } => return x + y,
+            Message.Write(text) => return text[0],  // First char
+            Message.ChangeColor(r, g, b) => return r + g + b,
+        }
+    }
+    
+    let quit = Message.Quit;
+    let move = Message.Move { x: 10, y: 20 };
+    let write = Message.Write("Hello");
+    let color = Message.ChangeColor(10, 20, 30);
+    
+    if process_message(quit) != 0 { return false; }
+    if process_message(move) != 30 { return false; }
+    if process_message(write) != 'H' { return false; }
+    if process_message(color) != 60 { return false; }
+    
+    return true;
+}
+
+// Test pattern matching with guards
+fun test_pattern_guards() -> bool {
+    fun describe_number(n: u8) -> u8 {
+        match n {
+            0 => return 0,
+            n if n < 10 => return 1,    // Single digit
+            n if n < 100 => return 2,   // Double digit
+            _ => return 3,              // Triple digit
+        }
+    }
+    
+    if describe_number(0) != 0 { return false; }
+    if describe_number(5) != 1 { return false; }
+    if describe_number(50) != 2 { return false; }
+    if describe_number(150) != 3 { return false; }
+    
+    return true;
+}
+
+// Test multiple returns with SMC
+@smc_returns
+fun divmod(dividend: u16, divisor: u8) -> (u16, u8) {
+    let quotient = dividend / divisor;
+    let remainder = dividend % divisor;
+    return (quotient, remainder);
+}
+
+fun test_multiple_returns() -> bool {
+    // Normal multiple return
+    let (q, r) = divmod(100, 7);
+    if q != 14 { return false; }  // 100 / 7 = 14
+    if r != 2 { return false; }   // 100 % 7 = 2
+    
+    // Direct return to memory locations
+    let mut quotient: u16;
+    let mut remainder: u8;
+    
+    @smc_return_to(&quotient, &remainder) divmod(50, 3);
+    if quotient != 16 { return false; }  // 50 / 3 = 16
+    if remainder != 2 { return false; }  // 50 % 3 = 2
+    
+    return true;
+}
+
+// Test @lua metaprogramming
+@lua {
+    -- Generate a lookup table at compile time
+    function generate_sine_table()
+        local table = {}
+        for i = 0, 255 do
+            local angle = (i / 256) * 2 * math.pi
+            local value = math.floor(math.sin(angle) * 127 + 128)
+            table[i + 1] = value
+        end
+        return table
+    end
+    
+    sine_table = generate_sine_table()
+}
+
+const SINE_TABLE: [u8; 256] = @lua(sine_table);
+
+fun test_metaprogramming() -> bool {
+    // Check some known sine values
+    if SINE_TABLE[0] != 128 { return false; }    // sin(0) = 0 → 128
+    if SINE_TABLE[64] != 255 { return false; }   // sin(π/2) = 1 → 255
+    if SINE_TABLE[128] != 128 { return false; }  // sin(π) = 0 → 128
+    if SINE_TABLE[192] != 1 { return false; }    // sin(3π/2) = -1 → 1
+    
+    return true;
+}
+
+// Test @macro for code generation
+@macro repeat(n, body) {
+    @lua {
+        local code = ""
+        for i = 1, n do
+            code = code .. body .. "\n"
+        end
+        return code
+    }
+}
+
+fun test_macros() -> bool {
+    let mut counter = 0;
+    
+    // Expand to 5 increment operations
+    @repeat(5, "counter = counter + 1;");
+    
+    if counter != 5 { return false; }
+    
+    return true;
+}
+
+// Test @compile_if conditional compilation
+@compile_if(DEBUG) {
+    fun debug_print(msg: *u8) -> void {
+        // Debug implementation
+    }
+} else {
+    fun debug_print(msg: *u8) -> void {
+        // Empty in release
+    }
+}
+
+fun main() -> u8 {
+    if !test_tail_recursion() { return 1; }
+    if !test_mutual_tail_recursion() { return 2; }
+    if !test_pattern_matching() { return 3; }
+    if !test_pattern_guards() { return 4; }
+    if !test_multiple_returns() { return 5; }
+    if !test_metaprogramming() { return 6; }
+    if !test_macros() { return 7; }
+    
+    return 0;  // All tests passed
+}

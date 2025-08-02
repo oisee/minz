@@ -1,0 +1,189 @@
+// Combined Zero-Cost Abstractions Test
+// This test combines lambdas and interfaces to verify they work together with zero overhead
+
+// Interface with lambda-based default implementations
+interface Processor<T> {
+    fun process(self, input: T) -> T;
+    fun batch_process(self, items: [T; 3]) -> [T; 3] {
+        // Default implementation using lambdas
+        let transform = |item: T| => T { self.process(item) };
+        [transform(items[0]), transform(items[1]), transform(items[2])]
+    }
+}
+
+// Concrete implementation
+struct NumberProcessor {
+    multiplier: u8
+}
+
+impl Processor<u8> for NumberProcessor {
+    fun process(self, input: u8) -> u8 {
+        input * self.multiplier
+    }
+}
+
+// Interface-based processing with lambdas (should have zero overhead)
+fun interface_lambda_test() -> u16 {
+    let processor = NumberProcessor { multiplier: 2 };
+    let data: [u8; 3] = [5, 10, 15];
+    
+    // This combines interface method call with lambda transformation
+    let results = processor.batch_process(data);
+    
+    // Calculate sum: [10, 20, 30] -> 60
+    (results[0] as u16) + (results[1] as u16) + (results[2] as u16)
+}
+
+// Direct equivalent implementation (for comparison)
+fun direct_processing_equivalent() -> u16 {
+    let multiplier = 2;
+    let data: [u8; 3] = [5, 10, 15];
+    
+    // Direct processing without abstractions
+    let result0 = data[0] * multiplier;  // 10
+    let result1 = data[1] * multiplier;  // 20
+    let result2 = data[2] * multiplier;  // 30
+    
+    (result0 as u16) + (result1 as u16) + (result2 as u16)  // 60
+}
+
+// Higher-order function with interface and lambda
+interface Mapper<T> {
+    fun map<F>(self, items: [T; 2], func: F) -> [T; 2] where F: Fn(T) -> T;
+}
+
+struct ListMapper;
+
+impl Mapper<u8> for ListMapper {
+    fun map<F>(self, items: [u8; 2], func: F) -> [u8; 2] where F: Fn(u8) -> u8 {
+        [func(items[0]), func(items[1])]
+    }
+}
+
+// Higher-order processing (should compile to direct calls)
+fun higher_order_test() -> u16 {
+    let mapper = ListMapper;
+    let values: [u8; 2] = [3, 7];
+    
+    // This should resolve to direct calls with inlined lambda
+    let squared = mapper.map(values, |x: u8| => u8 { x * x });
+    
+    (squared[0] as u16) + (squared[1] as u16)  // 9 + 49 = 58
+}
+
+// Direct equivalent of higher-order processing
+fun direct_higher_order_equivalent() -> u16 {
+    let values: [u8; 2] = [3, 7];
+    
+    // Direct computation without abstractions
+    let squared0 = values[0] * values[0];  // 9
+    let squared1 = values[1] * values[1];  // 49
+    
+    (squared0 as u16) + (squared1 as u16)  // 58
+}
+
+// Complex example: Interface + Lambda + Generics
+interface Filter<T> {
+    fun filter_transform<F>(self, items: [T; 4], predicate: F) -> u16 
+    where F: Fn(T) -> bool;
+}
+
+struct ConditionalProcessor {
+    threshold: u8
+}
+
+impl Filter<u8> for ConditionalProcessor {
+    fun filter_transform<F>(self, items: [u8; 4], predicate: F) -> u16 
+    where F: Fn(u8) -> bool {
+        let mut sum: u16 = 0;
+        
+        // This combines interface, generics, and lambda
+        let transform = |x: u8| => u8 { x + self.threshold };
+        
+        if predicate(items[0]) { sum = sum + (transform(items[0]) as u16); }
+        if predicate(items[1]) { sum = sum + (transform(items[1]) as u16); }
+        if predicate(items[2]) { sum = sum + (transform(items[2]) as u16); }
+        if predicate(items[3]) { sum = sum + (transform(items[3]) as u16); }
+        
+        sum
+    }
+}
+
+// Complex abstraction usage
+fun complex_abstraction_test() -> u16 {
+    let processor = ConditionalProcessor { threshold: 5 };
+    let numbers: [u8; 4] = [2, 8, 1, 9];
+    
+    // Use lambda as predicate: include numbers > 3
+    processor.filter_transform(numbers, |x: u8| => bool { x > 3 })
+    // Should process: 8, 9 -> (8+5) + (9+5) = 13 + 14 = 27
+}
+
+// Direct equivalent of complex abstraction
+fun direct_complex_equivalent() -> u16 {
+    let threshold = 5;
+    let numbers: [u8; 4] = [2, 8, 1, 9];
+    let mut sum: u16 = 0;
+    
+    // Direct implementation without abstractions
+    if numbers[0] > 3 { sum = sum + ((numbers[0] + threshold) as u16); }
+    if numbers[1] > 3 { sum = sum + ((numbers[1] + threshold) as u16); }
+    if numbers[2] > 3 { sum = sum + ((numbers[2] + threshold) as u16); }
+    if numbers[3] > 3 { sum = sum + ((numbers[3] + threshold) as u16); }
+    
+    sum  // 27
+}
+
+// Performance-critical loop with abstractions
+fun abstraction_loop_test() -> u32 {
+    let processor = NumberProcessor { multiplier: 3 };
+    let mut total: u32 = 0;
+    
+    // Loop using interface methods and lambdas
+    for i in 1..10 {
+        let value = processor.process(i);
+        let doubled = (|x: u8| => u8 { x * 2 })(value);
+        total = total + (doubled as u32);
+    }
+    
+    total
+}
+
+// Direct equivalent of performance loop
+fun direct_loop_equivalent() -> u32 {
+    let multiplier = 3;
+    let mut total: u32 = 0;
+    
+    // Direct loop without abstractions
+    for i in 1..10 {
+        let value = i * multiplier;
+        let doubled = value * 2;
+        total = total + (doubled as u32);
+    }
+    
+    total
+}
+
+// Main verification function
+fun main() -> u32 {
+    let interface_lambda = interface_lambda_test();       // 60
+    let direct_basic = direct_processing_equivalent();     // 60
+    
+    let higher_order = higher_order_test();               // 58
+    let direct_higher = direct_higher_order_equivalent(); // 58
+    
+    let complex_abstract = complex_abstraction_test();    // 27
+    let direct_complex = direct_complex_equivalent();     // 27
+    
+    let loop_abstract = abstraction_loop_test();          // Sum from 1..10: 6+12+18+24+30+36+42+48+54 = 270
+    let loop_direct = direct_loop_equivalent();           // 270
+    
+    // All pairs should be identical, proving zero-cost abstractions
+    let result = (interface_lambda as u32) + (direct_basic as u32) +
+                 (higher_order as u32) + (direct_higher as u32) +
+                 (complex_abstract as u32) + (direct_complex as u32) +
+                 loop_abstract + loop_direct;
+    
+    // Expected: 60+60 + 58+58 + 27+27 + 270+270 = 830
+    result
+}

@@ -1,0 +1,90 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.traffic_light_fsm.transition(current: TrafficState, event: Event) -> TrafficState
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor current$imm0
+      1: JUMP_IF
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_timing(state: TrafficState) -> u16
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor state$imm0
+      1: JUMP_IF
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_color_code(state: TrafficState) -> u16
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor state$imm0
+      1: JUMP_IF
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.traffic_light_fsm.simulate_traffic_light() -> void
+  @smc
+  Locals:
+    r1 = state: u16
+    r3 = cycle_count: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = 0
+      3: store , r4
+      4: UNKNOWN_OP_84
+      5: UNKNOWN_OP_83
+      6: loop_16:
+      7: r6 = load cycle_count
+      8: r7 = 10
+      9: r8 = r6 < r7
+     10: jump_if_not r8, end_loop_17
+     11: UNKNOWN_OP_84
+     12: UNKNOWN_OP_83
+     13: UNKNOWN_OP_78
+     14: UNKNOWN_OP_84
+     15: UNKNOWN_OP_83
+     16: r13 = call get_color_code
+     17: UNKNOWN_OP_78
+     18: UNKNOWN_OP_84
+     19: UNKNOWN_OP_83
+     20: r16 = call get_timing
+     21: UNKNOWN_OP_78
+     22: UNKNOWN_OP_84
+     23: UNKNOWN_OP_83
+     24: r20 = call transition
+     25: store state, r20
+     26: r21 = load cycle_count
+     27: r22 = 1
+     28: r23 = r21 + r22
+     29: store cycle_count, r23
+     30: jump loop_16
+     31: end_loop_17:
+     32: UNKNOWN_OP_84
+     33: UNKNOWN_OP_83
+     34: r27 = call transition
+     35: store state, r27
+     36: UNKNOWN_OP_84
+     37: UNKNOWN_OP_83
+     38: r30 = call get_color_code
+     39: UNKNOWN_OP_78
+     40: UNKNOWN_OP_84
+     41: UNKNOWN_OP_83
+     42: UNKNOWN_OP_84
+     43: UNKNOWN_OP_83
+     44: r35 = call transition
+     45: store state, r35
+     46: UNKNOWN_OP_84
+     47: UNKNOWN_OP_83
+     48: r38 = call get_color_code
+     49: UNKNOWN_OP_78
+     50: UNKNOWN_OP_84
+     51: UNKNOWN_OP_83
+     52: return
+
+Function .Users.alice.dev.minz-ts.examples.traffic_light_fsm.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call simulate_traffic_light
+      1: return
+

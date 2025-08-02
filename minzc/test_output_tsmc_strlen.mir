@@ -9,8 +9,8 @@ Function ...examples.tsmc_strlen.strlen_tsmc(str: *u8) -> u16
       0: r3 = 0
       1: store , r3
       2: loop_1:
-      3: 12
-      4: 63
+      3: LOAD_PARAM
+      4: UNKNOWN_OP_66
       5: r6 = 0
       6: r7 = r5 != r6
       7: jump_if_not r7, end_loop_2
@@ -18,10 +18,10 @@ Function ...examples.tsmc_strlen.strlen_tsmc(str: *u8) -> u16
       9: r9 = 1
      10: r10 = r8 + r9
      11: store len, r10
-     12: 12
+     12: LOAD_PARAM
      13: r12 = 1
      14: r13 = r11 + r12
-     15: 29 ; Update TSMC reference str
+     15: UNKNOWN_OP_30 ; Update TSMC reference str
      16: jump loop_1
      17: end_loop_2:
      18: r14 = load len
@@ -41,7 +41,7 @@ Function ...examples.tsmc_strlen.test() -> u16
       4: r6 = 0
       5: store , r6
       6: r7 = load a
-      7: 62
+      7: UNKNOWN_OP_65
       8: r9 = call strlen_tsmc
       9: return r9
 

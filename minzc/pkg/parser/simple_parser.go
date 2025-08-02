@@ -820,6 +820,11 @@ func (p *SimpleParser) parsePrimaryExpression() ast.Expression {
 		return p.parsePrintExpression()
 	}
 	
+	// Lambda expressions
+	if p.peek().Value == "|" {
+		return p.parseLambdaExpression()
+	}
+	
 	// Debug for testing
 	if p.pos < len(p.tokens) {
 		tok := p.peek()
@@ -907,6 +912,66 @@ func (p *SimpleParser) parseLuaExpression() ast.Expression {
 		Code:     code,
 		StartPos: startPos,
 		EndPos:   p.currentPos(),
+	}
+}
+
+// parseLambdaExpression parses lambda expressions: |params| => Type { body } or |params| { body }
+func (p *SimpleParser) parseLambdaExpression() ast.Expression {
+	startPos := p.currentPos()
+	p.advance() // consume '|'
+	
+	// Parse parameters
+	var params []*ast.LambdaParam
+	for p.peek().Value != "|" && !p.isAtEnd() {
+		param := &ast.LambdaParam{
+			StartPos: p.currentPos(),
+		}
+		
+		// Parameter name
+		if p.peek().Type == TokenIdent {
+			param.Name = p.advance().Value
+		}
+		
+		// Optional type annotation
+		if p.peek().Value == ":" {
+			p.advance() // consume ':'
+			param.Type = p.parseType()
+		}
+		
+		param.EndPos = p.currentPos()
+		params = append(params, param)
+		
+		if p.peek().Value == "," {
+			p.advance() // consume ','
+		}
+	}
+	
+	p.expect(TokenPunc, "|") // consume closing '|'
+	
+	// Check for return type with =>
+	var returnType ast.Type
+	var body ast.Node
+	
+	if p.peek().Value == "=" && p.peekAhead(1).Value == ">" {
+		// Lambda with explicit return type: |x| => Type { ... }
+		p.advance() // consume '='
+		p.advance() // consume '>'
+		returnType = p.parseType()
+		body = p.parseBlock()
+	} else if p.peek().Value == "{" {
+		// Lambda with block body: |x| { ... }
+		body = p.parseBlock()
+	} else {
+		// Lambda with expression body: |x| expr
+		body = p.parseExpression()
+	}
+	
+	return &ast.LambdaExpr{
+		Params:     params,
+		ReturnType: returnType,
+		Body:       body,
+		StartPos:   startPos,
+		EndPos:     p.currentPos(),
 	}
 }
 
@@ -1207,8 +1272,9 @@ func isPrimitiveType(s string) bool {
 func isOperator(s string) bool {
 	ops := []string{
 		"==", "!=", "<=", ">=", "<<", ">>", "&&", "||", "->",
-		"+", "-", "*", "/", "%", "&", "|", "^", "!", "~",
+		"+", "-", "*", "/", "%", "&", "^", "!", "~",
 		"<", ">",
+		// Note: "|" is removed - it's used for lambda syntax
 	}
 	for _, op := range ops {
 		if s == op {
@@ -1220,7 +1286,7 @@ func isOperator(s string) bool {
 
 func isPunctuation(s string) bool {
 	puncs := []string{
-		"(", ")", "{", "}", "[", "]", ";", ",", ".", ":",
+		"(", ")", "{", "}", "[", "]", ";", ",", ".", ":", "|",
 	}
 	for _, p := range puncs {
 		if s == p {

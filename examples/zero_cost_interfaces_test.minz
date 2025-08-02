@@ -1,0 +1,126 @@
+// Zero-Cost Interfaces Test - Proving compile-time monomorphization!
+
+// Define an interface
+interface Drawable {
+    fun draw(self) -> u8;
+    fun get_area(self) -> u16;
+}
+
+// Struct implementations
+struct Circle {
+    x: u8,
+    y: u8, 
+    radius: u8,
+}
+
+struct Rectangle {
+    x: u8,
+    y: u8,
+    width: u8,
+    height: u8,
+}
+
+// Implement the interface for Circle
+impl Drawable for Circle {
+    fun draw(self) -> u8 {
+        // Simulate drawing a circle
+        @asm {
+            ; Circle drawing code
+            LD A, (self.x)
+            LD B, (self.y)
+            LD C, (self.radius)
+            ; ... actual drawing logic ...
+        }
+        return 0;
+    }
+    
+    fun get_area(self) -> u16 {
+        // πr² approximated as 3*r*r
+        let r16 = self.radius as u16;
+        return r16 * r16 * 3;
+    }
+}
+
+// Implement the interface for Rectangle  
+impl Drawable for Rectangle {
+    fun draw(self) -> u8 {
+        // Simulate drawing a rectangle
+        @asm {
+            ; Rectangle drawing code
+            LD A, (self.x)
+            LD B, (self.y)
+            LD C, (self.width)
+            LD D, (self.height)
+            ; ... actual drawing logic ...
+        }
+        return 0;
+    }
+    
+    fun get_area(self) -> u16 {
+        let w16 = self.width as u16;
+        let h16 = self.height as u16;
+        return w16 * h16;
+    }
+}
+
+// Generic function with interface bounds
+// This should be monomorphized for each concrete type!
+fun render<T: Drawable>(shape: T) -> u16 {
+    shape.draw();  // Should compile to CALL Circle_draw or Rectangle_draw
+    return shape.get_area();  // Should compile to CALL Circle_get_area etc
+}
+
+// Non-generic interface usage (for comparison)
+fun render_any(shape: Drawable) -> u16 {
+    shape.draw();
+    return shape.get_area();
+}
+
+fun main() -> u8 {
+    let circle = Circle { x: 10, y: 20, radius: 5 };
+    let rect = Rectangle { x: 30, y: 40, width: 15, height: 10 };
+    
+    // These calls should be monomorphized
+    let circle_area = render(circle);    // Should call render_Circle
+    let rect_area = render(rect);        // Should call render_Rectangle
+    
+    // Test direct method calls too
+    circle.draw();      // Should call Circle_draw directly
+    rect.draw();        // Should call Rectangle_draw directly
+    
+    // Test interface array (requires tagged union)
+    let shapes: [Drawable; 2] = [circle, rect];
+    
+    // This should use tag-based dispatch
+    for shape in shapes {
+        shape.draw();
+    }
+    
+    return 0;
+}
+
+// Expected assembly output patterns:
+//
+// render_Circle:
+//     CALL Circle_draw      ; Direct call!
+//     CALL Circle_get_area  ; Direct call!
+//     RET
+//
+// render_Rectangle:
+//     CALL Rectangle_draw      ; Direct call!
+//     CALL Rectangle_get_area  ; Direct call!
+//     RET
+//
+// main:
+//     ...
+//     CALL render_Circle    ; Monomorphized version
+//     ...
+//     CALL render_Rectangle ; Monomorphized version
+//     ...
+//
+// For tagged dispatch:
+//     LD A, (HL)           ; Load tag
+//     OR A
+//     JR Z, call_Circle_draw
+//     DEC A
+//     JR Z, call_Rectangle_draw

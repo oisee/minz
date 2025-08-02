@@ -1,0 +1,191 @@
+// Test 08: Zero-Cost Interfaces
+// Tests: Interface definition, implementation, monomorphization
+
+// Define interfaces
+interface Drawable {
+    fun draw(self) -> u8;
+    fun get_bounds(self) -> Rectangle;
+}
+
+interface Collidable {
+    fun collides_with(self, other: Rectangle) -> bool;
+}
+
+// Structs that will implement interfaces
+struct Circle {
+    x: u8,
+    y: u8,
+    radius: u8,
+}
+
+struct Square {
+    x: u8,
+    y: u8,
+    size: u8,
+}
+
+struct Rectangle {
+    x: u8,
+    y: u8,
+    width: u8,
+    height: u8,
+}
+
+// Implement Drawable for Circle
+impl Drawable for Circle {
+    fun draw(self) -> u8 {
+        // Simulate drawing
+        return self.x + self.y + self.radius;
+    }
+    
+    fun get_bounds(self) -> Rectangle {
+        // Return bounding box
+        return Rectangle {
+            x: self.x - self.radius,
+            y: self.y - self.radius,
+            width: self.radius * 2,
+            height: self.radius * 2,
+        };
+    }
+}
+
+// Implement Drawable for Square
+impl Drawable for Square {
+    fun draw(self) -> u8 {
+        // Simulate drawing
+        return self.x + self.y + self.size;
+    }
+    
+    fun get_bounds(self) -> Rectangle {
+        return Rectangle {
+            x: self.x,
+            y: self.y,
+            width: self.size,
+            height: self.size,
+        };
+    }
+}
+
+// Implement Collidable for Rectangle
+impl Collidable for Rectangle {
+    fun collides_with(self, other: Rectangle) -> bool {
+        // Simple AABB collision
+        if self.x + self.width < other.x { return false; }
+        if other.x + other.width < self.x { return false; }
+        if self.y + self.height < other.y { return false; }
+        if other.y + other.height < self.y { return false; }
+        return true;
+    }
+}
+
+// Generic function with interface bound (monomorphized)
+fun render<T: Drawable>(shape: T) -> u8 {
+    return shape.draw();  // Direct call after monomorphization!
+}
+
+// Multiple bounds
+fun render_if_visible<T: Drawable + Collidable>(shape: T, viewport: Rectangle) -> u8 {
+    let bounds = shape.get_bounds();
+    if bounds.collides_with(viewport) {
+        return shape.draw();
+    }
+    return 0;
+}
+
+// Test basic interface calls
+fun test_interface_calls() -> bool {
+    let circle = Circle { x: 10, y: 20, radius: 5 };
+    let square = Square { x: 30, y: 40, size: 10 };
+    
+    // Direct method calls (resolved at compile time)
+    if circle.draw() != 35 { return false; }  // 10 + 20 + 5
+    if square.draw() != 80 { return false; }  // 30 + 40 + 10
+    
+    return true;
+}
+
+// Test generic function monomorphization
+fun test_monomorphization() -> bool {
+    let circle = Circle { x: 5, y: 5, radius: 3 };
+    let square = Square { x: 10, y: 10, size: 5 };
+    
+    // These calls are monomorphized:
+    // render(circle) → render_Circle(circle) → Circle_draw(circle)
+    // render(square) → render_Square(square) → Square_draw(square)
+    
+    if render(circle) != 13 { return false; }  // 5 + 5 + 3
+    if render(square) != 25 { return false; }  // 10 + 10 + 5
+    
+    return true;
+}
+
+// Test interface array (heterogeneous collection)
+fun test_interface_array() -> bool {
+    // Array of drawables (uses tagged union internally)
+    let shapes: [Drawable; 3] = [
+        Circle { x: 1, y: 1, radius: 1 },
+        Square { x: 2, y: 2, size: 2 },
+        Circle { x: 3, y: 3, radius: 3 },
+    ];
+    
+    let mut total: u8 = 0;
+    for shape in shapes {
+        total = total + shape.draw();  // Tag-based dispatch
+    }
+    
+    // (1+1+1) + (2+2+2) + (3+3+3) = 3 + 6 + 9 = 18
+    if total != 18 { return false; }
+    
+    return true;
+}
+
+// Test interface as function parameter
+fun calculate_total_draw_value(shapes: *[Drawable; 2]) -> u8 {
+    let mut sum: u8 = 0;
+    for shape in *shapes {
+        sum = sum + shape.draw();
+    }
+    return sum;
+}
+
+fun test_interface_parameter() -> bool {
+    let shapes: [Drawable; 2] = [
+        Circle { x: 5, y: 5, radius: 5 },
+        Square { x: 10, y: 10, size: 10 },
+    ];
+    
+    // (5+5+5) + (10+10+10) = 15 + 30 = 45
+    if calculate_total_draw_value(&shapes) != 45 { return false; }
+    
+    return true;
+}
+
+// Test zero-cost verification
+fun test_zero_cost() -> bool {
+    // This function should compile to direct calls
+    fun draw_both(c: Circle, s: Square) -> u8 {
+        return c.draw() + s.draw();  // Direct Circle_draw + Square_draw
+    }
+    
+    // Generic version should produce identical code after monomorphization
+    fun draw_both_generic<T1: Drawable, T2: Drawable>(shape1: T1, shape2: T2) -> u8 {
+        return shape1.draw() + shape2.draw();
+    }
+    
+    let c = Circle { x: 1, y: 2, radius: 3 };
+    let s = Square { x: 4, y: 5, size: 6 };
+    
+    if draw_both(c, s) != draw_both_generic(c, s) { return false; }
+    
+    return true;
+}
+
+fun main() -> u8 {
+    if !test_interface_calls() { return 1; }
+    if !test_monomorphization() { return 2; }
+    if !test_interface_array() { return 3; }
+    if !test_interface_parameter() { return 4; }
+    if !test_zero_cost() { return 5; }
+    
+    return 0;  // All tests passed
+}

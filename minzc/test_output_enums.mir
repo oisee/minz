@@ -2,8 +2,9 @@
 ; Module: main
 
 Function ...examples.enums.opposite(dir: Direction) -> Direction
+  @smc
   Instructions:
-      0: 12
+      0: LOAD_PARAM
       1: r3 = 0
       2: r4 = r2 == r3
       3: jump_if_not r4, else_1
@@ -11,7 +12,7 @@ Function ...examples.enums.opposite(dir: Direction) -> Direction
       5: return r5
       6: jump end_if_2
       7: else_1:
-      8: 12
+      8: LOAD_PARAM
       9: r7 = 1
      10: r8 = r6 == r7
      11: jump_if_not r8, else_3
@@ -19,7 +20,7 @@ Function ...examples.enums.opposite(dir: Direction) -> Direction
      13: return r9
      14: jump end_if_4
      15: else_3:
-     16: 12
+     16: LOAD_PARAM
      17: r11 = 2
      18: r12 = r10 == r11
      19: jump_if_not r12, else_5
@@ -35,12 +36,13 @@ Function ...examples.enums.opposite(dir: Direction) -> Direction
      29: return
 
 Function ...examples.enums.next_state(current: GameState, input: Key) -> GameState
+  @smc
   Instructions:
-      0: 12
+      0: LOAD_PARAM
       1: r4 = 0
       2: r5 = r3 == r4
       3: jump_if_not r5, else_7
-      4: 12
+      4: LOAD_PARAM
       5: r7 = 4
       6: r8 = r6 == r7
       7: jump_if_not r8, else_9
@@ -51,11 +53,11 @@ Function ...examples.enums.next_state(current: GameState, input: Key) -> GameSta
      12: end_if_10:
      13: jump end_if_8
      14: else_7:
-     15: 12
+     15: LOAD_PARAM
      16: r11 = 1
      17: r12 = r10 == r11
      18: jump_if_not r12, else_11
-     19: 12
+     19: LOAD_PARAM
      20: r14 = 3
      21: r15 = r13 == r14
      22: jump_if_not r15, else_13
@@ -63,7 +65,7 @@ Function ...examples.enums.next_state(current: GameState, input: Key) -> GameSta
      24: return r16
      25: jump end_if_14
      26: else_13:
-     27: 12
+     27: LOAD_PARAM
      28: r18 = 0
      29: r19 = r17 == r18
      30: jump_if_not r19, else_15
@@ -75,11 +77,11 @@ Function ...examples.enums.next_state(current: GameState, input: Key) -> GameSta
      36: end_if_14:
      37: jump end_if_12
      38: else_11:
-     39: 12
+     39: LOAD_PARAM
      40: r22 = 2
      41: r23 = r21 == r22
      42: jump_if_not r23, else_17
-     43: 12
+     43: LOAD_PARAM
      44: r25 = 3
      45: r26 = r24 == r25
      46: jump_if_not r26, else_19
@@ -93,7 +95,7 @@ Function ...examples.enums.next_state(current: GameState, input: Key) -> GameSta
      54: end_if_18:
      55: end_if_12:
      56: end_if_8:
-     57: 12
+     57: LOAD_PARAM
      58: return r28
 
 Function ...examples.enums.main() -> void

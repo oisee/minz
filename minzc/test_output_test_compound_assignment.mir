@@ -25,11 +25,11 @@ Function ...examples.test_compound_assignment.test_compound_ops() -> u16
      15: store x, r13
      16: r14 = 4
      17: r15 = load x
-     18: 40 ; Compound assignment x /=
+     18: DIV ; Compound assignment x /=
      19: store x, r16
      20: r17 = 4
      21: r18 = load x
-     22: 41 ; Compound assignment x %=
+     22: MOD ; Compound assignment x %=
      23: store x, r19
      24: r20 = 50
      25: r21 = load y
@@ -45,7 +45,7 @@ Function ...examples.test_compound_assignment.test_compound_ops() -> u16
      35: store y, r28
      36: r29 = 5
      37: r30 = load y
-     38: 40 ; Compound assignment y /=
+     38: DIV ; Compound assignment y /=
      39: store y, r31
      40: r32 = load y
      41: r33 = load x

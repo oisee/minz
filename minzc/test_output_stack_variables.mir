@@ -2,16 +2,17 @@
 ; Module: main
 
 Function ...examples.stack_variables.test_stack_locals(x: u8, y: u8) -> u8
+  @smc
   Locals:
     r3 = a: u8
     r7 = b: u8
     r11 = c: u8
   Instructions:
-      0: 12
+      0: LOAD_PARAM
       1: r5 = 10
       2: r6 = r4 + r5
       3: store , r6
-      4: 12
+      4: LOAD_PARAM
       5: r9 = 20
       6: r10 = r8 + r9
       7: store , r10
@@ -28,7 +29,7 @@ Function ...examples.stack_variables.factorial(n: u8) -> u16
   Locals:
     r6 = prev: u16
   Instructions:
-      0: 12
+      0: LOAD_PARAM
       1: r3 = 1
       2: r4 = r2 <= r3
       3: jump_if_not r4, else_1
@@ -37,12 +38,12 @@ Function ...examples.stack_variables.factorial(n: u8) -> u16
       6: jump end_if_2
       7: else_1:
       8: end_if_2:
-      9: 12
+      9: LOAD_PARAM
      10: r8 = 1
      11: r9 = r7 - r8
      12: r10 = call factorial
      13: store , r10
-     14: 12
+     14: LOAD_PARAM
      15: r12 = load prev
      16: r13 = r11 * r12
      17: return r13
@@ -98,12 +99,13 @@ Function ...examples.stack_variables.many_locals() -> u8
      35: return r35
 
 Function ...examples.stack_variables.outer(x: u8) -> u8
+  @smc
   Locals:
     r2 = local1: u8
     r6 = result: u8
     r9 = local2: u8
   Instructions:
-      0: 12
+      0: LOAD_PARAM
       1: r4 = 1
       2: r5 = r3 + r4
       3: store , r5
@@ -118,10 +120,11 @@ Function ...examples.stack_variables.outer(x: u8) -> u8
      12: return r13
 
 Function ...examples.stack_variables.inner(y: u8) -> u8
+  @smc
   Locals:
     r2 = temp: u8
   Instructions:
-      0: 12
+      0: LOAD_PARAM
       1: r4 = 2
       2: r5 = r3 * r4
       3: store , r5

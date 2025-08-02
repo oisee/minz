@@ -1,0 +1,4 @@
+Compiling examples/lambda_param_test.minz...
+Function test_lambda_params: IsRecursive=false, Params=0, SMC=true
+Function main: IsRecursive=false, Params=0, SMC=true
+Successfully compiled to /tmp/test.a80

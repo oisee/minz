@@ -1,0 +1,222 @@
+; MinZ generated code
+; Generated: 2025-08-01 21:44:35
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.basic_functions.add
+.Users.alice.dev.minz-ts.examples.basic_functions.add:
+; TRUE SMC function with immediate anchors
+a$immOP:
+    LD A, 0        ; a anchor (will be patched)
+a$imm0 EQU a$immOP+1
+    ; Register 3 already in A
+b$immOP:
+    LD A, 0        ; b anchor (will be patched)
+b$imm0 EQU b$immOP+1
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.basic_functions.main
+.Users.alice.dev.minz-ts.examples.basic_functions.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store , r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD ($F002), A
+    ; r4 = 3
+    LD A, 3
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; store , r4
+    LD A, ($F008)     ; Virtual register 4 from memory
+    LD ($F006), A
+    ; r8 = call add
+    ; Call to add (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.basic_functions.add
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD (a$imm0), A        ; Patch a
+    LD A, ($F00E)     ; Virtual register 7 from memory
+    LD (b$imm0), A        ; Patch b
+    CALL .Users.alice.dev.minz-ts.examples.basic_functions.add
+    ; store , r8
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD ($F00A), A
+    ; r10 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; store , r10
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    LD ($F012), A
+    ; loop_1:
+loop_1:
+    ; r11 = load i
+    LD A, ($F012)
+    ; Register 11 already in A
+    ; r12 = 10
+    LD A, 10
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r13 = r11 < r12
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r13, end_loop_2
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, end_loop_2
+    ; r14 = load i
+    LD A, ($F012)
+    LD E, A         ; Store to physical register E
+    ; r15 = 1
+    LD A, 1
+    LD E, A         ; Store to physical register E
+    ; r16 = r14 + r15
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store i, r16
+    LD A, L
+    LD ($F012), A
+    ; jump loop_1
+    JP loop_1
+    ; end_loop_2:
+end_loop_2:
+    ; return
+    POP DE
+    POP BC
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW a$imm0           ; .Users.alice.dev.minz-ts.examples.basic_functions.add.a
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW b$imm0           ; .Users.alice.dev.minz-ts.examples.basic_functions.add.b
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main

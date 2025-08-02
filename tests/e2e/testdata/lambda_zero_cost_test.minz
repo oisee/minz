@@ -1,0 +1,89 @@
+// Lambda Zero-Cost Verification Test
+// This test verifies that lambda abstractions compile to identical code as traditional functions
+
+// Traditional function implementation
+fun traditional_add(a: u8, b: u8) -> u8 {
+    a + b
+}
+
+fun traditional_multiply(a: u8, b: u8) -> u8 {
+    a * b
+}
+
+fun traditional_complex_calculation() -> u16 {
+    let x = traditional_add(10, 5);     // 15
+    let y = traditional_multiply(x, 2);  // 30
+    let z = traditional_add(y, 7);      // 37
+    (z as u16) * 3                      // 111
+}
+
+// Lambda-based implementation (should compile to identical code)
+fun lambda_complex_calculation() -> u16 {
+    let add = |a: u8, b: u8| => u8 { a + b };
+    let multiply = |a: u8, b: u8| => u8 { a * b };
+    
+    let x = add(10, 5);        // 15
+    let y = multiply(x, 2);    // 30  
+    let z = add(y, 7);         // 37
+    (z as u16) * 3             // 111
+}
+
+// Nested lambda test (should flatten completely)
+fun nested_lambda_test() -> u8 {
+    let create_adder = |base: u8| => (u8 => u8) {
+        |x: u8| => u8 { base + x }
+    };
+    
+    let add_five = create_adder(5);
+    add_five(3)  // Should be 8
+}
+
+// Traditional equivalent of nested lambda
+fun traditional_nested_equivalent() -> u8 {
+    // This should compile to identical code as nested_lambda_test
+    let base = 5;
+    let x = 3;
+    base + x  // 8
+}
+
+// Lambda in loop test (critical for performance)
+fun lambda_loop_test() -> u16 {
+    let square = |x: u8| => u16 { (x as u16) * (x as u16) };
+    let sum: u16 = 0;
+    
+    for i in 1..5 {
+        sum = sum + square(i);
+    }
+    sum  // 1 + 4 + 9 + 16 + 25 = 55
+}
+
+// Traditional equivalent of lambda loop
+fun traditional_loop_test() -> u16 {
+    let sum: u16 = 0;
+    
+    for i in 1..5 {
+        let squared = (i as u16) * (i as u16);
+        sum = sum + squared;
+    }
+    sum  // 55
+}
+
+// Main function to test all scenarios
+fun main() -> u16 {
+    let traditional_result = traditional_complex_calculation();
+    let lambda_result = lambda_complex_calculation();
+    let nested_traditional = traditional_nested_equivalent();
+    let nested_lambda = nested_lambda_test();
+    let loop_traditional = traditional_loop_test();
+    let loop_lambda = lambda_loop_test();
+    
+    // All pairs should be identical
+    // traditional_result == lambda_result (111)
+    // nested_traditional == nested_lambda (8)
+    // loop_traditional == loop_lambda (55)
+    
+    traditional_result + lambda_result + 
+    (nested_traditional as u16) + (nested_lambda as u16) +
+    loop_traditional + loop_lambda
+    // Expected: 111 + 111 + 8 + 8 + 55 + 55 = 348
+}

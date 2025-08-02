@@ -1,0 +1,15 @@
+// Test lambda parameter passing
+
+fun test_lambda_params() -> u8 {
+    // Simple lambda that adds 5
+    let add5 = |x: u8| => u8 { x + 5 };
+    
+    // Call with specific value
+    let result = add5(10);  // Should be 15
+    
+    result
+}
+
+fun main() -> u8 {
+    test_lambda_params()
+}

@@ -16,18 +16,18 @@ Function ...examples.tsmc_loops_simple.sum_array_tsmc(arr: *u8, count: u16) -> u
       3: store , r6
       4: loop_1:
       5: r7 = load i
-      6: 12
+      6: LOAD_PARAM
       7: r9 = r7 < r8
       8: jump_if_not r9, end_loop_2
       9: r10 = load sum
-     10: 12
-     11: 63
+     10: LOAD_PARAM
+     11: UNKNOWN_OP_66
      12: r13 = r10 + r12
      13: store sum, r13
-     14: 12
+     14: LOAD_PARAM
      15: r15 = 1
      16: r16 = r14 + r15
-     17: 29 ; Update TSMC reference arr
+     17: UNKNOWN_OP_30 ; Update TSMC reference arr
      18: r17 = load i
      19: r18 = 1
      20: r19 = r17 + r18

@@ -1,0 +1,198 @@
+// Test 07: Error Handling with ? Operator
+// Tests: Error types, ? operator, carry flag propagation
+
+// Error enum
+enum FileError {
+    NotFound,
+    PermissionDenied,
+    DiskFull,
+}
+
+// Simulate file operations that can fail
+fun open_file(name: *u8) -> u8? {
+    // Simulate different failures based on name
+    if name[0] == 'x' {
+        @err(FileError.NotFound);
+    }
+    if name[0] == 'p' {
+        @err(FileError.PermissionDenied);
+    }
+    return 42;  // File handle
+}
+
+fun read_byte(handle: u8) -> u8? {
+    if handle == 0 {
+        @err(FileError.DiskFull);
+    }
+    return 65;  // 'A'
+}
+
+fun close_file(handle: u8) -> void? {
+    if handle == 99 {
+        @err(FileError.NotFound);
+    }
+    // Success - no error
+}
+
+// Test basic error propagation
+fun test_error_propagation() -> bool {
+    fun read_first_byte(filename: *u8) -> u8? {
+        let handle = open_file(filename)?;  // Propagate error if open fails
+        let byte = read_byte(handle)?;       // Propagate error if read fails
+        close_file(handle)?;                 // Propagate error if close fails
+        return byte;
+    }
+    
+    // Test success case
+    let result = read_first_byte("good.txt");
+    // Check carry flag is clear (no error)
+    @asm {
+        JR C, .had_error
+        LD A, 1
+        JR .done
+    .had_error:
+        XOR A
+    .done:
+    }
+    // A register should be 1 (no error)
+    
+    // Test error case
+    let result2 = read_first_byte("xbad.txt");  // Starts with 'x' - will fail
+    // Check carry flag is set (error occurred)
+    @asm {
+        JR NC, .no_error
+        LD A, 1
+        JR .done2
+    .no_error:
+        XOR A
+    .done2:
+    }
+    // A register should be 1 (error occurred)
+    
+    return true;
+}
+
+// Test error handling in loops
+fun test_error_in_loop() -> bool {
+    fun process_files(names: *[*u8; 3]) -> u8? {
+        let mut total: u8 = 0;
+        
+        for i in 0..3 {
+            let handle = open_file((*names)[i])?;  // Error breaks loop
+            total = total + handle;
+            close_file(handle)?;
+        }
+        
+        return total;
+    }
+    
+    // All good files
+    let good_names: [*u8; 3] = ["a.txt", "b.txt", "c.txt"];
+    let result = process_files(&good_names);
+    // Should succeed
+    
+    // One bad file
+    let bad_names: [*u8; 3] = ["a.txt", "xbad.txt", "c.txt"];
+    let result2 = process_files(&bad_names);
+    // Should fail on second file
+    
+    return true;
+}
+
+// Test manual error checking
+fun test_manual_error_check() -> bool {
+    let handle_result = open_file("test.txt");
+    
+    // Manual error check using @check_error
+    if @check_error() {
+        // Error occurred
+        let error_code = @get_error();  // Get error code from A register
+        return false;
+    }
+    
+    // Success - use the value
+    let handle = handle_result;
+    
+    return true;
+}
+
+// Test error enum values
+fun test_error_values() -> bool {
+    fun failing_function(which: u8) -> u8? {
+        match which {
+            0 => @err(FileError.NotFound),
+            1 => @err(FileError.PermissionDenied),
+            2 => @err(FileError.DiskFull),
+            _ => return 100,  // Success
+        }
+    }
+    
+    // Test each error type
+    for i in 0..3 {
+        let result = failing_function(i);
+        if !@check_error() { return false; }
+        
+        // Error code should match enum value
+        let error_code = @get_error();
+        if error_code != i { return false; }
+    }
+    
+    // Test success
+    let result = failing_function(99);
+    if @check_error() { return false; }
+    
+    return true;
+}
+
+// Test nested error handling
+fun test_nested_errors() -> bool {
+    fun inner() -> u8? {
+        @err(FileError.NotFound);
+    }
+    
+    fun middle() -> u8? {
+        let val = inner()?;  // Propagate
+        return val + 10;     // Never reached
+    }
+    
+    fun outer() -> u8? {
+        let val = middle()?;  // Propagate
+        return val + 20;      // Never reached
+    }
+    
+    let result = outer();
+    if !@check_error() { return false; }
+    if @get_error() != FileError.NotFound { return false; }
+    
+    return true;
+}
+
+// Test @ok macro for explicit success
+fun test_explicit_ok() -> bool {
+    fun maybe_fail(fail: bool) -> u8? {
+        if fail {
+            @err(FileError.NotFound);
+        }
+        @ok(42);  // Explicit success with value
+    }
+    
+    let result1 = maybe_fail(false);
+    if @check_error() { return false; }
+    if result1 != 42 { return false; }
+    
+    let result2 = maybe_fail(true);
+    if !@check_error() { return false; }
+    
+    return true;
+}
+
+fun main() -> u8 {
+    if !test_error_propagation() { return 1; }
+    if !test_error_in_loop() { return 2; }
+    if !test_manual_error_check() { return 3; }
+    if !test_error_values() { return 4; }
+    if !test_nested_errors() { return 5; }
+    if !test_explicit_ok() { return 6; }
+    
+    return 0;  // All tests passed
+}

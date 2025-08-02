@@ -1,0 +1,83 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_test.test_basic_lambda$add_0(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_test.test_basic_lambda() -> u8
+  @smc
+  Instructions:
+      0: r3 = call add
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_test.test_lambda_reference$double_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_test.test_lambda_reference() -> u8
+  @smc
+  Instructions:
+      0: r2 = call f
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_test.test_lambda_with_operations$add5_2(x: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_test.test_lambda_with_operations$mul2_3(x: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_test.test_lambda_with_operations() -> u8
+  @smc
+  Locals:
+    r1 = a: u16
+    r4 = b: u16
+  Instructions:
+      0: r3 = call add5
+      1: store , r3
+      2: r6 = call mul2
+      3: store , r6
+      4: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_test.test_lambda_in_expression$increment_4(x: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_test.test_lambda_in_expression() -> u8
+  @smc
+  Instructions:
+      0: r2 = call increment
+      1: r4 = call increment
+      2: return
+
+Function .Users.alice.dev.minz-ts.examples.lambda_transform_test.main() -> u8
+  @smc
+  Locals:
+    r1 = a: u16
+    r3 = b: u16
+    r5 = c: u16
+    r7 = d: u16
+  Instructions:
+      0: r2 = call test_basic_lambda
+      1: store , r2
+      2: r4 = call test_lambda_reference
+      3: store , r4
+      4: r6 = call test_lambda_with_operations
+      5: store , r6
+      6: r8 = call test_lambda_in_expression
+      7: store , r8
+      8: return
+

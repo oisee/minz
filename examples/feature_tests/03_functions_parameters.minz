@@ -1,0 +1,97 @@
+// Test 03: Functions and Parameters
+// Tests: Function calls, parameter passing, return values, SMC optimization
+
+// Simple function with value parameters
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// Function with 16-bit parameters
+fun mul16(x: u16, y: u16) -> u16 {
+    return x * y;
+}
+
+// Function with pointer parameter (TSMC reference)
+fun increment_ptr(ptr: *u8) -> void {
+    *ptr = *ptr + 1;
+}
+
+// Function with array parameter
+fun sum_array(arr: *[u8; 5]) -> u16 {
+    let sum: u16 = 0;
+    for i in 0..5 {
+        sum = sum + (*arr)[i] as u16;
+    }
+    return sum;
+}
+
+// Function with multiple parameters (tests register allocation)
+fun complex_calc(a: u8, b: u8, c: u16, d: u16) -> u16 {
+    let result = (a as u16) * (b as u16) + c + d;
+    return result;
+}
+
+// Recursive function (tests context saving)
+fun factorial(n: u8) -> u16 {
+    if n <= 1 {
+        return 1;
+    }
+    return (n as u16) * factorial(n - 1);
+}
+
+// Function returning void
+fun modify_global() -> void {
+    // In real test would modify a global variable
+}
+
+// Test function composition
+fun compose_test() -> bool {
+    let x = add(5, 3);
+    let y = add(x, 2);
+    return y == 10;
+}
+
+// Test parameter evaluation order
+fun eval_order_test() -> bool {
+    let mut counter: u8 = 0;
+    
+    fun inc_and_return(val: *u8) -> u8 {
+        *val = *val + 1;
+        return *val;
+    }
+    
+    // Both parameters should increment counter
+    let result = add(inc_and_return(&counter), inc_and_return(&counter));
+    
+    // Counter should be 2, result should be 3 (1 + 2)
+    return counter == 2 && result == 3;
+}
+
+fun main() -> u8 {
+    // Test basic function calls
+    if add(10, 20) != 30 { return 1; }
+    if mul16(100, 200) != 20000 { return 2; }
+    
+    // Test pointer parameter
+    let mut val: u8 = 5;
+    increment_ptr(&val);
+    if val != 6 { return 3; }
+    
+    // Test array parameter
+    let arr: [u8; 5] = [1, 2, 3, 4, 5];
+    if sum_array(&arr) != 15 { return 4; }
+    
+    // Test multiple parameters
+    if complex_calc(5, 6, 100, 200) != 330 { return 5; }
+    
+    // Test recursion
+    if factorial(5) != 120 { return 6; }
+    
+    // Test composition
+    if !compose_test() { return 7; }
+    
+    // Test evaluation order
+    if !eval_order_test() { return 8; }
+    
+    return 0;  // All tests passed
+}

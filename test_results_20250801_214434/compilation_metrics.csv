@@ -1,0 +1,139 @@
+Example,Unoptimized_Success,Optimized_Success,SMC_Success,Unopt_Size,Opt_Size,SMC_Size,Size_Reduction_Opt,Size_Reduction_SMC
+abi_hardware_drivers,1,1,1,    1895,    1895,    1895,0,0
+abi_rom_integration,0,0,0,0,0,0,0,0
+abi_test_with_main,1,1,1,    2238,    2495,    2495,-11.48,-11.48
+arithmetic_16bit,1,1,1,    1791,    1791,    1791,0,0
+arithmetic_demo,1,1,1,    8722,    8640,    8636,.94,.98
+array_initializers,1,1,1,   11130,   10484,   10401,5.80,6.54
+arrays,1,1,1,    4686,    3893,    3893,16.92,16.92
+basic_functions,1,1,1,    4991,    5633,    5519,-12.86,-10.57
+basic_test,1,1,1,    2983,    3296,    3296,-10.49,-10.49
+bit_fields,1,1,1,    5421,    5960,    5960,-9.94,-9.94
+bit_manipulation,1,1,1,   10372,   12151,   11475,-17.15,-10.63
+const_only,1,1,1,    1791,    1791,    1791,0,0
+control_flow,1,1,1,    6746,    7204,    7249,-6.78,-7.45
+debug_lambda,1,1,1,    2214,    2214,    2214,0,0
+editor_demo,0,0,0,0,0,0,0,0
+editor_standalone,0,0,0,0,0,0,0,0
+enums,1,1,1,   11735,   12353,   12597,-5.26,-7.34
+fibonacci_tail,1,1,1,    7094,    7125,    7125,-.43,-.43
+fibonacci,1,1,1,    5495,    5869,    5889,-6.80,-7.17
+field_assignment,1,1,1,    2904,    2927,    2927,-.79,-.79
+game_state_machine,0,0,0,0,0,0,0,0
+global_variables,1,1,1,    1791,    1791,    1791,0,0
+hardware_registers,1,1,1,    7281,    3569,    3569,50.98,50.98
+implicit_returns,1,1,1,    3387,    3433,    3433,-1.35,-1.35
+interface_simple,1,0,0,    3793,0,0,0,0
+interface_test,0,0,0,0,0,0,0,0
+interrupt_handlers,1,1,1,    2790,    2820,    2820,-1.07,-1.07
+lambda_basic_test,1,1,1,    8064,    8213,    7997,-1.84,.83
+lambda_call_test,0,0,0,0,0,0,0,0
+lambda_curry_design,0,0,0,0,0,0,0,0
+lambda_curry_test,1,1,1,    4542,    4801,    4801,-5.70,-5.70
+lambda_e2e_test,0,0,0,0,0,0,0,0
+lambda_param_test,1,1,1,    3553,    3703,    3703,-4.22,-4.22
+lambda_showcase,0,0,0,0,0,0,0,0
+lambda_simple_e2e,1,1,1,    9187,    9870,    9825,-7.43,-6.94
+lambda_simple_fix,1,1,1,    3323,    3649,    3649,-9.81,-9.81
+lambda_simple_test,1,1,1,    3739,    3591,    3591,3.95,3.95
+lambda_smc_test,1,1,1,    6350,    6157,    6157,3.03,3.03
+lambda_transform_example,0,0,0,0,0,0,0,0
+lambda_transform_poc,1,1,1,    9638,    8366,    8043,13.19,16.54
+lambda_transform_test,1,1,1,   11948,   10003,   10123,16.27,15.27
+lambda_vs_traditional_performance,1,1,1,   15982,   18199,   17878,-13.87,-11.86
+lambda_vs_traditional,0,0,0,0,0,0,0,0
+loops_indexed,0,0,0,0,0,0,0,0
+lua_assets,1,1,1,    1791,    1791,    1791,0,0
+lua_constants,1,1,1,    3379,    3189,    3189,5.62,5.62
+lua_metaprogramming,0,0,0,0,0,0,0,0
+lua_sine_table,0,0,0,0,0,0,0,0
+lua_working_demo,1,1,1,    4278,    4734,    4734,-10.65,-10.65
+main,1,1,1,   11862,   12609,   12609,-6.29,-6.29
+math_functions,0,0,0,0,0,0,0,0
+memory_operations,1,1,1,   11132,   12552,   12552,-12.75,-12.75
+metaprogramming,0,0,0,0,0,0,0,0
+mnist_complete,0,0,0,0,0,0,0,0
+mnist_simple,0,0,0,0,0,0,0,0
+mnist_attr_editor,0,0,0,0,0,0,0,0
+mnist_complete,0,0,0,0,0,0,0,0
+mnist_simple,0,0,0,0,0,0,0,0
+nested_loops,0,0,0,0,0,0,0,0
+performance_tricks,1,1,1,    4489,    4510,    4510,-.46,-.46
+pointer_arithmetic,0,0,0,0,0,0,0,0
+recursion_examples,1,1,1,   12609,   11827,   11827,6.20,6.20
+register_allocation,1,1,1,    3891,    3937,    3965,-1.18,-1.90
+register_test,1,1,1,    7230,    8168,    8168,-12.97,-12.97
+simple_abi_demo,1,1,1,    4129,    4213,    4213,-2.03,-2.03
+simple_abi_test,1,1,1,    3078,    3299,    3299,-7.17,-7.17
+simple_add,1,1,1,    3688,    4222,    4222,-14.47,-14.47
+simple_test,1,1,1,    2214,    2214,    2214,0,0
+simple_true_smc,1,1,1,    3169,    3830,    3830,-20.85,-20.85
+smc_optimization_simple,0,0,0,0,0,0,0,0
+smc_optimization,0,0,0,0,0,0,0,0
+smc_recursion,1,1,1,   11865,   13505,   13786,-13.82,-16.19
+stack_variables,1,1,1,   15418,   15658,   15549,-1.55,-.84
+string_operations,1,1,1,    6465,    7309,    7309,-13.05,-13.05
+tail_recursive,1,1,1,    9515,    9025,    9025,5.14,5.14
+tail_sum,1,1,1,    4833,    4507,    4507,6.74,6.74
+test_16bit_smc,1,1,1,    4712,    5307,    5307,-12.62,-12.62
+test_abi_comparison,1,1,1,   18941,   21018,   20851,-10.96,-10.08
+test_abi,1,1,1,    7578,    7221,    7159,4.71,5.52
+test_array_access,1,1,1,    4112,    3913,    3908,4.83,4.96
+test_assign_complete,1,1,1,    2446,    2446,    2446,0,0
+test_assign_debug,1,1,1,    2350,    2350,    2350,0,0
+test_assign_stmt,1,1,1,    2348,    2348,    2348,0,0
+test_assignment,1,1,1,    2489,    2489,    2489,0,0
+test_auto_deref_param,1,1,1,    3888,    4422,    4422,-13.73,-13.73
+test_auto_deref,1,1,1,    5518,    5055,    5246,8.39,4.92
+test_bit_field_access,0,0,0,0,0,0,0,0
+test_bit_field_comprehensive,1,1,1,   24446,   21101,   21344,13.68,12.68
+test_bit_field_proper,1,1,1,    3167,    3127,    3127,1.26,1.26
+test_cast,1,1,1,    2562,    2562,    2562,0,0
+test_complex_assign_simple,1,1,1,    8493,    6445,    6597,24.11,22.32
+test_complex_assignments,1,1,1,    1791,    1791,    1791,0,0
+test_compound_assignment,1,1,1,   12191,   12295,   11698,-.85,4.04
+test_const_simple_fix,1,1,1,    2205,    2205,    2205,0,0
+test_const,1,1,1,    2345,    2345,    2345,0,0
+test_for_simple,1,1,1,    1791,    1791,    1791,0,0
+test_import_simple,1,1,1,   22050,   24836,   24778,-12.63,-12.37
+test_imports,0,0,0,0,0,0,0,0
+test_loop_minimal,1,1,1,    6605,    6082,    6082,7.91,7.91
+test_loop_no_init,1,1,1,    3672,    3631,    3631,1.11,1.11
+test_loop_ref,1,1,1,    5161,    5214,    5214,-1.02,-1.02
+test_lua_blocks,1,1,1,    1791,    1791,    1791,0,0
+test_lua_codegen,0,0,0,0,0,0,0,0
+test_lua_const,1,1,1,    2348,    2348,    2348,0,0
+test_lua_lambda_prep,1,1,1,    2754,    2800,    2800,-1.67,-1.67
+test_lua_math,0,0,0,0,0,0,0,0
+test_lua_simple,1,1,1,    2193,    2193,    2193,0,0
+test_lua_tables,0,0,0,0,0,0,0,0
+test_lua_v2,1,1,1,    2659,    2705,    2705,-1.72,-1.72
+test_missing_features,1,1,1,    2824,    2794,    2794,1.06,1.06
+test_number_const,1,1,1,    2311,    2311,    2311,0,0
+test_print_interpolation,1,1,1,    4530,    3982,    3982,12.09,12.09
+test_range_comprehensive,1,1,1,   13136,   12558,   13091,4.40,.34
+test_range_simple,1,1,1,    1791,    1791,    1791,0,0
+test_range,1,1,1,    3257,    3459,    3459,-6.20,-6.20
+test_register_params,1,1,1,   13233,   16122,   16122,-21.83,-21.83
+test_registers,1,1,1,   10428,   11916,   11916,-14.26,-14.26
+test_simple_asm,1,1,1,    3736,    3782,    3782,-1.23,-1.23
+test_simple_assign,1,1,1,    2352,    2352,    2352,0,0
+test_simple,1,1,1,    2337,    2337,    2337,0,0
+test_smc_patching,1,1,1,    5064,    5833,    5833,-15.18,-15.18
+test_string_lengths,1,1,1,    3077,    3077,    3077,0,0
+test_strings_simple,1,1,1,    2881,    2927,    2927,-1.59,-1.59
+test_strings,1,1,1,    3131,    3062,    3062,2.20,2.20
+test_struct_simple,1,1,1,    1791,    1791,    1791,0,0
+test_struct,0,0,0,0,0,0,0,0
+test_true_smc_call,1,1,1,    4001,    4727,    4727,-18.14,-18.14
+test_what_works,1,1,1,   15654,   15483,   15479,1.09,1.11
+traffic_light_fsm,1,1,1,   18511,   14110,   13685,23.77,26.07
+tsmc_loops_simple,1,1,1,    4805,    4859,    4859,-1.12,-1.12
+tsmc_loops,1,1,1,   15848,   16419,   16419,-3.60,-3.60
+tsmc_strlen,1,1,1,    5199,    4977,    4977,4.27,4.27
+types_demo,1,1,1,    6166,    7582,    7582,-22.96,-22.96
+working_demo,1,1,1,    9990,    9372,    9372,6.18,6.18
+zero_cost_abstractions_demo,0,0,0,0,0,0,0,0
+zero_cost_test,1,0,0,   25568,0,0,0,0
+zvdb_minimal,1,1,1,   17860,   19056,   19068,-6.69,-6.76
+zx_spectrum_demo,0,0,0,0,0,0,0,0

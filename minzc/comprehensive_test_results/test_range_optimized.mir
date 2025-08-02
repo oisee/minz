@@ -1,0 +1,26 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.test_range.sum_range(n: u8) -> u16
+  @smc
+  Locals:
+    r2 = sum: u16
+  Instructions:
+      0: r3 = 0
+      1: store , r3
+      2: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      3: r6 = r4 ; Initialize loop variable i
+      4: for_loop_1:
+      5: r7 = r6 < r5 ; Check i < end
+      6: jump_if_not r7, for_end_2
+      7: r8 = load sum
+      8: r9 = load i
+      9: r10 = r8 + r9
+     10: store sum, r10
+     11: r11 = 1
+     12: r6 = r6 + r11 ; Increment i
+     13: jump for_loop_1
+     14: for_end_2:
+     15: r12 = load sum
+     16: return r12
+

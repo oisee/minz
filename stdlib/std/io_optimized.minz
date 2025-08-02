@@ -1,0 +1,242 @@
+// MinZ Optimized Standard I/O
+// Zero-cost abstractions with compile-time optimization
+
+import std.print;
+import std.stream;
+
+// Re-export the zero-cost print macros
+pub use print::@print;
+pub use print::@println;
+pub use print::@format;
+pub use print::@debug;
+
+// Optimized print functions that use Printable interface
+pub fun print<T: Printable>(value: T) -> void {
+    value.print_to(stdout);
+}
+
+pub fun println<T: Printable>(value: T) -> void {
+    value.print_to(stdout);
+    stdout.write_byte('\n');
+}
+
+// Zero-cost formatting functions
+pub fun format_to<W: Writer, T: Printable>(writer: W, value: T) -> void {
+    value.print_to(writer);
+}
+
+// Compile-time optimized number formatting
+pub fun print_int(value: i32) -> void {
+    @if_const(value) {
+        // Compile-time path - generate exact digit sequence
+        @emit_string(@int_to_string(value))
+    } else {
+        // Runtime path with optimization
+        if value >= -128 && value <= 127 {
+            (value as i8).print_to(stdout);
+        } else if value >= 0 && value <= 65535 {
+            (value as u16).print_to(stdout);
+        } else {
+            // Full i32 handling
+            if value < 0 {
+                stdout.write_byte('-');
+                print_u32((-value) as u32);
+            } else {
+                print_u32(value as u32);
+            }
+        }
+    }
+}
+
+fun print_u32(value: u32) -> void {
+    // Optimized for Z80 - avoid division where possible
+    if value < 10000 {
+        (value as u16).print_to(stdout);
+        return;
+    }
+    
+    // For larger numbers, use recursive division
+    let high = value / 10000;
+    let low = value % 10000;
+    
+    (high as u16).print_to(stdout);
+    
+    // Print leading zeros for low part
+    if low < 1000 { stdout.write_byte('0'); }
+    if low < 100 { stdout.write_byte('0'); }
+    if low < 10 { stdout.write_byte('0'); }
+    
+    (low as u16).print_to(stdout);
+}
+
+// Table-based hex printing for speed
+const HEX_TABLE: [u8; 512] = @generate_hex_table();
+
+pub fun print_hex_fast(value: u16) -> void {
+    let idx = (value >> 8) * 2;
+    stdout.write_byte(HEX_TABLE[idx]);
+    stdout.write_byte(HEX_TABLE[idx + 1]);
+    
+    idx = (value & 0xFF) * 2;
+    stdout.write_byte(HEX_TABLE[idx + 256]);
+    stdout.write_byte(HEX_TABLE[idx + 257]);
+}
+
+// Optimized string operations
+pub fun print_string_n(str: *u8, max_len: u16) -> void {
+    let mut i: u16 = 0;
+    
+    // Unroll for common cases
+    @unroll(4) {
+        while i < max_len && str[i] != 0 {
+            stdout.write_byte(str[i]);
+            i = i + 1;
+        }
+    }
+}
+
+// Compile-time string interpolation
+@macro sprintf(buffer: ptr, size: u16, format: string_literal, args...) {
+    let writer = StringWriter::new(buffer, size);
+    @print_to(writer, format, args);
+    writer.as_str()
+}
+
+// Zero-allocation printing for common patterns
+@macro print_error(message: string_literal, args...) {
+    @if(platform == "zx") {
+        // ZX Spectrum - use red ink
+        @emit_code {
+            LD A, 2        ; Red ink
+            LD (0x5C8F), A ; ATTR_T
+        }
+    }
+    
+    stderr.write_bytes("ERROR: ", 7);
+    @print_to(stderr, message, args);
+    stderr.write_byte('\n');
+    
+    @if(platform == "zx") {
+        // Restore default colors
+        @emit_code {
+            LD A, 0x38     ; Default attributes
+            LD (0x5C8F), A
+        }
+    }
+}
+
+// Optimized input functions
+pub fun input_line(prompt: *u8) -> *u8 {
+    static mut buffer: [u8; 256];  // Reusable buffer
+    
+    print(prompt);
+    stdout.flush();
+    
+    let len = read_line_fast(stdin, &buffer, 256);
+    &buffer
+}
+
+// Type-safe scanf-like functionality
+@macro scan(format: string_literal, vars...) {
+    // Parse format at compile time
+    @parse_scan_format(format, vars)
+}
+
+// Example usage:
+//   let mut age: u8;
+//   let mut name: [u8; 32];
+//   @scan("Name: {} Age: {}", &name, &age);
+
+// Performance monitoring
+pub struct TimedWriter<W: Writer> {
+    inner: W,
+    start_cycles: u32,
+}
+
+impl<W: Writer> TimedWriter<W> {
+    pub fun new(writer: W) -> TimedWriter<W> {
+        TimedWriter {
+            inner: writer,
+            start_cycles: @get_cycles(),
+        }
+    }
+    
+    pub fun elapsed_cycles(self) -> u32 {
+        @get_cycles() - self.start_cycles
+    }
+}
+
+impl<W: Writer> Writer for TimedWriter<W> {
+    fun write_byte(self, byte: u8) -> void {
+        self.inner.write_byte(byte);
+    }
+    
+    fun write_bytes(self, data: *u8, len: u16) -> u16 {
+        self.inner.write_bytes(data, len)
+    }
+    
+    fun flush(self) -> void {
+        self.inner.flush();
+    }
+}
+
+// Conditional compilation for platform-specific optimizations
+@if(platform == "zx") {
+    // ZX Spectrum fast print using RST
+    pub fun fast_print(str: *u8) -> void {
+        @asm {
+        print_loop:
+            LD A, (HL)
+            OR A
+            RET Z
+            RST 0x10
+            INC HL
+            JR print_loop
+        }
+    }
+} else if(platform == "msx") {
+    // MSX fast print using BIOS
+    pub fun fast_print(str: *u8) -> void {
+        @asm {
+            LD DE, (str)
+        print_loop:
+            LD A, (DE)
+            OR A
+            RET Z
+            CALL 0x00A2  ; CHPUT
+            INC DE
+            JR print_loop
+        }
+    }
+}
+
+// Debug helpers with zero runtime cost in release
+@macro trace(message: string_literal, args...) {
+    @if(debug_mode) {
+        let timestamp = @get_cycles();
+        @print("[TRACE {}] ", timestamp);
+        @println(message, args);
+    }
+}
+
+// Example of how this all compiles:
+//
+// This MinZ code:
+//   @print("Player {} scored {} points!", name, score);
+//
+// Compiles to this Z80 assembly:
+//   LD HL, str_player    ; "Player "
+//   CALL print_string_7  ; Optimized 7-byte string print
+//   LD HL, name
+//   CALL print_string    ; Print name
+//   LD HL, str_scored    ; " scored "
+//   CALL print_string_8  ; Optimized 8-byte string print
+//   LD A, (score)
+//   CALL print_u8        ; Optimized u8 print
+//   LD HL, str_points    ; " points!"
+//   CALL print_string_8  ; Optimized 8-byte string print
+//
+// No format string parsing at runtime!
+// No heap allocations!
+// No virtual dispatch!
+// Just optimal Z80 code!

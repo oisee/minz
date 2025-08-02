@@ -5581,6 +5581,8 @@ func (a *Analyzer) analyzeImplBlock(impl *ast.ImplBlock) error {
 		if len(method.Params) > 0 && method.Params[0].IsSelf {
 			// Set the type of 'self' to the implementing type
 			method.Params[0].Type = impl.ForType
+			// Also set the name explicitly to "self"
+			method.Params[0].Name = "self"
 		}
 		
 		// Give the method a unique name based on the implementing type to avoid conflicts

@@ -1,0 +1,319 @@
+; MinZ generated code
+; Generated: 2025-08-02 09:30:02
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.arithmetic_demo.test_arithmetic
+.Users.alice.dev.minz-ts.examples.arithmetic_demo.test_arithmetic:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -13
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store , r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD (IX-1), A
+    ; r4 = 6
+    LD A, 6
+    LD C, A         ; Store to physical register C
+    ; store , r4
+    LD A, C
+    LD (IX-2), A
+    ; r6 = load a
+    LD A, (IX-1)
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r7 = load b
+    LD A, (IX-2)
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = r6 * r7
+    ; 8-bit multiplication
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD B, A       ; B = multiplicand
+    LD A, ($F00E)     ; Virtual register 7 from memory
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_0
+.mul_loop_0:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_0
+.mul_done_0:
+    ; store , r8
+    LD A, L
+    LD (IX-3), A
+    ; r10 = 20
+    LD A, 20
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; store , r10
+    LD A, ($F014)     ; Virtual register 10 from memory
+    LD (IX-4), A
+    ; r12 = 4
+    LD A, 4
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; store , r12
+    LD A, ($F018)     ; Virtual register 12 from memory
+    LD (IX-5), A
+    ; r14 = load c
+    LD A, (IX-4)
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; r15 = load d
+    LD A, (IX-5)
+    LD E, A         ; Store to physical register E
+    ; r16 = r14 / r15
+    ; 8-bit division
+    LD A, ($F01C)     ; Virtual register 14 from memory
+    LD D, A       ; D = dividend
+    LD A, E
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .div_by_zero_1
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+.div_loop_1:
+    CP E          ; Compare remainder with divisor
+    JR C, .div_done_1
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR .div_loop_1
+.div_by_zero_1:
+    LD B, 0       ; Return 0 for divide by zero
+.div_done_1:
+    LD L, B       ; Result in L
+    LD H, 0
+    ; store , r16
+    LD A, E
+    LD (IX-6), A
+    ; r18 = 17
+    LD A, 17
+    LD ($F024), A     ; Virtual register 18 to memory
+    ; store , r18
+    LD A, ($F024)     ; Virtual register 18 from memory
+    LD (IX-7), A
+    ; r20 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; store , r20
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    LD (IX-8), A
+    ; r22 = load e
+    LD A, (IX-7)
+    LD ($F02C), A     ; Virtual register 22 to memory
+    ; r23 = load f
+    LD A, (IX-8)
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r24 = r22 % r23
+    ; 8-bit modulo
+    LD A, ($F02C)     ; Virtual register 22 from memory
+    LD D, A       ; D = dividend
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .mod_by_zero_2
+    LD A, D       ; A = dividend
+.mod_loop_2:
+    CP E          ; Compare with divisor
+    JR C, .mod_done_2
+    SUB E         ; Subtract divisor
+    JR .mod_loop_2
+.mod_by_zero_2:
+    LD A, 0       ; Return 0 for modulo by zero
+.mod_done_2:
+    LD L, A       ; Result (remainder) in L
+    LD H, 0
+    ; store , r24
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    LD (IX-9), A
+    ; r26 = 3
+    LD A, 3
+    LD ($F034), A     ; Virtual register 26 to memory
+    ; store , r26
+    LD A, ($F034)     ; Virtual register 26 from memory
+    LD (IX-10), A
+    ; r28 = load g
+    LD A, (IX-10)
+    LD H, A         ; Store to physical register H
+    ; r29 = 2
+    LD A, 2
+    ; Register 29 already in A
+    ; r30 = r28 << r29
+    ; Shift left
+    LD A, H
+    LD B, A       ; B = value to shift
+    ; Register 29 already in A
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_3
+    LD B, C       ; B = counter
+.shl_loop_3:
+    DEC B
+    JP M, .shl_done_3
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_3
+.shl_done_3:
+    LD L, A
+    LD H, 0
+    LD ($F03C), HL    ; Virtual register 30 to memory
+    ; store , r30
+    LD A, ($F03C)     ; Virtual register 30 from memory
+    LD (IX-11), A
+    ; r32 = 12
+    LD A, 12
+    ; Register 32 already in A
+    ; store , r32
+    ; Register 32 already in A
+    LD (IX-12), A
+    ; r34 = load h
+    LD A, (IX-12)
+    ; Register 34 already in A
+    ; r35 = 2
+    LD A, 2
+    ; Register 35 already in A
+    ; r36 = r34 >> r35
+    ; Shift right
+    ; Register 34 already in A
+    LD B, A       ; B = value to shift
+    ; Register 35 already in A
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_4
+    LD B, C       ; B = counter
+.shr_loop_4:
+    DEC B
+    JP M, .shr_done_4
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_4
+.shr_done_4:
+    LD L, A
+    LD H, 0
+    ; store , r36
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD (IX-13), A
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.arithmetic_demo.main
+.Users.alice.dev.minz-ts.examples.arithmetic_demo.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call test_arithmetic
+    ; Call to test_arithmetic (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.examples.arithmetic_demo.test_arithmetic
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main

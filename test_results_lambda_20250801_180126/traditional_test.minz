@@ -1,0 +1,10 @@
+// Traditional function version for comparison
+fun add(x: u8, y: u8) -> u8 { x + y }
+fun double(x: u8) -> u8 { x * 2 }
+fun apply_twice(x: u8) -> u8 { double(double(x)) }
+
+fun main() -> void {
+    let result1 = add(5, 3);
+    let result2 = double(7);
+    let result3 = apply_twice(5);
+}

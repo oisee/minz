@@ -1,0 +1,106 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.enums.opposite(dir: Direction) -> Direction
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor dir$imm0
+      1: r3 = 0
+      2: r4 = r2 == r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: else_1:
+      7: UNKNOWN_OP_31 ; Load from anchor dir$imm0
+      8: r7 = 1
+      9: r8 = r6 == r7
+     10: jump_if_not r8, else_3
+     11: r9 = 0
+     12: return r9
+     13: else_3:
+     14: UNKNOWN_OP_31 ; Load from anchor dir$imm0
+     15: r11 = 2
+     16: r12 = r10 == r11
+     17: jump_if_not r12, else_5
+     18: r13 = 3
+     19: return r13
+     20: else_5:
+     21: r14 = 2
+     22: return r14
+
+Function .Users.alice.dev.minz-ts.examples.enums.next_state(current: GameState, input: Key) -> GameState
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_31 ; Load from anchor current$imm0
+      1: r4 = 0
+      2: r5 = r3 == r4
+      3: jump_if_not r5, else_7
+      4: UNKNOWN_OP_31 ; Load from anchor input$imm0
+      5: r7 = 4
+      6: r8 = r6 == r7
+      7: jump_if_not r8, else_9
+      8: r9 = 1
+      9: return r9
+     10: else_9:
+     11: jump end_if_8
+     12: else_7:
+     13: UNKNOWN_OP_31 ; Load from anchor current$imm0
+     14: r11 = 1
+     15: r12 = r10 == r11
+     16: jump_if_not r12, else_11
+     17: UNKNOWN_OP_31 ; Load from anchor input$imm0
+     18: r14 = 3
+     19: r15 = r13 == r14
+     20: jump_if_not r15, else_13
+     21: r16 = 2
+     22: return r16
+     23: else_13:
+     24: UNKNOWN_OP_31 ; Load from anchor input$imm0
+     25: r18 = 0
+     26: r19 = r17 == r18
+     27: jump_if_not r19, else_15
+     28: r20 = 3
+     29: return r20
+     30: else_15:
+     31: jump end_if_12
+     32: else_11:
+     33: UNKNOWN_OP_31 ; Load from anchor current$imm0
+     34: r22 = 2
+     35: r23 = r21 == r22
+     36: jump_if_not r23, else_17
+     37: UNKNOWN_OP_31 ; Load from anchor input$imm0
+     38: r25 = 3
+     39: r26 = r24 == r25
+     40: jump_if_not r26, else_19
+     41: r27 = 1
+     42: return r27
+     43: else_19:
+     44: jump end_if_18
+     45: else_17:
+     46: end_if_18:
+     47: end_if_12:
+     48: end_if_8:
+     49: UNKNOWN_OP_31 ; Load from anchor current$imm0
+     50: return r28
+
+Function .Users.alice.dev.minz-ts.examples.enums.main() -> void
+  @smc
+  Locals:
+    r1 = state: u16
+    r3 = player_dir: u16
+    r9 = opposite_dir: u16
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = 3
+      3: store , r4
+      4: r7 = call next_state
+      5: store state, r7
+      6: r8 = 0
+      7: store player_dir, r8
+      8: r11 = call opposite
+      9: store , r11
+     10: r14 = call next_state
+     11: store state, r14
+     12: return
+

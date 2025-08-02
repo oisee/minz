@@ -1,0 +1,36 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   .Users.alice.dev.minz-ts.examples.test_loop_ref.counters: [10].Users.alice.dev.minz-ts.examples.test_loop_ref.Counter
+
+Function .Users.alice.dev.minz-ts.examples.test_loop_ref.main() -> void
+  @smc
+  Locals:
+    r1 = i: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: loop_1:
+      3: r3 = load i
+      4: r4 = 10
+      5: r5 = r3 < r4
+      6: jump_if_not r5, end_loop_2
+      7: r6 = 0
+      8: r7 = addr(.Users.alice.dev.minz-ts.examples.test_loop_ref.counters)
+      9: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_ref.Counter)
+     10: STORE_FIELD ; Store to field value (offset 0)
+     11: r10 = load i
+     12: r11 = 5
+     13: r12 = r10 + r11
+     14: r13 = addr(.Users.alice.dev.minz-ts.examples.test_loop_ref.counters)
+     15: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_ref.Counter)
+     16: STORE_FIELD ; Store to field max (offset 1)
+     17: r16 = load i
+     18: r17 = 1
+     19: r18 = r16 + r17
+     20: store i, r18
+     21: jump loop_1
+     22: end_loop_2:
+     23: return
+

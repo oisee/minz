@@ -21,17 +21,17 @@ Function ...examples.loops_indexed.main() -> void
       7: r6 = load i
       8: r7 = 10
       9: r8 = r6 + r7
-     10: 68
+     10: UNKNOWN_OP_71
      11: r10 = load i
-     12: 15 ; Load array element (...examples.loops_indexed.Score)
-     13: 14 ; Store to field player_id (offset 0)
+     12: LOAD_INDEX ; Load array element (...examples.loops_indexed.Score)
+     13: STORE_FIELD ; Store to field player_id (offset 0)
      14: r12 = load i
      15: r13 = 100
      16: r14 = r12 * r13
-     17: 68
+     17: UNKNOWN_OP_71
      18: r16 = load i
-     19: 15 ; Load array element (...examples.loops_indexed.Score)
-     20: 14 ; Store to field points (offset 1)
+     19: LOAD_INDEX ; Load array element (...examples.loops_indexed.Score)
+     20: STORE_FIELD ; Store to field points (offset 1)
      21: r18 = load i
      22: r19 = 1
      23: r20 = r18 + r19

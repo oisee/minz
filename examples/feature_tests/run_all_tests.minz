@@ -1,0 +1,164 @@
+// Comprehensive Test Runner for MinZ Language Features
+// This demonstrates that MinZ is a complete, modern language for Z80!
+
+import std.io;
+
+// Test results structure
+struct TestResult {
+    name: *u8,
+    passed: bool,
+    error_code: u8,
+}
+
+// Run all feature tests
+fun main() -> u8 {
+    print("MinZ Language Feature Tests\n");
+    print("===========================\n\n");
+    
+    let mut total_tests = 0;
+    let mut passed_tests = 0;
+    
+    // Test 01: Basic Types
+    print("Test 01: Basic Types... ");
+    if run_test_01() == 0 {
+        print("PASSED\n");
+        passed_tests = passed_tests + 1;
+    } else {
+        print("FAILED\n");
+    }
+    total_tests = total_tests + 1;
+    
+    // Test 02: Arrays and Pointers
+    print("Test 02: Arrays & Pointers... ");
+    if run_test_02() == 0 {
+        print("PASSED\n");
+        passed_tests = passed_tests + 1;
+    } else {
+        print("FAILED\n");
+    }
+    total_tests = total_tests + 1;
+    
+    // Test 03: Functions
+    print("Test 03: Functions... ");
+    if run_test_03() == 0 {
+        print("PASSED\n");
+        passed_tests = passed_tests + 1;
+    } else {
+        print("FAILED\n");
+    }
+    total_tests = total_tests + 1;
+    
+    // Test 04: Structs and Enums
+    print("Test 04: Structs & Enums... ");
+    if run_test_04() == 0 {
+        print("PASSED\n");
+        passed_tests = passed_tests + 1;
+    } else {
+        print("FAILED\n");
+    }
+    total_tests = total_tests + 1;
+    
+    // Test 05: Control Flow
+    print("Test 05: Control Flow... ");
+    if run_test_05() == 0 {
+        print("PASSED\n");
+        passed_tests = passed_tests + 1;
+    } else {
+        print("FAILED\n");
+    }
+    total_tests = total_tests + 1;
+    
+    // Test 06: Lambda Expressions
+    print("Test 06: Lambdas (Zero-Cost!)... ");
+    if run_test_06() == 0 {
+        print("PASSED\n");
+        passed_tests = passed_tests + 1;
+    } else {
+        print("FAILED\n");
+    }
+    total_tests = total_tests + 1;
+    
+    // Test 07: Error Handling
+    print("Test 07: Error Handling (?)... ");
+    if run_test_07() == 0 {
+        print("PASSED\n");
+        passed_tests = passed_tests + 1;
+    } else {
+        print("FAILED\n");
+    }
+    total_tests = total_tests + 1;
+    
+    // Test 08: Interfaces
+    print("Test 08: Interfaces (Zero-Cost!)... ");
+    if run_test_08() == 0 {
+        print("PASSED\n");
+        passed_tests = passed_tests + 1;
+    } else {
+        print("FAILED\n");
+    }
+    total_tests = total_tests + 1;
+    
+    // Test 09: Inline Assembly
+    print("Test 09: Assembly & @abi... ");
+    if run_test_09() == 0 {
+        print("PASSED\n");
+        passed_tests = passed_tests + 1;
+    } else {
+        print("FAILED\n");
+    }
+    total_tests = total_tests + 1;
+    
+    // Test 10: Advanced Features
+    print("Test 10: Advanced Features... ");
+    if run_test_10() == 0 {
+        print("PASSED\n");
+        passed_tests = passed_tests + 1;
+    } else {
+        print("FAILED\n");
+    }
+    total_tests = total_tests + 1;
+    
+    // Summary
+    print("\n===========================\n");
+    print("Total Tests: ");
+    print_number(total_tests);
+    print("\nPassed: ");
+    print_number(passed_tests);
+    print("\nFailed: ");
+    print_number(total_tests - passed_tests);
+    print("\n\n");
+    
+    if passed_tests == total_tests {
+        print("ALL TESTS PASSED! 🎉\n");
+        print("MinZ is ready for production!\n");
+        return 0;
+    } else {
+        print("Some tests failed.\n");
+        return 1;
+    }
+}
+
+// Helper to print numbers
+fun print_number(n: u8) -> void {
+    if n >= 100 {
+        print_char('0' + (n / 100));
+        n = n % 100;
+    }
+    if n >= 10 {
+        print_char('0' + (n / 10));
+        n = n % 10;
+    }
+    print_char('0' + n);
+}
+
+// External test functions (would be linked from other files)
+extern fun run_test_01() -> u8;
+extern fun run_test_02() -> u8;
+extern fun run_test_03() -> u8;
+extern fun run_test_04() -> u8;
+extern fun run_test_05() -> u8;
+extern fun run_test_06() -> u8;
+extern fun run_test_07() -> u8;
+extern fun run_test_08() -> u8;
+extern fun run_test_09() -> u8;
+extern fun run_test_10() -> u8;
