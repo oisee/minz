@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Communication Style
+
+When writing documentation, README files, or public-facing content:
+- Use humble, professional language
+- Avoid superlatives like "revolutionary", "world's first", "breakthrough"
+- Focus on technical accuracy over marketing language
+- Present features as "experimental", "in development", or "research"
+- Be honest about the project's maturity level
+- Use "UNDER CONSTRUCTION" warnings where appropriate
+
 ## 🚀 AI-Driven Development Practices
 
 @CLAUDE_BEST_PRACTICES.md

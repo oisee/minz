@@ -387,10 +387,24 @@ func (g *Z80Generator) generateParameterAnchor(param *ir.Parameter, destReg ir.R
 	g.emit("%s:", anchorOp)
 	
 	if param.Type.Size() == 1 {
-		// 8-bit parameter - use LD A, n
+		// 8-bit parameter - check if destination is a physical register
+		if g.usePhysicalRegs {
+			// Try to get physical register allocation
+			if physReg, ok := g.physicalAlloc.GetAllocation(destReg); ok {
+				// Check if it's a simple 8-bit register
+				switch physReg {
+				case RegA, RegB, RegC, RegD, RegE:
+					regName := g.physicalRegToAssembly(physReg)
+					g.emit("    LD %s, 0        ; %s anchor (will be patched)", regName, param.Name)
+					g.emit("%s EQU %s+1", anchorImm, anchorOp)
+					return
+				}
+			}
+		}
+		
+		// Fall back to using A as intermediate
 		g.emit("    LD A, 0        ; %s anchor (will be patched)", param.Name)
 		g.emit("%s EQU %s+1", anchorImm, anchorOp)
-		// Value is now in A, store to destination
 		g.storeFromA(destReg)
 	} else {
 		// 16-bit parameter - use LD HL, nn
@@ -1699,25 +1713,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Result is in HL
 		g.storeFromHL(inst.Dest)
 		
-	case ir.OpCallIndirect:
-		// Indirect function call through register
-		g.emit("    ; Indirect call through r%d", inst.Src1)
-		
-		// Load function address into HL
-		g.loadToHL(inst.Src1)
-		
-		// Make indirect call through HL
-		// Push return address
-		g.emit("    CALL .call_indirect_%d", g.labelCounter)
-		g.emit("    JR .call_indirect_end_%d", g.labelCounter)
-		g.emit(".call_indirect_%d:", g.labelCounter)
-		g.emit("    JP (HL)       ; Jump to function address")
-		g.emit(".call_indirect_end_%d:", g.labelCounter)
-		g.labelCounter++
-		
-		// Result is in HL
-		g.storeFromHL(inst.Dest)
-		
+	
 	case ir.OpAlloc:
 		// Allocate memory on stack
 		// For now, just reserve space by adjusting SP
@@ -2125,6 +2121,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD HL, $%04X  ; Variable address", addr)
 		g.storeFromHL(inst.Dest)
 		
+		
 	case ir.OpStoreIndex:
 		// Store element to array
 		// Src1 = array pointer, Src2 = index, Imm = value to store (packed in immediate)
@@ -2200,6 +2197,59 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				}
 			}
 		}
+		
+		
+	case ir.OpCallIndirect:
+		// Indirect function call through register (for lambdas)
+		g.emit("    ; Indirect call through r%d", inst.Src1)
+		
+		// For lambda calls, pass parameters in registers
+		// This works for MinZ lambdas which are typically simple
+		if len(inst.Args) > 0 {
+			g.emit("    ; Register-based parameter passing for lambda")
+			// For now, support up to 1 parameter in A register
+			if len(inst.Args) >= 1 {
+				// First parameter goes in A (for u8) or HL (for u16)
+				g.loadToHL(inst.Args[0])
+				g.emit("    ; Parameter 0 in HL")
+			}
+			if len(inst.Args) >= 2 {
+				// Second parameter would go in DE
+				g.loadToDE(inst.Args[1])
+				g.emit("    ; Parameter 1 in DE")
+			}
+			// Save parameters that will be used by lambda
+			g.emit("    PUSH HL       ; Save parameter for lambda")
+		}
+		
+		// Load function address into HL
+		g.loadToHL(inst.Src1)
+		
+		// Restore parameters
+		if len(inst.Args) > 0 {
+			g.emit("    EX (SP), HL   ; Swap function address with parameter")
+			g.emit("    EX DE, HL     ; Parameter in DE, function in HL")
+			g.emit("    EX (SP), HL   ; Function address on stack, parameter in HL")
+			g.emit("    POP DE        ; Function address in DE")
+			g.emit("    EX DE, HL     ; Swap: function in HL, parameter in DE")
+			g.emit("    PUSH DE       ; Push parameter")
+		}
+		
+		// Make indirect call through HL
+		g.emit("    CALL .call_indirect_%d", g.labelCounter)
+		g.emit("    JR .call_indirect_end_%d", g.labelCounter)
+		g.emit(".call_indirect_%d:", g.labelCounter)
+		g.emit("    JP (HL)       ; Jump to function address")
+		g.emit(".call_indirect_end_%d:", g.labelCounter)
+		g.labelCounter++
+		
+		// Clean up stack if needed
+		if len(inst.Args) > 0 {
+			g.emit("    POP DE        ; Clean up parameter")
+		}
+		
+		// Result is in HL
+		g.storeFromHL(inst.Dest)
 		
 	case ir.OpArrayElement:
 		// Set array element during initialization
