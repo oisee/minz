@@ -1,10 +1,14 @@
 # MinZ Programming Language
 
+## 🚧 **UNDER CONSTRUCTION** 🚧
+
 **A modern systems programming language for Z80-based computers** (ZX Spectrum, CP/M, MSX)
 
 ### Current Version: v0.9.0 "String Revolution" (January 2025)
 
 🚀 **NEW RELEASE**: MinZ v0.9.0 delivers revolutionary **25-40% faster string operations** through compile-time optimizations and length-prefixed architecture! [Download now](https://github.com/oisee/minz/releases/tag/v0.9.0)
+
+⚠️ **Note**: This is experimental software. While core features work well, the language is still evolving and not all features are implemented. See [known limitations](docs/121_v0.9.0_Known_Issues.md).
 
 ## 🎯 Release Highlights
 
