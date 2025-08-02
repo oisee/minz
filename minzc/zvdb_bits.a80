@@ -1,0 +1,603 @@
+; MinZ generated code
+; Generated: 2025-08-02 20:45:42
+
+
+; Data section
+    ORG $F000
+
+...examples.zvdb_bits_demo.test_entry:
+    ; TODO: bits<u8> type
+...examples.zvdb_bits_demo.test_result:
+    ; TODO: bits<u16> type
+str_0:
+    DB 17    ; Length
+    DB "Hash Entry - ID: "
+str_1:
+    DB 12    ; Length
+    DB ", Occupied: "
+str_2:
+    DB 21    ; Length
+    DB "Similarity - Vector: "
+str_3:
+    DB 9    ; Length
+    DB ", Score: "
+str_4:
+    DB 20    ; Length
+    DB 10
+    DB "Memory Efficiency:"
+    DB 10
+str_5:
+    DB 19    ; Length
+    DB "=================="
+    DB 10
+str_6:
+    DB 20    ; Length
+    DB "Traditional struct:"
+    DB 10
+str_7:
+    DB 25    ; Length
+    DB "  vector_id: u8 (8 bits)"
+    DB 10
+str_8:
+    DB 26    ; Length
+    DB "  occupied: bool (8 bits)"
+    DB 10
+str_9:
+    DB 23    ; Length
+    DB "  chain: bool (8 bits)"
+    DB 10
+str_10:
+    DB 28    ; Length
+    DB "  Total: 24 bits (3 bytes)"
+    DB 10
+    DB 10
+str_11:
+    DB 22    ; Length
+    DB "Bit-packed HashEntry:"
+    DB 10
+str_12:
+    DB 20    ; Length
+    DB "  vector_id: 6 bits"
+    DB 10
+str_13:
+    DB 18    ; Length
+    DB "  occupied: 1 bit"
+    DB 10
+str_14:
+    DB 15    ; Length
+    DB "  chain: 1 bit"
+    DB 10
+str_15:
+    DB 25    ; Length
+    DB "  Total: 8 bits (1 byte)"
+    DB 10
+str_16:
+    DB 28    ; Length
+    DB "  Savings: 67% less memory!"
+    DB 10
+str_17:
+    DB 24    ; Length
+    DB "ZVDB Bit Structure Demo"
+    DB 10
+str_18:
+    DB 25    ; Length
+    DB "======================="
+    DB 10
+    DB 10
+str_19:
+    DB 27    ; Length
+    DB 10
+    DB 226
+    DB 156
+    DB 133
+    DB " Benefits for ZVDB:"
+    DB 10
+str_20:
+    DB 30    ; Length
+    DB "   "
+    DB 226
+    DB 128
+    DB 162
+    DB " Compact hash tables"
+    DB 10
+str_21:
+    DB 35    ; Length
+    DB "   "
+    DB 226
+    DB 128
+    DB 162
+    DB " Efficient result packing"
+    DB 10
+str_22:
+    DB 37    ; Length
+    DB "   "
+    DB 226
+    DB 128
+    DB 162
+    DB " Type-safe bit manipulation"
+    DB 10
+str_23:
+    DB 29    ; Length
+    DB "   "
+    DB 226
+    DB 128
+    DB 162
+    DB " 3x memory savings!"
+    DB 10
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.zvdb_bits_demo.test_hash_entry
+...examples.zvdb_bits_demo.test_hash_entry:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 42
+    LD A, 42
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = load entry
+    LD HL, ($F002)
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; Store bit field vector_id (offset 0, width 6)
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD B, A        ; Save original value
+    AND 192         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, ($F004)     ; Virtual register 2 from memory
+    AND 63         ; Mask to field width
+    OR C           ; Combine with cleared original
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 1
+    LD A, 1
+    LD C, A         ; Store to physical register C
+    ; r5 = load entry
+    LD HL, ($F002)
+    ; Store bit field occupied (offset 6, width 1)
+    LD A, D
+    LD B, A        ; Save original value
+    AND 191         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, C
+    AND 1         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    LD D, A         ; Store to physical register D
+    ; r6 = 0
+    LD A, 0
+    LD E, A         ; Store to physical register E
+    ; r7 = load entry
+    LD HL, ($F002)
+    ; Store bit field chain (offset 7, width 1)
+    LD A, H
+    LD B, A        ; Save original value
+    AND 127         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, E
+    AND 1         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    LD H, A         ; Store to physical register H
+    ; r8 = load entry
+    LD HL, ($F002)
+    ; store test_entry, r8
+    LD ($F000), HL
+    ; r10 = load test_entry
+    LD HL, ($F000)
+    ; Load bit field vector_id (offset 0, width 6)
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    AND 63
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; store , r11
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD ($F012), A
+    ; r13 = load test_entry
+    LD HL, ($F000)
+    ; Load bit field occupied (offset 6, width 1)
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    AND 1
+    ; Register 14 already in A
+    ; store , r14
+    ; Register 14 already in A
+    LD ($F018), A
+    ; r15 = string(str_0)
+    LD HL, str_0
+    ; Print "Hash Entry - ID: " (17 chars via loop)
+    CALL print_string
+    ; r16 = string(str_1)
+    LD HL, str_1
+    ; Print ", Occupied: " (12 chars via loop)
+    CALL print_string
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.zvdb_bits_demo.test_sim_result
+...examples.zvdb_bits_demo.test_sim_result:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 7
+    LD A, 7
+    LD C, A         ; Store to physical register C
+    ; r3 = load result
+    LD HL, ($F002)
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; Store bit field vector_id (offset 0, width 8)
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD B, A        ; Save original value
+    AND 0         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, C
+    AND 255         ; Mask to field width
+    OR C           ; Combine with cleared original
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 95
+    LD A, 95
+    ; Register 4 already in A
+    ; r5 = load result
+    LD HL, ($F002)
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; Store bit field score (offset 8, width 7)
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD B, A        ; Save original value
+    AND 255         ; Clear field bits
+    LD C, A        ; Save cleared value
+    ; Register 4 already in A
+    AND 127         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = 1
+    LD A, 1
+    LD C, A         ; Store to physical register C
+    ; r7 = load result
+    LD HL, ($F002)
+    ; Store bit field valid (offset 15, width 1)
+    LD A, C
+    LD B, A        ; Save original value
+    AND 255         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, C
+    AND 1         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    LD C, A         ; Store to physical register C
+    ; r8 = load result
+    LD HL, ($F002)
+    ; store test_result, r8
+    LD ($F000), HL
+    ; r10 = load test_result
+    LD HL, ($F000)
+    ; Load bit field vector_id (offset 0, width 8)
+    ; Register 10 already in A
+    AND 255
+    LD H, A         ; Store to physical register H
+    ; store , r11
+    LD A, H
+    LD ($F012), A
+    ; r13 = load test_result
+    LD HL, ($F000)
+    ; Load bit field score (offset 8, width 7)
+    LD A, L
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    AND 127
+    LD H, A         ; Store to physical register H
+    ; store , r14
+    LD A, H
+    LD ($F018), A
+    ; r15 = string(str_2)
+    LD HL, str_2
+    ; Print "Similarity - Vector: " (21 chars via loop)
+    CALL print_string
+    ; r16 = string(str_3)
+    LD HL, str_3
+    ; Register 16 already in HL
+    ; Print ", Score: " (9 chars via loop)
+    ; Register 16 already in HL
+    CALL print_string
+    ; Direct print "%
+" (2 chars)
+    ; Direct print "%
+" (2 chars)
+    LD A, 37
+    RST 16             ; Print character
+    LD A, 10
+    RST 16             ; Print character
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.zvdb_bits_demo.show_efficiency
+...examples.zvdb_bits_demo.show_efficiency:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_4)
+    LD HL, str_4
+    ; Print "
+Memory Efficiency:
+" (20 chars via loop)
+    CALL print_string
+    ; r2 = string(str_5)
+    LD HL, str_5
+    ; Print "==================
+" (19 chars via loop)
+    CALL print_string
+    ; r3 = string(str_6)
+    LD HL, str_6
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; Print "Traditional struct:
+" (20 chars via loop)
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    CALL print_string
+    ; r4 = string(str_7)
+    LD HL, str_7
+    ; Print "  vector_id: u8 (8 bits)
+" (25 chars via loop)
+    CALL print_string
+    ; r5 = string(str_8)
+    LD HL, str_8
+    ; Print "  occupied: bool (8 bits)
+" (26 chars via loop)
+    CALL print_string
+    ; r6 = string(str_9)
+    LD HL, str_9
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; Print "  chain: bool (8 bits)
+" (23 chars via loop)
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    CALL print_string
+    ; r7 = string(str_10)
+    LD HL, str_10
+    ; Print "  Total: 24 bits (3 bytes)
+
+" (28 chars via loop)
+    CALL print_string
+    ; r8 = string(str_11)
+    LD HL, str_11
+    ; Print "Bit-packed HashEntry:
+" (22 chars via loop)
+    CALL print_string
+    ; r9 = string(str_12)
+    LD HL, str_12
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; Print "  vector_id: 6 bits
+" (20 chars via loop)
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    CALL print_string
+    ; r10 = string(str_13)
+    LD HL, str_13
+    ; Print "  occupied: 1 bit
+" (18 chars via loop)
+    CALL print_string
+    ; r11 = string(str_14)
+    LD HL, str_14
+    ; Print "  chain: 1 bit
+" (15 chars via loop)
+    CALL print_string
+    ; r12 = string(str_15)
+    LD HL, str_15
+    ; Register 12 already in HL
+    ; Print "  Total: 8 bits (1 byte)
+" (25 chars via loop)
+    ; Register 12 already in HL
+    CALL print_string
+    ; r13 = string(str_16)
+    LD HL, str_16
+    ; Print "  Savings: 67% less memory!
+" (28 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.zvdb_bits_demo.main
+...examples.zvdb_bits_demo.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_17)
+    LD HL, str_17
+    ; Print "ZVDB Bit Structure Demo
+" (24 chars via loop)
+    CALL print_string
+    ; r2 = string(str_18)
+    LD HL, str_18
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; Print "=======================
+
+" (25 chars via loop)
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    CALL print_string
+    ; r3 = call test_hash_entry
+    ; Call to test_hash_entry (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.zvdb_bits_demo.test_hash_entry
+    ; r4 = call test_sim_result
+    ; Call to test_sim_result (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.zvdb_bits_demo.test_sim_result
+    ; r5 = call show_efficiency
+    ; Call to show_efficiency (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.zvdb_bits_demo.show_efficiency
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; r6 = string(str_19)
+    LD HL, str_19
+    ; Print "
+â Benefits for ZVDB:
+" (27 chars via loop)
+    CALL print_string
+    ; r7 = string(str_20)
+    LD HL, str_20
+    ; Print "   â¢ Compact hash tables
+" (30 chars via loop)
+    CALL print_string
+    ; r8 = string(str_21)
+    LD HL, str_21
+    ; Register 8 already in HL
+    ; Print "   â¢ Efficient result packing
+" (35 chars via loop)
+    ; Register 8 already in HL
+    CALL print_string
+    ; r9 = string(str_22)
+    LD HL, str_22
+    ; Print "   â¢ Type-safe bit manipulation
+" (37 chars via loop)
+    CALL print_string
+    ; r10 = string(str_23)
+    LD HL, str_23
+    ; Print "   â¢ 3x memory savings!
+" (29 chars via loop)
+    CALL print_string
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DJNZ print_loop    ; Decrement B and loop
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+    END main

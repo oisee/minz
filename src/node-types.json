@@ -2149,11 +2149,19 @@
     "named": false
   },
   {
+    "type": "fn",
+    "named": false
+  },
+  {
     "type": "for",
     "named": false
   },
   {
     "type": "fun",
+    "named": false
+  },
+  {
+    "type": "global",
     "named": false
   },
   {

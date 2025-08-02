@@ -283,7 +283,7 @@ func (p *Parser) parseVarDecl(node map[string]interface{}) *ast.VarDecl {
 			if text == "pub" {
 				varDecl.IsPublic = true
 			}
-		case "var":
+		case "var", "global":  // 'global' is a developer-friendly synonym for 'var'
 			varDecl.IsMutable = true
 		case "let":
 			varDecl.IsMutable = true  // let variables are mutable in MinZ

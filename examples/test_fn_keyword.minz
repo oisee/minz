@@ -1,0 +1,15 @@
+// Test fn keyword synonym
+
+fn add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun subtract(a: u8, b: u8) -> u8 {
+    return a - b;
+}
+
+fn main() -> void {
+    let sum = add(5, 3);
+    let diff = subtract(10, 4);
+    @print("Sum: {}, Diff: {}\n", sum, diff);
+}

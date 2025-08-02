@@ -1,0 +1,16 @@
+// Test global struct variables
+
+struct TestStruct {
+    value: u8
+}
+
+// This works: basic types
+global u8 simple_global = 42;
+
+// This should work: struct type
+global TestStruct struct_global;
+
+fun main() -> void {
+    @print("Simple global: {}\n", simple_global);
+    @print("Struct global value: {}\n", struct_global.value);
+}

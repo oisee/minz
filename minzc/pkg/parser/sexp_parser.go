@@ -377,10 +377,10 @@ func (p *Parser) convertVarDecl(node *SExpNode) *ast.VarDecl {
 		lines := strings.Split(p.sourceCode, "\n")
 		if node.StartPos.Line > 0 && node.StartPos.Line <= len(lines) {
 			line := lines[node.StartPos.Line-1]
-			// Look for "var" or "let" at the start of the declaration
+			// Look for "var", "global", or "let" at the start of the declaration
 			trimmed := strings.TrimSpace(line[node.StartPos.Column-1:])
-			if strings.HasPrefix(trimmed, "var ") {
-				varDecl.IsMutable = true
+			if strings.HasPrefix(trimmed, "var ") || strings.HasPrefix(trimmed, "global ") {
+				varDecl.IsMutable = true  // 'global' is a developer-friendly synonym for 'var'
 			} else if strings.HasPrefix(trimmed, "let ") {
 				varDecl.IsMutable = true  // let variables are mutable in MinZ
 			}

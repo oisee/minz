@@ -1,0 +1,9 @@
+// Test global access with assignment
+
+global u8 test_var = 42;
+
+fun main() -> void {
+    // Try assignment
+    let x: u8 = test_var;
+    @print("Value: {}\n", x);
+}

@@ -996,11 +996,21 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 
 	// Register variable with module prefix
 	prefixedName := a.prefixSymbol(v.Name)
-	a.currentScope.Define(prefixedName, &VarSymbol{
+	varSymbol := &VarSymbol{
 		Name:      prefixedName,
 		Type:      varType,
 		IsMutable: v.IsMutable,
-	})
+	}
+	a.currentScope.Define(prefixedName, varSymbol)
+	
+	// Also define without prefix for local access (like constants do)
+	if prefixedName != v.Name {
+		a.currentScope.Define(v.Name, &VarSymbol{
+			Name:      v.Name,
+			Type:      varType,
+			IsMutable: v.IsMutable,
+		})
+	}
 
 	// Add global variable to IR module
 	// Create IR global variable

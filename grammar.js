@@ -17,6 +17,7 @@ module.exports = grammar({
     [$.array_type, $.array_literal],
     [$.array_initializer, $.block],
     [$.array_initializer, $.struct_literal],
+    [$.return_type],
   ],
 
   word: $ => $.identifier,
@@ -112,7 +113,7 @@ module.exports = grammar({
     ),
 
     function_type: $ => seq(
-      'fun',
+      choice('fun', 'fn'),  // Consistency!
       '(',
       optional($.parameter_list),
       ')',
@@ -187,7 +188,7 @@ module.exports = grammar({
     function_declaration: $ => seq(
       optional($.visibility),
       optional('export'),
-      'fun',
+      choice('fun', 'fn'),  // Both work - developer happiness!
       $.identifier,
       optional($.generic_parameters),
       '(',
@@ -210,7 +211,7 @@ module.exports = grammar({
 
     variable_declaration: $ => seq(
       optional($.visibility),
-      choice('let', 'var'),
+      choice('let', 'var', 'global'),  // 'global' as developer-friendly synonym
       optional('mut'),
       $.identifier,
       optional(seq(':', $.type)),
@@ -283,7 +284,7 @@ module.exports = grammar({
     ),
 
     interface_method: $ => seq(
-      'fun',
+      choice('fun', 'fn'),  // Flexibility in interfaces too!
       $.identifier,
       '(',
       optional($.parameter_list),

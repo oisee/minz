@@ -1,0 +1,17 @@
+// Test simple global access
+
+global test_var: u8 = 42;
+
+fun read_global() -> u8 {
+    return test_var;
+}
+
+fun write_global() -> void {
+    test_var = 100;
+}
+
+fun main() -> void {
+    @print("Initial value: {}\n", read_global());
+    write_global();
+    @print("After write: {}\n", test_var);
+}

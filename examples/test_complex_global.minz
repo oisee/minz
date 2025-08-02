@@ -1,0 +1,30 @@
+// Test complex global struct like ZVDB
+
+struct Vector {
+    data: [u8; 8]
+}
+
+struct Database {
+    vectors: [Vector; 4],
+    count: u8
+}
+
+// Test this
+global Database db;
+
+fun init_db() -> void {
+    db.count = 0;
+}
+
+fun add_test_vector() -> void {
+    db.vectors[0].data[0] = 0x55;
+    db.vectors[0].data[1] = 0xAA;
+    db.count = 1;
+}
+
+fun main() -> void {
+    init_db();
+    add_test_vector();
+    @print("Database has {} vectors\n", db.count);
+    @print("First vector byte 0: {}\n", db.vectors[0].data[0]);
+}
