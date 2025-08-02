@@ -96,6 +96,8 @@ const (
 	OpStoreField
 	OpLoadIndex
 	OpStoreIndex
+	OpLoadElement    // Load array element
+	OpStoreElement   // Store array element
 	OpLoadBitField  // Load bit field value
 	OpStoreBitField // Store bit field value
 	OpMove
@@ -148,7 +150,8 @@ const (
 	OpShr
 	
 	// Comparison
-	OpCmp // Generic comparison
+	OpCmp  // Generic comparison
+	OpTest // Test register (sets flags without compare)
 	OpEq
 	OpNe
 	OpLt

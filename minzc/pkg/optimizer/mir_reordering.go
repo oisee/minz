@@ -1,230 +1,438 @@
 package optimizer
 
 import (
-	"fmt"
 	"github.com/minz/minzc/pkg/ir"
 )
 
-// MIRReorderingPass reorders MIR instructions to expose more optimization opportunities
+// MIRReorderingPass implements instruction reordering optimizations at the MIR level
+// This pass reorders instructions to:
+// 1. Expose more optimization opportunities
+// 2. Reduce register pressure
+// 3. Enable better peephole patterns
+// 4. Minimize memory accesses
 type MIRReorderingPass struct {
-	reorderedCount int
-	debug         bool
+	name string
 }
 
-// NewMIRReorderingPass creates a new MIR reordering pass
-func NewMIRReorderingPass() Pass {
+// NewMIRReorderingPass creates a new MIR reordering optimization pass
+func NewMIRReorderingPass() *MIRReorderingPass {
 	return &MIRReorderingPass{
-		reorderedCount: 0,
-		debug:         false,
+		name: "MIR Instruction Reordering",
 	}
 }
 
-// Name returns the name of this pass  
+// Name returns the name of the pass
 func (p *MIRReorderingPass) Name() string {
-	return "MIR Instruction Reordering"
+	return p.name
 }
 
-// Run performs instruction reordering on the module
+// Run executes the MIR reordering optimization pass
 func (p *MIRReorderingPass) Run(module *ir.Module) (bool, error) {
 	changed := false
 	
-	for _, function := range module.Functions {
-		if p.reorderInstructions(function) {
+	for _, fn := range module.Functions {
+		if p.optimizeFunction(fn) {
 			changed = true
 		}
-	}
-	
-	if p.debug && changed {
-		fmt.Printf("=== MIR REORDERING PASS ===\n")
-		fmt.Printf("  Instructions reordered: %d\n", p.reorderedCount)
-		fmt.Printf("===============================\n")
 	}
 	
 	return changed, nil
 }
 
-// reorderInstructions reorders instructions within a function for better optimization
-func (p *MIRReorderingPass) reorderInstructions(fn *ir.Function) bool {
+// optimizeFunction reorders instructions within a function
+func (p *MIRReorderingPass) optimizeFunction(fn *ir.Function) bool {
 	if len(fn.Instructions) < 2 {
 		return false
 	}
 	
 	changed := false
-	newInstructions := make([]ir.Instruction, 0, len(fn.Instructions))
-	dependencies := p.buildDependencyGraph(fn.Instructions)
 	
-	// Strategy 1: Group constant loads together
-	constantInsts, otherInsts := p.separateConstantLoads(fn.Instructions, dependencies)
+	// Build dependency graph
+	deps := p.buildDependencyGraph(fn)
 	
-	// Strategy 2: Move independent operations closer to their consumers
-	reorderedOther := p.moveOperationsCloserToConsumers(otherInsts, dependencies)
-	
-	// Combine results: constants first, then reordered operations
-	newInstructions = append(newInstructions, constantInsts...)
-	newInstructions = append(newInstructions, reorderedOther...)
-	
-	// Check if anything changed
-	if len(newInstructions) != len(fn.Instructions) {
+	// Apply reordering strategies
+	if p.reorderIndependentLoads(fn, deps) {
 		changed = true
-	} else {
-		for i, inst := range newInstructions {
-			if !p.instructionsEqual(inst, fn.Instructions[i]) {
-				changed = true
-				break
-			}
-		}
 	}
 	
-	if changed {
-		fn.Instructions = newInstructions
-		p.reorderedCount += len(fn.Instructions)
+	if p.hoistInvariantCode(fn, deps) {
+		changed = true
+	}
+	
+	if p.sinkStores(fn, deps) {
+		changed = true
+	}
+	
+	if p.clusterRelatedOps(fn, deps) {
+		changed = true
 	}
 	
 	return changed
 }
 
+// Dependency tracking
+type dependency struct {
+	reads  map[ir.Register][]int // Register -> instruction indices that read it
+	writes map[ir.Register][]int // Register -> instruction indices that write it
+	memory []int                 // Instructions that access memory
+}
+
 // buildDependencyGraph analyzes data dependencies between instructions
-func (p *MIRReorderingPass) buildDependencyGraph(instructions []ir.Instruction) map[int][]int {
-	dependencies := make(map[int][]int) // instruction index -> list of dependent instruction indices
+func (p *MIRReorderingPass) buildDependencyGraph(fn *ir.Function) *dependency {
+	deps := &dependency{
+		reads:  make(map[ir.Register][]int),
+		writes: make(map[ir.Register][]int),
+		memory: []int{},
+	}
 	
-	for i, inst := range instructions {
-		dependencies[i] = []int{}
+	for i, inst := range fn.Instructions {
+		// Track register reads
+		if inst.Src1 != 0 {
+			deps.reads[inst.Src1] = append(deps.reads[inst.Src1], i)
+		}
+		if inst.Src2 != 0 {
+			deps.reads[inst.Src2] = append(deps.reads[inst.Src2], i)
+		}
 		
-		// Find instructions that depend on this one (write-after-read)
-		for j := i + 1; j < len(instructions); j++ {
-			laterInst := instructions[j]
-			
-			// Check if later instruction reads what this instruction writes
-			if p.hasDataDependency(inst, laterInst) {
-				dependencies[i] = append(dependencies[i], j)
+		// Track register writes
+		if inst.Dest != 0 {
+			deps.writes[inst.Dest] = append(deps.writes[inst.Dest], i)
+		}
+		
+		// Track memory operations
+		switch inst.Op {
+		case ir.OpLoadVar, ir.OpStoreVar, ir.OpLoadField, ir.OpStoreField,
+			 ir.OpLoadElement, ir.OpStoreElement, ir.OpCall:
+			deps.memory = append(deps.memory, i)
+		}
+	}
+	
+	return deps
+}
+
+// canReorder checks if two instructions can be safely reordered
+func (p *MIRReorderingPass) canReorder(inst1, inst2 *ir.Instruction, idx1, idx2 int, deps *dependency) bool {
+	// Can't reorder if inst2 reads what inst1 writes
+	if inst1.Dest != 0 {
+		for _, readIdx := range deps.reads[inst1.Dest] {
+			if readIdx == idx2 {
+				return false
 			}
 		}
 	}
 	
-	return dependencies
+	// Can't reorder if inst1 reads what inst2 writes
+	if inst2.Dest != 0 {
+		if inst1.Src1 == inst2.Dest || inst1.Src2 == inst2.Dest {
+			return false
+		}
+	}
+	
+	// Can't reorder memory operations (conservative)
+	isMemOp1 := isMemoryOp(inst1)
+	isMemOp2 := isMemoryOp(inst2)
+	if isMemOp1 && isMemOp2 {
+		return false
+	}
+	
+	// Can't reorder control flow
+	if isControlFlow(inst1) || isControlFlow(inst2) {
+		return false
+	}
+	
+	return true
 }
 
-// hasDataDependency checks if inst2 depends on inst1 (inst2 reads what inst1 writes)
-func (p *MIRReorderingPass) hasDataDependency(inst1, inst2 ir.Instruction) bool {
-	// inst2 depends on inst1 if:
-	// - inst1 writes to a register that inst2 reads
-	// - inst1 writes to memory that inst2 reads
-	// - Both access the same memory location
+// reorderIndependentLoads moves independent loads together to enable better scheduling
+func (p *MIRReorderingPass) reorderIndependentLoads(fn *ir.Function, deps *dependency) bool {
+	changed := false
 	
-	// Register dependencies
-	if inst1.Dest != 0 && (inst2.Src1 == inst1.Dest || inst2.Src2 == inst1.Dest) {
+	// Group consecutive loads that don't depend on each other
+	for i := 0; i < len(fn.Instructions)-1; {
+		inst1 := &fn.Instructions[i]
+		
+		// Look for a load instruction
+		if inst1.Op != ir.OpLoadVar && inst1.Op != ir.OpLoadField {
+			i++
+			continue
+		}
+		
+		// Find next load that we can move adjacent
+		for j := i + 2; j < len(fn.Instructions) && j < i+5; j++ {
+			inst2 := &fn.Instructions[j]
+			
+			if inst2.Op != ir.OpLoadVar && inst2.Op != ir.OpLoadField {
+				continue
+			}
+			
+			// Check if we can move inst2 to be right after inst1
+			canMove := true
+			for k := i + 1; k < j; k++ {
+				if !p.canReorder(&fn.Instructions[k], inst2, k, j, deps) {
+					canMove = false
+					break
+				}
+			}
+			
+			if canMove {
+				// Move inst2 to position i+1
+				temp := fn.Instructions[j]
+				copy(fn.Instructions[i+2:j+1], fn.Instructions[i+1:j])
+				fn.Instructions[i+1] = temp
+				changed = true
+				break
+			}
+		}
+		
+		i++
+	}
+	
+	return changed
+}
+
+// hoistInvariantCode moves loop-invariant code out of loops
+func (p *MIRReorderingPass) hoistInvariantCode(fn *ir.Function, deps *dependency) bool {
+	// For now, just identify simple patterns where calculations can be moved up
+	changed := false
+	
+	// Find basic blocks (simplified - just use labels and jumps)
+	blocks := p.findBasicBlocks(fn)
+	
+	for _, block := range blocks {
+		if block.isLoop {
+			// Move invariant instructions to loop preheader
+			for i := block.start; i < block.end; i++ {
+				inst := &fn.Instructions[i]
+				
+				if p.isLoopInvariant(inst, block, deps) {
+					// TODO: Actually move the instruction
+					// For now, we just identify opportunities
+				}
+			}
+		}
+	}
+	
+	return changed
+}
+
+// sinkStores moves stores as late as possible to reduce register pressure
+func (p *MIRReorderingPass) sinkStores(fn *ir.Function, deps *dependency) bool {
+	changed := false
+	
+	for i := 0; i < len(fn.Instructions)-1; i++ {
+		inst := &fn.Instructions[i]
+		
+		if inst.Op != ir.OpStoreVar && inst.Op != ir.OpStoreField {
+			continue
+		}
+		
+		// Find the latest position we can move this store
+		latestPos := i
+		for j := i + 1; j < len(fn.Instructions); j++ {
+			// Stop if we hit a use of the stored location
+			if p.usesMemoryLocation(&fn.Instructions[j], inst) {
+				break
+			}
+			
+			// Stop if we hit another store to the same location
+			if p.storesSameLocation(&fn.Instructions[j], inst) {
+				break
+			}
+			
+			// Stop at control flow
+			if isControlFlow(&fn.Instructions[j]) {
+				break
+			}
+			
+			latestPos = j
+		}
+		
+		if latestPos > i {
+			// Move store to latest position
+			temp := fn.Instructions[i]
+			copy(fn.Instructions[i:latestPos], fn.Instructions[i+1:latestPos+1])
+			fn.Instructions[latestPos] = temp
+			changed = true
+		}
+	}
+	
+	return changed
+}
+
+// clusterRelatedOps groups related operations together for better peephole optimization
+func (p *MIRReorderingPass) clusterRelatedOps(fn *ir.Function, deps *dependency) bool {
+	changed := false
+	
+	// Group arithmetic operations on the same registers
+	for i := 0; i < len(fn.Instructions)-1; i++ {
+		inst1 := &fn.Instructions[i]
+		
+		if !isArithmetic(inst1) {
+			continue
+		}
+		
+		// Look for related arithmetic ops we can cluster
+		for j := i + 2; j < len(fn.Instructions) && j < i+8; j++ {
+			inst2 := &fn.Instructions[j]
+			
+			if !isArithmetic(inst2) {
+				continue
+			}
+			
+			// Check if they operate on related registers
+			if p.areRelatedOps(inst1, inst2) {
+				// Check if we can move them together
+				canMove := true
+				for k := i + 1; k < j; k++ {
+					if !p.canReorder(&fn.Instructions[k], inst2, k, j, deps) {
+						canMove = false
+						break
+					}
+				}
+				
+				if canMove {
+					// Move inst2 closer to inst1
+					temp := fn.Instructions[j]
+					copy(fn.Instructions[i+2:j+1], fn.Instructions[i+1:j])
+					fn.Instructions[i+1] = temp
+					changed = true
+					break
+				}
+			}
+		}
+	}
+	
+	return changed
+}
+
+// Helper functions
+
+func isMemoryOp(inst *ir.Instruction) bool {
+	switch inst.Op {
+	case ir.OpLoadVar, ir.OpStoreVar, ir.OpLoadField, ir.OpStoreField,
+		 ir.OpLoadElement, ir.OpStoreElement:
 		return true
 	}
+	return false
+}
+
+func isControlFlow(inst *ir.Instruction) bool {
+	switch inst.Op {
+	case ir.OpJump, ir.OpJumpIf, ir.OpJumpIfNot, ir.OpCall, ir.OpReturn:
+		return true
+	}
+	return false
+}
+
+func isArithmetic(inst *ir.Instruction) bool {
+	switch inst.Op {
+	case ir.OpAdd, ir.OpSub, ir.OpMul, ir.OpDiv, ir.OpMod,
+		 ir.OpAnd, ir.OpOr, ir.OpXor, ir.OpShl, ir.OpShr:
+		return true
+	}
+	return false
+}
+
+// basicBlock represents a sequence of instructions without branches
+type basicBlock struct {
+	start  int
+	end    int
+	isLoop bool
+}
+
+// findBasicBlocks identifies basic blocks in the function
+func (p *MIRReorderingPass) findBasicBlocks(fn *ir.Function) []basicBlock {
+	blocks := []basicBlock{}
 	
-	// Memory dependencies (conservative)
-	if p.isMemoryOperation(inst1) && p.isMemoryOperation(inst2) {
-		return true // Conservative: assume all memory ops are dependent
+	start := 0
+	for i, inst := range fn.Instructions {
+		if inst.Op == ir.OpLabel || isControlFlow(&inst) {
+			if i > start {
+				blocks = append(blocks, basicBlock{
+					start:  start,
+					end:    i,
+					isLoop: false, // TODO: Detect loops properly
+				})
+			}
+			start = i + 1
+		}
 	}
 	
-	// Function call dependencies
-	if inst1.Op == ir.OpCall || inst2.Op == ir.OpCall {
-		return true // Conservative: calls can have side effects
+	if start < len(fn.Instructions) {
+		blocks = append(blocks, basicBlock{
+			start:  start,
+			end:    len(fn.Instructions),
+			isLoop: false,
+		})
+	}
+	
+	return blocks
+}
+
+// isLoopInvariant checks if an instruction is loop invariant
+func (p *MIRReorderingPass) isLoopInvariant(inst *ir.Instruction, block basicBlock, deps *dependency) bool {
+	// An instruction is loop invariant if:
+	// 1. It doesn't depend on any values defined in the loop
+	// 2. It doesn't have side effects
+	
+	if isMemoryOp(inst) || inst.Op == ir.OpCall {
+		return false // Conservative: assume memory ops and calls have side effects
+	}
+	
+	// Check if source registers are defined outside the loop
+	// (Simplified check - would need proper SSA form for accuracy)
+	return true
+}
+
+// usesMemoryLocation checks if an instruction uses the memory location stored by another
+func (p *MIRReorderingPass) usesMemoryLocation(inst, store *ir.Instruction) bool {
+	// Conservative: assume any load might alias with any store
+	if inst.Op == ir.OpLoadVar || inst.Op == ir.OpLoadField || inst.Op == ir.OpLoadElement {
+		return true
+	}
+	return false
+}
+
+// storesSameLocation checks if two stores write to the same location
+func (p *MIRReorderingPass) storesSameLocation(inst1, inst2 *ir.Instruction) bool {
+	if inst1.Op != inst2.Op {
+		return false
+	}
+	
+	switch inst1.Op {
+	case ir.OpStoreVar:
+		// Same variable?
+		return inst1.VarName == inst2.VarName
+	case ir.OpStoreField:
+		// Same field of same object?
+		return inst1.Src1 == inst2.Src1 && inst1.FieldName == inst2.FieldName
 	}
 	
 	return false
 }
 
-// separateConstantLoads groups constant loads together for better peephole opportunities
-func (p *MIRReorderingPass) separateConstantLoads(instructions []ir.Instruction, dependencies map[int][]int) ([]ir.Instruction, []ir.Instruction) {
-	constants := []ir.Instruction{}
-	others := []ir.Instruction{}
+// areRelatedOps checks if two operations are related and benefit from clustering
+func (p *MIRReorderingPass) areRelatedOps(inst1, inst2 *ir.Instruction) bool {
+	// Operations are related if they:
+	// 1. Use the same source registers
+	// 2. Feed into each other
+	// 3. Are part of the same expression pattern
 	
-	for i, inst := range instructions {
-		if inst.Op == ir.OpLoadConst && len(dependencies[i]) > 0 {
-			// This is a constant load that other instructions depend on
-			constants = append(constants, inst)
-		} else {
-			others = append(others, inst)
-		}
+	// Same operation type is often beneficial to cluster
+	if inst1.Op == inst2.Op {
+		return true
 	}
 	
-	return constants, others
-}
-
-// moveOperationsCloserToConsumers reorders operations to be closer to where they're used
-func (p *MIRReorderingPass) moveOperationsCloserToConsumers(instructions []ir.Instruction, dependencies map[int][]int) []ir.Instruction {
-	// For now, return as-is. This is where more sophisticated reordering would go.
-	// We could implement:
-	// - Moving loads closer to their uses
-	// - Grouping related arithmetic operations
-	// - Minimizing register pressure
-	
-	return instructions
-}
-
-// isMemoryOperation checks if an instruction accesses memory
-func (p *MIRReorderingPass) isMemoryOperation(inst ir.Instruction) bool {
-	switch inst.Op {
-	case ir.OpLoad, ir.OpStore, ir.OpLoadVar, ir.OpStoreVar:
+	// One feeds into the other
+	if inst1.Dest == inst2.Src1 || inst1.Dest == inst2.Src2 {
 		return true
-	case ir.OpStoreTSMCRef, ir.OpTSMCRefLoad, ir.OpTSMCRefPatch:
-		return true
-	default:
-		return false
 	}
-}
-
-// instructionsEqual compares two instructions for equality
-func (p *MIRReorderingPass) instructionsEqual(inst1, inst2 ir.Instruction) bool {
-	return inst1.Op == inst2.Op &&
-		   inst1.Dest == inst2.Dest &&
-		   inst1.Src1 == inst2.Src1 &&
-		   inst1.Src2 == inst2.Src2 &&
-		   inst1.Imm == inst2.Imm &&
-		   inst1.Symbol == inst2.Symbol &&
-		   inst1.Label == inst2.Label
-}
-
-// Advanced reordering strategies that could be implemented:
-
-// Strategy 1: Constant Folding Preparation
-// Groups arithmetic operations with constants together so peephole can fold them
-func (p *MIRReorderingPass) prepareForConstantFolding(instructions []ir.Instruction) []ir.Instruction {
-	// Find patterns like:
-	// r1 = 10
-	// r2 = some_operation()  
-	// r3 = 20
-	// r4 = r1 + r3
-	//
-	// Reorder to:
-	// r1 = 10
-	// r3 = 20  
-	// r4 = r1 + r3  ; Now peephole can see constant folding opportunity
-	// r2 = some_operation()
 	
-	return instructions // Placeholder
-}
-
-// Strategy 2: Register Pressure Reduction  
-// Reorders to minimize the number of live registers at any point
-func (p *MIRReorderingPass) minimizeRegisterPressure(instructions []ir.Instruction) []ir.Instruction {
-	// Analyze register lifetimes and reorder to minimize overlaps
-	return instructions // Placeholder
-}
-
-// Strategy 3: Loop Optimization Preparation
-// Moves loop-invariant operations out of loops and groups loop operations
-func (p *MIRReorderingPass) prepareLoopOptimizations(instructions []ir.Instruction) []ir.Instruction {
-	// Identify loop boundaries and move invariant operations
-	return instructions // Placeholder
-}
-
-// Strategy 4: SMC Pattern Preparation
-// Groups SMC parameter operations to enable better SMC→register conversion
-func (p *MIRReorderingPass) prepareSMCOptimizations(instructions []ir.Instruction) []ir.Instruction {
-	// Group SMC parameter setups together:
-	// r1 = 10
-	// SMC_PARAM p1, r1
-	// r2 = 20  
-	// SMC_PARAM p2, r2
-	// CALL func
-	//
-	// This enables the peephole SMC→register pattern to trigger
+	// Use same sources (might enable CSE)
+	if (inst1.Src1 == inst2.Src1 && inst1.Src1 != 0) ||
+	   (inst1.Src2 == inst2.Src2 && inst1.Src2 != 0) {
+		return true
+	}
 	
-	return instructions // Placeholder
+	return false
 }

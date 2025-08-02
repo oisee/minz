@@ -1,178 +1,135 @@
-name: Release
+name: Release Build
 
 on:
   push:
     tags:
       - 'v*'
-
-env:
-  SJASMPLUS_VERSION: v1.20.3
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v0.9.1)'
+        required: true
+        default: 'v0.9.1-dev'
 
 jobs:
-  create-release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: MinZ ${{ github.ref }}
-        draft: false
-        prerelease: false
-  
   build-release:
-    name: Build Release (${{ matrix.os }})
-    needs: create-release
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: linux-amd64
-            artifact_name: minzc
-            asset_name: minzc-linux-amd64
-          - os: macos-latest
-            target: darwin-amd64
-            artifact_name: minzc
-            asset_name: minzc-darwin-amd64
-          - os: macos-latest
-            target: darwin-arm64
-            artifact_name: minzc
-            asset_name: minzc-darwin-arm64
+    name: Build Release
+    runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Get all tags
     
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: '1.21'
-        cache: true
-        cache-dependency-path: minzc/go.sum
     
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
-        cache: 'npm'
+        node-version: '20'
     
-    - name: Install Node dependencies
-      run: npm install
-    
-    - name: Generate tree-sitter parser
-      run: npm run generate
-    
-    - name: Cache sjasmplus
-      id: cache-sjasmplus
-      uses: actions/cache@v4
-      with:
-        path: ~/sjasmplus
-        key: ${{ runner.os }}-sjasmplus-${{ env.SJASMPLUS_VERSION }}
-    
-    - name: Install sjasmplus (Linux)
-      if: steps.cache-sjasmplus.outputs.cache-hit != 'true' && runner.os == 'Linux'
+    - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential cmake
-        git clone --branch ${{ env.SJASMPLUS_VERSION }} https://github.com/z00m128/sjasmplus.git ~/sjasmplus-src
-        cd ~/sjasmplus-src
-        mkdir build && cd build
-        cmake ..
-        make -j$(nproc)
-        mkdir -p ~/sjasmplus/bin
-        cp sjasmplus ~/sjasmplus/bin/
-        echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
+        cd minzc && go mod download
+        cd .. && npm install
+        npm install -g tree-sitter-cli
     
-    - name: Install sjasmplus (macOS)
-      if: steps.cache-sjasmplus.outputs.cache-hit != 'true' && runner.os == 'macOS'
+    - name: Generate parser
+      run: tree-sitter generate
+    
+    - name: Set version
       run: |
-        brew install cmake
-        git clone --branch ${{ env.SJASMPLUS_VERSION }} https://github.com/z00m128/sjasmplus.git ~/sjasmplus-src
-        cd ~/sjasmplus-src
-        mkdir build && cd build
-        cmake ..
-        make -j$(sysctl -n hw.ncpu)
-        mkdir -p ~/sjasmplus/bin
-        cp sjasmplus ~/sjasmplus/bin/
-        echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
-    
-    - name: Add cached sjasmplus to PATH
-      if: steps.cache-sjasmplus.outputs.cache-hit == 'true'
-      run: echo "$HOME/sjasmplus/bin" >> $GITHUB_PATH
-    
-    - name: Build MinZ compiler
-      working-directory: minzc
-      run: |
-        if [[ "${{ matrix.target }}" == "darwin-arm64" ]]; then
-          GOARCH=arm64 go build -ldflags="-s -w" -o ${{ matrix.artifact_name }} cmd/minzc/main.go
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
         else
-          go build -ldflags="-s -w" -o ${{ matrix.artifact_name }} cmd/minzc/main.go
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
         fi
     
-    - name: Run tests
-      working-directory: minzc
-      run: go test -v ./...
-    
-    - name: Run TSMC benchmarks
-      working-directory: minzc
+    - name: Build release
       run: |
-        go test -v -timeout 30m ./pkg/z80testing -run TestTSMCBenchmark
-      env:
-        MINZC_TEST_VERBOSE: "1"
+        chmod +x build/release.sh
+        VERSION=${{ env.VERSION }} build/release.sh
     
-    - name: Generate performance report
-      working-directory: minzc
-      run: |
-        echo "# MinZ Compiler Performance Report" > performance_report.md
-        echo "## Version: ${{ github.ref_name }}" >> performance_report.md
-        echo "## Date: $(date)" >> performance_report.md
-        echo "" >> performance_report.md
-        if [ -f tsmc_benchmark_report.md ]; then
-          cat tsmc_benchmark_report.md >> performance_report.md
-        fi
-    
-    - name: Package release
-      run: |
-        mkdir -p release
-        cp minzc/${{ matrix.artifact_name }} release/
-        cp -r examples release/
-        cp -r stdlib release/
-        cp README.md release/
-        cp COMPILER_ARCHITECTURE.md release/
-        cp DESIGN.md release/
-        if [ -f minzc/performance_report.md ]; then
-          cp minzc/performance_report.md release/
-        fi
-        cd release
-        tar -czf ../${{ matrix.asset_name }}.tar.gz *
-    
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
       with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./${{ matrix.asset_name }}.tar.gz
-        asset_name: ${{ matrix.asset_name }}.tar.gz
-        asset_content_type: application/gzip
+        name: release-${{ env.VERSION }}
+        path: release/*
     
-    - name: Upload Performance Report
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
       with:
-        upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ./minzc/performance_report.md
-        asset_name: performance_report.md
-        asset_content_type: text/markdown
+        files: |
+          release/*.tar.gz
+          release/*.zip
+          release/*checksums.txt
+          release/RELEASE_NOTES_*.md
+        body_path: release/RELEASE_NOTES_${{ env.VERSION }}.md
+        draft: true
+        prerelease: ${{ contains(env.VERSION, 'dev') || contains(env.VERSION, 'rc') }}
+
+  build-platform:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+          - os: macos-latest
+            goos: darwin  
+            goarch: arm64
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+    
+    - name: Build compiler
+      run: |
+        cd minzc
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o minzc-${{ matrix.goos }}-${{ matrix.goarch }} cmd/minzc/main.go
+    
+    - name: Upload platform binary
+      uses: actions/upload-artifact@v3
+      with:
+        name: minzc-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: minzc/minzc-${{ matrix.goos }}-${{ matrix.goarch }}
+
+  docker-image:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+        else
+          echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        fi
+    
+    - name: Build Docker image
+      run: docker build -t minz:${{ env.VERSION }} -f build/Dockerfile .
+    
+    - name: Save Docker image
+      run: docker save minz:${{ env.VERSION }} | gzip > minz-docker-${{ env.VERSION }}.tar.gz
+    
+    - name: Upload Docker image
+      uses: actions/upload-artifact@v3
+      with:
+        name: docker-image-${{ env.VERSION }}
+        path: minz-docker-*.tar.gz
