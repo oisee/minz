@@ -188,38 +188,53 @@ func (p *SmartPeepholeOptimizationPass) getPatterns() []Pattern {
 		{
 			name: "increment-optimization",
 			matcher: func(insts []ir.Instruction, i int) (bool, int) {
-				if i+2 >= len(insts) {
+				if i+1 >= len(insts) {
 					return false, 0
 				}
-				// Pattern: load r2, 1; add r1, r1, r2
+				// Pattern: load r2, n; add r1, r1, r2
 				inst1, inst2 := &insts[i], &insts[i+1]
-				return inst1.Op == ir.OpLoadConst &&
-					(inst1.Imm == 1 || inst1.Imm == -1) &&
-					inst2.Op == ir.OpAdd &&
-					inst2.Src1 == inst2.Dest &&
-					inst2.Src2 == inst1.Dest, 2
+				if inst1.Op != ir.OpLoadConst || inst2.Op != ir.OpAdd {
+					return false, 0
+				}
+				if inst2.Src1 != inst2.Dest || inst2.Src2 != inst1.Dest {
+					return false, 0
+				}
+				
+				// Check if INC/DEC is beneficial based on register and value
+				absVal := inst1.Imm
+				if absVal < 0 {
+					absVal = -absVal
+				}
+				
+				// For now, we don't know the actual register mapping
+				// So we use conservative approach: up to ±3 for most cases
+				// TODO: Get actual register info from register allocator
+				return absVal >= 1 && absVal <= 3, 2
 			},
 			optimizer: func(insts []ir.Instruction, i int) []ir.Instruction {
 				inst1, inst2 := &insts[i], &insts[i+1]
 				
-				// Replace with inc/dec
-				if inst1.Imm == 1 {
-					return []ir.Instruction{
-						{
-							Op:   ir.OpInc,
-							Dest: inst2.Dest,
-							Src1: inst2.Dest,
-						},
-					}
-				} else {
-					return []ir.Instruction{
-						{
-							Op:   ir.OpDec,
-							Dest: inst2.Dest,
-							Src1: inst2.Dest,
-						},
-					}
+				// Generate multiple inc/dec instructions
+				result := []ir.Instruction{}
+				count := inst1.Imm
+				if count < 0 {
+					count = -count
 				}
+				
+				op := ir.OpInc
+				if inst1.Imm < 0 {
+					op = ir.OpDec
+				}
+				
+				for j := int64(0); j < count; j++ {
+					result = append(result, ir.Instruction{
+						Op:   op,
+						Dest: inst2.Dest,
+						Src1: inst2.Dest,
+					})
+				}
+				
+				return result
 			},
 		},
 		

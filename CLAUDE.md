@@ -381,8 +381,32 @@ The MinZ compiler implements a sophisticated multi-pass optimization pipeline:
 
 ### Key Optimizations
 - **Instruction Reordering**: Clusters related operations, sinks stores, hoists invariants
-- **Z80 Patterns**: Inc/Dec for ±1, zero comparison optimization, shift unrolling
+- **Z80 Patterns**: 
+  - Inc/Dec for ±1 (A register) or ±3 (B,C,D,E,H,L registers)
+  - Zero comparison optimization
+  - Shift unrolling for small shifts
 - **Multiply by Power of 2**: Converts to shifts
 - **Shadow Register Usage**: Automatic for interrupts and performance
+- **Register-Aware INC/DEC**: Different thresholds based on target register
 
 See `docs/108_Optimization_Pipeline.md` for detailed documentation.
+See `docs/109_INC_DEC_Optimization_Analysis.md` for INC/DEC analysis.
+
+### MIR Code Emission (Proposed)
+MinZ will support writing MIR (Machine-Independent Representation) directly:
+```minz
+mir {
+    r1 = load_var "x"
+    inc r1
+    inc r1  // Compiler decides if this is optimal
+    store_var "x", r1
+}
+```
+
+This enables:
+- Machine-independent optimization code
+- User-defined optimization passes
+- Powerful metafunction integration
+- Future portability to 6502, 68000, etc.
+
+See `docs/110_MIR_Code_Emission_Design.md` for complete design.
