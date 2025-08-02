@@ -17,7 +17,6 @@ module.exports = grammar({
     [$.array_type, $.array_literal],
     [$.array_initializer, $.block],
     [$.array_initializer, $.struct_literal],
-    [$.lambda_expression, $.union_type],
   ],
 
   word: $ => $.identifier,
@@ -82,7 +81,6 @@ module.exports = grammar({
       $.bit_struct_type,
       $.type_identifier,
       $.error_type,
-      $.union_type,
     ),
 
     primitive_type: $ => choice(
@@ -122,7 +120,7 @@ module.exports = grammar({
     ),
 
     return_type: $ => choice(
-      seq('->', $.type),
+      seq('->', $.type, optional('?')),
       seq('->', '(', commaSep1($.type), ')'),
     ),
 
@@ -171,11 +169,6 @@ module.exports = grammar({
 
     error_type: $ => 'Error',
 
-    union_type: $ => prec.left(1, seq(
-      $.type,
-      '|',
-      $.type,
-    )),
 
     // Declarations
     declaration: $ => choice(
@@ -744,7 +737,7 @@ module.exports = grammar({
     import_path: $ => sep1($.identifier, '.'),
 
     // Lambda expressions  
-    lambda_expression: $ => prec(20, seq(
+    lambda_expression: $ => prec(25, seq(  // Увеличиваем приоритет lambda
       '|',
       optional($.lambda_parameter_list),
       '|',

@@ -1,0 +1,130 @@
+// MinZ Error Handling Demo
+// Shows the Z80-native CY flag error handling with ? operator
+
+// Error enum for file operations
+enum FileError {
+    None = 0,         // Success (never returned as error)
+    NotFound = 1,
+    PermissionDenied = 2,
+    DiskFull = 3,
+    CorruptData = 4,
+}
+
+// Simulated file operations that can fail
+fun open_file(name: *u8) -> u16? {
+    // Simulate checking if file exists
+    if name[0] == 0 {
+        // Empty filename - return error
+        @asm {
+            LD A, FileError.NotFound
+            SCF             ; Set carry flag
+            RET
+        }
+    }
+    
+    // Success - return fake handle
+    @asm {
+        LD HL, 0x1234   ; Fake file handle
+        OR A            ; Clear carry flag
+        RET
+    }
+}
+
+fun read_byte(handle: u16) -> u8? {
+    // Simulate reading from file
+    if handle == 0 {
+        @asm {
+            LD A, FileError.CorruptData
+            SCF
+            RET
+        }
+    }
+    
+    // Return fake byte
+    @asm {
+        LD A, 42        ; Fake data
+        OR A            ; Clear carry
+        RET
+    }
+}
+
+fun close_file(handle: u16) -> u8? {
+    // Always succeeds
+    @asm {
+        LD A, 0
+        OR A            ; Clear carry
+        RET
+    }
+}
+
+// Function using ? operator for error propagation
+fun process_file(name: *u8) -> u8? {
+    // Each ? propagates any error immediately
+    let handle = open_file(name)?;
+    let data = read_byte(handle)?;
+    close_file(handle)?;
+    
+    // Process the data
+    return data + 1;
+}
+
+// Error handling without ? operator (traditional way)
+fun process_file_traditional(name: *u8) -> u8 {
+    // Much more verbose!
+    let handle_result = open_file(name);
+    @asm {
+        RET C           ; Return if error
+    }
+    let handle = handle_result;
+    
+    let data_result = read_byte(handle);
+    @asm {
+        RET C           ; Return if error
+    }
+    let data = data_result;
+    
+    close_file(handle);
+    @asm {
+        RET C           ; Return if error
+    }
+    
+    return data + 1;
+}
+
+// Main function demonstrating error handling
+fun main() -> u8 {
+    let filename = "test.dat";
+    
+    // Try to process file
+    let result = process_file(filename);
+    
+    // Check if error occurred
+    @asm {
+        JR NC, .success
+        
+        ; Error occurred - A contains error code
+        CP FileError.NotFound
+        JR NZ, .not_found_error
+        
+        ; Handle file not found
+        LD A, 1
+        RET
+        
+    .not_found_error:
+        ; Handle other errors
+        LD A, 2
+        RET
+        
+    .success:
+        ; Success - A contains result
+        ; Continue processing
+    }
+    
+    return 0;
+}
+
+// This demonstrates:
+// 1. Zero-overhead error handling using Z80's carry flag
+// 2. The ? operator compiles to a single RET C instruction
+// 3. Error enums that fit in 8 bits
+// 4. Native Z80 error handling patterns

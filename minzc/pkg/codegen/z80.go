@@ -1863,6 +1863,26 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Process inline assembly code
 		g.emitAsmBlock(inst.AsmCode)
 		
+	case ir.OpSetError:
+		// Set carry flag and load error code to A
+		g.emit("    ; Set error code and carry flag")
+		g.loadToA(inst.Src1)
+		g.emit("    SCF           ; Set carry flag (error)")
+		// If we have a destination, store the error code
+		if inst.Dest != 0 {
+			g.storeFromA(inst.Dest)
+		}
+		
+	case ir.OpCheckError:
+		// Check carry flag - result is 1 if error (CY set), 0 if success
+		g.emit("    ; Check carry flag for error")
+		g.emit("    LD A, 0       ; Assume success")
+		g.emit("    JR NC, .no_error_%d", g.labelCounter)
+		g.emit("    INC A         ; Set to 1 if error")
+		g.emit(".no_error_%d:", g.labelCounter)
+		g.labelCounter++
+		g.storeFromA(inst.Dest)
+		
 	case ir.OpPrint:
 		// Built-in print function - print a u8 character
 		// Character is in Src1

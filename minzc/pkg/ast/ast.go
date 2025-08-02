@@ -159,6 +159,17 @@ func (t *TypeIdentifier) Pos() Position { return t.StartPos }
 func (t *TypeIdentifier) End() Position { return t.EndPos }
 func (t *TypeIdentifier) typeNode()    {}
 
+// ErrorType represents a type that can return an error (T?)
+type ErrorType struct {
+	ValueType Type
+	StartPos  Position
+	EndPos    Position
+}
+
+func (e *ErrorType) Pos() Position { return e.StartPos }
+func (e *ErrorType) End() Position { return e.EndPos }
+func (e *ErrorType) typeNode()    {}
+
 // BitStructType represents bit-struct types
 type BitStructType struct {
 	UnderlyingType Type        // nil for u8 (default), or u16
@@ -622,6 +633,17 @@ type IndexExpr struct {
 func (i *IndexExpr) Pos() Position { return i.StartPos }
 func (i *IndexExpr) End() Position { return i.EndPos }
 func (i *IndexExpr) exprNode()    {}
+
+// TryExpr represents the ? operator for error propagation
+type TryExpr struct {
+	Expression Expression
+	StartPos   Position
+	EndPos     Position
+}
+
+func (t *TryExpr) Pos() Position { return t.StartPos }
+func (t *TryExpr) End() Position { return t.EndPos }
+func (t *TryExpr) exprNode()    {}
 
 // StructLiteral represents a struct literal expression
 type StructLiteral struct {
