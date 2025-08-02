@@ -87,10 +87,16 @@ MinZ Source → Tree-sitter AST → Semantic Analysis → MIR → Optimization �
 - ✅ Basic type system (u8, u16, i8, i16, bool)
 - ✅ Functions and basic control flow
 - ✅ Tree-sitter parser
-- 🚧 Lambda expressions (experimental)
+- 🚧 Lambda expressions (experimental but working!)
 - 🚧 Interface system (in development)
 - 🚧 Standard library (work in progress)
 - 🚧 Self-modifying code optimizations (research phase)
+
+### 📊 Live Compiler Status
+For detailed metrics and current state, see [COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)
+- Success rates, optimization inventory, known issues
+- Updated after each significant change
+- Automated issue detection for assembly patterns
 - **Standard Library**: `stdlib/` - ZX Spectrum integration
 - **Examples**: `examples/` - Comprehensive language showcase
 

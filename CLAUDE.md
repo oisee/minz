@@ -48,6 +48,27 @@ MinZ is a systems programming language for Z80-based computers (ZX Spectrum). Th
 - **Go-based compiler (minzc)** that generates Z80 assembly (.a80 format)
 - **Advanced optimization framework** with register allocation and self-modifying code support
 
+## 📊 Compiler State Tracking
+
+**IMPORTANT**: We maintain a living snapshot of the compiler's current state at [COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)
+
+This snapshot includes:
+- Current success rates and metrics
+- Grammar and keyword inventory
+- Pipeline documentation (AST → MIR → ASM)
+- All implemented optimizations
+- Known issues and patterns
+- Progress tracking
+
+### Updating the Snapshot
+```bash
+# After significant changes:
+./scripts/update_snapshot.sh
+
+# To detect assembly issues:
+go run scripts/detect_issues.go minzc/test.a80
+```
+
 ## 🚀 Recent Achievement: TRUE ZERO-OVERHEAD LAMBDAS!
 
 Revolutionary breakthrough in functional programming for 8-bit systems:
