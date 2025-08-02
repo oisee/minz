@@ -1,0 +1,81 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.traffic_light_fsm.transition(current: TrafficState, event: Event) -> TrafficState
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor current$imm0
+      1: JUMP_IF
+      2: return
+
+Function ......examples.traffic_light_fsm.get_timing(state: TrafficState) -> u16
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor state$imm0
+      1: JUMP_IF
+      2: return
+
+Function ......examples.traffic_light_fsm.get_color_code(state: TrafficState) -> u16
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor state$imm0
+      1: JUMP_IF
+      2: return
+
+Function ......examples.traffic_light_fsm.simulate_traffic_light() -> void
+  @smc
+  Locals:
+    r1 = state: u16
+    r3 = cycle_count: u8
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Traffic Light Simulation Starting...
+" (37 chars via loop)
+      2: loop_16:
+      3: r6 = load cycle_count
+      4: r7 = 10
+      5: r8 = r6 < r7
+      6: jump_if_not r8, end_loop_17
+      7: UNKNOWN_OP_87 ; Direct print "Cycle " (6 chars)
+      8: UNKNOWN_OP_81
+      9: UNKNOWN_OP_87 ; Direct print ": State " (8 chars)
+     10: r11 = call get_color_code
+     11: UNKNOWN_OP_81
+     12: UNKNOWN_OP_87 ; Direct print " for " (5 chars)
+     13: r13 = call get_timing
+     14: UNKNOWN_OP_81
+     15: UNKNOWN_OP_88
+     16: UNKNOWN_OP_86 ; Print " seconds
+" (9 chars via loop)
+     17: r17 = call transition
+     18: jump loop_16
+     19: end_loop_17:
+     20: UNKNOWN_OP_88
+     21: UNKNOWN_OP_86 ; Print "
+EMERGENCY! Switching to flashing...
+" (37 chars via loop)
+     22: r24 = call transition
+     23: UNKNOWN_OP_88
+     24: UNKNOWN_OP_86 ; Print "Emergency state: " (17 chars via loop)
+     25: r27 = call get_color_code
+     26: UNKNOWN_OP_81
+     27: UNKNOWN_OP_87 ; Direct print "
+" (1 chars)
+     28: UNKNOWN_OP_88
+     29: UNKNOWN_OP_86 ; Print "Emergency over, resetting...
+" (29 chars via loop)
+     30: r31 = call transition
+     31: UNKNOWN_OP_88
+     32: UNKNOWN_OP_86 ; Print "Reset to state: " (16 chars via loop)
+     33: r34 = call get_color_code
+     34: UNKNOWN_OP_81
+     35: UNKNOWN_OP_87 ; Direct print "
+" (1 chars)
+     36: return
+
+Function ......examples.traffic_light_fsm.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call simulate_traffic_light
+      1: return
+

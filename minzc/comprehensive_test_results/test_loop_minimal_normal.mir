@@ -25,20 +25,20 @@ Function .Users.alice.dev.minz-ts.examples.test_loop_minimal.main() -> void
      15: r13 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
      16: r14 = addr() ; Load table base address
      17: r15 = addr() ; Load table base for end calculation
-     18: UNKNOWN_OP_76 ; Calculate table end (+ 3 elements * 1 bytes)
-     19: UNKNOWN_OP_75 ; Load loop counter
+     18: UNKNOWN_OP_79 ; Calculate table end (+ 3 elements * 1 bytes)
+     19: UNKNOWN_OP_78 ; Load loop counter
      20: loop_start_1:
-     21: UNKNOWN_OP_54 ; Check if reached end of table
+     21: UNKNOWN_OP_56 ; Check if reached end of table
      22: JUMP_IF ; Exit if done
-     23: UNKNOWN_OP_72 ; Copy element to buffer at $F000
+     23: UNKNOWN_OP_75 ; Copy element to buffer at $F000
      24: LOAD_DIRECT ; Load item.value from buffer at $F000
      25: r19 = 1
      26: r20 = r18 + r19
      27: r21 = load item
      28: STORE_FIELD ; Store to field value (offset 0)
-     29: UNKNOWN_OP_73 ; Copy buffer back to element at $F000
-     30: UNKNOWN_OP_76 ; Advance to next element (+1 bytes)
-     31: UNKNOWN_OP_74 ; Decrement counter and loop if not zero
+     29: UNKNOWN_OP_76 ; Copy buffer back to element at $F000
+     30: UNKNOWN_OP_79 ; Advance to next element (+1 bytes)
+     31: UNKNOWN_OP_77 ; Decrement counter and loop if not zero
      32: loop_end_2:
      33: return
 

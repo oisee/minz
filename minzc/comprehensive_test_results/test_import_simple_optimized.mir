@@ -9,119 +9,82 @@ Function zx.screen.pixel_addr(x: u8, y: u8) -> u16
     r13 = y_low: u8
     r17 = addr: u16
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor y$imm0
-      1: r5 = 192
-      2: r6 = r4 & r5
-      3: store , r6
-      4: UNKNOWN_OP_31 ; Load from anchor y$imm0
-      5: r9 = 56
-      6: r10 = r8 & r9
-      7: r11 = 3
-      8: SHR
-      9: store , r12
-     10: UNKNOWN_OP_31 ; Load from anchor y$imm0
-     11: r15 = 7
-     12: r16 = r14 & r15
-     13: store , r16
-     14: r18 = 16384
-     15: r19 = load y_low
-     16: r20 = 8
-     17: SHL
-     18: r22 = r18 | r21
-     19: r23 = load y_mid
-     20: r24 = 5
-     21: SHL
-     22: r26 = r22 | r25
-     23: r27 = load y_high
-     24: r28 = 5
-     25: SHL
-     26: r30 = r26 | r29
-     27: UNKNOWN_OP_31 ; Load from anchor x$imm0
-     28: r32 = 3
-     29: SHR
-     30: r34 = r30 | r33
-     31: store , r34
-     32: r35 = load addr
-     33: return r35
+      0: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      2: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      3: r35 = load addr
+      4: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      5: return r35
 
 Function zx.screen.attr_addr(x: u8, y: u8) -> u16
   @smc
   Instructions:
       0: r3 = 22528
-      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
-      2: r5 = 32
-      3: r6 = r4 * r5
-      4: r7 = r3 + r6
-      5: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      6: r9 = r7 + r8
-      7: return r9
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      2: SHL
+      3: SHL
+      4: SHL
+      5: SHL
+      6: SHL
+      7: r7 = r3 + r6
+      8: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      9: r9 = r7 + r8
+     10: return r9
 
 Function zx.screen.draw_hline(x: u8, y: u8, len: u8) -> void
   @smc
   Locals:
     r4 = i: u8
   Instructions:
-      0: r5 = 0
-      1: store , r5
-      2: loop_3:
-      3: r6 = load i
-      4: UNKNOWN_OP_31 ; Load from anchor len$imm0
-      5: r8 = r6 < r7
-      6: jump_if_not r8, end_loop_4
-      7: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      8: UNKNOWN_OP_31 ; Load from anchor y$imm0
-      9: r13 = call zx.screen.set_pixel
-     10: r14 = load i
-     11: r15 = 1
-     12: r16 = r14 + r15
-     13: store i, r16
-     14: jump loop_3
-     15: end_loop_4:
-     16: return
+      0: loop_3:
+      1: r6 = load i
+      2: UNKNOWN_OP_33 ; Load from anchor len$imm0
+      3: r8 = r6 < r7
+      4: jump_if_not r8, end_loop_4
+      5: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      6: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      7: r13 = call zx.screen.set_pixel
+      8: jump loop_3
+      9: end_loop_4:
+     10: return
 
 Function zx.screen.draw_vline(x: u8, y: u8, len: u8) -> void
   @smc
   Locals:
     r4 = i: u8
   Instructions:
-      0: r5 = 0
-      1: store , r5
-      2: loop_5:
-      3: r6 = load i
-      4: UNKNOWN_OP_31 ; Load from anchor len$imm0
-      5: r8 = r6 < r7
-      6: jump_if_not r8, end_loop_6
-      7: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      8: UNKNOWN_OP_31 ; Load from anchor y$imm0
-      9: r13 = call zx.screen.set_pixel
-     10: r14 = load i
-     11: r15 = 1
-     12: r16 = r14 + r15
-     13: store i, r16
-     14: jump loop_5
-     15: end_loop_6:
-     16: return
+      0: loop_5:
+      1: r6 = load i
+      2: UNKNOWN_OP_33 ; Load from anchor len$imm0
+      3: r8 = r6 < r7
+      4: jump_if_not r8, end_loop_6
+      5: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      6: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      7: r13 = call zx.screen.set_pixel
+      8: jump loop_5
+      9: end_loop_6:
+     10: return
 
 Function zx.screen.draw_rect(x: u8, y: u8, width: u8, height: u8) -> void
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
-      2: UNKNOWN_OP_31 ; Load from anchor width$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      2: UNKNOWN_OP_33 ; Load from anchor width$imm0
       3: r8 = call zx.screen.draw_hline
-      4: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      5: UNKNOWN_OP_31 ; Load from anchor y$imm0
-      6: UNKNOWN_OP_31 ; Load from anchor height$imm0
-      7: UNKNOWN_OP_31 ; Load from anchor width$imm0
+      4: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      5: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      6: UNKNOWN_OP_33 ; Load from anchor height$imm0
+      7: UNKNOWN_OP_33 ; Load from anchor width$imm0
       8: r16 = call zx.screen.draw_hline
-      9: UNKNOWN_OP_31 ; Load from anchor x$imm0
-     10: UNKNOWN_OP_31 ; Load from anchor y$imm0
-     11: UNKNOWN_OP_31 ; Load from anchor height$imm0
+      9: UNKNOWN_OP_33 ; Load from anchor x$imm0
+     10: UNKNOWN_OP_33 ; Load from anchor y$imm0
+     11: UNKNOWN_OP_33 ; Load from anchor height$imm0
      12: r20 = call zx.screen.draw_vline
-     13: UNKNOWN_OP_31 ; Load from anchor x$imm0
-     14: UNKNOWN_OP_31 ; Load from anchor width$imm0
-     15: UNKNOWN_OP_31 ; Load from anchor y$imm0
-     16: UNKNOWN_OP_31 ; Load from anchor height$imm0
+     13: UNKNOWN_OP_33 ; Load from anchor x$imm0
+     14: UNKNOWN_OP_33 ; Load from anchor width$imm0
+     15: UNKNOWN_OP_33 ; Load from anchor y$imm0
+     16: UNKNOWN_OP_33 ; Load from anchor height$imm0
      17: r28 = call zx.screen.draw_vline
      18: return
 
@@ -136,42 +99,41 @@ Function zx.screen.print_string(s: *u8) -> void
     r2 = ptr: u16
     r4 = ch: u16
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor s$imm0
-      1: store , r3
-      2: UNKNOWN_OP_66
-      3: store , r6
-      4: loop_11:
-      5: r7 = load ch
-      6: r8 = 0
-      7: r9 = r7 != r8
-      8: jump_if_not r9, end_loop_12
-      9: r11 = call zx.screen.print_char
-     10: r12 = load ptr
-     11: r13 = 1
-     12: r14 = r12 + r13
-     13: store ptr, r14
-     14: UNKNOWN_OP_66
-     15: store ch, r16
-     16: jump loop_11
-     17: end_loop_12:
-     18: return
+      0: UNKNOWN_OP_33 ; Load from anchor s$imm0
+      1: UNKNOWN_OP_69
+      2: loop_11:
+      3: UNKNOWN_OP_57
+      4: jump_if_not r9, end_loop_12
+      5: r11 = call zx.screen.print_char
+      6: UNKNOWN_OP_69
+      7: jump loop_11
+      8: end_loop_12:
+      9: return
 
 Function zx.screen.print_at(x: u8, y: u8, s: *u8) -> void
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
       2: r6 = call zx.screen.set_cursor
-      3: UNKNOWN_OP_31 ; Load from anchor s$imm0
-      4: r8 = call zx.screen.print_string
-      5: return
+      3: UNKNOWN_OP_33 ; Load from anchor s$imm0
+      4: UNKNOWN_OP_33 ; Inlined: Load from anchor s$imm0
+      5: UNKNOWN_OP_69 ; Inlined from zx.screen.print_string
+      6: loop_11: ; Inlined from zx.screen.print_string
+      7: UNKNOWN_OP_57 ; Inlined from zx.screen.print_string
+      8: jump_if_not r3, end_loop_12 ; Inlined from zx.screen.print_string
+      9: r4 = call zx.screen.print_char ; Inlined from zx.screen.print_string
+     10: UNKNOWN_OP_69 ; Inlined from zx.screen.print_string
+     11: jump loop_11 ; Inlined from zx.screen.print_string
+     12: end_loop_12: ; Inlined from zx.screen.print_string
+     13: return
 
 Function zx.screen.print_hex16(n: u16) -> void
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor n$imm0
       1: r5 = call zx.screen.print_hex8
-      2: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      2: UNKNOWN_OP_33 ; Load from anchor n$imm0
       3: r7 = call zx.screen.print_hex8
       4: return
 

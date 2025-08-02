@@ -6,7 +6,5 @@ Function .Users.alice.dev.minz-ts.examples.test_const_simple_fix.main() -> void
   Locals:
     r1 = y: u16
   Instructions:
-      0: r2 = 42
-      1: store , r2
-      2: return
+      0: return
 

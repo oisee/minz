@@ -10,11 +10,11 @@ Function .Users.alice.dev.minz-ts.examples.test_auto_deref.test_basic_auto_deref
       0: r2 = 10
       1: store , r2
       2: r4 = load x
-      3: UNKNOWN_OP_65
+      3: UNKNOWN_OP_68
       4: store , r5
       5: r6 = 20
       6: r7 = load p
-      7: UNKNOWN_OP_67 ; Auto-deref assignment
+      7: UNKNOWN_OP_70 ; Auto-deref assignment
       8: r8 = load x
       9: return r8
 
@@ -27,7 +27,7 @@ Function .Users.alice.dev.minz-ts.examples.test_auto_deref.test_pointer_arithmet
       0: r2 = 10
       1: store , r2
       2: r4 = load x
-      3: UNKNOWN_OP_65
+      3: UNKNOWN_OP_68
       4: store , r5
       5: r6 = load p
       6: r7 = 1
@@ -42,7 +42,7 @@ Function .Users.alice.dev.minz-ts.examples.test_auto_deref.increment_ptr(ptr: *u
       0: LOAD_PARAM
       1: r3 = 1
       2: r4 = r2 + r3
-      3: UNKNOWN_OP_30 ; Update TSMC reference ptr
+      3: UNKNOWN_OP_32 ; Update TSMC reference ptr
       4: return
 
 Function .Users.alice.dev.minz-ts.examples.test_auto_deref.main() -> u8

@@ -1,0 +1,55 @@
+// Lua metaprogramming - compile-time constant generation
+
+// Simple arithmetic expressions
+const BASE_ADDR: u16 = @lua(0x8000);
+const STACK_SIZE: u16 = @lua(1024);
+const STACK_END: u16 = @lua(0x8000 + 1024);
+
+// Calculations
+const BYTES_PER_LINE: u8 = @lua(32);
+const LINES_PER_SCREEN: u8 = @lua(24);
+const SCREEN_SIZE: u16 = @lua(32 * 24);
+
+// Bit manipulation using Lua's bit operations
+const BIT_0: u8 = @lua(1);
+const BIT_1: u8 = @lua(2);
+const BIT_2: u8 = @lua(4);
+const BIT_3: u8 = @lua(8);
+const BIT_4: u8 = @lua(16);
+const BIT_5: u8 = @lua(32);
+const BIT_6: u8 = @lua(64);
+const BIT_7: u8 = @lua(128);
+
+// Combined bit masks
+const LOW_NIBBLE: u8 = @lua(15);    // 0x0F
+const HIGH_NIBBLE: u8 = @lua(240);  // 0xF0
+
+// Color attributes for ZX Spectrum
+const BLACK: u8 = @lua(0);
+const BLUE: u8 = @lua(1);
+const RED: u8 = @lua(2);
+const MAGENTA: u8 = @lua(3);
+const GREEN: u8 = @lua(4);
+const CYAN: u8 = @lua(5);
+const YELLOW: u8 = @lua(6);
+const WHITE: u8 = @lua(7);
+
+// Attribute byte calculation: ink + (paper * 8) + bright * 64 + flash * 128
+const ATTR_WHITE_ON_BLUE: u8 = @lua(7 + 1 * 8 + 64);    // Bright white on blue
+const ATTR_YELLOW_ON_BLACK: u8 = @lua(6 + 0 * 8 + 64);  // Bright yellow on black
+const ATTR_GREEN_ON_GREEN: u8 = @lua(4 + 4 * 8);        // Green on green (invisible)
+
+fun main() -> void {
+    // All values computed at compile time
+    let base = BASE_ADDR;
+    let stack = STACK_END;
+    let size = SCREEN_SIZE;
+    
+    let bit = BIT_7;
+    let mask = LOW_NIBBLE;
+    
+    let attr1 = ATTR_WHITE_ON_BLUE;
+    let attr2 = ATTR_YELLOW_ON_BLACK;
+    
+    return;
+}

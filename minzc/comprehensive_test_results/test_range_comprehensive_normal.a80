@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Code section
@@ -47,14 +47,14 @@ for_loop_1:
 .Users.alice.dev.minz-ts.examples.test_range_comprehensive.matrix_sum_param_cols:
     LD DE, #0000   ; SMC parameter cols (u8->u16)
     EX DE, HL      ; Move to HL for storage
+    LD ($F014), HL    ; Virtual register 10 to memory
     ; Initialize loop variable c
-    ; Register 11 already in HL
     ; for_loop_3:
 for_loop_3:
     ; Check c < end
-    ; Register 11 already in HL
     LD D, H
     LD E, L
+    LD HL, ($F014)    ; Virtual register 10 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -73,18 +73,12 @@ for_loop_3:
     ; r14 = load r
     LD HL, ($F000)
     LD A, (.Users.alice.dev.minz-ts.examples.test_range_comprehensive.matrix_sum_param_cols)
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    ; Register 15 already in A
     ; r16 = r14 * r15
     ; 8-bit multiplication
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
+    ; Register 14 already in A
     LD B, A       ; B = multiplicand
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
+    ; Register 15 already in A
     LD C, A       ; C = multiplier
     LD HL, 0      ; HL = result
     LD A, C
@@ -110,22 +104,25 @@ for_loop_3:
     LD HL, ($F006)
     ; r20 = load element
     LD A, ($F01A)
-    LD B, A         ; Store to physical register B
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r21 = r19 + r20
     LD D, H
     LD E, L
     ADD HL, DE
+    LD ($F02A), HL    ; Virtual register 21 to memory
     ; store sum, r21
+    LD HL, ($F02A)    ; Virtual register 21 from memory
     LD ($F006), HL
     ; r22 = 1
     LD A, 1
-    LD L, A         ; Store to physical register L
+    LD ($F02C), A     ; Virtual register 22 to memory
     ; Increment c
-    ; Register 11 already in HL
     LD D, H
     LD E, L
+    LD HL, ($F02C)    ; Virtual register 22 from memory
     ADD HL, DE
-    ; Register 11 already in HL
     ; jump for_loop_3
     JP for_loop_3
     ; for_end_4:
@@ -143,7 +140,9 @@ for_end_4:
 for_end_2:
     ; r24 = load sum
     LD HL, ($F006)
+    ; Register 24 already in HL
     ; return r24
+    ; Register 24 already in HL
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
@@ -153,12 +152,11 @@ for_end_2:
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 0
     LD A, 0
-    LD ($F004), A     ; Virtual register 2 to memory
+    LD H, A         ; Store to physical register H
     ; r3 = 10
     LD A, 10
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
     ; Initialize loop variable i
-    LD HL, ($F004)    ; Virtual register 2 from memory
     ; for_loop_5:
 for_loop_5:
     ; Check i < end
@@ -173,21 +171,20 @@ for_loop_5:
 .L6:
     LD HL, 1
 .L7:
-    LD ($F00A), HL    ; Virtual register 5 to memory
     ; jump_if_not r5, for_end_6
-    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD A, H
     OR A
     JP Z, for_end_6
     ; r6 = load i
     LD HL, ($F000)
     ; r7 = 2
     LD A, 2
-    LD L, A         ; Store to physical register L
+    LD ($F00E), A     ; Virtual register 7 to memory
     ; r8 = r6 * r7
     ; 8-bit multiplication
-    LD A, H
-    LD B, A       ; B = multiplicand
     LD A, L
+    LD B, A       ; B = multiplicand
+    LD A, ($F00E)     ; Virtual register 7 from memory
     LD C, A       ; C = multiplier
     LD HL, 0      ; HL = result
     LD A, C
@@ -200,20 +197,21 @@ for_loop_5:
     DEC C
     JR NZ, .mul_loop_7
 .mul_done_7:
-    ; Register 8 already in HL
     ; r9 = load arr
     LD HL, ($F002)
     ; r10 = load i
     LD HL, ($F000)
+    ; Register 10 already in HL
     ; Calculate array element address
     LD D, H
     LD E, L
+    ; Register 10 already in HL
     ADD HL, DE
     LD ($F016), HL    ; Virtual register 11 to memory
     ; Store to array[index] (u8)
     LD HL, ($F016)    ; Virtual register 11 from memory
     PUSH HL
-    LD A, L
+    LD A, H
     POP HL
     LD (HL), A
     ; r12 = 1
@@ -230,21 +228,22 @@ for_loop_5:
 for_end_6:
     ; r14 = 0
     LD A, 0
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
     ; store , r14
-    LD A, H
+    LD A, L
     LD ($F01A), A
     ; r15 = 0
     LD A, 0
-    LD ($F01E), A     ; Virtual register 15 to memory
+    LD H, A         ; Store to physical register H
     ; r16 = 10
     LD A, 10
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
     ; Initialize loop variable i
-    LD HL, ($F01E)    ; Virtual register 15 from memory
+    ; Register 17 already in HL
     ; for_loop_7:
 for_loop_7:
     ; Check i < end
+    ; Register 17 already in HL
     LD D, H
     LD E, L
     EX DE, HL
@@ -256,43 +255,45 @@ for_loop_7:
 .L9:
     LD HL, 1
 .L10:
-    LD ($F024), HL    ; Virtual register 18 to memory
     ; jump_if_not r18, for_end_8
-    LD A, ($F024)     ; Virtual register 18 from memory
+    LD A, H
     OR A
     JP Z, for_end_8
     ; r19 = load sum
     LD A, ($F01A)
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
     ; r20 = load arr
     LD HL, ($F002)
+    LD ($F028), HL    ; Virtual register 20 to memory
     ; r21 = load i
     LD HL, ($F000)
-    LD ($F02A), HL    ; Virtual register 21 to memory
     ; Load array element (u8)
+    LD HL, ($F028)    ; Virtual register 20 from memory
     PUSH HL
-    LD A, ($F02A)     ; Virtual register 21 from memory
+    LD A, H
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
     ; r23 = r19 + r22
     LD D, H
     LD E, L
     ADD HL, DE
+    LD ($F02E), HL    ; Virtual register 23 to memory
     ; store sum, r23
-    LD A, L
+    LD A, ($F02E)     ; Virtual register 23 from memory
     LD ($F01A), A
     ; r24 = 1
     LD A, 1
-    LD L, A         ; Store to HL (low byte)
+    LD L, A         ; Store to physical register L
     ; Increment i
+    ; Register 17 already in HL
     LD D, H
     LD E, L
-    ; Register 24 already in HL
     ADD HL, DE
+    ; Register 17 already in HL
     ; jump for_loop_7
     JP for_loop_7
     ; for_end_8:
@@ -455,12 +456,17 @@ for_end_10:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -532,9 +538,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

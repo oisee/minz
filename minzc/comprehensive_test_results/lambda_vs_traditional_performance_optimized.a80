@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -60,13 +60,11 @@ b$imm0 EQU b$immOP+1
     EXX               ; Switch back to main registers
     LD (y$imm0), A        ; Patch y
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_add
-    ; store , r7
-    LD ($F008), HL
 c$immOP:
     LD A, 0        ; c anchor (will be patched)
 c$imm0 EQU c$immOP+1
     EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
+    LD E', A         ; Store to shadow E'
     EXX               ; Switch back to main registers
     ; r11 = call traditional_multiply
     ; Call to traditional_multiply (args: 2)
@@ -79,12 +77,10 @@ c$imm0 EQU c$immOP+1
     LD A, ($F012)     ; Virtual register 9 from memory
     LD (x$imm0), A        ; Patch x
     EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
+    LD A, E'         ; From shadow E'
     EXX               ; Switch back to main registers
     LD (factor$imm0), A        ; Patch factor
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_multiply
-    ; store , r11
-    LD ($F010), HL
     ; return
     POP DE
     POP BC
@@ -95,8 +91,11 @@ c$imm0 EQU c$immOP+1
 .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$add_0:
 ; TRUE SMC function with immediate anchors
 x$immOP:
-    LD D, 0        ; x anchor (will be patched)
+    LD A, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
 y$immOP:
     LD A, 0        ; y anchor (will be patched)
 y$imm0 EQU y$immOP+1
@@ -109,12 +108,12 @@ y$imm0 EQU y$immOP+1
 .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$multiply_1:
 ; TRUE SMC function with immediate anchors
 x$immOP:
-    LD D, 0        ; x anchor (will be patched)
+    LD A, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
+    LD ($F004), A     ; Virtual register 2 to memory
 factor$immOP:
     LD A, 0        ; factor anchor (will be patched)
 factor$imm0 EQU factor$immOP+1
-    LD H, A         ; Store to physical register H
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -126,7 +125,7 @@ a$immOP:
     LD A, 0        ; a anchor (will be patched)
 a$imm0 EQU a$immOP+1
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD D', A         ; Store to shadow D'
     EXX               ; Switch back to main registers
 b$immOP:
     LD A, 0        ; b anchor (will be patched)
@@ -139,13 +138,11 @@ b$imm0 EQU b$immOP+1
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     CALL add
-    ; store , r7
-    LD ($F008), HL
 c$immOP:
     LD A, 0        ; c anchor (will be patched)
 c$imm0 EQU c$immOP+1
     EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
+    LD D', A         ; Store to shadow D'
     EXX               ; Switch back to main registers
     ; r11 = call multiply
     ; Call to multiply (args: 2)
@@ -154,8 +151,6 @@ c$imm0 EQU c$immOP+1
     LD HL, ($F012)    ; Virtual register 9 from memory
     PUSH HL       ; Argument 0
     CALL multiply
-    ; store , r11
-    LD ($F010), HL
     ; return
     POP DE
     POP BC
@@ -186,10 +181,6 @@ c$imm0 EQU c$immOP+1
     LD A, ($F008)     ; Virtual register 4 from memory
     LD (c$imm0), A        ; Patch c
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex
-    LD ($F00A), HL    ; Virtual register 5 to memory
-    ; store , r5
-    LD HL, ($F00A)    ; Virtual register 5 from memory
-    LD ($F002), HL
     ; r10 = call traditional_complex
     ; Call to traditional_complex (args: 3)
     ; Stack-based parameter passing
@@ -208,8 +199,6 @@ c$imm0 EQU c$immOP+1
     LD A, ($F012)     ; Virtual register 9 from memory
     LD (c$imm0), A        ; Patch c
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex
-    ; store , r10
-    LD ($F00C), HL
     ; r15 = call traditional_complex
     ; Call to traditional_complex (args: 3)
     ; Stack-based parameter passing
@@ -228,8 +217,6 @@ c$imm0 EQU c$immOP+1
     LD A, ($F01C)     ; Virtual register 14 from memory
     LD (c$imm0), A        ; Patch c
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex
-    ; store , r15
-    LD ($F016), HL
     ; return
     POP DE
     POP BC
@@ -260,8 +247,6 @@ c$imm0 EQU c$immOP+1
     LD A, ($F008)     ; Virtual register 4 from memory
     LD (c$imm0), A        ; Patch c
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach
-    ; store , r5
-    LD ($F002), HL
     ; r10 = call lambda_approach
     ; Call to lambda_approach (args: 3)
     ; Stack-based parameter passing
@@ -280,8 +265,6 @@ c$imm0 EQU c$immOP+1
     LD A, ($F012)     ; Virtual register 9 from memory
     LD (c$imm0), A        ; Patch c
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach
-    ; store , r10
-    LD ($F00C), HL
     ; r15 = call lambda_approach
     ; Call to lambda_approach (args: 3)
     ; Stack-based parameter passing
@@ -300,8 +283,6 @@ c$imm0 EQU c$immOP+1
     LD A, ($F01C)     ; Virtual register 14 from memory
     LD (c$imm0), A        ; Patch c
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach
-    ; store , r15
-    LD ($F016), HL
     ; return
     POP DE
     POP BC
@@ -318,14 +299,10 @@ c$imm0 EQU c$immOP+1
     ; Call to test_traditional_performance (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_traditional_performance
-    ; store , r2
-    LD ($F002), HL
     ; r4 = call test_lambda_performance
     ; Call to test_lambda_performance (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_lambda_performance
-    ; store , r4
-    LD ($F006), HL
     ; return
     POP DE
     POP BC
@@ -381,12 +358,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -458,9 +440,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

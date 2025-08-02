@@ -42,12 +42,12 @@ Function .Users.alice.dev.minz-ts.examples.test_what_works.test_arrays() -> u8
       1: r3 = load arr
       2: r4 = 0
       3: r5 = r3 + r4 ; Calculate array element address
-      4: UNKNOWN_OP_64 ; Store to array[index] (u8)
+      4: UNKNOWN_OP_67 ; Store to array[index] (u8)
       5: r6 = 20
       6: r7 = load arr
       7: r8 = 1
       8: r9 = r7 + r8 ; Calculate array element address
-      9: UNKNOWN_OP_64 ; Store to array[index] (u8)
+      9: UNKNOWN_OP_67 ; Store to array[index] (u8)
      10: r10 = load arr
      11: r11 = 0
      12: LOAD_INDEX ; Load array element (u8)
@@ -129,12 +129,12 @@ Function .Users.alice.dev.minz-ts.examples.test_what_works.test_tsmc(ptr: *u8) -
     r2 = result: u8
   Instructions:
       0: LOAD_PARAM
-      1: UNKNOWN_OP_66
+      1: UNKNOWN_OP_69
       2: store , r4
       3: LOAD_PARAM
       4: r6 = 1
       5: r7 = r5 + r6
-      6: UNKNOWN_OP_30 ; Update TSMC reference ptr
+      6: UNKNOWN_OP_32 ; Update TSMC reference ptr
       7: r8 = load result
       8: return r8
 

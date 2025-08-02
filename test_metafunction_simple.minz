@@ -1,0 +1,17 @@
+// Simple test for metafunction support
+fun main() -> void {
+    // Test basic @print metafunction
+    @print("Hello, World!");
+    
+    // Test @print with compile-time constants
+    @print("The answer is {}", 42);
+    
+    // Test @println
+    @println("This includes a newline");
+    
+    // Test @write_byte with constant
+    @write_byte(65); // 'A'
+    
+    // Test @hex formatting
+    @print("Hex: 0x{}", @hex(255));
+}

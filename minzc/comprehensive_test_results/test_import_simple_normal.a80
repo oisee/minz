@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Code section
@@ -14,14 +14,13 @@ zx.screen.pixel_addr:
 zx.screen.pixel_addr_param_y:
     LD DE, #0000   ; SMC parameter y (u8->u16)
     EX DE, HL      ; Move to HL for storage
-    LD ($F008), HL    ; Virtual register 4 to memory
     ; r5 = 192
     LD A, 192
-    LD C, A         ; Store to physical register C
+    LD ($F00A), A     ; Virtual register 5 to memory
     ; r6 = r4 & r5
-    LD HL, ($F008)    ; Virtual register 4 from memory
     LD D, H
     LD E, L
+    LD HL, ($F00A)    ; Virtual register 5 from memory
     LD A, L
     AND E
     LD L, A
@@ -35,10 +34,11 @@ zx.screen.pixel_addr_param_y:
     LD H, A         ; Store to physical register H
     ; r9 = 56
     LD A, 56
-    LD L, A         ; Store to physical register L
+    LD ($F012), A     ; Virtual register 9 to memory
     ; r10 = r8 & r9
     LD D, H
     LD E, L
+    LD HL, ($F012)    ; Virtual register 9 from memory
     LD A, L
     AND E
     LD L, A
@@ -47,14 +47,18 @@ zx.screen.pixel_addr_param_y:
     LD H, A
     ; r11 = 3
     LD A, 3
-    LD ($F016), A     ; Virtual register 11 to memory
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; r12 = r10 >> r11
     ; Shift right
     EXX               ; Switch to shadow registers
     LD A, B'         ; From shadow B'
     EXX               ; Switch back to main registers
     LD B, A       ; B = value to shift
-    LD A, ($F016)     ; Virtual register 11 from memory
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -74,14 +78,10 @@ zx.screen.pixel_addr_param_y:
     EXX               ; Switch back to main registers
     LD ($F00E), A
     LD A, (zx.screen.pixel_addr_param_y)
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD B, A         ; Store to physical register B
     ; r15 = 7
     LD A, 7
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD L, A         ; Store to physical register L
     ; r16 = r14 & r15
     LD D, H
     LD E, L
@@ -92,7 +92,7 @@ zx.screen.pixel_addr_param_y:
     AND D
     LD H, A
     ; store , r16
-    ; Register 16 already in A
+    LD A, L
     LD ($F01A), A
     ; r18 = 16384
     LD HL, 16384
@@ -100,15 +100,15 @@ zx.screen.pixel_addr_param_y:
     LD E, L
     ; r19 = load y_low
     LD A, ($F01A)
-    LD L, A         ; Store to HL (low byte)
+    LD C, A         ; Store to physical register C
     ; r20 = 8
     LD A, 8
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to HL (low byte)
     ; r21 = r19 << r20
     ; Shift left
-    LD A, L
+    LD A, C
     LD B, A       ; B = value to shift
-    LD A, H
+    LD A, L
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -760,12 +760,17 @@ zx.screen.print_hex16_param_n:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -837,9 +842,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

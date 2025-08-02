@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -29,16 +29,12 @@ x$imm0 EQU x$immOP+1
     LD HL, ($F004)    ; Virtual register 2 from memory
     PUSH HL       ; Argument 0
     CALL add
-    ; store , r3
-    LD ($F002), HL
     ; r6 = call add
     ; Call to add (args: 1)
     ; Stack-based parameter passing
     LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL       ; Argument 0
     CALL add
-    ; store , r6
-    LD ($F008), HL
     ; return
     POP DE
     POP BC
@@ -49,9 +45,8 @@ x$imm0 EQU x$immOP+1
 .Users.alice.dev.minz-ts.examples.lambda_smc_test.add_traditional:
 ; TRUE SMC function with immediate anchors
 x$immOP:
-    LD A, 0        ; x anchor (will be patched)
+    LD D, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
-    LD H, A         ; Store to physical register H
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -72,8 +67,6 @@ x$imm0 EQU x$immOP+1
     LD A, ($F004)     ; Virtual register 2 from memory
     LD (x$imm0), A        ; Patch x
     CALL .Users.alice.dev.minz-ts.examples.lambda_smc_test.add_traditional
-    ; store , r3
-    LD ($F002), HL
     ; r6 = call add_traditional
     ; Call to add_traditional (args: 1)
     ; Stack-based parameter passing
@@ -84,8 +77,6 @@ x$imm0 EQU x$immOP+1
     LD A, ($F00A)     ; Virtual register 5 from memory
     LD (x$imm0), A        ; Patch x
     CALL .Users.alice.dev.minz-ts.examples.lambda_smc_test.add_traditional
-    ; store , r6
-    LD ($F008), HL
     ; return
     POP DE
     POP BC
@@ -102,14 +93,10 @@ x$imm0 EQU x$immOP+1
     ; Call to test_lambda_smc (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_smc_test.test_lambda_smc
-    ; store , r2
-    LD ($F002), HL
     ; r4 = call test_traditional
     ; Call to test_traditional (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_smc_test.test_traditional
-    ; store , r4
-    LD ($F006), HL
     ; return
     POP DE
     POP BC
@@ -129,12 +116,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -206,9 +198,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

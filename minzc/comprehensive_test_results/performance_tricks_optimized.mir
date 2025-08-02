@@ -17,16 +17,10 @@ Function .Users.alice.dev.minz-ts.examples.performance_tricks.lookup_mul_by_10(x
     r2 = x2: u16
     r6 = x8: u16
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: r4 = 1
-      2: SHL
-      3: store , r5
-      4: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      5: r8 = 3
-      6: SHL
-      7: store , r9
-      8: r10 = load x2
-      9: r11 = load x8
-     10: r12 = r10 + r11
-     11: return r12
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      2: r10 = load x2
+      3: r11 = load x8
+      4: r12 = r10 + r11
+      5: return r12
 

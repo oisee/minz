@@ -1,0 +1,10 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_metafunction_debug.main() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_87
+      1: UNKNOWN_OP_86
+      2: return
+

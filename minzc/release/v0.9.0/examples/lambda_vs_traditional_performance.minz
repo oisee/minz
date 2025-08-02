@@ -1,0 +1,51 @@
+// Performance comparison: Lambda vs Traditional Functions
+// This tests that lambda transformation produces identical performance
+
+// Traditional function approach
+fun traditional_add(x: u8, y: u8) -> u8 {
+    x + y
+}
+
+fun traditional_multiply(x: u8, factor: u8) -> u8 {
+    x * factor
+}
+
+fun traditional_complex(a: u8, b: u8, c: u8) -> u8 {
+    let sum = traditional_add(a, b);
+    let result = traditional_multiply(sum, c);
+    result
+}
+
+// Lambda-based approach (should transform to identical code)
+fun lambda_approach(a: u8, b: u8, c: u8) -> u8 {
+    let add = |x: u8, y: u8| => u8 { x + y };
+    let multiply = |x: u8, factor: u8| => u8 { x * factor };
+    
+    let sum = add(a, b);
+    let result = multiply(sum, c);
+    result
+}
+
+// Performance test functions
+fun test_traditional_performance() -> u8 {
+    let result1 = traditional_complex(5, 3, 2);  // (5+3)*2 = 16
+    let result2 = traditional_complex(10, 7, 3); // (10+7)*3 = 51
+    let result3 = traditional_complex(1, 9, 4);  // (1+9)*4 = 40
+    result1 + result2 + result3  // 16+51+40 = 107
+}
+
+fun test_lambda_performance() -> u8 {
+    let result1 = lambda_approach(5, 3, 2);   // (5+3)*2 = 16
+    let result2 = lambda_approach(10, 7, 3);  // (10+7)*3 = 51
+    let result3 = lambda_approach(1, 9, 4);   // (1+9)*4 = 40
+    result1 + result2 + result3  // 16+51+40 = 107
+}
+
+fun main() -> u8 {
+    let traditional_result = test_traditional_performance();
+    let lambda_result = test_lambda_performance();
+    
+    // Results should be identical: 107
+    // Performance should be identical too (we'll analyze the assembly)
+    traditional_result + lambda_result  // Should be 214
+}

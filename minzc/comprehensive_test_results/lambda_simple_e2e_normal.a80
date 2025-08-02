@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -72,7 +72,9 @@
 .Users.alice.dev.minz-ts.examples.lambda_simple_e2e.test_double$double_1_param_x:
     LD HL, #0000   ; SMC parameter x (u8->u16)
     LD A, (.Users.alice.dev.minz-ts.examples.lambda_simple_e2e.test_double$double_1_param_x)
-    ; Register 2 already in A
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r3 = r1 + r2
     LD D, H
     LD E, L
@@ -106,7 +108,7 @@
     LD HL, #0000   ; SMC parameter x (u8->u16)
     ; r2 = 1
     LD A, 1
-    LD B, A         ; Store to physical register B
+    LD D, A         ; Store to physical register D
     ; r3 = r1 + r2
     LD D, H
     LD E, L
@@ -122,7 +124,7 @@
 .Users.alice.dev.minz-ts.examples.lambda_simple_e2e.test_chain$double_3_param_x:
     LD HL, #0000   ; SMC parameter x (u8->u16)
     LD A, (.Users.alice.dev.minz-ts.examples.lambda_simple_e2e.test_chain$double_3_param_x)
-    LD C, A         ; Store to physical register C
+    LD D, A         ; Store to physical register D
     ; r3 = r1 + r2
     LD D, H
     LD E, L
@@ -137,19 +139,21 @@
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 5
     LD A, 5
-    LD ($F004), A     ; Virtual register 2 to memory
+    ; Register 2 already in A
     ; store , r2
-    LD A, ($F004)     ; Virtual register 2 from memory
+    ; Register 2 already in A
     LD ($F002), A
     ; r4 = load x
     LD A, ($F002)
-    LD B, A         ; Store to physical register B
+    LD C, A         ; Store to physical register C
     ; r5 = call inc
     ; Call to inc (args: 1)
     ; Stack-based parameter passing
     PUSH HL       ; Argument 0
     CALL inc
+    LD ($F00A), HL    ; Virtual register 5 to memory
     ; store , r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
     LD ($F006), HL
     ; r7 = load y
     LD HL, ($F006)
@@ -191,7 +195,9 @@
     ; Call to test_lambda (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_simple_e2e.test_lambda
+    LD ($F00C), HL    ; Virtual register 6 to memory
     ; store , r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
     LD ($F00A), HL
     ; r8 = call test_double
     ; Call to test_double (args: 0)
@@ -210,12 +216,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -287,9 +298,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

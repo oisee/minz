@@ -1,7 +1,0 @@
-// Test what gets parsed
-let x: u8;
-let y: [u8; 5];
-
-fun main() -> u8 {
-    return 0;
-}

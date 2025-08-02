@@ -32,7 +32,7 @@ Function .Users.alice.dev.minz-ts.examples.test_register_params.process(value: u
       7: jump_if_not r9, for_end_2
       8: r10 = load sum
       9: LOAD_PARAM
-     10: UNKNOWN_OP_66
+     10: UNKNOWN_OP_69
      11: r13 = r10 + r12
      12: store sum, r13
      13: LOAD_PARAM
@@ -102,7 +102,7 @@ Function .Users.alice.dev.minz-ts.examples.test_register_params.main() -> void
       9: r12 = load data
      10: r13 = 0
      11: LOAD_INDEX ; Load array element (u8)
-     12: UNKNOWN_OP_65
+     12: UNKNOWN_OP_68
      13: r16 = 5
      14: r17 = call process
      15: store , r17

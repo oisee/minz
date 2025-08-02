@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Code section
@@ -42,7 +42,9 @@
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.test_true_smc_call.add
+    LD ($F008), HL    ; Virtual register 4 to memory
     ; store , r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
     LD ($F002), HL
     ; r6 = 10
     LD A, 10
@@ -51,11 +53,12 @@
     EXX               ; Switch back to main registers
     ; r7 = 20
     LD A, 20
-    LD ($F00E), A     ; Virtual register 7 to memory
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
     ; r8 = call add
     ; Call to add (args: 2)
     ; Stack-based parameter passing
-    LD HL, ($F00E)    ; Virtual register 7 from memory
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
@@ -77,12 +80,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -154,9 +162,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

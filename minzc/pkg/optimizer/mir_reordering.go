@@ -402,10 +402,10 @@ func (p *MIRReorderingPass) storesSameLocation(inst1, inst2 *ir.Instruction) boo
 	switch inst1.Op {
 	case ir.OpStoreVar:
 		// Same variable?
-		return inst1.VarName == inst2.VarName
+		return inst1.Symbol == inst2.Symbol
 	case ir.OpStoreField:
 		// Same field of same object?
-		return inst1.Src1 == inst2.Src1 && inst1.FieldName == inst2.FieldName
+		return inst1.Src1 == inst2.Src1 && inst1.Symbol == inst2.Symbol
 	}
 	
 	return false

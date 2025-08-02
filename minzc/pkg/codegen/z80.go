@@ -247,8 +247,7 @@ func (g *Z80Generator) generateString(str *ir.String) {
 		}
 	}
 	
-	// Add null terminator for C-style strings
-	g.emit("    DB 0               ; Null terminator")
+	// No null terminator needed - length-prefixed strings
 }
 
 // generateFunction generates code for a function
@@ -1920,6 +1919,17 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.loadToHL(inst.Src1)
 		g.emit("    CALL print_string")
 		
+	case ir.OpPrintStringDirect:
+		// Direct print for short strings - ultra-fast!
+		// Each character is loaded and printed directly with RST 16
+		if inst.Comment != "" {
+			g.emit(fmt.Sprintf("    ; %s", inst.Comment))
+		}
+		for _, ch := range inst.Symbol {
+			g.emit(fmt.Sprintf("    LD A, %d", ch))
+			g.emit("    RST 16             ; Print character")
+		}
+		
 	case ir.OpLoadString:
 		// Load address of string literal
 		g.emit(fmt.Sprintf("    LD HL, %s", inst.Symbol))
@@ -3206,14 +3216,19 @@ func (g *Z80Generator) isLocalRegister(reg ir.Register) bool {
 func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("\n; Runtime print helper functions")
 	
-	// Print string function - prints null-terminated string pointed to by HL
+	// Print string function - prints length-prefixed string pointed to by HL
 	g.emit("print_string:")
-	g.emit("    LD A, (HL)")
-	g.emit("    OR A               ; Check for null terminator")
-	g.emit("    RET Z              ; Return if null")
+	g.emit("    LD B, (HL)         ; B = length from first byte")
+	g.emit("    INC HL             ; HL -> string data")
+	g.emit("    LD A, B            ; Check if length is zero")
+	g.emit("    OR A")
+	g.emit("    RET Z              ; Return if empty string")
+	g.emit("print_loop:")
+	g.emit("    LD A, (HL)         ; Load character")
 	g.emit("    RST 16             ; Print character")
 	g.emit("    INC HL             ; Next character")
-	g.emit("    JR print_string")
+	g.emit("    DJNZ print_loop    ; Decrement B and loop")
+	g.emit("    RET")
 	g.emit("")
 	
 	// Print u8 as decimal
@@ -3296,11 +3311,11 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    JR print_string")
 	g.emit("")
 	
-	// Boolean string constants
+	// Boolean string constants (length-prefixed)
 	g.emit("bool_true_str:")
-	g.emit("    DB \"true\", 0")
+	g.emit("    DB 4, \"true\"      ; Length + data")
 	g.emit("bool_false_str:")
-	g.emit("    DB \"false\", 0")
+	g.emit("    DB 5, \"false\"     ; Length + data")
 	g.emit("")
 }
 

@@ -10,7 +10,7 @@ Function .Users.alice.dev.minz-ts.examples.string_operations.str_length(str: *u8
       1: store , r3
       2: loop_1:
       3: LOAD_PARAM
-      4: UNKNOWN_OP_66
+      4: UNKNOWN_OP_69
       5: r6 = 0
       6: r7 = r5 != r6
       7: jump_if_not r7, end_loop_2
@@ -32,14 +32,14 @@ Function .Users.alice.dev.minz-ts.examples.string_operations.str_copy(dest: *u8,
   Instructions:
       0: loop_3:
       1: LOAD_PARAM
-      2: UNKNOWN_OP_66
+      2: UNKNOWN_OP_69
       3: r5 = 0
       4: r6 = r4 != r5
       5: jump_if_not r6, end_loop_4
       6: LOAD_PARAM
-      7: UNKNOWN_OP_66
+      7: UNKNOWN_OP_69
       8: LOAD_PARAM
-      9: UNKNOWN_OP_67 ; Store through pointer
+      9: UNKNOWN_OP_70 ; Store through pointer
      10: LOAD_PARAM
      11: r11 = 1
      12: r12 = r10 + r11
@@ -52,6 +52,6 @@ Function .Users.alice.dev.minz-ts.examples.string_operations.str_copy(dest: *u8,
      19: end_loop_4:
      20: r16 = 0
      21: LOAD_PARAM
-     22: UNKNOWN_OP_67 ; Store through pointer
+     22: UNKNOWN_OP_70 ; Store through pointer
      23: return
 

@@ -10,18 +10,18 @@ Function .Users.alice.dev.minz-ts.examples.test_loop_no_init.main() -> void
       0: r1 = addr(.Users.alice.dev.minz-ts.examples.test_loop_no_init.items)
       1: r2 = addr() ; Load table base address
       2: r3 = addr() ; Load table base for end calculation
-      3: UNKNOWN_OP_76 ; Calculate table end (+ 3 elements * 1 bytes)
-      4: UNKNOWN_OP_75 ; Load loop counter
+      3: UNKNOWN_OP_79 ; Calculate table end (+ 3 elements * 1 bytes)
+      4: UNKNOWN_OP_78 ; Load loop counter
       5: loop_start_1:
-      6: UNKNOWN_OP_54 ; Check if reached end of table
+      6: UNKNOWN_OP_56 ; Check if reached end of table
       7: JUMP_IF ; Exit if done
-      8: UNKNOWN_OP_72 ; Copy element to buffer at $F000
+      8: UNKNOWN_OP_75 ; Copy element to buffer at $F000
       9: r6 = 42
      10: r7 = load item
      11: STORE_FIELD ; Store to field value (offset 0)
-     12: UNKNOWN_OP_73 ; Copy buffer back to element at $F000
-     13: UNKNOWN_OP_76 ; Advance to next element (+1 bytes)
-     14: UNKNOWN_OP_74 ; Decrement counter and loop if not zero
+     12: UNKNOWN_OP_76 ; Copy buffer back to element at $F000
+     13: UNKNOWN_OP_79 ; Advance to next element (+1 bytes)
+     14: UNKNOWN_OP_77 ; Decrement counter and loop if not zero
      15: loop_end_2:
      16: return
 

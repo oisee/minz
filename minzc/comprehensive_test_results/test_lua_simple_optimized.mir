@@ -6,7 +6,5 @@ Function .Users.alice.dev.minz-ts.examples.test_lua_simple.main() -> void
   Locals:
     r1 = x: u16
   Instructions:
-      0: r2 = 55
-      1: store , r2
-      2: return
+      0: return
 

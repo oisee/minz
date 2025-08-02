@@ -49,8 +49,8 @@ type Cost struct {
 // SemanticPass operates on AST
 type SemanticPass interface {
 	Name() string
-	Apply(ast *ast.Program) (*ast.Program, bool)
-	EstimateCost(ast *ast.Program) Cost
+	Apply(file *ast.File) (*ast.File, bool)
+	EstimateCost(file *ast.File) Cost
 }
 
 // AssemblyPass operates on assembly code
@@ -142,9 +142,9 @@ func (o *MultiLevelOptimizer) initializeAdvancedPasses() {
 }
 
 // OptimizeProgram runs the complete multi-level optimization pipeline
-func (o *MultiLevelOptimizer) OptimizeProgram(program *ast.Program) (*ir.Module, error) {
+func (o *MultiLevelOptimizer) OptimizeProgram(file *ast.File) (*ir.Module, error) {
 	// Phase 1: Semantic optimization
-	optimizedAST, err := o.optimizeSemantic(program)
+	optimizedAST, err := o.optimizeSemantic(file)
 	if err != nil {
 		return nil, fmt.Errorf("semantic optimization failed: %w", err)
 	}
@@ -163,15 +163,17 @@ func (o *MultiLevelOptimizer) OptimizeProgram(program *ast.Program) (*ir.Module,
 	}
 	
 	// Phase 4: Assembly optimization will be done in code generator
-	// Store optimization state for code generator
-	optimizedMIR.OptimizationState = o.history
+	// Store optimization state for code generator (metadata approach)
+	if optimizedMIR.Functions != nil && len(optimizedMIR.Functions) > 0 {
+		optimizedMIR.Functions[0].SetMetadata("optimization_state", "applied")
+	}
 	
 	return optimizedMIR, nil
 }
 
 // optimizeSemantic runs semantic-level optimizations
-func (o *MultiLevelOptimizer) optimizeSemantic(ast *ast.Program) (*ast.Program, error) {
-	return o.runUntilFixpoint(ast, o.semanticPasses, "semantic")
+func (o *MultiLevelOptimizer) optimizeSemantic(file *ast.File) (*ast.File, error) {
+	return o.runUntilFixpoint(file, o.semanticPasses, "semantic")
 }
 
 // optimizeMIR runs MIR-level optimizations
@@ -220,10 +222,10 @@ func (o *MultiLevelOptimizer) optimizeMIR(module *ir.Module) (*ir.Module, error)
 
 // runUntilFixpoint runs passes until no changes occur
 func (o *MultiLevelOptimizer) runUntilFixpoint(
-	ast *ast.Program,
+	file *ast.File,
 	passes []SemanticPass,
 	phase string,
-) (*ast.Program, error) {
+) (*ast.File, error) {
 	maxIterations := o.config.MaxIterations
 	if maxIterations <= 0 {
 		maxIterations = 10
@@ -231,16 +233,16 @@ func (o *MultiLevelOptimizer) runUntilFixpoint(
 	
 	for iteration := 0; iteration < maxIterations; iteration++ {
 		changed := false
-		initialCost := o.calculateSemanticCost(ast)
+		initialCost := o.calculateSemanticCost(file)
 		
 		for _, pass := range passes {
-			newAST, passChanged := pass.Apply(ast)
+			newFile, passChanged := pass.Apply(file)
 			
 			if passChanged {
-				newCost := pass.EstimateCost(newAST)
+				newCost := pass.EstimateCost(newFile)
 				
 				if o.shouldAcceptChange(initialCost, newCost, pass.Name()) {
-					ast = newAST
+					file = newFile
 					changed = true
 					o.recordOptimization(pass.Name(), iteration)
 				}
@@ -256,7 +258,7 @@ func (o *MultiLevelOptimizer) runUntilFixpoint(
 		}
 	}
 	
-	return ast, nil
+	return file, nil
 }
 
 // shouldAcceptChange decides whether to accept an optimization
@@ -329,12 +331,19 @@ func (o *MultiLevelOptimizer) recordOptimization(passName string, iteration int)
 
 // Cost calculation helpers
 
-func (o *MultiLevelOptimizer) calculateSemanticCost(ast *ast.Program) Cost {
-	// Estimate cost at AST level
+func (o *MultiLevelOptimizer) calculateSemanticCost(file *ast.File) Cost {
+	// Estimate cost at AST level - simplified
 	cost := Cost{}
 	
-	// Count nodes, estimate cycles
-	ast.Accept(&costVisitor{cost: &cost})
+	// Rough estimation based on declarations
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
+			if fn.Body != nil {
+				cost.Size += len(fn.Body.Statements)
+				cost.Cycles += len(fn.Body.Statements) * 10
+			}
+		}
+	}
 	
 	return cost
 }
@@ -349,9 +358,7 @@ func (o *MultiLevelOptimizer) calculateMIRCost(module *ir.Module) Cost {
 		}
 		
 		// Estimate register pressure
-		if fn.UsedRegisters != nil {
-			cost.Registers = fn.UsedRegisters.Count()
-		}
+		cost.Registers += fn.UsedRegisters.Count()
 	}
 	
 	return cost
@@ -375,22 +382,7 @@ func estimateInstructionCycles(inst ir.Instruction) int {
 	}
 }
 
-// costVisitor implements AST visitor for cost calculation
-type costVisitor struct {
-	cost *Cost
-}
-
-func (v *costVisitor) VisitBinaryOp(node *ast.BinaryOp) {
-	v.cost.Size++
-	switch node.Op {
-	case "+", "-":
-		v.cost.Cycles += 4
-	case "*":
-		v.cost.Cycles += 40
-	case "/":
-		v.cost.Cycles += 100
-	}
-}
+// costVisitor removed - using simplified cost calculation instead
 
 // Stub implementations for demonstration
 
@@ -402,12 +394,12 @@ func NewConstantFoldingSemanticPass() *ConstantFoldingSemanticPass {
 
 func (p *ConstantFoldingSemanticPass) Name() string { return "Constant Folding (Semantic)" }
 
-func (p *ConstantFoldingSemanticPass) Apply(ast *ast.Program) (*ast.Program, bool) {
+func (p *ConstantFoldingSemanticPass) Apply(file *ast.File) (*ast.File, bool) {
 	// Implementation would fold constant expressions
-	return ast, false
+	return file, false
 }
 
-func (p *ConstantFoldingSemanticPass) EstimateCost(ast *ast.Program) Cost {
+func (p *ConstantFoldingSemanticPass) EstimateCost(file *ast.File) Cost {
 	// Estimate cost after constant folding
 	return Cost{}
 }

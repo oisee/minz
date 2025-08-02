@@ -1,0 +1,77 @@
+// Test what currently works
+
+// Structs ✓
+struct Point {
+    x: u8,
+    y: u8
+}
+
+// Functions ✓
+fun add_numbers(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// For loops ✓
+fun test_for_loops() -> u16 {
+    var sum: u16 = 0;
+    for i in 0..10 {
+        sum = sum + i;
+    }
+    return sum;
+}
+
+// Arrays ✓
+fun test_arrays() -> u8 {
+    var arr: [5]u8;
+    arr[0] = 10;
+    arr[1] = 20;
+    return arr[0] + arr[1];
+}
+
+// Structs ✓
+fun test_structs() -> u8 {
+    var p: Point;
+    p.x = 15;
+    p.y = 25;
+    return p.x + p.y;
+}
+
+// While loops ✓
+fun test_while() -> u8 {
+    var i: u8 = 0;
+    var sum: u8 = 0;
+    while i < 5 {
+        sum = sum + i;
+        i = i + 1;
+    }
+    return sum;
+}
+
+// If statements ✓
+fun test_if(x: u8) -> u8 {
+    if x > 10 {
+        return x * 2;
+    } else {
+        return x + 5;
+    }
+}
+
+// TSMC references ✓
+@abi("smc")
+fun test_tsmc(ptr: *u8) -> u8 {
+    var result: u8 = *ptr;
+    ptr = ptr + 1;
+    return result;
+}
+
+fun main() -> u16 {
+    var result: u16 = 0;
+    
+    result = result + test_for_loops();  // ✓
+    result = result + test_arrays();     // ✓
+    result = result + test_structs();    // ✓
+    result = result + test_while();      // ✓
+    result = result + test_if(15);       // ✓
+    
+    return result;
+}

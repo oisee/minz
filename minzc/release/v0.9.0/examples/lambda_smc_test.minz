@@ -1,0 +1,33 @@
+// Test lambda parameter passing with SMC approach
+
+// Lambda function that will be compiled with SMC parameters
+fun test_lambda_smc() -> u8 {
+    let add = |x: u8| => u8 { x + 5 };
+    
+    // First call
+    let r1 = add(10);  // Should patch x to 10 and call
+    
+    // Second call  
+    let r2 = add(20);  // Should patch x to 20 and call
+    
+    r1 + r2  // Should be 15 + 25 = 40
+}
+
+// Traditional function for comparison
+fun add_traditional(x: u8) -> u8 {
+    x + 5
+}
+
+fun test_traditional() -> u8 {
+    let r1 = add_traditional(10);
+    let r2 = add_traditional(20);
+    r1 + r2
+}
+
+fun main() -> u8 {
+    let lambda_result = test_lambda_smc();
+    let traditional_result = test_traditional();
+    
+    // Both should return 40
+    lambda_result
+}

@@ -1,0 +1,40 @@
+// Test bit-struct types with improved syntax
+
+// 8-bit ZX Spectrum screen attributes
+type ScreenAttr = bits_8 {
+    ink: 3,      // Bits 0-2
+    paper: 3,    // Bits 3-5
+    bright: 1,   // Bit 6
+    flash: 1     // Bit 7
+};
+
+// 16-bit sprite control
+type SpriteCtrl = bits_16 {
+    x_pos: 9,      // Bits 0-8 (0-511)
+    visible: 1,    // Bit 9
+    collision: 1,  // Bit 10
+    palette: 2,    // Bits 11-12
+    priority: 2,   // Bits 13-14
+    flip_x: 1      // Bit 15
+};
+
+// Test functions
+fun set_screen_attr(x: u8, y: u8, attr: ScreenAttr) -> void {
+    let addr = 0x5800 + (y as u16) * 32 + (x as u16)
+    // TODO: poke(addr, attr as u8)
+}
+
+fun main() -> void {
+    // Test type conversion with bit structs
+    let raw_value: u8 = 0x47  // 01000111 = paper=0, ink=7, bright=1
+    
+    // Cast u8 to bit struct
+    let attr: ScreenAttr = raw_value as ScreenAttr
+    
+    // Cast bit struct back to u8
+    let back_to_raw: u8 = attr as u8
+    
+    // Test field access
+    let ink = attr.ink     // Should extract bits 0-2
+    attr.paper = 5         // Should set bits 3-5
+}

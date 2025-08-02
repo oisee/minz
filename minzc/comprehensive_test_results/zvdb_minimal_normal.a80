@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:05
+; Generated: 2025-08-02 13:03:29
 
 
 ; Code section
@@ -13,14 +13,14 @@
 ; Using absolute addressing for locals (SMC style)
 .Users.alice.dev.minz-ts.examples.zvdb_minimal.hamming8_param_a:
     LD HL, #0000   ; SMC parameter a (u8->u16)
+    LD ($F008), HL    ; Virtual register 4 to memory
 .Users.alice.dev.minz-ts.examples.zvdb_minimal.hamming8_param_b:
     LD DE, #0000   ; SMC parameter b (u8->u16)
     EX DE, HL      ; Move to HL for storage
-    LD ($F00A), HL    ; Virtual register 5 to memory
     ; r6 = r4 ^ r5
+    LD HL, ($F008)    ; Virtual register 4 from memory
     LD D, H
     LD E, L
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     LD A, L
     XOR E
     LD L, A
@@ -39,12 +39,10 @@
     LD ($F00E), HL
     ; r9 = load count
     LD HL, ($F00E)
-    LD ($F012), HL    ; Virtual register 9 to memory
     ; r10 = 85
     LD A, 85
     LD ($F014), A     ; Virtual register 10 to memory
     ; r11 = r9 & r10
-    LD HL, ($F012)    ; Virtual register 9 from memory
     LD D, H
     LD E, L
     LD HL, ($F014)    ; Virtual register 10 from memory
@@ -54,19 +52,21 @@
     LD A, H
     AND D
     LD H, A
-    LD ($F016), HL    ; Virtual register 11 to memory
     ; r12 = load count
     LD HL, ($F00E)
+    LD ($F018), HL    ; Virtual register 12 to memory
     ; r13 = 1
     LD A, 1
-    LD B, A         ; Store to physical register B
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
     ; r14 = r12 >> r13
     ; Shift right
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
+    LD A, ($F018)     ; Virtual register 12 from memory
     LD B, A       ; B = value to shift
-    LD A, B
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -80,14 +80,10 @@
 .shr_done_0:
     LD L, A
     LD H, 0
-    LD ($F01C), HL    ; Virtual register 14 to memory
     ; r15 = 85
     LD A, 85
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    ; Register 15 already in A
     ; r16 = r14 & r15
-    LD HL, ($F01C)    ; Virtual register 14 from memory
     LD D, H
     LD E, L
     LD A, L
@@ -98,7 +94,6 @@
     LD H, A
     LD ($F020), HL    ; Virtual register 16 to memory
     ; r17 = r11 + r16
-    LD HL, ($F016)    ; Virtual register 11 from memory
     LD D, H
     LD E, L
     LD HL, ($F020)    ; Virtual register 16 from memory
@@ -107,14 +102,10 @@
     LD ($F00E), HL
     ; r18 = load count
     LD HL, ($F00E)
-    LD ($F024), HL    ; Virtual register 18 to memory
     ; r19 = 51
     LD A, 51
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD D, A         ; Store to physical register D
     ; r20 = r18 & r19
-    LD HL, ($F024)    ; Virtual register 18 from memory
     LD D, H
     LD E, L
     LD A, L
@@ -125,20 +116,15 @@
     LD H, A
     ; r21 = load count
     LD HL, ($F00E)
+    LD ($F02A), HL    ; Virtual register 21 to memory
     ; r22 = 2
     LD A, 2
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    ; Register 22 already in A
     ; r23 = r21 >> r22
     ; Shift right
-    EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
-    EXX               ; Switch back to main registers
+    LD A, ($F02A)     ; Virtual register 21 from memory
     LD B, A       ; B = value to shift
-    EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
-    EXX               ; Switch back to main registers
+    ; Register 22 already in A
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -152,13 +138,14 @@
 .shr_done_1:
     LD L, A
     LD H, 0
+    LD ($F02E), HL    ; Virtual register 23 to memory
     ; r24 = 51
     LD A, 51
-    LD ($F030), A     ; Virtual register 24 to memory
+    LD E, A         ; Store to physical register E
     ; r25 = r23 & r24
+    LD HL, ($F02E)    ; Virtual register 23 from memory
     LD D, H
     LD E, L
-    LD HL, ($F030)    ; Virtual register 24 from memory
     LD A, L
     AND E
     LD L, A
@@ -173,12 +160,12 @@
     LD ($F00E), HL
     ; r27 = load count
     LD HL, ($F00E)
+    LD ($F036), HL    ; Virtual register 27 to memory
     ; r28 = 15
     LD A, 15
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    ; Register 28 already in A
     ; r29 = r27 & r28
+    LD HL, ($F036)    ; Virtual register 27 from memory
     LD D, H
     LD E, L
     LD A, L
@@ -191,16 +178,12 @@
     LD HL, ($F00E)
     ; r31 = 4
     LD A, 4
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    ; Register 31 already in A
     ; r32 = r30 >> r31
     ; Shift right
-    LD A, B
+    ; Register 30 already in A
     LD B, A       ; B = value to shift
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
+    ; Register 31 already in A
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -216,7 +199,9 @@
     LD H, 0
     ; r33 = 15
     LD A, 15
-    LD C, A         ; Store to physical register C
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; r34 = r32 & r33
     LD D, H
     LD E, L
@@ -636,12 +621,17 @@ end_loop_4:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -713,9 +703,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

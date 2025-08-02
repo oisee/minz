@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -21,21 +21,3 @@ self$imm0 EQU self$immOP+1
 .Users.alice.dev.minz-ts.examples.interface_simple.main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    PUSH DE
-    ; Allocate struct Circle
-    LD HL, -1
-    ADD HL, SP
-    LD SP, HL
-    EX DE, HL
-    LD HL, SP
-    ; r3 = 5
-    LD A, 5
-    LD C, A         ; Store to physical register C
-    ; Store to Circle.radius
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
-    ; store , r2
-    LD ($F002), HL

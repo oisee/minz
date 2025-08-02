@@ -793,6 +793,18 @@ type LuaEval struct {
 func (l *LuaEval) Pos() Position { return l.StartPos }
 func (l *LuaEval) End() Position { return l.EndPos }
 
+// MetafunctionCall represents @function_name(...) calls
+type MetafunctionCall struct {
+	Name      string
+	Arguments []Expression
+	StartPos  Position
+	EndPos    Position
+}
+
+func (m *MetafunctionCall) Pos() Position { return m.StartPos }
+func (m *MetafunctionCall) End() Position { return m.EndPos }
+func (m *MetafunctionCall) exprNode()    {}
+
 // InlineAssembly represents inline assembly code
 type InlineAssembly struct {
 	Code     string         // The assembly code

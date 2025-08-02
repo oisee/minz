@@ -1,1 +1,0 @@
-const X: u8 = @lua ( 8 ) ;

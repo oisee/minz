@@ -1,0 +1,58 @@
+// Hardware register modeling with bit structs
+
+// ZX Spectrum border/sound register (port 0xFE)
+type BorderReg = bits_8 {
+    border_color: 3,    // Bits 0-2: Border color
+    mic_out: 1,         // Bit 3: MIC output
+    speaker: 1,         // Bit 4: Speaker
+    unused: 3           // Bits 5-7: Unused
+};
+
+// AY-3-8912 sound chip register
+type AYReg = bits_8 {
+    channel_a_period_low: 8   // 8-bit period value
+};
+
+// 16-bit memory mapper (hypothetical)  
+type MemoryMapper = bits_16 {
+    page_number: 8,     // Bits 0-7: Page number (0-255)
+    bank_select: 2,     // Bits 8-9: Bank select
+    write_enable: 1,    // Bit 10: Write enable
+    cache_enable: 1,    // Bit 11: Cache enable  
+    unused: 4           // Bits 12-15: Reserved
+};
+
+// Sprite attributes (16-bit) - this would overflow 16 bits
+// type SpriteAttr = bits_16 {
+//     x_coord: 9,         // Bits 0-8: X coordinate (0-511)  
+//     y_coord: 8,         // Bits 9-16: Y coordinate (0-255) -- OVERFLOW! 9+8=17 > 16
+// };
+
+// Better sprite design
+type SpriteAttr2 = bits_16 {
+    x_coord: 8,         // Bits 0-7: X coordinate (0-255)
+    y_coord: 8          // Bits 8-15: Y coordinate (0-255)  
+};
+
+fun main() -> void {
+    // Set border to bright red with speaker on
+    let border_val: u8 = 0x12;  // Binary: 00010010
+    let border: BorderReg = border_val as BorderReg;
+    
+    // Check border color (should be 2 = red)
+    let color: u8 = border.border_color;
+    
+    // Create memory mapping: page 42, bank 1, write enabled
+    let mem_val: u16 = (1 << 10) | (1 << 8) | 42;  // Write enable | bank 1 | page 42
+    let mapper: MemoryMapper = mem_val as MemoryMapper;
+    
+    // Extract page number
+    let page: u8 = mapper.page_number as u8;
+    
+    // Sprite at position (100, 150)
+    let sprite_val: u16 = (150 << 8) | 100;
+    let sprite: SpriteAttr2 = sprite_val as SpriteAttr2;
+    
+    let sprite_x: u8 = sprite.x_coord as u8;
+    let sprite_y: u8 = sprite.y_coord as u8;
+}

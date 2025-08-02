@@ -5,18 +5,17 @@ Function .Users.alice.dev.minz-ts.examples.tail_sum.sum_tail(n: u16, acc: u16) -
   @smc
   @recursive
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor n$imm0
       1: .Users.alice.dev.minz-ts.examples.tail_sum.sum_tail_tail_loop: ; Tail recursion loop start
-      2: r4 = 0
-      3: r5 = r3 == r4
-      4: jump_if_not r5, else_1
-      5: UNKNOWN_OP_31 ; Load from anchor acc$imm0
-      6: return r6
-      7: else_1:
-      8: UNKNOWN_OP_31 ; Load from anchor n$imm0
-      9: UNKNOWN_OP_31 ; Load from anchor acc$imm0
-     10: UNKNOWN_OP_31 ; Load from anchor n$imm0
-     11: jump .Users.alice.dev.minz-ts.examples.tail_sum.sum_tail_tail_loop ; Tail recursion optimized to loop
+      2: UNKNOWN_OP_57
+      3: jump_if_not r5, else_1
+      4: UNKNOWN_OP_33 ; Load from anchor acc$imm0
+      5: return r6
+      6: else_1:
+      7: UNKNOWN_OP_33 ; Load from anchor n$imm0
+      8: UNKNOWN_OP_33 ; Load from anchor acc$imm0
+      9: UNKNOWN_OP_33 ; Load from anchor n$imm0
+     10: jump .Users.alice.dev.minz-ts.examples.tail_sum.sum_tail_tail_loop ; Tail recursion optimized to loop
 
 Function .Users.alice.dev.minz-ts.examples.tail_sum.main() -> void
   @smc
@@ -25,6 +24,5 @@ Function .Users.alice.dev.minz-ts.examples.tail_sum.main() -> void
     r1 = result: u16
   Instructions:
       0: r4 = call sum_tail
-      1: store , r4
-      2: return
+      1: return
 

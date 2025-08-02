@@ -69,7 +69,7 @@ Function .Users.alice.dev.minz-ts.examples.recursion_examples.binary_search(arr:
      18: LOAD_PARAM
      19: r20 = load mid
      20: r21 = r19 + r20
-     21: UNKNOWN_OP_66
+     21: UNKNOWN_OP_69
      22: store , r22
      23: r23 = load value
      24: LOAD_PARAM

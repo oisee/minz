@@ -21,13 +21,13 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_loops.sum_array_tsmc(arr: *u8, c
       8: jump_if_not r9, end_loop_2
       9: r10 = load sum
      10: LOAD_PARAM
-     11: UNKNOWN_OP_66
+     11: UNKNOWN_OP_69
      12: r13 = r10 + r12
      13: store sum, r13
      14: LOAD_PARAM
      15: r15 = 1
      16: r16 = r14 + r15
-     17: UNKNOWN_OP_30 ; Update TSMC reference arr
+     17: UNKNOWN_OP_32 ; Update TSMC reference arr
      18: r17 = load i
      19: r18 = 1
      20: r19 = r17 + r18
@@ -53,12 +53,12 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_loops.find_max_tsmc(arr: *u8, co
       7: else_3:
       8: end_if_4:
       9: LOAD_PARAM
-     10: UNKNOWN_OP_66
+     10: UNKNOWN_OP_69
      11: store , r9
      12: LOAD_PARAM
      13: r11 = 1
      14: r12 = r10 + r11
-     15: UNKNOWN_OP_30 ; Update TSMC reference arr
+     15: UNKNOWN_OP_32 ; Update TSMC reference arr
      16: r14 = 1
      17: store , r14
      18: loop_5:
@@ -67,12 +67,12 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_loops.find_max_tsmc(arr: *u8, co
      21: r17 = r15 < r16
      22: jump_if_not r17, end_loop_6
      23: LOAD_PARAM
-     24: UNKNOWN_OP_66
+     24: UNKNOWN_OP_69
      25: r20 = load max
      26: r21 = r19 > r20
      27: jump_if_not r21, else_7
      28: LOAD_PARAM
-     29: UNKNOWN_OP_66
+     29: UNKNOWN_OP_69
      30: store max, r23
      31: jump end_if_8
      32: else_7:
@@ -80,7 +80,7 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_loops.find_max_tsmc(arr: *u8, co
      34: LOAD_PARAM
      35: r25 = 1
      36: r26 = r24 + r25
-     37: UNKNOWN_OP_30 ; Update TSMC reference arr
+     37: UNKNOWN_OP_32 ; Update TSMC reference arr
      38: r27 = load i
      39: r28 = 1
      40: r29 = r27 + r28
@@ -95,31 +95,31 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_loops.strcmp_tsmc(s1: *u8, s2: *
   Instructions:
       0: loop_9:
       1: LOAD_PARAM
-      2: UNKNOWN_OP_66
+      2: UNKNOWN_OP_69
       3: r5 = 0
       4: LOAD_PARAM
-      5: UNKNOWN_OP_66
-      6: UNKNOWN_OP_65
+      5: UNKNOWN_OP_69
+      6: UNKNOWN_OP_68
       7: r9 = r5 & r8
       8: r10 = r4 != r9
       9: LOAD_PARAM
-     10: UNKNOWN_OP_66
+     10: UNKNOWN_OP_69
      11: r13 = r10 == r12
      12: jump_if_not r13, end_loop_10
      13: LOAD_PARAM
      14: r15 = 1
      15: r16 = r14 + r15
-     16: UNKNOWN_OP_30 ; Update TSMC reference s1
+     16: UNKNOWN_OP_32 ; Update TSMC reference s1
      17: LOAD_PARAM
      18: r18 = 1
      19: r19 = r17 + r18
-     20: UNKNOWN_OP_30 ; Update TSMC reference s2
+     20: UNKNOWN_OP_32 ; Update TSMC reference s2
      21: jump loop_9
      22: end_loop_10:
      23: LOAD_PARAM
-     24: UNKNOWN_OP_66
+     24: UNKNOWN_OP_69
      25: LOAD_PARAM
-     26: UNKNOWN_OP_66
+     26: UNKNOWN_OP_69
      27: r24 = r21 < r23
      28: jump_if_not r24, else_11
      29: r25 = 1
@@ -128,9 +128,9 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_loops.strcmp_tsmc(s1: *u8, s2: *
      32: jump end_if_12
      33: else_11:
      34: LOAD_PARAM
-     35: UNKNOWN_OP_66
+     35: UNKNOWN_OP_69
      36: LOAD_PARAM
-     37: UNKNOWN_OP_66
+     37: UNKNOWN_OP_69
      38: r31 = r28 > r30
      39: jump_if_not r31, else_13
      40: r32 = 1
@@ -152,12 +152,12 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_loops.count_char_tsmc(str: *u8, 
       1: store , r4
       2: loop_15:
       3: LOAD_PARAM
-      4: UNKNOWN_OP_66
+      4: UNKNOWN_OP_69
       5: r7 = 0
       6: r8 = r6 != r7
       7: jump_if_not r8, end_loop_16
       8: LOAD_PARAM
-      9: UNKNOWN_OP_66
+      9: UNKNOWN_OP_69
      10: LOAD_PARAM
      11: r12 = r10 == r11
      12: jump_if_not r12, else_17
@@ -171,7 +171,7 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_loops.count_char_tsmc(str: *u8, 
      20: LOAD_PARAM
      21: r17 = 1
      22: r18 = r16 + r17
-     23: UNKNOWN_OP_30 ; Update TSMC reference str
+     23: UNKNOWN_OP_32 ; Update TSMC reference str
      24: jump loop_15
      25: end_loop_16:
      26: r19 = load count

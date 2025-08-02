@@ -191,6 +191,7 @@ const (
 	OpPrintI16      // Print i16 as decimal
 	OpPrintBool     // Print bool as "true"/"false"
 	OpPrintString   // Print null-terminated string
+	OpPrintStringDirect // Print short string directly (no loop)
 	OpLoadString    // Load string literal address
 	OpLen           // Get length of array/string
 	OpMemcpy        // Copy memory block
@@ -734,6 +735,8 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("print_bool(r%d)", i.Src1)
 	case OpPrintString:
 		return fmt.Sprintf("print_string(r%d)", i.Src1)
+	case OpPrintStringDirect:
+		return fmt.Sprintf("print_direct(\"%s\")", i.Symbol)
 	case OpLoadString:
 		return fmt.Sprintf("r%d = string(%s)", i.Dest, i.Symbol)
 	case OpLen:

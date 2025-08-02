@@ -15,25 +15,9 @@ Function .Users.alice.dev.minz-ts.examples.hardware_registers.main() -> void
     r31 = sprite_x: u8
     r34 = sprite_y: u8
   Instructions:
-      0: r2 = 18
-      1: store , r2
-      2: r4 = load border_val
-      3: store , r4
-      4: LOAD_BIT_FIELD ; Load bit field border_color (offset 0, width 3)
-      5: store , r7
-      6: r17 = 1322 ; Folded: 
-      7: store , r17
-      8: r19 = load mem_val
-      9: store , r19
-     10: LOAD_BIT_FIELD ; Load bit field page_number (offset 0, width 8)
-     11: store , r22
-     12: r28 = 38500 ; Folded: 
-     13: store , r28
-     14: r30 = load sprite_val
-     15: store , r30
-     16: LOAD_BIT_FIELD ; Load bit field x_coord (offset 0, width 8)
-     17: store , r33
-     18: LOAD_BIT_FIELD ; Load bit field y_coord (offset 8, width 8)
-     19: store , r36
-     20: return
+      0: LOAD_BIT_FIELD ; Load bit field border_color (offset 0, width 3)
+      1: LOAD_BIT_FIELD ; Load bit field page_number (offset 0, width 8)
+      2: LOAD_BIT_FIELD ; Load bit field x_coord (offset 0, width 8)
+      3: LOAD_BIT_FIELD ; Load bit field y_coord (offset 8, width 8)
+      4: return
 

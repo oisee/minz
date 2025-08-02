@@ -6,9 +6,7 @@ Function .Users.alice.dev.minz-ts.examples.test_lua_lambda_prep.test_lambda_conc
   Locals:
     r1 = size: u16
   Instructions:
-      0: r2 = 5
-      1: store , r2
-      2: return
+      0: return
 
 Function .Users.alice.dev.minz-ts.examples.test_lua_lambda_prep.main() -> void
   @smc

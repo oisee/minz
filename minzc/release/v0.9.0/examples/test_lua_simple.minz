@@ -1,0 +1,9 @@
+// Simple Lua test
+
+// Define a constant using Lua
+const MAGIC_NUMBER: u8 = @lua(42 + 13);
+
+fun main() -> void {
+    let x = MAGIC_NUMBER;  // Should be 55
+    return;
+}

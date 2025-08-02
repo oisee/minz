@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -86,12 +86,11 @@
 ; Using absolute addressing for locals (SMC style)
     ; r1 = 10
     LD A, 10
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD ($F002), A     ; Virtual register 1 to memory
     ; r2 = call f
     ; Call to f (args: 1)
     ; Stack-based parameter passing
+    LD HL, ($F002)    ; Virtual register 1 from memory
     PUSH HL       ; Argument 0
     CALL f
     ; return
@@ -123,12 +122,16 @@
     LD HL, #0000   ; SMC parameter x (u8->u16)
     ; r2 = 2
     LD A, 2
-    LD D, A         ; Store to physical register D
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; r3 = r1 * r2
     ; 8-bit multiplication
-    LD A, C
+    ; Register 1 already in A
     LD B, A       ; B = multiplicand
-    LD A, D
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     LD C, A       ; C = multiplier
     LD HL, 0      ; HL = result
     LD A, C
@@ -185,7 +188,7 @@
     LD HL, #0000   ; SMC parameter x (u8->u16)
     ; r2 = 1
     LD A, 1
-    ; Register 2 already in A
+    LD H, A         ; Store to physical register H
     ; r3 = r1 + r2
     LD D, H
     LD E, L
@@ -200,19 +203,19 @@
 ; Using absolute addressing for locals (SMC style)
     ; r1 = 5
     LD A, 5
-    LD ($F002), A     ; Virtual register 1 to memory
+    ; Register 1 already in A
     ; r2 = call increment
     ; Call to increment (args: 1)
     ; Stack-based parameter passing
-    LD HL, ($F002)    ; Virtual register 1 from memory
     PUSH HL       ; Argument 0
     CALL increment
     ; r3 = 10
     LD A, 10
-    LD E, A         ; Store to physical register E
+    LD ($F006), A     ; Virtual register 3 to memory
     ; r4 = call increment
     ; Call to increment (args: 1)
     ; Stack-based parameter passing
+    LD HL, ($F006)    ; Virtual register 3 from memory
     PUSH HL       ; Argument 0
     CALL increment
     ; r5 = r2 + r4
@@ -239,9 +242,7 @@
     ; Call to test_lambda_reference (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_transform_test.test_lambda_reference
-    LD ($F008), HL    ; Virtual register 4 to memory
     ; store , r4
-    LD HL, ($F008)    ; Virtual register 4 from memory
     LD ($F006), HL
     ; r6 = call test_lambda_with_operations
     ; Call to test_lambda_with_operations (args: 0)
@@ -293,12 +294,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -370,9 +376,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

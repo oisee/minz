@@ -116,6 +116,7 @@ func (p *Parser) parseToJSON(filename string) (map[string]interface{}, error) {
 	}
 
 	// Run tree-sitter parse command directly (not through npx)
+	fmt.Printf("DEBUG: Running tree-sitter parse on %s\n", filename)
 	cmd := exec.Command("tree-sitter", "parse", filename, "--json")
 	cmd.Dir = grammarPath
 	
@@ -739,8 +740,16 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 		if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
 			text = text[1 : len(text)-1]
 		}
+		// Process escape sequences
+		unescaped := p.unescapeString(text)
+		// Debug output
+		if strings.Contains(text, "\\") {
+			fmt.Printf("DEBUG: String literal processing:\n")
+			fmt.Printf("  Raw text: %q\n", text)
+			fmt.Printf("  Unescaped: %q\n", unescaped)
+		}
 		return &ast.StringLiteral{
-			Value:    text,
+			Value:    unescaped,
 			StartPos: p.getPosition(node, "startPosition"),
 			EndPos:   p.getPosition(node, "endPosition"),
 		}
@@ -1230,14 +1239,56 @@ func (p *Parser) reconstructImportPath(node map[string]interface{}) string {
 	return strings.Join(parts, ".")
 }
 
-// parseStringLiteral extracts string literal content without quotes
+// parseStringLiteral extracts string literal content without quotes and processes escape sequences
 func (p *Parser) parseStringLiteral(node map[string]interface{}) string {
 	text := p.getText(node)
 	// Remove quotes
 	if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
 		text = text[1 : len(text)-1]
 	}
-	return text
+	// Process escape sequences
+	return p.unescapeString(text)
+}
+
+// unescapeString processes escape sequences in a string
+func (p *Parser) unescapeString(s string) string {
+	var result []rune
+	i := 0
+	for i < len(s) {
+		if s[i] == '\\' && i+1 < len(s) {
+			switch s[i+1] {
+			case 'n':
+				result = append(result, '\n')
+				i += 2
+			case 't':
+				result = append(result, '\t')
+				i += 2
+			case 'r':
+				result = append(result, '\r')
+				i += 2
+			case '\\':
+				result = append(result, '\\')
+				i += 2
+			case '"':
+				result = append(result, '"')
+				i += 2
+			case '\'':
+				result = append(result, '\'')
+				i += 2
+			case '0':
+				result = append(result, '\x00')
+				i += 2
+			default:
+				// Unknown escape, keep the backslash
+				result = append(result, rune(s[i]))
+				i++
+			}
+		} else {
+			result = append(result, rune(s[i]))
+			i++
+		}
+	}
+	return string(result)
 }
 
 // getPosition extracts a position from a node

@@ -1,0 +1,13 @@
+// Simplest possible lambda test
+
+fun test_simple_lambda() -> u8 {
+    // Create lambda
+    let f = |x: u8| => u8 { x };
+    
+    // Call it
+    f(42)
+}
+
+fun main() -> u8 {
+    test_simple_lambda()
+}

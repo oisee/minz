@@ -4,7 +4,7 @@
 Function .Users.alice.dev.minz-ts.examples.lambda_simple_fix.test_simple_lambda$f_0(x: u8) -> u8
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
       1: return
 
 Function .Users.alice.dev.minz-ts.examples.lambda_simple_fix.test_simple_lambda() -> u8

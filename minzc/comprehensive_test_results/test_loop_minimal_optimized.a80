@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Data section
@@ -17,32 +17,19 @@
 .Users.alice.dev.minz-ts.examples.test_loop_minimal.main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    PUSH DE
-    ; r1 = 10
-    LD A, 10
-    ; Register 1 already in A
     ; r2 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
     LD HL, .Users.alice.dev.minz-ts.examples.test_loop_minimal.items
     LD ($F004), HL    ; Virtual register 2 to memory
     ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_minimal.Item)
     LD HL, ($F004)    ; Virtual register 2 from memory
     PUSH HL
-    LD A, C
+    LD A, B
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    LD B, A         ; Store to physical register B
-    ; Store to field value (offset 0)
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
-    ; r5 = 20
-    LD A, 20
-    LD D, A         ; Store to physical register D
+    ; Register 4 already in A
     ; r6 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
     LD HL, .Users.alice.dev.minz-ts.examples.test_loop_minimal.items
     LD D, H
@@ -52,27 +39,14 @@
     LD L, E
     PUSH HL
     EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
+    LD A, B'         ; From shadow B'
     EXX               ; Switch back to main registers
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
-    ; Store to field value (offset 0)
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
-    ; r9 = 30
-    LD A, 30
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD C, A         ; Store to physical register C
     ; r10 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
     LD HL, .Users.alice.dev.minz-ts.examples.test_loop_minimal.items
     LD B, H
@@ -81,38 +55,50 @@
     LD H, B
     LD L, C
     PUSH HL
-    LD A, L
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD C', A         ; Store to shadow C'
     EXX               ; Switch back to main registers
-    ; Store to field value (offset 0)
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
     ; r13 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
     LD HL, .Users.alice.dev.minz-ts.examples.test_loop_minimal.items
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
     ; Load table base address
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
     ; Load table base for end calculation
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD ($F01E), HL    ; Virtual register 15 to memory
     ; Calculate table end (+ 3 elements * 1 bytes)
+    LD HL, ($F01E)    ; Virtual register 15 from memory
     LD DE, 3
     ADD HL, DE
+    LD ($F01E), HL    ; Virtual register 15 to memory
     ; Load loop counter
     LD A, 3
     LD H, A         ; Store to physical register H
     ; Check if reached end of table
     LD D, H
     LD E, L
+    LD HL, ($F01E)    ; Virtual register 15 from memory
     OR A      ; Clear carry
     SBC HL, DE
     ; Exit if done
-    LD A, H
+    LD A, L
     OR A
     JP NZ, loop_end_2
     ; Copy element to buffer at $F000
@@ -121,25 +107,7 @@
     LDIR            ; Copy to buffer
     ; Load item.value from buffer at $F000
     LD A, ($F000)
-    LD ($F024), A     ; Virtual register 18 to memory
-    ; r19 = 1
-    LD A, 1
-    LD H, A         ; Store to physical register H
-    ; r20 = r18 + r19
-    LD HL, ($F024)    ; Virtual register 18 from memory
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; r21 = load item
-    LD HL, ($F000)
-    ; Register 21 already in HL
-    ; Store to field value (offset 0)
-    ; Register 21 already in HL
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
+    LD L, A         ; Store to HL (low byte)
     ; Copy buffer back to element at $F000
     EX DE, HL       ; DE = destination
     LD HL, $F000    ; Buffer address
@@ -155,17 +123,21 @@
     LD A, B
     LD H, A         ; Store to physical register H
     ; return
-    POP DE
     RET
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -237,9 +209,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

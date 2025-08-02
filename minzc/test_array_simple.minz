@@ -1,9 +1,0 @@
-// Simple array test
-fun test() -> void {
-    let arr: [u8; 5]
-    let x = arr[0]
-}
-
-fun main() -> void {
-    test()
-}

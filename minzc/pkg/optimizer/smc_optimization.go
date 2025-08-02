@@ -113,46 +113,31 @@ func (p *SelfModifyingCodePass) analyzeCandidates(fn *ir.Function) {
 	
 	// Second pass: find all stores that modify these values
 	for i, inst := range fn.Instructions {
-		// Check if this instruction modifies a candidate
-		if candidate, exists := p.smcCandidates[inst.Dest]; exists {
-			if i != candidate.LoadIndex {
-				// This register is redefined, not suitable for SMC
-				delete(p.smcCandidates, inst.Dest)
-				continue
-			}
+		// Skip the load instruction itself
+		if candidate, exists := p.smcCandidates[inst.Dest]; exists && i == candidate.LoadIndex {
+			continue
 		}
 		
-		// Check for stores that could modify SMC values
-		switch inst.Op {
-		case ir.OpStoreVar, ir.OpStoreField:
-			// These might be modifying our SMC values indirectly
-			// For now, be conservative
-		case ir.OpAdd, ir.OpSub, ir.OpMul, ir.OpDiv:
-			// If the result overwrites a candidate, track it
-			if candidate, exists := p.smcCandidates[inst.Dest]; exists && i > candidate.LoadIndex {
-				candidate.StoreInsts = append(candidate.StoreInsts, StoreInfo{
-					Inst:  &fn.Instructions[i],
-					Index: i,
-				})
-			}
+		// Check if this instruction modifies a candidate register
+		if candidate, exists := p.smcCandidates[inst.Dest]; exists {
+			// This instruction writes to a candidate register
+			candidate.StoreInsts = append(candidate.StoreInsts, StoreInfo{
+				Inst:  &fn.Instructions[i],
+				Index: i,
+			})
 		}
 	}
 }
 
 // isSuitableForSMC determines if a candidate is suitable for SMC optimization
 func (p *SelfModifyingCodePass) isSuitableForSMC(candidate *SMCCandidate, fn *ir.Function) bool {
-	// Don't optimize if there are no stores (constant never changes)
-	if len(candidate.StoreInsts) == 0 && candidate.IsConstant {
-		return false
+	// Constants are always good candidates for SMC
+	if candidate.IsConstant {
+		return true
 	}
 	
 	// Parameters are good candidates if they're read-only
 	if candidate.IsParameter && len(candidate.StoreInsts) == 0 {
-		return true
-	}
-	
-	// Constants that are modified a few times are good candidates
-	if candidate.IsConstant && len(candidate.StoreInsts) <= 3 {
 		return true
 	}
 	

@@ -1,7 +1,0 @@
-// Test array global variable
-let arr: [u8; 5];
-
-fun main() -> u8 {
-    arr[0] = 42;
-    return arr[0];
-}

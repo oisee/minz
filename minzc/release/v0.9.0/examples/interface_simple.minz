@@ -1,0 +1,23 @@
+// Simple interface test without generics
+// Tests basic interface definition and implementation
+
+interface Drawable {
+    fun draw(self) -> u8;
+}
+
+struct Circle {
+    radius: u8,
+}
+
+impl Drawable for Circle {
+    fun draw(self) -> u8 {
+        self.radius * 2  // Simple implementation
+    }
+}
+
+fun main() -> u8 {
+    let circle = Circle { radius: 5 };
+    
+    // Direct method call - should resolve to Circle_draw
+    circle.draw()  // Should return 10
+}

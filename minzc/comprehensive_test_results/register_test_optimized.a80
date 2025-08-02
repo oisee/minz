@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -36,68 +36,37 @@ y$immOP:
 y$imm0 EQU y$immOP+1
     LD D, H
     LD E, L
-    ; r7 = r5 + r6
-    LD HL, ($F00A)    ; Virtual register 5 from memory
-    LD D, H
-    LD E, L
-    LD H, D
-    LD L, E
-    ADD HL, DE
+    LD HL, (y$imm0)   ; Reuse from anchor
     PUSH HL           ; Save current HL
     EXX               ; Switch to shadow registers
     POP HL            ; Load into shadow HL
     EXX               ; Switch back to main registers
-    ; store , r7
-    EXX               ; Switch to shadow registers
-    PUSH HL           ; Save shadow HL
-    EXX               ; Switch back to main registers
-    POP HL            ; Load shadow HL into main HL
-    LD ($F008), HL
-    LD HL, (y$imm0)   ; Reuse from anchor
 z$immOP:
     LD HL, 0       ; z anchor (will be patched)
 z$imm0 EQU z$immOP+1
-    ; r11 = r9 + r10
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; Register 11 already in HL
-    ; store , r11
-    ; Register 11 already in HL
-    LD ($F010), HL
     LD HL, (x$imm0)   ; Reuse from anchor
-    LD ($F01A), HL    ; Virtual register 13 to memory
     LD HL, (z$imm0)   ; Reuse from anchor
-    ; Register 14 already in HL
-    ; r15 = r13 + r14
-    LD HL, ($F01A)    ; Virtual register 13 from memory
-    LD D, H
-    LD E, L
-    ; Register 14 already in HL
-    ADD HL, DE
-    ; store , r15
-    LD ($F018), HL
     ; r16 = load t1
     LD HL, ($F008)
     ; Register 16 already in HL
     ; r17 = load t2
     LD HL, ($F010)
+    ; r19 = load t3
+    LD HL, ($F018)
     ; r18 = r16 + r17
     ; Register 16 already in HL
     LD D, H
     LD E, L
     ADD HL, DE
     ; Register 18 already in HL
-    ; r19 = load t3
-    LD HL, ($F018)
-    ; Register 19 already in HL
     ; r20 = r18 + r19
     ; Register 18 already in HL
     LD D, H
     LD E, L
-    ; Register 19 already in HL
     ADD HL, DE
+    ; Register 20 already in HL
     ; return r20
+    ; Register 20 already in HL
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
@@ -105,26 +74,6 @@ z$imm0 EQU z$immOP+1
 .Users.alice.dev.minz-ts.examples.register_test.timer_isr:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    ; r2 = 0
-    LD A, 0
-    LD L, A         ; Store to physical register L
-    ; store , r2
-    LD A, L
-    LD ($F002), A
-    ; r3 = load counter
-    LD A, ($F002)
-    LD H, A         ; Store to physical register H
-    ; r4 = 1
-    LD A, 1
-    LD L, A         ; Store to physical register L
-    ; r5 = r3 + r4
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; Register 5 already in HL
-    ; store counter, r5
-    LD A, L
-    LD ($F002), A
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -149,8 +98,7 @@ z$imm0 EQU z$immOP+1
     LD A, ($F006)     ; Virtual register 3 from memory
     LD (b$imm0), A        ; Patch b
     CALL .Users.alice.dev.minz-ts.examples.register_test.simple_add
-    ; store , r4
-    LD ($F002), HL
+    ; Register 4 already in HL
     ; r9 = call complex_calc
     ; Call to complex_calc (args: 3)
     ; Stack-based parameter passing
@@ -169,8 +117,6 @@ z$imm0 EQU z$immOP+1
     LD HL, ($F010)    ; Virtual register 8 from memory
     LD (z$imm0), HL       ; Patch z (atomic)
     CALL .Users.alice.dev.minz-ts.examples.register_test.complex_calc
-    ; store , r9
-    LD ($F00A), HL
     ; return
     POP DE
     POP BC
@@ -199,12 +145,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -276,9 +227,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

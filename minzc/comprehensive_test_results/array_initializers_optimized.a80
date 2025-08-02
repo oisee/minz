@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:25
 
 
 ; Data section
@@ -8,48 +8,38 @@
 str_0:
     DB 5    ; Length
     DB "RGB: "
-    DB 0               ; Null terminator
 str_1:
     DB 2    ; Length
     DB ", "
-    DB 0               ; Null terminator
 str_2:
     DB 2    ; Length
     DB ", "
-    DB 0               ; Null terminator
 str_3:
     DB 2    ; Length
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_4:
     DB 9    ; Length
     DB "Matrix:"
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_5:
     DB 1    ; Length
     DB " "
-    DB 0               ; Null terminator
 str_6:
     DB 2    ; Length
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_7:
     DB 1    ; Length
     DB " "
-    DB 0               ; Null terminator
 str_8:
     DB 2    ; Length
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_9:
     DB 5    ; Length
     DB "Sum: "
-    DB 0               ; Null terminator
 
 ; Code section
     ORG $8000
@@ -65,8 +55,9 @@ str_9:
     ; print_string(r5)
     CALL print_string
     ; Load array element (u8)
+    LD HL, ($F00C)    ; Virtual register 6 from memory
     PUSH HL
-    LD A, ($F00E)     ; Virtual register 7 from memory
+    LD A, D
     LD E, A
     LD D, 0
     POP HL
@@ -78,9 +69,7 @@ str_9:
     CALL print_u8_decimal
     ; r9 = string(str_1)
     LD HL, str_1
-    LD ($F012), HL    ; Virtual register 9 to memory
     ; print_string(r9)
-    LD HL, ($F012)    ; Virtual register 9 from memory
     CALL print_string
     ; Load array element (u8)
     PUSH HL
@@ -102,7 +91,7 @@ str_9:
     CALL print_string
     ; Load array element (u8)
     PUSH HL
-    LD A, E
+    LD A, C
     LD E, A
     LD D, 0
     POP HL
@@ -118,7 +107,9 @@ str_9:
     CALL print_u8_decimal
     ; r17 = string(str_3)
     LD HL, str_3
+    LD ($F022), HL    ; Virtual register 17 to memory
     ; print_string(r17)
+    LD HL, ($F022)    ; Virtual register 17 from memory
     CALL print_string
     ; r18 = string(str_4)
     LD HL, str_4
@@ -241,16 +232,11 @@ str_9:
 ; Function: .Users.alice.dev.minz-ts.examples.array_initializers.sum_array
 .Users.alice.dev.minz-ts.examples.array_initializers.sum_array:
 ; TRUE SMC function with immediate anchors
-    ; r3 = 0
-    LD A, 0
-    LD H, A         ; Store to physical register H
-    ; store , r3
-    LD A, H
-    LD ($F004), A
     ; r5 = 4
     LD A, 4
     LD H, A         ; Store to physical register H
     ; Initialize loop variable i
+    ; Register 4 already in HL
     ; for_loop_1:
 for_loop_1:
     ; Check i < end
@@ -265,14 +251,10 @@ for_loop_1:
 .L1:
     LD HL, 1
 .L2:
-    ; Register 7 already in HL
     ; jump_if_not r7, for_end_2
-    LD A, L
+    LD A, H
     OR A
     JP Z, for_end_2
-    ; r8 = load sum
-    LD A, ($F004)
-    LD L, A         ; Store to physical register L
 arr$immOP:
     LD HL, 0       ; arr anchor (will be patched)
 arr$imm0 EQU arr$immOP+1
@@ -284,31 +266,23 @@ arr$imm0 EQU arr$immOP+1
     POP HL
     ADD HL, DE
     LD A, (HL)
-    LD H, A         ; Store to physical register H
-    ; r12 = r8 + r11
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    LD ($F018), HL    ; Virtual register 12 to memory
-    ; store sum, r12
-    LD A, ($F018)     ; Virtual register 12 from memory
-    LD ($F004), A
-    ; r13 = 1
-    LD A, 1
-    LD L, A         ; Store to physical register L
+    LD ($F016), A     ; Virtual register 11 to memory
     ; Increment i
     LD D, H
     LD E, L
+    ; Register 13 already in HL
     ADD HL, DE
+    ; r13 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
     ; jump for_loop_1
     JP for_loop_1
     ; for_end_2:
 for_end_2:
     ; r14 = load sum
     LD A, ($F004)
-    LD L, A         ; Store to HL (low byte)
+    LD H, A         ; Store to physical register H
     ; return r14
-    ; Register 14 already in HL
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
@@ -329,10 +303,6 @@ for_end_2:
     ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.array_initializers.sum_array
     LD (arr$imm0), HL       ; Patch arr (atomic)
     CALL .Users.alice.dev.minz-ts.examples.array_initializers.sum_array
-    LD ($F00A), HL    ; Virtual register 5 to memory
-    ; store , r5
-    LD HL, ($F00A)    ; Virtual register 5 from memory
-    LD ($F004), HL
     ; r6 = string(str_9)
     LD HL, str_9
     ; print_string(r6)
@@ -356,12 +326,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -433,9 +408,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

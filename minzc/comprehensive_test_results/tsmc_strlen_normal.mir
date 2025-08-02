@@ -10,7 +10,7 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_strlen.strlen_tsmc(str: *u8) -> 
       1: store , r3
       2: loop_1:
       3: LOAD_PARAM
-      4: UNKNOWN_OP_66
+      4: UNKNOWN_OP_69
       5: r6 = 0
       6: r7 = r5 != r6
       7: jump_if_not r7, end_loop_2
@@ -21,7 +21,7 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_strlen.strlen_tsmc(str: *u8) -> 
      12: LOAD_PARAM
      13: r12 = 1
      14: r13 = r11 + r12
-     15: UNKNOWN_OP_30 ; Update TSMC reference str
+     15: UNKNOWN_OP_32 ; Update TSMC reference str
      16: jump loop_1
      17: end_loop_2:
      18: r14 = load len
@@ -41,7 +41,7 @@ Function .Users.alice.dev.minz-ts.examples.tsmc_strlen.test() -> u16
       4: r6 = 0
       5: store , r6
       6: r7 = load a
-      7: UNKNOWN_OP_65
+      7: UNKNOWN_OP_68
       8: r9 = call strlen_tsmc
       9: return r9
 

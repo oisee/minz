@@ -1,0 +1,43 @@
+// Simple Interface Test - Testing basic interface implementation
+
+// Define an interface
+interface Drawable {
+    fun draw(self) -> u8;
+    fun get_area(self) -> u16;
+}
+
+// Struct implementation
+struct Circle {
+    x: u8,
+    y: u8, 
+    radius: u8,
+}
+
+// Implement the interface for Circle
+impl Drawable for Circle {
+    fun draw(self) -> u8 {
+        // Simple implementation for now
+        return self.x + self.y;
+    }
+    
+    fun get_area(self) -> u16 {
+        // πr² approximated as 3*r*r
+        let r16 = self.radius as u16;
+        return r16 * r16 * 3;
+    }
+}
+
+fun main() -> u8 {
+    let circle = Circle { x: 10, y: 20, radius: 5 };
+    
+    // Test direct method calls
+    let result = circle.draw();      // Should call Circle.draw directly
+    let area = circle.get_area();    // Should call Circle.get_area directly
+    
+    // Simple test to verify it works
+    if area == 75 {  // 5 * 5 * 3 = 75
+        return 0;  // Success
+    }
+    
+    return 1;  // Failure
+}

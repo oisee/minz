@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -49,20 +49,6 @@ mul_src2_0: DW 0
 ; Using absolute addressing for locals (SMC style)
     PUSH BC
     PUSH DE
-    ; r2 = 256
-    LD HL, 256
-    LD D, H
-    LD E, L
-    ; store , r2
-    LD H, D
-    LD L, E
-    LD ($F002), HL
-    ; r4 = 192
-    LD A, 192
-    LD ($F008), A     ; Virtual register 4 to memory
-    ; store , r4
-    LD HL, ($F008)    ; Virtual register 4 from memory
-    LD ($F006), HL
     ; r7 = call calculate_timing
     ; Call to calculate_timing (args: 1)
     ; Stack-based parameter passing
@@ -73,20 +59,6 @@ mul_src2_0: DW 0
     LD A, ($F00C)     ; Virtual register 6 from memory
     LD (frames$imm0), A        ; Patch frames
     CALL .Users.alice.dev.minz-ts.examples.lua_working_demo.calculate_timing
-    ; store , r7
-    LD ($F00A), HL
-    ; r9 = 58
-    LD A, 58
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
-    ; store , r9
-    LD ($F010), HL
-    ; r11 = 161
-    LD A, 161
-    LD H, A         ; Store to physical register H
-    ; store , r11
-    LD ($F014), HL
     ; return
     POP DE
     POP BC
@@ -103,12 +75,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -180,9 +157,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

@@ -1,0 +1,11 @@
+// Test different string lengths
+fun main() -> void {
+    let short = "Hi";
+    let medium = "This is a medium length string for testing";
+    let long = "This is a very long string that contains many characters and should test the string generation thoroughly with various content including special characters like newlines and tabs and other stuff";
+    
+    // String operations would access:
+    // short: length at offset 0, data at offset 1
+    // medium: length at offset 0, data at offset 1  
+    // long: length at offset 0, data at offset 1
+}

@@ -1,0 +1,257 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.feature_tests.02_arrays_pointers.test_arrays() -> bool
+  @smc
+  Locals:
+    r1 = arr: [5]u8
+  Instructions:
+      0: r2 = load arr
+      1: r3 = 0
+      2: LOAD_INDEX ; Load array element (u8)
+      3: r5 = 1
+      4: r6 = r4 != r5
+      5: jump_if_not r6, else_1
+      6: return
+      7: jump end_if_2
+      8: else_1:
+      9: end_if_2:
+     10: r7 = load arr
+     11: r8 = 4
+     12: LOAD_INDEX ; Load array element (u8)
+     13: r10 = 5
+     14: r11 = r9 != r10
+     15: jump_if_not r11, else_3
+     16: return
+     17: jump end_if_4
+     18: else_3:
+     19: end_if_4:
+     20: r12 = 10
+     21: r13 = load arr
+     22: r14 = 2
+     23: r15 = r13 + r14 ; Calculate array element address
+     24: UNKNOWN_OP_67 ; Store to array[index] (u8)
+     25: r16 = load arr
+     26: r17 = 2
+     27: LOAD_INDEX ; Load array element (u8)
+     28: r19 = 10
+     29: r20 = r18 != r19
+     30: jump_if_not r20, else_5
+     31: return
+     32: jump end_if_6
+     33: else_5:
+     34: end_if_6:
+     35: r21 = load arr
+     36: UNKNOWN_OP_88 ; Built-in len function
+     37: r23 = 5
+     38: r24 = r22 != r23
+     39: jump_if_not r24, else_7
+     40: return
+     41: jump end_if_8
+     42: else_7:
+     43: end_if_8:
+     44: return
+
+Function .Users.alice.dev.minz-ts.examples.feature_tests.02_arrays_pointers.test_pointers() -> bool
+  @smc
+  Locals:
+    r1 = val: u8
+    r3 = ptr: *u8
+  Instructions:
+      0: r2 = 42
+      1: store , r2
+      2: r4 = load val
+      3: UNKNOWN_OP_68
+      4: store , r5
+      5: r6 = load ptr
+      6: UNKNOWN_OP_69
+      7: r8 = 42
+      8: r9 = r7 != r8
+      9: jump_if_not r9, else_9
+     10: return
+     11: jump end_if_10
+     12: else_9:
+     13: end_if_10:
+     14: r10 = 100
+     15: r11 = load ptr
+     16: UNKNOWN_OP_70 ; Store through pointer
+     17: r12 = load val
+     18: r13 = 100
+     19: r14 = r12 != r13
+     20: jump_if_not r14, else_11
+     21: return
+     22: jump end_if_12
+     23: else_11:
+     24: end_if_12:
+     25: return
+
+Function .Users.alice.dev.minz-ts.examples.feature_tests.02_arrays_pointers.test_array_pointers() -> bool
+  @smc
+  Locals:
+    r1 = arr: [3]u8
+    r2 = ptr: *[3]u8
+    r17 = elem_ptr: *u8
+  Instructions:
+      0: r3 = load arr
+      1: UNKNOWN_OP_68
+      2: store , r4
+      3: r5 = load ptr
+      4: UNKNOWN_OP_69
+      5: r7 = 0
+      6: LOAD_INDEX ; Load array element (u8)
+      7: r9 = 10
+      8: r10 = r8 != r9
+      9: jump_if_not r10, else_13
+     10: return
+     11: jump end_if_14
+     12: else_13:
+     13: end_if_14:
+     14: r11 = load ptr
+     15: UNKNOWN_OP_69
+     16: r13 = 2
+     17: LOAD_INDEX ; Load array element (u8)
+     18: r15 = 30
+     19: r16 = r14 != r15
+     20: jump_if_not r16, else_15
+     21: return
+     22: jump end_if_16
+     23: else_15:
+     24: end_if_16:
+     25: r18 = load arr
+     26: r19 = 1
+     27: LOAD_INDEX ; Load array element (u8)
+     28: UNKNOWN_OP_68
+     29: store , r21
+     30: r22 = load elem_ptr
+     31: UNKNOWN_OP_69
+     32: r24 = 20
+     33: r25 = r23 != r24
+     34: jump_if_not r25, else_17
+     35: return
+     36: jump end_if_18
+     37: else_17:
+     38: end_if_18:
+     39: r26 = 25
+     40: r27 = load elem_ptr
+     41: UNKNOWN_OP_70 ; Store through pointer
+     42: r28 = load arr
+     43: r29 = 1
+     44: LOAD_INDEX ; Load array element (u8)
+     45: r31 = 25
+     46: r32 = r30 != r31
+     47: jump_if_not r32, else_19
+     48: return
+     49: jump end_if_20
+     50: else_19:
+     51: end_if_20:
+     52: return
+
+Function .Users.alice.dev.minz-ts.examples.feature_tests.02_arrays_pointers.test_pointer_arithmetic() -> bool
+  @smc
+  Locals:
+    r1 = arr: [5]u8
+    r2 = ptr: *u8
+  Instructions:
+      0: r3 = load arr
+      1: r4 = 0
+      2: LOAD_INDEX ; Load array element (u8)
+      3: UNKNOWN_OP_68
+      4: store , r6
+      5: return
+
+Function .Users.alice.dev.minz-ts.examples.feature_tests.02_arrays_pointers.test_multidimensional_arrays() -> bool
+  @smc
+  Locals:
+    r1 = matrix: [2][3]u8
+  Instructions:
+      0: r2 = load matrix
+      1: r3 = 0
+      2: LOAD_INDEX ; Load array element ([3]u8)
+      3: r5 = 0
+      4: LOAD_INDEX ; Load array element (u8)
+      5: r7 = 1
+      6: r8 = r6 != r7
+      7: jump_if_not r8, else_21
+      8: return
+      9: jump end_if_22
+     10: else_21:
+     11: end_if_22:
+     12: r9 = load matrix
+     13: r10 = 1
+     14: LOAD_INDEX ; Load array element ([3]u8)
+     15: r12 = 2
+     16: LOAD_INDEX ; Load array element (u8)
+     17: r14 = 6
+     18: r15 = r13 != r14
+     19: jump_if_not r15, else_23
+     20: return
+     21: jump end_if_24
+     22: else_23:
+     23: end_if_24:
+     24: r16 = 10
+     25: r17 = load matrix
+     26: r18 = 1
+     27: LOAD_INDEX ; Load array element ([3]u8)
+     28: r20 = 1
+     29: r21 = r19 + r20 ; Calculate array element address
+     30: UNKNOWN_OP_67 ; Store to array[index] (u8)
+     31: r22 = load matrix
+     32: r23 = 1
+     33: LOAD_INDEX ; Load array element ([3]u8)
+     34: r25 = 1
+     35: LOAD_INDEX ; Load array element (u8)
+     36: r27 = 10
+     37: r28 = r26 != r27
+     38: jump_if_not r28, else_25
+     39: return
+     40: jump end_if_26
+     41: else_25:
+     42: end_if_26:
+     43: return
+
+Function .Users.alice.dev.minz-ts.examples.feature_tests.02_arrays_pointers.main() -> u8
+  @smc
+  Instructions:
+      0: r1 = call test_arrays
+      1: r2 = ~r1
+      2: jump_if_not r2, else_27
+      3: r3 = 1
+      4: return r3
+      5: jump end_if_28
+      6: else_27:
+      7: end_if_28:
+      8: r4 = call test_pointers
+      9: r5 = ~r4
+     10: jump_if_not r5, else_29
+     11: r6 = 2
+     12: return r6
+     13: jump end_if_30
+     14: else_29:
+     15: end_if_30:
+     16: r7 = call test_array_pointers
+     17: r8 = ~r7
+     18: jump_if_not r8, else_31
+     19: r9 = 3
+     20: return r9
+     21: jump end_if_32
+     22: else_31:
+     23: end_if_32:
+     24: r10 = call test_pointer_arithmetic
+     25: r11 = ~r10
+     26: jump_if_not r11, else_33
+     27: r12 = 4
+     28: return r12
+     29: jump end_if_34
+     30: else_33:
+     31: end_if_34:
+     32: r13 = call test_multidimensional_arrays
+     33: r14 = ~r13
+     34: jump_if_not r14, else_35
+     35: r15 = 5
+     36: return r15
+     37: jump end_if_36
+     38: else_35:
+     39: end_if_36:
+     40: r16 = 0
+     41: return r16
+

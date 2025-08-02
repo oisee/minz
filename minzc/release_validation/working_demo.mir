@@ -1,0 +1,142 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.working_demo.test_basic_math() -> u8
+  @smc
+  Locals:
+    r1 = a: u8
+    r3 = b: u8
+    r5 = sum: u16
+  Instructions:
+      0: r9 = load sum
+      1: r10 = 30
+      2: r11 = r9 == r10
+      3: jump_if_not r11, else_1
+      4: r12 = 0
+      5: return r12
+      6: else_1:
+      7: r13 = 1
+      8: return r13
+
+Function ......examples.working_demo.test_arrays() -> u8
+  @smc
+  Locals:
+    r1 = arr: [5]u8
+    r2 = ptr: *u8
+  Instructions:
+      0: LOAD_INDEX ; Load array element (u8)
+      1: UNKNOWN_OP_68
+      2: UNKNOWN_OP_69
+      3: r9 = 3
+      4: r10 = r8 == r9
+      5: jump_if_not r10, else_3
+      6: r11 = 0
+      7: return r11
+      8: else_3:
+      9: r12 = 1
+     10: return r12
+
+Function ......examples.working_demo.test_structs() -> u8
+  @smc
+  Locals:
+    r1 = p: u16
+  Instructions:
+      0: r5 = load p
+      1: LOAD_FIELD ; Load field x (offset 0)
+      2: r7 = load p
+      3: LOAD_FIELD ; Load field y (offset 1)
+      4: r9 = r6 + r8
+      5: r10 = 30
+      6: r11 = r9 == r10
+      7: jump_if_not r11, else_5
+      8: r12 = 0
+      9: return r12
+     10: else_5:
+     11: r13 = 1
+     12: return r13
+
+Function ......examples.working_demo.test_lambdas$add_0(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      2: return
+
+Function ......examples.working_demo.test_lambdas() -> u8
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r4 = call add
+      1: r5 = load result
+      2: r6 = 40
+      3: r7 = r5 == r6
+      4: jump_if_not r7, else_7
+      5: r8 = 0
+      6: return r8
+      7: else_7:
+      8: r9 = 1
+      9: return r9
+
+Function ......examples.working_demo.test_loops() -> u8
+  @smc
+  Locals:
+    r1 = sum: u8
+  Instructions:
+      0: r4 = 5
+      1: r5 = r3 ; Initialize loop variable i
+      2: for_loop_9:
+      3: r6 = r5 < r4 ; Check i < end
+      4: jump_if_not r6, for_end_10
+      5: r5 = r5 + r10 ; Increment i
+      6: r10 = 1
+      7: jump for_loop_9
+      8: for_end_10:
+      9: r11 = load sum
+     10: r12 = 10
+     11: r13 = r11 == r12
+     12: jump_if_not r13, else_11
+     13: r14 = 0
+     14: return r14
+     15: else_11:
+     16: r15 = 1
+     17: return r15
+
+Function ......examples.working_demo.multiply(a: u8, b: u8) -> u16
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor b$imm0
+      2: r5 = r3 * r4
+      3: return r5
+
+Function ......examples.working_demo.test_function_calls() -> u8
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r4 = call multiply
+      1: r5 = load result
+      2: r6 = 132
+      3: r7 = r5 == r6
+      4: jump_if_not r7, else_13
+      5: r8 = 0
+      6: return r8
+      7: else_13:
+      8: r9 = 1
+      9: return r9
+
+Function ......examples.working_demo.main() -> u8
+  @smc
+  Locals:
+    r1 = errors: u8
+  Instructions:
+      0: r4 = call test_basic_math
+      1: r7 = call test_arrays
+      2: r10 = call test_structs
+      3: r13 = call test_lambdas
+      4: r16 = call test_loops
+      5: r19 = call test_function_calls
+      6: r21 = load errors
+      7: return r21
+

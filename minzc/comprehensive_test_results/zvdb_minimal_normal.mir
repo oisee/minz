@@ -64,7 +64,7 @@ Function .Users.alice.dev.minz-ts.examples.zvdb_minimal.add_vector(store: *.User
      12: LOAD_PARAM
      13: LOAD_FIELD ; Load field count (offset 256)
      14: r12 = r9 + r11 ; Calculate array element address
-     15: UNKNOWN_OP_64 ; Store to array[index] (u8)
+     15: UNKNOWN_OP_67 ; Store to array[index] (u8)
      16: LOAD_PARAM
      17: LOAD_FIELD ; Load field count (offset 256)
      18: r15 = 1
@@ -131,25 +131,25 @@ Function .Users.alice.dev.minz-ts.examples.zvdb_minimal.main() -> void
       1: r3 = load store
       2: STORE_FIELD ; Store to field count (offset 256)
       3: r4 = load store
-      4: UNKNOWN_OP_65
+      4: UNKNOWN_OP_68
       5: r6 = 170
       6: r7 = call add_vector
       7: r8 = load store
-      8: UNKNOWN_OP_65
+      8: UNKNOWN_OP_68
       9: r10 = 85
      10: r11 = call add_vector
      11: r12 = load store
-     12: UNKNOWN_OP_65
+     12: UNKNOWN_OP_68
      13: r14 = 240
      14: r15 = call add_vector
      15: r16 = load store
-     16: UNKNOWN_OP_65
+     16: UNKNOWN_OP_68
      17: r18 = 15
      18: r19 = call add_vector
      19: r21 = 171
      20: store , r21
      21: r23 = load store
-     22: UNKNOWN_OP_65
+     22: UNKNOWN_OP_68
      23: r25 = load query
      24: r26 = call find_nearest
      25: store , r26

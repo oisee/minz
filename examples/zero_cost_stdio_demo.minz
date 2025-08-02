@@ -1,5 +1,10 @@
 // MinZ Zero-Cost stdio Demo
 // Demonstrates compile-time print optimization and zero-overhead abstractions
+//
+// NEW: Showcases MinZ's length-prefixed string architecture!
+// - Strings stored as length + data (no null terminators)
+// - Smart optimization strategies based on string length
+// - Enhanced { constant } syntax for compile-time constants
 
 import std.io_optimized;
 import std.print;
@@ -39,15 +44,17 @@ fun main() -> u8 {
     // Simple compile-time optimized printing
     @println("=== MinZ Zero-Cost stdio Demo ===");
     
-    // Constants are fully optimized at compile time
-    @print("Magic number: {}, In hex: 0x{:x}\n", 42, hex(42));
-    // Compiles to:
-    //   CALL print_literal_14  ; "Magic number: "
-    //   CALL print_literal_2   ; "42"
-    //   CALL print_literal_9   ; ", In hex: "
-    //   CALL print_literal_4   ; "0x2A"
-    //   LD A, '\n'
-    //   RST 0x10
+    // Constants are fully optimized at compile time with new syntax
+    @print("Magic number: { 42 }, In hex: { @hex(42) }\n");
+    // Compiles to optimal length-prefixed strings:
+    //   LD HL, str_magic      ; DB 14, "Magic number: "
+    //   CALL print_string     ; DJNZ loop (optimal for 14 chars)
+    //   LD HL, str_42         ; DB 2, "42"  
+    //   CALL print_string     ; Direct for short strings
+    //   LD HL, str_hex        ; DB 10, ", In hex: "
+    //   CALL print_string     ; DJNZ loop
+    //   LD HL, str_2a         ; DB 4, "0x2A"
+    //   CALL print_string     ; Direct for short strings
     
     // Runtime values with zero-cost interface dispatch
     let player = Player {
@@ -71,9 +78,11 @@ fun main() -> u8 {
     @print_to(buffered, "This is buffered: {}\n", 12345);
     buffered.flush();
     
-    // String building at compile time
-    let message = @build_string("Hello, ", "World", "!");
+    // String building at compile time with { constant } syntax
+    let message = @build_string("Hello, { \"World\" }!");  // -> "Hello, World!"
     @println("Built string: {}", message);
+    
+    // Length-prefixed storage: DB 13, "Hello, World!" (no null terminator)
     
     // Conditional debug output (zero cost in release)
     @trace("Player {} reached position {}", player.name, pos);
@@ -125,15 +134,13 @@ fun main() -> u8 {
 // - Platform-specific code generation
 // - Minimal code size and maximum performance
 
-// Example assembly output for @print("Score: {}", 42):
+// Example assembly output for @print("Score: { 42 }"):
 //
-// ; No runtime format parsing!
-// LD HL, const_str_score  ; "Score: "
-// LD B, 7                 ; Length known at compile time
-// CALL write_string_7     ; Optimized for exact length
-// LD HL, const_str_42     ; "42" - pre-computed!
-// LD B, 2
-// CALL write_string_2
+// ; No runtime format parsing! Single length-prefixed string!
+// LD HL, const_str_score42  ; DB 9, "Score: 42" (length-prefixed)
+// CALL print_string         ; DJNZ loop for 9 characters
+//
+// Even better than the old approach - single string, single call!
 //
 // Compare to traditional printf:
 // ; Traditional approach needs:

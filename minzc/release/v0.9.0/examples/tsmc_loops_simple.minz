@@ -1,0 +1,44 @@
+// Simplified TSMC Loop Examples
+
+// Pattern 1: Basic array sum with TSMC
+@abi("smc")
+fun sum_array_tsmc(arr: *u8, count: u16) -> u16 {
+    var sum: u16 = 0;
+    var i: u16 = 0;
+    while i < count {
+        sum = sum + *arr;
+        arr = arr + 1;  // Self-modifies the dereference above
+        i = i + 1;
+    }
+    return sum;
+}
+
+// Pattern 2: Memory copy with TSMC
+@abi("smc")
+fun memcpy_tsmc(dest: *u8, src: *u8, count: u16) {
+    var i: u16 = 0;
+    while i < count {
+        *dest = *src;
+        dest = dest + 1;  // Self-modify destination
+        src = src + 1;   // Self-modify source
+        i = i + 1;
+    }
+}
+
+// Test function
+fun test() {
+    // Simple test - just call the functions
+    var x: u8 = 42;
+    var y: u8 = 0;
+    
+    // Test sum
+    var sum: u16 = sum_array_tsmc(&x, 1);
+    
+    // Test copy
+    memcpy_tsmc(&y, &x, 1);
+}
+
+// Entry point
+fun main() {
+    test();
+}

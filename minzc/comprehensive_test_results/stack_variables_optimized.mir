@@ -8,20 +8,10 @@ Function .Users.alice.dev.minz-ts.examples.stack_variables.test_stack_locals(x: 
     r7 = b: u8
     r11 = c: u8
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: r5 = 10
-      2: r6 = r4 + r5
-      3: store , r6
-      4: UNKNOWN_OP_31 ; Load from anchor y$imm0
-      5: r9 = 20
-      6: r10 = r8 + r9
-      7: store , r10
-      8: r12 = load a
-      9: r13 = load b
-     10: r14 = r12 + r13
-     11: store , r14
-     12: r15 = load c
-     13: return r15
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      2: r15 = load c
+      3: return r15
 
 Function .Users.alice.dev.minz-ts.examples.stack_variables.factorial(n: u8) -> u16
   @smc
@@ -29,20 +19,19 @@ Function .Users.alice.dev.minz-ts.examples.stack_variables.factorial(n: u8) -> u
   Locals:
     r6 = prev: u16
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor n$imm0
       1: r3 = 1
       2: r4 = r2 <= r3
       3: jump_if_not r4, else_1
       4: r5 = 1
       5: return r5
       6: else_1:
-      7: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      7: UNKNOWN_OP_33 ; Load from anchor n$imm0
       8: r10 = call factorial
-      9: store , r10
-     10: UNKNOWN_OP_31 ; Load from anchor n$imm0
-     11: r12 = load prev
-     12: r13 = r11 * r12
-     13: return r13
+      9: UNKNOWN_OP_33 ; Load from anchor n$imm0
+     10: r12 = load prev
+     11: r13 = r11 * r12
+     12: return r13
 
 Function .Users.alice.dev.minz-ts.examples.stack_variables.many_locals() -> u8
   @smc
@@ -58,42 +47,10 @@ Function .Users.alice.dev.minz-ts.examples.stack_variables.many_locals() -> u8
     r17 = sum1: u8
     r25 = sum2: u8
   Instructions:
-      0: r2 = 1
-      1: store , r2
-      2: r4 = 2
-      3: store , r4
-      4: r6 = 3
-      5: store , r6
-      6: r8 = 4
-      7: store , r8
-      8: r10 = 5
-      9: store , r10
-     10: r12 = 6
-     11: store , r12
-     12: r14 = 7
-     13: store , r14
-     14: r16 = 8
-     15: store , r16
-     16: r18 = load a
-     17: r19 = load b
-     18: r20 = r18 + r19
-     19: r21 = load c
-     20: r22 = r20 + r21
-     21: r23 = load d
-     22: r24 = r22 + r23
-     23: store , r24
-     24: r26 = load e
-     25: r27 = load f
-     26: r28 = r26 + r27
-     27: r29 = load g
-     28: r30 = r28 + r29
-     29: r31 = load h
-     30: r32 = r30 + r31
-     31: store , r32
-     32: r33 = load sum1
-     33: r34 = load sum2
-     34: r35 = r33 + r34
-     35: return r35
+      0: r33 = load sum1
+      1: r34 = load sum2
+      2: r35 = r33 + r34
+      3: return r35
 
 Function .Users.alice.dev.minz-ts.examples.stack_variables.outer(x: u8) -> u8
   @smc
@@ -102,30 +59,19 @@ Function .Users.alice.dev.minz-ts.examples.stack_variables.outer(x: u8) -> u8
     r6 = result: u8
     r9 = local2: u8
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: r4 = 1
-      2: r5 = r3 + r4
-      3: store , r5
-      4: r8 = call inner
-      5: store , r8
-      6: r10 = load result
-      7: r11 = 1
-      8: r12 = r10 + r11
-      9: store , r12
-     10: r13 = load local2
-     11: return r13
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: r8 = call inner
+      2: r13 = load local2
+      3: return r13
 
 Function .Users.alice.dev.minz-ts.examples.stack_variables.inner(y: u8) -> u8
   @smc
   Locals:
     r2 = temp: u8
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor y$imm0
-      1: r4 = 2
-      2: r5 = r3 * r4
-      3: store , r5
-      4: r6 = load temp
-      5: return r6
+      0: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      1: r6 = load temp
+      2: return r6
 
 Function .Users.alice.dev.minz-ts.examples.stack_variables.main() -> void
   @smc
@@ -137,12 +83,8 @@ Function .Users.alice.dev.minz-ts.examples.stack_variables.main() -> void
     r10 = r4: u16
   Instructions:
       0: r4 = call test_stack_locals
-      1: store , r4
-      2: r7 = call factorial
-      3: store , r7
-      4: r9 = call many_locals
-      5: store , r9
-      6: r12 = call outer
-      7: store , r12
-      8: return
+      1: r7 = call factorial
+      2: r9 = call many_locals
+      3: r12 = call outer
+      4: return
 

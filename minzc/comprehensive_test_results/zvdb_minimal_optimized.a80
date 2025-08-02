@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:05
+; Generated: 2025-08-02 13:03:29
 
 
 ; Code section
@@ -13,209 +13,9 @@
 a$immOP:
     LD A, 0        ; a anchor (will be patched)
 a$imm0 EQU a$immOP+1
-    LD ($F008), A     ; Virtual register 4 to memory
 b$immOP:
-    LD A, 0        ; b anchor (will be patched)
+    LD B, 0        ; b anchor (will be patched)
 b$imm0 EQU b$immOP+1
-    LD ($F00A), A     ; Virtual register 5 to memory
-    ; r6 = r4 ^ r5
-    LD HL, ($F008)    ; Virtual register 4 from memory
-    LD D, H
-    LD E, L
-    LD HL, ($F00A)    ; Virtual register 5 from memory
-    LD A, L
-    XOR E
-    LD L, A
-    LD A, H
-    XOR D
-    LD H, A
-    LD ($F00C), HL    ; Virtual register 6 to memory
-    ; store , r6
-    LD HL, ($F00C)    ; Virtual register 6 from memory
-    LD ($F006), HL
-    ; r8 = load xor
-    LD HL, ($F006)
-    ; store , r8
-    LD ($F00E), HL
-    ; r9 = load count
-    LD HL, ($F00E)
-    ; r10 = 85
-    LD A, 85
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
-    ; r11 = r9 & r10
-    LD D, H
-    LD E, L
-    LD A, L
-    AND E
-    LD L, A
-    LD A, H
-    AND D
-    LD H, A
-    LD ($F016), HL    ; Virtual register 11 to memory
-    ; r12 = load count
-    LD HL, ($F00E)
-    LD ($F018), HL    ; Virtual register 12 to memory
-    ; r13 = 1
-    LD A, 1
-    ; Register 13 already in A
-    ; r14 = r12 >> r13
-    ; Shift right
-    LD A, ($F018)     ; Virtual register 12 from memory
-    LD B, A       ; B = value to shift
-    ; Register 13 already in A
-    LD C, A       ; C = shift count
-    LD A, B       ; A = value
-    OR A          ; Clear carry
-    JR Z, .shr_done_0
-    LD B, C       ; B = counter
-.shr_loop_0:
-    DEC B
-    JP M, .shr_done_0
-    SRL A         ; Shift right, 0 into bit 7
-    JR .shr_loop_0
-.shr_done_0:
-    LD L, A
-    LD H, 0
-    LD ($F01C), HL    ; Virtual register 14 to memory
-    ; r15 = 85
-    LD A, 85
-    LD L, A         ; Store to physical register L
-    ; r16 = r14 & r15
-    LD HL, ($F01C)    ; Virtual register 14 from memory
-    LD D, H
-    LD E, L
-    LD A, L
-    AND E
-    LD L, A
-    LD A, H
-    AND D
-    LD H, A
-    LD ($F020), HL    ; Virtual register 16 to memory
-    ; r17 = r11 + r16
-    LD HL, ($F016)    ; Virtual register 11 from memory
-    LD D, H
-    LD E, L
-    LD HL, ($F020)    ; Virtual register 16 from memory
-    ADD HL, DE
-    ; store count, r17
-    LD ($F00E), HL
-    ; r18 = load count
-    LD HL, ($F00E)
-    ; r19 = 51
-    LD A, 51
-    LD ($F026), A     ; Virtual register 19 to memory
-    ; r20 = r18 & r19
-    LD D, H
-    LD E, L
-    LD HL, ($F026)    ; Virtual register 19 from memory
-    LD A, L
-    AND E
-    LD L, A
-    LD A, H
-    AND D
-    LD H, A
-    ; r21 = load count
-    LD HL, ($F00E)
-    ; r22 = 2
-    LD A, 2
-    LD L, A         ; Store to physical register L
-    ; r23 = r21 >> r22
-    ; Shift right
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
-    LD B, A       ; B = value to shift
-    LD A, L
-    LD C, A       ; C = shift count
-    LD A, B       ; A = value
-    OR A          ; Clear carry
-    JR Z, .shr_done_1
-    LD B, C       ; B = counter
-.shr_loop_1:
-    DEC B
-    JP M, .shr_done_1
-    SRL A         ; Shift right, 0 into bit 7
-    JR .shr_loop_1
-.shr_done_1:
-    LD L, A
-    LD H, 0
-    LD ($F02E), HL    ; Virtual register 23 to memory
-    ; r24 = 51
-    LD A, 51
-    LD D, A         ; Store to physical register D
-    ; r25 = r23 & r24
-    LD HL, ($F02E)    ; Virtual register 23 from memory
-    LD D, H
-    LD E, L
-    LD A, L
-    AND E
-    LD L, A
-    LD A, H
-    AND D
-    LD H, A
-    ; r26 = r20 + r25
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; store count, r26
-    LD ($F00E), HL
-    ; r27 = load count
-    LD HL, ($F00E)
-    ; r28 = 15
-    LD A, 15
-    LD L, A         ; Store to physical register L
-    ; r29 = r27 & r28
-    LD D, H
-    LD E, L
-    LD A, L
-    AND E
-    LD L, A
-    LD A, H
-    AND D
-    LD H, A
-    ; r30 = load count
-    LD HL, ($F00E)
-    ; r31 = 4
-    LD A, 4
-    ; Register 31 already in A
-    ; r32 = r30 >> r31
-    ; Shift right
-    ; Register 30 already in A
-    LD B, A       ; B = value to shift
-    ; Register 31 already in A
-    LD C, A       ; C = shift count
-    LD A, B       ; A = value
-    OR A          ; Clear carry
-    JR Z, .shr_done_2
-    LD B, C       ; B = counter
-.shr_loop_2:
-    DEC B
-    JP M, .shr_done_2
-    SRL A         ; Shift right, 0 into bit 7
-    JR .shr_loop_2
-.shr_done_2:
-    LD L, A
-    LD H, 0
-    ; r33 = 15
-    LD A, 15
-    LD L, A         ; Store to physical register L
-    ; r34 = r32 & r33
-    LD D, H
-    LD E, L
-    LD A, L
-    AND E
-    LD L, A
-    LD A, H
-    AND D
-    LD H, A
-    ; r35 = r29 + r34
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; store count, r35
-    LD ($F00E), HL
     ; r36 = load count
     LD HL, ($F00E)
     ; return r36
@@ -239,23 +39,26 @@ store$imm0 EQU store$immOP+1
     EX DE, HL
     ; r5 = 255
     LD A, 255
-    LD ($F00A), A     ; Virtual register 5 to memory
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r6 = r4 >= r5
     LD D, H
     LD E, L
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
-    JP P, .L4
-    JP Z, .L4
+    JP P, .L1
+    JP Z, .L1
     LD HL, 0
-    JP .L5
-.L4:
+    JP .L2
+.L1:
     LD HL, 1
-.L5:
+.L2:
     ; jump_if_not r6, else_1
-    LD A, H
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, else_1
     ; return
@@ -266,46 +69,30 @@ else_1:
 vec$immOP:
     LD A, 0        ; vec anchor (will be patched)
 vec$imm0 EQU vec$immOP+1
-    LD L, A         ; Store to physical register L
-    LD HL, (store$imm0)   ; Reuse from anchor
-    LD ($F010), HL    ; Virtual register 8 to memory
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
     LD HL, (store$imm0)   ; Reuse from anchor
     LD D, H
     LD E, L
+    LD HL, (store$imm0)   ; Reuse from anchor
+    LD B, H
+    LD C, L
     ; Store to array[index] (u8)
     ; Register 12 already in HL
     PUSH HL
-    LD A, L
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
     POP HL
     LD (HL), A
     LD HL, (store$imm0)   ; Reuse from anchor
-    ; Load field count (offset 256)
-    LD DE, 256
-    ADD HL, DE
-    LD E, (HL)
-    INC HL
-    LD D, (HL)
-    EX DE, HL
-    ; r15 = 1
-    LD A, 1
-    LD L, A         ; Store to physical register L
-    ; r16 = r14 + r15
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; Register 16 already in HL
+    ; Register 13 already in HL
     LD HL, (store$imm0)   ; Reuse from anchor
-    ; Register 17 already in HL
-    ; Store to field count (offset 256)
-    ; Register 17 already in HL
-    LD DE, 256
-    ADD HL, DE
-    PUSH HL
-    ; Register 16 already in HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
     ; return
     POP DE
     RET
@@ -314,24 +101,6 @@ vec$imm0 EQU vec$immOP+1
 ; Function: .Users.alice.dev.minz-ts.examples.zvdb_minimal.find_nearest
 .Users.alice.dev.minz-ts.examples.zvdb_minimal.find_nearest:
 ; TRUE SMC function with immediate anchors
-    ; r4 = 0
-    LD A, 0
-    LD ($F008), A     ; Virtual register 4 to memory
-    ; store , r4
-    LD A, ($F008)     ; Virtual register 4 from memory
-    LD ($F006), A
-    ; r6 = 255
-    LD A, 255
-    LD L, A         ; Store to physical register L
-    ; store , r6
-    LD A, L
-    LD ($F00A), A
-    ; r8 = 0
-    LD A, 0
-    LD H, A         ; Store to physical register H
-    ; store , r8
-    LD A, H
-    LD ($F00E), A
     ; loop_3:
 loop_3:
     ; r9 = load i
@@ -356,12 +125,12 @@ store$imm0 EQU store$immOP+1
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
-    JP M, .L6
+    JP M, .L3
     LD HL, 0
-    JP .L7
-.L6:
+    JP .L4
+.L3:
     LD HL, 1
-.L7:
+.L4:
     ; jump_if_not r12, end_loop_4
     LD A, L
     OR A
@@ -395,65 +164,35 @@ query$imm0 EQU query$immOP+1
     LD A, ($F024)     ; Virtual register 18 from memory
     LD (b$imm0), A        ; Patch b
     CALL .Users.alice.dev.minz-ts.examples.zvdb_minimal.hamming8
-    LD ($F026), HL    ; Virtual register 19 to memory
-    ; store , r19
-    LD HL, ($F026)    ; Virtual register 19 from memory
-    LD ($F01A), HL
+    ; Register 19 already in HL
     ; r20 = load dist
     LD HL, ($F01A)
     ; r21 = load best_dist
     LD A, ($F00A)
-    LD L, A         ; Store to HL (low byte)
+    LD L, A         ; Store to physical register L
     ; r22 = r20 < r21
     LD D, H
     LD E, L
-    ; Register 21 already in HL
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
-    JP M, .L8
+    JP M, .L5
     LD HL, 0
-    JP .L9
-.L8:
+    JP .L6
+.L5:
     LD HL, 1
-.L9:
+.L6:
     LD ($F02C), HL    ; Virtual register 22 to memory
     ; jump_if_not r22, else_5
     LD A, ($F02C)     ; Virtual register 22 from memory
     OR A
     JP Z, else_5
-    ; r23 = load dist
-    LD HL, ($F01A)
-    LD ($F02E), HL    ; Virtual register 23 to memory
-    ; store best_dist, r23
-    LD A, ($F02E)     ; Virtual register 23 from memory
-    LD ($F00A), A
-    ; r24 = load i
-    LD A, ($F00E)
-    LD L, A         ; Store to physical register L
-    ; store best_idx, r24
-    LD A, L
-    LD ($F006), A
     ; jump end_if_6
     JP end_if_6
     ; else_5:
 else_5:
     ; end_if_6:
 end_if_6:
-    ; r25 = load i
-    LD A, ($F00E)
-    LD ($F032), A     ; Virtual register 25 to memory
-    ; r26 = 1
-    LD A, 1
-    LD H, A         ; Store to physical register H
-    ; r27 = r25 + r26
-    LD HL, ($F032)    ; Virtual register 25 from memory
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; store i, r27
-    LD A, L
-    LD ($F00E), A
     ; jump loop_3
     JP loop_3
     ; end_loop_4:
@@ -474,97 +213,70 @@ end_loop_4:
 ; Using absolute addressing for locals (SMC style)
     PUSH BC
     PUSH DE
-    ; r2 = 0
-    LD A, 0
-    LD H, A         ; Store to physical register H
-    ; r3 = load store
-    LD HL, ($F002)
-    ; Store to field count (offset 256)
-    LD DE, 256
-    ADD HL, DE
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
     ; r5 = &r4
     ; Address-of operation for register r4
     LD HL, $F008  ; Variable address
-    LD ($F00A), HL    ; Virtual register 5 to memory
     ; r7 = call add_vector
     ; Call to add_vector (args: 2)
     ; Stack-based parameter passing
     LD HL, ($F00C)    ; Virtual register 6 from memory
     PUSH HL       ; Argument 1
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=true
     ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.zvdb_minimal.add_vector
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     LD (store$imm0), HL       ; Patch store (atomic)
     LD A, ($F00C)     ; Virtual register 6 from memory
     LD (vec$imm0), A        ; Patch vec
     CALL .Users.alice.dev.minz-ts.examples.zvdb_minimal.add_vector
+    LD ($F00E), HL    ; Virtual register 7 to memory
     ; r9 = &r8
     ; Address-of operation for register r8
     LD HL, $F010  ; Variable address
-    LD ($F012), HL    ; Virtual register 9 to memory
     ; r11 = call add_vector
     ; Call to add_vector (args: 2)
     ; Stack-based parameter passing
     LD HL, ($F014)    ; Virtual register 10 from memory
     PUSH HL       ; Argument 1
-    LD HL, ($F012)    ; Virtual register 9 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=true
     ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.zvdb_minimal.add_vector
-    LD HL, ($F012)    ; Virtual register 9 from memory
     LD (store$imm0), HL       ; Patch store (atomic)
     LD A, ($F014)     ; Virtual register 10 from memory
     LD (vec$imm0), A        ; Patch vec
     CALL .Users.alice.dev.minz-ts.examples.zvdb_minimal.add_vector
+    LD ($F016), HL    ; Virtual register 11 to memory
     ; r13 = &r12
     ; Address-of operation for register r12
     LD HL, $F018  ; Variable address
-    LD ($F01A), HL    ; Virtual register 13 to memory
     ; r15 = call add_vector
     ; Call to add_vector (args: 2)
     ; Stack-based parameter passing
     LD HL, ($F01C)    ; Virtual register 14 from memory
     PUSH HL       ; Argument 1
-    LD HL, ($F01A)    ; Virtual register 13 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=true
     ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.zvdb_minimal.add_vector
-    LD HL, ($F01A)    ; Virtual register 13 from memory
     LD (store$imm0), HL       ; Patch store (atomic)
     LD A, ($F01C)     ; Virtual register 14 from memory
     LD (vec$imm0), A        ; Patch vec
     CALL .Users.alice.dev.minz-ts.examples.zvdb_minimal.add_vector
+    LD ($F01E), HL    ; Virtual register 15 to memory
     ; r17 = &r16
     ; Address-of operation for register r16
     LD HL, $F020  ; Variable address
-    LD ($F022), HL    ; Virtual register 17 to memory
     ; r19 = call add_vector
     ; Call to add_vector (args: 2)
     ; Stack-based parameter passing
     LD HL, ($F024)    ; Virtual register 18 from memory
     PUSH HL       ; Argument 1
-    LD HL, ($F022)    ; Virtual register 17 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=true
     ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.zvdb_minimal.add_vector
-    LD HL, ($F022)    ; Virtual register 17 from memory
     LD (store$imm0), HL       ; Patch store (atomic)
     LD A, ($F024)     ; Virtual register 18 from memory
     LD (vec$imm0), A        ; Patch vec
     CALL .Users.alice.dev.minz-ts.examples.zvdb_minimal.add_vector
-    ; r21 = 171
-    LD A, 171
-    LD ($F02A), A     ; Virtual register 21 to memory
-    ; store , r21
-    LD A, ($F02A)     ; Virtual register 21 from memory
-    LD ($F028), A
+    LD ($F026), HL    ; Virtual register 19 to memory
     ; r24 = &r23
     ; Address-of operation for register r23
     LD HL, $F02E  ; Variable address
@@ -580,8 +292,7 @@ end_loop_4:
     LD A, ($F032)     ; Virtual register 25 from memory
     LD (query$imm0), A        ; Patch query
     CALL .Users.alice.dev.minz-ts.examples.zvdb_minimal.find_nearest
-    ; store , r26
-    LD ($F02C), HL
+    ; Register 26 already in HL
     ; return
     POP DE
     POP BC
@@ -613,12 +324,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -690,9 +406,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

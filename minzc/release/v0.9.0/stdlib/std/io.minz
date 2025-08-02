@@ -1,0 +1,206 @@
+// MinZ Standard I/O Library
+// Platform-agnostic I/O interface with platform-specific implementations
+
+// Core I/O traits that platforms must implement
+pub interface Reader {
+    fun read_byte(self) -> u8;
+    fun read_bytes(self, buffer: *u8, len: u16) -> u16;
+    fun available(self) -> bool;
+}
+
+pub interface Writer {
+    fun write_byte(self, byte: u8) -> void;
+    fun write_bytes(self, buffer: *u8, len: u16) -> u16;
+    fun flush(self) -> void;
+}
+
+// Standard streams (platform must provide these)
+extern let stdin: Reader;
+extern let stdout: Writer;
+extern let stderr: Writer;
+
+// Core print functions
+pub fun print(message: *u8) -> void {
+    let len = strlen(message);
+    stdout.write_bytes(message, len);
+}
+
+pub fun println(message: *u8) -> void {
+    print(message);
+    stdout.write_byte('\n');
+}
+
+pub fun print_char(ch: u8) -> void {
+    stdout.write_byte(ch);
+}
+
+// Number to string conversion
+pub fun print_u8(value: u8) -> void {
+    if value == 0 {
+        print_char('0');
+        return;
+    }
+    
+    // Buffer for digits (max 3 digits for u8)
+    let mut buffer: [u8; 4] = [0; 4];
+    let mut pos = 3;
+    let mut num = value;
+    
+    while num > 0 {
+        pos = pos - 1;
+        buffer[pos] = '0' + (num % 10);
+        num = num / 10;
+    }
+    
+    // Print from first digit
+    while pos < 3 {
+        print_char(buffer[pos]);
+        pos = pos + 1;
+    }
+}
+
+pub fun print_u16(value: u16) -> void {
+    if value == 0 {
+        print_char('0');
+        return;
+    }
+    
+    // Buffer for digits (max 5 digits for u16)
+    let mut buffer: [u8; 6] = [0; 6];
+    let mut pos = 5;
+    let mut num = value;
+    
+    while num > 0 {
+        pos = pos - 1;
+        buffer[pos] = '0' + ((num % 10) as u8);
+        num = num / 10;
+    }
+    
+    // Print from first digit
+    while pos < 5 {
+        print_char(buffer[pos]);
+        pos = pos + 1;
+    }
+}
+
+pub fun print_i8(value: i8) -> void {
+    if value < 0 {
+        print_char('-');
+        print_u8((-value) as u8);
+    } else {
+        print_u8(value as u8);
+    }
+}
+
+pub fun print_i16(value: i16) -> void {
+    if value < 0 {
+        print_char('-');
+        print_u16((-value) as u16);
+    } else {
+        print_u16(value as u16);
+    }
+}
+
+pub fun print_bool(value: bool) -> void {
+    if value {
+        print("true");
+    } else {
+        print("false");
+    }
+}
+
+// Hex printing
+pub fun print_hex_u8(value: u8) -> void {
+    let high = value >> 4;
+    let low = value & 0x0F;
+    
+    if high < 10 {
+        print_char('0' + high);
+    } else {
+        print_char('A' + (high - 10));
+    }
+    
+    if low < 10 {
+        print_char('0' + low);
+    } else {
+        print_char('A' + (low - 10));
+    }
+}
+
+pub fun print_hex_u16(value: u16) -> void {
+    print_hex_u8((value >> 8) as u8);
+    print_hex_u8((value & 0xFF) as u8);
+}
+
+// Input functions
+pub fun read_char() -> u8 {
+    stdin.read_byte()
+}
+
+pub fun read_line(buffer: *u8, max_len: u16) -> u16 {
+    let mut pos: u16 = 0;
+    
+    while pos < (max_len - 1) {
+        let ch = read_char();
+        
+        if ch == '\n' || ch == '\r' {
+            break;
+        }
+        
+        buffer[pos] = ch;
+        pos = pos + 1;
+    }
+    
+    buffer[pos] = 0;  // Null terminate
+    pos
+}
+
+// String utilities (should be in std.string but needed here)
+fun strlen(str: *u8) -> u16 {
+    let mut len: u16 = 0;
+    while str[len] != 0 {
+        len = len + 1;
+    }
+    len
+}
+
+// Format string support (simplified)
+pub fun printf(format: *u8, arg1: u16) -> void {
+    let mut i = 0;
+    
+    while format[i] != 0 {
+        if format[i] == '%' && format[i + 1] != 0 {
+            i = i + 1;
+            match format[i] {
+                'd' => print_u16(arg1),
+                'x' => print_hex_u16(arg1),
+                'c' => print_char(arg1 as u8),
+                _ => {
+                    print_char('%');
+                    print_char(format[i]);
+                }
+            }
+            i = i + 1;
+        } else {
+            print_char(format[i]);
+            i = i + 1;
+        }
+    }
+}
+
+// Error handling
+pub fun panic(message: *u8) -> void {
+    print("PANIC: ");
+    println(message);
+    // Platform-specific halt
+    @asm {
+        di
+        halt
+    }
+}
+
+pub fun assert(condition: bool, message: *u8) -> void {
+    if !condition {
+        panic(message);
+    }
+}

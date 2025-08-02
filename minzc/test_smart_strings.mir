@@ -1,0 +1,21 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_smart_strings.main() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_87 ; Direct print "Hi" (2 chars)
+      1: UNKNOWN_OP_87 ; Direct print "Hello" (5 chars)
+      2: UNKNOWN_OP_87 ; Direct print "MinZ!" (5 chars)
+      3: UNKNOWN_OP_87 ; Direct print "12345678" (8 chars)
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "123456789" (9 chars via loop)
+      6: UNKNOWN_OP_88
+      7: UNKNOWN_OP_86 ; Print "Hello, World!" (13 chars via loop)
+      8: UNKNOWN_OP_88
+      9: UNKNOWN_OP_86 ; Print "This is a much longer string that will use the loop-based approach" (66 chars via loop)
+     10: UNKNOWN_OP_87 ; Direct print "Hi
+" (3 chars)
+     11: UNKNOWN_OP_87 ; Direct print "Tab	here" (8 chars)
+     12: return
+

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:25
 
 
 ; Code section
@@ -11,219 +11,7 @@
 .Users.alice.dev.minz-ts.examples.arithmetic_demo.test_arithmetic:
 ; IsSMCDefault=false, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    PUSH BC
-    PUSH DE
-    ; r2 = 5
-    LD A, 5
-    LD ($F004), A     ; Virtual register 2 to memory
-    ; store , r2
-    LD A, ($F004)     ; Virtual register 2 from memory
-    LD ($F002), A
-    ; r4 = 6
-    LD A, 6
-    LD ($F008), A     ; Virtual register 4 to memory
-    ; store , r4
-    LD A, ($F008)     ; Virtual register 4 from memory
-    LD ($F006), A
-    ; r6 = load a
-    LD A, ($F002)
-    LD E, A         ; Store to physical register E
-    ; r7 = load b
-    LD A, ($F006)
-    LD H, A         ; Store to physical register H
-    ; r8 = r6 * r7
-    ; 8-bit multiplication
-    LD A, E
-    LD B, A       ; B = multiplicand
-    LD A, H
-    LD C, A       ; C = multiplier
-    LD HL, 0      ; HL = result
-    LD A, C
-    OR A          ; Check if multiplier is 0
-    JR Z, .mul_done_0
-.mul_loop_0:
-    LD D, 0
-    LD E, B
-    ADD HL, DE    ; Add multiplicand to result
-    DEC C
-    JR NZ, .mul_loop_0
-.mul_done_0:
-    ; store , r8
-    LD A, L
-    LD ($F00A), A
-    ; r10 = 20
-    LD A, 20
-    LD ($F014), A     ; Virtual register 10 to memory
-    ; store , r10
-    LD A, ($F014)     ; Virtual register 10 from memory
-    LD ($F012), A
-    ; r12 = 4
-    LD A, 4
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
-    ; store , r12
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
-    LD ($F016), A
-    ; r14 = load c
-    LD A, ($F012)
-    LD B, A         ; Store to physical register B
-    ; r15 = load d
-    LD A, ($F016)
-    LD C, A         ; Store to physical register C
-    ; r16 = r14 / r15
-    ; 8-bit division
-    LD A, B
-    LD D, A       ; D = dividend
-    LD A, C
-    LD E, A       ; E = divisor
-    OR A          ; Check for divide by zero
-    JR Z, .div_by_zero_1
-    LD B, 0       ; B = quotient
-    LD A, D       ; A = remainder
-.div_loop_1:
-    CP E          ; Compare remainder with divisor
-    JR C, .div_done_1
-    SUB E         ; Subtract divisor
-    INC B         ; Increment quotient
-    JR .div_loop_1
-.div_by_zero_1:
-    LD B, 0       ; Return 0 for divide by zero
-.div_done_1:
-    LD L, B       ; Result in L
-    LD H, 0
-    ; store , r16
-    LD A, C
-    LD ($F01A), A
-    ; r18 = 17
-    LD A, 17
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
-    ; store , r18
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
-    LD ($F022), A
-    ; r20 = 5
-    LD A, 5
-    LD B, A         ; Store to physical register B
-    ; store , r20
-    LD A, B
-    LD ($F026), A
-    ; r22 = load e
-    LD A, ($F022)
-    ; Register 22 already in A
-    ; r23 = load f
-    LD A, ($F026)
-    LD ($F02E), A     ; Virtual register 23 to memory
-    ; r24 = r22 % r23
-    ; 8-bit modulo
-    ; Register 22 already in A
-    LD D, A       ; D = dividend
-    LD A, ($F02E)     ; Virtual register 23 from memory
-    LD E, A       ; E = divisor
-    OR A          ; Check for divide by zero
-    JR Z, .mod_by_zero_2
-    LD A, D       ; A = dividend
-.mod_loop_2:
-    CP E          ; Compare with divisor
-    JR C, .mod_done_2
-    SUB E         ; Subtract divisor
-    JR .mod_loop_2
-.mod_by_zero_2:
-    LD A, 0       ; Return 0 for modulo by zero
-.mod_done_2:
-    LD L, A       ; Result (remainder) in L
-    LD H, 0
-    ; store , r24
-    ; Register 24 already in A
-    LD ($F02A), A
-    ; r26 = 3
-    LD A, 3
-    LD ($F034), A     ; Virtual register 26 to memory
-    ; store , r26
-    LD A, ($F034)     ; Virtual register 26 from memory
-    LD ($F032), A
-    ; r28 = load g
-    LD A, ($F032)
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
-    ; r29 = 2
-    LD A, 2
-    LD ($F03A), A     ; Virtual register 29 to memory
-    ; r30 = r28 << r29
-    ; Shift left
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
-    LD B, A       ; B = value to shift
-    LD A, ($F03A)     ; Virtual register 29 from memory
-    LD C, A       ; C = shift count
-    LD A, B       ; A = value
-    OR A          ; Clear carry
-    JR Z, .shl_done_3
-    LD B, C       ; B = counter
-.shl_loop_3:
-    DEC B
-    JP M, .shl_done_3
-    SLA A         ; Shift left, 0 into bit 0
-    JR .shl_loop_3
-.shl_done_3:
-    LD L, A
-    LD H, 0
-    ; store , r30
-    EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
-    EXX               ; Switch back to main registers
-    LD ($F036), A
-    ; r32 = 12
-    LD A, 12
-    LD B, A         ; Store to physical register B
-    ; store , r32
-    LD A, B
-    LD ($F03E), A
-    ; r34 = load h
-    LD A, ($F03E)
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
-    ; r35 = 2
-    LD A, 2
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
-    ; r36 = r34 >> r35
-    ; Shift right
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
-    LD B, A       ; B = value to shift
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
-    LD C, A       ; C = shift count
-    LD A, B       ; A = value
-    OR A          ; Clear carry
-    JR Z, .shr_done_4
-    LD B, C       ; B = counter
-.shr_loop_4:
-    DEC B
-    JP M, .shr_done_4
-    SRL A         ; Shift right, 0 into bit 7
-    JR .shr_loop_4
-.shr_done_4:
-    LD L, A
-    LD H, 0
-    ; store , r36
-    ; Register 36 already in A
-    LD ($F042), A
     ; return
-    POP DE
-    POP BC
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
@@ -244,12 +32,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -321,9 +114,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

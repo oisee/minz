@@ -1,0 +1,6 @@
+// Test const usage
+const X: u8 = 42;  // Global const
+
+fun main() -> void {
+    let y = X;
+}

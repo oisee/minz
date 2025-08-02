@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -29,16 +29,12 @@ x$imm0 EQU x$immOP+1
     LD HL, ($F004)    ; Virtual register 2 from memory
     PUSH HL       ; Argument 0
     CALL add5
-    ; store , r3
-    LD ($F002), HL
     ; r6 = call add5
     ; Call to add5 (args: 1)
     ; Stack-based parameter passing
     LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL       ; Argument 0
     CALL add5
-    ; store , r6
-    LD ($F008), HL
     ; return
     POP DE
     POP BC
@@ -49,9 +45,8 @@ x$imm0 EQU x$immOP+1
 .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_reuse$double_1:
 ; TRUE SMC function with immediate anchors
 x$immOP:
-    LD A, 0        ; x anchor (will be patched)
+    LD D, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
-    LD H, A         ; Store to physical register H
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -60,9 +55,8 @@ x$imm0 EQU x$immOP+1
 .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_reuse$triple_2:
 ; TRUE SMC function with immediate anchors
 x$immOP:
-    LD A, 0        ; x anchor (will be patched)
+    LD E, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
-    LD L, A         ; Store to physical register L
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -79,26 +73,18 @@ x$imm0 EQU x$immOP+1
     LD HL, ($F004)    ; Virtual register 2 from memory
     PUSH HL       ; Argument 0
     CALL double
-    ; store , r3
-    LD ($F002), HL
     ; r6 = call triple
     ; Call to triple (args: 1)
     ; Stack-based parameter passing
     LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL       ; Argument 0
     CALL triple
-    LD ($F00C), HL    ; Virtual register 6 to memory
-    ; store , r6
-    LD HL, ($F00C)    ; Virtual register 6 from memory
-    LD ($F008), HL
     ; r9 = call double
     ; Call to double (args: 1)
     ; Stack-based parameter passing
     LD HL, ($F010)    ; Virtual register 8 from memory
     PUSH HL       ; Argument 0
     CALL double
-    ; store , r9
-    LD ($F00E), HL
     ; return
     POP DE
     POP BC
@@ -111,6 +97,9 @@ x$imm0 EQU x$immOP+1
 y$immOP:
     LD A, 0        ; y anchor (will be patched)
 y$imm0 EQU y$immOP+1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -121,12 +110,6 @@ y$imm0 EQU y$immOP+1
 ; Using absolute addressing for locals (SMC style)
     PUSH BC
     PUSH DE
-    ; r2 = 10
-    LD A, 10
-    ; Register 2 already in A
-    ; store , r2
-    ; Register 2 already in A
-    LD ($F002), A
     ; r4 = call good
     ; Call to good (args: 1)
     ; Stack-based parameter passing
@@ -149,22 +132,14 @@ y$imm0 EQU y$immOP+1
     ; Call to test_local_lambda (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_local_lambda
-    LD ($F004), HL    ; Virtual register 2 to memory
-    ; store , r2
-    LD HL, ($F004)    ; Virtual register 2 from memory
-    LD ($F002), HL
     ; r4 = call test_reuse
     ; Call to test_reuse (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_reuse
-    ; store , r4
-    LD ($F006), HL
     ; r6 = call test_no_capture
     ; Call to test_no_capture (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_transform_poc.test_no_capture
-    ; store , r6
-    LD ($F00A), HL
     ; return
     POP DE
     POP BC
@@ -190,12 +165,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -267,9 +247,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

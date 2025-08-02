@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -13,10 +13,12 @@
 ; Using absolute addressing for locals (SMC style)
 .Users.alice.dev.minz-ts.examples.fibonacci.fibonacci_param_n:
     LD HL, #0000   ; SMC parameter n (u8->u16)
+    LD ($F004), HL    ; Virtual register 2 to memory
     ; r3 = 1
     LD A, 1
     LD B, A         ; Store to physical register B
     ; r4 = r2 <= r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -50,9 +52,8 @@ end_if_2:
     LD ($F00C), HL
     ; r9 = 1
     LD A, 1
-    LD ($F012), A     ; Virtual register 9 to memory
+    LD L, A         ; Store to physical register L
     ; store , r9
-    LD HL, ($F012)    ; Virtual register 9 from memory
     LD ($F010), HL
     ; r11 = 2
     LD A, 2
@@ -72,7 +73,7 @@ loop_3:
     LD E', A         ; Store to shadow E'
     EXX               ; Switch back to main registers
     LD A, (.Users.alice.dev.minz-ts.examples.fibonacci.fibonacci_param_n)
-    LD L, A         ; Store to physical register L
+    ; Register 13 already in A
     ; r14 = r12 <= r13
     LD D, H
     LD E, L
@@ -157,12 +158,17 @@ end_loop_4:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -234,9 +240,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

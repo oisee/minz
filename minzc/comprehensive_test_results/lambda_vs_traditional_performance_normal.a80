@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -85,9 +85,7 @@
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_multiply
-    LD ($F016), HL    ; Virtual register 11 to memory
     ; store , r11
-    LD HL, ($F016)    ; Virtual register 11 from memory
     LD ($F010), HL
     ; r12 = load result
     LD HL, ($F010)
@@ -124,11 +122,11 @@
     ; r4 = r2 * r3
     ; 8-bit multiplication
     EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
+    LD A, E'         ; From shadow E'
     EXX               ; Switch back to main registers
     LD B, A       ; B = multiplicand
     EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
+    LD A, D'         ; From shadow D'
     EXX               ; Switch back to main registers
     LD C, A       ; C = multiplier
     LD HL, 0      ; HL = result
@@ -171,9 +169,11 @@
     LD BC, #0000   ; SMC parameter c (u8->u16)
     LD H, B
     LD L, C        ; Move to HL for storage
+    LD ($F014), HL    ; Virtual register 10 to memory
     ; r11 = call multiply
     ; Call to multiply (args: 2)
     ; Stack-based parameter passing
+    LD HL, ($F014)    ; Virtual register 10 from memory
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     CALL multiply
@@ -191,70 +191,65 @@
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 5
     LD A, 5
-    LD ($F004), A     ; Virtual register 2 to memory
+    LD D, A         ; Store to physical register D
     ; r3 = 3
     LD A, 3
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD ($F006), A     ; Virtual register 3 to memory
     ; r4 = 2
     LD A, 2
-    LD H, A         ; Store to physical register H
+    LD ($F008), A     ; Virtual register 4 to memory
     ; r5 = call traditional_complex
     ; Call to traditional_complex (args: 3)
     ; Stack-based parameter passing
+    LD HL, ($F008)    ; Virtual register 4 from memory
     PUSH HL       ; Argument 2
+    LD HL, ($F006)    ; Virtual register 3 from memory
     PUSH HL       ; Argument 1
-    LD HL, ($F004)    ; Virtual register 2 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex
+    LD ($F00A), HL    ; Virtual register 5 to memory
     ; store , r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
     LD ($F002), HL
     ; r7 = 10
     LD A, 10
-    LD ($F00E), A     ; Virtual register 7 to memory
+    LD C, A         ; Store to physical register C
     ; r8 = 7
     LD A, 7
-    ; Register 8 already in A
+    LD B, A         ; Store to physical register B
     ; r9 = 3
     LD A, 3
-    ; Register 9 already in A
+    LD B, A         ; Store to physical register B
     ; r10 = call traditional_complex
     ; Call to traditional_complex (args: 3)
     ; Stack-based parameter passing
     PUSH HL       ; Argument 2
     PUSH HL       ; Argument 1
-    LD HL, ($F00E)    ; Virtual register 7 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex
-    LD ($F014), HL    ; Virtual register 10 to memory
     ; store , r10
-    LD HL, ($F014)    ; Virtual register 10 from memory
     LD ($F00C), HL
     ; r12 = 1
     LD A, 1
-    LD B, A         ; Store to physical register B
+    LD ($F018), A     ; Virtual register 12 to memory
     ; r13 = 9
     LD A, 9
-    LD B, A         ; Store to physical register B
+    LD D, A         ; Store to physical register D
     ; r14 = 4
     LD A, 4
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    ; Register 14 already in A
     ; r15 = call traditional_complex
     ; Call to traditional_complex (args: 3)
     ; Stack-based parameter passing
     PUSH HL       ; Argument 2
     PUSH HL       ; Argument 1
+    LD HL, ($F018)    ; Virtual register 12 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex
-    LD ($F01E), HL    ; Virtual register 15 to memory
     ; store , r15
-    LD HL, ($F01E)    ; Virtual register 15 from memory
     LD ($F016), HL
     ; r16 = load result1
     LD HL, ($F002)
@@ -406,12 +401,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -483,9 +483,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

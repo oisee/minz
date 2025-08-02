@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -13,50 +13,33 @@
 ; Using absolute addressing for locals (SMC style)
     ; Load array element (u8)
     PUSH HL
-    LD A, ($F008)     ; Virtual register 4 from memory
-    LD E, A
-    LD D, 0
-    POP HL
-    ADD HL, DE
-    LD A, (HL)
-    LD ($F00A), A     ; Virtual register 5 to memory
-    ; store , r5
-    LD HL, ($F00A)    ; Virtual register 5 from memory
-    LD ($F004), HL
-    ; Load array element (u8)
-    PUSH HL
-    LD A, L
-    LD E, A
-    LD D, 0
-    POP HL
-    ADD HL, DE
-    LD A, (HL)
-    LD E, A         ; Store to physical register E
-    ; store , r9
-    LD ($F00C), HL
-    ; r11 = 3
-    LD A, 3
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
-    ; store , r11
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
-    LD ($F014), A
-    ; Load array element (u8)
-    PUSH HL
     LD A, C
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
+    ; Register 5 already in A
+    ; Load array element (u8)
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD D, A         ; Store to physical register D
+    ; Load array element (u8)
+    PUSH HL
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD A, C'         ; From shadow C'
     EXX               ; Switch back to main registers
-    ; store , r15
-    LD ($F018), HL
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
     ; r16 = load z
     LD HL, ($F018)
     ; return r16
@@ -73,8 +56,6 @@
     ; Call to test_array (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.test_array_access.test_array
-    ; store , r2
-    LD ($F002), HL
     ; return
     POP DE
     POP BC
@@ -82,12 +63,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -159,9 +145,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

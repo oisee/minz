@@ -8,26 +8,22 @@ Function .Users.alice.dev.minz-ts.examples.test_print_interpolation.main() -> vo
     r3 = y: u16
     r5 = flag: bool
   Instructions:
-      0: r2 = 42
-      1: store , r2
-      2: r4 = 1000
-      3: store , r4
-      4: UNKNOWN_OP_84
-      5: UNKNOWN_OP_83
-      6: UNKNOWN_OP_78
-      7: UNKNOWN_OP_84
-      8: UNKNOWN_OP_83
-      9: UNKNOWN_OP_78
-     10: UNKNOWN_OP_84
-     11: UNKNOWN_OP_83
-     12: UNKNOWN_OP_79
-     13: UNKNOWN_OP_84
-     14: UNKNOWN_OP_83
-     15: UNKNOWN_OP_82
-     16: UNKNOWN_OP_78
-     17: UNKNOWN_OP_79
-     18: UNKNOWN_OP_82
-     19: UNKNOWN_OP_84
-     20: UNKNOWN_OP_83
-     21: return
+      0: UNKNOWN_OP_87
+      1: UNKNOWN_OP_86
+      2: UNKNOWN_OP_81
+      3: UNKNOWN_OP_87
+      4: UNKNOWN_OP_86
+      5: UNKNOWN_OP_81
+      6: UNKNOWN_OP_87
+      7: UNKNOWN_OP_86
+      8: UNKNOWN_OP_82
+      9: UNKNOWN_OP_87
+     10: UNKNOWN_OP_86
+     11: UNKNOWN_OP_85
+     12: UNKNOWN_OP_81
+     13: UNKNOWN_OP_82
+     14: UNKNOWN_OP_85
+     15: UNKNOWN_OP_87
+     16: UNKNOWN_OP_86
+     17: return
 

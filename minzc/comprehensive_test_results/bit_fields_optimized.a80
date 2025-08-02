@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:25
 
 
 ; Code section
@@ -10,70 +10,13 @@
 ; Function: .Users.alice.dev.minz-ts.examples.bit_fields.set_screen_attr
 .Users.alice.dev.minz-ts.examples.bit_fields.set_screen_attr:
 ; TRUE SMC function with immediate anchors
-    ; r5 = 22528
-    LD HL, 22528
-    ; Register 5 already in HL
 y$immOP:
     LD A, 0        ; y anchor (will be patched)
 y$imm0 EQU y$immOP+1
-    ; r7 = 32
-    LD A, 32
-    LD C, A         ; Store to physical register C
-    ; r8 = r6 * r7
-    ; 16-bit multiplication
-    LD (mul_src1_0), HL  ; Save multiplicand
-    LD (mul_src2_0), HL  ; Save multiplier
-    LD HL, 0             ; Result = 0
-    LD DE, (mul_src1_0)  ; DE = multiplicand
-    LD BC, (mul_src2_0)  ; BC = multiplier
-    LD A, B
-    OR C                 ; Check if multiplier is 0
-    JR Z, .mul16_done_0
-.mul16_loop_0:
-    ADD HL, DE           ; Result += multiplicand
-    DEC BC
-    LD A, B
-    OR C
-    JR NZ, .mul16_loop_0
-.mul16_done_0:
-mul_src1_0: DW 0
-mul_src2_0: DW 0
-    LD D, H
-    LD E, L
-    ; r9 = r5 + r8
-    ; Register 5 already in HL
-    LD D, H
-    LD E, L
-    LD H, D
-    LD L, E
-    ADD HL, DE
-    LD B, H
-    LD C, L
 x$immOP:
-    LD A, 0        ; x anchor (will be patched)
+    LD C, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
-    ; r11 = r9 + r10
-    LD H, B
-    LD L, C
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    PUSH HL           ; Save current HL
-    EXX               ; Switch to shadow registers
-    POP HL            ; Load into shadow HL
-    EXX               ; Switch back to main registers
-    ; store , r11
-    EXX               ; Switch to shadow registers
-    PUSH HL           ; Save shadow HL
-    EXX               ; Switch back to main registers
-    POP HL            ; Load shadow HL into main HL
-    LD ($F008), HL
     ; return
-    POP DE
-    POP BC
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
@@ -81,33 +24,10 @@ x$imm0 EQU x$immOP+1
 .Users.alice.dev.minz-ts.examples.bit_fields.main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    ; r2 = 71
-    LD A, 71
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
-    ; store , r2
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
-    LD ($F002), A
-    ; r4 = load raw_value
-    LD A, ($F002)
-    LD ($F008), A     ; Virtual register 4 to memory
-    ; store , r4
-    LD HL, ($F008)    ; Virtual register 4 from memory
-    LD ($F006), HL
-    ; r6 = load attr
-    LD HL, ($F006)
-    ; store , r6
-    LD A, L
-    LD ($F00A), A
     ; Load bit field ink (offset 0, width 3)
-    LD A, L
+    LD A, E
     AND 7
-    LD H, A         ; Store to physical register H
-    ; store , r9
-    LD ($F00E), HL
+    LD D, A         ; Store to physical register D
     ; Store bit field paper (offset 3, width 3)
     LD A, H
     LD B, A        ; Save original value
@@ -140,12 +60,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -217,9 +142,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

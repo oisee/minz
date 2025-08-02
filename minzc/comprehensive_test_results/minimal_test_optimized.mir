@@ -1,0 +1,46 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.minimal_test.add(a: u16, b: u16) -> u16
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.minimal_test.test_arithmetic() -> void
+  @smc
+  Locals:
+    r1 = x: u16
+    r3 = y: u16
+    r5 = result: u16
+  Instructions:
+      0: r8 = call add
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.minimal_test.test_struct() -> void
+  @smc
+  Locals:
+    r1 = p: u16
+    r5 = sum: u16
+  Instructions:
+      0: return
+
+Function .Users.alice.dev.minz-ts.examples.minimal_test.test_array() -> void
+  @smc
+  Locals:
+    r1 = arr: [3]u8
+    r2 = first: u16
+  Instructions:
+      0: LOAD_INDEX ; Load array element (u8)
+      1: return
+
+Function .Users.alice.dev.minz-ts.examples.minimal_test.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_arithmetic
+      1: r2 = call test_struct
+      2: r3 = call test_array
+      3: return
+

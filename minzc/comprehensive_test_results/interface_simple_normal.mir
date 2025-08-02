@@ -15,7 +15,7 @@ Function .Users.alice.dev.minz-ts.examples.interface_simple.main() -> u8
   Locals:
     r1 = circle: u16
   Instructions:
-      0: UNKNOWN_OP_61 ; Allocate struct Circle
+      0: UNKNOWN_OP_64 ; Allocate struct Circle
       1: r3 = 5
       2: STORE_FIELD ; Store to Circle.radius
       3: store , r2

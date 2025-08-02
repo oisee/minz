@@ -4,15 +4,15 @@
 Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_add(x: u8, y: u8) -> u8
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
       2: return
 
 Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_multiply(x: u8, factor: u8) -> u8
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor factor$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor factor$imm0
       2: return
 
 Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.traditional_complex(a: u8, b: u8, c: u8) -> u8
@@ -21,27 +21,25 @@ Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.tra
     r4 = sum: u16
     r8 = result: u16
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor a$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor b$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor b$imm0
       2: r7 = call traditional_add
-      3: store , r7
-      4: UNKNOWN_OP_31 ; Load from anchor c$imm0
-      5: r11 = call traditional_multiply
-      6: store , r11
-      7: return
+      3: UNKNOWN_OP_33 ; Load from anchor c$imm0
+      4: r11 = call traditional_multiply
+      5: return
 
 Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$add_0(x: u8, y: u8) -> u8
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
       2: return
 
 Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach$multiply_1(x: u8, factor: u8) -> u8
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor factor$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor factor$imm0
       2: return
 
 Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lambda_approach(a: u8, b: u8, c: u8) -> u8
@@ -50,14 +48,12 @@ Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.lam
     r4 = sum: u16
     r8 = result: u16
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor a$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor b$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor b$imm0
       2: r7 = call add
-      3: store , r7
-      4: UNKNOWN_OP_31 ; Load from anchor c$imm0
-      5: r11 = call multiply
-      6: store , r11
-      7: return
+      3: UNKNOWN_OP_33 ; Load from anchor c$imm0
+      4: r11 = call multiply
+      5: return
 
 Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_traditional_performance() -> u8
   @smc
@@ -67,12 +63,9 @@ Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.tes
     r11 = result3: u16
   Instructions:
       0: r5 = call traditional_complex
-      1: store , r5
-      2: r10 = call traditional_complex
-      3: store , r10
-      4: r15 = call traditional_complex
-      5: store , r15
-      6: return
+      1: r10 = call traditional_complex
+      2: r15 = call traditional_complex
+      3: return
 
 Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.test_lambda_performance() -> u8
   @smc
@@ -82,12 +75,9 @@ Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.tes
     r11 = result3: u16
   Instructions:
       0: r5 = call lambda_approach
-      1: store , r5
-      2: r10 = call lambda_approach
-      3: store , r10
-      4: r15 = call lambda_approach
-      5: store , r15
-      6: return
+      1: r10 = call lambda_approach
+      2: r15 = call lambda_approach
+      3: return
 
 Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.main() -> u8
   @smc
@@ -96,8 +86,6 @@ Function .Users.alice.dev.minz-ts.examples.lambda_vs_traditional_performance.mai
     r3 = lambda_result: u16
   Instructions:
       0: r2 = call test_traditional_performance
-      1: store , r2
-      2: r4 = call test_lambda_performance
-      3: store , r4
-      4: return
+      1: r4 = call test_lambda_performance
+      2: return
 

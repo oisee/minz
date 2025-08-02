@@ -4,8 +4,8 @@
 Function .Users.alice.dev.minz-ts.examples.simple_abi_demo.smc_add(x: u8, y: u8) -> u8
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
       2: r5 = r3 + r4
       3: return r5
 

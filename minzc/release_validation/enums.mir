@@ -1,0 +1,94 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.enums.opposite(dir: Direction) -> Direction
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor dir$imm0
+      1: UNKNOWN_OP_57
+      2: jump_if_not r4, else_1
+      3: r5 = 1
+      4: return r5
+      5: else_1:
+      6: UNKNOWN_OP_33 ; Load from anchor dir$imm0
+      7: r7 = 1
+      8: r8 = r6 == r7
+      9: jump_if_not r8, else_3
+     10: r9 = 0
+     11: return r9
+     12: else_3:
+     13: UNKNOWN_OP_33 ; Load from anchor dir$imm0
+     14: r11 = 2
+     15: r12 = r10 == r11
+     16: jump_if_not r12, else_5
+     17: r13 = 3
+     18: return r13
+     19: else_5:
+     20: r14 = 2
+     21: return r14
+
+Function ......examples.enums.next_state(current: GameState, input: Key) -> GameState
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor current$imm0
+      1: UNKNOWN_OP_57
+      2: jump_if_not r5, else_7
+      3: UNKNOWN_OP_33 ; Load from anchor input$imm0
+      4: r7 = 4
+      5: r8 = r6 == r7
+      6: jump_if_not r8, else_9
+      7: r9 = 1
+      8: return r9
+      9: else_9:
+     10: jump end_if_8
+     11: else_7:
+     12: UNKNOWN_OP_33 ; Load from anchor current$imm0
+     13: r11 = 1
+     14: r12 = r10 == r11
+     15: jump_if_not r12, else_11
+     16: UNKNOWN_OP_33 ; Load from anchor input$imm0
+     17: r14 = 3
+     18: r15 = r13 == r14
+     19: jump_if_not r15, else_13
+     20: r16 = 2
+     21: return r16
+     22: else_13:
+     23: UNKNOWN_OP_33 ; Load from anchor input$imm0
+     24: UNKNOWN_OP_57
+     25: jump_if_not r19, else_15
+     26: r20 = 3
+     27: return r20
+     28: else_15:
+     29: jump end_if_12
+     30: else_11:
+     31: UNKNOWN_OP_33 ; Load from anchor current$imm0
+     32: r22 = 2
+     33: r23 = r21 == r22
+     34: jump_if_not r23, else_17
+     35: UNKNOWN_OP_33 ; Load from anchor input$imm0
+     36: r25 = 3
+     37: r26 = r24 == r25
+     38: jump_if_not r26, else_19
+     39: r27 = 1
+     40: return r27
+     41: else_19:
+     42: jump end_if_18
+     43: else_17:
+     44: end_if_18:
+     45: end_if_12:
+     46: end_if_8:
+     47: UNKNOWN_OP_33 ; Load from anchor current$imm0
+     48: return r28
+
+Function ......examples.enums.main() -> void
+  @smc
+  Locals:
+    r1 = state: u16
+    r3 = player_dir: u16
+    r9 = opposite_dir: u16
+  Instructions:
+      0: r7 = call next_state
+      1: r11 = call opposite
+      2: r14 = call next_state
+      3: return
+

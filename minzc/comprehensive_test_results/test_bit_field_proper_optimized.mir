@@ -8,15 +8,6 @@ Function .Users.alice.dev.minz-ts.examples.test_bit_field_proper.main() -> void
     r3 = bits: bits<u8>
     r5 = low: u8
   Instructions:
-      0: r2 = 171
-      1: store , r2
-      2: r4 = load value
-      3: store , r4
-      4: LOAD_BIT_FIELD ; Load bit field low (offset 0, width 4)
-      5: store , r7
-      6: r8 = load low
-      7: r9 = 1
-      8: r10 = r8 + r9
-      9: store low, r10
-     10: return
+      0: LOAD_BIT_FIELD ; Load bit field low (offset 0, width 4)
+      1: return
 

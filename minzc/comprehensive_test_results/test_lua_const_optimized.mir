@@ -7,9 +7,5 @@ Function .Users.alice.dev.minz-ts.examples.test_lua_const.main() -> void
     r1 = x: u8
     r3 = y: u16
   Instructions:
-      0: r2 = 8
-      1: store , r2
-      2: r4 = 4200
-      3: store , r4
-      4: return
+      0: return
 

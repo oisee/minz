@@ -9,6 +9,7 @@ import (
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/meta"
+	"github.com/minz/minzc/pkg/metafunction"
 )
 
 var debug = os.Getenv("DEBUG") != ""
@@ -39,6 +40,7 @@ type Analyzer struct {
 	exprTypes             map[ast.Expression]ir.Type // Type information for expressions
 	lambdaCounter         int // Counter for generating unique lambda names
 	registeredModules     map[string]bool // Track already registered modules to prevent duplicates
+	metafunctionProcessor *metafunction.Processor // Processor for @metafunction calls
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -2775,6 +2777,11 @@ func (a *Analyzer) getTypeSize(t ir.Type) int {
 
 // analyzeExpression analyzes an expression and returns the register containing the result
 func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (ir.Register, error) {
+	// Handle nil expressions
+	if expr == nil {
+		return 0, fmt.Errorf("unsupported expression type: <nil>")
+	}
+	
 	// Debug: print expression type
 	if fieldExpr, ok := expr.(*ast.FieldExpr); ok {
 		if id, ok := fieldExpr.Object.(*ast.Identifier); ok && id.Name == "screen" {
@@ -2816,6 +2823,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeCastExpr(e, irFunc)
 	case *ast.CompileTimePrint:
 		return a.analyzePrintExpr(e, irFunc)
+	case *ast.MetafunctionCall:
+		return a.analyzeMetafunctionCall(e, irFunc)
 	case *ast.LambdaExpr:
 		return a.analyzeLambdaExpr(e, irFunc)
 	default:
@@ -4445,10 +4454,14 @@ func (a *Analyzer) analyzeLuaExpression(expr *ast.LuaExpression, irFunc *ir.Func
 func (a *Analyzer) analyzePrintExpr(print *ast.CompileTimePrint, irFunc *ir.Function) (ir.Register, error) {
 	// Check if the expression is a string literal for interpolation
 	if strLit, ok := print.Expr.(*ast.StringLiteral); ok {
-		// Process string interpolation using Lua
-		err := a.processStringInterpolation(strLit.Value, irFunc)
+		// Use enhanced interpolation with { constant } support
+		err := a.processEnhancedStringInterpolation(strLit.Value, irFunc)
 		if err != nil {
-			return 0, fmt.Errorf("failed to process string interpolation: %w", err)
+			// Fall back to old implementation if enhanced fails
+			err = a.processStringInterpolation(strLit.Value, irFunc)
+			if err != nil {
+				return 0, fmt.Errorf("failed to process string interpolation: %w", err)
+			}
 		}
 	} else {
 		// For non-string expressions, evaluate and print the value
@@ -4464,6 +4477,190 @@ func (a *Analyzer) analyzePrintExpr(print *ast.CompileTimePrint, irFunc *ir.Func
 	
 	// @print doesn't return a value
 	return 0, nil
+}
+
+// analyzeMetafunctionCall analyzes general @metafunction(...) calls
+func (a *Analyzer) analyzeMetafunctionCall(call *ast.MetafunctionCall, irFunc *ir.Function) (ir.Register, error) {
+	// Create metafunction processor if not already created
+	if a.metafunctionProcessor == nil {
+		// For now, assume we can find the project root
+		// In practice, this would be passed from the compiler
+		a.metafunctionProcessor = metafunction.New(".")
+		err := a.metafunctionProcessor.LoadMetafunctions()
+		if err != nil {
+			return 0, fmt.Errorf("failed to load metafunctions: %w", err)
+		}
+	}
+	
+	// Analyze arguments
+	var analyzedArgs []ir.Register
+	for _, arg := range call.Arguments {
+		reg, err := a.analyzeExpression(arg, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("failed to analyze metafunction argument: %w", err)
+		}
+		analyzedArgs = append(analyzedArgs, reg)
+	}
+	
+	// Create compilation context
+	context := &metafunction.CompilationContext{
+		CurrentFunction: irFunc.Name,
+		Variables:       make(map[string]metafunction.VariableInfo),
+		Constants:       make(map[string]interface{}),
+		LabelCounter:    0,
+	}
+	
+	// Populate variables from current scope
+	for name, symb := range a.currentScope.symbols {
+		switch s := symb.(type) {
+		case *VarSymbol:
+			if s.Type != nil {
+				context.Variables[name] = metafunction.VariableInfo{
+					Type:    s.Type.String(),
+					Address: name,
+				}
+			}
+		case *ConstSymbol:
+			if s.Type != nil {
+				context.Variables[name] = metafunction.VariableInfo{
+					Type:    s.Type.String(),
+					Address: name,
+				}
+			}
+		}
+	}
+	
+	// Handle built-in metafunctions
+	switch call.Name {
+	case "println":
+		// Handle @println as @print with a newline
+		// First analyze all arguments like @print does
+		if len(call.Arguments) > 0 {
+			// Check if the first argument is a string literal for interpolation
+			if strLit, ok := call.Arguments[0].(*ast.StringLiteral); ok && len(call.Arguments) == 1 {
+				// Use enhanced interpolation with { constant } support
+				err := a.processEnhancedStringInterpolation(strLit.Value, irFunc)
+				if err != nil {
+					// Fall back to old implementation if enhanced fails
+					err = a.processStringInterpolation(strLit.Value, irFunc)
+					if err != nil {
+						return 0, fmt.Errorf("failed to process string interpolation: %w", err)
+					}
+				}
+			} else if strLit, ok := call.Arguments[0].(*ast.StringLiteral); ok && len(call.Arguments) > 1 {
+				// Handle format string with arguments
+				// First, extract expressions from remaining arguments
+				var args []ast.Expression
+				for i := 1; i < len(call.Arguments); i++ {
+					args = append(args, call.Arguments[i])
+				}
+				
+				// Process the format string with the provided arguments
+				err := a.processFormatString(strLit.Value, args, irFunc)
+				if err != nil {
+					return 0, fmt.Errorf("failed to process format string: %w", err)
+				}
+			} else {
+				// Single expression - print its value
+				reg, err := a.analyzeExpression(call.Arguments[0], irFunc)
+				if err != nil {
+					return 0, fmt.Errorf("failed to analyze expression: %w", err)
+				}
+				// Generate print instruction based on type
+				exprType := a.exprTypes[call.Arguments[0]]
+				a.generatePrintValue(reg, exprType, irFunc)
+			}
+		}
+		// Add a newline after the print
+		a.generatePrintString("\n", irFunc)
+		return 0, nil
+		
+	default:
+		// Process other metafunctions using the Lua processor
+		asmCode, err := a.metafunctionProcessor.ProcessMetafunctionCall(call, context)
+		if err != nil {
+			return 0, fmt.Errorf("metafunction processing failed: %w", err)
+		}
+		
+		// Create inline assembly instruction with the generated code
+		inst := &ir.Instruction{
+			Op:      ir.OpAsm,
+			AsmCode: asmCode,
+			Comment: fmt.Sprintf("Generated by @%s metafunction", call.Name),
+		}
+		
+		irFunc.Instructions = append(irFunc.Instructions, *inst)
+	}
+	
+	// Most metafunctions don't return a value
+	// Special handling for metafunctions that do return values could be added here
+	return 0, nil
+}
+
+// processFormatString handles format strings with explicit arguments
+func (a *Analyzer) processFormatString(format string, args []ast.Expression, irFunc *ir.Function) error {
+	// Split the string by {} placeholders
+	parts := []struct {
+		isExpr bool
+		value  string
+		argIdx int
+	}{}
+	
+	current := ""
+	i := 0
+	argIdx := 0
+	for i < len(format) {
+		if i+1 < len(format) && format[i] == '{' && format[i+1] == '}' {
+			// Found placeholder
+			if current != "" {
+				parts = append(parts, struct {
+					isExpr bool
+					value  string
+					argIdx int
+				}{false, current, 0})
+				current = ""
+			}
+			if argIdx < len(args) {
+				parts = append(parts, struct {
+					isExpr bool
+					value  string
+					argIdx int
+				}{true, "", argIdx})
+				argIdx++
+			}
+			i += 2
+		} else {
+			current += string(format[i])
+			i++
+		}
+	}
+	
+	// Add remaining string
+	if current != "" {
+		parts = append(parts, struct {
+			isExpr bool
+			value  string
+			argIdx int
+		}{false, current, 0})
+	}
+	
+	// Generate code for each part
+	for _, part := range parts {
+		if part.isExpr {
+			// Evaluate and print the argument
+			reg, err := a.analyzeExpression(args[part.argIdx], irFunc)
+			if err != nil {
+				return fmt.Errorf("failed to evaluate argument %d: %w", part.argIdx, err)
+			}
+			exprType := a.exprTypes[args[part.argIdx]]
+			a.generatePrintValue(reg, exprType, irFunc)
+		} else {
+			// Print string literal
+			a.generatePrintString(part.value, irFunc)
+		}
+	}
+	
+	return nil
 }
 
 // processStringInterpolation handles string interpolation for @print
@@ -4577,28 +4774,43 @@ func isValidIdentifier(s string) bool {
 
 // generatePrintString generates instructions to print a string literal
 func (a *Analyzer) generatePrintString(str string, irFunc *ir.Function) {
-	// Create string literal and add to module
-	stringLabel := fmt.Sprintf("str_%d", len(a.module.Strings))
-	a.module.Strings = append(a.module.Strings, &ir.String{
-		Label: stringLabel,
-		Value: str,
-	})
+	// Smart string optimization: for short strings, use direct RST 16 calls
+	// This avoids the overhead of loops for strings <= 8 characters
+	const DIRECT_PRINT_THRESHOLD = 8
 	
-	// Create a string constant
-	strReg := irFunc.AllocReg()
-	
-	// Generate instruction to load string address
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:     ir.OpLoadString,
-		Dest:   strReg,
-		Symbol: stringLabel,
-	})
-	
-	// Generate print instruction
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpPrintString,
-		Src1: strReg,
-	})
+	if len(str) <= DIRECT_PRINT_THRESHOLD && len(str) > 0 {
+		// Use direct print for short strings - ultra-fast!
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpPrintStringDirect,
+			Symbol:  str, // Pass the string directly
+			Comment: fmt.Sprintf("Direct print \"%s\" (%d chars)", str, len(str)),
+		})
+	} else {
+		// Use loop-based print for longer strings
+		// Create string literal and add to module
+		stringLabel := fmt.Sprintf("str_%d", len(a.module.Strings))
+		a.module.Strings = append(a.module.Strings, &ir.String{
+			Label: stringLabel,
+			Value: str,
+		})
+		
+		// Create a string constant
+		strReg := irFunc.AllocReg()
+		
+		// Generate instruction to load string address
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:     ir.OpLoadString,
+			Dest:   strReg,
+			Symbol: stringLabel,
+		})
+		
+		// Generate print instruction
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpPrintString,
+			Src1:    strReg,
+			Comment: fmt.Sprintf("Print \"%s\" (%d chars via loop)", str, len(str)),
+		})
+	}
 }
 
 // generatePrintValue generates instructions to print a value based on its type

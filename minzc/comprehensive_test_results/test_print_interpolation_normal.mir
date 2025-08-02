@@ -12,29 +12,29 @@ Function .Users.alice.dev.minz-ts.examples.test_print_interpolation.main() -> vo
       1: store , r2
       2: r4 = 1000
       3: store , r4
-      4: UNKNOWN_OP_84
-      5: UNKNOWN_OP_83
+      4: UNKNOWN_OP_87
+      5: UNKNOWN_OP_86
       6: r7 = load x
-      7: UNKNOWN_OP_78
-      8: UNKNOWN_OP_84
-      9: UNKNOWN_OP_83
+      7: UNKNOWN_OP_81
+      8: UNKNOWN_OP_87
+      9: UNKNOWN_OP_86
      10: r9 = load x
-     11: UNKNOWN_OP_78
-     12: UNKNOWN_OP_84
-     13: UNKNOWN_OP_83
+     11: UNKNOWN_OP_81
+     12: UNKNOWN_OP_87
+     13: UNKNOWN_OP_86
      14: r11 = load y
-     15: UNKNOWN_OP_79
-     16: UNKNOWN_OP_84
-     17: UNKNOWN_OP_83
+     15: UNKNOWN_OP_82
+     16: UNKNOWN_OP_87
+     17: UNKNOWN_OP_86
      18: r13 = load flag
-     19: UNKNOWN_OP_82
+     19: UNKNOWN_OP_85
      20: r14 = load x
-     21: UNKNOWN_OP_78
+     21: UNKNOWN_OP_81
      22: r15 = load y
-     23: UNKNOWN_OP_79
+     23: UNKNOWN_OP_82
      24: r16 = load flag
-     25: UNKNOWN_OP_82
-     26: UNKNOWN_OP_84
-     27: UNKNOWN_OP_83
+     25: UNKNOWN_OP_85
+     26: UNKNOWN_OP_87
+     27: UNKNOWN_OP_86
      28: return
 

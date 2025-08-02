@@ -1,5 +1,0 @@
-let x: u8 = 42;
-
-fun main() -> u8 {
-    return x;
-}

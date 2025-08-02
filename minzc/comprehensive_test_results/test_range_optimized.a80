@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Code section
@@ -10,13 +10,8 @@
 ; Function: .Users.alice.dev.minz-ts.examples.test_range.sum_range
 .Users.alice.dev.minz-ts.examples.test_range.sum_range:
 ; TRUE SMC function with immediate anchors
-    ; r3 = 0
-    LD A, 0
-    ; Register 3 already in A
-    ; store , r3
-    LD ($F004), HL
 n$immOP:
-    LD C, 0        ; n anchor (will be patched)
+    LD A, 0        ; n anchor (will be patched)
 n$imm0 EQU n$immOP+1
     ; Initialize loop variable i
     ; for_loop_1:
@@ -34,30 +29,16 @@ for_loop_1:
     LD HL, 1
 .L2:
     ; jump_if_not r7, for_end_2
-    LD A, H
+    LD A, D
     OR A
     JP Z, for_end_2
-    ; r8 = load sum
-    LD HL, ($F004)
-    ; r9 = load i
-    LD HL, ($F000)
-    ; r10 = r8 + r9
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; Register 10 already in HL
-    ; store sum, r10
-    ; Register 10 already in HL
-    LD ($F004), HL
-    ; r11 = 1
-    LD A, 1
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
     ; Increment i
     LD D, H
     LD E, L
     ADD HL, DE
+    ; r11 = 1
+    LD A, 1
+    LD E, A         ; Store to physical register E
     ; jump for_loop_1
     JP for_loop_1
     ; for_end_2:
@@ -78,12 +59,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -155,9 +141,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

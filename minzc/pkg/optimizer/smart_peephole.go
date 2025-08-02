@@ -125,7 +125,7 @@ func (p *SmartPeepholeOptimizationPass) getPatterns() []Pattern {
 				inst1, inst2 := &insts[i], &insts[i+1]
 				return inst1.Op == ir.OpLoadVar &&
 					inst2.Op == ir.OpStoreVar &&
-					inst1.VarName == inst2.VarName &&
+					inst1.Symbol == inst2.Symbol &&
 					inst1.Dest == inst2.Src1, 2
 			},
 			optimizer: func(insts []ir.Instruction, i int) []ir.Instruction {

@@ -519,6 +519,8 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 		if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
 			text = text[1 : len(text)-1]
 		}
+		// Process escape sequences
+		text = unescapeString(text)
 		return &ast.StringLiteral{
 			Value:    text,
 			StartPos: node.StartPos,
@@ -643,7 +645,7 @@ func (p *Parser) convertBinaryExpr(node *SExpNode) *ast.BinaryExpr {
 	return binExpr
 }
 
-func (p *Parser) convertCallExpr(node *SExpNode) *ast.CallExpr {
+func (p *Parser) convertCallExpr(node *SExpNode) ast.Expression {
 	callExpr := &ast.CallExpr{
 		Arguments: []ast.Expression{},
 		StartPos:  node.StartPos,
@@ -674,6 +676,17 @@ func (p *Parser) convertCallExpr(node *SExpNode) *ast.CallExpr {
 					}
 				}
 			}
+		}
+	}
+	
+	// Check if this is a metafunction call (function name starts with @)
+	if ident, ok := callExpr.Function.(*ast.Identifier); ok && strings.HasPrefix(ident.Name, "@") {
+		metafunctionName := ident.Name[1:] // Remove @ prefix
+		return &ast.MetafunctionCall{
+			Name:      metafunctionName,
+			Arguments: callExpr.Arguments,
+			StartPos:  callExpr.StartPos,
+			EndPos:    callExpr.EndPos,
 		}
 	}
 	
@@ -1628,3 +1641,44 @@ func (p *Parser) convertLambdaParams(node *SExpNode) []*ast.LambdaParam {
 }
 
 // Use the isAlpha and isDigit functions from simple_parser.go
+
+// unescapeString processes escape sequences in a string
+func unescapeString(s string) string {
+	var result []rune
+	i := 0
+	for i < len(s) {
+		if s[i] == '\\' && i+1 < len(s) {
+			switch s[i+1] {
+			case 'n':
+				result = append(result, '\n')
+				i += 2
+			case 't':
+				result = append(result, '\t')
+				i += 2
+			case 'r':
+				result = append(result, '\r')
+				i += 2
+			case '\\':
+				result = append(result, '\\')
+				i += 2
+			case '"':
+				result = append(result, '"')
+				i += 2
+			case '\'':
+				result = append(result, '\'')
+				i += 2
+			case '0':
+				result = append(result, '\x00')
+				i += 2
+			default:
+				// Unknown escape, keep the backslash
+				result = append(result, rune(s[i]))
+				i++
+			}
+		} else {
+			result = append(result, rune(s[i]))
+			i++
+		}
+	}
+	return string(result)
+}

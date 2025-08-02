@@ -17,38 +17,40 @@ func (p *LambdaLiftingSemanticPass) Name() string {
 	return "Lambda Lifting (Semantic)"
 }
 
-func (p *LambdaLiftingSemanticPass) Apply(program *ast.Program) (*ast.Program, bool) {
+func (p *LambdaLiftingSemanticPass) Apply(file *ast.File) (*ast.File, bool) {
 	changed := false
 	lifter := &lambdaLifter{
 		pass:           p,
-		liftedFunctions: []*ast.Function{},
+		liftedFunctions: []*ast.FunctionDecl{},
 	}
 	
 	// Visit all functions and lift lambdas
-	for _, item := range program.Items {
-		if fn, ok := item.(*ast.Function); ok {
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
 			if lifter.liftLambdasInFunction(fn) {
 				changed = true
 			}
 		}
 	}
 	
-	// Add lifted functions to program
+	// Add lifted functions to file
 	for _, lifted := range lifter.liftedFunctions {
-		program.Items = append(program.Items, lifted)
+		file.Declarations = append(file.Declarations, lifted)
 	}
 	
-	return program, changed
+	return file, changed
 }
 
-func (p *LambdaLiftingSemanticPass) EstimateCost(program *ast.Program) Cost {
+func (p *LambdaLiftingSemanticPass) EstimateCost(file *ast.File) Cost {
 	// Lambda lifting typically reduces cost by enabling other optimizations
 	cost := Cost{}
-	for _, item := range program.Items {
-		if fn, ok := item.(*ast.Function); ok {
-			cost.Size += len(fn.Body.Statements)
-			// Rough estimate
-			cost.Cycles += len(fn.Body.Statements) * 10
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
+			if fn.Body != nil {
+				cost.Size += len(fn.Body.Statements)
+				// Rough estimate
+				cost.Cycles += len(fn.Body.Statements) * 10
+			}
 		}
 	}
 	return cost
@@ -56,10 +58,10 @@ func (p *LambdaLiftingSemanticPass) EstimateCost(program *ast.Program) Cost {
 
 type lambdaLifter struct {
 	pass            *LambdaLiftingSemanticPass
-	liftedFunctions []*ast.Function
+	liftedFunctions []*ast.FunctionDecl
 }
 
-func (l *lambdaLifter) liftLambdasInFunction(fn *ast.Function) bool {
+func (l *lambdaLifter) liftLambdasInFunction(fn *ast.FunctionDecl) bool {
 	// This would traverse the AST and lift lambdas
 	// For now, simplified implementation
 	return false
@@ -76,7 +78,7 @@ func (p *DeadCodeEliminationSemanticPass) Name() string {
 	return "Dead Code Elimination (Semantic)"
 }
 
-func (p *DeadCodeEliminationSemanticPass) Apply(program *ast.Program) (*ast.Program, bool) {
+func (p *DeadCodeEliminationSemanticPass) Apply(file *ast.File) (*ast.File, bool) {
 	changed := false
 	eliminator := &deadCodeEliminator{
 		reachableFunctions: make(map[string]bool),
@@ -89,8 +91,8 @@ func (p *DeadCodeEliminationSemanticPass) Apply(program *ast.Program) (*ast.Prog
 	// Find all reachable functions
 	for {
 		oldCount := len(eliminator.reachableFunctions)
-		for _, item := range program.Items {
-			if fn, ok := item.(*ast.Function); ok {
+		for _, decl := range file.Declarations {
+			if fn, ok := decl.(*ast.FunctionDecl); ok {
 				if eliminator.reachableFunctions[fn.Name] {
 					eliminator.markReachableFromFunction(fn)
 				}
@@ -102,27 +104,29 @@ func (p *DeadCodeEliminationSemanticPass) Apply(program *ast.Program) (*ast.Prog
 	}
 	
 	// Remove unreachable functions
-	newItems := []ast.Item{}
-	for _, item := range program.Items {
-		if fn, ok := item.(*ast.Function); ok {
+	newDecls := []ast.Declaration{}
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
 			if !eliminator.reachableFunctions[fn.Name] {
 				changed = true
 				continue // Skip unreachable function
 			}
 		}
-		newItems = append(newItems, item)
+		newDecls = append(newDecls, decl)
 	}
 	
-	program.Items = newItems
-	return program, changed
+	file.Declarations = newDecls
+	return file, changed
 }
 
-func (p *DeadCodeEliminationSemanticPass) EstimateCost(program *ast.Program) Cost {
+func (p *DeadCodeEliminationSemanticPass) EstimateCost(file *ast.File) Cost {
 	cost := Cost{}
-	for _, item := range program.Items {
-		if fn, ok := item.(*ast.Function); ok {
-			cost.Size += len(fn.Body.Statements) * 3 // Rough ASM size
-			cost.Cycles += len(fn.Body.Statements) * 10
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
+			if fn.Body != nil {
+				cost.Size += len(fn.Body.Statements) * 3 // Rough ASM size
+				cost.Cycles += len(fn.Body.Statements) * 10
+			}
 		}
 	}
 	return cost
@@ -133,7 +137,7 @@ type deadCodeEliminator struct {
 	usedVariables      map[string]bool
 }
 
-func (d *deadCodeEliminator) markReachableFromFunction(fn *ast.Function) {
+func (d *deadCodeEliminator) markReachableFromFunction(fn *ast.FunctionDecl) {
 	// Walk function body and mark called functions as reachable
 	// Simplified - would need proper AST visitor
 }
@@ -149,29 +153,29 @@ func (p *LoopOptimizationPass) Name() string {
 	return "Loop Optimization (Semantic)"
 }
 
-func (p *LoopOptimizationPass) Apply(program *ast.Program) (*ast.Program, bool) {
+func (p *LoopOptimizationPass) Apply(file *ast.File) (*ast.File, bool) {
 	changed := false
 	optimizer := &loopOptimizer{}
 	
-	for _, item := range program.Items {
-		if fn, ok := item.(*ast.Function); ok {
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
 			if optimizer.optimizeLoopsInFunction(fn) {
 				changed = true
 			}
 		}
 	}
 	
-	return program, changed
+	return file, changed
 }
 
-func (p *LoopOptimizationPass) EstimateCost(program *ast.Program) Cost {
+func (p *LoopOptimizationPass) EstimateCost(file *ast.File) Cost {
 	// Loop optimization typically reduces cycles significantly
 	return Cost{}
 }
 
 type loopOptimizer struct{}
 
-func (l *loopOptimizer) optimizeLoopsInFunction(fn *ast.Function) bool {
+func (l *loopOptimizer) optimizeLoopsInFunction(fn *ast.FunctionDecl) bool {
 	changed := false
 	
 	// Look for patterns like:
@@ -203,11 +207,11 @@ func (p *CompileTimeEvaluationPass) Name() string {
 	return "Compile-Time Evaluation"
 }
 
-func (p *CompileTimeEvaluationPass) Apply(program *ast.Program) (*ast.Program, bool) {
-	return p.evaluator.evaluate(program)
+func (p *CompileTimeEvaluationPass) Apply(file *ast.File) (*ast.File, bool) {
+	return p.evaluator.evaluate(file)
 }
 
-func (p *CompileTimeEvaluationPass) EstimateCost(program *ast.Program) Cost {
+func (p *CompileTimeEvaluationPass) EstimateCost(file *ast.File) Cost {
 	// Compile-time evaluation reduces both size and cycles
 	return Cost{}
 }
@@ -217,23 +221,23 @@ type compileTimeEvaluator struct {
 	changed  bool
 }
 
-func (e *compileTimeEvaluator) evaluate(program *ast.Program) (*ast.Program, bool) {
+func (e *compileTimeEvaluator) evaluate(file *ast.File) (*ast.File, bool) {
 	e.changed = false
 	
 	// Find pure functions that can be evaluated
-	pureFunctions := e.findPureFunctions(program)
+	pureFunctions := e.findPureFunctions(file)
 	
 	// Evaluate constant function calls
-	for _, item := range program.Items {
-		if fn, ok := item.(*ast.Function); ok {
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
 			e.evaluateInFunction(fn, pureFunctions)
 		}
 	}
 	
-	return program, e.changed
+	return file, e.changed
 }
 
-func (e *compileTimeEvaluator) findPureFunctions(program *ast.Program) map[string]bool {
+func (e *compileTimeEvaluator) findPureFunctions(file *ast.File) map[string]bool {
 	pure := make(map[string]bool)
 	
 	// A function is pure if:
@@ -249,7 +253,7 @@ func (e *compileTimeEvaluator) findPureFunctions(program *ast.Program) map[strin
 	return pure
 }
 
-func (e *compileTimeEvaluator) evaluateInFunction(fn *ast.Function, pureFunctions map[string]bool) {
+func (e *compileTimeEvaluator) evaluateInFunction(fn *ast.FunctionDecl, pureFunctions map[string]bool) {
 	// Walk function body and evaluate constant expressions
 	// This would use a proper AST visitor pattern
 }
@@ -309,24 +313,24 @@ func (p *PatternBasedTransformationPass) Name() string {
 	return "Pattern-Based Transformation"
 }
 
-func (p *PatternBasedTransformationPass) Apply(program *ast.Program) (*ast.Program, bool) {
+func (p *PatternBasedTransformationPass) Apply(file *ast.File) (*ast.File, bool) {
 	changed := false
 	transformer := &patternTransformer{
 		patterns: p.patterns,
 	}
 	
-	for _, item := range program.Items {
-		if fn, ok := item.(*ast.Function); ok {
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
 			if transformer.transformFunction(fn) {
 				changed = true
 			}
 		}
 	}
 	
-	return program, changed
+	return file, changed
 }
 
-func (p *PatternBasedTransformationPass) EstimateCost(program *ast.Program) Cost {
+func (p *PatternBasedTransformationPass) EstimateCost(file *ast.File) Cost {
 	// Pattern transformations typically reduce cost significantly
 	return Cost{}
 }
@@ -336,7 +340,7 @@ type patternTransformer struct {
 	changed  bool
 }
 
-func (t *patternTransformer) transformFunction(fn *ast.Function) bool {
+func (t *patternTransformer) transformFunction(fn *ast.FunctionDecl) bool {
 	t.changed = false
 	
 	// Walk AST and apply patterns
@@ -360,12 +364,12 @@ func (p *SimpleInliningPass) Name() string {
 	return "Simple Inlining (Semantic)"
 }
 
-func (p *SimpleInliningPass) Apply(program *ast.Program) (*ast.Program, bool) {
+func (p *SimpleInliningPass) Apply(file *ast.File) (*ast.File, bool) {
 	// Build map of inlinable functions
-	inlinable := make(map[string]*ast.Function)
+	inlinable := make(map[string]*ast.FunctionDecl)
 	
-	for _, item := range program.Items {
-		if fn, ok := item.(*ast.Function); ok {
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
 			if p.isInlinable(fn) {
 				inlinable[fn.Name] = fn
 			}
@@ -378,30 +382,30 @@ func (p *SimpleInliningPass) Apply(program *ast.Program) (*ast.Program, bool) {
 		inlinable: inlinable,
 	}
 	
-	for _, item := range program.Items {
-		if fn, ok := item.(*ast.Function); ok {
+	for _, decl := range file.Declarations {
+		if fn, ok := decl.(*ast.FunctionDecl); ok {
 			if inliner.inlineCallsInFunction(fn) {
 				changed = true
 			}
 		}
 	}
 	
-	return program, changed
+	return file, changed
 }
 
-func (p *SimpleInliningPass) EstimateCost(program *ast.Program) Cost {
+func (p *SimpleInliningPass) EstimateCost(file *ast.File) Cost {
 	// Inlining eliminates call overhead
 	return Cost{}
 }
 
-func (p *SimpleInliningPass) isInlinable(fn *ast.Function) bool {
+func (p *SimpleInliningPass) isInlinable(fn *ast.FunctionDecl) bool {
 	// Function is inlinable if:
 	// 1. It's small (few statements)
 	// 2. It doesn't recurse
 	// 3. It's not exported
 	// 4. It's called from only a few places
 	
-	if len(fn.Body.Statements) > p.threshold {
+	if fn.Body == nil || len(fn.Body.Statements) > p.threshold {
 		return false
 	}
 	
@@ -412,11 +416,11 @@ func (p *SimpleInliningPass) isInlinable(fn *ast.Function) bool {
 }
 
 type functionInliner struct {
-	inlinable map[string]*ast.Function
+	inlinable map[string]*ast.FunctionDecl
 	changed   bool
 }
 
-func (i *functionInliner) inlineCallsInFunction(fn *ast.Function) bool {
+func (i *functionInliner) inlineCallsInFunction(fn *ast.FunctionDecl) bool {
 	// Walk function body and inline eligible calls
 	// This would need proper AST transformation support
 	return false

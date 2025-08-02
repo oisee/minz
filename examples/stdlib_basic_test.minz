@@ -1,0 +1,50 @@
+// Basic standard library test with current compiler capabilities
+// Tests what currently works and demonstrates the roadmap
+
+// Basic I/O test without metafunctions (for now)
+fun test_basic_io() -> void {
+    // Simple print functions - these should work
+    print_u8(42);
+    print_u16(1234);
+    print_i8(-50);
+    print_i16(-1000);
+    print_bool(true);
+}
+
+// Test struct creation (this works)
+struct Point {
+    x: u16,
+    y: u16,
+}
+
+fun test_structs() -> void {
+    let point = Point { x: 100, y: 200 };
+    print_u16(point.x);
+    print_u16(point.y);
+}
+
+// Test arrays (this works)
+fun test_arrays() -> void {
+    let numbers: [u8; 3] = [1, 2, 3];
+    print_u8(numbers[0]);
+    print_u8(numbers[1]);
+    print_u8(numbers[2]);
+}
+
+// Test function calls (this works)
+fun add(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+fun test_functions() -> void {
+    let result = add(10, 20);
+    print_u16(result);
+}
+
+// Main function
+fun main() -> void {
+    test_basic_io();
+    test_structs();
+    test_arrays();
+    test_functions();
+}

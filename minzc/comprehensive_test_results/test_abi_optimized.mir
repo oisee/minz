@@ -4,8 +4,8 @@
 Function .Users.alice.dev.minz-ts.examples.test_abi.smc_function(x: u8, y: u8) -> u8
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor y$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
       2: r5 = r3 + r4
       3: return r5
 
@@ -42,12 +42,8 @@ Function .Users.alice.dev.minz-ts.examples.test_abi.external_function(ptr: *u8, 
     r15 = result4: u16
   Instructions:
       0: r6 = call smc_function
-      1: store , r6
-      2: r10 = call register_function
-      3: store , r10
-      4: r14 = call mapped_function
-      5: store , r14
-      6: r18 = call stack_function
-      7: store , r18
-      8: return
+      1: r10 = call register_function
+      2: r14 = call mapped_function
+      3: r18 = call stack_function
+      4: return
 

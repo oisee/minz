@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:25
 
 
 ; Data section
@@ -8,48 +8,38 @@
 str_0:
     DB 5    ; Length
     DB "RGB: "
-    DB 0               ; Null terminator
 str_1:
     DB 2    ; Length
     DB ", "
-    DB 0               ; Null terminator
 str_2:
     DB 2    ; Length
     DB ", "
-    DB 0               ; Null terminator
 str_3:
     DB 2    ; Length
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_4:
     DB 9    ; Length
     DB "Matrix:"
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_5:
     DB 1    ; Length
     DB " "
-    DB 0               ; Null terminator
 str_6:
     DB 2    ; Length
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_7:
     DB 1    ; Length
     DB " "
-    DB 0               ; Null terminator
 str_8:
     DB 2    ; Length
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_9:
     DB 5    ; Length
     DB "Sum: "
-    DB 0               ; Null terminator
 
 ; Code section
     ORG $8000
@@ -62,9 +52,7 @@ str_9:
 ; Using absolute addressing for locals (SMC style)
     ; r5 = string(str_0)
     LD HL, str_0
-    LD ($F00A), HL    ; Virtual register 5 to memory
     ; print_string(r5)
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     CALL print_string
     ; r6 = load colors
     LD HL, ($F002)
@@ -79,13 +67,15 @@ str_9:
     POP HL
     ADD HL, DE
     LD A, (HL)
-    LD ($F010), A     ; Virtual register 8 to memory
+    LD D, A         ; Store to physical register D
     ; print_u8(r8)
-    LD A, ($F010)     ; Virtual register 8 from memory
+    LD A, D
     CALL print_u8_decimal
     ; r9 = string(str_1)
     LD HL, str_1
+    LD ($F012), HL    ; Virtual register 9 to memory
     ; print_string(r9)
+    LD HL, ($F012)    ; Virtual register 9 from memory
     CALL print_string
     ; r10 = load colors
     LD HL, ($F002)
@@ -110,28 +100,26 @@ str_9:
     CALL print_u8_decimal
     ; r13 = string(str_2)
     LD HL, str_2
+    LD ($F01A), HL    ; Virtual register 13 to memory
     ; print_string(r13)
+    LD HL, ($F01A)    ; Virtual register 13 from memory
     CALL print_string
     ; r14 = load colors
     LD HL, ($F002)
     ; r15 = 2
     LD A, 2
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD ($F01E), A     ; Virtual register 15 to memory
     ; Load array element (u8)
     PUSH HL
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
+    LD A, ($F01E)     ; Virtual register 15 from memory
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    LD D, A         ; Store to physical register D
+    LD E, A         ; Store to physical register E
     ; print_u8(r16)
-    LD A, D
+    LD A, E
     CALL print_u8_decimal
     ; r17 = string(str_3)
     LD HL, str_3
@@ -143,25 +131,28 @@ str_9:
     CALL print_string
     ; r19 = load matrix
     LD HL, ($F004)
-    LD D, H
-    LD E, L
     ; r20 = 0
     LD A, 0
-    ; Register 20 already in A
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; Load array element ([2]u8)
-    LD H, D
-    LD L, E
     PUSH HL
+    EXX               ; Switch to shadow registers
     POP HL
     ADD HL, DE
     LD A, (HL)
     LD H, A         ; Store to physical register H
     ; r22 = 0
     LD A, 0
-    ; Register 22 already in A
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; Load array element (u8)
     PUSH HL
-    ; Register 22 already in A
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
     LD E, A
     LD D, 0
     POP HL
@@ -390,12 +381,17 @@ for_end_2:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -467,9 +463,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

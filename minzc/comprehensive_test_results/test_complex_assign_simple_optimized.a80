@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Code section
@@ -12,7 +12,6 @@
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
     ; Store to array[index] (u8)
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL
     LD A, ($F004)     ; Virtual register 2 from memory
     POP HL
@@ -28,60 +27,28 @@
     LD A, H
     POP HL
     LD (HL), A
-    ; r15 = 3
-    LD A, 3
-    LD L, A         ; Store to physical register L
-    ; store , r15
-    LD A, L
-    LD ($F01C), A
     ; Store to array[index] (u8)
+    LD HL, ($F026)    ; Virtual register 19 from memory
     PUSH HL
     EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
+    LD A, B'         ; From shadow B'
     EXX               ; Switch back to main registers
     POP HL
     LD (HL), A
     ; Load array element (u8)
+    LD HL, ($F028)    ; Virtual register 20 from memory
     PUSH HL
-    LD A, C
-    LD E, A
-    LD D, 0
-    POP HL
-    ADD HL, DE
-    LD A, (HL)
-    ; Register 22 already in A
-    ; Load array element (u8)
-    PUSH HL
-    LD A, B
-    LD E, A
-    LD D, 0
-    POP HL
-    ADD HL, DE
-    LD A, (HL)
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD A, E'         ; From shadow E'
     EXX               ; Switch back to main registers
-    ; r26 = r22 + r25
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    LD ($F034), HL    ; Virtual register 26 to memory
-    ; Load array element (u8)
-    PUSH HL
-    LD A, ($F038)     ; Virtual register 28 from memory
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    ; Register 29 already in A
-    ; r30 = r26 + r29
-    LD HL, ($F034)    ; Virtual register 26 from memory
-    LD D, H
-    LD E, L
-    ADD HL, DE
+    LD ($F02C), A     ; Virtual register 22 to memory
     ; Load array element (u8)
-    LD HL, ($F03E)    ; Virtual register 31 from memory
+    LD HL, ($F02E)    ; Virtual register 23 from memory
     PUSH HL
     LD A, B
     LD E, A
@@ -90,6 +57,37 @@
     ADD HL, DE
     LD A, (HL)
     LD B, A         ; Store to physical register B
+    ; r26 = r22 + r25
+    LD HL, ($F02C)    ; Virtual register 22 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r30 = r26 + r29
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Load array element (u8)
+    PUSH HL
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
     ; r34 = r30 + r33
     LD D, H
     LD E, L
@@ -103,33 +101,11 @@
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
     PUSH DE
-    ; r2 = 100
-    LD A, 100
-    LD E, A         ; Store to physical register E
-    ; r3 = load v
-    LD HL, ($F002)
-    ; Store to field x (offset 0)
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
-    ; r4 = 50
-    LD A, 50
-    ; Register 4 already in A
-    ; r5 = load v
-    LD HL, ($F002)
-    ; Store to field y (offset 1)
-    LD DE, 1
-    ADD HL, DE
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
     ; r6 = load v
     LD HL, ($F002)
+    LD ($F00C), HL    ; Virtual register 6 to memory
     ; Load field x (offset 0)
+    LD HL, ($F00C)    ; Virtual register 6 from memory
     LD E, (HL)
     INC HL
     LD D, (HL)
@@ -162,20 +138,14 @@
     ; Call to test_arrays (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.test_complex_assign_simple.test_arrays
-    ; store , r2
-    LD A, H
-    LD ($F002), A
     ; r4 = call test_structs
     ; Call to test_structs (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.test_complex_assign_simple.test_structs
-    ; store , r4
-    LD A, L
-    LD ($F006), A
     ; r5 = load a
     LD A, ($F002)
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD C', A         ; Store to shadow C'
     EXX               ; Switch back to main registers
     ; return r5
     POP DE
@@ -184,12 +154,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -261,9 +236,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

@@ -7,33 +7,23 @@
 Function .Users.alice.dev.minz-ts.examples.test_loop_minimal.main() -> void
   @smc
   Instructions:
-      0: r1 = 10
-      1: r2 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
-      2: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_minimal.Item)
-      3: STORE_FIELD ; Store to field value (offset 0)
-      4: r5 = 20
-      5: r6 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
-      6: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_minimal.Item)
-      7: STORE_FIELD ; Store to field value (offset 0)
-      8: r9 = 30
-      9: r10 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
-     10: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_minimal.Item)
-     11: STORE_FIELD ; Store to field value (offset 0)
-     12: r13 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
-     13: r14 = addr() ; Load table base address
-     14: r15 = addr() ; Load table base for end calculation
-     15: UNKNOWN_OP_76 ; Calculate table end (+ 3 elements * 1 bytes)
-     16: UNKNOWN_OP_75 ; Load loop counter
-     17: UNKNOWN_OP_54 ; Check if reached end of table
-     18: JUMP_IF ; Exit if done
-     19: UNKNOWN_OP_72 ; Copy element to buffer at $F000
-     20: LOAD_DIRECT ; Load item.value from buffer at $F000
-     21: r19 = 1
-     22: r20 = r18 + r19
-     23: r21 = load item
-     24: STORE_FIELD ; Store to field value (offset 0)
-     25: UNKNOWN_OP_73 ; Copy buffer back to element at $F000
-     26: UNKNOWN_OP_76 ; Advance to next element (+1 bytes)
-     27: UNKNOWN_OP_74 ; Decrement counter and loop if not zero
-     28: return
+      0: r2 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
+      1: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_minimal.Item)
+      2: r6 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
+      3: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_minimal.Item)
+      4: r10 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
+      5: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_minimal.Item)
+      6: r13 = addr(.Users.alice.dev.minz-ts.examples.test_loop_minimal.items)
+      7: r14 = addr() ; Load table base address
+      8: r15 = addr() ; Load table base for end calculation
+      9: UNKNOWN_OP_79 ; Calculate table end (+ 3 elements * 1 bytes)
+     10: UNKNOWN_OP_78 ; Load loop counter
+     11: UNKNOWN_OP_56 ; Check if reached end of table
+     12: JUMP_IF ; Exit if done
+     13: UNKNOWN_OP_75 ; Copy element to buffer at $F000
+     14: LOAD_DIRECT ; Load item.value from buffer at $F000
+     15: UNKNOWN_OP_76 ; Copy buffer back to element at $F000
+     16: UNKNOWN_OP_79 ; Advance to next element (+1 bytes)
+     17: UNKNOWN_OP_77 ; Decrement counter and loop if not zero
+     18: return
 

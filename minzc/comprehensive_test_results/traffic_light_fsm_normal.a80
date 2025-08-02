@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:29
 
 
 ; Data section
@@ -10,56 +10,45 @@ str_0:
     DB "Traffic Light Simulation Starting..."
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_1:
     DB 6    ; Length
     DB "Cycle "
-    DB 0               ; Null terminator
 str_2:
     DB 8    ; Length
     DB ": State "
-    DB 0               ; Null terminator
 str_3:
     DB 5    ; Length
     DB " for "
-    DB 0               ; Null terminator
 str_4:
     DB 10    ; Length
     DB " seconds"
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_5:
     DB 39    ; Length
     DB 92
     DB "nEMERGENCY! Switching to flashing..."
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_6:
     DB 17    ; Length
     DB "Emergency state: "
-    DB 0               ; Null terminator
 str_7:
     DB 2    ; Length
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_8:
     DB 30    ; Length
     DB "Emergency over, resetting..."
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_9:
     DB 16    ; Length
     DB "Reset to state: "
-    DB 0               ; Null terminator
 str_10:
     DB 2    ; Length
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 
 ; Code section
     ORG $8000
@@ -187,9 +176,8 @@ case_end_1:
 .L9:
     LD HL, 1
 .L10:
-    LD ($F006), HL    ; Virtual register 3 to memory
     ; jump_if r3, case_arm_0_7
-    LD A, ($F006)     ; Virtual register 3 from memory
+    LD A, L
     OR A
     JP NZ, case_arm_0_7
     ; jump case_arm_1_8
@@ -269,14 +257,14 @@ case_arm_0_7:
 case_arm_1_8:
     ; r8 = 5
     LD A, 5
-    ; Register 8 already in A
+    LD B, A         ; Store to physical register B
     ; jump case_end_6
     JP case_end_6
     ; case_arm_2_9:
 case_arm_2_9:
     ; r9 = 25
     LD A, 25
-    ; Register 9 already in A
+    LD ($F012), A     ; Virtual register 9 to memory
     ; jump case_end_6
     JP case_end_6
     ; case_arm_3_10:
@@ -296,9 +284,7 @@ case_end_6:
 ; Using absolute addressing for locals (SMC style)
 .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_color_code_param_state:
     LD HL, #0000   ; SMC parameter state (u8->u16)
-    LD ($F004), HL    ; Virtual register 2 to memory
     ; r3 = r2 == r0
-    LD HL, ($F004)    ; Virtual register 2 from memory
     LD D, H
     LD E, L
     LD HL, ($F000)    ; Virtual register 0 from memory
@@ -311,14 +297,14 @@ case_end_6:
 .L17:
     LD HL, 1
 .L18:
+    LD ($F006), HL    ; Virtual register 3 to memory
     ; jump_if r3, case_arm_0_12
-    LD A, B
+    LD A, ($F006)     ; Virtual register 3 from memory
     OR A
     JP NZ, case_arm_0_12
     ; jump case_arm_1_13
     JP case_arm_1_13
     ; r4 = r2 == r0
-    LD HL, ($F004)    ; Virtual register 2 from memory
     LD D, H
     LD E, L
     LD HL, ($F000)    ; Virtual register 0 from memory
@@ -331,14 +317,14 @@ case_end_6:
 .L19:
     LD HL, 1
 .L20:
+    LD ($F008), HL    ; Virtual register 4 to memory
     ; jump_if r4, case_arm_1_13
-    LD A, E
+    LD A, ($F008)     ; Virtual register 4 from memory
     OR A
     JP NZ, case_arm_1_13
     ; jump case_arm_2_14
     JP case_arm_2_14
     ; r5 = r2 == r0
-    LD HL, ($F004)    ; Virtual register 2 from memory
     LD D, H
     LD E, L
     LD HL, ($F000)    ; Virtual register 0 from memory
@@ -352,13 +338,12 @@ case_end_6:
     LD HL, 1
 .L22:
     ; jump_if r5, case_arm_2_14
-    LD A, E
+    ; Register 5 already in A
     OR A
     JP NZ, case_arm_2_14
     ; jump case_arm_3_15
     JP case_arm_3_15
     ; r6 = r2 == r0
-    LD HL, ($F004)    ; Virtual register 2 from memory
     LD D, H
     LD E, L
     LD HL, ($F000)    ; Virtual register 0 from memory
@@ -372,7 +357,7 @@ case_end_6:
     LD HL, 1
 .L24:
     ; jump_if r6, case_arm_3_15
-    LD A, D
+    ; Register 6 already in A
     OR A
     JP NZ, case_arm_3_15
     ; jump case_end_11
@@ -381,28 +366,32 @@ case_end_6:
 case_arm_0_12:
     ; r7 = 1
     LD A, 1
-    LD D, A         ; Store to physical register D
+    LD L, A         ; Store to physical register L
     ; jump case_end_11
     JP case_end_11
     ; case_arm_1_13:
 case_arm_1_13:
     ; r8 = 2
     LD A, 2
-    LD B, A         ; Store to physical register B
+    LD L, A         ; Store to physical register L
     ; jump case_end_11
     JP case_end_11
     ; case_arm_2_14:
 case_arm_2_14:
     ; r9 = 3
     LD A, 3
-    LD ($F012), A     ; Virtual register 9 to memory
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; jump case_end_11
     JP case_end_11
     ; case_arm_3_15:
 case_arm_3_15:
     ; r10 = 4
     LD A, 4
-    LD B, A         ; Store to physical register B
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; case_end_11:
 case_end_11:
     ; return
@@ -427,19 +416,18 @@ case_end_11:
     LD ($F006), A
     ; r5 = string(str_0)
     LD HL, str_0
-    LD ($F00A), HL    ; Virtual register 5 to memory
     ; print_string(r5)
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     CALL print_string
     ; loop_16:
 loop_16:
     ; r6 = load cycle_count
     LD A, ($F006)
-    LD B, A         ; Store to physical register B
+    LD ($F00C), A     ; Virtual register 6 to memory
     ; r7 = 10
     LD A, 10
     LD ($F00E), A     ; Virtual register 7 to memory
     ; r8 = r6 < r7
+    LD HL, ($F00C)    ; Virtual register 6 from memory
     LD D, H
     LD E, L
     LD HL, ($F00E)    ; Virtual register 7 from memory
@@ -452,8 +440,9 @@ loop_16:
 .L25:
     LD HL, 1
 .L26:
+    LD ($F010), HL    ; Virtual register 8 to memory
     ; jump_if_not r8, end_loop_17
-    LD A, L
+    LD A, ($F010)     ; Virtual register 8 from memory
     OR A
     JP Z, end_loop_17
     ; r9 = string(str_1)
@@ -464,9 +453,9 @@ loop_16:
     CALL print_string
     ; r10 = load cycle_count
     LD A, ($F006)
-    LD C, A         ; Store to physical register C
+    ; Register 10 already in A
     ; print_u8(r10)
-    LD A, C
+    ; Register 10 already in A
     CALL print_u8_decimal
     ; r11 = string(str_2)
     LD HL, str_2
@@ -482,8 +471,9 @@ loop_16:
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_color_code
+    LD ($F01A), HL    ; Virtual register 13 to memory
     ; print_u8(r13)
-    LD A, E
+    LD A, ($F01A)     ; Virtual register 13 from memory
     CALL print_u8_decimal
     ; r14 = string(str_3)
     LD HL, str_3
@@ -510,7 +500,9 @@ loop_16:
     LD HL, ($F002)
     ; r19 = 0
     LD A, 0
-    LD L, A         ; Store to physical register L
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
     ; r20 = call transition
     ; Call to transition (args: 2)
     ; Stack-based parameter passing
@@ -522,16 +514,19 @@ loop_16:
     LD ($F002), HL
     ; r21 = load cycle_count
     LD A, ($F006)
-    LD C, A         ; Store to physical register C
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; r22 = 1
     LD A, 1
-    LD C, A         ; Store to physical register C
+    ; Register 22 already in A
     ; r23 = r21 + r22
     LD D, H
     LD E, L
     ADD HL, DE
+    LD ($F02E), HL    ; Virtual register 23 to memory
     ; store cycle_count, r23
-    LD A, B
+    LD A, ($F02E)     ; Virtual register 23 from memory
     LD ($F006), A
     ; jump loop_16
     JP loop_16
@@ -539,24 +534,25 @@ loop_16:
 end_loop_17:
     ; r24 = string(str_5)
     LD HL, str_5
-    LD ($F030), HL    ; Virtual register 24 to memory
     ; print_string(r24)
-    LD HL, ($F030)    ; Virtual register 24 from memory
     CALL print_string
     ; r25 = load state
     LD HL, ($F002)
+    LD ($F032), HL    ; Virtual register 25 to memory
     ; r26 = 1
     LD A, 1
-    LD ($F034), A     ; Virtual register 26 to memory
+    LD E, A         ; Store to physical register E
     ; r27 = call transition
     ; Call to transition (args: 2)
     ; Stack-based parameter passing
-    LD HL, ($F034)    ; Virtual register 26 from memory
     PUSH HL       ; Argument 1
+    LD HL, ($F032)    ; Virtual register 25 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.transition
+    LD ($F036), HL    ; Virtual register 27 to memory
     ; store state, r27
+    LD HL, ($F036)    ; Virtual register 27 from memory
     LD ($F002), HL
     ; r28 = string(str_6)
     LD HL, str_6
@@ -564,14 +560,16 @@ end_loop_17:
     CALL print_string
     ; r29 = load state
     LD HL, ($F002)
+    LD ($F03A), HL    ; Virtual register 29 to memory
     ; r30 = call get_color_code
     ; Call to get_color_code (args: 1)
     ; Stack-based parameter passing
+    LD HL, ($F03A)    ; Virtual register 29 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_color_code
     ; print_u8(r30)
-    ; Register 30 already in A
+    LD A, H
     CALL print_u8_decimal
     ; r31 = string(str_7)
     LD HL, str_7
@@ -579,19 +577,18 @@ end_loop_17:
     CALL print_string
     ; r32 = string(str_8)
     LD HL, str_8
-    LD ($F040), HL    ; Virtual register 32 to memory
     ; print_string(r32)
-    LD HL, ($F040)    ; Virtual register 32 from memory
     CALL print_string
     ; r33 = load state
     LD HL, ($F002)
     ; r34 = 2
     LD A, 2
-    LD ($F044), A     ; Virtual register 34 to memory
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r35 = call transition
     ; Call to transition (args: 2)
     ; Stack-based parameter passing
-    LD HL, ($F044)    ; Virtual register 34 from memory
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
@@ -611,7 +608,7 @@ end_loop_17:
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_color_code
     ; print_u8(r38)
-    LD A, B
+    LD A, E
     CALL print_u8_decimal
     ; r39 = string(str_10)
     LD HL, str_10
@@ -634,12 +631,17 @@ end_loop_17:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -711,9 +713,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

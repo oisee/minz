@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -11,50 +11,6 @@
 .Users.alice.dev.minz-ts.examples.register_allocation.test_registers:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    ; r2 = 10
-    LD A, 10
-    LD ($F004), A     ; Virtual register 2 to memory
-    ; store , r2
-    LD A, ($F004)     ; Virtual register 2 from memory
-    LD ($F002), A
-    ; r4 = 20
-    LD A, 20
-    LD C, A         ; Store to physical register C
-    ; store , r4
-    LD A, C
-    LD ($F006), A
-    ; r6 = 30
-    LD A, 30
-    LD E, A         ; Store to physical register E
-    ; store , r6
-    LD A, E
-    LD ($F00A), A
-    ; r8 = load a
-    LD A, ($F002)
-    LD L, A         ; Store to physical register L
-    ; r9 = load b
-    LD A, ($F006)
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
-    ; r10 = r8 + r9
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; r11 = load c
-    LD A, ($F00A)
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
-    ; r12 = r10 + r11
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; store , r12
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
-    LD ($F00E), A
     ; r13 = load result
     LD A, ($F00E)
     ; Register 13 already in A
@@ -72,8 +28,6 @@
     ; Call to test_registers (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.register_allocation.test_registers
-    ; store , r2
-    LD ($F002), HL
     ; return
     POP DE
     POP BC
@@ -81,12 +35,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -158,9 +117,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

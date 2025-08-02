@@ -7,9 +7,5 @@ Function .Users.alice.dev.minz-ts.examples.test_simple_assign.test() -> void
     r1 = x: u8
     r4 = p: *u8
   Instructions:
-      0: r2 = 5
-      1: store , r2
-      2: r3 = 10
-      3: store x, r3
-      4: return
+      0: return
 

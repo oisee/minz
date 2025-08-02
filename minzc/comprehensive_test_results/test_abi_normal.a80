@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -96,9 +96,13 @@
     LD ($F004), A     ; Virtual register 2 to memory
     ; r3 = load data
     LD HL, ($F000)
+    LD D, H
+    LD E, L
     ; r4 = load count
     LD HL, ($F000)
     ; r5 = r3 + r4
+    LD H, D
+    LD L, E
     LD D, H
     LD E, L
     ADD HL, DE
@@ -124,15 +128,15 @@
     LD ($F004), HL    ; Virtual register 2 to memory
     ; r4 = 5
     LD A, 5
-    LD D, A         ; Store to physical register D
+    LD ($F008), A     ; Virtual register 4 to memory
     ; r5 = 10
     LD A, 10
-    LD ($F00A), A     ; Virtual register 5 to memory
+    LD H, A         ; Store to physical register H
     ; r6 = call smc_function
     ; Call to smc_function (args: 2)
     ; Stack-based parameter passing
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL       ; Argument 1
+    LD HL, ($F008)    ; Virtual register 4 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.test_abi.smc_function
@@ -141,40 +145,40 @@
     LD (IX-1), H
     ; r8 = 3
     LD A, 3
-    LD ($F010), A     ; Virtual register 8 to memory
+    LD H, A         ; Store to physical register H
     ; r9 = 4
     LD A, 4
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
     ; r10 = call register_function
     ; Call to register_function (args: 2)
     ; Register-based parameter passing
-    LD A, ($F010)     ; Virtual register 8 from memory
-    ; Parameter a in A
     LD A, H
+    ; Parameter a in A
+    LD A, L
     LD E, A       ; Parameter b in E
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.test_abi.register_function
+    LD ($F014), HL    ; Virtual register 10 to memory
     ; store , r10
+    LD HL, ($F014)    ; Virtual register 10 from memory
     LD (IX-4), L
     LD (IX-3), H
     ; r12 = 20
     LD A, 20
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
     ; r13 = 5
     LD A, 5
-    LD L, A         ; Store to physical register L
+    LD L, A         ; Store to HL (low byte)
     ; r14 = call mapped_function
     ; Call to mapped_function (args: 2)
     ; Register-based parameter passing
-    LD A, H
+    LD A, L
     ; Parameter x in A
     LD A, L
     LD E, A       ; Parameter y in E
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.test_abi.mapped_function
-    ; Register 14 already in HL
     ; store , r14
-    ; Register 14 already in HL
     LD (IX-6), L
     LD (IX-5), H
     ; r16 = 1000
@@ -202,12 +206,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -279,9 +288,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

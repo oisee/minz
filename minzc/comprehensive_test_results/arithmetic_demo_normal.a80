@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:25
 
 
 ; Code section
@@ -24,21 +24,21 @@
     LD (IX-1), A
     ; r4 = 6
     LD A, 6
-    LD C, A         ; Store to physical register C
+    LD ($F008), A     ; Virtual register 4 to memory
     ; store , r4
-    LD A, C
+    LD A, ($F008)     ; Virtual register 4 from memory
     LD (IX-2), A
     ; r6 = load a
     LD A, (IX-1)
     LD ($F00C), A     ; Virtual register 6 to memory
     ; r7 = load b
     LD A, (IX-2)
-    LD ($F00E), A     ; Virtual register 7 to memory
+    LD H, A         ; Store to physical register H
     ; r8 = r6 * r7
     ; 8-bit multiplication
     LD A, ($F00C)     ; Virtual register 6 from memory
     LD B, A       ; B = multiplicand
-    LD A, ($F00E)     ; Virtual register 7 from memory
+    LD A, H
     LD C, A       ; C = multiplier
     LD HL, 0      ; HL = result
     LD A, C
@@ -51,14 +51,19 @@
     DEC C
     JR NZ, .mul_loop_0
 .mul_done_0:
+    LD ($F010), HL    ; Virtual register 8 to memory
     ; store , r8
-    LD A, L
+    LD A, ($F010)     ; Virtual register 8 from memory
     LD (IX-3), A
     ; r10 = 20
     LD A, 20
-    LD ($F014), A     ; Virtual register 10 to memory
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; store , r10
-    LD A, ($F014)     ; Virtual register 10 from memory
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     LD (IX-4), A
     ; r12 = 4
     LD A, 4
@@ -105,11 +110,11 @@
     ; r20 = 5
     LD A, 5
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD D', A         ; Store to shadow D'
     EXX               ; Switch back to main registers
     ; store , r20
     EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
+    LD A, D'         ; From shadow D'
     EXX               ; Switch back to main registers
     LD (IX-8), A
     ; r22 = load e
@@ -117,16 +122,12 @@
     LD ($F02C), A     ; Virtual register 22 to memory
     ; r23 = load f
     LD A, (IX-8)
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    ; Register 23 already in A
     ; r24 = r22 % r23
     ; 8-bit modulo
     LD A, ($F02C)     ; Virtual register 22 from memory
     LD D, A       ; D = dividend
-    EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
-    EXX               ; Switch back to main registers
+    ; Register 23 already in A
     LD E, A       ; E = divisor
     OR A          ; Check for divide by zero
     JR Z, .mod_by_zero_2
@@ -142,27 +143,25 @@
     LD L, A       ; Result (remainder) in L
     LD H, 0
     ; store , r24
-    EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
-    EXX               ; Switch back to main registers
+    ; Register 24 already in A
     LD (IX-9), A
     ; r26 = 3
     LD A, 3
-    LD ($F034), A     ; Virtual register 26 to memory
+    LD L, A         ; Store to physical register L
     ; store , r26
-    LD A, ($F034)     ; Virtual register 26 from memory
+    LD A, L
     LD (IX-10), A
     ; r28 = load g
     LD A, (IX-10)
-    LD H, A         ; Store to physical register H
+    LD D, A         ; Store to physical register D
     ; r29 = 2
     LD A, 2
-    ; Register 29 already in A
+    LD D, A         ; Store to physical register D
     ; r30 = r28 << r29
     ; Shift left
-    LD A, H
+    LD A, D
     LD B, A       ; B = value to shift
-    ; Register 29 already in A
+    LD A, D
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -176,27 +175,26 @@
 .shl_done_3:
     LD L, A
     LD H, 0
-    LD ($F03C), HL    ; Virtual register 30 to memory
     ; store , r30
-    LD A, ($F03C)     ; Virtual register 30 from memory
+    LD A, C
     LD (IX-11), A
     ; r32 = 12
     LD A, 12
-    ; Register 32 already in A
+    LD C, A         ; Store to physical register C
     ; store , r32
-    ; Register 32 already in A
+    LD A, C
     LD (IX-12), A
     ; r34 = load h
     LD A, (IX-12)
-    ; Register 34 already in A
+    LD B, A         ; Store to physical register B
     ; r35 = 2
     LD A, 2
-    ; Register 35 already in A
+    LD B, A         ; Store to physical register B
     ; r36 = r34 >> r35
     ; Shift right
-    ; Register 34 already in A
+    LD A, B
     LD B, A       ; B = value to shift
-    ; Register 35 already in A
+    LD A, B
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -212,7 +210,7 @@
     LD H, 0
     ; store , r36
     EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
+    LD A, E'         ; From shadow E'
     EXX               ; Switch back to main registers
     LD (IX-13), A
     ; return
@@ -234,12 +232,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -311,9 +314,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

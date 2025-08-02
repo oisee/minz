@@ -6,18 +6,14 @@ Function .Users.alice.dev.minz-ts.examples.implicit_returns.test_no_return() -> 
   Locals:
     r1 = x: u8
   Instructions:
-      0: r2 = 5
-      1: store , r2
-      2: return
+      0: return
 
 Function .Users.alice.dev.minz-ts.examples.implicit_returns.test_with_return() -> void
   @smc
   Locals:
     r1 = x: u8
   Instructions:
-      0: r2 = 5
-      1: store , r2
-      2: return
+      0: return
 
 Function .Users.alice.dev.minz-ts.examples.implicit_returns.main() -> void
   @smc

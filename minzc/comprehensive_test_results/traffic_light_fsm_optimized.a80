@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:29
 
 
 ; Data section
@@ -10,56 +10,45 @@ str_0:
     DB "Traffic Light Simulation Starting..."
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_1:
     DB 6    ; Length
     DB "Cycle "
-    DB 0               ; Null terminator
 str_2:
     DB 8    ; Length
     DB ": State "
-    DB 0               ; Null terminator
 str_3:
     DB 5    ; Length
     DB " for "
-    DB 0               ; Null terminator
 str_4:
     DB 10    ; Length
     DB " seconds"
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_5:
     DB 39    ; Length
     DB 92
     DB "nEMERGENCY! Switching to flashing..."
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_6:
     DB 17    ; Length
     DB "Emergency state: "
-    DB 0               ; Null terminator
 str_7:
     DB 2    ; Length
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_8:
     DB 30    ; Length
     DB "Emergency over, resetting..."
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 str_9:
     DB 16    ; Length
     DB "Reset to state: "
-    DB 0               ; Null terminator
 str_10:
     DB 2    ; Length
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 
 ; Code section
     ORG $8000
@@ -114,18 +103,6 @@ state$imm0 EQU state$immOP+1
 ; Using absolute addressing for locals (SMC style)
     PUSH BC
     PUSH DE
-    ; r2 = 0
-    LD A, 0
-    LD ($F004), A     ; Virtual register 2 to memory
-    ; store , r2
-    LD HL, ($F004)    ; Virtual register 2 from memory
-    LD ($F002), HL
-    ; r4 = 0
-    LD A, 0
-    LD ($F008), A     ; Virtual register 4 to memory
-    ; store , r4
-    LD A, ($F008)     ; Virtual register 4 from memory
-    LD ($F006), A
     ; r5 = string(str_0)
     LD HL, str_0
     LD ($F00A), HL    ; Virtual register 5 to memory
@@ -136,14 +113,16 @@ state$imm0 EQU state$immOP+1
 loop_16:
     ; r6 = load cycle_count
     LD A, ($F006)
-    LD B, A         ; Store to physical register B
+    LD ($F00C), A     ; Virtual register 6 to memory
     ; r7 = 10
     LD A, 10
-    LD ($F00E), A     ; Virtual register 7 to memory
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; r8 = r6 < r7
+    LD HL, ($F00C)    ; Virtual register 6 from memory
     LD D, H
     LD E, L
-    LD HL, ($F00E)    ; Virtual register 7 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -155,7 +134,7 @@ loop_16:
 .L2:
     ; jump_if_not r8, end_loop_17
     EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
+    LD A, D'         ; From shadow D'
     EXX               ; Switch back to main registers
     OR A
     JP Z, end_loop_17
@@ -164,13 +143,13 @@ loop_16:
     ; print_string(r9)
     CALL print_string
     ; print_u8(r10)
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
+    ; Register 10 already in A
     CALL print_u8_decimal
     ; r11 = string(str_2)
     LD HL, str_2
+    LD ($F016), HL    ; Virtual register 11 to memory
     ; print_string(r11)
+    LD HL, ($F016)    ; Virtual register 11 from memory
     CALL print_string
     ; r13 = call get_color_code
     ; Call to get_color_code (args: 1)
@@ -183,7 +162,7 @@ loop_16:
     LD (state$imm0), A        ; Patch state
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_color_code
     ; print_u8(r13)
-    LD A, B
+    ; Register 13 already in A
     CALL print_u8_decimal
     ; r14 = string(str_3)
     LD HL, str_3
@@ -200,11 +179,15 @@ loop_16:
     LD (state$imm0), A        ; Patch state
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_timing
     ; print_u8(r16)
-    LD A, D
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     CALL print_u8_decimal
     ; r17 = string(str_4)
     LD HL, str_4
+    LD ($F022), HL    ; Virtual register 17 to memory
     ; print_string(r17)
+    LD HL, ($F022)    ; Virtual register 17 from memory
     CALL print_string
     ; r20 = call transition
     ; Call to transition (args: 2)
@@ -220,22 +203,6 @@ loop_16:
     LD A, ($F026)     ; Virtual register 19 from memory
     LD (event$imm0), A        ; Patch event
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.transition
-    ; store state, r20
-    LD ($F002), HL
-    ; r21 = load cycle_count
-    LD A, ($F006)
-    ; Register 21 already in A
-    ; r22 = 1
-    LD A, 1
-    LD ($F02C), A     ; Virtual register 22 to memory
-    ; r23 = r21 + r22
-    LD D, H
-    LD E, L
-    LD HL, ($F02C)    ; Virtual register 22 from memory
-    ADD HL, DE
-    ; store cycle_count, r23
-    ; Register 23 already in A
-    LD ($F006), A
     ; jump loop_16
     JP loop_16
     ; end_loop_17:
@@ -260,8 +227,6 @@ end_loop_17:
     LD A, ($F034)     ; Virtual register 26 from memory
     LD (event$imm0), A        ; Patch event
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.transition
-    ; store state, r27
-    LD ($F002), HL
     ; r28 = string(str_6)
     LD HL, str_6
     ; print_string(r28)
@@ -277,7 +242,7 @@ end_loop_17:
     LD (state$imm0), A        ; Patch state
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_color_code
     ; print_u8(r30)
-    LD A, C
+    LD A, L
     CALL print_u8_decimal
     ; r31 = string(str_7)
     LD HL, str_7
@@ -301,8 +266,6 @@ end_loop_17:
     LD A, ($F044)     ; Virtual register 34 from memory
     LD (event$imm0), A        ; Patch event
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.transition
-    ; store state, r35
-    LD ($F002), HL
     ; r36 = string(str_9)
     LD HL, str_9
     ; print_string(r36)
@@ -318,7 +281,7 @@ end_loop_17:
     LD (state$imm0), A        ; Patch state
     CALL .Users.alice.dev.minz-ts.examples.traffic_light_fsm.get_color_code
     ; print_u8(r38)
-    LD A, H
+    LD A, B
     CALL print_u8_decimal
     ; r39 = string(str_10)
     LD HL, str_10
@@ -365,12 +328,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -442,9 +410,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

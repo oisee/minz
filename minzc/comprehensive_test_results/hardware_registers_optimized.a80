@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -11,57 +11,23 @@
 .Users.alice.dev.minz-ts.examples.hardware_registers.main:
 ; IsSMCDefault=false, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    ; r2 = 18
-    LD A, 18
-    ; Register 2 already in A
-    ; store , r2
-    ; Register 2 already in A
-    LD ($F002), A
-    ; r4 = load border_val
-    LD A, ($F002)
-    LD C, A         ; Store to physical register C
-    ; store , r4
-    LD ($F006), HL
     ; Load bit field border_color (offset 0, width 3)
-    LD A, H
+    LD A, B
     AND 7
-    LD E, A         ; Store to physical register E
-    ; store , r7
-    LD A, E
-    LD ($F00A), A
-    ; Folded: 
-    LD HL, 1322
-    ; store , r17
-    LD ($F010), HL
-    ; r19 = load mem_val
-    LD HL, ($F010)
-    ; store , r19
-    LD ($F024), HL
+    ; Register 7 already in A
     ; Load bit field page_number (offset 0, width 8)
     LD A, E
     AND 255
-    LD H, A         ; Store to physical register H
-    ; store , r22
-    LD A, H
-    LD ($F028), A
-    ; Folded: 
-    LD HL, 38500
-    ; store , r28
-    LD ($F02E), HL
-    ; r30 = load sprite_val
-    LD HL, ($F02E)
-    ; store , r30
-    LD ($F03A), HL
+    LD L, A         ; Store to HL (low byte)
     ; Load bit field x_coord (offset 0, width 8)
-    LD A, C
-    AND 255
-    LD H, A         ; Store to physical register H
-    ; store , r33
-    LD A, H
-    LD ($F03E), A
-    ; Load bit field y_coord (offset 8, width 8)
     EXX               ; Switch to shadow registers
     LD A, L'         ; From shadow HL'
+    EXX               ; Switch back to main registers
+    AND 255
+    LD C, A         ; Store to BC (low byte)
+    ; Load bit field y_coord (offset 8, width 8)
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
     EXX               ; Switch back to main registers
     SRL A
     SRL A
@@ -72,21 +38,25 @@
     SRL A
     SRL A
     AND 255
-    LD H, A         ; Store to physical register H
-    ; store , r36
-    LD A, H
-    LD ($F044), A
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; return
     RET
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -158,9 +128,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

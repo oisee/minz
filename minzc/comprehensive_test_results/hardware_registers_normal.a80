@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -24,26 +24,24 @@
     LD (IX-1), A
     ; r4 = load border_val
     LD A, (IX-1)
-    LD C, A         ; Store to physical register C
+    LD ($F008), A     ; Virtual register 4 to memory
     ; store , r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
     LD (IX-2), L
     LD (IX-1), H
     ; r6 = load border
     LD L, (IX-2)
     LD H, (IX-1)
-    LD ($F00C), HL    ; Virtual register 6 to memory
     ; Load bit field border_color (offset 0, width 3)
-    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD A, E
     AND 7
-    LD H, A         ; Store to physical register H
+    LD ($F00E), A     ; Virtual register 7 to memory
     ; store , r7
-    LD A, H
+    LD A, ($F00E)     ; Virtual register 7 from memory
     LD (IX-3), A
     ; r9 = 1
     LD A, 1
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    LD ($F012), A     ; Virtual register 9 to memory
     ; r10 = 10
     LD A, 10
     EXX               ; Switch to shadow registers
@@ -51,9 +49,7 @@
     EXX               ; Switch back to main registers
     ; r11 = r9 << r10
     ; Shift left
-    EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
-    EXX               ; Switch back to main registers
+    LD A, ($F012)     ; Virtual register 9 from memory
     LD B, A       ; B = value to shift
     EXX               ; Switch to shadow registers
     LD A, C'         ; From shadow C'
@@ -99,11 +95,9 @@
 .shl_done_1:
     LD L, A
     LD H, 0
-    LD ($F01C), HL    ; Virtual register 14 to memory
     ; r15 = r11 | r14
     LD D, H
     LD E, L
-    LD HL, ($F01C)    ; Virtual register 14 from memory
     LD A, L
     OR E
     LD L, A
@@ -112,10 +106,11 @@
     LD H, A
     ; r16 = 42
     LD A, 42
-    LD E, A         ; Store to physical register E
+    LD ($F020), A     ; Virtual register 16 to memory
     ; r17 = r15 | r16
     LD D, H
     LD E, L
+    LD HL, ($F020)    ; Virtual register 16 from memory
     LD A, L
     OR E
     LD L, A
@@ -135,7 +130,9 @@
     LD L, (IX-7)
     LD H, (IX-6)
     ; Load bit field page_number (offset 0, width 8)
-    LD A, B
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     AND 255
     LD ($F02C), A     ; Virtual register 22 to memory
     ; store , r22
@@ -224,12 +221,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -301,9 +303,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

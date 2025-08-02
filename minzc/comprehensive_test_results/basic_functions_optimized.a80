@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:25
 
 
 ; Code section
@@ -30,18 +30,6 @@ b$imm0 EQU b$immOP+1
 ; Using absolute addressing for locals (SMC style)
     PUSH BC
     PUSH DE
-    ; r2 = 5
-    LD A, 5
-    LD E, A         ; Store to physical register E
-    ; store , r2
-    LD A, E
-    LD ($F002), A
-    ; r4 = 3
-    LD A, 3
-    LD ($F008), A     ; Virtual register 4 to memory
-    ; store , r4
-    LD A, ($F008)     ; Virtual register 4 from memory
-    LD ($F006), A
     ; r8 = call add
     ; Call to add (args: 2)
     ; Stack-based parameter passing
@@ -56,31 +44,14 @@ b$imm0 EQU b$immOP+1
     LD A, ($F00E)     ; Virtual register 7 from memory
     LD (b$imm0), A        ; Patch b
     CALL .Users.alice.dev.minz-ts.examples.basic_functions.add
-    ; store , r8
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
-    LD ($F00A), A
-    ; r10 = 0
-    LD A, 0
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
-    ; store , r10
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
-    LD ($F012), A
     ; loop_1:
 loop_1:
     ; r11 = load i
     LD A, ($F012)
-    LD B, A         ; Store to physical register B
+    LD H, A         ; Store to physical register H
     ; r12 = 10
     LD A, 10
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD L, A         ; Store to physical register L
     ; r13 = r11 < r12
     LD D, H
     LD E, L
@@ -93,26 +64,12 @@ loop_1:
 .L1:
     LD HL, 1
 .L2:
-    LD ($F01A), HL    ; Virtual register 13 to memory
     ; jump_if_not r13, end_loop_2
-    LD A, ($F01A)     ; Virtual register 13 from memory
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, end_loop_2
-    ; r14 = load i
-    LD A, ($F012)
-    LD C, A         ; Store to physical register C
-    ; r15 = 1
-    LD A, 1
-    LD C, A         ; Store to physical register C
-    ; r16 = r14 + r15
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; store i, r16
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
-    LD ($F012), A
     ; jump loop_1
     JP loop_1
     ; end_loop_2:
@@ -136,12 +93,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -213,9 +175,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

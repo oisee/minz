@@ -8,10 +8,8 @@ Function .Users.alice.dev.minz-ts.examples.test_strings.test_strings() -> void
     r3 = ch: u8
   Instructions:
       0: LOAD_LABEL ; Load string "Hello, World!"
-      1: store , r2
-      2: LOAD_INDEX ; Load array element (u8)
-      3: store , r6
-      4: return
+      1: LOAD_INDEX ; Load array element (u8)
+      2: return
 
 Function .Users.alice.dev.minz-ts.examples.test_strings.main() -> void
   @smc

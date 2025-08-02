@@ -1,0 +1,53 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.draw(self: .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor self$imm0
+      1: LOAD_FIELD ; Load field x (offset 0)
+      2: UNKNOWN_OP_33 ; Load from anchor self$imm0
+      3: LOAD_FIELD ; Load field y (offset 1)
+      4: r6 = r3 + r5
+      5: return r6
+
+Function .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.get_area(self: .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle) -> u16
+  @smc
+  Locals:
+    r2 = r16: u16
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor self$imm0
+      1: r5 = load r16
+      2: r6 = load r16
+      3: r7 = r5 * r6
+      4: r8 = 3
+      5: r9 = r7 * r8
+      6: return r9
+
+Function .Users.alice.dev.minz-ts.examples.interface_simple_test.main() -> u8
+  @smc
+  Locals:
+    r1 = circle: u16
+    r6 = result: u16
+    r9 = area: u16
+  Instructions:
+      0: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.draw
+      1: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.draw
+      2: r8 = load r16 ; Inlined from .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.get_area
+      3: r9 = load r16 ; Inlined from .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.get_area
+      4: r8 = r5 ; Inlined return value
+      5: LOAD_PARAM ; Inlined from .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.get_area
+      6: r10 = r8 * r9 ; Inlined from .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.get_area
+      7: r11 = 3 ; Inlined from .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.get_area
+      8: r12 = r10 * r11 ; Inlined from .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.get_area
+      9: r11 = r12 ; Inlined return value
+     10: r12 = load area
+     11: r13 = 75
+     12: r14 = r12 == r13
+     13: jump_if_not r14, else_1
+     14: r15 = 0
+     15: return r15
+     16: else_1:
+     17: r16 = 1
+     18: return r16
+

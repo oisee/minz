@@ -1,4 +1,5 @@
 // Demonstration of zero-cost Printable interface and compile-time print!
+// NEW: Features length-prefixed strings with zero null terminator overhead!
 
 import std.io_v2;
 
@@ -10,9 +11,9 @@ struct Point {
 
 impl Printable for Point {
     fun to_string(self) -> *u8 {
-        // This will be optimized at compile time!
+        // This will be optimized at compile time with length-prefixed storage!
         @static_buffer(10);
-        @format!("({},{})", self.x, self.y);
+        @format!("({ self.x },{ self.y })");  // New { constant } syntax
     }
 }
 
@@ -26,16 +27,16 @@ struct GameState {
 impl Printable for GameState {
     fun to_string(self) -> *u8 {
         @static_buffer(32);
-        @format!("Score:{} Lives:{} Level:{}", self.score, self.lives, self.level);
+        @format!("Score:{ self.score } Lives:{ self.lives } Level:{ self.level }");
     }
 }
 
 // Demonstrate zero-cost printing
 fun main() -> u8 {
-    // Simple printing - no runtime format parsing!
+    // Simple printing - no runtime format parsing! Length-prefixed strings!
     let x: u8 = 42;
     let y: u8 = 13;
-    print!("The answer is {}, not {}\n", x, y);
+    print!("The answer is {}, not {}\n", x, y);  // Variables still use old syntax
     
     // Hex formatting
     let address: u16 = 0x8000;
@@ -65,7 +66,7 @@ fun main() -> u8 {
     // Platform-specific optimizations
     @platform("zx_spectrum") {
         // This entire block is resolved at compile time!
-        print!("Running on ZX Spectrum at {:04x}\n", 0x4000);
+        print!("Running on ZX Spectrum at { @hex(0x4000) }\n");  // Compile-time hex
     }
     
     // Zero-cost number formatting
@@ -94,11 +95,9 @@ fun main() -> u8 {
 // - Platform-specific output routines
 // - Zero heap allocation
 
-// Example of generated code for print!("x = {}", x):
+// Example of generated code for print!("x = { 42 }"):
 // 
-// LD HL, .str1        ; "x = "
-// CALL print_string
-// LD A, (x)
-// CALL print_u8
+// LD HL, .str1        ; DB 6, "x = 42" (length-prefixed, no null terminator)
+// CALL print_string   ; DJNZ loop for exactly 6 characters
 //
-// No format string parsing, no runtime dispatch!
+// Single string, single call! Even better than the old approach!

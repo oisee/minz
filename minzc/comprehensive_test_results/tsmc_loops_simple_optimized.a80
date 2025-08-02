@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:29
 
 
 ; Data section
@@ -16,16 +16,6 @@
 ; Function: .Users.alice.dev.minz-ts.examples.tsmc_loops_simple.sum_array_tsmc
 .Users.alice.dev.minz-ts.examples.tsmc_loops_simple.sum_array_tsmc:
 ; TRUE SMC function with immediate anchors
-    ; r4 = 0
-    LD A, 0
-    ; Register 4 already in A
-    ; store , r4
-    LD ($F006), HL
-    ; r6 = 0
-    LD A, 0
-    LD C, A         ; Store to physical register C
-    ; store , r6
-    LD ($F00A), HL
     ; loop_1:
 loop_1:
     ; r7 = load i
@@ -33,11 +23,11 @@ loop_1:
 count$immOP:
     LD HL, 0       ; count anchor (will be patched)
 count$imm0 EQU count$immOP+1
-    LD ($F010), HL    ; Virtual register 8 to memory
+    ; Register 8 already in HL
     ; r9 = r7 < r8
     LD D, H
     LD E, L
-    LD HL, ($F010)    ; Virtual register 8 from memory
+    ; Register 8 already in HL
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -53,8 +43,6 @@ count$imm0 EQU count$immOP+1
     LD A, C
     OR A
     JP Z, end_loop_2
-    ; r10 = load sum
-    LD HL, ($F006)
 arr$immOP:
     LD HL, 0       ; arr anchor (will be patched)
 arr$imm0 EQU arr$immOP+1
@@ -69,40 +57,18 @@ arr$imm0 EQU arr$immOP+1
     POP HL            ; Load shadow HL into main HL
     LD A, (HL)
     EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
+    LD B', A         ; Store to shadow B'
     EXX               ; Switch back to main registers
-    ; r13 = r10 + r12
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; store sum, r13
-    LD ($F006), HL
     LD HL, (arr$imm0)   ; Reuse from anchor
     ; Update TSMC reference arr
-    ; Register 16 already in HL
     LD (arr$imm0), HL    ; Update TSMC reference immediate
-    ; r17 = load i
-    LD HL, ($F00A)
-    ; r18 = 1
-    LD A, 1
-    LD L, A         ; Store to physical register L
-    ; r19 = r17 + r18
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    LD ($F026), HL    ; Virtual register 19 to memory
-    ; store i, r19
-    LD HL, ($F026)    ; Virtual register 19 from memory
-    LD ($F00A), HL
     ; jump loop_1
     JP loop_1
     ; end_loop_2:
 end_loop_2:
     ; r20 = load sum
     LD HL, ($F006)
-    ; Register 20 already in HL
     ; return r20
-    ; Register 20 already in HL
     RET
 
 ; TRUE SMC PATCH-TABLE
@@ -119,12 +85,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -196,9 +167,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:28
 
 
 ; Code section
@@ -11,17 +11,9 @@
 .Users.alice.dev.minz-ts.examples.test_auto_deref.test_basic_auto_deref:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    ; r2 = 10
-    LD A, 10
-    ; Register 2 already in A
-    ; store , r2
-    ; Register 2 already in A
-    LD ($F002), A
     ; r5 = &r4
     ; Address-of operation for register r4
     LD HL, $F008  ; Variable address
-    ; store , r5
-    LD ($F006), HL
     ; Auto-deref assignment
     PUSH HL
     LD A, ($F000)     ; Virtual register 0 from memory
@@ -29,9 +21,7 @@
     LD (HL), A
     ; r8 = load x
     LD A, ($F002)
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    LD E, A         ; Store to physical register E
     ; return r8
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -40,35 +30,15 @@
 .Users.alice.dev.minz-ts.examples.test_auto_deref.test_pointer_arithmetic:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    ; r2 = 10
-    LD A, 10
-    LD ($F004), A     ; Virtual register 2 to memory
-    ; store , r2
-    LD A, ($F004)     ; Virtual register 2 from memory
-    LD ($F002), A
     ; r5 = &r4
     ; Address-of operation for register r4
     LD HL, $F008  ; Variable address
-    ; store , r5
-    LD ($F006), HL
-    ; r6 = load p
-    LD HL, ($F006)
-    ; r7 = 1
-    LD A, 1
-    ; Register 7 already in A
-    ; r8 = r6 + r7
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    LD ($F010), HL    ; Virtual register 8 to memory
-    ; store p, r8
-    LD HL, ($F010)    ; Virtual register 8 from memory
-    LD ($F006), HL
     ; r9 = load x
     LD A, ($F002)
-    LD L, A         ; Store to HL (low byte)
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; return r9
-    ; Register 9 already in HL
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
@@ -78,9 +48,8 @@
 ptr$immOP:
     LD HL, 0       ; ptr anchor (will be patched)
 ptr$imm0 EQU ptr$immOP+1
-    LD ($F004), HL    ; Virtual register 2 to memory
+    ; Register 2 already in HL
     ; Update TSMC reference ptr
-    ; Register 4 already in HL
     LD (ptr$imm0), HL    ; Update TSMC reference immediate
     ; return
     RET
@@ -112,12 +81,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -189,9 +163,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

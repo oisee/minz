@@ -13,6 +13,5 @@ Function .Users.alice.dev.minz-ts.examples.test_lua_v2.main() -> void
     r1 = x: u16
   Instructions:
       0: r2 = call test_lua
-      1: store , r2
-      2: return
+      1: return
 

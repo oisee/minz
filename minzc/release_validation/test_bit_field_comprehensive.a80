@@ -1,0 +1,252 @@
+; MinZ generated code
+; Generated: 2025-08-02 18:22:12
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 53    ; Length
+    DB "Bit struct field access test completed successfully!"
+    DB 10
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.test_bit_field_comprehensive.test_8bit_fields
+......examples.test_bit_field_comprehensive.test_8bit_fields:
+; IsSMCDefault=false, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Load bit field carry (offset 0, width 1)
+    LD A, B
+    AND 1
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; Load bit field zero (offset 6, width 1)
+    LD A, ($F012)     ; Virtual register 9 from memory
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    AND 1
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; Load bit field sign (offset 7, width 1)
+    LD A, ($F018)     ; Virtual register 12 from memory
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    AND 1
+    LD E, A         ; Store to physical register E
+    ; Store bit field zero (offset 6, width 1)
+    LD A, ($F01E)     ; Virtual register 15 from memory
+    LD B, A        ; Save original value
+    AND 191         ; Clear field bits
+    LD C, A        ; Save cleared value
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    AND 1         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    LD ($F01E), A     ; Virtual register 15 to memory
+    ; Store bit field carry (offset 0, width 1)
+    LD A, ($F022)     ; Virtual register 17 from memory
+    LD B, A        ; Save original value
+    AND 254         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, ($F020)     ; Virtual register 16 from memory
+    AND 1         ; Mask to field width
+    OR C           ; Combine with cleared original
+    LD ($F022), A     ; Virtual register 17 to memory
+    ; Store bit field parity (offset 2, width 1)
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    LD B, A        ; Save original value
+    AND 251         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, L
+    AND 1         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; Load bit field sign (offset 7, width 1)
+    LD A, C
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    AND 1
+    LD L, A         ; Store to physical register L
+    ; Store bit field sign (offset 7, width 1)
+    LD A, C
+    LD B, A        ; Save original value
+    AND 127         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, H
+    AND 1         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    LD C, A         ; Store to physical register C
+    ; Load bit field sign (offset 7, width 1)
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    AND 1
+    LD H, A         ; Store to physical register H
+    ; Load bit field carry (offset 0, width 1)
+    LD A, D
+    AND 1
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; Load bit field zero (offset 6, width 1)
+    ; Register 30 already in A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    AND 1
+    LD D, A         ; Store to physical register D
+    ; Store bit field half_carry (offset 4, width 1)
+    ; Register 33 already in A
+    LD B, A        ; Save original value
+    AND 239         ; Clear field bits
+    LD C, A        ; Save cleared value
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    AND 1         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    ; Register 33 already in A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.test_bit_field_comprehensive.test_16bit_fields
+......examples.test_bit_field_comprehensive.test_16bit_fields:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Store bit field x_coord (offset 0, width 9)
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD B, A        ; Save original value
+    AND 0         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, E
+    AND 511         ; Mask to field width
+    OR C           ; Combine with cleared original
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; Store bit field palette_id (offset 9, width 3)
+    LD A, C
+    LD B, A        ; Save original value
+    AND 255         ; Clear field bits
+    LD C, A        ; Save cleared value
+    EXX               ; Switch to shadow registers
+    LD A, L'         ; From shadow HL'
+    EXX               ; Switch back to main registers
+    AND 7         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    LD C, A         ; Store to BC (low byte)
+    ; Store bit field priority (offset 12, width 2)
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD B, A        ; Save original value
+    AND 255         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, L
+    AND 3         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; Load bit field x_coord (offset 0, width 9)
+    LD A, L
+    AND 511
+    LD ($F01A), A     ; Virtual register 13 to memory
+    ; Store bit field x_coord (offset 0, width 9)
+    LD A, ($F022)     ; Virtual register 17 from memory
+    LD B, A        ; Save original value
+    AND 0         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, L
+    AND 511         ; Mask to field width
+    OR C           ; Combine with cleared original
+    LD ($F022), A     ; Virtual register 17 to memory
+    ; Load bit field h_flip (offset 14, width 1)
+    LD A, L
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    AND 1
+    LD L, A         ; Store to physical register L
+    ; unknown op 57

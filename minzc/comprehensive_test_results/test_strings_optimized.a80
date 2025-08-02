@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Data section
@@ -8,7 +8,6 @@
 str_0:
     DB 13    ; Length
     DB "Hello, World!"
-    DB 0               ; Null terminator
 
 ; Code section
     ORG $8000
@@ -21,20 +20,15 @@ str_0:
 ; Using absolute addressing for locals (SMC style)
     ; Load string "Hello, World!"
     LD HL, str_0
-    ; store , r2
-    LD ($F002), HL
     ; Load array element (u8)
     PUSH HL
-    LD A, E
+    LD A, D
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    LD C, A         ; Store to physical register C
-    ; store , r6
-    LD A, C
-    LD ($F006), A
+    LD B, A         ; Store to physical register B
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -56,12 +50,17 @@ str_0:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -133,9 +132,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

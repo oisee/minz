@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -15,10 +15,11 @@
     LD HL, #0000   ; SMC parameter x (u8->u16)
     ; r5 = 10
     LD A, 10
-    LD B, A         ; Store to physical register B
+    LD ($F00A), A     ; Virtual register 5 to memory
     ; r6 = r4 + r5
     LD D, H
     LD E, L
+    LD HL, ($F00A)    ; Virtual register 5 from memory
     ADD HL, DE
     ; store , r6
     LD A, C
@@ -28,11 +29,10 @@
     EX DE, HL      ; Move to HL for storage
     ; r9 = 20
     LD A, 20
-    LD ($F012), A     ; Virtual register 9 to memory
+    LD L, A         ; Store to physical register L
     ; r10 = r8 + r9
     LD D, H
     LD E, L
-    LD HL, ($F012)    ; Virtual register 9 from memory
     ADD HL, DE
     ; store , r10
     EXX               ; Switch to shadow registers
@@ -54,11 +54,11 @@
     LD E, L
     ADD HL, DE
     ; store , r14
-    LD A, L
+    LD A, B
     LD ($F016), A
     ; r15 = load c
     LD A, ($F016)
-    LD L, A         ; Store to physical register L
+    LD B, A         ; Store to physical register B
     ; return r15
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -93,7 +93,7 @@
     JP Z, else_1
     ; r5 = 1
     LD A, 1
-    ; Register 5 already in A
+    LD H, A         ; Store to physical register H
     ; return r5
     RET
     ; jump end_if_2
@@ -103,36 +103,37 @@ else_1:
     ; end_if_2:
 end_if_2:
     LD A, (.Users.alice.dev.minz-ts.examples.stack_variables.factorial_param_n)
-    LD ($F00E), A     ; Virtual register 7 to memory
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r8 = 1
     LD A, 1
-    LD B, A         ; Store to physical register B
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r9 = r7 - r8
-    LD HL, ($F00E)    ; Virtual register 7 from memory
     LD D, H
     LD E, L
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
-    LD ($F012), HL    ; Virtual register 9 to memory
     ; r10 = call factorial
     ; Call to factorial (args: 1)
     ; Stack-based parameter passing
-    LD HL, ($F012)    ; Virtual register 9 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.stack_variables.factorial
     ; store , r10
     LD ($F00C), HL
     LD A, (.Users.alice.dev.minz-ts.examples.stack_variables.factorial_param_n)
-    LD C, A         ; Store to physical register C
+    LD B, A         ; Store to physical register B
     ; r12 = load prev
     LD HL, ($F00C)
     ; r13 = r11 * r12
     ; 8-bit multiplication
-    LD A, C
+    LD A, B
     LD B, A       ; B = multiplicand
-    LD A, C
+    LD A, B
     LD C, A       ; C = multiplier
     LD HL, 0      ; HL = result
     LD A, C
@@ -160,15 +161,15 @@ end_if_2:
     ; Load parameters from registers
     ; r2 = 1
     LD A, 1
-    LD ($F004), A     ; Virtual register 2 to memory
+    ; Register 2 already in A
     ; store , r2
-    LD A, ($F004)     ; Virtual register 2 from memory
+    ; Register 2 already in A
     LD (IX-1), A
     ; r4 = 2
     LD A, 2
-    LD ($F008), A     ; Virtual register 4 to memory
+    LD D, A         ; Store to physical register D
     ; store , r4
-    LD A, ($F008)     ; Virtual register 4 from memory
+    LD A, D
     LD (IX-2), A
     ; r6 = 3
     LD A, 3
@@ -184,106 +185,97 @@ end_if_2:
     LD (IX-4), A
     ; r10 = 5
     LD A, 5
-    LD ($F014), A     ; Virtual register 10 to memory
+    LD E, A         ; Store to physical register E
     ; store , r10
-    LD A, ($F014)     ; Virtual register 10 from memory
+    LD A, E
     LD (IX-5), A
     ; r12 = 6
     LD A, 6
-    LD ($F018), A     ; Virtual register 12 to memory
+    ; Register 12 already in A
     ; store , r12
-    LD A, ($F018)     ; Virtual register 12 from memory
+    ; Register 12 already in A
     LD (IX-6), A
     ; r14 = 7
     LD A, 7
-    LD ($F01C), A     ; Virtual register 14 to memory
+    LD L, A         ; Store to physical register L
     ; store , r14
-    LD A, ($F01C)     ; Virtual register 14 from memory
+    LD A, L
     LD (IX-7), A
     ; r16 = 8
     LD A, 8
     EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
+    LD E', A         ; Store to shadow E'
     EXX               ; Switch back to main registers
     ; store , r16
     EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
+    LD A, E'         ; From shadow E'
     EXX               ; Switch back to main registers
     LD (IX-8), A
     ; r18 = load a
     LD A, (IX-1)
-    LD ($F024), A     ; Virtual register 18 to memory
+    LD C, A         ; Store to physical register C
     ; r19 = load b
     LD A, (IX-2)
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD ($F026), A     ; Virtual register 19 to memory
     ; r20 = r18 + r19
-    LD HL, ($F024)    ; Virtual register 18 from memory
     LD D, H
     LD E, L
+    LD HL, ($F026)    ; Virtual register 19 from memory
     ADD HL, DE
-    LD ($F028), HL    ; Virtual register 20 to memory
     ; r21 = load c
     LD A, (IX-3)
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD H, A         ; Store to physical register H
     ; r22 = r20 + r21
-    LD HL, ($F028)    ; Virtual register 20 from memory
     LD D, H
     LD E, L
     ADD HL, DE
     ; r23 = load d
     LD A, (IX-4)
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD ($F02E), A     ; Virtual register 23 to memory
     ; r24 = r22 + r23
     LD D, H
     LD E, L
+    LD HL, ($F02E)    ; Virtual register 23 from memory
     ADD HL, DE
     ; store , r24
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
+    LD A, L
     LD (IX-9), A
     ; r26 = load e
     LD A, (IX-5)
-    LD E, A         ; Store to physical register E
+    LD B, A         ; Store to physical register B
     ; r27 = load f
     LD A, (IX-6)
-    LD E, A         ; Store to physical register E
+    LD ($F036), A     ; Virtual register 27 to memory
     ; r28 = r26 + r27
     LD D, H
     LD E, L
+    LD HL, ($F036)    ; Virtual register 27 from memory
     ADD HL, DE
     ; r29 = load g
     LD A, (IX-7)
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    ; Register 29 already in A
     ; r30 = r28 + r29
     LD D, H
     LD E, L
     ADD HL, DE
     ; r31 = load h
     LD A, (IX-8)
-    LD ($F03E), A     ; Virtual register 31 to memory
+    LD B, A         ; Store to physical register B
     ; r32 = r30 + r31
     LD D, H
     LD E, L
-    LD HL, ($F03E)    ; Virtual register 31 from memory
     ADD HL, DE
     ; store , r32
-    LD A, H
+    LD A, B
     LD (IX-10), A
     ; r33 = load sum1
     LD A, (IX-9)
-    ; Register 33 already in A
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; r34 = load sum2
     LD A, (IX-10)
-    ; Register 34 already in A
+    LD C, A         ; Store to physical register C
     ; r35 = r33 + r34
     LD D, H
     LD E, L
@@ -300,49 +292,50 @@ end_if_2:
 ; Using absolute addressing for locals (SMC style)
 .Users.alice.dev.minz-ts.examples.stack_variables.outer_param_x:
     LD HL, #0000   ; SMC parameter x (u8->u16)
-    LD ($F006), HL    ; Virtual register 3 to memory
     ; r4 = 1
     LD A, 1
-    LD C, A         ; Store to physical register C
+    ; Register 4 already in A
     ; r5 = r3 + r4
-    LD HL, ($F006)    ; Virtual register 3 from memory
     LD D, H
     LD E, L
     ADD HL, DE
+    LD ($F00A), HL    ; Virtual register 5 to memory
     ; store , r5
-    LD A, C
+    LD A, ($F00A)     ; Virtual register 5 from memory
     LD ($F004), A
     ; r7 = load local1
     LD A, ($F004)
-    LD ($F00E), A     ; Virtual register 7 to memory
+    LD B, A         ; Store to physical register B
     ; r8 = call inner
     ; Call to inner (args: 1)
     ; Stack-based parameter passing
-    LD HL, ($F00E)    ; Virtual register 7 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.stack_variables.inner
+    LD ($F010), HL    ; Virtual register 8 to memory
     ; store , r8
-    LD A, B
+    LD A, ($F010)     ; Virtual register 8 from memory
     LD ($F00C), A
     ; r10 = load result
     LD A, ($F00C)
-    LD D, A         ; Store to physical register D
+    LD H, A         ; Store to physical register H
     ; r11 = 1
     LD A, 1
-    LD D, A         ; Store to physical register D
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r12 = r10 + r11
     LD D, H
     LD E, L
     ADD HL, DE
     ; store , r12
-    LD A, H
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     LD ($F012), A
     ; r13 = load local2
     LD A, ($F012)
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    LD B, A         ; Store to physical register B
     ; return r13
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -353,20 +346,15 @@ end_if_2:
 ; Using absolute addressing for locals (SMC style)
 .Users.alice.dev.minz-ts.examples.stack_variables.inner_param_y:
     LD HL, #0000   ; SMC parameter y (u8->u16)
+    LD ($F006), HL    ; Virtual register 3 to memory
     ; r4 = 2
     LD A, 2
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD B, A         ; Store to physical register B
     ; r5 = r3 * r4
     ; 8-bit multiplication
-    EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
-    EXX               ; Switch back to main registers
+    LD A, ($F006)     ; Virtual register 3 from memory
     LD B, A       ; B = multiplicand
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
+    LD A, B
     LD C, A       ; C = multiplier
     LD HL, 0      ; HL = result
     LD A, C
@@ -380,13 +368,11 @@ end_if_2:
     JR NZ, .mul_loop_3
 .mul_done_3:
     ; store , r5
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
+    LD A, C
     LD ($F004), A
     ; r6 = load temp
     LD A, ($F004)
-    LD B, A         ; Store to physical register B
+    LD D, A         ; Store to physical register D
     ; return r6
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -397,23 +383,24 @@ end_if_2:
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 5
     LD A, 5
-    LD B, A         ; Store to physical register B
+    LD D, A         ; Store to physical register D
     ; r3 = 10
     LD A, 10
-    LD ($F006), A     ; Virtual register 3 to memory
+    ; Register 3 already in A
     ; r4 = call test_stack_locals
     ; Call to test_stack_locals (args: 2)
     ; Stack-based parameter passing
-    LD HL, ($F006)    ; Virtual register 3 from memory
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.stack_variables.test_stack_locals
+    LD ($F008), HL    ; Virtual register 4 to memory
     ; store , r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
     LD ($F002), HL
     ; r6 = 5
     LD A, 5
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
     ; r7 = call factorial
     ; Call to factorial (args: 1)
     ; Stack-based parameter passing
@@ -431,7 +418,7 @@ end_if_2:
     ; r11 = 10
     LD A, 10
     EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
+    LD B', A         ; Store to shadow B'
     EXX               ; Switch back to main registers
     ; r12 = call outer
     ; Call to outer (args: 1)
@@ -446,12 +433,17 @@ end_if_2:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -523,9 +515,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

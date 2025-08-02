@@ -1,0 +1,23 @@
+// Currying test with TRUE SMC!
+
+// Simple curried add function
+fun curry_demo() -> u8 {
+    // Step 1: Create a lambda that returns another lambda
+    let make_adder = |x: u8| => u8 {
+        // This will be a template function with SMC patch point for x
+        x + 5  // For now, just return x + 5
+    };
+    
+    // Step 2: Call it
+    make_adder(10)  // Should return 15
+}
+
+// Traditional comparison
+fun traditional_add(x: u8) -> u8 {
+    x + 5
+}
+
+fun main() -> void {
+    let r1 = curry_demo();
+    let r2 = traditional_add(10);
+}

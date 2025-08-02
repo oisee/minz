@@ -1,11 +1,17 @@
 package semantic
 
+// TODO: Error handling support - currently disabled due to missing types
+// This file will be re-enabled when ast.TryExpression, ir.Value, ir.BasicBlock are implemented
+
+/*
 import (
 	"fmt"
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/ir"
 )
+*/
 
+/*
 // ErrorType represents a type that can contain an error
 type ErrorType struct {
 	ValueType ast.Type
@@ -128,3 +134,4 @@ func IsErrorEnum(enumType *ast.EnumType) bool {
 	// Or check if enum name contains "Error"
 	return enumType.Name != "" && (enumType.Name[len(enumType.Name)-5:] == "Error")
 }
+*/

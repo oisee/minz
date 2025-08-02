@@ -4,8 +4,8 @@
 Function .Users.alice.dev.minz-ts.examples.simple_add.add(a: u16, b: u16) -> u16
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor a$imm0
-      1: UNKNOWN_OP_31 ; Load from anchor b$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor b$imm0
       2: r5 = r3 + r4
       3: return r5
 
@@ -15,6 +15,5 @@ Function .Users.alice.dev.minz-ts.examples.simple_add.main() -> void
     r1 = x: u16
   Instructions:
       0: r4 = call add
-      1: store , r4
-      2: return
+      1: return
 

@@ -7,9 +7,5 @@ Function .Users.alice.dev.minz-ts.examples.test_number_const.main() -> void
     r1 = a: u16
     r3 = b: u16
   Instructions:
-      0: r2 = 10
-      1: store , r2
-      2: r4 = 20
-      3: store , r4
-      4: return
+      0: return
 

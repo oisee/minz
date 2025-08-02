@@ -120,11 +120,11 @@ Function .Users.alice.dev.minz-ts.examples.zero_cost_test.test_interfaces() -> u
     r21 = r_size: u16
     r24 = r_scale: u16
   Instructions:
-      0: UNKNOWN_OP_61 ; Allocate struct Circle
+      0: UNKNOWN_OP_64 ; Allocate struct Circle
       1: r3 = 3
       2: STORE_FIELD ; Store to Circle.radius
       3: store , r2
-      4: UNKNOWN_OP_61 ; Allocate struct Rectangle
+      4: UNKNOWN_OP_64 ; Allocate struct Rectangle
       5: r6 = 4
       6: STORE_FIELD ; Store to Rectangle.width
       7: r7 = 5

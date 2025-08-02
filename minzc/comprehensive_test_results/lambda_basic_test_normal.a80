@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -82,7 +82,7 @@
 ; Using absolute addressing for locals (SMC style)
     ; r1 = 10
     LD A, 10
-    LD B, A         ; Store to physical register B
+    LD E, A         ; Store to physical register E
     ; r2 = call f
     ; Call to f (args: 1)
     ; Stack-based parameter passing
@@ -100,9 +100,7 @@
     LD HL, #0000   ; SMC parameter x (u8->u16)
     ; r2 = 5
     LD A, 5
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    ; Register 2 already in A
     ; r3 = r1 + r2
     LD D, H
     LD E, L
@@ -124,16 +122,15 @@
     LD HL, ($F004)    ; Virtual register 2 from memory
     PUSH HL       ; Argument 0
     CALL add
-    LD ($F006), HL    ; Virtual register 3 to memory
     ; store , r3
-    LD HL, ($F006)    ; Virtual register 3 from memory
     LD ($F002), HL
     ; r5 = 20
     LD A, 20
-    LD L, A         ; Store to physical register L
+    LD ($F00A), A     ; Virtual register 5 to memory
     ; r6 = call add
     ; Call to add (args: 1)
     ; Stack-based parameter passing
+    LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL       ; Argument 0
     CALL add
     ; store , r6
@@ -192,12 +189,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -269,9 +271,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

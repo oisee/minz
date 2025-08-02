@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Data section
@@ -10,7 +10,6 @@ str_0:
     DB "Bit struct field access test completed successfully!"
     DB 92
     DB "n"
-    DB 0               ; Null terminator
 
 ; Code section
     ORG $8000
@@ -28,23 +27,21 @@ str_0:
     ; Load parameters from registers
     ; r2 = 130
     LD A, 130
-    ; Register 2 already in A
+    LD ($F004), A     ; Virtual register 2 to memory
     ; store , r2
-    ; Register 2 already in A
+    LD A, ($F004)     ; Virtual register 2 from memory
     LD (IX-1), A
     ; r4 = load raw
     LD A, (IX-1)
-    LD ($F008), A     ; Virtual register 4 to memory
+    LD C, A         ; Store to physical register C
     ; store , r4
-    LD HL, ($F008)    ; Virtual register 4 from memory
     LD (IX-2), L
     LD (IX-1), H
     ; r6 = load flags
     LD L, (IX-2)
     LD H, (IX-1)
-    LD ($F00C), HL    ; Virtual register 6 to memory
     ; Load bit field carry (offset 0, width 1)
-    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD A, E
     AND 1
     LD H, A         ; Store to physical register H
     ; store , r7
@@ -75,9 +72,10 @@ str_0:
     ; r12 = load flags
     LD L, (IX-2)
     LD H, (IX-1)
-    LD ($F018), HL    ; Virtual register 12 to memory
     ; Load bit field sign (offset 7, width 1)
-    LD A, ($F018)     ; Virtual register 12 from memory
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
     SRL A
     SRL A
     SRL A
@@ -86,28 +84,23 @@ str_0:
     SRL A
     SRL A
     AND 1
-    LD C, A         ; Store to physical register C
+    ; Register 13 already in A
     ; store , r13
-    LD A, C
+    ; Register 13 already in A
     LD (IX-5), A
     ; r14 = 1
     LD A, 1
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD D, A         ; Store to physical register D
     ; r15 = load flags
     LD L, (IX-2)
     LD H, (IX-1)
+    LD ($F01E), HL    ; Virtual register 15 to memory
     ; Store bit field zero (offset 6, width 1)
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
+    LD A, ($F01E)     ; Virtual register 15 from memory
     LD B, A        ; Save original value
     AND 191         ; Clear field bits
     LD C, A        ; Save cleared value
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
+    LD A, D
     AND 1         ; Mask to field width
     SLA A          ; Shift to bit position
     SLA A          ; Shift to bit position
@@ -116,29 +109,26 @@ str_0:
     SLA A          ; Shift to bit position
     SLA A          ; Shift to bit position
     OR C           ; Combine with cleared original
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD ($F01E), A     ; Virtual register 15 to memory
     ; r16 = 0
     LD A, 0
     LD B, A         ; Store to physical register B
     ; r17 = load flags
     LD L, (IX-2)
     LD H, (IX-1)
+    LD ($F022), HL    ; Virtual register 17 to memory
     ; Store bit field carry (offset 0, width 1)
-    LD A, B
+    LD A, ($F022)     ; Virtual register 17 from memory
     LD B, A        ; Save original value
     AND 254         ; Clear field bits
     LD C, A        ; Save cleared value
     LD A, B
     AND 1         ; Mask to field width
     OR C           ; Combine with cleared original
-    LD B, A         ; Store to physical register B
+    LD ($F022), A     ; Virtual register 17 to memory
     ; r18 = 1
     LD A, 1
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD D, A         ; Store to physical register D
     ; r19 = load flags
     LD L, (IX-2)
     LD H, (IX-1)
@@ -148,9 +138,7 @@ str_0:
     LD B, A        ; Save original value
     AND 251         ; Clear field bits
     LD C, A        ; Save cleared value
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
+    LD A, D
     AND 1         ; Mask to field width
     SLA A          ; Shift to bit position
     SLA A          ; Shift to bit position
@@ -161,7 +149,7 @@ str_0:
     LD H, (IX-1)
     ; Load bit field sign (offset 7, width 1)
     EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
+    LD A, D'         ; From shadow D'
     EXX               ; Switch back to main registers
     SRL A
     SRL A
@@ -172,11 +160,11 @@ str_0:
     SRL A
     AND 1
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD D', A         ; Store to shadow D'
     EXX               ; Switch back to main registers
     ; store , r22
     EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
+    LD A, D'         ; From shadow D'
     EXX               ; Switch back to main registers
     LD (IX-6), A
     ; r23 = 0
@@ -186,7 +174,7 @@ str_0:
     LD L, (IX-2)
     LD H, (IX-1)
     ; Store bit field sign (offset 7, width 1)
-    LD A, C
+    ; Register 24 already in A
     LD B, A        ; Save original value
     AND 127         ; Clear field bits
     LD C, A        ; Save cleared value
@@ -200,7 +188,7 @@ str_0:
     SLA A          ; Shift to bit position
     SLA A          ; Shift to bit position
     OR C           ; Combine with cleared original
-    LD C, A         ; Store to physical register C
+    ; Register 24 already in A
     ; r26 = load flags
     LD L, (IX-2)
     LD H, (IX-1)
@@ -215,23 +203,22 @@ str_0:
     SRL A
     SRL A
     AND 1
-    LD C, A         ; Store to physical register C
+    ; Register 27 already in A
     ; store , r27
-    LD A, C
+    ; Register 27 already in A
     LD (IX-7), A
     ; r28 = load flags
     LD L, (IX-2)
     LD H, (IX-1)
     ; Load bit field carry (offset 0, width 1)
-    LD A, E
+    ; Register 28 already in A
     AND 1
-    LD C, A         ; Store to physical register C
+    LD D, A         ; Store to physical register D
     ; r30 = load flags
     LD L, (IX-2)
     LD H, (IX-1)
-    LD ($F03C), HL    ; Virtual register 30 to memory
     ; Load bit field zero (offset 6, width 1)
-    LD A, ($F03C)     ; Virtual register 30 from memory
+    LD A, D
     SRL A
     SRL A
     SRL A
@@ -239,7 +226,7 @@ str_0:
     SRL A
     SRL A
     AND 1
-    LD C, A         ; Store to physical register C
+    LD D, A         ; Store to physical register D
     ; r32 = r29 | r31
     LD D, H
     LD E, L
@@ -253,18 +240,18 @@ str_0:
     LD L, (IX-2)
     LD H, (IX-1)
     ; Store bit field half_carry (offset 4, width 1)
-    LD A, C
+    LD A, B
     LD B, A        ; Save original value
     AND 239         ; Clear field bits
     LD C, A        ; Save cleared value
-    LD A, C
+    LD A, B
     AND 1         ; Mask to field width
     SLA A          ; Shift to bit position
     SLA A          ; Shift to bit position
     SLA A          ; Shift to bit position
     SLA A          ; Shift to bit position
     OR C           ; Combine with cleared original
-    LD C, A         ; Store to physical register C
+    LD B, A         ; Store to physical register B
     ; return
     LD SP, IX
     POP IX
@@ -277,7 +264,7 @@ str_0:
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 0
     LD A, 0
-    LD E, A         ; Store to physical register E
+    LD D, A         ; Store to physical register D
     ; store , r2
     LD ($F002), HL
     ; r4 = load raw
@@ -748,12 +735,17 @@ end_if_4:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -825,9 +817,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

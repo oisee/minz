@@ -1,0 +1,53 @@
+// Test global variable initializers
+module test_global_init;
+
+// Basic type initializers
+global u8 g_byte = 42;
+global u16 g_word = 0x1234;
+global bool g_flag = true;
+
+// Constant expression initializers
+global u8 g_calc = 10 + 5;
+global u16 g_shift = 1 << 8;
+global u8 g_masked = 0xFF & 0x0F;
+
+// Uninitialized globals (should default to 0)
+global u8 g_uninit_byte;
+global u16 g_uninit_word;
+
+// Entry point
+fn main() -> void {
+    // Test that globals have correct values
+    if g_byte == 42 {
+        // Success
+    }
+    
+    if g_word == 0x1234 {
+        // Success
+    }
+    
+    if g_flag {
+        // Success
+    }
+    
+    if g_calc == 15 {
+        // Success
+    }
+    
+    if g_shift == 256 {
+        // Success
+    }
+    
+    if g_masked == 0x0F {
+        // Success
+    }
+    
+    // Check uninitialized are zero
+    if g_uninit_byte == 0 {
+        // Success
+    }
+    
+    if g_uninit_word == 0 {
+        // Success
+    }
+}

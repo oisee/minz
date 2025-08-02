@@ -103,9 +103,9 @@ Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.memcpy(dst: *u8, 
       3: r6 = r4 > r5
       4: jump_if_not r6, end_loop_4
       5: LOAD_PARAM
-      6: UNKNOWN_OP_66
+      6: UNKNOWN_OP_69
       7: LOAD_PARAM
-      8: UNKNOWN_OP_67 ; Store through pointer
+      8: UNKNOWN_OP_70 ; Store through pointer
       9: LOAD_PARAM
      10: r11 = 1
      11: r12 = r10 + r11
@@ -168,11 +168,11 @@ Function .Users.alice.dev.minz-ts.examples.test_abi_comparison.main() -> void
      31: r34 = load dst
      32: r35 = 0
      33: LOAD_INDEX ; Load array element (u8)
-     34: UNKNOWN_OP_65
+     34: UNKNOWN_OP_68
      35: r38 = load src
      36: r39 = 0
      37: LOAD_INDEX ; Load array element (u8)
-     38: UNKNOWN_OP_65
+     38: UNKNOWN_OP_68
      39: r42 = 10
      40: r43 = call memcpy
      41: return

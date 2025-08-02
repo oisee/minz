@@ -1,0 +1,27 @@
+// TSMC Reference Demo - strlen with self-modifying code
+// This demonstrates how references become immediate operands
+
+@abi("smc")
+fun strlen_tsmc(str: *u8) -> u16 {
+    var len: u16 = 0;
+    
+    // In TSMC mode, str is patched into the immediate field
+    // of the load instruction below. The assignment to str
+    // should modify that immediate field directly!
+    while *str != 0 {
+        len = len + 1;
+        str = str + 1;  // This modifies the immediate in the dereference above!
+    }
+    
+    return len;
+}
+
+// Simple test without array literals for now
+fun test() -> u16 {
+    var a: u8 = 72;  // 'H'
+    var b: u8 = 105; // 'i' 
+    var c: u8 = 0;   // null terminator
+    
+    // Call with TSMC reference - address of 'a' gets patched into strlen_tsmc
+    return strlen_tsmc(&a);
+}

@@ -1,0 +1,55 @@
+// MinZ String Architecture Test
+// Demonstrates length-prefixed strings with zero-cost operations
+
+fun main() -> void {
+    // Test 1: Very short strings (should use direct RST 16)
+    test_short_strings();
+    
+    // Test 2: Medium strings (context-dependent optimization)
+    test_medium_strings();
+    
+    // Test 3: Long strings (should use length-prefixed loops)
+    test_long_strings();
+    
+    // Test 4: String operations
+    test_string_operations();
+    
+    // Test 5: Boolean printing (length-prefixed)
+    test_boolean_printing();
+}
+
+fun test_short_strings() -> void {
+    @print("Hi");       // 2 chars → direct RST 16
+    @print("OK");       // 2 chars → direct RST 16  
+    @print("Go");       // 2 chars → direct RST 16
+}
+
+fun test_medium_strings() -> void {
+    @print("Hello");    // 5 chars → likely direct RST 16
+    @print("World");    // 5 chars → likely direct RST 16
+    @print("MinZ");     // 4 chars → likely direct RST 16
+}
+
+fun test_long_strings() -> void {
+    @print("Hello, World!");           // 13 chars → length-prefixed loop
+    @print("This is a long string");   // 21 chars → length-prefixed loop
+    @print("MinZ Programming Language with Zero-Cost Abstractions");  // 54 chars → loop
+}
+
+fun test_string_operations() -> void {
+    let greeting: *u8 = "Hello";
+    let name: *u8 = "Alice";
+    
+    // Traditional @print (should use print_string with length-prefixed)
+    @print(greeting);
+    @print(name);
+}
+
+fun test_boolean_printing() -> void {
+    let flag1: bool = true;
+    let flag2: bool = false;
+    
+    // Should use length-prefixed bool_true_str and bool_false_str
+    @print(flag1);      // "true" from DB 4, "true"
+    @print(flag2);      // "false" from DB 5, "false"
+}

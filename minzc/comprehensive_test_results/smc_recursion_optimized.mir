@@ -5,15 +5,15 @@ Function .Users.alice.dev.minz-ts.examples.smc_recursion.factorial_smc(n: u8) ->
   @smc
   @recursive
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor n$imm0
       1: r3 = 1
       2: r4 = r2 <= r3
       3: jump_if_not r4, else_1
       4: r5 = 1
       5: return r5
       6: else_1:
-      7: UNKNOWN_OP_31 ; Load from anchor n$imm0
-      8: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      7: UNKNOWN_OP_33 ; Load from anchor n$imm0
+      8: UNKNOWN_OP_33 ; Load from anchor n$imm0
       9: r10 = call factorial_smc
      10: r11 = r6 * r10
      11: return r11
@@ -22,16 +22,16 @@ Function .Users.alice.dev.minz-ts.examples.smc_recursion.fib_smc(n: u8) -> u16
   @smc
   @recursive
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor n$imm0
       1: r3 = 1
       2: r4 = r2 <= r3
       3: jump_if_not r4, else_3
-      4: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      4: UNKNOWN_OP_33 ; Load from anchor n$imm0
       5: return r5
       6: else_3:
-      7: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      7: UNKNOWN_OP_33 ; Load from anchor n$imm0
       8: r9 = call fib_smc
-      9: UNKNOWN_OP_31 ; Load from anchor n$imm0
+      9: UNKNOWN_OP_33 ; Load from anchor n$imm0
      10: r13 = call fib_smc
      11: r14 = r9 + r13
      12: return r14
@@ -40,28 +40,27 @@ Function .Users.alice.dev.minz-ts.examples.smc_recursion.many_params_recursive(a
   @smc
   @recursive
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor a$imm0
-      1: r7 = 0
-      2: r8 = r6 == r7
-      3: jump_if_not r8, else_5
-      4: UNKNOWN_OP_31 ; Load from anchor b$imm0
-      5: UNKNOWN_OP_31 ; Load from anchor c$imm0
-      6: r11 = r9 + r10
-      7: UNKNOWN_OP_31 ; Load from anchor d$imm0
-      8: r13 = r11 + r12
-      9: UNKNOWN_OP_31 ; Load from anchor e$imm0
-     10: r15 = r13 + r14
-     11: return r15
-     12: else_5:
-     13: UNKNOWN_OP_31 ; Load from anchor a$imm0
-     14: UNKNOWN_OP_31 ; Load from anchor a$imm0
-     15: UNKNOWN_OP_31 ; Load from anchor b$imm0
-     16: UNKNOWN_OP_31 ; Load from anchor c$imm0
-     17: UNKNOWN_OP_31 ; Load from anchor d$imm0
-     18: UNKNOWN_OP_31 ; Load from anchor e$imm0
-     19: r24 = call many_params_recursive
-     20: r25 = r16 + r24
-     21: return r25
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_57
+      2: jump_if_not r8, else_5
+      3: UNKNOWN_OP_33 ; Load from anchor b$imm0
+      4: UNKNOWN_OP_33 ; Load from anchor c$imm0
+      5: r11 = r9 + r10
+      6: UNKNOWN_OP_33 ; Load from anchor d$imm0
+      7: r13 = r11 + r12
+      8: UNKNOWN_OP_33 ; Load from anchor e$imm0
+      9: r15 = r13 + r14
+     10: return r15
+     11: else_5:
+     12: UNKNOWN_OP_33 ; Load from anchor a$imm0
+     13: UNKNOWN_OP_33 ; Load from anchor a$imm0
+     14: UNKNOWN_OP_33 ; Load from anchor b$imm0
+     15: UNKNOWN_OP_33 ; Load from anchor c$imm0
+     16: UNKNOWN_OP_33 ; Load from anchor d$imm0
+     17: UNKNOWN_OP_33 ; Load from anchor e$imm0
+     18: r24 = call many_params_recursive
+     19: r25 = r16 + r24
+     20: return r25
 
 Function .Users.alice.dev.minz-ts.examples.smc_recursion.main() -> void
   @smc
@@ -72,10 +71,7 @@ Function .Users.alice.dev.minz-ts.examples.smc_recursion.main() -> void
     r7 = result: u16
   Instructions:
       0: r3 = call factorial_smc
-      1: store , r3
-      2: r6 = call fib_smc
-      3: store , r6
-      4: r13 = call many_params_recursive
-      5: store , r13
-      6: return
+      1: r6 = call fib_smc
+      2: r13 = call many_params_recursive
+      3: return
 

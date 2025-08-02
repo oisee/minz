@@ -815,9 +815,14 @@ func (p *SimpleParser) parsePrimaryExpression() ast.Expression {
 		return p.parseLuaExpression()
 	}
 	
-	// @print expression
+	// @print expression (legacy support)
 	if p.peek().Type == TokenIdent && p.peek().Value == "@print" {
 		return p.parsePrintExpression()
+	}
+	
+	// General @metafunction(...) expressions
+	if p.peek().Type == TokenIdent && strings.HasPrefix(p.peek().Value, "@") && len(p.peek().Value) > 1 {
+		return p.parseMetafunctionCall()
 	}
 	
 	// Lambda expressions
@@ -1002,6 +1007,60 @@ func (p *SimpleParser) parsePrintExpression() ast.Expression {
 		Expr:     expr,
 		StartPos: startPos,
 		EndPos:   p.currentPos(),
+	}
+}
+
+// parseMetafunctionCall parses @function_name(...) expressions
+func (p *SimpleParser) parseMetafunctionCall() ast.Expression {
+	startPos := p.currentPos()
+	
+	// Get the metafunction name (including @)
+	nameToken := p.peek()
+	metafunctionName := nameToken.Value[1:] // Remove the @ prefix
+	p.advance() // consume '@function_name'
+	
+	// Expect opening parenthesis
+	if p.peek().Value != "(" {
+		return nil
+	}
+	p.advance() // consume '('
+	
+	// Parse arguments
+	var arguments []ast.Expression
+	
+	// Check for empty argument list
+	if p.peek().Value == ")" {
+		p.advance() // consume ')'
+	} else {
+		// Parse first argument
+		expr := p.parseExpression()
+		if expr == nil {
+			return nil
+		}
+		arguments = append(arguments, expr)
+		
+		// Parse additional arguments
+		for p.peek().Value == "," {
+			p.advance() // consume ','
+			expr := p.parseExpression()
+			if expr == nil {
+				return nil
+			}
+			arguments = append(arguments, expr)
+		}
+		
+		// Expect closing parenthesis
+		if p.peek().Value != ")" {
+			return nil
+		}
+		p.advance() // consume ')'
+	}
+	
+	return &ast.MetafunctionCall{
+		Name:      metafunctionName,
+		Arguments: arguments,
+		StartPos:  startPos,
+		EndPos:    p.currentPos(),
 	}
 }
 

@@ -60,7 +60,7 @@ Function .Users.alice.dev.minz-ts.examples.test_range_comprehensive.array_proces
       9: r9 = load arr
      10: r10 = load i
      11: r11 = r9 + r10 ; Calculate array element address
-     12: UNKNOWN_OP_64 ; Store to array[index] (u8)
+     12: UNKNOWN_OP_67 ; Store to array[index] (u8)
      13: r12 = 1
      14: r4 = r4 + r12 ; Increment i
      15: jump for_loop_5

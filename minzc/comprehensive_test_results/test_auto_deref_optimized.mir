@@ -7,13 +7,10 @@ Function .Users.alice.dev.minz-ts.examples.test_auto_deref.test_basic_auto_deref
     r1 = x: u8
     r3 = p: *u8
   Instructions:
-      0: r2 = 10
-      1: store , r2
-      2: UNKNOWN_OP_65
-      3: store , r5
-      4: UNKNOWN_OP_67 ; Auto-deref assignment
-      5: r8 = load x
-      6: return r8
+      0: UNKNOWN_OP_68
+      1: UNKNOWN_OP_70 ; Auto-deref assignment
+      2: r8 = load x
+      3: return r8
 
 Function .Users.alice.dev.minz-ts.examples.test_auto_deref.test_pointer_arithmetic() -> u8
   @smc
@@ -21,22 +18,15 @@ Function .Users.alice.dev.minz-ts.examples.test_auto_deref.test_pointer_arithmet
     r1 = x: u8
     r3 = p: *u8
   Instructions:
-      0: r2 = 10
-      1: store , r2
-      2: UNKNOWN_OP_65
-      3: store , r5
-      4: r6 = load p
-      5: r7 = 1
-      6: r8 = r6 + r7
-      7: store p, r8
-      8: r9 = load x
-      9: return r9
+      0: UNKNOWN_OP_68
+      1: r9 = load x
+      2: return r9
 
 Function .Users.alice.dev.minz-ts.examples.test_auto_deref.increment_ptr(ptr: *u8) -> void
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor ptr$imm0
-      1: UNKNOWN_OP_30 ; Update TSMC reference ptr
+      0: UNKNOWN_OP_33 ; Load from anchor ptr$imm0
+      1: UNKNOWN_OP_32 ; Update TSMC reference ptr
       2: return
 
 Function .Users.alice.dev.minz-ts.examples.test_auto_deref.main() -> u8

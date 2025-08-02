@@ -1,0 +1,58 @@
+// Test compile-time lambda transformation
+// This tests that lambdas are transformed into regular functions
+
+fun test_basic_lambda() -> u8 {
+    // This lambda should be transformed to test_basic_lambda$add_0
+    let add = |x: u8, y: u8| => u8 { x + y };
+    
+    // Direct call - should compile to CALL test_basic_lambda$add_0
+    add(5, 3)  // Returns 8
+}
+
+fun test_lambda_reference() -> u8 {
+    // Lambda becomes test_lambda_reference$double_0
+    let double = |x: u8| => u8 { x * 2 };
+    
+    // Copy reference
+    let f = double;  // Just copying function reference
+    
+    // Call through reference - still direct call
+    f(10)  // Returns 20
+}
+
+fun test_lambda_with_operations() -> u8 {
+    let add5 = |x: u8| => u8 { x + 5 };
+    let mul2 = |x: u8| => u8 { x * 2 };
+    
+    // Chain operations
+    let a = add5(10);  // 15
+    let b = mul2(a);   // 30
+    b
+}
+
+fun test_lambda_in_expression() -> u8 {
+    let increment = |x: u8| => u8 { x + 1 };
+    
+    // Use in complex expression
+    increment(5) + increment(10)  // 6 + 11 = 17
+}
+
+// This should fail - captures are not supported yet
+/*
+fun test_capture_error() -> u8 {
+    let n = 10;
+    let bad = |x: u8| => u8 { x + n };  // ERROR: captures 'n'
+    bad(5)
+}
+*/
+
+fun main() -> u8 {
+    let a = test_basic_lambda();      // 8
+    let b = test_lambda_reference();  // 20
+    let c = test_lambda_with_operations(); // 30
+    let d = test_lambda_in_expression();   // 17
+    
+    // Return sum to verify all worked
+    // 8 + 20 + 30 + 17 = 75
+    a + b + c + d
+}

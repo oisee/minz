@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -24,23 +24,6 @@
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.main.set_border
-    ; r5 = 10
-    LD A, 10
-    LD C, A         ; Store to physical register C
-    ; store , r5
-    LD A, C
-    LD ($F008), A
-    ; r7 = 10
-    LD A, 10
-    LD E, A         ; Store to physical register E
-    ; store , r7
-    LD A, E
-    LD ($F00C), A
-    ; r9 = 0
-    LD A, 0
-    LD L, A         ; Store to physical register L
-    ; store , r9
-    LD ($F010), HL
     ; loop_1:
 loop_1:
     ; r10 = load counter
@@ -67,30 +50,16 @@ loop_1:
     LD A, E
     OR A
     JP Z, end_loop_2
-    ; r13 = load x
-    LD A, ($F008)
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
-    ; r14 = 1
-    LD A, 1
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
-    ; r15 = r13 + r14
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    LD ($F01E), HL    ; Virtual register 15 to memory
-    ; store x, r15
-    LD A, ($F01E)     ; Virtual register 15 from memory
-    LD ($F008), A
     ; r16 = load x
     LD A, ($F008)
-    LD H, A         ; Store to physical register H
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r17 = 20
     LD A, 20
-    LD L, A         ; Store to physical register L
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; r18 = r16 > r17
     LD D, H
     LD E, L
@@ -104,34 +73,17 @@ loop_1:
 .L3:
     LD HL, 1
 .L4:
-    LD ($F024), HL    ; Virtual register 18 to memory
     ; jump_if_not r18, else_3
-    LD A, ($F024)     ; Virtual register 18 from memory
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, else_3
-    ; r19 = 10
-    LD A, 10
-    LD H, A         ; Store to physical register H
-    ; store x, r19
-    LD A, H
-    LD ($F008), A
-    ; r20 = load y
-    LD A, ($F00C)
-    LD L, A         ; Store to physical register L
-    ; r21 = 1
-    LD A, 1
-    LD ($F02A), A     ; Virtual register 21 to memory
-    ; r22 = r20 + r21
-    LD D, H
-    LD E, L
-    LD HL, ($F02A)    ; Virtual register 21 from memory
-    ADD HL, DE
-    ; store y, r22
-    LD A, H
-    LD ($F00C), A
     ; r23 = load y
     LD A, ($F00C)
-    LD L, A         ; Store to physical register L
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; r24 = 20
     LD A, 20
     LD ($F030), A     ; Virtual register 24 to memory
@@ -153,12 +105,6 @@ loop_1:
     LD A, H
     OR A
     JP Z, else_5
-    ; r26 = 10
-    LD A, 10
-    LD L, A         ; Store to physical register L
-    ; store y, r26
-    LD A, L
-    LD ($F00C), A
     ; jump end_if_6
     JP end_if_6
     ; else_5:
@@ -185,7 +131,6 @@ end_if_4:
     LD A, ($F038)     ; Virtual register 28 from memory
     LD (y$imm0), A        ; Patch y
     CALL .Users.alice.dev.minz-ts.examples.main.draw_pixel
-    LD ($F03A), HL    ; Virtual register 29 to memory
     ; r31 = call delay
     ; Call to delay (args: 1)
     ; Stack-based parameter passing
@@ -196,20 +141,7 @@ end_if_4:
     LD HL, ($F03C)    ; Virtual register 30 from memory
     LD (count$imm0), HL       ; Patch count (atomic)
     CALL .Users.alice.dev.minz-ts.examples.main.delay
-    ; r32 = load counter
-    LD HL, ($F010)
-    ; r33 = 1
-    LD A, 1
-    LD L, A         ; Store to HL (low byte)
-    ; r34 = r32 + r33
-    LD D, H
-    LD E, L
-    ; Register 33 already in HL
-    ADD HL, DE
-    ; Register 34 already in HL
-    ; store counter, r34
-    ; Register 34 already in HL
-    LD ($F010), HL
+    ; Register 31 already in HL
     ; jump loop_1
     JP loop_1
     ; end_loop_2:
@@ -224,14 +156,6 @@ end_loop_2:
 .Users.alice.dev.minz-ts.examples.main.clear_screen:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    ; r2 = 16384
-    LD HL, 16384
-    LD B, H
-    LD C, L
-    ; store , r2
-    LD H, B
-    LD L, C
-    LD ($F002), HL
     ; loop_7:
 loop_7:
     ; r3 = load addr
@@ -250,26 +174,11 @@ loop_7:
 .L7:
     LD HL, 1
 .L8:
-    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; Register 7 already in HL
     ; jump_if_not r7, end_loop_8
-    LD A, ($F00E)     ; Virtual register 7 from memory
+    LD A, L
     OR A
     JP Z, end_loop_8
-    ; r8 = load addr
-    LD HL, ($F002)
-    ; Register 8 already in HL
-    ; r9 = 1
-    LD A, 1
-    LD H, A         ; Store to physical register H
-    ; r10 = r8 + r9
-    ; Register 8 already in HL
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; Register 10 already in HL
-    ; store addr, r10
-    ; Register 10 already in HL
-    LD ($F002), HL
     ; jump loop_7
     JP loop_7
     ; end_loop_8:
@@ -289,117 +198,50 @@ end_loop_8:
 ; Function: .Users.alice.dev.minz-ts.examples.main.draw_pixel
 .Users.alice.dev.minz-ts.examples.main.draw_pixel:
 ; TRUE SMC function with immediate anchors
-    ; r4 = 16384
-    LD HL, 16384
-    PUSH HL           ; Save current HL
-    EXX               ; Switch to shadow registers
-    POP HL            ; Load into shadow HL
-    EXX               ; Switch back to main registers
 y$immOP:
     LD A, 0        ; y anchor (will be patched)
 y$imm0 EQU y$immOP+1
     LD L, A         ; Store to HL (low byte)
-    ; r6 = 32
-    LD A, 32
-    LD L, A         ; Store to physical register L
-    ; r7 = r5 * r6
-    ; 16-bit multiplication
-    ; Register 5 already in HL
-    LD (mul_src1_8), HL  ; Save multiplicand
-    LD (mul_src2_8), HL  ; Save multiplier
-    LD HL, 0             ; Result = 0
-    LD DE, (mul_src1_8)  ; DE = multiplicand
-    LD BC, (mul_src2_8)  ; BC = multiplier
-    LD A, B
-    OR C                 ; Check if multiplier is 0
-    JR Z, .mul16_done_8
-.mul16_loop_8:
-    ADD HL, DE           ; Result += multiplicand
-    DEC BC
-    LD A, B
-    OR C
-    JR NZ, .mul16_loop_8
-.mul16_done_8:
-mul_src1_8: DW 0
-mul_src2_8: DW 0
-    LD ($F00E), HL    ; Virtual register 7 to memory
-    ; r8 = r4 + r7
-    EXX               ; Switch to shadow registers
-    PUSH HL           ; Save shadow HL
-    EXX               ; Switch back to main registers
-    POP HL            ; Load shadow HL into main HL
-    LD D, H
-    LD E, L
-    LD HL, ($F00E)    ; Virtual register 7 from memory
-    ADD HL, DE
-    ; Register 8 already in HL
 x$immOP:
     LD A, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
-    LD L, A         ; Store to HL (low byte)
-    ; r10 = r8 + r9
-    ; Register 8 already in HL
-    LD D, H
-    LD E, L
-    ; Register 9 already in HL
-    ADD HL, DE
-    ; store , r10
-    LD ($F006), HL
+    LD L, A         ; Store to physical register L
     ; return
-    POP DE
-    POP BC
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
 ; Function: .Users.alice.dev.minz-ts.examples.main.delay
 .Users.alice.dev.minz-ts.examples.main.delay:
 ; TRUE SMC function with immediate anchors
-    ; r3 = 0
-    LD A, 0
-    LD H, A         ; Store to physical register H
-    ; store , r3
-    LD ($F004), HL
     ; loop_9:
 loop_9:
     ; r4 = load i
     LD HL, ($F004)
+    ; Register 4 already in HL
 count$immOP:
     LD HL, 0       ; count anchor (will be patched)
 count$imm0 EQU count$immOP+1
-    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; Register 5 already in HL
     ; r6 = r4 < r5
+    ; Register 4 already in HL
     LD D, H
     LD E, L
-    LD HL, ($F00A)    ; Virtual register 5 from memory
+    ; Register 5 already in HL
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
-    JP M, .L10
+    JP M, .L9
     LD HL, 0
-    JP .L11
-.L10:
+    JP .L10
+.L9:
     LD HL, 1
-.L11:
-    ; Register 6 already in HL
+.L10:
+    LD B, H
+    LD C, L
     ; jump_if_not r6, end_loop_10
-    LD A, L
+    LD A, C
     OR A
     JP Z, end_loop_10
-    ; r7 = load i
-    LD HL, ($F004)
-    ; Register 7 already in HL
-    ; r8 = 1
-    LD A, 1
-    LD H, A         ; Store to physical register H
-    ; r9 = r7 + r8
-    ; Register 7 already in HL
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; Register 9 already in HL
-    ; store i, r9
-    ; Register 9 already in HL
-    LD ($F004), HL
     ; jump loop_9
     JP loop_9
     ; end_loop_10:
@@ -424,12 +266,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -501,9 +348,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

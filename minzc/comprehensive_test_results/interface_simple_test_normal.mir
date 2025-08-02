@@ -1,0 +1,61 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.draw(self: .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field x (offset 0)
+      2: LOAD_PARAM
+      3: LOAD_FIELD ; Load field y (offset 1)
+      4: r6 = r3 + r5
+      5: return r6
+
+Function .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.get_area(self: .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle) -> u16
+  @smc
+  Locals:
+    r2 = r16: u16
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field radius (offset 2)
+      2: store , r4
+      3: r5 = load r16
+      4: r6 = load r16
+      5: r7 = r5 * r6
+      6: r8 = 3
+      7: r9 = r7 * r8
+      8: return r9
+
+Function .Users.alice.dev.minz-ts.examples.interface_simple_test.main() -> u8
+  @smc
+  Locals:
+    r1 = circle: u16
+    r6 = result: u16
+    r9 = area: u16
+  Instructions:
+      0: UNKNOWN_OP_64 ; Allocate struct Circle
+      1: r3 = 10
+      2: STORE_FIELD ; Store to Circle.x
+      3: r4 = 20
+      4: STORE_FIELD ; Store to Circle.y
+      5: r5 = 5
+      6: STORE_FIELD ; Store to Circle.radius
+      7: store , r2
+      8: r7 = load circle
+      9: r8 = call .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.draw
+     10: store , r8
+     11: r10 = load circle
+     12: r11 = call .Users.alice.dev.minz-ts.examples.interface_simple_test.Circle.get_area
+     13: store , r11
+     14: r12 = load area
+     15: r13 = 75
+     16: r14 = r12 == r13
+     17: jump_if_not r14, else_1
+     18: r15 = 0
+     19: return r15
+     20: jump end_if_2
+     21: else_1:
+     22: end_if_2:
+     23: r16 = 1
+     24: return r16
+

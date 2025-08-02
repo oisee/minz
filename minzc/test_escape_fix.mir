@@ -1,0 +1,16 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_escape_fix.main() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_87
+      1: UNKNOWN_OP_86
+      2: UNKNOWN_OP_87
+      3: UNKNOWN_OP_86
+      4: UNKNOWN_OP_87
+      5: UNKNOWN_OP_86
+      6: UNKNOWN_OP_87
+      7: UNKNOWN_OP_86
+      8: return
+

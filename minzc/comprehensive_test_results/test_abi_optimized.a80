@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -113,8 +113,6 @@ y$imm0 EQU y$immOP+1
     LD A, ($F00A)     ; Virtual register 5 from memory
     LD (y$imm0), A        ; Patch y
     CALL .Users.alice.dev.minz-ts.examples.test_abi.smc_function
-    ; store , r6
-    LD ($F006), HL
     ; r10 = call register_function
     ; Call to register_function (args: 2)
     ; Stack-based parameter passing
@@ -124,8 +122,7 @@ y$imm0 EQU y$immOP+1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.test_abi.register_function
-    ; store , r10
-    LD ($F00E), HL
+    ; Register 10 already in HL
     ; r14 = call mapped_function
     ; Call to mapped_function (args: 2)
     ; Stack-based parameter passing
@@ -135,10 +132,6 @@ y$imm0 EQU y$immOP+1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.test_abi.mapped_function
-    LD ($F01C), HL    ; Virtual register 14 to memory
-    ; store , r14
-    LD HL, ($F01C)    ; Virtual register 14 from memory
-    LD ($F016), HL
     ; r18 = call stack_function
     ; Call to stack_function (args: 2)
     ; Stack-based parameter passing
@@ -148,8 +141,6 @@ y$imm0 EQU y$immOP+1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.test_abi.stack_function
-    ; store , r18
-    LD ($F01E), HL
     ; return
     POP DE
     POP BC
@@ -169,12 +160,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -246,9 +242,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

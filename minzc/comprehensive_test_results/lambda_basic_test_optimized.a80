@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -96,16 +96,12 @@ x$imm0 EQU x$immOP+1
     LD HL, ($F004)    ; Virtual register 2 from memory
     PUSH HL       ; Argument 0
     CALL add
-    ; store , r3
-    LD ($F002), HL
     ; r6 = call add
     ; Call to add (args: 1)
     ; Stack-based parameter passing
     LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL       ; Argument 0
     CALL add
-    ; store , r6
-    LD ($F008), HL
     ; return
     POP DE
     POP BC
@@ -128,26 +124,18 @@ x$imm0 EQU x$immOP+1
     LD A, ($F004)     ; Virtual register 2 from memory
     LD (x$imm0), A        ; Patch x
     CALL .Users.alice.dev.minz-ts.examples.lambda_basic_test.add_five_traditional
-    ; store , r3
-    LD ($F002), HL
     ; r5 = call test_lambda_basic
     ; Call to test_lambda_basic (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_basic_test.test_lambda_basic
-    ; store , r5
-    LD ($F008), HL
     ; r7 = call test_lambda_direct
     ; Call to test_lambda_direct (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_basic_test.test_lambda_direct
-    ; store , r7
-    LD ($F00C), HL
     ; r9 = call test_lambda_multiple
     ; Call to test_lambda_multiple (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.lambda_basic_test.test_lambda_multiple
-    ; store , r9
-    LD ($F010), HL
     ; return
     POP DE
     POP BC
@@ -173,12 +161,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -250,9 +243,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

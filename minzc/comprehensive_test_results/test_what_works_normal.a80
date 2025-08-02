@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Code section
@@ -30,8 +30,9 @@
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 0
     LD A, 0
-    LD E, A         ; Store to physical register E
+    LD ($F004), A     ; Virtual register 2 to memory
     ; store , r2
+    LD HL, ($F004)    ; Virtual register 2 from memory
     LD ($F002), HL
     ; r3 = 0
     LD A, 0
@@ -42,11 +43,9 @@
     LD B', A         ; Store to shadow B'
     EXX               ; Switch back to main registers
     ; Initialize loop variable i
-    ; Register 5 already in HL
     ; for_loop_1:
 for_loop_1:
     ; Check i < end
-    ; Register 5 already in HL
     LD D, H
     LD E, L
     EX DE, HL
@@ -78,22 +77,20 @@ for_loop_1:
     LD ($F002), HL
     ; r10 = 1
     LD A, 1
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD E, A         ; Store to physical register E
     ; Increment i
-    ; Register 5 already in HL
     LD D, H
     LD E, L
     ADD HL, DE
-    ; Register 5 already in HL
     ; jump for_loop_1
     JP for_loop_1
     ; for_end_2:
 for_end_2:
     ; r11 = load sum
     LD HL, ($F002)
+    ; Register 11 already in HL
     ; return r11
+    ; Register 11 already in HL
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
@@ -103,23 +100,22 @@ for_end_2:
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 10
     LD A, 10
-    LD L, A         ; Store to physical register L
+    LD H, A         ; Store to physical register H
     ; r3 = load arr
     LD HL, ($F002)
-    ; Register 3 already in HL
     ; r4 = 0
     LD A, 0
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to HL (low byte)
     ; Calculate array element address
-    ; Register 3 already in HL
     LD D, H
     LD E, L
+    ; Register 4 already in HL
     ADD HL, DE
     LD ($F00A), HL    ; Virtual register 5 to memory
     ; Store to array[index] (u8)
     LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL
-    LD A, L
+    LD A, H
     POP HL
     LD (HL), A
     ; r6 = 20
@@ -533,12 +529,17 @@ ptr$imm0 EQU ptr$immOP+1
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -610,9 +611,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

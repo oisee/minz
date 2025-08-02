@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:26
 
 
 ; Code section
@@ -13,12 +13,10 @@
 n$immOP:
     LD A, 0        ; n anchor (will be patched)
 n$imm0 EQU n$immOP+1
-    LD ($F004), A     ; Virtual register 2 to memory
     ; r3 = 1
     LD A, 1
     LD B, A         ; Store to physical register B
     ; r4 = r2 <= r3
-    LD HL, ($F004)    ; Virtual register 2 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -36,41 +34,18 @@ n$imm0 EQU n$immOP+1
     OR A
     JP Z, else_1
     LD A, (n$imm0)    ; Reuse from anchor
-    LD ($F00A), A     ; Virtual register 5 to memory
+    LD D, A         ; Store to physical register D
     ; return r5
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     RET
     ; else_1:
 else_1:
-    ; r7 = 0
-    LD A, 0
-    LD E, A         ; Store to physical register E
-    ; store , r7
-    LD ($F00C), HL
-    ; r9 = 1
-    LD A, 1
-    LD L, A         ; Store to physical register L
-    ; store , r9
-    LD ($F010), HL
-    ; r11 = 2
-    LD A, 2
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
-    ; store , r11
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
-    LD ($F014), A
     ; loop_3:
 loop_3:
     ; r12 = load i
     LD A, ($F014)
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD E, A         ; Store to physical register E
     LD A, (n$imm0)    ; Reuse from anchor
-    LD D, A         ; Store to physical register D
+    LD H, A         ; Store to physical register H
     ; r14 = r12 <= r13
     LD D, H
     LD E, L
@@ -85,43 +60,9 @@ loop_3:
     LD HL, 1
 .L4:
     ; jump_if_not r14, end_loop_4
-    LD A, D
+    LD A, L
     OR A
     JP Z, end_loop_4
-    ; r16 = load a
-    LD HL, ($F00C)
-    ; r17 = load b
-    LD HL, ($F010)
-    ; r18 = r16 + r17
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; store , r18
-    LD ($F01E), HL
-    ; r19 = load b
-    LD HL, ($F010)
-    ; store a, r19
-    LD ($F00C), HL
-    ; r20 = load temp
-    LD HL, ($F01E)
-    LD ($F028), HL    ; Virtual register 20 to memory
-    ; store b, r20
-    LD HL, ($F028)    ; Virtual register 20 from memory
-    LD ($F010), HL
-    ; r21 = load i
-    LD A, ($F014)
-    LD H, A         ; Store to physical register H
-    ; r22 = 1
-    LD A, 1
-    LD L, A         ; Store to physical register L
-    ; r23 = r21 + r22
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; Register 23 already in HL
-    ; store i, r23
-    LD A, L
-    LD ($F014), A
     ; jump loop_3
     JP loop_3
     ; end_loop_4:
@@ -148,8 +89,6 @@ end_loop_4:
     LD A, ($F004)     ; Virtual register 2 from memory
     LD (n$imm0), A        ; Patch n
     CALL .Users.alice.dev.minz-ts.examples.fibonacci.fibonacci
-    ; store , r3
-    LD ($F002), HL
     ; return
     POP DE
     POP BC
@@ -166,12 +105,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -243,9 +187,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

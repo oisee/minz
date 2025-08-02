@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Data section
@@ -8,23 +8,18 @@
 str_0:
     DB 18    ; Length
     DB "The value of x is "
-    DB 0               ; Null terminator
 str_1:
     DB 4    ; Length
     DB "x = "
-    DB 0               ; Null terminator
 str_2:
     DB 6    ; Length
     DB ", y = "
-    DB 0               ; Null terminator
 str_3:
     DB 8    ; Length
     DB "Flag is "
-    DB 0               ; Null terminator
 str_4:
     DB 12    ; Length
     DB "Hello World!"
-    DB 0               ; Null terminator
 
 ; Code section
     ORG $8000
@@ -35,33 +30,19 @@ str_4:
 .Users.alice.dev.minz-ts.examples.test_print_interpolation.main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    ; r2 = 42
-    LD A, 42
-    ; Register 2 already in A
-    ; store , r2
-    ; Register 2 already in A
-    LD ($F002), A
-    ; r4 = 1000
-    LD HL, 1000
-    LD ($F008), HL    ; Virtual register 4 to memory
-    ; store , r4
-    LD HL, ($F008)    ; Virtual register 4 from memory
-    LD ($F006), HL
     ; r6 = string(str_0)
     LD HL, str_0
     ; print_string(r6)
     CALL print_string
     ; print_u8(r7)
-    LD A, E
+    LD A, B
     CALL print_u8_decimal
     ; r8 = string(str_1)
     LD HL, str_1
     ; print_string(r8)
     CALL print_string
     ; print_u8(r9)
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
+    LD A, D
     CALL print_u8_decimal
     ; r10 = string(str_2)
     LD HL, str_2
@@ -76,16 +57,21 @@ str_4:
     LD HL, ($F018)    ; Virtual register 12 from memory
     CALL print_string
     ; print_bool(r13)
-    LD A, H
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     CALL print_bool
     ; print_u8(r14)
-    LD A, L
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     CALL print_u8_decimal
     ; print_u16(r15)
-    ; Register 15 already in HL
     CALL print_u16_decimal
     ; print_bool(r16)
-    LD A, H
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
     CALL print_bool
     ; r17 = string(str_4)
     LD HL, str_4
@@ -96,12 +82,17 @@ str_4:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -173,9 +164,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

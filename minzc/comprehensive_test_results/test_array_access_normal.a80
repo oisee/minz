@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -59,16 +59,16 @@
     LD HL, ($F002)
     ; r14 = load i
     LD A, ($F014)
-    ; Register 14 already in A
+    LD D, A         ; Store to physical register D
     ; Load array element (u8)
     PUSH HL
-    ; Register 14 already in A
+    LD A, D
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    ; Register 15 already in A
+    LD D, A         ; Store to physical register D
     ; store , r15
     LD ($F018), HL
     ; r16 = load z
@@ -92,12 +92,17 @@
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -169,9 +174,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

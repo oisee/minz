@@ -10,12 +10,10 @@ Function .Users.alice.dev.minz-ts.examples.arrays.main() -> void
   @smc
   Instructions:
       0: r2 = addr(.Users.alice.dev.minz-ts.examples.arrays.old_array)
-      1: UNKNOWN_OP_64 ; Store to array[index] (u8)
+      1: UNKNOWN_OP_67 ; Store to array[index] (u8)
       2: r6 = addr(.Users.alice.dev.minz-ts.examples.arrays.new_array)
-      3: UNKNOWN_OP_64 ; Store to array[index] (u8)
-      4: r9 = 1
-      5: r10 = addr(.Users.alice.dev.minz-ts.examples.arrays.items)
-      6: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.arrays.Item)
-      7: STORE_FIELD ; Store to field id (offset 0)
-      8: return
+      3: UNKNOWN_OP_67 ; Store to array[index] (u8)
+      4: r10 = addr(.Users.alice.dev.minz-ts.examples.arrays.items)
+      5: LOAD_INDEX ; Load array element (.Users.alice.dev.minz-ts.examples.arrays.Item)
+      6: return
 

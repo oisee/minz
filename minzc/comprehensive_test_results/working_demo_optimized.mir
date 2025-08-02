@@ -1,90 +1,142 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
-; Globals:
-;   .Users.alice.dev.minz-ts.examples.working_demo.counter: u8
-;   .Users.alice.dev.minz-ts.examples.working_demo.buffer: [16]u8
-
-Function .Users.alice.dev.minz-ts.examples.working_demo.init() -> void
+Function .Users.alice.dev.minz-ts.examples.working_demo.test_basic_math() -> u8
   @smc
   Locals:
-    r2 = i: u8
+    r1 = a: u8
+    r3 = b: u8
+    r5 = sum: u16
   Instructions:
-      0: r1 = 0
-      1: store .Users.alice.dev.minz-ts.examples.working_demo.counter, r1
-      2: r3 = 0
-      3: store , r3
-      4: loop_1:
-      5: r4 = load i
-      6: r5 = 16
-      7: r6 = r4 < r5
-      8: jump_if_not r6, end_loop_2
-      9: r8 = addr(.Users.alice.dev.minz-ts.examples.working_demo.buffer)
-     10: UNKNOWN_OP_64 ; Store to array[index] (u8)
-     11: r11 = load i
-     12: r12 = 1
-     13: r13 = r11 + r12
-     14: store i, r13
-     15: jump loop_1
-     16: end_loop_2:
-     17: return
+      0: r9 = load sum
+      1: r10 = 30
+      2: r11 = r9 == r10
+      3: jump_if_not r11, else_1
+      4: r12 = 0
+      5: return r12
+      6: else_1:
+      7: r13 = 1
+      8: return r13
 
-Function .Users.alice.dev.minz-ts.examples.working_demo.process() -> void
+Function .Users.alice.dev.minz-ts.examples.working_demo.test_arrays() -> u8
   @smc
   Locals:
-    r1 = i: u8
-    r6 = val: u8
+    r1 = arr: [5]u8
+    r2 = ptr: *u8
   Instructions:
-      0: r2 = 0
-      1: store , r2
-      2: loop_3:
-      3: r3 = load i
-      4: r4 = 16
-      5: r5 = r3 < r4
-      6: jump_if_not r5, end_loop_4
-      7: r7 = addr(.Users.alice.dev.minz-ts.examples.working_demo.buffer)
-      8: LOAD_INDEX ; Load array element (u8)
-      9: store , r9
-     10: r13 = addr(.Users.alice.dev.minz-ts.examples.working_demo.buffer)
-     11: UNKNOWN_OP_64 ; Store to array[index] (u8)
-     12: r16 = load i
-     13: r17 = 1
-     14: r18 = r16 + r17
-     15: store i, r18
-     16: jump loop_3
-     17: end_loop_4:
-     18: r19 = load .Users.alice.dev.minz-ts.examples.working_demo.counter
-     19: r20 = 1
-     20: r21 = r19 + r20
-     21: store .Users.alice.dev.minz-ts.examples.working_demo.counter, r21
-     22: return
+      0: LOAD_INDEX ; Load array element (u8)
+      1: UNKNOWN_OP_68
+      2: UNKNOWN_OP_69
+      3: r9 = 3
+      4: r10 = r8 == r9
+      5: jump_if_not r10, else_3
+      6: r11 = 0
+      7: return r11
+      8: else_3:
+      9: r12 = 1
+     10: return r12
 
-Function .Users.alice.dev.minz-ts.examples.working_demo.is_done() -> bool
+Function .Users.alice.dev.minz-ts.examples.working_demo.test_structs() -> u8
+  @smc
+  Locals:
+    r1 = p: u16
+  Instructions:
+      0: r5 = load p
+      1: LOAD_FIELD ; Load field x (offset 0)
+      2: r7 = load p
+      3: LOAD_FIELD ; Load field y (offset 1)
+      4: r9 = r6 + r8
+      5: r10 = 30
+      6: r11 = r9 == r10
+      7: jump_if_not r11, else_5
+      8: r12 = 0
+      9: return r12
+     10: else_5:
+     11: r13 = 1
+     12: return r13
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.test_lambdas$add_0(x: u8, y: u8) -> u8
   @smc
   Instructions:
-      0: r1 = load .Users.alice.dev.minz-ts.examples.working_demo.counter
-      1: r2 = 10
-      2: r3 = r1 >= r2
-      3: return r3
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      2: return
 
-Function .Users.alice.dev.minz-ts.examples.working_demo.main() -> void
+Function .Users.alice.dev.minz-ts.examples.working_demo.test_lambdas() -> u8
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r4 = call add
+      1: r5 = load result
+      2: r6 = 40
+      3: r7 = r5 == r6
+      4: jump_if_not r7, else_7
+      5: r8 = 0
+      6: return r8
+      7: else_7:
+      8: r9 = 1
+      9: return r9
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.test_loops() -> u8
+  @smc
+  Locals:
+    r1 = sum: u8
+  Instructions:
+      0: r4 = 5
+      1: r5 = r3 ; Initialize loop variable i
+      2: for_loop_9:
+      3: r6 = r5 < r4 ; Check i < end
+      4: jump_if_not r6, for_end_10
+      5: r5 = r5 + r10 ; Increment i
+      6: r10 = 1
+      7: jump for_loop_9
+      8: for_end_10:
+      9: r11 = load sum
+     10: r12 = 10
+     11: r13 = r11 == r12
+     12: jump_if_not r13, else_11
+     13: r14 = 0
+     14: return r14
+     15: else_11:
+     16: r15 = 1
+     17: return r15
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.multiply(a: u8, b: u8) -> u16
   @smc
   Instructions:
-      0: r1 = call init
-      1: loop_5:
-      2: r2 = call is_done
-      3: r3 = ~r2
-      4: jump_if_not r3, end_loop_6
-      5: r4 = call process
-      6: jump loop_5
-      7: end_loop_6:
-      8: r5 = addr(.Users.alice.dev.minz-ts.examples.working_demo.buffer)
-      9: LOAD_INDEX ; Load array element (u8)
-     10: r8 = 10
-     11: r9 = r7 == r8
-     12: jump_if_not r9, else_7
-     13: jump end_if_8
-     14: else_7:
-     15: end_if_8:
-     16: return
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor b$imm0
+      2: r5 = r3 * r4
+      3: return r5
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.test_function_calls() -> u8
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r4 = call multiply
+      1: r5 = load result
+      2: r6 = 132
+      3: r7 = r5 == r6
+      4: jump_if_not r7, else_13
+      5: r8 = 0
+      6: return r8
+      7: else_13:
+      8: r9 = 1
+      9: return r9
+
+Function .Users.alice.dev.minz-ts.examples.working_demo.main() -> u8
+  @smc
+  Locals:
+    r1 = errors: u8
+  Instructions:
+      0: r4 = call test_basic_math
+      1: r7 = call test_arrays
+      2: r10 = call test_structs
+      3: r13 = call test_lambdas
+      4: r16 = call test_loops
+      5: r19 = call test_function_calls
+      6: r21 = load errors
+      7: return r21
 

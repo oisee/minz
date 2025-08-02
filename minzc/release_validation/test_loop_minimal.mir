@@ -1,0 +1,29 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   ......examples.test_loop_minimal.items: [3]......examples.test_loop_minimal.Item
+
+Function ......examples.test_loop_minimal.main() -> void
+  @smc
+  Instructions:
+      0: r2 = addr(......examples.test_loop_minimal.items)
+      1: LOAD_INDEX ; Load array element (......examples.test_loop_minimal.Item)
+      2: r6 = addr(......examples.test_loop_minimal.items)
+      3: LOAD_INDEX ; Load array element (......examples.test_loop_minimal.Item)
+      4: r10 = addr(......examples.test_loop_minimal.items)
+      5: LOAD_INDEX ; Load array element (......examples.test_loop_minimal.Item)
+      6: r13 = addr(......examples.test_loop_minimal.items)
+      7: r14 = addr() ; Load table base address
+      8: r15 = addr() ; Load table base for end calculation
+      9: UNKNOWN_OP_79 ; Calculate table end (+ 3 elements * 1 bytes)
+     10: UNKNOWN_OP_78 ; Load loop counter
+     11: UNKNOWN_OP_56 ; Check if reached end of table
+     12: JUMP_IF ; Exit if done
+     13: UNKNOWN_OP_75 ; Copy element to buffer at $F000
+     14: LOAD_DIRECT ; Load item.value from buffer at $F000
+     15: UNKNOWN_OP_76 ; Copy buffer back to element at $F000
+     16: UNKNOWN_OP_79 ; Advance to next element (+1 bytes)
+     17: UNKNOWN_OP_77 ; Decrement counter and loop if not zero
+     18: return
+

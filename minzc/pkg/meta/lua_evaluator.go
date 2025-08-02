@@ -36,6 +36,40 @@ func (e *LuaEvaluator) Close() {
 	e.L.Close()
 }
 
+// EvaluateExpression evaluates a simple expression and returns its string representation
+func (e *LuaEvaluator) EvaluateExpression(expr string) (string, error) {
+	// Wrap expression in return statement
+	code := fmt.Sprintf("return (%s)", expr)
+	
+	// Execute the Lua code
+	if err := e.L.DoString(code); err != nil {
+		return "", fmt.Errorf("failed to evaluate expression: %w", err)
+	}
+	
+	// Get the result from the stack
+	result := e.L.Get(-1)
+	e.L.Pop(1)
+	
+	// Convert to string
+	switch v := result.(type) {
+	case lua.LNumber:
+		// Format as integer if it's a whole number
+		if float64(int64(v)) == float64(v) {
+			return fmt.Sprintf("%d", int64(v)), nil
+		}
+		return fmt.Sprintf("%g", float64(v)), nil
+	case lua.LString:
+		return string(v), nil
+	case lua.LBool:
+		if bool(v) {
+			return "true", nil
+		}
+		return "false", nil
+	default:
+		return "", fmt.Errorf("unsupported result type: %T", result)
+	}
+}
+
 // setupMinzAPI adds MinZ-specific functions to Lua
 func (e *LuaEvaluator) setupMinzAPI() {
 	// Add MinZ code generation helpers

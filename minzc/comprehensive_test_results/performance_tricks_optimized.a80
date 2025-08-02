@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -29,54 +29,8 @@
 x$immOP:
     LD A, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
-    ; r4 = 1
-    LD A, 1
-    LD B, A         ; Store to physical register B
-    ; r5 = r3 << r4
-    ; Shift left
-    ; Register 3 already in A
-    LD B, A       ; B = value to shift
-    LD A, B
-    LD C, A       ; C = shift count
-    LD A, B       ; A = value
-    OR A          ; Clear carry
-    JR Z, .shl_done_0
-    LD B, C       ; B = counter
-.shl_loop_0:
-    DEC B
-    JP M, .shl_done_0
-    SLA A         ; Shift left, 0 into bit 0
-    JR .shl_loop_0
-.shl_done_0:
-    LD L, A
-    LD H, 0
-    ; store , r5
-    LD ($F004), HL
     LD A, (x$imm0)    ; Reuse from anchor
-    LD E, A         ; Store to physical register E
-    ; r8 = 3
-    LD A, 3
-    LD H, A         ; Store to physical register H
-    ; r9 = r7 << r8
-    ; Shift left
-    LD A, E
-    LD B, A       ; B = value to shift
-    LD A, H
-    LD C, A       ; C = shift count
-    LD A, B       ; A = value
-    OR A          ; Clear carry
-    JR Z, .shl_done_1
-    LD B, C       ; B = counter
-.shl_loop_1:
-    DEC B
-    JP M, .shl_done_1
-    SLA A         ; Shift left, 0 into bit 0
-    JR .shl_loop_1
-.shl_done_1:
-    LD L, A
-    LD H, 0
-    ; store , r9
-    LD ($F00C), HL
+    LD B, A         ; Store to physical register B
     ; r10 = load x2
     LD HL, ($F004)
     ; r11 = load x8
@@ -101,12 +55,17 @@ PATCH_TABLE_END:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -178,9 +137,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

@@ -1,0 +1,46 @@
+// Array Initializers Example
+// Demonstrates the new {...} syntax for array initialization
+
+fun main() -> void {
+    // Basic array initializer with curly braces
+    let colors: [u8; 3] = {255, 128, 0};  // RGB values
+    
+    // Matrix initialization
+    let matrix: [[u8; 2]; 2] = {{1, 2}, {3, 4}};
+    
+    // Empty array (edge case)
+    let empty: [u8; 0] = {};
+    
+    // Mixed with traditional syntax
+    let traditional: [u8; 3] = [5, 6, 7];
+    
+    // Print RGB values
+    @print("RGB: ");
+    @print(colors[0]); @print(", ");
+    @print(colors[1]); @print(", ");
+    @print(colors[2]); @print("\n");
+    
+    // Print matrix
+    @print("Matrix:\n");
+    @print(matrix[0][0]); @print(" ");
+    @print(matrix[0][1]); @print("\n");
+    @print(matrix[1][0]); @print(" ");
+    @print(matrix[1][1]); @print("\n");
+}
+
+// Example with array parameters
+fun sum_array(arr: *[u8; 4]) -> u8 {
+    let sum: u8 = 0;
+    for i in 0..4 {
+        sum = sum + arr[i];
+    }
+    return sum;
+}
+
+fun test_sum() -> void {
+    // Initialize array and compute sum
+    let numbers: [u8; 4] = {10, 20, 30, 40};
+    let total = sum_array(&numbers);
+    @print("Sum: ");
+    @print(total);  // Should print 100
+}

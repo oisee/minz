@@ -11,7 +11,7 @@ Function .Users.alice.dev.minz-ts.examples.memory_operations.mem_set(dest: *u8, 
       4: jump_if_not r6, end_loop_2
       5: LOAD_PARAM
       6: LOAD_PARAM
-      7: UNKNOWN_OP_67 ; Store through pointer
+      7: UNKNOWN_OP_70 ; Store through pointer
       8: LOAD_PARAM
       9: r10 = 1
      10: r11 = r9 + r10
@@ -33,9 +33,9 @@ Function .Users.alice.dev.minz-ts.examples.memory_operations.mem_copy(dest: *u8,
       3: r6 = r4 > r5
       4: jump_if_not r6, end_loop_4
       5: LOAD_PARAM
-      6: UNKNOWN_OP_66
+      6: UNKNOWN_OP_69
       7: LOAD_PARAM
-      8: UNKNOWN_OP_67 ; Store through pointer
+      8: UNKNOWN_OP_70 ; Store through pointer
       9: LOAD_PARAM
      10: r11 = 1
      11: r12 = r10 + r11
@@ -61,15 +61,15 @@ Function .Users.alice.dev.minz-ts.examples.memory_operations.mem_compare(ptr1: *
       3: r6 = r4 > r5
       4: jump_if_not r6, end_loop_6
       5: LOAD_PARAM
-      6: UNKNOWN_OP_66
+      6: UNKNOWN_OP_69
       7: LOAD_PARAM
-      8: UNKNOWN_OP_66
+      8: UNKNOWN_OP_69
       9: r11 = r8 != r10
      10: jump_if_not r11, else_7
      11: LOAD_PARAM
-     12: UNKNOWN_OP_66
+     12: UNKNOWN_OP_69
      13: LOAD_PARAM
-     14: UNKNOWN_OP_66
+     14: UNKNOWN_OP_69
      15: r16 = r13 < r15
      16: jump_if_not r16, else_9
      17: r17 = 1

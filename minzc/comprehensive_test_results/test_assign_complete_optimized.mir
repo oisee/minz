@@ -6,10 +6,6 @@ Function .Users.alice.dev.minz-ts.examples.test_assign_complete.test() -> u8
   Locals:
     r1 = x: u8
   Instructions:
-      0: r2 = 5
-      1: store , r2
-      2: r3 = 10
-      3: store x, r3
-      4: r4 = load x
-      5: return r4
+      0: r4 = load x
+      1: return r4
 

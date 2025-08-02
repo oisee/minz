@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:25
 
 
 ; Code section
@@ -65,18 +65,14 @@ value$imm0 EQU value$immOP+1
 bit$immOP:
     LD A, 0        ; bit anchor (will be patched)
 bit$imm0 EQU bit$immOP+1
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD ($F00A), A     ; Virtual register 5 to memory
     ; r6 = r4 << r5
     ; Shift left
     EXX               ; Switch to shadow registers
     LD A, B'         ; From shadow B'
     EXX               ; Switch back to main registers
     LD B, A       ; B = value to shift
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
+    LD A, ($F00A)     ; Virtual register 5 from memory
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -95,7 +91,7 @@ bit$imm0 EQU bit$immOP+1
     LD A, E'         ; From shadow E'
     EXX               ; Switch back to main registers
     CPL           ; Complement A
-    LD L, A         ; Store to physical register L
+    LD C, A         ; Store to physical register C
     ; r8 = r3 & r7
     LD D, H
     LD E, L
@@ -113,19 +109,19 @@ bit$imm0 EQU bit$immOP+1
 .Users.alice.dev.minz-ts.examples.bit_manipulation.toggle_bit:
 ; TRUE SMC function with immediate anchors
 value$immOP:
-    LD B, 0        ; value anchor (will be patched)
+    LD A, 0        ; value anchor (will be patched)
 value$imm0 EQU value$immOP+1
     ; r4 = 1
     LD A, 1
-    LD ($F008), A     ; Virtual register 4 to memory
+    ; Register 4 already in A
 bit$immOP:
-    LD C, 0        ; bit anchor (will be patched)
+    LD B, 0        ; bit anchor (will be patched)
 bit$imm0 EQU bit$immOP+1
     ; r6 = r4 << r5
     ; Shift left
-    LD A, ($F008)     ; Virtual register 4 from memory
+    ; Register 4 already in A
     LD B, A       ; B = value to shift
-    LD A, C
+    LD A, B
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -158,281 +154,8 @@ bit$imm0 EQU bit$immOP+1
 value$immOP:
     LD A, 0        ; value anchor (will be patched)
 value$imm0 EQU value$immOP+1
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
-    ; r4 = 1
-    LD A, 1
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD ($F006), A     ; Virtual register 3 to memory
 bit$immOP:
     LD A, 0        ; bit anchor (will be patched)
 bit$imm0 EQU bit$immOP+1
-    LD H, A         ; Store to physical register H
-    ; r6 = r4 << r5
-    ; Shift left
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
-    LD B, A       ; B = value to shift
-    LD A, H
-    LD C, A       ; C = shift count
-    LD A, B       ; A = value
-    OR A          ; Clear carry
-    JR Z, .shl_done_3
-    LD B, C       ; B = counter
-.shl_loop_3:
-    DEC B
-    JP M, .shl_done_3
-    SLA A         ; Shift left, 0 into bit 0
-    JR .shl_loop_3
-.shl_done_3:
-    LD L, A
-    LD H, 0
-    ; r7 = r3 & r6
-    LD D, H
-    LD E, L
-    LD A, L
-    AND E
-    LD L, A
-    LD A, H
-    AND D
-    LD H, A
-    ; r8 = 0
-    LD A, 0
-    ; Register 8 already in A
-    ; r9 = r7 != r8
-    LD D, H
-    LD E, L
-    EX DE, HL
-    OR A      ; Clear carry
-    SBC HL, DE
-    JP NZ, .L5
-    LD HL, 0
-    JP .L6
-.L5:
-    LD HL, 1
-.L6:
-    ; return r9
-    RET
-; Using hierarchical register allocation (physical → shadow → memory)
-
-; Function: .Users.alice.dev.minz-ts.examples.bit_manipulation.count_bits
-.Users.alice.dev.minz-ts.examples.bit_manipulation.count_bits:
-; TRUE SMC function with immediate anchors
-    ; r3 = 0
-    LD A, 0
-    LD ($F006), A     ; Virtual register 3 to memory
-    ; store , r3
-    LD A, ($F006)     ; Virtual register 3 from memory
-    LD ($F004), A
-    ; loop_1:
-loop_1:
-value$immOP:
-    LD A, 0        ; value anchor (will be patched)
-value$imm0 EQU value$immOP+1
-    LD ($F008), A     ; Virtual register 4 to memory
-    ; r5 = 0
-    LD A, 0
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
-    ; r6 = r4 != r5
-    LD HL, ($F008)    ; Virtual register 4 from memory
-    LD D, H
-    LD E, L
-    EX DE, HL
-    OR A      ; Clear carry
-    SBC HL, DE
-    JP NZ, .L7
-    LD HL, 0
-    JP .L8
-.L7:
-    LD HL, 1
-.L8:
-    ; jump_if_not r6, end_loop_2
-    LD A, B
-    OR A
-    JP Z, end_loop_2
-    ; r7 = load count
-    LD A, ($F004)
-    LD ($F00E), A     ; Virtual register 7 to memory
-    LD A, (value$imm0)    ; Reuse from anchor
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
-    ; r9 = 1
-    LD A, 1
-    LD ($F012), A     ; Virtual register 9 to memory
-    ; r10 = r8 & r9
-    LD D, H
-    LD E, L
-    LD HL, ($F012)    ; Virtual register 9 from memory
-    LD A, L
-    AND E
-    LD L, A
-    LD A, H
-    AND D
-    LD H, A
-    ; r11 = r7 + r10
-    LD HL, ($F00E)    ; Virtual register 7 from memory
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; store count, r11
-    ; Register 11 already in A
-    LD ($F004), A
-    LD A, (value$imm0)    ; Reuse from anchor
-    ; Register 12 already in A
-    ; r13 = 1
-    LD A, 1
-    LD B, A         ; Store to physical register B
-    ; r14 = r12 >> r13
-    ; Shift right
-    ; Register 12 already in A
-    LD B, A       ; B = value to shift
-    LD A, B
-    LD C, A       ; C = shift count
-    LD A, B       ; A = value
-    OR A          ; Clear carry
-    JR Z, .shr_done_8
-    LD B, C       ; B = counter
-.shr_loop_8:
-    DEC B
-    JP M, .shr_done_8
-    SRL A         ; Shift right, 0 into bit 7
-    JR .shr_loop_8
-.shr_done_8:
-    LD L, A
-    LD H, 0
-    ; store value, r14
-    LD ($F000), HL
-    ; jump loop_1
-    JP loop_1
-    ; end_loop_2:
-end_loop_2:
-    ; r15 = load count
-    LD A, ($F004)
-    LD H, A         ; Store to physical register H
-    ; return r15
-    RET
-
-; TRUE SMC PATCH-TABLE
-; Format: DW anchor_addr, DB size, DB param_tag
-PATCH_TABLE:
-    DW value$imm0           ; .Users.alice.dev.minz-ts.examples.bit_manipulation.set_bit.value
-    DB 1              ; Size in bytes
-    DB 0              ; Reserved for param tag
-    DW bit$imm0           ; .Users.alice.dev.minz-ts.examples.bit_manipulation.set_bit.bit
-    DB 1              ; Size in bytes
-    DB 0              ; Reserved for param tag
-    DW value$imm0           ; .Users.alice.dev.minz-ts.examples.bit_manipulation.clear_bit.value
-    DB 1              ; Size in bytes
-    DB 0              ; Reserved for param tag
-    DW bit$imm0           ; .Users.alice.dev.minz-ts.examples.bit_manipulation.clear_bit.bit
-    DB 1              ; Size in bytes
-    DB 0              ; Reserved for param tag
-    DW value$imm0           ; .Users.alice.dev.minz-ts.examples.bit_manipulation.toggle_bit.value
-    DB 1              ; Size in bytes
-    DB 0              ; Reserved for param tag
-    DW bit$imm0           ; .Users.alice.dev.minz-ts.examples.bit_manipulation.toggle_bit.bit
-    DB 1              ; Size in bytes
-    DB 0              ; Reserved for param tag
-    DW value$imm0           ; .Users.alice.dev.minz-ts.examples.bit_manipulation.test_bit.value
-    DB 1              ; Size in bytes
-    DB 0              ; Reserved for param tag
-    DW bit$imm0           ; .Users.alice.dev.minz-ts.examples.bit_manipulation.test_bit.bit
-    DB 1              ; Size in bytes
-    DB 0              ; Reserved for param tag
-    DW value$imm0           ; .Users.alice.dev.minz-ts.examples.bit_manipulation.count_bits.value
-    DB 1              ; Size in bytes
-    DB 0              ; Reserved for param tag
-    DW 0              ; End of table
-PATCH_TABLE_END:
-
-; Runtime print helper functions
-print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
-    RST 16             ; Print character
-    INC HL             ; Next character
-    JR print_string
-
-print_u8_decimal:
-    LD H, 0            ; HL = A (zero extend)
-    LD L, A
-    CALL print_u16_decimal
-    RET
-
-print_u16_decimal:
-    LD BC, -10000
-    LD DE, -1000
-    CALL print_digit
-    LD BC, -1000
-    LD DE, -100
-    CALL print_digit
-    LD BC, -100
-    LD DE, -10
-    CALL print_digit
-    LD BC, -10
-    LD DE, -1
-    CALL print_digit
-    LD A, L
-    ADD A, '0'         ; Convert to ASCII
-    RST 16             ; Print last digit
-    RET
-
-print_digit:
-    LD A, '0'-1
-print_digit_loop:
-    INC A
-    ADD HL, BC         ; Subtract power of 10
-    JR C, print_digit_loop
-    ADD HL, DE         ; Add back one power of 10
-    RST 16             ; Print digit
-    RET
-
-print_i8_decimal:
-    BIT 7, A           ; Check sign bit
-    JR Z, print_u8_decimal
-    PUSH AF
-    LD A, '-'          ; Print minus sign
-    RST 16
-    POP AF
-    NEG                ; Make positive
-    JR print_u8_decimal
-
-print_i16_decimal:
-    BIT 7, H           ; Check sign bit
-    JR Z, print_u16_decimal
-    PUSH HL
-    LD A, '-'          ; Print minus sign
-    RST 16
-    POP HL
-    LD A, H            ; Negate HL
-    CPL
-    LD H, A
-    LD A, L
-    CPL
-    LD L, A
-    INC HL
-    JR print_u16_decimal
-
-print_bool:
-    OR A               ; Test if A is zero
-    JR NZ, print_true
-    LD HL, bool_false_str
-    JR print_string
-print_true:
-    LD HL, bool_true_str
-    JR print_string
-
-bool_true_str:
-    DB "true", 0
-bool_false_str:
-    DB "false", 0
-
-
-    END main
+    ; unknown op 57

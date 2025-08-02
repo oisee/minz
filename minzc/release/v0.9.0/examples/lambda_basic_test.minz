@@ -1,0 +1,40 @@
+// Basic lambda test - comparing lambda vs traditional functions
+
+// Traditional function version
+fun add_five_traditional(x: u8) -> u8 {
+    x + 5
+}
+
+// Lambda version - stored in variable
+fun test_lambda_basic() -> u8 {
+    let add_five = |x: u8| => u8 { x + 5 };
+    add_five(10)  // Should return 15
+}
+
+// Lambda with immediate use
+fun test_lambda_direct() -> u8 {
+    let f = |x: u8| => u8 { x + 5 };
+    f(10)  // Call immediately
+}
+
+// Multiple lambda calls
+fun test_lambda_multiple() -> u8 {
+    let add = |x: u8| => u8 { x + 5 };
+    let a = add(10);  // 15
+    let b = add(20);  // 25
+    a + b  // 40
+}
+
+fun main() -> void {
+    // Test traditional
+    let t1 = add_five_traditional(10);
+    
+    // Test lambda basic
+    let t2 = test_lambda_basic();
+    
+    // Test lambda direct
+    let t3 = test_lambda_direct();
+    
+    // Test multiple calls
+    let t4 = test_lambda_multiple();
+}

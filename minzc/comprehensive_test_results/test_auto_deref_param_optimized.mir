@@ -5,26 +5,22 @@ Function .Users.alice.dev.minz-ts.examples.test_auto_deref_param.modify_through_
   @smc
   Instructions:
       0: r2 = 42
-      1: UNKNOWN_OP_67 ; Auto-deref assignment
+      1: UNKNOWN_OP_70 ; Auto-deref assignment
       2: return
 
 Function .Users.alice.dev.minz-ts.examples.test_auto_deref_param.add_through_ptr(p: *u8) -> void
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor p$imm0
-      1: r3 = 1
-      2: r4 = r2 + r3
-      3: store p, r4
-      4: return
+      0: UNKNOWN_OP_33 ; Load from anchor p$imm0
+      1: return
 
 Function .Users.alice.dev.minz-ts.examples.test_auto_deref_param.swap_ptrs(a: *u8, b: *u8) -> void
   @smc
   Locals:
     r3 = temp: *u8
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor a$imm0
-      1: store , r4
-      2: return
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: return
 
 Function .Users.alice.dev.minz-ts.examples.test_auto_deref_param.main() -> void
   @smc

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:25
 
 
 ; Code section
@@ -42,11 +42,12 @@
     ; else_1:
 else_1:
     LD A, (.Users.alice.dev.minz-ts.examples.enums.opposite_param_dir)
-    LD E, A         ; Store to physical register E
+    LD ($F00C), A     ; Virtual register 6 to memory
     ; r7 = 1
     LD A, 1
     LD H, A         ; Store to physical register H
     ; r8 = r6 == r7
+    LD HL, ($F00C)    ; Virtual register 6 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -64,9 +65,10 @@ else_1:
     JP Z, else_3
     ; r9 = 0
     LD A, 0
-    LD ($F012), A     ; Virtual register 9 to memory
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; return r9
-    LD HL, ($F012)    ; Virtual register 9 from memory
     RET
     ; jump end_if_4
     JP end_if_4
@@ -101,9 +103,7 @@ else_3:
     JP Z, else_5
     ; r13 = 3
     LD A, 3
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    LD E, A         ; Store to physical register E
     ; return r13
     RET
     ; jump end_if_6
@@ -112,9 +112,7 @@ else_3:
 else_5:
     ; r14 = 2
     LD A, 2
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    LD E, A         ; Store to physical register E
     ; return r14
     RET
     ; end_if_6:
@@ -133,13 +131,14 @@ end_if_2:
 ; Using absolute addressing for locals (SMC style)
 .Users.alice.dev.minz-ts.examples.enums.next_state_param_current:
     LD HL, #0000   ; SMC parameter current (u8->u16)
+    LD ($F006), HL    ; Virtual register 3 to memory
     ; r4 = 0
     LD A, 0
-    LD ($F008), A     ; Virtual register 4 to memory
+    LD D, A         ; Store to physical register D
     ; r5 = r3 == r4
+    LD HL, ($F006)    ; Virtual register 3 from memory
     LD D, H
     LD E, L
-    LD HL, ($F008)    ; Virtual register 4 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -149,9 +148,8 @@ end_if_2:
 .L7:
     LD HL, 1
 .L8:
-    LD ($F00A), HL    ; Virtual register 5 to memory
     ; jump_if_not r5, else_7
-    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD A, E
     OR A
     JP Z, else_7
 .Users.alice.dev.minz-ts.examples.enums.next_state_param_input:
@@ -160,11 +158,12 @@ end_if_2:
     LD ($F00C), HL    ; Virtual register 6 to memory
     ; r7 = 4
     LD A, 4
-    LD E, A         ; Store to physical register E
+    LD ($F00E), A     ; Virtual register 7 to memory
     ; r8 = r6 == r7
     LD HL, ($F00C)    ; Virtual register 6 from memory
     LD D, H
     LD E, L
+    LD HL, ($F00E)    ; Virtual register 7 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -175,13 +174,14 @@ end_if_2:
     LD HL, 1
 .L10:
     ; jump_if_not r8, else_9
-    LD A, C
+    LD A, B
     OR A
     JP Z, else_9
     ; r9 = 1
     LD A, 1
-    ; Register 9 already in A
+    LD ($F012), A     ; Virtual register 9 to memory
     ; return r9
+    LD HL, ($F012)    ; Virtual register 9 from memory
     RET
     ; jump end_if_10
     JP end_if_10
@@ -197,12 +197,11 @@ else_7:
     LD ($F014), A     ; Virtual register 10 to memory
     ; r11 = 1
     LD A, 1
-    LD ($F016), A     ; Virtual register 11 to memory
+    LD E, A         ; Store to physical register E
     ; r12 = r10 == r11
     LD HL, ($F014)    ; Virtual register 10 from memory
     LD D, H
     LD E, L
-    LD HL, ($F016)    ; Virtual register 11 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -212,21 +211,19 @@ else_7:
 .L11:
     LD HL, 1
 .L12:
+    LD ($F018), HL    ; Virtual register 12 to memory
     ; jump_if_not r12, else_11
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
+    LD A, ($F018)     ; Virtual register 12 from memory
     OR A
     JP Z, else_11
     LD A, (.Users.alice.dev.minz-ts.examples.enums.next_state_param_input)
-    LD ($F01A), A     ; Virtual register 13 to memory
+    LD H, A         ; Store to physical register H
     ; r14 = 3
     LD A, 3
     EXX               ; Switch to shadow registers
     LD B', A         ; Store to shadow B'
     EXX               ; Switch back to main registers
     ; r15 = r13 == r14
-    LD HL, ($F01A)    ; Virtual register 13 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -238,15 +235,16 @@ else_7:
 .L13:
     LD HL, 1
 .L14:
+    LD ($F01E), HL    ; Virtual register 15 to memory
     ; jump_if_not r15, else_13
-    EXX               ; Switch to shadow registers
-    LD A, B'         ; From shadow B'
-    EXX               ; Switch back to main registers
+    LD A, ($F01E)     ; Virtual register 15 from memory
     OR A
     JP Z, else_13
     ; r16 = 2
     LD A, 2
-    ; Register 16 already in A
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; return r16
     RET
     ; jump end_if_14
@@ -254,10 +252,14 @@ else_7:
     ; else_13:
 else_13:
     LD A, (.Users.alice.dev.minz-ts.examples.enums.next_state_param_input)
-    LD D, A         ; Store to physical register D
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r18 = 0
     LD A, 0
-    ; Register 18 already in A
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; r19 = r17 == r18
     LD D, H
     LD E, L
@@ -270,14 +272,15 @@ else_13:
 .L15:
     LD HL, 1
 .L16:
-    LD ($F026), HL    ; Virtual register 19 to memory
     ; jump_if_not r19, else_15
-    LD A, ($F026)     ; Virtual register 19 from memory
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, else_15
     ; r20 = 3
     LD A, 3
-    LD D, A         ; Store to physical register D
+    LD B, A         ; Store to physical register B
     ; return r20
     RET
     ; jump end_if_16
@@ -293,16 +296,16 @@ end_if_14:
     ; else_11:
 else_11:
     LD A, (.Users.alice.dev.minz-ts.examples.enums.next_state_param_current)
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD ($F02A), A     ; Virtual register 21 to memory
     ; r22 = 2
     LD A, 2
-    LD ($F02C), A     ; Virtual register 22 to memory
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; r23 = r21 == r22
+    LD HL, ($F02A)    ; Virtual register 21 from memory
     LD D, H
     LD E, L
-    LD HL, ($F02C)    ; Virtual register 22 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -312,14 +315,13 @@ else_11:
 .L17:
     LD HL, 1
 .L18:
+    LD ($F02E), HL    ; Virtual register 23 to memory
     ; jump_if_not r23, else_17
-    ; Register 23 already in A
+    LD A, ($F02E)     ; Virtual register 23 from memory
     OR A
     JP Z, else_17
     LD A, (.Users.alice.dev.minz-ts.examples.enums.next_state_param_input)
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    ; Register 24 already in A
     ; r25 = 3
     LD A, 3
     ; Register 25 already in A
@@ -335,15 +337,16 @@ else_11:
 .L19:
     LD HL, 1
 .L20:
-    LD ($F034), HL    ; Virtual register 26 to memory
     ; jump_if_not r26, else_19
-    LD A, ($F034)     ; Virtual register 26 from memory
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, else_19
     ; r27 = 1
     LD A, 1
     EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
+    LD C', A         ; Store to shadow C'
     EXX               ; Switch back to main registers
     ; return r27
     RET
@@ -364,7 +367,7 @@ end_if_12:
     ; end_if_8:
 end_if_8:
     LD A, (.Users.alice.dev.minz-ts.examples.enums.next_state_param_current)
-    ; Register 28 already in A
+    LD B, A         ; Store to physical register B
     ; return r28
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -381,20 +384,18 @@ end_if_8:
     LD ($F002), HL
     ; r4 = 3
     LD A, 3
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    LD ($F008), A     ; Virtual register 4 to memory
     ; store , r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
     LD ($F006), HL
     ; r5 = load state
     LD HL, ($F002)
     ; r6 = 4
     LD A, 4
-    LD ($F00C), A     ; Virtual register 6 to memory
+    LD L, A         ; Store to physical register L
     ; r7 = call next_state
     ; Call to next_state (args: 2)
     ; Stack-based parameter passing
-    LD HL, ($F00C)    ; Virtual register 6 from memory
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
@@ -403,7 +404,7 @@ end_if_8:
     LD ($F002), HL
     ; r8 = 0
     LD A, 0
-    LD C, A         ; Store to physical register C
+    ; Register 8 already in A
     ; store player_dir, r8
     LD ($F006), HL
     ; r10 = load player_dir
@@ -422,7 +423,7 @@ end_if_8:
     LD HL, ($F002)
     ; r13 = 3
     LD A, 3
-    LD D, A         ; Store to physical register D
+    ; Register 13 already in A
     ; r14 = call next_state
     ; Call to next_state (args: 2)
     ; Stack-based parameter passing
@@ -437,12 +438,17 @@ end_if_8:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -514,9 +520,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

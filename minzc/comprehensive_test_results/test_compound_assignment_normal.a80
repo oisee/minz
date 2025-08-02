@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Code section
@@ -19,9 +19,8 @@
     LD ($F002), A
     ; r4 = 100
     LD A, 100
-    LD ($F008), A     ; Virtual register 4 to memory
+    LD C, A         ; Store to physical register C
     ; store , r4
-    LD HL, ($F008)    ; Virtual register 4 from memory
     LD ($F006), HL
     ; r5 = 5
     LD A, 5
@@ -41,9 +40,10 @@
     LD ($F010), A     ; Virtual register 8 to memory
     ; r9 = load x
     LD A, ($F002)
-    LD ($F012), A     ; Virtual register 9 to memory
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; Compound assignment x -=
-    LD HL, ($F012)    ; Virtual register 9 from memory
     LD D, H
     LD E, L
     LD HL, ($F010)    ; Virtual register 8 from memory
@@ -57,9 +57,7 @@
     LD ($F002), A
     ; r11 = 2
     LD A, 2
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD ($F016), A     ; Virtual register 11 to memory
     ; r12 = load x
     LD A, ($F002)
     LD B, A         ; Store to physical register B
@@ -67,9 +65,7 @@
     ; 8-bit multiplication
     LD A, B
     LD B, A       ; B = multiplicand
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
+    LD A, ($F016)     ; Virtual register 11 from memory
     LD C, A       ; C = multiplier
     LD HL, 0      ; HL = result
     LD A, C
@@ -82,24 +78,25 @@
     DEC C
     JR NZ, .mul_loop_0
 .mul_done_0:
+    LD ($F01A), HL    ; Virtual register 13 to memory
     ; store x, r13
-    LD A, B
+    LD A, ($F01A)     ; Virtual register 13 from memory
     LD ($F002), A
     ; r14 = 4
     LD A, 4
+    ; Register 14 already in A
+    ; r15 = load x
+    LD A, ($F002)
     EXX               ; Switch to shadow registers
     LD B', A         ; Store to shadow B'
     EXX               ; Switch back to main registers
-    ; r15 = load x
-    LD A, ($F002)
-    ; Register 15 already in A
     ; Compound assignment x /=
     ; 8-bit division
-    ; Register 15 already in A
-    LD D, A       ; D = dividend
     EXX               ; Switch to shadow registers
     LD A, B'         ; From shadow B'
     EXX               ; Switch back to main registers
+    LD D, A       ; D = dividend
+    ; Register 14 already in A
     LD E, A       ; E = divisor
     OR A          ; Check for divide by zero
     JR Z, .div_by_zero_1
@@ -116,21 +113,30 @@
 .div_done_1:
     LD L, B       ; Result in L
     LD H, 0
-    LD ($F020), HL    ; Virtual register 16 to memory
     ; store x, r16
-    LD A, ($F020)     ; Virtual register 16 from memory
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     LD ($F002), A
     ; r17 = 4
     LD A, 4
-    ; Register 17 already in A
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; r18 = load x
     LD A, ($F002)
-    ; Register 18 already in A
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; Compound assignment x %=
     ; 8-bit modulo
-    ; Register 18 already in A
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
     LD D, A       ; D = dividend
-    ; Register 17 already in A
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
     LD E, A       ; E = divisor
     OR A          ; Check for divide by zero
     JR Z, .mod_by_zero_2
@@ -146,16 +152,18 @@
     LD L, A       ; Result (remainder) in L
     LD H, 0
     ; store x, r19
-    LD A, C
+    LD A, B
     LD ($F002), A
     ; r20 = 50
     LD A, 50
-    LD C, A         ; Store to physical register C
+    LD E, A         ; Store to DE (low byte)
     ; r21 = load y
     LD HL, ($F006)
     ; Compound assignment y +=
     LD D, H
     LD E, L
+    LD H, D
+    LD L, E
     ADD HL, DE
     LD ($F02C), HL    ; Virtual register 22 to memory
     ; store y, r22
@@ -163,9 +171,7 @@
     LD ($F006), HL
     ; r23 = 25
     LD A, 25
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD B, A         ; Store to physical register B
     ; r24 = load y
     LD HL, ($F006)
     ; Register 24 already in HL
@@ -363,12 +369,17 @@ mul_src2_3: DW 0
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -440,9 +451,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

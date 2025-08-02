@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:02
+; Generated: 2025-08-02 13:03:25
 
 
 ; Code section
@@ -126,27 +126,32 @@ end_if_2:
 ; Using absolute addressing for locals (SMC style)
     ; r3 = 0
     LD A, 0
-    LD ($F006), A     ; Virtual register 3 to memory
+    LD D, A         ; Store to physical register D
     ; store , r3
-    LD A, ($F006)     ; Virtual register 3 from memory
+    LD A, D
     LD ($F004), A
     ; r5 = 0
     LD A, 0
-    LD ($F00A), A     ; Virtual register 5 to memory
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; store , r5
-    LD A, ($F00A)     ; Virtual register 5 from memory
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     LD ($F008), A
     ; loop_5:
 loop_5:
     ; r6 = load i
     LD A, ($F008)
-    LD ($F00C), A     ; Virtual register 6 to memory
+    ; Register 6 already in A
 .Users.alice.dev.minz-ts.examples.control_flow.test_while_param_n:
     LD HL, #0000   ; SMC parameter n (u8->u16)
+    LD ($F00E), HL    ; Virtual register 7 to memory
     ; r8 = r6 < r7
-    LD HL, ($F00C)    ; Virtual register 6 from memory
     LD D, H
     LD E, L
+    LD HL, ($F00E)    ; Virtual register 7 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -157,14 +162,12 @@ loop_5:
     LD HL, 1
 .L7:
     ; jump_if_not r8, end_loop_6
-    EXX               ; Switch to shadow registers
-    LD A, D'         ; From shadow D'
-    EXX               ; Switch back to main registers
+    ; Register 8 already in A
     OR A
     JP Z, end_loop_6
     ; r9 = load sum
     LD A, ($F004)
-    LD D, A         ; Store to physical register D
+    ; Register 9 already in A
     ; r10 = load i
     LD A, ($F008)
     LD ($F014), A     ; Virtual register 10 to memory
@@ -174,24 +177,20 @@ loop_5:
     LD HL, ($F014)    ; Virtual register 10 from memory
     ADD HL, DE
     ; store sum, r11
-    LD A, H
+    ; Register 11 already in A
     LD ($F004), A
     ; r12 = load i
     LD A, ($F008)
-    LD H, A         ; Store to physical register H
+    ; Register 12 already in A
     ; r13 = 1
     LD A, 1
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    ; Register 13 already in A
     ; r14 = r12 + r13
     LD D, H
     LD E, L
     ADD HL, DE
     ; store i, r14
-    EXX               ; Switch to shadow registers
-    LD A, C'         ; From shadow C'
-    EXX               ; Switch back to main registers
+    LD A, H
     LD ($F008), A
     ; jump loop_5
     JP loop_5
@@ -199,18 +198,23 @@ loop_5:
 end_loop_6:
     ; r15 = load sum
     LD A, ($F004)
-    LD B, A         ; Store to physical register B
+    LD H, A         ; Store to physical register H
     ; return r15
     RET
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -282,9 +286,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

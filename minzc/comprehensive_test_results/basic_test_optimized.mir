@@ -4,7 +4,7 @@
 Function .Users.alice.dev.minz-ts.examples.basic_test.add_five(x: u8) -> u8
   @smc
   Instructions:
-      0: UNKNOWN_OP_31 ; Load from anchor x$imm0
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
       1: return
 
 Function .Users.alice.dev.minz-ts.examples.basic_test.main() -> void
@@ -13,6 +13,5 @@ Function .Users.alice.dev.minz-ts.examples.basic_test.main() -> void
     r1 = result: u16
   Instructions:
       0: r3 = call add_five
-      1: store , r3
-      2: return
+      1: return
 

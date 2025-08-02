@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:04
+; Generated: 2025-08-02 13:03:28
 
 
 ; Data section
@@ -17,21 +17,14 @@
 .Users.alice.dev.minz-ts.examples.test_loop_ref.main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    PUSH DE
-    ; r2 = 0
-    LD A, 0
-    ; Register 2 already in A
-    ; store , r2
-    ; Register 2 already in A
-    LD ($F002), A
     ; loop_1:
 loop_1:
     ; r3 = load i
     LD A, ($F002)
-    LD C, A         ; Store to physical register C
+    ; Register 3 already in A
     ; r4 = 10
     LD A, 10
-    LD D, A         ; Store to physical register D
+    LD B, A         ; Store to physical register B
     ; r5 = r3 < r4
     LD D, H
     LD E, L
@@ -45,17 +38,14 @@ loop_1:
     LD HL, 1
 .L2:
     ; jump_if_not r5, end_loop_2
-    LD A, E
+    LD A, C
     OR A
     JP Z, end_loop_2
-    ; r6 = 0
-    LD A, 0
-    LD H, A         ; Store to physical register H
     ; r7 = addr(.Users.alice.dev.minz-ts.examples.test_loop_ref.counters)
     LD HL, .Users.alice.dev.minz-ts.examples.test_loop_ref.counters
-    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; Register 7 already in HL
     ; Load array element (.Users.alice.dev.minz-ts.examples.test_loop_ref.Counter)
-    LD HL, ($F00E)    ; Virtual register 7 from memory
+    ; Register 7 already in HL
     PUSH HL
     LD D, B
     LD E, C
@@ -63,28 +53,6 @@ loop_1:
     ADD HL, DE
     LD A, (HL)
     LD E, A         ; Store to DE (low byte)
-    ; Store to field value (offset 0)
-    LD H, D
-    LD L, E
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
-    ; r10 = load i
-    LD A, ($F002)
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
-    ; r11 = 5
-    LD A, 5
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
-    ; r12 = r10 + r11
-    LD D, H
-    LD E, L
-    ADD HL, DE
     ; r13 = addr(.Users.alice.dev.minz-ts.examples.test_loop_ref.counters)
     LD HL, .Users.alice.dev.minz-ts.examples.test_loop_ref.counters
     PUSH HL           ; Save current HL
@@ -97,52 +65,33 @@ loop_1:
     EXX               ; Switch back to main registers
     POP HL            ; Load shadow HL into main HL
     PUSH HL
-    LD HL, ($F01C)    ; Virtual register 14 from memory
-    EX DE, HL
+    EXX               ; Switch to shadow registers
     POP HL
     ADD HL, DE
     LD A, (HL)
     EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
+    LD B', A         ; Store to shadow B'
     EXX               ; Switch back to main registers
-    ; Store to field max (offset 1)
-    LD DE, 1
-    ADD HL, DE
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
-    ; r16 = load i
-    LD A, ($F002)
-    LD H, A         ; Store to physical register H
-    ; r17 = 1
-    LD A, 1
-    LD L, A         ; Store to physical register L
-    ; r18 = r16 + r17
-    LD D, H
-    LD E, L
-    ADD HL, DE
-    ; Register 18 already in HL
-    ; store i, r18
-    LD A, L
-    LD ($F002), A
     ; jump loop_1
     JP loop_1
     ; end_loop_2:
 end_loop_2:
     ; return
-    POP DE
     RET
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -214,9 +163,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

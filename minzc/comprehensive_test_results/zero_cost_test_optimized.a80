@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:05
+; Generated: 2025-08-02 13:03:29
 
 
 ; Code section
@@ -139,16 +139,14 @@ b$imm0 EQU b$immOP+1
     LD HL, ($F004)    ; Virtual register 2 from memory
     PUSH HL       ; Argument 0
     CALL double
-    ; store , r3
-    LD ($F002), HL
+    LD ($F006), HL    ; Virtual register 3 to memory
     ; r6 = call add_five
     ; Call to add_five (args: 1)
     ; Stack-based parameter passing
     LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL       ; Argument 0
     CALL add_five
-    ; store , r6
-    LD ($F008), HL
+    ; Register 6 already in HL
     ; r10 = call multiply
     ; Call to multiply (args: 2)
     ; Stack-based parameter passing
@@ -157,8 +155,6 @@ b$imm0 EQU b$immOP+1
     LD HL, ($F010)    ; Virtual register 8 from memory
     PUSH HL       ; Argument 0
     CALL multiply
-    ; store , r10
-    LD ($F00E), HL
     ; return
     POP DE
     POP BC
@@ -169,53 +165,3 @@ b$imm0 EQU b$immOP+1
 .Users.alice.dev.minz-ts.examples.zero_cost_test.test_interfaces:
 ; IsSMCDefault=false, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    PUSH DE
-    ; Allocate struct Circle
-    LD HL, -1
-    ADD HL, SP
-    LD SP, HL
-    EX DE, HL
-    LD HL, SP
-    ; r3 = 3
-    LD A, 3
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
-    ; Store to Circle.radius
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
-    ; store , r2
-    LD ($F002), HL
-    ; Allocate struct Rectangle
-    LD HL, -2
-    ADD HL, SP
-    LD SP, HL
-    EX DE, HL
-    LD HL, SP
-    ; r6 = 4
-    LD A, 4
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
-    ; Store to Rectangle.width
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
-    ; r7 = 5
-    LD A, 5
-    LD L, A         ; Store to physical register L
-    ; Store to Rectangle.height
-    LD DE, 1
-    ADD HL, DE
-    PUSH HL
-    POP DE
-    LD (DE), L
-    INC DE
-    LD (DE), H
-    ; store , r5
-    LD ($F008), HL

@@ -1,0 +1,29 @@
+// Test enhanced @print syntax with { constant } embedding
+
+fun main() -> void {
+    // Test 1: Simple constants
+    @print("The answer is { 42 }\n");              // Should compile to "The answer is 42\n"
+    @print("Pi is approximately { 3.14 }\n");      // Should compile to "Pi is approximately 3.14\n"
+    @print("Success: { true }\n");                 // Should compile to "Success: true\n"
+    
+    // Test 2: Arithmetic expressions
+    @print("Result: { 10 + 5 * 2 }\n");           // Should compile to "Result: 20\n"
+    @print("Calculation: { (100 - 20) / 4 }\n");  // Should compile to "Calculation: 20\n"
+    
+    // Test 3: String literals
+    @print("Message: { \"Hello, World!\" }\n");    // Should compile to "Message: Hello, World!\n"
+    
+    // Test 4: Metafunction calls
+    @print("Hex value: { @hex(255) }\n");         // Should compile to "Hex value: FF\n"
+    @print("Built on: { @build_time() }\n");      // Should compile to "Built on: 2025-08-02\n"
+    
+    // Test 5: Mixed constant and runtime
+    let x: u8 = 10;
+    @print("Constant { 5 } and runtime {}\n", x); // Constant part compiled, runtime part dynamic
+    
+    // Test 6: Complex nesting
+    @print("Complex: { 2 * { 3 + 4 } }\n");       // Should handle nested braces correctly
+    
+    // Test 7: Escaped braces
+    @print("Literal braces: {{ and }}\n");        // Should print: "Literal braces: { and }\n"
+}

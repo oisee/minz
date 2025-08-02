@@ -7,9 +7,8 @@ Function .Users.alice.dev.minz-ts.examples.test_strings_simple.test_strings() ->
     r1 = hello: *u8
   Instructions:
       0: LOAD_LABEL ; Load string "Hello, World!"
-      1: store , r2
-      2: r3 = load hello
-      3: return r3
+      1: r3 = load hello
+      2: return r3
 
 Function .Users.alice.dev.minz-ts.examples.test_strings_simple.main() -> *u8
   @smc

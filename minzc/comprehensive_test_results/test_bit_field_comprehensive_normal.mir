@@ -147,7 +147,7 @@ Function .Users.alice.dev.minz-ts.examples.test_bit_field_comprehensive.main() -
       0: r1 = call test_8bit_fields
       1: r2 = call test_16bit_fields
       2: r3 = call test_field_expressions
-      3: UNKNOWN_OP_84
-      4: UNKNOWN_OP_83
+      3: UNKNOWN_OP_87
+      4: UNKNOWN_OP_86
       5: return
 

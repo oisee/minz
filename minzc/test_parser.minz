@@ -1,2 +1,0 @@
-const PLATFORM_BITS: u8 = @lua(8);
-const MAGIC_NUMBER: u16 = @lua(42 * 100);

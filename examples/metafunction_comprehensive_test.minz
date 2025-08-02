@@ -1,0 +1,236 @@
+// Comprehensive Metafunction Test Suite
+// Tests zero-cost I/O and compile-time code generation
+
+// Test 1: Basic @print with compile-time constants
+fun test_compile_time_constants() -> void {
+    // These should be fully resolved at compile time
+    @print("Constant u8: {}", 42);           // -> Direct byte sequence
+    @print("Constant u16: {}", 1234);        // -> Direct byte sequence  
+    @print("Constant bool: {}", true);       // -> Direct "true" string
+    @print("Constant string: {}", "hello");  // -> Direct byte sequence
+    
+    // Complex compile-time expression
+    @static_assert(10 + 5 == 15, "Math should work!");
+    @print("Computed: {}", 10 * 5 + 2);      // -> "52" as direct bytes
+}
+
+// Test 2: Runtime variables with optimal code generation
+fun test_runtime_variables() -> void {
+    let x: u8 = 100;
+    let y: u16 = 2000;
+    let flag: bool = false;
+    let name: *u8 = "MinZ";
+    
+    // These should generate optimal print_* calls
+    @print("Runtime u8: {}", x);     // -> CALL print_u8
+    @print("Runtime u16: {}", y);    // -> CALL print_u16
+    @print("Runtime bool: {}", flag); // -> CALL print_bool
+    @print("Runtime string: {}", name); // -> CALL print_string
+}
+
+// Test 3: Format specifiers and zero-cost wrappers
+fun test_formatting() -> void {
+    let value: u8 = 170;  // 0xAA = 10101010
+    
+    // Compile-time formatting
+    @print("Hex constant: 0x{}", @hex(255));    // -> "0xFF" as direct bytes
+    @print("Bin constant: {}", @bin(15));       // -> "00001111" as direct bytes
+    
+    // Runtime formatting with optimal code
+    @print("Hex runtime: 0x{}", @hex(value));   // -> CALL print_hex_u8
+    @print("Bin runtime: {}", @bin(value));     // -> CALL print_bin_u8
+}
+
+// Test 4: Complex interpolation with mixed types
+fun test_mixed_interpolation() -> void {
+    let count: u16 = 5;
+    
+    // Mix of compile-time and runtime - should generate optimal sequence
+    @print("Processing {} items of type {} (status: {})", 
+           count, "data", true);
+    // Should generate:
+    // - "Processing " as direct bytes
+    // - CALL print_u16 for count
+    // - " items of type " as direct bytes  
+    // - "data" as direct bytes
+    // - " (status: " as direct bytes
+    // - "true" as direct bytes
+    // - ")" as direct byte
+}
+
+// Test 5: Debug and assertion metafunctions
+fun test_debug_assertions() -> void {
+    let score: u16 = 95;
+    
+    @debug(score);  // Should print: [DEBUG] score = 95
+    
+    @assert(score > 50, "Score should be positive");
+    @assert(score <= 100, "Score should be <= 100");
+    
+    // Compile-time assertion (checked during compilation)
+    @static_assert(sizeof(u16) == 2, "u16 should be 2 bytes");
+}
+
+// Test 6: Zero-cost I/O operations
+fun test_zero_cost_io() -> void {
+    // Direct byte output
+    @write_byte(65);        // -> LD A, 65; RST 16 ('A')
+    @write_byte('\n');      // -> LD A, 10; RST 16
+    
+    // Direct string output
+    @write_string("Hello"); // -> Series of LD A, n; RST 16
+    
+    // Read operations
+    let ch = @read_byte();  // -> RST 8
+}
+
+// Test 7: Platform-specific metafunctions
+fun test_platform_specific() -> void {
+    // ZX Spectrum specific
+    @if_platform("zx_spectrum") {
+        @zx_cls();              // -> CALL 0x0DAF
+        @zx_beep(50, 100);      // -> LD HL,50; LD DE,100; CALL 0x03B5
+    }
+    
+    // MSX specific
+    @if_platform("msx") {
+        @msx_vpoke(0x1800, 65); // -> LD HL,0x1800; LD A,65; CALL 0x004D
+    }
+    
+    // CP/M specific
+    @if_platform("cpm") {
+        @cpm_bdos(2, 65);       // -> LD E,65; LD C,2; CALL 5
+    }
+}
+
+// Test 8: Performance and profiling
+fun test_performance() -> void {
+    let result: u16;
+    
+    @benchmark("addition_loop") {
+        let sum: u16 = 0;
+        for i in 0..100 {
+            sum = sum + i;
+        }
+        result = sum;
+    }
+    
+    @print("Benchmark result: {}", result);
+}
+
+// Test 9: Inline assembly with metafunctions
+fun test_inline_assembly() -> void {
+    let input: u8 = 42;
+    let output: u8;
+    
+    @inline_asm("ADD A, A", {"A": input}, {"A": output});
+    // Generates:
+    // LD A, (input)
+    // ADD A, A  
+    // LD (output), A
+    
+    @print("Doubled: {}", output);
+}
+
+// Test 10: Atomic operations
+fun test_atomic_operations() -> void {
+    let counter: u16 = 0;
+    
+    @atomic {
+        counter = counter + 1;
+    }
+    // Generates:
+    // DI
+    // [counter increment code]
+    // EI
+}
+
+// Test 11: Conditional compilation
+fun test_conditional_compilation() -> void {
+    @if_debug {
+        @print("Debug build detected");
+    }
+    
+    @if_release {
+        @print("Release build - optimized!");
+    }
+    
+    @if_feature("smc") {
+        @print("SMC support enabled");
+    }
+}
+
+// Test 12: Compile-time string building
+fun test_compile_time_strings() -> void {
+    // These should be fully resolved at compile time
+    let greeting = @format("Hello, {}!", "World");  // -> "Hello, World!" constant
+    let status = @format("Status: {} ({})", "OK", 200); // -> "Status: OK (200)" constant
+    
+    @print("{}", greeting);
+    @print("{}", status);
+}
+
+// Test 13: Advanced formatting
+fun test_advanced_formatting() -> void {
+    let value: u16 = 42;
+    
+    // Width and padding (compile-time)
+    @print("Padded: {:04d}", 42);      // -> "0042"
+    @print("Hex: 0x{:04X}", 255);      // -> "0x00FF"
+    
+    // Runtime with format specifiers
+    @print("Value: {:04d}", value);    // -> Optimized padding code
+}
+
+// Test 14: Error handling with metafunctions
+fun test_error_handling() -> void {
+    let file_size: u16 = get_file_size();
+    
+    if file_size == 0 {
+        @error("File is empty!");  // Compile-time error generation
+    }
+    
+    @assert(file_size > 0, "File size must be positive");
+}
+
+fun get_file_size() -> u16 {
+    return 1024;  // Mock implementation
+}
+
+// Test 15: Metafunction composition
+fun test_metafunction_composition() -> void {
+    let data: [u8; 4] = [0xDE, 0xAD, 0xBE, 0xEF];
+    
+    // Compose multiple metafunctions
+    @print("Data dump: ");
+    for i in 0..4 {
+        @print("{} ", @hex(data[i]));
+    }
+    @println("");
+}
+
+// Main test runner
+fun main() -> void {
+    @static_print("Building comprehensive metafunction test...");
+    
+    @println("=== MinZ Metafunction Comprehensive Test ===");
+    
+    test_compile_time_constants();
+    test_runtime_variables();
+    test_formatting();
+    test_mixed_interpolation();
+    test_debug_assertions();
+    test_zero_cost_io();
+    test_platform_specific();
+    test_performance();
+    test_inline_assembly();
+    test_atomic_operations();
+    test_conditional_compilation();
+    test_compile_time_strings();
+    test_advanced_formatting();
+    test_error_handling();
+    test_metafunction_composition();
+    
+    @println("\n=== All metafunction tests completed! ===");
+    @println("Generated code should be optimal with zero runtime overhead.");
+}

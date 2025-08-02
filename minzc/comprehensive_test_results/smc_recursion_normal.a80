@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 09:30:03
+; Generated: 2025-08-02 13:03:27
 
 
 ; Code section
@@ -94,10 +94,12 @@ end_if_2:
 ; Recursive context handled via stack push/pop of SMC parameters
 .Users.alice.dev.minz-ts.examples.smc_recursion.fib_smc_param_n:
     LD HL, #0000   ; SMC parameter n (u8->u16)
+    LD ($F004), HL    ; Virtual register 2 to memory
     ; r3 = 1
     LD A, 1
-    ; Register 3 already in A
+    LD D, A         ; Store to physical register D
     ; r4 = r2 <= r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -116,9 +118,8 @@ end_if_2:
     OR A
     JP Z, else_3
     LD A, (.Users.alice.dev.minz-ts.examples.smc_recursion.fib_smc_param_n)
-    LD ($F00A), A     ; Virtual register 5 to memory
+    LD D, A         ; Store to physical register D
     ; return r5
-    LD HL, ($F00A)    ; Virtual register 5 from memory
     RET
     ; jump end_if_4
     JP end_if_4
@@ -127,23 +128,22 @@ else_3:
     ; end_if_4:
 end_if_4:
     LD A, (.Users.alice.dev.minz-ts.examples.smc_recursion.fib_smc_param_n)
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD ($F00C), A     ; Virtual register 6 to memory
     ; r7 = 1
     LD A, 1
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    ; Register 7 already in A
     ; r8 = r6 - r7
+    LD HL, ($F00C)    ; Virtual register 6 from memory
     LD D, H
     LD E, L
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
+    LD ($F010), HL    ; Virtual register 8 to memory
     ; r9 = call fib_smc
     ; Call to fib_smc (args: 1)
     ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
     PUSH HL       ; Argument 0
     ; Found function, UsesTrueSMC=false
     CALL .Users.alice.dev.minz-ts.examples.smc_recursion.fib_smc
@@ -151,11 +151,12 @@ end_if_4:
     ; Register 10 already in A
     ; r11 = 2
     LD A, 2
-    LD ($F016), A     ; Virtual register 11 to memory
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; r12 = r10 - r11
     LD D, H
     LD E, L
-    LD HL, ($F016)    ; Virtual register 11 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -222,8 +223,9 @@ end_if_4:
 .L6:
     LD HL, 1
 .L7:
+    LD ($F010), HL    ; Virtual register 8 to memory
     ; jump_if_not r8, else_5
-    LD A, L
+    LD A, ($F010)     ; Virtual register 8 from memory
     OR A
     JP Z, else_5
     ; r9 = param b
@@ -231,7 +233,6 @@ end_if_4:
     ; r10 = param c
     ; Load parameter c
     ; r11 = r9 + r10
-    LD HL, ($F012)    ; Virtual register 9 from memory
     LD D, H
     LD E, L
     ADD HL, DE
@@ -241,12 +242,13 @@ end_if_4:
     LD D, H
     LD E, L
     ADD HL, DE
+    LD ($F01A), HL    ; Virtual register 13 to memory
     ; r14 = param e
     ; Load parameter e
     ; r15 = r13 + r14
+    LD HL, ($F01A)    ; Virtual register 13 from memory
     LD D, H
     LD E, L
-    LD HL, ($F01C)    ; Virtual register 14 from memory
     ADD HL, DE
     ; return r15
     LD SP, IX
@@ -266,6 +268,7 @@ end_if_6:
     LD A, 1
     LD H, A         ; Store to physical register H
     ; r19 = r17 - r18
+    LD HL, ($F022)    ; Virtual register 17 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -282,8 +285,10 @@ end_if_6:
     ; r24 = call many_params_recursive
     ; Call to many_params_recursive (args: 5)
     ; Stack-based parameter passing
+    LD HL, ($F02E)    ; Virtual register 23 from memory
     PUSH HL       ; Argument 4
     PUSH HL       ; Argument 3
+    LD HL, ($F02A)    ; Virtual register 21 from memory
     PUSH HL       ; Argument 2
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
@@ -305,7 +310,9 @@ end_if_6:
 ; Using absolute addressing for locals (SMC style)
     ; r2 = 5
     LD A, 5
-    LD H, A         ; Store to physical register H
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; r3 = call factorial_smc
     ; Call to factorial_smc (args: 1)
     ; Stack-based parameter passing
@@ -318,9 +325,7 @@ end_if_6:
     LD ($F002), HL
     ; r5 = 10
     LD A, 10
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD H, A         ; Store to physical register H
     ; r6 = call fib_smc
     ; Call to fib_smc (args: 1)
     ; Stack-based parameter passing
@@ -331,19 +336,27 @@ end_if_6:
     LD ($F008), HL
     ; r8 = 3
     LD A, 3
-    ; Register 8 already in A
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r9 = 1
     LD A, 1
     LD ($F012), A     ; Virtual register 9 to memory
     ; r10 = 2
     LD A, 2
-    LD D, A         ; Store to physical register D
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; r11 = 3
     LD A, 3
-    LD D, A         ; Store to physical register D
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
     ; r12 = 4
     LD A, 4
-    ; Register 12 already in A
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
     ; r13 = call many_params_recursive
     ; Call to many_params_recursive (args: 5)
     ; Stack-based parameter passing
@@ -362,12 +375,17 @@ end_if_6:
 
 ; Runtime print helper functions
 print_string:
-    LD A, (HL)
-    OR A               ; Check for null terminator
-    RET Z              ; Return if null
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
     RST 16             ; Print character
     INC HL             ; Next character
-    JR print_string
+    DJNZ print_loop    ; Decrement B and loop
+    RET
 
 print_u8_decimal:
     LD H, 0            ; HL = A (zero extend)
@@ -439,9 +457,9 @@ print_true:
     JR print_string
 
 bool_true_str:
-    DB "true", 0
+    DB 4, "true"      ; Length + data
 bool_false_str:
-    DB "false", 0
+    DB 5, "false"     ; Length + data
 
 
     END main

@@ -1,5 +1,9 @@
 package semantic
 
+// TODO: Interface monomorphization support - currently disabled due to missing types
+// This file will be re-enabled when ir.Value, ir.BasicBlock, ir.CallInst are implemented
+
+/*
 import (
 	"fmt"
 	"strings"
@@ -7,7 +11,9 @@ import (
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/ir"
 )
+*/
 
+/*
 // InterfaceMonomorphizer handles monomorphization of generic functions with interface bounds
 type InterfaceMonomorphizer struct {
 	analyzer          *Analyzer
@@ -203,3 +209,4 @@ func typesMatch(t1, t2 []ir.Type) bool {
 	}
 	return true
 }
+*/
