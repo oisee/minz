@@ -1,4 +1,5 @@
 # MinZ Programming Language
+![](/media/minz-logo-shamrock-mint.png)
 
 ## 🚧 **UNDER CONSTRUCTION** 🚧
 
