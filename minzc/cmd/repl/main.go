@@ -6,13 +6,13 @@ import (
 	"os"
 	"strings"
 	
-	"github.com/oisee/minz/minzc/pkg/compiler"
-	"github.com/oisee/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/z80asm"
 )
 
 // REPL represents the MinZ Read-Eval-Print-Loop
 type REPL struct {
-	compiler  *compiler.Compiler
+	assembler *z80asm.Assembler
 	emulator  *emulator.Z80
 	context   *Context
 	reader    *bufio.Reader
@@ -45,8 +45,8 @@ type Function struct {
 // New creates a new REPL instance
 func New() *REPL {
 	return &REPL{
-		compiler: compiler.New(),
-		emulator: emulator.New(),
+		assembler: z80asm.NewAssembler(),
+		emulator:  emulator.New(),
 		context: &Context{
 			variables: make(map[string]Variable),
 			functions: make(map[string]Function),
@@ -298,8 +298,11 @@ func (r *REPL) isVerbose() bool {
 // Placeholder functions - need implementation
 
 func (r *REPL) assemble(assembly string) ([]byte, error) {
-	// TODO: Integrate with sjasmplus or implement assembler
-	return nil, fmt.Errorf("assembler not implemented")
+	result, err := r.assembler.AssembleString(assembly)
+	if err != nil {
+		return nil, fmt.Errorf("assembly failed: %v", err)
+	}
+	return result.Binary, nil
 }
 
 func (r *REPL) updateContext(input string) {

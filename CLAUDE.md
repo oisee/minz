@@ -102,6 +102,32 @@ array_var[index] = value;
 - ❌ **Cast type inference**: "cannot determine type of expression being cast"
 - ❌ **If expressions**: `if (cond) { val1 } else { val2 }` syntax issues
 
+### 🎯 Essential Tools - All Self-Contained!
+
+**🚀 NO EXTERNAL DEPENDENCIES NEEDED!** MinZ includes everything:
+
+```bash
+# MinZ Compiler (generates Z80 assembly)
+cd minzc && ./minzc ../examples/fibonacci.minz -o fibonacci.a80
+
+# Built-in Z80 Assembler (assembly → machine code)
+# Located at: minzc/pkg/z80asm/ - full instruction set!
+
+# Z80 Emulator (execute and debug)  
+# Located at: minzc/pkg/emulator/z80.go - cycle accurate!
+
+# Interactive REPL (compile + assemble + execute)
+cd minzc && go run cmd/repl/main.go
+
+# Complete Testing Pipeline
+./minzc/compile_all_examples.sh  # Tests 148 examples
+```
+
+**Self-Contained Pipeline:**
+```
+MinZ Source → MinZ Compiler → Z80 Assembly → Built-in Assembler → Machine Code → Z80 Emulator
+```
+
 ### 🎯 Testing Commands
 
 ```bash
