@@ -9,6 +9,8 @@
 
 🚀 **NEW RELEASE**: MinZ v0.9.0 delivers revolutionary **25-40% faster string operations** through compile-time optimizations and length-prefixed architecture! [Download now](https://github.com/oisee/minz/releases/tag/v0.9.0)
 
+🔥 **LATEST NEWS**: **MinZ REPL with Built-in Assembler** - Zero external dependencies! Interactive Z80 development with embedded emulator. No sjasmplus needed! [Read more](docs/124_MinZ_REPL_Implementation.md)
+
 ⚠️ **Note**: This is experimental software. While core features work well, the language is still evolving and not all features are implemented. See [known limitations](docs/121_v0.9.0_Known_Issues.md).
 
 ## 🎯 Release Highlights
