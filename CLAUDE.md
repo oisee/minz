@@ -5,12 +5,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Communication Style
 
 When writing documentation, README files, or public-facing content:
-- Use humble, professional language
-- Avoid superlatives like "revolutionary", "world's first", "breakthrough"
+- Use humble, professional language by default
+- Avoid superlatives like "revolutionary", "world's first", "breakthrough" in general docs
 - Focus on technical accuracy over marketing language
-- Present features as "experimental", "in development", or "research"
+- Present features as "experimental", "in development", or "research" when uncertain
 - Be honest about the project's maturity level
 - Use "UNDER CONSTRUCTION" warnings where appropriate
+
+BUT! Sometimes we can be откровенны (frank/candid) and say when something is truly круто (cool) and mindblowing! 🚀
+- When we achieve zero-cost abstractions that actually work - that's amazing!
+- When lambdas compile to identical assembly as hand-written functions - celebrate it!
+- When we solve "impossible" problems on 8-bit hardware - be proud!
+
+The key is balance: professional humility most of the time, but genuine excitement when we earn it.
 
 ## 🚀 AI-Driven Development Practices
 
