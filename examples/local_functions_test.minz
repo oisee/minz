@@ -1,0 +1,78 @@
+// Test local functions with lexical scope
+
+// Example 1: Simple nested function
+fun outer(x: u8) -> u8 {
+    let factor: u8 = 3;
+    
+    // Local function can access parent's variables
+    fun inner(y: u8) -> u8 {
+        return y * factor;  // Accesses 'factor' from outer
+    }
+    
+    return inner(x);
+}
+
+// Example 2: Lambda with 'lamb' shortcut
+fun make_multiplier(n: u8) -> fn(u8) -> u8 {
+    // Using 'lamb' keyword for lambda
+    let multiply = lamb(x: u8) -> u8 {
+        return x * n;  // Captures 'n' from parent
+    };
+    
+    return multiply;
+}
+
+// Example 3: Counter closure
+fun make_counter(start: u16) -> fn() -> u16 {
+    let count: u16 = start;
+    
+    // Lambda that modifies captured variable
+    let next = lamb() -> u16 {
+        count = count + 1;
+        return count;
+    };
+    
+    return next;
+}
+
+// Example 4: Deep nesting
+fun level1() -> void {
+    let a: u8 = 1;
+    
+    fun level2() -> void {
+        let b: u8 = 2;
+        
+        fun level3() -> void {
+            // Can access all parent variables
+            @print("a={}, b={}\n", a, b);
+        }
+        
+        level3();
+    }
+    
+    level2();
+}
+
+fun main() -> void {
+    @print("Testing local functions with capture:\n\n");
+    
+    // Test simple nested function
+    let result1 = outer(5);
+    @print("outer(5) = {}\n", result1);  // Should be 15
+    
+    // Test lambda with capture
+    let times7 = make_multiplier(7);
+    let result2 = times7(6);
+    @print("times7(6) = {}\n", result2);  // Should be 42
+    
+    // Test counter closure
+    let counter = make_counter(100);
+    @print("Counter: {}\n", counter());  // 101
+    @print("Counter: {}\n", counter());  // 102
+    @print("Counter: {}\n", counter());  // 103
+    
+    // Test deep nesting
+    level1();
+    
+    @print("\nLocal functions work!\n");
+}

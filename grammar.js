@@ -593,7 +593,10 @@ module.exports = grammar({
 
     block: $ => seq(
       '{',
-      repeat($.statement),
+      repeat(choice(
+        $.statement,
+        $.function_declaration,  // Allow nested function definitions!
+      )),
       optional($.expression),
       '}',
     ),
@@ -738,14 +741,17 @@ module.exports = grammar({
     import_path: $ => sep1($.identifier, '.'),
 
     // Lambda expressions  
-    lambda_expression: $ => prec(25, seq(  // Увеличиваем приоритет lambda
-      '|',
-      optional($.lambda_parameter_list),
-      '|',
-      choice(
-        $.expression,                    // |x| x + 1
-        seq('=>', $.type, $.block),     // |x| => u8 { x + 1 }
-        $.block,                         // |x| { x + 1 }
+    lambda_expression: $ => prec(25, choice(
+      // Traditional pipe syntax: |x| expr
+      seq(
+        '|',
+        optional($.lambda_parameter_list),
+        '|',
+        choice(
+          $.expression,                    // |x| x + 1
+          seq('=>', $.type, $.block),     // |x| => u8 { x + 1 }
+          $.block,                         // |x| { x + 1 }
+        ),
       ),
     )),
 
