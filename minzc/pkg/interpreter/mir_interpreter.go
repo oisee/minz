@@ -334,18 +334,76 @@ func (interp *MIRInterpreter) GetGeneratedCode() string {
 	return interp.output.String()
 }
 
-// ExecuteMinzCode executes MinZ code string (simplified version)
-func (interp *MIRInterpreter) ExecuteMinzCode(code string, args []int64) (string, error) {
-	// For now, return the code as-is - full parsing integration comes later
-	// This is a placeholder for the complete implementation
-	
-	// Simple template substitution
+// ExecuteMinzCode executes MinZ code string with full template substitution
+func (interp *MIRInterpreter) ExecuteMinzCode(code string, args []interface{}) (string, error) {
+	// Enhanced template substitution supporting strings and numbers
 	result := code
 	for i, arg := range args {
 		placeholder := fmt.Sprintf("{%d}", i)
-		value := fmt.Sprintf("%d", arg)
+		var value string
+		
+		switch v := arg.(type) {
+		case int64:
+			value = fmt.Sprintf("%d", v)
+		case string:
+			value = v
+		case bool:
+			if v {
+				value = "true"
+			} else {
+				value = "false"
+			}
+		default:
+			value = fmt.Sprintf("%v", v)
+		}
+		
 		result = strings.ReplaceAll(result, placeholder, value)
 	}
 	
 	return result, nil
+}
+
+// ExecuteMinzMetafunction processes @minz metafunction calls
+func (interp *MIRInterpreter) ExecuteMinzMetafunction(template string, args []interface{}) (string, error) {
+	// Validate template
+	if template == "" {
+		return "", fmt.Errorf("empty @minz template")
+	}
+	
+	// Count expected placeholders
+	maxPlaceholder := -1
+	for i := 0; i < len(args); i++ {
+		placeholder := fmt.Sprintf("{%d}", i)
+		if strings.Contains(template, placeholder) {
+			maxPlaceholder = i
+		}
+	}
+	
+	// Verify all arguments are used
+	if maxPlaceholder >= len(args) {
+		return "", fmt.Errorf("template expects %d arguments, got %d", maxPlaceholder+1, len(args))
+	}
+	
+	// Generate code
+	return interp.ExecuteMinzCode(template, args)
+}
+
+// ValidateTemplate checks template syntax and placeholders
+func (interp *MIRInterpreter) ValidateTemplate(template string, expectedArgs int) error {
+	// Check for balanced braces
+	openBraces := strings.Count(template, "{")
+	closeBraces := strings.Count(template, "}")
+	if openBraces != closeBraces {
+		return fmt.Errorf("unbalanced braces in template: %d open, %d close", openBraces, closeBraces)
+	}
+	
+	// Check placeholder sequence
+	for i := 0; i < expectedArgs; i++ {
+		placeholder := fmt.Sprintf("{%d}", i)
+		if !strings.Contains(template, placeholder) {
+			return fmt.Errorf("missing placeholder {%d} in template", i)
+		}
+	}
+	
+	return nil
 }

@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🎓 AI Colleague Resources
+
+- **[MinZ Crash Course for AI Colleagues](AI_COLLEAGUES_MINZ_CRASH_COURSE.md)** - Complete grounded training for autonomous MinZ development
+  - Quick Start with real commands and project structure
+  - Language essentials based on actual grammar
+  - Revolutionary features (SMC, iterators, @minz metafunctions)
+  - Development workflow and debugging
+  - Philosophy integration (Ruby happiness + zero-cost abstractions)
+  - Autonomous development checklist
+
 ## Communication Style
 
 When writing documentation, README files, or public-facing content:
