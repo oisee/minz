@@ -1,8 +1,15 @@
-.PHONY: build test clean run release
+.PHONY: build test clean run release repl all
+
+# Build both compiler and REPL
+all: build repl
 
 # Build the compiler
 build:
 	go build -o minzc cmd/minzc/main.go
+
+# Build the REPL
+repl:
+	go build -o minz cmd/repl/main.go cmd/repl/compiler.go
 
 # Run tests
 test:
@@ -10,12 +17,17 @@ test:
 
 # Clean build artifacts
 clean:
-	rm -f minzc
+	rm -f minzc minz
 	rm -f *.a80
+	rm -f *.mir
 
 # Build and run on test file
 run: build
 	./minzc ../examples/simple_add.minz
+
+# Run the REPL
+run-repl: repl
+	./minz
 
 # Install dependencies
 deps:
@@ -40,21 +52,32 @@ release:
 	
 	# Current platform
 	go build -ldflags="-s -w" -o ../release/bin/minzc cmd/minzc/main.go
+	go build -ldflags="-s -w" -o ../release/bin/minz cmd/repl/main.go cmd/repl/compiler.go
 	
-	# Cross-compile
+	# Cross-compile compiler
 	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o ../release/bin/minzc-darwin-amd64 cmd/minzc/main.go
 	GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o ../release/bin/minzc-darwin-arm64 cmd/minzc/main.go
 	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ../release/bin/minzc-linux-amd64 cmd/minzc/main.go
 	GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ../release/bin/minzc-linux-arm64 cmd/minzc/main.go
 	GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ../release/bin/minzc-windows-amd64.exe cmd/minzc/main.go
 	
+	# Cross-compile REPL
+	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o ../release/bin/minz-darwin-amd64 cmd/repl/main.go cmd/repl/compiler.go
+	GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o ../release/bin/minz-darwin-arm64 cmd/repl/main.go cmd/repl/compiler.go
+	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ../release/bin/minz-linux-amd64 cmd/repl/main.go cmd/repl/compiler.go
+	GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ../release/bin/minz-linux-arm64 cmd/repl/main.go cmd/repl/compiler.go
+	GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ../release/bin/minz-windows-amd64.exe cmd/repl/main.go cmd/repl/compiler.go
+	
 	@echo "Release binaries built in ../release/bin/"
 
-# Install locally
-install: build
-	@echo "Installing minzc to /usr/local/bin..."
+# Install locally (both compiler and REPL)
+install: all
+	@echo "Installing MinZ tools to /usr/local/bin..."
 	@sudo cp minzc /usr/local/bin/
+	@sudo cp minz /usr/local/bin/
 	@echo "Installation complete!"
+	@echo "  minzc - MinZ compiler"
+	@echo "  minz  - MinZ REPL (interactive mode)"
 
 # Development build with race detector
 dev:
