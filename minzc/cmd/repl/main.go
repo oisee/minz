@@ -15,6 +15,7 @@ type REPL struct {
 	assembler *z80asm.Assembler
 	emulator  *emulator.Z80
 	context   *Context
+	compiler  *REPLCompiler
 	reader    *bufio.Reader
 	history   []string
 }
@@ -35,26 +36,29 @@ type Variable struct {
 }
 
 type Function struct {
-	Name   string
-	Params []string
-	Body   string
-	Addr   uint16
-	Size   uint16
+	Name    string
+	Params  []string
+	Body    string
+	Address uint16
+	Size    uint16
+	Source  string // MinZ source code
 }
 
 // New creates a new REPL instance
 func New() *REPL {
+	ctx := &Context{
+		variables: make(map[string]Variable),
+		functions: make(map[string]Function),
+		codeBase:  0x8000, // Start of user RAM
+		dataBase:  0xC000, // Data segment
+	}
 	return &REPL{
 		assembler: z80asm.NewAssembler(),
 		emulator:  emulator.New(),
-		context: &Context{
-			variables: make(map[string]Variable),
-			functions: make(map[string]Function),
-			codeBase:  0x8000, // Start of user RAM
-			dataBase:  0xC000, // Data segment
-		},
-		reader:  bufio.NewReader(os.Stdin),
-		history: []string{},
+		context:   ctx,
+		compiler:  NewREPLCompiler(ctx.codeBase, ctx.dataBase),
+		reader:    bufio.NewReader(os.Stdin),
+		history:   []string{},
 	}
 }
 
@@ -168,35 +172,79 @@ func (r *REPL) executeCommand(input string) {
 
 // evaluate compiles and executes MinZ code
 func (r *REPL) evaluate(input string) {
-	// For now, we'll need to implement MinZ compilation
-	// This is a placeholder until we integrate the full compiler
-	assembly := fmt.Sprintf("; MinZ REPL - compiled from: %s\n    NOP\n    RET\n", input)
-	fmt.Printf("[REPL] Simulated compilation of: %s\n", input)
+	inputType := ClassifyInput(input)
+	var result *CompileResult
+	var err error
 	
-	// Assemble to machine code
-	machineCode, err := r.assemble(assembly)
-	if err != nil {
-		fmt.Printf("Assembly error: %v\n", err)
+	switch inputType {
+	case "expression":
+		result, err = r.compiler.CompileExpression(input, r.context)
+	case "declaration", "assignment", "statement":
+		result, err = r.compiler.CompileStatement(input, r.context)
+	case "function":
+		result, err = r.compiler.CompileFunction(input, r.context)
+	default:
+		fmt.Printf("Unknown input type: %s\n", inputType)
 		return
 	}
 	
-	// Load into emulator
-	r.emulator.LoadAt(r.context.codeBase, machineCode)
+	if err != nil {
+		fmt.Printf("Compilation error: %v\n", err)
+		return
+	}
 	
-	// Execute
-	output, cycles := r.emulator.Execute(r.context.codeBase)
+	if len(result.Errors) > 0 {
+		fmt.Printf("Errors: %s\n", strings.Join(result.Errors, "; "))
+		return
+	}
 	
-	// Update context
-	r.updateContext(input)
+	// Load machine code into emulator
+	r.emulator.LoadAt(result.EntryPoint, result.MachineCode)
 	
-	// Display output
+	// Execute the code - Execute() runs until RET or halt
+	output, cycleCount := r.emulator.Execute(result.EntryPoint)
+	
+	// If there was output, print it
 	if output != "" {
 		fmt.Print(output)
 	}
 	
 	// Show execution stats in verbose mode
 	if r.isVerbose() {
-		fmt.Printf("[%d T-states]\n", cycles)
+		fmt.Printf("[%d T-states]\n", cycleCount)
+	}
+	
+	// For expressions, show the result (in HL register)
+	if inputType == "expression" {
+		result := uint16(r.emulator.H)<<8 | uint16(r.emulator.L)
+		fmt.Printf("%d\n", result)
+	}
+	
+	// Update context with new functions/variables
+	for name, addr := range result.Functions {
+		if _, exists := r.context.functions[name]; !exists && !strings.HasPrefix(name, "__repl") {
+			r.context.functions[name] = Function{
+				Name:    name,
+				Address: addr,
+				Source:  input,
+			}
+			if inputType == "function" {
+				fmt.Printf("Function '%s' defined at 0x%04X\n", name, addr)
+			}
+		}
+	}
+	
+	// For declarations, update variables
+	if inputType == "declaration" {
+		// Extract variable name from input (simple parsing)
+		parts := strings.Fields(input)
+		if len(parts) >= 2 && (parts[0] == "let" || parts[0] == "var") {
+			varName := strings.TrimSuffix(parts[1], ":")
+			if idx := strings.Index(varName, ":"); idx > 0 {
+				varName = varName[:idx]
+			}
+			fmt.Printf("Variable '%s' defined\n", varName)
+		}
 	}
 }
 
@@ -254,7 +302,8 @@ func (r *REPL) reset() {
 		codeBase:  0x8000,
 		dataBase:  0xC000,
 	}
-	fmt.Println("Emulator and context reset")
+	r.compiler.Reset()
+	fmt.Println("Emulator, compiler and context reset")
 }
 
 func (r *REPL) showRegisters() {
@@ -350,7 +399,7 @@ func (r *REPL) showFunctions() {
 	for name, f := range r.context.functions {
 		params := strings.Join(f.Params, ", ")
 		fmt.Printf("  %s(%s) at 0x%04X (%d bytes)\n",
-			name, params, f.Addr, f.Size)
+			name, params, f.Address, f.Size)
 	}
 }
 
