@@ -285,12 +285,42 @@ func (a *Analyzer) generateDJNZIteration(chain *ast.IteratorChainExpr, sourceReg
 	
 	// Apply iterator operations
 	currentReg := elementReg
+	var continueLabels []string
+	
 	for _, op := range chain.Operations {
-		newReg, err := a.applyIteratorOperation(op, currentReg, elementType, irFunc)
-		if err != nil {
-			return 0, fmt.Errorf("failed to apply iterator operation: %w", err)
+		// Handle filter operations specially - they need continue labels
+		if op.Type == ast.IterOpFilter {
+			// Call the filter predicate
+			predicateResult, err := a.applyIteratorFunction(op.Function, currentReg, elementType, irFunc)
+			if err != nil {
+				return 0, fmt.Errorf("failed to apply filter predicate: %w", err)
+			}
+			
+			// Generate continue label for this filter
+			continueLabel := a.generateLabel("filter_continue")
+			continueLabels = append(continueLabels, continueLabel)
+			
+			// Jump to continue if predicate is false
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:    ir.OpJumpIfNot,
+				Src1:  predicateResult,
+				Label: continueLabel,
+				Comment: "Skip if filter predicate is false",
+			})
+			// Filter doesn't change the element value
+		} else {
+			// Apply other operations normally
+			newReg, err := a.applyIteratorOperation(op, currentReg, elementType, irFunc)
+			if err != nil {
+				return 0, fmt.Errorf("failed to apply iterator operation: %w", err)
+			}
+			currentReg = newReg
 		}
-		currentReg = newReg
+	}
+	
+	// Emit continue labels for filters (right before loop increment)
+	for _, label := range continueLabels {
+		irFunc.EmitLabel(label)
 	}
 	
 	// Increment pointer to next element
@@ -393,12 +423,42 @@ func (a *Analyzer) generateIndexedIteration(chain *ast.IteratorChainExpr, source
 	
 	// Apply iterator operations
 	currentReg := elementReg
+	var continueLabels []string
+	
 	for _, op := range chain.Operations {
-		newReg, err := a.applyIteratorOperation(op, currentReg, elementType, irFunc)
-		if err != nil {
-			return 0, fmt.Errorf("failed to apply iterator operation: %w", err)
+		// Handle filter operations specially - they need continue labels
+		if op.Type == ast.IterOpFilter {
+			// Call the filter predicate
+			predicateResult, err := a.applyIteratorFunction(op.Function, currentReg, elementType, irFunc)
+			if err != nil {
+				return 0, fmt.Errorf("failed to apply filter predicate: %w", err)
+			}
+			
+			// Generate continue label for this filter
+			continueLabel := a.generateLabel("filter_continue")
+			continueLabels = append(continueLabels, continueLabel)
+			
+			// Jump to continue if predicate is false
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:    ir.OpJumpIfNot,
+				Src1:  predicateResult,
+				Label: continueLabel,
+				Comment: "Skip if filter predicate is false",
+			})
+			// Filter doesn't change the element value
+		} else {
+			// Apply other operations normally
+			newReg, err := a.applyIteratorOperation(op, currentReg, elementType, irFunc)
+			if err != nil {
+				return 0, fmt.Errorf("failed to apply iterator operation: %w", err)
+			}
+			currentReg = newReg
 		}
-		currentReg = newReg
+	}
+	
+	// Emit continue labels for filters (right before loop increment)
+	for _, label := range continueLabels {
+		irFunc.EmitLabel(label)
 	}
 	
 	// Increment index
@@ -453,7 +513,29 @@ func (a *Analyzer) applyIteratorOperation(op ast.IteratorOp, elementReg ir.Regis
 		if op.Function == nil {
 			return 0, fmt.Errorf("filter requires a predicate function")
 		}
-		// TODO: Implement filter with conditional skip
+		
+		// Call the predicate function
+		predicateResult, err := a.applyIteratorFunction(op.Function, elementReg, elementType, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("failed to apply filter predicate: %w", err)
+		}
+		
+		// Generate continue label for this filter
+		continueLabel := a.generateLabel("filter_continue")
+		
+		// Jump to continue (skip rest of operations) if predicate is false
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:    ir.OpJumpIfNot,
+			Src1:  predicateResult,
+			Label: continueLabel,
+			Comment: "Skip if filter predicate is false",
+		})
+		
+		// Note: We need to emit the continue label at the end of the loop body
+		// For now, we'll store it and the caller will handle it
+		// This is a limitation - we need better control flow handling
+		
+		// Return the element register unchanged (filter doesn't transform the value)
 		return elementReg, nil
 		
 	case ast.IterOpForEach:

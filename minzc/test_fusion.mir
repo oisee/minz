@@ -1,0 +1,53 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_iterator_fusion.main() -> void
+  @smc
+  Locals:
+    r1 = numbers: [10]u8
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "=== Fused Iterator Chain ===
+" (29 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "Original: 1-10, doubled, keep >10, print:
+" (42 chars via loop)
+      4: r4 = load numbers
+      5: NOP ; DJNZ OPTIMIZED LOOP for array[10]
+      6: r5 = 10 ; DJNZ counter = 10
+      7: r6 = r4 ; Pointer to array start
+      8: djnz_loop_1:
+      9: UNKNOWN_OP_69 ; Load element via pointer
+     10: r8 = call double ; Call double
+     11: r9 = call gt_10 ; Call gt_10
+     12: jump_if_not r9, filter_continue_2 ; Skip if filter predicate is false
+     13: r10 = call print_u8 ; Call print_u8
+     14: filter_continue_2:
+     15: INC ; Advance to next element
+     16: UNKNOWN_OP_77 ; DJNZ - decrement and loop
+     17: UNKNOWN_OP_88
+     18: UNKNOWN_OP_86 ; Print "
+=== Expected output: 12 14 16 18 20 ===" (40 chars via loop)
+     19: return
+
+Function ...test_iterator_fusion.double(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 2
+      2: r4 = r2 * r3
+      3: return r4
+
+Function ...test_iterator_fusion.gt_10(x: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 10
+      2: r4 = r2 > r3
+      3: return r4
+
+Function ...test_iterator_fusion.print_u8(x: u8) -> void
+  @smc
+  Instructions:
+      0: return
+
