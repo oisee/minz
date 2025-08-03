@@ -5,11 +5,13 @@ all: build repl
 
 # Build the compiler
 build:
-	go build -o minzc cmd/minzc/main.go
+	go build -o mz cmd/minzc/main.go
+	@ln -sf mz minzc  # Keep backward compatibility
 
 # Build the REPL
 repl:
-	go build -o minz cmd/repl/main.go cmd/repl/compiler.go
+	go build -o mzr cmd/repl/main.go cmd/repl/compiler.go
+	@ln -sf mzr minz  # Keep backward compatibility
 
 # Run tests
 test:
@@ -17,17 +19,17 @@ test:
 
 # Clean build artifacts
 clean:
-	rm -f minzc minz
+	rm -f mz mzr minzc minz
 	rm -f *.a80
 	rm -f *.mir
 
 # Build and run on test file
 run: build
-	./minzc ../examples/simple_add.minz
+	./mz ../examples/simple_add.minz
 
 # Run the REPL
 run-repl: repl
-	./minz
+	./mzr
 
 # Install dependencies
 deps:
@@ -73,11 +75,13 @@ release:
 # Install locally (both compiler and REPL)
 install: all
 	@echo "Installing MinZ tools to /usr/local/bin..."
-	@sudo cp minzc /usr/local/bin/
-	@sudo cp minz /usr/local/bin/
+	@sudo cp mz /usr/local/bin/
+	@sudo cp mzr /usr/local/bin/
+	@sudo ln -sf /usr/local/bin/mz /usr/local/bin/minzc
+	@sudo ln -sf /usr/local/bin/mzr /usr/local/bin/minz
 	@echo "Installation complete!"
-	@echo "  minzc - MinZ compiler"
-	@echo "  minz  - MinZ REPL (interactive mode)"
+	@echo "  mz    - MinZ compiler (also: minzc)"
+	@echo "  mzr   - MinZ REPL (also: minz)"
 
 # Development build with race detector
 dev:

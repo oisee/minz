@@ -1,8 +1,0 @@
-; MinZ Intermediate Representation (MIR)
-; Module: main
-
-Function ...tests.test_do_times.main() -> void
-  @smc
-  Instructions:
-      0: return
-

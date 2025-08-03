@@ -1,8 +1,0 @@
-; MinZ Intermediate Representation (MIR)
-; Module: main
-
-Function ...debug_syntax.main() -> void
-  @smc
-  Instructions:
-      0: return
-

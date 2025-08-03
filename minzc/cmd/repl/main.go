@@ -98,8 +98,9 @@ func (r *REPL) Run() {
 // printBanner prints the REPL welcome message
 func (r *REPL) printBanner() {
 	fmt.Println("╔══════════════════════════════════════════════════════════════╗")
-	fmt.Println("║           MinZ REPL v1.0 - Interactive Z80 Development      ║")
-	fmt.Println("║                  With ZX Spectrum Screen Emulation          ║")
+	fmt.Println("║              mzr - MinZ REPL v1.0                           ║")
+	fmt.Println("║         Interactive Z80 Development Environment              ║")
+	fmt.Println("║              With ZX Spectrum Screen Emulation              ║")
 	fmt.Println("╚══════════════════════════════════════════════════════════════╝")
 	fmt.Println("Type /h for help, /q to quit, or enter MinZ code")
 	fmt.Println()

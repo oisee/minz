@@ -34,8 +34,11 @@ fi
 
 # Install to local bin
 echo "Installing to $LOCAL_BIN..."
-cp minzc "$LOCAL_BIN/"
-cp minz "$LOCAL_BIN/"
+cp mz "$LOCAL_BIN/"
+cp mzr "$LOCAL_BIN/"
+# Create compatibility symlinks
+ln -sf "$LOCAL_BIN/mz" "$LOCAL_BIN/minzc"
+ln -sf "$LOCAL_BIN/mzr" "$LOCAL_BIN/minz"
 
 # Check if local bin is in PATH
 if [[ ":$PATH:" != *":$LOCAL_BIN:"* ]]; then
@@ -50,10 +53,14 @@ fi
 echo "✅ Installation complete!"
 echo
 echo "Available commands:"
-echo "  minzc <file.minz>  - Compile MinZ source to Z80 assembly"
-echo "  minz               - Start MinZ REPL (interactive mode)"
+echo "  mz  <file.minz>  - Compile MinZ source to Z80 assembly"
+echo "  mzr              - Start MinZ REPL (interactive mode)"
+echo
+echo "Also available for compatibility:"
+echo "  minzc  - Same as mz"
+echo "  minz   - Same as mzr"
 echo
 echo "Try it now:"
-echo "  minz"
+echo "  mzr"
 echo
 echo "Type /h for help, /q to quit"

@@ -1,9 +1,0 @@
-; MinZ Intermediate Representation (MIR)
-; Module: main
-
-Function ...examples.abi_test_with_main.test_func(x: u8) -> u8
-  @smc
-  Instructions:
-      0: LOAD_PARAM
-      1: return r2
-

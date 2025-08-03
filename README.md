@@ -89,12 +89,26 @@ String Operations (v0.9.0):
 
 ## Quick Start
 
-### Download Release
+### Installation
 ```bash
-# Download latest release (macOS ARM64)
-curl -L https://github.com/oisee/minz/releases/download/v0.9.0/minz-v0.9.0-darwin-arm64.tar.gz | tar xz
-cd minz-v0.9.0
-export PATH=$PWD/bin:$PATH
+# Clone and install
+git clone https://github.com/oisee/minz.git
+cd minz
+./install.sh  # Installs to ~/.local/bin
+
+# Or build from source
+cd minzc
+make all
+```
+
+### Commands
+```bash
+mz  file.minz   # Compile MinZ to Z80 assembly (like 'go build')
+mzr             # Start interactive REPL (MinZ REPL)
+
+# Alternative names for compatibility:
+minzc           # Same as mz
+minz            # Same as mzr
 ```
 
 ### Hello World Example
@@ -108,10 +122,12 @@ fun main() -> void {
 
 ```bash
 # Compile with optimizations
-minzc hello.minz -o hello.a80 -O --enable-smc
+mz hello.minz -o hello.a80 -O --enable-smc
 
-# Assemble with sjasmplus (not included)
-sjasmplus hello.a80
+# Run in REPL for interactive testing
+mzr
+minz> fun hello() -> void { @print("Hello from REPL!\n"); }
+minz> hello()
 ```
 
 ### Building from Source
