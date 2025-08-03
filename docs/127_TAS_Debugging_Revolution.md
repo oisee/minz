@@ -358,6 +358,13 @@ Perfect frames: 12,298 (99.6%)
 - Inspiration from rr debugger (Mozilla)
 - Time travel debugging papers
 - Z80 optimization guides
+- [Cycle-Perfect Recording](128_TAS_Cycle_Perfect_Recording.md) - Detailed compression strategy
+- [Russian Documentation](128_TAS_Cycle_Perfect_Recording_ru.md) - Документация на русском
+
+## Related Documents
+
+- **[128. TAS Cycle-Perfect Recording](128_TAS_Cycle_Perfect_Recording.md)** - Deep dive into compression and deterministic replay
+- **[TAS Compression Implementation](../minzc/pkg/tas/tas_compression.go)** - Smart compression code
 
 ---
 

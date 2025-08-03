@@ -131,6 +131,22 @@ extern fun rom_print_char(char: u8) -> void;
 extern fun custom_memcpy(addr: u16, len: u16) -> void;
 ```
 
+### 🎮 Revolutionary Debugging (NEW!)
+
+**TAS-Inspired Time-Travel Debugging**
+```bash
+mz game.minz --debug --tas
+> record                  # Start recording every CPU cycle
+> play                    # Bug happens at frame 12,345
+> rewind 1000            # Go back in time!
+> savestate checkpoint   # Create branch point
+> continue               # Try different path
+```
+- **Cycle-perfect recording** with 50-600x compression
+- **Deterministic replay** - perfect bug reproduction
+- **Time travel** - rewind/forward through execution
+- See [TAS Debugging Revolution](docs/127_TAS_Debugging_Revolution.md)
+
 ### 🚧 Features In Development
 
 - **Interfaces**: Design complete, implementation in progress
@@ -391,6 +407,8 @@ cd tests/e2e && go run main.go performance
 ### Core Documentation
 - [Compiler Snapshot](COMPILER_SNAPSHOT.md) - Current state, features, and known issues
 - [REPL Implementation](docs/124_MinZ_REPL_Implementation.md) - Interactive development environment
+- [TAS Debugging Revolution](docs/127_TAS_Debugging_Revolution.md) - Time-travel debugging for Z80
+- [Cycle-Perfect Recording](docs/128_TAS_Cycle_Perfect_Recording.md) - 50-600x compression with perfect replay
 - [Technical Reports](docs/) - Research notes and experiments
 - [AI Colleagues Crash Course](AI_COLLEAGUES_MINZ_CRASH_COURSE.md) - Complete training for AI-driven development
 
