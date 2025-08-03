@@ -136,6 +136,8 @@ func (r *REPL) executeCommand(input string) {
 		} else {
 			r.showRegisters()
 		}
+	case "/regc":
+		r.showRegistersCompact()
 	case "/vars":
 		r.showVariables()
 	case "/funcs":
@@ -226,7 +228,7 @@ func (r *REPL) showHelp() {
 	fmt.Println("  /asm <func>    - Show assembly for function")
 	fmt.Println("  /mem <addr> <n> - Show n bytes of memory at addr")
 	fmt.Println("  /reg           - Show Z80 registers (all including shadows)")
-	fmt.Println("  /reg compact   - Show registers in compact one-line format")
+	fmt.Println("  /regc          - Show registers in compact one-line format")
 	fmt.Println("  /vars          - Show defined variables")
 	fmt.Println("  /funcs         - Show defined functions")
 	fmt.Println("  /profile <expr> - Profile expression execution")
