@@ -1,0 +1,77 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_iterator_standalone.main() -> void
+  @smc
+  Locals:
+    r1 = numbers: [5]u8
+  Instructions:
+      0: r2 = load numbers
+      1: NOP ; DJNZ OPTIMIZED LOOP for array[5]
+      2: r3 = 5 ; DJNZ counter = 5
+      3: r4 = r2 ; Pointer to array start
+      4: djnz_loop_1:
+      5: UNKNOWN_OP_69 ; Load element via pointer
+      6: r6 = call double ; Call double
+      7: INC ; Advance to next element
+      8: UNKNOWN_OP_77 ; DJNZ - decrement and loop
+      9: r7 = load numbers
+     10: NOP ; DJNZ OPTIMIZED LOOP for array[5]
+     11: r8 = 5 ; DJNZ counter = 5
+     12: r9 = r7 ; Pointer to array start
+     13: djnz_loop_2:
+     14: UNKNOWN_OP_69 ; Load element via pointer
+     15: r11 = call is_even ; Call is_even
+     16: jump_if_not r11, filter_continue_3 ; Skip if filter predicate is false
+     17: filter_continue_3:
+     18: INC ; Advance to next element
+     19: UNKNOWN_OP_77 ; DJNZ - decrement and loop
+     20: r12 = load numbers
+     21: NOP ; DJNZ OPTIMIZED LOOP for array[5]
+     22: r13 = 5 ; DJNZ counter = 5
+     23: r14 = r12 ; Pointer to array start
+     24: djnz_loop_4:
+     25: UNKNOWN_OP_69 ; Load element via pointer
+     26: r16 = call double ; Call double
+     27: r17 = call is_even ; Call is_even
+     28: jump_if_not r17, filter_continue_5 ; Skip if filter predicate is false
+     29: filter_continue_5:
+     30: INC ; Advance to next element
+     31: UNKNOWN_OP_77 ; DJNZ - decrement and loop
+     32: UNKNOWN_OP_88
+     33: UNKNOWN_OP_86 ; Print "Actually executing:
+" (20 chars via loop)
+     34: r19 = load numbers
+     35: NOP ; DJNZ OPTIMIZED LOOP for array[5]
+     36: r20 = 5 ; DJNZ counter = 5
+     37: r21 = r19 ; Pointer to array start
+     38: djnz_loop_6:
+     39: UNKNOWN_OP_69 ; Load element via pointer
+     40: r23 = call print_u8 ; Call print_u8
+     41: INC ; Advance to next element
+     42: UNKNOWN_OP_77 ; DJNZ - decrement and loop
+     43: return
+
+Function ...test_iterator_standalone.double(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 2
+      2: r4 = r2 * r3
+      3: return r4
+
+Function ...test_iterator_standalone.is_even(x: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 & r3
+      3: r5 = 0
+      4: r6 = r4 == r5
+      5: return r6
+
+Function ...test_iterator_standalone.print_u8(x: u8) -> void
+  @smc
+  Instructions:
+      0: return
+
