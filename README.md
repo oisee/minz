@@ -5,97 +5,104 @@
 
 **A modern systems programming language for Z80-based computers** (ZX Spectrum, CP/M, MSX)
 
-### Current Version: v0.9.4 "Metaprogramming Revolution" (August 2025)
+### Current Version: v0.9.4 "Early Development" (August 2025)
 
-🤯 **MINDBLOWING RELEASE**: MinZ v0.9.4 achieves **THE IMPOSSIBLE** - **Compile-time metaprogramming on 8-bit hardware!** The @minz metafunction enables **code generation at compile time** with **ZERO runtime overhead**! [Download now](https://github.com/oisee/minz/releases/tag/v0.9.4)
+🔬 **EXPERIMENTAL RELEASE**: MinZ v0.9.4 is exploring advanced compiler techniques including metaprogramming and optimization for Z80 systems. This is early-stage research software with promising initial results.
 
-🚀 **HISTORIC BREAKTHROUGH**: **@minz metafunctions** execute at compile time, generating optimized Z80 code from templates. Combined with zero-cost iterators and DJNZ optimization, MinZ delivers **Zig-level coolness for Z80**! [Read the design](docs/126_MIR_Interpreter_Design.md)
+🚧 **DEVELOPMENT STATUS**: Core language features work (functions, structs, basic types), with experimental work ongoing for advanced features like metaprogramming and iterator chains. Error propagation system recently implemented.
 
-⚠️ **Note**: This is experimental software. While core features work well, the language is still evolving. **NEW**: @minz metafunctions and iterator chains are production-ready and achieve true zero-cost abstractions on Z80!
+⚠️ **Important**: This is experimental research software. The language is actively evolving and many features are still under development. Not yet suitable for production use.
 
-## 🤯 **WORLD FIRST: Compile-Time Metaprogramming on 8-bit Hardware!**
+## 🔬 **Research Goals: Advanced Language Features for Z80**
 
 ```minz
-// Generate functions at compile time with @minz metafunctions:
-@minz("fun hello_{0}() -> void { @print(\"Hi {0}!\"); }", "world")
-// Creates: fun hello_world() -> void { @print("Hi world!"); }
+// Current working features:
+fun fibonacci(n: u8) -> u8 {
+    if n <= 1 {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
 
-// Generate repetitive code automatically:
-@minz("var {0}: u8 = {1};", "counter", "42")
-@minz("var {0}: u8 = {1};", "max_hp", "100")
-// Creates optimized variable declarations
+// Error propagation system (recently implemented):
+enum MathError { DivideByZero, Overflow }
 
-// Combine with zero-cost iterators for ultimate power:
-let numbers: [u8; 5] = [1, 2, 3, 4, 5];
-numbers
-    .map(|x| x * 2)         // Double each element  
-    .filter(|x| x > 5)      // Keep values > 5
-    .forEach(print_u8);     // Print results
+fun safe_divide?(a: u8, b: u8) -> u8 ? MathError {
+    if b == 0 {
+        @error(MathError.DivideByZero);
+    }
+    return a / b;
+}
 
-// Result: Metaprogramming + zero-cost abstractions = 🚀 ZIG-LEVEL COOLNESS!
+fun example() -> void {
+    let result = safe_divide?(10, 2) ?? 0;  // Returns 5
+    let failed = safe_divide?(10, 0) ?? 0;  // Returns 0 (default)
+    @print("Results: {} {}", result, failed);
+}
 ```
 
-**What makes this impossible possible:**
-- **@minz metafunctions**: Execute at compile time, generating optimized code
-- **Template substitution**: {0}, {1}, {2} parameters expand into actual values
-- **Zero-cost iterators**: Functional chains become imperative loops
-- **DJNZ optimization**: Uses native Z80 decrement-and-jump instruction
-- **Type safety preserved**: Full compile-time checking for generated code
-- **Zero overhead**: Metaprogramming has ZERO runtime cost
+**Current achievements:**
+- **Core language**: Functions, structs, enums, basic types working
+- **Error propagation**: Zero-overhead error handling with @error and ?? operators
+- **Z80 code generation**: Generates working assembly for ZX Spectrum
+- **Type system**: Static type checking and inference
+- **Basic optimizations**: Register allocation and peephole optimization
 
-This proves that **modern compiler magic works on ANY hardware!** 🚀
+**Experimental features under development:**
+- Template metaprogramming with @minz functions
+- Iterator chains with functional programming syntax
+- Advanced optimization passes
 
-## 🎯 Release Highlights (v0.9.4)
+## 🎯 Recent Progress (v0.9.4)
 
-- 🤯 **@minz Metafunctions**: Revolutionary compile-time code generation
-- ✅ **Template Substitution**: {0}, {1}, {2} parameters for flexible code templates
-- ✅ **MIR Interpreter**: Complete compile-time execution environment
-- ✅ **Zero-Cost Iterator Chains**: Complete functional programming with ZERO overhead
-- ✅ **DJNZ Optimization**: 67% faster iteration using native Z80 instructions
-- ✅ **Perfect Type Safety**: Full compile-time checking for generated code
-- ✅ **60% of examples compile and run** (same reliability, mind-blowing features)
-- ✅ **Production-ready core**: Functions, types, control flow, arrays, pointers, iterators, metaprogramming
+- 🔧 **Error Propagation**: Zero-overhead error handling system implemented
+- 🚧 **@minz Metafunctions**: Experimental compile-time code generation (work in progress)
+- 🔧 **Template Substitution**: {0}, {1}, {2} parameter system (experimental)
+- 🔧 **MIR Interpreter**: Basic compile-time execution support (in development)
+- 🚧 **Iterator Chains**: Functional programming syntax research (experimental)
+- 🔧 **Z80 Optimizations**: Basic register allocation and peephole optimization
+- 🔧 **Type Safety**: Compile-time type checking (basic implementation)
+- 📊 **~60% success rate** on test examples (improving steadily)
+- 🚧 **Core Features**: Functions, types, control flow working; advanced features experimental
 
 [See full release notes](RELEASE_NOTES_v0.9.4.md) | [MIR Interpreter design](docs/126_MIR_Interpreter_Design.md)
 
 ## Key Features
 
-### 🤯 @minz Metafunctions (WORLD FIRST!)
+### 🚧 @minz Metafunctions (Experimental)
 ```minz
-// THE IMPOSSIBLE: Compile-time code generation on Z80!
+// Research: Compile-time code generation for Z80
 @minz("fun greet_{0}() -> void { @print(\"Hello {0}!\"); }", "alice")
 @minz("fun greet_{0}() -> void { @print(\"Hello {0}!\"); }", "bob")
 
-// Generates optimized functions:
+// Goal: Generate optimized functions
 // fun greet_alice() -> void { @print("Hello alice!"); }
 // fun greet_bob() -> void { @print("Hello bob!"); }
 
-// Complex template expansion:
+// Template parameter system under development:
 @minz("var {0}_hp: u8 = {1}; var {0}_mp: u8 = {2};", "player", "100", "50")
-// Creates: var player_hp: u8 = 100; var player_mp: u8 = 50;
 
-// Zero runtime overhead - all generation happens at compile time!
+// Note: This feature is experimental and not fully implemented yet
 ```
 
-### 🚀 Zero-Cost Iterator Chains (REVOLUTIONARY!)
+### 🚧 Iterator Chains (Research)
 ```minz
-// THE IMPOSSIBLE ACHIEVED: Functional programming with ZERO overhead!
+// Goal: Functional programming syntax for Z80
 let scores: [u8; 10] = [45, 67, 89, 92, 78, 85, 91, 88, 76, 95];
 
-// Complex iterator chain - compiles to ONE optimized loop!
+// Research: Compile iterator chains to optimized loops
 scores
     .filter(|x| x >= 80)    // Keep high scores  
     .map(|x| x / 10)        // Convert to grade
     .filter(|x| x == 9)     // Keep A grades
     .forEach(celebrate);     // Process results
 
-// Generated assembly uses DJNZ for 3x performance:
-// djnz_loop: LD A,(HL) / CALL filter / JR Z,continue / CALL map / CALL forEach / INC HL / DJNZ djnz_loop
+// Note: Iterator chains are experimental; basic for loops work well
 ```
 
-### 🔥 Zero-Overhead Error Propagation (REVOLUTIONARY!)
+### ✅ Error Propagation (Recently Implemented)
 ```minz
-// THE IMPOSSIBLE: Zero-overhead error handling on 8-bit hardware!
+// Zero-overhead error handling on Z80
 enum MathError { DivideByZero, Overflow }
 enum AppError { Math, IO, Validation }
 
@@ -105,53 +112,43 @@ fun safe_divide?(a: u8, b: u8) -> u8 ? MathError {
     return a / b;
 }
 
-// Zero-overhead error propagation with automatic type conversion!
+// Error propagation with type conversion
 fun process_data?(input: u8) -> u8 ? AppError {
-    let result = safe_divide?(input, 2) ?? @error;  // MathError -> AppError (automatic!)
-    let doubled = safe_multiply?(result, 2) ?? @error;  // Zero overhead propagation!
-    return doubled;
+    let result = safe_divide?(input, 2) ?? @error;  // MathError -> AppError
+    return result * 2;
 }
 
-// Usage with nil coalescing
+// Usage with nil coalescing  
 fun main() -> void {
     let result = process_data?(10) ?? 99;  // Default value on error
     @print("Result: {}", result);
 }
 
-// Generated assembly for same-type propagation:
-// call safe_divide
-// ret c              ; Single instruction! Zero overhead!
+// Same-type propagation generates single RET instruction
 ```
 
-### ✅ Chain Fusion Technology
+### 🚧 Loop Optimization (Research)
 ```minz
-// Multiple operations automatically fused into single pass
-numbers.map(double).filter(is_even).forEach(print_u8);
+// Goal: Optimize loop structures for Z80
+for i in 0..10 {
+    if data[i] > threshold {
+        process(data[i]);
+    }
+}
 
-// Compiles to ONE loop, not three separate iterations:
-djnz_loop:
-    LD A, (HL)      ; Load element
-    CALL double     ; Inline transformation
-    CALL is_even    ; Inline predicate  
-    JR Z, continue  ; Skip if filtered out
-    CALL print_u8   ; Process result
-continue:
-    INC HL          ; Advance pointer
-    DJNZ djnz_loop  ; Single loop control
-
-// Result: 67% faster than traditional approaches!
+// Basic loop optimization works; advanced chain fusion under research
 ```
 
-### ✅ Self-Modifying Code (SMC) Optimization
+### 🔧 Self-Modifying Code (Experimental)
 ```minz
 #[smc_enabled]
 fun add(a: u8, b: u8) -> u8 {
     return a + b;  // Parameters patched directly into code!
 }
-// 10-20% faster function calls with --enable-smc
+// Research goal: Faster function calls through SMC (experimental)
 ```
 
-### ✅ Zero-Cost @abi Integration
+### 🔧 @abi Integration (Basic Support)
 ```minz
 // Call existing assembly/ROM routines with precise register mapping
 @abi("register: A=char")
@@ -161,21 +158,20 @@ extern fun rom_print_char(char: u8) -> void;
 extern fun custom_memcpy(addr: u16, len: u16) -> void;
 ```
 
-### 🎮 Revolutionary Debugging (NEW!)
+### 🚧 Advanced Debugging (Research)
 
-**TAS-Inspired Time-Travel Debugging**
+**TAS-Inspired Debugging System (Experimental)**
 ```bash
 mz game.minz --debug --tas
-> record                  # Start recording every CPU cycle
-> play                    # Bug happens at frame 12,345
-> rewind 1000            # Go back in time!
-> savestate checkpoint   # Create branch point
-> continue               # Try different path
+> record                  # Goal: Record execution
+> play                    # Basic debugging support
+> rewind 1000            # Research: Time-travel debugging
+> savestate checkpoint   # Experimental feature
+> continue               # Standard debugging
 ```
-- **Cycle-perfect recording** with 50-600x compression
-- **Deterministic replay** - perfect bug reproduction
-- **Time travel** - rewind/forward through execution
-- See [TAS Debugging Revolution](docs/127_TAS_Debugging_Revolution.md)
+- **Basic debugging** support implemented
+- **Advanced features** under research and development
+- **Cycle recording** system in early development
 
 ### 🚧 Features In Development
 
@@ -185,24 +181,23 @@ mz game.minz --debug --tas
 - **Advanced Metafunctions**: @hex, @bin, @debug planned
 - **Pattern Matching**: Grammar ready, semantics next
 
-## 📊 Performance Benchmarks
+## 📊 Current Status
 
 ```
-Iterator Operations (v0.9.3) - REVOLUTIONARY RESULTS:
-┌─────────────────────┬──────────────┬──────────────┬────────────┐
-│ Operation           │ Traditional  │ MinZ v0.9.3  │ Improvement│
-├─────────────────────┼──────────────┼──────────────┼────────────┤
-│ Simple iteration    │ 40 cycles    │ 13 cycles    │ 67% faster │
-│ Map + Filter + Each │ 120 cycles   │ 43 cycles    │ 64% faster │
-│ 5-operation chain   │ 200+ cycles  │ 60 cycles    │ 70% faster │
-│ Memory allocation   │ Heap needed  │ Zero bytes   │ ∞% better  │
-│ Type safety         │ Runtime      │ Compile-time │ ∞% safer   │
-└─────────────────────┴──────────────┴──────────────┴────────────┘
+Development Status (v0.9.4):
+┌─────────────────────┬──────────────┬────────────────────────┐
+│ Feature             │ Status       │ Notes                  │
+├─────────────────────┼──────────────┼────────────────────────┤
+│ Basic functions     │ ✅ Working   │ Good reliability       │
+│ Types & structs     │ ✅ Working   │ Basic implementation   │
+│ Error propagation   │ ✅ Working   │ Recently implemented   │
+│ Metaprogramming     │ 🚧 Research  │ Experimental           │
+│ Iterator chains     │ 🚧 Research  │ Basic loops work       │
+│ Module system       │ 🚧 Planned   │ Design in progress     │
+│ Standard library    │ 🚧 Basic     │ Core functions needed  │
+└─────────────────────┴──────────────┴────────────────────────┘
 
-DJNZ Optimization (arrays ≤255 elements):
-• 13 cycles vs 40+ cycles for indexed access
-• 3x performance improvement
-• Zero overhead abstraction achieved!
+Success Rate: ~60% of test examples compile and run correctly
 ```
 
 ## Quick Start

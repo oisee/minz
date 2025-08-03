@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 🎓 AI Colleague Resources
 
-- **[MinZ Crash Course for AI Colleagues](AI_COLLEAGUES_MINZ_CRASH_COURSE.md)** - Complete grounded training for autonomous MinZ development
+- **[MinZ Crash Course for AI Colleagues](AI_COLLEAGUES_MINZ_CRASH_COURSE.md)** - Complete training for MinZ development
   - Quick Start with real commands and project structure
   - Language essentials based on actual grammar
-  - Revolutionary features (SMC, iterators, @minz metafunctions)
+  - Current features (error propagation, basic optimization, core language)
   - Development workflow and debugging
-  - Philosophy integration (Ruby happiness + zero-cost abstractions)
-  - Autonomous development checklist
+  - Design philosophy and goals
+  - Development checklist
 
 ## Communication Style
 
@@ -74,11 +74,11 @@ The key is balance: professional humility most of the time, but genuine exciteme
 - ✅ **Enhanced @print**: Compile-time constant evaluation with `{ expr }` syntax
 - ✅ **Global Variables**: Basic types (u8, u16, bool) work perfectly
 - ✅ **Global Struct Variables**: Complex structs can be declared globally
-- ✅ **Error Handling**: Revolutionary `@error` system with zero-overhead propagation (`docs/127_Error_Propagation_System.md`)
+- ✅ **Error Handling**: `@error` system with error propagation (`docs/127_Error_Propagation_System.md`)
 
 **MinZ Language Features That Work (60% success rate):**
 - ✅ **Core Types**: u8, u16, i8, i16, bool, arrays, pointers
-- ✅ **Functions**: Parameters, returns, recursion, SMC optimization
+- ✅ **Functions**: Parameters, returns, recursion, basic optimization
 - ✅ **Control Flow**: if/else, while, for loops with ranges
 - ✅ **Structs**: Definition, instantiation, field access
 - ✅ **Arrays**: Fixed-size arrays, indexing, initialization
