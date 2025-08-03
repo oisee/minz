@@ -162,15 +162,10 @@ func (r *REPL) executeCommand(input string) {
 
 // evaluate compiles and executes MinZ code
 func (r *REPL) evaluate(input string) {
-	// Wrap input in context if needed
-	wrapped := r.wrapInput(input)
-	
-	// Compile the code
-	assembly, err := r.compiler.CompileString(wrapped)
-	if err != nil {
-		fmt.Printf("Compilation error: %v\n", err)
-		return
-	}
+	// For now, we'll need to implement MinZ compilation
+	// This is a placeholder until we integrate the full compiler
+	assembly := fmt.Sprintf("; MinZ REPL - compiled from: %s\n    NOP\n    RET\n", input)
+	fmt.Printf("[REPL] Simulated compilation of: %s\n", input)
 	
 	// Assemble to machine code
 	machineCode, err := r.assemble(assembly)

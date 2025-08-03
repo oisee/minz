@@ -1,7 +1,9 @@
 package emulator
 
-import (
-	"fmt"
+import ()
+
+const (
+	MEMORY_SIZE = 65536
 )
 
 // Z80 represents a Z80 processor emulator
@@ -28,7 +30,7 @@ type Z80 struct {
 	R  uint8  // Memory refresh
 	
 	// Memory
-	memory [65536]byte
+	memory [MEMORY_SIZE]byte
 	
 	// State
 	cycles   uint32
@@ -434,8 +436,10 @@ func (z *Z80) WriteMemory(address uint16, value uint8) {
 func (z *Z80) DumpMemory(start uint16, length uint16) []byte {
 	result := make([]byte, length)
 	for i := uint16(0); i < length; i++ {
-		if start+i < uint16(len(z.memory)) {
-			result[i] = z.memory[start+i]
+		addr := start + i
+		// Check for overflow and bounds
+		if addr >= start && int(addr) < MEMORY_SIZE {
+			result[i] = z.memory[addr]
 		}
 	}
 	return result
