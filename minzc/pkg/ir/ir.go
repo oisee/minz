@@ -452,6 +452,7 @@ type Function struct {
 	Name         string
 	Params       []Parameter
 	ReturnType   Type
+	ErrorType    Type     // Optional error type for functions with ? syntax
 	Locals       []Local
 	Instructions []Instruction
 	NextReg      Register

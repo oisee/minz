@@ -39,6 +39,31 @@ func (p *Parser) ParseFile(filename string) (*ast.File, error) {
 	return sexpParser.convertSExpToAST(filename, sexpAST)
 }
 
+// ParseString parses MinZ code from a string and returns declarations
+func (p *Parser) ParseString(code string, context string) ([]ast.Declaration, error) {
+	// Create a temporary file with the code
+	tmpFile, err := os.CreateTemp("", "minz_gen_*.minz")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	
+	// Write the code to the temp file
+	if _, err := tmpFile.WriteString(code); err != nil {
+		return nil, fmt.Errorf("failed to write temp file: %w", err)
+	}
+	tmpFile.Close()
+	
+	// Parse the temp file
+	astFile, err := p.ParseFile(tmpFile.Name())
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse generated code: %w", err)
+	}
+	
+	// Return the declarations
+	return astFile.Declarations, nil
+}
+
 // parseToSExp uses tree-sitter to parse the file and output S-expression
 func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
 	// Read the source file

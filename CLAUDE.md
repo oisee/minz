@@ -74,6 +74,7 @@ The key is balance: professional humility most of the time, but genuine exciteme
 - ✅ **Enhanced @print**: Compile-time constant evaluation with `{ expr }` syntax
 - ✅ **Global Variables**: Basic types (u8, u16, bool) work perfectly
 - ✅ **Global Struct Variables**: Complex structs can be declared globally
+- ✅ **Error Handling**: Revolutionary `@error` system with zero-overhead propagation (`docs/127_Error_Propagation_System.md`)
 
 **MinZ Language Features That Work (60% success rate):**
 - ✅ **Core Types**: u8, u16, i8, i16, bool, arrays, pointers
@@ -81,7 +82,7 @@ The key is balance: professional humility most of the time, but genuine exciteme
 - ✅ **Control Flow**: if/else, while, for loops with ranges
 - ✅ **Structs**: Definition, instantiation, field access
 - ✅ **Arrays**: Fixed-size arrays, indexing, initialization
-- ✅ **Metafunctions**: @print with interpolation, @abi for assembly
+- ✅ **Metafunctions**: @print with interpolation, @abi for assembly, @error for error handling
 - ✅ **Optimization**: -O flag, --enable-smc, register allocation
 
 **Known Working Syntax Patterns:**
@@ -91,10 +92,13 @@ global u8 simple_var = 42;
 global ComplexStruct complex_var;  // ✅ This works!
 
 fun function_name(param: u8) -> u16 { ... }  // ✅ "fun" not "fn"
+fun error_func?(param: u8) -> u8 ? ErrorType { ... }  // ✅ Error-throwing functions
 let local: Type = value;
 struct_var.field = value;
 array_var[index] = value;
 @print("Text with {} interpolation", value);
+let result = risky_operation?() ?? @error;  // ✅ Error propagation
+@error(ErrorType.Variant);  // ✅ Explicit error throwing
 ```
 
 ### 🚧 Current Limitations (v0.9.0)

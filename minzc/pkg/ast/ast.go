@@ -61,6 +61,7 @@ type FunctionDecl struct {
 	GenericParams []*GenericParam
 	Params        []*Parameter
 	ReturnType    Type
+	ErrorType     Type        // Optional error type for functions ending with ?
 	Body          *BlockStmt
 	IsPublic      bool
 	IsExport      bool
@@ -232,6 +233,7 @@ type BlockStmt struct {
 func (b *BlockStmt) Pos() Position { return b.StartPos }
 func (b *BlockStmt) End() Position { return b.EndPos }
 func (b *BlockStmt) stmtNode()    {}
+func (b *BlockStmt) exprNode()    {} // BlockStmt can also be used as expression
 
 // VarDecl represents a variable declaration
 type VarDecl struct {
@@ -803,6 +805,17 @@ func (c *CompileTimeAssert) Pos() Position { return c.StartPos }
 func (c *CompileTimeAssert) End() Position { return c.EndPos }
 func (c *CompileTimeAssert) exprNode()    {}
 
+// CompileTimeError represents @error for setting CY flag and returning error
+type CompileTimeError struct {
+	ErrorValue Expression // Error.ErrorType or custom error value
+	StartPos   Position
+	EndPos     Position
+}
+
+func (c *CompileTimeError) Pos() Position { return c.StartPos }
+func (c *CompileTimeError) End() Position { return c.EndPos }
+func (c *CompileTimeError) exprNode()     {}
+
 // Attribute represents @attribute declarations
 type Attribute struct {
 	Name      string
@@ -948,6 +961,79 @@ func (l *LambdaExpr) exprNode()    {}
 type LambdaParam struct {
 	Name     string
 	Type     Type  // Optional
+	StartPos Position
+	EndPos   Position
+}
+
+// MetafunctionDecl represents a top-level @minz metafunction call that generates declarations
+type MetafunctionDecl struct {
+	Code      string       // Template code  
+	Arguments []Expression // Arguments for substitution
+	StartPos  Position
+	EndPos    Position
+}
+
+func (m *MetafunctionDecl) Pos() Position { return m.StartPos }
+func (m *MetafunctionDecl) End() Position { return m.EndPos }
+func (m *MetafunctionDecl) stmtNode()     {}
+func (m *MetafunctionDecl) declNode()     {}
+
+// NilCoalescingExpr represents the ?? operator for error handling
+type NilCoalescingExpr struct {
+	Left     Expression // Expression that might set CY flag  
+	Right    Expression // Default value when CY is set
+	StartPos Position
+	EndPos   Position
+}
+
+func (n *NilCoalescingExpr) Pos() Position { return n.StartPos }
+func (n *NilCoalescingExpr) End() Position { return n.EndPos }
+func (n *NilCoalescingExpr) exprNode()     {}
+
+// IfExpr represents value-returning if expressions (if cond { val1 } else { val2 })
+type IfExpr struct {
+	Condition  Expression
+	ThenBranch Expression  // Can be BlockStmt converted to expression
+	ElseBranch Expression  // Optional
+	StartPos   Position
+	EndPos     Position
+}
+
+func (i *IfExpr) Pos() Position { return i.StartPos }
+func (i *IfExpr) End() Position { return i.EndPos }
+func (i *IfExpr) exprNode()     {}
+
+// TernaryExpr represents Python-style conditional (value_if_true if condition else value_if_false)
+type TernaryExpr struct {
+	TrueExpr  Expression
+	Condition Expression
+	FalseExpr Expression
+	StartPos  Position
+	EndPos    Position
+}
+
+func (t *TernaryExpr) Pos() Position { return t.StartPos }
+func (t *TernaryExpr) End() Position { return t.EndPos }
+func (t *TernaryExpr) exprNode()     {}
+
+// WhenExpr represents pattern matching expressions
+type WhenExpr struct {
+	Value    Expression      // Optional value to match against
+	Arms     []*WhenArm      // Match arms
+	StartPos Position
+	EndPos   Position
+}
+
+func (w *WhenExpr) Pos() Position { return w.StartPos }
+func (w *WhenExpr) End() Position { return w.EndPos }
+func (w *WhenExpr) exprNode()     {}
+
+// WhenArm represents a single arm in a when expression
+type WhenArm struct {
+	Pattern  Expression  // Pattern or condition
+	Guard    Expression  // Optional guard condition (if clause)
+	Body     Expression  // Result expression
+	IsElse   bool        // true for 'else' arm
 	StartPos Position
 	EndPos   Position
 }

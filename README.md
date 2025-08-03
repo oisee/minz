@@ -93,6 +93,36 @@ scores
 // djnz_loop: LD A,(HL) / CALL filter / JR Z,continue / CALL map / CALL forEach / INC HL / DJNZ djnz_loop
 ```
 
+### 🔥 Zero-Overhead Error Propagation (REVOLUTIONARY!)
+```minz
+// THE IMPOSSIBLE: Zero-overhead error handling on 8-bit hardware!
+enum MathError { DivideByZero, Overflow }
+enum AppError { Math, IO, Validation }
+
+// Functions that can throw errors
+fun safe_divide?(a: u8, b: u8) -> u8 ? MathError {
+    if b == 0 { @error(MathError.DivideByZero); }
+    return a / b;
+}
+
+// Zero-overhead error propagation with automatic type conversion!
+fun process_data?(input: u8) -> u8 ? AppError {
+    let result = safe_divide?(input, 2) ?? @error;  // MathError -> AppError (automatic!)
+    let doubled = safe_multiply?(result, 2) ?? @error;  // Zero overhead propagation!
+    return doubled;
+}
+
+// Usage with nil coalescing
+fun main() -> void {
+    let result = process_data?(10) ?? 99;  // Default value on error
+    @print("Result: {}", result);
+}
+
+// Generated assembly for same-type propagation:
+// call safe_divide
+// ret c              ; Single instruction! Zero overhead!
+```
+
 ### ✅ Chain Fusion Technology
 ```minz
 // Multiple operations automatically fused into single pass

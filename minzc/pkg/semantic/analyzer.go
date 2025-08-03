@@ -7,9 +7,11 @@ import (
 	"strings"
 
 	"github.com/minz/minzc/pkg/ast"
+	"github.com/minz/minzc/pkg/interpreter"
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/meta"
 	"github.com/minz/minzc/pkg/metafunction"
+	"github.com/minz/minzc/pkg/parser"
 )
 
 var debug = os.Getenv("DEBUG") != ""
@@ -35,12 +37,14 @@ type Analyzer struct {
 	currentFile           string
 	currentModule         string // Current module name for prefixing
 	luaEvaluator          *meta.LuaEvaluator
+	mirInterpreter        *interpreter.MIRInterpreter // MIR interpreter for @minz metaprogramming
 	currentFunc           *ir.Function
 	functionCalls         map[string][]string // Track which functions call which
 	exprTypes             map[ast.Expression]ir.Type // Type information for expressions
 	lambdaCounter         int // Counter for generating unique lambda names
 	registeredModules     map[string]bool // Track already registered modules to prevent duplicates
 	metafunctionProcessor *metafunction.Processor // Processor for @metafunction calls
+	errorPropagationContext *ErrorPropagationContext // Track error propagation state
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -54,6 +58,7 @@ func NewAnalyzer() *Analyzer {
 		exprTypes:         make(map[ast.Expression]ir.Type),
 		registeredModules: make(map[string]bool),
 		luaEvaluator:      meta.NewLuaEvaluator(),
+		mirInterpreter:    interpreter.NewMIRInterpreter(),
 	}
 }
 
@@ -815,6 +820,15 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 		return fmt.Errorf("invalid return type for function %s: %w", fn.Name, err)
 	}
 
+	// Convert error type if present
+	var errorType ir.Type
+	if fn.ErrorType != nil {
+		errorType, err = a.convertType(fn.ErrorType)
+		if err != nil {
+			return fmt.Errorf("invalid error type for function %s: %w", fn.Name, err)
+		}
+	}
+
 	// Get prefixed name
 	prefixedName := fn.Name
 	// Only add prefix if the name doesn't already contain a dot (module prefix)
@@ -826,6 +840,7 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 	a.currentScope.Define(prefixedName, &FuncSymbol{
 		Name:       prefixedName,
 		ReturnType: returnType,
+		ErrorType:  errorType,
 		Params:     fn.Params,
 	})
 	
@@ -834,6 +849,7 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 		a.currentScope.Define(fn.Name, &FuncSymbol{
 			Name:       prefixedName,
 			ReturnType: returnType,
+			ErrorType:  errorType,
 			Params:     fn.Params,
 		})
 	}
@@ -2871,6 +2887,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeCastExpr(e, irFunc)
 	case *ast.CompileTimePrint:
 		return a.analyzePrintExpr(e, irFunc)
+	case *ast.CompileTimeError:
+		return a.analyzeErrorExpr(e, irFunc)
 	case *ast.MetafunctionCall:
 		return a.analyzeMetafunctionCall(e, irFunc)
 	case *ast.MinzMetafunctionCall:
@@ -2879,6 +2897,14 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeLambdaExpr(e, irFunc)
 	case *ast.IteratorChainExpr:
 		return a.analyzeIteratorChainExpr(e, irFunc)
+	case *ast.NilCoalescingExpr:
+		return a.analyzeNilCoalescingExpr(e, irFunc)
+	case *ast.IfExpr:
+		return a.analyzeIfExpr(e, irFunc)
+	case *ast.TernaryExpr:
+		return a.analyzeTernaryExpr(e, irFunc)
+	case *ast.WhenExpr:
+		return a.analyzeWhenExpr(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -4681,52 +4707,78 @@ func (a *Analyzer) analyzeMetafunctionCall(call *ast.MetafunctionCall, irFunc *i
 
 // analyzeMinzMetafunctionCall analyzes @minz("code", args...) calls for compile-time metaprogramming
 func (a *Analyzer) analyzeMinzMetafunctionCall(call *ast.MinzMetafunctionCall, irFunc *ir.Function) (ir.Register, error) {
-	// Import the MIR interpreter
-	// Note: This would need proper import path in real implementation
-	// interpreter := interpreter.NewMIRInterpreter()
+	// Prepare arguments for the MIR interpreter
+	args := make([]interface{}, 0, len(call.Arguments))
 	
-	// For now, implement a simplified version that does template substitution
-	code := call.Code
-	
-	// Evaluate arguments and substitute them in the code
-	for i, arg := range call.Arguments {
-		// For string literals, get the string value
-		if strLit, ok := arg.(*ast.StringLiteral); ok {
-			placeholder := fmt.Sprintf("{%d}", i)
-			code = strings.ReplaceAll(code, placeholder, strLit.Value)
-		} else if numLit, ok := arg.(*ast.NumberLiteral); ok {
-			// For number literals, get the numeric value
-			placeholder := fmt.Sprintf("{%d}", i)
-			code = strings.ReplaceAll(code, placeholder, fmt.Sprintf("%d", numLit.Value))
-		} else {
-			// For other expressions, we'd need to evaluate them at compile time
-			// This is a simplified version - full implementation would be more sophisticated
+	// Evaluate arguments at compile time
+	for _, arg := range call.Arguments {
+		switch argTyped := arg.(type) {
+		case *ast.StringLiteral:
+			args = append(args, argTyped.Value)
+		case *ast.NumberLiteral:
+			args = append(args, int64(argTyped.Value))
+		case *ast.BooleanLiteral:
+			args = append(args, argTyped.Value)
+		case *ast.Identifier:
+			// Try to resolve constants
+			if sym := a.currentScope.Lookup(argTyped.Name); sym != nil {
+				if constSym, isConst := sym.(*ConstSymbol); isConst {
+					// Use the constant value
+					args = append(args, constSym.Value)
+				} else {
+					return 0, fmt.Errorf("@minz: argument %s must be a compile-time constant", argTyped.Name)
+				}
+			} else {
+				return 0, fmt.Errorf("@minz: undefined identifier %s", argTyped.Name)
+			}
+		default:
+			// For complex expressions, we'd need a compile-time evaluator
 			return 0, fmt.Errorf("@minz: unsupported argument type for compile-time evaluation: %T", arg)
 		}
 	}
 	
-	// For now, we'll treat the generated code as inline assembly
-	// In a full implementation, this would be parsed as MinZ code and integrated into the AST
-	
-	// Create a comment instruction to show the generated code
-	commentInst := &ir.Instruction{
-		Op:      ir.OpNop,
-		Comment: fmt.Sprintf("@minz generated: %s", code),
-	}
-	irFunc.Instructions = append(irFunc.Instructions, *commentInst)
-	
-	// Create a simple inline assembly instruction with the generated code
-	// This is a placeholder - full implementation would parse and integrate the generated MinZ code
-	inst := &ir.Instruction{
-		Op:      ir.OpAsm,
-		AsmCode: fmt.Sprintf("; Generated by @minz metafunction\n%s", code),
-		Comment: "Metaprogramming output (placeholder)",
+	// Execute the @minz metafunction using the MIR interpreter
+	generatedCode, err := a.mirInterpreter.ExecuteMinzMetafunction(call.Code, args)
+	if err != nil {
+		return 0, fmt.Errorf("@minz metafunction execution failed: %w", err)
 	}
 	
-	irFunc.Instructions = append(irFunc.Instructions, *inst)
+	// Add debug comment showing the generated code
+	if debug {
+		commentInst := &ir.Instruction{
+			Op:      ir.OpNop,
+			Comment: fmt.Sprintf("@minz generated: %s", generatedCode),
+		}
+		irFunc.Instructions = append(irFunc.Instructions, *commentInst)
+	}
 	
-	// @minz metafunctions can return values - for now return 0
-	// Full implementation would execute the MIR interpreter and return the result
+	// Parse and integrate the generated MinZ code
+	parser := parser.New()
+	declarations, err := parser.ParseString(generatedCode, "@minz")
+	if err != nil {
+		// Fall back to inline assembly if parsing fails
+		if debug {
+			fmt.Printf("Warning: Could not parse @minz generated code: %v\n", err)
+		}
+		inst := &ir.Instruction{
+			Op:      ir.OpAsm,
+			AsmCode: fmt.Sprintf("; @minz metafunction output\n; Generated code: %s\n; Parse failed: %v", generatedCode, err),
+			Comment: "Metaprogramming output (parse failed)",
+		}
+		irFunc.Instructions = append(irFunc.Instructions, *inst)
+		return 0, nil
+	}
+	
+	// Process the generated declarations
+	for _, decl := range declarations {
+		// Analyze each generated declaration
+		if err := a.analyzeDeclaration(decl); err != nil {
+			return 0, fmt.Errorf("@minz: failed to analyze generated code: %w", err)
+		}
+	}
+	
+	// @minz metafunctions don't return values in the current implementation
+	// Future enhancement could support return values from generated code
 	return 0, nil
 }
 
@@ -5495,10 +5547,11 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			Base: &ir.BasicType{Kind: ir.TypeU8},
 		}, nil
 	case *ast.FieldExpr:
-		// Check if this is a module field access
+		// Check if this is a module field access or enum variant access
 		if id, ok := e.Object.(*ast.Identifier); ok {
-			// Check if the object is a module
 			sym := a.currentScope.Lookup(id.Name)
+			
+			// Check if the object is a module
 			if _, isModule := sym.(*ModuleSymbol); isModule {
 				// This is a module member - look up the full qualified name
 				fullName := id.Name + "." + e.Field
@@ -5514,6 +5567,18 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 					}
 				}
 				return nil, fmt.Errorf("undefined module member: %s", fullName)
+			}
+			
+			// Check if the object is an enum type
+			if typeSym, isType := sym.(*TypeSymbol); isType {
+				if enumType, isEnum := typeSym.Type.(*ir.EnumType); isEnum {
+					// This is an enum variant access - check if variant exists
+					_, exists := enumType.Variants[e.Field]
+					if !exists {
+						return nil, fmt.Errorf("no variant %s in enum %s", e.Field, id.Name)
+					}
+					return enumType, nil
+				}
 			}
 		}
 		
@@ -5595,6 +5660,30 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 	case *ast.IteratorChainExpr:
 		// Infer type of iterator chain
 		return a.analyzeIteratorChainType(e)
+	case *ast.EnumLiteral:
+		// Look up the enum type
+		sym := a.currentScope.Lookup(e.EnumName)
+		if sym == nil {
+			return nil, fmt.Errorf("undefined enum: %s", e.EnumName)
+		}
+		
+		typeSym, ok := sym.(*TypeSymbol)
+		if !ok {
+			return nil, fmt.Errorf("%s is not a type", e.EnumName)
+		}
+		
+		enumType, ok := typeSym.Type.(*ir.EnumType)
+		if !ok {
+			return nil, fmt.Errorf("%s is not an enum type", e.EnumName)
+		}
+		
+		// Check if variant exists
+		_, exists := enumType.Variants[e.Variant]
+		if !exists {
+			return nil, fmt.Errorf("no variant %s in enum %s", e.Variant, e.EnumName)
+		}
+		
+		return enumType, nil
 	default:
 		return nil, fmt.Errorf("cannot infer type from expression of type %T", expr)
 	}
@@ -6568,4 +6657,501 @@ func (a *Analyzer) registerLocalFunctionSignature(fn *ast.FunctionDecl, mangledN
 	a.currentScope.Define(fn.Name, funcSymbol)
 	
 	return nil
+}
+
+// analyzeNilCoalescingExpr analyzes nil coalescing operator (??)
+// Semantic: left ?? right returns left if CY is clear, right if CY is set
+func (a *Analyzer) analyzeNilCoalescingExpr(expr *ast.NilCoalescingExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Analyze left expression (the one that might set CY flag or throw errors)
+	leftReg, err := a.analyzeExpression(expr.Left, irFunc)
+	if err != nil {
+		return 0, fmt.Errorf("nil coalescing left operand: %w", err)
+	}
+	
+	// Determine source error type from left expression
+	var sourceErrorType ir.Type
+	if callExpr, ok := expr.Left.(*ast.CallExpr); ok {
+		// Check if left side is a function call that can return errors
+		if ident, ok := callExpr.Function.(*ast.Identifier); ok {
+			if funcSym := a.currentScope.Lookup(ident.Name); funcSym != nil {
+				if fs, ok := funcSym.(*FuncSymbol); ok && fs.ErrorType != nil {
+					sourceErrorType = fs.ErrorType
+				}
+			}
+		}
+	}
+	
+	// Set error propagation context for right operand analysis
+	oldContext := a.errorPropagationContext
+	a.errorPropagationContext = &ErrorPropagationContext{
+		InPropagation:   true,
+		SourceErrorType: sourceErrorType,
+		TargetErrorType: irFunc.ErrorType,
+	}
+	
+	// Create result register
+	resultReg := irFunc.AllocReg()
+	
+	// Create labels for conditional jump
+	elseLabel := a.generateLabel("nil_coalescing_else")
+	endLabel := a.generateLabel("nil_coalescing_end")
+	
+	// Test carry flag (proper error checking for functions with ? return type)
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpCheckError,
+		Comment: "Check carry flag for error condition",
+	})
+	
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpJumpIf,
+		Label:   elseLabel,
+		Comment: "Jump to error handler if CY flag set",
+	})
+	// Use comparison with zero instead of OpTest for now
+	zeroReg := irFunc.AllocReg()
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoadConst,
+		Dest: zeroReg,
+		Imm:  0,
+	})
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpCmp,
+		Src1: leftReg,
+		Src2: zeroReg,
+	})
+	
+	// Jump to else if left is zero (error case)
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:    ir.OpJumpIfZero,
+		Label: elseLabel,
+	})
+	
+	// Success path - move left value to result
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpMove,
+		Dest: resultReg,
+		Src1: leftReg,
+	})
+	
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:    ir.OpJump,
+		Label: endLabel,
+	})
+	
+	// Error path - evaluate right expression
+	irFunc.EmitLabel(elseLabel)
+	
+	// Analyze right expression
+	rightReg, err := a.analyzeExpression(expr.Right, irFunc)
+	if err != nil {
+		return 0, fmt.Errorf("nil coalescing right operand: %w", err)
+	}
+	
+	// Move right value to result
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpMove,
+		Dest: resultReg,
+		Src1: rightReg,
+	})
+	
+	// End label
+	irFunc.EmitLabel(endLabel)
+	
+	// Restore previous error propagation context
+	a.errorPropagationContext = oldContext
+	
+	return resultReg, nil
+}
+
+// analyzeIfExpr analyzes if expressions (if cond { val1 } else { val2 })
+func (a *Analyzer) analyzeIfExpr(expr *ast.IfExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Analyze condition
+	condReg, err := a.analyzeExpression(expr.Condition, irFunc)
+	if err != nil {
+		return 0, fmt.Errorf("if expression condition: %w", err)
+	}
+	
+	// Create result register
+	resultReg := irFunc.AllocReg()
+	
+	// Create labels
+	elseLabel := a.generateLabel("if_expr_else")
+	endLabel := a.generateLabel("if_expr_end")
+	
+	// Test condition (assuming 0 = false, non-zero = true)
+	// Use comparison with zero instead of OpTest for now
+	zeroReg := irFunc.AllocReg()
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoadConst,
+		Dest: zeroReg,
+		Imm:  0,
+	})
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpCmp,
+		Src1: condReg,
+		Src2: zeroReg,
+	})
+	
+	// Jump to else if condition is false
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:    ir.OpJumpIfZero,
+		Label: elseLabel,
+	})
+	
+	// Then branch
+	thenReg, err := a.analyzeExpression(expr.ThenBranch, irFunc)
+	if err != nil {
+		return 0, fmt.Errorf("if expression then branch: %w", err)
+	}
+	
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpMove,
+		Dest: resultReg,
+		Src1: thenReg,
+	})
+	
+	irFunc.EmitJump(endLabel)
+	
+	// Else branch
+	irFunc.EmitLabel(elseLabel)
+	
+	if expr.ElseBranch != nil {
+		elseReg, err := a.analyzeExpression(expr.ElseBranch, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("if expression else branch: %w", err)
+		}
+		
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpMove,
+			Dest: resultReg,
+			Src1: elseReg,
+		})
+	} else {
+		// No else branch - use zero/void value
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpLoadConst,
+			Dest: resultReg,
+			Imm:  0,
+		})
+	}
+	
+	// End label
+	irFunc.EmitLabel(endLabel)
+	
+	return resultReg, nil
+}
+
+// analyzeTernaryExpr analyzes Python-style ternary (value_if_true if condition else value_if_false)
+func (a *Analyzer) analyzeTernaryExpr(expr *ast.TernaryExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Analyze condition
+	condReg, err := a.analyzeExpression(expr.Condition, irFunc)
+	if err != nil {
+		return 0, fmt.Errorf("ternary condition: %w", err)
+	}
+	
+	// Create result register
+	resultReg := irFunc.AllocReg()
+	
+	// Create labels
+	falseLabel := a.generateLabel("ternary_false")
+	endLabel := a.generateLabel("ternary_end")
+	
+	// Test condition
+	// Use comparison with zero instead of OpTest for now
+	zeroReg := irFunc.AllocReg()
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoadConst,
+		Dest: zeroReg,
+		Imm:  0,
+	})
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpCmp,
+		Src1: condReg,
+		Src2: zeroReg,
+	})
+	
+	// Jump to false branch if condition is false
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:    ir.OpJumpIfZero,
+		Label: falseLabel,
+	})
+	
+	// True branch
+	trueReg, err := a.analyzeExpression(expr.TrueExpr, irFunc)
+	if err != nil {
+		return 0, fmt.Errorf("ternary true expression: %w", err)
+	}
+	
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpMove,
+		Dest: resultReg,
+		Src1: trueReg,
+	})
+	
+	irFunc.EmitJump(endLabel)
+	
+	// False branch
+	irFunc.EmitLabel(falseLabel)
+	
+	falseReg, err := a.analyzeExpression(expr.FalseExpr, irFunc)
+	if err != nil {
+		return 0, fmt.Errorf("ternary false expression: %w", err)
+	}
+	
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpMove,
+		Dest: resultReg,
+		Src1: falseReg,
+	})
+	
+	// End label
+	irFunc.EmitLabel(endLabel)
+	
+	return resultReg, nil
+}
+
+// analyzeWhenExpr analyzes pattern matching expressions
+func (a *Analyzer) analyzeWhenExpr(expr *ast.WhenExpr, irFunc *ir.Function) (ir.Register, error) {
+	// For now, return a simple implementation
+	// TODO: Implement full pattern matching
+	
+	resultReg := irFunc.AllocReg()
+	
+	// Load default value (0) for now
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoadConst,
+		Dest: resultReg,
+		Imm:  0,
+	})
+	
+	return resultReg, nil
+}
+
+// Helper methods
+
+// isErrorType checks if a type is an error type (ends with ?)
+func (a *Analyzer) isErrorType(t ir.Type) bool {
+	// For now, return false - need to implement error type checking
+	// TODO: Add proper error type detection
+	return false
+}
+
+// getFunctionType extracts function type from call expression  
+func (a *Analyzer) getFunctionType(call *ast.CallExpr) *ir.FunctionType {
+	if id, ok := call.Function.(*ast.Identifier); ok {
+		if sym := a.currentScope.Lookup(id.Name); sym != nil {
+			if funcSym, ok := sym.(*FuncSymbol); ok {
+				return funcSym.Type
+			}
+		}
+	}
+	return nil
+}
+
+// analyzeErrorExpr analyzes @error(value) expressions
+// Sets CY flag and returns from function with error value
+func (a *Analyzer) analyzeErrorExpr(errorExpr *ast.CompileTimeError, irFunc *ir.Function) (ir.Register, error) {
+	if errorExpr.ErrorValue == nil {
+		// This is @error or @error() - error propagation
+		return a.analyzeErrorPropagation(irFunc)
+	} else {
+		// This is @error(value) - explicit error
+		return a.analyzeExplicitError(errorExpr, irFunc)
+	}
+}
+
+func (a *Analyzer) analyzeExplicitError(errorExpr *ast.CompileTimeError, irFunc *ir.Function) (ir.Register, error) {
+	// Get the current function's symbol to check its error type
+	var currentFuncSym *FuncSymbol
+	for name, sym := range a.currentScope.symbols {
+		if funcSym, ok := sym.(*FuncSymbol); ok && strings.HasSuffix(name, irFunc.Name) {
+			currentFuncSym = funcSym
+			break
+		}
+	}
+	
+	// If no current function found, walk up the scope hierarchy
+	if currentFuncSym == nil {
+		scope := a.currentScope.parent
+		for scope != nil {
+			for name, sym := range scope.symbols {
+				if funcSym, ok := sym.(*FuncSymbol); ok && strings.HasSuffix(name, irFunc.Name) {
+					currentFuncSym = funcSym
+					break
+				}
+			}
+			if currentFuncSym != nil {
+				break
+			}
+			scope = scope.parent
+		}
+	}
+	
+	// Validate error type if function has declared error type
+	if currentFuncSym != nil && currentFuncSym.ErrorType != nil {
+		// Infer the type of the error expression
+		errorType, err := a.inferType(errorExpr.ErrorValue)
+		if err != nil {
+			return 0, fmt.Errorf("cannot determine type of @error expression: %w", err)
+		}
+		
+		// Check if error type matches declared error type
+		if !a.typesCompatible(currentFuncSym.ErrorType, errorType) {
+			return 0, fmt.Errorf("@error type mismatch: function declares error type %s but got %s", 
+				currentFuncSym.ErrorType.String(), errorType.String())
+		}
+	}
+	
+	// Analyze the error value expression
+	errorReg, err := a.analyzeExpression(errorExpr.ErrorValue, irFunc)
+	if err != nil {
+		return 0, fmt.Errorf("@error value: %w", err)
+	}
+	
+	// Set CY flag (carry flag indicates error in Z80)
+	// For now, use a placeholder operation - we'll implement OpSetCarry later
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoadConst,  // Placeholder: set error flag in a register
+		Dest: ir.Register(-10), // Special register to indicate error state
+		Imm:  1,               // Error = 1
+	})
+	
+	// Return the error value
+	// The error value should be in register A for Z80 convention
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpMove,
+		Dest: ir.Register(0), // Move to register 0 (convention)
+		Src1: errorReg,
+	})
+	
+	// Generate return instruction
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op: ir.OpReturn,
+	})
+	
+	// Return dummy register (this code path won't continue)
+	return errorReg, nil
+}
+
+// analyzeErrorPropagation handles @error without arguments - propagates current error
+func (a *Analyzer) analyzeErrorPropagation(irFunc *ir.Function) (ir.Register, error) {
+	// Check if we're in an error propagation context (after ?? operator)
+	if !a.isInErrorPropagationContext() {
+		return 0, fmt.Errorf("@error without arguments can only be used after ?? operator in error propagation context")
+	}
+	
+	// Get the source and target error types from context
+	sourceErrorType := a.getCurrentErrorSourceType()
+	targetErrorType := irFunc.ErrorType
+	
+	if sourceErrorType != nil && targetErrorType != nil {
+		// Check if types match for zero-overhead propagation
+		if a.areErrorTypesEqual(sourceErrorType, targetErrorType) {
+			// Zero-overhead propagation: just return (CY already set, A has error code)
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpReturn,
+				Comment: "Zero-overhead error propagation (same type)",
+			})
+		} else {
+			// Cross-type propagation: convert error type
+			convertedReg := irFunc.AllocReg()
+			
+			// Load source error code from return register
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpMove,
+				Dest:    convertedReg,
+				Src1:    ir.RegRet, // Error code is in return register
+				Comment: "Load source error code for conversion",
+			})
+			
+			// Convert error type (implementation depends on error mapping)
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpCall,
+				Symbol:  a.getErrorConversionFunction(sourceErrorType, targetErrorType),
+				Src1:    convertedReg,
+				Dest:    ir.RegRet, // Result back to return register
+				Comment: fmt.Sprintf("Convert error: %s -> %s", 
+					a.getErrorTypeName(sourceErrorType), 
+					a.getErrorTypeName(targetErrorType)),
+			})
+			
+			// Set carry flag and return
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpSetError,
+				Src1:    ir.RegRet, // Error code is in return register
+				Comment: "Set error flag",
+			})
+			
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpReturn,
+				Comment: "Cross-type error propagation with conversion",
+			})
+		}
+	} else {
+		// Fallback: basic error propagation
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpReturn,
+			Comment: "Basic error propagation: @error without arguments",
+		})
+	}
+	
+	return 0, nil  // This code path won't continue
+}
+
+// Error propagation context tracking
+
+// ErrorPropagationContext tracks the current error propagation state
+type ErrorPropagationContext struct {
+	InPropagation bool
+	SourceErrorType ir.Type
+	TargetErrorType ir.Type
+}
+
+// isInErrorPropagationContext checks if we're currently in an error propagation context
+func (a *Analyzer) isInErrorPropagationContext() bool {
+	return a.errorPropagationContext != nil && a.errorPropagationContext.InPropagation
+}
+
+// getCurrentErrorSourceType gets the error type from the failed expression
+func (a *Analyzer) getCurrentErrorSourceType() ir.Type {
+	if a.errorPropagationContext != nil {
+		return a.errorPropagationContext.SourceErrorType
+	}
+	return nil
+}
+
+// areErrorTypesEqual checks if two error types are the same
+func (a *Analyzer) areErrorTypesEqual(source, target ir.Type) bool {
+	if source == nil || target == nil {
+		return false
+	}
+	
+	// Simple type equality check
+	sourceStr := a.getErrorTypeName(source)
+	targetStr := a.getErrorTypeName(target)
+	return sourceStr == targetStr
+}
+
+// getErrorTypeName gets the string name of an error type
+func (a *Analyzer) getErrorTypeName(errorType ir.Type) string {
+	if errorType == nil {
+		return "unknown"
+	}
+	
+	// Handle different error type representations
+	switch t := errorType.(type) {
+	case *ir.BasicType:
+		return fmt.Sprintf("BasicType_%d", t.Kind)
+	case *ir.EnumType:
+		return t.Name
+	default:
+		return fmt.Sprintf("%T", errorType)
+	}
+}
+
+// getErrorConversionFunction generates the name of an error conversion function
+func (a *Analyzer) getErrorConversionFunction(source, target ir.Type) string {
+	sourceName := a.getErrorTypeName(source)
+	targetName := a.getErrorTypeName(target)
+	return fmt.Sprintf("convert_error_%s_to_%s", sourceName, targetName)
 }

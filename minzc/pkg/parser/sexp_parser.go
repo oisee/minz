@@ -239,6 +239,8 @@ func (p *Parser) convertFunction(node *SExpNode) *ast.FunctionDecl {
 		EndPos:   node.EndPos,
 	}
 	
+	var hasErrorSuffix bool
+	
 	for _, child := range node.Children {
 		switch child.Type {
 		case "visibility":
@@ -249,16 +251,33 @@ func (p *Parser) convertFunction(node *SExpNode) *ast.FunctionDecl {
 			fn.IsExport = true
 		case "identifier":
 			if fn.Name == "" {
-				fn.Name = p.getNodeText(child)
+				name := p.getNodeText(child)
+				// Check if function name ends with ?
+				if strings.HasSuffix(name, "?") {
+					hasErrorSuffix = true
+					fn.Name = strings.TrimSuffix(name, "?")
+				} else {
+					fn.Name = name
+				}
 			}
 		case "generic_parameters":
 			fn.GenericParams = p.convertGenericParameters(child)
 		case "parameter_list":
 			fn.Params = p.convertParameters(child)
 		case "return_type":
-			fn.ReturnType = p.convertReturnType(child)
+			fn.ReturnType, fn.ErrorType = p.convertReturnTypeWithError(child)
 		case "block":
 			fn.Body = p.convertBlock(child)
+		}
+	}
+	
+	// If function has ? suffix but no explicit error type, create a generic error type
+	if hasErrorSuffix && fn.ErrorType == nil {
+		// Create a generic error type (any error allowed)
+		fn.ErrorType = &ast.TypeIdentifier{
+			Name:     "Error",
+			StartPos: fn.StartPos,
+			EndPos:   fn.EndPos,
 		}
 	}
 	
@@ -505,11 +524,19 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 				}
 			}
 		}
-		// If no lua_code child, use the whole text
-		return &ast.LuaExpression{
-			Code:     p.getNodeText(node),
-			StartPos: node.StartPos,
-			EndPos:   node.EndPos,
+	case "compile_time_error":
+		// @error(expression), @error(), or @error
+		var errorValue ast.Expression
+		for _, child := range node.Children {
+			if child.Type == "expression" {
+				errorValue = p.convertExpression(child)
+				break
+			}
+		}
+		return &ast.CompileTimeError{
+			ErrorValue: errorValue,  // nil for @error without arguments
+			StartPos:   node.StartPos,
+			EndPos:     node.EndPos,
 		}
 	case "number_literal":
 		val, _ := strconv.ParseInt(p.getNodeText(node), 0, 64)
@@ -563,6 +590,12 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 		return p.convertUnaryExpr(node)
 	case "lambda_expression":
 		return p.convertLambdaExpr(node)
+	case "if_expression":
+		return p.convertIfExpr(node)
+	case "ternary_expression":
+		return p.convertTernaryExpr(node)
+	case "when_expression":
+		return p.convertWhenExpr(node)
 	}
 	return nil
 }
@@ -601,7 +634,7 @@ func (p *Parser) convertUnaryExpr(node *SExpNode) *ast.UnaryExpr {
 	return unaryExpr
 }
 
-func (p *Parser) convertBinaryExpr(node *SExpNode) *ast.BinaryExpr {
+func (p *Parser) convertBinaryExpr(node *SExpNode) ast.Expression {
 	binExpr := &ast.BinaryExpr{
 		StartPos: node.StartPos,
 		EndPos:   node.EndPos,
@@ -649,6 +682,16 @@ func (p *Parser) convertBinaryExpr(node *SExpNode) *ast.BinaryExpr {
 			if startCol >= 0 && endCol <= len(line) && startCol < endCol {
 				operatorText := strings.TrimSpace(line[startCol:endCol])
 				binExpr.Operator = operatorText
+				
+				// Special handling for nil coalescing operator (??)
+				if operatorText == "??" {
+					return &ast.NilCoalescingExpr{
+						Left:     binExpr.Left,
+						Right:    binExpr.Right,
+						StartPos: binExpr.StartPos,
+						EndPos:   binExpr.EndPos,
+					}
+				}
 			}
 		}
 	}
@@ -906,6 +949,33 @@ func (p *Parser) convertReturnType(node *SExpNode) ast.Type {
 		}
 	}
 	return nil
+}
+
+// convertReturnTypeWithError converts return_type that might have error enum (-> type ? ErrorEnum)
+func (p *Parser) convertReturnTypeWithError(node *SExpNode) (ast.Type, ast.Type) {
+	var returnType ast.Type
+	var errorType ast.Type
+	
+	for _, child := range node.Children {
+		switch child.Type {
+		case "type":
+			if returnType == nil {
+				returnType = p.convertType(child)
+			} else {
+				// Second type is the error enum
+				errorType = p.convertType(child)
+			}
+		case "type_identifier":
+			// Error enum type
+			errorType = &ast.TypeIdentifier{
+				Name:     p.getNodeText(child),
+				StartPos: child.StartPos,
+				EndPos:   child.EndPos,
+			}
+		}
+	}
+	
+	return returnType, errorType
 }
 
 func (p *Parser) convertStructDecl(node *SExpNode) *ast.StructDecl {
@@ -2013,5 +2083,161 @@ func (p *Parser) convertMinzMetafunction(arguments []ast.Expression, startPos, e
 		Arguments: args,
 		StartPos:  startPos,
 		EndPos:    endPos,
+	}
+}
+
+// Convert if expression (if cond { val1 } else { val2 })
+func (p *Parser) convertIfExpr(node *SExpNode) ast.Expression {
+	ifExpr := &ast.IfExpr{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Parse condition, then_branch, else_branch from tree-sitter fields
+	for i := 0; i < len(node.Children); i++ {
+		child := node.Children[i]
+		if child.Type == "atom" && strings.HasSuffix(child.Text, ":") {
+			fieldName := strings.TrimSuffix(child.Text, ":")
+			if i+1 < len(node.Children) {
+				fieldValue := node.Children[i+1]
+				switch fieldName {
+				case "condition":
+					if fieldValue.Type == "expression" && len(fieldValue.Children) > 0 {
+						ifExpr.Condition = p.convertExpressionNode(fieldValue.Children[0])
+					}
+				case "then_branch":
+					if fieldValue.Type == "block" {
+						// Convert block to expression
+						ifExpr.ThenBranch = p.convertBlockAsExpression(fieldValue)
+					}
+				case "else_branch":
+					if fieldValue.Type == "block" {
+						ifExpr.ElseBranch = p.convertBlockAsExpression(fieldValue)
+					} else if fieldValue.Type == "if_expression" {
+						ifExpr.ElseBranch = p.convertIfExpr(fieldValue)
+					}
+				}
+				i++ // Skip field value
+			}
+		}
+	}
+	
+	return ifExpr
+}
+
+// Convert ternary expression (value_if_true if condition else value_if_false)
+func (p *Parser) convertTernaryExpr(node *SExpNode) ast.Expression {
+	ternary := &ast.TernaryExpr{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Parse true_expr, condition, false_expr from tree-sitter fields
+	for i := 0; i < len(node.Children); i++ {
+		child := node.Children[i]
+		if child.Type == "atom" && strings.HasSuffix(child.Text, ":") {
+			fieldName := strings.TrimSuffix(child.Text, ":")
+			if i+1 < len(node.Children) {
+				fieldValue := node.Children[i+1]
+				switch fieldName {
+				case "true_expr":
+					if fieldValue.Type == "expression" && len(fieldValue.Children) > 0 {
+						ternary.TrueExpr = p.convertExpressionNode(fieldValue.Children[0])
+					}
+				case "condition":
+					if fieldValue.Type == "expression" && len(fieldValue.Children) > 0 {
+						ternary.Condition = p.convertExpressionNode(fieldValue.Children[0])
+					}
+				case "false_expr":
+					if fieldValue.Type == "expression" && len(fieldValue.Children) > 0 {
+						ternary.FalseExpr = p.convertExpressionNode(fieldValue.Children[0])
+					}
+				}
+				i++ // Skip field value
+			}
+		}
+	}
+	
+	return ternary
+}
+
+// Convert when expression (pattern matching)
+func (p *Parser) convertWhenExpr(node *SExpNode) ast.Expression {
+	whenExpr := &ast.WhenExpr{
+		Arms:     []*ast.WhenArm{},
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Parse optional value and arms
+	for i := 0; i < len(node.Children); i++ {
+		child := node.Children[i]
+		if child.Type == "atom" && strings.HasSuffix(child.Text, ":") {
+			fieldName := strings.TrimSuffix(child.Text, ":")
+			if i+1 < len(node.Children) {
+				fieldValue := node.Children[i+1]
+				if fieldName == "value" && fieldValue.Type == "expression" && len(fieldValue.Children) > 0 {
+					whenExpr.Value = p.convertExpressionNode(fieldValue.Children[0])
+				}
+				i++ // Skip field value
+			}
+		} else if child.Type == "when_arm" {
+			arm := p.convertWhenArm(child)
+			if arm != nil {
+				whenExpr.Arms = append(whenExpr.Arms, arm)
+			}
+		}
+	}
+	
+	return whenExpr
+}
+
+// Convert when arm
+func (p *Parser) convertWhenArm(node *SExpNode) *ast.WhenArm {
+	arm := &ast.WhenArm{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Parse pattern, guard, body from tree-sitter fields
+	for i := 0; i < len(node.Children); i++ {
+		child := node.Children[i]
+		if child.Type == "atom" {
+			if child.Text == "else" {
+				arm.IsElse = true
+			} else if strings.HasSuffix(child.Text, ":") {
+				fieldName := strings.TrimSuffix(child.Text, ":")
+				if i+1 < len(node.Children) {
+					fieldValue := node.Children[i+1]
+					switch fieldName {
+					case "pattern":
+						if fieldValue.Type == "expression" && len(fieldValue.Children) > 0 {
+							arm.Pattern = p.convertExpressionNode(fieldValue.Children[0])
+						}
+					case "guard":
+						if fieldValue.Type == "expression" && len(fieldValue.Children) > 0 {
+							arm.Guard = p.convertExpressionNode(fieldValue.Children[0])
+						}
+					case "body":
+						if fieldValue.Type == "expression" && len(fieldValue.Children) > 0 {
+							arm.Body = p.convertExpressionNode(fieldValue.Children[0])
+						}
+					}
+					i++ // Skip field value
+				}
+			}
+		}
+	}
+	
+	return arm
+}
+
+// Convert block to expression (used by if expressions)
+func (p *Parser) convertBlockAsExpression(node *SExpNode) ast.Expression {
+	// For now, return the block itself - semantic analyzer will handle conversion
+	return &ast.BlockStmt{
+		Statements: []ast.Statement{}, // Will be filled by block conversion
+		StartPos:   node.StartPos,
+		EndPos:     node.EndPos,
 	}
 }

@@ -18,6 +18,13 @@ module.exports = grammar({
     [$.array_initializer, $.block],
     [$.array_initializer, $.struct_literal],
     [$.return_type],
+    [$.statement, $.block],
+    [$.if_expression, $.if_statement],
+    [$.ternary_expression, $.if_expression],
+    [$.pattern, $.primary_expression],
+    [$.literal_pattern, $.primary_expression],
+    [$.pattern, $.postfix_expression],
+    [$.primary_expression, $.compile_time_if_declaration],
   ],
 
   word: $ => $.identifier,
@@ -121,7 +128,7 @@ module.exports = grammar({
     ),
 
     return_type: $ => choice(
-      seq('->', $.type, optional('?')),
+      seq('->', $.type, optional(seq('?', $.type_identifier))),  // -> type ? ErrorEnum
       seq('->', '(', commaSep1($.type), ')'),
     ),
 
@@ -187,6 +194,8 @@ module.exports = grammar({
       $.impl_block,
       $.attributed_declaration,
       $.lua_block,
+      $.compile_time_if_declaration,
+      $.minz_metafunction_declaration,
     ),
 
     function_declaration: $ => seq(
@@ -194,6 +203,7 @@ module.exports = grammar({
       optional('export'),
       choice('fun', 'fn'),  // Both work - developer happiness!
       $.identifier,
+      optional('?'),  // Optional ? for error-throwing functions
       optional($.generic_parameters),
       '(',
       optional($.parameter_list),
@@ -481,6 +491,12 @@ module.exports = grammar({
         field('operator', operator),
         field('right', $.expression),
       ))),
+      // Swift-style nil coalescing operator
+      prec.left(2, seq(
+        field('left', $.expression),
+        field('operator', '??'),
+        field('right', $.expression),
+      )),
       ...['==', '!=', '<', '>', '<=', '>='].map(operator => prec.left(3, seq(
         field('left', $.expression),
         field('operator', operator),
@@ -581,6 +597,9 @@ module.exports = grammar({
       $.metaprogramming_expression,
       $.error_literal,
       $.lambda_expression,
+      $.if_expression,
+      $.ternary_expression,
+      $.when_expression,
     ),
 
     array_literal: $ => seq(
@@ -696,6 +715,7 @@ module.exports = grammar({
       $.compile_time_if,
       $.compile_time_print,
       $.compile_time_assert,
+      $.compile_time_error,
       $.attribute,
       $.lua_expression,
       $.lua_eval,
@@ -725,6 +745,11 @@ module.exports = grammar({
       optional(seq(',', $.string_literal)),
       ')',
     ),
+
+    compile_time_error: $ => prec.right(seq(
+      '@error',
+      optional(seq('(', optional($.expression), ')')),
+    )),
 
     attribute: $ => prec.right(seq(
       '@',
@@ -793,6 +818,64 @@ module.exports = grammar({
     lambda_parameter: $ => seq(
       $.identifier,
       optional(seq(':', $.type)),
+    ),
+
+    // If expression (returns a value)
+    if_expression: $ => prec.right(seq(
+      'if',
+      field('condition', $.expression),
+      field('then_branch', $.block),
+      'else',
+      field('else_branch', choice($.block, $.if_expression)),
+    )),
+
+    // Python-style conditional expression (value_if_true if condition else value_if_false)
+    ternary_expression: $ => prec.right(3, seq(
+      field('true_expr', $.expression),
+      'if',
+      field('condition', $.expression),
+      'else',
+      field('false_expr', $.expression),
+    )),
+
+    // When expression (pattern matching with guards)
+    when_expression: $ => seq(
+      'when',
+      optional(field('value', $.expression)),
+      '{',
+      repeat1($.when_arm),
+      '}',
+    ),
+
+    when_arm: $ => seq(
+      choice(
+        field('pattern', $.expression),  // Pattern or condition
+        'else',
+      ),
+      optional(seq('if', field('guard', $.expression))),  // Guard condition
+      '=>',
+      field('body', $.expression),
+      optional(','),
+    ),
+
+    // Compile-time if declaration (top-level @if)
+    compile_time_if_declaration: $ => seq(
+      '@if',
+      '(',
+      field('condition', $.expression),
+      ',',
+      field('then_code', $.string_literal),
+      optional(seq(',', field('else_code', $.string_literal))),
+      ')',
+    ),
+
+    // MinZ metafunction declaration (top-level @minz)
+    minz_metafunction_declaration: $ => seq(
+      '@minz',
+      '(',
+      field('template', $.string_literal),
+      repeat(seq(',', field('argument', $.expression))),
+      ')',
     ),
 
     // Assembly and MIR blocks
