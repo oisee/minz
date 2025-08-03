@@ -1,0 +1,272 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function std.mem.fill(dst: *u8, value: u8, len: u16) -> void
+  @smc
+  Locals:
+    r4 = i: u16
+  Instructions:
+      0: r5 = 0
+      1: store , r5
+      2: loop_3:
+      3: r6 = load i
+      4: LOAD_PARAM
+      5: r8 = r6 < r7
+      6: jump_if_not r8, end_loop_4
+      7: LOAD_PARAM
+      8: LOAD_PARAM
+      9: r11 = load i
+     10: r12 = r10 + r11 ; Calculate array element address
+     11: UNKNOWN_OP_67 ; Store to array[index] (u8)
+     12: r13 = load i
+     13: r14 = 1
+     14: r15 = r13 + r14
+     15: store i, r15
+     16: jump loop_3
+     17: end_loop_4:
+     18: return
+
+Function std.mem.compare(a: *u8, b: *u8, len: u16) -> i8
+  @smc
+  Locals:
+    r4 = i: u16
+  Instructions:
+      0: r5 = 0
+      1: store , r5
+      2: loop_5:
+      3: r6 = load i
+      4: LOAD_PARAM
+      5: r8 = r6 < r7
+      6: jump_if_not r8, end_loop_6
+      7: LOAD_PARAM
+      8: r10 = load i
+      9: LOAD_INDEX ; Load array element (u8)
+     10: LOAD_PARAM
+     11: r13 = load i
+     12: LOAD_INDEX ; Load array element (u8)
+     13: r15 = r11 < r14
+     14: jump_if_not r15, else_7
+     15: r16 = 1
+     16: NEG
+     17: return r17
+     18: jump end_if_8
+     19: else_7:
+     20: LOAD_PARAM
+     21: r19 = load i
+     22: LOAD_INDEX ; Load array element (u8)
+     23: LOAD_PARAM
+     24: r22 = load i
+     25: LOAD_INDEX ; Load array element (u8)
+     26: r24 = r20 > r23
+     27: jump_if_not r24, else_9
+     28: r25 = 1
+     29: return r25
+     30: jump end_if_10
+     31: else_9:
+     32: end_if_10:
+     33: end_if_8:
+     34: r26 = load i
+     35: r27 = 1
+     36: r28 = r26 + r27
+     37: store i, r28
+     38: jump loop_5
+     39: end_loop_6:
+     40: r29 = 0
+     41: return r29
+
+Function examples.true_smc_lambda_working.demonstrate_lambda_syntax() -> void
+  @smc
+  Locals:
+    r1 = multiplier: u8
+  Instructions:
+      0: r2 = 3
+      1: store , r2
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "Lambda would capture multiplier: " (33 chars via loop)
+      4: UNKNOWN_OP_87 ; Direct print "
+" (1 chars)
+      5: UNKNOWN_OP_88
+      6: UNKNOWN_OP_86 ; Print "Direct patching into code - no heap!
+" (37 chars via loop)
+      7: return
+
+Function examples.true_smc_lambda_working.self_modifying_counter() -> u8
+  @smc
+  Locals:
+    r1 = count: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r3 = load count
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: store count, r5
+      6: r6 = load count
+      7: return r6
+
+Function examples.true_smc_lambda_working.traditional_closure_overhead() -> void
+  @smc
+  Locals:
+    r1 = closure: examples.true_smc_lambda_working.TraditionalClosure
+  Instructions:
+      0: r2 = 32768
+      1: r3 = load closure
+      2: STORE_FIELD ; Store to field fn_ptr (offset 0)
+      3: r4 = 42
+      4: r5 = load closure
+      5: STORE_FIELD ; Store to field capture1 (offset 2)
+      6: r6 = 7
+      7: r7 = load closure
+      8: STORE_FIELD ; Store to field capture2 (offset 3)
+      9: UNKNOWN_OP_88
+     10: UNKNOWN_OP_86 ; Print "Traditional closure size: " (26 chars via loop)
+     11: UNKNOWN_OP_87 ; Direct print " bytes
+" (7 chars)
+     12: UNKNOWN_OP_88
+     13: UNKNOWN_OP_86 ; Print "Traditional overhead: 38+ T-states
+" (35 chars via loop)
+     14: return
+
+Function examples.true_smc_lambda_working.true_smc_lambda_magic() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "TRUE SMC lambda size: 0 bytes (it's code!)
+" (43 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "TRUE SMC overhead: 0 T-states
+" (30 chars via loop)
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "Performance gain: 3-5x faster!
+" (31 chars via loop)
+      6: return
+
+Function examples.true_smc_lambda_working.create_range_iterator() -> void
+  @smc
+  Locals:
+    r1 = start: u8
+    r3 = end: u8
+    r5 = current: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = 10
+      3: store , r4
+      4: r6 = load start
+      5: store , r6
+      6: loop_17:
+      7: r7 = load current
+      8: r8 = load end
+      9: r9 = r7 < r8
+     10: jump_if_not r9, end_loop_18
+     11: r10 = load current
+     12: UNKNOWN_OP_81
+     13: r11 = load current
+     14: r12 = 1
+     15: r13 = r11 + r12
+     16: store current, r13
+     17: jump loop_17
+     18: end_loop_18:
+     19: UNKNOWN_OP_87 ; Direct print "
+" (1 chars)
+     20: return
+
+Function examples.true_smc_lambda_working.pixel_shader_pattern() -> void
+  @smc
+  Locals:
+    r1 = brightness: u8
+    r3 = contrast: u8
+  Instructions:
+      0: r2 = 128
+      1: store , r2
+      2: r4 = 2
+      3: store , r4
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "Shader captures: brightness=" (28 chars via loop)
+      6: UNKNOWN_OP_88
+      7: UNKNOWN_OP_86 ; Print ", contrast=" (11 chars via loop)
+      8: UNKNOWN_OP_87 ; Direct print "
+" (1 chars)
+      9: UNKNOWN_OP_88
+     10: UNKNOWN_OP_86 ; Print "Zero memory access during shading!
+" (35 chars via loop)
+     11: return
+
+Function examples.true_smc_lambda_working.game_event_pattern() -> void
+  @smc
+  Locals:
+    r1 = player_health: u8
+    r3 = player_score: u16
+    r5 = combo: u8
+  Instructions:
+      0: r2 = 100
+      1: store , r2
+      2: r4 = 0
+      3: store , r4
+      4: r6 = 1
+      5: store , r6
+      6: UNKNOWN_OP_88
+      7: UNKNOWN_OP_86 ; Print "Event handlers will capture game state directly
+" (48 chars via loop)
+      8: UNKNOWN_OP_88
+      9: UNKNOWN_OP_86 ; Print "No pointer dereferencing = maximum speed!
+" (42 chars via loop)
+     10: return
+
+Function examples.true_smc_lambda_working.main() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "=================================
+" (34 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "TRUE SMC Lambdas - MinZ Vision
+" (31 chars via loop)
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "=================================
+
+" (35 chars via loop)
+      6: UNKNOWN_OP_88
+      7: UNKNOWN_OP_86 ; Print "Current Status:
+" (16 chars via loop)
+      8: UNKNOWN_OP_88
+      9: UNKNOWN_OP_86 ; Print "â Lambda syntax supported
+" (31 chars via loop)
+     10: UNKNOWN_OP_88
+     11: UNKNOWN_OP_86 ; Print "â Capture by absolute address
+" (35 chars via loop)
+     12: UNKNOWN_OP_88
+     13: UNKNOWN_OP_86 ; Print "â SMC optimization ready
+" (30 chars via loop)
+     14: UNKNOWN_OP_88
+     15: UNKNOWN_OP_86 ; Print "â³ Lambda calling (coming soon)
+
+" (37 chars via loop)
+     16: r9 = call demonstrate_lambda_syntax
+     17: UNKNOWN_OP_88
+     18: UNKNOWN_OP_86 ; Print "
+--- Performance Analysis ---
+" (30 chars via loop)
+     19: r11 = call traditional_closure_overhead
+     20: r12 = call true_smc_lambda_magic
+     21: UNKNOWN_OP_88
+     22: UNKNOWN_OP_86 ; Print "
+--- Use Case Patterns ---
+" (27 chars via loop)
+     23: UNKNOWN_OP_88
+     24: UNKNOWN_OP_86 ; Print "Iterator pattern: " (18 chars via loop)
+     25: r15 = call create_range_iterator
+     26: r16 = call pixel_shader_pattern
+     27: r17 = call game_event_pattern
+     28: UNKNOWN_OP_88
+     29: UNKNOWN_OP_86 ; Print "
+=================================
+" (35 chars via loop)
+     30: UNKNOWN_OP_88
+     31: UNKNOWN_OP_86 ; Print "The Future is Self-Modifying! ð
+" (39 chars via loop)
+     32: UNKNOWN_OP_88
+     33: UNKNOWN_OP_86 ; Print "=================================
+" (34 chars via loop)
+     34: return
+

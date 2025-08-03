@@ -230,14 +230,15 @@ cd tests/e2e && go run main.go performance
 
 ## Documentation
 
-### Available Docs
-- [Language Reference](docs/language-reference.md) - MinZ syntax guide
-- [Compiler Architecture](docs/minz-compiler-architecture.md) - Implementation details
+### Core Documentation
+- [Compiler Snapshot](COMPILER_SNAPSHOT.md) - Current state, features, and known issues
+- [REPL Implementation](docs/124_MinZ_REPL_Implementation.md) - Interactive development environment
 - [Technical Reports](docs/) - Research notes and experiments
 
-### Getting Started
-- [Getting Started Guide](docs/getting-started.md) - Setup instructions
-- [ZX Spectrum Guide](docs/zx-spectrum-guide.md) - Platform-specific notes
+### Design Documents
+- [Local Functions Design](docs/125_Local_Functions_Design.md) - Lexical scope and closures
+- [TRUE SMC Design](docs/018_TRUE_SMC_Design_v2.md) - Self-modifying code optimization
+- [Lambda Design](docs/094_Lambda_Design_Complete.md) - Lambda expressions
 
 ## Examples
 

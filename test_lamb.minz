@@ -1,0 +1,1 @@
+let f = lamb(x: u8) -> u8 { return x + 1; };

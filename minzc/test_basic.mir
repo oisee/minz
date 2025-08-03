@@ -1,0 +1,27 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_basic.add(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...test_basic.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = 10
+      2: r4 = call add
+      3: store , r4
+      4: UNKNOWN_OP_87 ; Direct print "Result: " (8 chars)
+      5: r5 = load result
+      6: UNKNOWN_OP_82
+      7: UNKNOWN_OP_87 ; Direct print "
+" (1 chars)
+      8: return
+

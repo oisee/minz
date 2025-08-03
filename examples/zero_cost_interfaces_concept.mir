@@ -1,0 +1,253 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.zero_cost_interfaces_concept.sprite_draw(s: *examples.zero_cost_interfaces_concept.Sprite) -> void
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field height (offset 3)
+      2: UNKNOWN_OP_81
+      3: return
+
+Function examples.zero_cost_interfaces_concept.text_draw(t: *examples.zero_cost_interfaces_concept.Text) -> void
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field len (offset 2)
+      2: UNKNOWN_OP_81
+      3: return
+
+Function examples.zero_cost_interfaces_concept.circle_draw(c: *examples.zero_cost_interfaces_concept.Circle) -> void
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field r (offset 2)
+      2: UNKNOWN_OP_81
+      3: return
+
+Function examples.zero_cost_interfaces_concept.render_sprite(s: *examples.zero_cost_interfaces_concept.Sprite) -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Rendering: " (11 chars via loop)
+      2: LOAD_PARAM
+      3: r4 = call sprite_draw
+      4: return
+
+Function examples.zero_cost_interfaces_concept.render_text(t: *examples.zero_cost_interfaces_concept.Text) -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Rendering: " (11 chars via loop)
+      2: LOAD_PARAM
+      3: r4 = call text_draw
+      4: return
+
+Function examples.zero_cost_interfaces_concept.render_circle(c: *examples.zero_cost_interfaces_concept.Circle) -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Rendering: " (11 chars via loop)
+      2: LOAD_PARAM
+      3: r4 = call circle_draw
+      4: return
+
+Function examples.zero_cost_interfaces_concept.vtable_dispatch(vtable: *examples.zero_cost_interfaces_concept.VTableDrawable) -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Traditional vtable dispatch:
+" (29 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "  LD HL, (vtable)     ; 16 T-states
+" (36 chars via loop)
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "  LD E, (HL)          ; 7 T-states
+" (35 chars via loop)
+      6: UNKNOWN_OP_88
+      7: UNKNOWN_OP_86 ; Print "  INC HL              ; 6 T-states
+" (35 chars via loop)
+      8: UNKNOWN_OP_88
+      9: UNKNOWN_OP_86 ; Print "  LD D, (HL)          ; 7 T-states
+" (35 chars via loop)
+     10: UNKNOWN_OP_88
+     11: UNKNOWN_OP_86 ; Print "  CALL (DE)           ; 17 T-states
+" (36 chars via loop)
+     12: UNKNOWN_OP_88
+     13: UNKNOWN_OP_86 ; Print "  Total: 53 T-states!
+" (22 chars via loop)
+     14: return
+
+Function examples.zero_cost_interfaces_concept.zero_cost_dispatch() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "
+MinZ zero-cost dispatch:
+" (26 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "  CALL sprite_draw    ; 17 T-states
+" (36 chars via loop)
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "  Total: 17 T-states!
+" (22 chars via loop)
+      6: UNKNOWN_OP_88
+      7: UNKNOWN_OP_86 ; Print "  Savings: 36 T-states (68% faster!)
+" (37 chars via loop)
+      8: return
+
+Function examples.zero_cost_interfaces_concept.game_object_update(obj: *examples.zero_cost_interfaces_concept.GameObject) -> void
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field sprite (offset 0)
+      2: UNKNOWN_OP_68
+      3: r5 = call sprite_draw
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "  (Would check collision here)
+" (31 chars via loop)
+      6: return
+
+Function examples.zero_cost_interfaces_concept.demonstrate_monomorphization() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "
+=== Monomorphization ===
+" (26 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "Generic function calls create specialized versions:
+
+" (53 chars via loop)
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "render<Sprite>(s) generates:
+" (29 chars via loop)
+      6: UNKNOWN_OP_88
+      7: UNKNOWN_OP_86 ; Print "  render_sprite: CALL sprite_draw
+
+" (35 chars via loop)
+      8: UNKNOWN_OP_88
+      9: UNKNOWN_OP_86 ; Print "render<Text>(t) generates:
+" (27 chars via loop)
+     10: UNKNOWN_OP_88
+     11: UNKNOWN_OP_86 ; Print "  render_text: CALL text_draw
+
+" (31 chars via loop)
+     12: UNKNOWN_OP_88
+     13: UNKNOWN_OP_86 ; Print "render<Circle>(c) generates:
+" (29 chars via loop)
+     14: UNKNOWN_OP_88
+     15: UNKNOWN_OP_86 ; Print "  render_circle: CALL circle_draw
+
+" (35 chars via loop)
+     16: UNKNOWN_OP_88
+     17: UNKNOWN_OP_86 ; Print "No runtime type checking needed!
+" (33 chars via loop)
+     18: return
+
+Function examples.zero_cost_interfaces_concept.main() -> void
+  @smc
+  Locals:
+    r4 = s: examples.zero_cost_interfaces_concept.Sprite
+    r13 = t: examples.zero_cost_interfaces_concept.Text
+    r20 = c: examples.zero_cost_interfaces_concept.Circle
+    r38 = vtable: examples.zero_cost_interfaces_concept.VTableDrawable
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "=====================================
+" (38 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "Zero-Cost Interfaces Concept Demo
+" (34 chars via loop)
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "=====================================
+
+" (39 chars via loop)
+      6: r5 = 10
+      7: r6 = load s
+      8: STORE_FIELD ; Store to field x (offset 0)
+      9: r7 = 20
+     10: r8 = load s
+     11: STORE_FIELD ; Store to field y (offset 1)
+     12: r9 = 32
+     13: r10 = load s
+     14: STORE_FIELD ; Store to field width (offset 2)
+     15: r11 = 24
+     16: r12 = load s
+     17: STORE_FIELD ; Store to field height (offset 3)
+     18: r14 = 50
+     19: r15 = load t
+     20: STORE_FIELD ; Store to field x (offset 0)
+     21: r16 = 10
+     22: r17 = load t
+     23: STORE_FIELD ; Store to field y (offset 1)
+     24: r18 = 12
+     25: r19 = load t
+     26: STORE_FIELD ; Store to field len (offset 2)
+     27: r21 = 128
+     28: r22 = load c
+     29: STORE_FIELD ; Store to field cx (offset 0)
+     30: r23 = 96
+     31: r24 = load c
+     32: STORE_FIELD ; Store to field cy (offset 1)
+     33: r25 = 25
+     34: r26 = load c
+     35: STORE_FIELD ; Store to field r (offset 2)
+     36: UNKNOWN_OP_88
+     37: UNKNOWN_OP_86 ; Print "=== Direct Specialized Calls ===
+" (33 chars via loop)
+     38: r28 = load s
+     39: UNKNOWN_OP_68
+     40: r30 = call render_sprite
+     41: r31 = load t
+     42: UNKNOWN_OP_68
+     43: r33 = call render_text
+     44: r34 = load c
+     45: UNKNOWN_OP_68
+     46: r36 = call render_circle
+     47: UNKNOWN_OP_88
+     48: UNKNOWN_OP_86 ; Print "
+=== Performance Analysis ===
+" (30 chars via loop)
+     49: r39 = 32768
+     50: r40 = load vtable
+     51: STORE_FIELD ; Store to field draw_fn (offset 0)
+     52: r41 = 36864
+     53: r42 = load vtable
+     54: STORE_FIELD ; Store to field data (offset 2)
+     55: r43 = load vtable
+     56: UNKNOWN_OP_68
+     57: r45 = call vtable_dispatch
+     58: r46 = call zero_cost_dispatch
+     59: r47 = call demonstrate_monomorphization
+     60: UNKNOWN_OP_88
+     61: UNKNOWN_OP_86 ; Print "
+=== Benefits ===
+" (18 chars via loop)
+     62: UNKNOWN_OP_88
+     63: UNKNOWN_OP_86 ; Print "â No vtables in memory
+" (28 chars via loop)
+     64: UNKNOWN_OP_88
+     65: UNKNOWN_OP_86 ; Print "â No indirect calls
+" (25 chars via loop)
+     66: UNKNOWN_OP_88
+     67: UNKNOWN_OP_86 ; Print "â Compile-time type checking
+" (34 chars via loop)
+     68: UNKNOWN_OP_88
+     69: UNKNOWN_OP_86 ; Print "â Can inline interface methods
+" (36 chars via loop)
+     70: UNKNOWN_OP_88
+     71: UNKNOWN_OP_86 ; Print "â 68% faster than vtable dispatch
+" (39 chars via loop)
+     72: UNKNOWN_OP_88
+     73: UNKNOWN_OP_86 ; Print "
+=====================================
+" (39 chars via loop)
+     74: UNKNOWN_OP_88
+     75: UNKNOWN_OP_86 ; Print "Future MinZ: Interfaces with ZERO cost!
+" (40 chars via loop)
+     76: UNKNOWN_OP_88
+     77: UNKNOWN_OP_86 ; Print "=====================================
+" (38 chars via loop)
+     78: return
+

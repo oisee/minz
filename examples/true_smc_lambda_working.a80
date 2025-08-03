@@ -1,0 +1,936 @@
+; MinZ generated code
+; Generated: 2025-08-02 23:01:52
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 33    ; Length
+    DB "Lambda would capture multiplier: "
+str_1:
+    DB 37    ; Length
+    DB "Direct patching into code - no heap!"
+    DB 10
+str_2:
+    DB 26    ; Length
+    DB "Traditional closure size: "
+str_3:
+    DB 35    ; Length
+    DB "Traditional overhead: 38+ T-states"
+    DB 10
+str_4:
+    DB 43    ; Length
+    DB "TRUE SMC lambda size: 0 bytes (it's code!)"
+    DB 10
+str_5:
+    DB 30    ; Length
+    DB "TRUE SMC overhead: 0 T-states"
+    DB 10
+str_6:
+    DB 31    ; Length
+    DB "Performance gain: 3-5x faster!"
+    DB 10
+str_7:
+    DB 28    ; Length
+    DB "Shader captures: brightness="
+str_8:
+    DB 11    ; Length
+    DB ", contrast="
+str_9:
+    DB 35    ; Length
+    DB "Zero memory access during shading!"
+    DB 10
+str_10:
+    DB 48    ; Length
+    DB "Event handlers will capture game state directly"
+    DB 10
+str_11:
+    DB 42    ; Length
+    DB "No pointer dereferencing = maximum speed!"
+    DB 10
+str_12:
+    DB 34    ; Length
+    DB "================================="
+    DB 10
+str_13:
+    DB 31    ; Length
+    DB "TRUE SMC Lambdas - MinZ Vision"
+    DB 10
+str_14:
+    DB 35    ; Length
+    DB "================================="
+    DB 10
+    DB 10
+str_15:
+    DB 16    ; Length
+    DB "Current Status:"
+    DB 10
+str_16:
+    DB 31    ; Length
+    DB 226
+    DB 156
+    DB 147
+    DB " Lambda syntax supported"
+    DB 10
+str_17:
+    DB 35    ; Length
+    DB 226
+    DB 156
+    DB 147
+    DB " Capture by absolute address"
+    DB 10
+str_18:
+    DB 30    ; Length
+    DB 226
+    DB 156
+    DB 147
+    DB " SMC optimization ready"
+    DB 10
+str_19:
+    DB 37    ; Length
+    DB 226
+    DB 143
+    DB 179
+    DB " Lambda calling (coming soon)"
+    DB 10
+    DB 10
+str_20:
+    DB 30    ; Length
+    DB 10
+    DB "--- Performance Analysis ---"
+    DB 10
+str_21:
+    DB 27    ; Length
+    DB 10
+    DB "--- Use Case Patterns ---"
+    DB 10
+str_22:
+    DB 18    ; Length
+    DB "Iterator pattern: "
+str_23:
+    DB 35    ; Length
+    DB 10
+    DB "================================="
+    DB 10
+str_24:
+    DB 39    ; Length
+    DB "The Future is Self-Modifying! "
+    DB 240
+    DB 159
+    DB 154
+    DB 128
+    DB 10
+str_25:
+    DB 34    ; Length
+    DB "================================="
+    DB 10
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: std.mem.fill
+std.mem.fill:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = 0
+    LD A, 0
+    ; Register 5 already in A
+    ; store , r5
+    LD ($F008), HL
+    ; loop_3:
+loop_3:
+    ; r6 = load i
+    LD HL, ($F008)
+std.mem.fill_param_len:
+    LD BC, #0000   ; SMC parameter len
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = r6 < r7
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    LD B, H
+    LD C, L
+    ; jump_if_not r8, end_loop_4
+    LD A, C
+    OR A
+    JP Z, end_loop_4
+std.mem.fill_param_value:
+    LD DE, #0000   ; SMC parameter value (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+; TSMC reference parameter dst
+dst$immOP:
+    LD HL, 0000      ; TSMC ref address for dst
+dst$imm0 EQU dst$immOP+1
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r11 = load i
+    LD HL, ($F008)
+    ; Calculate array element address
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    POP HL
+    LD (HL), A
+    ; r13 = load i
+    LD HL, ($F008)
+    ; Register 13 already in HL
+    ; r14 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r15 = r13 + r14
+    ; Register 13 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 15 already in HL
+    ; store i, r15
+    ; Register 15 already in HL
+    LD ($F008), HL
+    ; jump loop_3
+    JP loop_3
+    ; end_loop_4:
+end_loop_4:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: std.mem.compare
+std.mem.compare:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; store , r5
+    ; Register 5 already in HL
+    LD ($F008), HL
+    ; loop_5:
+loop_5:
+    ; r6 = load i
+    LD HL, ($F008)
+std.mem.compare_param_len:
+    LD BC, #0000   ; SMC parameter len
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; Register 7 already in HL
+    ; r8 = r6 < r7
+    LD D, H
+    LD E, L
+    ; Register 7 already in HL
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    ; jump_if_not r8, end_loop_6
+    LD A, H
+    OR A
+    JP Z, end_loop_6
+; TSMC reference parameter a
+a$immOP:
+    LD HL, 0000      ; TSMC ref address for a
+a$imm0 EQU a$immOP+1
+    ; r10 = load i
+    LD HL, ($F008)
+    ; Register 10 already in HL
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+; TSMC reference parameter b
+b$immOP:
+    LD HL, 0000      ; TSMC ref address for b
+b$imm0 EQU b$immOP+1
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; r13 = load i
+    LD HL, ($F008)
+    ; Load array element (u8)
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r15 = r11 < r14
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L5
+    LD HL, 0
+    JP .L6
+.L5:
+    LD HL, 1
+.L6:
+    ; jump_if_not r15, else_7
+    LD A, H
+    OR A
+    JP Z, else_7
+    ; r16 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r17 = -r16
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; Register 17 already in HL
+    ; return r17
+    ; Register 17 already in HL
+    RET
+    ; jump end_if_8
+    JP end_if_8
+    ; else_7:
+else_7:
+    LD HL, (a$imm0) ; Reload TSMC ref address
+    ; r19 = load i
+    LD HL, ($F008)
+    ; Register 19 already in HL
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    LD HL, (b$imm0) ; Reload TSMC ref address
+    LD ($F02A), HL    ; Virtual register 21 to memory
+    ; r22 = load i
+    LD HL, ($F008)
+    ; Load array element (u8)
+    LD HL, ($F02A)    ; Virtual register 21 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r24 = r20 > r23
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L8
+    JP P, .L7
+    LD HL, 0
+    JP .L8
+.L7:
+    LD HL, 1
+.L8:
+    ; jump_if_not r24, else_9
+    LD A, H
+    OR A
+    JP Z, else_9
+    ; r25 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; return r25
+    RET
+    ; jump end_if_10
+    JP end_if_10
+    ; else_9:
+else_9:
+    ; end_if_10:
+end_if_10:
+    ; end_if_8:
+end_if_8:
+    ; r26 = load i
+    LD HL, ($F008)
+    ; Register 26 already in HL
+    ; r27 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r28 = r26 + r27
+    ; Register 26 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F038), HL    ; Virtual register 28 to memory
+    ; store i, r28
+    LD HL, ($F038)    ; Virtual register 28 from memory
+    LD ($F008), HL
+    ; jump loop_5
+    JP loop_5
+    ; end_loop_6:
+end_loop_6:
+    ; r29 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; return r29
+    ; Register 29 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.demonstrate_lambda_syntax
+examples.true_smc_lambda_working.demonstrate_lambda_syntax:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; store , r2
+    LD A, H
+    LD ($F002), A
+    ; r3 = string(str_0)
+    LD HL, str_0
+    ; Register 3 already in HL
+    ; Print "Lambda would capture multiplier: " (33 chars via loop)
+    ; Register 3 already in HL
+    CALL print_string
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; r4 = string(str_1)
+    LD HL, str_1
+    ; Print "Direct patching into code - no heap!
+" (37 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.self_modifying_counter
+examples.true_smc_lambda_working.self_modifying_counter:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; store , r2
+    LD A, L
+    LD ($F002), A
+    ; r3 = load count
+    LD A, ($F002)
+    LD H, A         ; Store to physical register H
+    ; r4 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 5 already in HL
+    ; store count, r5
+    LD A, L
+    LD ($F002), A
+    ; r6 = load count
+    LD A, ($F002)
+    LD L, A         ; Store to physical register L
+    ; return r6
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.traditional_closure_overhead
+examples.true_smc_lambda_working.traditional_closure_overhead:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 32768
+    LD HL, 32768
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; r3 = load closure
+    LD HL, ($F002)
+    ; Register 3 already in HL
+    ; Store to field fn_ptr (offset 0)
+    ; Register 3 already in HL
+    PUSH HL
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r4 = 42
+    LD A, 42
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = load closure
+    LD HL, ($F002)
+    ; Store to field capture1 (offset 2)
+    LD DE, 2
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r6 = 7
+    LD A, 7
+    LD L, A         ; Store to physical register L
+    ; r7 = load closure
+    LD HL, ($F002)
+    ; Register 7 already in HL
+    ; Store to field capture2 (offset 3)
+    ; Register 7 already in HL
+    LD DE, 3
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r8 = string(str_2)
+    LD HL, str_2
+    ; Print "Traditional closure size: " (26 chars via loop)
+    CALL print_string
+    ; Direct print " bytes
+" (7 chars)
+    ; Direct print " bytes
+" (7 chars)
+    LD A, 32
+    RST 16             ; Print character
+    LD A, 98
+    RST 16             ; Print character
+    LD A, 121
+    RST 16             ; Print character
+    LD A, 116
+    RST 16             ; Print character
+    LD A, 101
+    RST 16             ; Print character
+    LD A, 115
+    RST 16             ; Print character
+    LD A, 10
+    RST 16             ; Print character
+    ; r9 = string(str_3)
+    LD HL, str_3
+    ; Print "Traditional overhead: 38+ T-states
+" (35 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.true_smc_lambda_magic
+examples.true_smc_lambda_working.true_smc_lambda_magic:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_4)
+    LD HL, str_4
+    ; Register 1 already in HL
+    ; Print "TRUE SMC lambda size: 0 bytes (it's code!)
+" (43 chars via loop)
+    ; Register 1 already in HL
+    CALL print_string
+    ; r2 = string(str_5)
+    LD HL, str_5
+    ; Print "TRUE SMC overhead: 0 T-states
+" (30 chars via loop)
+    CALL print_string
+    ; r3 = string(str_6)
+    LD HL, str_6
+    ; Print "Performance gain: 3-5x faster!
+" (31 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.create_range_iterator
+examples.true_smc_lambda_working.create_range_iterator:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store , r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD ($F002), A
+    ; r4 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; store , r4
+    LD A, L
+    LD ($F006), A
+    ; r6 = load start
+    LD A, ($F002)
+    LD H, A         ; Store to physical register H
+    ; store , r6
+    LD A, H
+    LD ($F00A), A
+    ; loop_17:
+loop_17:
+    ; r7 = load current
+    LD A, ($F00A)
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = load end
+    LD A, ($F006)
+    LD H, A         ; Store to physical register H
+    ; r9 = r7 < r8
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L9
+    LD HL, 0
+    JP .L10
+.L9:
+    LD HL, 1
+.L10:
+    ; jump_if_not r9, end_loop_18
+    LD A, L
+    OR A
+    JP Z, end_loop_18
+    ; r10 = load current
+    LD A, ($F00A)
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; print_u8(r10)
+    LD A, ($F014)     ; Virtual register 10 from memory
+    CALL print_u8_decimal
+    ; r11 = load current
+    LD A, ($F00A)
+    LD H, A         ; Store to physical register H
+    ; r12 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r13 = r11 + r12
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 13 already in HL
+    ; store current, r13
+    LD A, L
+    LD ($F00A), A
+    ; jump loop_17
+    JP loop_17
+    ; end_loop_18:
+end_loop_18:
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.pixel_shader_pattern
+examples.true_smc_lambda_working.pixel_shader_pattern:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 128
+    LD A, 128
+    LD H, A         ; Store to physical register H
+    ; store , r2
+    LD A, H
+    LD ($F002), A
+    ; r4 = 2
+    LD A, 2
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; store , r4
+    LD A, ($F008)     ; Virtual register 4 from memory
+    LD ($F006), A
+    ; r5 = string(str_7)
+    LD HL, str_7
+    ; Print "Shader captures: brightness=" (28 chars via loop)
+    CALL print_string
+    ; r6 = string(str_8)
+    LD HL, str_8
+    ; Register 6 already in HL
+    ; Print ", contrast=" (11 chars via loop)
+    ; Register 6 already in HL
+    CALL print_string
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; r7 = string(str_9)
+    LD HL, str_9
+    ; Print "Zero memory access during shading!
+" (35 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.game_event_pattern
+examples.true_smc_lambda_working.game_event_pattern:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 100
+    LD A, 100
+    LD L, A         ; Store to physical register L
+    ; store , r2
+    LD A, L
+    LD ($F002), A
+    ; r4 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; store , r4
+    LD ($F006), HL
+    ; r6 = 1
+    LD A, 1
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; store , r6
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD ($F00A), A
+    ; r7 = string(str_10)
+    LD HL, str_10
+    ; Print "Event handlers will capture game state directly
+" (48 chars via loop)
+    CALL print_string
+    ; r8 = string(str_11)
+    LD HL, str_11
+    ; Register 8 already in HL
+    ; Print "No pointer dereferencing = maximum speed!
+" (42 chars via loop)
+    ; Register 8 already in HL
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.main
+examples.true_smc_lambda_working.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_12)
+    LD HL, str_12
+    ; Print "=================================
+" (34 chars via loop)
+    CALL print_string
+    ; r2 = string(str_13)
+    LD HL, str_13
+    ; Print "TRUE SMC Lambdas - MinZ Vision
+" (31 chars via loop)
+    CALL print_string
+    ; r3 = string(str_14)
+    LD HL, str_14
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; Print "=================================
+
+" (35 chars via loop)
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    CALL print_string
+    ; r4 = string(str_15)
+    LD HL, str_15
+    ; Print "Current Status:
+" (16 chars via loop)
+    CALL print_string
+    ; r5 = string(str_16)
+    LD HL, str_16
+    ; Print "â Lambda syntax supported
+" (31 chars via loop)
+    CALL print_string
+    ; r6 = string(str_17)
+    LD HL, str_17
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; Print "â Capture by absolute address
+" (35 chars via loop)
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    CALL print_string
+    ; r7 = string(str_18)
+    LD HL, str_18
+    ; Print "â SMC optimization ready
+" (30 chars via loop)
+    CALL print_string
+    ; r8 = string(str_19)
+    LD HL, str_19
+    ; Print "â³ Lambda calling (coming soon)
+
+" (37 chars via loop)
+    CALL print_string
+    ; r9 = call demonstrate_lambda_syntax
+    ; Call to demonstrate_lambda_syntax (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.demonstrate_lambda_syntax
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; r10 = string(str_20)
+    LD HL, str_20
+    ; Print "
+--- Performance Analysis ---
+" (30 chars via loop)
+    CALL print_string
+    ; r11 = call traditional_closure_overhead
+    ; Call to traditional_closure_overhead (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.traditional_closure_overhead
+    ; r12 = call true_smc_lambda_magic
+    ; Call to true_smc_lambda_magic (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.true_smc_lambda_magic
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; r13 = string(str_21)
+    LD HL, str_21
+    ; Print "
+--- Use Case Patterns ---
+" (27 chars via loop)
+    CALL print_string
+    ; r14 = string(str_22)
+    LD HL, str_22
+    ; Print "Iterator pattern: " (18 chars via loop)
+    CALL print_string
+    ; r15 = call create_range_iterator
+    ; Call to create_range_iterator (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.create_range_iterator
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; r16 = call pixel_shader_pattern
+    ; Call to pixel_shader_pattern (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.pixel_shader_pattern
+    ; r17 = call game_event_pattern
+    ; Call to game_event_pattern (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.game_event_pattern
+    ; r18 = string(str_23)
+    LD HL, str_23
+    ; Register 18 already in HL
+    ; Print "
+=================================
+" (35 chars via loop)
+    ; Register 18 already in HL
+    CALL print_string
+    ; r19 = string(str_24)
+    LD HL, str_24
+    ; Print "The Future is Self-Modifying! ð
+" (39 chars via loop)
+    CALL print_string
+    ; r20 = string(str_25)
+    LD HL, str_25
+    ; Print "=================================
+" (34 chars via loop)
+    CALL print_string
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DJNZ print_loop    ; Decrement B and loop
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+    END main

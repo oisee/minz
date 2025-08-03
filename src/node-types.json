@@ -378,6 +378,10 @@
           "named": true
         },
         {
+          "type": "function_declaration",
+          "named": true
+        },
+        {
           "type": "statement",
           "named": true
         }
@@ -2194,6 +2198,10 @@
   },
   {
     "type": "interface",
+    "named": false
+  },
+  {
+    "type": "lamb",
     "named": false
   },
   {
