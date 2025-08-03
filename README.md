@@ -51,9 +51,34 @@ while alive { keep_going(); }
 
 // Error handling with ?? operator
 let result = risky_operation?() ?? default_value;
+
+// Zero-cost lambdas (compile-time transformation)
+let double = |x: u8| => u8 { x * 2 };
+let mapped = numbers.map(double);  // Becomes direct function call
+
+// Zero-cost iterators (experimental)
+numbers
+    .filter(|x| x > 5)      // Keep values > 5
+    .map(|x| x * 2)         // Double each
+    .forEach(print_u8);     // Print results
+// ^ Compiles to single optimized loop!
+
+// Zero-cost interfaces (experimental)
+interface Drawable {
+    fun draw(self) -> u8;
+}
+
+impl Drawable for Circle {
+    fun draw(self) -> u8 { self.radius * 2 }
+}
+
+let circle = Circle { radius: 5 };
+circle.draw()  // Direct call - no vtables!
 ```
 
 **📚 Complete syntax guide**: See our [AI Colleagues MinZ Crash Course](AI_COLLEAGUES_MINZ_CRASH_COURSE.md) for comprehensive examples and patterns.
+
+**Status**: ✅ Error propagation working | 🚧 Lambdas, iterators, interfaces experimental
 
 ## 🔬 **Research Goals: Advanced Language Features for Z80**
 
