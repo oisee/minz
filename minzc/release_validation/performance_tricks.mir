@@ -4,12 +4,14 @@
 Function ......examples.performance_tricks.fast_fill(dest: *u8, value: u8, count: u16) -> void
   @smc
   Instructions:
-      0: return
+      0: UNKNOWN_OP_73
+      1: return
 
 Function ......examples.performance_tricks.unrolled_copy(dest: *u8, src: *u8) -> void
   @smc
   Instructions:
-      0: return
+      0: UNKNOWN_OP_73
+      1: return
 
 Function ......examples.performance_tricks.lookup_mul_by_10(x: u8) -> u16
   @smc

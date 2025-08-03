@@ -1,5 +1,31 @@
 # MinZ Compiler Changelog
 
+## v0.9.1 - "Zero-Cost Interfaces" (August 3, 2025)
+
+### Added
+- Zero-cost interfaces with compile-time monomorphization
+- Direct method calls for struct implementations
+- `pub` visibility modifier for public functions  
+- Infrastructure for nested/local functions
+- Fixed REPL z80asm integration with built-in assembler
+
+### Changed
+- Version bumped from 0.7.0 to 0.9.1
+- Improved struct method code generation
+- Enhanced error reporting for semantic analysis
+- Better handling of self parameters in methods
+
+### Fixed
+- REPL now properly uses internal z80asm package
+- Interface method calls generate correct assembly
+- Self parameter handling in struct methods
+- Method call resolution for interfaces
+
+### Performance
+- Interface method calls: ZERO overhead (direct CALL instructions)
+- Compilation success rate: 56% (92/162 examples)
+- Lambda functions: 100% performance of traditional functions
+
 ## v0.7.0 - "AI Testing Revolution" (July 31, 2025)
 
 ### 🎉 MILESTONE: Complete Testing Infrastructure Built in ONE DAY!

@@ -4,17 +4,20 @@
 Function ......examples.test_simple_asm.set_border_color(color: u8) -> void
   @smc
   Instructions:
-      0: return
+      0: UNKNOWN_OP_73
+      1: return
 
 Function ......examples.test_simple_asm.clear_screen() -> void
   @smc
   Instructions:
-      0: return
+      0: UNKNOWN_OP_73
+      1: return
 
 Function ......examples.test_simple_asm.wait_loop() -> void
   @smc
   Instructions:
-      0: return
+      0: UNKNOWN_OP_73
+      1: return
 
 Function ......examples.test_simple_asm.main() -> void
   @smc

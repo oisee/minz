@@ -1123,18 +1123,26 @@ func (p *SimpleParser) parsePostfixExpression(expr ast.Expression) ast.Expressio
 				EndPos:   p.currentPos(),
 			}
 		case ".":
-			// Field access
+			// Field access or iterator method
 			p.advance() // consume '.'
 			if p.peek().Type != TokenIdent {
 				panic("expected field name after '.'")
 			}
 			fieldName := p.peek().Value
 			p.advance()
-			expr = &ast.FieldExpr{
-				Object:   expr,
-				Field:    fieldName,
-				StartPos: expr.Pos(),
-				EndPos:   p.currentPos(),
+			
+			// Check if this is an iterator method
+			if p.isIteratorMethod(fieldName) && p.peek().Value == "(" {
+				// This is an iterator method call - transform it
+				expr = p.parseIteratorMethod(expr, fieldName)
+			} else {
+				// Regular field access
+				expr = &ast.FieldExpr{
+					Object:   expr,
+					Field:    fieldName,
+					StartPos: expr.Pos(),
+					EndPos:   p.currentPos(),
+				}
 			}
 		case "(":
 			// Function call on the expression
@@ -1949,4 +1957,94 @@ func (p *SimpleParser) parseBitField() *ast.BitField {
 	field.EndPos = p.currentPos()
 	
 	return field
+}
+
+// isIteratorMethod checks if a method name is an iterator method
+func (p *SimpleParser) isIteratorMethod(name string) bool {
+	switch name {
+	case "iter", "map", "filter", "forEach", "reduce", "collect", "take", "skip", "zip":
+		return true
+	}
+	return false
+}
+
+// parseIteratorMethod parses an iterator method call and builds an iterator chain
+func (p *SimpleParser) parseIteratorMethod(object ast.Expression, method string) ast.Expression {
+	startPos := object.Pos()
+	
+	// Check if we're building on an existing chain
+	var chain *ast.IteratorChainExpr
+	if existingChain, ok := object.(*ast.IteratorChainExpr); ok {
+		chain = existingChain
+	} else {
+		// Start a new chain
+		chain = &ast.IteratorChainExpr{
+			Source:     object,
+			Operations: []ast.IteratorOp{},
+			StartPos:   startPos,
+		}
+	}
+	
+	// Parse the method call
+	p.expect(TokenPunc, "(")
+	
+	var opType ast.IteratorOpType
+	var function ast.Expression
+	
+	switch method {
+	case "iter":
+		// iter() has no arguments, just starts the chain
+		p.expect(TokenPunc, ")")
+		chain.EndPos = p.currentPos()
+		return chain
+		
+	case "map":
+		opType = ast.IterOpMap
+		function = p.parseExpression()
+		
+	case "filter":
+		opType = ast.IterOpFilter
+		function = p.parseExpression()
+		
+	case "forEach":
+		opType = ast.IterOpForEach
+		function = p.parseExpression()
+		
+	case "reduce":
+		opType = ast.IterOpReduce
+		function = p.parseExpression()
+		// TODO: Handle initial value for reduce
+		
+	case "collect":
+		opType = ast.IterOpCollect
+		// No arguments for collect
+		
+	case "take":
+		opType = ast.IterOpTake
+		function = p.parseExpression() // Number to take
+		
+	case "skip":
+		opType = ast.IterOpSkip
+		function = p.parseExpression() // Number to skip
+		
+	case "zip":
+		opType = ast.IterOpZip
+		function = p.parseExpression() // Other iterator
+		
+	default:
+		panic("unknown iterator method: " + method)
+	}
+	
+	p.expect(TokenPunc, ")")
+	
+	// Add the operation to the chain
+	chain.Operations = append(chain.Operations, ast.IteratorOp{
+		Type:     opType,
+		Function: function,
+		StartPos: startPos,
+		EndPos:   p.currentPos(),
+	})
+	
+	chain.EndPos = p.currentPos()
+	return chain
 }

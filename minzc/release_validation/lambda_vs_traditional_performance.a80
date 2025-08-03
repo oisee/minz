@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:11
+; Generated: 2025-08-03 15:05:43
 
 
 ; Code section
@@ -93,11 +93,11 @@ c$imm0 EQU c$immOP+1
 x$immOP:
     LD A, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
-    LD H, A         ; Store to physical register H
+    LD L, A         ; Store to physical register L
 y$immOP:
     LD A, 0        ; y anchor (will be patched)
 y$imm0 EQU y$immOP+1
-    LD ($F006), A     ; Virtual register 3 to memory
+    LD L, A         ; Store to physical register L
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -106,10 +106,13 @@ y$imm0 EQU y$immOP+1
 ......examples.lambda_vs_traditional_performance.lambda_approach$multiply_1:
 ; TRUE SMC function with immediate anchors
 x$immOP:
-    LD D, 0        ; x anchor (will be patched)
+    LD A, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
 factor$immOP:
-    LD E, 0        ; factor anchor (will be patched)
+    LD A, 0        ; factor anchor (will be patched)
 factor$imm0 EQU factor$immOP+1
     ; return
     RET
@@ -122,18 +125,17 @@ a$immOP:
     LD C, 0        ; a anchor (will be patched)
 a$imm0 EQU a$immOP+1
 b$immOP:
-    LD A, 0        ; b anchor (will be patched)
+    LD C, 0        ; b anchor (will be patched)
 b$imm0 EQU b$immOP+1
-    LD ($F00C), A     ; Virtual register 6 to memory
     ; r7 = call add
     ; Call to add (args: 2)
     ; Stack-based parameter passing
-    LD HL, ($F00C)    ; Virtual register 6 from memory
     PUSH HL       ; Argument 1
     PUSH HL       ; Argument 0
     CALL add
+    LD ($F00E), HL    ; Virtual register 7 to memory
 c$immOP:
-    LD E, 0        ; c anchor (will be patched)
+    LD D, 0        ; c anchor (will be patched)
 c$imm0 EQU c$immOP+1
     ; r11 = call multiply
     ; Call to multiply (args: 2)
@@ -290,6 +292,7 @@ c$imm0 EQU c$immOP+1
     ; Call to test_traditional_performance (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL ......examples.lambda_vs_traditional_performance.test_traditional_performance
+    LD ($F004), HL    ; Virtual register 2 to memory
     ; r4 = call test_lambda_performance
     ; Call to test_lambda_performance (args: 0)
     ; Found function, UsesTrueSMC=false

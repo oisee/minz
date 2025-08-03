@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:13
+; Generated: 2025-08-03 15:05:44
 
 
 ; Code section
@@ -78,33 +78,35 @@ for_end_2:
     ; Store to array[index] (u8)
     LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL
-    ; Register 2 already in A
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
     POP HL
     LD (HL), A
     ; Store to array[index] (u8)
-    LD HL, ($F012)    ; Virtual register 9 from memory
     PUSH HL
-    ; Register 6 already in A
+    LD A, H
     POP HL
     LD (HL), A
     ; Load array element (u8)
     PUSH HL
-    LD A, ($F016)     ; Virtual register 11 from memory
-    LD E, A
-    LD D, 0
-    POP HL
-    ADD HL, DE
-    LD A, (HL)
-    ; Register 12 already in A
-    ; Load array element (u8)
-    PUSH HL
-    LD A, C
+    LD A, E
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
     LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    PUSH HL
+    LD A, D
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD D, A         ; Store to physical register D
     ; r16 = r12 + r15
     LD D, H
     LD E, L
@@ -151,10 +153,10 @@ for_end_2:
 loop_3:
     ; r5 = load i
     LD A, ($F002)
-    LD E, A         ; Store to physical register E
+    ; Register 5 already in A
     ; r6 = 5
     LD A, 5
-    LD C, A         ; Store to physical register C
+    LD L, A         ; Store to physical register L
     ; r7 = r5 < r6
     LD D, H
     LD E, L
@@ -167,9 +169,8 @@ loop_3:
 .L3:
     LD HL, 1
 .L4:
-    LD ($F00E), HL    ; Virtual register 7 to memory
     ; jump_if_not r7, end_loop_4
-    LD A, ($F00E)     ; Virtual register 7 from memory
+    LD A, L
     OR A
     JP Z, end_loop_4
     ; jump loop_3
@@ -178,7 +179,7 @@ loop_3:
 end_loop_4:
     ; r14 = load sum
     LD A, ($F006)
-    LD C, A         ; Store to physical register C
+    ; Register 14 already in A
     ; return r14
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -187,11 +188,11 @@ end_loop_4:
 ......examples.test_what_works.test_if:
 ; TRUE SMC function with immediate anchors
 x$immOP:
-    LD C, 0        ; x anchor (will be patched)
+    LD E, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
     ; r3 = 10
     LD A, 10
-    ; Register 3 already in A
+    LD E, A         ; Store to physical register E
     ; r4 = r2 > r3
     LD D, H
     LD E, L
@@ -206,7 +207,7 @@ x$imm0 EQU x$immOP+1
     LD HL, 1
 .L6:
     ; jump_if_not r4, else_5
-    ; Register 4 already in A
+    LD A, E
     OR A
     JP Z, else_5
     LD A, (x$imm0)    ; Reuse from anchor
@@ -233,18 +234,20 @@ x$imm0 EQU x$immOP+1
 .shl_done_6:
     LD L, A
     LD H, 0
+    LD ($F00E), HL    ; Virtual register 7 to memory
     ; return r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
     RET
     ; else_5:
 else_5:
     LD A, (x$imm0)    ; Reuse from anchor
     EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
+    LD E', A         ; Store to shadow E'
     EXX               ; Switch back to main registers
     ; r9 = 5
     LD A, 5
     EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
+    LD E', A         ; Store to shadow E'
     EXX               ; Switch back to main registers
     ; r10 = r8 + r9
     LD D, H
@@ -264,9 +267,7 @@ ptr$imm0 EQU ptr$immOP+1
     ; r4 = *r3
     LD HL, ($F006)    ; Virtual register 3 from memory
     LD A, (HL)
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    ; Register 4 already in A
     LD HL, (ptr$imm0)   ; Reuse from anchor
     LD D, H
     LD E, L

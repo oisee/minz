@@ -31,12 +31,12 @@
 | bit_fields | ✅ | 2 | 70 | 3857 | 0
 0D/0
 0L | Yes(4) |
-| bit_manipulation | ✅ | 5 | 185 | 12453 | 0⚡0D/0⚡0L | Yes(31) |
+| bit_manipulation | ❌ | - | - | - | - | - |
 | const_only | ✅ | 0
 0 | 59 | 2013 | 0
 0D/0
 0L | No |
-| control_flow | ✅ | 2 | 127 | 5724 | 0
+| control_flow | ✅ | 2 | 126 | 5673 | 0
 0D/0
 0L | Yes(3) |
 | debug_lambda | ✅ | 1 | 60 | 2278 | 0
@@ -44,9 +44,9 @@
 0L | Yes(2) |
 | editor_demo | ❌ | - | - | - | - | - |
 | editor_standalone | ❌ | - | - | - | - | - |
-| enums | ✅ | 3 | 207 | 11892 | 0⚡0D/0⚡0L | Yes(31) |
+| enums | ❌ | - | - | - | - | - |
 | error_handling_demo | ❌ | - | - | - | - | - |
-| fibonacci_tail | ✅ | 3 | 76 | 3521 | 0⚡0D/0⚡0L | Yes(9) |
+| fibonacci_tail | ❌ | - | - | - | - | - |
 | fibonacci | ✅ | 2 | 100 | 4339 | 0
 0D/0
 0L | Yes(6) |
@@ -81,7 +81,7 @@
 0D/0
 0L | Yes(7) |
 | lambda_showcase | ❌ | - | - | - | - | - |
-| lambda_simple_e2e | ✅ | 5 | 123 | 8903 | 0
+| lambda_simple_e2e | ✅ | 5 | 125 | 9007 | 0
 0D/0
 0L | Yes(19) |
 | lambda_simple_fix | ✅ | 2 | 75 | 3689 | 0
@@ -100,7 +100,7 @@
 | lambda_transform_test | ✅ | 5 | 123 | 9360 | 0
 0D/0
 0L | Yes(20) |
-| lambda_vs_traditional_performance | ✅ | 7 | 206 | 16634 | 0
+| lambda_vs_traditional_performance | ✅ | 7 | 208 | 16738 | 0
 0D/0
 0L | Yes(31) |
 | lambda_vs_traditional | ❌ | - | - | - | - | - |
@@ -168,20 +168,20 @@
 | smc_optimization_simple | ❌ | - | - | - | - | - |
 | smc_optimization | ❌ | - | - | - | - | - |
 | smc_recursion | ❌ | - | - | - | - | - |
-| stack_variables | ✅ | 6 | 148 | 9673 | 0
+| stack_variables | ✅ | 6 | 148 | 9481 | 0
 0D/0
 0L | Yes(21) |
 | stdlib_basic_test | ❌ | - | - | - | - | - |
 | stdlib_metafunction_test | ❌ | - | - | - | - | - |
 | string_architecture_showcase | ❌ | - | - | - | - | - |
-| string_operations | ✅ | 2 | 99 | 5182 | 0⚡0D/0⚡0L | Yes(5) |
+| string_operations | ❌ | - | - | - | - | - |
 | tail_recursive | ❌ | - | - | - | - | - |
-| tail_sum | ✅ | 2 | 62 | 2889 | 0⚡0D/0⚡0L | Yes(5) |
+| tail_sum | ❌ | - | - | - | - | - |
 | test_16bit_smc | ✅ | 2 | 105 | 5322 | 0
 0D/0
 0L | Yes(6) |
 | test_abi_comparison | ❌ | - | - | - | - | - |
-| test_abi | ✅ | 5 | 124 | 6704 | 0
+| test_abi | ✅ | 5 | 128 | 6752 | 0
 0D/0
 0L | Yes(15) |
 | test_array_access | ✅ | 2 | 90 | 3438 | 0
@@ -213,7 +213,7 @@
 | test_cast | ✅ | 1 | 60 | 2272 | 0
 0D/0
 0L | Yes(2) |
-| test_complex_assign_simple | ✅ | 3 | 145 | 5744 | 0
+| test_complex_assign_simple | ✅ | 3 | 147 | 5762 | 0
 0D/0
 0L | Yes(8) |
 | test_complex_assignments | ✅ | 0
@@ -278,7 +278,7 @@
 0D/0
 0L | Yes(2) |
 | test_print_interpolation | ✅ | 1 | 112 | 4382 | 6D/2L | Yes(2) |
-| test_range_comprehensive | ✅ | 4 | 182 | 9409 | 0
+| test_range_comprehensive | ✅ | 4 | 184 | 9557 | 0
 0D/0
 0L | Yes(12) |
 | test_range_simple | ✅ | 0
@@ -324,10 +324,10 @@
 | test_true_smc_call | ✅ | 2 | 93 | 4606 | 0
 0D/0
 0L | Yes(8) |
-| test_what_works | ✅ | 8 | 207 | 11172 | 0
+| test_what_works | ✅ | 8 | 207 | 11176 | 0
 0D/0
 0L | Yes(22) |
-| traffic_light_fsm | ✅ | 5 | 206 | 12810 | 10D/6L | Yes(23) |
+| traffic_light_fsm | ✅ | 5 | 208 | 12802 | 10D/6L | Yes(23) |
 | true_smc_lambda_working | ❌ | - | - | - | - | - |
 | true_smc_lambdas | ❌ | - | - | - | - | - |
 | tsmc_loops_simple | ✅ | 1 | 83 | 4176 | 0
@@ -338,7 +338,7 @@
 | types_demo | ✅ | 5 | 116 | 7362 | 0
 0D/0
 0L | Yes(6) |
-| working_demo | ✅ | 8 | 268 | 14384 | 0
+| working_demo | ✅ | 8 | 276 | 14400 | 0
 0D/0
 0L | Yes(25) |
 | zero_cost_abstractions_demo | ❌ | - | - | - | - | - |

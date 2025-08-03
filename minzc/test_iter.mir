@@ -1,0 +1,11 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_iter_simple.main() -> void
+  @smc
+  Locals:
+    r1 = arr: [5]u8
+  Instructions:
+      0: r2 = load arr
+      1: return
+

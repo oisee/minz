@@ -1,8 +1,8 @@
 // Test 16-bit arithmetic operations
 
-global u16 g_sum = 0;
-global u16 g_diff = 0;
-global u16 g_product = 0;
+global g_sum: u16 = 0;
+global g_diff: u16 = 0;
+global g_product: u16 = 0;
 
 fn test_16bit_ops() -> void {
     let a: u16 = 0x1234;

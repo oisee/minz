@@ -1,0 +1,38 @@
+// Test simple interface method calls
+
+interface Drawable {
+    fun draw(self) -> u8;
+}
+
+struct Circle {
+    radius: u8
+}
+
+impl Drawable for Circle {
+    fun draw(self) -> u8 {
+        return self.radius * 2;
+    }
+}
+
+struct Rectangle {
+    width: u8,
+    height: u8
+}
+
+impl Drawable for Rectangle {
+    fun draw(self) -> u8 {
+        return self.width + self.height;
+    }
+}
+
+fun main() -> void {
+    let circle = Circle { radius: 5 };
+    let rect = Rectangle { width: 10, height: 20 };
+    
+    // Direct method calls - should work with monomorphization
+    let c_result = circle.draw();
+    let r_result = rect.draw();
+    
+    @print("Circle diameter: {}\n", c_result);
+    @print("Rectangle half-perimeter: {}\n", r_result);
+}

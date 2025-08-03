@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:11
+; Generated: 2025-08-03 15:05:42
 
 
 ; Code section
@@ -15,11 +15,10 @@ x$immOP:
 x$imm0 EQU x$immOP+1
     ; r3 = 10
     LD A, 10
-    LD ($F006), A     ; Virtual register 3 to memory
+    LD B, A         ; Store to physical register B
     ; r4 = r2 > r3
     LD D, H
     LD E, L
-    LD HL, ($F006)    ; Virtual register 3 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -35,10 +34,10 @@ x$imm0 EQU x$immOP+1
     OR A
     JP Z, else_1
     LD A, (x$imm0)    ; Reuse from anchor
-    LD D, A         ; Store to physical register D
+    LD ($F00A), A     ; Virtual register 5 to memory
     ; r7 = r5 << r0
     ; Shift left
-    LD A, D
+    LD A, ($F00A)     ; Virtual register 5 from memory
     LD B, A       ; B = value to shift
     LD A, ($F000)     ; Virtual register 0 from memory
     LD C, A       ; C = shift count
@@ -100,7 +99,7 @@ else_1:
     ; else_3:
 else_3:
     LD A, (x$imm0)    ; Reuse from anchor
-    LD B, A         ; Store to physical register B
+    LD D, A         ; Store to physical register D
     ; return r14
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -112,13 +111,11 @@ else_3:
 loop_5:
     ; r6 = load i
     LD A, ($F008)
-    LD B, A         ; Store to physical register B
+    LD D, A         ; Store to physical register D
 n$immOP:
     LD A, 0        ; n anchor (will be patched)
 n$imm0 EQU n$immOP+1
-    EXX               ; Switch to shadow registers
-    LD E', A         ; Store to shadow E'
-    EXX               ; Switch back to main registers
+    LD H, A         ; Store to physical register H
     ; r8 = r6 < r7
     LD D, H
     LD E, L
@@ -132,9 +129,7 @@ n$imm0 EQU n$immOP+1
     LD HL, 1
 .L7:
     ; jump_if_not r8, end_loop_6
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
+    LD A, H
     OR A
     JP Z, end_loop_6
     ; jump loop_5
@@ -143,9 +138,7 @@ n$imm0 EQU n$immOP+1
 end_loop_6:
     ; r15 = load sum
     LD A, ($F004)
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD B, A         ; Store to physical register B
     ; return r15
     RET
 

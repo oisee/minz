@@ -12,7 +12,7 @@ import (
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/semantic"
-	// "github.com/minz/minzc/pkg/z80asm" // TODO: integrate when API is ready
+	"github.com/minz/minzc/pkg/z80asm"
 )
 
 // CompileResult holds the result of compilation
@@ -185,26 +185,31 @@ func (c *REPLCompiler) compile(source string, ctx *Context) (*CompileResult, err
 	}
 	
 	// Assemble to machine code using the built-in assembler
-	// For now, we'll use a simple placeholder since the actual assembler 
-	// integration needs more work
-	// TODO: Integrate z80asm properly
-	machineCode := []byte{0x00, 0xC9} // NOP, RET for now
+	assembler := z80asm.NewAssembler()
+	asmResult, err := assembler.AssembleString(assembly)
+	if err != nil {
+		result.Errors = append(result.Errors, fmt.Sprintf("assembly error: %v", err))
+		return result, err
+	}
 	
-	// In the future, we would call:
-	// assembler := z80asm.NewAssembler()
-	// machineCode, err := assembler.AssembleString(assembly)
-	// if err != nil { ... }
+	machineCode := asmResult.Binary
 	
 	result.MachineCode = machineCode
-	result.EntryPoint = c.nextCode
+	result.EntryPoint = asmResult.Origin
 	
 	// Update next code position
 	c.nextCode += uint16(len(machineCode))
 	
-	// Extract function addresses from IR
+	// Extract function addresses from assembly symbols
+	for name, addr := range asmResult.Symbols {
+		result.Functions[name] = addr
+	}
+	
+	// Extract function addresses from IR as fallback
 	for _, fn := range irModule.Functions {
-		// Functions start at the code base
-		result.Functions[fn.Name] = c.nextCode
+		if _, exists := result.Functions[fn.Name]; !exists {
+			result.Functions[fn.Name] = c.nextCode
+		}
 	}
 	
 	// TODO: Extract variable addresses from IR globals when available

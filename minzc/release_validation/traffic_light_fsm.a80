@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:13
+; Generated: 2025-08-03 15:05:44
 
 
 ; Data section
@@ -111,9 +111,10 @@ loop_16:
 .L1:
     LD HL, 1
 .L2:
-    LD ($F010), HL    ; Virtual register 8 to memory
     ; jump_if_not r8, end_loop_17
-    LD A, ($F010)     ; Virtual register 8 from memory
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, end_loop_17
     ; Direct print "Cycle " (6 chars)
@@ -131,9 +132,7 @@ loop_16:
     LD A, 32
     RST 16             ; Print character
     ; print_u8(r9)
-    EXX               ; Switch to shadow registers
-    LD A, E'         ; From shadow E'
-    EXX               ; Switch back to main registers
+    LD A, ($F012)     ; Virtual register 9 from memory
     CALL print_u8_decimal
     ; Direct print ": State " (8 chars)
     ; Direct print ": State " (8 chars)
@@ -211,6 +210,7 @@ loop_16:
     LD A, ($F020)     ; Virtual register 16 from memory
     LD (event$imm0), A        ; Patch event
     CALL ......examples.traffic_light_fsm.transition
+    LD ($F022), HL    ; Virtual register 17 to memory
     ; jump loop_16
     JP loop_16
     ; end_loop_17:
@@ -235,7 +235,6 @@ EMERGENCY! Switching to flashing...
     LD A, ($F02E)     ; Virtual register 23 from memory
     LD (event$imm0), A        ; Patch event
     CALL ......examples.traffic_light_fsm.transition
-    LD ($F030), HL    ; Virtual register 24 to memory
     ; r25 = string(str_3)
     LD HL, str_3
     ; Print "Emergency state: " (17 chars via loop)
@@ -250,8 +249,9 @@ EMERGENCY! Switching to flashing...
     LD A, ($F034)     ; Virtual register 26 from memory
     LD (state$imm0), A        ; Patch state
     CALL ......examples.traffic_light_fsm.get_color_code
+    LD ($F036), HL    ; Virtual register 27 to memory
     ; print_u8(r27)
-    LD A, D
+    LD A, ($F036)     ; Virtual register 27 from memory
     CALL print_u8_decimal
     ; Direct print "
 " (1 chars)
@@ -293,7 +293,7 @@ EMERGENCY! Switching to flashing...
     LD (state$imm0), A        ; Patch state
     CALL ......examples.traffic_light_fsm.get_color_code
     ; print_u8(r34)
-    ; Register 34 already in A
+    LD A, C
     CALL print_u8_decimal
     ; Direct print "
 " (1 chars)

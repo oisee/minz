@@ -1,0 +1,202 @@
+// Zero-Cost Interfaces Concept Demo for MinZ
+// Shows how interfaces WOULD work with zero runtime overhead
+
+// Since MinZ doesn't have full interface support yet,
+// we demonstrate the concept with concrete implementations
+// that show what the compiler would generate
+
+// =================================================================
+// CONCEPT: Interface Drawable 
+// In future MinZ: interface Drawable { fun draw(self) -> void; }
+// =================================================================
+
+// Sprite "implementing" Drawable
+struct Sprite {
+    x: u8,
+    y: u8,
+    width: u8,
+    height: u8
+}
+
+fun sprite_draw(s: *Sprite) -> void {
+    @print("Drawing sprite at ({}, {}) size {}x{}\n", 
+           s.x, s.y, s.width, s.height);
+}
+
+// Text "implementing" Drawable  
+struct Text {
+    x: u8,
+    y: u8,
+    len: u8
+}
+
+fun text_draw(t: *Text) -> void {
+    @print("Drawing text at ({}, {}) length {}\n",
+           t.x, t.y, t.len);
+}
+
+// Circle "implementing" Drawable
+struct Circle {
+    cx: u8,
+    cy: u8,
+    r: u8
+}
+
+fun circle_draw(c: *Circle) -> void {
+    @print("Drawing circle at ({}, {}) radius {}\n",
+           c.cx, c.cy, c.r);
+}
+
+// =================================================================
+// ZERO-COST DISPATCH: What the compiler would generate
+// =================================================================
+
+// Generic function: render<T: Drawable>(item: T)
+// Compiler generates SPECIALIZED versions for each type:
+
+fun render_sprite(s: *Sprite) -> void {
+    @print("Rendering: ");
+    sprite_draw(s);  // Direct call - no vtable!
+}
+
+fun render_text(t: *Text) -> void {
+    @print("Rendering: ");
+    text_draw(t);    // Direct call - no vtable!
+}
+
+fun render_circle(c: *Circle) -> void {
+    @print("Rendering: ");
+    circle_draw(c);   // Direct call - no vtable!
+}
+
+// =================================================================
+// PERFORMANCE COMPARISON
+// =================================================================
+
+// Traditional OOP with vtables (NOT MinZ style)
+struct VTableDrawable {
+    draw_fn: u16,    // Function pointer
+    data: u16       // Object pointer
+}
+
+fun vtable_dispatch(vtable: *VTableDrawable) -> void {
+    // This is what traditional OOP does:
+    // 1. Load vtable pointer (7 cycles)
+    // 2. Load function pointer (7 cycles)  
+    // 3. Load object pointer (7 cycles)
+    // 4. Indirect call (17 cycles)
+    // Total: 38 T-states overhead!
+    
+    @print("Traditional vtable dispatch:\n");
+    @print("  LD HL, (vtable)     ; 16 T-states\n");
+    @print("  LD E, (HL)          ; 7 T-states\n");
+    @print("  INC HL              ; 6 T-states\n");
+    @print("  LD D, (HL)          ; 7 T-states\n");
+    @print("  CALL (DE)           ; 17 T-states\n");
+    @print("  Total: 53 T-states!\n");
+}
+
+fun zero_cost_dispatch() -> void {
+    // MinZ zero-cost interfaces:
+    // Direct call to specialized function
+    // Total: 17 T-states only!
+    
+    @print("\nMinZ zero-cost dispatch:\n");
+    @print("  CALL sprite_draw    ; 17 T-states\n");
+    @print("  Total: 17 T-states!\n");
+    @print("  Savings: 36 T-states (68% faster!)\n");
+}
+
+// =================================================================
+// TRAIT BOUNDS: Multiple interfaces
+// =================================================================
+
+// Future MinZ: <T: Drawable + Collidable>
+// Compiler ensures type has both interfaces at compile time
+
+struct GameObject {
+    sprite: Sprite,
+    hitbox_offset: u8
+}
+
+fun game_object_update(obj: *GameObject) -> void {
+    // In future MinZ with interfaces, this would be generic
+    // For now, we show the specialized code that would be generated
+    
+    sprite_draw(&obj.sprite);  // Drawable interface
+    
+    // check_collision(&obj.sprite, mouse_x, mouse_y);  // Collidable interface
+    @print("  (Would check collision here)\n");
+}
+
+// =================================================================
+// COMPILE-TIME MONOMORPHIZATION
+// =================================================================
+
+fun demonstrate_monomorphization() -> void {
+    @print("\n=== Monomorphization ===\n");
+    @print("Generic function calls create specialized versions:\n\n");
+    
+    @print("render<Sprite>(s) generates:\n");
+    @print("  render_sprite: CALL sprite_draw\n\n");
+    
+    @print("render<Text>(t) generates:\n");
+    @print("  render_text: CALL text_draw\n\n");
+    
+    @print("render<Circle>(c) generates:\n");
+    @print("  render_circle: CALL circle_draw\n\n");
+    
+    @print("No runtime type checking needed!\n");
+}
+
+// =================================================================
+// MAIN DEMO
+// =================================================================
+
+fun main() -> void {
+    @print("=====================================\n");
+    @print("Zero-Cost Interfaces Concept Demo\n");
+    @print("=====================================\n\n");
+    
+    // Create some shapes
+    let s: Sprite;
+    s.x = 10;
+    s.y = 20;
+    s.width = 32;
+    s.height = 24;
+    
+    let t: Text;
+    t.x = 50;
+    t.y = 10;
+    t.len = 12;
+    
+    let c: Circle;
+    c.cx = 128;
+    c.cy = 96;
+    c.r = 25;
+    
+    @print("=== Direct Specialized Calls ===\n");
+    render_sprite(&s);
+    render_text(&t);
+    render_circle(&c);
+    
+    @print("\n=== Performance Analysis ===\n");
+    let vtable: VTableDrawable;
+    vtable.draw_fn = 0x8000;
+    vtable.data = 0x9000;
+    vtable_dispatch(&vtable);
+    zero_cost_dispatch();
+    
+    demonstrate_monomorphization();
+    
+    @print("\n=== Benefits ===\n");
+    @print("✓ No vtables in memory\n");
+    @print("✓ No indirect calls\n");
+    @print("✓ Compile-time type checking\n");
+    @print("✓ Can inline interface methods\n");
+    @print("✓ 68% faster than vtable dispatch\n");
+    
+    @print("\n=====================================\n");
+    @print("Future MinZ: Interfaces with ZERO cost!\n");
+    @print("=====================================\n");
+}

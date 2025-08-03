@@ -170,6 +170,8 @@ module.exports = grammar({
 
     error_type: $ => 'Error',
 
+    // Visibility modifiers
+    visibility: $ => 'pub',
 
     // Declarations
     declaration: $ => choice(
@@ -359,6 +361,7 @@ module.exports = grammar({
       $.continue_statement,
       $.block_statement,
       $.variable_declaration,
+      $.function_declaration,  // Allow nested functions!
       $.defer_statement,
       $.case_statement,
       $.asm_block,

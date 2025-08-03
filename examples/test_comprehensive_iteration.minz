@@ -1,0 +1,108 @@
+// Comprehensive Iteration Test - Strings, Small Arrays, Large Arrays
+// Tests our iteration patterns across different data types
+
+fun test_string_iteration() -> void {
+    // Test short string (should use DJNZ pattern)
+    let short_msg: *u8 = "Hello!";
+    
+    @print("Testing short string iteration:\n");
+    // This should compile to DJNZ-optimized loop
+    let i: u8 = 0;
+    while (i < short_msg[0]) {
+        let char = short_msg[i + 1];
+        @print("Char: ");
+        // TODO: print_char when implemented
+        i += 1;
+    }
+    @print("\n");
+}
+
+fun test_small_array() -> void {
+    // Test small array (≤255 elements, perfect for DJNZ)
+    let scores: [u8; 10] = [85, 92, 76, 88, 95, 79, 83, 91, 87, 89];
+    
+    @print("Testing small array (should use DJNZ):\n");
+    
+    // Manual iteration to test current system
+    let total: u16 = 0;
+    let i: u8 = 0;
+    while (i < 10) {
+        total += scores[i] as u16;
+        i += 1;
+    }
+    
+    @print("Average score: ");
+    print_u16(total / 10);
+    @print("\n");
+}
+
+fun test_pointer_iteration() -> void {
+    // Test pointer-based iteration (optimal for Z80)
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    @print("Testing pointer iteration:\n");
+    
+    // This is the pattern our iterators should compile to
+    let ptr: *u8 = &numbers[0];
+    let count: u8 = 5;
+    let sum: u16 = 0;
+    
+    // Simulating DJNZ pattern:
+    // LD HL, ptr; LD B, count; loop: LD A,(HL); ADD sum; INC HL; DJNZ loop
+    let i: u8 = 0;
+    while (i < count) {
+        sum += ptr[i] as u16;
+        i += 1;
+    }
+    
+    @print("Sum via pointer: ");
+    print_u16(sum);
+    @print("\n");
+}
+
+// Future: Test what our iterator system will look like
+/*
+fun test_future_iterators() -> void {
+    let scores: [u8; 10] = [85, 92, 76, 88, 95, 79, 83, 91, 87, 89];
+    
+    // This is what we're building towards:
+    let high_scores = scores
+        .filter(|x| x >= 90)        // Keep high scores
+        .map(|x| x + 5)             // Bonus points
+        .collect();                 // Materialize
+        
+    high_scores.forEach(|score| {
+        print_u8(score);
+        @print(" ");
+    });
+}
+*/
+
+fun demonstrate_z80_patterns() -> void {
+    @print("=== Z80-Optimal Iteration Patterns ===\n");
+    @print("1. Small arrays (≤255): Use DJNZ instruction\n");
+    @print("2. Large arrays (>255): Use 16-bit counters\n"); 
+    @print("3. Strings: Auto-detect u8/u16 length\n");
+    @print("4. Pointer arithmetic: HL + element_size\n");
+    @print("\nCurrent system demonstrates foundation for:\n");
+    @print("- Zero-cost iterator chains\n");
+    @print("- DJNZ optimization\n");
+    @print("- Fusion compilation\n");
+}
+
+fun main() -> void {
+    @print("=== Comprehensive Iteration System Test ===\n\n");
+    
+    test_string_iteration();
+    @print("\n");
+    
+    test_small_array();
+    @print("\n");
+    
+    test_pointer_iteration();
+    @print("\n");
+    
+    demonstrate_z80_patterns();
+    
+    @print("\n=== Test Complete ===\n");
+}

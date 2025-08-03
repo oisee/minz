@@ -5,7 +5,7 @@ struct TestStruct {
 }
 
 // This works: basic types
-global u8 simple_global = 42;
+global simple_global: u8 = 42;
 
 // This should work: struct type
 global TestStruct struct_global;

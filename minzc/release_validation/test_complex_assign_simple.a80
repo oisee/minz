@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:12
+; Generated: 2025-08-03 15:05:44
 
 
 ; Code section
@@ -14,26 +14,28 @@
     ; Store to array[index] (u8)
     LD HL, ($F00A)    ; Virtual register 5 from memory
     PUSH HL
-    LD A, B
+    LD A, ($F004)     ; Virtual register 2 from memory
     POP HL
     LD (HL), A
     ; Store to array[index] (u8)
     PUSH HL
-    LD A, ($F00C)     ; Virtual register 6 from memory
-    POP HL
-    LD (HL), A
-    ; Store to array[index] (u8)
-    LD HL, ($F01A)    ; Virtual register 13 from memory
-    PUSH HL
-    LD A, ($F014)     ; Virtual register 10 from memory
+    LD A, D
     POP HL
     LD (HL), A
     ; Store to array[index] (u8)
     PUSH HL
-    LD A, ($F020)     ; Virtual register 16 from memory
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; Store to array[index] (u8)
+    PUSH HL
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
     POP HL
     LD (HL), A
     ; Load array element (u8)
+    LD HL, ($F028)    ; Virtual register 20 from memory
     PUSH HL
     EXX               ; Switch to shadow registers
     LD A, E'         ; From shadow E'
@@ -43,47 +45,48 @@
     POP HL
     ADD HL, DE
     LD A, (HL)
-    EXX               ; Switch to shadow registers
-    LD C', A         ; Store to shadow C'
-    EXX               ; Switch back to main registers
+    LD ($F02C), A     ; Virtual register 22 to memory
     ; Load array element (u8)
+    LD HL, ($F02E)    ; Virtual register 23 from memory
     PUSH HL
-    LD A, D
+    LD A, B
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    EXX               ; Switch to shadow registers
-    LD B', A         ; Store to shadow B'
-    EXX               ; Switch back to main registers
+    LD B, A         ; Store to physical register B
     ; r26 = r22 + r25
+    LD HL, ($F02C)    ; Virtual register 22 from memory
     LD D, H
     LD E, L
     ADD HL, DE
     ; Load array element (u8)
-    LD HL, ($F036)    ; Virtual register 27 from memory
     PUSH HL
-    LD A, E
+    LD A, B
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    LD H, A         ; Store to physical register H
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
     ; r30 = r26 + r29
     LD D, H
     LD E, L
     ADD HL, DE
     ; Load array element (u8)
     PUSH HL
-    ; Register 32 already in A
+    LD A, B
     LD E, A
     LD D, 0
     POP HL
     ADD HL, DE
     LD A, (HL)
-    LD H, A         ; Store to physical register H
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; r34 = r30 + r33
     LD D, H
     LD E, L
@@ -99,7 +102,9 @@
     PUSH DE
     ; r6 = load v
     LD HL, ($F002)
+    LD ($F00C), HL    ; Virtual register 6 to memory
     ; Load field x (offset 0)
+    LD HL, ($F00C)    ; Virtual register 6 from memory
     LD E, (HL)
     INC HL
     LD D, (HL)
@@ -132,14 +137,13 @@
     ; Call to test_arrays (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL ......examples.test_complex_assign_simple.test_arrays
-    LD ($F004), HL    ; Virtual register 2 to memory
     ; r4 = call test_structs
     ; Call to test_structs (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL ......examples.test_complex_assign_simple.test_structs
     ; r5 = load a
     LD A, ($F002)
-    LD B, A         ; Store to physical register B
+    ; Register 5 already in A
     ; return r5
     POP DE
     POP BC

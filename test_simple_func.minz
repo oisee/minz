@@ -1,0 +1,14 @@
+// Test without nested functions for now
+fun helper(x: u8) -> u8 {
+    return x * 2;
+}
+
+fun test_func() -> u8 {
+    let x: u8 = 10;
+    return helper(x);
+}
+
+fun main() -> void {
+    let result = test_func();
+    @print("Result: {}\n", result);  // Should print 20
+}

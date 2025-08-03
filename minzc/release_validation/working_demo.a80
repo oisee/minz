@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:13
+; Generated: 2025-08-03 15:05:45
 
 
 ; Code section
@@ -71,11 +71,10 @@ else_1:
     EXX               ; Switch back to main registers
     ; r9 = 3
     LD A, 3
-    LD ($F012), A     ; Virtual register 9 to memory
+    LD C, A         ; Store to physical register C
     ; r10 = r8 == r9
     LD D, H
     LD E, L
-    LD HL, ($F012)    ; Virtual register 9 from memory
     EX DE, HL
     OR A      ; Clear carry
     SBC HL, DE
@@ -85,20 +84,21 @@ else_1:
 .L3:
     LD HL, 1
 .L4:
+    LD ($F014), HL    ; Virtual register 10 to memory
     ; jump_if_not r10, else_3
-    LD A, C
+    LD A, ($F014)     ; Virtual register 10 from memory
     OR A
     JP Z, else_3
     ; r11 = 0
     LD A, 0
-    ; Register 11 already in A
+    LD B, A         ; Store to physical register B
     ; return r11
     RET
     ; else_3:
 else_3:
     ; r12 = 1
     LD A, 1
-    ; Register 12 already in A
+    LD B, A         ; Store to physical register B
     ; return r12
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -110,7 +110,9 @@ else_3:
     PUSH DE
     ; r5 = load p
     LD HL, ($F002)
+    LD ($F00A), HL    ; Virtual register 5 to memory
     ; Load field x (offset 0)
+    LD HL, ($F00A)    ; Virtual register 5 from memory
     LD E, (HL)
     INC HL
     LD D, (HL)
@@ -155,7 +157,7 @@ else_3:
     JP Z, else_5
     ; r12 = 0
     LD A, 0
-    LD E, A         ; Store to physical register E
+    LD H, A         ; Store to physical register H
     ; return r12
     POP DE
     RET
@@ -163,7 +165,7 @@ else_3:
 else_5:
     ; r13 = 1
     LD A, 1
-    LD E, A         ; Store to physical register E
+    LD H, A         ; Store to physical register H
     ; return r13
     POP DE
     RET
@@ -173,10 +175,10 @@ else_5:
 ......examples.working_demo.test_lambdas$add_0:
 ; TRUE SMC function with immediate anchors
 x$immOP:
-    LD D, 0        ; x anchor (will be patched)
+    LD C, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
 y$immOP:
-    LD D, 0        ; y anchor (will be patched)
+    LD C, 0        ; y anchor (will be patched)
 y$imm0 EQU y$immOP+1
     ; return
     RET
@@ -200,7 +202,7 @@ y$imm0 EQU y$immOP+1
     LD HL, ($F002)
     ; r6 = 40
     LD A, 40
-    LD D, A         ; Store to physical register D
+    LD E, A         ; Store to physical register E
     ; r7 = r5 == r6
     LD D, H
     LD E, L

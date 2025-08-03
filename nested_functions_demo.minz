@@ -1,0 +1,156 @@
+// Nested Functions Demo - Real practical uses on Z80!
+
+// Example 1: Parser with nested helper functions
+fun parse_number(str: *u8) -> u16 {
+    let result: u16 = 0;
+    let pos: u8 = 0;
+    
+    // Local helper to check if char is digit
+    fun is_digit(ch: u8) -> bool {
+        return ch >= '0' && ch <= '9';
+    }
+    
+    // Local helper to convert char to digit
+    fun to_digit(ch: u8) -> u8 {
+        return ch - '0';
+    }
+    
+    // Parse the string using helpers
+    while str[pos] != 0 {
+        if !is_digit(str[pos]) {
+            break;
+        }
+        result = result * 10 + to_digit(str[pos]);
+        pos = pos + 1;
+    }
+    
+    return result;
+}
+
+// Example 2: Graphics routine with coordinate helpers
+fun draw_sprite(x: u8, y: u8, sprite: *u8) -> void {
+    let screen_addr: u16;
+    let sprite_byte: u8;
+    
+    // Local function to calculate screen address
+    fun calc_screen_addr(px: u8, py: u8) -> u16 {
+        // ZX Spectrum screen layout calculation
+        let addr: u16 = 0x4000;
+        addr = addr + (py & 0xC0) << 5;
+        addr = addr + (py & 0x07) << 8;
+        addr = addr + (py & 0x38) << 2;
+        addr = addr + (px >> 3);
+        return addr;
+    }
+    
+    // Local function to get sprite byte
+    fun get_sprite_byte(row: u8) -> u8 {
+        return sprite[row];
+    }
+    
+    // Draw 8x8 sprite
+    for row in 0..8 {
+        screen_addr = calc_screen_addr(x, y + row);
+        sprite_byte = get_sprite_byte(row);
+        @abi("register: HL=addr, A=value") 
+        fun poke(addr: u16, value: u8) -> void;
+        poke(screen_addr, sprite_byte);
+    }
+}
+
+// Example 3: State machine with nested state handlers
+fun run_game_loop() -> void {
+    let state: u8 = 0;  // 0=menu, 1=playing, 2=game_over
+    let score: u16 = 0;
+    let lives: u8 = 3;
+    
+    // Nested state handler functions
+    fun handle_menu() -> u8 {
+        @print("SPACE to start\n");
+        if get_key() == ' ' {
+            score = 0;
+            lives = 3;
+            return 1;  // Go to playing state
+        }
+        return 0;  // Stay in menu
+    }
+    
+    fun handle_playing() -> u8 {
+        score = score + 1;
+        @print("Score: {}\n", score);
+        
+        if check_collision() {
+            lives = lives - 1;
+            if lives == 0 {
+                return 2;  // Game over
+            }
+        }
+        return 1;  // Keep playing
+    }
+    
+    fun handle_game_over() -> u8 {
+        @print("GAME OVER! Score: {}\n", score);
+        @print("Press SPACE for menu\n");
+        if get_key() == ' ' {
+            return 0;  // Back to menu
+        }
+        return 2;  // Stay in game over
+    }
+    
+    // Main game loop using nested handlers
+    loop {
+        if state == 0 {
+            state = handle_menu();
+        } else if state == 1 {
+            state = handle_playing();
+        } else {
+            state = handle_game_over();
+        }
+    }
+}
+
+// Example 4: Quicksort with nested partition function
+fun quicksort(arr: *u8, low: u8, high: u8) -> void {
+    // Nested partition function has access to arr
+    fun partition(l: u8, h: u8) -> u8 {
+        let pivot = arr[h];
+        let i = l - 1;
+        
+        for j in l..h {
+            if arr[j] < pivot {
+                i = i + 1;
+                // Swap arr[i] and arr[j]
+                let temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
+        
+        // Swap arr[i+1] and arr[h]
+        let temp = arr[i + 1];
+        arr[i + 1] = arr[h];
+        arr[h] = temp;
+        
+        return i + 1;
+    }
+    
+    if low < high {
+        let pi = partition(low, high);
+        
+        if pi > 0 {
+            quicksort(arr, low, pi - 1);
+        }
+        quicksort(arr, pi + 1, high);
+    }
+}
+
+fun main() -> void {
+    // Test number parser
+    let num = parse_number("12345");
+    @print("Parsed: {}\n", num);
+    
+    // The nested functions make the code much cleaner!
+    // No need to pass 'arr' to partition every time
+    // No need for global helper functions cluttering namespace
+    // Everything is nicely encapsulated!
+}

@@ -1,0 +1,22 @@
+// Test print_u8 and print_u16 built-in functions
+
+fun main() -> void {
+    let x: u8 = 42;
+    let y: u16 = 1234;
+    
+    @print("Testing print_u8: ");
+    print_u8(x);
+    @print("\n");
+    
+    @print("Testing print_u16: ");
+    print_u16(y);
+    @print("\n");
+    
+    // Test in loop
+    @print("Counting: ");
+    for i in 1..5 {
+        print_u8(i);
+        @print(" ");
+    }
+    @print("\n");
+}

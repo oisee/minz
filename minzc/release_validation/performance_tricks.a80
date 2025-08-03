@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:12
+; Generated: 2025-08-03 15:05:43
 
 
 ; Code section
@@ -11,6 +11,27 @@
 ......examples.performance_tricks.fast_fill:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
+    ; asm {         LD A, value     ; This will be patched by SMC
+        LD BC, count
+        LD HL, dest
+    fill_loop:
+        LD (HL), A
+        INC HL
+        DEC BC
+        LD A, B
+        OR C
+        JR NZ, fill_loop
+     }
+    LD A, value     ; This will be patched by SMC
+    LD BC, count
+    LD HL, dest
+fill_loop:
+    LD (HL), A
+    INC HL
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, fill_loop
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -19,6 +40,81 @@
 ......examples.performance_tricks.unrolled_copy:
 ; IsSMCDefault=false, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
+    ; asm {         LD HL, src
+        LD DE, dest
+        
+        ; Unrolled 8 times
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+     }
+    LD HL, src
+    LD DE, dest
+    ; Unrolled 8 times
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)

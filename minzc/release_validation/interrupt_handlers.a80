@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:11
+; Generated: 2025-08-03 15:05:42
 
 
 ; Code section
@@ -11,6 +11,23 @@
 ......examples.interrupt_handlers.fast_interrupt_handler:
 ; IsSMCDefault=false, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
+    ; asm {         EXX             // Switch to shadow registers
+        EX AF, AF'      // Switch AF with shadow AF'
+        
+        // Handler code here - can use all registers freely
+        LD A, 0xFF
+        OUT (0xFE), A   // Example: set border
+        
+        EX AF, AF'      // Restore main AF
+        EXX             // Restore main registers
+     }
+    EXX             // Switch to shadow registers
+    EX AF, AF'      // Switch AF with shadow AF'
+    // Handler code here - can use all registers freely
+    LD A, 0xFF
+    OUT (0xFE), A   // Example: set border
+    EX AF, AF'      // Restore main AF
+    EXX             // Restore main registers
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -19,6 +36,37 @@
 ......examples.interrupt_handlers.timer_interrupt:
 ; IsSMCDefault=false, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
+    ; asm {         PUSH AF
+        PUSH BC
+        PUSH DE
+        PUSH HL
+        
+        // Increment timer counter
+        LD HL, (timer_ticks)
+        INC HL
+        LD (timer_ticks), HL
+        
+        POP HL
+        POP DE
+        POP BC
+        POP AF
+        EI
+        RETI
+     }
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    // Increment timer counter
+    LD HL, (timer_ticks)
+    INC HL
+    LD (timer_ticks), HL
+    POP HL
+    POP DE
+    POP BC
+    POP AF
+    EI
+    RETI
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -27,6 +75,17 @@
 ......examples.interrupt_handlers.setup_interrupts:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
+    ; asm {         DI              // Disable interrupts
+        IM 2            // Set interrupt mode 2
+        LD A, 0x39      // High byte of interrupt table
+        LD I, A         // Load into I register
+        EI              // Enable interrupts
+     }
+    DI              // Disable interrupts
+    IM 2            // Set interrupt mode 2
+    LD A, 0x39      // High byte of interrupt table
+    LD I, A         // Load into I register
+    EI              // Enable interrupts
     ; return
     RET
 

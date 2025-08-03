@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:12
+; Generated: 2025-08-03 15:05:43
 
 
 ; Data section
@@ -255,7 +255,7 @@ str_24:
     ; Load string "Alice"
     LD HL, str_12
     ; print_u8(r9)
-    LD A, C
+    ; Register 9 already in A
     CALL print_u8_decimal
     ; return
     RET

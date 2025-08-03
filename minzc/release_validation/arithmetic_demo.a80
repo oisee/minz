@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:11
+; Generated: 2025-08-03 15:05:42
 
 
 ; Code section
@@ -11,6 +11,31 @@
 ......examples.arithmetic_demo.test_arithmetic:
 ; IsSMCDefault=false, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
+    ; asm {         ld a, (mul_result)
+        ld (0x4000), a      ; Should be 30 (0x1E)
+        
+        ld a, (div_result)
+        ld (0x4001), a      ; Should be 5
+        
+        ld a, (mod_result)
+        ld (0x4002), a      ; Should be 2
+        
+        ld a, (shl_result)
+        ld (0x4003), a      ; Should be 12 (0x0C)
+        
+        ld a, (shr_result)
+        ld (0x4004), a      ; Should be 3
+     }
+    ld a, (mul_result)
+    ld (0x4000), a      ; Should be 30 (0x1E)
+    ld a, (div_result)
+    ld (0x4001), a      ; Should be 5
+    ld a, (mod_result)
+    ld (0x4002), a      ; Should be 2
+    ld a, (shl_result)
+    ld (0x4003), a      ; Should be 12 (0x0C)
+    ld a, (shr_result)
+    ld (0x4004), a      ; Should be 3
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)

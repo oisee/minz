@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:12
+; Generated: 2025-08-03 15:05:43
 
 
 ; Code section
@@ -27,12 +27,14 @@ y$imm0 EQU y$immOP+1
 ......examples.stack_variables.factorial:
 ; TRUE SMC function with immediate anchors
 n$immOP:
-    LD E, 0        ; n anchor (will be patched)
+    LD A, 0        ; n anchor (will be patched)
 n$imm0 EQU n$immOP+1
+    LD ($F004), A     ; Virtual register 2 to memory
     ; r3 = 1
     LD A, 1
     LD H, A         ; Store to physical register H
     ; r4 = r2 <= r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
     LD D, H
     LD E, L
     EX DE, HL
@@ -84,7 +86,7 @@ else_1:
     LD A, E'         ; From shadow E'
     EXX               ; Switch back to main registers
     LD B, A       ; B = multiplicand
-    LD A, B
+    LD A, E
     LD C, A       ; C = multiplier
     LD HL, 0      ; HL = result
     LD A, C
@@ -107,10 +109,10 @@ else_1:
 ; Using absolute addressing for locals (SMC style)
     ; r33 = load sum1
     LD A, ($F022)
-    LD B, A         ; Store to physical register B
+    LD H, A         ; Store to physical register H
     ; r34 = load sum2
     LD A, ($F032)
-    LD B, A         ; Store to physical register B
+    LD H, A         ; Store to physical register H
     ; r35 = r33 + r34
     LD D, H
     LD E, L
@@ -123,7 +125,7 @@ else_1:
 ......examples.stack_variables.outer:
 ; TRUE SMC function with immediate anchors
 x$immOP:
-    LD A, 0        ; x anchor (will be patched)
+    LD B, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
     ; r8 = call inner
     ; Call to inner (args: 1)
@@ -137,9 +139,7 @@ x$imm0 EQU x$immOP+1
     CALL ......examples.stack_variables.inner
     ; r13 = load local2
     LD A, ($F012)
-    EXX               ; Switch to shadow registers
-    LD D', A         ; Store to shadow D'
-    EXX               ; Switch back to main registers
+    LD E, A         ; Store to physical register E
     ; return r13
     POP DE
     POP BC

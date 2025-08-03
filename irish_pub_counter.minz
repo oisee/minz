@@ -1,0 +1,78 @@
+// Irish Pub Counter - Classic closure example with local functions! 🍺
+// "How many pints have we served tonight?"
+
+fun make_pub_counter(initial_pints: u16) -> fn() -> u16 {
+    let pints_served: u16 = initial_pints;
+    
+    // Local function that captures and modifies parent's variable
+    pub fun next_pint() -> u16 {
+        pints_served = pints_served + 1;  // Cheers! 🍻
+        return pints_served;
+    }
+    
+    return next_pint;  // Return the local function
+}
+
+fun irish_pub_night() -> void {
+    // It's Friday night at O'Reilly's pub!
+    let counter = make_pub_counter(100);  // Already served 100 pints today
+    
+    @print("Welcome to O'Reilly's! 🍺\n");
+    @print("Pints served so far: {}\n", 100);
+    
+    // Customers arrive...
+    @print("Customer 1: Pint #{}\n", counter());  // 101
+    @print("Customer 2: Pint #{}\n", counter());  // 102
+    @print("Customer 3: Pint #{}\n", counter());  // 103
+    
+    // Happy hour rush!
+    @print("\n🎉 Happy Hour Rush! 🎉\n");
+    let rush_counter = make_pub_counter(200);  // Different counter for happy hour
+    
+    @print("Happy Hour Pint #{}\n", rush_counter());  // 201
+    @print("Happy Hour Pint #{}\n", rush_counter());  // 202
+    
+    // Original counter still works independently
+    @print("\nBack to regular service...\n");
+    @print("Customer 4: Pint #{}\n", counter());  // 104
+    @print("Customer 5: Pint #{}\n", counter());  // 105
+    
+    @print("\nSláinte! 🍀\n");
+}
+
+// Alternative: Multiple counters for different beer types
+fun make_beer_counter(beer_type: *u8, initial: u16) -> fn() -> u16 {
+    let count: u16 = initial;
+    let beer_name: *u8 = beer_type;
+    
+    pub fun pour_one() -> u16 {
+        count = count + 1;
+        @print("Pouring {} #{}\n", beer_name, count);
+        return count;
+    }
+    
+    return pour_one;
+}
+
+fun pub_with_multiple_beers() -> void {
+    @print("\n=== The Shamrock Pub Menu ===\n");
+    
+    let guinness = make_beer_counter("Guinness", 0);
+    let smithwicks = make_beer_counter("Smithwick's", 0);
+    let harp = make_beer_counter("Harp", 0);
+    
+    // Different customers order different beers
+    guinness();     // Pouring Guinness #1
+    guinness();     // Pouring Guinness #2
+    smithwicks();   // Pouring Smithwick's #1
+    guinness();     // Pouring Guinness #3
+    harp();         // Pouring Harp #1
+    smithwicks();   // Pouring Smithwick's #2
+    
+    @print("\nWhat a grand night at the pub! 🌙\n");
+}
+
+fun main() -> void {
+    irish_pub_night();
+    pub_with_multiple_beers();
+}

@@ -687,6 +687,14 @@ func (p *Parser) convertCallExpr(node *SExpNode) ast.Expression {
 		}
 	}
 	
+	// Check if this is an iterator method call that should be transformed
+	if fieldExpr, ok := callExpr.Function.(*ast.FieldExpr); ok {
+		if p.isIteratorMethod(fieldExpr.Field) {
+			// Transform to iterator chain
+			return p.transformSExpToIteratorChain(fieldExpr, callExpr.Arguments)
+		}
+	}
+	
 	// Check if this is a metafunction call (function name starts with @)
 	if ident, ok := callExpr.Function.(*ast.Identifier); ok && strings.HasPrefix(ident.Name, "@") {
 		metafunctionName := ident.Name[1:] // Remove @ prefix
@@ -1829,4 +1837,105 @@ func unescapeString(s string) string {
 		}
 	}
 	return string(result)
+}
+
+// transformSExpToIteratorChain transforms an iterator method call into an IteratorChainExpr
+func (p *Parser) transformSExpToIteratorChain(fieldExpr *ast.FieldExpr, args []ast.Expression) ast.Expression {
+	var chain *ast.IteratorChainExpr
+	
+	// Check if the object is already a chain or a call that should be a chain
+	if existingChain, ok := fieldExpr.Object.(*ast.IteratorChainExpr); ok {
+		chain = existingChain
+	} else if callExpr, ok := fieldExpr.Object.(*ast.CallExpr); ok {
+		// Check if this call is an iterator method
+		if innerField, ok := callExpr.Function.(*ast.FieldExpr); ok {
+			if p.isIteratorMethod(innerField.Field) {
+				// Create a chain starting from the inner iterator
+				chain = &ast.IteratorChainExpr{
+					Source:     innerField.Object,
+					Operations: []ast.IteratorOp{},
+					StartPos:   innerField.Object.Pos(),
+				}
+				// Add the inner operation if it's not just "iter"
+				if innerField.Field != "iter" {
+					// TODO: Get the arguments from the inner call
+				}
+			}
+		}
+	}
+	
+	if chain == nil {
+		// Start a new chain
+		chain = &ast.IteratorChainExpr{
+			Source:     fieldExpr.Object,
+			Operations: []ast.IteratorOp{},
+			StartPos:   fieldExpr.Object.Pos(),
+		}
+	}
+	
+	// Create the iterator operation
+	var opType ast.IteratorOpType
+	var function ast.Expression
+	
+	switch fieldExpr.Field {
+	case "iter":
+		// iter() starts the chain but doesn't add an operation
+		return chain
+		
+	case "map":
+		opType = ast.IterOpMap
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "filter":
+		opType = ast.IterOpFilter
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "forEach":
+		opType = ast.IterOpForEach
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "reduce":
+		opType = ast.IterOpReduce
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "collect":
+		opType = ast.IterOpCollect
+		
+	case "take":
+		opType = ast.IterOpTake
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "skip":
+		opType = ast.IterOpSkip
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "zip":
+		opType = ast.IterOpZip
+		if len(args) > 0 {
+			function = args[0]
+		}
+	}
+	
+	// Add the operation to the chain
+	chain.Operations = append(chain.Operations, ast.IteratorOp{
+		Type:     opType,
+		Function: function,
+		StartPos: fieldExpr.StartPos,
+		EndPos:   fieldExpr.EndPos,
+	})
+	
+	chain.EndPos = fieldExpr.EndPos
+	return chain
 }

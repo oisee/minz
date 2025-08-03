@@ -1,0 +1,118 @@
+// Test String Length Handling - u8 and future u16 support
+// This tests our current string system and prepares for u16 lengths
+
+fun test_string_basics() -> void {
+    // Test basic string properties
+    let msg: *u8 = "Hello, MinZ!";
+    
+    @print("Testing string: \"");
+    @print("Hello, MinZ!");
+    @print("\"\n");
+    
+    @print("Length byte: ");
+    print_u8(*msg);
+    @print(" characters\n");
+    
+    @print("First char: ");
+    print_u8(*(msg + 1));  // 'H' = 72
+    @print(" (ASCII)\n");
+    
+    @print("Last char: ");
+    let len = *msg;
+    print_u8(*(msg + len));  // '!' = 33
+    @print(" (ASCII)\n");
+}
+
+fun iterate_string_manual() -> void {
+    let text: *u8 = "ABC123";
+    
+    @print("Manual string iteration:\n");
+    @print("Characters: ");
+    
+    // Current approach - what we can do now
+    let len = *text;
+    let i: u8 = 1;  // Start after length byte
+    
+    while (i <= len) {
+        let char = *(text + i);
+        print_u8(char);
+        @print(" ");
+        i += 1;
+    }
+    @print("\n");
+}
+
+fun simulate_djnz_pattern() -> void {
+    let data: *u8 = "DJNZ!";
+    
+    @print("Simulating optimal DJNZ pattern:\n");
+    @print("What compiler should generate:\n");
+    @print("  LD B, (HL)    ; Load length\n");
+    @print("  INC HL        ; Skip to data\n");
+    @print("loop:\n");
+    @print("  LD A, (HL)    ; Load character\n");
+    @print("  ; process A\n");
+    @print("  INC HL        ; Next character\n");
+    @print("  DJNZ loop     ; B--, jump if not zero\n");
+    @print("\n");
+    
+    // Manual simulation of what DJNZ would do
+    let len = *data;
+    @print("Processing \"");
+    @print("DJNZ!");
+    @print("\" with length ");
+    print_u8(len);
+    @print("\n");
+}
+
+fun test_future_u16_strings() -> void {
+    @print("Future u16 string format:\n");
+    @print("Small string: [len:u8][data...]\n");
+    @print("Large string: [255][len:u16][data...]\n");
+    @print("\n");
+    
+    @print("Auto-detection logic:\n");
+    @print("if (str[0] == 255) {\n");
+    @print("  length = (str[2] << 8) | str[1];\n");
+    @print("  data_ptr = str + 3;\n");
+    @print("} else {\n");
+    @print("  length = str[0];\n");
+    @print("  data_ptr = str + 1;\n");
+    @print("}\n");
+}
+
+fun benchmark_current_vs_optimal() -> void {
+    @print("Performance comparison:\n");
+    @print("Current indexed loop: ~45 T-states/char\n");
+    @print("Optimal DJNZ loop:    ~18 T-states/char\n");
+    @print("Performance gain:     2.5x faster!\n");
+    @print("\n");
+    
+    @print("Memory access pattern:\n");
+    @print("Current: Multiple array[i] calculations\n");
+    @print("Optimal: Direct pointer increment (HL++)\n");
+    @print("\n");
+    
+    @print("Our print_string already uses DJNZ!\n");
+    @print("We just need to generalize it for iterators.\n");
+}
+
+fun main() -> void {
+    @print("=== String Length and Iteration Test ===\n\n");
+    
+    test_string_basics();
+    @print("\n");
+    
+    iterate_string_manual();
+    @print("\n");
+    
+    simulate_djnz_pattern();
+    @print("\n");
+    
+    test_future_u16_strings();
+    @print("\n");
+    
+    benchmark_current_vs_optimal();
+    
+    @print("=== Ready for Iterator Implementation! ===\n");
+}

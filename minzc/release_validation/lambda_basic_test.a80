@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:11
+; Generated: 2025-08-03 15:05:42
 
 
 ; Code section
@@ -124,7 +124,6 @@ x$imm0 EQU x$immOP+1
     LD A, ($F004)     ; Virtual register 2 from memory
     LD (x$imm0), A        ; Patch x
     CALL ......examples.lambda_basic_test.add_five_traditional
-    LD ($F006), HL    ; Virtual register 3 to memory
     ; r5 = call test_lambda_basic
     ; Call to test_lambda_basic (args: 0)
     ; Found function, UsesTrueSMC=false
@@ -133,6 +132,7 @@ x$imm0 EQU x$immOP+1
     ; Call to test_lambda_direct (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL ......examples.lambda_basic_test.test_lambda_direct
+    LD ($F00E), HL    ; Virtual register 7 to memory
     ; r9 = call test_lambda_multiple
     ; Call to test_lambda_multiple (args: 0)
     ; Found function, UsesTrueSMC=false

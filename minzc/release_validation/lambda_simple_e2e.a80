@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:11
+; Generated: 2025-08-03 15:05:43
 
 
 ; Code section
@@ -105,10 +105,11 @@ x$imm0 EQU x$immOP+1
 ......examples.lambda_simple_e2e.test_chain$double_3:
 ; TRUE SMC function with immediate anchors
 x$immOP:
-    LD C, 0        ; x anchor (will be patched)
+    LD A, 0        ; x anchor (will be patched)
 x$imm0 EQU x$immOP+1
+    LD L, A         ; Store to physical register L
     LD A, (x$imm0)    ; Reuse from anchor
-    LD C, A         ; Store to physical register C
+    LD L, A         ; Store to physical register L
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -157,11 +158,11 @@ x$imm0 EQU x$immOP+1
     LD A, ($F006)     ; Virtual register 3 from memory
     LD (y$imm0), A        ; Patch y
     CALL ......examples.lambda_simple_e2e.add_trad
+    LD ($F008), HL    ; Virtual register 4 to memory
     ; r6 = call test_lambda
     ; Call to test_lambda (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL ......examples.lambda_simple_e2e.test_lambda
-    LD ($F00C), HL    ; Virtual register 6 to memory
     ; r8 = call test_double
     ; Call to test_double (args: 0)
     ; Found function, UsesTrueSMC=false

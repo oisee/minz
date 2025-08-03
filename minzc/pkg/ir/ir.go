@@ -357,6 +357,20 @@ func (t *StructType) String() string {
 	return t.Name
 }
 
+// IteratorType represents iterator types for functional programming
+type IteratorType struct {
+	ElementType Type
+}
+
+func (t *IteratorType) Size() int {
+	// Iterator is represented as a pointer to the data + state
+	return 4 // Pointer (2 bytes) + counter/state (2 bytes)
+}
+
+func (t *IteratorType) String() string {
+	return fmt.Sprintf("Iterator<%s>", t.ElementType.String())
+}
+
 // EnumType represents enum types
 type EnumType struct {
 	Name     string
@@ -447,6 +461,10 @@ type Function struct {
 	CalleeSavedRegs  RegisterSet // Registers this function must preserve
 	MaxStackDepth    int         // Maximum stack depth for this function
 	CallingConvention string     // ABI calling convention ("smc", "register", "stack", etc.)
+	
+	// Local function support
+	ParentFunction string                  // Name of parent function (if this is a local function)
+	CapturedVars   map[string]*CapturedVar // Variables captured from parent scope
 }
 
 // Parameter represents a function parameter
@@ -463,6 +481,15 @@ type Local struct {
 	Type   Type
 	Reg    Register
 	Offset int // Stack offset if spilled
+}
+
+// CapturedVar represents a variable captured from a parent scope in a local function
+type CapturedVar struct {
+	Name         string    // Name of the captured variable
+	Type         Type      // Type of the captured variable
+	ParentReg    Register  // Register in parent function
+	LocalReg     Register  // Register in local function
+	CaptureMode  string    // "copy" or "reference"
 }
 
 // NewFunction creates a new IR function

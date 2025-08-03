@@ -18,7 +18,8 @@ Function ......examples.arithmetic_demo.test_arithmetic() -> void
     r31 = h: u8
     r33 = shr_result: u8
   Instructions:
-      0: return
+      0: UNKNOWN_OP_73
+      1: return
 
 Function ......examples.arithmetic_demo.main() -> void
   @smc

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:13
+; Generated: 2025-08-03 15:05:44
 
 
 ; Code section
@@ -11,6 +11,11 @@
 ......examples.test_simple_asm.set_border_color:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
+    ; asm {         LD A, 2      ; Red color
+        OUT (0xFE), A
+     }
+    LD A, 2      ; Red color
+    OUT (0xFE), A
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -19,6 +24,16 @@
 ......examples.test_simple_asm.clear_screen:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
+    ; asm {         LD HL, 0x4000
+        LD DE, 0x4001
+        LD BC, 6143
+        LD (HL), 0
+        LDIR }
+    LD HL, 0x4000
+    LD DE, 0x4001
+    LD BC, 6143
+    LD (HL), 0
+    LDIR
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
@@ -27,6 +42,13 @@
 ......examples.test_simple_asm.wait_loop:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
+    ; asm {         LD B, 255
+    wait_loop:
+        DJNZ wait_loop
+     }
+    LD B, 255
+wait_loop:
+    DJNZ wait_loop
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)

@@ -1,0 +1,22 @@
+// Test global variables WITHOUT module declaration
+
+// Basic type initializers
+global g_byte: u8 = 42;
+global g_word: u16 = 0x1234;
+global g_flag: bool = true;
+
+// Entry point
+fun main() -> void {
+    // Test that globals have correct values
+    if g_byte == 42 {
+        @print("g_byte OK: {}\n", g_byte);
+    }
+    
+    if g_word == 0x1234 {
+        @print("g_word OK: {}\n", g_word);
+    }
+    
+    if g_flag {
+        @print("g_flag OK\n");
+    }
+}

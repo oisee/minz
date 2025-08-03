@@ -247,6 +247,34 @@ func (a *Analyzer) addBuiltins() {
 		IsBuiltin: true,
 	})
 	
+	// print_u8 - print unsigned 8-bit value as decimal
+	a.currentScope.Define("print_u8", &FuncSymbol{
+		Name: "print_u8",
+		Params: []*ast.Parameter{
+			{Name: "value", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.BasicType{Kind: ir.TypeU8}},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// print_u16 - print unsigned 16-bit value as decimal
+	a.currentScope.Define("print_u16", &FuncSymbol{
+		Name: "print_u16",
+		Params: []*ast.Parameter{
+			{Name: "value", Type: &ast.PrimitiveType{Name: "u16"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.BasicType{Kind: ir.TypeU16}},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
 	// memset - fill memory
 	a.currentScope.Define("memset", &FuncSymbol{
 		Name: "memset",
@@ -1003,10 +1031,12 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 	}
 	a.currentScope.Define(prefixedName, varSymbol)
 	
-	// Also define without prefix for local access (like constants do)
-	if prefixedName != v.Name {
+	// IMPORTANT: Also define without prefix for access within the same module
+	// This allows code in the same module to use the unprefixed name
+	if prefixedName != v.Name && a.currentModule != "" {
+		// Create an alias symbol that points to the same variable
 		a.currentScope.Define(v.Name, &VarSymbol{
-			Name:      v.Name,
+			Name:      prefixedName,  // Point to the prefixed name in IR
 			Type:      varType,
 			IsMutable: v.IsMutable,
 		})
@@ -1317,7 +1347,10 @@ func (a *Analyzer) analyzeBlock(block *ast.BlockStmt, irFunc *ir.Function) error
 	}()
 
 	// Process statements
-	for _, stmt := range block.Statements {
+	for i, stmt := range block.Statements {
+		if debug {
+			fmt.Printf("DEBUG: analyzeBlock processing statement %d of type %T\n", i, stmt)
+		}
 		if err := a.analyzeStatement(stmt, irFunc); err != nil {
 			return err
 		}
@@ -1361,6 +1394,11 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 		return a.analyzeDoTimesStmt(s, irFunc)
 	case *ast.LoopAtStmt:
 		return a.analyzeLoopAtStmt(s, irFunc)
+	case *ast.FunctionDecl:
+		if debug {
+			fmt.Printf("DEBUG: Found local function declaration: %s\n", s.Name)
+		}
+		return a.analyzeLocalFunctionDecl(s, irFunc)
 	default:
 		return fmt.Errorf("unsupported statement type: %T", stmt)
 	}
@@ -2837,6 +2875,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeMetafunctionCall(e, irFunc)
 	case *ast.LambdaExpr:
 		return a.analyzeLambdaExpr(e, irFunc)
+	case *ast.IteratorChainExpr:
+		return a.analyzeIteratorChainExpr(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -3679,7 +3719,15 @@ func (a *Analyzer) buildQualifiedName(expr ast.Expression) string {
 		return e.Name
 	case *ast.FieldExpr:
 		objName := a.buildQualifiedName(e.Object)
+		if objName == "" {
+			// If we can't get a name from the object (e.g., it's a CallExpr),
+			// just return the field name without a dot
+			return e.Field
+		}
 		return objName + "." + e.Field
+	case *ast.CallExpr:
+		// For call expressions, try to get the function name
+		return a.buildQualifiedName(e.Function)
 	default:
 		return ""
 	}
@@ -4012,6 +4060,28 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 			Src2:    argRegs[1], // value
 			Args:    []ir.Register{argRegs[2]}, // size
 			Comment: "Built-in memset function",
+		})
+		return 0, nil
+		
+	case "print_u8":
+		// print_u8(value: u8)
+		// Generate a call to the runtime print_u8_decimal function
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "print_u8_decimal",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Call runtime print_u8_decimal",
+		})
+		return 0, nil
+		
+	case "print_u16":
+		// print_u16(value: u16)
+		// Generate a call to the runtime print_u16_decimal function
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "print_u16_decimal",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Call runtime print_u16_decimal",
 		})
 		return 0, nil
 		
@@ -5469,6 +5539,9 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			ParamTypes: paramTypes,
 			ReturnType: returnType,
 		}, nil
+	case *ast.IteratorChainExpr:
+		// Infer type of iterator chain
+		return a.analyzeIteratorChainType(e)
 	default:
 		return nil, fmt.Errorf("cannot infer type from expression of type %T", expr)
 	}
@@ -6312,4 +6385,134 @@ func (a *Analyzer) analyzeLambdaCall(call *ast.CallExpr, lambdaType *ir.LambdaTy
 	})
 	
 	return resultReg, nil
+}
+
+// analyzeLocalFunctionDecl analyzes a local function declaration within another function
+func (a *Analyzer) analyzeLocalFunctionDecl(fn *ast.FunctionDecl, parentFunc *ir.Function) error {
+	if debug {
+		fmt.Printf("DEBUG: analyzeLocalFunctionDecl: %s in parent %s\n", fn.Name, parentFunc.Name)
+	}
+	
+	// Generate unique name for local function
+	// Format: parentFunc$localFunc
+	localFuncName := fmt.Sprintf("%s$%s", parentFunc.Name, fn.Name)
+	
+	// First register the function signature in current scope
+	// Local functions are accessible within their parent function's scope
+	if err := a.registerLocalFunctionSignature(fn, localFuncName); err != nil {
+		return fmt.Errorf("failed to register local function %s: %w", localFuncName, err)
+	}
+	
+	// Create IR function for the local function
+	returnType, err := a.convertType(fn.ReturnType)
+	if err != nil {
+		return fmt.Errorf("invalid return type for local function %s: %w", fn.Name, err)
+	}
+	
+	localIRFunc := ir.NewFunction(localFuncName, returnType)
+	
+	// Process @abi attributes
+	if err := a.processAbiAttributes(fn, localIRFunc); err != nil {
+		return fmt.Errorf("error processing @abi attributes for local function %s: %v", fn.Name, err)
+	}
+	
+	// Enable SMC by default for local functions too
+	if localIRFunc.CallingConvention == "" {
+		localIRFunc.IsSMCDefault = true
+		localIRFunc.SMCParamOffsets = make(map[string]int)
+	}
+	
+	// Set up parent function context for lexical scope access
+	localIRFunc.ParentFunction = parentFunc.Name
+	localIRFunc.CapturedVars = make(map[string]*ir.CapturedVar)
+	
+	// Save the parent function's scope where the local function was just registered
+	parentScope := a.currentScope
+	
+	// Enter new scope for local function, but keep parent scope accessible
+	prevFunc := a.currentFunc
+	a.currentFunc = localIRFunc
+	defer func() { a.currentFunc = prevFunc }()
+	
+	// Create new scope that can see parent scopes
+	a.currentScope = NewScope(parentScope)
+	defer func() { a.currentScope = parentScope }()
+	
+	// Process parameters
+	for _, param := range fn.Params {
+		paramType, err := a.convertType(param.Type)
+		if err != nil {
+			return fmt.Errorf("invalid parameter type for %s: %w", param.Name, err)
+		}
+
+		reg := localIRFunc.AddParam(param.Name, paramType)
+		a.currentScope.Define(param.Name, &VarSymbol{
+			Name:        param.Name,
+			Type:        paramType,
+			Reg:         reg,
+			IsParameter: true,
+			IsMutable:   true,
+		})
+	}
+	
+	// Analyze function body - this will capture variables from parent scopes automatically
+	if err := a.analyzeBlock(fn.Body, localIRFunc); err != nil {
+		return fmt.Errorf("error in local function %s: %w", fn.Name, err)
+	}
+	
+	// Add implicit return if needed
+	if len(localIRFunc.Instructions) == 0 || localIRFunc.Instructions[len(localIRFunc.Instructions)-1].Op != ir.OpReturn {
+		localIRFunc.Instructions = append(localIRFunc.Instructions, ir.Instruction{Op: ir.OpReturn})
+	}
+	
+	// Add the local function to the module
+	a.module.Functions = append(a.module.Functions, localIRFunc)
+	
+	if debug {
+		fmt.Printf("DEBUG: Local function %s compiled successfully with %d captured vars\n", 
+			localFuncName, len(localIRFunc.CapturedVars))
+	}
+	
+	return nil
+}
+
+// registerLocalFunctionSignature registers a local function's signature in the current scope
+func (a *Analyzer) registerLocalFunctionSignature(fn *ast.FunctionDecl, mangledName string) error {
+	// Convert parameter types
+	paramTypes := make([]ir.Type, len(fn.Params))
+	astParams := make([]*ast.Parameter, len(fn.Params))
+	
+	for i, param := range fn.Params {
+		paramType, err := a.convertType(param.Type)
+		if err != nil {
+			return fmt.Errorf("invalid parameter type for %s: %w", param.Name, err)
+		}
+		paramTypes[i] = paramType
+		astParams[i] = param
+	}
+	
+	// Convert return type
+	returnType, err := a.convertType(fn.ReturnType)
+	if err != nil {
+		return fmt.Errorf("invalid return type for %s: %w", fn.Name, err)
+	}
+	
+	// Create function symbol and register in current scope using original name
+	// This allows the local function to be called by its simple name within the parent scope
+	funcSymbol := &FuncSymbol{
+		Name:         mangledName, // Use mangled name for IR
+		OriginalName: fn.Name,     // Keep original name for lookups
+		Params:       astParams,
+		Type: &ir.FunctionType{
+			Params: paramTypes,
+			Return: returnType,
+		},
+		ReturnType: returnType,
+		IsLocalFunc: true,
+	}
+	
+	// Register using original name so it can be called naturally
+	a.currentScope.Define(fn.Name, funcSymbol)
+	
+	return nil
 }

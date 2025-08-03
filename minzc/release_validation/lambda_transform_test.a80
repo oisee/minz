@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:11
+; Generated: 2025-08-03 15:05:43
 
 
 ; Code section
@@ -167,6 +167,7 @@ x$imm0 EQU x$immOP+1
     ; Call to test_lambda_reference (args: 0)
     ; Found function, UsesTrueSMC=false
     CALL ......examples.lambda_transform_test.test_lambda_reference
+    LD ($F008), HL    ; Virtual register 4 to memory
     ; r6 = call test_lambda_with_operations
     ; Call to test_lambda_with_operations (args: 0)
     ; Found function, UsesTrueSMC=false

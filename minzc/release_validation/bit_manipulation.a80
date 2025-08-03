@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:11
+; Generated: 2025-08-03 15:05:42
 
 
 ; Code section
@@ -54,8 +54,9 @@ bit$imm0 EQU bit$immOP+1
 ......examples.bit_manipulation.clear_bit:
 ; TRUE SMC function with immediate anchors
 value$immOP:
-    LD D, 0        ; value anchor (will be patched)
+    LD A, 0        ; value anchor (will be patched)
 value$imm0 EQU value$immOP+1
+    LD L, A         ; Store to physical register L
     ; r4 = 1
     LD A, 1
     EXX               ; Switch to shadow registers
@@ -94,7 +95,7 @@ bit$imm0 EQU bit$immOP+1
     LD A, E'         ; From shadow E'
     EXX               ; Switch back to main registers
     CPL           ; Complement A
-    ; Register 7 already in A
+    LD H, A         ; Store to physical register H
     ; r8 = r3 & r7
     LD D, H
     LD E, L
@@ -112,20 +113,19 @@ bit$imm0 EQU bit$immOP+1
 ......examples.bit_manipulation.toggle_bit:
 ; TRUE SMC function with immediate anchors
 value$immOP:
-    LD D, 0        ; value anchor (will be patched)
+    LD E, 0        ; value anchor (will be patched)
 value$imm0 EQU value$immOP+1
     ; r4 = 1
     LD A, 1
-    LD B, A         ; Store to physical register B
+    LD ($F008), A     ; Virtual register 4 to memory
 bit$immOP:
-    LD A, 0        ; bit anchor (will be patched)
+    LD B, 0        ; bit anchor (will be patched)
 bit$imm0 EQU bit$immOP+1
-    LD ($F00A), A     ; Virtual register 5 to memory
     ; r6 = r4 << r5
     ; Shift left
-    LD A, B
+    LD A, ($F008)     ; Virtual register 4 from memory
     LD B, A       ; B = value to shift
-    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD A, B
     LD C, A       ; C = shift count
     LD A, B       ; A = value
     OR A          ; Clear carry
@@ -156,9 +156,15 @@ bit$imm0 EQU bit$immOP+1
 ......examples.bit_manipulation.test_bit:
 ; TRUE SMC function with immediate anchors
 value$immOP:
-    LD B, 0        ; value anchor (will be patched)
+    LD A, 0        ; value anchor (will be patched)
 value$imm0 EQU value$immOP+1
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
 bit$immOP:
-    LD C, 0        ; bit anchor (will be patched)
+    LD A, 0        ; bit anchor (will be patched)
 bit$imm0 EQU bit$immOP+1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
     ; unknown op 57

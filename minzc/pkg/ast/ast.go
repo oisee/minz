@@ -192,6 +192,17 @@ func (b *BitStructType) Pos() Position { return b.StartPos }
 func (b *BitStructType) End() Position { return b.EndPos }
 func (b *BitStructType) typeNode()    {}
 
+// IteratorType represents iterator types
+type IteratorType struct {
+	ElementType Type
+	StartPos    Position
+	EndPos      Position
+}
+
+func (i *IteratorType) Pos() Position { return i.StartPos }
+func (i *IteratorType) End() Position { return i.EndPos }
+func (i *IteratorType) typeNode()    {}
+
 // BitField represents a field in a bit struct
 type BitField struct {
 	Name     string

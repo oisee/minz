@@ -12,6 +12,8 @@ import (
 	"github.com/minz/minzc/pkg/ast"
 )
 
+var debug = os.Getenv("DEBUG") != ""
+
 // Parser handles parsing MinZ source files using tree-sitter
 type Parser struct {
 	treeSitterPath string
@@ -587,6 +589,9 @@ func (p *Parser) parseStatement(node map[string]interface{}) ast.Statement {
 	}
 	
 	nodeType, _ := node["type"].(string)
+	if debug {
+		fmt.Printf("DEBUG parseStatement: node type = %s\n", nodeType)
+	}
 	switch nodeType {
 	case "return_statement":
 		return p.parseReturnStmt(node)
@@ -600,6 +605,13 @@ func (p *Parser) parseStatement(node map[string]interface{}) ast.Statement {
 		return p.parseVarDecl(node)
 	case "expression_statement":
 		return p.parseExpressionStmt(node)
+	case "function_declaration":
+		// Parse nested function declaration as a statement
+		fn := p.parseFunction(node)
+		if debug && fn != nil {
+			fmt.Printf("DEBUG parseStatement: parsed function %s as statement\n", fn.Name)
+		}
+		return fn
 	}
 	
 	return nil
@@ -960,7 +972,10 @@ func (p *Parser) parseUnaryExpr(node map[string]interface{}) *ast.UnaryExpr {
 }
 
 // parseCallExpr parses a function call expression
-func (p *Parser) parseCallExpr(node map[string]interface{}) *ast.CallExpr {
+func (p *Parser) parseCallExpr(node map[string]interface{}) ast.Expression {
+	// Always print debug for now to diagnose
+	fmt.Printf("DEBUG parseCallExpr: entered\n")
+	
 	callExpr := &ast.CallExpr{
 		Arguments: []ast.Expression{},
 		StartPos:  p.getPosition(node, "startPosition"),
@@ -970,7 +985,49 @@ func (p *Parser) parseCallExpr(node map[string]interface{}) *ast.CallExpr {
 	// Get function from fields
 	fields, _ := node["fields"].(map[string]interface{})
 	if fn, ok := fields["function"].(map[string]interface{}); ok {
+		// First check what type of node this is
+		fnType, _ := fn["type"].(string)
+		if debug {
+			fmt.Printf("DEBUG parseCallExpr: function node type = %s\n", fnType)
+		}
+		
 		callExpr.Function = p.parseExpression(fn)
+		
+		// Debug: print what we're parsing
+		if debug {
+			fmt.Printf("DEBUG parseCallExpr: function parsed as type %T\n", callExpr.Function)
+			if fieldExpr, ok := callExpr.Function.(*ast.FieldExpr); ok {
+				fmt.Printf("DEBUG parseCallExpr: field expression with field '%s', object type %T\n", fieldExpr.Field, fieldExpr.Object)
+			}
+		}
+		
+		// Check if this is an iterator method call
+		if fieldExpr, ok := callExpr.Function.(*ast.FieldExpr); ok {
+			if p.isIteratorMethod(fieldExpr.Field) {
+				// This is an iterator method call, transform to iterator chain
+				if debug {
+					fmt.Printf("DEBUG parseCallExpr: transforming iterator method '%s' to chain\n", fieldExpr.Field)
+				}
+				return p.transformToIteratorChain(fieldExpr, node)
+			}
+			
+			// Also check if the object itself is a CallExpr that might be an iterator
+			if callObj, ok := fieldExpr.Object.(*ast.CallExpr); ok {
+				// This might be something like arr.iter().forEach()
+				// We need to check if callObj is an iterator chain start
+				if fieldCallFunc, ok := callObj.Function.(*ast.FieldExpr); ok {
+					if p.isIteratorMethod(fieldCallFunc.Field) && p.isIteratorMethod(fieldExpr.Field) {
+						// Both are iterator methods - create a chain
+						if debug {
+							fmt.Printf("DEBUG parseCallExpr: chained iterator methods detected\n")
+						}
+						// Transform to iterator chain
+						// The fieldExpr's object should be transformed to a chain first
+						return p.transformToIteratorChain(fieldExpr, node)
+					}
+				}
+			}
+		}
 	}
 	
 	// Get arguments
@@ -1003,7 +1060,8 @@ func (p *Parser) parseArguments(node map[string]interface{}) []ast.Expression {
 }
 
 // parseFieldExpr parses a field access expression
-func (p *Parser) parseFieldExpr(node map[string]interface{}) *ast.FieldExpr {
+func (p *Parser) parseFieldExpr(node map[string]interface{}) ast.Expression {
+	// First parse as a normal field expression
 	fieldExpr := &ast.FieldExpr{
 		StartPos: p.getPosition(node, "startPosition"),
 		EndPos:   p.getPosition(node, "endPosition"),
@@ -1014,10 +1072,160 @@ func (p *Parser) parseFieldExpr(node map[string]interface{}) *ast.FieldExpr {
 		fieldExpr.Object = p.parseExpression(obj)
 	}
 	if field, ok := fields["field"].(map[string]interface{}); ok {
-		fieldExpr.Field = p.getText(field)
+		fieldName := p.getText(field)
+		fieldExpr.Field = fieldName
+		
+		// Check if this is an iterator method
+		if p.isIteratorMethod(fieldName) {
+			// Look ahead to see if there's a call expression
+			// The parent context will handle converting to iterator chain
+			// For now, mark it so we can detect it later
+			return fieldExpr
+		}
 	}
 	
 	return fieldExpr
+}
+
+// isIteratorMethod checks if a method name is an iterator method
+func (p *Parser) isIteratorMethod(name string) bool {
+	switch name {
+	case "iter", "map", "filter", "forEach", "reduce", "collect", "take", "skip", "zip":
+		return true
+	}
+	return false
+}
+
+// transformToIteratorChain transforms an iterator method call into an IteratorChainExpr
+func (p *Parser) transformToIteratorChain(fieldExpr *ast.FieldExpr, callNode map[string]interface{}) ast.Expression {
+	// Check if we're building on an existing chain
+	var chain *ast.IteratorChainExpr
+	if existingChain, ok := fieldExpr.Object.(*ast.IteratorChainExpr); ok {
+		chain = existingChain
+	} else if callExpr, ok := fieldExpr.Object.(*ast.CallExpr); ok {
+		// Check if the call is an iterator method call that should be a chain
+		if fieldFunc, ok := callExpr.Function.(*ast.FieldExpr); ok {
+			if p.isIteratorMethod(fieldFunc.Field) {
+				// The object is a call to an iterator method, transform it first
+				if debug {
+					fmt.Printf("DEBUG transformToIteratorChain: found chained iterator call, recursing\n")
+				}
+				// Create a chain starting from the inner iterator
+				chain = &ast.IteratorChainExpr{
+					Source:     fieldFunc.Object,
+					Operations: []ast.IteratorOp{},
+					StartPos:   fieldFunc.Object.Pos(),
+				}
+				// Add the inner iterator operation if it's not just "iter"
+				if fieldFunc.Field != "iter" {
+					// TODO: Add the operation from the inner call
+				}
+			} else {
+				// Not an iterator chain, just use the call as source
+				chain = &ast.IteratorChainExpr{
+					Source:     fieldExpr.Object,
+					Operations: []ast.IteratorOp{},
+					StartPos:   fieldExpr.Object.Pos(),
+				}
+			}
+		} else {
+			// Not an iterator chain, use the call as source
+			chain = &ast.IteratorChainExpr{
+				Source:     fieldExpr.Object,
+				Operations: []ast.IteratorOp{},
+				StartPos:   fieldExpr.Object.Pos(),
+			}
+		}
+	} else {
+		// Start a new chain
+		chain = &ast.IteratorChainExpr{
+			Source:     fieldExpr.Object,
+			Operations: []ast.IteratorOp{},
+			StartPos:   fieldExpr.Object.Pos(),
+		}
+	}
+	
+	// Parse the arguments for this method
+	var args []ast.Expression
+	children, _ := callNode["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		if childNode["type"] == "argument_list" {
+			args = p.parseArguments(childNode)
+		}
+	}
+	
+	// Create the iterator operation
+	var opType ast.IteratorOpType
+	var function ast.Expression
+	
+	switch fieldExpr.Field {
+	case "iter":
+		// iter() starts the chain but doesn't add an operation
+		if len(chain.Operations) == 0 {
+			// Just return the chain as-is
+			chain.EndPos = p.getPosition(callNode, "endPosition")
+			return chain
+		}
+		
+	case "map":
+		opType = ast.IterOpMap
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "filter":
+		opType = ast.IterOpFilter
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "forEach":
+		opType = ast.IterOpForEach
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "reduce":
+		opType = ast.IterOpReduce
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "collect":
+		opType = ast.IterOpCollect
+		
+	case "take":
+		opType = ast.IterOpTake
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "skip":
+		opType = ast.IterOpSkip
+		if len(args) > 0 {
+			function = args[0]
+		}
+		
+	case "zip":
+		opType = ast.IterOpZip
+		if len(args) > 0 {
+			function = args[0]
+		}
+	}
+	
+	// Add the operation to the chain (unless it's iter())
+	if fieldExpr.Field != "iter" || len(args) > 0 {
+		chain.Operations = append(chain.Operations, ast.IteratorOp{
+			Type:     opType,
+			Function: function,
+			StartPos: fieldExpr.StartPos,
+			EndPos:   p.getPosition(callNode, "endPosition"),
+		})
+	}
+	
+	chain.EndPos = p.getPosition(callNode, "endPosition")
+	return chain
 }
 
 // parseIndexExpr parses an index expression

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-02 18:22:12
+; Generated: 2025-08-03 15:05:43
 
 
 ; Code section
@@ -101,9 +101,10 @@ n$imm0 EQU n$immOP+1
 .L4:
     LD HL, 1
 .L5:
-    LD ($F008), HL    ; Virtual register 4 to memory
     ; jump_if_not r4, else_3
-    LD A, ($F008)     ; Virtual register 4 from memory
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
     OR A
     JP Z, else_3
     LD A, (n$imm0)    ; Reuse from anchor
@@ -125,7 +126,7 @@ else_3:
     LD (n$imm0), A        ; Patch n
     CALL ......examples.smc_recursion.fib_smc
     LD A, (n$imm0)    ; Reuse from anchor
-    LD C, A         ; Store to physical register C
+    LD H, A         ; Store to physical register H
     ; r13 = call fib_smc
     ; Call to fib_smc (args: 1)
     ; Stack-based parameter passing
@@ -150,4 +151,5 @@ else_3:
 a$immOP:
     LD A, 0        ; a anchor (will be patched)
 a$imm0 EQU a$immOP+1
+    LD ($F00C), A     ; Virtual register 6 to memory
     ; unknown op 57

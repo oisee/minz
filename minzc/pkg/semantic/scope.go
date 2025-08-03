@@ -33,11 +33,13 @@ func (c *ConstSymbol) symbol() {}
 
 // FuncSymbol represents a function
 type FuncSymbol struct {
-	Name       string
-	Params     []*ast.Parameter
-	ReturnType ir.Type
-	Type       *ir.FunctionType  // For built-in functions
-	IsBuiltin  bool
+	Name         string
+	OriginalName string             // Original name before mangling (for local functions)
+	Params       []*ast.Parameter
+	ReturnType   ir.Type
+	Type         *ir.FunctionType  // For built-in functions
+	IsBuiltin    bool
+	IsLocalFunc  bool              // True if this is a local function
 }
 
 func (f *FuncSymbol) symbol() {}

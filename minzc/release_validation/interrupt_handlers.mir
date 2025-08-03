@@ -4,15 +4,18 @@
 Function ......examples.interrupt_handlers.fast_interrupt_handler() -> void
   @smc
   Instructions:
-      0: return
+      0: UNKNOWN_OP_73
+      1: return
 
 Function ......examples.interrupt_handlers.timer_interrupt() -> void
   @smc
   Instructions:
-      0: return
+      0: UNKNOWN_OP_73
+      1: return
 
 Function ......examples.interrupt_handlers.setup_interrupts() -> void
   @smc
   Instructions:
-      0: return
+      0: UNKNOWN_OP_73
+      1: return
 
