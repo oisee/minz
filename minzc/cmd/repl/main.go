@@ -13,11 +13,12 @@ import (
 // REPL represents the MinZ Read-Eval-Print-Loop
 type REPL struct {
 	assembler *z80asm.Assembler
-	emulator  *emulator.Z80
+	emulator  *emulator.Z80WithScreen
 	context   *Context
 	compiler  *REPLCompiler
 	reader    *bufio.Reader
 	history   []string
+	autoShowScreen bool // Show ZX Spectrum screen after execution
 }
 
 // Context maintains REPL state between commands
@@ -53,12 +54,13 @@ func New() *REPL {
 		dataBase:  0xC000, // Data segment
 	}
 	return &REPL{
-		assembler: z80asm.NewAssembler(),
-		emulator:  emulator.New(),
-		context:   ctx,
-		compiler:  NewREPLCompiler(ctx.codeBase, ctx.dataBase),
-		reader:    bufio.NewReader(os.Stdin),
-		history:   []string{},
+		assembler:  z80asm.NewAssembler(),
+		emulator:   emulator.NewZ80WithScreen(),
+		context:    ctx,
+		compiler:   NewREPLCompiler(ctx.codeBase, ctx.dataBase),
+		reader:     bufio.NewReader(os.Stdin),
+		history:    []string{},
+		autoShowScreen: false, // Off by default
 	}
 }
 
@@ -142,6 +144,12 @@ func (r *REPL) executeCommand(input string) {
 		}
 	case "/regc":
 		r.showRegistersCompact()
+	case "/screen":
+		r.showScreen()
+	case "/screens":
+		r.toggleScreen()
+	case "/cls":
+		r.clearScreen()
 	case "/vars":
 		r.showVariables()
 	case "/funcs":
@@ -201,8 +209,8 @@ func (r *REPL) evaluate(input string) {
 	// Load machine code into emulator
 	r.emulator.LoadAt(result.EntryPoint, result.MachineCode)
 	
-	// Execute the code - Execute() runs until RET or halt
-	output, cycleCount := r.emulator.Execute(result.EntryPoint)
+	// Execute the code with screen hooks
+	output, cycleCount := r.emulator.ExecuteWithHooks(result.EntryPoint)
 	
 	// If there was output, print it
 	if output != "" {
@@ -212,6 +220,13 @@ func (r *REPL) evaluate(input string) {
 	// Show execution stats in verbose mode
 	if r.isVerbose() {
 		fmt.Printf("[%d T-states]\n", cycleCount)
+	}
+	
+	// Show screen if enabled
+	if r.autoShowScreen {
+		fmt.Println("\n--- ZX Spectrum Screen ---")
+		r.emulator.PrintCompactScreen()
+		fmt.Println("-------------------------")
 	}
 	
 	// For expressions, show the result (in HL register)
@@ -277,6 +292,9 @@ func (r *REPL) showHelp() {
 	fmt.Println("  /mem <addr> <n> - Show n bytes of memory at addr")
 	fmt.Println("  /reg           - Show Z80 registers (all including shadows)")
 	fmt.Println("  /regc          - Show registers in compact one-line format")
+	fmt.Println("  /screen        - Show ZX Spectrum screen")
+	fmt.Println("  /screens       - Toggle auto-show screen after execution")
+	fmt.Println("  /cls           - Clear ZX Spectrum screen")
 	fmt.Println("  /vars          - Show defined variables")
 	fmt.Println("  /funcs         - Show defined functions")
 	fmt.Println("  /profile <expr> - Profile expression execution")
@@ -406,6 +424,28 @@ func (r *REPL) showFunctions() {
 func (r *REPL) isVerbose() bool {
 	// Could be configurable
 	return false
+}
+
+// Screen-related functions
+func (r *REPL) showScreen() {
+	fmt.Println("\n--- ZX Spectrum Screen (32x24) ---")
+	fmt.Print(r.emulator.Screen.GetScreen())
+	// Cursor position would be shown if we had access
+	// fmt.Printf("Cursor at (%d, %d)\n", r.emulator.Screen.CursorX, r.emulator.Screen.CursorY)
+}
+
+func (r *REPL) toggleScreen() {
+	r.autoShowScreen = !r.autoShowScreen
+	if r.autoShowScreen {
+		fmt.Println("Auto-show screen: ON")
+	} else {
+		fmt.Println("Auto-show screen: OFF")
+	}
+}
+
+func (r *REPL) clearScreen() {
+	r.emulator.Screen.Clear()
+	fmt.Println("ZX Spectrum screen cleared")
 }
 
 // Placeholder functions - need implementation

@@ -1,0 +1,94 @@
+// Test ZX Spectrum screen output using RST 16
+
+// Print a character using RST 16 (ROM routine)
+@abi("register: A=char")
+fun putchar(c: u8) -> void {
+    // RST 16 prints character in A register
+    asm {
+        RST 0x10   ; Call ROM print routine
+    }
+}
+
+// Print a string
+fun print_string(s: *u8) -> void {
+    let len = s[0];  // First byte is length
+    let i: u8 = 1;
+    
+    while i <= len {
+        putchar(s[i]);
+        i = i + 1;
+    }
+}
+
+// Print newline
+fun newline() -> void {
+    putchar(0x0D);  // Carriage return
+}
+
+// Clear screen
+fun cls() -> void {
+    putchar(0x0C);  // Form feed clears screen
+}
+
+fun main() -> void {
+    // Clear screen first
+    cls();
+    
+    // Print hello message
+    let msg1: *u8 = "Hello, ZX Spectrum!";
+    print_string(msg1);
+    newline();
+    
+    // Print some numbers
+    let msg2: *u8 = "Numbers: ";
+    print_string(msg2);
+    
+    // Print digits 0-9
+    let digit: u8 = 48;  // ASCII '0'
+    while digit <= 57 {   // ASCII '9'
+        putchar(digit);
+        putchar(32);     // Space
+        digit = digit + 1;
+    }
+    newline();
+    
+    // Print a box
+    let msg3: *u8 = "Box test:";
+    print_string(msg3);
+    newline();
+    
+    // Top line
+    putchar('+');
+    let x: u8 = 0;
+    while x < 10 {
+        putchar('-');
+        x = x + 1;
+    }
+    putchar('+');
+    newline();
+    
+    // Middle line
+    putchar('|');
+    x = 0;
+    while x < 10 {
+        putchar(' ');
+        x = x + 1;
+    }
+    putchar('|');
+    newline();
+    
+    // Bottom line
+    putchar('+');
+    x = 0;
+    while x < 10 {
+        putchar('-');
+        x = x + 1;
+    }
+    putchar('+');
+    newline();
+    
+    // Final message
+    let msg4: *u8 = "MinZ REPL with screen!";
+    print_string(msg4);
+    newline();
+}
