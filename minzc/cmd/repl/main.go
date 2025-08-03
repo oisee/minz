@@ -97,8 +97,11 @@ func (r *REPL) Run() {
 
 // printBanner prints the REPL welcome message
 func (r *REPL) printBanner() {
-	fmt.Println("MinZ REPL v1.0.0 - Interactive Z80 Development")
-	fmt.Println("Type /help for commands, Ctrl-D to exit")
+	fmt.Println("╔══════════════════════════════════════════════════════════════╗")
+	fmt.Println("║           MinZ REPL v1.0 - Interactive Z80 Development      ║")
+	fmt.Println("║                  With ZX Spectrum Screen Emulation          ║")
+	fmt.Println("╚══════════════════════════════════════════════════════════════╝")
+	fmt.Println("Type /h for help, /q to quit, or enter MinZ code")
 	fmt.Println()
 }
 
@@ -118,9 +121,9 @@ func (r *REPL) executeCommand(input string) {
 	args := parts[1:]
 	
 	switch cmd {
-	case "/help":
+	case "/help", "/h", "/?":
 		r.showHelp()
-	case "/quit", "/exit":
+	case "/quit", "/q", "/exit":
 		r.quit()
 	case "/reset":
 		r.reset()
@@ -130,30 +133,30 @@ func (r *REPL) executeCommand(input string) {
 		} else {
 			fmt.Println("Usage: /asm <function>")
 		}
-	case "/mem":
-		if len(args) >= 2 {
-			r.showMemory(args[0], args[1])
-		} else {
-			fmt.Println("Usage: /mem <address> <length>")
-		}
-	case "/reg":
+	case "/reg", "/r":
 		if len(args) > 0 && args[0] == "compact" {
 			r.showRegistersCompact()
 		} else {
 			r.showRegisters()
 		}
-	case "/regc":
+	case "/regc", "/rc":
 		r.showRegistersCompact()
-	case "/screen":
+	case "/screen", "/s":
 		r.showScreen()
-	case "/screens":
+	case "/screens", "/ss":
 		r.toggleScreen()
-	case "/cls":
+	case "/cls", "/clear":
 		r.clearScreen()
-	case "/vars":
+	case "/vars", "/v":
 		r.showVariables()
-	case "/funcs":
+	case "/funcs", "/f":
 		r.showFunctions()
+	case "/mem", "/m":
+		if len(args) >= 2 {
+			r.showMemory(args[0], args[1])
+		} else {
+			fmt.Println("Usage: /mem <address> <length>")
+		}
 	case "/profile":
 		if len(args) > 0 {
 			r.profile(strings.Join(args, " "))
@@ -284,22 +287,29 @@ func (r *REPL) wrapInput(input string) string {
 // Helper functions
 
 func (r *REPL) showHelp() {
-	fmt.Println("REPL Commands:")
-	fmt.Println("  /help          - Show this help")
-	fmt.Println("  /quit          - Exit REPL")
-	fmt.Println("  /reset         - Reset emulator state")
-	fmt.Println("  /asm <func>    - Show assembly for function")
-	fmt.Println("  /mem <addr> <n> - Show n bytes of memory at addr")
-	fmt.Println("  /reg           - Show Z80 registers (all including shadows)")
-	fmt.Println("  /regc          - Show registers in compact one-line format")
-	fmt.Println("  /screen        - Show ZX Spectrum screen")
-	fmt.Println("  /screens       - Toggle auto-show screen after execution")
-	fmt.Println("  /cls           - Clear ZX Spectrum screen")
-	fmt.Println("  /vars          - Show defined variables")
-	fmt.Println("  /funcs         - Show defined functions")
-	fmt.Println("  /profile <expr> - Profile expression execution")
-	fmt.Println("  /save <file>   - Save session to file")
-	fmt.Println("  /load <file>   - Load MinZ file")
+	fmt.Println("╔══════════════════════════════════════════════════════════════╗")
+	fmt.Println("║                    MinZ REPL Commands                        ║")
+	fmt.Println("╠══════════════════════════════════════════════════════════════╣")
+	fmt.Println("║ /help    /h  /?   - Show this help                          ║")
+	fmt.Println("║ /quit    /q       - Exit REPL                               ║")
+	fmt.Println("║ /reset            - Reset emulator state                    ║")
+	fmt.Println("╟──────────────────────────────────────────────────────────────╢")
+	fmt.Println("║ /reg     /r       - Show Z80 registers (with shadows)       ║")
+	fmt.Println("║ /regc    /rc      - Compact register view                   ║")
+	fmt.Println("║ /mem     /m <a> <n> - Show n bytes at address a             ║")
+	fmt.Println("╟──────────────────────────────────────────────────────────────╢")
+	fmt.Println("║ /screen  /s       - Show ZX Spectrum screen                 ║")
+	fmt.Println("║ /screens /ss      - Toggle auto-show screen                 ║")
+	fmt.Println("║ /cls              - Clear ZX Spectrum screen                ║")
+	fmt.Println("╟──────────────────────────────────────────────────────────────╢")
+	fmt.Println("║ /vars    /v       - Show defined variables                  ║")
+	fmt.Println("║ /funcs   /f       - Show defined functions                  ║")
+	fmt.Println("║ /asm <func>       - Show assembly for function              ║")
+	fmt.Println("╟──────────────────────────────────────────────────────────────╢")
+	fmt.Println("║ /profile <expr>   - Profile expression execution            ║")
+	fmt.Println("║ /save <file>      - Save session to file                    ║")
+	fmt.Println("║ /load <file>      - Load MinZ file                          ║")
+	fmt.Println("╚══════════════════════════════════════════════════════════════╝")
 	fmt.Println()
 	fmt.Println("Examples:")
 	fmt.Println("  let x: u8 = 42")

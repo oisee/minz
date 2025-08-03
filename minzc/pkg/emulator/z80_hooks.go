@@ -40,9 +40,14 @@ func NewZ80WithScreen() *Z80WithScreen {
 		Hooks:  &Z80Hooks{},
 	}
 	
-	// Set up default hooks for screen
+	// Set up default hooks for screen output
 	z80.Hooks.OnRST10 = func(a byte) {
 		z80.Screen.HandleRST16(a)
+	}
+	
+	// Set up hook for keyboard input (RST 18)
+	z80.Hooks.OnRST18 = func() byte {
+		return z80.Screen.GetKey()
 	}
 	
 	z80.Hooks.OnOUT = func(port byte, value byte) {
@@ -219,4 +224,19 @@ func (z *Z80WithScreen) PrintScreen() {
 // PrintCompactScreen prints only non-empty lines
 func (z *Z80WithScreen) PrintCompactScreen() {
 	print(z.Screen.GetCompactScreen())
+}
+
+// SendKeypress sends a keypress to the ZX Spectrum
+func (z *Z80WithScreen) SendKeypress(key byte) {
+	z.Screen.SendKey(key)
+}
+
+// SendString sends a string to the ZX Spectrum
+func (z *Z80WithScreen) SendString(str string) {
+	z.Screen.SendString(str)
+}
+
+// HasInput returns true if input is available
+func (z *Z80WithScreen) HasInput() bool {
+	return z.Screen.HasInput()
 }

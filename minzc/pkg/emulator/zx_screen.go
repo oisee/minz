@@ -92,19 +92,25 @@ type ZXScreen struct {
 	
 	// Debug mode
 	debugMode   bool
+	
+	// Input buffer for keyboard input
+	inputBuffer []byte
+	inputPos    int
 }
 
 // NewZXScreen creates a new ZX Spectrum screen emulator
 func NewZXScreen() *ZXScreen {
 	s := &ZXScreen{
-		cursorX: 0,
-		cursorY: 0,
-		ink:     7, // White
-		paper:   0, // Black
-		bright:  false,
-		flash:   false,
-		sysvarMem: make([]byte, 256), // System variables area
-		debugMode: false,
+		cursorX:     0,
+		cursorY:     0,
+		ink:         7, // White
+		paper:       0, // Black
+		bright:      false,
+		flash:       false,
+		sysvarMem:   make([]byte, 256), // System variables area
+		debugMode:   false,
+		inputBuffer: make([]byte, 0, 256),
+		inputPos:    0,
 	}
 	s.Clear()
 	return s
@@ -348,4 +354,73 @@ func (s *ZXScreen) HandlePort(port byte, value byte, isOut bool) {
 // EnableDebug enables debug mode
 func (s *ZXScreen) EnableDebug(enable bool) {
 	s.debugMode = enable
+}
+
+// Input handling methods
+
+// SendKey sends a key to the input buffer
+func (s *ZXScreen) SendKey(key byte) {
+	s.inputBuffer = append(s.inputBuffer, key)
+	if s.debugMode {
+		fmt.Printf("[Input: '%c' (0x%02X) buffered]\n", key, key)
+	}
+}
+
+// SendString sends a string to the input buffer
+func (s *ZXScreen) SendString(str string) {
+	for _, ch := range str {
+		s.SendKey(byte(ch))
+	}
+}
+
+// GetKey gets the next key from input buffer (for RST 18)
+func (s *ZXScreen) GetKey() byte {
+	if s.inputPos < len(s.inputBuffer) {
+		key := s.inputBuffer[s.inputPos]
+		s.inputPos++
+		
+		// Clear buffer if we've read everything
+		if s.inputPos >= len(s.inputBuffer) {
+			s.inputBuffer = s.inputBuffer[:0]
+			s.inputPos = 0
+		}
+		
+		if s.debugMode {
+			fmt.Printf("[Input: Returning '%c' (0x%02X)]\n", key, key)
+		}
+		return key
+	}
+	return 0 // No input available
+}
+
+// HasInput returns true if input is available
+func (s *ZXScreen) HasInput() bool {
+	return s.inputPos < len(s.inputBuffer)
+}
+
+// ClearInput clears the input buffer
+func (s *ZXScreen) ClearInput() {
+	s.inputBuffer = s.inputBuffer[:0]
+	s.inputPos = 0
+}
+
+// GetCursorPos returns the current cursor position
+func (s *ZXScreen) GetCursorPos() (x, y int) {
+	return s.cursorX, s.cursorY
+}
+
+// ShowCursor draws a cursor at the current position
+func (s *ZXScreen) ShowCursor() string {
+	if s.cursorY >= 0 && s.cursorY < SCREEN_HEIGHT &&
+	   s.cursorX >= 0 && s.cursorX < SCREEN_WIDTH {
+		// Save current char
+		oldChar := s.buffer[s.cursorY][s.cursorX]
+		// Set cursor (underscore)
+		s.buffer[s.cursorY][s.cursorX] = '_'
+		screen := s.GetScreen()
+		// Restore char
+		s.buffer[s.cursorY][s.cursorX] = oldChar
+		return screen
+	}
+	return s.GetScreen()
 }
