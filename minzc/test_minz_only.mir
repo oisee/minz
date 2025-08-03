@@ -1,0 +1,10 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_minz_only.main() -> void
+  @smc
+  Instructions:
+      0: NOP ; @minz generated: fun test() -> void {}
+      1: UNKNOWN_OP_73 ; Metaprogramming output (placeholder)
+      2: return
+

@@ -478,6 +478,9 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 		if len(node.Children) > 0 {
 			return p.convertExpressionNode(node.Children[0])
 		}
+	case "attribute":
+		// Handle @function(...) calls in expression context
+		return p.convertAttributeAsExpression(node)
 	case "lua_expression":
 		// Extract the lua_code child
 		for _, child := range node.Children {
@@ -698,6 +701,12 @@ func (p *Parser) convertCallExpr(node *SExpNode) ast.Expression {
 	// Check if this is a metafunction call (function name starts with @)
 	if ident, ok := callExpr.Function.(*ast.Identifier); ok && strings.HasPrefix(ident.Name, "@") {
 		metafunctionName := ident.Name[1:] // Remove @ prefix
+		
+		// Handle @minz specially for compile-time metaprogramming
+		if metafunctionName == "minz" {
+			return p.convertMinzMetafunction(callExpr.Arguments, callExpr.StartPos, callExpr.EndPos)
+		}
+		
 		return &ast.MetafunctionCall{
 			Name:      metafunctionName,
 			Arguments: callExpr.Arguments,
@@ -1938,4 +1947,71 @@ func (p *Parser) transformSExpToIteratorChain(fieldExpr *ast.FieldExpr, args []a
 	
 	chain.EndPos = fieldExpr.EndPos
 	return chain
+}
+
+// convertAttributeAsExpression converts attribute nodes in expression context to metafunction calls
+func (p *Parser) convertAttributeAsExpression(node *SExpNode) ast.Expression {
+	var identifier string
+	var arguments []ast.Expression
+	
+	// Parse the attribute structure: identifier + argument_list
+	for _, child := range node.Children {
+		switch child.Type {
+		case "identifier":
+			identifier = p.getNodeText(child)
+		case "argument_list":
+			// Parse arguments from the argument list
+			for _, argChild := range child.Children {
+				if argChild.Type == "expression" {
+					expr := p.convertExpression(argChild)
+					if expr != nil {
+						arguments = append(arguments, expr)
+					}
+				}
+			}
+		}
+	}
+	
+	// Handle special metafunctions
+	if identifier == "minz" {
+		return p.convertMinzMetafunction(arguments, node.StartPos, node.EndPos)
+	}
+	
+	// Create generic metafunction call
+	return &ast.MetafunctionCall{
+		Name:      identifier,
+		Arguments: arguments,
+		StartPos:  node.StartPos,
+		EndPos:    node.EndPos,
+	}
+}
+
+// convertMinzMetafunction converts @minz("code", args...) calls to MinzMetafunctionCall AST nodes
+func (p *Parser) convertMinzMetafunction(arguments []ast.Expression, startPos, endPos ast.Position) ast.Expression {
+	// @minz requires at least one argument (the code string)
+	if len(arguments) == 0 {
+		return nil // Error: @minz requires code string
+	}
+	
+	// First argument must be a string literal containing MinZ code
+	codeExpr, ok := arguments[0].(*ast.StringLiteral)
+	if !ok {
+		return nil // Error: @minz first argument must be string literal
+	}
+	
+	// Extract the MinZ code from the string literal
+	code := codeExpr.Value
+	
+	// Remaining arguments are passed to the MinZ code
+	var args []ast.Expression
+	if len(arguments) > 1 {
+		args = arguments[1:]
+	}
+	
+	return &ast.MinzMetafunctionCall{
+		Code:      code,
+		Arguments: args,
+		StartPos:  startPos,
+		EndPos:    endPos,
+	}
 }

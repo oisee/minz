@@ -1,0 +1,112 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.metaprogramming_showcase.main() -> void
+  @smc
+  Locals:
+    r7 = numbers: [5]u8
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "=== MinZ v0.9.4 Metaprogramming Showcase ===
+" (45 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "Example 1: Generated greeting functions
+" (40 chars via loop)
+      4: NOP ; @minz generated: 
+        fun greet_world() -> void {
+            @print("Hello from world!
+");
+        }
+    
+      5: UNKNOWN_OP_73 ; Metaprogramming output (placeholder)
+      6: NOP ; @minz generated: 
+        fun greet_universe() -> void {
+            @print("Greetings, universe!
+");
+        }
+    
+      7: UNKNOWN_OP_73 ; Metaprogramming output (placeholder)
+      8: UNKNOWN_OP_88
+      9: UNKNOWN_OP_86 ; Print "Example 2: Generated constants
+" (31 chars via loop)
+     10: NOP ; @minz generated: 
+        const BASE_VALUE: u8 = 10;
+        const DOUBLED: u8 = 20;
+        const SQUARED: u16 = 100;
+    
+     11: UNKNOWN_OP_73 ; Metaprogramming output (placeholder)
+     12: UNKNOWN_OP_88
+     13: UNKNOWN_OP_86 ; Print "Example 3: Generated accessor patterns
+" (39 chars via loop)
+     14: NOP ; @minz generated: 
+        // Accessor for health field of type u8
+        fun get_health(obj: *Player) -> u8 {
+            return obj.health;
+        }
+        
+        fun set_health(obj: *Player, value: u8) -> void {
+            obj.health = value;
+        }
+    
+     15: UNKNOWN_OP_73 ; Metaprogramming output (placeholder)
+     16: UNKNOWN_OP_88
+     17: UNKNOWN_OP_86 ; Print "Example 4: Generated optimized loops
+" (37 chars via loop)
+     18: NOP ; @minz generated: 
+        // Unrolled loop for 3 iterations
+        fun process_3_times() -> void {
+            @print("Processing iteration 1
+");
+            @print("Processing iteration 2
+");
+            @print("Processing iteration 3
+");
+        }
+    
+     19: UNKNOWN_OP_73 ; Metaprogramming output (placeholder)
+     20: UNKNOWN_OP_88
+     21: UNKNOWN_OP_86 ; Print "Example 5: Metaprogramming + Zero-cost iterators
+" (49 chars via loop)
+     22: r8 = load numbers
+     23: NOP ; DJNZ OPTIMIZED LOOP for array[5]
+     24: r9 = 5 ; DJNZ counter = 5
+     25: r10 = r8 ; Pointer to array start
+     26: djnz_loop_1:
+     27: UNKNOWN_OP_69 ; Load element via pointer
+     28: r12 = call double_it ; Call double_it
+     29: r13 = call gt_5_check ; Call gt_5_check
+     30: jump_if_not r13, filter_continue_2 ; Skip if filter predicate is false
+     31: r14 = call print_result ; Call print_result
+     32: filter_continue_2:
+     33: INC ; Advance to next element
+     34: UNKNOWN_OP_77 ; DJNZ - decrement and loop
+     35: UNKNOWN_OP_88
+     36: UNKNOWN_OP_86 ; Print "=== Showcase Complete ===
+" (26 chars via loop)
+     37: UNKNOWN_OP_88
+     38: UNKNOWN_OP_86 ; Print "MinZ: Modern programming for vintage hardware!
+" (47 chars via loop)
+     39: return
+
+Function ...examples.metaprogramming_showcase.double_it(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 2
+      2: r4 = r2 * r3
+      3: return r4
+
+Function ...examples.metaprogramming_showcase.gt_5_check(x: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 5
+      2: r4 = r2 > r3
+      3: return r4
+
+Function ...examples.metaprogramming_showcase.print_result(x: u8) -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_87 ; Direct print "Result: " (8 chars)
+      1: return
+

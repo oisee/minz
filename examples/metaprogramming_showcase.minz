@@ -1,0 +1,73 @@
+// MinZ v0.9.4 - Metaprogramming Revolution Showcase
+// Demonstrates @minz metafunctions with compile-time code generation
+
+fun main() -> void {
+    @print("=== MinZ v0.9.4 Metaprogramming Showcase ===\n");
+    
+    // Example 1: Simple function generation
+    @print("Example 1: Generated greeting functions\n");
+    @minz("
+        fun greet_{0}() -> void {
+            @print(\"Hello from {0}!\n\");
+        }
+    ", "world");
+    
+    @minz("
+        fun greet_{0}() -> void {
+            @print(\"Greetings, {0}!\n\");
+        }
+    ", "universe");
+    
+    // Example 2: Constant generation with calculations
+    @print("Example 2: Generated constants\n");
+    @minz("
+        const BASE_VALUE: u8 = {0};
+        const DOUBLED: u8 = {1};
+        const SQUARED: u16 = {2};
+    ", "10", "20", "100");
+    
+    // Example 3: Template-based struct accessors
+    @print("Example 3: Generated accessor patterns\n");
+    @minz("
+        // Accessor for {0} field of type {1}
+        fun get_{0}(obj: *Player) -> {1} {
+            return obj.{0};
+        }
+        
+        fun set_{0}(obj: *Player, value: {1}) -> void {
+            obj.{0} = value;
+        }
+    ", "health", "u8");
+    
+    // Example 4: Loop unrolling
+    @print("Example 4: Generated optimized loops\n");
+    @minz("
+        // Unrolled loop for {0} iterations
+        fun process_{0}_times() -> void {
+            @print(\"Processing iteration 1\n\");
+            @print(\"Processing iteration 2\n\");
+            @print(\"Processing iteration 3\n\");
+        }
+    ", "3");
+    
+    // Example 5: Combining with iterators (both features together!)
+    @print("Example 5: Metaprogramming + Zero-cost iterators\n");
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // Zero-cost iterator chain with DJNZ optimization
+    numbers
+        .map(double_it)
+        .filter(gt_5_check)
+        .forEach(print_result);
+    
+    @print("=== Showcase Complete ===\n");
+    @print("MinZ: Modern programming for vintage hardware!\n");
+}
+
+// Helper functions for iterator example
+fun double_it(x: u8) -> u8 { return x * 2; }
+fun gt_5_check(x: u8) -> bool { return x > 5; }
+fun print_result(x: u8) -> void { 
+    @print("Result: ");
+    // In a full implementation, this would print the number
+}

@@ -1,0 +1,19 @@
+// Advanced @minz metafunction test with template substitution
+fun main() -> void {
+    @print("Testing advanced @minz metafunction...\n");
+    
+    // Test with string substitution
+    @minz("
+        fun greet_{0}() -> void {
+            @print(\"Hello from {0}!\");
+        }
+    ", "world");
+    
+    // Test with number substitution
+    @minz("
+        const VALUE: u8 = {0};
+        const DOUBLED: u8 = {1};
+    ", "42", "84");
+    
+    @print("@minz metafunction tests complete!\n");
+}

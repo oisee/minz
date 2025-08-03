@@ -1,0 +1,19 @@
+// Test @minz metafunction for compile-time code generation
+fun main() -> void {
+    @print("Testing @minz metafunction...\n");
+    
+    // Simple template substitution
+    @minz("
+        // Generated function for {0}
+        fun greet_{0}() -> void {
+            @print(\"Hello from {0}!\");
+        }
+    ", "world");
+    
+    // Test with numbers
+    @minz("
+        const VALUE_{0}: u8 = {1};
+    ", "TEST", "42");
+    
+    @print("@minz metafunction test complete!\n");
+}

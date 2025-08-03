@@ -1,0 +1,6 @@
+// Simple test for @minz metafunction
+fun main() -> void {
+    @print("Before minz\n");
+    @minz("// Simple generated code", "test");
+    @print("After minz\n");
+}

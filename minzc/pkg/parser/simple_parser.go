@@ -1056,9 +1056,44 @@ func (p *SimpleParser) parseMetafunctionCall() ast.Expression {
 		p.advance() // consume ')'
 	}
 	
+	// Handle @minz metafunction specially
+	if metafunctionName == "minz" {
+		return p.parseMinzMetafunction(startPos, arguments)
+	}
+	
 	return &ast.MetafunctionCall{
 		Name:      metafunctionName,
 		Arguments: arguments,
+		StartPos:  startPos,
+		EndPos:    p.currentPos(),
+	}
+}
+
+// parseMinzMetafunction parses @minz("code", args...) for compile-time metaprogramming
+func (p *SimpleParser) parseMinzMetafunction(startPos ast.Position, arguments []ast.Expression) ast.Expression {
+	// @minz requires at least one argument (the code string)
+	if len(arguments) == 0 {
+		return nil // Error: @minz requires code string
+	}
+	
+	// First argument must be a string literal containing MinZ code
+	codeExpr, ok := arguments[0].(*ast.StringLiteral)
+	if !ok {
+		return nil // Error: @minz first argument must be string literal
+	}
+	
+	// Extract the MinZ code from the string literal
+	code := codeExpr.Value
+	
+	// Remaining arguments are passed to the MinZ code
+	var args []ast.Expression
+	if len(arguments) > 1 {
+		args = arguments[1:]
+	}
+	
+	return &ast.MinzMetafunctionCall{
+		Code:      code,
+		Arguments: args,
 		StartPos:  startPos,
 		EndPos:    p.currentPos(),
 	}

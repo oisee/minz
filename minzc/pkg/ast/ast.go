@@ -897,6 +897,18 @@ func (m *MetafunctionCall) Pos() Position { return m.StartPos }
 func (m *MetafunctionCall) End() Position { return m.EndPos }
 func (m *MetafunctionCall) exprNode()    {}
 
+// MinzMetafunctionCall represents @minz("code", args...) calls for compile-time code generation
+type MinzMetafunctionCall struct {
+	Code      string       // MinZ code to execute at compile time
+	Arguments []Expression // Arguments to pass to the MinZ code
+	StartPos  Position
+	EndPos    Position
+}
+
+func (m *MinzMetafunctionCall) Pos() Position { return m.StartPos }
+func (m *MinzMetafunctionCall) End() Position { return m.EndPos }
+func (m *MinzMetafunctionCall) exprNode()    {}
+
 // InlineAssembly represents inline assembly code
 type InlineAssembly struct {
 	Code     string         // The assembly code

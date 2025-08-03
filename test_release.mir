@@ -1,0 +1,86 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_release_verification.main() -> void
+  @smc
+  Locals:
+    r1 = numbers: [3]u8
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Testing iterator chains:
+" (25 chars via loop)
+      2: r3 = load numbers
+      3: NOP ; DJNZ OPTIMIZED LOOP for array[3]
+      4: r4 = 3 ; DJNZ counter = 3
+      5: r5 = r3 ; Pointer to array start
+      6: djnz_loop_1:
+      7: UNKNOWN_OP_69 ; Load element via pointer
+      8: r7 = call print_u8 ; Call print_u8
+      9: INC ; Advance to next element
+     10: UNKNOWN_OP_77 ; DJNZ - decrement and loop
+     11: r8 = load numbers
+     12: NOP ; DJNZ OPTIMIZED LOOP for array[3]
+     13: r9 = 3 ; DJNZ counter = 3
+     14: r10 = r8 ; Pointer to array start
+     15: djnz_loop_2:
+     16: UNKNOWN_OP_69 ; Load element via pointer
+     17: r12 = call double ; Call double
+     18: r13 = call print_u8 ; Call print_u8
+     19: INC ; Advance to next element
+     20: UNKNOWN_OP_77 ; DJNZ - decrement and loop
+     21: r14 = load numbers
+     22: NOP ; DJNZ OPTIMIZED LOOP for array[3]
+     23: r15 = 3 ; DJNZ counter = 3
+     24: r16 = r14 ; Pointer to array start
+     25: djnz_loop_3:
+     26: UNKNOWN_OP_69 ; Load element via pointer
+     27: r18 = call gt_1 ; Call gt_1
+     28: jump_if_not r18, filter_continue_4 ; Skip if filter predicate is false
+     29: r19 = call print_u8 ; Call print_u8
+     30: filter_continue_4:
+     31: INC ; Advance to next element
+     32: UNKNOWN_OP_77 ; DJNZ - decrement and loop
+     33: r20 = load numbers
+     34: NOP ; DJNZ OPTIMIZED LOOP for array[3]
+     35: r21 = 3 ; DJNZ counter = 3
+     36: r22 = r20 ; Pointer to array start
+     37: djnz_loop_5:
+     38: UNKNOWN_OP_69 ; Load element via pointer
+     39: r24 = call double ; Call double
+     40: r25 = call gt_2 ; Call gt_2
+     41: jump_if_not r25, filter_continue_6 ; Skip if filter predicate is false
+     42: r26 = call print_u8 ; Call print_u8
+     43: filter_continue_6:
+     44: INC ; Advance to next element
+     45: UNKNOWN_OP_77 ; DJNZ - decrement and loop
+     46: return
+
+Function test_release_verification.double(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 2
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_release_verification.gt_1(x: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 > r3
+      3: return r4
+
+Function test_release_verification.gt_2(x: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 2
+      2: r4 = r2 > r3
+      3: return r4
+
+Function test_release_verification.print_u8(x: u8) -> void
+  @smc
+  Instructions:
+      0: return
+

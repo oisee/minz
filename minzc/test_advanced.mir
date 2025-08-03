@@ -1,0 +1,25 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_minz_advanced.main() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Testing advanced @minz metafunction...
+" (39 chars via loop)
+      2: NOP ; @minz generated: 
+        fun greet_world() -> void {
+            @print("Hello from world!");
+        }
+    
+      3: UNKNOWN_OP_73 ; Metaprogramming output (placeholder)
+      4: NOP ; @minz generated: 
+        const VALUE: u8 = 42;
+        const DOUBLED: u8 = 84;
+    
+      5: UNKNOWN_OP_73 ; Metaprogramming output (placeholder)
+      6: UNKNOWN_OP_88
+      7: UNKNOWN_OP_86 ; Print "@minz metafunction tests complete!
+" (35 chars via loop)
+      8: return
+
