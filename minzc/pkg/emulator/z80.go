@@ -422,6 +422,21 @@ func (z *Z80) GetRegisters() Registers {
 	}
 }
 
+// GetIFF1 returns interrupt flip-flop 1 state
+func (z *Z80) GetIFF1() bool {
+	return z.iff1
+}
+
+// GetIFF2 returns interrupt flip-flop 2 state
+func (z *Z80) GetIFF2() bool {
+	return z.iff2
+}
+
+// GetIM returns interrupt mode
+func (z *Z80) GetIM() uint8 {
+	return z.im
+}
+
 // ReadMemory reads a byte from memory
 func (z *Z80) ReadMemory(address uint16) uint8 {
 	return z.memory[address]

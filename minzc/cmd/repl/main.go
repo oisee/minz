@@ -92,13 +92,13 @@ func (r *REPL) Run() {
 // printBanner prints the REPL welcome message
 func (r *REPL) printBanner() {
 	fmt.Println("MinZ REPL v1.0.0 - Interactive Z80 Development")
-	fmt.Println("Type :help for commands, Ctrl-D to exit")
+	fmt.Println("Type /help for commands, Ctrl-D to exit")
 	fmt.Println()
 }
 
 // isCommand checks if input is a REPL command
 func (r *REPL) isCommand(input string) bool {
-	return strings.HasPrefix(input, ":")
+	return strings.HasPrefix(input, "/")
 }
 
 // executeCommand handles REPL commands
@@ -112,51 +112,55 @@ func (r *REPL) executeCommand(input string) {
 	args := parts[1:]
 	
 	switch cmd {
-	case ":help":
+	case "/help":
 		r.showHelp()
-	case ":quit", ":exit":
+	case "/quit", "/exit":
 		r.quit()
-	case ":reset":
+	case "/reset":
 		r.reset()
-	case ":asm":
+	case "/asm":
 		if len(args) > 0 {
 			r.showAssembly(args[0])
 		} else {
-			fmt.Println("Usage: :asm <function>")
+			fmt.Println("Usage: /asm <function>")
 		}
-	case ":mem":
+	case "/mem":
 		if len(args) >= 2 {
 			r.showMemory(args[0], args[1])
 		} else {
-			fmt.Println("Usage: :mem <address> <length>")
+			fmt.Println("Usage: /mem <address> <length>")
 		}
-	case ":reg":
-		r.showRegisters()
-	case ":vars":
+	case "/reg":
+		if len(args) > 0 && args[0] == "compact" {
+			r.showRegistersCompact()
+		} else {
+			r.showRegisters()
+		}
+	case "/vars":
 		r.showVariables()
-	case ":funcs":
+	case "/funcs":
 		r.showFunctions()
-	case ":profile":
+	case "/profile":
 		if len(args) > 0 {
 			r.profile(strings.Join(args, " "))
 		} else {
-			fmt.Println("Usage: :profile <expression>")
+			fmt.Println("Usage: /profile <expression>")
 		}
-	case ":save":
+	case "/save":
 		if len(args) > 0 {
 			r.saveSession(args[0])
 		} else {
-			fmt.Println("Usage: :save <filename>")
+			fmt.Println("Usage: /save <filename>")
 		}
-	case ":load":
+	case "/load":
 		if len(args) > 0 {
 			r.loadFile(args[0])
 		} else {
-			fmt.Println("Usage: :load <filename>")
+			fmt.Println("Usage: /load <filename>")
 		}
 	default:
 		fmt.Printf("Unknown command: %s\n", cmd)
-		fmt.Println("Type :help for available commands")
+		fmt.Println("Type /help for available commands")
 	}
 }
 
@@ -216,17 +220,18 @@ func (r *REPL) wrapInput(input string) string {
 
 func (r *REPL) showHelp() {
 	fmt.Println("REPL Commands:")
-	fmt.Println("  :help          - Show this help")
-	fmt.Println("  :quit          - Exit REPL")
-	fmt.Println("  :reset         - Reset emulator state")
-	fmt.Println("  :asm <func>    - Show assembly for function")
-	fmt.Println("  :mem <addr> <n> - Show n bytes of memory at addr")
-	fmt.Println("  :reg           - Show Z80 registers")
-	fmt.Println("  :vars          - Show defined variables")
-	fmt.Println("  :funcs         - Show defined functions")
-	fmt.Println("  :profile <expr> - Profile expression execution")
-	fmt.Println("  :save <file>   - Save session to file")
-	fmt.Println("  :load <file>   - Load MinZ file")
+	fmt.Println("  /help          - Show this help")
+	fmt.Println("  /quit          - Exit REPL")
+	fmt.Println("  /reset         - Reset emulator state")
+	fmt.Println("  /asm <func>    - Show assembly for function")
+	fmt.Println("  /mem <addr> <n> - Show n bytes of memory at addr")
+	fmt.Println("  /reg           - Show Z80 registers (all including shadows)")
+	fmt.Println("  /reg compact   - Show registers in compact one-line format")
+	fmt.Println("  /vars          - Show defined variables")
+	fmt.Println("  /funcs         - Show defined functions")
+	fmt.Println("  /profile <expr> - Profile expression execution")
+	fmt.Println("  /save <file>   - Save session to file")
+	fmt.Println("  /load <file>   - Load MinZ file")
 	fmt.Println()
 	fmt.Println("Examples:")
 	fmt.Println("  let x: u8 = 42")
@@ -251,11 +256,73 @@ func (r *REPL) reset() {
 }
 
 func (r *REPL) showRegisters() {
-	regs := r.emulator.GetRegisters()
-	fmt.Printf("A=%02X  BC=%04X  DE=%04X  HL=%04X\n", 
-		regs.A, regs.BC, regs.DE, regs.HL)
-	fmt.Printf("F=%02X  IX=%04X  IY=%04X  SP=%04X  PC=%04X\n",
-		regs.F, regs.IX, regs.IY, regs.SP, regs.PC)
+	// Get all register values
+	fmt.Println("╔══════════════════════════════════════════════════════════════╗")
+	fmt.Println("║                    Z80 Register State                        ║")
+	fmt.Println("╠══════════════════════════════════════════════════════════════╣")
+	
+	// Main registers as pairs
+	fmt.Printf("║ AF=%04X   BC=%04X   DE=%04X   HL=%04X                    ║\n",
+		uint16(r.emulator.A)<<8|uint16(r.emulator.F),
+		uint16(r.emulator.B)<<8|uint16(r.emulator.C),
+		uint16(r.emulator.D)<<8|uint16(r.emulator.E),
+		uint16(r.emulator.H)<<8|uint16(r.emulator.L))
+	
+	// Shadow registers as pairs
+	fmt.Printf("║ AF'=%04X  BC'=%04X  DE'=%04X  HL'=%04X                   ║\n",
+		uint16(r.emulator.A_)<<8|uint16(r.emulator.F_),
+		uint16(r.emulator.B_)<<8|uint16(r.emulator.C_),
+		uint16(r.emulator.D_)<<8|uint16(r.emulator.E_),
+		uint16(r.emulator.H_)<<8|uint16(r.emulator.L_))
+	
+	// Index and special registers
+	fmt.Printf("║ IX=%04X   IY=%04X   SP=%04X   PC=%04X                    ║\n",
+		r.emulator.IX, r.emulator.IY, r.emulator.SP, r.emulator.PC)
+	
+	// I and R registers
+	fmt.Printf("║ I=%02X      R=%02X      IFF1=%v  IFF2=%v  IM=%d              ║\n",
+		r.emulator.I, r.emulator.R, 
+		r.emulator.GetIFF1(), r.emulator.GetIFF2(), r.emulator.GetIM())
+	
+	// Flags breakdown
+	fmt.Println("╠══════════════════════════════════════════════════════════════╣")
+	fmt.Printf("║ Flags: S=%d Z=%d H=%d P/V=%d N=%d C=%d                      ║\n",
+		boolToInt(r.emulator.F&0x80 != 0), // Sign
+		boolToInt(r.emulator.F&0x40 != 0), // Zero
+		boolToInt(r.emulator.F&0x10 != 0), // Half-carry
+		boolToInt(r.emulator.F&0x04 != 0), // Parity/Overflow
+		boolToInt(r.emulator.F&0x02 != 0), // Add/Subtract
+		boolToInt(r.emulator.F&0x01 != 0)) // Carry
+	
+	fmt.Println("╚══════════════════════════════════════════════════════════════╝")
+}
+
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
+func (r *REPL) showRegistersCompact() {
+	// Compact one-line view
+	fmt.Printf("AF=%04X BC=%04X DE=%04X HL=%04X IX=%04X IY=%04X SP=%04X PC=%04X ",
+		uint16(r.emulator.A)<<8|uint16(r.emulator.F),
+		uint16(r.emulator.B)<<8|uint16(r.emulator.C),
+		uint16(r.emulator.D)<<8|uint16(r.emulator.E),
+		uint16(r.emulator.H)<<8|uint16(r.emulator.L),
+		r.emulator.IX, r.emulator.IY, r.emulator.SP, r.emulator.PC)
+	
+	// Show shadow registers if any are non-zero
+	if r.emulator.A_ != 0 || r.emulator.B_ != 0 || r.emulator.C_ != 0 ||
+		r.emulator.D_ != 0 || r.emulator.E_ != 0 || r.emulator.H_ != 0 || r.emulator.L_ != 0 {
+		fmt.Printf("(AF'=%04X BC'=%04X DE'=%04X HL'=%04X)",
+			uint16(r.emulator.A_)<<8|uint16(r.emulator.F_),
+			uint16(r.emulator.B_)<<8|uint16(r.emulator.C_),
+			uint16(r.emulator.D_)<<8|uint16(r.emulator.E_),
+			uint16(r.emulator.H_)<<8|uint16(r.emulator.L_))
+	}
+	fmt.Println()
 }
 
 func (r *REPL) showVariables() {
