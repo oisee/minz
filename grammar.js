@@ -174,6 +174,8 @@ module.exports = grammar({
     // Declarations
     declaration: $ => choice(
       $.function_declaration,
+      $.asm_function,
+      $.mir_function,
       $.variable_declaration,
       $.constant_declaration,
       $.type_alias,
@@ -196,6 +198,32 @@ module.exports = grammar({
       ')',
       $.return_type,
       $.block,
+    ),
+
+    asm_function: $ => seq(
+      optional($.visibility),
+      optional('export'),
+      'asm',
+      choice('fun', 'fn'),
+      $.identifier,
+      '(',
+      optional($.parameter_list),
+      ')',
+      $.return_type,
+      $.asm_body,
+    ),
+
+    mir_function: $ => seq(
+      optional($.visibility),
+      optional('export'),
+      'mir',
+      choice('fun', 'fn'),
+      $.identifier,
+      '(',
+      optional($.parameter_list),
+      ')',
+      $.return_type,
+      $.mir_body,
     ),
 
     parameter_list: $ => commaSep1($.parameter),
@@ -333,6 +361,8 @@ module.exports = grammar({
       $.variable_declaration,
       $.defer_statement,
       $.case_statement,
+      $.asm_block,
+      $.mir_block,
     ),
 
     expression_statement: $ => seq(
@@ -761,6 +791,104 @@ module.exports = grammar({
       $.identifier,
       optional(seq(':', $.type)),
     ),
+
+    // Assembly and MIR blocks
+    asm_block: $ => seq(
+      'asm',
+      '{',
+      optional($.asm_content),
+      '}',
+    ),
+
+    mir_block: $ => seq(
+      'mir',
+      '{',
+      optional($.mir_content),
+      '}',
+    ),
+
+    asm_body: $ => seq(
+      '{',
+      $.asm_raw_content,
+      '}',
+    ),
+
+    mir_body: $ => seq(
+      '{',
+      $.mir_raw_content,
+      '}',
+    ),
+
+    asm_raw_content: $ => /[^{}]*/,
+    
+    mir_raw_content: $ => /[^{}]*/,
+
+    asm_content: $ => repeat1(choice(
+      $.asm_label,
+      $.asm_instruction,
+      $.comment,
+    )),
+
+    mir_content: $ => repeat1(choice(
+      $.mir_instruction,
+      $.mir_label,
+      $.comment,
+    )),
+
+    asm_label: $ => seq(
+      $.identifier,
+      ':',
+    ),
+
+    asm_instruction: $ => /[^\n{}]+/,
+
+    mir_instruction: $ => prec.left(seq(
+      choice(
+        'load', 'store', 'move',
+        'add', 'sub', 'mul', 'div', 'mod',
+        'and', 'or', 'xor', 'not',
+        'shl', 'shr', 'rol', 'ror',
+        'jump', 'call', 'return',
+        'push', 'pop',
+        'inc', 'dec', 'neg',
+        'nop', 'halt', 'syscall',
+        /load\.[ui](8|16)/,
+        /store\.[ui](8|16)/,
+        /cast\.[ui](8|16)/,
+        /jump\.(z|nz|eq|ne|lt|gt|le|ge)/,
+        'smc.patch', 'phi',
+        'push.all', 'pop.all',
+      ),
+      optional($.mir_operands),
+    )),
+
+    mir_label: $ => seq(
+      $.identifier,
+      ':',
+    ),
+
+    mir_operands: $ => commaSep1($.mir_operand),
+
+    mir_operand: $ => choice(
+      $.mir_register,
+      $.mir_memory,
+      $.mir_immediate,
+      $.identifier,  // Label or function name
+    ),
+
+    mir_register: $ => /r[0-9]+|v[0-9]+/,
+
+    mir_memory: $ => seq(
+      '[',
+      choice(
+        $.mir_register,
+        $.identifier,
+        $.mir_immediate,
+      ),
+      ']',
+    ),
+
+    mir_immediate: $ => seq('#', $.number_literal),
   }
 });
 

@@ -208,6 +208,10 @@ func (p *Parser) convertDeclaration(node *SExpNode) ast.Declaration {
 		return p.convertAttributedDeclaration(node)
 	case "function_declaration":
 		return p.convertFunction(node)
+	case "asm_function":
+		return p.convertAsmFunction(node)
+	case "mir_function":
+		return p.convertMirFunction(node)
 	case "variable_declaration":
 		return p.convertVarDecl(node)
 	case "struct_declaration":
@@ -362,6 +366,10 @@ func (p *Parser) convertStatement(node *SExpNode) ast.Statement {
 		return p.convertAssignmentStmt(node)
 	case "loop_statement":
 		return p.convertLoopStmt(node)
+	case "asm_block":
+		return p.convertAsmBlock(node)
+	case "mir_block":
+		return p.convertMirBlock(node)
 	}
 	return nil
 }
@@ -1641,6 +1649,146 @@ func (p *Parser) convertLambdaParams(node *SExpNode) []*ast.LambdaParam {
 }
 
 // Use the isAlpha and isDigit functions from simple_parser.go
+
+// convertAsmBlock converts an asm block statement to AST
+func (p *Parser) convertAsmBlock(node *SExpNode) *ast.AsmStmt {
+	stmt := &ast.AsmStmt{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Find the raw content
+	for _, child := range node.Children {
+		if child.Type == "asm_raw_content" {
+			stmt.Code = p.getNodeText(child)
+			break
+		} else if child.Type == "asm_content" {
+			stmt.Code = p.getNodeText(child)
+			break
+		}
+	}
+	
+	return stmt
+}
+
+// convertMirBlock converts a mir block statement to AST
+func (p *Parser) convertMirBlock(node *SExpNode) *ast.MIRStmt {
+	stmt := &ast.MIRStmt{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Find the raw content
+	for _, child := range node.Children {
+		if child.Type == "mir_raw_content" {
+			stmt.Code = p.getNodeText(child)
+			break
+		} else if child.Type == "mir_content" {
+			stmt.Code = p.getNodeText(child)
+			break
+		}
+	}
+	
+	return stmt
+}
+
+// convertAsmFunction converts an asm function to AST
+func (p *Parser) convertAsmFunction(node *SExpNode) *ast.FunctionDecl {
+	fn := &ast.FunctionDecl{
+		FunctionKind: ast.FunctionKindAsm,
+		StartPos:     node.StartPos,
+		EndPos:       node.EndPos,
+	}
+
+	// Parse the function structure similarly to regular functions
+	for _, child := range node.Children {
+		switch child.Type {
+		case "identifier":
+			if fn.Name == "" {
+				fn.Name = p.getNodeText(child)
+			}
+		case "parameter_list":
+			fn.Params = p.convertParameters(child)
+		case "return_type":
+			fn.ReturnType = p.convertReturnType(child)
+		case "asm_body":
+			// For asm functions, we store the raw assembly in the body
+			for _, bodyChild := range child.Children {
+				if bodyChild.Type == "asm_raw_content" {
+					// Create a pseudo-block with just the assembly text
+					fn.Body = &ast.BlockStmt{
+						Statements: []ast.Statement{
+							&ast.AsmStmt{
+								Code:     p.getNodeText(bodyChild),
+								StartPos: bodyChild.StartPos,
+								EndPos:   bodyChild.EndPos,
+							},
+						},
+						StartPos: child.StartPos,
+						EndPos:   child.EndPos,
+					}
+					break
+				}
+			}
+		case "visibility":
+			text := p.getNodeText(child)
+			if text == "pub" || text == "public" {
+				fn.IsPublic = true
+			}
+		}
+	}
+
+	return fn
+}
+
+// convertMirFunction converts a mir function to AST
+func (p *Parser) convertMirFunction(node *SExpNode) *ast.FunctionDecl {
+	fn := &ast.FunctionDecl{
+		FunctionKind: ast.FunctionKindMIR,
+		StartPos:     node.StartPos,
+		EndPos:       node.EndPos,
+	}
+
+	// Parse the function structure similarly to regular functions
+	for _, child := range node.Children {
+		switch child.Type {
+		case "identifier":
+			if fn.Name == "" {
+				fn.Name = p.getNodeText(child)
+			}
+		case "parameter_list":
+			fn.Params = p.convertParameters(child)
+		case "return_type":
+			fn.ReturnType = p.convertReturnType(child)
+		case "mir_body":
+			// For mir functions, we store the raw MIR in the body
+			for _, bodyChild := range child.Children {
+				if bodyChild.Type == "mir_raw_content" {
+					// Create a pseudo-block with MIR text
+					fn.Body = &ast.BlockStmt{
+						Statements: []ast.Statement{
+							&ast.MIRStmt{
+								Code:     p.getNodeText(bodyChild),
+								StartPos: bodyChild.StartPos,
+								EndPos:   bodyChild.EndPos,
+							},
+						},
+						StartPos: child.StartPos,
+						EndPos:   child.EndPos,
+					}
+					break
+				}
+			}
+		case "visibility":
+			text := p.getNodeText(child)
+			if text == "pub" || text == "public" {
+				fn.IsPublic = true
+			}
+		}
+	}
+
+	return fn
+}
 
 // unescapeString processes escape sequences in a string
 func unescapeString(s string) string {

@@ -65,9 +65,19 @@ type FunctionDecl struct {
 	IsPublic      bool
 	IsExport      bool
 	Attributes    []*Attribute
+	FunctionKind  FunctionKind  // Regular, Asm, or MIR
 	StartPos      Position
 	EndPos        Position
 }
+
+// FunctionKind represents the type of function body
+type FunctionKind int
+
+const (
+	FunctionKindRegular FunctionKind = iota
+	FunctionKindAsm                  // asm fun
+	FunctionKindMIR                  // mir fun
+)
 
 func (f *FunctionDecl) Pos() Position { return f.StartPos }
 func (f *FunctionDecl) End() Position { return f.EndPos }
@@ -391,6 +401,77 @@ type AsmStmt struct {
 func (a *AsmStmt) Pos() Position { return a.StartPos }
 func (a *AsmStmt) End() Position { return a.EndPos }
 func (a *AsmStmt) stmtNode()    {}
+
+// MIRStmt represents inline MIR block: mir { ... }
+type MIRStmt struct {
+	Instructions []*MIRInstruction // Parsed MIR instructions
+	Code         string            // Raw MIR text (for passthrough)
+	StartPos     Position
+	EndPos       Position
+}
+
+func (m *MIRStmt) Pos() Position { return m.StartPos }
+func (m *MIRStmt) End() Position { return m.EndPos }
+func (m *MIRStmt) stmtNode()    {}
+
+// MIRInstruction represents a single MIR instruction
+type MIRInstruction struct {
+	Label    string       // Optional label
+	Opcode   string       // MIR opcode (load, store, add, etc.)
+	Operands []MIROperand // Instruction operands
+	StartPos Position
+	EndPos   Position
+}
+
+// MIROperand represents an operand in a MIR instruction
+type MIROperand interface {
+	Node
+	mirOperandNode()
+}
+
+// MIRRegister represents a MIR register (r0, r1, etc.)
+type MIRRegister struct {
+	Number   int
+	StartPos Position
+	EndPos   Position
+}
+
+func (r *MIRRegister) Pos() Position     { return r.StartPos }
+func (r *MIRRegister) End() Position     { return r.EndPos }
+func (r *MIRRegister) mirOperandNode()   {}
+
+// MIRImmediate represents a MIR immediate value (#123)
+type MIRImmediate struct {
+	Value    int64
+	StartPos Position
+	EndPos   Position
+}
+
+func (i *MIRImmediate) Pos() Position     { return i.StartPos }
+func (i *MIRImmediate) End() Position     { return i.EndPos }
+func (i *MIRImmediate) mirOperandNode()   {}
+
+// MIRMemory represents a MIR memory reference ([r1], [label])
+type MIRMemory struct {
+	Base     MIROperand // Register or label
+	StartPos Position
+	EndPos   Position
+}
+
+func (m *MIRMemory) Pos() Position     { return m.StartPos }
+func (m *MIRMemory) End() Position     { return m.EndPos }
+func (m *MIRMemory) mirOperandNode()   {}
+
+// MIRLabel represents a label reference in MIR
+type MIRLabel struct {
+	Name     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (l *MIRLabel) Pos() Position     { return l.StartPos }
+func (l *MIRLabel) End() Position     { return l.EndPos }
+func (l *MIRLabel) mirOperandNode()   {}
 
 // LoopStmt represents a loop statement for iterating over tables
 type LoopStmt struct {

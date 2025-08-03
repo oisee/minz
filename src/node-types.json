@@ -79,6 +79,36 @@
     }
   },
   {
+    "type": "asm_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "asm_content",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "asm_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "asm_raw_content",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "asm_clobber_list",
     "named": true,
     "fields": {},
@@ -88,6 +118,60 @@
       "types": [
         {
           "type": "string_literal",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "asm_content",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "asm_instruction",
+          "named": true
+        },
+        {
+          "type": "asm_label",
+          "named": true
+        },
+        {
+          "type": "comment",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "asm_function",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "asm_body",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "parameter_list",
+          "named": true
+        },
+        {
+          "type": "return_type",
+          "named": true
+        },
+        {
+          "type": "visibility",
           "named": true
         }
       ]
@@ -128,6 +212,21 @@
     }
   },
   {
+    "type": "asm_label",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "asm_output",
     "named": true,
     "fields": {},
@@ -160,6 +259,11 @@
         }
       ]
     }
+  },
+  {
+    "type": "asm_raw_content",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "attribute",
@@ -612,6 +716,10 @@
       "required": true,
       "types": [
         {
+          "type": "asm_function",
+          "named": true
+        },
+        {
           "type": "attributed_declaration",
           "named": true
         },
@@ -637,6 +745,10 @@
         },
         {
           "type": "lua_block",
+          "named": true
+        },
+        {
+          "type": "mir_function",
           "named": true
         },
         {
@@ -1322,6 +1434,205 @@
     }
   },
   {
+    "type": "mir_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "mir_content",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mir_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "mir_raw_content",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mir_content",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "comment",
+          "named": true
+        },
+        {
+          "type": "mir_instruction",
+          "named": true
+        },
+        {
+          "type": "mir_label",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mir_function",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "mir_body",
+          "named": true
+        },
+        {
+          "type": "parameter_list",
+          "named": true
+        },
+        {
+          "type": "return_type",
+          "named": true
+        },
+        {
+          "type": "visibility",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mir_immediate",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "number_literal",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mir_instruction",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "mir_operands",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mir_label",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mir_memory",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "mir_immediate",
+          "named": true
+        },
+        {
+          "type": "mir_register",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mir_operand",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "mir_immediate",
+          "named": true
+        },
+        {
+          "type": "mir_memory",
+          "named": true
+        },
+        {
+          "type": "mir_register",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mir_operands",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "mir_operand",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "mir_raw_content",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "number_literal",
     "named": true,
     "fields": {}
@@ -1610,6 +1921,10 @@
       "required": true,
       "types": [
         {
+          "type": "asm_block",
+          "named": true
+        },
+        {
           "type": "block_statement",
           "named": true
         },
@@ -1643,6 +1958,10 @@
         },
         {
           "type": "loop_statement",
+          "named": true
+        },
+        {
+          "type": "mir_block",
           "named": true
         },
         {
@@ -1908,6 +2227,10 @@
     "named": false
   },
   {
+    "type": "#",
+    "named": false
+  },
+  {
     "type": "%",
     "named": false
   },
@@ -2080,6 +2403,10 @@
     "named": false
   },
   {
+    "type": "add",
+    "named": false
+  },
+  {
     "type": "alignof",
     "named": false
   },
@@ -2094,6 +2421,10 @@
   {
     "type": "asm",
     "named": false
+  },
+  {
+    "type": "asm_instruction",
+    "named": true
   },
   {
     "type": "bits",
@@ -2116,6 +2447,10 @@
     "named": false
   },
   {
+    "type": "call",
+    "named": false
+  },
+  {
     "type": "case",
     "named": false
   },
@@ -2133,7 +2468,15 @@
     "named": false
   },
   {
+    "type": "dec",
+    "named": false
+  },
+  {
     "type": "defer",
+    "named": false
+  },
+  {
+    "type": "div",
     "named": false
   },
   {
@@ -2169,6 +2512,10 @@
     "named": false
   },
   {
+    "type": "halt",
+    "named": false
+  },
+  {
     "type": "i16",
     "named": false
   },
@@ -2197,15 +2544,23 @@
     "named": false
   },
   {
+    "type": "inc",
+    "named": false
+  },
+  {
     "type": "interface",
     "named": false
   },
   {
-    "type": "lamb",
+    "type": "jump",
     "named": false
   },
   {
     "type": "let",
+    "named": false
+  },
+  {
+    "type": "load",
     "named": false
   },
   {
@@ -2221,7 +2576,39 @@
     "named": true
   },
   {
+    "type": "mir",
+    "named": false
+  },
+  {
+    "type": "mir_register",
+    "named": true
+  },
+  {
+    "type": "mod",
+    "named": false
+  },
+  {
+    "type": "move",
+    "named": false
+  },
+  {
+    "type": "mul",
+    "named": false
+  },
+  {
     "type": "mut",
+    "named": false
+  },
+  {
+    "type": "neg",
+    "named": false
+  },
+  {
+    "type": "nop",
+    "named": false
+  },
+  {
+    "type": "not",
     "named": false
   },
   {
@@ -2229,7 +2616,35 @@
     "named": false
   },
   {
+    "type": "phi",
+    "named": false
+  },
+  {
+    "type": "pop",
+    "named": false
+  },
+  {
+    "type": "pop.all",
+    "named": false
+  },
+  {
+    "type": "push",
+    "named": false
+  },
+  {
+    "type": "push.all",
+    "named": false
+  },
+  {
     "type": "return",
+    "named": false
+  },
+  {
+    "type": "rol",
+    "named": false
+  },
+  {
+    "type": "ror",
     "named": false
   },
   {
@@ -2237,11 +2652,35 @@
     "named": false
   },
   {
+    "type": "shl",
+    "named": false
+  },
+  {
+    "type": "shr",
+    "named": false
+  },
+  {
     "type": "sizeof",
     "named": false
   },
   {
+    "type": "smc.patch",
+    "named": false
+  },
+  {
+    "type": "store",
+    "named": false
+  },
+  {
     "type": "struct",
+    "named": false
+  },
+  {
+    "type": "sub",
+    "named": false
+  },
+  {
+    "type": "syscall",
     "named": false
   },
   {
@@ -2274,6 +2713,10 @@
   },
   {
     "type": "while",
+    "named": false
+  },
+  {
+    "type": "xor",
     "named": false
   },
   {
