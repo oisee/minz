@@ -13,6 +13,48 @@
 
 ⚠️ **Important**: This is experimental research software. The language is actively evolving and many features are still under development. Not yet suitable for production use.
 
+## 📖 **Quick Syntax Reference**
+
+New to MinZ? Here's the essential syntax at a glance:
+
+```minz
+// Variables and constants
+let age: u8 = 25;           // Immutable variable
+var score: u16 = 1000;      // Mutable variable  
+const MAX_HP: u8 = 100;     // Compile-time constant
+global lives: u8 = 3;       // Global variable
+
+// Functions
+fun greet(name: string) -> void {
+    @print("Hello {}!", name);
+}
+
+// Error-throwing functions (NEW!)
+fun divide?(a: u8, b: u8) -> u8 ? MathError {
+    if b == 0 { @error(MathError.DivideByZero); }
+    return a / b;
+}
+
+// Types
+enum Status { Ready, Busy, Error }
+struct Player { name: string, hp: u8, mp: u8 }
+
+// Control flow
+if condition { 
+    do_something(); 
+} else { 
+    do_other(); 
+}
+
+for i in 0..10 { process(i); }
+while alive { keep_going(); }
+
+// Error handling with ?? operator
+let result = risky_operation?() ?? default_value;
+```
+
+**📚 Complete syntax guide**: See our [AI Colleagues MinZ Crash Course](AI_COLLEAGUES_MINZ_CRASH_COURSE.md) for comprehensive examples and patterns.
+
 ## 🔬 **Research Goals: Advanced Language Features for Z80**
 
 ```minz
