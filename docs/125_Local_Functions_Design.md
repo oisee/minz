@@ -19,6 +19,7 @@ Allow functions to be defined **inside** other functions, with full access to pa
 ```javascript
 // grammar.js - Allow function definitions inside function bodies
 function_definition: $ => seq(
+    optional('pub'),  // Public visibility modifier - Irish pub style! 🍺
     choice('fun', 'fn'),
     field('name', $.identifier),
     '(',

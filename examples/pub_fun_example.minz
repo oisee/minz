@@ -1,0 +1,199 @@
+// Pub Fun - Irish-style encapsulation in MinZ! 🍀
+// Private by default, explicitly public with 'pub fun'
+
+// Example 1: Game Score Manager
+fun score_manager() -> void {
+    let score: u16 = 0;
+    let multiplier: u8 = 1;
+    
+    // Public functions - accessible as score_manager.add_points
+    pub fun add_points(points: u16) -> void {
+        score = score + (points * multiplier);
+        check_bonus();  // Can call private functions
+    }
+    
+    pub fun get_score() -> u16 {
+        return score;
+    }
+    
+    pub fun set_multiplier(m: u8) -> void {
+        if m > 0 && m <= 10 {
+            multiplier = m;
+        }
+    }
+    
+    // Private helper - only accessible within score_manager
+    fun check_bonus() -> void {
+        if score > 1000 && multiplier == 1 {
+            multiplier = 2;  // Auto upgrade!
+            @print("Bonus multiplier activated!\n");
+        }
+    }
+}
+
+// Example 2: Irish Pub Counter 🍺
+fun irish_pub() -> void {
+    let pints_served: u16 = 0;
+    let happy_hour: bool = false;
+    
+    pub fun serve_pint() -> void {
+        if happy_hour {
+            pints_served = pints_served + 2;  // Two for one!
+            @print("Sláinte! Two pints served!\n");
+        } else {
+            pints_served = pints_served + 1;
+            @print("One pint served!\n");
+        }
+    }
+    
+    pub fun start_happy_hour() -> void {
+        happy_hour = true;
+        announce();  // Private function
+    }
+    
+    pub fun end_happy_hour() -> void {
+        happy_hour = false;
+        @print("Happy hour ended.\n");
+    }
+    
+    pub fun get_total() -> u16 {
+        return pints_served;
+    }
+    
+    // Private announcement
+    fun announce() -> void {
+        @print("🍀 Happy Hour Started! Two for one! 🍀\n");
+    }
+}
+
+// Example 3: State Machine with Pub/Private Methods
+fun traffic_light() -> void {
+    let state: u8 = 0;  // 0=RED, 1=YELLOW, 2=GREEN
+    let timer: u8 = 0;
+    
+    pub fun next() -> void {
+        state = get_next_state();  // Private helper
+        reset_timer();              // Private helper
+    }
+    
+    pub fun get_color() -> *u8 {
+        if state == 0 { return "RED"; }
+        if state == 1 { return "YELLOW"; }
+        return "GREEN";
+    }
+    
+    pub fun is_safe() -> bool {
+        return state == 2;  // Only green is safe
+    }
+    
+    // Private state logic
+    fun get_next_state() -> u8 {
+        if state == 0 { return 2; }  // RED -> GREEN
+        if state == 2 { return 1; }  // GREEN -> YELLOW
+        return 0;                    // YELLOW -> RED
+    }
+    
+    fun reset_timer() -> void {
+        if state == 2 {
+            timer = 60;  // Green for 60 seconds
+        } else if state == 1 {
+            timer = 5;   // Yellow for 5 seconds
+        } else {
+            timer = 30;  // Red for 30 seconds
+        }
+    }
+}
+
+// Example 4: Calculator Module
+fun calculator() -> void {
+    let accumulator: i16 = 0;
+    let last_operation: u8 = 0;  // 0=none, 1=add, 2=sub, 3=mul, 4=div
+    
+    pub fun add(n: i16) -> i16 {
+        accumulator = accumulator + n;
+        last_operation = 1;
+        return accumulator;
+    }
+    
+    pub fun subtract(n: i16) -> i16 {
+        accumulator = accumulator - n;
+        last_operation = 2;
+        return accumulator;
+    }
+    
+    pub fun multiply(n: i16) -> i16 {
+        accumulator = accumulator * n;
+        last_operation = 3;
+        return accumulator;
+    }
+    
+    pub fun divide(n: i16) -> i16 {
+        if n != 0 {
+            accumulator = accumulator / n;
+            last_operation = 4;
+        } else {
+            handle_error();  // Private error handler
+        }
+        return accumulator;
+    }
+    
+    pub fun clear() -> void {
+        accumulator = 0;
+        last_operation = 0;
+    }
+    
+    pub fun get_result() -> i16 {
+        return accumulator;
+    }
+    
+    // Private error handling
+    fun handle_error() -> void {
+        @print("Error: Division by zero!\n");
+    }
+}
+
+fun main() -> void {
+    @print("=== Pub Fun Examples ===\n\n");
+    
+    // Initialize modules
+    score_manager();
+    irish_pub();
+    traffic_light();
+    calculator();
+    
+    // Use score manager
+    @print("Score Manager:\n");
+    score_manager.add_points(100);
+    score_manager.add_points(500);
+    score_manager.add_points(500);  // Should trigger bonus
+    let score = score_manager.get_score();
+    @print("Final score: {}\n\n", score);
+    
+    // Visit the Irish pub
+    @print("Irish Pub:\n");
+    irish_pub.serve_pint();
+    irish_pub.start_happy_hour();
+    irish_pub.serve_pint();
+    irish_pub.serve_pint();
+    irish_pub.end_happy_hour();
+    irish_pub.serve_pint();
+    let pints = irish_pub.get_total();
+    @print("Total pints served: {}\n\n", pints);
+    
+    // Control traffic
+    @print("Traffic Light:\n");
+    @print("Current: {}\n", traffic_light.get_color());
+    traffic_light.next();
+    @print("Current: {}\n", traffic_light.get_color());
+    @print("Safe to go? {}\n\n", traffic_light.is_safe());
+    
+    // Calculate
+    @print("Calculator:\n");
+    calculator.add(10);
+    calculator.multiply(5);
+    calculator.subtract(20);
+    let result = calculator.get_result();
+    @print("Result: {}\n", result);
+    
+    @print("\n🍀 Pub Fun works perfectly! Sláinte! 🍀\n");
+}
