@@ -239,7 +239,7 @@ func (a *TASAnalyzer) findBottlenecks(report *PerformanceReport) {
 			// Suggest optimizations based on patterns
 			if stats.Calls > 1000 {
 				bottleneck.Suggestion = "Consider inlining this frequently called function"
-			} else if stats.MaxCycles > stats.AvgCycles*2 {
+			} else if float64(stats.MaxCycles) > stats.AvgCycles*2 {
 				bottleneck.Suggestion = "High variance in execution time - check for inefficient paths"
 			} else {
 				bottleneck.Suggestion = "Optimize the algorithm or use SMC for parameters"
@@ -278,14 +278,14 @@ func (a *TASAnalyzer) findLoopOptimizations(report *PerformanceReport) {
 		if stats.Opcode == "DEC B" || stats.Opcode == "DEC C" {
 			// Check if followed by conditional jump
 			nextPC := a.getNextPC(pc)
-			if nextStats, exists := report.Instructions[a.getOpcodeat(nextPC)]; exists {
+			if nextStats, exists := report.Instructions[a.getOpcodeAt(nextPC)]; exists {
 				if nextStats.Opcode == "JR NZ" {
 					opt := OptimizationOpportunity{
 						Priority:    8,
 						Location:    a.parsePC(pc),
 						Current:     "DEC reg + JR NZ",
 						Suggested:   "DJNZ",
-						CyclesSaved: stats.Count * 3,  // DJNZ saves ~3 cycles
+						CyclesSaved: uint64(stats.Count) * 3,  // DJNZ saves ~3 cycles
 						Description: "Replace DEC+JR NZ with DJNZ for faster loops",
 					}
 					report.Optimizations = append(report.Optimizations, opt)
@@ -316,7 +316,7 @@ func (a *TASAnalyzer) findRegisterOptimizations(report *PerformanceReport) {
 			Priority:    7,
 			Description: fmt.Sprintf("%.1f%% of instructions are loads - consider register allocation", loadPercentage),
 			Suggested:   "Improve register allocation to reduce memory access",
-			CyclesSaved: loadCount / 10,  // Estimate 10% reduction possible
+			CyclesSaved: uint64(loadCount) / 10,  // Estimate 10% reduction possible
 		}
 		report.Optimizations = append(report.Optimizations, opt)
 	}
@@ -333,7 +333,7 @@ func (a *TASAnalyzer) findMemoryOptimizations(report *PerformanceReport) {
 				Priority:    6,
 				Current:     "Frequent LD A,(HL)",
 				Suggested:   "Cache frequently accessed values in registers",
-				CyclesSaved: memStats.Count / 5,
+				CyclesSaved: uint64(memStats.Count) / 5,
 				Description: "High frequency memory reads detected",
 			}
 			report.Optimizations = append(report.Optimizations, opt)
@@ -351,7 +351,7 @@ func (a *TASAnalyzer) findSMCOpportunities(report *PerformanceReport) {
 				Location:    a.getFunctionAddress(name),
 				Current:     "Regular function calls",
 				Suggested:   "Enable SMC for parameter patching",
-				CyclesSaved: stats.Calls * 5,  // ~5 cycles per call
+				CyclesSaved: uint64(stats.Calls) * 5,  // ~5 cycles per call
 				Description: fmt.Sprintf("Function %s called %d times - SMC could optimize", name, stats.Calls),
 			}
 			report.Optimizations = append(report.Optimizations, opt)
@@ -370,7 +370,7 @@ func (a *TASAnalyzer) isReturn(state StateSnapshot) bool {
 }
 
 func (a *TASAnalyzer) getCallTarget(state StateSnapshot) uint16 {
-	if state.PC+2 < 65536 {
+	if state.PC+2 < 65535 {
 		low := state.Memory[state.PC+1]
 		high := state.Memory[state.PC+2]
 		return uint16(high)<<8 | uint16(low)
@@ -444,7 +444,22 @@ func (a *TASAnalyzer) isLoadInstruction(opcode string) bool {
 	return len(opcode) >= 2 && opcode[:2] == "LD"
 }
 
-// RenderReport creates visual performance report
+// makeBar creates a visual progress bar
+func makeBar(percentage int) string {
+	width := 20
+	filled := percentage * width / 100
+	bar := ""
+	for i := 0; i < width; i++ {
+		if i < filled {
+			bar += "█"
+		} else {
+			bar += "░"
+		}
+	}
+	return bar
+}
+
+// Render creates visual performance report
 func (report *PerformanceReport) Render() string {
 	output := "═══════════════════════════════════════════════════════════════════════════\n"
 	output += "                    PERFORMANCE ANALYSIS REPORT                            \n"
@@ -469,7 +484,7 @@ func (report *PerformanceReport) Render() string {
 			break
 		}
 		stats := report.Functions[name]
-		bar := a.makeBar(int(stats.Percentage))
+		bar := makeBar(int(stats.Percentage))
 		output += fmt.Sprintf("%-20s %s %.1f%% (%d calls, avg %d cycles)\n",
 			name, bar, stats.Percentage, stats.Calls, int(stats.AvgCycles))
 	}
@@ -513,18 +528,4 @@ func (report *PerformanceReport) Render() string {
 	}
 	
 	return output
-}
-
-func (a *TASAnalyzer) makeBar(percentage int) string {
-	width := 20
-	filled := percentage * width / 100
-	bar := ""
-	for i := 0; i < width; i++ {
-		if i < filled {
-			bar += "█"
-		} else {
-			bar += "░"
-		}
-	}
-	return bar
 }

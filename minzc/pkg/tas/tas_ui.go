@@ -3,7 +3,6 @@ package tas
 import (
 	"fmt"
 	"strings"
-	"time"
 )
 
 // TASUI provides visual interface for TAS debugging
@@ -126,7 +125,7 @@ func (ui *TASUI) renderCPUState() string {
 		state.A_, state.F_, state.B_, state.C_, state.D_, state.E_, state.H_, state.L_)
 	
 	// Decode flags
-	flags := ui.decodeFlagsFlags: "
+	flags := "Flags: "
 	if state.F&0x80 != 0 { flags += "S " } else { flags += "- " }
 	if state.F&0x40 != 0 { flags += "Z " } else { flags += "- " }
 	if state.F&0x10 != 0 { flags += "H " } else { flags += "- " }
@@ -304,16 +303,48 @@ func (ui *TASUI) hasEventAt(frame int64) bool {
 
 // decodeKey converts key value to readable string
 func (ui *TASUI) decodeKey(value byte) string {
-	// ZX Spectrum keyboard decoding
+	// ZX Spectrum keyboard decoding (simplified)
 	keys := map[byte]string{
-		0x1F: "1", 0x1E: "2", 0x1D: "3", 0x1C: "4", 0x1B: "5",
-		0x0F: "0", 0x0E: "9", 0x0D: "8", 0x0C: "7", 0x0B: "6",
-		0x17: "Q", 0x16: "W", 0x15: "E", 0x14: "R", 0x13: "T",
-		0x07: "P", 0x06: "O", 0x05: "I", 0x04: "U", 0x03: "Y",
-		0x1A: "A", 0x19: "S", 0x18: "D", 0x17: "F", 0x16: "G",
-		0x0A: "Enter", 0x09: "L", 0x08: "K", 0x07: "J", 0x06: "H",
-		0x01: "Shift", 0x12: "Z", 0x11: "X", 0x10: "C", 0x0F: "V",
-		0x00: "Space", 0x02: "Sym", 0x03: "M", 0x04: "N", 0x05: "B",
+		0x00: "Space",
+		0x01: "Shift",
+		0x02: "Sym",
+		0x0A: "Enter",
+		0x10: "0",
+		0x11: "1",
+		0x12: "2",
+		0x13: "3",
+		0x14: "4",
+		0x15: "5",
+		0x16: "6",
+		0x17: "7",
+		0x18: "8",
+		0x19: "9",
+		0x20: "Q",
+		0x21: "W",
+		0x22: "E",
+		0x23: "R",
+		0x24: "T",
+		0x25: "Y",
+		0x26: "U",
+		0x27: "I",
+		0x28: "O",
+		0x29: "P",
+		0x30: "A",
+		0x31: "S",
+		0x32: "D",
+		0x33: "F",
+		0x34: "G",
+		0x35: "H",
+		0x36: "J",
+		0x37: "K",
+		0x38: "L",
+		0x40: "Z",
+		0x41: "X",
+		0x42: "C",
+		0x43: "V",
+		0x44: "B",
+		0x45: "N",
+		0x46: "M",
 	}
 	
 	if key, exists := keys[value]; exists {

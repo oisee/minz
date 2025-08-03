@@ -2,17 +2,85 @@ package tas
 
 import (
 	"fmt"
-	"time"
-	"encoding/binary"
-	"compress/gzip"
-	
-	"github.com/oisee/minz/pkg/emulator"
 )
+
+// Z80Emulator interface for Z80 emulation
+type Z80Emulator interface {
+	GetPC() uint16
+	SetPC(uint16)
+	GetSP() uint16
+	SetSP(uint16)
+	GetA() byte
+	SetA(byte)
+	GetB() byte
+	SetB(byte)
+	GetC() byte
+	SetC(byte)
+	GetD() byte
+	SetD(byte)
+	GetE() byte
+	SetE(byte)
+	GetF() byte
+	SetF(byte)
+	GetH() byte
+	SetH(byte)
+	GetL() byte
+	SetL(byte)
+	GetIX() uint16
+	SetIX(uint16)
+	GetIY() uint16
+	SetIY(uint16)
+	GetI() byte
+	SetI(byte)
+	GetR() byte
+	SetR(byte)
+	GetIFF1() bool
+	SetIFF1(bool)
+	GetIFF2() bool
+	SetIFF2(bool)
+	GetShadowA() byte
+	SetShadowA(byte)
+	GetShadowB() byte
+	SetShadowB(byte)
+	GetShadowC() byte
+	SetShadowC(byte)
+	GetShadowD() byte
+	SetShadowD(byte)
+	GetShadowE() byte
+	SetShadowE(byte)
+	GetShadowF() byte
+	SetShadowF(byte)
+	GetShadowH() byte
+	SetShadowH(byte)
+	GetShadowL() byte
+	SetShadowL(byte)
+	GetCycles() uint64
+	SetCycles(uint64)
+	GetTStates() uint64
+	SetTStates(uint64)
+	GetMemory() []byte
+	SetMemory([]byte)
+	ReadByte(uint16) byte
+	WriteByte(uint16, byte)
+	GetBorder() byte
+	GetLastOpcode() string
+	GetRegisters() *CPURegisters
+}
+
+// CPURegisters holds all CPU register values
+type CPURegisters struct {
+	PC, SP     uint16
+	A, B, C, D, E, F, H, L byte
+	A_, B_, C_, D_, E_, F_, H_, L_ byte  // Shadow registers
+	IX, IY     uint16
+	I, R       byte
+	IFF1, IFF2 bool
+}
 
 // TASDebugger implements Tool-Assisted Speedrun inspired debugging for Z80
 // Memory is cheap - we record EVERYTHING!
 type TASDebugger struct {
-	emulator     *emulator.Z80
+	emulator     Z80Emulator
 	stateHistory []StateSnapshot
 	currentFrame int64
 	recording    bool
@@ -93,7 +161,7 @@ type OptimizationGoal struct {
 }
 
 // NewTASDebugger creates a TAS-inspired debugger
-func NewTASDebugger(emu *emulator.Z80) *TASDebugger {
+func NewTASDebugger(emu Z80Emulator) *TASDebugger {
 	return &TASDebugger{
 		emulator:     emu,
 		stateHistory: make([]StateSnapshot, 0, 1000000),
@@ -127,7 +195,7 @@ func (t *TASDebugger) RecordFrame() {
 func (t *TASDebugger) captureState() StateSnapshot {
 	snap := StateSnapshot{
 		Cycle: t.emulator.GetCycles(),
-		Frame: t.currentFrame,
+		Frame: uint64(t.currentFrame),
 	}
 	
 	// Capture CPU registers
@@ -268,7 +336,7 @@ func (t *TASDebugger) RecordInput(port uint16, value byte) {
 	
 	event := InputEvent{
 		Cycle: t.emulator.GetCycles(),
-		Frame: t.currentFrame,
+		Frame: uint64(t.currentFrame),
 		Port:  port,
 		Value: value,
 		Type:  "key",
