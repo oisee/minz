@@ -1,0 +1,22 @@
+// Test DJNZ optimization for iterators
+// This should generate optimal DJNZ loops for small arrays
+
+fun main() -> void {
+    // Small array (5 elements) - should use DJNZ
+    let small: [u8; 5] = [10, 20, 30, 40, 50];
+    
+    @print("=== DJNZ Optimized Loop (5 elements) ===");
+    small.forEach(print_u8);
+    
+    // Test with map - should still use DJNZ
+    @print("\n=== DJNZ with map ===");
+    small.map(double).forEach(print_u8);
+}
+
+fun double(x: u8) -> u8 {
+    return x * 2;
+}
+
+fun print_u8(x: u8) -> void {
+    // Placeholder for built-in
+}

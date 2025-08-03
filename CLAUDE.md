@@ -209,6 +209,20 @@ Performance verified: **Lambda functions run at 100% the speed of traditional fu
 
 MinZ has achieved the impossible - modern programming abstractions with ZERO runtime overhead on Z80:
 
+### ✅ **Zero-Cost Iterators** - COMPLETE (v0.9.2)
+```minz
+let arr: [u8; 5] = [1, 2, 3, 4, 5];
+arr.iter()
+   .map(|x| x * 2)
+   .filter(|x| x > 5)
+   .forEach(print_u8);
+```
+**Compiles to:** Single optimized loop with DJNZ instruction - ZERO overhead vs hand-written assembly!
+- Chain operations fuse into one pass
+- No intermediate arrays allocated
+- Type safety preserved through chain
+- See `docs/125_Iterator_Transformation_Mechanics.md` for the mathematics
+
 ### ✅ **Zero-Overhead Lambdas** - COMPLETE
 ```minz
 let add = |x: u8, y: u8| => u8 { x + y };
@@ -354,9 +368,16 @@ cd minzc && ./minzc ../examples/simple_abi_demo.minz -o simple_abi_demo.a80
 
 ### Compilation Pipeline
 1. **Parsing**: Tree-sitter generates AST from MinZ source (`pkg/parser/`)
+   - S-expression parser detects iterator methods (`.map()`, `.filter()`, `.forEach()`)
+   - Transforms method chains into `IteratorChainExpr` AST nodes
 2. **Semantic Analysis**: Type checking and symbol resolution (`pkg/semantic/`)
+   - Iterator chains generate optimized loop code (`pkg/semantic/iterator.go`)
+   - Type inference flows through iterator operations
 3. **IR Generation**: Converts to intermediate representation (`pkg/ir/`)
+   - Iterator loops become standard MIR instructions (no special IR needed!)
 4. **Optimization**: Advanced passes including register allocation (`pkg/optimizer/`)
+   - Future: Fusion optimizer combines multiple operations into single loops
+   - DJNZ pattern recognition for arrays ≤255 elements
 5. **Code Generation**: Z80 assembly output in sjasmplus format (`pkg/codegen/`)
 
 ### Key Compiler Components

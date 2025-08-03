@@ -198,6 +198,23 @@ const (
 	OpMemset        // Set memory block
 )
 
+// RegisterHint provides hints to the register allocator for optimal Z80 register usage
+type RegisterHint uint8
+
+const (
+	RegHintNone RegisterHint = iota
+	RegHintA                 // Prefer A register (accumulator, for arithmetic)
+	RegHintB                 // Prefer B register (for DJNZ loops)
+	RegHintC                 // Prefer C register
+	RegHintD                 // Prefer D register
+	RegHintE                 // Prefer E register
+	RegHintH                 // Prefer H register
+	RegHintL                 // Prefer L register
+	RegHintHL                // Prefer HL register pair (for pointers)
+	RegHintDE                // Prefer DE register pair
+	RegHintBC                // Prefer BC register pair
+)
+
 // Instruction represents a single IR instruction
 type Instruction struct {
 	Op           Opcode
@@ -216,6 +233,7 @@ type Instruction struct {
 	AsmCode      string            // Raw assembly code for OpAsm instructions
 	AsmName      string            // Optional name for named asm blocks
 	Args         []Register        // Argument registers for OpCall
+	Hint         RegisterHint      // Hint for register allocator
 }
 
 // AsmBlock represents an inline assembly block

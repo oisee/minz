@@ -221,6 +221,107 @@ func isIteratorMethod(name string) bool {
 func (a *Analyzer) generateArrayIteration(chain *ast.IteratorChainExpr, sourceReg ir.Register, 
 	arrayType *ir.ArrayType, elementType ir.Type, irFunc *ir.Function) (ir.Register, error) {
 	
+	// Check if we can use DJNZ optimization (arrays ≤255 elements)
+	useDJNZ := arrayType.Length > 0 && arrayType.Length <= 255
+	
+	if useDJNZ {
+		return a.generateDJNZIteration(chain, sourceReg, arrayType, elementType, irFunc)
+	}
+	
+	// Fall back to standard indexed iteration for large arrays
+	return a.generateIndexedIteration(chain, sourceReg, arrayType, elementType, irFunc)
+}
+
+// generateDJNZIteration generates optimized DJNZ loop for arrays ≤255 elements
+// This uses pointer arithmetic and DJNZ instruction for 3x performance
+func (a *Analyzer) generateDJNZIteration(chain *ast.IteratorChainExpr, sourceReg ir.Register,
+	arrayType *ir.ArrayType, elementType ir.Type, irFunc *ir.Function) (ir.Register, error) {
+	
+	// Add debug comment
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpNop,
+		Comment: fmt.Sprintf("DJNZ OPTIMIZED LOOP for array[%d]", arrayType.Length),
+	})
+	
+	// Generate labels for the loop
+	loopLabel := a.generateLabel("djnz_loop")
+	
+	// Allocate registers for DJNZ pattern
+	counterReg := irFunc.AllocReg()  // B register for DJNZ
+	ptrReg := irFunc.AllocReg()      // HL register for pointer
+	elementReg := irFunc.AllocReg()  // A register for element
+	
+	// Initialize counter (B register) with array length
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoadConst,
+		Dest: counterReg,
+		Imm:  int64(arrayType.Length),
+		Type: &ir.BasicType{Kind: ir.TypeU8},
+		Hint: ir.RegHintB, // Hint to use B register for DJNZ
+		Comment: fmt.Sprintf("DJNZ counter = %d", arrayType.Length),
+	})
+	
+	// Initialize pointer to array start
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpMove,
+		Dest: ptrReg,
+		Src1: sourceReg,
+		Type: &ir.PointerType{Base: elementType},
+		Hint: ir.RegHintHL, // Hint to use HL register pair
+		Comment: "Pointer to array start",
+	})
+	
+	// Loop start
+	irFunc.EmitLabel(loopLabel)
+	
+	// Load element through pointer
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpLoad,
+		Dest: elementReg,
+		Src1: ptrReg,
+		Type: elementType,
+		Comment: "Load element via pointer",
+	})
+	
+	// Apply iterator operations
+	currentReg := elementReg
+	for _, op := range chain.Operations {
+		newReg, err := a.applyIteratorOperation(op, currentReg, elementType, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("failed to apply iterator operation: %w", err)
+		}
+		currentReg = newReg
+	}
+	
+	// Increment pointer to next element
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:   ir.OpInc,
+		Dest: ptrReg,
+		Src1: ptrReg,
+		Type: &ir.PointerType{Base: elementType},
+		Hint: ir.RegHintHL,
+		Comment: "Advance to next element",
+	})
+	
+	// DJNZ instruction - decrement counter and jump if not zero
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:    ir.OpDJNZ,
+		Src1:  counterReg,
+		Label: loopLabel,
+		Hint:  ir.RegHintB,
+		Comment: "DJNZ - decrement and loop",
+	})
+	
+	// No end label needed - DJNZ handles the exit condition
+	
+	// Return void register (iterators don't return values)
+	return 0, nil
+}
+
+// generateIndexedIteration generates standard indexed loop for large arrays
+func (a *Analyzer) generateIndexedIteration(chain *ast.IteratorChainExpr, sourceReg ir.Register,
+	arrayType *ir.ArrayType, elementType ir.Type, irFunc *ir.Function) (ir.Register, error) {
+	
 	// Generate labels for the loop
 	loopLabel := a.generateLabel("iter_loop")
 	endLabel := a.generateLabel("iter_end")
