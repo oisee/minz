@@ -10,11 +10,10 @@
 | abi_test_with_main | ✅ | 1 | 61 | 2630 | 0
 0D/0
 0L | Yes(2) |
-| arithmetic_16bit | ✅ | 0
-0 | 59 | 2013 | 0
+| arithmetic_16bit | ✅ | 2 | 66 | 2972 | 0
 0D/0
-0L | No |
-| arithmetic_demo | ✅ | 2 | 66 | 2792 | 0
+0L | Yes(5) |
+| arithmetic_demo | ✅ | 2 | 66 | 3529 | 0
 0D/0
 0L | Yes(5) |
 | array_initializers | ✅ | 3 | 250 | 10099 | 20D/0
@@ -22,6 +21,7 @@
 | arrays | ✅ | 1 | 82 | 3397 | 0
 0D/0
 0L | Yes(2) |
+| asm_mir_functions | ❌ | - | - | - | - | - |
 | basic_functions | ✅ | 2 | 92 | 4405 | 0
 0D/0
 0L | Yes(6) |
@@ -31,12 +31,12 @@
 | bit_fields | ✅ | 2 | 70 | 3857 | 0
 0D/0
 0L | Yes(4) |
-| bit_manipulation | ❌ | - | - | - | - | - |
+| bit_manipulation | ✅ | 5 | 185 | 12453 | 0⚡0D/0⚡0L | Yes(31) |
 | const_only | ✅ | 0
 0 | 59 | 2013 | 0
 0D/0
 0L | No |
-| control_flow | ✅ | 2 | 127 | 6008 | 0
+| control_flow | ✅ | 2 | 127 | 5724 | 0
 0D/0
 0L | Yes(3) |
 | debug_lambda | ✅ | 1 | 60 | 2278 | 0
@@ -44,9 +44,9 @@
 0L | Yes(2) |
 | editor_demo | ❌ | - | - | - | - | - |
 | editor_standalone | ❌ | - | - | - | - | - |
-| enums | ❌ | - | - | - | - | - |
+| enums | ✅ | 3 | 207 | 11892 | 0⚡0D/0⚡0L | Yes(31) |
 | error_handling_demo | ❌ | - | - | - | - | - |
-| fibonacci_tail | ❌ | - | - | - | - | - |
+| fibonacci_tail | ✅ | 3 | 76 | 3521 | 0⚡0D/0⚡0L | Yes(9) |
 | fibonacci | ✅ | 2 | 100 | 4339 | 0
 0D/0
 0L | Yes(6) |
@@ -54,10 +54,8 @@
 0D/0
 0L | Yes(2) |
 | game_state_machine | ❌ | - | - | - | - | - |
-| global_variables | ✅ | 0
-0 | 59 | 2013 | 0
-0D/0
-0L | No |
+| global_variables_fixed | ❌ | - | - | - | - | - |
+| global_variables | ❌ | - | - | - | - | - |
 | hardware_registers | ✅ | 1 | 67 | 3200 | 0
 0D/0
 0L | Yes(2) |
@@ -67,7 +65,7 @@
 | interface_simple_test | ❌ | - | - | - | - | - |
 | interface_simple | ❌ | - | - | - | - | - |
 | interface_test | ❌ | - | - | - | - | - |
-| interrupt_handlers | ✅ | 3 | 62 | 2928 | 0
+| interrupt_handlers | ✅ | 3 | 91 | 4567 | 0
 0D/0
 0L | Yes(6) |
 | lambda_basic_test | ✅ | 5 | 109 | 7449 | 0
@@ -83,7 +81,7 @@
 0D/0
 0L | Yes(7) |
 | lambda_showcase | ❌ | - | - | - | - | - |
-| lambda_simple_e2e | ✅ | 5 | 124 | 8956 | 0
+| lambda_simple_e2e | ✅ | 5 | 123 | 8903 | 0
 0D/0
 0L | Yes(19) |
 | lambda_simple_fix | ✅ | 2 | 75 | 3689 | 0
@@ -99,13 +97,14 @@
 | lambda_transform_poc | ✅ | 4 | 109 | 7379 | 0
 0D/0
 0L | Yes(16) |
-| lambda_transform_test | ✅ | 5 | 122 | 9307 | 0
+| lambda_transform_test | ✅ | 5 | 123 | 9360 | 0
 0D/0
 0L | Yes(20) |
-| lambda_vs_traditional_performance | ✅ | 7 | 207 | 16595 | 0
+| lambda_vs_traditional_performance | ✅ | 7 | 206 | 16634 | 0
 0D/0
 0L | Yes(31) |
 | lambda_vs_traditional | ❌ | - | - | - | - | - |
+| local_functions_test | ❌ | - | - | - | - | - |
 | loops_indexed | ❌ | - | - | - | - | - |
 | lua_assets | ✅ | 0
 0 | 59 | 2013 | 0
@@ -114,6 +113,10 @@
 | lua_constants | ✅ | 1 | 60 | 2281 | 0
 0D/0
 0L | Yes(2) |
+| lua_metaprogramming_demo | ✅ | 0
+0 | 59 | 2013 | 0
+0D/0
+0L | No |
 | lua_metaprogramming | ❌ | - | - | - | - | - |
 | lua_sine_table | ❌ | - | - | - | - | - |
 | lua_working_demo | ✅ | 2 | 86 | 4142 | 0
@@ -134,11 +137,12 @@
 | mnist_simple | ❌ | - | - | - | - | - |
 | multiple_returns_smc_demo | ❌ | - | - | - | - | - |
 | nested_loops | ❌ | - | - | - | - | - |
-| performance_tricks | ✅ | 3 | 70 | 3531 | 0
+| performance_tricks | ✅ | 3 | 148 | 5055 | 0
 0D/0
-0L | Yes(6) |
+0L | Yes(8) |
 | pointer_arithmetic | ❌ | - | - | - | - | - |
 | printable_demo | ❌ | - | - | - | - | - |
+| pub_fun_example | ❌ | - | - | - | - | - |
 | recursion_examples | ❌ | - | - | - | - | - |
 | register_allocation | ✅ | 2 | 67 | 2883 | 0
 0D/0
@@ -164,20 +168,20 @@
 | smc_optimization_simple | ❌ | - | - | - | - | - |
 | smc_optimization | ❌ | - | - | - | - | - |
 | smc_recursion | ❌ | - | - | - | - | - |
-| stack_variables | ✅ | 6 | 146 | 9469 | 0
+| stack_variables | ✅ | 6 | 148 | 9673 | 0
 0D/0
 0L | Yes(21) |
 | stdlib_basic_test | ❌ | - | - | - | - | - |
 | stdlib_metafunction_test | ❌ | - | - | - | - | - |
 | string_architecture_showcase | ❌ | - | - | - | - | - |
-| string_operations | ❌ | - | - | - | - | - |
+| string_operations | ✅ | 2 | 99 | 5182 | 0⚡0D/0⚡0L | Yes(5) |
 | tail_recursive | ❌ | - | - | - | - | - |
-| tail_sum | ❌ | - | - | - | - | - |
+| tail_sum | ✅ | 2 | 62 | 2889 | 0⚡0D/0⚡0L | Yes(5) |
 | test_16bit_smc | ✅ | 2 | 105 | 5322 | 0
 0D/0
 0L | Yes(6) |
 | test_abi_comparison | ❌ | - | - | - | - | - |
-| test_abi | ✅ | 5 | 128 | 6752 | 0
+| test_abi | ✅ | 5 | 124 | 6704 | 0
 0D/0
 0L | Yes(15) |
 | test_array_access | ✅ | 2 | 90 | 3438 | 0
@@ -209,13 +213,14 @@
 | test_cast | ✅ | 1 | 60 | 2272 | 0
 0D/0
 0L | Yes(2) |
-| test_complex_assign_simple | ✅ | 3 | 145 | 5645 | 0
+| test_complex_assign_simple | ✅ | 3 | 145 | 5744 | 0
 0D/0
 0L | Yes(8) |
 | test_complex_assignments | ✅ | 0
 0 | 59 | 2013 | 0
 0D/0
 0L | No |
+| test_complex_global | ❌ | - | - | - | - | - |
 | test_compound_assignment | ✅ | 3 | 86 | 4087 | 0
 0D/0
 0L | Yes(8) |
@@ -225,10 +230,17 @@
 | test_const | ✅ | 1 | 60 | 2274 | 0
 0D/0
 0L | Yes(2) |
+| test_fn_keyword | ✅ | 3 | 122 | 6211 | 6D/0
+0L | Yes(9) |
 | test_for_simple | ✅ | 0
 0 | 59 | 2013 | 0
 0D/0
 0L | No |
+| test_global_assign | ❌ | - | - | - | - | - |
+| test_global_debug | ✅ | 1 | 76 | 2867 | 4D/0
+0L | Yes(2) |
+| test_global_simple | ✅ | 3 | 75 | 3748 | 2D/1L | Yes(8) |
+| test_global_struct | ❌ | - | - | - | - | - |
 | test_import_simple | ❌ | - | - | - | - | - |
 | test_imports | ❌ | - | - | - | - | - |
 | test_loop_minimal | ✅ | 1 | 129 | 5805 | 0
@@ -266,7 +278,7 @@
 0D/0
 0L | Yes(2) |
 | test_print_interpolation | ✅ | 1 | 112 | 4382 | 6D/2L | Yes(2) |
-| test_range_comprehensive | ✅ | 4 | 183 | 9833 | 0
+| test_range_comprehensive | ✅ | 4 | 182 | 9409 | 0
 0D/0
 0L | Yes(12) |
 | test_range_simple | ✅ | 0
@@ -280,7 +292,7 @@
 | test_registers | ✅ | 5 | 133 | 8149 | 0
 0D/0
 0L | Yes(12) |
-| test_simple_asm | ✅ | 4 | 72 | 3795 | 0
+| test_simple_asm | ✅ | 4 | 83 | 4221 | 0
 0D/0
 0L | Yes(11) |
 | test_simple_assign | ✅ | 1 | 60 | 2290 | 0
@@ -306,13 +318,18 @@
 0D/0
 0L | No |
 | test_struct | ❌ | - | - | - | - | - |
+| test_toplevel_var | ✅ | 2 | 77 | 3307 | 0
+0D/0
+0L | Yes(5) |
 | test_true_smc_call | ✅ | 2 | 93 | 4606 | 0
 0D/0
 0L | Yes(8) |
-| test_what_works | ✅ | 8 | 204 | 11247 | 0
+| test_what_works | ✅ | 8 | 207 | 11172 | 0
 0D/0
 0L | Yes(22) |
-| traffic_light_fsm | ✅ | 5 | 207 | 12776 | 10D/6L | Yes(23) |
+| traffic_light_fsm | ✅ | 5 | 206 | 12810 | 10D/6L | Yes(23) |
+| true_smc_lambda_working | ❌ | - | - | - | - | - |
+| true_smc_lambdas | ❌ | - | - | - | - | - |
 | tsmc_loops_simple | ✅ | 1 | 83 | 4176 | 0
 0D/0
 0L | Yes(4) |
@@ -321,21 +338,21 @@
 | types_demo | ✅ | 5 | 116 | 7362 | 0
 0D/0
 0L | Yes(6) |
-| working_demo | ✅ | 8 | 272 | 14211 | 0
+| working_demo | ✅ | 8 | 268 | 14384 | 0
 0D/0
 0L | Yes(25) |
 | zero_cost_abstractions_demo | ❌ | - | - | - | - | - |
+| zero_cost_interfaces_concept | ✅ | 11 | 234 | 21853 | 0
+0D/38L | Yes(33) |
 | zero_cost_interfaces_demo | ❌ | - | - | - | - | - |
 | zero_cost_interfaces_test | ❌ | - | - | - | - | - |
+| zero_cost_interfaces | ❌ | - | - | - | - | - |
 | zero_cost_stdio_demo | ❌ | - | - | - | - | - |
 | zero_cost_test | ❌ | - | - | - | - | - |
-| zvdb_minimal | ✅ | 4 | 208 | 11912 | 0
-0D/0
-0L | Yes(18) |
 | zx_spectrum_demo | ❌ | - | - | - | - | - |
 
 ## Summary
-- Total Examples: 148
-- Successful: 89
-- Failed: 59
-- Success Rate: 60%
+- Total Examples: 163
+- Successful: 93
+- Failed: 70
+- Success Rate: 57%
