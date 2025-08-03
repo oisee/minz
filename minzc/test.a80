@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-03 15:47:12
+; Generated: 2025-08-03 15:52:06
 
 
 ; Code section
@@ -13,6 +13,57 @@
 ; Using absolute addressing for locals (SMC style)
     ; r2 = load arr
     LD HL, ($F002)
+    ; Iterator index = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; Array length = 3
+    LD A, 3
+    LD C, A         ; Store to physical register C
+    ; iter_loop_1:
+iter_loop_1:
+    ; Check index < length
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r7, iter_end_2
+    LD A, D
+    OR A
+    JP Z, iter_end_2
+    ; Calculate element address
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 4 already in HL
+    ; Load array element
+    ; Register 4 already in HL
+    LD A, (HL)
+    LD E, A         ; Store to physical register E
+    ; Call print_u8
+    ; Call to print_u8 (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8
+    ; r9 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; Increment index
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; jump iter_loop_1
+    JP iter_loop_1
+    ; iter_end_2:
+iter_end_2:
     ; return
     RET
 

@@ -7,5 +7,17 @@ Function ...test_iter_simple.main() -> void
     r1 = arr: [5]u8
   Instructions:
       0: r2 = load arr
-      1: return
+      1: r3 = 0 ; Iterator index = 0
+      2: r6 = 5 ; Array length = 5
+      3: iter_loop_1:
+      4: r7 = r3 < r6 ; Check index < length
+      5: jump_if_not r7, iter_end_2
+      6: r4 = r2 + r3 ; Calculate element address
+      7: UNKNOWN_OP_69 ; Load array element
+      8: r8 = call print_u8 ; Call print_u8
+      9: r9 = 1
+     10: r3 = r3 + r9 ; Increment index
+     11: jump iter_loop_1
+     12: iter_end_2:
+     13: return
 
