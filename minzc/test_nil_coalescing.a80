@@ -1,0 +1,231 @@
+; MinZ generated code
+; Generated: 2025-08-03 22:35:38
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_nil_coalescing_simple.maybe_fail
+...test_nil_coalescing_simple.maybe_fail:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 42
+    LD A, 42
+    ; Register 1 already in A
+    ; return r1
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_nil_coalescing_simple.main
+...test_nil_coalescing_simple.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call maybe_fail
+    ; Call to maybe_fail (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...test_nil_coalescing_simple.maybe_fail
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; r4 = 0
+    LD A, 0
+    LD C, A         ; Store to physical register C
+    ; cmp r2, r4
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; unknown op 5
+    LD A, ($F000)     ; Virtual register 0 from memory
+    OR A
+    JP Z, 
+    ; unknown op 22
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    ; jump nil_coalescing_end_2
+    JP nil_coalescing_end_2
+    ; nil_coalescing_else_1:
+nil_coalescing_else_1:
+    ; r5 = 0
+    LD A, 0
+    LD E, A         ; Store to physical register E
+    ; unknown op 22
+    ; nil_coalescing_end_2:
+nil_coalescing_end_2:
+    ; store , r3
+    LD ($F002), HL
+    ; r7 = call maybe_fail
+    ; Call to maybe_fail (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...test_nil_coalescing_simple.maybe_fail
+    ; r9 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; cmp r7, r9
+    LD D, H
+    LD E, L
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; unknown op 5
+    LD A, ($F000)     ; Virtual register 0 from memory
+    OR A
+    JP Z, 
+    ; unknown op 22
+    ; jump nil_coalescing_end_4
+    JP nil_coalescing_end_4
+    ; nil_coalescing_else_3:
+nil_coalescing_else_3:
+    ; r10 = call maybe_fail
+    ; Call to maybe_fail (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...test_nil_coalescing_simple.maybe_fail
+    ; unknown op 22
+    ; nil_coalescing_end_4:
+nil_coalescing_end_4:
+    ; r12 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; cmp r8, r12
+    LD D, H
+    LD E, L
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; unknown op 5
+    LD A, ($F000)     ; Virtual register 0 from memory
+    OR A
+    JP Z, 
+    ; unknown op 22
+    ; jump nil_coalescing_end_6
+    JP nil_coalescing_end_6
+    ; nil_coalescing_else_5:
+nil_coalescing_else_5:
+    ; r13 = 99
+    LD A, 99
+    LD ($F01A), A     ; Virtual register 13 to memory
+    ; unknown op 22
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    ; nil_coalescing_end_6:
+nil_coalescing_end_6:
+    ; store , r11
+    LD ($F00C), HL
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+    END main

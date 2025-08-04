@@ -1,0 +1,25 @@
+// Test if expression syntax
+
+fun max(a: u8, b: u8) -> u8 {
+    // This should work as an if expression
+    return if (a > b) { a } else { b };
+}
+
+fun test_if_expr() -> void {
+    let x = 10;
+    let y = 20;
+    
+    // Use if as an expression
+    let result = if (x < y) { x + 1 } else { y - 1 };
+    
+    // Nested if expressions
+    let category = if (x < 5) { 1 } 
+                  else if (x < 15) { 2 }
+                  else { 3 };
+    
+    @print("max = {}, result = {}, category = {}", max(x, y), result, category);
+}
+
+fun main() -> void {
+    test_if_expr();
+}

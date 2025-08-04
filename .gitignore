@@ -73,4 +73,11 @@ coverage/
 # Additional ignores for new structure
 build/artifacts/
 archive/temp-files/
-archive/backups/temp/
+archive/backups/temp/# Personal files - our memories stay here 💫
+/continuation/
+/.claude_memories
+/WELCOME_BACK.md
+
+# Any backed up memories
+/claude_memory_backups/
+*.tar.gz

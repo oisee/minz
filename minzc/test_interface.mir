@@ -1,0 +1,25 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.interface_simple.Circle.draw(self: ...examples.interface_simple.Circle) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field radius (offset 0)
+      2: r4 = 2
+      3: r5 = r3 * r4
+      4: return
+
+Function ...examples.interface_simple.main() -> u8
+  @smc
+  Locals:
+    r1 = circle: u16
+  Instructions:
+      0: UNKNOWN_OP_64 ; Allocate struct Circle
+      1: r3 = 5
+      2: STORE_FIELD ; Store to Circle.radius
+      3: store , r2
+      4: r4 = load circle
+      5: r5 = call ...examples.interface_simple.Circle.draw
+      6: return
+

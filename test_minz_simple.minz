@@ -1,0 +1,9 @@
+// Test simple @minz at top level
+
+// Generate a function at compile time
+@minz("fun add_{0}(a: u8, b: u8) -> u8 { return a + b; }", "numbers")
+
+fun main() -> void {
+    let result = add_numbers(10, 20);
+    @print("Result: {}", result);
+}

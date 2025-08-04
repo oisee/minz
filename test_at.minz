@@ -1,0 +1,6 @@
+// Test @ directives
+fun test() -> u8 {
+    @print("hello");
+    let x = @if(true, 5, 10);
+    return x;
+}

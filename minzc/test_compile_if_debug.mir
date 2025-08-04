@@ -1,0 +1,11 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_compile_time_if_debug.main() -> u8
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: r2 = load result
+      1: return r2
+

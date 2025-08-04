@@ -627,6 +627,12 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 		return p.convertTernaryExpr(node)
 	case "when_expression":
 		return p.convertWhenExpr(node)
+	case "boolean_literal":
+		return &ast.BooleanLiteral{
+			Value:    p.getNodeText(node) == "true",
+			StartPos: node.StartPos,
+			EndPos:   node.EndPos,
+		}
 	}
 	return nil
 }

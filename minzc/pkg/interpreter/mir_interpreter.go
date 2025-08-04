@@ -5,7 +5,7 @@ import (
 	"strings"
 	"strconv"
 	
-	"github.com/oisee/minz/pkg/ir"
+	"github.com/minz/minzc/pkg/ir"
 )
 
 // MIRInterpreter executes MIR code at compile time for metaprogramming
@@ -212,6 +212,111 @@ func (interp *MIRInterpreter) executeInstruction(inst *ir.Instruction) error {
 		val2 := interp.registers[inst.Src2]
 		result := val1 - val2
 		interp.updateFlags(result)
+		
+	case ir.OpEq:
+		val1 := interp.registers[inst.Src1]
+		val2 := interp.registers[inst.Src2]
+		if val1 == val2 {
+			interp.registers[inst.Dest] = 1
+		} else {
+			interp.registers[inst.Dest] = 0
+		}
+		
+	case ir.OpNe:
+		val1 := interp.registers[inst.Src1]
+		val2 := interp.registers[inst.Src2]
+		if val1 != val2 {
+			interp.registers[inst.Dest] = 1
+		} else {
+			interp.registers[inst.Dest] = 0
+		}
+		
+	case ir.OpLt:
+		val1 := interp.registers[inst.Src1]
+		val2 := interp.registers[inst.Src2]
+		if val1 < val2 {
+			interp.registers[inst.Dest] = 1
+		} else {
+			interp.registers[inst.Dest] = 0
+		}
+		
+	case ir.OpGt:
+		val1 := interp.registers[inst.Src1]
+		val2 := interp.registers[inst.Src2]
+		if val1 > val2 {
+			interp.registers[inst.Dest] = 1
+		} else {
+			interp.registers[inst.Dest] = 0
+		}
+		
+	case ir.OpLe:
+		val1 := interp.registers[inst.Src1]
+		val2 := interp.registers[inst.Src2]
+		if val1 <= val2 {
+			interp.registers[inst.Dest] = 1
+		} else {
+			interp.registers[inst.Dest] = 0
+		}
+		
+	case ir.OpGe:
+		val1 := interp.registers[inst.Src1]
+		val2 := interp.registers[inst.Src2]
+		if val1 >= val2 {
+			interp.registers[inst.Dest] = 1
+		} else {
+			interp.registers[inst.Dest] = 0
+		}
+		
+	// Bitwise operations
+	case ir.OpAnd:
+		val1 := interp.registers[inst.Src1]
+		val2 := interp.registers[inst.Src2]
+		interp.registers[inst.Dest] = val1 & val2
+		
+	case ir.OpOr:
+		val1 := interp.registers[inst.Src1]
+		val2 := interp.registers[inst.Src2]
+		interp.registers[inst.Dest] = val1 | val2
+		
+	case ir.OpXor:
+		val1 := interp.registers[inst.Src1]
+		val2 := interp.registers[inst.Src2]
+		interp.registers[inst.Dest] = val1 ^ val2
+		
+	case ir.OpNot:
+		val := interp.registers[inst.Src1]
+		interp.registers[inst.Dest] = ^val
+		
+	case ir.OpShl:
+		val := interp.registers[inst.Src1]
+		shift := interp.registers[inst.Src2]
+		interp.registers[inst.Dest] = val << uint(shift)
+		
+	case ir.OpShr:
+		val := interp.registers[inst.Src1]
+		shift := interp.registers[inst.Src2]
+		interp.registers[inst.Dest] = val >> uint(shift)
+		
+	// Memory operations (simulated)
+	case ir.OpLoad:
+		addr := interp.registers[inst.Src1]
+		if val, exists := interp.memory[addr]; exists {
+			interp.registers[inst.Dest] = int64(val)
+		} else {
+			interp.registers[inst.Dest] = 0
+		}
+		
+	case ir.OpStore:
+		addr := interp.registers[inst.Dest]
+		val := byte(interp.registers[inst.Src1] & 0xFF)
+		interp.memory[addr] = val
+		
+	case ir.OpLoadString:
+		// Load a string constant
+		if inst.Symbol != "" {
+			id := interp.storeString(inst.Symbol)
+			interp.registers[inst.Dest] = id
+		}
 		
 	default:
 		return fmt.Errorf("unimplemented opcode: %v", inst.Op)

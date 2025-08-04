@@ -1,0 +1,24 @@
+// Test error type validation - this should fail compilation
+
+enum MathError {
+    DivideByZero,
+    Overflow,
+}
+
+enum ParseError {
+    InvalidFormat,
+    OutOfRange,
+}
+
+// Function declares MathError but tries to return ParseError
+fun bad_function?(input: u8) -> u8 ? MathError {
+    if input == 0 {
+        @error(ParseError.InvalidFormat);  // ❌ Should cause compile error
+    }
+    return input * 2;
+}
+
+fun main() -> void {
+    let result = bad_function?(0) ?? 1;
+    @print("Result: {}", result);
+}

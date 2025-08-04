@@ -1,0 +1,67 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   ...test_global_access.count: u8
+;   ...test_global_access.max_value: u16
+;   ...test_global_access.total: u16
+
+Function ...test_global_access.increment() -> void
+  @smc
+  Instructions:
+      0: r1 = load ...test_global_access.count
+      1: r2 = 1
+      2: r3 = r1 + r2
+      3: store count, r3
+      4: r4 = load ...test_global_access.count
+      5: r5 = 10
+      6: r6 = r4 > r5
+      7: jump_if_not r6, else_1
+      8: r7 = 0
+      9: store count, r7
+     10: jump end_if_2
+     11: else_1:
+     12: end_if_2:
+     13: return
+
+Function ...test_global_access.add_to_total(value: u16) -> void
+  @smc
+  Instructions:
+      0: r2 = load ...test_global_access.total
+      1: LOAD_PARAM
+      2: r4 = r2 + r3
+      3: store total, r4
+      4: r5 = load ...test_global_access.total
+      5: r6 = load ...test_global_access.max_value
+      6: r7 = r5 > r6
+      7: jump_if_not r7, else_3
+      8: r8 = load ...test_global_access.max_value
+      9: store total, r8
+     10: jump end_if_4
+     11: else_3:
+     12: end_if_4:
+     13: return
+
+Function ...test_global_access.get_count() -> u8
+  @smc
+  Instructions:
+      0: r1 = load ...test_global_access.count
+      1: return r1
+
+Function ...test_global_access.main() -> void
+  @smc
+  Locals:
+    r3 = current: u16
+  Instructions:
+      0: r1 = call increment
+      1: r2 = call increment
+      2: r4 = call get_count
+      3: store , r4
+      4: UNKNOWN_OP_87 ; Direct print "Count: " (7 chars)
+      5: r5 = 100
+      6: r6 = call add_to_total
+      7: r7 = 200
+      8: r8 = call add_to_total
+      9: UNKNOWN_OP_87 ; Direct print "Total: " (7 chars)
+     10: return
+

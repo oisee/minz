@@ -3797,6 +3797,68 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 			}
 		}
 		
+		// Check if it's a builtin function
+		if sym == nil {
+			// Check builtin functions
+			var funcType *ir.FunctionType
+			switch funcName {
+			case "memcpy":
+				// memcpy(dest: *mut u8, src: *u8, size: u16)
+				funcType = &ir.FunctionType{
+					Params: []ir.Type{
+						&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, // dest
+						&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, // src
+						&ir.BasicType{Kind: ir.TypeU16},                       // size
+					},
+					Return: &ir.BasicType{Kind: ir.TypeVoid},
+				}
+			case "memset":
+				// memset(dest: *mut u8, value: u8, size: u16)
+				funcType = &ir.FunctionType{
+					Params: []ir.Type{
+						&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, // dest
+						&ir.BasicType{Kind: ir.TypeU8},                        // value
+						&ir.BasicType{Kind: ir.TypeU16},                       // size
+					},
+					Return: &ir.BasicType{Kind: ir.TypeVoid},
+				}
+			case "print_u8":
+				// print_u8(value: u8)
+				funcType = &ir.FunctionType{
+					Params: []ir.Type{
+						&ir.BasicType{Kind: ir.TypeU8}, // value
+					},
+					Return: &ir.BasicType{Kind: ir.TypeVoid},
+				}
+			case "print_u16":
+				// print_u16(value: u16)
+				funcType = &ir.FunctionType{
+					Params: []ir.Type{
+						&ir.BasicType{Kind: ir.TypeU16}, // value
+					},
+					Return: &ir.BasicType{Kind: ir.TypeVoid},
+				}
+			case "print_string":
+				// print_string(str: *u8)
+				funcType = &ir.FunctionType{
+					Params: []ir.Type{
+						&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, // str
+					},
+					Return: &ir.BasicType{Kind: ir.TypeVoid},
+				}
+			}
+			
+			if funcType != nil {
+				sym = &FuncSymbol{
+					Name:       funcName,
+					IsBuiltin:  true,
+					Type:       funcType,
+					ReturnType: funcType.Return,
+					Params:     []*ast.Parameter{}, // Will be ignored for builtins
+				}
+			}
+		}
+		
 		if sym == nil {
 			return 0, fmt.Errorf("undefined function: %s", funcName)
 		}
@@ -4146,6 +4208,17 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 			Symbol:  "print_u16_decimal",
 			Args:    []ir.Register{argRegs[0]},
 			Comment: "Call runtime print_u16_decimal",
+		})
+		return 0, nil
+		
+	case "print_string":
+		// print_string(str: *u8) - prints null-terminated string
+		// Generate a call to the runtime print_string function
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "print_string",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Call runtime print_string",
 		})
 		return 0, nil
 		
@@ -4713,7 +4786,7 @@ func (a *Analyzer) evaluateConstantExpression(expr ast.Expression) (interface{},
 	switch e := expr.(type) {
 	case *ast.NumberLiteral:
 		return e.Value, nil
-	case *ast.BoolLiteral:
+	case *ast.BooleanLiteral:
 		return e.Value, nil
 	case *ast.StringLiteral:
 		return e.Value, nil
@@ -4724,20 +4797,9 @@ func (a *Analyzer) evaluateConstantExpression(expr ast.Expression) (interface{},
 			return nil, fmt.Errorf("undefined identifier: %s", e.Name)
 		}
 		
-		if varSym, ok := sym.(*VariableSymbol); ok {
-			if varSym.IsConstant && varSym.Value != nil {
-				// Return the constant value
-				switch v := varSym.Value.(type) {
-				case *ast.NumberLiteral:
-					return v.Value, nil
-				case *ast.BoolLiteral:
-					return v.Value, nil
-				case *ast.StringLiteral:
-					return v.Value, nil
-				default:
-					return nil, fmt.Errorf("constant %s has non-constant value", e.Name)
-				}
-			}
+		if constSym, ok := sym.(*ConstSymbol); ok {
+			// Return the constant value
+			return constSym.Value, nil
 		}
 		return nil, fmt.Errorf("identifier %s is not a compile-time constant", e.Name)
 	case *ast.BinaryExpr:

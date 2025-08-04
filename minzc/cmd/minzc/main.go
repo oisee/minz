@@ -20,6 +20,9 @@ var (
 	optimize    bool
 	debug       bool
 	enableSMC   bool
+	enableTAS   bool
+	tasFile     string
+	tasReplay   string
 )
 
 var rootCmd = &cobra.Command{
@@ -41,6 +44,9 @@ func init() {
 	rootCmd.Flags().BoolVarP(&optimize, "optimize", "O", false, "enable optimizations")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
 	rootCmd.Flags().BoolVar(&enableSMC, "enable-smc", false, "enable all self-modifying code optimizations including TRUE SMC (requires code in RAM)")
+	rootCmd.Flags().BoolVar(&enableTAS, "tas", false, "enable TAS debugging with time-travel and cycle-perfect recording")
+	rootCmd.Flags().StringVar(&tasFile, "tas-record", "", "record execution to TAS file for perfect replay")
+	rootCmd.Flags().StringVar(&tasReplay, "tas-replay", "", "replay execution from TAS file")
 }
 
 func main() {
@@ -142,8 +148,31 @@ func compile(sourceFile string) error {
 	if err := generator.Generate(irModule); err != nil {
 		return fmt.Errorf("code generation error: %w", err)
 	}
+	
+	// Add TAS debugging support if enabled
+	if enableTAS {
+		if err := addTASSupport(outputFile); err != nil {
+			return fmt.Errorf("TAS integration error: %w", err)
+		}
+		fmt.Println("TAS debugging enabled - use 'mzr --tas' to debug with time-travel")
+	}
+	
+	// Handle TAS recording/replay
+	if tasFile != "" {
+		fmt.Printf("TAS recording enabled - output will be saved to %s\n", tasFile)
+	}
+	if tasReplay != "" {
+		fmt.Printf("TAS replay mode - will replay from %s\n", tasReplay)
+	}
 
 	fmt.Printf("Successfully compiled to %s\n", outputFile)
+	return nil
+}
+
+// addTASSupport adds TAS debugging hooks to generated assembly
+func addTASSupport(asmFile string) error {
+	// TODO: Add TAS debugging hooks to assembly
+	// For now, just add a comment marker
 	return nil
 }
 

@@ -7,6 +7,7 @@ import (
 	"strings"
 	
 	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/tas"
 	"github.com/minz/minzc/pkg/z80asm"
 )
 
@@ -19,6 +20,11 @@ type REPL struct {
 	reader    *bufio.Reader
 	history   []string
 	autoShowScreen bool // Show ZX Spectrum screen after execution
+	
+	// TAS debugging support
+	tasDebugger *tas.TASDebugger
+	tasEnabled  bool
+	tasUI       *tas.TASUI
 }
 
 // Context maintains REPL state between commands
@@ -158,12 +164,6 @@ func (r *REPL) executeCommand(input string) {
 		} else {
 			fmt.Println("Usage: /mem <address> <length>")
 		}
-	case "/profile":
-		if len(args) > 0 {
-			r.profile(strings.Join(args, " "))
-		} else {
-			fmt.Println("Usage: /profile <expression>")
-		}
 	case "/save":
 		if len(args) > 0 {
 			r.saveSession(args[0])
@@ -176,6 +176,76 @@ func (r *REPL) executeCommand(input string) {
 		} else {
 			fmt.Println("Usage: /load <filename>")
 		}
+	
+	// TAS debugging commands
+	case "/tas":
+		r.toggleTAS()
+	case "/record":
+		r.startTASRecording()
+	case "/stop":
+		r.stopTASRecording()
+	case "/rewind":
+		if len(args) > 0 {
+			r.tasRewind(args[0])
+		} else {
+			r.tasRewind("100") // Default 100 frames
+		}
+	case "/forward":
+		if len(args) > 0 {
+			r.tasForward(args[0])
+		} else {
+			r.tasForward("100")
+		}
+	case "/savestate":
+		if len(args) > 0 {
+			r.tasSaveState(args[0])
+		} else {
+			r.tasSaveState("checkpoint")
+		}
+	case "/loadstate":
+		if len(args) > 0 {
+			r.tasLoadState(args[0])
+		} else {
+			fmt.Println("Usage: /loadstate <name>")
+		}
+	case "/timeline":
+		r.showTASTimeline()
+	case "/hunt":
+		if len(args) > 0 {
+			r.startOptimizationHunt(args[0])
+		} else {
+			fmt.Println("Usage: /hunt <target_address>")
+		}
+	case "/export":
+		if len(args) > 0 {
+			r.exportTAS(args[0])
+		} else {
+			fmt.Println("Usage: /export <filename.tas>")
+		}
+	case "/import":
+		if len(args) > 0 {
+			r.importTAS(args[0])
+		} else {
+			fmt.Println("Usage: /import <filename.tas>")
+		}
+	case "/replay":
+		if len(args) > 0 {
+			r.replayTAS(args[0])
+		} else {
+			fmt.Println("Usage: /replay <filename.tas>")
+		}
+	case "/strategy":
+		if len(args) > 0 {
+			r.setTASStrategy(args[0])
+		} else {
+			fmt.Println("Usage: /strategy <auto|deterministic|snapshot|hybrid|paranoid>")
+		}
+	case "/stats":
+		r.showTASStats()
+	case "/profile":
+		r.profilePerformance()
+	case "/report":
+		r.showTASReport()
 	default:
 		fmt.Printf("Unknown command: %s\n", cmd)
 		fmt.Println("Type /help for available commands")
@@ -307,9 +377,22 @@ func (r *REPL) showHelp() {
 	fmt.Println("║ /funcs   /f       - Show defined functions                  ║")
 	fmt.Println("║ /asm <func>       - Show assembly for function              ║")
 	fmt.Println("╟──────────────────────────────────────────────────────────────╢")
-	fmt.Println("║ /profile <expr>   - Profile expression execution            ║")
 	fmt.Println("║ /save <file>      - Save session to file                    ║")
 	fmt.Println("║ /load <file>      - Load MinZ file                          ║")
+	fmt.Println("╟──────────────────────────────────────────────────────────────╢")
+	fmt.Println("║ 🎮 TAS Debugging (Time-Travel)                              ║")
+	fmt.Println("║ /tas              - Enable/disable TAS debugging            ║")
+	fmt.Println("║ /record           - Start recording every CPU cycle         ║")
+	fmt.Println("║ /rewind [n]       - Go back n frames (default: 100)         ║")
+	fmt.Println("║ /savestate [name] - Create save state                       ║")
+	fmt.Println("║ /timeline         - Show execution timeline                 ║")
+	fmt.Println("║ /export <file>    - Export recording to .tas file           ║")
+	fmt.Println("║ /import <file>    - Import recording from .tas file         ║")
+	fmt.Println("║ /replay <file>    - Replay recording from .tas file         ║")
+	fmt.Println("║ /strategy <mode>  - Set recording strategy                  ║")
+	fmt.Println("║ /stats            - Show TAS statistics                     ║")
+	fmt.Println("║ /profile          - Analyze performance from recording      ║")
+	fmt.Println("║ /report           - Show comprehensive TAS report           ║")
 	fmt.Println("╚══════════════════════════════════════════════════════════════╝")
 	fmt.Println()
 	fmt.Println("Examples:")

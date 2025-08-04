@@ -1,0 +1,73 @@
+// Test different error type control approaches
+
+// Define error enums
+enum MathError {
+    DivideByZero,
+    Overflow,
+    InvalidOperation,
+}
+
+enum ParseError {
+    InvalidFormat,
+    OutOfRange,
+    UnexpectedChar,
+}
+
+enum CustomError {
+    NetworkTimeout,
+    DatabaseError,
+}
+
+// Approach 1: Strict typing - function can only return specific error type
+fun strict_divide?(a: u8, b: u8) -> Result<u8, MathError.DivideByZero> {
+    if b == 0 {
+        @error(MathError.DivideByZero);  // ✅ Only this specific error allowed
+    }
+    return a / b;
+}
+
+// Approach 2: Union types - function can return multiple specific error types  
+fun flexible_parse?(input: *u8, max: u8) -> Result<u8, ParseError.InvalidFormat | ParseError.OutOfRange> {
+    let value = parse_internal(input);
+    if value < 0 {
+        @error(ParseError.InvalidFormat);  // ✅ Allowed
+    }
+    if value > max {
+        @error(ParseError.OutOfRange);     // ✅ Allowed  
+    }
+    // @error(MathError.DivideByZero);     // ❌ COMPILE ERROR: not in union type
+    return value as u8;
+}
+
+// Approach 3: Free errors - any error allowed (current behavior)
+fun loose_operation?(input: u8) -> u8? {
+    @error(MathError.Overflow);         // ✅ Any enum error
+    @error(ParseError.InvalidFormat);   // ✅ Different enum OK
+    @error(42);                         // ✅ Raw value OK
+    @error("string error");             // ✅ String error OK
+    return input;
+}
+
+// Approach 4: Generic error handling
+fun generic_handler?<E>(input: u8, error_value: E) -> Result<u8, E> {
+    if input == 0 {
+        @error(error_value);  // ✅ Generic error type
+    }
+    return input * 2;
+}
+
+fun main() -> void {
+    // Testing strict typing
+    let result1 = strict_divide?(10, 0) ?? 99;
+    
+    // Testing union types  
+    let result2 = flexible_parse?("123", 100) ?? 0;
+    
+    // Testing free errors
+    let result3 = loose_operation?(0) ?? 42;
+    
+    // Testing generic errors
+    let result4 = generic_handler?(0, MathError.InvalidOperation) ?? 1;
+    
+    @print("Results: {} {} {} {}", result1, result2, result3, result4);
+}

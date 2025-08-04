@@ -1,0 +1,7 @@
+// Debug constant access
+const TEST: u8 = 42;
+
+fun main() -> u8 {
+    // This should see TEST through parent scope
+    return TEST;
+}

@@ -18,9 +18,20 @@ MinZ is a systems programming language specifically designed for Z80-based compu
 
 **Basic Types**:
 - `u8`, `u16` - Unsigned integers
-- `i8`, `i16` - Signed integers  
+- `i8`, `i16` - Signed integers
+- `u24`, `i24` - 24-bit integers (eZ80 native)
 - `bool` - Boolean
 - `void` - No value
+
+**Fixed-Point Types** (for systems without FPU):
+- `f8.8` - 8-bit integer, 8-bit fraction
+- `f16.8` - 16-bit integer, 8-bit fraction  
+- `f8.16` - 8-bit integer, 16-bit fraction (high precision)
+- `f.8` - Pure fraction (0.0 to 0.996)
+
+**String Types** (no ambiguous 255 marker):
+- `String` - Short strings: `{ len: u8, data: [u8] }` (max 255 chars)
+- `LString` - Long strings: `{ len: u16, data: [u8] }` (max 65535 chars)
 
 **Composite Types**:
 - Arrays: `[T; N]` - Fixed size

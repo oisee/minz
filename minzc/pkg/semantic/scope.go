@@ -37,6 +37,7 @@ type FuncSymbol struct {
 	OriginalName string             // Original name before mangling (for local functions)
 	Params       []*ast.Parameter
 	ReturnType   ir.Type
+	ErrorType    ir.Type           // Optional error type for functions ending with ?
 	Type         *ir.FunctionType  // For built-in functions
 	IsBuiltin    bool
 	IsLocalFunc  bool              // True if this is a local function

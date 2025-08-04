@@ -1,0 +1,16 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_const_simple.main() -> u8
+  @smc
+  Instructions:
+      0: r1 = 1
+      1: jump_if_not r1, else_1
+      2: r2 = 1
+      3: return r2
+      4: jump end_if_2
+      5: else_1:
+      6: end_if_2:
+      7: r3 = 0
+      8: return r3
+

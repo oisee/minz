@@ -1,0 +1,16 @@
+// Test file for fixing const declarations
+const DEBUG: bool = true;
+const MAX_VALUE: u8 = 255;
+const VERSION: u16 = 100;
+
+fun test_const_access() -> u8 {
+    // Try to use constants in function
+    if DEBUG {
+        return MAX_VALUE;
+    }
+    return 0;
+}
+
+fun main() -> u8 {
+    return test_const_access();
+}

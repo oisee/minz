@@ -1,0 +1,37 @@
+// Test global variable access in functions
+
+// Global variables
+global count: u8 = 0;
+global max_value: u16 = 1000;
+let total: u16 = 0;
+
+// Function that accesses global variables
+fun increment() -> void {
+    count = count + 1;  // Access global
+    if count > 10 {
+        count = 0;
+    }
+}
+
+fun add_to_total(value: u16) -> void {
+    total = total + value;  // Access global
+    if total > max_value {
+        total = max_value;
+    }
+}
+
+fun get_count() -> u8 {
+    return count;  // Return global
+}
+
+fun main() -> void {
+    increment();
+    increment();
+    
+    let current = get_count();
+    @print("Count: {}", current);
+    
+    add_to_total(100);
+    add_to_total(200);
+    @print("Total: {}", total);
+}

@@ -102,6 +102,12 @@ type TASDebugger struct {
 	
 	// Memory is cheap - record everything!
 	maxHistory   int  // Default: 1,000,000 frames (~16 minutes at 60fps)
+	
+	// Hybrid recording with intelligent strategy
+	hybridRecorder   *HybridRecorder
+	recordingMode    RecordingStrategy
+	cyclePerfect     *CyclePerfectRecorder
+	determinism      *DeterminismDetector
 }
 
 // StateSnapshot captures complete Z80 state at a single cycle
@@ -162,14 +168,45 @@ type OptimizationGoal struct {
 
 // NewTASDebugger creates a TAS-inspired debugger
 func NewTASDebugger(emu Z80Emulator) *TASDebugger {
-	return &TASDebugger{
-		emulator:     emu,
-		stateHistory: make([]StateSnapshot, 0, 1000000),
-		saveStates:   make(map[string]*StateSnapshot),
-		inputLog:     make([]InputEvent, 0, 10000),
-		smcEvents:    make([]SMCEvent, 0, 1000),
-		maxHistory:   1000000,  // ~16 minutes at 60fps
+	// Default to hybrid strategy for best balance
+	config := RecorderConfig{
+		Strategy:            StrategyHybrid,
+		SnapshotOnIO:        true,
+		IOSnapshotThreshold: 10,
+		MaxDeterministic:    100000,
+		MinSnapshotInterval: 1000,
+		UncertaintyTolerance: 0.3,
+		ParanoidMode:        false,
 	}
+	
+	return &TASDebugger{
+		emulator:       emu,
+		stateHistory:   make([]StateSnapshot, 0, 1000000),
+		saveStates:     make(map[string]*StateSnapshot),
+		inputLog:       make([]InputEvent, 0, 10000),
+		smcEvents:      make([]SMCEvent, 0, 1000),
+		maxHistory:     1000000,  // ~16 minutes at 60fps
+		hybridRecorder: NewHybridRecorder(config),
+		recordingMode:  StrategyHybrid,
+		cyclePerfect:   NewCyclePerfectRecorder(),
+		determinism:    NewDeterminismDetector(),
+	}
+}
+
+// SetRecordingStrategy changes the recording strategy
+func (t *TASDebugger) SetRecordingStrategy(strategy RecordingStrategy) {
+	t.recordingMode = strategy
+	t.hybridRecorder.strategy = strategy
+	
+	strategyNames := map[RecordingStrategy]string{
+		StrategyAutomatic:     "Automatic",
+		StrategyDeterministic: "Deterministic",
+		StrategySnapshot:      "Snapshot",
+		StrategyHybrid:        "Hybrid",
+		StrategyParanoid:      "Paranoid",
+	}
+	
+	fmt.Printf("📼 Recording strategy changed to: %s\n", strategyNames[strategy])
 }
 
 // RecordFrame captures current state - called every instruction or frame
@@ -179,16 +216,92 @@ func (t *TASDebugger) RecordFrame() {
 	}
 	
 	snapshot := t.captureState()
+	cycle := int64(t.emulator.GetCycles())
 	
-	// Ring buffer - overwrite old history if we exceed max
+	// Create cycle event for the current instruction
+	var event *CycleEvent
+	if pc := t.emulator.GetPC(); pc != 0 {
+		// Get last opcode (simplified - would need actual opcode)
+		event = &CycleEvent{
+			Cycle:   cycle,
+			Type:    EventInstruction,
+			TStates: 4, // Would need actual timing
+			Data: InstructionData{
+				Opcode: 0, // Would need actual opcode
+				PC:     pc,
+			},
+		}
+		
+		// Feed to determinism detector
+		t.determinism.ProcessEvent(*event)
+		
+		// Record with cycle-perfect timing
+		t.cyclePerfect.RecordInstruction(0, pc, 4)
+	}
+	
+	// Use hybrid recorder to decide on snapshots
+	t.hybridRecorder.RecordCycle(cycle, &snapshot, event)
+	
+	// Still maintain state history for compatibility
+	// but with smarter management
 	if len(t.stateHistory) >= t.maxHistory {
-		// Compress old history to save space
-		t.compressOldHistory()
-		t.stateHistory = t.stateHistory[100000:]  // Keep most recent
+		// Use hybrid recorder's decision on what to keep
+		t.compressWithStrategy()
 	}
 	
 	t.stateHistory = append(t.stateHistory, snapshot)
 	t.currentFrame++
+}
+
+// compressWithStrategy uses recording strategy to compress history
+func (t *TASDebugger) compressWithStrategy() {
+	stats := t.hybridRecorder.GetStatistics()
+	
+	if stats.DeterministicRatio > 0.8 {
+		// High determinism - keep only keyframes and events
+		t.keepOnlyKeyframes()
+	} else {
+		// Low determinism - traditional compression
+		t.compressOldHistory()
+	}
+}
+
+// keepOnlyKeyframes retains only important snapshots
+func (t *TASDebugger) keepOnlyKeyframes() {
+	newHistory := make([]StateSnapshot, 0, len(t.stateHistory)/10)
+	
+	// Keep every 10,000th frame and I/O frames
+	for i, snap := range t.stateHistory {
+		if i%10000 == 0 || t.hasIOEvent(snap.Cycle) {
+			newHistory = append(newHistory, snap)
+		}
+	}
+	
+	fmt.Printf("🗜️ Compressed history: %d → %d frames (%.1fx compression)\n",
+		len(t.stateHistory), len(newHistory),
+		float64(len(t.stateHistory))/float64(len(newHistory)))
+	
+	t.stateHistory = newHistory
+}
+
+// hasIOEvent checks if an I/O event occurred at this cycle
+func (t *TASDebugger) hasIOEvent(cycle uint64) bool {
+	// Check both input log and cycle recorder
+	for _, event := range t.inputLog {
+		if event.Cycle == cycle {
+			return true
+		}
+	}
+	
+	// Check cycle-perfect recorder
+	for _, event := range t.cyclePerfect.events {
+		if uint64(event.Cycle) == cycle && 
+		   (event.Type == EventIORead || event.Type == EventIOWrite) {
+			return true
+		}
+	}
+	
+	return false
 }
 
 // captureState creates a complete snapshot of Z80 state
@@ -497,13 +610,127 @@ func (t *TASDebugger) compressOldHistory() {
 
 // ExportReplay saves the recording for sharing (like TAS movies)
 func (t *TASDebugger) ExportReplay(filename string) error {
-	// TODO: Save state history and input log to file
-	// Format could be similar to .fm2 or .bk2 TAS formats
-	return nil
+	// Use the TAS file format
+	tasFile := CreateReplay(t)
+	
+	// Determine format from extension
+	format := uint8(TASFormatJSON)
+	if len(filename) > 5 {
+		switch filename[len(filename)-5:] {
+		case ".tasb":
+			format = TASFormatBinary
+		case ".tasc", "as.gz":
+			format = TASFormatCompressed
+		}
+	}
+	
+	return tasFile.SaveToFile(filename, format)
 }
 
 // ImportReplay loads a recording for playback
 func (t *TASDebugger) ImportReplay(filename string) error {
-	// TODO: Load state history and input log from file
+	tasFile, err := LoadFromFile(filename)
+	if err != nil {
+		return err
+	}
+	
+	// Clear and load new data
+	t.stateHistory = tasFile.States
+	t.inputLog = tasFile.Events.Inputs
+	t.smcEvents = tasFile.Events.SMCEvents
+	
+	if len(t.stateHistory) > 0 {
+		t.currentFrame = int64(t.stateHistory[len(t.stateHistory)-1].Frame)
+	}
+	
 	return nil
+}
+
+// GetRecordingStats returns comprehensive recording statistics
+func (t *TASDebugger) GetRecordingStats() string {
+	hybridStats := t.hybridRecorder.GetStatistics()
+	detStats := t.determinism.GetStatistics()
+	
+	report := fmt.Sprintf(`
+📊 TAS RECORDING STATISTICS
+═══════════════════════════════════════════════════════════════
+Recording Strategy:     %s
+Total Frames:          %d
+Total Cycles:          %d
+State History Size:    %d snapshots
+Input Events:          %d
+SMC Events:            %d
+
+💾 MEMORY USAGE:
+─────────────────────────────────────────────────────────────
+State Snapshots:       %.1f MB
+Event Recording:       %.1f MB
+Total Memory:          %.1f MB
+Compression Ratio:     %.0fx
+
+🎯 DETERMINISM ANALYSIS:
+─────────────────────────────────────────────────────────────
+Deterministic Ratio:   %.1f%%
+Deterministic Cycles:  %d
+Section Count:         %d
+Average Section:       %.0f cycles
+Compression Potential: %.0fx
+
+🚀 OPTIMIZATION OPPORTUNITIES:
+─────────────────────────────────────────────────────────────`,
+		strategyString(t.recordingMode),
+		t.currentFrame,
+		hybridStats.TotalCycles,
+		len(t.stateHistory),
+		len(t.inputLog),
+		len(t.smcEvents),
+		float64(len(t.stateHistory)*65536)/1024/1024,
+		float64(hybridStats.EventMemory)/1024/1024,
+		float64(hybridStats.MemoryUsed)/1024/1024,
+		hybridStats.CompressionRatio,
+		detStats.Ratio*100,
+		detStats.DeterministicCycles,
+		detStats.SectionCount,
+		detStats.AverageLength,
+		detStats.CompressionPotential)
+	
+	// Add recommendations
+	if detStats.Ratio > 0.8 {
+		report += "\n✅ High determinism - Perfect for event-only recording"
+	} else if detStats.Ratio > 0.5 {
+		report += "\n⚠️  Medium determinism - Hybrid approach recommended"
+	} else {
+		report += "\n❌ Low determinism - Frequent snapshots needed"
+	}
+	
+	if len(t.smcEvents) > 100 {
+		report += "\n⚡ High SMC activity - Consider SMC-aware compression"
+	}
+	
+	if len(t.inputLog) > 1000 {
+		report += "\n🎮 High input activity - Interactive program detected"
+	}
+	
+	return report
+}
+
+// PrintDetailedReport prints comprehensive debugging report
+func (t *TASDebugger) PrintDetailedReport() {
+	fmt.Println(t.GetRecordingStats())
+	fmt.Println()
+	t.hybridRecorder.PrintReport()
+	fmt.Println()
+	t.determinism.PrintReport()
+	
+	// Add cycle-perfect timing analysis
+	fmt.Println("\n⏱️ CYCLE-PERFECT TIMING ANALYSIS:")
+	fmt.Println("─────────────────────────────────────────────────────────────")
+	compressionRatio := t.cyclePerfect.GetCompressionRatio()
+	fmt.Printf("Compression Ratio:     %.0fx\n", compressionRatio)
+	fmt.Printf("Events Recorded:       %d\n", len(t.cyclePerfect.events))
+	
+	if t.cyclePerfect.inDeterministic {
+		fmt.Printf("Currently in deterministic section since cycle %d\n", 
+			t.cyclePerfect.deterministicStart)
+	}
 }

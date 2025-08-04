@@ -400,6 +400,15 @@ let x: u8 = 42;           // Explicit type
 let y = 128;              // Inferred as u8
 let ptr: *u16 = &value;   // Pointer types
 let arr: [u8; 10];        // Fixed arrays
+
+// NEW: Extended numeric types
+let addr: u24 = 0x100000; // 24-bit for eZ80
+let pos: f16.8 = 100.5;   // Fixed-point (16-bit int, 8-bit frac)
+let alpha: f.8 = 0.75;    // Pure fraction (0.0 to 0.996)
+
+// NEW: Unambiguous string types (no magic 255!)
+let name: String = "Player1";     // Short string (max 255 chars)
+let text: LString = l"Long...";   // Long string (max 65535 chars)
 ```
 
 ### 🏆 Zero-Cost Abstractions on 8-bit Hardware

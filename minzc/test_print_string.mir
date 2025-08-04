@@ -1,0 +1,16 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_print_string.main() -> u8
+  @smc
+  Locals:
+    r1 = msg: [6]u8
+  Instructions:
+      0: r2 = load msg
+      1: r3 = 0
+      2: LOAD_INDEX ; Load array element (u8)
+      3: UNKNOWN_OP_68
+      4: r0 = call print_string ; Call runtime print_string
+      5: r6 = 0
+      6: return r6
+
