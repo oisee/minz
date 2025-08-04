@@ -123,8 +123,20 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		}
 	}
 
-	// First pass, phase 2: Register function signatures, constants, and global variables
-	// Now that all types are registered, we can safely process function signatures
+	// First pass, phase 2: Process @minz blocks FIRST to generate code
+	// MinZ blocks must be processed before everything else since they generate declarations
+	for _, decl := range file.Declarations {
+		if d, ok := decl.(*ast.MinzBlock); ok {
+			// Process MinZ blocks to generate code
+			if err := a.analyzeMinzBlock(d); err != nil {
+				a.errors = append(a.errors, err)
+			}
+		}
+	}
+	
+	// First pass, phase 3: Register function signatures, constants, and global variables
+	// Now that all types are registered and @minz blocks have generated code, 
+	// we can safely process function signatures
 	for _, decl := range file.Declarations {
 		switch d := decl.(type) {
 		case *ast.FunctionDecl:
@@ -146,6 +158,9 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 			if err := a.analyzeLuaBlock(d); err != nil {
 				a.errors = append(a.errors, err)
 			}
+		case *ast.MinzBlock:
+			// Already processed in phase 2
+			continue
 		}
 	}
 
@@ -810,6 +825,9 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 	case *ast.ImplBlock:
 		// Process implementation blocks
 		return a.analyzeImplBlock(d)
+	case *ast.MinzBlock:
+		// Already processed in first pass
+		return nil
 	default:
 		return fmt.Errorf("unsupported declaration type: %T", decl)
 	}
@@ -1483,6 +1501,9 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 				return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
 			}
 			varType = t
+			if debug {
+				fmt.Printf("DEBUG: Inferred type for variable %s: %T -> %s\n", v.Name, t, t.String())
+			}
 		default:
 			// For complex expressions, we'll need to handle this after registration
 			// Use a placeholder type for now
@@ -1512,6 +1533,9 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 
 	// Generate code for initial value if present
 	if v.Value != nil {
+		if debug {
+			fmt.Printf("DEBUG: Variable %s has value of type %T\n", v.Name, v.Value)
+		}
 		// BUGFIX: Check for corrupted AST where the value expression contains the variable name itself
 		if id, ok := v.Value.(*ast.Identifier); ok && id.Name == v.Name {
 			// Corrupted AST: the variable's value expression is the variable name itself
@@ -2855,6 +2879,10 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		if id, ok := fieldExpr.Object.(*ast.Identifier); ok && id.Name == "screen" {
 			// This is a screen.X expression - should be handled by analyzeFieldExpr
 		}
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: analyzeExpression called with type: %T\n", expr)
 	}
 	
 	switch e := expr.(type) {
@@ -4607,11 +4635,20 @@ func (a *Analyzer) analyzeStringLiteral(str *ast.StringLiteral, irFunc *ir.Funct
 	// Create a unique label for the string
 	label := fmt.Sprintf("str_%d", len(a.module.Strings))
 	
+	// Determine if this is a long string (LString)
+	isLong := str.IsLong || len(str.Value) > 255
+	
 	// Add string to module's string table
 	a.module.Strings = append(a.module.Strings, &ir.String{
-		Label: label,
-		Value: str.Value,
+		Label:  label,
+		Value:  str.Value,
+		IsLong: isLong,
 	})
+	
+	if debug {
+		fmt.Printf("DEBUG: Added string to module: label=%s, value=\"%s\", isLong=%v\n", label, str.Value, isLong)
+		fmt.Printf("  Total strings in module: %d\n", len(a.module.Strings))
+	}
 	
 	// Allocate register for the pointer
 	reg := irFunc.AllocReg()
@@ -5828,10 +5865,16 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			if e.Name == "screen" {
 				return nil, fmt.Errorf("undefined identifier: %s (inferType - module should have been found)", e.Name)
 			}
+			if debug {
+				fmt.Printf("DEBUG: Failed to find identifier %s in inferType\n", e.Name)
+				fmt.Printf("DEBUG: Current scope: %v\n", a.currentScope)
+			}
 			return nil, fmt.Errorf("undefined identifier: %s (inferType)", e.Name)
 		}
 		switch s := sym.(type) {
 		case *VarSymbol:
+			return s.Type, nil
+		case *ConstSymbol:
 			return s.Type, nil
 		case *ModuleSymbol:
 			return nil, fmt.Errorf("module %s cannot be used as a value", s.Name)

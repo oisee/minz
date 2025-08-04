@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/codegen"
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/module"
@@ -67,7 +68,19 @@ func compile(sourceFile string) error {
 
 	// Parse the source file
 	parser := parser.New()
+	if os.Getenv("DEBUG") != "" {
+		fmt.Printf("DEBUG: Parsing file %s\n", sourceFile)
+	}
 	astFile, err := parser.ParseFile(sourceFile)
+	if os.Getenv("DEBUG") != "" && astFile != nil {
+		fmt.Printf("DEBUG: Parsed %d declarations\n", len(astFile.Declarations))
+		for i, decl := range astFile.Declarations {
+			fmt.Printf("  Decl %d: %T\n", i, decl)
+			if varDecl, ok := decl.(*ast.VarDecl); ok {
+				fmt.Printf("    Variable: %s, Value: %T\n", varDecl.Name, varDecl.Value)
+			}
+		}
+	}
 	if err != nil {
 		return fmt.Errorf("parse error: %w", err)
 	}
@@ -83,6 +96,14 @@ func compile(sourceFile string) error {
 	irModule, err := analyzer.Analyze(astFile)
 	if err != nil {
 		return fmt.Errorf("semantic error: %w", err)
+	}
+	
+	// Debug: Print string count
+	if os.Getenv("DEBUG") != "" && irModule != nil {
+		fmt.Printf("DEBUG: Module has %d strings after analysis\n", len(irModule.Strings))
+		for i, s := range irModule.Strings {
+			fmt.Printf("  String %d: label=%s, value=\"%s\"\n", i, s.Label, s.Value)
+		}
 	}
 	defer analyzer.Close()
 	

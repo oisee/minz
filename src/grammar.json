@@ -83,45 +83,48 @@
       ]
     },
     "string_literal": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "PATTERN",
-              "value": "[lL]"
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        },
-        {
-          "type": "STRING",
-          "value": "\""
-        },
-        {
-          "type": "REPEAT",
-          "content": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
             "type": "CHOICE",
             "members": [
               {
                 "type": "PATTERN",
-                "value": "[^\"\\\\]+"
+                "value": "[lL]"
               },
               {
-                "type": "PATTERN",
-                "value": "\\\\."
+                "type": "BLANK"
               }
             ]
+          },
+          {
+            "type": "STRING",
+            "value": "\""
+          },
+          {
+            "type": "REPEAT",
+            "content": {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "PATTERN",
+                  "value": "[^\"\\\\]+"
+                },
+                {
+                  "type": "PATTERN",
+                  "value": "\\\\."
+                }
+              ]
+            }
+          },
+          {
+            "type": "STRING",
+            "value": "\""
           }
-        },
-        {
-          "type": "STRING",
-          "value": "\""
-        }
-      ]
+        ]
+      }
     },
     "char_literal": {
       "type": "SEQ",
@@ -722,6 +725,10 @@
         {
           "type": "SYMBOL",
           "name": "minz_metafunction_declaration"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "minz_block"
         }
       ]
     },
@@ -1688,6 +1695,10 @@
         {
           "type": "SYMBOL",
           "name": "mir_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "minz_block"
         }
       ]
     },
@@ -4640,6 +4651,76 @@
           "value": ")"
         }
       ]
+    },
+    "minz_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@minz"
+        },
+        {
+          "type": "STRING",
+          "value": "[[["
+        },
+        {
+          "type": "FIELD",
+          "name": "code",
+          "content": {
+            "type": "SYMBOL",
+            "name": "minz_block_content"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "]]]"
+        }
+      ]
+    },
+    "minz_block_content": {
+      "type": "REPEAT1",
+      "content": {
+        "type": "CHOICE",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "minz_emit"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "statement"
+          },
+          {
+            "type": "SYMBOL",
+            "name": "expression"
+          }
+        ]
+      }
+    },
+    "minz_emit": {
+      "type": "PREC",
+      "value": 30,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "@emit"
+          },
+          {
+            "type": "STRING",
+            "value": "("
+          },
+          {
+            "type": "SYMBOL",
+            "name": "expression"
+          },
+          {
+            "type": "STRING",
+            "value": ")"
+          }
+        ]
+      }
     },
     "asm_block": {
       "type": "SEQ",

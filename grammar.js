@@ -56,7 +56,7 @@ module.exports = grammar({
     ),
 
     // Strings
-    string_literal: $ => seq(
+    string_literal: $ => token(seq(
       optional(/[lL]/),  // Optional l or L prefix for LString
       '"',
       repeat(choice(
@@ -64,7 +64,7 @@ module.exports = grammar({
         /\\./,
       )),
       '"',
-    ),
+    )),
 
     // Character literals
     char_literal: $ => seq(
@@ -197,6 +197,7 @@ module.exports = grammar({
       $.lua_block,
       $.compile_time_if_declaration,
       $.minz_metafunction_declaration,
+      $.minz_block,
     ),
 
     function_declaration: $ => seq(
@@ -376,6 +377,7 @@ module.exports = grammar({
       $.case_statement,
       $.asm_block,
       $.mir_block,
+      $.minz_block,
     ),
 
     expression_statement: $ => seq(
@@ -877,6 +879,27 @@ module.exports = grammar({
       repeat(seq(',', field('argument', $.expression))),
       ')',
     ),
+
+    // MinZ compile-time execution block
+    minz_block: $ => seq(
+      '@minz',
+      '[[[',
+      field('code', $.minz_block_content),
+      ']]]',
+    ),
+
+    minz_block_content: $ => repeat1(choice(
+      $.minz_emit,
+      $.statement,
+      $.expression,
+    )),
+
+    minz_emit: $ => prec(30, seq(
+      '@emit',
+      '(',
+      $.expression,
+      ')',
+    )),
 
     // Assembly and MIR blocks
     asm_block: $ => seq(

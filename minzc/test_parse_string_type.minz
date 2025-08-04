@@ -1,4 +1,0 @@
-// Test parsing String type
-fun test() -> void {
-    let x: String = "hello";
-}

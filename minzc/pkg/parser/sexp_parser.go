@@ -181,7 +181,15 @@ func (p *Parser) convertSExpToAST(filename string, sexp *SExpNode) (*ast.File, e
 		Declarations: []ast.Declaration{},
 	}
 	
-	for _, child := range sexp.Children {
+	debug := os.Getenv("DEBUG") != ""
+	if debug {
+		fmt.Printf("DEBUG: Converting S-expression with %d children\n", len(sexp.Children))
+	}
+	
+	for i, child := range sexp.Children {
+		if debug {
+			fmt.Printf("DEBUG: Child %d type: %s\n", i, child.Type)
+		}
 		switch child.Type {
 		case "comment":
 			// Skip comments
@@ -195,6 +203,29 @@ func (p *Parser) convertSExpToAST(filename string, sexp *SExpNode) (*ast.File, e
 				if decl != nil {
 					file.Declarations = append(file.Declarations, decl)
 				}
+			}
+		case "statement":
+			// Tree-sitter may wrap declarations in statement nodes
+			if len(child.Children) > 0 {
+				// Try to extract declaration from statement
+				decl := p.convertDeclaration(child.Children[0])
+				if decl != nil {
+					file.Declarations = append(file.Declarations, decl)
+				}
+			}
+		default:
+			// Try to convert as declaration directly (for unwrapped declarations)
+			if debug {
+				fmt.Printf("DEBUG: Trying to convert %s as declaration\n", child.Type)
+			}
+			decl := p.convertDeclaration(child)
+			if decl != nil {
+				if debug {
+					fmt.Printf("DEBUG: Successfully converted %s to %T\n", child.Type, decl)
+				}
+				file.Declarations = append(file.Declarations, decl)
+			} else if debug {
+				fmt.Printf("DEBUG: Failed to convert %s\n", child.Type)
 			}
 		}
 	}
@@ -228,6 +259,8 @@ func (p *Parser) convertDeclaration(node *SExpNode) ast.Declaration {
 		return p.convertInterfaceDecl(node)
 	case "impl_block":
 		return p.convertImplBlock(node)
+	case "minz_block":
+		return p.convertMinzBlock(node)
 	}
 	return nil
 }
@@ -389,6 +422,10 @@ func (p *Parser) convertStatement(node *SExpNode) ast.Statement {
 		return p.convertAsmBlock(node)
 	case "mir_block":
 		return p.convertMirBlock(node)
+	case "minz_block":
+		return p.convertMinzBlock(node)
+	case "minz_emit":
+		return p.convertMinzEmit(node)
 	}
 	return nil
 }
@@ -581,6 +618,14 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 		}
 	case "string_literal":
 		text := p.getNodeText(node)
+		isLong := false
+		
+		// Check for l or L prefix
+		if len(text) > 0 && (text[0] == 'l' || text[0] == 'L') {
+			isLong = true
+			text = text[1:] // Remove the 'l' or 'L' prefix
+		}
+		
 		// Remove quotes if present
 		if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
 			text = text[1 : len(text)-1]
@@ -589,6 +634,7 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 		text = unescapeString(text)
 		return &ast.StringLiteral{
 			Value:    text,
+			IsLong:   isLong,
 			StartPos: node.StartPos,
 			EndPos:   node.EndPos,
 		}
@@ -1115,6 +1161,59 @@ func (p *Parser) convertLuaBlock(node *SExpNode) *ast.LuaBlock {
 	}
 	
 	return luaBlock
+}
+
+func (p *Parser) convertMinzBlock(node *SExpNode) *ast.MinzBlock {
+	minzBlock := &ast.MinzBlock{
+		Code:     []ast.Statement{},
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Find the minz_block_content child
+	for _, child := range node.Children {
+		if child.Type == "minz_block_content" {
+			// Convert each statement/expression in the content
+			for _, contentChild := range child.Children {
+				if contentChild.Type == "minz_emit" {
+					if stmt := p.convertMinzEmit(contentChild); stmt != nil {
+						minzBlock.Code = append(minzBlock.Code, stmt)
+					}
+				} else if contentChild.Type == "statement" {
+					if len(contentChild.Children) > 0 {
+						if stmt := p.convertStatement(contentChild.Children[0]); stmt != nil {
+							minzBlock.Code = append(minzBlock.Code, stmt)
+						}
+					}
+				} else {
+					// Try converting as a statement directly
+					if stmt := p.convertStatement(contentChild); stmt != nil {
+						minzBlock.Code = append(minzBlock.Code, stmt)
+					}
+				}
+			}
+			break
+		}
+	}
+	
+	return minzBlock
+}
+
+func (p *Parser) convertMinzEmit(node *SExpNode) *ast.MinzEmit {
+	minzEmit := &ast.MinzEmit{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Find the expression child (the code to emit)
+	for _, child := range node.Children {
+		if child.Type == "expression" || child.Type == "string_literal" {
+			minzEmit.Code = p.convertExpression(child)
+			break
+		}
+	}
+	
+	return minzEmit
 }
 
 func (p *Parser) convertEnumDecl(node *SExpNode) *ast.EnumDecl {

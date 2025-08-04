@@ -36,7 +36,19 @@ func (p *Parser) ParseFile(filename string) (*ast.File, error) {
 	// Convert the S-expression AST to our Go AST
 	// Create a new Parser instance for S-expression conversion with source code
 	sexpParser := &Parser{sourceCode: p.sourceCode}
-	return sexpParser.convertSExpToAST(filename, sexpAST)
+	file, err := sexpParser.convertSExpToAST(filename, sexpAST)
+	if err != nil {
+		return nil, err
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: Parsed %d declarations\n", len(file.Declarations))
+		for i, decl := range file.Declarations {
+			fmt.Printf("  Decl %d: %T\n", i, decl)
+		}
+	}
+	
+	return file, nil
 }
 
 // ParseString parses MinZ code from a string and returns declarations
@@ -131,6 +143,13 @@ func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
 		return nil, fmt.Errorf("empty S-expression output from tree-sitter")
 	}
 	
+	if debug {
+		fmt.Printf("DEBUG: S-expression output (%d chars):\n%s\n", len(sexpOutput), sexpOutput)
+		if len(sexpOutput) > 500 {
+			fmt.Printf("... (truncated, showing first 500 chars)\n")
+		}
+	}
+	
 	return parseSExpression(sexpOutput)
 }
 
@@ -179,7 +198,13 @@ func (p *Parser) jsonToAST(filename string, jsonAST map[string]interface{}) (*as
 	// Process children
 	children, ok := root["children"].([]interface{})
 	if !ok {
+		if debug {
+			fmt.Printf("DEBUG: No children in root node\n")
+		}
 		return file, nil // Empty file
+	}
+	if debug {
+		fmt.Printf("DEBUG: Found %d children in root\n", len(children))
 	}
 
 	for _, child := range children {
@@ -189,6 +214,9 @@ func (p *Parser) jsonToAST(filename string, jsonAST map[string]interface{}) (*as
 		}
 
 		nodeType, _ := childNode["type"].(string)
+		if debug {
+			fmt.Printf("DEBUG: Root child type: %s\n", nodeType)
+		}
 		switch nodeType {
 		case "import_statement":
 			if imp := p.parseImport(childNode); imp != nil {
@@ -223,6 +251,36 @@ func (p *Parser) jsonToAST(filename string, jsonAST map[string]interface{}) (*as
 			if luaEval := p.parseLuaEval(childNode); luaEval != nil {
 				// Lua eval generates code, so it acts like a declaration
 				// For now, we'll need special handling in semantic analysis
+			}
+		case "statement":
+			// Tree-sitter may wrap declarations in statement nodes
+			// Look inside the statement for the actual declaration
+			if stmtChildren, ok := childNode["children"].([]interface{}); ok && len(stmtChildren) > 0 {
+				if innerNode, ok := stmtChildren[0].(map[string]interface{}); ok {
+					innerType, _ := innerNode["type"].(string)
+					switch innerType {
+					case "function_declaration":
+						if fn := p.parseFunction(innerNode); fn != nil {
+							file.Declarations = append(file.Declarations, fn)
+						}
+					case "variable_declaration":
+						if varDecl := p.parseVarDecl(innerNode); varDecl != nil {
+							file.Declarations = append(file.Declarations, varDecl)
+						}
+					case "struct_declaration":
+						if structDecl := p.parseStructDecl(innerNode); structDecl != nil {
+							file.Declarations = append(file.Declarations, structDecl)
+						}
+					case "enum_declaration":
+						if enumDecl := p.parseEnumDecl(innerNode); enumDecl != nil {
+							file.Declarations = append(file.Declarations, enumDecl)
+						}
+					case "constant_declaration":
+						if constDecl := p.parseConstDecl(innerNode); constDecl != nil {
+							file.Declarations = append(file.Declarations, constDecl)
+						}
+					}
+				}
 			}
 		}
 	}
@@ -297,6 +355,9 @@ func (p *Parser) parseFunction(node map[string]interface{}) *ast.FunctionDecl {
 
 // parseVarDecl parses a variable declaration
 func (p *Parser) parseVarDecl(node map[string]interface{}) *ast.VarDecl {
+	if debug {
+		fmt.Printf("DEBUG parseVarDecl: parsing variable declaration\n")
+	}
 	varDecl := &ast.VarDecl{}
 	
 	children, _ := node["children"].([]interface{})
@@ -321,7 +382,13 @@ func (p *Parser) parseVarDecl(node map[string]interface{}) *ast.VarDecl {
 		case "type":
 			varDecl.Type = p.parseType(childNode)
 		case "expression":
+			if debug {
+				fmt.Printf("DEBUG: Variable %s has expression value\n", varDecl.Name)
+			}
 			varDecl.Value = p.parseExpression(childNode)
+			if debug && varDecl.Value != nil {
+				fmt.Printf("DEBUG: Parsed value type: %T\n", varDecl.Value)
+			}
 		}
 	}
 	

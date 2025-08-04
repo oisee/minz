@@ -3,11 +3,14 @@ package codegen
 import (
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/minz/minzc/pkg/ir"
 )
+
+var debug = os.Getenv("DEBUG") != ""
 
 // Z80Generator generates Z80 assembly from IR
 type Z80Generator struct {
@@ -63,7 +66,13 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 		}
 		
 		// Generate string literals
+		if debug {
+			fmt.Printf("DEBUG: Generating %d strings in data section\n", len(module.Strings))
+		}
 		for _, str := range module.Strings {
+			if debug {
+				fmt.Printf("  String: %s = \"%s\"\n", str.Label, str.Value)
+			}
 			g.generateString(str)
 		}
 	}
@@ -214,13 +223,24 @@ func (g *Z80Generator) generateGlobal(global ir.Global) {
 func (g *Z80Generator) generateString(str *ir.String) {
 	g.emit("%s:", str.Label)
 	
-	// Length prefix (single byte for strings up to 255 chars)
 	length := len(str.Value)
-	if length > 255 {
-		// For longer strings, use 16-bit length prefix
+	
+	// For LString (long strings), use u16 length prefix with 255 marker
+	if str.IsLong {
+		// LString format: [255][len_low][len_high][data...]
+		g.emit("    DB 255    ; LString marker")
 		g.emit("    DW %d    ; Length (16-bit)", length)
 	} else {
-		g.emit("    DB %d    ; Length", length)
+		// String format: [len][data...]
+		// Regular strings should be <= 255 chars
+		if length > 255 {
+			// This shouldn't happen if semantic analysis is correct
+			// but let's handle it gracefully
+			g.emit("    DB 255    ; LString marker (auto-promoted)")
+			g.emit("    DW %d    ; Length (16-bit)", length)
+		} else {
+			g.emit("    DB %d    ; Length", length)
+		}
 	}
 	
 	// String content

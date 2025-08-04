@@ -677,8 +677,9 @@ type Global struct {
 
 // String represents a string literal
 type String struct {
-	Label string
-	Value string
+	Label  string
+	Value  string
+	IsLong bool // true for LString (u16 length), false for String (u8 length)
 }
 
 // NewModule creates a new IR module
