@@ -138,20 +138,29 @@ fun example() -> void {
 
 ## Key Features
 
-### 🚧 @minz Metafunctions (Experimental)
+### 🚧 @minz Metafunctions (Redesigned - In Development)
 ```minz
-// Research: Compile-time code generation for Z80
-@minz("fun greet_{0}() -> void { @print(\"Hello {0}!\"); }", "alice")
-@minz("fun greet_{0}() -> void { @print(\"Hello {0}!\"); }", "bob")
+// NEW: Clear compile-time vs runtime with @ prefix rule
+// @ prefix = compile-time execution (always)
 
-// Goal: Generate optimized functions
-// fun greet_alice() -> void { @print("Hello alice!"); }
-// fun greet_bob() -> void { @print("Hello bob!"); }
+// Compile-time MinZ code blocks (like @lua[[[...]]])
+@minz[[[
+    for i in 0..4 {
+        @emit("fun greet_{0}() -> void { @print(\"Hello {0}!\"); }", 
+              ["alice", "bob", "charlie", "dave"][i]);
+    }
+]]]
 
-// Template parameter system under development:
-@minz("var {0}_hp: u8 = {1}; var {0}_mp: u8 = {2};", "player", "100", "50")
+// Template with parameters (cleaner than string concat)
+@minz[[[
+    var {0}_hp: u8 = {1};
+    var {0}_mp: u8 = {2};
+]]]("player", "100", "50")
 
-// Note: This feature is experimental and not fully implemented yet
+// Old syntax still works (for compatibility):
+@minz("fun greet_{0}() -> void { @print(\"Hello {0}!\"); }", "world")
+
+// See: [Metafunction Redesign](docs/132_MinZ_Metafunction_Redesign.md)
 ```
 
 ### 🚧 Iterator Chains (Research)

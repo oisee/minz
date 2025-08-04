@@ -19,7 +19,8 @@ Based on README analysis, MinZ has:
 - ✅ **Self-modifying code (SMC)** - Advanced optimization working
 
 ### **Experimental Components (Need Stabilization)**
-- 🚧 **@minz Metafunctions** - Compile-time code generation
+- 🚧 **@minz Metafunctions** - Being redesigned with @minz[[[]]] syntax
+- 🚧 **@if compile-time conditional** - Partially working, needs completion
 - 🚧 **Iterator chains** - Functional programming syntax  
 - 🚧 **Zero-cost interfaces** - Interface system
 - 🚧 **Module system** - Import/export
@@ -56,11 +57,13 @@ Based on README analysis, MinZ has:
    - Add comprehensive tests
    - Priority: **High**
 
-5. **🔧 Stabilize @minz metafunctions**
-   - Template parameter substitution
-   - Compile-time code generation
-   - Error handling for invalid templates
+5. **🔧 Implement new @minz[[[]]] syntax**
+   - Compile-time MinZ code blocks (like @lua[[[...]]])
+   - Template with parameters: @minz[[[...]]](params)
+   - Named metafunctions: @fun for compile-time functions
+   - Clear @ prefix = compile-time rule
    - Priority: **Medium**
+   - Design: [docs/132_MinZ_Metafunction_Redesign.md](docs/132_MinZ_Metafunction_Redesign.md)
 
 #### **Week 5-6: Advanced Features**
 6. **🔧 Complete lambda system**

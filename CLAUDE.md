@@ -119,6 +119,7 @@ But always ground excitement in facts and measurements.
 - `/ai-testing-revolution` - Build complete testing infrastructure using parallel agents
 - `/parallel-development` - Execute multiple tasks simultaneously with AI orchestration
 - `/performance-verification` - Verify optimization claims with comprehensive benchmarking
+- `/upd` - Update all documentation (README, CLAUDE.md, design docs) with latest changes
 
 ### Quick Usage Examples:
 ```bash
@@ -130,7 +131,26 @@ But always ground excitement in facts and measurements.
 
 # Verify optimizations
 /performance-verification "Prove new optimization delivers 25% improvement"
+
+# Update all documentation with latest changes
+/upd "Added new @minz[[[]]] syntax for compile-time code"
 ```
+
+### Command: `/upd` - Documentation Sync
+
+Updates all project documentation to maintain consistency:
+1. **README.md** - Main project documentation
+2. **CLAUDE.md** - AI assistant guidance
+3. **STABILITY_ROADMAP.md** - Development roadmap
+4. **Design docs** - Technical specifications
+5. **Examples** - Code examples and tutorials
+
+The command ensures all documentation reflects the latest:
+- Feature implementations
+- API changes
+- Design decisions
+- Status updates
+- Known issues
 
 ## 🛠️ Development Tools & Capabilities (v0.9.0)
 
@@ -155,6 +175,9 @@ But always ground excitement in facts and measurements.
 - ✅ **Enhanced @print**: Compile-time constant evaluation with `{ expr }` syntax
 - ✅ **Global Variables**: Basic types (u8, u16, bool) work perfectly
 - ✅ **Global Struct Variables**: Complex structs can be declared globally
+- ✅ **Error Propagation**: Functions with `?` suffix, @error, ?? operator
+- 🚧 **@if Conditional**: Partial implementation, compile-time evaluation works
+- 🚧 **@minz Redesign**: New @minz[[[]]] syntax designed, not yet implemented
 - ✅ **Error Handling**: `@error` system with error propagation (`docs/127_Error_Propagation_System.md`)
 
 **MinZ Language Features That Work (60% success rate):**
@@ -180,6 +203,11 @@ array_var[index] = value;
 @print("Text with {} interpolation", value);
 let result = risky_operation?() ?? @error;  // ✅ Error propagation
 @error(ErrorType.Variant);  // ✅ Explicit error throwing
+
+// NEW: @ prefix = compile-time execution (universal rule)
+@if(DEBUG, 10, 20);                    // 🚧 Partially working
+@lua[[[print("Compile-time Lua")]]];   // ✅ Works
+@minz[[[...]]]("param");                // 🚧 Designed, coming soon
 ```
 
 ### 🚧 Current Limitations (v0.9.0)
