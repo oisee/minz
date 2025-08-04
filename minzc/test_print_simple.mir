@@ -1,0 +1,15 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_print_simple.main() -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Simple math: 5" (14 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "Multiplication: 20" (18 chars via loop)
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "Complex: 30" (11 chars via loop)
+      6: r4 = 0
+      7: return r4
+

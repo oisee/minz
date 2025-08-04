@@ -1,0 +1,37 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_minz_call.greet_MinZ() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Hello from MinZ!" (16 chars via loop)
+      2: return
+
+Function test_minz_call.add_u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function test_minz_call.main() -> u8
+  @smc
+  Locals:
+    r3 = result: u16
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Testing @minz generated function calls" (38 chars via loop)
+      2: r2 = call greet_MinZ
+      3: r4 = 10
+      4: r5 = 20
+      5: r6 = call add_u8
+      6: store , r6
+      7: UNKNOWN_OP_88
+      8: UNKNOWN_OP_86 ; Print "10 + 20 = " (10 chars via loop)
+      9: r8 = load result
+     10: UNKNOWN_OP_82
+     11: r9 = 0
+     12: return r9
+

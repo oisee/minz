@@ -171,6 +171,10 @@ func (p *sexpParser) skipComma() {
 
 // convertSExpToAST converts S-expression tree to our AST
 func (p *Parser) convertSExpToAST(filename string, sexp *SExpNode) (*ast.File, error) {
+	if debug {
+		fmt.Printf("DEBUG: convertSExpToAST starting with root type: %s\n", sexp.Type)
+	}
+	
 	if sexp.Type != "source_file" {
 		return nil, fmt.Errorf("expected source_file, got %s", sexp.Type)
 	}
@@ -255,12 +259,37 @@ func (p *Parser) convertDeclaration(node *SExpNode) ast.Declaration {
 		return p.convertTypeAlias(node)
 	case "lua_block":
 		return p.convertLuaBlock(node)
+	case "expression_statement":
+		// Handle top-level @minz and other metaprogramming expressions
+		if len(node.Children) > 0 && node.Children[0].Type == "expression" {
+			expr := p.convertExpression(node.Children[0])
+			if minz, ok := expr.(*ast.CompileTimeMinz); ok {
+				// Wrap @minz in a declaration-like structure for now
+				// TODO: Create a proper MetaDeclaration type
+				return &ast.ExpressionDecl{
+					Expression: minz,
+					StartPos:   node.StartPos,
+					EndPos:     node.EndPos,
+				}
+			}
+		}
+		return nil
 	case "interface_declaration":
 		return p.convertInterfaceDecl(node)
 	case "impl_block":
 		return p.convertImplBlock(node)
 	case "minz_block":
 		return p.convertMinzBlock(node)
+	case "define_template":
+		return p.convertDefineTemplate(node)
+	case "meta_execution_block":
+		return p.convertMetaExecutionBlock(node)
+	case "lua_execution_block":
+		return p.convertLuaExecutionBlock(node)
+	case "minz_execution_block":
+		return p.convertMinzExecutionBlock(node)
+	case "mir_execution_block":
+		return p.convertMIRExecutionBlock(node)
 	}
 	return nil
 }
@@ -514,14 +543,35 @@ func (p *Parser) convertTypeNode(node *SExpNode) ast.Type {
 }
 
 func (p *Parser) convertExpression(node *SExpNode) ast.Expression {
+	if debug {
+		fmt.Printf("DEBUG: convertExpression called with type=%s, children=%d\n", node.Type, len(node.Children))
+	}
+	
 	if len(node.Children) > 0 {
-		return p.convertExpressionNode(node.Children[0])
+		result := p.convertExpressionNode(node.Children[0])
+		if debug {
+			fmt.Printf("DEBUG: convertExpression returning %T\n", result)
+		}
+		return result
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: convertExpression returning nil (no children)\n")
 	}
 	return nil
 }
 
 func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
+	if debug {
+		fmt.Printf("DEBUG: convertExpressionNode type=%s, children=%d\n", node.Type, len(node.Children))
+	}
+	
 	switch node.Type {
+	case "expression":
+		// Expression wrapper - recurse into child
+		if len(node.Children) > 0 {
+			return p.convertExpressionNode(node.Children[0])
+		}
 	case "postfix_expression":
 		if len(node.Children) > 0 {
 			return p.convertExpressionNode(node.Children[0])
@@ -550,8 +600,40 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 			}
 		}
 	case "compile_time_print":
-		// @print(expression)
+		// @print(string_literal) - happy syntax with { } interpolation
+		if debug {
+			fmt.Printf("DEBUG: Converting compile_time_print with %d children\n", len(node.Children))
+			for i, child := range node.Children {
+				fmt.Printf("  Child %d: type=%s, text=%q, has_text=%v\n", i, child.Type, child.Text, child.Text != "")
+			}
+		}
 		for _, child := range node.Children {
+			// The grammar now has string_literal directly, not wrapped in expression
+			if child.Type == "string_literal" {
+				// Parse the string literal
+				text := p.getNodeText(child)
+				if debug {
+					fmt.Printf("DEBUG: String literal raw text: %q\n", text)
+				}
+				// Remove quotes if present
+				if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
+					text = text[1 : len(text)-1]
+				}
+				value := p.unescapeString(text)
+				if debug {
+					fmt.Printf("DEBUG: Parsed string literal: %q\n", value)
+				}
+				return &ast.CompileTimePrint{
+					Expr: &ast.StringLiteral{
+						Value:    value,
+						StartPos: child.StartPos,
+						EndPos:   child.EndPos,
+					},
+					StartPos: node.StartPos,
+					EndPos:   node.EndPos,
+				}
+			}
+			// Fallback for old style with expression (shouldn't happen with new grammar)
 			if child.Type == "expression" {
 				expr := p.convertExpression(child)
 				return &ast.CompileTimePrint{
@@ -561,6 +643,12 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 				}
 			}
 		}
+		// If we didn't find a string_literal or expression, return nil
+		// This will cause an error later which is what we want
+		if debug {
+			fmt.Printf("DEBUG: compile_time_print didn't find string_literal or expression child\n")
+		}
+		return nil
 	case "compile_time_if":
 		// @if(condition, then_expr, else_expr)
 		var condition, thenExpr, elseExpr ast.Expression
@@ -588,6 +676,31 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 				StartPos:  node.StartPos,
 				EndPos:    node.EndPos,
 			}
+		}
+	case "compile_time_minz":
+		// @minz[[[code]]](...args...)
+		var code string
+		var args []ast.Expression
+		
+		for _, child := range node.Children {
+			if child.Type == "minz_code_block" {
+				// Extract the MinZ code template
+				code = p.getNodeText(child)
+			} else if child.Type == "argument_list" {
+				// Parse arguments
+				for _, argChild := range child.Children {
+					if argChild.Type == "expression" {
+						args = append(args, p.convertExpression(argChild))
+					}
+				}
+			}
+		}
+		
+		return &ast.CompileTimeMinz{
+			Code:      code,
+			Arguments: args,
+			StartPos:  node.StartPos,
+			EndPos:    node.EndPos,
 		}
 	case "compile_time_error":
 		// @error(expression), @error(), or @error
@@ -1355,12 +1468,26 @@ func (p *Parser) convertExpressionStmt(node *SExpNode) ast.Statement {
 		EndPos:   node.EndPos,
 	}
 	
+	if debug {
+		fmt.Printf("DEBUG: convertExpressionStmt with %d children\n", len(node.Children))
+		for i, child := range node.Children {
+			fmt.Printf("  Child %d: type=%s\n", i, child.Type)
+		}
+	}
+	
 	// Find the expression child
 	for _, child := range node.Children {
 		if child.Type == "expression" {
 			stmt.Expression = p.convertExpression(child)
+			if debug {
+				fmt.Printf("DEBUG: Converted expression type: %T\n", stmt.Expression)
+			}
 			break
 		}
+	}
+	
+	if debug && stmt.Expression == nil {
+		fmt.Printf("DEBUG: WARNING - ExpressionStmt has nil expression!\n")
 	}
 	
 	return stmt
@@ -2420,4 +2547,150 @@ func (p *Parser) convertTryExpr(node *SExpNode) ast.Expression {
 	}
 	
 	return tryExpr
+}
+
+// convertDefineTemplate converts @define template nodes
+func (p *Parser) convertDefineTemplate(node *SExpNode) *ast.DefineTemplate {
+	template := &ast.DefineTemplate{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: convertDefineTemplate node has %d children\n", len(node.Children))
+		for i, child := range node.Children {
+			fmt.Printf("  Child %d: Type=%s, Text=%q\n", i, child.Type, child.Text)
+		}
+	}
+	
+	for i := 0; i < len(node.Children)-1; i++ {
+		child := node.Children[i]
+		// Check if this is a field label (Type=atom, Text ends with :)
+		if child.Type == "atom" && strings.HasSuffix(child.Text, ":") {
+			fieldName := strings.TrimSuffix(child.Text, ":")
+			fieldValue := node.Children[i+1]
+			
+			switch fieldName {
+				case "parameters":
+					// Extract identifier list
+					if fieldValue.Type == "identifier_list" {
+						for _, param := range fieldValue.Children {
+							if param.Type == "identifier" {
+								template.Parameters = append(template.Parameters, p.getNodeText(param))
+							}
+						}
+					}
+				case "arguments":
+					// Extract expression list
+					if fieldValue.Type == "expression_list" {
+						if debug {
+							fmt.Printf("DEBUG: Found expression_list with %d children\n", len(fieldValue.Children))
+						}
+						for _, arg := range fieldValue.Children {
+							if debug {
+								fmt.Printf("DEBUG: Processing arg type=%s\n", arg.Type)
+							}
+							expr := p.convertExpressionNode(arg)
+							if debug {
+								fmt.Printf("DEBUG: Converted expr=%v (type=%T)\n", expr, expr)
+							}
+							if expr != nil {
+								template.Arguments = append(template.Arguments, expr)
+							}
+						}
+					}
+				case "body":
+					// Extract template body
+					if fieldValue.Type == "template_body" {
+						template.Body = p.getNodeText(fieldValue)
+					}
+			}
+			
+			i++ // Skip the field value in next iteration
+		}
+	}
+	
+	return template
+}
+
+// convertMetaExecutionBlock converts generic @lang[[[]]] blocks
+func (p *Parser) convertMetaExecutionBlock(node *SExpNode) ast.Declaration {
+	// Determine the specific type based on child nodes
+	for _, child := range node.Children {
+		switch child.Type {
+		case "lua_execution_block":
+			return p.convertLuaExecutionBlock(child)
+		case "minz_execution_block":
+			return p.convertMinzExecutionBlock(child)
+		case "mir_execution_block":
+			return p.convertMIRExecutionBlock(child)
+		}
+	}
+	return nil
+}
+
+// convertLuaExecutionBlock converts @lua[[[]]] blocks
+func (p *Parser) convertLuaExecutionBlock(node *SExpNode) *ast.MetaExecutionBlock {
+	block := &ast.MetaExecutionBlock{
+		Language: "lua",
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	for i, child := range node.Children {
+		if child.Text == "field:" && child.Type == "code" {
+			if i+1 < len(node.Children) {
+				fieldValue := node.Children[i+1]
+				if fieldValue.Type == "raw_block_content" {
+					block.Code = p.getNodeText(fieldValue)
+				}
+			}
+		}
+	}
+	
+	return block
+}
+
+// convertMinzExecutionBlock converts @minz[[[]]] blocks
+func (p *Parser) convertMinzExecutionBlock(node *SExpNode) *ast.MetaExecutionBlock {
+	block := &ast.MetaExecutionBlock{
+		Language: "minz",
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	for i, child := range node.Children {
+		if child.Text == "field:" && child.Type == "code" {
+			if i+1 < len(node.Children) {
+				fieldValue := node.Children[i+1]
+				if fieldValue.Type == "raw_block_content" {
+					block.Code = p.getNodeText(fieldValue)
+				}
+			}
+		}
+	}
+	
+	return block
+}
+
+// convertMIRExecutionBlock converts @mir[[[]]] blocks
+func (p *Parser) convertMIRExecutionBlock(node *SExpNode) *ast.MetaExecutionBlock {
+	block := &ast.MetaExecutionBlock{
+		Language: "mir",
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	for i, child := range node.Children {
+		if child.Text == "field:" && child.Type == "code" {
+			if i+1 < len(node.Children) {
+				fieldValue := node.Children[i+1]
+				if fieldValue.Type == "raw_block_content" {
+					block.Code = p.getNodeText(fieldValue)
+				}
+			}
+		}
+	}
+	
+	return block
 }

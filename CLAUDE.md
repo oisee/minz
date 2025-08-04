@@ -258,14 +258,19 @@ fun error_func?(param: u8) -> u8 ? ErrorType { ... }  // ✅ Error-throwing func
 let local: Type = value;
 struct_var.field = value;
 array_var[index] = value;
-@print("Text with {} interpolation", value);
+@print("Text with { value } interpolation");
 let result = risky_operation?() ?? @error;  // ✅ Error propagation
 @error(ErrorType.Variant);  // ✅ Explicit error throwing
 
-// NEW: @ prefix = compile-time execution (universal rule)
+// NEW: Metaprogramming system
+@define(entity, hp)[[[struct {0} { health: u8 = {1} }]]]  // Template expansion
+@define("Enemy", 100)                  // Generates struct Enemy { health: u8 = 100 }
+
+@lua[[[print("Compile-time Lua")]]];   // ✅ Lua execution at compile time
+@minz[[[for i in 0..4 { @emit("const C{i}: u8 = {i};") }]]]  // 🚧 MinZ compile-time
+@mir[[[r1 = load_const 42; store_var "x", r1]]]  // 🚧 Direct MIR generation
+
 @if(DEBUG, 10, 20);                    // 🚧 Partially working
-@lua[[[print("Compile-time Lua")]]];   // ✅ Works
-@minz[[[...]]]("param");                // 🚧 Designed, coming soon
 ```
 
 ### 🚧 Current Limitations (v0.9.0)

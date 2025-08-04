@@ -64,6 +64,14 @@ func NewAnalyzer() *Analyzer {
 
 // Analyze performs semantic analysis on a file
 func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
+	// PREPROCESSING STEP 1: Expand @define templates (before everything else!)
+	templateExpander := NewTemplateExpander()
+	expandedFile, err := templateExpander.ExpandTemplates(file)
+	if err != nil {
+		return nil, fmt.Errorf("template expansion failed: %w", err)
+	}
+	file = expandedFile
+	
 	// Set current module name
 	if file.ModuleName != "" {
 		a.currentModule = file.ModuleName
@@ -123,13 +131,21 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		}
 	}
 
-	// First pass, phase 2: Process @minz blocks FIRST to generate code
+	// First pass, phase 2: Process @minz blocks and expressions FIRST to generate code
 	// MinZ blocks must be processed before everything else since they generate declarations
 	for _, decl := range file.Declarations {
-		if d, ok := decl.(*ast.MinzBlock); ok {
+		switch d := decl.(type) {
+		case *ast.MinzBlock:
 			// Process MinZ blocks to generate code
 			if err := a.analyzeMinzBlock(d); err != nil {
 				a.errors = append(a.errors, err)
+			}
+		case *ast.ExpressionDecl:
+			// Process top-level @minz expressions to generate code
+			if minz, ok := d.Expression.(*ast.CompileTimeMinz); ok {
+				if _, err := a.analyzeMinzExpr(minz, nil); err != nil {
+					a.errors = append(a.errors, err)
+				}
 			}
 		}
 	}
@@ -817,8 +833,8 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 		// Already processed in first pass
 		return nil
 	case *ast.LuaBlock:
-		// Process Lua block
-		return a.analyzeLuaBlock(d)
+		// Already processed in first pass
+		return nil
 	case *ast.InterfaceDecl:
 		// Already processed in first pass
 		return nil
@@ -826,8 +842,20 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 		// Process implementation blocks
 		return a.analyzeImplBlock(d)
 	case *ast.MinzBlock:
-		// Already processed in first pass
+		// Process @minz[[[]]] blocks
+		return a.analyzeMinzBlock(d)
+	case *ast.ExpressionDecl:
+		// Already processed in first pass for @minz
 		return nil
+	case *ast.DefineTemplate:
+		// Templates are already expanded in preprocessing - skip
+		return nil
+	case *ast.MetaExecutionBlock:
+		// Process @lang[[[]]] blocks
+		return a.analyzeMetaExecutionBlock(d)
+	case *ast.MIRBlock:
+		// Process @mir[[[]]] blocks
+		return a.analyzeMIRBlock(d)
 	default:
 		return fmt.Errorf("unsupported declaration type: %T", decl)
 	}
@@ -2919,6 +2947,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeCastExpr(e, irFunc)
 	case *ast.CompileTimePrint:
 		return a.analyzePrintExpr(e, irFunc)
+	case *ast.CompileTimeMinz:
+		return a.analyzeMinzExpr(e, irFunc)
 	case *ast.CompileTimeIf:
 		return a.analyzeCompileTimeIf(e, irFunc)
 	case *ast.CompileTimeError:
@@ -4744,11 +4774,21 @@ func (a *Analyzer) analyzeLuaExpression(expr *ast.LuaExpression, irFunc *ir.Func
 
 // analyzePrintExpr analyzes @print expressions with string interpolation
 func (a *Analyzer) analyzePrintExpr(print *ast.CompileTimePrint, irFunc *ir.Function) (ir.Register, error) {
+	if debug {
+		fmt.Printf("DEBUG: analyzePrintExpr called with expr type: %T\n", print.Expr)
+	}
+	
 	// Check if the expression is a string literal for interpolation
 	if strLit, ok := print.Expr.(*ast.StringLiteral); ok {
+		if debug {
+			fmt.Printf("DEBUG: String literal value: %q\n", strLit.Value)
+		}
 		// Use enhanced interpolation with { constant } support
 		err := a.processEnhancedStringInterpolation(strLit.Value, irFunc)
 		if err != nil {
+			if debug {
+				fmt.Printf("DEBUG: Enhanced interpolation failed: %v, falling back\n", err)
+			}
 			// Fall back to old implementation if enhanced fails
 			err = a.processStringInterpolation(strLit.Value, irFunc)
 			if err != nil {
@@ -7616,4 +7656,125 @@ func (a *Analyzer) getErrorConversionFunction(source, target ir.Type) string {
 	sourceName := a.getErrorTypeName(source)
 	targetName := a.getErrorTypeName(target)
 	return fmt.Sprintf("convert_error_%s_to_%s", sourceName, targetName)
+}
+
+// analyzeExpressionDecl analyzes top-level metaprogramming expressions
+func (a *Analyzer) analyzeExpressionDecl(decl *ast.ExpressionDecl) error {
+	// For now, we only handle @minz expressions at the top level
+	if minz, ok := decl.Expression.(*ast.CompileTimeMinz); ok {
+		// Execute the @minz metafunction
+		_, err := a.analyzeMinzExpr(minz, nil) // nil irFunc for top-level
+		return err
+	}
+	return fmt.Errorf("unsupported top-level expression: %T", decl.Expression)
+}
+
+// analyzeMinzExpr analyzes @minz[[[...]]](...) metafunction calls
+func (a *Analyzer) analyzeMinzExpr(minz *ast.CompileTimeMinz, irFunc *ir.Function) (ir.Register, error) {
+	// Evaluate arguments at compile time
+	args := make([]interface{}, len(minz.Arguments))
+	for i, arg := range minz.Arguments {
+		// Try to evaluate as constant
+		if val, err := a.evaluateConstantExpression(arg); err == nil {
+			args[i] = val
+		} else {
+			// If not constant, it needs to be a string literal for now
+			if str, ok := arg.(*ast.StringLiteral); ok {
+				args[i] = str.Value
+			} else {
+				return 0, fmt.Errorf("@minz argument %d must be a compile-time constant or string literal", i+1)
+			}
+		}
+	}
+	
+	// Create MIR interpreter instance
+	interp := interpreter.NewMIRInterpreter()
+	
+	// Execute the MinZ template with arguments
+	generatedCode, err := interp.ExecuteMinzMetafunction(minz.Code, args)
+	if err != nil {
+		return 0, fmt.Errorf("@minz execution error: %w", err)
+	}
+	
+	// For now, just print the generated code as a debug measure
+	if debug {
+		fmt.Printf("DEBUG: @minz generated code:\n%s\n", generatedCode)
+	}
+	
+	// Parse the generated MinZ code
+	tempParser := parser.New()
+	generatedDecls, err := tempParser.ParseString(generatedCode, "<@minz generated>")
+	if err != nil {
+		return 0, fmt.Errorf("@minz: failed to parse generated code: %w", err)
+	}
+	
+	// Inject the declarations into the current module
+	for _, decl := range generatedDecls {
+		// For function declarations, register the signature first
+		if funcDecl, ok := decl.(*ast.FunctionDecl); ok {
+			if err := a.registerFunctionSignature(funcDecl); err != nil {
+				return 0, fmt.Errorf("@minz: failed to register function %s: %w", funcDecl.Name, err)
+			}
+		}
+	}
+	
+	// Now analyze the function bodies
+	for _, decl := range generatedDecls {
+		if err := a.analyzeDeclaration(decl); err != nil {
+			return 0, fmt.Errorf("@minz: failed to analyze generated code: %w", err)
+		}
+		// The declaration is now analyzed and added to the IR module automatically
+	}
+	
+	// For top-level @minz, we don't return a register value
+	if irFunc == nil {
+		// At top level, just execute and generate code
+		return 0, nil
+	}
+	
+	// For expression-level @minz (future), return a dummy value
+	reg := irFunc.AllocReg()
+	irFunc.EmitImm(ir.OpLoadConst, reg, 0)
+	a.exprTypes[minz] = &ir.BasicType{Kind: ir.TypeU8}
+	
+	return reg, nil
+}
+
+
+// analyzeMetaExecutionBlock processes @lang[[[]]] blocks
+func (a *Analyzer) analyzeMetaExecutionBlock(block *ast.MetaExecutionBlock) error {
+	switch block.Language {
+	case "lua":
+		// Execute Lua code
+		return a.luaEvaluator.EvaluateLuaBlock(block.Code)
+	case "minz":
+		// Execute MinZ code through MIR interpreter
+		return a.analyzeMinzBlockCode(block.Code)
+	case "mir":
+		// Generate MIR directly
+		return a.analyzeMIRBlockCode(block.Code)
+	default:
+		return fmt.Errorf("unsupported meta execution language: %s", block.Language)
+	}
+}
+
+
+// analyzeMinzBlockCode executes MinZ code at compile time
+func (a *Analyzer) analyzeMinzBlockCode(code string) error {
+	// TODO: Parse the MinZ code
+	// TODO: Execute it through the MIR interpreter
+	// TODO: Capture @emit() calls and generate code
+	return nil
+}
+
+// analyzeMIRBlock processes @mir[[[]]] blocks
+func (a *Analyzer) analyzeMIRBlock(block *ast.MIRBlock) error {
+	return a.analyzeMIRBlockCode(block.Code)
+}
+
+// analyzeMIRBlockCode generates MIR directly from the block
+func (a *Analyzer) analyzeMIRBlockCode(code string) error {
+	// TODO: Parse MIR instructions
+	// TODO: Generate IR directly
+	return nil
 }

@@ -1,0 +1,12 @@
+// Test simple @minz metafunction
+
+// Generate a simple function
+@minz[[[fun hello_{0}() -> void { @print("Hi {0}!"); }]]]("world")
+
+fun main() -> u8 {
+    // This should call the generated hello_world function
+    // hello_world();
+    
+    @print("Testing @minz metafunction")
+    return 0;
+}

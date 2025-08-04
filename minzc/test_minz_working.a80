@@ -1,0 +1,543 @@
+; MinZ generated code
+; Generated: 2025-08-04 23:41:38
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 37    ; Length
+    DB "=== Testing @minz Code Generation ==="
+str_1:
+    DB 13    ; Length
+    DB "double(21) = "
+str_2:
+    DB 14    ; Length
+    DB "double(500) = "
+str_3:
+    DB 10    ; Length
+    DB "15 + 25 = "
+str_4:
+    DB 10    ; Length
+    DB "50 - 20 = "
+str_5:
+    DB 21    ; Length
+    DB "50 in range [0,100]? "
+str_6:
+    DB 22    ; Length
+    DB "150 in range [0,100]? "
+str_7:
+    DB 31    ; Length
+    DB "=== All @minz tests passed! ==="
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_minz_working.say_hello
+test_minz_working.say_hello:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Direct print "hello!" (6 chars)
+    ; Direct print "hello!" (6 chars)
+    LD A, 104
+    RST 16             ; Print character
+    LD A, 101
+    RST 16             ; Print character
+    LD A, 108
+    RST 16             ; Print character
+    LD A, 108
+    RST 16             ; Print character
+    LD A, 111
+    RST 16             ; Print character
+    LD A, 33
+    RST 16             ; Print character
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_minz_working.say_goodbye
+test_minz_working.say_goodbye:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Direct print "goodbye!" (8 chars)
+    ; Direct print "goodbye!" (8 chars)
+    LD A, 103
+    RST 16             ; Print character
+    LD A, 111
+    RST 16             ; Print character
+    LD A, 111
+    RST 16             ; Print character
+    LD A, 100
+    RST 16             ; Print character
+    LD A, 98
+    RST 16             ; Print character
+    LD A, 121
+    RST 16             ; Print character
+    LD A, 101
+    RST 16             ; Print character
+    LD A, 33
+    RST 16             ; Print character
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_minz_working.double_u8
+test_minz_working.double_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+test_minz_working.double_u8_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    LD A, (test_minz_working.double_u8_param_x)
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 + r3
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r4
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_minz_working.double_u16
+test_minz_working.double_u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+test_minz_working.double_u16_param_x:
+    LD HL, #0000   ; SMC parameter x
+    ; Register 2 already in HL
+    LD HL, (test_minz_working.double_u16_param_x)
+    LD D, H
+    LD E, L
+    ; r4 = r2 + r3
+    ; Register 2 already in HL
+    LD D, H
+    LD E, L
+    LD H, D
+    LD L, E
+    ADD HL, DE
+    LD B, H
+    LD C, L
+    ; return r4
+    LD H, B
+    LD L, C
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_minz_working.add_u8
+test_minz_working.add_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+test_minz_working.add_u8_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+test_minz_working.add_u8_param_y:
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_minz_working.sub_u8
+test_minz_working.sub_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+test_minz_working.sub_u8_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+test_minz_working.sub_u8_param_y:
+    LD DE, #0000   ; SMC parameter y (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r5 = r3 - r4
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; Register 5 already in HL
+    ; return r5
+    ; Register 5 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_minz_working.check_range_u8
+test_minz_working.check_range_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+test_minz_working.check_range_u8_param_value:
+    LD HL, #0000   ; SMC parameter value (u8->u16)
+test_minz_working.check_range_u8_param_min:
+    LD DE, #0000   ; SMC parameter min (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; r6 = r4 < r5
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r6, else_1
+    LD A, L
+    OR A
+    JP Z, else_1
+    ; r7 = 0
+    LD A, 0
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; return r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    LD A, (test_minz_working.check_range_u8_param_value)
+    LD H, A         ; Store to physical register H
+test_minz_working.check_range_u8_param_max:
+    LD BC, #0000   ; SMC parameter max (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; r10 = r8 > r9
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L4
+    JP P, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    ; jump_if_not r10, else_3
+    LD A, H
+    OR A
+    JP Z, else_3
+    ; r11 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r11
+    RET
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; end_if_4:
+end_if_4:
+    ; r12 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; return r12
+    ; Register 12 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_minz_working.main
+test_minz_working.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_0)
+    LD HL, str_0
+    ; Print "=== Testing @minz Code Generation ===" (37 chars via loop)
+    CALL print_string
+    ; r2 = call say_hello
+    ; Call to say_hello (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_minz_working.say_hello
+    ; r3 = call say_goodbye
+    ; Call to say_goodbye (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_minz_working.say_goodbye
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; r5 = 21
+    LD A, 21
+    LD H, A         ; Store to physical register H
+    ; r6 = call double_u8
+    ; Call to double_u8 (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL test_minz_working.double_u8
+    ; store , r6
+    LD ($F008), HL
+    ; r7 = string(str_1)
+    LD HL, str_1
+    ; Print "double(21) = " (13 chars via loop)
+    CALL print_string
+    ; r8 = load x
+    LD HL, ($F008)
+    ; print_u16(r8)
+    CALL print_u16_decimal
+    ; r10 = 500
+    LD HL, 500
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; r11 = call double_u16
+    ; Call to double_u16 (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL test_minz_working.double_u16
+    LD ($F016), HL    ; Virtual register 11 to memory
+    ; store , r11
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    LD ($F012), HL
+    ; r12 = string(str_2)
+    LD HL, str_2
+    ; Print "double(500) = " (14 chars via loop)
+    CALL print_string
+    ; r13 = load y
+    LD HL, ($F012)
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    ; print_u16(r13)
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    CALL print_u16_decimal
+    ; r15 = 15
+    LD A, 15
+    LD H, A         ; Store to physical register H
+    ; r16 = 25
+    LD A, 25
+    LD L, A         ; Store to physical register L
+    ; r17 = call add_u8
+    ; Call to add_u8 (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL test_minz_working.add_u8
+    LD ($F022), HL    ; Virtual register 17 to memory
+    ; store , r17
+    LD HL, ($F022)    ; Virtual register 17 from memory
+    LD ($F01C), HL
+    ; r18 = string(str_3)
+    LD HL, str_3
+    ; Print "15 + 25 = " (10 chars via loop)
+    CALL print_string
+    ; r19 = load sum
+    LD HL, ($F01C)
+    LD ($F026), HL    ; Virtual register 19 to memory
+    ; print_u16(r19)
+    LD HL, ($F026)    ; Virtual register 19 from memory
+    CALL print_u16_decimal
+    ; r21 = 50
+    LD A, 50
+    LD H, A         ; Store to physical register H
+    ; r22 = 20
+    LD A, 20
+    LD L, A         ; Store to physical register L
+    ; r23 = call sub_u8
+    ; Call to sub_u8 (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL test_minz_working.sub_u8
+    LD ($F02E), HL    ; Virtual register 23 to memory
+    ; store , r23
+    LD HL, ($F02E)    ; Virtual register 23 from memory
+    LD ($F028), HL
+    ; r24 = string(str_4)
+    LD HL, str_4
+    ; Print "50 - 20 = " (10 chars via loop)
+    CALL print_string
+    ; r25 = load diff
+    LD HL, ($F028)
+    LD ($F032), HL    ; Virtual register 25 to memory
+    ; print_u16(r25)
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    CALL print_u16_decimal
+    ; r27 = 50
+    LD A, 50
+    LD H, A         ; Store to physical register H
+    ; r28 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r29 = 100
+    LD A, 100
+    LD ($F03A), A     ; Virtual register 29 to memory
+    ; r30 = call check_range_u8
+    ; Call to check_range_u8 (args: 3)
+    ; Stack-based parameter passing
+    LD HL, ($F03A)    ; Virtual register 29 from memory
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL test_minz_working.check_range_u8
+    ; store , r30
+    LD ($F034), HL
+    ; r31 = string(str_5)
+    LD HL, str_5
+    LD ($F03E), HL    ; Virtual register 31 to memory
+    ; Print "50 in range [0,100]? " (21 chars via loop)
+    LD HL, ($F03E)    ; Virtual register 31 from memory
+    CALL print_string
+    ; r32 = load in_range
+    LD HL, ($F034)
+    ; print_u16(r32)
+    CALL print_u16_decimal
+    ; r34 = 150
+    LD A, 150
+    LD L, A         ; Store to physical register L
+    ; r35 = 0
+    LD A, 0
+    LD ($F046), A     ; Virtual register 35 to memory
+    ; r36 = 100
+    LD A, 100
+    LD H, A         ; Store to physical register H
+    ; r37 = call check_range_u8
+    ; Call to check_range_u8 (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    LD HL, ($F046)    ; Virtual register 35 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL test_minz_working.check_range_u8
+    ; store , r37
+    LD ($F042), HL
+    ; r38 = string(str_6)
+    LD HL, str_6
+    ; Print "150 in range [0,100]? " (22 chars via loop)
+    CALL print_string
+    ; r39 = load out_range
+    LD HL, ($F042)
+    ; print_u16(r39)
+    CALL print_u16_decimal
+    ; r40 = string(str_7)
+    LD HL, str_7
+    ; Register 40 already in HL
+    ; Print "=== All @minz tests passed! ===" (31 chars via loop)
+    ; Register 40 already in HL
+    CALL print_string
+    ; r41 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; return r41
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+    END main

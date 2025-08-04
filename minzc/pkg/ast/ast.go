@@ -266,6 +266,18 @@ func (c *ConstDecl) End() Position { return c.EndPos }
 func (c *ConstDecl) stmtNode()    {}
 func (c *ConstDecl) declNode()    {}
 
+// ExpressionDecl wraps top-level metaprogramming expressions as declarations
+type ExpressionDecl struct {
+	Expression Expression
+	StartPos   Position
+	EndPos     Position
+}
+
+func (e *ExpressionDecl) Pos() Position { return e.StartPos }
+func (e *ExpressionDecl) End() Position { return e.EndPos }
+func (e *ExpressionDecl) stmtNode()     {}
+func (e *ExpressionDecl) declNode()     {}
+
 // StructDecl represents a struct declaration
 type StructDecl struct {
 	Name     string
@@ -828,6 +840,18 @@ func (a *Attribute) Pos() Position { return a.StartPos }
 func (a *Attribute) End() Position { return a.EndPos }
 func (a *Attribute) exprNode()    {}
 
+// CompileTimeMinz represents @minz[[[...]]](...) metafunction call
+type CompileTimeMinz struct {
+	Code      string       // MinZ code template
+	Arguments []Expression // Arguments to pass to template
+	StartPos  Position
+	EndPos    Position
+}
+
+func (c *CompileTimeMinz) Pos() Position { return c.StartPos }
+func (c *CompileTimeMinz) End() Position { return c.EndPos }
+func (c *CompileTimeMinz) exprNode()     {}
+
 // LuaBlock represents @lua[[...]] compile-time Lua code
 type LuaBlock struct {
 	Code     string
@@ -853,6 +877,46 @@ func (l *LuaExpression) exprNode()    {}
 
 // LuaExpr is an alias for compatibility
 type LuaExpr = LuaExpression
+
+// DefineTemplate represents @define template declarations and invocations
+type DefineTemplate struct {
+	Parameters []string     // For template definition
+	Arguments  []Expression // For template invocation
+	Body       string       // Template body (for definition only)
+	StartPos   Position
+	EndPos     Position
+}
+
+func (d *DefineTemplate) Pos() Position { return d.StartPos }
+func (d *DefineTemplate) End() Position { return d.EndPos }
+func (d *DefineTemplate) stmtNode()     {}
+func (d *DefineTemplate) declNode()     {}
+
+// MetaExecutionBlock represents @lang[[[]]] compile-time execution blocks
+type MetaExecutionBlock struct {
+	Language string   // "lua", "minz", "mir"
+	Code     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (m *MetaExecutionBlock) Pos() Position { return m.StartPos }
+func (m *MetaExecutionBlock) End() Position { return m.EndPos }
+func (m *MetaExecutionBlock) stmtNode()     {}
+func (m *MetaExecutionBlock) declNode()     {}
+
+
+// MIRBlock represents @mir[[[]]] compile-time MIR generation
+type MIRBlock struct {
+	Code     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (m *MIRBlock) Pos() Position { return m.StartPos }
+func (m *MIRBlock) End() Position { return m.EndPos }
+func (m *MIRBlock) stmtNode()     {}
+func (m *MIRBlock) declNode()     {}
 
 // StringLiteral represents a string literal
 type StringLiteral struct {

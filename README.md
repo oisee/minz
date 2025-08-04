@@ -28,7 +28,7 @@ global lives: u8 = 3;       // Global variable
 
 // Functions
 fun greet(name: string) -> void {
-    @print("Hello {}!", name);
+    @print("Hello { name }!");
 }
 
 // Error-throwing functions (NEW!)
@@ -106,7 +106,7 @@ fun safe_divide?(a: u8, b: u8) -> u8 ? MathError {
 fun example() -> void {
     let result = safe_divide?(10, 2) ?? 0;  // Returns 5
     let failed = safe_divide?(10, 0) ?? 0;  // Returns 0 (default)
-    @print("Results: {} {}", result, failed);
+    @print("Results: { result } { failed }");
 }
 ```
 
@@ -125,7 +125,7 @@ fun example() -> void {
 ## 🎯 Recent Progress (v0.9.4)
 
 - 🔧 **Error Propagation**: Zero-overhead error handling system implemented
-- 🚧 **@minz Metafunctions**: Experimental compile-time code generation (work in progress)
+- 🚧 **Metaprogramming**: @define templates + @lua/@minz/@mir compile-time execution (in development)
 - 🔧 **Template Substitution**: {0}, {1}, {2} parameter system (experimental)
 - 🔧 **MIR Interpreter**: Basic compile-time execution support (in development)
 - 🚧 **Iterator Chains**: Functional programming syntax research (experimental)
@@ -138,29 +138,57 @@ fun example() -> void {
 
 ## Key Features
 
-### 🚧 @minz Metafunctions (Redesigned - In Development)
-```minz
-// NEW: Clear compile-time vs runtime with @ prefix rule
-// @ prefix = compile-time execution (always)
+### 🚧 Metaprogramming System (Redesigned - In Development)
 
-// Compile-time MinZ code blocks (like @lua[[[...]]])
-@minz[[[
-    for i in 0..4 {
-        @emit("fun greet_{0}() -> void { @print(\"Hello {0}!\"); }", 
-              ["alice", "bob", "charlie", "dave"][i]);
+#### @define - Template System (Text Substitution)
+```minz
+// Simple template expansion with parameters
+@define(entity, health, damage)[[[
+    struct {0} {
+        health: u8 = {1}
+        damage: u8 = {2}
+    }
+    
+    fun spawn_{0}() -> {0} {
+        return {0} { health: {1}, damage: {2} };
     }
 ]]]
 
-// Template with parameters (cleaner than string concat)
+// Usage - generates struct and function
+@define("Enemy", 100, 25)
+@define("Player", 200, 50)
+```
+
+#### Compile-Time Code Execution
+```minz
+// @lua - Execute Lua at compile time
+@lua[[[
+    -- Generate MinZ code
+    for i = 1, 4 do
+        print(string.format("const LEVEL_%d: u8 = %d;", i, i * 10))
+    end
+]]]
+
+// @minz - Execute MinZ at compile time  
 @minz[[[
-    var {0}_hp: u8 = {1};
-    var {0}_mp: u8 = {2};
-]]]("player", "100", "50")
+    // MinZ compile-time execution
+    for i in 0..4 {
+        @emit("fun getter_{i}() -> u8 { return {i}; }")
+    }
+]]]
 
-// Old syntax still works (for compatibility):
-@minz("fun greet_{0}() -> void { @print(\"Hello {0}!\"); }", "world")
+// @mir - Generate MIR directly
+@mir[[[
+    // Direct MIR generation for optimization
+    r1 = load_const 42
+    store_var "answer", r1
+]]]
+```
 
-// See: [Metafunction Redesign](docs/132_MinZ_Metafunction_Redesign.md)
+**Processing Pipeline:**
+1. @define expansion (templates) → 2. @lang execution → 3. Normal compilation
+
+See: [Metaprogramming Design](docs/133_Metaprogramming_Complete_Design.md)
 ```
 
 ### 🚧 Iterator Chains (Research)
@@ -199,7 +227,7 @@ fun process_data?(input: u8) -> u8 ? AppError {
 // Usage with nil coalescing  
 fun main() -> void {
     let result = process_data?(10) ?? 99;  // Default value on error
-    @print("Result: {}", result);
+    @print("Result: { result }");
 }
 
 // Same-type propagation generates single RET instruction

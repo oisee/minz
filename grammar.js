@@ -198,6 +198,8 @@ module.exports = grammar({
       $.compile_time_if_declaration,
       $.minz_metafunction_declaration,
       $.minz_block,
+      $.define_template,
+      $.meta_execution_block,
     ),
 
     function_declaration: $ => seq(
@@ -721,6 +723,7 @@ module.exports = grammar({
       $.attribute,
       $.lua_expression,
       $.lua_eval,
+      $.compile_time_minz,
     ),
 
     compile_time_if: $ => seq(
@@ -736,15 +739,15 @@ module.exports = grammar({
     compile_time_print: $ => seq(
       '@print',
       '(',
-      $.expression,
+      $.string_literal,  // Only accepts a single string with { } interpolation
       ')',
     ),
 
     compile_time_assert: $ => seq(
       '@assert',
       '(',
-      $.expression,
-      optional(seq(',', $.string_literal)),
+      $.expression,  // Flexible - can be string, expression, multiple params
+      repeat(seq(',', $.expression)),  // Optional additional parameters
       ')',
     ),
 
@@ -789,6 +792,20 @@ module.exports = grammar({
     
     // Lua code block that can contain anything including [[ ]]
     lua_code_block: $ => /([^\]]+|\][^\]]+|\]\][^\]]+)*/,
+
+    // MinZ metaprogramming
+    compile_time_minz: $ => seq(
+      '@minz',
+      '[[[',
+      $.minz_code_block,
+      ']]]',
+      '(',
+      optional($.argument_list),
+      ')',
+    ),
+
+    // MinZ code block that can contain anything including [[ ]]
+    minz_code_block: $ => /([^\]]+|\][^\]]+|\]\][^\]]+)*/,
 
     // Import statements
     import_statement: $ => seq(
@@ -899,6 +916,68 @@ module.exports = grammar({
       '(',
       $.expression,
       ')',
+    )),
+
+    // @define template system
+    define_template: $ => choice(
+      // Template definition
+      seq(
+        '@define',
+        '(',
+        field('parameters', $.identifier_list),
+        ')',
+        '[[[',
+        field('body', $.template_body),
+        ']]]',
+      ),
+      // Template invocation
+      seq(
+        '@define',
+        '(',
+        field('arguments', $.expression_list),
+        ')',
+      ),
+    ),
+
+    // @lang[[[]]] execution blocks
+    meta_execution_block: $ => choice(
+      $.lua_execution_block,
+      $.minz_execution_block,
+      $.mir_execution_block,
+    ),
+
+    lua_execution_block: $ => seq(
+      '@lua',
+      '[[[',
+      field('code', $.raw_block_content),
+      ']]]',
+    ),
+
+    minz_execution_block: $ => seq(
+      '@minz',
+      '[[[',
+      field('code', $.raw_block_content),
+      ']]]',
+    ),
+
+    mir_execution_block: $ => seq(
+      '@mir',
+      '[[[',
+      field('code', $.raw_block_content),
+      ']]]',
+    ),
+
+    template_body: $ => /([^\]]|\][^\]]|\]\][^\]])+/,
+    raw_block_content: $ => /([^\]]|\][^\]]|\]\][^\]])+/,
+
+    identifier_list: $ => prec(2, seq(
+      $.identifier,
+      repeat(seq(',', $.identifier)),
+    )),
+
+    expression_list: $ => prec(1, seq(
+      $.expression,
+      repeat(seq(',', $.expression)),
     )),
 
     // Assembly and MIR blocks

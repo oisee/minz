@@ -1,0 +1,11 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_print_literal.main() -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Hello World" (11 chars via loop)
+      2: r2 = 0
+      3: return r2
+

@@ -116,8 +116,15 @@ func (a *Analyzer) tryEvaluateConstant(expr string) (bool, string) {
 	// First, check for simple literals
 	expr = strings.TrimSpace(expr)
 	
+	if debug {
+		fmt.Printf("DEBUG: tryEvaluateConstant: expr=%q\n", expr)
+	}
+	
 	// Integer literal
 	if val, err := strconv.ParseInt(expr, 0, 64); err == nil {
+		if debug {
+			fmt.Printf("DEBUG: Evaluated as integer literal: %d\n", val)
+		}
 		return true, fmt.Sprintf("%d", val)
 	}
 	
@@ -155,10 +162,11 @@ func (a *Analyzer) tryEvaluateConstant(expr string) (bool, string) {
 		}
 	}
 	
-	// Arithmetic expressions with constants
-	if a.isConstantExpression(expr) {
-		// Use Lua to evaluate the expression
-		if a.luaEvaluator != nil {
+	// Try to evaluate any expression with Lua (for arithmetic, etc.)
+	// This will handle constant expressions like "2 + 3" or "5 * 4"
+	if a.luaEvaluator != nil {
+		// First check if it looks like it could be an expression
+		if containsArithmeticOps(expr) || a.isConstantExpression(expr) {
 			if result, err := a.luaEvaluator.EvaluateExpression(expr); err == nil {
 				return true, result
 			}
@@ -177,6 +185,17 @@ func (a *Analyzer) tryEvaluateConstant(expr string) (bool, string) {
 	
 	// Not a constant
 	return false, ""
+}
+
+// containsArithmeticOps checks if a string contains arithmetic operators
+func containsArithmeticOps(expr string) bool {
+	ops := []string{"+", "-", "*", "/", "%", "(", ")"}
+	for _, op := range ops {
+		if strings.Contains(expr, op) {
+			return true
+		}
+	}
+	return false
 }
 
 // isConstantExpression checks if an expression contains only constants and operators
@@ -206,9 +225,21 @@ func (a *Analyzer) isConstantExpression(expr string) bool {
 
 // processEnhancedStringInterpolation handles the new { constant } syntax
 func (a *Analyzer) processEnhancedStringInterpolation(format string, irFunc *ir.Function) error {
+	if debug {
+		fmt.Printf("DEBUG: processEnhancedStringInterpolation called with: %q\n", format)
+	}
+	
 	parts, err := a.parseEnhancedInterpolation(format)
 	if err != nil {
 		return err
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: Parsed %d parts\n", len(parts))
+		for i, part := range parts {
+			fmt.Printf("  Part %d: IsLiteral=%v, IsConstant=%v, IsExpression=%v, Content=%q, EvaluatedValue=%q\n",
+				i, part.IsLiteral, part.IsConstant, part.IsExpression, part.Content, part.EvaluatedValue)
+		}
 	}
 	
 	// Optimize by combining adjacent literals and constants
@@ -250,7 +281,13 @@ func (a *Analyzer) processEnhancedStringInterpolation(format string, irFunc *ir.
 			a.generatePrintString(part.Content, irFunc)
 		} else if part.IsExpression {
 			// Parse and evaluate runtime expression
+			if debug {
+				fmt.Printf("DEBUG: Processing runtime expression: %q\n", part.Content)
+			}
 			expr := a.parseSimpleExpression(part.Content, irFunc)
+			if debug {
+				fmt.Printf("DEBUG: parseSimpleExpression returned: %v (type: %T)\n", expr, expr)
+			}
 			if expr != nil {
 				reg, err := a.analyzeExpression(expr, irFunc)
 				if err != nil {
@@ -258,6 +295,9 @@ func (a *Analyzer) processEnhancedStringInterpolation(format string, irFunc *ir.
 				}
 				exprType := a.exprTypes[expr]
 				a.generatePrintValue(reg, exprType, irFunc)
+			} else {
+				// If parseSimpleExpression returns nil, we can't handle this expression yet
+				return fmt.Errorf("unsupported expression type: %v", expr)
 			}
 		}
 	}
