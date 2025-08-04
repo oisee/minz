@@ -1,0 +1,24 @@
+// Test function call with ? suffix - checking current behavior
+
+enum TestError {
+    Simple,
+    Complex,
+}
+
+fun test_function?(input: u8) -> u8 ? TestError {
+    if input == 0 {
+        @error(TestError.Simple);
+    }
+    return input * 2;
+}
+
+fun caller_function(input: u8) -> u8 {
+    // This should call test_function? but may have issues
+    let result = test_function?(42) ?? 99;
+    return result;
+}
+
+fun main() -> void {
+    let value = caller_function(42);
+    @print("Result: {}", value);
+}

@@ -577,6 +577,9 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 	case "cast_expression":
 		// Convert cast expression properly
 		return p.convertCastExpr(node)
+	case "try_expression":
+		// Convert the try expression (? operator for error propagation)
+		return p.convertTryExpr(node)
 	case "parenthesized_expression":
 		// Extract the inner expression from parentheses
 		if len(node.Children) > 0 {
@@ -2240,4 +2243,48 @@ func (p *Parser) convertBlockAsExpression(node *SExpNode) ast.Expression {
 		StartPos:   node.StartPos,
 		EndPos:     node.EndPos,
 	}
+}
+
+// Convert try expression (? operator for error propagation)
+func (p *Parser) convertTryExpr(node *SExpNode) ast.Expression {
+	tryExpr := &ast.TryExpr{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Debug: print the structure of the try expression
+	if debug {
+		fmt.Printf("DEBUG: convertTryExpr - node.Type=%s, children=%d\n", node.Type, len(node.Children))
+		for i, child := range node.Children {
+			fmt.Printf("  Child %d: Type=%s, Text=%s\n", i, child.Type, child.Text)
+		}
+	}
+	
+	// Look for the expression field
+	for i := 0; i < len(node.Children); i++ {
+		child := node.Children[i]
+		if child.Type == "atom" && strings.HasSuffix(child.Text, ":") {
+			fieldName := strings.TrimSuffix(child.Text, ":")
+			if i+1 < len(node.Children) {
+				fieldValue := node.Children[i+1]
+				if debug {
+					fmt.Printf("DEBUG: convertTryExpr field %s: Type=%s\n", fieldName, fieldValue.Type)
+				}
+				if fieldName == "expression" {
+					if fieldValue.Type == "postfix_expression" && len(fieldValue.Children) > 0 {
+						tryExpr.Expression = p.convertExpressionNode(fieldValue.Children[0])
+					} else if fieldValue.Type == "expression" && len(fieldValue.Children) > 0 {
+						tryExpr.Expression = p.convertExpressionNode(fieldValue.Children[0])
+					}
+				}
+				i++ // Skip field value
+			}
+		}
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: convertTryExpr result: Expression=%T\n", tryExpr.Expression)
+	}
+	
+	return tryExpr
 }

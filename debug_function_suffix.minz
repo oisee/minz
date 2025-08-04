@@ -1,0 +1,11 @@
+// Minimal test to debug function call with ? suffix
+
+enum TestError { Simple }
+
+fun test_func?(n: u8) -> u8 ? TestError {
+    return n;
+}
+
+fun main() -> void {
+    test_func?(42);  // Just call it directly without ?? operator
+}

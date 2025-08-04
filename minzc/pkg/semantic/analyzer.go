@@ -3764,8 +3764,13 @@ func (a *Analyzer) buildQualifiedName(expr ast.Expression) string {
 func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.Register, error) {
 	if debug {
 		fmt.Printf("DEBUG: analyzeCallExpr called\n")
-		if ident, ok := call.Function.(*ast.Identifier); ok {
-			fmt.Printf("  Calling function: %s\n", ident.Name)
+		fmt.Printf("  call.Function type: %T\n", call.Function)
+		if call.Function != nil {
+			if ident, ok := call.Function.(*ast.Identifier); ok {
+				fmt.Printf("  Calling function: %s\n", ident.Name)
+			}
+		} else {
+			fmt.Printf("  call.Function is nil!\n")
 		}
 	}
 	var funcName string
@@ -3868,8 +3873,37 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 			return 0, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
+	case *ast.TryExpr:
+		// Function call with ? suffix (error propagation)
+		// The actual function is inside the TryExpr
+		if ident, ok := fn.Expression.(*ast.Identifier); ok {
+			funcName = ident.Name
+			sym = a.currentScope.Lookup(funcName)
+			
+			// If not found, try with module prefix
+			if sym == nil && a.currentModule != "" && a.currentModule != "main" {
+				prefixedName := a.prefixSymbol(funcName)
+				sym = a.currentScope.Lookup(prefixedName)
+				if sym != nil {
+					funcName = prefixedName
+					// Update the AST node to use the prefixed name
+					ident.Name = prefixedName
+				}
+			}
+			
+			if sym == nil {
+				return 0, fmt.Errorf("undefined function: %s", funcName)
+			}
+			
+			if debug {
+				fmt.Printf("DEBUG: Found function with ? suffix: %s of type %T\n", funcName, sym)
+			}
+		} else {
+			return 0, fmt.Errorf("unsupported expression in try operator: %T", fn.Expression)
+		}
+		
 	default:
-		return 0, fmt.Errorf("unsupported function call expression")
+		return 0, fmt.Errorf("unsupported function call expression: %T", call.Function)
 	}
 
 	funcSym, ok := sym.(*FuncSymbol)
