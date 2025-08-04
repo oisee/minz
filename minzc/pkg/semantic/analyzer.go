@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/minz/minzc/pkg/ast"
@@ -844,6 +845,9 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 	case *ast.MinzBlock:
 		// Process @minz[[[]]] blocks
 		return a.analyzeMinzBlock(d)
+	case *ast.MIRBlock:
+		// Process @mir[[[]]] blocks
+		return a.analyzeMIRBlock(d)
 	case *ast.ExpressionDecl:
 		// Already processed in first pass for @minz
 		return nil
@@ -853,9 +857,6 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 	case *ast.MetaExecutionBlock:
 		// Process @lang[[[]]] blocks
 		return a.analyzeMetaExecutionBlock(d)
-	case *ast.MIRBlock:
-		// Process @mir[[[]]] blocks
-		return a.analyzeMIRBlock(d)
 	default:
 		return fmt.Errorf("unsupported declaration type: %T", decl)
 	}
@@ -2949,6 +2950,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzePrintExpr(e, irFunc)
 	case *ast.CompileTimeMinz:
 		return a.analyzeMinzExpr(e, irFunc)
+	case *ast.CompileTimeMIR:
+		return a.analyzeMIRExpr(e, irFunc)
 	case *ast.CompileTimeIf:
 		return a.analyzeCompileTimeIf(e, irFunc)
 	case *ast.CompileTimeError:
@@ -7740,6 +7743,201 @@ func (a *Analyzer) analyzeMinzExpr(minz *ast.CompileTimeMinz, irFunc *ir.Functio
 	return reg, nil
 }
 
+
+// analyzeMIRExpr analyzes @mir[[[...]]] expressions
+func (a *Analyzer) analyzeMIRExpr(mir *ast.CompileTimeMIR, irFunc *ir.Function) (ir.Register, error) {
+	// Parse and inject MIR instructions directly
+	if err := a.parseMIRCode(mir.Code, irFunc); err != nil {
+		return 0, fmt.Errorf("@mir: %w", err)
+	}
+	
+	// MIR expressions don't return values
+	return 0, nil
+}
+
+// parseMIRCode parses MIR syntax and generates IR instructions
+func (a *Analyzer) parseMIRCode(code string, irFunc *ir.Function) error {
+	if irFunc == nil {
+		return fmt.Errorf("@mir can only be used inside functions")
+	}
+	
+	if debug {
+		fmt.Printf("DEBUG: @mir code to parse:\n%s\n", code)
+	}
+	
+	// Simple line-based MIR parser
+	lines := strings.Split(strings.TrimSpace(code), "\n")
+	
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		
+		// Remove comments
+		if idx := strings.Index(line, ";"); idx >= 0 {
+			line = strings.TrimSpace(line[:idx])
+		}
+		if line == "" {
+			continue
+		}
+		
+		// Parse MIR instruction
+		if err := a.parseMIRInstruction(line, irFunc); err != nil {
+			return fmt.Errorf("MIR parse error on line '%s': %w", line, err)
+		}
+	}
+	
+	return nil
+}
+
+// parseMIRInstruction parses a single MIR instruction
+func (a *Analyzer) parseMIRInstruction(line string, irFunc *ir.Function) error {
+	parts := strings.Fields(line)
+	if len(parts) == 0 {
+		return nil
+	}
+	
+	// Handle different instruction formats
+	if len(parts) >= 3 && parts[1] == "=" {
+		// Assignment format: r1 = operation ...
+		destReg := a.parseMIRRegister(parts[0])
+		op := parts[2]
+		
+		switch op {
+		case "load_const":
+			if len(parts) < 4 {
+				return fmt.Errorf("load_const requires a value")
+			}
+			value, err := strconv.ParseInt(parts[3], 0, 64)
+			if err != nil {
+				return fmt.Errorf("invalid constant: %s", parts[3])
+			}
+			irFunc.EmitImm(ir.OpLoadConst, destReg, value)
+			
+		case "load_param":
+			if len(parts) < 4 {
+				return fmt.Errorf("load_param requires an index")
+			}
+			index, err := strconv.ParseInt(parts[3], 0, 64)
+			if err != nil {
+				return fmt.Errorf("invalid parameter index: %s", parts[3])
+			}
+			// Get parameter name from function signature
+			if int(index) >= len(irFunc.Params) {
+				return fmt.Errorf("parameter index %d out of bounds", index)
+			}
+			paramName := irFunc.Params[index].Name
+			// Emit load parameter instruction
+			inst := ir.Instruction{
+				Op:     ir.OpLoadParam,
+				Dest:   destReg,
+				Symbol: paramName,
+			}
+			irFunc.Instructions = append(irFunc.Instructions, inst)
+			
+		case "add":
+			if len(parts) < 5 {
+				return fmt.Errorf("add requires two operands")
+			}
+			src1 := a.parseMIRRegister(parts[3])
+			src2 := a.parseMIRRegister(parts[4])
+			irFunc.Emit(ir.OpAdd, destReg, src1, src2)
+			
+		case "sub":
+			if len(parts) < 5 {
+				return fmt.Errorf("sub requires two operands")
+			}
+			src1 := a.parseMIRRegister(parts[3])
+			src2 := a.parseMIRRegister(parts[4])
+			irFunc.Emit(ir.OpSub, destReg, src1, src2)
+			
+		case "mul":
+			if len(parts) < 5 {
+				return fmt.Errorf("mul requires two operands")
+			}
+			src1 := a.parseMIRRegister(parts[3])
+			src2 := a.parseMIRRegister(parts[4])
+			irFunc.Emit(ir.OpMul, destReg, src1, src2)
+			
+		case "cmp":
+			if len(parts) < 5 {
+				return fmt.Errorf("cmp requires two operands")
+			}
+			src1 := a.parseMIRRegister(parts[3])
+			src2 := a.parseMIRRegister(parts[4])
+			irFunc.Emit(ir.OpCmp, destReg, src1, src2)
+			
+		default:
+			return fmt.Errorf("unsupported MIR operation: %s", op)
+		}
+		
+	} else if parts[0] == "ret" {
+		// Return instruction
+		if len(parts) >= 2 {
+			srcReg := a.parseMIRRegister(parts[1])
+			irFunc.Emit(ir.OpReturn, srcReg, 0, 0)
+		} else {
+			irFunc.Emit(ir.OpReturn, 0, 0, 0)
+		}
+		
+	} else if strings.HasSuffix(parts[0], ":") {
+		// Label definition
+		label := strings.TrimSuffix(parts[0], ":")
+		inst := ir.Instruction{
+			Op:    ir.OpLabel,
+			Label: label,
+		}
+		irFunc.Instructions = append(irFunc.Instructions, inst)
+		
+	} else if parts[0] == "jmp" {
+		// Unconditional jump
+		if len(parts) < 2 {
+			return fmt.Errorf("jmp requires a label")
+		}
+		inst := ir.Instruction{
+			Op:    ir.OpJump,
+			Label: parts[1],
+		}
+		irFunc.Instructions = append(irFunc.Instructions, inst)
+		
+	} else if parts[0] == "jz" || parts[0] == "jle" {
+		// Conditional jumps
+		if len(parts) < 2 {
+			return fmt.Errorf("%s requires a label", parts[0])
+		}
+		var op ir.Opcode
+		switch parts[0] {
+		case "jz":
+			op = ir.OpJumpIfZero
+		case "jle":
+			// For now, use conditional jump
+			op = ir.OpJumpIf
+		}
+		inst := ir.Instruction{
+			Op:    op,
+			Label: parts[1],
+		}
+		irFunc.Instructions = append(irFunc.Instructions, inst)
+		
+	} else {
+		return fmt.Errorf("unrecognized MIR instruction format: %s", line)
+	}
+	
+	return nil
+}
+
+// parseMIRRegister converts MIR register notation (r1, r2, etc) to IR register
+func (a *Analyzer) parseMIRRegister(s string) ir.Register {
+	s = strings.TrimSpace(strings.TrimSuffix(s, ","))
+	if strings.HasPrefix(s, "r") {
+		if num, err := strconv.Atoi(s[1:]); err == nil {
+			return ir.Register(num)
+		}
+	}
+	// Default to r0 if parsing fails
+	return 0
+}
 
 // analyzeMetaExecutionBlock processes @lang[[[]]] blocks
 func (a *Analyzer) analyzeMetaExecutionBlock(block *ast.MetaExecutionBlock) error {

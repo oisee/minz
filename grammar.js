@@ -198,6 +198,7 @@ module.exports = grammar({
       $.compile_time_if_declaration,
       $.minz_metafunction_declaration,
       $.minz_block,
+      $.mir_block_declaration,
       $.define_template,
       $.meta_execution_block,
     ),
@@ -724,6 +725,7 @@ module.exports = grammar({
       $.lua_expression,
       $.lua_eval,
       $.compile_time_minz,
+      $.compile_time_mir,
     ),
 
     compile_time_if: $ => seq(
@@ -806,6 +808,17 @@ module.exports = grammar({
 
     // MinZ code block that can contain anything including [[ ]]
     minz_code_block: $ => /([^\]]+|\][^\]]+|\]\][^\]]+)*/,
+
+    // MIR metaprogramming (MIR = MIR Intermediate Representation 😄)
+    compile_time_mir: $ => seq(
+      '@mir',
+      '[[[',
+      $.mir_code_block,
+      ']]]',
+    ),
+
+    // MIR code block that can contain anything including [[ ]]
+    mir_code_block: $ => prec(2, alias(/([^\]]+|\][^\]]+|\]\][^\]]+)*/, 'mir_code_content')),
 
     // Import statements
     import_statement: $ => seq(
@@ -905,6 +918,14 @@ module.exports = grammar({
       ']]]',
     ),
 
+    // MIR block declaration (top-level @mir)
+    mir_block_declaration: $ => seq(
+      '@mir',
+      '[[[',
+      field('code', $.mir_block_content),
+      ']]]',
+    ),
+
     minz_block_content: $ => repeat1(choice(
       $.minz_emit,
       $.statement,
@@ -917,6 +938,8 @@ module.exports = grammar({
       $.expression,
       ')',
     )),
+
+    mir_block_content: $ => prec(1, alias(/([^\]]+|\][^\]]+|\]\][^\]]+)*/, 'mir_block_text')),  // MIR code block content
 
     // @define template system
     define_template: $ => choice(

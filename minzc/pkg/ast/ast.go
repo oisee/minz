@@ -852,6 +852,17 @@ func (c *CompileTimeMinz) Pos() Position { return c.StartPos }
 func (c *CompileTimeMinz) End() Position { return c.EndPos }
 func (c *CompileTimeMinz) exprNode()     {}
 
+// CompileTimeMIR represents @mir[[[...]]] direct MIR generation
+type CompileTimeMIR struct {
+	Code     string   // MIR code to inject
+	StartPos Position
+	EndPos   Position
+}
+
+func (c *CompileTimeMIR) Pos() Position { return c.StartPos }
+func (c *CompileTimeMIR) End() Position { return c.EndPos }
+func (c *CompileTimeMIR) exprNode()     {}
+
 // LuaBlock represents @lua[[...]] compile-time Lua code
 type LuaBlock struct {
 	Code     string
@@ -863,6 +874,18 @@ func (l *LuaBlock) Pos() Position { return l.StartPos }
 func (l *LuaBlock) End() Position { return l.EndPos }
 func (l *LuaBlock) stmtNode()     {}
 func (l *LuaBlock) declNode()     {} // LuaBlock can be a top-level declaration
+
+// MIRBlock represents @mir[[[...]]] top-level MIR code
+type MIRBlock struct {
+	Code     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (m *MIRBlock) Pos() Position { return m.StartPos }
+func (m *MIRBlock) End() Position { return m.EndPos }
+func (m *MIRBlock) stmtNode()     {}
+func (m *MIRBlock) declNode()     {} // MIRBlock can be a top-level declaration
 
 // LuaExpression represents @lua(...) compile-time Lua expression
 type LuaExpression struct {
@@ -905,18 +928,6 @@ func (m *MetaExecutionBlock) End() Position { return m.EndPos }
 func (m *MetaExecutionBlock) stmtNode()     {}
 func (m *MetaExecutionBlock) declNode()     {}
 
-
-// MIRBlock represents @mir[[[]]] compile-time MIR generation
-type MIRBlock struct {
-	Code     string
-	StartPos Position
-	EndPos   Position
-}
-
-func (m *MIRBlock) Pos() Position { return m.StartPos }
-func (m *MIRBlock) End() Position { return m.EndPos }
-func (m *MIRBlock) stmtNode()     {}
-func (m *MIRBlock) declNode()     {}
 
 // StringLiteral represents a string literal
 type StringLiteral struct {

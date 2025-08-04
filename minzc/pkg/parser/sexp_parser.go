@@ -259,6 +259,8 @@ func (p *Parser) convertDeclaration(node *SExpNode) ast.Declaration {
 		return p.convertTypeAlias(node)
 	case "lua_block":
 		return p.convertLuaBlock(node)
+	case "mir_block_declaration":
+		return p.convertMIRBlock(node)
 	case "expression_statement":
 		// Handle top-level @minz and other metaprogramming expressions
 		if len(node.Children) > 0 && node.Children[0].Type == "expression" {
@@ -701,6 +703,23 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 			Arguments: args,
 			StartPos:  node.StartPos,
 			EndPos:    node.EndPos,
+		}
+	case "compile_time_mir":
+		// @mir[[[code]]]
+		var code string
+		
+		for _, child := range node.Children {
+			if child.Type == "mir_code_block" {
+				// Extract the MIR code from the block
+				code = p.getNodeText(child)
+				break
+			}
+		}
+		
+		return &ast.CompileTimeMIR{
+			Code:     code,
+			StartPos: node.StartPos,
+			EndPos:   node.EndPos,
 		}
 	case "compile_time_error":
 		// @error(expression), @error(), or @error
@@ -1274,6 +1293,23 @@ func (p *Parser) convertLuaBlock(node *SExpNode) *ast.LuaBlock {
 	}
 	
 	return luaBlock
+}
+
+func (p *Parser) convertMIRBlock(node *SExpNode) *ast.MIRBlock {
+	mirBlock := &ast.MIRBlock{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+	
+	// Find the mir_block_content child
+	for _, child := range node.Children {
+		if child.Type == "mir_block_text" {
+			mirBlock.Code = p.getNodeText(child)
+			break
+		}
+	}
+	
+	return mirBlock
 }
 
 func (p *Parser) convertMinzBlock(node *SExpNode) *ast.MinzBlock {

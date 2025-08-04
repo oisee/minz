@@ -731,6 +731,21 @@
     }
   },
   {
+    "type": "compile_time_mir",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "mir_code_block",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "compile_time_print",
     "named": true,
     "fields": {},
@@ -835,6 +850,10 @@
         },
         {
           "type": "minz_metafunction_declaration",
+          "named": true
+        },
+        {
+          "type": "mir_block_declaration",
           "named": true
         },
         {
@@ -1667,6 +1686,10 @@
           "named": true
         },
         {
+          "type": "compile_time_mir",
+          "named": true
+        },
+        {
           "type": "compile_time_print",
           "named": true
         },
@@ -1798,6 +1821,27 @@
     }
   },
   {
+    "type": "mir_block_content",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "mir_block_declaration",
+    "named": true,
+    "fields": {
+      "code": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "mir_block_content",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "mir_body",
     "named": true,
     "fields": {},
@@ -1811,6 +1855,11 @@
         }
       ]
     }
+  },
+  {
+    "type": "mir_code_block",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "mir_content",
@@ -3085,6 +3134,14 @@
   },
   {
     "type": "mir",
+    "named": false
+  },
+  {
+    "type": "mir_block_text",
+    "named": false
+  },
+  {
+    "type": "mir_code_content",
     "named": false
   },
   {

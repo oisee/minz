@@ -732,6 +732,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "mir_block_declaration"
+        },
+        {
+          "type": "SYMBOL",
           "name": "define_template"
         },
         {
@@ -3890,6 +3894,10 @@
         {
           "type": "SYMBOL",
           "name": "compile_time_minz"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "compile_time_mir"
         }
       ]
     },
@@ -4212,6 +4220,40 @@
     "minz_code_block": {
       "type": "PATTERN",
       "value": "([^\\]]+|\\][^\\]]+|\\]\\][^\\]]+)*"
+    },
+    "compile_time_mir": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@mir"
+        },
+        {
+          "type": "STRING",
+          "value": "[[["
+        },
+        {
+          "type": "SYMBOL",
+          "name": "mir_code_block"
+        },
+        {
+          "type": "STRING",
+          "value": "]]]"
+        }
+      ]
+    },
+    "mir_code_block": {
+      "type": "PREC",
+      "value": 2,
+      "content": {
+        "type": "ALIAS",
+        "content": {
+          "type": "PATTERN",
+          "value": "([^\\]]+|\\][^\\]]+|\\]\\][^\\]]+)*"
+        },
+        "named": false,
+        "value": "mir_code_content"
+      }
     },
     "import_statement": {
       "type": "SEQ",
@@ -4729,6 +4771,31 @@
         }
       ]
     },
+    "mir_block_declaration": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@mir"
+        },
+        {
+          "type": "STRING",
+          "value": "[[["
+        },
+        {
+          "type": "FIELD",
+          "name": "code",
+          "content": {
+            "type": "SYMBOL",
+            "name": "mir_block_content"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "]]]"
+        }
+      ]
+    },
     "minz_block_content": {
       "type": "REPEAT1",
       "content": {
@@ -4772,6 +4839,19 @@
             "value": ")"
           }
         ]
+      }
+    },
+    "mir_block_content": {
+      "type": "PREC",
+      "value": 1,
+      "content": {
+        "type": "ALIAS",
+        "content": {
+          "type": "PATTERN",
+          "value": "([^\\]]+|\\][^\\]]+|\\]\\][^\\]]+)*"
+        },
+        "named": false,
+        "value": "mir_block_text"
       }
     },
     "define_template": {

@@ -1,0 +1,6 @@
+fun test() -> u8 {
+    @mir[[[
+        r1 = load_const 42
+        ret r1
+    ]]]
+}
