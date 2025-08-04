@@ -1,0 +1,13 @@
+// Debug test for @if compile-time conditional
+
+fun main() -> u8 {
+    // Let's test the exact computation that should happen:
+    // @if(true, 10, 20) = 10
+    // @if(false, 30, 40) = 40  
+    // @if(1, 5, 6) = 5
+    // @if(0, 7, 8) = 8
+    // Expected total: 10 + 40 + 5 + 8 = 63
+    
+    let result: u8 = @if(true, 10, 20);
+    return result;  // Should return 10
+}

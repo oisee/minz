@@ -1,0 +1,11 @@
+// Test @if compile-time conditional with literals
+
+fun main() -> u8 {
+    // Test basic @if with literal values
+    let result1: u8 = @if(true, 10, 20);   // Should choose 10
+    let result2: u8 = @if(false, 30, 40);  // Should choose 40
+    let result3: u8 = @if(1, 5, 6);        // Should choose 5 (1 is truthy)
+    let result4: u8 = @if(0, 7, 8);        // Should choose 8 (0 is falsy)
+    
+    return result1 + result2 + result3 + result4;  // 10 + 40 + 5 + 8 = 63
+}

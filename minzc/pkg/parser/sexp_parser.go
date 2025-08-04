@@ -524,6 +524,34 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 				}
 			}
 		}
+	case "compile_time_if":
+		// @if(condition, then_expr, else_expr)
+		var condition, thenExpr, elseExpr ast.Expression
+		expressions := make([]ast.Expression, 0, 3)
+		
+		// Collect all expressions in order
+		for _, child := range node.Children {
+			if child.Type == "expression" {
+				expressions = append(expressions, p.convertExpression(child))
+			}
+		}
+		
+		// Assign based on count
+		if len(expressions) >= 2 {
+			condition = expressions[0]
+			thenExpr = expressions[1]
+			if len(expressions) >= 3 {
+				elseExpr = expressions[2]
+			}
+			
+			return &ast.CompileTimeIf{
+				Condition: condition,
+				ThenExpr:  thenExpr,
+				ElseExpr:  elseExpr,
+				StartPos:  node.StartPos,
+				EndPos:    node.EndPos,
+			}
+		}
 	case "compile_time_error":
 		// @error(expression), @error(), or @error
 		var errorValue ast.Expression

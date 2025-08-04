@@ -2887,6 +2887,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeCastExpr(e, irFunc)
 	case *ast.CompileTimePrint:
 		return a.analyzePrintExpr(e, irFunc)
+	case *ast.CompileTimeIf:
+		return a.analyzeCompileTimeIf(e, irFunc)
 	case *ast.CompileTimeError:
 		return a.analyzeErrorExpr(e, irFunc)
 	case *ast.MetafunctionCall:
@@ -4619,6 +4621,271 @@ func (a *Analyzer) analyzePrintExpr(print *ast.CompileTimePrint, irFunc *ir.Func
 	
 	// @print doesn't return a value
 	return 0, nil
+}
+
+// analyzeCompileTimeIf analyzes @if compile-time conditional expressions
+func (a *Analyzer) analyzeCompileTimeIf(ifExpr *ast.CompileTimeIf, irFunc *ir.Function) (ir.Register, error) {
+	// Evaluate condition at compile time
+	conditionValue, err := a.evaluateConstantExpression(ifExpr.Condition)
+	if err != nil {
+		return 0, fmt.Errorf("@if condition must be constant: %w", err)
+	}
+	
+	// Check if condition is true (any non-zero value is true)
+	var isTrue bool
+	switch v := conditionValue.(type) {
+	case int64:
+		isTrue = v != 0
+	case bool:
+		isTrue = v
+	case string:
+		isTrue = v != ""
+	default:
+		return 0, fmt.Errorf("@if condition must evaluate to boolean, number, or string, got %T", conditionValue)
+	}
+	
+	// Choose which branch to evaluate
+	var chosenExpr ast.Expression
+	if isTrue {
+		chosenExpr = ifExpr.ThenExpr
+	} else {
+		if ifExpr.ElseExpr != nil {
+			chosenExpr = ifExpr.ElseExpr
+		} else {
+			// No else branch and condition is false - return zero constant
+			reg := irFunc.AllocReg()
+			irFunc.EmitImm(ir.OpLoadConst, reg, 0)
+			a.exprTypes[ifExpr] = &ir.BasicType{Kind: ir.TypeU8}
+			return reg, nil
+		}
+	}
+	
+	// Check if chosen expression is a constant that we can emit directly
+	if constValue, err := a.evaluateConstantExpression(chosenExpr); err == nil {
+		// Emit constant directly
+		resultReg := irFunc.AllocReg()
+		
+		switch v := constValue.(type) {
+		case int64:
+			irFunc.EmitImm(ir.OpLoadConst, resultReg, v)
+			// Determine appropriate type based on value
+			if v >= 0 && v <= 255 {
+				a.exprTypes[ifExpr] = &ir.BasicType{Kind: ir.TypeU8}
+			} else if v >= -128 && v <= 127 {
+				a.exprTypes[ifExpr] = &ir.BasicType{Kind: ir.TypeI8}
+			} else if v >= 0 && v <= 65535 {
+				a.exprTypes[ifExpr] = &ir.BasicType{Kind: ir.TypeU16}
+			} else {
+				a.exprTypes[ifExpr] = &ir.BasicType{Kind: ir.TypeI16}
+			}
+		case bool:
+			val := int64(0)
+			if v {
+				val = 1
+			}
+			irFunc.EmitImm(ir.OpLoadConst, resultReg, val)
+			a.exprTypes[ifExpr] = &ir.BasicType{Kind: ir.TypeBool}
+		case string:
+			// For strings, we need to create a string literal
+			return 0, fmt.Errorf("string literals in @if not yet supported")
+		default:
+			return 0, fmt.Errorf("unsupported constant type in @if: %T", constValue)
+		}
+		
+		return resultReg, nil
+	}
+	
+	// Fall back to regular expression evaluation if not constant
+	resultReg, err := a.analyzeExpression(chosenExpr, irFunc)
+	if err != nil {
+		return 0, fmt.Errorf("failed to evaluate @if branch: %w", err)
+	}
+	
+	// Propagate the type from the chosen expression
+	a.exprTypes[ifExpr] = a.exprTypes[chosenExpr]
+	
+	return resultReg, nil
+}
+
+// evaluateConstantExpression evaluates an expression at compile time
+// Returns the constant value if the expression can be evaluated at compile time
+func (a *Analyzer) evaluateConstantExpression(expr ast.Expression) (interface{}, error) {
+	switch e := expr.(type) {
+	case *ast.NumberLiteral:
+		return e.Value, nil
+	case *ast.BoolLiteral:
+		return e.Value, nil
+	case *ast.StringLiteral:
+		return e.Value, nil
+	case *ast.Identifier:
+		// Look up constant identifiers
+		sym := a.currentScope.Lookup(e.Name)
+		if sym == nil {
+			return nil, fmt.Errorf("undefined identifier: %s", e.Name)
+		}
+		
+		if varSym, ok := sym.(*VariableSymbol); ok {
+			if varSym.IsConstant && varSym.Value != nil {
+				// Return the constant value
+				switch v := varSym.Value.(type) {
+				case *ast.NumberLiteral:
+					return v.Value, nil
+				case *ast.BoolLiteral:
+					return v.Value, nil
+				case *ast.StringLiteral:
+					return v.Value, nil
+				default:
+					return nil, fmt.Errorf("constant %s has non-constant value", e.Name)
+				}
+			}
+		}
+		return nil, fmt.Errorf("identifier %s is not a compile-time constant", e.Name)
+	case *ast.BinaryExpr:
+		// Evaluate binary expressions with constant operands
+		left, err := a.evaluateConstantExpression(e.Left)
+		if err != nil {
+			return nil, err
+		}
+		right, err := a.evaluateConstantExpression(e.Right)
+		if err != nil {
+			return nil, err
+		}
+		
+		return a.evaluateConstantBinaryOp(left, e.Operator, right)
+	case *ast.UnaryExpr:
+		// Evaluate unary expressions
+		operand, err := a.evaluateConstantExpression(e.Operand)
+		if err != nil {
+			return nil, err
+		}
+		
+		return a.evaluateConstantUnaryOp(e.Operator, operand)
+	default:
+		return nil, fmt.Errorf("expression type %T cannot be evaluated at compile time", expr)
+	}
+}
+
+// evaluateConstantBinaryOp evaluates binary operations on constant values
+func (a *Analyzer) evaluateConstantBinaryOp(left interface{}, op string, right interface{}) (interface{}, error) {
+	// Convert to common types
+	leftInt, leftIsInt := left.(int64)
+	rightInt, rightIsInt := right.(int64)
+	leftBool, leftIsBool := left.(bool)
+	rightBool, rightIsBool := right.(bool)
+	leftStr, leftIsStr := left.(string)
+	rightStr, rightIsStr := right.(string)
+	
+	switch op {
+	case "+":
+		if leftIsInt && rightIsInt {
+			return leftInt + rightInt, nil
+		}
+		if leftIsStr && rightIsStr {
+			return leftStr + rightStr, nil
+		}
+	case "-":
+		if leftIsInt && rightIsInt {
+			return leftInt - rightInt, nil
+		}
+	case "*":
+		if leftIsInt && rightIsInt {
+			return leftInt * rightInt, nil
+		}
+	case "/":
+		if leftIsInt && rightIsInt {
+			if rightInt == 0 {
+				return nil, fmt.Errorf("division by zero in constant expression")
+			}
+			return leftInt / rightInt, nil
+		}
+	case "%":
+		if leftIsInt && rightIsInt {
+			if rightInt == 0 {
+				return nil, fmt.Errorf("modulo by zero in constant expression")
+			}
+			return leftInt % rightInt, nil
+		}
+	case "==":
+		return left == right, nil
+	case "!=":
+		return left != right, nil
+	case "<":
+		if leftIsInt && rightIsInt {
+			return leftInt < rightInt, nil
+		}
+		if leftIsStr && rightIsStr {
+			return leftStr < rightStr, nil
+		}
+	case "<=":
+		if leftIsInt && rightIsInt {
+			return leftInt <= rightInt, nil
+		}
+		if leftIsStr && rightIsStr {
+			return leftStr <= rightStr, nil
+		}
+	case ">":
+		if leftIsInt && rightIsInt {
+			return leftInt > rightInt, nil
+		}
+		if leftIsStr && rightIsStr {
+			return leftStr > rightStr, nil
+		}
+	case ">=":
+		if leftIsInt && rightIsInt {
+			return leftInt >= rightInt, nil
+		}
+		if leftIsStr && rightIsStr {
+			return leftStr >= rightStr, nil
+		}
+	case "&&":
+		if leftIsBool && rightIsBool {
+			return leftBool && rightBool, nil
+		}
+		// For non-boolean values, use truthiness
+		return a.isTruthy(left) && a.isTruthy(right), nil
+	case "||":
+		if leftIsBool && rightIsBool {
+			return leftBool || rightBool, nil
+		}
+		// For non-boolean values, use truthiness
+		return a.isTruthy(left) || a.isTruthy(right), nil
+	}
+	
+	return nil, fmt.Errorf("unsupported constant binary operation: %T %s %T", left, op, right)
+}
+
+// evaluateConstantUnaryOp evaluates unary operations on constant values
+func (a *Analyzer) evaluateConstantUnaryOp(op string, operand interface{}) (interface{}, error) {
+	switch op {
+	case "!":
+		return !a.isTruthy(operand), nil
+	case "-":
+		if val, ok := operand.(int64); ok {
+			return -val, nil
+		}
+		return nil, fmt.Errorf("unary minus not supported for type %T", operand)
+	case "+":
+		if val, ok := operand.(int64); ok {
+			return val, nil
+		}
+		return nil, fmt.Errorf("unary plus not supported for type %T", operand)
+	}
+	
+	return nil, fmt.Errorf("unsupported constant unary operation: %s %T", op, operand)
+}
+
+// isTruthy determines if a value is "truthy" for boolean context
+func (a *Analyzer) isTruthy(value interface{}) bool {
+	switch v := value.(type) {
+	case bool:
+		return v
+	case int64:
+		return v != 0
+	case string:
+		return v != ""
+	default:
+		return false
+	}
 }
 
 // analyzeMetafunctionCall analyzes general @metafunction(...) calls

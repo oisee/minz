@@ -1,0 +1,20 @@
+// Test @if compile-time conditional
+
+const DEBUG: bool = true;
+const PLATFORM: u8 = 1;
+
+fun main() -> u8 {
+    // Test basic @if with boolean constant
+    let debug_mode: u8 = @if(DEBUG, 1, 0);
+    
+    // Test @if with numeric comparison
+    let platform_type: u8 = @if(PLATFORM == 1, 10, 20);
+    
+    // Test @if without else clause (should default to 0)
+    let optional_feature: u8 = @if(false, 99);
+    
+    // Test nested constant evaluation
+    let complex_condition: u8 = @if(DEBUG && PLATFORM > 0, 42, 33);
+    
+    return debug_mode + platform_type + optional_feature + complex_condition;
+}
