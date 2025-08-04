@@ -13,6 +13,8 @@
 
 ⚠️ **Important**: This is experimental research software. The language is actively evolving and many features are still under development. Not yet suitable for production use.
 
+📋 **Stability Roadmap**: See [STABILITY_ROADMAP.md](STABILITY_ROADMAP.md) for our detailed plan to reach v1.0 production readiness by November 2025.
+
 ## 📖 **Quick Syntax Reference**
 
 New to MinZ? Here's the essential syntax at a glance:
@@ -241,6 +243,8 @@ mz game.minz --debug --tas
 - **Cycle recording** system in early development
 
 ### 🚧 Features In Development
+
+**📋 See [STABILITY_ROADMAP.md](STABILITY_ROADMAP.md) for our 3-phase plan to v1.0 (14 weeks)**
 
 - **Interfaces**: Design complete, implementation in progress
 - **Module System**: Import mechanism being built

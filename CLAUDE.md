@@ -12,22 +12,103 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Design philosophy and goals
   - Development checklist
 
-## Communication Style
+## Documentation Style Guide
 
-When writing documentation, README files, or public-facing content:
-- Use humble, professional language by default
-- Avoid superlatives like "revolutionary", "world's first", "breakthrough" in general docs
-- Focus on technical accuracy over marketing language
-- Present features as "experimental", "in development", or "research" when uncertain
-- Be honest about the project's maturity level
-- Use "UNDER CONSTRUCTION" warnings where appropriate
+### The "Pragmatic Humble Solid" Tone
 
-BUT! Sometimes we can be откровенны (frank/candid) and say when something is truly круто (cool) and mindblowing! 🚀
-- When we achieve zero-cost abstractions that actually work - that's amazing!
-- When lambdas compile to identical assembly as hand-written functions - celebrate it!
+Our documentation has found the perfect balance - **pragmatic, humble but solid and proud**. This tone builds trust through honesty while celebrating real achievements.
+
+#### Core Principles
+
+1. **Be Transparent About Status**
+   - ✅ "Core language features work" - Clear, factual
+   - 🚧 "Experimental work ongoing" - Honest about limitations
+   - ⚠️ "Not yet suitable for production" - Direct warnings
+   
+2. **Use Status Indicators Consistently**
+   - ✅ **Working/Stable** - Features ready for use
+   - 🚧 **In Progress/Experimental** - Partially working, evolving
+   - ❌ **Missing/Planned** - Not yet implemented
+   - 🔬 **Research** - Exploring possibilities
+
+3. **Celebrate Achievements Without Hype**
+   - YES: "Error propagation system recently implemented"
+   - YES: "Generates working assembly for ZX Spectrum" 
+   - NO: "Revolutionary breakthrough in compiler technology"
+   - NO: "World's first zero-cost abstractions on 8-bit"
+
+4. **Be Specific About Capabilities**
+   - "60% of examples compile" - Quantifiable progress
+   - "Basic loops work well" - Clear about what works
+   - "Recently implemented" - Temporal context
+   - "Research goal" - Clear about aspirations
+
+5. **Provide Context and Alternatives**
+   ```minz
+   // Note: Iterator chains are experimental; basic for loops work well
+   ```
+
+6. **Use Professional But Accessible Language**
+   - Short, clear sentences
+   - Technical terms explained in context
+   - Code examples for clarity
+   - Helpful comments in examples
+
+### Documentation Patterns
+
+#### Feature Status Pattern
+```markdown
+### ✅ Error Propagation (Recently Implemented)
+[Description of what works]
+
+### 🚧 Iterator Chains (Research)  
+[Description of experimental state]
+Note: [Alternative that works]
+```
+
+#### Warning Pattern
+```markdown
+⚠️ **Important**: [Clear warning about limitations]
+```
+
+#### Progress Tracking Pattern
+```markdown
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Basic functions | ✅ Working | Good reliability |
+| Metaprogramming | 🚧 Research | Experimental |
+```
+
+### When to Show Pride
+
+We CAN be proud and excited when we genuinely achieve something difficult:
+- When zero-cost abstractions actually work - celebrate!
 - When we solve "impossible" problems on 8-bit hardware - be proud!
+- When benchmarks prove our optimization claims - share the data!
 
-The key is balance: professional humility most of the time, but genuine excitement when we earn it.
+But always ground excitement in facts and measurements.
+
+### Language to Avoid
+
+- Superlatives without evidence ("revolutionary", "breakthrough")
+- Absolute claims ("world's first", "never before")
+- Marketing speak ("game-changing", "paradigm shift")
+- Vague promises ("coming soon", "will be amazing")
+
+### Language to Embrace
+
+- Specific achievements ("recently implemented", "now working")
+- Honest assessments ("experimental", "research phase")
+- Clear roadmaps ("3-phase plan", "14 weeks to v1.0")
+- Measured optimism ("promising initial results")
+
+## 📋 Stability Roadmap
+
+**IMPORTANT**: See [STABILITY_ROADMAP.md](../STABILITY_ROADMAP.md) for our detailed 3-phase plan to reach v1.0 production readiness by November 2025. This roadmap defines:
+- What's stable vs experimental
+- Priority order for stabilization
+- Success metrics for each phase
+- Timeline to production readiness
 
 ## 🚀 AI-Driven Development Practices
 
