@@ -3843,10 +3843,11 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 					Return: &ir.BasicType{Kind: ir.TypeVoid},
 				}
 			case "print_string":
-				// print_string(str: *u8)
+				// print_string accepts String, LString, or *u8
+				// We'll handle type checking specially for this polymorphic function
 				funcType = &ir.FunctionType{
 					Params: []ir.Type{
-						&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, // str
+						nil, // We'll accept multiple types
 					},
 					Return: &ir.BasicType{Kind: ir.TypeVoid},
 				}
@@ -4055,16 +4056,25 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 
 // analyzeBuiltinCall analyzes a built-in function call
 func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call *ast.CallExpr, irFunc *ir.Function) (ir.Register, error) {
-	// Check argument count based on built-in function type
+	// Get function type (may be nil for polymorphic functions like print_string)
 	funcType := funcSym.Type
-	if funcType == nil {
-		return 0, fmt.Errorf("built-in function %s has no type information", funcName)
-	}
 	
-	expectedArgs := len(funcType.Params)
-	if len(call.Arguments) != expectedArgs {
-		return 0, fmt.Errorf("function %s expects %d arguments, got %d", 
-			funcName, expectedArgs, len(call.Arguments))
+	// Special handling for print_string which accepts multiple types
+	if funcName == "print_string" {
+		if len(call.Arguments) != 1 {
+			return 0, fmt.Errorf("print_string expects 1 argument, got %d", len(call.Arguments))
+		}
+	} else {
+		// Check argument count based on built-in function type
+		if funcType == nil {
+			return 0, fmt.Errorf("built-in function %s has no type information", funcName)
+		}
+		
+		expectedArgs := len(funcType.Params)
+		if len(call.Arguments) != expectedArgs {
+			return 0, fmt.Errorf("function %s expects %d arguments, got %d", 
+				funcName, expectedArgs, len(call.Arguments))
+		}
 	}
 	
 	// Analyze arguments
@@ -4083,7 +4093,21 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 		}
 		
 		// Special handling for built-in functions
-		if funcName == "len" && i == 0 {
+		if funcName == "print_string" && i == 0 {
+			// print_string accepts String, LString, or *u8
+			validType := false
+			switch t := argType.(type) {
+			case *ir.StringType, *ir.LStringType:
+				validType = true
+			case *ir.PointerType:
+				if basic, ok := t.Base.(*ir.BasicType); ok && basic.Kind == ir.TypeU8 {
+					validType = true
+				}
+			}
+			if !validType {
+				return 0, fmt.Errorf("argument to print_string must be String, LString, or *u8, got %s", argType)
+			}
+		} else if funcName == "len" && i == 0 {
 			// Accept pointer to array or array directly
 			switch argType.(type) {
 			case *ir.ArrayType:
@@ -4099,17 +4123,21 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 			if ptr, ok := argType.(*ir.PointerType); ok {
 				if arr, ok := ptr.Base.(*ir.ArrayType); ok {
 					// Pointer to array - check if element type matches
-					expectedPtr := funcType.Params[i].(*ir.PointerType)
-					if !a.typesCompatible(expectedPtr.Base, arr.Element) {
-						return 0, fmt.Errorf("argument %d to %s: expected %s, got pointer to array of %s", 
-							i, funcName, funcType.Params[i], arr.Element)
+					if funcType != nil && i < len(funcType.Params) {
+						expectedPtr := funcType.Params[i].(*ir.PointerType)
+						if !a.typesCompatible(expectedPtr.Base, arr.Element) {
+							return 0, fmt.Errorf("argument %d to %s: expected %s, got pointer to array of %s", 
+								i, funcName, funcType.Params[i], arr.Element)
+						}
 					}
 					// Type is compatible
 				} else {
 					// Regular pointer - normal type check
-					if !a.typesCompatible(funcType.Params[i], argType) {
-						return 0, fmt.Errorf("argument %d to %s: expected %s, got %s", 
-							i, funcName, funcType.Params[i], argType)
+					if funcType != nil && i < len(funcType.Params) {
+						if !a.typesCompatible(funcType.Params[i], argType) {
+							return 0, fmt.Errorf("argument %d to %s: expected %s, got %s", 
+								i, funcName, funcType.Params[i], argType)
+						}
 					}
 				}
 			} else {
@@ -4121,16 +4149,20 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 			if ptr, ok := argType.(*ir.PointerType); ok {
 				if arr, ok := ptr.Base.(*ir.ArrayType); ok {
 					// Pointer to array - check element type
-					expectedPtr := funcType.Params[i].(*ir.PointerType)
-					if !a.typesCompatible(expectedPtr.Base, arr.Element) {
-						return 0, fmt.Errorf("argument %d to %s: expected %s, got pointer to array of %s", 
-							i, funcName, funcType.Params[i], arr.Element)
+					if funcType != nil && i < len(funcType.Params) {
+						expectedPtr := funcType.Params[i].(*ir.PointerType)
+						if !a.typesCompatible(expectedPtr.Base, arr.Element) {
+							return 0, fmt.Errorf("argument %d to %s: expected %s, got pointer to array of %s", 
+								i, funcName, funcType.Params[i], arr.Element)
+						}
 					}
 				} else {
 					// Regular pointer - normal check
-					if !a.typesCompatible(funcType.Params[i], argType) {
-						return 0, fmt.Errorf("argument %d to %s: expected %s, got %s", 
-							i, funcName, funcType.Params[i], argType)
+					if funcType != nil && i < len(funcType.Params) {
+						if !a.typesCompatible(funcType.Params[i], argType) {
+							return 0, fmt.Errorf("argument %d to %s: expected %s, got %s", 
+								i, funcName, funcType.Params[i], argType)
+						}
 					}
 				}
 			} else {
@@ -4139,10 +4171,12 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 			}
 		} else {
 			// Normal type checking for other arguments
-			expectedType := funcType.Params[i]
-			if !a.typesCompatible(expectedType, argType) {
-				return 0, fmt.Errorf("argument %d to %s: expected %s, got %s", 
-					i, funcName, expectedType, argType)
+			if funcType != nil && i < len(funcType.Params) {
+				expectedType := funcType.Params[i]
+				if !a.typesCompatible(expectedType, argType) {
+					return 0, fmt.Errorf("argument %d to %s: expected %s, got %s", 
+						i, funcName, expectedType, argType)
+				}
 			}
 		}
 	}

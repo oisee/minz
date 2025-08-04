@@ -1,0 +1,20 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_string_simple2.testString() -> void
+  @smc
+  Locals:
+    r1 = name: String
+  Instructions:
+      0: LOAD_LABEL ; Load string "Hello"
+      1: store , r2
+      2: r3 = load name
+      3: r0 = call print_string ; Call runtime print_string
+      4: return
+
+Function test_string_simple2.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call testString
+      1: return
+
