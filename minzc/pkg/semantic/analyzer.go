@@ -5650,6 +5650,14 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 		// Look up the type in the symbol table
 		sym := a.currentScope.Lookup(t.Name)
 		
+		// Debug output for String/LString
+		if debug && (t.Name == "String" || t.Name == "LString") {
+			fmt.Printf("DEBUG: Looking up type %s, found: %v\n", t.Name, sym != nil)
+			if sym != nil {
+				fmt.Printf("DEBUG: Symbol type: %T\n", sym)
+			}
+		}
+		
 		// If not found, try with module prefix
 		if sym == nil && a.currentModule != "" && a.currentModule != "main" {
 			prefixedName := a.prefixSymbol(t.Name)

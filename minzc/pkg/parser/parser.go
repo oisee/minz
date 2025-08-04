@@ -525,11 +525,23 @@ func (p *Parser) parseType(node map[string]interface{}) ast.Type {
 	case "pointer_type":
 		return p.parsePointerType(node)
 	case "type_identifier":
-		// For now, treat type identifiers as primitive types
-		return &ast.PrimitiveType{
-			Name:     p.getText(node),
-			StartPos: p.getPosition(node, "startPosition"),
-			EndPos:   p.getPosition(node, "endPosition"),
+		// Check if this is a built-in primitive type
+		typeName := p.getText(node)
+		switch typeName {
+		case "u8", "u16", "i8", "i16", "bool", "void":
+			// These are primitive types
+			return &ast.PrimitiveType{
+				Name:     typeName,
+				StartPos: p.getPosition(node, "startPosition"),
+				EndPos:   p.getPosition(node, "endPosition"),
+			}
+		default:
+			// For user-defined types (like String, LString, or custom structs)
+			return &ast.TypeIdentifier{
+				Name:     typeName,
+				StartPos: p.getPosition(node, "startPosition"),
+				EndPos:   p.getPosition(node, "endPosition"),
+			}
 		}
 	}
 	

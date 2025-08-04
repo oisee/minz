@@ -1,0 +1,10 @@
+// Test simple String functions
+
+fun testString() -> void {
+    let name: String = "Hello";
+    print_string(name);
+}
+
+fun main() -> void {
+    testString();
+}

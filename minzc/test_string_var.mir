@@ -1,0 +1,18 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_string_var.main() -> void
+  @smc
+  Locals:
+    r1 = msg1: String
+    r3 = msg2: String
+  Instructions:
+      0: LOAD_LABEL ; Load string "Hello"
+      1: store , r2
+      2: LOAD_LABEL ; Load string "World"
+      3: store , r4
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "Test completed
+" (15 chars via loop)
+      6: return
+

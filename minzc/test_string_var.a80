@@ -1,10 +1,45 @@
 ; MinZ generated code
-; Generated: 2025-08-04 17:32:47
+; Generated: 2025-08-04 17:31:57
 
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 5    ; Length
+    DB "Hello"
+str_1:
+    DB 5    ; Length
+    DB "World"
+str_2:
+    DB 15    ; Length
+    DB "Test completed"
+    DB 10
 
 ; Code section
     ORG $8000
 
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_string_var.main
+test_string_var.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Load string "Hello"
+    LD HL, str_0
+    ; store , r2
+    LD ($F002), HL
+    ; Load string "World"
+    LD HL, str_1
+    ; store , r4
+    LD ($F006), HL
+    ; r5 = string(str_2)
+    LD HL, str_2
+    ; Print "Test completed
+" (15 chars via loop)
+    CALL print_string
+    ; return
+    RET
 
 ; Runtime print helper functions
 print_string:
