@@ -116,10 +116,22 @@ But always ground excitement in facts and measurements.
 
 ## 🎯 Custom Commands Available
 
+### Core Development Commands
+- `/upd` - Update all documentation (README, CLAUDE.md, design docs) with latest changes
+- `/release` - Prepare a new release (build binaries, update version, create notes, tag)
+- `/test-all` - Run comprehensive test suite and generate report
+- `/benchmark` - Run performance benchmarks and compare with baseline
+
+### AI Orchestration Commands  
 - `/ai-testing-revolution` - Build complete testing infrastructure using parallel agents
 - `/parallel-development` - Execute multiple tasks simultaneously with AI orchestration
 - `/performance-verification` - Verify optimization claims with comprehensive benchmarking
-- `/upd` - Update all documentation (README, CLAUDE.md, design docs) with latest changes
+
+### Fun Commands 🎉
+- `/cuteify` - Add appropriate emojis and fun elements to output (use sparingly!)
+- `/celebrate` - Generate celebration message for achievements
+- `/motivate` - Get a motivational message when stuck
+- `/rubber-duck` - Explain the problem step by step to find the solution
 
 ### Quick Usage Examples:
 ```bash
@@ -134,6 +146,15 @@ But always ground excitement in facts and measurements.
 
 # Update all documentation with latest changes
 /upd "Added new @minz[[[]]] syntax for compile-time code"
+
+# Prepare a new release
+/release v0.9.5 "Iterator improvements and @if completion"
+
+# Add some fun to the output
+/cuteify "Successfully compiled all examples!"
+
+# Celebrate a milestone
+/celebrate "Error propagation system complete!"
 ```
 
 ### Command: `/upd` - Documentation Sync
@@ -151,6 +172,43 @@ The command ensures all documentation reflects the latest:
 - Design decisions
 - Status updates
 - Known issues
+
+### Command: `/release` - Automated Release Process
+
+Prepares a complete release package:
+1. **Version bump** - Updates version in all files
+2. **Build binaries** - Cross-compile for all platforms
+3. **Generate release notes** - From recent commits and completed tasks
+4. **Run tests** - Ensure everything works
+5. **Create GitHub release** - Tag, upload binaries, publish notes
+6. **Update documentation** - Version numbers and compatibility
+
+Example: `/release v0.9.5 "Iterator optimizations and @if completion"`
+
+### Command: `/cuteify` - Add Personality ✨
+
+Makes output more fun and engaging (use sparingly!):
+- Adds appropriate emojis 🎉
+- Uses encouraging language 💪
+- Celebrates achievements 🏆
+- Makes errors less scary 🤗
+
+Example output transformation:
+```
+Before: "Successfully compiled 148 examples"
+After:  "🎉 Woohoo! Successfully compiled all 148 examples! 🚀"
+```
+
+### Command: `/celebrate` - Achievement Recognition 🎊
+
+Generates appropriate celebration for milestones:
+- Major feature completion
+- Performance improvements
+- Bug fixes
+- Test suite passing
+
+Example: `/celebrate "Zero-cost abstractions actually working!"`
+Output: "🎊 AMAZING ACHIEVEMENT! 🎊 Zero-cost abstractions on 8-bit hardware - what was thought impossible is now reality! This is genuinely revolutionary! 🚀✨"
 
 ## 🛠️ Development Tools & Capabilities (v0.9.0)
 
