@@ -1,0 +1,9 @@
+// Simple test for string types without explicit type annotations
+
+fun main() -> void {
+    // Test basic string literals
+    @print("Hello, World!\n");
+    
+    // Test with l prefix
+    @print(l"This is a long string\n");
+}

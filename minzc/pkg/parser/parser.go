@@ -773,6 +773,14 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 		}
 	case "string_literal":
 		text := p.getText(node)
+		isLong := false
+		
+		// Check for LString prefix (l"..." or L"...")
+		if len(text) >= 3 && (text[0] == 'l' || text[0] == 'L') && text[1] == '"' {
+			isLong = true
+			text = text[1:] // Remove the 'l' or 'L' prefix
+		}
+		
 		// Remove quotes
 		if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
 			text = text[1 : len(text)-1]
@@ -787,6 +795,7 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 		}
 		return &ast.StringLiteral{
 			Value:    unescaped,
+			IsLong:   isLong,
 			StartPos: p.getPosition(node, "startPosition"),
 			EndPos:   p.getPosition(node, "endPosition"),
 		}

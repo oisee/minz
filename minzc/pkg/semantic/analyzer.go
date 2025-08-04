@@ -200,6 +200,10 @@ func (a *Analyzer) addBuiltins() {
 	a.currentScope.Define("bool", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeBool}})
 	a.currentScope.Define("void", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeVoid}})
 	
+	// String types
+	a.currentScope.Define("String", &TypeSymbol{Type: &ir.StringType{MaxLength: 255}})
+	a.currentScope.Define("LString", &TypeSymbol{Type: &ir.LStringType{MaxLength: 65535}})
+	
 	// Built-in functions
 	// print - outputs a single character
 	a.currentScope.Define("print", &FuncSymbol{
@@ -5905,10 +5909,20 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		
 		return nil, fmt.Errorf("cannot index non-array type %s", arrayType.String())
 	case *ast.StringLiteral:
-		// String literals are pointers to u8
-		return &ir.PointerType{
-			Base: &ir.BasicType{Kind: ir.TypeU8},
-		}, nil
+		// Determine string type based on length and prefix
+		strLen := len(e.Value)
+		
+		// Check for LString prefix (l"..." or L"...")
+		if e.IsLong {
+			// Long string type (u16 length)
+			return &ir.LStringType{MaxLength: 65535}, nil
+		} else if strLen > 255 {
+			// Automatically promote to LString if too long for String
+			return &ir.LStringType{MaxLength: 65535}, nil
+		} else {
+			// Short string type (u8 length)
+			return &ir.StringType{MaxLength: 255}, nil
+		}
 	case *ast.FieldExpr:
 		// Check if this is a module field access or enum variant access
 		if id, ok := e.Object.(*ast.Identifier); ok {

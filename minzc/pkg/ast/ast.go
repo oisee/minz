@@ -857,6 +857,7 @@ type LuaExpr = LuaExpression
 // StringLiteral represents a string literal
 type StringLiteral struct {
 	Value    string
+	IsLong   bool     // true for LString (l"..." or L"...")
 	StartPos Position
 	EndPos   Position
 }

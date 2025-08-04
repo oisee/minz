@@ -57,6 +57,7 @@ module.exports = grammar({
 
     // Strings
     string_literal: $ => seq(
+      optional(/[lL]/),  // Optional l or L prefix for LString
       '"',
       repeat(choice(
         /[^"\\]+/,

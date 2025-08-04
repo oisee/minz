@@ -407,6 +407,40 @@ func (t *EnumType) String() string {
 	return t.Name
 }
 
+// StringType represents short strings (u8 length, max 255 chars)
+type StringType struct {
+	// String has structure: { len: u8, data: [u8] }
+	// The size is dynamic, but we track the maximum possible size
+	MaxLength int // Maximum length (usually 255)
+}
+
+func (t *StringType) Size() int {
+	// Return the size for a pointer to string data
+	// Actual string storage is variable-length
+	return 2 // Pointer to string data
+}
+
+func (t *StringType) String() string {
+	return "String"
+}
+
+// LStringType represents long strings (u16 length, max 65535 chars)
+type LStringType struct {
+	// LString has structure: { len: u16, data: [u8] }
+	// The size is dynamic, but we track the maximum possible size
+	MaxLength int // Maximum length (usually 65535)
+}
+
+func (t *LStringType) Size() int {
+	// Return the size for a pointer to string data
+	// Actual string storage is variable-length
+	return 2 // Pointer to string data
+}
+
+func (t *LStringType) String() string {
+	return "LString"
+}
+
 // BitStructType represents bit-struct types
 type BitStructType struct {
 	UnderlyingType Type               // u8 or u16
