@@ -1,0 +1,24 @@
+// Advanced @minz[[[]]] metaprogramming demo
+
+// Generate a lookup table
+@minz[[[
+for i in 0..8 {
+    @emit("const SQUARE_{i}: u8 = {i * i};");
+}
+]]]
+
+// Generate optimized function variants
+@minz[[[
+for size in 1..4 {
+    @emit("fun copy_array_{size}(src: *u8, dst: *u8) -> void {");
+    for i in 0..size {
+        @emit("    *(dst + {i}) = *(src + {i});");
+    }
+    @emit("}");
+}
+]]]
+
+fun main() -> u8 {
+    // Use generated constants - should compute 0² + 1² + 2² = 5
+    SQUARE_0 + SQUARE_1 + SQUARE_2
+}

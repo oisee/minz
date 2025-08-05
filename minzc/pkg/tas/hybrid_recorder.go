@@ -419,7 +419,12 @@ func (r *HybridRecorder) PrintReport() {
 	fmt.Println("\n🎯 STRATEGY EFFECTIVENESS:")
 	fmt.Println("───────────────────────────────────────────────────────")
 	
-	avgSnapshotInterval := float64(stats.TotalCycles) / float64(max(stats.SnapshotCount, 1))
+	var avgSnapshotInterval float64
+	if stats.SnapshotCount > 0 {
+		avgSnapshotInterval = float64(stats.TotalCycles) / float64(stats.SnapshotCount)
+	} else {
+		avgSnapshotInterval = float64(stats.TotalCycles)
+	}
 	fmt.Printf("Avg Snapshot Interval: %.0f cycles\n", avgSnapshotInterval)
 	
 	if r.config.Strategy == StrategyAutomatic || r.config.Strategy == StrategyHybrid {
@@ -437,7 +442,7 @@ func (r *HybridRecorder) PrintReport() {
 	fmt.Println("\n💡 RECOMMENDATIONS:")
 	fmt.Println("───────────────────────────────────────────────────────")
 	
-	if stats.SnapshotCount > stats.TotalCycles/1000 {
+	if stats.SnapshotCount > int(stats.TotalCycles/1000) {
 		fmt.Println("• Too many snapshots - increase MinSnapshotInterval")
 	}
 	if stats.DeterministicRatio > 0.9 && r.config.Strategy != StrategyDeterministic {

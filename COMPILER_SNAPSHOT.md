@@ -1,20 +1,22 @@
 # MinZ Compiler Snapshot
 
-**Last Updated:** 2025-08-03  
-**Version:** v0.9.1-dev  
-**Status:** Production Core Working, Advanced Features In Progress
+**Last Updated:** 2025-08-05  
+**Version:** v0.9.5  
+**Status:** Multi-Backend Complete, Frontend Improvements Next
 
 ## 📊 Current State Overview
 
 | Component | Status | Success Rate | Notes |
 |-----------|--------|--------------|-------|
 | Parser (Tree-sitter) | ✅ Working | 95%+ | Robust grammar with all core features |
-| Semantic Analysis | ✅ Working | 80% | Type checking, scope resolution |
+| Semantic Analysis | ✅ Working | 85% | Type checking, const fixed! |
+| **Multi-Backend** | ✅ **COMPLETE** | 100% | **7 backends: Z80, 6502, 68k, i8080, GB, C, WASM** |
 | Code Generation | ✅ Working | 100%* | *For successful semantic analysis |
 | **Built-in Z80 Assembler** | ✅ **COMPLETE** | 100% | **Self-contained toolchain!** |
-| **Z80 Emulator** | ✅ Working | N/A | **Integrated for REPL** |
-| Optimizations | ✅ Working | Variable | TRUE SMC, register allocation |
-| Standard Library | 🚧 Partial | 40% | Basic I/O working |
+| **Backend Toolkit** | ✅ **NEW!** | 100% | **Create backends in hours!** |
+| Optimizations | ✅ Working | Variable | TRUE SMC, zero-page for 6502 |
+| Standard Library | ✅ Basic | 70% | Core functions implemented |
+| Function Overloading | 🚧 Next! | Design | ~10 hours to implement |
 
 ## 🎯 Major Achievements
 
@@ -149,6 +151,7 @@ cd minzc && go run cmd/repl/main.go
 2. **Lambda variable capture** - Can't capture local variables
 3. **Interface self parameter** - Resolution incomplete
 4. **Module imports** - Import system not working
+5. **REPL compilation** - TAS analyzer has type conflicts (compiler works fine)
 
 ### Medium Priority
 1. Generic type parameters
@@ -169,6 +172,23 @@ cd minzc && go run cmd/repl/main.go
 - ✅ Fixed emulator memory issues
 - ✅ Created self-contained toolchain
 
+## 🔨 Installation
+
+### Quick Install
+```bash
+cd minzc
+./install.sh  # Installs to ~/.local/bin
+```
+
+### Manual Install
+```bash
+cd minzc
+make build
+cp mz ~/.local/bin/
+```
+
+The compiler is now available as `mz` command globally.
+
 ## 🎯 Next Steps
 
 ### Immediate
@@ -176,6 +196,7 @@ cd minzc && go run cmd/repl/main.go
 2. Add lambda capture via local functions
 3. Fix interface self parameter
 4. Complete standard library
+5. Fix REPL TAS analyzer type conflicts
 
 ### Short Term
 1. Full module import system

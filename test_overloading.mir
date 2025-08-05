@@ -1,0 +1,139 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_overloading.print(x: u8) -> void
+  @smc
+  Instructions:
+      0: return
+
+Function examples.test_overloading.print(x: u16) -> void
+  @smc
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 8
+      2: SHR
+      3: r5 = call print
+      4: LOAD_PARAM
+      5: r7 = 255
+      6: r8 = r6 & r7
+      7: r9 = call print
+      8: return
+
+Function examples.test_overloading.print(x: bool) -> void
+  @smc
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: jump_if_not r2, else_1
+      2: r3 = 49
+      3: r4 = call print
+      4: jump end_if_2
+      5: else_1:
+      6: r5 = 48
+      7: r6 = call print
+      8: end_if_2:
+      9: return
+
+Function examples.test_overloading.max(a: u8, b: u8) -> i8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 > r4
+      3: jump_if_not r5, else_3
+      4: LOAD_PARAM
+      5: return r6
+      6: jump end_if_4
+      7: else_3:
+      8: end_if_4:
+      9: LOAD_PARAM
+     10: return r7
+
+Function examples.test_overloading.max(a: u16, b: u16) -> i8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 > r4
+      3: jump_if_not r5, else_5
+      4: LOAD_PARAM
+      5: return r6
+      6: jump end_if_6
+      7: else_5:
+      8: end_if_6:
+      9: LOAD_PARAM
+     10: return r7
+
+Function examples.test_overloading.max(a: i8, b: i8) -> i8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 > r4
+      3: jump_if_not r5, else_7
+      4: LOAD_PARAM
+      5: return r6
+      6: jump end_if_8
+      7: else_7:
+      8: end_if_8:
+      9: LOAD_PARAM
+     10: return r7
+
+Function examples.test_overloading.main() -> void
+  Locals:
+    r1 = x: u8
+    r5 = y: u16
+    r9 = flag: bool
+    r13 = a: u8
+    r15 = b: u8
+    r17 = max_u8: u16
+    r23 = c: u16
+    r25 = d: u16
+    r27 = max_u16: u16
+    r31 = e: i8
+    r34 = f: i8
+    r37 = max_i8: u16
+  Instructions:
+      0: r2 = 65
+      1: store , r2
+      2: r3 = load x
+      3: r4 = call print
+      4: r6 = 16706
+      5: store , r6
+      6: r7 = load y
+      7: r8 = call print
+      8: r10 = 1
+      9: store , r10
+     10: r11 = load flag
+     11: r12 = call print
+     12: r14 = 10
+     13: store , r14
+     14: r16 = 20
+     15: store , r16
+     16: r18 = load a
+     17: r19 = load b
+     18: r20 = call max
+     19: store , r20
+     20: r21 = load max_u8
+     21: r22 = call print
+     22: r24 = 1000
+     23: store , r24
+     24: r26 = 2000
+     25: store , r26
+     26: r28 = load c
+     27: r29 = load d
+     28: r30 = call max
+     29: store , r30
+     30: r32 = 10
+     31: NEG
+     32: store , r33
+     33: r35 = 5
+     34: NEG
+     35: store , r36
+     36: r38 = load e
+     37: r39 = load f
+     38: r40 = call max
+     39: store , r40
+     40: return
+

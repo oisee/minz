@@ -5,6 +5,28 @@ All notable changes to the MinZ programming language will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.6] - 2025-08-05 "Swift & Ruby Dreams"
+
+### Added
+- **Function Overloading** - Multiple functions with same name, different parameters!
+- **Interface Self Parameter Resolution** - Methods now work with natural `object.method()` syntax
+- **Name Mangling System** - Functions get unique names based on parameter types
+- **Overload Resolution** - Compile-time selection of correct function
+- **Method Call Dispatch** - Zero-cost interface method calls
+- **TypeIdentifier Support** - Proper handling of user-defined types in mangling
+
+### Changed  
+- Both `fn` and `fun` keywords now work - developer choice!
+- Interface methods properly resolve self parameter type
+- Method calls compile to direct function calls (no vtables)
+- Improved error messages for overload resolution failures
+
+### Fixed
+- Interface method registration in impl blocks
+- Self parameter type resolution for interface methods
+- Overload set symbol lookup in method calls
+- Function signature registration for impl block methods
+
 ## [Unreleased]
 
 ### Added

@@ -19,43 +19,42 @@ Based on README analysis, MinZ has:
 - ✅ **Self-modifying code (SMC)** - Advanced optimization working
 
 ### **Experimental Components (Need Stabilization)**
-- 🚧 **@minz Metafunctions** - Being redesigned with @minz[[[]]] syntax
+- 🚧 **Function overloading** - Design complete, implementation pending (QUICK WIN!)
 - 🚧 **@if compile-time conditional** - Partially working, needs completion
+- 🚧 **Zero-cost interfaces** - Self parameter resolution needs fixing
 - 🚧 **Iterator chains** - Functional programming syntax  
-- 🚧 **Zero-cost interfaces** - Interface system
 - 🚧 **Module system** - Import/export
-- 🚧 **Standard library** - Missing core functions
-- 🚧 **Lambdas** - Compile-time transformation
-- 🚧 **Constant declarations** - `const` keyword issues
+- 🚧 **Lambdas** - Function references need implementation
+- 🚧 **@minz Metafunctions** - Current syntax works, new @minz[[[]]] syntax planned
 
 ## 📋 **Stabilization Plan by Priority**
 
 ### **Phase 1: Core Language Stability (4-6 weeks)**
 *Goal: Make core language 100% reliable*
 
-#### **Week 1-2: Fix Fundamental Issues**
-1. **🔧 Fix constant declarations** 
-   - `const DEBUG: bool = true` should work
-   - Integrate with compile-time evaluation
-   - Priority: **Critical**
+#### **Week 1-2: Quick Wins and Critical Fixes**
+1. **🔧 Implement function overloading** 
+   - Name mangling scheme designed
+   - ~10 hours implementation effort
+   - Dramatically improves API usability
+   - Priority: **Critical (Quick Win!)**
 
-2. **🔧 Complete standard library core**
-   - `print_u8`, `print_u16`, `print_string` functions
-   - Basic memory operations (`mem.copy`, `mem.set`)
-   - String operations (`str.len`, `str.concat`)
-   - Priority: **Critical**
-
-3. **🔧 Fix interface self parameter**
+2. **🔧 Fix interface self parameter**
    - `self` parameter resolution in interface methods
    - Method dispatch optimization
-   - Priority: **High**
+   - Priority: **Critical**
 
-#### **Week 3-4: Metaprogramming Stability**
-4. **🔧 Complete @if implementation**
+3. **🔧 Complete @if implementation**
    - Fix constant emission vs variable assignment
    - Support all expression types in branches
-   - Add comprehensive tests
    - Priority: **High**
+
+#### **Week 3-4: Language Features**
+4. **🔧 Complete lambda system**
+   - Function reference copying (`let f = someFunction`)
+   - Curry optimization for partial application
+   - Type inference for lambda expressions
+   - Priority: **Medium**
 
 5. **🔧 Implement new @minz[[[]]] syntax**
    - Compile-time MinZ code blocks (like @lua[[[...]]])
@@ -63,13 +62,12 @@ Based on README analysis, MinZ has:
    - Named metafunctions: @fun for compile-time functions
    - Clear @ prefix = compile-time rule
    - Priority: **Medium**
-   - Design: [docs/132_MinZ_Metafunction_Redesign.md](docs/132_MinZ_Metafunction_Redesign.md)
 
-#### **Week 5-6: Advanced Features**
-6. **🔧 Complete lambda system**
-   - Function reference copying (`let f = someFunction`)
-   - Curry optimization for partial application
-   - Type inference for lambda expressions
+#### **Week 5-6: Backend Improvements**
+6. **🔧 Harmonize backend code generation**
+   - Migrate backends to use Backend Toolkit
+   - Consistent pattern usage across all backends
+   - Create backend feature matrix documentation
    - Priority: **Medium**
 
 ### **Phase 2: Zero-Cost Abstractions (3-4 weeks)**

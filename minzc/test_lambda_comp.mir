@@ -1,0 +1,49 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_lambda_comprehensive.test_basic_lambda$add_0(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r4 = r2 + r3
+      3: return
+
+Function ...test_lambda_comprehensive.test_basic_lambda() -> u8
+  @smc
+  Instructions:
+      0: r1 = 5
+      1: r2 = 3
+      2: r3 = call ...test_lambda_comprehensive.test_basic_lambda$add_0
+      3: return
+
+Function ...test_lambda_comprehensive.test_lambda_reference$double_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 2
+      2: r3 = r1 * r2
+      3: return
+
+Function ...test_lambda_comprehensive.test_lambda_reference() -> u8
+  @smc
+  Instructions:
+      0: r1 = 10
+      1: r2 = call ...test_lambda_comprehensive.test_lambda_reference$double_1
+      2: return
+
+Function ...test_lambda_comprehensive.main() -> u8
+  @smc
+  Locals:
+    r1 = a: u16
+    r3 = b: u16
+  Instructions:
+      0: r2 = call ...test_lambda_comprehensive.test_basic_lambda
+      1: store , r2
+      2: r4 = call ...test_lambda_comprehensive.test_lambda_reference
+      3: store , r4
+      4: r5 = load a
+      5: r6 = load b
+      6: r7 = r5 + r6
+      7: return
+

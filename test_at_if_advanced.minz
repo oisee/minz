@@ -1,0 +1,22 @@
+// Advanced @if compile-time conditional tests
+
+// Test @if with constants and expressions
+const DEBUG: bool = true;
+const VERSION: u8 = 2;
+
+fun main() -> u8 {
+    // Test @if with constants
+    let debug_value: u8 = @if(DEBUG, 100, 0);
+    
+    // Test @if with arithmetic expressions as conditions
+    let version_check: u8 = @if(VERSION > 1, 50, 25);
+    
+    // Test nested @if
+    let nested: u8 = @if(true, @if(false, 10, 20), 30);  // Should be 20
+    
+    // Test @if with different types in branches (should infer common type)
+    let type_test: u8 = @if(VERSION == 2, 42, 0);
+    
+    return debug_value + version_check + nested + type_test;
+    // Expected: 100 + 50 + 20 + 42 = 212
+}

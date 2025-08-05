@@ -1,0 +1,19 @@
+// Simple test for function overloading
+
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun add(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+fun main() -> void {
+    let x: u8 = 5;
+    let y: u8 = 10;
+    let z = add(x, y);   // Should call add(u8, u8) -> u8
+    
+    let a: u16 = 1000;
+    let b: u16 = 2000;
+    let c = add(a, b);   // Should call add(u16, u16) -> u16
+}

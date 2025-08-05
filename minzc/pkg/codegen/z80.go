@@ -1385,9 +1385,11 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD D, H")
 		g.emit("    LD E, L")
 		g.loadToHL(inst.Src2)
-		g.emit("    EX DE, HL")
-		g.emit("    OR A      ; Clear carry")
-		g.emit("    SBC HL, DE")
+		// Now HL = Src2, DE = Src1, need HL = Src1 - Src2
+		// So we need DE - HL, which means we swap and compute HL - DE
+		g.emit("    EX DE, HL     ; Now HL = Src1, DE = Src2")
+		g.emit("    OR A          ; Clear carry")
+		g.emit("    SBC HL, DE    ; HL = Src1 - Src2")
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpNeg:
@@ -2431,9 +2433,9 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 	g.loadToHL(inst.Src2)
 	
 	// Compare DE with HL (reversed for correct comparison)
-	g.emit("    EX DE, HL")
-	g.emit("    OR A      ; Clear carry")
-	g.emit("    SBC HL, DE")
+	g.emit("    EX DE, HL     ; Now HL = Src1, DE = Src2")
+	g.emit("    OR A          ; Clear carry")
+	g.emit("    SBC HL, DE    ; HL = Src1 - Src2")
 	
 	// Generate appropriate test
 	trueLabel := g.newLabel()
@@ -2455,104 +2457,10 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 	case ir.OpLe:
 		g.emit("    JP M, %s", trueLabel)
 		g.emit("    JP Z, %s", trueLabel)
-		
-	// Loop operations
-	case ir.OpLoadAddr:
-		// Load address of a variable/array
-		if inst.Symbol != "" {
-			g.emit("    LD HL, %s", inst.Symbol)
-		} else {
-			// Load address from register (for arrays)
-			g.loadToHL(inst.Src1)
-		}
-		g.storeFromHL(inst.Dest)
-		
-	case ir.OpCopyToBuffer:
-		// Copy memory block to static buffer
-		// Src1 = source pointer, Imm = buffer address, Imm2 = size
-		g.loadToHL(inst.Src1)
-		g.emit("    LD DE, $%04X    ; Buffer address", inst.Imm)
-		g.emit("    LD BC, %d       ; Size", inst.Imm2)
-		g.emit("    LDIR            ; Copy to buffer")
-		
-	case ir.OpCopyFromBuffer:
-		// Copy static buffer back to memory
-		// Dest = destination pointer, Imm = buffer address, Imm2 = size  
-		g.loadToHL(inst.Dest)
-		g.emit("    EX DE, HL       ; DE = destination")
-		g.emit("    LD HL, $%04X    ; Buffer address", inst.Imm)
-		g.emit("    LD BC, %d       ; Size", inst.Imm2)
-		g.emit("    LDIR            ; Copy from buffer")
-		
-	case ir.OpDJNZ:
-		// Decrement and jump if not zero
-		// Src1 = counter register, Label = target
-		g.loadToB(inst.Src1)
-		g.emit("    DJNZ %s", inst.Label)
-		// Update register with new value
-		g.emit("    LD A, B")
-		g.storeFromA(inst.Src1)
-		
-	case ir.OpLoadImm:
-		// Load immediate value
-		if inst.Imm < 256 {
-			g.emit("    LD A, %d", inst.Imm)
-			g.storeFromA(inst.Dest)
-		} else {
-			g.emit("    LD HL, %d", inst.Imm)
-			g.storeFromHL(inst.Dest)
-		}
-		
-	case ir.OpAddImm:
-		// Add immediate to register
-		g.loadToHL(inst.Src1)
-		if inst.Imm < 256 {
-			g.emit("    LD DE, %d", inst.Imm)
-			g.emit("    ADD HL, DE")
-		} else {
-			g.emit("    LD DE, %d", inst.Imm)
-			g.emit("    ADD HL, DE")
-		}
-		g.storeFromHL(inst.Dest)
-		
-	case ir.OpCmp:
-		// Compare two registers
-		g.loadToHL(inst.Src1)
-		g.emit("    PUSH HL")
-		g.loadToHL(inst.Src2)
-		g.emit("    EX DE, HL")
-		g.emit("    POP HL")
-		g.emit("    OR A            ; Clear carry")
-		g.emit("    SBC HL, DE      ; HL = Src1 - Src2")
-		// Result in flags, store comparison result
-		g.emit("    LD HL, 0        ; Default false")
-		g.emit("    JR NZ, cmp_%d", g.labelCounter)
-		g.emit("    INC HL          ; Equal")
-		g.emit("cmp_%d:", g.labelCounter)
-		g.labelCounter++
-		g.storeFromHL(inst.Dest)
-		
-	case ir.OpLoadDirect:
-		// Load from direct memory address
-		addr := uint16(inst.Imm)
-		if inst.Type != nil && inst.Type.Size() == 1 {
-			g.emit("    LD A, ($%04X)", addr)
-			g.storeFromA(inst.Dest)
-		} else {
-			g.emit("    LD HL, ($%04X)", addr)
-			g.storeFromHL(inst.Dest)
-		}
-		
-	case ir.OpStoreDirect:
-		// Store to direct memory address
-		addr := uint16(inst.Imm)
-		if inst.Type != nil && inst.Type.Size() == 1 {
-			g.loadToA(inst.Src1)
-			g.emit("    LD ($%04X), A", addr)
-		} else {
-			g.loadToHL(inst.Src1)
-			g.emit("    LD ($%04X), HL", addr)
-		}
+	default:
+		// This shouldn't happen - generateComparison should only be called for comparison ops
+		g.emit("    ; ERROR: generateComparison called with non-comparison op %s", inst.Op)
+		return
 	}
 	
 	// False path

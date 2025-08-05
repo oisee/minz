@@ -1,0 +1,9 @@
+// Debug lambda test - super simple
+fun main() -> u8 {
+    // Test the most basic lambda assignment
+    let add = |x: u8, y: u8| => u8 { x + y };
+    
+    // Call it directly
+    let result = add(5, 3);
+    return result;  // Should return 8
+}

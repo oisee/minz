@@ -155,7 +155,7 @@ func (c *TASCompression) ReconstructState(targetFrame int64) (*StateSnapshot, er
 	
 	// Apply deltas up to target frame
 	for _, delta := range c.deltaFrames {
-		if delta.Cycle > state.Cycle && int64(delta.Cycle) <= uint64(targetFrame) {
+		if delta.Cycle > state.Cycle && delta.Cycle <= uint64(targetFrame) {
 			c.applyDelta(&state, delta)
 		}
 	}

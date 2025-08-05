@@ -243,10 +243,10 @@ func (a *Analyzer) addBuiltins() {
 	a.currentScope.Define("String", &TypeSymbol{Type: &ir.StringType{MaxLength: 255}})
 	a.currentScope.Define("LString", &TypeSymbol{Type: &ir.LStringType{MaxLength: 65535}})
 	
-	// Built-in functions
+	// Built-in functions with overloading support
 	// print - outputs a single character
-	a.currentScope.Define("print", &FuncSymbol{
-		Name: "print",
+	printU8Sym := &FuncSymbol{
+		Name: "print$u8",
 		Params: []*ast.Parameter{
 			{Name: "ch", Type: &ast.PrimitiveType{Name: "u8"}},
 		},
@@ -256,7 +256,18 @@ func (a *Analyzer) addBuiltins() {
 		},
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
 		IsBuiltin: true,
-	})
+	}
+	a.currentScope.Define("print$u8", printU8Sym)
+	
+	// Register print overload set
+	printOverloadSet := &FunctionOverloadSet{
+		BaseName:  "print",
+		Overloads: map[string]*FuncSymbol{
+			"print$u8": printU8Sym,
+		},
+	}
+	a.currentScope.overloads["print"] = printOverloadSet
+	a.currentScope.Define("print", printOverloadSet)
 	
 	// len - returns length of an array
 	// Note: We'll handle type checking specially for len() since it's generic
@@ -887,29 +898,60 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 		}
 	}
 
-	// Get prefixed name
+	// Get prefixed name for the base function name
 	prefixedName := fn.Name
 	// Only add prefix if the name doesn't already contain a dot (module prefix)
 	if !strings.Contains(fn.Name, ".") {
 		prefixedName = a.prefixSymbol(fn.Name)
 	}
 	
-	// Register function in global scope with prefixed name
-	a.currentScope.Define(prefixedName, &FuncSymbol{
-		Name:       prefixedName,
+	// Generate mangled name for overloading
+	mangledName := generateMangledName(prefixedName, fn.Params)
+	// fmt.Printf("DEBUG: registerFunctionSignature: %s -> %s\n", fn.Name, mangledName)
+	
+	// Create function symbol
+	funcSym := &FuncSymbol{
+		Name:       mangledName,  // Use mangled name for unique identification
 		ReturnType: returnType,
 		ErrorType:  errorType,
 		Params:     fn.Params,
-	})
+	}
+	
+	// Register the specific overload with its mangled name
+	a.currentScope.Define(mangledName, funcSym)
+	
+	// Register in overload set
+	overloadSet, exists := a.currentScope.overloads[prefixedName]
+	if !exists {
+		overloadSet = &FunctionOverloadSet{
+			BaseName:  prefixedName,
+			Overloads: make(map[string]*FuncSymbol),
+		}
+		a.currentScope.overloads[prefixedName] = overloadSet
+		// Only register the overload set as a symbol if it's different from the mangled name
+		// This prevents overwriting single functions that have no overloads
+		if prefixedName != mangledName {
+			a.currentScope.Define(prefixedName, overloadSet)
+		}
+	}
+	overloadSet.Overloads[mangledName] = funcSym
 	
 	// Also register without prefix for local access
 	if a.currentModule != "" && a.currentModule != "main" {
-		a.currentScope.Define(fn.Name, &FuncSymbol{
-			Name:       prefixedName,
-			ReturnType: returnType,
-			ErrorType:  errorType,
-			Params:     fn.Params,
-		})
+		// Register the overload set under the unprefixed name too
+		unprefixedOverloadSet, exists := a.currentScope.overloads[fn.Name]
+		if !exists {
+			unprefixedOverloadSet = &FunctionOverloadSet{
+				BaseName:  fn.Name,
+				Overloads: make(map[string]*FuncSymbol),
+			}
+			a.currentScope.overloads[fn.Name] = unprefixedOverloadSet
+			// Only define if different from mangled name
+			if fn.Name != mangledName {
+				a.currentScope.Define(fn.Name, unprefixedOverloadSet)
+			}
+		}
+		unprefixedOverloadSet.Overloads[mangledName] = funcSym
 	}
 
 	return nil
@@ -917,17 +959,6 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 
 // analyzeFunctionDecl analyzes a function declaration
 func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
-	// Function signature already registered in first pass
-	// Get the registered symbol
-	sym := a.currentScope.Lookup(fn.Name)
-	if sym == nil {
-		return fmt.Errorf("function %s not found in symbol table", fn.Name)
-	}
-	funcSym, ok := sym.(*FuncSymbol)
-	if !ok {
-		return fmt.Errorf("symbol %s is not a function", fn.Name)
-	}
-
 	// Get prefixed name
 	prefixedName := fn.Name
 	// Only add prefix if the name doesn't already contain a dot (module prefix)
@@ -935,8 +966,22 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 		prefixedName = a.prefixSymbol(fn.Name)
 	}
 	
-	// Create IR function with prefixed name
-	irFunc := ir.NewFunction(prefixedName, funcSym.ReturnType)
+	// Generate mangled name for this specific overload
+	mangledName := generateMangledName(prefixedName, fn.Params)
+	
+	// Get the registered symbol by its mangled name
+	sym := a.currentScope.Lookup(mangledName)
+	if sym == nil {
+		return fmt.Errorf("function %s (mangled: %s) not found in symbol table", fn.Name, mangledName)
+	}
+	funcSym, ok := sym.(*FuncSymbol)
+	if !ok {
+		// fmt.Printf("DEBUG: Symbol %s is %T, not FuncSymbol\n", mangledName, sym)
+		return fmt.Errorf("symbol %s is not a function", mangledName)
+	}
+	
+	// Create IR function with mangled name for unique identification
+	irFunc := ir.NewFunction(mangledName, funcSym.ReturnType)
 	
 	// Process @abi attributes
 	if err := a.processAbiAttributes(fn, irFunc); err != nil {
@@ -1039,8 +1084,11 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 		}
 	}
 	
-	fmt.Printf("Function %s: IsRecursive=%v, Params=%d, SMC=%v\n", 
-		fn.Name, irFunc.IsRecursive, len(irFunc.Params), irFunc.IsSMCEnabled)
+	if debug {
+		fmt.Printf("Function %s (original: %s): IsRecursive=%v, Params=%d, SMC=%v\n", 
+			mangledName, fn.Name, irFunc.IsRecursive, len(irFunc.Params), irFunc.IsSMCEnabled)
+	}
+	// fmt.Printf("  IR Function Name: %s\n", irFunc.Name)
 
 	// Add function to module
 	a.module.AddFunction(irFunc)
@@ -3949,16 +3997,30 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 	case *ast.Identifier:
 		// Direct function call
 		funcName = fn.Name
-		sym = a.currentScope.Lookup(funcName)
 		
-		// If not found, try with module prefix
-		if sym == nil && a.currentModule != "" && a.currentModule != "main" {
-			prefixedName := a.prefixSymbol(funcName)
-			sym = a.currentScope.Lookup(prefixedName)
-			if sym != nil {
-				funcName = prefixedName
-				// Update the AST node to use the prefixed name
-				fn.Name = prefixedName
+		// Try to resolve overload first
+		prefixedName := funcName
+		if !strings.Contains(funcName, ".") {
+			prefixedName = a.prefixSymbol(funcName)
+		}
+		
+		// Try to resolve as an overloaded function
+		funcSym, err := a.resolveOverload(prefixedName, call.Arguments, irFunc)
+		if err == nil {
+			sym = funcSym
+			funcName = funcSym.Name  // Use the mangled name
+		} else {
+			// Fall back to simple lookup (for non-overloaded functions)
+			sym = a.currentScope.Lookup(funcName)
+			
+			// If not found, try with module prefix
+			if sym == nil && a.currentModule != "" && a.currentModule != "main" {
+				sym = a.currentScope.Lookup(prefixedName)
+				if sym != nil {
+					funcName = prefixedName
+					// Update the AST node to use the prefixed name
+					fn.Name = prefixedName
+				}
 			}
 		}
 		
@@ -4033,6 +4095,17 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 			fmt.Printf("DEBUG: Found symbol %s of type %T\n", funcName, sym)
 		}
 		
+		// Check if it's an overload set
+		if _, ok := sym.(*FunctionOverloadSet); ok {
+			// Try to resolve the overload
+			funcSym, err := a.resolveOverload(funcName, call.Arguments, irFunc)
+			if err != nil {
+				return 0, fmt.Errorf("error in function %s: %v", a.currentFunc.Name, err)
+			}
+			sym = funcSym
+			funcName = funcSym.Name  // Use the mangled name
+		}
+		
 		// Check if this is a lambda variable before treating as function
 		if varSymbol, ok := sym.(*VarSymbol); ok {
 			if debug {
@@ -4066,15 +4139,29 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 				varSym := a.currentScope.Lookup(id.Name)
 				if varSymbol, ok := varSym.(*VarSymbol); ok {
 					// Find interface implementations for this type
-					methodFunc := a.findInterfaceMethod(varSymbol.Type, fn.Field)
-					if methodFunc != nil {
-						sym = methodFunc
-						funcName = methodFunc.Name
-						isMethodCall = true
-						methodReceiver = id  // Store the receiver for self parameter
-						
-						if debug {
-							fmt.Printf("DEBUG: Resolved interface method %s.%s to %s\n", id.Name, fn.Field, funcName)
+					// First check if there's an overload set for this method
+					methodBaseName := a.getMethodBaseName(varSymbol.Type, fn.Field)
+					if methodBaseName != "" {
+						// Try to find the overload set
+						if overloadSet, ok := a.currentScope.Lookup(methodBaseName).(*FunctionOverloadSet); ok {
+							// We have an overload set - we'll resolve it later with arguments
+							sym = overloadSet
+							funcName = methodBaseName
+							isMethodCall = true
+							methodReceiver = fn.Object  // Store the full receiver expression
+						} else {
+							// Try single method lookup
+							methodFunc := a.findInterfaceMethod(varSymbol.Type, fn.Field)
+							if methodFunc != nil {
+								sym = methodFunc
+								funcName = methodFunc.Name
+								isMethodCall = true
+								methodReceiver = fn.Object  // Store the receiver for self parameter
+								
+								if debug {
+									fmt.Printf("DEBUG: Resolved interface method %s.%s to %s\n", id.Name, fn.Field, funcName)
+								}
+							}
 						}
 					}
 				}
@@ -4136,8 +4223,28 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		return 0, fmt.Errorf("unsupported function call expression: %T", call.Function)
 	}
 
-	funcSym, ok := sym.(*FuncSymbol)
-	if !ok {
+	// Handle overload sets for method calls
+	var funcSym *FuncSymbol
+	if _, ok := sym.(*FunctionOverloadSet); ok {
+		// For method calls, we need to include self in the arguments for resolution
+		resolveArgs := call.Arguments
+		if isMethodCall && methodReceiver != nil {
+			// Create a temporary argument list with self as first parameter
+			resolveArgs = make([]ast.Expression, len(call.Arguments)+1)
+			resolveArgs[0] = methodReceiver
+			copy(resolveArgs[1:], call.Arguments)
+		}
+		
+		// Resolve the overload
+		resolved, err := a.resolveOverload(funcName, resolveArgs, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("error resolving method overload: %v", err)
+		}
+		funcSym = resolved
+		funcName = funcSym.Name  // Update to mangled name
+	} else if fs, ok := sym.(*FuncSymbol); ok {
+		funcSym = fs
+	} else {
 		if debug {
 			fmt.Printf("DEBUG: Symbol %s is not a FuncSymbol, it's %T\n", funcName, sym)
 		}
@@ -4208,7 +4315,7 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:     ir.OpCall,
 		Dest:   resultReg,
-		Symbol: funcName,
+		Symbol: funcSym.Name,  // Use actual function name (mangled for lambdas)
 		Args:   argRegs,  // Store argument registers for TRUE SMC patching
 	})
 
@@ -6634,18 +6741,22 @@ func (a *Analyzer) analyzeImplBlock(impl *ast.ImplBlock) error {
 			return fmt.Errorf("method %s must have 'self' as first parameter", method.Name)
 		}
 		
+		// Give the method a unique name based on the implementing type to avoid conflicts
+		implTypeIR, err := a.convertType(impl.ForType)
+		if err != nil {
+			return fmt.Errorf("invalid type in impl block: %w", err)
+		}
+		
 		// For methods with 'self', we need to set the self parameter type
 		if len(method.Params) > 0 && method.Params[0].IsSelf {
 			// Set the type of 'self' to the implementing type
 			method.Params[0].Type = impl.ForType
 			// Also set the name explicitly to "self"
 			method.Params[0].Name = "self"
-		}
-		
-		// Give the method a unique name based on the implementing type to avoid conflicts
-		implTypeIR, err := a.convertType(impl.ForType)
-		if err != nil {
-			return fmt.Errorf("invalid type in impl block: %w", err)
+			// fmt.Printf("DEBUG: Set self parameter type to %T for method %s\n", impl.ForType, method.Name)
+			// if impl.ForType != nil {
+			// 	fmt.Printf("  ForType: %v\n", impl.ForType)
+			// }
 		}
 		
 		// Create a unique method name for registration
@@ -6669,6 +6780,11 @@ func (a *Analyzer) analyzeImplBlock(impl *ast.ImplBlock) error {
 		
 		// Temporarily change the method name for IR generation
 		method.Name = uniqueMethodName
+		
+		// Register the method signature first (since it wasn't done in the first pass)
+		if err := a.registerFunctionSignature(method); err != nil {
+			return fmt.Errorf("error registering method %s: %w", originalMethodName, err)
+		}
 		
 		// Analyze the method as a regular function
 		if err := a.analyzeFunctionDecl(method); err != nil {
@@ -6879,6 +6995,27 @@ func (a *Analyzer) transformLambdaAssignment(varDecl *ast.VarDecl, lambda *ast.L
 	a.currentScope.Define(varDecl.Name, funcSymbol)
 	
 	return nil
+}
+
+// getMethodBaseName returns the base name for a method on a given type
+func (a *Analyzer) getMethodBaseName(objType ir.Type, methodName string) string {
+	// Extract the type name
+	var typeName string
+	switch t := objType.(type) {
+	case *ir.StructType:
+		typeName = t.Name
+	case *ir.EnumType:
+		typeName = t.Name
+	default:
+		return ""
+	}
+	
+	if typeName == "" {
+		return ""
+	}
+	
+	// Return the base method name (e.g., "Circle.draw")
+	return typeName + "." + methodName
 }
 
 // findInterfaceMethod finds the concrete implementation function for an interface method

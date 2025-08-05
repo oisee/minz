@@ -1,0 +1,40 @@
+digraph MinZ_MIR {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  // Module: main
+  subgraph cluster_module {
+    label="Module: main";
+    style=dashed;
+
+    // Function: simple_tail_test.countdown
+    subgraph cluster_func_0 {
+      label="simple_tail_test.countdown";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_0_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_0_rec" [label="Recursive", shape=note, style=filled, fillcolor=lightcoral];
+      "func_0_params" [label="Parameters:\nn: u8", shape=invhouse];
+      "func_0_return" [label="Returns: u8", shape=house];
+      "func_0_bb0" [label="BB0:\nTRUE_SMC_LOAD\n", style=filled, fillcolor=lightgreen];
+      "func_0_bb1" [label="simple_tail_test.countdown_tail_loop:\nTEST\njump_if_not r4, else_1\n", style=filled, fillcolor=lightblue];
+      "func_0_bb2" [label="BB2:\nr5 = 0\nreturn r5\n", style=filled, fillcolor=lightcoral];
+      "func_0_bb3" [label="else_1:\nTRUE_SMC_LOAD\njump simple_tail_test.countdown_tail_loop\n", style=filled, fillcolor=lightblue];
+      "func_0_bb0" -> "func_0_bb1";
+      "func_0_bb1" -> "func_0_bb3" [label="false", style=dashed];
+      "func_0_bb1" -> "func_0_bb2" [label="true"];
+      "func_0_bb3" -> "func_0_bb1" [label="jump"];
+    }
+
+    // Function: simple_tail_test.main
+    subgraph cluster_func_1 {
+      label="simple_tail_test.main";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_1_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_1_rec" [label="Recursive", shape=note, style=filled, fillcolor=lightcoral];
+      "func_1_bb0" [label="BB0:\nr3 = call countdown\nreturn\n", style=filled, fillcolor=lightgreen];
+    }
+
+  }
+}

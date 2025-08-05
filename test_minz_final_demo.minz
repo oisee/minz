@@ -1,0 +1,13 @@
+// Final @minz[[[]]] metaprogramming demo - WORKING VERSION
+
+// Generate lookup table with expressions
+@minz[[[
+for i in 0..5 {
+    @emit("const SQUARE_{i}: u8 = {i * i};");
+}
+]]]
+
+fun main() -> u8 {
+    // Use generated constants: 0² + 1² + 2² = 0 + 1 + 4 = 5
+    SQUARE_0 + SQUARE_1 + SQUARE_2
+}

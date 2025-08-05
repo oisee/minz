@@ -3,6 +3,7 @@ package codegen
 import (
 	"bytes"
 	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/optimizer"
 )
 
 // Z80Backend implements the Backend interface for Z80 code generation
@@ -51,7 +52,22 @@ func (b *Z80Backend) Generate(module *ir.Module) (string, error) {
 		return "", err
 	}
 	
-	return buf.String(), nil
+	// Get the generated assembly
+	assembly := buf.String()
+	
+	// Apply assembly-level peephole optimization if optimization is enabled
+	if b.options != nil && b.options.OptimizationLevel > 0 {
+		peephole := optimizer.NewAssemblyPeepholePass()
+		optimized := peephole.OptimizeAssembly(assembly)
+		// Add a comment to show optimization ran
+		if optimized != assembly {
+			assembly = optimized
+		} else {
+			assembly += "\n\n; Assembly peephole optimization: no patterns matched"
+		}
+	}
+	
+	return assembly, nil
 }
 
 // GetFileExtension returns the file extension for Z80 assembly

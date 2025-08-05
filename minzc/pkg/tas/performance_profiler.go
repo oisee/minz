@@ -359,13 +359,13 @@ func (p *PerformanceProfiler) generateOptimizations() []OptimizationSuggestion {
 		if prof := p.functions[hotspot.Address]; prof != nil {
 			if prof.SMCCount == 0 && prof.CallCount > 10 {
 				suggestions = append(suggestions, OptimizationSuggestion{
-					Priority:    High,
+					Priority:    PriorityHigh,
 					Type:        OptimizeSMC,
 					Location:    hotspot.Address,
 					Description: fmt.Sprintf("Enable SMC for %s", prof.Name),
 					Impact:      fmt.Sprintf("Save ~%d cycles (%.1f%%)", 
 						prof.TotalCycles/5, hotspot.Percentage/5),
-					Difficulty:  Medium,
+					Difficulty:  DifficultyMedium,
 				})
 			}
 		}
@@ -375,13 +375,13 @@ func (p *PerformanceProfiler) generateOptimizations() []OptimizationSuggestion {
 	for _, hotspot := range p.hotspots {
 		if hotspot.Type == HotspotMemory {
 			suggestions = append(suggestions, OptimizationSuggestion{
-				Priority:    High,
-				Type:        OptimizeRegisters,
-				Location:    hotspot.Address,
-				Description: "Improve register allocation to reduce memory access",
-				Impact:      fmt.Sprintf("Save ~%d cycles", hotspot.Cycles/10),
-				Difficulty:  Hard,
-			})
+					Priority:    PriorityHigh,
+					Type:        OptimizeRegisters,
+					Location:    hotspot.Address,
+					Description: "Improve register allocation to reduce memory access",
+					Impact:      fmt.Sprintf("Save ~%d cycles", hotspot.Cycles/10),
+					Difficulty:  DifficultyHard,
+				})
 		}
 	}
 	
@@ -389,13 +389,13 @@ func (p *PerformanceProfiler) generateOptimizations() []OptimizationSuggestion {
 	for _, bottleneck := range p.bottlenecks {
 		if bottleneck.Type == BottleneckUnoptimizedLoop {
 			suggestions = append(suggestions, OptimizationSuggestion{
-				Priority:    High,
-				Type:        OptimizeLoop,
-				Location:    bottleneck.Location,
-				Description: bottleneck.Solution,
-				Impact:      fmt.Sprintf("Save ~%d cycles", bottleneck.Impact),
-				Difficulty:  Easy,
-			})
+					Priority:    PriorityHigh,
+					Type:        OptimizeLoop,
+					Location:    bottleneck.Location,
+					Description: bottleneck.Solution,
+					Impact:      fmt.Sprintf("Save ~%d cycles", bottleneck.Impact),
+					Difficulty:  DifficultyEasy,
+				})
 		}
 	}
 	
@@ -562,10 +562,10 @@ type OptimizationSuggestion struct {
 
 type Priority byte
 const (
-	Low Priority = iota
-	Medium
-	High
-	Critical
+	PriorityLow Priority = iota
+	PriorityMedium
+	PriorityHigh
+	PriorityCritical
 )
 
 type OptimizationType byte
@@ -579,9 +579,9 @@ const (
 
 type Difficulty byte
 const (
-	Easy Difficulty = iota
-	Medium
-	Hard
+	DifficultyEasy Difficulty = iota
+	DifficultyMedium
+	DifficultyHard
 )
 
 // PrintReport generates a human-readable performance report

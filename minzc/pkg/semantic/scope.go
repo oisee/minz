@@ -93,17 +93,27 @@ type ImplSymbol struct {
 
 func (i *ImplSymbol) symbol() {}
 
+// FunctionOverloadSet tracks all overloaded versions of a function
+type FunctionOverloadSet struct {
+	BaseName  string
+	Overloads map[string]*FuncSymbol // Key is mangled name
+}
+
+func (f *FunctionOverloadSet) symbol() {}
+
 // Scope represents a lexical scope
 type Scope struct {
-	parent  *Scope
-	symbols map[string]Symbol
+	parent    *Scope
+	symbols   map[string]Symbol
+	overloads map[string]*FunctionOverloadSet // Key is base function name
 }
 
 // NewScope creates a new scope
 func NewScope(parent *Scope) *Scope {
 	return &Scope{
-		parent:  parent,
-		symbols: make(map[string]Symbol),
+		parent:    parent,
+		symbols:   make(map[string]Symbol),
+		overloads: make(map[string]*FunctionOverloadSet),
 	}
 }
 

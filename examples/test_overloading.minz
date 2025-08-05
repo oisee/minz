@@ -1,0 +1,73 @@
+// Test function overloading in MinZ
+
+// Define multiple print functions with different parameter types
+fun print(x: u8) -> void {
+    @asm {
+        LD A, (HL)    // Assuming x is in HL
+        CALL $BB5A    // CPC ROM print routine (example)
+    }
+}
+
+fun print(x: u16) -> void {
+    // Print high byte first
+    print((x >> 8) as u8);
+    // Then low byte
+    print((x & 0xFF) as u8);
+}
+
+fun print(x: bool) -> void {
+    if x {
+        print(49);  // ASCII '1'
+    } else {
+        print(48);  // ASCII '0'
+    }
+}
+
+// Define multiple max functions
+fun max(a: u8, b: u8) -> u8 {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fun max(a: u16, b: u16) -> u16 {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fun max(a: i8, b: i8) -> i8 {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+// Test the overloaded functions
+fun main() -> void {
+    // Test print overloads
+    let x: u8 = 65;  // 'A'
+    print(x);        // Should call print(u8)
+    
+    let y: u16 = 0x4142;  // 'AB'
+    print(y);        // Should call print(u16)
+    
+    let flag: bool = true;
+    print(flag);     // Should call print(bool)
+    
+    // Test max overloads
+    let a: u8 = 10;
+    let b: u8 = 20;
+    let max_u8 = max(a, b);    // Should call max(u8, u8)
+    print(max_u8);
+    
+    let c: u16 = 1000;
+    let d: u16 = 2000;
+    let max_u16 = max(c, d);   // Should call max(u16, u16)
+    
+    let e: i8 = -10;
+    let f: i8 = -5;
+    let max_i8 = max(e, f);    // Should call max(i8, i8)
+}

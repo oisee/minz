@@ -11,14 +11,26 @@ import (
 
 // M6502Backend implements the Backend interface for 6502 code generation
 type M6502Backend struct {
-	options *BackendOptions
+	BaseBackend
 }
 
 // NewM6502Backend creates a new 6502 backend
 func NewM6502Backend(options *BackendOptions) Backend {
-	return &M6502Backend{
-		options: options,
+	backend := &M6502Backend{
+		BaseBackend: NewBaseBackend(options),
 	}
+	
+	// Configure 6502-specific features
+	backend.SetFeature(FeatureSelfModifyingCode, true)  // 6502 supports SMC
+	backend.SetFeature(FeatureInterrupts, true)
+	backend.SetFeature(Feature16BitPointers, true)
+	backend.SetFeature(Feature24BitPointers, false)
+	backend.SetFeature(Feature32BitPointers, false)
+	backend.SetFeature(FeatureFloatingPoint, false)
+	backend.SetFeature(FeatureFixedPoint, true)
+	backend.SetFeature(FeatureZeroPage, true)  // 6502 has zero page
+	
+	return backend
 }
 
 // Name returns the name of this backend
@@ -28,6 +40,13 @@ func (b *M6502Backend) Name() string {
 
 // Generate generates 6502 assembly code for the given IR module
 func (b *M6502Backend) Generate(module *ir.Module) (string, error) {
+	// Use optimized generator if SMC is enabled
+	if b.options != nil && (b.options.EnableSMC || b.options.OptimizationLevel > 0) {
+		gen := NewM6502Generator(b, module)
+		return gen.Generate()
+	}
+	
+	// Fall back to basic generator
 	var buf bytes.Buffer
 	
 	// Write header

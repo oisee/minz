@@ -1,0 +1,19 @@
+// Debug overloading to see mangled names
+
+fun test(x: u8) -> void {
+    @asm { NOP }
+}
+
+fun test(x: u16) -> void {
+    @asm { NOP }
+}
+
+fun test(x: bool) -> void {
+    @asm { NOP }
+}
+
+fun main() -> void {
+    test(42 as u8);
+    test(1000 as u16);
+    test(true);
+}

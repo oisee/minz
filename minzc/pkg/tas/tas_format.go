@@ -287,10 +287,10 @@ func (t *TASFile) writeEventsCompact(w io.Writer) error {
 	
 	// Add all events
 	for _, input := range t.Events.Inputs {
-		events = append(events, timedEvent{input.Cycle, 'I', input})
+		events = append(events, timedEvent{int64(input.Cycle), 'I', input})
 	}
 	for _, smc := range t.Events.SMCEvents {
-		events = append(events, timedEvent{smc.Cycle, 'S', smc})
+		events = append(events, timedEvent{int64(smc.Cycle), 'S', smc})
 	}
 	for _, io := range t.Events.IOEvents {
 		events = append(events, timedEvent{io.Cycle, 'O', io})

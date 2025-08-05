@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"strconv"
 
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/parser"
@@ -33,25 +34,10 @@ func (a *Analyzer) analyzeMinzBlock(block *ast.MinzBlock) error {
 		if minzDebug {
 			fmt.Printf("DEBUG: Processing @minz block with raw code: %s\n", block.RawCode)
 		}
-		// For now, just parse and execute as MinZ code
-		// TODO: Implement proper MinZ interpreter for compile-time execution
-		// For simple cases like @emit, we can do pattern matching
-		if strings.Contains(block.RawCode, "@emit") {
-			// Extract @emit content with simple regex
-			// This is a temporary solution until full interpreter is ready
-			lines := strings.Split(block.RawCode, "\n")
-			for _, line := range lines {
-				line = strings.TrimSpace(line)
-				if strings.HasPrefix(line, "@emit(") && strings.HasSuffix(line, ")") {
-					// Extract the string content
-					content := line[6 : len(line)-1] // Remove @emit( and )
-					// Remove quotes if present
-					content = strings.Trim(content, "\"")
-					// Process template variables
-					content = processTemplateString(content, ctx.variables)
-					ctx.emittedCode = append(ctx.emittedCode, content)
-				}
-			}
+		
+		// Parse the raw MinZ code properly
+		if err := ctx.parseAndExecuteRawCode(block.RawCode); err != nil {
+			return fmt.Errorf("error executing raw @minz code: %w", err)
 		}
 	} else {
 		// Handle structured code
@@ -124,6 +110,293 @@ type minzInterpreterContext struct {
 	variables   map[string]interface{} // Local variables in the @minz block
 }
 
+// parseAndExecuteRawCode parses and executes raw MinZ code from @minz[[[]]] blocks
+func (ctx *minzInterpreterContext) parseAndExecuteRawCode(rawCode string) error {
+	// For now, always use simple pattern matching since full parsing is complex
+	if minzDebug {
+		fmt.Printf("DEBUG: Using pattern matching for @minz block execution\n")
+	}
+	return ctx.executeSimplePatterns(rawCode)
+}
+
+// executeSimplePatterns handles simple pattern matching for when full parsing fails
+func (ctx *minzInterpreterContext) executeSimplePatterns(rawCode string) error {
+	if minzDebug {
+		fmt.Printf("DEBUG: Using simple pattern matching for @minz block\n")
+	}
+	
+	// Process all lines in the raw code
+	lines := strings.Split(rawCode, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" && !strings.HasPrefix(line, "//") {
+			// Execute each line
+			if err := ctx.executeSimpleLine(line); err != nil {
+				return err
+			}
+		}
+	}
+	
+	return nil
+}
+
+// executeSimpleForLoop handles simple for loops with @emit patterns
+func (ctx *minzInterpreterContext) executeSimpleForLoop(rawCode string) error {
+	lines := strings.Split(rawCode, "\n")
+	
+	// Look for "for i in start..end {" pattern
+	var inLoop bool
+	var loopVar string
+	var start, end int
+	var loopBody []string
+	
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		
+		if strings.HasPrefix(line, "for ") && strings.Contains(line, " in ") && strings.Contains(line, "..") && strings.HasSuffix(line, " {") {
+			// Parse: "for i in 0..4 {"
+			parts := strings.Fields(line)
+			if len(parts) >= 4 {
+				loopVar = parts[1]
+				rangePart := parts[3] // "0..4"
+				if strings.Contains(rangePart, "..") {
+					rangeParts := strings.Split(rangePart, "..")
+					if len(rangeParts) == 2 {
+						startStr := strings.TrimSpace(rangeParts[0])
+						endStr := strings.TrimSpace(rangeParts[1])
+						
+						var err error
+						start, err = ctx.parseIntOrVariable(startStr)
+						if err != nil {
+							return fmt.Errorf("invalid range start: %s", startStr)
+						}
+						end, err = ctx.parseIntOrVariable(endStr)
+						if err != nil {
+							return fmt.Errorf("invalid range end: %s", endStr)
+						}
+						
+						inLoop = true
+						loopBody = []string{}
+						
+						if minzDebug {
+							fmt.Printf("DEBUG: Found for loop: %s in %d..%d\n", loopVar, start, end)
+						}
+					}
+				}
+			}
+		} else if inLoop && line == "}" {
+			// End of loop - execute the body
+			if minzDebug {
+				fmt.Printf("DEBUG: Executing loop body with %d lines\n", len(loopBody))
+			}
+			
+			for i := start; i < end; i++ {
+				// Set the loop variable
+				if ctx.variables == nil {
+					ctx.variables = make(map[string]interface{})
+				}
+				ctx.variables[loopVar] = i
+				
+				// Execute each line in the loop body
+				for _, bodyLine := range loopBody {
+					if err := ctx.executeSimpleLine(bodyLine); err != nil {
+						return err
+					}
+				}
+			}
+			
+			// Clean up
+			inLoop = false
+			delete(ctx.variables, loopVar)
+		} else if inLoop {
+			// Inside loop body
+			loopBody = append(loopBody, line)
+		} else {
+			// Outside loop - execute directly
+			if err := ctx.executeSimpleLine(line); err != nil {
+				return err
+			}
+		}
+	}
+	
+	return nil
+}
+
+// executeSimpleLine executes a simple line of code (mainly @emit calls)
+func (ctx *minzInterpreterContext) executeSimpleLine(line string) error {
+	line = strings.TrimSpace(line)
+	if line == "" || strings.HasPrefix(line, "//") {
+		return nil
+	}
+	
+	// Handle for loops specially
+	if strings.HasPrefix(line, "for ") && strings.Contains(line, " in ") && strings.Contains(line, "..") {
+		// This is the start of a for loop - need to handle it specially
+		// For now, return nil and let the executeSimpleForLoop handle it
+		return nil
+	}
+	
+	// Handle @emit("...") calls
+	if strings.HasPrefix(line, "@emit(") && strings.HasSuffix(line, ");") {
+		// Extract the string content
+		content := line[6 : len(line)-2] // Remove @emit( and );
+		// Remove quotes if present
+		content = strings.Trim(content, "\"")
+		// Process template variables
+		content = ctx.processTemplateString(content)
+		ctx.emittedCode = append(ctx.emittedCode, content)
+		
+		if minzDebug {
+			fmt.Printf("DEBUG: Emitted: %s\n", content)
+		}
+		return nil
+	}
+	
+	// Handle @save_binary("filename", data) calls
+	if strings.HasPrefix(line, "@save_binary(") && strings.HasSuffix(line, ");") {
+		// Simple pattern matching - extract arguments
+		args := line[13 : len(line)-2] // Remove @save_binary( and );
+		// Split on comma (simple version)
+		parts := strings.SplitN(args, ",", 2)
+		if len(parts) == 2 {
+			filename := strings.TrimSpace(parts[0])
+			filename = strings.Trim(filename, "\"")
+			filename = ctx.processTemplateString(filename)
+			
+			dataExpr := strings.TrimSpace(parts[1])
+			// For now, handle variable references
+			if ctx.variables != nil {
+				if data, ok := ctx.variables[dataExpr]; ok {
+					// Convert to bytes
+					if arr, ok := data.([]interface{}); ok {
+						bytes := make([]byte, len(arr))
+						for i, val := range arr {
+							if intVal, ok := toInt(val); ok && intVal >= 0 && intVal <= 255 {
+								bytes[i] = byte(intVal)
+							}
+						}
+						os.WriteFile(filename, bytes, 0644)
+						if minzDebug {
+							fmt.Printf("DEBUG: Saved %d bytes to %s\n", len(bytes), filename)
+						}
+					}
+				}
+			}
+		}
+		return nil
+	}
+	
+	// Handle @incbin("filename") calls
+	if strings.HasPrefix(line, "@incbin(") && strings.HasSuffix(line, ");") {
+		// Extract filename
+		filename := line[8 : len(line)-2] // Remove @incbin( and );
+		filename = strings.Trim(filename, "\"")
+		filename = ctx.processTemplateString(filename)
+		
+		// Generate INCBIN directive
+		ctx.emittedCode = append(ctx.emittedCode, fmt.Sprintf("    INCBIN \"%s\"", filename))
+		
+		if minzDebug {
+			fmt.Printf("DEBUG: Generated INCBIN for %s\n", filename)
+		}
+		return nil
+	}
+	
+	// Handle variable assignments like: data[i] = value
+	if strings.Contains(line, "[") && strings.Contains(line, "]") && strings.Contains(line, "=") {
+		// Parse array assignment
+		parts := strings.Split(line, "=")
+		if len(parts) == 2 {
+			left := strings.TrimSpace(parts[0])
+			right := strings.TrimSpace(parts[1])
+			right = strings.TrimSuffix(right, ";")
+			
+			// Extract array name and index
+			if idx := strings.Index(left, "["); idx > 0 {
+				arrayName := strings.TrimSpace(left[:idx])
+				indexExpr := left[idx+1 : strings.Index(left, "]")]
+				
+				// Evaluate index
+				indexVal := ctx.evaluateSimpleExpression(indexExpr)
+				index, _ := strconv.Atoi(indexVal)
+				
+				// Evaluate value
+				valueStr := ctx.evaluateSimpleExpression(right)
+				value, _ := strconv.Atoi(valueStr)
+				
+				// Update array
+				if ctx.variables != nil {
+					if arr, ok := ctx.variables[arrayName].([]interface{}); ok {
+						if index >= 0 && index < len(arr) {
+							arr[index] = value
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	// Handle variable declaration with array literal: let data = [1, 2, 3];
+	if strings.HasPrefix(line, "let ") && strings.Contains(line, "=") {
+		parts := strings.Split(line[4:], "=")
+		if len(parts) == 2 {
+			varName := strings.TrimSpace(parts[0])
+			valueExpr := strings.TrimSpace(parts[1])
+			valueExpr = strings.TrimSuffix(valueExpr, ";")
+			
+			// Check if it's an array literal
+			if strings.HasPrefix(valueExpr, "[") && strings.HasSuffix(valueExpr, "]") {
+				// Parse array literal
+				arrayContent := valueExpr[1 : len(valueExpr)-1]
+				elements := strings.Split(arrayContent, ",")
+				
+				arr := make([]interface{}, len(elements))
+				for i, elem := range elements {
+					elem = strings.TrimSpace(elem)
+					if val, err := strconv.Atoi(elem); err == nil {
+						arr[i] = val
+					} else {
+						// Try evaluating as expression
+						arr[i] = ctx.evaluateSimpleExpression(elem)
+					}
+				}
+				
+				if ctx.variables == nil {
+					ctx.variables = make(map[string]interface{})
+				}
+				ctx.variables[varName] = arr
+				
+				if minzDebug {
+					fmt.Printf("DEBUG: Created array %s with %d elements\n", varName, len(arr))
+				}
+			}
+		}
+	}
+	
+	return nil
+}
+
+// parseIntOrVariable parses an integer literal or looks up a variable value
+func (ctx *minzInterpreterContext) parseIntOrVariable(s string) (int, error) {
+	// Try parsing as integer literal first
+	if val, err := strconv.Atoi(s); err == nil {
+		return val, nil
+	}
+	
+	// Try looking up as variable
+	if ctx.variables != nil {
+		if val, ok := ctx.variables[s]; ok {
+			if intVal, ok := toInt(val); ok {
+				return intVal, nil
+			} else {
+				return 0, fmt.Errorf("variable %s is not an integer", s)
+			}
+		}
+	}
+	
+	return 0, fmt.Errorf("unknown identifier: %s", s)
+}
+
 // executeStatement executes a statement in the MinZ interpreter
 func (ctx *minzInterpreterContext) executeStatement(stmt ast.Statement) error {
 	switch s := stmt.(type) {
@@ -134,6 +407,10 @@ func (ctx *minzInterpreterContext) executeStatement(stmt ast.Statement) error {
 	case *ast.VarDecl:
 		return ctx.executeVarDecl(s)
 	case *ast.ExpressionStmt:
+		// Check if it's a metafunction call like @save_binary
+		if call, ok := s.Expression.(*ast.MetafunctionCall); ok {
+			return ctx.executeMetafunction(call)
+		}
 		// Execute the expression (might have side effects)
 		_, err := ctx.evaluateExpression(s.Expression)
 		return err
@@ -325,22 +602,86 @@ func (ctx *minzInterpreterContext) evaluateBinaryExpr(expr *ast.BinaryExpr) (int
 func (ctx *minzInterpreterContext) processTemplateString(template string) string {
 	result := template
 	
-	// Simple substitution for now - look for {varname} patterns
-	for name, value := range ctx.variables {
-		placeholder := "{" + name + "}"
-		result = strings.ReplaceAll(result, placeholder, fmt.Sprintf("%v", value))
+	// Look for {expression} patterns and evaluate them
+	// This is a simple implementation - more complex expressions can be added
+	for {
+		start := strings.Index(result, "{")
+		if start == -1 {
+			break
+		}
+		end := strings.Index(result[start:], "}")
+		if end == -1 {
+			break
+		}
+		end += start
 		
-		// Also handle expressions like {i * i}
-		// For now, we'll do simple arithmetic in placeholders
-		exprPlaceholder := fmt.Sprintf("{%s * %s}", name, name)
-		if strings.Contains(result, exprPlaceholder) {
-			if intVal, ok := toInt(value); ok {
-				result = strings.ReplaceAll(result, exprPlaceholder, fmt.Sprintf("%d", intVal*intVal))
+		expr := result[start+1 : end]
+		
+		// Evaluate the expression
+		value := ctx.evaluateSimpleExpression(expr)
+		
+		// Replace the placeholder
+		placeholder := result[start : end+1]
+		result = strings.ReplaceAll(result, placeholder, value)
+	}
+	
+	return result
+}
+
+// evaluateSimpleExpression evaluates simple expressions like "i", "i * i", "size"
+func (ctx *minzInterpreterContext) evaluateSimpleExpression(expr string) string {
+	expr = strings.TrimSpace(expr)
+	
+	// Handle simple variable reference
+	if ctx.variables != nil {
+		if val, ok := ctx.variables[expr]; ok {
+			return fmt.Sprintf("%v", val)
+		}
+	}
+	
+	// Handle simple arithmetic: "var * var" or "var + var"
+	if strings.Contains(expr, " * ") {
+		parts := strings.Split(expr, " * ")
+		if len(parts) == 2 {
+			leftVar := strings.TrimSpace(parts[0])
+			rightVar := strings.TrimSpace(parts[1])
+			
+			if ctx.variables != nil {
+				if leftVal, ok := ctx.variables[leftVar]; ok {
+					if rightVal, ok := ctx.variables[rightVar]; ok {
+						if leftInt, ok := toInt(leftVal); ok {
+							if rightInt, ok := toInt(rightVal); ok {
+								return fmt.Sprintf("%d", leftInt*rightInt)
+							}
+						}
+					}
+				}
 			}
 		}
 	}
 	
-	return result
+	if strings.Contains(expr, " + ") {
+		parts := strings.Split(expr, " + ")
+		if len(parts) == 2 {
+			leftVar := strings.TrimSpace(parts[0])
+			rightVar := strings.TrimSpace(parts[1])
+			
+			if ctx.variables != nil {
+				if leftVal, ok := ctx.variables[leftVar]; ok {
+					if rightVal, ok := ctx.variables[rightVar]; ok {
+						if leftInt, ok := toInt(leftVal); ok {
+							if rightInt, ok := toInt(rightVal); ok {
+								return fmt.Sprintf("%d", leftInt+rightInt)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	// If we can't evaluate, return as-is
+	return expr
 }
 
 // substituteTemplateVars substitutes template variables in a string
@@ -375,4 +716,99 @@ func toInt(v interface{}) (int, bool) {
 	default:
 		return 0, false
 	}
+}
+
+// executeMetafunction executes compile-time metafunctions like @save_binary
+func (ctx *minzInterpreterContext) executeMetafunction(call *ast.MetafunctionCall) error {
+	switch call.Name {
+	case "save_binary":
+		return ctx.executeSaveBinary(call)
+	case "incbin":
+		return ctx.executeIncBin(call)
+	default:
+		return fmt.Errorf("unknown metafunction: @%s", call.Name)
+	}
+}
+
+// executeSaveBinary saves binary data to a file
+func (ctx *minzInterpreterContext) executeSaveBinary(call *ast.MetafunctionCall) error {
+	if len(call.Arguments) != 2 {
+		return fmt.Errorf("@save_binary requires 2 arguments: filename and data")
+	}
+	
+	// Evaluate filename
+	filenameVal, err := ctx.evaluateExpression(call.Arguments[0])
+	if err != nil {
+		return fmt.Errorf("error evaluating filename: %w", err)
+	}
+	filename, ok := filenameVal.(string)
+	if !ok {
+		return fmt.Errorf("filename must be a string, got %T", filenameVal)
+	}
+	
+	// Evaluate data
+	dataVal, err := ctx.evaluateExpression(call.Arguments[1])
+	if err != nil {
+		return fmt.Errorf("error evaluating data: %w", err)
+	}
+	
+	// Convert data to bytes
+	var bytes []byte
+	switch data := dataVal.(type) {
+	case []interface{}:
+		// Array of values
+		bytes = make([]byte, len(data))
+		for i, val := range data {
+			if intVal, ok := toInt(val); ok {
+				if intVal < 0 || intVal > 255 {
+					return fmt.Errorf("array element %d is out of byte range: %d", i, intVal)
+				}
+				bytes[i] = byte(intVal)
+			} else {
+				return fmt.Errorf("array element %d is not a number: %T", i, val)
+			}
+		}
+	case string:
+		// String data
+		bytes = []byte(data)
+	default:
+		return fmt.Errorf("data must be an array or string, got %T", dataVal)
+	}
+	
+	// Save to file
+	if err := os.WriteFile(filename, bytes, 0644); err != nil {
+		return fmt.Errorf("error writing file %s: %w", filename, err)
+	}
+	
+	if minzDebug {
+		fmt.Printf("DEBUG: Saved %d bytes to %s\n", len(bytes), filename)
+	}
+	
+	return nil
+}
+
+// executeIncBin generates an INCBIN directive
+func (ctx *minzInterpreterContext) executeIncBin(call *ast.MetafunctionCall) error {
+	if len(call.Arguments) != 1 {
+		return fmt.Errorf("@incbin requires 1 argument: filename")
+	}
+	
+	// Evaluate filename
+	filenameVal, err := ctx.evaluateExpression(call.Arguments[0])
+	if err != nil {
+		return fmt.Errorf("error evaluating filename: %w", err)
+	}
+	filename, ok := filenameVal.(string)
+	if !ok {
+		return fmt.Errorf("filename must be a string, got %T", filenameVal)
+	}
+	
+	// Generate INCBIN directive
+	ctx.emittedCode = append(ctx.emittedCode, fmt.Sprintf("    INCBIN \"%s\"", filename))
+	
+	if minzDebug {
+		fmt.Printf("DEBUG: Generated INCBIN for %s\n", filename)
+	}
+	
+	return nil
 }

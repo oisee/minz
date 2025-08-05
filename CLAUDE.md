@@ -218,7 +218,7 @@ Generates appropriate celebration for milestones:
 Example: `/celebrate "Zero-cost abstractions actually working!"`
 Output: "🎊 AMAZING ACHIEVEMENT! 🎊 Zero-cost abstractions on 8-bit hardware - what was thought impossible is now reality! This is genuinely revolutionary! 🚀✨"
 
-## 🛠️ Development Tools & Capabilities (v0.9.5)
+## 🛠️ Development Tools & Capabilities (v0.9.6)
 
 ### ✅ What We've Already Built & Solved
 
@@ -249,8 +249,10 @@ Output: "🎊 AMAZING ACHIEVEMENT! 🎊 Zero-cost abstractions on 8-bit hardware
 - 🚧 **@if Conditional**: Partial implementation, compile-time evaluation works
 - 🚧 **@minz Redesign**: New @minz[[[]]] syntax designed, not yet implemented
 - ✅ **Error Handling**: `@error` system with error propagation (`docs/127_Error_Propagation_System.md`)
+- ✅ **Function Overloading**: Multiple functions with same name, different parameters!
+- ✅ **Interface Methods**: Natural `object.method()` syntax with zero-cost dispatch
 
-**MinZ Language Features That Work (60% success rate):**
+**MinZ Language Features That Work (70% success rate):**
 - ✅ **Core Types**: u8, u16, i8, i16, bool, arrays, pointers
 - ✅ **Functions**: Parameters, returns, recursion, basic optimization
 - ✅ **Control Flow**: if/else, while, for loops with ranges
@@ -265,8 +267,20 @@ Output: "🎊 AMAZING ACHIEVEMENT! 🎊 Zero-cost abstractions on 8-bit hardware
 global u8 simple_var = 42;
 global ComplexStruct complex_var;  // ✅ This works!
 
-fun function_name(param: u8) -> u16 { ... }  // ✅ "fun" not "fn"
+fun function_name(param: u8) -> u16 { ... }  // ✅ "fun" or "fn" - both work!
 fun error_func?(param: u8) -> u8 ? ErrorType { ... }  // ✅ Error-throwing functions
+
+// NEW: Function overloading!
+fun print(x: u8) -> void { ... }
+fun print(x: u16) -> void { ... }
+fun print(s: String) -> void { ... }
+print(42);    // Calls print$u8
+print(1000);  // Calls print$u16
+
+// NEW: Interface methods!
+interface Drawable { fun draw(self) -> void; }
+impl Drawable for Circle { fun draw(self) -> void { ... } }
+circle.draw();  // Direct call to Circle.draw$Circle
 let local: Type = value;
 struct_var.field = value;
 array_var[index] = value;
@@ -288,7 +302,7 @@ let result = risky_operation?() ?? @error;  // ✅ Error propagation
 ### 🚧 Current Limitations (v0.9.0)
 
 **Language Features Missing (40% failures):**
-- ❌ **Interfaces**: `self` parameter resolution broken
+- ✅ **Interfaces**: `self` parameter resolution FIXED! Methods work perfectly!
 - ❌ **Module Imports**: Import system not implemented
 - ❌ **Advanced Metafunctions**: @hex, @bin, @debug, @format
 - ❌ **Standard Library**: print_u8, print_u16, mem.*, str.* functions

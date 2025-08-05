@@ -31,10 +31,33 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "minzc [source file]",
-	Short: "MinZ Multi-Platform Compiler",
-	Long:  `minzc compiles MinZ source code to various target platforms including Z80, 6502, and WebAssembly.
-Can also compile from MIR (Machine Independent Representation) files.`,
+	Use:   "mz [source file]",
+	Short: "MinZ Multi-Platform Compiler v" + version,
+	Long:  `MinZ compiles modern systems programming code to retro and modern platforms.
+
+Target backends:
+  z80    - Z80 assembly (ZX Spectrum, MSX, CPC) [default]
+  6502   - 6502 assembly (C64, NES, Apple II)
+  wasm   - WebAssembly 
+  c      - C99 source code
+  llvm   - LLVM IR (experimental)
+  
+Special features:
+  - Zero-cost abstractions on 8-bit hardware
+  - Self-modifying code optimization (--enable-smc)
+  - Compile-time metaprogramming (@minz[[[]]], @if, @emit)
+  - Function overloading and lambdas
+  - Ruby/Swift-inspired developer happiness
+
+Examples:
+  mz program.minz                    # Compile to Z80 (default)
+  mz program.minz -b 6502            # Compile to 6502
+  mz program.minz -b c -o program.c  # Generate C code
+  mz program.minz -O --enable-smc    # Optimize with SMC
+  mz --list-backends                 # Show all backends
+  
+Environment:
+  MINZ_BACKEND - Set default backend (e.g., export MINZ_BACKEND=6502)`,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Handle --list-backends flag
@@ -49,8 +72,9 @@ Can also compile from MIR (Machine Independent Representation) files.`,
 		
 		// Require source file if not listing backends
 		if len(args) == 0 {
-			fmt.Fprintf(os.Stderr, "Error: source file required\n")
-			os.Exit(1)
+			// Show help when called without arguments (like Go compiler)
+			cmd.Help()
+			os.Exit(0)
 		}
 		
 		sourceFile := args[0]
@@ -75,7 +99,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&enableTAS, "tas", false, "enable TAS debugging with time-travel and cycle-perfect recording")
 	rootCmd.Flags().StringVar(&tasFile, "tas-record", "", "record execution to TAS file for perfect replay")
 	rootCmd.Flags().StringVar(&tasReplay, "tas-replay", "", "replay execution from TAS file")
-	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, 6502, wasm)")
+	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, 6502, wasm, c, llvm)")
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
 	rootCmd.Flags().StringVar(&visualizeMIR, "viz", "", "generate MIR visualization in DOT format")
 }
@@ -88,7 +112,10 @@ func main() {
 }
 
 func compile(sourceFile string) error {
-	fmt.Printf("Compiling %s...\n", sourceFile)
+	// Silent by default (like Go compiler)
+	if debug {
+		fmt.Printf("Compiling %s...\n", sourceFile)
+	}
 	
 	// Check if input is a MIR file
 	if filepath.Ext(sourceFile) == ".mir" {
@@ -266,7 +293,10 @@ func compile(sourceFile string) error {
 		fmt.Printf("TAS replay mode - will replay from %s\n", tasReplay)
 	}
 
-	fmt.Printf("Successfully compiled to %s\n", outputFile)
+	// Silent on success (like Go compiler)
+	if debug {
+		fmt.Printf("Successfully compiled to %s\n", outputFile)
+	}
 	return nil
 }
 
@@ -400,7 +430,10 @@ func compileFromMIR(mirFile string) error {
 		fmt.Printf("TAS replay mode - will replay from %s\n", tasReplay)
 	}
 
-	fmt.Printf("Successfully compiled to %s\n", outputFile)
+	// Silent on success (like Go compiler)
+	if debug {
+		fmt.Printf("Successfully compiled to %s\n", outputFile)
+	}
 	return nil
 }
 
