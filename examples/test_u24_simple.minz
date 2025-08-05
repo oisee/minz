@@ -1,0 +1,10 @@
+// Simple test for u24 parameter passing
+
+fun test_u24(value: u24) -> u24 {
+    // Use the parameter so TRUE SMC is triggered
+    return value;
+}
+
+fun main() -> void {
+    test_u24(0x123456);
+}

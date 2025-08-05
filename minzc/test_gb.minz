@@ -1,0 +1,26 @@
+// Test program for Game Boy backend
+fun main() -> void {
+    let x: u8 = 42;
+    let y: u8 = 10;
+    let sum: u8 = x + y;
+    
+    // GB-specific code
+    @target("gb") {
+        asm {
+            ; Wait for VBlank
+            LD A, [$FF44]  ; Read LY register
+            CP 144
+            JR C, -3       ; Loop until in VBlank
+        }
+    }
+    
+    // Z80-specific code (won't be compiled for GB)
+    @target("z80") {
+        asm {
+            EXX            ; Use shadow registers
+            LD BC, 1000
+        }
+    }
+    
+    @print("Result: { sum }\n");
+}

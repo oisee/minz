@@ -1,32 +1,10 @@
 ; MinZ generated code
-; Generated: 2025-08-04 23:34:52
+; Generated: 2025-08-05 10:12:46
 
-
-; Data section
-    ORG $F000
-
-str_0:
-    DB 26    ; Length
-    DB "Testing @minz metafunction"
 
 ; Code section
     ORG $8000
 
-; Using hierarchical register allocation (physical → shadow → memory)
-
-; Function: test_minz_simple.main
-test_minz_simple.main:
-; IsSMCDefault=true, IsSMCEnabled=true
-; Using absolute addressing for locals (SMC style)
-    ; r1 = string(str_0)
-    LD HL, str_0
-    ; Print "Testing @minz metafunction" (26 chars via loop)
-    CALL print_string
-    ; r2 = 0
-    LD A, 0
-    LD B, A         ; Store to physical register B
-    ; return r2
-    RET
 
 ; Runtime print helper functions
 print_string:

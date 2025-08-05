@@ -3,6 +3,7 @@ package ast
 // MinzBlock represents a @minz[[[]]] compile-time execution block
 type MinzBlock struct {
 	Code     []Statement // MinZ code to execute at compile time
+	RawCode  string      // Raw code text (for unparsed blocks)
 	StartPos Position
 	EndPos   Position
 }

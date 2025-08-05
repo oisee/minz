@@ -1,0 +1,28 @@
+// Test parameter passing for u24 and fixed-point types
+
+// Test u24 parameter passing
+fun test_u24_param(addr: u24) -> void {
+    // Use the u24 parameter
+    let local_addr: u24 = addr;
+}
+
+// Test f8.8 parameter passing
+fun test_f8_8_param(value: f8.8) -> f8.8 {
+    return value;
+}
+
+// Test f.8 parameter passing (pure fractional, should use 8-bit)
+fun test_f_8_param(fraction: f.8) -> f.8 {
+    return fraction;
+}
+
+// Main function to call tests
+fun main() -> void {
+    // Test u24
+    test_u24_param(0x123456);
+    
+    // Test fixed-point
+    test_f8_8_param(0x0100);  // 1.0 in f8.8
+    test_f_8_param(0x80);     // 0.5 in f.8
+}
+EOF < /dev/null

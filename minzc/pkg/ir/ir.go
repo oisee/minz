@@ -271,18 +271,27 @@ const (
 	TypeBool
 	TypeU8
 	TypeU16
+	TypeU24
 	TypeI8
 	TypeI16
+	TypeI24
+	TypeF8_8    // Fixed point 8.8
+	TypeF_8     // Fixed point .8 (pure fractional 8-bit)
+	TypeF_16    // Fixed point .16 (pure fractional 16-bit)
+	TypeF16_8   // Fixed point 16.8
+	TypeF8_16   // Fixed point 8.16
 )
 
 func (t *BasicType) Size() int {
 	switch t.Kind {
 	case TypeVoid:
 		return 0
-	case TypeBool, TypeU8, TypeI8:
+	case TypeBool, TypeU8, TypeI8, TypeF_8:
 		return 1
-	case TypeU16, TypeI16:
+	case TypeU16, TypeI16, TypeF8_8, TypeF_16:
 		return 2
+	case TypeU24, TypeI24, TypeF16_8, TypeF8_16:
+		return 3
 	default:
 		return 0
 	}
@@ -298,10 +307,24 @@ func (t *BasicType) String() string {
 		return "u8"
 	case TypeU16:
 		return "u16"
+	case TypeU24:
+		return "u24"
 	case TypeI8:
 		return "i8"
 	case TypeI16:
 		return "i16"
+	case TypeI24:
+		return "i24"
+	case TypeF8_8:
+		return "f8.8"
+	case TypeF_8:
+		return "f.8"
+	case TypeF_16:
+		return "f.16"
+	case TypeF16_8:
+		return "f16.8"
+	case TypeF8_16:
+		return "f8.16"
 	default:
 		return "unknown"
 	}
@@ -915,6 +938,57 @@ func (op Opcode) String() string {
 	case OpNot: return "NOT"
 	case OpShl: return "SHL"
 	case OpShr: return "SHR"
+	case OpCmp: return "CMP"
+	case OpTest: return "TEST"
+	case OpEq: return "EQ"
+	case OpNe: return "NE"
+	case OpLt: return "LT"
+	case OpGt: return "GT"
+	case OpLe: return "LE"
+	case OpGe: return "GE"
+	case OpAlloc: return "ALLOC"
+	case OpFree: return "FREE"
+	case OpLoadPtr: return "LOAD_PTR"
+	case OpStorePtr: return "STORE_PTR"
+	case OpAddr: return "ADDR"
+	case OpLoad: return "LOAD"
+	case OpStore: return "STORE"
+	case OpPush: return "PUSH"
+	case OpPop: return "POP"
+	case OpAsm: return "ASM"
+	case OpLoadAddr: return "LOAD_ADDR"
+	case OpCopyToBuffer: return "COPY_TO_BUFFER"
+	case OpCopyFromBuffer: return "COPY_FROM_BUFFER"
+	case OpDJNZ: return "DJNZ"
+	case OpLoadImm: return "LOAD_IMM"
+	case OpAddImm: return "ADD_IMM"
+	case OpPrint: return "PRINT"
+	case OpPrintU8: return "PRINT_U8"
+	case OpPrintU16: return "PRINT_U16"
+	case OpPrintI8: return "PRINT_I8"
+	case OpPrintI16: return "PRINT_I16"
+	case OpPrintBool: return "PRINT_BOOL"
+	case OpPrintString: return "PRINT_STRING"
+	case OpPrintStringDirect: return "PRINT_STRING_DIRECT"
+	case OpLoadString: return "LOAD_STRING"
+	case OpSMCLoadConst: return "SMC_LOAD_CONST"
+	case OpSMCStoreConst: return "SMC_STORE_CONST"
+	case OpSMCParam: return "SMC_PARAM"
+	case OpSMCSave: return "SMC_SAVE"
+	case OpSMCRestore: return "SMC_RESTORE"
+	case OpSMCUpdate: return "SMC_UPDATE"
+	case OpStoreTSMCRef: return "STORE_TSMC_REF"
+	case OpTrueSMCLoad: return "TRUE_SMC_LOAD"
+	case OpTrueSMCPatch: return "TRUE_SMC_PATCH"
+	case OpTSMCRefAnchor: return "TSMC_REF_ANCHOR"
+	case OpTSMCRefLoad: return "TSMC_REF_LOAD"
+	case OpTSMCRefPatch: return "TSMC_REF_PATCH"
+	case OpSetError: return "SET_ERROR"
+	case OpCheckError: return "CHECK_ERROR"
+	case OpArrayInit: return "ARRAY_INIT"
+	case OpArrayElement: return "ARRAY_ELEMENT"
+	case OpLoadElement: return "LOAD_ELEMENT"
+	case OpStoreElement: return "STORE_ELEMENT"
 	default: return fmt.Sprintf("UNKNOWN_OP_%d", int(op))
 	}
 }

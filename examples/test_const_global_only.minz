@@ -1,0 +1,14 @@
+// Test global const declarations only
+
+// Global constants
+const DEBUG: bool = true;
+const MAX_SPRITES: u8 = 64;
+const SCREEN_WIDTH: u16 = 256;
+
+// Test using constants
+fun test_constants() -> void {
+    if DEBUG {
+        let count = MAX_SPRITES;
+        let width = SCREEN_WIDTH;
+    }
+}

@@ -1,0 +1,27 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_f16_type.test_fractional_types() -> void
+  @smc
+  Locals:
+    r1 = opacity8: f.8
+    r3 = opacity16: f.16
+    r5 = precise: f.16
+    r7 = mix1: f.16
+    r9 = mix2: f.16
+    r11 = t: f.16
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r4 = 0
+      3: store , r4
+      4: r6 = 0
+      5: store , r6
+      6: r8 = 0
+      7: store , r8
+      8: r10 = 0
+      9: store , r10
+     10: r12 = 0
+     11: store , r12
+     12: return
+

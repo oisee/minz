@@ -1,0 +1,95 @@
+// MinZ Metaprogramming Showcase
+// Demonstrates the power of @minz for code generation
+
+// 1. Generate a family of type-safe math functions
+@minz[[[fun multiply_{0}(a: {0}, b: {0}) -> {0} { return a * b; }]]]("u8")
+@minz[[[fun multiply_{0}(a: {0}, b: {0}) -> {0} { return a * b; }]]]("u16")
+
+// 2. Generate getter/setter pairs for a pseudo-property system
+@minz[[[
+global {0}: {1} = {2};
+fun get_{0}() -> {1} { return {0}; }
+fun set_{0}(value: {1}) -> void { {0} = value; }
+]]]("player_health", "u8", "100")
+
+@minz[[[
+global {0}: {1} = {2};
+fun get_{0}() -> {1} { return {0}; }
+fun set_{0}(value: {1}) -> void { {0} = value; }
+]]]("player_score", "u16", "0")
+
+// 3. Generate specialized print functions
+@minz[[[
+fun print_{0}(prefix: *u8) -> void {
+    @print("{ prefix }");
+    @print("{0}");
+}
+]]]("status")
+
+@minz[[[
+fun print_{0}(prefix: *u8) -> void {
+    @print("{ prefix }");
+    @print("{0}");
+}
+]]]("debug")
+
+// 4. Generate a state machine
+@minz[[[
+enum GameState_{0} { Idle_{0}, Running_{0}, Paused_{0}, GameOver_{0} }
+global current_{0}_state: GameState_{0} = GameState_{0}.Idle_{0};
+
+fun transition_{0}(new_state: GameState_{0}) -> void {
+    current_{0}_state = new_state;
+}
+
+fun is_{0}_running() -> bool {
+    return current_{0}_state == GameState_{0}.Running_{0};
+}
+]]]("Menu")
+
+// 5. Generate array utility functions
+@minz[[[
+fun fill_array_{0}(arr: *[{0}; 10], value: {0}) -> void {
+    for i in 0..10 {
+        arr[i] = value;
+    }
+}
+]]]("u8")
+
+// Main function to test all generated code
+fun main() -> u8 {
+    @print("=== MinZ Metaprogramming Showcase ===");
+    
+    // Test math functions
+    let x = multiply_u8(5, 6);
+    @print("5 * 6 = { x }");
+    
+    let y = multiply_u16(100, 200);
+    @print("100 * 200 = { y }");
+    
+    // Test property system
+    @print("Initial health: { get_player_health() }");
+    set_player_health(75);
+    @print("After damage: { get_player_health() }");
+    
+    set_player_score(1000);
+    @print("Score: { get_player_score() }");
+    
+    // Test specialized print functions
+    print_status("System Status: ");
+    print_debug("Debug Info: ");
+    
+    // Test state machine
+    @print("Menu running? { is_Menu_running() }");
+    transition_Menu(GameState_Menu.Running_Menu);
+    @print("Menu running? { is_Menu_running() }");
+    
+    // Test array utilities
+    let test_array: [u8; 10];
+    fill_array_u8(&test_array, 42);
+    @print("Array[0] = { test_array[0] }");
+    @print("Array[9] = { test_array[9] }");
+    
+    @print("=== All tests complete! ===");
+    return 0;
+}

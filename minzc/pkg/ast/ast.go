@@ -101,7 +101,7 @@ type Type interface {
 	typeNode()
 }
 
-// PrimitiveType represents primitive types (u8, u16, i8, i16, bool, void)
+// PrimitiveType represents primitive types (u8, u16, u24, i8, i16, i24, bool, void, f8.8, f.8, f16.8, f8.16)
 type PrimitiveType struct {
 	Name     string
 	StartPos Position
@@ -426,6 +426,18 @@ type AsmStmt struct {
 func (a *AsmStmt) Pos() Position { return a.StartPos }
 func (a *AsmStmt) End() Position { return a.EndPos }
 func (a *AsmStmt) stmtNode()    {}
+
+// TargetBlockStmt represents @target("backend") { ... } statement
+type TargetBlockStmt struct {
+	Target   string      // Target backend: "z80", "6502", "wasm", etc.
+	Body     *BlockStmt  // Code block specific to this target
+	StartPos Position
+	EndPos   Position
+}
+
+func (t *TargetBlockStmt) Pos() Position { return t.StartPos }
+func (t *TargetBlockStmt) End() Position { return t.EndPos }
+func (t *TargetBlockStmt) stmtNode()    {}
 
 // MIRStmt represents inline MIR block: mir { ... }
 type MIRStmt struct {
@@ -1010,6 +1022,18 @@ type InlineAssembly struct {
 
 func (i *InlineAssembly) Pos() Position { return i.StartPos }
 func (i *InlineAssembly) End() Position { return i.EndPos }
+
+// TargetBlock represents @target("backend") { ... } blocks
+type TargetBlock struct {
+	Target   string      // Target backend: "z80", "6502", "wasm", etc.
+	Body     *BlockStmt  // Code block specific to this target
+	StartPos Position
+	EndPos   Position
+}
+
+func (t *TargetBlock) Pos() Position { return t.StartPos }
+func (t *TargetBlock) End() Position { return t.EndPos }
+func (t *TargetBlock) exprNode()      {}
 func (i *InlineAssembly) exprNode()    {}
 
 // AsmOperand represents an inline assembly operand

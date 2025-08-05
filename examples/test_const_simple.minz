@@ -1,0 +1,18 @@
+// Test const declarations with integers only for now
+
+// Global constants
+const DEBUG: bool = true;
+const MAX_SPRITES: u8 = 64;
+const SCREEN_WIDTH: u16 = 256;
+
+// Test using constants
+fun test_constants() -> void {
+    if DEBUG {
+        let count = MAX_SPRITES;
+        let width = SCREEN_WIDTH;
+    }
+    
+    // Local constants in function
+    const LOCAL_MAX: u8 = 100;
+    let value = LOCAL_MAX;
+}

@@ -425,11 +425,29 @@ func (g *Z80Generator) generateParameterAnchor(param *ir.Parameter, destReg ir.R
 		g.emit("    LD A, 0        ; %s anchor (will be patched)", param.Name)
 		g.emit("%s EQU %s+1", anchorImm, anchorOp)
 		g.storeFromA(destReg)
-	} else {
+	} else if param.Type.Size() == 2 {
 		// 16-bit parameter - use LD HL, nn
 		g.emit("    LD HL, 0       ; %s anchor (will be patched)", param.Name)
 		g.emit("%s EQU %s+1", anchorImm, anchorOp)
 		// Value is now in HL, store to destination
+		g.storeFromHL(destReg)
+	} else if param.Type.Size() == 3 {
+		// 24-bit parameter - need two anchors: A for high byte, HL for low 16 bits
+		anchorHigh := fmt.Sprintf("%s$immHI", param.Name)
+		anchorLow := fmt.Sprintf("%s$immLO", param.Name)
+		
+		// Load high byte into A
+		g.emit("%s:", anchorHigh)
+		g.emit("    LD A, 0        ; %s high byte anchor (will be patched)", param.Name)
+		g.emit("%s EQU %s+1", anchorHigh+"0", anchorHigh)
+		
+		// Load low 16 bits into HL
+		g.emit("%s:", anchorLow)
+		g.emit("    LD HL, 0       ; %s low 16 bits anchor (will be patched)", param.Name)
+		g.emit("%s EQU %s+1", anchorLow+"0", anchorLow)
+		
+		// For now, just store HL to destination (low 16 bits only)
+		// TODO: Need proper 24-bit register allocation
 		g.storeFromHL(destReg)
 	}
 }
@@ -618,21 +636,37 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 				
 				// For the first use, we need to emit the load instruction
 				if param.Type.Size() == 1 {
-					// For u8, load into appropriate register as u16 to avoid conversions
-					switch paramIndex {
-					case 0:
-						g.emit("    LD HL, #0000   ; SMC parameter %s (u8->u16)", paramName)
-					case 1:
-						g.emit("    LD DE, #0000   ; SMC parameter %s (u8->u16)", paramName)
-						g.emit("    EX DE, HL      ; Move to HL for storage")
-					default:
-						g.emit("    LD BC, #0000   ; SMC parameter %s (u8->u16)", paramName)
-						g.emit("    LD H, B")
-						g.emit("    LD L, C        ; Move to HL for storage")
+					// For u8/f.8, check if it's f.8 which should use A directly
+					if bt, ok := param.Type.(*ir.BasicType); ok && bt.Kind == ir.TypeF_8 {
+						// f.8 should use A register directly
+						g.emit("    LD A, #00      ; SMC parameter %s (f.8)", paramName)
+						g.storeFromA(inst.Dest)
+					} else {
+						// Other u8 types, load into appropriate register as u16 to avoid conversions
+						switch paramIndex {
+						case 0:
+							g.emit("    LD HL, #0000   ; SMC parameter %s (u8->u16)", paramName)
+						case 1:
+							g.emit("    LD DE, #0000   ; SMC parameter %s (u8->u16)", paramName)
+							g.emit("    EX DE, HL      ; Move to HL for storage")
+						default:
+							g.emit("    LD BC, #0000   ; SMC parameter %s (u8->u16)", paramName)
+							g.emit("    LD H, B")
+							g.emit("    LD L, C        ; Move to HL for storage")
+						}
+						// Store to the destination
+						g.storeFromHL(inst.Dest)
 					}
-					// Store to the destination
+				} else if param.Type.Size() == 3 {
+					// For 24-bit types (u24/i24/f16.8/f8.16), use A+HL split
+					g.emit("    LD A, #00      ; SMC parameter %s (high byte)", paramName)
+					g.emit("    LD HL, #0000   ; SMC parameter %s (low 16 bits)", paramName)
+					// Store the 24-bit value
+					// For now, store as 16-bit in HL (truncating high byte)
+					// TODO: Properly handle 24-bit storage
 					g.storeFromHL(inst.Dest)
 				} else {
+					// 16-bit types
 					switch paramIndex {
 					case 0:
 						g.emit("    LD HL, #0000   ; SMC parameter %s", paramName)
@@ -876,9 +910,15 @@ func (g *Z80Generator) generateEpilogue() {
 
 // prepareCallArguments prepares arguments for a function call
 func (g *Z80Generator) prepareCallArguments(args []ir.Register, targetFunc *ir.Function) {
-	// Determine calling convention
+	// For SMC functions, parameters are patched directly - no need to prepare here
+	if targetFunc != nil && (targetFunc.IsSMCDefault || targetFunc.IsSMCEnabled) {
+		// SMC parameters are handled by generateTrueSMCCall or embedded in the function
+		return
+	}
+	
+	// Determine calling convention for non-SMC functions
 	useRegisterPassing := false
-	if targetFunc != nil && !targetFunc.IsRecursive && !targetFunc.IsSMCEnabled && len(args) <= 3 {
+	if targetFunc != nil && !targetFunc.IsRecursive && len(args) <= 3 {
 		useRegisterPassing = true
 	}
 	
@@ -2879,6 +2919,22 @@ func (g *Z80Generator) generateTrueSMCCall(inst ir.Instruction, targetFunc *ir.F
 			// 8-bit patch
 			g.loadToA(argReg)
 			g.emit("    LD (%s), A        ; Patch %s", anchorAddr, param.Name)
+		} else if param.Type.Size() == 3 {
+			// 24-bit patch - need to patch both high byte and low 16 bits
+			anchorHigh := fmt.Sprintf("%s$immHI0", param.Name)
+			anchorLow := fmt.Sprintf("%s$immLO0", param.Name)
+			
+			// Load the 24-bit value
+			// For now, assume it's in memory as 3 consecutive bytes
+			g.loadToHL(argReg)  // This loads the low 16 bits
+			
+			// Patch low 16 bits
+			g.emit("    LD (%s), HL       ; Patch %s low 16 bits", anchorLow, param.Name)
+			
+			// Load high byte - for now, assume it's at argReg+2 in memory
+			// TODO: Proper 24-bit register allocation
+			g.emit("    LD A, 0           ; TODO: Load high byte of %s", param.Name)
+			g.emit("    LD (%s), A        ; Patch %s high byte", anchorHigh, param.Name)
 		} else {
 			// 16-bit patch - NO DI/EI needed (atomic instruction)
 			g.loadToHL(argReg)

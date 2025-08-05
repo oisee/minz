@@ -433,6 +433,8 @@ func (p *Parser) convertStatement(node *SExpNode) ast.Statement {
 	switch node.Type {
 	case "variable_declaration":
 		return p.convertVarDecl(node)
+	case "constant_declaration":
+		return p.convertConstDecl(node)
 	case "return_statement":
 		return p.convertReturnStmt(node)
 	case "if_statement":
@@ -457,6 +459,8 @@ func (p *Parser) convertStatement(node *SExpNode) ast.Statement {
 		return p.convertMinzBlock(node)
 	case "minz_emit":
 		return p.convertMinzEmit(node)
+	case "target_block":
+		return p.convertTargetBlock(node)
 	}
 	return nil
 }
@@ -1319,10 +1323,26 @@ func (p *Parser) convertMinzBlock(node *SExpNode) *ast.MinzBlock {
 		EndPos:   node.EndPos,
 	}
 	
-	// Find the minz_block_content child
+	if os.Getenv("DEBUG") != "" {
+		fmt.Printf("DEBUG: convertMinzBlock with %d children\n", len(node.Children))
+		for i, child := range node.Children {
+			fmt.Printf("  Child %d: type=%s, text=%s\n", i, child.Type, child.Text)
+		}
+	}
+	
+	// Find the code child (either minz_block_content or minz_raw_block)
 	for _, child := range node.Children {
-		if child.Type == "minz_block_content" {
-			// Convert each statement/expression in the content
+		// Look for the code node directly
+		if child.Type == "minz_raw_block" {
+			// For now, store raw code as a string
+			rawCode := p.getNodeText(child)
+			// TODO: Parse and process the MinZ code
+			minzBlock.RawCode = rawCode
+			if os.Getenv("DEBUG") != "" {
+				fmt.Printf("DEBUG: MinzBlock raw code: %q\n", rawCode)
+			}
+		} else if child.Type == "minz_block_content" {
+			// Process structured content
 			for _, contentChild := range child.Children {
 				if contentChild.Type == "minz_emit" {
 					if stmt := p.convertMinzEmit(contentChild); stmt != nil {
@@ -1341,7 +1361,6 @@ func (p *Parser) convertMinzBlock(node *SExpNode) *ast.MinzBlock {
 					}
 				}
 			}
-			break
 		}
 	}
 	
@@ -1363,6 +1382,33 @@ func (p *Parser) convertMinzEmit(node *SExpNode) *ast.MinzEmit {
 	}
 	
 	return minzEmit
+}
+
+func (p *Parser) convertTargetBlock(node *SExpNode) ast.Statement {
+	// Find the target string and block
+	var target string
+	var body *ast.BlockStmt
+	
+	for _, child := range node.Children {
+		if child.Type == "string_literal" {
+			// Parse the target string
+			text := p.getNodeText(child)
+			// Remove quotes if present
+			if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
+				target = text[1 : len(text)-1]
+			}
+		} else if child.Type == "block" {
+			body = p.convertBlock(child)
+		}
+	}
+	
+	// Create and return TargetBlockStmt
+	return &ast.TargetBlockStmt{
+		Target:   target,
+		Body:     body,
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
 }
 
 func (p *Parser) convertEnumDecl(node *SExpNode) *ast.EnumDecl {

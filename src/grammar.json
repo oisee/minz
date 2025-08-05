@@ -70,7 +70,7 @@
       "members": [
         {
           "type": "PATTERN",
-          "value": "\\d+"
+          "value": "\\d+(\\.\\d+)?"
         },
         {
           "type": "PATTERN",
@@ -219,6 +219,10 @@
         },
         {
           "type": "STRING",
+          "value": "u24"
+        },
+        {
+          "type": "STRING",
           "value": "i8"
         },
         {
@@ -227,11 +231,35 @@
         },
         {
           "type": "STRING",
+          "value": "i24"
+        },
+        {
+          "type": "STRING",
           "value": "bool"
         },
         {
           "type": "STRING",
           "value": "void"
+        },
+        {
+          "type": "STRING",
+          "value": "f8.8"
+        },
+        {
+          "type": "STRING",
+          "value": "f.8"
+        },
+        {
+          "type": "STRING",
+          "value": "f.16"
+        },
+        {
+          "type": "STRING",
+          "value": "f16.8"
+        },
+        {
+          "type": "STRING",
+          "value": "f8.16"
         }
       ]
     },
@@ -1690,6 +1718,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "constant_declaration"
+        },
+        {
+          "type": "SYMBOL",
           "name": "function_declaration"
         },
         {
@@ -1711,6 +1743,10 @@
         {
           "type": "SYMBOL",
           "name": "minz_block"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "target_block"
         }
       ]
     },
@@ -4762,7 +4798,7 @@
           "name": "code",
           "content": {
             "type": "SYMBOL",
-            "name": "minz_block_content"
+            "name": "minz_raw_block"
           }
         },
         {
@@ -4852,6 +4888,14 @@
         },
         "named": false,
         "value": "mir_block_text"
+      }
+    },
+    "minz_raw_block": {
+      "type": "PREC",
+      "value": 2,
+      "content": {
+        "type": "PATTERN",
+        "value": "([^\\]]+|\\][^\\]]+|\\]\\][^\\]]+)*"
       }
     },
     "define_template": {
@@ -5509,6 +5553,31 @@
         {
           "type": "SYMBOL",
           "name": "number_literal"
+        }
+      ]
+    },
+    "target_block": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "@target"
+        },
+        {
+          "type": "STRING",
+          "value": "("
+        },
+        {
+          "type": "SYMBOL",
+          "name": "string_literal"
+        },
+        {
+          "type": "STRING",
+          "value": ")"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "block"
         }
       ]
     }

@@ -433,6 +433,9 @@ func (p *Parser) parseStructDecl(node map[string]interface{}) *ast.StructDecl {
 
 // parseConstDecl parses a constant declaration
 func (p *Parser) parseConstDecl(node map[string]interface{}) *ast.ConstDecl {
+	if debug {
+		fmt.Printf("DEBUG parseConstDecl called\n")
+	}
 	constDecl := &ast.ConstDecl{}
 	
 	children, _ := node["children"].([]interface{})
@@ -456,6 +459,10 @@ func (p *Parser) parseConstDecl(node map[string]interface{}) *ast.ConstDecl {
 	
 	constDecl.StartPos = p.getPosition(node, "startPosition")
 	constDecl.EndPos = p.getPosition(node, "endPosition")
+	
+	if debug {
+		fmt.Printf("DEBUG parseConstDecl returning: name=%s\n", constDecl.Name)
+	}
 	
 	return constDecl
 }
@@ -595,7 +602,7 @@ func (p *Parser) parseType(node map[string]interface{}) ast.Type {
 		// Check if this is a built-in primitive type
 		typeName := p.getText(node)
 		switch typeName {
-		case "u8", "u16", "i8", "i16", "bool", "void":
+		case "u8", "u16", "u24", "i8", "i16", "i24", "bool", "void", "f8.8", "f.8", "f.16", "f16.8", "f8.16":
 			// These are primitive types
 			return &ast.PrimitiveType{
 				Name:     typeName,
@@ -707,6 +714,11 @@ func (p *Parser) parseStatement(node map[string]interface{}) ast.Statement {
 		return p.parseCaseStmt(node)
 	case "variable_declaration":
 		return p.parseVarDecl(node)
+	case "constant_declaration":
+		if debug {
+			fmt.Printf("DEBUG parseStatement: parsing constant_declaration\n")
+		}
+		return p.parseConstDecl(node)
 	case "expression_statement":
 		return p.parseExpressionStmt(node)
 	case "function_declaration":
@@ -716,6 +728,8 @@ func (p *Parser) parseStatement(node map[string]interface{}) ast.Statement {
 			fmt.Printf("DEBUG parseStatement: parsed function %s as statement\n", fn.Name)
 		}
 		return fn
+	case "block_statement":
+		return p.parseBlock(node)
 	}
 	
 	return nil

@@ -1,0 +1,15 @@
+// Simple example for clear visualization
+fun max(a: u8, b: u8) -> u8 {
+    if (a > b) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+fun main() -> void {
+    let x: u8 = 10;
+    let y: u8 = 20;
+    let result: u8 = max(x, y);
+    @print("Max = { result }\n");
+}

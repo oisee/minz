@@ -1,0 +1,23 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_const_simple.test_constants() -> void
+  @smc
+  Locals:
+    r2 = count: u16
+    r4 = width: u16
+    r6 = value: u16
+  Instructions:
+      0: r1 = 1
+      1: jump_if_not r1, else_1
+      2: r3 = 64
+      3: store , r3
+      4: r5 = 256
+      5: store , r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: r7 = 100
+     10: store , r7
+     11: return
+

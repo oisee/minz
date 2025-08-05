@@ -1362,7 +1362,7 @@ func isKeyword(s string) bool {
 }
 
 func isPrimitiveType(s string) bool {
-	types := []string{"void", "bool", "u8", "u16", "i8", "i16", "i32", "u32"}
+	types := []string{"void", "bool", "u8", "u16", "u24", "i8", "i16", "i24", "f8.8", "f.8", "f.16", "f16.8", "f8.16", "i32", "u32"}
 	for _, t := range types {
 		if s == t {
 			return true

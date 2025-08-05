@@ -1,0 +1,22 @@
+// Test const declarations
+
+// Global constants
+const DEBUG: bool = true;
+const MAX_SPRITES: u8 = 64;
+const SCREEN_WIDTH: u16 = 256;
+const PI_APPROX: f8.8 = 3.14159;
+const HALF: f.8 = 0.5;
+
+// Test using constants
+fun test_constants() -> void {
+    if DEBUG {
+        let count = MAX_SPRITES;
+        let width = SCREEN_WIDTH;
+        let pi = PI_APPROX;
+        let half_opacity = HALF;
+    }
+    
+    // Local constants
+    const LOCAL_MAX: u8 = 100;
+    let value = LOCAL_MAX;
+}

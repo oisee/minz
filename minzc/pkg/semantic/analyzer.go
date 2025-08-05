@@ -46,6 +46,7 @@ type Analyzer struct {
 	registeredModules     map[string]bool // Track already registered modules to prevent duplicates
 	metafunctionProcessor *metafunction.Processor // Processor for @metafunction calls
 	errorPropagationContext *ErrorPropagationContext // Track error propagation state
+	targetBackend         string // Target backend for @target directive
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -60,7 +61,13 @@ func NewAnalyzer() *Analyzer {
 		registeredModules: make(map[string]bool),
 		luaEvaluator:      meta.NewLuaEvaluator(),
 		mirInterpreter:    interpreter.NewMIRInterpreter(),
+		targetBackend:     "z80", // Default backend
 	}
+}
+
+// SetTargetBackend sets the target backend for @target directive processing
+func (a *Analyzer) SetTargetBackend(backend string) {
+	a.targetBackend = backend
 }
 
 // Analyze performs semantic analysis on a file
@@ -206,7 +213,7 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 // prefixSymbol adds module prefix to a symbol name if needed
 func (a *Analyzer) prefixSymbol(name string) string {
 	// Don't prefix built-in types
-	if name == "u8" || name == "u16" || name == "i8" || name == "i16" || name == "bool" || name == "void" {
+	if name == "u8" || name == "u16" || name == "u24" || name == "i8" || name == "i16" || name == "i24" || name == "bool" || name == "void" || name == "f8.8" || name == "f.8" || name == "f.16" || name == "f16.8" || name == "f8.16" {
 		return name
 	}
 	
@@ -1435,6 +1442,8 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 	switch s := stmt.(type) {
 	case *ast.VarDecl:
 		return a.analyzeVarDeclInFunc(s, irFunc)
+	case *ast.ConstDecl:
+		return a.analyzeConstDeclInFunc(s, irFunc)
 	case *ast.ReturnStmt:
 		return a.analyzeReturnStmt(s, irFunc)
 	case *ast.IfStmt:
@@ -1449,6 +1458,8 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 		return a.analyzeBlock(s, irFunc)
 	case *ast.AsmStmt:
 		return a.analyzeAsmStmt(s, irFunc)
+	case *ast.TargetBlockStmt:
+		return a.analyzeTargetBlockStmt(s, irFunc)
 	case *ast.ExpressionStmt:
 		// Analyze the expression but ignore the result
 		_, err := a.analyzeExpression(s.Expression, irFunc)
@@ -1724,6 +1735,84 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 		}
 	}
 
+	return nil
+}
+
+// analyzeConstDeclInFunc analyzes a constant declaration inside a function
+func (a *Analyzer) analyzeConstDeclInFunc(c *ast.ConstDecl, irFunc *ir.Function) error {
+	if debug {
+		fmt.Printf("DEBUG: analyzeConstDeclInFunc: %s\n", c.Name)
+	}
+	// Constants must have a value
+	if c.Value == nil {
+		return fmt.Errorf("constant %s must have a value", c.Name)
+	}
+	
+	// Determine type
+	var constType ir.Type
+	var inferredType ir.Type
+	
+	// Get the declared type if present
+	if c.Type != nil {
+		t, err := a.convertType(c.Type)
+		if err != nil {
+			return fmt.Errorf("invalid type for constant %s: %w", c.Name, err)
+		}
+		constType = t
+	}
+	
+	// Get the inferred type from value
+	t, err := a.inferType(c.Value)
+	if err != nil {
+		if constType == nil {
+			return fmt.Errorf("cannot infer type for constant %s: %w", c.Name, err)
+		}
+		// Use the explicit type
+	} else {
+		inferredType = t
+	}
+	
+	// Determine final type and check compatibility
+	if constType != nil && inferredType != nil {
+		// Both type annotation and initializer present - check compatibility
+		if !a.typesCompatible(constType, inferredType) {
+			return fmt.Errorf("type mismatch for constant %s: declared type %s but initializer has type %s", 
+				c.Name, constType.String(), inferredType.String())
+		}
+		// Use the declared type
+	} else if constType != nil {
+		// Only type annotation
+	} else if inferredType != nil {
+		// Only initializer, use inferred type
+		constType = inferredType
+	} else {
+		return fmt.Errorf("cannot determine type for constant %s", c.Name)
+	}
+	
+	// Evaluate the constant value
+	var constValue int64
+	if numLit, ok := c.Value.(*ast.NumberLiteral); ok {
+		constValue = numLit.Value
+	} else if boolLit, ok := c.Value.(*ast.BooleanLiteral); ok {
+		if boolLit.Value {
+			constValue = 1
+		} else {
+			constValue = 0
+		}
+	} else {
+		// For other expressions, we can't evaluate at compile time yet
+		// TODO: Implement constant expression evaluation
+		constValue = 0
+	}
+	
+	// Define constant in current scope (function scope)
+	a.currentScope.Define(c.Name, &ConstSymbol{
+		Name:  c.Name,
+		Type:  constType,
+		Value: constValue,
+	})
+	
+	// Constants don't generate any IR code - they're replaced at use sites
 	return nil
 }
 
@@ -2145,6 +2234,17 @@ func (a *Analyzer) analyzeAsmStmt(asmStmt *ast.AsmStmt, irFunc *ir.Function) err
 	
 	// Add to function instructions
 	irFunc.Instructions = append(irFunc.Instructions, asmInst)
+	
+	return nil
+}
+
+func (a *Analyzer) analyzeTargetBlockStmt(tb *ast.TargetBlockStmt, irFunc *ir.Function) error {
+	// Only process the block if the target matches the current backend
+	if tb.Target == a.targetBackend {
+		// Analyze the body statements
+		return a.analyzeBlock(tb.Body, irFunc)
+	}
+	// If target doesn't match, skip the block entirely
 	
 	return nil
 }
@@ -4814,6 +4914,7 @@ func (a *Analyzer) analyzePrintExpr(print *ast.CompileTimePrint, irFunc *ir.Func
 	return 0, nil
 }
 
+
 // analyzeCompileTimeIf analyzes @if compile-time conditional expressions
 func (a *Analyzer) analyzeCompileTimeIf(ifExpr *ast.CompileTimeIf, irFunc *ir.Function) (ir.Register, error) {
 	// Evaluate condition at compile time
@@ -5730,10 +5831,24 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 			return &ir.BasicType{Kind: ir.TypeU8}, nil
 		case "u16":
 			return &ir.BasicType{Kind: ir.TypeU16}, nil
+		case "u24":
+			return &ir.BasicType{Kind: ir.TypeU24}, nil
 		case "i8":
 			return &ir.BasicType{Kind: ir.TypeI8}, nil
 		case "i16":
 			return &ir.BasicType{Kind: ir.TypeI16}, nil
+		case "i24":
+			return &ir.BasicType{Kind: ir.TypeI24}, nil
+		case "f8.8":
+			return &ir.BasicType{Kind: ir.TypeF8_8}, nil
+		case "f.8":
+			return &ir.BasicType{Kind: ir.TypeF_8}, nil
+		case "f.16":
+			return &ir.BasicType{Kind: ir.TypeF_16}, nil
+		case "f16.8":
+			return &ir.BasicType{Kind: ir.TypeF16_8}, nil
+		case "f8.16":
+			return &ir.BasicType{Kind: ir.TypeF8_16}, nil
 		default:
 			return nil, fmt.Errorf("unknown primitive type: %s", t.Name)
 		}

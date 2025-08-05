@@ -8,6 +8,7 @@ import (
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/codegen"
 	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/mir"
 	"github.com/minz/minzc/pkg/module"
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
@@ -16,22 +17,42 @@ import (
 )
 
 var (
-	version     = "0.9.1"
-	outputFile  string
-	optimize    bool
-	debug       bool
-	enableSMC   bool
-	enableTAS   bool
-	tasFile     string
-	tasReplay   string
+	version      = "0.9.5"
+	outputFile   string
+	optimize     bool
+	debug        bool
+	enableSMC    bool
+	enableTAS    bool
+	tasFile      string
+	tasReplay    string
+	backend      string
+	listBackends bool
+	visualizeMIR string // Output file for MIR visualization
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "minzc [source file]",
-	Short: "MinZ to Z80 Assembly Compiler",
-	Long:  `minzc compiles MinZ source code to Z80 assembly in sjasmplus .a80 format`,
-	Args:  cobra.ExactArgs(1),
+	Short: "MinZ Multi-Platform Compiler",
+	Long:  `minzc compiles MinZ source code to various target platforms including Z80, 6502, and WebAssembly.
+Can also compile from MIR (Machine Independent Representation) files.`,
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		// Handle --list-backends flag
+		if listBackends {
+			backends := codegen.ListBackends()
+			fmt.Println("Available backends:")
+			for _, b := range backends {
+				fmt.Printf("  - %s\n", b)
+			}
+			return
+		}
+		
+		// Require source file if not listing backends
+		if len(args) == 0 {
+			fmt.Fprintf(os.Stderr, "Error: source file required\n")
+			os.Exit(1)
+		}
+		
 		sourceFile := args[0]
 		if err := compile(sourceFile); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -41,13 +62,22 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file (default: input.a80)")
+	// Check environment variable for default backend
+	defaultBackend := os.Getenv("MINZ_BACKEND")
+	if defaultBackend == "" {
+		defaultBackend = "z80"
+	}
+	
+	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file (default: input.<ext> based on backend)")
 	rootCmd.Flags().BoolVarP(&optimize, "optimize", "O", false, "enable optimizations")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
 	rootCmd.Flags().BoolVar(&enableSMC, "enable-smc", false, "enable all self-modifying code optimizations including TRUE SMC (requires code in RAM)")
 	rootCmd.Flags().BoolVar(&enableTAS, "tas", false, "enable TAS debugging with time-travel and cycle-perfect recording")
 	rootCmd.Flags().StringVar(&tasFile, "tas-record", "", "record execution to TAS file for perfect replay")
 	rootCmd.Flags().StringVar(&tasReplay, "tas-replay", "", "replay execution from TAS file")
+	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, 6502, wasm)")
+	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
+	rootCmd.Flags().StringVar(&visualizeMIR, "viz", "", "generate MIR visualization in DOT format")
 }
 
 func main() {
@@ -59,6 +89,11 @@ func main() {
 
 func compile(sourceFile string) error {
 	fmt.Printf("Compiling %s...\n", sourceFile)
+	
+	// Check if input is a MIR file
+	if filepath.Ext(sourceFile) == ".mir" {
+		return compileFromMIR(sourceFile)
+	}
 
 	// Find project root (directory containing the source file or its parent)
 	projectRoot := filepath.Dir(sourceFile)
@@ -92,6 +127,7 @@ func compile(sourceFile string) error {
 
 	// Perform semantic analysis with module support
 	analyzer := semantic.NewAnalyzer()
+	analyzer.SetTargetBackend(backend)
 	// TODO: Set module resolver on analyzer
 	irModule, err := analyzer.Analyze(astFile)
 	if err != nil {
@@ -107,8 +143,12 @@ func compile(sourceFile string) error {
 	}
 	defer analyzer.Close()
 	
-	// Enable SMC for all functions if flag is set OR if optimizing
-	if enableSMC || optimize {
+	// Get the backend to check if it supports SMC
+	backendInstance := codegen.GetBackend(backend, nil)
+	supportsSMC := backendInstance != nil && backendInstance.SupportsFeature(codegen.FeatureSelfModifyingCode)
+	
+	// Enable SMC for all functions if flag is set OR if optimizing (and backend supports it)
+	if supportsSMC && (enableSMC || optimize) {
 		for _, fn := range irModule.Functions {
 			fn.IsSMCEnabled = true
 		}
@@ -118,6 +158,10 @@ func compile(sourceFile string) error {
 			} else {
 				fmt.Println("SMC enabled automatically with -O optimization")
 			}
+		}
+	} else if !supportsSMC && enableSMC {
+		if debug {
+			fmt.Printf("Warning: Backend %s does not support self-modifying code\n", backend)
 		}
 	}
 
@@ -141,11 +185,40 @@ func compile(sourceFile string) error {
 		}
 	}
 
-	// Determine output filename
+	// Create backend options
+	backendOptions := &codegen.BackendOptions{
+		OptimizationLevel: 0,
+		EnableSMC:         enableSMC,
+		EnableTrueSMC:     enableSMC || optimize,
+		Debug:             debug,
+	}
+	
+	if optimize {
+		backendOptions.OptimizationLevel = 2
+	}
+
+	// Get the backend
+	backendInst := codegen.GetBackend(backend, backendOptions)
+	if backendInst == nil {
+		return fmt.Errorf("unknown backend: %s", backend)
+	}
+	
+	if debug {
+		fmt.Printf("Using backend: %s\n", backend)
+		// Check if backend came from environment variable
+		envBackend := os.Getenv("MINZ_BACKEND")
+		if envBackend != "" && backend == envBackend {
+			fmt.Printf("  (from environment variable MINZ_BACKEND)\n")
+		} else if backend == "z80" && envBackend == "" {
+			fmt.Printf("  (default)\n")
+		}
+	}
+
+	// Determine output filename based on backend
 	if outputFile == "" {
 		base := filepath.Base(sourceFile)
 		ext := filepath.Ext(base)
-		outputFile = base[:len(base)-len(ext)] + ".a80"
+		outputFile = base[:len(base)-len(ext)] + backendInst.GetFileExtension()
 	}
 
 	// Save IR to .mir file
@@ -158,16 +231,23 @@ func compile(sourceFile string) error {
 		fmt.Printf("Saved IR to %s\n", mirFile)
 	}
 
-	// Generate Z80 assembly
-	outFile, err := os.Create(outputFile)
-	if err != nil {
-		return fmt.Errorf("failed to create output file: %w", err)
+	// Generate MIR visualization if requested
+	if visualizeMIR != "" {
+		if err := generateVisualization(irModule, visualizeMIR); err != nil {
+			return fmt.Errorf("visualization error: %w", err)
+		}
+		fmt.Printf("Generated MIR visualization: %s\n", visualizeMIR)
 	}
-	defer outFile.Close()
 
-	generator := codegen.NewZ80Generator(outFile)
-	if err := generator.Generate(irModule); err != nil {
+	// Generate code using the backend
+	generatedCode, err := backendInst.Generate(irModule)
+	if err != nil {
 		return fmt.Errorf("code generation error: %w", err)
+	}
+	
+	// Write output file
+	if err := os.WriteFile(outputFile, []byte(generatedCode), 0644); err != nil {
+		return fmt.Errorf("failed to write output file: %w", err)
 	}
 	
 	// Add TAS debugging support if enabled
@@ -190,11 +270,157 @@ func compile(sourceFile string) error {
 	return nil
 }
 
+// compileFromMIR compiles a .mir file directly to the target backend
+func compileFromMIR(mirFile string) error {
+	fmt.Printf("Compiling from MIR: %s...\n", mirFile)
+	
+	// Import the MIR parser
+	mirParser := mir.ParseMIRFile
+	
+	// Parse the MIR file
+	irModule, err := mirParser(mirFile)
+	if err != nil {
+		return fmt.Errorf("MIR parse error: %w", err)
+	}
+	
+	// Debug: Print module info
+	if debug {
+		fmt.Printf("Loaded MIR module: %s\n", irModule.Name)
+		fmt.Printf("Functions: %d\n", len(irModule.Functions))
+		for _, fn := range irModule.Functions {
+			fmt.Printf("  - %s (%d instructions)\n", fn.Name, len(fn.Instructions))
+		}
+	}
+	
+	// Get the backend to check if it supports SMC
+	backendInstance := codegen.GetBackend(backend, nil)
+	supportsSMC := backendInstance != nil && backendInstance.SupportsFeature(codegen.FeatureSelfModifyingCode)
+	
+	// Enable SMC for all functions if flag is set OR if optimizing (and backend supports it)
+	if supportsSMC && (enableSMC || optimize) {
+		for _, fn := range irModule.Functions {
+			// Preserve existing SMC settings from MIR
+			if !fn.IsSMCEnabled {
+				fn.IsSMCEnabled = true
+			}
+		}
+		if debug {
+			if enableSMC {
+				fmt.Println("Self-modifying code optimization enabled (including TRUE SMC)")
+			} else {
+				fmt.Println("SMC enabled automatically with -O optimization")
+			}
+		}
+	} else if !supportsSMC && enableSMC {
+		if debug {
+			fmt.Printf("Warning: Backend %s does not support self-modifying code\n", backend)
+		}
+	}
+
+	// Run optimization passes if requested
+	if optimize || enableSMC {
+		level := optimizer.OptLevelBasic
+		if optimize {
+			level = optimizer.OptLevelFull
+		}
+		
+		// Use TRUE SMC when optimizing OR when SMC explicitly enabled
+		useTrueSMC := optimize || enableSMC
+		
+		opt := optimizer.NewOptimizerWithOptions(level, useTrueSMC)
+		if err := opt.Optimize(irModule); err != nil {
+			return fmt.Errorf("optimization error: %w", err)
+		}
+		
+		if debug {
+			fmt.Println("Optimization completed")
+		}
+	}
+
+	// Create backend options
+	backendOptions := &codegen.BackendOptions{
+		OptimizationLevel: 0,
+		EnableSMC:         enableSMC,
+		EnableTrueSMC:     enableSMC || optimize,
+		Debug:             debug,
+	}
+
+	if optimize {
+		backendOptions.OptimizationLevel = 2
+	}
+
+	// Get the backend
+	backendInst := codegen.GetBackend(backend, backendOptions)
+	if backendInst == nil {
+		return fmt.Errorf("unknown backend: %s", backend)
+	}
+
+	if debug {
+		fmt.Printf("Using backend: %s\n", backend)
+		// Check if backend came from environment variable
+		envBackend := os.Getenv("MINZ_BACKEND")
+		if envBackend != "" && backend == envBackend {
+			fmt.Printf("  (from environment variable MINZ_BACKEND)\n")
+		} else if backend == "z80" && envBackend == "" {
+			fmt.Printf("  (default)\n")
+		}
+	}
+
+	// Determine output filename based on backend
+	if outputFile == "" {
+		base := filepath.Base(mirFile)
+		ext := filepath.Ext(base)
+		outputFile = base[:len(base)-len(ext)] + backendInst.GetFileExtension()
+	}
+
+	// Generate code using the backend
+	generatedCode, err := backendInst.Generate(irModule)
+	if err != nil {
+		return fmt.Errorf("code generation error: %w", err)
+	}
+
+	// Write output file
+	if err := os.WriteFile(outputFile, []byte(generatedCode), 0644); err != nil {
+		return fmt.Errorf("failed to write output file: %w", err)
+	}
+
+	// Add TAS debugging support if enabled
+	if enableTAS {
+		if err := addTASSupport(outputFile); err != nil {
+			return fmt.Errorf("TAS integration error: %w", err)
+		}
+		fmt.Println("TAS debugging enabled - use 'mzr --tas' to debug with time-travel")
+	}
+
+	// Handle TAS recording/replay
+	if tasFile != "" {
+		fmt.Printf("TAS recording enabled - output will be saved to %s\n", tasFile)
+	}
+	if tasReplay != "" {
+		fmt.Printf("TAS replay mode - will replay from %s\n", tasReplay)
+	}
+
+	fmt.Printf("Successfully compiled to %s\n", outputFile)
+	return nil
+}
+
 // addTASSupport adds TAS debugging hooks to generated assembly
 func addTASSupport(asmFile string) error {
 	// TODO: Add TAS debugging hooks to assembly
 	// For now, just add a comment marker
 	return nil
+}
+
+// generateVisualization generates a DOT file for MIR visualization
+func generateVisualization(module *ir.Module, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	visualizer := mir.NewVisualizer(file)
+	return visualizer.Visualize(module)
 }
 
 // saveIRModule saves the IR module to a .mir file

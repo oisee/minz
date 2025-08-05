@@ -102,13 +102,21 @@ But always ground excitement in facts and measurements.
 - Clear roadmaps ("3-phase plan", "14 weeks to v1.0")
 - Measured optimism ("promising initial results")
 
-## 📋 Stability Roadmap
+## 📋 Development Roadmaps
 
-**IMPORTANT**: See [STABILITY_ROADMAP.md](../STABILITY_ROADMAP.md) for our detailed 3-phase plan to reach v1.0 production readiness by November 2025. This roadmap defines:
-- What's stable vs experimental
-- Priority order for stabilization
-- Success metrics for each phase
-- Timeline to production readiness
+**IMPORTANT**: We maintain two key roadmap documents:
+
+1. **[STABILITY_ROADMAP.md](../STABILITY_ROADMAP.md)** - Our 3-phase plan to v1.0 production readiness:
+   - What's stable vs experimental
+   - Priority order for stabilization
+   - Success metrics for each phase
+   - Timeline to production readiness
+
+2. **[Development Roadmap 2025](../docs/129_Development_Roadmap_2025.md)** - Current TODO priorities:
+   - Active development tasks
+   - Backend priorities
+   - Feature implementation order
+   - Timeline estimates
 
 ## 🚀 AI-Driven Development Practices
 
@@ -210,7 +218,7 @@ Generates appropriate celebration for milestones:
 Example: `/celebrate "Zero-cost abstractions actually working!"`
 Output: "🎊 AMAZING ACHIEVEMENT! 🎊 Zero-cost abstractions on 8-bit hardware - what was thought impossible is now reality! This is genuinely revolutionary! 🚀✨"
 
-## 🛠️ Development Tools & Capabilities (v0.9.0)
+## 🛠️ Development Tools & Capabilities (v0.9.5)
 
 ### ✅ What We've Already Built & Solved
 
@@ -219,6 +227,10 @@ Output: "🎊 AMAZING ACHIEVEMENT! 🎊 Zero-cost abstractions on 8-bit hardware
 - ✅ **Built-in Z80 Assembler**: `minzc/pkg/z80asm/` - NO sjasmplus needed!
 - ✅ **Embedded Z80 Emulator**: `minzc/pkg/emulator/z80.go` - cycle-accurate execution
 - ✅ **Complete Pipeline**: MinZ → Assembly → Machine Code → Execution (all built-in)
+- ✅ **Multi-Backend Architecture**: Z80, 6502, WebAssembly, Game Boy (NEW!)
+- ✅ **MIR Visualization**: Generate beautiful control flow graphs with Graphviz
+- ✅ **Extended Types**: u24/i24 for eZ80, fixed-point (f8.8, f.8, f.16, f16.8, f8.16)
+- ✅ **Advanced Metaprogramming**: @minz[[[]]] blocks with compile-time execution
 
 **Testing Infrastructure:**
 - ✅ **E2E Testing Pipeline**: `compile_all_examples.sh` - tests 148 examples automatically

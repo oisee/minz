@@ -11,26 +11,62 @@ import (
 
 var minzDebug = os.Getenv("DEBUG") != ""
 
+// processTemplateString processes a template string with variable interpolation
+func processTemplateString(template string, variables map[string]interface{}) string {
+	// For now, simple implementation without full template processing
+	// TODO: Implement proper template variable substitution
+	return template
+}
+
 // analyzeMinzBlock processes a @minz[[[]]] compile-time execution block
 // It interprets the MinZ code and generates declarations
 func (a *Analyzer) analyzeMinzBlock(block *ast.MinzBlock) error {
-	if minzDebug {
-		fmt.Printf("DEBUG: Processing @minz block with %d statements\n", len(block.Code))
-	}
-	
 	// Create a MinZ interpreter context
 	ctx := &minzInterpreterContext{
 		analyzer:    a,
 		emittedCode: []string{},
+		variables:   make(map[string]interface{}),
 	}
 	
-	// Execute each statement in the block
-	for _, stmt := range block.Code {
+	// Handle raw code if present
+	if block.RawCode != "" {
 		if minzDebug {
-			fmt.Printf("DEBUG: Executing statement type: %T\n", stmt)
+			fmt.Printf("DEBUG: Processing @minz block with raw code: %s\n", block.RawCode)
 		}
-		if err := ctx.executeStatement(stmt); err != nil {
-			return fmt.Errorf("error executing @minz block: %w", err)
+		// For now, just parse and execute as MinZ code
+		// TODO: Implement proper MinZ interpreter for compile-time execution
+		// For simple cases like @emit, we can do pattern matching
+		if strings.Contains(block.RawCode, "@emit") {
+			// Extract @emit content with simple regex
+			// This is a temporary solution until full interpreter is ready
+			lines := strings.Split(block.RawCode, "\n")
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				if strings.HasPrefix(line, "@emit(") && strings.HasSuffix(line, ")") {
+					// Extract the string content
+					content := line[6 : len(line)-1] // Remove @emit( and )
+					// Remove quotes if present
+					content = strings.Trim(content, "\"")
+					// Process template variables
+					content = processTemplateString(content, ctx.variables)
+					ctx.emittedCode = append(ctx.emittedCode, content)
+				}
+			}
+		}
+	} else {
+		// Handle structured code
+		if minzDebug {
+			fmt.Printf("DEBUG: Processing @minz block with %d statements\n", len(block.Code))
+		}
+		
+		// Execute each statement in the block
+		for _, stmt := range block.Code {
+			if minzDebug {
+				fmt.Printf("DEBUG: Executing statement type: %T\n", stmt)
+			}
+			if err := ctx.executeStatement(stmt); err != nil {
+				return fmt.Errorf("error executing @minz block: %w", err)
+			}
 		}
 	}
 	

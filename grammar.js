@@ -47,8 +47,8 @@ module.exports = grammar({
 
     // Numbers
     number_literal: $ => choice(
-      // Decimal
-      /\d+/,
+      // Decimal with optional fractional part
+      /\d+(\.\d+)?/,
       // Hexadecimal
       /0x[0-9a-fA-F]+/,
       // Binary
@@ -93,7 +93,8 @@ module.exports = grammar({
     ),
 
     primitive_type: $ => choice(
-      'u8', 'u16', 'i8', 'i16', 'bool', 'void',
+      'u8', 'u16', 'u24', 'i8', 'i16', 'i24', 'bool', 'void',
+      'f8.8', 'f.8', 'f.16', 'f16.8', 'f8.16',
     ),
 
     array_type: $ => choice(
@@ -375,12 +376,14 @@ module.exports = grammar({
       $.continue_statement,
       $.block_statement,
       $.variable_declaration,
+      $.constant_declaration,  // Allow const declarations in functions
       $.function_declaration,  // Allow nested functions!
       $.defer_statement,
       $.case_statement,
       $.asm_block,
       $.mir_block,
       $.minz_block,
+      $.target_block,
     ),
 
     expression_statement: $ => seq(
@@ -914,7 +917,7 @@ module.exports = grammar({
     minz_block: $ => seq(
       '@minz',
       '[[[',
-      field('code', $.minz_block_content),
+      field('code', $.minz_raw_block),
       ']]]',
     ),
 
@@ -940,6 +943,9 @@ module.exports = grammar({
     )),
 
     mir_block_content: $ => prec(1, alias(/([^\]]+|\][^\]]+|\]\][^\]]+)*/, 'mir_block_text')),  // MIR code block content
+    
+    // Raw MinZ code block that can contain anything including [[ ]]
+    minz_raw_block: $ => prec(2, /([^\]]+|\][^\]]+|\]\][^\]]+)*/),
 
     // @define template system
     define_template: $ => choice(
@@ -1100,6 +1106,14 @@ module.exports = grammar({
     ),
 
     mir_immediate: $ => seq('#', $.number_literal),
+    
+    target_block: $ => seq(
+      '@target',
+      '(',
+      $.string_literal,  // Target name: "z80", "6502", "wasm", etc.
+      ')',
+      $.block,
+    ),
   }
 });
 

@@ -1,0 +1,205 @@
+; MinZ generated code
+; Generated: 2025-08-05 09:44:36
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_parameter_passing.test_u24_param
+...examples.test_parameter_passing.test_u24_param:
+; TRUE SMC function with immediate anchors
+addr$immOP:
+    LD HL, 0       ; addr anchor (will be patched)
+addr$imm0 EQU addr$immOP+1
+    ; Register 3 already in HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_parameter_passing.test_f8_8_param
+...examples.test_parameter_passing.test_f8_8_param:
+; TRUE SMC function with immediate anchors
+value$immOP:
+    LD HL, 0       ; value anchor (will be patched)
+value$imm0 EQU value$immOP+1
+    LD D, H
+    LD E, L
+    ; return r2
+    LD H, D
+    LD L, E
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_parameter_passing.test_f_8_param
+...examples.test_parameter_passing.test_f_8_param:
+; TRUE SMC function with immediate anchors
+fraction$immOP:
+    LD A, 0        ; fraction anchor (will be patched)
+fraction$imm0 EQU fraction$immOP+1
+    ; return r2
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_parameter_passing.main
+...examples.test_parameter_passing.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r2 = call test_u24_param
+    ; Call to test_u24_param (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ...examples.test_parameter_passing.test_u24_param
+    LD HL, ($F002)    ; Virtual register 1 from memory
+    LD (addr$imm0), HL       ; Patch addr (low 16 bits only)
+    CALL ...examples.test_parameter_passing.test_u24_param
+    ; r4 = call test_f8_8_param
+    ; Call to test_f8_8_param (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ...examples.test_parameter_passing.test_f8_8_param
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD (value$imm0), HL       ; Patch value (atomic)
+    CALL ...examples.test_parameter_passing.test_f8_8_param
+    ; r6 = call test_f_8_param
+    ; Call to test_f_8_param (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ...examples.test_parameter_passing.test_f_8_param
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD (fraction$imm0), A        ; Patch fraction
+    CALL ...examples.test_parameter_passing.test_f_8_param
+    ; return
+    POP DE
+    POP BC
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW addr$imm0           ; ...examples.test_parameter_passing.test_u24_param.addr
+    DB 3              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW value$imm0           ; ...examples.test_parameter_passing.test_f8_8_param.value
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW fraction$imm0           ; ...examples.test_parameter_passing.test_f_8_param.fraction
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+    END main

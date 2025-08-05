@@ -1,0 +1,31 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_parameter_passing.test_u24_param(addr: u24) -> void
+  @smc
+  Locals:
+    r2 = local_addr: u24
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor addr$imm0
+      1: return
+
+Function ...examples.test_parameter_passing.test_f8_8_param(value: f8.8) -> f8.8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor value$imm0
+      1: return r2
+
+Function ...examples.test_parameter_passing.test_f_8_param(fraction: f.8) -> f.8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor fraction$imm0
+      1: return r2
+
+Function ...examples.test_parameter_passing.main() -> void
+  @smc
+  Instructions:
+      0: r2 = call test_u24_param
+      1: r4 = call test_f8_8_param
+      2: r6 = call test_f_8_param
+      3: return
+

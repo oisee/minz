@@ -39,6 +39,11 @@ MinZ provides efficient fixed-point arithmetic for systems without floating-poin
   - Precision: 1/256
   - Use cases: Percentages, alpha blending, probability
 
+- `f.16` - 16-bit pure fraction (0.0 to 0.9999847)
+  - Range: 0.0 to 0.9999847
+  - Precision: 1/65,536 (≈0.0000153)
+  - Use cases: High-precision interpolation, audio mixing, fine gradients
+
 ### Fixed-Point Operations
 ```minz
 // Automatic fixed-point arithmetic

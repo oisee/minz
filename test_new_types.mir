@@ -1,0 +1,45 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_new_types.test_new_types() -> void
+  Locals:
+    r1 = addr24: u24
+    r3 = signed24: i24
+    r6 = velocity: f8.8
+    r8 = alpha: f.8
+    r10 = position: f16.8
+    r12 = precise: f8.16
+    r14 = new_velocity: u16
+    r18 = mixed: u16
+  Instructions:
+      0: r2 = 1193046
+      1: store , r2
+      2: r4 = 8388608
+      3: NEG
+      4: store , r5
+      5: r7 = 0
+      6: store , r7
+      7: r9 = 0
+      8: store , r9
+      9: r11 = 0
+     10: store , r11
+     11: r13 = 0
+     12: store , r13
+     13: r15 = load velocity
+     14: r16 = 0
+     15: r17 = r15 + r16
+     16: store , r17
+     17: r19 = load position
+     18: r20 = load velocity
+     19: r21 = r19 + r20
+     20: store , r21
+     21: r22 = 16777215
+     22: store addr24, r22
+     23: r23 = 8388607
+     24: store signed24, r23
+     25: r24 = 0
+     26: store alpha, r24
+     27: r25 = 0
+     28: store precise, r25
+     29: return
+

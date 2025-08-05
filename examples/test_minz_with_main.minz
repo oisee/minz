@@ -1,0 +1,9 @@
+// Test @minz block with generated constant
+
+@minz[[[
+  @emit("const GENERATED_VALUE: u8 = 100;")
+]]]
+
+fun main() -> void {
+  @print("Generated value is { GENERATED_VALUE }");
+}

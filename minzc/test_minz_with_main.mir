@@ -1,0 +1,12 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.test_minz_with_main.main() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Generated value is " (19 chars via loop)
+      2: r2 = 100
+      3: UNKNOWN_OP_81
+      4: return
+

@@ -3,17 +3,19 @@
 
 ## 🚧 **UNDER CONSTRUCTION** 🚧
 
-**A modern systems programming language for Z80-based computers** (ZX Spectrum, CP/M, MSX)
+**A modern systems programming language for retro computers** (Z80, 6502, Game Boy, WebAssembly)
 
-### Current Version: v0.9.4 "Early Development" (August 2025)
+### Current Version: v0.9.5 "Multi-Backend Revolution" (August 2025)
 
-🔬 **EXPERIMENTAL RELEASE**: MinZ v0.9.4 is exploring advanced compiler techniques including metaprogramming and optimization for Z80 systems. This is early-stage research software with promising initial results.
+🔬 **EXPERIMENTAL RELEASE**: MinZ v0.9.5 brings multi-platform support! Target Z80 (ZX Spectrum, MSX), 6502 (C64, Apple II), Game Boy, and WebAssembly from a single codebase. This is early-stage research software with exciting progress.
 
-🚧 **DEVELOPMENT STATUS**: Core language features work (functions, structs, basic types), with experimental work ongoing for advanced features like metaprogramming and iterator chains. Error propagation system recently implemented.
+🚧 **DEVELOPMENT STATUS**: Core language features work across all backends! Functions, structs, types, error propagation all stable. Extended types (u24/i24, fixed-point) implemented. MIR visualization available for debugging.
 
 ⚠️ **Important**: This is experimental research software. The language is actively evolving and many features are still under development. Not yet suitable for production use.
 
-📋 **Stability Roadmap**: See [STABILITY_ROADMAP.md](STABILITY_ROADMAP.md) for our detailed plan to reach v1.0 production readiness by November 2025.
+📋 **Development Roadmaps**: 
+- [Stability Roadmap](STABILITY_ROADMAP.md) - Path to v1.0 production readiness
+- [Development Roadmap 2025](docs/129_Development_Roadmap_2025.md) - Current priorities and TODO items
 
 ## 📖 **Quick Syntax Reference**
 
@@ -81,6 +83,51 @@ circle.draw()  // Direct call - no vtables!
 **📚 Complete syntax guide**: See our [AI Colleagues MinZ Crash Course](AI_COLLEAGUES_MINZ_CRASH_COURSE.md) for comprehensive examples and patterns.
 
 **Status**: ✅ Error propagation working | 🚧 Lambdas, iterators, interfaces experimental
+
+## 🎯 **Multi-Platform Support** (NEW in v0.9.5!)
+
+MinZ now compiles to multiple target platforms:
+
+```bash
+# Z80 (default) - ZX Spectrum, MSX, CP/M
+minzc program.minz -o program.a80
+
+# 6502 - Commodore 64, Apple II, NES
+minzc program.minz -b 6502 -o program.s
+
+# Game Boy - Nintendo's handheld
+minzc program.minz -b gb -o program.gb.s
+
+# WebAssembly - Run in browsers
+minzc program.minz -b wasm -o program.wat
+
+# List all backends
+minzc --list-backends
+```
+
+### Platform-Specific Code
+```minz
+@target("z80") {
+    asm { EXX }  // Use shadow registers on Z80
+}
+
+@target("6502") {
+    asm { STA $D020 }  // C64 border color
+}
+
+@target("gb") {
+    asm { LDH A, [$FF44] }  // Read Game Boy LY register
+}
+```
+
+### MIR Visualization (NEW!)
+```bash
+# Generate control flow graph
+minzc program.minz --viz program.dot
+dot -Tpng program.dot -o program.png
+```
+
+See [MIR Visualization Guide](docs/MIR_VISUALIZATION_GUIDE.md) for details.
 
 ## 🔬 **Research Goals: Advanced Language Features for Z80**
 

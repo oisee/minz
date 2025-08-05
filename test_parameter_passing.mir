@@ -1,0 +1,67 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_parameter_passing.process_address(addr: u24, offset: u24) -> u24
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function examples.test_parameter_passing.calculate_physics(velocity: f8.8, acceleration: f8.8) -> f8.8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function examples.test_parameter_passing.blend_alpha(color1: u8, color2: u8, alpha: f.8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: return r4
+
+Function examples.test_parameter_passing.test_parameter_calls() -> void
+  Locals:
+    r1 = base_addr: u24
+    r3 = mem_offset: u24
+    r5 = final_addr: u16
+    r9 = speed: f8.8
+    r11 = accel: f8.8
+    r13 = new_speed: u16
+    r17 = red: u8
+    r19 = blue: u8
+    r21 = opacity: f.8
+    r23 = blended: u16
+  Instructions:
+      0: r2 = 1048576
+      1: store , r2
+      2: r4 = 8192
+      3: store , r4
+      4: r6 = load base_addr
+      5: r7 = load mem_offset
+      6: r8 = call process_address
+      7: store , r8
+      8: r10 = 0
+      9: store , r10
+     10: r12 = 0
+     11: store , r12
+     12: r14 = load speed
+     13: r15 = load accel
+     14: r16 = call calculate_physics
+     15: store , r16
+     16: r18 = 255
+     17: store , r18
+     18: r20 = 128
+     19: store , r20
+     20: r22 = 0
+     21: store , r22
+     22: r24 = load red
+     23: r25 = load blue
+     24: r26 = load opacity
+     25: r27 = call blend_alpha
+     26: store , r27
+     27: return
+

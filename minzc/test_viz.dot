@@ -1,0 +1,73 @@
+digraph MinZ_MIR {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  // Module: main
+  subgraph cluster_module {
+    label="Module: main";
+    style=dashed;
+
+    // Global variables
+    subgraph cluster_globals {
+      label="Globals";
+      style=filled;
+      fillcolor=lightgray;
+      "test_viz.counter" [label="test_viz.counter\nu8", shape=octagon];
+    }
+
+    // Function: test_viz.factorial
+    subgraph cluster_func_0 {
+      label="test_viz.factorial";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_0_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_0_rec" [label="Recursive", shape=note, style=filled, fillcolor=lightcoral];
+      "func_0_params" [label="Parameters:\nn: u8", shape=invhouse];
+      "func_0_return" [label="Returns: u8", shape=house];
+      "func_0_bb0" [label="BB0:\nLOAD_PARAM\nr3 = 1\nLE\njump_if_not r4, else_1\n", style=filled, fillcolor=lightgreen];
+      "func_0_bb1" [label="BB1:\nr5 = 1\nreturn r5\n", style=filled, fillcolor=lightcoral];
+      "func_0_bb2" [label="BB2:\njump end_if_2\n", style=filled, fillcolor=lightblue];
+      "func_0_bb3" [label="else_1:\nLOAD_PARAM\nLOAD_PARAM\nr8 = 1\nr9 = r7 - r8\nr10 = call factorial\nr11 = r6 * r10\nreturn r11\n", style=filled, fillcolor=lightcoral];
+      "func_0_bb4" [label="end_if_2:\nreturn\n", style=filled, fillcolor=lightcoral];
+      "func_0_bb0" -> "func_0_bb3" [label="false", style=dashed];
+      "func_0_bb0" -> "func_0_bb1" [label="true"];
+      "func_0_bb2" -> "func_0_bb4" [label="jump"];
+    }
+
+    // Function: test_viz.fibonacci
+    subgraph cluster_func_1 {
+      label="test_viz.fibonacci";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_1_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_1_params" [label="Parameters:\nn: u8", shape=invhouse];
+      "func_1_return" [label="Returns: u8", shape=house];
+      "func_1_bb0" [label="BB0:\nLOAD_PARAM\nr3 = 1\nLE\njump_if_not r4, else_3\n", style=filled, fillcolor=lightgreen];
+      "func_1_bb1" [label="BB1:\nLOAD_PARAM\nreturn r5\n", style=filled, fillcolor=lightcoral];
+      "func_1_bb2" [label="BB2:\njump end_if_4\n", style=filled, fillcolor=lightblue];
+      "func_1_bb3" [label="else_3:\n", style=filled, fillcolor=lightblue];
+      "func_1_bb4" [label="end_if_4:\nr7 = 0\nstore r7\nr9 = 1\nstore r9\nr11 = 2\nstore r11\n", style=filled, fillcolor=lightblue];
+      "func_1_bb5" [label="loop_5:\nr12 = load i\nLOAD_PARAM\nLE\njump_if_not r14, end_loop_6\n", style=filled, fillcolor=lightblue];
+      "func_1_bb6" [label="BB6:\nr16 = load a\nr17 = load b\nr18 = r16 + r17\nstore r18\nr19 = load b\nstore a, r19\nr20 = load temp\nstore b, r20\nr21 = load i\nr22 = 1\nr23 = r21 + r22\nstore i, r23\njump loop_5\n", style=filled, fillcolor=lightblue];
+      "func_1_bb7" [label="end_loop_6:\nr24 = load b\nreturn r24\n", style=filled, fillcolor=lightcoral];
+      "func_1_bb0" -> "func_1_bb3" [label="false", style=dashed];
+      "func_1_bb0" -> "func_1_bb1" [label="true"];
+      "func_1_bb2" -> "func_1_bb4" [label="jump"];
+      "func_1_bb3" -> "func_1_bb4";
+      "func_1_bb4" -> "func_1_bb5";
+      "func_1_bb5" -> "func_1_bb7" [label="false", style=dashed];
+      "func_1_bb5" -> "func_1_bb6" [label="true"];
+      "func_1_bb6" -> "func_1_bb5" [label="jump"];
+    }
+
+    // Function: test_viz.main
+    subgraph cluster_func_2 {
+      label="test_viz.main";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_2_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_2_bb0" [label="BB0:\nr2 = 5\nr3 = call factorial\nstore r3\nr5 = 10\nr6 = call fibonacci\nstore r6\nLOAD_STRING\nPRINT_STRING\nr8 = load result1\nprint_u8 r8\nprint_string_direct\nLOAD_STRING\nPRINT_STRING\nr10 = load result2\nprint_u8 r10\nprint_string_direct\nr11 = load test_viz.counter\nr12 = 1\nr13 = r11 + r12\nstore counter, r13\nreturn\n", style=filled, fillcolor=lightgreen];
+    }
+
+  }
+}

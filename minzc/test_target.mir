@@ -1,0 +1,21 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_target.print_char(c: u8) -> void
+  @smc
+  Instructions:
+      0: return
+
+Function test_target.main() -> void
+  @smc
+  Locals:
+    r1 = msg: u8
+  Instructions:
+      0: r2 = 65
+      1: store , r2
+      2: LOAD_STRING
+      3: PRINT_STRING ; Print "Running on WebAssembly!" (23 chars via loop)
+      4: r4 = load msg
+      5: r5 = call print_char
+      6: return
+

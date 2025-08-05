@@ -1,0 +1,38 @@
+digraph MinZ_MIR {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  // Module: main
+  subgraph cluster_module {
+    label="Module: main";
+    style=dashed;
+
+    // Function: simple_viz.max
+    subgraph cluster_func_0 {
+      label="simple_viz.max";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_0_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_0_params" [label="Parameters:\na: u8\nb: u8", shape=invhouse];
+      "func_0_return" [label="Returns: u8", shape=house];
+      "func_0_bb0" [label="BB0:\nLOAD_PARAM\nLOAD_PARAM\nGT\njump_if_not r5, else_1\n", style=filled, fillcolor=lightgreen];
+      "func_0_bb1" [label="BB1:\nLOAD_PARAM\nreturn r6\n", style=filled, fillcolor=lightcoral];
+      "func_0_bb2" [label="BB2:\njump end_if_2\n", style=filled, fillcolor=lightblue];
+      "func_0_bb3" [label="else_1:\nLOAD_PARAM\nreturn r7\n", style=filled, fillcolor=lightcoral];
+      "func_0_bb4" [label="end_if_2:\nreturn\n", style=filled, fillcolor=lightcoral];
+      "func_0_bb0" -> "func_0_bb3" [label="false", style=dashed];
+      "func_0_bb0" -> "func_0_bb1" [label="true"];
+      "func_0_bb2" -> "func_0_bb4" [label="jump"];
+    }
+
+    // Function: simple_viz.main
+    subgraph cluster_func_1 {
+      label="simple_viz.main";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_1_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_1_bb0" [label="BB0:\nr2 = 10\nstore r2\nr4 = 20\nstore r4\nr6 = load x\nr7 = load y\nr8 = call max\nstore r8\nprint_string_direct\nr9 = load result\nprint_u8 r9\nprint_string_direct\nreturn\n", style=filled, fillcolor=lightgreen];
+    }
+
+  }
+}

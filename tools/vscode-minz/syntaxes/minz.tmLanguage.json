@@ -77,7 +77,7 @@
       "patterns": [
         {
           "name": "storage.type.primitive.minz",
-          "match": "\\b(u8|u16|i8|i16|bool|void|Error)\\b"
+          "match": "\\b(u8|u16|u24|i8|i16|i24|bool|void|Error|f8\\.8|f\\.8|f\\.16|f16\\.8|f8\\.16)\\b"
         },
         {
           "name": "entity.name.type.minz",
