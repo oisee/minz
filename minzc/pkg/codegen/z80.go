@@ -20,9 +20,6 @@ type Z80Generator struct {
 	currentFunction *ir.Function // For DJNZ optimization
 	currentInstructionIndex int  // For DJNZ optimization
 	
-	// Backend options for target-specific generation
-	options          *BackendOptions
-	
 	// Hierarchical register allocation system
 	regAlloc         *RegisterAllocator      // Simple memory-based allocator (fallback)
 	physicalAlloc    *Z80RegisterAllocator   // Sophisticated physical register allocator
@@ -38,14 +35,13 @@ type Z80Generator struct {
 }
 
 // NewZ80Generator creates a new Z80 code generator
-func NewZ80Generator(w io.Writer, options *BackendOptions) *Z80Generator {
+func NewZ80Generator(w io.Writer) *Z80Generator {
 	physicalAlloc := NewZ80RegisterAllocator()
 	// Enable shadow registers for advanced allocation
 	physicalAlloc.EnableShadowRegisters()
 	
 	return &Z80Generator{
 		writer:          w,
-		options:         options,
 		regAlloc:        NewRegisterAllocator(),  // Fallback memory allocator
 		physicalAlloc:   physicalAlloc,           // Physical register allocator
 		usePhysicalRegs: true,                    // Enable hierarchical allocation
@@ -3357,20 +3353,6 @@ func (g *Z80Generator) needsPrintHelpers() bool {
 func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("\n; Runtime print helper functions")
 	
-	// Check target to determine print system calls
-	isCP := g.options != nil && g.options.Target == "cpm"
-	
-	if isCP {
-		// Generate CP/M BDOS print character helper first
-		g.emit("\n; CP/M BDOS print character")
-		g.emit("print_char:")
-		g.emit("    LD E, A            ; Character to print in E")
-		g.emit("    LD C, 2            ; BDOS function 2: Console output")
-		g.emit("    CALL 0005H         ; Call BDOS")
-		g.emit("    RET")
-		g.emit("")
-	}
-	
 	// Print string function - prints length-prefixed string pointed to by HL
 	// Auto-detects u8 vs u16 length format
 	g.emit("print_string:")
@@ -3384,11 +3366,7 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    RET Z              ; Return if empty string")
 	g.emit("print_loop_u8:")
 	g.emit("    LD A, (HL)         ; Load character")
-	if isCP {
-		g.emit("    CALL print_char    ; CP/M BDOS print")
-	} else {
-		g.emit("    RST 16             ; ZX Spectrum ROM print")
-	}
+	g.emit("    RST 16             ; ZX Spectrum ROM print")
 	g.emit("    INC HL             ; Next character")
 	g.emit("    DJNZ print_loop_u8 ; Decrement B and loop")
 	g.emit("    RET")
