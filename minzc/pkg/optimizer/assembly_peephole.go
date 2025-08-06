@@ -180,6 +180,38 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 			Pattern:     regexp.MustCompile(`(?m)^(\s*)EX\s+DE,\s*HL\n\s*EX\s+DE,\s*HL$`),
 			Replacement: "${1}; Eliminated double EX DE,HL",
 		},
+		
+		// Pattern 16: Optimize LD HL,#nnnn; LD D,H; LD E,L to LD DE,#nnnn; LD H,D; LD L,E
+		{
+			Name:        "optimize_immediate_load_to_de",
+			Description: "Load immediate to DE instead of via HL when followed by copy",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+HL,\s*#([0-9A-Fa-f]+)\s*\n\s*LD\s+D,\s*H\s*\n\s*LD\s+E,\s*L$`),
+			Replacement: "${1}LD DE, #$2    ; Optimized: load directly to DE\n${1}LD H, D\n${1}LD L, E",
+		},
+		
+		// Pattern 17: Better - if followed by EX DE,HL, just load to DE
+		{
+			Name:        "optimize_immediate_load_with_swap",
+			Description: "Load immediate to DE when HL load is followed by copy and swap",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+HL,\s*#([0-9A-Fa-f]+)\s*\n\s*LD\s+D,\s*H\s*\n\s*LD\s+E,\s*L\s*\n\s*EX\s+DE,\s*HL$`),
+			Replacement: "${1}LD DE, #$2    ; Optimized: load directly to DE (was LD HL/copy/swap)",
+		},
+		
+		// Pattern 18: Optimize comparison pattern - when we have the inefficient copy+swap
+		{
+			Name:        "optimize_comparison_copy_swap",
+			Description: "Optimize comparison that copies HL to DE then swaps back",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*); r\d+ = r\d+ == r\d+\s*\n\s*LD\s+D,\s*H\s*\n\s*LD\s+E,\s*L\s*\n\s*EX\s+DE,\s*HL$`),
+			Replacement: "${1}; Comparison optimized\n${1}EX DE, HL      ; Just swap HL and DE",
+		},
+		
+		// Pattern 19: General case - when copy is immediately followed by swap
+		{
+			Name:        "optimize_copy_then_swap",
+			Description: "When copying HL to DE then swapping, just swap",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+D,\s*H\s*\n\s*LD\s+E,\s*L\s*\n\s*EX\s+DE,\s*HL$`),
+			Replacement: "${1}EX DE, HL      ; Optimized: direct swap instead of copy+swap",
+		},
 	}
 }
 

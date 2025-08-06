@@ -1381,13 +1381,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpSub:
 		// HL = Src1 - Src2
+		// Optimal: load Src1 to HL, Src2 to DE, then subtract
 		g.loadToHL(inst.Src1)
-		g.emit("    LD D, H")
-		g.emit("    LD E, L")
-		g.loadToHL(inst.Src2)
-		// Now HL = Src2, DE = Src1, need HL = Src1 - Src2
-		// So we need DE - HL, which means we swap and compute HL - DE
-		g.emit("    EX DE, HL     ; Now HL = Src1, DE = Src2")
+		g.loadToDE(inst.Src2)
 		g.emit("    OR A          ; Clear carry")
 		g.emit("    SBC HL, DE    ; HL = Src1 - Src2")
 		g.storeFromHL(inst.Dest)
@@ -2424,56 +2420,112 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 	return nil
 }
 
-// generateComparison generates code for comparison operations
+// generateComparison generates code for comparison operations (OPTIMIZED VERSION)
 func (g *Z80Generator) generateComparison(inst ir.Instruction) {
-	// Load operands
-	g.loadToHL(inst.Src1)
-	g.emit("    LD D, H")
-	g.emit("    LD E, L")
-	g.loadToHL(inst.Src2)
-	
-	// Compare DE with HL (reversed for correct comparison)
-	g.emit("    EX DE, HL     ; Now HL = Src1, DE = Src2")
-	g.emit("    OR A          ; Clear carry")
-	g.emit("    SBC HL, DE    ; HL = Src1 - Src2")
-	
-	// Generate appropriate test
-	trueLabel := g.newLabel()
-	endLabel := g.newLabel()
+	// For comparisons, we need both operands in different registers
+	// Optimal pattern: determine which operand to load first based on the operation
 	
 	switch inst.Op {
 	case ir.OpEq:
-		g.emit("    JP Z, %s", trueLabel)
+		// Equality comparison - order doesn't matter
+		// Optimal: load Src1 to HL, Src2 to DE, then compare
+		g.loadToHL(inst.Src1)
+		g.loadToDE(inst.Src2)
+		g.emit("    OR A           ; Clear carry")
+		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
+		g.emit("    JP Z, .eq_true_%d", g.labelCounter)
+		g.emit("    LD HL, 0       ; False")
+		g.emit("    JP .eq_done_%d", g.labelCounter)
+		g.emit(".eq_true_%d:", g.labelCounter)
+		g.emit("    LD HL, 1       ; True")
+		g.emit(".eq_done_%d:", g.labelCounter)
+		g.labelCounter++
+		g.storeFromHL(inst.Dest)
+		
 	case ir.OpNe:
-		g.emit("    JP NZ, %s", trueLabel)
+		// Not equal
+		// Optimal: load Src1 to HL, Src2 to DE, then compare
+		g.loadToHL(inst.Src1)
+		g.loadToDE(inst.Src2)
+		g.emit("    OR A           ; Clear carry")
+		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
+		g.emit("    JP NZ, .ne_true_%d", g.labelCounter)
+		g.emit("    LD HL, 0       ; False")
+		g.emit("    JP .ne_done_%d", g.labelCounter)
+		g.emit(".ne_true_%d:", g.labelCounter)
+		g.emit("    LD HL, 1       ; True")
+		g.emit(".ne_done_%d:", g.labelCounter)
+		g.labelCounter++
+		g.storeFromHL(inst.Dest)
+		
 	case ir.OpLt:
-		g.emit("    JP M, %s", trueLabel)
-	case ir.OpGe:
-		g.emit("    JP P, %s", trueLabel)
-		g.emit("    JP Z, %s", trueLabel)
+		// Less than: Src1 < Src2
+		g.loadToHL(inst.Src1)
+		g.loadToDE(inst.Src2)
+		g.emit("    OR A           ; Clear carry")
+		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
+		g.emit("    JP M, .lt_true_%d", g.labelCounter)
+		g.emit("    LD HL, 0       ; False")
+		g.emit("    JP .lt_done_%d", g.labelCounter)
+		g.emit(".lt_true_%d:", g.labelCounter)
+		g.emit("    LD HL, 1       ; True")
+		g.emit(".lt_done_%d:", g.labelCounter)
+		g.labelCounter++
+		g.storeFromHL(inst.Dest)
+		
 	case ir.OpGt:
-		g.emit("    JP Z, %s", endLabel)
-		g.emit("    JP P, %s", trueLabel)
+		// Greater than: Src1 > Src2
+		g.loadToHL(inst.Src1)
+		g.loadToDE(inst.Src2)
+		g.emit("    OR A           ; Clear carry")
+		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
+		g.emit("    JP P, .gt_check_zero_%d", g.labelCounter)
+		g.emit("    LD HL, 0       ; False (negative)")
+		g.emit("    JP .gt_done_%d", g.labelCounter)
+		g.emit(".gt_check_zero_%d:", g.labelCounter)
+		g.emit("    LD A, H")
+		g.emit("    OR L           ; Check if result is zero")
+		g.emit("    JP Z, .gt_false_%d", g.labelCounter)
+		g.emit("    LD HL, 1       ; True (positive and non-zero)")
+		g.emit("    JP .gt_done_%d", g.labelCounter)
+		g.emit(".gt_false_%d:", g.labelCounter)
+		g.emit("    LD HL, 0       ; False (zero)")
+		g.emit(".gt_done_%d:", g.labelCounter)
+		g.labelCounter++
+		g.storeFromHL(inst.Dest)
+		
 	case ir.OpLe:
-		g.emit("    JP M, %s", trueLabel)
-		g.emit("    JP Z, %s", trueLabel)
-	default:
-		// This shouldn't happen - generateComparison should only be called for comparison ops
-		g.emit("    ; ERROR: generateComparison called with non-comparison op %s", inst.Op)
-		return
+		// Less than or equal: Src1 <= Src2
+		g.loadToHL(inst.Src1)
+		g.loadToDE(inst.Src2)
+		g.emit("    OR A           ; Clear carry")
+		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
+		g.emit("    JP M, .le_true_%d", g.labelCounter)
+		g.emit("    JP Z, .le_true_%d", g.labelCounter)
+		g.emit("    LD HL, 0       ; False")
+		g.emit("    JP .le_done_%d", g.labelCounter)
+		g.emit(".le_true_%d:", g.labelCounter)
+		g.emit("    LD HL, 1       ; True")
+		g.emit(".le_done_%d:", g.labelCounter)
+		g.labelCounter++
+		g.storeFromHL(inst.Dest)
+		
+	case ir.OpGe:
+		// Greater than or equal: Src1 >= Src2
+		g.loadToHL(inst.Src1)
+		g.loadToDE(inst.Src2)
+		g.emit("    OR A           ; Clear carry")
+		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
+		g.emit("    JP P, .ge_true_%d", g.labelCounter)
+		g.emit("    JP Z, .ge_true_%d", g.labelCounter)
+		g.emit("    LD HL, 0       ; False")
+		g.emit("    JP .ge_done_%d", g.labelCounter)
+		g.emit(".ge_true_%d:", g.labelCounter)
+		g.emit("    LD HL, 1       ; True")
+		g.emit(".ge_done_%d:", g.labelCounter)
+		g.labelCounter++
+		g.storeFromHL(inst.Dest)
 	}
-	
-	// False path
-	g.emit("    LD HL, 0")
-	g.emit("    JP %s", endLabel)
-	
-	// True path
-	g.emit("%s:", trueLabel)
-	g.emit("    LD HL, 1")
-	
-	// End
-	g.emit("%s:", endLabel)
-	g.storeFromHL(inst.Dest)
 }
 
 // Register management helpers
@@ -2663,10 +2715,34 @@ func (g *Z80Generator) loadToDE(reg ir.Register) {
 			return
 		}
 		// Move from physical register to DE
-		regName := g.physicalRegToAssembly(physReg)
-		if physReg == RegBC || physReg == RegHL {
+		switch physReg {
+		case RegBC, RegHL:
+			regName := g.physicalRegToAssembly(physReg)
 			g.emit("    LD D, %s", regName[:1])
 			g.emit("    LD E, %s", regName[1:])
+		case RegA:
+			g.emit("    LD E, A        ; Load 8-bit value to DE")
+			g.emit("    LD D, 0        ; Zero extend")
+		case RegB:
+			g.emit("    LD E, B        ; Load 8-bit value to DE")
+			g.emit("    LD D, 0        ; Zero extend")
+		case RegC:
+			g.emit("    LD E, C        ; Load 8-bit value to DE")
+			g.emit("    LD D, 0        ; Zero extend")
+		case RegD:
+			g.emit("    LD E, D        ; Load 8-bit value to DE")
+			g.emit("    LD D, 0        ; Zero extend")
+		case RegE:
+			g.emit("    ; E already in place")
+			g.emit("    LD D, 0        ; Zero extend")
+		case RegH:
+			g.emit("    LD E, H        ; Load 8-bit value to DE")
+			g.emit("    LD D, 0        ; Zero extend")
+		case RegL:
+			g.emit("    LD E, L        ; Load 8-bit value to DE")
+			g.emit("    LD D, 0        ; Zero extend")
+		default:
+			g.emit("    ; WARNING: Unknown physical register %v for loadToDE", physReg)
 		}
 		
 	case LocationShadow:
