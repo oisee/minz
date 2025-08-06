@@ -1,0 +1,32 @@
+digraph MinZ_MIR {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  // Module: main
+  subgraph cluster_module {
+    label="Module: main";
+    style=dashed;
+
+    // Function: test_instruction_patching.add_numbers$u8$u8
+    subgraph cluster_func_0 {
+      label="test_instruction_patching.add_numbers$u8$u8";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_0_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_0_params" [label="Parameters:\na: u8\nb: u8", shape=invhouse];
+      "func_0_return" [label="Returns: u8", shape=house];
+      "func_0_bb0" [label="BB0:\nLOAD_PARAM\nLOAD_PARAM\nr5 = r3 + r4\nreturn r5\n", style=filled, fillcolor=lightgreen];
+    }
+
+    // Function: test_instruction_patching.main
+    subgraph cluster_func_1 {
+      label="test_instruction_patching.main";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_1_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_1_return" [label="Returns: u8", shape=house];
+      "func_1_bb0" [label="BB0:\nr2 = 10\nr3 = 20\nr4 = 10\nr5 = 20\nr6 = call test_instruction_patching.add_numbers$u8$u8\nr7 = 5\nr8 = r6 + r7\nstore temp, r8\nr10 = 30\nr11 = 40\nr12 = 30\nr13 = 40\nr14 = call test_instruction_patching.add_numbers$u8$u8\nstore stored_result, r14\nr15 = load temp\nr16 = load stored_result\nr17 = r15 + r16\nreturn r17\n", style=filled, fillcolor=lightgreen];
+    }
+
+  }
+}

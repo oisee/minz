@@ -911,6 +911,113 @@ func (g *Z80Generator) generateEpilogue() {
 	g.emit("    RET")
 }
 
+// generatePatchPoint generates a patchable instruction sequence
+func (g *Z80Generator) generatePatchPoint(inst *ir.Instruction) error {
+	if inst.PatchPoint == nil {
+		return fmt.Errorf("PatchPoint instruction missing PatchPoint data")
+	}
+	
+	pp := inst.PatchPoint
+	g.emit("\n; *** PATCHABLE INSTRUCTION SEQUENCE: %s ***", pp.Label)
+	g.emit("; Templates: %s", strings.Join(g.getTemplateNames(pp), ", "))
+	g.emit("; Default: %s (%d bytes reserved)", pp.Default, pp.Size)
+	
+	// Generate the patch point label and default template
+	g.emit("%s:", pp.Label)
+	defaultTemplate := pp.Templates[pp.Default]
+	if defaultTemplate == nil {
+		return fmt.Errorf("default template '%s' not found in patch point", pp.Default)
+	}
+	
+	// Emit default template with padding
+	g.emitTemplateBytes(pp.Label, defaultTemplate, pp.Size)
+	
+	return nil
+}
+
+// generatePatchTemplate selects template for patchable instruction sequence
+func (g *Z80Generator) generatePatchTemplate(inst *ir.Instruction) error {
+	g.emit("    ; Patch template '%s' for %s", inst.TemplateName, inst.PatchPointLabel)
+	
+	// Load template selection opcode
+	switch inst.TemplateName {
+	case "immediate":
+		g.emit("    LD A, $C9              ; RET opcode")
+	case "store_u8":
+		g.emit("    LD A, $32              ; LD (nn), A opcode")  
+	case "store_u16":
+		g.emit("    LD A, $22              ; LD (nn), HL opcode")
+	case "reg_b":
+		g.emit("    LD A, $47              ; LD B, A opcode")
+	case "reg_c":
+		g.emit("    LD A, $4F              ; LD C, A opcode")
+	default:
+		g.emit("    LD A, $00              ; NOP opcode (default)")
+	}
+	
+	// Patch the first byte of the sequence
+	g.emit("    LD (%s), A             ; Patch first opcode", inst.PatchPointLabel)
+	
+	return nil
+}
+
+// generatePatchTarget sets target address for store operations in patch
+func (g *Z80Generator) generatePatchTarget(inst *ir.Instruction) error {
+	g.emit("    ; Set patch target address: %s", inst.TargetAddress)
+	g.emit("    LD HL, %s              ; Target address", inst.TargetAddress)
+	g.emit("    LD (%s+1), HL          ; Patch address operand", inst.PatchPointLabel)
+	
+	return nil
+}
+
+// generatePatchParam patches function parameter immediate
+func (g *Z80Generator) generatePatchParam(inst *ir.Instruction) error {
+	g.emit("    ; Patch parameter %s = %d", inst.ParamName, inst.Imm)
+	
+	// Load immediate value
+	if inst.Type != nil && inst.Type.Size() == 1 {
+		// 8-bit parameter
+		g.emit("    LD A, %d               ; Parameter value", inst.Imm)
+		g.emit("    LD (%s_param_%s+1), A   ; Patch parameter immediate", 
+			   inst.Symbol, inst.ParamName)
+	} else {
+		// 16-bit parameter
+		g.emit("    LD HL, %d              ; Parameter value", inst.Imm)
+		g.emit("    LD (%s_param_%s+1), HL  ; Patch parameter immediate", 
+			   inst.Symbol, inst.ParamName)
+	}
+	
+	return nil
+}
+
+// Helper functions for patch point generation
+
+func (g *Z80Generator) getTemplateNames(pp *ir.PatchPoint) []string {
+	names := make([]string, 0, len(pp.Templates))
+	for name := range pp.Templates {
+		names = append(names, name)
+	}
+	return names
+}
+
+func (g *Z80Generator) emitTemplateBytes(label string, template *ir.PatchTemplate, reservedSize int) {
+	g.emit("    ; Default template: %s (%s)", template.Name, template.Description)
+	
+	// Emit template bytes as data
+	for i, b := range template.Instructions {
+		if i == 0 {
+			g.emit("    DB $%02X               ; %s", b, template.Description)
+		} else {
+			g.emit("    DB $%02X", b)
+		}
+	}
+	
+	// Pad with NOPs if needed
+	for i := template.Size; i < reservedSize; i++ {
+		g.emit("    DB $00                 ; NOP padding")
+	}
+}
+
 // prepareCallArguments prepares arguments for a function call
 func (g *Z80Generator) prepareCallArguments(args []ir.Register, targetFunc *ir.Function) {
 	// For SMC functions, parameters are patched directly - no need to prepare here
@@ -1780,6 +1887,21 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Result is in HL
 		g.storeFromHL(inst.Dest)
 		
+	case ir.OpPatchPoint:
+		// Define a patchable instruction sequence
+		return g.generatePatchPoint(inst)
+		
+	case ir.OpPatchTemplate:
+		// Select template for patchable instruction sequence
+		return g.generatePatchTemplate(inst)
+		
+	case ir.OpPatchTarget:
+		// Set target address for store operations in patch
+		return g.generatePatchTarget(inst)
+		
+	case ir.OpPatchParam:
+		// Patch function parameter immediate
+		return g.generatePatchParam(inst)
 	
 	case ir.OpAlloc:
 		// Allocate memory on stack

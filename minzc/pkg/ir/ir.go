@@ -123,6 +123,12 @@ const (
 	OpTSMCRefLoad   // Load from TSMC reference (immediate)
 	OpTSMCRefPatch  // Patch TSMC reference at call site
 	
+	// Instruction Patching operations (Advanced TRUE SMC)
+	OpPatchPoint    // Define patchable instruction sequence with templates
+	OpPatchTemplate // Select template for patchable instruction sequence
+	OpPatchTarget   // Set target address for store operations in patch
+	OpPatchParam    // Patch function parameter immediate
+	
 	// Error handling (Carry-flag ABI)
 	OpSetError      // Set carry flag and error code in A
 	OpCheckError    // Check carry flag for error
@@ -234,6 +240,13 @@ type Instruction struct {
 	AsmName      string            // Optional name for named asm blocks
 	Args         []Register        // Argument registers for OpCall
 	Hint         RegisterHint      // Hint for register allocator
+	
+	// Instruction Patching fields
+	PatchPointLabel string       // Label of the patch point to modify
+	TemplateName    string       // Template name for OpPatchTemplate
+	TargetAddress   string       // Target address symbol for OpPatchTarget
+	ParamName       string       // Parameter name for OpPatchParam
+	PatchPoint      *PatchPoint  // Patch point definition for OpPatchPoint
 }
 
 // AsmBlock represents an inline assembly block
@@ -897,6 +910,63 @@ type PatchEntry struct {
 	Function string    // Function name
 }
 
+// PatchTemplate represents a template for instruction patching
+type PatchTemplate struct {
+	Name         string   // Template name (e.g., "immediate", "store_u8")
+	Instructions []byte   // Bytes to patch (opcodes + operands)
+	Size         int      // Template size in bytes
+	Description  string   // Human-readable description
+}
+
+// PatchPoint represents a patchable instruction sequence
+type PatchPoint struct {
+	Label     string                    // Patch point label
+	Size      int                       // Reserved space for patches
+	Templates map[string]*PatchTemplate // Available templates
+	Default   string                    // Default template name
+}
+
+// CreateReturnPatchPoint creates a standard return sequence patch point
+func CreateReturnPatchPoint(label string) *PatchPoint {
+	return &PatchPoint{
+		Label: label,
+		Size:  6, // Reserve 6 bytes for largest template
+		Templates: map[string]*PatchTemplate{
+			"immediate": {
+				Name:         "immediate",
+				Instructions: []byte{0xC9}, // RET
+				Size:         1,
+				Description:  "Early return with result in A register",
+			},
+			"store_u8": {
+				Name:         "store_u8",
+				Instructions: []byte{0x32, 0x00, 0x00, 0xC9}, // LD (addr), A; RET
+				Size:         4,
+				Description:  "Store u8 result to memory and return",
+			},
+			"store_u16": {
+				Name:         "store_u16", 
+				Instructions: []byte{0x22, 0x00, 0x00, 0xC9}, // LD (addr), HL; RET
+				Size:         4,
+				Description:  "Store u16 result to memory and return",
+			},
+			"reg_b": {
+				Name:         "reg_b",
+				Instructions: []byte{0x47, 0xC9}, // LD B, A; RET
+				Size:         2,
+				Description:  "Move result to B register and return",
+			},
+			"reg_c": {
+				Name:         "reg_c",
+				Instructions: []byte{0x4F, 0xC9}, // LD C, A; RET
+				Size:         2,
+				Description:  "Move result to C register and return",
+			},
+		},
+		Default: "store_u8", // Most common pattern
+	}
+}
+
 // String returns the string representation of an Opcode
 func (op Opcode) String() string {
 	switch op {
@@ -983,6 +1053,10 @@ func (op Opcode) String() string {
 	case OpTSMCRefAnchor: return "TSMC_REF_ANCHOR"
 	case OpTSMCRefLoad: return "TSMC_REF_LOAD"
 	case OpTSMCRefPatch: return "TSMC_REF_PATCH"
+	case OpPatchPoint: return "PATCH_POINT"
+	case OpPatchTemplate: return "PATCH_TEMPLATE"
+	case OpPatchTarget: return "PATCH_TARGET"
+	case OpPatchParam: return "PATCH_PARAM"
 	case OpSetError: return "SET_ERROR"
 	case OpCheckError: return "CHECK_ERROR"
 	case OpArrayInit: return "ARRAY_INIT"

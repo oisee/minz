@@ -4324,7 +4324,15 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		argRegs = append(argRegs, reg)
 	}
 
-	// Generate call
+	// Check if this function should use instruction patching
+	useInstructionPatching := a.shouldUseInstructionPatching(funcSym, call)
+	
+	if useInstructionPatching {
+		// Generate instruction patching sequence
+		return a.generateInstructionPatchingCall(funcSym, call, argRegs, irFunc)
+	}
+
+	// Generate regular call
 	resultReg := irFunc.AllocReg()
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:     ir.OpCall,
@@ -8218,4 +8226,95 @@ func (a *Analyzer) analyzeMIRBlockCode(code string) error {
 	// TODO: Parse MIR instructions
 	// TODO: Generate IR directly
 	return nil
+}
+
+// shouldUseInstructionPatching determines if a function call should use instruction patching
+func (a *Analyzer) shouldUseInstructionPatching(funcSym *FuncSymbol, call *ast.CallExpr) bool {
+	// For now, enable instruction patching for non-builtin functions with simple return types
+	if funcSym.IsBuiltin {
+		return false
+	}
+	
+	// Check if return type is patchable (u8, u16)
+	if funcSym.ReturnType == nil {
+		return false
+	}
+	
+	switch funcSym.ReturnType.String() {
+	case "u8", "u16", "i8", "i16":
+		return true
+	default:
+		return false
+	}
+}
+
+// generateInstructionPatchingCall generates a function call with instruction patching
+func (a *Analyzer) generateInstructionPatchingCall(funcSym *FuncSymbol, call *ast.CallExpr, argRegs []ir.Register, irFunc *ir.Function) (ir.Register, error) {
+	funcName := funcSym.Name
+	
+	// 1. Generate patch point in target function (if not already done)
+	patchPointLabel := funcName + "_return_patch"
+	returnPatchPoint := ir.CreateReturnPatchPoint(patchPointLabel)
+	
+	// Add patch point to target function (this would be done during function analysis)
+	// For now, we'll assume it exists
+	
+	// 2. Analyze usage pattern to determine template
+	templateName := a.analyzeUsagePattern(call)
+	
+	// 3. Generate patch template selection
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:              ir.OpPatchTemplate,
+		PatchPointLabel: patchPointLabel,
+		TemplateName:    templateName,
+	})
+	
+	// 4. If using store template, set target address
+	if templateName == "store_u8" || templateName == "store_u16" {
+		// For now, use a generic target - this would be determined by usage context
+		targetSymbol := "temp_result"
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:              ir.OpPatchTarget,
+			PatchPointLabel: patchPointLabel,
+			TargetAddress:   targetSymbol,
+		})
+	}
+	
+	// 5. Generate parameter patches
+	for i, argReg := range argRegs {
+		if i < len(funcSym.Params) {
+			paramName := funcSym.Params[i].Name
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:        ir.OpPatchParam,
+				Symbol:    funcName,
+				ParamName: paramName,
+				Src1:      argReg,
+				Type:      funcSym.Params[i].Type,
+			})
+		}
+	}
+	
+	// 6. Generate the actual call
+	resultReg := irFunc.AllocReg()
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:     ir.OpCall,
+		Dest:   resultReg,
+		Symbol: funcName,
+		Args:   argRegs,
+	})
+	
+	return resultReg, nil
+}
+
+// analyzeUsagePattern analyzes how the function call result is used
+func (a *Analyzer) analyzeUsagePattern(call *ast.CallExpr) string {
+	// For this initial implementation, default to store pattern
+	// TODO: Implement proper usage pattern analysis by examining parent AST nodes
+	
+	// Future patterns:
+	// - Immediate use: call is part of binary expression (add_numbers(10, 20) + 5)
+	// - Assignment: call is assigned to variable (let x = add_numbers(10, 20))
+	// - Return: call is returned directly (return add_numbers(10, 20))
+	
+	return "store_u8" // Default to store pattern
 }
