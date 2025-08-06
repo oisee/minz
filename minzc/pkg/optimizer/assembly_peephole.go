@@ -141,20 +141,20 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 			Replacement: "${1}LD HL, ($2)  ; Check if $2 == $3 for redundancy",
 		},
 		
-		// Pattern 11: Optimize LD L,E; LD H,D to EX DE,HL
+		// Pattern 11: Remove redundant EX after LD L,E; LD H,D
 		{
-			Name:        "optimize_de_to_hl_copy",
-			Description: "Replace LD L,E; LD H,D with EX DE,HL",
-			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+L,\s*E\n\s*LD\s+H,\s*D$`),
-			Replacement: "${1}EX DE, HL    ; Optimized: was LD L,E / LD H,D",
+			Name:        "remove_redundant_ex_after_de_to_hl_copy",
+			Description: "Remove EX DE,HL after LD L,E; LD H,D (redundant swap after copy)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+L,\s*E\s*\n\s*LD\s+H,\s*D\s*\n\s*EX\s+DE,\s*HL`),
+			Replacement: "${1}LD L, E\n${1}LD H, D    ; Removed redundant EX DE,HL after copy",
 		},
 		
-		// Pattern 12: Optimize LD H,D; LD L,E to EX DE,HL
+		// Pattern 12: Remove redundant EX after LD H,D; LD L,E
 		{
-			Name:        "optimize_de_to_hl_copy_reverse",
-			Description: "Replace LD H,D; LD L,E with EX DE,HL",
-			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+H,\s*D\n\s*LD\s+L,\s*E$`),
-			Replacement: "${1}EX DE, HL    ; Optimized: was LD H,D / LD L,E",
+			Name:        "remove_redundant_ex_after_de_to_hl_copy_reverse",
+			Description: "Remove EX DE,HL after LD H,D; LD L,E (redundant swap after copy)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+H,\s*D\s*\n\s*LD\s+L,\s*E\s*\n\s*EX\s+DE,\s*HL`),
+			Replacement: "${1}LD H, D\n${1}LD L, E    ; Removed redundant EX DE,HL after copy",
 		},
 		
 		// Pattern 13: Optimize LD D,H; LD E,L; EX DE,HL to nothing (cancels out)
