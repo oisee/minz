@@ -33,6 +33,10 @@ type BackendOptions struct {
 	// TargetAddress is the origin address for code
 	TargetAddress uint16
 	
+	// Target specifies the target system (e.g., "spectrum", "cpm", "amstrad")
+	// This affects standard library selection and conditional compilation
+	Target string
+	
 	// Debug enables debug output
 	Debug bool
 	

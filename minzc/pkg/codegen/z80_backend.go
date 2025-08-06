@@ -28,8 +28,8 @@ func (b *Z80Backend) Generate(module *ir.Module) (string, error) {
 	// Create a buffer to collect the generated code
 	var buf bytes.Buffer
 	
-	// Create the Z80 generator with the buffer
-	gen := NewZ80Generator(&buf)
+	// Create the Z80 generator with the buffer and options
+	gen := NewZ80Generator(&buf, b.options)
 	
 	// Configure based on options
 	if b.options != nil {
