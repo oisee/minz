@@ -1,0 +1,13 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_simple_opt.main() -> u8
+  @smc
+  Locals:
+    r1 = x: u8
+  Instructions:
+      0: r2 = 42
+      1: store x, r2
+      2: r3 = load x
+      3: return r3
+

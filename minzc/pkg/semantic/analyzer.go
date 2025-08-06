@@ -12,7 +12,6 @@ import (
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/meta"
 	"github.com/minz/minzc/pkg/metafunction"
-	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
 )
 
@@ -48,20 +47,10 @@ type Analyzer struct {
 	metafunctionProcessor *metafunction.Processor // Processor for @metafunction calls
 	errorPropagationContext *ErrorPropagationContext // Track error propagation state
 	targetBackend         string // Target backend for @target directive
-	
-	// Optimization components
-	constantFolder        *ConstantFolder
-	deadCodeEliminator    *DeadCodeEliminator
-	registerOptimizer     *optimizer.RegisterPressureOptimizer
-	instructionScheduler  *optimizer.InstructionScheduler
-	optimizationMetrics   *OptimizationMetrics
 }
 
 // NewAnalyzer creates a new semantic analyzer
 func NewAnalyzer() *Analyzer {
-	// Initialize optimization metrics
-	metrics := &OptimizationMetrics{}
-	
 	analyzer := &Analyzer{
 		currentScope:      NewScope(nil),
 		errors:            []error{},
@@ -73,14 +62,7 @@ func NewAnalyzer() *Analyzer {
 		luaEvaluator:      meta.NewLuaEvaluator(),
 		mirInterpreter:    interpreter.NewMIRInterpreter(),
 		targetBackend:     "z80", // Default backend
-		optimizationMetrics: metrics,
 	}
-	
-	// Initialize optimization components
-	analyzer.constantFolder = NewConstantFolder(analyzer)
-	analyzer.deadCodeEliminator = NewDeadCodeEliminator(analyzer, metrics)
-	analyzer.registerOptimizer = optimizer.NewRegisterPressureOptimizer()
-	analyzer.instructionScheduler = optimizer.NewInstructionScheduler(metrics)
 	
 	return analyzer
 }
@@ -226,9 +208,6 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 		}
 		return nil, fmt.Errorf("semantic analysis failed with %d errors:\n%s", len(a.errors), errMsg)
 	}
-
-	// Apply multi-level optimizations before returning
-	a.applyOptimizations()
 
 	return a.module, nil
 }
@@ -8365,83 +8344,3 @@ func (a *Analyzer) GetFunction(name string) *ir.Function {
 	return nil
 }
 
-// applyOptimizations applies the multi-level optimization pipeline
-func (a *Analyzer) applyOptimizations() {
-	if debug {
-		fmt.Println("🚀 Applying multi-level optimizations...")
-	}
-	
-	// Phase 1: AST-Level Optimizations (already applied during analysis)
-	// These are applied as we analyze expressions and statements
-	
-	// Phase 2: Constant Folding at IR Level
-	if a.constantFolder != nil {
-		if debug {
-			fmt.Println("  📊 Applying constant folding...")
-		}
-		a.constantFolder.FoldConstants(a.module)
-	}
-	
-	// Phase 3: Dead Code Elimination
-	if a.deadCodeEliminator != nil {
-		if debug {
-			fmt.Println("  🗑️ Eliminating dead code...")
-		}
-		a.deadCodeEliminator.EliminateDeadCode(a.module)
-	}
-	
-	// Phase 4: Register Pressure Optimization
-	if a.registerOptimizer != nil {
-		if debug {
-			fmt.Println("  📈 Optimizing register pressure...")
-		}
-		for _, function := range a.module.Functions {
-			a.registerOptimizer.OptimizeFunction(function)
-		}
-	}
-	
-	// Phase 5: Instruction Scheduling
-	if a.instructionScheduler != nil {
-		if debug {
-			fmt.Println("  ⚡ Scheduling instructions...")
-		}
-		for _, function := range a.module.Functions {
-			a.instructionScheduler.ScheduleFunction(function)
-		}
-	}
-	
-	// Report optimization results
-	if debug && a.optimizationMetrics != nil {
-		a.reportOptimizationResults()
-	}
-}
-
-// reportOptimizationResults prints optimization statistics
-func (a *Analyzer) reportOptimizationResults() {
-	metrics := a.optimizationMetrics
-	if metrics == nil {
-		return
-	}
-	
-	fmt.Println("\n🏆 Optimization Results:")
-	fmt.Printf("  Constants folded: %d\n", metrics.ConstantsFolded)
-	fmt.Printf("  Dead code eliminated: %d instructions\n", metrics.DeadCodeEliminated)
-	
-	if a.registerOptimizer != nil {
-		regMetrics := a.registerOptimizer.GetMetrics()
-		fmt.Printf("  Register spills eliminated: %d\n", regMetrics.SpillsEliminated)
-		fmt.Printf("  Instructions reordered: %d\n", regMetrics.InstructionsReordered)
-	}
-	
-	totalCyclesSaved := metrics.CyclesSavedFolding
-	if a.registerOptimizer != nil {
-		totalCyclesSaved += a.registerOptimizer.GetMetrics().CyclesSaved
-	}
-	
-	fmt.Printf("  Total T-states saved: %d\n", totalCyclesSaved)
-	
-	if totalCyclesSaved > 0 {
-		fmt.Printf("  🎯 Performance improvement: ~%.1f%% faster execution\n", 
-			float64(totalCyclesSaved) / 1000.0 * 100) // Rough estimate
-	}
-}
