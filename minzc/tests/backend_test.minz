@@ -1,0 +1,149 @@
+// Comprehensive backend test suite
+// Tests core features that should work on all backends
+
+// Test 1: Basic arithmetic
+fun test_arithmetic() -> u8 {
+    let a: u8 = 10;
+    let b: u8 = 5;
+    let c = a + b;     // 15
+    let d = a - b;     // 5
+    let e = a * 2;     // 20
+    let f = a / b;     // 2
+    let g = a % 3;     // 1
+    
+    return c + d + e + f + g;  // 15 + 5 + 20 + 2 + 1 = 43
+}
+
+// Test 2: Control flow
+fun test_control_flow(x: u8) -> u8 {
+    if x < 10 {
+        return x * 2;
+    } else if x < 20 {
+        return x + 5;
+    } else {
+        return x - 5;
+    }
+}
+
+// Test 3: Loops
+fun test_loops() -> u8 {
+    let sum: u8 = 0;
+    
+    // For loop
+    for i in 0..5 {
+        sum = sum + i;  // 0 + 1 + 2 + 3 + 4 = 10
+    }
+    
+    // While loop
+    let j: u8 = 5;
+    while j > 0 {
+        sum = sum + 1;  // Add 5 more
+        j = j - 1;
+    }
+    
+    return sum;  // 15
+}
+
+// Test 4: Arrays
+fun test_arrays() -> u8 {
+    let arr: [u8; 5] = [1, 2, 3, 4, 5];
+    let sum: u8 = 0;
+    
+    for i in 0..5 {
+        sum = sum + arr[i];
+    }
+    
+    return sum;  // 15
+}
+
+// Test 5: Structs
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun test_structs() -> u8 {
+    let p = Point { x: 10, y: 20 };
+    return p.x + p.y;  // 30
+}
+
+// Test 6: Function calls
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun multiply(a: u8, b: u8) -> u8 {
+    return a * b;
+}
+
+fun test_function_calls() -> u8 {
+    let result = add(5, 3);        // 8
+    result = multiply(result, 2);   // 16
+    return result;
+}
+
+// Test 7: Recursion
+fun factorial(n: u8) -> u8 {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+fun test_recursion() -> u8 {
+    return factorial(5);  // 120
+}
+
+// Test 8: Global variables
+global test_global: u8 = 42;
+
+fun test_globals() -> u8 {
+    let local = test_global;
+    test_global = 10;
+    return local + test_global;  // 42 + 10 = 52
+}
+
+// Test 9: Pointers (if supported)
+fun test_pointers() -> u8 {
+    let value: u8 = 100;
+    let ptr: *u8 = &value;
+    *ptr = 50;
+    return value;  // 50
+}
+
+// Test 10: Bit operations
+fun test_bitops() -> u8 {
+    let a: u8 = 0b11001100;
+    let b: u8 = 0b10101010;
+    
+    let c = a & b;    // AND
+    let d = a | b;    // OR
+    let e = a ^ b;    // XOR
+    let f = ~a;       // NOT
+    let g = a << 1;   // Shift left
+    let h = b >> 1;   // Shift right
+    
+    return (c + d + e + f + g + h) & 0xFF;
+}
+
+// Main test runner
+fun main() -> void {
+    let total: u16 = 0;
+    
+    // Run all tests
+    total = total + test_arithmetic();      // 43
+    total = total + test_control_flow(5);   // 10
+    total = total + test_control_flow(15);  // 20
+    total = total + test_control_flow(25);  // 20
+    total = total + test_loops();           // 15
+    total = total + test_arrays();          // 15
+    total = total + test_structs();         // 30
+    total = total + test_function_calls();  // 16
+    total = total + test_recursion();       // 120
+    total = total + test_globals();         // 52
+    total = total + test_pointers();        // 50
+    total = total + test_bitops();          // Varies by backend
+    
+    // Print results (backend-specific)
+    @print("Backend tests completed. Total: {total}");
+}

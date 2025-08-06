@@ -50,6 +50,13 @@ const (
 	Feature32BitPointers     = "32bit_pointers"
 	FeatureFloatingPoint     = "floating_point"
 	FeatureFixedPoint        = "fixed_point"
+	FeatureInlineAssembly    = "inline_assembly"
+	FeatureIndirectCalls     = "indirect_calls"
+	FeatureBitManipulation   = "bit_manipulation"
+	FeatureZeroPage          = "zero_page"
+	FeatureBlockInstructions = "block_instructions"
+	FeatureHardwareMultiply  = "hardware_multiply"
+	FeatureHardwareDivide    = "hardware_divide"
 )
 
 // BackendFactory creates a backend instance
