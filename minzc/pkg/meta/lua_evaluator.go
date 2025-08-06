@@ -2,6 +2,7 @@ package meta
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	lua "github.com/yuin/gopher-lua"
@@ -73,7 +74,8 @@ func (e *LuaEvaluator) EvaluateExpression(expr string) (string, error) {
 // setupMinzAPI adds MinZ-specific functions to Lua
 func (e *LuaEvaluator) setupMinzAPI() {
 	// Add MinZ code generation helpers
-	e.L.SetGlobal("minz", e.createMinzModule())
+	module := e.createMinzModule()
+	e.L.SetGlobal("minz", module)
 	
 	// Add platform constants
 	e.L.SetGlobal("PLATFORM", lua.LString("ZX_SPECTRUM"))
@@ -88,6 +90,10 @@ func (e *LuaEvaluator) createMinzModule() *lua.LTable {
 	e.L.SetField(module, "enum", e.L.NewFunction(e.luaGenerateEnum))
 	e.L.SetField(module, "struct", e.L.NewFunction(e.luaGenerateStruct))
 	e.L.SetField(module, "const_array", e.L.NewFunction(e.luaGenerateConstArray))
+	
+	// File I/O functions
+	e.L.SetField(module, "save_bin", e.L.NewFunction(luaSaveBin))
+	e.L.SetField(module, "load_bin", e.L.NewFunction(luaLoadBin))
 	
 	// Type helpers
 	e.L.SetField(module, "u8", e.L.NewFunction(func(L *lua.LState) int {
@@ -300,4 +306,74 @@ func (e *LuaEvaluator) GenerateCodeFromLua(funcName string, args ...interface{})
 	}
 	
 	return "", fmt.Errorf("Lua function %s did not return a string", funcName)
+}
+
+// luaSaveBin saves binary data to a file at compile time
+// Usage: minz.save_bin(filename, data)
+// data can be:
+//   - string: raw bytes
+//   - table: array of bytes (0-255)
+func luaSaveBin(L *lua.LState) int {
+	filename := L.CheckString(1)
+	dataValue := L.Get(2)
+	
+	var data []byte
+	
+	switch v := dataValue.(type) {
+	case lua.LString:
+		// String is treated as raw bytes
+		data = []byte(string(v))
+		
+	case *lua.LTable:
+		// Table is treated as array of bytes
+		length := v.Len()
+		data = make([]byte, 0, length)
+		
+		for i := 1; i <= length; i++ {
+			val := v.RawGetInt(i)
+			if num, ok := val.(lua.LNumber); ok {
+				byteVal := int(num)
+				if byteVal < 0 || byteVal > 255 {
+					L.RaiseError("byte value out of range [0-255]: %d", byteVal)
+					return 0
+				}
+				data = append(data, byte(byteVal))
+			} else {
+				L.RaiseError("table must contain only numbers (bytes)")
+				return 0
+			}
+		}
+		
+	default:
+		L.RaiseError("data must be string or table, got %s", dataValue.Type().String())
+		return 0
+	}
+	
+	// Write the file
+	if err := os.WriteFile(filename, data, 0644); err != nil {
+		L.RaiseError("failed to write file %s: %v", filename, err)
+		return 0
+	}
+	
+	// Return number of bytes written
+	L.Push(lua.LNumber(len(data)))
+	return 1
+}
+
+// luaLoadBin loads binary data from a file at compile time
+// Usage: data = minz.load_bin(filename)
+// Returns: string containing the raw bytes
+func luaLoadBin(L *lua.LState) int {
+	filename := L.CheckString(1)
+	
+	// Read the file
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		L.RaiseError("failed to read file %s: %v", filename, err)
+		return 0
+	}
+	
+	// Return as string (raw bytes)
+	L.Push(lua.LString(string(data)))
+	return 1
 }

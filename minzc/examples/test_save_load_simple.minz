@@ -1,0 +1,68 @@
+// Simple test of @save_bin and @load_bin functionality
+
+// Save some test data
+@lua[[[
+    -- Create test data
+    local test_data = {65, 66, 67, 68, 69, 70}  -- ASCII: ABCDEF
+    
+    -- Save to file
+    local bytes = minz.save_bin("test_data.bin", test_data)
+    print("Saved " .. bytes .. " bytes to test_data.bin")
+    
+    -- Load it back
+    local loaded = minz.load_bin("test_data.bin")
+    print("Loaded " .. #loaded .. " bytes from test_data.bin")
+    
+    -- Verify the data
+    print("Data verification:")
+    for i = 1, #loaded do
+        local byte = string.byte(loaded, i)
+        print("  Byte " .. i .. ": " .. byte .. " ('" .. string.char(byte) .. "')")
+    end
+    
+    -- Clean up
+    os.remove("test_data.bin")
+]]]
+
+// Save string data
+@lua[[[
+    -- Save a string directly
+    local message = "Hello from MinZ!"
+    minz.save_bin("message.txt", message)
+    print("Saved message: " .. message)
+    
+    -- Load it back
+    local loaded_msg = minz.load_bin("message.txt")
+    print("Loaded message: " .. loaded_msg)
+    
+    -- Clean up
+    os.remove("message.txt")
+]]]
+
+// Generate lookup table and save it
+@lua[[[
+    -- Generate a simple 16-entry lookup table for squares
+    local squares = {}
+    for i = 0, 15 do
+        squares[i + 1] = i * i
+    end
+    
+    -- Save the table
+    minz.save_bin("squares.bin", squares)
+    print("Generated squares lookup table")
+    
+    -- Load and display
+    local loaded_squares = minz.load_bin("squares.bin")
+    print("Squares lookup table:")
+    for i = 1, #loaded_squares do
+        local val = string.byte(loaded_squares, i)
+        print("  " .. (i-1) .. "^2 = " .. val)
+    end
+    
+    -- Clean up
+    os.remove("squares.bin")
+]]]
+
+fun main() -> void {
+    // Empty main - all work done at compile time
+}

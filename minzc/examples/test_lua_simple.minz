@@ -1,16 +1,14 @@
-// Simple test of Lua blocks
-
-// Define a Lua function
+// Simple test of Lua functions
 @lua[[[
-function double(x)
-    return x * 2
-end
+    print("Testing minz module")
+    print("Type of minz:", type(minz))
+    if minz then
+        for k,v in pairs(minz) do
+            print("  " .. k .. " = " .. type(v))
+        end
+    end
 ]]]
 
-// Use it in a constant
-const DOUBLED_5: u8 = @lua(double(5));
-
 fun main() -> void {
-    let x = DOUBLED_5;  // 10
-    return;
+    // Empty main
 }

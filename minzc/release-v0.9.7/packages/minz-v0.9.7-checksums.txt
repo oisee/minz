@@ -1,0 +1,5 @@
+12e91ef25c679d813c063a0eb316c14c399cb9cb5062c59de0fd4d8f22ecf8c5  minz-v0.9.7-darwin-amd64.tar.gz
+488907c6bae4d41a9665e983e769eeac6c07808a176423e72285250c5b8fce3e  minz-v0.9.7-darwin-arm64.tar.gz
+b46b0b61c5278415430546edef8f968ae3ce0a81dac4e3edbe804fe89d447a71  minz-v0.9.7-linux-amd64.tar.gz
+d19a261bf50c624b9ef5ec3d68910189a09b3adcadf6c9882deeea62f02fb2cc  minz-v0.9.7-linux-arm64.tar.gz
+bbed7148b5003f529e701bf4eb019955c245df6f8b33164bbeb0d7c895031253  minz-v0.9.7-windows-amd64.zip

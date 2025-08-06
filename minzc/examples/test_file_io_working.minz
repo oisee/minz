@@ -1,0 +1,118 @@
+// Test @lua file I/O metafunctions - Working version
+// Demonstrates compile-time binary file generation and loading
+
+// Generate binary files at compile time
+@lua[[[
+    -- Create a checkerboard pattern (8x8 pixels)
+    local pattern = {}
+    for y = 0, 7 do
+        for x = 0, 7 do
+            if (x + y) % 2 == 0 then
+                pattern[#pattern + 1] = 255  -- White pixel
+            else
+                pattern[#pattern + 1] = 0    -- Black pixel
+            end
+        end
+    end
+    
+    -- Save the pattern to a binary file
+    local bytes_written = minz.save_bin("checkerboard.bin", pattern)
+    print("Generated checkerboard.bin with " .. bytes_written .. " bytes")
+    
+    -- Generate a sine wave lookup table
+    local sine_table = {}
+    for i = 0, 255 do
+        local angle = (i / 256) * 2 * math.pi
+        local value = math.floor(128 + 127 * math.sin(angle))
+        sine_table[#sine_table + 1] = value
+    end
+    
+    -- Save the sine table
+    minz.save_bin("sine_table.bin", sine_table)
+    print("Generated sine_table.bin with 256 bytes")
+]]]
+
+// Now use @minz to generate the constants from the files
+@minz[[[
+    // Load the checkerboard data and generate array
+    @lua[[[
+        local data = minz.load_bin("checkerboard.bin")
+        _G.checkerboard_values = {}
+        for i = 1, #data do
+            _G.checkerboard_values[i] = string.byte(data, i)
+        end
+    ]]]
+    
+    // Generate checkerboard array
+    @emit("const CHECKERBOARD: [u8; 64] = [");
+    for i in 0..64 {
+        if (i > 0) { @emit(", "); }
+        @lua[[[
+            local val = _G.checkerboard_values[]] .. (i + 1) .. [[]
+            _G.value_str = tostring(val)
+        ]]]
+        @emit(@lua(value_str));
+    }
+    @emit("];");
+    
+    // Load sine table and generate array
+    @lua[[[
+        local data = minz.load_bin("sine_table.bin")
+        _G.sine_values = {}
+        for i = 1, #data do
+            _G.sine_values[i] = string.byte(data, i)
+        end
+    ]]]
+    
+    // Generate sine table array with nice formatting
+    @emit("const SINE_TABLE: [u8; 256] = [");
+    @emit("\n");
+    for row in 0..16 {
+        @emit("    ");
+        for col in 0..16 {
+            let idx = row * 16 + col;
+            if (idx > 0) { @emit(", "); }
+            @lua[[[
+                local val = _G.sine_values[]] .. (idx + 1) .. [[]
+                _G.value_str = string.format("%3d", val)
+            ]]]
+            @emit(@lua(value_str));
+        }
+        if (row < 15) { @emit(","); }
+        @emit("\n");
+    }
+    @emit("];");
+]]]
+
+// Use the generated data in a simple demo
+fun draw_checkerboard() -> void {
+    // Draw the 8x8 checkerboard at screen position (0, 0)
+    for y in 0..8 {
+        for x in 0..8 {
+            let pixel = CHECKERBOARD[y * 8 + x];
+            // Would call screen plotting routine here
+            // plot_pixel(x, y, pixel);
+        }
+    }
+}
+
+fun get_sine(angle: u8) -> u8 {
+    // Fast sine lookup using generated table
+    return SINE_TABLE[angle];
+}
+
+fun main() -> void {
+    // Demo: animate using sine table
+    for frame in 0..256 {
+        let y = get_sine(frame as u8);
+        // Would update sprite position here
+        // sprite_y = y;
+    }
+    
+    // Clean up generated files
+    @lua[[[
+        -- Optional: remove temporary files after compilation
+        os.remove("checkerboard.bin")
+        os.remove("sine_table.bin")
+    ]]]
+}

@@ -1,0 +1,118 @@
+// Test @lua file I/O metafunctions
+// Demonstrates compile-time binary file generation and loading
+
+// Generate a simple graphics pattern at compile time
+@lua[[[
+    -- Debug: check if minz module exists
+    print("Type of minz:", type(minz))
+    if type(minz) == "table" then
+        print("Type of minz.save_bin:", type(minz.save_bin))
+    end
+    
+    -- Create a checkerboard pattern (8x8 pixels)
+    local pattern = {}
+    for y = 0, 7 do
+        for x = 0, 7 do
+            if (x + y) % 2 == 0 then
+                pattern[#pattern + 1] = 255  -- White pixel
+            else
+                pattern[#pattern + 1] = 0    -- Black pixel
+            end
+        end
+    end
+    
+    -- Save the pattern to a binary file
+    local bytes_written = minz.save_bin("checkerboard.bin", pattern)
+    print("Generated checkerboard.bin with " .. bytes_written .. " bytes")
+    
+    -- Generate a sine wave lookup table
+    local sine_table = {}
+    for i = 0, 255 do
+        local angle = (i / 256) * 2 * math.pi
+        local value = math.floor(128 + 127 * math.sin(angle))
+        sine_table[#sine_table + 1] = value
+    end
+    
+    -- Save the sine table
+    minz.save_bin("sine_table.bin", sine_table)
+    print("Generated sine_table.bin with 256 bytes")
+]]]
+
+// Load the generated files and create data arrays
+@lua[[[
+    -- Load the checkerboard pattern
+    local checkerboard_data = minz.load_bin("checkerboard.bin")
+    
+    -- Generate MinZ array declaration
+    local code = "const CHECKERBOARD: [u8; 64] = ["
+    for i = 1, #checkerboard_data do
+        if i > 1 then code = code .. ", " end
+        code = code .. string.byte(checkerboard_data, i)
+    end
+    code = code .. "];"
+    
+    -- Output the MinZ code
+    print(code)
+]]]
+
+// MinZ will parse the printed output as code
+
+// Load and convert sine table to MinZ code
+@lua[[[
+    local sine_data = minz.load_bin("sine_table.bin")
+    
+    -- Generate MinZ array with nice formatting
+    local code = "const SINE_TABLE: [u8; 256] = [\n"
+    for i = 1, #sine_data do
+        if (i - 1) % 16 == 0 then 
+            code = code .. "    "
+        end
+        code = code .. string.format("%3d", string.byte(sine_data, i))
+        if i < #sine_data then
+            code = code .. ","
+            if i % 16 == 0 then
+                code = code .. "\n"
+            else
+                code = code .. " "
+            end
+        end
+    end
+    code = code .. "\n];"
+    
+    print(code)
+]]]
+
+// MinZ will parse the printed output as code
+
+// Use the generated data in a simple demo
+fun draw_checkerboard() -> void {
+    // Draw the 8x8 checkerboard at screen position (0, 0)
+    for y in 0..8 {
+        for x in 0..8 {
+            let pixel = CHECKERBOARD[y * 8 + x];
+            // Would call screen plotting routine here
+            // plot_pixel(x, y, pixel);
+        }
+    }
+}
+
+fun get_sine(angle: u8) -> u8 {
+    // Fast sine lookup using generated table
+    return SINE_TABLE[angle];
+}
+
+fun main() -> void {
+    // Demo: animate using sine table
+    for frame in 0..256 {
+        let y = get_sine(frame as u8);
+        // Would update sprite position here
+        // sprite_y = y;
+    }
+    
+    // Clean up generated files
+    @lua[[[
+        -- Optional: remove temporary files after compilation
+        -- os.remove("checkerboard.bin")
+        -- os.remove("sine_table.bin")
+    ]]]
+}
