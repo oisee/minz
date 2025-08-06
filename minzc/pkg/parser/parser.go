@@ -18,11 +18,18 @@ var debug = os.Getenv("DEBUG") != ""
 type Parser struct {
 	treeSitterPath string
 	sourceCode     string
+	useNative      bool          // Use native tree-sitter instead of external command
+	native         *NativeParser // Native parser instance
 }
 
 // New creates a new parser
 func New() *Parser {
-	return &Parser{}
+	// Try to create native parser
+	native := NewNativeParser()
+	return &Parser{
+		useNative: native != nil,
+		native:    native,
+	}
 }
 
 // ParseFile parses a MinZ source file and returns an AST
@@ -78,6 +85,16 @@ func (p *Parser) ParseString(code string, context string) ([]ast.Declaration, er
 
 // parseToSExp uses tree-sitter to parse the file and output S-expression
 func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
+	// Use native parser if available
+	if p.useNative && p.native != nil {
+		sexp, err := p.native.ParseFile(filename)
+		if err == nil {
+			p.sourceCode = p.native.sourceCode
+			return sexp, nil
+		}
+		// Fall back to external command if native fails
+	}
+	
 	// Read the source file
 	sourceCode, err := os.ReadFile(filename)
 	if err != nil {
@@ -85,8 +102,7 @@ func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
 	}
 	p.sourceCode = string(sourceCode)
 	
-	// Get the absolute path to the tree-sitter grammar
-	// Find the directory containing grammar.js
+	// Try to find grammar.js locally first
 	currentDir, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -94,16 +110,27 @@ func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
 	
 	// Look for grammar.js in current directory and parent directories
 	grammarPath := currentDir
+	foundGrammar := false
 	for {
 		if _, err := os.Stat(filepath.Join(grammarPath, "grammar.js")); err == nil {
+			foundGrammar = true
 			break
 		}
 		parent := filepath.Dir(grammarPath)
 		if parent == grammarPath {
-			// Reached root without finding grammar.js
-			return nil, fmt.Errorf("could not find grammar.js in any parent directory")
+			break
 		}
 		grammarPath = parent
+	}
+	
+	// If we couldn't find grammar.js locally, use the embedded version
+	if !foundGrammar {
+		tempDir, err := SetupGrammar()
+		if err != nil {
+			return nil, fmt.Errorf("could not setup embedded grammar: %w", err)
+		}
+		defer CleanupGrammar(tempDir)
+		grammarPath = tempDir
 	}
 	
 	// Get absolute path to the file

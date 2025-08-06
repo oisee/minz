@@ -3,9 +3,26 @@
 # Build both compiler and REPL
 all: build repl
 
+# Get version info from git
+GIT_TAG := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.10.0")
+GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+BUILD_NUMBER := $(shell cat .build-number 2>/dev/null || echo "0")
+
+# Increment build number
+INCREMENT_BUILD := $(shell echo $$(($(BUILD_NUMBER) + 1)) > .build-number)
+
+# Build flags with version info
+LDFLAGS := -ldflags "-X github.com/minz/minzc/pkg/version.Version=$(GIT_TAG) \
+	-X github.com/minz/minzc/pkg/version.GitCommit=$(GIT_COMMIT) \
+	-X github.com/minz/minzc/pkg/version.GitTag=$(GIT_TAG) \
+	-X github.com/minz/minzc/pkg/version.BuildDate=$(BUILD_DATE) \
+	-X github.com/minz/minzc/pkg/version.BuildNumber=$(shell cat .build-number)"
+
 # Build the compiler
 build:
-	go build -o mz cmd/minzc/main.go
+	@echo "Building MinZ compiler $(GIT_TAG)+$(shell cat .build-number)"
+	go build $(LDFLAGS) -o mz cmd/minzc/main.go
 	@ln -sf mz minzc  # Keep backward compatibility
 
 # Build the REPL
@@ -48,20 +65,27 @@ perf-report:
 benchmark-report: benchmark perf-report
 
 # Release build (all platforms)
+RELEASE_LDFLAGS := -ldflags "-s -w \
+	-X github.com/minz/minzc/pkg/version.Version=$(GIT_TAG) \
+	-X github.com/minz/minzc/pkg/version.GitCommit=$(GIT_COMMIT) \
+	-X github.com/minz/minzc/pkg/version.GitTag=$(GIT_TAG) \
+	-X github.com/minz/minzc/pkg/version.BuildDate=$(BUILD_DATE) \
+	-X github.com/minz/minzc/pkg/version.BuildNumber=$(shell cat .build-number)"
+
 release:
-	@echo "Building release binaries..."
+	@echo "Building release binaries for $(GIT_TAG)..."
 	@mkdir -p ../release/bin
 	
 	# Current platform
-	go build -ldflags="-s -w" -o ../release/bin/minzc cmd/minzc/main.go
+	go build $(RELEASE_LDFLAGS) -o ../release/bin/minzc cmd/minzc/main.go
 	go build -ldflags="-s -w" -o ../release/bin/minz cmd/repl/main.go cmd/repl/compiler.go
 	
 	# Cross-compile compiler
-	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o ../release/bin/minzc-darwin-amd64 cmd/minzc/main.go
-	GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o ../release/bin/minzc-darwin-arm64 cmd/minzc/main.go
-	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o ../release/bin/minzc-linux-amd64 cmd/minzc/main.go
-	GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o ../release/bin/minzc-linux-arm64 cmd/minzc/main.go
-	GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o ../release/bin/minzc-windows-amd64.exe cmd/minzc/main.go
+	GOOS=darwin GOARCH=amd64 go build $(RELEASE_LDFLAGS) -o ../release/bin/minzc-darwin-amd64 cmd/minzc/main.go
+	GOOS=darwin GOARCH=arm64 go build $(RELEASE_LDFLAGS) -o ../release/bin/minzc-darwin-arm64 cmd/minzc/main.go
+	GOOS=linux GOARCH=amd64 go build $(RELEASE_LDFLAGS) -o ../release/bin/minzc-linux-amd64 cmd/minzc/main.go
+	GOOS=linux GOARCH=arm64 go build $(RELEASE_LDFLAGS) -o ../release/bin/minzc-linux-arm64 cmd/minzc/main.go
+	GOOS=windows GOARCH=amd64 go build $(RELEASE_LDFLAGS) -o ../release/bin/minzc-windows-amd64.exe cmd/minzc/main.go
 	
 	# Cross-compile REPL
 	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o ../release/bin/minz-darwin-amd64 cmd/repl/main.go cmd/repl/compiler.go

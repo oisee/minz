@@ -13,11 +13,11 @@ import (
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/semantic"
+	"github.com/minz/minzc/pkg/version"
 	"github.com/spf13/cobra"
 )
 
 var (
-	version      = "0.9.7"
 	outputFile   string
 	optimize     bool
 	debug        bool
@@ -28,11 +28,13 @@ var (
 	backend      string
 	listBackends bool
 	visualizeMIR string // Output file for MIR visualization
+	showVersion  bool
+	showVersionFull bool
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "mz [source file]",
-	Short: "MinZ Multi-Platform Compiler v" + version,
+	Short: "MinZ Multi-Platform Compiler " + version.GetVersion(),
 	Long:  `MinZ compiles modern systems programming code to retro and modern platforms.
 
 Target backends:
@@ -60,6 +62,17 @@ Environment:
   MINZ_BACKEND - Set default backend (e.g., export MINZ_BACKEND=6502)`,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		// Handle version flags
+		if showVersion {
+			fmt.Println(version.GetVersion())
+			return
+		}
+		
+		if showVersionFull {
+			fmt.Println(version.GetFullVersion())
+			return
+		}
+		
 		// Handle --list-backends flag
 		if listBackends {
 			backends := codegen.ListBackends()
@@ -92,6 +105,11 @@ func init() {
 		defaultBackend = "z80"
 	}
 	
+	// Version flags
+	rootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "show version")
+	rootCmd.Flags().BoolVar(&showVersionFull, "version-full", false, "show full version info")
+	
+	// Compilation flags
 	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file (default: input.<ext> based on backend)")
 	rootCmd.Flags().BoolVarP(&optimize, "optimize", "O", false, "enable optimizations")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
