@@ -110,6 +110,10 @@ func (g *CGenerator) generatePrintHelpers() {
 	g.emit("    printf(\"%%u\", value);")
 	g.emit("}")
 	g.emit("")
+	g.emit("void print_u8_decimal(u8 value) {")
+	g.emit("    printf(\"%%u\", value);")
+	g.emit("}")
+	g.emit("")
 	g.emit("void print_u16(u16 value) {")
 	g.emit("    printf(\"%%u\", value);")
 	g.emit("}")
@@ -158,6 +162,19 @@ func (g *CGenerator) generateFunction(fn *ir.Function) error {
 		// Default to u32 for now - could be smarter about types
 		g.emit("u32 r%d = 0;", i)
 		g.varTypes[fmt.Sprintf("r%d", i)] = "u32"
+	}
+	
+	// Declare local variables from the function's Locals slice
+	if len(fn.Locals) > 0 {
+		g.emit("")
+		g.emit("// Local variables")
+		for _, local := range fn.Locals {
+			if local.Name != "" { // Skip empty variable names
+				cType := g.getCType(local.Type)
+				g.emit("%s %s = 0;", cType, local.Name)
+				g.varTypes[local.Name] = cType
+			}
+		}
 	}
 	
 	if maxReg > 0 {
@@ -214,7 +231,12 @@ func (g *CGenerator) generateInstruction(inst *ir.Instruction) error {
 	case ir.OpStoreVar:
 		varName := inst.Symbol
 		src := g.getVarName(inst.Src1)
-		g.emit("%s = %s;", varName, src)
+		if varName == "" {
+			// Skip store instructions with empty variable names
+			g.emit("// Skipping store to empty variable name")
+		} else {
+			g.emit("%s = %s;", varName, src)
+		}
 		
 	case ir.OpLoadParam:
 		dest := g.getVarName(inst.Dest)
@@ -391,11 +413,19 @@ func (g *CGenerator) generateCall(inst *ir.Instruction) {
 		args[i] = g.getVarName(argReg)
 	}
 	
-	if inst.Dest != 0 {
+	// Check if this is a print function or other void-returning function
+	isVoidFunction := g.isVoidFunction(funcName)
+	
+	if inst.Dest != 0 && !isVoidFunction {
 		dest := g.getVarName(inst.Dest)
 		g.emit("%s = %s(%s);", dest, g.sanitizeName(funcName), strings.Join(args, ", "))
 	} else {
 		g.emit("%s(%s);", g.sanitizeName(funcName), strings.Join(args, ", "))
+		// If trying to assign from a void function, set destination to 0
+		if inst.Dest != 0 && isVoidFunction {
+			dest := g.getVarName(inst.Dest)
+			g.emit("%s = 0; // void function call result", dest)
+		}
 	}
 }
 
@@ -546,6 +576,34 @@ func (g *CGenerator) formatConstant(value interface{}) string {
 func (g *CGenerator) sanitizeName(name string) string {
 	// Replace dots with underscores for C compatibility
 	return strings.ReplaceAll(name, ".", "_")
+}
+
+func (g *CGenerator) isVoidFunction(funcName string) bool {
+	// List of known void functions
+	voidFunctions := []string{
+		"print_char", "print_u8", "print_u16", "print_i8", "print_i16", 
+		"print_newline", "print_string", "print_u8_decimal",
+	}
+	
+	for _, voidFunc := range voidFunctions {
+		if strings.Contains(funcName, voidFunc) {
+			return true
+		}
+	}
+	
+	// Check if function exists in module and is void
+	for _, fn := range g.module.Functions {
+		if fn.Name == funcName {
+			if fn.ReturnType == nil {
+				return true
+			}
+			if bt, ok := fn.ReturnType.(*ir.BasicType); ok && bt.Kind == ir.TypeVoid {
+				return true
+			}
+		}
+	}
+	
+	return false
 }
 
 func (g *CGenerator) emit(format string, args ...interface{}) {

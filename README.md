@@ -3,7 +3,7 @@
 
 ## 🚧 **UNDER CONSTRUCTION** 🚧
 
-**A modern systems programming language for retro computers** (Z80, 6502, Game Boy, WebAssembly)
+**A modern systems programming language for retro computers** (Z80, 6502, Game Boy, WebAssembly, LLVM)
 
 ### Current Version: v0.9.6 "Swift & Ruby Dreams" (August 2025)
 

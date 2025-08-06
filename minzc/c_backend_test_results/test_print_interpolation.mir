@@ -1,0 +1,30 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_print_interpolation.main() -> u8
+  @smc
+  Locals:
+    r4 = x: u8
+    r6 = y: u8
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Simple math: 5" (14 chars via loop)
+      2: LOAD_STRING
+      3: PRINT_STRING ; Print "Multiplication: 20" (18 chars via loop)
+      4: LOAD_STRING
+      5: PRINT_STRING ; Print "Complex: 30" (11 chars via loop)
+      6: r5 = 10
+      7: store , r5
+      8: r7 = 20
+      9: store , r7
+     10: PRINT_STRING_DIRECT ; Direct print "x = " (4 chars)
+     11: r8 = load x
+     12: PRINT_U8
+     13: PRINT_STRING_DIRECT ; Direct print ", y = " (6 chars)
+     14: r9 = load y
+     15: PRINT_U8
+     16: PRINT_STRING_DIRECT ; Direct print "Sum: " (5 chars)
+     17: PRINT_STRING_DIRECT ; Direct print "Sum: " (5 chars)
+     18: r10 = 0
+     19: return r10
+

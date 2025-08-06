@@ -1,0 +1,26 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_simple_skip.test_skip_only() -> void
+  @smc
+  Locals:
+    r1 = numbers: [5]u8
+  Instructions:
+      0: r2 = load numbers
+      1: NOP ; ENHANCED DJNZ LOOP: skip=2, take=5, total=3
+      2: r3 = 3 ; DJNZ counter = 3 (after skip/take)
+      3: r6 = 2 ; Skip offset = 2 elements
+      4: r4 = r2 + r6 ; Pointer to first element after skip
+      5: djnz_enhanced_loop_1:
+      6: LOAD ; Load element via pointer
+      7: r7 = call print_u8 ; Call print_u8
+      8: INC ; Advance to next byte
+      9: DJNZ ; DJNZ - decrement and loop
+     10: return
+
+Function examples.test_simple_skip.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call examples.test_simple_skip.test_skip_only
+      1: return
+

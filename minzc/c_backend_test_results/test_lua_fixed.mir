@@ -1,0 +1,13 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_lua_fixed.main() -> u8
+  @smc
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Main function running" (21 chars via loop)
+      2: LOAD_STRING
+      3: PRINT_STRING ; Print "Lua blocks should have executed exactly once each" (49 chars via loop)
+      4: r3 = 0
+      5: return r3
+

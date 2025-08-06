@@ -1,0 +1,8 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_save_load_simple.main() -> void
+  @smc
+  Instructions:
+      0: return
+

@@ -314,6 +314,29 @@ let result = risky_operation?() ?? @error;  // ✅ Error propagation
 - ❌ **Cast type inference**: "cannot determine type of expression being cast"
 - ❌ **If expressions**: `if (cond) { val1 } else { val2 }` syntax issues
 
+### 🎯 Multiple Backends Supported!
+
+MinZ can compile to multiple targets:
+- **Z80** (default) - For ZX Spectrum and other Z80 systems
+- **6502** - For Apple II, Commodore 64, NES
+- **68000** - For Amiga, Atari ST, Genesis
+- **i8080** - For Intel 8080 systems
+- **Game Boy** - For Nintendo Game Boy
+- **WebAssembly** - For web browsers
+- **C** - For native compilation on any platform
+- **LLVM** - For modern optimized native code
+
+```bash
+# Compile to different backends
+mz program.minz -b z80 -o program.a80     # Z80 assembly (default)
+mz program.minz -b 6502 -o program.s      # 6502 assembly
+mz program.minz -b 68000 -o program.s     # 68000 assembly
+mz program.minz -b wasm -o program.wat    # WebAssembly text
+mz program.minz -b c -o program.c         # C code
+mz program.minz -b llvm -o program.ll     # LLVM IR
+mz program.minz -b gb -o program.gb.s     # Game Boy assembly
+```
+
 ### 🎯 Essential Tools - All Self-Contained!
 
 **🚀 NO EXTERNAL DEPENDENCIES NEEDED!** MinZ includes everything:

@@ -1,0 +1,53 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_m68k_complete.add$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function test_m68k_complete.multiply$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 * r4
+      3: return r5
+
+Function test_m68k_complete.is_even$u8(n: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 & r3
+      3: r5 = 0
+      4: r6 = r4 == r5
+      5: return r6
+
+Function test_m68k_complete.factorial$u8(n: u8) -> u8
+  @smc
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: LOAD_PARAM
+     10: LOAD_PARAM
+     11: r8 = 1
+     12: r9 = r7 - r8
+     13: LOAD_PARAM
+     14: r11 = 1
+     15: r12 = r10 - r11
+     16: r13 = call test_m68k_complete.factorial$u8
+     17: r14 = r6 * r13
+     18: return r14
+

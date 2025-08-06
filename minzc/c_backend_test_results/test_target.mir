@@ -1,0 +1,20 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_target.print_char$u8(c: u8) -> void
+  @smc
+  Instructions:
+      0: return
+
+Function test_target.main() -> void
+  @smc
+  Locals:
+    r1 = msg: u8
+  Instructions:
+      0: r2 = 65
+      1: store , r2
+      2: r3 = load msg
+      3: r4 = load msg
+      4: r5 = call test_target.print_char$u8
+      5: return
+

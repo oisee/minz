@@ -1,0 +1,22 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_llvm.main() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u8
+    r5 = sum: u8
+  Instructions:
+      0: r2 = 42
+      1: store , r2
+      2: r4 = 10
+      3: store , r4
+      4: r6 = load x
+      5: r7 = load y
+      6: r8 = r6 + r7
+      7: store , r8
+      8: r9 = load sum
+      9: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     10: return
+

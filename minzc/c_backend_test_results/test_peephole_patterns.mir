@@ -1,0 +1,100 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_peephole_patterns.test_zero_load() -> u8
+  @smc
+  Locals:
+    r1 = a: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r3 = load a
+      3: return r3
+
+Function examples.test_peephole_patterns.test_inc_dec() -> u8
+  @smc
+  Locals:
+    r1 = x: u8
+  Instructions:
+      0: r2 = 10
+      1: store , r2
+      2: r3 = load x
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: store x, r5
+      6: r6 = load x
+      7: r7 = 1
+      8: r8 = r6 - r7
+      9: store x, r8
+     10: r9 = load x
+     11: return r9
+
+Function examples.test_peephole_patterns.test_compare_zero$u8(val: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 0
+      2: r4 = r2 == r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: r6 = 0
+     10: return r6
+
+Function examples.test_peephole_patterns.test_16bit_inc() -> u16
+  @smc
+  Locals:
+    r1 = val: u16
+  Instructions:
+      0: r2 = 100
+      1: store , r2
+      2: r3 = load val
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: store val, r5
+      6: r6 = load val
+      7: return r6
+
+Function examples.test_peephole_patterns.test_double_swap() -> void
+  @smc
+  Locals:
+    r1 = a: u16
+    r3 = b: u16
+    r5 = temp: u16
+  Instructions:
+      0: r2 = 10
+      1: store , r2
+      2: r4 = 20
+      3: store , r4
+      4: r6 = load a
+      5: store , r6
+      6: r7 = load b
+      7: store a, r7
+      8: r8 = load temp
+      9: store b, r8
+     10: return
+
+Function examples.test_peephole_patterns.main() -> void
+  @smc
+  Locals:
+    r1 = result1: u8
+    r3 = result2: u8
+    r5 = result3: bool
+    r9 = result4: u16
+  Instructions:
+      0: r2 = call examples.test_peephole_patterns.test_zero_load
+      1: store , r2
+      2: r4 = call examples.test_peephole_patterns.test_inc_dec
+      3: store , r4
+      4: r6 = 5
+      5: r7 = 5
+      6: r8 = call examples.test_peephole_patterns.test_compare_zero$u8
+      7: store , r8
+      8: r10 = call examples.test_peephole_patterns.test_16bit_inc
+      9: store , r10
+     10: r11 = call examples.test_peephole_patterns.test_double_swap
+     11: return
+

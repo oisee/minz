@@ -1,0 +1,52 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_6502_smc.add_smc$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function test_6502_smc.loop_test$u8(count: u8) -> u8
+  @smc
+  Locals:
+    r2 = sum: u8
+    r4 = i: u8
+  Instructions:
+      0: r3 = 0
+      1: store , r3
+      2: r5 = 0
+      3: store , r5
+      4: loop_1:
+      5: r6 = load i
+      6: LOAD_PARAM
+      7: r8 = r6 < r7
+      8: jump_if_not r8, end_loop_2
+      9: r9 = load sum
+     10: r10 = load i
+     11: r11 = load sum
+     12: r12 = load i
+     13: r13 = call test_6502_smc.add_smc$u8$u8
+     14: store sum, r13
+     15: r14 = load i
+     16: r15 = 1
+     17: r16 = r14 + r15
+     18: store i, r16
+     19: jump loop_1
+     20: end_loop_2:
+     21: r17 = load sum
+     22: return r17
+
+Function test_6502_smc.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: r2 = 10
+      1: r3 = 10
+      2: r4 = call test_6502_smc.loop_test$u8
+      3: store , r4
+      4: return
+

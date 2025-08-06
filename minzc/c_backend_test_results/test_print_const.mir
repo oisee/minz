@@ -1,0 +1,21 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_print_const.main() -> u8
+  @smc
+  Locals:
+    r3 = x: u8
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Number: 42" (10 chars via loop)
+      2: LOAD_STRING
+      3: PRINT_STRING ; Print "Boolean: true" (13 chars via loop)
+      4: r4 = 10
+      5: store , r4
+      6: LOAD_STRING
+      7: PRINT_STRING ; Print "Variable x = " (13 chars via loop)
+      8: r6 = load x
+      9: PRINT_U8
+     10: r7 = 0
+     11: return r7
+

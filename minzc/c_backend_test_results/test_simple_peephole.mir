@@ -1,0 +1,41 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_simple_peephole.test_zero() -> u8
+  @smc
+  Locals:
+    r1 = a: u8
+  Instructions:
+      0: r2 = 0
+      1: store , r2
+      2: r3 = load a
+      3: return r3
+
+Function examples.test_simple_peephole.test_inc() -> u8
+  @smc
+  Locals:
+    r1 = x: u8
+  Instructions:
+      0: r2 = 10
+      1: store , r2
+      2: r3 = load x
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: return r5
+
+Function examples.test_simple_peephole.main() -> void
+  @smc
+  Locals:
+    r1 = a: u8
+    r3 = b: u8
+  Instructions:
+      0: r2 = call examples.test_simple_peephole.test_zero
+      1: store , r2
+      2: r4 = call examples.test_simple_peephole.test_inc
+      3: store , r4
+      4: r5 = load a
+      5: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      6: r6 = load b
+      7: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      8: return
+

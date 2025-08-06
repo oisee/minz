@@ -1,0 +1,7 @@
+// Simple test for LLVM backend
+fun main() -> void {
+    let x: u8 = 42;
+    let y: u8 = 10;
+    let sum: u8 = x + y;
+    print_u8(sum);
+}

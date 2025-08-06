@@ -1,0 +1,100 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_stdlib_simple.print_char$u8(ch: u8) -> void
+  @smc
+  Instructions:
+      0: return
+
+Function test_stdlib_simple.print_u8$u8(value: u8) -> void
+  @smc
+  Locals:
+    r2 = temp: u8
+  Instructions:
+      0: LOAD_PARAM
+      1: store , r3
+      2: r4 = load temp
+      3: r5 = 100
+      4: r6 = r4 >= r5
+      5: jump_if_not r6, else_1
+      6: r7 = 48
+      7: r8 = load temp
+      8: r9 = 100
+      9: DIV
+     10: r11 = r7 + r10
+     11: r12 = 48
+     12: r13 = load temp
+     13: r14 = 100
+     14: DIV
+     15: r16 = r12 + r15
+     16: r17 = call test_stdlib_simple.print_char$u8
+     17: r18 = load temp
+     18: r19 = 100
+     19: MOD
+     20: store temp, r20
+     21: jump end_if_2
+     22: else_1:
+     23: end_if_2:
+     24: r21 = load temp
+     25: r22 = 10
+     26: r23 = r21 >= r22
+     27: jump_if_not r23, else_3
+     28: r24 = 48
+     29: r25 = load temp
+     30: r26 = 10
+     31: DIV
+     32: r28 = r24 + r27
+     33: r29 = 48
+     34: r30 = load temp
+     35: r31 = 10
+     36: DIV
+     37: r33 = r29 + r32
+     38: r34 = call test_stdlib_simple.print_char$u8
+     39: r35 = load temp
+     40: r36 = 10
+     41: MOD
+     42: store temp, r37
+     43: jump end_if_4
+     44: else_3:
+     45: end_if_4:
+     46: r38 = 48
+     47: r39 = load temp
+     48: r40 = r38 + r39
+     49: r41 = 48
+     50: r42 = load temp
+     51: r43 = r41 + r42
+     52: r44 = call test_stdlib_simple.print_char$u8
+     53: return
+
+Function test_stdlib_simple.print_newline() -> void
+  @smc
+  Instructions:
+      0: r1 = 13
+      1: r2 = 13
+      2: r3 = call test_stdlib_simple.print_char$u8
+      3: r4 = 10
+      4: r5 = 10
+      5: r6 = call test_stdlib_simple.print_char$u8
+      6: return
+
+Function test_stdlib_simple.main() -> void
+  @smc
+  Instructions:
+      0: r1 = 0
+      1: r2 = 0
+      2: r3 = call test_stdlib_simple.print_u8$u8
+      3: r4 = call test_stdlib_simple.print_newline
+      4: r5 = 42
+      5: r6 = 42
+      6: r7 = call test_stdlib_simple.print_u8$u8
+      7: r8 = call test_stdlib_simple.print_newline
+      8: r9 = 123
+      9: r10 = 123
+     10: r11 = call test_stdlib_simple.print_u8$u8
+     11: r12 = call test_stdlib_simple.print_newline
+     12: r13 = 255
+     13: r14 = 255
+     14: r15 = call test_stdlib_simple.print_u8$u8
+     15: r16 = call test_stdlib_simple.print_newline
+     16: return
+
