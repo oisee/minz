@@ -1,0 +1,14 @@
+// Simplified test for skip operation
+
+fun test_skip_only() -> void {
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // Just skip - no other operations
+    numbers.iter()
+        .skip(2)
+        .forEach(print_u8);  // Should print 3, 4, 5
+}
+
+fun main() -> void {
+    test_skip_only();
+}

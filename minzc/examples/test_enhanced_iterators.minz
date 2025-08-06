@@ -1,0 +1,73 @@
+// Test enhanced iterator operations
+// This tests new iterator methods we'll implement
+
+fun test_take() -> void {
+    let numbers: [u8; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    
+    // Take only first 5 elements
+    numbers.iter()
+        .take(5)
+        .forEach(print_u8);  // Should print 1, 2, 3, 4, 5
+}
+
+fun test_skip() -> void {
+    let numbers: [u8; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    
+    // Skip first 5 elements
+    numbers.iter()
+        .skip(5)
+        .forEach(print_u8);  // Should print 6, 7, 8, 9, 10
+}
+
+fun test_enumerate() -> void {
+    let chars: [u8; 5] = [65, 66, 67, 68, 69]; // A, B, C, D, E
+    
+    // Enumerate with index
+    chars.iter()
+        .enumerate()
+        .forEach(|(i, c)| {
+            print_u8(i);
+            print_u8(c);
+        });
+}
+
+fun test_chain() -> void {
+    let first: [u8; 3] = [1, 2, 3];
+    let second: [u8; 3] = [4, 5, 6];
+    
+    // Chain two iterators
+    first.iter()
+        .chain(second.iter())
+        .forEach(print_u8);  // Should print 1, 2, 3, 4, 5, 6
+}
+
+fun test_zip() -> void {
+    let nums: [u8; 3] = [1, 2, 3];
+    let chars: [u8; 3] = [65, 66, 67]; // A, B, C
+    
+    // Zip two iterators
+    nums.iter()
+        .zip(chars.iter())
+        .forEach(|(n, c)| {
+            print_u8(n);
+            print_u8(c);
+        });
+}
+
+fun test_complex_chain() -> void {
+    let data: [u8; 20] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20];
+    
+    // Complex chain: skip 5, take 10, filter even, double
+    data.iter()
+        .skip(5)               // Skip 1-5
+        .take(10)              // Take 6-15
+        .filter(|x| x % 2 == 0)  // Keep even: 6, 8, 10, 12, 14
+        .map(|x| x * 2)          // Double: 12, 16, 20, 24, 28
+        .forEach(print_u8);
+}
+
+fun main() -> void {
+    test_take();
+    test_skip();
+    test_complex_chain();
+}

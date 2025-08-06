@@ -33,6 +33,13 @@ const (
 	IterOpTake
 	IterOpSkip
 	IterOpZip
+	IterOpEnumerate
+	IterOpChain
+	IterOpFlatMap
+	IterOpTakeWhile
+	IterOpSkipWhile
+	IterOpPeek
+	IterOpInspect
 )
 
 // IteratorMethodExpr represents iterator method calls

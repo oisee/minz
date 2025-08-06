@@ -1,0 +1,23 @@
+// Basic iterator test without skip/take
+
+fun test_basic() -> void {
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // Just a basic iteration
+    numbers.iter()
+        .forEach(print_u8);  // Should print 1, 2, 3, 4, 5
+}
+
+fun test_map() -> void {
+    let values: [u8; 3] = [1, 2, 3];
+    
+    // Map operation
+    values.iter()
+        .map(|x| => u8 { x * 2 })
+        .forEach(print_u8);  // Should print 2, 4, 6
+}
+
+fun main() -> void {
+    test_basic();
+    test_map();
+}

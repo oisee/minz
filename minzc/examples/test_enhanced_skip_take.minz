@@ -1,0 +1,69 @@
+// Test enhanced iterator skip/take operations
+// This specifically tests DJNZ optimization with skip and take
+
+fun test_skip_take_simple() -> void {
+    @print("Testing skip(2).take(3):");
+    
+    let numbers: [u8; 8] = [1, 2, 3, 4, 5, 6, 7, 8];
+    
+    // Skip first 2, take next 3
+    // Should print: 3, 4, 5
+    numbers.iter()
+        .skip(2)
+        .take(3)
+        .forEach(print_u8);
+}
+
+fun test_skip_take_with_map() -> void {
+    @print("\nTesting skip(1).take(4).map(*2):");
+    
+    let values: [u8; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    
+    // Skip 1, take 4, double them
+    // Should print: 4, 6, 8, 10
+    values.iter()
+        .skip(1)
+        .take(4)
+        .map(|x| x * 2)
+        .forEach(print_u8);
+}
+
+fun test_skip_take_with_filter() -> void {
+    @print("\nTesting skip(3).take(6).filter(even):");
+    
+    let data: [u8; 12] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    
+    // Skip 3, take 6 (4-9), keep even numbers
+    // Should print: 4, 6, 8
+    data.iter()
+        .skip(3)
+        .take(6)
+        .filter(|x| (x & 1) == 0)  // Even numbers
+        .forEach(print_u8);
+}
+
+fun test_edge_cases() -> void {
+    @print("\nTesting edge cases:");
+    
+    let small: [u8; 5] = [10, 20, 30, 40, 50];
+    
+    // Skip more than array length
+    @print("Skip(10) on 5 elements:");
+    small.iter()
+        .skip(10)
+        .forEach(print_u8);  // Should print nothing
+    
+    // Take more than available after skip
+    @print("Skip(3).take(10) on 5 elements:");
+    small.iter()
+        .skip(3)
+        .take(10)
+        .forEach(print_u8);  // Should print: 40, 50
+}
+
+fun main() -> void {
+    test_skip_take_simple();
+    test_skip_take_with_map();
+    test_skip_take_with_filter();
+    test_edge_cases();
+}

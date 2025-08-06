@@ -1,0 +1,36 @@
+// Test iterators with named functions
+
+fun double(x: u8) -> u8 {
+    return x * 2;
+}
+
+fun is_even(x: u8) -> bool {
+    return (x & 1) == 0;
+}
+
+fun print_value(x: u8) -> void {
+    print_u8(x);
+}
+
+fun test_map_function() -> void {
+    let values: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // Map with named function
+    values.iter()
+        .map(double)
+        .forEach(print_u8);  // Should print 2, 4, 6, 8, 10
+}
+
+fun test_filter_function() -> void {
+    let numbers: [u8; 6] = [1, 2, 3, 4, 5, 6];
+    
+    // Filter with named function
+    numbers.iter()
+        .filter(is_even)
+        .forEach(print_u8);  // Should print 2, 4, 6
+}
+
+fun main() -> void {
+    test_map_function();
+    test_filter_function();
+}

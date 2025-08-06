@@ -203,15 +203,55 @@ func (a *Analyzer) analyzeIteratorOpType(op ast.IteratorOp, inputType ir.Type) (
 		// Collect into array - handled by caller
 		return inputType, nil
 		
+	case ast.IterOpEnumerate:
+		// Enumerate returns tuples of (index, element)
+		// For now, we'll keep the element type (tuples not yet supported)
+		return inputType, nil
+		
+	case ast.IterOpChain:
+		// Chain concatenates iterators - type stays the same
+		return inputType, nil
+		
+	case ast.IterOpFlatMap:
+		// FlatMap transforms and flattens
+		// The function should be: fn(T) -> [U]
+		// Result type is U (the element type of the returned array)
+		fnType, err := a.inferType(op.Function)
+		if err != nil {
+			return nil, err
+		}
+		
+		if funcType, ok := fnType.(*ir.FunctionType); ok {
+			if len(funcType.Params) != 1 {
+				return nil, fmt.Errorf("flatMap function must take exactly one parameter")
+			}
+			// Return type should be an array
+			if arrayType, ok := funcType.Return.(*ir.ArrayType); ok {
+				return arrayType.Element, nil
+			}
+			return nil, fmt.Errorf("flatMap function must return an array, got %s", funcType.Return)
+		}
+		return nil, fmt.Errorf("flatMap requires a function, got %s", fnType)
+		
+	case ast.IterOpTakeWhile, ast.IterOpSkipWhile:
+		// These take predicates and don't change the type
+		return inputType, nil
+		
+	case ast.IterOpPeek, ast.IterOpInspect:
+		// These are side-effect operations that don't change the type
+		return inputType, nil
+		
 	default:
-		return nil, fmt.Errorf("unsupported iterator operation")
+		return nil, fmt.Errorf("unsupported iterator operation: %v", op.Type)
 	}
 }
 
 // isIteratorMethod checks if a method name is an iterator method
 func isIteratorMethod(name string) bool {
 	switch name {
-	case "iter", "map", "filter", "forEach", "reduce", "collect", "take", "skip", "zip":
+	case "iter", "map", "filter", "forEach", "reduce", "collect", 
+	     "take", "skip", "zip", "enumerate", "chain", "flatMap",
+	     "takeWhile", "skipWhile", "peek", "inspect":
 		return true
 	}
 	return false
@@ -221,10 +261,28 @@ func isIteratorMethod(name string) bool {
 func (a *Analyzer) generateArrayIteration(chain *ast.IteratorChainExpr, sourceReg ir.Register, 
 	arrayType *ir.ArrayType, elementType ir.Type, irFunc *ir.Function) (ir.Register, error) {
 	
+	// Check if we have enhanced operations that require special handling
+	hasEnhancedOps := false
+	for _, op := range chain.Operations {
+		switch op.Type {
+		case ast.IterOpSkip, ast.IterOpTake, ast.IterOpEnumerate,
+		     ast.IterOpChain, ast.IterOpFlatMap, ast.IterOpTakeWhile, 
+		     ast.IterOpSkipWhile, ast.IterOpPeek, ast.IterOpInspect:
+			hasEnhancedOps = true
+		}
+		if hasEnhancedOps {
+			break
+		}
+	}
+	
 	// Check if we can use DJNZ optimization (arrays ≤255 elements)
 	useDJNZ := arrayType.Length > 0 && arrayType.Length <= 255
 	
-	if useDJNZ {
+	if useDJNZ && hasEnhancedOps {
+		// Use enhanced DJNZ generation for complex operations
+		return a.generateEnhancedDJNZIteration(chain, sourceReg, arrayType, elementType, irFunc)
+	} else if useDJNZ {
+		// Use standard DJNZ for simple operations
 		return a.generateDJNZIteration(chain, sourceReg, arrayType, elementType, irFunc)
 	}
 	
@@ -546,6 +604,23 @@ func (a *Analyzer) applyIteratorOperation(op ast.IteratorOp, elementReg ir.Regis
 		_, err := a.applyIteratorFunction(op.Function, elementReg, elementType, irFunc)
 		return elementReg, err
 		
+	case ast.IterOpTake, ast.IterOpSkip:
+		// These operations are handled at the loop level, not per-element
+		// Just pass through the element unchanged
+		return elementReg, nil
+		
+	case ast.IterOpEnumerate:
+		// Enumerate adds index tracking - handled at loop level
+		return elementReg, nil
+		
+	case ast.IterOpPeek, ast.IterOpInspect:
+		// Call function but don't change element
+		if op.Function == nil {
+			return 0, fmt.Errorf("%v requires a function", op.Type)
+		}
+		_, err := a.applyIteratorFunction(op.Function, elementReg, elementType, irFunc)
+		return elementReg, err
+		
 	default:
 		return 0, fmt.Errorf("iterator operation %v not yet implemented", op.Type)
 	}
@@ -564,9 +639,41 @@ func (a *Analyzer) applyIteratorFunction(function ast.Expression, elementReg ir.
 		// Look up the function
 		sym := a.currentScope.Lookup(funcName)
 		if sym == nil && a.currentModule != "" {
+			// Try with module prefix
 			prefixedName := a.prefixSymbol(funcName)
 			sym = a.currentScope.Lookup(prefixedName)
-			funcName = prefixedName
+			if sym != nil {
+				funcName = prefixedName
+			} else {
+				// Try with type suffix based on element type
+				// This handles overloaded functions like double$u8
+				typeSuffix := "$" + elementType.String()
+				mangledName := prefixedName + typeSuffix
+				sym = a.currentScope.Lookup(mangledName)
+				if sym != nil {
+					funcName = mangledName
+				}
+			}
+		}
+		
+		// If still not found, try global scope
+		if sym == nil {
+			sym = a.globalScope.Lookup(funcName)
+			if sym == nil && a.currentModule != "" {
+				prefixedName := a.prefixSymbol(funcName)
+				sym = a.globalScope.Lookup(prefixedName)
+				if sym != nil {
+					funcName = prefixedName
+				} else {
+					// Try with type suffix
+					typeSuffix := "$" + elementType.String()
+					mangledName := prefixedName + typeSuffix
+					sym = a.globalScope.Lookup(mangledName)
+					if sym != nil {
+						funcName = mangledName
+					}
+				}
+			}
 		}
 		
 		if sym == nil {
@@ -581,13 +688,21 @@ func (a *Analyzer) applyIteratorFunction(function ast.Expression, elementReg ir.
 				})
 				return 0, nil // print functions return void
 			}
-			return 0, fmt.Errorf("undefined function in iterator: %s", fn.Name)
+			
+			// Debug: print available symbols
+			if a.globalScope != nil {
+				fmt.Printf("DEBUG: Looking for function %s, available symbols:\n", fn.Name)
+				// This is just for debugging - we'd need to implement a method to list symbols
+			}
+			
+			return 0, fmt.Errorf("undefined function in iterator: %s (tried prefixed: %s$%s)", 
+				fn.Name, a.prefixSymbol(fn.Name), elementType.String())
 		}
 		
 		// Generate function call
 		funcSym, ok := sym.(*FuncSymbol)
 		if !ok {
-			return 0, fmt.Errorf("%s is not a function", funcName)
+			return 0, fmt.Errorf("%s is not a function (found type %T)", funcName, sym)
 		}
 		
 		// Create call instruction
@@ -651,6 +766,20 @@ func (a *Analyzer) transformIteratorMethodCall(object ast.Expression, method str
 		opType = ast.IterOpSkip
 	case "zip":
 		opType = ast.IterOpZip
+	case "enumerate":
+		opType = ast.IterOpEnumerate
+	case "chain":
+		opType = ast.IterOpChain
+	case "flatMap":
+		opType = ast.IterOpFlatMap
+	case "takeWhile":
+		opType = ast.IterOpTakeWhile
+	case "skipWhile":
+		opType = ast.IterOpSkipWhile
+	case "peek":
+		opType = ast.IterOpPeek
+	case "inspect":
+		opType = ast.IterOpInspect
 	default:
 		return nil, fmt.Errorf("unknown iterator method: %s", method)
 	}
