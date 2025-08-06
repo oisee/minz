@@ -2136,6 +2136,18 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    OR A      ; Clear carry")
 		g.emit("    SBC HL, DE")
 		
+	case ir.OpTest:
+		// Test register (sets flags without modifying)
+		// Used to check if a value is zero/non-zero
+		if inst.Type != nil && inst.Type.Size() == 1 {
+			g.loadToA(inst.Src1)
+			g.emit("    OR A           ; Test A (set flags)")
+		} else {
+			g.loadToHL(inst.Src1)
+			g.emit("    LD A, H")
+			g.emit("    OR L           ; Test HL (set flags)")
+		}
+		
 	case ir.OpLoadDirect:
 		// Load from direct memory address
 		if inst.Type != nil && inst.Type.Size() == 1 {

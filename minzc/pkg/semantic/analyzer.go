@@ -7464,17 +7464,10 @@ func (a *Analyzer) analyzeNilCoalescingExpr(expr *ast.NilCoalescingExpr, irFunc 
 		Label:   elseLabel,
 		Comment: "Jump to error handler if CY flag set",
 	})
-	// Use comparison with zero instead of OpTest for now
-	zeroReg := irFunc.AllocReg()
+	// Test if leftReg is zero (error case)
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpLoadConst,
-		Dest: zeroReg,
-		Imm:  0,
-	})
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpCmp,
+		Op:   ir.OpTest,
 		Src1: leftReg,
-		Src2: zeroReg,
 	})
 	
 	// Jump to else if left is zero (error case)
@@ -7536,17 +7529,9 @@ func (a *Analyzer) analyzeIfExpr(expr *ast.IfExpr, irFunc *ir.Function) (ir.Regi
 	endLabel := a.generateLabel("if_expr_end")
 	
 	// Test condition (assuming 0 = false, non-zero = true)
-	// Use comparison with zero instead of OpTest for now
-	zeroReg := irFunc.AllocReg()
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpLoadConst,
-		Dest: zeroReg,
-		Imm:  0,
-	})
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpCmp,
+		Op:   ir.OpTest,
 		Src1: condReg,
-		Src2: zeroReg,
 	})
 	
 	// Jump to else if condition is false
@@ -7614,17 +7599,9 @@ func (a *Analyzer) analyzeTernaryExpr(expr *ast.TernaryExpr, irFunc *ir.Function
 	endLabel := a.generateLabel("ternary_end")
 	
 	// Test condition
-	// Use comparison with zero instead of OpTest for now
-	zeroReg := irFunc.AllocReg()
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpLoadConst,
-		Dest: zeroReg,
-		Imm:  0,
-	})
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpCmp,
+		Op:   ir.OpTest,
 		Src1: condReg,
-		Src2: zeroReg,
 	})
 	
 	// Jump to false branch if condition is false

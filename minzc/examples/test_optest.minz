@@ -1,0 +1,38 @@
+// Test OpTest instruction generation
+// This tests the optimization where comparison with zero uses TEST instead of CMP
+
+fun test_zero_comparison(x: u8) -> bool {
+    // This should optimize to TEST instruction
+    if (x == 0) {
+        return true;
+    }
+    return false;
+}
+
+fun test_nonzero_check(x: u16) -> bool {
+    // This should also use TEST
+    if (x != 0) {
+        return true;
+    }
+    return false;
+}
+
+fun test_conditional_assignment(x: u8) -> u8 {
+    // This pattern should optimize well
+    let result: u8;
+    if (x != 0) {
+        result = 10;
+    } else {
+        result = 20;
+    }
+    return result;
+}
+
+fun main() -> void {
+    let a = test_zero_comparison(0);
+    let b = test_zero_comparison(5);
+    let c = test_nonzero_check(0);
+    let d = test_nonzero_check(100);
+    let e = test_conditional_assignment(0);
+    let f = test_conditional_assignment(1);
+}
