@@ -455,26 +455,31 @@ let circle = Circle { radius: 5 };
 circle.draw()  // Compiles to: CALL Circle_draw - NO vtables, NO overhead!
 ```
 
-### 🤯 **REVOLUTIONARY: Zero-Cost Iterator Chains with DJNZ Optimization** - IN DESIGN
+### 🚧 **Zero-Cost Iterator Chains with DJNZ Optimization** - IN PROGRESS (v0.9.7)
 ```minz
-// THE IMPOSSIBLE: Complete functional programming on Z80 using DJNZ!
-enemies.filter!(|e| e.health > 0)               // Remove dead
-       .map!(|e| e.update_ai(player_pos))       // Update AI  
-       .filter(|e| e.distance_to(player) < 50)  // Nearby only
-       .forEach(|e| e.attack(player));          // Attack player
+// Enhanced iterator operations now available:
+numbers.iter()
+    .skip(5)                    // Skip first 5 elements (compile-time bounds adjustment)
+    .take(10)                   // Take next 10 (DJNZ counter optimization)
+    .filter(|x| x % 2 == 0)     // Keep even numbers
+    .map(|x| x * 2)             // Transform elements
+    .forEach(print_u8);         // Process each
 
-// Compiles to SINGLE DJNZ loop with pointer arithmetic!
-// LD HL, enemies_array; LD B, enemies_count; DJNZ optimal_loop
-// 3x FASTER than indexed access - Z80-native iteration patterns!
+// NEW operations in v0.9.7:
+data.iter()
+    .enumerate()                // Add index: (0, val1), (1, val2), ...
+    .peek(|x| debug_print(x))   // Side-effect without consuming
+    .takeWhile(|x| x < 100)     // Take until condition false
 ```
 
-**🎯 Z80-Optimized Iteration Strategy:**
-- **DJNZ instruction** - Ultra-efficient counter in B register
+**🎯 Z80-Optimized Implementation:**
+- **DJNZ instruction** - Ultra-efficient counter in B register (arrays ≤255)
+- **Compile-time bounds** - skip/take adjust loop bounds at compile time
 - **Pointer arithmetic** - Direct memory access via HL register  
-- **ADD HL, DE** - Advance by element size (1 byte = INC HL, 2+ bytes = ADD HL, DE)
-- **Fusion optimization** - Entire iterator chains become single DJNZ loops!
+- **Zero overhead** - skip(n) compiles to pointer offset, not runtime checks
 
-**Performance**: 18 T-states per element vs 45+ T-states for indexed access!
+**Status**: Basic operations working, lambda support and function lookup in progress.
+See [Iterator Progress](docs/128_Iterator_Peephole_Progress.md) for details.
 
 ### ✅ **ZX Spectrum Standard Library** - COMPLETE
 - 32-character ROM font printing using hardware font at $3D00
@@ -827,16 +832,25 @@ docker run -v $(pwd):/workspace minz:latest minzc program.minz -O --enable-smc
 
 The MinZ compiler implements a sophisticated multi-pass optimization pipeline:
 
-### Optimization Passes
+### IR-Level Optimization Passes
 1. **Register Analysis** - Tracks usage patterns
-2. **MIR Reordering** - Exposes optimization opportunities
-3. **Smart Peephole** - Z80-specific pattern matching
-4. **Constant Folding** - Compile-time evaluation
-5. **Dead Code Elimination** - Removes unused code
-6. **Register Allocation** - Hierarchical allocation
-7. **Inlining** - Small function expansion
-8. **TRUE SMC** - Self-modifying code transformation
-9. **Tail Recursion** - Loop transformation
+2. **MIR Reordering** - Exposes optimization opportunities  
+3. **Constant Folding** - Compile-time evaluation
+4. **Dead Code Elimination** - Removes unused code
+5. **Register Allocation** - Hierarchical allocation
+6. **Inlining** - Small function expansion
+7. **TRUE SMC** - Self-modifying code transformation
+8. **Tail Recursion** - Loop transformation
+
+### Assembly-Level Peephole Patterns (v0.9.7 - 35+ patterns!)
+- **Basic**: `LD A,0` → `XOR A`, `ADD A,1` → `INC A`, `SUB 1` → `DEC A`
+- **Comparisons**: `CP 0` → `OR A`, 16-bit compare optimizations
+- **Stack**: `POP reg ; Drop` → `INC SP / INC SP`
+- **Jumps**: Condition inversion for better flow
+- **Register**: Redundant load/swap elimination
+- **Z80-specific**: Double negation removal, carry flag tricks
+
+See [Peephole Patterns](docs/128_Iterator_Peephole_Progress.md#2-z80-peephole-optimization-patterns) for full list.
 
 ### Key Optimizations
 - **Instruction Reordering**: Clusters related operations, sinks stores, hoists invariants

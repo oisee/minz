@@ -60,8 +60,13 @@ while alive { keep_going(); }
 // Error handling with ?? operator
 let result = risky_operation?() ?? default_value;
 
-// Iterator chains and lambdas (in development)
-// Coming soon: Functional programming with zero overhead!
+// Iterator chains (enhanced in v0.9.7!)
+numbers.iter()
+    .skip(5)                    // Skip first 5 elements
+    .take(10)                   // Take next 10 elements
+    .filter(|x| x % 2 == 0)     // Keep even numbers
+    .map(|x| x * 2)             // Double them
+    .forEach(print_u8);         // Print each
 
 // Zero-cost interfaces (WORKING!)
 interface Drawable {
@@ -180,6 +185,18 @@ let failed = safe_divide?(10, 0) ?? 0;  // Returns 0 (default)
 - **Type System**: Static type checking with inference
 - **Optimizations**: Register allocation, peephole optimization, SMC
 
+## 🎯 v0.9.7 Progress - Iterator & Optimization Revolution!
+
+**🚧 Current Development Focus:**
+- ✅ **Enhanced Iterator Operations**: `skip()`, `take()`, `enumerate()`, `peek()` 
+- ✅ **35+ Peephole Patterns**: Z80-specific assembly optimizations
+- 🔧 **Iterator Function Lookup**: Fixing overloaded function resolution
+- 🔧 **Lambda Support**: Enabling inline lambdas in iterator chains
+
+📚 **Deep Dives:**
+- [Iterator & Peephole Progress](docs/128_Iterator_Peephole_Progress.md) - Current implementation status
+- [Iterator Transformation Magic](docs/129_Iterator_Transformation_Magic.md) - How zero-cost abstractions work
+
 ## 🎯 v0.9.6 Achievements - Swift & Ruby Dreams!
 
 - ✅ **Function Overloading**: Clean APIs without type suffixes!
@@ -188,11 +205,7 @@ let failed = safe_divide?(10, 0) ?? 0;  // Returns 0 (default)
 - ✅ **Method Resolution**: Compile-time interface method dispatch
 - ✅ **Developer Happiness**: Both `fn` and `fun` keywords work
 
-**🚧 In Development:**
-- Iterator chains with zero-cost DJNZ optimization
-- Generic functions with monomorphization  
-- Complete metaprogramming system
-[See full release notes](RELEASE_NOTES_v0.9.6.md) | [Interface & Overloading Revolution](docs/128_Interface_Overloading_Revolution.md)
+[See full release notes](RELEASE_NOTES_v0.9.6.md) | [Interface & Overloading Revolution](docs/127_Interface_Method_Syntax.md)
 
 ## Key Features
 
