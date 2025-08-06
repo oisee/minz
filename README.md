@@ -25,6 +25,7 @@
 🏗️ **Architecture Documentation**:
 - [Compiler Architecture](minzc/docs/INTERNAL_ARCHITECTURE.md) - Complete guide to MinZ compiler internals
 - [Static Analysis](minzc/docs/138_Architecture_Guide.md) - Package structure and build system
+- [World-Class Optimization Guide](docs/149_World_Class_Multi_Level_Optimization_Guide.md) - Revolutionary multi-level optimization strategy for 60-85% performance gains
 
 ## 📖 **Quick Syntax Reference**
 
