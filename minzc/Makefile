@@ -36,7 +36,7 @@ test:
 
 # Clean build artifacts
 clean:
-	rm -f mz mzr minzc minz
+	rm -f mz mzr minz
 	rm -f *.a80
 	rm -f *.mir
 
@@ -108,7 +108,7 @@ install: all
 	@echo "  mzr   - MinZ REPL (also: minz)"
 
 # Install to user's local bin (no sudo required)
-install-local: build
+install-local: build install-grammar
 	@mkdir -p ~/.local/bin
 	@echo "Installing MinZ compiler to ~/.local/bin..."
 	@ln -sf $(PWD)/mz ~/.local/bin/mz
@@ -116,6 +116,17 @@ install-local: build
 	@echo "Installation complete!"
 	@echo "  mz    - MinZ compiler (also: minzc)"
 	@echo "Make sure ~/.local/bin is in your PATH"
+
+# Install grammar files to ~/.local/share/mz/grammar
+install-grammar:
+	@echo "Installing MinZ grammar files..."
+	@mkdir -p ~/.local/share/mz/grammar
+	@mkdir -p ~/.local/share/mz/grammar/src
+	@cp ../grammar.js ~/.local/share/mz/grammar/
+	@cp ../src/grammar.json ~/.local/share/mz/grammar/src/
+	@cp ../src/parser.c ~/.local/share/mz/grammar/src/
+	@cp ../src/node-types.json ~/.local/share/mz/grammar/src/
+	@echo "Grammar files installed to ~/.local/share/mz/grammar/"
 
 # Development build with race detector
 dev:

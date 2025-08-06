@@ -24,11 +24,10 @@ type Parser struct {
 
 // New creates a new parser
 func New() *Parser {
-	// Try to create native parser
-	native := NewNativeParser()
+	// Native parser disabled for now (CGO issues)
 	return &Parser{
-		useNative: native != nil,
-		native:    native,
+		useNative: false,
+		native:    nil,
 	}
 }
 
@@ -102,28 +101,42 @@ func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
 	}
 	p.sourceCode = string(sourceCode)
 	
-	// Try to find grammar.js locally first
-	currentDir, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
+	// First, check if grammar is installed in ~/.local/share/mz/grammar
+	homeDir, _ := os.UserHomeDir()
+	installedGrammarPath := filepath.Join(homeDir, ".local", "share", "mz", "grammar")
 	
-	// Look for grammar.js in current directory and parent directories
-	grammarPath := currentDir
+	var grammarPath string
 	foundGrammar := false
-	for {
-		if _, err := os.Stat(filepath.Join(grammarPath, "grammar.js")); err == nil {
-			foundGrammar = true
-			break
-		}
-		parent := filepath.Dir(grammarPath)
-		if parent == grammarPath {
-			break
-		}
-		grammarPath = parent
+	
+	// Check installed grammar location first
+	if _, err := os.Stat(filepath.Join(installedGrammarPath, "grammar.js")); err == nil {
+		grammarPath = installedGrammarPath
+		foundGrammar = true
 	}
 	
-	// If we couldn't find grammar.js locally, use the embedded version
+	// If not found in installed location, try to find locally
+	if !foundGrammar {
+		currentDir, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		
+		// Look for grammar.js in current directory and parent directories
+		grammarPath = currentDir
+		for {
+			if _, err := os.Stat(filepath.Join(grammarPath, "grammar.js")); err == nil {
+				foundGrammar = true
+				break
+			}
+			parent := filepath.Dir(grammarPath)
+			if parent == grammarPath {
+				break
+			}
+			grammarPath = parent
+		}
+	}
+	
+	// If we couldn't find grammar.js anywhere, use the embedded version
 	if !foundGrammar {
 		tempDir, err := SetupGrammar()
 		if err != nil {

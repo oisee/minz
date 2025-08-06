@@ -6,7 +6,7 @@ import (
 	"os"
 	
 	sitter "github.com/smacker/go-tree-sitter"
-	"github.com/minz/minzc/pkg/parser/minz"
+	// "github.com/minz/minzc/pkg/parser/minz" // Disabled due to CGO issues
 )
 
 // NativeParser uses embedded tree-sitter for parsing

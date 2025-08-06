@@ -51,8 +51,27 @@ func SetupGrammar() (string, error) {
 		return "", err
 	}
 	
-	// Write parser.c
-	if err := ioutil.WriteFile(filepath.Join(srcDir, "parser.c"), []byte(EmbeddedParserC), 0644); err != nil {
+	// Write parser.c with fixed includes
+	// Replace the incorrect include path in parser.c
+	fixedParserC := strings.Replace(EmbeddedParserC, `#include "tree_sitter/parser.h"`, `#include "../tree_sitter/parser.h"`, 1)
+	if err := ioutil.WriteFile(filepath.Join(srcDir, "parser.c"), []byte(fixedParserC), 0644); err != nil {
+		os.RemoveAll(tempDir)
+		return "", err
+	}
+	
+	// Also create the tree_sitter directory with parser.h
+	tsDir := filepath.Join(tempDir, "tree_sitter")
+	if err := os.MkdirAll(tsDir, 0755); err != nil {
+		os.RemoveAll(tempDir)
+		return "", err
+	}
+	
+	// Write a minimal parser.h that tree-sitter needs
+	parserH := `#ifndef TREE_SITTER_PARSER_H_
+#define TREE_SITTER_PARSER_H_
+typedef struct TSLanguage TSLanguage;
+#endif`
+	if err := ioutil.WriteFile(filepath.Join(tsDir, "parser.h"), []byte(parserH), 0644); err != nil {
 		os.RemoveAll(tempDir)
 		return "", err
 	}
