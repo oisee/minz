@@ -1,0 +1,12 @@
+// Test 16-bit parameter passing with TRUE SMC
+
+fun add_u16(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+fun main() -> u16 {
+    let x: u16 = 1000;
+    let y: u16 = 2000;
+    let result: u16 = add_u16(x, y);
+    return result;  // Should be 3000
+}

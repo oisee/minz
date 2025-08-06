@@ -1,0 +1,19 @@
+// E2E Example: Instruction Patching TRUE SMC
+// Shows two different call patterns to same function
+// Call 1: Immediate use (patch to RET)  
+// Call 2: Storage (patch to LD + RET)
+
+fn add_numbers(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fn main() -> u8 {
+    // Call 1: Immediate use - should patch for register return
+    let temp: u8 = add_numbers(10, 20) + 5;  // 30 + 5 = 35
+    
+    // Call 2: Storage - should patch for memory store  
+    let stored_result: u8 = add_numbers(30, 40);  // 70
+    
+    // Final computation
+    return temp + stored_result;  // 35 + 70 = 105
+}

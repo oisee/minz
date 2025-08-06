@@ -93,8 +93,10 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	// Generate PATCH-TABLE if there are any TRUE SMC functions
 	g.generatePatchTable()
 	
-	// Generate runtime helper functions for print
-	g.generatePrintHelpers()
+	// Only generate print helpers if they're actually used
+	if g.needsPrintHelpers() {
+		g.generatePrintHelpers()
+	}
 	
 	// Write footer
 	g.writeFooter()
@@ -3325,6 +3327,23 @@ func (g *Z80Generator) isLocalRegister(reg ir.Register) bool {
 	for _, local := range g.currentFunc.Locals {
 		if local.Reg == reg {
 			return true
+		}
+	}
+	return false
+}
+
+// needsPrintHelpers checks if any print functions are used in the module
+func (g *Z80Generator) needsPrintHelpers() bool {
+	// Check all functions for print-related calls
+	for _, fn := range g.module.Functions {
+		for _, inst := range fn.Instructions {
+			if inst.Op == ir.OpCall && inst.Symbol != "" {
+				// Check if it's a print function
+				if strings.Contains(inst.Symbol, "print_") ||
+				   strings.Contains(inst.Symbol, "@print") {
+					return true
+				}
+			}
 		}
 	}
 	return false

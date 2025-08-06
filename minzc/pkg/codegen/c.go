@@ -86,6 +86,15 @@ func (g *CGenerator) Generate() error {
 		g.emit("")
 	}
 	
+	// Generate string literals
+	if len(g.module.Strings) > 0 {
+		g.emit("// String literals")
+		for _, str := range g.module.Strings {
+			g.generateString(str)
+		}
+		g.emit("")
+	}
+	
 	// Generate function implementations
 	for _, fn := range g.module.Functions {
 		if err := g.generateFunction(fn); err != nil {
@@ -159,9 +168,9 @@ func (g *CGenerator) generateFunction(fn *ir.Function) error {
 	// We'll use a simple approach - declare r0 through rN based on instructions
 	maxReg := g.findMaxRegister(fn)
 	for i := ir.Register(1); i <= maxReg; i++ {
-		// Default to u32 for now - could be smarter about types
-		g.emit("u32 r%d = 0;", i)
-		g.varTypes[fmt.Sprintf("r%d", i)] = "u32"
+		// Use uintptr_t for registers that might hold addresses
+		g.emit("uintptr_t r%d = 0;", i)
+		g.varTypes[fmt.Sprintf("r%d", i)] = "uintptr_t"
 	}
 	
 	// Declare local variables from the function's Locals slice
@@ -290,8 +299,18 @@ func (g *CGenerator) generateInstruction(inst *ir.Instruction) error {
 			g.emit("return;")
 		}
 		
-	case ir.OpPrint:
+	case ir.OpPrint, ir.OpPrintU8, ir.OpPrintU16, ir.OpPrintI8, ir.OpPrintI16,
+	     ir.OpPrintBool, ir.OpPrintString, ir.OpPrintStringDirect:
 		g.generatePrint(inst)
+		
+	case ir.OpLoadString:
+		// Load address of string literal
+		dest := g.getVarName(inst.Dest)
+		if inst.Symbol != "" {
+			// The symbol contains the string label, not the actual string
+			// We need to emit the actual string value
+			g.emit("%s = (uintptr_t)%s;", dest, inst.Symbol)
+		}
 		
 	case ir.OpAsm:
 		g.emit("// Inline assembly not supported in C backend")
@@ -459,11 +478,60 @@ func (g *CGenerator) generateCall(inst *ir.Instruction) {
 
 
 func (g *CGenerator) generatePrint(inst *ir.Instruction) {
-	value := g.getVarName(inst.Src1)
-	
-	// Simple print based on register type
-	// In practice we'd track types better
-	g.emit("printf(\"%%d\\n\", %s);", value)
+	switch inst.Op {
+	case ir.OpPrint:
+		// Print single character
+		value := g.getVarName(inst.Src1)
+		g.emit("putchar(%s);", value)
+		
+	case ir.OpPrintU8:
+		value := g.getVarName(inst.Src1)
+		g.emit("printf(\"%%u\", (unsigned)%s);", value)
+		
+	case ir.OpPrintU16:
+		value := g.getVarName(inst.Src1)
+		g.emit("printf(\"%%u\", (unsigned)%s);", value)
+		
+	case ir.OpPrintI8:
+		value := g.getVarName(inst.Src1)
+		g.emit("printf(\"%%d\", (int)%s);", value)
+		
+	case ir.OpPrintI16:
+		value := g.getVarName(inst.Src1)
+		g.emit("printf(\"%%d\", (int)%s);", value)
+		
+	case ir.OpPrintBool:
+		value := g.getVarName(inst.Src1)
+		g.emit("printf(\"%%s\", %s ? \"true\" : \"false\");", value)
+		
+	case ir.OpPrintString:
+		// Print string literal
+		if inst.Symbol != "" {
+			// String literal - symbol contains the label
+			g.emit("printf(\"%%s\", %s);", inst.Symbol)
+		} else {
+			// String from register/variable (which is a pointer to the string)
+			value := g.getVarName(inst.Src1)
+			g.emit("printf(\"%%s\", (const char*)%s);", value)
+		}
+		
+	case ir.OpPrintStringDirect:
+		// Direct string literal from Symbol field
+		if inst.Symbol != "" {
+			// Escape the string properly for C
+			escaped := strings.ReplaceAll(inst.Symbol, "\\", "\\\\")
+			escaped = strings.ReplaceAll(escaped, "\"", "\\\"")
+			escaped = strings.ReplaceAll(escaped, "\n", "\\n")
+			escaped = strings.ReplaceAll(escaped, "\t", "\\t")
+			escaped = strings.ReplaceAll(escaped, "\r", "\\r")
+			g.emit("printf(\"%s\");", escaped)
+		}
+		
+	default:
+		// Fallback for generic print
+		value := g.getVarName(inst.Src1)
+		g.emit("printf(\"%%d\", %s);", value)
+	}
 }
 
 func (g *CGenerator) generateGlobal(global *ir.Global) {
@@ -473,6 +541,17 @@ func (g *CGenerator) generateGlobal(global *ir.Global) {
 	} else {
 		g.emit("%s %s;", cType, global.Name)
 	}
+}
+
+func (g *CGenerator) generateString(str *ir.String) {
+	// Generate a C string literal as a const char array
+	escaped := strings.ReplaceAll(str.Value, "\\", "\\\\")
+	escaped = strings.ReplaceAll(escaped, "\"", "\\\"")
+	escaped = strings.ReplaceAll(escaped, "\n", "\\n")
+	escaped = strings.ReplaceAll(escaped, "\t", "\\t")
+	escaped = strings.ReplaceAll(escaped, "\r", "\\r")
+	
+	g.emit("const char %s[] = \"%s\";", str.Label, escaped)
 }
 
 func (g *CGenerator) generateMainWrapper() {

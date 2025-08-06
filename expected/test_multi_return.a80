@@ -1,0 +1,85 @@
+; Expected TRUE SMC output for multiple return values
+; Generated from test_multi_return.minz
+
+    ORG $8000
+
+; Function: divmod(dividend: u8, divisor: u8, quotient: *u8, remainder: *u8) -> void
+divmod:
+divmod_param_dividend.op:
+divmod_param_dividend equ divmod_param_dividend.op + 1
+    LD A, #00               ; Parameter dividend (gets patched)
+    
+divmod_param_divisor.op:
+divmod_param_divisor equ divmod_param_divisor.op + 1
+    LD C, #00               ; Parameter divisor (gets patched)
+    
+    ; Perform division A / C
+    LD B, 0                 ; Quotient counter
+divmod_loop:
+    CP C
+    JR C, divmod_done       ; If A < C, we're done
+    SUB C                   ; A = A - C
+    INC B                   ; Increment quotient
+    JR divmod_loop
+    
+divmod_done:
+    ; B = quotient, A = remainder
+    
+    ; Store quotient to patched address
+    LD D, B                 ; Save quotient
+divmod_quot_addr.op:
+divmod_quot_addr equ divmod_quot_addr.op + 1
+    LD HL, #0000            ; Quotient destination (gets patched)
+    LD (HL), D              ; Store quotient
+    
+    ; Store remainder to patched address
+divmod_rem_addr.op:
+divmod_rem_addr equ divmod_rem_addr.op + 1
+    LD HL, #0000            ; Remainder destination (gets patched)
+    LD (HL), A              ; Store remainder
+    
+    RET
+
+; Function: main() -> u8
+main:
+main_num.op:
+main_num equ main_num.op + 1
+    LD A, #11               ; num = 17 (0x11)
+    
+main_div.op:
+main_div equ main_div.op + 1
+    LD B, #05               ; div = 5
+    
+main_quot.op:
+main_quot equ main_quot.op + 1
+    LD C, #00               ; quot = 0 (will be result location)
+    
+main_rem.op:
+main_rem equ main_rem.op + 1
+    LD D, #00               ; rem = 0 (will be result location)
+    
+    ; Call divmod(num, div, &quot, &rem)
+    ; Patch parameters
+    LD (divmod_param_dividend), A   ; Patch dividend
+    LD A, B
+    LD (divmod_param_divisor), A    ; Patch divisor
+    
+    ; Patch output addresses (where to store quotient and remainder)
+    LD HL, main_quot
+    LD (divmod_quot_addr), HL       ; Patch quotient destination
+    
+    LD HL, main_rem
+    LD (divmod_rem_addr), HL        ; Patch remainder destination
+    
+    CALL divmod
+    
+    ; Now main_quot and main_rem contain the results
+    ; Return quot + rem
+    LD A, (main_quot)       ; Load quotient (will be 3)
+    LD B, A
+    LD A, (main_rem)        ; Load remainder (will be 2)
+    ADD A, B                ; A = quot + rem = 5
+    
+    RET                     ; Return A
+
+    END main

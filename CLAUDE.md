@@ -722,6 +722,33 @@ Currently, syntax uses `*T` but semantics are evolving to true TSMC references w
 
 See `docs/040_TSMC_Reference_Philosophy.md` for the complete revolutionary vision and `POINTER_PHILOSOPHY.md` for the migration path.
 
+### TRUE SMC Design Philosophy (Self-Modifying Code)
+MinZ implements **TRUE SMC** where code IS the data structure:
+
+1. **Every value lives as an immediate in an instruction** - Parameters, locals, and returns are instruction immediates
+2. **Function calls are patch operations** - Before calling, patch all parameters into the target function's code
+3. **Returns patch their destination** - Functions don't "return" values, they patch where to store them
+4. **Zero overhead** - No stack, no memory variables, just immediate values in code
+
+**Documentation:**
+- `docs/142_TRUE_SMC_Philosophy_Complete.md` - Complete vision and implementation guide
+- `expected/simple_add.a80` - Reference example showing ideal SMC generation
+
+**Key Implementation Details:**
+- Every patchable value has two labels: `.op` (instruction) and EQU (immediate)
+- Parameters are patched before CALL: `LD (func_param), A`
+- Return addresses are patched: `LD (func_return), HL`
+- Local variables are immediates: `LD A, 42` where 42 is the variable
+
+Example of TRUE SMC:
+```asm
+func_param.op:
+func_param equ func_param.op + 1
+    LD A, #00              ; This #00 gets patched at call time!
+```
+
+Expected examples in `expected/` directory show the ideal SMC generation patterns.
+
 ### Lambda Design Philosophy (Compile-Time Transformation)
 MinZ lambdas are **not runtime values** but compile-time constructs:
 

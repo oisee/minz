@@ -1,0 +1,49 @@
+; Expected MIR for instruction_patching_demo.minz
+; Shows how MIR should represent patchable functions
+
+Function instruction_patching_demo.add_numbers(a: u8, b: u8) -> u8
+  @smc @patchable_return(6)  ; Reserve 6 bytes for instruction patching
+  Instructions:
+    0: r1 = load_param a     ; Parameter a (gets patched)
+    1: r2 = load_param b     ; Parameter b (gets patched)
+    2: r3 = add r1, r2       ; Compute result
+    3: patchpoint return_sequence, size=6 {
+         template.immediate: ret
+         template.store_u8: store [target], r3; ret
+         template.reg_b: move r3, B; ret
+         template.reg_c: move r3, C; ret
+       }
+    4: ret r3                ; Fallback return (should never execute)
+
+Function instruction_patching_demo.main() -> u8
+  Instructions:
+    ; === Call 1: Immediate use pattern ===
+    0: patch_template instruction_patching_demo.add_numbers.return_sequence, immediate
+    1: patch_param instruction_patching_demo.add_numbers.a, 10
+    2: patch_param instruction_patching_demo.add_numbers.b, 20
+    3: r1 = call instruction_patching_demo.add_numbers()  ; Returns in register
+    4: r2 = add r1, 5        ; Immediate use: temp = 30 + 5
+    5: store temp, r2
+    
+    ; === Call 2: Storage pattern ===
+    6: patch_template instruction_patching_demo.add_numbers.return_sequence, store_u8
+    7: patch_target instruction_patching_demo.add_numbers.return_sequence, stored_result
+    8: patch_param instruction_patching_demo.add_numbers.a, 30
+    9: patch_param instruction_patching_demo.add_numbers.b, 40
+    10: call instruction_patching_demo.add_numbers()  ; Stores automatically
+    
+    ; === Final computation ===
+    11: r4 = load temp
+    12: r5 = load stored_result  
+    13: r6 = add r4, r5      ; 35 + 70 = 105
+    14: ret r6
+
+; Variable declarations
+Variable temp: u8
+Variable stored_result: u8
+
+; MIR Analysis Notes:
+; - Call 1: MIR detects immediate use → selects 'immediate' template
+; - Call 2: MIR detects assignment → selects 'store_u8' template  
+; - Patchpoint reserves exact bytes needed for different instruction sequences
+; - Templates are pre-computed at compile time for fast runtime patching

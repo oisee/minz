@@ -108,24 +108,31 @@ install: all
 	@echo "  mzr   - MinZ REPL (also: minz)"
 
 # Install to user's local bin (no sudo required)
-install-local: build install-grammar
+install-local: build
 	@mkdir -p ~/.local/bin
 	@echo "Installing MinZ compiler to ~/.local/bin..."
-	@ln -sf $(PWD)/mz ~/.local/bin/mz
-	@ln -sf $(PWD)/mz ~/.local/bin/minzc
+	@cp mz-wrapper.sh ~/.local/bin/mz
+	@chmod +x ~/.local/bin/mz
+	@ln -sf ~/.local/bin/mz ~/.local/bin/minzc
 	@echo "Installation complete!"
 	@echo "  mz    - MinZ compiler (also: minzc)"
 	@echo "Make sure ~/.local/bin is in your PATH"
+	@echo "NOTE: mz will work from any directory!"
 
 # Install grammar files to ~/.local/share/mz/grammar
 install-grammar:
 	@echo "Installing MinZ grammar files..."
 	@mkdir -p ~/.local/share/mz/grammar
 	@mkdir -p ~/.local/share/mz/grammar/src
+	@mkdir -p ~/.local/share/mz/grammar/src/tree_sitter
 	@cp ../grammar.js ~/.local/share/mz/grammar/
 	@cp ../src/grammar.json ~/.local/share/mz/grammar/src/
 	@cp ../src/parser.c ~/.local/share/mz/grammar/src/
 	@cp ../src/node-types.json ~/.local/share/mz/grammar/src/
+	@echo '#ifndef TREE_SITTER_PARSER_H_' > ~/.local/share/mz/grammar/src/tree_sitter/parser.h
+	@echo '#define TREE_SITTER_PARSER_H_' >> ~/.local/share/mz/grammar/src/tree_sitter/parser.h
+	@echo 'typedef struct TSLanguage TSLanguage;' >> ~/.local/share/mz/grammar/src/tree_sitter/parser.h
+	@echo '#endif' >> ~/.local/share/mz/grammar/src/tree_sitter/parser.h
 	@echo "Grammar files installed to ~/.local/share/mz/grammar/"
 
 # Development build with race detector

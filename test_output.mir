@@ -1,0 +1,56 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.test_print_all_backends.print_test() -> void
+  @smc
+  Locals:
+    r4 = x: u8
+    r7 = y: u16
+    r10 = ch: u8
+    r12 = flag: bool
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "=== MinZ Print Test ===
+" (24 chars via loop)
+      2: LOAD_STRING
+      3: PRINT_STRING ; Print "Testing all backends!
+
+" (23 chars via loop)
+      4: LOAD_STRING
+      5: PRINT_STRING ; Print "Numbers: " (9 chars via loop)
+      6: r5 = 42
+      7: store x, r5
+      8: r6 = load x
+      9: PRINT_U8
+     10: PRINT_STRING_DIRECT ; Direct print ", " (2 chars)
+     11: r8 = 1234
+     12: store y, r8
+     13: r9 = load y
+     14: PRINT_U16
+     15: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     16: PRINT_STRING_DIRECT ; Direct print "Chars: " (7 chars)
+     17: r11 = 65
+     18: store ch, r11
+     19: PRINT_STRING_DIRECT ; Direct print " " (1 chars)
+     20: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     21: r13 = 1
+     22: store flag, r13
+     23: PRINT_STRING_DIRECT ; Direct print "Bool: " (6 chars)
+     24: r14 = load flag
+     25: PRINT_BOOL
+     26: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     27: LOAD_STRING
+     28: PRINT_STRING ; Print "=== Test Complete ===
+" (22 chars via loop)
+     29: return
+
+Function examples.test_print_all_backends.main() -> u8
+  @smc
+  Instructions:
+      0: r1 = call examples.test_print_all_backends.print_test
+      1: r2 = 0
+      2: return r2
+

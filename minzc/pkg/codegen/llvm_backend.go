@@ -18,7 +18,8 @@ func init() {
 // LLVMBackend generates LLVM IR from MinZ IR
 type LLVMBackend struct {
 	BaseBackend
-	options *BackendOptions
+	options    *BackendOptions
+	tmpCounter int
 }
 
 func (b *LLVMBackend) Name() string {
@@ -319,9 +320,35 @@ func (b *LLVMBackend) writeInstruction(sb *strings.Builder, inst *ir.Instruction
 			varType,
 			inst.Symbol))
 			
+	case ir.OpPrint:
+		// Print single character
+		sb.WriteString(fmt.Sprintf("  %%tmp%d = zext i8 %%r%d to i32\n", b.tmpCounter, inst.Src1))
+		sb.WriteString(fmt.Sprintf("  call i32 @putchar(i32 %%tmp%d)\n", b.tmpCounter))
+		b.tmpCounter++
+		
 	case ir.OpPrintU8:
-		// Call print_u8 function
+		// Print u8 as decimal
 		sb.WriteString(fmt.Sprintf("  call void @print_u8(i8 %%r%d)\n", inst.Src1))
+		
+	case ir.OpPrintU16:
+		// Print u16 as decimal
+		sb.WriteString(fmt.Sprintf("  call void @print_u16(i16 %%r%d)\n", inst.Src1))
+		
+	case ir.OpPrintString, ir.OpPrintStringDirect:
+		// Print string
+		if inst.Symbol != "" {
+			sb.WriteString(fmt.Sprintf("  call i32 @printf(i8* getelementptr inbounds ([%d x i8], [%d x i8]* @%s, i32 0, i32 0))\n",
+				len(inst.Symbol)+1, len(inst.Symbol)+1, inst.Symbol))
+		} else {
+			sb.WriteString(fmt.Sprintf("  call i32 @printf(i8* %%r%d)\n", inst.Src1))
+		}
+		
+	case ir.OpLoadString:
+		// Load string address
+		if inst.Symbol != "" {
+			sb.WriteString(fmt.Sprintf("  %%r%d = getelementptr inbounds ([%d x i8], [%d x i8]* @%s, i32 0, i32 0)\n",
+				inst.Dest, len(inst.Symbol)+1, len(inst.Symbol)+1, inst.Symbol))
+		}
 		
 	default:
 		// Add comment for unimplemented instructions
@@ -430,21 +457,38 @@ func (b *LLVMBackend) escapeString(s string) string {
 }
 
 func (b *LLVMBackend) writeRuntimeFunctions(sb *strings.Builder) {
-	// print_u8 implementation
 	sb.WriteString(`
 ; Runtime functions
+
+; Print u8 as decimal
 define void @print_u8(i8 %value) {
   %1 = zext i8 %value to i32
-  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.u8, i32 0, i32 0), i32 %1)
+  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @.str.u8, i32 0, i32 0), i32 %1)
   ret void
 }
 
-@.str.u8 = private constant [4 x i8] c"%u\0A\00"
+; Print u16 as decimal
+define void @print_u16(i16 %value) {
+  %1 = zext i16 %value to i32
+  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([3 x i8], [3 x i8]* @.str.u16, i32 0, i32 0), i32 %1)
+  ret void
+}
 
-; main wrapper
+; Format strings
+@.str.u8 = private constant [3 x i8] c"%u\00"
+@.str.u16 = private constant [3 x i8] c"%u\00"
+
+; Main wrapper - finds the appropriate main function
 define i32 @main() {
-  call void @examples_test_llvm_main()
+  ; TODO: Make this dynamic based on the actual main function name
+  ; For now, try common patterns
+  call void @main_minz()
   ret i32 0
+}
+
+; Weak symbol for main_minz (will be overridden if it exists)
+define weak void @main_minz() {
+  ret void
 }
 `)
 }

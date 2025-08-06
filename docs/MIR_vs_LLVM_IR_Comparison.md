@@ -79,19 +79,49 @@ fn add(_1: i32, _2: i32) -> i32 {
 
 ### 4.2 Example MinZ MIR
 ```mir
-Function strlen(str: *u8) -> u16
-  @smc
+; MinZ uses length-prefixed strings (not null-terminated!)
+; String = 1-byte length prefix (max 255 chars)
+; LString = 2-byte length prefix (max 65535 chars)
+
+Function get_string_len(str: String) -> u8
   Instructions:
     0: r1 = load str      ; String pointer
-    1: r2 = 0             ; Counter
-    2: loop_start:
-    3: r3 = load.u8 [r1]  ; Load character
-    4: jump_if_zero r3, done
-    5: r1 = r1 + 1        ; Next char
-    6: r2 = r2 + 1        ; Increment count
-    7: jump loop_start
-    8: done:
-    9: return r2
+    1: r2 = load.u8 [r1]  ; First byte is the length!
+    2: return r2          ; O(1) - just return it!
+
+Function concat_strings(s1: String, s2: String, dest: *u8) -> u8
+  @smc  ; Enable self-modifying code optimization
+  Instructions:
+    0: r1 = load s1          ; First string pointer
+    1: r2 = load s2          ; Second string pointer
+    2: r3 = load dest        ; Destination pointer
+    3: r4 = load.u8 [r1]     ; Length of s1
+    4: r5 = load.u8 [r2]     ; Length of s2
+    5: r6 = r4 + r5          ; Total length
+    6: store.u8 [r3], r6     ; Write new length prefix
+    7: r3 = r3 + 1           ; Move past length byte
+    8: r1 = r1 + 1           ; Skip s1 length prefix
+    9: ; Copy first string
+    10: copy_loop1:
+    11: jump_if_zero r4, copy_s2
+    12: r7 = load.u8 [r1]
+    13: store.u8 [r3], r7
+    14: r1 = r1 + 1
+    15: r3 = r3 + 1
+    16: r4 = r4 - 1
+    17: jump copy_loop1
+    18: copy_s2:
+    19: r2 = r2 + 1          ; Skip s2 length prefix
+    20: copy_loop2:
+    21: jump_if_zero r5, done
+    22: r7 = load.u8 [r2]
+    23: store.u8 [r3], r7
+    24: r2 = r2 + 1
+    25: r3 = r3 + 1
+    26: r5 = r5 - 1
+    27: jump copy_loop2
+    28: done:
+    29: return r6            ; Return total length
 ```
 
 ### 4.3 Unique Features

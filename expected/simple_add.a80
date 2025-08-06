@@ -1,0 +1,73 @@
+// Simple addition program for cross-platform testing
+// Returns exit code with the result
+//fn add_numbers(a: u8, b: u8) -> u8 {
+//    return a + b;
+//}
+//
+//fn main() -> u8 {
+//    let x: u8 = 42;
+//    let y: u8 = 13;
+//    let result: u8 = add_numbers(x, y);
+//    return result;  // Will be exit code: 55
+//}
+//; MinZ generated code
+//; Generated: 2025-08-06 22:17:33
+//
+//
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: simple_add.add_numbers$u8$u8
+simple_add.add_numbers$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+simple_add.add_numbers$u8$u8_param_a.op:
+simple_add.add_numbers$u8$u8_param_a equ simple_add.add_numbers$u8$u8_param_a.op + 1 
+    LD A, #00   ; SMC parameter a (u8)
+simple_add.add_numbers$u8$u8_param_b.op:
+simple_add.add_numbers$u8$u8_param_b equ simple_add.add_numbers$u8$u8_param_b.op + 1 
+    LD B, #00   ; SMC parameter b (u8)
+    ADD A, B
+    ; return A
+simple_add.add_numbers$u8$u8_return.op:
+simple_add.add_numbers$u8$u8_return equ simple_add.add_numbers$u8$u8_return.op + 1 
+    LD (simple_add.main.result),A
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: simple_add.main
+simple_add.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 42
+simple_add.main.x.op
+simple_add.main.x equ simple_add.main.x.op + 1
+; store x, r2
+    LD A, 42
+    ; r4 = 13
+simple_add.main.y.op
+simple_add.main.y equ simple_add.main.y.op + 1
+; store y, r4
+    LD B, 13
+    ; r10 = call simple_add.add_numbers$u8$u8
+    LD 
+    ; Call to simple_add.add_numbers$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    ; SMC parameter a pass:
+    ld (simple_add.add_numbers$u8$u8_param_a),a
+    ; SMC parameter b pass:    
+    ld a,b
+    ld (simple_add.add_numbers$u8$u8_param_b),a
+    ld HL, simple_add.main.result ;where we expecting result
+    ld (simple_add.add_numbers$u8$u8_return),HL ;patching return 
+    CALL simple_add.add_numbers$u8$u8
+simple_add.main.result.op
+simple_add.main.result equ simple_add.main.result.op + 1
+    ; store result 
+    LD A, #00
+    ; return result
+    RET
+    
+    END main

@@ -18,17 +18,13 @@ var debug = os.Getenv("DEBUG") != ""
 type Parser struct {
 	treeSitterPath string
 	sourceCode     string
-	useNative      bool          // Use native tree-sitter instead of external command
-	native         *NativeParser // Native parser instance
+	// useNative      bool          // Use native tree-sitter instead of external command
+	// native         *NativeParser // Native parser instance
 }
 
 // New creates a new parser
 func New() *Parser {
-	// Native parser disabled for now (CGO issues)
-	return &Parser{
-		useNative: false,
-		native:    nil,
-	}
+	return &Parser{}
 }
 
 // ParseFile parses a MinZ source file and returns an AST
@@ -84,15 +80,6 @@ func (p *Parser) ParseString(code string, context string) ([]ast.Declaration, er
 
 // parseToSExp uses tree-sitter to parse the file and output S-expression
 func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
-	// Use native parser if available
-	if p.useNative && p.native != nil {
-		sexp, err := p.native.ParseFile(filename)
-		if err == nil {
-			p.sourceCode = p.native.sourceCode
-			return sexp, nil
-		}
-		// Fall back to external command if native fails
-	}
 	
 	// Read the source file
 	sourceCode, err := os.ReadFile(filename)
@@ -101,20 +88,53 @@ func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
 	}
 	p.sourceCode = string(sourceCode)
 	
-	// First, check if grammar is installed in ~/.local/share/mz/grammar
-	homeDir, _ := os.UserHomeDir()
-	installedGrammarPath := filepath.Join(homeDir, ".local", "share", "mz", "grammar")
-	
 	var grammarPath string
 	foundGrammar := false
 	
-	// Check installed grammar location first
-	if _, err := os.Stat(filepath.Join(installedGrammarPath, "grammar.js")); err == nil {
-		grammarPath = installedGrammarPath
-		foundGrammar = true
+	// 1. Check if MINZ_GRAMMAR env var is set (highest priority)
+	if envGrammar := os.Getenv("MINZ_GRAMMAR"); envGrammar != "" {
+		if _, err := os.Stat(filepath.Join(envGrammar, "grammar.js")); err == nil {
+			grammarPath = envGrammar
+			foundGrammar = true
+		}
 	}
 	
-	// If not found in installed location, try to find locally
+	// 2. Check next to the mz binary (installed location)
+	if !foundGrammar {
+		if execPath, err := os.Executable(); err == nil {
+			execDir := filepath.Dir(execPath)
+			// Check in same directory as binary
+			if _, err := os.Stat(filepath.Join(execDir, "grammar.js")); err == nil {
+				grammarPath = execDir
+				foundGrammar = true
+			} else if _, err := os.Stat(filepath.Join(execDir, "grammar", "grammar.js")); err == nil {
+				// Check in grammar subdirectory
+				grammarPath = filepath.Join(execDir, "grammar")
+				foundGrammar = true
+			}
+		}
+	}
+	
+	// 3. Check current working directory (for development)
+	if !foundGrammar {
+		currentDir, _ := os.Getwd()
+		if _, err := os.Stat(filepath.Join(currentDir, "grammar.js")); err == nil {
+			grammarPath = currentDir
+			foundGrammar = true
+		}
+	}
+	
+	// If not found next to binary, check ~/.local/share/mz/grammar
+	if !foundGrammar {
+		homeDir, _ := os.UserHomeDir()
+		installedGrammarPath := filepath.Join(homeDir, ".local", "share", "mz", "grammar")
+		if _, err := os.Stat(filepath.Join(installedGrammarPath, "grammar.js")); err == nil {
+			grammarPath = installedGrammarPath
+			foundGrammar = true
+		}
+	}
+	
+	// If still not found, try to find locally in parent directories
 	if !foundGrammar {
 		currentDir, err := os.Getwd()
 		if err != nil {
@@ -136,14 +156,35 @@ func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
 		}
 	}
 	
-	// If we couldn't find grammar.js anywhere, use the embedded version
+	// If we couldn't find grammar.js anywhere, return helpful error
 	if !foundGrammar {
-		tempDir, err := SetupGrammar()
-		if err != nil {
-			return nil, fmt.Errorf("could not setup embedded grammar: %w", err)
-		}
-		defer CleanupGrammar(tempDir)
-		grammarPath = tempDir
+		execPath, _ := os.Executable()
+		execDir := filepath.Dir(execPath)
+		currentDir, _ := os.Getwd()
+		
+		return nil, fmt.Errorf(`MinZ grammar files not found!
+
+The MinZ compiler needs the tree-sitter grammar files to parse source code.
+
+Searched locations:
+  - MINZ_GRAMMAR env var: %s
+  - Next to binary: %s/grammar.js
+  - Current directory: %s
+
+Solutions:
+1. Set MINZ_GRAMMAR environment variable:
+   export MINZ_GRAMMAR=/path/to/minz-ts
+
+2. Copy grammar files next to mz binary:
+   cp grammar.js %s/
+   cp -r src %s/
+
+3. Run from the minz-ts directory`, 
+			os.Getenv("MINZ_GRAMMAR"),
+			execDir,
+			currentDir,
+			execDir,
+			execDir)
 	}
 	
 	// Get absolute path to the file
@@ -152,6 +193,21 @@ func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
 		return nil, fmt.Errorf("failed to get absolute path: %w", err)
 	}
 
+	// Check if tree-sitter is installed
+	if _, err := exec.LookPath("tree-sitter"); err != nil {
+		return nil, fmt.Errorf(`tree-sitter is not installed!
+
+MinZ requires the tree-sitter CLI to parse source files.
+
+To install tree-sitter:
+  npm install -g tree-sitter-cli
+
+Or with Homebrew:
+  brew install tree-sitter
+
+After installation, mz will work from any directory.`)
+	}
+	
 	// Run tree-sitter parse command directly (not through npx)
 	cmd := exec.Command("tree-sitter", "parse", absFilename)
 	cmd.Dir = grammarPath

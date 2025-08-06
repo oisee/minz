@@ -91,3 +91,56 @@ func CleanupGrammar(tempDir string) {
 		os.RemoveAll(tempDir)
 	}
 }
+
+// ExtractGrammarTo extracts embedded grammar files to a specific directory
+func ExtractGrammarTo(targetDir string) error {
+	// Create the target directory
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		return err
+	}
+	
+	// Write grammar.js
+	grammarPath := filepath.Join(targetDir, "grammar.js")
+	if err := ioutil.WriteFile(grammarPath, []byte(EmbeddedGrammarJS), 0644); err != nil {
+		return err
+	}
+	
+	// Create src directory
+	srcDir := filepath.Join(targetDir, "src")
+	if err := os.MkdirAll(srcDir, 0755); err != nil {
+		return err
+	}
+	
+	// Write grammar.json
+	if err := ioutil.WriteFile(filepath.Join(srcDir, "grammar.json"), []byte(EmbeddedGrammarJSON), 0644); err != nil {
+		return err
+	}
+	
+	// Write parser.c with fixed includes
+	fixedParserC := strings.Replace(EmbeddedParserC, `#include "tree_sitter/parser.h"`, `#include "../tree_sitter/parser.h"`, 1)
+	if err := ioutil.WriteFile(filepath.Join(srcDir, "parser.c"), []byte(fixedParserC), 0644); err != nil {
+		return err
+	}
+	
+	// Create tree_sitter directory with parser.h
+	tsDir := filepath.Join(targetDir, "tree_sitter")
+	if err := os.MkdirAll(tsDir, 0755); err != nil {
+		return err
+	}
+	
+	// Write a minimal parser.h
+	parserH := `#ifndef TREE_SITTER_PARSER_H_
+#define TREE_SITTER_PARSER_H_
+typedef struct TSLanguage TSLanguage;
+#endif`
+	if err := ioutil.WriteFile(filepath.Join(tsDir, "parser.h"), []byte(parserH), 0644); err != nil {
+		return err
+	}
+	
+	// Write node-types.json
+	if err := ioutil.WriteFile(filepath.Join(srcDir, "node-types.json"), []byte(EmbeddedNodeTypes), 0644); err != nil {
+		return err
+	}
+	
+	return nil
+}

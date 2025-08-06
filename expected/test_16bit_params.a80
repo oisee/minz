@@ -1,0 +1,49 @@
+; Expected TRUE SMC output for 16-bit parameters
+; Generated from test_16bit_params.minz
+
+    ORG $8000
+
+; Function: add_u16(a: u16, b: u16) -> u16
+add_u16:
+add_u16_param_a.op:
+add_u16_param_a equ add_u16_param_a.op + 1
+    LD HL, #0000            ; Parameter a (16-bit, gets patched)
+    
+add_u16_param_b.op:
+add_u16_param_b equ add_u16_param_b.op + 1
+    LD DE, #0000            ; Parameter b (16-bit, gets patched)
+    
+    ADD HL, DE              ; HL = a + b
+    
+add_u16_return.op:
+add_u16_return equ add_u16_return.op + 1
+    LD (#0000), HL          ; Store result (address gets patched)
+    RET
+
+; Function: main() -> u16
+main:
+main_x.op:
+main_x equ main_x.op + 1
+    LD HL, #03E8            ; x = 1000 (0x03E8)
+    
+main_y.op:
+main_y equ main_y.op + 1
+    LD DE, #07D0            ; y = 2000 (0x07D0)
+    
+    ; Call add_u16(x, y)
+    ; Patch parameters
+    LD (add_u16_param_a), HL     ; Patch 16-bit param a
+    LD (add_u16_param_b), DE     ; Patch 16-bit param b
+    
+    ; Patch return address
+    LD HL, main_result
+    LD (add_u16_return), HL       ; Tell function where to store result
+    
+    CALL add_u16
+    
+main_result.op:
+main_result equ main_result.op + 1
+    LD HL, #0000            ; Result appears here (will be 3000)
+    RET                     ; Return HL
+
+    END main

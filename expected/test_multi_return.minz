@@ -1,0 +1,19 @@
+// Test multiple return values via TRUE SMC
+// In MinZ, we simulate this with out parameters
+
+fun divmod(dividend: u8, divisor: u8, quotient: *u8, remainder: *u8) -> void {
+    *quotient = dividend / divisor;
+    *remainder = dividend % divisor;
+}
+
+fun main() -> u8 {
+    let num: u8 = 17;
+    let div: u8 = 5;
+    let quot: u8 = 0;
+    let rem: u8 = 0;
+    
+    divmod(num, div, &quot, &rem);
+    
+    // Return quotient + remainder as test (3 + 2 = 5)
+    return quot + rem;
+}

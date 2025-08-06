@@ -1,0 +1,11 @@
+// Test @print functionality across different backends
+
+fun main() -> u8 {
+    @print("Hello from MinZ!\n");
+    @print("The answer is: ");
+    
+    let x: u8 = 42;
+    @print("{x}\n");
+    
+    return 0;
+}

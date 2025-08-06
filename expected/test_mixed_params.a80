@@ -1,0 +1,80 @@
+; Expected TRUE SMC output for mixed parameter types
+; Generated from test_mixed_params.minz
+
+    ORG $8000
+
+; Function: process(count: u8, value: u16, flag: bool) -> u16
+process:
+process_param_count.op:
+process_param_count equ process_param_count.op + 1
+    LD B, #00               ; Parameter count (u8, gets patched)
+    
+process_param_value.op:
+process_param_value equ process_param_value.op + 1
+    LD HL, #0000            ; Parameter value (u16, gets patched)
+    
+process_param_flag.op:
+process_param_flag equ process_param_flag.op + 1
+    LD A, #00               ; Parameter flag (bool as u8, gets patched)
+    
+    OR A                    ; Test flag
+    JR Z, process_add       ; If false, do addition
+    
+    ; Multiply path: value * count
+    LD DE, HL               ; Save value in DE
+    LD HL, 0                ; Clear result
+    LD A, B                 ; Get count
+process_mult_loop:
+    OR A
+    JR Z, process_done
+    ADD HL, DE              ; Add value to result
+    DEC A
+    JR process_mult_loop
+    JR process_done
+    
+process_add:
+    ; Addition path: value + count
+    LD A, B                 ; Get count
+    LD E, A                 ; Extend to 16-bit
+    LD D, 0
+    ADD HL, DE              ; HL = value + count
+    
+process_done:
+process_return.op:
+process_return equ process_return.op + 1
+    LD (#0000), HL          ; Store result (address gets patched)
+    RET
+
+; Function: main() -> u16
+main:
+main_n.op:
+main_n equ main_n.op + 1
+    LD A, #05               ; n = 5
+    
+main_val.op:
+main_val equ main_val.op + 1
+    LD HL, #0064            ; val = 100 (0x64)
+    
+main_multiply.op:
+main_multiply equ main_multiply.op + 1
+    LD C, #01               ; multiply = true (1)
+    
+    ; Call process(n, val, multiply)
+    ; Patch all parameters
+    LD (process_param_count), A    ; Patch count (8-bit)
+    LD (process_param_value), HL   ; Patch value (16-bit)
+    LD A, C
+    LD (process_param_flag), A     ; Patch flag (bool as 8-bit)
+    
+    ; Patch return address
+    LD HL, main_result
+    LD (process_return), HL         ; Tell function where to store result
+    
+    CALL process
+    
+main_result.op:
+main_result equ main_result.op + 1
+    LD HL, #0000            ; Result appears here (will be 500)
+    RET                     ; Return HL
+
+    END main

@@ -1,0 +1,18 @@
+// Test mixed 8-bit and 16-bit parameter passing with TRUE SMC
+
+fun process(count: u8, value: u16, flag: bool) -> u16 {
+    if flag {
+        return value * count;
+    } else {
+        return value + count;
+    }
+}
+
+fun main() -> u16 {
+    let n: u8 = 5;
+    let val: u16 = 100;
+    let multiply: bool = true;
+    
+    let result: u16 = process(n, val, multiply);
+    return result;  // Should be 500 (100 * 5)
+}

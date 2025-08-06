@@ -220,12 +220,23 @@ func (g *I8080Generator) generateInstruction(inst *ir.Instruction, index int) er
 		return g.generatePrint(inst)
 	case ir.OpPrintU8:
 		return g.generatePrintU8(inst)
+	case ir.OpPrintString:
+		return g.generatePrintString(inst)
 	case ir.OpPrintStringDirect:
 		return g.generatePrintStringDirect(inst)
 	case ir.OpLoadIndex:
 		return g.generateLoadIndex(inst)
 	case ir.OpLoadAddr:
 		return g.generateLoadAddr(inst)
+	case ir.OpLoadString:
+		// Load string address into HL
+		if inst.Symbol != "" {
+			destAddr := g.getMemoryAddr(inst.Dest)
+			g.emit("    LXI H, %s    ; Load string address", inst.Symbol)
+			// Store HL to memory (16-bit store)
+			g.emit("    SHLD %04XH   ; Store string address", destAddr)
+		}
+		return nil
 	default:
 		return fmt.Errorf("unsupported operation: %s", inst.Op)
 	}
@@ -519,6 +530,40 @@ func (g *I8080Generator) generatePrintU8(inst *ir.Instruction) error {
 		g.emit("    JMP print_char")
 	}
 	
+	return nil
+}
+
+func (g *I8080Generator) generatePrintString(inst *ir.Instruction) error {
+	// Handle printing a string from a register (address in register)
+	if inst.Src1 != 0 {
+		srcAddr := g.getMemoryAddr(inst.Src1)
+		g.emit("    LHLD %04XH   ; Load string address", srcAddr)
+		g.emit("    CALL print_string")
+	} else if inst.Symbol != "" {
+		// Direct string label
+		g.emit("    LXI H,%s", inst.Symbol)
+		g.emit("    CALL print_string")
+	}
+
+	// Generate print_string helper if not already done
+	if !g.emittedParams["print_string"] {
+		g.emittedParams["print_string"] = true
+		g.emit("\n; Print string")
+		g.emit("print_string:")
+		g.emit("    MOV A,M      ; Get length")
+		g.emit("    ORA A")
+		g.emit("    RZ           ; Return if zero")
+		g.emit("    MOV B,A")
+		g.emit("    INX H")
+		g.emit("ps_loop:")
+		g.emit("    MOV A,M")
+		g.emit("    CALL print_char")
+		g.emit("    INX H")
+		g.emit("    DCR B")
+		g.emit("    JNZ ps_loop")
+		g.emit("    RET")
+	}
+
 	return nil
 }
 

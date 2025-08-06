@@ -1,0 +1,39 @@
+// Comprehensive @print test for all backends
+// Tests: string literals, numeric values, character output
+
+fun print_test() -> void {
+    // Test string printing
+    @print("=== MinZ Print Test ===\n");
+    @print("Testing all backends!\n\n");
+    
+    // Test numeric printing
+    @print("Numbers: ");
+    let x: u8 = 42;
+    @print("{x}");
+    @print(", ");
+    
+    let y: u16 = 1234;
+    @print("{y}");
+    @print("\n");
+    
+    // Test character printing
+    @print("Chars: ");
+    let ch: u8 = 65;  // 'A'
+    @print(ch);
+    @print(" ");
+    @print(66);  // 'B' 
+    @print("\n");
+    
+    // Test boolean printing (if supported)
+    let flag: bool = true;
+    @print("Bool: ");
+    @print("{flag}");
+    @print("\n");
+    
+    @print("=== Test Complete ===\n");
+}
+
+fun main() -> u8 {
+    print_test();
+    return 0;
+}

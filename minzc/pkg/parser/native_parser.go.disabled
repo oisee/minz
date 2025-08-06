@@ -1,0 +1,109 @@
+package parser
+
+import (
+	"context"
+	"fmt"
+	"os"
+	
+	sitter "github.com/smacker/go-tree-sitter"
+	// "github.com/minz/minzc/pkg/parser/minz" // Disabled due to CGO issues
+)
+
+// NativeParser uses embedded tree-sitter for parsing
+type NativeParser struct {
+	parser *sitter.Parser
+	sourceCode string
+}
+
+// NewNativeParser creates a parser with embedded tree-sitter
+func NewNativeParser() *NativeParser {
+	// Disabled for now due to CGO compilation issues
+	// parser := sitter.NewParser()
+	// parser.SetLanguage(sitter.NewLanguage(minz.Language()))
+	
+	// return &NativeParser{
+	// 	parser: parser,
+	// }
+	return nil // Disabled
+}
+
+// ParseFile parses a MinZ file using native tree-sitter
+func (p *NativeParser) ParseFile(filename string) (*SExpNode, error) {
+	// Read source file
+	sourceCode, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+	p.sourceCode = string(sourceCode)
+	
+	// Parse with native tree-sitter
+	tree, err := p.parser.ParseCtx(context.Background(), nil, sourceCode)
+	if err != nil {
+		return nil, fmt.Errorf("parse error: %w", err)
+	}
+	
+	// Convert tree-sitter AST to S-expression
+	root := tree.RootNode()
+	return p.nodeToSExp(root), nil
+}
+
+// nodeToSExp converts a tree-sitter node to S-expression format
+func (p *NativeParser) nodeToSExp(node *sitter.Node) *SExpNode {
+	nodeType := node.Type()
+	
+	// Create S-expression node
+	sexp := &SExpNode{
+		Type: nodeType,
+		StartByte: node.StartByte(),
+		EndByte: node.EndByte(),
+		StartPoint: Point{
+			Row: node.StartPoint().Row,
+			Column: node.StartPoint().Column,
+		},
+		EndPoint: Point{
+			Row: node.EndPoint().Row,
+			Column: node.EndPoint().Column,
+		},
+	}
+	
+	// Get field name if this is a field
+	if node.FieldName() != nil {
+		fieldName := *node.FieldName()
+		sexp.FieldName = &fieldName
+	}
+	
+	// Handle leaf nodes (terminals)
+	if node.ChildCount() == 0 {
+		// Get the actual text for this node
+		if int(node.EndByte()) <= len(p.sourceCode) {
+			sexp.Value = p.sourceCode[node.StartByte():node.EndByte()]
+		}
+	} else {
+		// Process children
+		sexp.Children = make([]*SExpNode, 0, node.ChildCount())
+		for i := uint32(0); i < node.ChildCount(); i++ {
+			child := node.Child(int(i))
+			if child != nil {
+				childSExp := p.nodeToSExp(child)
+				sexp.Children = append(sexp.Children, childSExp)
+			}
+		}
+	}
+	
+	return sexp
+}
+
+// ParseString parses MinZ code from a string
+func (p *NativeParser) ParseString(code string, filename string) (*SExpNode, error) {
+	p.sourceCode = code
+	
+	// Parse with native tree-sitter
+	tree, err := p.parser.ParseCtx(context.Background(), nil, []byte(code))
+	if err != nil {
+		return nil, fmt.Errorf("parse error: %w", err)
+	}
+	
+	// Convert to S-expression
+	root := tree.RootNode()
+	return p.nodeToSExp(root), nil
+}

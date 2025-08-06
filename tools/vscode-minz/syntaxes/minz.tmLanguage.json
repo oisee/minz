@@ -110,7 +110,7 @@
       "patterns": [
         {
           "name": "meta.function.declaration.minz",
-          "begin": "\\b(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
+          "begin": "\\b(fun|fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(",
           "beginCaptures": {
             "1": {
               "name": "keyword.declaration.function.minz"
