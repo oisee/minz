@@ -212,6 +212,140 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+D,\s*H\s*\n\s*LD\s+E,\s*L\s*\n\s*EX\s+DE,\s*HL$`),
 			Replacement: "${1}EX DE, HL      ; Optimized: direct swap instead of copy+swap",
 		},
+		
+		// Pattern 20: Optimize JR with inverse condition followed by JP
+		{
+			Name:        "optimize_jr_jp_sequence",
+			Description: "Convert JR NZ,skip; JP target to JP Z,target",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)JR\s+NZ,\s*\$\+5\s*\n\s*JP\s+(\w+)$`),
+			Replacement: "${1}JP Z, $2    ; Optimized: inverted condition",
+		},
+		{
+			Name:        "optimize_jr_z_jp_sequence",
+			Description: "Convert JR Z,skip; JP target to JP NZ,target",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)JR\s+Z,\s*\$\+5\s*\n\s*JP\s+(\w+)$`),
+			Replacement: "${1}JP NZ, $2   ; Optimized: inverted condition",
+		},
+		
+		// Pattern 21: Stack drop optimization
+		{
+			Name:        "optimize_stack_drop_2",
+			Description: "Optimize POP to INC SP for dropping 2 bytes",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)POP\s+([A-Z]+)\s*;\s*Drop.*$`),
+			Replacement: "${1}INC SP\n${1}INC SP       ; Optimized: drop 2 bytes from stack",
+		},
+		
+		// Pattern 22: Optimize compare with zero
+		{
+			Name:        "optimize_cp_zero",
+			Description: "Convert CP 0 to OR A for flag setting",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)CP\s+0$`),
+			Replacement: "${1}OR A         ; Optimized: CP 0 -> OR A",
+		},
+		
+		// Pattern 23: Optimize LD reg,0 to XOR reg (for A only)
+		{
+			Name:        "optimize_ld_a_zero",
+			Description: "Convert LD A,0 to XOR A",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+A,\s*0$`),
+			Replacement: "${1}XOR A        ; Optimized: LD A,0 -> XOR A",
+		},
+		
+		// Pattern 24: Optimize ADD A,1 to INC A
+		{
+			Name:        "optimize_add_a_one",
+			Description: "Convert ADD A,1 to INC A",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)ADD\s+A,\s*1$`),
+			Replacement: "${1}INC A        ; Optimized: ADD A,1 -> INC A",
+		},
+		
+		// Pattern 25: Optimize SUB 1 to DEC A
+		{
+			Name:        "optimize_sub_one",
+			Description: "Convert SUB 1 to DEC A",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)SUB\s+1$`),
+			Replacement: "${1}DEC A        ; Optimized: SUB 1 -> DEC A",
+		},
+		
+		// Pattern 26: Optimize ADD HL,1 to INC HL
+		{
+			Name:        "optimize_add_hl_one",
+			Description: "Convert ADD HL,1 to INC HL",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+DE,\s*1\s*\n\s*ADD\s+HL,\s*DE$`),
+			Replacement: "${1}INC HL       ; Optimized: ADD HL,1 -> INC HL",
+		},
+		
+		// Pattern 27: Optimize 16-bit compare pattern
+		{
+			Name:        "optimize_16bit_compare_pattern",
+			Description: "Add comment to 16-bit compare pattern",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)OR\s+A\s*\n\s*SBC\s+HL,\s*DE\s*\n\s*ADD\s+HL,\s*DE$`),
+			Replacement: "${1}OR A         ; 16-bit compare HL vs DE\n${1}SBC HL, DE\n${1}ADD HL, DE   ; Restore HL, flags set",
+		},
+		
+		// Pattern 28: Optimize unnecessary OR A before SBC
+		{
+			Name:        "optimize_redundant_or_a",
+			Description: "Remove OR A when carry is already clear",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)XOR\s+A\s*\n\s*OR\s+A$`),
+			Replacement: "${1}XOR A        ; Sets A=0 and clears carry",
+		},
+		
+		// Pattern 29: Optimize LD A,H; OR L to LD A,H; OR L pattern
+		{
+			Name:        "optimize_hl_zero_test",
+			Description: "Add comment for HL zero test pattern",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+A,\s*H\s*\n\s*OR\s+L$`),
+			Replacement: "${1}LD A, H\n${1}OR L         ; Test if HL = 0",
+		},
+		
+		// Pattern 30: Optimize multiple INC SP to ADD SP
+		{
+			Name:        "optimize_multiple_inc_sp",
+			Description: "Convert 3+ INC SP to LD HL,n; ADD HL,SP; LD SP,HL",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)INC\s+SP\s*\n\s*INC\s+SP\s*\n\s*INC\s+SP$`),
+			Replacement: "${1}INC SP\n${1}INC SP\n${1}INC SP       ; Consider: LD HL,3; ADD HL,SP; LD SP,HL for larger drops",
+		},
+		
+		// Pattern 31: Optimize JP to JR for short jumps
+		{
+			Name:        "suggest_jr_optimization",
+			Description: "Suggest JR instead of JP for short jumps",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)JP\s+(\w+)\s*;\s*Short jump candidate$`),
+			Replacement: "${1}JP $2        ; Consider: JR $2 if within -128/+127 bytes",
+		},
+		
+		// Pattern 32: Optimize redundant register loads
+		{
+			Name:        "optimize_redundant_ld_same_reg",
+			Description: "Remove redundant load to same register with same value",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+([A-Z]),\s*([A-Z])\s*\n\s*LD\s+\2,\s*\3$`),
+			Replacement: "${1}LD $2, $3    ; Removed redundant duplicate load",
+		},
+		
+		// Pattern 33: Optimize LD BC,n; ADD HL,BC to direct add when n is small
+		{
+			Name:        "optimize_small_add_hl",
+			Description: "Convert small ADD HL via BC to INC HL",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+BC,\s*2\s*\n\s*ADD\s+HL,\s*BC$`),
+			Replacement: "${1}INC HL\n${1}INC HL       ; Optimized: ADD HL,2 -> 2x INC HL",
+		},
+		
+		// Pattern 34: Optimize double negation
+		{
+			Name:        "optimize_double_neg",
+			Description: "Remove double NEG",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)NEG\s*\n\s*NEG$`),
+			Replacement: "${1}; Eliminated double NEG",
+		},
+		
+		// Pattern 35: Optimize CCF after SCF
+		{
+			Name:        "optimize_scf_ccf",
+			Description: "Replace SCF; CCF with OR A (clear carry)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)SCF\s*\n\s*CCF$`),
+			Replacement: "${1}OR A         ; Clear carry (was SCF; CCF)",
+		},
 	}
 }
 

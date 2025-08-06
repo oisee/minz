@@ -1,0 +1,18 @@
+// Simple test for peephole patterns
+
+fun test_zero() -> u8 {
+    let a: u8 = 0;  // Should become XOR A
+    return a;
+}
+
+fun test_inc() -> u8 {
+    let x: u8 = 10;
+    return x + 1;  // Should become INC
+}
+
+fun main() -> void {
+    let a: u8 = test_zero();
+    let b: u8 = test_inc();
+    print_u8(a);
+    print_u8(b);
+}

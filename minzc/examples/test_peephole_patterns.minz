@@ -1,0 +1,44 @@
+// Test program to trigger various peephole optimization patterns
+
+fun test_zero_load() -> u8 {
+    let a: u8 = 0;  // Should become XOR A
+    return a;
+}
+
+fun test_inc_dec() -> u8 {
+    let x: u8 = 10;
+    x = x + 1;  // Should become INC A
+    x = x - 1;  // Should become DEC A
+    return x;
+}
+
+fun test_compare_zero(val: u8) -> bool {
+    if (val == 0) {  // Should use OR A instead of CP 0
+        return true;
+    }
+    return false;
+}
+
+fun test_16bit_inc() -> u16 {
+    let val: u16 = 100;
+    val = val + 1;  // Should check if it becomes INC HL
+    return val;
+}
+
+fun test_double_swap() -> void {
+    let a: u16 = 10;
+    let b: u16 = 20;
+    
+    // This might generate some swap patterns
+    let temp: u16 = a;
+    a = b;
+    b = temp;
+}
+
+fun main() -> void {
+    let result1: u8 = test_zero_load();
+    let result2: u8 = test_inc_dec();
+    let result3: bool = test_compare_zero(5);
+    let result4: u16 = test_16bit_inc();
+    test_double_swap();
+}
