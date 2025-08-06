@@ -501,9 +501,16 @@ func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
 	}
 	
 	// Generate instructions with SMC awareness
-	for _, inst := range fn.Instructions {
-		if err := g.generateSMCInstruction(inst); err != nil {
-			return err
+	for i, inst := range fn.Instructions {
+		// Check if this is the last instruction and it's a return - replace with patch points if needed
+		isLastInst := i == len(fn.Instructions)-1
+		if isLastInst && inst.Op == ir.OpReturn && fn.NeedsPatchPoints {
+			// Replace regular return with patchable return sequence
+			g.generatePatchableReturn(fn, inst)
+		} else {
+			if err := g.generateSMCInstruction(inst); err != nil {
+				return err
+			}
 		}
 	}
 	
@@ -517,10 +524,37 @@ func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
 				g.emit("    POP BC")
 			}
 		}
-		g.emit("    RET")
+		if fn.NeedsPatchPoints {
+			g.generatePatchableReturn(fn, ir.Instruction{Op: ir.OpReturn})
+		} else {
+			g.emit("    RET")
+		}
 	}
 	
 	return nil
+}
+
+// generatePatchableReturn generates a patchable return sequence instead of regular RET
+func (g *Z80Generator) generatePatchableReturn(fn *ir.Function, inst ir.Instruction) {
+	// First, handle the return value if needed - assume it's in register A for u8
+	if inst.Op == ir.OpReturn && inst.Src1 != 0 {
+		g.loadToA(inst.Src1)
+	}
+	
+	// Add patch points following the expected pattern
+	g.emit("")
+	g.emit("    ; *** SMART PATCHABLE RETURN SEQUENCE ***")
+	g.emit("    ; Default: Store to memory (most common complex case)")
+	g.emit("    ; For immediate use: Patch first NOP to RET for early return")
+	
+	// Generate the patch point labels
+	g.emit("%s_return_patch.op:", fn.Name)
+	g.emit("    NOP                     ; PATCH POINT: NOP or RET (C9) for early return")
+	
+	g.emit("%s_store_addr.op:", fn.Name)
+	g.emit("%s_store_addr equ %s_store_addr.op + 1", fn.Name, fn.Name)
+	g.emit("    LD (0000), A            ; DEFAULT: Store result (address gets patched)")
+	g.emit("    RET                     ; Return after store")
 }
 
 // generateSMCInstruction generates an instruction for SMC function
@@ -625,7 +659,9 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 				}
 			} else {
 				// Regular SMC parameter - use different registers for different parameters
-				g.emit("%s:", paramLabel)
+				// Add patch point labels for instruction patching
+				g.emit("%s.op:", paramLabel)
+				g.emit("%s equ %s.op + 1", paramLabel, paramLabel)
 				
 				// Find parameter index to use different registers
 				paramIndex := -1
@@ -645,20 +681,20 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 						g.emit("    LD A, #00      ; SMC parameter %s (f.8)", paramName)
 						g.storeFromA(inst.Dest)
 					} else {
-						// Other u8 types, load into appropriate register as u16 to avoid conversions
+						// Other u8 types, use native 8-bit registers for instruction patching
 						switch paramIndex {
 						case 0:
-							g.emit("    LD HL, #0000   ; SMC parameter %s (u8->u16)", paramName)
+							g.emit("    LD A, #00      ; Parameter %s (gets patched)", paramName)
+							g.storeFromA(inst.Dest)
 						case 1:
-							g.emit("    LD DE, #0000   ; SMC parameter %s (u8->u16)", paramName)
-							g.emit("    EX DE, HL      ; Move to HL for storage")
+							g.emit("    LD B, #00      ; Parameter %s (gets patched)", paramName)
+							g.emit("    LD A, B")
+							g.storeFromA(inst.Dest)
 						default:
-							g.emit("    LD BC, #0000   ; SMC parameter %s (u8->u16)", paramName)
-							g.emit("    LD H, B")
-							g.emit("    LD L, C        ; Move to HL for storage")
+							g.emit("    LD C, #00      ; Parameter %s (gets patched)", paramName)
+							g.emit("    LD A, C")
+							g.storeFromA(inst.Dest)
 						}
-						// Store to the destination
-						g.storeFromHL(inst.Dest)
 					}
 				} else if param.Type.Size() == 3 {
 					// For 24-bit types (u24/i24/f16.8/f8.16), use A+HL split
@@ -935,37 +971,47 @@ func (g *Z80Generator) generatePatchPoint(inst *ir.Instruction) error {
 	return nil
 }
 
-// generatePatchTemplate selects template for patchable instruction sequence
+// generatePatchTemplate selects template for patchable instruction sequence (SMART PATCHING)
 func (g *Z80Generator) generatePatchTemplate(inst *ir.Instruction) error {
-	g.emit("    ; Patch template '%s' for %s", inst.TemplateName, inst.PatchPointLabel)
+	g.emit("    ; Smart patch '%s' for %s", inst.TemplateName, inst.PatchPointLabel)
 	
-	// Load template selection opcode
+	// SMART PATCHING: Single-byte patch based on usage pattern
 	switch inst.TemplateName {
 	case "immediate":
-		g.emit("    LD A, $C9              ; RET opcode")
-	case "store_u8":
-		g.emit("    LD A, $32              ; LD (nn), A opcode")  
-	case "store_u16":
-		g.emit("    LD A, $22              ; LD (nn), HL opcode")
+		// For immediate use: Patch NOP → RET for early return (saves 24+ T-states!)
+		g.emit("    LD A, #C9               ; RET opcode")
+		g.emit("    LD (%s.op), A", inst.PatchPointLabel)
+	case "store_u8", "store_u16":
+		// For storage: Restore NOP (default behavior: continue to store)
+		g.emit("    LD A, #00               ; NOP opcode")
+		g.emit("    LD (%s.op), A", inst.PatchPointLabel)
 	case "reg_b":
-		g.emit("    LD A, $47              ; LD B, A opcode")
+		// For register transfer: Patch NOP → LD B, A
+		g.emit("    LD A, #47               ; LD B, A opcode")
+		g.emit("    LD (%s.op), A", inst.PatchPointLabel)
 	case "reg_c":
-		g.emit("    LD A, $4F              ; LD C, A opcode")
+		// For register transfer: Patch NOP → LD C, A
+		g.emit("    LD A, #4F               ; LD C, A opcode")
+		g.emit("    LD (%s.op), A", inst.PatchPointLabel)
 	default:
-		g.emit("    LD A, $00              ; NOP opcode (default)")
+		// Default: restore NOP for store pattern
+		g.emit("    LD A, #00               ; NOP opcode (default)")
+		g.emit("    LD (%s.op), A", inst.PatchPointLabel)
 	}
-	
-	// Patch the first byte of the sequence
-	g.emit("    LD (%s), A             ; Patch first opcode", inst.PatchPointLabel)
 	
 	return nil
 }
 
-// generatePatchTarget sets target address for store operations in patch
+// generatePatchTarget sets target address for store operations in patch (SMART PATCHING)
 func (g *Z80Generator) generatePatchTarget(inst *ir.Instruction) error {
-	g.emit("    ; Set patch target address: %s", inst.TargetAddress)
-	g.emit("    LD HL, %s              ; Target address", inst.TargetAddress)
-	g.emit("    LD (%s+1), HL          ; Patch address operand", inst.PatchPointLabel)
+	g.emit("    ; Patch storage address: %s", inst.TargetAddress)
+	
+	// Smart patching: patch the storage address directly
+	funcName := inst.PatchPointLabel // This should be the function name + "_return_patch"
+	funcBaseName := strings.TrimSuffix(funcName, "_return_patch")
+	
+	g.emit("    LD HL, %s", inst.TargetAddress)
+	g.emit("    LD (%s_store_addr), HL", funcBaseName)
 	
 	return nil
 }
@@ -1889,19 +1935,19 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpPatchPoint:
 		// Define a patchable instruction sequence
-		return g.generatePatchPoint(inst)
+		return g.generatePatchPoint(&inst)
 		
 	case ir.OpPatchTemplate:
 		// Select template for patchable instruction sequence
-		return g.generatePatchTemplate(inst)
+		return g.generatePatchTemplate(&inst)
 		
 	case ir.OpPatchTarget:
 		// Set target address for store operations in patch
-		return g.generatePatchTarget(inst)
+		return g.generatePatchTarget(&inst)
 		
 	case ir.OpPatchParam:
 		// Patch function parameter immediate
-		return g.generatePatchParam(inst)
+		return g.generatePatchParam(&inst)
 	
 	case ir.OpAlloc:
 		// Allocate memory on stack

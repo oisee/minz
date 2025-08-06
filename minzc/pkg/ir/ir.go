@@ -545,6 +545,9 @@ type Function struct {
 	UsesTrueSMC  bool                    // Uses TRUE SMC anchors (not fixed slots)
 	SMCAnchors   map[string]*SMCAnchorInfo // Parameter -> anchor info
 	
+	// Instruction Patching support
+	NeedsPatchPoints bool                 // Function will be called with instruction patching
+	
 	// Metadata for optimization passes
 	Metadata map[string]string // Generic metadata storage
 	CalleeSavedRegs  RegisterSet // Registers this function must preserve

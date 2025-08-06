@@ -12,6 +12,7 @@ import (
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/meta"
 	"github.com/minz/minzc/pkg/metafunction"
+	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
 )
 
@@ -47,11 +48,21 @@ type Analyzer struct {
 	metafunctionProcessor *metafunction.Processor // Processor for @metafunction calls
 	errorPropagationContext *ErrorPropagationContext // Track error propagation state
 	targetBackend         string // Target backend for @target directive
+	
+	// Optimization components
+	constantFolder        *ConstantFolder
+	deadCodeEliminator    *DeadCodeEliminator
+	registerOptimizer     *optimizer.RegisterPressureOptimizer
+	instructionScheduler  *optimizer.InstructionScheduler
+	optimizationMetrics   *OptimizationMetrics
 }
 
 // NewAnalyzer creates a new semantic analyzer
 func NewAnalyzer() *Analyzer {
-	return &Analyzer{
+	// Initialize optimization metrics
+	metrics := &OptimizationMetrics{}
+	
+	analyzer := &Analyzer{
 		currentScope:      NewScope(nil),
 		errors:            []error{},
 		module:            ir.NewModule("main"),
@@ -62,7 +73,16 @@ func NewAnalyzer() *Analyzer {
 		luaEvaluator:      meta.NewLuaEvaluator(),
 		mirInterpreter:    interpreter.NewMIRInterpreter(),
 		targetBackend:     "z80", // Default backend
+		optimizationMetrics: metrics,
 	}
+	
+	// Initialize optimization components
+	analyzer.constantFolder = NewConstantFolder(analyzer)
+	analyzer.deadCodeEliminator = NewDeadCodeEliminator(analyzer, metrics)
+	analyzer.registerOptimizer = optimizer.NewRegisterPressureOptimizer()
+	analyzer.instructionScheduler = optimizer.NewInstructionScheduler(metrics)
+	
+	return analyzer
 }
 
 // SetTargetBackend sets the target backend for @target directive processing
@@ -4327,8 +4347,13 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 	// Check if this function should use instruction patching
 	useInstructionPatching := a.shouldUseInstructionPatching(funcSym, call)
 	
+	// Debug: Print patching decision
+	fmt.Printf("DEBUG: Function %s, IsBuiltin=%v, ReturnType=%v, UsePatching=%v\n", 
+		funcSym.Name, funcSym.IsBuiltin, funcSym.ReturnType, useInstructionPatching)
+	
 	if useInstructionPatching {
 		// Generate instruction patching sequence
+		fmt.Printf("DEBUG: Generating instruction patching call for %s\n", funcSym.Name)
 		return a.generateInstructionPatchingCall(funcSym, call, argRegs, irFunc)
 	}
 
@@ -8252,12 +8277,13 @@ func (a *Analyzer) shouldUseInstructionPatching(funcSym *FuncSymbol, call *ast.C
 func (a *Analyzer) generateInstructionPatchingCall(funcSym *FuncSymbol, call *ast.CallExpr, argRegs []ir.Register, irFunc *ir.Function) (ir.Register, error) {
 	funcName := funcSym.Name
 	
-	// 1. Generate patch point in target function (if not already done)
-	patchPointLabel := funcName + "_return_patch"
-	returnPatchPoint := ir.CreateReturnPatchPoint(patchPointLabel)
+	// 1. Mark target function as needing patch points
+	if targetFunc := a.GetFunction(funcSym.Name); targetFunc != nil {
+		targetFunc.NeedsPatchPoints = true
+	}
 	
-	// Add patch point to target function (this would be done during function analysis)
-	// For now, we'll assume it exists
+	// 2. Generate patch point in target function (if not already done)
+	patchPointLabel := funcName + "_return_patch"
 	
 	// 2. Analyze usage pattern to determine template
 	templateName := a.analyzeUsagePattern(call)
@@ -8284,12 +8310,18 @@ func (a *Analyzer) generateInstructionPatchingCall(funcSym *FuncSymbol, call *as
 	for i, argReg := range argRegs {
 		if i < len(funcSym.Params) {
 			paramName := funcSym.Params[i].Name
+			// Convert AST Type to IR Type
+			irType, err := a.convertType(funcSym.Params[i].Type)
+			if err != nil {
+				irType = &ir.BasicType{Kind: ir.TypeU8} // Default fallback
+			}
+			
 			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 				Op:        ir.OpPatchParam,
 				Symbol:    funcName,
 				ParamName: paramName,
 				Src1:      argReg,
-				Type:      funcSym.Params[i].Type,
+				Type:      irType,
 			})
 		}
 	}
@@ -8317,4 +8349,15 @@ func (a *Analyzer) analyzeUsagePattern(call *ast.CallExpr) string {
 	// - Return: call is returned directly (return add_numbers(10, 20))
 	
 	return "store_u8" // Default to store pattern
+}
+
+// GetFunction returns the IR function by name
+func (a *Analyzer) GetFunction(name string) *ir.Function {
+	// Look up in the current module's functions
+	for _, fn := range a.module.Functions {
+		if fn.Name == name {
+			return fn
+		}
+	}
+	return nil
 }
