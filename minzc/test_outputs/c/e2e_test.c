@@ -1,5 +1,5 @@
 // MinZ C generated code
-// Generated: 2025-08-06 12:14:00
+// Generated: 2025-08-06 12:38:56
 // Target: Standard C (C99)
 
 #include <stdio.h>
@@ -95,13 +95,13 @@ void tests_minz_e2e_test_main(void) {
     u8 sum = 0;
     
     r2 = 42;
-    // Skipping store to empty variable name
+    x = r2;
     r4 = 10;
-    // Skipping store to empty variable name
+    y = r4;
     r6 = x;
     r7 = y;
     r8 = r6 + r7;
-    // Skipping store to empty variable name
+    sum = r8;
     return;
 }
 

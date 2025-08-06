@@ -1,0 +1,54 @@
+  ✅ Code generation successful
+
+=== Generated Code Analysis ===
+; MinZ 8080 generated code
+; Generated: 2025-08-06 16:51:44
+; Target: Intel 8080
+
+
+; Code section
+    ORG 08000H
+
+
+; Function: tests.backend_e2e.sources.function_calls.add$u8$u8
+; SMC enabled - parameters can be self-modified
+tests.backend_e2e.sources.function_calls.add$u8$u8:
+tests.backend_e2e.sources.function_calls.add$u8$u8$param_a:
+    MVI A,0    ; SMC anchor for a
+    PUSH B
+    PUSH D
+    PUSH H
+    LDA tests.backend_e2e.sources.function_calls.add$u8$u8$param_a+1
+    STA F006H
+    LDA tests.backend_e2e.sources.function_calls.add$u8$u8$param_a+1
+    STA F008H
+    LDA F006H
+    MOV B,A
+    LDA F008H
+    ADD B
+    STA F00AH
+    LDA F00AH
+    POP H
+    POP D
+    POP B
+    RET
+
+; Function: tests.backend_e2e.sources.function_calls.main
+; SMC enabled - parameters can be self-modified
+tests.backend_e2e.sources.function_calls.main:
+    PUSH B
+    PUSH D
+    PUSH H
+    MVI A,05H
+    STA F004H
+    MVI A,03H
+    STA F006H
+    MVI A,05H
+    STA F008H
+    MVI A,03H
+    STA F00AH
+    LDA F008H
+    STA tests.backend_e2e.sources.function_calls.add$u8$u8$param_param+1
+    CALL tests.backend_e2e.sources.function_calls.add$u8$u8
+    STA F00CH
+  ⚠️  Assembler not available, skipping binary generation

@@ -1,0 +1,64 @@
+  ✅ Code generation successful
+
+=== Generated Code Analysis ===
+; MinZ generated code
+; Generated: 2025-08-06 16:51:44
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: tests.backend_e2e.sources.function_calls.add$u8$u8
+tests.backend_e2e.sources.function_calls.add$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+tests.backend_e2e.sources.function_calls.add$u8$u8_param_a:
+    LD HL, #0000   ; SMC parameter a (u8->u16)
+tests.backend_e2e.sources.function_calls.add$u8$u8_param_b:
+    LD DE, #0000   ; SMC parameter b (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: tests.backend_e2e.sources.function_calls.main
+tests.backend_e2e.sources.function_calls.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD E, A         ; Store to physical register E
+    ; r3 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; r4 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; r5 = 3
+    LD A, 3
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = call tests.backend_e2e.sources.function_calls.add$u8$u8
+    ; Call to tests.backend_e2e.sources.function_calls.add$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL tests.backend_e2e.sources.function_calls.add$u8$u8
+    ; store result, r6
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+  🔨 Attempting binary generation...
+Unrecognized option: o
+SjASMPlus Z80 Cross-Assembler v1.07 RC8 (build 06-11-2008)
+tests/backend_e2e/outputs/function_calls_z80.a80(101): error: Duplicate label: print_string_u16
+tests/backend_e2e/outputs/function_calls_z80.a80(128): error: Duplicate label: print_u16_decimal
+tests/backend_e2e/outputs/function_calls_z80.a80(146): error: Duplicate label: print_digit
+tests/backend_e2e/outputs/function_calls_z80.a80(187): error: Duplicate label: print_true
+tests/backend_e2e/outputs/function_calls_z80.a80(191): error: Duplicate label: bool_true_str
+tests/backend_e2e/outputs/function_calls_z80.a80(193): error: Duplicate label: bool_false_str
+(0): error: Error opening file: tests/backend_e2e/binaries/function_calls_z80
+  ❌ Binary generation failed

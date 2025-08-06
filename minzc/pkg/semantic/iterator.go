@@ -631,59 +631,27 @@ func (a *Analyzer) applyIteratorFunction(function ast.Expression, elementReg ir.
 	elementType ir.Type, irFunc *ir.Function) (ir.Register, error) {
 	
 	// Handle different function types
-	switch fn := function.(type) {
+	switch function.(type) {
 	case *ast.Identifier:
-		// Direct function reference like print_u8
-		funcName := fn.Name
-		
-		// Look up the function
-		sym := a.currentScope.Lookup(funcName)
-		if sym == nil && a.currentModule != "" {
-			// Try with module prefix
-			prefixedName := a.prefixSymbol(funcName)
-			sym = a.currentScope.Lookup(prefixedName)
-			if sym != nil {
-				funcName = prefixedName
-			} else {
-				// Try with type suffix based on element type
-				// This handles overloaded functions like double$u8
-				typeSuffix := "$" + elementType.String()
-				mangledName := prefixedName + typeSuffix
-				sym = a.currentScope.Lookup(mangledName)
-				if sym != nil {
-					funcName = mangledName
+		// Use the new overload resolver
+		funcSym, err := a.resolveIteratorFunction(function, elementType, irFunc)
+		if err != nil {
+			// Fallback for built-in functions
+			if ident, ok := function.(*ast.Identifier); ok {
+				funcName := ident.Name
+				if funcName == "print_u8" || funcName == "print_u16" {
+					// Handle built-in print functions
+					irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+						Op:      ir.OpCall,
+						Symbol:  funcName,
+						Args:    []ir.Register{elementReg},
+						Comment: fmt.Sprintf("Call %s", funcName),
+					})
+					return 0, nil // print functions return void
 				}
 			}
-		}
-		
-		// If still not found, try module scope
-		if sym == nil {
-			// Look in the module scope (we don't have direct access to globalScope)
-			// For now, just leave the enhanced lookup at current scope
-			// TODO: Add proper module-level function lookup
-		}
-		
-		if sym == nil {
-			// Check for built-in functions
-			if funcName == "print_u8" || funcName == "print_u16" {
-				// Handle built-in print functions
-				irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-					Op:      ir.OpCall,
-					Symbol:  funcName,
-					Args:    []ir.Register{elementReg},
-					Comment: fmt.Sprintf("Call %s", funcName),
-				})
-				return 0, nil // print functions return void
-			}
 			
-			return 0, fmt.Errorf("undefined function in iterator: %s (tried prefixed: %s$%s)", 
-				fn.Name, a.prefixSymbol(fn.Name), elementType.String())
-		}
-		
-		// Generate function call
-		funcSym, ok := sym.(*FuncSymbol)
-		if !ok {
-			return 0, fmt.Errorf("%s is not a function (found type %T)", funcName, sym)
+			return 0, fmt.Errorf("cannot resolve function in iterator: %w", err)
 		}
 		
 		// Create call instruction
@@ -691,18 +659,17 @@ func (a *Analyzer) applyIteratorFunction(function ast.Expression, elementReg ir.
 		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 			Op:      ir.OpCall,
 			Dest:    resultReg,
-			Symbol:  funcName,
+			Symbol:  funcSym.Name,
 			Args:    []ir.Register{elementReg},
 			Type:    funcSym.ReturnType,
-			Comment: fmt.Sprintf("Call %s", funcName),
+			Comment: fmt.Sprintf("Call %s", funcSym.Name),
 		})
 		
 		return resultReg, nil
 		
 	case *ast.LambdaExpr:
-		// Lambda expression - need to generate inline or as separate function
-		// TODO: Implement lambda support in iterators
-		return 0, fmt.Errorf("lambda expressions in iterators not yet implemented")
+		// Lambda expression - generate as separate function and call it
+		return a.generateIteratorLambda(function.(*ast.LambdaExpr), elementReg, elementType, irFunc)
 		
 	default:
 		return 0, fmt.Errorf("unsupported function type in iterator: %T", function)
@@ -777,4 +744,165 @@ func (a *Analyzer) transformIteratorMethodCall(object ast.Expression, method str
 	})
 	
 	return chain, nil
+}
+
+// generateIteratorLambda converts a lambda expression to a function and calls it
+// This enables zero-cost lambda abstractions in iterator chains
+func (a *Analyzer) generateIteratorLambda(lambda *ast.LambdaExpr, elementReg ir.Register, 
+	elementType ir.Type, irFunc *ir.Function) (ir.Register, error) {
+	
+	// Generate unique lambda name specific to iterator context
+	lambdaName := fmt.Sprintf("iter_lambda_%s_%d", irFunc.Name, a.lambdaCounter)
+	a.lambdaCounter++
+	
+	// Validate lambda parameter count
+	if len(lambda.Params) != 1 {
+		return 0, fmt.Errorf("iterator lambda must take exactly one parameter, got %d", len(lambda.Params))
+	}
+	
+	// Create a new function for the lambda
+	lambdaFunc := &ir.Function{
+		Name:         lambdaName,
+		Params:       []ir.Parameter{},
+		Instructions: []ir.Instruction{},
+		IsSMCDefault: false,  // Disable SMC temporarily to test basic functionality
+		IsSMCEnabled: false,
+		CallingConvention: "registers", // Use registers for maximum performance
+	}
+	
+	// Add the single parameter
+	param := lambda.Params[0]
+	var paramType ir.Type = elementType // Use the inferred element type
+	
+	// Override with explicit type if provided
+	if param.Type != nil {
+		var err error
+		paramType, err = a.convertType(param.Type)
+		if err != nil {
+			return 0, fmt.Errorf("failed to convert lambda parameter type: %w", err)
+		}
+		
+		// Verify type compatibility with element type
+		if !a.typesCompatible(elementType, paramType) {
+			return 0, fmt.Errorf("lambda parameter type %s incompatible with element type %s", 
+				paramType, elementType)
+		}
+	}
+	
+	lambdaFunc.Params = append(lambdaFunc.Params, ir.Parameter{
+		Name: param.Name,
+		Type: paramType,
+	})
+	
+	// Determine return type
+	var returnType ir.Type = &ir.BasicType{Kind: ir.TypeU8} // Default
+	if lambda.ReturnType != nil {
+		var err error
+		returnType, err = a.convertType(lambda.ReturnType)
+		if err != nil {
+			return 0, fmt.Errorf("failed to convert lambda return type: %w", err)
+		}
+	} else {
+		// Try to infer return type from body
+		if inferredType, err := a.inferIteratorLambdaReturnType(lambda.Body); err == nil {
+			returnType = inferredType
+		}
+	}
+	lambdaFunc.ReturnType = returnType
+	
+	// Create new scope for lambda analysis
+	lambdaScope := NewScope(a.currentScope)
+	prevScope := a.currentScope
+	prevFunc := a.currentFunc
+	a.currentScope = lambdaScope
+	a.currentFunc = lambdaFunc
+	
+	// Add parameter to lambda scope
+	paramSymbol := &VarSymbol{
+		Name: param.Name,
+		Type: paramType,
+	}
+	lambdaScope.Define(param.Name, paramSymbol)
+	
+	// Analyze lambda body
+	var bodyReg ir.Register
+	var err error
+	
+	switch body := lambda.Body.(type) {
+	case ast.Expression:
+		// Expression body - analyze and return result
+		bodyReg, err = a.analyzeExpression(body, lambdaFunc)
+		if err != nil {
+			a.currentScope = prevScope
+			a.currentFunc = prevFunc
+			return 0, fmt.Errorf("failed to analyze iterator lambda expression: %w", err)
+		}
+		
+		// Add return instruction
+		lambdaFunc.Instructions = append(lambdaFunc.Instructions, ir.Instruction{
+			Op:   ir.OpReturn,
+			Src1: bodyReg,
+			Comment: "Return lambda result",
+		})
+		
+	case *ast.BlockStmt:
+		// Block body - analyze block
+		err = a.analyzeBlock(body, lambdaFunc)
+		if err != nil {
+			a.currentScope = prevScope  
+			a.currentFunc = prevFunc
+			return 0, fmt.Errorf("failed to analyze iterator lambda block: %w", err)
+		}
+		
+		// Ensure block has a return (this should be handled by analyzeBlock)
+		
+	default:
+		a.currentScope = prevScope
+		a.currentFunc = prevFunc
+		return 0, fmt.Errorf("unsupported lambda body type: %T", body)
+	}
+	
+	// Restore previous context
+	a.currentScope = prevScope
+	a.currentFunc = prevFunc
+	
+	// Add the lambda function to the module
+	a.module.Functions = append(a.module.Functions, lambdaFunc)
+	
+	// Generate call to the lambda function
+	resultReg := irFunc.AllocReg()
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpCall,
+		Dest:    resultReg,
+		Symbol:  lambdaName,
+		Args:    []ir.Register{elementReg},
+		Type:    returnType,
+		Comment: fmt.Sprintf("Call iterator lambda: %s", lambdaName),
+	})
+	
+	return resultReg, nil
+}
+
+// inferIteratorLambdaReturnType attempts to infer the return type of a lambda body
+func (a *Analyzer) inferIteratorLambdaReturnType(body ast.Node) (ir.Type, error) {
+	switch body := body.(type) {
+	case ast.Expression:
+		// Try to infer the expression type
+		return a.inferType(body)
+	case *ast.BlockStmt:
+		// Look for return statements or final expression
+		if len(body.Statements) > 0 {
+			lastStmt := body.Statements[len(body.Statements)-1]
+			if returnStmt, ok := lastStmt.(*ast.ReturnStmt); ok && returnStmt.Value != nil {
+				return a.inferType(returnStmt.Value)
+			}
+			if exprStmt, ok := lastStmt.(*ast.ExpressionStmt); ok {
+				return a.inferType(exprStmt.Expression)
+			}
+		}
+		// Default to void for blocks without explicit return
+		return &ir.BasicType{Kind: ir.TypeVoid}, nil
+	default:
+		return nil, fmt.Errorf("cannot infer return type for lambda body type %T", body)
+	}
 }

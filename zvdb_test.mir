@@ -1,0 +1,886 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   .Users.alice.dev.zvdb-minz.zvdb_test.tests_passed: u8
+;   .Users.alice.dev.zvdb-minz.zvdb_test.tests_failed: u8
+
+Function .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8(actual: u16, expected: u16, test_id: u8) -> void
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r6 = r4 == r5
+      3: jump_if_not r6, else_1
+      4: r7 = load .Users.alice.dev.zvdb-minz.zvdb_test.tests_passed
+      5: r8 = 1
+      6: r9 = r7 + r8
+      7: store tests_passed, r9
+      8: LOAD_STRING
+      9: PRINT_STRING ; Print "Ã¢ÂÂ Test " (18 chars via loop)
+     10: PRINT_STRING_DIRECT ; Direct print ": PASS (" (8 chars)
+     11: PRINT_STRING_DIRECT ; Direct print ")
+" (2 chars)
+     12: jump end_if_2
+     13: else_1:
+     14: r11 = load .Users.alice.dev.zvdb-minz.zvdb_test.tests_failed
+     15: r12 = 1
+     16: r13 = r11 + r12
+     17: store tests_failed, r13
+     18: LOAD_STRING
+     19: PRINT_STRING ; Print "Ã¢ÂÂ Test " (18 chars via loop)
+     20: LOAD_STRING
+     21: PRINT_STRING ; Print ": FAIL (got " (12 chars via loop)
+     22: LOAD_STRING
+     23: PRINT_STRING ; Print ", expected " (11 chars via loop)
+     24: PRINT_STRING_DIRECT ; Direct print ")
+" (2 chars)
+     25: end_if_2:
+     26: return
+
+Function .Users.alice.dev.zvdb-minz.zvdb_test.test_popcount() -> void
+  Locals:
+    r2 = pc0: u8
+    r13 = pc1: u8
+    r24 = pc3: u8
+    r35 = pcF: u8
+    r46 = pc55: u8
+    r57 = pcAA: u8
+    r68 = pcFF: u8
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "
+=== Popcount Tests ===
+" (24 chars via loop)
+      2: r3 = 0
+      3: r4 = 0
+      4: r5 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+      5: store pc0, r5
+      6: r6 = load pc0
+      7: r7 = 0
+      8: r8 = 1
+      9: r9 = load pc0
+     10: r10 = 0
+     11: r11 = 1
+     12: r12 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+     13: r14 = 1
+     14: r15 = 1
+     15: r16 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+     16: store pc1, r16
+     17: r17 = load pc1
+     18: r18 = 1
+     19: r19 = 2
+     20: r20 = load pc1
+     21: r21 = 1
+     22: r22 = 2
+     23: r23 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+     24: r25 = 3
+     25: r26 = 3
+     26: r27 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+     27: store pc3, r27
+     28: r28 = load pc3
+     29: r29 = 2
+     30: r30 = 3
+     31: r31 = load pc3
+     32: r32 = 2
+     33: r33 = 3
+     34: r34 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+     35: r36 = 15
+     36: r37 = 15
+     37: r38 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+     38: store pcF, r38
+     39: r39 = load pcF
+     40: r40 = 4
+     41: r41 = 4
+     42: r42 = load pcF
+     43: r43 = 4
+     44: r44 = 4
+     45: r45 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+     46: r47 = 85
+     47: r48 = 85
+     48: r49 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+     49: store pc55, r49
+     50: r50 = load pc55
+     51: r51 = 4
+     52: r52 = 5
+     53: r53 = load pc55
+     54: r54 = 4
+     55: r55 = 5
+     56: r56 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+     57: r58 = 170
+     58: r59 = 170
+     59: r60 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+     60: store pcAA, r60
+     61: r61 = load pcAA
+     62: r62 = 4
+     63: r63 = 6
+     64: r64 = load pcAA
+     65: r65 = 4
+     66: r66 = 6
+     67: r67 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+     68: r69 = 255
+     69: r70 = 255
+     70: r71 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+     71: store pcFF, r71
+     72: r72 = load pcFF
+     73: r73 = 8
+     74: r74 = 7
+     75: r75 = load pcFF
+     76: r76 = 8
+     77: r77 = 7
+     78: r78 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+     79: return
+
+Function .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8(val: u8) -> u8
+  @smc
+  Locals:
+    r2 = count: u8
+    r4 = v: u8
+  Instructions:
+      0: r3 = 0
+      1: store count, r3
+      2: LOAD_PARAM
+      3: store v, r5
+      4: r6 = 0
+      5: r7 = 8
+      6: r8 = r6 ; Initialize loop variable i
+      7: for_loop_3:
+      8: r9 = r8 < r7 ; Check i < end
+      9: jump_if_not r9, for_end_4
+     10: r10 = load v
+     11: r11 = 1
+     12: r12 = r10 & r11
+     13: r13 = 0
+     14: r14 = r12 != r13
+     15: jump_if_not r14, else_5
+     16: r15 = load count
+     17: r16 = 1
+     18: r17 = r15 + r16
+     19: store count, r17
+     20: jump end_if_6
+     21: else_5:
+     22: end_if_6:
+     23: r18 = load v
+     24: r19 = 1
+     25: SHR
+     26: store v, r20
+     27: r21 = 1
+     28: r8 = r8 + r21 ; Increment i
+     29: jump for_loop_3
+     30: for_end_4:
+     31: r22 = load count
+     32: return r22
+
+Function .Users.alice.dev.zvdb-minz.zvdb_test.test_hamming() -> void
+  @smc
+  Locals:
+    r2 = v1: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256
+    r3 = v2: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256
+    r19 = dist1: u16
+    r47 = dist2: u16
+    r75 = dist3: u16
+    r108 = dist4: u16
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "
+=== Hamming Distance Tests ===
+" (32 chars via loop)
+      2: r4 = 0
+      3: r5 = 32
+      4: r6 = r4 ; Initialize loop variable i
+      5: for_loop_7:
+      6: r7 = r6 < r5 ; Check i < end
+      7: jump_if_not r7, for_end_8
+      8: r8 = 85
+      9: r9 = load v1
+     10: LOAD_FIELD ; Load field data (offset 0)
+     11: r11 = load i
+     12: r12 = r10 + r11 ; Calculate array element address
+     13: STORE_PTR ; Store to array[index] (u8)
+     14: r13 = 85
+     15: r14 = load v2
+     16: LOAD_FIELD ; Load field data (offset 0)
+     17: r16 = load i
+     18: r17 = r15 + r16 ; Calculate array element address
+     19: STORE_PTR ; Store to array[index] (u8)
+     20: r18 = 1
+     21: r6 = r6 + r18 ; Increment i
+     22: jump for_loop_7
+     23: for_end_8:
+     24: r20 = load v1
+     25: r21 = load v2
+     26: r22 = load v1
+     27: r23 = load v2
+     28: r24 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+     29: store dist1, r24
+     30: r25 = load dist1
+     31: r26 = 0
+     32: r27 = 8
+     33: r28 = load dist1
+     34: r29 = 0
+     35: r30 = 8
+     36: r31 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+     37: r32 = 0
+     38: r33 = 32
+     39: r34 = r32 ; Initialize loop variable i
+     40: for_loop_9:
+     41: r35 = r34 < r33 ; Check i < end
+     42: jump_if_not r35, for_end_10
+     43: r36 = 0
+     44: r37 = load v1
+     45: LOAD_FIELD ; Load field data (offset 0)
+     46: r39 = load i
+     47: r40 = r38 + r39 ; Calculate array element address
+     48: STORE_PTR ; Store to array[index] (u8)
+     49: r41 = 255
+     50: r42 = load v2
+     51: LOAD_FIELD ; Load field data (offset 0)
+     52: r44 = load i
+     53: r45 = r43 + r44 ; Calculate array element address
+     54: STORE_PTR ; Store to array[index] (u8)
+     55: r46 = 1
+     56: r34 = r34 + r46 ; Increment i
+     57: jump for_loop_9
+     58: for_end_10:
+     59: r48 = load v1
+     60: r49 = load v2
+     61: r50 = load v1
+     62: r51 = load v2
+     63: r52 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+     64: store dist2, r52
+     65: r53 = load dist2
+     66: r54 = 256
+     67: r55 = 9
+     68: r56 = load dist2
+     69: r57 = 256
+     70: r58 = 9
+     71: r59 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+     72: r60 = 0
+     73: r61 = 32
+     74: r62 = r60 ; Initialize loop variable i
+     75: for_loop_11:
+     76: r63 = r62 < r61 ; Check i < end
+     77: jump_if_not r63, for_end_12
+     78: r64 = 15
+     79: r65 = load v1
+     80: LOAD_FIELD ; Load field data (offset 0)
+     81: r67 = load i
+     82: r68 = r66 + r67 ; Calculate array element address
+     83: STORE_PTR ; Store to array[index] (u8)
+     84: r69 = 240
+     85: r70 = load v2
+     86: LOAD_FIELD ; Load field data (offset 0)
+     87: r72 = load i
+     88: r73 = r71 + r72 ; Calculate array element address
+     89: STORE_PTR ; Store to array[index] (u8)
+     90: r74 = 1
+     91: r62 = r62 + r74 ; Increment i
+     92: jump for_loop_11
+     93: for_end_12:
+     94: r76 = load v1
+     95: r77 = load v2
+     96: r78 = load v1
+     97: r79 = load v2
+     98: r80 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+     99: store dist3, r80
+    100: r81 = load dist3
+    101: r82 = 256
+    102: r83 = 10
+    103: r84 = load dist3
+    104: r85 = 256
+    105: r86 = 10
+    106: r87 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    107: r88 = 0
+    108: r89 = 32
+    109: r90 = r88 ; Initialize loop variable i
+    110: for_loop_13:
+    111: r91 = r90 < r89 ; Check i < end
+    112: jump_if_not r91, for_end_14
+    113: r92 = 0
+    114: r93 = load v1
+    115: LOAD_FIELD ; Load field data (offset 0)
+    116: r95 = load i
+    117: r96 = r94 + r95 ; Calculate array element address
+    118: STORE_PTR ; Store to array[index] (u8)
+    119: r97 = 0
+    120: r98 = load v2
+    121: LOAD_FIELD ; Load field data (offset 0)
+    122: r100 = load i
+    123: r101 = r99 + r100 ; Calculate array element address
+    124: STORE_PTR ; Store to array[index] (u8)
+    125: r102 = 1
+    126: r90 = r90 + r102 ; Increment i
+    127: jump for_loop_13
+    128: for_end_14:
+    129: r103 = 1
+    130: r104 = load v2
+    131: LOAD_FIELD ; Load field data (offset 0)
+    132: r106 = 0
+    133: r107 = r105 + r106 ; Calculate array element address
+    134: STORE_PTR ; Store to array[index] (u8)
+    135: r109 = load v1
+    136: r110 = load v2
+    137: r111 = load v1
+    138: r112 = load v2
+    139: r113 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    140: store dist4, r113
+    141: r114 = load dist4
+    142: r115 = 1
+    143: r116 = 11
+    144: r117 = load dist4
+    145: r118 = 1
+    146: r119 = 11
+    147: r120 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    148: return
+
+Function .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256(v1: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256, v2: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256) -> u16
+  @smc
+  Locals:
+    r3 = distance: u16
+    r9 = xor_val: u8
+    r19 = bits: u8
+  Instructions:
+      0: r4 = 0
+      1: store distance, r4
+      2: r5 = 0
+      3: r6 = 32
+      4: r7 = r5 ; Initialize loop variable i
+      5: for_loop_15:
+      6: r8 = r7 < r6 ; Check i < end
+      7: jump_if_not r8, for_end_16
+      8: LOAD_PARAM
+      9: LOAD_FIELD ; Load field data (offset 0)
+     10: r12 = load i
+     11: LOAD_INDEX ; Load array element (u8)
+     12: LOAD_PARAM
+     13: LOAD_FIELD ; Load field data (offset 0)
+     14: r16 = load i
+     15: LOAD_INDEX ; Load array element (u8)
+     16: r18 = r13 ^ r17
+     17: store xor_val, r18
+     18: r20 = load xor_val
+     19: r21 = load xor_val
+     20: r22 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+     21: store bits, r22
+     22: r23 = load distance
+     23: r24 = load bits
+     24: r25 = r23 + r24
+     25: store distance, r25
+     26: r26 = 1
+     27: r7 = r7 + r26 ; Increment i
+     28: jump for_loop_15
+     29: for_end_16:
+     30: r27 = load distance
+     31: return r27
+
+Function .Users.alice.dev.zvdb-minz.zvdb_test.test_similarity() -> void
+  Locals:
+    r2 = v1: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256
+    r3 = v2: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256
+    r19 = sim1: i16
+    r25 = sim1_u: u16
+    r49 = sim2: i16
+    r82 = sim3: i16
+    r88 = sim3_u: u16
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "
+=== Similarity Score Tests ===
+" (32 chars via loop)
+      2: r4 = 0
+      3: r5 = 32
+      4: r6 = r4 ; Initialize loop variable i
+      5: for_loop_17:
+      6: r7 = r6 < r5 ; Check i < end
+      7: jump_if_not r7, for_end_18
+      8: r8 = 170
+      9: r9 = load v1
+     10: LOAD_FIELD ; Load field data (offset 0)
+     11: r11 = load i
+     12: r12 = r10 + r11 ; Calculate array element address
+     13: STORE_PTR ; Store to array[index] (u8)
+     14: r13 = 170
+     15: r14 = load v2
+     16: LOAD_FIELD ; Load field data (offset 0)
+     17: r16 = load i
+     18: r17 = r15 + r16 ; Calculate array element address
+     19: STORE_PTR ; Store to array[index] (u8)
+     20: r18 = 1
+     21: r6 = r6 + r18 ; Increment i
+     22: jump for_loop_17
+     23: for_end_18:
+     24: r20 = load v1
+     25: r21 = load v2
+     26: r22 = load v1
+     27: r23 = load v2
+     28: r24 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+     29: store sim1, r24
+     30: r26 = load sim1
+     31: store sim1_u, r26
+     32: r27 = load sim1_u
+     33: r28 = 256
+     34: r29 = 12
+     35: r30 = load sim1_u
+     36: r31 = 256
+     37: r32 = 12
+     38: r33 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+     39: r34 = 0
+     40: r35 = 32
+     41: r36 = r34 ; Initialize loop variable i
+     42: for_loop_19:
+     43: r37 = r36 < r35 ; Check i < end
+     44: jump_if_not r37, for_end_20
+     45: r38 = 0
+     46: r39 = load v1
+     47: LOAD_FIELD ; Load field data (offset 0)
+     48: r41 = load i
+     49: r42 = r40 + r41 ; Calculate array element address
+     50: STORE_PTR ; Store to array[index] (u8)
+     51: r43 = 255
+     52: r44 = load v2
+     53: LOAD_FIELD ; Load field data (offset 0)
+     54: r46 = load i
+     55: r47 = r45 + r46 ; Calculate array element address
+     56: STORE_PTR ; Store to array[index] (u8)
+     57: r48 = 1
+     58: r36 = r36 + r48 ; Increment i
+     59: jump for_loop_19
+     60: for_end_20:
+     61: r50 = load v1
+     62: r51 = load v2
+     63: r52 = load v1
+     64: r53 = load v2
+     65: r54 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+     66: store sim2, r54
+     67: r55 = load sim2
+     68: r56 = 256
+     69: NEG
+     70: r58 = r55 == r57
+     71: jump_if_not r58, else_21
+     72: r59 = load .Users.alice.dev.zvdb-minz.zvdb_test.tests_passed
+     73: r60 = 1
+     74: r61 = r59 + r60
+     75: store tests_passed, r61
+     76: LOAD_STRING
+     77: PRINT_STRING ; Print "â Test 13: Opposite similarity PASS
+" (41 chars via loop)
+     78: jump end_if_22
+     79: else_21:
+     80: r63 = load .Users.alice.dev.zvdb-minz.zvdb_test.tests_failed
+     81: r64 = 1
+     82: r65 = r63 + r64
+     83: store tests_failed, r65
+     84: LOAD_STRING
+     85: PRINT_STRING ; Print "â Test 13: Opposite similarity FAIL
+" (41 chars via loop)
+     86: end_if_22:
+     87: r67 = 0
+     88: r68 = 32
+     89: r69 = r67 ; Initialize loop variable i
+     90: for_loop_23:
+     91: r70 = r69 < r68 ; Check i < end
+     92: jump_if_not r70, for_end_24
+     93: r71 = 15
+     94: r72 = load v1
+     95: LOAD_FIELD ; Load field data (offset 0)
+     96: r74 = load i
+     97: r75 = r73 + r74 ; Calculate array element address
+     98: STORE_PTR ; Store to array[index] (u8)
+     99: r76 = 0
+    100: r77 = load v2
+    101: LOAD_FIELD ; Load field data (offset 0)
+    102: r79 = load i
+    103: r80 = r78 + r79 ; Calculate array element address
+    104: STORE_PTR ; Store to array[index] (u8)
+    105: r81 = 1
+    106: r69 = r69 + r81 ; Increment i
+    107: jump for_loop_23
+    108: for_end_24:
+    109: r83 = load v1
+    110: r84 = load v2
+    111: r85 = load v1
+    112: r86 = load v2
+    113: r87 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+    114: store sim3, r87
+    115: r89 = load sim3
+    116: store sim3_u, r89
+    117: r90 = load sim3_u
+    118: r91 = 128
+    119: r92 = 14
+    120: r93 = load sim3_u
+    121: r94 = 128
+    122: r95 = 14
+    123: r96 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    124: return
+
+Function .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256(v1: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256, v2: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256) -> i16
+  @smc
+  Locals:
+    r3 = hamming: u16
+    r9 = doubled: u16
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: LOAD_PARAM
+      3: LOAD_PARAM
+      4: r8 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+      5: store hamming, r8
+      6: r10 = load hamming
+      7: r11 = 1
+      8: SHL
+      9: store doubled, r12
+     10: r13 = 256
+     11: r14 = load doubled
+     12: r15 = r13 - r14
+     13: return r15
+
+Function .Users.alice.dev.zvdb-minz.zvdb_test.test_search() -> void
+  Locals:
+    r2 = db: [4].Users.alice.dev.zvdb-minz.zvdb_test.Vector256
+    r51 = query1: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256
+    r62 = best1: u8
+    r92 = best1_u: u16
+    r101 = query2: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256
+    r112 = best2: u8
+    r142 = best2_u: u16
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "
+=== Vector Search Tests ===
+" (29 chars via loop)
+      2: r3 = 0
+      3: r4 = 32
+      4: r5 = r3 ; Initialize loop variable i
+      5: for_loop_25:
+      6: r6 = r5 < r4 ; Check i < end
+      7: jump_if_not r6, for_end_26
+      8: r7 = 0
+      9: r8 = load db
+     10: r9 = 0
+     11: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+     12: LOAD_FIELD ; Load field data (offset 0)
+     13: r12 = load i
+     14: r13 = r11 + r12 ; Calculate array element address
+     15: STORE_PTR ; Store to array[index] (u8)
+     16: r14 = 1
+     17: r5 = r5 + r14 ; Increment i
+     18: jump for_loop_25
+     19: for_end_26:
+     20: r15 = 0
+     21: r16 = 32
+     22: r17 = r15 ; Initialize loop variable i
+     23: for_loop_27:
+     24: r18 = r17 < r16 ; Check i < end
+     25: jump_if_not r18, for_end_28
+     26: r19 = 255
+     27: r20 = load db
+     28: r21 = 1
+     29: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+     30: LOAD_FIELD ; Load field data (offset 0)
+     31: r24 = load i
+     32: r25 = r23 + r24 ; Calculate array element address
+     33: STORE_PTR ; Store to array[index] (u8)
+     34: r26 = 1
+     35: r17 = r17 + r26 ; Increment i
+     36: jump for_loop_27
+     37: for_end_28:
+     38: r27 = 0
+     39: r28 = 32
+     40: r29 = r27 ; Initialize loop variable i
+     41: for_loop_29:
+     42: r30 = r29 < r28 ; Check i < end
+     43: jump_if_not r30, for_end_30
+     44: r31 = 85
+     45: r32 = load db
+     46: r33 = 2
+     47: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+     48: LOAD_FIELD ; Load field data (offset 0)
+     49: r36 = load i
+     50: r37 = r35 + r36 ; Calculate array element address
+     51: STORE_PTR ; Store to array[index] (u8)
+     52: r38 = 1
+     53: r29 = r29 + r38 ; Increment i
+     54: jump for_loop_29
+     55: for_end_30:
+     56: r39 = 0
+     57: r40 = 32
+     58: r41 = r39 ; Initialize loop variable i
+     59: for_loop_31:
+     60: r42 = r41 < r40 ; Check i < end
+     61: jump_if_not r42, for_end_32
+     62: r43 = 170
+     63: r44 = load db
+     64: r45 = 3
+     65: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+     66: LOAD_FIELD ; Load field data (offset 0)
+     67: r48 = load i
+     68: r49 = r47 + r48 ; Calculate array element address
+     69: STORE_PTR ; Store to array[index] (u8)
+     70: r50 = 1
+     71: r41 = r41 + r50 ; Increment i
+     72: jump for_loop_31
+     73: for_end_32:
+     74: r52 = 0
+     75: r53 = 32
+     76: r54 = r52 ; Initialize loop variable i
+     77: for_loop_33:
+     78: r55 = r54 < r53 ; Check i < end
+     79: jump_if_not r55, for_end_34
+     80: r56 = 0
+     81: r57 = load query1
+     82: LOAD_FIELD ; Load field data (offset 0)
+     83: r59 = load i
+     84: r60 = r58 + r59 ; Calculate array element address
+     85: STORE_PTR ; Store to array[index] (u8)
+     86: r61 = 1
+     87: r54 = r54 + r61 ; Increment i
+     88: jump for_loop_33
+     89: for_end_34:
+     90: r63 = load query1
+     91: r64 = load db
+     92: r65 = 0
+     93: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+     94: r67 = load db
+     95: r68 = 1
+     96: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+     97: r70 = load db
+     98: r71 = 2
+     99: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    100: r73 = load db
+    101: r74 = 3
+    102: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    103: r76 = 4
+    104: r77 = load query1
+    105: r78 = load db
+    106: r79 = 0
+    107: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    108: r81 = load db
+    109: r82 = 1
+    110: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    111: r84 = load db
+    112: r85 = 2
+    113: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    114: r87 = load db
+    115: r88 = 3
+    116: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    117: r90 = 4
+    118: r91 = call .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+    119: store best1, r91
+    120: r93 = load best1
+    121: store best1_u, r93
+    122: r94 = load best1_u
+    123: r95 = 0
+    124: r96 = 15
+    125: r97 = load best1_u
+    126: r98 = 0
+    127: r99 = 15
+    128: r100 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    129: r102 = 0
+    130: r103 = 32
+    131: r104 = r102 ; Initialize loop variable i
+    132: for_loop_35:
+    133: r105 = r104 < r103 ; Check i < end
+    134: jump_if_not r105, for_end_36
+    135: r106 = 84
+    136: r107 = load query2
+    137: LOAD_FIELD ; Load field data (offset 0)
+    138: r109 = load i
+    139: r110 = r108 + r109 ; Calculate array element address
+    140: STORE_PTR ; Store to array[index] (u8)
+    141: r111 = 1
+    142: r104 = r104 + r111 ; Increment i
+    143: jump for_loop_35
+    144: for_end_36:
+    145: r113 = load query2
+    146: r114 = load db
+    147: r115 = 0
+    148: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    149: r117 = load db
+    150: r118 = 1
+    151: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    152: r120 = load db
+    153: r121 = 2
+    154: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    155: r123 = load db
+    156: r124 = 3
+    157: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    158: r126 = 4
+    159: r127 = load query2
+    160: r128 = load db
+    161: r129 = 0
+    162: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    163: r131 = load db
+    164: r132 = 1
+    165: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    166: r134 = load db
+    167: r135 = 2
+    168: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    169: r137 = load db
+    170: r138 = 3
+    171: LOAD_INDEX ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    172: r140 = 4
+    173: r141 = call .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+    174: store best2, r141
+    175: r143 = load best2
+    176: store best2_u, r143
+    177: r144 = load best2_u
+    178: r145 = 2
+    179: r146 = 16
+    180: r147 = load best2_u
+    181: r148 = 2
+    182: r149 = 16
+    183: r150 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    184: return
+
+Function .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8(query: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256, db0: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256, db1: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256, db2: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256, db3: .Users.alice.dev.zvdb-minz.zvdb_test.Vector256, count: u8) -> u8
+  Locals:
+    r7 = best_id: u8
+    r9 = best_dist: u16
+    r14 = dist0: u16
+    r28 = dist1: u16
+    r42 = dist2: u16
+    r56 = dist3: u16
+  Instructions:
+      0: r8 = 255
+      1: store best_id, r8
+      2: r10 = 65535
+      3: store best_dist, r10
+      4: LOAD_PARAM
+      5: r12 = 1
+      6: r13 = r11 >= r12
+      7: jump_if_not r13, else_37
+      8: LOAD_PARAM
+      9: LOAD_PARAM
+     10: LOAD_PARAM
+     11: LOAD_PARAM
+     12: r19 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+     13: store dist0, r19
+     14: r20 = load dist0
+     15: r21 = load best_dist
+     16: r22 = r20 < r21
+     17: jump_if_not r22, else_39
+     18: r23 = load dist0
+     19: store best_dist, r23
+     20: r24 = 0
+     21: store best_id, r24
+     22: jump end_if_40
+     23: else_39:
+     24: end_if_40:
+     25: jump end_if_38
+     26: else_37:
+     27: end_if_38:
+     28: LOAD_PARAM
+     29: r26 = 2
+     30: r27 = r25 >= r26
+     31: jump_if_not r27, else_41
+     32: LOAD_PARAM
+     33: LOAD_PARAM
+     34: LOAD_PARAM
+     35: LOAD_PARAM
+     36: r33 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+     37: store dist1, r33
+     38: r34 = load dist1
+     39: r35 = load best_dist
+     40: r36 = r34 < r35
+     41: jump_if_not r36, else_43
+     42: r37 = load dist1
+     43: store best_dist, r37
+     44: r38 = 1
+     45: store best_id, r38
+     46: jump end_if_44
+     47: else_43:
+     48: end_if_44:
+     49: jump end_if_42
+     50: else_41:
+     51: end_if_42:
+     52: LOAD_PARAM
+     53: r40 = 3
+     54: r41 = r39 >= r40
+     55: jump_if_not r41, else_45
+     56: LOAD_PARAM
+     57: LOAD_PARAM
+     58: LOAD_PARAM
+     59: LOAD_PARAM
+     60: r47 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+     61: store dist2, r47
+     62: r48 = load dist2
+     63: r49 = load best_dist
+     64: r50 = r48 < r49
+     65: jump_if_not r50, else_47
+     66: r51 = load dist2
+     67: store best_dist, r51
+     68: r52 = 2
+     69: store best_id, r52
+     70: jump end_if_48
+     71: else_47:
+     72: end_if_48:
+     73: jump end_if_46
+     74: else_45:
+     75: end_if_46:
+     76: LOAD_PARAM
+     77: r54 = 4
+     78: r55 = r53 >= r54
+     79: jump_if_not r55, else_49
+     80: LOAD_PARAM
+     81: LOAD_PARAM
+     82: LOAD_PARAM
+     83: LOAD_PARAM
+     84: r61 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+     85: store dist3, r61
+     86: r62 = load dist3
+     87: r63 = load best_dist
+     88: r64 = r62 < r63
+     89: jump_if_not r64, else_51
+     90: r65 = load dist3
+     91: store best_dist, r65
+     92: r66 = 3
+     93: store best_id, r66
+     94: jump end_if_52
+     95: else_51:
+     96: end_if_52:
+     97: jump end_if_50
+     98: else_49:
+     99: end_if_50:
+    100: r67 = load best_id
+    101: return r67
+
+Function .Users.alice.dev.zvdb-minz.zvdb_test.main() -> void
+  @smc
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "ZVDB E2E Test Suite
+" (20 chars via loop)
+      2: LOAD_STRING
+      3: PRINT_STRING ; Print "==================
+" (19 chars via loop)
+      4: r3 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_popcount
+      5: r4 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_hamming
+      6: r5 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_similarity
+      7: r6 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_search
+      8: LOAD_STRING
+      9: PRINT_STRING ; Print "
+=== Test Summary ===
+" (22 chars via loop)
+     10: PRINT_STRING_DIRECT ; Direct print "Passed: " (8 chars)
+     11: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     12: PRINT_STRING_DIRECT ; Direct print "Failed: " (8 chars)
+     13: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     14: r8 = load .Users.alice.dev.zvdb-minz.zvdb_test.tests_failed
+     15: r9 = 0
+     16: r10 = r8 == r9
+     17: jump_if_not r10, else_53
+     18: LOAD_STRING
+     19: PRINT_STRING ; Print "
+â All tests passed!
+" (26 chars via loop)
+     20: jump end_if_54
+     21: else_53:
+     22: LOAD_STRING
+     23: PRINT_STRING ; Print "
+â Some tests failed!
+" (27 chars via loop)
+     24: end_if_54:
+     25: return
+

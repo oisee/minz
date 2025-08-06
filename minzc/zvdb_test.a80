@@ -1,0 +1,2064 @@
+; MinZ generated code
+; Generated: 2025-08-06 20:15:14
+
+
+; Data section
+    ORG $F000
+
+.Users.alice.dev.zvdb-minz.zvdb_test.tests_passed:
+    DB 0
+.Users.alice.dev.zvdb-minz.zvdb_test.tests_failed:
+    DB 0
+str_0:
+    DB 18    ; Length
+    DB 195
+    DB 162
+    DB 194
+    DB 156
+    DB 194
+    DB 147
+    DB " Test "
+str_1:
+    DB 18    ; Length
+    DB 195
+    DB 162
+    DB 194
+    DB 156
+    DB 194
+    DB 151
+    DB " Test "
+str_2:
+    DB 12    ; Length
+    DB ": FAIL (got "
+str_3:
+    DB 11    ; Length
+    DB ", expected "
+str_4:
+    DB 24    ; Length
+    DB 10
+    DB "=== Popcount Tests ==="
+    DB 10
+str_5:
+    DB 32    ; Length
+    DB 10
+    DB "=== Hamming Distance Tests ==="
+    DB 10
+str_6:
+    DB 32    ; Length
+    DB 10
+    DB "=== Similarity Score Tests ==="
+    DB 10
+str_7:
+    DB 41    ; Length
+    DB 226
+    DB 156
+    DB 147
+    DB " Test 13: Opposite similarity PASS"
+    DB 10
+str_8:
+    DB 41    ; Length
+    DB 226
+    DB 156
+    DB 151
+    DB " Test 13: Opposite similarity FAIL"
+    DB 10
+str_9:
+    DB 29    ; Length
+    DB 10
+    DB "=== Vector Search Tests ==="
+    DB 10
+str_10:
+    DB 20    ; Length
+    DB "ZVDB E2E Test Suite"
+    DB 10
+str_11:
+    DB 19    ; Length
+    DB "=================="
+    DB 10
+str_12:
+    DB 22    ; Length
+    DB 10
+    DB "=== Test Summary ==="
+    DB 10
+str_13:
+    DB 26    ; Length
+    DB 10
+    DB 226
+    DB 156
+    DB 133
+    DB " All tests passed!"
+    DB 10
+str_14:
+    DB 27    ; Length
+    DB 10
+    DB 226
+    DB 157
+    DB 140
+    DB " Some tests failed!"
+    DB 10
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+.Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8:
+; TRUE SMC function with immediate anchors
+actual$immOP:
+    LD HL, 0       ; actual anchor (will be patched)
+actual$imm0 EQU actual$immOP+1
+    ; Register 4 already in HL
+expected$immOP:
+    LD HL, 0       ; expected anchor (will be patched)
+expected$imm0 EQU expected$immOP+1
+    LD D, H
+    LD E, L
+    ; r6 = r4 == r5
+    ; Register 4 already in HL
+    ; Register 5 already in DE
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_assert_equal_u16_u16_u8_eq_true_0
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_assert_equal_u16_u16_u8_eq_done_0
+_Users_alice_dev_zvdb-minz_zvdb_test_assert_equal_u16_u16_u8_eq_true_0:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_assert_equal_u16_u16_u8_eq_done_0:
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; jump_if_not r6, else_1
+    EXX               ; Switch to shadow registers
+    LD A, L'         ; From shadow HL'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_assert_equal_u16_u16_u8_else_1
+    ; r10 = string(str_0)
+    LD HL, str_0
+    ; Print "Ã¢ÂÂ Test " (18 chars via loop)
+    CALL print_string
+    ; Direct print ": PASS (" (8 chars)
+    ; Direct print ": PASS (" (8 chars)
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    LD A, 80
+    RST 16             ; Print character
+    LD A, 65
+    RST 16             ; Print character
+    LD A, 83
+    RST 16             ; Print character
+    LD A, 83
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    LD A, 40
+    RST 16             ; Print character
+    ; Direct print ")
+" (2 chars)
+    ; Direct print ")
+" (2 chars)
+    LD A, 41
+    RST 16             ; Print character
+    LD A, 10
+    RST 16             ; Print character
+    ; jump end_if_2
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_assert_equal_u16_u16_u8_end_if_2
+    ; else_1:
+_Users_alice_dev_zvdb-minz_zvdb_test_assert_equal_u16_u16_u8_else_1:
+    ; r14 = string(str_1)
+    LD HL, str_1
+    ; Print "Ã¢ÂÂ Test " (18 chars via loop)
+    CALL print_string
+    ; r15 = string(str_2)
+    LD HL, str_2
+    ; Print ": FAIL (got " (12 chars via loop)
+    CALL print_string
+    ; r16 = string(str_3)
+    LD HL, str_3
+    ; Print ", expected " (11 chars via loop)
+    CALL print_string
+    ; Direct print ")
+" (2 chars)
+    ; Direct print ")
+" (2 chars)
+    LD A, 41
+    RST 16             ; Print character
+    LD A, 10
+    RST 16             ; Print character
+    ; end_if_2:
+_Users_alice_dev_zvdb-minz_zvdb_test_assert_equal_u16_u16_u8_end_if_2:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.test_popcount
+.Users.alice.dev.zvdb-minz.zvdb_test.test_popcount:
+; IsSMCDefault=false, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r1 = string(str_4)
+    LD HL, str_4
+    ; Print "
+=== Popcount Tests ===
+" (24 chars via loop)
+    CALL print_string
+    ; r5 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    LD A, ($F008)     ; Virtual register 4 from memory
+    LD (val$imm0), A        ; Patch val
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; r12 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F016)     ; Virtual register 11 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; r16 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    LD A, ($F01E)     ; Virtual register 15 from memory
+    LD (val$imm0), A        ; Patch val
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; r23 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F02A)    ; Virtual register 21 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F02C)     ; Virtual register 22 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD ($F02E), HL    ; Virtual register 23 to memory
+    ; r27 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    LD A, ($F034)     ; Virtual register 26 from memory
+    LD (val$imm0), A        ; Patch val
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; r34 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F03E)    ; Virtual register 31 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F040)    ; Virtual register 32 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F042)     ; Virtual register 33 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; r38 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    LD A, ($F04A)     ; Virtual register 37 from memory
+    LD (val$imm0), A        ; Patch val
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    LD ($F04C), HL    ; Virtual register 38 to memory
+    ; r45 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F054)    ; Virtual register 42 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F056)    ; Virtual register 43 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F058)     ; Virtual register 44 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; r49 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    LD A, ($F060)     ; Virtual register 48 from memory
+    LD (val$imm0), A        ; Patch val
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; r56 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F06A)    ; Virtual register 53 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F06C)    ; Virtual register 54 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F06E)     ; Virtual register 55 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD ($F070), HL    ; Virtual register 56 to memory
+    ; r60 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    LD A, ($F076)     ; Virtual register 59 from memory
+    LD (val$imm0), A        ; Patch val
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; r67 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F080)    ; Virtual register 64 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F082)    ; Virtual register 65 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F084)     ; Virtual register 66 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; r71 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    LD A, ($F08C)     ; Virtual register 70 from memory
+    LD (val$imm0), A        ; Patch val
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Register 71 already in HL
+    ; r78 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F096)    ; Virtual register 75 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F098)    ; Virtual register 76 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F09A)     ; Virtual register 77 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; return
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+.Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8:
+; TRUE SMC function with immediate anchors
+val$immOP:
+    LD A, 0        ; val anchor (will be patched)
+val$imm0 EQU val$immOP+1
+    LD L, A         ; Store to physical register L
+    ; r7 = 8
+    LD A, 8
+    LD H, A         ; Store to physical register H
+    ; Initialize loop variable i
+    ; for_loop_3:
+_Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_for_loop_3:
+    ; Check i < end
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_lt_true_1
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_lt_done_1
+_Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_lt_true_1:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_lt_done_1:
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; jump_if_not r9, for_end_4
+    LD A, ($F012)     ; Virtual register 9 from memory
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_for_end_4
+    ; unknown op 57
+    ; Register 12 already in HL
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; jump_if_not r14, else_5
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_else_5
+    ; jump end_if_6
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_end_if_6
+    ; else_5:
+_Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_else_5:
+    ; end_if_6:
+_Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_end_if_6:
+    ; r8++
+    INC HL
+    ; jump for_loop_3
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_for_loop_3
+    ; for_end_4:
+_Users_alice_dev_zvdb-minz_zvdb_test_popcount_bits_u8_for_end_4:
+    ; r22 = load count
+    LD A, ($F004)
+    LD H, A         ; Store to physical register H
+    ; return r22
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.test_hamming
+.Users.alice.dev.zvdb-minz.zvdb_test.test_hamming:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r1 = string(str_5)
+    LD HL, str_5
+    ; Print "
+=== Hamming Distance Tests ===
+" (32 chars via loop)
+    CALL print_string
+    ; r5 = 32
+    LD A, 32
+    LD H, A         ; Store to physical register H
+    ; Initialize loop variable i
+    ; for_loop_7:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_loop_7:
+    ; Check i < end
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_true_2
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_done_2
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_true_2:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_done_2:
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; jump_if_not r7, for_end_8
+    LD A, ($F00E)     ; Virtual register 7 from memory
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_end_8
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, ($F010)     ; Virtual register 8 from memory
+    POP HL
+    LD (HL), A
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r6++
+    INC HL
+    ; jump for_loop_7
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_loop_7
+    ; for_end_8:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_end_8:
+    ; r24 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    LD HL, ($F02C)    ; Virtual register 22 from memory
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD HL, ($F02E)    ; Virtual register 23 from memory
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    LD ($F030), HL    ; Virtual register 24 to memory
+    ; r31 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F038)    ; Virtual register 28 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F03A)    ; Virtual register 29 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F03C)     ; Virtual register 30 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; r33 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    ; for_loop_9:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_loop_9:
+    ; Check i < end
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_true_3
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_done_3
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_true_3:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_done_3:
+    ; jump_if_not r35, for_end_10
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_end_10
+    ; Store to array[index] (u8)
+    LD HL, ($F050)    ; Virtual register 40 from memory
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, ($F052)     ; Virtual register 41 from memory
+    POP HL
+    LD (HL), A
+    ; r34++
+    INC HL
+    ; jump for_loop_9
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_loop_9
+    ; for_end_10:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_end_10:
+    ; r52 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    LD HL, ($F064)    ; Virtual register 50 from memory
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD HL, ($F066)    ; Virtual register 51 from memory
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; r59 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F070)    ; Virtual register 56 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F072)    ; Virtual register 57 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F074)     ; Virtual register 58 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD ($F076), HL    ; Virtual register 59 to memory
+    ; r61 = 32
+    LD A, 32
+    LD H, A         ; Store to physical register H
+    ; Initialize loop variable i
+    LD HL, ($F078)    ; Virtual register 60 from memory
+    ; for_loop_11:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_loop_11:
+    ; Check i < end
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_true_4
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_done_4
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_true_4:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_done_4:
+    ; jump_if_not r63, for_end_12
+    LD A, H
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_end_12
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, ($F080)     ; Virtual register 64 from memory
+    POP HL
+    LD (HL), A
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r62++
+    INC HL
+    ; jump for_loop_11
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_loop_11
+    ; for_end_12:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_end_12:
+    ; r80 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    LD HL, ($F09C)    ; Virtual register 78 from memory
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD HL, ($F09E)    ; Virtual register 79 from memory
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    LD ($F0A0), HL    ; Virtual register 80 to memory
+    ; r87 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F0A8)    ; Virtual register 84 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F0AA)    ; Virtual register 85 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F0AC)     ; Virtual register 86 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; r89 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    ; for_loop_13:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_loop_13:
+    ; Check i < end
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_true_5
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_done_5
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_true_5:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_lt_done_5:
+    ; jump_if_not r91, for_end_14
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_end_14
+    ; Store to array[index] (u8)
+    LD HL, ($F0C0)    ; Virtual register 96 from memory
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, ($F0C2)     ; Virtual register 97 from memory
+    POP HL
+    LD (HL), A
+    ; r90++
+    INC HL
+    ; jump for_loop_13
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_loop_13
+    ; for_end_14:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_hamming_for_end_14:
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r113 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    LD HL, ($F0DE)    ; Virtual register 111 from memory
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD HL, ($F0E0)    ; Virtual register 112 from memory
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; r120 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F0EA)    ; Virtual register 117 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F0EC)    ; Virtual register 118 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F0EE)     ; Virtual register 119 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; return
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+.Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256:
+; TRUE SMC function with immediate anchors
+    ; r6 = 32
+    LD A, 32
+    LD H, A         ; Store to physical register H
+    ; Initialize loop variable i
+    ; for_loop_15:
+_Users_alice_dev_zvdb-minz_zvdb_test_calc_hamming_Vector256_Vector256_for_loop_15:
+    ; Check i < end
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_calc_hamming_Vector256_Vector256_lt_true_6
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_calc_hamming_Vector256_Vector256_lt_done_6
+_Users_alice_dev_zvdb-minz_zvdb_test_calc_hamming_Vector256_Vector256_lt_true_6:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_calc_hamming_Vector256_Vector256_lt_done_6:
+    ; Register 8 already in HL
+    ; jump_if_not r8, for_end_16
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_calc_hamming_Vector256_Vector256_for_end_16
+v1$immOP:
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    XOR D, D    ; Optimized: was LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+v2$immOP:
+    ; Load array element (u8)
+    PUSH HL
+    LD A, ($F020)     ; Virtual register 16 from memory
+    LD E, A
+    XOR D, D    ; Optimized: was LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r22 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    LD A, ($F02A)     ; Virtual register 21 from memory
+    LD (val$imm0), A        ; Patch val
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Increment i
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r26 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; jump for_loop_15
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_calc_hamming_Vector256_Vector256_for_loop_15
+    ; for_end_16:
+_Users_alice_dev_zvdb-minz_zvdb_test_calc_hamming_Vector256_Vector256_for_end_16:
+    ; r27 = load distance
+    LD HL, ($F006)
+    ; Register 27 already in HL
+    ; return r27
+    ; Register 27 already in HL
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.test_similarity
+.Users.alice.dev.zvdb-minz.zvdb_test.test_similarity:
+; IsSMCDefault=false, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r1 = string(str_6)
+    LD HL, str_6
+    ; Print "
+=== Similarity Score Tests ===
+" (32 chars via loop)
+    CALL print_string
+    ; r5 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    ; for_loop_17:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_loop_17:
+    ; Check i < end
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_true_7
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_done_7
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_true_7:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_done_7:
+    ; jump_if_not r7, for_end_18
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_end_18
+    ; Store to array[index] (u8)
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r6++
+    INC HL
+    ; jump for_loop_17
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_loop_17
+    ; for_end_18:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_end_18:
+    LD HL, (v1$imm0)   ; Reuse from anchor
+    LD HL, (v2$imm0)   ; Reuse from anchor
+    LD ($F004), HL    ; Virtual register 2 to memory
+    LD HL, (v1$imm0)   ; Reuse from anchor
+    LD ($F006), HL    ; Virtual register 3 to memory
+    LD HL, (v2$imm0)   ; Reuse from anchor
+    ; Inlined from .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Inlined from .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+    LD HL, ($F000)
+    ; Inlined from .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+    LD HL, 256
+    ; Inlined return value
+    ; r33 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F03C)    ; Virtual register 30 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F03E)    ; Virtual register 31 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F040)     ; Virtual register 32 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; r35 = 32
+    LD A, 32
+    LD H, A         ; Store to physical register H
+    ; Initialize loop variable i
+    ; for_loop_19:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_loop_19:
+    ; Check i < end
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_true_8
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_done_8
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_true_8:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_done_8:
+    LD ($F04A), HL    ; Virtual register 37 to memory
+    ; jump_if_not r37, for_end_20
+    LD A, ($F04A)     ; Virtual register 37 from memory
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_end_20
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r36++
+    INC HL
+    ; jump for_loop_19
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_loop_19
+    ; for_end_20:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_end_20:
+    LD HL, (v1$imm0)   ; Reuse from anchor
+    LD ($F012), HL    ; Virtual register 9 to memory
+    LD HL, (v2$imm0)   ; Reuse from anchor
+    ; Register 10 already in HL
+    LD HL, (v1$imm0)   ; Reuse from anchor
+    LD ($F016), HL    ; Virtual register 11 to memory
+    LD HL, (v2$imm0)   ; Reuse from anchor
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; Inlined from .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Register 13 already in HL
+    ; r55 = load sim2
+    LD HL, ($F062)
+    ; Inlined return value
+    ; Register 16 already in HL
+    ; Folded: 
+    LD A, -256
+    LD H, A         ; Store to physical register H
+    ; r58 = r55 == r57
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_eq_true_9
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_eq_done_9
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_eq_true_9:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_eq_done_9:
+    LD ($F074), HL    ; Virtual register 58 to memory
+    ; jump_if_not r58, else_21
+    LD A, ($F074)     ; Virtual register 58 from memory
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_else_21
+    ; r62 = string(str_7)
+    LD HL, str_7
+    LD ($F07C), HL    ; Virtual register 62 to memory
+    ; Print "â Test 13: Opposite similarity PASS
+" (41 chars via loop)
+    LD HL, ($F07C)    ; Virtual register 62 from memory
+    CALL print_string
+    ; jump end_if_22
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_end_if_22
+    ; else_21:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_else_21:
+    ; r66 = string(str_8)
+    LD HL, str_8
+    ; Print "â Test 13: Opposite similarity FAIL
+" (41 chars via loop)
+    CALL print_string
+    ; end_if_22:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_end_if_22:
+    ; r68 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    ; for_loop_23:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_loop_23:
+    ; Check i < end
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_true_10
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_done_10
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_true_10:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_lt_done_10:
+    ; jump_if_not r70, for_end_24
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_end_24
+    ; Store to array[index] (u8)
+    LD HL, ($F096)    ; Virtual register 75 from memory
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r69++
+    INC HL
+    ; jump for_loop_23
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_loop_23
+    ; for_end_24:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_similarity_for_end_24:
+    LD HL, (v1$imm0)   ; Reuse from anchor
+    LD HL, (v2$imm0)   ; Reuse from anchor
+    LD ($F024), HL    ; Virtual register 18 to memory
+    LD HL, (v1$imm0)   ; Reuse from anchor
+    ; Register 19 already in HL
+    LD HL, (v2$imm0)   ; Reuse from anchor
+    LD ($F028), HL    ; Virtual register 20 to memory
+    ; Inlined from .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Register 21 already in HL
+    ; Inlined return value
+    ; r96 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F0BA)    ; Virtual register 93 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F0BC)    ; Virtual register 94 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F0BE)     ; Virtual register 95 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; return
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+.Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256:
+; TRUE SMC function with immediate anchors
+v1$immOP:
+v2$immOP:
+    LD HL, (v1$imm0)   ; Reuse from anchor
+    ; Register 6 already in HL
+    LD HL, (v2$imm0)   ; Reuse from anchor
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Register 6 already in HL
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; r14 = load doubled
+    LD HL, ($F012)
+    ; r13 = 256
+    LD HL, 256
+    ; Register 13 already in HL
+    ; r15 = r13 - r14
+    ; Register 13 already in HL
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; Register 15 already in HL
+    ; return r15
+    ; Register 15 already in HL
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.test_search
+.Users.alice.dev.zvdb-minz.zvdb_test.test_search:
+; IsSMCDefault=false, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r1 = string(str_9)
+    LD HL, str_9
+    LD ($F002), HL    ; Virtual register 1 to memory
+    ; Print "
+=== Vector Search Tests ===
+" (29 chars via loop)
+    LD HL, ($F002)    ; Virtual register 1 from memory
+    CALL print_string
+    ; r4 = 32
+    LD A, 32
+    LD H, A         ; Store to physical register H
+    ; Initialize loop variable i
+    ; Register 3 already in HL
+    ; for_loop_25:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_25:
+    ; Check i < end
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_11
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_11
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_11:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_11:
+    ; jump_if_not r6, for_end_26
+    LD A, H
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_26
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 8 already in HL
+    PUSH HL
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; r5++
+    INC HL
+    ; jump for_loop_25
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_25
+    ; for_end_26:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_26:
+    ; r16 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    ; Register 17 already in HL
+    ; for_loop_27:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_27:
+    ; Check i < end
+    ; Register 17 already in HL
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_12
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_12
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_12:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_12:
+    ; jump_if_not r18, for_end_28
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_28
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 20 already in HL
+    PUSH HL
+    LD HL, ($F02A)    ; Virtual register 21 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F02C), A     ; Virtual register 22 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; r17++
+    ; Register 17 already in HL
+    INC HL
+    ; Register 17 already in HL
+    ; jump for_loop_27
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_27
+    ; for_end_28:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_28:
+    ; r28 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    ; Register 29 already in HL
+    ; for_loop_29:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_29:
+    ; Check i < end
+    ; Register 29 already in HL
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_13
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_13
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_13:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_13:
+    ; jump_if_not r30, for_end_30
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_30
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 32 already in HL
+    PUSH HL
+    LD HL, ($F042)    ; Virtual register 33 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F044), A     ; Virtual register 34 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F04A)    ; Virtual register 37 from memory
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; r29++
+    ; Register 29 already in HL
+    INC HL
+    ; Register 29 already in HL
+    ; jump for_loop_29
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_29
+    ; for_end_30:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_30:
+    ; r40 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    ; Register 41 already in HL
+    ; for_loop_31:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_31:
+    ; Check i < end
+    ; Register 41 already in HL
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_14
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_14
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_14:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_14:
+    ; jump_if_not r42, for_end_32
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_32
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 44 already in HL
+    PUSH HL
+    LD HL, ($F05A)    ; Virtual register 45 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F05C), A     ; Virtual register 46 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F062)    ; Virtual register 49 from memory
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; r41++
+    ; Register 41 already in HL
+    INC HL
+    ; Register 41 already in HL
+    ; jump for_loop_31
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_31
+    ; for_end_32:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_32:
+    ; r53 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    ; for_loop_33:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_33:
+    ; Check i < end
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_15
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_15
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_15:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_15:
+    ; jump_if_not r55, for_end_34
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_34
+    ; Store to array[index] (u8)
+    ; Register 60 already in HL
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; r54++
+    INC HL
+    ; jump for_loop_33
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_33
+    ; for_end_34:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_34:
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 64 already in HL
+    PUSH HL
+    LD HL, ($F082)    ; Virtual register 65 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F084), A     ; Virtual register 66 to memory
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    LD HL, ($F086)    ; Virtual register 67 from memory
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 70 already in HL
+    PUSH HL
+    LD HL, ($F08E)    ; Virtual register 71 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F090), A     ; Virtual register 72 to memory
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    LD HL, ($F092)    ; Virtual register 73 from memory
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 78 already in HL
+    PUSH HL
+    LD HL, ($F09E)    ; Virtual register 79 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0A0), A     ; Virtual register 80 to memory
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    LD HL, ($F0A2)    ; Virtual register 81 from memory
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 84 already in HL
+    PUSH HL
+    LD HL, ($F0AA)    ; Virtual register 85 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0AC), A     ; Virtual register 86 to memory
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    LD HL, ($F0AE)    ; Virtual register 87 from memory
+    PUSH HL
+    LD HL, ($F0B0)    ; Virtual register 88 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; r91 = call .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8 (args: 6)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+    LD HL, ($F09A)    ; Virtual register 77 from memory
+    LD (query$imm0), HL       ; Patch query (atomic)
+    LD HL, ($F0A0)    ; Virtual register 80 from memory
+    LD (db0$imm0), HL       ; Patch db0 (atomic)
+    ; Register 83 already in HL
+    LD (db1$imm0), HL       ; Patch db1 (atomic)
+    LD HL, ($F0AC)    ; Virtual register 86 from memory
+    LD (db2$imm0), HL       ; Patch db2 (atomic)
+    ; Register 89 already in HL
+    LD (db3$imm0), HL       ; Patch db3 (atomic)
+    LD A, ($F0B4)     ; Virtual register 90 from memory
+    LD (count$imm0), A        ; Patch count
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+    ; r100 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F0C2)    ; Virtual register 97 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F0C4)    ; Virtual register 98 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F0C6)     ; Virtual register 99 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; r103 = 32
+    LD A, 32
+    LD H, A         ; Store to physical register H
+    ; Initialize loop variable i
+    ; for_loop_35:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_35:
+    ; Check i < end
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_16
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_16
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_true_16:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_lt_done_16:
+    LD ($F0D2), HL    ; Virtual register 105 to memory
+    ; jump_if_not r105, for_end_36
+    LD A, ($F0D2)     ; Virtual register 105 from memory
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_36
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r104++
+    INC HL
+    ; jump for_loop_35
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_loop_35
+    ; for_end_36:
+_Users_alice_dev_zvdb-minz_zvdb_test_test_search_for_end_36:
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 114 already in HL
+    PUSH HL
+    LD HL, ($F0E6)    ; Virtual register 115 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0E8), A     ; Virtual register 116 to memory
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    LD HL, ($F0EA)    ; Virtual register 117 from memory
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 120 already in HL
+    PUSH HL
+    LD HL, ($F0F2)    ; Virtual register 121 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0F4), A     ; Virtual register 122 to memory
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    LD HL, ($F0F6)    ; Virtual register 123 from memory
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 128 already in HL
+    PUSH HL
+    LD HL, ($F102)    ; Virtual register 129 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F104), A     ; Virtual register 130 to memory
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    LD HL, ($F106)    ; Virtual register 131 from memory
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 134 already in HL
+    PUSH HL
+    LD HL, ($F10E)    ; Virtual register 135 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F110), A     ; Virtual register 136 to memory
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    LD HL, ($F112)    ; Virtual register 137 from memory
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; r141 = call .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8 (args: 6)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+    LD HL, ($F0FE)    ; Virtual register 127 from memory
+    LD (query$imm0), HL       ; Patch query (atomic)
+    LD HL, ($F104)    ; Virtual register 130 from memory
+    LD (db0$imm0), HL       ; Patch db0 (atomic)
+    ; Register 133 already in HL
+    LD (db1$imm0), HL       ; Patch db1 (atomic)
+    LD HL, ($F110)    ; Virtual register 136 from memory
+    LD (db2$imm0), HL       ; Patch db2 (atomic)
+    ; Register 139 already in HL
+    LD (db3$imm0), HL       ; Patch db3 (atomic)
+    LD A, ($F118)     ; Virtual register 140 from memory
+    LD (count$imm0), A        ; Patch count
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+    ; r150 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    LD HL, ($F126)    ; Virtual register 147 from memory
+    LD (actual$imm0), HL       ; Patch actual (atomic)
+    LD HL, ($F128)    ; Virtual register 148 from memory
+    LD (expected$imm0), HL       ; Patch expected (atomic)
+    LD A, ($F12A)     ; Virtual register 149 from memory
+    LD (test_id$imm0), A        ; Patch test_id
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; return
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+.Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8:
+; TRUE SMC function with immediate anchors
+count$immOP:
+    LD A, 0        ; count anchor (will be patched)
+count$imm0 EQU count$immOP+1
+    LD H, A         ; Store to physical register H
+    ; r12 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r13 = r11 >= r12
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_17
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_17
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_done_17
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_17:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_done_17:
+    ; Register 13 already in HL
+    ; jump_if_not r13, else_37
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_37
+query$immOP:
+db0$immOP:
+    LD HL, (query$imm0)   ; Reuse from anchor
+    ; Register 17 already in HL
+    LD HL, (db0$imm0)   ; Reuse from anchor
+    LD ($F024), HL    ; Virtual register 18 to memory
+    ; r19 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Register 17 already in HL
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD HL, ($F024)    ; Virtual register 18 from memory
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; r20 = load dist0
+    LD HL, ($F01C)
+    ; r21 = load best_dist
+    LD HL, ($F012)
+    ; Register 21 already in HL
+    ; r22 = r20 < r21
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_true_18
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_done_18
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_true_18:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_done_18:
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; jump_if_not r22, else_39
+    LD A, ($F02C)     ; Virtual register 22 from memory
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_39
+    ; jump end_if_40
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_40
+    ; else_39:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_39:
+    ; end_if_40:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_40:
+    ; jump end_if_38
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_38
+    ; else_37:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_37:
+    ; end_if_38:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_38:
+    LD A, (count$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to HL (low byte)
+    ; r26 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; r27 = r25 >= r26
+    ; Register 25 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_19
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_19
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_done_19
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_19:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_done_19:
+    ; jump_if_not r27, else_41
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_41
+    LD HL, (query$imm0)   ; Reuse from anchor
+    LD ($F03A), HL    ; Virtual register 29 to memory
+db1$immOP:
+    LD HL, (query$imm0)   ; Reuse from anchor
+    ; Register 31 already in HL
+    LD HL, (db1$imm0)   ; Reuse from anchor
+    LD ($F040), HL    ; Virtual register 32 to memory
+    ; r33 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Register 31 already in HL
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD HL, ($F040)    ; Virtual register 32 from memory
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; r34 = load dist1
+    LD HL, ($F038)
+    ; r35 = load best_dist
+    LD HL, ($F012)
+    ; Register 35 already in HL
+    ; r36 = r34 < r35
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_true_20
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_done_20
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_true_20:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_done_20:
+    LD ($F048), HL    ; Virtual register 36 to memory
+    ; jump_if_not r36, else_43
+    LD A, ($F048)     ; Virtual register 36 from memory
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_43
+    ; jump end_if_44
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_44
+    ; else_43:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_43:
+    ; end_if_44:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_44:
+    ; jump end_if_42
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_42
+    ; else_41:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_41:
+    ; end_if_42:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_42:
+    LD A, (count$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to HL (low byte)
+    ; r40 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; r41 = r39 >= r40
+    ; Register 39 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_21
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_21
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_done_21
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_21:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_done_21:
+    ; jump_if_not r41, else_45
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_45
+    LD HL, (query$imm0)   ; Reuse from anchor
+    LD ($F056), HL    ; Virtual register 43 to memory
+db2$immOP:
+    LD HL, (query$imm0)   ; Reuse from anchor
+    ; Register 45 already in HL
+    LD HL, (db2$imm0)   ; Reuse from anchor
+    LD ($F05C), HL    ; Virtual register 46 to memory
+    ; r47 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Register 45 already in HL
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD HL, ($F05C)    ; Virtual register 46 from memory
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; r48 = load dist2
+    LD HL, ($F054)
+    ; r49 = load best_dist
+    LD HL, ($F012)
+    ; Register 49 already in HL
+    ; r50 = r48 < r49
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_true_22
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_done_22
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_true_22:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_done_22:
+    LD ($F064), HL    ; Virtual register 50 to memory
+    ; jump_if_not r50, else_47
+    LD A, ($F064)     ; Virtual register 50 from memory
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_47
+    ; jump end_if_48
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_48
+    ; else_47:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_47:
+    ; end_if_48:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_48:
+    ; jump end_if_46
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_46
+    ; else_45:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_45:
+    ; end_if_46:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_46:
+    LD A, (count$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to HL (low byte)
+    ; r54 = 4
+    LD A, 4
+    LD H, A         ; Store to physical register H
+    ; r55 = r53 >= r54
+    ; Register 53 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_23
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_23
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_done_23
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_true_23:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_ge_done_23:
+    ; jump_if_not r55, else_49
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_49
+    LD HL, (query$imm0)   ; Reuse from anchor
+    LD ($F072), HL    ; Virtual register 57 to memory
+db3$immOP:
+    LD HL, (query$imm0)   ; Reuse from anchor
+    ; Register 59 already in HL
+    LD HL, (db3$imm0)   ; Reuse from anchor
+    LD ($F078), HL    ; Virtual register 60 to memory
+    ; r61 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Register 59 already in HL
+    LD (v1$imm0), HL       ; Patch v1 (atomic)
+    LD HL, ($F078)    ; Virtual register 60 from memory
+    LD (v2$imm0), HL       ; Patch v2 (atomic)
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; r62 = load dist3
+    LD HL, ($F070)
+    ; r63 = load best_dist
+    LD HL, ($F012)
+    ; Register 63 already in HL
+    ; r64 = r62 < r63
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_true_24
+    LD HL, 0       ; False
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_done_24
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_true_24:
+    LD HL, 1       ; True
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_lt_done_24:
+    LD ($F080), HL    ; Virtual register 64 to memory
+    ; jump_if_not r64, else_51
+    LD A, ($F080)     ; Virtual register 64 from memory
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_51
+    ; jump end_if_52
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_52
+    ; else_51:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_51:
+    ; end_if_52:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_52:
+    ; jump end_if_50
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_50
+    ; else_49:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_else_49:
+    ; end_if_50:
+_Users_alice_dev_zvdb-minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8_end_if_50:
+    ; r67 = load best_id
+    LD A, ($F00E)
+    LD L, A         ; Store to HL (low byte)
+    ; return r67
+    ; Register 67 already in HL
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.main
+.Users.alice.dev.zvdb-minz.zvdb_test.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r1 = string(str_10)
+    LD HL, str_10
+    ; Print "ZVDB E2E Test Suite
+" (20 chars via loop)
+    CALL print_string
+    ; r2 = string(str_11)
+    LD HL, str_11
+    ; Print "==================
+" (19 chars via loop)
+    CALL print_string
+    ; r3 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_popcount
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.test_popcount (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.test_popcount
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; r4 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_hamming
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.test_hamming (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.test_hamming
+    ; r5 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_similarity
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.test_similarity (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.test_similarity
+    ; r6 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_search
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.test_search (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.zvdb-minz.zvdb_test.test_search
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; r7 = string(str_12)
+    LD HL, str_12
+    ; Print "
+=== Test Summary ===
+" (22 chars via loop)
+    CALL print_string
+    ; Direct print "Passed: " (8 chars)
+    ; Direct print "Passed: " (8 chars)
+    LD A, 80
+    RST 16             ; Print character
+    LD A, 97
+    RST 16             ; Print character
+    LD A, 115
+    RST 16             ; Print character
+    LD A, 115
+    RST 16             ; Print character
+    LD A, 101
+    RST 16             ; Print character
+    LD A, 100
+    RST 16             ; Print character
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; Direct print "Failed: " (8 chars)
+    ; Direct print "Failed: " (8 chars)
+    LD A, 70
+    RST 16             ; Print character
+    LD A, 97
+    RST 16             ; Print character
+    LD A, 105
+    RST 16             ; Print character
+    LD A, 108
+    RST 16             ; Print character
+    LD A, 101
+    RST 16             ; Print character
+    LD A, 100
+    RST 16             ; Print character
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; unknown op 57
+    ; Register 8 already in HL
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; jump_if_not r10, else_53
+    LD A, L
+    OR A
+    JP Z, _Users_alice_dev_zvdb-minz_zvdb_test_main_else_53
+    ; r11 = string(str_13)
+    LD HL, str_13
+    ; Print "
+â All tests passed!
+" (26 chars via loop)
+    CALL print_string
+    ; jump end_if_54
+    JP _Users_alice_dev_zvdb-minz_zvdb_test_main_end_if_54
+    ; else_53:
+_Users_alice_dev_zvdb-minz_zvdb_test_main_else_53:
+    ; r12 = string(str_14)
+    LD HL, str_14
+    ; Print "
+â Some tests failed!
+" (27 chars via loop)
+    CALL print_string
+    ; end_if_54:
+_Users_alice_dev_zvdb-minz_zvdb_test_main_end_if_54:
+    ; return
+    POP DE
+    POP BC
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW actual$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8.actual
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW expected$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8.expected
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW test_id$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8.test_id
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW val$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8.val
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW v1$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256.v1
+    DB 32              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW v2$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256.v2
+    DB 32              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW v1$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256.v1
+    DB 32              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW v2$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256.v2
+    DB 32              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW query$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8.query
+    DB 32              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW db0$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8.db0
+    DB 32              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW db1$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8.db1
+    DB 32              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW db2$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8.db2
+    DB 32              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW db3$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8.db3
+    DB 32              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW count$imm0           ; .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8.count
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+    END main
+
+
+; Assembly peephole optimization: 1 patterns applied

@@ -1649,7 +1649,14 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 			default:
 				irFunc.Emit(ir.OpLoadConst, valueReg, 0, 0)
 			}
-			irFunc.Emit(ir.OpStoreVar, reg, valueReg, 0)
+			// Store the value to the variable
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:     ir.OpStoreVar,
+				Dest:   reg,
+				Src1:   valueReg,
+				Symbol: v.Name,
+				Type:   varType,
+			})
 		} else {
 			valueReg, err := a.analyzeExpression(v.Value, irFunc)
 			if err != nil {
@@ -1778,7 +1785,14 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 				}
 				
 				// Normal value assignment
-				irFunc.Emit(ir.OpStoreVar, reg, valueReg, 0)
+				// Store the value to the variable
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:     ir.OpStoreVar,
+				Dest:   reg,
+				Src1:   valueReg,
+				Symbol: v.Name,
+				Type:   varType,
+			})
 			}
 		}
 	}

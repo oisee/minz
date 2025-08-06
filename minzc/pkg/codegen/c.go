@@ -317,6 +317,34 @@ func (g *CGenerator) generateInstruction(inst *ir.Instruction) error {
 			g.emit("%s = %s - 1;", varName, src)
 		}
 		
+	case ir.OpLoadIndex:
+		// Load element from array: dest = array[index]
+		dest := g.getVarName(inst.Dest)
+		array := g.getVarName(inst.Src1)
+		index := g.getVarName(inst.Src2)
+		
+		// Determine element type for proper casting
+		if inst.Type != nil {
+			// Cast array pointer to appropriate element type pointer
+			elementType := g.getCType(inst.Type)
+			g.emit("%s = ((%s*)%s)[%s];", dest, elementType, array, index)
+		} else {
+			// Default to u8 arrays
+			g.emit("%s = ((u8*)%s)[%s];", dest, array, index)
+		}
+		
+	case ir.OpLoadAddr:
+		// Load address of a variable/array
+		dest := g.getVarName(inst.Dest)
+		if inst.Symbol != "" {
+			// Load address of named variable/array
+			g.emit("%s = (u32)&%s;", dest, inst.Symbol)
+		} else {
+			// Load address from register (for nested arrays)
+			src := g.getVarName(inst.Src1)
+			g.emit("%s = %s;", dest, src)
+		}
+		
 	default:
 		return fmt.Errorf("unsupported operation: %v", inst.Op)
 	}

@@ -1,0 +1,31 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function tests.backend_e2e.sources.function_calls.add$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function tests.backend_e2e.sources.function_calls.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+    r7 = doubled: u8
+  Instructions:
+      0: r2 = 5
+      1: r3 = 3
+      2: r4 = 5
+      3: r5 = 3
+      4: r6 = call tests.backend_e2e.sources.function_calls.add$u8$u8
+      5: store result, r6
+      6: r8 = load result
+      7: r9 = load result
+      8: r10 = load result
+      9: r11 = load result
+     10: r12 = call tests.backend_e2e.sources.function_calls.add$u8$u8
+     11: store doubled, r12
+     12: return
+

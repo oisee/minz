@@ -1,0 +1,76 @@
+  ✅ Code generation successful
+
+=== Generated Code Analysis ===
+;; MinZ WebAssembly generated code
+;; Generated: 2025-08-06 16:51:44
+;; Note: WASM uses stack-based calling convention, no SMC
+
+(module
+  ;; Import memory
+  (import "env" "memory" (memory 1))
+  (import "env" "print_char" (func $print_char (param i32)))
+  (import "env" "print_i32" (func $print_i32 (param i32)))
+
+  ;; Function: tests.backend_e2e.sources.function_calls.add$u8$u8
+  (func $tests.backend_e2e.sources.function_calls.add$u8$u8 (param $a i32) (param $b i32)  (result i32)
+    (local $r1 i32)
+    (local $r2 i32)
+    (local $r3 i32)
+    (local $r4 i32)
+    (local $r5 i32)
+    ;; TODO: LOAD_PARAM
+    ;; TODO: LOAD_PARAM
+    local.get $r3  ;; r5 = r3 + r4
+    local.get $r4
+    i32.add
+    local.set $r5
+    local.get $r5  ;; return
+    return
+  )
+
+  ;; Function: tests.backend_e2e.sources.function_calls.main
+  (func $tests.backend_e2e.sources.function_calls.main
+    (local $result i32)
+    (local $doubled i32)
+    (local $r1 i32)
+    (local $r2 i32)
+    (local $r3 i32)
+    (local $r4 i32)
+    (local $r5 i32)
+    (local $r6 i32)
+    (local $r7 i32)
+    (local $r8 i32)
+    (local $r9 i32)
+    (local $r10 i32)
+    (local $r11 i32)
+    (local $r12 i32)
+    i32.const 5  ;; r2 = 5
+    local.set $r2
+    i32.const 3  ;; r3 = 3
+    local.set $r3
+    i32.const 5  ;; r4 = 5
+    local.set $r4
+    i32.const 3  ;; r5 = 3
+  🔨 Attempting binary generation...
+tests/backend_e2e/outputs/function_calls_wasm.wat:55:16: error: undefined global variable "$result"
+    global.set $result
+               ^^^^^^^
+tests/backend_e2e/outputs/function_calls_wasm.wat:56:16: error: undefined global variable "$result"
+    global.get $result  ;; r8 = result
+               ^^^^^^^
+tests/backend_e2e/outputs/function_calls_wasm.wat:58:16: error: undefined global variable "$result"
+    global.get $result  ;; r9 = result
+               ^^^^^^^
+tests/backend_e2e/outputs/function_calls_wasm.wat:60:16: error: undefined global variable "$result"
+    global.get $result  ;; r10 = result
+               ^^^^^^^
+tests/backend_e2e/outputs/function_calls_wasm.wat:62:16: error: undefined global variable "$result"
+    global.get $result  ;; r11 = result
+               ^^^^^^^
+tests/backend_e2e/outputs/function_calls_wasm.wat:67:16: error: undefined global variable "$doubled"
+    global.set $doubled
+               ^^^^^^^^
+tests/backend_e2e/outputs/function_calls_wasm.wat:72:24: error: undefined function variable "$main"
+  (export "main" (func $main))
+                       ^^^^^
+  ❌ Binary generation failed

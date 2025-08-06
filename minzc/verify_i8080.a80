@@ -1,0 +1,159 @@
+; MinZ 8080 generated code
+; Generated: 2025-08-06 18:02:49
+; Target: Intel 8080
+
+
+; Data section
+    ORG 0F000H
+
+verify_load_index.byte_array:
+    DS 4
+verify_load_index.word_array:
+    DS 6
+
+; Code section
+    ORG 08000H
+
+
+; Function: verify_load_index.test_byte_indexing$u8
+; SMC enabled - parameters can be self-modified
+verify_load_index.test_byte_indexing$u8:
+verify_load_index.test_byte_indexing$u8$param_idx:
+    MVI A,0    ; SMC anchor for idx
+    PUSH B
+    PUSH D
+    PUSH H
+    LXI H,verify_load_index.byte_array
+    SHLD F004H
+    LDA verify_load_index.test_byte_indexing$u8$param_idx+1
+    STA F006H
+    LHLD F004H
+    PUSH H
+    LDA F006H
+    MOV E,A
+    MVI D,0
+    POP H
+    DAD D
+    MOV A,M
+    STA F008H
+    LDA F008H
+    POP H
+    POP D
+    POP B
+    RET
+
+; Function: verify_load_index.test_word_indexing$u8
+; SMC enabled - parameters can be self-modified
+verify_load_index.test_word_indexing$u8:
+verify_load_index.test_word_indexing$u8$param_idx:
+    MVI A,0    ; SMC anchor for idx
+    PUSH B
+    PUSH D
+    PUSH H
+    LXI H,verify_load_index.word_array
+    SHLD F004H
+    LDA verify_load_index.test_word_indexing$u8$param_idx+1
+    STA F006H
+    LHLD F004H
+    PUSH H
+    LHLD F006H
+    XCHG
+    POP H
+    DAD D
+    MOV A,M
+    STA F008H
+    LDA F008H
+    POP H
+    POP D
+    POP B
+    RET
+
+; Function: verify_load_index.test_dynamic_indexing
+; SMC enabled - parameters can be self-modified
+verify_load_index.test_dynamic_indexing:
+    PUSH B
+    PUSH D
+    PUSH H
+    MVI A,02H
+    STA F004H
+    LDA F004H
+    STA i
+    LXI H,verify_load_index.byte_array
+    SHLD F008H
+    LHLD i
+    SHLD F00AH
+    LHLD F008H
+    PUSH H
+    LDA F00AH
+    MOV E,A
+    MVI D,0
+    POP H
+    DAD D
+    MOV A,M
+    STA F00CH
+    LDA F00CH
+    STA result
+    LHLD result
+    SHLD F00EH
+    LDA F00EH
+    POP H
+    POP D
+    POP B
+    RET
+
+; Function: verify_load_index.main
+; SMC enabled - parameters can be self-modified
+verify_load_index.main:
+    PUSH B
+    PUSH D
+    PUSH H
+    MVI A,01H
+    STA F004H
+    MVI A,01H
+    STA F006H
+    LDA F006H
+    STA verify_load_index.test_byte_indexing$u8$param_param+1
+    CALL verify_load_index.test_byte_indexing$u8
+    STA F008H
+    LDA F008H
+    STA byte_val
+    MVI A,00H
+    STA F00CH
+    MVI A,00H
+    STA F00EH
+    LDA F00EH
+    STA verify_load_index.test_word_indexing$u8$param_param+1
+    CALL verify_load_index.test_word_indexing$u8
+    STA F010H
+    LHLD F010H
+    SHLD word_val
+    CALL verify_load_index.test_dynamic_indexing
+    STA F014H
+    LDA F014H
+    STA dynamic_val
+    LHLD byte_val
+    SHLD F016H
+    LDA F016H
+    POP H
+    POP D
+    POP B
+    RET
+
+; Print helpers
+print_char:
+    ; Platform-specific print routine
+    ; For CP/M: CALL 0005H with C=02H, E=char
+    MOV E,A
+    MVI C,02H
+    CALL 0005H
+    RET
+
+print_newline:
+    MVI A,0DH    ; CR
+    CALL print_char
+    MVI A,0AH    ; LF
+    CALL print_char
+    RET
+
+; End of generated code
+    END

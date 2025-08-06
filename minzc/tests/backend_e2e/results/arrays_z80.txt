@@ -1,0 +1,64 @@
+  ✅ Code generation successful
+
+=== Generated Code Analysis ===
+; MinZ generated code
+; Generated: 2025-08-06 16:51:42
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: tests.backend_e2e.sources.arrays.main
+tests.backend_e2e.sources.arrays.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = load arr
+    LD HL, ($F002)
+    ; r4 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; Load array element (u8)
+    PUSH HL
+    LD A, B
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD C, A         ; Store to physical register C
+    ; store first, r5
+    LD A, C
+    LD ($F004), A
+    ; r7 = load arr
+    LD HL, ($F002)
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = 4
+    LD A, 4
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; store last, r9
+    LD A, L
+    LD ($F00C), A
+    ; r11 = load first
+  🔨 Attempting binary generation...
+Unrecognized option: o
+SjASMPlus Z80 Cross-Assembler v1.07 RC8 (build 06-11-2008)
+tests/backend_e2e/outputs/arrays_z80.a80(89): error: Duplicate label: print_string_u16
+tests/backend_e2e/outputs/arrays_z80.a80(116): error: Duplicate label: print_u16_decimal
+tests/backend_e2e/outputs/arrays_z80.a80(134): error: Duplicate label: print_digit
+tests/backend_e2e/outputs/arrays_z80.a80(175): error: Duplicate label: print_true
+tests/backend_e2e/outputs/arrays_z80.a80(179): error: Duplicate label: bool_true_str
+tests/backend_e2e/outputs/arrays_z80.a80(181): error: Duplicate label: bool_false_str
+(0): error: Error opening file: tests/backend_e2e/binaries/arrays_z80
+  ❌ Binary generation failed

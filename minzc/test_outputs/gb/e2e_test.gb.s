@@ -1,5 +1,5 @@
 ; MinZ Game Boy generated code
-; Generated: 2025-08-06 12:14:00
+; Generated: 2025-08-06 12:38:56
 ; Target: Sharp LR35902 (Game Boy CPU)
 ; Note: No shadow registers or IX/IY on GB
 
@@ -15,15 +15,15 @@ SECTION "Code", ROM0[$0150]
 tests.minz.e2e_test.main:
     LD A, 42
     ; Store to r2
-    ; Store r2 to var 
+    ; Store r2 to var x
     LD A, 10
     ; Store to r4
-    ; Store r4 to var 
+    ; Store r4 to var y
     ; Load var x to r6
     ; Load var y to r7
     ; ADD r6 + r7 -> r8
     ; TODO: Implement register allocation
-    ; Store r8 to var 
+    ; Store r8 to var sum
     RET
 
 ; Print helpers for Game Boy

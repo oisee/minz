@@ -1,0 +1,12 @@
+fun main() -> u8 {
+    // Revolutionary lambda iterators on Z80!
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // This compiles to optimal DJNZ loops with separate functions!
+    numbers.iter()
+           .map(|x| x * 2)      // Lambda → function
+           .filter(|x| x > 5)   // Lambda → function
+           .forEach(|x| print_u8(x)); // Lambda → function
+    
+    return 42;
+}

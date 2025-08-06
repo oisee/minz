@@ -1,0 +1,8 @@
+// Test with built-in functions first
+
+fun main() -> void {
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // Use built-in print_u8 which should work
+    numbers.forEach(print_u8);
+}

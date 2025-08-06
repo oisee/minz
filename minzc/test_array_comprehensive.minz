@@ -1,0 +1,18 @@
+global numbers: [u8; 3] = [10, 20, 30];
+global values: [u16; 2] = [100, 200];
+
+fun test_u8_array() -> u8 {
+    let idx: u8 = 1;
+    return numbers[idx];
+}
+
+fun test_u16_array() -> u16 {
+    let idx: u8 = 0;
+    return values[idx];
+}
+
+fun main() -> u8 {
+    let result1: u8 = test_u8_array();
+    let result2: u16 = test_u16_array();
+    return result1;
+}

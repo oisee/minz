@@ -1,0 +1,85 @@
+// Benchmark to demonstrate 6502 zero-page SMC performance
+// Compare traditional vs SMC-optimized function calls
+
+// Traditional function (no SMC)
+fun add_traditional(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// SMC-optimized function (parameters in zero page)
+fun add_smc(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// Intensive computation traditional
+fun compute_traditional(x: u8, y: u8, iterations: u8) -> u8 {
+    var result: u8 = 0;
+    var i: u8 = 0;
+    
+    while i < iterations {
+        result = add_traditional(result, x);
+        result = add_traditional(result, y);
+        i = i + 1;
+    }
+    
+    return result;
+}
+
+// Intensive computation with SMC
+fun compute_smc(x: u8, y: u8, iterations: u8) -> u8 {
+    var result: u8 = 0;
+    var i: u8 = 0;
+    
+    while i < iterations {
+        result = add_smc(result, x);
+        result = add_smc(result, y);
+        i = i + 1;
+    }
+    
+    return result;
+}
+
+// Array processing traditional
+fun process_array_traditional(count: u8) -> u8 {
+    var sum: u8 = 0;
+    var i: u8 = 0;
+    
+    while i < count {
+        sum = add_traditional(sum, i);
+        i = i + 1;
+    }
+    
+    return sum;
+}
+
+// Array processing with SMC and zero-page optimization
+fun process_array_smc(count: u8) -> u8 {
+    var sum: u8 = 0;
+    var i: u8 = 0;
+    
+    while i < count {
+        sum = add_smc(sum, i);
+        i = i + 1;
+    }
+    
+    return sum;
+}
+
+fun main() -> void {
+    // Benchmark 1: Simple additions
+    let result1a = compute_traditional(5, 3, 10);
+    let result1b = compute_smc(5, 3, 10);
+    
+    // Benchmark 2: Array processing
+    let result2a = process_array_traditional(20);
+    let result2b = process_array_smc(20);
+    
+    // The SMC versions should show significant cycle savings:
+    // - No parameter pushing/popping
+    // - Direct zero-page access (3 cycles vs 4)
+    // - Smaller code size
+    
+    // Results should be identical
+    let check1 = result1a + result1b;
+    let check2 = result2a + result2b;
+}

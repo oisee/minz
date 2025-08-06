@@ -1,0 +1,84 @@
+; MinZ 8080 generated code
+; Generated: 2025-08-06 18:01:26
+; Target: Intel 8080
+
+
+; Data section
+    ORG 0F000H
+
+test_array_index.numbers:
+    DS 5
+
+; Code section
+    ORG 08000H
+
+
+; Function: test_array_index.test_array_index
+; SMC enabled - parameters can be self-modified
+test_array_index.test_array_index:
+    PUSH B
+    PUSH D
+    PUSH H
+    MVI A,02H
+    STA F004H
+    LDA F004H
+    STA idx
+    LXI H,test_array_index.numbers
+    SHLD F008H
+    LHLD idx
+    SHLD F00AH
+    LHLD F008H
+    PUSH H
+    LDA F00AH
+    MOV E,A
+    MVI D,0
+    POP H
+    DAD D
+    MOV A,M
+    STA F00CH
+    LDA F00CH
+    STA value
+    LHLD value
+    SHLD F00EH
+    LDA F00EH
+    POP H
+    POP D
+    POP B
+    RET
+
+; Function: test_array_index.main
+; SMC enabled - parameters can be self-modified
+test_array_index.main:
+    PUSH B
+    PUSH D
+    PUSH H
+    CALL test_array_index.test_array_index
+    STA F004H
+    LDA F004H
+    STA result
+    LHLD result
+    SHLD F006H
+    LDA F006H
+    POP H
+    POP D
+    POP B
+    RET
+
+; Print helpers
+print_char:
+    ; Platform-specific print routine
+    ; For CP/M: CALL 0005H with C=02H, E=char
+    MOV E,A
+    MVI C,02H
+    CALL 0005H
+    RET
+
+print_newline:
+    MVI A,0DH    ; CR
+    CALL print_char
+    MVI A,0AH    ; LF
+    CALL print_char
+    RET
+
+; End of generated code
+    END

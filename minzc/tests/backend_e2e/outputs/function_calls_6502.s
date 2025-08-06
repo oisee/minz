@@ -1,0 +1,38 @@
+; MinZ 6502 generated code
+; Generated: 2025-08-06 16:51:44
+
+    * = $0800
+
+; Function: tests.backend_e2e.sources.function_calls.add$u8$u8
+tests.backend_e2e.sources.function_calls.add$u8$u8:
+    ; TODO: LOAD_PARAM
+    ; TODO: LOAD_PARAM
+    ; r5 = r3 + r4 (needs register allocation)
+    clc
+    adc $00        ; placeholder
+    ; return
+    rts        ; Return
+
+; Function: tests.backend_e2e.sources.function_calls.main
+tests.backend_e2e.sources.function_calls.main:
+    lda #$05      ; r2 = 5
+    lda #$03      ; r3 = 3
+    lda #$05      ; r4 = 5
+    lda #$03      ; r5 = 3
+    jsr tests.backend_e2e.sources.function_calls.add$u8$u8        ; call tests.backend_e2e.sources.function_calls.add$u8$u8
+    sta result        ; store result
+    lda result        ; r8 = result
+    lda result        ; r9 = result
+    lda result        ; r10 = result
+    lda result        ; r11 = result
+    jsr tests.backend_e2e.sources.function_calls.add$u8$u8        ; call tests.backend_e2e.sources.function_calls.add$u8$u8
+    sta doubled        ; store doubled
+    ; return
+    rts        ; Return
+
+; Helper routines
+print_char:
+    ; Platform-specific character output
+    ; For C64: sta $FFD2
+    ; For Apple II: jsr $FDED
+    rts

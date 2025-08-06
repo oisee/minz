@@ -1,0 +1,31 @@
+// Test file for lambda support in iterators - the HOLY GRAIL! 🚀
+global numbers: [u8; 5] = [1, 2, 3, 4, 5];
+
+fun main() -> u8 {
+    // Zero-cost lambda iterators - REVOLUTIONARY!
+    numbers.iter()
+           .map(|x| x * 2)     // Lambda: multiply by 2
+           .filter(|x| x > 5)  // Lambda: filter > 5  
+           .forEach(|x| print_u8(x));  // Lambda: print each
+    
+    return 42;
+}
+
+// Traditional function for comparison
+fun double_value(x: u8) -> u8 {
+    return x * 2;
+}
+
+fun is_greater_than_5(x: u8) -> bool {
+    return x > 5;
+}
+
+fun test_traditional() -> u8 {
+    // Traditional function-based iterators
+    numbers.iter()
+           .map(double_value)
+           .filter(is_greater_than_5) 
+           .forEach(print_u8);
+    
+    return 42;
+}

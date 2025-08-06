@@ -1,0 +1,58 @@
+  ✅ Code generation successful
+
+=== Generated Code Analysis ===
+; MinZ LLVM IR generated code
+; Target: LLVM IR (compatible with LLVM 10+)
+
+declare i32 @printf(i8*, ...)
+declare i32 @putchar(i32)
+declare void @exit(i32)
+declare i8* @malloc(i64)
+declare void @free(i8*)
+
+; Function declarations
+
+define void @tests_backend_e2e_sources_control_flow_main() {
+entry:
+  %i.addr = alloca i8
+  %result.addr = alloca i8
+  %result.addr = alloca i8
+  %r2 = add i8 0, 0
+  store i8 %r2, i8* %i.addr
+loop_1:
+  %r3 = load i8, i8* %i.addr
+  %r4 = add i8 0, 10
+  %r5 = icmp ult i8 %r3, %r4
+  ; TODO: JUMP_IF_NOT
+  %r6 = load i8, i8* %i.addr
+  %r7 = add i8 0, 1
+  %r8 = add i8 %r6, %r7
+  store i8 %r8, i8* %i.addr
+  br label %loop_1
+end_loop_2:
+  %r9 = load i8, i8* %i.addr
+  %r10 = add i8 0, 10
+  %r11 = icmp eq i8 %r9, %r10
+  ; TODO: JUMP_IF_NOT
+  %r13 = add i8 0, 1
+  store i8 %r13, i8* %result.addr
+  br label %end_if_4
+else_3:
+  %r15 = add i8 0, 0
+  store i8 %r15, i8* %result.addr
+end_if_4:
+  ret void
+}
+
+
+; Runtime functions
+define void @print_u8(i8 %value) {
+  %1 = zext i8 %value to i32
+  %2 = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str.u8, i32 0, i32 0), i32 %1)
+  ret void
+}
+  🔨 Attempting binary generation...
+llc: error: llc: tests/backend_e2e/outputs/control_flow_llvm.ll:16:3: error: multiple definition of local value named 'result.addr'
+  %result.addr = alloca i8
+  ^
+  ❌ Binary generation failed

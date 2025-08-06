@@ -1,0 +1,40 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function iter_lambda_lambda_test_demo.main_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: SHL
+      1: return r2 ; Return lambda result
+
+Function iter_lambda_lambda_test_demo.main_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: r1 = 5
+      1: r2 = r0 > r1
+      2: return r2 ; Return lambda result
+
+Function iter_lambda_lambda_test_demo.main_2(x: u8) -> void
+  @smc
+  Instructions:
+      0: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      1: return ; Return lambda result
+
+Function lambda_test_demo.main() -> u8
+  @smc
+  Locals:
+    r1 = numbers: [5]u8
+  Instructions:
+      0: NOP ; DJNZ OPTIMIZED LOOP for array[5]
+      1: r4 = r2 ; Pointer to array start
+      2: LOAD ; Load element via pointer
+      3: r6 = r1 ; Inlined return value
+      4: r7 = r3 ; Inlined return value
+      5: jump_if_not r7, filter_continue_2 ; Skip if filter predicate is false
+      6: r0 = call print_u8_decimal ; Inlined: Call runtime print_u8_decimal
+      7: filter_continue_2:
+      8: INC ; Advance to next element
+      9: DJNZ ; DJNZ - decrement and loop
+     10: r9 = 42
+     11: return r9
+

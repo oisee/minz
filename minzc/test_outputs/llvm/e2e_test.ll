@@ -15,13 +15,13 @@ entry:
   %y.addr = alloca i8
   %sum.addr = alloca i8
   %r2 = add i8 0, 42
-  store i8 %r2, i8* %.addr
+  store i8 %r2, i8* %x.addr
   %r4 = add i8 0, 10
-  store i8 %r4, i8* %.addr
+  store i8 %r4, i8* %y.addr
   %r6 = load i8, i8* %x.addr
   %r7 = load i8, i8* %y.addr
   %r8 = add i8 %r6, %r7
-  store i8 %r8, i8* %.addr
+  store i8 %r8, i8* %sum.addr
   ret void
 }
 

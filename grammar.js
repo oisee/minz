@@ -834,7 +834,7 @@ module.exports = grammar({
     import_path: $ => sep1($.identifier, '.'),
 
     // Lambda expressions  
-    lambda_expression: $ => prec(25, choice(
+    lambda_expression: $ => prec.right(1, choice(
       // Traditional pipe syntax: |x| expr
       seq(
         '|',

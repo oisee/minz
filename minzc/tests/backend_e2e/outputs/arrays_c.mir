@@ -1,0 +1,25 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function tests.backend_e2e.sources.arrays.main() -> void
+  @smc
+  Locals:
+    r1 = arr: [5]u8
+    r2 = first: u8
+    r6 = last: u8
+    r10 = sum: u8
+  Instructions:
+      0: r3 = load arr
+      1: r4 = 0
+      2: LOAD_INDEX ; Load array element (u8)
+      3: store first, r5
+      4: r7 = load arr
+      5: r8 = 4
+      6: LOAD_INDEX ; Load array element (u8)
+      7: store last, r9
+      8: r11 = load first
+      9: r12 = load last
+     10: r13 = r11 + r12
+     11: store sum, r13
+     12: return
+

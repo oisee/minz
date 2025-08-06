@@ -1,0 +1,54 @@
+  ✅ Code generation successful
+
+=== Generated Code Analysis ===
+; MinZ 8080 generated code
+; Generated: 2025-08-06 16:51:44
+; Target: Intel 8080
+
+
+; Code section
+    ORG 08000H
+
+
+; Function: tests.backend_e2e.sources.control_flow.main
+; SMC enabled - parameters can be self-modified
+tests.backend_e2e.sources.control_flow.main:
+    PUSH B
+    PUSH D
+    PUSH H
+    MVI A,00H
+    STA F004H
+    LDA F004H
+    STA i
+loop_1:
+    LHLD i
+    SHLD F006H
+    MVI A,0AH
+    STA F008H
+    LDA F006H
+    MOV B,A
+    LDA F008H
+    CMP B
+    JC true_L1
+    XRA A
+    JMP end_L1
+true_L1:
+    MVI A,1
+end_L1:
+    STA F00AH
+    LDA F00AH
+    ORA A
+    JZ end_loop_2
+    LHLD i
+    SHLD F00CH
+    MVI A,01H
+    STA F00EH
+    LDA F00CH
+    MOV B,A
+    LDA F00EH
+    ADD B
+    STA F010H
+    LHLD F010H
+    SHLD i
+    JMP loop_1
+  ⚠️  Assembler not available, skipping binary generation

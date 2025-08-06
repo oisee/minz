@@ -1,0 +1,12 @@
+global numbers: [u8; 5] = [1, 2, 3, 4, 5];
+
+fun test_array_index() -> u8 {
+    let idx: u8 = 2;
+    let value: u8 = numbers[idx];
+    return value;
+}
+
+fun main() -> u8 {
+    let result: u8 = test_array_index();
+    return result;
+}

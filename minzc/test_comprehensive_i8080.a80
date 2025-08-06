@@ -1,0 +1,114 @@
+; MinZ 8080 generated code
+; Generated: 2025-08-06 18:02:20
+; Target: Intel 8080
+
+
+; Data section
+    ORG 0F000H
+
+test_array_comprehensive.numbers:
+    DS 3
+test_array_comprehensive.values:
+    DS 4
+
+; Code section
+    ORG 08000H
+
+
+; Function: test_array_comprehensive.test_u8_array
+; SMC enabled - parameters can be self-modified
+test_array_comprehensive.test_u8_array:
+    PUSH B
+    PUSH D
+    PUSH H
+    MVI A,01H
+    STA F004H
+    LDA F004H
+    STA idx
+    LXI H,test_array_comprehensive.numbers
+    SHLD F006H
+    LHLD idx
+    SHLD F008H
+    LHLD F006H
+    PUSH H
+    LDA F008H
+    MOV E,A
+    MVI D,0
+    POP H
+    DAD D
+    MOV A,M
+    STA F00AH
+    LDA F00AH
+    POP H
+    POP D
+    POP B
+    RET
+
+; Function: test_array_comprehensive.test_u16_array
+; SMC enabled - parameters can be self-modified
+test_array_comprehensive.test_u16_array:
+    PUSH B
+    PUSH D
+    PUSH H
+    MVI A,00H
+    STA F004H
+    LDA F004H
+    STA idx
+    LXI H,test_array_comprehensive.values
+    SHLD F006H
+    LHLD idx
+    SHLD F008H
+    LHLD F006H
+    PUSH H
+    LHLD F008H
+    XCHG
+    POP H
+    DAD D
+    MOV A,M
+    STA F00AH
+    LDA F00AH
+    POP H
+    POP D
+    POP B
+    RET
+
+; Function: test_array_comprehensive.main
+; SMC enabled - parameters can be self-modified
+test_array_comprehensive.main:
+    PUSH B
+    PUSH D
+    PUSH H
+    CALL test_array_comprehensive.test_u8_array
+    STA F004H
+    LDA F004H
+    STA result1
+    CALL test_array_comprehensive.test_u16_array
+    STA F008H
+    LHLD F008H
+    SHLD result2
+    LHLD result1
+    SHLD F00AH
+    LDA F00AH
+    POP H
+    POP D
+    POP B
+    RET
+
+; Print helpers
+print_char:
+    ; Platform-specific print routine
+    ; For CP/M: CALL 0005H with C=02H, E=char
+    MOV E,A
+    MVI C,02H
+    CALL 0005H
+    RET
+
+print_newline:
+    MVI A,0DH    ; CR
+    CALL print_char
+    MVI A,0AH    ; LF
+    CALL print_char
+    RET
+
+; End of generated code
+    END

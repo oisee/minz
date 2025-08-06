@@ -1,0 +1,40 @@
+  ✅ Code generation successful
+
+=== Generated Code Analysis ===
+; MinZ 6502 generated code
+; Generated: 2025-08-06 16:51:43
+
+    * = $0800
+
+; Function: tests.backend_e2e.sources.basic_math.main
+tests.backend_e2e.sources.basic_math.main:
+    lda #$2A      ; r2 = 42
+    sta x        ; store x
+    lda #$0A      ; r4 = 10
+    sta y        ; store y
+    lda x        ; r6 = x
+    lda y        ; r7 = y
+    ; r8 = r6 + r7 (needs register allocation)
+    clc
+    adc $00        ; placeholder
+    sta sum        ; store sum
+    lda x        ; r10 = x
+    lda y        ; r11 = y
+    ; r12 = r10 - r11 (needs register allocation)
+    sec
+    sbc $00        ; placeholder
+    sta diff        ; store diff
+    lda x        ; r14 = x
+    lda #$02      ; r15 = 2
+    ; TODO: MUL
+    sta prod        ; store prod
+    ; return
+    rts        ; Return
+
+; Helper routines
+print_char:
+    ; Platform-specific character output
+    ; For C64: sta $FFD2
+    ; For Apple II: jsr $FDED
+    rts
+  ⚠️  Assembler not available, skipping binary generation

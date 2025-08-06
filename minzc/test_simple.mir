@@ -1,0 +1,30 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   test_simple_lambda.numbers: [3]u8
+
+Function test_simple_lambda.double_it$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 2
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_simple_lambda.main() -> u8
+  @smc
+  Instructions:
+      0: r1 = addr(test_simple_lambda.numbers)
+      1: NOP ; DJNZ OPTIMIZED LOOP for array[3]
+      2: r2 = 3 ; DJNZ counter = 3
+      3: r3 = r1 ; Pointer to array start
+      4: djnz_loop_1:
+      5: LOAD ; Load element via pointer
+      6: r5 = call test_simple_lambda.double_it$u8 ; Call test_simple_lambda.double_it$u8
+      7: r6 = call print_u8 ; Call print_u8
+      8: INC ; Advance to next element
+      9: DJNZ ; DJNZ - decrement and loop
+     10: r7 = 42
+     11: return r7
+

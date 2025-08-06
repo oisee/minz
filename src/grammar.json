@@ -4355,8 +4355,8 @@
       ]
     },
     "lambda_expression": {
-      "type": "PREC",
-      "value": 25,
+      "type": "PREC_RIGHT",
+      "value": 1,
       "content": {
         "type": "CHOICE",
         "members": [

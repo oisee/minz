@@ -570,9 +570,10 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 		// Carry-flag error ABI: Check CY flag
 		// Dest = 1 if error (CY=1), 0 if success (CY=0)
 		g.emit("    LD HL, 0       ; Assume success")
-		g.emit("    JR NC, .no_err_%d", g.labelCounter)
+		noerrLabel := g.getFunctionLabel("no_err")
+		g.emit("    JR NC, %s", noerrLabel)
 		g.emit("    INC HL         ; Error detected")
-		g.emit(".no_err_%d:", g.labelCounter)
+		g.emit("%s:", noerrLabel)
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		return nil
@@ -1073,22 +1074,22 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    NOP")
 		
 	case ir.OpLabel:
-		g.emit("%s:", inst.Label)
+		g.emit("%s:", g.sanitizeLabel(inst.Label))
 		
 	case ir.OpJump:
-		g.emit("    JP %s", inst.Label)
+		g.emit("    JP %s", g.sanitizeLabel(inst.Label))
 		
 	case ir.OpJumpIf:
 		// Load condition to A
 		g.loadToA(inst.Src1)
 		g.emit("    OR A")
-		g.emit("    JP NZ, %s", inst.Label)
+		g.emit("    JP NZ, %s", g.sanitizeLabel(inst.Label))
 		
 	case ir.OpJumpIfNot:
 		// Load condition to A
 		g.loadToA(inst.Src1)
 		g.emit("    OR A")
-		g.emit("    JP Z, %s", inst.Label)
+		g.emit("    JP Z, %s", g.sanitizeLabel(inst.Label))
 		
 	case ir.OpJumpIfZero:
 		// Load value to A and test if zero
@@ -1455,13 +1456,13 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				g.emit("    LD A, B")
 				g.emit("    OR C                 ; Check if multiplier is 0")
 				g.emit("    JR Z, .mul16_done_%d", g.labelCounter)
-				g.emit(".mul16_loop_%d:", g.labelCounter)
+				g.emit("%s:", g.getFunctionLabel("mul16_loop"))
 				g.emit("    ADD HL, DE           ; Result += multiplicand")
 				g.emit("    DEC BC")
 				g.emit("    LD A, B")
 				g.emit("    OR C")
 				g.emit("    JR NZ, .mul16_loop_%d", g.labelCounter)
-				g.emit(".mul16_done_%d:", g.labelCounter)
+				g.emit("%s:", g.getFunctionLabel("mul16_done"))
 				g.emit("mul_src1_%d: DW 0", g.labelCounter)
 				g.emit("mul_src2_%d: DW 0", g.labelCounter)
 				g.labelCounter++
@@ -1479,14 +1480,15 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD HL, 0      ; HL = result")
 		g.emit("    LD A, C")
 		g.emit("    OR A          ; Check if multiplier is 0")
-		g.emit("    JR Z, .mul_done_%d", g.labelCounter)
-		g.emit(".mul_loop_%d:", g.labelCounter)
+		muldoneLabel := g.getFunctionLabel("mul_done")
+		g.emit("    JR Z, %s", muldoneLabel)
+		g.emit("%s:", g.getFunctionLabel("mul_loop"))
 		g.emit("    LD D, 0")
 		g.emit("    LD E, B")
 		g.emit("    ADD HL, DE    ; Add multiplicand to result")
 		g.emit("    DEC C")
-		g.emit("    JR NZ, .mul_loop_%d", g.labelCounter)
-		g.emit(".mul_done_%d:", g.labelCounter)
+		g.emit("    JR NZ, %s", g.getFunctionLabel("mul_loop"))
+		g.emit("%s:", g.getFunctionLabel("mul_done"))
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
@@ -1499,18 +1501,20 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.loadToA(inst.Src2)
 		g.emit("    LD E, A       ; E = divisor")
 		g.emit("    OR A          ; Check for divide by zero")
-		g.emit("    JR Z, .div_by_zero_%d", g.labelCounter)
+		divbyzeroLabel := g.getFunctionLabel("div_by_zero")
+		g.emit("    JR Z, %s", divbyzeroLabel)
 		g.emit("    LD B, 0       ; B = quotient")
 		g.emit("    LD A, D       ; A = remainder")
-		g.emit(".div_loop_%d:", g.labelCounter)
+		g.emit("%s:", g.getFunctionLabel("div_loop"))
 		g.emit("    CP E          ; Compare remainder with divisor")
-		g.emit("    JR C, .div_done_%d", g.labelCounter)
+		divdoneLabel := g.getFunctionLabel("div_done")
+		g.emit("    JR C, %s", divdoneLabel)
 		g.emit("    SUB E         ; Subtract divisor")
 		g.emit("    INC B         ; Increment quotient")
-		g.emit("    JR .div_loop_%d", g.labelCounter)
-		g.emit(".div_by_zero_%d:", g.labelCounter)
+		g.emit("    JR %s", g.getFunctionLabel("div_loop"))
+		g.emit("%s:", g.getFunctionLabel("div_by_zero"))
 		g.emit("    LD B, 0       ; Return 0 for divide by zero")
-		g.emit(".div_done_%d:", g.labelCounter)
+		g.emit("%s:", divdoneLabel)
 		g.emit("    LD L, B       ; Result in L")
 		g.emit("    LD H, 0")
 		g.labelCounter++
@@ -1525,16 +1529,18 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.loadToA(inst.Src2)
 		g.emit("    LD E, A       ; E = divisor")
 		g.emit("    OR A          ; Check for divide by zero")
-		g.emit("    JR Z, .mod_by_zero_%d", g.labelCounter)
+		modbyzeroLabel := g.getFunctionLabel("mod_by_zero")
+		g.emit("    JR Z, %s", modbyzeroLabel)
 		g.emit("    LD A, D       ; A = dividend")
-		g.emit(".mod_loop_%d:", g.labelCounter)
+		g.emit("%s:", g.getFunctionLabel("mod_loop"))
 		g.emit("    CP E          ; Compare with divisor")
-		g.emit("    JR C, .mod_done_%d", g.labelCounter)
+		moddoneLabel := g.getFunctionLabel("mod_done")
+		g.emit("    JR C, %s", moddoneLabel)
 		g.emit("    SUB E         ; Subtract divisor")
-		g.emit("    JR .mod_loop_%d", g.labelCounter)
-		g.emit(".mod_by_zero_%d:", g.labelCounter)
+		g.emit("    JR %s", g.getFunctionLabel("mod_loop"))
+		g.emit("%s:", g.getFunctionLabel("mod_by_zero"))
 		g.emit("    LD A, 0       ; Return 0 for modulo by zero")
-		g.emit(".mod_done_%d:", g.labelCounter)
+		g.emit("%s:", moddoneLabel)
 		g.emit("    LD L, A       ; Result (remainder) in L")
 		g.emit("    LD H, 0")
 		g.labelCounter++
@@ -1635,10 +1641,10 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				g.emit("    LD B, A       ; B = shift count")
 				g.emit("    OR A")
 				g.emit("    JR Z, .shl16_done_%d", g.labelCounter)
-				g.emit(".shl16_loop_%d:", g.labelCounter)
+				g.emit("%s:", g.getFunctionLabel("shl16_loop"))
 				g.emit("    ADD HL, HL    ; Shift left by 1")
 				g.emit("    DJNZ .shl16_loop_%d", g.labelCounter)
-				g.emit(".shl16_done_%d:", g.labelCounter)
+				g.emit("%s:", g.getFunctionLabel("shl16_done"))
 				g.labelCounter++
 				g.storeFromHL(inst.Dest)
 				break
@@ -1653,14 +1659,15 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD C, A       ; C = shift count")
 		g.emit("    LD A, B       ; A = value")
 		g.emit("    OR A          ; Clear carry")
-		g.emit("    JR Z, .shl_done_%d", g.labelCounter)
+		shldoneLabel := g.getFunctionLabel("shl_done")
+		g.emit("    JR Z, %s", shldoneLabel)
 		g.emit("    LD B, C       ; B = counter")
-		g.emit(".shl_loop_%d:", g.labelCounter)
+		g.emit("%s:", g.getFunctionLabel("shl_loop"))
 		g.emit("    DEC B")
-		g.emit("    JP M, .shl_done_%d", g.labelCounter)
+		g.emit("    JP M, %s", shldoneLabel)
 		g.emit("    SLA A         ; Shift left, 0 into bit 0")
-		g.emit("    JR .shl_loop_%d", g.labelCounter)
-		g.emit(".shl_done_%d:", g.labelCounter)
+		g.emit("    JR %s", g.getFunctionLabel("shl_loop"))
+		g.emit("%s:", g.getFunctionLabel("shl_done"))
 		g.emit("    LD L, A")
 		g.emit("    LD H, 0")
 		g.labelCounter++
@@ -1679,11 +1686,11 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				g.emit("    LD B, A       ; B = shift count")
 				g.emit("    OR A")
 				g.emit("    JR Z, .shr16_done_%d", g.labelCounter)
-				g.emit(".shr16_loop_%d:", g.labelCounter)
+				g.emit("%s:", g.getFunctionLabel("shr16_loop"))
 				g.emit("    SRL H         ; Shift high byte right")
 				g.emit("    RR L          ; Rotate right through carry")
 				g.emit("    DJNZ .shr16_loop_%d", g.labelCounter)
-				g.emit(".shr16_done_%d:", g.labelCounter)
+				g.emit("%s:", g.getFunctionLabel("shr16_done"))
 				g.labelCounter++
 				g.storeFromHL(inst.Dest)
 				break
@@ -1698,14 +1705,15 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD C, A       ; C = shift count")
 		g.emit("    LD A, B       ; A = value")
 		g.emit("    OR A          ; Clear carry")
-		g.emit("    JR Z, .shr_done_%d", g.labelCounter)
+		shrdoneLabel := g.getFunctionLabel("shr_done")
+		g.emit("    JR Z, %s", shrdoneLabel)
 		g.emit("    LD B, C       ; B = counter")
-		g.emit(".shr_loop_%d:", g.labelCounter)
+		g.emit("%s:", g.getFunctionLabel("shr_loop"))
 		g.emit("    DEC B")
-		g.emit("    JP M, .shr_done_%d", g.labelCounter)
+		g.emit("    JP M, %s", shrdoneLabel)
 		g.emit("    SRL A         ; Shift right, 0 into bit 7")
-		g.emit("    JR .shr_loop_%d", g.labelCounter)
-		g.emit(".shr_done_%d:", g.labelCounter)
+		g.emit("    JR %s", g.getFunctionLabel("shr_loop"))
+		g.emit("%s:", g.getFunctionLabel("shr_done"))
 		g.emit("    LD L, A")
 		g.emit("    LD H, 0")
 		g.labelCounter++
@@ -1934,9 +1942,10 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Check carry flag - result is 1 if error (CY set), 0 if success
 		g.emit("    ; Check carry flag for error")
 		g.emit("    LD A, 0       ; Assume success")
-		g.emit("    JR NC, .no_error_%d", g.labelCounter)
+		noerrorLabel := g.getFunctionLabel("no_error")
+		g.emit("    JR NC, %s", noerrorLabel)
 		g.emit("    INC A         ; Set to 1 if error")
-		g.emit(".no_error_%d:", g.labelCounter)
+		g.emit("%s:", noerrorLabel)
 		g.labelCounter++
 		g.storeFromA(inst.Dest)
 		
@@ -2035,13 +2044,13 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD B, H")
 		g.emit("    LD C, L        ; Size in BC")
 		// Fill memory
-		g.emit(".memset_loop_%d:", g.labelCounter)
+		g.emit("%s:", g.getFunctionLabel("memset_loop"))
 		g.emit("    LD (HL), A     ; Store value")
 		g.emit("    INC HL         ; Next address")
 		g.emit("    DEC BC         ; Decrement count")
 		g.emit("    LD D, B")
 		g.emit("    OR C")
-		g.emit("    JR NZ, .memset_loop_%d", g.labelCounter)
+		g.emit("    JR NZ, %s", g.getFunctionLabel("memset_loop"))
 		g.labelCounter++
 		
 	case ir.OpLoadLabel:
@@ -2336,11 +2345,13 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		}
 		
 		// Make indirect call through HL
-		g.emit("    CALL .call_indirect_%d", g.labelCounter)
-		g.emit("    JR .call_indirect_end_%d", g.labelCounter)
-		g.emit(".call_indirect_%d:", g.labelCounter)
+		callindirectLabel := g.getFunctionLabel("call_indirect")
+		g.emit("    CALL %s", callindirectLabel)
+		callindirectendLabel := g.getFunctionLabel("call_indirect_end")
+		g.emit("    JR %s", callindirectendLabel)
+		g.emit("%s:", callindirectLabel)
 		g.emit("    JP (HL)       ; Jump to function address")
-		g.emit(".call_indirect_end_%d:", g.labelCounter)
+		g.emit("%s:", callindirectendLabel)
 		g.labelCounter++
 		
 		// Clean up stack if needed
@@ -2445,12 +2456,14 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
 		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
-		g.emit("    JP Z, .eq_true_%d", g.labelCounter)
+		eqTrueLabel := g.getFunctionLabel("eq_true")
+		eqDoneLabel := g.getFunctionLabel("eq_done")
+		g.emit("    JP Z, %s", eqTrueLabel)
 		g.emit("    LD HL, 0       ; False")
-		g.emit("    JP .eq_done_%d", g.labelCounter)
-		g.emit(".eq_true_%d:", g.labelCounter)
+		g.emit("    JP %s", eqDoneLabel)
+		g.emit("%s:", eqTrueLabel)
 		g.emit("    LD HL, 1       ; True")
-		g.emit(".eq_done_%d:", g.labelCounter)
+		g.emit("%s:", eqDoneLabel)
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
@@ -2461,12 +2474,14 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
 		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
-		g.emit("    JP NZ, .ne_true_%d", g.labelCounter)
+		neTrueLabel := g.getFunctionLabel("ne_true")
+		neDoneLabel := g.getFunctionLabel("ne_done")
+		g.emit("    JP NZ, %s", neTrueLabel)
 		g.emit("    LD HL, 0       ; False")
-		g.emit("    JP .ne_done_%d", g.labelCounter)
-		g.emit(".ne_true_%d:", g.labelCounter)
+		g.emit("    JP %s", neDoneLabel)
+		g.emit("%s:", neTrueLabel)
 		g.emit("    LD HL, 1       ; True")
-		g.emit(".ne_done_%d:", g.labelCounter)
+		g.emit("%s:", neDoneLabel)
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
@@ -2476,12 +2491,14 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
 		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
-		g.emit("    JP M, .lt_true_%d", g.labelCounter)
+		ltTrueLabel := g.getFunctionLabel("lt_true")
+		ltDoneLabel := g.getFunctionLabel("lt_done")
+		g.emit("    JP M, %s", ltTrueLabel)
 		g.emit("    LD HL, 0       ; False")
-		g.emit("    JP .lt_done_%d", g.labelCounter)
-		g.emit(".lt_true_%d:", g.labelCounter)
+		g.emit("    JP %s", ltDoneLabel)
+		g.emit("%s:", ltTrueLabel)
 		g.emit("    LD HL, 1       ; True")
-		g.emit(".lt_done_%d:", g.labelCounter)
+		g.emit("%s:", ltDoneLabel)
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
@@ -2491,18 +2508,21 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
 		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
-		g.emit("    JP P, .gt_check_zero_%d", g.labelCounter)
+		gtCheckZeroLabel := g.getFunctionLabel("gt_check_zero")
+		gtFalseLabel := g.getFunctionLabel("gt_false")
+		gtDoneLabel := g.getFunctionLabel("gt_done")
+		g.emit("    JP P, %s", gtCheckZeroLabel)
 		g.emit("    LD HL, 0       ; False (negative)")
-		g.emit("    JP .gt_done_%d", g.labelCounter)
-		g.emit(".gt_check_zero_%d:", g.labelCounter)
+		g.emit("    JP %s", gtDoneLabel)
+		g.emit("%s:", gtCheckZeroLabel)
 		g.emit("    LD A, H")
 		g.emit("    OR L           ; Check if result is zero")
-		g.emit("    JP Z, .gt_false_%d", g.labelCounter)
+		g.emit("    JP Z, %s", gtFalseLabel)
 		g.emit("    LD HL, 1       ; True (positive and non-zero)")
-		g.emit("    JP .gt_done_%d", g.labelCounter)
-		g.emit(".gt_false_%d:", g.labelCounter)
+		g.emit("    JP %s", gtDoneLabel)
+		g.emit("%s:", gtFalseLabel)
 		g.emit("    LD HL, 0       ; False (zero)")
-		g.emit(".gt_done_%d:", g.labelCounter)
+		g.emit("%s:", gtDoneLabel)
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
@@ -2512,13 +2532,15 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
 		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
-		g.emit("    JP M, .le_true_%d", g.labelCounter)
-		g.emit("    JP Z, .le_true_%d", g.labelCounter)
+		leTrueLabel := g.getFunctionLabel("le_true")
+		leDoneLabel := g.getFunctionLabel("le_done")
+		g.emit("    JP M, %s", leTrueLabel)
+		g.emit("    JP Z, %s", leTrueLabel)
 		g.emit("    LD HL, 0       ; False")
-		g.emit("    JP .le_done_%d", g.labelCounter)
-		g.emit(".le_true_%d:", g.labelCounter)
+		g.emit("    JP %s", leDoneLabel)
+		g.emit("%s:", leTrueLabel)
 		g.emit("    LD HL, 1       ; True")
-		g.emit(".le_done_%d:", g.labelCounter)
+		g.emit("%s:", leDoneLabel)
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 		
@@ -2528,13 +2550,15 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
 		g.emit("    SBC HL, DE     ; Compare Src1 - Src2")
-		g.emit("    JP P, .ge_true_%d", g.labelCounter)
-		g.emit("    JP Z, .ge_true_%d", g.labelCounter)
+		geTrueLabel := g.getFunctionLabel("ge_true")
+		geDoneLabel := g.getFunctionLabel("ge_done")
+		g.emit("    JP P, %s", geTrueLabel)
+		g.emit("    JP Z, %s", geTrueLabel)
 		g.emit("    LD HL, 0       ; False")
-		g.emit("    JP .ge_done_%d", g.labelCounter)
-		g.emit(".ge_true_%d:", g.labelCounter)
+		g.emit("    JP %s", geDoneLabel)
+		g.emit("%s:", geTrueLabel)
 		g.emit("    LD HL, 1       ; True")
-		g.emit(".ge_done_%d:", g.labelCounter)
+		g.emit("%s:", geDoneLabel)
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
 	}
@@ -2873,6 +2897,28 @@ func (g *Z80Generator) emit(format string, args ...interface{}) {
 	} else {
 		fmt.Fprintln(g.writer, format)
 	}
+}
+
+// getFunctionLabel generates a function-scoped label to avoid duplicates
+func (g *Z80Generator) getFunctionLabel(prefix string) string {
+	if g.currentFunc == nil {
+		return fmt.Sprintf("%s_%d", prefix, g.labelCounter)
+	}
+	// Create a sanitized function name for labels
+	funcName := strings.ReplaceAll(g.currentFunc.Name, ".", "_")
+	funcName = strings.ReplaceAll(funcName, "$", "_")
+	return fmt.Sprintf("%s_%s_%d", funcName, prefix, g.labelCounter)
+}
+
+// sanitizeLabel makes IR-generated labels function-scoped
+func (g *Z80Generator) sanitizeLabel(label string) string {
+	if g.currentFunc == nil {
+		return label
+	}
+	// Create a sanitized function name for labels
+	funcName := strings.ReplaceAll(g.currentFunc.Name, ".", "_")
+	funcName = strings.ReplaceAll(funcName, "$", "_")
+	return fmt.Sprintf("%s_%s", funcName, label)
 }
 
 // findFunction finds a function in the current module

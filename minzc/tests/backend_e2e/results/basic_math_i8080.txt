@@ -1,0 +1,54 @@
+  ✅ Code generation successful
+
+=== Generated Code Analysis ===
+; MinZ 8080 generated code
+; Generated: 2025-08-06 16:51:43
+; Target: Intel 8080
+
+
+; Code section
+    ORG 08000H
+
+
+; Function: tests.backend_e2e.sources.basic_math.main
+; SMC enabled - parameters can be self-modified
+tests.backend_e2e.sources.basic_math.main:
+    PUSH B
+    PUSH D
+    PUSH H
+    MVI A,2AH
+    STA F004H
+    LDA F004H
+    STA x
+    MVI A,0AH
+    STA F008H
+    LDA F008H
+    STA y
+    LHLD x
+    SHLD F00CH
+    LHLD y
+    SHLD F00EH
+    LDA F00CH
+    MOV B,A
+    LDA F00EH
+    ADD B
+    STA F010H
+    LDA F010H
+    STA sum
+    LHLD x
+    SHLD F014H
+    LHLD y
+    SHLD F016H
+    LDA F014H
+    MOV B,A
+    LDA F016H
+    SUB B
+    STA F018H
+    LDA F018H
+    STA diff
+    LHLD x
+    SHLD F01CH
+    MVI A,02H
+    STA F01EH
+    LDA F01CH
+  ⚠️  Assembler not available, skipping binary generation

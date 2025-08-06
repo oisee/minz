@@ -1,0 +1,23 @@
+// Simple iterator test without overloads
+
+fun double_u8(x: u8) -> u8 {
+    return x * 2;
+}
+
+fun print_u8_custom(x: u8) -> void {
+    // Custom print implementation
+}
+
+fun is_even(x: u8) -> bool {
+    return (x & 1) == 0;
+}
+
+fun main() -> void {
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // Simple chain without overloads
+    numbers
+        .map(double_u8)
+        .filter(is_even)
+        .forEach(print_u8_custom);
+}

@@ -1,0 +1,52 @@
+// Test program to demonstrate 6502 zero-page SMC optimization
+// This showcases the performance benefits of using zero-page for SMC
+
+// Basic SMC function - parameters will be in zero page
+fun add_smc(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// More complex SMC function with multiple operations
+fun compute_smc(x: u8, y: u8, z: u8) -> u8 {
+    let temp = x + y;
+    temp = temp * 2;
+    return temp + z;
+}
+
+// Iterator-style function that would benefit from zero-page
+fun sum_range_smc(start: u8, count: u8) -> u8 {
+    var sum: u8 = 0;
+    var i: u8 = 0;
+    var val: u8 = start;
+    
+    while i < count {
+        sum = sum + val;
+        val = val + 1;
+        i = i + 1;
+    }
+    
+    return sum;
+}
+
+// Test TRUE SMC with zero-page anchors
+fun increment_by_smc(value: u8, increment: u8) -> u8 {
+    // This should patch the immediate value in zero page
+    return value + increment;
+}
+
+fun main() -> void {
+    // Test basic SMC
+    let result1 = add_smc(10, 20);
+    
+    // Test complex SMC
+    let result2 = compute_smc(5, 3, 2);
+    
+    // Test range sum with SMC
+    let result3 = sum_range_smc(1, 5);
+    
+    // Test TRUE SMC
+    let result4 = increment_by_smc(100, 25);
+    
+    // Use results to prevent optimization
+    let total = result1 + result2 + result3 + result4;
+}

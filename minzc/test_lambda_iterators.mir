@@ -1,0 +1,83 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   test_lambda_iterators.numbers: [5]u8
+
+Function iter_lambda_test_lambda_iterators.main_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: r0 = load x
+      1: r1 = 2
+      2: r2 = r0 * r1
+      3: return r2 ; Return lambda result
+
+Function iter_lambda_test_lambda_iterators.main_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: r0 = load x
+      1: r1 = 5
+      2: r2 = r0 > r1
+      3: return r2 ; Return lambda result
+
+Function iter_lambda_test_lambda_iterators.main_2(x: u8) -> void
+  @smc
+  Instructions:
+      0: r0 = load x
+      1: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      2: return ; Return lambda result
+
+Function test_lambda_iterators.main() -> u8
+  @smc
+  Instructions:
+      0: r1 = addr(test_lambda_iterators.numbers)
+      1: NOP ; DJNZ OPTIMIZED LOOP for array[5]
+      2: r2 = 5 ; DJNZ counter = 5
+      3: r3 = r1 ; Pointer to array start
+      4: djnz_loop_1:
+      5: LOAD ; Load element via pointer
+      6: r5 = call iter_lambda_test_lambda_iterators.main_0 ; Call iterator lambda: iter_lambda_test_lambda_iterators.main_0
+      7: r6 = call iter_lambda_test_lambda_iterators.main_1 ; Call iterator lambda: iter_lambda_test_lambda_iterators.main_1
+      8: jump_if_not r6, filter_continue_2 ; Skip if filter predicate is false
+      9: r7 = call iter_lambda_test_lambda_iterators.main_2 ; Call iterator lambda: iter_lambda_test_lambda_iterators.main_2
+     10: filter_continue_2:
+     11: INC ; Advance to next element
+     12: DJNZ ; DJNZ - decrement and loop
+     13: r8 = 42
+     14: return r8
+
+Function test_lambda_iterators.double_value$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 2
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_lambda_iterators.is_greater_than_5$u8(x: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 5
+      2: r4 = r2 > r3
+      3: return r4
+
+Function test_lambda_iterators.test_traditional() -> u8
+  @smc
+  Instructions:
+      0: r1 = addr(test_lambda_iterators.numbers)
+      1: NOP ; DJNZ OPTIMIZED LOOP for array[5]
+      2: r2 = 5 ; DJNZ counter = 5
+      3: r3 = r1 ; Pointer to array start
+      4: djnz_loop_3:
+      5: LOAD ; Load element via pointer
+      6: r5 = call test_lambda_iterators.double_value$u8 ; Call test_lambda_iterators.double_value$u8
+      7: r6 = call test_lambda_iterators.is_greater_than_5$u8 ; Call test_lambda_iterators.is_greater_than_5$u8
+      8: jump_if_not r6, filter_continue_4 ; Skip if filter predicate is false
+      9: r7 = call print_u8 ; Call print_u8
+     10: filter_continue_4:
+     11: INC ; Advance to next element
+     12: DJNZ ; DJNZ - decrement and loop
+     13: r8 = 42
+     14: return r8
+

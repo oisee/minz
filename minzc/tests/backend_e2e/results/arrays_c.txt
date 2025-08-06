@@ -1,0 +1,2 @@
+Error: code generation error: generating function tests.backend_e2e.sources.arrays.main: unsupported operation: LOAD_INDEX
+  ❌ Code generation failed

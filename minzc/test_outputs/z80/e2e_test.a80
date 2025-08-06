@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2025-08-06 12:14:00
+; Generated: 2025-08-06 12:38:56
 
 
 ; Code section
@@ -14,13 +14,13 @@ tests.minz.e2e_test.main:
     ; r2 = 42
     LD A, 42
     ; Register 2 already in A
-    ; store , r2
+    ; store x, r2
     ; Register 2 already in A
     LD ($F002), A
     ; r4 = 10
     LD A, 10
     LD C, A         ; Store to physical register C
-    ; store , r4
+    ; store y, r4
     LD A, C
     LD ($F006), A
     ; r6 = load x
@@ -33,7 +33,7 @@ tests.minz.e2e_test.main:
     LD D, H
     LD E, L
     ADD HL, DE
-    ; store , r8
+    ; store sum, r8
     LD A, L
     LD ($F00A), A
     ; return

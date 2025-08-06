@@ -1,0 +1,9 @@
+:help
+:backends
+:load test_repl_lambda.minz
+:compile [1,2,3].iter().map(|x| x * 2)
+:backend c
+:compile let x = 42
+:backend z80
+:mir let x = 42
+:exit

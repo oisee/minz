@@ -1,33 +1,32 @@
 # Backend Health Summary - August 2025
 
-## Overall Status: 7/8 Backends Operational
+## Overall Status: 7/8 Backends Operational (IMPROVED!)
 
-### 🟢 Fully Working Backends (5/8)
+### 🟢 Fully Working Backends (6/8) ⬆️
 - **Z80** - Default backend, production ready
 - **6502** - Generates valid 6502 assembly
 - **68000** - Generates valid 68K assembly  
 - **i8080** - Generates valid Intel 8080 assembly
 - **Game Boy** - Generates valid GB assembly
+- **C** - ✅ FIXED! Now generates correct C code (outputs 52)
 
-### 🟡 Partially Working Backends (2/8)
-- **C** - Generates compilable C but incorrect behavior (outputs 0 instead of 52)
-- **LLVM** - Generates LLVM IR with syntax errors (missing variable names)
+### 🟡 Partially Working Backends (1/8) ⬆️
+- **LLVM** - ✅ Variable names fixed! Still has other IR generation issues
 
 ### 🔴 Broken Backends (1/8)
-- **WebAssembly** - Generates invalid WAT (undefined globals)
+- **WebAssembly** - Missing global variable declarations (but variable names now correct)
 
-## Root Cause: MIR Generation Bug
+## Root Cause: MIR Generation Bug [FIXED]
 
-**Issue**: Variable names are missing in STORE instructions
+**Issue**: Variable names were missing in STORE instructions
 ```mir
-; store , r2    # Should be: store x, r2
-; store , r4    # Should be: store y, r4  
-; store , r8    # Should be: store sum, r8
+; store x, r2    # ✅ Fixed!
+; store y, r4    # ✅ Fixed!
+; store sum, r8  # ✅ Fixed!
 ```
 
-**Impact**:
-- Assembly backends work (use addresses, not names)
-- High-level backends fail or produce wrong results
+**Fix Applied**: Changed from `irFunc.Emit()` to proper instruction construction with Symbol field set.
+See: [docs/133_MIR_STORE_VAR_Fix.md](133_MIR_STORE_VAR_Fix.md)
 
 ## Verification Matrix
 

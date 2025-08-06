@@ -1,0 +1,6 @@
+fun main() -> void {
+    let arr: [u8; 5] = [1, 2, 3, 4, 5];
+    let first: u8 = arr[0];
+    let last: u8 = arr[4];
+    let sum: u8 = first + last;
+}

@@ -1,0 +1,30 @@
+; MinZ 6502 generated code
+; Generated: 2025-08-06 16:51:43
+
+    * = $0800
+
+; Function: tests.backend_e2e.sources.arrays.main
+tests.backend_e2e.sources.arrays.main:
+    lda arr        ; r3 = arr
+    lda #$00      ; r4 = 0
+    ; TODO: LOAD_INDEX
+    sta first        ; store first
+    lda arr        ; r7 = arr
+    lda #$04      ; r8 = 4
+    ; TODO: LOAD_INDEX
+    sta last        ; store last
+    lda first        ; r11 = first
+    lda last        ; r12 = last
+    ; r13 = r11 + r12 (needs register allocation)
+    clc
+    adc $00        ; placeholder
+    sta sum        ; store sum
+    ; return
+    rts        ; Return
+
+; Helper routines
+print_char:
+    ; Platform-specific character output
+    ; For C64: sta $FFD2
+    ; For Apple II: jsr $FDED
+    rts

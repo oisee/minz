@@ -222,6 +222,10 @@ func (g *I8080Generator) generateInstruction(inst *ir.Instruction, index int) er
 		return g.generatePrintU8(inst)
 	case ir.OpPrintStringDirect:
 		return g.generatePrintStringDirect(inst)
+	case ir.OpLoadIndex:
+		return g.generateLoadIndex(inst)
+	case ir.OpLoadAddr:
+		return g.generateLoadAddr(inst)
 	default:
 		return fmt.Errorf("unsupported operation: %s", inst.Op)
 	}
@@ -539,6 +543,61 @@ func (g *I8080Generator) generatePrintStringDirect(inst *ir.Instruction) error {
 		g.emit("    DCR B")
 		g.emit("    JNZ ps_loop")
 		g.emit("    RET")
+	}
+	
+	return nil
+}
+
+// generateLoadIndex generates array indexing
+func (g *I8080Generator) generateLoadIndex(inst *ir.Instruction) error {
+	arrayAddr := g.getMemoryAddr(inst.Src1)
+	indexAddr := g.getMemoryAddr(inst.Src2)
+	destAddr := g.getMemoryAddr(inst.Dest)
+	
+	// Load array pointer to HL
+	g.emit("    LHLD %04XH", arrayAddr)
+	g.emit("    PUSH H")  // Save array pointer
+	
+	// Load index to DE
+	if inst.Type != nil && inst.Type.Size() == 1 {
+		// For single byte elements
+		g.emit("    LDA %04XH", indexAddr)
+		g.emit("    MOV E,A")
+		g.emit("    MVI D,0")
+	} else {
+		// For multi-byte elements  
+		g.emit("    LHLD %04XH", indexAddr)
+		g.emit("    XCHG")  // Move index to DE
+	}
+	
+	// Restore array pointer
+	g.emit("    POP H")
+	
+	// Calculate address: array + index
+	// For now assuming byte arrays (element size = 1)
+	// TODO: Handle different element sizes  
+	g.emit("    DAD D")  // HL = HL + DE (array + index)
+	
+	// Load value from array[index]
+	g.emit("    MOV A,M")  // A = (HL)
+	g.emit("    STA %04XH", destAddr)
+	
+	return nil
+}
+
+// generateLoadAddr generates address loading
+func (g *I8080Generator) generateLoadAddr(inst *ir.Instruction) error {
+	destAddr := g.getMemoryAddr(inst.Dest)
+	
+	if inst.Symbol != "" {
+		// Load address of named variable/array
+		g.emit("    LXI H,%s", inst.Symbol)
+		g.emit("    SHLD %04XH", destAddr)
+	} else {
+		// Load address from register (for nested arrays)
+		srcAddr := g.getMemoryAddr(inst.Src1)
+		g.emit("    LHLD %04XH", srcAddr)
+		g.emit("    SHLD %04XH", destAddr)
 	}
 	
 	return nil

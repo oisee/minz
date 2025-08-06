@@ -1,0 +1,30 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function tests.backend_e2e.sources.basic_math.main() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u8
+    r5 = sum: u8
+    r9 = diff: u8
+    r13 = prod: u8
+  Instructions:
+      0: r2 = 42
+      1: store x, r2
+      2: r4 = 10
+      3: store y, r4
+      4: r6 = load x
+      5: r7 = load y
+      6: r8 = r6 + r7
+      7: store sum, r8
+      8: r10 = load x
+      9: r11 = load y
+     10: r12 = r10 - r11
+     11: store diff, r12
+     12: r14 = load x
+     13: r15 = 2
+     14: r16 = r14 * r15
+     15: store prod, r16
+     16: return
+

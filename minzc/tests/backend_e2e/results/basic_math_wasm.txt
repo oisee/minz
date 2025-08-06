@@ -1,0 +1,88 @@
+  ✅ Code generation successful
+
+=== Generated Code Analysis ===
+;; MinZ WebAssembly generated code
+;; Generated: 2025-08-06 16:51:43
+;; Note: WASM uses stack-based calling convention, no SMC
+
+(module
+  ;; Import memory
+  (import "env" "memory" (memory 1))
+  (import "env" "print_char" (func $print_char (param i32)))
+  (import "env" "print_i32" (func $print_i32 (param i32)))
+
+  ;; Function: tests.backend_e2e.sources.basic_math.main
+  (func $tests.backend_e2e.sources.basic_math.main
+    (local $x i32)
+    (local $y i32)
+    (local $sum i32)
+    (local $diff i32)
+    (local $prod i32)
+    (local $r1 i32)
+    (local $r2 i32)
+    (local $r3 i32)
+    (local $r4 i32)
+    (local $r5 i32)
+    (local $r6 i32)
+    (local $r7 i32)
+    (local $r8 i32)
+    (local $r9 i32)
+    (local $r10 i32)
+    (local $r11 i32)
+    (local $r12 i32)
+    (local $r13 i32)
+    (local $r14 i32)
+    (local $r15 i32)
+    (local $r16 i32)
+    i32.const 42  ;; r2 = 42
+    local.set $r2
+    local.get $r2  ;; store x
+    global.set $x
+    i32.const 10  ;; r4 = 10
+    local.set $r4
+    local.get $r4  ;; store y
+    global.set $y
+    global.get $x  ;; r6 = x
+    local.set $r6
+    global.get $y  ;; r7 = y
+    local.set $r7
+    local.get $r6  ;; r8 = r6 + r7
+    local.get $r7
+    i32.add
+    local.set $r8
+    local.get $r8  ;; store sum
+  🔨 Attempting binary generation...
+tests/backend_e2e/outputs/basic_math_wasm.wat:37:16: error: undefined global variable "$x"
+    global.set $x
+               ^^
+tests/backend_e2e/outputs/basic_math_wasm.wat:41:16: error: undefined global variable "$y"
+    global.set $y
+               ^^
+tests/backend_e2e/outputs/basic_math_wasm.wat:42:16: error: undefined global variable "$x"
+    global.get $x  ;; r6 = x
+               ^^
+tests/backend_e2e/outputs/basic_math_wasm.wat:44:16: error: undefined global variable "$y"
+    global.get $y  ;; r7 = y
+               ^^
+tests/backend_e2e/outputs/basic_math_wasm.wat:51:16: error: undefined global variable "$sum"
+    global.set $sum
+               ^^^^
+tests/backend_e2e/outputs/basic_math_wasm.wat:52:16: error: undefined global variable "$x"
+    global.get $x  ;; r10 = x
+               ^^
+tests/backend_e2e/outputs/basic_math_wasm.wat:54:16: error: undefined global variable "$y"
+    global.get $y  ;; r11 = y
+               ^^
+tests/backend_e2e/outputs/basic_math_wasm.wat:61:16: error: undefined global variable "$diff"
+    global.set $diff
+               ^^^^^
+tests/backend_e2e/outputs/basic_math_wasm.wat:62:16: error: undefined global variable "$x"
+    global.get $x  ;; r14 = x
+               ^^
+tests/backend_e2e/outputs/basic_math_wasm.wat:71:16: error: undefined global variable "$prod"
+    global.set $prod
+               ^^^^^
+tests/backend_e2e/outputs/basic_math_wasm.wat:76:24: error: undefined function variable "$main"
+  (export "main" (func $main))
+                       ^^^^^
+  ❌ Binary generation failed

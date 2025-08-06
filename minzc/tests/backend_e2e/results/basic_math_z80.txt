@@ -1,0 +1,65 @@
+  ✅ Code generation successful
+
+=== Generated Code Analysis ===
+; MinZ generated code
+; Generated: 2025-08-06 16:51:43
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: tests.backend_e2e.sources.basic_math.main
+tests.backend_e2e.sources.basic_math.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 42
+    LD A, 42
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store x, r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD ($F002), A
+    ; r4 = 10
+    LD A, 10
+    LD C, A         ; Store to physical register C
+    ; store y, r4
+    LD A, C
+    LD ($F006), A
+    ; r6 = load x
+    LD A, ($F002)
+    LD E, A         ; Store to physical register E
+    ; r7 = load y
+    LD A, ($F006)
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = r6 + r7
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    ADD HL, DE
+    ; store sum, r8
+    LD A, L
+    LD ($F00A), A
+    ; r10 = load x
+    LD A, ($F002)
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r11 = load y
+    LD A, ($F006)
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r12 = r10 - r11
+  🔨 Attempting binary generation...
+Unrecognized option: o
+SjASMPlus Z80 Cross-Assembler v1.07 RC8 (build 06-11-2008)
+tests/backend_e2e/outputs/basic_math_z80.a80(81): error: Duplicate label: tests.backend_e2e.sources.basic_math.main.mul_done_0
+tests/backend_e2e/outputs/basic_math_z80.a80(105): error: Duplicate label: print_string_u16
+tests/backend_e2e/outputs/basic_math_z80.a80(132): error: Duplicate label: print_u16_decimal
+tests/backend_e2e/outputs/basic_math_z80.a80(150): error: Duplicate label: print_digit
+tests/backend_e2e/outputs/basic_math_z80.a80(191): error: Duplicate label: print_true
+tests/backend_e2e/outputs/basic_math_z80.a80(195): error: Duplicate label: bool_true_str
+tests/backend_e2e/outputs/basic_math_z80.a80(197): error: Duplicate label: bool_false_str
+(0): error: Error opening file: tests/backend_e2e/binaries/basic_math_z80
+  ❌ Binary generation failed

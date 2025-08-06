@@ -1,0 +1,7 @@
+fun main() -> void {
+    let x: u8 = 42;
+    let y: u8 = 10; 
+    let sum: u8 = x + y;
+    let diff: u8 = x - y;
+    let prod: u8 = x * 2;
+}

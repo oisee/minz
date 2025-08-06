@@ -1,0 +1,25 @@
+// Test for duplicate label generation
+
+fun process_array(arr: [u8; 5]) -> u8 {
+    let sum: u8 = 0;
+    for i in 0..5 {
+        sum = sum + arr[i];
+    }
+    return sum;
+}
+
+fun count_evens(arr: [u8; 5]) -> u8 {
+    let count: u8 = 0;
+    for i in 0..5 {
+        if (arr[i] & 1) == 0 {
+            count = count + 1;
+        }
+    }
+    return count;
+}
+
+fun main() -> void {
+    let data: [u8; 5] = [1, 2, 3, 4, 5];
+    let total = process_array(data);
+    let evens = count_evens(data);
+}

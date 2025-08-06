@@ -1,20 +1,20 @@
 ; MinZ 6502 generated code
-; Generated: 2025-08-06 12:14:00
+; Generated: 2025-08-06 12:38:56
 
     * = $0800
 
 ; Function: tests.minz.e2e_test.main
 tests.minz.e2e_test.main:
     lda #$2A      ; r2 = 42
-    sta local_2        ; store local_2
+    sta x        ; store x
     lda #$0A      ; r4 = 10
-    sta local_4        ; store local_4
+    sta y        ; store y
     lda x        ; r6 = x
     lda y        ; r7 = y
     ; r8 = r6 + r7 (needs register allocation)
     clc
     adc $00        ; placeholder
-    sta local_8        ; store local_8
+    sta sum        ; store sum
     ; return
     rts        ; Return
 

@@ -1,0 +1,64 @@
+// Test iterator function overload resolution
+
+// Overloaded print functions
+fun print(x: u8) -> void {
+    // Implementation for u8
+}
+
+fun print(x: u16) -> void {
+    // Implementation for u16
+}
+
+fun print(b: bool) -> void {
+    // Implementation for bool
+}
+
+// Overloaded processing functions
+fun process(x: u8) -> u8 {
+    return x * 2;
+}
+
+fun process(x: u16) -> u16 {
+    return x * 3;
+}
+
+// Test with different array types
+fun test_u8_array() -> void {
+    let bytes: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // Should resolve to print(u8) and process(u8)
+    bytes
+        .map(process)    // Should call process$u8
+        .forEach(print); // Should call print$u8
+}
+
+fun test_u16_array() -> void {
+    let words: [u16; 3] = [100, 200, 300];
+    
+    // Should resolve to print(u16) and process(u16)
+    words
+        .map(process)    // Should call process$u16
+        .forEach(print); // Should call print$u16
+}
+
+// Filter function for u8
+fun isAbove15(x: u8) -> bool {
+    return x > 15;
+}
+
+// Mixed operations
+fun test_mixed() -> void {
+    let nums: [u8; 4] = [10, 20, 30, 40];
+    
+    // Chain with overloaded functions
+    nums
+        .filter(isAbove15)   // Regular function until lambdas work
+        .map(process)        // process$u8
+        .forEach(print);     // print$u8
+}
+
+fun main() -> void {
+    test_u8_array();
+    test_u16_array();
+    test_mixed();
+}

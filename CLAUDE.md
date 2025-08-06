@@ -118,6 +118,24 @@ But always ground excitement in facts and measurements.
    - Feature implementation order
    - Timeline estimates
 
+## 🏗️ Compiler Architecture
+
+**NEW**: Comprehensive architecture documentation is now available:
+
+- **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals guide:
+  - Compilation pipeline (Parser → AST → Semantic → IR → Optimizer → CodeGen)
+  - Package structure and dependencies
+  - Backend system architecture
+  - Key data structures and interfaces
+  - Making changes guide
+
+- **[Static Analysis Reports](minzc/docs/)** - Detailed codebase analysis:
+  - `136_Codebase_Analysis.md` - Function statistics and structure
+  - `137_Architecture_Analysis.md` - Import dependencies and entry points
+  - `138_Architecture_Guide.md` - Build system and tool dependencies
+
+These documents provide essential reference for understanding and modifying the compiler.
+
 ## 🚀 AI-Driven Development Practices
 
 @CLAUDE_BEST_PRACTICES.md
@@ -443,6 +461,21 @@ Performance verified: **Lambda functions run at 100% the speed of traditional fu
 ## 🏆 WORLD FIRST: Zero-Cost Abstractions on 8-bit Hardware!
 
 MinZ has achieved the impossible - modern programming abstractions with ZERO runtime overhead on Z80:
+
+### ✅ **Zero-Cost Lambda Iterators** - COMPLETE (v0.10.0) 🎊
+```minz
+// REVOLUTIONARY: Lambda expressions in iterator chains!
+numbers.iter()
+    .map(|x| x * 2)         // Lambda compiles to separate function
+    .filter(|x| x > 5)      // Each lambda becomes optimized assembly
+    .forEach(|x| print_u8(x)); // Zero runtime overhead!
+```
+**HISTORIC ACHIEVEMENT**: First functional programming language with zero-cost abstractions on 8-bit hardware!
+- **Lambda-to-function transform**: Each lambda becomes a separate named function
+- **DJNZ optimization**: Single optimal loop for entire iterator chain  
+- **Grammar enhancement**: Fixed lambda parsing with right-associative precedence
+- **Performance proof**: Identical assembly to hand-written traditional loops
+- **Technical docs**: `docs/141_Lambda_Iterator_Revolution_Complete.md`
 
 ### ✅ **Zero-Cost Iterators** - COMPLETE (v0.9.2)
 ```minz

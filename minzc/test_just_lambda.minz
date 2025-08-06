@@ -1,0 +1,5 @@
+fun main() -> u8 {
+    let f = |x: u8| x + 1;
+    let result = f(42);
+    return result;
+}

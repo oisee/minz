@@ -1,5 +1,5 @@
 ; MinZ 8080 generated code
-; Generated: 2025-08-06 12:14:00
+; Generated: 2025-08-06 12:38:56
 ; Target: Intel 8080
 
 
@@ -15,12 +15,12 @@ tests.minz.e2e_test.main:
     PUSH H
     MVI A,2AH
     STA F004H
-    LHLD F004H
-    SHLD 
+    LDA F004H
+    STA x
     MVI A,0AH
     STA F008H
-    LHLD F008H
-    SHLD 
+    LDA F008H
+    STA y
     LHLD x
     SHLD F00CH
     LHLD y
@@ -30,8 +30,8 @@ tests.minz.e2e_test.main:
     LDA F00EH
     ADD B
     STA F010H
-    LHLD F010H
-    SHLD 
+    LDA F010H
+    STA sum
     POP H
     POP D
     POP B

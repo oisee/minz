@@ -1,5 +1,5 @@
 | MinZ 68000 generated code
-| Generated: 2025-08-06 12:14:00
+| Generated: 2025-08-06 12:38:56
 | Target: Motorola 68000/68010/68020/68030/68040/68060
 | Assembler: vasm/gas compatible
 
@@ -14,14 +14,14 @@ tests.minz.e2e_test.main:
 	link a6,#-12
 	movem.l d2-d7/a2-a5,-(sp)
 	moveq #42,d0
-	move.l d0,-40(a6)
+	move.l d0,x
 	moveq #10,d2
-	move.l d2,-44(a6)
+	move.l d2,y
 	move.l x,d4
 	move.l y,d5
 	move.l d4,d6
 	add.l d5,d6
-	move.l d6,-48(a6)
+	move.l d6,sum
 	movem.l (sp)+,d2-d7/a2-a5
 	unlk a6
 	rts

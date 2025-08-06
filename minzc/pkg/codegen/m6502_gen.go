@@ -15,6 +15,7 @@ type M6502Generator struct {
 	currentFunc *ir.Function
 	output      *bytes.Buffer
 	optimizer   *M6502SMCOptimizer
+	enhancement *M6502SMCEnhancement
 	
 	// Track current register contents
 	accValue    ir.Register  // What's in accumulator
@@ -26,12 +27,15 @@ type M6502Generator struct {
 
 // NewM6502Generator creates a new optimized 6502 code generator
 func NewM6502Generator(backend *M6502Backend, module *ir.Module) *M6502Generator {
-	return &M6502Generator{
-		backend:   backend,
-		module:    module,
-		output:    &bytes.Buffer{},
-		optimizer: NewM6502SMCOptimizer(),
+	optimizer := NewM6502SMCOptimizer()
+	gen := &M6502Generator{
+		backend:     backend,
+		module:      module,
+		output:      &bytes.Buffer{},
+		optimizer:   optimizer,
+		enhancement: NewM6502SMCEnhancement(optimizer),
 	}
+	return gen
 }
 
 // Generate generates optimized 6502 assembly
@@ -89,6 +93,7 @@ func (g *M6502Generator) generateFunction(fn *ir.Function) error {
 	g.emit("; Function: %s", fn.Name)
 	if fn.IsSMCEnabled {
 		g.emit("; SMC enabled - parameters in zero page")
+		g.emit("; Enhanced optimizations applied")
 	}
 	g.emit("%s:", g.sanitizeName(fn.Name))
 	
@@ -101,6 +106,9 @@ func (g *M6502Generator) generateFunction(fn *ir.Function) error {
 			}
 		}
 		g.emit("")
+		
+		// Apply enhanced SMC optimizations
+		g.enhancement.EnhanceSMCFunction(fn, g)
 	}
 	
 	// Generate instructions

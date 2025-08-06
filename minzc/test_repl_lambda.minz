@@ -1,0 +1,12 @@
+// Test file for lambda iterators
+fun test_lambda_iterator() -> u8 {
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // Revolutionary lambda iterators!
+    numbers.iter()
+           .map(|x| x * 2)
+           .filter(|x| x > 5)
+           .forEach(|x| print_u8(x));
+    
+    return 42;
+}

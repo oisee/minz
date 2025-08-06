@@ -1,5 +1,5 @@
 ;; MinZ WebAssembly generated code
-;; Generated: 2025-08-06 12:14:00
+;; Generated: 2025-08-06 12:38:56
 ;; Note: WASM uses stack-based calling convention, no SMC
 
 (module
@@ -23,12 +23,12 @@
     (local $r8 i32)
     i32.const 42  ;; r2 = 42
     local.set $r2
-    local.get $r2  ;; store 
-    global.set $
+    local.get $r2  ;; store x
+    global.set $x
     i32.const 10  ;; r4 = 10
     local.set $r4
-    local.get $r4  ;; store 
-    global.set $
+    local.get $r4  ;; store y
+    global.set $y
     global.get $x  ;; r6 = x
     local.set $r6
     global.get $y  ;; r7 = y
@@ -37,8 +37,8 @@
     local.get $r7
     i32.add
     local.set $r8
-    local.get $r8  ;; store 
-    global.set $
+    local.get $r8  ;; store sum
+    global.set $sum
     return
   )
 

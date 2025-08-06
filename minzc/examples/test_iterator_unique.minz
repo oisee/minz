@@ -1,0 +1,18 @@
+// Test with uniquely named function
+
+fun doubleValue(x: u8) -> u8 {
+    return x * 2;
+}
+
+fun printValue(x: u8) -> void {
+    // Print implementation
+}
+
+fun main() -> void {
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // Try with unique function names
+    numbers
+        .map(doubleValue)
+        .forEach(printValue);
+}

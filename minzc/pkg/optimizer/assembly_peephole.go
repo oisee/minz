@@ -239,7 +239,7 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 		{
 			Name:        "optimize_stack_drop_general",
 			Description: "Optimize POP used for dropping when result unused",
-			Pattern:     regexp.MustCompile(`(?m)^(\s*)POP\s+([A-Z]+)\s*\n\s*; Register \2 not used after POP$`),
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)POP\s+([A-Z]+)\s*\n\s*; Register [A-Z]+ not used after POP$`),
 			Replacement: "${1}INC SP\n${1}INC SP       ; Optimized: drop 2 bytes (was POP $2)",
 		},
 		
@@ -323,12 +323,12 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 			Replacement: "${1}JP $2        ; Consider: JR $2 if within -128/+127 bytes",
 		},
 		
-		// Pattern 32: Optimize redundant register loads
+		// Pattern 32: Optimize redundant register loads (specific cases)
 		{
-			Name:        "optimize_redundant_ld_same_reg",
-			Description: "Remove redundant load to same register with same value",
-			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+([A-Z]),\s*([A-Z])\s*\n\s*LD\s+\2,\s*\3$`),
-			Replacement: "${1}LD $2, $3    ; Removed redundant duplicate load",
+			Name:        "optimize_redundant_ld_a_b_b",
+			Description: "Remove redundant LD A,B followed by LD A,B",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+A,\s*B\s*\n\s*LD\s+A,\s*B$`),
+			Replacement: "${1}LD A, B    ; Removed redundant duplicate load",
 		},
 		
 		// Pattern 33: Optimize LD BC,n; ADD HL,BC to direct add when n is small

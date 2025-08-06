@@ -1,0 +1,25 @@
+// Comprehensive test for LOAD_INDEX and LOAD_ADDR support
+global byte_array: [u8; 4] = [10, 20, 30, 40];
+global word_array: [u16; 3] = [100, 200, 300];
+
+fun test_byte_indexing(idx: u8) -> u8 {
+    return byte_array[idx];
+}
+
+fun test_word_indexing(idx: u8) -> u16 {
+    return word_array[idx];
+}
+
+fun test_dynamic_indexing() -> u8 {
+    let i: u8 = 2;
+    let result: u8 = byte_array[i];
+    return result;
+}
+
+fun main() -> u8 {
+    let byte_val: u8 = test_byte_indexing(1);
+    let word_val: u16 = test_word_indexing(0);
+    let dynamic_val: u8 = test_dynamic_indexing();
+    
+    return byte_val;
+}
