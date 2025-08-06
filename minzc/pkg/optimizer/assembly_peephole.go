@@ -232,7 +232,15 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 			Name:        "optimize_stack_drop_2",
 			Description: "Optimize POP to INC SP for dropping 2 bytes",
 			Pattern:     regexp.MustCompile(`(?m)^(\s*)POP\s+([A-Z]+)\s*;\s*Drop.*$`),
-			Replacement: "${1}INC SP\n${1}INC SP       ; Optimized: drop 2 bytes from stack",
+			Replacement: "${1}INC SP\n${1}INC SP       ; Optimized: drop 2 bytes from stack (was POP $2)",
+		},
+		
+		// Pattern 21b: Stack drop optimization (without comment)
+		{
+			Name:        "optimize_stack_drop_general",
+			Description: "Optimize POP used for dropping when result unused",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)POP\s+([A-Z]+)\s*\n\s*; Register \2 not used after POP$`),
+			Replacement: "${1}INC SP\n${1}INC SP       ; Optimized: drop 2 bytes (was POP $2)",
 		},
 		
 		// Pattern 22: Optimize compare with zero
