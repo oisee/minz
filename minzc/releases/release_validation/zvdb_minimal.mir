@@ -1,0 +1,81 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.zvdb_minimal.hamming8(a: u8, b: u8) -> u8
+  @smc
+  Locals:
+    r3 = xor: u16
+    r7 = count: u16
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor b$imm0
+      2: r36 = load count
+      3: return r36
+
+Function ......examples.zvdb_minimal.add_vector(store: *......examples.zvdb_minimal.VectorStore, vec: u8) -> bool
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor store$imm0
+      1: LOAD_FIELD ; Load field count (offset 256)
+      2: r5 = 255
+      3: r6 = r4 >= r5
+      4: jump_if_not r6, else_1
+      5: return
+      6: else_1:
+      7: UNKNOWN_OP_33 ; Load from anchor vec$imm0
+      8: UNKNOWN_OP_33 ; Load from anchor store$imm0
+      9: UNKNOWN_OP_33 ; Load from anchor store$imm0
+     10: UNKNOWN_OP_67 ; Store to array[index] (u8)
+     11: UNKNOWN_OP_33 ; Load from anchor store$imm0
+     12: UNKNOWN_OP_33 ; Load from anchor store$imm0
+     13: return
+
+Function ......examples.zvdb_minimal.find_nearest(store: *......examples.zvdb_minimal.VectorStore, query: u8) -> u8
+  @smc
+  Locals:
+    r3 = best_idx: u8
+    r5 = best_dist: u8
+    r7 = i: u8
+    r13 = dist: u16
+  Instructions:
+      0: loop_3:
+      1: r9 = load i
+      2: UNKNOWN_OP_33 ; Load from anchor store$imm0
+      3: LOAD_FIELD ; Load field count (offset 256)
+      4: r12 = r9 < r11
+      5: jump_if_not r12, end_loop_4
+      6: UNKNOWN_OP_33 ; Load from anchor query$imm0
+      7: UNKNOWN_OP_33 ; Load from anchor store$imm0
+      8: LOAD_INDEX ; Load array element (u8)
+      9: r19 = call hamming8
+     10: r20 = load dist
+     11: r21 = load best_dist
+     12: r22 = r20 < r21
+     13: jump_if_not r22, else_5
+     14: jump end_if_6
+     15: else_5:
+     16: end_if_6:
+     17: jump loop_3
+     18: end_loop_4:
+     19: r28 = load best_idx
+     20: return r28
+
+Function ......examples.zvdb_minimal.main() -> void
+  @smc
+  Locals:
+    r1 = store: ......examples.zvdb_minimal.VectorStore
+    r20 = query: u8
+    r22 = nearest: u16
+  Instructions:
+      0: UNKNOWN_OP_68
+      1: r7 = call add_vector
+      2: UNKNOWN_OP_68
+      3: r11 = call add_vector
+      4: UNKNOWN_OP_68
+      5: r15 = call add_vector
+      6: UNKNOWN_OP_68
+      7: r19 = call add_vector
+      8: UNKNOWN_OP_68
+      9: r26 = call find_nearest
+     10: return
+

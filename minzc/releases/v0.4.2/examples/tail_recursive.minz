@@ -1,0 +1,26 @@
+// Tail recursive factorial example
+fun factorial_tail(n: u8, acc: u16) -> u16 {
+    if n == 0 {
+        return acc;
+    }
+    // This is tail recursive - the recursive call is the last operation
+    return factorial_tail(n - 1, n * acc);
+}
+
+fun factorial(n: u8) -> u16 {
+    return factorial_tail(n, 1);
+}
+
+// Tail recursive sum
+fun sum_tail(n: u16, acc: u16) -> u16 {
+    if n == 0 {
+        return acc;
+    }
+    // Tail recursive call
+    return sum_tail(n - 1, acc + n);
+}
+
+fun main() -> void {
+    let result = factorial(5);  // Should be 120
+    let sum = sum_tail(100, 0);  // Should be 5050
+}

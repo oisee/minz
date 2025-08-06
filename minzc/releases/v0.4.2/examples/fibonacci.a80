@@ -1,0 +1,168 @@
+; MinZ generated code
+; Generated: 2025-07-26 19:53:56
+
+
+; Code section
+    ORG $8000
+
+
+; Function: fibonacci.fibonacci
+fibonacci.fibonacci:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+fibonacci.fibonacci_param_n:
+    LD HL, #0000   ; SMC parameter n (u8->u16)
+    LD ($F004), HL
+    ; r3 = 1
+    LD A, 1
+    LD ($F006), A
+    ; r4 = r2 <= r3
+    LD HL, ($F004)
+    LD D, H
+    LD E, L
+    LD HL, ($F006)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    LD ($F008), HL
+    ; jump_if_not r4, else_1
+    LD A, ($F008)
+    OR A
+    JP Z, else_1
+    LD A, (fibonacci.fibonacci_param_n)
+    LD ($F00A), A
+    ; return r5
+    LD HL, ($F00A)
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    ; r7 = 0
+    LD A, 0
+    LD ($F00E), A
+    ; store , r7
+    LD HL, ($F00E)
+    LD ($F00C), HL
+    ; r9 = 1
+    LD A, 1
+    LD ($F012), A
+    ; store , r9
+    LD HL, ($F012)
+    LD ($F010), HL
+    ; r11 = 2
+    LD A, 2
+    LD ($F016), A
+    ; store , r11
+    LD HL, ($F016)
+    LD ($F014), HL
+    ; loop_3:
+loop_3:
+    ; r12 = load i
+    LD HL, ($F000)
+    LD ($F018), HL
+    LD A, (fibonacci.fibonacci_param_n)
+    LD ($F01A), A
+    ; r14 = r12 <= r13
+    LD HL, ($F018)
+    LD D, H
+    LD E, L
+    LD HL, ($F01A)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L3
+    JP Z, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    LD ($F01C), HL
+    ; jump_if_not r14, end_loop_4
+    LD A, ($F01C)
+    OR A
+    JP Z, end_loop_4
+    ; r16 = load a
+    LD HL, ($F000)
+    LD ($F020), HL
+    ; r17 = load b
+    LD HL, ($F000)
+    LD ($F022), HL
+    ; r18 = r16 + r17
+    LD HL, ($F020)
+    LD D, H
+    LD E, L
+    LD HL, ($F022)
+    ADD HL, DE
+    LD ($F024), HL
+    ; store , r18
+    LD HL, ($F024)
+    LD ($F01E), HL
+    ; r19 = load b
+    LD HL, ($F000)
+    LD ($F026), HL
+    ; store a, r19
+    LD HL, ($F026)
+    LD ($F00C), HL
+    ; r20 = load temp
+    LD HL, ($F000)
+    LD ($F028), HL
+    ; store b, r20
+    LD HL, ($F028)
+    LD ($F010), HL
+    ; r21 = load i
+    LD HL, ($F000)
+    LD ($F02A), HL
+    ; r22 = 1
+    LD A, 1
+    LD ($F02C), A
+    ; r23 = r21 + r22
+    LD HL, ($F02A)
+    LD D, H
+    LD E, L
+    LD HL, ($F02C)
+    ADD HL, DE
+    LD ($F02E), HL
+    ; store i, r23
+    LD HL, ($F02E)
+    LD ($F014), HL
+    ; jump loop_3
+    JP loop_3
+    ; end_loop_4:
+end_loop_4:
+    ; r24 = load b
+    LD HL, ($F000)
+    LD ($F030), HL
+    ; return r24
+    LD HL, ($F030)
+    RET
+
+; Function: fibonacci.main
+fibonacci.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD ($F004), A
+    ; r3 = call fibonacci
+    ; Call to fibonacci (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL fibonacci
+    LD ($F006), HL
+    ; store , r3
+    LD HL, ($F006)
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

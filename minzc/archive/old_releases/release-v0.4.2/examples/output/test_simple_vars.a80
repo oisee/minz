@@ -1,0 +1,37 @@
+; MinZ generated code
+; Generated: 2025-07-28 08:45:59
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_simple_vars.main
+...examples.test_simple_vars.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    ; Register 2 already in A
+    ; store , r2
+    LD ($F002), HL
+    ; r4 = 10
+    LD A, 10
+    LD C, A         ; Store to physical register C
+    ; store , r4
+    LD ($F006), HL
+    ; r6 = 100
+    LD A, 100
+    LD E, A         ; Store to physical register E
+    ; store , r6
+    LD ($F00A), HL
+    ; r8 = 200
+    LD A, 200
+    LD L, A         ; Store to physical register L
+    ; store , r8
+    LD ($F00E), HL
+    ; return
+    RET
+
+    END main

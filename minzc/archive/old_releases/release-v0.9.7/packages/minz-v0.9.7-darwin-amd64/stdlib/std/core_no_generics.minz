@@ -1,0 +1,247 @@
+// MinZ Standard Library - Core Module (No Generics)
+// Practical implementations that work with current MinZ
+
+// Option types for common cases
+enum OptionU8 {
+    SomeU8(u8),
+    NoneU8
+}
+
+enum OptionU16 {
+    SomeU16(u16),
+    NoneU16
+}
+
+enum OptionPtr {
+    SomePtr(*u8),
+    NonePtr
+}
+
+// Result types for error handling
+enum ResultU8 {
+    OkU8(u8),
+    ErrU8(u8)
+}
+
+enum ResultU16 {
+    OkU16(u16),
+    ErrU16(u8)  // Error code is usually u8
+}
+
+enum ResultVoid {
+    OkVoid,
+    ErrVoid(u8)
+}
+
+// Memory utilities
+fun mem_copy(dest: *u8, src: *u8, count: u16) -> void {
+    // For small copies, unroll
+    if count <= 8 {
+        for i in 0..count {
+            *(dest + i) = *(src + i);
+        }
+    } else {
+        // Use Z80 block copy
+        @asm("
+            ld hl, {src}
+            ld de, {dest}
+            ld bc, {count}
+            ldir
+        ");
+    }
+}
+
+fun mem_set(dest: *u8, value: u8, count: u16) -> void {
+    if count == 0 { return; }
+    
+    if count <= 4 {
+        for i in 0..count {
+            *(dest + i) = value;
+        }
+    } else {
+        // Set first byte then copy
+        *dest = value;
+        if count > 1 {
+            @asm("
+                ld hl, {dest}
+                ld de, {dest}
+                inc de
+                ld bc, {count}
+                dec bc
+                ldir
+            ");
+        }
+    }
+}
+
+fun mem_compare(a: *u8, b: *u8, count: u16) -> i8 {
+    for i in 0..count {
+        let va = *(a + i);
+        let vb = *(b + i);
+        if va < vb { return -1; }
+        if va > vb { return 1; }
+    }
+    return 0;
+}
+
+// Math utilities
+fun abs8(x: i8) -> u8 {
+    if x < 0 { return (-x) as u8; }
+    return x as u8;
+}
+
+fun abs16(x: i16) -> u16 {
+    if x < 0 { return (-x) as u16; }
+    return x as u16;
+}
+
+fun min8(a: u8, b: u8) -> u8 {
+    if a < b { return a; }
+    return b;
+}
+
+fun max8(a: u8, b: u8) -> u8 {
+    if a > b { return a; }
+    return b;
+}
+
+fun min16(a: u16, b: u16) -> u16 {
+    if a < b { return a; }
+    return b;
+}
+
+fun max16(a: u16, b: u16) -> u16 {
+    if a > b { return a; }
+    return b;
+}
+
+fun clamp8(value: u8, min: u8, max: u8) -> u8 {
+    if value < min { return min; }
+    if value > max { return max; }
+    return value;
+}
+
+// Bit manipulation
+fun count_ones_u8(x: u8) -> u8 {
+    let mut count: u8 = 0;
+    let mut val = x;
+    while val != 0 {
+        count = count + (val & 1);
+        val = val >> 1;
+    }
+    return count;
+}
+
+fun count_ones_u16(x: u16) -> u8 {
+    return count_ones_u8((x & 0xFF) as u8) + count_ones_u8((x >> 8) as u8);
+}
+
+// Find first set bit (returns 0-7 for u8, or 8 if no bit set)
+fun first_one_u8(x: u8) -> u8 {
+    if x == 0 { return 8; }
+    
+    let mut pos: u8 = 0;
+    let mut val = x;
+    while (val & 1) == 0 {
+        val = val >> 1;
+        pos = pos + 1;
+    }
+    return pos;
+}
+
+// Reverse bits in a byte
+fun reverse_bits_u8(x: u8) -> u8 {
+    let mut result: u8 = 0;
+    let mut val = x;
+    for i in 0..8 {
+        result = (result << 1) | (val & 1);
+        val = val >> 1;
+    }
+    return result;
+}
+
+// Rotate operations
+fun rotate_left_u8(x: u8, n: u8) -> u8 {
+    let n = n & 7;  // Mod 8
+    return (x << n) | (x >> (8 - n));
+}
+
+fun rotate_right_u8(x: u8, n: u8) -> u8 {
+    let n = n & 7;  // Mod 8
+    return (x >> n) | (x << (8 - n));
+}
+
+// Simple assert without strings (for now)
+fun assert(condition: bool) -> void {
+    if !condition {
+        @print("ASSERTION FAILED\n");
+        @halt();
+    }
+}
+
+// Fixed-size array operations
+fun array_fill_u8(arr: *u8, len: u16, value: u8) -> void {
+    for i in 0..len {
+        *(arr + i) = value;
+    }
+}
+
+fun array_copy_u8(dest: *u8, src: *u8, len: u16) -> void {
+    mem_copy(dest, src, len);
+}
+
+fun array_find_u8(arr: *u8, len: u16, value: u8) -> u16 {
+    for i in 0..len {
+        if *(arr + i) == value {
+            return i;
+        }
+    }
+    return 0xFFFF;  // Not found
+}
+
+// Simple string operations (assuming length-prefixed strings)
+fun str_len(s: *u8) -> u8 {
+    return *s;  // First byte is length
+}
+
+fun str_data(s: *u8) -> *u8 {
+    return s + 1;  // Skip length byte
+}
+
+fun str_copy(dest: *u8, src: *u8) -> void {
+    let len = str_len(src);
+    *dest = len;  // Copy length
+    mem_copy(dest + 1, src + 1, len as u16);
+}
+
+fun str_compare(a: *u8, b: *u8) -> i8 {
+    let len_a = str_len(a);
+    let len_b = str_len(b);
+    let min_len = min8(len_a, len_b);
+    
+    let result = mem_compare(a + 1, b + 1, min_len as u16);
+    if result != 0 {
+        return result;
+    }
+    
+    // If prefixes are equal, shorter string is less
+    if len_a < len_b { return -1; }
+    if len_a > len_b { return 1; }
+    return 0;
+}
+
+// Platform detection (compile-time)
+@if(PLATFORM == "ZX_SPECTRUM") {
+    const SCREEN_WIDTH: u16 = 256;
+    const SCREEN_HEIGHT: u16 = 192;
+    const SCREEN_ADDR: u16 = 0x4000;
+} else @if(PLATFORM == "C64") {
+    const SCREEN_WIDTH: u16 = 320;
+    const SCREEN_HEIGHT: u16 = 200;
+    const SCREEN_ADDR: u16 = 0x0400;
+} else {
+    // Generic defaults
+    const SCREEN_WIDTH: u16 = 256;
+    const SCREEN_HEIGHT: u16 = 192;
+    const SCREEN_ADDR: u16 = 0x8000;
+}

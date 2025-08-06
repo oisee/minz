@@ -1,0 +1,18 @@
+; MinZ generated code
+; Generated: 2025-08-03 15:05:42
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.fibonacci_tail.fib_tail
+......examples.fibonacci_tail.fib_tail:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    ; Tail recursion loop start
+......examples.fibonacci_tail.fib_tail_tail_loop:
+    ; unknown op 57

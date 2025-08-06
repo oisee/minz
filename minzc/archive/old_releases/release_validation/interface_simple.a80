@@ -1,0 +1,23 @@
+; MinZ generated code
+; Generated: 2025-08-03 15:05:42
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.interface_simple.Circle.draw
+......examples.interface_simple.Circle.draw:
+; TRUE SMC function with immediate anchors
+self$immOP:
+    LD A, 0        ; self anchor (will be patched)
+self$imm0 EQU self$immOP+1
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.interface_simple.main
+......examples.interface_simple.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)

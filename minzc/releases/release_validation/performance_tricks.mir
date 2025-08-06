@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.performance_tricks.fast_fill(dest: *u8, value: u8, count: u16) -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_73
+      1: return
+
+Function ......examples.performance_tricks.unrolled_copy(dest: *u8, src: *u8) -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_73
+      1: return
+
+Function ......examples.performance_tricks.lookup_mul_by_10(x: u8) -> u16
+  @smc
+  Locals:
+    r2 = x2: u16
+    r6 = x8: u16
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      2: r10 = load x2
+      3: r11 = load x8
+      4: r12 = r10 + r11
+      5: return r12
+

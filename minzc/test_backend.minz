@@ -1,9 +1,0 @@
-// Test multi-backend compilation
-fun main() -> void {
-    let x: u8 = 42;
-    let y: u16 = 1000;
-    let z: u24 = 0x100000;  // 24-bit value
-    let fixed: f8.8 = 3.14;  // Fixed-point
-    
-    @print("Multi-backend test: x={x}, y={y}");
-}

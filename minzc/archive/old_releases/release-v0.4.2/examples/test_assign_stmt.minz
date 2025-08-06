@@ -1,0 +1,5 @@
+fun test() -> void {
+    var x: u8 = 5;
+    // Try various ways to assign
+    x = 10;  // Simple assignment
+}

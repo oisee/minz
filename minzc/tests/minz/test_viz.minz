@@ -1,0 +1,39 @@
+// Test program for MIR visualization
+global counter: u8 = 0;
+
+fun factorial(n: u8) -> u8 {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return n * factorial(n - 1);
+    }
+}
+
+fun fibonacci(n: u8) -> u8 {
+    if (n <= 1) {
+        return n;
+    }
+    
+    let a: u8 = 0;
+    let b: u8 = 1;
+    let i: u8 = 2;
+    
+    while (i <= n) {
+        let temp: u8 = a + b;
+        a = b;
+        b = temp;
+        i = i + 1;
+    }
+    
+    return b;
+}
+
+fun main() -> void {
+    let result1: u8 = factorial(5);
+    let result2: u8 = fibonacci(10);
+    
+    @print("Factorial(5) = { result1 }\n");
+    @print("Fibonacci(10) = { result2 }\n");
+    
+    counter = counter + 1;
+}

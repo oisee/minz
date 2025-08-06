@@ -1,0 +1,206 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.metafunction_demo.demo_simple_print() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_87 ; Direct print "Hello" (5 chars)
+      1: UNKNOWN_OP_87 ; Direct print "Hi" (2 chars)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "Hello, World!" (13 chars via loop)
+      4: return
+
+Function ......examples.metafunction_demo.demo_constants() -> void
+  @smc
+  Locals:
+    r5 = runtime_value: u16
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "The answer is 42" (16 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "Pi is approximately " (20 chars via loop)
+      4: UNKNOWN_OP_88
+      5: UNKNOWN_OP_86 ; Print "Success: true" (13 chars via loop)
+      6: UNKNOWN_OP_88
+      7: UNKNOWN_OP_86 ; Print "Result: 20" (10 chars via loop)
+      8: r6 = call get_user_input
+      9: UNKNOWN_OP_82
+     10: return
+
+Function ......examples.metafunction_demo.demo_mixed() -> void
+  @smc
+  Locals:
+    r1 = user_score: u16
+  Instructions:
+      0: r2 = call get_user_input
+      1: UNKNOWN_OP_88
+      2: UNKNOWN_OP_86 ; Print "Your score: " (12 chars via loop)
+      3: UNKNOWN_OP_87 ; Direct print " points!" (8 chars)
+      4: return
+
+Function ......examples.metafunction_demo.demo_formatting() -> void
+  @smc
+  Locals:
+    r1 = address: u16
+    r3 = flags: u8
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Memory address: 32768" (21 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print "Flags: 210" (10 chars via loop)
+      4: return
+
+Function ......examples.metafunction_demo.demo_debug() -> void
+  @smc
+  Locals:
+    r1 = temperature: i8
+    r3 = pressure: u16
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Debug mode: temp=" (17 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print ", pressure=" (11 chars via loop)
+      4: return
+
+Function ......examples.metafunction_demo.demo_assertions() -> void
+  @smc
+  Locals:
+    r1 = buffer_size: u16
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Assertions would check buffer_size=" (35 chars via loop)
+      2: return
+
+Function ......examples.metafunction_demo.demo_platform() -> void
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Platform-specific code would go here" (36 chars via loop)
+      2: return
+
+Function ......examples.metafunction_demo.demo_complex() -> void
+  @smc
+  Locals:
+    r1 = player_name: *u8
+    r3 = level: u8
+    r5 = score: u16
+    r7 = health: u8
+  Instructions:
+      0: LOAD_LABEL ; Load string "Alice"
+      1: UNKNOWN_OP_81
+      2: return
+
+Function ......examples.metafunction_demo.demo_error_handling() -> void
+  @smc
+  Locals:
+    r1 = error_code: u8
+  Instructions:
+      0: r2 = call check_system
+      1: UNKNOWN_OP_57
+      2: jump_if_not r5, else_1
+      3: UNKNOWN_OP_88
+      4: UNKNOWN_OP_86 ; Print "System check failed with code " (30 chars via loop)
+      5: jump end_if_2
+      6: else_1:
+      7: end_if_2:
+      8: UNKNOWN_OP_88
+      9: UNKNOWN_OP_86 ; Print "System initialized successfully" (31 chars via loop)
+     10: return
+
+Function ......examples.metafunction_demo.demo_performance() -> void
+  @smc
+  @recursive
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r3 = call fibonacci
+      1: UNKNOWN_OP_88
+      2: UNKNOWN_OP_86 ; Print "Fibonacci result: " (18 chars via loop)
+      3: return
+
+Function ......examples.metafunction_demo.demo_string_building() -> void
+  @smc
+  Locals:
+    r1 = version: *u8
+    r3 = status: *u8
+    r5 = timestamp: *u8
+  Instructions:
+      0: LOAD_LABEL ; Load string "MinZ v1.0.0"
+      1: LOAD_LABEL ; Load string "Status: OK"
+      2: LOAD_LABEL ; Load string "Built: 2025-01-15"
+      3: UNKNOWN_OP_88
+      4: UNKNOWN_OP_86 ; Print "System info: " (13 chars via loop)
+      5: UNKNOWN_OP_87 ; Direct print ", " (2 chars)
+      6: UNKNOWN_OP_87 ; Direct print ", " (2 chars)
+      7: return
+
+Function ......examples.metafunction_demo.demo_atomic() -> void
+  @smc
+  Locals:
+    r1 = counter: u16
+    r6 = doubled: u8
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "Counter: " (9 chars via loop)
+      2: UNKNOWN_OP_88
+      3: UNKNOWN_OP_86 ; Print ", Doubled: " (11 chars via loop)
+      4: return
+
+Function ......examples.metafunction_demo.get_user_input() -> u16
+  @smc
+  Instructions:
+      0: r1 = 1337
+      1: return r1
+
+Function ......examples.metafunction_demo.check_system() -> u8
+  @smc
+  Instructions:
+      0: r1 = 0
+      1: return r1
+
+Function ......examples.metafunction_demo.fibonacci(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor n$imm0
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_3
+      4: UNKNOWN_OP_33 ; Load from anchor n$imm0
+      5: return r5
+      6: else_3:
+      7: UNKNOWN_OP_33 ; Load from anchor n$imm0
+      8: r9 = call fibonacci
+      9: UNKNOWN_OP_33 ; Load from anchor n$imm0
+     10: r13 = call fibonacci
+     11: r14 = r9 + r13
+     12: return r14
+
+Function ......examples.metafunction_demo.main() -> void
+  @smc
+  @recursive
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "=== MinZ Metafunction Demo ===
+" (31 chars via loop)
+      2: r2 = call demo_simple_print
+      3: r3 = call demo_constants
+      4: r4 = call demo_mixed
+      5: r5 = call demo_formatting
+      6: r6 = call demo_debug
+      7: r7 = call demo_assertions
+      8: r8 = call demo_platform
+      9: r9 = call demo_complex
+     10: r10 = call demo_error_handling
+     11: r11 = call demo_performance
+     12: r12 = call demo_string_building
+     13: r13 = call demo_atomic
+     14: UNKNOWN_OP_88
+     15: UNKNOWN_OP_86 ; Print "
+=== Demo Complete ===
+" (23 chars via loop)
+     16: UNKNOWN_OP_88
+     17: UNKNOWN_OP_86 ; Print "Generated code is optimal with zero runtime overhead!
+" (54 chars via loop)
+     18: return
+

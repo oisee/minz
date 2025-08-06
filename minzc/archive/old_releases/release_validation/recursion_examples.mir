@@ -1,0 +1,77 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.recursion_examples.factorial(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor n$imm0
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: else_1:
+      7: UNKNOWN_OP_33 ; Load from anchor n$imm0
+      8: UNKNOWN_OP_33 ; Load from anchor n$imm0
+      9: r10 = call factorial
+     10: r11 = r6 * r10
+     11: return r11
+
+Function ......examples.recursion_examples.gcd(a: u8, b: u8) -> u8
+  @smc
+  @recursive
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor b$imm0
+      1: ......examples.recursion_examples.gcd_tail_loop: ; Tail recursion loop start
+      2: UNKNOWN_OP_57
+      3: jump_if_not r5, else_3
+      4: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      5: return r6
+      6: else_3:
+      7: UNKNOWN_OP_33 ; Load from anchor b$imm0
+      8: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      9: UNKNOWN_OP_33 ; Load from anchor b$imm0
+     10: jump ......examples.recursion_examples.gcd_tail_loop ; Tail recursion optimized to loop
+
+Function ......examples.recursion_examples.binary_search(arr: *u8, target: u8, left: u8, right: u8) -> i8
+  @smc
+  @recursive
+  Locals:
+    r10 = mid: u16
+    r18 = value: u16
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor left$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor right$imm0
+      2: ......examples.recursion_examples.binary_search_tail_loop: ; Tail recursion loop start
+      3: r7 = r5 > r6
+      4: jump_if_not r7, else_5
+      5: r9 = -1 ; Folded: 
+      6: return r9
+      7: else_5:
+      8: UNKNOWN_OP_33 ; Load from anchor left$imm0
+      9: UNKNOWN_OP_33 ; Load from anchor right$imm0
+     10: UNKNOWN_OP_33 ; Load from anchor left$imm0
+     11: UNKNOWN_OP_33 ; Load from anchor arr$imm0
+     12: UNKNOWN_OP_69
+     13: r23 = load value
+     14: UNKNOWN_OP_33 ; Load from anchor target$imm0
+     15: r25 = r23 == r24
+     16: jump_if_not r25, else_7
+     17: r26 = load mid
+     18: return r26
+     19: else_7:
+     20: r27 = load value
+     21: UNKNOWN_OP_33 ; Load from anchor target$imm0
+     22: r29 = r27 < r28
+     23: jump_if_not r29, else_9
+     24: UNKNOWN_OP_33 ; Load from anchor arr$imm0
+     25: UNKNOWN_OP_33 ; Load from anchor target$imm0
+     26: UNKNOWN_OP_33 ; Load from anchor right$imm0
+     27: jump ......examples.recursion_examples.binary_search_tail_loop ; Tail recursion optimized to loop
+     28: else_9:
+     29: UNKNOWN_OP_33 ; Load from anchor arr$imm0
+     30: UNKNOWN_OP_33 ; Load from anchor target$imm0
+     31: UNKNOWN_OP_33 ; Load from anchor left$imm0
+     32: jump ......examples.recursion_examples.binary_search_tail_loop ; Tail recursion optimized to loop
+

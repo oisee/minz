@@ -1,0 +1,155 @@
+; MinZ generated code
+; Generated: 2025-08-03 15:05:43
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.smc_recursion.factorial_smc
+......examples.smc_recursion.factorial_smc:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    ; r3 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 <= r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; return r5
+    RET
+    ; else_1:
+else_1:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD E, A         ; Store to physical register E
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    ; r10 = call factorial_smc
+    ; Call to factorial_smc (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ......examples.smc_recursion.factorial_smc
+    LD A, ($F012)     ; Virtual register 9 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL ......examples.smc_recursion.factorial_smc
+    ; r11 = r6 * r10
+    ; 8-bit multiplication
+    LD A, E
+    LD B, A       ; B = multiplicand
+    LD A, L
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_2
+.mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_2
+.mul_done_2:
+    ; return r11
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.smc_recursion.fib_smc
+......examples.smc_recursion.fib_smc:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r4 = r2 <= r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L4
+    JP Z, .L4
+    LD HL, 0
+    JP .L5
+.L4:
+    LD HL, 1
+.L5:
+    ; jump_if_not r4, else_3
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_3
+    LD A, (n$imm0)    ; Reuse from anchor
+    ; Register 5 already in A
+    ; return r5
+    RET
+    ; else_3:
+else_3:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r9 = call fib_smc
+    ; Call to fib_smc (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ......examples.smc_recursion.fib_smc
+    LD A, ($F010)     ; Virtual register 8 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL ......examples.smc_recursion.fib_smc
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    ; r13 = call fib_smc
+    ; Call to fib_smc (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ......examples.smc_recursion.fib_smc
+    LD A, ($F018)     ; Virtual register 12 from memory
+    LD (n$imm0), A        ; Patch n
+    CALL ......examples.smc_recursion.fib_smc
+    ; r14 = r9 + r13
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r14
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.smc_recursion.many_params_recursive
+......examples.smc_recursion.many_params_recursive:
+; TRUE SMC function with immediate anchors
+a$immOP:
+    LD A, 0        ; a anchor (will be patched)
+a$imm0 EQU a$immOP+1
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; unknown op 57

@@ -1,0 +1,84 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.test_bit_field_comprehensive.test_8bit_fields() -> void
+  @smc
+  Locals:
+    r1 = raw: u8
+    r3 = flags: bits<u8>
+    r5 = c: u8
+    r8 = z: u8
+    r11 = s: u8
+    r20 = old_sign: u8
+    r25 = new_sign: u8
+  Instructions:
+      0: LOAD_BIT_FIELD ; Load bit field carry (offset 0, width 1)
+      1: LOAD_BIT_FIELD ; Load bit field zero (offset 6, width 1)
+      2: LOAD_BIT_FIELD ; Load bit field sign (offset 7, width 1)
+      3: STORE_BIT_FIELD ; Store bit field zero (offset 6, width 1)
+      4: STORE_BIT_FIELD ; Store bit field carry (offset 0, width 1)
+      5: STORE_BIT_FIELD ; Store bit field parity (offset 2, width 1)
+      6: LOAD_BIT_FIELD ; Load bit field sign (offset 7, width 1)
+      7: STORE_BIT_FIELD ; Store bit field sign (offset 7, width 1)
+      8: LOAD_BIT_FIELD ; Load bit field sign (offset 7, width 1)
+      9: LOAD_BIT_FIELD ; Load bit field carry (offset 0, width 1)
+     10: LOAD_BIT_FIELD ; Load bit field zero (offset 6, width 1)
+     11: STORE_BIT_FIELD ; Store bit field half_carry (offset 4, width 1)
+     12: return
+
+Function ......examples.test_bit_field_comprehensive.test_16bit_fields() -> void
+  @smc
+  Locals:
+    r1 = raw: u16
+    r3 = sprite: bits<u16>
+    r11 = x: u16
+  Instructions:
+      0: STORE_BIT_FIELD ; Store bit field x_coord (offset 0, width 9)
+      1: STORE_BIT_FIELD ; Store bit field palette_id (offset 9, width 3)
+      2: STORE_BIT_FIELD ; Store bit field priority (offset 12, width 2)
+      3: LOAD_BIT_FIELD ; Load bit field x_coord (offset 0, width 9)
+      4: STORE_BIT_FIELD ; Store bit field x_coord (offset 0, width 9)
+      5: LOAD_BIT_FIELD ; Load bit field h_flip (offset 14, width 1)
+      6: UNKNOWN_OP_57
+      7: jump_if_not r21, else_1
+      8: STORE_BIT_FIELD ; Store bit field h_flip (offset 14, width 1)
+      9: STORE_BIT_FIELD ; Store bit field v_flip (offset 15, width 1)
+     10: jump end_if_2
+     11: else_1:
+     12: end_if_2:
+     13: return
+
+Function ......examples.test_bit_field_comprehensive.test_field_expressions() -> void
+  @smc
+  Locals:
+    r1 = flags: bits<u8>
+    r3 = result: u8
+  Instructions:
+      0: LOAD_BIT_FIELD ; Load bit field carry (offset 0, width 1)
+      1: LOAD_BIT_FIELD ; Load bit field zero (offset 6, width 1)
+      2: LOAD_BIT_FIELD ; Load bit field sign (offset 7, width 1)
+      3: LOAD_BIT_FIELD ; Load bit field zero (offset 6, width 1)
+      4: r18 = 1
+      5: r19 = r17 == r18
+      6: jump_if_not r19, else_3
+      7: STORE_BIT_FIELD ; Store bit field sign (offset 7, width 1)
+      8: jump end_if_4
+      9: else_3:
+     10: end_if_4:
+     11: STORE_BIT_FIELD ; Store bit field carry (offset 0, width 1)
+     12: STORE_BIT_FIELD ; Store bit field zero (offset 6, width 1)
+     13: STORE_BIT_FIELD ; Store bit field sign (offset 7, width 1)
+     14: STORE_BIT_FIELD ; Store bit field parity (offset 2, width 1)
+     15: return
+
+Function ......examples.test_bit_field_comprehensive.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_8bit_fields
+      1: r2 = call test_16bit_fields
+      2: r3 = call test_field_expressions
+      3: UNKNOWN_OP_88
+      4: UNKNOWN_OP_86 ; Print "Bit struct field access test completed successfully!
+" (53 chars via loop)
+      5: return
+

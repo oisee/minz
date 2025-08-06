@@ -1,0 +1,99 @@
+; MinZ generated code
+; Generated: 2025-07-28 08:45:59
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test2_16bit_params.multiply_add
+...examples.test2_16bit_params.multiply_add:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD B, H
+    LD C, L
+    EX DE, HL     ; Get parameter b from DE
+    POP HL        ; Get parameter c from stack
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; r4 = param a
+    ; Load parameter a
+    ; r5 = param b
+    ; Load parameter b
+    ; r6 = r4 * r5
+    ; 16-bit multiplication
+    ; Register 4 already in HL
+    LD (mul_src1_0), HL  ; Save multiplicand
+    LD H, D
+    LD L, E
+    LD (mul_src2_0), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_0)  ; DE = multiplicand
+    LD BC, (mul_src2_0)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_0
+.mul16_loop_0:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_0
+.mul16_done_0:
+mul_src1_0: DW 0
+mul_src2_0: DW 0
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r7 = param c
+    ; Load parameter c
+    ; r8 = r6 + r7
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r8
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test2_16bit_params.main
+...examples.test2_16bit_params.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r3 = 20
+    LD A, 20
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; r4 = 5
+    LD A, 5
+    LD L, A         ; Store to HL (low byte)
+    ; r5 = call multiply_add
+    ; Call to multiply_add (args: 3)
+    ; Register-based parameter passing
+    ; Parameter a in HL
+    EXX               ; Switch to shadow registers
+    ; Parameter b in DE
+    ; Register 4 already in HL
+    PUSH HL       ; Parameter c on stack
+    ; Found function, UsesTrueSMC=false
+    CALL multiply_add
+    ; store , r5
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

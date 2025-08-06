@@ -1,0 +1,23 @@
+// Test advanced missing features
+
+fun test_advanced() -> u8 {
+    // Compound assignment operators
+    var x: u8 = 10;
+    x += 5;  // Does += work?
+    x -= 2;  // Does -= work?
+    x *= 3;  // Does *= work?
+    
+    // Increment/decrement
+    x++;     // Does ++ work?
+    ++x;     // Does prefix ++ work?
+    x--;     // Does -- work?
+    
+    // Ternary operator
+    var y: u8 = x > 10 ? 20 : 30;  // Does ?: work?
+    
+    return y;
+}
+
+fun main() -> u8 {
+    return test_advanced();
+}

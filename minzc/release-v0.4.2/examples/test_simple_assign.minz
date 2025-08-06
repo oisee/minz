@@ -1,9 +1,0 @@
-// Simplest possible test for assignments
-
-fun test() -> void {
-    var x: u8 = 5;
-    x = 10;  // Basic assignment
-    
-    var p: *u8;  // Pointer (uninitialized for now)
-    // p = 20;  // Would need auto-deref but we don't have & operator yet
-}

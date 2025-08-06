@@ -1,0 +1,348 @@
+; MinZ generated code
+; Generated: 2025-08-06 05:37:34
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.test_optest.test_zero_comparison$u8
+examples.test_optest.test_zero_comparison$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.test_optest.test_zero_comparison$u8_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    ; r3 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 == r3
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, .eq_true_0
+    LD HL, 0       ; False
+    JP .eq_done_0
+.eq_true_0:
+    LD HL, 1       ; True
+.eq_done_0:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; return r5
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    ; r6 = 0
+    LD A, 0
+    LD E, A         ; Store to physical register E
+    ; return r6
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.test_optest.test_nonzero_check$u16
+examples.test_optest.test_nonzero_check$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.test_optest.test_nonzero_check$u16_param_x:
+    LD HL, #0000   ; SMC parameter x
+    ; Register 2 already in HL
+    ; r3 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r4 = r2 != r3
+    ; Register 2 already in HL
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, .ne_true_1
+    LD HL, 0       ; False
+    JP .ne_done_1
+.ne_true_1:
+    LD HL, 1       ; True
+.ne_done_1:
+    LD D, H
+    LD E, L
+    ; jump_if_not r4, else_3
+    LD A, E
+    OR A
+    JP Z, else_3
+    ; r5 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; return r5
+    RET
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; end_if_4:
+end_if_4:
+    ; r6 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; return r6
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.test_optest.test_conditional_assignment$u8
+examples.test_optest.test_conditional_assignment$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.test_optest.test_conditional_assignment$u8_param_x:
+    LD HL, #0000   ; SMC parameter x (u8->u16)
+    ; r4 = 0
+    LD A, 0
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = r3 != r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, .ne_true_2
+    LD HL, 0       ; False
+    JP .ne_done_2
+.ne_true_2:
+    LD HL, 1       ; True
+.ne_done_2:
+    ; jump_if_not r5, else_5
+    LD A, H
+    OR A
+    JP Z, else_5
+    ; r6 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; store result, r6
+    LD A, L
+    LD ($F004), A
+    ; jump end_if_6
+    JP end_if_6
+    ; else_5:
+else_5:
+    ; r7 = 20
+    LD A, 20
+    LD H, A         ; Store to physical register H
+    ; store result, r7
+    LD A, H
+    LD ($F004), A
+    ; end_if_6:
+end_if_6:
+    ; r8 = load result
+    LD A, ($F004)
+    LD L, A         ; Store to physical register L
+    ; return r8
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.test_optest.main
+examples.test_optest.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r4 = call examples.test_optest.test_zero_comparison$u8
+    ; Call to examples.test_optest.test_zero_comparison$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.test_optest.test_zero_comparison$u8
+    ; store , r4
+    LD ($F002), HL
+    ; r6 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r7 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; r8 = call examples.test_optest.test_zero_comparison$u8
+    ; Call to examples.test_optest.test_zero_comparison$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.test_optest.test_zero_comparison$u8
+    LD ($F010), HL    ; Virtual register 8 to memory
+    ; store , r8
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    LD ($F00A), HL
+    ; r10 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r11 = 0
+    LD A, 0
+    LD ($F016), A     ; Virtual register 11 to memory
+    ; r12 = call examples.test_optest.test_nonzero_check$u16
+    ; Call to examples.test_optest.test_nonzero_check$u16 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.test_optest.test_nonzero_check$u16
+    ; store , r12
+    LD ($F012), HL
+    ; r14 = 100
+    LD A, 100
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; r15 = 100
+    LD A, 100
+    LD H, A         ; Store to physical register H
+    ; r16 = call examples.test_optest.test_nonzero_check$u16
+    ; Call to examples.test_optest.test_nonzero_check$u16 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.test_optest.test_nonzero_check$u16
+    ; store , r16
+    LD ($F01A), HL
+    ; r18 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r19 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r20 = call examples.test_optest.test_conditional_assignment$u8
+    ; Call to examples.test_optest.test_conditional_assignment$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.test_optest.test_conditional_assignment$u8
+    LD ($F028), HL    ; Virtual register 20 to memory
+    ; store , r20
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    LD ($F022), HL
+    ; r22 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r23 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r24 = call examples.test_optest.test_conditional_assignment$u8
+    ; Call to examples.test_optest.test_conditional_assignment$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.test_optest.test_conditional_assignment$u8
+    ; store , r24
+    LD ($F02A), HL
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+    END main

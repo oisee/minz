@@ -1,0 +1,105 @@
+// Complete interface system test
+
+// Define interfaces
+interface Drawable {
+    fun draw(self) -> void;
+}
+
+interface Printable {
+    fun print(self) -> void;
+}
+
+// Simple types
+struct Point {
+    x: u8,
+    y: u8,
+}
+
+struct Circle {
+    x: u8,
+    y: u8,
+    radius: u8,
+}
+
+// Implement Printable for primitives
+impl Printable for u8 {
+    fun print(self) -> void {
+        @print(self);
+    }
+}
+
+impl Printable for u16 {
+    fun print(self) -> void {
+        @print(self);
+    }
+}
+
+// Implement Printable for structs
+impl Printable for Point {
+    fun print(self) -> void {
+        @print("Point(");
+        u8.print(self.x);
+        @print(",");
+        u8.print(self.y);
+        @print(")");
+    }
+}
+
+impl Printable for Circle {
+    fun print(self) -> void {
+        @print("Circle(");
+        u8.print(self.x);
+        @print(",");
+        u8.print(self.y);
+        @print(",r=");
+        u8.print(self.radius);
+        @print(")");
+    }
+}
+
+// Implement Drawable
+impl Drawable for Point {
+    fun draw(self) -> void {
+        @print("Drawing point at (");
+        u8.print(self.x);
+        @print(",");
+        u8.print(self.y);
+        @print(")\n");
+    }
+}
+
+impl Drawable for Circle {  
+    fun draw(self) -> void {
+        @print("Drawing circle at (");
+        u8.print(self.x);
+        @print(",");
+        u8.print(self.y);
+        @print(") radius ");
+        u8.print(self.radius);
+        @print("\n");
+    }
+}
+
+fun main() -> void {
+    let x: u8 = 42;
+    let big: u16 = 1000;
+    
+    let p = Point{x: 10, y: 20};
+    let c = Circle{x: 5, y: 15, radius: 3};
+    
+    @print("=== Printable interface ===\n");
+    u8.print(x);
+    @print("\n");
+    u16.print(big);
+    @print("\n");
+    Point.print(p);
+    @print("\n");
+    Circle.print(c);
+    @print("\n");
+    
+    @print("\n=== Drawable interface ===\n");
+    Point.draw(p);
+    Circle.draw(c);
+    
+    @print("\nInterface system works perfectly!\n");
+}

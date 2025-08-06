@@ -1,0 +1,252 @@
+// MinZ Zero-Cost Stream Abstractions
+// Compile-time stream composition with zero overhead
+
+import std.io;
+import std.print;
+
+// BufferedWriter - but with compile-time buffer size optimization
+pub struct BufferedWriter<const SIZE: u16> {
+    inner: Writer,
+    buffer: [u8; SIZE],
+    pos: u16,
+}
+
+impl<const SIZE: u16> BufferedWriter<SIZE> {
+    pub fun new(writer: Writer) -> BufferedWriter<SIZE> {
+        BufferedWriter {
+            inner: writer,
+            buffer: [0; SIZE],
+            pos: 0,
+        }
+    }
+    
+    pub fun flush(self) -> void {
+        if self.pos > 0 {
+            self.inner.write_bytes(&self.buffer, self.pos);
+            self.pos = 0;
+        }
+    }
+}
+
+impl<const SIZE: u16> Writer for BufferedWriter<SIZE> {
+    fun write_byte(self, byte: u8) -> void {
+        // Compile-time optimization for power-of-2 sizes
+        @if_const(SIZE & (SIZE - 1) == 0) {
+            // Use AND mask instead of comparison
+            self.buffer[self.pos] = byte;
+            self.pos = (self.pos + 1) & (SIZE - 1);
+            if self.pos == 0 {
+                self.inner.write_bytes(&self.buffer, SIZE);
+            }
+        } else {
+            // Regular path
+            self.buffer[self.pos] = byte;
+            self.pos = self.pos + 1;
+            if self.pos >= SIZE {
+                self.flush();
+            }
+        }
+    }
+    
+    fun write_bytes(self, data: *u8, len: u16) -> u16 {
+        // For large writes, bypass buffer
+        if len >= SIZE {
+            self.flush();
+            return self.inner.write_bytes(data, len);
+        }
+        
+        // Otherwise use buffer
+        let mut written: u16 = 0;
+        while written < len {
+            self.write_byte(data[written]);
+            written = written + 1;
+        }
+        written
+    }
+    
+    fun flush(self) -> void {
+        self.flush();
+    }
+}
+
+// StringWriter - writes to a string buffer
+pub struct StringWriter {
+    buffer: *u8,
+    capacity: u16,
+    pos: u16,
+}
+
+impl StringWriter {
+    pub fun new(buffer: *u8, capacity: u16) -> StringWriter {
+        StringWriter {
+            buffer: buffer,
+            capacity: capacity,
+            pos: 0,
+        }
+    }
+    
+    pub fun len(self) -> u16 {
+        self.pos
+    }
+    
+    pub fun as_str(self) -> *u8 {
+        self.buffer[self.pos] = 0;  // Null terminate
+        self.buffer
+    }
+}
+
+impl Writer for StringWriter {
+    fun write_byte(self, byte: u8) -> void {
+        if self.pos < self.capacity - 1 {
+            self.buffer[self.pos] = byte;
+            self.pos = self.pos + 1;
+        }
+    }
+    
+    fun write_bytes(self, data: *u8, len: u16) -> u16 {
+        let available = self.capacity - self.pos - 1;
+        let to_write = if len < available { len } else { available };
+        
+        // Optimized memory copy
+        @memcpy(self.buffer + self.pos, data, to_write);
+        self.pos = self.pos + to_write;
+        
+        to_write
+    }
+    
+    fun flush(self) -> void {
+        // No-op for string writer
+    }
+}
+
+// TeeWriter - writes to multiple outputs
+pub struct TeeWriter<W1: Writer, W2: Writer> {
+    first: W1,
+    second: W2,
+}
+
+impl<W1: Writer, W2: Writer> Writer for TeeWriter<W1, W2> {
+    fun write_byte(self, byte: u8) -> void {
+        self.first.write_byte(byte);
+        self.second.write_byte(byte);
+    }
+    
+    fun write_bytes(self, data: *u8, len: u16) -> u16 {
+        self.first.write_bytes(data, len);
+        self.second.write_bytes(data, len)
+    }
+    
+    fun flush(self) -> void {
+        self.first.flush();
+        self.second.flush();
+    }
+}
+
+// CountingWriter - tracks bytes written
+pub struct CountingWriter<W: Writer> {
+    inner: W,
+    count: u32,
+}
+
+impl<W: Writer> CountingWriter<W> {
+    pub fun new(writer: W) -> CountingWriter<W> {
+        CountingWriter {
+            inner: writer,
+            count: 0,
+        }
+    }
+    
+    pub fun bytes_written(self) -> u32 {
+        self.count
+    }
+}
+
+impl<W: Writer> Writer for CountingWriter<W> {
+    fun write_byte(self, byte: u8) -> void {
+        self.inner.write_byte(byte);
+        self.count = self.count + 1;
+    }
+    
+    fun write_bytes(self, data: *u8, len: u16) -> u16 {
+        let written = self.inner.write_bytes(data, len);
+        self.count = self.count + (written as u32);
+        written
+    }
+    
+    fun flush(self) -> void {
+        self.inner.flush();
+    }
+}
+
+// Zero-cost stream chaining with compile-time optimization
+@macro chain(writers...) {
+    // Builds optimal nested TeeWriter at compile time
+    @build_tee_chain(writers)
+}
+
+// Compile-time buffer size selection
+@macro auto_buffer(writer) {
+    // Analyzes usage patterns and selects optimal buffer size
+    @if(platform == "zx") {
+        BufferedWriter<256>::new(writer)  // Smaller for ZX
+    } else {
+        BufferedWriter<1024>::new(writer) // Larger for CP/M
+    }
+}
+
+// Format and write with single allocation
+pub fun write_formatted<W: Writer>(writer: W, format: *u8, args: ...) -> void {
+    // Pre-calculate required buffer size at compile time when possible
+    @if_const_format(format) {
+        const BUFFER_SIZE = @calc_format_size(format, args);
+        let mut buffer: [u8; BUFFER_SIZE];
+        let sw = StringWriter::new(&buffer, BUFFER_SIZE);
+        @print_to(sw, format, args);
+        writer.write_bytes(sw.as_str(), sw.len());
+    } else {
+        // Runtime formatting with reasonable buffer
+        let mut buffer: [u8; 256];
+        let sw = StringWriter::new(&buffer, 256);
+        @print_to(sw, format, args);
+        writer.write_bytes(sw.as_str(), sw.len());
+    }
+}
+
+// High-performance line reading
+pub fun read_line_fast<R: Reader>(reader: R, buffer: *u8, max_len: u16) -> u16 {
+    let mut pos: u16 = 0;
+    
+    // Unroll loop for common cases
+    @unroll(4) {
+        while pos < max_len - 1 && reader.available() {
+            let ch = reader.read_byte();
+            if ch == '\n' || ch == '\r' {
+                break;
+            }
+            buffer[pos] = ch;
+            pos = pos + 1;
+        }
+    }
+    
+    buffer[pos] = 0;
+    pos
+}
+
+// Compile-time string building
+@macro build_string(parts...) -> string {
+    // Concatenates at compile time
+    @concat_strings(parts)
+}
+
+// Example of zero-cost composition:
+// This:
+//   let buffered = auto_buffer(stdout);
+//   let counting = CountingWriter::new(buffered);
+//   @print_to(counting, "Hello, {}!", "World");
+//   @print("Wrote {} bytes", counting.bytes_written());
+//
+// Compiles to optimal code with:
+// - Buffer size selected based on platform
+// - No virtual dispatch overhead
+// - Format string parsed at compile time
+// - Direct hardware writes after buffering

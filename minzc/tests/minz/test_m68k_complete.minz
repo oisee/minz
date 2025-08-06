@@ -1,0 +1,32 @@
+// Complete test of 68000 backend features
+fun add(a: u8, b: u8) -> u8 {
+    return a + b
+}
+
+fun multiply(a: u8, b: u8) -> u8 {
+    return a * b
+}
+
+fun is_even(n: u8) -> bool {
+    return (n & 1) == 0
+}
+
+fun factorial(n: u8) -> u8 {
+    if (n <= 1) {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
+
+fun main() -> void {
+    let x: u8 = 5
+    let y: u8 = 3
+    
+    let sum: u8 = add(x, y)         // Test add
+    let prod: u8 = multiply(x, y)   // Test multiply
+    let fact: u8 = factorial(5)     // Test recursion: 120
+    
+    if (is_even(sum)) {
+        let result: u8 = sum + prod + fact
+    }
+}

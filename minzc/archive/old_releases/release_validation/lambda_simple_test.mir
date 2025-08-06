@@ -1,0 +1,18 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function lambda_......examples.lambda_simple_test.main_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: return
+
+Function ......examples.lambda_simple_test.main() -> void
+  @smc
+  Locals:
+    r1 = add_five: u16
+    r5 = result: u16
+  Instructions:
+      0: r2 = addr()
+      1: r8 = call_indirect r7 (args: r6)
+      2: return
+

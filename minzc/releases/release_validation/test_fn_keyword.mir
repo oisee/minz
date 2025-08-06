@@ -1,0 +1,33 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.test_fn_keyword.add(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ......examples.test_fn_keyword.subtract(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor b$imm0
+      2: r5 = r3 - r4
+      3: return r5
+
+Function ......examples.test_fn_keyword.main() -> void
+  @smc
+  Locals:
+    r1 = sum: u16
+    r5 = diff: u16
+  Instructions:
+      0: r4 = call add
+      1: r8 = call subtract
+      2: UNKNOWN_OP_87 ; Direct print "Sum: " (5 chars)
+      3: UNKNOWN_OP_87 ; Direct print ", Diff: " (8 chars)
+      4: UNKNOWN_OP_87 ; Direct print "
+" (1 chars)
+      5: return
+

@@ -1,0 +1,63 @@
+// Test @minz features that are currently working
+
+// 1. Simple function generation
+@minz[[[fun say_{0}() -> void { @print("{0}!"); }]]]("hello")
+@minz[[[fun say_{0}() -> void { @print("{0}!"); }]]]("goodbye")
+
+// 2. Functions with parameters
+@minz[[[fun double_{0}(x: {0}) -> {0} { return x + x; }]]]("u8")
+@minz[[[fun double_{0}(x: {0}) -> {0} { return x + x; }]]]("u16")
+
+// 3. Multiple parameter substitution
+@minz[[[
+fun {0}_{1}(x: {1}, y: {1}) -> {1} {
+    return x {2} y;
+}
+]]]("add", "u8", "+")
+
+@minz[[[
+fun {0}_{1}(x: {1}, y: {1}) -> {1} {
+    return x {2} y;
+}
+]]]("sub", "u8", "-")
+
+// 4. Complex function generation
+@minz[[[
+fun check_range_{0}(value: {0}, min: {0}, max: {0}) -> bool {
+    if (value < min) { return false; }
+    if (value > max) { return false; }
+    return true;
+}
+]]]("u8")
+
+fun main() -> u8 {
+    @print("=== Testing @minz Code Generation ===");
+    
+    // Test simple functions
+    say_hello();
+    say_goodbye();
+    
+    // Test parameterized functions
+    let x = double_u8(21);
+    @print("double(21) = { x }");
+    
+    let y = double_u16(500);
+    @print("double(500) = { y }");
+    
+    // Test multi-param substitution
+    let sum = add_u8(15, 25);
+    @print("15 + 25 = { sum }");
+    
+    let diff = sub_u8(50, 20);
+    @print("50 - 20 = { diff }");
+    
+    // Test complex generation
+    let in_range = check_range_u8(50, 0, 100);
+    @print("50 in range [0,100]? { in_range }");
+    
+    let out_range = check_range_u8(150, 0, 100);
+    @print("150 in range [0,100]? { out_range }");
+    
+    @print("=== All @minz tests passed! ===");
+    return 0;
+}

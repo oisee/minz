@@ -1,0 +1,27 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   ......examples.arithmetic_16bit.g_sum: u16
+;   ......examples.arithmetic_16bit.g_diff: u16
+;   ......examples.arithmetic_16bit.g_product: u16
+
+Function ......examples.arithmetic_16bit.test_16bit_ops() -> void
+  @smc
+  Locals:
+    r1 = a: u16
+    r3 = b: u16
+    r11 = c: u16
+    r13 = d: u16
+    r18 = mask: u16
+    r20 = result: u16
+    r24 = shifted: u16
+  Instructions:
+      0: return
+
+Function ......examples.arithmetic_16bit.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_16bit_ops
+      1: return
+

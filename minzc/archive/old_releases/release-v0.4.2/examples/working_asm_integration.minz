@@ -1,0 +1,161 @@
+// Working Assembly Integration Examples  
+// Demonstrates practical @abi usage with correct MinZ syntax
+
+// =============================================================================
+// 1. BASIC @ABI CALLING CONVENTIONS
+// =============================================================================
+
+@abi("smc")
+fun fast_add(x: u8, y: u8) -> u8 {
+    return x + y;
+}
+
+@abi("register")
+fun multiply_values(a: u8, b: u8) -> u8 {
+    return a * b;
+}
+
+@abi("stack")
+fun process_data(value: u16, multiplier: u8) -> u16 {
+    return value + multiplier;
+}
+
+// =============================================================================
+// 2. SEAMLESS ASSEMBLY INTEGRATION 
+// =============================================================================
+
+// Use existing ZX Spectrum ROM routines
+@abi("register: A=char")
+@extern
+fun rom_print_char(c: u8) -> void;
+
+@abi("register: HL=address, BC=length")
+@extern  
+fun rom_memory_copy(address: u16, length: u16) -> void;
+
+// Use existing assembly math routines
+@abi("register: HL=value")
+@extern
+fun asm_double_value(value: u16) -> u16;
+
+@abi("register: A=x, E=y")
+@extern
+fun asm_plot_pixel(x: u8, y: u8) -> void;
+
+// =============================================================================
+// 3. HARDWARE DRIVER INTEGRATION
+// =============================================================================
+
+// AY Sound chip driver
+@abi("register: A=register, C=value")
+@extern
+fun ay_write(register: u8, value: u8) -> void;
+
+// Port I/O functions
+@abi("register: BC=port, A=value")
+@extern  
+fun out_port(port: u16, value: u8) -> void;
+
+@abi("register: BC=port")
+@extern
+fun in_port(port: u16) -> u8;
+
+// =============================================================================
+// 4. HIGH-LEVEL FUNCTIONS USING ASSEMBLY
+// =============================================================================
+
+fun graphics_demo() {
+    // Use existing assembly pixel plotting
+    asm_plot_pixel(10, 20);
+    asm_plot_pixel(11, 20);
+    asm_plot_pixel(12, 20);
+    
+    // Draw a simple line using loop
+    asm_plot_pixel(0, 30);
+    asm_plot_pixel(1, 30);
+    asm_plot_pixel(2, 30);
+}
+
+fun sound_demo() {
+    // Play simple tones using AY chip
+    ay_write(0, 0x00);    // Channel A frequency low
+    ay_write(1, 0x02);    // Channel A frequency high (440Hz)  
+    ay_write(8, 15);      // Channel A volume full
+    ay_write(7, 0x3E);    // Enable channel A
+}
+
+fun hardware_demo() {
+    // Set border color using port I/O
+    out_port(0xFE, 2);    // Red border
+    
+    // Read keyboard
+    let keys = in_port(0xFE);
+    
+    // Copy some memory
+    rom_memory_copy(0x4000, 256);
+}
+
+// =============================================================================
+// 5. MIXED HIGH-LEVEL AND ASSEMBLY CODE
+// =============================================================================
+
+fun mixed_processing(input: u16) -> u16 {
+    // High-level logic
+    let intermediate = input + 100;
+    
+    // Use assembly for performance-critical operation
+    let doubled = asm_double_value(intermediate);
+    
+    // More high-level processing
+    let result = doubled - 50;
+    return result;
+}
+
+// =============================================================================
+// 6. PERFORMANCE COMPARISON
+// =============================================================================
+
+// Pure MinZ implementation
+fun minz_fibonacci(n: u8) -> u8 {
+    if n <= 1 { return n; }
+    return minz_fibonacci(n - 1) + minz_fibonacci(n - 2);
+}
+
+// Assembly-optimized version
+@abi("register: A=n")
+@extern
+fun asm_fibonacci(n: u8) -> u8;
+
+// =============================================================================
+// 7. MAIN DEMONSTRATION
+// =============================================================================
+
+fun main() {
+    // Test basic calling conventions
+    let smc_result = fast_add(5, 10);        // Uses SMC
+    let reg_result = multiply_values(3, 4);   // Uses registers
+    let stack_result = process_data(1000, 5); // Uses stack
+    
+    // Demonstrate seamless assembly integration
+    rom_print_char(65);     // Print 'A' using ROM routine
+    
+    // Show graphics capabilities
+    graphics_demo();
+    
+    // Demonstrate hardware control
+    sound_demo();
+    hardware_demo();
+    
+    // Show mixed high-level/assembly code
+    let processed = mixed_processing(500);
+    
+    // Performance comparison  
+    let minz_fib = minz_fibonacci(10);    // Pure MinZ
+    let asm_fib = asm_fibonacci(10);      // Assembly optimized
+    
+    // Use the processed value  
+    rom_print_char(processed as u8);
+    
+    // All assembly calls have zero overhead - registers are 
+    // automatically mapped according to @abi specifications!
+}

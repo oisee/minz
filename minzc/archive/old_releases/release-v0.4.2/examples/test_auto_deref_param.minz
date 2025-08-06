@@ -1,0 +1,22 @@
+// Test auto-dereferencing with function parameters
+// This avoids the unimplemented & operator
+
+fun modify_through_ptr(p: *u8) -> void {
+    // Auto-deref: p = 42 becomes *p = 42
+    p = 42;
+}
+
+fun add_through_ptr(p: *u8) -> void {
+    // Auto-deref both sides: p = p + 1 becomes *p = *p + 1
+    p = p + 1;
+}
+
+// Test that we can still assign pointers when needed
+fun swap_ptrs(a: *u8, b: *u8) -> void {
+    var temp: *u8 = a;  // No auto-deref - copying pointer
+    // TODO: Need to implement pointer assignment
+}
+
+fun main() -> void {
+    // For now, just compile successfully
+}

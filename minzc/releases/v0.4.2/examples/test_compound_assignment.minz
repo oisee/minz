@@ -1,0 +1,37 @@
+// Test compound assignment operators
+
+fun test_compound_ops() -> u16 {
+    var x: u8 = 10;
+    var y: u16 = 100;
+    
+    // Test all compound operators
+    x += 5;   // x = 15
+    x -= 3;   // x = 12  
+    x *= 2;   // x = 24
+    x /= 4;   // x = 6
+    x %= 4;   // x = 2
+    
+    y += 50;  // y = 150
+    y -= 25;  // y = 125
+    y *= 3;   // y = 375
+    y /= 5;   // y = 75
+    
+    return y + x;  // Should return 77
+}
+
+fun test_compound_in_expressions() -> u8 {
+    var a: u8 = 5;
+    var b: u8 = 10;
+    
+    // Test compound assignment in expressions
+    var result: u8 = (a += 3) + (b *= 2);
+    // a becomes 8, b becomes 20, result = 8 + 20 = 28
+    
+    return result;
+}
+
+fun main() -> u16 {
+    var basic: u16 = test_compound_ops();
+    var expr: u8 = test_compound_in_expressions();
+    return basic + expr;
+}

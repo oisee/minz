@@ -1,0 +1,48 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.register_test.simple_add(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor a$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ......examples.register_test.complex_calc(x: u16, y: u16, z: u16) -> u16
+  @smc
+  Locals:
+    r4 = t1: u16
+    r8 = t2: u16
+    r12 = t3: u16
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      2: UNKNOWN_OP_33 ; Load from anchor y$imm0
+      3: UNKNOWN_OP_33 ; Load from anchor z$imm0
+      4: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      5: UNKNOWN_OP_33 ; Load from anchor z$imm0
+      6: r16 = load t1
+      7: r17 = load t2
+      8: r19 = load t3
+      9: r18 = r16 + r17
+     10: r20 = r18 + r19
+     11: return r20
+
+Function ......examples.register_test.timer_isr() -> void
+  @smc
+  Locals:
+    r1 = counter: u8
+  Instructions:
+      0: return
+
+Function ......examples.register_test.main() -> void
+  @smc
+  Locals:
+    r1 = a: u16
+    r5 = b: u16
+  Instructions:
+      0: r4 = call simple_add
+      1: r9 = call complex_calc
+      2: return
+

@@ -1,0 +1,13 @@
+// Test @print string interpolation with only literals
+
+fun main() -> u8 {
+    // Test with simple literals that should definitely work
+    @print("Number: { 42 }")
+    @print("Boolean: { true }")
+    
+    // Test with variable (will fail for now)
+    let x = 10;
+    @print("Variable x = { x }")
+    
+    return 0;
+}

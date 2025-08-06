@@ -1,0 +1,93 @@
+// MinZ Working Demo - Shows features that are fully implemented
+
+// Basic types and arithmetic
+fun test_basic_math() -> u8 {
+    let a: u8 = 10;
+    let b: u8 = 20;
+    let sum = a + b;
+    
+    if sum == 30 {
+        return 0;  // Success
+    }
+    return 1;  // Failure
+}
+
+// Arrays and pointers
+fun test_arrays() -> u8 {
+    let arr: [u8; 5] = [1, 2, 3, 4, 5];
+    let ptr: *u8 = &arr[2];
+    
+    if *ptr == 3 {
+        return 0;  // Success
+    }
+    return 1;
+}
+
+// Structs
+struct Point {
+    x: u8,
+    y: u8,
+}
+
+fun test_structs() -> u8 {
+    let p = Point { x: 10, y: 20 };
+    
+    if p.x + p.y == 30 {
+        return 0;  // Success
+    }
+    return 1;
+}
+
+// Lambda expressions (zero-cost!)
+fun test_lambdas() -> u8 {
+    let add = |x: u8, y: u8| => u8 { x + y };
+    let result = add(15, 25);
+    
+    if result == 40 {
+        return 0;  // Success
+    }
+    return 1;
+}
+
+// Control flow
+fun test_loops() -> u8 {
+    let mut sum: u8 = 0;
+    
+    for i in 0..5 {
+        sum = sum + i;
+    }
+    
+    // 0 + 1 + 2 + 3 + 4 = 10
+    if sum == 10 {
+        return 0;  // Success
+    }
+    return 1;
+}
+
+// Function calls with SMC optimization
+fun multiply(a: u8, b: u8) -> u16 {
+    return (a as u16) * (b as u16);
+}
+
+fun test_function_calls() -> u8 {
+    let result = multiply(12, 11);
+    
+    if result == 132 {
+        return 0;  // Success
+    }
+    return 1;
+}
+
+// Main entry point
+fun main() -> u8 {
+    let mut errors: u8 = 0;
+    
+    errors = errors + test_basic_math();
+    errors = errors + test_arrays();
+    errors = errors + test_structs();
+    errors = errors + test_lambdas();
+    errors = errors + test_loops();
+    errors = errors + test_function_calls();
+    
+    return errors;  // 0 if all tests passed
+}

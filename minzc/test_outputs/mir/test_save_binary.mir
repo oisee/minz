@@ -1,0 +1,9 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_save_binary_demo.main() -> u8
+  @smc
+  Instructions:
+      0: r1 = 42
+      1: return
+

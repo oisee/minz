@@ -1,0 +1,16 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.test_lua_lambda_prep.test_lambda_concept() -> void
+  @smc
+  Locals:
+    r1 = size: u16
+  Instructions:
+      0: return
+
+Function ......examples.test_lua_lambda_prep.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_lambda_concept
+      1: return
+

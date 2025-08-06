@@ -1,0 +1,14 @@
+// Test simple struct
+
+struct Point {
+    x: u8;
+}
+
+fun test() {
+    var p: Point;
+    p.x = 10;
+}
+
+fun main() {
+    test();
+}

@@ -1,6 +1,0 @@
-; MinZ Intermediate Representation (MIR)
-; Module: main
-
-; Globals:
-;   ......examples.abi_hardware_drivers.freq_lo: u8
-

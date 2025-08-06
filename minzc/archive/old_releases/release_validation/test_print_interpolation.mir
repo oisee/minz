@@ -1,0 +1,26 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.test_print_interpolation.main() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u16
+    r5 = flag: bool
+  Instructions:
+      0: UNKNOWN_OP_88
+      1: UNKNOWN_OP_86 ; Print "The value of x is " (18 chars via loop)
+      2: UNKNOWN_OP_81
+      3: UNKNOWN_OP_87 ; Direct print "x = " (4 chars)
+      4: UNKNOWN_OP_81
+      5: UNKNOWN_OP_87 ; Direct print ", y = " (6 chars)
+      6: UNKNOWN_OP_82
+      7: UNKNOWN_OP_87 ; Direct print "Flag is " (8 chars)
+      8: UNKNOWN_OP_85
+      9: UNKNOWN_OP_81
+     10: UNKNOWN_OP_82
+     11: UNKNOWN_OP_85
+     12: UNKNOWN_OP_88
+     13: UNKNOWN_OP_86 ; Print "Hello World!" (12 chars via loop)
+     14: return
+

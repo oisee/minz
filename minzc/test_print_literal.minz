@@ -1,6 +1,0 @@
-// Test @print with plain literal
-
-fun main() -> u8 {
-    @print("Hello World")
-    return 0;
-}

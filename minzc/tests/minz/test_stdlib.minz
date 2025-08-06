@@ -1,0 +1,94 @@
+// Test standard library functions
+
+// Include stdlib functions for now
+fun print_char(ch: u8) -> void {
+    // Platform-specific character output
+    // Will be implemented in assembly runtime
+}
+
+fun print_u8(value: u8) -> void {
+    if (value >= 100) {
+        let hundreds: u8 = value / 100;
+        print_char(48 + hundreds);  // 48 = '0'
+        value = value % 100;
+    }
+    
+    if (value >= 10) {
+        let tens: u8 = value / 10;
+        print_char(48 + tens);
+        value = value % 10;
+    }
+    
+    print_char(48 + value);
+}
+
+fun print_u16(value: u16) -> void {
+    let digits: [u8; 5] = [0, 0, 0, 0, 0];
+    let count: u8 = 0;
+    
+    if (value == 0) {
+        print_char(48);  // '0'
+        return;
+    }
+    
+    while (value > 0) {
+        digits[count] = (value % 10) as u8;
+        value = value / 10;
+        count = count + 1;
+    }
+    
+    while (count > 0) {
+        count = count - 1;
+        print_char(48 + digits[count]);
+    }
+}
+
+fun print_newline() -> void {
+    print_char(13);
+    print_char(10);
+}
+
+fun print_hex_u8(value: u8) -> void {
+    let high: u8 = value >> 4;
+    if (high < 10) {
+        print_char(48 + high);  // '0'
+    } else {
+        print_char(65 + high - 10);  // 'A'
+    }
+    
+    let low: u8 = value & 0x0F;
+    if (low < 10) {
+        print_char(48 + low);
+    } else {
+        print_char(65 + low - 10);
+    }
+}
+
+fun print_hex_u16(value: u16) -> void {
+    print_hex_u8((value >> 8) as u8);
+    print_hex_u8(value as u8);
+}
+
+fun main() -> void {
+    // Test print_u8
+    print_u8(0);
+    print_newline();
+    print_u8(42);
+    print_newline();
+    print_u8(255);
+    print_newline();
+    
+    // Test print_u16
+    print_u16(0);
+    print_newline();
+    print_u16(1234);
+    print_newline();
+    print_u16(65535);
+    print_newline();
+    
+    // Test print_hex
+    print_hex_u8(0x42);
+    print_newline();
+    print_hex_u16(0xBEEF);
+    print_newline();
+}

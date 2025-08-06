@@ -1,0 +1,33 @@
+// Test C backend generation
+fun main() -> void {
+    // Test basic arithmetic
+    let x: u8 = 10;
+    let y: u8 = 20;
+    let sum: u8 = x + y;
+    
+    print_u8(sum);
+    print_newline();
+    
+    // Test loop
+    let i: u8 = 0;
+    while (i < 5) {
+        print_u8(i);
+        print_char(32); // space
+        i = i + 1;
+    }
+    print_newline();
+    
+    // Test function call
+    let result: u8 = add(15, 25);
+    print_u8(result);
+    print_newline();
+}
+
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// Print functions (will be provided by C runtime)
+fun print_char(ch: u8) -> void {}
+fun print_u8(value: u8) -> void {}
+fun print_newline() -> void {}

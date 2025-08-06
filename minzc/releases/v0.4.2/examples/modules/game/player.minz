@@ -1,0 +1,102 @@
+// Player module
+module game.player;
+
+import game.sprites;
+import zx.screen;
+
+pub struct Player {
+    x: u8,
+    y: u8,
+    old_x: u8,
+    old_y: u8,
+    sprite: sprites.Sprite,
+    old_sprite: sprites.Sprite,
+    health: u8,
+    score: u16,
+}
+
+// Player sprite data
+const PLAYER_DATA: [8]u8 = [
+    0b00111100,
+    0b01111110,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b01111110,
+    0b00111100,
+    0b00000000,
+];
+
+pub fun create(x: u8, y: u8) -> Player {
+    let sprite = sprites.create(x, y, &PLAYER_DATA[0]);
+    return Player {
+        x: x,
+        y: y,
+        old_x: x,
+        old_y: y,
+        sprite: sprite,
+        old_sprite: sprite,
+        health: 100,
+        score: 0,
+    };
+}
+
+pub fun move_left(p: *mut Player, speed: u8) -> void {
+    if p.x > speed {
+        p.old_x = p.x;
+        p.old_y = p.y;
+        p.old_sprite = p.sprite;
+        
+        p.x = p.x - speed;
+        p.sprite.x = p.x;
+    }
+}
+
+pub fun move_right(p: *mut Player, speed: u8) -> void {
+    if p.x < 248 - speed {
+        p.old_x = p.x;
+        p.old_y = p.y;
+        p.old_sprite = p.sprite;
+        
+        p.x = p.x + speed;
+        p.sprite.x = p.x;
+    }
+}
+
+pub fun move_up(p: *mut Player, speed: u8) -> void {
+    if p.y > speed + 16 {  // Leave space for UI
+        p.old_x = p.x;
+        p.old_y = p.y;
+        p.old_sprite = p.sprite;
+        
+        p.y = p.y - speed;
+        p.sprite.y = p.y;
+    }
+}
+
+pub fun move_down(p: *mut Player, speed: u8) -> void {
+    if p.y < 184 - speed {
+        p.old_x = p.x;
+        p.old_y = p.y;
+        p.old_sprite = p.sprite;
+        
+        p.y = p.y + speed;
+        p.sprite.y = p.y;
+    }
+}
+
+pub fun draw(p: *Player) -> void {
+    sprites.draw(&p.sprite);
+}
+
+pub fun take_damage(p: *mut Player, damage: u8) -> void {
+    if damage >= p.health {
+        p.health = 0;
+    } else {
+        p.health = p.health - damage;
+    }
+}
+
+pub fun add_score(p: *mut Player, points: u16) -> void {
+    p.score = p.score + points;
+}

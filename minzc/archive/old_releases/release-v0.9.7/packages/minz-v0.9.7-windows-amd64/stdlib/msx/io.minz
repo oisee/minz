@@ -1,0 +1,348 @@
+// MSX I/O Implementation
+// Implements the standard I/O interfaces for MSX systems
+
+import std.io;
+
+// MSX BIOS calls
+const CHGET: u16 = 0x009F;    // Get character from keyboard
+const CHPUT: u16 = 0x00A2;    // Output character to screen
+const CHSNS: u16 = 0x009C;    // Sense keyboard status
+const CLS: u16 = 0x00C3;      // Clear screen
+const POSIT: u16 = 0x00C6;    // Set cursor position
+const BEEP: u16 = 0x00C0;     // Sound beep
+const GTSTCK: u16 = 0x00D5;   // Get joystick status
+const GTTRIG: u16 = 0x00D8;   // Get trigger button status
+const GTPAD: u16 = 0x00DB;    // Get touch pad status
+const GTPDL: u16 = 0x00DE;    // Get paddle status
+
+// MSX system variables
+const FORCLR: u16 = 0xF3E9;   // Foreground color
+const BAKCLR: u16 = 0xF3EA;   // Background color
+const BDRCLR: u16 = 0xF3EB;   // Border color
+const CLIKSW: u16 = 0xF3DB;   // Key click switch
+const CSRY: u16 = 0xF3DC;     // Cursor Y position
+const CSRX: u16 = 0xF3DD;     // Cursor X position
+
+// VDP (Video Display Processor) ports
+const VDP_DATA: u8 = 0x98;     // VDP data port
+const VDP_CTRL: u8 = 0x99;     // VDP control port
+
+// PSG (Programmable Sound Generator) ports
+const PSG_REG: u8 = 0xA0;      // PSG register select
+const PSG_DATA: u8 = 0xA1;     // PSG data write
+const PSG_READ: u8 = 0xA2;     // PSG data read
+
+// MSX implementation of Reader
+struct MSXStdin {
+    // No state needed
+}
+
+impl Reader for MSXStdin {
+    fun read_byte(self) -> u8 {
+        let ch: u8;
+        @asm {
+            CALL CHGET
+            LD (ch), A
+        }
+        ch
+    }
+    
+    fun read_bytes(self, buffer: *u8, len: u16) -> u16 {
+        let mut count: u16 = 0;
+        while count < len {
+            buffer[count] = self.read_byte();
+            if buffer[count] == '\r' {
+                buffer[count] = '\n';  // Normalize line endings
+                count = count + 1;
+                break;
+            }
+            count = count + 1;
+        }
+        count
+    }
+    
+    fun available(self) -> bool {
+        let status: u8;
+        @asm {
+            CALL CHSNS
+            LD (status), A
+        }
+        status != 0
+    }
+}
+
+// MSX implementation of Writer
+struct MSXStdout {
+    // No state needed
+}
+
+impl Writer for MSXStdout {
+    fun write_byte(self, byte: u8) -> void {
+        @asm {
+            LD A, (byte)
+            CALL CHPUT
+        }
+    }
+    
+    fun write_bytes(self, buffer: *u8, len: u16) -> u16 {
+        let mut count: u16 = 0;
+        while count < len {
+            self.write_byte(buffer[count]);
+            count = count + 1;
+        }
+        count
+    }
+    
+    fun flush(self) -> void {
+        // No buffering
+    }
+}
+
+// Global instances
+pub let stdin = MSXStdin {};
+pub let stdout = MSXStdout {};
+pub let stderr = MSXStdout {};  // Same as stdout
+
+// MSX specific functions
+pub fun cls() -> void {
+    @asm {
+        CALL CLS
+    }
+}
+
+pub fun locate(x: u8, y: u8) -> void {
+    // Set cursor position (1-based)
+    @asm {
+        LD H, (x)
+        LD L, (y)
+        CALL POSIT
+    }
+}
+
+pub fun set_color(fg: u8, bg: u8, border: u8) -> void {
+    @asm {
+        LD A, (fg)
+        LD (FORCLR), A
+        LD A, (bg)
+        LD (BAKCLR), A
+        LD A, (border)
+        LD (BDRCLR), A
+    }
+}
+
+pub fun beep() -> void {
+    @asm {
+        CALL BEEP
+    }
+}
+
+// Color constants
+pub const COLOR_TRANSPARENT: u8 = 0;
+pub const COLOR_BLACK: u8 = 1;
+pub const COLOR_GREEN: u8 = 2;
+pub const COLOR_LIGHT_GREEN: u8 = 3;
+pub const COLOR_DARK_BLUE: u8 = 4;
+pub const COLOR_LIGHT_BLUE: u8 = 5;
+pub const COLOR_DARK_RED: u8 = 6;
+pub const COLOR_CYAN: u8 = 7;
+pub const COLOR_RED: u8 = 8;
+pub const COLOR_LIGHT_RED: u8 = 9;
+pub const COLOR_DARK_YELLOW: u8 = 10;
+pub const COLOR_LIGHT_YELLOW: u8 = 11;
+pub const COLOR_DARK_GREEN: u8 = 12;
+pub const COLOR_MAGENTA: u8 = 13;
+pub const COLOR_GRAY: u8 = 14;
+pub const COLOR_WHITE: u8 = 15;
+
+// Joystick support
+pub enum JoystickDirection {
+    Center = 0,
+    Up = 1,
+    UpRight = 2,
+    Right = 3,
+    DownRight = 4,
+    Down = 5,
+    DownLeft = 6,
+    Left = 7,
+    UpLeft = 8,
+}
+
+pub fun get_joystick(port: u8) -> JoystickDirection {
+    let direction: u8;
+    @asm {
+        LD A, (port)
+        CALL GTSTCK
+        LD (direction), A
+    }
+    // Safe because direction is 0-8
+    direction as JoystickDirection
+}
+
+pub fun get_trigger(port: u8) -> bool {
+    let status: u8;
+    @asm {
+        LD A, (port)
+        CALL GTTRIG
+        LD (status), A
+    }
+    status == 0xFF
+}
+
+// Screen mode functions
+pub fun set_screen_mode(mode: u8) -> void {
+    // Set VDP screen mode
+    @asm {
+        LD A, (mode)
+        OUT (VDP_CTRL), A
+        LD A, 0x81        ; Register 1
+        OUT (VDP_CTRL), A
+    }
+}
+
+// Sound functions using PSG
+pub fun psg_write(reg: u8, value: u8) -> void {
+    @asm {
+        LD A, (reg)
+        OUT (PSG_REG), A
+        LD A, (value)
+        OUT (PSG_DATA), A
+    }
+}
+
+pub fun play_tone(channel: u8, frequency: u16, volume: u8) -> void {
+    // PSG tone generation
+    let reg_base = channel * 2;
+    
+    // Set frequency (12-bit value)
+    psg_write(reg_base, (frequency & 0xFF) as u8);
+    psg_write(reg_base + 1, ((frequency >> 8) & 0x0F) as u8);
+    
+    // Set volume
+    psg_write(8 + channel, volume & 0x0F);
+}
+
+pub fun sound_on() -> void {
+    // Enable all sound channels
+    psg_write(7, 0x38);  // Enable tones, disable noise
+}
+
+pub fun sound_off() -> void {
+    // Mute all channels
+    psg_write(8, 0);
+    psg_write(9, 0);
+    psg_write(10, 0);
+}
+
+// File I/O support using MSX-DOS
+pub struct File {
+    handle: u8,
+    is_open: bool,
+}
+
+// MSX-DOS function calls
+const BDOS: u16 = 0x0005;
+const FOPEN: u8 = 0x0F;
+const FCLOSE: u8 = 0x10;
+const FREAD: u8 = 0x14;
+const FWRITE: u8 = 0x15;
+const FCREATE: u8 = 0x16;
+
+impl File {
+    pub fun open(filename: *u8) -> File {
+        // MSX-DOS compatible file operations
+        let mut file = File {
+            handle: 0,
+            is_open: false,
+        };
+        
+        // Implementation would depend on MSX-DOS presence
+        // This is a simplified version
+        
+        file
+    }
+    
+    pub fun create(filename: *u8) -> File {
+        let mut file = File {
+            handle: 0,
+            is_open: false,
+        };
+        
+        file
+    }
+    
+    pub fun close(self) -> void {
+        if self.is_open {
+            // Close file using MSX-DOS
+            self.is_open = false;
+        }
+    }
+    
+    pub fun read(self, buffer: *u8, len: u16) -> u16 {
+        if !self.is_open {
+            return 0;
+        }
+        
+        // Simplified read
+        0
+    }
+    
+    pub fun write(self, buffer: *u8, len: u16) -> u16 {
+        if !self.is_open {
+            return 0;
+        }
+        
+        // Simplified write
+        0
+    }
+}
+
+// Sprite support
+pub struct Sprite {
+    pattern: u8,
+    x: u8,
+    y: u8,
+    color: u8,
+}
+
+pub fun set_sprite(num: u8, sprite: Sprite) -> void {
+    // Set sprite attributes in VRAM
+    // This would write to VDP sprite attribute table
+}
+
+// VRAM access functions
+pub fun vram_write(address: u16, data: u8) -> void {
+    // Set VRAM write address
+    @asm {
+        LD HL, (address)
+        LD A, L
+        OUT (VDP_CTRL), A
+        LD A, H
+        OR 0x40           ; Write mode
+        OUT (VDP_CTRL), A
+        LD A, (data)
+        OUT (VDP_DATA), A
+    }
+}
+
+pub fun vram_read(address: u16) -> u8 {
+    let data: u8;
+    @asm {
+        LD HL, (address)
+        LD A, L
+        OUT (VDP_CTRL), A
+        LD A, H
+        AND 0x3F          ; Read mode
+        OUT (VDP_CTRL), A
+        IN A, (VDP_DATA)
+        LD (data), A
+    }
+    data
+}
+
+// Key click control
+pub fun set_key_click(enable: bool) -> void {
+    @asm {
+        LD A, (enable)
+        LD (CLIKSW), A
+    }
+}

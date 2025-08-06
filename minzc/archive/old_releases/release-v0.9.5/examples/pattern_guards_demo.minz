@@ -1,0 +1,55 @@
+// Pattern guards demonstration for MinZ v0.5.0
+
+// Simple pattern guard with number comparison
+fun categorize(n: u8) -> u8 {
+    case n {
+        0 => 10,                    // Literal pattern
+        x if x < 10 => 20,         // Variable binding with guard
+        x if x < 50 => 30,         // Another guard
+        _ => 40,                   // Wildcard pattern
+    }
+}
+
+// Pattern guards with boolean expressions
+fun check_range(value: i16, min: i16, max: i16) -> bool {
+    case value {
+        v if v >= min and v <= max => true,
+        _ => false,
+    }
+}
+
+// Nested pattern guards  
+fun process_pair(x: u8, y: u8) -> u8 {
+    case x {
+        0 => {
+            case y {
+                0 => 1,
+                n if n < 10 => 2,
+                _ => 3,
+            }
+        },
+        n if n == y => 4,      // Guard accessing outer scope
+        _ => 5,
+    }
+}
+
+pub fun main() -> u8 {
+    // Test categorize
+    if categorize(0) != 10 { return 1; }
+    if categorize(5) != 20 { return 2; }
+    if categorize(25) != 30 { return 3; }
+    if categorize(100) != 40 { return 4; }
+    
+    // Test range check
+    if !check_range(5, 0, 10) { return 5; }
+    if check_range(15, 0, 10) { return 6; }
+    
+    // Test nested patterns
+    if process_pair(0, 0) != 1 { return 7; }
+    if process_pair(0, 5) != 2 { return 8; }
+    if process_pair(0, 20) != 3 { return 9; }
+    if process_pair(7, 7) != 4 { return 10; }
+    if process_pair(7, 8) != 5 { return 11; }
+    
+    return 0; // Success
+}

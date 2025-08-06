@@ -759,6 +759,59 @@ The `global` keyword follows Ruby's philosophy of developer happiness - making t
 
 \* Savings only apply to metadata structures (8 bits vs 24 bits). Vectors still need full 256 bits. Total memory increases by 256 bytes for LUT.
 
+## Project Structure (Updated August 2025)
+
+### Directory Organization
+```
+minz-ts/
+├── minzc/                    # MinZ compiler (Go implementation)
+│   ├── cmd/                  # Command-line tools
+│   │   ├── minzc/           # Main compiler CLI
+│   │   ├── repl/            # Interactive REPL
+│   │   └── backend-info/    # Backend information tool
+│   ├── pkg/                  # Compiler packages
+│   │   ├── ast/             # Abstract syntax tree
+│   │   ├── parser/          # Tree-sitter integration
+│   │   ├── semantic/        # Type checking & analysis
+│   │   ├── ir/              # Intermediate representation
+│   │   ├── optimizer/       # Optimization passes
+│   │   ├── codegen/         # Backend code generators
+│   │   ├── z80asm/          # Built-in Z80 assembler
+│   │   └── emulator/        # Z80 emulator
+│   ├── tests/               # Organized test files
+│   │   └── minz/           # MinZ source test files
+│   ├── test_outputs/        # Compilation outputs
+│   │   ├── mir/            # MIR intermediate files
+│   │   ├── asm/            # Assembly outputs
+│   │   ├── c/              # C code outputs
+│   │   ├── llvm/           # LLVM IR outputs
+│   │   ├── wasm/           # WebAssembly outputs
+│   │   └── binaries/       # Final executables
+│   ├── examples/            # Example MinZ programs
+│   ├── docs/               # Technical documentation
+│   ├── releases/           # Consolidated releases
+│   └── archive/            # Old/historical files
+├── grammar.js              # Tree-sitter grammar
+├── stdlib/                 # Standard library modules
+├── examples/               # Main example collection
+├── docs/                   # Project documentation
+├── tools/                  # Development tools
+│   └── vscode-minz/       # VS Code extension
+└── releases/              # Release packages by version
+
+### Key Directories
+- **minzc/**: The heart of the compiler, all Go code
+- **test_outputs/**: Clean separation of test artifacts by backend
+- **releases/**: All versions in one place (v0.4.0 through v0.9.7)
+- **archive/**: Historical files moved out of the way
+- **tests/minz/**: Source files for testing
+- **examples/**: Working MinZ programs demonstrating features
+
+### Testing Infrastructure
+- **test_backend_e2e.sh**: End-to-end backend testing (MinZ→AST→MIR→Backend→Binary)
+- **compile_all_examples.sh**: Batch compilation testing
+- **test_all_examples.sh**: Comprehensive test suite
+
 ## Important Files and Directories
 
 ### Core Implementation

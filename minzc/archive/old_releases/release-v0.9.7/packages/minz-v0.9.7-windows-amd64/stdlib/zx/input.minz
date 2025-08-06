@@ -1,0 +1,165 @@
+// ZX Spectrum input handling
+module zx.input;
+
+// Keyboard port addresses
+const KB_PORT_FEFE: u8 = 0xFE;  // SHIFT, Z, X, C, V
+const KB_PORT_FDFE: u8 = 0xFD;  // A, S, D, F, G
+const KB_PORT_FBFE: u8 = 0xFB;  // Q, W, E, R, T
+const KB_PORT_F7FE: u8 = 0xF7;  // 1, 2, 3, 4, 5
+const KB_PORT_EFFE: u8 = 0xEF;  // 0, 9, 8, 7, 6
+const KB_PORT_DFFE: u8 = 0xDF;  // P, O, I, U, Y
+const KB_PORT_BFFE: u8 = 0xBF;  // ENTER, L, K, J, H
+const KB_PORT_7FFE: u8 = 0x7F;  // SPACE, SYM SHIFT, M, N, B
+
+// Key codes for common keys
+pub const KEY_SHIFT: u8 = 0;
+pub const KEY_Z: u8 = 1;
+pub const KEY_X: u8 = 2;
+pub const KEY_C: u8 = 3;
+pub const KEY_V: u8 = 4;
+
+pub const KEY_A: u8 = 5;
+pub const KEY_S: u8 = 6;
+pub const KEY_D: u8 = 7;
+pub const KEY_F: u8 = 8;
+pub const KEY_G: u8 = 9;
+
+pub const KEY_Q: u8 = 10;
+pub const KEY_W: u8 = 11;
+pub const KEY_E: u8 = 12;
+pub const KEY_R: u8 = 13;
+pub const KEY_T: u8 = 14;
+
+pub const KEY_1: u8 = 15;
+pub const KEY_2: u8 = 16;
+pub const KEY_3: u8 = 17;
+pub const KEY_4: u8 = 18;
+pub const KEY_5: u8 = 19;
+
+pub const KEY_0: u8 = 20;
+pub const KEY_9: u8 = 21;
+pub const KEY_8: u8 = 22;
+pub const KEY_7: u8 = 23;
+pub const KEY_6: u8 = 24;
+
+pub const KEY_P: u8 = 25;
+pub const KEY_O: u8 = 26;
+pub const KEY_I: u8 = 27;
+pub const KEY_U: u8 = 28;
+pub const KEY_Y: u8 = 29;
+
+pub const KEY_ENTER: u8 = 30;
+pub const KEY_L: u8 = 31;
+pub const KEY_K: u8 = 32;
+pub const KEY_J: u8 = 33;
+pub const KEY_H: u8 = 34;
+
+pub const KEY_SPACE: u8 = 35;
+pub const KEY_SYM: u8 = 36;
+pub const KEY_M: u8 = 37;
+pub const KEY_N: u8 = 38;
+pub const KEY_B: u8 = 39;
+
+// Kempston joystick bits
+pub const JOY_RIGHT: u8 = 0x01;
+pub const JOY_LEFT: u8 = 0x02;
+pub const JOY_DOWN: u8 = 0x04;
+pub const JOY_UP: u8 = 0x08;
+pub const JOY_FIRE: u8 = 0x10;
+
+// Read keyboard port
+fn read_port(port: u8) -> u8 {
+    let result: u8;
+    asm("
+        ld a, {0}
+        in a, ($fe)
+        ld {1}, a
+    " : "=r"(result) : "r"(port));
+    return result;
+}
+
+// Check if a specific key is pressed
+pub fn is_key_pressed(key: u8) -> bool {
+    let port: u8;
+    let bit: u8;
+    
+    // Determine port and bit for key
+    if key <= KEY_V {
+        port = KB_PORT_FEFE;
+        bit = key;
+    } else if key <= KEY_G {
+        port = KB_PORT_FDFE;
+        bit = key - 5;
+    } else if key <= KEY_T {
+        port = KB_PORT_FBFE;
+        bit = key - 10;
+    } else if key <= KEY_5 {
+        port = KB_PORT_F7FE;
+        bit = key - 15;
+    } else if key <= KEY_6 {
+        port = KB_PORT_EFFE;
+        bit = key - 20;
+    } else if key <= KEY_Y {
+        port = KB_PORT_DFFE;
+        bit = key - 25;
+    } else if key <= KEY_H {
+        port = KB_PORT_BFFE;
+        bit = key - 30;
+    } else {
+        port = KB_PORT_7FFE;
+        bit = key - 35;
+    }
+    
+    let value = read_port(port);
+    return (value & (1 << bit)) == 0;  // Keys are active low
+}
+
+// Read Kempston joystick
+pub fn read_joystick() -> u8 {
+    let value: u8;
+    asm("
+        in a, ($1f)
+        ld {0}, a
+    " : "=r"(value));
+    return value;
+}
+
+// Check joystick direction
+pub fn joy_right() -> bool {
+    return (read_joystick() & JOY_RIGHT) != 0;
+}
+
+pub fn joy_left() -> bool {
+    return (read_joystick() & JOY_LEFT) != 0;
+}
+
+pub fn joy_up() -> bool {
+    return (read_joystick() & JOY_UP) != 0;
+}
+
+pub fn joy_down() -> bool {
+    return (read_joystick() & JOY_DOWN) != 0;
+}
+
+pub fn joy_fire() -> bool {
+    return (read_joystick() & JOY_FIRE) != 0;
+}
+
+// Wait for any key press
+pub fn wait_key() -> void {
+    while !any_key() {
+        // Wait
+    }
+}
+
+// Check if any key is pressed
+pub fn any_key() -> bool {
+    return read_port(KB_PORT_FEFE) != 0xFF ||
+           read_port(KB_PORT_FDFE) != 0xFF ||
+           read_port(KB_PORT_FBFE) != 0xFF ||
+           read_port(KB_PORT_F7FE) != 0xFF ||
+           read_port(KB_PORT_EFFE) != 0xFF ||
+           read_port(KB_PORT_DFFE) != 0xFF ||
+           read_port(KB_PORT_BFFE) != 0xFF ||
+           read_port(KB_PORT_7FFE) != 0xFF;
+}

@@ -1,9 +1,0 @@
-// Simple lambda test
-
-fun main() -> void {
-    // Create a simple lambda
-    let add_five = |x| x + 5;
-    
-    // Call the lambda
-    let result = add_five(10);
-}

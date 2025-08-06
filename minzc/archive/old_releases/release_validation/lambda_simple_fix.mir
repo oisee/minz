@@ -1,0 +1,21 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.lambda_simple_fix.test_simple_lambda$f_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
+      1: return
+
+Function ......examples.lambda_simple_fix.test_simple_lambda() -> u8
+  @smc
+  Instructions:
+      0: r2 = call f
+      1: return
+
+Function ......examples.lambda_simple_fix.main() -> u8
+  @smc
+  Instructions:
+      0: r1 = call test_simple_lambda
+      1: return
+

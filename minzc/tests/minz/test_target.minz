@@ -1,0 +1,41 @@
+// Test @target directive for multi-backend support
+fun print_char(c: u8) -> void {
+    @target("z80") {
+        asm {
+            ; Z80: Use ROM routine to print character
+            LD A, (IX+6)    ; Get parameter from stack
+            RST 0x10        ; ZX Spectrum print routine
+        }
+    }
+    
+    @target("6502") {
+        asm {
+            ; 6502: Platform-specific output
+            LDA $00         ; Get parameter from zero page
+            JSR $FFD2       ; C64 KERNAL CHROUT
+        }
+    }
+    
+    @target("wasm") {
+        // For WASM, use the imported print function
+        // This would be handled by the backend
+    }
+}
+
+fun main() -> void {
+    let msg: u8 = 65;  // 'A'
+    
+    @target("z80") {
+        @print("Running on Z80!");
+    }
+    
+    @target("6502") {
+        @print("Running on 6502!");
+    }
+    
+    @target("wasm") {
+        @print("Running on WebAssembly!");
+    }
+    
+    print_char(msg);
+}

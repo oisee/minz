@@ -1,0 +1,22 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   ......examples.test_loop_no_init.items: [3]......examples.test_loop_no_init.Item
+
+Function ......examples.test_loop_no_init.main() -> void
+  @smc
+  Instructions:
+      0: r1 = addr(......examples.test_loop_no_init.items)
+      1: r2 = addr() ; Load table base address
+      2: r3 = addr() ; Load table base for end calculation
+      3: UNKNOWN_OP_79 ; Calculate table end (+ 3 elements * 1 bytes)
+      4: UNKNOWN_OP_78 ; Load loop counter
+      5: UNKNOWN_OP_56 ; Check if reached end of table
+      6: JUMP_IF ; Exit if done
+      7: UNKNOWN_OP_75 ; Copy element to buffer at $F000
+      8: UNKNOWN_OP_76 ; Copy buffer back to element at $F000
+      9: UNKNOWN_OP_79 ; Advance to next element (+1 bytes)
+     10: UNKNOWN_OP_77 ; Decrement counter and loop if not zero
+     11: return
+

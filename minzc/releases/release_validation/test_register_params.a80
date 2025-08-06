@@ -1,0 +1,178 @@
+; MinZ generated code
+; Generated: 2025-08-03 15:05:44
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.test_register_params.add_bytes
+......examples.test_register_params.add_bytes:
+; TRUE SMC function with immediate anchors
+a$immOP:
+    LD A, 0        ; a anchor (will be patched)
+a$imm0 EQU a$immOP+1
+b$immOP:
+    LD B, 0        ; b anchor (will be patched)
+b$imm0 EQU b$immOP+1
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.test_register_params.add_words
+......examples.test_register_params.add_words:
+; TRUE SMC function with immediate anchors
+x$immOP:
+    LD HL, 0       ; x anchor (will be patched)
+x$imm0 EQU x$immOP+1
+    ; Register 3 already in HL
+y$immOP:
+    LD HL, 0       ; y anchor (will be patched)
+y$imm0 EQU y$immOP+1
+    LD D, H
+    LD E, L
+    ; r5 = r3 + r4
+    ; Register 3 already in HL
+    LD D, H
+    LD E, L
+    LD H, D
+    LD L, E
+    ADD HL, DE
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; return r5
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.test_register_params.process
+......examples.test_register_params.process:
+; TRUE SMC function with immediate anchors
+value$immOP:
+    LD A, 0        ; value anchor (will be patched)
+value$imm0 EQU value$immOP+1
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+count$immOP:
+    LD HL, 0       ; count anchor (will be patched)
+count$imm0 EQU count$immOP+1
+    ; Initialize loop variable i
+    ; Register 6 already in HL
+    ; for_loop_1:
+for_loop_1:
+    ; Check i < end
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r9, for_end_2
+    LD A, H
+    OR A
+    JP Z, for_end_2
+ptr$immOP:
+    LD HL, 0       ; ptr anchor (will be patched)
+ptr$imm0 EQU ptr$immOP+1
+    ; r12 = *r11
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r16 = r14 + r15
+    ; Register 14 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Increment i
+    LD D, H
+    LD E, L
+    LD HL, ($F022)    ; Virtual register 17 from memory
+    ADD HL, DE
+    LD HL, (ptr$imm0)   ; Reuse from anchor
+    ; Register 14 already in HL
+    ; r15 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r17 = 1
+    LD A, 1
+    LD ($F022), A     ; Virtual register 17 to memory
+    ; store ptr, r16
+    LD ($F000), HL
+    ; jump for_loop_1
+    JP for_loop_1
+    ; for_end_2:
+for_end_2:
+    ; r18 = load sum
+    LD A, ($F008)
+    LD L, A         ; Store to HL (low byte)
+    ; return r18
+    ; Register 18 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.test_register_params.many_params
+......examples.test_register_params.many_params:
+; TRUE SMC function with immediate anchors
+a$immOP:
+    LD A, 0        ; a anchor (will be patched)
+a$imm0 EQU a$immOP+1
+    LD H, A         ; Store to physical register H
+b$immOP:
+    LD A, 0        ; b anchor (will be patched)
+b$imm0 EQU b$immOP+1
+    LD L, A         ; Store to physical register L
+    ; r8 = r6 + r7
+    LD D, H
+    LD E, L
+    ADD HL, DE
+c$immOP:
+    LD A, 0        ; c anchor (will be patched)
+c$imm0 EQU c$immOP+1
+    LD L, A         ; Store to physical register L
+    ; r10 = r8 + r9
+    LD D, H
+    LD E, L
+    ADD HL, DE
+d$immOP:
+    LD A, 0        ; d anchor (will be patched)
+d$imm0 EQU d$immOP+1
+    LD L, A         ; Store to physical register L
+    ; r12 = r10 + r11
+    LD D, H
+    LD E, L
+    ADD HL, DE
+e$immOP:
+    LD A, 0        ; e anchor (will be patched)
+e$imm0 EQU e$immOP+1
+    LD L, A         ; Store to physical register L
+    ; r14 = r12 + r13
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r14
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.test_register_params.recursive_sum
+......examples.test_register_params.recursive_sum:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    LD L, A         ; Store to physical register L
+    ; unknown op 57

@@ -1,0 +1,11 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.field_assignment.main() -> void
+  @smc
+  Locals:
+    r1 = p: ......examples.field_assignment.Point
+    r6 = val: u16
+  Instructions:
+      0: return
+

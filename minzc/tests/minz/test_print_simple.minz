@@ -1,0 +1,10 @@
+// Test @print string interpolation with only constants
+
+fun main() -> u8 {
+    // Test constant expressions only - these should work
+    @print("Simple math: { 2 + 3 }")
+    @print("Multiplication: { 5 * 4 }")
+    @print("Complex: { (10 + 5) * 2 }")
+    
+    return 0;
+}

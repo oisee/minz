@@ -1,0 +1,132 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   ......examples.tsmc_loops.i: u16
+
+Function ......examples.tsmc_loops.sum_array_tsmc(arr: *u8, count: u16) -> u16
+  @smc
+  Locals:
+    r3 = sum: u16
+    r5 = i: u16
+  Instructions:
+      0: loop_1:
+      1: r7 = load i
+      2: UNKNOWN_OP_33 ; Load from anchor count$imm0
+      3: r9 = r7 < r8
+      4: jump_if_not r9, end_loop_2
+      5: UNKNOWN_OP_33 ; Load from anchor arr$imm0
+      6: UNKNOWN_OP_69
+      7: UNKNOWN_OP_33 ; Load from anchor arr$imm0
+      8: UNKNOWN_OP_32 ; Update TSMC reference arr
+      9: jump loop_1
+     10: end_loop_2:
+     11: r20 = load sum
+     12: return r20
+
+Function ......examples.tsmc_loops.find_max_tsmc(arr: *u8, count: u16) -> u8
+  @smc
+  Locals:
+    r7 = max: u8
+    r13 = i: u16
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor count$imm0
+      1: UNKNOWN_OP_57
+      2: jump_if_not r5, else_3
+      3: r6 = 0
+      4: return r6
+      5: else_3:
+      6: UNKNOWN_OP_33 ; Load from anchor arr$imm0
+      7: UNKNOWN_OP_69
+      8: UNKNOWN_OP_33 ; Load from anchor arr$imm0
+      9: UNKNOWN_OP_32 ; Update TSMC reference arr
+     10: loop_5:
+     11: r15 = load i
+     12: UNKNOWN_OP_33 ; Load from anchor count$imm0
+     13: r17 = r15 < r16
+     14: jump_if_not r17, end_loop_6
+     15: UNKNOWN_OP_33 ; Load from anchor arr$imm0
+     16: UNKNOWN_OP_69
+     17: r20 = load max
+     18: r21 = r19 > r20
+     19: jump_if_not r21, else_7
+     20: UNKNOWN_OP_33 ; Load from anchor arr$imm0
+     21: UNKNOWN_OP_69
+     22: jump end_if_8
+     23: else_7:
+     24: end_if_8:
+     25: UNKNOWN_OP_33 ; Load from anchor arr$imm0
+     26: UNKNOWN_OP_32 ; Update TSMC reference arr
+     27: jump loop_5
+     28: end_loop_6:
+     29: r30 = load max
+     30: return r30
+
+Function ......examples.tsmc_loops.strcmp_tsmc(s1: *u8, s2: *u8) -> i8
+  @smc
+  Instructions:
+      0: loop_9:
+      1: UNKNOWN_OP_33 ; Load from anchor s1$imm0
+      2: UNKNOWN_OP_69
+      3: r5 = 0
+      4: UNKNOWN_OP_33 ; Load from anchor s1$imm0
+      5: UNKNOWN_OP_69
+      6: UNKNOWN_OP_68
+      7: r9 = r5 & r8
+      8: r10 = r4 != r9
+      9: UNKNOWN_OP_33 ; Load from anchor s2$imm0
+     10: UNKNOWN_OP_69
+     11: r13 = r10 == r12
+     12: jump_if_not r13, end_loop_10
+     13: UNKNOWN_OP_33 ; Load from anchor s1$imm0
+     14: UNKNOWN_OP_32 ; Update TSMC reference s1
+     15: UNKNOWN_OP_33 ; Load from anchor s2$imm0
+     16: UNKNOWN_OP_32 ; Update TSMC reference s2
+     17: jump loop_9
+     18: end_loop_10:
+     19: UNKNOWN_OP_33 ; Load from anchor s1$imm0
+     20: UNKNOWN_OP_69
+     21: UNKNOWN_OP_33 ; Load from anchor s2$imm0
+     22: UNKNOWN_OP_69
+     23: r24 = r21 < r23
+     24: jump_if_not r24, else_11
+     25: r26 = -1 ; Folded: 
+     26: return r26
+     27: else_11:
+     28: UNKNOWN_OP_33 ; Load from anchor s1$imm0
+     29: UNKNOWN_OP_69
+     30: UNKNOWN_OP_33 ; Load from anchor s2$imm0
+     31: UNKNOWN_OP_69
+     32: r31 = r28 > r30
+     33: jump_if_not r31, else_13
+     34: r32 = 1
+     35: return r32
+     36: else_13:
+     37: r33 = 0
+     38: return r33
+
+Function ......examples.tsmc_loops.count_char_tsmc(str: *u8, ch: u8) -> u16
+  @smc
+  Locals:
+    r3 = count: u16
+  Instructions:
+      0: loop_15:
+      1: UNKNOWN_OP_33 ; Load from anchor str$imm0
+      2: UNKNOWN_OP_69
+      3: UNKNOWN_OP_57
+      4: jump_if_not r8, end_loop_16
+      5: UNKNOWN_OP_33 ; Load from anchor str$imm0
+      6: UNKNOWN_OP_69
+      7: UNKNOWN_OP_33 ; Load from anchor ch$imm0
+      8: r12 = r10 == r11
+      9: jump_if_not r12, else_17
+     10: jump end_if_18
+     11: else_17:
+     12: end_if_18:
+     13: UNKNOWN_OP_33 ; Load from anchor str$imm0
+     14: UNKNOWN_OP_32 ; Update TSMC reference str
+     15: jump loop_15
+     16: end_loop_16:
+     17: r19 = load count
+     18: return r19
+

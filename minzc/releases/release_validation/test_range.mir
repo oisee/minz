@@ -1,0 +1,20 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ......examples.test_range.sum_range(n: u8) -> u16
+  @smc
+  Locals:
+    r2 = sum: u16
+  Instructions:
+      0: UNKNOWN_OP_33 ; Load from anchor n$imm0
+      1: r6 = r4 ; Initialize loop variable i
+      2: for_loop_1:
+      3: r7 = r6 < r5 ; Check i < end
+      4: jump_if_not r7, for_end_2
+      5: r6 = r6 + r11 ; Increment i
+      6: r11 = 1
+      7: jump for_loop_1
+      8: for_end_2:
+      9: r12 = load sum
+     10: return r12
+

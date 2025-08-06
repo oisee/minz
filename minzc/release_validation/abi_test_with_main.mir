@@ -1,9 +1,0 @@
-; MinZ Intermediate Representation (MIR)
-; Module: main
-
-Function ......examples.abi_test_with_main.test_func(x: u8) -> u8
-  @smc
-  Instructions:
-      0: UNKNOWN_OP_33 ; Load from anchor x$imm0
-      1: return r2
-

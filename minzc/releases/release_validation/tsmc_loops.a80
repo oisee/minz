@@ -1,0 +1,82 @@
+; MinZ generated code
+; Generated: 2025-08-03 15:05:45
+
+
+; Data section
+    ORG $F000
+
+......examples.tsmc_loops.i:
+    DW 0
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.tsmc_loops.sum_array_tsmc
+......examples.tsmc_loops.sum_array_tsmc:
+; TRUE SMC function with immediate anchors
+    ; loop_1:
+loop_1:
+    ; r7 = load i
+    LD HL, ($F00A)
+count$immOP:
+    LD HL, 0       ; count anchor (will be patched)
+count$imm0 EQU count$immOP+1
+    ; Register 8 already in HL
+    ; r9 = r7 < r8
+    LD D, H
+    LD E, L
+    ; Register 8 already in HL
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    LD B, H
+    LD C, L
+    ; jump_if_not r9, end_loop_2
+    LD A, C
+    OR A
+    JP Z, end_loop_2
+arr$immOP:
+    LD HL, 0       ; arr anchor (will be patched)
+arr$imm0 EQU arr$immOP+1
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r12 = *r11
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD A, (HL)
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    LD HL, (arr$imm0)   ; Reuse from anchor
+    ; Update TSMC reference arr
+    LD (arr$imm0), HL    ; Update TSMC reference immediate
+    ; jump loop_1
+    JP loop_1
+    ; end_loop_2:
+end_loop_2:
+    ; r20 = load sum
+    LD HL, ($F006)
+    ; return r20
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.tsmc_loops.find_max_tsmc
+......examples.tsmc_loops.find_max_tsmc:
+; TRUE SMC function with immediate anchors
+count$immOP:
+    LD HL, 0       ; count anchor (will be patched)
+count$imm0 EQU count$immOP+1
+    ; Register 3 already in HL
+    ; unknown op 57

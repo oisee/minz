@@ -1,0 +1,367 @@
+// ZX Spectrum screen operations
+module zx.screen;
+
+// Screen constants
+pub const SCREEN_WIDTH: u16 = 256;
+pub const SCREEN_HEIGHT: u16 = 192;
+pub const SCREEN_ADDR: u16 = 0x4000;
+pub const ATTR_ADDR: u16 = 0x5800;
+pub const ATTR_SIZE: u16 = 768;
+
+// Color constants
+pub const BLACK: u8 = 0;
+pub const BLUE: u8 = 1;
+pub const RED: u8 = 2;
+pub const MAGENTA: u8 = 3;
+pub const GREEN: u8 = 4;
+pub const CYAN: u8 = 5;
+pub const YELLOW: u8 = 6;
+pub const WHITE: u8 = 7;
+
+// Attribute flags
+pub const BRIGHT: u8 = 0x40;
+pub const FLASH: u8 = 0x80;
+
+// Calculate screen address from pixel coordinates
+pub fun pixel_addr(x: u8, y: u8) -> u16 {
+    // ZX Spectrum screen memory layout
+    let y_high: u8 = y & 0xC0;
+    let y_mid: u8 = (y & 0x38) >> 3;
+    let y_low: u8 = (y & 0x07);
+    
+    let addr: u16 = SCREEN_ADDR | (y_low << 8) | (y_mid << 5) | (y_high << 5) | (x >> 3);
+    return addr;
+}
+
+// Calculate attribute address from character coordinates
+pub fun attr_addr(x: u8, y: u8) -> u16 {
+    return ATTR_ADDR + (y * 32) + x;
+}
+
+// Set border color
+pub fun set_border(color: u8) -> void {
+    asm("
+        ld a, {0}
+        out ($fe), a
+    " : : "r"(color & 0x07));
+}
+
+// Clear screen with given attribute
+pub fun clear(ink: u8, paper: u8, bright: bool, flash: bool) -> void {
+    // Clear pixel data
+    let mut addr: u16 = SCREEN_ADDR;
+    let end: u16 = SCREEN_ADDR + 6144;
+    while addr < end {
+        asm("
+            xor a
+            ld ({0}), a
+        " : : "r"(addr));
+        addr = addr + 1;
+    }
+    
+    // Set attributes
+    let mut attr: u8 = ink | (paper << 3);
+    if bright {
+        attr = attr | BRIGHT;
+    }
+    if flash {
+        attr = attr | FLASH;
+    }
+    
+    addr = ATTR_ADDR;
+    end = ATTR_ADDR + ATTR_SIZE;
+    while addr < end {
+        asm("
+            ld a, {0}
+            ld ({1}), a
+        " : : "r"(attr), "r"(addr));
+        addr = addr + 1;
+    }
+}
+
+// Set pixel at coordinates
+pub fun set_pixel(x: u8, y: u8) -> void {
+    let addr = pixel_addr(x, y);
+    let bit: u8 = 0x80 >> (x & 0x07);
+    
+    asm("
+        ld hl, {0}
+        ld a, (hl)
+        or {1}
+        ld (hl), a
+    " : : "r"(addr), "r"(bit));
+}
+
+// Clear pixel at coordinates
+pub fun clear_pixel(x: u8, y: u8) -> void {
+    let addr = pixel_addr(x, y);
+    let bit: u8 = ~(0x80 >> (x & 0x07));
+    
+    asm("
+        ld hl, {0}
+        ld a, (hl)
+        and {1}
+        ld (hl), a
+    " : : "r"(addr), "r"(bit));
+}
+
+// Draw horizontal line
+pub fun draw_hline(x: u8, y: u8, len: u8) -> void {
+    let mut i: u8 = 0;
+    while i < len {
+        set_pixel(x + i, y);
+        i = i + 1;
+    }
+}
+
+// Draw vertical line
+pub fun draw_vline(x: u8, y: u8, len: u8) -> void {
+    let mut i: u8 = 0;
+    while i < len {
+        set_pixel(x, y + i);
+        i = i + 1;
+    }
+}
+
+// Draw rectangle
+pub fun draw_rect(x: u8, y: u8, width: u8, height: u8) -> void {
+    draw_hline(x, y, width);
+    draw_hline(x, y + height - 1, width);
+    draw_vline(x, y, height);
+    draw_vline(x + width - 1, y, height);
+}
+
+// Text printing constants
+pub const CHAR_WIDTH: u8 = 8;   // Character width in pixels
+pub const CHAR_HEIGHT: u8 = 8;  // Character height in pixels
+pub const TEXT_COLS: u8 = 32;   // Characters per line
+pub const TEXT_ROWS: u8 = 24;   // Text lines on screen
+pub const CHAR_ROM: u16 = 0x3D00;  // ZX Spectrum ROM font location
+
+// Current text cursor position  
+static mut text_x: u8 = 0;
+static mut text_y: u8 = 0;
+static mut text_attr: u8 = WHITE;  // Default white on black
+
+/// Set text cursor position (0-31, 0-23)
+pub fun set_cursor(x: u8, y: u8) -> void {
+    if x < TEXT_COLS && y < TEXT_ROWS {
+        text_x = x;
+        text_y = y;
+    }
+}
+
+/// Get current cursor position
+pub fun get_cursor() -> (u8, u8) {
+    return (text_x, text_y);
+}
+
+/// Set text attribute for subsequent text
+pub fun set_text_attr(ink: u8, paper: u8, bright: bool, flash: bool) -> void {
+    text_attr = ink | (paper << 3);
+    if bright { text_attr = text_attr | BRIGHT; }
+    if flash { text_attr = text_attr | FLASH; }
+}
+
+/// Calculate character screen address from text coordinates
+fun char_screen_addr(x: u8, y: u8) -> u16 {
+    // ZX Spectrum screen layout for characters
+    let y_offset = ((y & 0x18) << 8) | ((y & 0x07) << 5);
+    return SCREEN_ADDR + y_offset + x;
+}
+
+/// Print a single character at current cursor using ROM font
+pub fun print_char(ch: u8) -> void {
+    // Handle special characters
+    if ch == 13 {  // Carriage return
+        text_x = 0;
+        text_y = text_y + 1;
+        if text_y >= TEXT_ROWS {
+            text_y = 0;  // Simple wrap to top
+        }
+        return;
+    }
+    
+    // Auto-wrap at end of line
+    if text_x >= TEXT_COLS {
+        text_x = 0;
+        text_y = text_y + 1;
+        if text_y >= TEXT_ROWS {
+            text_y = 0;
+        }
+    }
+    
+    // Calculate addresses
+    let char_rom_addr = CHAR_ROM + (ch as u16) * 8;
+    let screen_addr = char_screen_addr(text_x, text_y);
+    let attr_address = ATTR_ADDR + (text_y as u16) * 32 + (text_x as u16);
+    
+    // Copy character pattern from ROM to screen (8 bytes)
+    // This is the core 32-character printing routine
+    @asm {
+        ; Load ROM character address
+        ld hl, (char_rom_addr)
+        
+        ; Load screen destination
+        ld de, (screen_addr)
+        
+        ; Copy 8 lines of character data
+        ld b, 8
+    char_copy_loop:
+        ld a, (hl)       ; Read character pattern from ROM
+        ld (de), a       ; Write to screen memory
+        inc hl           ; Next ROM byte
+        inc d            ; Next screen line (add 256 due to ZX layout)
+        djnz char_copy_loop
+        
+        ; Set character attribute
+        ld hl, (attr_address)
+        ld a, (text_attr)
+        ld (hl), a
+    }
+    
+    text_x = text_x + 1;
+}
+
+/// Print a null-terminated string
+pub fun print_string(s: *const u8) -> void {
+    let mut ptr = s;
+    let mut ch = *ptr;
+    
+    while ch != 0 {
+        print_char(ch);
+        ptr = ptr + 1;
+        ch = *ptr;
+    }
+}
+
+/// Print string at specific position
+pub fun print_at(x: u8, y: u8, s: *const u8) -> void {
+    set_cursor(x, y);
+    print_string(s);
+}
+
+/// Print a decimal number
+pub fun print_number(mut n: u16) -> void {
+    if n == 0 {
+        print_char('0' as u8);
+        return;
+    }
+    
+    // Convert to string (max 5 digits for u16)
+    let mut digits: [u8; 6];
+    let mut count: u8 = 0;
+    
+    while n > 0 {
+        digits[count] = (n % 10) as u8 + ('0' as u8);
+        n = n / 10;
+        count = count + 1;
+    }
+    
+    // Print digits in reverse order
+    while count > 0 {
+        count = count - 1;
+        print_char(digits[count]);
+    }
+}
+
+/// Print a byte in hexadecimal (2 digits)
+pub fun print_hex8(n: u8) -> void {
+    let high = (n >> 4) & 0x0F;
+    let low = n & 0x0F;
+    
+    let high_char = if high < 10 { ('0' as u8) + high } else { ('A' as u8) + high - 10 };
+    let low_char = if low < 10 { ('0' as u8) + low } else { ('A' as u8) + low - 10 };
+    
+    print_char(high_char);
+    print_char(low_char);
+}
+
+/// Print a 16-bit value in hexadecimal (4 digits)
+pub fun print_hex16(n: u16) -> void {
+    print_hex8((n >> 8) as u8);
+    print_hex8(n as u8);
+}
+
+/// Clear entire screen to specified colors
+pub fun clear_screen(ink: u8, paper: u8) -> void {
+    clear(ink, paper, false, false);
+    set_cursor(0, 0);
+    set_text_attr(ink, paper, false, false);
+}
+
+/// Scroll text up one line
+pub fun scroll_up() -> void {
+    // This is simplified - full ZX Spectrum scrolling is complex
+    // due to the weird screen memory layout
+    @asm {
+        ; Scroll screen memory up by one character line (8 pixel lines)
+        ; This is a simplified version - proper implementation would
+        ; handle the ZX Spectrum's non-linear screen layout
+        
+        ; Copy each of the 23 character lines up by one
+        ld b, 23           ; 23 lines to copy
+        ld hl, SCREEN_ADDR + (32 * 8)  ; Source: second line
+        ld de, SCREEN_ADDR             ; Dest: first line
+        
+    scroll_line_loop:
+        push bc
+        
+        ; Copy 8 pixel lines for this character row
+        ld b, 8
+    scroll_pixel_loop:
+        push bc
+        push hl
+        push de
+        
+        ; Copy 32 bytes (one pixel line)
+        ld bc, 32
+        ldir
+        
+        pop de
+        pop hl
+        pop bc
+        
+        ; Move to next pixel line
+        inc h              ; HL += 256
+        inc d              ; DE += 256
+        djnz scroll_pixel_loop
+        
+        pop bc
+        djnz scroll_line_loop
+        
+        ; Clear bottom line
+        ld hl, SCREEN_ADDR + (23 * 32 * 8)
+        ld de, SCREEN_ADDR + (23 * 32 * 8) + 1
+        ld bc, (32 * 8) - 1
+        ld (hl), 0
+        ldir
+    }
+    
+    // Scroll attributes
+    @asm {
+        ld hl, ATTR_ADDR + 32      ; Source: second line
+        ld de, ATTR_ADDR           ; Dest: first line  
+        ld bc, 32 * 23            ; Copy 23 lines
+        ldir
+        
+        ; Clear bottom line attributes
+        ld hl, ATTR_ADDR + (32 * 23)
+        ld de, ATTR_ADDR + (32 * 23) + 1
+        ld bc, 31
+        ld a, (text_attr)
+        ld (hl), a
+        ldir
+    }
+    
+    // Keep cursor at bottom if it was there
+    if text_y > 0 {
+        text_y = text_y - 1;
+    }
+}
+
+/// Initialize text system
+pub fun init_text() -> void {
+    set_cursor(0, 0);
+    set_text_attr(WHITE, BLACK, false, false);
+}

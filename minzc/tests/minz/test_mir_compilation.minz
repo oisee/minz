@@ -1,0 +1,11 @@
+// Test file for MIR compilation
+fun main() -> void {
+    let x: u8 = 42;
+    let y: u8 = 10;
+    let sum: u8 = x + y;
+    @print("Result: { sum }\n");
+}
+
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
