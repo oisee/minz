@@ -804,6 +804,42 @@ cd tests/e2e && go run main.go performance
 - [Hello World](examples/hello_world.minz) - Simple output
 - [Arrays](examples/arrays.minz) - Array manipulation
 
+### 🧠 Revolutionary TSMC: Code That Rewrites Itself
+
+MinZ implements **TSMC (True Self-Modifying Code)** - a revolutionary paradigm where **programs rewrite their own instructions during execution**:
+
+#### The Core Breakthrough: Code IS the Data Structure
+```asm
+; Traditional: Data lives in memory
+variable: DS 1          ; Variable in memory
+LD A, (variable)        ; Load from memory (indirection overhead)
+
+; TSMC: Data lives IN instruction opcodes  
+variable.op: LD A, #42  ; The #42 IS the variable (zero indirection)!
+```
+
+#### Smart Patching: 24+ T-States Savings Per Call
+Revolutionary single-byte opcode patching for behavioral morphing:
+
+```asm
+func_return.op:
+    NOP              ; PATCH POINT: NOP → RET/LD/XOR (single byte!)
+    LD (0000), A     ; Default behavior (address also patchable)
+    RET              ; Fallback return
+```
+
+**Performance Revolution:**
+- Traditional template copying: 44+ T-states setup
+- **Smart patching: 7-20 T-states setup**
+- **Net savings: 24+ T-states per call** + dramatically faster setup!
+
+#### Complete Documentation (16-Section Guide)
+- **[TSMC Complete Philosophy](docs/145_TSMC_Complete_Philosophy.md)** - Full numbered guide to the paradigm
+- **[Instruction Patching](docs/144_TRUE_SMC_Instruction_Patching.md)** - Advanced opcode patching techniques  
+- **[Working Examples](expected/instruction_patching_demo.a80)** - Complete MinZ → Assembly pipeline
+
+**TSMC transforms Z80 processors from simple instruction executors into dynamically reconfigurable computing fabrics where the distinction between software and hardware becomes meaningless.**
+
 ### Revolutionary Features
 - [Zero-Cost Iterators](docs/125_Iterator_Transformation_Mechanics.md) - Complete technical guide
 - [Lambda Test](examples/lambda_transform_test.minz) - Lambda expression experiments
