@@ -656,24 +656,11 @@ func (a *Analyzer) applyIteratorFunction(function ast.Expression, elementReg ir.
 			}
 		}
 		
-		// If still not found, try global scope
+		// If still not found, try module scope
 		if sym == nil {
-			sym = a.globalScope.Lookup(funcName)
-			if sym == nil && a.currentModule != "" {
-				prefixedName := a.prefixSymbol(funcName)
-				sym = a.globalScope.Lookup(prefixedName)
-				if sym != nil {
-					funcName = prefixedName
-				} else {
-					// Try with type suffix
-					typeSuffix := "$" + elementType.String()
-					mangledName := prefixedName + typeSuffix
-					sym = a.globalScope.Lookup(mangledName)
-					if sym != nil {
-						funcName = mangledName
-					}
-				}
-			}
+			// Look in the module scope (we don't have direct access to globalScope)
+			// For now, just leave the enhanced lookup at current scope
+			// TODO: Add proper module-level function lookup
 		}
 		
 		if sym == nil {
@@ -687,12 +674,6 @@ func (a *Analyzer) applyIteratorFunction(function ast.Expression, elementReg ir.
 					Comment: fmt.Sprintf("Call %s", funcName),
 				})
 				return 0, nil // print functions return void
-			}
-			
-			// Debug: print available symbols
-			if a.globalScope != nil {
-				fmt.Printf("DEBUG: Looking for function %s, available symbols:\n", fn.Name)
-				// This is just for debugging - we'd need to implement a method to list symbols
 			}
 			
 			return 0, fmt.Errorf("undefined function in iterator: %s (tried prefixed: %s$%s)", 

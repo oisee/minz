@@ -83,6 +83,16 @@ install: all
 	@echo "  mz    - MinZ compiler (also: minzc)"
 	@echo "  mzr   - MinZ REPL (also: minz)"
 
+# Install to user's local bin (no sudo required)
+install-local: build
+	@mkdir -p ~/.local/bin
+	@echo "Installing MinZ compiler to ~/.local/bin..."
+	@ln -sf $(PWD)/mz ~/.local/bin/mz
+	@ln -sf $(PWD)/mz ~/.local/bin/minzc
+	@echo "Installation complete!"
+	@echo "  mz    - MinZ compiler (also: minzc)"
+	@echo "Make sure ~/.local/bin is in your PATH"
+
 # Development build with race detector
 dev:
 	go build -race -o minzc cmd/minzc/main.go

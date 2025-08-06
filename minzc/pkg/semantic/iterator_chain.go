@@ -14,8 +14,8 @@ func (a *Analyzer) generateChainedIteration(chain *ast.IteratorChainExpr, firstS
 	
 	// Find the chain operation and its argument
 	var chainOp *ast.IteratorOp
-	var beforeChainOps []ast.IteratorOp
-	var afterChainOps []ast.IteratorOp
+	beforeChainOps := []ast.IteratorOp{}
+	afterChainOps := []ast.IteratorOp{}
 	
 	for i, op := range chain.Operations {
 		if op.Type == ast.IterOpChain {
@@ -117,16 +117,16 @@ func (a *Analyzer) generateFlatMapIteration(chain *ast.IteratorChainExpr, source
 	
 	// Find the flatMap operation
 	var flatMapOp *ast.IteratorOp
-	var beforeOps []ast.IteratorOp
-	var afterOps []ast.IteratorOp
+	// var beforeOps []ast.IteratorOp  // Reserved for future implementation
+	// var afterOps []ast.IteratorOp   // Reserved for future implementation
 	
 	for i, op := range chain.Operations {
 		if op.Type == ast.IterOpFlatMap {
 			flatMapOp = &chain.Operations[i]
-			beforeOps = chain.Operations[:i]
-			if i+1 < len(chain.Operations) {
-				afterOps = chain.Operations[i+1:]
-			}
+			// beforeOps = chain.Operations[:i]
+			// if i+1 < len(chain.Operations) {
+			// 	afterOps = chain.Operations[i+1:]
+			// }
 			break
 		}
 	}
