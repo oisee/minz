@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	version      = "0.9.5"
+	version      = "0.9.7"
 	outputFile   string
 	optimize     bool
 	debug        bool
