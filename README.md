@@ -599,10 +599,58 @@ python3 -m http.server 8000
 
 | Tool | Description | Status |
 |------|-------------|--------|
-| `mz` | MinZ compiler | ✅ Available |
-| `mzr` | MinZ REPL | 🚧 In development |
+| `mz` | MinZ compiler (MinZ → Z80/6502/WebAssembly/C/LLVM) | ✅ Production Ready |
+| `mza` | MinZ Z80 Assembler (Z80 assembly → binary) | ✅ Production Ready |
+| `mze` | MinZ Multi-Platform Z80 Emulator/Simulator | ✅ Production Ready |
+| `mzr` | MinZ Interactive REPL | ✅ Available |
 | `mz-fmt` | Code formatter | 📋 Planned |
 | `mz-test` | Test runner | 📋 Planned |
+
+#### 🔧 **Complete Z80 Development Toolchain** (NEW!)
+
+**`mza` - MinZ Z80 Assembler**
+```bash
+mza program.a80                     # Assemble to program.bin
+mza -l listing.lst program.a80      # Generate listing file
+mza -s symbols.sym program.a80      # Generate symbol table
+```
+
+**Features:**
+- ✅ **Character literals**: `LD A, 'H'` (modern syntax!)
+- ✅ **Multiple hex formats**: `$8000`, `#8000`, `0x8000`
+- ✅ **Binary output**: Ready for emulation or real hardware
+- ✅ **Comprehensive error handling**: Clear diagnostics
+
+**`mze` - Multi-Platform Z80 Emulator**
+```bash
+mze program.bin                      # ZX Spectrum mode (default)
+mze -t cpm program.com               # CP/M mode
+mze -t cpc program.bin               # Amstrad CPC mode
+mze -v -c program.bin                # Verbose with cycle count
+```
+
+**Platform Support:**
+- 🎮 **ZX Spectrum**: RST $10/$18/$20 → host I/O
+- 💾 **CP/M**: BDOS CALL 5 system calls → file operations
+- 💻 **Amstrad CPC**: Firmware calls → screen output
+- ⚡ **50Hz interrupts**: Authentic Z80 timing simulation
+- 🔄 **IFF1-based HALT**: Proper program termination semantics
+
+**Complete TDD Workflow:**
+```bash
+# 1. Write Z80 assembly with modern syntax
+echo "LD A, 'H'" > hello.a80
+echo "RST \$10" >> hello.a80
+echo "DI" >> hello.a80
+echo "HALT" >> hello.a80
+
+# 2. Assemble with diagnostics
+mza -v hello.a80
+
+# 3. Test immediately
+mze -v hello.bin
+# Output: "H"
+```
 
 ### Development Commands
 ```bash

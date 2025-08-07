@@ -160,8 +160,9 @@ mze -t spectrum game.bin        # Test on virtual Spectrum
 - **Verbose debugging**: Full execution tracing available
 
 ### **3. Production-Ready Quality**
-- **Proper HALT detection**: Programs exit cleanly
-- **Cycle counting**: Performance measurement
+- **IFF1-based HALT semantics**: DI+HALT=terminate, HALT=wait for interrupt (authentic Z80 behavior)
+- **50Hz interrupt simulation**: 70,000 T-states per interrupt for authentic timing
+- **Cycle counting**: Performance measurement with T-state accuracy
 - **Memory inspection**: Full CPU state display
 - **Error handling**: Clear error messages and validation
 
@@ -202,6 +203,30 @@ mze -t spectrum hello.bin    # ZX Spectrum
 mze -t cpm hello.com         # CP/M
 mze -t cpc hello.bin         # Amstrad CPC
 ```
+
+## 🔧 **Recent Technical Breakthrough: IFF1-Based HALT Semantics**
+
+**User Insight**: *"Maybe we have to detect by: DI:HALT ? because just a HALT - is valid instruction"*
+
+This led to implementing **authentic Z80 HALT behavior**:
+
+```go
+// Revolutionary: Check IFF1 interrupt flag instead of instruction sequences
+case 0x76: // HALT instruction
+    if !z.Z80.GetIFF1() {
+        // Interrupts disabled (DI) - program termination
+        z.Z80.SetHalted(true)
+        return z.Screen.GetOutput(), cycles
+    } else {
+        // Interrupts enabled (EI) - wait for 50Hz interrupt
+        cycles += 4 // HALT instruction cycles
+    }
+```
+
+**Impact**:
+- ✅ **DI + HALT** → Program terminates (industry standard)
+- ✅ **EI + HALT** → Waits for 50Hz interrupt (authentic behavior)
+- ✅ **No more guesswork** - Uses actual Z80 IFF1 interrupt flag state
 
 ## 🔮 **Future Enhancements**
 
