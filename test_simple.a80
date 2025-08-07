@@ -1,0 +1,11 @@
+; Simple Z80 assembly program
+ORG $8000
+
+START:
+    LD A, 42        ; Load 42 into A
+    LD HL, $1234    ; Load address into HL
+    LD (HL), A      ; Store A at address in HL
+    RST $10         ; Print character (ZX Spectrum ROM call)
+    RET             ; Return
+
+END

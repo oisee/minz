@@ -1,0 +1,49 @@
+; Interrupt Demo - Shows difference between HALT and DI:HALT
+ORG $8000
+
+START:
+    ; Set up interrupt handler at $0038 (RST 38h)
+    LD HL, INT_HANDLER
+    LD ($0038), HL    ; This won't work in our simple emulator, but shows intent
+    
+    ; Enable interrupts
+    EI                ; Enable interrupts
+    
+    ; Print message
+    LD A, 'W'
+    RST $10
+    LD A, 'a'
+    RST $10  
+    LD A, 'i'
+    RST $10
+    LD A, 't'
+    RST $10
+    LD A, 13          ; CR
+    RST $10
+    
+    ; This HALT should wait for interrupts (not terminate)
+    HALT              ; Wait for interrupt
+    
+    ; This code should run after interrupt
+    LD A, 'D'
+    RST $10
+    LD A, 'o'
+    RST $10
+    LD A, 'n'
+    RST $10
+    LD A, 'e'
+    RST $10
+    LD A, 13          ; CR
+    RST $10
+    
+    ; Program termination
+    DI                ; Disable interrupts
+    HALT              ; Terminate program
+
+INT_HANDLER:
+    ; Simple interrupt handler
+    LD A, '!'
+    RST $10
+    RETI              ; Return from interrupt
+
+END

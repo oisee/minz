@@ -1,0 +1,158 @@
+; MinZ generated code
+; Generated: 2025-08-06 23:47:24
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: expected.test_mixed_params.process$u8$u16$bool
+expected.test_mixed_params.process$u8$u16$bool:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+expected.test_mixed_params.process$u8$u16$bool_param_flag:
+    LD BC, #0000   ; SMC parameter flag (u8->u16)
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; jump_if_not r4, else_1
+    ; Register 4 already in A
+    OR A
+    JP Z, expected_test_mixed_params_process_u8_u16_bool_else_1
+expected.test_mixed_params.process$u8$u16$bool_param_value:
+    LD DE, #0000   ; SMC parameter value
+    EX DE, HL      ; Move to HL for storage
+    ; Register 5 already in HL
+expected.test_mixed_params.process$u8$u16$bool_param_count:
+    LD HL, #0000   ; SMC parameter count (u8->u16)
+    ; r7 = r5 * r6
+    ; 16-bit multiplication
+    ; Register 5 already in HL
+    LD (mul_src1_0), HL  ; Save multiplicand
+    LD (mul_src2_0), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_0)  ; DE = multiplicand
+    LD BC, (mul_src2_0)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_0
+expected_test_mixed_params_process_u8_u16_bool_mul16_loop_0:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_0
+expected_test_mixed_params_process_u8_u16_bool_mul16_done_0:
+mul_src1_0: DW 0
+mul_src2_0: DW 0
+    LD B, H
+    LD C, L
+    ; return r7
+    LD H, B
+    LD L, C
+    RET
+    ; jump end_if_2
+    JP expected_test_mixed_params_process_u8_u16_bool_end_if_2
+    ; else_1:
+expected_test_mixed_params_process_u8_u16_bool_else_1:
+    LD HL, (expected.test_mixed_params.process$u8$u16$bool_param_value)
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    LD A, (expected.test_mixed_params.process$u8$u16$bool_param_count)
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r10 = r8 + r9
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r10
+    RET
+    ; end_if_2:
+expected_test_mixed_params_process_u8_u16_bool_end_if_2:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: expected.test_mixed_params.main
+expected.test_mixed_params.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; store n, r2
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD ($F002), A
+    ; r4 = 100
+    LD A, 100
+    LD L, A         ; Store to HL (low byte)
+    ; store val, r4
+    ; Register 4 already in HL
+    LD ($F006), HL
+    ; r6 = 1
+    LD A, 1
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; store multiply, r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD ($F00A), HL
+    ; r8 = load n
+    LD A, ($F002)
+    LD L, A         ; Store to physical register L
+    ; r9 = load val
+    LD HL, ($F006)
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; r10 = load multiply
+    LD HL, ($F00A)
+    ; r11 = load n
+    LD A, ($F002)
+    LD L, A         ; Store to physical register L
+    ; r12 = load val
+    LD HL, ($F006)
+    ; Register 12 already in HL
+    ; r13 = load multiply
+    LD HL, ($F00A)
+    ; unknown op 39
+    ; Patch template 'store_u8' for expected.test_mixed_params.process$u8$u16$bool_return_patch
+    LD A, $32              ; LD (nn), A opcode
+    LD (expected.test_mixed_params.process$u8$u16$bool_return_patch), A             ; Patch first opcode
+    ; unknown op 40
+    ; Set patch target address: temp_result
+    LD HL, temp_result              ; Target address
+    LD (expected.test_mixed_params.process$u8$u16$bool_return_patch+1), HL          ; Patch address operand
+    ; unknown op 41
+    ; Patch parameter count = 0
+    LD A, 0               ; Parameter value
+    LD (expected.test_mixed_params.process$u8$u16$bool_param_count+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter value = 0
+    LD HL, 0              ; Parameter value
+    LD (expected.test_mixed_params.process$u8$u16$bool_param_value+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter flag = 0
+    LD A, 0               ; Parameter value
+    LD (expected.test_mixed_params.process$u8$u16$bool_param_flag+1), A   ; Patch parameter immediate
+    ; r14 = call expected.test_mixed_params.process$u8$u16$bool
+    ; Call to expected.test_mixed_params.process$u8$u16$bool (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL expected.test_mixed_params.process$u8$u16$bool
+    ; store result, r14
+    LD ($F00E), HL
+    ; r15 = load result
+    LD HL, ($F00E)
+    ; Register 15 already in HL
+    ; return r15
+    ; Register 15 already in HL
+    RET
+
+    END main

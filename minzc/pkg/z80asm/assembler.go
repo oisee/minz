@@ -2,6 +2,7 @@ package z80asm
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -294,11 +295,13 @@ func formatSourceLine(line *Line) string {
 	return result
 }
 
-// ReadFile reads a source file (placeholder - implement as needed)
+// ReadFile reads a source file
 func ReadFile(filename string) (string, error) {
-	// This would read the actual file
-	// For now, return empty string
-	return "", fmt.Errorf("file reading not implemented")
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file %s: %v", filename, err)
+	}
+	return string(content), nil
 }
 
 // EmitByte emits a byte to the output in pass 2

@@ -1,0 +1,51 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function expected.test_mixed_params.process$u8$u16$bool(count: u8, value: u16, flag: bool) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: jump_if_not r4, else_1
+      2: LOAD_PARAM
+      3: LOAD_PARAM
+      4: r7 = r5 * r6
+      5: return r7
+      6: jump end_if_2
+      7: else_1:
+      8: LOAD_PARAM
+      9: LOAD_PARAM
+     10: r10 = r8 + r9
+     11: return r10
+     12: end_if_2:
+     13: return
+
+Function expected.test_mixed_params.main() -> u16
+  @smc
+  Locals:
+    r1 = n: u8
+    r3 = val: u16
+    r5 = multiply: bool
+    r7 = result: u16
+  Instructions:
+      0: r2 = 5
+      1: store n, r2
+      2: r4 = 100
+      3: store val, r4
+      4: r6 = 1
+      5: store multiply, r6
+      6: r8 = load n
+      7: r9 = load val
+      8: r10 = load multiply
+      9: r11 = load n
+     10: r12 = load val
+     11: r13 = load multiply
+     12: PATCH_TEMPLATE
+     13: PATCH_TARGET
+     14: PATCH_PARAM
+     15: PATCH_PARAM
+     16: PATCH_PARAM
+     17: r14 = call expected.test_mixed_params.process$u8$u16$bool
+     18: store result, r14
+     19: r15 = load result
+     20: return r15
+

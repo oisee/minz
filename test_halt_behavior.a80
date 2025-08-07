@@ -1,0 +1,25 @@
+; Test HALT vs DI:HALT behavior
+ORG $8000
+
+START:
+    ; Print "Testing HALT behavior..."
+    LD A, 'T'
+    RST $10
+    LD A, 'e'
+    RST $10
+    LD A, 's'
+    RST $10
+    LD A, 't'
+    RST $10
+    LD A, 13        ; CR
+    RST $10
+    
+    ; This should terminate the program (DI:HALT pattern)
+    DI              ; Disable interrupts
+    HALT            ; Halt - should terminate since interrupts disabled
+    
+    ; This code should never execute
+    LD A, 'X'
+    RST $10
+
+END

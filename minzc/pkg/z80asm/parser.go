@@ -217,9 +217,15 @@ func parseCondition(s string) (Condition, bool) {
 	}
 }
 
-// parseNumber parses a numeric value (decimal, hex with $/#/0x, or binary)
+// parseNumber parses a numeric value (decimal, hex with $/#/0x, binary, or character literal)
 func parseNumber(s string) (uint16, error) {
 	s = strings.TrimSpace(s)
+	
+	// Check for character literal 'X'
+	if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") && len(s) == 3 {
+		char := s[1] // Get the character between the quotes
+		return uint16(char), nil
+	}
 	
 	// Check for hex prefixes
 	if strings.HasPrefix(s, "$") {

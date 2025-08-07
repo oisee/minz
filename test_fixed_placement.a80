@@ -1,0 +1,138 @@
+; MinZ generated code
+; Generated: 2025-08-06 23:49:22
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_instruction_patching.add_numbers$u8$u8
+test_instruction_patching.add_numbers$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+test_instruction_patching.add_numbers$u8$u8_param_a.op:
+test_instruction_patching.add_numbers$u8$u8_param_a equ test_instruction_patching.add_numbers$u8$u8_param_a.op + 1
+    LD HL, #0000   ; SMC parameter a (u8->u16)
+test_instruction_patching.add_numbers$u8$u8_param_b.op:
+test_instruction_patching.add_numbers$u8$u8_param_b equ test_instruction_patching.add_numbers$u8$u8_param_b.op + 1
+    LD DE, #0000   ; SMC parameter b (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD A, D
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+test_instruction_patching.add_numbers$u8$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+test_instruction_patching.add_numbers$u8$u8_store_addr.op:
+test_instruction_patching.add_numbers$u8$u8_store_addr equ test_instruction_patching.add_numbers$u8$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_instruction_patching.main
+test_instruction_patching.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD E, A         ; Store to physical register E
+    ; r3 = 20
+    LD A, 20
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 10
+    LD A, 10
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = 20
+    LD A, 20
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Patch template 'store_u8' for test_instruction_patching.add_numbers$u8$u8_return_patch
+    LD A, $32              ; LD (nn), A opcode
+    LD (test_instruction_patching.add_numbers$u8$u8_return_patch), A             ; Patch first opcode
+    ; unknown op 40
+    ; Set patch target address: temp_result
+    LD HL, temp_result              ; Target address
+    LD (test_instruction_patching.add_numbers$u8$u8_return_patch+1), HL          ; Patch address operand
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (test_instruction_patching.add_numbers$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (test_instruction_patching.add_numbers$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; r6 = call test_instruction_patching.add_numbers$u8$u8
+    ; Call to test_instruction_patching.add_numbers$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL test_instruction_patching.add_numbers$u8$u8
+    ; r7 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r8 = r6 + r7
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store temp, r8
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    LD ($F002), A
+    ; r10 = 30
+    LD A, 30
+    ; Register 10 already in A
+    ; r11 = 40
+    LD A, 40
+    LD C, A         ; Store to physical register C
+    ; r12 = 30
+    LD A, 30
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; r13 = 40
+    LD A, 40
+    LD H, A         ; Store to physical register H
+    ; unknown op 39
+    ; Patch template 'store_u8' for test_instruction_patching.add_numbers$u8$u8_return_patch
+    LD A, $32              ; LD (nn), A opcode
+    LD (test_instruction_patching.add_numbers$u8$u8_return_patch), A             ; Patch first opcode
+    ; unknown op 40
+    ; Set patch target address: temp_result
+    LD HL, temp_result              ; Target address
+    LD (test_instruction_patching.add_numbers$u8$u8_return_patch+1), HL          ; Patch address operand
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (test_instruction_patching.add_numbers$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (test_instruction_patching.add_numbers$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; r14 = call test_instruction_patching.add_numbers$u8$u8
+    ; Call to test_instruction_patching.add_numbers$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL test_instruction_patching.add_numbers$u8$u8
+    ; store stored_result, r14
+    LD A, H
+    LD ($F012), A
+    ; r15 = load temp
+    LD A, ($F002)
+    LD L, A         ; Store to physical register L
+    ; r16 = load stored_result
+    LD A, ($F012)
+    LD C, A         ; Store to physical register C
+    ; r17 = r15 + r16
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r17
+    RET
+
+    END main

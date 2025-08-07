@@ -1,7 +1,7 @@
-.PHONY: build test clean run release repl all
+.PHONY: build test clean run release repl asm emu all
 
-# Build both compiler and REPL
-all: build repl
+# Build compiler, REPL, assembler, and emulator
+all: build repl asm emu
 
 # Get version info from git
 GIT_TAG := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.10.0")
@@ -30,15 +30,24 @@ repl:
 	go build -o mzr cmd/repl/main.go cmd/repl/compiler.go
 	@ln -sf mzr minz  # Keep backward compatibility
 
+# Build the assembler
+asm:
+	go build -o mza cmd/mza/main.go
+
+# Build the emulator
+emu:
+	go build -o mze cmd/mze/main.go
+
 # Run tests
 test:
 	go test ./...
 
 # Clean build artifacts
 clean:
-	rm -f mz mzr minz
+	rm -f mz mzr mza mze minz
 	rm -f *.a80
 	rm -f *.mir
+	rm -f *.bin
 
 # Build and run on test file
 run: build

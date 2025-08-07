@@ -1,0 +1,22 @@
+; Test fake-ZX target with RST interception
+ORG $8000
+
+START:
+    LD A, 72        ; Load 'H' (ASCII 72)
+    RST $10         ; Print to host stdout
+    LD A, 105       ; Load 'i' (ASCII 105)
+    RST $10         ; Print to host stdout
+    LD A, 33        ; Load '!' (ASCII 33)
+    RST $10         ; Print to host stdout
+    LD A, 13        ; Load CR
+    RST $10         ; Print newline
+    LD A, 10        ; Load LF  
+    RST $10         ; Print newline
+    
+    ; Test input  
+    RST $18         ; RST 24 - Get character from host stdin
+    RST $10         ; RST 16 - Echo it back
+    
+    RET
+
+END

@@ -1,0 +1,19 @@
+; CP/M Hello World using BDOS system calls
+ORG $0100      ; CP/M .COM programs start at $0100
+
+START:
+    ; Print "Hello CP/M!" using BDOS function 9 (print string)
+    LD DE, MESSAGE  ; DE = pointer to string
+    LD C, 9         ; C = BDOS function 9 (print string)
+    CALL 5          ; Call BDOS
+    
+    ; Exit to CP/M using BDOS function 0
+    LD C, 0         ; C = BDOS function 0 (system reset/exit)
+    CALL 5          ; Call BDOS
+    
+    HALT            ; Fallback halt
+
+MESSAGE:
+    DB "Hello CP/M!$"   ; $ terminated string for BDOS function 9
+
+END

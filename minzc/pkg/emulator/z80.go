@@ -459,3 +459,13 @@ func (z *Z80) DumpMemory(start uint16, length uint16) []byte {
 	}
 	return result
 }
+
+// IsHalted returns true if CPU is halted
+func (z *Z80) IsHalted() bool {
+	return z.halted
+}
+
+// SetHalted sets the halted state
+func (z *Z80) SetHalted(halted bool) {
+	z.halted = halted
+}

@@ -1,0 +1,24 @@
+; Test character literals in Z80 assembly
+ORG $8000
+
+START:
+    LD A, 'H'       ; Load 'H' using character literal
+    RST $10         ; Print to host stdout via ZX Spectrum ROM
+    LD A, 'e'       ; Load 'e' using character literal
+    RST $10         
+    LD A, 'l'       ; Load 'l' using character literal
+    RST $10         
+    LD A, 'l'       ; Load 'l' using character literal
+    RST $10         
+    LD A, 'o'       ; Load 'o' using character literal
+    RST $10         
+    LD A, '!'       ; Load '!' using character literal
+    RST $10         
+    LD A, 13        ; CR (still support numeric)
+    RST $10         
+    
+    ; Proper program termination - disable interrupts then halt
+    DI              ; Disable interrupts
+    HALT            ; Halt CPU (program termination)
+
+END

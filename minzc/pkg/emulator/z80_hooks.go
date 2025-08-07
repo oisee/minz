@@ -175,7 +175,17 @@ func (z *Z80WithScreen) ExecuteWithHooks(startPC uint16) (string, uint32) {
 			if z.Hooks.OnHalt != nil {
 				z.Hooks.OnHalt()
 			}
-			return z.Screen.GetOutput(), cycles
+			
+			// Check IFF1 for proper HALT semantics
+			if !z.Z80.GetIFF1() {
+				// Interrupts disabled - program termination
+				z.Z80.SetHalted(true)
+				return z.Screen.GetOutput(), cycles
+			} else {
+				// Interrupts enabled - wait for interrupt
+				// For now, just continue (interrupt simulation handled in main loop)
+				cycles += 4 // HALT instruction cycles
+			}
 			
 		case 0xC9: // RET
 			z.PC = z.pop()

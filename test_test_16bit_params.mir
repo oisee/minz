@@ -1,0 +1,35 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function expected.test_16bit_params.add_u16$u16$u16(a: u16, b: u16) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function expected.test_16bit_params.main() -> u16
+  @smc
+  Locals:
+    r1 = x: u16
+    r3 = y: u16
+    r5 = result: u16
+  Instructions:
+      0: r2 = 1000
+      1: store x, r2
+      2: r4 = 2000
+      3: store y, r4
+      4: r6 = load x
+      5: r7 = load y
+      6: r8 = load x
+      7: r9 = load y
+      8: PATCH_TEMPLATE
+      9: PATCH_TARGET
+     10: PATCH_PARAM
+     11: PATCH_PARAM
+     12: r10 = call expected.test_16bit_params.add_u16$u16$u16
+     13: store result, r10
+     14: r11 = load result
+     15: return r11
+
