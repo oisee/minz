@@ -23,6 +23,9 @@
 - [Development Roadmap 2025](docs/129_Development_Roadmap_2025.md) - Current priorities and TODO items
 
 🏗️ **Architecture Documentation**:
+- [Architecture Audit](ARCHITECTURE_AUDIT.md) - Comprehensive analysis of compiler state (60% success rate)
+- [Deep Dive Analysis](docs/151_MinZ_Architecture_Deep_Dive_Part1.md) - 4-part detailed architecture exploration
+- [Semantic Graph Research](docs/150_Semantic_Graph_Extraction_Research.md) - Visualization and analysis opportunities
 - [Compiler Architecture](minzc/docs/INTERNAL_ARCHITECTURE.md) - Complete guide to MinZ compiler internals
 - [Static Analysis](minzc/docs/138_Architecture_Guide.md) - Package structure and build system
 - [World-Class Optimization Guide](docs/149_World_Class_Multi_Level_Optimization_Guide.md) - Revolutionary multi-level optimization strategy for 60-85% performance gains
