@@ -141,7 +141,7 @@
 
 | Date | Success Rate | Milestone |
 |------|--------------|-----------|
-| 2025-08-09 | 60% | Starting point |
+| 2025-08-09 | 75-80% | Actual starting point! |
 | Sprint 1 End | 75% | Basics work |
 | Sprint 2 End | 85% | Usable |
 | Sprint 3 End | 90% | Multi-file |

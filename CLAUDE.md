@@ -39,7 +39,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - Interactive REPL (`cmd/repl/main.go`)
 - Multi-Backend Support (Z80, 6502, WebAssembly, Game Boy, C, LLVM)
 
-### ✅ Working Features (70% success rate)
+### ✅ Working Features (75-80% success rate)
 - Core types, functions, control flow, structs, arrays
 - Function overloading and interface methods
 - Error propagation with `?` suffix and `??` operator
@@ -47,10 +47,10 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - Metafunctions: `@print`, `@abi`, `@error`
 - Self-modifying code optimization
 
-### 🚧 Current Limitations
-- Module imports not implemented
-- Advanced metafunctions missing
-- Standard library incomplete
+### 🚧 Current Limitations (Actually Less Than Expected!)
+- Module imports WORK with full paths (e.g., `zx.screen.set_border()`)
+- String literals FULLY FUNCTIONAL (length-prefixed)
+- Arrays work for declaration/access (only literals `[1,2,3]` missing)
 - Pattern matching partially implemented
 
 ## 🚀 TSMC: Revolutionary Paradigm
@@ -141,11 +141,45 @@ mz program.minz -b z80 --target=spectrum  # ZX Spectrum
 mz program.minz -b z80 --target=cpm       # CP/M
 ```
 
-## 📊 Current Metrics
+## 📊 Current Metrics (Updated from Architecture Audit)
 - **148 examples** in test suite
-- **70% compilation success** rate
+- **75-80% compilation success** rate (was 60%, discovered working features!)
 - **35+ peephole patterns** for Z80 optimization
 - **Multi-backend support** with 8 targets
+- **MIR layer**: 0 TODOs (cleanest component)
+
+## 📚 Documentation System
+
+### Auto-Numbering System
+All documentation (except README.md, TODO.md, STATUS.md, CLAUDE.md) uses automatic numbering:
+- Format: `NNN_Title.md` (001-999)
+- New docs go in `./inbox/` folder
+- Run `./organize_docs.sh` to auto-number and move to `./docs/`
+- Current count: 164 docs
+- Next available: 165
+
+### Workflow
+```bash
+# Write new doc
+echo "# My Feature" > inbox/My_Feature_Guide.md
+
+# Auto-number and organize
+./organize_docs.sh
+# Creates: docs/165_My_Feature_Guide.md
+
+# Batch process multiple docs
+cp *.md inbox/
+./organize_docs.sh
+```
+
+### Finding Documents
+```bash
+ls docs/ | sort -n        # List by number
+grep -l "TSMC" docs/*.md  # Find by topic
+ls docs/15[0-9]_*.md      # Range 150-159
+```
+
+See [Documentation Guide](DOCUMENTATION_GUIDE.md) for complete details.
 
 ## 🔧 Documentation Style: "Pragmatic Humble Solid"
 
