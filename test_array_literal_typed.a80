@@ -1,0 +1,33 @@
+; MinZ generated code
+; Generated: 2025-08-09 11:35:31
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_array_literal_typed.main
+...test_array_literal_typed.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = load numbers
+    LD HL, ($F002)
+    ; r4 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; Load array element (u8)
+    PUSH HL
+    LD A, B
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD C, A         ; Store to physical register C
+    ; store first, r5
+    LD ($F004), HL
+    ; return
+    RET
+
+    END main

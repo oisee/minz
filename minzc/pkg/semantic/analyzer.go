@@ -1585,7 +1585,7 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 	if varType == nil && v.Value != nil {
 		// For simple literals and lambda expressions, we can infer type safely
 		switch v.Value.(type) {
-		case *ast.NumberLiteral, *ast.BooleanLiteral, *ast.StringLiteral, *ast.LambdaExpr:
+		case *ast.NumberLiteral, *ast.BooleanLiteral, *ast.StringLiteral, *ast.LambdaExpr, *ast.ArrayInitializer:
 			t, err := a.inferType(v.Value)
 			if err != nil {
 				return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
@@ -6440,6 +6440,37 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		}
 		
 		return enumType, nil
+	case *ast.ArrayInitializer:
+		// Infer array type from elements
+		if len(e.Elements) == 0 {
+			// Empty array - default to u8 array
+			return &ir.ArrayType{
+				Element: &ir.BasicType{Kind: ir.TypeU8},
+				Length:  0,
+			}, nil
+		}
+		
+		// Infer type from first element
+		elementType, err := a.inferType(e.Elements[0])
+		if err != nil {
+			return nil, fmt.Errorf("cannot infer array element type: %w", err)
+		}
+		
+		// Verify all elements have compatible types
+		for i := 1; i < len(e.Elements); i++ {
+			elemType, err := a.inferType(e.Elements[i])
+			if err != nil {
+				return nil, fmt.Errorf("cannot infer type of array element %d: %w", i, err)
+			}
+			if !a.typesCompatible(elementType, elemType) {
+				return nil, fmt.Errorf("array element %d has incompatible type", i)
+			}
+		}
+		
+		return &ir.ArrayType{
+			Element: elementType,
+			Length:  len(e.Elements),
+		}, nil
 	default:
 		return nil, fmt.Errorf("cannot infer type from expression of type %T", expr)
 	}

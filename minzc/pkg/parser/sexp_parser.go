@@ -776,6 +776,8 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 		}
 	case "struct_literal":
 		return p.convertStructLiteral(node)
+	case "array_literal":
+		return p.convertArrayLiteral(node)
 	case "binary_expression":
 		return p.convertBinaryExpr(node)
 	case "call_expression":
@@ -1652,6 +1654,26 @@ func (p *Parser) convertLoopStmt(node *SExpNode) ast.Statement {
 	loopStmt.Iterator = iterator
 	
 	return loopStmt
+}
+
+func (p *Parser) convertArrayLiteral(node *SExpNode) *ast.ArrayInitializer {
+	arr := &ast.ArrayInitializer{
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+		Elements: make([]ast.Expression, 0),
+	}
+	
+	// Parse array literal: [1, 2, 3]
+	for _, child := range node.Children {
+		if child.Type == "expression" {
+			elem := p.convertExpression(child)
+			if elem != nil {
+				arr.Elements = append(arr.Elements, elem)
+			}
+		}
+	}
+	
+	return arr
 }
 
 func (p *Parser) convertStructLiteral(node *SExpNode) *ast.StructLiteral {
