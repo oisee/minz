@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function zx.screen.get_cursor() -> u8
+  @smc
+  Instructions:
+      0: return
+
+Function zx.screen.init_text() -> void
+  @smc
+  Instructions:
+      0: r1 = 0
+      1: r2 = 0
+      2: r3 = call zx.screen.set_cursor
+      3: r4 = 7
+      4: r5 = 0
+      5: r6 = 0
+      6: r7 = 0
+      7: r8 = call zx.screen.set_text_attr
+      8: return
+
+Function test_import2.main() -> void
+  @smc
+  Instructions:
+      0: r1 = 2
+      1: r2 = call zx.screen.set_border
+      2: return
+

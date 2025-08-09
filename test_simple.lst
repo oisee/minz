@@ -1,0 +1,8 @@
+MinZ Z80 Assembler Listing
+==========================
+
+8000  3E 2A        LD A, 42 ; Load 42 into A
+8002  21 34 12     LD HL, $1234 ; Load address into HL
+8005  77           LD (HL), A ; Store A at address in HL
+8006  D7           RST $10 ; Print character (ZX Spectrum ROM call)
+8007  C9           RET ; Return

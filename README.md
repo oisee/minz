@@ -18,14 +18,17 @@
 
 ⚠️ **Status**: Core language is stable and ready for learning/experimentation. Advanced features (generics, full metaprogramming) still in development.
 
+📖 **Documentation**: All docs use automatic numbering - see [Documentation Guide](DOCUMENTATION_GUIDE.md)
+
 📋 **Development Roadmaps**: 
 - [Stability Roadmap](STABILITY_ROADMAP.md) - Path to v1.0 production readiness
 - [Development Roadmap 2025](docs/129_Development_Roadmap_2025.md) - Current priorities and TODO items
 
 🏗️ **Architecture Documentation**:
-- [Architecture Audit](ARCHITECTURE_AUDIT.md) - Comprehensive analysis of compiler state (60% success rate)
+- [Architecture Audit](docs/157_ARCHITECTURE_AUDIT.md) - Comprehensive analysis of compiler state (60% success rate)
+- [Actual State Report](docs/156_ACTUAL_STATE_REPORT.md) - Discovery: 75-80% actually works!
 - [Deep Dive Analysis](docs/151_MinZ_Architecture_Deep_Dive_Part1.md) - 4-part detailed architecture exploration
-- [Semantic Graph Research](docs/150_Semantic_Graph_Extraction_Research.md) - Visualization and analysis opportunities
+- [Action Plan](docs/155_ACTION_PLAN_FROM_AUDIT.md) - Quick wins and roadmap to 95% success
 - [Compiler Architecture](minzc/docs/INTERNAL_ARCHITECTURE.md) - Complete guide to MinZ compiler internals
 - [Static Analysis](minzc/docs/138_Architecture_Guide.md) - Package structure and build system
 - [World-Class Optimization Guide](docs/149_World_Class_Multi_Level_Optimization_Guide.md) - Revolutionary multi-level optimization strategy for 60-85% performance gains

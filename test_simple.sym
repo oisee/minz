@@ -1,0 +1,4 @@
+MinZ Z80 Assembler Symbol Table
+==============================
+
+START                = $8000 (32768)

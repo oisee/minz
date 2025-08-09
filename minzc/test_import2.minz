@@ -1,0 +1,7 @@
+// Test import with full path
+import zx.screen;
+
+fun main() -> void {
+    // Use full path
+    zx.screen.set_border(2);
+}

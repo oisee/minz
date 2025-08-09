@@ -1,0 +1,40 @@
+// Comprehensive test of working features
+import zx.screen;
+
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun main() -> void {
+    // Strings work!
+    let greeting = "Hello, MinZ!";
+    
+    // @print interpolation works!
+    @print("Testing MinZ compiler");
+    
+    // Functions work!
+    let sum = add(5, 3);
+    
+    // Lambdas work!
+    let double = |x: u8| x * 2;
+    let result = double(sum);
+    
+    // Import works with full path!
+    zx.screen.set_border(2);
+    
+    // Arrays work (declaration)
+    var numbers: [10]u8;
+    numbers[0] = 42;
+    
+    // Control flow works!
+    if result > 10 {
+        @print("Result is big!");
+    } else {
+        @print("Result is small");
+    }
+    
+    // Loops work!
+    for i in 0..5 {
+        numbers[i] = i;
+    }
+}

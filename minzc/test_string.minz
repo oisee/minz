@@ -1,0 +1,5 @@
+// Test string literal support
+fun main() -> void {
+    let msg = "Hello, World!";
+    @print("Testing strings");
+}
