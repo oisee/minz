@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -30,6 +31,7 @@ var (
 	visualizeMIR string // Output file for MIR visualization
 	showVersion  bool
 	showVersionFull bool
+	dumpAST      bool   // Dump AST in JSON format
 )
 
 var rootCmd = &cobra.Command{
@@ -120,6 +122,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, 6502, wasm, c, llvm)")
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
 	rootCmd.Flags().StringVar(&visualizeMIR, "viz", "", "generate MIR visualization in DOT format")
+	rootCmd.Flags().BoolVar(&dumpAST, "dump-ast", false, "dump AST in JSON format to stdout")
 }
 
 func main() {
@@ -163,6 +166,16 @@ func compile(sourceFile string) error {
 	}
 	if err != nil {
 		return fmt.Errorf("parse error: %w", err)
+	}
+
+	// Dump AST if requested
+	if dumpAST {
+		encoder := json.NewEncoder(os.Stdout)
+		encoder.SetIndent("", "  ")
+		if err := encoder.Encode(astFile); err != nil {
+			return fmt.Errorf("failed to encode AST: %w", err)
+		}
+		return nil // Exit after dumping AST
 	}
 
 	// Set up module name if not explicitly declared

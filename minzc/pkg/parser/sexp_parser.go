@@ -1797,8 +1797,9 @@ func (p *Parser) convertImportStmt(node *SExpNode) *ast.ImportStmt {
 		EndPos:   node.EndPos,
 	}
 	
-	// Parse import path: import zx.screen;
-	for _, child := range node.Children {
+	// Parse import path: import zx.screen as screen;
+	var foundAs bool
+	for i, child := range node.Children {
 		if child.Type == "import_path" {
 			// Collect all identifiers to form the path
 			var pathParts []string
@@ -1809,6 +1810,18 @@ func (p *Parser) convertImportStmt(node *SExpNode) *ast.ImportStmt {
 			}
 			if len(pathParts) > 0 {
 				imp.Path = strings.Join(pathParts, ".")
+			}
+		} else if child.Type == "atom" && p.getNodeText(child) == "as" {
+			foundAs = true
+		} else if foundAs && child.Type == "identifier" {
+			// This is the alias identifier after 'as'
+			imp.Alias = p.getNodeText(child)
+			foundAs = false
+		} else if child.Type == "identifier" && i > 0 {
+			// Handle case where tree-sitter might put alias directly
+			// Check if previous token was 'as'
+			if i > 0 && node.Children[i-1].Type == "atom" && p.getNodeText(node.Children[i-1]) == "as" {
+				imp.Alias = p.getNodeText(child)
 			}
 		}
 	}

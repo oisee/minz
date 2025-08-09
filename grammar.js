@@ -316,6 +316,11 @@ module.exports = grammar({
       '}',
     ),
 
+    enum_variant: $ => seq(
+      $.identifier,
+      optional(seq('=', $.number_literal))
+    ),
+
     visibility: $ => 'pub',
 
     interface_declaration: $ => seq(

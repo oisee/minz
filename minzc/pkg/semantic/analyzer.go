@@ -452,16 +452,20 @@ func (a *Analyzer) registerModuleAlias(originalModule, alias string) {
 
 // processLoadedModule analyzes a loaded module and registers its exports
 func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt) error {
-	// Determine the module prefix for symbols
-	modulePrefix := imp.Path  // Use full path by default
-	if imp.Alias != "" {
-		modulePrefix = imp.Alias  // Use alias if specified
-	}
+	// Always use the full path as the primary module prefix
+	modulePrefix := imp.Path
 	
 	// Register the module itself
 	a.currentScope.Define(modulePrefix, &ModuleSymbol{
 		Name: modulePrefix,
 	})
+	
+	// If an alias is specified, also register the alias
+	if imp.Alias != "" {
+		a.currentScope.Define(imp.Alias, &ModuleSymbol{
+			Name: imp.Alias,
+		})
+	}
 	
 	// Save current module context
 	prevModule := a.currentModule
@@ -519,6 +523,11 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 				})
 			}
 		}
+	}
+	
+	// If an alias was specified, create alias symbols for all exported items
+	if imp.Alias != "" {
+		a.registerModuleAlias(imp.Path, imp.Alias)
 	}
 	
 	// Second pass: analyze all module declarations (constants, types, etc.)
@@ -1270,9 +1279,26 @@ func (a *Analyzer) analyzeConstDecl(c *ast.ConstDecl) error {
 			constValue = 0
 		}
 	} else {
-		// For other expressions, we can't evaluate at compile time yet
-		// TODO: Implement constant expression evaluation
-		constValue = 0
+		// Try to evaluate the expression as a constant
+		val, err := a.evaluateConstExpr(c.Value)
+		if err != nil {
+			return fmt.Errorf("cannot evaluate constant expression for %s: %w", c.Name, err)
+		}
+		// Convert to int64
+		switch v := val.(type) {
+		case int64:
+			constValue = v
+		case int:
+			constValue = int64(v)
+		case bool:
+			if v {
+				constValue = 1
+			} else {
+				constValue = 0
+			}
+		default:
+			return fmt.Errorf("unexpected constant value type for %s: %T", c.Name, val)
+		}
 	}
 	
 	// Define constant in current scope (should be global scope)
@@ -1864,9 +1890,26 @@ func (a *Analyzer) analyzeConstDeclInFunc(c *ast.ConstDecl, irFunc *ir.Function)
 			constValue = 0
 		}
 	} else {
-		// For other expressions, we can't evaluate at compile time yet
-		// TODO: Implement constant expression evaluation
-		constValue = 0
+		// Try to evaluate the expression as a constant
+		val, err := a.evaluateConstExpr(c.Value)
+		if err != nil {
+			return fmt.Errorf("cannot evaluate constant expression for %s: %w", c.Name, err)
+		}
+		// Convert to int64
+		switch v := val.(type) {
+		case int64:
+			constValue = v
+		case int:
+			constValue = int64(v)
+		case bool:
+			if v {
+				constValue = 1
+			} else {
+				constValue = 0
+			}
+		default:
+			return fmt.Errorf("unexpected constant value type for %s: %T", c.Name, val)
+		}
 	}
 	
 	// Define constant in current scope (function scope)
@@ -3425,6 +3468,10 @@ func (a *Analyzer) analyzeBinaryExpr(bin *ast.BinaryExpr, irFunc *ir.Function) (
 		op = ir.OpShl
 	case ">>":
 		op = ir.OpShr
+	case "&&":
+		op = ir.OpLogicalAnd
+	case "||":
+		op = ir.OpLogicalOr
 	default:
 		return 0, fmt.Errorf("unsupported binary operator: %s", bin.Operator)
 	}
@@ -5942,6 +5989,23 @@ func (a *Analyzer) evaluateConstExpr(expr ast.Expression) (interface{}, error) {
 		}
 		
 		return nil, fmt.Errorf("cannot evaluate binary operator %s on constants", e.Operator)
+	case *ast.Identifier:
+		// Look up constant value
+		sym := a.currentScope.Lookup(e.Name)
+		if sym == nil {
+			// Try with module prefix
+			if a.currentModule != "" && a.currentModule != "main" {
+				prefixedName := a.prefixSymbol(e.Name)
+				sym = a.currentScope.Lookup(prefixedName)
+			}
+		}
+		if sym == nil {
+			return nil, fmt.Errorf("undefined constant: %s", e.Name)
+		}
+		if constSym, ok := sym.(*ConstSymbol); ok {
+			return constSym.Value, nil
+		}
+		return nil, fmt.Errorf("%s is not a constant", e.Name)
 	default:
 		return nil, fmt.Errorf("expression is not a constant")
 	}
@@ -5999,7 +6063,27 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 		if err != nil {
 			return nil, err
 		}
-		// For now, only support constant size arrays
+		// Try to evaluate the size as a constant expression
+		if t.Size != nil {
+			val, err := a.evaluateConstExpr(t.Size)
+			if err == nil && val != nil {
+				// Convert the value to an integer
+				var size int
+				switch v := val.(type) {
+				case int64:
+					size = int(v)
+				case int:
+					size = v
+				default:
+					return nil, fmt.Errorf("array size must be an integer, got %T", val)
+				}
+				return &ir.ArrayType{
+					Element: elem,
+					Length:  size,
+				}, nil
+			}
+		}
+		// Fall back to checking for a number literal
 		if num, ok := t.Size.(*ast.NumberLiteral); ok {
 			return &ir.ArrayType{
 				Element: elem,

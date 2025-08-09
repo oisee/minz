@@ -1,4 +1,0 @@
-fun test() -> u8 {
-    let x = |y| y * 2;
-    return 42;
-}

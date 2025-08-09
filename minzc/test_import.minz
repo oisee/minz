@@ -1,7 +1,0 @@
-// Test import functionality
-import zx.screen;
-
-fun main() -> void {
-    // This should work if imports are processed
-    screen.set_border(2);
-}

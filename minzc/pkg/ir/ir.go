@@ -155,6 +155,10 @@ const (
 	OpShl
 	OpShr
 	
+	// Logical (short-circuit evaluation)
+	OpLogicalAnd
+	OpLogicalOr
+	
 	// Comparison
 	OpCmp  // Generic comparison
 	OpTest // Test register (sets flags without compare)
