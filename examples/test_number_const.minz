@@ -1,9 +1,0 @@
-// Test simple number constants
-
-const X: u8 = 10;
-const Y: u8 = @lua(20);
-
-fun main() -> void {
-    let a = X;
-    let b = Y;
-}

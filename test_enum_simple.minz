@@ -1,0 +1,14 @@
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+fun test_color(c: Color) -> Color {
+    return c;
+}
+
+fun main() -> void {
+    let color = Color.Red;
+    test_color(Color.Green);
+}

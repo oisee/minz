@@ -1,5 +1,0 @@
-// Test @lua block
-
-@lua[[[
-  print("Hello from Lua")
-]]]

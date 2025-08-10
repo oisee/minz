@@ -1,6 +1,0 @@
-// Test simple string (not @print)
-
-fun main() -> void {
-    let msg: *u8 = "Hello\nWorld";
-    let tab: *u8 = "A\tB\tC";
-}

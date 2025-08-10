@@ -1,0 +1,21 @@
+// Minimal hello world using direct character output
+fun main() -> void {
+    // Direct character output
+    asm {
+        LD A, 72      ; H
+        RST 16
+        LD A, 101     ; e
+        RST 16
+        LD A, 108     ; l
+        RST 16
+        LD A, 108     ; l
+        RST 16
+        LD A, 111     ; o
+        RST 16
+        LD A, 33      ; \!
+        RST 16
+        LD A, 13      ; newline
+        RST 16
+    }
+}
+EOF < /dev/null

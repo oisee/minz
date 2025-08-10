@@ -1,0 +1,30 @@
+    ORG $8000
+main:
+    LD A, 'H'       ; Using single quotes
+    RST 16
+    LD A, "e"       ; Using double quotes  
+    RST 16
+    LD A, 'l'
+    RST 16
+    LD A, 'l'
+    RST 16
+    LD A, 'o'
+    RST 16
+    LD A, ' '       ; Space character
+    RST 16
+    LD A, "W"
+    RST 16
+    LD A, 'o'
+    RST 16
+    LD A, 'r'
+    RST 16
+    LD A, 'l'
+    RST 16
+    LD A, 'd'
+    RST 16
+    LD A, '!'
+    RST 16
+    LD A, '\n'      ; Newline with escape
+    RST 16
+    RET
+    END main

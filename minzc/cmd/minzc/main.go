@@ -27,6 +27,7 @@ var (
 	tasFile      string
 	tasReplay    string
 	backend      string
+	target       string  // Target platform (zxspectrum, cpm, etc.)
 	listBackends bool
 	visualizeMIR string // Output file for MIR visualization
 	showVersion  bool
@@ -37,31 +38,62 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "mz [source file]",
 	Short: "MinZ Multi-Platform Compiler " + version.GetVersion(),
-	Long:  `MinZ compiles modern systems programming code to retro and modern platforms.
+	Long:  `MinZ - Modern Programming Language for Retro Platforms
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Write once, run on any Z80, 6502, or modern platform!
 
-Target backends:
-  z80    - Z80 assembly (ZX Spectrum, MSX, CPC) [default]
-  6502   - 6502 assembly (C64, NES, Apple II)
-  wasm   - WebAssembly 
+BACKENDS:
+  z80    - Z80 assembly (default)
+  6502   - 6502 assembly  
+  68000  - Motorola 68000 assembly
+  i8080  - Intel 8080 assembly
+  gb     - Game Boy (SM83/LR35902)
+  wasm   - WebAssembly
   c      - C99 source code
-  llvm   - LLVM IR (experimental)
-  
-Special features:
-  - Zero-cost abstractions on 8-bit hardware
-  - Self-modifying code optimization (--enable-smc)
-  - Compile-time metaprogramming (@minz[[[]]], @if, @emit)
-  - Function overloading and lambdas
-  - Ruby/Swift-inspired developer happiness
+  llvm   - LLVM IR
 
-Examples:
-  mz program.minz                    # Compile to Z80 (default)
-  mz program.minz -b 6502            # Compile to 6502
-  mz program.minz -b c -o program.c  # Generate C code
-  mz program.minz -O --enable-smc    # Optimize with SMC
-  mz --list-backends                 # Show all backends
+TARGET PLATFORMS (for Z80):
+  zxspectrum - ZX Spectrum (default)
+  cpm        - CP/M systems
+  msx        - MSX computers
+  cpc        - Amstrad CPC
+  amstrad    - Amstrad PCW
+
+LANGUAGE FEATURES:
+  ✅ Zero-cost abstractions      ✅ Function overloading
+  ✅ Lambda expressions          ✅ Pattern matching
+  ✅ Error propagation (?)       ✅ Interfaces & traits
+  ✅ Metaprogramming (@minz)     ✅ Self-modifying code
+  ✅ Inline assembly             ✅ Iterator chains
+
+EXAMPLES:
+  mz hello.minz                      # Compile for ZX Spectrum
+  mz hello.minz -t cpm               # Target CP/M systems
+  mz hello.minz -t msx -O            # Optimized MSX build
+  mz game.minz -b gb                 # Compile for Game Boy
+  mz app.minz -b c -o app.c          # Generate C code
+  mz demo.minz --enable-smc          # Enable self-modifying code
+  mz --list-backends                 # List all backends
+
+OPTIMIZATION FLAGS:
+  -O, --optimize      Enable standard optimizations
+  --enable-smc        Enable self-modifying code (Z80 only)
+
+DEBUGGING:
+  -d, --debug         Show compilation details
+  --dump-ast          Output AST in JSON format
+  --viz file.dot      Generate MIR visualization
+
+CHARACTER LITERALS IN ASSEMBLY:
+  asm { LD A, 'H' }   # Single quotes
+  asm { LD A, "H" }   # Double quotes  
+  asm { LD A, '\n' }  # Escape sequences
+
+For documentation and examples, see:
+  https://github.com/minz-lang/minzc
   
-Environment:
-  MINZ_BACKEND - Set default backend (e.g., export MINZ_BACKEND=6502)`,
+Platform Independence Guide:
+  docs/150_Platform_Independence_Achievement.md`,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Handle version flags
@@ -120,6 +152,7 @@ func init() {
 	rootCmd.Flags().StringVar(&tasFile, "tas-record", "", "record execution to TAS file for perfect replay")
 	rootCmd.Flags().StringVar(&tasReplay, "tas-replay", "", "replay execution from TAS file")
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, 6502, wasm, c, llvm)")
+	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
 	rootCmd.Flags().StringVar(&visualizeMIR, "viz", "", "generate MIR visualization in DOT format")
 	rootCmd.Flags().BoolVar(&dumpAST, "dump-ast", false, "dump AST in JSON format to stdout")
@@ -186,6 +219,7 @@ func compile(sourceFile string) error {
 	// Perform semantic analysis with module support
 	analyzer := semantic.NewAnalyzer()
 	analyzer.SetTargetBackend(backend)
+	analyzer.SetTargetPlatform(target)
 	// TODO: Set module resolver on analyzer
 	irModule, err := analyzer.Analyze(astFile)
 	if err != nil {
@@ -249,6 +283,7 @@ func compile(sourceFile string) error {
 		EnableSMC:         enableSMC,
 		EnableTrueSMC:     enableSMC || optimize,
 		Debug:             debug,
+		Target:            target,
 	}
 	
 	if optimize {
@@ -404,6 +439,7 @@ func compileFromMIR(mirFile string) error {
 		EnableSMC:         enableSMC,
 		EnableTrueSMC:     enableSMC || optimize,
 		Debug:             debug,
+		Target:            target,
 	}
 
 	if optimize {

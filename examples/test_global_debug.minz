@@ -1,8 +1,0 @@
-// Test global access with debug output
-
-global test_var: u8 = 42;
-
-fun main() -> void {
-    // Try direct access first
-    @print("Value: {}\n", test_var);
-}

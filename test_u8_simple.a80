@@ -1,0 +1,66 @@
+; MinZ generated code
+; Generated: 2025-08-09 19:54:47
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_u8_simple.test_u8$u8
+...test_u8_simple.test_u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+...test_u8_simple.test_u8$u8_param_x.op:
+...test_u8_simple.test_u8$u8_param_x equ ...test_u8_simple.test_u8$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 2 already in A
+    ; Register 2 already in A
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+...test_u8_simple.test_u8$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+...test_u8_simple.test_u8$u8_store_addr.op:
+...test_u8_simple.test_u8$u8_store_addr equ ...test_u8_simple.test_u8$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_u8_simple.main
+...test_u8_simple.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 42
+    LD A, 42
+    LD B, A         ; Store to physical register B
+    ; store val, r2
+    LD A, B
+    LD ($F002), A
+    ; r3 = load val
+    LD A, ($F002)
+    LD D, A         ; Store to physical register D
+    ; r4 = load val
+    LD A, ($F002)
+    LD E, A         ; Store to physical register E
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_u8_simple.test_u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_u8_simple.test_u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_u8_simple.test_u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (...test_u8_simple.test_u8$u8_param_x+1), A   ; Patch parameter immediate
+    ; r5 = call ...test_u8_simple.test_u8$u8
+    ; Call to ...test_u8_simple.test_u8$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL ...test_u8_simple.test_u8$u8
+    ; return
+    RET
+
+    END main

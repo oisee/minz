@@ -31,7 +31,7 @@ fun safe_divide?(a: u8, b: u8) -> u8 ? MathError {
 
 fun safe_multiply?(a: u8, b: u8) -> u8 ? MathError {
     // Simplified - would normally check for overflow
-    if a > 200 || b > 200 {
+    if a > 200 or b > 200 {
         @error(MathError.Overflow);
     }
     return a * b;

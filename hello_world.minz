@@ -1,10 +1,5 @@
-// MinZ Hello World - Cross-Platform Demo
-// Compiles to: C, LLVM, WASM, Z80, CP/M
-
-fun main() -> u8 {
-    @print("Hello from MinZ!\n");
-    @print("Number: ");
-    @print(42);
-    @print("\n");
-    return 0;
+// Simple Hello World in MinZ
+fun main() -> void {
+    @print("Hello, World from MinZ\!");
+    @print("Running on Z80\!");
 }

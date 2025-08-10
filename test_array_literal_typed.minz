@@ -1,8 +1,0 @@
-// Test with explicit types
-fun main() -> void {
-    // Try with explicit type
-    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
-    
-    // Access elements
-    let first = numbers[0];
-}

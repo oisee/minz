@@ -2,7 +2,7 @@
 
 // Compile-time constants
 const DEBUG: bool = true;
-const PLATFORM: str = "ZX_SPECTRUM";
+const PLATFORM: String = "ZX_SPECTRUM";
 const MAX_SPRITES: u8 = @if(DEBUG, 16, 64);
 
 // Compile-time assertions
@@ -39,7 +39,7 @@ const SINE_TABLE: [i8; 256] = @eval generate_sine_table();
 
 // Compile-time code generation
 @generate
-fun make_sprite_id_enum(count: u8) -> str {
+fun make_sprite_id_enum(count: u8) -> String {
     let code = "enum SpriteID {\n";
     let mut i: u8 = 0;
     
@@ -71,7 +71,7 @@ fun set_border_color(color: u8) -> void {
 
 // Debug-only functions
 @if(DEBUG)
-fun debug_print(msg: str) -> void {
+fun debug_print(msg: String) -> void {
     // Implementation for debug output
 }
 

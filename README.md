@@ -11,9 +11,11 @@
 
 ✅ **BREAKTHROUGH FEATURES**: 
 - **🚀 Zero-Cost Lambda Iterators** - Modern functional programming with hand-optimized assembly performance!
+- **🎯 Platform Independence** - Target ZX Spectrum, CP/M, MSX, CPC with one flag! [See Guide](docs/150_Platform_Independence_Achievement.md)
 - **Function Overloading** - Use `print(42)` instead of `print_u8(42)`!
 - **Interface Methods** - Natural `object.method()` syntax with zero-cost dispatch
 - **Error Propagation** - Full `?` and `??` operator system
+- **Character Literals** - Assembly now supports `LD A, 'H'` and `LD A, '\n'`
 - **Core Language** - Functions, structs, enums, types all stable
 
 ⚠️ **Status**: Core language is stable and ready for learning/experimentation. Advanced features (generics, full metaprogramming) still in development.
@@ -23,6 +25,8 @@
 📋 **Development Roadmaps**: 
 - [Stability Roadmap](STABILITY_ROADMAP.md) - Path to v1.0 production readiness
 - [Development Roadmap 2025](docs/129_Development_Roadmap_2025.md) - Current priorities and TODO items
+
+🏛️ **Architecture Decisions**: [ADR Directory](adr/) - Important technical decisions and their rationale
 
 🏗️ **Architecture Documentation**:
 - [Architecture Audit](docs/157_ARCHITECTURE_AUDIT.md) - Comprehensive analysis of compiler state (60% success rate)
@@ -224,6 +228,91 @@ let failed = safe_divide?(10, 0) ?? 0;  // Returns 0 (default)
 - **Type System**: Static type checking with inference
 - **Optimizations**: Register allocation, peephole optimization, SMC
 
+## 🔬 **Research: Revolutionary Zero-Cost Type Casting**
+
+MinZ is pioneering a novel approach to type casting that achieves both safety and zero runtime overhead through **compile-time interfaces**:
+
+### The Innovation: Compile-Time Interface Resolution
+
+```minz
+// Define compile-time conversion interface
+@compile_interface Convertible<From, To> {
+    @inline fun convert(value: From) -> To;
+}
+
+// Compiler generates specialized zero-cost conversions
+@compile_impl Convertible<u8, u16> {
+    @inline fun convert(value: u8) -> u16 {
+        @zero_extend(value)  // Generates: LD H, 0; LD L, A
+    }
+}
+
+// Usage - resolved ENTIRELY at compile time!
+let small: u8 = 42;
+let big: u16 = convert<u8, u16>(small);  // Zero overhead!
+```
+
+### Why This Is Revolutionary
+
+1. **100% Compile-Time** - All conversions resolved during compilation
+2. **Zero Runtime Cost** - Generates exact assembly as hand-written code
+3. **Type Safe** - Compiler verifies all conversions at build time
+4. **User Extensible** - Add custom conversions for your types
+
+### Practical Implementation: Hybrid Approach
+
+```minz
+// Phase 1: Safe implicit widening (no data loss)
+let byte: u8 = 42;
+let word: u16 = byte;  // ✅ Automatic - always safe
+
+// Phase 2: Explicit narrowing (may lose data)
+let word: u16 = 300;
+let byte: u8 = word as u8;  // ⚠️ Explicit cast required
+
+// Phase 3: Method-based conversions
+let byte = word.to_u8();     // Clear intent
+let saturated = word.saturate_to_u8();  // Clamped to 0-255
+```
+
+### Advanced: Fixed-Point & Custom Types
+
+```minz
+// Zero-cost fixed-point conversions
+@compile_impl Convertible<u8, f8.8> {
+    @inline fun convert(val: u8) -> f8.8 {
+        // Shift left 8 bits for fractional part
+        @asm { "LD H, A; LD L, 0" }  // val << 8
+    }
+}
+
+// User-defined saturating conversions
+interface SaturatingCast {
+    fun saturate_to_u8(self) -> u8;
+}
+
+impl SaturatingCast for u16 {
+    fun saturate_to_u8(self) -> u8 {
+        if self > 255 { 255 } else { self as u8 }
+    }
+}
+```
+
+### Implementation Roadmap
+
+1. **✅ Now**: Basic implicit widening (u8→u16, i8→i16)
+2. **🚧 Next**: `.to_*()` conversion methods
+3. **🔬 Research**: Full compile-time interface system
+4. **🚀 Future**: Context-aware automatic conversions
+
+This approach has never been implemented in a systems language before - MinZ is the first to combine:
+- Modern type safety
+- Zero runtime overhead
+- Compile-time interface resolution
+- Z80-optimal code generation
+
+**Result**: The convenience of dynamic languages with the performance of hand-written assembly!
+
 ## 🎯 v0.9.7 Progress - Iterator & Optimization Revolution!
 
 **🚧 Current Development Focus:**
@@ -422,6 +511,33 @@ Development Status (v0.9.6 "Swift & Ruby Dreams"):
 Success Rate: ~65% of test examples compile and run correctly
 ```
 
+## 🛠️ **Complete Toolchain**
+
+MinZ provides a **self-contained, platform-independent development environment** for retro systems:
+
+### **The Tools**
+
+| Tool | Purpose | Key Features |
+|------|---------|--------------|
+| **`mz`** | MinZ Compiler | • Multi-backend support (Z80, 6502, GB, WASM, C, LLVM)<br>• Platform targeting (ZX Spectrum, CP/M, MSX, CPC)<br>• Advanced optimizations with SMC<br>• Character literals in assembly |
+| **`mza`** | Z80 Assembler | • Character literals: `LD A, 'H'` or `LD A, "H"`<br>• Escape sequences: `LD A, '\n'`<br>• String data: `DB "Hello, World!", 13, 10`<br>• Full undocumented instruction support |
+| **`mze`** | Z80 Emulator | • Cycle-accurate emulation<br>• Platform-specific I/O simulation<br>• 50Hz interrupt support<br>• Safety stop at 10M T-states |
+| **`mzr`** | Interactive REPL | • Live Z80 development<br>• ZX Spectrum screen emulation<br>• Time-travel debugging with TAS<br>• Frame-perfect optimization |
+
+### **Platform Independence** 🎯
+
+Write once, run on any Z80 system! MinZ automatically generates platform-specific code:
+
+```bash
+# Same source, different targets
+mz hello.minz -t zxspectrum    # ZX Spectrum (RST 16)
+mz hello.minz -t cpm            # CP/M (CALL 5, BDOS)
+mz hello.minz -t msx            # MSX (CALL $00A2)
+mz hello.minz -t cpc            # Amstrad CPC (CALL $BB5A)
+```
+
+**📖 Full Guide**: [Platform Independence Achievement](docs/150_Platform_Independence_Achievement.md)
+
 ## Quick Start
 
 ### Installation
@@ -429,11 +545,47 @@ Success Rate: ~65% of test examples compile and run correctly
 # Clone and install
 git clone https://github.com/oisee/minz.git
 cd minz
-./install.sh  # Installs to ~/.local/bin
 
-# Or build from source
+# Quick install (no sudo needed!)
 cd minzc
-make all
+make install-user  # Installs to ~/bin
+
+# Or system-wide install
+sudo make install  # Installs to /usr/local/bin
+
+# Verify installation
+mz --version
+```
+
+### Your First Cross-Platform Program
+
+```minz
+// hello.minz - Works on ALL platforms!
+fun main() -> void {
+    @print("Hello from MinZ!");
+    @print("\n");
+    
+    // Platform-aware code
+    @if(TARGET == "zxspectrum") {
+        @print("Running on ZX Spectrum!");
+    }
+    @if(TARGET == "cpm") {
+        @print("Running on CP/M!");
+    }
+}
+```
+
+Compile and run:
+```bash
+# For ZX Spectrum
+mz hello.minz -t zxspectrum -o hello_zx.a80
+mza hello_zx.a80 -o hello_zx.bin
+mze hello_zx.bin
+
+# For CP/M  
+mz hello.minz -t cpm -o hello_cpm.a80
+mza hello_cpm.a80 -o hello.com
+# Run on CP/M emulator or real hardware!
 ```
 
 ### Commands

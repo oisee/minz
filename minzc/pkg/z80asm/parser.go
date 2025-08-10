@@ -84,22 +84,40 @@ func isDirective(token string) bool {
 	return false
 }
 
-// parseOperands splits operands by comma, handling parentheses
+// parseOperands splits operands by comma, handling parentheses and quoted strings
 func parseOperands(operandStr string) []string {
 	var operands []string
 	var current strings.Builder
 	parenDepth := 0
+	inQuotes := false
+	quoteChar := rune(0)
 	
 	for _, ch := range operandStr {
 		switch ch {
+		case '"', '\'':
+			if !inQuotes {
+				inQuotes = true
+				quoteChar = ch
+				current.WriteRune(ch)
+			} else if ch == quoteChar {
+				inQuotes = false
+				quoteChar = 0
+				current.WriteRune(ch)
+			} else {
+				current.WriteRune(ch)
+			}
 		case '(':
-			parenDepth++
+			if !inQuotes {
+				parenDepth++
+			}
 			current.WriteRune(ch)
 		case ')':
-			parenDepth--
+			if !inQuotes {
+				parenDepth--
+			}
 			current.WriteRune(ch)
 		case ',':
-			if parenDepth == 0 {
+			if parenDepth == 0 && !inQuotes {
 				operands = append(operands, strings.TrimSpace(current.String()))
 				current.Reset()
 			} else {
@@ -221,10 +239,39 @@ func parseCondition(s string) (Condition, bool) {
 func parseNumber(s string) (uint16, error) {
 	s = strings.TrimSpace(s)
 	
-	// Check for character literal 'X'
-	if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") && len(s) == 3 {
-		char := s[1] // Get the character between the quotes
-		return uint16(char), nil
+	// Check for character literal 'X' or "X"
+	if (strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") && len(s) >= 3) ||
+	   (strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"") && len(s) >= 3) {
+		// Extract the content between quotes
+		content := s[1 : len(s)-1]
+		
+		// Handle escape sequences
+		if len(content) == 2 && content[0] == '\\' {
+			switch content[1] {
+			case 'n':
+				return uint16('\n'), nil
+			case 'r':
+				return uint16('\r'), nil
+			case 't':
+				return uint16('\t'), nil
+			case '\\':
+				return uint16('\\'), nil
+			case '\'':
+				return uint16('\''), nil
+			case '"':
+				return uint16('"'), nil
+			case '0':
+				return uint16(0), nil
+			default:
+				// Unknown escape, use literal
+				return uint16(content[1]), nil
+			}
+		} else if len(content) == 1 {
+			// Single character
+			return uint16(content[0]), nil
+		} else {
+			return 0, fmt.Errorf("character literal must be a single character: %s", s)
+		}
 	}
 	
 	// Check for hex prefixes

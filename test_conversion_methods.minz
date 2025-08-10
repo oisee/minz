@@ -1,0 +1,69 @@
+// Test conversion methods for type casting
+
+// Extension methods for u16 -> u8 conversion
+fun to_u8(value: u16) -> u8 {
+    // Truncate to lower 8 bits
+    return value as u8;
+}
+
+// Saturating conversion that clamps to 0-255
+fun saturate_to_u8(value: u16) -> u8 {
+    if value > 255 {
+        return 255;
+    } else {
+        return value as u8;
+    }
+}
+
+// Extension method for u8 -> u16 conversion (though implicit works too)
+fun to_u16(value: u8) -> u16 {
+    return value as u16;
+}
+
+// Test the conversion methods
+fun test_conversions() -> void {
+    // Test normal conversion
+    let word1: u16 = 100;
+    let byte1: u8 = to_u8(word1);
+    @print("100 to_u8");
+    print_u8(byte1);  // Should print 100
+    
+    // Test truncating conversion
+    let word2: u16 = 300;
+    let byte2: u8 = to_u8(word2);
+    @print("300 to_u8:");
+    print_u8(byte2);  // Should print 44 (300 & 0xFF)
+    
+    // Test saturating conversion
+    let byte3: u8 = saturate_to_u8(word2);
+    @print("300 saturate_to_u8:");
+    print_u8(byte3);  // Should print 255
+    
+    // Test widening conversion
+    let byte4: u8 = 42;
+    let word3: u16 = to_u16(byte4);
+    @print("42 to_u16:");
+    print_u16(word3);  // Should print 42
+}
+
+// Example: Using conversions in practice
+fun process_byte_data(data: u8) -> void {
+    @print("Processing byte:");
+    print_u8(data);
+}
+
+fun main() -> void {
+    test_conversions();
+    
+    // Practical usage
+    let big_value: u16 = 512;
+    
+    // Method 1: Explicit cast
+    process_byte_data(big_value as u8);
+    
+    // Method 2: Conversion function (clearer intent)
+    process_byte_data(to_u8(big_value));
+    
+    // Method 3: Saturating conversion (safer)
+    process_byte_data(saturate_to_u8(big_value));
+}

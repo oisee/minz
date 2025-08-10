@@ -1,7 +1,0 @@
-// Very simple iterator test - just map
-fun main() -> void {
-    let arr: [u8; 3] = [1, 2, 3];
-    
-    // Simple single iterator method - should transform
-    arr.map(print_u8);
-}

@@ -157,14 +157,14 @@ const PLAYER_SPEED: u8 = @lua(load_config("game.conf").player_speed);
 @lua_if(build_config.debug)
 const DEBUG_MODE: bool = true;
 
-fun debug_log(msg: str) -> void {
+fun debug_log(msg: String) -> void {
     // Debug output implementation
     print_string(0, 0, msg);
 }
 @lua_else
 const DEBUG_MODE: bool = false;
 
-fun debug_log(msg: str) -> void {
+fun debug_log(msg: String) -> void {
     // No-op in release
 }
 @lua_endif

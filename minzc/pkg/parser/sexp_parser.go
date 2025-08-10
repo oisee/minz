@@ -282,6 +282,8 @@ func (p *Parser) convertDeclaration(node *SExpNode) ast.Declaration {
 		return p.convertImplBlock(node)
 	case "minz_block":
 		return p.convertMinzBlock(node)
+	case "minz_metafunction_declaration":
+		return p.convertMinzMetafunctionDecl(node)
 	case "define_template":
 		return p.convertDefineTemplate(node)
 	case "meta_execution_block":
@@ -461,6 +463,8 @@ func (p *Parser) convertStatement(node *SExpNode) ast.Statement {
 		return p.convertMinzEmit(node)
 	case "target_block":
 		return p.convertTargetBlock(node)
+	case "compile_time_asm":
+		return p.convertCompileTimeAsm(node)
 	}
 	return nil
 }
@@ -1369,6 +1373,47 @@ func (p *Parser) convertMinzBlock(node *SExpNode) *ast.MinzBlock {
 	return minzBlock
 }
 
+func (p *Parser) convertMinzMetafunctionDecl(node *SExpNode) ast.Declaration {
+	// @minz("template", args...)
+	var template string
+	var args []ast.Expression
+	
+	if debug {
+		fmt.Printf("DEBUG: convertMinzMetafunctionDecl with %d children\n", len(node.Children))
+		for i, child := range node.Children {
+			fmt.Printf("  Child %d: type=%s, text=%s\n", i, child.Type, child.Text)
+		}
+	}
+	
+	// Look for children with field names
+	for i := 0; i < len(node.Children)-1; i++ {
+		if node.Children[i].Type == "atom" && strings.HasPrefix(node.Children[i].Text, "template:") {
+			// Next child should be the string literal
+			if i+1 < len(node.Children) && node.Children[i+1].Type == "string_literal" {
+				// The string literal value is stored in the node itself, not its text
+				template = p.getNodeText(node.Children[i+1])
+				// Remove quotes
+				template = strings.Trim(template, `"`)
+			}
+		}
+	}
+	
+	// Create a MinzMetafunctionCall expression
+	minzCall := &ast.MinzMetafunctionCall{
+		Code:      template,
+		Arguments: args,
+		StartPos:  node.StartPos,
+		EndPos:    node.EndPos,
+	}
+	
+	// Wrap it in an ExpressionDecl for top-level processing
+	return &ast.ExpressionDecl{
+		Expression: minzCall,
+		StartPos:   node.StartPos,
+		EndPos:     node.EndPos,
+	}
+}
+
 func (p *Parser) convertMinzEmit(node *SExpNode) *ast.MinzEmit {
 	minzEmit := &ast.MinzEmit{
 		StartPos: node.StartPos,
@@ -1408,6 +1453,35 @@ func (p *Parser) convertTargetBlock(node *SExpNode) ast.Statement {
 	return &ast.TargetBlockStmt{
 		Target:   target,
 		Body:     body,
+		StartPos: node.StartPos,
+		EndPos:   node.EndPos,
+	}
+}
+
+func (p *Parser) convertCompileTimeAsm(node *SExpNode) ast.Statement {
+	// Extract assembly code from asm_content
+	var asmCode string
+	
+	for _, child := range node.Children {
+		if child.Type == "asm_content" {
+			// Extract text from all asm_instruction children
+			var codeLines []string
+			for _, instChild := range child.Children {
+				if instChild.Type == "asm_instruction" || instChild.Type == "comment" {
+					line := p.getNodeText(instChild)
+					if strings.TrimSpace(line) != "" {
+						codeLines = append(codeLines, line)
+					}
+				}
+			}
+			asmCode = strings.Join(codeLines, "\n")
+			break
+		}
+	}
+	
+	// Create AsmBlockStmt
+	return &ast.AsmBlockStmt{
+		Code:     asmCode,
 		StartPos: node.StartPos,
 		EndPos:   node.EndPos,
 	}

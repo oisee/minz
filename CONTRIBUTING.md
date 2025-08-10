@@ -33,12 +33,58 @@ cd minzc && make build
 cd minzc && make test
 ```
 
+## CLI Standards
+
+All MinZ command-line tools **MUST** follow these standards for consistency:
+
+### Library Choice
+- **REQUIRED**: Use `github.com/spf13/cobra` for all CLI tools
+- **RATIONALE**: Cobra provides standard Unix-style CLI conventions automatically
+- **DO NOT**: Use Go's standard `flag` package directly
+
+### Option Conventions
+All options must follow standard Unix/POSIX conventions:
+
+#### Short Options
+- Single dash: `-v`, `-o`, `-h`
+- Single character only
+- Can be combined: `-vc` equals `-v -c`
+
+#### Long Options
+- Double dash: `--verbose`, `--output`, `--help`
+- Use kebab-case: `--enable-smc`, not `--enableSMC`
+- Should be self-documenting
+
+#### Standard Options
+| Short | Long | Purpose |
+|-------|------|---------|
+| `-h` | `--help` | Show help text |
+| `-v` | `--version` or `--verbose` | Version or verbose output |
+| `-o` | `--output` | Output file |
+| `-t` | `--target` | Target platform |
+| `-d` | `--debug` | Debug mode |
+
+### Implementation Example
+```go
+var rootCmd = &cobra.Command{
+    Use:   "tool [input]",
+    Short: "Brief description",
+    Long:  `Detailed help text...`,
+}
+
+func init() {
+    rootCmd.Flags().StringVarP(&output, "output", "o", "", "output file")
+    rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "verbose")
+}
+```
+
 ## Code Style
 
 - Go code follows standard Go formatting (`gofmt`)
 - Use meaningful variable and function names
 - Add comments for complex logic
 - Keep functions focused and small
+- CLI tools must use Cobra for consistency
 
 ## Testing
 

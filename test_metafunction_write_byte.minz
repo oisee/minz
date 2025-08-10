@@ -1,3 +1,0 @@
-fun main() -> void {
-    @write_byte(65);
-}

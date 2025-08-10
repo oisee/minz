@@ -1,0 +1,12 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function hello_world.main() -> void
+  @smc
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Hello, World from MinZ\!" (24 chars via loop)
+      2: LOAD_STRING
+      3: PRINT_STRING ; Print "Running on Z80\!" (16 chars via loop)
+      4: return
+

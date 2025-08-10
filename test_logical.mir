@@ -1,0 +1,91 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_logical_keywords.test_simple_or$u8$u8(a: u8, b: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 100
+      2: r5 = r3 > r4
+      3: LOAD_PARAM
+      4: r7 = 100
+      5: r8 = r6 > r7
+      6: UNKNOWN_OP_61
+      7: return r9
+
+Function test_logical_keywords.test_simple_and$u8$u8(a: u8, b: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 50
+      2: r5 = r3 < r4
+      3: LOAD_PARAM
+      4: r7 = 50
+      5: r8 = r6 < r7
+      6: UNKNOWN_OP_60
+      7: return r9
+
+Function test_logical_keywords.test_complex$u8$u8(a: u8, b: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 200
+      2: r5 = r3 > r4
+      3: LOAD_PARAM
+      4: r7 = 200
+      5: r8 = r6 > r7
+      6: UNKNOWN_OP_61
+      7: jump_if_not r9, else_1
+      8: r10 = 1
+      9: return r10
+     10: jump end_if_2
+     11: else_1:
+     12: end_if_2:
+     13: r11 = 0
+     14: return r11
+
+Function test_logical_keywords.main() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u8
+  Instructions:
+      0: r2 = 150
+      1: store x, r2
+      2: r4 = 250
+      3: store y, r4
+      4: r5 = load x
+      5: r6 = load y
+      6: r7 = load x
+      7: r8 = load y
+      8: r9 = call test_logical_keywords.test_simple_or$u8$u8
+      9: jump_if_not r9, else_3
+     10: LOAD_STRING
+     11: PRINT_STRING ; Print "OR test passed" (14 chars via loop)
+     12: jump end_if_4
+     13: else_3:
+     14: end_if_4:
+     15: r11 = 30
+     16: r12 = 40
+     17: r13 = 30
+     18: r14 = 40
+     19: r15 = call test_logical_keywords.test_simple_and$u8$u8
+     20: jump_if_not r15, else_5
+     21: LOAD_STRING
+     22: PRINT_STRING ; Print "AND test passed" (15 chars via loop)
+     23: jump end_if_6
+     24: else_5:
+     25: end_if_6:
+     26: r17 = load x
+     27: r18 = load y
+     28: r19 = load x
+     29: r20 = load y
+     30: r21 = call test_logical_keywords.test_complex$u8$u8
+     31: jump_if_not r21, else_7
+     32: LOAD_STRING
+     33: PRINT_STRING ; Print "Complex test passed" (19 chars via loop)
+     34: jump end_if_8
+     35: else_7:
+     36: end_if_8:
+     37: return
+

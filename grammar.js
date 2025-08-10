@@ -386,6 +386,7 @@ module.exports = grammar({
       $.defer_statement,
       $.case_statement,
       $.asm_block,
+      $.compile_time_asm,
       $.mir_block,
       $.minz_block,
       $.target_block,
@@ -499,7 +500,7 @@ module.exports = grammar({
         field('operator', operator),
         field('right', $.expression),
       ))),
-      ...['or', 'and'].map(operator => prec.left(2, seq(
+      ...['or', 'and', '||', '&&'].map(operator => prec.left(2, seq(
         field('left', $.expression),
         field('operator', operator),
         field('right', $.expression),
@@ -765,6 +766,13 @@ module.exports = grammar({
       '@error',
       optional(seq('(', optional($.expression), ')')),
     )),
+
+    compile_time_asm: $ => seq(
+      '@asm',
+      '{',
+      optional($.asm_content),
+      '}',
+    ),
 
     attribute: $ => prec.right(seq(
       '@',

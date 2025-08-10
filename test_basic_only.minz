@@ -1,4 +1,0 @@
-// Basic test without @minz
-fun main() -> void {
-    @print("Hello World\n");
-}

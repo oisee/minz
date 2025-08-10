@@ -1,0 +1,32 @@
+// Working Hello World for ZX Spectrum
+fun main() -> void {
+    // Print "Hello MinZ!" character by character
+    asm {
+        LD A, 72      ; H
+        RST 16
+        LD A, 101     ; e
+        RST 16
+        LD A, 108     ; l
+        RST 16
+        LD A, 108     ; l
+        RST 16
+        LD A, 111     ; o
+        RST 16
+        LD A, 32      ; space
+        RST 16
+        LD A, 77      ; M
+        RST 16
+        LD A, 105     ; i
+        RST 16
+        LD A, 110     ; n
+        RST 16
+        LD A, 90      ; Z
+        RST 16
+        LD A, 33      ; !
+        RST 16
+        LD A, 13      ; newline
+        RST 16
+        DI            ; Disable interrupts
+        HALT          ; Stop CPU
+    }
+}

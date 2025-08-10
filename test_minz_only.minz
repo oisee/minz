@@ -1,4 +1,0 @@
-// Only @minz test
-fun main() -> void {
-    @minz("fun test() -> void {}", "test");
-}

@@ -1,0 +1,21 @@
+; Simple Hello World for ZX Spectrum
+    ORG $8000
+
+main:
+    LD A, 72      ; 'H'
+    RST 16        ; Print character
+    LD A, 101     ; 'e' 
+    RST 16
+    LD A, 108     ; 'l'
+    RST 16
+    LD A, 108     ; 'l'
+    RST 16
+    LD A, 111     ; 'o'
+    RST 16
+    LD A, 33      ; '!'
+    RST 16
+    LD A, 13      ; newline
+    RST 16
+    HALT          ; Stop execution
+
+    END main

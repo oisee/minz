@@ -32,6 +32,7 @@ type Z80Generator struct {
 	useAbsoluteLocals bool // Whether to use absolute addressing for locals
 	emittedParams map[string]bool // Track which SMC parameters have been emitted
 	currentRegister ir.Register // Track which virtual register is currently in HL
+	targetPlatform string // Target platform (zxspectrum, cpm, msx, etc.)
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -46,7 +47,20 @@ func NewZ80Generator(w io.Writer) *Z80Generator {
 		physicalAlloc:   physicalAlloc,           // Physical register allocator
 		usePhysicalRegs: true,                    // Enable hierarchical allocation
 		localVarBase:    0xF000,                  // Default local variable area at 0xF000
+		targetPlatform:  "zxspectrum",            // Default to ZX Spectrum
 	}
+}
+
+// SetTargetPlatform sets the target platform for the generator
+func (g *Z80Generator) SetTargetPlatform(platform string) {
+	g.targetPlatform = platform
+}
+
+// uniqueLabel generates a unique label with the given prefix
+func (g *Z80Generator) uniqueLabel(prefix string) string {
+	label := fmt.Sprintf("%s_%d", prefix, g.labelCounter)
+	g.labelCounter++
+	return label
 }
 
 // Generate generates Z80 assembly for an IR module
@@ -247,25 +261,32 @@ func (g *Z80Generator) generateString(str *ir.String) {
 	
 	// String content
 	if length > 0 {
-		// Escape special characters and emit as DB directive
+		// Collect all bytes/strings for a single DB directive
+		var dbOperands []string
 		escaped := ""
+		
 		for _, ch := range str.Value {
 			if ch >= 32 && ch <= 126 && ch != '"' && ch != '\\' {
 				escaped += string(ch)
 			} else {
-				// If we have accumulated string content, emit it
+				// If we have accumulated string content, add it as an operand
 				if escaped != "" {
-					g.emit("    DB \"%s\"", escaped)
+					dbOperands = append(dbOperands, fmt.Sprintf("\"%s\"", escaped))
 					escaped = ""
 				}
-				// Emit special character as numeric value
-				g.emit("    DB %d", ch)
+				// Add special character as numeric value
+				dbOperands = append(dbOperands, fmt.Sprintf("%d", ch))
 			}
 		}
 		
-		// Emit any remaining string content
+		// Add any remaining string content
 		if escaped != "" {
-			g.emit("    DB \"%s\"", escaped)
+			dbOperands = append(dbOperands, fmt.Sprintf("\"%s\"", escaped))
+		}
+		
+		// Emit as a single DB directive with comma-separated operands
+		if len(dbOperands) > 0 {
+			g.emit("    DB %s", strings.Join(dbOperands, ", "))
 		}
 	}
 	
@@ -1762,6 +1783,56 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD H, A")
 		g.storeFromHL(inst.Dest)
 		
+	case ir.OpLogicalAnd:
+		// Logical AND with short-circuit evaluation
+		// First operand: if false (0), result is false
+		g.loadToA(inst.Src1)
+		g.emit("    OR A           ; Test if zero")
+		falseLabel := g.uniqueLabel("land_false")
+		endLabel := g.uniqueLabel("land_end")
+		g.emit("    JR Z, %s       ; Skip if first operand is false", falseLabel)
+		
+		// Second operand: if false (0), result is false
+		g.loadToA(inst.Src2)
+		g.emit("    OR A           ; Test if zero")
+		g.emit("    JR Z, %s       ; Skip if second operand is false", falseLabel)
+		
+		// Both true - result is true (1)
+		g.emit("    LD A, 1        ; Result is true")
+		g.emit("    JR %s", endLabel)
+		
+		// False path
+		g.emit("%s:", falseLabel)
+		g.emit("    XOR A          ; Result is false (0)")
+		
+		g.emit("%s:", endLabel)
+		g.storeFromA(inst.Dest)
+		
+	case ir.OpLogicalOr:
+		// Logical OR with short-circuit evaluation
+		// First operand: if true (non-zero), result is true
+		g.loadToA(inst.Src1)
+		g.emit("    OR A           ; Test if zero")
+		trueLabel := g.uniqueLabel("lor_true")
+		endLabel := g.uniqueLabel("lor_end")
+		g.emit("    JR NZ, %s      ; Skip if first operand is true", trueLabel)
+		
+		// Second operand: if true (non-zero), result is true
+		g.loadToA(inst.Src2)
+		g.emit("    OR A           ; Test if zero")
+		g.emit("    JR NZ, %s      ; Skip if second operand is true", trueLabel)
+		
+		// Both false - result is false (0)
+		g.emit("    XOR A          ; Result is false")
+		g.emit("    JR %s", endLabel)
+		
+		// True path
+		g.emit("%s:", trueLabel)
+		g.emit("    LD A, 1        ; Result is true (1)")
+		
+		g.emit("%s:", endLabel)
+		g.storeFromA(inst.Dest)
+		
 	case ir.OpXor:
 		// Bitwise XOR
 		// Special case for XOR with self (zeroing)
@@ -2123,8 +2194,24 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Built-in print function - print a u8 character
 		// Character is in Src1
 		g.loadToA(inst.Src1)
-		// Use RST 16 (0x10) - standard ROM print routine on ZX Spectrum
-		g.emit("    RST 16         ; Print character in A")
+		
+		// Generate platform-specific print code
+		switch g.targetPlatform {
+		case "cpm":
+			// CP/M uses BDOS function 2 (console output)
+			g.emit("    LD E, A        ; Character to E")
+			g.emit("    LD C, 2        ; BDOS function 2: console output")
+			g.emit("    CALL 5         ; Call BDOS")
+		case "msx":
+			// MSX uses BIOS call at 0x00A2 (CHPUT)
+			g.emit("    CALL $00A2     ; MSX BIOS CHPUT")
+		case "cpc", "amstrad":
+			// Amstrad CPC uses firmware call at 0xBB5A (TXT OUTPUT)
+			g.emit("    CALL $BB5A     ; CPC TXT OUTPUT")
+		default: // "zxspectrum" and others
+			// ZX Spectrum uses RST 16
+			g.emit("    RST 16         ; Print character in A")
+		}
 		
 	case ir.OpPrintU8:
 		// Print u8 as decimal number
@@ -2158,13 +2245,31 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpPrintStringDirect:
 		// Direct print for short strings - ultra-fast!
-		// Each character is loaded and printed directly with RST 16
+		// Each character is loaded and printed directly
 		if inst.Comment != "" {
 			g.emit(fmt.Sprintf("    ; %s", inst.Comment))
 		}
+		
+		// Generate platform-specific code for each character
 		for _, ch := range inst.Symbol {
 			g.emit(fmt.Sprintf("    LD A, %d", ch))
-			g.emit("    RST 16             ; Print character")
+			
+			switch g.targetPlatform {
+			case "cpm":
+				// CP/M uses BDOS function 2
+				g.emit("    LD E, A        ; Character to E")
+				g.emit("    LD C, 2        ; BDOS function 2")
+				g.emit("    CALL 5         ; Call BDOS")
+			case "msx":
+				// MSX uses BIOS CHPUT
+				g.emit("    CALL $00A2     ; MSX BIOS CHPUT")
+			case "cpc", "amstrad":
+				// Amstrad CPC uses TXT OUTPUT
+				g.emit("    CALL $BB5A     ; CPC TXT OUTPUT")
+			default: // "zxspectrum" and others
+				// ZX Spectrum uses RST 16
+				g.emit("    RST 16         ; Print character")
+			}
 		}
 		
 	case ir.OpLoadString:
@@ -3168,6 +3273,11 @@ func (g *Z80Generator) emitAsmBlock(code string) {
 			continue
 		}
 		
+		// Skip opening and closing braces from asm blocks
+		if trimmedLine == "{" || trimmedLine == "}" {
+			continue
+		}
+		
 		// Process !symbol references
 		processedLine := g.resolveAsmSymbols(trimmedLine)
 		
@@ -3502,13 +3612,18 @@ func (g *Z80Generator) isLocalRegister(reg ir.Register) bool {
 
 // needsPrintHelpers checks if any print functions are used in the module
 func (g *Z80Generator) needsPrintHelpers() bool {
-	// Check all functions for print-related calls
+	// Check all functions for print-related operations
 	for _, fn := range g.module.Functions {
 		for _, inst := range fn.Instructions {
-			if inst.Op == ir.OpCall && inst.Symbol != "" {
-				// Check if it's a print function
-				if strings.Contains(inst.Symbol, "print_") ||
-				   strings.Contains(inst.Symbol, "@print") {
+			switch inst.Op {
+			case ir.OpPrintU8, ir.OpPrintU16, ir.OpPrintI8, ir.OpPrintI16,
+			     ir.OpPrintBool, ir.OpPrintString:
+				// These operations use helper functions
+				return true
+			case ir.OpCall:
+				// Check if it's a print function call
+				if inst.Symbol != "" && (strings.Contains(inst.Symbol, "print_") ||
+				   strings.Contains(inst.Symbol, "@print")) {
 					return true
 				}
 			}
@@ -3534,7 +3649,24 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    RET Z              ; Return if empty string")
 	g.emit("print_loop_u8:")
 	g.emit("    LD A, (HL)         ; Load character")
-	g.emit("    RST 16             ; ZX Spectrum ROM print")
+	
+	// Platform-specific character output
+	switch g.targetPlatform {
+	case "cpm":
+		g.emit("    PUSH BC            ; Save counter")
+		g.emit("    PUSH HL            ; Save string pointer")
+		g.emit("    LD E, A            ; Character to E")
+		g.emit("    LD C, 2            ; BDOS function 2")
+		g.emit("    CALL 5             ; Call BDOS")
+		g.emit("    POP HL             ; Restore string pointer")
+		g.emit("    POP BC             ; Restore counter")
+	case "msx":
+		g.emit("    CALL $00A2         ; MSX BIOS CHPUT")
+	case "cpc", "amstrad":
+		g.emit("    CALL $BB5A         ; CPC TXT OUTPUT")
+	default: // "zxspectrum" and others
+		g.emit("    RST 16             ; ZX Spectrum ROM print")
+	}
 	g.emit("    INC HL             ; Next character")
 	g.emit("    DJNZ print_loop_u8 ; Decrement B and loop")
 	g.emit("    RET")
@@ -3552,8 +3684,25 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    RET Z              ; Return if empty string")
 	g.emit("    ; Use 16-bit counter for large strings")
 	g.emit("print_loop_u16:")
-	g.emit("    LD A, (HL)         ; Load character") 
-	g.emit("    RST 16             ; Print character")
+	g.emit("    LD A, (HL)         ; Load character")
+	
+	// Platform-specific character output for u16 loop
+	switch g.targetPlatform {
+	case "cpm":
+		g.emit("    PUSH DE            ; Save counter")
+		g.emit("    PUSH HL            ; Save string pointer")
+		g.emit("    LD E, A            ; Character to E")
+		g.emit("    LD C, 2            ; BDOS function 2")
+		g.emit("    CALL 5             ; Call BDOS")
+		g.emit("    POP HL             ; Restore string pointer")
+		g.emit("    POP DE             ; Restore counter")
+	case "msx":
+		g.emit("    CALL $00A2         ; MSX BIOS CHPUT")
+	case "cpc", "amstrad":
+		g.emit("    CALL $BB5A         ; CPC TXT OUTPUT")
+	default: // "zxspectrum" and others
+		g.emit("    RST 16             ; Print character")
+	}
 	g.emit("    INC HL             ; Next character")
 	g.emit("    DEC DE             ; Decrement 16-bit counter")
 	g.emit("    LD A, D            ; Check if counter is zero")

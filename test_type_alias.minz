@@ -1,5 +1,0 @@
-type MyU8 = u8;
-
-fun main() -> void {
-    let val: MyU8 = 42 as MyU8;
-}

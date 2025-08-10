@@ -100,7 +100,7 @@ fun main() -> void {
 // Helper functions (implementations would be in stdlib)
 declare fun draw_sprite(x: u8, y: u8, data: *u8) -> void;
 declare fun draw_number(x: u8, y: u8, num: u16) -> void;
-declare fun draw_text(x: u8, y: u8, text: str) -> void;
+declare fun draw_text(x: u8, y: u8, text: String) -> void;
 declare fun check_collision() -> bool;
 declare fun collect_items() -> u16;
 declare fun all_items_collected() -> bool;

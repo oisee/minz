@@ -2,10 +2,13 @@ package semantic
 
 import (
 	"fmt"
+	"os"
 	
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/ir"
 )
+
+var debugOverload = os.Getenv("DEBUG") != ""
 
 // resolveOverload finds the best matching function overload for the given arguments
 func (a *Analyzer) resolveOverload(baseName string, args []ast.Expression, irFunc *ir.Function) (*FuncSymbol, error) {
@@ -63,6 +66,73 @@ func (a *Analyzer) resolveOverload(baseName string, args []ast.Expression, irFun
 					typ = &ir.BasicType{Kind: ir.TypeU16}
 				}
 				a.exprTypes[arg] = typ
+			case *ast.UnaryExpr:
+				// Handle & operator (address-of)
+				if e.Operator == "&" {
+					// Get the type of the operand
+					operandType := a.exprTypes[e.Operand]
+					if operandType == nil {
+						// Try to analyze the operand to get its type
+						if _, err := a.analyzeExpression(e.Operand, irFunc); err == nil {
+							operandType = a.exprTypes[e.Operand]
+						}
+					}
+					if operandType != nil {
+						// Create pointer type
+						typ = &ir.PointerType{Base: operandType}
+						a.exprTypes[arg] = typ
+					} else {
+						// Default to *u8 for now
+						typ = &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}
+						a.exprTypes[arg] = typ
+					}
+				} else {
+					// For other unary operators, try to get the type from the expression
+					typ = a.exprTypes[arg]
+					if typ == nil {
+						return nil, fmt.Errorf("cannot determine type of unary expression with operator %s", e.Operator)
+					}
+				}
+			case *ast.StringLiteral:
+				// String literals are *u8 (pointer to u8)
+				typ = &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}
+				a.exprTypes[arg] = typ
+			case *ast.FieldExpr:
+				// Handle field expressions by analyzing them first
+				// This will convert enum field access to the proper type
+				if _, err := a.analyzeExpression(e, irFunc); err == nil {
+					typ = a.exprTypes[arg]
+					if debugOverload {
+						fmt.Printf("DEBUG: FieldExpr analysis succeeded, type: %T\n", typ)
+					}
+				} else if debugOverload {
+					fmt.Printf("DEBUG: FieldExpr analysis failed: %v\n", err)
+				}
+				if typ == nil {
+					// If analysis failed, try to handle enum field access directly
+					if id, ok := e.Object.(*ast.Identifier); ok {
+						sym := a.currentScope.Lookup(id.Name)
+						if typeSym, isType := sym.(*TypeSymbol); isType {
+							if _, isEnum := typeSym.Type.(*ir.EnumType); isEnum {
+								// This is an enum variant - type is u8 (same as enum)
+								typ = &ir.BasicType{Kind: ir.TypeU8}
+								a.exprTypes[arg] = typ
+								if debugOverload {
+									fmt.Printf("DEBUG: Set enum field type to u8\n")
+								}
+							}
+						}
+					}
+				}
+				if typ == nil {
+					if debugOverload {
+						fmt.Printf("DEBUG: Failed to determine type for field expression\n")
+						fmt.Printf("  Object: %T\n", e.Object)
+						fmt.Printf("  Field: %s\n", e.Field)
+					}
+					return nil, fmt.Errorf("cannot determine type of field expression %s.%s", 
+						e.Object, e.Field)
+				}
 			default:
 				return nil, fmt.Errorf("cannot determine type of argument %d (type: %T)", i, arg)
 			}

@@ -1,7 +1,0 @@
-// Test print_u8 builtin function
-fun main() -> u8 {
-    print_u8(42);
-    print_u8(255);
-    print_u8(0);
-    return 0;
-}

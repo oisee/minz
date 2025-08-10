@@ -1,5 +1,0 @@
-// Minimal @minz block test
-
-@minz[[[
-  @emit("const X: u8 = 42;")
-]]]

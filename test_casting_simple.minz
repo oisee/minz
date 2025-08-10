@@ -1,0 +1,23 @@
+// Simple test of type casting features
+
+fun main() -> void {
+    // Test implicit widening
+    let small: u8 = 42;
+    let big: u16 = small;  // Implicit widening works!
+    
+    @print("Implicit widening u8 to u16: OK");
+    
+    // Test explicit narrowing
+    let large: u16 = 300;
+    let truncated: u8 = large as u8;  // Explicit cast required
+    
+    @print("Explicit narrowing u16 to u8: OK");
+    
+    // Test in arithmetic
+    let a: u8 = 100;
+    let b: u16 = 1000;
+    let sum: u16 = b + a;  // a implicitly widened
+    
+    @print("Mixed arithmetic with widening: OK");
+    print_u16(sum);  // Should print 1100
+}

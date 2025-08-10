@@ -1,0 +1,12 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...hello_target.main() -> void
+  @smc
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Hello from MinZ!" (16 chars via loop)
+      2: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+      3: return
+

@@ -1,0 +1,1 @@
+loop [1,2,3] indexed to val, idx { print_u8(idx); }

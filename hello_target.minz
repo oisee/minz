@@ -1,0 +1,5 @@
+// Test @print with different targets
+fun main() -> void {
+    @print("Hello from MinZ!");
+    @print("\n");
+}

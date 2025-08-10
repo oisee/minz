@@ -1,0 +1,8 @@
+fun test_str(s: cstr) -> cstr {
+    return s;
+}
+
+fun main() -> void {
+    let message: cstr = "Hello";
+    test_str(message);
+}

@@ -1,0 +1,24 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_cstr_alias.test_cstr$cstr(s: *u8) -> *u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: return r2
+
+Function ...test_cstr_alias.main() -> void
+  @smc
+  Locals:
+    r1 = message: *u8
+    r6 = native_str: String
+  Instructions:
+      0: LOAD_LABEL ; Load string "Hello from C"
+      1: store message, r2
+      2: r3 = load message
+      3: r4 = load message
+      4: r5 = call ...test_cstr_alias.test_cstr$cstr
+      5: LOAD_LABEL ; Load string "Hello from MinZ"
+      6: store native_str, r7
+      7: return
+

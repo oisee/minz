@@ -1,0 +1,39 @@
+; MinZ generated code
+; Generated: 2025-08-09 22:24:13
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...hello_simple.main
+...hello_simple.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 42
+    LD A, 42
+    ; Register 2 already in A
+    ; store x, r2
+    ; Register 2 already in A
+    LD ($F002), A
+    ; r4 = 13
+    LD A, 13
+    LD C, A         ; Store to physical register C
+    ; store y, r4
+    LD A, C
+    LD ($F006), A
+    ; r5 = load x
+    LD A, ($F002)
+    LD E, A         ; Store to physical register E
+    ; r6 = load y
+    LD A, ($F006)
+    LD H, A         ; Store to physical register H
+    ; r7 = r5 + r6
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r7
+    RET
+
+    END main

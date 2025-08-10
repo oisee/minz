@@ -1,0 +1,7 @@
+// Test character printing with different targets
+fun main() -> void {
+    @print(72);   // 'H'
+    @print(105);  // 'i'
+    @print(33);   // '!'
+    @print(10);   // '\n'
+}

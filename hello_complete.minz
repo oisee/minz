@@ -1,0 +1,37 @@
+// Complete Hello World with print implementation
+fun print_char(c: u8) -> void {
+    // Use ZX Spectrum ROM routine to print character
+    asm {
+        LD A, H    ; Get character from H register
+        RST 16     ; ZX Spectrum print routine
+    }
+}
+
+fun print_u8(value: u8) -> void {
+    // Print as decimal
+    let hundreds: u8 = value / 100;
+    let tens: u8 = (value % 100) / 10;
+    let ones: u8 = value % 10;
+    
+    if hundreds > 0 {
+        print_char(hundreds + 48); // ASCII '0' = 48
+    }
+    if tens > 0 || hundreds > 0 {
+        print_char(tens + 48);
+    }
+    print_char(ones + 48);
+}
+
+fun main() -> void {
+    // Print some test values
+    print_char(72);  // 'H'
+    print_char(105); // 'i'
+    print_char(33);  // '!'
+    print_char(10);  // newline
+    
+    // Print a number
+    print_u8(42);
+    print_char(10);
+    
+    return;
+}

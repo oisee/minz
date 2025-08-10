@@ -1,9 +1,7 @@
-// Test simple @minz at top level
-
-// Generate a function at compile time
-@minz("fun add_{0}(a: u8, b: u8) -> u8 { return a + b; }", "numbers")
+// Test @minz with parentheses syntax
+@minz("fun multiply_u8(a: u8, b: u8) -> u8 { return a * b; }")
 
 fun main() -> void {
-    let result = add_numbers(10, 20);
-    @print("Result: {}", result);
+    let result = multiply_u8(5, 3);
+    @print("5 * 3 = {result}");
 }

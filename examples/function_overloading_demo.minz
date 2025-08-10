@@ -16,7 +16,7 @@ fun print(value: u16) -> void {
     ");
 }
 
-fun print(msg: *str) -> void {
+fun print(msg: *u8) -> void {
     @asm("
         ; Print string
         call print_string

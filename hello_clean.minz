@@ -1,0 +1,32 @@
+// Clean hello world using character literals
+fun main() -> void {
+    asm {
+        LD A, 'H'
+        RST 16
+        LD A, 'e'
+        RST 16
+        LD A, 'l'
+        RST 16
+        LD A, 'l'
+        RST 16
+        LD A, 'o'
+        RST 16
+        LD A, ' '
+        RST 16
+        LD A, 'M'
+        RST 16
+        LD A, 'i'
+        RST 16
+        LD A, 'n'
+        RST 16
+        LD A, 'Z'
+        RST 16
+        LD A, '\!'
+        RST 16
+        LD A, '\n'
+        RST 16
+        DI
+        HALT
+    }
+}
+EOF < /dev/null

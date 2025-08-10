@@ -1,9 +1,0 @@
-// Test direct Lua support
-
-fun test_lua() -> u8 {
-    return @lua(42);
-}
-
-fun main() -> void {
-    let x = test_lua();
-}

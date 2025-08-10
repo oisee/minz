@@ -1,0 +1,13 @@
+// Test C-style string type alias
+fun test_cstr(s: cstr) -> cstr {
+    return s;
+}
+
+fun main() -> void {
+    // cstr is explicitly a C-style string (pointer to u8)
+    let message: cstr = "Hello from C";
+    test_cstr(message);
+    
+    // Native MinZ strings use String or LString
+    let native_str: String = "Hello from MinZ";
+}

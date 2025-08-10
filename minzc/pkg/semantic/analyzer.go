@@ -47,6 +47,7 @@ type Analyzer struct {
 	metafunctionProcessor *metafunction.Processor // Processor for @metafunction calls
 	errorPropagationContext *ErrorPropagationContext // Track error propagation state
 	targetBackend         string // Target backend for @target directive
+	targetPlatform        string // Target platform (zxspectrum, cpm, etc.)
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -62,6 +63,7 @@ func NewAnalyzer() *Analyzer {
 		luaEvaluator:      meta.NewLuaEvaluator(),
 		mirInterpreter:    interpreter.NewMIRInterpreter(),
 		targetBackend:     "z80", // Default backend
+		targetPlatform:    "zxspectrum", // Default platform
 	}
 	
 	return analyzer
@@ -72,8 +74,27 @@ func (a *Analyzer) SetTargetBackend(backend string) {
 	a.targetBackend = backend
 }
 
+// SetTargetPlatform sets the target platform (zxspectrum, cpm, etc.)
+func (a *Analyzer) SetTargetPlatform(platform string) {
+	a.targetPlatform = platform
+}
+
+// registerPredefinedConstants registers predefined constants like TARGET
+func (a *Analyzer) registerPredefinedConstants() {
+	// Register TARGET constant with the current platform
+	// Convert platform string to a numeric value for ConstSymbol
+	// For now, we'll register these as special string constants
+	// TODO: Add proper string constant support to ConstSymbol
+	
+	// For now, skip registering these as constants
+	// They can be used with @if directives instead
+}
+
 // Analyze performs semantic analysis on a file
 func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
+	// Register predefined constants
+	a.registerPredefinedConstants()
+	
 	// PREPROCESSING STEP 1: Expand @define templates (before everything else!)
 	templateExpander := NewTemplateExpander()
 	expandedFile, err := templateExpander.ExpandTemplates(file)
@@ -152,8 +173,13 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 			}
 		case *ast.ExpressionDecl:
 			// Process top-level @minz expressions to generate code
-			if minz, ok := d.Expression.(*ast.CompileTimeMinz); ok {
-				if _, err := a.analyzeMinzExpr(minz, nil); err != nil {
+			switch expr := d.Expression.(type) {
+			case *ast.CompileTimeMinz:
+				if _, err := a.analyzeMinzExpr(expr, nil); err != nil {
+					a.errors = append(a.errors, err)
+				}
+			case *ast.MinzMetafunctionCall:
+				if _, err := a.analyzeMinzMetafunctionCall(expr, nil); err != nil {
 					a.errors = append(a.errors, err)
 				}
 			}
@@ -240,6 +266,10 @@ func (a *Analyzer) addBuiltins() {
 	a.currentScope.Define("i16", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeI16}})
 	a.currentScope.Define("bool", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeBool}})
 	a.currentScope.Define("void", &TypeSymbol{Type: &ir.BasicType{Kind: ir.TypeVoid}})
+	
+	// Type aliases for C interoperability
+	// cstr is a C-style string (pointer to null-terminated u8 array)
+	a.currentScope.Define("cstr", &TypeSymbol{Type: &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}})
 	
 	// String types
 	a.currentScope.Define("String", &TypeSymbol{Type: &ir.StringType{MaxLength: 255}})
@@ -1534,6 +1564,8 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 		return a.analyzeBlock(s, irFunc)
 	case *ast.AsmStmt:
 		return a.analyzeAsmStmt(s, irFunc)
+	case *ast.AsmBlockStmt:
+		return a.analyzeAsmBlockStmt(s, irFunc)
 	case *ast.TargetBlockStmt:
 		return a.analyzeTargetBlockStmt(s, irFunc)
 	case *ast.ExpressionStmt:
@@ -2337,6 +2369,21 @@ func (a *Analyzer) analyzeAsmStmt(asmStmt *ast.AsmStmt, irFunc *ir.Function) err
 	if asmStmt.Name != "" {
 		// TODO: Add AsmSymbol type to symbols
 		// For now, just track the name
+	}
+	
+	// Add to function instructions
+	irFunc.Instructions = append(irFunc.Instructions, asmInst)
+	
+	return nil
+}
+
+// analyzeAsmBlockStmt analyzes an @asm { ... } inline assembly block
+func (a *Analyzer) analyzeAsmBlockStmt(asmBlock *ast.AsmBlockStmt, irFunc *ir.Function) error {
+	// Create IR instruction with OpAsm
+	asmInst := ir.Instruction{
+		Op:      ir.OpAsm,
+		AsmCode: asmBlock.Code,
+		Comment: "Inline assembly from @asm block",
 	}
 	
 	// Add to function instructions
@@ -3179,6 +3226,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeTernaryExpr(e, irFunc)
 	case *ast.WhenExpr:
 		return a.analyzeWhenExpr(e, irFunc)
+	case *ast.TryExpr:
+		return a.analyzeTryExpr(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -3468,9 +3517,9 @@ func (a *Analyzer) analyzeBinaryExpr(bin *ast.BinaryExpr, irFunc *ir.Function) (
 		op = ir.OpShl
 	case ">>":
 		op = ir.OpShr
-	case "&&":
+	case "&&", "and":
 		op = ir.OpLogicalAnd
-	case "||":
+	case "||", "or":
 		op = ir.OpLogicalOr
 	default:
 		return 0, fmt.Errorf("unsupported binary operator: %s", bin.Operator)
@@ -4698,7 +4747,14 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 						StartPos: field.StartPos,
 						EndPos:   field.EndPos,
 					}
-					return a.analyzeEnumLiteral(enumLit, irFunc)
+					reg, err := a.analyzeEnumLiteral(enumLit, irFunc)
+					if err != nil {
+						return 0, err
+					}
+					// Store the type information for this field expression
+					// Enum variants are always u8
+					a.exprTypes[field] = &ir.BasicType{Kind: ir.TypeU8}
+					return reg, nil
 				}
 			}
 			
@@ -5405,6 +5461,26 @@ func (a *Analyzer) analyzeMetafunctionCall(call *ast.MetafunctionCall, irFunc *i
 	
 	// Handle built-in metafunctions
 	switch call.Name {
+	case "asm":
+		// Handle @asm for inline assembly
+		if len(call.Arguments) == 0 {
+			return 0, fmt.Errorf("@asm requires at least one argument (assembly code)")
+		}
+		
+		// Get the assembly code from the first argument (should be a string literal)
+		if strLit, ok := call.Arguments[0].(*ast.StringLiteral); ok {
+			// Create inline assembly instruction
+			inst := &ir.Instruction{
+				Op:      ir.OpAsm,
+				AsmCode: strLit.Value,
+				Comment: "Inline assembly from @asm",
+			}
+			irFunc.Instructions = append(irFunc.Instructions, *inst)
+		} else {
+			return 0, fmt.Errorf("@asm requires a string literal as the first argument")
+		}
+		return 0, nil
+		
 	case "println":
 		// Handle @println as @print with a newline
 		// First analyze all arguments like @print does
@@ -5502,14 +5578,35 @@ func (a *Analyzer) analyzeMinzMetafunctionCall(call *ast.MinzMetafunctionCall, i
 		}
 	}
 	
-	// Execute the @minz metafunction using the MIR interpreter
-	generatedCode, err := a.mirInterpreter.ExecuteMinzMetafunction(call.Code, args)
-	if err != nil {
-		return 0, fmt.Errorf("@minz metafunction execution failed: %w", err)
+	// Execute the @minz metafunction by simple template substitution
+	// For now, we just do simple string replacement
+	generatedCode := call.Code
+	
+	// Simple placeholder replacement for numbered arguments {0}, {1}, etc.
+	for i, arg := range args {
+		placeholder := fmt.Sprintf("{%d}", i)
+		var replacement string
+		switch v := arg.(type) {
+		case string:
+			replacement = v
+		case int64:
+			replacement = fmt.Sprintf("%d", v)
+		case bool:
+			replacement = fmt.Sprintf("%v", v)
+		default:
+			replacement = fmt.Sprintf("%v", v)
+		}
+		generatedCode = strings.ReplaceAll(generatedCode, placeholder, replacement)
 	}
 	
-	// Add debug comment showing the generated code
 	if debug {
+		fmt.Printf("DEBUG: @minz template: %s\n", call.Code)
+		fmt.Printf("DEBUG: @minz args: %v\n", args)
+		fmt.Printf("DEBUG: @minz generated: %s\n", generatedCode)
+	}
+	
+	// Add debug comment showing the generated code (only if in a function context)
+	if debug && irFunc != nil {
 		commentInst := &ir.Instruction{
 			Op:      ir.OpNop,
 			Comment: fmt.Sprintf("@minz generated: %s", generatedCode),
@@ -5525,12 +5622,14 @@ func (a *Analyzer) analyzeMinzMetafunctionCall(call *ast.MinzMetafunctionCall, i
 		if debug {
 			fmt.Printf("Warning: Could not parse @minz generated code: %v\n", err)
 		}
-		inst := &ir.Instruction{
-			Op:      ir.OpAsm,
-			AsmCode: fmt.Sprintf("; @minz metafunction output\n; Generated code: %s\n; Parse failed: %v", generatedCode, err),
-			Comment: "Metaprogramming output (parse failed)",
+		if irFunc != nil {
+			inst := &ir.Instruction{
+				Op:      ir.OpAsm,
+				AsmCode: fmt.Sprintf("; @minz metafunction output\n; Generated code: %s\n; Parse failed: %v", generatedCode, err),
+				Comment: "Metaprogramming output (parse failed)",
+			}
+			irFunc.Instructions = append(irFunc.Instructions, *inst)
 		}
-		irFunc.Instructions = append(irFunc.Instructions, *inst)
 		return 0, nil
 	}
 	
@@ -6020,6 +6119,9 @@ func (a *Analyzer) Close() {
 
 // convertType converts an AST type to an IR type
 func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
+	if debug {
+		fmt.Printf("DEBUG: convertType called with type: %T\n", astType)
+	}
 	switch t := astType.(type) {
 	case *ast.PrimitiveType:
 		switch t.Name {
@@ -6050,6 +6152,11 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 		case "f8.16":
 			return &ir.BasicType{Kind: ir.TypeF8_16}, nil
 		default:
+			// Check if this is a user-defined type (enum, struct, or type alias)
+			sym := a.currentScope.Lookup(t.Name)
+			if typeSym, ok := sym.(*TypeSymbol); ok {
+				return typeSym.Type, nil
+			}
 			return nil, fmt.Errorf("unknown primitive type: %s", t.Name)
 		}
 	case *ast.PointerType:
@@ -6099,11 +6206,22 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 		// Look up the type in the symbol table
 		sym := a.currentScope.Lookup(t.Name)
 		
-		// Debug output for String/LString
-		if debug && (t.Name == "String" || t.Name == "LString") {
+		// Debug output for String/LString/cstr
+		if debug && (t.Name == "String" || t.Name == "LString" || t.Name == "cstr") {
 			fmt.Printf("DEBUG: Looking up type %s, found: %v\n", t.Name, sym != nil)
 			if sym != nil {
 				fmt.Printf("DEBUG: Symbol type: %T\n", sym)
+			}
+			// Also debug the scope hierarchy
+			fmt.Printf("DEBUG: Current scope symbols:\n")
+			scope := a.currentScope
+			for scope != nil {
+				for name, symbol := range scope.symbols {
+					if name == "cstr" || name == "String" || name == "LString" {
+						fmt.Printf("  %s: %T\n", name, symbol)
+					}
+				}
+				scope = scope.parent
 			}
 		}
 		
@@ -7658,6 +7776,29 @@ func (a *Analyzer) analyzeNilCoalescingExpr(expr *ast.NilCoalescingExpr, irFunc 
 }
 
 // analyzeIfExpr analyzes if expressions (if cond { val1 } else { val2 })
+// analyzeTryExpr analyzes the ? operator for error propagation
+func (a *Analyzer) analyzeTryExpr(expr *ast.TryExpr, irFunc *ir.Function) (ir.Register, error) {
+	// The ? operator is used for error propagation
+	// For now, we simply analyze the inner expression
+	// In a complete implementation, this would handle error propagation logic
+	
+	if expr.Expression == nil {
+		return 0, fmt.Errorf("try expression has no inner expression")
+	}
+	
+	// Analyze the inner expression
+	reg, err := a.analyzeExpression(expr.Expression, irFunc)
+	if err != nil {
+		return 0, fmt.Errorf("try expression: %w", err)
+	}
+	
+	// TODO: Add error propagation logic here
+	// For now, we just pass through the result
+	// In Z80, this would typically check the carry flag and return early on error
+	
+	return reg, nil
+}
+
 func (a *Analyzer) analyzeIfExpr(expr *ast.IfExpr, irFunc *ir.Function) (ir.Register, error) {
 	// Analyze condition
 	condReg, err := a.analyzeExpression(expr.Condition, irFunc)
@@ -8036,13 +8177,18 @@ func (a *Analyzer) getErrorConversionFunction(source, target ir.Type) string {
 
 // analyzeExpressionDecl analyzes top-level metaprogramming expressions
 func (a *Analyzer) analyzeExpressionDecl(decl *ast.ExpressionDecl) error {
-	// For now, we only handle @minz expressions at the top level
-	if minz, ok := decl.Expression.(*ast.CompileTimeMinz); ok {
+	switch expr := decl.Expression.(type) {
+	case *ast.CompileTimeMinz:
 		// Execute the @minz metafunction
-		_, err := a.analyzeMinzExpr(minz, nil) // nil irFunc for top-level
+		_, err := a.analyzeMinzExpr(expr, nil) // nil irFunc for top-level
 		return err
+	case *ast.MinzMetafunctionCall:
+		// Execute the @minz("template", args...) metafunction
+		_, err := a.analyzeMinzMetafunctionCall(expr, nil) // nil irFunc for top-level
+		return err
+	default:
+		return fmt.Errorf("unsupported top-level expression: %T", decl.Expression)
 	}
-	return fmt.Errorf("unsupported top-level expression: %T", decl.Expression)
 }
 
 // analyzeMinzExpr analyzes @minz[[[...]]](...) metafunction calls

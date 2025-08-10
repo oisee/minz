@@ -1,0 +1,261 @@
+; MinZ generated code
+; Generated: 2025-08-09 21:42:48
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 19    ; Length
+    DB "Small (truncated): "
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_type_casting.process_u16$u16
+test_type_casting.process_u16$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+test_type_casting.process_u16$u16_param_value.op:
+test_type_casting.process_u16$u16_param_value equ test_type_casting.process_u16$u16_param_value.op + 1
+    LD HL, #0000   ; SMC parameter value
+    ; Register 2 already in HL
+    ; r3 = 2
+    LD A, 2
+    ; Register 3 already in A
+    ; r4 = r2 * r3
+    ; 16-bit multiplication
+    ; Register 2 already in HL
+    LD (mul_src1_0), HL  ; Save multiplicand
+    LD (mul_src2_0), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_0)  ; DE = multiplicand
+    LD BC, (mul_src2_0)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_0
+test_type_casting_process_u16_u16_mul16_loop_0:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_0
+test_type_casting_process_u16_u16_mul16_done_0:
+mul_src1_0: DW 0
+mul_src2_0: DW 0
+    LD D, H
+    LD E, L
+    LD A, E
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+test_type_casting.process_u16$u16_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+test_type_casting.process_u16$u16_store_addr.op:
+test_type_casting.process_u16$u16_store_addr equ test_type_casting.process_u16$u16_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_type_casting.test_widening
+test_type_casting.test_widening:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 42
+    LD A, 42
+    LD B, A         ; Store to physical register B
+    ; store small, r2
+    LD A, B
+    LD ($F002), A
+    ; r4 = load small
+    LD A, ($F002)
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; store big, r4
+    LD ($F006), HL
+    ; r6 = load small
+    LD A, ($F002)
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r7 = load small
+    LD A, ($F002)
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_type_casting.process_u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_type_casting.process_u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_type_casting.process_u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter value = 0
+    LD HL, 0              ; Parameter value
+    LD (test_type_casting.process_u16$u16_param_value+1), HL  ; Patch parameter immediate
+    ; r8 = call test_type_casting.process_u16$u16
+    ; Call to test_type_casting.process_u16$u16 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL test_type_casting.process_u16$u16
+    ; store result, r8
+    LD ($F00A), HL
+    ; Direct print "Small: " (7 chars)
+    ; Direct print "Small: " (7 chars)
+    LD A, 83
+    RST 16             ; Print character
+    LD A, 109
+    RST 16             ; Print character
+    LD A, 97
+    RST 16             ; Print character
+    LD A, 108
+    RST 16             ; Print character
+    LD A, 108
+    RST 16             ; Print character
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    ; Direct print "Big: " (5 chars)
+    ; Direct print "Big: " (5 chars)
+    LD A, 66
+    RST 16             ; Print character
+    LD A, 105
+    RST 16             ; Print character
+    LD A, 103
+    RST 16             ; Print character
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    ; Direct print "Result: " (8 chars)
+    ; Direct print "Result: " (8 chars)
+    LD A, 82
+    RST 16             ; Print character
+    LD A, 101
+    RST 16             ; Print character
+    LD A, 115
+    RST 16             ; Print character
+    LD A, 117
+    RST 16             ; Print character
+    LD A, 108
+    RST 16             ; Print character
+    LD A, 116
+    RST 16             ; Print character
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_type_casting.test_narrowing
+test_type_casting.test_narrowing:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 300
+    LD HL, 300
+    ; Register 2 already in HL
+    ; store big, r2
+    ; Register 2 already in HL
+    LD ($F002), HL
+    ; r4 = load big
+    LD HL, ($F002)
+    ; Register 4 already in HL
+    ; store small, r4
+    LD A, L
+    LD ($F006), A
+    ; Direct print "Big: " (5 chars)
+    ; Direct print "Big: " (5 chars)
+    LD A, 66
+    RST 16             ; Print character
+    LD A, 105
+    RST 16             ; Print character
+    LD A, 103
+    RST 16             ; Print character
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    ; r5 = string(str_0)
+    LD HL, str_0
+    ; Print "Small (truncated): " (19 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_type_casting.test_mixed_arithmetic
+test_type_casting.test_mixed_arithmetic:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 100
+    LD A, 100
+    LD L, A         ; Store to HL (low byte)
+    ; store byte, r2
+    LD A, L
+    LD ($F002), A
+    ; r4 = 1000
+    LD HL, 1000
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; store word, r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD ($F006), HL
+    ; r6 = load word
+    LD HL, ($F006)
+    ; Register 6 already in HL
+    ; r7 = load byte
+    LD A, ($F002)
+    LD H, A         ; Store to physical register H
+    ; r8 = r6 + r7
+    ; Register 6 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 8 already in HL
+    ; store sum, r8
+    ; Register 8 already in HL
+    LD ($F00A), HL
+    ; Direct print "Sum: " (5 chars)
+    ; Direct print "Sum: " (5 chars)
+    LD A, 83
+    RST 16             ; Print character
+    LD A, 117
+    RST 16             ; Print character
+    LD A, 109
+    RST 16             ; Print character
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_type_casting.main
+test_type_casting.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call test_type_casting.test_widening
+    ; Call to test_type_casting.test_widening (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_type_casting.test_widening
+    ; Register 1 already in HL
+    ; r2 = call test_type_casting.test_narrowing
+    ; Call to test_type_casting.test_narrowing (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_type_casting.test_narrowing
+    ; r3 = call test_type_casting.test_mixed_arithmetic
+    ; Call to test_type_casting.test_mixed_arithmetic (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_type_casting.test_mixed_arithmetic
+    ; return
+    RET
+
+    END main

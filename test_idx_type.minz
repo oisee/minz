@@ -1,0 +1,1 @@
+type idx = u8; let x: idx = 0;

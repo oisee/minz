@@ -1,5 +1,0 @@
-// Test different let syntax
-fun test() -> void {
-    let a: u16 = 10;  // Type after name (working syntax)
-    let b: u16 = a;   // Should work if syntax is the issue
-}

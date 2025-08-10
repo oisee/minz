@@ -1,8 +1,0 @@
-// Simple test for iterator parsing
-fun main() -> void {
-    let arr: [u8; 5] = [1, 2, 3, 4, 5];
-    
-    // Test basic iterator chain parsing
-    // This should be parsed as IteratorChainExpr
-    arr.iter().forEach(print_u8);
-}

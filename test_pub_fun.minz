@@ -1,9 +1,0 @@
-fun outer() -> void {
-    pub fun inner() -> void {
-        @print("I'm public!\n");
-    }
-    
-    fun private_helper() -> void {
-        @print("I'm private!\n");
-    }
-}

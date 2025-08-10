@@ -31,6 +31,11 @@ func (b *Z80Backend) Generate(module *ir.Module) (string, error) {
 	// Create the Z80 generator with the buffer
 	gen := NewZ80Generator(&buf)
 	
+	// Set target platform if specified
+	if b.options != nil && b.options.Target != "" {
+		gen.SetTargetPlatform(b.options.Target)
+	}
+	
 	// Configure based on options
 	if b.options != nil {
 		if b.options.EnableSMC {

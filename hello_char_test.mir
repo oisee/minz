@@ -1,0 +1,8 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...hello_char.main() -> void
+  @smc
+  Instructions:
+      0: return
+

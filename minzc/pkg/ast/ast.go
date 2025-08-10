@@ -235,6 +235,17 @@ func (b *BlockStmt) End() Position { return b.EndPos }
 func (b *BlockStmt) stmtNode()    {}
 func (b *BlockStmt) exprNode()    {} // BlockStmt can also be used as expression
 
+// AsmBlockStmt represents an @asm { ... } inline assembly block
+type AsmBlockStmt struct {
+	Code     string
+	StartPos Position
+	EndPos   Position
+}
+
+func (a *AsmBlockStmt) Pos() Position { return a.StartPos }
+func (a *AsmBlockStmt) End() Position { return a.EndPos }
+func (a *AsmBlockStmt) stmtNode()    {}
+
 // VarDecl represents a variable declaration
 type VarDecl struct {
 	Name      string
