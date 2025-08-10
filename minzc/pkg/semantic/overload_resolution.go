@@ -41,15 +41,21 @@ func (a *Analyzer) resolveOverload(baseName string, args []ast.Expression, irFun
 	// Get argument types
 	argTypes := make([]ir.Type, len(args))
 	for i, arg := range args {
-		_, err := a.analyzeExpression(arg, irFunc)
-		if err != nil {
-			return nil, fmt.Errorf("cannot analyze argument %d: %w", i, err)
-		}
+		// Check if the type is already available
 		typ := a.exprTypes[arg]
+		if typ == nil {
+			// Analyze the expression if type not already known
+			_, err := a.analyzeExpression(arg, irFunc)
+			if err != nil {
+				return nil, fmt.Errorf("cannot analyze argument %d: %w", i, err)
+			}
+			typ = a.exprTypes[arg]
+		}
 		if typ == nil {
 			// Try to get type for simple expressions directly
 			switch e := arg.(type) {
 			case *ast.CastExpr:
+				var err error
 				typ, err = a.convertType(e.TargetType)
 				if err != nil {
 					return nil, fmt.Errorf("cannot convert cast type for argument %d: %w", i, err)
@@ -102,11 +108,6 @@ func (a *Analyzer) resolveOverload(baseName string, args []ast.Expression, irFun
 				// This will convert enum field access to the proper type
 				if _, err := a.analyzeExpression(e, irFunc); err == nil {
 					typ = a.exprTypes[arg]
-					if debugOverload {
-						fmt.Printf("DEBUG: FieldExpr analysis succeeded, type: %T\n", typ)
-					}
-				} else if debugOverload {
-					fmt.Printf("DEBUG: FieldExpr analysis failed: %v\n", err)
 				}
 				if typ == nil {
 					// If analysis failed, try to handle enum field access directly
@@ -114,11 +115,11 @@ func (a *Analyzer) resolveOverload(baseName string, args []ast.Expression, irFun
 						sym := a.currentScope.Lookup(id.Name)
 						if typeSym, isType := sym.(*TypeSymbol); isType {
 							if _, isEnum := typeSym.Type.(*ir.EnumType); isEnum {
-								// This is an enum variant - type is u8 (same as enum)
-								typ = &ir.BasicType{Kind: ir.TypeU8}
+								// This is an enum variant - use the actual enum type
+								typ = typeSym.Type
 								a.exprTypes[arg] = typ
 								if debugOverload {
-									fmt.Printf("DEBUG: Set enum field type to u8\n")
+									fmt.Printf("DEBUG: Set enum field type to %s (%T)\n", typ.String(), typ)
 								}
 							}
 						}
@@ -165,7 +166,8 @@ func (a *Analyzer) resolveOverload(baseName string, args []ast.Expression, irFun
 			if availableOverloads != "" {
 				availableOverloads += "\n  "
 			}
-			availableOverloads += fmt.Sprintf("%s(%s)", baseName, a.formatParamTypes(funcSym.Params))
+			paramStr := a.formatParamTypesFromIR(funcSym.Params, funcSym.ParamTypes)
+			availableOverloads += fmt.Sprintf("%s(%s)", baseName, paramStr)
 		}
 		
 		return nil, fmt.Errorf("no matching overload for %s(%s)\nAvailable overloads:\n  %s", 
@@ -179,7 +181,7 @@ func (a *Analyzer) resolveOverload(baseName string, args []ast.Expression, irFun
 			if candidateList != "" {
 				candidateList += "\n  "
 			}
-			candidateList += fmt.Sprintf("%s(%s)", baseName, a.formatParamTypes(funcSym.Params))
+			candidateList += fmt.Sprintf("%s(%s)", baseName, a.formatParamTypesFromIR(funcSym.Params, funcSym.ParamTypes))
 		}
 		
 		return nil, fmt.Errorf("ambiguous call to %s(%s)\nCandidates:\n  %s",
@@ -225,6 +227,26 @@ func (a *Analyzer) formatParamTypes(params []*ast.Parameter) string {
 	return result
 }
 
+// formatParamTypesFromIR formats parameter types from IR types for error messages
+func (a *Analyzer) formatParamTypesFromIR(params []*ast.Parameter, paramTypes []ir.Type) string {
+	if len(params) == 0 {
+		return ""
+	}
+	
+	result := ""
+	for i, param := range params {
+		if i > 0 {
+			result += ", "
+		}
+		typeName := "unknown"
+		if i < len(paramTypes) && paramTypes[i] != nil {
+			typeName = paramTypes[i].String()
+		}
+		result += param.Name + ": " + typeName
+	}
+	return result
+}
+
 // formatArgTypes formats argument types for error messages
 func (a *Analyzer) formatArgTypes(types []ir.Type) string {
 	if len(types) == 0 {
@@ -255,8 +277,11 @@ func (a *Analyzer) formatASTType(t ast.Type) string {
 			}
 		}
 		return "[]" + a.formatASTType(typ.ElementType)
+	case *ast.TypeIdentifier:
+		// User-defined types (struct, enum, etc.)
+		return typ.Name
 	default:
-		// For user-defined types that might come through as other nodes
+		// For unknown AST node types
 		return "unknown"
 	}
 }

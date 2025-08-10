@@ -1,22 +1,19 @@
-// Test array syntax parsing
+// Test array syntax parsing - standardized to [T; N] syntax
 
 struct Item {
     id: u8,
     value: u16
 }
 
-// Test old syntax
-let old_array: [10]u8;
-
-// Test new syntax with primitive type
-let new_array: [u8; 10];
-
-// Test new syntax with struct type
+// Arrays use [Type; Size] syntax (Rust-style)
+let numbers: [u8; 10];
+let values: [u16; 5];
 let items: [Item; 5];
 
 fun main() -> void {
-    // Just declare to test parsing
-    old_array[0] = 42;
-    new_array[0] = 43;
+    // Test array access and assignment
+    numbers[0] = 42;
+    values[0] = 1000;
     items[0].id = 1;
+    items[0].value = 42;
 }

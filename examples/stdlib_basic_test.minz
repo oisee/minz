@@ -6,8 +6,8 @@ fun test_basic_io() -> void {
     // Simple print functions - these should work
     print_u8(42);
     print_u16(1234);
-    print_i8(-50);
-    print_i16(-1000);
+    print_i8(-50 as i8);
+    print_i16(-1000 as i16);
     print_bool(true);
 }
 

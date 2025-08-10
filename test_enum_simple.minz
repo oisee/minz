@@ -1,14 +1,14 @@
+// Minimal enum test
 enum Color {
     Red,
     Green,
-    Blue,
+    Blue
 }
 
-fun test_color(c: Color) -> Color {
-    return c;
+fun test_color(c: Color) -> void {
+    // Empty function for testing
 }
 
 fun main() -> void {
-    let color = Color.Red;
-    test_color(Color.Green);
+    test_color(Color.Red);
 }

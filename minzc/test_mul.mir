@@ -1,0 +1,67 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_mul_patterns.test_multiplications() -> void
+  Locals:
+    r1 = x: u8
+    r3 = m2: u16
+    r7 = m4: u16
+    r11 = m8: u16
+    r15 = m16: u16
+    r19 = m3: u16
+    r23 = m5: u16
+    r27 = m10: u16
+    r31 = m7: u16
+    r35 = m9: u16
+    r39 = m15: u16
+  Instructions:
+      0: r2 = 5
+      1: store x, r2
+      2: r4 = load x
+      3: r5 = 2
+      4: r6 = r4 * r5
+      5: store m2, r6
+      6: r8 = load x
+      7: r9 = 4
+      8: r10 = r8 * r9
+      9: store m4, r10
+     10: r12 = load x
+     11: r13 = 8
+     12: r14 = r12 * r13
+     13: store m8, r14
+     14: r16 = load x
+     15: r17 = 16
+     16: r18 = r16 * r17
+     17: store m16, r18
+     18: r20 = load x
+     19: r21 = 3
+     20: r22 = r20 * r21
+     21: store m3, r22
+     22: r24 = load x
+     23: r25 = 5
+     24: r26 = r24 * r25
+     25: store m5, r26
+     26: r28 = load x
+     27: r29 = 10
+     28: r30 = r28 * r29
+     29: store m10, r30
+     30: r32 = load x
+     31: r33 = 7
+     32: r34 = r32 * r33
+     33: store m7, r34
+     34: r36 = load x
+     35: r37 = 9
+     36: r38 = r36 * r37
+     37: store m9, r38
+     38: r40 = load x
+     39: r41 = 15
+     40: r42 = r40 * r41
+     41: store m15, r42
+     42: return
+
+Function test_mul_patterns.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_mul_patterns.test_multiplications
+      1: return
+

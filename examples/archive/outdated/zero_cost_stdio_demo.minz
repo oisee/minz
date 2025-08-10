@@ -1,0 +1,151 @@
+// MinZ Zero-Cost stdio Demo
+// Demonstrates compile-time print optimization and zero-overhead abstractions
+//
+// NEW: Showcases MinZ's length-prefixed string architecture!
+// - Strings stored as length + data (no null terminators)
+// - Smart optimization strategies based on string length
+// - Enhanced { constant } syntax for compile-time constants
+
+import std.io_optimized;
+import std.print;
+import std.stream;
+
+// Custom type that implements Printable
+struct Player {
+    name: *u8,
+    score: u16,
+    level: u8,
+}
+
+impl Printable for Player {
+    fun print_to(self, writer: Writer) -> void {
+        @print_to(writer, "{} (Level {}, Score: {})", 
+                  self.name, self.level, self.score);
+    }
+}
+
+// Custom formatter for game coordinates
+struct Coord {
+    x: u8,
+    y: u8,
+}
+
+impl Printable for Coord {
+    fun print_to(self, writer: Writer) -> void {
+        writer.write_byte('(');
+        self.x.print_to(writer);
+        writer.write_byte(',');
+        self.y.print_to(writer);
+        writer.write_byte(')');
+    }
+}
+
+fun main() -> u8 {
+    // Simple compile-time optimized printing
+    @println("=== MinZ Zero-Cost stdio Demo ===");
+    
+    // Constants are fully optimized at compile time with new syntax
+    @print("Magic number: { 42 }, In hex: { @hex(42) }\n");
+    // Compiles to optimal length-prefixed strings:
+    //   LD HL, str_magic      ; DB 14, "Magic number: "
+    //   CALL print_string     ; DJNZ loop (optimal for 14 chars)
+    //   LD HL, str_42         ; DB 2, "42"  
+    //   CALL print_string     ; Direct for short strings
+    //   LD HL, str_hex        ; DB 10, ", In hex: "
+    //   CALL print_string     ; DJNZ loop
+    //   LD HL, str_2a         ; DB 4, "0x2A"
+    //   CALL print_string     ; Direct for short strings
+    
+    // Runtime values with zero-cost interface dispatch
+    let player = Player {
+        name: "Alice",
+        score: 1500,
+        level: 7,
+    };
+    
+    @println("Player info: {}", player);
+    
+    // Array printing with zero overhead
+    let scores: [u8; 5] = [85, 92, 78, 95, 88];
+    @println("Scores: {}", scores);
+    
+    // Formatted coordinates
+    let pos = Coord { x: 100, y: 50 };
+    @println("Position: {}", pos);
+    
+    // Buffered output example
+    let buffered = BufferedWriter<128>::new(stdout);
+    @print_to(buffered, "This is buffered: {}\n", 12345);
+    buffered.flush();
+    
+    // String building at compile time with { constant } syntax
+    let message = @build_string("Hello, { \"World\" }!");  // -> "Hello, World!"
+    @println("Built string: {}", message);
+    
+    // Length-prefixed storage: DB 13, "Hello, World!" (no null terminator)
+    
+    // Conditional debug output (zero cost in release)
+    @trace("Player {} reached position {}", player.name, pos);
+    
+    // Type-safe formatted input
+    @print("Enter your name: ");
+    let name = input_line("");
+    
+    @print("Enter your age: ");
+    let mut age: u8 = 0;
+    @scan("{}", &age);
+    
+    @println("Hello {}, age {}!", name, age);
+    
+    // Performance monitoring
+    let timed = TimedWriter::new(stdout);
+    @print_to(timed, "Performance test: ");
+    for i in 0..10 {
+        @print_to(timed, "{} ", i);
+    }
+    @println_to(timed, "");
+    @println("Took {} cycles", timed.elapsed_cycles());
+    
+    // Platform-specific optimizations
+    @if(platform == "zx") {
+        fast_print("ZX Spectrum optimized!\n");
+    }
+    
+    // Error handling with colored output
+    if age > 120 {
+        @print_error("Invalid age: {}", age);
+    }
+    
+    // Complex formatting example
+    @println("┌─────────────────────────┐");
+    @println("│ Player: {:10} │", player.name);
+    @println("│ Score:  {:10} │", player.score);
+    @println("│ Level:  {:10} │", player.level);
+    @println("└─────────────────────────┘");
+    
+    0
+}
+
+// This entire program compiles with:
+// - Zero format string parsing at runtime
+// - No heap allocations
+// - Direct interface calls (no vtables)
+// - Compile-time string optimization
+// - Platform-specific code generation
+// - Minimal code size and maximum performance
+
+// Example assembly output for @print("Score: { 42 }"):
+//
+// ; No runtime format parsing! Single length-prefixed string!
+// LD HL, const_str_score42  ; DB 9, "Score: 42" (length-prefixed)
+// CALL print_string         ; DJNZ loop for 9 characters
+//
+// Even better than the old approach - single string, single call!
+//
+// Compare to traditional printf:
+// ; Traditional approach needs:
+// ; - Format string parsing loop
+// ; - Type checking
+// ; - Dynamic dispatch
+// ; - Buffer allocation
+// ; - Much more code and cycles!

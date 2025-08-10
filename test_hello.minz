@@ -1,0 +1,4 @@
+fun main() -> void {
+    @print("Hello from MinZ v0.10.1!");
+    @print("\n");
+}

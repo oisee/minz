@@ -75,13 +75,13 @@ fun lookup_mul_by_10(x: u8) -> u16 {
 }
 
 fun main() {
-    let buffer: [256]u8;
+    let buffer: [u8; 256];
     
     // Fast fill using SMC
     fast_fill(&buffer[0], 0xAA, 256);
     
     // Fast copy using LDIR
-    let src: [256]u8;
+    let src: [u8; 256];
     ldir_wrapper(&src[0], &buffer[0], 256);
     
     // Fast multiplication

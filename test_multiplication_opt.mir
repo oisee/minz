@@ -1,0 +1,114 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_multiplication_opt.test_mul_by_2$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 2
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_multiplication_opt.test_mul_by_4$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 4
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_multiplication_opt.test_mul_by_8$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 8
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_multiplication_opt.test_mul_by_3$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 3
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_multiplication_opt.test_mul_by_5$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 5
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_multiplication_opt.test_mul_by_10$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 10
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_multiplication_opt.test_mul_by_15$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 15
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_multiplication_opt.test_mul_16bit_by_2$u16(x: u16) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 2
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_multiplication_opt.test_mul_16bit_by_10$u16(x: u16) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 10
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_multiplication_opt.main() -> void
+  @smc
+  Locals:
+    r1 = a: u8
+    r3 = b: u16
+    r7 = c: u16
+    r11 = d: u16
+  Instructions:
+      0: r2 = 5
+      1: store a, r2
+      2: r4 = load a
+      3: r5 = load a
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: r6 = call test_multiplication_opt.test_mul_by_2$u8
+      8: store b, r6
+      9: r8 = load a
+     10: r9 = load a
+     11: PATCH_TEMPLATE
+     12: PATCH_TARGET
+     13: PATCH_PARAM
+     14: r10 = call test_multiplication_opt.test_mul_by_4$u8
+     15: store c, r10
+     16: r12 = load a
+     17: r13 = load a
+     18: PATCH_TEMPLATE
+     19: PATCH_TARGET
+     20: PATCH_PARAM
+     21: r14 = call test_multiplication_opt.test_mul_by_10$u8
+     22: store d, r14
+     23: r15 = load b
+     24: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     25: r16 = load c
+     26: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     27: r17 = load d
+     28: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     29: return
+

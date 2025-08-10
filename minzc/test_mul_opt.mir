@@ -1,0 +1,25 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_mul_patterns.test_multiplications() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = m2: u16
+    r7 = m4: u16
+    r11 = m8: u16
+    r15 = m16: u16
+    r19 = m3: u16
+    r23 = m5: u16
+    r27 = m10: u16
+    r31 = m7: u16
+    r35 = m9: u16
+    r39 = m15: u16
+  Instructions:
+      0: return
+
+Function test_mul_patterns.main() -> void
+  @smc
+  Instructions:
+      0: return
+

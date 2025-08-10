@@ -1,0 +1,167 @@
+; MinZ generated code
+; Generated: 2025-08-10 20:46:40
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mul_use.test_multiply_by_10$u8
+test_mul_use.test_multiply_by_10$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+test_mul_use.test_multiply_by_10$u8_param_x.op:
+test_mul_use.test_multiply_by_10$u8_param_x equ test_mul_use.test_multiply_by_10$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 2 already in A
+    ; r3 = 10
+    LD A, 10
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 * r3
+    ; 8-bit multiplication
+    ; Register 2 already in A
+    LD B, A       ; B = multiplicand
+    LD A, B
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, test_mul_use_test_multiply_by_10_u8_mul_done_0
+test_mul_use_test_multiply_by_10_u8_mul_loop_0:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, test_mul_use_test_multiply_by_10_u8_mul_loop_0
+test_mul_use_test_multiply_by_10_u8_mul_done_0:
+    LD A, C
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+test_mul_use.test_multiply_by_10$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+test_mul_use.test_multiply_by_10$u8_store_addr.op:
+test_mul_use.test_multiply_by_10$u8_store_addr equ test_mul_use.test_multiply_by_10$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mul_use.test_multiply_by_2$u8
+test_mul_use.test_multiply_by_2$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+test_mul_use.test_multiply_by_2$u8_param_x.op:
+test_mul_use.test_multiply_by_2$u8_param_x equ test_mul_use.test_multiply_by_2$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD D, A         ; Store to physical register D
+    ; r3 = 2
+    LD A, 2
+    LD E, A         ; Store to physical register E
+    ; r4 = r2 * r3
+    ; 8-bit multiplication
+    LD A, D
+    LD B, A       ; B = multiplicand
+    LD A, E
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, test_mul_use_test_multiply_by_2_u8_mul_done_1
+test_mul_use_test_multiply_by_2_u8_mul_loop_1:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, test_mul_use_test_multiply_by_2_u8_mul_loop_1
+test_mul_use_test_multiply_by_2_u8_mul_done_1:
+    LD A, H
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+test_mul_use.test_multiply_by_2$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+test_mul_use.test_multiply_by_2$u8_store_addr.op:
+test_mul_use.test_multiply_by_2$u8_store_addr equ test_mul_use.test_multiply_by_2$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_mul_use.main
+test_mul_use.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; r3 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_mul_use.test_multiply_by_2$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_mul_use.test_multiply_by_2$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_mul_use.test_multiply_by_2$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (test_mul_use.test_multiply_by_2$u8_param_x+1), A   ; Patch parameter immediate
+    ; r4 = call test_mul_use.test_multiply_by_2$u8
+    ; Call to test_mul_use.test_multiply_by_2$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL test_mul_use.test_multiply_by_2$u8
+    ; store a, r4
+    LD ($F002), HL
+    ; r6 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r7 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_mul_use.test_multiply_by_10$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_mul_use.test_multiply_by_10$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_mul_use.test_multiply_by_10$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (test_mul_use.test_multiply_by_10$u8_param_x+1), A   ; Patch parameter immediate
+    ; r8 = call test_mul_use.test_multiply_by_10$u8
+    ; Call to test_mul_use.test_multiply_by_10$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL test_mul_use.test_multiply_by_10$u8
+    ; Register 8 already in HL
+    ; store b, r8
+    ; Register 8 already in HL
+    LD ($F00A), HL
+    ; r9 = load a
+    LD HL, ($F002)
+    ; Register 9 already in HL
+    ; r10 = load b
+    LD HL, ($F00A)
+    ; r11 = r9 + r10
+    ; Register 9 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 11 already in HL
+    ; return r11
+    ; Register 11 already in HL
+    RET
+
+    END main

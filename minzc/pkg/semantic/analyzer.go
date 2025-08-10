@@ -950,12 +950,25 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 	mangledName := generateMangledName(prefixedName, fn.Params)
 	// fmt.Printf("DEBUG: registerFunctionSignature: %s -> %s\n", fn.Name, mangledName)
 	
+	// Convert parameter types
+	paramTypes := make([]ir.Type, len(fn.Params))
+	for i, param := range fn.Params {
+		paramType, err := a.convertType(param.Type)
+		if err != nil {
+			// If conversion fails, use a placeholder but continue
+			paramTypes[i] = &ir.BasicType{Kind: ir.TypeU8}
+		} else {
+			paramTypes[i] = paramType
+		}
+	}
+
 	// Create function symbol
 	funcSym := &FuncSymbol{
 		Name:       mangledName,  // Use mangled name for unique identification
 		ReturnType: returnType,
 		ErrorType:  errorType,
 		Params:     fn.Params,
+		ParamTypes: paramTypes,
 	}
 	
 	// Register the specific overload with its mangled name
@@ -3557,20 +3570,37 @@ func (a *Analyzer) analyzeUnaryExpr(un *ast.UnaryExpr, irFunc *ir.Function) (ir.
 		return 0, err
 	}
 
+	// Get operand type for result type inference
+	operandType := a.exprTypes[un.Operand]
+
 	// Generate operation
 	resultReg := irFunc.AllocReg()
 
 	switch un.Operator {
 	case "-":
 		irFunc.Emit(ir.OpNeg, resultReg, operandReg, 0)
+		// Negation preserves the numeric type (i8 -> i8, u8 -> u8, etc.)
+		if operandType != nil {
+			a.exprTypes[un] = operandType
+		}
 	case "!":
 		irFunc.Emit(ir.OpNot, resultReg, operandReg, 0)
+		// Logical not always returns bool
+		a.exprTypes[un] = &ir.BasicType{Kind: ir.TypeBool}
 	case "~":
 		// Bitwise not
 		irFunc.Emit(ir.OpNot, resultReg, operandReg, 0)
+		// Bitwise not preserves the type
+		if operandType != nil {
+			a.exprTypes[un] = operandType
+		}
 	case "&":
 		// Address-of operator
 		irFunc.Emit(ir.OpAddr, resultReg, operandReg, 0)
+		// Address-of returns pointer to operand type
+		if operandType != nil {
+			a.exprTypes[un] = &ir.PointerType{Base: operandType}
+		}
 	case "*":
 		// Dereference operator
 		// First check that operand is a pointer type
@@ -4169,11 +4199,35 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 					},
 					Return: &ir.BasicType{Kind: ir.TypeVoid},
 				}
+			case "print_i8":
+				// print_i8(value: i8)
+				funcType = &ir.FunctionType{
+					Params: []ir.Type{
+						&ir.BasicType{Kind: ir.TypeI8}, // value
+					},
+					Return: &ir.BasicType{Kind: ir.TypeVoid},
+				}
 			case "print_u16":
 				// print_u16(value: u16)
 				funcType = &ir.FunctionType{
 					Params: []ir.Type{
 						&ir.BasicType{Kind: ir.TypeU16}, // value
+					},
+					Return: &ir.BasicType{Kind: ir.TypeVoid},
+				}
+			case "print_i16":
+				// print_i16(value: i16)
+				funcType = &ir.FunctionType{
+					Params: []ir.Type{
+						&ir.BasicType{Kind: ir.TypeI16}, // value
+					},
+					Return: &ir.BasicType{Kind: ir.TypeVoid},
+				}
+			case "print_bool":
+				// print_bool(value: bool)
+				funcType = &ir.FunctionType{
+					Params: []ir.Type{
+						&ir.BasicType{Kind: ir.TypeBool}, // value
 					},
 					Return: &ir.BasicType{Kind: ir.TypeVoid},
 				}
@@ -4299,6 +4353,38 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		}
 		
 		if sym == nil {
+			// Check if this looks like a nested public function call
+			if strings.Contains(funcName, ".") {
+				parts := strings.Split(funcName, ".")
+				if len(parts) == 2 {
+					// Check if the first part is a function that was called
+					// Try both unprefixed and prefixed names
+					baseName := parts[0]
+					prefixedName := a.prefixSymbol(baseName)
+					
+					// Try with unprefixed name first
+					funcSym := a.currentScope.Lookup(baseName)
+					if funcSym == nil {
+						// Try with prefixed name
+						funcSym = a.currentScope.Lookup(prefixedName)
+					}
+					
+					if funcSym != nil {
+						// Check if it's a function or overload set
+						_, isFunc := funcSym.(*FuncSymbol)
+						_, isOverloadSet := funcSym.(*FunctionOverloadSet)
+						
+						if isFunc || isOverloadSet {
+							return 0, fmt.Errorf("nested public functions (pub fun inside functions) are not yet implemented\n" +
+								"    Found: %s.%s()\n" +
+								"    This feature would allow encapsulated modules with public/private methods.\n" +
+								"    Workaround: Use structs with associated functions or separate top-level functions.\n" +
+								"    Example: fun %s_%s(...) instead of %s.%s(...)",
+								parts[0], parts[1], parts[0], parts[1], parts[0], parts[1])
+						}
+					}
+				}
+			}
 			return 0, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
@@ -4631,6 +4717,17 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 		})
 		return 0, nil
 		
+	case "print_i8":
+		// print_i8(value: i8)
+		// Generate a call to the runtime print_i8_decimal function
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "print_i8_decimal",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Call runtime print_i8_decimal",
+		})
+		return 0, nil
+		
 	case "print_u16":
 		// print_u16(value: u16)
 		// Generate a call to the runtime print_u16_decimal function
@@ -4639,6 +4736,28 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 			Symbol:  "print_u16_decimal",
 			Args:    []ir.Register{argRegs[0]},
 			Comment: "Call runtime print_u16_decimal",
+		})
+		return 0, nil
+		
+	case "print_i16":
+		// print_i16(value: i16)
+		// Generate a call to the runtime print_i16_decimal function
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "print_i16_decimal",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Call runtime print_i16_decimal",
+		})
+		return 0, nil
+		
+	case "print_bool":
+		// print_bool(value: bool)
+		// Generate a call to the runtime print_bool function
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "print_bool",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Call runtime print_bool",
 		})
 		return 0, nil
 		
@@ -4752,8 +4871,8 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 						return 0, err
 					}
 					// Store the type information for this field expression
-					// Enum variants are always u8
-					a.exprTypes[field] = &ir.BasicType{Kind: ir.TypeU8}
+					// Use the actual enum type, not just u8
+					a.exprTypes[field] = typeSym.Type
 					return reg, nil
 				}
 			}
@@ -5063,6 +5182,9 @@ func (a *Analyzer) analyzeEnumLiteral(lit *ast.EnumLiteral, irFunc *ir.Function)
 	// Generate constant load
 	resultReg := irFunc.AllocReg()
 	irFunc.EmitImm(ir.OpLoadConst, resultReg, int64(value))
+	
+	// Store the enum type information
+	a.exprTypes[lit] = typeSym.Type
 	
 	return resultReg, nil
 }

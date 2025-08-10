@@ -1,0 +1,24 @@
+// Test multiplication optimization patterns
+fun test_multiplications() -> void {
+    let x: u8 = 5;
+    
+    // Powers of 2 (should use shifts)
+    let m2 = x * 2;   // x << 1
+    let m4 = x * 4;   // x << 2
+    let m8 = x * 8;   // x << 3
+    let m16 = x * 16; // x << 4
+    
+    // Common multiplications
+    let m3 = x * 3;   // (x << 1) + x
+    let m5 = x * 5;   // (x << 2) + x
+    let m10 = x * 10; // (x << 3) + (x << 1)
+    
+    // Should these optimize?
+    let m7 = x * 7;   // (x << 3) - x
+    let m9 = x * 9;   // (x << 3) + x
+    let m15 = x * 15; // (x << 4) - x
+}
+
+fun main() -> void {
+    test_multiplications();
+}

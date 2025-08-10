@@ -1,0 +1,153 @@
+// Lua Metaprogramming Demo - Compile-Time Code Generation
+// MinZ has Lua 5.1 at compile time for powerful metaprogramming!
+
+// Note: @lua blocks are processed during compilation
+// The Lua code generates MinZ code that gets compiled
+
+// ================================================================
+// Example 1: Generate lookup tables
+// ================================================================
+
+// Generate powers of 2 lookup table
+@lua {
+    print("const POWERS_OF_2: [u8; 8] = [")
+    for i = 0, 7 do
+        print(string.format("    %d,  // 2^%d", 2^i, i))
+    end
+    print("];")
+}
+
+// ================================================================
+// Example 2: Generate optimized functions
+// ================================================================
+
+@lua {
+    -- Generate fast division by power of 2
+    for shift = 1, 4 do
+        local divisor = 2^shift
+        print(string.format("fun div_by_%d(x: u8) -> u8 {", divisor))
+        print(string.format("    return x >> %d;  // Division by %d", shift, divisor))
+        print("}")
+    end
+}
+
+// ================================================================
+// Example 3: Data structure generation
+// ================================================================
+
+@lua {
+    -- Generate a color palette
+    local colors = {
+        BLACK = 0,
+        BLUE = 1,
+        RED = 2,
+        MAGENTA = 3,
+        GREEN = 4,
+        CYAN = 5,
+        YELLOW = 6,
+        WHITE = 7
+    }
+    
+    print("// ZX Spectrum colors")
+    for name, value in pairs(colors) do
+        print(string.format("const COLOR_%s: u8 = %d;", name, value))
+    end
+}
+
+// ================================================================
+// Regular MinZ code that uses Lua-generated definitions
+// ================================================================
+
+fun test_lua_generated() -> void {
+    @print("Testing Lua-generated code:\n\n");
+    
+    // Test powers of 2 table
+    @print("Powers of 2:\n");
+    let i: u8 = 0;
+    while i < 8 {
+        @print("  2^{} = {}\n", i, POWERS_OF_2[i]);
+        i = i + 1;
+    }
+    
+    // Test generated division functions
+    @print("\nDivision by powers of 2:\n");
+    @print("  100 / 2 = {}\n", div_by_2(100));
+    @print("  100 / 4 = {}\n", div_by_4(100));
+    @print("  100 / 8 = {}\n", div_by_8(100));
+    @print("  100 / 16 = {}\n", div_by_16(100));
+    
+    // Test color constants
+    @print("\nColor palette:\n");
+    @print("  Black = {}\n", COLOR_BLACK);
+    @print("  White = {}\n", COLOR_WHITE);
+    @print("  Red = {}\n", COLOR_RED);
+}
+
+// ================================================================
+// More advanced: Generate data from external format
+// ================================================================
+
+@lua {
+    -- Simulate loading sprite data (in real use, could read files)
+    local sprite_data = {
+        0x3C,  -- 00111100
+        0x42,  -- 01000010
+        0x81,  -- 10000001
+        0x81,  -- 10000001
+        0x81,  -- 10000001
+        0x81,  -- 10000001
+        0x42,  -- 01000010
+        0x3C   -- 00111100
+    }
+    
+    print("const CIRCLE_SPRITE: [u8; 8] = [")
+    for i, byte in ipairs(sprite_data) do
+        print(string.format("    0x%02X,", byte))
+    end
+    print("];")
+}
+
+// ================================================================
+// Generate repetitive code patterns
+// ================================================================
+
+@lua {
+    -- Generate functions for each sprite size
+    local sizes = {8, 16, 32}
+    
+    for _, size in ipairs(sizes) do
+        print(string.format("fun clear_sprite_%d(addr: *u8) -> void {", size))
+        print(string.format("    // Clear %dx%d sprite", size, size))
+        print(string.format("    let bytes: u16 = %d;", size * size / 8))
+        print("    let i: u16 = 0;")
+        print("    while i < bytes {")
+        print("        addr[i] = 0;")
+        print("        i = i + 1;")
+        print("    }")
+        print("}")
+    end
+}
+
+fun main() -> void {
+    @print("=====================================\n");
+    @print("Lua Metaprogramming Demo\n");
+    @print("=====================================\n\n");
+    
+    @print("This demo shows compile-time code generation:\n");
+    @print("- Lookup tables\n");
+    @print("- Optimized functions\n");
+    @print("- Constants and enums\n");
+    @print("- Data structures\n");
+    @print("- Repetitive patterns\n\n");
+    
+    test_lua_generated();
+    
+    @print("\nSprite functions generated:\n");
+    @print("- clear_sprite_8()\n");
+    @print("- clear_sprite_16()\n");
+    @print("- clear_sprite_32()\n");
+    
+    @print("\n=====================================\n");
+    @print("✨ Metaprogramming Works! ✨\n");
+    @print("=====================================\n");
+}

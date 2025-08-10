@@ -39,6 +39,11 @@ type Z80 struct {
 	iff2     bool // Interrupt flip-flop 2
 	im       uint8 // Interrupt mode
 	
+	// Exit handling configuration
+	exitCode     uint16 // Exit code when program terminates
+	exitOnRST38  bool   // Exit on RST 38h (cross-platform)
+	exitOnRET0   bool   // Exit on RET to 0x0000 (ZX Spectrum)
+	
 	// I/O handlers
 	output   []byte
 	ioRead   func(port uint8) uint8
@@ -59,6 +64,10 @@ type Registers struct {
 func New() *Z80 {
 	z := &Z80{}
 	z.Reset()
+	
+	// Enable both exit conventions by default
+	z.exitOnRST38 = true  // Cross-platform MinZ convention
+	z.exitOnRET0 = true   // ZX Spectrum compatibility
 	
 	// Default I/O handlers
 	z.ioWrite = func(port uint8, value uint8) {
@@ -249,10 +258,68 @@ func (z *Z80) step() {
 		z.PC = addr
 		z.cycles += 17
 		
+	// RST instructions (single-byte CALL to fixed addresses)
+	case 0xC7: // RST 00h
+		z.PC++
+		z.push(z.PC)
+		z.PC = 0x0000
+		z.cycles += 11
+	case 0xCF: // RST 08h
+		z.PC++
+		z.push(z.PC)
+		z.PC = 0x0008
+		z.cycles += 11
+	case 0xD7: // RST 10h
+		z.PC++
+		z.push(z.PC)
+		z.PC = 0x0010
+		z.cycles += 11
+	case 0xDF: // RST 18h
+		z.PC++
+		z.push(z.PC)
+		z.PC = 0x0018
+		z.cycles += 11
+	case 0xE7: // RST 20h
+		z.PC++
+		z.push(z.PC)
+		z.PC = 0x0020
+		z.cycles += 11
+	case 0xEF: // RST 28h
+		z.PC++
+		z.push(z.PC)
+		z.PC = 0x0028
+		z.cycles += 11
+	case 0xF7: // RST 30h
+		z.PC++
+		z.push(z.PC)
+		z.PC = 0x0030
+		z.cycles += 11
+	case 0xFF: // RST 38h - MinZ exit convention
+		z.PC++
+		if z.exitOnRST38 {
+			// Cross-platform MinZ exit convention
+			// HL register contains the exit code
+			z.exitCode = uint16(z.H)<<8 | uint16(z.L)
+			z.halted = true
+		} else {
+			// Normal RST behavior if exit convention disabled
+			z.push(z.PC)
+			z.PC = 0x0038
+		}
+		z.cycles += 11
+		
 	// RET
 	case 0xC9:
-		z.PC = z.pop()
+		returnAddr := z.pop()
+		z.PC = returnAddr
 		z.cycles += 10
+		
+		// Target-specific exit convention: RET to 0x0000 means program exit
+		// BC register contains the exit code (like ZX Spectrum BASIC's USR function)
+		if z.exitOnRET0 && returnAddr == 0x0000 {
+			z.exitCode = uint16(z.B)<<8 | uint16(z.C) // BC = exit code
+			z.halted = true // Signal clean program termination
+		}
 		
 	// PUSH rr
 	case 0xF5: // PUSH AF
@@ -458,6 +525,19 @@ func (z *Z80) DumpMemory(start uint16, length uint16) []byte {
 		}
 	}
 	return result
+}
+
+// GetExitCode returns the exit code when program terminates
+func (z *Z80) GetExitCode() uint16 {
+	return z.exitCode
+}
+
+// SetExitConventions configures which exit conventions are enabled
+// rst38: Enable RST 38h exit (cross-platform MinZ convention, HL = exit code)
+// ret0: Enable RET to 0x0000 exit (ZX Spectrum convention, BC = exit code)
+func (z *Z80) SetExitConventions(rst38, ret0 bool) {
+	z.exitOnRST38 = rst38
+	z.exitOnRET0 = ret0
 }
 
 // IsHalted returns true if CPU is halted

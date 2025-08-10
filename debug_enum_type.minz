@@ -1,0 +1,10 @@
+// Test what type enum fields get
+enum Color {
+    Red,
+    Green  
+}
+
+fun main() -> void {
+    let c = Color.Red;  // This should get type Color
+    @print("Color set successfully");
+}

@@ -3,12 +3,14 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/tas"
 	"github.com/minz/minzc/pkg/z80asm"
+	"golang.org/x/term"
 )
 
 // REPL represents the MinZ Read-Eval-Print-Loop
@@ -19,12 +21,16 @@ type REPL struct {
 	compiler  *REPLCompiler
 	reader    *bufio.Reader
 	history   []string
+	historyIndex int    // Current position in history
 	autoShowScreen bool // Show ZX Spectrum screen after execution
 	
 	// TAS debugging support
 	tasDebugger *tas.TASDebugger
 	tasEnabled  bool
 	tasUI       *tas.TASUI
+	
+	// Terminal state for raw mode
+	oldTermState *term.State
 }
 
 // Context maintains REPL state between commands
@@ -74,31 +80,173 @@ func New() *REPL {
 func (r *REPL) Run() {
 	r.printBanner()
 	
-	for {
-		fmt.Print("minz> ")
-		input, err := r.reader.ReadString('\n')
-		if err != nil {
-			if err.Error() == "EOF" {
-				r.quit()
-				return
-			}
-			fmt.Printf("Error reading input: %v\n", err)
-			continue
-		}
-		
-		input = strings.TrimSpace(input)
-		if input == "" {
-			continue
-		}
-		
-		r.history = append(r.history, input)
-		
-		if r.isCommand(input) {
-			r.executeCommand(input)
-		} else {
-			r.evaluate(input)
+	// Set up terminal for raw mode if supported
+	if term.IsTerminal(int(os.Stdin.Fd())) {
+		oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+		if err == nil {
+			r.oldTermState = oldState
+			defer r.restoreTerminal()
 		}
 	}
+	
+	for {
+		input := r.readLineWithHistory()
+		if input == nil {
+			// EOF or quit
+			r.quit()
+			return
+		}
+		
+		line := strings.TrimSpace(*input)
+		if line == "" {
+			continue
+		}
+		
+		// Add to history if it's different from the last entry
+		if len(r.history) == 0 || r.history[len(r.history)-1] != line {
+			r.history = append(r.history, line)
+		}
+		
+		if r.isCommand(line) {
+			r.executeCommand(line)
+		} else {
+			r.evaluate(line)
+		}
+	}
+}
+
+// restoreTerminal restores the terminal to its original state
+func (r *REPL) restoreTerminal() {
+	if r.oldTermState != nil {
+		term.Restore(int(os.Stdin.Fd()), r.oldTermState)
+	}
+}
+
+// readLineWithHistory reads a line with arrow key history support
+func (r *REPL) readLineWithHistory() *string {
+	fmt.Print("minz> ")
+	
+	// If not a terminal, fall back to simple reading
+	if !term.IsTerminal(int(os.Stdin.Fd())) {
+		input, err := r.reader.ReadString('\n')
+		if err != nil {
+			return nil
+		}
+		result := strings.TrimSpace(input)
+		return &result
+	}
+	
+	var line []rune
+	cursorPos := 0
+	r.historyIndex = len(r.history)
+	
+	for {
+		// Read a single character
+		var buf [3]byte
+		n, err := os.Stdin.Read(buf[:])
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			continue
+		}
+		
+		if n == 0 {
+			continue
+		}
+		
+		// Handle special keys
+		if buf[0] == 27 && n > 1 { // ESC sequence
+			if n == 3 && buf[1] == '[' {
+				switch buf[2] {
+				case 'A': // Up arrow
+					if r.historyIndex > 0 {
+						// Clear current line
+						r.clearLine(len(line), cursorPos)
+						r.historyIndex--
+						line = []rune(r.history[r.historyIndex])
+						cursorPos = len(line)
+						fmt.Print(string(line))
+					}
+				case 'B': // Down arrow
+					if r.historyIndex < len(r.history)-1 {
+						// Clear current line
+						r.clearLine(len(line), cursorPos)
+						r.historyIndex++
+						line = []rune(r.history[r.historyIndex])
+						cursorPos = len(line)
+						fmt.Print(string(line))
+					} else if r.historyIndex == len(r.history)-1 {
+						// Clear to empty line
+						r.clearLine(len(line), cursorPos)
+						r.historyIndex = len(r.history)
+						line = []rune{}
+						cursorPos = 0
+					}
+				case 'C': // Right arrow
+					if cursorPos < len(line) {
+						fmt.Print("\033[1C")
+						cursorPos++
+					}
+				case 'D': // Left arrow
+					if cursorPos > 0 {
+						fmt.Print("\033[1D")
+						cursorPos--
+					}
+				}
+			}
+		} else if buf[0] == 13 || buf[0] == 10 { // Enter
+			fmt.Println()
+			result := string(line)
+			return &result
+		} else if buf[0] == 3 { // Ctrl+C
+			fmt.Println("^C")
+			return nil
+		} else if buf[0] == 4 { // Ctrl+D
+			if len(line) == 0 {
+				return nil
+			}
+		} else if buf[0] == 127 || buf[0] == 8 { // Backspace
+			if cursorPos > 0 && len(line) > 0 {
+				// Remove character before cursor
+				line = append(line[:cursorPos-1], line[cursorPos:]...)
+				cursorPos--
+				// Redraw line from cursor position
+				fmt.Print("\033[1D\033[K") // Move back and clear to end
+				fmt.Print(string(line[cursorPos:]))
+				// Move cursor back to correct position
+				if len(line) > cursorPos {
+					fmt.Printf("\033[%dD", len(line)-cursorPos)
+				}
+			}
+		} else if buf[0] >= 32 && buf[0] < 127 { // Printable character
+			// Insert character at cursor position
+			ch := rune(buf[0])
+			if cursorPos == len(line) {
+				line = append(line, ch)
+			} else {
+				line = append(line[:cursorPos+1], line[cursorPos:]...)
+				line[cursorPos] = ch
+			}
+			// Print the character and everything after it
+			fmt.Print(string(line[cursorPos:]))
+			cursorPos++
+			// Move cursor back if needed
+			if len(line) > cursorPos {
+				fmt.Printf("\033[%dD", len(line)-cursorPos)
+			}
+		}
+	}
+}
+
+// clearLine clears the current line in the terminal
+func (r *REPL) clearLine(lineLen, cursorPos int) {
+	// Move cursor to beginning of line
+	if cursorPos > 0 {
+		fmt.Printf("\033[%dD", cursorPos)
+	}
+	// Clear to end of line
+	fmt.Print("\033[K")
 }
 
 // printBanner prints the REPL welcome message
@@ -185,75 +333,46 @@ func (r *REPL) executeCommand(input string) {
 			fmt.Println("Usage: /load <filename>")
 		}
 	
-	// TAS debugging commands
-	case "/tas":
-		r.toggleTAS()
-	case "/record":
-		r.startTASRecording()
-	case "/stop":
-		r.stopTASRecording()
-	case "/rewind":
-		if len(args) > 0 {
-			r.tasRewind(args[0])
-		} else {
-			r.tasRewind("100") // Default 100 frames
-		}
-	case "/forward":
-		if len(args) > 0 {
-			r.tasForward(args[0])
-		} else {
-			r.tasForward("100")
-		}
-	case "/savestate":
-		if len(args) > 0 {
-			r.tasSaveState(args[0])
-		} else {
-			r.tasSaveState("checkpoint")
-		}
-	case "/loadstate":
-		if len(args) > 0 {
-			r.tasLoadState(args[0])
-		} else {
-			fmt.Println("Usage: /loadstate <name>")
-		}
-	case "/timeline":
-		r.showTASTimeline()
-	case "/hunt":
-		if len(args) > 0 {
-			r.startOptimizationHunt(args[0])
-		} else {
-			fmt.Println("Usage: /hunt <target_address>")
-		}
+	// TAS debugging commands (temporarily disabled)
+	case "/tas", "/record", "/stop", "/rewind", "/forward", "/savestate", "/loadstate", "/timeline", "/hunt":
+		fmt.Println("TAS debugging commands are temporarily disabled")
 	case "/export":
-		if len(args) > 0 {
-			r.exportTAS(args[0])
-		} else {
-			fmt.Println("Usage: /export <filename.tas>")
-		}
+		fmt.Println("TAS export is temporarily disabled")
+		// if len(args) > 0 {
+		//	r.exportTAS(args[0])
+		// } else {
+		//	fmt.Println("Usage: /export <filename.tas>")
+		// }
 	case "/import":
-		if len(args) > 0 {
-			r.importTAS(args[0])
-		} else {
-			fmt.Println("Usage: /import <filename.tas>")
-		}
+		fmt.Println("TAS import is temporarily disabled")
+		// if len(args) > 0 {
+		//	r.importTAS(args[0])
+		// } else {
+		//	fmt.Println("Usage: /import <filename.tas>")
+		// }
 	case "/replay":
-		if len(args) > 0 {
-			r.replayTAS(args[0])
-		} else {
-			fmt.Println("Usage: /replay <filename.tas>")
-		}
+		fmt.Println("TAS replay is temporarily disabled")
+		// if len(args) > 0 {
+		//	r.replayTAS(args[0])
+		// } else {
+		//	fmt.Println("Usage: /replay <filename.tas>")
+		// }
 	case "/strategy":
-		if len(args) > 0 {
-			r.setTASStrategy(args[0])
-		} else {
-			fmt.Println("Usage: /strategy <auto|deterministic|snapshot|hybrid|paranoid>")
-		}
+		fmt.Println("TAS strategy is temporarily disabled")
+		// if len(args) > 0 {
+		//	r.setTASStrategy(args[0])
+		// } else {
+		//	fmt.Println("Usage: /strategy <auto|deterministic|snapshot|hybrid|paranoid>")
+		// }
 	case "/stats":
-		r.showTASStats()
+		fmt.Println("TAS stats are temporarily disabled")
+		// r.showTASStats()
 	case "/profile":
-		r.profilePerformance()
+		fmt.Println("TAS profiling is temporarily disabled")
+		// r.profilePerformance()
 	case "/report":
-		r.showTASReport()
+		fmt.Println("TAS report is temporarily disabled")
+		// r.showTASReport()
 	default:
 		fmt.Printf("Unknown command: %s\n", cmd)
 		fmt.Println("Type /help for available commands")
@@ -436,6 +555,7 @@ func (r *REPL) showHelp() {
 }
 
 func (r *REPL) quit() {
+	r.restoreTerminal()
 	fmt.Println("Goodbye! Happy coding!")
 	os.Exit(0)
 }

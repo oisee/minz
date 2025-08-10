@@ -1,0 +1,14 @@
+// Test multiplication optimization with actual usage
+fun test_multiply_by_10(x: u8) -> u8 {
+    return x * 10;
+}
+
+fun test_multiply_by_2(x: u8) -> u8 {
+    return x * 2;
+}
+
+fun main() -> u8 {
+    let a = test_multiply_by_2(5);
+    let b = test_multiply_by_10(5);
+    return a + b;
+}

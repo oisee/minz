@@ -1,0 +1,44 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_mul_use.test_multiply_by_10$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 10
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_mul_use.test_multiply_by_2$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 2
+      2: r4 = r2 * r3
+      3: return r4
+
+Function test_mul_use.main() -> u8
+  @smc
+  Locals:
+    r1 = a: u16
+    r5 = b: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = 5
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call test_mul_use.test_multiply_by_2$u8
+      6: store a, r4
+      7: r6 = 5
+      8: r7 = 5
+      9: PATCH_TEMPLATE
+     10: PATCH_TARGET
+     11: PATCH_PARAM
+     12: r8 = call test_mul_use.test_multiply_by_10$u8
+     13: store b, r8
+     14: r9 = load a
+     15: r10 = load b
+     16: r11 = r9 + r10
+     17: return r11
+

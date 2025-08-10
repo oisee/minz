@@ -36,6 +36,7 @@ type FuncSymbol struct {
 	Name         string
 	OriginalName string             // Original name before mangling (for local functions)
 	Params       []*ast.Parameter
+	ParamTypes   []ir.Type          // Converted parameter types for display
 	ReturnType   ir.Type
 	ErrorType    ir.Type           // Optional error type for functions ending with ?
 	Type         *ir.FunctionType  // For built-in functions

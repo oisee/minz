@@ -33,8 +33,8 @@ fun mem_compare(ptr1: *u8, ptr2: *u8, count: u16) -> i8 {
 }
 
 fun main() {
-    let buffer1: [256]u8;
-    let buffer2: [256]u8;
+    let buffer1: [u8; 256];
+    let buffer2: [u8; 256];
     
     mem_set(&buffer1[0], 0xFF, 256);
     mem_copy(&buffer2[0], &buffer1[0], 128);

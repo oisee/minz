@@ -1,0 +1,78 @@
+// MinZ Target Conditional Compilation Demo
+// Shows how TARGET constant enables different implementations
+
+// Define target at compile time (could be set via compiler flag)
+const TARGET: str = "spectrum";  // or "cpm"
+
+// Different system call implementations based on target
+@if(TARGET == "cpm") {
+    // CP/M BDOS system calls
+    @abi("register: E=char, C=2; call: 0005H") 
+    fun sys_print_char(char: u8) -> void;
+    
+    @abi("register: C=0; call: 0005H") 
+    fun sys_exit() -> void;
+    
+    const ORIGIN: u16 = 0x8000;  // CP/M TPA
+} else {
+    // ZX Spectrum ROM calls (default)
+    @abi("register: A=char; call: RST 16") 
+    fun sys_print_char(char: u8) -> void;
+    
+    @abi("call: RET") 
+    fun sys_exit() -> void;
+    
+    const ORIGIN: u16 = 0x8000;  // Standard ZX address
+}
+
+// High-level print function that works on both targets
+fun print_string(s: str) -> void {
+    let len: u8 = s.len();
+    let i: u8 = 0;
+    
+    while (i < len) {
+        let ch: u8 = s[i];
+        sys_print_char(ch);
+        i = i + 1;
+    }
+}
+
+// Demo function that shows conditional behavior
+fun show_target_info() -> void {
+    @if(TARGET == "cpm") {
+        print_string("Running on CP/M with BDOS calls!\n");
+        print_string("Using 0005H BDOS entry point\n");
+    } else {
+        print_string("Running on ZX Spectrum!\n");
+        print_string("Using RST 16 ROM call\n");
+    }
+}
+
+fun main() -> u8 {
+    print_string("MinZ Target Demo\n");
+    print_string("================\n");
+    show_target_info();
+    
+    @if(TARGET == "cpm") {
+        print_string("\nPress any key to return to CP/M...\n");
+    } else {
+        print_string("\nPress BREAK to return to BASIC\n");
+    }
+    
+    sys_exit();
+    return 0;
+}
+
+// This demonstrates the TARGET-based architecture:
+//
+// 1. Single Z80 backend compiles for all Z80 targets
+// 2. TARGET constant determines system-specific code  
+// 3. @if() provides compile-time conditional compilation
+// 4. @abi() enables clean system call integration
+// 5. Standard library can have target-specific implementations
+//
+// Compilation:
+//   mz target_demo.minz -b z80 --target=spectrum → ZX Spectrum version
+//   mz target_demo.minz -b z80 --target=cpm → CP/M version
+//
+// Both use the same Z80 backend, just different stdlib paths!

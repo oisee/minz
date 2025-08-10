@@ -1,0 +1,134 @@
+// Function Overloading Demo
+// Shows how same function names work with different types
+
+// Multiple print functions with same name
+fun print(value: u8) -> void {
+    @asm("
+        ; Print u8 value
+        call print_hex_u8
+    ");
+}
+
+fun print(value: u16) -> void {
+    @asm("
+        ; Print u16 value  
+        call print_hex_u16
+    ");
+}
+
+fun print(msg: *u8) -> void {
+    @asm("
+        ; Print string
+        call print_string
+    ");
+}
+
+// Math functions overloaded
+fun max(a: u8, b: u8) -> u8 {
+    if a > b { return a; }
+    return b;
+}
+
+fun max(a: u16, b: u16) -> u16 {
+    if a > b { return a; }
+    return b;
+}
+
+// Swap functions for different types
+fun swap(a: *u8, b: *u8) -> void {
+    let temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+fun swap(a: *u16, b: *u16) -> void {
+    let temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+fun main() -> void {
+    // Compiler chooses correct overload based on types
+    let x: u8 = 10;
+    let y: u8 = 20;
+    
+    print("Testing u8 max: ");      // Calls print$p_str
+    let m8 = max(x, y);             // Calls max$u8$u8
+    print(m8);                      // Calls print$u8
+    print("\n");                    // Calls print$p_str
+    
+    let a: u16 = 1000;
+    let b: u16 = 2000;
+    
+    print("Testing u16 max: ");     // Calls print$p_str
+    let m16 = max(a, b);            // Calls max$u16$u16
+    print(m16);                     // Calls print$u16
+    print("\n");                    // Calls print$p_str
+    
+    // Swap demo
+    print("Before swap: x=");       // Calls print$p_str
+    print(x);                       // Calls print$u8
+    print(" y=");                   // Calls print$p_str
+    print(y);                       // Calls print$u8
+    print("\n");                    // Calls print$p_str
+    
+    swap(&x, &y);                   // Calls swap$p_u8$p_u8
+    
+    print("After swap: x=");        // Calls print$p_str
+    print(x);                       // Calls print$u8
+    print(" y=");                   // Calls print$p_str
+    print(y);                       // Calls print$u8
+    print("\n");                    // Calls print$p_str
+}
+
+/* Expected assembly output:
+
+; Mangled function names
+print$u8:
+    ; print(u8) implementation
+    call print_hex_u8
+    ret
+
+print$u16:
+    ; print(u16) implementation
+    call print_hex_u16
+    ret
+    
+print$p_str:
+    ; print(*str) implementation
+    call print_string
+    ret
+
+max$u8$u8:
+    ; max(u8, u8) implementation
+    ...
+    ret
+
+max$u16$u16:
+    ; max(u16, u16) implementation
+    ...
+    ret
+
+swap$p_u8$p_u8:
+    ; swap(*u8, *u8) implementation
+    ...
+    ret
+
+swap$p_u16$p_u16:
+    ; swap(*u16, *u16) implementation
+    ...
+    ret
+
+main:
+    ; Calls use mangled names
+    ld hl, str_testing_u8_max
+    call print$p_str        ; String version
+    
+    ld a, 10
+    ld b, 20
+    call max$u8$u8          ; u8 version
+    
+    call print$u8           ; u8 version
+    
+    ; etc...
+*/

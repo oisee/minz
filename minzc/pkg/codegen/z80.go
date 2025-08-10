@@ -33,6 +33,7 @@ type Z80Generator struct {
 	emittedParams map[string]bool // Track which SMC parameters have been emitted
 	currentRegister ir.Register // Track which virtual register is currently in HL
 	targetPlatform string // Target platform (zxspectrum, cpm, msx, etc.)
+	constantValues map[ir.Register]int64 // Track constant values in registers
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -48,6 +49,7 @@ func NewZ80Generator(w io.Writer) *Z80Generator {
 		usePhysicalRegs: true,                    // Enable hierarchical allocation
 		localVarBase:    0xF000,                  // Default local variable area at 0xF000
 		targetPlatform:  "zxspectrum",            // Default to ZX Spectrum
+		constantValues:  make(map[ir.Register]int64),
 	}
 }
 
@@ -61,6 +63,197 @@ func (g *Z80Generator) uniqueLabel(prefix string) string {
 	label := fmt.Sprintf("%s_%d", prefix, g.labelCounter)
 	g.labelCounter++
 	return label
+}
+
+// isPowerOfTwo checks if a number is a power of 2
+func isPowerOfTwo(n int64) bool {
+	return n > 0 && (n & (n - 1)) == 0
+}
+
+// getShiftCount returns the number of shifts for a power of 2
+func getShiftCount(n int64) int {
+	count := 0
+	for n > 1 {
+		n >>= 1
+		count++
+	}
+	return count
+}
+
+// canOptimizeMultiplication checks if multiplication can be optimized
+func canOptimizeMultiplication(multiplier int64) bool {
+	// Power of 2: single shift
+	if isPowerOfTwo(multiplier) {
+		return true
+	}
+	
+	// Common decompositions
+	switch multiplier {
+	case 3,   // x * 3 = (x << 1) + x
+	     5,   // x * 5 = (x << 2) + x
+	     6,   // x * 6 = (x << 2) + (x << 1)
+	     7,   // x * 7 = (x << 3) - x
+	     9,   // x * 9 = (x << 3) + x
+	     10,  // x * 10 = (x << 3) + (x << 1)
+	     12,  // x * 12 = (x << 3) + (x << 2)
+	     15:  // x * 15 = (x << 4) - x
+		return true
+	}
+	return false
+}
+
+// emitOptimizedMultiplication generates optimized multiplication code
+func (g *Z80Generator) emitOptimizedMultiplication(multiplier int64, is16bit bool) {
+	if isPowerOfTwo(multiplier) {
+		// Simple power of 2 - just shift
+		shifts := getShiftCount(multiplier)
+		g.emit("    ; Optimized multiplication by %d (shift left %d)", multiplier, shifts)
+		if is16bit {
+			for i := 0; i < shifts; i++ {
+				g.emit("    ADD HL, HL        ; HL << 1")
+			}
+		} else {
+			for i := 0; i < shifts; i++ {
+				g.emit("    ADD A, A          ; A << 1")
+			}
+		}
+		return
+	}
+	
+	// Complex decompositions
+	switch multiplier {
+	case 3: // x * 3 = (x << 1) + x
+		g.emit("    ; Optimized x * 3 = (x << 1) + x")
+		if is16bit {
+			g.emit("    LD D, H")
+			g.emit("    LD E, L           ; Save original in DE")
+			g.emit("    ADD HL, HL        ; x << 1")
+			g.emit("    ADD HL, DE        ; + x")
+		} else {
+			g.emit("    LD B, A           ; Save original")
+			g.emit("    ADD A, A          ; x << 1")
+			g.emit("    ADD A, B          ; + x")
+		}
+		
+	case 5: // x * 5 = (x << 2) + x
+		g.emit("    ; Optimized x * 5 = (x << 2) + x")
+		if is16bit {
+			g.emit("    LD D, H")
+			g.emit("    LD E, L           ; Save original in DE")
+			g.emit("    ADD HL, HL        ; x << 1")
+			g.emit("    ADD HL, HL        ; x << 2")
+			g.emit("    ADD HL, DE        ; + x")
+		} else {
+			g.emit("    LD B, A           ; Save original")
+			g.emit("    ADD A, A          ; x << 1")
+			g.emit("    ADD A, A          ; x << 2")
+			g.emit("    ADD A, B          ; + x")
+		}
+		
+	case 6: // x * 6 = (x << 2) + (x << 1)
+		g.emit("    ; Optimized x * 6 = (x << 2) + (x << 1)")
+		if is16bit {
+			g.emit("    ADD HL, HL        ; x << 1")
+			g.emit("    LD D, H")
+			g.emit("    LD E, L           ; Save (x << 1) in DE")
+			g.emit("    ADD HL, HL        ; x << 2")
+			g.emit("    ADD HL, DE        ; + (x << 1)")
+		} else {
+			g.emit("    ADD A, A          ; x << 1")
+			g.emit("    LD B, A           ; Save (x << 1)")
+			g.emit("    ADD A, A          ; x << 2")
+			g.emit("    ADD A, B          ; + (x << 1)")
+		}
+		
+	case 7: // x * 7 = (x << 3) - x
+		g.emit("    ; Optimized x * 7 = (x << 3) - x")
+		if is16bit {
+			g.emit("    LD D, H")
+			g.emit("    LD E, L           ; Save original in DE")
+			g.emit("    ADD HL, HL        ; x << 1")
+			g.emit("    ADD HL, HL        ; x << 2")
+			g.emit("    ADD HL, HL        ; x << 3")
+			g.emit("    OR A              ; Clear carry")
+			g.emit("    SBC HL, DE        ; - x")
+		} else {
+			g.emit("    LD B, A           ; Save original")
+			g.emit("    ADD A, A          ; x << 1")
+			g.emit("    ADD A, A          ; x << 2")
+			g.emit("    ADD A, A          ; x << 3")
+			g.emit("    SUB B             ; - x")
+		}
+		
+	case 9: // x * 9 = (x << 3) + x
+		g.emit("    ; Optimized x * 9 = (x << 3) + x")
+		if is16bit {
+			g.emit("    LD D, H")
+			g.emit("    LD E, L           ; Save original in DE")
+			g.emit("    ADD HL, HL        ; x << 1")
+			g.emit("    ADD HL, HL        ; x << 2")
+			g.emit("    ADD HL, HL        ; x << 3")
+			g.emit("    ADD HL, DE        ; + x")
+		} else {
+			g.emit("    LD B, A           ; Save original")
+			g.emit("    ADD A, A          ; x << 1")
+			g.emit("    ADD A, A          ; x << 2")
+			g.emit("    ADD A, A          ; x << 3")
+			g.emit("    ADD A, B          ; + x")
+		}
+		
+	case 10: // x * 10 = (x << 3) + (x << 1)
+		g.emit("    ; Optimized x * 10 = (x << 3) + (x << 1)")
+		if is16bit {
+			g.emit("    ADD HL, HL        ; x << 1")
+			g.emit("    LD D, H")
+			g.emit("    LD E, L           ; Save (x << 1) in DE")
+			g.emit("    ADD HL, HL        ; x << 2")
+			g.emit("    ADD HL, HL        ; x << 3")
+			g.emit("    ADD HL, DE        ; + (x << 1)")
+		} else {
+			g.emit("    ADD A, A          ; x << 1")
+			g.emit("    LD B, A           ; Save (x << 1)")
+			g.emit("    ADD A, A          ; x << 2")
+			g.emit("    ADD A, A          ; x << 3")
+			g.emit("    ADD A, B          ; + (x << 1)")
+		}
+		
+	case 12: // x * 12 = (x << 3) + (x << 2)
+		g.emit("    ; Optimized x * 12 = (x << 3) + (x << 2)")
+		if is16bit {
+			g.emit("    ADD HL, HL        ; x << 1")
+			g.emit("    ADD HL, HL        ; x << 2")
+			g.emit("    LD D, H")
+			g.emit("    LD E, L           ; Save (x << 2) in DE")
+			g.emit("    ADD HL, HL        ; x << 3")
+			g.emit("    ADD HL, DE        ; + (x << 2)")
+		} else {
+			g.emit("    ADD A, A          ; x << 1")
+			g.emit("    ADD A, A          ; x << 2")
+			g.emit("    LD B, A           ; Save (x << 2)")
+			g.emit("    ADD A, A          ; x << 3")
+			g.emit("    ADD A, B          ; + (x << 2)")
+		}
+		
+	case 15: // x * 15 = (x << 4) - x
+		g.emit("    ; Optimized x * 15 = (x << 4) - x")
+		if is16bit {
+			g.emit("    LD D, H")
+			g.emit("    LD E, L           ; Save original in DE")
+			g.emit("    ADD HL, HL        ; x << 1")
+			g.emit("    ADD HL, HL        ; x << 2")
+			g.emit("    ADD HL, HL        ; x << 3")
+			g.emit("    ADD HL, HL        ; x << 4")
+			g.emit("    OR A              ; Clear carry")
+			g.emit("    SBC HL, DE        ; - x")
+		} else {
+			g.emit("    LD B, A           ; Save original")
+			g.emit("    ADD A, A          ; x << 1")
+			g.emit("    ADD A, A          ; x << 2")
+			g.emit("    ADD A, A          ; x << 3")
+			g.emit("    ADD A, A          ; x << 4")
+			g.emit("    SUB B             ; - x")
+		}
+	}
 }
 
 // Generate generates Z80 assembly for an IR module
@@ -356,6 +549,9 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	// Function prologue
 	g.generatePrologue(fn)
 
+	// Reset constant tracking for new function
+	g.constantValues = make(map[ir.Register]int64)
+	
 	// Generate instructions
 	for i, inst := range fn.Instructions {
 		g.currentInstructionIndex = i
@@ -520,6 +716,9 @@ func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
 			g.emit("    PUSH DE")
 		}
 	}
+	
+	// Reset constant tracking for new function
+	g.constantValues = make(map[ir.Register]int64)
 	
 	// Generate instructions with SMC awareness
 	for i, inst := range fn.Instructions {
@@ -1294,6 +1493,13 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.generateEpilogue()
 		
 	case ir.OpLoadConst:
+		// Track the constant value for optimization
+		g.constantValues[inst.Dest] = inst.Imm
+		if debug {
+			fmt.Printf("DEBUG: OpLoadConst - tracked r%d = %d\n", inst.Dest, inst.Imm)
+			fmt.Printf("DEBUG: Current constants map: %v\n", g.constantValues)
+		}
+		
 		// Load constant to register
 		if inst.Imm < 256 {
 			g.emit("    LD A, %d", inst.Imm)
@@ -1616,57 +1822,123 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpMul:
-		// Check if this is 16-bit multiplication based on type
-		if inst.Type != nil {
-			if basicType, ok := inst.Type.(*ir.BasicType); ok && 
-			   (basicType.Kind == ir.TypeU16 || basicType.Kind == ir.TypeI16) {
-				// 16-bit multiplication using repeated addition
-				g.emit("    ; 16-bit multiplication")
-				g.loadToHL(inst.Src1)
-				g.emit("    LD (mul_src1_%d), HL  ; Save multiplicand", g.labelCounter)
-				g.loadToHL(inst.Src2)
-				g.emit("    LD (mul_src2_%d), HL  ; Save multiplier", g.labelCounter)
-				g.emit("    LD HL, 0             ; Result = 0")
-				g.emit("    LD DE, (mul_src1_%d)  ; DE = multiplicand", g.labelCounter)
-				g.emit("    LD BC, (mul_src2_%d)  ; BC = multiplier", g.labelCounter)
-				g.emit("    LD A, B")
-				g.emit("    OR C                 ; Check if multiplier is 0")
-				g.emit("    JR Z, .mul16_done_%d", g.labelCounter)
-				g.emit("%s:", g.getFunctionLabel("mul16_loop"))
-				g.emit("    ADD HL, DE           ; Result += multiplicand")
-				g.emit("    DEC BC")
-				g.emit("    LD A, B")
-				g.emit("    OR C")
-				g.emit("    JR NZ, .mul16_loop_%d", g.labelCounter)
-				g.emit("%s:", g.getFunctionLabel("mul16_done"))
-				g.emit("mul_src1_%d: DW 0", g.labelCounter)
-				g.emit("mul_src2_%d: DW 0", g.labelCounter)
-				g.labelCounter++
-				g.storeFromHL(inst.Dest)
-				break
+		// Check for constant optimization opportunity
+		var constMultiplier int64
+		var hasConstant bool
+		var constOnSrc2 bool
+		
+		// Check if either operand is a constant
+		if val, ok := g.constantValues[inst.Src2]; ok {
+			constMultiplier = val
+			hasConstant = true
+			constOnSrc2 = true
+			if debug {
+				fmt.Printf("DEBUG: Found constant %d in Src2 (r%d)\n", val, inst.Src2)
+			}
+		} else if val, ok := g.constantValues[inst.Src1]; ok {
+			constMultiplier = val
+			hasConstant = true
+			constOnSrc2 = false
+			if debug {
+				fmt.Printf("DEBUG: Found constant %d in Src1 (r%d)\n", val, inst.Src1)
 			}
 		}
 		
-		// Default 8-bit multiplication
-		g.emit("    ; 8-bit multiplication")
-		g.loadToA(inst.Src1)
-		g.emit("    LD B, A       ; B = multiplicand")
-		g.loadToA(inst.Src2)
-		g.emit("    LD C, A       ; C = multiplier")
-		g.emit("    LD HL, 0      ; HL = result")
-		g.emit("    LD A, C")
-		g.emit("    OR A          ; Check if multiplier is 0")
-		muldoneLabel := g.getFunctionLabel("mul_done")
-		g.emit("    JR Z, %s", muldoneLabel)
-		g.emit("%s:", g.getFunctionLabel("mul_loop"))
-		g.emit("    LD D, 0")
-		g.emit("    LD E, B")
-		g.emit("    ADD HL, DE    ; Add multiplicand to result")
-		g.emit("    DEC C")
-		g.emit("    JR NZ, %s", g.getFunctionLabel("mul_loop"))
-		g.emit("%s:", g.getFunctionLabel("mul_done"))
-		g.labelCounter++
-		g.storeFromHL(inst.Dest)
+		if debug && !hasConstant {
+			fmt.Printf("DEBUG: No constant found for multiplication. Src1=r%d, Src2=r%d\n", inst.Src1, inst.Src2)
+			fmt.Printf("DEBUG: Known constants: %v\n", g.constantValues)
+		}
+		
+		// Clear destination from constant tracking (it's computed, not constant)
+		delete(g.constantValues, inst.Dest)
+		
+		// Determine if this is 16-bit
+		is16bit := false
+		if inst.Type != nil {
+			if basicType, ok := inst.Type.(*ir.BasicType); ok {
+				is16bit = (basicType.Kind == ir.TypeU16 || basicType.Kind == ir.TypeI16)
+			}
+		}
+		
+		// Try optimization if we have a constant
+		if hasConstant && canOptimizeMultiplication(constMultiplier) {
+			// Load the variable operand
+			if constOnSrc2 {
+				if is16bit {
+					g.loadToHL(inst.Src1)
+				} else {
+					g.loadToA(inst.Src1)
+				}
+			} else {
+				if is16bit {
+					g.loadToHL(inst.Src2)
+				} else {
+					g.loadToA(inst.Src2)
+				}
+			}
+			
+			// Emit optimized multiplication
+			g.emitOptimizedMultiplication(constMultiplier, is16bit)
+			
+			// Store result
+			if is16bit {
+				g.storeFromHL(inst.Dest)
+			} else {
+				// Result is in A, need to move to HL for storage
+				g.emit("    LD L, A")
+				g.emit("    LD H, 0")
+				g.storeFromHL(inst.Dest)
+			}
+			break
+		}
+		
+		// Fall back to original loop-based multiplication
+		if is16bit {
+			// 16-bit multiplication using repeated addition
+			g.emit("    ; 16-bit multiplication")
+			g.loadToHL(inst.Src1)
+			g.emit("    LD (mul_src1_%d), HL  ; Save multiplicand", g.labelCounter)
+			g.loadToHL(inst.Src2)
+			g.emit("    LD (mul_src2_%d), HL  ; Save multiplier", g.labelCounter)
+			g.emit("    LD HL, 0             ; Result = 0")
+			g.emit("    LD DE, (mul_src1_%d)  ; DE = multiplicand", g.labelCounter)
+			g.emit("    LD BC, (mul_src2_%d)  ; BC = multiplier", g.labelCounter)
+			g.emit("    LD A, B")
+			g.emit("    OR C                 ; Check if multiplier is 0")
+			g.emit("    JR Z, .mul16_done_%d", g.labelCounter)
+			g.emit("%s:", g.getFunctionLabel("mul16_loop"))
+			g.emit("    ADD HL, DE           ; Result += multiplicand")
+			g.emit("    DEC BC")
+			g.emit("    LD A, B")
+			g.emit("    OR C")
+			g.emit("    JR NZ, .mul16_loop_%d", g.labelCounter)
+			g.emit("%s:", g.getFunctionLabel("mul16_done"))
+			g.emit("mul_src1_%d: DW 0", g.labelCounter)
+			g.emit("mul_src2_%d: DW 0", g.labelCounter)
+			g.labelCounter++
+			g.storeFromHL(inst.Dest)
+		} else {
+			// Default 8-bit multiplication
+			g.emit("    ; 8-bit multiplication")
+			g.loadToA(inst.Src1)
+			g.emit("    LD B, A       ; B = multiplicand")
+			g.loadToA(inst.Src2)
+			g.emit("    LD C, A       ; C = multiplier")
+			g.emit("    LD HL, 0      ; HL = result")
+			g.emit("    LD A, C")
+			g.emit("    OR A          ; Check if multiplier is 0")
+			muldoneLabel := g.getFunctionLabel("mul_done")
+			g.emit("    JR Z, %s", muldoneLabel)
+			g.emit("%s:", g.getFunctionLabel("mul_loop"))
+			g.emit("    LD D, 0")
+			g.emit("    LD E, B")
+			g.emit("    ADD HL, DE    ; Add multiplicand to result")
+			g.emit("    DEC C")
+			g.emit("    JR NZ, %s", g.getFunctionLabel("mul_loop"))
+			g.emit("%s:", g.getFunctionLabel("mul_done"))
+			g.labelCounter++
+			g.storeFromHL(inst.Dest)
+		}
 		
 	case ir.OpDiv:
 		// 8-bit division using repeated subtraction
@@ -2396,6 +2668,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpLoadImm:
 		// Load immediate value
+		// Track the constant value for optimization
+		g.constantValues[inst.Dest] = inst.Imm
+		
 		if inst.Imm <= 255 {
 			g.emit("    LD A, %d", inst.Imm)
 			g.storeFromA(inst.Dest)
