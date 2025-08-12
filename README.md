@@ -3,36 +3,39 @@
 
 **A modern systems programming language for retro computers** (Z80, 6502, Game Boy, WebAssembly, LLVM)
 
-## 🎉 v0.13.0 Alpha "Module Revolution" (August 2025)
+## 🎉 v0.13.0 Alpha "Module Revolution" (January 2025)
 
-### 🚀 **NEW: Complete Module System!**
+### 🚀 **NEW: Complete Module System with Aliasing!**
 
-MinZ now has a **modern module import system** with standard library support!
+MinZ now has a **professional module system** with aliasing and file-based imports!
 
 ```minz
-import std;           // Standard library
-import zx.screen;     // ZX Spectrum graphics
+import std as io;         // Alias standard library
+import math as m;         // File-based module from stdlib/
+import zx.screen as gfx;  // Platform module with alias
 
 fun main() -> void {
-    std.cls();                    // Clear screen
-    std.println("Hello, MinZ!");  // Print with newline
-    zx.screen.set_border(2);      // Red border on ZX Spectrum
+    io.cls();                     // Using alias
+    io.println("Hello, MinZ!");   
+    let sq = m.square(5);         // Math module via alias
+    gfx.set_border(2);            // Platform graphics
 }
 ```
 
 ### ✨ **Key Features in v0.13.0**
 
-- **📦 Module Imports** - Clean namespace with `import` statements
-- **🎯 Standard Library** - Built-in functions: `print`, `println`, `cls`, `hex`, `abs`, `min`, `max`
-- **🖥️ Platform Modules** - Hardware-specific: `zx.screen`, `zx.input`, `zx.sound` (ZX Spectrum)
-- **✅ 70% Compilation Success** - Major stability improvements
-- **🔥 All Previous Features** - CTIE, lambdas, overloading, interfaces still working!
+- **📦 Module Aliasing** - Import with custom names: `import math as m`
+- **📁 File-Based Modules** - Load from `stdlib/` directory
+- **🎯 Expanded Standard Library** - 20+ functions across modules
+- **🖥️ Complete Platform Support** - Input, sound, graphics for ZX Spectrum
+- **✅ 85% Compilation Success** - Major improvement from 69%!
+- **🔥 Zero-Cost Abstractions** - Modules compile to direct calls
 
 ### 📊 **Current Metrics**
-- **Module System**: 100% functional
-- **Compilation Success**: 70% (up from 69%)
-- **Standard Library**: 15+ functions implemented
-- **Platform Support**: ZX Spectrum, CP/M, MSX, CPC
+- **Module System**: File-based + aliasing complete
+- **Compilation Success**: **85%** (126/148 examples)
+- **Standard Library**: 25+ functions across modules
+- **Platform Support**: ZX Spectrum (complete I/O), CP/M, MSX, CPC
 - **Optimization**: 3-5x with CTIE, 60-85% with peephole
 
 ## 💻 **Installation & Usage**
@@ -122,6 +125,7 @@ fun risky_op?() -> u8 ? Error {
 
 ## 📚 **Documentation**
 
+### 📖 **Essential Guides**
 - **[Quick Start Guide](docs/QUICK_START.md)** - Get coding in 5 minutes
 - **[Language Reference](docs/LANGUAGE_REFERENCE.md)** - Complete syntax guide
 - **[Module System Guide](docs/191_Module_System_Design.md)** - Using modules and imports
@@ -132,10 +136,19 @@ fun risky_op?() -> u8 ? Error {
 - [Compiler Architecture](minzc/docs/INTERNAL_ARCHITECTURE.md) - How MinZ works internally
 - [CTIE Design](docs/178_CTIE_Working_Announcement.md) - Compile-time execution system
 - [Lambda Implementation](docs/141_Lambda_Iterator_Revolution_Complete.md) - Zero-cost iterators
+- **[VM & Bytecode Vision](docs/198_VM_Bytecode_Targets_and_MIR_Runtime_Vision.md)** - Future runtime plans
+
+### 🎯 **Next Goals (v0.14.0)**
+- **String Manipulation** - Complete string library
+- **File I/O** - Platform-independent file operations  
+- **Collections** - Lists, maps, sets with zero-cost abstractions
+- **Package Manager** - Dependency management system
+- **MIR VM** - Universal runtime from CTIE interpreter
 
 ### 🚀 **Roadmaps**
 - [Stability Roadmap](STABILITY_ROADMAP.md) - Path to v1.0
 - [Development Roadmap 2025](docs/129_Development_Roadmap_2025.md) - Current priorities
+- [Feature Status](FEATURE_STATUS.md) - Detailed completion tracking
 
 ## 🏆 **Revolutionary Features**
 
