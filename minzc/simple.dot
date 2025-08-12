@@ -1,0 +1,42 @@
+digraph MinZ_MIR {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  // Module: main
+  subgraph cluster_module {
+    label="Module: main";
+    style=dashed;
+
+    // Function: ...test_ctie_simple.add_const$u8$u8
+    subgraph cluster_func_0 {
+      label="...test_ctie_simple.add_const$u8$u8";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_0_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_0_params" [label="Parameters:\na: u8\nb: u8", shape=invhouse];
+      "func_0_return" [label="Returns: u8", shape=house];
+      "func_0_bb0" [label="BB0:\nLOAD_PARAM\nLOAD_PARAM\nr5 = r3 + r4\nreturn r5\n", style=filled, fillcolor=lightgreen];
+    }
+
+    // Function: ...test_ctie_simple.multiply_const$u8
+    subgraph cluster_func_1 {
+      label="...test_ctie_simple.multiply_const$u8";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_1_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_1_params" [label="Parameters:\nx: u8", shape=invhouse];
+      "func_1_return" [label="Returns: u16", shape=house];
+      "func_1_bb0" [label="BB0:\nLOAD_PARAM\nr3 = 10\nr4 = r2 * r3\nreturn r4\n", style=filled, fillcolor=lightgreen];
+    }
+
+    // Function: ...test_ctie_simple.main
+    subgraph cluster_func_2 {
+      label="...test_ctie_simple.main";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_2_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_2_bb0" [label="BB0:\nr2 = 5\nr3 = 3\nr4 = 5\nr5 = 3\nPATCH_TEMPLATE\nPATCH_TARGET\nPATCH_PARAM\nPATCH_PARAM\nr6 = call ...test_ctie_simple.add_const$u8$u8\nstore result1, r6\nr8 = 4\nr9 = 4\nPATCH_TEMPLATE\nPATCH_TARGET\nPATCH_PARAM\nr10 = call ...test_ctie_simple.multiply_const$u8\nstore result2, r10\nLOAD_STRING\nPRINT_STRING\nLOAD_STRING\nPRINT_STRING\nreturn\n", style=filled, fillcolor=lightgreen];
+    }
+
+  }
+}

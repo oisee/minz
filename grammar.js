@@ -205,6 +205,7 @@ module.exports = grammar({
     ),
 
     function_declaration: $ => seq(
+      optional($.ctie_directive),  // NEW: CTIE directives for functions
       optional($.visibility),
       optional('export'),
       choice('fun', 'fn'),  // Both work - developer happiness!
@@ -284,6 +285,7 @@ module.exports = grammar({
     ),
 
     struct_declaration: $ => seq(
+      optional($.ctie_directive),  // NEW: @derive for structs
       optional($.visibility),
       'struct',
       $.identifier,
@@ -324,16 +326,21 @@ module.exports = grammar({
     visibility: $ => 'pub',
 
     interface_declaration: $ => seq(
+      optional($.ctie_directive),  // NEW: CTIE directives like @proof
       optional($.visibility),
       'interface',
       $.identifier,
       optional($.generic_parameters),
       '{',
-      repeat($.interface_method),
+      repeat(choice(
+        $.interface_method,
+        $.cast_interface_block,
+      )),
       '}',
     ),
 
     interface_method: $ => seq(
+      optional($.ctie_directive),  // NEW: CTIE directives like @execute
       choice('fun', 'fn'),  // Flexibility in interfaces too!
       $.identifier,
       '(',
@@ -341,6 +348,22 @@ module.exports = grammar({
       ')',
       $.return_type,
       ';',
+    ),
+
+    // NEW: Cast interface block - simplified first implementation
+    cast_interface_block: $ => seq(
+      'cast',
+      '<',
+      $.identifier,  // Simplified: just identifier for now
+      '>',
+      '{',
+      repeat(seq(
+        $.identifier,  // From type
+        '->',
+        '{',
+        '}',         // Empty transform for now
+      )),
+      '}',
     ),
 
     impl_block: $ => seq(
@@ -836,6 +859,112 @@ module.exports = grammar({
     // MIR code block that can contain anything including [[ ]]
     mir_code_block: $ => prec(2, alias(/([^\]]+|\][^\]]+|\]\][^\]]+)*/, 'mir_code_content')),
 
+    // CTIE (Compile-Time Interface Execution) directives
+    ctie_directive: $ => choice(
+      $.execute_directive,
+      $.specialize_directive,
+      $.proof_directive,
+      $.derive_directive,
+      $.analyze_usage_directive,
+      $.compile_time_vtable_directive,
+    ),
+
+    execute_directive: $ => seq(
+      '@execute',
+      optional(seq('when', $.execute_condition)),
+    ),
+
+    execute_condition: $ => choice(
+      'const',  // Execute when inputs are const
+      $.expression,  // Custom condition
+    ),
+
+    specialize_directive: $ => seq(
+      '@specialize',
+      optional(seq(
+        'for',
+        '[',
+        commaSep1($.string_literal),  // Type names
+        ']',
+        optional(seq('threshold:', $.number_literal)),
+      )),
+    ),
+
+    proof_directive: $ => seq(
+      '@proof',
+      '{',
+      repeat1($.proof_invariant),
+      '}',
+    ),
+
+    proof_invariant: $ => seq(
+      $.identifier,
+      ':',
+      $.expression,
+      optional(','),
+    ),
+
+    derive_directive: $ => seq(
+      '@derive',
+      '(',
+      $.identifier,  // Interface name
+      ')',
+      optional(seq(
+        'for',
+        $.identifier,  // Type name
+        optional($.derive_options),
+      )),
+    ),
+
+    derive_options: $ => seq(
+      '{',
+      repeat1($.derive_option),
+      '}',
+    ),
+
+    derive_option: $ => seq(
+      $.identifier,
+      ':',
+      choice(
+        $.identifier,
+        $.string_literal,
+        '[',
+        commaSep1($.string_literal),
+        ']',
+      ),
+      optional(','),
+    ),
+
+    analyze_usage_directive: $ => seq(
+      '@analyze_usage',
+      '{',
+      repeat1($.usage_rule),
+      '}',
+    ),
+
+    usage_rule: $ => seq(
+      'if',
+      $.expression,
+      '->',
+      $.ctie_directive,
+      optional(','),
+    ),
+
+    compile_time_vtable_directive: $ => seq(
+      '@compile_time_vtable',
+      '{',
+      repeat1($.vtable_rule),
+      '}',
+    ),
+
+    vtable_rule: $ => seq(
+      'when',
+      $.expression,
+      '->',
+      $.identifier,  // Strategy name
+      optional(','),
+    ),
+
     // Import statements
     import_statement: $ => seq(
       'import',
@@ -1131,6 +1260,10 @@ module.exports = grammar({
 });
 
 // Helper functions
+function commaSep(rule) {
+  return optional(commaSep1(rule));
+}
+
 function commaSep1(rule) {
   return sep1(rule, ',');
 }

@@ -1,0 +1,24 @@
+// Test enum with correct types
+
+enum Color {
+    Red,
+    Green,
+    Blue
+}
+
+fun get_value(c: Color) -> u8 {
+    // Use if statements 
+    if c == Color.Red {
+        return 1;
+    }
+    if c == Color.Green {
+        return 2;
+    }
+    return 3;
+}
+
+fun main() -> void {
+    let color = Color.Red;
+    let val: u8 = get_value(color);  // Explicit type
+    print_u8(val);
+}

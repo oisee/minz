@@ -1,0 +1,241 @@
+// E2E Test for File I/O via ROM/BDOS interception
+// This will test both ZX Spectrum and CP/M file operations
+
+// Platform-specific imports
+@platform("zxspectrum") {
+    import zx.io;
+}
+
+@platform("cpm", "msx") {
+    import cpm.io;
+}
+
+fun test_tape_operations() -> bool {
+    @platform("zxspectrum") {
+        print("Testing ZX Spectrum tape I/O...\n");
+        
+        // Test data
+        let test_data: [256]u8;
+        for i in 0..256 {
+            test_data[i] = i & 0xFF;
+        }
+        
+        // Save to tape
+        print("Saving to tape...\n");
+        if !zx.io.tape_save("TESTDATA", 0x8000, 256) {
+            print("ERROR: Tape save failed!\n");
+            return false;
+        }
+        
+        // Clear memory
+        for i in 0..256 {
+            poke(0x8000 + i, 0);
+        }
+        
+        // Load from tape
+        print("Loading from tape...\n");
+        let loaded_len = zx.io.tape_load("TESTDATA", 0x8000);
+        if loaded_len != 256 {
+            print("ERROR: Tape load failed!\n");
+            return false;
+        }
+        
+        // Verify data
+        for i in 0..256 {
+            if peek(0x8000 + i) != test_data[i] {
+                print("ERROR: Data mismatch at ");
+                print_u16(i);
+                print("\n");
+                return false;
+            }
+        }
+        
+        print("Tape I/O test PASSED!\n");
+        return true;
+    }
+    
+    return true; // Skip on non-ZX platforms
+}
+
+fun test_disk_operations() -> bool {
+    @platform("zxspectrum") {
+        print("Testing TR-DOS disk I/O...\n");
+        
+        let test_string = "Hello from TR-DOS!";
+        let test_data = test_string.as_bytes();
+        
+        // Save file
+        if !zx.io.disk_save("TEST.DAT", test_data) {
+            print("ERROR: Disk save failed!\n");
+            return false;
+        }
+        
+        // Load file
+        let buffer: [256]u8;
+        let loaded = zx.io.disk_load("TEST.DAT", buffer);
+        if loaded == 0 {
+            print("ERROR: Disk load failed!\n");
+            return false;
+        }
+        
+        // Verify
+        for i in 0..test_data.len {
+            if buffer[i] != test_data[i] {
+                print("ERROR: Disk data mismatch!\n");
+                return false;
+            }
+        }
+        
+        // List directory
+        let files = zx.io.disk_cat();
+        let found = false;
+        for file in files {
+            if file == "TEST.DAT" {
+                found = true;
+                break;
+            }
+        }
+        
+        if !found {
+            print("ERROR: File not in directory!\n");
+            return false;
+        }
+        
+        print("TR-DOS test PASSED!\n");
+        return true;
+    }
+    
+    return true;
+}
+
+fun test_cpm_operations() -> bool {
+    @platform("cpm", "msx") {
+        print("Testing CP/M file I/O...\n");
+        
+        // Test data
+        let test_string = "Hello from CP/M!";
+        let test_data = test_string.as_bytes();
+        
+        // Save file
+        print("Saving file...\n");
+        if !cpm.io.save("TEST.TXT", test_data) {
+            print("ERROR: File save failed!\n");
+            return false;
+        }
+        
+        // Check if file exists
+        if !cpm.io.exists("TEST.TXT") {
+            print("ERROR: File doesn't exist!\n");
+            return false;
+        }
+        
+        // Load file
+        print("Loading file...\n");
+        let loaded_data = cpm.io.load("TEST.TXT");
+        if loaded_data.len == 0 {
+            print("ERROR: File load failed!\n");
+            return false;
+        }
+        
+        // Verify data
+        if loaded_data.len != test_data.len {
+            print("ERROR: Size mismatch!\n");
+            return false;
+        }
+        
+        for i in 0..test_data.len {
+            if loaded_data[i] != test_data[i] {
+                print("ERROR: Data mismatch at ");
+                print_u8(i);
+                print("\n");
+                return false;
+            }
+        }
+        
+        // Test directory listing
+        print("Listing directory...\n");
+        let files = cpm.io.cat();
+        let found = false;
+        for file in files {
+            print("  ");
+            print(file);
+            print("\n");
+            if file == "TEST.TXT" {
+                found = true;
+            }
+        }
+        
+        if !found {
+            print("ERROR: File not in directory!\n");
+            return false;
+        }
+        
+        // Test rename
+        print("Renaming file...\n");
+        if !cpm.io.rename("TEST.TXT", "TEST2.TXT") {
+            print("ERROR: Rename failed!\n");
+            return false;
+        }
+        
+        // Test delete
+        print("Deleting file...\n");
+        if !cpm.io.delete("TEST2.TXT") {
+            print("ERROR: Delete failed!\n");
+            return false;
+        }
+        
+        // Verify deletion
+        if cpm.io.exists("TEST2.TXT") {
+            print("ERROR: File still exists after delete!\n");
+            return false;
+        }
+        
+        print("CP/M I/O test PASSED!\n");
+        return true;
+    }
+    
+    return true;
+}
+
+fun main() -> void {
+    print("=== File I/O E2E Test ===\n");
+    
+    let all_passed = true;
+    
+    // Test tape operations (ZX Spectrum only)
+    if !test_tape_operations() {
+        all_passed = false;
+    }
+    
+    // Test disk operations (ZX Spectrum TR-DOS)
+    if !test_disk_operations() {
+        all_passed = false;
+    }
+    
+    // Test CP/M operations (CP/M and MSX)
+    if !test_cpm_operations() {
+        all_passed = false;
+    }
+    
+    if all_passed {
+        print("\n=== ALL TESTS PASSED! ===\n");
+    } else {
+        print("\n=== SOME TESTS FAILED ===\n");
+    }
+}
+
+// Helper functions for memory access
+fun peek(addr: u16) -> u8 {
+    return asm {
+        LD HL, (addr)
+        LD A, (HL)
+    };
+}
+
+fun poke(addr: u16, value: u8) -> void {
+    asm {
+        LD HL, (addr)
+        LD A, (value)
+        LD (HL), A
+    }
+}

@@ -1,0 +1,46 @@
+// End-to-End Cast Interface Test
+// This tests the revolutionary compile-time casting system!
+
+interface Drawable {
+    cast<Shape> {
+        Circle -> {}
+        Rectangle -> {}
+        auto -> {}
+    }
+    
+    fun draw() -> void;
+    fun get_area() -> u16;
+}
+
+// Test types
+struct Circle {
+    radius: u8,
+    x: u8,
+    y: u8
+}
+
+struct Rectangle {
+    width: u8,
+    height: u8,
+    x: u8,
+    y: u8
+}
+
+// Test function to demonstrate compile-time dispatch
+fun draw_shape(shape: Drawable) -> void {
+    // This should compile to direct CALL - no vtables!
+    shape.draw();
+}
+
+fun main() -> void {
+    // These should work with compile-time casting
+    let circle = Circle { radius: 5, x: 10, y: 20 };
+    let rect = Rectangle { width: 8, height: 6, x: 0, y: 0 };
+    
+    // Test casting (when implemented)
+    // draw_shape(circle);  // Should resolve to Circle_draw at compile-time
+    // draw_shape(rect);    // Should resolve to Rectangle_draw at compile-time
+    
+    // For now, just create the structures
+    @print("Cast interface test compiled successfully!");
+}

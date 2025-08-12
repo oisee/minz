@@ -305,6 +305,9 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 		g.generatePrintHelpers()
 	}
 	
+	// Generate standard library routines
+	g.generateStdlibRoutines()
+	
 	// Write footer
 	g.writeFooter()
 
@@ -4071,6 +4074,265 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    DB 4, \"true\"      ; Length + data")
 	g.emit("bool_false_str:")
 	g.emit("    DB 5, \"false\"     ; Length + data")
+	g.emit("")
+}
+
+// generateStdlibRoutines generates standard library runtime routines
+func (g *Z80Generator) generateStdlibRoutines() {
+	g.emit("\n; Standard library routines")
+	
+	// Clear screen routine
+	g.emit("cls:")
+	switch g.targetPlatform {
+	case "cpm":
+		// CP/M clear screen using ANSI escape codes
+		g.emit("    LD C, 2            ; BDOS function 2 (console output)")
+		g.emit("    LD E, 27           ; ESC character")
+		g.emit("    CALL 5             ; Call BDOS")
+		g.emit("    LD E, '['          ; [")
+		g.emit("    CALL 5")
+		g.emit("    LD E, '2'          ; 2")
+		g.emit("    CALL 5")
+		g.emit("    LD E, 'J'          ; J (clear screen)")
+		g.emit("    CALL 5")
+	case "msx":
+		g.emit("    CALL $00C3         ; MSX BIOS CLS")
+	case "cpc", "amstrad":
+		g.emit("    CALL $BC14         ; CPC SCR CLEAR")
+	default: // ZX Spectrum
+		g.emit("    LD HL, $4000       ; Screen start")
+		g.emit("    LD DE, $4001")
+		g.emit("    LD BC, $17FF       ; Screen size - 1")
+		g.emit("    LD (HL), 0")
+		g.emit("    LDIR               ; Clear screen")
+		g.emit("    LD HL, $5800       ; Attribute start")
+		g.emit("    LD DE, $5801")
+		g.emit("    LD BC, $02FF       ; Attribute size - 1")
+		g.emit("    LD (HL), $38       ; White ink on black paper")
+		g.emit("    LDIR               ; Clear attributes")
+	}
+	g.emit("    RET")
+	g.emit("")
+	
+	// Print newline
+	g.emit("print_newline:")
+	switch g.targetPlatform {
+	case "cpm":
+		g.emit("    LD C, 2            ; BDOS function 2")
+		g.emit("    LD E, 13           ; CR")
+		g.emit("    CALL 5")
+		g.emit("    LD E, 10           ; LF")
+		g.emit("    CALL 5")
+	case "msx":
+		g.emit("    LD A, 13           ; CR")
+		g.emit("    CALL $00A2         ; MSX BIOS CHPUT")
+		g.emit("    LD A, 10           ; LF")
+		g.emit("    CALL $00A2")
+	case "cpc", "amstrad":
+		g.emit("    LD A, 13           ; CR")
+		g.emit("    CALL $BB5A         ; CPC TXT OUTPUT")
+		g.emit("    LD A, 10           ; LF")
+		g.emit("    CALL $BB5A")
+	default: // ZX Spectrum
+		g.emit("    LD A, 13           ; CR")
+		g.emit("    RST 16")
+	}
+	g.emit("    RET")
+	g.emit("")
+	
+	// Print hex u8
+	g.emit("print_hex_u8:")
+	g.emit("    PUSH AF            ; Save value")
+	g.emit("    RRA")
+	g.emit("    RRA")
+	g.emit("    RRA")
+	g.emit("    RRA                ; High nibble to low")
+	g.emit("    CALL print_hex_nibble")
+	g.emit("    POP AF             ; Restore value")
+	g.emit("    ; Fall through to print low nibble")
+	g.emit("print_hex_nibble:")
+	g.emit("    AND $0F            ; Isolate low nibble")
+	g.emit("    ADD A, '0'         ; Convert to ASCII")
+	g.emit("    CP '9' + 1")
+	g.emit("    JR C, print_hex_digit")
+	g.emit("    ADD A, 'A' - '0' - 10  ; Adjust for A-F")
+	g.emit("print_hex_digit:")
+	switch g.targetPlatform {
+	case "cpm":
+		g.emit("    PUSH BC")
+		g.emit("    PUSH DE")
+		g.emit("    LD E, A")
+		g.emit("    LD C, 2")
+		g.emit("    CALL 5")
+		g.emit("    POP DE")
+		g.emit("    POP BC")
+	case "msx":
+		g.emit("    CALL $00A2         ; MSX BIOS CHPUT")
+	case "cpc", "amstrad":
+		g.emit("    CALL $BB5A         ; CPC TXT OUTPUT")
+	default:
+		g.emit("    RST 16             ; ZX Spectrum print")
+	}
+	g.emit("    RET")
+	g.emit("")
+	
+	// ZX Spectrum specific routines
+	if g.targetPlatform == "" || g.targetPlatform == "zxspectrum" || g.targetPlatform == "zx" {
+		// Set border color
+		g.emit("zx_set_border:")
+		g.emit("    POP HL             ; Return address")
+		g.emit("    POP BC             ; Get color argument")
+		g.emit("    PUSH HL            ; Restore return address")
+		g.emit("    LD A, C            ; Color to A")
+		g.emit("    AND 7              ; Mask to 0-7")
+		g.emit("    OUT (254), A       ; Set border")
+		g.emit("    RET")
+		g.emit("")
+		
+		// Clear ZX screen (same as cls for ZX)
+		g.emit("zx_clear_screen:")
+		g.emit("    JP cls             ; Use standard cls")
+		g.emit("")
+		
+		// Set pixel
+		g.emit("zx_set_pixel:")
+		g.emit("    ; TODO: Implement pixel setting")
+		g.emit("    ; For now, just return")
+		g.emit("    RET")
+		g.emit("")
+		
+		// Set ink color
+		g.emit("zx_set_ink:")
+		g.emit("    ; TODO: Implement ink color setting")
+		g.emit("    RET")
+		g.emit("")
+		
+		// Set paper color
+		g.emit("zx_set_paper:")
+		g.emit("    ; TODO: Implement paper color setting")
+		g.emit("    RET")
+		g.emit("")
+		
+		// Input routines
+		g.emit("; Input routines")
+		
+		// Read keyboard - returns key code in A, 0 if no key
+		g.emit("zx_read_keyboard:")
+		g.emit("    ; Scan keyboard matrix")
+		g.emit("    LD BC, $FEFE       ; First keyboard row")
+		g.emit("    IN A, (C)          ; Read keyboard")
+		g.emit("    CPL                ; Invert bits")
+		g.emit("    AND $1F            ; Mask relevant bits")
+		g.emit("    RET Z              ; Return 0 if no key")
+		g.emit("    ; Simple mapping - just return raw value for now")
+		g.emit("    RET")
+		g.emit("")
+		
+		// Wait for key press - blocks until key pressed
+		g.emit("zx_wait_key:")
+		g.emit("wait_key_loop:")
+		g.emit("    CALL zx_read_keyboard")
+		g.emit("    OR A               ; Test if zero")
+		g.emit("    JR Z, wait_key_loop ; Loop if no key")
+		g.emit("    RET                ; Return key code in A")
+		g.emit("")
+		
+		// Check if specific key is pressed
+		g.emit("zx_is_key_pressed:")
+		g.emit("    POP HL             ; Return address")
+		g.emit("    POP BC             ; Get key code")
+		g.emit("    PUSH HL            ; Restore return address")
+		g.emit("    ; TODO: Implement specific key checking")
+		g.emit("    LD A, 0            ; Return false for now")
+		g.emit("    RET")
+		g.emit("")
+		
+		// Sound routines
+		g.emit("; Sound routines")
+		
+		// Beep sound
+		g.emit("zx_beep:")
+		g.emit("    POP HL             ; Return address")
+		g.emit("    POP DE             ; Duration")
+		g.emit("    POP BC             ; Pitch")
+		g.emit("    PUSH HL            ; Restore return address")
+		g.emit("    ; Simple beep using OUT to speaker")
+		g.emit("beep_loop:")
+		g.emit("    LD A, 16           ; Speaker bit")
+		g.emit("    OUT (254), A       ; Speaker on")
+		g.emit("    PUSH BC")
+		g.emit("beep_delay1:")
+		g.emit("    DEC BC")
+		g.emit("    LD A, B")
+		g.emit("    OR C")
+		g.emit("    JR NZ, beep_delay1")
+		g.emit("    POP BC")
+		g.emit("    XOR A              ; Speaker off")
+		g.emit("    OUT (254), A")
+		g.emit("    PUSH BC")
+		g.emit("beep_delay2:")
+		g.emit("    DEC BC")
+		g.emit("    LD A, B")
+		g.emit("    OR C")
+		g.emit("    JR NZ, beep_delay2")
+		g.emit("    POP BC")
+		g.emit("    DEC DE")
+		g.emit("    LD A, D")
+		g.emit("    OR E")
+		g.emit("    JR NZ, beep_loop")
+		g.emit("    RET")
+		g.emit("")
+		
+		// Click sound
+		g.emit("zx_click:")
+		g.emit("    LD A, 16           ; Quick click")
+		g.emit("    OUT (254), A")
+		g.emit("    LD B, 10")
+		g.emit("click_delay:")
+		g.emit("    DJNZ click_delay")
+		g.emit("    XOR A")
+		g.emit("    OUT (254), A")
+		g.emit("    RET")
+		g.emit("")
+	}
+	
+	// Math functions
+	g.emit("abs:")
+	g.emit("    POP HL             ; Return address")
+	g.emit("    POP BC             ; Get argument")
+	g.emit("    PUSH HL            ; Restore return address")
+	g.emit("    LD A, C            ; Value to A")
+	g.emit("    OR A               ; Test sign")
+	g.emit("    JP P, abs_done     ; If positive, done")
+	g.emit("    NEG                ; Negate if negative")
+	g.emit("abs_done:")
+	g.emit("    RET")
+	g.emit("")
+	
+	g.emit("min:")
+	g.emit("    POP HL             ; Return address")
+	g.emit("    POP BC             ; First argument")
+	g.emit("    POP DE             ; Second argument")
+	g.emit("    PUSH HL            ; Restore return address")
+	g.emit("    LD A, C            ; First value")
+	g.emit("    CP E               ; Compare with second")
+	g.emit("    JR C, min_done     ; If first < second, keep first")
+	g.emit("    LD A, E            ; Otherwise use second")
+	g.emit("min_done:")
+	g.emit("    RET")
+	g.emit("")
+	
+	g.emit("max:")
+	g.emit("    POP HL             ; Return address")
+	g.emit("    POP BC             ; First argument")
+	g.emit("    POP DE             ; Second argument")
+	g.emit("    PUSH HL            ; Restore return address")
+	g.emit("    LD A, C            ; First value")
+	g.emit("    CP E               ; Compare with second")
+	g.emit("    JR NC, max_done    ; If first >= second, keep first")
+	g.emit("    LD A, E            ; Otherwise use second")
+	g.emit("max_done:")
+	g.emit("    RET")
 	g.emit("")
 }
 

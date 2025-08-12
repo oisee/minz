@@ -1,0 +1,8 @@
+interface Drawable {
+    cast<Shape> {
+        Circle -> {}
+        Rectangle -> {}
+    }
+    
+    fun draw() -> void;
+}

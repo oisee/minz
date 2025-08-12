@@ -1,0 +1,25 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.basic_test.add_five$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 5
+      2: r4 = r2 + r3
+      3: return
+
+Function ...examples.basic_test.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = 10
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call ...examples.basic_test.add_five$u8
+      6: store result, r4
+      7: return
+

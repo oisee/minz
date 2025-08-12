@@ -8,6 +8,7 @@ import (
 
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/codegen"
+	"github.com/minz/minzc/pkg/ctie"
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/mir"
 	"github.com/minz/minzc/pkg/module"
@@ -24,6 +25,8 @@ var (
 	debug        bool
 	enableSMC    bool
 	enableTAS    bool
+	enableCTIE   bool   // Enable Compile-Time Interface Execution
+	ctieDebug    bool   // Debug CTIE decisions
 	tasFile      string
 	tasReplay    string
 	backend      string
@@ -156,6 +159,8 @@ func init() {
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
 	rootCmd.Flags().StringVar(&visualizeMIR, "viz", "", "generate MIR visualization in DOT format")
 	rootCmd.Flags().BoolVar(&dumpAST, "dump-ast", false, "dump AST in JSON format to stdout")
+	rootCmd.Flags().BoolVar(&enableCTIE, "enable-ctie", false, "enable Compile-Time Interface Execution (functions execute at compile-time)")
+	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 }
 
 func main() {
@@ -254,6 +259,26 @@ func compile(sourceFile string) error {
 	} else if !supportsSMC && enableSMC {
 		if debug {
 			fmt.Printf("Warning: Backend %s does not support self-modifying code\n", backend)
+		}
+	}
+
+	// Run CTIE pass if requested (before regular optimizations)
+	if enableCTIE || optimize {
+		ctieEngine := ctie.NewEngine(irModule, astFile, analyzer)
+		ctieConfig := ctie.DefaultConfig()
+		ctieConfig.DebugOutput = ctieDebug || debug
+		ctieEngine.SetConfig(ctieConfig)
+		
+		if err := ctieEngine.Process(); err != nil {
+			return fmt.Errorf("CTIE error: %w", err)
+		}
+		
+		if ctieDebug || debug {
+			stats := ctieEngine.GetStatistics()
+			if stats.FunctionsExecuted > 0 {
+				fmt.Printf("CTIE: Executed %d functions at compile-time, eliminated %d bytes\n", 
+					stats.FunctionsExecuted, stats.BytesEliminated)
+			}
 		}
 	}
 

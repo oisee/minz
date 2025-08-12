@@ -1,0 +1,48 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_ctie_simple.add_const$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...test_ctie_simple.multiply_const$u8(x: u8) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 10
+      2: r4 = r2 * r3
+      3: return r4
+
+Function ...test_ctie_simple.main() -> void
+  @smc
+  Locals:
+    r1 = result1: u16
+    r7 = result2: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = 3
+      2: r4 = 5
+      3: r5 = 3
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: PATCH_PARAM
+      8: r6 = call ...test_ctie_simple.add_const$u8$u8
+      9: store result1, r6
+     10: r8 = 4
+     11: r9 = 4
+     12: PATCH_TEMPLATE
+     13: PATCH_TARGET
+     14: PATCH_PARAM
+     15: r10 = call ...test_ctie_simple.multiply_const$u8
+     16: store result2, r10
+     17: LOAD_STRING
+     18: PRINT_STRING ; Print "CTIE test compiled successfully!" (32 chars via loop)
+     19: LOAD_STRING
+     20: PRINT_STRING ; Print "Results computed (maybe at compile-time!)" (41 chars via loop)
+     21: return
+

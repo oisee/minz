@@ -1,0 +1,182 @@
+// Comprehensive CTIE Test Suite
+// Testing all compile-time execution capabilities
+
+// === Basic Arithmetic Const Evaluation ===
+fun add_const(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun sub_const(a: u8, b: u8) -> u8 {
+    return a - b;
+}
+
+fun mul_const(a: u8, b: u8) -> u8 {
+    return a * b;
+}
+
+fun div_const(a: u8, b: u8) -> u8 {
+    return a / b;
+}
+
+// === Recursive Function Evaluation ===
+fun factorial(n: u8) -> u16 {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+fun fibonacci(n: u8) -> u16 {
+    if n <= 1 {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+// === Complex Const Calculations ===
+fun power(base: u8, exp: u8) -> u16 {
+    if exp == 0 {
+        return 1;
+    }
+    let half = power(base, exp / 2);
+    if exp % 2 == 0 {
+        return half * half;
+    }
+    return base * half * half;
+}
+
+fun gcd(a: u8, b: u8) -> u8 {
+    if b == 0 {
+        return a;
+    }
+    return gcd(b, a % b);
+}
+
+// === String/Array Length Calculations ===
+fun strlen_hello() -> u8 {
+    return 13;  // "Hello, World!" length
+}
+
+fun array_sum_const() -> u16 {
+    // Sum of [1, 2, 3, 4, 5]
+    return 1 + 2 + 3 + 4 + 5;
+}
+
+// === Configuration Constants ===
+fun get_screen_width() -> u16 {
+    return 256;
+}
+
+fun get_screen_height() -> u16 {
+    return 192;
+}
+
+fun get_screen_area() -> u16 {
+    // Note: This will overflow for 256*192 but demonstrates CTIE
+    return 256 * 192;  // Direct calculation for now
+}
+
+// === Conditional Const Evaluation ===
+fun max_const(a: u8, b: u8) -> u8 {
+    if a > b {
+        return a;
+    }
+    return b;
+}
+
+fun min_const(a: u8, b: u8) -> u8 {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+fun abs_const(x: i8) -> u8 {
+    if x < 0 {
+        return -x;
+    }
+    return x;
+}
+
+// === Chained Const Functions ===
+fun double(x: u8) -> u8 {
+    return x * 2;
+}
+
+fun triple(x: u8) -> u8 {
+    return x * 3;
+}
+
+fun chain_calc(x: u8) -> u8 {
+    let doubled = double(x);
+    return triple(doubled);
+}
+
+// === Main Test Function ===
+fun main() -> void {
+    // All these should be computed at compile-time!
+    
+    // Basic arithmetic
+    let sum = add_const(10, 20);        // Should become: LD A, 30
+    let diff = sub_const(50, 8);        // Should become: LD A, 42
+    let prod = mul_const(6, 7);         // Should become: LD A, 42
+    let quot = div_const(100, 5);       // Should become: LD A, 20
+    
+    // Recursive functions
+    let fact5 = factorial(5);           // Should become: LD HL, 120
+    let fib7 = fibonacci(7);            // Should become: LD HL, 13
+    
+    // Complex calculations
+    let pow23 = power(2, 3);            // Should become: LD HL, 8
+    let gcd48_18 = gcd(48, 18);         // Should become: LD A, 6
+    
+    // String/array
+    let hello_len = strlen_hello();     // Should become: LD A, 13
+    let arr_sum = array_sum_const();    // Should become: LD HL, 15
+    
+    // Configuration
+    let width = get_screen_width();     // Should become: LD HL, 256
+    let height = get_screen_height();   // Should become: LD HL, 192
+    let area = get_screen_area();       // Should become: LD HL, 49152
+    
+    // Conditionals
+    let max_val = max_const(10, 20);    // Should become: LD A, 20
+    let min_val = min_const(10, 20);    // Should become: LD A, 10
+    let abs_val = abs_const(-42);       // Should become: LD A, 42
+    
+    // Chained functions
+    let chained = chain_calc(7);        // Should become: LD A, 42
+    
+    // Print results to verify
+    print("CTIE Test Results:");
+    print("Basic: ");
+    print_u8(sum);
+    print(", ");
+    print_u8(diff);
+    print(", ");
+    print_u8(prod);
+    print(", ");
+    print_u8(quot);
+    
+    print("\nRecursive: ");
+    print_u16(fact5);
+    print(", ");
+    print_u16(fib7);
+    
+    print("\nComplex: ");
+    print_u16(pow23);
+    print(", ");
+    print_u8(gcd48_18);
+    
+    print("\nScreen: ");
+    print_u16(width);
+    print("x");
+    print_u16(height);
+    print("=");
+    print_u16(area);
+    
+    print("\nChained: ");
+    print_u8(chained);
+    
+    print("\n\nAll values computed at compile-time!");
+}

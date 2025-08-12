@@ -1,0 +1,22 @@
+// Test if pattern matching is implemented
+
+enum Color {
+    Red,
+    Green,
+    Blue
+}
+
+fun get_value(c: Color) -> u8 {
+    // Try case statement
+    case c {
+        Color.Red => 1,
+        Color.Green => 2,
+        Color.Blue => 3,
+    }
+}
+
+fun main() -> void {
+    let color = Color.Red;
+    let val: u8 = get_value(color);
+    print_u8(val);
+}

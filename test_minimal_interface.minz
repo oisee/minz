@@ -1,0 +1,8 @@
+// Minimal interface test
+interface Drawable {
+    fun draw() -> void;
+}
+
+fun main() -> void {
+    @print("Interface compiled successfully!");
+}

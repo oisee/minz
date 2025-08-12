@@ -1,0 +1,68 @@
+; MinZ generated code
+; Generated: 2025-08-11 21:32:09
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.basic_test.add_five$u8
+...examples.basic_test.add_five$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+...examples.basic_test.add_five$u8_param_x.op:
+...examples.basic_test.add_five$u8_param_x equ ...examples.basic_test.add_five$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 2 already in A
+    ; r3 = 5
+    LD A, 5
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 + r3
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+...examples.basic_test.add_five$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+...examples.basic_test.add_five$u8_store_addr.op:
+...examples.basic_test.add_five$u8_store_addr equ ...examples.basic_test.add_five$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.basic_test.main
+...examples.basic_test.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD D, A         ; Store to physical register D
+    ; r3 = 10
+    LD A, 10
+    LD E, A         ; Store to physical register E
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...examples.basic_test.add_five$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...examples.basic_test.add_five$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...examples.basic_test.add_five$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (...examples.basic_test.add_five$u8_param_x+1), A   ; Patch parameter immediate
+    ; r4 = call ...examples.basic_test.add_five$u8
+    ; Call to ...examples.basic_test.add_five$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.basic_test.add_five$u8
+    ; store result, r4
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

@@ -1,0 +1,32 @@
+// Final CTIE verification test
+// This should demonstrate working compile-time execution
+
+fun add_numbers(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun multiply_numbers(x: u8, y: u8) -> u16 {
+    return x * y;
+}
+
+fun get_constant() -> u8 {
+    return 42;
+}
+
+fun calculate_complex() -> u8 {
+    return (10 + 20) * 2 - 15;
+}
+
+fun main() -> void {
+    // All these should be computed at compile-time!
+    let sum = add_numbers(15, 27);      // Should become: LD A, 42
+    let product = multiply_numbers(6, 7); // Should become: LD HL, 42
+    let constant = get_constant();       // Should become: LD A, 42
+    let complex = calculate_complex();   // Should become: LD A, 45
+    
+    // Print to verify
+    print_u8(sum);
+    print_u16(product);
+    print_u8(constant);
+    print_u8(complex);
+}

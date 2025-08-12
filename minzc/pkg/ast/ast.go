@@ -336,6 +336,7 @@ type InterfaceDecl struct {
 	Name           string
 	GenericParams  []*GenericParam
 	Methods        []*InterfaceMethod
+	CastBlocks     []*CastInterfaceBlock  // NEW: Cast interface blocks
 	IsPublic       bool
 	StartPos       Position
 	EndPos         Position
@@ -353,6 +354,38 @@ type InterfaceMethod struct {
 	ReturnType Type
 	StartPos   Position
 	EndPos     Position
+}
+
+// CastInterfaceBlock represents a cast<T> block in an interface
+type CastInterfaceBlock struct {
+	TargetType   string            // Simplified: just type name for now
+	CastRules    []*CastRule
+	StartPos     Position
+	EndPos       Position
+}
+
+// CastRule represents a type casting rule (e.g., Circle -> {})
+type CastRule struct {
+	FromType     string      // Simplified: just type name for now  
+	Transform    *CastTransform
+	StartPos     Position
+	EndPos       Position
+}
+
+// CastTransform represents the transformation block (currently just {})
+type CastTransform struct {
+	Fields       []*CastField    // Future: field mappings
+	IsEmpty      bool           // For now, all are empty {}
+	StartPos     Position
+	EndPos       Position
+}
+
+// CastField represents a field mapping in a cast transform (future)
+type CastField struct {
+	Name         string
+	Value        Expression      // Expression for the field value
+	StartPos     Position
+	EndPos       Position
 }
 
 // ImplBlock represents an implementation of an interface for a type

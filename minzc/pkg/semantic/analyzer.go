@@ -48,6 +48,9 @@ type Analyzer struct {
 	errorPropagationContext *ErrorPropagationContext // Track error propagation state
 	targetBackend         string // Target backend for @target directive
 	targetPlatform        string // Target platform (zxspectrum, cpm, etc.)
+	// castInterfaces        map[string]*CastInterface // Cast interfaces for compile-time dispatch (future)
+	simpleCastInterfaces  map[string]*SimpleCastInterface // Simplified cast interfaces (v0.11.0)
+	builtinModules        map[string]*BuiltinModule // Built-in module registry
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -64,6 +67,9 @@ func NewAnalyzer() *Analyzer {
 		mirInterpreter:    interpreter.NewMIRInterpreter(),
 		targetBackend:     "z80", // Default backend
 		targetPlatform:    "zxspectrum", // Default platform
+		// castInterfaces:    make(map[string]*CastInterface), // future
+		simpleCastInterfaces: make(map[string]*SimpleCastInterface),
+		builtinModules:    InitBuiltinModules(),
 	}
 	
 	return analyzer
@@ -391,17 +397,44 @@ func (a *Analyzer) addBuiltins() {
 func (a *Analyzer) processImport(imp *ast.ImportStmt) error {
 	moduleName := imp.Path
 	
-	
 	// Check if module is already loaded
 	if a.registeredModules[moduleName] {
 		// Module already loaded - no need to do anything for duplicate imports
 		return nil
 	}
 	
+	// First check built-in modules
+	if builtinModule, ok := a.builtinModules[moduleName]; ok {
+		// Register the built-in module
+		if err := a.RegisterModule(builtinModule, imp.Alias); err != nil {
+			return fmt.Errorf("failed to register module %s: %w", moduleName, err)
+		}
+		a.registeredModules[moduleName] = true
+		return nil
+	}
+	
+	// Handle legacy module names for compatibility
+	legacyMap := map[string]string{
+		"screen": "zx.screen",
+		"input":  "zx.input",
+		"io":     "zx.io",
+		"sound":  "zx.sound",
+	}
+	
+	if mappedName, ok := legacyMap[moduleName]; ok {
+		if builtinModule, ok := a.builtinModules[mappedName]; ok {
+			if err := a.RegisterModule(builtinModule, imp.Alias); err != nil {
+				return fmt.Errorf("failed to register module %s: %w", mappedName, err)
+			}
+			a.registeredModules[mappedName] = true
+			return nil
+		}
+	}
+	
 	// Try to load the module from file
 	loadedModule, err := a.moduleLoader.LoadModule(moduleName)
 	if err != nil {
-		// Fall back to hardcoded modules for backward compatibility
+		// Fall back to old hardcoded modules for backward compatibility
 		if moduleName == "zx.screen" || moduleName == "screen" {
 			// Check if screen module is already registered
 			if !a.registeredModules["zx.screen"] {
@@ -464,6 +497,10 @@ func (a *Analyzer) registerModuleAlias(originalModule, alias string) {
 			// Create an alias symbol pointing to the original
 			a.currentScope.Define(aliasName, symbol)
 			aliasCount++
+			
+			if os.Getenv("DEBUG") != "" {
+				fmt.Printf("DEBUG: Created alias %s -> %s\n", aliasName, name)
+			}
 		}
 	}
 	
@@ -471,12 +508,19 @@ func (a *Analyzer) registerModuleAlias(originalModule, alias string) {
 	if aliasCount == 0 {
 		fmt.Printf("Warning: No symbols found with prefix '%s.' to alias to '%s.'\n", originalModule, alias)
 		fmt.Printf("Available symbols: ")
+		count := 0
 		for name := range a.currentScope.symbols {
-			if strings.Contains(name, originalModule) {
+			if count < 20 {  // Limit output
 				fmt.Printf("%s ", name)
+				count++
 			}
 		}
+		if count >= 20 {
+			fmt.Printf("... (and %d more)", len(a.currentScope.symbols)-20)
+		}
 		fmt.Printf("\n")
+	} else if os.Getenv("DEBUG") != "" {
+		fmt.Printf("DEBUG: Created %d aliases from %s to %s\n", aliasCount, originalModule, alias)
 	}
 }
 
@@ -515,12 +559,32 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 					return fmt.Errorf("invalid return type for function %s: %w", decl.Name, err)
 				}
 				
+				// Convert parameters to get proper type information
+				var paramTypes []ir.Type
+				for _, param := range decl.Params {
+					paramType, err := a.convertType(param.Type)
+					if err != nil {
+						return fmt.Errorf("invalid parameter type for function %s: %w", decl.Name, err)
+					}
+					paramTypes = append(paramTypes, paramType)
+				}
 				
-				a.currentScope.Define(fnName, &FuncSymbol{
+				funcSym := &FuncSymbol{
 					Name:       fnName,
 					ReturnType: returnType,
 					Params:     decl.Params,
-				})
+					Type: &ir.FunctionType{
+						Params: paramTypes,
+						Return: returnType,
+					},
+				}
+				
+				// Register with unmangled name for module access
+				a.currentScope.Define(fnName, funcSym)
+				
+				// Also register with mangled name for overloading support
+				mangledName := generateMangledNameFromTypes(fnName, paramTypes)
+				a.currentScope.Define(mangledName, funcSym)
 			}
 		case *ast.ConstDecl:
 			if decl.IsPublic {
@@ -581,6 +645,21 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 			if err := a.analyzeStructDecl(d); err != nil {
 				// Log warning but continue
 				fmt.Printf("Warning: failed to analyze struct %s: %v\n", d.Name, err)
+			}
+		case *ast.FunctionDecl:
+			// Analyze function declarations (to generate code for them)
+			if d.IsPublic || d.IsExport {
+				// Temporarily adjust the function name to include module prefix
+				originalName := d.Name
+				d.Name = modulePrefix + "." + d.Name
+				
+				if err := a.analyzeFunctionDecl(d); err != nil {
+					// Log warning but continue
+					fmt.Printf("Warning: failed to analyze function %s: %v\n", d.Name, err)
+				}
+				
+				// Restore original name
+				d.Name = originalName
 			}
 		case *ast.EnumDecl:
 			// Analyze enum types
@@ -3534,6 +3613,20 @@ func (a *Analyzer) analyzeBinaryExpr(bin *ast.BinaryExpr, irFunc *ir.Function) (
 		op = ir.OpLogicalAnd
 	case "||", "or":
 		op = ir.OpLogicalOr
+	case "??":
+		// Nil coalescing operator - if left is error/nil, return right, else return left
+		// This sets up the error propagation context for @error()
+		leftType := a.exprTypes[bin.Left]
+		a.enterErrorPropagationContext(rightReg, leftType)
+		defer a.exitErrorPropagationContext()
+		
+		// For now, just implement as: left ?? right = right
+		// This allows @error() to work in the right-hand expression
+		// TODO: Implement proper nil/error checking when error types are fully implemented
+		
+		// Simply return the right value for now
+		// This makes the ?? operator work as a context marker for @error()
+		return rightReg, nil
 	default:
 		return 0, fmt.Errorf("unsupported binary operator: %s", bin.Operator)
 	}
@@ -4535,11 +4628,17 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 
 // analyzeBuiltinCall analyzes a built-in function call
 func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call *ast.CallExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Strip module prefix if present (e.g., "std.cls" -> "cls")
+	baseFuncName := funcName
+	if idx := strings.LastIndex(funcName, "."); idx >= 0 {
+		baseFuncName = funcName[idx+1:]
+	}
+	
 	// Get function type (may be nil for polymorphic functions like print_string)
 	funcType := funcSym.Type
 	
 	// Special handling for print_string which accepts multiple types
-	if funcName == "print_string" {
+	if baseFuncName == "print_string" {
 		if len(call.Arguments) != 1 {
 			return 0, fmt.Errorf("print_string expects 1 argument, got %d", len(call.Arguments))
 		}
@@ -4572,7 +4671,7 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 		}
 		
 		// Special handling for built-in functions
-		if funcName == "print_string" && i == 0 {
+		if baseFuncName == "print_string" && i == 0 {
 			// print_string accepts String, LString, or *u8
 			validType := false
 			switch t := argType.(type) {
@@ -4586,7 +4685,7 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 			if !validType {
 				return 0, fmt.Errorf("argument to print_string must be String, LString, or *u8, got %s", argType)
 			}
-		} else if funcName == "len" && i == 0 {
+		} else if baseFuncName == "len" && i == 0 {
 			// Accept pointer to array or array directly
 			switch argType.(type) {
 			case *ir.ArrayType:
@@ -4596,7 +4695,7 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 			default:
 				return 0, fmt.Errorf("argument to len must be an array or pointer to array, got %s", argType)
 			}
-		} else if (funcName == "memset" || funcName == "memcpy") && i == 0 {
+		} else if (baseFuncName == "memset" || baseFuncName == "memcpy") && i == 0 {
 			// First argument to memset/memcpy should be a pointer
 			// Accept *[N]T as *T for compatibility
 			if ptr, ok := argType.(*ir.PointerType); ok {
@@ -4623,7 +4722,7 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 				return 0, fmt.Errorf("argument %d to %s must be a pointer, got %s", 
 					i, funcName, argType)
 			}
-		} else if funcName == "memcpy" && i == 1 {
+		} else if baseFuncName == "memcpy" && i == 1 {
 			// Second argument to memcpy (src) - similar handling but without mutability requirement
 			if ptr, ok := argType.(*ir.PointerType); ok {
 				if arr, ok := ptr.Base.(*ir.ArrayType); ok {
@@ -4661,7 +4760,7 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 	}
 	
 	// Generate appropriate IR for each built-in function
-	switch funcName {
+	switch baseFuncName {
 	case "print":
 		// For print, we'll generate a special OpPrint instruction
 		// The code generator will handle the Z80 implementation
@@ -4769,6 +4868,181 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 			Symbol:  "print_string",
 			Args:    []ir.Register{argRegs[0]},
 			Comment: "Call runtime print_string",
+		})
+		return 0, nil
+		
+	case "cls":
+		// cls() - clear screen
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "cls",
+			Comment: "Clear screen",
+		})
+		return 0, nil
+		
+	case "println":
+		// println(value) - print with newline
+		// Polymorphic - print the value then a newline
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpPrint,
+			Src1:    argRegs[0],
+			Comment: "Print value",
+		})
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "print_newline",
+			Comment: "Print newline",
+		})
+		return 0, nil
+		
+	case "hex":
+		// hex(value: u8) - print as hexadecimal
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "print_hex_u8",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Print as hex",
+		})
+		return 0, nil
+		
+	case "abs":
+		// abs(value: i8) -> u8
+		resultReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Dest:    resultReg,
+			Symbol:  "abs",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Absolute value",
+		})
+		return resultReg, nil
+		
+	case "min":
+		// min(a: u8, b: u8) -> u8
+		resultReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Dest:    resultReg,
+			Symbol:  "min",
+			Args:    []ir.Register{argRegs[0], argRegs[1]},
+			Comment: "Minimum value",
+		})
+		return resultReg, nil
+		
+	case "max":
+		// max(a: u8, b: u8) -> u8
+		resultReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Dest:    resultReg,
+			Symbol:  "max",
+			Args:    []ir.Register{argRegs[0], argRegs[1]},
+			Comment: "Maximum value",
+		})
+		return resultReg, nil
+		
+	// ZX Spectrum screen functions
+	case "set_border":
+		// set_border(color: u8)
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "zx_set_border",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Set border color",
+		})
+		return 0, nil
+		
+	case "clear":
+		// clear() - clear screen (ZX Spectrum specific)
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "zx_clear_screen",
+			Comment: "Clear ZX Spectrum screen",
+		})
+		return 0, nil
+		
+	case "set_pixel":
+		// set_pixel(x: u8, y: u8)
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "zx_set_pixel",
+			Args:    []ir.Register{argRegs[0], argRegs[1]},
+			Comment: "Set pixel at x,y",
+		})
+		return 0, nil
+		
+	case "set_ink":
+		// set_ink(color: u8)
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "zx_set_ink",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Set ink color",
+		})
+		return 0, nil
+		
+	case "set_paper":
+		// set_paper(color: u8)
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "zx_set_paper",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Set paper color",
+		})
+		return 0, nil
+		
+	// Input functions
+	case "read_keyboard":
+		// read_keyboard() -> u8
+		resultReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Dest:    resultReg,
+			Symbol:  "zx_read_keyboard",
+			Comment: "Read keyboard state",
+		})
+		return resultReg, nil
+		
+	case "wait_key":
+		// wait_key() -> u8
+		resultReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Dest:    resultReg,
+			Symbol:  "zx_wait_key",
+			Comment: "Wait for key press",
+		})
+		return resultReg, nil
+		
+	case "is_key_pressed":
+		// is_key_pressed(key: u8) -> bool
+		resultReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Dest:    resultReg,
+			Symbol:  "zx_is_key_pressed",
+			Args:    []ir.Register{argRegs[0]},
+			Comment: "Check if key is pressed",
+		})
+		return resultReg, nil
+		
+	// Sound functions
+	case "beep":
+		// beep(duration: u16, pitch: u16)
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "zx_beep",
+			Args:    []ir.Register{argRegs[0], argRegs[1]},
+			Comment: "Play beep sound",
+		})
+		return 0, nil
+		
+	case "click":
+		// click()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpCall,
+			Symbol:  "zx_click",
+			Comment: "Play click sound",
 		})
 		return 0, nil
 		
@@ -6802,6 +7076,11 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 
 // typesCompatible checks if two types are compatible for assignment
 func (a *Analyzer) typesCompatible(declared, inferred ir.Type) bool {
+	// Handle nil types (for polymorphic functions)
+	if declared == nil || inferred == nil {
+		return true // Allow any type for polymorphic parameters
+	}
+	
 	// Handle basic types
 	declBasic, declOk := declared.(*ir.BasicType)
 	infBasic, infOk := inferred.(*ir.BasicType)
@@ -7030,7 +7309,13 @@ func (a *Analyzer) analyzeArrayInitializer(arr *ast.ArrayInitializer, irFunc *ir
 // analyzeInterfaceDecl analyzes an interface declaration
 func (a *Analyzer) analyzeInterfaceDecl(decl *ast.InterfaceDecl) error {
 	if debug {
-		fmt.Printf("DEBUG: Analyzing interface %s with %d methods\n", decl.Name, len(decl.Methods))
+		fmt.Printf("DEBUG: Analyzing interface %s with %d methods and %d cast blocks\n", 
+			decl.Name, len(decl.Methods), len(decl.CastBlocks))
+	}
+
+	// NEW: Analyze cast interfaces if present
+	if len(decl.CastBlocks) > 0 {
+		a.analyzeSimpleCastInterface(decl)
 	}
 	
 	// Create interface symbol
@@ -7414,6 +7699,12 @@ func (a *Analyzer) findInterfaceMethod(objType ir.Type, methodName string) *Func
 	switch t := objType.(type) {
 	case *ir.StructType:
 		typeName = t.Name
+		// Remove module prefix if present for local lookups
+		if idx := strings.LastIndex(typeName, "."); idx >= 0 {
+			baseTypeName := typeName[idx+1:]
+			// We'll try both with and without module prefix
+			typeName = baseTypeName
+		}
 	case *ir.BasicType:
 		// Basic types don't have interface implementations for now
 		return nil
@@ -8181,6 +8472,13 @@ func (a *Analyzer) analyzeErrorPropagation(irFunc *ir.Function) (ir.Register, er
 		return 0, fmt.Errorf("@error without arguments can only be used after ?? operator in error propagation context")
 	}
 	
+	// Return the error register from the context
+	// This allows @error to be used in expressions after ??
+	if a.errorPropagationContext.ErrorRegister != 0 {
+		return a.errorPropagationContext.ErrorRegister, nil
+	}
+	
+	// Fallback to old behavior for compatibility
 	// Get the source and target error types from context
 	sourceErrorType := a.getCurrentErrorSourceType()
 	targetErrorType := irFunc.ErrorType
@@ -8243,9 +8541,10 @@ func (a *Analyzer) analyzeErrorPropagation(irFunc *ir.Function) (ir.Register, er
 
 // ErrorPropagationContext tracks the current error propagation state
 type ErrorPropagationContext struct {
-	InPropagation bool
+	InPropagation   bool
 	SourceErrorType ir.Type
 	TargetErrorType ir.Type
+	ErrorRegister   ir.Register // The register containing the error value
 }
 
 // isInErrorPropagationContext checks if we're currently in an error propagation context
@@ -8259,6 +8558,20 @@ func (a *Analyzer) getCurrentErrorSourceType() ir.Type {
 		return a.errorPropagationContext.SourceErrorType
 	}
 	return nil
+}
+
+// enterErrorPropagationContext enters an error propagation context (after ?? operator)
+func (a *Analyzer) enterErrorPropagationContext(errorReg ir.Register, errorType ir.Type) {
+	a.errorPropagationContext = &ErrorPropagationContext{
+		InPropagation:   true,
+		SourceErrorType: errorType,
+		ErrorRegister:   errorReg,
+	}
+}
+
+// exitErrorPropagationContext exits the error propagation context
+func (a *Analyzer) exitErrorPropagationContext() {
+	a.errorPropagationContext = nil
 }
 
 // areErrorTypesEqual checks if two error types are the same

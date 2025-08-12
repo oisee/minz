@@ -1,0 +1,19 @@
+// Test wildcard pattern
+
+enum Option {
+    Some,
+    None
+}
+
+fun test(opt: Option) -> u8 {
+    case opt {
+        Option.Some => 1,
+        Option.None => 2,
+        _ => 0,  // Default case
+    }
+}
+
+fun main() -> void {
+    let result: u8 = test(Option.Some);
+    print_u8(result);
+}

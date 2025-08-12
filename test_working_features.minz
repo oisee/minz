@@ -1,0 +1,57 @@
+// Test only confirmed working features
+
+// Basic arithmetic
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// Structs
+struct Point {
+    x: u8,
+    y: u8
+}
+
+// Arrays
+fun sum_array(arr: [5]u8) -> u8 {
+    let sum: u8 = 0;
+    for i in 0..5 {
+        sum = sum + arr[i];
+    }
+    return sum;
+}
+
+// Global variables
+global counter: u8 = 0;
+
+// Function overloading
+fun print(val: u8) -> void {
+    print_u8(val);
+}
+
+fun print(val: u16) -> void {
+    print_u16(val);
+}
+
+// Main function
+fun main() -> void {
+    // Test arithmetic
+    let result = add(5, 3);
+    print(result);  // Should print 8
+    
+    // Test struct
+    let p = Point { x: 10, y: 20 };
+    print(p.x);  // Should print 10
+    
+    // Test array
+    let arr: [5]u8 = [1, 2, 3, 4, 5];
+    let total = sum_array(arr);
+    print(total);  // Should print 15
+    
+    // Test global
+    counter = 42;
+    print(counter);  // Should print 42
+    
+    // Test overloading with u16
+    let big: u16 = 1000;
+    print(big);  // Should print 1000
+}

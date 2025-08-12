@@ -1,0 +1,46 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_enum_fixed.get_value$Color(c: Color) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 0
+      2: r4 = r2 == r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: LOAD_PARAM
+     10: r7 = 1
+     11: r8 = r6 == r7
+     12: jump_if_not r8, else_3
+     13: r9 = 2
+     14: return r9
+     15: jump end_if_4
+     16: else_3:
+     17: end_if_4:
+     18: r10 = 3
+     19: return r10
+
+Function test_enum_fixed.main() -> void
+  @smc
+  Locals:
+    r1 = color: u16
+    r3 = val: u8
+  Instructions:
+      0: r2 = 0
+      1: store color, r2
+      2: r4 = load color
+      3: r5 = load color
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: r6 = call test_enum_fixed.get_value$Color
+      8: store val, r6
+      9: r7 = load val
+     10: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     11: return
+

@@ -1,0 +1,10 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_minimal_interface.main() -> void
+  @smc
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Interface compiled successfully!" (32 chars via loop)
+      2: return
+

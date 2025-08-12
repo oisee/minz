@@ -1,0 +1,105 @@
+// Comprehensive test of working features
+
+// 1. Basic types and functions ✓
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// 2. Structs ✓
+struct Point {
+    x: u8,
+    y: u8
+}
+
+// 3. Enums ✓
+enum Status {
+    OK,
+    ERROR
+}
+
+// 4. Arrays ✓
+fun sum_array(arr: [5]u8) -> u8 {
+    let sum: u8 = 0;
+    for i in 0..5 {
+        sum = sum + arr[i];
+    }
+    return sum;
+}
+
+// 5. Global variables ✓
+global counter: u8 = 0;
+
+// 6. Function overloading ✓
+fun print(val: u8) -> void {
+    print_u8(val);
+}
+
+fun print(val: u16) -> void {
+    print_u16(val);
+}
+
+// 7. Error propagation ✓
+fun risky?(x: u8) -> u8 ? {
+    if x == 0 {
+        @error();
+    }
+    return 10 / x;
+}
+
+// 8. Null coalescing ✓
+fun safe_divide(a: u8, b: u8) -> u8 {
+    return risky?(b) ?? 0;
+}
+
+// 9. Interfaces ✓
+interface Drawable {
+    draw() -> void;
+}
+
+struct Circle {
+    radius: u8
+}
+
+impl Circle : Drawable {
+    fun draw() -> void {
+        print_u8(self.radius);
+    }
+}
+
+// 10. Lambdas (should work) ?
+fun test_lambda() -> void {
+    let add_one = |x: u8| => u8 { x + 1 };
+    let result = add_one(5);
+    print_u8(result);
+}
+
+// Main function
+fun main() -> void {
+    // Test basic arithmetic
+    let sum = add(5, 3);
+    print(sum);
+    
+    // Test struct
+    let p = Point { x: 10, y: 20 };
+    print(p.x);
+    
+    // Test array
+    let arr: [5]u8 = [1, 2, 3, 4, 5];
+    let total = sum_array(arr);
+    print(total);
+    
+    // Test global
+    counter = counter + 1;
+    print(counter);
+    
+    // Test error handling
+    let safe = safe_divide(10, 2);
+    print(safe);
+    
+    // Test interface
+    let c = Circle { radius: 7 };
+    c.draw();
+    
+    // Test lambda
+    test_lambda();
+}

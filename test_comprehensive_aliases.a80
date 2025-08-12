@@ -1,0 +1,1588 @@
+; MinZ generated code
+; Generated: 2025-08-12 08:14:09
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 25    ; Length
+    DB "=== Module Alias Test ==="
+str_1:
+    DB 13    ; Length
+    DB "GCD(12, 8) = "
+str_2:
+    DB 10    ; Length
+    DB "12 is even"
+str_3:
+    DB 16    ; Length
+    DB "Press any key..."
+str_4:
+    DB 13    ; Length
+    DB "You pressed: "
+str_5:
+    DB 23    ; Length
+    DB "200 clamped to 0-100 = "
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.square$u8
+math.square$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.square$u8_param_x.op:
+math.square$u8_param_x equ math.square$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 2 already in A
+    LD A, (math.square$u8_param_x)
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 * r3
+    ; 8-bit multiplication
+    ; Register 2 already in A
+    LD B, A       ; B = multiplicand
+    LD A, B
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, math_square_u8_mul_done_0
+math_square_u8_mul_loop_0:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, math_square_u8_mul_loop_0
+math_square_u8_mul_done_0:
+    ; return r4
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.square$u16
+math.square$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.square$u16_param_x.op:
+math.square$u16_param_x equ math.square$u16_param_x.op + 1
+    LD HL, #0000   ; SMC parameter x
+    ; Register 2 already in HL
+    LD HL, (math.square$u16_param_x)
+    LD D, H
+    LD E, L
+    ; r4 = r2 * r3
+    ; 16-bit multiplication
+    ; Register 2 already in HL
+    LD (mul_src1_1), HL  ; Save multiplicand
+    LD H, D
+    LD L, E
+    LD (mul_src2_1), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_1)  ; DE = multiplicand
+    LD BC, (mul_src2_1)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_1
+math_square_u16_mul16_loop_1:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_1
+math_square_u16_mul16_done_1:
+mul_src1_1: DW 0
+mul_src2_1: DW 0
+    LD B, H
+    LD C, L
+    ; return r4
+    LD H, B
+    LD L, C
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.cube$u8
+math.cube$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.cube$u8_param_x.op:
+math.cube$u8_param_x equ math.cube$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    LD A, (math.cube$u8_param_x)
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r5 = r3 * r4
+    ; 8-bit multiplication
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = multiplicand
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, math_cube_u8_mul_done_2
+math_cube_u8_mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, math_cube_u8_mul_loop_2
+math_cube_u8_mul_done_2:
+    LD A, (math.cube$u8_param_x)
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; r7 = r5 * r6
+    ; 8-bit multiplication
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = multiplicand
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, math_cube_u8_mul_done_3
+math_cube_u8_mul_loop_3:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, math_cube_u8_mul_loop_3
+math_cube_u8_mul_done_3:
+    ; Register 7 already in HL
+    ; store result, r7
+    ; Register 7 already in HL
+    LD ($F004), HL
+    ; r8 = load result
+    LD HL, ($F004)
+    ; Register 8 already in HL
+    ; return r8
+    ; Register 8 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.is_even$u8
+math.is_even$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.is_even$u8_param_x.op:
+math.is_even$u8_param_x equ math.is_even$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD H, A         ; Store to physical register H
+    ; r3 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r4 = r2 & r3
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; Register 4 already in HL
+    ; r5 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r6 = r4 == r5
+    ; Register 4 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, math_is_even_u8_eq_true_4
+    LD HL, 0       ; False
+    JP math_is_even_u8_eq_done_4
+math_is_even_u8_eq_true_4:
+    LD HL, 1       ; True
+math_is_even_u8_eq_done_4:
+    ; return r6
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.is_odd$u8
+math.is_odd$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.is_odd$u8_param_x.op:
+math.is_odd$u8_param_x equ math.is_odd$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r4 = r2 & r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; r5 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r6 = r4 == r5
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, math_is_odd_u8_eq_true_5
+    LD HL, 0       ; False
+    JP math_is_odd_u8_eq_done_5
+math_is_odd_u8_eq_true_5:
+    LD HL, 1       ; True
+math_is_odd_u8_eq_done_5:
+    ; return r6
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.clamp$u8$u8$u8
+math.clamp$u8$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.clamp$u8$u8$u8_param_value.op:
+math.clamp$u8$u8$u8_param_value equ math.clamp$u8$u8$u8_param_value.op + 1
+    LD A, #00      ; Parameter value (gets patched)
+    LD L, A         ; Store to physical register L
+math.clamp$u8$u8$u8_param_min.op:
+math.clamp$u8$u8$u8_param_min equ math.clamp$u8$u8$u8_param_min.op + 1
+    LD B, #00      ; Parameter min (gets patched)
+    LD A, B
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = r4 < r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, math_clamp_u8_u8_u8_lt_true_6
+    LD HL, 0       ; False
+    JP math_clamp_u8_u8_u8_lt_done_6
+math_clamp_u8_u8_u8_lt_true_6:
+    LD HL, 1       ; True
+math_clamp_u8_u8_u8_lt_done_6:
+    ; jump_if_not r6, else_1
+    LD A, L
+    OR A
+    JP Z, math_clamp_u8_u8_u8_else_1
+    LD A, (math.clamp$u8$u8$u8_param_min)
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; return r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    RET
+    ; jump end_if_2
+    JP math_clamp_u8_u8_u8_end_if_2
+    ; else_1:
+math_clamp_u8_u8_u8_else_1:
+    ; end_if_2:
+math_clamp_u8_u8_u8_end_if_2:
+    LD A, (math.clamp$u8$u8$u8_param_value)
+    LD H, A         ; Store to physical register H
+math.clamp$u8$u8$u8_param_max.op:
+math.clamp$u8$u8$u8_param_max equ math.clamp$u8$u8$u8_param_max.op + 1
+    LD C, #00      ; Parameter max (gets patched)
+    LD A, C
+    LD L, A         ; Store to physical register L
+    ; r10 = r8 > r9
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, math_clamp_u8_u8_u8_gt_check_zero_7
+    LD HL, 0       ; False (negative)
+    JP math_clamp_u8_u8_u8_gt_done_7
+math_clamp_u8_u8_u8_gt_check_zero_7:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, math_clamp_u8_u8_u8_gt_false_7
+    LD HL, 1       ; True (positive and non-zero)
+    JP math_clamp_u8_u8_u8_gt_done_7
+math_clamp_u8_u8_u8_gt_false_7:
+    LD HL, 0       ; False (zero)
+math_clamp_u8_u8_u8_gt_done_7:
+    ; jump_if_not r10, else_3
+    LD A, H
+    OR A
+    JP Z, math_clamp_u8_u8_u8_else_3
+    LD A, (math.clamp$u8$u8$u8_param_max)
+    LD L, A         ; Store to physical register L
+    ; return r11
+    RET
+    ; jump end_if_4
+    JP math_clamp_u8_u8_u8_end_if_4
+    ; else_3:
+math_clamp_u8_u8_u8_else_3:
+    ; end_if_4:
+math_clamp_u8_u8_u8_end_if_4:
+    LD A, (math.clamp$u8$u8$u8_param_value)
+    LD L, A         ; Store to HL (low byte)
+    ; return r12
+    ; Register 12 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.gcd$u8$u8
+math.gcd$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.gcd$u8$u8_param_a.op:
+math.gcd$u8$u8_param_a equ math.gcd$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    LD H, A         ; Store to physical register H
+    ; store x, r4
+    LD ($F006), HL
+math.gcd$u8$u8_param_b.op:
+math.gcd$u8$u8_param_b equ math.gcd$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; store y, r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD ($F00A), HL
+    ; loop_5:
+math_gcd_u8_u8_loop_5:
+    ; r7 = load y
+    LD HL, ($F00A)
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r9 = r7 != r8
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, math_gcd_u8_u8_ne_true_8
+    LD HL, 0       ; False
+    JP math_gcd_u8_u8_ne_done_8
+math_gcd_u8_u8_ne_true_8:
+    LD HL, 1       ; True
+math_gcd_u8_u8_ne_done_8:
+    ; jump_if_not r9, end_loop_6
+    LD A, L
+    OR A
+    JP Z, math_gcd_u8_u8_end_loop_6
+    ; r11 = load y
+    LD HL, ($F00A)
+    LD ($F016), HL    ; Virtual register 11 to memory
+    ; store temp, r11
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    LD ($F014), HL
+    ; r12 = load x
+    LD HL, ($F006)
+    ; r13 = load y
+    LD HL, ($F00A)
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    ; r14 = r12 % r13
+    ; 8-bit modulo
+    LD A, L
+    LD D, A       ; D = dividend
+    LD A, ($F01A)     ; Virtual register 13 from memory
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, math_gcd_u8_u8_mod_by_zero_9
+    LD A, D       ; A = dividend
+math_gcd_u8_u8_mod_loop_9:
+    CP E          ; Compare with divisor
+    JR C, math_gcd_u8_u8_mod_done_9
+    SUB E         ; Subtract divisor
+    JR math_gcd_u8_u8_mod_loop_9
+math_gcd_u8_u8_mod_by_zero_9:
+    LD A, 0       ; Return 0 for modulo by zero
+math_gcd_u8_u8_mod_done_9:
+    LD L, A       ; Result (remainder) in L
+    LD H, 0
+    ; store y, r14
+    LD ($F00A), HL
+    ; r15 = load temp
+    LD HL, ($F014)
+    ; store x, r15
+    LD ($F006), HL
+    ; jump loop_5
+    JP math_gcd_u8_u8_loop_5
+    ; end_loop_6:
+math_gcd_u8_u8_end_loop_6:
+    ; r16 = load x
+    LD HL, ($F006)
+    ; Register 16 already in HL
+    ; return r16
+    ; Register 16 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.lcm$u8$u8
+math.lcm$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.lcm$u8$u8_param_a.op:
+math.lcm$u8$u8_param_a equ math.lcm$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    LD H, A         ; Store to physical register H
+    ; r4 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r5 = r3 == r4
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, math_lcm_u8_u8_eq_true_10
+    LD HL, 0       ; False
+    JP math_lcm_u8_u8_eq_done_10
+math_lcm_u8_u8_eq_true_10:
+    LD HL, 1       ; True
+math_lcm_u8_u8_eq_done_10:
+    LD ($F00A), HL    ; Virtual register 5 to memory
+math.lcm$u8$u8_param_b.op:
+math.lcm$u8$u8_param_b equ math.lcm$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    LD H, A         ; Store to physical register H
+    ; r7 = 0
+    LD A, 0
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = r6 == r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, math_lcm_u8_u8_eq_true_11
+    LD HL, 0       ; False
+    JP math_lcm_u8_u8_eq_done_11
+math_lcm_u8_u8_eq_true_11:
+    LD HL, 1       ; True
+math_lcm_u8_u8_eq_done_11:
+    ; unknown op 61
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    OR A           ; Test if zero
+    JR NZ, lor_true_12      ; Skip if first operand is true
+    LD A, H
+    OR A           ; Test if zero
+    JR NZ, lor_true_12      ; Skip if second operand is true
+    XOR A          ; Result is false
+    JR lor_end_13
+lor_true_12:
+    LD A, 1        ; Result is true (1)
+lor_end_13:
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r9, else_7
+    LD A, L
+    OR A
+    JP Z, math_lcm_u8_u8_else_7
+    ; r10 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; return r10
+    RET
+    ; jump end_if_8
+    JP math_lcm_u8_u8_end_if_8
+    ; else_7:
+math_lcm_u8_u8_else_7:
+    ; end_if_8:
+math_lcm_u8_u8_end_if_8:
+    LD A, (math.lcm$u8$u8_param_a)
+    LD L, A         ; Store to physical register L
+    LD A, (math.lcm$u8$u8_param_b)
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; r13 = r11 * r12
+    ; 8-bit multiplication
+    LD A, L
+    LD B, A       ; B = multiplicand
+    LD A, ($F018)     ; Virtual register 12 from memory
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, math_lcm_u8_u8_mul_done_14
+math_lcm_u8_u8_mul_loop_14:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, math_lcm_u8_u8_mul_loop_14
+math_lcm_u8_u8_mul_done_14:
+    LD A, (math.lcm$u8$u8_param_a)
+    LD L, A         ; Store to physical register L
+    LD A, (math.lcm$u8$u8_param_b)
+    LD L, A         ; Store to HL (low byte)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for math.gcd_return_patch
+    LD A, #00               ; NOP opcode
+    LD (math.gcd_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (math.gcd_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (math.gcd_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (math.gcd_param_b+1), A   ; Patch parameter immediate
+    ; r16 = call math.gcd
+    ; Call to math.gcd (args: 2)
+    ; Stack-based parameter passing
+    ; Register 15 already in HL
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    CALL math.gcd
+    ; r17 = r13 / r16
+    ; 8-bit division
+    LD A, H
+    LD D, A       ; D = dividend
+    LD A, H
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, math_lcm_u8_u8_div_by_zero_15
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+math_lcm_u8_u8_div_loop_15:
+    CP E          ; Compare remainder with divisor
+    JR C, math_lcm_u8_u8_div_done_15
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR math_lcm_u8_u8_div_loop_15
+math_lcm_u8_u8_div_by_zero_15:
+    LD B, 0       ; Return 0 for divide by zero
+math_lcm_u8_u8_div_done_15:
+    LD L, B       ; Result in L
+    LD H, 0
+    ; return r17
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.square$u8
+math.square$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.square$u8_param_x.op:
+math.square$u8_param_x equ math.square$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD L, A         ; Store to HL (low byte)
+    LD A, (math.square$u8_param_x)
+    LD H, A         ; Store to physical register H
+    ; r4 = r2 * r3
+    ; 8-bit multiplication
+    LD A, L
+    LD B, A       ; B = multiplicand
+    LD A, H
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, math_square_u8_mul_done_16
+math_square_u8_mul_loop_16:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, math_square_u8_mul_loop_16
+math_square_u8_mul_done_16:
+    ; return r4
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.square$u16
+math.square$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.square$u16_param_x.op:
+math.square$u16_param_x equ math.square$u16_param_x.op + 1
+    LD HL, #0000   ; SMC parameter x
+    ; Register 2 already in HL
+    LD HL, (math.square$u16_param_x)
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r4 = r2 * r3
+    ; 16-bit multiplication
+    ; Register 2 already in HL
+    LD (mul_src1_17), HL  ; Save multiplicand
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD (mul_src2_17), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_17)  ; DE = multiplicand
+    LD BC, (mul_src2_17)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_17
+math_square_u16_mul16_loop_17:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_17
+math_square_u16_mul16_done_17:
+mul_src1_17: DW 0
+mul_src2_17: DW 0
+    ; Register 4 already in HL
+    ; return r4
+    ; Register 4 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.cube$u8
+math.cube$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.cube$u8_param_x.op:
+math.cube$u8_param_x equ math.cube$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD ($F006), A     ; Virtual register 3 to memory
+    LD A, (math.cube$u8_param_x)
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 * r4
+    ; 8-bit multiplication
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD B, A       ; B = multiplicand
+    LD A, H
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, math_cube_u8_mul_done_18
+math_cube_u8_mul_loop_18:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, math_cube_u8_mul_loop_18
+math_cube_u8_mul_done_18:
+    LD A, (math.cube$u8_param_x)
+    LD L, A         ; Store to HL (low byte)
+    ; r7 = r5 * r6
+    ; 8-bit multiplication
+    LD A, L
+    LD B, A       ; B = multiplicand
+    LD A, L
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, math_cube_u8_mul_done_19
+math_cube_u8_mul_loop_19:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, math_cube_u8_mul_loop_19
+math_cube_u8_mul_done_19:
+    ; store result, r7
+    LD ($F004), HL
+    ; r8 = load result
+    LD HL, ($F004)
+    ; Register 8 already in HL
+    ; return r8
+    ; Register 8 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.is_even$u8
+math.is_even$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.is_even$u8_param_x.op:
+math.is_even$u8_param_x equ math.is_even$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD H, A         ; Store to physical register H
+    ; r3 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r4 = r2 & r3
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; Register 4 already in HL
+    ; r5 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r6 = r4 == r5
+    ; Register 4 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, math_is_even_u8_eq_true_20
+    LD HL, 0       ; False
+    JP math_is_even_u8_eq_done_20
+math_is_even_u8_eq_true_20:
+    LD HL, 1       ; True
+math_is_even_u8_eq_done_20:
+    ; return r6
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.is_odd$u8
+math.is_odd$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.is_odd$u8_param_x.op:
+math.is_odd$u8_param_x equ math.is_odd$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r4 = r2 & r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; r5 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r6 = r4 == r5
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, math_is_odd_u8_eq_true_21
+    LD HL, 0       ; False
+    JP math_is_odd_u8_eq_done_21
+math_is_odd_u8_eq_true_21:
+    LD HL, 1       ; True
+math_is_odd_u8_eq_done_21:
+    ; return r6
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.clamp$u8$u8$u8
+math.clamp$u8$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.clamp$u8$u8$u8_param_value.op:
+math.clamp$u8$u8$u8_param_value equ math.clamp$u8$u8$u8_param_value.op + 1
+    LD A, #00      ; Parameter value (gets patched)
+    LD L, A         ; Store to physical register L
+math.clamp$u8$u8$u8_param_min.op:
+math.clamp$u8$u8$u8_param_min equ math.clamp$u8$u8$u8_param_min.op + 1
+    LD B, #00      ; Parameter min (gets patched)
+    LD A, B
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = r4 < r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, math_clamp_u8_u8_u8_lt_true_22
+    LD HL, 0       ; False
+    JP math_clamp_u8_u8_u8_lt_done_22
+math_clamp_u8_u8_u8_lt_true_22:
+    LD HL, 1       ; True
+math_clamp_u8_u8_u8_lt_done_22:
+    ; jump_if_not r6, else_9
+    LD A, L
+    OR A
+    JP Z, math_clamp_u8_u8_u8_else_9
+    LD A, (math.clamp$u8$u8$u8_param_min)
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; return r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    RET
+    ; jump end_if_10
+    JP math_clamp_u8_u8_u8_end_if_10
+    ; else_9:
+math_clamp_u8_u8_u8_else_9:
+    ; end_if_10:
+math_clamp_u8_u8_u8_end_if_10:
+    LD A, (math.clamp$u8$u8$u8_param_value)
+    LD H, A         ; Store to physical register H
+math.clamp$u8$u8$u8_param_max.op:
+math.clamp$u8$u8$u8_param_max equ math.clamp$u8$u8$u8_param_max.op + 1
+    LD C, #00      ; Parameter max (gets patched)
+    LD A, C
+    LD L, A         ; Store to physical register L
+    ; r10 = r8 > r9
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, math_clamp_u8_u8_u8_gt_check_zero_23
+    LD HL, 0       ; False (negative)
+    JP math_clamp_u8_u8_u8_gt_done_23
+math_clamp_u8_u8_u8_gt_check_zero_23:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, math_clamp_u8_u8_u8_gt_false_23
+    LD HL, 1       ; True (positive and non-zero)
+    JP math_clamp_u8_u8_u8_gt_done_23
+math_clamp_u8_u8_u8_gt_false_23:
+    LD HL, 0       ; False (zero)
+math_clamp_u8_u8_u8_gt_done_23:
+    ; jump_if_not r10, else_11
+    LD A, H
+    OR A
+    JP Z, math_clamp_u8_u8_u8_else_11
+    LD A, (math.clamp$u8$u8$u8_param_max)
+    LD L, A         ; Store to physical register L
+    ; return r11
+    RET
+    ; jump end_if_12
+    JP math_clamp_u8_u8_u8_end_if_12
+    ; else_11:
+math_clamp_u8_u8_u8_else_11:
+    ; end_if_12:
+math_clamp_u8_u8_u8_end_if_12:
+    LD A, (math.clamp$u8$u8$u8_param_value)
+    LD L, A         ; Store to HL (low byte)
+    ; return r12
+    ; Register 12 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.gcd$u8$u8
+math.gcd$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.gcd$u8$u8_param_a.op:
+math.gcd$u8$u8_param_a equ math.gcd$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    LD H, A         ; Store to physical register H
+    ; store x, r4
+    LD ($F006), HL
+math.gcd$u8$u8_param_b.op:
+math.gcd$u8$u8_param_b equ math.gcd$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; store y, r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD ($F00A), HL
+    ; loop_13:
+math_gcd_u8_u8_loop_13:
+    ; r7 = load y
+    LD HL, ($F00A)
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r9 = r7 != r8
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, math_gcd_u8_u8_ne_true_24
+    LD HL, 0       ; False
+    JP math_gcd_u8_u8_ne_done_24
+math_gcd_u8_u8_ne_true_24:
+    LD HL, 1       ; True
+math_gcd_u8_u8_ne_done_24:
+    ; jump_if_not r9, end_loop_14
+    LD A, L
+    OR A
+    JP Z, math_gcd_u8_u8_end_loop_14
+    ; r11 = load y
+    LD HL, ($F00A)
+    LD ($F016), HL    ; Virtual register 11 to memory
+    ; store temp, r11
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    LD ($F014), HL
+    ; r12 = load x
+    LD HL, ($F006)
+    ; r13 = load y
+    LD HL, ($F00A)
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    ; r14 = r12 % r13
+    ; 8-bit modulo
+    LD A, L
+    LD D, A       ; D = dividend
+    LD A, ($F01A)     ; Virtual register 13 from memory
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, math_gcd_u8_u8_mod_by_zero_25
+    LD A, D       ; A = dividend
+math_gcd_u8_u8_mod_loop_25:
+    CP E          ; Compare with divisor
+    JR C, math_gcd_u8_u8_mod_done_25
+    SUB E         ; Subtract divisor
+    JR math_gcd_u8_u8_mod_loop_25
+math_gcd_u8_u8_mod_by_zero_25:
+    LD A, 0       ; Return 0 for modulo by zero
+math_gcd_u8_u8_mod_done_25:
+    LD L, A       ; Result (remainder) in L
+    LD H, 0
+    ; store y, r14
+    LD ($F00A), HL
+    ; r15 = load temp
+    LD HL, ($F014)
+    ; store x, r15
+    LD ($F006), HL
+    ; jump loop_13
+    JP math_gcd_u8_u8_loop_13
+    ; end_loop_14:
+math_gcd_u8_u8_end_loop_14:
+    ; r16 = load x
+    LD HL, ($F006)
+    ; Register 16 already in HL
+    ; return r16
+    ; Register 16 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: math.lcm$u8$u8
+math.lcm$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+math.lcm$u8$u8_param_a.op:
+math.lcm$u8$u8_param_a equ math.lcm$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    LD H, A         ; Store to physical register H
+    ; r4 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r5 = r3 == r4
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, math_lcm_u8_u8_eq_true_26
+    LD HL, 0       ; False
+    JP math_lcm_u8_u8_eq_done_26
+math_lcm_u8_u8_eq_true_26:
+    LD HL, 1       ; True
+math_lcm_u8_u8_eq_done_26:
+    LD ($F00A), HL    ; Virtual register 5 to memory
+math.lcm$u8$u8_param_b.op:
+math.lcm$u8$u8_param_b equ math.lcm$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    LD H, A         ; Store to physical register H
+    ; r7 = 0
+    LD A, 0
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = r6 == r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, math_lcm_u8_u8_eq_true_27
+    LD HL, 0       ; False
+    JP math_lcm_u8_u8_eq_done_27
+math_lcm_u8_u8_eq_true_27:
+    LD HL, 1       ; True
+math_lcm_u8_u8_eq_done_27:
+    ; unknown op 61
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    OR A           ; Test if zero
+    JR NZ, lor_true_28      ; Skip if first operand is true
+    LD A, H
+    OR A           ; Test if zero
+    JR NZ, lor_true_28      ; Skip if second operand is true
+    XOR A          ; Result is false
+    JR lor_end_29
+lor_true_28:
+    LD A, 1        ; Result is true (1)
+lor_end_29:
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r9, else_15
+    LD A, L
+    OR A
+    JP Z, math_lcm_u8_u8_else_15
+    ; r10 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; return r10
+    RET
+    ; jump end_if_16
+    JP math_lcm_u8_u8_end_if_16
+    ; else_15:
+math_lcm_u8_u8_else_15:
+    ; end_if_16:
+math_lcm_u8_u8_end_if_16:
+    LD A, (math.lcm$u8$u8_param_a)
+    LD L, A         ; Store to physical register L
+    LD A, (math.lcm$u8$u8_param_b)
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; r13 = r11 * r12
+    ; 8-bit multiplication
+    LD A, L
+    LD B, A       ; B = multiplicand
+    LD A, ($F018)     ; Virtual register 12 from memory
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, math_lcm_u8_u8_mul_done_30
+math_lcm_u8_u8_mul_loop_30:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, math_lcm_u8_u8_mul_loop_30
+math_lcm_u8_u8_mul_done_30:
+    LD A, (math.lcm$u8$u8_param_a)
+    LD L, A         ; Store to physical register L
+    LD A, (math.lcm$u8$u8_param_b)
+    LD L, A         ; Store to HL (low byte)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for math.gcd_return_patch
+    LD A, #00               ; NOP opcode
+    LD (math.gcd_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (math.gcd_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (math.gcd_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (math.gcd_param_b+1), A   ; Patch parameter immediate
+    ; r16 = call math.gcd
+    ; Call to math.gcd (args: 2)
+    ; Stack-based parameter passing
+    ; Register 15 already in HL
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    CALL math.gcd
+    ; r17 = r13 / r16
+    ; 8-bit division
+    LD A, H
+    LD D, A       ; D = dividend
+    LD A, H
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, math_lcm_u8_u8_div_by_zero_31
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+math_lcm_u8_u8_div_loop_31:
+    CP E          ; Compare remainder with divisor
+    JR C, math_lcm_u8_u8_div_done_31
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR math_lcm_u8_u8_div_loop_31
+math_lcm_u8_u8_div_by_zero_31:
+    LD B, 0       ; Return 0 for divide by zero
+math_lcm_u8_u8_div_done_31:
+    LD L, B       ; Result in L
+    LD H, 0
+    ; return r17
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_comprehensive_aliases.main
+...test_comprehensive_aliases.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Clear screen
+    ; Call to cls (args: 0)
+    CALL cls
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; Load string "=== Module Alias Test ==="
+    LD HL, str_0
+    LD ($F002), HL    ; Virtual register 1 to memory
+    ; Print value
+    LD A, ($F002)     ; Virtual register 1 from memory
+    RST 16         ; Print character in A
+    ; Print newline
+    ; Call to print_newline (args: 0)
+    CALL print_newline
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r3 = 12
+    LD A, 12
+    LD H, A         ; Store to physical register H
+    ; store x, r3
+    LD A, H
+    LD ($F004), A
+    ; r5 = 8
+    LD A, 8
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; store y, r5
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD ($F008), A
+    ; Load string "GCD(12, 8) = "
+    LD HL, str_1
+    ; Built-in print function
+    LD A, L
+    RST 16         ; Print character in A
+    ; r7 = load x
+    LD A, ($F004)
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = load y
+    LD A, ($F008)
+    LD H, A         ; Store to physical register H
+    ; unknown op 39
+    ; Smart patch 'store_u8' for math.gcd_return_patch
+    LD A, #00               ; NOP opcode
+    LD (math.gcd_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (math.gcd_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (math.gcd_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (math.gcd_param_b+1), A   ; Patch parameter immediate
+    ; r9 = call math.gcd
+    ; Call to math.gcd (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    PUSH HL       ; Argument 0
+    CALL math.gcd
+    ; Print value
+    LD A, L
+    RST 16         ; Print character in A
+    ; Print newline
+    ; Call to print_newline (args: 0)
+    CALL print_newline
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r10 = 3
+    LD A, 3
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; Set border color
+    ; Call to zx_set_border (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    PUSH HL       ; Argument 0
+    CALL zx_set_border
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r11 = 7
+    LD A, 7
+    LD H, A         ; Store to physical register H
+    ; Set ink color
+    ; Call to zx_set_ink (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL zx_set_ink
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r12 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; Set paper color
+    ; Call to zx_set_paper (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL zx_set_paper
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r13 = load x
+    LD A, ($F004)
+    LD ($F01A), A     ; Virtual register 13 to memory
+    ; r14 = call math.is_even
+    ; Call to math.is_even (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    PUSH HL       ; Argument 0
+    CALL math.is_even
+    ; jump_if_not r14, else_17
+    LD A, H
+    OR A
+    JP Z, ___test_comprehensive_aliases_main_else_17
+    ; Load string "12 is even"
+    LD HL, str_2
+    ; Print value
+    LD A, L
+    RST 16         ; Print character in A
+    ; Print newline
+    ; Call to print_newline (args: 0)
+    CALL print_newline
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; jump end_if_18
+    JP ___test_comprehensive_aliases_main_end_if_18
+    ; else_17:
+___test_comprehensive_aliases_main_else_17:
+    ; end_if_18:
+___test_comprehensive_aliases_main_end_if_18:
+    ; Load string "Press any key..."
+    LD HL, str_3
+    ; Register 16 already in HL
+    ; Built-in print function
+    LD A, L
+    RST 16         ; Print character in A
+    ; Wait for key press
+    ; Call to zx_wait_key (args: 0)
+    CALL zx_wait_key
+    ; store key, r18
+    LD ($F022), HL
+    ; Load string "You pressed: "
+    LD HL, str_4
+    LD ($F026), HL    ; Virtual register 19 to memory
+    ; Built-in print function
+    LD A, ($F026)     ; Virtual register 19 from memory
+    RST 16         ; Print character in A
+    ; r20 = load key
+    LD HL, ($F022)
+    ; Print value
+    LD A, H
+    RST 16         ; Print character in A
+    ; Print newline
+    ; Call to print_newline (args: 0)
+    CALL print_newline
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r22 = 200
+    LD A, 200
+    LD L, A         ; Store to physical register L
+    ; r23 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; r24 = 100
+    LD A, 100
+    LD H, A         ; Store to physical register H
+    ; unknown op 39
+    ; Smart patch 'store_u8' for math.clamp_return_patch
+    LD A, #00               ; NOP opcode
+    LD (math.clamp_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (math.clamp_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter value = 0
+    LD A, 0               ; Parameter value
+    LD (math.clamp_param_value+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter min = 0
+    LD A, 0               ; Parameter value
+    LD (math.clamp_param_min+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter max = 0
+    LD A, 0               ; Parameter value
+    LD (math.clamp_param_max+1), A   ; Patch parameter immediate
+    ; r25 = call math.clamp
+    ; Call to math.clamp (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    ; Register 23 already in HL
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    CALL math.clamp
+    ; store clamped, r25
+    LD ($F02A), HL
+    ; Load string "200 clamped to 0-100 = "
+    LD HL, str_5
+    ; Register 26 already in HL
+    ; Built-in print function
+    LD A, L
+    RST 16         ; Print character in A
+    ; r27 = load clamped
+    LD HL, ($F02A)
+    ; Print value
+    LD A, H
+    RST 16         ; Print character in A
+    ; Print newline
+    ; Call to print_newline (args: 0)
+    CALL print_newline
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; ZX Spectrum ROM print
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+; Standard library routines
+cls:
+    LD HL, $4000       ; Screen start
+    LD DE, $4001
+    LD BC, $17FF       ; Screen size - 1
+    LD (HL), 0
+    LDIR               ; Clear screen
+    LD HL, $5800       ; Attribute start
+    LD DE, $5801
+    LD BC, $02FF       ; Attribute size - 1
+    LD (HL), $38       ; White ink on black paper
+    LDIR               ; Clear attributes
+    RET
+
+print_newline:
+    LD A, 13           ; CR
+    RST 16
+    RET
+
+print_hex_u8:
+    PUSH AF            ; Save value
+    RRA
+    RRA
+    RRA
+    RRA                ; High nibble to low
+    CALL print_hex_nibble
+    POP AF             ; Restore value
+    ; Fall through to print low nibble
+print_hex_nibble:
+    AND $0F            ; Isolate low nibble
+    ADD A, '0'         ; Convert to ASCII
+    CP '9' + 1
+    JR C, print_hex_digit
+    ADD A, 'A' - '0' - 10  ; Adjust for A-F
+print_hex_digit:
+    RST 16             ; ZX Spectrum print
+    RET
+
+zx_set_border:
+    POP HL             ; Return address
+    POP BC             ; Get color argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; Color to A
+    AND 7              ; Mask to 0-7
+    OUT (254), A       ; Set border
+    RET
+
+zx_clear_screen:
+    JP cls             ; Use standard cls
+
+zx_set_pixel:
+    ; TODO: Implement pixel setting
+    ; For now, just return
+    RET
+
+zx_set_ink:
+    ; TODO: Implement ink color setting
+    RET
+
+zx_set_paper:
+    ; TODO: Implement paper color setting
+    RET
+
+; Input routines
+zx_read_keyboard:
+    ; Scan keyboard matrix
+    LD BC, $FEFE       ; First keyboard row
+    IN A, (C)          ; Read keyboard
+    CPL                ; Invert bits
+    AND $1F            ; Mask relevant bits
+    RET Z              ; Return 0 if no key
+    ; Simple mapping - just return raw value for now
+    RET
+
+zx_wait_key:
+wait_key_loop:
+    CALL zx_read_keyboard
+    OR A               ; Test if zero
+    JR Z, wait_key_loop ; Loop if no key
+    RET                ; Return key code in A
+
+zx_is_key_pressed:
+    POP HL             ; Return address
+    POP BC             ; Get key code
+    PUSH HL            ; Restore return address
+    ; TODO: Implement specific key checking
+    LD A, 0            ; Return false for now
+    RET
+
+; Sound routines
+zx_beep:
+    POP HL             ; Return address
+    POP DE             ; Duration
+    POP BC             ; Pitch
+    PUSH HL            ; Restore return address
+    ; Simple beep using OUT to speaker
+beep_loop:
+    LD A, 16           ; Speaker bit
+    OUT (254), A       ; Speaker on
+    PUSH BC
+beep_delay1:
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, beep_delay1
+    POP BC
+    XOR A              ; Speaker off
+    OUT (254), A
+    PUSH BC
+beep_delay2:
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, beep_delay2
+    POP BC
+    DEC DE
+    LD A, D
+    OR E
+    JR NZ, beep_loop
+    RET
+
+zx_click:
+    LD A, 16           ; Quick click
+    OUT (254), A
+    LD B, 10
+click_delay:
+    DJNZ click_delay
+    XOR A
+    OUT (254), A
+    RET
+
+abs:
+    POP HL             ; Return address
+    POP BC             ; Get argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; Value to A
+    OR A               ; Test sign
+    JP P, abs_done     ; If positive, done
+    NEG                ; Negate if negative
+abs_done:
+    RET
+
+min:
+    POP HL             ; Return address
+    POP BC             ; First argument
+    POP DE             ; Second argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; First value
+    CP E               ; Compare with second
+    JR C, min_done     ; If first < second, keep first
+    LD A, E            ; Otherwise use second
+min_done:
+    RET
+
+max:
+    POP HL             ; Return address
+    POP BC             ; First argument
+    POP DE             ; Second argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; First value
+    CP E               ; Compare with second
+    JR NC, max_done    ; If first >= second, keep first
+    LD A, E            ; Otherwise use second
+max_done:
+    RET
+
+
+    END main

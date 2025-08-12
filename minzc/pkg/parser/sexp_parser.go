@@ -1872,8 +1872,10 @@ func (p *Parser) convertImportStmt(node *SExpNode) *ast.ImportStmt {
 	}
 	
 	// Parse import path: import zx.screen as screen;
-	var foundAs bool
-	for i, child := range node.Children {
+	// Tree-sitter produces: (import_statement (import_path ...) (identifier))
+	// where the second identifier is the alias after "as"
+	var gotPath bool
+	for _, child := range node.Children {
 		if child.Type == "import_path" {
 			// Collect all identifiers to form the path
 			var pathParts []string
@@ -1884,20 +1886,17 @@ func (p *Parser) convertImportStmt(node *SExpNode) *ast.ImportStmt {
 			}
 			if len(pathParts) > 0 {
 				imp.Path = strings.Join(pathParts, ".")
+				gotPath = true
 			}
-		} else if child.Type == "atom" && p.getNodeText(child) == "as" {
-			foundAs = true
-		} else if foundAs && child.Type == "identifier" {
-			// This is the alias identifier after 'as'
+		} else if child.Type == "identifier" && gotPath {
+			// This is the alias identifier that appears after the import_path
+			// Tree-sitter parses "import x as y" with the alias as a direct child
 			imp.Alias = p.getNodeText(child)
-			foundAs = false
-		} else if child.Type == "identifier" && i > 0 {
-			// Handle case where tree-sitter might put alias directly
-			// Check if previous token was 'as'
-			if i > 0 && node.Children[i-1].Type == "atom" && p.getNodeText(node.Children[i-1]) == "as" {
-				imp.Alias = p.getNodeText(child)
-			}
 		}
+	}
+	
+	if os.Getenv("DEBUG") != "" && imp.Alias != "" {
+		fmt.Printf("DEBUG: Parsed import %s as %s\n", imp.Path, imp.Alias)
 	}
 	
 	return imp
@@ -1951,7 +1950,11 @@ func (p *Parser) convertCaseArm(node *SExpNode) *ast.CaseArm {
 // convertPattern converts a pattern
 func (p *Parser) convertPattern(node *SExpNode) ast.Pattern {
 	if len(node.Children) == 0 {
-		return nil
+		// Empty pattern node is a wildcard (_)
+		return &ast.WildcardPattern{
+			StartPos: node.StartPos,
+			EndPos:   node.EndPos,
+		}
 	}
 	
 	child := node.Children[0]

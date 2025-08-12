@@ -1,0 +1,20 @@
+// Simple test for Compile-Time Interface Execution
+
+// Pure function that can be executed at compile time
+fun add_const(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// Another pure function
+fun multiply_const(x: u8) -> u16 {
+    return x * 10;
+}
+
+fun main() -> void {
+    // These should be candidates for compile-time execution
+    let result1 = add_const(5, 3);      // Could become: let result1 = 8
+    let result2 = multiply_const(4);    // Could become: let result2 = 40
+    
+    @print("CTIE test compiled successfully!");
+    @print("Results computed (maybe at compile-time!)");
+}

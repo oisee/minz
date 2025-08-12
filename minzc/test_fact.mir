@@ -1,0 +1,125 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_ctie_factorial.factorial$u8(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: LOAD_PARAM
+     10: LOAD_PARAM
+     11: r8 = 1
+     12: r9 = r7 - r8
+     13: LOAD_PARAM
+     14: r11 = 1
+     15: r12 = r10 - r11
+     16: PATCH_TEMPLATE
+     17: PATCH_TARGET
+     18: PATCH_PARAM
+     19: r13 = call ...test_ctie_factorial.factorial$u8
+     20: r14 = r6 * r13
+     21: return r14
+
+Function ...test_ctie_factorial.fibonacci$u8(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_3
+      4: LOAD_PARAM
+      5: return r5
+      6: jump end_if_4
+      7: else_3:
+      8: end_if_4:
+      9: LOAD_PARAM
+     10: r7 = 1
+     11: r8 = r6 - r7
+     12: LOAD_PARAM
+     13: r10 = 1
+     14: r11 = r9 - r10
+     15: PATCH_TEMPLATE
+     16: PATCH_TARGET
+     17: PATCH_PARAM
+     18: r12 = call ...test_ctie_factorial.fibonacci$u8
+     19: LOAD_PARAM
+     20: r14 = 2
+     21: r15 = r13 - r14
+     22: LOAD_PARAM
+     23: r17 = 2
+     24: r18 = r16 - r17
+     25: PATCH_TEMPLATE
+     26: PATCH_TARGET
+     27: PATCH_PARAM
+     28: r19 = call ...test_ctie_factorial.fibonacci$u8
+     29: r20 = r12 + r19
+     30: return r20
+
+Function ...test_ctie_factorial.main() -> void
+  @smc
+  Locals:
+    r1 = fact5: u16
+    r5 = fact6: u16
+    r9 = fib7: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = 5
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call ...test_ctie_factorial.factorial$u8
+      6: store fact5, r4
+      7: r6 = 6
+      8: r7 = 6
+      9: PATCH_TEMPLATE
+     10: PATCH_TARGET
+     11: PATCH_PARAM
+     12: r8 = call ...test_ctie_factorial.factorial$u8
+     13: store fact6, r8
+     14: r10 = 7
+     15: r11 = 7
+     16: PATCH_TEMPLATE
+     17: PATCH_TARGET
+     18: PATCH_PARAM
+     19: r12 = call ...test_ctie_factorial.fibonacci$u8
+     20: store fib7, r12
+     21: LOAD_STRING
+     22: PRINT_STRING ; Print "Factorial and Fibonacci computed!" (33 chars via loop)
+     23: r14 = load fact5
+     24: r15 = 120
+     25: r16 = r14 == r15
+     26: jump_if_not r16, else_5
+     27: LOAD_STRING
+     28: PRINT_STRING ; Print "factorial(5) = 120 â" (25 chars via loop)
+     29: jump end_if_6
+     30: else_5:
+     31: end_if_6:
+     32: r18 = load fact6
+     33: r19 = 720
+     34: r20 = r18 == r19
+     35: jump_if_not r20, else_7
+     36: LOAD_STRING
+     37: PRINT_STRING ; Print "factorial(6) = 720 â" (25 chars via loop)
+     38: jump end_if_8
+     39: else_7:
+     40: end_if_8:
+     41: r22 = load fib7
+     42: r23 = 13
+     43: r24 = r22 == r23
+     44: jump_if_not r24, else_9
+     45: LOAD_STRING
+     46: PRINT_STRING ; Print "fibonacci(7) = 13 â" (24 chars via loop)
+     47: jump end_if_10
+     48: else_9:
+     49: end_if_10:
+     50: return
+

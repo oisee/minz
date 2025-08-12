@@ -1,0 +1,30 @@
+digraph MinZ_MIR {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  // Module: main
+  subgraph cluster_module {
+    label="Module: main";
+    style=dashed;
+
+    // Function: ...test_ctie_debug.add_numbers
+    subgraph cluster_func_0 {
+      label="...test_ctie_debug.add_numbers";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_0_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_0_return" [label="Returns: u8", shape=house];
+      "func_0_bb0" [label="BB0:\nr1 = 5\nr2 = 3\nr3 = r1 + r2\nreturn r3\n", style=filled, fillcolor=lightgreen];
+    }
+
+    // Function: ...test_ctie_debug.main
+    subgraph cluster_func_1 {
+      label="...test_ctie_debug.main";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_1_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_1_bb0" [label="BB0:\nPATCH_TEMPLATE\nPATCH_TARGET\nr2 = call ...test_ctie_debug.add_numbers\nstore result, r2\nLOAD_STRING\nPRINT_STRING\nreturn\n", style=filled, fillcolor=lightgreen];
+    }
+
+  }
+}

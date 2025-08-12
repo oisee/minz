@@ -1,0 +1,10 @@
+// Simplest possible CTIE test
+
+fun add_numbers() -> u8 {
+    return 5 + 3;  // Pure computation, no parameters
+}
+
+fun main() -> void {
+    let result = add_numbers();  // Should be computed at compile-time
+    @print("Result computed!");
+}

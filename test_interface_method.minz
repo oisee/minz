@@ -1,0 +1,25 @@
+// Test interface method calls
+
+interface Drawable {
+    fun draw(self) -> void;
+}
+
+struct Circle {
+    radius: u8
+}
+
+impl Drawable for Circle {
+    fun draw(self) -> void {
+        print_u8(self.radius);
+    }
+}
+
+fun main() -> void {
+    let c = Circle { radius: 5 };
+    
+    // This should work but doesn't parse correctly
+    c.draw();
+    
+    // Let's also try direct call
+    Circle.draw(c);
+}

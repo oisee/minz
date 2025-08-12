@@ -15,6 +15,21 @@
     }
   },
   {
+    "type": "analyze_usage_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "usage_rule",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "argument_list",
     "named": true,
     "fields": {},
@@ -634,6 +649,21 @@
     }
   },
   {
+    "type": "cast_interface_block",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "char_literal",
     "named": true,
     "fields": {}
@@ -784,6 +814,21 @@
     }
   },
   {
+    "type": "compile_time_vtable_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "vtable_rule",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "constant_declaration",
     "named": true,
     "fields": {},
@@ -814,6 +859,41 @@
     "type": "continue_statement",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "ctie_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "analyze_usage_directive",
+          "named": true
+        },
+        {
+          "type": "compile_time_vtable_directive",
+          "named": true
+        },
+        {
+          "type": "derive_directive",
+          "named": true
+        },
+        {
+          "type": "execute_directive",
+          "named": true
+        },
+        {
+          "type": "proof_directive",
+          "named": true
+        },
+        {
+          "type": "specialize_directive",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "declaration",
@@ -950,6 +1030,59 @@
     }
   },
   {
+    "type": "derive_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "derive_options",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "derive_option",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "string_literal",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "derive_options",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "derive_option",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "enum_declaration",
     "named": true,
     "fields": {},
@@ -1025,6 +1158,36 @@
     "type": "error_type",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "execute_condition",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "execute_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "execute_condition",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "expression",
@@ -1180,6 +1343,10 @@
       "types": [
         {
           "type": "block",
+          "named": true
+        },
+        {
+          "type": "ctie_directive",
           "named": true
         },
         {
@@ -1451,6 +1618,14 @@
       "required": true,
       "types": [
         {
+          "type": "cast_interface_block",
+          "named": true
+        },
+        {
+          "type": "ctie_directive",
+          "named": true
+        },
+        {
           "type": "generic_parameters",
           "named": true
         },
@@ -1477,6 +1652,10 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "ctie_directive",
+          "named": true
+        },
         {
           "type": "identifier",
           "named": true
@@ -2264,6 +2443,40 @@
     "fields": {}
   },
   {
+    "type": "proof_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "proof_invariant",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "proof_invariant",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "raw_block_content",
     "named": true,
     "fields": {}
@@ -2336,6 +2549,25 @@
         },
         {
           "type": "statement",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "specialize_directive",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "number_literal",
+          "named": true
+        },
+        {
+          "type": "string_literal",
           "named": true
         }
       ]
@@ -2436,6 +2668,10 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "ctie_directive",
+          "named": true
+        },
         {
           "type": "field_declaration",
           "named": true
@@ -2673,6 +2909,25 @@
     }
   },
   {
+    "type": "usage_rule",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "ctie_directive",
+          "named": true
+        },
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "variable_declaration",
     "named": true,
     "fields": {},
@@ -2694,6 +2949,25 @@
         },
         {
           "type": "visibility",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "vtable_rule",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "identifier",
           "named": true
         }
       ]
@@ -2925,6 +3199,10 @@
     "named": false
   },
   {
+    "type": "@analyze_usage",
+    "named": false
+  },
+  {
     "type": "@asm",
     "named": false
   },
@@ -2933,11 +3211,23 @@
     "named": false
   },
   {
+    "type": "@compile_time_vtable",
+    "named": false
+  },
+  {
     "type": "@define",
     "named": false
   },
   {
+    "type": "@derive",
+    "named": false
+  },
+  {
     "type": "@error",
+    "named": false
+  },
+  {
+    "type": "@execute",
     "named": false
   },
   {
@@ -2962,6 +3252,14 @@
   },
   {
     "type": "@print",
+    "named": false
+  },
+  {
+    "type": "@proof",
+    "named": false
+  },
+  {
+    "type": "@specialize",
     "named": false
   },
   {
@@ -3046,6 +3344,10 @@
   },
   {
     "type": "case",
+    "named": false
+  },
+  {
+    "type": "cast",
     "named": false
   },
   {
@@ -3307,6 +3609,10 @@
   },
   {
     "type": "syscall",
+    "named": false
+  },
+  {
+    "type": "threshold:",
     "named": false
   },
   {

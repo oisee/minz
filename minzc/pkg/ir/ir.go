@@ -206,6 +206,12 @@ const (
 	OpLen           // Get length of array/string
 	OpMemcpy        // Copy memory block
 	OpMemset        // Set memory block
+	
+	// Cast interface operations (v0.11.0)
+	OpCastInterface     // Cast to interface (compile-time resolved)
+	OpCheckCast         // Check cast conformance at compile-time
+	OpMethodDispatch    // Static method dispatch to concrete implementation
+	OpInterfaceCall     // Interface method call (resolved at compile-time)
 )
 
 // RegisterHint provides hints to the register allocator for optimal Z80 register usage
