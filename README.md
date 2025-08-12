@@ -3,7 +3,11 @@
 
 **A modern systems programming language for retro computers** (Z80, 6502, Game Boy, WebAssembly, LLVM)
 
-## 🎉 v0.13.0 Alpha "Module Revolution" (January 2025)
+## 🎉 v0.13.1 Hotfix (January 2025)
+
+**Installation Fix for Ubuntu/Linux** - Resolved "Expected source code but got an atom" error. Includes dependency installer script and better error messages. [Get v0.13.1](https://github.com/oisee/minz/releases/tag/v0.13.1)
+
+## 📦 v0.13.0 Alpha "Module Revolution" (January 2025)
 
 ### 🚀 **NEW: Complete Module System with Aliasing!**
 
@@ -40,9 +44,14 @@ fun main() -> void {
 
 ## 💻 **Installation & Usage**
 
+### Quick Install (Ubuntu/Linux)
 ```bash
-# Install MinZ compiler
-curl -L https://github.com/minz-lang/minz/releases/latest/download/minz-installer.sh | bash
+# Download v0.13.1 (includes dependency installer)
+wget https://github.com/oisee/minz/releases/download/v0.13.1/minz-v0.13.1-linux-amd64.tar.gz
+tar -xzf minz-v0.13.1-linux-amd64.tar.gz
+cd linux-amd64
+./install-dependencies.sh  # Install tree-sitter (one-time)
+./install.sh               # Install MinZ
 
 # Compile a program
 mz program.minz -o program.a80
