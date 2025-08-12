@@ -1,0 +1,65 @@
+# ANTLR4 Makefile for MinZ Parser Generation
+
+ANTLR_VERSION = 4.13.1
+ANTLR_JAR = antlr-$(ANTLR_VERSION)-complete.jar
+ANTLR_URL = https://www.antlr.org/download/$(ANTLR_JAR)
+GRAMMAR = grammar/MinZ.g4
+PACKAGE = parser/generated
+GO_PACKAGE = github.com/minz/minzc/pkg/$(PACKAGE)
+
+.PHONY: all clean generate download-antlr test
+
+all: generate
+
+# Download ANTLR if not present
+download-antlr:
+	@if [ ! -f $(ANTLR_JAR) ]; then \
+		echo "Downloading ANTLR $(ANTLR_VERSION)..."; \
+		curl -O $(ANTLR_URL); \
+	else \
+		echo "ANTLR $(ANTLR_JAR) already downloaded"; \
+	fi
+
+# Generate Go parser from grammar
+generate: download-antlr
+	@echo "Generating Go parser from $(GRAMMAR)..."
+	@mkdir -p pkg/$(PACKAGE)
+	java -jar $(ANTLR_JAR) \
+		-Dlanguage=Go \
+		-package generated \
+		-o pkg/$(PACKAGE) \
+		-visitor \
+		-no-listener \
+		$(GRAMMAR)
+	@echo "Parser generated in pkg/$(PACKAGE)"
+	
+	# Fix import paths in generated files
+	@echo "Fixing import paths..."
+	@for file in pkg/$(PACKAGE)/*.go; do \
+		sed -i.bak 's|"antlr"|"github.com/antlr/antlr4/runtime/Go/antlr/v4"|g' $$file && \
+		rm $$file.bak; \
+	done
+
+# Install ANTLR Go runtime
+install-runtime:
+	go get -u github.com/antlr/antlr4/runtime/Go/antlr/v4
+
+# Clean generated files
+clean:
+	rm -rf pkg/$(PACKAGE)
+	rm -f $(ANTLR_JAR)
+
+# Test the parser
+test: generate
+	go test ./pkg/parser/... -v
+
+# Build with ANTLR parser
+build-antlr: generate
+	go build -tags antlr -o mz-antlr cmd/minzc/main.go
+
+# Compare parsers
+compare: build-antlr
+	@echo "Comparing tree-sitter and ANTLR parsers..."
+	./mz examples/fibonacci.minz -o fib-tree.a80
+	./mz-antlr examples/fibonacci.minz -o fib-antlr.a80
+	diff fib-tree.a80 fib-antlr.a80
