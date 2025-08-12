@@ -29,28 +29,69 @@ func New() *Parser {
 
 // ParseFile parses a MinZ source file and returns an AST
 func (p *Parser) ParseFile(filename string) (*ast.File, error) {
-	// Parse with tree-sitter
-	sexpAST, err := p.parseToSExp(filename)
+	// Read the source file first
+	sourceCode, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("tree-sitter parse failed: %w", err)
+		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
-
-	// Convert the S-expression AST to our Go AST
-	// Create a new Parser instance for S-expression conversion with source code
-	sexpParser := &Parser{sourceCode: p.sourceCode}
-	file, err := sexpParser.convertSExpToAST(filename, sexpAST)
-	if err != nil {
-		return nil, err
-	}
+	p.sourceCode = string(sourceCode)
 	
-	if debug {
-		fmt.Printf("DEBUG: Parsed %d declarations\n", len(file.Declarations))
-		for i, decl := range file.Declarations {
-			fmt.Printf("  Decl %d: %T\n", i, decl)
+	// Check if we should use embedded parser
+	useEmbedded := os.Getenv("MINZ_USE_EMBEDDED_PARSER") == "1"
+	
+	// Try tree-sitter first (unless embedded is forced)
+	if !useEmbedded {
+		sexpAST, err := p.parseToSExp(filename)
+		if err != nil {
+			// Check if it's a grammar/tree-sitter not found error
+			if strings.Contains(err.Error(), "grammar files not found") || 
+			   strings.Contains(err.Error(), "tree-sitter is not installed") ||
+			   strings.Contains(err.Error(), "tree-sitter: no language found") {
+				if debug {
+					fmt.Printf("DEBUG: Tree-sitter not available, falling back to embedded parser\n")
+				}
+				// Fall back to embedded parser
+				useEmbedded = true
+			} else {
+				return nil, fmt.Errorf("tree-sitter parse failed: %w", err)
+			}
+		} else {
+			// Convert the S-expression AST to our Go AST
+			sexpParser := &Parser{sourceCode: p.sourceCode}
+			file, err := sexpParser.convertSExpToAST(filename, sexpAST)
+			if err != nil {
+				return nil, err
+			}
+			
+			if debug {
+				fmt.Printf("DEBUG: Parsed %d declarations using tree-sitter\n", len(file.Declarations))
+				for i, decl := range file.Declarations {
+					fmt.Printf("  Decl %d: %T\n", i, decl)
+				}
+			}
+			
+			return file, nil
 		}
 	}
 	
-	return file, nil
+	// Use fallback parser
+	if useEmbedded {
+		fallbackParser := NewFallback(p.sourceCode)
+		file, err := fallbackParser.ParseToAST(filename)
+		if err != nil {
+			return nil, fmt.Errorf("fallback parser: %w", err)
+		}
+		
+		if debug {
+			fmt.Printf("DEBUG: Using fallback parser (limited functionality)\n")
+			fmt.Printf("DEBUG: Found %d imports and %d declarations\n", 
+				len(file.Imports), len(file.Declarations))
+		}
+		
+		return file, nil
+	}
+	
+	return nil, fmt.Errorf("no parser available")
 }
 
 // ParseString parses MinZ code from a string and returns declarations
@@ -80,13 +121,7 @@ func (p *Parser) ParseString(code string, context string) ([]ast.Declaration, er
 
 // parseToSExp uses tree-sitter to parse the file and output S-expression
 func (p *Parser) parseToSExp(filename string) (*SExpNode, error) {
-	
-	// Read the source file
-	sourceCode, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-	p.sourceCode = string(sourceCode)
+	// Note: sourceCode should already be loaded by ParseFile
 	
 	var grammarPath string
 	foundGrammar := false

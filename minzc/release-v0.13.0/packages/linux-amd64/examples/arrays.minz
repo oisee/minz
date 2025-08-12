@@ -1,0 +1,19 @@
+// Test array syntax parsing - standardized to [T; N] syntax
+
+struct Item {
+    id: u8,
+    value: u16
+}
+
+// Arrays use [Type; Size] syntax (Rust-style)
+let numbers: [u8; 10];
+let values: [u16; 5];
+let items: [Item; 5];
+
+fun main() -> void {
+    // Test array access and assignment
+    numbers[0] = 42;
+    values[0] = 1000;
+    items[0].id = 1;
+    items[0].value = 42;
+}

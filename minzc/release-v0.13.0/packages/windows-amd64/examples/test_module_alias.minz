@@ -1,0 +1,32 @@
+// Test module aliasing feature
+import std as io;         // Alias std as io
+import math as m;         // Alias math as m
+import zx.screen as scr;  // Alias zx.screen as scr
+
+fun main() -> void {
+    // Use aliases instead of full module names
+    io.cls();                          // std.cls()
+    io.println("Module Aliasing Test!");
+    
+    // Test math module with alias
+    let x: u8 = 7;
+    let squared = m.square(x);         // math.square()
+    io.print("Square of ");
+    io.print(x);
+    io.print(" = ");
+    io.println(squared);
+    
+    // Test nested module with alias
+    scr.set_border(2);                 // zx.screen.set_border()
+    
+    // Test constants with alias
+    io.print("PI * 100 = ");
+    io.println(m.PI_TIMES_100);        // math.PI_TIMES_100
+    
+    // Test predicates with alias
+    if m.is_even(10) {                 // math.is_even()
+        io.println("10 is even");
+    }
+    
+    io.println("Aliases work perfectly!");
+}

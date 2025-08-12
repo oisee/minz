@@ -1,0 +1,32 @@
+// Test 16-bit arithmetic operations
+
+global g_sum: u16 = 0;
+global g_diff: u16 = 0;
+global g_product: u16 = 0;
+
+fn test_16bit_ops() -> void {
+    let a: u16 = 0x1234;
+    let b: u16 = 0x5678;
+    
+    // Test addition
+    g_sum = a + b;  // Should be 0x68AC
+    
+    // Test subtraction
+    g_diff = b - a;  // Should be 0x4444
+    
+    // Test multiplication (16x16->16)
+    let c: u16 = 100;
+    let d: u16 = 200;
+    g_product = c * d;  // Should be 20000 (0x4E20)
+    
+    // Test bit operations on 16-bit values
+    let mask: u16 = 0xFF00;
+    let result: u16 = b & mask;  // Should be 0x5600
+    
+    // Test shifts on 16-bit
+    let shifted: u16 = a << 4;  // Should be 0x2340 (but truncated to 16-bit)
+}
+
+fn main() -> void {
+    test_16bit_ops();
+}

@@ -1,0 +1,9 @@
+// Basic test without lambdas
+
+fun add_five(x: u8) -> u8 {
+    x + 5
+}
+
+fun main() -> void {
+    let result = add_five(10);
+}

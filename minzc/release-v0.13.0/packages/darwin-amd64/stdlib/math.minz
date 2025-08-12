@@ -1,0 +1,65 @@
+// math.minz - Mathematical functions for MinZ
+// Part of the MinZ standard library
+
+// Square a number
+pub fun square(x: u8) -> u8 {
+    return x * x;
+}
+
+pub fun square(x: u16) -> u16 {
+    return x * x;
+}
+
+// Cube a number
+pub fun cube(x: u8) -> u16 {
+    let result: u16 = x * x * x;
+    return result;
+}
+
+// Check if a number is even
+pub fun is_even(x: u8) -> bool {
+    return (x & 1) == 0;
+}
+
+// Check if a number is odd
+pub fun is_odd(x: u8) -> bool {
+    return (x & 1) == 1;
+}
+
+// Clamp a value between min and max
+pub fun clamp(value: u8, min: u8, max: u8) -> u8 {
+    if value < min {
+        return min;
+    }
+    if value > max {
+        return max;
+    }
+    return value;
+}
+
+// Calculate greatest common divisor (GCD) using Euclid's algorithm
+pub fun gcd(a: u8, b: u8) -> u8 {
+    var mut x = a;
+    var mut y = b;
+    
+    while y != 0 {
+        let temp = y;
+        y = x % y;
+        x = temp;
+    }
+    
+    return x;
+}
+
+// Calculate least common multiple (LCM)
+pub fun lcm(a: u8, b: u8) -> u8 {
+    if a == 0 || b == 0 {
+        return 0;
+    }
+    return (a * b) / gcd(a, b);
+}
+
+// Constants
+pub const PI_TIMES_100: u16 = 314;  // π * 100 for fixed-point math
+pub const E_TIMES_100: u16 = 271;   // e * 100 for fixed-point math
+pub const PHI_TIMES_100: u16 = 161; // φ * 100 (golden ratio)

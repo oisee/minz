@@ -1,0 +1,21 @@
+// Tail recursive fibonacci
+fun fib_tail(n: u8, a: u16, b: u16) -> u16 {
+    if n == 0 {
+        return a
+    }
+    if n == 1 {
+        return b
+    }
+    // Tail recursive call - will be optimized to jump
+    return fib_tail(n - 1, b, a + b)
+}
+
+fun fibonacci(n: u8) -> u16 {
+    return fib_tail(n, 0, 1)
+}
+
+fun main() -> void {
+    // Calculate 10th fibonacci number
+    let result = fibonacci(10)
+    // Result should be 55
+}

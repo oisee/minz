@@ -1,0 +1,53 @@
+// Test interfaces with multiple methods and multiple implementations
+
+interface Drawable {
+    fun draw(self) -> u8;
+    fun get_area(self) -> u16;
+}
+
+struct Circle {
+    radius: u8,
+}
+
+impl Drawable for Circle {
+    fun draw(self) -> u8 {
+        // Return something based on radius
+        self.radius * 2
+    }
+    
+    fun get_area(self) -> u16 {
+        // Approximate π*r² as 3*r²
+        let r_squared = self.radius * self.radius;
+        r_squared * 3 as u16
+    }
+}
+
+struct Square {
+    side: u8,
+}
+
+impl Drawable for Square {
+    fun draw(self) -> u8 {
+        // Return perimeter / 2
+        self.side * 2
+    }
+    
+    fun get_area(self) -> u16 {
+        self.side * self.side as u16
+    }
+}
+
+fun main() -> void {
+    let circle = Circle { radius: 5 };
+    let square = Square { side: 4 };
+    
+    // Test method calls on both types
+    let circle_draw = circle.draw();      // Should return 10
+    let circle_area = circle.get_area();   // Should return 75
+    
+    let square_draw = square.draw();      // Should return 8
+    let square_area = square.get_area();   // Should return 16
+    
+    // Use print_u8 if available, otherwise just ensure compilation works
+    // Result: circle_draw + square_draw = 18
+}
