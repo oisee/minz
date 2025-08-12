@@ -1,29 +1,62 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
-Function ...examples.interface_simple.Circle.draw$Circle(self: ...examples.interface_simple.Circle) -> u8
-  @smc
-  Instructions:
-      0: LOAD_PARAM
-      1: LOAD_FIELD ; Load field radius (offset 0)
-      2: r4 = 2
-      3: r5 = r3 * r4
-      4: return
-
-Function ...examples.interface_simple.main() -> u8
+Function ...examples.fibonacci.fibonacci$u8(n: u8) -> u16
   @smc
   Locals:
-    r1 = circle: u16
+    r6 = a: u16
+    r8 = b: u16
+    r10 = i: u8
+    r15 = temp: u16
   Instructions:
-      0: ALLOC ; Allocate struct Circle
-      1: r3 = 5
-      2: STORE_FIELD ; Store to Circle.radius
-      3: store circle, r2
-      4: r4 = load circle
-      5: r5 = load circle
-      6: PATCH_TEMPLATE
-      7: PATCH_TARGET
-      8: PATCH_PARAM
-      9: r6 = call ...examples.interface_simple.Circle.draw$Circle
-     10: return
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: LOAD_PARAM
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: r7 = 0
+     10: store a, r7
+     11: r9 = 1
+     12: store b, r9
+     13: r11 = 2
+     14: store i, r11
+     15: loop_3:
+     16: r12 = load i
+     17: LOAD_PARAM
+     18: r14 = r12 <= r13
+     19: jump_if_not r14, end_loop_4
+     20: r16 = load a
+     21: r17 = load b
+     22: r18 = r16 + r17
+     23: store temp, r18
+     24: r19 = load b
+     25: store a, r19
+     26: r20 = load temp
+     27: store b, r20
+     28: r21 = load i
+     29: r22 = 1
+     30: r23 = r21 + r22
+     31: store i, r23
+     32: jump loop_3
+     33: end_loop_4:
+     34: r24 = load b
+     35: return r24
+
+Function ...examples.fibonacci.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = 10
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call ...examples.fibonacci.fibonacci$u8
+      6: store result, r4
+      7: return
 

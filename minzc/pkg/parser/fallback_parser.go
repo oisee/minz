@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"strings"
 	"github.com/minz/minzc/pkg/ast"
 )
 
