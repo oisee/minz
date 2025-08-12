@@ -29,6 +29,12 @@ func New() *Parser {
 
 // ParseFile parses a MinZ source file and returns an AST
 func (p *Parser) ParseFile(filename string) (*ast.File, error) {
+	// Try native parser if enabled
+	if os.Getenv("MINZ_USE_NATIVE_PARSER") == "1" {
+		native := NewNativeParser()
+		return native.ParseFile(filename)
+	}
+	
 	// Read the source file first
 	sourceCode, err := os.ReadFile(filename)
 	if err != nil {
