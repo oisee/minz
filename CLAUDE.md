@@ -21,6 +21,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - `/release` - Prepare new release
 - `/test-all` - Comprehensive test suite
 - `/benchmark` - Performance benchmarks
+- `/inbox` - Process articles from inbox/ to docs/
 
 ### AI Orchestration  
 - `/ai-testing-revolution` - Build testing infrastructure
