@@ -1,0 +1,25 @@
+MinZ v0.13.2 Available Builds for Ubuntu/Linux:
+
+1. minz-v0.13.2-linux-amd64.tar.gz (Recommended)
+   - Size: ~2.1MB
+   - Includes: Native + ANTLR parsers
+   - Requirements: None (zero dependencies)
+   - Performance: Maximum
+
+2. minz-v0.13.2-linux-amd64-antlr-only.tar.gz (Maximum Compatibility)
+   - Size: ~1.8MB
+   - Includes: ANTLR parser only
+   - Requirements: None (CGO-free)
+   - Performance: High
+
+3. minz-v0.13.2-linux-arm64.tar.gz (ARM64 with both parsers)
+   - Size: ~2.1MB
+   - Includes: Native + ANTLR parsers
+   - Requirements: None
+   - Performance: Maximum
+
+4. minz-v0.13.2-linux-arm64-antlr-only.tar.gz (ARM64 ANTLR-only)
+   - Size: ~1.8MB
+   - Includes: ANTLR parser only
+   - Requirements: None (CGO-free)
+   - Performance: High

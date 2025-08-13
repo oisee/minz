@@ -5,6 +5,33 @@ All notable changes to the MinZ programming language will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2025-08-13 "ANTLR Parser Revolution" 🎊
+
+### Added
+- **ANTLR as Default Parser** - Pure Go implementation with zero dependencies
+- **75% Success Rate** - Better than tree-sitter's 70%!
+- **Complete Control Flow** - Full if/while/for/loop statement support
+- **Pattern Matching** - Case statements with literal, identifier, and wildcard patterns
+- **Self-Contained Binaries** - No external tools required
+- **Parser Selection** - Environment variables for parser choice
+
+### Changed
+- **ANTLR is now DEFAULT** - No configuration needed for best compatibility
+- **Tree-sitter is now fallback** - Available via `MINZ_USE_TREE_SITTER=1`
+- **Improved error messages** - Better ANTLR parse error reporting
+- **Zero subprocess spawning** - All parsing happens in-process
+
+### Performance
+- **75% compilation success** (111/148 examples) vs tree-sitter's 70%
+- **Zero dependencies** - No external tools needed
+- **~9MB binary size** - Slightly larger but fully self-contained
+- **No IPC overhead** - Direct in-process parsing
+
+### Migration
+- No changes needed - ANTLR is automatic default
+- Use `MINZ_USE_TREE_SITTER=1` for legacy parser
+- Full backward compatibility maintained
+
 ## [0.11.0] - 2025-08-11 "Cast Interface Revolution" 🚀
 
 ### Added

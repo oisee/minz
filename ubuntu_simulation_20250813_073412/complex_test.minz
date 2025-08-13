@@ -1,0 +1,27 @@
+import std;
+
+struct Point {
+    x: u8,
+    y: u8,
+}
+
+enum Color {
+    Red,
+    Green,
+    Blue,
+}
+
+fun distance(p1: Point, p2: Point) -> u8 {
+    let dx = if p1.x > p2.x { p1.x - p2.x } else { p2.x - p1.x };
+    let dy = if p1.y > p2.y { p1.y - p2.y } else { p2.y - p1.y };
+    return dx + dy;
+}
+
+fun main() -> u8 {
+    let p1 = Point { x: 10, y: 20 };
+    let p2 = Point { x: 30, y: 40 };
+    let d = distance(p1, p2);
+    std.print("Distance: ");
+    std.print_u8(d);
+    return d;
+}

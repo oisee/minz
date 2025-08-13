@@ -1,0 +1,10 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test.main() -> void
+  @smc
+  Instructions:
+      0: r1 = 42
+      1: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      2: return
+

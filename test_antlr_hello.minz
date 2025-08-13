@@ -1,0 +1,9 @@
+// Simple hello world test for ANTLR parser
+fun main() -> void {
+    let msg: u8 = 72;  // 'H'
+    print_u8(msg);
+    print_u8(101);     // 'e'
+    print_u8(108);     // 'l'
+    print_u8(108);     // 'l'
+    print_u8(111);     // 'o'
+}

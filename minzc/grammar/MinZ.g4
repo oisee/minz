@@ -1,58 +1,51 @@
 grammar MinZ;
 
-// ============================================================================
 // Parser Rules
-// ============================================================================
-
-program
-    : (importDecl | declaration)* EOF
+sourceFile
+    : (importStatement | declaration | statement)* EOF
     ;
 
-// Import declarations
-importDecl
+// Import statements
+importStatement
     : 'import' importPath ('as' alias=IDENTIFIER)? ';'
     ;
 
 importPath
-    : IDENTIFIER ('.' IDENTIFIER)*
+    : stringLiteral
+    | IDENTIFIER ('.' IDENTIFIER)*
     ;
 
-// Top-level declarations
+// Declarations
 declaration
-    : functionDecl
-    | structDecl
-    | interfaceDecl
-    | enumDecl
-    | constDecl
-    | globalDecl
-    | typeAlias
-    | metafunction
+    : functionDeclaration
+    | structDeclaration
+    | enumDeclaration
+    | typeAliasDeclaration
+    | interfaceDeclaration
+    | implBlock
+    | constDeclaration
+    | globalVarDeclaration
+    | compileTimeDeclaration
     ;
 
-// Function declaration
-functionDecl
-    : 'pub'? ('fun' | 'fn') name=IDENTIFIER 
-      genericParams?
-      '(' parameterList? ')' 
-      returnType?
-      functionBody
+// Function declarations
+functionDeclaration
+    : visibility? functionPrefix IDENTIFIER genericParams? '(' parameterList? ')' returnType? errorReturnType? block
+    ;
+
+functionPrefix
+    : 'fun'
+    | 'fn'
+    | 'asm' 'fun'
+    | 'mir' 'fun'
+    ;
+
+visibility
+    : 'pub'
     ;
 
 genericParams
     : '<' IDENTIFIER (',' IDENTIFIER)* '>'
-    ;
-
-returnType
-    : '->' type errorType?
-    ;
-
-errorType
-    : '?'
-    ;
-
-functionBody
-    : block
-    | ';'  // forward declaration
     ;
 
 parameterList
@@ -60,167 +53,203 @@ parameterList
     ;
 
 parameter
-    : 'self'                          // self parameter
-    | name=IDENTIFIER ':' type       // regular parameter
+    : IDENTIFIER ':' type
     ;
 
-// Struct declaration
-structDecl
-    : 'pub'? 'struct' name=IDENTIFIER '{' structField* '}'
+returnType
+    : '->' type
     ;
 
-structField
-    : name=IDENTIFIER ':' type ','?
+errorReturnType
+    : '?' type?
     ;
 
-// Interface declaration
-interfaceDecl
-    : 'pub'? 'interface' name=IDENTIFIER '{' methodSignature* '}'
+// Struct declarations
+structDeclaration
+    : visibility? 'struct' IDENTIFIER genericParams? '{' fieldList? '}'
     ;
 
-methodSignature
-    : ('fun' | 'fn') name=IDENTIFIER '(' parameterList? ')' returnType? ';'?
+fieldList
+    : field (',' field)* ','?
     ;
 
-// Enum declaration
-enumDecl
-    : 'pub'? 'enum' name=IDENTIFIER '{' enumVariant (',' enumVariant)* ','? '}'
+field
+    : IDENTIFIER ':' type
     ;
 
-enumVariant
-    : IDENTIFIER ('=' INTEGER)?
+// Enum declarations
+enumDeclaration
+    : visibility? 'enum' IDENTIFIER genericParams? '{' enumMemberList? '}'
     ;
 
-// Const declaration
-constDecl
-    : 'pub'? 'const' name=IDENTIFIER ':' type '=' expression ';'
+enumMemberList
+    : enumMember (',' enumMember)* ','?
     ;
 
-// Global variable declaration
-globalDecl
-    : 'pub'? 'global' name=IDENTIFIER ':' type ('=' expression)? ';'
+enumMember
+    : IDENTIFIER ('=' expression)?
     ;
 
 // Type alias
-typeAlias
-    : 'pub'? 'type' name=IDENTIFIER '=' type ';'
+typeAliasDeclaration
+    : 'type' IDENTIFIER '=' type ';'
     ;
 
-// Metafunction calls
-metafunction
-    : '@' name=IDENTIFIER '(' expressionList? ')' ';'?
+// Interface declarations
+interfaceDeclaration
+    : visibility? 'interface' IDENTIFIER genericParams? '{' interfaceMethodList? '}'
     ;
 
-// ============================================================================
-// Types
-// ============================================================================
-
-type
-    : primitiveType
-    | namedType
-    | arrayType
-    | pointerType
-    | errorableType
-    | mutableType
-    | iteratorType
+interfaceMethodList
+    : interfaceMethod*
     ;
 
-primitiveType
-    : 'u8' | 'u16' | 'u24' | 'u32'
-    | 'i8' | 'i16' | 'i24' | 'i32'
-    | 'bool' | 'void'
-    | 'f8.8' | 'f.8' | 'f16.8' | 'f8.16'
+interfaceMethod
+    : IDENTIFIER '(' parameterList? ')' returnType? errorReturnType? ';'
     ;
 
-namedType
-    : IDENTIFIER ('.' IDENTIFIER)*
+// Impl blocks
+implBlock
+    : 'impl' type 'for' type '{' functionDeclaration* '}'
     ;
 
-arrayType
-    : type '[' arraySize? ']'
+// Constants and globals
+constDeclaration
+    : visibility? 'const' IDENTIFIER ':' type '=' expression ';'
     ;
 
-arraySize
-    : INTEGER
-    | IDENTIFIER
+globalVarDeclaration
+    : visibility? 'global' IDENTIFIER ':' type ('=' expression)? ';'
     ;
 
-pointerType
-    : '*' type
-    | '*' 'mut' type
+// Compile-time declarations
+compileTimeDeclaration
+    : compileTimeIf
+    | compileTimeMinz
+    | compileTimeMir
+    | targetBlock
     ;
 
-errorableType
-    : type '?'
+compileTimeIf
+    : '@if' '(' expression ')' block ('else' block)?
     ;
 
-mutableType
-    : 'mut' type
+compileTimeMinz
+    : '@minz' '(' stringLiteral (',' expression)* ')'
     ;
 
-iteratorType
-    : 'Iterator' '<' type '>'
+compileTimeMir
+    : '@mir' mirBlock
     ;
 
-// ============================================================================
+mirBlock
+    : '{' mirStatement* '}'
+    ;
+
+mirStatement
+    : mirInstruction ';'
+    ;
+
+mirInstruction
+    : IDENTIFIER mirOperand*
+    ;
+
+mirOperand
+    : mirRegister
+    | mirImmediate
+    | mirMemory
+    | mirLabel
+    ;
+
+mirRegister
+    : 'r' NUMBER
+    ;
+
+mirImmediate
+    : '#' NUMBER
+    ;
+
+mirMemory
+    : '[' expression ']'
+    ;
+
+mirLabel
+    : IDENTIFIER ':'
+    ;
+
+targetBlock
+    : '@target' '(' stringLiteral ')' block
+    ;
+
 // Statements
-// ============================================================================
-
 statement
     : letStatement
+    | varStatement
+    | assignmentStatement
+    | expressionStatement
+    | returnStatement
     | ifStatement
     | whileStatement
     | forStatement
-    | matchStatement
-    | returnStatement
+    | loopStatement
+    | caseStatement
+    | blockStatement
     | breakStatement
     | continueStatement
     | deferStatement
-    | block
-    | assignmentStatement
-    | expressionStatement
-    | asmBlock
+    | asmStatement
     ;
 
 letStatement
-    : 'let' 'mut'? name=IDENTIFIER (':' type)? ('=' initializer=expression)? ';'
+    : 'let' 'mut'? IDENTIFIER (':' type)? '=' expression ';'
     ;
 
-ifStatement
-    : 'if' condition=expression thenBlock=block 
-      ('else' 'if' elseIfCondition=expression elseIfBlock=block)*
-      ('else' elseBlock=block)?
+varStatement
+    : 'var' IDENTIFIER (':' type)? '=' expression ';'
     ;
 
-whileStatement
-    : 'while' condition=expression body=block
+assignmentStatement
+    : expression '=' expression ';'
     ;
 
-forStatement
-    : 'for' iterator=IDENTIFIER 'in' iterable=expression body=block
-    ;
-
-matchStatement
-    : 'match' expression '{' matchArm* '}'
-    ;
-
-matchArm
-    : pattern '=>' (expression ';' | block) ','?
-    ;
-
-pattern
-    : '_'                             // wildcard
-    | literal                         // literal pattern
-    | IDENTIFIER                      // variable binding
-    | enumPattern                     // enum variant
-    ;
-
-enumPattern
-    : IDENTIFIER '::' IDENTIFIER
+expressionStatement
+    : expression ';'
     ;
 
 returnStatement
     : 'return' expression? ';'
+    ;
+
+ifStatement
+    : 'if' expression block ('else' (ifStatement | block))?
+    ;
+
+whileStatement
+    : 'while' expression block
+    ;
+
+forStatement
+    : 'for' IDENTIFIER 'in' expression block
+    ;
+
+loopStatement
+    : 'loop' block
+    ;
+
+caseStatement
+    : 'case' expression '{' caseArm* '}'
+    ;
+
+caseArm
+    : pattern '=>' (block | expression ','?)
+    ;
+
+blockStatement
+    : block
+    ;
+
+block
+    : '{' statement* '}'
     ;
 
 breakStatement
@@ -232,98 +261,59 @@ continueStatement
     ;
 
 deferStatement
-    : 'defer' (expression ';' | block)
+    : 'defer' (block | expression ';')
     ;
 
-assignmentStatement
-    : assignmentTarget assignmentOp expression ';'
-    ;
-
-assignmentTarget
-    : IDENTIFIER
-    | expression '.' IDENTIFIER
-    | expression '[' expression ']'
-    ;
-
-assignmentOp
-    : '=' | '+=' | '-=' | '*=' | '/=' | '%=' 
-    | '&=' | '|=' | '^=' | '<<=' | '>>='
-    ;
-
-expressionStatement
-    : expression ';'
-    ;
-
-block
-    : '{' statement* '}'
+asmStatement
+    : 'asm' asmBlock
     ;
 
 asmBlock
-    : '@asm' '{' ASM_CODE '}'
+    : '{' (~'}')* '}'
     ;
 
-// ============================================================================
-// Expressions
-// ============================================================================
-
-expression
-    : primaryExpression                                    # Primary
-    | expression '(' argumentList? ')'                     # Call
-    | expression '.' member=IDENTIFIER                     # MemberAccess
-    | expression '[' index=expression ']'                  # IndexAccess
-    | expression '?'                                        # ErrorCheck
-    | expression '??' defaultValue=expression              # ErrorDefault
-    | expression 'as' targetType=type                      # Cast
-    | op=('!' | '-' | '~') expression                      # Unary
-    | expression op=('*' | '/' | '%') expression           # Multiplicative
-    | expression op=('+' | '-') expression                 # Additive
-    | expression op=('<<' | '>>') expression               # Shift
-    | expression op=('<' | '<=' | '>' | '>=') expression   # Relational
-    | expression op=('==' | '!=') expression               # Equality
-    | expression op='&' expression                         # BitwiseAnd
-    | expression op='^' expression                         # BitwiseXor
-    | expression op='|' expression                         # BitwiseOr
-    | expression op='&&' expression                        # LogicalAnd
-    | expression op='||' expression                        # LogicalOr
-    | lambdaExpression                                     # Lambda
-    | metafunctionExpr                                     # MetafunctionCall
+// Patterns (for pattern matching)
+pattern
+    : literalPattern
+    | identifierPattern
+    | wildcardPattern
+    | tuplePattern
+    | structPattern
     ;
 
-primaryExpression
+literalPattern
     : literal
-    | IDENTIFIER
-    | 'self'
-    | '(' expression ')'
-    | arrayLiteral
-    | structLiteral
     ;
 
-literal
-    : INTEGER
-    | HEX_INTEGER
-    | BINARY_INTEGER
-    | FLOAT
-    | STRING
-    | CHAR
-    | 'true'
-    | 'false'
-    | 'null'
+identifierPattern
+    : IDENTIFIER
     ;
 
-arrayLiteral
-    : '[' expressionList? ']'
+wildcardPattern
+    : '_'
     ;
 
-structLiteral
-    : IDENTIFIER '{' fieldInitializer (',' fieldInitializer)* ','? '}'
+tuplePattern
+    : '(' pattern (',' pattern)* ')'
     ;
 
-fieldInitializer
-    : IDENTIFIER ':' expression
+structPattern
+    : IDENTIFIER '{' fieldPattern (',' fieldPattern)* '}'
+    ;
+
+fieldPattern
+    : IDENTIFIER ':' pattern
+    ;
+
+// Expressions - fixed precedence
+expression
+    : lambdaExpression
+    | conditionalExpression
     ;
 
 lambdaExpression
-    : '|' lambdaParams? '|' ('=>' type)? (expression | block)
+    : '|' lambdaParams? '|' ('=>' type)? block
+    | conditionalExpression
     ;
 
 lambdaParams
@@ -334,95 +324,264 @@ lambdaParam
     : IDENTIFIER (':' type)?
     ;
 
-metafunctionExpr
-    : '@' name=IDENTIFIER '(' expressionList? ')'
+conditionalExpression
+    : whenExpression
+    | logicalOrExpression ('?' expression ':' expression)?  // Ternary
+    | 'if' logicalOrExpression 'then' expression 'else' expression  // If expression
+    ;
+
+whenExpression
+    : 'when' expression '{' whenArm* '}'
+    ;
+
+whenArm
+    : pattern ('if' expression)? '=>' expression ','?
+    ;
+
+logicalOrExpression
+    : logicalAndExpression (('||' | 'or') logicalAndExpression)*
+    ;
+
+logicalAndExpression
+    : equalityExpression (('&&' | 'and') equalityExpression)*
+    ;
+
+equalityExpression
+    : relationalExpression (('==' | '!=') relationalExpression)*
+    ;
+
+relationalExpression
+    : additiveExpression (('<' | '>' | '<=' | '>=') additiveExpression)*
+    ;
+
+additiveExpression
+    : multiplicativeExpression (('+' | '-') multiplicativeExpression)*
+    ;
+
+multiplicativeExpression
+    : castExpression (('*' | '/' | '%') castExpression)*
+    ;
+
+castExpression
+    : unaryExpression ('as' type)?
+    ;
+
+unaryExpression
+    : ('!' | '-' | '~' | '&' | '*') unaryExpression
+    | postfixExpression
+    ;
+
+postfixExpression
+    : primaryExpression postfixOperator*
+    ;
+
+postfixOperator
+    : '[' expression ']'                    // Array index
+    | '.' IDENTIFIER                        // Field access
+    | '(' argumentList? ')'                 // Function call
+    | '?'                                    // Try operator
+    | '??'                                   // Nil coalescing
+    | '.iter()'                             // Iterator
+    | '.map' '(' lambdaExpression ')'      // Map
+    | '.filter' '(' lambdaExpression ')'   // Filter
+    | '.forEach' '(' lambdaExpression ')'  // ForEach
     ;
 
 argumentList
     : expression (',' expression)*
     ;
 
-expressionList
-    : expression (',' expression)*
+primaryExpression
+    : literal
+    | IDENTIFIER
+    | '(' expression ')'
+    | arrayLiteral
+    | structLiteral
+    | metafunction
+    | inlineAssembly
     ;
 
-// ============================================================================
+literal
+    : numberLiteral
+    | stringLiteral
+    | charLiteral
+    | booleanLiteral
+    ;
+
+numberLiteral
+    : NUMBER
+    | HEX_NUMBER
+    | BINARY_NUMBER
+    ;
+
+stringLiteral
+    : STRING
+    | LSTRING
+    ;
+
+charLiteral
+    : CHAR
+    ;
+
+booleanLiteral
+    : 'true'
+    | 'false'
+    ;
+
+arrayLiteral
+    : '[' (expression (',' expression)*)? ']'
+    ;
+
+structLiteral
+    : IDENTIFIER '{' (fieldInit (',' fieldInit)*)? '}'
+    ;
+
+fieldInit
+    : IDENTIFIER ':' expression
+    ;
+
+// Metafunctions
+metafunction
+    : '@print' '(' expression (',' expression)* ')'
+    | '@assert' '(' expression (',' expression)? ')'
+    | '@error' '(' stringLiteral ')'
+    | '@abi' '(' stringLiteral ')'
+    | '@lua' luaBlock
+    | '@lua_eval' '(' expression ')'
+    | '@define' '(' IDENTIFIER ',' expression ')'
+    | '@include' '(' stringLiteral ')'
+    | '@log' '.' logLevel '(' expression (',' expression)* ')'  // Direct pattern
+    | '@log' '(' expression (',' expression)* ')'                // Default @log
+    ;
+
+logLevel
+    : 'out'
+    | 'debug'
+    | 'info'
+    | 'warn'
+    | 'error'
+    | 'trace'
+    ;
+
+luaBlock
+    : LUA_BLOCK
+    ;
+
+// Inline assembly
+inlineAssembly
+    : 'asm' '(' stringLiteral (',' asmOperand)* ')'
+    ;
+
+asmOperand
+    : ':' '"' asmConstraint '"' '(' expression ')'
+    ;
+
+asmConstraint
+    : IDENTIFIER
+    ;
+
+// Types
+type
+    : primitiveType
+    | arrayType
+    | pointerType
+    | functionType
+    | structType
+    | enumType
+    | bitStructType
+    | typeIdentifier
+    | errorType
+    ;
+
+primitiveType
+    : 'u8' | 'u16' | 'u24' | 'i8' | 'i16' | 'i24' | 'bool' | 'void'
+    | 'f8.8' | 'f.8' | 'f.16' | 'f16.8' | 'f8.16'
+    ;
+
+arrayType
+    : '[' type ';' expression ']'
+    | '[' type ']'
+    ;
+
+pointerType
+    : '*' 'const'? type
+    | '*' 'mut' type
+    ;
+
+functionType
+    : 'fn' '(' typeList? ')' returnType?
+    ;
+
+typeList
+    : type (',' type)*
+    ;
+
+structType
+    : 'struct' '{' fieldList? '}'
+    ;
+
+enumType
+    : 'enum' '{' enumMemberList? '}'
+    ;
+
+bitStructType
+    : 'bitstruct' '{' bitFieldList? '}'
+    ;
+
+bitFieldList
+    : bitField (',' bitField)* ','?
+    ;
+
+bitField
+    : IDENTIFIER ':' NUMBER
+    ;
+
+typeIdentifier
+    : IDENTIFIER ('::' IDENTIFIER)*
+    ;
+
+errorType
+    : primitiveType '?'
+    | arrayType '?'
+    | pointerType '?'
+    | functionType '?'
+    | structType '?'
+    | enumType '?'
+    | bitStructType '?'
+    | typeIdentifier '?'
+    ;
+
 // Lexer Rules
-// ============================================================================
-
-// Keywords
-IMPORT: 'import';
-AS: 'as';
-FUN: 'fun';
-FN: 'fn';
-STRUCT: 'struct';
-INTERFACE: 'interface';
-ENUM: 'enum';
-CONST: 'const';
-GLOBAL: 'global';
-TYPE: 'type';
-LET: 'let';
-MUT: 'mut';
-IF: 'if';
-ELSE: 'else';
-WHILE: 'while';
-FOR: 'for';
-IN: 'in';
-MATCH: 'match';
-RETURN: 'return';
-BREAK: 'break';
-CONTINUE: 'continue';
-DEFER: 'defer';
-PUB: 'pub';
-SELF: 'self';
-TRUE: 'true';
-FALSE: 'false';
-NULL: 'null';
-
-// Primitive types
-U8: 'u8';
-U16: 'u16';
-U24: 'u24';
-U32: 'u32';
-I8: 'i8';
-I16: 'i16';
-I24: 'i24';
-I32: 'i32';
-BOOL: 'bool';
-VOID: 'void';
-
-// Identifiers and literals
 IDENTIFIER
     : [a-zA-Z_][a-zA-Z0-9_]*
     ;
 
-INTEGER
-    : [0-9]+
+NUMBER
+    : [0-9]+ ('.' [0-9]+)?
     ;
 
-HEX_INTEGER
+HEX_NUMBER
     : '0x' [0-9a-fA-F]+
     ;
 
-BINARY_INTEGER
+BINARY_NUMBER
     : '0b' [01]+
     ;
 
-FLOAT
-    : [0-9]+ '.' [0-9]+
+STRING
+    : '"' (~["\\\r\n] | '\\' .)* '"'
     ;
 
-STRING
-    : '"' (~["\r\n\\] | '\\' .)* '"'
+LSTRING
+    : [lL] '"' (~["\\\r\n] | '\\' .)* '"'
     ;
 
 CHAR
-    : '\'' (~['\r\n\\] | '\\' .) '\''
+    : '\'' (~['\\\r\n] | '\\' .) '\''
     ;
 
-// Assembly code block (captures everything between @asm { ... })
-ASM_CODE
-    : (~[{}] | '{' ASM_CODE '}')*
+LUA_BLOCK
+    : '[[[' .*? ']]]'
     ;
 
 // Comments and whitespace
@@ -437,53 +596,3 @@ BLOCK_COMMENT
 WS
     : [ \t\r\n]+ -> skip
     ;
-
-// Operators and punctuation
-ARROW: '->';
-DOUBLE_ARROW: '=>';
-QUESTION: '?';
-DOUBLE_QUESTION: '??';
-DOT: '.';
-COMMA: ',';
-SEMICOLON: ';';
-COLON: ':';
-DOUBLE_COLON: '::';
-LPAREN: '(';
-RPAREN: ')';
-LBRACE: '{';
-RBRACE: '}';
-LBRACKET: '[';
-RBRACKET: ']';
-LT: '<';
-GT: '>';
-LE: '<=';
-GE: '>=';
-EQ: '==';
-NE: '!=';
-ASSIGN: '=';
-PLUS_ASSIGN: '+=';
-MINUS_ASSIGN: '-=';
-STAR_ASSIGN: '*=';
-DIV_ASSIGN: '/=';
-MOD_ASSIGN: '%=';
-AND_ASSIGN: '&=';
-OR_ASSIGN: '|=';
-XOR_ASSIGN: '^=';
-SHL_ASSIGN: '<<=';
-SHR_ASSIGN: '>>=';
-PLUS: '+';
-MINUS: '-';
-STAR: '*';
-DIV: '/';
-MOD: '%';
-AND: '&';
-OR: '|';
-XOR: '^';
-NOT: '!';
-TILDE: '~';
-LOGICAL_AND: '&&';
-LOGICAL_OR: '||';
-SHL: '<<';
-SHR: '>>';
-AT: '@';
-UNDERSCORE: '_';

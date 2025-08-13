@@ -1,0 +1,9 @@
+Ubuntu Simulation Environment
+============================
+Distribution: Ubuntu 22.04.3 LTS
+Kernel: Linux 5.15.0-91-generic
+Architecture: x86_64
+Available RAM: 4GB
+Available Disk: 20GB
+Package Manager: apt
+Shell: bash 5.1.16

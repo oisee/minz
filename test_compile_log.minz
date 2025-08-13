@@ -1,0 +1,13 @@
+// Test compile-time logging
+@log.out("Starting compilation of test_compile_log.minz")
+@log.info("MinZ version: v0.13.2")
+
+const TABLE_SIZE: u8 = 16;
+@log.debug("Table size constant defined: ", TABLE_SIZE)
+
+fun main() -> void {
+    @log.out("Compiling main function")
+    let x: u8 = 42;
+    @print("Runtime print: ", x)  // This generates runtime code
+    @log.info("Main function compiled successfully")
+}

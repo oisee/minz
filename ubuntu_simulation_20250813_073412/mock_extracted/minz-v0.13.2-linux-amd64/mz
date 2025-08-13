@@ -1,0 +1,6 @@
+#!/bin/bash
+# Mock MinZ v0.13.2 binary
+echo "MinZ v0.13.2"
+echo "Parser: Native + ANTLR (dual parser support)"
+echo "Platform: linux/amd64"
+echo "Build: 2025-01-13"

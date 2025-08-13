@@ -1,22 +1,25 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
-Function examples.test_print_backends.main() -> u8
+Function test_print_issue.main() -> u8
   @smc
   Locals:
-    r3 = x: u8
+    r2 = x: u8
   Instructions:
       0: LOAD_STRING
-      1: PRINT_STRING ; Print "Hello from MinZ!
-" (17 chars via loop)
-      2: LOAD_STRING
-      3: PRINT_STRING ; Print "The answer is: " (15 chars via loop)
-      4: r4 = 42
-      5: store x, r4
-      6: r5 = load x
-      7: PRINT_U8
-      8: PRINT_STRING_DIRECT ; Direct print "
-" (1 chars)
-      9: r6 = 0
-     10: return r6
+      1: PRINT_STRING ; Print "Hello from compile time!" (24 chars via loop)
+      2: r3 = 42
+      3: store x, r3
+      4: LOAD_STRING
+      5: PRINT_STRING ; Print "Value of x: " (12 chars via loop)
+      6: r5 = 0
+      7: return r5
+
+Function test_print_issue.test_pure_function() -> u8
+  @smc
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "This is in a pure function" (26 chars via loop)
+      2: r2 = 5
+      3: return r2
 

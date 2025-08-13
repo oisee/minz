@@ -29,12 +29,6 @@ func New() *Parser {
 
 // ParseFile parses a MinZ source file and returns an AST
 func (p *Parser) ParseFile(filename string) (*ast.File, error) {
-	// Try native parser if enabled
-	if os.Getenv("MINZ_USE_NATIVE_PARSER") == "1" {
-		native := NewNativeParser()
-		return native.ParseFile(filename)
-	}
-	
 	// Read the source file first
 	sourceCode, err := os.ReadFile(filename)
 	if err != nil {
@@ -42,24 +36,65 @@ func (p *Parser) ParseFile(filename string) (*ast.File, error) {
 	}
 	p.sourceCode = string(sourceCode)
 	
-	// Check if we should use embedded parser
-	useEmbedded := os.Getenv("MINZ_USE_EMBEDDED_PARSER") == "1"
+	// Check which parser to use
+	useTreeSitter := os.Getenv("MINZ_USE_TREE_SITTER") == "1"
+	forceTreeSitter := os.Getenv("MINZ_FORCE_TREE_SITTER") == "1"
+	useNative := os.Getenv("MINZ_USE_NATIVE_PARSER") == "1"
 	
-	// Try tree-sitter first (unless embedded is forced)
-	if !useEmbedded {
+	// Native parser not yet implemented
+	if useNative {
+		return nil, fmt.Errorf("native parser not yet implemented")
+	}
+	
+	// v0.14.0: ANTLR is now the DEFAULT parser
+	// It provides zero-dependency, self-contained binaries with 75% success rate
+	if !useTreeSitter && !forceTreeSitter {
+		antlrParser := NewAntlrParser()
+		if antlrParser != nil {
+			result, err := antlrParser.ParseFile(filename)
+			if err == nil {
+				return result, nil
+			}
+			// If not forcing tree-sitter, return ANTLR error
+			if !useTreeSitter {
+				return nil, fmt.Errorf("ANTLR parser error: %w", err)
+			}
+			// Fall through to tree-sitter if requested as fallback
+		}
+	}
+	
+	// Fallback to tree-sitter CLI for compatibility (requires external tool)
+	// Only used if explicitly requested via MINZ_USE_TREE_SITTER=1
+	if true {
 		sexpAST, err := p.parseToSExp(filename)
 		if err != nil {
 			// Check if it's a grammar/tree-sitter not found error
 			if strings.Contains(err.Error(), "grammar files not found") || 
 			   strings.Contains(err.Error(), "tree-sitter is not installed") ||
-			   strings.Contains(err.Error(), "tree-sitter: no language found") {
-				if debug {
-					fmt.Printf("DEBUG: Tree-sitter not available, falling back to embedded parser\n")
-				}
-				// Fall back to embedded parser
-				useEmbedded = true
+			   strings.Contains(err.Error(), "tree-sitter: no language found") ||
+			   strings.Contains(err.Error(), "executable file not found") ||
+			   strings.Contains(err.Error(), "command not found") {
+				// Provide helpful error message for missing tree-sitter
+				return nil, fmt.Errorf(`tree-sitter is not installed or configured properly.
+
+To fix this issue:
+
+Ubuntu/Debian:
+  sudo apt-get update && sudo apt-get install tree-sitter
+
+macOS:
+  brew install tree-sitter
+
+Fedora/RHEL:
+  sudo dnf install tree-sitter
+
+After installing tree-sitter, you also need the MinZ grammar:
+  1. Clone: git clone https://github.com/minz-lang/tree-sitter-minz
+  2. Build: cd tree-sitter-minz && tree-sitter generate
+
+For more help, see: https://github.com/minz-lang/minz/wiki/Installation`)
 			} else {
-				return nil, fmt.Errorf("tree-sitter parse failed: %w", err)
+				return nil, fmt.Errorf("parse error: %w", err)
 			}
 		} else {
 			// Convert the S-expression AST to our Go AST
@@ -80,24 +115,8 @@ func (p *Parser) ParseFile(filename string) (*ast.File, error) {
 		}
 	}
 	
-	// Use fallback parser
-	if useEmbedded {
-		fallbackParser := NewFallback(p.sourceCode)
-		file, err := fallbackParser.ParseToAST(filename)
-		if err != nil {
-			return nil, fmt.Errorf("fallback parser: %w", err)
-		}
-		
-		if debug {
-			fmt.Printf("DEBUG: Using fallback parser (limited functionality)\n")
-			fmt.Printf("DEBUG: Found %d imports and %d declarations\n", 
-				len(file.Imports), len(file.Declarations))
-		}
-		
-		return file, nil
-	}
-	
-	return nil, fmt.Errorf("no parser available")
+	// No fallback available
+	return nil, fmt.Errorf("unable to parse file: tree-sitter not available")
 }
 
 // ParseString parses MinZ code from a string and returns declarations

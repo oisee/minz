@@ -1,0 +1,12 @@
+// Test compile-time logging with ANTLR parser
+fun main() -> void {
+    @log.out("Starting compilation");
+    @log.debug("Debug info: ", 42);
+    
+    let x: u8 = 10;
+    @log.info("Variable x = ", x);
+    
+    print_u8(x);
+    
+    @log.out("Compilation complete");
+}

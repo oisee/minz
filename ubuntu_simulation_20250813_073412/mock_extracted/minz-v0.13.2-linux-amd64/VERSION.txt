@@ -1,0 +1,6 @@
+MinZ Programming Language v0.13.2
+Platform: linux/amd64
+CGO Enabled: true
+Build Date: 2025-01-13
+Parser: Native + ANTLR
+Description: Linux x64 with Native Parser

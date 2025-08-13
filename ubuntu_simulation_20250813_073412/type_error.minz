@@ -1,0 +1,4 @@
+fun main() -> u8 {
+    let x: u8 = "not a number";
+    return x;
+}
