@@ -1,0 +1,13 @@
+// Test array literal parsing
+fun main() -> void {
+    let nums = [1, 2, 3, 4, 5];
+    let empty = [];
+    let mixed = [10, 20, 30];
+    
+    // Access elements
+    let first = nums[0];
+    let second = nums[1];
+    
+    print_u8(first);
+    print_u8(second);
+}

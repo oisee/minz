@@ -1453,6 +1453,11 @@ func (v *antlrVisitor) VisitPrimaryExpression(ctx *minzparser.PrimaryExpressionC
 		return v.VisitLiteral(lit.(*minzparser.LiteralContext))
 	}
 	
+	// Qualified identifier (e.g., State::IDLE)
+	if qid := ctx.QualifiedIdentifier(); qid != nil {
+		return v.VisitQualifiedIdentifier(qid.(*minzparser.QualifiedIdentifierContext))
+	}
+	
 	// Identifier
 	if id := ctx.IDENTIFIER(); id != nil {
 		return &ast.Identifier{
@@ -1894,4 +1899,18 @@ func (v *antlrVisitor) VisitErrorType(ctx *minzparser.ErrorTypeContext) interfac
 	return &ast.ErrorType{
 		ValueType: baseType,
 	}
+}
+// VisitQualifiedIdentifier handles qualified identifiers like State::IDLE
+func (v *antlrVisitor) VisitQualifiedIdentifier(ctx *minzparser.QualifiedIdentifierContext) interface{} {
+	ids := ctx.AllIDENTIFIER()
+	if len(ids) == 2 {
+		// Enum member access: EnumType::Member
+		return &ast.FieldExpr{
+			Object: &ast.Identifier{
+				Name: ids[0].GetText(),
+			},
+			Field: ids[1].GetText(),
+		}
+	}
+	return nil
 }

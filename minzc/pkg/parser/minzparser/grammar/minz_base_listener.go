@@ -1,6 +1,7 @@
 // Code generated from grammar/MinZ.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
-package minzparser // MinZ
+package parser // MinZ
+
 import "github.com/antlr4-go/antlr/v4"
 
 // BaseMinZListener is a complete listener for a parse tree produced by MinZParser.
@@ -518,6 +519,12 @@ func (s *BaseMinZListener) EnterPrimaryExpression(ctx *PrimaryExpressionContext)
 // ExitPrimaryExpression is called when production primaryExpression is exited.
 func (s *BaseMinZListener) ExitPrimaryExpression(ctx *PrimaryExpressionContext) {}
 
+// EnterQualifiedIdentifier is called when production qualifiedIdentifier is entered.
+func (s *BaseMinZListener) EnterQualifiedIdentifier(ctx *QualifiedIdentifierContext) {}
+
+// ExitQualifiedIdentifier is called when production qualifiedIdentifier is exited.
+func (s *BaseMinZListener) ExitQualifiedIdentifier(ctx *QualifiedIdentifierContext) {}
+
 // EnterLiteral is called when production literal is entered.
 func (s *BaseMinZListener) EnterLiteral(ctx *LiteralContext) {}
 
@@ -571,6 +578,12 @@ func (s *BaseMinZListener) EnterMetafunction(ctx *MetafunctionContext) {}
 
 // ExitMetafunction is called when production metafunction is exited.
 func (s *BaseMinZListener) ExitMetafunction(ctx *MetafunctionContext) {}
+
+// EnterLogLevel is called when production logLevel is entered.
+func (s *BaseMinZListener) EnterLogLevel(ctx *LogLevelContext) {}
+
+// ExitLogLevel is called when production logLevel is exited.
+func (s *BaseMinZListener) ExitLogLevel(ctx *LogLevelContext) {}
 
 // EnterLuaBlock is called when production luaBlock is entered.
 func (s *BaseMinZListener) EnterLuaBlock(ctx *LuaBlockContext) {}

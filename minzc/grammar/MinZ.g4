@@ -393,12 +393,17 @@ argumentList
 
 primaryExpression
     : literal
+    | qualifiedIdentifier
     | IDENTIFIER
     | '(' expression ')'
     | arrayLiteral
     | structLiteral
     | metafunction
     | inlineAssembly
+    ;
+
+qualifiedIdentifier
+    : IDENTIFIER '::' IDENTIFIER
     ;
 
 literal

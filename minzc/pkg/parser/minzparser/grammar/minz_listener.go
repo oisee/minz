@@ -1,6 +1,7 @@
 // Code generated from grammar/MinZ.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
-package minzparser // MinZ
+package parser // MinZ
+
 import "github.com/antlr4-go/antlr/v4"
 
 // MinZListener is a complete listener for a parse tree produced by MinZParser.
@@ -256,6 +257,9 @@ type MinZListener interface {
 	// EnterPrimaryExpression is called when entering the primaryExpression production.
 	EnterPrimaryExpression(c *PrimaryExpressionContext)
 
+	// EnterQualifiedIdentifier is called when entering the qualifiedIdentifier production.
+	EnterQualifiedIdentifier(c *QualifiedIdentifierContext)
+
 	// EnterLiteral is called when entering the literal production.
 	EnterLiteral(c *LiteralContext)
 
@@ -282,6 +286,9 @@ type MinZListener interface {
 
 	// EnterMetafunction is called when entering the metafunction production.
 	EnterMetafunction(c *MetafunctionContext)
+
+	// EnterLogLevel is called when entering the logLevel production.
+	EnterLogLevel(c *LogLevelContext)
 
 	// EnterLuaBlock is called when entering the luaBlock production.
 	EnterLuaBlock(c *LuaBlockContext)
@@ -583,6 +590,9 @@ type MinZListener interface {
 	// ExitPrimaryExpression is called when exiting the primaryExpression production.
 	ExitPrimaryExpression(c *PrimaryExpressionContext)
 
+	// ExitQualifiedIdentifier is called when exiting the qualifiedIdentifier production.
+	ExitQualifiedIdentifier(c *QualifiedIdentifierContext)
+
 	// ExitLiteral is called when exiting the literal production.
 	ExitLiteral(c *LiteralContext)
 
@@ -609,6 +619,9 @@ type MinZListener interface {
 
 	// ExitMetafunction is called when exiting the metafunction production.
 	ExitMetafunction(c *MetafunctionContext)
+
+	// ExitLogLevel is called when exiting the logLevel production.
+	ExitLogLevel(c *LogLevelContext)
 
 	// ExitLuaBlock is called when exiting the luaBlock production.
 	ExitLuaBlock(c *LuaBlockContext)

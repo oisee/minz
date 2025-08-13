@@ -1,14 +1,21 @@
-// Minimal enum test
-enum Color {
-    Red,
-    Green,
-    Blue
-}
-
-fun test_color(c: Color) -> void {
-    // Empty function for testing
+// Test enum value access
+enum State {
+    IDLE = 0,
+    RUNNING = 1,
+    DONE = 2,
 }
 
 fun main() -> void {
-    test_color(Color.Red);
+    let s = State::IDLE;
+    let r = State::RUNNING;
+    let d = State::DONE;
+    
+    // Use the values
+    if s == State::IDLE {
+        print_u8(0);
+    }
+    
+    if r == State::RUNNING {
+        print_u8(1);
+    }
 }

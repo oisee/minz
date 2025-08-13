@@ -1,6 +1,7 @@
 // Code generated from grammar/MinZ.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
-package minzparser // MinZ
+package parser // MinZ
+
 import "github.com/antlr4-go/antlr/v4"
 
 type BaseMinZVisitor struct {
@@ -339,6 +340,10 @@ func (v *BaseMinZVisitor) VisitPrimaryExpression(ctx *PrimaryExpressionContext) 
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseMinZVisitor) VisitQualifiedIdentifier(ctx *QualifiedIdentifierContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseMinZVisitor) VisitLiteral(ctx *LiteralContext) interface{} {
 	return v.VisitChildren(ctx)
 }
@@ -372,6 +377,10 @@ func (v *BaseMinZVisitor) VisitFieldInit(ctx *FieldInitContext) interface{} {
 }
 
 func (v *BaseMinZVisitor) VisitMetafunction(ctx *MetafunctionContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseMinZVisitor) VisitLogLevel(ctx *LogLevelContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
