@@ -191,7 +191,15 @@ const (
 	OpCopyFromBuffer // Copy static buffer to memory
 	OpDJNZ          // Decrement and jump if not zero
 	OpLoadImm       // Load immediate value
+	OpLoadReg       // Load register to register
+	OpLoadMem       // Load from memory
+	OpStoreMem      // Store to memory  
 	OpAddImm        // Add immediate to register
+	OpJmp           // Unconditional jump (alias for OpJump)
+	OpJmpIf         // Jump if non-zero (alias for OpJumpIf)
+	OpJmpIfNot      // Jump if zero (alias for OpJumpIfNot)
+	OpPrintChar     // Print character
+	OpHalt          // Halt execution
 	
 	// Built-in functions
 	OpPrint         // Print a u8 character
@@ -250,6 +258,13 @@ type Instruction struct {
 	AsmName      string            // Optional name for named asm blocks
 	Args         []Register        // Argument registers for OpCall
 	Hint         RegisterHint      // Hint for register allocator
+	
+	// VM-specific fields
+	Value        int              // Immediate value for OpLoadImm
+	Target       int              // Jump target for OpJmp/OpJmpIf/OpJmpIfNot
+	FuncName     string           // Function name for OpCall
+	Offset       int              // Memory offset for OpLoadMem/OpStoreMem
+	Size         int              // Data size for memory operations
 	
 	// Instruction Patching fields
 	PatchPointLabel string       // Label of the patch point to modify
@@ -724,6 +739,11 @@ type Global struct {
 	Constant bool        // Whether this is a constant
 }
 
+// ConstExpr represents a constant expression for initialization
+type ConstExpr struct {
+	Value int
+}
+
 // String represents a string literal
 type String struct {
 	Label  string
@@ -1044,7 +1064,15 @@ func (op Opcode) String() string {
 	case OpCopyFromBuffer: return "COPY_FROM_BUFFER"
 	case OpDJNZ: return "DJNZ"
 	case OpLoadImm: return "LOAD_IMM"
+	case OpLoadReg: return "LOAD_REG"
+	case OpLoadMem: return "LOAD_MEM"
+	case OpStoreMem: return "STORE_MEM"
 	case OpAddImm: return "ADD_IMM"
+	case OpJmp: return "JMP"
+	case OpJmpIf: return "JMP_IF"
+	case OpJmpIfNot: return "JMP_IF_NOT"
+	case OpPrintChar: return "PRINT_CHAR"
+	case OpHalt: return "HALT"
 	case OpPrint: return "PRINT"
 	case OpPrintU8: return "PRINT_U8"
 	case OpPrintU16: return "PRINT_U16"

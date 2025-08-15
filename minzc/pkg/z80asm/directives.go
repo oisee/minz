@@ -264,14 +264,60 @@ func (a *Assembler) handleINCLUDE(line *Line) error {
 
 // handleMACRO begins a macro definition
 func (a *Assembler) handleMACRO(line *Line) error {
-	// For now, we don't support macros
-	return fmt.Errorf("MACRO directive not yet implemented")
+	if !a.EnableMacros {
+		return fmt.Errorf("macros are disabled")
+	}
+	
+	// Parse macro name and parameters
+	parts := strings.Fields(line.Operands)
+	if len(parts) < 1 {
+		return fmt.Errorf("MACRO requires a name")
+	}
+	
+	macroName := parts[0]
+	var params []string
+	
+	// Parse parameters (if any)
+	if len(parts) > 1 {
+		// Join remaining parts and split by comma
+		paramStr := strings.Join(parts[1:], " ")
+		paramStr = strings.ReplaceAll(paramStr, " ", "")
+		if paramStr != "" {
+			params = strings.Split(paramStr, ",")
+		}
+	}
+	
+	// Start collecting macro body
+	a.macroDefinition = &macroDefinitionState{
+		name:   macroName,
+		params: params,
+		body:   []string{},
+	}
+	
+	return nil
 }
 
 // handleENDM ends a macro definition
 func (a *Assembler) handleENDM(line *Line) error {
-	// For now, we don't support macros
-	return fmt.Errorf("ENDM directive not yet implemented")
+	if !a.EnableMacros {
+		return fmt.Errorf("macros are disabled")
+	}
+	
+	if a.macroDefinition == nil {
+		return fmt.Errorf("ENDM without matching MACRO")
+	}
+	
+	// Register the macro
+	err := a.macroProcessor.DefineMacro(
+		a.macroDefinition.name,
+		a.macroDefinition.params,
+		a.macroDefinition.body,
+	)
+	
+	// Clear definition state
+	a.macroDefinition = nil
+	
+	return err
 }
 
 // Helper functions

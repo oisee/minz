@@ -618,6 +618,7 @@ module.exports = grammar({
 
     primary_expression: $ => choice(
       $.identifier,
+      $.enum_access,  // Add support for State::IDLE
       $.number_literal,
       $.string_literal,
       $.char_literal,
@@ -637,6 +638,13 @@ module.exports = grammar({
       $.if_expression,
       $.ternary_expression,
       $.when_expression,
+    ),
+
+    // Enum variant access: State::IDLE
+    enum_access: $ => seq(
+      field('enum', $.identifier),
+      '::',
+      field('variant', $.identifier),
     ),
 
     array_literal: $ => seq(

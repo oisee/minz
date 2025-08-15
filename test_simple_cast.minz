@@ -1,8 +1,0 @@
-// Simplified test case
-interface Drawable {
-    cast<Shape> {
-        Circle -> { radius: 5 }
-    }
-    
-    fun draw() -> void;
-}

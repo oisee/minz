@@ -139,7 +139,14 @@ func (z *Z80) Execute(address uint16) (string, uint32) {
 	return string(z.output), z.cycles - startCycles
 }
 
-// step executes one instruction
+// Step executes one instruction and returns the number of cycles used
+func (z *Z80) Step() int {
+	startCycles := z.cycles
+	z.step()
+	return int(z.cycles - startCycles)
+}
+
+// step executes one instruction (internal)
 func (z *Z80) step() {
 	opcode := z.fetchByte()
 	
@@ -549,3 +556,82 @@ func (z *Z80) IsHalted() bool {
 func (z *Z80) SetHalted(halted bool) {
 	z.halted = halted
 }
+
+// AF returns the AF register pair value
+func (z *Z80) AF() uint16 {
+	return uint16(z.A)<<8 | uint16(z.F)
+}
+
+// BC returns the BC register pair value
+func (z *Z80) BC() uint16 {
+	return uint16(z.B)<<8 | uint16(z.C)
+}
+
+// DE returns the DE register pair value
+func (z *Z80) DE() uint16 {
+	return uint16(z.D)<<8 | uint16(z.E)
+}
+
+// HL returns the HL register pair value
+func (z *Z80) HL() uint16 {
+	return uint16(z.H)<<8 | uint16(z.L)
+}
+
+// GetMemory returns a reference to the memory array for direct access
+func (z *Z80) GetMemory() *[MEMORY_SIZE]byte {
+	return &z.memory
+}
+
+// Memory returns memory array reference (alias for compatibility)
+func (z *Z80) Memory() *[MEMORY_SIZE]byte {
+	return &z.memory
+}
+
+// GetDE returns the DE register pair value
+func (z *Z80) GetDE() uint16 {
+	return uint16(z.D)<<8 | uint16(z.E)
+}
+
+// SetCarryFlag sets or clears the carry flag
+func (z *Z80) SetCarryFlag(set bool) {
+	if set {
+		z.F |= 0x01
+	} else {
+		z.F &^= 0x01
+	}
+}
+
+// GetCarryFlag returns the state of the carry flag
+func (z *Z80) GetCarryFlag() bool {
+	return z.F&0x01 != 0
+}
+
+// Public field accessors for debugger
+func (z *Z80) GetA() uint8 { return z.A }
+func (z *Z80) GetF() uint8 { return z.F }
+func (z *Z80) GetB() uint8 { return z.B }
+func (z *Z80) GetC() uint8 { return z.C }
+func (z *Z80) GetD() uint8 { return z.D }
+func (z *Z80) GetE() uint8 { return z.E }
+func (z *Z80) GetH() uint8 { return z.H }
+func (z *Z80) GetL() uint8 { return z.L }
+func (z *Z80) GetI() uint8 { return z.I }
+func (z *Z80) GetPC() uint16 { return z.PC }
+func (z *Z80) GetSP() uint16 { return z.SP }
+func (z *Z80) GetIX() uint16 { return z.IX }
+func (z *Z80) GetIY() uint16 { return z.IY }
+
+// Public field setters for debugger
+func (z *Z80) SetA(v uint8) { z.A = v }
+func (z *Z80) SetF(v uint8) { z.F = v }
+func (z *Z80) SetB(v uint8) { z.B = v }
+func (z *Z80) SetC(v uint8) { z.C = v }
+func (z *Z80) SetD(v uint8) { z.D = v }
+func (z *Z80) SetE(v uint8) { z.E = v }
+func (z *Z80) SetH(v uint8) { z.H = v }
+func (z *Z80) SetL(v uint8) { z.L = v }
+func (z *Z80) SetI(v uint8) { z.I = v }
+func (z *Z80) SetPC(v uint16) { z.PC = v }
+func (z *Z80) SetSP(v uint16) { z.SP = v }
+func (z *Z80) SetIX(v uint16) { z.IX = v }
+func (z *Z80) SetIY(v uint16) { z.IY = v }

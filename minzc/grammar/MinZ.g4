@@ -393,17 +393,12 @@ argumentList
 
 primaryExpression
     : literal
-    | qualifiedIdentifier
-    | IDENTIFIER
+    | IDENTIFIER ('::' IDENTIFIER)?  // Handle enum access here
     | '(' expression ')'
     | arrayLiteral
     | structLiteral
     | metafunction
     | inlineAssembly
-    ;
-
-qualifiedIdentifier
-    : IDENTIFIER '::' IDENTIFIER
     ;
 
 literal

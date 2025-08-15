@@ -1,7 +1,0 @@
-// Test basic ?? operator
-fun main() -> void {
-    let a: u8 = 10;
-    let b: u8 = 20;
-    let result: u8 = a ?? b;  // Should use b (our current simple implementation)
-    print_u8(result);
-}

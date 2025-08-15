@@ -12,6 +12,7 @@ type Assembler struct {
 	AllowUndocumented bool // Default: true
 	Strict            bool // Sjasmplus compatibility mode
 	CaseSensitive     bool // Case sensitivity for labels
+	EnableMacros      bool // Enable macro processing
 	
 	// Internal state
 	pass          int
@@ -22,6 +23,15 @@ type Assembler struct {
 	output        []byte
 	instructions  []*AssembledInstruction
 	errors        []AssemblerError
+	macroProcessor *MacroProcessor
+	macroDefinition *macroDefinitionState // Current macro being defined
+}
+
+// macroDefinitionState tracks a macro being defined
+type macroDefinitionState struct {
+	name   string
+	params []string
+	body   []string
 }
 
 // AssemblerError represents an assembly error
@@ -82,13 +92,22 @@ const (
 
 // NewAssembler creates a new assembler instance
 func NewAssembler() *Assembler {
-	return &Assembler{
+	a := &Assembler{
 		AllowUndocumented: true,
 		Strict:            false,
 		CaseSensitive:     false,
+		EnableMacros:      true,
 		symbols:           make(map[string]*Symbol),
 		origin:            0x8000, // Default origin
+		macroProcessor:    NewMacroProcessor(),
 	}
+	
+	// Define standard macros
+	if a.EnableMacros {
+		a.macroProcessor.DefineStandardMacros()
+	}
+	
+	return a
 }
 
 // AssembleFile assembles a source file

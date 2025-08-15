@@ -3462,6 +3462,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "enum_access"
+        },
+        {
+          "type": "SYMBOL",
           "name": "number_literal"
         },
         {
@@ -3535,6 +3539,31 @@
         {
           "type": "SYMBOL",
           "name": "when_expression"
+        }
+      ]
+    },
+    "enum_access": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "FIELD",
+          "name": "enum",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "::"
+        },
+        {
+          "type": "FIELD",
+          "name": "variant",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
         }
       ]
     },

@@ -1453,15 +1453,21 @@ func (v *antlrVisitor) VisitPrimaryExpression(ctx *minzparser.PrimaryExpressionC
 		return v.VisitLiteral(lit.(*minzparser.LiteralContext))
 	}
 	
-	// Qualified identifier (e.g., State::IDLE)
-	if qid := ctx.QualifiedIdentifier(); qid != nil {
-		return v.VisitQualifiedIdentifier(qid.(*minzparser.QualifiedIdentifierContext))
-	}
-	
-	// Identifier
-	if id := ctx.IDENTIFIER(); id != nil {
+	// Identifier (potentially with :: for enum/module access)
+	ids := ctx.AllIDENTIFIER()
+	if len(ids) == 2 {
+		// Qualified access: State::IDLE or module::function
+		// Use FieldExpr to represent qualified access generically
+		// The semantic analyzer will determine if it's an enum or module
+		return &ast.FieldExpr{
+			Object: &ast.Identifier{Name: ids[0].GetText()},
+			Field:  ids[1].GetText(),
+			IsDoubleColon: true, // Mark this as :: syntax
+		}
+	} else if len(ids) == 1 {
+		// Simple identifier
 		return &ast.Identifier{
-			Name: id.GetText(),
+			Name: ids[0].GetText(),
 		}
 	}
 	
@@ -1899,18 +1905,4 @@ func (v *antlrVisitor) VisitErrorType(ctx *minzparser.ErrorTypeContext) interfac
 	return &ast.ErrorType{
 		ValueType: baseType,
 	}
-}
-// VisitQualifiedIdentifier handles qualified identifiers like State::IDLE
-func (v *antlrVisitor) VisitQualifiedIdentifier(ctx *minzparser.QualifiedIdentifierContext) interface{} {
-	ids := ctx.AllIDENTIFIER()
-	if len(ids) == 2 {
-		// Enum member access: EnumType::Member
-		return &ast.FieldExpr{
-			Object: &ast.Identifier{
-				Name: ids[0].GetText(),
-			},
-			Field: ids[1].GetText(),
-		}
-	}
-	return nil
 }

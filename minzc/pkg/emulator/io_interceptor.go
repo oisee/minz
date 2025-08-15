@@ -76,7 +76,7 @@ func (io *IOInterceptor) interceptTapeSave(cpu *Z80) bool {
 	// Get data to save
 	data := make([]byte, length)
 	for i := uint16(0); i < length; i++ {
-		data[i] = cpu.Memory[headerAddr+i]
+		data[i] = cpu.ReadMemory(headerAddr+i)
 	}
 	
 	// Save to host filesystem
@@ -136,7 +136,7 @@ func (io *IOInterceptor) interceptTapeLoad(cpu *Z80) bool {
 			// Load data to memory
 			if isLoad {
 				for i := 0; i < len(data) && i < int(expectedLen); i++ {
-					cpu.Memory[destAddr+uint16(i)] = data[i]
+					cpu.WriteMemory(destAddr+uint16(i), data[i])
 				}
 			}
 			
@@ -145,7 +145,9 @@ func (io *IOInterceptor) interceptTapeLoad(cpu *Z80) bool {
 			}
 			
 			cpu.SetCarryFlag(false) // Success
-			cpu.SetDE(uint16(len(data))) // Actual length loaded
+			de := uint16(len(data)) // Actual length loaded
+			cpu.D = uint8(de >> 8)
+			cpu.E = uint8(de & 0xFF)
 			return true
 		}
 	}
@@ -225,7 +227,7 @@ func (io *IOInterceptor) interceptBDOS(cpu *Z80) bool {
 func (io *IOInterceptor) extractTapeName(cpu *Z80, addr uint16) string {
 	name := make([]byte, 10)
 	for i := 0; i < 10; i++ {
-		b := cpu.Memory[addr+1+uint16(i)]
+		b := cpu.ReadMemory(addr+1+uint16(i))
 		if b == 0 || b == 0x20 {
 			break
 		}
@@ -242,7 +244,7 @@ func (io *IOInterceptor) getFCBName(cpu *Z80, fcbAddr uint16) string {
 	
 	filename := make([]byte, 8)
 	for i := 0; i < 8; i++ {
-		b := cpu.Memory[fcbAddr+1+uint16(i)]
+		b := cpu.ReadMemory(fcbAddr+1+uint16(i))
 		if b == 0x20 {
 			break
 		}
@@ -251,7 +253,7 @@ func (io *IOInterceptor) getFCBName(cpu *Z80, fcbAddr uint16) string {
 	
 	extension := make([]byte, 3)
 	for i := 0; i < 3; i++ {
-		b := cpu.Memory[fcbAddr+9+uint16(i)]
+		b := cpu.ReadMemory(fcbAddr+9+uint16(i))
 		if b == 0x20 {
 			break
 		}
@@ -285,7 +287,7 @@ func (io *IOInterceptor) bdosOpen(cpu *Z80) bool {
 	io.nextHandle++
 	
 	// Store handle in FCB
-	cpu.Memory[fcbAddr+32] = handle
+	cpu.WriteMemory(fcbAddr+32, handle)
 	cpu.A = 0 // Success
 	
 	if io.logging {
@@ -297,7 +299,7 @@ func (io *IOInterceptor) bdosOpen(cpu *Z80) bool {
 
 func (io *IOInterceptor) bdosClose(cpu *Z80) bool {
 	fcbAddr := cpu.GetDE()
-	handle := cpu.Memory[fcbAddr+32]
+	handle := cpu.ReadMemory(fcbAddr+32)
 	
 	if file, ok := io.fileHandles[handle]; ok {
 		file.Close()
@@ -312,7 +314,7 @@ func (io *IOInterceptor) bdosClose(cpu *Z80) bool {
 
 func (io *IOInterceptor) bdosRead(cpu *Z80) bool {
 	fcbAddr := cpu.GetDE()
-	handle := cpu.Memory[fcbAddr+32]
+	handle := cpu.ReadMemory(fcbAddr+32)
 	dmaAddr := uint16(0x0080) // Default DMA address
 	
 	if file, ok := io.fileHandles[handle]; ok {
@@ -325,7 +327,7 @@ func (io *IOInterceptor) bdosRead(cpu *Z80) bool {
 		
 		// Copy to DMA buffer
 		for i := 0; i < n; i++ {
-			cpu.Memory[dmaAddr+uint16(i)] = buffer[i]
+			cpu.WriteMemory(dmaAddr+uint16(i), buffer[i])
 		}
 		
 		cpu.A = 0 // Success
@@ -338,13 +340,13 @@ func (io *IOInterceptor) bdosRead(cpu *Z80) bool {
 
 func (io *IOInterceptor) bdosWrite(cpu *Z80) bool {
 	fcbAddr := cpu.GetDE()
-	handle := cpu.Memory[fcbAddr+32]
+	handle := cpu.ReadMemory(fcbAddr+32)
 	dmaAddr := uint16(0x0080) // Default DMA address
 	
 	if file, ok := io.fileHandles[handle]; ok {
 		buffer := make([]byte, 128)
 		for i := 0; i < 128; i++ {
-			buffer[i] = cpu.Memory[dmaAddr+uint16(i)]
+			buffer[i] = cpu.ReadMemory(dmaAddr+uint16(i))
 		}
 		
 		_, err := file.Write(buffer)
@@ -378,7 +380,7 @@ func (io *IOInterceptor) bdosMake(cpu *Z80) bool {
 	io.nextHandle++
 	
 	// Store handle in FCB
-	cpu.Memory[fcbAddr+32] = handle
+	cpu.WriteMemory(fcbAddr+32, handle)
 	cpu.A = 0 // Success
 	
 	if io.logging {
@@ -411,7 +413,7 @@ func (io *IOInterceptor) bdosSearchNext(cpu *Z80) bool {
 	dmaAddr := uint16(0x0080)
 	name := file.Name()
 	for i := 0; i < len(name) && i < 11; i++ {
-		cpu.Memory[dmaAddr+uint16(i)] = name[i]
+		cpu.WriteMemory(dmaAddr+uint16(i), name[i])
 	}
 	
 	cpu.A = 0 // Success

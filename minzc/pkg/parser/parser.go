@@ -37,8 +37,6 @@ func (p *Parser) ParseFile(filename string) (*ast.File, error) {
 	p.sourceCode = string(sourceCode)
 	
 	// Check which parser to use
-	useTreeSitter := os.Getenv("MINZ_USE_TREE_SITTER") == "1"
-	forceTreeSitter := os.Getenv("MINZ_FORCE_TREE_SITTER") == "1"
 	useNative := os.Getenv("MINZ_USE_NATIVE_PARSER") == "1"
 	
 	// Native parser not yet implemented
@@ -46,20 +44,19 @@ func (p *Parser) ParseFile(filename string) (*ast.File, error) {
 		return nil, fmt.Errorf("native parser not yet implemented")
 	}
 	
-	// v0.14.0: ANTLR is now the DEFAULT parser
-	// It provides zero-dependency, self-contained binaries with 75% success rate
-	if !useTreeSitter && !forceTreeSitter {
+	// v0.14.0: Tree-sitter is the DEFAULT parser (63% success rate)
+	// ANTLR is experimental (5% success rate, needs investigation)
+	// Use MINZ_USE_ANTLR=1 to test ANTLR parser
+	useANTLR := os.Getenv("MINZ_USE_ANTLR") == "1"
+	if useANTLR {
 		antlrParser := NewAntlrParser()
 		if antlrParser != nil {
 			result, err := antlrParser.ParseFile(filename)
 			if err == nil {
 				return result, nil
 			}
-			// If not forcing tree-sitter, return ANTLR error
-			if !useTreeSitter {
-				return nil, fmt.Errorf("ANTLR parser error: %w", err)
-			}
-			// Fall through to tree-sitter if requested as fallback
+			// Return ANTLR error when explicitly requested
+			return nil, fmt.Errorf("ANTLR parser error: %w", err)
 		}
 	}
 	
@@ -1006,6 +1003,30 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 			Name:     p.getText(node),
 			StartPos: p.getPosition(node, "startPosition"),
 			EndPos:   p.getPosition(node, "endPosition"),
+		}
+	case "enum_access":
+		// Handle State::IDLE syntax
+		children, _ := node["children"].([]interface{})
+		var enumName, variantName string
+		for _, c := range children {
+			child, _ := c.(map[string]interface{})
+			childType, _ := child["type"].(string)
+			if childType == "identifier" {
+				text := p.getText(child)
+				if enumName == "" {
+					enumName = text
+				} else {
+					variantName = text
+				}
+			}
+		}
+		// Use FieldExpr with IsDoubleColon flag to represent enum access
+		return &ast.FieldExpr{
+			Object:        &ast.Identifier{Name: enumName},
+			Field:         variantName,
+			IsDoubleColon: true,
+			StartPos:      p.getPosition(node, "startPosition"),
+			EndPos:        p.getPosition(node, "endPosition"),
 		}
 	case "number_literal":
 		value, _ := strconv.ParseInt(p.getText(node), 0, 64)

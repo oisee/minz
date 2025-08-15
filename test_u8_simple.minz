@@ -1,8 +1,0 @@
-fun test_u8(x: u8) -> u8 {
-    return x;
-}
-
-fun main() -> void {
-    let val: u8 = 42;
-    test_u8(val);
-}

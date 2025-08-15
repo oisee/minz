@@ -774,10 +774,11 @@ func (c *CallExpr) exprNode()    {}
 
 // FieldExpr represents field access
 type FieldExpr struct {
-	Object   Expression
-	Field    string
-	StartPos Position
-	EndPos   Position
+	Object        Expression
+	Field         string
+	IsDoubleColon bool // True if using :: syntax (for enum/module access)
+	StartPos      Position
+	EndPos        Position
 }
 
 func (f *FieldExpr) Pos() Position { return f.StartPos }

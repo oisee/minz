@@ -1,9 +1,0 @@
-; MinZ Intermediate Representation (MIR)
-; Module: main
-
-Function test_simple_i8080.main() -> u8
-  @smc
-  Instructions:
-      0: r1 = 0
-      1: return r1
-

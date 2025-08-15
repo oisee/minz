@@ -1,5 +1,0 @@
-// Simple test file for ANTLR parser
-fun main() -> void {
-    let x: u8 = 42;
-    print_u8(x);
-}

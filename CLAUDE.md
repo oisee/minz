@@ -142,12 +142,13 @@ mz program.minz -b z80 --target=spectrum  # ZX Spectrum
 mz program.minz -b z80 --target=cpm       # CP/M
 ```
 
-## 📊 Current Metrics (Updated from Architecture Audit)
-- **148 examples** in test suite
-- **75-80% compilation success** rate (was 60%, discovered working features!)
+## 📊 Current Metrics (v0.14.0-dev)
+- **170 examples** in test suite (88 actively tested)
+- **63% compilation success** with tree-sitter parser
+- **5% compilation success** with ANTLR (regression - investigating)
 - **35+ peephole patterns** for Z80 optimization
 - **Multi-backend support** with 8 targets
-- **MIR layer**: 0 TODOs (cleanest component)
+- **Zero external dependencies** with ANTLR parser
 
 ## 📚 Documentation System
 

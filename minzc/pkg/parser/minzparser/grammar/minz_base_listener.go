@@ -1,7 +1,6 @@
 // Code generated from grammar/MinZ.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
 package parser // MinZ
-
 import "github.com/antlr4-go/antlr/v4"
 
 // BaseMinZListener is a complete listener for a parse tree produced by MinZParser.
@@ -518,12 +517,6 @@ func (s *BaseMinZListener) EnterPrimaryExpression(ctx *PrimaryExpressionContext)
 
 // ExitPrimaryExpression is called when production primaryExpression is exited.
 func (s *BaseMinZListener) ExitPrimaryExpression(ctx *PrimaryExpressionContext) {}
-
-// EnterQualifiedIdentifier is called when production qualifiedIdentifier is entered.
-func (s *BaseMinZListener) EnterQualifiedIdentifier(ctx *QualifiedIdentifierContext) {}
-
-// ExitQualifiedIdentifier is called when production qualifiedIdentifier is exited.
-func (s *BaseMinZListener) ExitQualifiedIdentifier(ctx *QualifiedIdentifierContext) {}
 
 // EnterLiteral is called when production literal is entered.
 func (s *BaseMinZListener) EnterLiteral(ctx *LiteralContext) {}

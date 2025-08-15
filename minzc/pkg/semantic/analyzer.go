@@ -1531,7 +1531,7 @@ func (a *Analyzer) analyzeStructDecl(s *ast.StructDecl) error {
 	
 	// Debug output
 	if len(s.Fields) > 0 {
-		fmt.Printf("Struct %s has %d fields: %v\n", s.Name, len(fieldOrder), fieldOrder)
+		// fmt.Printf("Struct %s has %d fields: %v\n", s.Name, len(fieldOrder), fieldOrder)
 	}
 	
 	return nil
@@ -3391,11 +3391,18 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 	
 	if sym == nil {
 		
-		// Add stack trace for debugging
+		// Provide helpful error messages for common mistakes
 		if id.Name == "screen" {
-			return 0, fmt.Errorf("undefined identifier: %s (this should have been handled as a module)", id.Name)
+			return 0, fmt.Errorf("undefined identifier '%s' - did you mean to import a screen module?", id.Name)
 		}
-		return 0, fmt.Errorf("undefined identifier: %s (analyzeIdentifier)", id.Name)
+		
+		// Suggest similar identifiers if available
+		suggestions := a.findSimilarIdentifiers(id.Name)
+		if len(suggestions) > 0 {
+			return 0, fmt.Errorf("undefined identifier '%s' - did you mean '%s'?", id.Name, suggestions[0])
+		}
+		
+		return 0, fmt.Errorf("undefined identifier '%s'", id.Name)
 	}
 
 	switch s := sym.(type) {
@@ -4347,6 +4354,11 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		}
 		
 		if sym == nil {
+			// Try to find similar function names
+			suggestions := a.findSimilarIdentifiers(funcName)
+			if len(suggestions) > 0 {
+				return 0, fmt.Errorf("undefined function: %s - did you mean '%s'?", funcName, suggestions[0])
+			}
 			return 0, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
@@ -4478,6 +4490,11 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 					}
 				}
 			}
+			// Try to find similar function names
+			suggestions := a.findSimilarIdentifiers(funcName)
+			if len(suggestions) > 0 {
+				return 0, fmt.Errorf("undefined function: %s - did you mean '%s'?", funcName, suggestions[0])
+			}
 			return 0, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
@@ -4500,6 +4517,11 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 			}
 			
 			if sym == nil {
+				// Try to find similar function names
+				suggestions := a.findSimilarIdentifiers(funcName)
+				if len(suggestions) > 0 {
+					return 0, fmt.Errorf("undefined function: %s - did you mean '%s'?", funcName, suggestions[0])
+				}
 				return 0, fmt.Errorf("undefined function: %s", funcName)
 			}
 			
@@ -4605,12 +4627,12 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 	useInstructionPatching := a.shouldUseInstructionPatching(funcSym, call)
 	
 	// Debug: Print patching decision
-	fmt.Printf("DEBUG: Function %s, IsBuiltin=%v, ReturnType=%v, UsePatching=%v\n", 
-		funcSym.Name, funcSym.IsBuiltin, funcSym.ReturnType, useInstructionPatching)
+	// fmt.Printf("DEBUG: Function %s, IsBuiltin=%v, ReturnType=%v, UsePatching=%v\n", 
+	//	funcSym.Name, funcSym.IsBuiltin, funcSym.ReturnType, useInstructionPatching)
 	
 	if useInstructionPatching {
 		// Generate instruction patching sequence
-		fmt.Printf("DEBUG: Generating instruction patching call for %s\n", funcSym.Name)
+		// fmt.Printf("DEBUG: Generating instruction patching call for %s\n", funcSym.Name)
 		return a.generateInstructionPatchingCall(funcSym, call, argRegs, irFunc)
 	}
 
@@ -5126,10 +5148,10 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 	// Special handling for module field access (e.g., screen.set_pixel)
 	// Check this FIRST before trying to analyze the object as an expression
 	if id, ok := field.Object.(*ast.Identifier); ok {
-		// Check if the identifier is a module
+		// Check if the identifier is a module or type
 		sym := a.currentScope.Lookup(id.Name)
 		if sym != nil {
-			// Check if it's an enum type
+			// Check if it's an enum type (for both . and :: syntax)
 			if typeSym, isType := sym.(*TypeSymbol); isType {
 				// Check if the type is an enum
 				if _, isEnum := typeSym.Type.(*ir.EnumType); isEnum {
@@ -6359,6 +6381,16 @@ func (a *Analyzer) isValidCast(source, target ir.Type) bool {
 		return a.typesEqual(source, bitStruct.UnderlyingType)
 	}
 	
+	// Allow casts from enum types to integer types
+	if _, ok := source.(*ir.EnumType); ok {
+		if targetBasic, ok := target.(*ir.BasicType); ok {
+			switch targetBasic.Kind {
+			case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+				return true
+			}
+		}
+	}
+	
 	// Allow casts between compatible basic types
 	sourceBasic, sourceOk := source.(*ir.BasicType)
 	targetBasic, targetOk := target.(*ir.BasicType)
@@ -6802,6 +6834,11 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		}
 		
 		if sym == nil {
+			// Try to find similar function names
+			suggestions := a.findSimilarIdentifiers(funcName)
+			if len(suggestions) > 0 {
+				return nil, fmt.Errorf("undefined function: %s - did you mean '%s'?", funcName, suggestions[0])
+			}
 			return nil, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
@@ -9038,5 +9075,123 @@ func (a *Analyzer) GetFunction(name string) *ir.Function {
 		}
 	}
 	return nil
+}
+
+// findSimilarIdentifiers finds identifiers similar to the given name
+// using Levenshtein distance for typo detection
+func (a *Analyzer) findSimilarIdentifiers(name string) []string {
+	var suggestions []string
+	maxDistance := 2 // Maximum edit distance for suggestions
+	
+	// Collect all visible identifiers
+	candidates := make(map[string]bool)
+	
+	// Walk up the scope chain
+	scope := a.currentScope
+	for scope != nil {
+		for ident := range scope.symbols {
+			candidates[ident] = true
+		}
+		scope = scope.parent
+	}
+	
+	// Add global functions
+	for _, fn := range a.module.Functions {
+		candidates[fn.Name] = true
+	}
+	
+	// Add built-in functions
+	builtins := []string{
+		"print_u8", "print_u16", "print_i8", "print_i16",
+		"print_bool", "print_char", "print",
+		"memcpy", "memset", "strlen",
+	}
+	for _, builtin := range builtins {
+		candidates[builtin] = true
+	}
+	
+	// Find similar names
+	for candidate := range candidates {
+		if distance := levenshteinDistance(name, candidate); distance <= maxDistance && distance > 0 {
+			suggestions = append(suggestions, candidate)
+		}
+	}
+	
+	// Sort by similarity (shorter distance first)
+	if len(suggestions) > 1 {
+		// Simple bubble sort for small lists
+		for i := 0; i < len(suggestions)-1; i++ {
+			for j := 0; j < len(suggestions)-i-1; j++ {
+				if levenshteinDistance(name, suggestions[j]) > levenshteinDistance(name, suggestions[j+1]) {
+					suggestions[j], suggestions[j+1] = suggestions[j+1], suggestions[j]
+				}
+			}
+		}
+	}
+	
+	// Return top 3 suggestions
+	if len(suggestions) > 3 {
+		suggestions = suggestions[:3]
+	}
+	
+	return suggestions
+}
+
+// levenshteinDistance calculates the edit distance between two strings
+func levenshteinDistance(s1, s2 string) int {
+	if s1 == s2 {
+		return 0
+	}
+	
+	// Create distance matrix
+	m, n := len(s1), len(s2)
+	if m == 0 {
+		return n
+	}
+	if n == 0 {
+		return m
+	}
+	
+	// Initialize matrix
+	d := make([][]int, m+1)
+	for i := range d {
+		d[i] = make([]int, n+1)
+		d[i][0] = i
+	}
+	for j := 0; j <= n; j++ {
+		d[0][j] = j
+	}
+	
+	// Calculate distances
+	for i := 1; i <= m; i++ {
+		for j := 1; j <= n; j++ {
+			cost := 0
+			if s1[i-1] != s2[j-1] {
+				cost = 1
+			}
+			
+			d[i][j] = min(
+				d[i-1][j]+1,    // deletion
+				d[i][j-1]+1,    // insertion
+				d[i-1][j-1]+cost, // substitution
+			)
+		}
+	}
+	
+	return d[m][n]
+}
+
+// min returns the minimum of three integers
+func min(a, b, c int) int {
+	if a < b {
+		if a < c {
+			return a
+		}
+		return c
+	}
+	if b < c {
+		return b
+	}
+	return c
 }
 

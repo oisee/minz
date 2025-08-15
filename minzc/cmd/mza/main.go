@@ -22,12 +22,13 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "mza [input.a80]",
-	Short: "MinZ Z80 Assembler v1.0",
-	Long: `mza - MinZ Z80 Assembler v1.0
+	Short: "MinZ Z80 Assembler v1.1 with Macro Support",
+	Long: `mza - MinZ Z80 Assembler v1.1 with Macro Support
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Modern Z80 assembler with character literals and enhanced syntax
+Modern Z80 assembler with macros, character literals and enhanced syntax
 
 FEATURES:
+  • MACRO SUPPORT:      Define and use powerful macros
   • Character literals:  LD A, 'H'  or  LD A, "H"
   • Escape sequences:    LD A, '\n' (newline), '\t' (tab)
   • String data:         DB "Hello, World!", 13, 10
@@ -36,18 +37,35 @@ FEATURES:
   • Binary format:       %10101010
   • Undocumented ops:    SLL, IXH, IXL, IYH, IYL
 
+MACRO FEATURES:
+  MACRO name param1, param2     Define macro
+    ; macro body               
+  ENDM                          End macro definition
+  
+  name arg1, arg2               Invoke macro
+  
+  Built-in macros:
+    PUSH_ALL                    Save all registers
+    POP_ALL                     Restore all registers
+    MEMCPY dst, src, size       Copy memory block
+    MEMSET dst, value, size     Fill memory block
+    CALL_HL                     Call address in HL
+    DELAY count                 Simple delay loop
+
 DIRECTIVES:
   ORG $8000           Set origin address
   DB/DEFB             Define bytes
   DW/DEFW             Define words (16-bit)
   DS/DEFS             Define space
   EQU                 Define constant
+  MACRO/ENDM          Define macro
   END                 End of source
 
 EXAMPLES:
   mza program.a80                     # Assemble to program.bin
   mza -o game.rom program.a80         # Custom output file
   mza -l program.lst program.a80      # Generate listing
+  mza --no-macros program.a80         # Disable macro processing
   mza -s symbols.sym program.a80      # Generate symbol table
   mza -v program.a80                  # Verbose output`,
 	Args: cobra.ExactArgs(1),

@@ -1,9 +1,0 @@
-// Test file for embedded parser
-import std;
-import math as m;
-
-fun main() -> void {
-    let x: u8 = 42;
-    let y = m.square(x);
-    std.print("Hello, MinZ!");
-}

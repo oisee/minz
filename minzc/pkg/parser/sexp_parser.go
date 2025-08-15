@@ -756,6 +756,27 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 			StartPos: node.StartPos,
 			EndPos:   node.EndPos,
 		}
+	case "enum_access":
+		// Handle State::IDLE syntax
+		var enumName, variantName string
+		for _, child := range node.Children {
+			if child.Type == "identifier" {
+				text := p.getNodeText(child)
+				if enumName == "" {
+					enumName = text
+				} else {
+					variantName = text
+				}
+			}
+		}
+		// Use FieldExpr with IsDoubleColon flag to represent enum access
+		return &ast.FieldExpr{
+			Object:        &ast.Identifier{Name: enumName},
+			Field:         variantName,
+			IsDoubleColon: true,
+			StartPos:      node.StartPos,
+			EndPos:        node.EndPos,
+		}
 	case "string_literal":
 		text := p.getNodeText(node)
 		isLong := false

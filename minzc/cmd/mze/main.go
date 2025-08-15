@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/minz/minzc/pkg/debugger"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/spf13/cobra"
 )
@@ -22,6 +23,7 @@ var (
 	cycles     bool
 	interactive bool
 	timeout    uint
+	debug      bool  // New flag for debugger mode
 )
 
 var rootCmd = &cobra.Command{
@@ -54,7 +56,7 @@ FEATURES:
   • 64KB memory with banking support
   • Platform-specific I/O redirection
   • Safety stop at 10M T-states
-  • Interactive debugging (coming soon)
+  • Interactive debugging with --debug flag
 
 EXIT CONDITIONS:
   • HALT with interrupts disabled (DI:HALT)
@@ -68,7 +70,8 @@ EXAMPLES:
   mze -a 0x4000 loader.bin             # Load at $4000
   mze -v -c program.bin                # Verbose with cycles
   mze --interrupts=false fast.bin      # No interrupts
-  mze --timeout=1000000 test.bin       # Stop after 1M cycles`,
+  mze --timeout=1000000 test.bin       # Stop after 1M cycles
+  mze --debug program.bin               # Run with interactive debugger`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		binaryFile := args[0]
@@ -147,9 +150,29 @@ EXAMPLES:
 		}
 
 
-		// Set start address and begin execution
+		// Set start address
 		z80.PC = startAddress
 		
+		// Check if debugger mode is requested
+		if debug {
+			fmt.Println("🔧 Starting interactive debugger...")
+			
+			// Create debugger with configuration
+			dbg := debugger.New(z80.Z80, &debugger.Config{
+				MaxHistory: 100,
+				Input:      os.Stdin,
+				Output:     os.Stdout,
+			})
+			
+			// Run the debugger (this blocks until user exits)
+			if err := dbg.Run(); err != nil {
+				fmt.Fprintf(os.Stderr, "Debugger error: %v\n", err)
+				os.Exit(1)
+			}
+			return
+		}
+		
+		// Normal execution mode
 		if verbose {
 			fmt.Printf("▶️  Starting execution at $%04X...\n", startAddress)
 			fmt.Println("----------------------------------------")
@@ -272,6 +295,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&cycles, "cycles", "c", false, "show T-state cycle count")
 	rootCmd.Flags().BoolVarP(&interactive, "interactive", "i", false, "interactive mode (pause on RST $18/$20)")
 	rootCmd.Flags().UintVar(&timeout, "timeout", 0, "execution timeout in cycles (0 = no timeout)")
+	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "run in interactive debugger mode")
 }
 
 func main() {

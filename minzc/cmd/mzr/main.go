@@ -12,12 +12,12 @@ import (
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/codegen"
+	"github.com/minz/minzc/pkg/readline"
 )
 
 // REPL represents the MinZ Read-Eval-Print-Loop
 type REPL struct {
-	reader      *bufio.Reader
-	history     []string
+	reader      *readline.Reader
 	codeBase    uint16
 	dataBase    uint16
 	modules     map[string]*ir.Module
@@ -32,9 +32,19 @@ type REPL struct {
 
 // New creates a new REPL instance
 func New() *REPL {
+	// Get history file path
+	homeDir, _ := os.UserHomeDir()
+	historyFile := filepath.Join(homeDir, ".minz_history")
+	
+	// Create readline reader with history support
+	reader := readline.NewReader(&readline.Config{
+		Prompt:      "", // We'll set this dynamically
+		HistoryFile: historyFile,
+		MaxHistory:  1000,
+	})
+	
 	return &REPL{
-		reader:    bufio.NewReader(os.Stdin),
-		history:   []string{},
+		reader:    reader,
 		codeBase:  0x8000,
 		dataBase:  0xF000,
 		modules:   make(map[string]*ir.Module),
@@ -47,8 +57,8 @@ func New() *REPL {
 }
 
 func (r *REPL) printBanner() {
-	fmt.Println("🚀 MinZ REPL v0.10.0 \"Lambda Revolution\" - Interactive Development Environment")
-	fmt.Println("🎊 Now with ZERO-COST LAMBDA ITERATORS! Try: nums.map(|x| x * 2)")
+	fmt.Println("🚀 MinZ REPL v0.10.1 \"History Enhanced\" - Interactive Development Environment")
+	fmt.Println("🎊 Now with COMMAND HISTORY! Use ↑/↓ arrows to navigate (where supported)")
 	fmt.Println()
 	fmt.Println("Commands:")
 	fmt.Println("  :load <file>     - Load MinZ module from file")
@@ -58,10 +68,12 @@ func (r *REPL) printBanner() {
 	fmt.Println("  :backends        - List available backends")
 	fmt.Println("  :run <expr>      - Compile and execute (Z80 only)")
 	fmt.Println("  :history         - Show command history")
+	fmt.Println("  :search <text>   - Search history")
 	fmt.Println("  :clear           - Clear screen")
 	fmt.Println("  :help            - Show this help")
 	fmt.Println("  :exit            - Exit REPL")
 	fmt.Println()
+	fmt.Println("🎯 History is automatically saved to ~/.minz_history")
 	fmt.Println("🎯 Try some lambda iterators:")
 	fmt.Println("  :compile [1,2,3,4,5].iter().map(|x| x * 2).filter(|x| x > 5)")
 	fmt.Println()
@@ -71,9 +83,17 @@ func (r *REPL) Run() {
 	r.printBanner()
 	
 	for {
-		fmt.Printf("minz[%s]> ", r.currentBackend)
-		input, err := r.reader.ReadString('\n')
+		// Set dynamic prompt
+		prompt := fmt.Sprintf("minz[%s]> ", r.currentBackend)
+		r.reader.SetPrompt(prompt)
+		
+		// Read line with history support
+		input, err := r.reader.ReadLine()
 		if err != nil {
+			if err.Error() == "EOF" {
+				fmt.Println("\nGoodbye!")
+				return
+			}
 			fmt.Printf("Error reading input: %v\n", err)
 			continue
 		}
@@ -82,8 +102,6 @@ func (r *REPL) Run() {
 		if input == "" {
 			continue
 		}
-		
-		r.history = append(r.history, input)
 		
 		// Handle commands
 		if strings.HasPrefix(input, ":") {
@@ -114,9 +132,27 @@ func (r *REPL) handleCommand(cmd string) {
 		fmt.Print("\033[2J\033[H") // ANSI clear screen
 		
 	case ":history":
+		history := r.reader.GetHistory()
 		fmt.Println("Command history:")
-		for i, h := range r.history {
+		for i, h := range history {
 			fmt.Printf("  %d: %s\n", i+1, h)
+		}
+		fmt.Printf("\nTotal: %d commands (saved to ~/.minz_history)\n", len(history))
+	
+	case ":search":
+		if len(parts) < 2 {
+			fmt.Println("Usage: :search <text>")
+			return
+		}
+		query := strings.Join(parts[1:], " ")
+		results := r.reader.SearchHistory(query)
+		if len(results) == 0 {
+			fmt.Printf("No history entries matching '%s'\n", query)
+		} else {
+			fmt.Printf("History entries matching '%s':\n", query)
+			for i, result := range results {
+				fmt.Printf("  %d: %s\n", i+1, result)
+			}
 		}
 		
 	case ":backends":

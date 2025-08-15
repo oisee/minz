@@ -1,9 +1,0 @@
-// Test @error() context handling
-fun risky() -> u8? {
-    return 42;
-}
-
-fun main() -> void {
-    let result = risky() ?? @error();
-    print_u8(result);
-}

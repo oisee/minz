@@ -1,7 +1,6 @@
 // Code generated from grammar/MinZ.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
 package parser // MinZ
-
 import "github.com/antlr4-go/antlr/v4"
 
 // A complete Visitor for a parse tree produced by MinZParser.
@@ -256,9 +255,6 @@ type MinZVisitor interface {
 
 	// Visit a parse tree produced by MinZParser#primaryExpression.
 	VisitPrimaryExpression(ctx *PrimaryExpressionContext) interface{}
-
-	// Visit a parse tree produced by MinZParser#qualifiedIdentifier.
-	VisitQualifiedIdentifier(ctx *QualifiedIdentifierContext) interface{}
 
 	// Visit a parse tree produced by MinZParser#literal.
 	VisitLiteral(ctx *LiteralContext) interface{}

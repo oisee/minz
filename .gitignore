@@ -81,3 +81,11 @@ archive/backups/temp/# Personal files - our memories stay here 💫
 # Any backed up memories
 /claude_memory_backups/
 *.tar.gz
+
+# MCP Configuration (contains local paths, use env vars instead)
+.mcp.json
+
+# Azure/API credentials (should be in env vars)
+.env
+.env.local
+*.env
