@@ -1,0 +1,17 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_print_issue.main() -> u8
+  @smc
+  Locals:
+    r2 = x: u8
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Hello from compile time!" (24 chars via loop)
+      2: r3 = 42
+      3: store x, r3
+      4: LOAD_STRING
+      5: PRINT_STRING ; Print "Value of x: " (12 chars via loop)
+      6: r5 = 0
+      7: return r5
+

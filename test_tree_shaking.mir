@@ -1,0 +1,11 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_tree_shaking.main() -> u8
+  @smc
+  Instructions:
+      0: LOAD_LABEL ; Load string "Hello, World!"
+      1: r0 = call print_string ; Call runtime print_string
+      2: r2 = 0
+      3: return r2
+

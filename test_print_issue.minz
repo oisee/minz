@@ -1,0 +1,6 @@
+fn main() -> u8 {
+    @print("Hello from compile time!");
+    let x = 42;
+    @print("Value of x: ", x);
+    return 0;
+}

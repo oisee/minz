@@ -34,6 +34,7 @@ type Z80Generator struct {
 	currentRegister ir.Register // Track which virtual register is currently in HL
 	targetPlatform string // Target platform (zxspectrum, cpm, msx, etc.)
 	constantValues map[ir.Register]int64 // Track constant values in registers
+	usedFunctions  map[string]bool // Track which stdlib functions are actually used
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -50,6 +51,7 @@ func NewZ80Generator(w io.Writer) *Z80Generator {
 		localVarBase:    0xF000,                  // Default local variable area at 0xF000
 		targetPlatform:  "zxspectrum",            // Default to ZX Spectrum
 		constantValues:  make(map[ir.Register]int64),
+		usedFunctions:   make(map[string]bool),
 	}
 }
 
@@ -2270,11 +2272,15 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				// Use the full function name (including module prefix)
 				// Z80 assembler will handle the dots in the label
 				g.emit("    CALL %s", targetFunc.Name)
+				// Track function usage
+				g.usedFunctions[targetFunc.Name] = true
 			}
 		} else {
 			// Function not found in current module - might be external
 			// Use the symbol as-is
 			g.emit("    CALL %s", inst.Symbol)
+			// Track stdlib function usage
+			g.usedFunctions[inst.Symbol] = true
 		}
 		// Result is in HL
 		g.storeFromHL(inst.Dest)
@@ -2492,21 +2498,25 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Print u8 as decimal number
 		g.loadToA(inst.Src1)
 		g.emit("    CALL print_u8_decimal")
+		g.usedFunctions["print_u8_decimal"] = true
 		
 	case ir.OpPrintU16:
 		// Print u16 as decimal number
 		g.loadToHL(inst.Src1)
 		g.emit("    CALL print_u16_decimal")
+		g.usedFunctions["print_u16_decimal"] = true
 		
 	case ir.OpPrintI8:
 		// Print i8 as signed decimal
 		g.loadToA(inst.Src1)
 		g.emit("    CALL print_i8_decimal")
+		g.usedFunctions["print_i8_decimal"] = true
 		
 	case ir.OpPrintI16:
 		// Print i16 as signed decimal
 		g.loadToHL(inst.Src1)
 		g.emit("    CALL print_i16_decimal")
+		g.usedFunctions["print_i16_decimal"] = true
 		
 	case ir.OpPrintBool:
 		// Print bool as "true" or "false"
@@ -2517,6 +2527,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Print null-terminated string
 		g.loadToHL(inst.Src1)
 		g.emit("    CALL print_string")
+		g.usedFunctions["print_string"] = true
 		
 	case ir.OpPrintStringDirect:
 		// Direct print for short strings - ultra-fast!
@@ -3916,6 +3927,13 @@ func (g *Z80Generator) generatePrintHelpers() {
 	
 	// Print string function - prints length-prefixed string pointed to by HL
 	// Auto-detects u8 vs u16 length format
+	if debug {
+		fmt.Printf("DEBUG: Checking if print_string is used: %v\n", g.usedFunctions["print_string"])
+	}
+	if g.usedFunctions["print_string"] {
+		if debug {
+			fmt.Printf("DEBUG: Generating print_string function\n")
+		}
 	g.emit("print_string:")
 	g.emit("    LD A, (HL)         ; A = first byte")
 	g.emit("    CP 255             ; Check if extended format marker")
@@ -3988,16 +4006,20 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    JR NZ, print_loop_u16")
 	g.emit("    RET")
 	g.emit("")
+	}
 	
 	// Print u8 as decimal
+	if g.usedFunctions["print_u8_decimal"] || g.usedFunctions["print_u16_decimal"] {
 	g.emit("print_u8_decimal:")
 	g.emit("    LD H, 0            ; HL = A (zero extend)")
 	g.emit("    LD L, A")
 	g.emit("    CALL print_u16_decimal")
 	g.emit("    RET")
 	g.emit("")
+	}
 	
 	// Print u16 as decimal
+	if g.usedFunctions["print_u16_decimal"] || g.usedFunctions["print_u8_decimal"] || g.usedFunctions["print_i8_decimal"] || g.usedFunctions["print_i16_decimal"] {
 	g.emit("print_u16_decimal:")
 	g.emit("    LD BC, -10000")
 	g.emit("    LD DE, -1000")
@@ -4018,6 +4040,7 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("")
 	
 	// Helper function for printing digits
+	if g.usedFunctions["print_u16_decimal"] || g.usedFunctions["print_digit"] {
 	g.emit("print_digit:")
 	g.emit("    LD A, '0'-1")
 	g.emit("print_digit_loop:")
@@ -4028,8 +4051,11 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    RST 16             ; Print digit")
 	g.emit("    RET")
 	g.emit("")
+	}
+	}
 	
 	// Print signed integers (same as unsigned for now)
+	if g.usedFunctions["print_i8_decimal"] {
 	g.emit("print_i8_decimal:")
 	g.emit("    BIT 7, A           ; Check sign bit")
 	g.emit("    JR Z, print_u8_decimal")
@@ -4040,7 +4066,9 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    NEG                ; Make positive")
 	g.emit("    JR print_u8_decimal")
 	g.emit("")
+	}
 	
+	if g.usedFunctions["print_i16_decimal"] {
 	g.emit("print_i16_decimal:")
 	g.emit("    BIT 7, H           ; Check sign bit")
 	g.emit("    JR Z, print_u16_decimal")
@@ -4057,8 +4085,10 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    INC HL")
 	g.emit("    JR print_u16_decimal")
 	g.emit("")
+	}
 	
 	// Print boolean
+	if g.usedFunctions["print_bool"] {
 	g.emit("print_bool:")
 	g.emit("    OR A               ; Test if A is zero")
 	g.emit("    JR NZ, print_true")
@@ -4075,15 +4105,78 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("bool_false_str:")
 	g.emit("    DB 5, \"false\"     ; Length + data")
 	g.emit("")
+	}
 }
 
-// generateStdlibRoutines generates standard library runtime routines
+// analyzeDependencies performs transitive closure on function dependencies
+func (g *Z80Generator) analyzeDependencies() {
+	// Start with directly called functions
+	worklist := make([]string, 0, len(g.usedFunctions))
+	for fn := range g.usedFunctions {
+		worklist = append(worklist, fn)
+	}
+	
+	// Process worklist, adding dependencies
+	for len(worklist) > 0 {
+		fn := worklist[0]
+		worklist = worklist[1:]
+		
+		// Add dependencies based on function
+		deps := g.getStdlibDependencies(fn)
+		for _, dep := range deps {
+			if !g.usedFunctions[dep] {
+				g.usedFunctions[dep] = true
+				worklist = append(worklist, dep)
+			}
+		}
+	}
+}
+
+// getStdlibDependencies returns the stdlib functions that a given function depends on
+func (g *Z80Generator) getStdlibDependencies(fn string) []string {
+	switch fn {
+	case "print_string":
+		// print_string may need RST 16 for output
+		return []string{}
+	case "print_u16_decimal":
+		return []string{"print_digit"}
+	case "print_u8_decimal":
+		return []string{"print_digit"}
+	case "print_i16_decimal":
+		return []string{"print_digit"}
+	case "print_i8_decimal":
+		return []string{"print_digit"}
+	case "zx_clear_screen":
+		return []string{"cls"}
+	default:
+		return []string{}
+	}
+}
+
+// generateStdlibRoutines generates only the used standard library runtime routines
 func (g *Z80Generator) generateStdlibRoutines() {
+	// First analyze transitive dependencies
+	g.analyzeDependencies()
+	
+	// Debug: Print what functions are marked as used
+	if debug {
+		fmt.Printf("DEBUG: Used functions in generateStdlibRoutines: %v\n", g.usedFunctions)
+	}
+	
+	// If no functions are used, don't generate any stdlib
+	if len(g.usedFunctions) == 0 {
+		if debug {
+			fmt.Printf("DEBUG: No functions used, skipping stdlib generation\n")
+		}
+		return
+	}
+	
 	g.emit("\n; Standard library routines")
 	
 	// Clear screen routine
-	g.emit("cls:")
-	switch g.targetPlatform {
+	if g.usedFunctions["cls"] {
+		g.emit("cls:")
+		switch g.targetPlatform {
 	case "cpm":
 		// CP/M clear screen using ANSI escape codes
 		g.emit("    LD C, 2            ; BDOS function 2 (console output)")
@@ -4113,8 +4206,10 @@ func (g *Z80Generator) generateStdlibRoutines() {
 	}
 	g.emit("    RET")
 	g.emit("")
+	}
 	
 	// Print newline
+	if g.usedFunctions["print_newline"] {
 	g.emit("print_newline:")
 	switch g.targetPlatform {
 	case "cpm":
@@ -4139,8 +4234,10 @@ func (g *Z80Generator) generateStdlibRoutines() {
 	}
 	g.emit("    RET")
 	g.emit("")
+	}
 	
 	// Print hex u8
+	if g.usedFunctions["print_hex_u8"] || g.usedFunctions["print_hex_nibble"] {
 	g.emit("print_hex_u8:")
 	g.emit("    PUSH AF            ; Save value")
 	g.emit("    RRA")
@@ -4175,10 +4272,12 @@ func (g *Z80Generator) generateStdlibRoutines() {
 	}
 	g.emit("    RET")
 	g.emit("")
+	}
 	
 	// ZX Spectrum specific routines
 	if g.targetPlatform == "" || g.targetPlatform == "zxspectrum" || g.targetPlatform == "zx" {
 		// Set border color
+		if g.usedFunctions["zx_set_border"] {
 		g.emit("zx_set_border:")
 		g.emit("    POP HL             ; Return address")
 		g.emit("    POP BC             ; Get color argument")
@@ -4188,35 +4287,46 @@ func (g *Z80Generator) generateStdlibRoutines() {
 		g.emit("    OUT (254), A       ; Set border")
 		g.emit("    RET")
 		g.emit("")
+		}
 		
 		// Clear ZX screen (same as cls for ZX)
+		if g.usedFunctions["zx_clear_screen"] {
 		g.emit("zx_clear_screen:")
 		g.emit("    JP cls             ; Use standard cls")
 		g.emit("")
+		}
 		
 		// Set pixel
+		if g.usedFunctions["zx_set_pixel"] {
 		g.emit("zx_set_pixel:")
 		g.emit("    ; TODO: Implement pixel setting")
 		g.emit("    ; For now, just return")
 		g.emit("    RET")
 		g.emit("")
+		}
 		
 		// Set ink color
+		if g.usedFunctions["zx_set_ink"] {
 		g.emit("zx_set_ink:")
 		g.emit("    ; TODO: Implement ink color setting")
 		g.emit("    RET")
 		g.emit("")
+		}
 		
 		// Set paper color
+		if g.usedFunctions["zx_set_paper"] {
 		g.emit("zx_set_paper:")
 		g.emit("    ; TODO: Implement paper color setting")
 		g.emit("    RET")
 		g.emit("")
+		}
 		
 		// Input routines
+		if g.usedFunctions["zx_read_keyboard"] || g.usedFunctions["zx_wait_key"] {
 		g.emit("; Input routines")
 		
 		// Read keyboard - returns key code in A, 0 if no key
+		if g.usedFunctions["zx_read_keyboard"] || g.usedFunctions["zx_wait_key"] {
 		g.emit("zx_read_keyboard:")
 		g.emit("    ; Scan keyboard matrix")
 		g.emit("    LD BC, $FEFE       ; First keyboard row")
@@ -4227,8 +4337,10 @@ func (g *Z80Generator) generateStdlibRoutines() {
 		g.emit("    ; Simple mapping - just return raw value for now")
 		g.emit("    RET")
 		g.emit("")
+		}
 		
 		// Wait for key press - blocks until key pressed
+		if g.usedFunctions["zx_wait_key"] {
 		g.emit("zx_wait_key:")
 		g.emit("wait_key_loop:")
 		g.emit("    CALL zx_read_keyboard")
@@ -4236,8 +4348,11 @@ func (g *Z80Generator) generateStdlibRoutines() {
 		g.emit("    JR Z, wait_key_loop ; Loop if no key")
 		g.emit("    RET                ; Return key code in A")
 		g.emit("")
+		}
+		}
 		
 		// Check if specific key is pressed
+		if g.usedFunctions["zx_is_key_pressed"] {
 		g.emit("zx_is_key_pressed:")
 		g.emit("    POP HL             ; Return address")
 		g.emit("    POP BC             ; Get key code")
@@ -4246,11 +4361,14 @@ func (g *Z80Generator) generateStdlibRoutines() {
 		g.emit("    LD A, 0            ; Return false for now")
 		g.emit("    RET")
 		g.emit("")
+		}
 		
 		// Sound routines
+		if g.usedFunctions["zx_beep"] || g.usedFunctions["zx_click"] {
 		g.emit("; Sound routines")
 		
 		// Beep sound
+		if g.usedFunctions["zx_beep"] {
 		g.emit("zx_beep:")
 		g.emit("    POP HL             ; Return address")
 		g.emit("    POP DE             ; Duration")
@@ -4282,8 +4400,10 @@ func (g *Z80Generator) generateStdlibRoutines() {
 		g.emit("    JR NZ, beep_loop")
 		g.emit("    RET")
 		g.emit("")
+		}
 		
 		// Click sound
+		if g.usedFunctions["zx_click"] {
 		g.emit("zx_click:")
 		g.emit("    LD A, 16           ; Quick click")
 		g.emit("    OUT (254), A")
@@ -4294,9 +4414,12 @@ func (g *Z80Generator) generateStdlibRoutines() {
 		g.emit("    OUT (254), A")
 		g.emit("    RET")
 		g.emit("")
+		}
+		}
 	}
 	
 	// Math functions
+	if g.usedFunctions["abs"] {
 	g.emit("abs:")
 	g.emit("    POP HL             ; Return address")
 	g.emit("    POP BC             ; Get argument")
@@ -4308,7 +4431,9 @@ func (g *Z80Generator) generateStdlibRoutines() {
 	g.emit("abs_done:")
 	g.emit("    RET")
 	g.emit("")
+	}
 	
+	if g.usedFunctions["min"] {
 	g.emit("min:")
 	g.emit("    POP HL             ; Return address")
 	g.emit("    POP BC             ; First argument")
@@ -4321,7 +4446,9 @@ func (g *Z80Generator) generateStdlibRoutines() {
 	g.emit("min_done:")
 	g.emit("    RET")
 	g.emit("")
+	}
 	
+	if g.usedFunctions["max"] {
 	g.emit("max:")
 	g.emit("    POP HL             ; Return address")
 	g.emit("    POP BC             ; First argument")
@@ -4334,5 +4461,6 @@ func (g *Z80Generator) generateStdlibRoutines() {
 	g.emit("max_done:")
 	g.emit("    RET")
 	g.emit("")
+	}
 }
 
