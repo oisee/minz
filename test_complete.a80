@@ -1,0 +1,38 @@
+; Test comprehensive instruction coverage
+    ORG $8000
+    
+    ; LD instructions (should work)
+    LD A, B
+    LD HL, $1234
+    LD A, (HL)
+    LD ($8000), A
+    
+    ; JP/JR instructions (should work)
+    JP $9000
+    JP NZ, $9000
+skip:
+    JR skip     ; Jump to label
+    CALL $8000
+    RET
+    RET Z
+    
+    ; Arithmetic (should work if implemented)
+    ADD A, B
+    SUB C
+    INC HL
+    DEC A
+    
+    ; Stack operations
+    PUSH BC
+    POP DE
+    
+    ; Logical operations
+    AND B
+    OR C
+    XOR A
+    
+    ; Control
+    NOP
+    HALT
+    
+    END

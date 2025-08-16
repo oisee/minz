@@ -30,6 +30,10 @@ func (a *Assembler) processDirective(line *Line) error {
 		return a.handleMACRO(line)
 	case "ENDM":
 		return a.handleENDM(line)
+	case "TARGET":
+		return a.handleTARGET(line)
+	case "MODEL":
+		return a.handleMODEL(line)
 	default:
 		if a.Strict {
 			return fmt.Errorf("unknown directive: %s", directive)
@@ -368,4 +372,97 @@ func parseString(s string) string {
 	}
 	
 	return string(result)
+}
+
+// handleTARGET sets the target platform
+func (a *Assembler) handleTARGET(line *Line) error {
+	if len(line.Operands) != 1 {
+		return fmt.Errorf("TARGET requires exactly one operand")
+	}
+	
+	targetStr := strings.Trim(line.Operands[0], "\"'")
+	target, err := ParseTarget(targetStr)
+	if err != nil {
+		// Provide helpful error with available targets
+		return fmt.Errorf("unknown target '%s'. Available targets: generic, zxspectrum, cpm, msx, gameboy", targetStr)
+	}
+	
+	// Set the target configuration
+	err = a.SetTarget(target)
+	if err != nil {
+		return fmt.Errorf("failed to set target: %w", err)
+	}
+	
+	// Log the target selection
+	if a.pass == 1 {
+		a.warnings = append(a.warnings, fmt.Sprintf("Target platform set to: %s", a.target.Name))
+	}
+	
+	return nil
+}
+
+// handleMODEL sets the specific model of the target platform
+func (a *Assembler) handleMODEL(line *Line) error {
+	if len(line.Operands) != 1 {
+		return fmt.Errorf("MODEL requires exactly one operand")
+	}
+	
+	if a.target == nil {
+		return fmt.Errorf("MODEL directive requires TARGET to be set first")
+	}
+	
+	model := strings.Trim(line.Operands[0], "\"'")
+	
+	// Store model in target extensions
+	if a.target.Extensions == nil {
+		a.target.Extensions = make(map[string]interface{})
+	}
+	a.target.Extensions["model"] = model
+	
+	// Apply model-specific configurations
+	switch a.target.Name {
+	case "ZX Spectrum":
+		switch strings.ToLower(model) {
+		case "48k":
+			// 48K specific settings
+			a.target.MemoryLayout.RAMSize = 49152
+		case "128k":
+			// 128K specific settings (bank switching required)
+			// Note: Only 64K addressable at once without banking
+			a.target.MemoryLayout.RAMSize = 65535 // Max addressable
+			a.target.Extensions["banks"] = 8 // 8 x 16K banks
+			a.warnings = append(a.warnings, "128K model set - bank switching support limited")
+		case "+2", "+3":
+			// +2/+3 specific settings
+			a.target.MemoryLayout.RAMSize = 65535 // Max addressable
+			a.target.Extensions["banks"] = 8 // 8 x 16K banks
+			a.warnings = append(a.warnings, fmt.Sprintf("%s model set - disk support not yet implemented", model))
+		default:
+			return fmt.Errorf("unknown ZX Spectrum model '%s'. Valid models: 48k, 128k, +2, +3", model)
+		}
+	case "MSX":
+		switch strings.ToLower(model) {
+		case "msx1":
+			a.target.MemoryLayout.RAMSize = 32768
+		case "msx2", "msx2+":
+			a.target.MemoryLayout.RAMSize = 65535 // Max addressable
+			a.target.Extensions["vram"] = 131072 // 128K VRAM
+		default:
+			return fmt.Errorf("unknown MSX model '%s'. Valid models: msx1, msx2, msx2+", model)
+		}
+	case "CP/M":
+		// CP/M doesn't really have models, but we can accept version numbers
+		switch model {
+		case "2.2", "3.0":
+			// Version-specific settings could go here
+		default:
+			a.warnings = append(a.warnings, fmt.Sprintf("CP/M version '%s' noted", model))
+		}
+	}
+	
+	if a.pass == 1 {
+		a.warnings = append(a.warnings, fmt.Sprintf("Model set to: %s", model))
+	}
+	
+	return nil
 }
