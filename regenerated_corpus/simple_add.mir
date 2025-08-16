@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.simple_add.add$u16$u16(a: u16, b: u16) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function examples.simple_add.main() -> void
+  @smc
+  Locals:
+    r1 = x: u16
+  Instructions:
+      0: r2 = 10
+      1: r3 = 20
+      2: r4 = 10
+      3: r5 = 20
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: PATCH_PARAM
+      8: r6 = call examples.simple_add.add$u16$u16
+      9: store x, r6
+     10: return
+

@@ -1,0 +1,342 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.bit_manipulation.set_bit$u8$u8
+examples.bit_manipulation.set_bit$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.bit_manipulation.set_bit$u8$u8_param_value.op:
+examples.bit_manipulation.set_bit$u8$u8_param_value equ examples.bit_manipulation.set_bit$u8$u8_param_value.op + 1
+    LD A, #00      ; Parameter value (gets patched)
+    ; Register 3 already in A
+    ; r4 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+examples.bit_manipulation.set_bit$u8$u8_param_bit.op:
+examples.bit_manipulation.set_bit$u8$u8_param_bit equ examples.bit_manipulation.set_bit$u8$u8_param_bit.op + 1
+    LD B, #00      ; Parameter bit (gets patched)
+    LD A, B
+    LD C, A         ; Store to physical register C
+    ; r6 = r4 << r5
+    ; Shift left
+    LD A, B
+    LD B, A       ; B = value to shift
+    LD A, C
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, examples_bit_manipulation_set_bit_u8_u8_shl_done_0
+    LD B, C       ; B = counter
+examples_bit_manipulation_set_bit_u8_u8_shl_loop_0:
+    DEC B
+    JP M, examples_bit_manipulation_set_bit_u8_u8_shl_done_0
+    SLA A         ; Shift left, 0 into bit 0
+    JR examples_bit_manipulation_set_bit_u8_u8_shl_loop_0
+examples_bit_manipulation_set_bit_u8_u8_shl_done_0:
+    LD L, A
+    LD H, 0
+    ; r7 = r3 | r6
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    ; return r7
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.bit_manipulation.clear_bit$u8$u8
+examples.bit_manipulation.clear_bit$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.bit_manipulation.clear_bit$u8$u8_param_value.op:
+examples.bit_manipulation.clear_bit$u8$u8_param_value equ examples.bit_manipulation.clear_bit$u8$u8_param_value.op + 1
+    LD A, #00      ; Parameter value (gets patched)
+    LD L, A         ; Store to physical register L
+    ; r4 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+examples.bit_manipulation.clear_bit$u8$u8_param_bit.op:
+examples.bit_manipulation.clear_bit$u8$u8_param_bit equ examples.bit_manipulation.clear_bit$u8$u8_param_bit.op + 1
+    LD B, #00      ; Parameter bit (gets patched)
+    LD A, B
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r6 = r4 << r5
+    ; Shift left
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = value to shift
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, examples_bit_manipulation_clear_bit_u8_u8_shl_done_1
+    LD B, C       ; B = counter
+examples_bit_manipulation_clear_bit_u8_u8_shl_loop_1:
+    DEC B
+    JP M, examples_bit_manipulation_clear_bit_u8_u8_shl_done_1
+    SLA A         ; Shift left, 0 into bit 0
+    JR examples_bit_manipulation_clear_bit_u8_u8_shl_loop_1
+examples_bit_manipulation_clear_bit_u8_u8_shl_done_1:
+    LD L, A
+    LD H, 0
+    ; r7 = ~r6
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    CPL           ; Complement A
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r8 = r3 & r7
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; return r8
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.bit_manipulation.toggle_bit$u8$u8
+examples.bit_manipulation.toggle_bit$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.bit_manipulation.toggle_bit$u8$u8_param_value.op:
+examples.bit_manipulation.toggle_bit$u8$u8_param_value equ examples.bit_manipulation.toggle_bit$u8$u8_param_value.op + 1
+    LD A, #00      ; Parameter value (gets patched)
+    LD L, A         ; Store to physical register L
+    ; r4 = 1
+    LD A, 1
+    LD C, A         ; Store to physical register C
+examples.bit_manipulation.toggle_bit$u8$u8_param_bit.op:
+examples.bit_manipulation.toggle_bit$u8$u8_param_bit equ examples.bit_manipulation.toggle_bit$u8$u8_param_bit.op + 1
+    LD B, #00      ; Parameter bit (gets patched)
+    LD A, B
+    LD D, A         ; Store to physical register D
+    ; r6 = r4 << r5
+    ; Shift left
+    LD A, C
+    LD B, A       ; B = value to shift
+    LD A, D
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, examples_bit_manipulation_toggle_bit_u8_u8_shl_done_2
+    LD B, C       ; B = counter
+examples_bit_manipulation_toggle_bit_u8_u8_shl_loop_2:
+    DEC B
+    JP M, examples_bit_manipulation_toggle_bit_u8_u8_shl_done_2
+    SLA A         ; Shift left, 0 into bit 0
+    JR examples_bit_manipulation_toggle_bit_u8_u8_shl_loop_2
+examples_bit_manipulation_toggle_bit_u8_u8_shl_done_2:
+    LD L, A
+    LD H, 0
+    ; r7 = r3 ^ r6
+    LD D, H
+    LD E, L
+    LD A, L
+    XOR E
+    LD L, A
+    LD A, H
+    XOR D
+    LD H, A
+    ; return r7
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.bit_manipulation.test_bit$u8$u8
+examples.bit_manipulation.test_bit$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.bit_manipulation.test_bit$u8$u8_param_value.op:
+examples.bit_manipulation.test_bit$u8$u8_param_value equ examples.bit_manipulation.test_bit$u8$u8_param_value.op + 1
+    LD A, #00      ; Parameter value (gets patched)
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r4 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+examples.bit_manipulation.test_bit$u8$u8_param_bit.op:
+examples.bit_manipulation.test_bit$u8$u8_param_bit equ examples.bit_manipulation.test_bit$u8$u8_param_bit.op + 1
+    LD B, #00      ; Parameter bit (gets patched)
+    LD A, B
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r6 = r4 << r5
+    ; Shift left
+    LD A, D
+    LD B, A       ; B = value to shift
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, examples_bit_manipulation_test_bit_u8_u8_shl_done_3
+    LD B, C       ; B = counter
+examples_bit_manipulation_test_bit_u8_u8_shl_loop_3:
+    DEC B
+    JP M, examples_bit_manipulation_test_bit_u8_u8_shl_done_3
+    SLA A         ; Shift left, 0 into bit 0
+    JR examples_bit_manipulation_test_bit_u8_u8_shl_loop_3
+examples_bit_manipulation_test_bit_u8_u8_shl_done_3:
+    LD L, A
+    LD H, 0
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; r7 = r3 & r6
+    LD D, H
+    LD E, L
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; r8 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r9 = r7 != r8
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, examples_bit_manipulation_test_bit_u8_u8_ne_true_4
+    LD HL, 0       ; False
+    JP examples_bit_manipulation_test_bit_u8_u8_ne_done_4
+examples_bit_manipulation_test_bit_u8_u8_ne_true_4:
+    LD HL, 1       ; True
+examples_bit_manipulation_test_bit_u8_u8_ne_done_4:
+    ; return r9
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.bit_manipulation.count_bits$u8
+examples.bit_manipulation.count_bits$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; store count, r3
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F004), A
+    ; loop_1:
+examples_bit_manipulation_count_bits_u8_loop_1:
+examples.bit_manipulation.count_bits$u8_param_value.op:
+examples.bit_manipulation.count_bits$u8_param_value equ examples.bit_manipulation.count_bits$u8_param_value.op + 1
+    LD A, #00      ; Parameter value (gets patched)
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = 0
+    LD A, 0
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = r4 != r5
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, examples_bit_manipulation_count_bits_u8_ne_true_5
+    LD HL, 0       ; False
+    JP examples_bit_manipulation_count_bits_u8_ne_done_5
+examples_bit_manipulation_count_bits_u8_ne_true_5:
+    LD HL, 1       ; True
+examples_bit_manipulation_count_bits_u8_ne_done_5:
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; jump_if_not r6, end_loop_2
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    OR A
+    JP Z, examples_bit_manipulation_count_bits_u8_end_loop_2
+    ; r7 = load count
+    LD A, ($F004)
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    LD A, (examples.bit_manipulation.count_bits$u8_param_value)
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r9 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r10 = r8 & r9
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; r11 = r7 + r10
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store count, r11
+    LD A, L
+    LD ($F004), A
+    LD A, (examples.bit_manipulation.count_bits$u8_param_value)
+    LD D, A         ; Store to physical register D
+    ; r13 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; r14 = r12 >> r13
+    ; Shift right
+    LD A, D
+    LD B, A       ; B = value to shift
+    LD A, D
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, examples_bit_manipulation_count_bits_u8_shr_done_6
+    LD B, C       ; B = counter
+examples_bit_manipulation_count_bits_u8_shr_loop_6:
+    DEC B
+    JP M, examples_bit_manipulation_count_bits_u8_shr_done_6
+    SRL A         ; Shift right, 0 into bit 7
+    JR examples_bit_manipulation_count_bits_u8_shr_loop_6
+examples_bit_manipulation_count_bits_u8_shr_done_6:
+    LD L, A
+    LD H, 0
+    ; store value, r14
+    LD ($F000), HL
+    ; jump loop_1
+    JP examples_bit_manipulation_count_bits_u8_loop_1
+    ; end_loop_2:
+examples_bit_manipulation_count_bits_u8_end_loop_2:
+    ; r15 = load count
+    LD A, ($F004)
+    LD E, A         ; Store to physical register E
+    ; return r15
+    RET
+
+    END main

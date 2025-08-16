@@ -1,0 +1,184 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tail_sum.sum_tail$u16$u16
+examples.tail_sum.sum_tail$u16$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+examples.tail_sum.sum_tail$u16$u16_param_n.op:
+examples.tail_sum.sum_tail$u16$u16_param_n equ examples.tail_sum.sum_tail$u16$u16_param_n.op + 1
+    LD HL, #0000   ; SMC parameter n
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; r4 = 0
+    LD A, 0
+    ; Register 4 already in A
+    ; r5 = r3 == r4
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD E, A        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_tail_sum_sum_tail_u16_u16_eq_true_0
+    LD HL, 0       ; False
+    JP examples_tail_sum_sum_tail_u16_u16_eq_done_0
+examples_tail_sum_sum_tail_u16_u16_eq_true_0:
+    LD HL, 1       ; True
+examples_tail_sum_sum_tail_u16_u16_eq_done_0:
+    LD D, H
+    LD E, L
+    ; jump_if_not r5, else_1
+    LD A, E
+    OR A
+    JP Z, examples_tail_sum_sum_tail_u16_u16_else_1
+examples.tail_sum.sum_tail$u16$u16_param_acc.op:
+examples.tail_sum.sum_tail$u16$u16_param_acc equ examples.tail_sum.sum_tail$u16$u16_param_acc.op + 1
+    LD DE, #0000   ; SMC parameter acc
+    EX DE, HL      ; Move to HL for storage
+    LD B, H
+    LD C, L
+    ; return r6
+    LD H, B
+    LD L, C
+    RET
+    ; jump end_if_2
+    JP examples_tail_sum_sum_tail_u16_u16_end_if_2
+    ; else_1:
+examples_tail_sum_sum_tail_u16_u16_else_1:
+    ; end_if_2:
+examples_tail_sum_sum_tail_u16_u16_end_if_2:
+    LD HL, (examples.tail_sum.sum_tail$u16$u16_param_n)
+    ; r8 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r9 = r7 - r8
+    EXX               ; Switch to shadow registers
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    LD HL, (examples.tail_sum.sum_tail$u16$u16_param_acc)
+    LD HL, (examples.tail_sum.sum_tail$u16$u16_param_n)
+    ; Register 11 already in HL
+    ; r12 = r10 + r11
+    LD D, H
+    LD E, L
+    ; Register 11 already in HL
+    ADD HL, DE
+    LD ($F018), HL    ; Virtual register 12 to memory
+    LD HL, (examples.tail_sum.sum_tail$u16$u16_param_n)
+    ; Register 13 already in HL
+    ; r14 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r15 = r13 - r14
+    ; Register 13 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; Register 15 already in HL
+    LD HL, (examples.tail_sum.sum_tail$u16$u16_param_acc)
+    ; Register 16 already in HL
+    LD HL, (examples.tail_sum.sum_tail$u16$u16_param_n)
+    LD ($F022), HL    ; Virtual register 17 to memory
+    ; r18 = r16 + r17
+    ; Register 16 already in HL
+    LD D, H
+    LD E, L
+    LD HL, ($F022)    ; Virtual register 17 from memory
+    ADD HL, DE
+    ; Register 18 already in HL
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.tail_sum.sum_tail$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.tail_sum.sum_tail$u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.tail_sum.sum_tail$u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.tail_sum.sum_tail$u16$u16_param_n+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter acc = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.tail_sum.sum_tail$u16$u16_param_acc+1), HL  ; Patch parameter immediate
+    ; === SMC Recursive Context Save ===
+    LD HL, (examples.tail_sum.sum_tail$u16$u16_param_n)
+    PUSH HL
+    LD HL, (examples.tail_sum.sum_tail$u16$u16_param_acc)
+    PUSH HL
+    ; === Update SMC Parameters ===
+    CALL examples.tail_sum.sum_tail$u16$u16
+    ; === SMC Recursive Context Restore ===
+    POP HL
+    LD (examples.tail_sum.sum_tail$u16$u16_param_acc), HL
+    POP HL
+    LD (examples.tail_sum.sum_tail$u16$u16_param_n), HL
+    LD A, H
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.tail_sum.sum_tail$u16$u16_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.tail_sum.sum_tail$u16$u16_store_addr.op:
+examples.tail_sum.sum_tail$u16$u16_store_addr equ examples.tail_sum.sum_tail$u16$u16_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tail_sum.main
+examples.tail_sum.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 10
+    LD A, 10
+    LD H, A         ; Store to physical register H
+    ; r5 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.tail_sum.sum_tail$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.tail_sum.sum_tail$u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.tail_sum.sum_tail$u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.tail_sum.sum_tail$u16$u16_param_n+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter acc = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.tail_sum.sum_tail$u16$u16_param_acc+1), HL  ; Patch parameter immediate
+    ; r6 = call examples.tail_sum.sum_tail$u16$u16
+    ; Call to examples.tail_sum.sum_tail$u16$u16 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.tail_sum.sum_tail$u16$u16
+    ; Register 6 already in HL
+    ; store result, r6
+    ; Register 6 already in HL
+    LD ($F002), HL
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

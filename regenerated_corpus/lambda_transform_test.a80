@@ -1,0 +1,471 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_transform_test.test_basic_lambda$add_0
+examples.lambda_transform_test.test_basic_lambda$add_0:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_transform_test.test_basic_lambda$add_0_param_x.op:
+examples.lambda_transform_test.test_basic_lambda$add_0_param_x equ examples.lambda_transform_test.test_basic_lambda$add_0_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 2 already in A
+examples.lambda_transform_test.test_basic_lambda$add_0_param_y.op:
+examples.lambda_transform_test.test_basic_lambda$add_0_param_y equ examples.lambda_transform_test.test_basic_lambda$add_0_param_y.op + 1
+    LD B, #00      ; Parameter y (gets patched)
+    LD A, B
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 + r3
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_transform_test.test_basic_lambda$add_0_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_transform_test.test_basic_lambda$add_0_store_addr.op:
+examples.lambda_transform_test.test_basic_lambda$add_0_store_addr equ examples.lambda_transform_test.test_basic_lambda$add_0_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_transform_test.test_basic_lambda
+examples.lambda_transform_test.test_basic_lambda:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 5
+    LD A, 5
+    LD E, A         ; Store to physical register E
+    ; r2 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_transform_test.test_basic_lambda$add_0_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_transform_test.test_basic_lambda$add_0_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_transform_test.test_basic_lambda$add_0_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_transform_test.test_basic_lambda$add_0_param_x+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter y = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_transform_test.test_basic_lambda$add_0_param_y+1), A   ; Patch parameter immediate
+    ; r3 = call examples.lambda_transform_test.test_basic_lambda$add_0
+    ; Call to examples.lambda_transform_test.test_basic_lambda$add_0 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_transform_test.test_basic_lambda$add_0
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_transform_test.test_basic_lambda_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_transform_test.test_basic_lambda_store_addr.op:
+examples.lambda_transform_test.test_basic_lambda_store_addr equ examples.lambda_transform_test.test_basic_lambda_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_transform_test.test_lambda_reference$double_1
+examples.lambda_transform_test.test_lambda_reference$double_1:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_transform_test.test_lambda_reference$double_1_param_x.op:
+examples.lambda_transform_test.test_lambda_reference$double_1_param_x equ examples.lambda_transform_test.test_lambda_reference$double_1_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r2 = 2
+    LD A, 2
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r3 = r1 * r2
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; Optimized multiplication by 2 (shift left 1)
+    ADD A, A          ; A << 1
+    LD L, A
+    LD H, 0
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_transform_test.test_lambda_reference$double_1_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_transform_test.test_lambda_reference$double_1_store_addr.op:
+examples.lambda_transform_test.test_lambda_reference$double_1_store_addr equ examples.lambda_transform_test.test_lambda_reference$double_1_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_transform_test.test_lambda_reference
+examples.lambda_transform_test.test_lambda_reference:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 10
+    LD A, 10
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_transform_test.test_lambda_reference$double_1_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_transform_test.test_lambda_reference$double_1_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_transform_test.test_lambda_reference$double_1_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_transform_test.test_lambda_reference$double_1_param_x+1), A   ; Patch parameter immediate
+    ; r2 = call examples.lambda_transform_test.test_lambda_reference$double_1
+    ; Call to examples.lambda_transform_test.test_lambda_reference$double_1 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_transform_test.test_lambda_reference$double_1
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_transform_test.test_lambda_reference_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_transform_test.test_lambda_reference_store_addr.op:
+examples.lambda_transform_test.test_lambda_reference_store_addr equ examples.lambda_transform_test.test_lambda_reference_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_transform_test.test_lambda_with_operations$add5_2
+examples.lambda_transform_test.test_lambda_with_operations$add5_2:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_transform_test.test_lambda_with_operations$add5_2_param_x.op:
+examples.lambda_transform_test.test_lambda_with_operations$add5_2_param_x equ examples.lambda_transform_test.test_lambda_with_operations$add5_2_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r2 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r3 = r1 + r2
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_transform_test.test_lambda_with_operations$add5_2_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_transform_test.test_lambda_with_operations$add5_2_store_addr.op:
+examples.lambda_transform_test.test_lambda_with_operations$add5_2_store_addr equ examples.lambda_transform_test.test_lambda_with_operations$add5_2_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_transform_test.test_lambda_with_operations$mul2_3
+examples.lambda_transform_test.test_lambda_with_operations$mul2_3:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_transform_test.test_lambda_with_operations$mul2_3_param_x.op:
+examples.lambda_transform_test.test_lambda_with_operations$mul2_3_param_x equ examples.lambda_transform_test.test_lambda_with_operations$mul2_3_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r2 = 2
+    LD A, 2
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r3 = r1 * r2
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; Optimized multiplication by 2 (shift left 1)
+    ADD A, A          ; A << 1
+    LD L, A
+    LD H, 0
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_transform_test.test_lambda_with_operations$mul2_3_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_transform_test.test_lambda_with_operations$mul2_3_store_addr.op:
+examples.lambda_transform_test.test_lambda_with_operations$mul2_3_store_addr equ examples.lambda_transform_test.test_lambda_with_operations$mul2_3_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_transform_test.test_lambda_with_operations
+examples.lambda_transform_test.test_lambda_with_operations:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_transform_test.test_lambda_with_operations$add5_2_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_transform_test.test_lambda_with_operations$add5_2_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_transform_test.test_lambda_with_operations$add5_2_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_transform_test.test_lambda_with_operations$add5_2_param_x+1), A   ; Patch parameter immediate
+    ; r3 = call examples.lambda_transform_test.test_lambda_with_operations$add5_2
+    ; Call to examples.lambda_transform_test.test_lambda_with_operations$add5_2 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_transform_test.test_lambda_with_operations$add5_2
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; store a, r3
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD ($F002), A
+    ; r5 = load a
+    LD A, ($F002)
+    LD B, A         ; Store to physical register B
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_transform_test.test_lambda_with_operations$mul2_3_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_transform_test.test_lambda_with_operations$mul2_3_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_transform_test.test_lambda_with_operations$mul2_3_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_transform_test.test_lambda_with_operations$mul2_3_param_x+1), A   ; Patch parameter immediate
+    ; r6 = call examples.lambda_transform_test.test_lambda_with_operations$mul2_3
+    ; Call to examples.lambda_transform_test.test_lambda_with_operations$mul2_3 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_transform_test.test_lambda_with_operations$mul2_3
+    ; store b, r6
+    LD A, B
+    LD ($F008), A
+    ; r7 = load b
+    LD A, ($F008)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_transform_test.test_lambda_with_operations_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_transform_test.test_lambda_with_operations_store_addr.op:
+examples.lambda_transform_test.test_lambda_with_operations_store_addr equ examples.lambda_transform_test.test_lambda_with_operations_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_transform_test.test_lambda_in_expression$increment_4
+examples.lambda_transform_test.test_lambda_in_expression$increment_4:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_transform_test.test_lambda_in_expression$increment_4_param_x.op:
+examples.lambda_transform_test.test_lambda_in_expression$increment_4_param_x equ examples.lambda_transform_test.test_lambda_in_expression$increment_4_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 1 already in A
+    ; r2 = 1
+    LD A, 1
+    ; Register 2 already in A
+    ; r3 = r1 + r2
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_transform_test.test_lambda_in_expression$increment_4_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_transform_test.test_lambda_in_expression$increment_4_store_addr.op:
+examples.lambda_transform_test.test_lambda_in_expression$increment_4_store_addr equ examples.lambda_transform_test.test_lambda_in_expression$increment_4_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_transform_test.test_lambda_in_expression
+examples.lambda_transform_test.test_lambda_in_expression:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_transform_test.test_lambda_in_expression$increment_4_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_transform_test.test_lambda_in_expression$increment_4_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_transform_test.test_lambda_in_expression$increment_4_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_transform_test.test_lambda_in_expression$increment_4_param_x+1), A   ; Patch parameter immediate
+    ; r2 = call examples.lambda_transform_test.test_lambda_in_expression$increment_4
+    ; Call to examples.lambda_transform_test.test_lambda_in_expression$increment_4 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_transform_test.test_lambda_in_expression$increment_4
+    ; r3 = 10
+    LD A, 10
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_transform_test.test_lambda_in_expression$increment_4_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_transform_test.test_lambda_in_expression$increment_4_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_transform_test.test_lambda_in_expression$increment_4_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_transform_test.test_lambda_in_expression$increment_4_param_x+1), A   ; Patch parameter immediate
+    ; r4 = call examples.lambda_transform_test.test_lambda_in_expression$increment_4
+    ; Call to examples.lambda_transform_test.test_lambda_in_expression$increment_4 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_transform_test.test_lambda_in_expression$increment_4
+    ; r5 = r2 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_transform_test.test_lambda_in_expression_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_transform_test.test_lambda_in_expression_store_addr.op:
+examples.lambda_transform_test.test_lambda_in_expression_store_addr equ examples.lambda_transform_test.test_lambda_in_expression_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_transform_test.main
+examples.lambda_transform_test.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_transform_test.test_basic_lambda_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_transform_test.test_basic_lambda_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_transform_test.test_basic_lambda_store_addr), HL
+    ; r2 = call examples.lambda_transform_test.test_basic_lambda
+    ; Call to examples.lambda_transform_test.test_basic_lambda (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_transform_test.test_basic_lambda
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; store a, r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD ($F002), A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_transform_test.test_lambda_reference_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_transform_test.test_lambda_reference_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_transform_test.test_lambda_reference_store_addr), HL
+    ; r4 = call examples.lambda_transform_test.test_lambda_reference
+    ; Call to examples.lambda_transform_test.test_lambda_reference (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_transform_test.test_lambda_reference
+    ; store b, r4
+    LD A, D
+    LD ($F006), A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_transform_test.test_lambda_with_operations_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_transform_test.test_lambda_with_operations_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_transform_test.test_lambda_with_operations_store_addr), HL
+    ; r6 = call examples.lambda_transform_test.test_lambda_with_operations
+    ; Call to examples.lambda_transform_test.test_lambda_with_operations (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_transform_test.test_lambda_with_operations
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; store c, r6
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD ($F00A), A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_transform_test.test_lambda_in_expression_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_transform_test.test_lambda_in_expression_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_transform_test.test_lambda_in_expression_store_addr), HL
+    ; r8 = call examples.lambda_transform_test.test_lambda_in_expression
+    ; Call to examples.lambda_transform_test.test_lambda_in_expression (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_transform_test.test_lambda_in_expression
+    ; store d, r8
+    ; Register 8 already in A
+    LD ($F00E), A
+    ; r9 = load a
+    LD A, ($F002)
+    LD L, A         ; Store to physical register L
+    ; r10 = load b
+    LD A, ($F006)
+    LD L, A         ; Store to physical register L
+    ; r11 = r9 + r10
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r12 = load c
+    LD A, ($F00A)
+    LD B, A         ; Store to physical register B
+    ; r13 = r11 + r12
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r14 = load d
+    LD A, ($F00E)
+    ; Register 14 already in A
+    ; r15 = r13 + r14
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

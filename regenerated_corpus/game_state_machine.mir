@@ -1,0 +1,309 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.game_state_machine.update_game_state$GameState$Input(current: GameState, input: Input) -> GameState
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = r3 == r0
+      2: JUMP_IF
+      3: jump case_arm_1_3
+      4: r5 = r3 == r0
+      5: JUMP_IF
+      6: jump case_arm_2_4
+      7: r6 = r3 == r0
+      8: JUMP_IF
+      9: jump case_arm_3_5
+     10: r7 = r3 == r0
+     11: JUMP_IF
+     12: jump case_arm_4_6
+     13: r8 = r3 == r0
+     14: JUMP_IF
+     15: jump case_end_1
+     16: case_arm_0_2:
+     17: jump case_end_1
+     18: case_arm_1_3:
+     19: r9 = 1
+     20: jump case_end_1
+     21: case_arm_2_4:
+     22: jump case_end_1
+     23: case_arm_3_5:
+     24: jump case_end_1
+     25: case_arm_4_6:
+     26: case_end_1:
+     27: return
+
+Function examples.game_state_machine.update_player_state$PlayerState$Input$GameState(current: PlayerState, input: Input, game_state: GameState) -> PlayerState
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r5 = r4 == r0
+      2: JUMP_IF
+      3: jump case_arm_1_9
+      4: jump case_arm_1_9
+      5: case_arm_0_8:
+      6: jump case_end_7
+      7: case_arm_1_9:
+      8: LOAD_PARAM
+      9: case_end_7:
+     10: return
+
+Function examples.game_state_machine.get_game_state_name$GameState(state: GameState) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = r2 == r0
+      2: JUMP_IF
+      3: jump case_arm_1_12
+      4: r4 = r2 == r0
+      5: JUMP_IF
+      6: jump case_arm_2_13
+      7: r5 = r2 == r0
+      8: JUMP_IF
+      9: jump case_arm_3_14
+     10: r6 = r2 == r0
+     11: JUMP_IF
+     12: jump case_arm_4_15
+     13: r7 = r2 == r0
+     14: JUMP_IF
+     15: jump case_end_10
+     16: case_arm_0_11:
+     17: r8 = 1
+     18: jump case_end_10
+     19: case_arm_1_12:
+     20: r9 = 2
+     21: jump case_end_10
+     22: case_arm_2_13:
+     23: r10 = 3
+     24: jump case_end_10
+     25: case_arm_3_14:
+     26: r11 = 4
+     27: jump case_end_10
+     28: case_arm_4_15:
+     29: r12 = 5
+     30: case_end_10:
+     31: return
+
+Function examples.game_state_machine.get_player_state_name$PlayerState(state: PlayerState) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = r2 == r0
+      2: JUMP_IF
+      3: jump case_arm_1_18
+      4: r4 = r2 == r0
+      5: JUMP_IF
+      6: jump case_arm_2_19
+      7: r5 = r2 == r0
+      8: JUMP_IF
+      9: jump case_arm_3_20
+     10: r6 = r2 == r0
+     11: JUMP_IF
+     12: jump case_arm_4_21
+     13: r7 = r2 == r0
+     14: JUMP_IF
+     15: jump case_arm_5_22
+     16: r8 = r2 == r0
+     17: JUMP_IF
+     18: jump case_end_16
+     19: case_arm_0_17:
+     20: r9 = 1
+     21: jump case_end_16
+     22: case_arm_1_18:
+     23: r10 = 2
+     24: jump case_end_16
+     25: case_arm_2_19:
+     26: r11 = 3
+     27: jump case_end_16
+     28: case_arm_3_20:
+     29: r12 = 4
+     30: jump case_end_16
+     31: case_arm_4_21:
+     32: r13 = 5
+     33: jump case_end_16
+     34: case_arm_5_22:
+     35: r14 = 6
+     36: case_end_16:
+     37: return
+
+Function examples.game_state_machine.simulate_game() -> void
+  @smc
+  Locals:
+    r1 = game_state: u16
+    r3 = player_state: u16
+    r69 = old_player: u16
+  Instructions:
+      0: r2 = 0
+      1: store game_state, r2
+      2: r4 = 0
+      3: store player_state, r4
+      4: LOAD_STRING
+      5: PRINT_STRING ; Print "=== Game State Machine Demo ===
+" (32 chars via loop)
+      6: LOAD_STRING
+      7: PRINT_STRING ; Print "Starting game...
+" (17 chars via loop)
+      8: r7 = load game_state
+      9: r8 = 0
+     10: r9 = load game_state
+     11: r10 = 0
+     12: r11 = call examples.game_state_machine.update_game_state$GameState$Input
+     13: store game_state, r11
+     14: LOAD_STRING
+     15: PRINT_STRING ; Print "Game state: " (12 chars via loop)
+     16: r13 = load game_state
+     17: r14 = load game_state
+     18: PATCH_TEMPLATE
+     19: PATCH_TARGET
+     20: PATCH_PARAM
+     21: r15 = call examples.game_state_machine.get_game_state_name$GameState
+     22: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     23: r16 = load game_state
+     24: r17 = 0
+     25: r18 = load game_state
+     26: r19 = 0
+     27: r20 = call examples.game_state_machine.update_game_state$GameState$Input
+     28: store game_state, r20
+     29: LOAD_STRING
+     30: PRINT_STRING ; Print "Game state: " (12 chars via loop)
+     31: r22 = load game_state
+     32: r23 = load game_state
+     33: PATCH_TEMPLATE
+     34: PATCH_TARGET
+     35: PATCH_PARAM
+     36: r24 = call examples.game_state_machine.get_game_state_name$GameState
+     37: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     38: LOAD_STRING
+     39: PRINT_STRING ; Print "
+Player actions:
+" (17 chars via loop)
+     40: r26 = load player_state
+     41: r27 = 3
+     42: r28 = load game_state
+     43: r29 = load player_state
+     44: r30 = 3
+     45: r31 = load game_state
+     46: r32 = call examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+     47: store player_state, r32
+     48: LOAD_STRING
+     49: PRINT_STRING ; Print "Player walking: " (16 chars via loop)
+     50: r34 = load player_state
+     51: r35 = load player_state
+     52: PATCH_TEMPLATE
+     53: PATCH_TARGET
+     54: PATCH_PARAM
+     55: r36 = call examples.game_state_machine.get_player_state_name$PlayerState
+     56: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     57: r37 = load player_state
+     58: r38 = 4
+     59: r39 = load game_state
+     60: r40 = load player_state
+     61: r41 = 4
+     62: r42 = load game_state
+     63: r43 = call examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+     64: store player_state, r43
+     65: LOAD_STRING
+     66: PRINT_STRING ; Print "Player jumping: " (16 chars via loop)
+     67: r45 = load player_state
+     68: r46 = load player_state
+     69: PATCH_TEMPLATE
+     70: PATCH_TARGET
+     71: PATCH_PARAM
+     72: r47 = call examples.game_state_machine.get_player_state_name$PlayerState
+     73: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     74: r48 = load player_state
+     75: r49 = 5
+     76: r50 = load game_state
+     77: r51 = load player_state
+     78: r52 = 5
+     79: r53 = load game_state
+     80: r54 = call examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+     81: store player_state, r54
+     82: LOAD_STRING
+     83: PRINT_STRING ; Print "Player attacking: " (18 chars via loop)
+     84: r56 = load player_state
+     85: r57 = load player_state
+     86: PATCH_TEMPLATE
+     87: PATCH_TARGET
+     88: PATCH_PARAM
+     89: r58 = call examples.game_state_machine.get_player_state_name$PlayerState
+     90: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     91: LOAD_STRING
+     92: PRINT_STRING ; Print "
+Pausing game...
+" (17 chars via loop)
+     93: r60 = load game_state
+     94: r61 = 1
+     95: r62 = load game_state
+     96: r63 = 1
+     97: r64 = call examples.game_state_machine.update_game_state$GameState$Input
+     98: store game_state, r64
+     99: LOAD_STRING
+    100: PRINT_STRING ; Print "Game state: " (12 chars via loop)
+    101: r66 = load game_state
+    102: r67 = load game_state
+    103: PATCH_TEMPLATE
+    104: PATCH_TARGET
+    105: PATCH_PARAM
+    106: r68 = call examples.game_state_machine.get_game_state_name$GameState
+    107: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+    108: r70 = load player_state
+    109: store old_player, r70
+    110: r71 = load player_state
+    111: r72 = 3
+    112: r73 = load game_state
+    113: r74 = load player_state
+    114: r75 = 3
+    115: r76 = load game_state
+    116: r77 = call examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+    117: store player_state, r77
+    118: LOAD_STRING
+    119: PRINT_STRING ; Print "Player action while paused (should stay same): " (47 chars via loop)
+    120: r79 = load player_state
+    121: r80 = load player_state
+    122: PATCH_TEMPLATE
+    123: PATCH_TARGET
+    124: PATCH_PARAM
+    125: r81 = call examples.game_state_machine.get_player_state_name$PlayerState
+    126: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+    127: LOAD_STRING
+    128: PRINT_STRING ; Print "
+Resuming and quitting...
+" (26 chars via loop)
+    129: r83 = load game_state
+    130: r84 = 0
+    131: r85 = load game_state
+    132: r86 = 0
+    133: r87 = call examples.game_state_machine.update_game_state$GameState$Input
+    134: store game_state, r87
+    135: r88 = load game_state
+    136: r89 = 2
+    137: r90 = load game_state
+    138: r91 = 2
+    139: r92 = call examples.game_state_machine.update_game_state$GameState$Input
+    140: store game_state, r92
+    141: LOAD_STRING
+    142: PRINT_STRING ; Print "Final game state: " (18 chars via loop)
+    143: r94 = load game_state
+    144: r95 = load game_state
+    145: PATCH_TEMPLATE
+    146: PATCH_TARGET
+    147: PATCH_PARAM
+    148: r96 = call examples.game_state_machine.get_game_state_name$GameState
+    149: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+    150: return
+
+Function examples.game_state_machine.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call examples.game_state_machine.simulate_game
+      1: return
+

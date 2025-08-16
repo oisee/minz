@@ -1,0 +1,11 @@
+    ORG $8000
+    
+    ; Valid Z80 shadow register operations
+    EXX             ; Exchange BC,DE,HL with BC',DE',HL'
+    EX AF, AF'      ; Exchange AF with AF'
+    
+    ; These should be invalid (but MinZ generates them)
+    ; LD A, C'      ; Can't access C' directly
+    ; LD E', A      ; Can't access E' directly
+    
+    END

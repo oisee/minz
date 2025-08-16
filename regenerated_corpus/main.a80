@@ -1,0 +1,406 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.main.main
+examples.main.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call examples.main.clear_screen
+    ; Call to examples.main.clear_screen (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.main.clear_screen
+    ; r2 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r3 = 1
+    LD A, 1
+    LD C, A         ; Store to physical register C
+    ; r4 = call examples.main.set_border$u8
+    ; Call to examples.main.set_border$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.main.set_border$u8
+    ; r6 = 10
+    LD A, 10
+    LD E, A         ; Store to physical register E
+    ; store x, r6
+    LD A, E
+    LD ($F00A), A
+    ; r8 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; store y, r8
+    LD A, L
+    LD ($F00E), A
+    ; r10 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; store counter, r10
+    LD ($F012), HL
+    ; loop_1:
+examples_main_main_loop_1:
+    ; r11 = load counter
+    LD HL, ($F012)
+    ; r12 = 1000
+    LD HL, 1000
+    LD D, H
+    LD E, L
+    ; r13 = r11 < r12
+    ; Register 12 already in DE
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_main_main_lt_true_0
+    LD HL, 0       ; False
+    JP examples_main_main_lt_done_0
+examples_main_main_lt_true_0:
+    LD HL, 1       ; True
+examples_main_main_lt_done_0:
+    LD B, H
+    LD C, L
+    ; jump_if_not r13, end_loop_2
+    LD A, C
+    OR A
+    JP Z, examples_main_main_end_loop_2
+    ; r14 = load x
+    LD A, ($F00A)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r15 = 1
+    LD A, 1
+    LD ($F01E), A     ; Virtual register 15 to memory
+    ; r16 = r14 + r15
+    LD D, H
+    LD E, L
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    ADD HL, DE
+    ; store x, r16
+    LD A, H
+    LD ($F00A), A
+    ; r17 = load x
+    LD A, ($F00A)
+    LD L, A         ; Store to physical register L
+    ; r18 = 20
+    LD A, 20
+    LD ($F024), A     ; Virtual register 18 to memory
+    ; r19 = r17 > r18
+    LD HL, ($F024)    ; Virtual register 18 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, examples_main_main_gt_check_zero_1
+    LD HL, 0       ; False (negative)
+    JP examples_main_main_gt_done_1
+examples_main_main_gt_check_zero_1:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, examples_main_main_gt_false_1
+    LD HL, 1       ; True (positive and non-zero)
+    JP examples_main_main_gt_done_1
+examples_main_main_gt_false_1:
+    LD HL, 0       ; False (zero)
+examples_main_main_gt_done_1:
+    ; jump_if_not r19, else_3
+    LD A, H
+    OR A
+    JP Z, examples_main_main_else_3
+    ; r20 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; store x, r20
+    LD A, L
+    LD ($F00A), A
+    ; r21 = load y
+    LD A, ($F00E)
+    LD ($F02A), A     ; Virtual register 21 to memory
+    ; r22 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r23 = r21 + r22
+    LD HL, ($F02A)    ; Virtual register 21 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store y, r23
+    LD A, L
+    LD ($F00E), A
+    ; r24 = load y
+    LD A, ($F00E)
+    LD ($F030), A     ; Virtual register 24 to memory
+    ; r25 = 20
+    LD A, 20
+    LD H, A         ; Store to physical register H
+    ; r26 = r24 > r25
+    LD HL, ($F030)    ; Virtual register 24 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, examples_main_main_gt_check_zero_2
+    LD HL, 0       ; False (negative)
+    JP examples_main_main_gt_done_2
+examples_main_main_gt_check_zero_2:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, examples_main_main_gt_false_2
+    LD HL, 1       ; True (positive and non-zero)
+    JP examples_main_main_gt_done_2
+examples_main_main_gt_false_2:
+    LD HL, 0       ; False (zero)
+examples_main_main_gt_done_2:
+    ; jump_if_not r26, else_5
+    LD A, L
+    OR A
+    JP Z, examples_main_main_else_5
+    ; r27 = 10
+    LD A, 10
+    LD ($F036), A     ; Virtual register 27 to memory
+    ; store y, r27
+    LD A, ($F036)     ; Virtual register 27 from memory
+    LD ($F00E), A
+    ; jump end_if_6
+    JP examples_main_main_end_if_6
+    ; else_5:
+examples_main_main_else_5:
+    ; end_if_6:
+examples_main_main_end_if_6:
+    ; jump end_if_4
+    JP examples_main_main_end_if_4
+    ; else_3:
+examples_main_main_else_3:
+    ; end_if_4:
+examples_main_main_end_if_4:
+    ; r28 = load x
+    LD A, ($F00A)
+    LD H, A         ; Store to physical register H
+    ; r29 = load y
+    LD A, ($F00E)
+    LD L, A         ; Store to physical register L
+    ; r30 = load x
+    LD A, ($F00A)
+    LD ($F03C), A     ; Virtual register 30 to memory
+    ; r31 = load y
+    LD A, ($F00E)
+    LD H, A         ; Store to physical register H
+    ; r32 = call examples.main.draw_pixel$u8$u8
+    ; Call to examples.main.draw_pixel$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.main.draw_pixel$u8$u8
+    ; r33 = 10
+    LD A, 10
+    LD ($F042), A     ; Virtual register 33 to memory
+    ; r34 = 10
+    LD A, 10
+    LD H, A         ; Store to physical register H
+    ; r35 = call examples.main.delay$u16
+    ; Call to examples.main.delay$u16 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.main.delay$u16
+    ; r36 = load counter
+    LD HL, ($F012)
+    ; Register 36 already in HL
+    ; r37 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r38 = r36 + r37
+    ; Register 36 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store counter, r38
+    LD ($F012), HL
+    ; jump loop_1
+    JP examples_main_main_loop_1
+    ; end_loop_2:
+examples_main_main_end_loop_2:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.main.clear_screen
+examples.main.clear_screen:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 16384
+    LD HL, 16384
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; store addr, r2
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD ($F002), HL
+    ; loop_7:
+examples_main_clear_screen_loop_7:
+    ; r3 = load addr
+    LD HL, ($F002)
+    ; Register 3 already in HL
+    ; r4 = 16384
+    LD HL, 16384
+    ; Register 4 already in HL
+    ; r5 = 6144
+    LD HL, 6144
+    ; Register 5 already in HL
+    ; r6 = r4 + r5
+    ; Register 4 already in HL
+    LD D, H
+    LD E, L
+    ; Register 5 already in HL
+    ADD HL, DE
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; r7 = r3 < r6
+    ; Register 3 already in HL
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_main_clear_screen_lt_true_3
+    LD HL, 0       ; False
+    JP examples_main_clear_screen_lt_done_3
+examples_main_clear_screen_lt_true_3:
+    LD HL, 1       ; True
+examples_main_clear_screen_lt_done_3:
+    ; jump_if_not r7, end_loop_8
+    LD A, H
+    OR A
+    JP Z, examples_main_clear_screen_end_loop_8
+    ; r8 = load addr
+    LD HL, ($F002)
+    ; r9 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r10 = r8 + r9
+    LD D, H
+    LD E, L
+    ; Register 9 already in HL
+    ADD HL, DE
+    ; Register 10 already in HL
+    ; store addr, r10
+    ; Register 10 already in HL
+    LD ($F002), HL
+    ; jump loop_7
+    JP examples_main_clear_screen_loop_7
+    ; end_loop_8:
+examples_main_clear_screen_end_loop_8:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.main.set_border$u8
+examples.main.set_border$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.main.draw_pixel$u8$u8
+examples.main.draw_pixel$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r4 = 16384
+    LD HL, 16384
+    LD ($F008), HL    ; Virtual register 4 to memory
+examples.main.draw_pixel$u8$u8_param_y.op:
+examples.main.draw_pixel$u8$u8_param_y equ examples.main.draw_pixel$u8$u8_param_y.op + 1
+    LD B, #00      ; Parameter y (gets patched)
+    LD A, B
+    LD H, A         ; Store to physical register H
+    ; r6 = 32
+    LD A, 32
+    LD L, A         ; Store to HL (low byte)
+    ; r7 = r5 * r6
+    ; Optimized multiplication by 32 (shift left 5)
+    ADD HL, HL        ; HL << 1
+    ADD HL, HL        ; HL << 1
+    ADD HL, HL        ; HL << 1
+    ADD HL, HL        ; HL << 1
+    ADD HL, HL        ; HL << 1
+    ; Register 7 already in HL
+    ; r8 = r4 + r7
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD D, H
+    LD E, L
+    ; Register 7 already in HL
+    ADD HL, DE
+    ; Register 8 already in HL
+examples.main.draw_pixel$u8$u8_param_x.op:
+examples.main.draw_pixel$u8$u8_param_x equ examples.main.draw_pixel$u8$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD H, A         ; Store to physical register H
+    ; r10 = r8 + r9
+    ; Register 8 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 10 already in HL
+    ; store addr, r10
+    ; Register 10 already in HL
+    LD ($F006), HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.main.delay$u16
+examples.main.delay$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; store i, r3
+    ; Register 3 already in HL
+    LD ($F004), HL
+    ; loop_9:
+examples_main_delay_u16_loop_9:
+    ; r4 = load i
+    LD HL, ($F004)
+    ; Register 4 already in HL
+examples.main.delay$u16_param_count.op:
+examples.main.delay$u16_param_count equ examples.main.delay$u16_param_count.op + 1
+    LD HL, #0000   ; SMC parameter count
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; r6 = r4 < r5
+    ; Register 4 already in HL
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_main_delay_u16_lt_true_4
+    LD HL, 0       ; False
+    JP examples_main_delay_u16_lt_done_4
+examples_main_delay_u16_lt_true_4:
+    LD HL, 1       ; True
+examples_main_delay_u16_lt_done_4:
+    ; Register 6 already in HL
+    ; jump_if_not r6, end_loop_10
+    LD A, L
+    OR A
+    JP Z, examples_main_delay_u16_end_loop_10
+    ; r7 = load i
+    LD HL, ($F004)
+    ; Register 7 already in HL
+    ; r8 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r9 = r7 + r8
+    ; Register 7 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store i, r9
+    LD ($F004), HL
+    ; jump loop_9
+    JP examples_main_delay_u16_loop_9
+    ; end_loop_10:
+examples_main_delay_u16_end_loop_10:
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

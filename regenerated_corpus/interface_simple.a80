@@ -1,0 +1,90 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.interface_simple.Circle.draw$Circle
+examples.interface_simple.Circle.draw$Circle:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.interface_simple.Circle.draw$Circle_param_self.op:
+examples.interface_simple.Circle.draw$Circle_param_self equ examples.interface_simple.Circle.draw$Circle_param_self.op + 1
+    LD A, #00      ; Parameter self (gets patched)
+    ; Register 2 already in A
+    ; Load field radius (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r4 = 2
+    LD A, 2
+    LD C, A         ; Store to physical register C
+    ; r5 = r3 * r4
+    LD A, B
+    ; Optimized multiplication by 2 (shift left 1)
+    ADD A, A          ; A << 1
+    LD L, A
+    LD H, 0
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.interface_simple.Circle.draw$Circle_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.interface_simple.Circle.draw$Circle_store_addr.op:
+examples.interface_simple.Circle.draw$Circle_store_addr equ examples.interface_simple.Circle.draw$Circle_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.interface_simple.main
+examples.interface_simple.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct Circle
+    LD HL, -1
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    ; r3 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; Store to Circle.radius
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; store circle, r2
+    LD ($F002), HL
+    ; r4 = load circle
+    LD HL, ($F002)
+    ; r5 = load circle
+    LD HL, ($F002)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.interface_simple.Circle.draw$Circle_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.interface_simple.Circle.draw$Circle_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.interface_simple.Circle.draw$Circle_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter self = 0
+    LD A, 0               ; Parameter value
+    LD (examples.interface_simple.Circle.draw$Circle_param_self+1), A   ; Patch parameter immediate
+    ; r6 = call examples.interface_simple.Circle.draw$Circle
+    ; Call to examples.interface_simple.Circle.draw$Circle (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.interface_simple.Circle.draw$Circle
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

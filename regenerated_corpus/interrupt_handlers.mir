@@ -1,0 +1,22 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   examples.interrupt_handlers.timer_ticks: u16
+
+Function examples.interrupt_handlers.fast_interrupt_handler() -> void
+  Instructions:
+      0: ASM
+      1: return
+
+Function examples.interrupt_handlers.timer_interrupt() -> void
+  Instructions:
+      0: ASM
+      1: return
+
+Function examples.interrupt_handlers.setup_interrupts() -> void
+  @smc
+  Instructions:
+      0: ASM
+      1: return
+

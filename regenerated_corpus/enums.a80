@@ -1,0 +1,434 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.enums.opposite$Direction
+examples.enums.opposite$Direction:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.enums.opposite$Direction_param_dir.op:
+examples.enums.opposite$Direction_param_dir equ examples.enums.opposite$Direction_param_dir.op + 1
+    LD A, #00      ; Parameter dir (gets patched)
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 == r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_enums_opposite_Direction_eq_true_0
+    LD HL, 0       ; False
+    JP examples_enums_opposite_Direction_eq_done_0
+examples_enums_opposite_Direction_eq_true_0:
+    LD HL, 1       ; True
+examples_enums_opposite_Direction_eq_done_0:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, examples_enums_opposite_Direction_else_1
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; return r5
+    RET
+    ; jump end_if_2
+    JP examples_enums_opposite_Direction_end_if_2
+    ; else_1:
+examples_enums_opposite_Direction_else_1:
+    LD A, (examples.enums.opposite$Direction_param_dir)
+    LD E, A         ; Store to physical register E
+    ; r7 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r8 = r6 == r7
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_enums_opposite_Direction_eq_true_1
+    LD HL, 0       ; False
+    JP examples_enums_opposite_Direction_eq_done_1
+examples_enums_opposite_Direction_eq_true_1:
+    LD HL, 1       ; True
+examples_enums_opposite_Direction_eq_done_1:
+    ; jump_if_not r8, else_3
+    LD A, L
+    OR A
+    JP Z, examples_enums_opposite_Direction_else_3
+    ; r9 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; return r9
+    RET
+    ; jump end_if_4
+    JP examples_enums_opposite_Direction_end_if_4
+    ; else_3:
+examples_enums_opposite_Direction_else_3:
+    LD A, (examples.enums.opposite$Direction_param_dir)
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r11 = 2
+    LD A, 2
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r12 = r10 == r11
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_enums_opposite_Direction_eq_true_2
+    LD HL, 0       ; False
+    JP examples_enums_opposite_Direction_eq_done_2
+examples_enums_opposite_Direction_eq_true_2:
+    LD HL, 1       ; True
+examples_enums_opposite_Direction_eq_done_2:
+    ; jump_if_not r12, else_5
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, examples_enums_opposite_Direction_else_5
+    ; r13 = 3
+    LD A, 3
+    ; Register 13 already in A
+    ; return r13
+    RET
+    ; jump end_if_6
+    JP examples_enums_opposite_Direction_end_if_6
+    ; else_5:
+examples_enums_opposite_Direction_else_5:
+    ; r14 = 2
+    LD A, 2
+    ; Register 14 already in A
+    ; return r14
+    RET
+    ; end_if_6:
+examples_enums_opposite_Direction_end_if_6:
+    ; end_if_4:
+examples_enums_opposite_Direction_end_if_4:
+    ; end_if_2:
+examples_enums_opposite_Direction_end_if_2:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.enums.next_state$GameState$Key
+examples.enums.next_state$GameState$Key:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.enums.next_state$GameState$Key_param_current.op:
+examples.enums.next_state$GameState$Key_param_current equ examples.enums.next_state$GameState$Key_param_current.op + 1
+    LD A, #00      ; Parameter current (gets patched)
+    LD B, A         ; Store to physical register B
+    ; r4 = 0
+    LD A, 0
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = r3 == r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_enums_next_state_GameState_Key_eq_true_3
+    LD HL, 0       ; False
+    JP examples_enums_next_state_GameState_Key_eq_done_3
+examples_enums_next_state_GameState_Key_eq_true_3:
+    LD HL, 1       ; True
+examples_enums_next_state_GameState_Key_eq_done_3:
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; jump_if_not r5, else_7
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    OR A
+    JP Z, examples_enums_next_state_GameState_Key_else_7
+examples.enums.next_state$GameState$Key_param_input.op:
+examples.enums.next_state$GameState$Key_param_input equ examples.enums.next_state$GameState$Key_param_input.op + 1
+    LD B, #00      ; Parameter input (gets patched)
+    LD A, B
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r7 = 4
+    LD A, 4
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = r6 == r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_enums_next_state_GameState_Key_eq_true_4
+    LD HL, 0       ; False
+    JP examples_enums_next_state_GameState_Key_eq_done_4
+examples_enums_next_state_GameState_Key_eq_true_4:
+    LD HL, 1       ; True
+examples_enums_next_state_GameState_Key_eq_done_4:
+    LD ($F010), HL    ; Virtual register 8 to memory
+    ; jump_if_not r8, else_9
+    LD A, ($F010)     ; Virtual register 8 from memory
+    OR A
+    JP Z, examples_enums_next_state_GameState_Key_else_9
+    ; r9 = 1
+    LD A, 1
+    LD C, A         ; Store to physical register C
+    ; return r9
+    RET
+    ; jump end_if_10
+    JP examples_enums_next_state_GameState_Key_end_if_10
+    ; else_9:
+examples_enums_next_state_GameState_Key_else_9:
+    ; end_if_10:
+examples_enums_next_state_GameState_Key_end_if_10:
+    ; jump end_if_8
+    JP examples_enums_next_state_GameState_Key_end_if_8
+    ; else_7:
+examples_enums_next_state_GameState_Key_else_7:
+    LD A, (examples.enums.next_state$GameState$Key_param_current)
+    LD C, A         ; Store to physical register C
+    ; r11 = 1
+    LD A, 1
+    LD ($F016), A     ; Virtual register 11 to memory
+    ; r12 = r10 == r11
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_enums_next_state_GameState_Key_eq_true_5
+    LD HL, 0       ; False
+    JP examples_enums_next_state_GameState_Key_eq_done_5
+examples_enums_next_state_GameState_Key_eq_true_5:
+    LD HL, 1       ; True
+examples_enums_next_state_GameState_Key_eq_done_5:
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; jump_if_not r12, else_11
+    LD A, ($F018)     ; Virtual register 12 from memory
+    OR A
+    JP Z, examples_enums_next_state_GameState_Key_else_11
+    LD A, (examples.enums.next_state$GameState$Key_param_input)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r14 = 3
+    LD A, 3
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; r15 = r13 == r14
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_enums_next_state_GameState_Key_eq_true_6
+    LD HL, 0       ; False
+    JP examples_enums_next_state_GameState_Key_eq_done_6
+examples_enums_next_state_GameState_Key_eq_true_6:
+    LD HL, 1       ; True
+examples_enums_next_state_GameState_Key_eq_done_6:
+    ; jump_if_not r15, else_13
+    LD A, H
+    OR A
+    JP Z, examples_enums_next_state_GameState_Key_else_13
+    ; r16 = 2
+    LD A, 2
+    LD ($F020), A     ; Virtual register 16 to memory
+    ; return r16
+    LD HL, ($F020)    ; Virtual register 16 from memory
+    RET
+    ; jump end_if_14
+    JP examples_enums_next_state_GameState_Key_end_if_14
+    ; else_13:
+examples_enums_next_state_GameState_Key_else_13:
+    LD A, (examples.enums.next_state$GameState$Key_param_input)
+    LD D, A         ; Store to physical register D
+    ; r18 = 0
+    LD A, 0
+    LD D, A         ; Store to physical register D
+    ; r19 = r17 == r18
+    LD E, D        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_enums_next_state_GameState_Key_eq_true_7
+    LD HL, 0       ; False
+    JP examples_enums_next_state_GameState_Key_eq_done_7
+examples_enums_next_state_GameState_Key_eq_true_7:
+    LD HL, 1       ; True
+examples_enums_next_state_GameState_Key_eq_done_7:
+    ; jump_if_not r19, else_15
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, examples_enums_next_state_GameState_Key_else_15
+    ; r20 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; return r20
+    RET
+    ; jump end_if_16
+    JP examples_enums_next_state_GameState_Key_end_if_16
+    ; else_15:
+examples_enums_next_state_GameState_Key_else_15:
+    ; end_if_16:
+examples_enums_next_state_GameState_Key_end_if_16:
+    ; end_if_14:
+examples_enums_next_state_GameState_Key_end_if_14:
+    ; jump end_if_12
+    JP examples_enums_next_state_GameState_Key_end_if_12
+    ; else_11:
+examples_enums_next_state_GameState_Key_else_11:
+    LD A, (examples.enums.next_state$GameState$Key_param_current)
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r22 = 2
+    LD A, 2
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r23 = r21 == r22
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_enums_next_state_GameState_Key_eq_true_8
+    LD HL, 0       ; False
+    JP examples_enums_next_state_GameState_Key_eq_done_8
+examples_enums_next_state_GameState_Key_eq_true_8:
+    LD HL, 1       ; True
+examples_enums_next_state_GameState_Key_eq_done_8:
+    ; jump_if_not r23, else_17
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, examples_enums_next_state_GameState_Key_else_17
+    LD A, (examples.enums.next_state$GameState$Key_param_input)
+    LD H, A         ; Store to physical register H
+    ; r25 = 3
+    LD A, 3
+    ; Register 25 already in A
+    ; r26 = r24 == r25
+    LD E, A        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_enums_next_state_GameState_Key_eq_true_9
+    LD HL, 0       ; False
+    JP examples_enums_next_state_GameState_Key_eq_done_9
+examples_enums_next_state_GameState_Key_eq_true_9:
+    LD HL, 1       ; True
+examples_enums_next_state_GameState_Key_eq_done_9:
+    ; jump_if_not r26, else_19
+    ; Register 26 already in A
+    OR A
+    JP Z, examples_enums_next_state_GameState_Key_else_19
+    ; r27 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; return r27
+    RET
+    ; jump end_if_20
+    JP examples_enums_next_state_GameState_Key_end_if_20
+    ; else_19:
+examples_enums_next_state_GameState_Key_else_19:
+    ; end_if_20:
+examples_enums_next_state_GameState_Key_end_if_20:
+    ; jump end_if_18
+    JP examples_enums_next_state_GameState_Key_end_if_18
+    ; else_17:
+examples_enums_next_state_GameState_Key_else_17:
+    ; end_if_18:
+examples_enums_next_state_GameState_Key_end_if_18:
+    ; end_if_12:
+examples_enums_next_state_GameState_Key_end_if_12:
+    ; end_if_8:
+examples_enums_next_state_GameState_Key_end_if_8:
+    LD A, (examples.enums.next_state$GameState$Key_param_current)
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; return r28
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.enums.main
+examples.enums.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    ; Register 2 already in A
+    ; store state, r2
+    LD ($F002), HL
+    ; r4 = 3
+    LD A, 3
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; store player_dir, r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD ($F006), HL
+    ; r5 = load state
+    LD HL, ($F002)
+    ; r6 = 4
+    LD A, 4
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r7 = load state
+    LD HL, ($F002)
+    ; r8 = 4
+    LD A, 4
+    LD H, A         ; Store to physical register H
+    ; r9 = call examples.enums.next_state$GameState$Key
+    ; Call to examples.enums.next_state$GameState$Key (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.enums.next_state$GameState$Key
+    ; store state, r9
+    LD ($F002), HL
+    ; r10 = 0
+    LD A, 0
+    ; Register 10 already in A
+    ; store player_dir, r10
+    LD ($F006), HL
+    ; r12 = load player_dir
+    LD HL, ($F006)
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; r13 = load player_dir
+    LD HL, ($F006)
+    ; r14 = call examples.enums.opposite$Direction
+    ; Call to examples.enums.opposite$Direction (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.enums.opposite$Direction
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; store opposite_dir, r14
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    LD ($F016), HL
+    ; r15 = load state
+    LD HL, ($F002)
+    ; r16 = 3
+    LD A, 3
+    LD C, A         ; Store to physical register C
+    ; r17 = load state
+    LD HL, ($F002)
+    ; r18 = 3
+    LD A, 3
+    ; Register 18 already in A
+    ; r19 = call examples.enums.next_state$GameState$Key
+    ; Call to examples.enums.next_state$GameState$Key (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.enums.next_state$GameState$Key
+    ; store state, r19
+    LD ($F002), HL
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

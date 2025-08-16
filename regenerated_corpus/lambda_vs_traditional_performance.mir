@@ -1,0 +1,214 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.lambda_vs_traditional_performance.traditional_add$u8$u8(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return
+
+Function examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8(x: u8, factor: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 * r4
+      3: return
+
+Function examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8(a: u8, b: u8, c: u8) -> u8
+  @smc
+  Locals:
+    r4 = sum: u8
+    r10 = result: u8
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: LOAD_PARAM
+      3: LOAD_PARAM
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: PATCH_PARAM
+      8: r9 = call examples.lambda_vs_traditional_performance.traditional_add$u8$u8
+      9: store sum, r9
+     10: r11 = load sum
+     11: LOAD_PARAM
+     12: r13 = load sum
+     13: LOAD_PARAM
+     14: PATCH_TEMPLATE
+     15: PATCH_TARGET
+     16: PATCH_PARAM
+     17: PATCH_PARAM
+     18: r15 = call examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8
+     19: store result, r15
+     20: r16 = load result
+     21: return
+
+Function examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r4 = r2 + r3
+      3: return
+
+Function examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1(x: u8, factor: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r4 = r2 * r3
+      3: return
+
+Function examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8(a: u8, b: u8, c: u8) -> u8
+  @smc
+  Locals:
+    r4 = sum: u8
+    r8 = result: u8
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: PATCH_PARAM
+      6: r7 = call examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0
+      7: store sum, r7
+      8: r9 = load sum
+      9: LOAD_PARAM
+     10: PATCH_TEMPLATE
+     11: PATCH_TARGET
+     12: PATCH_PARAM
+     13: PATCH_PARAM
+     14: r11 = call examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1
+     15: store result, r11
+     16: r12 = load result
+     17: return
+
+Function examples.lambda_vs_traditional_performance.test_traditional_performance() -> u8
+  @smc
+  Locals:
+    r1 = result1: u8
+    r9 = result2: u8
+    r17 = result3: u8
+  Instructions:
+      0: r2 = 5
+      1: r3 = 3
+      2: r4 = 2
+      3: r5 = 5
+      4: r6 = 3
+      5: r7 = 2
+      6: PATCH_TEMPLATE
+      7: PATCH_TARGET
+      8: PATCH_PARAM
+      9: PATCH_PARAM
+     10: PATCH_PARAM
+     11: r8 = call examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8
+     12: store result1, r8
+     13: r10 = 10
+     14: r11 = 7
+     15: r12 = 3
+     16: r13 = 10
+     17: r14 = 7
+     18: r15 = 3
+     19: PATCH_TEMPLATE
+     20: PATCH_TARGET
+     21: PATCH_PARAM
+     22: PATCH_PARAM
+     23: PATCH_PARAM
+     24: r16 = call examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8
+     25: store result2, r16
+     26: r18 = 1
+     27: r19 = 9
+     28: r20 = 4
+     29: r21 = 1
+     30: r22 = 9
+     31: r23 = 4
+     32: PATCH_TEMPLATE
+     33: PATCH_TARGET
+     34: PATCH_PARAM
+     35: PATCH_PARAM
+     36: PATCH_PARAM
+     37: r24 = call examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8
+     38: store result3, r24
+     39: r25 = load result1
+     40: r26 = load result2
+     41: r27 = r25 + r26
+     42: r28 = load result3
+     43: r29 = r27 + r28
+     44: return
+
+Function examples.lambda_vs_traditional_performance.test_lambda_performance() -> u8
+  @smc
+  Locals:
+    r1 = result1: u8
+    r9 = result2: u8
+    r17 = result3: u8
+  Instructions:
+      0: r2 = 5
+      1: r3 = 3
+      2: r4 = 2
+      3: r5 = 5
+      4: r6 = 3
+      5: r7 = 2
+      6: PATCH_TEMPLATE
+      7: PATCH_TARGET
+      8: PATCH_PARAM
+      9: PATCH_PARAM
+     10: PATCH_PARAM
+     11: r8 = call examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8
+     12: store result1, r8
+     13: r10 = 10
+     14: r11 = 7
+     15: r12 = 3
+     16: r13 = 10
+     17: r14 = 7
+     18: r15 = 3
+     19: PATCH_TEMPLATE
+     20: PATCH_TARGET
+     21: PATCH_PARAM
+     22: PATCH_PARAM
+     23: PATCH_PARAM
+     24: r16 = call examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8
+     25: store result2, r16
+     26: r18 = 1
+     27: r19 = 9
+     28: r20 = 4
+     29: r21 = 1
+     30: r22 = 9
+     31: r23 = 4
+     32: PATCH_TEMPLATE
+     33: PATCH_TARGET
+     34: PATCH_PARAM
+     35: PATCH_PARAM
+     36: PATCH_PARAM
+     37: r24 = call examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8
+     38: store result3, r24
+     39: r25 = load result1
+     40: r26 = load result2
+     41: r27 = r25 + r26
+     42: r28 = load result3
+     43: r29 = r27 + r28
+     44: return
+
+Function examples.lambda_vs_traditional_performance.main() -> u8
+  @smc
+  Locals:
+    r1 = traditional_result: u8
+    r3 = lambda_result: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: r2 = call examples.lambda_vs_traditional_performance.test_traditional_performance
+      3: store traditional_result, r2
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: r4 = call examples.lambda_vs_traditional_performance.test_lambda_performance
+      7: store lambda_result, r4
+      8: r5 = load traditional_result
+      9: r6 = load lambda_result
+     10: r7 = r5 + r6
+     11: return
+

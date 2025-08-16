@@ -1,0 +1,264 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_smc_test.test_lambda_smc$add_0
+examples.lambda_smc_test.test_lambda_smc$add_0:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_smc_test.test_lambda_smc$add_0_param_x.op:
+examples.lambda_smc_test.test_lambda_smc$add_0_param_x equ examples.lambda_smc_test.test_lambda_smc$add_0_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 1 already in A
+    ; r2 = 5
+    LD A, 5
+    LD B, A         ; Store to physical register B
+    ; r3 = r1 + r2
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_smc_test.test_lambda_smc$add_0_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_smc_test.test_lambda_smc$add_0_store_addr.op:
+examples.lambda_smc_test.test_lambda_smc$add_0_store_addr equ examples.lambda_smc_test.test_lambda_smc$add_0_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_smc_test.test_lambda_smc
+examples.lambda_smc_test.test_lambda_smc:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD D, A         ; Store to physical register D
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_smc_test.test_lambda_smc$add_0_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_smc_test.test_lambda_smc$add_0_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_smc_test.test_lambda_smc$add_0_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_smc_test.test_lambda_smc$add_0_param_x+1), A   ; Patch parameter immediate
+    ; r3 = call examples.lambda_smc_test.test_lambda_smc$add_0
+    ; Call to examples.lambda_smc_test.test_lambda_smc$add_0 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_smc_test.test_lambda_smc$add_0
+    ; store r1, r3
+    LD A, E
+    LD ($F002), A
+    ; r5 = 20
+    LD A, 20
+    LD L, A         ; Store to physical register L
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_smc_test.test_lambda_smc$add_0_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_smc_test.test_lambda_smc$add_0_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_smc_test.test_lambda_smc$add_0_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_smc_test.test_lambda_smc$add_0_param_x+1), A   ; Patch parameter immediate
+    ; r6 = call examples.lambda_smc_test.test_lambda_smc$add_0
+    ; Call to examples.lambda_smc_test.test_lambda_smc$add_0 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_smc_test.test_lambda_smc$add_0
+    ; store r2, r6
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F008), A
+    ; r7 = load r1
+    LD A, ($F002)
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r8 = load r2
+    LD A, ($F008)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r9 = r7 + r8
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_smc_test.test_lambda_smc_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_smc_test.test_lambda_smc_store_addr.op:
+examples.lambda_smc_test.test_lambda_smc_store_addr equ examples.lambda_smc_test.test_lambda_smc_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_smc_test.add_traditional$u8
+examples.lambda_smc_test.add_traditional$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_smc_test.add_traditional$u8_param_x.op:
+examples.lambda_smc_test.add_traditional$u8_param_x equ examples.lambda_smc_test.add_traditional$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD H, A         ; Store to physical register H
+    ; r3 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r4 = r2 + r3
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_smc_test.add_traditional$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_smc_test.add_traditional$u8_store_addr.op:
+examples.lambda_smc_test.add_traditional$u8_store_addr equ examples.lambda_smc_test.add_traditional$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_smc_test.test_traditional
+examples.lambda_smc_test.test_traditional:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 10
+    LD A, 10
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_smc_test.add_traditional$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_smc_test.add_traditional$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_smc_test.add_traditional$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_smc_test.add_traditional$u8_param_x+1), A   ; Patch parameter immediate
+    ; r4 = call examples.lambda_smc_test.add_traditional$u8
+    ; Call to examples.lambda_smc_test.add_traditional$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_smc_test.add_traditional$u8
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; store r1, r4
+    LD A, ($F008)     ; Virtual register 4 from memory
+    LD ($F002), A
+    ; r6 = 20
+    LD A, 20
+    LD B, A         ; Store to physical register B
+    ; r7 = 20
+    LD A, 20
+    LD B, A         ; Store to physical register B
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_smc_test.add_traditional$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_smc_test.add_traditional$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_smc_test.add_traditional$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_smc_test.add_traditional$u8_param_x+1), A   ; Patch parameter immediate
+    ; r8 = call examples.lambda_smc_test.add_traditional$u8
+    ; Call to examples.lambda_smc_test.add_traditional$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_smc_test.add_traditional$u8
+    ; store r2, r8
+    LD A, L
+    LD ($F00A), A
+    ; r9 = load r1
+    LD A, ($F002)
+    LD C, A         ; Store to physical register C
+    ; r10 = load r2
+    LD A, ($F00A)
+    LD C, A         ; Store to physical register C
+    ; r11 = r9 + r10
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_smc_test.test_traditional_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_smc_test.test_traditional_store_addr.op:
+examples.lambda_smc_test.test_traditional_store_addr equ examples.lambda_smc_test.test_traditional_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_smc_test.main
+examples.lambda_smc_test.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_smc_test.test_lambda_smc_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_smc_test.test_lambda_smc_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_smc_test.test_lambda_smc_store_addr), HL
+    ; r2 = call examples.lambda_smc_test.test_lambda_smc
+    ; Call to examples.lambda_smc_test.test_lambda_smc (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_smc_test.test_lambda_smc
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; store lambda_result, r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD ($F002), A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_smc_test.test_traditional_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_smc_test.test_traditional_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_smc_test.test_traditional_store_addr), HL
+    ; r4 = call examples.lambda_smc_test.test_traditional
+    ; Call to examples.lambda_smc_test.test_traditional (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_smc_test.test_traditional
+    ; store traditional_result, r4
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F006), A
+    ; r5 = load lambda_result
+    LD A, ($F002)
+    LD D, A         ; Store to physical register D
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

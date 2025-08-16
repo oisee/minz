@@ -1,0 +1,121 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.lambda_simple_e2e.add_trad$u8$u8(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return
+
+Function examples.lambda_simple_e2e.test_lambda$add_0(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r4 = r2 + r3
+      3: return
+
+Function examples.lambda_simple_e2e.test_lambda() -> u8
+  @smc
+  Instructions:
+      0: r1 = 5
+      1: r2 = 3
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: PATCH_PARAM
+      6: r3 = call examples.lambda_simple_e2e.test_lambda$add_0
+      7: return
+
+Function examples.lambda_simple_e2e.test_double$double_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_simple_e2e.test_double() -> u8
+  @smc
+  Instructions:
+      0: r1 = 7
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r2 = call examples.lambda_simple_e2e.test_double$double_1
+      5: return
+
+Function examples.lambda_simple_e2e.test_chain$inc_2(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 1
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_simple_e2e.test_chain$double_3(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_simple_e2e.test_chain() -> u8
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u8
+    r6 = z: u8
+  Instructions:
+      0: r2 = 5
+      1: store x, r2
+      2: r4 = load x
+      3: PATCH_TEMPLATE
+      4: PATCH_TARGET
+      5: PATCH_PARAM
+      6: r5 = call examples.lambda_simple_e2e.test_chain$inc_2
+      7: store y, r5
+      8: r7 = load y
+      9: PATCH_TEMPLATE
+     10: PATCH_TARGET
+     11: PATCH_PARAM
+     12: r8 = call examples.lambda_simple_e2e.test_chain$double_3
+     13: store z, r8
+     14: r9 = load z
+     15: return
+
+Function examples.lambda_simple_e2e.main() -> void
+  @smc
+  Locals:
+    r1 = r1: u8
+    r7 = r2: u8
+    r9 = r3: u8
+    r11 = r4: u8
+  Instructions:
+      0: r2 = 5
+      1: r3 = 3
+      2: r4 = 5
+      3: r5 = 3
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: PATCH_PARAM
+      8: r6 = call examples.lambda_simple_e2e.add_trad$u8$u8
+      9: store r1, r6
+     10: PATCH_TEMPLATE
+     11: PATCH_TARGET
+     12: r8 = call examples.lambda_simple_e2e.test_lambda
+     13: store r2, r8
+     14: PATCH_TEMPLATE
+     15: PATCH_TARGET
+     16: r10 = call examples.lambda_simple_e2e.test_double
+     17: store r3, r10
+     18: PATCH_TEMPLATE
+     19: PATCH_TARGET
+     20: r12 = call examples.lambda_simple_e2e.test_chain
+     21: store r4, r12
+     22: return
+

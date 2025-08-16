@@ -1,0 +1,122 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.bit_fields.set_screen_attr$u8$u8$ScreenAttr
+examples.bit_fields.set_screen_attr$u8$u8$ScreenAttr:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = 22528
+    LD HL, 22528
+    ; Register 5 already in HL
+examples.bit_fields.set_screen_attr$u8$u8$ScreenAttr_param_y.op:
+examples.bit_fields.set_screen_attr$u8$u8$ScreenAttr_param_y equ examples.bit_fields.set_screen_attr$u8$u8$ScreenAttr_param_y.op + 1
+    LD B, #00      ; Parameter y (gets patched)
+    LD A, B
+    ; Register 6 already in A
+    ; r7 = 32
+    LD A, 32
+    LD C, A         ; Store to physical register C
+    ; r8 = r6 * r7
+    ; Optimized multiplication by 32 (shift left 5)
+    ADD HL, HL        ; HL << 1
+    ADD HL, HL        ; HL << 1
+    ADD HL, HL        ; HL << 1
+    ADD HL, HL        ; HL << 1
+    ADD HL, HL        ; HL << 1
+    LD D, H
+    LD E, L
+    ; r9 = r5 + r8
+    ; Register 5 already in HL
+    LD D, H
+    LD E, L
+    LD H, D
+    LD L, E
+    ADD HL, DE
+    LD B, H
+    LD C, L
+examples.bit_fields.set_screen_attr$u8$u8$ScreenAttr_param_x.op:
+examples.bit_fields.set_screen_attr$u8$u8$ScreenAttr_param_x equ examples.bit_fields.set_screen_attr$u8$u8$ScreenAttr_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r11 = r9 + r10
+    LD H, B
+    LD L, C
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; store addr, r11
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD ($F008), HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.bit_fields.main
+examples.bit_fields.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 71
+    LD A, 71
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; store raw_value, r2
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F002), A
+    ; r4 = load raw_value
+    LD A, ($F002)
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; store attr, r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD ($F006), HL
+    ; r6 = load attr
+    LD HL, ($F006)
+    ; store back_to_raw, r6
+    LD A, L
+    LD ($F00A), A
+    ; r8 = load attr
+    LD HL, ($F006)
+    ; Load bit field ink (offset 0, width 3)
+    LD A, H
+    AND 7
+    LD L, A         ; Store to physical register L
+    ; store ink, r9
+    LD ($F00E), HL
+    ; r10 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r11 = load attr
+    LD HL, ($F006)
+    ; Store bit field paper (offset 3, width 3)
+    LD A, L
+    LD B, A        ; Save original value
+    AND 199         ; Clear field bits
+    LD C, A        ; Save cleared value
+    LD A, H
+    AND 7         ; Mask to field width
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    SLA A          ; Shift to bit position
+    OR C           ; Combine with cleared original
+    LD L, A         ; Store to physical register L
+    ; return
+    RET
+
+    END main

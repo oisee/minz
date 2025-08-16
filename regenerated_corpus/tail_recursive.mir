@@ -1,0 +1,106 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.tail_recursive.factorial_tail$u8$u16(n: u8, acc: u16) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 0
+      2: r5 = r3 == r4
+      3: jump_if_not r5, else_1
+      4: LOAD_PARAM
+      5: return r6
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: LOAD_PARAM
+     10: r8 = 1
+     11: r9 = r7 - r8
+     12: LOAD_PARAM
+     13: LOAD_PARAM
+     14: r12 = r10 * r11
+     15: LOAD_PARAM
+     16: r14 = 1
+     17: r15 = r13 - r14
+     18: LOAD_PARAM
+     19: LOAD_PARAM
+     20: r18 = r16 * r17
+     21: PATCH_TEMPLATE
+     22: PATCH_TARGET
+     23: PATCH_PARAM
+     24: PATCH_PARAM
+     25: r19 = call examples.tail_recursive.factorial_tail$u8$u16
+     26: return r19
+
+Function examples.tail_recursive.factorial$u8(n: u8) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: LOAD_PARAM
+      3: r5 = 1
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: PATCH_PARAM
+      8: r6 = call examples.tail_recursive.factorial_tail$u8$u16
+      9: return r6
+
+Function examples.tail_recursive.sum_tail$u16$u16(n: u16, acc: u16) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 0
+      2: r5 = r3 == r4
+      3: jump_if_not r5, else_3
+      4: LOAD_PARAM
+      5: return r6
+      6: jump end_if_4
+      7: else_3:
+      8: end_if_4:
+      9: LOAD_PARAM
+     10: r8 = 1
+     11: r9 = r7 - r8
+     12: LOAD_PARAM
+     13: LOAD_PARAM
+     14: r12 = r10 + r11
+     15: LOAD_PARAM
+     16: r14 = 1
+     17: r15 = r13 - r14
+     18: LOAD_PARAM
+     19: LOAD_PARAM
+     20: r18 = r16 + r17
+     21: PATCH_TEMPLATE
+     22: PATCH_TARGET
+     23: PATCH_PARAM
+     24: PATCH_PARAM
+     25: r19 = call examples.tail_recursive.sum_tail$u16$u16
+     26: return r19
+
+Function examples.tail_recursive.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+    r5 = sum: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = 5
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call examples.tail_recursive.factorial$u8
+      6: store result, r4
+      7: r6 = 100
+      8: r7 = 0
+      9: r8 = 100
+     10: r9 = 0
+     11: PATCH_TEMPLATE
+     12: PATCH_TARGET
+     13: PATCH_PARAM
+     14: PATCH_PARAM
+     15: r10 = call examples.tail_recursive.sum_tail$u16$u16
+     16: store sum, r10
+     17: return
+

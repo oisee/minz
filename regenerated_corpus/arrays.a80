@@ -1,0 +1,135 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Data section
+    ORG $F000
+
+examples.arrays.numbers:
+    DS 10
+examples.arrays.values:
+    DS 10
+examples.arrays.items:
+    DS 15
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.arrays.main
+examples.arrays.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 42
+    LD A, 42
+    ; Register 1 already in A
+    ; r2 = addr(examples.arrays.numbers)
+    LD HL, examples.arrays.numbers
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; r3 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; Calculate array element address
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD D, H
+    LD E, L
+    ; Store to array[index] (u8)
+    LD H, D
+    LD L, E
+    PUSH HL
+    ; Register 1 already in A
+    POP HL
+    LD (HL), A
+    ; r5 = 1000
+    LD HL, 1000
+    LD B, H
+    LD C, L
+    ; r6 = addr(examples.arrays.values)
+    LD HL, examples.arrays.values
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r7 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; Calculate array element address
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Store to array[index] (u16)
+    PUSH HL
+    LD H, B
+    LD L, C
+    EX DE, HL
+    POP HL
+    LD (HL), E
+    INC HL
+    LD (HL), D
+    ; r9 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r10 = addr(examples.arrays.items)
+    LD HL, examples.arrays.items
+    ; r11 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (examples.arrays.Item)
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; Store to field id (offset 0)
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r13 = 42
+    LD A, 42
+    LD L, A         ; Store to HL (low byte)
+    ; r14 = addr(examples.arrays.items)
+    LD HL, examples.arrays.items
+    ; Register 14 already in HL
+    ; r15 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (examples.arrays.Item)
+    ; Register 14 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; Store to field value (offset 1)
+    ; Register 16 already in HL
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    ; Register 13 already in HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; return
+    RET
+
+    END main

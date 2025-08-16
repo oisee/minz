@@ -1,0 +1,152 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.smc_recursion.factorial_smc$u8(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: LOAD_PARAM
+     10: LOAD_PARAM
+     11: r8 = 1
+     12: r9 = r7 - r8
+     13: LOAD_PARAM
+     14: r11 = 1
+     15: r12 = r10 - r11
+     16: PATCH_TEMPLATE
+     17: PATCH_TARGET
+     18: PATCH_PARAM
+     19: r13 = call examples.smc_recursion.factorial_smc$u8
+     20: r14 = r6 * r13
+     21: return r14
+
+Function examples.smc_recursion.fib_smc$u8(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_3
+      4: LOAD_PARAM
+      5: return r5
+      6: jump end_if_4
+      7: else_3:
+      8: end_if_4:
+      9: LOAD_PARAM
+     10: r7 = 1
+     11: r8 = r6 - r7
+     12: LOAD_PARAM
+     13: r10 = 1
+     14: r11 = r9 - r10
+     15: PATCH_TEMPLATE
+     16: PATCH_TARGET
+     17: PATCH_PARAM
+     18: r12 = call examples.smc_recursion.fib_smc$u8
+     19: LOAD_PARAM
+     20: r14 = 2
+     21: r15 = r13 - r14
+     22: LOAD_PARAM
+     23: r17 = 2
+     24: r18 = r16 - r17
+     25: PATCH_TEMPLATE
+     26: PATCH_TARGET
+     27: PATCH_PARAM
+     28: r19 = call examples.smc_recursion.fib_smc$u8
+     29: r20 = r12 + r19
+     30: return r20
+
+Function examples.smc_recursion.many_params_recursive$u8$u8$u8$u8$u8(a: u8, b: u8, c: u8, d: u8, e: u8) -> u8
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: r7 = 0
+      2: r8 = r6 == r7
+      3: jump_if_not r8, else_5
+      4: LOAD_PARAM
+      5: LOAD_PARAM
+      6: r11 = r9 + r10
+      7: LOAD_PARAM
+      8: r13 = r11 + r12
+      9: LOAD_PARAM
+     10: r15 = r13 + r14
+     11: return r15
+     12: jump end_if_6
+     13: else_5:
+     14: end_if_6:
+     15: LOAD_PARAM
+     16: LOAD_PARAM
+     17: r18 = 1
+     18: r19 = r17 - r18
+     19: LOAD_PARAM
+     20: LOAD_PARAM
+     21: LOAD_PARAM
+     22: LOAD_PARAM
+     23: LOAD_PARAM
+     24: r25 = 1
+     25: r26 = r24 - r25
+     26: LOAD_PARAM
+     27: LOAD_PARAM
+     28: LOAD_PARAM
+     29: LOAD_PARAM
+     30: PATCH_TEMPLATE
+     31: PATCH_TARGET
+     32: PATCH_PARAM
+     33: PATCH_PARAM
+     34: PATCH_PARAM
+     35: PATCH_PARAM
+     36: PATCH_PARAM
+     37: r31 = call examples.smc_recursion.many_params_recursive$u8$u8$u8$u8$u8
+     38: r32 = r16 + r31
+     39: return r32
+
+Function examples.smc_recursion.main() -> void
+  @smc
+  Locals:
+    r1 = f5: u16
+    r5 = fib10: u16
+    r9 = result: u8
+  Instructions:
+      0: r2 = 5
+      1: r3 = 5
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call examples.smc_recursion.factorial_smc$u8
+      6: store f5, r4
+      7: r6 = 10
+      8: r7 = 10
+      9: PATCH_TEMPLATE
+     10: PATCH_TARGET
+     11: PATCH_PARAM
+     12: r8 = call examples.smc_recursion.fib_smc$u8
+     13: store fib10, r8
+     14: r10 = 3
+     15: r11 = 1
+     16: r12 = 2
+     17: r13 = 3
+     18: r14 = 4
+     19: r15 = 3
+     20: r16 = 1
+     21: r17 = 2
+     22: r18 = 3
+     23: r19 = 4
+     24: PATCH_TEMPLATE
+     25: PATCH_TARGET
+     26: PATCH_PARAM
+     27: PATCH_PARAM
+     28: PATCH_PARAM
+     29: PATCH_PARAM
+     30: PATCH_PARAM
+     31: r20 = call examples.smc_recursion.many_params_recursive$u8$u8$u8$u8$u8
+     32: store result, r20
+     33: return
+

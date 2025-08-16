@@ -276,6 +276,40 @@ var jpInstructions = []InstructionPattern{
 	
 	// DJNZ
 	{Mnemonic: "DJNZ", Operands: []OperandPattern{{OpTypeRelative, ""}}, EncodingFunc: encodeJRRel, Encoding: []byte{0x10}},
+	
+	// CALL instructions
+	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xCD}},
+	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeCondition, "NZ"}, {OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xC4}},
+	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeCondition, "Z"}, {OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xCC}},
+	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeCondition, "NC"}, {OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xD4}},
+	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeCondition, "C"}, {OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xDC}},
+	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeCondition, "PO"}, {OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xE4}},
+	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeCondition, "PE"}, {OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xEC}},
+	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeCondition, "P"}, {OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xF4}},
+	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeCondition, "M"}, {OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xFC}},
+	
+	// RET instructions
+	{Mnemonic: "RET", Operands: []OperandPattern{}, Encoding: []byte{0xC9}},
+	{Mnemonic: "RET", Operands: []OperandPattern{{OpTypeCondition, "NZ"}}, Encoding: []byte{0xC0}},
+	{Mnemonic: "RET", Operands: []OperandPattern{{OpTypeCondition, "Z"}}, Encoding: []byte{0xC8}},
+	{Mnemonic: "RET", Operands: []OperandPattern{{OpTypeCondition, "NC"}}, Encoding: []byte{0xD0}},
+	{Mnemonic: "RET", Operands: []OperandPattern{{OpTypeCondition, "C"}}, Encoding: []byte{0xD8}},
+	{Mnemonic: "RET", Operands: []OperandPattern{{OpTypeCondition, "PO"}}, Encoding: []byte{0xE0}},
+	{Mnemonic: "RET", Operands: []OperandPattern{{OpTypeCondition, "PE"}}, Encoding: []byte{0xE8}},
+	{Mnemonic: "RET", Operands: []OperandPattern{{OpTypeCondition, "P"}}, Encoding: []byte{0xF0}},
+	{Mnemonic: "RET", Operands: []OperandPattern{{OpTypeCondition, "M"}}, Encoding: []byte{0xF8}},
+	{Mnemonic: "RETI", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0x4D}},
+	{Mnemonic: "RETN", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0x45}},
+	
+	// RST instructions
+	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "0"}}, Encoding: []byte{0xC7}},
+	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "8"}}, Encoding: []byte{0xCF}},
+	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "10"}}, Encoding: []byte{0xD7}},
+	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "18"}}, Encoding: []byte{0xDF}},
+	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "20"}}, Encoding: []byte{0xE7}},
+	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "28"}}, Encoding: []byte{0xEF}},
+	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "30"}}, Encoding: []byte{0xF7}},
+	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "38"}}, Encoding: []byte{0xFF}},
 }
 
 func encodeJPImm(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {

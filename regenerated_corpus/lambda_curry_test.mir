@@ -1,0 +1,48 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.lambda_curry_test.curry_demo$make_adder_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_curry_test.curry_demo() -> u8
+  @smc
+  Instructions:
+      0: r1 = 10
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r2 = call examples.lambda_curry_test.curry_demo$make_adder_0
+      5: return
+
+Function examples.lambda_curry_test.traditional_add$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 5
+      2: r4 = r2 + r3
+      3: return
+
+Function examples.lambda_curry_test.main() -> void
+  @smc
+  Locals:
+    r1 = r1: u8
+    r3 = r2: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: r2 = call examples.lambda_curry_test.curry_demo
+      3: store r1, r2
+      4: r4 = 10
+      5: r5 = 10
+      6: PATCH_TEMPLATE
+      7: PATCH_TARGET
+      8: PATCH_PARAM
+      9: r6 = call examples.lambda_curry_test.traditional_add$u8
+     10: store r2, r6
+     11: return
+

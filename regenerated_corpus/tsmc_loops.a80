@@ -1,0 +1,576 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Data section
+    ORG $F000
+
+examples.tsmc_loops.i:
+    DW 0
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tsmc_loops.sum_array_tsmc$p_u8$u16
+examples.tsmc_loops.sum_array_tsmc$p_u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r4 = 0
+    LD A, 0
+    ; Register 4 already in A
+    ; store sum, r4
+    LD ($F006), HL
+    ; r6 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; store i, r6
+    LD ($F00A), HL
+    ; loop_1:
+examples_tsmc_loops_sum_array_tsmc_p_u8_u16_loop_1:
+    ; r7 = load i
+    LD HL, ($F00A)
+examples.tsmc_loops.sum_array_tsmc$p_u8$u16_param_count.op:
+examples.tsmc_loops.sum_array_tsmc$p_u8$u16_param_count equ examples.tsmc_loops.sum_array_tsmc$p_u8$u16_param_count.op + 1
+    LD DE, #0000   ; SMC parameter count
+    EX DE, HL      ; Move to HL for storage
+    LD B, H
+    LD C, L
+    ; r9 = r7 < r8
+    LD D, B
+    LD E, C
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_tsmc_loops_sum_array_tsmc_p_u8_u16_lt_true_0
+    LD HL, 0       ; False
+    JP examples_tsmc_loops_sum_array_tsmc_p_u8_u16_lt_done_0
+examples_tsmc_loops_sum_array_tsmc_p_u8_u16_lt_true_0:
+    LD HL, 1       ; True
+examples_tsmc_loops_sum_array_tsmc_p_u8_u16_lt_done_0:
+    ; jump_if_not r9, end_loop_2
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, examples_tsmc_loops_sum_array_tsmc_p_u8_u16_end_loop_2
+    ; r10 = load sum
+    LD HL, ($F006)
+; TSMC reference parameter arr
+arr$immOP:
+    LD HL, 0000      ; TSMC ref address for arr
+arr$imm0 EQU arr$immOP+1
+    ; r12 = *r11
+    LD A, (HL)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r13 = r10 + r12
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 13 already in HL
+    ; store sum, r13
+    ; Register 13 already in HL
+    LD ($F006), HL
+    LD HL, (arr$imm0) ; Reload TSMC ref address
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; r15 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r16 = r14 + r15
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    LD D, H
+    LD E, L
+    ; Register 15 already in HL
+    ADD HL, DE
+    ; Update TSMC reference arr
+    LD (arr$imm0), HL    ; Update TSMC reference immediate
+    ; r17 = load i
+    LD HL, ($F00A)
+    ; r18 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r19 = r17 + r18
+    LD D, H
+    LD E, L
+    ; Register 18 already in HL
+    ADD HL, DE
+    LD ($F026), HL    ; Virtual register 19 to memory
+    ; store i, r19
+    LD HL, ($F026)    ; Virtual register 19 from memory
+    LD ($F00A), HL
+    ; jump loop_1
+    JP examples_tsmc_loops_sum_array_tsmc_p_u8_u16_loop_1
+    ; end_loop_2:
+examples_tsmc_loops_sum_array_tsmc_p_u8_u16_end_loop_2:
+    ; r20 = load sum
+    LD HL, ($F006)
+    ; Register 20 already in HL
+    ; return r20
+    ; Register 20 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tsmc_loops.find_max_tsmc$p_u8$u16
+examples.tsmc_loops.find_max_tsmc$p_u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.tsmc_loops.find_max_tsmc$p_u8$u16_param_count.op:
+examples.tsmc_loops.find_max_tsmc$p_u8$u16_param_count equ examples.tsmc_loops.find_max_tsmc$p_u8$u16_param_count.op + 1
+    LD DE, #0000   ; SMC parameter count
+    EX DE, HL      ; Move to HL for storage
+    ; Register 3 already in HL
+    ; r4 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 == r4
+    ; Register 3 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_tsmc_loops_find_max_tsmc_p_u8_u16_eq_true_1
+    LD HL, 0       ; False
+    JP examples_tsmc_loops_find_max_tsmc_p_u8_u16_eq_done_1
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_eq_true_1:
+    LD HL, 1       ; True
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_eq_done_1:
+    ; jump_if_not r5, else_3
+    LD A, H
+    OR A
+    JP Z, examples_tsmc_loops_find_max_tsmc_p_u8_u16_else_3
+    ; r6 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r6
+    RET
+    ; jump end_if_4
+    JP examples_tsmc_loops_find_max_tsmc_p_u8_u16_end_if_4
+    ; else_3:
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_else_3:
+    ; end_if_4:
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_end_if_4:
+; TSMC reference parameter arr
+arr$immOP:
+    LD HL, 0000      ; TSMC ref address for arr
+arr$imm0 EQU arr$immOP+1
+    ; r9 = *r8
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; store max, r9
+    LD A, L
+    LD ($F00E), A
+    LD HL, (arr$imm0) ; Reload TSMC ref address
+    ; Register 10 already in HL
+    ; r11 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r12 = r10 + r11
+    ; Register 10 already in HL
+    LD D, H
+    LD E, L
+    ; Register 11 already in HL
+    ADD HL, DE
+    ; Update TSMC reference arr
+    LD (arr$imm0), HL    ; Update TSMC reference immediate
+    ; r14 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; store i, r14
+    LD ($F01A), HL
+    ; loop_5:
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_loop_5:
+    ; r15 = load i
+    LD HL, ($F01A)
+    ; Register 15 already in HL
+    LD HL, (examples.tsmc_loops.find_max_tsmc$p_u8$u16_param_count)
+    LD ($F020), HL    ; Virtual register 16 to memory
+    ; r17 = r15 < r16
+    ; Register 15 already in HL
+    LD HL, ($F020)    ; Virtual register 16 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_tsmc_loops_find_max_tsmc_p_u8_u16_lt_true_2
+    LD HL, 0       ; False
+    JP examples_tsmc_loops_find_max_tsmc_p_u8_u16_lt_done_2
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_lt_true_2:
+    LD HL, 1       ; True
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_lt_done_2:
+    ; Register 17 already in HL
+    ; jump_if_not r17, end_loop_6
+    LD A, L
+    OR A
+    JP Z, examples_tsmc_loops_find_max_tsmc_p_u8_u16_end_loop_6
+    LD HL, (arr$imm0) ; Reload TSMC ref address
+    LD ($F024), HL    ; Virtual register 18 to memory
+    ; r19 = *r18
+    LD HL, ($F024)    ; Virtual register 18 from memory
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r20 = load max
+    LD A, ($F00E)
+    LD L, A         ; Store to physical register L
+    ; r21 = r19 > r20
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, examples_tsmc_loops_find_max_tsmc_p_u8_u16_gt_check_zero_3
+    LD HL, 0       ; False (negative)
+    JP examples_tsmc_loops_find_max_tsmc_p_u8_u16_gt_done_3
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_gt_check_zero_3:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, examples_tsmc_loops_find_max_tsmc_p_u8_u16_gt_false_3
+    LD HL, 1       ; True (positive and non-zero)
+    JP examples_tsmc_loops_find_max_tsmc_p_u8_u16_gt_done_3
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_gt_false_3:
+    LD HL, 0       ; False (zero)
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_gt_done_3:
+    ; Register 21 already in HL
+    ; jump_if_not r21, else_7
+    LD A, L
+    OR A
+    JP Z, examples_tsmc_loops_find_max_tsmc_p_u8_u16_else_7
+    LD HL, (arr$imm0) ; Reload TSMC ref address
+    ; r23 = *r22
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; store max, r23
+    LD A, L
+    LD ($F00E), A
+    ; jump end_if_8
+    JP examples_tsmc_loops_find_max_tsmc_p_u8_u16_end_if_8
+    ; else_7:
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_else_7:
+    ; end_if_8:
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_end_if_8:
+    LD HL, (arr$imm0) ; Reload TSMC ref address
+    LD ($F030), HL    ; Virtual register 24 to memory
+    ; r25 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r26 = r24 + r25
+    LD HL, ($F030)    ; Virtual register 24 from memory
+    LD D, H
+    LD E, L
+    ; Register 25 already in HL
+    ADD HL, DE
+    ; Update TSMC reference arr
+    LD (arr$imm0), HL    ; Update TSMC reference immediate
+    ; r27 = load i
+    LD HL, ($F01A)
+    ; r28 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r29 = r27 + r28
+    LD D, H
+    LD E, L
+    ; Register 28 already in HL
+    ADD HL, DE
+    ; store i, r29
+    LD ($F01A), HL
+    ; jump loop_5
+    JP examples_tsmc_loops_find_max_tsmc_p_u8_u16_loop_5
+    ; end_loop_6:
+examples_tsmc_loops_find_max_tsmc_p_u8_u16_end_loop_6:
+    ; r30 = load max
+    LD A, ($F00E)
+    LD L, A         ; Store to physical register L
+    ; return r30
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tsmc_loops.strcmp_tsmc$p_u8$p_u8
+examples.tsmc_loops.strcmp_tsmc$p_u8$p_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; loop_9:
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_loop_9:
+; TSMC reference parameter s1
+s1$immOP:
+    LD HL, 0000      ; TSMC ref address for s1
+s1$imm0 EQU s1$immOP+1
+    ; r4 = *r3
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r5 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r6 = r4 != r5
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_ne_true_4
+    LD HL, 0       ; False
+    JP examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_ne_done_4
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_ne_true_4:
+    LD HL, 1       ; True
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_ne_done_4:
+    ; Register 6 already in HL
+    LD HL, (s1$imm0) ; Reload TSMC ref address
+    ; r8 = *r7
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+; TSMC reference parameter s2
+s2$immOP:
+    LD HL, 0000      ; TSMC ref address for s2
+s2$imm0 EQU s2$immOP+1
+    ; r10 = *r9
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r11 = r8 == r10
+    ; Register 8 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_eq_true_5
+    LD HL, 0       ; False
+    JP examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_eq_done_5
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_eq_true_5:
+    LD HL, 1       ; True
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_eq_done_5:
+    ; Register 11 already in HL
+    ; unknown op 60
+    LD A, L
+    OR A           ; Test if zero
+    JR Z, land_false_6       ; Skip if first operand is false
+    LD A, L
+    OR A           ; Test if zero
+    JR Z, land_false_6       ; Skip if second operand is false
+    LD A, 1        ; Result is true
+    JR land_end_7
+land_false_6:
+    XOR A          ; Result is false (0)
+land_end_7:
+    LD H, A         ; Store to physical register H
+    ; jump_if_not r12, end_loop_10
+    LD A, H
+    OR A
+    JP Z, examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_end_loop_10
+    LD HL, (s1$imm0) ; Reload TSMC ref address
+    ; Register 13 already in HL
+    ; r14 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r15 = r13 + r14
+    ; Register 13 already in HL
+    LD D, H
+    LD E, L
+    ; Register 14 already in HL
+    ADD HL, DE
+    ; Update TSMC reference s1
+    LD (s1$imm0), HL    ; Update TSMC reference immediate
+    LD HL, (s2$imm0) ; Reload TSMC ref address
+    ; Register 16 already in HL
+    ; r17 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r18 = r16 + r17
+    ; Register 16 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Update TSMC reference s2
+    LD (s2$imm0), HL    ; Update TSMC reference immediate
+    ; jump loop_9
+    JP examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_loop_9
+    ; end_loop_10:
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_end_loop_10:
+    LD HL, (s1$imm0) ; Reload TSMC ref address
+    ; r20 = *r19
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    LD HL, (s2$imm0) ; Reload TSMC ref address
+    ; r22 = *r21
+    LD A, (HL)
+    LD ($F02C), A     ; Virtual register 22 to memory
+    ; r23 = r20 < r22
+    ; Register 20 already in HL
+    LD HL, ($F02C)    ; Virtual register 22 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_lt_true_8
+    LD HL, 0       ; False
+    JP examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_lt_done_8
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_lt_true_8:
+    LD HL, 1       ; True
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_lt_done_8:
+    ; unknown op 63
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; unknown op 5
+    LD A, ($F000)     ; Virtual register 0 from memory
+    OR A
+    JP Z, 
+    ; unknown op 22
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; Register 24 already in HL
+    ; jump if_expr_end_12
+    JP examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_if_expr_end_12
+    ; if_expr_else_11:
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_if_expr_else_11:
+    LD HL, (s1$imm0) ; Reload TSMC ref address
+    ; r26 = *r25
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    LD HL, (s2$imm0) ; Reload TSMC ref address
+    ; r28 = *r27
+    LD A, (HL)
+    LD ($F038), A     ; Virtual register 28 to memory
+    ; r29 = r26 > r28
+    ; Register 26 already in HL
+    LD HL, ($F038)    ; Virtual register 28 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_gt_check_zero_9
+    LD HL, 0       ; False (negative)
+    JP examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_gt_done_9
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_gt_check_zero_9:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_gt_false_9
+    LD HL, 1       ; True (positive and non-zero)
+    JP examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_gt_done_9
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_gt_false_9:
+    LD HL, 0       ; False (zero)
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_gt_done_9:
+    ; unknown op 63
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; unknown op 5
+    LD A, ($F000)     ; Virtual register 0 from memory
+    OR A
+    JP Z, 
+    ; unknown op 22
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; Register 30 already in HL
+    ; jump if_expr_end_14
+    JP examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_if_expr_end_14
+    ; if_expr_else_13:
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_if_expr_else_13:
+    ; unknown op 22
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; Register 30 already in HL
+    ; if_expr_end_14:
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_if_expr_end_14:
+    ; unknown op 22
+    ; Register 30 already in HL
+    ; Register 24 already in HL
+    ; if_expr_end_12:
+examples_tsmc_loops_strcmp_tsmc_p_u8_p_u8_if_expr_end_12:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tsmc_loops.count_char_tsmc$p_u8$u8
+examples.tsmc_loops.count_char_tsmc$p_u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r4 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; store count, r4
+    LD ($F006), HL
+    ; loop_15:
+examples_tsmc_loops_count_char_tsmc_p_u8_u8_loop_15:
+; TSMC reference parameter str
+str$immOP:
+    LD HL, 0000      ; TSMC ref address for str
+str$imm0 EQU str$immOP+1
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; r6 = *r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r7 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r8 = r6 != r7
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, examples_tsmc_loops_count_char_tsmc_p_u8_u8_ne_true_10
+    LD HL, 0       ; False
+    JP examples_tsmc_loops_count_char_tsmc_p_u8_u8_ne_done_10
+examples_tsmc_loops_count_char_tsmc_p_u8_u8_ne_true_10:
+    LD HL, 1       ; True
+examples_tsmc_loops_count_char_tsmc_p_u8_u8_ne_done_10:
+    ; Register 8 already in HL
+    ; jump_if_not r8, end_loop_16
+    LD A, L
+    OR A
+    JP Z, examples_tsmc_loops_count_char_tsmc_p_u8_u8_end_loop_16
+    LD HL, (str$imm0) ; Reload TSMC ref address
+    ; r10 = *r9
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+examples.tsmc_loops.count_char_tsmc$p_u8$u8_param_ch.op:
+examples.tsmc_loops.count_char_tsmc$p_u8$u8_param_ch equ examples.tsmc_loops.count_char_tsmc$p_u8$u8_param_ch.op + 1
+    LD B, #00      ; Parameter ch (gets patched)
+    LD A, B
+    LD L, A         ; Store to physical register L
+    ; r12 = r10 == r11
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_tsmc_loops_count_char_tsmc_p_u8_u8_eq_true_11
+    LD HL, 0       ; False
+    JP examples_tsmc_loops_count_char_tsmc_p_u8_u8_eq_done_11
+examples_tsmc_loops_count_char_tsmc_p_u8_u8_eq_true_11:
+    LD HL, 1       ; True
+examples_tsmc_loops_count_char_tsmc_p_u8_u8_eq_done_11:
+    ; jump_if_not r12, else_17
+    LD A, H
+    OR A
+    JP Z, examples_tsmc_loops_count_char_tsmc_p_u8_u8_else_17
+    ; r13 = load count
+    LD HL, ($F006)
+    ; Register 13 already in HL
+    ; r14 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r15 = r13 + r14
+    ; Register 13 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store count, r15
+    LD ($F006), HL
+    ; jump end_if_18
+    JP examples_tsmc_loops_count_char_tsmc_p_u8_u8_end_if_18
+    ; else_17:
+examples_tsmc_loops_count_char_tsmc_p_u8_u8_else_17:
+    ; end_if_18:
+examples_tsmc_loops_count_char_tsmc_p_u8_u8_end_if_18:
+    LD HL, (str$imm0) ; Reload TSMC ref address
+    ; Register 16 already in HL
+    ; r17 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r18 = r16 + r17
+    ; Register 16 already in HL
+    LD D, H
+    LD E, L
+    ; Register 17 already in HL
+    ADD HL, DE
+    ; Update TSMC reference str
+    LD (str$imm0), HL    ; Update TSMC reference immediate
+    ; jump loop_15
+    JP examples_tsmc_loops_count_char_tsmc_p_u8_u8_loop_15
+    ; end_loop_16:
+examples_tsmc_loops_count_char_tsmc_p_u8_u8_end_loop_16:
+    ; r19 = load count
+    LD HL, ($F006)
+    ; return r19
+    RET
+
+    END main

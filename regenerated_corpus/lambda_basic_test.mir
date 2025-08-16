@@ -1,0 +1,107 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.lambda_basic_test.add_five_traditional$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 5
+      2: r4 = r2 + r3
+      3: return
+
+Function examples.lambda_basic_test.test_lambda_basic$add_five_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_basic_test.test_lambda_basic() -> u8
+  @smc
+  Instructions:
+      0: r1 = 10
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r2 = call examples.lambda_basic_test.test_lambda_basic$add_five_0
+      5: return
+
+Function examples.lambda_basic_test.test_lambda_direct$f_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_basic_test.test_lambda_direct() -> u8
+  @smc
+  Instructions:
+      0: r1 = 10
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r2 = call examples.lambda_basic_test.test_lambda_direct$f_1
+      5: return
+
+Function examples.lambda_basic_test.test_lambda_multiple$add_2(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_basic_test.test_lambda_multiple() -> u8
+  @smc
+  Locals:
+    r1 = a: u8
+    r4 = b: u8
+  Instructions:
+      0: r2 = 10
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r3 = call examples.lambda_basic_test.test_lambda_multiple$add_2
+      5: store a, r3
+      6: r5 = 20
+      7: PATCH_TEMPLATE
+      8: PATCH_TARGET
+      9: PATCH_PARAM
+     10: r6 = call examples.lambda_basic_test.test_lambda_multiple$add_2
+     11: store b, r6
+     12: r7 = load a
+     13: r8 = load b
+     14: r9 = r7 + r8
+     15: return
+
+Function examples.lambda_basic_test.main() -> void
+  @smc
+  Locals:
+    r1 = t1: u8
+    r5 = t2: u8
+    r7 = t3: u8
+    r9 = t4: u8
+  Instructions:
+      0: r2 = 10
+      1: r3 = 10
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call examples.lambda_basic_test.add_five_traditional$u8
+      6: store t1, r4
+      7: PATCH_TEMPLATE
+      8: PATCH_TARGET
+      9: r6 = call examples.lambda_basic_test.test_lambda_basic
+     10: store t2, r6
+     11: PATCH_TEMPLATE
+     12: PATCH_TARGET
+     13: r8 = call examples.lambda_basic_test.test_lambda_direct
+     14: store t3, r8
+     15: PATCH_TEMPLATE
+     16: PATCH_TARGET
+     17: r10 = call examples.lambda_basic_test.test_lambda_multiple
+     18: store t4, r10
+     19: return
+

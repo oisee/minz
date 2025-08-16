@@ -1,0 +1,387 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.memory_operations.mem_set$p_u8$u8$u16
+examples.memory_operations.mem_set$p_u8$u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; loop_1:
+examples_memory_operations_mem_set_p_u8_u8_u16_loop_1:
+examples.memory_operations.mem_set$p_u8$u8$u16_param_count.op:
+examples.memory_operations.mem_set$p_u8$u8$u16_param_count equ examples.memory_operations.mem_set$p_u8$u8$u16_param_count.op + 1
+    LD BC, #0000   ; SMC parameter count
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; r5 = 0
+    LD A, 0
+    ; Register 5 already in A
+    ; r6 = r4 > r5
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD E, A        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, examples_memory_operations_mem_set_p_u8_u8_u16_gt_check_zero_0
+    LD HL, 0       ; False (negative)
+    JP examples_memory_operations_mem_set_p_u8_u8_u16_gt_done_0
+examples_memory_operations_mem_set_p_u8_u8_u16_gt_check_zero_0:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, examples_memory_operations_mem_set_p_u8_u8_u16_gt_false_0
+    LD HL, 1       ; True (positive and non-zero)
+    JP examples_memory_operations_mem_set_p_u8_u8_u16_gt_done_0
+examples_memory_operations_mem_set_p_u8_u8_u16_gt_false_0:
+    LD HL, 0       ; False (zero)
+examples_memory_operations_mem_set_p_u8_u8_u16_gt_done_0:
+    LD B, H
+    LD C, L
+    ; jump_if_not r6, end_loop_2
+    LD A, C
+    OR A
+    JP Z, examples_memory_operations_mem_set_p_u8_u8_u16_end_loop_2
+examples.memory_operations.mem_set$p_u8$u8$u16_param_value.op:
+examples.memory_operations.mem_set$p_u8$u8$u16_param_value equ examples.memory_operations.mem_set$p_u8$u8$u16_param_value.op + 1
+    LD B, #00      ; Parameter value (gets patched)
+    LD A, B
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+; TSMC reference parameter dest
+dest$immOP:
+    LD HL, 0000      ; TSMC ref address for dest
+dest$imm0 EQU dest$immOP+1
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; Store through pointer
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    PUSH HL
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    POP HL
+    LD (HL), A
+    LD HL, (dest$imm0) ; Reload TSMC ref address
+    ; r10 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r11 = r9 + r10
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 11 already in HL
+    ; store dest, r11
+    ; Register 11 already in HL
+    LD ($F000), HL
+    LD HL, (examples.memory_operations.mem_set$p_u8$u8$u16_param_count)
+    ; Register 12 already in HL
+    ; r13 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r14 = r12 - r13
+    ; Register 12 already in HL
+    LD D, H
+    LD E, L
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; store count, r14
+    LD ($F000), HL
+    ; jump loop_1
+    JP examples_memory_operations_mem_set_p_u8_u8_u16_loop_1
+    ; end_loop_2:
+examples_memory_operations_mem_set_p_u8_u8_u16_end_loop_2:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.memory_operations.mem_copy$p_u8$p_u8$u16
+examples.memory_operations.mem_copy$p_u8$p_u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; loop_3:
+examples_memory_operations_mem_copy_p_u8_p_u8_u16_loop_3:
+examples.memory_operations.mem_copy$p_u8$p_u8$u16_param_count.op:
+examples.memory_operations.mem_copy$p_u8$p_u8$u16_param_count equ examples.memory_operations.mem_copy$p_u8$p_u8$u16_param_count.op + 1
+    LD BC, #0000   ; SMC parameter count
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; Register 4 already in HL
+    ; r5 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r6 = r4 > r5
+    ; Register 4 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, examples_memory_operations_mem_copy_p_u8_p_u8_u16_gt_check_zero_1
+    LD HL, 0       ; False (negative)
+    JP examples_memory_operations_mem_copy_p_u8_p_u8_u16_gt_done_1
+examples_memory_operations_mem_copy_p_u8_p_u8_u16_gt_check_zero_1:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, examples_memory_operations_mem_copy_p_u8_p_u8_u16_gt_false_1
+    LD HL, 1       ; True (positive and non-zero)
+    JP examples_memory_operations_mem_copy_p_u8_p_u8_u16_gt_done_1
+examples_memory_operations_mem_copy_p_u8_p_u8_u16_gt_false_1:
+    LD HL, 0       ; False (zero)
+examples_memory_operations_mem_copy_p_u8_p_u8_u16_gt_done_1:
+    ; jump_if_not r6, end_loop_4
+    LD A, H
+    OR A
+    JP Z, examples_memory_operations_mem_copy_p_u8_p_u8_u16_end_loop_4
+; TSMC reference parameter src
+src$immOP:
+    LD HL, 0000      ; TSMC ref address for src
+src$imm0 EQU src$immOP+1
+    ; r8 = *r7
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+; TSMC reference parameter dest
+dest$immOP:
+    LD HL, 0000      ; TSMC ref address for dest
+dest$imm0 EQU dest$immOP+1
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; Store through pointer
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    LD HL, (dest$imm0) ; Reload TSMC ref address
+    ; Register 10 already in HL
+    ; r11 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r12 = r10 + r11
+    ; Register 10 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; store dest, r12
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    LD ($F000), HL
+    LD HL, (src$imm0) ; Reload TSMC ref address
+    ; Register 13 already in HL
+    ; r14 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r15 = r13 + r14
+    ; Register 13 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; store src, r15
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    LD ($F000), HL
+    LD HL, (examples.memory_operations.mem_copy$p_u8$p_u8$u16_param_count)
+    ; Register 16 already in HL
+    ; r17 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r18 = r16 - r17
+    ; Register 16 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; store count, r18
+    LD ($F000), HL
+    ; jump loop_3
+    JP examples_memory_operations_mem_copy_p_u8_p_u8_u16_loop_3
+    ; end_loop_4:
+examples_memory_operations_mem_copy_p_u8_p_u8_u16_end_loop_4:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.memory_operations.mem_compare$p_u8$p_u8$u16
+examples.memory_operations.mem_compare$p_u8$p_u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; loop_5:
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_loop_5:
+examples.memory_operations.mem_compare$p_u8$p_u8$u16_param_count.op:
+examples.memory_operations.mem_compare$p_u8$p_u8$u16_param_count equ examples.memory_operations.mem_compare$p_u8$p_u8$u16_param_count.op + 1
+    LD BC, #0000   ; SMC parameter count
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; Register 4 already in HL
+    ; r5 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r6 = r4 > r5
+    ; Register 4 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, examples_memory_operations_mem_compare_p_u8_p_u8_u16_gt_check_zero_2
+    LD HL, 0       ; False (negative)
+    JP examples_memory_operations_mem_compare_p_u8_p_u8_u16_gt_done_2
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_gt_check_zero_2:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, examples_memory_operations_mem_compare_p_u8_p_u8_u16_gt_false_2
+    LD HL, 1       ; True (positive and non-zero)
+    JP examples_memory_operations_mem_compare_p_u8_p_u8_u16_gt_done_2
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_gt_false_2:
+    LD HL, 0       ; False (zero)
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_gt_done_2:
+    ; jump_if_not r6, end_loop_6
+    LD A, H
+    OR A
+    JP Z, examples_memory_operations_mem_compare_p_u8_p_u8_u16_end_loop_6
+; TSMC reference parameter ptr1
+ptr1$immOP:
+    LD HL, 0000      ; TSMC ref address for ptr1
+ptr1$imm0 EQU ptr1$immOP+1
+    ; r8 = *r7
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+; TSMC reference parameter ptr2
+ptr2$immOP:
+    LD HL, 0000      ; TSMC ref address for ptr2
+ptr2$imm0 EQU ptr2$immOP+1
+    ; r10 = *r9
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r11 = r8 != r10
+    ; Register 8 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, examples_memory_operations_mem_compare_p_u8_p_u8_u16_ne_true_3
+    LD HL, 0       ; False
+    JP examples_memory_operations_mem_compare_p_u8_p_u8_u16_ne_done_3
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_ne_true_3:
+    LD HL, 1       ; True
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_ne_done_3:
+    ; Register 11 already in HL
+    ; jump_if_not r11, else_7
+    LD A, L
+    OR A
+    JP Z, examples_memory_operations_mem_compare_p_u8_p_u8_u16_else_7
+    LD HL, (ptr1$imm0) ; Reload TSMC ref address
+    ; r13 = *r12
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    LD HL, (ptr2$imm0) ; Reload TSMC ref address
+    ; r15 = *r14
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r16 = r13 < r15
+    ; Register 13 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_memory_operations_mem_compare_p_u8_p_u8_u16_lt_true_4
+    LD HL, 0       ; False
+    JP examples_memory_operations_mem_compare_p_u8_p_u8_u16_lt_done_4
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_lt_true_4:
+    LD HL, 1       ; True
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_lt_done_4:
+    LD ($F020), HL    ; Virtual register 16 to memory
+    ; jump_if_not r16, else_9
+    LD A, ($F020)     ; Virtual register 16 from memory
+    OR A
+    JP Z, examples_memory_operations_mem_compare_p_u8_p_u8_u16_else_9
+    ; r17 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r18 = -r17
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; return r18
+    RET
+    ; jump end_if_10
+    JP examples_memory_operations_mem_compare_p_u8_p_u8_u16_end_if_10
+    ; else_9:
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_else_9:
+    ; r19 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; return r19
+    ; Register 19 already in HL
+    RET
+    ; end_if_10:
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_end_if_10:
+    ; jump end_if_8
+    JP examples_memory_operations_mem_compare_p_u8_p_u8_u16_end_if_8
+    ; else_7:
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_else_7:
+    ; end_if_8:
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_end_if_8:
+    LD HL, (ptr1$imm0) ; Reload TSMC ref address
+    ; Register 20 already in HL
+    ; r21 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r22 = r20 + r21
+    ; Register 20 already in HL
+    LD D, H
+    LD E, L
+    ; Register 21 already in HL
+    ADD HL, DE
+    ; store ptr1, r22
+    LD ($F000), HL
+    LD HL, (ptr2$imm0) ; Reload TSMC ref address
+    ; Register 23 already in HL
+    ; r24 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r25 = r23 + r24
+    ; Register 23 already in HL
+    LD D, H
+    LD E, L
+    ; Register 24 already in HL
+    ADD HL, DE
+    ; store ptr2, r25
+    LD ($F000), HL
+    LD HL, (examples.memory_operations.mem_compare$p_u8$p_u8$u16_param_count)
+    LD ($F034), HL    ; Virtual register 26 to memory
+    ; r27 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r28 = r26 - r27
+    LD HL, ($F034)    ; Virtual register 26 from memory
+    LD D, H
+    LD E, L
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; store count, r28
+    LD ($F000), HL
+    ; jump loop_5
+    JP examples_memory_operations_mem_compare_p_u8_p_u8_u16_loop_5
+    ; end_loop_6:
+examples_memory_operations_mem_compare_p_u8_p_u8_u16_end_loop_6:
+    ; r29 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; return r29
+    ; Register 29 already in HL
+    RET
+
+    END main

@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.simple_true_smc.add$u8$u8(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function examples.simple_true_smc.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: r2 = 5
+      1: r3 = 3
+      2: r4 = 5
+      3: r5 = 3
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: PATCH_PARAM
+      8: r6 = call examples.simple_true_smc.add$u8$u8
+      9: store result, r6
+     10: return
+

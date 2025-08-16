@@ -1,0 +1,84 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.lambda_smc_test.test_lambda_smc$add_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_smc_test.test_lambda_smc() -> u8
+  @smc
+  Locals:
+    r1 = r1: u8
+    r4 = r2: u8
+  Instructions:
+      0: r2 = 10
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r3 = call examples.lambda_smc_test.test_lambda_smc$add_0
+      5: store r1, r3
+      6: r5 = 20
+      7: PATCH_TEMPLATE
+      8: PATCH_TARGET
+      9: PATCH_PARAM
+     10: r6 = call examples.lambda_smc_test.test_lambda_smc$add_0
+     11: store r2, r6
+     12: r7 = load r1
+     13: r8 = load r2
+     14: r9 = r7 + r8
+     15: return
+
+Function examples.lambda_smc_test.add_traditional$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 5
+      2: r4 = r2 + r3
+      3: return
+
+Function examples.lambda_smc_test.test_traditional() -> u8
+  @smc
+  Locals:
+    r1 = r1: u8
+    r5 = r2: u8
+  Instructions:
+      0: r2 = 10
+      1: r3 = 10
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call examples.lambda_smc_test.add_traditional$u8
+      6: store r1, r4
+      7: r6 = 20
+      8: r7 = 20
+      9: PATCH_TEMPLATE
+     10: PATCH_TARGET
+     11: PATCH_PARAM
+     12: r8 = call examples.lambda_smc_test.add_traditional$u8
+     13: store r2, r8
+     14: r9 = load r1
+     15: r10 = load r2
+     16: r11 = r9 + r10
+     17: return
+
+Function examples.lambda_smc_test.main() -> u8
+  @smc
+  Locals:
+    r1 = lambda_result: u8
+    r3 = traditional_result: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: r2 = call examples.lambda_smc_test.test_lambda_smc
+      3: store lambda_result, r2
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: r4 = call examples.lambda_smc_test.test_traditional
+      7: store traditional_result, r4
+      8: r5 = load lambda_result
+      9: return
+

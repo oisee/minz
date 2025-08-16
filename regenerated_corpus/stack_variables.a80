@@ -1,0 +1,542 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.stack_variables.test_stack_locals$u8$u8
+examples.stack_variables.test_stack_locals$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.stack_variables.test_stack_locals$u8$u8_param_x.op:
+examples.stack_variables.test_stack_locals$u8$u8_param_x equ examples.stack_variables.test_stack_locals$u8$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 4 already in A
+    ; r5 = 10
+    LD A, 10
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = r4 + r5
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    ADD HL, DE
+    ; store a, r6
+    LD A, C
+    LD ($F006), A
+examples.stack_variables.test_stack_locals$u8$u8_param_y.op:
+examples.stack_variables.test_stack_locals$u8$u8_param_y equ examples.stack_variables.test_stack_locals$u8$u8_param_y.op + 1
+    LD B, #00      ; Parameter y (gets patched)
+    LD A, B
+    LD E, A         ; Store to physical register E
+    ; r9 = 20
+    LD A, 20
+    LD L, A         ; Store to physical register L
+    ; r10 = r8 + r9
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store b, r10
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F00E), A
+    ; r12 = load a
+    LD A, ($F006)
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r13 = load b
+    LD A, ($F00E)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r14 = r12 + r13
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store c, r14
+    LD A, B
+    LD ($F016), A
+    ; r15 = load c
+    LD A, ($F016)
+    LD B, A         ; Store to physical register B
+    LD A, B
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.stack_variables.test_stack_locals$u8$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.stack_variables.test_stack_locals$u8$u8_store_addr.op:
+examples.stack_variables.test_stack_locals$u8$u8_store_addr equ examples.stack_variables.test_stack_locals$u8$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.stack_variables.factorial$u8
+examples.stack_variables.factorial$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+examples.stack_variables.factorial$u8_param_n.op:
+examples.stack_variables.factorial$u8_param_n equ examples.stack_variables.factorial$u8_param_n.op + 1
+    LD A, #00      ; Parameter n (gets patched)
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r4 = r2 <= r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_stack_variables_factorial_u8_le_true_0
+    JP Z, examples_stack_variables_factorial_u8_le_true_0
+    LD HL, 0       ; False
+    JP examples_stack_variables_factorial_u8_le_done_0
+examples_stack_variables_factorial_u8_le_true_0:
+    LD HL, 1       ; True
+examples_stack_variables_factorial_u8_le_done_0:
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; jump_if_not r4, else_1
+    LD A, ($F008)     ; Virtual register 4 from memory
+    OR A
+    JP Z, examples_stack_variables_factorial_u8_else_1
+    ; r5 = 1
+    LD A, 1
+    LD E, A         ; Store to physical register E
+    ; return r5
+    RET
+    ; jump end_if_2
+    JP examples_stack_variables_factorial_u8_end_if_2
+    ; else_1:
+examples_stack_variables_factorial_u8_else_1:
+    ; end_if_2:
+examples_stack_variables_factorial_u8_end_if_2:
+    LD A, (examples.stack_variables.factorial$u8_param_n)
+    LD E, A         ; Store to physical register E
+    ; r8 = 1
+    LD A, 1
+    ; Register 8 already in A
+    ; r9 = r7 - r8
+    LD E, A        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    LD A, (examples.stack_variables.factorial$u8_param_n)
+    LD B, A         ; Store to physical register B
+    ; r11 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r12 = r10 - r11
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.stack_variables.factorial$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.stack_variables.factorial$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.stack_variables.factorial$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (examples.stack_variables.factorial$u8_param_n+1), A   ; Patch parameter immediate
+    ; === SMC Recursive Context Save ===
+    LD A, (examples.stack_variables.factorial$u8_param_n)
+    PUSH AF
+    ; === Update SMC Parameters ===
+    CALL examples.stack_variables.factorial$u8
+    ; === SMC Recursive Context Restore ===
+    POP AF
+    LD (examples.stack_variables.factorial$u8_param_n), A
+    ; store prev, r13
+    LD ($F00C), HL
+    LD A, (examples.stack_variables.factorial$u8_param_n)
+    LD L, A         ; Store to HL (low byte)
+    ; r15 = load prev
+    LD HL, ($F00C)
+    ; r16 = r14 * r15
+    ; 8-bit multiplication
+    LD A, L
+    LD B, A       ; B = multiplicand
+    LD A, H
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, examples_stack_variables_factorial_u8_mul_done_1
+examples_stack_variables_factorial_u8_mul_loop_1:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, examples_stack_variables_factorial_u8_mul_loop_1
+examples_stack_variables_factorial_u8_mul_done_1:
+    LD A, L
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.stack_variables.factorial$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.stack_variables.factorial$u8_store_addr.op:
+examples.stack_variables.factorial$u8_store_addr equ examples.stack_variables.factorial$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.stack_variables.many_locals
+examples.stack_variables.many_locals:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -10
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    ; r2 = 1
+    LD A, 1
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store a, r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD (IX-1), A
+    ; r4 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; store b, r4
+    LD A, L
+    LD (IX-2), A
+    ; r6 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; store c, r6
+    LD A, H
+    LD (IX-3), A
+    ; r8 = 4
+    LD A, 4
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; store d, r8
+    LD A, ($F010)     ; Virtual register 8 from memory
+    LD (IX-4), A
+    ; r10 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; store e, r10
+    LD A, L
+    LD (IX-5), A
+    ; r12 = 6
+    LD A, 6
+    LD H, A         ; Store to physical register H
+    ; store f, r12
+    LD A, H
+    LD (IX-6), A
+    ; r14 = 7
+    LD A, 7
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; store g, r14
+    LD A, ($F01C)     ; Virtual register 14 from memory
+    LD (IX-7), A
+    ; r16 = 8
+    LD A, 8
+    LD L, A         ; Store to physical register L
+    ; store h, r16
+    LD A, L
+    LD (IX-8), A
+    ; r18 = load a
+    LD A, (IX-1)
+    LD H, A         ; Store to physical register H
+    ; r19 = load b
+    LD A, (IX-2)
+    LD L, A         ; Store to physical register L
+    ; r20 = r18 + r19
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F028), HL    ; Virtual register 20 to memory
+    ; r21 = load c
+    LD A, (IX-3)
+    LD H, A         ; Store to physical register H
+    ; r22 = r20 + r21
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r23 = load d
+    LD A, (IX-4)
+    LD ($F02E), A     ; Virtual register 23 to memory
+    ; r24 = r22 + r23
+    LD D, H
+    LD E, L
+    LD HL, ($F02E)    ; Virtual register 23 from memory
+    ADD HL, DE
+    ; store sum1, r24
+    LD A, H
+    LD (IX-9), A
+    ; r26 = load e
+    LD A, (IX-5)
+    LD ($F034), A     ; Virtual register 26 to memory
+    ; r27 = load f
+    LD A, (IX-6)
+    LD H, A         ; Store to physical register H
+    ; r28 = r26 + r27
+    LD HL, ($F034)    ; Virtual register 26 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r29 = load g
+    LD A, (IX-7)
+    LD ($F03A), A     ; Virtual register 29 to memory
+    ; r30 = r28 + r29
+    LD D, H
+    LD E, L
+    LD HL, ($F03A)    ; Virtual register 29 from memory
+    ADD HL, DE
+    ; r31 = load h
+    LD A, (IX-8)
+    LD L, A         ; Store to physical register L
+    ; r32 = r30 + r31
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F040), HL    ; Virtual register 32 to memory
+    ; store sum2, r32
+    LD A, ($F040)     ; Virtual register 32 from memory
+    LD (IX-10), A
+    ; r33 = load sum1
+    LD A, (IX-9)
+    LD L, A         ; Store to physical register L
+    ; r34 = load sum2
+    LD A, (IX-10)
+    LD L, A         ; Store to HL (low byte)
+    ; r35 = r33 + r34
+    LD D, H
+    LD E, L
+    ; Register 34 already in HL
+    ADD HL, DE
+    ; return r35
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.stack_variables.outer$u8
+examples.stack_variables.outer$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.stack_variables.outer$u8_param_x.op:
+examples.stack_variables.outer$u8_param_x equ examples.stack_variables.outer$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD L, A         ; Store to physical register L
+    ; r4 = 1
+    LD A, 1
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    ADD HL, DE
+    ; store local1, r5
+    LD A, H
+    LD ($F004), A
+    ; r7 = load local1
+    LD A, ($F004)
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = load local1
+    LD A, ($F004)
+    LD H, A         ; Store to physical register H
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.stack_variables.inner$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.stack_variables.inner$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.stack_variables.inner$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter y = 0
+    LD A, 0               ; Parameter value
+    LD (examples.stack_variables.inner$u8_param_y+1), A   ; Patch parameter immediate
+    ; r9 = call examples.stack_variables.inner$u8
+    ; Call to examples.stack_variables.inner$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.stack_variables.inner$u8
+    ; store result, r9
+    LD A, L
+    LD ($F00C), A
+    ; r11 = load result
+    LD A, ($F00C)
+    LD H, A         ; Store to physical register H
+    ; r12 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r13 = r11 + r12
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 13 already in HL
+    ; store local2, r13
+    LD A, L
+    LD ($F014), A
+    ; r14 = load local2
+    LD A, ($F014)
+    LD L, A         ; Store to physical register L
+    LD A, L
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.stack_variables.outer$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.stack_variables.outer$u8_store_addr.op:
+examples.stack_variables.outer$u8_store_addr equ examples.stack_variables.outer$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.stack_variables.inner$u8
+examples.stack_variables.inner$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.stack_variables.inner$u8_param_y.op:
+examples.stack_variables.inner$u8_param_y equ examples.stack_variables.inner$u8_param_y.op + 1
+    LD A, #00      ; Parameter y (gets patched)
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 * r4
+    LD A, ($F006)     ; Virtual register 3 from memory
+    ; Optimized multiplication by 2 (shift left 1)
+    ADD A, A          ; A << 1
+    LD L, A
+    LD H, 0
+    ; store temp, r5
+    LD A, L
+    LD ($F004), A
+    ; r6 = load temp
+    LD A, ($F004)
+    LD H, A         ; Store to physical register H
+    ; return r6
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.stack_variables.main
+examples.stack_variables.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 10
+    LD A, 10
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r5 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.stack_variables.test_stack_locals$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.stack_variables.test_stack_locals$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.stack_variables.test_stack_locals$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.stack_variables.test_stack_locals$u8$u8_param_x+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter y = 0
+    LD A, 0               ; Parameter value
+    LD (examples.stack_variables.test_stack_locals$u8$u8_param_y+1), A   ; Patch parameter immediate
+    ; r6 = call examples.stack_variables.test_stack_locals$u8$u8
+    ; Call to examples.stack_variables.test_stack_locals$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.stack_variables.test_stack_locals$u8$u8
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; store r1, r6
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD ($F002), A
+    ; r8 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; r9 = 5
+    LD A, 5
+    LD L, A         ; Store to HL (low byte)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.stack_variables.factorial$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.stack_variables.factorial$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.stack_variables.factorial$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (examples.stack_variables.factorial$u8_param_n+1), A   ; Patch parameter immediate
+    ; r10 = call examples.stack_variables.factorial$u8
+    ; Call to examples.stack_variables.factorial$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.stack_variables.factorial$u8
+    ; store r2, r10
+    LD ($F00E), HL
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.stack_variables.many_locals_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.stack_variables.many_locals_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.stack_variables.many_locals_store_addr), HL
+    ; r12 = call examples.stack_variables.many_locals
+    ; Call to examples.stack_variables.many_locals (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.stack_variables.many_locals
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; store r3, r12
+    LD A, ($F018)     ; Virtual register 12 from memory
+    LD ($F016), A
+    ; r14 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; r15 = 10
+    LD A, 10
+    LD L, A         ; Store to HL (low byte)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.stack_variables.outer$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.stack_variables.outer$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.stack_variables.outer$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.stack_variables.outer$u8_param_x+1), A   ; Patch parameter immediate
+    ; r16 = call examples.stack_variables.outer$u8
+    ; Call to examples.stack_variables.outer$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.stack_variables.outer$u8
+    ; store r4, r16
+    LD A, H
+    LD ($F01A), A
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

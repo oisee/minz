@@ -1,0 +1,126 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.lambda_transform_poc.test_local_lambda$add5_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_transform_poc.test_local_lambda() -> u8
+  @smc
+  Locals:
+    r1 = a: u8
+    r4 = b: u8
+  Instructions:
+      0: r2 = 10
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r3 = call examples.lambda_transform_poc.test_local_lambda$add5_0
+      5: store a, r3
+      6: r5 = 20
+      7: PATCH_TEMPLATE
+      8: PATCH_TARGET
+      9: PATCH_PARAM
+     10: r6 = call examples.lambda_transform_poc.test_local_lambda$add5_0
+     11: store b, r6
+     12: r7 = load a
+     13: r8 = load b
+     14: r9 = r7 + r8
+     15: return
+
+Function examples.lambda_transform_poc.test_reuse$double_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 2
+      2: r3 = r1 * r2
+      3: return
+
+Function examples.lambda_transform_poc.test_reuse$triple_2(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 3
+      2: r3 = r1 * r2
+      3: return
+
+Function examples.lambda_transform_poc.test_reuse() -> u8
+  @smc
+  Locals:
+    r1 = a: u8
+    r4 = b: u8
+    r7 = c: u8
+  Instructions:
+      0: r2 = 5
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r3 = call examples.lambda_transform_poc.test_reuse$double_1
+      5: store a, r3
+      6: r5 = 5
+      7: PATCH_TEMPLATE
+      8: PATCH_TARGET
+      9: PATCH_PARAM
+     10: r6 = call examples.lambda_transform_poc.test_reuse$triple_2
+     11: store b, r6
+     12: r8 = 10
+     13: PATCH_TEMPLATE
+     14: PATCH_TARGET
+     15: PATCH_PARAM
+     16: r9 = call examples.lambda_transform_poc.test_reuse$double_1
+     17: store c, r9
+     18: r10 = load a
+     19: r11 = load b
+     20: r12 = r10 + r11
+     21: r13 = load c
+     22: r14 = r12 + r13
+     23: return
+
+Function examples.lambda_transform_poc.test_no_capture$good_3(y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_transform_poc.test_no_capture() -> u8
+  @smc
+  Locals:
+    r1 = x: u8
+  Instructions:
+      0: r2 = 10
+      1: store x, r2
+      2: r3 = load x
+      3: PATCH_TEMPLATE
+      4: PATCH_TARGET
+      5: PATCH_PARAM
+      6: r4 = call examples.lambda_transform_poc.test_no_capture$good_3
+      7: return
+
+Function examples.lambda_transform_poc.main() -> u8
+  @smc
+  Locals:
+    r1 = r1: u8
+    r3 = r2: u8
+    r5 = r3: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: r2 = call examples.lambda_transform_poc.test_local_lambda
+      3: store r1, r2
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: r4 = call examples.lambda_transform_poc.test_reuse
+      7: store r2, r4
+      8: PATCH_TEMPLATE
+      9: PATCH_TARGET
+     10: r6 = call examples.lambda_transform_poc.test_no_capture
+     11: store r3, r6
+     12: r7 = load r1
+     13: return
+

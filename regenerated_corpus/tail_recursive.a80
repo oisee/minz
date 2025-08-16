@@ -1,0 +1,419 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tail_recursive.factorial_tail$u8$u16
+examples.tail_recursive.factorial_tail$u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+examples.tail_recursive.factorial_tail$u8$u16_param_n.op:
+examples.tail_recursive.factorial_tail$u8$u16_param_n equ examples.tail_recursive.factorial_tail$u8$u16_param_n.op + 1
+    LD A, #00      ; Parameter n (gets patched)
+    ; Register 3 already in A
+    ; r4 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 == r4
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_tail_recursive_factorial_tail_u8_u16_eq_true_0
+    LD HL, 0       ; False
+    JP examples_tail_recursive_factorial_tail_u8_u16_eq_done_0
+examples_tail_recursive_factorial_tail_u8_u16_eq_true_0:
+    LD HL, 1       ; True
+examples_tail_recursive_factorial_tail_u8_u16_eq_done_0:
+    ; jump_if_not r5, else_1
+    LD A, C
+    OR A
+    JP Z, examples_tail_recursive_factorial_tail_u8_u16_else_1
+examples.tail_recursive.factorial_tail$u8$u16_param_acc.op:
+examples.tail_recursive.factorial_tail$u8$u16_param_acc equ examples.tail_recursive.factorial_tail$u8$u16_param_acc.op + 1
+    LD DE, #0000   ; SMC parameter acc
+    EX DE, HL      ; Move to HL for storage
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; return r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    RET
+    ; jump end_if_2
+    JP examples_tail_recursive_factorial_tail_u8_u16_end_if_2
+    ; else_1:
+examples_tail_recursive_factorial_tail_u8_u16_else_1:
+    ; end_if_2:
+examples_tail_recursive_factorial_tail_u8_u16_end_if_2:
+    LD A, (examples.tail_recursive.factorial_tail$u8$u16_param_n)
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r8 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r9 = r7 - r8
+    EXX               ; Switch to shadow registers
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    LD A, (examples.tail_recursive.factorial_tail$u8$u16_param_n)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    LD HL, (examples.tail_recursive.factorial_tail$u8$u16_param_acc)
+    LD B, H
+    LD C, L
+    ; r12 = r10 * r11
+    ; 8-bit multiplication
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = multiplicand
+    LD A, C
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, examples_tail_recursive_factorial_tail_u8_u16_mul_done_1
+examples_tail_recursive_factorial_tail_u8_u16_mul_loop_1:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, examples_tail_recursive_factorial_tail_u8_u16_mul_loop_1
+examples_tail_recursive_factorial_tail_u8_u16_mul_done_1:
+    LD ($F018), HL    ; Virtual register 12 to memory
+    LD A, (examples.tail_recursive.factorial_tail$u8$u16_param_n)
+    LD H, A         ; Store to physical register H
+    ; r14 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r15 = r13 - r14
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; Register 15 already in HL
+    LD A, (examples.tail_recursive.factorial_tail$u8$u16_param_n)
+    LD H, A         ; Store to physical register H
+    LD HL, (examples.tail_recursive.factorial_tail$u8$u16_param_acc)
+    ; r18 = r16 * r17
+    ; 8-bit multiplication
+    LD A, H
+    LD B, A       ; B = multiplicand
+    LD A, H
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, examples_tail_recursive_factorial_tail_u8_u16_mul_done_2
+examples_tail_recursive_factorial_tail_u8_u16_mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, examples_tail_recursive_factorial_tail_u8_u16_mul_loop_2
+examples_tail_recursive_factorial_tail_u8_u16_mul_done_2:
+    ; Register 18 already in HL
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.tail_recursive.factorial_tail$u8$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.tail_recursive.factorial_tail$u8$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.tail_recursive.factorial_tail$u8$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (examples.tail_recursive.factorial_tail$u8$u16_param_n+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter acc = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.tail_recursive.factorial_tail$u8$u16_param_acc+1), HL  ; Patch parameter immediate
+    ; === SMC Recursive Context Save ===
+    LD A, (examples.tail_recursive.factorial_tail$u8$u16_param_n)
+    PUSH AF
+    LD HL, (examples.tail_recursive.factorial_tail$u8$u16_param_acc)
+    PUSH HL
+    ; === Update SMC Parameters ===
+    CALL examples.tail_recursive.factorial_tail$u8$u16
+    ; === SMC Recursive Context Restore ===
+    POP HL
+    LD (examples.tail_recursive.factorial_tail$u8$u16_param_acc), HL
+    POP AF
+    LD (examples.tail_recursive.factorial_tail$u8$u16_param_n), A
+    LD A, L
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.tail_recursive.factorial_tail$u8$u16_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.tail_recursive.factorial_tail$u8$u16_store_addr.op:
+examples.tail_recursive.factorial_tail$u8$u16_store_addr equ examples.tail_recursive.factorial_tail$u8$u16_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tail_recursive.factorial$u8
+examples.tail_recursive.factorial$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.tail_recursive.factorial$u8_param_n.op:
+examples.tail_recursive.factorial$u8_param_n equ examples.tail_recursive.factorial$u8_param_n.op + 1
+    LD A, #00      ; Parameter n (gets patched)
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    LD A, (examples.tail_recursive.factorial$u8_param_n)
+    LD L, A         ; Store to physical register L
+    ; r5 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.tail_recursive.factorial_tail$u8$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.tail_recursive.factorial_tail$u8$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.tail_recursive.factorial_tail$u8$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (examples.tail_recursive.factorial_tail$u8$u16_param_n+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter acc = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.tail_recursive.factorial_tail$u8$u16_param_acc+1), HL  ; Patch parameter immediate
+    ; r6 = call examples.tail_recursive.factorial_tail$u8$u16
+    ; Call to examples.tail_recursive.factorial_tail$u8$u16 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.tail_recursive.factorial_tail$u8$u16
+    LD A, H
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.tail_recursive.factorial$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.tail_recursive.factorial$u8_store_addr.op:
+examples.tail_recursive.factorial$u8_store_addr equ examples.tail_recursive.factorial$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tail_recursive.sum_tail$u16$u16
+examples.tail_recursive.sum_tail$u16$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+examples.tail_recursive.sum_tail$u16$u16_param_n.op:
+examples.tail_recursive.sum_tail$u16$u16_param_n equ examples.tail_recursive.sum_tail$u16$u16_param_n.op + 1
+    LD HL, #0000   ; SMC parameter n
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r4 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; r5 = r3 == r4
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_tail_recursive_sum_tail_u16_u16_eq_true_3
+    LD HL, 0       ; False
+    JP examples_tail_recursive_sum_tail_u16_u16_eq_done_3
+examples_tail_recursive_sum_tail_u16_u16_eq_true_3:
+    LD HL, 1       ; True
+examples_tail_recursive_sum_tail_u16_u16_eq_done_3:
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; jump_if_not r5, else_3
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    OR A
+    JP Z, examples_tail_recursive_sum_tail_u16_u16_else_3
+examples.tail_recursive.sum_tail$u16$u16_param_acc.op:
+examples.tail_recursive.sum_tail$u16$u16_param_acc equ examples.tail_recursive.sum_tail$u16$u16_param_acc.op + 1
+    LD DE, #0000   ; SMC parameter acc
+    EX DE, HL      ; Move to HL for storage
+    ; Register 6 already in HL
+    ; return r6
+    ; Register 6 already in HL
+    RET
+    ; jump end_if_4
+    JP examples_tail_recursive_sum_tail_u16_u16_end_if_4
+    ; else_3:
+examples_tail_recursive_sum_tail_u16_u16_else_3:
+    ; end_if_4:
+examples_tail_recursive_sum_tail_u16_u16_end_if_4:
+    LD HL, (examples.tail_recursive.sum_tail$u16$u16_param_n)
+    ; Register 7 already in HL
+    ; r8 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r9 = r7 - r8
+    ; Register 7 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    LD ($F012), HL    ; Virtual register 9 to memory
+    LD HL, (examples.tail_recursive.sum_tail$u16$u16_param_acc)
+    ; Register 10 already in HL
+    LD HL, (examples.tail_recursive.sum_tail$u16$u16_param_n)
+    ; Register 11 already in HL
+    ; r12 = r10 + r11
+    ; Register 10 already in HL
+    LD D, H
+    LD E, L
+    ; Register 11 already in HL
+    ADD HL, DE
+    LD ($F018), HL    ; Virtual register 12 to memory
+    LD HL, (examples.tail_recursive.sum_tail$u16$u16_param_n)
+    ; Register 13 already in HL
+    ; r14 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r15 = r13 - r14
+    ; Register 13 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; Register 15 already in HL
+    LD HL, (examples.tail_recursive.sum_tail$u16$u16_param_acc)
+    ; Register 16 already in HL
+    LD HL, (examples.tail_recursive.sum_tail$u16$u16_param_n)
+    ; Register 17 already in HL
+    ; r18 = r16 + r17
+    ; Register 16 already in HL
+    LD D, H
+    LD E, L
+    ; Register 17 already in HL
+    ADD HL, DE
+    LD ($F024), HL    ; Virtual register 18 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.tail_recursive.sum_tail$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.tail_recursive.sum_tail$u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.tail_recursive.sum_tail$u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.tail_recursive.sum_tail$u16$u16_param_n+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter acc = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.tail_recursive.sum_tail$u16$u16_param_acc+1), HL  ; Patch parameter immediate
+    ; === SMC Recursive Context Save ===
+    LD HL, (examples.tail_recursive.sum_tail$u16$u16_param_n)
+    PUSH HL
+    LD HL, (examples.tail_recursive.sum_tail$u16$u16_param_acc)
+    PUSH HL
+    ; === Update SMC Parameters ===
+    CALL examples.tail_recursive.sum_tail$u16$u16
+    ; === SMC Recursive Context Restore ===
+    POP HL
+    LD (examples.tail_recursive.sum_tail$u16$u16_param_acc), HL
+    POP HL
+    LD (examples.tail_recursive.sum_tail$u16$u16_param_n), HL
+    ; Register 19 already in HL
+    LD A, L
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.tail_recursive.sum_tail$u16$u16_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.tail_recursive.sum_tail$u16$u16_store_addr.op:
+examples.tail_recursive.sum_tail$u16$u16_store_addr equ examples.tail_recursive.sum_tail$u16$u16_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tail_recursive.main
+examples.tail_recursive.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r3 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.tail_recursive.factorial$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.tail_recursive.factorial$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.tail_recursive.factorial$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (examples.tail_recursive.factorial$u8_param_n+1), A   ; Patch parameter immediate
+    ; r4 = call examples.tail_recursive.factorial$u8
+    ; Call to examples.tail_recursive.factorial$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.tail_recursive.factorial$u8
+    ; Register 4 already in HL
+    ; store result, r4
+    ; Register 4 already in HL
+    LD ($F002), HL
+    ; r6 = 100
+    LD A, 100
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r7 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r8 = 100
+    LD A, 100
+    LD L, A         ; Store to physical register L
+    ; r9 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.tail_recursive.sum_tail$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.tail_recursive.sum_tail$u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.tail_recursive.sum_tail$u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.tail_recursive.sum_tail$u16$u16_param_n+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter acc = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.tail_recursive.sum_tail$u16$u16_param_acc+1), HL  ; Patch parameter immediate
+    ; r10 = call examples.tail_recursive.sum_tail$u16$u16
+    ; Call to examples.tail_recursive.sum_tail$u16$u16 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.tail_recursive.sum_tail$u16$u16
+    ; store sum, r10
+    LD ($F00A), HL
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

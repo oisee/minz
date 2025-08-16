@@ -1,0 +1,181 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.stack_variables.test_stack_locals$u8$u8(x: u8, y: u8) -> u8
+  @smc
+  Locals:
+    r3 = a: u8
+    r7 = b: u8
+    r11 = c: u8
+  Instructions:
+      0: LOAD_PARAM
+      1: r5 = 10
+      2: r6 = r4 + r5
+      3: store a, r6
+      4: LOAD_PARAM
+      5: r9 = 20
+      6: r10 = r8 + r9
+      7: store b, r10
+      8: r12 = load a
+      9: r13 = load b
+     10: r14 = r12 + r13
+     11: store c, r14
+     12: r15 = load c
+     13: return r15
+
+Function examples.stack_variables.factorial$u8(n: u8) -> u16
+  @smc
+  @recursive
+  Locals:
+    r6 = prev: u16
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: end_if_2:
+      9: LOAD_PARAM
+     10: r8 = 1
+     11: r9 = r7 - r8
+     12: LOAD_PARAM
+     13: r11 = 1
+     14: r12 = r10 - r11
+     15: PATCH_TEMPLATE
+     16: PATCH_TARGET
+     17: PATCH_PARAM
+     18: r13 = call examples.stack_variables.factorial$u8
+     19: store prev, r13
+     20: LOAD_PARAM
+     21: r15 = load prev
+     22: r16 = r14 * r15
+     23: return r16
+
+Function examples.stack_variables.many_locals() -> u8
+  Locals:
+    r1 = a: u8
+    r3 = b: u8
+    r5 = c: u8
+    r7 = d: u8
+    r9 = e: u8
+    r11 = f: u8
+    r13 = g: u8
+    r15 = h: u8
+    r17 = sum1: u8
+    r25 = sum2: u8
+  Instructions:
+      0: r2 = 1
+      1: store a, r2
+      2: r4 = 2
+      3: store b, r4
+      4: r6 = 3
+      5: store c, r6
+      6: r8 = 4
+      7: store d, r8
+      8: r10 = 5
+      9: store e, r10
+     10: r12 = 6
+     11: store f, r12
+     12: r14 = 7
+     13: store g, r14
+     14: r16 = 8
+     15: store h, r16
+     16: r18 = load a
+     17: r19 = load b
+     18: r20 = r18 + r19
+     19: r21 = load c
+     20: r22 = r20 + r21
+     21: r23 = load d
+     22: r24 = r22 + r23
+     23: store sum1, r24
+     24: r26 = load e
+     25: r27 = load f
+     26: r28 = r26 + r27
+     27: r29 = load g
+     28: r30 = r28 + r29
+     29: r31 = load h
+     30: r32 = r30 + r31
+     31: store sum2, r32
+     32: r33 = load sum1
+     33: r34 = load sum2
+     34: r35 = r33 + r34
+     35: return r35
+
+Function examples.stack_variables.outer$u8(x: u8) -> u8
+  @smc
+  Locals:
+    r2 = local1: u8
+    r6 = result: u8
+    r10 = local2: u8
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 1
+      2: r5 = r3 + r4
+      3: store local1, r5
+      4: r7 = load local1
+      5: r8 = load local1
+      6: PATCH_TEMPLATE
+      7: PATCH_TARGET
+      8: PATCH_PARAM
+      9: r9 = call examples.stack_variables.inner$u8
+     10: store result, r9
+     11: r11 = load result
+     12: r12 = 1
+     13: r13 = r11 + r12
+     14: store local2, r13
+     15: r14 = load local2
+     16: return r14
+
+Function examples.stack_variables.inner$u8(y: u8) -> u8
+  @smc
+  Locals:
+    r2 = temp: u8
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 2
+      2: r5 = r3 * r4
+      3: store temp, r5
+      4: r6 = load temp
+      5: return r6
+
+Function examples.stack_variables.main() -> void
+  @smc
+  Locals:
+    r1 = r1: u8
+    r7 = r2: u16
+    r11 = r3: u8
+    r13 = r4: u8
+  Instructions:
+      0: r2 = 5
+      1: r3 = 10
+      2: r4 = 5
+      3: r5 = 10
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: PATCH_PARAM
+      8: r6 = call examples.stack_variables.test_stack_locals$u8$u8
+      9: store r1, r6
+     10: r8 = 5
+     11: r9 = 5
+     12: PATCH_TEMPLATE
+     13: PATCH_TARGET
+     14: PATCH_PARAM
+     15: r10 = call examples.stack_variables.factorial$u8
+     16: store r2, r10
+     17: PATCH_TEMPLATE
+     18: PATCH_TARGET
+     19: r12 = call examples.stack_variables.many_locals
+     20: store r3, r12
+     21: r14 = 10
+     22: r15 = 10
+     23: PATCH_TEMPLATE
+     24: PATCH_TARGET
+     25: PATCH_PARAM
+     26: r16 = call examples.stack_variables.outer$u8
+     27: store r4, r16
+     28: return
+

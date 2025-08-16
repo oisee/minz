@@ -1,0 +1,72 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   examples.global_variables.g_byte: u8
+;   examples.global_variables.g_word: u16
+;   examples.global_variables.g_flag: bool
+;   examples.global_variables.g_calc: u8
+;   examples.global_variables.g_shift: u16
+;   examples.global_variables.g_masked: u8
+;   examples.global_variables.g_uninit_byte: u8
+;   examples.global_variables.g_uninit_word: u16
+
+Function examples.global_variables.main() -> void
+  @smc
+  Instructions:
+      0: r1 = load examples.global_variables.g_byte
+      1: r2 = 42
+      2: r3 = r1 == r2
+      3: jump_if_not r3, else_1
+      4: jump end_if_2
+      5: else_1:
+      6: end_if_2:
+      7: r4 = load examples.global_variables.g_word
+      8: r5 = 4660
+      9: r6 = r4 == r5
+     10: jump_if_not r6, else_3
+     11: jump end_if_4
+     12: else_3:
+     13: end_if_4:
+     14: r7 = load examples.global_variables.g_flag
+     15: jump_if_not r7, else_5
+     16: jump end_if_6
+     17: else_5:
+     18: end_if_6:
+     19: r8 = load examples.global_variables.g_calc
+     20: r9 = 15
+     21: r10 = r8 == r9
+     22: jump_if_not r10, else_7
+     23: jump end_if_8
+     24: else_7:
+     25: end_if_8:
+     26: r11 = load examples.global_variables.g_shift
+     27: r12 = 256
+     28: r13 = r11 == r12
+     29: jump_if_not r13, else_9
+     30: jump end_if_10
+     31: else_9:
+     32: end_if_10:
+     33: r14 = load examples.global_variables.g_masked
+     34: r15 = 15
+     35: r16 = r14 == r15
+     36: jump_if_not r16, else_11
+     37: jump end_if_12
+     38: else_11:
+     39: end_if_12:
+     40: r17 = load examples.global_variables.g_uninit_byte
+     41: r18 = 0
+     42: r19 = r17 == r18
+     43: jump_if_not r19, else_13
+     44: jump end_if_14
+     45: else_13:
+     46: end_if_14:
+     47: r20 = load examples.global_variables.g_uninit_word
+     48: r21 = 0
+     49: r22 = r20 == r21
+     50: jump_if_not r22, else_15
+     51: jump end_if_16
+     52: else_15:
+     53: end_if_16:
+     54: return
+

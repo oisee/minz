@@ -1,0 +1,135 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.lambda_transform_test.test_basic_lambda$add_0(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r4 = r2 + r3
+      3: return
+
+Function examples.lambda_transform_test.test_basic_lambda() -> u8
+  @smc
+  Instructions:
+      0: r1 = 5
+      1: r2 = 3
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: PATCH_PARAM
+      6: r3 = call examples.lambda_transform_test.test_basic_lambda$add_0
+      7: return
+
+Function examples.lambda_transform_test.test_lambda_reference$double_1(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 2
+      2: r3 = r1 * r2
+      3: return
+
+Function examples.lambda_transform_test.test_lambda_reference() -> u8
+  @smc
+  Instructions:
+      0: r1 = 10
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r2 = call examples.lambda_transform_test.test_lambda_reference$double_1
+      5: return
+
+Function examples.lambda_transform_test.test_lambda_with_operations$add5_2(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_transform_test.test_lambda_with_operations$mul2_3(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 2
+      2: r3 = r1 * r2
+      3: return
+
+Function examples.lambda_transform_test.test_lambda_with_operations() -> u8
+  @smc
+  Locals:
+    r1 = a: u8
+    r4 = b: u8
+  Instructions:
+      0: r2 = 10
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r3 = call examples.lambda_transform_test.test_lambda_with_operations$add5_2
+      5: store a, r3
+      6: r5 = load a
+      7: PATCH_TEMPLATE
+      8: PATCH_TARGET
+      9: PATCH_PARAM
+     10: r6 = call examples.lambda_transform_test.test_lambda_with_operations$mul2_3
+     11: store b, r6
+     12: r7 = load b
+     13: return
+
+Function examples.lambda_transform_test.test_lambda_in_expression$increment_4(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 1
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_transform_test.test_lambda_in_expression() -> u8
+  @smc
+  Instructions:
+      0: r1 = 5
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r2 = call examples.lambda_transform_test.test_lambda_in_expression$increment_4
+      5: r3 = 10
+      6: PATCH_TEMPLATE
+      7: PATCH_TARGET
+      8: PATCH_PARAM
+      9: r4 = call examples.lambda_transform_test.test_lambda_in_expression$increment_4
+     10: r5 = r2 + r4
+     11: return
+
+Function examples.lambda_transform_test.main() -> u8
+  @smc
+  Locals:
+    r1 = a: u8
+    r3 = b: u8
+    r5 = c: u8
+    r7 = d: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: r2 = call examples.lambda_transform_test.test_basic_lambda
+      3: store a, r2
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: r4 = call examples.lambda_transform_test.test_lambda_reference
+      7: store b, r4
+      8: PATCH_TEMPLATE
+      9: PATCH_TARGET
+     10: r6 = call examples.lambda_transform_test.test_lambda_with_operations
+     11: store c, r6
+     12: PATCH_TEMPLATE
+     13: PATCH_TARGET
+     14: r8 = call examples.lambda_transform_test.test_lambda_in_expression
+     15: store d, r8
+     16: r9 = load a
+     17: r10 = load b
+     18: r11 = r9 + r10
+     19: r12 = load c
+     20: r13 = r11 + r12
+     21: r14 = load d
+     22: r15 = r13 + r14
+     23: return
+

@@ -1,0 +1,139 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.math_functions.abs$i8(x: i8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 0
+      2: r4 = r2 < r3
+      3: jump_if_not r4, else_1
+      4: LOAD_PARAM
+      5: NEG
+      6: return r6
+      7: jump end_if_2
+      8: else_1:
+      9: end_if_2:
+     10: LOAD_PARAM
+     11: return r7
+
+Function examples.math_functions.min$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 < r4
+      3: jump_if_not r5, else_3
+      4: LOAD_PARAM
+      5: return r6
+      6: jump end_if_4
+      7: else_3:
+      8: end_if_4:
+      9: LOAD_PARAM
+     10: return r7
+
+Function examples.math_functions.max$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 > r4
+      3: jump_if_not r5, else_5
+      4: LOAD_PARAM
+      5: return r6
+      6: jump end_if_6
+      7: else_5:
+      8: end_if_6:
+      9: LOAD_PARAM
+     10: return r7
+
+Function examples.math_functions.clamp$u8$u8$u8(value: u8, min_val: u8, max_val: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r6 = r4 < r5
+      3: jump_if_not r6, else_7
+      4: LOAD_PARAM
+      5: return r7
+      6: jump end_if_8
+      7: else_7:
+      8: end_if_8:
+      9: LOAD_PARAM
+     10: LOAD_PARAM
+     11: r10 = r8 > r9
+     12: jump_if_not r10, else_9
+     13: LOAD_PARAM
+     14: return r11
+     15: jump end_if_10
+     16: else_9:
+     17: end_if_10:
+     18: LOAD_PARAM
+     19: return r12
+
+Function examples.math_functions.lerp$u8$u8$u8(a: u8, b: u8, t: u8) -> u8
+  @smc
+  Locals:
+    r4 = diff: i16
+    r8 = scaled: u16
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r7 = r5 - r6
+      3: store diff, r7
+      4: r9 = load diff
+      5: LOAD_PARAM
+      6: r11 = r9 * r10
+      7: r12 = 255
+      8: DIV
+      9: store scaled, r13
+     10: LOAD_PARAM
+     11: r15 = load scaled
+     12: r16 = r14 + r15
+     13: return r16
+
+Function examples.math_functions.sqrt_approx$u16(n: u16) -> u8
+  @smc
+  Locals:
+    r6 = x: u16
+    r8 = y: u16
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 0
+      2: r4 = r2 == r3
+      3: jump_if_not r4, else_11
+      4: r5 = 0
+      5: return r5
+      6: jump end_if_12
+      7: else_11:
+      8: end_if_12:
+      9: LOAD_PARAM
+     10: store x, r7
+     11: r9 = load x
+     12: r10 = 1
+     13: r11 = r9 + r10
+     14: r12 = 2
+     15: DIV
+     16: store y, r13
+     17: loop_13:
+     18: r14 = load y
+     19: r15 = load x
+     20: r16 = r14 < r15
+     21: jump_if_not r16, end_loop_14
+     22: r17 = load y
+     23: store x, r17
+     24: r18 = load x
+     25: LOAD_PARAM
+     26: r20 = load x
+     27: DIV
+     28: r22 = r18 + r21
+     29: r23 = 2
+     30: DIV
+     31: store y, r24
+     32: jump loop_13
+     33: end_loop_14:
+     34: r25 = load x
+     35: r26 = 255
+     36: r27 = r25 & r26
+     37: return r27
+

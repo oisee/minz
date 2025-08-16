@@ -1,0 +1,48 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.basic_functions.add$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function examples.basic_functions.main() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u8
+    r5 = result: u8
+    r11 = i: u8
+  Instructions:
+      0: r2 = 5
+      1: store x, r2
+      2: r4 = 3
+      3: store y, r4
+      4: r6 = load x
+      5: r7 = load y
+      6: r8 = load x
+      7: r9 = load y
+      8: PATCH_TEMPLATE
+      9: PATCH_TARGET
+     10: PATCH_PARAM
+     11: PATCH_PARAM
+     12: r10 = call examples.basic_functions.add$u8$u8
+     13: store result, r10
+     14: r12 = 0
+     15: store i, r12
+     16: loop_1:
+     17: r13 = load i
+     18: r14 = 10
+     19: r15 = r13 < r14
+     20: jump_if_not r15, end_loop_2
+     21: r16 = load i
+     22: r17 = 1
+     23: r18 = r16 + r17
+     24: store i, r18
+     25: jump loop_1
+     26: end_loop_2:
+     27: return
+

@@ -1,0 +1,1110 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 33    ; Length
+    DB "Lambda would capture multiplier: "
+str_1:
+    DB 37    ; Length
+    DB "Direct patching into code - no heap!", 10
+str_2:
+    DB 26    ; Length
+    DB "Traditional closure size: "
+str_3:
+    DB 35    ; Length
+    DB "Traditional overhead: 38+ T-states", 10
+str_4:
+    DB 43    ; Length
+    DB "TRUE SMC lambda size: 0 bytes (it's code!)", 10
+str_5:
+    DB 30    ; Length
+    DB "TRUE SMC overhead: 0 T-states", 10
+str_6:
+    DB 31    ; Length
+    DB "Performance gain: 3-5x faster!", 10
+str_7:
+    DB 28    ; Length
+    DB "Shader captures: brightness="
+str_8:
+    DB 11    ; Length
+    DB ", contrast="
+str_9:
+    DB 35    ; Length
+    DB "Zero memory access during shading!", 10
+str_10:
+    DB 48    ; Length
+    DB "Event handlers will capture game state directly", 10
+str_11:
+    DB 42    ; Length
+    DB "No pointer dereferencing = maximum speed!", 10
+str_12:
+    DB 34    ; Length
+    DB "=================================", 10
+str_13:
+    DB 31    ; Length
+    DB "TRUE SMC Lambdas - MinZ Vision", 10
+str_14:
+    DB 35    ; Length
+    DB "=================================", 10, 10
+str_15:
+    DB 16    ; Length
+    DB "Current Status:", 10
+str_16:
+    DB 31    ; Length
+    DB 226, 156, 147, " Lambda syntax supported", 10
+str_17:
+    DB 35    ; Length
+    DB 226, 156, 147, " Capture by absolute address", 10
+str_18:
+    DB 30    ; Length
+    DB 226, 156, 147, " SMC optimization ready", 10
+str_19:
+    DB 37    ; Length
+    DB 226, 143, 179, " Lambda calling (coming soon)", 10, 10
+str_20:
+    DB 30    ; Length
+    DB 10, "--- Performance Analysis ---", 10
+str_21:
+    DB 27    ; Length
+    DB 10, "--- Use Case Patterns ---", 10
+str_22:
+    DB 18    ; Length
+    DB "Iterator pattern: "
+str_23:
+    DB 35    ; Length
+    DB 10, "=================================", 10
+str_24:
+    DB 39    ; Length
+    DB "The Future is Self-Modifying! ", 240, 159, 154, 128, 10
+str_25:
+    DB 34    ; Length
+    DB "=================================", 10
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: std.mem.fill$p_u8$u8$u16
+std.mem.fill$p_u8$u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = 0
+    LD A, 0
+    ; Register 5 already in A
+    ; store i, r5
+    LD ($F008), HL
+    ; loop_3:
+std_mem_fill_p_u8_u8_u16_loop_3:
+    ; r6 = load i
+    LD HL, ($F008)
+std.mem.fill$p_u8$u8$u16_param_len.op:
+std.mem.fill$p_u8$u8$u16_param_len equ std.mem.fill$p_u8$u8$u16_param_len.op + 1
+    LD BC, #0000   ; SMC parameter len
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    LD D, H
+    LD E, L
+    ; r8 = r6 < r7
+    ; Register 7 already in DE
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, std_mem_fill_p_u8_u8_u16_lt_true_0
+    LD HL, 0       ; False
+    JP std_mem_fill_p_u8_u8_u16_lt_done_0
+std_mem_fill_p_u8_u8_u16_lt_true_0:
+    LD HL, 1       ; True
+std_mem_fill_p_u8_u8_u16_lt_done_0:
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; jump_if_not r8, end_loop_4
+    EXX               ; Switch to shadow registers
+    LD A, L         ; From shadow HL' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, std_mem_fill_p_u8_u8_u16_end_loop_4
+std.mem.fill$p_u8$u8$u16_param_value.op:
+std.mem.fill$p_u8$u8$u16_param_value equ std.mem.fill$p_u8$u8$u16_param_value.op + 1
+    LD B, #00      ; Parameter value (gets patched)
+    LD A, B
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+; TSMC reference parameter dst
+dst$immOP:
+    LD HL, 0000      ; TSMC ref address for dst
+dst$imm0 EQU dst$immOP+1
+    ; r11 = load i
+    LD HL, ($F008)
+    ; Calculate array element address
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 12 already in HL
+    ; Store to array[index] (u8)
+    ; Register 12 already in HL
+    PUSH HL
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    POP HL
+    LD (HL), A
+    ; r13 = load i
+    LD HL, ($F008)
+    ; r14 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r15 = r13 + r14
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store i, r15
+    LD ($F008), HL
+    ; jump loop_3
+    JP std_mem_fill_p_u8_u8_u16_loop_3
+    ; end_loop_4:
+std_mem_fill_p_u8_u8_u16_end_loop_4:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: std.mem.compare$p_u8$p_u8$u16
+std.mem.compare$p_u8$p_u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; store i, r5
+    LD ($F008), HL
+    ; loop_5:
+std_mem_compare_p_u8_p_u8_u16_loop_5:
+    ; r6 = load i
+    LD HL, ($F008)
+    ; Register 6 already in HL
+std.mem.compare$p_u8$p_u8$u16_param_len.op:
+std.mem.compare$p_u8$p_u8$u16_param_len equ std.mem.compare$p_u8$p_u8$u16_param_len.op + 1
+    LD BC, #0000   ; SMC parameter len
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; Register 7 already in HL
+    ; r8 = r6 < r7
+    ; Register 6 already in HL
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, std_mem_compare_p_u8_p_u8_u16_lt_true_1
+    LD HL, 0       ; False
+    JP std_mem_compare_p_u8_p_u8_u16_lt_done_1
+std_mem_compare_p_u8_p_u8_u16_lt_true_1:
+    LD HL, 1       ; True
+std_mem_compare_p_u8_p_u8_u16_lt_done_1:
+    ; jump_if_not r8, end_loop_6
+    LD A, H
+    OR A
+    JP Z, std_mem_compare_p_u8_p_u8_u16_end_loop_6
+; TSMC reference parameter a
+a$immOP:
+    LD HL, 0000      ; TSMC ref address for a
+a$imm0 EQU a$immOP+1
+    ; r10 = load i
+    LD HL, ($F008)
+    ; Register 10 already in HL
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+; TSMC reference parameter b
+b$immOP:
+    LD HL, 0000      ; TSMC ref address for b
+b$imm0 EQU b$immOP+1
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; r13 = load i
+    LD HL, ($F008)
+    ; Load array element (u8)
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r15 = r11 < r14
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, std_mem_compare_p_u8_p_u8_u16_lt_true_2
+    LD HL, 0       ; False
+    JP std_mem_compare_p_u8_p_u8_u16_lt_done_2
+std_mem_compare_p_u8_p_u8_u16_lt_true_2:
+    LD HL, 1       ; True
+std_mem_compare_p_u8_p_u8_u16_lt_done_2:
+    ; jump_if_not r15, else_7
+    LD A, H
+    OR A
+    JP Z, std_mem_compare_p_u8_p_u8_u16_else_7
+    ; r16 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r17 = -r16
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; Register 17 already in HL
+    ; return r17
+    ; Register 17 already in HL
+    RET
+    ; jump end_if_8
+    JP std_mem_compare_p_u8_p_u8_u16_end_if_8
+    ; else_7:
+std_mem_compare_p_u8_p_u8_u16_else_7:
+    LD HL, (a$imm0) ; Reload TSMC ref address
+    ; r19 = load i
+    LD HL, ($F008)
+    ; Register 19 already in HL
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    LD HL, (b$imm0) ; Reload TSMC ref address
+    LD ($F02A), HL    ; Virtual register 21 to memory
+    ; r22 = load i
+    LD HL, ($F008)
+    ; Load array element (u8)
+    LD HL, ($F02A)    ; Virtual register 21 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r24 = r20 > r23
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, std_mem_compare_p_u8_p_u8_u16_gt_check_zero_3
+    LD HL, 0       ; False (negative)
+    JP std_mem_compare_p_u8_p_u8_u16_gt_done_3
+std_mem_compare_p_u8_p_u8_u16_gt_check_zero_3:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, std_mem_compare_p_u8_p_u8_u16_gt_false_3
+    LD HL, 1       ; True (positive and non-zero)
+    JP std_mem_compare_p_u8_p_u8_u16_gt_done_3
+std_mem_compare_p_u8_p_u8_u16_gt_false_3:
+    LD HL, 0       ; False (zero)
+std_mem_compare_p_u8_p_u8_u16_gt_done_3:
+    ; jump_if_not r24, else_9
+    LD A, H
+    OR A
+    JP Z, std_mem_compare_p_u8_p_u8_u16_else_9
+    ; r25 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; return r25
+    RET
+    ; jump end_if_10
+    JP std_mem_compare_p_u8_p_u8_u16_end_if_10
+    ; else_9:
+std_mem_compare_p_u8_p_u8_u16_else_9:
+    ; end_if_10:
+std_mem_compare_p_u8_p_u8_u16_end_if_10:
+    ; end_if_8:
+std_mem_compare_p_u8_p_u8_u16_end_if_8:
+    ; r26 = load i
+    LD HL, ($F008)
+    ; Register 26 already in HL
+    ; r27 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r28 = r26 + r27
+    ; Register 26 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store i, r28
+    LD ($F008), HL
+    ; jump loop_5
+    JP std_mem_compare_p_u8_p_u8_u16_loop_5
+    ; end_loop_6:
+std_mem_compare_p_u8_p_u8_u16_end_loop_6:
+    ; r29 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r29
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: std.mem.fill$p_u8$u8$u16
+std.mem.fill$p_u8$u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; store i, r5
+    ; Register 5 already in HL
+    LD ($F008), HL
+    ; loop_19:
+std_mem_fill_p_u8_u8_u16_loop_19:
+    ; r6 = load i
+    LD HL, ($F008)
+    ; Register 6 already in HL
+std.mem.fill$p_u8$u8$u16_param_len.op:
+std.mem.fill$p_u8$u8$u16_param_len equ std.mem.fill$p_u8$u8$u16_param_len.op + 1
+    LD BC, #0000   ; SMC parameter len
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = r6 < r7
+    ; Register 6 already in HL
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, std_mem_fill_p_u8_u8_u16_lt_true_4
+    LD HL, 0       ; False
+    JP std_mem_fill_p_u8_u8_u16_lt_done_4
+std_mem_fill_p_u8_u8_u16_lt_true_4:
+    LD HL, 1       ; True
+std_mem_fill_p_u8_u8_u16_lt_done_4:
+    ; jump_if_not r8, end_loop_20
+    LD A, H
+    OR A
+    JP Z, std_mem_fill_p_u8_u8_u16_end_loop_20
+std.mem.fill$p_u8$u8$u16_param_value.op:
+std.mem.fill$p_u8$u8$u16_param_value equ std.mem.fill$p_u8$u8$u16_param_value.op + 1
+    LD B, #00      ; Parameter value (gets patched)
+    LD A, B
+    LD L, A         ; Store to physical register L
+; TSMC reference parameter dst
+dst$immOP:
+    LD HL, 0000      ; TSMC ref address for dst
+dst$imm0 EQU dst$immOP+1
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; r11 = load i
+    LD HL, ($F008)
+    ; Register 11 already in HL
+    ; Calculate array element address
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD D, H
+    LD E, L
+    ; Register 11 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r13 = load i
+    LD HL, ($F008)
+    ; r14 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r15 = r13 + r14
+    LD D, H
+    LD E, L
+    ; Register 14 already in HL
+    ADD HL, DE
+    ; store i, r15
+    LD ($F008), HL
+    ; jump loop_19
+    JP std_mem_fill_p_u8_u8_u16_loop_19
+    ; end_loop_20:
+std_mem_fill_p_u8_u8_u16_end_loop_20:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: std.mem.compare$p_u8$p_u8$u16
+std.mem.compare$p_u8$p_u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; store i, r5
+    LD ($F008), HL
+    ; loop_21:
+std_mem_compare_p_u8_p_u8_u16_loop_21:
+    ; r6 = load i
+    LD HL, ($F008)
+    ; Register 6 already in HL
+std.mem.compare$p_u8$p_u8$u16_param_len.op:
+std.mem.compare$p_u8$p_u8$u16_param_len equ std.mem.compare$p_u8$p_u8$u16_param_len.op + 1
+    LD BC, #0000   ; SMC parameter len
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; Register 7 already in HL
+    ; r8 = r6 < r7
+    ; Register 6 already in HL
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, std_mem_compare_p_u8_p_u8_u16_lt_true_5
+    LD HL, 0       ; False
+    JP std_mem_compare_p_u8_p_u8_u16_lt_done_5
+std_mem_compare_p_u8_p_u8_u16_lt_true_5:
+    LD HL, 1       ; True
+std_mem_compare_p_u8_p_u8_u16_lt_done_5:
+    ; jump_if_not r8, end_loop_22
+    LD A, H
+    OR A
+    JP Z, std_mem_compare_p_u8_p_u8_u16_end_loop_22
+; TSMC reference parameter a
+a$immOP:
+    LD HL, 0000      ; TSMC ref address for a
+a$imm0 EQU a$immOP+1
+    ; r10 = load i
+    LD HL, ($F008)
+    ; Register 10 already in HL
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+; TSMC reference parameter b
+b$immOP:
+    LD HL, 0000      ; TSMC ref address for b
+b$imm0 EQU b$immOP+1
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; r13 = load i
+    LD HL, ($F008)
+    ; Load array element (u8)
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r15 = r11 < r14
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, std_mem_compare_p_u8_p_u8_u16_lt_true_6
+    LD HL, 0       ; False
+    JP std_mem_compare_p_u8_p_u8_u16_lt_done_6
+std_mem_compare_p_u8_p_u8_u16_lt_true_6:
+    LD HL, 1       ; True
+std_mem_compare_p_u8_p_u8_u16_lt_done_6:
+    ; jump_if_not r15, else_23
+    LD A, H
+    OR A
+    JP Z, std_mem_compare_p_u8_p_u8_u16_else_23
+    ; r16 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r17 = -r16
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; Register 17 already in HL
+    ; return r17
+    ; Register 17 already in HL
+    RET
+    ; jump end_if_24
+    JP std_mem_compare_p_u8_p_u8_u16_end_if_24
+    ; else_23:
+std_mem_compare_p_u8_p_u8_u16_else_23:
+    LD HL, (a$imm0) ; Reload TSMC ref address
+    ; r19 = load i
+    LD HL, ($F008)
+    ; Register 19 already in HL
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    LD HL, (b$imm0) ; Reload TSMC ref address
+    LD ($F02A), HL    ; Virtual register 21 to memory
+    ; r22 = load i
+    LD HL, ($F008)
+    ; Load array element (u8)
+    LD HL, ($F02A)    ; Virtual register 21 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r24 = r20 > r23
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, std_mem_compare_p_u8_p_u8_u16_gt_check_zero_7
+    LD HL, 0       ; False (negative)
+    JP std_mem_compare_p_u8_p_u8_u16_gt_done_7
+std_mem_compare_p_u8_p_u8_u16_gt_check_zero_7:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, std_mem_compare_p_u8_p_u8_u16_gt_false_7
+    LD HL, 1       ; True (positive and non-zero)
+    JP std_mem_compare_p_u8_p_u8_u16_gt_done_7
+std_mem_compare_p_u8_p_u8_u16_gt_false_7:
+    LD HL, 0       ; False (zero)
+std_mem_compare_p_u8_p_u8_u16_gt_done_7:
+    ; jump_if_not r24, else_25
+    LD A, H
+    OR A
+    JP Z, std_mem_compare_p_u8_p_u8_u16_else_25
+    ; r25 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; return r25
+    RET
+    ; jump end_if_26
+    JP std_mem_compare_p_u8_p_u8_u16_end_if_26
+    ; else_25:
+std_mem_compare_p_u8_p_u8_u16_else_25:
+    ; end_if_26:
+std_mem_compare_p_u8_p_u8_u16_end_if_26:
+    ; end_if_24:
+std_mem_compare_p_u8_p_u8_u16_end_if_24:
+    ; r26 = load i
+    LD HL, ($F008)
+    ; Register 26 already in HL
+    ; r27 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r28 = r26 + r27
+    ; Register 26 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store i, r28
+    LD ($F008), HL
+    ; jump loop_21
+    JP std_mem_compare_p_u8_p_u8_u16_loop_21
+    ; end_loop_22:
+std_mem_compare_p_u8_p_u8_u16_end_loop_22:
+    ; r29 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r29
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.demonstrate_lambda_syntax
+examples.true_smc_lambda_working.demonstrate_lambda_syntax:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 3
+    LD A, 3
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store multiplier, r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD ($F002), A
+    ; r3 = string(str_0)
+    LD HL, str_0
+    ; Print "Lambda would capture multiplier: " (33 chars via loop)
+    CALL print_string
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; r4 = string(str_1)
+    LD HL, str_1
+    ; Register 4 already in HL
+    ; Print "Direct patching into code - no heap!
+" (37 chars via loop)
+    ; Register 4 already in HL
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.self_modifying_counter
+examples.true_smc_lambda_working.self_modifying_counter:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; store count, r2
+    LD A, H
+    LD ($F002), A
+    ; r3 = load count
+    LD A, ($F002)
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 + r4
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store count, r5
+    LD A, L
+    LD ($F002), A
+    ; r6 = load count
+    LD A, ($F002)
+    LD L, A         ; Store to HL (low byte)
+    ; return r6
+    ; Register 6 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.traditional_closure_overhead
+examples.true_smc_lambda_working.traditional_closure_overhead:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 32768
+    LD HL, 32768
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; r3 = load closure
+    LD HL, ($F002)
+    ; Register 3 already in HL
+    ; Store to field fn_ptr (offset 0)
+    ; Register 3 already in HL
+    PUSH HL
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r4 = 42
+    LD A, 42
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = load closure
+    LD HL, ($F002)
+    ; Store to field capture1 (offset 2)
+    LD DE, 2
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r6 = 7
+    LD A, 7
+    LD L, A         ; Store to physical register L
+    ; r7 = load closure
+    LD HL, ($F002)
+    ; Register 7 already in HL
+    ; Store to field capture2 (offset 3)
+    ; Register 7 already in HL
+    LD DE, 3
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r8 = string(str_2)
+    LD HL, str_2
+    ; Print "Traditional closure size: " (26 chars via loop)
+    CALL print_string
+    ; Direct print " bytes
+" (7 chars)
+    ; Direct print " bytes
+" (7 chars)
+    LD A, 32
+    RST 16         ; Print character
+    LD A, 98
+    RST 16         ; Print character
+    LD A, 121
+    RST 16         ; Print character
+    LD A, 116
+    RST 16         ; Print character
+    LD A, 101
+    RST 16         ; Print character
+    LD A, 115
+    RST 16         ; Print character
+    LD A, 10
+    RST 16         ; Print character
+    ; r9 = string(str_3)
+    LD HL, str_3
+    ; Print "Traditional overhead: 38+ T-states
+" (35 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.true_smc_lambda_magic
+examples.true_smc_lambda_working.true_smc_lambda_magic:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_4)
+    LD HL, str_4
+    ; Register 1 already in HL
+    ; Print "TRUE SMC lambda size: 0 bytes (it's code!)
+" (43 chars via loop)
+    ; Register 1 already in HL
+    CALL print_string
+    ; r2 = string(str_5)
+    LD HL, str_5
+    ; Print "TRUE SMC overhead: 0 T-states
+" (30 chars via loop)
+    CALL print_string
+    ; r3 = string(str_6)
+    LD HL, str_6
+    ; Print "Performance gain: 3-5x faster!
+" (31 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.create_range_iterator
+examples.true_smc_lambda_working.create_range_iterator:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store start, r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD ($F002), A
+    ; r4 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; store end, r4
+    LD A, L
+    LD ($F006), A
+    ; r6 = load start
+    LD A, ($F002)
+    LD H, A         ; Store to physical register H
+    ; store current, r6
+    LD A, H
+    LD ($F00A), A
+    ; loop_33:
+examples_true_smc_lambda_working_create_range_iterator_loop_33:
+    ; r7 = load current
+    LD A, ($F00A)
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = load end
+    LD A, ($F006)
+    LD H, A         ; Store to physical register H
+    ; r9 = r7 < r8
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_true_smc_lambda_working_create_range_iterator_lt_true_8
+    LD HL, 0       ; False
+    JP examples_true_smc_lambda_working_create_range_iterator_lt_done_8
+examples_true_smc_lambda_working_create_range_iterator_lt_true_8:
+    LD HL, 1       ; True
+examples_true_smc_lambda_working_create_range_iterator_lt_done_8:
+    ; jump_if_not r9, end_loop_34
+    LD A, L
+    OR A
+    JP Z, examples_true_smc_lambda_working_create_range_iterator_end_loop_34
+    ; Direct print " " (1 chars)
+    ; Direct print " " (1 chars)
+    LD A, 32
+    RST 16         ; Print character
+    ; r10 = load current
+    LD A, ($F00A)
+    LD L, A         ; Store to HL (low byte)
+    ; r11 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r12 = r10 + r11
+    ; Register 10 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store current, r12
+    LD A, L
+    LD ($F00A), A
+    ; jump loop_33
+    JP examples_true_smc_lambda_working_create_range_iterator_loop_33
+    ; end_loop_34:
+examples_true_smc_lambda_working_create_range_iterator_end_loop_34:
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.pixel_shader_pattern
+examples.true_smc_lambda_working.pixel_shader_pattern:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 128
+    LD A, 128
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store brightness, r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD ($F002), A
+    ; r4 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; store contrast, r4
+    LD A, L
+    LD ($F006), A
+    ; r5 = string(str_7)
+    LD HL, str_7
+    ; Print "Shader captures: brightness=" (28 chars via loop)
+    CALL print_string
+    ; r6 = string(str_8)
+    LD HL, str_8
+    ; Print ", contrast=" (11 chars via loop)
+    CALL print_string
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; r7 = string(str_9)
+    LD HL, str_9
+    ; Register 7 already in HL
+    ; Print "Zero memory access during shading!
+" (35 chars via loop)
+    ; Register 7 already in HL
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.game_event_pattern
+examples.true_smc_lambda_working.game_event_pattern:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 100
+    LD A, 100
+    LD H, A         ; Store to physical register H
+    ; store player_health, r2
+    LD A, H
+    LD ($F002), A
+    ; r4 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; store player_score, r4
+    ; Register 4 already in HL
+    LD ($F006), HL
+    ; r6 = 1
+    LD A, 1
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; store combo, r6
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD ($F00A), A
+    ; r7 = string(str_10)
+    LD HL, str_10
+    ; Print "Event handlers will capture game state directly
+" (48 chars via loop)
+    CALL print_string
+    ; r8 = string(str_11)
+    LD HL, str_11
+    ; Register 8 already in HL
+    ; Print "No pointer dereferencing = maximum speed!
+" (42 chars via loop)
+    ; Register 8 already in HL
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.true_smc_lambda_working.main
+examples.true_smc_lambda_working.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_12)
+    LD HL, str_12
+    ; Print "=================================
+" (34 chars via loop)
+    CALL print_string
+    ; r2 = string(str_13)
+    LD HL, str_13
+    ; Print "TRUE SMC Lambdas - MinZ Vision
+" (31 chars via loop)
+    CALL print_string
+    ; r3 = string(str_14)
+    LD HL, str_14
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; Print "=================================
+
+" (35 chars via loop)
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    CALL print_string
+    ; r4 = string(str_15)
+    LD HL, str_15
+    ; Print "Current Status:
+" (16 chars via loop)
+    CALL print_string
+    ; r5 = string(str_16)
+    LD HL, str_16
+    ; Print "â Lambda syntax supported
+" (31 chars via loop)
+    CALL print_string
+    ; r6 = string(str_17)
+    LD HL, str_17
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; Print "â Capture by absolute address
+" (35 chars via loop)
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    CALL print_string
+    ; r7 = string(str_18)
+    LD HL, str_18
+    ; Print "â SMC optimization ready
+" (30 chars via loop)
+    CALL print_string
+    ; r8 = string(str_19)
+    LD HL, str_19
+    ; Print "â³ Lambda calling (coming soon)
+
+" (37 chars via loop)
+    CALL print_string
+    ; r9 = call examples.true_smc_lambda_working.demonstrate_lambda_syntax
+    ; Call to examples.true_smc_lambda_working.demonstrate_lambda_syntax (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.demonstrate_lambda_syntax
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; r10 = string(str_20)
+    LD HL, str_20
+    ; Print "
+--- Performance Analysis ---
+" (30 chars via loop)
+    CALL print_string
+    ; r11 = call examples.true_smc_lambda_working.traditional_closure_overhead
+    ; Call to examples.true_smc_lambda_working.traditional_closure_overhead (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.traditional_closure_overhead
+    ; r12 = call examples.true_smc_lambda_working.true_smc_lambda_magic
+    ; Call to examples.true_smc_lambda_working.true_smc_lambda_magic (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.true_smc_lambda_magic
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; r13 = string(str_21)
+    LD HL, str_21
+    ; Print "
+--- Use Case Patterns ---
+" (27 chars via loop)
+    CALL print_string
+    ; r14 = string(str_22)
+    LD HL, str_22
+    ; Print "Iterator pattern: " (18 chars via loop)
+    CALL print_string
+    ; r15 = call examples.true_smc_lambda_working.create_range_iterator
+    ; Call to examples.true_smc_lambda_working.create_range_iterator (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.create_range_iterator
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; r16 = call examples.true_smc_lambda_working.pixel_shader_pattern
+    ; Call to examples.true_smc_lambda_working.pixel_shader_pattern (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.pixel_shader_pattern
+    ; r17 = call examples.true_smc_lambda_working.game_event_pattern
+    ; Call to examples.true_smc_lambda_working.game_event_pattern (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.true_smc_lambda_working.game_event_pattern
+    ; r18 = string(str_23)
+    LD HL, str_23
+    ; Register 18 already in HL
+    ; Print "
+=================================
+" (35 chars via loop)
+    ; Register 18 already in HL
+    CALL print_string
+    ; r19 = string(str_24)
+    LD HL, str_24
+    ; Print "The Future is Self-Modifying! ð
+" (39 chars via loop)
+    CALL print_string
+    ; r20 = string(str_25)
+    LD HL, str_25
+    ; Print "=================================
+" (34 chars via loop)
+    CALL print_string
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; ZX Spectrum ROM print
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+
+; Standard library routines
+
+    END main

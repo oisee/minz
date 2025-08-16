@@ -1,0 +1,200 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.performance_tricks.fast_fill$p_u8$u8$u16
+examples.performance_tricks.fast_fill$p_u8$u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; asm {         LD A, value     ; This will be patched by SMC
+        LD BC, count
+        LD HL, dest
+    fill_loop:
+        LD (HL), A
+        INC HL
+        DEC BC
+        LD A, B
+        OR C
+        JR NZ, fill_loop
+     }
+    LD A, value     ; This will be patched by SMC
+    LD BC, count
+    LD HL, dest
+fill_loop:
+    LD (HL), A
+    INC HL
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, fill_loop
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.performance_tricks.unrolled_copy$p_u8$p_u8
+examples.performance_tricks.unrolled_copy$p_u8$p_u8:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), HL    ; Virtual register 1 to memory
+    EX DE, HL     ; Get parameter src from DE
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; asm {         LD HL, src
+        LD DE, dest
+        
+        ; Unrolled 8 times
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+     }
+    LD HL, src
+    LD DE, dest
+    ; Unrolled 8 times
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    INC HL
+    INC DE
+    LD A, (HL)
+    LD (DE), A
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.performance_tricks.lookup_mul_by_10$u8
+examples.performance_tricks.lookup_mul_by_10$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.performance_tricks.lookup_mul_by_10$u8_param_x.op:
+examples.performance_tricks.lookup_mul_by_10$u8_param_x equ examples.performance_tricks.lookup_mul_by_10$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 3 already in A
+    ; r4 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 << r4
+    ; Shift left
+    ; Register 3 already in A
+    LD B, A       ; B = value to shift
+    LD A, B
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, examples_performance_tricks_lookup_mul_by_10_u8_shl_done_0
+    LD B, C       ; B = counter
+examples_performance_tricks_lookup_mul_by_10_u8_shl_loop_0:
+    DEC B
+    JP M, examples_performance_tricks_lookup_mul_by_10_u8_shl_done_0
+    SLA A         ; Shift left, 0 into bit 0
+    JR examples_performance_tricks_lookup_mul_by_10_u8_shl_loop_0
+examples_performance_tricks_lookup_mul_by_10_u8_shl_done_0:
+    LD L, A
+    LD H, 0
+    ; store x2, r5
+    LD ($F004), HL
+    LD A, (examples.performance_tricks.lookup_mul_by_10$u8_param_x)
+    LD D, A         ; Store to physical register D
+    ; r8 = 3
+    LD A, 3
+    LD E, A         ; Store to physical register E
+    ; r9 = r7 << r8
+    ; Shift left
+    LD A, D
+    LD B, A       ; B = value to shift
+    LD A, E
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, examples_performance_tricks_lookup_mul_by_10_u8_shl_done_1
+    LD B, C       ; B = counter
+examples_performance_tricks_lookup_mul_by_10_u8_shl_loop_1:
+    DEC B
+    JP M, examples_performance_tricks_lookup_mul_by_10_u8_shl_done_1
+    SLA A         ; Shift left, 0 into bit 0
+    JR examples_performance_tricks_lookup_mul_by_10_u8_shl_loop_1
+examples_performance_tricks_lookup_mul_by_10_u8_shl_done_1:
+    LD L, A
+    LD H, 0
+    ; store x8, r9
+    LD ($F00C), HL
+    ; r10 = load x2
+    LD HL, ($F004)
+    ; r11 = load x8
+    LD HL, ($F00C)
+    ; r12 = r10 + r11
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD B, H
+    LD C, L
+    ; return r12
+    LD H, B
+    LD L, C
+    RET
+
+    END main

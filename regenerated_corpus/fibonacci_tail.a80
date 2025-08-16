@@ -1,0 +1,283 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.fibonacci_tail.fib_tail$u8$u16$u16
+examples.fibonacci_tail.fib_tail$u8$u16$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+examples.fibonacci_tail.fib_tail$u8$u16$u16_param_n.op:
+examples.fibonacci_tail.fib_tail$u8$u16$u16_param_n equ examples.fibonacci_tail.fib_tail$u8$u16$u16_param_n.op + 1
+    LD A, #00      ; Parameter n (gets patched)
+    ; Register 4 already in A
+    ; r5 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r6 = r4 == r5
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_fibonacci_tail_fib_tail_u8_u16_u16_eq_true_0
+    LD HL, 0       ; False
+    JP examples_fibonacci_tail_fib_tail_u8_u16_u16_eq_done_0
+examples_fibonacci_tail_fib_tail_u8_u16_u16_eq_true_0:
+    LD HL, 1       ; True
+examples_fibonacci_tail_fib_tail_u8_u16_u16_eq_done_0:
+    ; jump_if_not r6, else_1
+    LD A, C
+    OR A
+    JP Z, examples_fibonacci_tail_fib_tail_u8_u16_u16_else_1
+examples.fibonacci_tail.fib_tail$u8$u16$u16_param_a.op:
+examples.fibonacci_tail.fib_tail$u8$u16$u16_param_a equ examples.fibonacci_tail.fib_tail$u8$u16$u16_param_a.op + 1
+    LD DE, #0000   ; SMC parameter a
+    EX DE, HL      ; Move to HL for storage
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; return r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    RET
+    ; jump end_if_2
+    JP examples_fibonacci_tail_fib_tail_u8_u16_u16_end_if_2
+    ; else_1:
+examples_fibonacci_tail_fib_tail_u8_u16_u16_else_1:
+    ; end_if_2:
+examples_fibonacci_tail_fib_tail_u8_u16_u16_end_if_2:
+    LD A, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_n)
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r9 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r10 = r8 == r9
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_fibonacci_tail_fib_tail_u8_u16_u16_eq_true_1
+    LD HL, 0       ; False
+    JP examples_fibonacci_tail_fib_tail_u8_u16_u16_eq_done_1
+examples_fibonacci_tail_fib_tail_u8_u16_u16_eq_true_1:
+    LD HL, 1       ; True
+examples_fibonacci_tail_fib_tail_u8_u16_u16_eq_done_1:
+    ; jump_if_not r10, else_3
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, examples_fibonacci_tail_fib_tail_u8_u16_u16_else_3
+examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b.op:
+examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b equ examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b.op + 1
+    LD BC, #0000   ; SMC parameter b
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    LD B, H
+    LD C, L
+    ; return r11
+    LD H, B
+    LD L, C
+    RET
+    ; jump end_if_4
+    JP examples_fibonacci_tail_fib_tail_u8_u16_u16_end_if_4
+    ; else_3:
+examples_fibonacci_tail_fib_tail_u8_u16_u16_else_3:
+    ; end_if_4:
+examples_fibonacci_tail_fib_tail_u8_u16_u16_end_if_4:
+    LD A, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_n)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r13 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r14 = r12 - r13
+    LD D, H
+    LD E, L
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    LD HL, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b)
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    LD HL, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_a)
+    ; Register 16 already in HL
+    LD HL, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b)
+    LD ($F022), HL    ; Virtual register 17 to memory
+    ; r18 = r16 + r17
+    ; Register 16 already in HL
+    LD D, H
+    LD E, L
+    LD HL, ($F022)    ; Virtual register 17 from memory
+    ADD HL, DE
+    ; Register 18 already in HL
+    LD A, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_n)
+    LD L, A         ; Store to HL (low byte)
+    ; r20 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r21 = r19 - r20
+    ; Register 19 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    LD HL, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b)
+    ; Register 22 already in HL
+    LD HL, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_a)
+    ; Register 23 already in HL
+    LD HL, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b)
+    LD ($F030), HL    ; Virtual register 24 to memory
+    ; r25 = r23 + r24
+    ; Register 23 already in HL
+    LD D, H
+    LD E, L
+    LD HL, ($F030)    ; Virtual register 24 from memory
+    ADD HL, DE
+    ; Register 25 already in HL
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.fibonacci_tail.fib_tail$u8$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_n+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_a+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b+1), HL  ; Patch parameter immediate
+    ; === SMC Recursive Context Save ===
+    LD A, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_n)
+    PUSH AF
+    LD HL, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_a)
+    PUSH HL
+    LD HL, (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b)
+    PUSH HL
+    ; === Update SMC Parameters ===
+    CALL examples.fibonacci_tail.fib_tail$u8$u16$u16
+    ; === SMC Recursive Context Restore ===
+    POP HL
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b), HL
+    POP HL
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_a), HL
+    POP AF
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_n), A
+    LD A, H
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.fibonacci_tail.fib_tail$u8$u16$u16_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.fibonacci_tail.fib_tail$u8$u16$u16_store_addr.op:
+examples.fibonacci_tail.fib_tail$u8$u16$u16_store_addr equ examples.fibonacci_tail.fib_tail$u8$u16$u16_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.fibonacci_tail.fibonacci$u8
+examples.fibonacci_tail.fibonacci$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.fibonacci_tail.fibonacci$u8_param_n.op:
+examples.fibonacci_tail.fibonacci$u8_param_n equ examples.fibonacci_tail.fibonacci$u8_param_n.op + 1
+    LD A, #00      ; Parameter n (gets patched)
+    LD L, A         ; Store to physical register L
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    LD A, (examples.fibonacci_tail.fibonacci$u8_param_n)
+    LD L, A         ; Store to physical register L
+    ; r6 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; r7 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.fibonacci_tail.fib_tail$u8$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_n+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_a+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.fibonacci_tail.fib_tail$u8$u16$u16_param_b+1), HL  ; Patch parameter immediate
+    ; r8 = call examples.fibonacci_tail.fib_tail$u8$u16$u16
+    ; Call to examples.fibonacci_tail.fib_tail$u8$u16$u16 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.fibonacci_tail.fib_tail$u8$u16$u16
+    LD A, L
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.fibonacci_tail.fibonacci$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.fibonacci_tail.fibonacci$u8_store_addr.op:
+examples.fibonacci_tail.fibonacci$u8_store_addr equ examples.fibonacci_tail.fibonacci$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.fibonacci_tail.main
+examples.fibonacci_tail.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD L, A         ; Store to HL (low byte)
+    ; r3 = 10
+    LD A, 10
+    LD H, A         ; Store to physical register H
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.fibonacci_tail.fibonacci$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.fibonacci_tail.fibonacci$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.fibonacci_tail.fibonacci$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (examples.fibonacci_tail.fibonacci$u8_param_n+1), A   ; Patch parameter immediate
+    ; r4 = call examples.fibonacci_tail.fibonacci$u8
+    ; Call to examples.fibonacci_tail.fibonacci$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.fibonacci_tail.fibonacci$u8
+    ; store result, r4
+    LD ($F002), HL
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

@@ -1,0 +1,184 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.traffic_light_fsm.transition$TrafficState$Event(current: TrafficState, event: Event) -> TrafficState
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = r3 == r0
+      2: JUMP_IF
+      3: jump case_arm_1_3
+      4: r5 = r3 == r0
+      5: JUMP_IF
+      6: jump case_arm_2_4
+      7: r6 = r3 == r0
+      8: JUMP_IF
+      9: jump case_arm_3_5
+     10: r7 = r3 == r0
+     11: JUMP_IF
+     12: jump case_end_1
+     13: case_arm_0_2:
+     14: jump case_end_1
+     15: case_arm_1_3:
+     16: jump case_end_1
+     17: case_arm_2_4:
+     18: jump case_end_1
+     19: case_arm_3_5:
+     20: case_end_1:
+     21: return
+
+Function examples.traffic_light_fsm.get_timing$TrafficState(state: TrafficState) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = r2 == r0
+      2: JUMP_IF
+      3: jump case_arm_1_8
+      4: r4 = r2 == r0
+      5: JUMP_IF
+      6: jump case_arm_2_9
+      7: r5 = r2 == r0
+      8: JUMP_IF
+      9: jump case_arm_3_10
+     10: r6 = r2 == r0
+     11: JUMP_IF
+     12: jump case_end_6
+     13: case_arm_0_7:
+     14: r7 = 30
+     15: jump case_end_6
+     16: case_arm_1_8:
+     17: r8 = 5
+     18: jump case_end_6
+     19: case_arm_2_9:
+     20: r9 = 25
+     21: jump case_end_6
+     22: case_arm_3_10:
+     23: r10 = 1
+     24: case_end_6:
+     25: return
+
+Function examples.traffic_light_fsm.get_color_code$TrafficState(state: TrafficState) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = r2 == r0
+      2: JUMP_IF
+      3: jump case_arm_1_13
+      4: r4 = r2 == r0
+      5: JUMP_IF
+      6: jump case_arm_2_14
+      7: r5 = r2 == r0
+      8: JUMP_IF
+      9: jump case_arm_3_15
+     10: r6 = r2 == r0
+     11: JUMP_IF
+     12: jump case_end_11
+     13: case_arm_0_12:
+     14: r7 = 1
+     15: jump case_end_11
+     16: case_arm_1_13:
+     17: r8 = 2
+     18: jump case_end_11
+     19: case_arm_2_14:
+     20: r9 = 3
+     21: jump case_end_11
+     22: case_arm_3_15:
+     23: r10 = 4
+     24: case_end_11:
+     25: return
+
+Function examples.traffic_light_fsm.simulate_traffic_light() -> void
+  @smc
+  Locals:
+    r1 = state: u16
+    r3 = cycle_count: u8
+  Instructions:
+      0: r2 = 0
+      1: store state, r2
+      2: r4 = 0
+      3: store cycle_count, r4
+      4: LOAD_STRING
+      5: PRINT_STRING ; Print "Traffic Light Simulation Starting...
+" (37 chars via loop)
+      6: loop_16:
+      7: r6 = load cycle_count
+      8: r7 = 10
+      9: r8 = r6 < r7
+     10: jump_if_not r8, end_loop_17
+     11: PRINT_STRING_DIRECT ; Direct print "Cycle " (6 chars)
+     12: PRINT_STRING_DIRECT ; Direct print ": State " (8 chars)
+     13: r9 = load state
+     14: r10 = load state
+     15: PATCH_TEMPLATE
+     16: PATCH_TARGET
+     17: PATCH_PARAM
+     18: r11 = call examples.traffic_light_fsm.get_color_code$TrafficState
+     19: PRINT_STRING_DIRECT ; Direct print " for " (5 chars)
+     20: r12 = load state
+     21: r13 = load state
+     22: PATCH_TEMPLATE
+     23: PATCH_TARGET
+     24: PATCH_PARAM
+     25: r14 = call examples.traffic_light_fsm.get_timing$TrafficState
+     26: LOAD_STRING
+     27: PRINT_STRING ; Print " seconds
+" (9 chars via loop)
+     28: r16 = load state
+     29: r17 = 0
+     30: r18 = load state
+     31: r19 = 0
+     32: r20 = call examples.traffic_light_fsm.transition$TrafficState$Event
+     33: store state, r20
+     34: r21 = load cycle_count
+     35: r22 = 1
+     36: r23 = r21 + r22
+     37: store cycle_count, r23
+     38: jump loop_16
+     39: end_loop_17:
+     40: LOAD_STRING
+     41: PRINT_STRING ; Print "
+EMERGENCY! Switching to flashing...
+" (37 chars via loop)
+     42: r25 = load state
+     43: r26 = 1
+     44: r27 = load state
+     45: r28 = 1
+     46: r29 = call examples.traffic_light_fsm.transition$TrafficState$Event
+     47: store state, r29
+     48: LOAD_STRING
+     49: PRINT_STRING ; Print "Emergency state: " (17 chars via loop)
+     50: r31 = load state
+     51: r32 = load state
+     52: PATCH_TEMPLATE
+     53: PATCH_TARGET
+     54: PATCH_PARAM
+     55: r33 = call examples.traffic_light_fsm.get_color_code$TrafficState
+     56: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     57: LOAD_STRING
+     58: PRINT_STRING ; Print "Emergency over, resetting...
+" (29 chars via loop)
+     59: r35 = load state
+     60: r36 = 2
+     61: r37 = load state
+     62: r38 = 2
+     63: r39 = call examples.traffic_light_fsm.transition$TrafficState$Event
+     64: store state, r39
+     65: LOAD_STRING
+     66: PRINT_STRING ; Print "Reset to state: " (16 chars via loop)
+     67: r41 = load state
+     68: r42 = load state
+     69: PATCH_TEMPLATE
+     70: PATCH_TARGET
+     71: PATCH_PARAM
+     72: r43 = call examples.traffic_light_fsm.get_color_code$TrafficState
+     73: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     74: return
+
+Function examples.traffic_light_fsm.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call examples.traffic_light_fsm.simulate_traffic_light
+      1: return
+

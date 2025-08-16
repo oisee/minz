@@ -1,0 +1,63 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.field_assignment.main
+examples.field_assignment.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    ; Register 2 already in A
+    ; r3 = load p
+    LD HL, ($F002)
+    ; Store to field x (offset 0)
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r4 = 20
+    LD A, 20
+    LD C, A         ; Store to physical register C
+    ; r5 = load p
+    LD HL, ($F002)
+    ; Store to field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r7 = load p
+    LD HL, ($F002)
+    ; Load field x (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r9 = load p
+    LD HL, ($F002)
+    ; Load field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r11 = r8 + r10
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store val, r11
+    LD ($F00C), HL
+    ; return
+    RET
+
+    END main

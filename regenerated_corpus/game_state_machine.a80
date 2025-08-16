@@ -1,0 +1,1084 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 32    ; Length
+    DB "=== Game State Machine Demo ===", 10
+str_1:
+    DB 17    ; Length
+    DB "Starting game...", 10
+str_2:
+    DB 12    ; Length
+    DB "Game state: "
+str_3:
+    DB 12    ; Length
+    DB "Game state: "
+str_4:
+    DB 17    ; Length
+    DB 10, "Player actions:", 10
+str_5:
+    DB 16    ; Length
+    DB "Player walking: "
+str_6:
+    DB 16    ; Length
+    DB "Player jumping: "
+str_7:
+    DB 18    ; Length
+    DB "Player attacking: "
+str_8:
+    DB 17    ; Length
+    DB 10, "Pausing game...", 10
+str_9:
+    DB 12    ; Length
+    DB "Game state: "
+str_10:
+    DB 47    ; Length
+    DB "Player action while paused (should stay same): "
+str_11:
+    DB 26    ; Length
+    DB 10, "Resuming and quitting...", 10
+str_12:
+    DB 18    ; Length
+    DB "Final game state: "
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.game_state_machine.update_game_state$GameState$Input
+examples.game_state_machine.update_game_state$GameState$Input:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.game_state_machine.update_game_state$GameState$Input_param_current.op:
+examples.game_state_machine.update_game_state$GameState$Input_param_current equ examples.game_state_machine.update_game_state$GameState$Input_param_current.op + 1
+    LD A, #00      ; Parameter current (gets patched)
+    ; Register 3 already in A
+    ; r4 = r3 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_update_game_state_GameState_Input_eq_true_0
+    LD HL, 0       ; False
+    JP examples_game_state_machine_update_game_state_GameState_Input_eq_done_0
+examples_game_state_machine_update_game_state_GameState_Input_eq_true_0:
+    LD HL, 1       ; True
+examples_game_state_machine_update_game_state_GameState_Input_eq_done_0:
+    ; jump_if r4, case_arm_0_2
+    LD A, B
+    OR A
+    JP NZ, examples_game_state_machine_update_game_state_GameState_Input_case_arm_0_2
+    ; jump case_arm_1_3
+    JP examples_game_state_machine_update_game_state_GameState_Input_case_arm_1_3
+    ; r5 = r3 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_update_game_state_GameState_Input_eq_true_1
+    LD HL, 0       ; False
+    JP examples_game_state_machine_update_game_state_GameState_Input_eq_done_1
+examples_game_state_machine_update_game_state_GameState_Input_eq_true_1:
+    LD HL, 1       ; True
+examples_game_state_machine_update_game_state_GameState_Input_eq_done_1:
+    ; jump_if r5, case_arm_1_3
+    LD A, C
+    OR A
+    JP NZ, examples_game_state_machine_update_game_state_GameState_Input_case_arm_1_3
+    ; jump case_arm_2_4
+    JP examples_game_state_machine_update_game_state_GameState_Input_case_arm_2_4
+    ; r6 = r3 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_update_game_state_GameState_Input_eq_true_2
+    LD HL, 0       ; False
+    JP examples_game_state_machine_update_game_state_GameState_Input_eq_done_2
+examples_game_state_machine_update_game_state_GameState_Input_eq_true_2:
+    LD HL, 1       ; True
+examples_game_state_machine_update_game_state_GameState_Input_eq_done_2:
+    ; jump_if r6, case_arm_2_4
+    LD A, D
+    OR A
+    JP NZ, examples_game_state_machine_update_game_state_GameState_Input_case_arm_2_4
+    ; jump case_arm_3_5
+    JP examples_game_state_machine_update_game_state_GameState_Input_case_arm_3_5
+    ; r7 = r3 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_update_game_state_GameState_Input_eq_true_3
+    LD HL, 0       ; False
+    JP examples_game_state_machine_update_game_state_GameState_Input_eq_done_3
+examples_game_state_machine_update_game_state_GameState_Input_eq_true_3:
+    LD HL, 1       ; True
+examples_game_state_machine_update_game_state_GameState_Input_eq_done_3:
+    ; jump_if r7, case_arm_3_5
+    LD A, E
+    OR A
+    JP NZ, examples_game_state_machine_update_game_state_GameState_Input_case_arm_3_5
+    ; jump case_arm_4_6
+    JP examples_game_state_machine_update_game_state_GameState_Input_case_arm_4_6
+    ; r8 = r3 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_update_game_state_GameState_Input_eq_true_4
+    LD HL, 0       ; False
+    JP examples_game_state_machine_update_game_state_GameState_Input_eq_done_4
+examples_game_state_machine_update_game_state_GameState_Input_eq_true_4:
+    LD HL, 1       ; True
+examples_game_state_machine_update_game_state_GameState_Input_eq_done_4:
+    ; jump_if r8, case_arm_4_6
+    LD A, H
+    OR A
+    JP NZ, examples_game_state_machine_update_game_state_GameState_Input_case_arm_4_6
+    ; jump case_end_1
+    JP examples_game_state_machine_update_game_state_GameState_Input_case_end_1
+    ; case_arm_0_2:
+examples_game_state_machine_update_game_state_GameState_Input_case_arm_0_2:
+    ; jump case_end_1
+    JP examples_game_state_machine_update_game_state_GameState_Input_case_end_1
+    ; case_arm_1_3:
+examples_game_state_machine_update_game_state_GameState_Input_case_arm_1_3:
+    ; r9 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; jump case_end_1
+    JP examples_game_state_machine_update_game_state_GameState_Input_case_end_1
+    ; case_arm_2_4:
+examples_game_state_machine_update_game_state_GameState_Input_case_arm_2_4:
+    ; jump case_end_1
+    JP examples_game_state_machine_update_game_state_GameState_Input_case_end_1
+    ; case_arm_3_5:
+examples_game_state_machine_update_game_state_GameState_Input_case_arm_3_5:
+    ; jump case_end_1
+    JP examples_game_state_machine_update_game_state_GameState_Input_case_end_1
+    ; case_arm_4_6:
+examples_game_state_machine_update_game_state_GameState_Input_case_arm_4_6:
+    ; case_end_1:
+examples_game_state_machine_update_game_state_GameState_Input_case_end_1:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+examples.game_state_machine.update_player_state$PlayerState$Input$GameState:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.game_state_machine.update_player_state$PlayerState$Input$GameState_param_game_state.op:
+examples.game_state_machine.update_player_state$PlayerState$Input$GameState_param_game_state equ examples.game_state_machine.update_player_state$PlayerState$Input$GameState_param_game_state.op + 1
+    LD C, #00      ; Parameter game_state (gets patched)
+    LD A, C
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r5 = r4 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_update_player_state_PlayerState_Input_GameState_eq_true_5
+    LD HL, 0       ; False
+    JP examples_game_state_machine_update_player_state_PlayerState_Input_GameState_eq_done_5
+examples_game_state_machine_update_player_state_PlayerState_Input_GameState_eq_true_5:
+    LD HL, 1       ; True
+examples_game_state_machine_update_player_state_PlayerState_Input_GameState_eq_done_5:
+    ; jump_if r5, case_arm_0_8
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP NZ, examples_game_state_machine_update_player_state_PlayerState_Input_GameState_case_arm_0_8
+    ; jump case_arm_1_9
+    JP examples_game_state_machine_update_player_state_PlayerState_Input_GameState_case_arm_1_9
+    ; jump case_arm_1_9
+    JP examples_game_state_machine_update_player_state_PlayerState_Input_GameState_case_arm_1_9
+    ; case_arm_0_8:
+examples_game_state_machine_update_player_state_PlayerState_Input_GameState_case_arm_0_8:
+    ; jump case_end_7
+    JP examples_game_state_machine_update_player_state_PlayerState_Input_GameState_case_end_7
+    ; case_arm_1_9:
+examples_game_state_machine_update_player_state_PlayerState_Input_GameState_case_arm_1_9:
+examples.game_state_machine.update_player_state$PlayerState$Input$GameState_param_current.op:
+examples.game_state_machine.update_player_state$PlayerState$Input$GameState_param_current equ examples.game_state_machine.update_player_state$PlayerState$Input$GameState_param_current.op + 1
+    LD A, #00      ; Parameter current (gets patched)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; case_end_7:
+examples_game_state_machine_update_player_state_PlayerState_Input_GameState_case_end_7:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.game_state_machine.get_game_state_name$GameState
+examples.game_state_machine.get_game_state_name$GameState:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.game_state_machine.get_game_state_name$GameState_param_state.op:
+examples.game_state_machine.get_game_state_name$GameState_param_state equ examples.game_state_machine.get_game_state_name$GameState_param_state.op + 1
+    LD A, #00      ; Parameter state (gets patched)
+    LD L, A         ; Store to physical register L
+    ; r3 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_game_state_name_GameState_eq_true_6
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_game_state_name_GameState_eq_done_6
+examples_game_state_machine_get_game_state_name_GameState_eq_true_6:
+    LD HL, 1       ; True
+examples_game_state_machine_get_game_state_name_GameState_eq_done_6:
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; jump_if r3, case_arm_0_11
+    LD A, ($F006)     ; Virtual register 3 from memory
+    OR A
+    JP NZ, examples_game_state_machine_get_game_state_name_GameState_case_arm_0_11
+    ; jump case_arm_1_12
+    JP examples_game_state_machine_get_game_state_name_GameState_case_arm_1_12
+    ; r4 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_game_state_name_GameState_eq_true_7
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_game_state_name_GameState_eq_done_7
+examples_game_state_machine_get_game_state_name_GameState_eq_true_7:
+    LD HL, 1       ; True
+examples_game_state_machine_get_game_state_name_GameState_eq_done_7:
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; jump_if r4, case_arm_1_12
+    LD A, ($F008)     ; Virtual register 4 from memory
+    OR A
+    JP NZ, examples_game_state_machine_get_game_state_name_GameState_case_arm_1_12
+    ; jump case_arm_2_13
+    JP examples_game_state_machine_get_game_state_name_GameState_case_arm_2_13
+    ; r5 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_game_state_name_GameState_eq_true_8
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_game_state_name_GameState_eq_done_8
+examples_game_state_machine_get_game_state_name_GameState_eq_true_8:
+    LD HL, 1       ; True
+examples_game_state_machine_get_game_state_name_GameState_eq_done_8:
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; jump_if r5, case_arm_2_13
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    OR A
+    JP NZ, examples_game_state_machine_get_game_state_name_GameState_case_arm_2_13
+    ; jump case_arm_3_14
+    JP examples_game_state_machine_get_game_state_name_GameState_case_arm_3_14
+    ; r6 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_game_state_name_GameState_eq_true_9
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_game_state_name_GameState_eq_done_9
+examples_game_state_machine_get_game_state_name_GameState_eq_true_9:
+    LD HL, 1       ; True
+examples_game_state_machine_get_game_state_name_GameState_eq_done_9:
+    ; jump_if r6, case_arm_3_14
+    ; Register 6 already in A
+    OR A
+    JP NZ, examples_game_state_machine_get_game_state_name_GameState_case_arm_3_14
+    ; jump case_arm_4_15
+    JP examples_game_state_machine_get_game_state_name_GameState_case_arm_4_15
+    ; r7 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_game_state_name_GameState_eq_true_10
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_game_state_name_GameState_eq_done_10
+examples_game_state_machine_get_game_state_name_GameState_eq_true_10:
+    LD HL, 1       ; True
+examples_game_state_machine_get_game_state_name_GameState_eq_done_10:
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; jump_if r7, case_arm_4_15
+    LD A, ($F00E)     ; Virtual register 7 from memory
+    OR A
+    JP NZ, examples_game_state_machine_get_game_state_name_GameState_case_arm_4_15
+    ; jump case_end_10
+    JP examples_game_state_machine_get_game_state_name_GameState_case_end_10
+    ; case_arm_0_11:
+examples_game_state_machine_get_game_state_name_GameState_case_arm_0_11:
+    ; r8 = 1
+    LD A, 1
+    ; Register 8 already in A
+    ; jump case_end_10
+    JP examples_game_state_machine_get_game_state_name_GameState_case_end_10
+    ; case_arm_1_12:
+examples_game_state_machine_get_game_state_name_GameState_case_arm_1_12:
+    ; r9 = 2
+    LD A, 2
+    ; Register 9 already in A
+    ; jump case_end_10
+    JP examples_game_state_machine_get_game_state_name_GameState_case_end_10
+    ; case_arm_2_13:
+examples_game_state_machine_get_game_state_name_GameState_case_arm_2_13:
+    ; r10 = 3
+    LD A, 3
+    LD C, A         ; Store to physical register C
+    ; jump case_end_10
+    JP examples_game_state_machine_get_game_state_name_GameState_case_end_10
+    ; case_arm_3_14:
+examples_game_state_machine_get_game_state_name_GameState_case_arm_3_14:
+    ; r11 = 4
+    LD A, 4
+    LD C, A         ; Store to physical register C
+    ; jump case_end_10
+    JP examples_game_state_machine_get_game_state_name_GameState_case_end_10
+    ; case_arm_4_15:
+examples_game_state_machine_get_game_state_name_GameState_case_arm_4_15:
+    ; r12 = 5
+    LD A, 5
+    LD B, A         ; Store to physical register B
+    ; case_end_10:
+examples_game_state_machine_get_game_state_name_GameState_case_end_10:
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.game_state_machine.get_game_state_name$GameState_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.game_state_machine.get_game_state_name$GameState_store_addr.op:
+examples.game_state_machine.get_game_state_name$GameState_store_addr equ examples.game_state_machine.get_game_state_name$GameState_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.game_state_machine.get_player_state_name$PlayerState
+examples.game_state_machine.get_player_state_name$PlayerState:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.game_state_machine.get_player_state_name$PlayerState_param_state.op:
+examples.game_state_machine.get_player_state_name$PlayerState_param_state equ examples.game_state_machine.get_player_state_name$PlayerState_param_state.op + 1
+    LD A, #00      ; Parameter state (gets patched)
+    LD B, A         ; Store to physical register B
+    ; r3 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_player_state_name_PlayerState_eq_true_11
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_player_state_name_PlayerState_eq_done_11
+examples_game_state_machine_get_player_state_name_PlayerState_eq_true_11:
+    LD HL, 1       ; True
+examples_game_state_machine_get_player_state_name_PlayerState_eq_done_11:
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; jump_if r3, case_arm_0_17
+    LD A, ($F006)     ; Virtual register 3 from memory
+    OR A
+    JP NZ, examples_game_state_machine_get_player_state_name_PlayerState_case_arm_0_17
+    ; jump case_arm_1_18
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_arm_1_18
+    ; r4 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_player_state_name_PlayerState_eq_true_12
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_player_state_name_PlayerState_eq_done_12
+examples_game_state_machine_get_player_state_name_PlayerState_eq_true_12:
+    LD HL, 1       ; True
+examples_game_state_machine_get_player_state_name_PlayerState_eq_done_12:
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; jump_if r4, case_arm_1_18
+    LD A, ($F008)     ; Virtual register 4 from memory
+    OR A
+    JP NZ, examples_game_state_machine_get_player_state_name_PlayerState_case_arm_1_18
+    ; jump case_arm_2_19
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_arm_2_19
+    ; r5 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_player_state_name_PlayerState_eq_true_13
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_player_state_name_PlayerState_eq_done_13
+examples_game_state_machine_get_player_state_name_PlayerState_eq_true_13:
+    LD HL, 1       ; True
+examples_game_state_machine_get_player_state_name_PlayerState_eq_done_13:
+    ; jump_if r5, case_arm_2_19
+    LD A, L
+    OR A
+    JP NZ, examples_game_state_machine_get_player_state_name_PlayerState_case_arm_2_19
+    ; jump case_arm_3_20
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_arm_3_20
+    ; r6 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_player_state_name_PlayerState_eq_true_14
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_player_state_name_PlayerState_eq_done_14
+examples_game_state_machine_get_player_state_name_PlayerState_eq_true_14:
+    LD HL, 1       ; True
+examples_game_state_machine_get_player_state_name_PlayerState_eq_done_14:
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; jump_if r6, case_arm_3_20
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    OR A
+    JP NZ, examples_game_state_machine_get_player_state_name_PlayerState_case_arm_3_20
+    ; jump case_arm_4_21
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_arm_4_21
+    ; r7 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_player_state_name_PlayerState_eq_true_15
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_player_state_name_PlayerState_eq_done_15
+examples_game_state_machine_get_player_state_name_PlayerState_eq_true_15:
+    LD HL, 1       ; True
+examples_game_state_machine_get_player_state_name_PlayerState_eq_done_15:
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; jump_if r7, case_arm_4_21
+    LD A, ($F00E)     ; Virtual register 7 from memory
+    OR A
+    JP NZ, examples_game_state_machine_get_player_state_name_PlayerState_case_arm_4_21
+    ; jump case_arm_5_22
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_arm_5_22
+    ; r8 = r2 == r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_game_state_machine_get_player_state_name_PlayerState_eq_true_16
+    LD HL, 0       ; False
+    JP examples_game_state_machine_get_player_state_name_PlayerState_eq_done_16
+examples_game_state_machine_get_player_state_name_PlayerState_eq_true_16:
+    LD HL, 1       ; True
+examples_game_state_machine_get_player_state_name_PlayerState_eq_done_16:
+    LD ($F010), HL    ; Virtual register 8 to memory
+    ; jump_if r8, case_arm_5_22
+    LD A, ($F010)     ; Virtual register 8 from memory
+    OR A
+    JP NZ, examples_game_state_machine_get_player_state_name_PlayerState_case_arm_5_22
+    ; jump case_end_16
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_end_16
+    ; case_arm_0_17:
+examples_game_state_machine_get_player_state_name_PlayerState_case_arm_0_17:
+    ; r9 = 1
+    LD A, 1
+    LD E, A         ; Store to physical register E
+    ; jump case_end_16
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_end_16
+    ; case_arm_1_18:
+examples_game_state_machine_get_player_state_name_PlayerState_case_arm_1_18:
+    ; r10 = 2
+    LD A, 2
+    LD E, A         ; Store to physical register E
+    ; jump case_end_16
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_end_16
+    ; case_arm_2_19:
+examples_game_state_machine_get_player_state_name_PlayerState_case_arm_2_19:
+    ; r11 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; jump case_end_16
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_end_16
+    ; case_arm_3_20:
+examples_game_state_machine_get_player_state_name_PlayerState_case_arm_3_20:
+    ; r12 = 4
+    LD A, 4
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; jump case_end_16
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_end_16
+    ; case_arm_4_21:
+examples_game_state_machine_get_player_state_name_PlayerState_case_arm_4_21:
+    ; r13 = 5
+    LD A, 5
+    ; Register 13 already in A
+    ; jump case_end_16
+    JP examples_game_state_machine_get_player_state_name_PlayerState_case_end_16
+    ; case_arm_5_22:
+examples_game_state_machine_get_player_state_name_PlayerState_case_arm_5_22:
+    ; r14 = 6
+    LD A, 6
+    ; Register 14 already in A
+    ; case_end_16:
+examples_game_state_machine_get_player_state_name_PlayerState_case_end_16:
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.game_state_machine.get_player_state_name$PlayerState_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.game_state_machine.get_player_state_name$PlayerState_store_addr.op:
+examples.game_state_machine.get_player_state_name$PlayerState_store_addr equ examples.game_state_machine.get_player_state_name$PlayerState_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.game_state_machine.simulate_game
+examples.game_state_machine.simulate_game:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store game_state, r2
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD ($F002), HL
+    ; r4 = 0
+    LD A, 0
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; store player_state, r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD ($F006), HL
+    ; r5 = string(str_0)
+    LD HL, str_0
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; Print "=== Game State Machine Demo ===
+" (32 chars via loop)
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    CALL print_string
+    ; r6 = string(str_1)
+    LD HL, str_1
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; Print "Starting game...
+" (17 chars via loop)
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    CALL print_string
+    ; r7 = load game_state
+    LD HL, ($F002)
+    ; r8 = 0
+    LD A, 0
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; r9 = load game_state
+    LD HL, ($F002)
+    ; r10 = 0
+    LD A, 0
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; r11 = call examples.game_state_machine.update_game_state$GameState$Input
+    ; Call to examples.game_state_machine.update_game_state$GameState$Input (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.update_game_state$GameState$Input
+    ; store game_state, r11
+    LD ($F002), HL
+    ; r12 = string(str_2)
+    LD HL, str_2
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; Print "Game state: " (12 chars via loop)
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    CALL print_string
+    ; r13 = load game_state
+    LD HL, ($F002)
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    ; r14 = load game_state
+    LD HL, ($F002)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.game_state_machine.get_game_state_name$GameState_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.game_state_machine.get_game_state_name$GameState_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.game_state_machine.get_game_state_name$GameState_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter state = 0
+    LD A, 0               ; Parameter value
+    LD (examples.game_state_machine.get_game_state_name$GameState_param_state+1), A   ; Patch parameter immediate
+    ; r15 = call examples.game_state_machine.get_game_state_name$GameState
+    ; Call to examples.game_state_machine.get_game_state_name$GameState (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.get_game_state_name$GameState
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; r16 = load game_state
+    LD HL, ($F002)
+    ; r17 = 0
+    LD A, 0
+    LD ($F022), A     ; Virtual register 17 to memory
+    ; r18 = load game_state
+    LD HL, ($F002)
+    ; r19 = 0
+    LD A, 0
+    LD ($F026), A     ; Virtual register 19 to memory
+    ; r20 = call examples.game_state_machine.update_game_state$GameState$Input
+    ; Call to examples.game_state_machine.update_game_state$GameState$Input (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.update_game_state$GameState$Input
+    ; store game_state, r20
+    LD ($F002), HL
+    ; r21 = string(str_3)
+    LD HL, str_3
+    LD ($F02A), HL    ; Virtual register 21 to memory
+    ; Print "Game state: " (12 chars via loop)
+    LD HL, ($F02A)    ; Virtual register 21 from memory
+    CALL print_string
+    ; r22 = load game_state
+    LD HL, ($F002)
+    ; r23 = load game_state
+    LD HL, ($F002)
+    LD ($F02E), HL    ; Virtual register 23 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.game_state_machine.get_game_state_name$GameState_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.game_state_machine.get_game_state_name$GameState_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.game_state_machine.get_game_state_name$GameState_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter state = 0
+    LD A, 0               ; Parameter value
+    LD (examples.game_state_machine.get_game_state_name$GameState_param_state+1), A   ; Patch parameter immediate
+    ; r24 = call examples.game_state_machine.get_game_state_name$GameState
+    ; Call to examples.game_state_machine.get_game_state_name$GameState (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.get_game_state_name$GameState
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; r25 = string(str_4)
+    LD HL, str_4
+    LD ($F032), HL    ; Virtual register 25 to memory
+    ; Print "
+Player actions:
+" (17 chars via loop)
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    CALL print_string
+    ; r26 = load player_state
+    LD HL, ($F006)
+    ; r27 = 3
+    LD A, 3
+    LD ($F036), A     ; Virtual register 27 to memory
+    ; r28 = load game_state
+    LD HL, ($F002)
+    ; r29 = load player_state
+    LD HL, ($F006)
+    LD ($F03A), HL    ; Virtual register 29 to memory
+    ; r30 = 3
+    LD A, 3
+    LD E, A         ; Store to physical register E
+    ; r31 = load game_state
+    LD HL, ($F002)
+    LD ($F03E), HL    ; Virtual register 31 to memory
+    ; r32 = call examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+    ; Call to examples.game_state_machine.update_player_state$PlayerState$Input$GameState (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+    ; store player_state, r32
+    LD ($F006), HL
+    ; r33 = string(str_5)
+    LD HL, str_5
+    ; Print "Player walking: " (16 chars via loop)
+    CALL print_string
+    ; r34 = load player_state
+    LD HL, ($F006)
+    LD ($F044), HL    ; Virtual register 34 to memory
+    ; r35 = load player_state
+    LD HL, ($F006)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.game_state_machine.get_player_state_name$PlayerState_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter state = 0
+    LD A, 0               ; Parameter value
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_param_state+1), A   ; Patch parameter immediate
+    ; r36 = call examples.game_state_machine.get_player_state_name$PlayerState
+    ; Call to examples.game_state_machine.get_player_state_name$PlayerState (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.get_player_state_name$PlayerState
+    LD ($F048), HL    ; Virtual register 36 to memory
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; r37 = load player_state
+    LD HL, ($F006)
+    ; r38 = 4
+    LD A, 4
+    LD ($F04C), A     ; Virtual register 38 to memory
+    ; r39 = load game_state
+    LD HL, ($F002)
+    ; r40 = load player_state
+    LD HL, ($F006)
+    LD ($F050), HL    ; Virtual register 40 to memory
+    ; r41 = 4
+    LD A, 4
+    LD L, A         ; Store to physical register L
+    ; r42 = load game_state
+    LD HL, ($F002)
+    LD ($F054), HL    ; Virtual register 42 to memory
+    ; r43 = call examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+    ; Call to examples.game_state_machine.update_player_state$PlayerState$Input$GameState (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+    ; store player_state, r43
+    LD ($F006), HL
+    ; r44 = string(str_6)
+    LD HL, str_6
+    ; Print "Player jumping: " (16 chars via loop)
+    CALL print_string
+    ; r45 = load player_state
+    LD HL, ($F006)
+    LD ($F05A), HL    ; Virtual register 45 to memory
+    ; r46 = load player_state
+    LD HL, ($F006)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.game_state_machine.get_player_state_name$PlayerState_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter state = 0
+    LD A, 0               ; Parameter value
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_param_state+1), A   ; Patch parameter immediate
+    ; r47 = call examples.game_state_machine.get_player_state_name$PlayerState
+    ; Call to examples.game_state_machine.get_player_state_name$PlayerState (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.get_player_state_name$PlayerState
+    LD ($F05E), HL    ; Virtual register 47 to memory
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; r48 = load player_state
+    LD HL, ($F006)
+    ; r49 = 5
+    LD A, 5
+    LD ($F062), A     ; Virtual register 49 to memory
+    ; r50 = load game_state
+    LD HL, ($F002)
+    ; r51 = load player_state
+    LD HL, ($F006)
+    LD ($F066), HL    ; Virtual register 51 to memory
+    ; r52 = 5
+    LD A, 5
+    LD D, A         ; Store to physical register D
+    ; r53 = load game_state
+    LD HL, ($F002)
+    LD ($F06A), HL    ; Virtual register 53 to memory
+    ; r54 = call examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+    ; Call to examples.game_state_machine.update_player_state$PlayerState$Input$GameState (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+    ; store player_state, r54
+    LD ($F006), HL
+    ; r55 = string(str_7)
+    LD HL, str_7
+    LD ($F06E), HL    ; Virtual register 55 to memory
+    ; Print "Player attacking: " (18 chars via loop)
+    LD HL, ($F06E)    ; Virtual register 55 from memory
+    CALL print_string
+    ; r56 = load player_state
+    LD HL, ($F006)
+    ; r57 = load player_state
+    LD HL, ($F006)
+    LD ($F072), HL    ; Virtual register 57 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.game_state_machine.get_player_state_name$PlayerState_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter state = 0
+    LD A, 0               ; Parameter value
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_param_state+1), A   ; Patch parameter immediate
+    ; r58 = call examples.game_state_machine.get_player_state_name$PlayerState
+    ; Call to examples.game_state_machine.get_player_state_name$PlayerState (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.get_player_state_name$PlayerState
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; r59 = string(str_8)
+    LD HL, str_8
+    LD ($F076), HL    ; Virtual register 59 to memory
+    ; Print "
+Pausing game...
+" (17 chars via loop)
+    LD HL, ($F076)    ; Virtual register 59 from memory
+    CALL print_string
+    ; r60 = load game_state
+    LD HL, ($F002)
+    ; r61 = 1
+    LD A, 1
+    LD ($F07A), A     ; Virtual register 61 to memory
+    ; r62 = load game_state
+    LD HL, ($F002)
+    ; r63 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r64 = call examples.game_state_machine.update_game_state$GameState$Input
+    ; Call to examples.game_state_machine.update_game_state$GameState$Input (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.update_game_state$GameState$Input
+    ; store game_state, r64
+    LD ($F002), HL
+    ; r65 = string(str_9)
+    LD HL, str_9
+    ; Print "Game state: " (12 chars via loop)
+    CALL print_string
+    ; r66 = load game_state
+    LD HL, ($F002)
+    LD ($F084), HL    ; Virtual register 66 to memory
+    ; r67 = load game_state
+    LD HL, ($F002)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.game_state_machine.get_game_state_name$GameState_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.game_state_machine.get_game_state_name$GameState_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.game_state_machine.get_game_state_name$GameState_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter state = 0
+    LD A, 0               ; Parameter value
+    LD (examples.game_state_machine.get_game_state_name$GameState_param_state+1), A   ; Patch parameter immediate
+    ; r68 = call examples.game_state_machine.get_game_state_name$GameState
+    ; Call to examples.game_state_machine.get_game_state_name$GameState (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.get_game_state_name$GameState
+    LD ($F088), HL    ; Virtual register 68 to memory
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; r70 = load player_state
+    LD HL, ($F006)
+    ; store old_player, r70
+    LD ($F08A), HL
+    ; r71 = load player_state
+    LD HL, ($F006)
+    ; r72 = 3
+    LD A, 3
+    LD D, A         ; Store to physical register D
+    ; r73 = load game_state
+    LD HL, ($F002)
+    ; r74 = load player_state
+    LD HL, ($F006)
+    LD ($F094), HL    ; Virtual register 74 to memory
+    ; r75 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r76 = load game_state
+    LD HL, ($F002)
+    LD ($F098), HL    ; Virtual register 76 to memory
+    ; r77 = call examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+    ; Call to examples.game_state_machine.update_player_state$PlayerState$Input$GameState (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.update_player_state$PlayerState$Input$GameState
+    ; store player_state, r77
+    LD ($F006), HL
+    ; r78 = string(str_10)
+    LD HL, str_10
+    LD ($F09C), HL    ; Virtual register 78 to memory
+    ; Print "Player action while paused (should stay same): " (47 chars via loop)
+    LD HL, ($F09C)    ; Virtual register 78 from memory
+    CALL print_string
+    ; r79 = load player_state
+    LD HL, ($F006)
+    ; r80 = load player_state
+    LD HL, ($F006)
+    LD ($F0A0), HL    ; Virtual register 80 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.game_state_machine.get_player_state_name$PlayerState_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter state = 0
+    LD A, 0               ; Parameter value
+    LD (examples.game_state_machine.get_player_state_name$PlayerState_param_state+1), A   ; Patch parameter immediate
+    ; r81 = call examples.game_state_machine.get_player_state_name$PlayerState
+    ; Call to examples.game_state_machine.get_player_state_name$PlayerState (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.get_player_state_name$PlayerState
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; r82 = string(str_11)
+    LD HL, str_11
+    ; Print "
+Resuming and quitting...
+" (26 chars via loop)
+    CALL print_string
+    ; r83 = load game_state
+    LD HL, ($F002)
+    ; r84 = 0
+    LD A, 0
+    LD ($F0A8), A     ; Virtual register 84 to memory
+    ; r85 = load game_state
+    LD HL, ($F002)
+    ; r86 = 0
+    LD A, 0
+    LD ($F0AC), A     ; Virtual register 86 to memory
+    ; r87 = call examples.game_state_machine.update_game_state$GameState$Input
+    ; Call to examples.game_state_machine.update_game_state$GameState$Input (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.update_game_state$GameState$Input
+    ; store game_state, r87
+    LD ($F002), HL
+    ; r88 = load game_state
+    LD HL, ($F002)
+    LD ($F0B0), HL    ; Virtual register 88 to memory
+    ; r89 = 2
+    LD A, 2
+    LD B, A         ; Store to physical register B
+    ; r90 = load game_state
+    LD HL, ($F002)
+    ; r91 = 2
+    LD A, 2
+    ; Register 91 already in A
+    ; r92 = call examples.game_state_machine.update_game_state$GameState$Input
+    ; Call to examples.game_state_machine.update_game_state$GameState$Input (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.update_game_state$GameState$Input
+    ; store game_state, r92
+    LD ($F002), HL
+    ; r93 = string(str_12)
+    LD HL, str_12
+    ; Print "Final game state: " (18 chars via loop)
+    CALL print_string
+    ; r94 = load game_state
+    LD HL, ($F002)
+    ; r95 = load game_state
+    LD HL, ($F002)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.game_state_machine.get_game_state_name$GameState_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.game_state_machine.get_game_state_name$GameState_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.game_state_machine.get_game_state_name$GameState_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter state = 0
+    LD A, 0               ; Parameter value
+    LD (examples.game_state_machine.get_game_state_name$GameState_param_state+1), A   ; Patch parameter immediate
+    ; r96 = call examples.game_state_machine.get_game_state_name$GameState
+    ; Call to examples.game_state_machine.get_game_state_name$GameState (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.get_game_state_name$GameState
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.game_state_machine.main
+examples.game_state_machine.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call examples.game_state_machine.simulate_game
+    ; Call to examples.game_state_machine.simulate_game (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.game_state_machine.simulate_game
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; ZX Spectrum ROM print
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+
+; Standard library routines
+
+    END main

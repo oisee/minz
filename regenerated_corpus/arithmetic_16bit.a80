@@ -1,0 +1,190 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Data section
+    ORG $F000
+
+examples.arithmetic_16bit.g_sum:
+    DW 0
+examples.arithmetic_16bit.g_diff:
+    DW 0
+examples.arithmetic_16bit.g_product:
+    DW 0
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.arithmetic_16bit.test_16bit_ops
+examples.arithmetic_16bit.test_16bit_ops:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -14
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    ; r2 = 4660
+    LD HL, 4660
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; store a, r2
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD (IX-2), L
+    LD (IX-1), H
+    ; r4 = 22136
+    LD HL, 22136
+    LD B, H
+    LD C, L
+    ; store b, r4
+    LD H, B
+    LD L, C
+    LD (IX-4), L
+    LD (IX-3), H
+    ; r5 = load a
+    LD L, (IX-2)
+    LD H, (IX-1)
+    ; r6 = load b
+    LD L, (IX-4)
+    LD H, (IX-3)
+    ; r7 = r5 + r6
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store g_sum, r7
+    LD (IX+0), L
+    LD (IX+1), H
+    ; r8 = load b
+    LD L, (IX-4)
+    LD H, (IX-3)
+    ; r9 = load a
+    LD L, (IX-2)
+    LD H, (IX-1)
+    ; r10 = r8 - r9
+    EXX               ; Switch to shadow registers
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; Register 10 already in HL
+    ; store g_diff, r10
+    ; Register 10 already in HL
+    LD (IX+0), L
+    LD (IX+1), H
+    ; r12 = 100
+    LD A, 100
+    LD H, A         ; Store to physical register H
+    ; store c, r12
+    LD (IX-6), L
+    LD (IX-5), H
+    ; r14 = 200
+    LD A, 200
+    LD L, A         ; Store to HL (low byte)
+    ; store d, r14
+    ; Register 14 already in HL
+    LD (IX-8), L
+    LD (IX-7), H
+    ; r15 = load c
+    LD L, (IX-6)
+    LD H, (IX-5)
+    ; Register 15 already in HL
+    ; r16 = load d
+    LD L, (IX-8)
+    LD H, (IX-7)
+    ; r17 = r15 * r16
+    ; 16-bit multiplication
+    ; Register 15 already in HL
+    LD (mul_src1_0), HL  ; Save multiplicand
+    LD (mul_src2_0), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_0)  ; DE = multiplicand
+    LD BC, (mul_src2_0)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_0
+examples_arithmetic_16bit_test_16bit_ops_mul16_loop_0:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_0
+examples_arithmetic_16bit_test_16bit_ops_mul16_done_0:
+mul_src1_0: DW 0
+mul_src2_0: DW 0
+    LD ($F022), HL    ; Virtual register 17 to memory
+    ; store g_product, r17
+    LD HL, ($F022)    ; Virtual register 17 from memory
+    LD (IX+0), L
+    LD (IX+1), H
+    ; r19 = 65280
+    LD HL, 65280
+    ; Register 19 already in HL
+    ; store mask, r19
+    ; Register 19 already in HL
+    LD (IX-10), L
+    LD (IX-9), H
+    ; r21 = load b
+    LD L, (IX-4)
+    LD H, (IX-3)
+    ; Register 21 already in HL
+    ; r22 = load mask
+    LD L, (IX-10)
+    LD H, (IX-9)
+    ; r23 = r21 & r22
+    ; Register 21 already in HL
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F02E), HL    ; Virtual register 23 to memory
+    ; store result, r23
+    LD HL, ($F02E)    ; Virtual register 23 from memory
+    LD (IX-12), L
+    LD (IX-11), H
+    ; r25 = load a
+    LD L, (IX-2)
+    LD H, (IX-1)
+    ; Register 25 already in HL
+    ; r26 = 4
+    LD A, 4
+    LD H, A         ; Store to physical register H
+    ; r27 = r25 << r26
+    ; 16-bit shift left
+    ; Register 25 already in HL
+    LD A, H
+    LD B, A       ; B = shift count
+    OR A
+    JR Z, .shl16_done_1
+examples_arithmetic_16bit_test_16bit_ops_shl16_loop_1:
+    ADD HL, HL    ; Shift left by 1
+    DJNZ .shl16_loop_1
+examples_arithmetic_16bit_test_16bit_ops_shl16_done_1:
+    ; Register 27 already in HL
+    ; store shifted, r27
+    ; Register 27 already in HL
+    LD (IX-14), L
+    LD (IX-13), H
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.arithmetic_16bit.main
+examples.arithmetic_16bit.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call examples.arithmetic_16bit.test_16bit_ops
+    ; Call to examples.arithmetic_16bit.test_16bit_ops (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.arithmetic_16bit.test_16bit_ops
+    ; Register 1 already in HL
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

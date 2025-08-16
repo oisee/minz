@@ -1,0 +1,81 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.register_test.simple_add$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 + r4
+      3: return r5
+
+Function examples.register_test.complex_calc$u16$u16$u16(x: u16, y: u16, z: u16) -> u16
+  @smc
+  Locals:
+    r4 = t1: u16
+    r8 = t2: u16
+    r12 = t3: u16
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r7 = r5 + r6
+      3: store t1, r7
+      4: LOAD_PARAM
+      5: LOAD_PARAM
+      6: r11 = r9 + r10
+      7: store t2, r11
+      8: LOAD_PARAM
+      9: LOAD_PARAM
+     10: r15 = r13 + r14
+     11: store t3, r15
+     12: r16 = load t1
+     13: r17 = load t2
+     14: r18 = r16 + r17
+     15: r19 = load t3
+     16: r20 = r18 + r19
+     17: return r20
+
+Function examples.register_test.timer_isr() -> void
+  @smc
+  Locals:
+    r1 = counter: u8
+  Instructions:
+      0: r2 = 0
+      1: store counter, r2
+      2: r3 = load counter
+      3: r4 = 1
+      4: r5 = r3 + r4
+      5: store counter, r5
+      6: return
+
+Function examples.register_test.main() -> void
+  @smc
+  Locals:
+    r1 = a: u8
+    r7 = b: u16
+  Instructions:
+      0: r2 = 5
+      1: r3 = 10
+      2: r4 = 5
+      3: r5 = 10
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: PATCH_PARAM
+      8: r6 = call examples.register_test.simple_add$u8$u8
+      9: store a, r6
+     10: r8 = 100
+     11: r9 = 200
+     12: r10 = 300
+     13: r11 = 100
+     14: r12 = 200
+     15: r13 = 300
+     16: PATCH_TEMPLATE
+     17: PATCH_TARGET
+     18: PATCH_PARAM
+     19: PATCH_PARAM
+     20: PATCH_PARAM
+     21: r14 = call examples.register_test.complex_calc$u16$u16$u16
+     22: store b, r14
+     23: return
+

@@ -1,0 +1,747 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_vs_traditional_performance.traditional_add$u8$u8
+examples.lambda_vs_traditional_performance.traditional_add$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_vs_traditional_performance.traditional_add$u8$u8_param_x.op:
+examples.lambda_vs_traditional_performance.traditional_add$u8$u8_param_x equ examples.lambda_vs_traditional_performance.traditional_add$u8$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 3 already in A
+examples.lambda_vs_traditional_performance.traditional_add$u8$u8_param_y.op:
+examples.lambda_vs_traditional_performance.traditional_add$u8$u8_param_y equ examples.lambda_vs_traditional_performance.traditional_add$u8$u8_param_y.op + 1
+    LD B, #00      ; Parameter y (gets patched)
+    LD A, B
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_vs_traditional_performance.traditional_add$u8$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_vs_traditional_performance.traditional_add$u8$u8_store_addr.op:
+examples.lambda_vs_traditional_performance.traditional_add$u8$u8_store_addr equ examples.lambda_vs_traditional_performance.traditional_add$u8$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8
+examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_param_x.op:
+examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_param_x equ examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD E, A         ; Store to physical register E
+examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_param_factor.op:
+examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_param_factor equ examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_param_factor.op + 1
+    LD B, #00      ; Parameter factor (gets patched)
+    LD A, B
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 * r4
+    ; 8-bit multiplication
+    LD A, E
+    LD B, A       ; B = multiplicand
+    LD A, H
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, examples_lambda_vs_traditional_performance_traditional_multiply_u8_u8_mul_done_0
+examples_lambda_vs_traditional_performance_traditional_multiply_u8_u8_mul_loop_0:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, examples_lambda_vs_traditional_performance_traditional_multiply_u8_u8_mul_loop_0
+examples_lambda_vs_traditional_performance_traditional_multiply_u8_u8_mul_done_0:
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_store_addr.op:
+examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_store_addr equ examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8
+examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_a.op:
+examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_a equ examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_b.op:
+examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_b equ examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    LD A, (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_a)
+    LD E, A         ; Store to physical register E
+    LD A, (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_b)
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.traditional_add$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.traditional_add$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.traditional_add$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_add$u8$u8_param_x+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter y = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_add$u8$u8_param_y+1), A   ; Patch parameter immediate
+    ; r9 = call examples.lambda_vs_traditional_performance.traditional_add$u8$u8
+    ; Call to examples.lambda_vs_traditional_performance.traditional_add$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.traditional_add$u8$u8
+    ; store sum, r9
+    LD A, H
+    LD ($F008), A
+    ; r11 = load sum
+    LD A, ($F008)
+    LD B, A         ; Store to physical register B
+examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_c.op:
+examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_c equ examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_c.op + 1
+    LD C, #00      ; Parameter c (gets patched)
+    LD A, C
+    LD B, A         ; Store to physical register B
+    ; r13 = load sum
+    LD A, ($F008)
+    LD H, A         ; Store to physical register H
+    LD A, (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_c)
+    ; Register 14 already in A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_param_x+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter factor = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8_param_factor+1), A   ; Patch parameter immediate
+    ; r15 = call examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8
+    ; Call to examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.traditional_multiply$u8$u8
+    ; store result, r15
+    ; Register 15 already in A
+    LD ($F014), A
+    ; r16 = load result
+    LD A, ($F014)
+    LD E, A         ; Store to physical register E
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_store_addr.op:
+examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_store_addr equ examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_param_x.op:
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_param_x equ examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_param_y.op:
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_param_y equ examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_param_y.op + 1
+    LD B, #00      ; Parameter y (gets patched)
+    LD A, B
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r4 = r2 + r3
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_store_addr.op:
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_store_addr equ examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_param_x.op:
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_param_x equ examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    LD E, A         ; Store to physical register E
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_param_factor.op:
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_param_factor equ examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_param_factor.op + 1
+    LD B, #00      ; Parameter factor (gets patched)
+    LD A, B
+    LD E, A         ; Store to physical register E
+    ; r4 = r2 * r3
+    ; 8-bit multiplication
+    LD A, E
+    LD B, A       ; B = multiplicand
+    LD A, E
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, examples_lambda_vs_traditional_performance_lambda_approach_u8_u8_u8_multiply_1_mul_done_1
+examples_lambda_vs_traditional_performance_lambda_approach_u8_u8_u8_multiply_1_mul_loop_1:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, examples_lambda_vs_traditional_performance_lambda_approach_u8_u8_u8_multiply_1_mul_loop_1
+examples_lambda_vs_traditional_performance_lambda_approach_u8_u8_u8_multiply_1_mul_done_1:
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_store_addr.op:
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_store_addr equ examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_a.op:
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_a equ examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_b.op:
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_b equ examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_param_x+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter y = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0_param_y+1), A   ; Patch parameter immediate
+    ; r7 = call examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0
+    ; Call to examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$add_0
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; store sum, r7
+    LD A, ($F00E)     ; Virtual register 7 from memory
+    LD ($F008), A
+    ; r9 = load sum
+    LD A, ($F008)
+    LD C, A         ; Store to physical register C
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_c.op:
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_c equ examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_c.op + 1
+    LD C, #00      ; Parameter c (gets patched)
+    LD A, C
+    LD L, A         ; Store to physical register L
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_param_x+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter factor = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1_param_factor+1), A   ; Patch parameter immediate
+    ; r11 = call examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1
+    ; Call to examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8$multiply_1
+    ; store result, r11
+    ; Register 11 already in A
+    LD ($F010), A
+    ; r12 = load result
+    LD A, ($F010)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_store_addr.op:
+examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_store_addr equ examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_vs_traditional_performance.test_traditional_performance
+examples.lambda_vs_traditional_performance.test_traditional_performance:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 3
+    LD A, 3
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 2
+    LD A, 2
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = 5
+    LD A, 5
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = 3
+    LD A, 3
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r7 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter c = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_c+1), A   ; Patch parameter immediate
+    ; r8 = call examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8
+    ; Call to examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8
+    ; store result1, r8
+    LD A, L
+    LD ($F002), A
+    ; r10 = 10
+    LD A, 10
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; r11 = 7
+    LD A, 7
+    LD E, A         ; Store to physical register E
+    ; r12 = 3
+    LD A, 3
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; r13 = 10
+    LD A, 10
+    LD E, A         ; Store to physical register E
+    ; r14 = 7
+    LD A, 7
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; r15 = 3
+    LD A, 3
+    ; Register 15 already in A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter c = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_c+1), A   ; Patch parameter immediate
+    ; r16 = call examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8
+    ; Call to examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8
+    LD ($F020), HL    ; Virtual register 16 to memory
+    ; store result2, r16
+    LD A, ($F020)     ; Virtual register 16 from memory
+    LD ($F012), A
+    ; r18 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r19 = 9
+    LD A, 9
+    LD D, A         ; Store to physical register D
+    ; r20 = 4
+    LD A, 4
+    LD ($F028), A     ; Virtual register 20 to memory
+    ; r21 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r22 = 9
+    LD A, 9
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r23 = 4
+    LD A, 4
+    ; Register 23 already in A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter c = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8_param_c+1), A   ; Patch parameter immediate
+    ; r24 = call examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8
+    ; Call to examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.traditional_complex$u8$u8$u8
+    LD ($F030), HL    ; Virtual register 24 to memory
+    ; store result3, r24
+    LD A, ($F030)     ; Virtual register 24 from memory
+    LD ($F022), A
+    ; r25 = load result1
+    LD A, ($F002)
+    LD E, A         ; Store to physical register E
+    ; r26 = load result2
+    LD A, ($F012)
+    ; Register 26 already in A
+    ; r27 = r25 + r26
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r28 = load result3
+    LD A, ($F022)
+    LD D, A         ; Store to physical register D
+    ; r29 = r27 + r28
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_vs_traditional_performance.test_traditional_performance_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_vs_traditional_performance.test_traditional_performance_store_addr.op:
+examples.lambda_vs_traditional_performance.test_traditional_performance_store_addr equ examples.lambda_vs_traditional_performance.test_traditional_performance_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_vs_traditional_performance.test_lambda_performance
+examples.lambda_vs_traditional_performance.test_lambda_performance:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 3
+    LD A, 3
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 2
+    LD A, 2
+    LD E, A         ; Store to physical register E
+    ; r5 = 5
+    LD A, 5
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = 3
+    LD A, 3
+    ; Register 6 already in A
+    ; r7 = 2
+    LD A, 2
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter c = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_c+1), A   ; Patch parameter immediate
+    ; r8 = call examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8
+    ; Call to examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8
+    LD ($F010), HL    ; Virtual register 8 to memory
+    ; store result1, r8
+    LD A, ($F010)     ; Virtual register 8 from memory
+    LD ($F002), A
+    ; r10 = 10
+    LD A, 10
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r11 = 7
+    LD A, 7
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r12 = 3
+    LD A, 3
+    ; Register 12 already in A
+    ; r13 = 10
+    LD A, 10
+    LD ($F01A), A     ; Virtual register 13 to memory
+    ; r14 = 7
+    LD A, 7
+    LD L, A         ; Store to physical register L
+    ; r15 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter c = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_c+1), A   ; Patch parameter immediate
+    ; r16 = call examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8
+    ; Call to examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8
+    ; store result2, r16
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F012), A
+    ; r18 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r19 = 9
+    LD A, 9
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r20 = 4
+    LD A, 4
+    LD E, A         ; Store to physical register E
+    ; r21 = 1
+    LD A, 1
+    ; Register 21 already in A
+    ; r22 = 9
+    LD A, 9
+    LD E, A         ; Store to physical register E
+    ; r23 = 4
+    LD A, 4
+    LD E, A         ; Store to physical register E
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter c = 0
+    LD A, 0               ; Parameter value
+    LD (examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8_param_c+1), A   ; Patch parameter immediate
+    ; r24 = call examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8
+    ; Call to examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.lambda_approach$u8$u8$u8
+    LD ($F030), HL    ; Virtual register 24 to memory
+    ; store result3, r24
+    LD A, ($F030)     ; Virtual register 24 from memory
+    LD ($F022), A
+    ; r25 = load result1
+    LD A, ($F002)
+    LD H, A         ; Store to physical register H
+    ; r26 = load result2
+    LD A, ($F012)
+    ; Register 26 already in A
+    ; r27 = r25 + r26
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r28 = load result3
+    LD A, ($F022)
+    LD D, A         ; Store to physical register D
+    ; r29 = r27 + r28
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.lambda_vs_traditional_performance.test_lambda_performance_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.lambda_vs_traditional_performance.test_lambda_performance_store_addr.op:
+examples.lambda_vs_traditional_performance.test_lambda_performance_store_addr equ examples.lambda_vs_traditional_performance.test_lambda_performance_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.lambda_vs_traditional_performance.main
+examples.lambda_vs_traditional_performance.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.test_traditional_performance_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.test_traditional_performance_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.test_traditional_performance_store_addr), HL
+    ; r2 = call examples.lambda_vs_traditional_performance.test_traditional_performance
+    ; Call to examples.lambda_vs_traditional_performance.test_traditional_performance (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.test_traditional_performance
+    ; store traditional_result, r2
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F002), A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.lambda_vs_traditional_performance.test_lambda_performance_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.lambda_vs_traditional_performance.test_lambda_performance_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.lambda_vs_traditional_performance.test_lambda_performance_store_addr), HL
+    ; r4 = call examples.lambda_vs_traditional_performance.test_lambda_performance
+    ; Call to examples.lambda_vs_traditional_performance.test_lambda_performance (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.lambda_vs_traditional_performance.test_lambda_performance
+    ; store lambda_result, r4
+    ; Register 4 already in A
+    LD ($F006), A
+    ; r5 = load traditional_result
+    LD A, ($F002)
+    ; Register 5 already in A
+    ; r6 = load lambda_result
+    LD A, ($F006)
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r7 = r5 + r6
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

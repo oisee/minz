@@ -1,0 +1,119 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.array_initializers.main() -> void
+  @smc
+  Locals:
+    r1 = colors: [3]u8
+    r2 = matrix: [2][2]u8
+    r3 = empty: [0]u8
+    r4 = traditional: [3]u8
+  Instructions:
+      0: r6 = 5
+      1: r7 = 6
+      2: r8 = 7
+      3: ARRAY_INIT ; Array initializer with 3 elements
+      4: ARRAY_ELEMENT ; Initialize array[0]
+      5: ARRAY_ELEMENT ; Initialize array[1]
+      6: ARRAY_ELEMENT ; Initialize array[2]
+      7: r9 = 5
+      8: r10 = load traditional ; Load array traditional base address
+      9: STORE_INDEX ; Store element 0
+     10: r11 = 6
+     11: r12 = load traditional ; Load array traditional base address
+     12: r13 = 1
+     13: r14 = r12 + r13
+     14: STORE_DIRECT ; Store element 1
+     15: r15 = 7
+     16: r16 = load traditional ; Load array traditional base address
+     17: r17 = 2
+     18: r18 = r16 + r17
+     19: STORE_DIRECT ; Store element 2
+     20: PRINT_STRING_DIRECT ; Direct print "RGB: " (5 chars)
+     21: r19 = load colors
+     22: r20 = 0
+     23: LOAD_INDEX ; Load array element (u8)
+     24: PRINT_STRING_DIRECT ; Direct print ", " (2 chars)
+     25: r22 = load colors
+     26: r23 = 1
+     27: LOAD_INDEX ; Load array element (u8)
+     28: PRINT_STRING_DIRECT ; Direct print ", " (2 chars)
+     29: r25 = load colors
+     30: r26 = 2
+     31: LOAD_INDEX ; Load array element (u8)
+     32: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     33: PRINT_STRING_DIRECT ; Direct print "Matrix:
+" (8 chars)
+     34: r28 = load matrix
+     35: r29 = 0
+     36: LOAD_INDEX ; Load array element ([2]u8)
+     37: r31 = 0
+     38: LOAD_INDEX ; Load array element (u8)
+     39: PRINT_STRING_DIRECT ; Direct print " " (1 chars)
+     40: r33 = load matrix
+     41: r34 = 0
+     42: LOAD_INDEX ; Load array element ([2]u8)
+     43: r36 = 1
+     44: LOAD_INDEX ; Load array element (u8)
+     45: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     46: r38 = load matrix
+     47: r39 = 1
+     48: LOAD_INDEX ; Load array element ([2]u8)
+     49: r41 = 0
+     50: LOAD_INDEX ; Load array element (u8)
+     51: PRINT_STRING_DIRECT ; Direct print " " (1 chars)
+     52: r43 = load matrix
+     53: r44 = 1
+     54: LOAD_INDEX ; Load array element ([2]u8)
+     55: r46 = 1
+     56: LOAD_INDEX ; Load array element (u8)
+     57: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     58: return
+
+Function examples.array_initializers.sum_array$p_a4_u8(arr: *[4]u8) -> u8
+  @smc
+  Locals:
+    r2 = sum: u8
+  Instructions:
+      0: r3 = 0
+      1: store sum, r3
+      2: r4 = 0
+      3: r5 = 4
+      4: r6 = r4 ; Initialize loop variable i
+      5: for_loop_1:
+      6: r7 = r6 < r5 ; Check i < end
+      7: jump_if_not r7, for_end_2
+      8: r8 = load sum
+      9: LOAD_PARAM
+     10: r10 = load i
+     11: LOAD_INDEX ; Load array element (u8)
+     12: r12 = r8 + r11
+     13: store sum, r12
+     14: r13 = 1
+     15: r6 = r6 + r13 ; Increment i
+     16: jump for_loop_1
+     17: for_end_2:
+     18: r14 = load sum
+     19: return r14
+
+Function examples.array_initializers.test_sum() -> void
+  @smc
+  Locals:
+    r1 = numbers: [4]u8
+    r2 = total: u8
+  Instructions:
+      0: r3 = load numbers
+      1: ADDR
+      2: r5 = load numbers
+      3: ADDR
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: r7 = call examples.array_initializers.sum_array$p_a4_u8
+      8: store total, r7
+      9: PRINT_STRING_DIRECT ; Direct print "Sum: " (5 chars)
+     10: return
+

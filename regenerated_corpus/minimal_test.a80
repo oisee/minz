@@ -1,0 +1,328 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.minimal_test.add$u16$u16
+examples.minimal_test.add$u16$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.minimal_test.add$u16$u16_param_a.op:
+examples.minimal_test.add$u16$u16_param_a equ examples.minimal_test.add$u16$u16_param_a.op + 1
+    LD HL, #0000   ; SMC parameter a
+    ; Register 3 already in HL
+examples.minimal_test.add$u16$u16_param_b.op:
+examples.minimal_test.add$u16$u16_param_b equ examples.minimal_test.add$u16$u16_param_b.op + 1
+    LD DE, #0000   ; SMC parameter b
+    EX DE, HL      ; Move to HL for storage
+    LD D, H
+    LD E, L
+    ; r5 = r3 + r4
+    ; Register 3 already in HL
+    LD D, H
+    LD E, L
+    LD H, D
+    LD L, E
+    ADD HL, DE
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    EXX               ; Switch to shadow registers
+    LD A, L         ; From shadow HL' (now active)
+    EXX               ; Switch back to main registers
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.minimal_test.add$u16$u16_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.minimal_test.add$u16$u16_store_addr.op:
+examples.minimal_test.add$u16$u16_store_addr equ examples.minimal_test.add$u16$u16_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.minimal_test.test_arithmetic
+examples.minimal_test.test_arithmetic:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    ; Register 2 already in A
+    ; store x, r2
+    LD ($F002), HL
+    ; r4 = 20
+    LD A, 20
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; store y, r4
+    LD ($F006), HL
+    ; r6 = load x
+    LD HL, ($F002)
+    ; r7 = load y
+    LD HL, ($F006)
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = load x
+    LD HL, ($F002)
+    ; r9 = load y
+    LD HL, ($F006)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.minimal_test.add$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.minimal_test.add$u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.minimal_test.add$u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.minimal_test.add$u16$u16_param_a+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.minimal_test.add$u16$u16_param_b+1), HL  ; Patch parameter immediate
+    ; r10 = call examples.minimal_test.add$u16$u16
+    ; Call to examples.minimal_test.add$u16$u16 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.minimal_test.add$u16$u16
+    ; Register 10 already in HL
+    ; store result, r10
+    ; Register 10 already in HL
+    LD ($F00A), HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.minimal_test.test_struct
+examples.minimal_test.test_struct:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct Point
+    LD HL, -4
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    ; Register 2 already in HL
+    ; r3 = 100
+    LD A, 100
+    LD H, A         ; Store to physical register H
+    ; Store to Point.x
+    ; Register 2 already in HL
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r4 = 200
+    LD A, 200
+    LD L, A         ; Store to physical register L
+    ; Store to Point.y
+    ; Register 2 already in HL
+    LD DE, 2
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; store p, r2
+    ; Register 2 already in HL
+    LD ($F002), HL
+    ; r6 = load p
+    LD HL, ($F002)
+    ; Register 6 already in HL
+    ; Load field x (offset 0)
+    ; Register 6 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = load p
+    LD HL, ($F002)
+    ; Register 8 already in HL
+    ; Load field y (offset 2)
+    ; Register 8 already in HL
+    LD DE, 2
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 9 already in HL
+    ; r10 = r7 + r9
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    LD D, H
+    LD E, L
+    ; Register 9 already in HL
+    ADD HL, DE
+    ; Register 10 already in HL
+    ; store sum, r10
+    ; Register 10 already in HL
+    LD ($F00A), HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.minimal_test.test_array
+examples.minimal_test.test_array:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r4 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; r5 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    ; Array initializer with 3 elements
+    ; Initialize array with 3 elements
+    ; Array allocated at $F004
+    LD HL, $F004
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; Initialize array[0]
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL        ; Save array base
+    LD DE, 0
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    LD A, L
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; Initialize array[1]
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL        ; Save array base
+    LD DE, 1
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    LD A, H
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; Initialize array[2]
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL        ; Save array base
+    LD DE, 2
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    LD A, L
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; r6 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; Load array arr base address
+    LD HL, ($F002)
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; Store element 0
+    ; Register 6 already in HL
+    PUSH HL
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD (HL), 0    ; TODO: Need value source
+    ; r8 = 2
+    LD A, 2
+    LD L, A         ; Store to HL (low byte)
+    ; Load array arr base address
+    LD HL, ($F002)
+    ; Register 9 already in HL
+    ; r10 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r11 = r9 + r10
+    ; Register 9 already in HL
+    LD D, H
+    LD E, L
+    ; Register 10 already in HL
+    ADD HL, DE
+    ; Store element 1
+    LD A, L
+    LD ($0000), A
+    ; r12 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    ; Load array arr base address
+    LD HL, ($F002)
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    ; r14 = 2
+    LD A, 2
+    LD L, A         ; Store to HL (low byte)
+    ; r15 = r13 + r14
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    LD D, H
+    LD E, L
+    ; Register 14 already in HL
+    ADD HL, DE
+    ; Store element 2
+    LD A, L
+    LD ($0000), A
+    ; r17 = load arr
+    LD HL, ($F002)
+    ; r18 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; store first, r19
+    LD ($F020), HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.minimal_test.main
+examples.minimal_test.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call examples.minimal_test.test_arithmetic
+    ; Call to examples.minimal_test.test_arithmetic (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.minimal_test.test_arithmetic
+    ; Register 1 already in HL
+    ; r2 = call examples.minimal_test.test_struct
+    ; Call to examples.minimal_test.test_struct (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.minimal_test.test_struct
+    ; r3 = call examples.minimal_test.test_array
+    ; Call to examples.minimal_test.test_array (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.minimal_test.test_array
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

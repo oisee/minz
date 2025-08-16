@@ -1,0 +1,73 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.bit_manipulation.set_bit$u8$u8(value: u8, bit: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 1
+      2: LOAD_PARAM
+      3: SHL
+      4: r7 = r3 | r6
+      5: return r7
+
+Function examples.bit_manipulation.clear_bit$u8$u8(value: u8, bit: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 1
+      2: LOAD_PARAM
+      3: SHL
+      4: r7 = ~r6
+      5: r8 = r3 & r7
+      6: return r8
+
+Function examples.bit_manipulation.toggle_bit$u8$u8(value: u8, bit: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 1
+      2: LOAD_PARAM
+      3: SHL
+      4: r7 = r3 ^ r6
+      5: return r7
+
+Function examples.bit_manipulation.test_bit$u8$u8(value: u8, bit: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 1
+      2: LOAD_PARAM
+      3: SHL
+      4: r7 = r3 & r6
+      5: r8 = 0
+      6: r9 = r7 != r8
+      7: return r9
+
+Function examples.bit_manipulation.count_bits$u8(value: u8) -> u8
+  @smc
+  Locals:
+    r2 = count: u8
+  Instructions:
+      0: r3 = 0
+      1: store count, r3
+      2: loop_1:
+      3: LOAD_PARAM
+      4: r5 = 0
+      5: r6 = r4 != r5
+      6: jump_if_not r6, end_loop_2
+      7: r7 = load count
+      8: LOAD_PARAM
+      9: r9 = 1
+     10: r10 = r8 & r9
+     11: r11 = r7 + r10
+     12: store count, r11
+     13: LOAD_PARAM
+     14: r13 = 1
+     15: SHR
+     16: store value, r14
+     17: jump loop_1
+     18: end_loop_2:
+     19: r15 = load count
+     20: return r15
+

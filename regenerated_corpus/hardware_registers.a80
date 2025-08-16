@@ -1,0 +1,231 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.hardware_registers.main
+examples.hardware_registers.main:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -14
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    ; r2 = 18
+    LD A, 18
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store border_val, r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD (IX-1), A
+    ; r4 = load border_val
+    LD A, (IX-1)
+    LD C, A         ; Store to physical register C
+    ; store border, r4
+    LD (IX-2), L
+    LD (IX-1), H
+    ; r6 = load border
+    LD L, (IX-2)
+    LD H, (IX-1)
+    ; Load bit field border_color (offset 0, width 3)
+    LD A, E
+    AND 7
+    LD H, A         ; Store to physical register H
+    ; store color, r7
+    LD A, H
+    LD (IX-3), A
+    ; r9 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r10 = 10
+    LD A, 10
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r11 = r9 << r10
+    ; Shift left
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = value to shift
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, examples_hardware_registers_main_shl_done_0
+    LD B, C       ; B = counter
+examples_hardware_registers_main_shl_loop_0:
+    DEC B
+    JP M, examples_hardware_registers_main_shl_done_0
+    SLA A         ; Shift left, 0 into bit 0
+    JR examples_hardware_registers_main_shl_loop_0
+examples_hardware_registers_main_shl_done_0:
+    LD L, A
+    LD H, 0
+    ; r12 = 1
+    LD A, 1
+    ; Register 12 already in A
+    ; r13 = 8
+    LD A, 8
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r14 = r12 << r13
+    ; Shift left
+    ; Register 12 already in A
+    LD B, A       ; B = value to shift
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, examples_hardware_registers_main_shl_done_1
+    LD B, C       ; B = counter
+examples_hardware_registers_main_shl_loop_1:
+    DEC B
+    JP M, examples_hardware_registers_main_shl_done_1
+    SLA A         ; Shift left, 0 into bit 0
+    JR examples_hardware_registers_main_shl_loop_1
+examples_hardware_registers_main_shl_done_1:
+    LD L, A
+    LD H, 0
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; r15 = r11 | r14
+    LD D, H
+    LD E, L
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    ; r16 = 42
+    LD A, 42
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r17 = r15 | r16
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    ; store mem_val, r17
+    LD (IX-5), L
+    LD (IX-4), H
+    ; r19 = load mem_val
+    LD L, (IX-5)
+    LD H, (IX-4)
+    ; Register 19 already in HL
+    ; store mapper, r19
+    ; Register 19 already in HL
+    LD (IX-7), L
+    LD (IX-6), H
+    ; r21 = load mapper
+    LD L, (IX-7)
+    LD H, (IX-6)
+    ; Register 21 already in HL
+    ; Load bit field page_number (offset 0, width 8)
+    LD A, L
+    AND 255
+    LD H, A         ; Store to physical register H
+    ; store page, r22
+    LD A, H
+    LD (IX-8), A
+    ; r24 = 150
+    LD A, 150
+    LD L, A         ; Store to physical register L
+    ; r25 = 8
+    LD A, 8
+    LD ($F032), A     ; Virtual register 25 to memory
+    ; r26 = r24 << r25
+    ; Shift left
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, ($F032)     ; Virtual register 25 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, examples_hardware_registers_main_shl_done_2
+    LD B, C       ; B = counter
+examples_hardware_registers_main_shl_loop_2:
+    DEC B
+    JP M, examples_hardware_registers_main_shl_done_2
+    SLA A         ; Shift left, 0 into bit 0
+    JR examples_hardware_registers_main_shl_loop_2
+examples_hardware_registers_main_shl_done_2:
+    LD L, A
+    LD H, 0
+    ; r27 = 100
+    LD A, 100
+    LD L, A         ; Store to physical register L
+    ; r28 = r26 | r27
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    ; Register 28 already in HL
+    ; store sprite_val, r28
+    ; Register 28 already in HL
+    LD (IX-10), L
+    LD (IX-9), H
+    ; r30 = load sprite_val
+    LD L, (IX-10)
+    LD H, (IX-9)
+    ; Register 30 already in HL
+    ; store sprite, r30
+    ; Register 30 already in HL
+    LD (IX-12), L
+    LD (IX-11), H
+    ; r32 = load sprite
+    LD L, (IX-12)
+    LD H, (IX-11)
+    ; Register 32 already in HL
+    ; Load bit field x_coord (offset 0, width 8)
+    LD A, L
+    AND 255
+    LD H, A         ; Store to physical register H
+    ; store sprite_x, r33
+    LD A, H
+    LD (IX-13), A
+    ; r35 = load sprite
+    LD L, (IX-12)
+    LD H, (IX-11)
+    ; Load bit field y_coord (offset 8, width 8)
+    LD A, L
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    SRL A
+    AND 255
+    LD H, A         ; Store to physical register H
+    ; store sprite_y, r36
+    LD A, H
+    LD (IX-14), A
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+
+    END main

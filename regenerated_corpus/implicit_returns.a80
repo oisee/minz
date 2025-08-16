@@ -1,0 +1,55 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.implicit_returns.test_no_return
+examples.implicit_returns.test_no_return:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    ; Register 2 already in A
+    ; store x, r2
+    ; Register 2 already in A
+    LD ($F002), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.implicit_returns.test_with_return
+examples.implicit_returns.test_with_return:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD C, A         ; Store to physical register C
+    ; store x, r2
+    LD A, C
+    LD ($F002), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.implicit_returns.main
+examples.implicit_returns.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call examples.implicit_returns.test_no_return
+    ; Call to examples.implicit_returns.test_no_return (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.implicit_returns.test_no_return
+    ; r2 = call examples.implicit_returns.test_with_return
+    ; Call to examples.implicit_returns.test_with_return (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.implicit_returns.test_with_return
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

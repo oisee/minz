@@ -1,0 +1,101 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   examples.global_variables_fixed.g_byte: u8
+;   examples.global_variables_fixed.g_word: u16
+;   examples.global_variables_fixed.g_flag: bool
+;   examples.global_variables_fixed.g_calc: u8
+;   examples.global_variables_fixed.g_shift: u16
+;   examples.global_variables_fixed.g_masked: u8
+;   examples.global_variables_fixed.g_uninit_byte: u8
+;   examples.global_variables_fixed.g_uninit_word: u16
+
+Function examples.global_variables_fixed.main() -> void
+  @smc
+  Instructions:
+      0: r1 = load examples.global_variables_fixed.g_byte
+      1: r2 = 42
+      2: r3 = r1 == r2
+      3: jump_if_not r3, else_1
+      4: LOAD_STRING
+      5: PRINT_STRING ; Print "g_byte success: " (16 chars via loop)
+      6: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+      7: jump end_if_2
+      8: else_1:
+      9: end_if_2:
+     10: r5 = load examples.global_variables_fixed.g_word
+     11: r6 = 4660
+     12: r7 = r5 == r6
+     13: jump_if_not r7, else_3
+     14: LOAD_STRING
+     15: PRINT_STRING ; Print "g_word success: " (16 chars via loop)
+     16: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     17: jump end_if_4
+     18: else_3:
+     19: end_if_4:
+     20: r9 = load examples.global_variables_fixed.g_flag
+     21: jump_if_not r9, else_5
+     22: LOAD_STRING
+     23: PRINT_STRING ; Print "g_flag success
+" (15 chars via loop)
+     24: jump end_if_6
+     25: else_5:
+     26: end_if_6:
+     27: r11 = load examples.global_variables_fixed.g_calc
+     28: r12 = 15
+     29: r13 = r11 == r12
+     30: jump_if_not r13, else_7
+     31: LOAD_STRING
+     32: PRINT_STRING ; Print "g_calc success: " (16 chars via loop)
+     33: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     34: jump end_if_8
+     35: else_7:
+     36: end_if_8:
+     37: r15 = load examples.global_variables_fixed.g_shift
+     38: r16 = 256
+     39: r17 = r15 == r16
+     40: jump_if_not r17, else_9
+     41: LOAD_STRING
+     42: PRINT_STRING ; Print "g_shift success: " (17 chars via loop)
+     43: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     44: jump end_if_10
+     45: else_9:
+     46: end_if_10:
+     47: r19 = load examples.global_variables_fixed.g_masked
+     48: r20 = 15
+     49: r21 = r19 == r20
+     50: jump_if_not r21, else_11
+     51: LOAD_STRING
+     52: PRINT_STRING ; Print "g_masked success: " (18 chars via loop)
+     53: PRINT_STRING_DIRECT ; Direct print "
+" (1 chars)
+     54: jump end_if_12
+     55: else_11:
+     56: end_if_12:
+     57: r23 = load examples.global_variables_fixed.g_uninit_byte
+     58: r24 = 0
+     59: r25 = r23 == r24
+     60: jump_if_not r25, else_13
+     61: LOAD_STRING
+     62: PRINT_STRING ; Print "g_uninit_byte is zero
+" (22 chars via loop)
+     63: jump end_if_14
+     64: else_13:
+     65: end_if_14:
+     66: r27 = load examples.global_variables_fixed.g_uninit_word
+     67: r28 = 0
+     68: r29 = r27 == r28
+     69: jump_if_not r29, else_15
+     70: LOAD_STRING
+     71: PRINT_STRING ; Print "g_uninit_word is zero
+" (22 chars via loop)
+     72: jump end_if_16
+     73: else_15:
+     74: end_if_16:
+     75: return
+

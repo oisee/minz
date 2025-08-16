@@ -1,0 +1,506 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.array_initializers.main
+examples.array_initializers.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r6 = 5
+    LD A, 5
+    ; Register 6 already in A
+    ; r7 = 6
+    LD A, 6
+    LD B, A         ; Store to physical register B
+    ; r8 = 7
+    LD A, 7
+    LD C, A         ; Store to physical register C
+    ; Array initializer with 3 elements
+    ; Initialize array with 3 elements
+    ; Array allocated at $F00A
+    LD HL, $F00A
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; Initialize array[0]
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL        ; Save array base
+    LD DE, 0
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    ; Register 6 already in A
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; Initialize array[1]
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL        ; Save array base
+    LD DE, 1
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    LD A, B
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; Initialize array[2]
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL        ; Save array base
+    LD DE, 2
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    LD A, C
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; r9 = 5
+    LD A, 5
+    LD D, A         ; Store to physical register D
+    ; Load array traditional base address
+    LD HL, ($F008)
+    LD D, H
+    LD E, L
+    ; Store element 0
+    PUSH HL
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD (HL), 0    ; TODO: Need value source
+    ; r11 = 6
+    LD A, 6
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; Load array traditional base address
+    LD HL, ($F008)
+    LD B, H
+    LD C, L
+    ; r13 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD L, A         ; Store to shadow HL' (now active)
+    EXX               ; Switch back to main registers
+    ; r14 = r12 + r13
+    LD H, B
+    LD L, C
+    LD D, H
+    LD E, L
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    ADD HL, DE
+    ; Store element 1
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD ($0000), A
+    ; r15 = 7
+    LD A, 7
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; Load array traditional base address
+    LD HL, ($F008)
+    ; r17 = 2
+    LD A, 2
+    LD L, A         ; Store to HL (low byte)
+    ; r18 = r16 + r17
+    LD D, H
+    LD E, L
+    ; Register 17 already in HL
+    ADD HL, DE
+    LD ($F024), HL    ; Virtual register 18 to memory
+    ; Store element 2
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    LD ($0000), A
+    ; Direct print "RGB: " (5 chars)
+    ; Direct print "RGB: " (5 chars)
+    LD A, 82
+    RST 16         ; Print character
+    LD A, 71
+    RST 16         ; Print character
+    LD A, 66
+    RST 16         ; Print character
+    LD A, 58
+    RST 16         ; Print character
+    LD A, 32
+    RST 16         ; Print character
+    ; r19 = load colors
+    LD HL, ($F002)
+    LD ($F026), HL    ; Virtual register 19 to memory
+    ; r20 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F026)    ; Virtual register 19 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; Direct print ", " (2 chars)
+    ; Direct print ", " (2 chars)
+    LD A, 44
+    RST 16         ; Print character
+    LD A, 32
+    RST 16         ; Print character
+    ; r22 = load colors
+    LD HL, ($F002)
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; r23 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F02C)    ; Virtual register 22 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; Direct print ", " (2 chars)
+    ; Direct print ", " (2 chars)
+    LD A, 44
+    RST 16         ; Print character
+    LD A, 32
+    RST 16         ; Print character
+    ; r25 = load colors
+    LD HL, ($F002)
+    LD ($F032), HL    ; Virtual register 25 to memory
+    ; r26 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; Direct print "Matrix:
+" (8 chars)
+    ; Direct print "Matrix:
+" (8 chars)
+    LD A, 77
+    RST 16         ; Print character
+    LD A, 97
+    RST 16         ; Print character
+    LD A, 116
+    RST 16         ; Print character
+    LD A, 114
+    RST 16         ; Print character
+    LD A, 105
+    RST 16         ; Print character
+    LD A, 120
+    RST 16         ; Print character
+    LD A, 58
+    RST 16         ; Print character
+    LD A, 10
+    RST 16         ; Print character
+    ; r28 = load matrix
+    LD HL, ($F004)
+    ; Register 28 already in HL
+    ; r29 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; Load array element ([2]u8)
+    ; Register 28 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r31 = 0
+    LD A, 0
+    LD ($F03E), A     ; Virtual register 31 to memory
+    ; Load array element (u8)
+    PUSH HL
+    LD A, ($F03E)     ; Virtual register 31 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Direct print " " (1 chars)
+    ; Direct print " " (1 chars)
+    LD A, 32
+    RST 16         ; Print character
+    ; r33 = load matrix
+    LD HL, ($F004)
+    ; Register 33 already in HL
+    ; r34 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; Load array element ([2]u8)
+    ; Register 33 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r36 = 1
+    LD A, 1
+    LD ($F048), A     ; Virtual register 36 to memory
+    ; Load array element (u8)
+    PUSH HL
+    LD A, ($F048)     ; Virtual register 36 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; r38 = load matrix
+    LD HL, ($F004)
+    ; Register 38 already in HL
+    ; r39 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Load array element ([2]u8)
+    ; Register 38 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r41 = 0
+    LD A, 0
+    LD ($F052), A     ; Virtual register 41 to memory
+    ; Load array element (u8)
+    PUSH HL
+    LD A, ($F052)     ; Virtual register 41 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Direct print " " (1 chars)
+    ; Direct print " " (1 chars)
+    LD A, 32
+    RST 16         ; Print character
+    ; r43 = load matrix
+    LD HL, ($F004)
+    ; Register 43 already in HL
+    ; r44 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Load array element ([2]u8)
+    ; Register 43 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r46 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16         ; Print character
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.array_initializers.sum_array$p_a4_u8
+examples.array_initializers.sum_array$p_a4_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; store sum, r3
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD ($F004), A
+    ; r4 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r5 = 4
+    LD A, 4
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; Initialize loop variable i
+    ; for_loop_1:
+examples_array_initializers_sum_array_p_a4_u8_for_loop_1:
+    ; Check i < end
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_array_initializers_sum_array_p_a4_u8_lt_true_0
+    LD HL, 0       ; False
+    JP examples_array_initializers_sum_array_p_a4_u8_lt_done_0
+examples_array_initializers_sum_array_p_a4_u8_lt_true_0:
+    LD HL, 1       ; True
+examples_array_initializers_sum_array_p_a4_u8_lt_done_0:
+    ; jump_if_not r7, for_end_2
+    LD A, L
+    OR A
+    JP Z, examples_array_initializers_sum_array_p_a4_u8_for_end_2
+    ; r8 = load sum
+    LD A, ($F004)
+    LD L, A         ; Store to HL (low byte)
+; TSMC reference parameter arr
+arr$immOP:
+    LD HL, 0000      ; TSMC ref address for arr
+arr$imm0 EQU arr$immOP+1
+    ; r10 = load i
+    LD HL, ($F000)
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; Load array element (u8)
+    PUSH HL
+    LD A, ($F014)     ; Virtual register 10 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r12 = r8 + r11
+    ; Register 8 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 12 already in HL
+    ; store sum, r12
+    LD A, L
+    LD ($F004), A
+    ; r13 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Increment i
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; jump for_loop_1
+    JP examples_array_initializers_sum_array_p_a4_u8_for_loop_1
+    ; for_end_2:
+examples_array_initializers_sum_array_p_a4_u8_for_end_2:
+    ; r14 = load sum
+    LD A, ($F004)
+    LD L, A         ; Store to physical register L
+    LD A, L
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.array_initializers.sum_array$p_a4_u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.array_initializers.sum_array$p_a4_u8_store_addr.op:
+examples.array_initializers.sum_array$p_a4_u8_store_addr equ examples.array_initializers.sum_array$p_a4_u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.array_initializers.test_sum
+examples.array_initializers.test_sum:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = load numbers
+    LD HL, ($F002)
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; r4 = &r3
+    ; Address-of operation for register r3
+    LD HL, $F006  ; Variable address
+    ; r5 = load numbers
+    LD HL, ($F002)
+    ; r6 = &r5
+    ; Address-of operation for register r5
+    LD HL, $F00A  ; Variable address
+    ; Register 6 already in HL
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.array_initializers.sum_array$p_a4_u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.array_initializers.sum_array$p_a4_u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.array_initializers.sum_array$p_a4_u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter arr = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.array_initializers.sum_array$p_a4_u8_param_arr+1), HL  ; Patch parameter immediate
+    ; r7 = call examples.array_initializers.sum_array$p_a4_u8
+    ; Call to examples.array_initializers.sum_array$p_a4_u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.array_initializers.sum_array$p_a4_u8
+    ; store total, r7
+    LD A, H
+    LD ($F004), A
+    ; Direct print "Sum: " (5 chars)
+    ; Direct print "Sum: " (5 chars)
+    LD A, 83
+    RST 16         ; Print character
+    LD A, 117
+    RST 16         ; Print character
+    LD A, 109
+    RST 16         ; Print character
+    LD A, 58
+    RST 16         ; Print character
+    LD A, 32
+    RST 16         ; Print character
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

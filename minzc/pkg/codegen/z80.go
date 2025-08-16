@@ -516,7 +516,8 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	}
 	
 	// Traditional function generation
-	g.emit("%s:", fn.Name)
+	cleanName := g.sanitizeFunctionName(fn.Name)
+	g.emit("%s:", cleanName)
 
 	// Determine if we should use stack-based locals
 	useStackLocals := g.shouldUseStackLocals(fn)
@@ -693,7 +694,8 @@ func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
 		return g.generateTrueSMCFunction(fn)
 	}
 	
-	g.emit("%s:", fn.Name)
+	cleanName := g.sanitizeFunctionName(fn.Name)
+	g.emit("%s:", cleanName)
 	
 	// Always use absolute addressing for SMC functions
 	g.useAbsoluteLocals = true
@@ -843,7 +845,8 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 		// For SMC, emit the parameter instruction at point of FIRST use
 		// The instruction itself contains the parameter value!
 		paramName := inst.Symbol
-		paramLabel := fmt.Sprintf("%s_param_%s", g.currentFunc.Name, paramName)
+		cleanFuncName := g.sanitizeFunctionName(g.currentFunc.Name)
+		paramLabel := fmt.Sprintf("%s_param_%s", cleanFuncName, paramName)
 		
 		// Check if we've already emitted this parameter
 		if !g.emittedParams[paramName] {
@@ -2269,9 +2272,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				// Generate TRUE SMC patching before call
 				g.generateTrueSMCCall(inst, targetFunc)
 			} else {
-				// Use the full function name (including module prefix)
-				// Z80 assembler will handle the dots in the label
-				g.emit("    CALL %s", targetFunc.Name)
+				// Use sanitized function name for assembler compatibility
+				cleanName := g.sanitizeFunctionName(targetFunc.Name)
+				g.emit("    CALL %s", cleanName)
 				// Track function usage
 				g.usedFunctions[targetFunc.Name] = true
 			}
@@ -3493,6 +3496,27 @@ func (g *Z80Generator) sanitizeLabel(label string) string {
 	return fmt.Sprintf("%s_%s", funcName, label)
 }
 
+// sanitizeFunctionName creates a clean, assembler-friendly function name
+func (g *Z80Generator) sanitizeFunctionName(name string) string {
+	// Remove leading dots (from ...examples.simple_add.main)
+	name = strings.TrimLeft(name, ".")
+	
+	// Replace dots with underscores
+	name = strings.ReplaceAll(name, ".", "_")
+	
+	// Replace $ with underscore (from add$u16$u16)
+	name = strings.ReplaceAll(name, "$", "_")
+	
+	// Remove path-like prefixes if they're too long
+	parts := strings.Split(name, "_")
+	if len(parts) > 3 {
+		// Keep only the last 3 parts (e.g., simple_add_main)
+		name = strings.Join(parts[len(parts)-3:], "_")
+	}
+	
+	return name
+}
+
 // findFunction finds a function in the current module
 func (g *Z80Generator) findFunction(name string) *ir.Function {
 	if g.module == nil {
@@ -4180,6 +4204,11 @@ func (g *Z80Generator) generateStdlibRoutines() {
 	}
 	
 	g.emit("\n; Standard library routines")
+	
+	// Define common temporary variables
+	g.emit("temp_result:")
+	g.emit("    DW 0           ; Temporary storage for function results")
+	g.emit("")
 	
 	// Clear screen routine
 	if g.usedFunctions["cls"] {

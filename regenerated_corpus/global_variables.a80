@@ -1,0 +1,249 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:48
+
+
+; Data section
+    ORG $F000
+
+examples.global_variables.g_byte:
+    DB 42
+examples.global_variables.g_word:
+    DW 4660
+examples.global_variables.g_flag:
+    DB 1
+examples.global_variables.g_calc:
+    DB 15
+examples.global_variables.g_shift:
+    DW 256
+examples.global_variables.g_masked:
+    DB 15
+examples.global_variables.g_uninit_byte:
+    DB 0
+examples.global_variables.g_uninit_word:
+    DW 0
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.global_variables.main
+examples.global_variables.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load examples.global_variables.g_byte
+    LD HL, ($F000)
+    ; r2 = 42
+    LD A, 42
+    LD B, A         ; Store to physical register B
+    ; r3 = r1 == r2
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_global_variables_main_eq_true_0
+    LD HL, 0       ; False
+    JP examples_global_variables_main_eq_done_0
+examples_global_variables_main_eq_true_0:
+    LD HL, 1       ; True
+examples_global_variables_main_eq_done_0:
+    ; jump_if_not r3, else_1
+    LD A, C
+    OR A
+    JP Z, examples_global_variables_main_else_1
+    ; jump end_if_2
+    JP examples_global_variables_main_end_if_2
+    ; else_1:
+examples_global_variables_main_else_1:
+    ; end_if_2:
+examples_global_variables_main_end_if_2:
+    ; r4 = load examples.global_variables.g_word
+    LD HL, ($F020)
+    ; r5 = 4660
+    LD HL, 4660
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; r6 = r4 == r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_global_variables_main_eq_true_1
+    LD HL, 0       ; False
+    JP examples_global_variables_main_eq_done_1
+examples_global_variables_main_eq_true_1:
+    LD HL, 1       ; True
+examples_global_variables_main_eq_done_1:
+    LD D, H
+    LD E, L
+    ; jump_if_not r6, else_3
+    LD A, E
+    OR A
+    JP Z, examples_global_variables_main_else_3
+    ; jump end_if_4
+    JP examples_global_variables_main_end_if_4
+    ; else_3:
+examples_global_variables_main_else_3:
+    ; end_if_4:
+examples_global_variables_main_end_if_4:
+    ; r7 = load examples.global_variables.g_flag
+    LD HL, ($F040)
+    ; jump_if_not r7, else_5
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, examples_global_variables_main_else_5
+    ; jump end_if_6
+    JP examples_global_variables_main_end_if_6
+    ; else_5:
+examples_global_variables_main_else_5:
+    ; end_if_6:
+examples_global_variables_main_end_if_6:
+    ; r8 = load examples.global_variables.g_calc
+    LD HL, ($F060)
+    ; r9 = 15
+    LD A, 15
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r10 = r8 == r9
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_global_variables_main_eq_true_2
+    LD HL, 0       ; False
+    JP examples_global_variables_main_eq_done_2
+examples_global_variables_main_eq_true_2:
+    LD HL, 1       ; True
+examples_global_variables_main_eq_done_2:
+    ; jump_if_not r10, else_7
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, examples_global_variables_main_else_7
+    ; jump end_if_8
+    JP examples_global_variables_main_end_if_8
+    ; else_7:
+examples_global_variables_main_else_7:
+    ; end_if_8:
+examples_global_variables_main_end_if_8:
+    ; r11 = load examples.global_variables.g_shift
+    LD HL, ($F080)
+    ; Register 11 already in HL
+    ; r12 = 256
+    LD HL, 256
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; r13 = r11 == r12
+    ; Register 11 already in HL
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_global_variables_main_eq_true_3
+    LD HL, 0       ; False
+    JP examples_global_variables_main_eq_done_3
+examples_global_variables_main_eq_true_3:
+    LD HL, 1       ; True
+examples_global_variables_main_eq_done_3:
+    LD B, H
+    LD C, L
+    ; jump_if_not r13, else_9
+    LD A, C
+    OR A
+    JP Z, examples_global_variables_main_else_9
+    ; jump end_if_10
+    JP examples_global_variables_main_end_if_10
+    ; else_9:
+examples_global_variables_main_else_9:
+    ; end_if_10:
+examples_global_variables_main_end_if_10:
+    ; r14 = load examples.global_variables.g_masked
+    LD HL, ($F0A0)
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; r15 = 15
+    LD A, 15
+    LD H, A         ; Store to physical register H
+    ; r16 = r14 == r15
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_global_variables_main_eq_true_4
+    LD HL, 0       ; False
+    JP examples_global_variables_main_eq_done_4
+examples_global_variables_main_eq_true_4:
+    LD HL, 1       ; True
+examples_global_variables_main_eq_done_4:
+    ; jump_if_not r16, else_11
+    LD A, L
+    OR A
+    JP Z, examples_global_variables_main_else_11
+    ; jump end_if_12
+    JP examples_global_variables_main_end_if_12
+    ; else_11:
+examples_global_variables_main_else_11:
+    ; end_if_12:
+examples_global_variables_main_end_if_12:
+    ; r17 = load examples.global_variables.g_uninit_byte
+    LD HL, ($F0C0)
+    LD ($F022), HL    ; Virtual register 17 to memory
+    ; r18 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r19 = r17 == r18
+    LD HL, ($F022)    ; Virtual register 17 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_global_variables_main_eq_true_5
+    LD HL, 0       ; False
+    JP examples_global_variables_main_eq_done_5
+examples_global_variables_main_eq_true_5:
+    LD HL, 1       ; True
+examples_global_variables_main_eq_done_5:
+    ; jump_if_not r19, else_13
+    LD A, L
+    OR A
+    JP Z, examples_global_variables_main_else_13
+    ; jump end_if_14
+    JP examples_global_variables_main_end_if_14
+    ; else_13:
+examples_global_variables_main_else_13:
+    ; end_if_14:
+examples_global_variables_main_end_if_14:
+    ; r20 = load examples.global_variables.g_uninit_word
+    LD HL, ($F0E0)
+    ; Register 20 already in HL
+    ; r21 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r22 = r20 == r21
+    ; Register 20 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_global_variables_main_eq_true_6
+    LD HL, 0       ; False
+    JP examples_global_variables_main_eq_done_6
+examples_global_variables_main_eq_true_6:
+    LD HL, 1       ; True
+examples_global_variables_main_eq_done_6:
+    ; Register 22 already in HL
+    ; jump_if_not r22, else_15
+    LD A, L
+    OR A
+    JP Z, examples_global_variables_main_else_15
+    ; jump end_if_16
+    JP examples_global_variables_main_end_if_16
+    ; else_15:
+examples_global_variables_main_else_15:
+    ; end_if_16:
+examples_global_variables_main_end_if_16:
+    ; return
+    RET
+
+    END main

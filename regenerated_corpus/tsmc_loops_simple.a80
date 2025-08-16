@@ -1,0 +1,114 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Data section
+    ORG $F000
+
+examples.tsmc_loops_simple.i:
+    DW 0
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.tsmc_loops_simple.sum_array_tsmc$p_u8$u16
+examples.tsmc_loops_simple.sum_array_tsmc$p_u8$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r4 = 0
+    LD A, 0
+    ; Register 4 already in A
+    ; store sum, r4
+    LD ($F006), HL
+    ; r6 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; store i, r6
+    LD ($F00A), HL
+    ; loop_1:
+examples_tsmc_loops_simple_sum_array_tsmc_p_u8_u16_loop_1:
+    ; r7 = load i
+    LD HL, ($F00A)
+examples.tsmc_loops_simple.sum_array_tsmc$p_u8$u16_param_count.op:
+examples.tsmc_loops_simple.sum_array_tsmc$p_u8$u16_param_count equ examples.tsmc_loops_simple.sum_array_tsmc$p_u8$u16_param_count.op + 1
+    LD DE, #0000   ; SMC parameter count
+    EX DE, HL      ; Move to HL for storage
+    LD B, H
+    LD C, L
+    ; r9 = r7 < r8
+    LD D, B
+    LD E, C
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_tsmc_loops_simple_sum_array_tsmc_p_u8_u16_lt_true_0
+    LD HL, 0       ; False
+    JP examples_tsmc_loops_simple_sum_array_tsmc_p_u8_u16_lt_done_0
+examples_tsmc_loops_simple_sum_array_tsmc_p_u8_u16_lt_true_0:
+    LD HL, 1       ; True
+examples_tsmc_loops_simple_sum_array_tsmc_p_u8_u16_lt_done_0:
+    ; jump_if_not r9, end_loop_2
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, examples_tsmc_loops_simple_sum_array_tsmc_p_u8_u16_end_loop_2
+    ; r10 = load sum
+    LD HL, ($F006)
+; TSMC reference parameter arr
+arr$immOP:
+    LD HL, 0000      ; TSMC ref address for arr
+arr$imm0 EQU arr$immOP+1
+    ; r12 = *r11
+    LD A, (HL)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r13 = r10 + r12
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 13 already in HL
+    ; store sum, r13
+    ; Register 13 already in HL
+    LD ($F006), HL
+    LD HL, (arr$imm0) ; Reload TSMC ref address
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; r15 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r16 = r14 + r15
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    LD D, H
+    LD E, L
+    ; Register 15 already in HL
+    ADD HL, DE
+    ; Update TSMC reference arr
+    LD (arr$imm0), HL    ; Update TSMC reference immediate
+    ; r17 = load i
+    LD HL, ($F00A)
+    ; r18 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r19 = r17 + r18
+    LD D, H
+    LD E, L
+    ; Register 18 already in HL
+    ADD HL, DE
+    LD ($F026), HL    ; Virtual register 19 to memory
+    ; store i, r19
+    LD HL, ($F026)    ; Virtual register 19 from memory
+    LD ($F00A), HL
+    ; jump loop_1
+    JP examples_tsmc_loops_simple_sum_array_tsmc_p_u8_u16_loop_1
+    ; end_loop_2:
+examples_tsmc_loops_simple_sum_array_tsmc_p_u8_u16_end_loop_2:
+    ; r20 = load sum
+    LD HL, ($F006)
+    ; Register 20 already in HL
+    ; return r20
+    ; Register 20 already in HL
+    RET
+
+    END main

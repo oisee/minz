@@ -1,0 +1,249 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.register_test.simple_add$u8$u8
+examples.register_test.simple_add$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.register_test.simple_add$u8$u8_param_a.op:
+examples.register_test.simple_add$u8$u8_param_a equ examples.register_test.simple_add$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    ; Register 3 already in A
+examples.register_test.simple_add$u8$u8_param_b.op:
+examples.register_test.simple_add$u8$u8_param_b equ examples.register_test.simple_add$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD A, D
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.register_test.simple_add$u8$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.register_test.simple_add$u8$u8_store_addr.op:
+examples.register_test.simple_add$u8$u8_store_addr equ examples.register_test.simple_add$u8$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.register_test.complex_calc$u16$u16$u16
+examples.register_test.complex_calc$u16$u16$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.register_test.complex_calc$u16$u16$u16_param_x.op:
+examples.register_test.complex_calc$u16$u16$u16_param_x equ examples.register_test.complex_calc$u16$u16$u16_param_x.op + 1
+    LD HL, #0000   ; SMC parameter x
+    LD ($F00A), HL    ; Virtual register 5 to memory
+examples.register_test.complex_calc$u16$u16$u16_param_y.op:
+examples.register_test.complex_calc$u16$u16$u16_param_y equ examples.register_test.complex_calc$u16$u16$u16_param_y.op + 1
+    LD DE, #0000   ; SMC parameter y
+    EX DE, HL      ; Move to HL for storage
+    LD D, H
+    LD E, L
+    ; r7 = r5 + r6
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD D, H
+    LD E, L
+    LD H, D
+    LD L, E
+    ADD HL, DE
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; store t1, r7
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD ($F008), HL
+    LD HL, (examples.register_test.complex_calc$u16$u16$u16_param_y)
+examples.register_test.complex_calc$u16$u16$u16_param_z.op:
+examples.register_test.complex_calc$u16$u16$u16_param_z equ examples.register_test.complex_calc$u16$u16$u16_param_z.op + 1
+    LD BC, #0000   ; SMC parameter z
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; r11 = r9 + r10
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 11 already in HL
+    ; store t2, r11
+    ; Register 11 already in HL
+    LD ($F010), HL
+    LD HL, (examples.register_test.complex_calc$u16$u16$u16_param_x)
+    ; Register 13 already in HL
+    LD HL, (examples.register_test.complex_calc$u16$u16$u16_param_z)
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; r15 = r13 + r14
+    ; Register 13 already in HL
+    LD D, H
+    LD E, L
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    ADD HL, DE
+    ; Register 15 already in HL
+    ; store t3, r15
+    ; Register 15 already in HL
+    LD ($F018), HL
+    ; r16 = load t1
+    LD HL, ($F008)
+    ; r17 = load t2
+    LD HL, ($F010)
+    ; r18 = r16 + r17
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 18 already in HL
+    ; r19 = load t3
+    LD HL, ($F018)
+    ; Register 19 already in HL
+    ; r20 = r18 + r19
+    ; Register 18 already in HL
+    LD D, H
+    LD E, L
+    ; Register 19 already in HL
+    ADD HL, DE
+    LD A, H
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+examples.register_test.complex_calc$u16$u16$u16_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+examples.register_test.complex_calc$u16$u16$u16_store_addr.op:
+examples.register_test.complex_calc$u16$u16$u16_store_addr equ examples.register_test.complex_calc$u16$u16$u16_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.register_test.timer_isr
+examples.register_test.timer_isr:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; store counter, r2
+    LD A, L
+    LD ($F002), A
+    ; r3 = load counter
+    LD A, ($F002)
+    LD H, A         ; Store to physical register H
+    ; r4 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 5 already in HL
+    ; store counter, r5
+    LD A, L
+    LD ($F002), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.register_test.main
+examples.register_test.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; r3 = 10
+    LD A, 10
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r5 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.register_test.simple_add$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.register_test.simple_add$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.register_test.simple_add$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (examples.register_test.simple_add$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (examples.register_test.simple_add$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; r6 = call examples.register_test.simple_add$u8$u8
+    ; Call to examples.register_test.simple_add$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.register_test.simple_add$u8$u8
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; store a, r6
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD ($F002), A
+    ; r8 = 100
+    LD A, 100
+    LD L, A         ; Store to physical register L
+    ; r9 = 200
+    LD A, 200
+    LD L, A         ; Store to HL (low byte)
+    ; r10 = 300
+    LD HL, 300
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; r11 = 100
+    LD A, 100
+    LD L, A         ; Store to HL (low byte)
+    ; r12 = 200
+    LD A, 200
+    LD H, A         ; Store to physical register H
+    ; r13 = 300
+    LD HL, 300
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.register_test.complex_calc$u16$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.register_test.complex_calc$u16$u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.register_test.complex_calc$u16$u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.register_test.complex_calc$u16$u16$u16_param_x+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter y = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.register_test.complex_calc$u16$u16$u16_param_y+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter z = 0
+    LD HL, 0              ; Parameter value
+    LD (examples.register_test.complex_calc$u16$u16$u16_param_z+1), HL  ; Patch parameter immediate
+    ; r14 = call examples.register_test.complex_calc$u16$u16$u16
+    ; Call to examples.register_test.complex_calc$u16$u16$u16 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.register_test.complex_calc$u16$u16$u16
+    ; Register 14 already in HL
+    ; store b, r14
+    ; Register 14 already in HL
+    LD ($F00E), HL
+    ; return
+    RET
+
+; Standard library routines
+
+    END main

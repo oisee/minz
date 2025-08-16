@@ -1,0 +1,33 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function examples.lambda_param_test.test_lambda_params$add5_0(x: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r2 = 5
+      2: r3 = r1 + r2
+      3: return
+
+Function examples.lambda_param_test.test_lambda_params() -> u8
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: r2 = 10
+      1: PATCH_TEMPLATE
+      2: PATCH_TARGET
+      3: PATCH_PARAM
+      4: r3 = call examples.lambda_param_test.test_lambda_params$add5_0
+      5: store result, r3
+      6: r4 = load result
+      7: return
+
+Function examples.lambda_param_test.main() -> u8
+  @smc
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: r1 = call examples.lambda_param_test.test_lambda_params
+      3: return
+

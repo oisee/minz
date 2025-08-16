@@ -1,0 +1,439 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.recursion_examples.factorial$u8
+examples.recursion_examples.factorial$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+examples.recursion_examples.factorial$u8_param_n.op:
+examples.recursion_examples.factorial$u8_param_n equ examples.recursion_examples.factorial$u8_param_n.op + 1
+    LD A, #00      ; Parameter n (gets patched)
+    ; Register 2 already in A
+    ; r3 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 <= r3
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_recursion_examples_factorial_u8_le_true_0
+    JP Z, examples_recursion_examples_factorial_u8_le_true_0
+    LD HL, 0       ; False
+    JP examples_recursion_examples_factorial_u8_le_done_0
+examples_recursion_examples_factorial_u8_le_true_0:
+    LD HL, 1       ; True
+examples_recursion_examples_factorial_u8_le_done_0:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, examples_recursion_examples_factorial_u8_else_1
+    ; r5 = 1
+    LD A, 1
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; return r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    RET
+    ; jump end_if_2
+    JP examples_recursion_examples_factorial_u8_end_if_2
+    ; else_1:
+examples_recursion_examples_factorial_u8_else_1:
+    ; end_if_2:
+examples_recursion_examples_factorial_u8_end_if_2:
+    LD A, (examples.recursion_examples.factorial$u8_param_n)
+    LD E, A         ; Store to physical register E
+    LD A, (examples.recursion_examples.factorial$u8_param_n)
+    LD H, A         ; Store to physical register H
+    ; r8 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r9 = r7 - r8
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    LD A, (examples.recursion_examples.factorial$u8_param_n)
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r11 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r12 = r10 - r11
+    EXX               ; Switch to shadow registers
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.recursion_examples.factorial$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.recursion_examples.factorial$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.recursion_examples.factorial$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (examples.recursion_examples.factorial$u8_param_n+1), A   ; Patch parameter immediate
+    ; === SMC Recursive Context Save ===
+    LD A, (examples.recursion_examples.factorial$u8_param_n)
+    PUSH AF
+    ; === Update SMC Parameters ===
+    CALL examples.recursion_examples.factorial$u8
+    ; === SMC Recursive Context Restore ===
+    POP AF
+    LD (examples.recursion_examples.factorial$u8_param_n), A
+    ; r14 = r6 * r13
+    ; 16-bit multiplication
+    LD (mul_src1_1), HL  ; Save multiplicand
+    LD (mul_src2_1), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_1)  ; DE = multiplicand
+    LD BC, (mul_src2_1)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_1
+examples_recursion_examples_factorial_u8_mul16_loop_1:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_1
+examples_recursion_examples_factorial_u8_mul16_done_1:
+mul_src1_1: DW 0
+mul_src2_1: DW 0
+    ; Register 14 already in HL
+    ; return r14
+    ; Register 14 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.recursion_examples.gcd$u8$u8
+examples.recursion_examples.gcd$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+examples.recursion_examples.gcd$u8$u8_param_b.op:
+examples.recursion_examples.gcd$u8$u8_param_b equ examples.recursion_examples.gcd$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    LD D, A         ; Store to physical register D
+    ; r4 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 == r4
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_recursion_examples_gcd_u8_u8_eq_true_2
+    LD HL, 0       ; False
+    JP examples_recursion_examples_gcd_u8_u8_eq_done_2
+examples_recursion_examples_gcd_u8_u8_eq_true_2:
+    LD HL, 1       ; True
+examples_recursion_examples_gcd_u8_u8_eq_done_2:
+    ; jump_if_not r5, else_3
+    LD A, L
+    OR A
+    JP Z, examples_recursion_examples_gcd_u8_u8_else_3
+examples.recursion_examples.gcd$u8$u8_param_a.op:
+examples.recursion_examples.gcd$u8$u8_param_a equ examples.recursion_examples.gcd$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; return r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    RET
+    ; jump end_if_4
+    JP examples_recursion_examples_gcd_u8_u8_end_if_4
+    ; else_3:
+examples_recursion_examples_gcd_u8_u8_else_3:
+    ; end_if_4:
+examples_recursion_examples_gcd_u8_u8_end_if_4:
+    LD A, (examples.recursion_examples.gcd$u8$u8_param_b)
+    LD H, A         ; Store to physical register H
+    LD A, (examples.recursion_examples.gcd$u8$u8_param_a)
+    LD ($F010), A     ; Virtual register 8 to memory
+    LD A, (examples.recursion_examples.gcd$u8$u8_param_b)
+    LD H, A         ; Store to physical register H
+    ; r10 = r8 % r9
+    ; 8-bit modulo
+    LD A, ($F010)     ; Virtual register 8 from memory
+    LD D, A       ; D = dividend
+    LD A, H
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, examples_recursion_examples_gcd_u8_u8_mod_by_zero_3
+    LD A, D       ; A = dividend
+examples_recursion_examples_gcd_u8_u8_mod_loop_3:
+    CP E          ; Compare with divisor
+    JR C, examples_recursion_examples_gcd_u8_u8_mod_done_3
+    SUB E         ; Subtract divisor
+    JR examples_recursion_examples_gcd_u8_u8_mod_loop_3
+examples_recursion_examples_gcd_u8_u8_mod_by_zero_3:
+    LD A, 0       ; Return 0 for modulo by zero
+examples_recursion_examples_gcd_u8_u8_mod_done_3:
+    LD L, A       ; Result (remainder) in L
+    LD H, 0
+    LD A, (examples.recursion_examples.gcd$u8$u8_param_b)
+    LD H, A         ; Store to physical register H
+    LD A, (examples.recursion_examples.gcd$u8$u8_param_a)
+    LD H, A         ; Store to physical register H
+    LD A, (examples.recursion_examples.gcd$u8$u8_param_b)
+    LD L, A         ; Store to physical register L
+    ; r14 = r12 % r13
+    ; 8-bit modulo
+    LD A, H
+    LD D, A       ; D = dividend
+    LD A, L
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, examples_recursion_examples_gcd_u8_u8_mod_by_zero_4
+    LD A, D       ; A = dividend
+examples_recursion_examples_gcd_u8_u8_mod_loop_4:
+    CP E          ; Compare with divisor
+    JR C, examples_recursion_examples_gcd_u8_u8_mod_done_4
+    SUB E         ; Subtract divisor
+    JR examples_recursion_examples_gcd_u8_u8_mod_loop_4
+examples_recursion_examples_gcd_u8_u8_mod_by_zero_4:
+    LD A, 0       ; Return 0 for modulo by zero
+examples_recursion_examples_gcd_u8_u8_mod_done_4:
+    LD L, A       ; Result (remainder) in L
+    LD H, 0
+    ; Register 14 already in HL
+    ; unknown op 39
+    ; Smart patch 'store_u8' for examples.recursion_examples.gcd$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (examples.recursion_examples.gcd$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (examples.recursion_examples.gcd$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (examples.recursion_examples.gcd$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (examples.recursion_examples.gcd$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; === SMC Recursive Context Save ===
+    LD A, (examples.recursion_examples.gcd$u8$u8_param_a)
+    PUSH AF
+    LD A, (examples.recursion_examples.gcd$u8$u8_param_b)
+    PUSH AF
+    ; === Update SMC Parameters ===
+    CALL examples.recursion_examples.gcd$u8$u8
+    ; === SMC Recursive Context Restore ===
+    POP AF
+    LD (examples.recursion_examples.gcd$u8$u8_param_b), A
+    POP AF
+    LD (examples.recursion_examples.gcd$u8$u8_param_a), A
+    ; return r15
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.recursion_examples.binary_search$p_u8$u8$u8$u8
+examples.recursion_examples.binary_search$p_u8$u8$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_left.op:
+examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_left equ examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_left.op + 1
+    LD C, #00      ; Parameter left (gets patched)
+    LD A, C
+    LD L, A         ; Store to physical register L
+examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_right.op:
+examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_right equ examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_right.op + 1
+    LD C, #00      ; Parameter right (gets patched)
+    LD A, C
+    LD L, A         ; Store to physical register L
+    ; r7 = r5 > r6
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, examples_recursion_examples_binary_search_p_u8_u8_u8_u8_gt_check_zero_5
+    LD HL, 0       ; False (negative)
+    JP examples_recursion_examples_binary_search_p_u8_u8_u8_u8_gt_done_5
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_gt_check_zero_5:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, examples_recursion_examples_binary_search_p_u8_u8_u8_u8_gt_false_5
+    LD HL, 1       ; True (positive and non-zero)
+    JP examples_recursion_examples_binary_search_p_u8_u8_u8_u8_gt_done_5
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_gt_false_5:
+    LD HL, 0       ; False (zero)
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_gt_done_5:
+    ; jump_if_not r7, else_5
+    LD A, H
+    OR A
+    JP Z, examples_recursion_examples_binary_search_p_u8_u8_u8_u8_else_5
+    ; r8 = 1
+    LD A, 1
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; r9 = -r8
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; return r9
+    RET
+    ; jump end_if_6
+    JP examples_recursion_examples_binary_search_p_u8_u8_u8_u8_end_if_6
+    ; else_5:
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_else_5:
+    ; end_if_6:
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_end_if_6:
+    LD A, (examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_left)
+    LD L, A         ; Store to physical register L
+    LD A, (examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_right)
+    LD H, A         ; Store to physical register H
+    LD A, (examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_left)
+    LD L, A         ; Store to physical register L
+    ; r14 = r12 - r13
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; r15 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; r16 = r14 / r15
+    ; 8-bit division
+    LD A, H
+    LD D, A       ; D = dividend
+    LD A, L
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, examples_recursion_examples_binary_search_p_u8_u8_u8_u8_div_by_zero_6
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_div_loop_6:
+    CP E          ; Compare remainder with divisor
+    JR C, examples_recursion_examples_binary_search_p_u8_u8_u8_u8_div_done_6
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR examples_recursion_examples_binary_search_p_u8_u8_u8_u8_div_loop_6
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_div_by_zero_6:
+    LD B, 0       ; Return 0 for divide by zero
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_div_done_6:
+    LD L, B       ; Result in L
+    LD H, 0
+    LD ($F020), HL    ; Virtual register 16 to memory
+    ; r17 = r11 + r16
+    LD D, H
+    LD E, L
+    LD HL, ($F020)    ; Virtual register 16 from memory
+    ADD HL, DE
+    ; store mid, r17
+    LD ($F014), HL
+; TSMC reference parameter arr
+arr$immOP:
+    LD HL, 0000      ; TSMC ref address for arr
+arr$imm0 EQU arr$immOP+1
+    LD D, H
+    LD E, L
+    ; r20 = load mid
+    LD HL, ($F014)
+    ; Register 20 already in HL
+    ; r21 = r19 + r20
+    LD H, D
+    LD L, E
+    LD D, H
+    LD E, L
+    ; Register 20 already in HL
+    ADD HL, DE
+    ; r22 = *r21
+    LD A, (HL)
+    LD ($F02C), A     ; Virtual register 22 to memory
+    ; store value, r22
+    LD HL, ($F02C)    ; Virtual register 22 from memory
+    LD ($F024), HL
+    ; r23 = load value
+    LD HL, ($F024)
+examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_target.op:
+examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_target equ examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_target.op + 1
+    LD B, #00      ; Parameter target (gets patched)
+    LD A, B
+    LD H, A         ; Store to physical register H
+    ; r25 = r23 == r24
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_recursion_examples_binary_search_p_u8_u8_u8_u8_eq_true_7
+    LD HL, 0       ; False
+    JP examples_recursion_examples_binary_search_p_u8_u8_u8_u8_eq_done_7
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_eq_true_7:
+    LD HL, 1       ; True
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_eq_done_7:
+    LD ($F032), HL    ; Virtual register 25 to memory
+    ; unknown op 63
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; unknown op 5
+    LD A, ($F000)     ; Virtual register 0 from memory
+    OR A
+    JP Z, 
+    ; unknown op 22
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; jump if_expr_end_8
+    JP examples_recursion_examples_binary_search_p_u8_u8_u8_u8_if_expr_end_8
+    ; if_expr_else_7:
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_if_expr_else_7:
+    ; r27 = load value
+    LD HL, ($F024)
+    LD ($F036), HL    ; Virtual register 27 to memory
+    LD A, (examples.recursion_examples.binary_search$p_u8$u8$u8$u8_param_target)
+    LD H, A         ; Store to physical register H
+    ; r29 = r27 < r28
+    LD HL, ($F036)    ; Virtual register 27 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_recursion_examples_binary_search_p_u8_u8_u8_u8_lt_true_8
+    LD HL, 0       ; False
+    JP examples_recursion_examples_binary_search_p_u8_u8_u8_u8_lt_done_8
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_lt_true_8:
+    LD HL, 1       ; True
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_lt_done_8:
+    ; unknown op 63
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; unknown op 5
+    LD A, ($F000)     ; Virtual register 0 from memory
+    OR A
+    JP Z, 
+    ; unknown op 22
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; Register 30 already in HL
+    ; jump if_expr_end_10
+    JP examples_recursion_examples_binary_search_p_u8_u8_u8_u8_if_expr_end_10
+    ; if_expr_else_9:
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_if_expr_else_9:
+    ; unknown op 22
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; Register 30 already in HL
+    ; if_expr_end_10:
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_if_expr_end_10:
+    ; unknown op 22
+    ; Register 30 already in HL
+    ; if_expr_end_8:
+examples_recursion_examples_binary_search_p_u8_u8_u8_u8_if_expr_end_8:
+    ; return
+    RET
+
+    END main

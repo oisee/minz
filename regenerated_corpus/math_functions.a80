@@ -1,0 +1,539 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.math_functions.abs$i8
+examples.math_functions.abs$i8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.math_functions.abs$i8_param_x.op:
+examples.math_functions.abs$i8_param_x equ examples.math_functions.abs$i8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 2 already in A
+    ; r3 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 < r3
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_math_functions_abs_i8_lt_true_0
+    LD HL, 0       ; False
+    JP examples_math_functions_abs_i8_lt_done_0
+examples_math_functions_abs_i8_lt_true_0:
+    LD HL, 1       ; True
+examples_math_functions_abs_i8_lt_done_0:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, examples_math_functions_abs_i8_else_1
+    LD A, (examples.math_functions.abs$i8_param_x)
+    LD D, A         ; Store to physical register D
+    ; r6 = -r5
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; return r6
+    RET
+    ; jump end_if_2
+    JP examples_math_functions_abs_i8_end_if_2
+    ; else_1:
+examples_math_functions_abs_i8_else_1:
+    ; end_if_2:
+examples_math_functions_abs_i8_end_if_2:
+    LD A, (examples.math_functions.abs$i8_param_x)
+    LD H, A         ; Store to physical register H
+    ; return r7
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.math_functions.min$u8$u8
+examples.math_functions.min$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.math_functions.min$u8$u8_param_a.op:
+examples.math_functions.min$u8$u8_param_a equ examples.math_functions.min$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    LD ($F006), A     ; Virtual register 3 to memory
+examples.math_functions.min$u8$u8_param_b.op:
+examples.math_functions.min$u8$u8_param_b equ examples.math_functions.min$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r5 = r3 < r4
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_math_functions_min_u8_u8_lt_true_1
+    LD HL, 0       ; False
+    JP examples_math_functions_min_u8_u8_lt_done_1
+examples_math_functions_min_u8_u8_lt_true_1:
+    LD HL, 1       ; True
+examples_math_functions_min_u8_u8_lt_done_1:
+    ; jump_if_not r5, else_3
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, examples_math_functions_min_u8_u8_else_3
+    LD A, (examples.math_functions.min$u8$u8_param_a)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; return r6
+    RET
+    ; jump end_if_4
+    JP examples_math_functions_min_u8_u8_end_if_4
+    ; else_3:
+examples_math_functions_min_u8_u8_else_3:
+    ; end_if_4:
+examples_math_functions_min_u8_u8_end_if_4:
+    LD A, (examples.math_functions.min$u8$u8_param_b)
+    LD B, A         ; Store to physical register B
+    ; return r7
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.math_functions.max$u8$u8
+examples.math_functions.max$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.math_functions.max$u8$u8_param_a.op:
+examples.math_functions.max$u8$u8_param_a equ examples.math_functions.max$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    LD B, A         ; Store to physical register B
+examples.math_functions.max$u8$u8_param_b.op:
+examples.math_functions.max$u8$u8_param_b equ examples.math_functions.max$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 > r4
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, examples_math_functions_max_u8_u8_gt_check_zero_2
+    LD HL, 0       ; False (negative)
+    JP examples_math_functions_max_u8_u8_gt_done_2
+examples_math_functions_max_u8_u8_gt_check_zero_2:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, examples_math_functions_max_u8_u8_gt_false_2
+    LD HL, 1       ; True (positive and non-zero)
+    JP examples_math_functions_max_u8_u8_gt_done_2
+examples_math_functions_max_u8_u8_gt_false_2:
+    LD HL, 0       ; False (zero)
+examples_math_functions_max_u8_u8_gt_done_2:
+    ; jump_if_not r5, else_5
+    LD A, H
+    OR A
+    JP Z, examples_math_functions_max_u8_u8_else_5
+    LD A, (examples.math_functions.max$u8$u8_param_a)
+    LD H, A         ; Store to physical register H
+    ; return r6
+    RET
+    ; jump end_if_6
+    JP examples_math_functions_max_u8_u8_end_if_6
+    ; else_5:
+examples_math_functions_max_u8_u8_else_5:
+    ; end_if_6:
+examples_math_functions_max_u8_u8_end_if_6:
+    LD A, (examples.math_functions.max$u8$u8_param_b)
+    ; Register 7 already in A
+    ; return r7
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.math_functions.clamp$u8$u8$u8
+examples.math_functions.clamp$u8$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.math_functions.clamp$u8$u8$u8_param_value.op:
+examples.math_functions.clamp$u8$u8$u8_param_value equ examples.math_functions.clamp$u8$u8$u8_param_value.op + 1
+    LD A, #00      ; Parameter value (gets patched)
+    ; Register 4 already in A
+examples.math_functions.clamp$u8$u8$u8_param_min_val.op:
+examples.math_functions.clamp$u8$u8$u8_param_min_val equ examples.math_functions.clamp$u8$u8$u8_param_min_val.op + 1
+    LD B, #00      ; Parameter min_val (gets patched)
+    LD A, B
+    LD B, A         ; Store to physical register B
+    ; r6 = r4 < r5
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_math_functions_clamp_u8_u8_u8_lt_true_3
+    LD HL, 0       ; False
+    JP examples_math_functions_clamp_u8_u8_u8_lt_done_3
+examples_math_functions_clamp_u8_u8_u8_lt_true_3:
+    LD HL, 1       ; True
+examples_math_functions_clamp_u8_u8_u8_lt_done_3:
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; jump_if_not r6, else_7
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    OR A
+    JP Z, examples_math_functions_clamp_u8_u8_u8_else_7
+    LD A, (examples.math_functions.clamp$u8$u8$u8_param_min_val)
+    ; Register 7 already in A
+    ; return r7
+    RET
+    ; jump end_if_8
+    JP examples_math_functions_clamp_u8_u8_u8_end_if_8
+    ; else_7:
+examples_math_functions_clamp_u8_u8_u8_else_7:
+    ; end_if_8:
+examples_math_functions_clamp_u8_u8_u8_end_if_8:
+    LD A, (examples.math_functions.clamp$u8$u8$u8_param_value)
+    LD H, A         ; Store to physical register H
+examples.math_functions.clamp$u8$u8$u8_param_max_val.op:
+examples.math_functions.clamp$u8$u8$u8_param_max_val equ examples.math_functions.clamp$u8$u8$u8_param_max_val.op + 1
+    LD C, #00      ; Parameter max_val (gets patched)
+    LD A, C
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r10 = r8 > r9
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, examples_math_functions_clamp_u8_u8_u8_gt_check_zero_4
+    LD HL, 0       ; False (negative)
+    JP examples_math_functions_clamp_u8_u8_u8_gt_done_4
+examples_math_functions_clamp_u8_u8_u8_gt_check_zero_4:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, examples_math_functions_clamp_u8_u8_u8_gt_false_4
+    LD HL, 1       ; True (positive and non-zero)
+    JP examples_math_functions_clamp_u8_u8_u8_gt_done_4
+examples_math_functions_clamp_u8_u8_u8_gt_false_4:
+    LD HL, 0       ; False (zero)
+examples_math_functions_clamp_u8_u8_u8_gt_done_4:
+    ; jump_if_not r10, else_9
+    LD A, H
+    OR A
+    JP Z, examples_math_functions_clamp_u8_u8_u8_else_9
+    LD A, (examples.math_functions.clamp$u8$u8$u8_param_max_val)
+    LD E, A         ; Store to physical register E
+    ; return r11
+    RET
+    ; jump end_if_10
+    JP examples_math_functions_clamp_u8_u8_u8_end_if_10
+    ; else_9:
+examples_math_functions_clamp_u8_u8_u8_else_9:
+    ; end_if_10:
+examples_math_functions_clamp_u8_u8_u8_end_if_10:
+    LD A, (examples.math_functions.clamp$u8$u8$u8_param_value)
+    LD E, A         ; Store to physical register E
+    ; return r12
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.math_functions.lerp$u8$u8$u8
+examples.math_functions.lerp$u8$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.math_functions.lerp$u8$u8$u8_param_b.op:
+examples.math_functions.lerp$u8$u8$u8_param_b equ examples.math_functions.lerp$u8$u8$u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+examples.math_functions.lerp$u8$u8$u8_param_a.op:
+examples.math_functions.lerp$u8$u8$u8_param_a equ examples.math_functions.lerp$u8$u8$u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r7 = r5 - r6
+    EXX               ; Switch to shadow registers
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; store diff, r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    LD ($F008), HL
+    ; r9 = load diff
+    LD HL, ($F008)
+examples.math_functions.lerp$u8$u8$u8_param_t.op:
+examples.math_functions.lerp$u8$u8$u8_param_t equ examples.math_functions.lerp$u8$u8$u8_param_t.op + 1
+    LD C, #00      ; Parameter t (gets patched)
+    LD A, C
+    LD L, A         ; Store to HL (low byte)
+    ; r11 = r9 * r10
+    ; 16-bit multiplication
+    LD (mul_src1_5), HL  ; Save multiplicand
+    ; Register 10 already in HL
+    LD (mul_src2_5), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_5)  ; DE = multiplicand
+    LD BC, (mul_src2_5)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_5
+examples_math_functions_lerp_u8_u8_u8_mul16_loop_5:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_5
+examples_math_functions_lerp_u8_u8_u8_mul16_done_5:
+mul_src1_5: DW 0
+mul_src2_5: DW 0
+    LD B, H
+    LD C, L
+    ; r12 = 255
+    LD A, 255
+    LD L, A         ; Store to HL (low byte)
+    ; r13 = r11 / r12
+    ; 8-bit division
+    LD A, C
+    LD D, A       ; D = dividend
+    LD A, L
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, examples_math_functions_lerp_u8_u8_u8_div_by_zero_6
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+examples_math_functions_lerp_u8_u8_u8_div_loop_6:
+    CP E          ; Compare remainder with divisor
+    JR C, examples_math_functions_lerp_u8_u8_u8_div_done_6
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR examples_math_functions_lerp_u8_u8_u8_div_loop_6
+examples_math_functions_lerp_u8_u8_u8_div_by_zero_6:
+    LD B, 0       ; Return 0 for divide by zero
+examples_math_functions_lerp_u8_u8_u8_div_done_6:
+    LD L, B       ; Result in L
+    LD H, 0
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    ; store scaled, r13
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    LD ($F010), HL
+    LD A, (examples.math_functions.lerp$u8$u8$u8_param_a)
+    LD L, A         ; Store to HL (low byte)
+    ; r15 = load scaled
+    LD HL, ($F010)
+    ; r16 = r14 + r15
+    ; Register 14 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 16 already in HL
+    ; return r16
+    ; Register 16 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.math_functions.sqrt_approx$u16
+examples.math_functions.sqrt_approx$u16:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.math_functions.sqrt_approx$u16_param_n.op:
+examples.math_functions.sqrt_approx$u16_param_n equ examples.math_functions.sqrt_approx$u16_param_n.op + 1
+    LD HL, #0000   ; SMC parameter n
+    ; Register 2 already in HL
+    ; r3 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r4 = r2 == r3
+    ; Register 2 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, examples_math_functions_sqrt_approx_u16_eq_true_7
+    LD HL, 0       ; False
+    JP examples_math_functions_sqrt_approx_u16_eq_done_7
+examples_math_functions_sqrt_approx_u16_eq_true_7:
+    LD HL, 1       ; True
+examples_math_functions_sqrt_approx_u16_eq_done_7:
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; jump_if_not r4, else_11
+    LD A, ($F008)     ; Virtual register 4 from memory
+    OR A
+    JP Z, examples_math_functions_sqrt_approx_u16_else_11
+    ; r5 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; return r5
+    ; Register 5 already in HL
+    RET
+    ; jump end_if_12
+    JP examples_math_functions_sqrt_approx_u16_end_if_12
+    ; else_11:
+examples_math_functions_sqrt_approx_u16_else_11:
+    ; end_if_12:
+examples_math_functions_sqrt_approx_u16_end_if_12:
+    LD HL, (examples.math_functions.sqrt_approx$u16_param_n)
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; store x, r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    LD ($F00C), HL
+    ; r9 = load x
+    LD HL, ($F00C)
+    ; Register 9 already in HL
+    ; r10 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r11 = r9 + r10
+    ; Register 9 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 11 already in HL
+    ; r12 = 2
+    LD A, 2
+    LD L, A         ; Store to HL (low byte)
+    ; r13 = r11 / r12
+    ; 8-bit division
+    LD A, L
+    LD D, A       ; D = dividend
+    LD A, L
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, examples_math_functions_sqrt_approx_u16_div_by_zero_8
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+examples_math_functions_sqrt_approx_u16_div_loop_8:
+    CP E          ; Compare remainder with divisor
+    JR C, examples_math_functions_sqrt_approx_u16_div_done_8
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR examples_math_functions_sqrt_approx_u16_div_loop_8
+examples_math_functions_sqrt_approx_u16_div_by_zero_8:
+    LD B, 0       ; Return 0 for divide by zero
+examples_math_functions_sqrt_approx_u16_div_done_8:
+    LD L, B       ; Result in L
+    LD H, 0
+    ; Register 13 already in HL
+    ; store y, r13
+    ; Register 13 already in HL
+    LD ($F010), HL
+    ; loop_13:
+examples_math_functions_sqrt_approx_u16_loop_13:
+    ; r14 = load y
+    LD HL, ($F010)
+    ; r15 = load x
+    LD HL, ($F00C)
+    ; r16 = r14 < r15
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, examples_math_functions_sqrt_approx_u16_lt_true_9
+    LD HL, 0       ; False
+    JP examples_math_functions_sqrt_approx_u16_lt_done_9
+examples_math_functions_sqrt_approx_u16_lt_true_9:
+    LD HL, 1       ; True
+examples_math_functions_sqrt_approx_u16_lt_done_9:
+    LD ($F020), HL    ; Virtual register 16 to memory
+    ; jump_if_not r16, end_loop_14
+    LD A, ($F020)     ; Virtual register 16 from memory
+    OR A
+    JP Z, examples_math_functions_sqrt_approx_u16_end_loop_14
+    ; r17 = load y
+    LD HL, ($F010)
+    ; Register 17 already in HL
+    ; store x, r17
+    ; Register 17 already in HL
+    LD ($F00C), HL
+    ; r18 = load x
+    LD HL, ($F00C)
+    LD HL, (examples.math_functions.sqrt_approx$u16_param_n)
+    ; Register 19 already in HL
+    ; r20 = load x
+    LD HL, ($F00C)
+    ; Register 20 already in HL
+    ; r21 = r19 / r20
+    ; 8-bit division
+    LD A, L
+    LD D, A       ; D = dividend
+    LD A, L
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, examples_math_functions_sqrt_approx_u16_div_by_zero_10
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+examples_math_functions_sqrt_approx_u16_div_loop_10:
+    CP E          ; Compare remainder with divisor
+    JR C, examples_math_functions_sqrt_approx_u16_div_done_10
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR examples_math_functions_sqrt_approx_u16_div_loop_10
+examples_math_functions_sqrt_approx_u16_div_by_zero_10:
+    LD B, 0       ; Return 0 for divide by zero
+examples_math_functions_sqrt_approx_u16_div_done_10:
+    LD L, B       ; Result in L
+    LD H, 0
+    ; Register 21 already in HL
+    ; r22 = r18 + r21
+    LD D, H
+    LD E, L
+    ; Register 21 already in HL
+    ADD HL, DE
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; r23 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; r24 = r22 / r23
+    ; 8-bit division
+    LD A, ($F02C)     ; Virtual register 22 from memory
+    LD D, A       ; D = dividend
+    LD A, H
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, examples_math_functions_sqrt_approx_u16_div_by_zero_11
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+examples_math_functions_sqrt_approx_u16_div_loop_11:
+    CP E          ; Compare remainder with divisor
+    JR C, examples_math_functions_sqrt_approx_u16_div_done_11
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR examples_math_functions_sqrt_approx_u16_div_loop_11
+examples_math_functions_sqrt_approx_u16_div_by_zero_11:
+    LD B, 0       ; Return 0 for divide by zero
+examples_math_functions_sqrt_approx_u16_div_done_11:
+    LD L, B       ; Result in L
+    LD H, 0
+    ; store y, r24
+    LD ($F010), HL
+    ; jump loop_13
+    JP examples_math_functions_sqrt_approx_u16_loop_13
+    ; end_loop_14:
+examples_math_functions_sqrt_approx_u16_end_loop_14:
+    ; r25 = load x
+    LD HL, ($F00C)
+    ; Register 25 already in HL
+    ; r26 = 255
+    LD A, 255
+    LD H, A         ; Store to physical register H
+    ; r27 = r25 & r26
+    ; Register 25 already in HL
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; Register 27 already in HL
+    ; return r27
+    ; Register 27 already in HL
+    RET
+
+    END main

@@ -1,0 +1,53 @@
+; MinZ generated code
+; Generated: 2025-08-16 22:40:49
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.simple_abi_test.add_smc$u8$u8
+examples.simple_abi_test.add_smc$u8$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+examples.simple_abi_test.add_smc$u8$u8_param_x.op:
+examples.simple_abi_test.add_smc$u8$u8_param_x equ examples.simple_abi_test.add_smc$u8$u8_param_x.op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 3 already in A
+examples.simple_abi_test.add_smc$u8$u8_param_y.op:
+examples.simple_abi_test.add_smc$u8$u8_param_y equ examples.simple_abi_test.add_smc$u8$u8_param_y.op + 1
+    LD B, #00      ; Parameter y (gets patched)
+    LD A, B
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.simple_abi_test.add_register$u8$u8
+examples.simple_abi_test.add_register$u8$u8:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    LD A, E       ; Get parameter b
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = load a
+    LD HL, ($F000)
+    ; r4 = load b
+    LD HL, ($F000)
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    LD SP, IX
+    POP IX
+    RET
+
+    END main
