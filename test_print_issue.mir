@@ -1,44 +1,17 @@
-; MinZ generated code
-; Generated: 2025-08-16 00:14:40
+; MinZ Intermediate Representation (MIR)
+; Module: main
 
+Function test_print_issue.main() -> u8
+  @smc
+  Locals:
+    r2 = x: u8
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Hello from compile time!" (24 chars via loop)
+      2: r3 = 42
+      3: store x, r3
+      4: LOAD_STRING
+      5: PRINT_STRING ; Print "Value of x: " (12 chars via loop)
+      6: r5 = 0
+      7: return r5
 
-; Data section
-    ORG $F000
-
-str_0:
-    DB 24    ; Length
-    DB "Hello from compile time!"
-str_1:
-    DB 12    ; Length
-    DB "Value of x: "
-
-; Code section
-    ORG $8000
-
-; Using hierarchical register allocation (physical → shadow → memory)
-
-; Function: ...test_print_issue.main
-...test_print_issue.main:
-; IsSMCDefault=true, IsSMCEnabled=true
-; Using absolute addressing for locals (SMC style)
-    ; r1 = string(str_0)
-    LD HL, str_0
-    ; Print "Hello from compile time!" (24 chars via loop)
-    CALL print_string
-    ; r3 = 42
-    LD A, 42
-    LD B, A         ; Store to physical register B
-    ; store x, r3
-    LD A, B
-    LD ($F004), A
-    ; r4 = string(str_1)
-    LD HL, str_1
-    ; Print "Value of x: " (12 chars via loop)
-    CALL print_string
-    ; r5 = 0
-    LD A, 0
-    LD E, A         ; Store to physical register E
-    ; return r5
-    RET
-
-    END main

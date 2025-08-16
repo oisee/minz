@@ -1,0 +1,16 @@
+// Simple method call test
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun main() -> void {
+    let p = Point { x: 10, y: 20 };
+    
+    // This should work - field access
+    let x_val = p.x;
+    
+    // TODO: These need implementation
+    // p.move(5, 10);  // Method call syntax
+    // p.draw();       // Method call without args
+}

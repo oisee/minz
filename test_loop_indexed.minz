@@ -1,0 +1,17 @@
+// Test loop indexed syntax
+let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+
+fun main() -> void {
+    // Regular loop works
+    let i: u8 = 0;
+    while i < 5 {
+        print_u8(numbers[i]);
+        i = i + 1;
+    }
+    
+    // This needs implementation:
+    // loop numbers indexed to val, idx {
+    //     print_u8(idx);
+    //     print_u8(val);
+    // }
+}

@@ -895,6 +895,8 @@ func (p *Parser) parseStatement(node map[string]interface{}) ast.Statement {
 		return p.parseIfStmt(node)
 	case "while_statement":
 		return p.parseWhileStmt(node)
+	case "loop_statement":
+		return p.parseLoopStmt(node)
 	case "case_statement":
 		return p.parseCaseStmt(node)
 	case "variable_declaration":
@@ -1020,6 +1022,65 @@ func (p *Parser) parseWhileStmt(node map[string]interface{}) *ast.WhileStmt {
 	}
 	
 	return whileStmt
+}
+
+// parseLoopStmt parses a loop statement (including indexed loops)
+func (p *Parser) parseLoopStmt(node map[string]interface{}) *ast.LoopStmt {
+	loopStmt := &ast.LoopStmt{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+		Mode:     ast.LoopInto, // Default mode
+	}
+	
+	// Parse children to find array, indexed keyword, iterator vars, and body
+	children, _ := node["children"].([]interface{})
+	
+	var foundIndexed bool
+	var foundTo bool
+	var arrayNode map[string]interface{}
+	var varNodes []map[string]interface{}
+	
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		childType, _ := childNode["type"].(string)
+		text := p.getText(childNode)
+		
+		switch {
+		case text == "indexed":
+			foundIndexed = true
+		case text == "to":
+			foundTo = true
+		case text == "loop":
+			// Skip the loop keyword
+		case childType == "block_statement":
+			loopStmt.Body = p.parseBlock(childNode)
+		case childType == "identifier" || childType == "field_expression" || childType == "index_expression":
+			// Collect nodes based on position
+			if !foundIndexed && !foundTo {
+				// This is the array/collection being looped over
+				arrayNode = childNode
+			} else if foundTo {
+				// After "to", these are iterator variables
+				varNodes = append(varNodes, childNode)
+			}
+		}
+	}
+	
+	// Parse the array/collection expression
+	if arrayNode != nil {
+		loopStmt.Table = p.parseExpression(arrayNode)
+	}
+	
+	// Parse iterator variables
+	if len(varNodes) > 0 {
+		loopStmt.Iterator = p.getText(varNodes[0])
+		if foundIndexed && len(varNodes) > 1 {
+			// For "indexed" loops, second var is the index
+			loopStmt.Index = p.getText(varNodes[1])
+		}
+	}
+	
+	return loopStmt
 }
 
 // parseExpression parses an expression

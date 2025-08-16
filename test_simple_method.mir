@@ -1,0 +1,20 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_simple_method.main() -> void
+  @smc
+  Locals:
+    r1 = p: u16
+    r5 = x_val: u16
+  Instructions:
+      0: ALLOC ; Allocate struct Point
+      1: r3 = 10
+      2: STORE_FIELD ; Store to Point.x
+      3: r4 = 20
+      4: STORE_FIELD ; Store to Point.y
+      5: store p, r2
+      6: r6 = load p
+      7: LOAD_FIELD ; Load field x (offset 0)
+      8: store x_val, r7
+      9: return
+
