@@ -16,19 +16,31 @@ type AIHandler struct {
 	azureEndpoint string
 	azureKey      string
 	deployment    string
+	multiHandler  *MultiModelHandler
 }
 
-// NewAIHandler creates a new AI handler
+// NewAIHandler creates a new AI handler with multi-model support
 func NewAIHandler() *AIHandler {
 	return &AIHandler{
 		azureEndpoint: os.Getenv("AZURE_OPENAI_ENDPOINT"),
 		azureKey:      os.Getenv("AZURE_OPENAI_API_KEY"),
-		deployment:    getEnvOrDefault("AZURE_OPENAI_DEPLOYMENT", "gpt-4-1106"),
+		deployment:    getEnvOrDefault("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1"), // Updated to gpt-4.1
+		multiHandler:  NewMultiModelHandler(),
 	}
 }
 
 // HandleRequest processes tool calls
 func (h *AIHandler) HandleRequest(ctx context.Context, toolName string, params json.RawMessage) (interface{}, error) {
+	// First try multi-model handler for new tools
+	if h.multiHandler != nil {
+		if strings.HasPrefix(toolName, "ask_gpt") || strings.HasPrefix(toolName, "ask_o4") || 
+		   strings.HasPrefix(toolName, "ask_model") || toolName == "ask_ai_with_context" || 
+		   toolName == "brainstorm_semantic_fixes" {
+			return h.multiHandler.HandleRequest(ctx, toolName, params)
+		}
+	}
+
+	// Handle legacy tools
 	var result map[string]interface{}
 	if err := json.Unmarshal(params, &result); err != nil {
 		return nil, err

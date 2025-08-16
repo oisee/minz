@@ -124,7 +124,7 @@ func (s *Server) handleMessage(ctx context.Context, msg *Message) *Message {
 		}
 	case "tools/list":
 		response.Result = map[string]interface{}{
-			"tools": s.getTools(),
+			"tools": s.getExtendedTools(),
 		}
 	case "tools/call":
 		var params map[string]interface{}
