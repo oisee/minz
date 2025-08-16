@@ -1,0 +1,19 @@
+; Simple CP/M test program
+    TARGET cpm
+    MODEL 2.2
+    ORG $0100
+
+start:
+    ; Print hello message using BDOS
+    LD DE, message
+    LD C, BDOS_PRINT    ; Function 9: Print string
+    CALL BDOS
+    
+    ; Exit to CP/M
+    LD C, BDOS_TERMINATE ; Function 0: Program termination
+    CALL BDOS
+
+message:
+    DB "Hello from MinZ on CP/M!", 13, 10, "$"
+    
+    END
