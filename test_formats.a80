@@ -1,0 +1,35 @@
+; Demo program showing multiple output formats
+    TARGET zxspectrum
+    MODEL 48k
+    ORG $8000
+
+start:
+    ; Set border to cyan and clear screen
+    LD A, 5
+    OUT (254), A
+    CALL ROM_CLS
+    
+    ; Print greeting
+    LD HL, message
+    CALL print_string
+    
+    ; Wait for keypress
+    CALL ROM_PRINT_A  ; Wait for key (using as keypress wait)
+    
+    ; Set red border and exit
+    LD A, 2
+    OUT (254), A
+    RET
+
+print_string:
+    LD A, (HL)
+    OR A
+    RET Z
+    CALL ROM_PRINT_A
+    INC HL
+    JR print_string
+
+message:
+    DB "Hello ZX Spectrum!", 13, 0
+    
+    END

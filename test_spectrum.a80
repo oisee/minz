@@ -1,0 +1,46 @@
+; ZX Spectrum Hello World with platform features
+    TARGET zxspectrum
+    MODEL 48k
+    ORG $8000
+
+start:
+    ; Clear screen using ROM routine
+    CALL ROM_CLS         ; Should resolve to $0DAF
+    
+    ; Set border to blue
+    LD A, 1
+    OUT (254), A
+    
+    ; Print message character by character
+    LD HL, message
+print_loop:
+    LD A, (HL)
+    OR A                 ; Check for zero terminator
+    JP Z, done
+    PUSH HL
+    CALL ROM_PRINT_A     ; Print character in A
+    POP HL
+    INC HL
+    JR print_loop
+    
+done:
+    ; Set attributes (bright white on blue)
+    LD HL, ATTR_BASE     ; $5800
+    LD BC, 768           ; 32x24 attributes
+    LD A, $47            ; Bright white on blue
+fill_attr:
+    LD (HL), A
+    INC HL
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, fill_attr
+    
+    ; Infinite loop
+loop:
+    JR loop
+
+message:
+    DB "Hello from ZX Spectrum!", 13, 0
+    
+    END

@@ -75,7 +75,11 @@ func ParseLine(line string, lineNum int) (*Line, error) {
 // isDirective checks if a token is a directive
 func isDirective(token string) bool {
 	upper := strings.ToUpper(token)
-	directives := []string{"ORG", "END", "DB", "DEFB", "DW", "DEFW", "DS", "DEFS", "EQU"}
+	directives := []string{
+		"ORG", "END", "DB", "DEFB", "DW", "DEFW", "DS", "DEFS", "EQU",
+		"ALIGN", "INCLUDE", "MACRO", "ENDM",
+		"TARGET", "MODEL", // Platform-specific directives
+	}
 	for _, d := range directives {
 		if upper == d {
 			return true

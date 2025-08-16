@@ -1,0 +1,19 @@
+; CP/M Hello World with platform features
+    TARGET cpm
+    MODEL 2.2
+    ORG $0100        ; CP/M TPA start
+
+start:
+    ; Print string using BDOS
+    LD DE, message
+    LD C, BDOS_PRINT ; Function 9
+    CALL BDOS        ; Call BDOS at $0005
+    
+    ; Return to CP/M
+    LD C, BDOS_TERMINATE
+    CALL BDOS
+    
+message:
+    DB "Hello from CP/M!", 13, 10, "$"
+    
+    END

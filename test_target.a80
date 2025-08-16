@@ -1,0 +1,19 @@
+; Test TARGET and MODEL directives
+    TARGET zxspectrum
+    MODEL 48k
+    ORG $8000
+    
+    ; Simple program
+    LD A, 65        ; 'A'
+    CALL ROM_PRINT_A ; Should be recognized as $2B7E
+    
+    ; Border color test
+    LD A, 2         ; Red border
+    OUT (254), A
+    
+    ; Screen memory test
+    LD HL, SCREEN_BASE  ; Should be $4000
+    LD (HL), 255    ; Put white pixel at screen start
+    
+    HALT
+    END

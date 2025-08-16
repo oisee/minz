@@ -310,6 +310,69 @@ var jpInstructions = []InstructionPattern{
 	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "28"}}, Encoding: []byte{0xEF}},
 	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "30"}}, Encoding: []byte{0xF7}},
 	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "38"}}, Encoding: []byte{0xFF}},
+	
+	// I/O instructions
+	{Mnemonic: "IN", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeIndImm, ""}}, EncodingFunc: encodeIN},
+	{Mnemonic: "IN", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeIndReg, "(C)"}}, Encoding: []byte{0xED, 0x78}},
+	{Mnemonic: "IN", Operands: []OperandPattern{{OpTypeReg8, "B"}, {OpTypeIndReg, "(C)"}}, Encoding: []byte{0xED, 0x40}},
+	{Mnemonic: "IN", Operands: []OperandPattern{{OpTypeReg8, "C"}, {OpTypeIndReg, "(C)"}}, Encoding: []byte{0xED, 0x48}},
+	{Mnemonic: "IN", Operands: []OperandPattern{{OpTypeReg8, "D"}, {OpTypeIndReg, "(C)"}}, Encoding: []byte{0xED, 0x50}},
+	{Mnemonic: "IN", Operands: []OperandPattern{{OpTypeReg8, "E"}, {OpTypeIndReg, "(C)"}}, Encoding: []byte{0xED, 0x58}},
+	{Mnemonic: "IN", Operands: []OperandPattern{{OpTypeReg8, "H"}, {OpTypeIndReg, "(C)"}}, Encoding: []byte{0xED, 0x60}},
+	{Mnemonic: "IN", Operands: []OperandPattern{{OpTypeReg8, "L"}, {OpTypeIndReg, "(C)"}}, Encoding: []byte{0xED, 0x68}},
+	
+	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndImm, ""}, {OpTypeReg8, "A"}}, EncodingFunc: encodeOUT},
+	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "A"}}, Encoding: []byte{0xED, 0x79}},
+	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "B"}}, Encoding: []byte{0xED, 0x41}},
+	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "C"}}, Encoding: []byte{0xED, 0x49}},
+	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "D"}}, Encoding: []byte{0xED, 0x51}},
+	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "E"}}, Encoding: []byte{0xED, 0x59}},
+	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "H"}}, Encoding: []byte{0xED, 0x61}},
+	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "L"}}, Encoding: []byte{0xED, 0x69}},
+}
+
+func encodeIN(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	// IN A, (n) format
+	result := []byte{0xDB} // IN opcode
+	
+	// Find port number
+	for _, v := range values {
+		switch val := v.(type) {
+		case uint8:
+			result = append(result, val)
+			return result, nil
+		case uint16:
+			if val > 255 {
+				return nil, fmt.Errorf("port number out of range: %d", val)
+			}
+			result = append(result, byte(val))
+			return result, nil
+		}
+	}
+	
+	return nil, fmt.Errorf("no port number found")
+}
+
+func encodeOUT(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	// OUT (n), A format
+	result := []byte{0xD3} // OUT opcode
+	
+	// Find port number
+	for _, v := range values {
+		switch val := v.(type) {
+		case uint8:
+			result = append(result, val)
+			return result, nil
+		case uint16:
+			if val > 255 {
+				return nil, fmt.Errorf("port number out of range: %d", val)
+			}
+			result = append(result, byte(val))
+			return result, nil
+		}
+	}
+	
+	return nil, fmt.Errorf("no port number found")
 }
 
 func encodeJPImm(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {

@@ -11,6 +11,7 @@ type Target string
 const (
 	TargetGeneric    Target = "generic"    // Default Z80
 	TargetZXSpectrum Target = "zxspectrum" // ZX Spectrum 48K/128K
+	TargetZXTap      Target = "zxtap"      // ZX Spectrum .tap files
 	TargetCPM        Target = "cpm"        // CP/M systems
 	TargetMSX        Target = "msx"        // MSX computers
 	TargetGameBoy    Target = "gameboy"    // Game Boy (Z80-like)
@@ -92,6 +93,44 @@ var targetRegistry = map[Target]*TargetConfig{
 			Description: "ZX Spectrum snapshot",
 			HeaderSize:  27,
 			Generator:   generateSNASnapshot,
+		},
+		Conventions: PlatformConventions{
+			CallConvention: "Standard Z80",
+			RegisterUsage: map[string]string{
+				"IX": "System use - avoid",
+				"IY": "System use - avoid", 
+				"I":  "Interrupt mode",
+			},
+			CommonSymbols: map[string]uint16{
+				"ROM_CLS":       0x0DAF,  // Clear screen routine
+				"ROM_PRINT":     0x203C,  // Print string routine
+				"ROM_PRINT_A":   0x2B7E,  // Print character in A
+				"SCREEN_BASE":   0x4000,  // Screen memory start
+				"ATTR_BASE":     0x5800,  // Attribute memory start
+				"UDG_BASE":      0xFF58,  // User defined graphics
+				"RAMTOP":        0x5CB2,  // System variable: RAM top
+				"BORDCR":        0x5C48,  // Border color
+			},
+		},
+	},
+
+	TargetZXTap: {
+		Name:        "ZX Spectrum TAP",
+		Description: "ZX Spectrum .tap tape files",
+		MemoryLayout: MemoryLayout{
+			DefaultOrigin: 0x8000,    // Above screen/system area
+			RAMStart:      0x4000,    // User RAM start (above ROM)
+			RAMSize:       49152,     // 48K - system area
+			ROMStart:      0x0000,    // ROM area
+			ROMSize:       16384,     // 16K ROM
+			ScreenBase:    0x4000,    // Screen memory start
+			StackTop:      0xFFFF,    // Top of memory
+		},
+		OutputFormat: OutputFormat{
+			Extension:   ".tap",
+			Description: "ZX Spectrum tape file",
+			HeaderSize:  0,           // Variable header
+			Generator:   generateTAPFile,
 		},
 		Conventions: PlatformConventions{
 			CallConvention: "Standard Z80",
@@ -383,6 +422,67 @@ func generateMSXROM(result *Result) ([]byte, error) {
 	}
 	
 	return rom, nil
+}
+
+// generateTAPFile creates a ZX Spectrum .TAP tape file
+func generateTAPFile(result *Result) ([]byte, error) {
+	// TAP format consists of blocks with length headers
+	var tap []byte
+	
+	// Create a CODE block (machine code)
+	// TAP format: [length_lo][length_hi][data...]
+	
+	// Header block first (17 bytes + 2 byte length)
+	headerData := make([]byte, 17)
+	headerData[0] = 0x00    // Header flag
+	headerData[1] = 0x03    // CODE file type
+	
+	// Filename (10 bytes, padded with spaces)
+	filename := "PROGRAM   "
+	copy(headerData[2:12], []byte(filename))
+	
+	// Data length (little-endian)
+	dataLen := uint16(len(result.Binary))
+	headerData[12] = byte(dataLen)
+	headerData[13] = byte(dataLen >> 8)
+	
+	// Start address (little-endian)
+	headerData[14] = byte(result.Origin)
+	headerData[15] = byte(result.Origin >> 8)
+	
+	// Unused parameter for CODE blocks (same as data length)
+	headerData[16] = byte(dataLen)
+	
+	// Calculate header checksum
+	headerChecksum := byte(0)
+	for _, b := range headerData {
+		headerChecksum ^= b
+	}
+	
+	// Add header block to TAP
+	headerBlockLen := uint16(18) // 17 bytes + 1 checksum
+	tap = append(tap, byte(headerBlockLen), byte(headerBlockLen>>8))
+	tap = append(tap, headerData...)
+	tap = append(tap, headerChecksum)
+	
+	// Data block
+	dataBlock := make([]byte, len(result.Binary)+2)
+	dataBlock[0] = 0xFF // Data flag
+	copy(dataBlock[1:], result.Binary)
+	
+	// Calculate data checksum
+	dataChecksum := byte(0)
+	for _, b := range dataBlock[:len(dataBlock)-1] {
+		dataChecksum ^= b
+	}
+	dataBlock[len(dataBlock)-1] = dataChecksum
+	
+	// Add data block to TAP
+	dataBlockLen := uint16(len(dataBlock))
+	tap = append(tap, byte(dataBlockLen), byte(dataBlockLen>>8))
+	tap = append(tap, dataBlock...)
+	
+	return tap, nil
 }
 
 // Add target field to Assembler struct (this would go in assembler.go)
