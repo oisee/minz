@@ -3328,6 +3328,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeWhenExpr(e, irFunc)
 	case *ast.TryExpr:
 		return a.analyzeTryExpr(e, irFunc)
+	case *ast.BlockStmt:
+		return a.analyzeBlockExpression(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -8277,6 +8279,47 @@ func (a *Analyzer) analyzeTryExpr(expr *ast.TryExpr, irFunc *ir.Function) (ir.Re
 	// In Z80, this would typically check the carry flag and return early on error
 	
 	return reg, nil
+}
+
+// analyzeBlockExpression analyzes a block statement as an expression
+// The block's value is determined by its last statement
+func (a *Analyzer) analyzeBlockExpression(block *ast.BlockStmt, irFunc *ir.Function) (ir.Register, error) {
+	// Push new scope for the block
+	a.currentScope = NewScope(a.currentScope)
+	defer func() { a.currentScope = a.currentScope.parent }()
+	
+	// Handle empty block - returns void/unit
+	if len(block.Statements) == 0 {
+		return 0, nil
+	}
+	
+	// Analyze all statements except the last
+	for i := 0; i < len(block.Statements)-1; i++ {
+		if err := a.analyzeStatement(block.Statements[i], irFunc); err != nil {
+			return 0, fmt.Errorf("block statement %d: %w", i, err)
+		}
+	}
+	
+	// The last statement determines the block's value
+	lastStmt := block.Statements[len(block.Statements)-1]
+	
+	// Check if it's an expression statement
+	if exprStmt, ok := lastStmt.(*ast.ExpressionStmt); ok {
+		return a.analyzeExpression(exprStmt.Expression, irFunc)
+	}
+	
+	// If it's a return statement, use its value
+	if retStmt, ok := lastStmt.(*ast.ReturnStmt); ok && retStmt.Value != nil {
+		return a.analyzeExpression(retStmt.Value, irFunc)
+	}
+	
+	// Otherwise, analyze as a regular statement (block has no value)
+	if err := a.analyzeStatement(lastStmt, irFunc); err != nil {
+		return 0, err
+	}
+	
+	// Block has no expression value (void)
+	return 0, nil
 }
 
 func (a *Analyzer) analyzeIfExpr(expr *ast.IfExpr, irFunc *ir.Function) (ir.Register, error) {
