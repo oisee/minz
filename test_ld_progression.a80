@@ -1,0 +1,18 @@
+; Test LD instruction progression
+    ORG $8000
+
+; These should work (confirmed working)
+    LD A, $12           ; immediate 8-bit
+    LD HL, $1234        ; immediate 16-bit  
+
+; These should work (register indirect)  
+    LD A, (HL)          ; register indirect
+    LD (HL), A          ; register indirect
+
+; These are the problem cases (memory indirect)
+    LD A, ($8100)       ; memory indirect 8-bit
+    LD ($8100), A       ; memory indirect 8-bit
+    LD HL, ($8100)      ; memory indirect 16-bit
+    LD ($8100), HL      ; memory indirect 16-bit
+    
+    END

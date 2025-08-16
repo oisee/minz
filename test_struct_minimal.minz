@@ -1,0 +1,14 @@
+// Minimal struct test - no type suffixes
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun test_struct() -> void {
+    let p = Point { x: 5, y: 10 };
+    print_u8(p.x);
+}
+
+fun main() -> void {
+    test_struct();
+}

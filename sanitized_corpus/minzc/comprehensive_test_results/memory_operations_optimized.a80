@@ -1,0 +1,19 @@
+; MinZ generated code
+; Generated: 2025-08-02 13:03:27
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.memory_operations.mem_set
+.Users_alice_dev_minz_ts_examples_memory_operations_mem_set:
+; TRUE SMC function with immediate anchors
+    ; loop_1:
+loop_1:
+count_immOP:
+    LD HL, 0       ; count anchor (will be patched)
+count_imm0 EQU count_immOP+1
+    ; Register 4 already in HL
+    ; unknown op 57

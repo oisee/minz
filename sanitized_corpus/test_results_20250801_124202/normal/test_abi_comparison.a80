@@ -1,0 +1,698 @@
+; MinZ generated code
+; Generated: 2025-08-01 12:42:02
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_abi_comparison.add_auto
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_add_auto:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_add_auto_param_a:
+    LD HL, #0000   ; SMC parameter a (u8->u16)
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_add_auto_param_b:
+    LD DE, #0000   ; SMC parameter b (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_abi_comparison.add_register
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_add_register:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    LD A, E       ; Get parameter b
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = load a
+    LD HL, ($F000)
+    ; r4 = load b
+    LD HL, ($F000)
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_abi_comparison.add_stack
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_add_stack:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    LD A, E       ; Get parameter b
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = load a
+    LD HL, ($F000)
+    ; r4 = load b
+    LD HL, ($F000)
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_abi_comparison.add_smc
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_add_smc:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_add_smc_param_a:
+    LD HL, #0000   ; SMC parameter a (u8->u16)
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_add_smc_param_b:
+    LD DE, #0000   ; SMC parameter b (u8->u16)
+    EX DE, HL      ; Move to HL for storage
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_abi_comparison.add_virtual
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_add_virtual:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    LD A, E       ; Get parameter b
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = load a
+    LD HL, ($F000)
+    ; r4 = load b
+    LD HL, ($F000)
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_abi_comparison.complex_calc
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_complex_calc:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Parameter a from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    ; Parameter b from stack
+    LD L, (IX+6)
+    LD H, (IX+7)
+    LD D, H
+    LD E, L
+    ; Parameter c from stack
+    LD L, (IX+8)
+    LD H, (IX+9)
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; Parameter d from stack
+    LD L, (IX+10)
+    LD H, (IX+11)
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; Parameter e from stack
+    LD L, (IX+12)
+    LD H, (IX+13)
+    ; Parameter f from stack
+    LD L, (IX+14)
+    LD H, (IX+15)
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; r8 = param a
+    ; Load parameter a
+    ; r9 = param b
+    ; Load parameter b
+    ; r10 = r8 + r9
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r11 = param e
+    ; Load parameter e
+    ; r12 = r10 + r11
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r13 = param f
+    ; Load parameter f
+    ; r14 = r12 + r13
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store , r14
+    LD ($F000), HL
+    ; r16 = param c
+    ; Load parameter c
+    ; r17 = param d
+    ; Load parameter d
+    ; r18 = r16 + r17
+    LD HL, ($F020)    ; Virtual register 16 from memory
+    LD D, H
+    LD E, L
+    LD H, B
+    LD L, C
+    ADD HL, DE
+    ; Register 18 already in HL
+    ; store , r18
+    ; Register 18 already in HL
+    LD ($F002), HL
+    ; r19 = load sum1
+    LD HL, ($F000)
+    ; r20 = load sum2
+    LD HL, ($F002)
+    ; r21 = r19 + r20
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 21 already in HL
+    ; return r21
+    ; Register 21 already in HL
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_abi_comparison.factorial
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_factorial:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_factorial_param_n:
+    LD HL, #0000   ; SMC parameter n (u8->u16)
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; r3 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r4 = r2 <= r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r4, else_1
+    LD A, L
+    OR A
+    JP Z, else_1
+    ; r5 = 1
+    LD A, 1
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; return r5
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    LD A, (.Users_alice_dev_minz_ts_examples_test_abi_comparison_factorial_param_n)
+    LD H, A         ; Store to physical register H
+    LD A, (.Users_alice_dev_minz_ts_examples_test_abi_comparison_factorial_param_n)
+    LD L, A         ; Store to physical register L
+    ; r8 = 1
+    LD A, 1
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; r9 = r7 - r8
+    LD D, H
+    LD E, L
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; r10 = call factorial
+    ; Call to factorial (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_abi_comparison_factorial
+    ; r11 = r6 * r10
+    ; 8-bit multiplication
+    LD A, H
+    LD B, A       ; B = multiplicand
+    LD A, L
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_2
+.mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_2
+.mul_done_2:
+    ; Register 11 already in HL
+    ; return r11
+    ; Register 11 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_abi_comparison.timer_interrupt
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_timer_interrupt:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; store , r2
+    LD A, H
+    LD ($F002), A
+    ; r3 = load counter
+    LD A, ($F002)
+    LD L, A         ; Store to HL (low byte)
+    ; r4 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r5 = r3 + r4
+    ; Register 3 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store counter, r5
+    LD A, L
+    LD ($F002), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_abi_comparison.memcpy
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_memcpy:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; loop_3:
+loop_3:
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_memcpy_param_count:
+    LD BC, #0000   ; SMC parameter count
+    LD H, B
+    LD L, C        ; Move to HL for storage
+    ; Register 4 already in HL
+    ; r5 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r6 = r4 > r5
+    ; Register 4 already in HL
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L5
+    JP P, .L4
+    LD HL, 0
+    JP .L5
+.L4:
+    LD HL, 1
+.L5:
+    ; jump_if_not r6, end_loop_4
+    LD A, H
+    OR A
+    JP Z, end_loop_4
+; TSMC reference parameter src
+src_immOP:
+    LD HL, 0000      ; TSMC ref address for src
+src_imm0 EQU src_immOP+1
+    ; r8 = *r7
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+; TSMC reference parameter dst
+dst_immOP:
+    LD HL, 0000      ; TSMC ref address for dst
+dst_imm0 EQU dst_immOP+1
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; Store through pointer
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    LD HL, (dst_imm0) ; Reload TSMC ref address
+    ; Register 10 already in HL
+    ; r11 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r12 = r10 + r11
+    ; Register 10 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; store dst, r12
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    LD ($F000), HL
+    LD HL, (src_imm0) ; Reload TSMC ref address
+    ; Register 13 already in HL
+    ; r14 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r15 = r13 + r14
+    ; Register 13 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; store src, r15
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    LD ($F000), HL
+    LD HL, (.Users_alice_dev_minz_ts_examples_test_abi_comparison_memcpy_param_count)
+    ; Register 16 already in HL
+    ; r17 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r18 = r16 - r17
+    ; Register 16 already in HL
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; store count, r18
+    LD ($F000), HL
+    ; jump loop_3
+    JP loop_3
+    ; end_loop_4:
+end_loop_4:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_abi_comparison.main
+.Users_alice_dev_minz_ts_examples_test_abi_comparison_main:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -34
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    ; r2 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; r3 = 20
+    LD A, 20
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = call add_auto
+    ; Call to add_auto (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_abi_comparison_add_auto
+    ; store , r4
+    LD (IX_2), L
+    LD (IX_1), H
+    ; r6 = 10
+    LD A, 10
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r7 = 20
+    LD A, 20
+    LD H, A         ; Store to physical register H
+    ; r8 = call add_register
+    ; Call to add_register (args: 2)
+    ; Register-based parameter passing
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    ; Parameter a in A
+    LD A, H
+    LD E, A       ; Parameter b in E
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_abi_comparison_add_register
+    ; store , r8
+    LD (IX_4), L
+    LD (IX_3), H
+    ; r10 = 10
+    LD A, 10
+    LD H, A         ; Store to physical register H
+    ; r11 = 20
+    LD A, 20
+    LD L, A         ; Store to physical register L
+    ; r12 = call add_stack
+    ; Call to add_stack (args: 2)
+    ; Register-based parameter passing
+    LD A, H
+    ; Parameter a in A
+    LD A, L
+    LD E, A       ; Parameter b in E
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_abi_comparison_add_stack
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; store , r12
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    LD (IX_6), L
+    LD (IX_5), H
+    ; r14 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; r15 = 20
+    LD A, 20
+    LD ($F01E), A     ; Virtual register 15 to memory
+    ; r16 = call add_smc
+    ; Call to add_smc (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_abi_comparison_add_smc
+    ; store , r16
+    LD (IX_8), L
+    LD (IX_7), H
+    ; r18 = 10
+    LD A, 10
+    LD ($F024), A     ; Virtual register 18 to memory
+    ; r19 = 20
+    LD A, 20
+    LD H, A         ; Store to physical register H
+    ; r20 = call add_virtual
+    ; Call to add_virtual (args: 2)
+    ; Register-based parameter passing
+    LD A, ($F024)     ; Virtual register 18 from memory
+    ; Parameter a in A
+    LD A, H
+    LD E, A       ; Parameter b in E
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_abi_comparison_add_virtual
+    ; store , r20
+    LD (IX_10), L
+    LD (IX_9), H
+    ; r22 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r23 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; r24 = 300
+    LD HL, 300
+    LD ($F030), HL    ; Virtual register 24 to memory
+    ; r25 = 400
+    LD HL, 400
+    LD ($F032), HL    ; Virtual register 25 to memory
+    ; r26 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r27 = 6
+    LD A, 6
+    LD L, A         ; Store to physical register L
+    ; r28 = call complex_calc
+    ; Call to complex_calc (args: 6)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 5
+    PUSH HL       ; Argument 4
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    PUSH HL       ; Argument 3
+    LD HL, ($F030)    ; Virtual register 24 from memory
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_abi_comparison_complex_calc
+    LD ($F038), HL    ; Virtual register 28 to memory
+    ; store , r28
+    LD HL, ($F038)    ; Virtual register 28 from memory
+    LD (IX_12), L
+    LD (IX_11), H
+    ; r30 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; r31 = call factorial
+    ; Call to factorial (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_abi_comparison_factorial
+    LD ($F03E), HL    ; Virtual register 31 to memory
+    ; store , r31
+    LD HL, ($F03E)    ; Virtual register 31 from memory
+    LD (IX_14), L
+    LD (IX_13), H
+    ; r34 = load dst
+    LD L, (IX_34)
+    LD H, (IX_33)
+    ; r35 = 0
+    LD A, 0
+    LD ($F046), A     ; Virtual register 35 to memory
+    ; Load array element (u8)
+    PUSH HL
+    LD A, ($F046)     ; Virtual register 35 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r37 = &r36
+    ; Address-of operation for register r36
+    LD HL, $F048  ; Variable address
+    ; r38 = load src
+    LD L, (IX_24)
+    LD H, (IX_23)
+    LD ($F04C), HL    ; Virtual register 38 to memory
+    ; r39 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F04C)    ; Virtual register 38 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r41 = &r40
+    ; Address-of operation for register r40
+    LD HL, $F050  ; Variable address
+    ; Register 41 already in HL
+    ; r42 = 10
+    LD A, 10
+    LD H, A         ; Store to physical register H
+    ; r43 = call memcpy
+    ; Call to memcpy (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    ; Register 41 already in HL
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_abi_comparison_memcpy
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main

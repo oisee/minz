@@ -1,0 +1,25 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_struct_minimal.test_struct() -> void
+  @smc
+  Locals:
+    r1 = p: u16
+  Instructions:
+      0: ALLOC ; Allocate struct Point
+      1: r3 = 5
+      2: STORE_FIELD ; Store to Point.x
+      3: r4 = 10
+      4: STORE_FIELD ; Store to Point.y
+      5: store p, r2
+      6: r5 = load p
+      7: LOAD_FIELD ; Load field x (offset 0)
+      8: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      9: return
+
+Function test_struct_minimal.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_struct_minimal.test_struct
+      1: return
+

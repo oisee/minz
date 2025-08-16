@@ -1,0 +1,65 @@
+; MinZ generated code
+; Generated: 2025-08-11 21:33:11
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.lambda_simple_test.main$add_five_0
+_examples_lambda_simple_test_main_add_five_0:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+_examples_lambda_simple_test_main_add_five_0_param_x_op:
+...examples_lambda_simple_test_main_add_five_0_param_x equ ...examples_lambda_simple_test_main_add_five_0_param_x_op + 1
+    LD A, #00      ; Parameter x (gets patched)
+    ; Register 1 already in A
+    ; r2 = 5
+    LD A, 5
+    LD B, A         ; Store to physical register B
+    ; r3 = r1 + r2
+    LD D, H
+    LD E, L
+    ADD HL, DE
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+_examples_lambda_simple_test_main_add_five_0_return_patch_op:
+NOP_PATCH_POINT: NOP or RET (C9) for early return
+_examples_lambda_simple_test_main_add_five_0_store_addr_op:
+...examples_lambda_simple_test_main_add_five_0_store_addr equ ...examples_lambda_simple_test_main_add_five_0_store_addr_op + 1
+LD_0000_A_DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.lambda_simple_test.main
+_examples_lambda_simple_test_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD D, A         ; Store to physical register D
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...examples.lambda_simple_test.main$add_five_0_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...examples_lambda_simple_test_main_add_five_0_return_patch_op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...examples_lambda_simple_test_main_add_five_0_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (...examples_lambda_simple_test_main_add_five_0_param_x+1), A   ; Patch parameter immediate
+    ; r3 = call ...examples.lambda_simple_test.main$add_five_0
+    ; Call to ...examples.lambda_simple_test.main$add_five_0 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples_lambda_simple_test_main_add_five_0
+    ; store result, r3
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

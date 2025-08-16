@@ -1,0 +1,13 @@
+// Test shadow register generation after fix
+
+fun test_simple() -> u8 {
+    let a: u8 = 10;
+    let b: u8 = 20;
+    let c: u8 = a + b;
+    return c;
+}
+
+fun main() -> void {
+    let result = test_simple();
+    print_u8(result);
+}

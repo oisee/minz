@@ -38,8 +38,8 @@ const (
 // EncoderFunc encodes an instruction
 type EncoderFunc func(a *Assembler, line *Line, def *InstructionDef) ([]byte, error)
 
-// Instruction table - will be populated in init()
-var instructionTable map[string][]*InstructionDef
+// Old instruction table - will be populated in init()
+var oldInstructionTable map[string][]*InstructionDef
 
 // Opcode prefix bytes
 const (
@@ -52,8 +52,8 @@ const (
 )
 
 func init() {
-	// Initialize instruction table
-	instructionTable = make(map[string][]*InstructionDef)
+	// Initialize old instruction table
+	oldInstructionTable = make(map[string][]*InstructionDef)
 	
 	// Register all instructions
 	registerLoadInstructions()
@@ -730,12 +730,12 @@ func encodeEX(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
 	return nil, fmt.Errorf("invalid EX instruction")
 }
 
-// processInstruction assembles an instruction
-func (a *Assembler) processInstruction(line *Line) error {
+// processInstructionOld assembles an instruction using the old approach
+func (a *Assembler) processInstructionOld(line *Line) error {
 	mnemonic := strings.ToUpper(line.Mnemonic)
 	
 	// Look up instruction definitions
-	defs, exists := instructionTable[mnemonic]
+	defs, exists := oldInstructionTable[mnemonic]
 	if !exists {
 		return fmt.Errorf("unknown instruction: %s", mnemonic)
 	}

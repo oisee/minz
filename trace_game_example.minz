@@ -1,0 +1,24 @@
+// Simple game example for tracing
+struct Player {
+    x: u8,
+    y: u8,
+    health: u8
+}
+
+fun move_player(player: *Player, dx: u8, dy: u8) -> void {
+    player.x = player.x + dx;
+    player.y = player.y + dy;
+}
+
+fun check_collision(x: u8, y: u8) -> bool {
+    if (x > 31 || y > 23) {
+        return true;
+    }
+    return false;
+}
+
+fun main() -> void {
+    let mut player = Player { x: 10, y: 10, health: 100 };
+    move_player(&player, 1, 0);
+    let collision = check_collision(player.x, player.y);
+}

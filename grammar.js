@@ -447,10 +447,40 @@ module.exports = grammar({
       $.block,
     ),
 
-    loop_statement: $ => seq(
-      'loop',
-      $.block,
-    ),
+    loop_statement: $ => prec(1, choice(
+      // Infinite loop
+      seq(
+        'loop',
+        $.block,
+      ),
+      // Indexed loop: loop table indexed to var, idx { ... }
+      seq(
+        'loop',
+        field('table', $.expression),
+        'indexed',
+        'to',
+        field('iterator', $.identifier),
+        optional(seq(',', field('index', $.identifier))),
+        $.block,
+      ),
+      // Into loop: loop table into var { ... }
+      seq(
+        'loop',
+        field('table', $.expression),
+        'into',
+        field('iterator', $.identifier),
+        $.block,
+      ),
+      // Ref to loop: loop table ref to var { ... }
+      seq(
+        'loop',
+        field('table', $.expression),
+        'ref',
+        'to',
+        field('iterator', $.identifier),
+        $.block,
+      ),
+    )),
 
     break_statement: $ => seq(
       'break',
@@ -618,7 +648,6 @@ module.exports = grammar({
 
     primary_expression: $ => choice(
       $.identifier,
-      $.enum_access,  // Add support for State::IDLE
       $.number_literal,
       $.string_literal,
       $.char_literal,
@@ -638,13 +667,6 @@ module.exports = grammar({
       $.if_expression,
       $.ternary_expression,
       $.when_expression,
-    ),
-
-    // Enum variant access: State::IDLE
-    enum_access: $ => seq(
-      field('enum', $.identifier),
-      '::',
-      field('variant', $.identifier),
     ),
 
     array_literal: $ => seq(

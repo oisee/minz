@@ -64,7 +64,12 @@ func (h *AIHandler) HandleRequest(ctx context.Context, toolName string, params j
 		if e, ok := arguments["error"].(string); ok {
 			errorMsg = e
 		}
-		return h.analyzeParser(ctx, parserType, code, errorMsg)
+		// Support optional model parameter for routing
+		model := ""
+		if m, ok := arguments["model"].(string); ok {
+			model = m
+		}
+		return h.analyzeParser(ctx, parserType, code, errorMsg, model)
 
 	case "compare_approaches":
 		approach1 := arguments["approach1"].(string)
@@ -101,7 +106,7 @@ func (h *AIHandler) askAI(ctx context.Context, question, context string) (interf
 	}, nil
 }
 
-func (h *AIHandler) analyzeParser(ctx context.Context, parserType, code, errorMsg string) (interface{}, error) {
+func (h *AIHandler) analyzeParser(ctx context.Context, parserType, code, errorMsg, model string) (interface{}, error) {
 	prompt := fmt.Sprintf(`Analyze this MinZ parser issue:
 Parser Type: %s
 Code that fails to parse:
@@ -114,7 +119,23 @@ Please suggest:
 2. Potential fixes to the parser
 3. Workarounds for the user`, parserType, code, errorMsg)
 
-	response, err := h.callAzureOpenAI(ctx, prompt)
+	var response string
+	var err error
+	
+	// Route to specific model if requested
+	if model != "" && h.multiHandler != nil {
+		if modelInstance, ok := h.multiHandler.models[model]; ok {
+			response, err = h.multiHandler.callModel(ctx, modelInstance, prompt)
+		} else {
+			// Fall back to default if model not found
+			response = fmt.Sprintf("Model '%s' not found. Available models: gpt4, gpt5, o4_mini, model_router", model)
+			err = nil
+		}
+	} else {
+		// Use default Azure OpenAI
+		response, err = h.callAzureOpenAI(ctx, prompt)
+	}
+	
 	if err != nil {
 		return nil, err
 	}

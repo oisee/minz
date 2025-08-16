@@ -1,0 +1,10 @@
+; Simple memory LD test
+    ORG $8000
+
+; These should work now
+    LD HL, ($8100)
+    LD ($8100), HL
+    LD A, ($8101) 
+    LD ($8101), A
+    
+    END

@@ -1,0 +1,722 @@
+; SUPERTEST Z80 - Comprehensive Z80 Instruction Set Test
+; Tests all documented, undocumented, and half-register instructions
+; Designed for assembler compatibility validation (MZA vs SjASMPlus)
+; Generated: 2025-08-16
+
+    ORG $8000
+
+;==============================================================================
+; CATEGORY 1: BASIC 8-BIT LOAD INSTRUCTIONS (MUST SUPPORT)
+;==============================================================================
+basic_loads:
+    ; Immediate loads
+    LD A, 0
+    LD A, 255
+    LD A, $FF
+    LD B, 42
+    LD C, $AB
+    LD D, 100
+    LD E, $CD
+    LD H, 200
+    LD L, $EF
+    
+    ; Register to register
+    LD A, B
+    LD A, C
+    LD A, D
+    LD A, E
+    LD A, H
+    LD A, L
+    LD B, A
+    LD C, A
+    LD D, A
+    LD E, A
+    LD H, A
+    LD L, A
+    
+    ; Memory loads
+    LD A, (HL)
+    LD B, (HL)
+    LD C, (HL)
+    LD D, (HL)
+    LD E, (HL)
+    LD H, (HL)
+    LD L, (HL)
+    
+    ; Memory stores
+    LD (HL), A
+    LD (HL), B
+    LD (HL), C
+    LD (HL), D
+    LD (HL), E
+    LD (HL), H
+    LD (HL), L
+    LD (HL), 123
+
+;==============================================================================
+; CATEGORY 2: 16-BIT LOAD INSTRUCTIONS (MUST SUPPORT)
+;==============================================================================
+loads_16bit:
+    ; Immediate 16-bit loads
+    LD BC, $1234
+    LD DE, $5678
+    LD HL, $9ABC
+    LD SP, $DEF0
+    LD IX, $1111
+    LD IY, $2222
+    
+    ; 16-bit memory operations
+    LD (BC), A
+    LD (DE), A
+    LD A, (BC)
+    LD A, (DE)
+    LD ($1234), A
+    LD A, ($5678)
+    LD ($ABCD), HL
+    LD HL, ($ABCD)
+    LD ($EF00), BC
+    LD BC, ($EF00)
+    LD ($1122), DE
+    LD DE, ($1122)
+    LD ($3344), SP
+    LD SP, ($3344)
+
+;==============================================================================
+; CATEGORY 3: ARITHMETIC INSTRUCTIONS (MUST SUPPORT)  
+;==============================================================================
+arithmetic:
+    ; 8-bit arithmetic
+    ADD A, B
+    ADD A, C
+    ADD A, D
+    ADD A, E
+    ADD A, H
+    ADD A, L
+    ADD A, (HL)
+    ADD A, 123
+    
+    ADC A, B
+    ADC A, C
+    ADC A, 45
+    
+    SUB B
+    SUB C
+    SUB (HL)
+    SUB 67
+    
+    SBC A, B
+    SBC A, C
+    SBC A, 89
+    
+    ; 16-bit arithmetic
+    ADD HL, BC
+    ADD HL, DE
+    ADD HL, HL
+    ADD HL, SP
+    
+    ADC HL, BC
+    ADC HL, DE
+    ADC HL, HL
+    ADC HL, SP
+    
+    SBC HL, BC
+    SBC HL, DE
+    SBC HL, HL
+    SBC HL, SP
+
+;==============================================================================
+; CATEGORY 4: LOGICAL INSTRUCTIONS (MUST SUPPORT)
+;==============================================================================
+logical:
+    AND A
+    AND B
+    AND C
+    AND D
+    AND E
+    AND H
+    AND L
+    AND (HL)
+    AND 123
+    
+    OR A
+    OR B
+    OR C
+    OR D
+    OR E
+    OR H
+    OR L
+    OR (HL)
+    OR 45
+    
+    XOR A
+    XOR B
+    XOR C
+    XOR D
+    XOR E
+    XOR H
+    XOR L
+    XOR (HL)
+    XOR 67
+    
+    CP A
+    CP B
+    CP C
+    CP D
+    CP E
+    CP H
+    CP L
+    CP (HL)
+    CP 89
+
+;==============================================================================
+; CATEGORY 5: ROTATE AND SHIFT INSTRUCTIONS (MUST SUPPORT)
+;==============================================================================
+rotate_shift:
+    ; Single bit rotates/shifts
+    RLC A
+    RLC B
+    RLC C
+    RLC D
+    RLC E
+    RLC H
+    RLC L
+    RLC (HL)
+    
+    RRC A
+    RRC B
+    RRC C
+    RRC D
+    RRC E
+    RRC H
+    RRC L
+    RRC (HL)
+    
+    RL A
+    RL B
+    RL C
+    RL D
+    RL E
+    RL H
+    RL L
+    RL (HL)
+    
+    RR A
+    RR B
+    RR C
+    RR D
+    RR E
+    RR H
+    RR L
+    RR (HL)
+    
+    SLA A
+    SLA B
+    SLA C
+    SLA D
+    SLA E
+    SLA H
+    SLA L
+    SLA (HL)
+    
+    SRA A
+    SRA B
+    SRA C
+    SRA D
+    SRA E
+    SRA H
+    SRA L
+    SRA (HL)
+    
+    SRL A
+    SRL B
+    SRL C
+    SRL D
+    SRL E
+    SRL H
+    SRL L
+    SRL (HL)
+
+;==============================================================================
+; CATEGORY 6: JUMP AND CALL INSTRUCTIONS (MUST SUPPORT)
+;==============================================================================
+jump_call:
+    ; Unconditional jumps
+    JP $9000
+    JP (HL)
+    JP (IX)
+    JP (IY)
+    JR loop_target
+    
+    ; Conditional jumps
+    JP Z, $9100
+    JP NZ, $9200
+    JP C, $9300
+    JP NC, $9400
+    JP PO, $9500
+    JP PE, $9600
+    JP P, $9700
+    JP M, $9800
+    
+    JR Z, loop_target
+    JR NZ, loop_target
+    JR C, loop_target
+    JR NC, loop_target
+    
+    ; Calls and returns
+    CALL $A000
+    CALL Z, $A100
+    CALL NZ, $A200
+    CALL C, $A300
+    CALL NC, $A400
+    
+    RET
+    RET Z
+    RET NZ
+    RET C
+    RET NC
+    RET PO
+    RET PE
+    RET P
+    RET M
+    
+loop_target:
+    NOP
+
+;==============================================================================
+; CATEGORY 7: STACK OPERATIONS (MUST SUPPORT)
+;==============================================================================
+stack_ops:
+    PUSH AF
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH IX
+    PUSH IY
+    
+    POP AF
+    POP BC
+    POP DE
+    POP HL
+    POP IX
+    POP IY
+
+;==============================================================================
+; CATEGORY 8: INDEX REGISTER OPERATIONS (MUST SUPPORT)
+;==============================================================================
+index_regs:
+    ; IX operations
+    LD IX, $1234
+    LD (IX+0), A
+    LD (IX+5), B
+    LD (IX+127), C
+    LD (IX-1), D
+    LD (IX-128), E
+    
+    LD A, (IX+0)
+    LD B, (IX+10)
+    LD C, (IX-10)
+    
+    ADD IX, BC
+    ADD IX, DE
+    ADD IX, IX
+    ADD IX, SP
+    
+    ; IY operations
+    LD IY, $5678
+    LD (IY+0), A
+    LD (IY+20), B
+    LD (IY-20), C
+    
+    LD A, (IY+0)
+    LD B, (IY+15)
+    LD C, (IY-15)
+    
+    ADD IY, BC
+    ADD IY, DE
+    ADD IY, IY
+    ADD IY, SP
+
+;==============================================================================
+; CATEGORY 9: IX/IY HALF REGISTERS (UNDOCUMENTED - ADVANCED)
+;==============================================================================
+ix_iy_halves:
+    ; IX half register operations
+    LD IXH, 0
+    LD IXH, 255
+    LD IXL, 0
+    LD IXL, 255
+    
+    LD A, IXH
+    LD A, IXL
+    LD B, IXH
+    LD B, IXL
+    LD C, IXH
+    LD C, IXL
+    LD D, IXH
+    LD D, IXL
+    LD E, IXH
+    LD E, IXL
+    LD H, IXH
+    LD H, IXL
+    LD L, IXH
+    LD L, IXL
+    
+    LD IXH, A
+    LD IXL, A
+    LD IXH, B
+    LD IXL, B
+    LD IXH, C
+    LD IXL, C
+    LD IXH, D
+    LD IXL, D
+    LD IXH, E
+    LD IXL, E
+    LD IXH, H
+    LD IXL, H
+    LD IXH, L
+    LD IXL, L
+    
+    ; IY half register operations
+    LD IYH, 0
+    LD IYH, 255
+    LD IYL, 0
+    LD IYL, 255
+    
+    LD A, IYH
+    LD A, IYL
+    LD B, IYH
+    LD B, IYL
+    LD C, IYH
+    LD C, IYL
+    LD D, IYH
+    LD D, IYL
+    LD E, IYH
+    LD E, IYL
+    LD H, IYH
+    LD H, IYL
+    LD L, IYH
+    LD L, IYL
+    
+    LD IYH, A
+    LD IYL, A
+    LD IYH, B
+    LD IYL, B
+    LD IYH, C
+    LD IYL, C
+    LD IYH, D
+    LD IYL, D
+    LD IYH, E
+    LD IYL, E
+    LD IYH, H
+    LD IYL, H
+    LD IYH, L
+    LD IYL, L
+    
+    ; Arithmetic with IX/IY halves
+    ADD A, IXH
+    ADD A, IXL
+    ADD A, IYH
+    ADD A, IYL
+    
+    SUB IXH
+    SUB IXL
+    SUB IYH
+    SUB IYL
+    
+    AND IXH
+    AND IXL
+    AND IYH
+    AND IYL
+    
+    OR IXH
+    OR IXL
+    OR IYH
+    OR IYL
+    
+    XOR IXH
+    XOR IXL
+    XOR IYH
+    XOR IYL
+    
+    CP IXH
+    CP IXL
+    CP IYH
+    CP IYL
+    
+    ; INC/DEC with IX/IY halves
+    INC IXH
+    INC IXL
+    INC IYH
+    INC IYL
+    DEC IXH
+    DEC IXL
+    DEC IYH
+    DEC IYL
+
+;==============================================================================
+; CATEGORY 10: UNDOCUMENTED SLL INSTRUCTION (ADVANCED)
+;==============================================================================
+undoc_sll:
+    ; Shift Left Logical (sets bit 0 to 1, unlike SLA)
+    SLL A
+    SLL B
+    SLL C
+    SLL D
+    SLL E
+    SLL H
+    SLL L
+    SLL (HL)
+    SLL (IX+0)
+    SLL (IX+5)
+    SLL (IY+0)
+    SLL (IY-5)
+
+;==============================================================================
+; CATEGORY 11: BIT OPERATIONS (MUST SUPPORT)
+;==============================================================================
+bit_ops:
+    ; Test bits
+    BIT 0, A
+    BIT 1, B
+    BIT 2, C
+    BIT 3, D
+    BIT 4, E
+    BIT 5, H
+    BIT 6, L
+    BIT 7, (HL)
+    BIT 0, (IX+0)
+    BIT 7, (IY+0)
+    
+    ; Set bits
+    SET 0, A
+    SET 1, B
+    SET 2, C
+    SET 3, D
+    SET 4, E
+    SET 5, H
+    SET 6, L
+    SET 7, (HL)
+    SET 0, (IX+0)
+    SET 7, (IY+0)
+    
+    ; Reset bits
+    RES 0, A
+    RES 1, B
+    RES 2, C
+    RES 3, D
+    RES 4, E
+    RES 5, H
+    RES 6, L
+    RES 7, (HL)
+    RES 0, (IX+0)
+    RES 7, (IY+0)
+
+;==============================================================================
+; CATEGORY 12: I/O INSTRUCTIONS (MUST SUPPORT)
+;==============================================================================
+io_ops:
+    IN A, ($FE)
+    IN B, (C)
+    IN C, (C)
+    IN D, (C)
+    IN E, (C)
+    IN H, (C)
+    IN L, (C)
+    IN F, (C)      ; Undocumented but valid
+    
+    OUT ($FE), A
+    OUT (C), A
+    OUT (C), B
+    OUT (C), C
+    OUT (C), D
+    OUT (C), E
+    OUT (C), H
+    OUT (C), L
+    OUT (C), 0     ; Undocumented
+
+;==============================================================================
+; CATEGORY 13: BLOCK OPERATIONS (MUST SUPPORT)
+;==============================================================================
+block_ops:
+    ; Load block operations
+    LDI
+    LDD
+    LDIR
+    LDDR
+    
+    ; Compare block operations
+    CPI
+    CPD
+    CPIR
+    CPDR
+    
+    ; I/O block operations
+    INI
+    IND
+    INIR
+    INDR
+    OUTI
+    OUTD
+    OTIR
+    OTDR
+
+;==============================================================================
+; CATEGORY 14: SPECIAL INSTRUCTIONS (MUST SUPPORT)
+;==============================================================================
+special:
+    NOP
+    HALT
+    DI
+    EI
+    CCF
+    SCF
+    NEG
+    CPL
+    DAA
+    
+    ; Exchange operations
+    EX AF, AF'
+    EX DE, HL
+    EX (SP), HL
+    EX (SP), IX
+    EX (SP), IY
+    EXX
+    
+    ; Increment/Decrement
+    INC A
+    INC B
+    INC C
+    INC D
+    INC E
+    INC H
+    INC L
+    INC (HL)
+    INC BC
+    INC DE
+    INC HL
+    INC SP
+    INC IX
+    INC IY
+    INC (IX+0)
+    INC (IY+0)
+    
+    DEC A
+    DEC B
+    DEC C
+    DEC D
+    DEC E
+    DEC H
+    DEC L
+    DEC (HL)
+    DEC BC
+    DEC DE
+    DEC HL
+    DEC SP
+    DEC IX
+    DEC IY
+    DEC (IX+0)
+    DEC (IY+0)
+
+;==============================================================================
+; CATEGORY 15: RESTART AND INTERRUPT (MUST SUPPORT)
+;==============================================================================
+restart_int:
+    RST 0
+    RST 8
+    RST 16
+    RST 24
+    RST 32
+    RST 40
+    RST 48
+    RST 56
+    
+    IM 0
+    IM 1
+    IM 2
+    
+    RETI
+    RETN
+
+;==============================================================================
+; CATEGORY 16: RELATIVE ADDRESSING EDGE CASES (ADVANCED)
+;==============================================================================
+relative_tests:
+    ; Relative jumps at boundaries
+    JR $+2         ; Jump forward 2
+    NOP
+    JR $+127       ; Maximum forward
+    JR $-2         ; Jump backward 2
+    JR $-126       ; Maximum backward
+    
+    ; Conditional relative jumps
+    JR Z, $+2
+    JR NZ, $+2
+    JR C, $+2
+    JR NC, $+2
+    
+    ; DJNZ instruction
+    DJNZ $+2
+    DJNZ $-2
+
+;==============================================================================
+; CATEGORY 17: DATA DIRECTIVES (MUST SUPPORT)
+;==============================================================================
+data_section:
+    DB 0
+    DB 255
+    DB $FF
+    DB "Hello World", 0
+    DB 'A', 'B', 'C'
+    DB "String with\nescapes\t\0"
+    
+    DW 0
+    DW 65535
+    DW $FFFF
+    DW label_ref
+    
+    DS 10          ; Reserve 10 bytes
+    DS 100, $AA    ; Reserve 100 bytes filled with $AA
+    
+label_ref:
+    NOP
+
+;==============================================================================
+; CATEGORY 18: ADVANCED UNDOCUMENTED (EXPERT LEVEL)
+;==============================================================================
+advanced_undoc:
+    ; Undocumented NEG variations
+    DB $ED, $4C    ; NEG (alternate)
+    DB $ED, $54    ; NEG (alternate)
+    DB $ED, $5C    ; NEG (alternate)
+    DB $ED, $64    ; NEG (alternate)
+    DB $ED, $6C    ; NEG (alternate)
+    DB $ED, $74    ; NEG (alternate)
+    DB $ED, $7C    ; NEG (alternate)
+    
+    ; Undocumented IN F,(C)
+    DB $ED, $70    ; IN F,(C)
+    
+    ; DDCB/FDCB dual result instructions
+    DB $DD, $CB, 0, $00    ; RLC (IX+0),B
+    DB $DD, $CB, 0, $01    ; RLC (IX+0),C
+    DB $FD, $CB, 0, $00    ; RLC (IY+0),B
+    DB $FD, $CB, 0, $01    ; RLC (IY+0),C
+
+;==============================================================================
+; CATEGORY 19: COMPLEX EXPRESSIONS (STRESS TEST)
+;==============================================================================
+expressions:
+    LD A, (label_ref + 5)
+    LD B, ((label_ref * 2) & $FF)
+    LD HL, ($ + 100)
+    JP (label_ref | $8000)
+    LD (label_ref >> 8), A
+    LD DE, ~label_ref
+
+;==============================================================================
+; END MARKER
+;==============================================================================
+test_end:
+    HALT
+    
+    END

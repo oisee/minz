@@ -1,0 +1,290 @@
+; MinZ generated code
+; Generated: 2025-08-02 09:29:28
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.tail_recursive.factorial_tail
+.Users_alice_dev_minz_ts_examples_tail_recursive_factorial_tail:
+; TRUE SMC function with immediate anchors
+n_immOP:
+    LD A, 0        ; n anchor (will be patched)
+n_imm0 EQU n_immOP+1
+    ; Tail recursion loop start
+.Users_alice_dev_minz_ts_examples_tail_recursive_factorial_tail_tail_loop:
+    ; r4 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 == r4
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r5, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+acc_immOP:
+    LD HL, 0       ; acc anchor (will be patched)
+acc_imm0 EQU acc_immOP+1
+    ; Register 6 already in HL
+    ; return r6
+    ; Register 6 already in HL
+    RET
+    ; else_1:
+else_1:
+    LD A, (n_imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    LD A, (n_imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    LD HL, (acc_imm0)   ; Reuse from anchor
+    LD B, H
+    LD C, L
+    ; Tail recursion optimized to loop
+    JP .Users_alice_dev_minz_ts_examples_tail_recursive_factorial_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.tail_recursive.factorial
+.Users_alice_dev_minz_ts_examples_tail_recursive_factorial:
+; TRUE SMC function with immediate anchors
+n_immOP:
+    LD A, 0        ; n anchor (will be patched)
+n_imm0 EQU n_immOP+1
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r4 = call factorial_tail
+    ; Call to factorial_tail (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.tail_recursive.factorial_tail
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD (n_imm0), A        ; Patch n
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD (acc_imm0), HL       ; Patch acc (atomic)
+    CALL .Users_alice_dev_minz_ts_examples_tail_recursive_factorial_tail
+    ; return r4
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.tail_recursive.sum_tail
+.Users_alice_dev_minz_ts_examples_tail_recursive_sum_tail:
+; TRUE SMC function with immediate anchors
+n_immOP:
+    LD HL, 0       ; n anchor (will be patched)
+n_imm0 EQU n_immOP+1
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; Tail recursion loop start
+.Users_alice_dev_minz_ts_examples_tail_recursive_sum_tail_tail_loop:
+    ; r4 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; r5 = r3 == r4
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD D, H
+    LD E, L
+    ; Register 4 already in HL
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; jump_if_not r5, else_3
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    OR A
+    JP Z, else_3
+acc_immOP:
+    LD HL, 0       ; acc anchor (will be patched)
+acc_imm0 EQU acc_immOP+1
+    ; Register 6 already in HL
+    ; return r6
+    ; Register 6 already in HL
+    RET
+    ; else_3:
+else_3:
+    LD HL, (n_imm0)   ; Reuse from anchor
+    ; Register 7 already in HL
+    LD HL, (acc_imm0)   ; Reuse from anchor
+    LD ($F014), HL    ; Virtual register 10 to memory
+    LD HL, (n_imm0)   ; Reuse from anchor
+    ; Register 11 already in HL
+    ; Tail recursion optimized to loop
+    JP .Users_alice_dev_minz_ts_examples_tail_recursive_sum_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.tail_recursive.main
+.Users_alice_dev_minz_ts_examples_tail_recursive_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+    ; r3 = call factorial
+    ; Call to factorial (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.tail_recursive.factorial
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD (n_imm0), A        ; Patch n
+    CALL .Users_alice_dev_minz_ts_examples_tail_recursive_factorial
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; store , r3
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD ($F002), HL
+    ; r7 = call sum_tail
+    ; Call to sum_tail (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.tail_recursive.sum_tail
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD (n_imm0), HL       ; Patch n (atomic)
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD (acc_imm0), HL       ; Patch acc (atomic)
+    CALL .Users_alice_dev_minz_ts_examples_tail_recursive_sum_tail
+    ; store , r7
+    LD ($F008), HL
+    ; return
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW n_imm0           ; .Users_alice_dev_minz_ts_examples_tail_recursive_factorial_tail_n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW acc_imm0           ; .Users_alice_dev_minz_ts_examples_tail_recursive_factorial_tail_acc
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n_imm0           ; .Users_alice_dev_minz_ts_examples_tail_recursive_factorial_n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n_imm0           ; .Users_alice_dev_minz_ts_examples_tail_recursive_sum_tail_n
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW acc_imm0           ; .Users_alice_dev_minz_ts_examples_tail_recursive_sum_tail_acc
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main

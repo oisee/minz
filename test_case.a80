@@ -1,0 +1,108 @@
+; MinZ generated code
+; Generated: 2025-08-16 18:50:09
+
+
+; Code section
+    ORG $8000
+
+
+; Standard library routines
+cls:
+    LD HL, $4000       ; Screen start
+    LD DE, $4001
+    LD BC, $17FF       ; Screen size - 1
+    LD (HL), 0
+    LDIR               ; Clear screen
+    LD HL, $5800       ; Attribute start
+    LD DE, $5801
+    LD BC, $02FF       ; Attribute size - 1
+    LD (HL), $38       ; White ink on black paper
+    LDIR               ; Clear attributes
+    RET
+
+print_newline:
+    LD A, 13           ; CR
+    RST 16
+    RET
+
+print_hex_u8:
+    PUSH AF            ; Save value
+    RRA
+    RRA
+    RRA
+    RRA                ; High nibble to low
+    CALL print_hex_nibble
+    POP AF             ; Restore value
+    ; Fall through to print low nibble
+print_hex_nibble:
+    AND $0F            ; Isolate low nibble
+    ADD A, '0'         ; Convert to ASCII
+    CP '9' + 1
+    JR C, print_hex_digit
+    ADD A, 'A' - '0' - 10  ; Adjust for A-F
+print_hex_digit:
+    RST 16             ; ZX Spectrum print
+    RET
+
+zx_set_border:
+    POP HL             ; Return address
+    POP BC             ; Get color argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; Color to A
+    AND 7              ; Mask to 0-7
+    OUT (254), A       ; Set border
+    RET
+
+zx_clear_screen:
+    JP cls             ; Use standard cls
+
+zx_set_pixel:
+    ; TODO: Implement pixel setting
+    ; For now, just return
+    RET
+
+zx_set_ink:
+    ; TODO: Implement ink color setting
+    RET
+
+zx_set_paper:
+    ; TODO: Implement paper color setting
+    RET
+
+abs:
+    POP HL             ; Return address
+    POP BC             ; Get argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; Value to A
+    OR A               ; Test sign
+    JP P, abs_done     ; If positive, done
+    NEG                ; Negate if negative
+abs_done:
+    RET
+
+min:
+    POP HL             ; Return address
+    POP BC             ; First argument
+    POP DE             ; Second argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; First value
+    CP E               ; Compare with second
+    JR C, min_done     ; If first < second, keep first
+    LD A, E            ; Otherwise use second
+min_done:
+    RET
+
+max:
+    POP HL             ; Return address
+    POP BC             ; First argument
+    POP DE             ; Second argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; First value
+    CP E               ; Compare with second
+    JR NC, max_done    ; If first >= second, keep first
+    LD A, E            ; Otherwise use second
+max_done:
+    RET
+
+
+    END main

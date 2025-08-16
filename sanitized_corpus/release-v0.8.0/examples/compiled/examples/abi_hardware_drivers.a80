@@ -1,0 +1,15 @@
+; MinZ generated code
+; Generated: 2025-07-30 07:28:30
+
+
+; Data section
+    ORG $F000
+
+examples_abi_hardware_drivers_freq_lo:
+    DB 0
+
+; Code section
+    ORG $8000
+
+
+    END main

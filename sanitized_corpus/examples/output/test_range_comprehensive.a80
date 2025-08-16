@@ -1,0 +1,545 @@
+; MinZ generated code
+; Generated: 2025-08-01 09:30:35
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_range_comprehensive.matrix_sum
+_examples_test_range_comprehensive_matrix_sum:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    LD A, E       ; Get parameter cols
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r4 = 0
+    LD A, 0
+    ; Register 4 already in A
+    ; store , r4
+    LD ($F000), HL
+    ; r5 = 0
+    LD A, 0
+    LD C, A         ; Store to physical register C
+    ; r6 = param rows
+    ; Load parameter rows
+    ; Initialize loop variable r
+    ; for_loop_1:
+for_loop_1:
+    ; Check r < end
+    LD D, H
+    LD E, L
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r8, for_end_2
+    LD A, H
+    OR A
+    JP Z, for_end_2
+    ; r9 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r10 = param cols
+    ; Load parameter cols
+    ; Initialize loop variable c
+    ; for_loop_3:
+for_loop_3:
+    ; Check c < end
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    ; jump_if_not r12, for_end_4
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, for_end_4
+    ; r14 = load r
+    LD HL, ($F000)
+    ; r15 = param cols
+    ; Load parameter cols
+    ; r16 = r14 * r15
+    ; 8-bit multiplication
+    LD A, B
+    LD B, A       ; B = multiplicand
+    LD A, ($F01E)     ; Virtual register 15 from memory
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_4
+.mul_loop_4:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_4
+.mul_done_4:
+    ; r17 = load c
+    LD HL, ($F000)
+    ; r18 = r16 + r17
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store , r18
+    LD A, D
+    LD ($F002), A
+    ; r19 = load sum
+    LD HL, ($F000)
+    ; r20 = load element
+    LD A, ($F002)
+    LD B, A         ; Store to physical register B
+    ; r21 = r19 + r20
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store sum, r21
+    LD ($F000), HL
+    ; r22 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment c
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; jump for_loop_3
+    JP for_loop_3
+    ; for_end_4:
+for_end_4:
+    ; r23 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; Increment r
+    LD D, H
+    LD E, L
+    ; Register 23 already in HL
+    ADD HL, DE
+    ; jump for_loop_1
+    JP for_loop_1
+    ; for_end_2:
+for_end_2:
+    ; r24 = load sum
+    LD HL, ($F000)
+    ; return r24
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_range_comprehensive.array_process
+_examples_test_range_comprehensive_array_process:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r3 = 10
+    LD A, 10
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; Initialize loop variable i
+    ; for_loop_5:
+for_loop_5:
+    ; Check i < end
+    LD D, H
+    LD E, L
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L6
+    LD HL, 0
+    JP .L7
+.L6:
+    LD HL, 1
+.L7:
+    ; jump_if_not r5, for_end_6
+    LD A, L
+    OR A
+    JP Z, for_end_6
+    ; r6 = load i
+    LD HL, ($F000)
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; r7 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; r8 = r6 * r7
+    ; 8-bit multiplication
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD B, A       ; B = multiplicand
+    LD A, H
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_7
+.mul_loop_7:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_7
+.mul_done_7:
+    ; r9 = load arr
+    LD HL, ($F002)
+    ; Register 9 already in HL
+    ; r10 = load i
+    LD HL, ($F000)
+    ; Calculate array element address
+    ; Register 9 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F016), HL    ; Virtual register 11 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r12 = 1
+    LD A, 1
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; Increment i
+    LD D, H
+    LD E, L
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    ADD HL, DE
+    ; jump for_loop_5
+    JP for_loop_5
+    ; for_end_6:
+for_end_6:
+    ; r14 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; store , r14
+    LD A, H
+    LD ($F01A), A
+    ; r15 = 0
+    LD A, 0
+    LD ($F01E), A     ; Virtual register 15 to memory
+    ; r16 = 10
+    LD A, 10
+    LD H, A         ; Store to physical register H
+    ; Initialize loop variable i
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    ; for_loop_7:
+for_loop_7:
+    ; Check i < end
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L9
+    LD HL, 0
+    JP .L10
+.L9:
+    LD HL, 1
+.L10:
+    LD ($F024), HL    ; Virtual register 18 to memory
+    ; jump_if_not r18, for_end_8
+    LD A, ($F024)     ; Virtual register 18 from memory
+    OR A
+    JP Z, for_end_8
+    ; r19 = load sum
+    LD A, ($F01A)
+    LD H, A         ; Store to physical register H
+    ; r20 = load arr
+    LD HL, ($F002)
+    ; r21 = load i
+    LD HL, ($F000)
+    LD ($F02A), HL    ; Virtual register 21 to memory
+    ; Load array element (u8)
+    PUSH HL
+    LD A, ($F02A)     ; Virtual register 21 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r23 = r19 + r22
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store sum, r23
+    LD A, L
+    LD ($F01A), A
+    ; r24 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; Increment i
+    LD D, H
+    LD E, L
+    ; Register 24 already in HL
+    ADD HL, DE
+    ; jump for_loop_7
+    JP for_loop_7
+    ; for_end_8:
+for_end_8:
+    ; r25 = load sum
+    LD A, ($F01A)
+    LD H, A         ; Store to physical register H
+    ; return r25
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_range_comprehensive.dynamic_range
+_examples_test_range_comprehensive_dynamic_range:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; r3 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; store , r3
+    LD ($F000), HL
+    ; r4 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r5 = param n
+    ; Load parameter n
+    ; Initialize loop variable i
+    ; Register 6 already in HL
+    ; for_loop_9:
+for_loop_9:
+    ; Check i < end
+    ; Register 6 already in HL
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L11
+    LD HL, 0
+    JP .L12
+.L11:
+    LD HL, 1
+.L12:
+    ; jump_if_not r7, for_end_10
+    LD A, H
+    OR A
+    JP Z, for_end_10
+    ; r8 = load result
+    LD HL, ($F000)
+    ; r9 = load i
+    LD HL, ($F000)
+    ; Register 9 already in HL
+    ; r10 = r8 * r9
+    ; 16-bit multiplication
+    LD (mul_src1_12), HL  ; Save multiplicand
+    ; Register 9 already in HL
+    LD (mul_src2_12), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_12)  ; DE = multiplicand
+    LD BC, (mul_src2_12)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_12
+.mul16_loop_12:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_12
+.mul16_done_12:
+mul_src1_12: DW 0
+mul_src2_12: DW 0
+    ; store result, r10
+    LD ($F000), HL
+    ; r11 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    ; Register 6 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 6 already in HL
+    ; jump for_loop_9
+    JP for_loop_9
+    ; for_end_10:
+for_end_10:
+    ; r12 = load result
+    LD HL, ($F000)
+    ; return r12
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_range_comprehensive.main
+_examples_test_range_comprehensive_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    ; r3 = 4
+    LD A, 4
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = call matrix_sum
+    ; Call to matrix_sum (args: 2)
+    ; Register-based parameter passing
+    LD A, L
+    ; Parameter rows in A
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD E, A       ; Parameter cols in E
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.test_range_comprehensive.matrix_sum
+    ; store , r4
+    LD ($F002), HL
+    ; r6 = call array_process
+    ; Call to array_process (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.test_range_comprehensive.array_process
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; store , r6
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD ($F00A), A
+    ; r8 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; r9 = call dynamic_range
+    ; Call to dynamic_range (args: 1)
+    ; Register-based parameter passing
+    LD A, L
+    ; Parameter n in A
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.test_range_comprehensive.dynamic_range
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; store , r9
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    LD ($F00E), HL
+    ; r10 = load a
+    LD HL, ($F002)
+    ; r11 = load b
+    LD A, ($F00A)
+    LD L, A         ; Store to HL (low byte)
+    ; r12 = r10 + r11
+    LD D, H
+    LD E, L
+    ; Register 11 already in HL
+    ADD HL, DE
+    LD D, H
+    LD E, L
+    ; r13 = load c
+    LD HL, ($F00E)
+    ; Register 13 already in HL
+    ; r14 = r12 + r13
+    LD H, D
+    LD L, E
+    LD D, H
+    LD E, L
+    ; Register 13 already in HL
+    ADD HL, DE
+    ; Register 14 already in HL
+    ; return r14
+    ; Register 14 already in HL
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main

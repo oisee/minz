@@ -1,0 +1,29 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_tetris_minimal.test_basic() -> void
+  @smc
+  Locals:
+    r1 = grid: [20][10]u8
+  Instructions:
+      0: r2 = 1
+      1: r3 = load grid
+      2: r4 = 0
+      3: LOAD_INDEX ; Load array element ([10]u8)
+      4: r6 = 0
+      5: r7 = r5 + r6 ; Calculate array element address
+      6: STORE_PTR ; Store to array[index] (u8)
+      7: r8 = load grid
+      8: r9 = 0
+      9: LOAD_INDEX ; Load array element ([10]u8)
+     10: r11 = 0
+     11: LOAD_INDEX ; Load array element (u8)
+     12: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     13: return
+
+Function test_tetris_minimal.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_tetris_minimal.test_basic
+      1: return
+

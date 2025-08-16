@@ -1,0 +1,44 @@
+; MinZ generated code
+; Generated: 2025-07-28 08:45:59
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_true_smc_simple.identity
+_examples_test_true_smc_simple_identity:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; r2 = param x
+    ; Load parameter x
+    ; return r2
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_true_smc_simple.main
+_examples_test_true_smc_simple_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 42
+    LD A, 42
+    LD B, A         ; Store to physical register B
+    ; r3 = call identity
+    ; Call to identity (args: 1)
+    ; Register-based parameter passing
+    LD A, B
+    ; Parameter x in A
+    ; Found function, UsesTrueSMC=false
+    CALL identity
+    ; store , r3
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

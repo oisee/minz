@@ -1,0 +1,74 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function trace_game_example.move_player$p_Player$u8$u8(player: *trace_game_example.Player, dx: u8, dy: u8) -> void
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field x (offset 0)
+      2: LOAD_PARAM
+      3: r7 = r5 + r6
+      4: LOAD_PARAM
+      5: STORE_FIELD ; Store to field x (offset 0)
+      6: LOAD_PARAM
+      7: LOAD_FIELD ; Load field y (offset 1)
+      8: LOAD_PARAM
+      9: r12 = r10 + r11
+     10: LOAD_PARAM
+     11: STORE_FIELD ; Store to field y (offset 1)
+     12: return
+
+Function trace_game_example.check_collision$u8$u8(x: u8, y: u8) -> bool
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r4 = 31
+      2: r5 = r3 > r4
+      3: LOAD_PARAM
+      4: r7 = 23
+      5: r8 = r6 > r7
+      6: UNKNOWN_OP_61
+      7: jump_if_not r9, else_1
+      8: r10 = 1
+      9: return r10
+     10: jump end_if_2
+     11: else_1:
+     12: end_if_2:
+     13: r11 = 0
+     14: return r11
+
+Function trace_game_example.main() -> void
+  @smc
+  Locals:
+    r1 = player: u16
+    r15 = collision: u16
+  Instructions:
+      0: ALLOC ; Allocate struct Player
+      1: r3 = 10
+      2: STORE_FIELD ; Store to Player.x
+      3: r4 = 10
+      4: STORE_FIELD ; Store to Player.y
+      5: r5 = 100
+      6: STORE_FIELD ; Store to Player.health
+      7: store player, r2
+      8: r6 = load player
+      9: ADDR
+     10: r8 = 1
+     11: r9 = 0
+     12: r10 = load player
+     13: ADDR
+     14: r12 = 1
+     15: r13 = 0
+     16: r14 = call trace_game_example.move_player$p_Player$u8$u8
+     17: r16 = load player
+     18: LOAD_FIELD ; Load field x (offset 0)
+     19: r18 = load player
+     20: LOAD_FIELD ; Load field y (offset 1)
+     21: r20 = load player
+     22: LOAD_FIELD ; Load field x (offset 0)
+     23: r22 = load player
+     24: LOAD_FIELD ; Load field y (offset 1)
+     25: r24 = call trace_game_example.check_collision$u8$u8
+     26: store collision, r24
+     27: return
+

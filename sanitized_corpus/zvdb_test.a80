@@ -1,0 +1,3376 @@
+; MinZ generated code
+; Generated: 2025-08-06 19:28:51
+
+
+; Data section
+    ORG $F000
+
+.Users_alice_dev_zvdb_minz_zvdb_test_tests_passed:
+    DB 0
+.Users_alice_dev_zvdb_minz_zvdb_test_tests_failed:
+    DB 0
+str_0:
+    DB 18    ; Length
+    DB 195
+    DB 162
+    DB 194
+    DB 156
+    DB 194
+    DB 147
+    DB " Test "
+str_1:
+    DB 18    ; Length
+    DB 195
+    DB 162
+    DB 194
+    DB 156
+    DB 194
+    DB 151
+    DB " Test "
+str_2:
+    DB 12    ; Length
+DB: FAIL (got "
+str_3:
+    DB 11    ; Length
+    DB ", expected "
+str_4:
+    DB 24    ; Length
+    DB 10
+    DB "=== Popcount Tests ==="
+    DB 10
+str_5:
+    DB 32    ; Length
+    DB 10
+    DB "=== Hamming Distance Tests ==="
+    DB 10
+str_6:
+    DB 32    ; Length
+    DB 10
+    DB "=== Similarity Score Tests ==="
+    DB 10
+str_7:
+    DB 41    ; Length
+    DB 226
+    DB 156
+    DB 147
+DB_Test_13: Opposite similarity PASS"
+    DB 10
+str_8:
+    DB 41    ; Length
+    DB 226
+    DB 156
+    DB 151
+DB_Test_13: Opposite similarity FAIL"
+    DB 10
+str_9:
+    DB 29    ; Length
+    DB 10
+    DB "=== Vector Search Tests ==="
+    DB 10
+str_10:
+    DB 20    ; Length
+    DB "ZVDB E2E Test Suite"
+    DB 10
+str_11:
+    DB 19    ; Length
+    DB "=================="
+    DB 10
+str_12:
+    DB 22    ; Length
+    DB 10
+    DB "=== Test Summary ==="
+    DB 10
+str_13:
+    DB 26    ; Length
+    DB 10
+    DB 226
+    DB 156
+    DB 133
+    DB " All tests passed!"
+    DB 10
+str_14:
+    DB 27    ; Length
+    DB 10
+    DB 226
+    DB 157
+    DB 140
+    DB " Some tests failed!"
+    DB 10
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+.Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8_param_actual:
+    LD HL, #0000   ; SMC parameter actual
+    LD ($F008), HL    ; Virtual register 4 to memory
+.Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8_param_expected:
+    LD DE, #0000   ; SMC parameter expected
+    EX DE, HL      ; Move to HL for storage
+    LD D, H
+    LD E, L
+    ; r6 = r4 == r5
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    ; Register 5 already in DE
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, .eq_true_0
+    LD HL, 0       ; False
+    JP .eq_done_0
+.eq_true_0:
+    LD HL, 1       ; True
+.eq_done_0:
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; jump_if_not r6, else_1
+    EXX               ; Switch to shadow registers
+    LD A, L'         ; From shadow HL'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_1
+    ; r7 = load .Users.alice.dev.zvdb-minz.zvdb_test.tests_passed
+    LD HL, ($F000)
+    ; r8 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r9 = r7 + r8
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store tests_passed, r9
+    LD ($F000), HL
+    ; r10 = string(str_0)
+    LD HL, str_0
+    ; Print "Ã¢ÂÂ Test " (18 chars via loop)
+    CALL print_string
+    ; Direct print ": PASS (" (8 chars)
+    ; Direct print ": PASS (" (8 chars)
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    LD A, 80
+    RST 16             ; Print character
+    LD A, 65
+    RST 16             ; Print character
+    LD A, 83
+    RST 16             ; Print character
+    LD A, 83
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    LD A, 40
+    RST 16             ; Print character
+    ; Direct print ")
+" (2 chars)
+    ; Direct print ")
+" (2 chars)
+    LD A, 41
+    RST 16             ; Print character
+    LD A, 10
+    RST 16             ; Print character
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; r11 = load .Users.alice.dev.zvdb-minz.zvdb_test.tests_failed
+    LD HL, ($F020)
+    ; r12 = 1
+    LD A, 1
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; r13 = r11 + r12
+    LD D, H
+    LD E, L
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    ADD HL, DE
+    ; store tests_failed, r13
+    LD ($F000), HL
+    ; r14 = string(str_1)
+    LD HL, str_1
+    ; Print "Ã¢ÂÂ Test " (18 chars via loop)
+    CALL print_string
+    ; r15 = string(str_2)
+    LD HL, str_2
+    ; Register 15 already in HL
+    ; Print ": FAIL (got " (12 chars via loop)
+    ; Register 15 already in HL
+    CALL print_string
+    ; r16 = string(str_3)
+    LD HL, str_3
+    ; Print ", expected " (11 chars via loop)
+    CALL print_string
+    ; Direct print ")
+" (2 chars)
+    ; Direct print ")
+" (2 chars)
+    LD A, 41
+    RST 16             ; Print character
+    LD A, 10
+    RST 16             ; Print character
+    ; end_if_2:
+end_if_2:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.test_popcount
+.Users_alice_dev_zvdb_minz_zvdb_test_test_popcount:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -7
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    ; r1 = string(str_4)
+    LD HL, str_4
+    ; Print "
+=== Popcount Tests ===
+" (24 chars via loop)
+    CALL print_string
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r5 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_popcount_bits_u8
+    ; store pc0, r5
+    LD A, L
+    LD (IX_1), A
+    ; r6 = load pc0
+    LD A, (IX_1)
+    LD H, A         ; Store to physical register H
+    ; r7 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r8 = 1
+    LD A, 1
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; r9 = load pc0
+    LD A, (IX_1)
+    LD H, A         ; Store to physical register H
+    ; r10 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r11 = 1
+    LD A, 1
+    LD ($F016), A     ; Virtual register 11 to memory
+    ; r12 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; r14 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r15 = 1
+    LD A, 1
+    LD ($F01E), A     ; Virtual register 15 to memory
+    ; r16 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_popcount_bits_u8
+    ; store pc1, r16
+    LD A, H
+    LD (IX_2), A
+    ; r17 = load pc1
+    LD A, (IX_2)
+    LD ($F022), A     ; Virtual register 17 to memory
+    ; r18 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r19 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; r20 = load pc1
+    LD A, (IX_2)
+    LD ($F028), A     ; Virtual register 20 to memory
+    ; r21 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r22 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; r23 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    LD ($F02E), HL    ; Virtual register 23 to memory
+    ; r25 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; r26 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    ; r27 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_popcount_bits_u8
+    LD ($F036), HL    ; Virtual register 27 to memory
+    ; store pc3, r27
+    LD A, ($F036)     ; Virtual register 27 from memory
+    LD (IX_3), A
+    ; r28 = load pc3
+    LD A, (IX_3)
+    LD L, A         ; Store to physical register L
+    ; r29 = 2
+    LD A, 2
+    LD ($F03A), A     ; Virtual register 29 to memory
+    ; r30 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; r31 = load pc3
+    LD A, (IX_3)
+    LD L, A         ; Store to physical register L
+    ; r32 = 2
+    LD A, 2
+    LD ($F040), A     ; Virtual register 32 to memory
+    ; r33 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; r34 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; r36 = 15
+    LD A, 15
+    LD ($F048), A     ; Virtual register 36 to memory
+    ; r37 = 15
+    LD A, 15
+    LD H, A         ; Store to physical register H
+    ; r38 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_popcount_bits_u8
+    ; store pcF, r38
+    LD A, L
+    LD (IX_4), A
+    ; r39 = load pcF
+    LD A, (IX_4)
+    LD H, A         ; Store to physical register H
+    ; r40 = 4
+    LD A, 4
+    LD L, A         ; Store to physical register L
+    ; r41 = 4
+    LD A, 4
+    LD ($F052), A     ; Virtual register 41 to memory
+    ; r42 = load pcF
+    LD A, (IX_4)
+    LD H, A         ; Store to physical register H
+    ; r43 = 4
+    LD A, 4
+    LD L, A         ; Store to physical register L
+    ; r44 = 4
+    LD A, 4
+    LD ($F058), A     ; Virtual register 44 to memory
+    ; r45 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; r47 = 85
+    LD A, 85
+    LD L, A         ; Store to physical register L
+    ; r48 = 85
+    LD A, 85
+    LD ($F060), A     ; Virtual register 48 to memory
+    ; r49 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_popcount_bits_u8
+    ; store pc55, r49
+    LD A, H
+    LD (IX_5), A
+    ; r50 = load pc55
+    LD A, (IX_5)
+    LD ($F064), A     ; Virtual register 50 to memory
+    ; r51 = 4
+    LD A, 4
+    LD H, A         ; Store to physical register H
+    ; r52 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; r53 = load pc55
+    LD A, (IX_5)
+    LD ($F06A), A     ; Virtual register 53 to memory
+    ; r54 = 4
+    LD A, 4
+    LD H, A         ; Store to physical register H
+    ; r55 = 5
+    LD A, 5
+    LD L, A         ; Store to physical register L
+    ; r56 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    LD ($F070), HL    ; Virtual register 56 to memory
+    ; r58 = 170
+    LD A, 170
+    LD H, A         ; Store to physical register H
+    ; r59 = 170
+    LD A, 170
+    LD L, A         ; Store to physical register L
+    ; r60 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_popcount_bits_u8
+    LD ($F078), HL    ; Virtual register 60 to memory
+    ; store pcAA, r60
+    LD A, ($F078)     ; Virtual register 60 from memory
+    LD (IX_6), A
+    ; r61 = load pcAA
+    LD A, (IX_6)
+    LD L, A         ; Store to physical register L
+    ; r62 = 4
+    LD A, 4
+    LD ($F07C), A     ; Virtual register 62 to memory
+    ; r63 = 6
+    LD A, 6
+    LD H, A         ; Store to physical register H
+    ; r64 = load pcAA
+    LD A, (IX_6)
+    LD L, A         ; Store to physical register L
+    ; r65 = 4
+    LD A, 4
+    LD ($F082), A     ; Virtual register 65 to memory
+    ; r66 = 6
+    LD A, 6
+    LD H, A         ; Store to physical register H
+    ; r67 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; r69 = 255
+    LD A, 255
+    LD ($F08A), A     ; Virtual register 69 to memory
+    ; r70 = 255
+    LD A, 255
+    LD H, A         ; Store to physical register H
+    ; r71 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_popcount_bits_u8
+    ; store pcFF, r71
+    LD A, L
+    LD (IX_7), A
+    ; r72 = load pcFF
+    LD A, (IX_7)
+    LD H, A         ; Store to physical register H
+    ; r73 = 8
+    LD A, 8
+    LD L, A         ; Store to physical register L
+    ; r74 = 7
+    LD A, 7
+    LD ($F094), A     ; Virtual register 74 to memory
+    ; r75 = load pcFF
+    LD A, (IX_7)
+    LD H, A         ; Store to physical register H
+    ; r76 = 8
+    LD A, 8
+    LD L, A         ; Store to physical register L
+    ; r77 = 7
+    LD A, 7
+    LD L, A         ; Store to HL (low byte)
+    ; r78 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+.Users_alice_dev_zvdb_minz_zvdb_test_popcount_bits_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; store count, r3
+    LD A, L
+    LD ($F004), A
+.Users_alice_dev_zvdb_minz_zvdb_test_popcount_bits_u8_param_val:
+    LD HL, #0000   ; SMC parameter val (u8->u16)
+    ; store v, r5
+    LD A, H
+    LD ($F008), A
+    ; r6 = 0
+    LD A, 0
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r7 = 8
+    LD A, 8
+    LD H, A         ; Store to physical register H
+    ; Initialize loop variable i
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    ; for_loop_3:
+for_loop_3:
+    ; Check i < end
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_1
+    LD HL, 0       ; False
+    JP .lt_done_1
+.lt_true_1:
+    LD HL, 1       ; True
+.lt_done_1:
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; jump_if_not r9, for_end_4
+    LD A, ($F012)     ; Virtual register 9 from memory
+    OR A
+    JP Z, for_end_4
+    ; r10 = load v
+    LD A, ($F008)
+    LD H, A         ; Store to physical register H
+    ; r11 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r12 = r10 & r11
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; r13 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r14 = r12 != r13
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, .ne_true_2
+    LD HL, 0       ; False
+    JP .ne_done_2
+.ne_true_2:
+    LD HL, 1       ; True
+.ne_done_2:
+    ; jump_if_not r14, else_5
+    LD A, L
+    OR A
+    JP Z, else_5
+    ; r15 = load count
+    LD A, ($F004)
+    LD ($F01E), A     ; Virtual register 15 to memory
+    ; r16 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r17 = r15 + r16
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store count, r17
+    LD A, L
+    LD ($F004), A
+    ; jump end_if_6
+    JP end_if_6
+    ; else_5:
+else_5:
+    ; end_if_6:
+end_if_6:
+    ; r18 = load v
+    LD A, ($F008)
+    LD H, A         ; Store to physical register H
+    ; r19 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r20 = r18 >> r19
+    ; Shift right
+    LD A, H
+    LD B, A       ; B = value to shift
+    LD A, L
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_3
+    LD B, C       ; B = counter
+.shr_loop_3:
+    DEC B
+    JP M, .shr_done_3
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_3
+.shr_done_3:
+    LD L, A
+    LD H, 0
+    ; Register 20 already in HL
+    ; store v, r20
+    LD A, L
+    LD ($F008), A
+    ; r21 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Increment i
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; jump for_loop_3
+    JP for_loop_3
+    ; for_end_4:
+for_end_4:
+    ; r22 = load count
+    LD A, ($F004)
+    LD L, A         ; Store to physical register L
+    ; return r22
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.test_hamming
+.Users_alice_dev_zvdb_minz_zvdb_test_test_hamming:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_5)
+    LD HL, str_5
+    LD ($F002), HL    ; Virtual register 1 to memory
+    ; Print "
+=== Hamming Distance Tests ===
+" (32 chars via loop)
+    LD HL, ($F002)    ; Virtual register 1 from memory
+    CALL print_string
+    ; r4 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r5 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; for_loop_7:
+for_loop_7:
+    ; Check i < end
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_4
+    LD HL, 0       ; False
+    JP .lt_done_4
+.lt_true_4:
+    LD HL, 1       ; True
+.lt_done_4:
+    ; jump_if_not r7, for_end_8
+    LD A, H
+    OR A
+    JP Z, for_end_8
+    ; r8 = 85
+    LD A, 85
+    LD L, A         ; Store to physical register L
+    ; r9 = load v1
+    LD HL, ($F004)
+    ; Register 9 already in HL
+    ; Load field data (offset 0)
+    ; Register 9 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; r11 = load i
+    LD HL, ($F000)
+    ; Register 11 already in HL
+    ; Calculate array element address
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD D, H
+    LD E, L
+    ; Register 11 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r13 = 85
+    LD A, 85
+    LD L, A         ; Store to physical register L
+    ; r14 = load v2
+    LD HL, ($F006)
+    ; Register 14 already in HL
+    ; Load field data (offset 0)
+    ; Register 14 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; r16 = load i
+    LD HL, ($F000)
+    ; Register 16 already in HL
+    ; Calculate array element address
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    LD D, H
+    LD E, L
+    ; Register 16 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r18 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; jump for_loop_7
+    JP for_loop_7
+    ; for_end_8:
+for_end_8:
+    ; r20 = load v1
+    LD HL, ($F004)
+    ; r21 = load v2
+    LD HL, ($F006)
+    ; r22 = load v1
+    LD HL, ($F004)
+    ; Register 22 already in HL
+    ; r23 = load v2
+    LD HL, ($F006)
+    ; r24 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256
+    ; store dist1, r24
+    LD ($F026), HL
+    ; r25 = load dist1
+    LD HL, ($F026)
+    LD ($F032), HL    ; Virtual register 25 to memory
+    ; r26 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r27 = 8
+    LD A, 8
+    LD L, A         ; Store to physical register L
+    ; r28 = load dist1
+    LD HL, ($F026)
+    LD ($F038), HL    ; Virtual register 28 to memory
+    ; r29 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r30 = 8
+    LD A, 8
+    LD L, A         ; Store to physical register L
+    ; r31 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    LD ($F03E), HL    ; Virtual register 31 to memory
+    ; r32 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r33 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    LD ($F044), HL    ; Virtual register 34 to memory
+    ; for_loop_9:
+for_loop_9:
+    ; Check i < end
+    LD HL, ($F044)    ; Virtual register 34 from memory
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_5
+    LD HL, 0       ; False
+    JP .lt_done_5
+.lt_true_5:
+    LD HL, 1       ; True
+.lt_done_5:
+    ; jump_if_not r35, for_end_10
+    LD A, H
+    OR A
+    JP Z, for_end_10
+    ; r36 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r37 = load v1
+    LD HL, ($F004)
+    ; Register 37 already in HL
+    ; Load field data (offset 0)
+    ; Register 37 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F04C), HL    ; Virtual register 38 to memory
+    ; r39 = load i
+    LD HL, ($F000)
+    ; Register 39 already in HL
+    ; Calculate array element address
+    LD HL, ($F04C)    ; Virtual register 38 from memory
+    LD D, H
+    LD E, L
+    ; Register 39 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r41 = 255
+    LD A, 255
+    LD L, A         ; Store to physical register L
+    ; r42 = load v2
+    LD HL, ($F006)
+    ; Register 42 already in HL
+    ; Load field data (offset 0)
+    ; Register 42 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F056), HL    ; Virtual register 43 to memory
+    ; r44 = load i
+    LD HL, ($F000)
+    ; Register 44 already in HL
+    ; Calculate array element address
+    LD HL, ($F056)    ; Virtual register 43 from memory
+    LD D, H
+    LD E, L
+    ; Register 44 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r46 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    LD HL, ($F044)    ; Virtual register 34 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F044), HL    ; Virtual register 34 to memory
+    ; jump for_loop_9
+    JP for_loop_9
+    ; for_end_10:
+for_end_10:
+    ; r48 = load v1
+    LD HL, ($F004)
+    ; r49 = load v2
+    LD HL, ($F006)
+    ; r50 = load v1
+    LD HL, ($F004)
+    ; Register 50 already in HL
+    ; r51 = load v2
+    LD HL, ($F006)
+    ; r52 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256
+    ; store dist2, r52
+    LD ($F05E), HL
+    ; r53 = load dist2
+    LD HL, ($F05E)
+    ; Register 53 already in HL
+    ; r54 = 256
+    LD HL, 256
+    LD ($F06C), HL    ; Virtual register 54 to memory
+    ; r55 = 9
+    LD A, 9
+    LD L, A         ; Store to HL (low byte)
+    ; r56 = load dist2
+    LD HL, ($F05E)
+    ; r57 = 256
+    LD HL, 256
+    LD ($F072), HL    ; Virtual register 57 to memory
+    ; r58 = 9
+    LD A, 9
+    LD ($F074), A     ; Virtual register 58 to memory
+    ; r59 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; r60 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r61 = 32
+    LD A, 32
+    LD ($F07A), A     ; Virtual register 61 to memory
+    ; Initialize loop variable i
+    ; for_loop_11:
+for_loop_11:
+    ; Check i < end
+    LD HL, ($F07A)    ; Virtual register 61 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_6
+    LD HL, 0       ; False
+    JP .lt_done_6
+.lt_true_6:
+    LD HL, 1       ; True
+.lt_done_6:
+    ; jump_if_not r63, for_end_12
+    LD A, L
+    OR A
+    JP Z, for_end_12
+    ; r64 = 15
+    LD A, 15
+    LD L, A         ; Store to HL (low byte)
+    ; r65 = load v1
+    LD HL, ($F004)
+    ; Load field data (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F084), HL    ; Virtual register 66 to memory
+    ; r67 = load i
+    LD HL, ($F000)
+    ; Register 67 already in HL
+    ; Calculate array element address
+    LD HL, ($F084)    ; Virtual register 66 from memory
+    LD D, H
+    LD E, L
+    ; Register 67 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r69 = 240
+    LD A, 240
+    LD L, A         ; Store to physical register L
+    ; r70 = load v2
+    LD HL, ($F006)
+    ; Register 70 already in HL
+    ; Load field data (offset 0)
+    ; Register 70 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F08E), HL    ; Virtual register 71 to memory
+    ; r72 = load i
+    LD HL, ($F000)
+    ; Register 72 already in HL
+    ; Calculate array element address
+    LD HL, ($F08E)    ; Virtual register 71 from memory
+    LD D, H
+    LD E, L
+    ; Register 72 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r74 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; jump for_loop_11
+    JP for_loop_11
+    ; for_end_12:
+for_end_12:
+    ; r76 = load v1
+    LD HL, ($F004)
+    LD ($F098), HL    ; Virtual register 76 to memory
+    ; r77 = load v2
+    LD HL, ($F006)
+    ; r78 = load v1
+    LD HL, ($F004)
+    ; r79 = load v2
+    LD HL, ($F006)
+    ; Register 79 already in HL
+    ; r80 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256
+    ; store dist3, r80
+    LD ($F096), HL
+    ; r81 = load dist3
+    LD HL, ($F096)
+    ; Register 81 already in HL
+    ; r82 = 256
+    LD HL, 256
+    LD ($F0A4), HL    ; Virtual register 82 to memory
+    ; r83 = 10
+    LD A, 10
+    LD L, A         ; Store to HL (low byte)
+    ; r84 = load dist3
+    LD HL, ($F096)
+    ; r85 = 256
+    LD HL, 256
+    LD ($F0AA), HL    ; Virtual register 85 to memory
+    ; r86 = 10
+    LD A, 10
+    LD ($F0AC), A     ; Virtual register 86 to memory
+    ; r87 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; r88 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r89 = 32
+    LD A, 32
+    LD ($F0B2), A     ; Virtual register 89 to memory
+    ; Initialize loop variable i
+    ; for_loop_13:
+for_loop_13:
+    ; Check i < end
+    LD HL, ($F0B2)    ; Virtual register 89 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_7
+    LD HL, 0       ; False
+    JP .lt_done_7
+.lt_true_7:
+    LD HL, 1       ; True
+.lt_done_7:
+    ; jump_if_not r91, for_end_14
+    LD A, L
+    OR A
+    JP Z, for_end_14
+    ; r92 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; r93 = load v1
+    LD HL, ($F004)
+    ; Load field data (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F0BC), HL    ; Virtual register 94 to memory
+    ; r95 = load i
+    LD HL, ($F000)
+    ; Register 95 already in HL
+    ; Calculate array element address
+    LD HL, ($F0BC)    ; Virtual register 94 from memory
+    LD D, H
+    LD E, L
+    ; Register 95 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r97 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r98 = load v2
+    LD HL, ($F006)
+    ; Register 98 already in HL
+    ; Load field data (offset 0)
+    ; Register 98 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F0C6), HL    ; Virtual register 99 to memory
+    ; r100 = load i
+    LD HL, ($F000)
+    ; Register 100 already in HL
+    ; Calculate array element address
+    LD HL, ($F0C6)    ; Virtual register 99 from memory
+    LD D, H
+    LD E, L
+    ; Register 100 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r102 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; jump for_loop_13
+    JP for_loop_13
+    ; for_end_14:
+for_end_14:
+    ; r103 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r104 = load v2
+    LD HL, ($F006)
+    ; Load field data (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F0D2), HL    ; Virtual register 105 to memory
+    ; r106 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Calculate array element address
+    LD HL, ($F0D2)    ; Virtual register 105 from memory
+    LD D, H
+    LD E, L
+    ; Register 106 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r109 = load v1
+    LD HL, ($F004)
+    ; r110 = load v2
+    LD HL, ($F006)
+    LD ($F0DC), HL    ; Virtual register 110 to memory
+    ; r111 = load v1
+    LD HL, ($F004)
+    ; r112 = load v2
+    LD HL, ($F006)
+    ; r113 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256
+    ; Register 113 already in HL
+    ; store dist4, r113
+    ; Register 113 already in HL
+    LD ($F0D8), HL
+    ; r114 = load dist4
+    LD HL, ($F0D8)
+    LD ($F0E4), HL    ; Virtual register 114 to memory
+    ; r115 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r116 = 11
+    LD A, 11
+    LD L, A         ; Store to physical register L
+    ; r117 = load dist4
+    LD HL, ($F0D8)
+    LD ($F0EA), HL    ; Virtual register 117 to memory
+    ; r118 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r119 = 11
+    LD A, 11
+    LD L, A         ; Store to physical register L
+    ; r120 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; Register 120 already in HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+.Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r4 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; store distance, r4
+    LD ($F006), HL
+    ; r5 = 0
+    LD A, 0
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = 32
+    LD A, 32
+    LD H, A         ; Store to physical register H
+    ; Initialize loop variable i
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    ; for_loop_15:
+for_loop_15:
+    ; Check i < end
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_8
+    LD HL, 0       ; False
+    JP .lt_done_8
+.lt_true_8:
+    LD HL, 1       ; True
+.lt_done_8:
+    ; Register 8 already in HL
+    ; jump_if_not r8, for_end_16
+    LD A, L
+    OR A
+    JP Z, for_end_16
+.Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256_param_v1:
+    LD HL, #0000   ; SMC parameter v1
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; Load field data (offset 0)
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 11 already in HL
+    ; r12 = load i
+    LD HL, ($F000)
+    ; Register 12 already in HL
+    ; Load array element (u8)
+    ; Register 11 already in HL
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+.Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256_param_v2:
+    LD DE, #0000   ; SMC parameter v2
+    EX DE, HL      ; Move to HL for storage
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; Load field data (offset 0)
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; r16 = load i
+    LD HL, ($F000)
+    ; Load array element (u8)
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r18 = r13 ^ r17
+    LD D, H
+    LD E, L
+    LD A, L
+    XOR E
+    LD L, A
+    LD A, H
+    XOR D
+    LD H, A
+    ; store xor_val, r18
+    LD A, H
+    LD ($F012), A
+    ; r20 = load xor_val
+    LD A, ($F012)
+    LD ($F028), A     ; Virtual register 20 to memory
+    ; r21 = load xor_val
+    LD A, ($F012)
+    LD H, A         ; Store to physical register H
+    ; r22 = call .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.popcount_bits$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_popcount_bits_u8
+    ; store bits, r22
+    LD A, L
+    LD ($F026), A
+    ; r23 = load distance
+    LD HL, ($F006)
+    ; r24 = load bits
+    LD A, ($F026)
+    LD L, A         ; Store to physical register L
+    ; r25 = r23 + r24
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store distance, r25
+    LD ($F006), HL
+    ; r26 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; jump for_loop_15
+    JP for_loop_15
+    ; for_end_16:
+for_end_16:
+    ; r27 = load distance
+    LD HL, ($F006)
+    ; Register 27 already in HL
+    ; return r27
+    ; Register 27 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.test_similarity
+.Users_alice_dev_zvdb_minz_zvdb_test_test_similarity:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -74
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    ; r1 = string(str_6)
+    LD HL, str_6
+    ; Print "
+=== Similarity Score Tests ===
+" (32 chars via loop)
+    CALL print_string
+    ; r4 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r5 = 32
+    LD A, 32
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; Initialize loop variable i
+    ; for_loop_17:
+for_loop_17:
+    ; Check i < end
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_9
+    LD HL, 0       ; False
+    JP .lt_done_9
+.lt_true_9:
+    LD HL, 1       ; True
+.lt_done_9:
+    ; jump_if_not r7, for_end_18
+    LD A, L
+    OR A
+    JP Z, for_end_18
+    ; r8 = 170
+    LD A, 170
+    LD L, A         ; Store to HL (low byte)
+    ; r9 = load v1
+    LD L, (IX_32)
+    LD H, (IX_31)
+    ; Load field data (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; r11 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 11 already in HL
+    ; Calculate array element address
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD D, H
+    LD E, L
+    ; Register 11 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r13 = 170
+    LD A, 170
+    LD L, A         ; Store to physical register L
+    ; r14 = load v2
+    LD L, (IX_64)
+    LD H, (IX_63)
+    ; Register 14 already in HL
+    ; Load field data (offset 0)
+    ; Register 14 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; r16 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 16 already in HL
+    ; Calculate array element address
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    LD D, H
+    LD E, L
+    ; Register 16 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r18 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; jump for_loop_17
+    JP for_loop_17
+    ; for_end_18:
+for_end_18:
+    ; r20 = load v1
+    LD L, (IX_32)
+    LD H, (IX_31)
+    LD ($F028), HL    ; Virtual register 20 to memory
+    ; r21 = load v2
+    LD L, (IX_64)
+    LD H, (IX_63)
+    ; r22 = load v1
+    LD L, (IX_32)
+    LD H, (IX_31)
+    ; r23 = load v2
+    LD L, (IX_64)
+    LD H, (IX_63)
+    ; Register 23 already in HL
+    ; r24 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_similarity_Vector256_Vector256
+    ; store sim1, r24
+    LD (IX_66), L
+    LD (IX_65), H
+    ; r26 = load sim1
+    LD L, (IX_66)
+    LD H, (IX_65)
+    ; Register 26 already in HL
+    ; store sim1_u, r26
+    ; Register 26 already in HL
+    LD (IX_68), L
+    LD (IX_67), H
+    ; r27 = load sim1_u
+    LD L, (IX_68)
+    LD H, (IX_67)
+    ; Register 27 already in HL
+    ; r28 = 256
+    LD HL, 256
+    LD ($F038), HL    ; Virtual register 28 to memory
+    ; r29 = 12
+    LD A, 12
+    LD L, A         ; Store to HL (low byte)
+    ; r30 = load sim1_u
+    LD L, (IX_68)
+    LD H, (IX_67)
+    ; r31 = 256
+    LD HL, 256
+    LD ($F03E), HL    ; Virtual register 31 to memory
+    ; r32 = 12
+    LD A, 12
+    LD ($F040), A     ; Virtual register 32 to memory
+    ; r33 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; r34 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r35 = 32
+    LD A, 32
+    LD ($F046), A     ; Virtual register 35 to memory
+    ; Initialize loop variable i
+    ; for_loop_19:
+for_loop_19:
+    ; Check i < end
+    LD HL, ($F046)    ; Virtual register 35 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_10
+    LD HL, 0       ; False
+    JP .lt_done_10
+.lt_true_10:
+    LD HL, 1       ; True
+.lt_done_10:
+    ; jump_if_not r37, for_end_20
+    LD A, L
+    OR A
+    JP Z, for_end_20
+    ; r38 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; r39 = load v1
+    LD L, (IX_32)
+    LD H, (IX_31)
+    ; Load field data (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F050), HL    ; Virtual register 40 to memory
+    ; r41 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 41 already in HL
+    ; Calculate array element address
+    LD HL, ($F050)    ; Virtual register 40 from memory
+    LD D, H
+    LD E, L
+    ; Register 41 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r43 = 255
+    LD A, 255
+    LD L, A         ; Store to physical register L
+    ; r44 = load v2
+    LD L, (IX_64)
+    LD H, (IX_63)
+    ; Register 44 already in HL
+    ; Load field data (offset 0)
+    ; Register 44 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F05A), HL    ; Virtual register 45 to memory
+    ; r46 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 46 already in HL
+    ; Calculate array element address
+    LD HL, ($F05A)    ; Virtual register 45 from memory
+    LD D, H
+    LD E, L
+    ; Register 46 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r48 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; jump for_loop_19
+    JP for_loop_19
+    ; for_end_20:
+for_end_20:
+    ; r50 = load v1
+    LD L, (IX_32)
+    LD H, (IX_31)
+    LD ($F064), HL    ; Virtual register 50 to memory
+    ; r51 = load v2
+    LD L, (IX_64)
+    LD H, (IX_63)
+    ; r52 = load v1
+    LD L, (IX_32)
+    LD H, (IX_31)
+    ; r53 = load v2
+    LD L, (IX_64)
+    LD H, (IX_63)
+    ; Register 53 already in HL
+    ; r54 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_similarity_Vector256_Vector256
+    ; store sim2, r54
+    LD (IX_70), L
+    LD (IX_69), H
+    ; r55 = load sim2
+    LD L, (IX_70)
+    LD H, (IX_69)
+    ; Register 55 already in HL
+    ; r56 = 256
+    LD HL, 256
+    ; r57 = -r56
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; Register 57 already in HL
+    ; r58 = r55 == r57
+    ; Register 55 already in HL
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, .eq_true_11
+    LD HL, 0       ; False
+    JP .eq_done_11
+.eq_true_11:
+    LD HL, 1       ; True
+.eq_done_11:
+    LD ($F074), HL    ; Virtual register 58 to memory
+    ; jump_if_not r58, else_21
+    LD A, ($F074)     ; Virtual register 58 from memory
+    OR A
+    JP Z, else_21
+    ; r59 = load .Users.alice.dev.zvdb-minz.zvdb_test.tests_passed
+    LD HL, ($F000)
+    LD ($F076), HL    ; Virtual register 59 to memory
+    ; r60 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r61 = r59 + r60
+    LD HL, ($F076)    ; Virtual register 59 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store tests_passed, r61
+    LD (IX+0), L
+    LD (IX+1), H
+    ; r62 = string(str_7)
+    LD HL, str_7
+    LD ($F07C), HL    ; Virtual register 62 to memory
+    ; Print "â Test 13: Opposite similarity PASS
+" (41 chars via loop)
+    LD HL, ($F07C)    ; Virtual register 62 from memory
+    CALL print_string
+    ; jump end_if_22
+    JP end_if_22
+    ; else_21:
+else_21:
+    ; r63 = load .Users.alice.dev.zvdb-minz.zvdb_test.tests_failed
+    LD HL, ($F020)
+    ; r64 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r65 = r63 + r64
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F082), HL    ; Virtual register 65 to memory
+    ; store tests_failed, r65
+    LD HL, ($F082)    ; Virtual register 65 from memory
+    LD (IX+0), L
+    LD (IX+1), H
+    ; r66 = string(str_8)
+    LD HL, str_8
+    ; Print "â Test 13: Opposite similarity FAIL
+" (41 chars via loop)
+    CALL print_string
+    ; end_if_22:
+end_if_22:
+    ; r67 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r68 = 32
+    LD A, 32
+    LD ($F088), A     ; Virtual register 68 to memory
+    ; Initialize loop variable i
+    ; for_loop_23:
+for_loop_23:
+    ; Check i < end
+    LD HL, ($F088)    ; Virtual register 68 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_12
+    LD HL, 0       ; False
+    JP .lt_done_12
+.lt_true_12:
+    LD HL, 1       ; True
+.lt_done_12:
+    ; jump_if_not r70, for_end_24
+    LD A, L
+    OR A
+    JP Z, for_end_24
+    ; r71 = 15
+    LD A, 15
+    LD L, A         ; Store to HL (low byte)
+    ; r72 = load v1
+    LD L, (IX_32)
+    LD H, (IX_31)
+    ; Load field data (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F092), HL    ; Virtual register 73 to memory
+    ; r74 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 74 already in HL
+    ; Calculate array element address
+    LD HL, ($F092)    ; Virtual register 73 from memory
+    LD D, H
+    LD E, L
+    ; Register 74 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r76 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r77 = load v2
+    LD L, (IX_64)
+    LD H, (IX_63)
+    ; Register 77 already in HL
+    ; Load field data (offset 0)
+    ; Register 77 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F09C), HL    ; Virtual register 78 to memory
+    ; r79 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 79 already in HL
+    ; Calculate array element address
+    LD HL, ($F09C)    ; Virtual register 78 from memory
+    LD D, H
+    LD E, L
+    ; Register 79 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r81 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; jump for_loop_23
+    JP for_loop_23
+    ; for_end_24:
+for_end_24:
+    ; r83 = load v1
+    LD L, (IX_32)
+    LD H, (IX_31)
+    LD ($F0A6), HL    ; Virtual register 83 to memory
+    ; r84 = load v2
+    LD L, (IX_64)
+    LD H, (IX_63)
+    ; r85 = load v1
+    LD L, (IX_32)
+    LD H, (IX_31)
+    ; r86 = load v2
+    LD L, (IX_64)
+    LD H, (IX_63)
+    ; Register 86 already in HL
+    ; r87 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_similarity_Vector256_Vector256
+    ; store sim3, r87
+    LD (IX_72), L
+    LD (IX_71), H
+    ; r89 = load sim3
+    LD L, (IX_72)
+    LD H, (IX_71)
+    ; Register 89 already in HL
+    ; store sim3_u, r89
+    ; Register 89 already in HL
+    LD (IX_74), L
+    LD (IX_73), H
+    ; r90 = load sim3_u
+    LD L, (IX_74)
+    LD H, (IX_73)
+    LD ($F0B4), HL    ; Virtual register 90 to memory
+    ; r91 = 128
+    LD A, 128
+    LD H, A         ; Store to physical register H
+    ; r92 = 14
+    LD A, 14
+    LD L, A         ; Store to physical register L
+    ; r93 = load sim3_u
+    LD L, (IX_74)
+    LD H, (IX_73)
+    LD ($F0BA), HL    ; Virtual register 93 to memory
+    ; r94 = 128
+    LD A, 128
+    LD H, A         ; Store to physical register H
+    ; r95 = 14
+    LD A, 14
+    LD L, A         ; Store to physical register L
+    ; r96 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; Register 96 already in HL
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.calc_similarity$Vector256$Vector256
+.Users_alice_dev_zvdb_minz_zvdb_test_calc_similarity_Vector256_Vector256:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users_alice_dev_zvdb_minz_zvdb_test_calc_similarity_Vector256_Vector256_param_v1:
+    LD HL, #0000   ; SMC parameter v1
+    LD ($F008), HL    ; Virtual register 4 to memory
+.Users_alice_dev_zvdb_minz_zvdb_test_calc_similarity_Vector256_Vector256_param_v2:
+    LD DE, #0000   ; SMC parameter v2
+    EX DE, HL      ; Move to HL for storage
+    ; Register 5 already in HL
+    LD HL, (.Users_alice_dev_zvdb_minz_zvdb_test_calc_similarity_Vector256_Vector256_param_v1)
+    ; Register 6 already in HL
+    LD HL, (.Users_alice_dev_zvdb_minz_zvdb_test_calc_similarity_Vector256_Vector256_param_v2)
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; r8 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256
+    ; store hamming, r8
+    LD ($F006), HL
+    ; r10 = load hamming
+    LD HL, ($F006)
+    ; Register 10 already in HL
+    ; r11 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r12 = r10 << r11
+    ; 16-bit shift left
+    ; Register 10 already in HL
+    LD A, H
+    LD B, A       ; B = shift count
+    OR A
+    JR Z, .shl16_done_13
+.shl16_loop_13:
+    ADD HL, HL    ; Shift left by 1
+    DJNZ .shl16_loop_13
+.shl16_done_13:
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; store doubled, r12
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    LD ($F012), HL
+    ; r13 = 256
+    LD HL, 256
+    ; Register 13 already in HL
+    ; r14 = load doubled
+    LD HL, ($F012)
+    ; r15 = r13 - r14
+    ; Register 13 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; Register 15 already in HL
+    ; return r15
+    ; Register 15 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.test_search
+.Users_alice_dev_zvdb_minz_zvdb_test_test_search:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -198
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    ; r1 = string(str_9)
+    LD HL, str_9
+    LD ($F002), HL    ; Virtual register 1 to memory
+    ; Print "
+=== Vector Search Tests ===
+" (29 chars via loop)
+    LD HL, ($F002)    ; Virtual register 1 from memory
+    CALL print_string
+    ; r3 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r4 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    ; for_loop_25:
+for_loop_25:
+    ; Check i < end
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_14
+    LD HL, 0       ; False
+    JP .lt_done_14
+.lt_true_14:
+    LD HL, 1       ; True
+.lt_done_14:
+    ; jump_if_not r6, for_end_26
+    LD A, H
+    OR A
+    JP Z, for_end_26
+    ; r7 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r8 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 8 already in HL
+    ; r9 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 8 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; Load field data (offset 0)
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 11 already in HL
+    ; r12 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 12 already in HL
+    ; Calculate array element address
+    ; Register 11 already in HL
+    LD D, H
+    LD E, L
+    ; Register 12 already in HL
+    ADD HL, DE
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r14 = 1
+    LD A, 1
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; Increment i
+    LD D, H
+    LD E, L
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    ADD HL, DE
+    ; jump for_loop_25
+    JP for_loop_25
+    ; for_end_26:
+for_end_26:
+    ; r15 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r16 = 32
+    LD A, 32
+    LD ($F020), A     ; Virtual register 16 to memory
+    ; Initialize loop variable i
+    ; for_loop_27:
+for_loop_27:
+    ; Check i < end
+    LD HL, ($F020)    ; Virtual register 16 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_15
+    LD HL, 0       ; False
+    JP .lt_done_15
+.lt_true_15:
+    LD HL, 1       ; True
+.lt_done_15:
+    ; jump_if_not r18, for_end_28
+    LD A, L
+    OR A
+    JP Z, for_end_28
+    ; r19 = 255
+    LD A, 255
+    LD L, A         ; Store to HL (low byte)
+    ; r20 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; r21 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    PUSH HL
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F02C), A     ; Virtual register 22 to memory
+    ; Load field data (offset 0)
+    LD HL, ($F02C)    ; Virtual register 22 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 23 already in HL
+    ; r24 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 24 already in HL
+    ; Calculate array element address
+    ; Register 23 already in HL
+    LD D, H
+    LD E, L
+    ; Register 24 already in HL
+    ADD HL, DE
+    LD ($F032), HL    ; Virtual register 25 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r26 = 1
+    LD A, 1
+    LD ($F034), A     ; Virtual register 26 to memory
+    ; Increment i
+    LD D, H
+    LD E, L
+    LD HL, ($F034)    ; Virtual register 26 from memory
+    ADD HL, DE
+    ; jump for_loop_27
+    JP for_loop_27
+    ; for_end_28:
+for_end_28:
+    ; r27 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r28 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    ; for_loop_29:
+for_loop_29:
+    ; Check i < end
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_16
+    LD HL, 0       ; False
+    JP .lt_done_16
+.lt_true_16:
+    LD HL, 1       ; True
+.lt_done_16:
+    ; jump_if_not r30, for_end_30
+    LD A, H
+    OR A
+    JP Z, for_end_30
+    ; r31 = 85
+    LD A, 85
+    LD L, A         ; Store to physical register L
+    ; r32 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 32 already in HL
+    ; r33 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 32 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F044), A     ; Virtual register 34 to memory
+    ; Load field data (offset 0)
+    LD HL, ($F044)    ; Virtual register 34 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 35 already in HL
+    ; r36 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 36 already in HL
+    ; Calculate array element address
+    ; Register 35 already in HL
+    LD D, H
+    LD E, L
+    ; Register 36 already in HL
+    ADD HL, DE
+    LD ($F04A), HL    ; Virtual register 37 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F04A)    ; Virtual register 37 from memory
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r38 = 1
+    LD A, 1
+    LD ($F04C), A     ; Virtual register 38 to memory
+    ; Increment i
+    LD D, H
+    LD E, L
+    LD HL, ($F04C)    ; Virtual register 38 from memory
+    ADD HL, DE
+    ; jump for_loop_29
+    JP for_loop_29
+    ; for_end_30:
+for_end_30:
+    ; r39 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r40 = 32
+    LD A, 32
+    LD ($F050), A     ; Virtual register 40 to memory
+    ; Initialize loop variable i
+    ; for_loop_31:
+for_loop_31:
+    ; Check i < end
+    LD HL, ($F050)    ; Virtual register 40 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_17
+    LD HL, 0       ; False
+    JP .lt_done_17
+.lt_true_17:
+    LD HL, 1       ; True
+.lt_done_17:
+    ; jump_if_not r42, for_end_32
+    LD A, L
+    OR A
+    JP Z, for_end_32
+    ; r43 = 170
+    LD A, 170
+    LD L, A         ; Store to HL (low byte)
+    ; r44 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; r45 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    PUSH HL
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F05C), A     ; Virtual register 46 to memory
+    ; Load field data (offset 0)
+    LD HL, ($F05C)    ; Virtual register 46 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 47 already in HL
+    ; r48 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 48 already in HL
+    ; Calculate array element address
+    ; Register 47 already in HL
+    LD D, H
+    LD E, L
+    ; Register 48 already in HL
+    ADD HL, DE
+    LD ($F062), HL    ; Virtual register 49 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F062)    ; Virtual register 49 from memory
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r50 = 1
+    LD A, 1
+    LD ($F064), A     ; Virtual register 50 to memory
+    ; Increment i
+    LD D, H
+    LD E, L
+    LD HL, ($F064)    ; Virtual register 50 from memory
+    ADD HL, DE
+    ; jump for_loop_31
+    JP for_loop_31
+    ; for_end_32:
+for_end_32:
+    ; r52 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r53 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    LD ($F06C), HL    ; Virtual register 54 to memory
+    ; for_loop_33:
+for_loop_33:
+    ; Check i < end
+    LD HL, ($F06C)    ; Virtual register 54 from memory
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_18
+    LD HL, 0       ; False
+    JP .lt_done_18
+.lt_true_18:
+    LD HL, 1       ; True
+.lt_done_18:
+    ; jump_if_not r55, for_end_34
+    LD A, H
+    OR A
+    JP Z, for_end_34
+    ; r56 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r57 = load query1
+    LD L, (IX_160)
+    LD H, (IX_159)
+    ; Register 57 already in HL
+    ; Load field data (offset 0)
+    ; Register 57 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F074), HL    ; Virtual register 58 to memory
+    ; r59 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 59 already in HL
+    ; Calculate array element address
+    LD HL, ($F074)    ; Virtual register 58 from memory
+    LD D, H
+    LD E, L
+    ; Register 59 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r61 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    LD HL, ($F06C)    ; Virtual register 54 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F06C), HL    ; Virtual register 54 to memory
+    ; jump for_loop_33
+    JP for_loop_33
+    ; for_end_34:
+for_end_34:
+    ; r63 = load query1
+    LD L, (IX_160)
+    LD H, (IX_159)
+    ; r64 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; r65 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F084), A     ; Virtual register 66 to memory
+    ; r67 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 67 already in HL
+    ; r68 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 67 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F08A), A     ; Virtual register 69 to memory
+    ; r70 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 70 already in HL
+    ; r71 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 70 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F090), A     ; Virtual register 72 to memory
+    ; r73 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 73 already in HL
+    ; r74 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 73 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F096), A     ; Virtual register 75 to memory
+    ; r76 = 4
+    LD A, 4
+    LD ($F098), A     ; Virtual register 76 to memory
+    ; r77 = load query1
+    LD L, (IX_160)
+    LD H, (IX_159)
+    ; r78 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; r79 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0A0), A     ; Virtual register 80 to memory
+    ; r81 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 81 already in HL
+    ; r82 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 81 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0A6), A     ; Virtual register 83 to memory
+    ; r84 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 84 already in HL
+    ; r85 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 84 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0AC), A     ; Virtual register 86 to memory
+    ; r87 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 87 already in HL
+    ; r88 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 87 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0B2), A     ; Virtual register 89 to memory
+    ; r90 = 4
+    LD A, 4
+    LD ($F0B4), A     ; Virtual register 90 to memory
+    ; r91 = call .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8 (args: 6)
+    ; Stack-based parameter passing
+    LD HL, ($F0B4)    ; Virtual register 90 from memory
+    PUSH HL       ; Argument 5
+    LD HL, ($F0B2)    ; Virtual register 89 from memory
+    PUSH HL       ; Argument 4
+    LD HL, ($F0AC)    ; Virtual register 86 from memory
+    PUSH HL       ; Argument 3
+    LD HL, ($F0A6)    ; Virtual register 83 from memory
+    PUSH HL       ; Argument 2
+    LD HL, ($F0A0)    ; Virtual register 80 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8
+    ; store best1, r91
+    LD A, H
+    LD (IX_161), A
+    ; r93 = load best1
+    LD A, (IX_161)
+    LD L, A         ; Store to HL (low byte)
+    ; store best1_u, r93
+    ; Register 93 already in HL
+    LD (IX_163), L
+    LD (IX_162), H
+    ; r94 = load best1_u
+    LD L, (IX_163)
+    LD H, (IX_162)
+    LD ($F0BC), HL    ; Virtual register 94 to memory
+    ; r95 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r96 = 15
+    LD A, 15
+    LD L, A         ; Store to physical register L
+    ; r97 = load best1_u
+    LD L, (IX_163)
+    LD H, (IX_162)
+    LD ($F0C2), HL    ; Virtual register 97 to memory
+    ; r98 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r99 = 15
+    LD A, 15
+    LD L, A         ; Store to physical register L
+    ; r100 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    LD ($F0C8), HL    ; Virtual register 100 to memory
+    ; r102 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r103 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; Initialize loop variable i
+    LD ($F0D0), HL    ; Virtual register 104 to memory
+    ; for_loop_35:
+for_loop_35:
+    ; Check i < end
+    LD HL, ($F0D0)    ; Virtual register 104 from memory
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_19
+    LD HL, 0       ; False
+    JP .lt_done_19
+.lt_true_19:
+    LD HL, 1       ; True
+.lt_done_19:
+    ; jump_if_not r105, for_end_36
+    LD A, H
+    OR A
+    JP Z, for_end_36
+    ; r106 = 84
+    LD A, 84
+    LD L, A         ; Store to physical register L
+    ; r107 = load query2
+    LD L, (IX_195)
+    LD H, (IX_194)
+    ; Register 107 already in HL
+    ; Load field data (offset 0)
+    ; Register 107 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F0D8), HL    ; Virtual register 108 to memory
+    ; r109 = load i
+    LD L, (IX+0)
+    LD H, (IX+1)
+    ; Register 109 already in HL
+    ; Calculate array element address
+    LD HL, ($F0D8)    ; Virtual register 108 from memory
+    LD D, H
+    LD E, L
+    ; Register 109 already in HL
+    ADD HL, DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r111 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; Increment i
+    LD HL, ($F0D0)    ; Virtual register 104 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F0D0), HL    ; Virtual register 104 to memory
+    ; jump for_loop_35
+    JP for_loop_35
+    ; for_end_36:
+for_end_36:
+    ; r113 = load query2
+    LD L, (IX_195)
+    LD H, (IX_194)
+    ; r114 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; r115 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0E8), A     ; Virtual register 116 to memory
+    ; r117 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 117 already in HL
+    ; r118 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 117 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0EE), A     ; Virtual register 119 to memory
+    ; r120 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 120 already in HL
+    ; r121 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 120 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0F4), A     ; Virtual register 122 to memory
+    ; r123 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 123 already in HL
+    ; r124 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 123 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F0FA), A     ; Virtual register 125 to memory
+    ; r126 = 4
+    LD A, 4
+    LD ($F0FC), A     ; Virtual register 126 to memory
+    ; r127 = load query2
+    LD L, (IX_195)
+    LD H, (IX_194)
+    ; r128 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; r129 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F104), A     ; Virtual register 130 to memory
+    ; r131 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 131 already in HL
+    ; r132 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 131 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F10A), A     ; Virtual register 133 to memory
+    ; r134 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 134 already in HL
+    ; r135 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 134 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F110), A     ; Virtual register 136 to memory
+    ; r137 = load db
+    LD L, (IX_128)
+    LD H, (IX_127)
+    ; Register 137 already in HL
+    ; r138 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; Load array element (.Users.alice.dev.zvdb-minz.zvdb_test.Vector256)
+    ; Register 137 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F116), A     ; Virtual register 139 to memory
+    ; r140 = 4
+    LD A, 4
+    LD ($F118), A     ; Virtual register 140 to memory
+    ; r141 = call .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8 (args: 6)
+    ; Stack-based parameter passing
+    LD HL, ($F118)    ; Virtual register 140 from memory
+    PUSH HL       ; Argument 5
+    LD HL, ($F116)    ; Virtual register 139 from memory
+    PUSH HL       ; Argument 4
+    LD HL, ($F110)    ; Virtual register 136 from memory
+    PUSH HL       ; Argument 3
+    LD HL, ($F10A)    ; Virtual register 133 from memory
+    PUSH HL       ; Argument 2
+    LD HL, ($F104)    ; Virtual register 130 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8
+    ; store best2, r141
+    LD A, H
+    LD (IX_196), A
+    ; r143 = load best2
+    LD A, (IX_196)
+    LD L, A         ; Store to HL (low byte)
+    ; store best2_u, r143
+    ; Register 143 already in HL
+    LD (IX_198), L
+    LD (IX_197), H
+    ; r144 = load best2_u
+    LD L, (IX_198)
+    LD H, (IX_197)
+    LD ($F120), HL    ; Virtual register 144 to memory
+    ; r145 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; r146 = 16
+    LD A, 16
+    LD L, A         ; Store to physical register L
+    ; r147 = load best2_u
+    LD L, (IX_198)
+    LD H, (IX_197)
+    LD ($F126), HL    ; Virtual register 147 to memory
+    ; r148 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; r149 = 16
+    LD A, 16
+    LD L, A         ; Store to physical register L
+    ; r150 = call .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.assert_equal$u16$u16$u8 (args: 3)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_assert_equal_u16_u16_u8
+    ; Register 150 already in HL
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.find_nearest$Vector256$Vector256$Vector256$Vector256$Vector256$u8
+.Users_alice_dev_zvdb_minz_zvdb_test_find_nearest_Vector256_Vector256_Vector256_Vector256_Vector256_u8:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -11
+    ADD HL, SP
+    LD SP, HL
+    ; Parameter query from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX_2), L
+    LD (IX_1), H
+    ; Parameter db0 from stack
+    LD L, (IX+6)
+    LD H, (IX+7)
+    LD (IX_4), L
+    LD (IX_3), H
+    ; Parameter db1 from stack
+    LD L, (IX+8)
+    LD H, (IX+9)
+    LD (IX_6), L
+    LD (IX_5), H
+    ; Parameter db2 from stack
+    LD L, (IX+10)
+    LD H, (IX+11)
+    LD (IX_8), L
+    LD (IX_7), H
+    ; Parameter db3 from stack
+    LD L, (IX+12)
+    LD H, (IX+13)
+    LD (IX_10), L
+    LD (IX_9), H
+    ; Parameter count from stack
+    LD L, (IX+14)
+    LD H, (IX+15)
+    LD (IX_12), L
+    LD (IX_11), H
+    ; r8 = 255
+    LD A, 255
+    LD H, A         ; Store to physical register H
+    ; store best_id, r8
+    LD A, H
+    LD (IX_1), A
+    ; r10 = 65535
+    LD HL, 65535
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; store best_dist, r10
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD (IX_3), L
+    LD (IX_2), H
+    ; r11 = param count
+    ; Load parameter count
+    ; r12 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r13 = r11 >= r12
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, .ge_true_20
+    JP Z, .ge_true_20
+    LD HL, 0       ; False
+    JP .ge_done_20
+.ge_true_20:
+    LD HL, 1       ; True
+.ge_done_20:
+    ; Register 13 already in HL
+    ; jump_if_not r13, else_37
+    LD A, L
+    OR A
+    JP Z, else_37
+    ; r15 = param query
+    ; Load parameter query
+    ; r16 = param db0
+    ; Load parameter db0
+    ; r17 = param query
+    ; Load parameter query
+    ; r18 = param db0
+    ; Load parameter db0
+    ; r19 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256
+    ; store dist0, r19
+    LD (IX_5), L
+    LD (IX_4), H
+    ; r20 = load dist0
+    LD L, (IX_5)
+    LD H, (IX_4)
+    ; Register 20 already in HL
+    ; r21 = load best_dist
+    LD L, (IX_3)
+    LD H, (IX_2)
+    ; r22 = r20 < r21
+    ; Register 20 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_21
+    LD HL, 0       ; False
+    JP .lt_done_21
+.lt_true_21:
+    LD HL, 1       ; True
+.lt_done_21:
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; jump_if_not r22, else_39
+    LD A, ($F02C)     ; Virtual register 22 from memory
+    OR A
+    JP Z, else_39
+    ; r23 = load dist0
+    LD L, (IX_5)
+    LD H, (IX_4)
+    LD ($F02E), HL    ; Virtual register 23 to memory
+    ; store best_dist, r23
+    LD HL, ($F02E)    ; Virtual register 23 from memory
+    LD (IX_3), L
+    LD (IX_2), H
+    ; r24 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; store best_id, r24
+    LD A, H
+    LD (IX_1), A
+    ; jump end_if_40
+    JP end_if_40
+    ; else_39:
+else_39:
+    ; end_if_40:
+end_if_40:
+    ; jump end_if_38
+    JP end_if_38
+    ; else_37:
+else_37:
+    ; end_if_38:
+end_if_38:
+    ; r25 = param count
+    ; Load parameter count
+    ; r26 = 2
+    LD A, 2
+    LD L, A         ; Store to HL (low byte)
+    ; r27 = r25 >= r26
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, .ge_true_22
+    JP Z, .ge_true_22
+    LD HL, 0       ; False
+    JP .ge_done_22
+.ge_true_22:
+    LD HL, 1       ; True
+.ge_done_22:
+    ; jump_if_not r27, else_41
+    LD A, H
+    OR A
+    JP Z, else_41
+    ; r29 = param query
+    ; Load parameter query
+    ; r30 = param db1
+    ; Load parameter db1
+    ; r31 = param query
+    ; Load parameter query
+    ; r32 = param db1
+    ; Load parameter db1
+    ; r33 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256
+    ; store dist1, r33
+    LD (IX_7), L
+    LD (IX_6), H
+    ; r34 = load dist1
+    LD L, (IX_7)
+    LD H, (IX_6)
+    ; Register 34 already in HL
+    ; r35 = load best_dist
+    LD L, (IX_3)
+    LD H, (IX_2)
+    ; r36 = r34 < r35
+    ; Register 34 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_23
+    LD HL, 0       ; False
+    JP .lt_done_23
+.lt_true_23:
+    LD HL, 1       ; True
+.lt_done_23:
+    LD ($F048), HL    ; Virtual register 36 to memory
+    ; jump_if_not r36, else_43
+    LD A, ($F048)     ; Virtual register 36 from memory
+    OR A
+    JP Z, else_43
+    ; r37 = load dist1
+    LD L, (IX_7)
+    LD H, (IX_6)
+    LD ($F04A), HL    ; Virtual register 37 to memory
+    ; store best_dist, r37
+    LD HL, ($F04A)    ; Virtual register 37 from memory
+    LD (IX_3), L
+    LD (IX_2), H
+    ; r38 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; store best_id, r38
+    LD A, H
+    LD (IX_1), A
+    ; jump end_if_44
+    JP end_if_44
+    ; else_43:
+else_43:
+    ; end_if_44:
+end_if_44:
+    ; jump end_if_42
+    JP end_if_42
+    ; else_41:
+else_41:
+    ; end_if_42:
+end_if_42:
+    ; r39 = param count
+    ; Load parameter count
+    ; r40 = 3
+    LD A, 3
+    LD L, A         ; Store to HL (low byte)
+    ; r41 = r39 >= r40
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, .ge_true_24
+    JP Z, .ge_true_24
+    LD HL, 0       ; False
+    JP .ge_done_24
+.ge_true_24:
+    LD HL, 1       ; True
+.ge_done_24:
+    ; jump_if_not r41, else_45
+    LD A, H
+    OR A
+    JP Z, else_45
+    ; r43 = param query
+    ; Load parameter query
+    ; r44 = param db2
+    ; Load parameter db2
+    ; r45 = param query
+    ; Load parameter query
+    ; r46 = param db2
+    ; Load parameter db2
+    ; r47 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256
+    ; store dist2, r47
+    LD (IX_9), L
+    LD (IX_8), H
+    ; r48 = load dist2
+    LD L, (IX_9)
+    LD H, (IX_8)
+    ; Register 48 already in HL
+    ; r49 = load best_dist
+    LD L, (IX_3)
+    LD H, (IX_2)
+    ; r50 = r48 < r49
+    ; Register 48 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_25
+    LD HL, 0       ; False
+    JP .lt_done_25
+.lt_true_25:
+    LD HL, 1       ; True
+.lt_done_25:
+    LD ($F064), HL    ; Virtual register 50 to memory
+    ; jump_if_not r50, else_47
+    LD A, ($F064)     ; Virtual register 50 from memory
+    OR A
+    JP Z, else_47
+    ; r51 = load dist2
+    LD L, (IX_9)
+    LD H, (IX_8)
+    LD ($F066), HL    ; Virtual register 51 to memory
+    ; store best_dist, r51
+    LD HL, ($F066)    ; Virtual register 51 from memory
+    LD (IX_3), L
+    LD (IX_2), H
+    ; r52 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; store best_id, r52
+    LD A, H
+    LD (IX_1), A
+    ; jump end_if_48
+    JP end_if_48
+    ; else_47:
+else_47:
+    ; end_if_48:
+end_if_48:
+    ; jump end_if_46
+    JP end_if_46
+    ; else_45:
+else_45:
+    ; end_if_46:
+end_if_46:
+    ; r53 = param count
+    ; Load parameter count
+    ; r54 = 4
+    LD A, 4
+    LD L, A         ; Store to HL (low byte)
+    ; r55 = r53 >= r54
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, .ge_true_26
+    JP Z, .ge_true_26
+    LD HL, 0       ; False
+    JP .ge_done_26
+.ge_true_26:
+    LD HL, 1       ; True
+.ge_done_26:
+    ; jump_if_not r55, else_49
+    LD A, H
+    OR A
+    JP Z, else_49
+    ; r57 = param query
+    ; Load parameter query
+    ; r58 = param db3
+    ; Load parameter db3
+    ; r59 = param query
+    ; Load parameter query
+    ; r60 = param db3
+    ; Load parameter db3
+    ; r61 = call .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.calc_hamming$Vector256$Vector256 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_calc_hamming_Vector256_Vector256
+    ; store dist3, r61
+    LD (IX_11), L
+    LD (IX_10), H
+    ; r62 = load dist3
+    LD L, (IX_11)
+    LD H, (IX_10)
+    ; Register 62 already in HL
+    ; r63 = load best_dist
+    LD L, (IX_3)
+    LD H, (IX_2)
+    ; r64 = r62 < r63
+    ; Register 62 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, .lt_true_27
+    LD HL, 0       ; False
+    JP .lt_done_27
+.lt_true_27:
+    LD HL, 1       ; True
+.lt_done_27:
+    LD ($F080), HL    ; Virtual register 64 to memory
+    ; jump_if_not r64, else_51
+    LD A, ($F080)     ; Virtual register 64 from memory
+    OR A
+    JP Z, else_51
+    ; r65 = load dist3
+    LD L, (IX_11)
+    LD H, (IX_10)
+    ; Register 65 already in HL
+    ; store best_dist, r65
+    ; Register 65 already in HL
+    LD (IX_3), L
+    LD (IX_2), H
+    ; r66 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; store best_id, r66
+    LD A, H
+    LD (IX_1), A
+    ; jump end_if_52
+    JP end_if_52
+    ; else_51:
+else_51:
+    ; end_if_52:
+end_if_52:
+    ; jump end_if_50
+    JP end_if_50
+    ; else_49:
+else_49:
+    ; end_if_50:
+end_if_50:
+    ; r67 = load best_id
+    LD A, (IX_1)
+    LD L, A         ; Store to physical register L
+    ; return r67
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.zvdb-minz.zvdb_test.main
+.Users_alice_dev_zvdb_minz_zvdb_test_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_10)
+    LD HL, str_10
+    LD ($F002), HL    ; Virtual register 1 to memory
+    ; Print "ZVDB E2E Test Suite
+" (20 chars via loop)
+    LD HL, ($F002)    ; Virtual register 1 from memory
+    CALL print_string
+    ; r2 = string(str_11)
+    LD HL, str_11
+    ; Print "==================
+" (19 chars via loop)
+    CALL print_string
+    ; r3 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_popcount
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.test_popcount (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_test_popcount
+    ; r4 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_hamming
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.test_hamming (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_test_hamming
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; r5 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_similarity
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.test_similarity (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_test_similarity
+    ; r6 = call .Users.alice.dev.zvdb-minz.zvdb_test.test_search
+    ; Call to .Users.alice.dev.zvdb-minz.zvdb_test.test_search (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_zvdb_minz_zvdb_test_test_search
+    ; r7 = string(str_12)
+    LD HL, str_12
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; Print "
+=== Test Summary ===
+" (22 chars via loop)
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    CALL print_string
+    ; Direct print "Passed: " (8 chars)
+    ; Direct print "Passed: " (8 chars)
+    LD A, 80
+    RST 16             ; Print character
+    LD A, 97
+    RST 16             ; Print character
+    LD A, 115
+    RST 16             ; Print character
+    LD A, 115
+    RST 16             ; Print character
+    LD A, 101
+    RST 16             ; Print character
+    LD A, 100
+    RST 16             ; Print character
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; Direct print "Failed: " (8 chars)
+    ; Direct print "Failed: " (8 chars)
+    LD A, 70
+    RST 16             ; Print character
+    LD A, 97
+    RST 16             ; Print character
+    LD A, 105
+    RST 16             ; Print character
+    LD A, 108
+    RST 16             ; Print character
+    LD A, 101
+    RST 16             ; Print character
+    LD A, 100
+    RST 16             ; Print character
+    LD A, 58
+    RST 16             ; Print character
+    LD A, 32
+    RST 16             ; Print character
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; r8 = load .Users.alice.dev.zvdb-minz.zvdb_test.tests_failed
+    LD HL, ($F020)
+    ; r9 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r10 = r8 == r9
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, .eq_true_28
+    LD HL, 0       ; False
+    JP .eq_done_28
+.eq_true_28:
+    LD HL, 1       ; True
+.eq_done_28:
+    ; Register 10 already in HL
+    ; jump_if_not r10, else_53
+    LD A, L
+    OR A
+    JP Z, else_53
+    ; r11 = string(str_13)
+    LD HL, str_13
+    ; Print "
+â All tests passed!
+" (26 chars via loop)
+    CALL print_string
+    ; jump end_if_54
+    JP end_if_54
+    ; else_53:
+else_53:
+    ; r12 = string(str_14)
+    LD HL, str_14
+    ; Print "
+â Some tests failed!
+" (27 chars via loop)
+    CALL print_string
+    ; end_if_54:
+end_if_54:
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+    END main

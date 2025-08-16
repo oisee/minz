@@ -1,0 +1,23 @@
+; MinZ generated code
+; Generated: 2025-07-28 08:45:59
+
+
+; Data section
+    ORG $F000
+
+Y:
+    DB 43
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_parse_only.main
+_examples_test_parse_only_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+
+    END main

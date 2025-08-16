@@ -1,0 +1,6 @@
+1   0000             ; Test just (HL) to isolate the issue
+2   0000                 ORG $8000
+3   8000             
+4   8000 7E              LD A, (HL)
+5   8001                 
+6   8001                 END

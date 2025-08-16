@@ -1,0 +1,168 @@
+; MinZ generated code
+; Generated: 2025-07-28 07:45:41
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.fibonacci_tail.fib_tail
+_examples_fibonacci_tail_fib_tail:
+; TRUE SMC function with immediate anchors
+n_immOP:
+    LD A, 0        ; n anchor (will be patched)
+n_imm0 EQU n_immOP+1
+    ; Register 4 already in A
+    ; Tail recursion loop start
+_examples_fibonacci_tail_fib_tail_tail_loop:
+    ; XOR A,A (optimized from LD A,0)
+    XOR A
+    LD B, A         ; Store to physical register B
+    ; r6 = r4 == r5
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r6, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+a_immOP:
+    LD HL, 0       ; a anchor (will be patched)
+a_imm0 EQU a_immOP+1
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; return r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    RET
+    ; else_1:
+else_1:
+    LD A, (n_imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r9 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r10 = r8 == r9
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    ; jump_if_not r10, else_3
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_3
+b_immOP:
+    LD HL, 0       ; b anchor (will be patched)
+b_imm0 EQU b_immOP+1
+    LD B, H
+    LD C, L
+    ; return r11
+    LD H, B
+    LD L, C
+    RET
+    ; else_3:
+else_3:
+    LD A, (n_imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    LD HL, (b_imm0)   ; Reuse from anchor
+    ; Register 15 already in HL
+    LD HL, (a_imm0)   ; Reuse from anchor
+    LD ($F020), HL    ; Virtual register 16 to memory
+    LD HL, (b_imm0)   ; Reuse from anchor
+    ; Register 17 already in HL
+    ; Tail recursion optimized to loop
+    JP ...examples.fibonacci_tail.fib_tail_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.fibonacci_tail.fibonacci
+_examples_fibonacci_tail_fibonacci:
+; TRUE SMC function with immediate anchors
+n_immOP:
+    LD A, 0        ; n anchor (will be patched)
+n_imm0 EQU n_immOP+1
+    LD H, A         ; Store to physical register H
+    ; r5 = call fib_tail
+    ; Call to fib_tail (args: 3)
+    ; Stack-based parameter passing
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    PUSH HL       ; Argument 2
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ...examples.fibonacci_tail.fib_tail
+    LD A, H
+    LD (n_imm0), A        ; Patch n
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD (a_imm0), HL       ; Patch a (atomic)
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD (b_imm0), HL       ; Patch b (atomic)
+    CALL ...examples.fibonacci_tail.fib_tail
+    ; return r5
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.fibonacci_tail.main
+_examples_fibonacci_tail_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+    ; r3 = call fibonacci
+    ; Call to fibonacci (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ...examples.fibonacci_tail.fibonacci
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD (n_imm0), A        ; Patch n
+    CALL ...examples.fibonacci_tail.fibonacci
+    ; Register 3 already in HL
+    ; store , r3
+    ; Register 3 already in HL
+    LD ($F002), HL
+    ; return
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW n_imm0           ; ...examples.fibonacci_tail.fib_tail.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW a_imm0           ; ...examples.fibonacci_tail.fib_tail.a
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW b_imm0           ; ...examples.fibonacci_tail.fib_tail.b
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n_imm0           ; ...examples.fibonacci_tail.fibonacci.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+    END main

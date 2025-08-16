@@ -1,0 +1,33 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:38
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.interrupt_handlers.fast_interrupt_handler
+_examples_interrupt_handlers_fast_interrupt_handler:
+; Using absolute addressing for locals
+    ; Load parameters from registers
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.interrupt_handlers.timer_interrupt
+_examples_interrupt_handlers_timer_interrupt:
+; Using absolute addressing for locals
+    ; Load parameters from registers
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.interrupt_handlers.setup_interrupts
+_examples_interrupt_handlers_setup_interrupts:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+
+    END main

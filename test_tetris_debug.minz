@@ -1,0 +1,95 @@
+// Debug Tetris - testing piece by piece
+
+// Game constants
+global BOARD_WIDTH: u8 = 10;
+global BOARD_HEIGHT: u8 = 20;
+
+// Tetromino types
+enum PieceType {
+    I,
+    O,
+    T,
+    S,
+    Z,
+    J,
+    L,
+    EMPTY
+}
+
+// Rotation states
+enum Rotation {
+    R0,
+    R90,
+    R180,
+    R270
+}
+
+// Point structure
+struct Point {
+    x: u8,
+    y: u8
+}
+
+// Active piece
+struct Piece {
+    piece_type: PieceType,
+    rotation: Rotation,
+    position: Point,
+    blocks: [Point; 4]
+}
+
+// Game board  
+struct Board {
+    grid: [[u8; 10]; 20],  // Use literal numbers
+    lines_cleared: u16,
+    level: u8,
+    score: u16  // MinZ doesn't support u32
+}
+
+// ZX Spectrum screen routines (from Tetris)
+fun clear_screen() -> void {
+    @asm {
+        LD HL, 16384
+        LD BC, 6144
+        XOR A
+    clear_loop:
+        LD (HL), A
+        INC HL
+        DEC BC
+        LD A, B
+        OR C
+        JR NZ, clear_loop
+    }
+}
+
+// Tetromino shape function - try different pointer syntax
+fun get_piece_blocks(piece_type: PieceType, rotation: Rotation, blocks: *Point) -> void {
+    if (piece_type == PieceType.I) {
+        blocks[0].x = 0; blocks[0].y = 1;
+        blocks[1].x = 1; blocks[1].y = 1;
+        blocks[2].x = 2; blocks[2].y = 1;
+        blocks[3].x = 3; blocks[3].y = 1;
+    } else {
+        blocks[0].x = 1; blocks[0].y = 0;
+        blocks[1].x = 0; blocks[1].y = 1;
+        blocks[2].x = 1; blocks[2].y = 1;
+        blocks[3].x = 2; blocks[3].y = 1;
+    }
+}
+
+// Test function with array operations
+fun test_board_access() -> void {
+    let mut board: Board;
+    board.grid[0][0] = 1;
+    board.score = 100;
+    print_u8(board.grid[0][0]);
+    clear_screen();
+    
+    // Test piece creation
+    let mut piece: Piece;
+    get_piece_blocks(PieceType.T, Rotation.R0, &piece.blocks[0]);
+}
+
+fun main() -> void {
+    test_board_access();
+}

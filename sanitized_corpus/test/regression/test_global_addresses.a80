@@ -1,0 +1,410 @@
+; MinZ generated code
+; Generated: 2025-07-26 20:40:49
+
+
+; Data section
+global_a:
+    DW 0
+global_b:
+    DW 0
+global_c:
+    DW 0
+array_data:
+    DS 4
+
+; Code section
+    ORG $8000
+
+
+; Function: test.regression.test_global_addresses.test_globals
+test_regression_test_global_addresses_test_globals:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 17
+    LD A, 17
+    LD ($F002), A
+    ; r2 = addr(array_data)
+    LD HL, array_data
+    LD ($F004), HL
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A
+    ; Calculate array element address
+    LD HL, ($F004)
+    LD D, H
+    LD E, L
+    LD HL, ($F006)
+    ADD HL, DE
+    LD ($F008), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F008)
+    PUSH HL
+    LD A, ($F002)
+    POP HL
+    LD (HL), A
+    ; r5 = 34
+    LD A, 34
+    LD ($F00A), A
+    ; r6 = addr(array_data)
+    LD HL, array_data
+    LD ($F00C), HL
+    ; r7 = 1
+    LD A, 1
+    LD ($F00E), A
+    ; Calculate array element address
+    LD HL, ($F00C)
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)
+    ADD HL, DE
+    LD ($F010), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F010)
+    PUSH HL
+    LD A, ($F00A)
+    POP HL
+    LD (HL), A
+    ; r9 = 51
+    LD A, 51
+    LD ($F012), A
+    ; r10 = addr(array_data)
+    LD HL, array_data
+    LD ($F014), HL
+    ; r11 = 2
+    LD A, 2
+    LD ($F016), A
+    ; Calculate array element address
+    LD HL, ($F014)
+    LD D, H
+    LD E, L
+    LD HL, ($F016)
+    ADD HL, DE
+    LD ($F018), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F018)
+    PUSH HL
+    LD A, ($F012)
+    POP HL
+    LD (HL), A
+    ; r13 = 68
+    LD A, 68
+    LD ($F01A), A
+    ; r14 = addr(array_data)
+    LD HL, array_data
+    LD ($F01C), HL
+    ; r15 = 3
+    LD A, 3
+    LD ($F01E), A
+    ; Calculate array element address
+    LD HL, ($F01C)
+    LD D, H
+    LD E, L
+    LD HL, ($F01E)
+    ADD HL, DE
+    LD ($F020), HL
+    ; Store to array[index] (u8)
+    LD HL, ($F020)
+    PUSH HL
+    LD A, ($F01A)
+    POP HL
+    LD (HL), A
+    ; r17 = load global_a
+    LD HL, ($F000)
+    LD ($F022), HL
+    ; r18 = 170
+    LD A, 170
+    LD ($F024), A
+    ; r19 = r17 != r18
+    LD HL, ($F022)
+    LD D, H
+    LD E, L
+    LD HL, ($F024)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP NZ, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    LD ($F026), HL
+    ; jump_if_not r19, else_1
+    LD A, ($F026)
+    OR A
+    JP Z, else_1
+    ; r20 = 0
+    LD A, 0
+    LD ($F028), A
+    ; return r20
+    LD HL, ($F028)
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    ; r21 = load global_b
+    LD HL, ($F020)
+    LD ($F02A), HL
+    ; r22 = 187
+    LD A, 187
+    LD ($F02C), A
+    ; r23 = r21 != r22
+    LD HL, ($F02A)
+    LD D, H
+    LD E, L
+    LD HL, ($F02C)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP NZ, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    LD ($F02E), HL
+    ; jump_if_not r23, else_3
+    LD A, ($F02E)
+    OR A
+    JP Z, else_3
+    ; r24 = 0
+    LD A, 0
+    LD ($F030), A
+    ; return r24
+    LD HL, ($F030)
+    RET
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; end_if_4:
+end_if_4:
+    ; r25 = load global_c
+    LD HL, ($F040)
+    LD ($F032), HL
+    ; r26 = 204
+    LD A, 204
+    LD ($F034), A
+    ; r27 = r25 != r26
+    LD HL, ($F032)
+    LD D, H
+    LD E, L
+    LD HL, ($F034)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP NZ, .L5
+    LD HL, 0
+    JP .L6
+.L5:
+    LD HL, 1
+.L6:
+    LD ($F036), HL
+    ; jump_if_not r27, else_5
+    LD A, ($F036)
+    OR A
+    JP Z, else_5
+    ; r28 = 0
+    LD A, 0
+    LD ($F038), A
+    ; return r28
+    LD HL, ($F038)
+    RET
+    ; jump end_if_6
+    JP end_if_6
+    ; else_5:
+else_5:
+    ; end_if_6:
+end_if_6:
+    ; r29 = addr(array_data)
+    LD HL, array_data
+    LD ($F03A), HL
+    ; r30 = 0
+    LD A, 0
+    LD ($F03C), A
+    ; Load array element (u8)
+    LD HL, ($F03A)
+    PUSH HL
+    LD A, ($F03C)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F03E), A
+    ; r32 = 17
+    LD A, 17
+    LD ($F040), A
+    ; r33 = r31 != r32
+    LD HL, ($F03E)
+    LD D, H
+    LD E, L
+    LD HL, ($F040)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP NZ, .L7
+    LD HL, 0
+    JP .L8
+.L7:
+    LD HL, 1
+.L8:
+    LD ($F042), HL
+    ; jump_if_not r33, else_7
+    LD A, ($F042)
+    OR A
+    JP Z, else_7
+    ; r34 = 0
+    LD A, 0
+    LD ($F044), A
+    ; return r34
+    LD HL, ($F044)
+    RET
+    ; jump end_if_8
+    JP end_if_8
+    ; else_7:
+else_7:
+    ; end_if_8:
+end_if_8:
+    ; r35 = addr(array_data)
+    LD HL, array_data
+    LD ($F046), HL
+    ; r36 = 3
+    LD A, 3
+    LD ($F048), A
+    ; Load array element (u8)
+    LD HL, ($F046)
+    PUSH HL
+    LD A, ($F048)
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F04A), A
+    ; r38 = 68
+    LD A, 68
+    LD ($F04C), A
+    ; r39 = r37 != r38
+    LD HL, ($F04A)
+    LD D, H
+    LD E, L
+    LD HL, ($F04C)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP NZ, .L9
+    LD HL, 0
+    JP .L10
+.L9:
+    LD HL, 1
+.L10:
+    LD ($F04E), HL
+    ; jump_if_not r39, else_9
+    LD A, ($F04E)
+    OR A
+    JP Z, else_9
+    ; r40 = 0
+    LD A, 0
+    LD ($F050), A
+    ; return r40
+    LD HL, ($F050)
+    RET
+    ; jump end_if_10
+    JP end_if_10
+    ; else_9:
+else_9:
+    ; end_if_10:
+end_if_10:
+    ; r41 = 85
+    LD A, 85
+    LD ($F052), A
+    ; store global_a, r41
+    LD HL, ($F052)
+    LD ($F000), HL
+    ; r42 = 102
+    LD A, 102
+    LD ($F054), A
+    ; store global_b, r42
+    LD HL, ($F054)
+    LD ($F020), HL
+    ; r43 = load global_c
+    LD HL, ($F040)
+    LD ($F056), HL
+    ; r44 = 204
+    LD A, 204
+    LD ($F058), A
+    ; r45 = r43 != r44
+    LD HL, ($F056)
+    LD D, H
+    LD E, L
+    LD HL, ($F058)
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP NZ, .L11
+    LD HL, 0
+    JP .L12
+.L11:
+    LD HL, 1
+.L12:
+    LD ($F05A), HL
+    ; jump_if_not r45, else_11
+    LD A, ($F05A)
+    OR A
+    JP Z, else_11
+    ; r46 = 0
+    LD A, 0
+    LD ($F05C), A
+    ; return r46
+    LD HL, ($F05C)
+    RET
+    ; jump end_if_12
+    JP end_if_12
+    ; else_11:
+else_11:
+    ; end_if_12:
+end_if_12:
+    ; r47 = 1
+    LD A, 1
+    LD ($F05E), A
+    ; return r47
+    LD HL, ($F05E)
+    RET
+
+; Function: test.regression.test_global_addresses.main
+test_regression_test_global_addresses_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call test_globals
+    ; Call to test_globals (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_globals
+    LD ($F002), HL
+    ; jump_if_not r1, else_13
+    LD A, ($F002)
+    OR A
+    JP Z, else_13
+    ; r3 = 16384
+    LD HL, 16384
+    LD ($F006), HL
+    ; store , r3
+    LD HL, ($F006)
+    LD ($F004), HL
+    ; asm { ld a, 0xFF
+ld (0x4000), a ; Write success marker }
+    ld a, 0xFF
+    ld (0x4000), a ; Write success marker
+    ; jump end_if_14
+    JP end_if_14
+    ; else_13:
+else_13:
+    ; end_if_14:
+end_if_14:
+    ; return
+    RET
+
+    END main

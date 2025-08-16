@@ -1,0 +1,16 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.debug_struct_fields.main() -> void
+  @smc
+  Locals:
+    r1 = p: .Users.alice.dev.minz-ts.debug_struct_fields.Point
+  Instructions:
+      0: r2 = 5
+      1: r3 = load p
+      2: STORE_FIELD ; Store to field x (offset 0)
+      3: r4 = load p
+      4: LOAD_FIELD ; Load field x (offset 0)
+      5: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      6: return
+

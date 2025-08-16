@@ -1,0 +1,102 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:37
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.basic_functions.add
+_examples_basic_functions_add:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD C, A         ; Store to physical register C
+    LD A, E       ; Get parameter b
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = param a
+    ; Load parameter a
+    ; r4 = param b
+    ; Load parameter b
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.basic_functions.main
+_examples_basic_functions_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD E, A         ; Store to physical register E
+    ; store , r2
+    LD ($F002), HL
+    ; r4 = 3
+    LD A, 3
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; store , r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD ($F006), HL
+    ; r6 = load x
+    LD HL, ($F002)
+    ; r7 = load y
+    LD HL, ($F006)
+    ; r8 = call add
+    ; Call to add (args: 2)
+    ; Register-based parameter passing
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    ; Parameter a in A
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD E, A       ; Parameter b in E
+    ; Found function, UsesTrueSMC=false
+    CALL add
+    ; store , r8
+    LD ($F00A), HL
+    ; r10 = 0
+    LD A, 0
+    LD C, A         ; Store to physical register C
+    ; store , r10
+    LD ($F012), HL
+    ; loop_1:
+loop_1:
+    ; r11 = load i
+    LD HL, ($F012)
+    ; r12 = 10
+    LD A, 10
+    ; Register 12 already in A
+    ; r13 = r11 < r12
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r13, end_loop_2
+    ; Register 13 already in A
+    OR A
+    JP Z, end_loop_2
+    ; jump loop_1
+    JP loop_1
+    ; end_loop_2:
+end_loop_2:
+    ; return
+    RET
+
+    END main

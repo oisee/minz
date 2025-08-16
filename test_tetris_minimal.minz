@@ -1,0 +1,22 @@
+// Minimal Tetris test to find parse issues
+
+enum PieceType {
+    I,
+    O,
+    T
+}
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun test_basic() -> void {
+    let mut grid: [[u8; 10]; 20];
+    grid[0][0] = 1;
+    print_u8(grid[0][0]);
+}
+
+fun main() -> void {
+    test_basic();
+}

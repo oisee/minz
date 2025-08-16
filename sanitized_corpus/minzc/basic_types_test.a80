@@ -1,0 +1,1032 @@
+; MinZ generated code
+; Generated: 2025-08-11 21:36:44
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.feature_tests.01_basic_types.test_unsigned_types
+_examples_feature_tests_01_basic_types_test_unsigned_types:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 255
+    LD A, 255
+    ; Register 2 already in A
+    ; store a, r2
+    ; Register 2 already in A
+    LD ($F002), A
+    ; r4 = 1
+    LD A, 1
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; store b, r4
+    LD A, ($F008)     ; Virtual register 4 from memory
+    LD ($F006), A
+    ; r6 = load a
+    LD A, ($F002)
+    LD E, A         ; Store to physical register E
+    ; r7 = load b
+    LD A, ($F006)
+    LD H, A         ; Store to physical register H
+    ; r8 = r6 + r7
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store c, r8
+    LD ($F00A), HL
+    ; r9 = load c
+    LD HL, ($F00A)
+    ; r10 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r11 = r9 != r10
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___examples_feature_tests_01_basic_types_test_unsigned_types_ne_true_0
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_unsigned_types_ne_done_0
+_examples_feature_tests_01_basic_types_test_unsigned_types_ne_true_0:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_unsigned_types_ne_done_0:
+    ; jump_if_not r11, else_1
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_unsigned_types_else_1
+    ; r12 = 0
+    LD A, 0
+    LD C, A         ; Store to physical register C
+    ; return r12
+    RET
+    ; jump end_if_2
+    JP ___examples_feature_tests_01_basic_types_test_unsigned_types_end_if_2
+    ; else_1:
+_examples_feature_tests_01_basic_types_test_unsigned_types_else_1:
+    ; end_if_2:
+_examples_feature_tests_01_basic_types_test_unsigned_types_end_if_2:
+    ; r14 = 65535
+    LD HL, 65535
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; store x, r14
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    LD ($F01A), HL
+    ; r16 = 1
+    LD A, 1
+    LD C, A         ; Store to physical register C
+    ; store y, r16
+    LD ($F01E), HL
+    ; r18 = load x
+    LD HL, ($F01A)
+    ; Register 18 already in HL
+    ; r19 = load y
+    LD HL, ($F01E)
+    ; r20 = r18 + r19
+    ; Register 18 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F028), HL    ; Virtual register 20 to memory
+    ; store z, r20
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    LD ($F022), HL
+    ; r21 = load z
+    LD HL, ($F022)
+    ; Register 21 already in HL
+    ; r22 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r23 = r21 != r22
+    ; Register 21 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___examples_feature_tests_01_basic_types_test_unsigned_types_ne_true_1
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_unsigned_types_ne_done_1
+_examples_feature_tests_01_basic_types_test_unsigned_types_ne_true_1:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_unsigned_types_ne_done_1:
+    LD ($F02E), HL    ; Virtual register 23 to memory
+    ; jump_if_not r23, else_3
+    LD A, ($F02E)     ; Virtual register 23 from memory
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_unsigned_types_else_3
+    ; r24 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; return r24
+    ; Register 24 already in HL
+    RET
+    ; jump end_if_4
+    JP ___examples_feature_tests_01_basic_types_test_unsigned_types_end_if_4
+    ; else_3:
+_examples_feature_tests_01_basic_types_test_unsigned_types_else_3:
+    ; end_if_4:
+_examples_feature_tests_01_basic_types_test_unsigned_types_end_if_4:
+    ; r25 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; return r25
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.feature_tests.01_basic_types.test_signed_types
+_examples_feature_tests_01_basic_types_test_signed_types:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 127
+    LD A, 127
+    LD L, A         ; Store to physical register L
+    ; store a, r2
+    LD A, L
+    LD ($F002), A
+    ; r4 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; store b, r4
+    LD A, H
+    LD ($F006), A
+    ; r6 = load a
+    LD A, ($F002)
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r7 = load b
+    LD A, ($F006)
+    LD H, A         ; Store to physical register H
+    ; r8 = r6 + r7
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store c, r8
+    LD ($F00A), HL
+    ; r9 = load c
+    LD HL, ($F00A)
+    ; r10 = 128
+    LD A, 128
+    LD L, A         ; Store to physical register L
+    ; r11 = -r10
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; Register 11 already in HL
+    ; r12 = r9 != r11
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___examples_feature_tests_01_basic_types_test_signed_types_ne_true_2
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_signed_types_ne_done_2
+_examples_feature_tests_01_basic_types_test_signed_types_ne_true_2:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_signed_types_ne_done_2:
+    ; jump_if_not r12, else_5
+    LD A, H
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_signed_types_else_5
+    ; r13 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r13
+    RET
+    ; jump end_if_6
+    JP ___examples_feature_tests_01_basic_types_test_signed_types_end_if_6
+    ; else_5:
+_examples_feature_tests_01_basic_types_test_signed_types_else_5:
+    ; end_if_6:
+_examples_feature_tests_01_basic_types_test_signed_types_end_if_6:
+    ; r15 = 32767
+    LD HL, 32767
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; store x, r15
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    LD ($F01C), HL
+    ; r17 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; store y, r17
+    ; Register 17 already in HL
+    LD ($F020), HL
+    ; r19 = load x
+    LD HL, ($F01C)
+    ; Register 19 already in HL
+    ; r20 = load y
+    LD HL, ($F020)
+    ; r21 = r19 + r20
+    ; Register 19 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F02A), HL    ; Virtual register 21 to memory
+    ; store z, r21
+    LD HL, ($F02A)    ; Virtual register 21 from memory
+    LD ($F024), HL
+    ; r22 = load z
+    LD HL, ($F024)
+    ; Register 22 already in HL
+    ; r23 = 32768
+    LD HL, 32768
+    ; r24 = -r23
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; Register 24 already in HL
+    ; r25 = r22 != r24
+    ; Register 22 already in HL
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___examples_feature_tests_01_basic_types_test_signed_types_ne_true_3
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_signed_types_ne_done_3
+_examples_feature_tests_01_basic_types_test_signed_types_ne_true_3:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_signed_types_ne_done_3:
+    LD ($F032), HL    ; Virtual register 25 to memory
+    ; jump_if_not r25, else_7
+    LD A, ($F032)     ; Virtual register 25 from memory
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_signed_types_else_7
+    ; r26 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; return r26
+    ; Register 26 already in HL
+    RET
+    ; jump end_if_8
+    JP ___examples_feature_tests_01_basic_types_test_signed_types_end_if_8
+    ; else_7:
+_examples_feature_tests_01_basic_types_test_signed_types_else_7:
+    ; end_if_8:
+_examples_feature_tests_01_basic_types_test_signed_types_end_if_8:
+    ; r27 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; return r27
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.feature_tests.01_basic_types.test_boolean_ops
+_examples_feature_tests_01_basic_types_test_boolean_ops:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; store t, r2
+    LD ($F002), HL
+    ; r4 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; store f, r4
+    LD ($F006), HL
+    ; r5 = load t
+    LD HL, ($F002)
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; r6 = load t
+    LD HL, ($F002)
+    ; unknown op 60
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    OR A           ; Test if zero
+    JR Z, land_false_4       ; Skip if first operand is false
+    LD A, H
+    OR A           ; Test if zero
+    JR Z, land_false_4       ; Skip if second operand is false
+    LD A, 1        ; Result is true
+    JR land_end_5
+land_false_4:
+    XOR A          ; Result is false (0)
+land_end_5:
+    LD L, A         ; Store to physical register L
+    ; r8 = ~r7
+    LD A, L
+    CPL           ; Complement A
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; jump_if_not r8, else_9
+    LD A, ($F010)     ; Virtual register 8 from memory
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_boolean_ops_else_9
+    ; r9 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; return r9
+    RET
+    ; jump end_if_10
+    JP ___examples_feature_tests_01_basic_types_test_boolean_ops_end_if_10
+    ; else_9:
+_examples_feature_tests_01_basic_types_test_boolean_ops_else_9:
+    ; end_if_10:
+_examples_feature_tests_01_basic_types_test_boolean_ops_end_if_10:
+    ; r10 = load t
+    LD HL, ($F002)
+    ; r11 = load f
+    LD HL, ($F006)
+    LD ($F016), HL    ; Virtual register 11 to memory
+    ; unknown op 60
+    LD A, L
+    OR A           ; Test if zero
+    JR Z, land_false_6       ; Skip if first operand is false
+    LD A, ($F016)     ; Virtual register 11 from memory
+    OR A           ; Test if zero
+    JR Z, land_false_6       ; Skip if second operand is false
+    LD A, 1        ; Result is true
+    JR land_end_7
+land_false_6:
+    XOR A          ; Result is false (0)
+land_end_7:
+    LD H, A         ; Store to physical register H
+    ; jump_if_not r12, else_11
+    LD A, H
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_boolean_ops_else_11
+    ; r13 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r13
+    RET
+    ; jump end_if_12
+    JP ___examples_feature_tests_01_basic_types_test_boolean_ops_end_if_12
+    ; else_11:
+_examples_feature_tests_01_basic_types_test_boolean_ops_else_11:
+    ; end_if_12:
+_examples_feature_tests_01_basic_types_test_boolean_ops_end_if_12:
+    ; r14 = load t
+    LD HL, ($F002)
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; r15 = load f
+    LD HL, ($F006)
+    ; unknown op 61
+    LD A, ($F01C)     ; Virtual register 14 from memory
+    OR A           ; Test if zero
+    JR NZ, lor_true_8      ; Skip if first operand is true
+    LD A, H
+    OR A           ; Test if zero
+    JR NZ, lor_true_8      ; Skip if second operand is true
+    XOR A          ; Result is false
+    JR lor_end_9
+lor_true_8:
+    LD A, 1        ; Result is true (1)
+lor_end_9:
+    LD L, A         ; Store to physical register L
+    ; r17 = ~r16
+    LD A, L
+    CPL           ; Complement A
+    LD ($F022), A     ; Virtual register 17 to memory
+    ; jump_if_not r17, else_13
+    LD A, ($F022)     ; Virtual register 17 from memory
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_boolean_ops_else_13
+    ; r18 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; return r18
+    RET
+    ; jump end_if_14
+    JP ___examples_feature_tests_01_basic_types_test_boolean_ops_end_if_14
+    ; else_13:
+_examples_feature_tests_01_basic_types_test_boolean_ops_else_13:
+    ; end_if_14:
+_examples_feature_tests_01_basic_types_test_boolean_ops_end_if_14:
+    ; r19 = load f
+    LD HL, ($F006)
+    ; r20 = load f
+    LD HL, ($F006)
+    LD ($F028), HL    ; Virtual register 20 to memory
+    ; unknown op 61
+    LD A, L
+    OR A           ; Test if zero
+    JR NZ, lor_true_10      ; Skip if first operand is true
+    LD A, ($F028)     ; Virtual register 20 from memory
+    OR A           ; Test if zero
+    JR NZ, lor_true_10      ; Skip if second operand is true
+    XOR A          ; Result is false
+    JR lor_end_11
+lor_true_10:
+    LD A, 1        ; Result is true (1)
+lor_end_11:
+    LD H, A         ; Store to physical register H
+    ; jump_if_not r21, else_15
+    LD A, H
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_boolean_ops_else_15
+    ; r22 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r22
+    RET
+    ; jump end_if_16
+    JP ___examples_feature_tests_01_basic_types_test_boolean_ops_end_if_16
+    ; else_15:
+_examples_feature_tests_01_basic_types_test_boolean_ops_else_15:
+    ; end_if_16:
+_examples_feature_tests_01_basic_types_test_boolean_ops_end_if_16:
+    ; r23 = load t
+    LD HL, ($F002)
+    LD ($F02E), HL    ; Virtual register 23 to memory
+    ; r24 = ~r23
+    LD A, ($F02E)     ; Virtual register 23 from memory
+    CPL           ; Complement A
+    LD H, A         ; Store to physical register H
+    ; jump_if_not r24, else_17
+    LD A, H
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_boolean_ops_else_17
+    ; r25 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r25
+    RET
+    ; jump end_if_18
+    JP ___examples_feature_tests_01_basic_types_test_boolean_ops_end_if_18
+    ; else_17:
+_examples_feature_tests_01_basic_types_test_boolean_ops_else_17:
+    ; end_if_18:
+_examples_feature_tests_01_basic_types_test_boolean_ops_end_if_18:
+    ; r26 = load f
+    LD HL, ($F006)
+    LD ($F034), HL    ; Virtual register 26 to memory
+    ; r27 = ~r26
+    LD A, ($F034)     ; Virtual register 26 from memory
+    CPL           ; Complement A
+    LD H, A         ; Store to physical register H
+    ; r28 = ~r27
+    LD A, H
+    CPL           ; Complement A
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r28, else_19
+    LD A, L
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_boolean_ops_else_19
+    ; r29 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; return r29
+    ; Register 29 already in HL
+    RET
+    ; jump end_if_20
+    JP ___examples_feature_tests_01_basic_types_test_boolean_ops_end_if_20
+    ; else_19:
+_examples_feature_tests_01_basic_types_test_boolean_ops_else_19:
+    ; end_if_20:
+_examples_feature_tests_01_basic_types_test_boolean_ops_end_if_20:
+    ; r30 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; return r30
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.feature_tests.01_basic_types.test_comparisons
+_examples_feature_tests_01_basic_types_test_comparisons:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; store a, r2
+    LD A, L
+    LD ($F002), A
+    ; r4 = 20
+    LD A, 20
+    LD H, A         ; Store to physical register H
+    ; store b, r4
+    LD A, H
+    LD ($F006), A
+    ; r5 = load a
+    LD A, ($F002)
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = load b
+    LD A, ($F006)
+    LD H, A         ; Store to physical register H
+    ; r7 = r5 < r6
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, ___examples_feature_tests_01_basic_types_test_comparisons_lt_true_12
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_lt_done_12
+_examples_feature_tests_01_basic_types_test_comparisons_lt_true_12:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_comparisons_lt_done_12:
+    ; r8 = ~r7
+    LD A, L
+    CPL           ; Complement A
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; jump_if_not r8, else_21
+    LD A, ($F010)     ; Virtual register 8 from memory
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_comparisons_else_21
+    ; r9 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; return r9
+    RET
+    ; jump end_if_22
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_end_if_22
+    ; else_21:
+_examples_feature_tests_01_basic_types_test_comparisons_else_21:
+    ; end_if_22:
+_examples_feature_tests_01_basic_types_test_comparisons_end_if_22:
+    ; r10 = load b
+    LD A, ($F006)
+    LD L, A         ; Store to physical register L
+    ; r11 = load a
+    LD A, ($F002)
+    LD ($F016), A     ; Virtual register 11 to memory
+    ; r12 = r10 > r11
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, ___examples_feature_tests_01_basic_types_test_comparisons_gt_check_zero_13
+    LD HL, 0       ; False (negative)
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_gt_done_13
+_examples_feature_tests_01_basic_types_test_comparisons_gt_check_zero_13:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, ___examples_feature_tests_01_basic_types_test_comparisons_gt_false_13
+    LD HL, 1       ; True (positive and non_zero)
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_gt_done_13
+_examples_feature_tests_01_basic_types_test_comparisons_gt_false_13:
+    LD HL, 0       ; False (zero)
+_examples_feature_tests_01_basic_types_test_comparisons_gt_done_13:
+    ; r13 = ~r12
+    LD A, H
+    CPL           ; Complement A
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r13, else_23
+    LD A, L
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_comparisons_else_23
+    ; r14 = 0
+    LD A, 0
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; return r14
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    RET
+    ; jump end_if_24
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_end_if_24
+    ; else_23:
+_examples_feature_tests_01_basic_types_test_comparisons_else_23:
+    ; end_if_24:
+_examples_feature_tests_01_basic_types_test_comparisons_end_if_24:
+    ; r15 = load a
+    LD A, ($F002)
+    LD H, A         ; Store to physical register H
+    ; r16 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; r17 = r15 <= r16
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, ___examples_feature_tests_01_basic_types_test_comparisons_le_true_14
+    JP Z, ___examples_feature_tests_01_basic_types_test_comparisons_le_true_14
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_le_done_14
+_examples_feature_tests_01_basic_types_test_comparisons_le_true_14:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_comparisons_le_done_14:
+    LD ($F022), HL    ; Virtual register 17 to memory
+    ; r18 = ~r17
+    LD A, ($F022)     ; Virtual register 17 from memory
+    CPL           ; Complement A
+    LD H, A         ; Store to physical register H
+    ; jump_if_not r18, else_25
+    LD A, H
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_comparisons_else_25
+    ; r19 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r19
+    RET
+    ; jump end_if_26
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_end_if_26
+    ; else_25:
+_examples_feature_tests_01_basic_types_test_comparisons_else_25:
+    ; end_if_26:
+_examples_feature_tests_01_basic_types_test_comparisons_end_if_26:
+    ; r20 = load b
+    LD A, ($F006)
+    LD ($F028), A     ; Virtual register 20 to memory
+    ; r21 = 20
+    LD A, 20
+    LD H, A         ; Store to physical register H
+    ; r22 = r20 >= r21
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, ___examples_feature_tests_01_basic_types_test_comparisons_ge_true_15
+    JP Z, ___examples_feature_tests_01_basic_types_test_comparisons_ge_true_15
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_ge_done_15
+_examples_feature_tests_01_basic_types_test_comparisons_ge_true_15:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_comparisons_ge_done_15:
+    ; r23 = ~r22
+    LD A, L
+    CPL           ; Complement A
+    LD ($F02E), A     ; Virtual register 23 to memory
+    ; jump_if_not r23, else_27
+    LD A, ($F02E)     ; Virtual register 23 from memory
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_comparisons_else_27
+    ; r24 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; return r24
+    RET
+    ; jump end_if_28
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_end_if_28
+    ; else_27:
+_examples_feature_tests_01_basic_types_test_comparisons_else_27:
+    ; end_if_28:
+_examples_feature_tests_01_basic_types_test_comparisons_end_if_28:
+    ; r25 = load a
+    LD A, ($F002)
+    LD L, A         ; Store to physical register L
+    ; r26 = load b
+    LD A, ($F006)
+    LD ($F034), A     ; Virtual register 26 to memory
+    ; r27 = r25 == r26
+    LD HL, ($F034)    ; Virtual register 26 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___examples_feature_tests_01_basic_types_test_comparisons_eq_true_16
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_eq_done_16
+_examples_feature_tests_01_basic_types_test_comparisons_eq_true_16:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_comparisons_eq_done_16:
+    ; jump_if_not r27, else_29
+    LD A, H
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_comparisons_else_29
+    ; r28 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r28
+    RET
+    ; jump end_if_30
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_end_if_30
+    ; else_29:
+_examples_feature_tests_01_basic_types_test_comparisons_else_29:
+    ; end_if_30:
+_examples_feature_tests_01_basic_types_test_comparisons_end_if_30:
+    ; r29 = load a
+    LD A, ($F002)
+    LD ($F03A), A     ; Virtual register 29 to memory
+    ; r30 = load b
+    LD A, ($F006)
+    LD H, A         ; Store to physical register H
+    ; r31 = r29 != r30
+    LD HL, ($F03A)    ; Virtual register 29 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___examples_feature_tests_01_basic_types_test_comparisons_ne_true_17
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_ne_done_17
+_examples_feature_tests_01_basic_types_test_comparisons_ne_true_17:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_comparisons_ne_done_17:
+    ; r32 = ~r31
+    LD A, L
+    CPL           ; Complement A
+    LD L, A         ; Store to HL (low byte)
+    ; jump_if_not r32, else_31
+    LD A, L
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_comparisons_else_31
+    ; r33 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; return r33
+    RET
+    ; jump end_if_32
+    JP ___examples_feature_tests_01_basic_types_test_comparisons_end_if_32
+    ; else_31:
+_examples_feature_tests_01_basic_types_test_comparisons_else_31:
+    ; end_if_32:
+_examples_feature_tests_01_basic_types_test_comparisons_end_if_32:
+    ; r34 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; return r34
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.feature_tests.01_basic_types.test_type_casting
+_examples_feature_tests_01_basic_types_test_type_casting:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 100
+    LD A, 100
+    LD L, A         ; Store to HL (low byte)
+    ; store a, r2
+    LD A, L
+    LD ($F002), A
+    ; r4 = load a
+    LD A, ($F002)
+    LD L, A         ; Store to physical register L
+    ; store b, r4
+    LD ($F006), HL
+    ; r5 = load b
+    LD HL, ($F006)
+    ; Register 5 already in HL
+    ; r6 = 100
+    LD A, 100
+    LD H, A         ; Store to physical register H
+    ; r7 = r5 != r6
+    ; Register 5 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___examples_feature_tests_01_basic_types_test_type_casting_ne_true_18
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_type_casting_ne_done_18
+_examples_feature_tests_01_basic_types_test_type_casting_ne_true_18:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_type_casting_ne_done_18:
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; jump_if_not r7, else_33
+    LD A, ($F00E)     ; Virtual register 7 from memory
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_type_casting_else_33
+    ; r8 = 0
+    LD A, 0
+    LD ($F010), A     ; Virtual register 8 to memory
+    ; return r8
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    RET
+    ; jump end_if_34
+    JP ___examples_feature_tests_01_basic_types_test_type_casting_end_if_34
+    ; else_33:
+_examples_feature_tests_01_basic_types_test_type_casting_else_33:
+    ; end_if_34:
+_examples_feature_tests_01_basic_types_test_type_casting_end_if_34:
+    ; r10 = 50
+    LD A, 50
+    LD H, A         ; Store to physical register H
+    ; r11 = -r10
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; store c, r11
+    LD A, L
+    LD ($F012), A
+    ; r13 = load c
+    LD A, ($F012)
+    LD H, A         ; Store to physical register H
+    ; store d, r13
+    LD ($F018), HL
+    ; r14 = load d
+    LD HL, ($F018)
+    ; Register 14 already in HL
+    ; r15 = 50
+    LD A, 50
+    LD H, A         ; Store to physical register H
+    ; r16 = -r15
+    XOR A         ; Clear A
+    SUB L         ; 0 - L
+    LD L, A
+    LD A, 0
+    SBC A, H      ; 0 - H with borrow
+    LD H, A
+    ; r17 = r14 != r16
+    ; Register 14 already in HL
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___examples_feature_tests_01_basic_types_test_type_casting_ne_true_19
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_type_casting_ne_done_19
+_examples_feature_tests_01_basic_types_test_type_casting_ne_true_19:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_type_casting_ne_done_19:
+    LD ($F022), HL    ; Virtual register 17 to memory
+    ; jump_if_not r17, else_35
+    LD A, ($F022)     ; Virtual register 17 from memory
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_type_casting_else_35
+    ; r18 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; return r18
+    ; Register 18 already in HL
+    RET
+    ; jump end_if_36
+    JP ___examples_feature_tests_01_basic_types_test_type_casting_end_if_36
+    ; else_35:
+_examples_feature_tests_01_basic_types_test_type_casting_else_35:
+    ; end_if_36:
+_examples_feature_tests_01_basic_types_test_type_casting_end_if_36:
+    ; r20 = 300
+    LD HL, 300
+    LD ($F028), HL    ; Virtual register 20 to memory
+    ; store e, r20
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    LD ($F026), HL
+    ; r22 = load e
+    LD HL, ($F026)
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; store f, r22
+    LD A, ($F02C)     ; Virtual register 22 from memory
+    LD ($F02A), A
+    ; r23 = load f
+    LD A, ($F02A)
+    LD L, A         ; Store to physical register L
+    ; r24 = 44
+    LD A, 44
+    LD ($F030), A     ; Virtual register 24 to memory
+    ; r25 = r23 != r24
+    LD HL, ($F030)    ; Virtual register 24 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___examples_feature_tests_01_basic_types_test_type_casting_ne_true_20
+    LD HL, 0       ; False
+    JP ___examples_feature_tests_01_basic_types_test_type_casting_ne_done_20
+_examples_feature_tests_01_basic_types_test_type_casting_ne_true_20:
+    LD HL, 1       ; True
+_examples_feature_tests_01_basic_types_test_type_casting_ne_done_20:
+    ; jump_if_not r25, else_37
+    LD A, H
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_test_type_casting_else_37
+    ; r26 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r26
+    RET
+    ; jump end_if_38
+    JP ___examples_feature_tests_01_basic_types_test_type_casting_end_if_38
+    ; else_37:
+_examples_feature_tests_01_basic_types_test_type_casting_else_37:
+    ; end_if_38:
+_examples_feature_tests_01_basic_types_test_type_casting_end_if_38:
+    ; r27 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; return r27
+    ; Register 27 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.feature_tests.01_basic_types.main
+_examples_feature_tests_01_basic_types_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call ...examples.feature_tests.01_basic_types.test_unsigned_types
+    ; Call to ...examples.feature_tests.01_basic_types.test_unsigned_types (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.feature_tests.01_basic_types.test_unsigned_types
+    ; r2 = ~r1
+    LD A, H
+    CPL           ; Complement A
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r2, else_39
+    LD A, L
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_main_else_39
+    ; r3 = 1
+    LD A, 1
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; return r3
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    RET
+    ; jump end_if_40
+    JP ___examples_feature_tests_01_basic_types_main_end_if_40
+    ; else_39:
+_examples_feature_tests_01_basic_types_main_else_39:
+    ; end_if_40:
+_examples_feature_tests_01_basic_types_main_end_if_40:
+    ; r4 = call ...examples.feature_tests.01_basic_types.test_signed_types
+    ; Call to ...examples.feature_tests.01_basic_types.test_signed_types (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.feature_tests.01_basic_types.test_signed_types
+    ; r5 = ~r4
+    LD A, H
+    CPL           ; Complement A
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r5, else_41
+    LD A, L
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_main_else_41
+    ; r6 = 2
+    LD A, 2
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; return r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    RET
+    ; jump end_if_42
+    JP ___examples_feature_tests_01_basic_types_main_end_if_42
+    ; else_41:
+_examples_feature_tests_01_basic_types_main_else_41:
+    ; end_if_42:
+_examples_feature_tests_01_basic_types_main_end_if_42:
+    ; r7 = call ...examples.feature_tests.01_basic_types.test_boolean_ops
+    ; Call to ...examples.feature_tests.01_basic_types.test_boolean_ops (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.feature_tests.01_basic_types.test_boolean_ops
+    ; r8 = ~r7
+    LD A, H
+    CPL           ; Complement A
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r8, else_43
+    LD A, L
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_main_else_43
+    ; r9 = 3
+    LD A, 3
+    LD ($F012), A     ; Virtual register 9 to memory
+    ; return r9
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    RET
+    ; jump end_if_44
+    JP ___examples_feature_tests_01_basic_types_main_end_if_44
+    ; else_43:
+_examples_feature_tests_01_basic_types_main_else_43:
+    ; end_if_44:
+_examples_feature_tests_01_basic_types_main_end_if_44:
+    ; r10 = call ...examples.feature_tests.01_basic_types.test_comparisons
+    ; Call to ...examples.feature_tests.01_basic_types.test_comparisons (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.feature_tests.01_basic_types.test_comparisons
+    ; r11 = ~r10
+    LD A, H
+    CPL           ; Complement A
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r11, else_45
+    LD A, L
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_main_else_45
+    ; r12 = 4
+    LD A, 4
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; return r12
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    RET
+    ; jump end_if_46
+    JP ___examples_feature_tests_01_basic_types_main_end_if_46
+    ; else_45:
+_examples_feature_tests_01_basic_types_main_else_45:
+    ; end_if_46:
+_examples_feature_tests_01_basic_types_main_end_if_46:
+    ; r13 = call ...examples.feature_tests.01_basic_types.test_type_casting
+    ; Call to ...examples.feature_tests.01_basic_types.test_type_casting (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...examples.feature_tests.01_basic_types.test_type_casting
+    ; r14 = ~r13
+    LD A, H
+    CPL           ; Complement A
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r14, else_47
+    LD A, L
+    OR A
+    JP Z, ___examples_feature_tests_01_basic_types_main_else_47
+    ; r15 = 5
+    LD A, 5
+    LD L, A         ; Store to HL (low byte)
+    ; return r15
+    ; Register 15 already in HL
+    RET
+    ; jump end_if_48
+    JP ___examples_feature_tests_01_basic_types_main_end_if_48
+    ; else_47:
+_examples_feature_tests_01_basic_types_main_else_47:
+    ; end_if_48:
+_examples_feature_tests_01_basic_types_main_end_if_48:
+    ; r16 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; return r16
+    RET
+
+    END main

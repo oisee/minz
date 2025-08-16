@@ -1,0 +1,409 @@
+; MinZ generated code
+; Generated: 2025-08-02 13:03:28
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.pixel_addr
+zx_screen_pixel_addr:
+; TRUE SMC function with immediate anchors
+y_immOP:
+    LD A, 0        ; y anchor (will be patched)
+y_imm0 EQU y_immOP+1
+    LD A, (y_imm0)    ; Reuse from anchor
+    LD C, A         ; Store to physical register C
+    LD A, (y_imm0)    ; Reuse from anchor
+    LD D, A         ; Store to physical register D
+    ; r35 = load addr
+    LD HL, ($F022)
+x_immOP:
+    LD A, 0        ; x anchor (will be patched)
+x_imm0 EQU x_immOP+1
+    LD H, A         ; Store to physical register H
+    ; return r35
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.attr_addr
+zx_screen_attr_addr:
+; TRUE SMC function with immediate anchors
+    ; r3 = 22528
+    LD HL, 22528
+    ; Register 3 already in HL
+y_immOP:
+    LD A, 0        ; y anchor (will be patched)
+y_imm0 EQU y_immOP+1
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r6 = r4 << r0
+    ; Shift left
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_0
+    LD B, C       ; B = counter
+.shl_loop_0:
+    DEC B
+    JP M, .shl_done_0
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_0
+.shl_done_0:
+    LD L, A
+    LD H, 0
+    ; r6 = r4 << r0
+    ; Shift left
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_1
+    LD B, C       ; B = counter
+.shl_loop_1:
+    DEC B
+    JP M, .shl_done_1
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_1
+.shl_done_1:
+    LD L, A
+    LD H, 0
+    ; r6 = r4 << r0
+    ; Shift left
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_2
+    LD B, C       ; B = counter
+.shl_loop_2:
+    DEC B
+    JP M, .shl_done_2
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_2
+.shl_done_2:
+    LD L, A
+    LD H, 0
+    ; r6 = r4 << r0
+    ; Shift left
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_3
+    LD B, C       ; B = counter
+.shl_loop_3:
+    DEC B
+    JP M, .shl_done_3
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_3
+.shl_done_3:
+    LD L, A
+    LD H, 0
+    ; r6 = r4 << r0
+    ; Shift left
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_4
+    LD B, C       ; B = counter
+.shl_loop_4:
+    DEC B
+    JP M, .shl_done_4
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_4
+.shl_done_4:
+    LD L, A
+    LD H, 0
+    ; r7 = r3 + r6
+    ; Register 3 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD D, H
+    LD E, L
+x_immOP:
+    LD A, 0        ; x anchor (will be patched)
+x_imm0 EQU x_immOP+1
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; r9 = r7 + r8
+    LD H, D
+    LD L, E
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD B, H
+    LD C, L
+    ; return r9
+    LD H, B
+    LD L, C
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.draw_hline
+zx_screen_draw_hline:
+; TRUE SMC function with immediate anchors
+    ; loop_3:
+loop_3:
+    ; r6 = load i
+    LD A, ($F008)
+    LD H, A         ; Store to physical register H
+len_immOP:
+    LD A, 0        ; len anchor (will be patched)
+len_imm0 EQU len_immOP+1
+    LD H, A         ; Store to physical register H
+    ; r8 = r6 < r7
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L6
+    LD HL, 0
+    JP .L7
+.L6:
+    LD HL, 1
+.L7:
+    LD ($F010), HL    ; Virtual register 8 to memory
+    ; jump_if_not r8, end_loop_4
+    LD A, ($F010)     ; Virtual register 8 from memory
+    OR A
+    JP Z, end_loop_4
+x_immOP:
+    LD A, 0        ; x anchor (will be patched)
+x_imm0 EQU x_immOP+1
+    LD L, A         ; Store to physical register L
+y_immOP:
+    LD A, 0        ; y anchor (will be patched)
+y_imm0 EQU y_immOP+1
+    LD L, A         ; Store to HL (low byte)
+    ; r13 = call zx.screen.set_pixel
+    ; Call to zx.screen.set_pixel (args: 2)
+    ; Stack-based parameter passing
+    ; Register 12 already in HL
+    PUSH HL       ; Argument 1
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    PUSH HL       ; Argument 0
+    CALL zx.screen.set_pixel
+    ; jump loop_3
+    JP loop_3
+    ; end_loop_4:
+end_loop_4:
+    ; return
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.draw_vline
+zx_screen_draw_vline:
+; TRUE SMC function with immediate anchors
+    ; loop_5:
+loop_5:
+    ; r6 = load i
+    LD A, ($F008)
+    LD H, A         ; Store to physical register H
+len_immOP:
+    LD A, 0        ; len anchor (will be patched)
+len_imm0 EQU len_immOP+1
+    LD H, A         ; Store to physical register H
+    ; r8 = r6 < r7
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L8
+    LD HL, 0
+    JP .L9
+.L8:
+    LD HL, 1
+.L9:
+    LD ($F010), HL    ; Virtual register 8 to memory
+    ; jump_if_not r8, end_loop_6
+    LD A, ($F010)     ; Virtual register 8 from memory
+    OR A
+    JP Z, end_loop_6
+x_immOP:
+    LD A, 0        ; x anchor (will be patched)
+x_imm0 EQU x_immOP+1
+    LD L, A         ; Store to physical register L
+y_immOP:
+    LD A, 0        ; y anchor (will be patched)
+y_imm0 EQU y_immOP+1
+    LD L, A         ; Store to HL (low byte)
+    ; r13 = call zx.screen.set_pixel
+    ; Call to zx.screen.set_pixel (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    CALL zx.screen.set_pixel
+    ; jump loop_5
+    JP loop_5
+    ; end_loop_6:
+end_loop_6:
+    ; return
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.draw_rect
+zx_screen_draw_rect:
+; TRUE SMC function with immediate anchors
+x_immOP:
+    LD A, 0        ; x anchor (will be patched)
+x_imm0 EQU x_immOP+1
+    LD ($F00A), A     ; Virtual register 5 to memory
+y_immOP:
+    LD A, 0        ; y anchor (will be patched)
+y_imm0 EQU y_immOP+1
+    LD H, A         ; Store to physical register H
+width_immOP:
+    LD A, 0        ; width anchor (will be patched)
+width_imm0 EQU width_immOP+1
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = call zx.screen.draw_hline
+    ; Call to zx.screen.draw_hline (args: 3)
+    ; Stack-based parameter passing
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to zx.screen.draw_hline
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD (x_imm0), A        ; Patch x
+    LD A, H
+    LD (y_imm0), A        ; Patch y
+    LD A, ($F00E)     ; Virtual register 7 from memory
+    LD (len_imm0), A        ; Patch len
+    CALL zx.screen.draw_hline
+    LD A, (x_imm0)    ; Reuse from anchor
+    LD ($F012), A     ; Virtual register 9 to memory
+    LD A, (y_imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+height_immOP:
+    LD A, 0        ; height anchor (will be patched)
+height_imm0 EQU height_immOP+1
+    LD L, A         ; Store to physical register L
+    LD A, (width_imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    ; r16 = call zx.screen.draw_hline
+    ; Call to zx.screen.draw_hline (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to zx.screen.draw_hline
+    LD A, ($F012)     ; Virtual register 9 from memory
+    LD (x_imm0), A        ; Patch x
+    LD A, ($F01C)     ; Virtual register 14 from memory
+    LD (y_imm0), A        ; Patch y
+    LD A, H
+    LD (len_imm0), A        ; Patch len
+    CALL zx.screen.draw_hline
+    LD A, (x_imm0)    ; Reuse from anchor
+    LD ($F022), A     ; Virtual register 17 to memory
+    LD A, (y_imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    LD A, (height_imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; r20 = call zx.screen.draw_vline
+    ; Call to zx.screen.draw_vline (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    LD HL, ($F022)    ; Virtual register 17 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to zx.screen.draw_vline
+    LD A, ($F022)     ; Virtual register 17 from memory
+    LD (x_imm0), A        ; Patch x
+    LD A, H
+    LD (y_imm0), A        ; Patch y
+    LD A, L
+    LD (len_imm0), A        ; Patch len
+    CALL zx.screen.draw_vline
+    LD A, (x_imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    LD A, (width_imm0)    ; Reuse from anchor
+    LD ($F02C), A     ; Virtual register 22 to memory
+    LD A, (y_imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    LD A, (height_imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; r28 = call zx.screen.draw_vline
+    ; Call to zx.screen.draw_vline (args: 3)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to zx.screen.draw_vline
+    LD A, ($F032)     ; Virtual register 25 from memory
+    LD (x_imm0), A        ; Patch x
+    LD A, H
+    LD (y_imm0), A        ; Patch y
+    LD A, L
+    LD (len_imm0), A        ; Patch len
+    CALL zx.screen.draw_vline
+    ; return
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.get_cursor
+zx_screen_get_cursor:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: zx.screen.print_string
+zx_screen_print_string:
+; TRUE SMC function with immediate anchors
+s_immOP:
+    LD HL, 0       ; s anchor (will be patched)
+s_imm0 EQU s_immOP+1
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; r6 = *r5
+    LD A, (HL)
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; loop_11:
+loop_11:
+    ; unknown op 57

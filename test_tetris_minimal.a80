@@ -1,0 +1,131 @@
+; MinZ generated code
+; Generated: 2025-08-16 20:23:59
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tetris_minimal.test_basic
+test_tetris_minimal.test_basic:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 1
+    LD A, 1
+    ; Register 2 already in A
+    ; r3 = load grid
+    LD HL, ($F002)
+    ; r4 = 0
+    LD A, 0
+    LD C, A         ; Store to physical register C
+    ; Load array element ([10]u8)
+    PUSH HL
+    LD E, C        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; r6 = 0
+    LD A, 0
+    LD D, A         ; Store to physical register D
+    ; Calculate array element address
+    ; Register 5 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD D, H
+    LD E, L
+    ; Store to array[index] (u8)
+    LD H, D
+    LD L, E
+    PUSH HL
+    ; Register 2 already in A
+    POP HL
+    LD (HL), A
+    ; r8 = load grid
+    LD HL, ($F002)
+    ; r9 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; Load array element ([10]u8)
+    PUSH HL
+    EXX               ; Switch to shadow registers
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD C, A         ; Store to BC (low byte)
+    ; r11 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; Load array element (u8)
+    LD H, B
+    LD L, C
+    PUSH HL
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tetris_minimal.main
+test_tetris_minimal.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call test_tetris_minimal.test_basic
+    ; Call to test_tetris_minimal.test_basic (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_tetris_minimal.test_basic
+    ; Register 1 already in HL
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+
+    END main

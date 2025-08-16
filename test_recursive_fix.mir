@@ -1,0 +1,47 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_recursive_fix.factorial$u8(n: u8) -> u8
+  @smc
+  @recursive
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: jump end_if_2
+      7: else_1:
+      8: LOAD_PARAM
+      9: LOAD_PARAM
+     10: r8 = 1
+     11: r9 = r7 - r8
+     12: LOAD_PARAM
+     13: r11 = 1
+     14: r12 = r10 - r11
+     15: PATCH_TEMPLATE
+     16: PATCH_TARGET
+     17: PATCH_PARAM
+     18: r13 = call ...test_recursive_fix.factorial$u8
+     19: r14 = r6 * r13
+     20: return r14
+     21: end_if_2:
+     22: return
+
+Function ...test_recursive_fix.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: r2 = 5
+      1: r3 = 5
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call ...test_recursive_fix.factorial$u8
+      6: store result, r4
+      7: r5 = load result
+      8: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      9: return
+

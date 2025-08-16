@@ -1,0 +1,8 @@
+    ORG $8000
+    
+    ; Test patterns from corpus
+    LD HL, #0000    ; Hex with #
+    LD A, C'        ; Shadow register
+    LD E', A        ; Shadow register destination
+    
+    END

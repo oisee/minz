@@ -1,0 +1,32 @@
+// Debug function return type registration
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun get_five() -> u8 {
+    return 5;
+}
+
+fun get_point() -> Point {
+    let p: Point;
+    p.x = 10;
+    p.y = 20;
+    return p;
+}
+
+fun main() -> void {
+    // Test simple return type
+    let num = get_five();
+    print_u8(num);  // Should work
+    
+    // Test struct creation directly
+    let direct: Point;
+    direct.x = 15;
+    print_u8(direct.x);  // Test field access directly
+    
+    // Test struct return type 
+    let point = get_point();
+    // Don't access field yet, just test the call
+}

@@ -1,0 +1,277 @@
+; MinZ generated code
+; Generated: 2025-08-03 15:05:42
+
+
+; Data section
+    ORG $F000
+
+_examples_global_variables_fixed_g_byte:
+    DB 42
+_examples_global_variables_fixed_g_word:
+    DW 4660
+_examples_global_variables_fixed_g_flag:
+    DB 0
+_examples_global_variables_fixed_g_calc:
+    DB 15
+_examples_global_variables_fixed_g_shift:
+    DW 256
+_examples_global_variables_fixed_g_masked:
+    DB 15
+_examples_global_variables_fixed_g_uninit_byte:
+    DB 0
+_examples_global_variables_fixed_g_uninit_word:
+    DW 0
+str_0:
+    DB 16    ; Length
+DB_g_byte_success: "
+str_1:
+    DB 16    ; Length
+DB_g_word_success: "
+str_2:
+    DB 15    ; Length
+    DB "g_flag success"
+    DB 10
+str_3:
+    DB 16    ; Length
+DB_g_calc_success: "
+str_4:
+    DB 17    ; Length
+DB_g_shift_success: "
+str_5:
+    DB 18    ; Length
+DB_g_masked_success: "
+str_6:
+    DB 22    ; Length
+    DB "g_uninit_byte is zero"
+    DB 10
+str_7:
+    DB 22    ; Length
+    DB "g_uninit_word is zero"
+    DB 10
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.global_variables_fixed.main
+_examples_global_variables_fixed_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = load ......examples.global_variables_fixed.g_byte
+    LD HL, ($F000)
+    ; r2 = 42
+    LD A, 42
+    LD B, A         ; Store to physical register B
+    ; r3 = r1 == r2
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r3, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    ; r4 = string(str_0)
+    LD HL, str_0
+    ; Print "g_byte success: " (16 chars via loop)
+    CALL print_string
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    ; r5 = load ......examples.global_variables_fixed.g_word
+    LD HL, ($F020)
+    ; r6 = 4660
+    LD HL, 4660
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; r7 = r5 == r6
+    LD D, H
+    LD E, L
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    LD D, H
+    LD E, L
+    ; jump_if_not r7, else_3
+    LD A, E
+    OR A
+    JP Z, else_3
+    ; r8 = string(str_1)
+    LD HL, str_1
+    ; Print "g_word success: " (16 chars via loop)
+    CALL print_string
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; end_if_4:
+end_if_4:
+    ; r9 = load ......examples.global_variables_fixed.g_flag
+    LD HL, ($F040)
+    ; jump_if_not r9, else_5
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_5
+    ; r10 = string(str_2)
+    LD HL, str_2
+    ; Print "g_flag success
+" (15 chars via loop)
+    CALL print_string
+    ; jump end_if_6
+    JP end_if_6
+    ; else_5:
+else_5:
+    ; end_if_6:
+end_if_6:
+    ; r11 = load ......examples.global_variables_fixed.g_calc
+    LD HL, ($F060)
+    ; r12 = 15
+    LD A, 15
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; r13 = r11 == r12
+    LD D, H
+    LD E, L
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L5
+    LD HL, 0
+    JP .L6
+.L5:
+    LD HL, 1
+.L6:
+    ; jump_if_not r13, else_7
+    LD A, H
+    OR A
+    JP Z, else_7
+    ; r14 = string(str_3)
+    LD HL, str_3
+    ; Print "g_calc success: " (16 chars via loop)
+    CALL print_string
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; jump end_if_8
+    JP end_if_8
+    ; else_7:
+else_7:
+    ; end_if_8:
+end_if_8:
+    ; r15 = load ......examples.global_variables_fixed.g_shift
+    LD HL, ($F080)
+    ; Register 15 already in HL
+    ; r16 = 256
+    LD HL, 256
+    LD ($F020), HL    ; Virtual register 16 to memory
+    ; r17 = r15 == r16
+    ; Register 15 already in HL
+    LD D, H
+    LD E, L
+    LD HL, ($F020)    ; Virtual register 16 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L7
+    LD HL, 0
+    JP .L8
+.L7:
+    LD HL, 1
+.L8:
+    LD B, H
+    LD C, L
+    ; jump_if_not r17, else_9
+    LD A, C
+    OR A
+    JP Z, else_9
+    ; r18 = string(str_4)
+    LD HL, str_4
+    LD ($F024), HL    ; Virtual register 18 to memory
+    ; Print "g_shift success: " (17 chars via loop)
+    LD HL, ($F024)    ; Virtual register 18 from memory
+    CALL print_string
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; jump end_if_10
+    JP end_if_10
+    ; else_9:
+else_9:
+    ; end_if_10:
+end_if_10:
+    ; r19 = load ......examples.global_variables_fixed.g_masked
+    LD HL, ($F0A0)
+    ; r20 = 15
+    LD A, 15
+    LD L, A         ; Store to physical register L
+    ; r21 = r19 == r20
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L9
+    LD HL, 0
+    JP .L10
+.L9:
+    LD HL, 1
+.L10:
+    LD ($F02A), HL    ; Virtual register 21 to memory
+    ; jump_if_not r21, else_11
+    LD A, ($F02A)     ; Virtual register 21 from memory
+    OR A
+    JP Z, else_11
+    ; r22 = string(str_5)
+    LD HL, str_5
+    ; Print "g_masked success: " (18 chars via loop)
+    CALL print_string
+    ; Direct print "
+" (1 chars)
+    ; Direct print "
+" (1 chars)
+    LD A, 10
+    RST 16             ; Print character
+    ; jump end_if_12
+    JP end_if_12
+    ; else_11:
+else_11:
+    ; end_if_12:
+end_if_12:
+    ; unknown op 57

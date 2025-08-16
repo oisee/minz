@@ -1,0 +1,22 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:38
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_assignment.main
+_examples_test_assignment_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    ; Register 2 already in A
+    ; store , r2
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

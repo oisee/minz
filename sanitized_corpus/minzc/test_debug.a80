@@ -1,0 +1,85 @@
+; MinZ generated code
+; Generated: 2025-08-16 18:16:11
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_debug_struct.get_point
+test_debug_struct_get_point:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    ; Register 2 already in A
+    ; r3 = load p
+    LD HL, ($F002)
+    ; Store to field x (offset 0)
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r4 = load p
+    LD HL, ($F002)
+    ; return r4
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_debug_struct.main
+test_debug_struct_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call test_debug_struct.get_point
+    ; Call to test_debug_struct.get_point (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_debug_struct.get_point
+    ; store result, r2
+    LD ($F002), HL
+    ; r3 = load result
+    LD HL, ($F002)
+    ; Load field x (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+
+    END main

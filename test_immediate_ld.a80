@@ -1,0 +1,8 @@
+; Test immediate loads (should work)
+    ORG $8000
+
+    LD A, $12
+    LD HL, $1234
+    LD BC, $5678
+    
+    END

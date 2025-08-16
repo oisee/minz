@@ -1,24 +1,26 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
-Function ...test_ctie_debug.add_numbers() -> u8
+Function test_debug_struct.get_point() -> test_debug_struct.Point
   @smc
+  Locals:
+    r1 = p: test_debug_struct.Point
   Instructions:
-      0: r1 = 5
-      1: r2 = 3
-      2: r3 = r1 + r2
-      3: return r3
+      0: r2 = 5
+      1: r3 = load p
+      2: STORE_FIELD ; Store to field x (offset 0)
+      3: r4 = load p
+      4: return r4
 
-Function ...test_ctie_debug.main() -> void
+Function test_debug_struct.main() -> void
   @smc
   Locals:
     r1 = result: u16
   Instructions:
-      0: PATCH_TEMPLATE
-      1: PATCH_TARGET
-      2: r2 = 8 ; CTIE: Computed at compile-time (was CALL ...test_ctie_debug.add_numbers)
-      3: store result, r2
-      4: LOAD_STRING
-      5: PRINT_STRING ; Print "Result computed!" (16 chars via loop)
-      6: return
+      0: r2 = call test_debug_struct.get_point
+      1: store result, r2
+      2: r3 = load result
+      3: LOAD_FIELD ; Load field x (offset 0)
+      4: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      5: return
 

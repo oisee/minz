@@ -1,0 +1,236 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:37
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.arithmetic_demo.test_arithmetic
+_examples_arithmetic_demo_test_arithmetic:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -13
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store , r2
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD (IX_1), L
+    LD (IX+0), H
+    ; r4 = 6
+    LD A, 6
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; store , r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD (IX_2), L
+    LD (IX_1), H
+    ; r6 = load a
+    LD L, (IX_1)
+    LD H, (IX+0)
+    ; r7 = load b
+    LD L, (IX_2)
+    LD H, (IX_1)
+    ; r8 = r6 * r7
+    ; 8-bit multiplication
+    LD A, E
+    LD B, A       ; B = multiplicand
+    LD A, H
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_0
+.mul_loop_0:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_0
+.mul_done_0:
+    ; store , r8
+    LD (IX_3), L
+    LD (IX_2), H
+    ; r10 = 20
+    LD A, 20
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; store , r10
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD (IX_4), L
+    LD (IX_3), H
+    ; r12 = 4
+    LD A, 4
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; store , r12
+    LD (IX_5), L
+    LD (IX_4), H
+    ; r14 = load c
+    LD L, (IX_4)
+    LD H, (IX_3)
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; r15 = load d
+    LD L, (IX_5)
+    LD H, (IX_4)
+    ; r16 = r14 / r15
+    ; 8-bit division
+    LD A, ($F01C)     ; Virtual register 14 from memory
+    LD D, A       ; D = dividend
+    LD A, C
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .div_by_zero_1
+    LD B, 0       ; B = quotient
+    LD A, D       ; A = remainder
+.div_loop_1:
+    CP E          ; Compare remainder with divisor
+    JR C, .div_done_1
+    SUB E         ; Subtract divisor
+    INC B         ; Increment quotient
+    JR .div_loop_1
+.div_by_zero_1:
+    LD B, 0       ; Return 0 for divide by zero
+.div_done_1:
+    LD L, B       ; Result in L
+    LD H, 0
+    LD ($F020), HL    ; Virtual register 16 to memory
+    ; store , r16
+    LD HL, ($F020)    ; Virtual register 16 from memory
+    LD (IX_6), L
+    LD (IX_5), H
+    ; r18 = 17
+    LD A, 17
+    LD ($F024), A     ; Virtual register 18 to memory
+    ; store , r18
+    LD HL, ($F024)    ; Virtual register 18 from memory
+    LD (IX_7), L
+    LD (IX_6), H
+    ; r20 = 5
+    LD A, 5
+    LD ($F028), A     ; Virtual register 20 to memory
+    ; store , r20
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    LD (IX_8), L
+    LD (IX_7), H
+    ; r22 = load e
+    LD L, (IX_7)
+    LD H, (IX_6)
+    ; r23 = load f
+    LD L, (IX_8)
+    LD H, (IX_7)
+    ; unknown op 37
+    ; 8-bit modulo
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD D, A       ; D = dividend
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD E, A       ; E = divisor
+    OR A          ; Check for divide by zero
+    JR Z, .mod_by_zero_2
+    LD A, D       ; A = dividend
+.mod_loop_2:
+    CP E          ; Compare with divisor
+    JR C, .mod_done_2
+    SUB E         ; Subtract divisor
+    JR .mod_loop_2
+.mod_by_zero_2:
+    LD A, 0       ; Return 0 for modulo by zero
+.mod_done_2:
+    LD L, A       ; Result (remainder) in L
+    LD H, 0
+    ; store , r24
+    LD (IX_9), L
+    LD (IX_8), H
+    ; r26 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; store , r26
+    LD (IX_10), L
+    LD (IX_9), H
+    ; r28 = load g
+    LD L, (IX_10)
+    LD H, (IX_9)
+    ; r29 = 2
+    LD A, 2
+    ; Register 29 already in A
+    ; unknown op 45
+    ; Shift left
+    ; Register 28 already in A
+    LD B, A       ; B = value to shift
+    ; Register 29 already in A
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_3
+    LD B, C       ; B = counter
+.shl_loop_3:
+    DEC B
+    JP M, .shl_done_3
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_3
+.shl_done_3:
+    LD L, A
+    LD H, 0
+    ; store , r30
+    LD (IX_11), L
+    LD (IX_10), H
+    ; r32 = 12
+    LD A, 12
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; store , r32
+    LD (IX_12), L
+    LD (IX_11), H
+    ; r34 = load h
+    LD L, (IX_12)
+    LD H, (IX_11)
+    ; r35 = 2
+    LD A, 2
+    LD C, A         ; Store to physical register C
+    ; unknown op 46
+    ; Shift right
+    LD A, C
+    LD B, A       ; B = value to shift
+    LD A, C
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_4
+    LD B, C       ; B = counter
+.shr_loop_4:
+    DEC B
+    JP M, .shr_done_4
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_4
+.shr_done_4:
+    LD L, A
+    LD H, 0
+    ; store , r36
+    LD (IX_13), L
+    LD (IX_12), H
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.arithmetic_demo.main
+_examples_arithmetic_demo_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+
+    END main

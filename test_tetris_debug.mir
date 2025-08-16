@@ -1,0 +1,45 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   test_tetris_debug.BOARD_WIDTH: u8
+;   test_tetris_debug.BOARD_HEIGHT: u8
+
+Function test_tetris_debug.clear_screen() -> void
+  @smc
+  Instructions:
+      0: ASM ; Inline assembly from @asm block
+      1: return
+
+Function test_tetris_debug.test_board_access() -> void
+  @smc
+  Locals:
+    r1 = board: test_tetris_debug.Board
+  Instructions:
+      0: r2 = 1
+      1: r3 = load board
+      2: LOAD_FIELD ; Load field grid (offset 0)
+      3: r5 = 0
+      4: LOAD_INDEX ; Load array element ([10]u8)
+      5: r7 = 0
+      6: r8 = r6 + r7 ; Calculate array element address
+      7: STORE_PTR ; Store to array[index] (u8)
+      8: r9 = 100
+      9: r10 = load board
+     10: STORE_FIELD ; Store to field score (offset 203)
+     11: r11 = load board
+     12: LOAD_FIELD ; Load field grid (offset 0)
+     13: r13 = 0
+     14: LOAD_INDEX ; Load array element ([10]u8)
+     15: r15 = 0
+     16: LOAD_INDEX ; Load array element (u8)
+     17: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     18: r17 = call test_tetris_debug.clear_screen
+     19: return
+
+Function test_tetris_debug.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_tetris_debug.test_board_access
+      1: return
+

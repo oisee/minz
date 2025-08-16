@@ -1,0 +1,170 @@
+; MinZ generated code
+; Generated: 2025-08-03 15:05:42
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.bit_manipulation.set_bit
+_examples_bit_manipulation_set_bit:
+; TRUE SMC function with immediate anchors
+value_immOP:
+    LD A, 0        ; value anchor (will be patched)
+value_imm0 EQU value_immOP+1
+    ; r4 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+bit_immOP:
+    LD C, 0        ; bit anchor (will be patched)
+bit_imm0 EQU bit_immOP+1
+    ; r6 = r4 << r5
+    ; Shift left
+    LD A, B
+    LD B, A       ; B = value to shift
+    LD A, C
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_0
+    LD B, C       ; B = counter
+.shl_loop_0:
+    DEC B
+    JP M, .shl_done_0
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_0
+.shl_done_0:
+    LD L, A
+    LD H, 0
+    ; r7 = r3 | r6
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    ; return r7
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.bit_manipulation.clear_bit
+_examples_bit_manipulation_clear_bit:
+; TRUE SMC function with immediate anchors
+value_immOP:
+    LD A, 0        ; value anchor (will be patched)
+value_imm0 EQU value_immOP+1
+    LD L, A         ; Store to physical register L
+    ; r4 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+bit_immOP:
+    LD A, 0        ; bit anchor (will be patched)
+bit_imm0 EQU bit_immOP+1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r6 = r4 << r5
+    ; Shift left
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = value to shift
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_1
+    LD B, C       ; B = counter
+.shl_loop_1:
+    DEC B
+    JP M, .shl_done_1
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_1
+.shl_done_1:
+    LD L, A
+    LD H, 0
+    ; r7 = ~r6
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    CPL           ; Complement A
+    LD H, A         ; Store to physical register H
+    ; r8 = r3 & r7
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; return r8
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.bit_manipulation.toggle_bit
+_examples_bit_manipulation_toggle_bit:
+; TRUE SMC function with immediate anchors
+value_immOP:
+    LD E, 0        ; value anchor (will be patched)
+value_imm0 EQU value_immOP+1
+    ; r4 = 1
+    LD A, 1
+    LD ($F008), A     ; Virtual register 4 to memory
+bit_immOP:
+    LD B, 0        ; bit anchor (will be patched)
+bit_imm0 EQU bit_immOP+1
+    ; r6 = r4 << r5
+    ; Shift left
+    LD A, ($F008)     ; Virtual register 4 from memory
+    LD B, A       ; B = value to shift
+    LD A, B
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_2
+    LD B, C       ; B = counter
+.shl_loop_2:
+    DEC B
+    JP M, .shl_done_2
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_2
+.shl_done_2:
+    LD L, A
+    LD H, 0
+    ; r7 = r3 ^ r6
+    LD D, H
+    LD E, L
+    LD A, L
+    XOR E
+    LD L, A
+    LD A, H
+    XOR D
+    LD H, A
+    ; return r7
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.bit_manipulation.test_bit
+_examples_bit_manipulation_test_bit:
+; TRUE SMC function with immediate anchors
+value_immOP:
+    LD A, 0        ; value anchor (will be patched)
+value_imm0 EQU value_immOP+1
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+bit_immOP:
+    LD A, 0        ; bit anchor (will be patched)
+bit_imm0 EQU bit_immOP+1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; unknown op 57

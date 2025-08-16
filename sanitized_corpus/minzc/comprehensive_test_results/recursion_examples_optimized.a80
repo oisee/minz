@@ -1,0 +1,93 @@
+; MinZ generated code
+; Generated: 2025-08-02 13:03:27
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.recursion_examples.factorial
+.Users_alice_dev_minz_ts_examples_recursion_examples_factorial:
+; TRUE SMC function with immediate anchors
+n_immOP:
+    LD A, 0        ; n anchor (will be patched)
+n_imm0 EQU n_immOP+1
+    ; r3 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 <= r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; return r5
+    RET
+    ; else_1:
+else_1:
+    LD A, (n_imm0)    ; Reuse from anchor
+    LD E, A         ; Store to physical register E
+    LD A, (n_imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    ; r10 = call factorial
+    ; Call to factorial (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .Users.alice.dev.minz-ts.examples.recursion_examples.factorial
+    LD A, ($F012)     ; Virtual register 9 from memory
+    LD (n_imm0), A        ; Patch n
+    CALL .Users_alice_dev_minz_ts_examples_recursion_examples_factorial
+    ; r11 = r6 * r10
+    ; 16-bit multiplication
+    LD (mul_src1_2), HL  ; Save multiplicand
+    LD (mul_src2_2), HL  ; Save multiplier
+    LD HL, 0             ; Result = 0
+    LD DE, (mul_src1_2)  ; DE = multiplicand
+    LD BC, (mul_src2_2)  ; BC = multiplier
+    LD A, B
+    OR C                 ; Check if multiplier is 0
+    JR Z, .mul16_done_2
+.mul16_loop_2:
+    ADD HL, DE           ; Result += multiplicand
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, .mul16_loop_2
+.mul16_done_2:
+mul_src1_2: DW 0
+mul_src2_2: DW 0
+    ; Register 11 already in HL
+    ; return r11
+    ; Register 11 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.recursion_examples.gcd
+.Users_alice_dev_minz_ts_examples_recursion_examples_gcd:
+; TRUE SMC function with immediate anchors
+b_immOP:
+    LD A, 0        ; b anchor (will be patched)
+b_imm0 EQU b_immOP+1
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; Tail recursion loop start
+.Users_alice_dev_minz_ts_examples_recursion_examples_gcd_tail_loop:
+    ; unknown op 57

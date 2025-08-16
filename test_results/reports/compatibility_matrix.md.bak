@@ -1,0 +1,16 @@
+# MZA vs SjASMPlus Compatibility Report
+
+## Executive Summary
+
+| Assembler | Success Count | Success Rate | Unique Successes |
+|-----------|---------------|--------------|------------------|
+| MZA       | 0          | 0%         | 0              |
+| SjASMPlus | 0          | 0%         | 0              |
+| Both      | TBD          | TBD%         | -                |
+
+## Test Categories
+
+### 1. Supertest Z80 (Comprehensive Instruction Set)
+| Category | MZA | SjASMPlus | Notes |
+|----------|-----|-----------|-------|
+| Comprehensive | ❌ FAIL | ❌ FAIL | Full Z80 instruction set |

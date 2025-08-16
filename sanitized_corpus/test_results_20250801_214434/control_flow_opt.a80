@@ -1,0 +1,301 @@
+; MinZ generated code
+; Generated: 2025-08-01 21:44:35
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.control_flow.test_if
+.Users_alice_dev_minz_ts_examples_control_flow_test_if:
+; TRUE SMC function with immediate anchors
+x_immOP:
+    LD A, 0        ; x anchor (will be patched)
+x_imm0 EQU x_immOP+1
+    ; Register 2 already in A
+    ; r3 = 10
+    LD A, 10
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 > r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L2
+    JP P, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    LD A, (x_imm0)    ; Reuse from anchor
+    LD D, A         ; Store to physical register D
+    ; r6 = 2
+    LD A, 2
+    LD E, A         ; Store to physical register E
+    ; r7 = r5 * r6
+    ; 8-bit multiplication
+    LD A, D
+    LD B, A       ; B = multiplicand
+    LD A, E
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_2
+.mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_2
+.mul_done_2:
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; return r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    POP DE
+    POP BC
+    RET
+    ; else_1:
+else_1:
+    LD A, (x_imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; r9 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; r10 = r8 > r9
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L5
+    JP P, .L4
+    LD HL, 0
+    JP .L5
+.L4:
+    LD HL, 1
+.L5:
+    ; jump_if_not r10, else_3
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_3
+    LD A, (x_imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r12 = 10
+    LD A, 10
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; r13 = r11 + r12
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r13
+    POP DE
+    POP BC
+    RET
+    ; else_3:
+else_3:
+    LD A, (x_imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    ; return r14
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.control_flow.test_while
+.Users_alice_dev_minz_ts_examples_control_flow_test_while:
+; TRUE SMC function with immediate anchors
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; store , r3
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD ($F004), A
+    ; r5 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; store , r5
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD ($F008), A
+    ; loop_5:
+loop_5:
+    ; r6 = load i
+    LD A, ($F008)
+    LD B, A         ; Store to physical register B
+n_immOP:
+    LD A, 0        ; n anchor (will be patched)
+n_imm0 EQU n_immOP+1
+    LD B, A         ; Store to physical register B
+    ; r8 = r6 < r7
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L6
+    LD HL, 0
+    JP .L7
+.L6:
+    LD HL, 1
+.L7:
+    ; jump_if_not r8, end_loop_6
+    LD A, C
+    OR A
+    JP Z, end_loop_6
+    ; r9 = load sum
+    LD A, ($F004)
+    LD C, A         ; Store to physical register C
+    ; r10 = load i
+    LD A, ($F008)
+    ; Register 10 already in A
+    ; r11 = r9 + r10
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F016), HL    ; Virtual register 11 to memory
+    ; store sum, r11
+    LD A, ($F016)     ; Virtual register 11 from memory
+    LD ($F004), A
+    ; r12 = load i
+    LD A, ($F008)
+    LD H, A         ; Store to physical register H
+    ; r13 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; r14 = r12 + r13
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store i, r14
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    LD ($F008), A
+    ; jump loop_5
+    JP loop_5
+    ; end_loop_6:
+end_loop_6:
+    ; r15 = load sum
+    LD A, ($F004)
+    ; Register 15 already in A
+    ; return r15
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW x_imm0           ; .Users_alice_dev_minz_ts_examples_control_flow_test_if_x
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n_imm0           ; .Users_alice_dev_minz_ts_examples_control_flow_test_while_n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)
+    OR A               ; Check for null terminator
+    RET Z              ; Return if null
+    RST 16             ; Print character
+    INC HL             ; Next character
+    JR print_string
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB "true", 0
+bool_false_str:
+    DB "false", 0
+
+
+    END main

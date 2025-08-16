@@ -269,23 +269,17 @@ func (a *Assembler) handleMACRO(line *Line) error {
 	}
 	
 	// Parse macro name and parameters
-	parts := strings.Fields(line.Operands)
-	if len(parts) < 1 {
+	if len(line.Operands) < 1 {
 		return fmt.Errorf("MACRO requires a name")
 	}
 	
-	macroName := parts[0]
+	macroName := line.Operands[0]
 	var params []string
-	
-	// Parse parameters (if any)
-	if len(parts) > 1 {
-		// Join remaining parts and split by comma
-		paramStr := strings.Join(parts[1:], " ")
-		paramStr = strings.ReplaceAll(paramStr, " ", "")
-		if paramStr != "" {
-			params = strings.Split(paramStr, ",")
-		}
+	if len(line.Operands) > 1 {
+		params = line.Operands[1:]
 	}
+	
+	// Parameters are already parsed into line.Operands
 	
 	// Start collecting macro body
 	a.macroDefinition = &macroDefinitionState{
@@ -330,8 +324,48 @@ func isString(s string) bool {
 
 func parseString(s string) string {
 	s = strings.TrimSpace(s)
-	if len(s) >= 2 {
-		return s[1 : len(s)-1]
+	if len(s) < 2 {
+		return s
 	}
-	return s
+	
+	// Remove quotes
+	s = s[1 : len(s)-1]
+	
+	// Process escape sequences
+	var result []byte
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\\' && i+1 < len(s) {
+			// Handle escape sequences
+			switch s[i+1] {
+			case 'n':
+				result = append(result, '\n')
+				i++ // Skip the next character
+			case 'r':
+				result = append(result, '\r')
+				i++
+			case 't':
+				result = append(result, '\t')
+				i++
+			case '\\':
+				result = append(result, '\\')
+				i++
+			case '"':
+				result = append(result, '"')
+				i++
+			case '\'':
+				result = append(result, '\'')
+				i++
+			case '0':
+				result = append(result, 0)
+				i++
+			default:
+				// Unknown escape, keep the backslash
+				result = append(result, s[i])
+			}
+		} else {
+			result = append(result, s[i])
+		}
+	}
+	
+	return string(result)
 }

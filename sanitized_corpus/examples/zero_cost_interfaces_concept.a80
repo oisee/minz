@@ -1,0 +1,925 @@
+; MinZ generated code
+; Generated: 2025-08-02 23:07:16
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 11    ; Length
+DB_Rendering: "
+str_1:
+    DB 11    ; Length
+DB_Rendering: "
+str_2:
+    DB 11    ; Length
+DB_Rendering: "
+str_3:
+    DB 29    ; Length
+DB_Traditional_vtable_dispatch:"
+    DB 10
+str_4:
+    DB 36    ; Length
+    DB "  LD HL, (vtable)     ; 16 T_states"
+    DB 10
+str_5:
+    DB 35    ; Length
+    DB "  LD E, (HL)          ; 7 T_states"
+    DB 10
+str_6:
+    DB 35    ; Length
+    DB "  INC HL              ; 6 T_states"
+    DB 10
+str_7:
+    DB 35    ; Length
+    DB "  LD D, (HL)          ; 7 T_states"
+    DB 10
+str_8:
+    DB 36    ; Length
+    DB "  CALL (DE)           ; 17 T_states"
+    DB 10
+str_9:
+    DB 22    ; Length
+DB_Total: 53 T_states!"
+    DB 10
+str_10:
+    DB 26    ; Length
+    DB 10
+DB_MinZ_zero_cost_dispatch:"
+    DB 10
+str_11:
+    DB 36    ; Length
+    DB "  CALL sprite_draw    ; 17 T_states"
+    DB 10
+str_12:
+    DB 22    ; Length
+DB_Total: 17 T_states!"
+    DB 10
+str_13:
+    DB 37    ; Length
+DB_Savings: 36 T_states (68% faster!)"
+    DB 10
+str_14:
+    DB 31    ; Length
+    DB "  (Would check collision here)"
+    DB 10
+str_15:
+    DB 26    ; Length
+    DB 10
+    DB "=== Monomorphization ==="
+    DB 10
+str_16:
+    DB 53    ; Length
+DB_Generic_function_calls_create_specialized_versions:"
+    DB 10
+    DB 10
+str_17:
+    DB 29    ; Length
+DB_render_Sprite_s_generates:"
+    DB 10
+str_18:
+    DB 35    ; Length
+DB_render_sprite: CALL sprite_draw"
+    DB 10
+    DB 10
+str_19:
+    DB 27    ; Length
+DB_render_Text_t_generates:"
+    DB 10
+str_20:
+    DB 31    ; Length
+DB_render_text: CALL text_draw"
+    DB 10
+    DB 10
+str_21:
+    DB 29    ; Length
+DB_render_Circle_c_generates:"
+    DB 10
+str_22:
+    DB 35    ; Length
+DB_render_circle: CALL circle_draw"
+    DB 10
+    DB 10
+str_23:
+    DB 33    ; Length
+    DB "No runtime type checking needed!"
+    DB 10
+str_24:
+    DB 38    ; Length
+    DB "====================================="
+    DB 10
+str_25:
+    DB 34    ; Length
+    DB "Zero_Cost Interfaces Concept Demo"
+    DB 10
+str_26:
+    DB 39    ; Length
+    DB "====================================="
+    DB 10
+    DB 10
+str_27:
+    DB 33    ; Length
+    DB "=== Direct Specialized Calls ==="
+    DB 10
+str_28:
+    DB 30    ; Length
+    DB 10
+    DB "=== Performance Analysis ==="
+    DB 10
+str_29:
+    DB 18    ; Length
+    DB 10
+    DB "=== Benefits ==="
+    DB 10
+str_30:
+    DB 28    ; Length
+    DB 226
+    DB 156
+    DB 147
+    DB " No vtables in memory"
+    DB 10
+str_31:
+    DB 25    ; Length
+    DB 226
+    DB 156
+    DB 147
+    DB " No indirect calls"
+    DB 10
+str_32:
+    DB 34    ; Length
+    DB 226
+    DB 156
+    DB 147
+    DB " Compile_time type checking"
+    DB 10
+str_33:
+    DB 36    ; Length
+    DB 226
+    DB 156
+    DB 147
+    DB " Can inline interface methods"
+    DB 10
+str_34:
+    DB 39    ; Length
+    DB 226
+    DB 156
+    DB 147
+    DB " 68% faster than vtable dispatch"
+    DB 10
+str_35:
+    DB 39    ; Length
+    DB 10
+    DB "====================================="
+    DB 10
+str_36:
+    DB 40    ; Length
+DB_Future_MinZ: Interfaces with ZERO cost!"
+    DB 10
+str_37:
+    DB 38    ; Length
+    DB "====================================="
+    DB 10
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.sprite_draw
+examples_zero_cost_interfaces_concept_sprite_draw:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; TSMC reference parameter s
+s_immOP:
+    LD HL, 0000      ; TSMC ref address for s
+s_imm0 EQU s_immOP+1
+    ; Register 2 already in HL
+    ; Load field height (offset 3)
+    ; Register 2 already in HL
+    LD DE, 3
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; print_u8(r3)
+    ; Register 3 already in A
+    CALL print_u8_decimal
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.text_draw
+examples_zero_cost_interfaces_concept_text_draw:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; TSMC reference parameter t
+t_immOP:
+    LD HL, 0000      ; TSMC ref address for t
+t_imm0 EQU t_immOP+1
+    LD D, H
+    LD E, L
+    ; Load field len (offset 2)
+    LD H, D
+    LD L, E
+    LD DE, 2
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; print_u8(r3)
+    LD A, B
+    CALL print_u8_decimal
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.circle_draw
+examples_zero_cost_interfaces_concept_circle_draw:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; TSMC reference parameter c
+c_immOP:
+    LD HL, 0000      ; TSMC ref address for c
+c_imm0 EQU c_immOP+1
+    LD B, H
+    LD C, L
+    ; Load field r (offset 2)
+    LD H, B
+    LD L, C
+    LD DE, 2
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; print_u8(r3)
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    CALL print_u8_decimal
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.render_sprite
+examples_zero_cost_interfaces_concept_render_sprite:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = string(str_0)
+    LD HL, str_0
+    ; Print "Rendering: " (11 chars via loop)
+    CALL print_string
+; TSMC reference parameter s
+s_immOP:
+    LD HL, 0000      ; TSMC ref address for s
+s_imm0 EQU s_immOP+1
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r4 = call sprite_draw
+    ; Call to sprite_draw (args: 1)
+    ; Stack-based parameter passing
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL examples.zero_cost_interfaces_concept.sprite_draw
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.render_text
+examples_zero_cost_interfaces_concept_render_text:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = string(str_1)
+    LD HL, str_1
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; Print "Rendering: " (11 chars via loop)
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    CALL print_string
+; TSMC reference parameter t
+t_immOP:
+    LD HL, 0000      ; TSMC ref address for t
+t_imm0 EQU t_immOP+1
+    ; Register 3 already in HL
+    ; r4 = call text_draw
+    ; Call to text_draw (args: 1)
+    ; Stack-based parameter passing
+    ; Register 3 already in HL
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL examples.zero_cost_interfaces_concept.text_draw
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.render_circle
+examples_zero_cost_interfaces_concept_render_circle:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = string(str_2)
+    LD HL, str_2
+    ; Print "Rendering: " (11 chars via loop)
+    CALL print_string
+; TSMC reference parameter c
+c_immOP:
+    LD HL, 0000      ; TSMC ref address for c
+c_imm0 EQU c_immOP+1
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; r4 = call circle_draw
+    ; Call to circle_draw (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL examples.zero_cost_interfaces_concept.circle_draw
+    ; Register 4 already in HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.vtable_dispatch
+examples_zero_cost_interfaces_concept_vtable_dispatch:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = string(str_3)
+    LD HL, str_3
+    ; Print "Traditional vtable dispatch:
+" (29 chars via loop)
+    CALL print_string
+    ; r3 = string(str_4)
+    LD HL, str_4
+    ; Print "  LD HL, (vtable)     ; 16 T-states
+" (36 chars via loop)
+    CALL print_string
+    ; r4 = string(str_5)
+    LD HL, str_5
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; Print "  LD E, (HL)          ; 7 T-states
+" (35 chars via loop)
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    CALL print_string
+    ; r5 = string(str_6)
+    LD HL, str_6
+    ; Print "  INC HL              ; 6 T-states
+" (35 chars via loop)
+    CALL print_string
+    ; r6 = string(str_7)
+    LD HL, str_7
+    ; Print "  LD D, (HL)          ; 7 T-states
+" (35 chars via loop)
+    CALL print_string
+    ; r7 = string(str_8)
+    LD HL, str_8
+    ; Register 7 already in HL
+    ; Print "  CALL (DE)           ; 17 T-states
+" (36 chars via loop)
+    ; Register 7 already in HL
+    CALL print_string
+    ; r8 = string(str_9)
+    LD HL, str_9
+    ; Print "  Total: 53 T-states!
+" (22 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.zero_cost_dispatch
+examples_zero_cost_interfaces_concept_zero_cost_dispatch:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_10)
+    LD HL, str_10
+    ; Print "
+MinZ_zero_cost_dispatch:
+" (26 chars via loop)
+    CALL print_string
+    ; r2 = string(str_11)
+    LD HL, str_11
+    ; Register 2 already in HL
+    ; Print "  CALL sprite_draw    ; 17 T-states
+" (36 chars via loop)
+    ; Register 2 already in HL
+    CALL print_string
+    ; r3 = string(str_12)
+    LD HL, str_12
+    ; Print "  Total: 17 T-states!
+" (22 chars via loop)
+    CALL print_string
+    ; r4 = string(str_13)
+    LD HL, str_13
+    ; Print "  Savings: 36 T-states (68% faster!)
+" (37 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.game_object_update
+examples_zero_cost_interfaces_concept_game_object_update:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; TSMC reference parameter obj
+obj_immOP:
+    LD HL, 0000      ; TSMC ref address for obj
+obj_imm0 EQU obj_immOP+1
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; Load field sprite (offset 0)
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 3 already in HL
+    ; r4 = &r3
+    ; Address-of operation for register r3
+    LD HL, $F006  ; Variable address
+    ; Register 4 already in HL
+    ; r5 = call sprite_draw
+    ; Call to sprite_draw (args: 1)
+    ; Stack-based parameter passing
+    ; Register 4 already in HL
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL examples.zero_cost_interfaces_concept.sprite_draw
+    ; r6 = string(str_14)
+    LD HL, str_14
+    ; Print "  (Would check collision here)
+" (31 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.demonstrate_monomorphization
+examples_zero_cost_interfaces_concept_demonstrate_monomorphization:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_15)
+    LD HL, str_15
+    LD ($F002), HL    ; Virtual register 1 to memory
+    ; Print "
+=== Monomorphization ===
+" (26 chars via loop)
+    LD HL, ($F002)    ; Virtual register 1 from memory
+    CALL print_string
+    ; r2 = string(str_16)
+    LD HL, str_16
+    ; Print "Generic function calls create specialized versions:
+
+" (53 chars via loop)
+    CALL print_string
+    ; r3 = string(str_17)
+    LD HL, str_17
+    ; Print "render<Sprite>(s) generates:
+" (29 chars via loop)
+    CALL print_string
+    ; r4 = string(str_18)
+    LD HL, str_18
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; Print "  render_sprite: CALL sprite_draw
+
+" (35 chars via loop)
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    CALL print_string
+    ; r5 = string(str_19)
+    LD HL, str_19
+    ; Print "render<Text>(t) generates:
+" (27 chars via loop)
+    CALL print_string
+    ; r6 = string(str_20)
+    LD HL, str_20
+    ; Print "  render_text: CALL text_draw
+
+" (31 chars via loop)
+    CALL print_string
+    ; r7 = string(str_21)
+    LD HL, str_21
+    ; Register 7 already in HL
+    ; Print "render<Circle>(c) generates:
+" (29 chars via loop)
+    ; Register 7 already in HL
+    CALL print_string
+    ; r8 = string(str_22)
+    LD HL, str_22
+    ; Print "  render_circle: CALL circle_draw
+
+" (35 chars via loop)
+    CALL print_string
+    ; r9 = string(str_23)
+    LD HL, str_23
+    ; Print "No runtime type checking needed!
+" (33 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: examples.zero_cost_interfaces_concept.main
+examples_zero_cost_interfaces_concept_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_24)
+    LD HL, str_24
+    LD ($F002), HL    ; Virtual register 1 to memory
+    ; Print "=====================================
+" (38 chars via loop)
+    LD HL, ($F002)    ; Virtual register 1 from memory
+    CALL print_string
+    ; r2 = string(str_25)
+    LD HL, str_25
+    ; Print "Zero-Cost Interfaces Concept Demo
+" (34 chars via loop)
+    CALL print_string
+    ; r3 = string(str_26)
+    LD HL, str_26
+    ; Print "=====================================
+
+" (39 chars via loop)
+    CALL print_string
+    ; r5 = 10
+    LD A, 10
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = load s
+    LD HL, ($F008)
+    ; Store to field x (offset 0)
+    PUSH HL
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r7 = 20
+    LD A, 20
+    LD L, A         ; Store to physical register L
+    ; r8 = load s
+    LD HL, ($F008)
+    LD ($F010), HL    ; Virtual register 8 to memory
+    ; Store to field y (offset 1)
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r9 = 32
+    LD A, 32
+    LD H, A         ; Store to physical register H
+    ; r10 = load s
+    LD HL, ($F008)
+    ; Store to field width (offset 2)
+    LD DE, 2
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r11 = 24
+    LD A, 24
+    LD ($F016), A     ; Virtual register 11 to memory
+    ; r12 = load s
+    LD HL, ($F008)
+    ; Store to field height (offset 3)
+    LD DE, 3
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r14 = 50
+    LD A, 50
+    LD L, A         ; Store to physical register L
+    ; r15 = load t
+    LD HL, ($F01A)
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; Store to field x (offset 0)
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r16 = 10
+    LD A, 10
+    LD H, A         ; Store to physical register H
+    ; r17 = load t
+    LD HL, ($F01A)
+    ; Store to field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r18 = 12
+    LD A, 12
+    LD ($F024), A     ; Virtual register 18 to memory
+    ; r19 = load t
+    LD HL, ($F01A)
+    ; Store to field len (offset 2)
+    LD DE, 2
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F024)    ; Virtual register 18 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r21 = 128
+    LD A, 128
+    LD L, A         ; Store to physical register L
+    ; r22 = load c
+    LD HL, ($F028)
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; Store to field cx (offset 0)
+    LD HL, ($F02C)    ; Virtual register 22 from memory
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r23 = 96
+    LD A, 96
+    LD H, A         ; Store to physical register H
+    ; r24 = load c
+    LD HL, ($F028)
+    ; Store to field cy (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r25 = 25
+    LD A, 25
+    LD ($F032), A     ; Virtual register 25 to memory
+    ; r26 = load c
+    LD HL, ($F028)
+    ; Store to field r (offset 2)
+    LD DE, 2
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r27 = string(str_27)
+    LD HL, str_27
+    ; Print "=== Direct Specialized Calls ===
+" (33 chars via loop)
+    CALL print_string
+    ; r28 = load s
+    LD HL, ($F008)
+    LD ($F038), HL    ; Virtual register 28 to memory
+    ; r29 = &r28
+    ; Address-of operation for register r28
+    LD HL, $F038  ; Variable address
+    ; r30 = call render_sprite
+    ; Call to render_sprite (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL examples.zero_cost_interfaces_concept.render_sprite
+    ; r31 = load t
+    LD HL, ($F01A)
+    LD ($F03E), HL    ; Virtual register 31 to memory
+    ; r32 = &r31
+    ; Address-of operation for register r31
+    LD HL, $F03E  ; Variable address
+    ; r33 = call render_text
+    ; Call to render_text (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL examples.zero_cost_interfaces_concept.render_text
+    ; r34 = load c
+    LD HL, ($F028)
+    LD ($F044), HL    ; Virtual register 34 to memory
+    ; r35 = &r34
+    ; Address-of operation for register r34
+    LD HL, $F044  ; Variable address
+    ; r36 = call render_circle
+    ; Call to render_circle (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL examples.zero_cost_interfaces_concept.render_circle
+    ; r37 = string(str_28)
+    LD HL, str_28
+    ; Register 37 already in HL
+    ; Print "
+=== Performance Analysis ===
+" (30 chars via loop)
+    ; Register 37 already in HL
+    CALL print_string
+    ; r39 = 32768
+    LD HL, 32768
+    LD ($F04E), HL    ; Virtual register 39 to memory
+    ; r40 = load vtable
+    LD HL, ($F04C)
+    ; Register 40 already in HL
+    ; Store to field draw_fn (offset 0)
+    ; Register 40 already in HL
+    PUSH HL
+    LD HL, ($F04E)    ; Virtual register 39 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r41 = 36864
+    LD HL, 36864
+    LD ($F052), HL    ; Virtual register 41 to memory
+    ; r42 = load vtable
+    LD HL, ($F04C)
+    ; Store to field data (offset 2)
+    LD DE, 2
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F052)    ; Virtual register 41 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r43 = load vtable
+    LD HL, ($F04C)
+    ; r44 = &r43
+    ; Address-of operation for register r43
+    LD HL, $F056  ; Variable address
+    LD ($F058), HL    ; Virtual register 44 to memory
+    ; r45 = call vtable_dispatch
+    ; Call to vtable_dispatch (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F058)    ; Virtual register 44 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL examples.zero_cost_interfaces_concept.vtable_dispatch
+    ; r46 = call zero_cost_dispatch
+    ; Call to zero_cost_dispatch (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.zero_cost_interfaces_concept.zero_cost_dispatch
+    ; r47 = call demonstrate_monomorphization
+    ; Call to demonstrate_monomorphization (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL examples.zero_cost_interfaces_concept.demonstrate_monomorphization
+    LD ($F05E), HL    ; Virtual register 47 to memory
+    ; r48 = string(str_29)
+    LD HL, str_29
+    ; Print "
+=== Benefits ===
+" (18 chars via loop)
+    CALL print_string
+    ; r49 = string(str_30)
+    LD HL, str_30
+    ; Print "â No vtables in memory
+" (28 chars via loop)
+    CALL print_string
+    ; r50 = string(str_31)
+    LD HL, str_31
+    LD ($F064), HL    ; Virtual register 50 to memory
+    ; Print "â No indirect calls
+" (25 chars via loop)
+    LD HL, ($F064)    ; Virtual register 50 from memory
+    CALL print_string
+    ; r51 = string(str_32)
+    LD HL, str_32
+    ; Print "â Compile-time type checking
+" (34 chars via loop)
+    CALL print_string
+    ; r52 = string(str_33)
+    LD HL, str_33
+    ; Print "â Can inline interface methods
+" (36 chars via loop)
+    CALL print_string
+    ; r53 = string(str_34)
+    LD HL, str_34
+    LD ($F06A), HL    ; Virtual register 53 to memory
+    ; Print "â 68% faster than vtable dispatch
+" (39 chars via loop)
+    LD HL, ($F06A)    ; Virtual register 53 from memory
+    CALL print_string
+    ; r54 = string(str_35)
+    LD HL, str_35
+    ; Print "
+=====================================
+" (39 chars via loop)
+    CALL print_string
+    ; r55 = string(str_36)
+    LD HL, str_36
+    ; Print "Future MinZ: Interfaces with ZERO cost!
+" (40 chars via loop)
+    CALL print_string
+    ; r56 = string(str_37)
+    LD HL, str_37
+    ; Register 56 already in HL
+    ; Print "=====================================
+" (38 chars via loop)
+    ; Register 56 already in HL
+    CALL print_string
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DJNZ print_loop    ; Decrement B and loop
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+    END main

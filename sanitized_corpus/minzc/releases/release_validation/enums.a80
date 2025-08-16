@@ -1,0 +1,17 @@
+; MinZ generated code
+; Generated: 2025-08-03 15:05:42
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.enums.opposite
+_examples_enums_opposite:
+; TRUE SMC function with immediate anchors
+dir_immOP:
+    LD A, 0        ; dir anchor (will be patched)
+dir_imm0 EQU dir_immOP+1
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; unknown op 57

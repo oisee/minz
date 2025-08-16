@@ -1,0 +1,14 @@
+// Test struct field access types
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun main() -> void {
+    let p: Point;
+    p.x = 5;
+    
+    // Test direct field access in function call
+    print_u8(p.x);  // This might fail with u16 vs u8 error
+}

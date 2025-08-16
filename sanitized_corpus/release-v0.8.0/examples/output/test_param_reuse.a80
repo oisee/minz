@@ -1,0 +1,103 @@
+; MinZ generated code
+; Generated: 2025-07-28 08:45:59
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_param_reuse.calculate
+_examples_test_param_reuse_calculate:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), A     ; Virtual register 1 to memory
+    LD A, E       ; Get parameter y
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r4 = param x
+    ; Load parameter x
+    ; r5 = param y
+    ; Load parameter y
+    ; r6 = r4 + r5
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store , r6
+    LD ($F000), HL
+    ; r8 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; store , r8
+    LD ($F002), HL
+    ; r9 = param x
+    ; Load parameter x
+    ; r10 = param y
+    ; Load parameter y
+    ; r11 = r9 > r10
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L2
+    JP P, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r11, else_1
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_1
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    ; r12 = load sum
+    LD HL, ($F000)
+    ; r13 = load diff
+    LD HL, ($F002)
+    ; r14 = r12 + r13
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 14 already in HL
+    ; return r14
+    ; Register 14 already in HL
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_param_reuse.main
+_examples_test_param_reuse_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD C, A         ; Store to physical register C
+    ; r3 = 6
+    LD A, 6
+    LD L, A         ; Store to HL (low byte)
+    ; r4 = call calculate
+    ; Call to calculate (args: 2)
+    ; Register-based parameter passing
+    LD A, C
+    ; Parameter x in A
+    LD A, L
+    LD E, A       ; Parameter y in E
+    ; Found function, UsesTrueSMC=false
+    CALL calculate
+    ; store , r4
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

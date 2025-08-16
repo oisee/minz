@@ -1032,11 +1032,71 @@ func (p *Parser) parseLoopStmt(node map[string]interface{}) *ast.LoopStmt {
 		Mode:     ast.LoopInto, // Default mode
 	}
 	
-	// Parse children to find array, indexed keyword, iterator vars, and body
+	// First check if this is an infinite loop (just "loop { ... }")
 	children, _ := node["children"].([]interface{})
+	if len(children) == 2 {
+		// Check if it's just "loop" and a block
+		for _, child := range children {
+			childNode, _ := child.(map[string]interface{})
+			childType, _ := childNode["type"].(string)
+			text := p.getText(childNode)
+			
+			if text == "loop" {
+				continue
+			}
+			if childType == "block" {
+				// This is an infinite loop - not a table loop
+				return nil // We don't handle infinite loops as LoopStmt
+			}
+		}
+	}
 	
+	// Check for field-based parsing (new tree-sitter output)
+	if fields, ok := node["fields"].(map[string]interface{}); ok && len(fields) > 0 {
+		// Parse table field
+		if tableField, ok := fields["table"].(map[string]interface{}); ok {
+			loopStmt.Table = p.parseExpression(tableField)
+		}
+		
+		// Parse iterator field
+		if iterField, ok := fields["iterator"].(map[string]interface{}); ok {
+			loopStmt.Iterator = p.getText(iterField)
+		}
+		
+		// Parse index field (for indexed loops)
+		if indexField, ok := fields["index"].(map[string]interface{}); ok {
+			loopStmt.Index = p.getText(indexField)
+		}
+		
+		// Parse mode based on keywords in children
+		for _, child := range children {
+			childNode, _ := child.(map[string]interface{})
+			text := p.getText(childNode)
+			
+			switch text {
+			case "indexed":
+				// Mode stays as LoopInto for indexed loops
+			case "into":
+				loopStmt.Mode = ast.LoopInto
+			case "ref":
+				// Check if next token is "to"
+				loopStmt.Mode = ast.LoopRefTo
+			}
+			
+			// Parse block
+			if childNode["type"] == "block" {
+				loopStmt.Body = p.parseBlock(childNode)
+			}
+		}
+		
+		return loopStmt
+	}
+	
+	// Fall back to old parsing logic for backward compatibility
 	var foundIndexed bool
 	var foundTo bool
+	var foundInto bool
+	var foundRef bool
 	var arrayNode map[string]interface{}
 	var varNodes []map[string]interface{}
 	
@@ -1050,20 +1110,31 @@ func (p *Parser) parseLoopStmt(node map[string]interface{}) *ast.LoopStmt {
 			foundIndexed = true
 		case text == "to":
 			foundTo = true
+		case text == "into":
+			foundInto = true
+		case text == "ref":
+			foundRef = true
 		case text == "loop":
 			// Skip the loop keyword
-		case childType == "block_statement":
+		case childType == "block" || childType == "block_statement":
 			loopStmt.Body = p.parseBlock(childNode)
-		case childType == "identifier" || childType == "field_expression" || childType == "index_expression":
+		case childType == "identifier" || childType == "field_expression" || childType == "index_expression" || childType == "expression":
 			// Collect nodes based on position
-			if !foundIndexed && !foundTo {
+			if !foundIndexed && !foundTo && !foundInto && !foundRef {
 				// This is the array/collection being looped over
 				arrayNode = childNode
-			} else if foundTo {
-				// After "to", these are iterator variables
+			} else if foundTo || foundInto {
+				// After "to" or "into", these are iterator variables
 				varNodes = append(varNodes, childNode)
 			}
 		}
+	}
+	
+	// Set mode based on keywords found
+	if foundRef && foundTo {
+		loopStmt.Mode = ast.LoopRefTo
+	} else if foundInto {
+		loopStmt.Mode = ast.LoopInto
 	}
 	
 	// Parse the array/collection expression

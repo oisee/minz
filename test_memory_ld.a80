@@ -1,0 +1,14 @@
+; Test memory LD instructions that are failing
+    ORG $8000
+
+; These should work - basic memory operations
+    LD HL, ($F000)
+    LD ($F000), HL
+    LD A, ($F001)
+    LD ($F001), A
+    
+    ; Test with different address formats
+    LD HL, ($1234)
+    LD ($5678), HL
+    
+    END

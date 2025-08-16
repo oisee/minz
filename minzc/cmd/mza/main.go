@@ -14,6 +14,8 @@ var (
 	outputFile    string
 	listingFile   string
 	symbolFile    string
+	targetFlag    string
+	formatFlag    string
 	allowUndoc    bool
 	strict        bool
 	caseSensitive bool
@@ -77,17 +79,34 @@ EXAMPLES:
 			fmt.Fprintf(os.Stderr, "Warning: Input file doesn't have .a80 extension\n")
 		}
 		
-		// Determine output file name
+		// Parse target
+		target, err := z80asm.ParseTarget(targetFlag)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Available targets: %s\n", strings.Join(z80asm.ListTargets(), ", "))
+			os.Exit(1)
+		}
+		
+		targetConfig := z80asm.GetTargetConfig(target)
+		
+		// Determine output file name and format
 		if outputFile == "" {
 			ext := filepath.Ext(inputFile)
 			base := strings.TrimSuffix(inputFile, ext)
-			outputFile = base + ".bin"
+			
+			// Use target-specific extension if no format specified
+			if formatFlag == "auto" {
+				outputFile = base + targetConfig.OutputFormat.Extension
+			} else {
+				outputFile = base + "." + formatFlag
+			}
 		}
 		
 		if verbose {
-			fmt.Printf("MinZ Z80 Assembler v1.0\n")
+			fmt.Printf("MinZ Z80 Assembler v1.1\n")
+			fmt.Printf("Target: %s (%s)\n", targetConfig.Name, targetConfig.Description)
 			fmt.Printf("Input:  %s\n", inputFile)
-			fmt.Printf("Output: %s\n", outputFile)
+			fmt.Printf("Output: %s (%s)\n", outputFile, targetConfig.OutputFormat.Description)
 			if listingFile != "" {
 				fmt.Printf("Listing: %s\n", listingFile)
 			}
@@ -102,6 +121,12 @@ EXAMPLES:
 		assembler.AllowUndocumented = allowUndoc
 		assembler.Strict = strict
 		assembler.CaseSensitive = caseSensitive
+		
+		// Set target platform
+		if err := assembler.SetTarget(target); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to set target: %v\n", err)
+			os.Exit(1)
+		}
 		
 		// Assemble the file
 		result, err := assembler.AssembleFile(inputFile)
@@ -119,8 +144,20 @@ EXAMPLES:
 			os.Exit(1)
 		}
 		
-		// Write binary output
-		if err := os.WriteFile(outputFile, result.Binary, 0644); err != nil {
+		// Generate target-specific output
+		var outputData []byte
+		if targetConfig.OutputFormat.Generator != nil {
+			outputData, err = targetConfig.OutputFormat.Generator(result)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to generate %s output: %v\n", targetConfig.Name, err)
+				os.Exit(1)
+			}
+		} else {
+			outputData = result.Binary
+		}
+		
+		// Write output file
+		if err := os.WriteFile(outputFile, outputData, 0644); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to write output file %s: %v\n", outputFile, err)
 			os.Exit(1)
 		}
@@ -160,9 +197,13 @@ EXAMPLES:
 
 func init() {
 	// Output options
-	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output binary file (default: input.bin)")
+	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file (default: input.ext based on target)")
 	rootCmd.Flags().StringVarP(&listingFile, "listing", "l", "", "generate listing file")
 	rootCmd.Flags().StringVarP(&symbolFile, "symbols", "s", "", "generate symbol file")
+	
+	// Target options
+	rootCmd.Flags().StringVarP(&targetFlag, "target", "t", "generic", "target platform (generic, zxspectrum, cpm, msx, gameboy)")
+	rootCmd.Flags().StringVarP(&formatFlag, "format", "f", "auto", "output format (auto, bin, sna, com, rom)")
 	
 	// Assembly options
 	rootCmd.Flags().BoolVarP(&allowUndoc, "undocumented", "u", true, "allow undocumented Z80 instructions")

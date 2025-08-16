@@ -1,0 +1,66 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:38
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.register_allocation.test_registers
+_examples_register_allocation_test_registers:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    ; Register 2 already in A
+    ; store , r2
+    LD ($F002), HL
+    ; r4 = 20
+    LD A, 20
+    LD C, A         ; Store to physical register C
+    ; store , r4
+    LD ($F006), HL
+    ; r6 = 30
+    LD A, 30
+    LD E, A         ; Store to physical register E
+    ; store , r6
+    LD ($F00A), HL
+    ; r8 = load a
+    LD HL, ($F002)
+    ; r9 = load b
+    LD HL, ($F006)
+    ; r10 = r8 + r9
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; r11 = load c
+    LD HL, ($F00A)
+    ; r12 = r10 + r11
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store , r12
+    LD ($F00E), HL
+    ; r13 = load result
+    LD HL, ($F00E)
+    ; return r13
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.register_allocation.main
+_examples_register_allocation_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call test_registers
+    ; Call to test_registers (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_registers
+    ; store , r2
+    LD ($F002), HL
+    ; return
+    RET
+
+    END main

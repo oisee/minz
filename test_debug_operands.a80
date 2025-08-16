@@ -1,0 +1,7 @@
+; Debug operand matching
+    ORG $8000
+
+    LD A, B      ; Should work: OpReg8, OpReg8
+    LD A, $12    ; Should work: OpReg8, OpImm8
+    
+    END

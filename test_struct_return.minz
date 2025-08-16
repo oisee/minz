@@ -1,0 +1,30 @@
+// Test struct return values
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun make_point() -> Point {
+    let p: Point;
+    p.x = 5;
+    p.y = 10;
+    return p;
+}
+
+fun move_point(p: Point) -> Point {
+    let new_p = p;
+    new_p.x = p.x + 1;
+    return new_p;
+}
+
+fun test_return_types() -> u8 {
+    let point1 = make_point();
+    let point2 = move_point(point1);
+    return point2.x;
+}
+
+fun main() -> void {
+    let result = test_return_types();
+    print_u8(result);
+}

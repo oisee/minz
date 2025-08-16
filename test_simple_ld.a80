@@ -1,0 +1,24 @@
+; Test simple LD instructions
+    ORG $8000
+    
+    ; Register to register
+    LD A, B
+    LD B, C
+    LD H, L
+    
+    ; Immediate to register
+    LD A, 42
+    LD B, $FF
+    LD HL, $1234
+    
+    ; Memory operations
+    LD A, (HL)
+    LD (HL), A
+    LD A, ($8000)
+    LD ($8000), A
+    
+    ; 16-bit operations
+    LD HL, ($8000)
+    LD ($8000), HL
+    
+    END

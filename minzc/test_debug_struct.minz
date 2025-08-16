@@ -1,0 +1,16 @@
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun get_point() -> Point {
+    let p: Point;
+    p.x = 5;
+    return p;
+}
+
+fun main() -> void {
+    // This will trigger type inference
+    let result = get_point();
+    print_u8(result.x);  // This should work if type is correct
+}

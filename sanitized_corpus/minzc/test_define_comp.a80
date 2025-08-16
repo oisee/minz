@@ -1,0 +1,423 @@
+; MinZ generated code
+; Generated: 2025-08-16 10:47:13
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 19    ; Length
+    DB "Initializing Logger"
+str_1:
+    DB 17    ; Length
+    DB "Destroying Logger"
+str_2:
+    DB 20    ; Length
+    DB "Initializing Manager"
+str_3:
+    DB 18    ; Length
+    DB "Destroying Manager"
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.new_CONSTANT_
+_test_define_comprehensive_new_CONSTANT:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 0
+    LD A, 0
+    ; Register 1 already in A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.size_of_CONSTANT_
+_test_define_comprehensive_size_of_CONSTANT:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.new_Buffer
+_test_define_comprehensive_new_Buffer:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct Buffer
+    LD HL, -256
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    ; Register 1 already in HL
+    ; r3 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; Array initializer with 1 elements
+    ; Initialize array with 1 elements
+    ; Array allocated at $F004
+    LD HL, $F004
+    ; Initialize array[0]
+    PUSH HL        ; Save array base
+    LD DE, 0
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    LD A, B
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; Store to Buffer.data
+    ; Register 1 already in HL
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; return r1
+    ; Register 1 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.size_of_Buffer
+_test_define_comprehensive_size_of_Buffer:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 256
+    LD HL, 256
+    LD D, H
+    LD E, L
+    LD A, E
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+_test_define_comprehensive_size_of_Buffer_return_patch_op:
+NOP_PATCH_POINT: NOP or RET (C9) for early return
+_test_define_comprehensive_size_of_Buffer_store_addr_op:
+...test_define_comprehensive.size_of_Buffer_store_addr equ ...test_define_comprehensive.size_of_Buffer_store_addr.op + 1
+LD_0000_A_DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.new_SmallBuffer
+_test_define_comprehensive_new_SmallBuffer:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct SmallBuffer
+    LD HL, -32
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    LD B, H
+    LD C, L
+    ; r3 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; Array initializer with 1 elements
+    ; Initialize array with 1 elements
+    ; Array allocated at $F004
+    LD HL, $F004
+    ; Initialize array[0]
+    PUSH HL        ; Save array base
+    LD DE, 0
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; Store to SmallBuffer.data
+    LD H, B
+    LD L, C
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; return r1
+    LD H, B
+    LD L, C
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.size_of_SmallBuffer
+_test_define_comprehensive_size_of_SmallBuffer:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 32
+    LD A, 32
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; return r1
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.new_MAX
+_test_define_comprehensive_new_MAX:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct MAX
+    LD HL, -255
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    ; Register 1 already in HL
+    ; r3 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; Array initializer with 1 elements
+    ; Initialize array with 1 elements
+    ; Array allocated at $F004
+    LD HL, $F004
+    ; Register 2 already in HL
+    ; Initialize array[0]
+    ; Register 2 already in HL
+    PUSH HL        ; Save array base
+    LD DE, 0
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; Store to MAX.data
+    ; Register 1 already in HL
+    PUSH HL
+    ; Register 2 already in HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; return r1
+    ; Register 1 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.size_of_MAX
+_test_define_comprehensive_size_of_MAX:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 255
+    LD A, 255
+    LD L, A         ; Store to HL (low byte)
+    ; return r1
+    ; Register 1 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.new_MIN
+_test_define_comprehensive_new_MIN:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct MIN
+    LD HL, -0
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    ; r3 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; Array initializer with 1 elements
+    ; Initialize array with 1 elements
+    ; Array allocated at $F004
+    LD HL, $F004
+    ; Register 2 already in HL
+    ; Initialize array[0]
+    ; Register 2 already in HL
+    PUSH HL        ; Save array base
+    LD DE, 0
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    LD A, L
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; Store to MIN.data
+    PUSH HL
+    ; Register 2 already in HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; return r1
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.size_of_MIN
+_test_define_comprehensive_size_of_MIN:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r1
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.Logger_init
+_test_define_comprehensive_Logger_init:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_0)
+    LD HL, str_0
+    ; Register 1 already in HL
+    ; Print "Initializing Logger" (19 chars via loop)
+    ; Register 1 already in HL
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.Logger_destroy
+_test_define_comprehensive_Logger_destroy:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_1)
+    LD HL, str_1
+    ; Print "Destroying Logger" (17 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.Manager_init
+_test_define_comprehensive_Manager_init:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_2)
+    LD HL, str_2
+    ; Print "Initializing Manager" (20 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.Manager_destroy
+_test_define_comprehensive_Manager_destroy:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_3)
+    LD HL, str_3
+    ; Register 1 already in HL
+    ; Print "Destroying Manager" (18 chars via loop)
+    ; Register 1 already in HL
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_define_comprehensive.main
+_test_define_comprehensive_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call ...test_define_comprehensive.new_Buffer
+    ; Call to ...test_define_comprehensive.new_Buffer (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...test_define_comprehensive.new_Buffer
+    ; store buf, r2
+    LD ($F002), HL
+    ; r4 = call ...test_define_comprehensive.new_SmallBuffer
+    ; Call to ...test_define_comprehensive.new_SmallBuffer (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...test_define_comprehensive.new_SmallBuffer
+    ; Register 4 already in HL
+    ; store small, r4
+    ; Register 4 already in HL
+    LD ($F006), HL
+    ; r5 = call ...test_define_comprehensive.Logger_init
+    ; Call to ...test_define_comprehensive.Logger_init (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...test_define_comprehensive.Logger_init
+    ; Register 5 already in HL
+    ; r6 = call ...test_define_comprehensive.Manager_init
+    ; Call to ...test_define_comprehensive.Manager_init (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...test_define_comprehensive.Manager_init
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_define_comprehensive.size_of_Buffer_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_define_comprehensive.size_of_Buffer_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_define_comprehensive.size_of_Buffer_store_addr), HL
+    ; r7 = call ...test_define_comprehensive.size_of_Buffer
+    ; Call to ...test_define_comprehensive.size_of_Buffer (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...test_define_comprehensive.size_of_Buffer
+    ; return r7
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; ZX Spectrum ROM print
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+
+; Standard library routines
+
+    END main

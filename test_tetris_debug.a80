@@ -1,0 +1,191 @@
+; MinZ generated code
+; Generated: 2025-08-16 20:26:17
+
+
+; Data section
+    ORG $F000
+
+test_tetris_debug.BOARD_WIDTH:
+    DB 10
+test_tetris_debug.BOARD_HEIGHT:
+    DB 20
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tetris_debug.clear_screen
+test_tetris_debug.clear_screen:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Inline assembly from @asm block
+    LD HL, 16384
+    LD BC, 6144
+    XOR A
+clear_loop:
+    LD (HL), A
+    INC HL
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, clear_loop
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tetris_debug.test_board_access
+test_tetris_debug.test_board_access:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 1
+    LD A, 1
+    ; Register 2 already in A
+    ; r3 = load board
+    LD HL, ($F002)
+    ; Load field grid (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; r5 = 0
+    LD A, 0
+    LD C, A         ; Store to physical register C
+    ; Load array element ([10]u8)
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    PUSH HL
+    LD E, C        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD E, A         ; Store to DE (low byte)
+    ; r7 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; Calculate array element address
+    LD H, D
+    LD L, E
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD B, H
+    LD C, L
+    ; Store to array[index] (u8)
+    LD H, B
+    LD L, C
+    PUSH HL
+    ; Register 2 already in A
+    POP HL
+    LD (HL), A
+    ; r9 = 100
+    LD A, 100
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r10 = load board
+    LD HL, ($F002)
+    ; Store to field score (offset 203)
+    LD DE, 203
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r11 = load board
+    LD HL, ($F002)
+    ; Load field grid (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r13 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element ([10]u8)
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r15 = 0
+    LD A, 0
+    LD ($F01E), A     ; Virtual register 15 to memory
+    ; Load array element (u8)
+    PUSH HL
+    LD A, ($F01E)     ; Virtual register 15 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r17 = call test_tetris_debug.clear_screen
+    ; Call to test_tetris_debug.clear_screen (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_tetris_debug.clear_screen
+    ; Register 17 already in HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_tetris_debug.main
+test_tetris_debug.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call test_tetris_debug.test_board_access
+    ; Call to test_tetris_debug.test_board_access (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_tetris_debug.test_board_access
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+
+    END main

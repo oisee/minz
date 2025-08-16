@@ -1,0 +1,19 @@
+; MinZ generated code
+; Generated: 2025-08-02 13:03:27
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.tail_sum.sum_tail
+.Users_alice_dev_minz_ts_examples_tail_sum_sum_tail:
+; TRUE SMC function with immediate anchors
+n_immOP:
+    LD HL, 0       ; n anchor (will be patched)
+n_imm0 EQU n_immOP+1
+    ; Register 3 already in HL
+    ; Tail recursion loop start
+.Users_alice_dev_minz_ts_examples_tail_sum_sum_tail_tail_loop:
+    ; unknown op 57

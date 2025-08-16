@@ -1,0 +1,22 @@
+enum Direction {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+}
+
+fun test_case(dir: Direction) -> u8 {
+    case dir {
+        Direction.UP => return 1,
+        Direction.DOWN => return 2,
+        Direction.LEFT => return 3,
+        Direction.RIGHT => return 4,
+    }
+    return 0;
+}
+
+fun main() -> void {
+    let d = Direction.UP;
+    let result = test_case(d);
+    print_u8(result);
+}

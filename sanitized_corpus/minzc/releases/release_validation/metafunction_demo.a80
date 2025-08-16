@@ -1,0 +1,274 @@
+; MinZ generated code
+; Generated: 2025-08-03 15:05:43
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 13    ; Length
+    DB "Hello, World!"
+str_1:
+    DB 16    ; Length
+    DB "The answer is 42"
+str_2:
+    DB 20    ; Length
+    DB "Pi is approximately "
+str_3:
+    DB 13    ; Length
+DB_Success: true"
+str_4:
+    DB 10    ; Length
+DB_Result: 20"
+str_5:
+    DB 12    ; Length
+DB_Your_score: "
+str_6:
+    DB 21    ; Length
+DB_Memory_address: 32768"
+str_7:
+    DB 10    ; Length
+DB_Flags: 210"
+str_8:
+    DB 17    ; Length
+DB_Debug_mode: temp="
+str_9:
+    DB 11    ; Length
+    DB ", pressure="
+str_10:
+    DB 35    ; Length
+    DB "Assertions would check buffer_size="
+str_11:
+    DB 36    ; Length
+    DB "Platform_specific code would go here"
+str_12:
+    DB 5    ; Length
+    DB "Alice"
+str_13:
+    DB 30    ; Length
+    DB "System check failed with code "
+str_14:
+    DB 31    ; Length
+    DB "System initialized successfully"
+str_15:
+    DB 18    ; Length
+DB_Fibonacci_result: "
+str_16:
+    DB 11    ; Length
+    DB "MinZ v1.0.0"
+str_17:
+    DB 10    ; Length
+DB_Status: OK"
+str_18:
+    DB 17    ; Length
+DB_Built: 2025-01-15"
+str_19:
+    DB 13    ; Length
+DB_System_info: "
+str_20:
+    DB 9    ; Length
+DB_Counter: "
+str_21:
+    DB 11    ; Length
+DB_Doubled: "
+str_22:
+    DB 31    ; Length
+    DB "=== MinZ Metafunction Demo ==="
+    DB 10
+str_23:
+    DB 23    ; Length
+    DB 10
+    DB "=== Demo Complete ==="
+    DB 10
+str_24:
+    DB 54    ; Length
+    DB "Generated code is optimal with zero runtime overhead!"
+    DB 10
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.metafunction_demo.demo_simple_print
+_examples_metafunction_demo_demo_simple_print:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Direct print "Hello" (5 chars)
+    ; Direct print "Hello" (5 chars)
+    LD A, 72
+    RST 16             ; Print character
+    LD A, 101
+    RST 16             ; Print character
+    LD A, 108
+    RST 16             ; Print character
+    LD A, 108
+    RST 16             ; Print character
+    LD A, 111
+    RST 16             ; Print character
+    ; Direct print "Hi" (2 chars)
+    ; Direct print "Hi" (2 chars)
+    LD A, 72
+    RST 16             ; Print character
+    LD A, 105
+    RST 16             ; Print character
+    ; r1 = string(str_0)
+    LD HL, str_0
+    ; Print "Hello, World!" (13 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.metafunction_demo.demo_constants
+_examples_metafunction_demo_demo_constants:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r1 = string(str_1)
+    LD HL, str_1
+    ; Print "The answer is 42" (16 chars via loop)
+    CALL print_string
+    ; r2 = string(str_2)
+    LD HL, str_2
+    ; Print "Pi is approximately " (20 chars via loop)
+    CALL print_string
+    ; r3 = string(str_3)
+    LD HL, str_3
+    ; Print "Success: true" (13 chars via loop)
+    CALL print_string
+    ; r4 = string(str_4)
+    LD HL, str_4
+    ; Print "Result: 20" (10 chars via loop)
+    CALL print_string
+    ; r6 = call get_user_input
+    ; Call to get_user_input (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ......examples.metafunction_demo.get_user_input
+    ; print_u16(r7)
+    CALL print_u16_decimal
+    ; return
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.metafunction_demo.demo_mixed
+_examples_metafunction_demo_demo_mixed:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r2 = call get_user_input
+    ; Call to get_user_input (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ......examples.metafunction_demo.get_user_input
+    ; r3 = string(str_5)
+    LD HL, str_5
+    ; Print "Your score: " (12 chars via loop)
+    CALL print_string
+    ; Direct print " points!" (8 chars)
+    ; Direct print " points!" (8 chars)
+    LD A, 32
+    RST 16             ; Print character
+    LD A, 112
+    RST 16             ; Print character
+    LD A, 111
+    RST 16             ; Print character
+    LD A, 105
+    RST 16             ; Print character
+    LD A, 110
+    RST 16             ; Print character
+    LD A, 116
+    RST 16             ; Print character
+    LD A, 115
+    RST 16             ; Print character
+    LD A, 33
+    RST 16             ; Print character
+    ; return
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.metafunction_demo.demo_formatting
+_examples_metafunction_demo_demo_formatting:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = string(str_6)
+    LD HL, str_6
+    ; Print "Memory address: 32768" (21 chars via loop)
+    CALL print_string
+    ; r6 = string(str_7)
+    LD HL, str_7
+    ; Print "Flags: 210" (10 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.metafunction_demo.demo_debug
+_examples_metafunction_demo_demo_debug:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r5 = string(str_8)
+    LD HL, str_8
+    ; Print "Debug mode: temp=" (17 chars via loop)
+    CALL print_string
+    ; r6 = string(str_9)
+    LD HL, str_9
+    ; Print ", pressure=" (11 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.metafunction_demo.demo_assertions
+_examples_metafunction_demo_demo_assertions:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = string(str_10)
+    LD HL, str_10
+    ; Print "Assertions would check buffer_size=" (35 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.metafunction_demo.demo_platform
+_examples_metafunction_demo_demo_platform:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_11)
+    LD HL, str_11
+    ; Print "Platform-specific code would go here" (36 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.metafunction_demo.demo_complex
+_examples_metafunction_demo_demo_complex:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Load string "Alice"
+    LD HL, str_12
+    ; print_u8(r9)
+    ; Register 9 already in A
+    CALL print_u8_decimal
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ......examples.metafunction_demo.demo_error_handling
+_examples_metafunction_demo_demo_error_handling:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r2 = call check_system
+    ; Call to check_system (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ......examples.metafunction_demo.check_system
+    ; unknown op 57

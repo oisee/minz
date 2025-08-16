@@ -1,3 +1,10 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
 # Node modules
 node_modules/
 npm-debug.log*

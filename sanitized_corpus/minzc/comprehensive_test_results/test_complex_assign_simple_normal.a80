@@ -1,0 +1,360 @@
+; MinZ generated code
+; Generated: 2025-08-02 13:03:28
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_complex_assign_simple.test_arrays
+.Users_alice_dev_minz_ts_examples_test_complex_assign_simple_test_arrays:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    ; Register 2 already in A
+    ; r3 = load arr
+    LD HL, ($F002)
+    ; r4 = 0
+    LD A, 0
+    LD C, A         ; Store to physical register C
+    ; Calculate array element address
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL
+    ; Register 2 already in A
+    POP HL
+    LD (HL), A
+    ; r6 = 20
+    LD A, 20
+    LD D, A         ; Store to physical register D
+    ; r7 = load arr
+    LD HL, ($F002)
+    ; r8 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; Calculate array element address
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD D, H
+    LD E, L
+    ; Store to array[index] (u8)
+    LD H, D
+    LD L, E
+    PUSH HL
+    LD A, D
+    POP HL
+    LD (HL), A
+    ; r10 = 30
+    LD A, 30
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r11 = load arr
+    LD HL, ($F002)
+    ; r12 = 2
+    LD A, 2
+    EXX               ; Switch to shadow registers
+    LD E', A         ; Store to shadow E'
+    EXX               ; Switch back to main registers
+    ; Calculate array element address
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD B, H
+    LD C, L
+    ; Store to array[index] (u8)
+    LD H, B
+    LD L, C
+    PUSH HL
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    POP HL
+    LD (HL), A
+    ; r15 = 3
+    LD A, 3
+    LD ($F01E), A     ; Virtual register 15 to memory
+    ; store , r15
+    LD A, ($F01E)     ; Virtual register 15 from memory
+    LD ($F01C), A
+    ; r16 = 40
+    LD A, 40
+    LD L, A         ; Store to physical register L
+    ; r17 = load arr
+    LD HL, ($F002)
+    ; Register 17 already in HL
+    ; r18 = load i
+    LD A, ($F01C)
+    LD H, A         ; Store to physical register H
+    ; Calculate array element address
+    ; Register 17 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F026), HL    ; Virtual register 19 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F026)    ; Virtual register 19 from memory
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; r20 = load arr
+    LD HL, ($F002)
+    LD ($F028), HL    ; Virtual register 20 to memory
+    ; r21 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r23 = load arr
+    LD HL, ($F002)
+    LD ($F02E), HL    ; Virtual register 23 to memory
+    ; r24 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F02E)    ; Virtual register 23 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r26 = r22 + r25
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; r27 = load arr
+    LD HL, ($F002)
+    ; r28 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F03A), A     ; Virtual register 29 to memory
+    ; r30 = r26 + r29
+    LD D, H
+    LD E, L
+    LD HL, ($F03A)    ; Virtual register 29 from memory
+    ADD HL, DE
+    ; r31 = load arr
+    LD HL, ($F002)
+    LD ($F03E), HL    ; Virtual register 31 to memory
+    ; r32 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F03E)    ; Virtual register 31 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; r34 = r30 + r33
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 34 already in HL
+    ; return r34
+    ; Register 34 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_complex_assign_simple.test_structs
+.Users_alice_dev_minz_ts_examples_test_complex_assign_simple_test_structs:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 100
+    LD A, 100
+    LD H, A         ; Store to physical register H
+    ; r3 = load v
+    LD HL, ($F002)
+    ; Store to field x (offset 0)
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r4 = 50
+    LD A, 50
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = load v
+    LD HL, ($F002)
+    ; Store to field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r6 = load v
+    LD HL, ($F002)
+    ; Load field x (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r8 = load v
+    LD HL, ($F002)
+    ; Load field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r10 = r7 + r9
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 10 already in HL
+    ; return r10
+    ; Register 10 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_complex_assign_simple.main
+.Users_alice_dev_minz_ts_examples_test_complex_assign_simple_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call test_arrays
+    ; Call to test_arrays (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_complex_assign_simple_test_arrays
+    ; store , r2
+    LD A, L
+    LD ($F002), A
+    ; r4 = call test_structs
+    ; Call to test_structs (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users_alice_dev_minz_ts_examples_test_complex_assign_simple_test_structs
+    ; store , r4
+    LD A, H
+    LD ($F006), A
+    ; r5 = load a
+    LD A, ($F002)
+    LD L, A         ; Store to HL (low byte)
+    ; return r5
+    ; Register 5 already in HL
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD B, (HL)         ; B = length from first byte
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_loop:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DJNZ print_loop    ; Decrement B and loop
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+    END main

@@ -1,0 +1,22 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:37
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.abi_rom_integration.rom_print_string
+_examples_abi_rom_integration_rom_print_string:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), HL    ; Virtual register 1 to memory
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+
+    END main

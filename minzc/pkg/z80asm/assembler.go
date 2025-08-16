@@ -23,8 +23,12 @@ type Assembler struct {
 	output        []byte
 	instructions  []*AssembledInstruction
 	errors        []AssemblerError
+	warnings      []string
 	macroProcessor *MacroProcessor
 	macroDefinition *macroDefinitionState // Current macro being defined
+	
+	// Target platform support
+	target        *TargetConfig
 }
 
 // macroDefinitionState tracks a macro being defined
@@ -36,13 +40,173 @@ type macroDefinitionState struct {
 
 // AssemblerError represents an assembly error
 type AssemblerError struct {
-	Line    int
-	Column  int
-	Message string
+	Line        int
+	Column      int
+	Message     string
+	// Enhanced error context (optional - maintains backward compatibility)
+	Context     string      // Problematic text
+	Suggestion  string      // How to fix
+	Examples    []string    // Valid alternatives
 }
 
 func (e AssemblerError) Error() string {
-	return fmt.Sprintf("line %d: %s", e.Line, e.Message)
+	// Backward compatible simple format
+	if e.Suggestion == "" && len(e.Examples) == 0 {
+		return fmt.Sprintf("line %d: %s", e.Line, e.Message)
+	}
+	
+	// Enhanced format with suggestions
+	return e.FormatEnhanced()
+}
+
+// FormatEnhanced returns detailed error with suggestions
+func (e AssemblerError) FormatEnhanced() string {
+	var buf strings.Builder
+	
+	// Main error message
+	fmt.Fprintf(&buf, "Line %d: %s", e.Line, e.Message)
+	
+	// Context highlighting
+	if e.Context != "" {
+		fmt.Fprintf(&buf, "\n  Problem: '%s'", e.Context)
+	}
+	
+	// Suggestion with visual indicator
+	if e.Suggestion != "" {
+		fmt.Fprintf(&buf, "\n  💡 %s", e.Suggestion)
+	}
+	
+	// Examples for guidance
+	if len(e.Examples) > 0 {
+		fmt.Fprintf(&buf, "\n  Examples:")
+		for _, example := range e.Examples {
+			fmt.Fprintf(&buf, "\n    • %s", example)
+		}
+	}
+	
+	return buf.String()
+}
+
+// Helper functions for creating enhanced errors
+
+// NewUndefinedSymbolError creates a contextual undefined symbol error
+func NewUndefinedSymbolError(line int, symbol string) AssemblerError {
+	var suggestion string
+	var examples []string
+	
+	// Pattern-based suggestions
+	switch {
+	case isRegisterIndirect(symbol): // (HL), (BC), etc.
+		suggestion = "Register indirect addressing may not be supported for this instruction"
+		examples = []string{
+			"Check instruction syntax: LD A, (HL) vs LD A, $12",
+			"Verify register indirect is supported for this operation",
+			"Try immediate addressing if applicable",
+		}
+		
+	case isMemoryIndirect(symbol): // ($8100), etc.
+		suggestion = "Memory indirect addressing requires proper format and instruction support"
+		examples = []string{
+			"Ensure hex format: LD HL, ($8000)",
+			"Check if instruction supports memory indirect",
+			"Consider using defined symbols: LD A, (buffer_addr)",
+		}
+		
+	case isLikelyHexAddress(symbol):
+		suggestion = "Address may need parentheses for indirect access or label definition"
+		examples = []string{
+			"For memory access: LD A, ($8000)",
+			"For immediate value: LD HL, $8000",
+			"Define as label: " + symbol + "_addr:",
+		}
+		
+	default:
+		suggestion = "Symbol not defined in current scope"
+		examples = []string{
+			"Define symbol with: " + symbol + ":",
+			"Check for typos in symbol name",
+			"Verify symbol is defined before use",
+		}
+	}
+	
+	return AssemblerError{
+		Line:        line,
+		Message:     fmt.Sprintf("undefined symbol: %s", symbol),
+		Context:     symbol,
+		Suggestion:  suggestion,
+		Examples:    examples,
+	}
+}
+
+// NewUnsupportedInstructionError creates error for unsupported instruction patterns
+func NewUnsupportedInstructionError(line int, mnemonic string, operands []string) AssemblerError {
+	opStr := strings.Join(operands, ", ")
+	instruction := fmt.Sprintf("%s %s", mnemonic, opStr)
+	
+	var suggestion string
+	var examples []string
+	
+	switch strings.ToUpper(mnemonic) {
+	case "LD":
+		suggestion = "This LD instruction pattern is not yet supported"
+		examples = []string{
+			"Check Z80 instruction reference for valid LD patterns",
+			"Try alternative addressing mode if available",
+			"Consider breaking into multiple simpler instructions",
+		}
+	default:
+		suggestion = fmt.Sprintf("%s instruction pattern not supported", mnemonic)
+		examples = []string{
+			"Check if instruction is standard Z80",
+			"Verify operand types match instruction requirements",
+		}
+	}
+	
+	return AssemblerError{
+		Line:        line,
+		Message:     fmt.Sprintf("unsupported instruction: %s", instruction),
+		Context:     instruction,
+		Suggestion:  suggestion,
+		Examples:    examples,
+	}
+}
+
+// Pattern recognition helpers
+func isRegisterIndirect(symbol string) bool {
+	if !strings.HasPrefix(symbol, "(") || !strings.HasSuffix(symbol, ")") {
+		return false
+	}
+	inner := strings.TrimSpace(symbol[1:len(symbol)-1])
+	upper := strings.ToUpper(inner)
+	return upper == "HL" || upper == "BC" || upper == "DE" || upper == "SP" ||
+		   strings.Contains(upper, "IX") || strings.Contains(upper, "IY")
+}
+
+func isMemoryIndirect(symbol string) bool {
+	if !strings.HasPrefix(symbol, "(") || !strings.HasSuffix(symbol, ")") {
+		return false
+	}
+	if isRegisterIndirect(symbol) {
+		return false
+	}
+	inner := strings.TrimSpace(symbol[1:len(symbol)-1])
+	return strings.HasPrefix(inner, "$") || strings.HasPrefix(inner, "0x") || isAllDigits(inner)
+}
+
+func isLikelyHexAddress(symbol string) bool {
+	return strings.HasPrefix(symbol, "$") || strings.HasPrefix(symbol, "0x")
+}
+
+func isAllDigits(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, ch := range s {
+		if ch < '0' || ch > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 // Result contains the assembled output
@@ -131,6 +295,19 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse error: %w", err)
 	}
+	
+	// Preprocess local labels (expand .loop to main.loop)
+	lines, err = preprocessLocalLabels(lines)
+	if err != nil {
+		return nil, fmt.Errorf("local label error: %w", err)
+	}
+	
+	// Expand multi-argument instructions (PUSH AF, BC, DE -> multiple PUSHes)
+	lines = expandMultiArgInstructions(lines)
+	
+	// Expand fake instructions (LD HL, DE -> LD H, D : LD L, E)
+	lines = expandFakeInstructions(lines)
+	
 	a.lines = lines
 	
 	// Pass 1: Build symbol table and calculate addresses
@@ -147,6 +324,11 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 	
 	if err := a.performPass(); err != nil {
 		return nil, fmt.Errorf("pass 2 error: %w", err)
+	}
+	
+	// Validate memory layout for target platform
+	if err := a.ValidateMemoryLayout(); err != nil {
+		return nil, fmt.Errorf("memory layout error: %w", err)
 	}
 	
 	// Build result
@@ -185,10 +367,28 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 func (a *Assembler) reset() {
 	a.pass = 0
 	a.currentAddr = a.origin
-	a.symbols = make(map[string]*Symbol)
+	
+	// Preserve target symbols if target is set
+	targetSymbols := make(map[string]*Symbol)
+	if a.target != nil {
+		for symbol, addr := range a.target.Conventions.CommonSymbols {
+			symbolName := symbol
+			if !a.CaseSensitive {
+				symbolName = strings.ToUpper(symbol)
+			}
+			targetSymbols[symbolName] = &Symbol{
+				Name:    symbolName,
+				Value:   addr,
+				Defined: true,
+			}
+		}
+	}
+	
+	a.symbols = targetSymbols
 	a.output = nil
 	a.instructions = nil
 	a.errors = nil
+	a.warnings = nil
 }
 
 // performPass executes one assembly pass
@@ -197,10 +397,35 @@ func (a *Assembler) performPass() error {
 	
 	for _, line := range a.lines {
 		if err := a.processLine(line); err != nil {
-			a.errors = append(a.errors, AssemblerError{
-				Line:    line.Number,
-				Message: err.Error(),
-			})
+			// Create enhanced error based on error type
+			var assemblyError AssemblerError
+			
+			errMsg := err.Error()
+			if strings.Contains(errMsg, "undefined symbol:") {
+				// Extract symbol name from error message
+				parts := strings.Split(errMsg, "undefined symbol: ")
+				if len(parts) > 1 {
+					symbol := strings.TrimSpace(parts[1])
+					assemblyError = NewUndefinedSymbolError(line.Number, symbol)
+				} else {
+					// Fallback to basic error
+					assemblyError = AssemblerError{
+						Line:    line.Number,
+						Message: errMsg,
+					}
+				}
+			} else if strings.Contains(errMsg, "unsupported") && line.Mnemonic != "" {
+				// Create enhanced unsupported instruction error
+				assemblyError = NewUnsupportedInstructionError(line.Number, line.Mnemonic, line.Operands)
+			} else {
+				// Default error format
+				assemblyError = AssemblerError{
+					Line:    line.Number,
+					Message: errMsg,
+				}
+			}
+			
+			a.errors = append(a.errors, assemblyError)
 			if a.Strict {
 				return err
 			}

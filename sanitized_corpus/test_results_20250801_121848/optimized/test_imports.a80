@@ -1,0 +1,333 @@
+; MinZ generated code
+; Generated: 2025-08-01 12:18:55
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: screen.pixel_addr
+screen_pixel_addr:
+; TRUE SMC function with immediate anchors
+y_immOP:
+    LD A, 0        ; y anchor (will be patched)
+y_imm0 EQU y_immOP+1
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = 192
+    LD A, 192
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = r4 & r5
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD D, H
+    LD E, L
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; store , r6
+    LD A, D
+    LD ($F006), A
+    LD A, (y_imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    ; r9 = 56
+    LD A, 56
+    LD L, A         ; Store to physical register L
+    ; r10 = r8 & r9
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; r11 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; r12 = r10 >> r11
+    ; Shift right
+    EXX               ; Switch to shadow registers
+    LD A, B'         ; From shadow B'
+    EXX               ; Switch back to main registers
+    LD B, A       ; B = value to shift
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_0
+    LD B, C       ; B = counter
+.shr_loop_0:
+    DEC B
+    JP M, .shr_done_0
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_0
+.shr_done_0:
+    LD L, A
+    LD H, 0
+    ; store , r12
+    EXX               ; Switch to shadow registers
+    LD A, D'         ; From shadow D'
+    EXX               ; Switch back to main registers
+    LD ($F00E), A
+    LD A, (y_imm0)    ; Reuse from anchor
+    ; Register 14 already in A
+    ; r15 = 7
+    LD A, 7
+    ; Register 15 already in A
+    ; r16 = r14 & r15
+    LD D, H
+    LD E, L
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    ; store , r16
+    LD A, C
+    LD ($F01A), A
+    ; r18 = 16384
+    LD HL, 16384
+    LD D, H
+    LD E, L
+    ; r19 = load y_low
+    LD A, ($F01A)
+    LD L, A         ; Store to HL (low byte)
+    ; r20 = 8
+    LD A, 8
+    LD H, A         ; Store to physical register H
+    ; r21 = r19 << r20
+    ; Shift left
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, H
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_1
+    LD B, C       ; B = counter
+.shl_loop_1:
+    DEC B
+    JP M, .shl_done_1
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_1
+.shl_done_1:
+    LD L, A
+    LD H, 0
+    ; r22 = r18 | r21
+    LD H, D
+    LD L, E
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    LD B, H
+    LD C, L
+    ; r23 = load y_mid
+    LD A, ($F00E)
+    LD L, A         ; Store to HL (low byte)
+    ; r24 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r25 = r23 << r24
+    ; Shift left
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, H
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_2
+    LD B, C       ; B = counter
+.shl_loop_2:
+    DEC B
+    JP M, .shl_done_2
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_2
+.shl_done_2:
+    LD L, A
+    LD H, 0
+    ; r26 = r22 | r25
+    LD H, B
+    LD L, C
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    PUSH HL           ; Save current HL
+    EXX               ; Switch to shadow registers
+    POP HL            ; Load into shadow HL
+    EXX               ; Switch back to main registers
+    ; r27 = load y_high
+    LD A, ($F006)
+    LD L, A         ; Store to HL (low byte)
+    ; r28 = 5
+    LD A, 5
+    LD H, A         ; Store to physical register H
+    ; r29 = r27 << r28
+    ; Shift left
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, H
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shl_done_3
+    LD B, C       ; B = counter
+.shl_loop_3:
+    DEC B
+    JP M, .shl_done_3
+    SLA A         ; Shift left, 0 into bit 0
+    JR .shl_loop_3
+.shl_done_3:
+    LD L, A
+    LD H, 0
+    ; r30 = r26 | r29
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    LD ($F03C), HL    ; Virtual register 30 to memory
+x_immOP:
+    LD A, 0        ; x anchor (will be patched)
+x_imm0 EQU x_immOP+1
+    LD L, A         ; Store to HL (low byte)
+    ; r32 = 3
+    LD A, 3
+    LD H, A         ; Store to physical register H
+    ; r33 = r31 >> r32
+    ; Shift right
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, H
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, .shr_done_4
+    LD B, C       ; B = counter
+.shr_loop_4:
+    DEC B
+    JP M, .shr_done_4
+    SRL A         ; Shift right, 0 into bit 7
+    JR .shr_loop_4
+.shr_done_4:
+    LD L, A
+    LD H, 0
+    ; r34 = r30 | r33
+    LD HL, ($F03C)    ; Virtual register 30 from memory
+    LD D, H
+    LD E, L
+    LD A, L
+    OR E
+    LD L, A
+    LD A, H
+    OR D
+    LD H, A
+    ; store , r34
+    LD ($F022), HL
+    ; r35 = load addr
+    LD HL, ($F022)
+    ; Register 35 already in HL
+    ; return r35
+    ; Register 35 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: screen.attr_addr
+screen_attr_addr:
+; TRUE SMC function with immediate anchors
+    ; r3 = 22528
+    LD HL, 22528
+    ; Register 3 already in HL
+y_immOP:
+    LD A, 0        ; y anchor (will be patched)
+y_imm0 EQU y_immOP+1
+    LD H, A         ; Store to physical register H
+    ; r5 = 32
+    LD A, 32
+    LD L, A         ; Store to physical register L
+    ; r6 = r4 * r5
+    ; 8-bit multiplication
+    LD A, H
+    LD B, A       ; B = multiplicand
+    LD A, L
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_5
+.mul_loop_5:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_5
+.mul_done_5:
+    ; Register 6 already in HL
+    ; r7 = r3 + r6
+    ; Register 3 already in HL
+    LD D, H
+    LD E, L
+    ; Register 6 already in HL
+    ADD HL, DE
+    ; Register 7 already in HL
+x_immOP:
+    LD A, 0        ; x anchor (will be patched)
+x_imm0 EQU x_immOP+1
+    LD H, A         ; Store to physical register H
+    ; r9 = r7 + r8
+    ; Register 7 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r9
+    POP DE
+    POP BC
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.test_imports.main
+.Users_alice_dev_minz_ts_examples_test_imports_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; r3 = call screen.set_pixel
+    ; Call to screen.set_pixel (args: 2)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    CALL screen.set_pixel
+    ; r6 = call screen.clear_pixel
+    ; Call to screen.clear_pixel (args: 2)
+    ; Stack-based parameter passing
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 1
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    PUSH HL       ; Argument 0
+    CALL screen.clear_pixel
+    LD ($F00C), HL    ; Virtual register 6 to memory

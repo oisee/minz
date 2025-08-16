@@ -1,0 +1,284 @@
+; MinZ generated code
+; Generated: 2025-07-28 12:22:38
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.zvdb_minimal.hamming8
+_examples_zvdb_minimal_hamming8:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD C, A         ; Store to physical register C
+    LD A, E       ; Get parameter b
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r4 = param a
+    ; Load parameter a
+    ; r5 = param b
+    ; Load parameter b
+    ; unknown op 43
+    LD D, H
+    LD E, L
+    LD A, L
+    XOR E
+    LD L, A
+    LD A, H
+    XOR D
+    LD H, A
+    ; store , r6
+    LD ($F000), HL
+    ; r8 = load xor
+    LD HL, ($F000)
+    ; store , r8
+    LD ($F002), HL
+    ; r9 = load count
+    LD HL, ($F002)
+    ; return r9
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.zvdb_minimal.add_vector
+_examples_zvdb_minimal_add_vector:
+; Using absolute addressing for locals
+    PUSH IX
+    LD IX, SP
+    ; Load parameters from registers
+    LD ($F002), HL    ; Virtual register 1 to memory
+    LD A, E       ; Get parameter vec
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = param store
+    ; Load parameter store
+    ; Load field count (offset 256)
+    ; Register 3 already in HL
+    LD DE, 256
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r5 = 255
+    LD A, 255
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r6 = r4 >= r5
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP P, .L1
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r6, else_1
+    EXX               ; Switch to shadow registers
+    LD A, E'         ; From shadow E'
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, else_1
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    ; return
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.zvdb_minimal.find_nearest
+_examples_zvdb_minimal_find_nearest:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    LD HL, -5
+    ADD HL, SP
+    LD SP, HL
+    ; Load parameters from registers
+    LD A, E       ; Get parameter query
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r4 = 0
+    LD A, 0
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; store , r4
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD (IX_1), L
+    LD (IX+0), H
+    ; r6 = 255
+    LD A, 255
+    LD L, A         ; Store to physical register L
+    ; store , r6
+    LD (IX_2), L
+    LD (IX_1), H
+    ; r8 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; store , r8
+    LD (IX_3), L
+    LD (IX_2), H
+    ; loop_3:
+loop_3:
+    ; r9 = load i
+    LD L, (IX_3)
+    LD H, (IX_2)
+    ; Register 9 already in HL
+    ; r10 = param store
+    ; Load parameter store
+    ; Load field count (offset 256)
+    LD DE, 256
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F016), HL    ; Virtual register 11 to memory
+    ; r12 = r9 < r11
+    ; Register 9 already in HL
+    LD D, H
+    LD E, L
+    LD HL, ($F016)    ; Virtual register 11 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L3
+    LD HL, 0
+    JP .L4
+.L3:
+    LD HL, 1
+.L4:
+    ; jump_if_not r12, end_loop_4
+    LD A, L
+    OR A
+    JP Z, end_loop_4
+    ; r14 = param query
+    ; Load parameter query
+    ; r15 = param store
+    ; Load parameter store
+    ; Load field vectors (offset 0)
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD D, H
+    LD E, L
+    ; r17 = load i
+    LD L, (IX_3)
+    LD H, (IX_2)
+    LD ($F022), HL    ; Virtual register 17 to memory
+    ; Load array element (u8)
+    LD H, D
+    LD L, E
+    PUSH HL
+    LD A, ($F022)     ; Virtual register 17 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r19 = call hamming8
+    ; Call to hamming8 (args: 2)
+    ; Register-based parameter passing
+    LD A, L
+    ; Parameter a in A
+    LD A, H
+    LD E, A       ; Parameter b in E
+    ; Found function, UsesTrueSMC=false
+    CALL hamming8
+    ; store , r19
+    LD (IX_5), L
+    LD (IX_4), H
+    ; r20 = load dist
+    LD L, (IX_5)
+    LD H, (IX_4)
+    ; r21 = load best_dist
+    LD L, (IX_2)
+    LD H, (IX_1)
+    ; r22 = r20 < r21
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L5
+    LD HL, 0
+    JP .L6
+.L5:
+    LD HL, 1
+.L6:
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; jump_if_not r22, else_5
+    LD A, ($F02C)     ; Virtual register 22 from memory
+    OR A
+    JP Z, else_5
+    ; jump end_if_6
+    JP end_if_6
+    ; else_5:
+else_5:
+    ; end_if_6:
+end_if_6:
+    ; jump loop_3
+    JP loop_3
+    ; end_loop_4:
+end_loop_4:
+    ; r23 = load best_idx
+    LD L, (IX_1)
+    LD H, (IX+0)
+    ; Register 23 already in HL
+    ; return r23
+    ; Register 23 already in HL
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.zvdb_minimal.main
+_examples_zvdb_minimal_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = 171
+    LD A, 171
+    LD H, A         ; Store to physical register H
+    ; store , r3
+    LD ($F004), HL
+    ; r5 = load store
+    LD HL, ($F002)
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; unknown op 58
+    ; Address-of operation for register r5
+    LD HL, $800A  ; Variable address (placeholder)
+    ; r7 = load query
+    LD HL, ($F004)
+    ; r8 = call find_nearest
+    ; Call to find_nearest (args: 2)
+    ; Register-based parameter passing
+    ; Parameter store in HL
+    LD A, L
+    LD E, A       ; Parameter query in E
+    ; Found function, UsesTrueSMC=false
+    CALL find_nearest
+    ; Register 8 already in HL
+    ; store , r8
+    ; Register 8 already in HL
+    LD ($F008), HL
+    ; return
+    RET
+
+    END main

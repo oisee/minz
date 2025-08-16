@@ -1,0 +1,371 @@
+; MinZ generated code
+; Generated: 2025-07-28 08:45:59
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_smc_recursive.factorial_smc
+_examples_test_smc_recursive_factorial_smc:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+_examples_test_smc_recursive_factorial_smc_param_n:
+    LD HL, #0000   ; SMC parameter n (u8->u16)
+    ; r3 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 <= r3
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L1
+    JP Z, .L1
+    LD HL, 0
+    JP .L2
+.L1:
+    LD HL, 1
+.L2:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, else_1
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; return r5
+    RET
+    ; jump end_if_2
+    JP end_if_2
+    ; else_1:
+else_1:
+    ; end_if_2:
+end_if_2:
+    LD A, (...examples.test_smc_recursive.factorial_smc_param_n)
+    LD E, A         ; Store to physical register E
+    LD A, (...examples.test_smc_recursive.factorial_smc_param_n)
+    LD H, A         ; Store to physical register H
+    ; r8 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r9 = r7 - r8
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; r10 = call factorial_smc
+    ; Call to factorial_smc (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL factorial_smc
+    ; r11 = r6 * r10
+    ; 8-bit multiplication
+    LD A, E
+    LD B, A       ; B = multiplicand
+    EXX               ; Switch to shadow registers
+    LD A, C'         ; From shadow C'
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, .mul_done_2
+.mul_loop_2:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, .mul_loop_2
+.mul_done_2:
+    ; return r11
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_smc_recursive.fib_smc
+_examples_test_smc_recursive_fib_smc:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+_examples_test_smc_recursive_fib_smc_param_n:
+    LD HL, #0000   ; SMC parameter n (u8->u16)
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; r3 = 1
+    LD A, 1
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = r2 <= r3
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    LD D, H
+    LD E, L
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP M, .L4
+    JP Z, .L4
+    LD HL, 0
+    JP .L5
+.L4:
+    LD HL, 1
+.L5:
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; jump_if_not r4, else_3
+    LD A, ($F008)     ; Virtual register 4 from memory
+    OR A
+    JP Z, else_3
+    LD A, (...examples.test_smc_recursive.fib_smc_param_n)
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; return r5
+    RET
+    ; jump end_if_4
+    JP end_if_4
+    ; else_3:
+else_3:
+    ; end_if_4:
+end_if_4:
+    LD A, (...examples.test_smc_recursive.fib_smc_param_n)
+    EXX               ; Switch to shadow registers
+    LD D', A         ; Store to shadow D'
+    EXX               ; Switch back to main registers
+    ; r7 = 1
+    LD A, 1
+    ; Register 7 already in A
+    ; r8 = r6 - r7
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    LD ($F010), HL    ; Virtual register 8 to memory
+    ; r9 = call fib_smc
+    ; Call to fib_smc (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL fib_smc
+    LD A, (...examples.test_smc_recursive.fib_smc_param_n)
+    LD B, A         ; Store to physical register B
+    ; r11 = 2
+    LD A, 2
+    ; Register 11 already in A
+    ; r12 = r10 - r11
+    LD D, H
+    LD E, L
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; r13 = call fib_smc
+    ; Call to fib_smc (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL fib_smc
+    ; r14 = r9 + r13
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r14
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_smc_recursive.many_params_recursive
+_examples_test_smc_recursive_many_params_recursive:
+; Using stack-based locals (IX+offset)
+    PUSH IX
+    LD IX, SP
+    ; Parameter a from stack
+    LD L, (IX+4)
+    LD H, (IX+5)
+    LD (IX_2), L
+    LD (IX_1), H
+    ; Parameter b from stack
+    LD L, (IX+6)
+    LD H, (IX+7)
+    LD (IX_4), L
+    LD (IX_3), H
+    ; Parameter c from stack
+    LD L, (IX+8)
+    LD H, (IX+9)
+    LD (IX_6), L
+    LD (IX_5), H
+    ; Parameter d from stack
+    LD L, (IX+10)
+    LD H, (IX+11)
+    LD (IX_8), L
+    LD (IX_7), H
+    ; Parameter e from stack
+    LD L, (IX+12)
+    LD H, (IX+13)
+    LD (IX_10), L
+    LD (IX_9), H
+    ; r6 = param a
+    ; Load parameter a
+    ; r7 = 0
+    LD A, 0
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = r6 == r7
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD D, H
+    LD E, L
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    JP Z, .L6
+    LD HL, 0
+    JP .L7
+.L6:
+    LD HL, 1
+.L7:
+    ; jump_if_not r8, else_5
+    ; Register 8 already in A
+    OR A
+    JP Z, else_5
+    ; r9 = param b
+    ; Load parameter b
+    ; r10 = param c
+    ; Load parameter c
+    ; r11 = r9 + r10
+    LD D, H
+    LD E, L
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    ADD HL, DE
+    ; r12 = param d
+    ; Load parameter d
+    ; r13 = r11 + r12
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD ($F01A), HL    ; Virtual register 13 to memory
+    ; r14 = param e
+    ; Load parameter e
+    ; r15 = r13 + r14
+    LD HL, ($F01A)    ; Virtual register 13 from memory
+    LD D, H
+    LD E, L
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    ADD HL, DE
+    ; return r15
+    LD SP, IX
+    POP IX
+    RET
+    ; jump end_if_6
+    JP end_if_6
+    ; else_5:
+else_5:
+    ; end_if_6:
+end_if_6:
+    ; r16 = param a
+    ; Load parameter a
+    ; r17 = param a
+    ; Load parameter a
+    ; r18 = 1
+    LD A, 1
+    LD ($F024), A     ; Virtual register 18 to memory
+    ; r19 = r17 - r18
+    LD D, H
+    LD E, L
+    LD HL, ($F024)    ; Virtual register 18 from memory
+    EX DE, HL
+    OR A      ; Clear carry
+    SBC HL, DE
+    ; r20 = param b
+    ; Load parameter b
+    ; r21 = param c
+    ; Load parameter c
+    ; r22 = param d
+    ; Load parameter d
+    ; r23 = param e
+    ; Load parameter e
+    ; r24 = call many_params_recursive
+    ; Call to many_params_recursive (args: 5)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 4
+    PUSH HL       ; Argument 3
+    PUSH HL       ; Argument 2
+    LD HL, ($F028)    ; Virtual register 20 from memory
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL many_params_recursive
+    ; r25 = r16 + r24
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r25
+    LD SP, IX
+    POP IX
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...examples.test_smc_recursive.main
+_examples_test_smc_recursive_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = call factorial_smc
+    ; Call to factorial_smc (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL factorial_smc
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; store , r3
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD ($F002), HL
+    ; r5 = 10
+    LD A, 10
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; r6 = call fib_smc
+    ; Call to fib_smc (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL fib_smc
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; store , r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD ($F008), HL
+    ; r8 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    ; r9 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r10 = 2
+    LD A, 2
+    ; Register 10 already in A
+    ; r11 = 3
+    LD A, 3
+    ; Register 11 already in A
+    ; r12 = 4
+    LD A, 4
+    LD C, A         ; Store to physical register C
+    ; r13 = call many_params_recursive
+    ; Call to many_params_recursive (args: 5)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 4
+    PUSH HL       ; Argument 3
+    PUSH HL       ; Argument 2
+    PUSH HL       ; Argument 1
+    PUSH HL       ; Argument 0
+    ; Found function, UsesTrueSMC=false
+    CALL many_params_recursive
+    ; store , r13
+    LD ($F00E), HL
+    ; return
+    RET
+
+    END main

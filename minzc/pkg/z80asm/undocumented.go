@@ -404,8 +404,8 @@ func registerMiscUndocumented() {
 
 // addInstruction is a helper to add instruction definitions
 func addInstruction(mnemonic string, def *InstructionDef) {
-	if instructionTable[mnemonic] == nil {
-		instructionTable[mnemonic] = make([]*InstructionDef, 0)
+	if oldInstructionTable[mnemonic] == nil {
+		oldInstructionTable[mnemonic] = make([]*InstructionDef, 0)
 	}
-	instructionTable[mnemonic] = append(instructionTable[mnemonic], def)
+	oldInstructionTable[mnemonic] = append(oldInstructionTable[mnemonic], def)
 }

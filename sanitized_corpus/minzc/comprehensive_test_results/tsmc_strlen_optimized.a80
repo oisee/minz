@@ -1,0 +1,23 @@
+; MinZ generated code
+; Generated: 2025-08-02 13:03:29
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.examples.tsmc_strlen.strlen_tsmc
+.Users_alice_dev_minz_ts_examples_tsmc_strlen_strlen_tsmc:
+; TRUE SMC function with immediate anchors
+    ; loop_1:
+loop_1:
+str_immOP:
+    LD HL, 0       ; str anchor (will be patched)
+str_imm0 EQU str_immOP+1
+    ; Register 4 already in HL
+    ; r5 = *r4
+    ; Register 4 already in HL
+    LD A, (HL)
+    ; Register 5 already in A
+    ; unknown op 57

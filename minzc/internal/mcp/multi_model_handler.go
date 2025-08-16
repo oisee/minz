@@ -41,34 +41,41 @@ func NewMultiModelHandler() *MultiModelHandler {
 	}
 
 	// Configure available models based on your provided URLs
+	// Get API key from environment variable for security
+	modelApiKey := os.Getenv("AZURE_OPENAI_API_KEY")
+	if modelApiKey == "" {
+		// Fall back to a default or return empty handler
+		return h
+	}
+	
 	h.models["gpt4"] = &Model{
-		Name:       "GPT-4 Turbo",
-		Endpoint:   baseEndpoint,
-		APIKey:     apiKey,
-		Deployment: getEnvOrDefault("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1"),
+		Name:       "GPT-4.1",
+		Endpoint:   "https://imqt.openai.azure.com",
+		APIKey:     modelApiKey,
+		Deployment: "gpt-4.1",
 		APIVersion: "2025-01-01-preview",
 	}
 
 	h.models["gpt5"] = &Model{
-		Name:       "GPT-5",
-		Endpoint:   baseEndpoint,
-		APIKey:     apiKey,
+		Name:       "gpt-5",
+		Endpoint:   "https://imqt.openai.azure.com",
+		APIKey:     modelApiKey,
 		Deployment: "gpt-5",
 		APIVersion: "2025-04-01-preview",
 	}
 
 	h.models["o4_mini"] = &Model{
-		Name:       "O4 Mini",
-		Endpoint:   baseEndpoint,
-		APIKey:     apiKey,
+		Name:       "o4-mini",
+		Endpoint:   "https://imqt.openai.azure.com",
+		APIKey:     modelApiKey,
 		Deployment: "o4-mini",
 		APIVersion: "2025-01-01-preview",
 	}
 
 	h.models["model_router"] = &Model{
-		Name:       "Model Router",
-		Endpoint:   baseEndpoint,
-		APIKey:     apiKey,
+		Name:       "model-router",
+		Endpoint:   "https://imqt.openai.azure.com",
+		APIKey:     modelApiKey,
 		Deployment: "model-router",
 		APIVersion: "2025-01-01-preview",
 	}
@@ -185,64 +192,102 @@ func (h *MultiModelHandler) askWithSourceContext(ctx context.Context, args map[s
 }
 
 func (h *MultiModelHandler) brainstormSemanticFixes(ctx context.Context, args map[string]interface{}) (interface{}, error) {
-	// Read semantic analyzer source
+	// Read semantic analyzer source - use GPT-4.1's 1M context capability
 	analyzerPath := "/Users/alice/dev/minz-ts/minzc/pkg/semantic/analyzer.go"
-	analyzerContent, err := h.readSourceFile(analyzerPath)
+	analyzerContent, err := h.readFullFile(analyzerPath)
 	if err != nil {
 		analyzerContent = "[Could not read analyzer.go]"
 	}
 
 	// Read AST definitions
 	astPath := "/Users/alice/dev/minz-ts/minzc/pkg/ast/ast.go"
-	astContent, err := h.readSourceFile(astPath)
+	astContent, err := h.readFullFile(astPath)
 	if err != nil {
 		astContent = "[Could not read ast.go]"
 	}
 
-	// Prepare prompt with all context
-	prompt := fmt.Sprintf(`You are a team of expert compiler engineers brainstorming solutions for MinZ semantic analyzer issues.
+	// Read parser for context
+	parserPath := "/Users/alice/dev/minz-ts/minzc/pkg/parser/parser.go"
+	parserContent, err := h.readFullFile(parserPath)
+	if err != nil {
+		parserContent = "[Could not read parser.go]"
+	}
+
+	// Prepare comprehensive prompt for GPT-4.1 with full context
+	gpt4Prompt := fmt.Sprintf(`You are an expert compiler engineer analyzing MinZ semantic analyzer issues.
 
 CURRENT STATUS:
-- Parser success rate: 63%% (56/88 examples compile)
+- Parser success rate: 65%% (58/88 examples compile)
 - Main blockers are in semantic analyzer, not parser
+- Recent fix: If expressions with block statements now working
 
-KEY ISSUES TO SOLVE:
-1. If expressions with block statements - blocks need to return values
-2. Loop indexed statements - LoopStmt parsed but not analyzed
-3. Recursive functions - functions can't reference themselves
-4. Lambda parameter types - fn(T) -> R syntax partially supported
+KEY REMAINING ISSUES:
+1. Recursive functions - functions can't reference themselves during declaration
+2. Lambda parameter types - fn(T) -> R syntax partially supported
+3. Module imports - full path syntax not working (e.g., zx.screen.set_border())
+4. Pattern matching - partially implemented
 
-RELEVANT SOURCE CODE:
+FULL SOURCE CODE CONTEXT:
 
-=== Semantic Analyzer (analyzer.go) ===
+=== Complete Semantic Analyzer (analyzer.go) ===
 %s
 
-=== AST Definitions (ast.go) ===
+=== Complete AST Definitions (ast.go) ===
+%s
+
+=== Parser Implementation (parser.go) ===
 %s
 
 Please provide:
-1. Specific code changes needed in analyzer.go
-2. Order of implementation (easiest to hardest)
-3. Test cases to verify each fix
-4. Estimated complexity (lines of code) for each change
+1. Root cause analysis of why recursive functions fail
+2. Specific code changes with exact line numbers
+3. Implementation order (easiest to hardest)
+4. Test cases to verify each fix
+5. Estimated impact on success rate
 
-Focus on practical, incremental improvements that can be implemented immediately.`, 
-		analyzerContent[:min(5000, len(analyzerContent))], // Limit context size
-		astContent[:min(3000, len(astContent))])
+Focus on fixes that will have maximum impact on compilation success rate.`, 
+		analyzerContent, astContent, parserContent)
 
-	// Ask all models in parallel for diverse perspectives
+	// Use GPT-4.1 for comprehensive analysis with 1M context
+	gpt4Model := h.models["gpt4"]
+	gpt4Response := ""
+	if gpt4Model != nil {
+		if resp, err := h.callModel(ctx, gpt4Model, gpt4Prompt); err == nil {
+			gpt4Response = resp
+		}
+	}
+
+	// Ask other models with focused questions
 	responses := make(map[string]string)
-	for name, model := range h.models {
-		if response, err := h.callModel(ctx, model, prompt); err == nil {
-			responses[name] = response
+	
+	// GPT-5 for innovative solutions
+	if gpt5Model := h.models["gpt5"]; gpt5Model != nil {
+		gpt5Prompt := `Given that MinZ is a Z80 compiler with modern features, what innovative approach would you suggest for implementing recursive function support? Consider that the symbol table needs two-pass registration.`
+		if resp, err := h.callModel(ctx, gpt5Model, gpt5Prompt); err == nil {
+			responses["gpt5"] = resp
+		}
+	}
+
+	// O4-Mini for deep analysis
+	if o4Model := h.models["o4_mini"]; o4Model != nil {
+		o4Prompt := `Step by step, analyze why recursive functions fail in the semantic analyzer. The issue is that functions can't reference themselves during their own declaration. What's the minimal fix needed?`
+		if resp, err := h.callModel(ctx, o4Model, o4Prompt); err == nil {
+			responses["o4_mini"] = resp
 		}
 	}
 
 	// Combine responses
 	var combined strings.Builder
-	combined.WriteString("=== Multi-Model Brainstorming Results ===\n\n")
+	combined.WriteString("=== Multi-Model Analysis Results ===\n\n")
+	
+	if gpt4Response != "" {
+		combined.WriteString("--- GPT-4.1 Comprehensive Analysis (with full context) ---\n")
+		combined.WriteString(gpt4Response)
+		combined.WriteString("\n\n")
+	}
+	
 	for modelName, response := range responses {
-		combined.WriteString(fmt.Sprintf("\n--- %s Perspective ---\n%s\n", modelName, response))
+		combined.WriteString(fmt.Sprintf("--- %s Focused Analysis ---\n%s\n\n", modelName, response))
 	}
 
 	return map[string]interface{}{
@@ -253,6 +298,27 @@ Focus on practical, incremental improvements that can be implemented immediately
 			},
 		},
 	}, nil
+}
+
+// readFullFile reads entire file without truncation for GPT-4.1's 1M context
+func (h *MultiModelHandler) readFullFile(path string) (string, error) {
+	if !strings.Contains(path, "minz") {
+		return "", fmt.Errorf("can only read MinZ project files")
+	}
+
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+
+	// For GPT-4.1 with 1M context, we can include much more
+	const maxSizeFor1M = 500000 // ~500KB should be safe for 1M tokens
+	if len(content) > maxSizeFor1M {
+		content = content[:maxSizeFor1M]
+		content = append(content, []byte("\n... [truncated for context limit]")...)
+	}
+
+	return string(content), nil
 }
 
 func (h *MultiModelHandler) readSourceFile(path string) (string, error) {
@@ -300,8 +366,17 @@ func (h *MultiModelHandler) callModel(ctx context.Context, model *Model, prompt 
 				"content": prompt,
 			},
 		},
-		"max_tokens":  3000,
-		"temperature": 0.7,
+	}
+	
+	// Use correct parameter based on model type
+	// GPT-5 and O4 models use max_completion_tokens instead of max_tokens
+	// They also don't support custom temperature values (only default of 1)
+	if model.Name == "gpt-5" || model.Name == "o4-mini" {
+		payload["max_completion_tokens"] = 3000
+		// Don't set temperature - these models only support default (1)
+	} else {
+		payload["max_tokens"] = 3000
+		payload["temperature"] = 0.7
 	}
 
 	jsonData, err := json.Marshal(payload)

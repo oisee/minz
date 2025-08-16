@@ -1,0 +1,6 @@
+; Test just (HL) to isolate the issue
+    ORG $8000
+
+    LD A, (HL)
+    
+    END

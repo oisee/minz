@@ -1,0 +1,2122 @@
+; MinZ generated code
+; Generated: 2025-08-16 18:18:11
+
+
+; Data section
+    ORG $F000
+
+_games_snake_SCREEN_WIDTH:
+    DB 32
+_games_snake_SCREEN_HEIGHT:
+    DB 24
+_games_snake_MAX_SNAKE_LENGTH:
+    DB 100
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.init_snake
+_games_snake_init_snake:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct Snake
+    LD HL, -203
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    ; Register 2 already in HL
+    ; Allocate struct Point
+    LD HL, -2
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    LD D, H
+    LD E, L
+    ; r5 = 16
+    LD A, 16
+    ; Register 5 already in A
+    ; Store to Point.x
+    LD H, D
+    LD L, E
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r6 = 12
+    LD A, 12
+    LD B, A         ; Store to physical register B
+    ; Store to Point.y
+    LD H, D
+    LD L, E
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; Array initializer with 1 elements
+    ; Initialize array with 1 elements
+    ; Array allocated at $F006
+    LD HL, $F006
+    LD B, H
+    LD C, L
+    ; Initialize array[0]
+    LD H, B
+    LD L, C
+    PUSH HL        ; Save array base
+    LD DE, 0
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    LD H, D
+    LD L, E
+    EX DE, HL      ; Value in DE
+    POP HL         ; Restore element address
+    LD (HL), E
+    INC HL
+    LD (HL), D
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL      ; Value in DE
+    POP HL         ; Restore field address
+    LD (HL), E
+    INC HL
+    LD (HL), D
+    ; Store to Snake.body
+    ; Register 2 already in HL
+    PUSH HL
+    LD H, B
+    LD L, C
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r7 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; Store to Snake.length
+    ; Register 2 already in HL
+    LD DE, 200
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r8 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; Store to Snake.direction
+    ; Register 2 already in HL
+    LD DE, 201
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r9 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; Store to Snake.alive
+    ; Register 2 already in HL
+    LD DE, 202
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; store snake, r2
+    ; Register 2 already in HL
+    LD ($F002), HL
+    ; r10 = load snake
+    LD HL, ($F002)
+    ; return r10
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.init_game
+_games_snake_init_game:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct GameState
+    LD HL, -208
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    ; Register 2 already in HL
+    ; r3 = call ...games.snake.init_snake
+    ; Call to ...games.snake.init_snake (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...games.snake.init_snake
+    ; Store to GameState.snake
+    ; Register 2 already in HL
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; Allocate struct Point
+    LD HL, -2
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    ; r5 = 10
+    LD A, 10
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; Store to Point.x
+    PUSH HL
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r6 = 10
+    LD A, 10
+    LD L, A         ; Store to physical register L
+    ; Store to Point.y
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; Store to GameState.food
+    ; Register 2 already in HL
+    LD DE, 203
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r7 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Store to GameState.score
+    ; Register 2 already in HL
+    LD DE, 205
+    ADD HL, DE
+    PUSH HL
+    ; Register 7 already in HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r8 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; Store to GameState.game_over
+    ; Register 2 already in HL
+    LD DE, 207
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; store game, r2
+    ; Register 2 already in HL
+    LD ($F002), HL
+    ; r9 = load game
+    LD HL, ($F002)
+    ; Register 9 already in HL
+    ; return r9
+    ; Register 9 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.move_snake$p_Snake
+_games_snake_move_snake_p_Snake:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; TSMC reference parameter snake
+snake_immOP:
+    LD HL, 0000      ; TSMC ref address for snake
+snake_imm0 EQU snake_immOP+1
+    ; Load field length (offset 200)
+    LD DE, 200
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r5 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r6 = r4 - r5
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; store i, r6
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD ($F004), A
+    ; loop_1:
+_games_snake_move_snake_p_Snake_loop_1:
+    ; r7 = load i
+    LD A, ($F004)
+    LD L, A         ; Store to HL (low byte)
+    ; r8 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; r9 = r7 > r8
+    ; Register 7 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, ___games_snake_move_snake_p_Snake_gt_check_zero_0
+    LD HL, 0       ; False (negative)
+    JP ___games_snake_move_snake_p_Snake_gt_done_0
+_games_snake_move_snake_p_Snake_gt_check_zero_0:
+    LD A, H
+    OR L           ; Check if result is zero
+    JP Z, ___games_snake_move_snake_p_Snake_gt_false_0
+    LD HL, 1       ; True (positive and non_zero)
+    JP ___games_snake_move_snake_p_Snake_gt_done_0
+_games_snake_move_snake_p_Snake_gt_false_0:
+    LD HL, 0       ; False (zero)
+_games_snake_move_snake_p_Snake_gt_done_0:
+    ; jump_if_not r9, end_loop_2
+    LD A, L
+    OR A
+    JP Z, ___games_snake_move_snake_p_Snake_end_loop_2
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 11 already in HL
+    ; r12 = load i
+    LD A, ($F004)
+    LD L, A         ; Store to HL (low byte)
+    ; r13 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r14 = r12 - r13
+    ; Register 12 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; Load array element (...games.snake.Point)
+    ; Register 11 already in HL
+    PUSH HL
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F01E), A     ; Virtual register 15 to memory
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    ; Register 16 already in HL
+    ; Load field body (offset 0)
+    ; Register 16 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 17 already in HL
+    ; r18 = load i
+    LD A, ($F004)
+    LD L, A         ; Store to HL (low byte)
+    ; Calculate array element address
+    ; Register 17 already in HL
+    LD D, H
+    LD E, L
+    ; Register 18 already in HL
+    ADD HL, DE
+    LD ($F026), HL    ; Virtual register 19 to memory
+    ; Store to array[index] (...games.snake.Point)
+    LD HL, ($F026)    ; Virtual register 19 from memory
+    PUSH HL
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    EX DE, HL
+    POP HL
+    LD (HL), E
+    INC HL
+    LD (HL), D
+    ; r20 = load i
+    LD A, ($F004)
+    LD H, A         ; Store to physical register H
+    ; r21 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r22 = r20 - r21
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; Register 22 already in HL
+    ; store i, r22
+    LD A, L
+    LD ($F004), A
+    ; jump loop_1
+    JP ___games_snake_move_snake_p_Snake_loop_1
+    ; end_loop_2:
+_games_snake_move_snake_p_Snake_end_loop_2:
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    ; Load field direction (offset 201)
+    LD DE, 201
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r25 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r26 = r24 == r25
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_move_snake_p_Snake_eq_true_1
+    LD HL, 0       ; False
+    JP ___games_snake_move_snake_p_Snake_eq_done_1
+_games_snake_move_snake_p_Snake_eq_true_1:
+    LD HL, 1       ; True
+_games_snake_move_snake_p_Snake_eq_done_1:
+    ; Register 26 already in HL
+    ; jump_if_not r26, else_3
+    LD A, L
+    OR A
+    JP Z, ___games_snake_move_snake_p_Snake_else_3
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F036), HL    ; Virtual register 27 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F036)    ; Virtual register 27 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 28 already in HL
+    ; r29 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 28 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Load field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r32 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r33 = r31 - r32
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; Register 33 already in HL
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F044), HL    ; Virtual register 34 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F044)    ; Virtual register 34 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 35 already in HL
+    ; r36 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 35 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F04A), A     ; Virtual register 37 to memory
+    ; Store to field y (offset 1)
+    LD HL, ($F04A)    ; Virtual register 37 from memory
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    ; Register 33 already in HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_4
+    JP ___games_snake_move_snake_p_Snake_end_if_4
+    ; else_3:
+_games_snake_move_snake_p_Snake_else_3:
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F04C), HL    ; Virtual register 38 to memory
+    ; Load field direction (offset 201)
+    LD HL, ($F04C)    ; Virtual register 38 from memory
+    LD DE, 201
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r40 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r41 = r39 == r40
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_move_snake_p_Snake_eq_true_2
+    LD HL, 0       ; False
+    JP ___games_snake_move_snake_p_Snake_eq_done_2
+_games_snake_move_snake_p_Snake_eq_true_2:
+    LD HL, 1       ; True
+_games_snake_move_snake_p_Snake_eq_done_2:
+    ; Register 41 already in HL
+    ; jump_if_not r41, else_5
+    LD A, L
+    OR A
+    JP Z, ___games_snake_move_snake_p_Snake_else_5
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F054), HL    ; Virtual register 42 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F054)    ; Virtual register 42 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 43 already in HL
+    ; r44 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 43 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Load field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r47 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r48 = r46 + r47
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 48 already in HL
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F062), HL    ; Virtual register 49 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F062)    ; Virtual register 49 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 50 already in HL
+    ; r51 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 50 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F068), A     ; Virtual register 52 to memory
+    ; Store to field y (offset 1)
+    LD HL, ($F068)    ; Virtual register 52 from memory
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    ; Register 48 already in HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_6
+    JP ___games_snake_move_snake_p_Snake_end_if_6
+    ; else_5:
+_games_snake_move_snake_p_Snake_else_5:
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F06A), HL    ; Virtual register 53 to memory
+    ; Load field direction (offset 201)
+    LD HL, ($F06A)    ; Virtual register 53 from memory
+    LD DE, 201
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r55 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; r56 = r54 == r55
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_move_snake_p_Snake_eq_true_3
+    LD HL, 0       ; False
+    JP ___games_snake_move_snake_p_Snake_eq_done_3
+_games_snake_move_snake_p_Snake_eq_true_3:
+    LD HL, 1       ; True
+_games_snake_move_snake_p_Snake_eq_done_3:
+    ; Register 56 already in HL
+    ; jump_if_not r56, else_7
+    LD A, L
+    OR A
+    JP Z, ___games_snake_move_snake_p_Snake_else_7
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F072), HL    ; Virtual register 57 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F072)    ; Virtual register 57 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 58 already in HL
+    ; r59 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 58 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Load field x (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r62 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r63 = r61 - r62
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; Register 63 already in HL
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F080), HL    ; Virtual register 64 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F080)    ; Virtual register 64 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 65 already in HL
+    ; r66 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 65 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F086), A     ; Virtual register 67 to memory
+    ; Store to field x (offset 0)
+    LD HL, ($F086)    ; Virtual register 67 from memory
+    PUSH HL
+    ; Register 63 already in HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_8
+    JP ___games_snake_move_snake_p_Snake_end_if_8
+    ; else_7:
+_games_snake_move_snake_p_Snake_else_7:
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F088), HL    ; Virtual register 68 to memory
+    ; Load field direction (offset 201)
+    LD HL, ($F088)    ; Virtual register 68 from memory
+    LD DE, 201
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r70 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    ; r71 = r69 == r70
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_move_snake_p_Snake_eq_true_4
+    LD HL, 0       ; False
+    JP ___games_snake_move_snake_p_Snake_eq_done_4
+_games_snake_move_snake_p_Snake_eq_true_4:
+    LD HL, 1       ; True
+_games_snake_move_snake_p_Snake_eq_done_4:
+    ; Register 71 already in HL
+    ; jump_if_not r71, else_9
+    LD A, L
+    OR A
+    JP Z, ___games_snake_move_snake_p_Snake_else_9
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F090), HL    ; Virtual register 72 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F090)    ; Virtual register 72 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 73 already in HL
+    ; r74 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 73 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Load field x (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r77 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r78 = r76 + r77
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 78 already in HL
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F09E), HL    ; Virtual register 79 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F09E)    ; Virtual register 79 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 80 already in HL
+    ; r81 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 80 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; Store to field x (offset 0)
+    ; Register 82 already in HL
+    PUSH HL
+    ; Register 78 already in HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_10
+    JP ___games_snake_move_snake_p_Snake_end_if_10
+    ; else_9:
+_games_snake_move_snake_p_Snake_else_9:
+    ; end_if_10:
+_games_snake_move_snake_p_Snake_end_if_10:
+    ; end_if_8:
+_games_snake_move_snake_p_Snake_end_if_8:
+    ; end_if_6:
+_games_snake_move_snake_p_Snake_end_if_6:
+    ; end_if_4:
+_games_snake_move_snake_p_Snake_end_if_4:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.check_collision$p_Snake
+_games_snake_check_collision_p_Snake:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; TSMC reference parameter snake
+snake_immOP:
+    LD HL, 0000      ; TSMC ref address for snake
+snake_imm0 EQU snake_immOP+1
+    ; Register 3 already in HL
+    ; Load field body (offset 0)
+    ; Register 3 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 4 already in HL
+    ; r5 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 4 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; store head, r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD ($F004), HL
+    ; r7 = load head
+    LD HL, ($F004)
+    ; Load field x (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r9 = load ...games.snake.SCREEN_WIDTH
+    LD HL, ($F000)
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; r10 = r8 >= r9
+    LD HL, ($F012)    ; Virtual register 9 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, ___games_snake_check_collision_p_Snake_ge_true_5
+    JP Z, ___games_snake_check_collision_p_Snake_ge_true_5
+    LD HL, 0       ; False
+    JP ___games_snake_check_collision_p_Snake_ge_done_5
+_games_snake_check_collision_p_Snake_ge_true_5:
+    LD HL, 1       ; True
+_games_snake_check_collision_p_Snake_ge_done_5:
+    ; r11 = load head
+    LD HL, ($F004)
+    ; Load field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; r13 = load ...games.snake.SCREEN_HEIGHT
+    LD HL, ($F020)
+    ; r14 = r12 >= r13
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, ___games_snake_check_collision_p_Snake_ge_true_6
+    JP Z, ___games_snake_check_collision_p_Snake_ge_true_6
+    LD HL, 0       ; False
+    JP ___games_snake_check_collision_p_Snake_ge_done_6
+_games_snake_check_collision_p_Snake_ge_true_6:
+    LD HL, 1       ; True
+_games_snake_check_collision_p_Snake_ge_done_6:
+    ; unknown op 61
+    LD A, H
+    OR A           ; Test if zero
+    JR NZ, lor_true_7      ; Skip if first operand is true
+    LD A, L
+    OR A           ; Test if zero
+    JR NZ, lor_true_7      ; Skip if second operand is true
+    XOR A          ; Result is false
+    JR lor_end_8
+lor_true_7:
+    LD A, 1        ; Result is true (1)
+lor_end_8:
+    LD ($F01E), A     ; Virtual register 15 to memory
+    ; jump_if_not r15, else_11
+    LD A, ($F01E)     ; Virtual register 15 from memory
+    OR A
+    JP Z, ___games_snake_check_collision_p_Snake_else_11
+    ; r16 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; return r16
+    RET
+    ; jump end_if_12
+    JP ___games_snake_check_collision_p_Snake_end_if_12
+    ; else_11:
+_games_snake_check_collision_p_Snake_else_11:
+    ; end_if_12:
+_games_snake_check_collision_p_Snake_end_if_12:
+    ; r18 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; store i, r18
+    LD A, L
+    LD ($F022), A
+    ; loop_13:
+_games_snake_check_collision_p_Snake_loop_13:
+    ; r19 = load i
+    LD A, ($F022)
+    LD H, A         ; Store to physical register H
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    ; Load field length (offset 200)
+    LD DE, 200
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F02A), HL    ; Virtual register 21 to memory
+    ; r22 = r19 < r21
+    LD HL, ($F02A)    ; Virtual register 21 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, ___games_snake_check_collision_p_Snake_lt_true_9
+    LD HL, 0       ; False
+    JP ___games_snake_check_collision_p_Snake_lt_done_9
+_games_snake_check_collision_p_Snake_lt_true_9:
+    LD HL, 1       ; True
+_games_snake_check_collision_p_Snake_lt_done_9:
+    ; jump_if_not r22, end_loop_14
+    LD A, L
+    OR A
+    JP Z, ___games_snake_check_collision_p_Snake_end_loop_14
+    ; r23 = load head
+    LD HL, ($F004)
+    ; Register 23 already in HL
+    ; Load field x (offset 0)
+    ; Register 23 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F032), HL    ; Virtual register 25 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F032)    ; Virtual register 25 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 26 already in HL
+    ; r27 = load i
+    LD A, ($F022)
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 26 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Load field x (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F03A), HL    ; Virtual register 29 to memory
+    ; r30 = r24 == r29
+    LD HL, ($F03A)    ; Virtual register 29 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_check_collision_p_Snake_eq_true_10
+    LD HL, 0       ; False
+    JP ___games_snake_check_collision_p_Snake_eq_done_10
+_games_snake_check_collision_p_Snake_eq_true_10:
+    LD HL, 1       ; True
+_games_snake_check_collision_p_Snake_eq_done_10:
+    ; r31 = load head
+    LD HL, ($F004)
+    ; Register 31 already in HL
+    ; Load field y (offset 1)
+    ; Register 31 already in HL
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F042), HL    ; Virtual register 33 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F042)    ; Virtual register 33 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 34 already in HL
+    ; r35 = load i
+    LD A, ($F022)
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 34 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; Load field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD ($F04A), HL    ; Virtual register 37 to memory
+    ; r38 = r32 == r37
+    LD HL, ($F04A)    ; Virtual register 37 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_check_collision_p_Snake_eq_true_11
+    LD HL, 0       ; False
+    JP ___games_snake_check_collision_p_Snake_eq_done_11
+_games_snake_check_collision_p_Snake_eq_true_11:
+    LD HL, 1       ; True
+_games_snake_check_collision_p_Snake_eq_done_11:
+    ; unknown op 60
+    LD A, L
+    OR A           ; Test if zero
+    JR Z, land_false_12       ; Skip if first operand is false
+    LD A, L
+    OR A           ; Test if zero
+    JR Z, land_false_12       ; Skip if second operand is false
+    LD A, 1        ; Result is true
+    JR land_end_13
+land_false_12:
+    XOR A          ; Result is false (0)
+land_end_13:
+    LD ($F04E), A     ; Virtual register 39 to memory
+    ; jump_if_not r39, else_15
+    LD A, ($F04E)     ; Virtual register 39 from memory
+    OR A
+    JP Z, ___games_snake_check_collision_p_Snake_else_15
+    ; r40 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; return r40
+    RET
+    ; jump end_if_16
+    JP ___games_snake_check_collision_p_Snake_end_if_16
+    ; else_15:
+_games_snake_check_collision_p_Snake_else_15:
+    ; end_if_16:
+_games_snake_check_collision_p_Snake_end_if_16:
+    ; r41 = load i
+    LD A, ($F022)
+    LD L, A         ; Store to physical register L
+    ; r42 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r43 = r41 + r42
+    LD D, H
+    LD E, L
+    ; Register 42 already in HL
+    ADD HL, DE
+    ; store i, r43
+    LD A, H
+    LD ($F022), A
+    ; jump loop_13
+    JP ___games_snake_check_collision_p_Snake_loop_13
+    ; end_loop_14:
+_games_snake_check_collision_p_Snake_end_loop_14:
+    ; r44 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; return r44
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.check_food_collision$p_Snake$p_Point
+_games_snake_check_food_collision_p_Snake_p_Point:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; TSMC reference parameter snake
+snake_immOP:
+    LD HL, 0000      ; TSMC ref address for snake
+snake_imm0 EQU snake_immOP+1
+    LD ($F008), HL    ; Virtual register 4 to memory
+    ; Load field body (offset 0)
+    LD HL, ($F008)    ; Virtual register 4 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 5 already in HL
+    ; r6 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; Load array element (...games.snake.Point)
+    ; Register 5 already in HL
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; store head, r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    LD ($F006), HL
+    ; r8 = load head
+    LD HL, ($F006)
+    ; Register 8 already in HL
+    ; Load field x (offset 0)
+    ; Register 8 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+; TSMC reference parameter food
+food_immOP:
+    LD HL, 0000      ; TSMC ref address for food
+food_imm0 EQU food_immOP+1
+    ; Load field x (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r12 = r9 == r11
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_check_food_collision_p_Snake_p_Point_eq_true_14
+    LD HL, 0       ; False
+    JP ___games_snake_check_food_collision_p_Snake_p_Point_eq_done_14
+_games_snake_check_food_collision_p_Snake_p_Point_eq_true_14:
+    LD HL, 1       ; True
+_games_snake_check_food_collision_p_Snake_p_Point_eq_done_14:
+    ; Register 12 already in HL
+    ; r13 = load head
+    LD HL, ($F006)
+    ; Load field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    LD HL, (food_imm0) ; Reload TSMC ref address
+    ; Load field y (offset 1)
+    LD DE, 1
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r17 = r14 == r16
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_check_food_collision_p_Snake_p_Point_eq_true_15
+    LD HL, 0       ; False
+    JP ___games_snake_check_food_collision_p_Snake_p_Point_eq_done_15
+_games_snake_check_food_collision_p_Snake_p_Point_eq_true_15:
+    LD HL, 1       ; True
+_games_snake_check_food_collision_p_Snake_p_Point_eq_done_15:
+    ; Register 17 already in HL
+    ; unknown op 60
+    LD A, L
+    OR A           ; Test if zero
+    JR Z, land_false_16       ; Skip if first operand is false
+    LD A, L
+    OR A           ; Test if zero
+    JR Z, land_false_16       ; Skip if second operand is false
+    LD A, 1        ; Result is true
+    JR land_end_17
+land_false_16:
+    XOR A          ; Result is false (0)
+land_end_17:
+    LD H, A         ; Store to physical register H
+    ; return r18
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.grow_snake$p_Snake
+_games_snake_grow_snake_p_Snake:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; TSMC reference parameter snake
+snake_immOP:
+    LD HL, 0000      ; TSMC ref address for snake
+snake_imm0 EQU snake_immOP+1
+    ; Load field length (offset 200)
+    LD DE, 200
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r4 = load ...games.snake.MAX_SNAKE_LENGTH
+    LD HL, ($F040)
+    ; r5 = r3 < r4
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, ___games_snake_grow_snake_p_Snake_lt_true_18
+    LD HL, 0       ; False
+    JP ___games_snake_grow_snake_p_Snake_lt_done_18
+_games_snake_grow_snake_p_Snake_lt_true_18:
+    LD HL, 1       ; True
+_games_snake_grow_snake_p_Snake_lt_done_18:
+    ; Register 5 already in HL
+    ; jump_if_not r5, else_17
+    LD A, L
+    OR A
+    JP Z, ___games_snake_grow_snake_p_Snake_else_17
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    ; Load field length (offset 200)
+    LD DE, 200
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r8 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r9 = r7 + r8
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 9 already in HL
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    ; Register 10 already in HL
+    ; Store to field length (offset 200)
+    ; Register 10 already in HL
+    LD DE, 200
+    ADD HL, DE
+    PUSH HL
+    ; Register 9 already in HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_18
+    JP ___games_snake_grow_snake_p_Snake_end_if_18
+    ; else_17:
+_games_snake_grow_snake_p_Snake_else_17:
+    ; end_if_18:
+_games_snake_grow_snake_p_Snake_end_if_18:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.generate_food$p_Snake
+_games_snake_generate_food_p_Snake:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct Point
+    LD HL, -2
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    ; Register 2 already in HL
+    ; r3 = 15
+    LD A, 15
+    LD H, A         ; Store to physical register H
+    ; Store to Point.x
+    ; Register 2 already in HL
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r4 = 8
+    LD A, 8
+    LD L, A         ; Store to physical register L
+    ; Store to Point.y
+    ; Register 2 already in HL
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; return r2
+    ; Register 2 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.handle_input$p_Snake
+_games_snake_handle_input_p_Snake:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; store key, r3
+    LD A, ($F006)     ; Virtual register 3 from memory
+    LD ($F004), A
+    ; r4 = load key
+    LD A, ($F004)
+    LD L, A         ; Store to physical register L
+    ; r5 = 87
+    LD A, 87
+    LD L, A         ; Store to HL (low byte)
+    ; r6 = r4 == r5
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_handle_input_p_Snake_eq_true_19
+    LD HL, 0       ; False
+    JP ___games_snake_handle_input_p_Snake_eq_done_19
+_games_snake_handle_input_p_Snake_eq_true_19:
+    LD HL, 1       ; True
+_games_snake_handle_input_p_Snake_eq_done_19:
+    ; jump_if_not r6, else_19
+    LD A, H
+    OR A
+    JP Z, ___games_snake_handle_input_p_Snake_else_19
+; TSMC reference parameter snake
+snake_immOP:
+    LD HL, 0000      ; TSMC ref address for snake
+snake_imm0 EQU snake_immOP+1
+    ; Load field direction (offset 201)
+    LD DE, 201
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r9 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    ; r10 = r8 != r9
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___games_snake_handle_input_p_Snake_ne_true_20
+    LD HL, 0       ; False
+    JP ___games_snake_handle_input_p_Snake_ne_done_20
+_games_snake_handle_input_p_Snake_ne_true_20:
+    LD HL, 1       ; True
+_games_snake_handle_input_p_Snake_ne_done_20:
+    ; Register 10 already in HL
+    ; jump_if_not r10, else_21
+    LD A, L
+    OR A
+    JP Z, ___games_snake_handle_input_p_Snake_else_21
+    ; r11 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F018), HL    ; Virtual register 12 to memory
+    ; Store to field direction (offset 201)
+    LD HL, ($F018)    ; Virtual register 12 from memory
+    LD DE, 201
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_22
+    JP ___games_snake_handle_input_p_Snake_end_if_22
+    ; else_21:
+_games_snake_handle_input_p_Snake_else_21:
+    ; end_if_22:
+_games_snake_handle_input_p_Snake_end_if_22:
+    ; jump end_if_20
+    JP ___games_snake_handle_input_p_Snake_end_if_20
+    ; else_19:
+_games_snake_handle_input_p_Snake_else_19:
+    ; r13 = load key
+    LD A, ($F004)
+    LD L, A         ; Store to HL (low byte)
+    ; r14 = 83
+    LD A, 83
+    LD H, A         ; Store to physical register H
+    ; r15 = r13 == r14
+    ; Register 13 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_handle_input_p_Snake_eq_true_21
+    LD HL, 0       ; False
+    JP ___games_snake_handle_input_p_Snake_eq_done_21
+_games_snake_handle_input_p_Snake_eq_true_21:
+    LD HL, 1       ; True
+_games_snake_handle_input_p_Snake_eq_done_21:
+    ; jump_if_not r15, else_23
+    LD A, L
+    OR A
+    JP Z, ___games_snake_handle_input_p_Snake_else_23
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    ; Load field direction (offset 201)
+    LD DE, 201
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r18 = 0
+    LD A, 0
+    LD L, A         ; Store to physical register L
+    ; r19 = r17 != r18
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___games_snake_handle_input_p_Snake_ne_true_22
+    LD HL, 0       ; False
+    JP ___games_snake_handle_input_p_Snake_ne_done_22
+_games_snake_handle_input_p_Snake_ne_true_22:
+    LD HL, 1       ; True
+_games_snake_handle_input_p_Snake_ne_done_22:
+    ; Register 19 already in HL
+    ; jump_if_not r19, else_25
+    LD A, L
+    OR A
+    JP Z, ___games_snake_handle_input_p_Snake_else_25
+    ; r20 = 1
+    LD A, 1
+    LD L, A         ; Store to physical register L
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F02A), HL    ; Virtual register 21 to memory
+    ; Store to field direction (offset 201)
+    LD HL, ($F02A)    ; Virtual register 21 from memory
+    LD DE, 201
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_26
+    JP ___games_snake_handle_input_p_Snake_end_if_26
+    ; else_25:
+_games_snake_handle_input_p_Snake_else_25:
+    ; end_if_26:
+_games_snake_handle_input_p_Snake_end_if_26:
+    ; jump end_if_24
+    JP ___games_snake_handle_input_p_Snake_end_if_24
+    ; else_23:
+_games_snake_handle_input_p_Snake_else_23:
+    ; r22 = load key
+    LD A, ($F004)
+    LD L, A         ; Store to HL (low byte)
+    ; r23 = 65
+    LD A, 65
+    LD H, A         ; Store to physical register H
+    ; r24 = r22 == r23
+    ; Register 22 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_handle_input_p_Snake_eq_true_23
+    LD HL, 0       ; False
+    JP ___games_snake_handle_input_p_Snake_eq_done_23
+_games_snake_handle_input_p_Snake_eq_true_23:
+    LD HL, 1       ; True
+_games_snake_handle_input_p_Snake_eq_done_23:
+    ; jump_if_not r24, else_27
+    LD A, L
+    OR A
+    JP Z, ___games_snake_handle_input_p_Snake_else_27
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    ; Load field direction (offset 201)
+    LD DE, 201
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r27 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    ; r28 = r26 != r27
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___games_snake_handle_input_p_Snake_ne_true_24
+    LD HL, 0       ; False
+    JP ___games_snake_handle_input_p_Snake_ne_done_24
+_games_snake_handle_input_p_Snake_ne_true_24:
+    LD HL, 1       ; True
+_games_snake_handle_input_p_Snake_ne_done_24:
+    ; Register 28 already in HL
+    ; jump_if_not r28, else_29
+    LD A, L
+    OR A
+    JP Z, ___games_snake_handle_input_p_Snake_else_29
+    ; r29 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    LD ($F03C), HL    ; Virtual register 30 to memory
+    ; Store to field direction (offset 201)
+    LD HL, ($F03C)    ; Virtual register 30 from memory
+    LD DE, 201
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_30
+    JP ___games_snake_handle_input_p_Snake_end_if_30
+    ; else_29:
+_games_snake_handle_input_p_Snake_else_29:
+    ; end_if_30:
+_games_snake_handle_input_p_Snake_end_if_30:
+    ; jump end_if_28
+    JP ___games_snake_handle_input_p_Snake_end_if_28
+    ; else_27:
+_games_snake_handle_input_p_Snake_else_27:
+    ; r31 = load key
+    LD A, ($F004)
+    LD L, A         ; Store to HL (low byte)
+    ; r32 = 68
+    LD A, 68
+    LD H, A         ; Store to physical register H
+    ; r33 = r31 == r32
+    ; Register 31 already in HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___games_snake_handle_input_p_Snake_eq_true_25
+    LD HL, 0       ; False
+    JP ___games_snake_handle_input_p_Snake_eq_done_25
+_games_snake_handle_input_p_Snake_eq_true_25:
+    LD HL, 1       ; True
+_games_snake_handle_input_p_Snake_eq_done_25:
+    ; jump_if_not r33, else_31
+    LD A, L
+    OR A
+    JP Z, ___games_snake_handle_input_p_Snake_else_31
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    ; Load field direction (offset 201)
+    LD DE, 201
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r36 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; r37 = r35 != r36
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP NZ, ___games_snake_handle_input_p_Snake_ne_true_26
+    LD HL, 0       ; False
+    JP ___games_snake_handle_input_p_Snake_ne_done_26
+_games_snake_handle_input_p_Snake_ne_true_26:
+    LD HL, 1       ; True
+_games_snake_handle_input_p_Snake_ne_done_26:
+    ; Register 37 already in HL
+    ; jump_if_not r37, else_33
+    LD A, L
+    OR A
+    JP Z, ___games_snake_handle_input_p_Snake_else_33
+    ; r38 = 3
+    LD A, 3
+    LD L, A         ; Store to physical register L
+    LD HL, (snake_imm0) ; Reload TSMC ref address
+    ; Register 39 already in HL
+    ; Store to field direction (offset 201)
+    ; Register 39 already in HL
+    LD DE, 201
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_34
+    JP ___games_snake_handle_input_p_Snake_end_if_34
+    ; else_33:
+_games_snake_handle_input_p_Snake_else_33:
+    ; end_if_34:
+_games_snake_handle_input_p_Snake_end_if_34:
+    ; jump end_if_32
+    JP ___games_snake_handle_input_p_Snake_end_if_32
+    ; else_31:
+_games_snake_handle_input_p_Snake_else_31:
+    ; end_if_32:
+_games_snake_handle_input_p_Snake_end_if_32:
+    ; end_if_28:
+_games_snake_handle_input_p_Snake_end_if_28:
+    ; end_if_24:
+_games_snake_handle_input_p_Snake_end_if_24:
+    ; end_if_20:
+_games_snake_handle_input_p_Snake_end_if_20:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.render_game$p_GameState
+_games_snake_render_game_p_GameState:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = 0
+    LD A, 0
+    LD L, A         ; Store to HL (low byte)
+    ; store i, r3
+    LD A, L
+    LD ($F004), A
+    ; loop_35:
+_games_snake_render_game_p_GameState_loop_35:
+    ; r4 = load i
+    LD A, ($F004)
+    LD L, A         ; Store to physical register L
+; TSMC reference parameter game
+game_immOP:
+    LD HL, 0000      ; TSMC ref address for game
+game_imm0 EQU game_immOP+1
+    LD ($F00A), HL    ; Virtual register 5 to memory
+    ; Load field snake (offset 0)
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 6 already in HL
+    ; Load field length (offset 200)
+    ; Register 6 already in HL
+    LD DE, 200
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 7 already in HL
+    ; r8 = r4 < r7
+    LD D, H
+    LD E, L
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, ___games_snake_render_game_p_GameState_lt_true_27
+    LD HL, 0       ; False
+    JP ___games_snake_render_game_p_GameState_lt_done_27
+_games_snake_render_game_p_GameState_lt_true_27:
+    LD HL, 1       ; True
+_games_snake_render_game_p_GameState_lt_done_27:
+    ; jump_if_not r8, end_loop_36
+    LD A, H
+    OR A
+    JP Z, ___games_snake_render_game_p_GameState_end_loop_36
+    LD HL, (game_imm0) ; Reload TSMC ref address
+    LD ($F014), HL    ; Virtual register 10 to memory
+    ; Load field snake (offset 0)
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 11 already in HL
+    ; Load field body (offset 0)
+    ; Register 11 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 12 already in HL
+    ; r13 = load i
+    LD A, ($F004)
+    LD H, A         ; Store to physical register H
+    ; Load array element (...games.snake.Point)
+    ; Register 12 already in HL
+    PUSH HL
+    LD E, H        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F01C), A     ; Virtual register 14 to memory
+    ; store segment, r14
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    LD ($F012), HL
+    ; r15 = load i
+    LD A, ($F004)
+    LD L, A         ; Store to HL (low byte)
+    ; r16 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; r17 = r15 + r16
+    ; Register 15 already in HL
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store i, r17
+    LD A, L
+    LD ($F004), A
+    ; jump loop_35
+    JP ___games_snake_render_game_p_GameState_loop_35
+    ; end_loop_36:
+_games_snake_render_game_p_GameState_end_loop_36:
+    LD HL, (game_imm0) ; Reload TSMC ref address
+    ; Register 18 already in HL
+    ; Load field score (offset 205)
+    ; Register 18 already in HL
+    LD DE, 205
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 19 already in HL
+    ; Call runtime print_u16_decimal
+    ; Call to print_u16_decimal (args: 1)
+    ; Stack-based parameter passing
+    ; Register 19 already in HL
+    PUSH HL       ; Argument 0
+    CALL print_u16_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.game_loop
+_games_snake_game_loop:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call ...games.snake.init_game
+    ; Call to ...games.snake.init_game (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...games.snake.init_game
+    ; Register 2 already in HL
+    ; store game, r2
+    ; Register 2 already in HL
+    LD ($F002), HL
+    ; loop_37:
+_games_snake_game_loop_loop_37:
+    ; r3 = load game
+    LD HL, ($F002)
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; Load field game_over (offset 207)
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    LD DE, 207
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r5 = ~r4
+    LD A, H
+    CPL           ; Complement A
+    LD L, A         ; Store to physical register L
+    ; jump_if_not r5, end_loop_38
+    LD A, L
+    OR A
+    JP Z, ___games_snake_game_loop_end_loop_38
+    ; r6 = load game
+    LD HL, ($F002)
+    ; Register 6 already in HL
+    ; Load field snake (offset 0)
+    ; Register 6 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r8 = &r7
+    ; Address-of operation for register r7
+    LD HL, $F00E  ; Variable address
+    ; Register 8 already in HL
+    ; r9 = load game
+    LD HL, ($F002)
+    ; Load field snake (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r11 = &r10
+    ; Address-of operation for register r10
+    LD HL, $F014  ; Variable address
+    LD ($F016), HL    ; Virtual register 11 to memory
+    ; r12 = call ...games.snake.handle_input$p_Snake
+    ; Call to ...games.snake.handle_input$p_Snake (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL ...games_snake_handle_input_p_Snake
+    ; r13 = load game
+    LD HL, ($F002)
+    ; Register 13 already in HL
+    ; Load field snake (offset 0)
+    ; Register 13 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r15 = &r14
+    ; Address-of operation for register r14
+    LD HL, $F01C  ; Variable address
+    ; Register 15 already in HL
+    ; r16 = load game
+    LD HL, ($F002)
+    ; Load field snake (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r18 = &r17
+    ; Address-of operation for register r17
+    LD HL, $F022  ; Variable address
+    LD ($F024), HL    ; Virtual register 18 to memory
+    ; r19 = call ...games.snake.move_snake$p_Snake
+    ; Call to ...games.snake.move_snake$p_Snake (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL ...games_snake_move_snake_p_Snake
+    ; r20 = load game
+    LD HL, ($F002)
+    ; Register 20 already in HL
+    ; Load field snake (offset 0)
+    ; Register 20 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r22 = &r21
+    ; Address-of operation for register r21
+    LD HL, $F02A  ; Variable address
+    ; Register 22 already in HL
+    ; r23 = load game
+    LD HL, ($F002)
+    ; Load field snake (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r25 = &r24
+    ; Address-of operation for register r24
+    LD HL, $F030  ; Variable address
+    LD ($F032), HL    ; Virtual register 25 to memory
+    ; r26 = call ...games.snake.check_collision$p_Snake
+    ; Call to ...games.snake.check_collision$p_Snake (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL ...games_snake_check_collision_p_Snake
+    ; jump_if_not r26, else_39
+    LD A, L
+    OR A
+    JP Z, ___games_snake_game_loop_else_39
+    ; r27 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; r28 = load game
+    LD HL, ($F002)
+    ; Store to field game_over (offset 207)
+    LD DE, 207
+    ADD HL, DE
+    PUSH HL
+    ; Register 27 already in HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_40
+    JP ___games_snake_game_loop_end_if_40
+    ; else_39:
+_games_snake_game_loop_else_39:
+    ; end_if_40:
+_games_snake_game_loop_end_if_40:
+    ; r29 = load game
+    LD HL, ($F002)
+    ; Load field snake (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r31 = &r30
+    ; Address-of operation for register r30
+    LD HL, $F03C  ; Variable address
+    ; Register 31 already in HL
+    ; r32 = load game
+    LD HL, ($F002)
+    ; Load field food (offset 203)
+    LD DE, 203
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r34 = &r33
+    ; Address-of operation for register r33
+    LD HL, $F042  ; Variable address
+    ; Register 34 already in HL
+    ; r35 = load game
+    LD HL, ($F002)
+    ; Load field snake (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r37 = &r36
+    ; Address-of operation for register r36
+    LD HL, $F048  ; Variable address
+    ; Register 37 already in HL
+    ; r38 = load game
+    LD HL, ($F002)
+    ; Load field food (offset 203)
+    LD DE, 203
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r40 = &r39
+    ; Address-of operation for register r39
+    LD HL, $F04E  ; Variable address
+    LD ($F050), HL    ; Virtual register 40 to memory
+    ; r41 = call ...games.snake.check_food_collision$p_Snake$p_Point
+    ; Call to ...games.snake.check_food_collision$p_Snake$p_Point (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL ...games_snake_check_food_collision_p_Snake_p_Point
+    ; jump_if_not r41, else_41
+    LD A, L
+    OR A
+    JP Z, ___games_snake_game_loop_else_41
+    ; r42 = load game
+    LD HL, ($F002)
+    ; Register 42 already in HL
+    ; Load field snake (offset 0)
+    ; Register 42 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r44 = &r43
+    ; Address-of operation for register r43
+    LD HL, $F056  ; Variable address
+    ; Register 44 already in HL
+    ; r45 = load game
+    LD HL, ($F002)
+    ; Load field snake (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r47 = &r46
+    ; Address-of operation for register r46
+    LD HL, $F05C  ; Variable address
+    LD ($F05E), HL    ; Virtual register 47 to memory
+    ; r48 = call ...games.snake.grow_snake$p_Snake
+    ; Call to ...games.snake.grow_snake$p_Snake (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL ...games_snake_grow_snake_p_Snake
+    ; r49 = load game
+    LD HL, ($F002)
+    ; Register 49 already in HL
+    ; Load field snake (offset 0)
+    ; Register 49 already in HL
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r51 = &r50
+    ; Address-of operation for register r50
+    LD HL, $F064  ; Variable address
+    ; Register 51 already in HL
+    ; r52 = load game
+    LD HL, ($F002)
+    ; Load field snake (offset 0)
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; r54 = &r53
+    ; Address-of operation for register r53
+    LD HL, $F06A  ; Variable address
+    LD ($F06C), HL    ; Virtual register 54 to memory
+    ; r55 = call ...games.snake.generate_food$p_Snake
+    ; Call to ...games.snake.generate_food$p_Snake (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL ...games_snake_generate_food_p_Snake
+    ; r56 = load game
+    LD HL, ($F002)
+    ; Register 56 already in HL
+    ; Store to field food (offset 203)
+    ; Register 56 already in HL
+    LD DE, 203
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r57 = load game
+    LD HL, ($F002)
+    ; Load field score (offset 205)
+    LD DE, 205
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 58 already in HL
+    ; r59 = 10
+    LD A, 10
+    LD L, A         ; Store to HL (low byte)
+    ; r60 = r58 + r59
+    ; Register 58 already in HL
+    LD D, H
+    LD E, L
+    ; Register 59 already in HL
+    ADD HL, DE
+    LD ($F078), HL    ; Virtual register 60 to memory
+    ; r61 = load game
+    LD HL, ($F002)
+    ; Store to field score (offset 205)
+    LD DE, 205
+    ADD HL, DE
+    PUSH HL
+    LD HL, ($F078)    ; Virtual register 60 from memory
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; jump end_if_42
+    JP ___games_snake_game_loop_end_if_42
+    ; else_41:
+_games_snake_game_loop_else_41:
+    ; end_if_42:
+_games_snake_game_loop_end_if_42:
+    ; r62 = load game
+    LD HL, ($F002)
+    LD ($F07C), HL    ; Virtual register 62 to memory
+    ; r63 = &r62
+    ; Address-of operation for register r62
+    LD HL, $F07C  ; Variable address
+    ; r64 = load game
+    LD HL, ($F002)
+    ; r65 = &r64
+    ; Address-of operation for register r64
+    LD HL, $F080  ; Variable address
+    ; Register 65 already in HL
+    ; r66 = call ...games.snake.render_game$p_GameState
+    ; Call to ...games.snake.render_game$p_GameState (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL ...games_snake_render_game_p_GameState
+    ; jump loop_37
+    JP ___games_snake_game_loop_loop_37
+    ; end_loop_38:
+_games_snake_game_loop_end_loop_38:
+    ; r67 = load game
+    LD HL, ($F002)
+    ; Load field score (offset 205)
+    LD DE, 205
+    ADD HL, DE
+    LD E, (HL)
+    INC HL
+    LD D, (HL)
+    EX DE, HL
+    ; Register 68 already in HL
+    ; Call runtime print_u16_decimal
+    ; Call to print_u16_decimal (args: 1)
+    ; Stack-based parameter passing
+    ; Register 68 already in HL
+    PUSH HL       ; Argument 0
+    CALL print_u16_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...games.snake.main
+_games_snake_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call ...games.snake.game_loop
+    ; Call to ...games.snake.game_loop (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...games.snake.game_loop
+    ; Register 1 already in HL
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+
+; Standard library routines
+
+    END main

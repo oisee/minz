@@ -1,0 +1,7 @@
+; Test only known working instructions
+    ORG $8000
+
+    LD A, B
+    LD A, $12
+    
+    END

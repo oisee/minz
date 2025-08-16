@@ -1,0 +1,333 @@
+; MinZ generated code
+; Generated: 2025-08-13 13:39:24
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_antlr_minimal.main
+_test_antlr_minimal_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 5
+    LD A, 5
+    ; Register 2 already in A
+    ; store x, r2
+    ; Register 2 already in A
+    LD ($F002), A
+    ; r4 = 10
+    LD A, 10
+    LD C, A         ; Store to physical register C
+    ; store y, r4
+    LD A, C
+    LD ($F006), A
+    ; r6 = load x
+    LD A, ($F002)
+    LD E, A         ; Store to physical register E
+    ; r7 = load y
+    LD A, ($F006)
+    LD H, A         ; Store to physical register H
+    ; r8 = r6 + r7
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; store z, r8
+    LD A, L
+    LD ($F00A), A
+    ; r9 = load z
+    LD A, ($F00A)
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; ZX Spectrum ROM print
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+print_digit:
+    LD A, '0'-1
+print_digit_loop:
+    INC A
+    ADD HL, BC         ; Subtract power of 10
+    JR C, print_digit_loop
+    ADD HL, DE         ; Add back one power of 10
+    RST 16             ; Print digit
+    RET
+
+print_i8_decimal:
+    BIT 7, A           ; Check sign bit
+    JR Z, print_u8_decimal
+    PUSH AF
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP AF
+    NEG                ; Make positive
+    JR print_u8_decimal
+
+print_i16_decimal:
+    BIT 7, H           ; Check sign bit
+    JR Z, print_u16_decimal
+    PUSH HL
+    LD A, '-'          ; Print minus sign
+    RST 16
+    POP HL
+    LD A, H            ; Negate HL
+    CPL
+    LD H, A
+    LD A, L
+    CPL
+    LD L, A
+    INC HL
+    JR print_u16_decimal
+
+print_bool:
+    OR A               ; Test if A is zero
+    JR NZ, print_true
+    LD HL, bool_false_str
+    JR print_string
+print_true:
+    LD HL, bool_true_str
+    JR print_string
+
+bool_true_str:
+    DB 4, "true"      ; Length + data
+bool_false_str:
+    DB 5, "false"     ; Length + data
+
+
+; Standard library routines
+cls:
+    LD HL, $4000       ; Screen start
+    LD DE, $4001
+    LD BC, $17FF       ; Screen size - 1
+    LD (HL), 0
+    LDIR               ; Clear screen
+    LD HL, $5800       ; Attribute start
+    LD DE, $5801
+    LD BC, $02FF       ; Attribute size - 1
+    LD (HL), $38       ; White ink on black paper
+    LDIR               ; Clear attributes
+    RET
+
+print_newline:
+    LD A, 13           ; CR
+    RST 16
+    RET
+
+print_hex_u8:
+    PUSH AF            ; Save value
+    RRA
+    RRA
+    RRA
+    RRA                ; High nibble to low
+    CALL print_hex_nibble
+    POP AF             ; Restore value
+    ; Fall through to print low nibble
+print_hex_nibble:
+    AND $0F            ; Isolate low nibble
+    ADD A, '0'         ; Convert to ASCII
+    CP '9' + 1
+    JR C, print_hex_digit
+    ADD A, 'A' - '0' - 10  ; Adjust for A_F
+print_hex_digit:
+    RST 16             ; ZX Spectrum print
+    RET
+
+zx_set_border:
+    POP HL             ; Return address
+    POP BC             ; Get color argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; Color to A
+    AND 7              ; Mask to 0-7
+    OUT (254), A       ; Set border
+    RET
+
+zx_clear_screen:
+    JP cls             ; Use standard cls
+
+zx_set_pixel:
+    ; TODO: Implement pixel setting
+    ; For now, just return
+    RET
+
+zx_set_ink:
+    ; TODO: Implement ink color setting
+    RET
+
+zx_set_paper:
+    ; TODO: Implement paper color setting
+    RET
+
+; Input routines
+zx_read_keyboard:
+    ; Scan keyboard matrix
+    LD BC, $FEFE       ; First keyboard row
+    IN A, (C)          ; Read keyboard
+    CPL                ; Invert bits
+    AND $1F            ; Mask relevant bits
+    RET Z              ; Return 0 if no key
+    ; Simple mapping - just return raw value for now
+    RET
+
+zx_wait_key:
+wait_key_loop:
+    CALL zx_read_keyboard
+    OR A               ; Test if zero
+    JR Z, wait_key_loop ; Loop if no key
+    RET                ; Return key code in A
+
+zx_is_key_pressed:
+    POP HL             ; Return address
+    POP BC             ; Get key code
+    PUSH HL            ; Restore return address
+    ; TODO: Implement specific key checking
+    LD A, 0            ; Return false for now
+    RET
+
+; Sound routines
+zx_beep:
+    POP HL             ; Return address
+    POP DE             ; Duration
+    POP BC             ; Pitch
+    PUSH HL            ; Restore return address
+    ; Simple beep using OUT to speaker
+beep_loop:
+    LD A, 16           ; Speaker bit
+    OUT (254), A       ; Speaker on
+    PUSH BC
+beep_delay1:
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, beep_delay1
+    POP BC
+    XOR A              ; Speaker off
+    OUT (254), A
+    PUSH BC
+beep_delay2:
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, beep_delay2
+    POP BC
+    DEC DE
+    LD A, D
+    OR E
+    JR NZ, beep_loop
+    RET
+
+zx_click:
+    LD A, 16           ; Quick click
+    OUT (254), A
+    LD B, 10
+click_delay:
+    DJNZ click_delay
+    XOR A
+    OUT (254), A
+    RET
+
+abs:
+    POP HL             ; Return address
+    POP BC             ; Get argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; Value to A
+    OR A               ; Test sign
+    JP P, abs_done     ; If positive, done
+    NEG                ; Negate if negative
+abs_done:
+    RET
+
+min:
+    POP HL             ; Return address
+    POP BC             ; First argument
+    POP DE             ; Second argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; First value
+    CP E               ; Compare with second
+    JR C, min_done     ; If first < second, keep first
+    LD A, E            ; Otherwise use second
+min_done:
+    RET
+
+max:
+    POP HL             ; Return address
+    POP BC             ; First argument
+    POP DE             ; Second argument
+    PUSH HL            ; Restore return address
+    LD A, C            ; First value
+    CP E               ; Compare with second
+    JR NC, max_done    ; If first >= second, keep first
+    LD A, E            ; Otherwise use second
+max_done:
+    RET
+
+
+    END main

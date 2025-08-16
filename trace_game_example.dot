@@ -1,0 +1,49 @@
+digraph MinZ_MIR {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  // Module: main
+  subgraph cluster_module {
+    label="Module: main";
+    style=dashed;
+
+    // Function: trace_game_example.move_player$p_Player$u8$u8
+    subgraph cluster_func_0 {
+      label="trace_game_example.move_player$p_Player$u8$u8";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_0_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_0_params" [label="Parameters:\nplayer: *trace_game_example.Player\ndx: u8\ndy: u8", shape=invhouse];
+      "func_0_bb0" [label="BB0:\nLOAD_PARAM\nLOAD_FIELD\nLOAD_PARAM\nr7 = r5 + r6\nLOAD_PARAM\nSTORE_FIELD\nLOAD_PARAM\nLOAD_FIELD\nLOAD_PARAM\nr12 = r10 + r11\nLOAD_PARAM\nSTORE_FIELD\nreturn\n", style=filled, fillcolor=lightgreen];
+    }
+
+    // Function: trace_game_example.check_collision$u8$u8
+    subgraph cluster_func_1 {
+      label="trace_game_example.check_collision$u8$u8";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_1_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_1_params" [label="Parameters:\nx: u8\ny: u8", shape=invhouse];
+      "func_1_return" [label="Returns: bool", shape=house];
+      "func_1_bb0" [label="BB0:\nLOAD_PARAM\nr4 = 31\nGT\nLOAD_PARAM\nr7 = 23\nGT\nUNKNOWN_OP_61\njump_if_not r9, else_1\n", style=filled, fillcolor=lightgreen];
+      "func_1_bb1" [label="BB1:\nr10 = 1\nreturn r10\n", style=filled, fillcolor=lightcoral];
+      "func_1_bb2" [label="BB2:\njump end_if_2\n", style=filled, fillcolor=lightblue];
+      "func_1_bb3" [label="else_1:\n", style=filled, fillcolor=lightblue];
+      "func_1_bb4" [label="end_if_2:\nr11 = 0\nreturn r11\n", style=filled, fillcolor=lightcoral];
+      "func_1_bb0" -> "func_1_bb3" [label="false", style=dashed];
+      "func_1_bb0" -> "func_1_bb1" [label="true"];
+      "func_1_bb2" -> "func_1_bb4" [label="jump"];
+      "func_1_bb3" -> "func_1_bb4";
+    }
+
+    // Function: trace_game_example.main
+    subgraph cluster_func_2 {
+      label="trace_game_example.main";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_2_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_2_bb0" [label="BB0:\nALLOC\nr3 = 10\nSTORE_FIELD\nr4 = 10\nSTORE_FIELD\nr5 = 100\nSTORE_FIELD\nstore player, r2\nr6 = load player\nADDR\nr8 = 1\nr9 = 0\nr10 = load player\nADDR\nr12 = 1\nr13 = 0\nr14 = call trace_game_example.move_player$p_Player$u8$u8\nr16 = load player\nLOAD_FIELD\nr18 = load player\nLOAD_FIELD\nr20 = load player\nLOAD_FIELD\nr22 = load player\nLOAD_FIELD\nr24 = call trace_game_example.check_collision$u8$u8\nstore collision, r24\nreturn\n", style=filled, fillcolor=lightgreen];
+    }
+
+  }
+}

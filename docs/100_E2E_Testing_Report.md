@@ -1,6 +1,6 @@
 # MinZ Compiler E2E Testing Report
 
-**Generated:** 2025-08-12 08:37:38  
+**Generated:** 2025-08-16 14:26:20  
 **Compiler Version:** Fixed version with parameter passing bug resolution  
 **Test Scope:** All examples in `/Users/alice/dev/minz-ts/examples/`  
 **Optimization Flags:** `-O --enable-smc` for optimized builds
