@@ -3165,11 +3165,15 @@ func (g *Z80Generator) loadToA(reg ir.Register) {
 			g.emit("    ; Register %d now in A (shadow)", reg)
 		} else {
 			g.emit("    EXX               ; Switch to shadow registers")
+			// After EXX, we're working with the shadow registers but using normal names
+			// Strip the ' suffix from the register name
 			regName := g.physicalRegToAssembly(physReg)
+			normalName := strings.TrimSuffix(regName, "'")
 			if physReg == RegBC_Shadow || physReg == RegDE_Shadow || physReg == RegHL_Shadow {
-				g.emit("    LD A, %s         ; From shadow %s", regName[1:], regName)
+				// For 16-bit registers, load from low byte
+				g.emit("    LD A, %s         ; From shadow %s (now active)", normalName[1:], regName)
 			} else {
-				g.emit("    LD A, %s         ; From shadow %s", regName, regName)
+				g.emit("    LD A, %s         ; From shadow %s (now active)", normalName, regName)
 			}
 			g.emit("    EXX               ; Switch back to main registers")
 		}
@@ -3218,11 +3222,15 @@ func (g *Z80Generator) storeFromA(reg ir.Register) {
 			g.emit("    ; Register %d now stored in A (shadow)", reg)
 		} else {
 			g.emit("    EXX               ; Switch to shadow registers")
+			// After EXX, we're working with the shadow registers but using normal names
+			// Strip the ' suffix from the register name
 			regName := g.physicalRegToAssembly(physReg)
+			normalName := strings.TrimSuffix(regName, "'")
 			if physReg == RegBC_Shadow || physReg == RegDE_Shadow || physReg == RegHL_Shadow {
-				g.emit("    LD %s, A         ; Store to shadow %s", regName[1:], regName)
+				// For 16-bit registers, store to low byte
+				g.emit("    LD %s, A         ; Store to shadow %s (now active)", normalName[1:], regName)
 			} else {
-				g.emit("    LD %s, A         ; Store to shadow %s", regName, regName)
+				g.emit("    LD %s, A         ; Store to shadow %s (now active)", normalName, regName)
 			}
 			g.emit("    EXX               ; Switch back to main registers")
 		}

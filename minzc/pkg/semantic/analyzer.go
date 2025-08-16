@@ -1167,6 +1167,10 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	a.currentScope = NewScope(a.currentScope)
 	defer func() { a.currentScope = a.currentScope.parent }()
 
+	// Bind function to its own scope for recursion
+	// This allows the function to call itself within its body
+	a.currentScope.Define(fn.Name, funcSym)
+
 	// Process parameters
 	for _, param := range fn.Params {
 		paramType, err := a.convertType(param.Type)
@@ -1741,9 +1745,9 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 	// If no explicit type, we need to infer from value
 	// But we must be careful about when we do type inference
 	if varType == nil && v.Value != nil {
-		// For simple literals and lambda expressions, we can infer type safely
+		// For simple literals, lambda expressions, and function calls, we can infer type safely
 		switch v.Value.(type) {
-		case *ast.NumberLiteral, *ast.BooleanLiteral, *ast.StringLiteral, *ast.LambdaExpr, *ast.ArrayInitializer:
+		case *ast.NumberLiteral, *ast.BooleanLiteral, *ast.StringLiteral, *ast.LambdaExpr, *ast.ArrayInitializer, *ast.CallExpr:
 			t, err := a.inferType(v.Value)
 			if err != nil {
 				return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
@@ -4659,6 +4663,9 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		Args:   argRegs,  // Store argument registers for TRUE SMC patching
 	})
 
+	// Store the return type in expression types map
+	a.exprTypes[call] = funcSym.ReturnType
+
 	return resultReg, nil
 }
 
@@ -6874,12 +6881,33 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			return nil, fmt.Errorf("undefined function: %s", funcName)
 		}
 		
-		funcSym, ok := sym.(*FuncSymbol)
-		if !ok {
-			return nil, fmt.Errorf("cannot infer type from %s", funcName)
+		// Handle both single functions and overload sets
+		switch s := sym.(type) {
+		case *FuncSymbol:
+			if debug {
+				fmt.Printf("DEBUG: Found FuncSymbol %s with return type %v\n", s.Name, s.ReturnType)
+			}
+			return s.ReturnType, nil
+		case *FunctionOverloadSet:
+			// For type inference, we need to resolve the overload
+			// This is a simplified approach - we pick the first overload
+			// In a full implementation, we'd resolve based on arguments
+			if debug {
+				fmt.Printf("DEBUG: Found FunctionOverloadSet for %s with %d overloads\n", funcName, len(s.Overloads))
+			}
+			if len(s.Overloads) > 0 {
+				// Get the first overload from the map
+				for mangledName, overload := range s.Overloads {
+					if debug {
+						fmt.Printf("DEBUG: Using overload %s with return type %v\n", mangledName, overload.ReturnType)
+					}
+					return overload.ReturnType, nil
+				}
+			}
+			return nil, fmt.Errorf("function %s has no overloads", funcName)
+		default:
+			return nil, fmt.Errorf("cannot infer type from %s (type %T)", funcName, sym)
 		}
-		
-		return funcSym.ReturnType, nil
 	case *ast.BinaryExpr:
 		// Infer type from binary expression
 		leftType, err := a.inferType(e.Left)
@@ -8026,6 +8054,9 @@ func (a *Analyzer) analyzeLambdaCall(call *ast.CallExpr, lambdaType *ir.LambdaTy
 		Src1: lambdaAddrReg,
 		Args: argRegs,  // Pass the arguments for SMC patching
 	})
+	
+	// Store the return type in expression types map
+	a.exprTypes[call] = lambdaType.ReturnType
 	
 	return resultReg, nil
 }

@@ -1,0 +1,106 @@
+// Simple Tetris for MinZ - avoiding complex functions
+
+// Game constants  
+global BOARD_WIDTH: u8 = 10;
+global BOARD_HEIGHT: u8 = 20;
+
+// Piece types
+enum PieceType {
+    I,
+    O,
+    T,
+    EMPTY
+}
+
+// Point structure
+struct Point {
+    x: u8,
+    y: u8
+}
+
+// Simple piece (just center position)
+struct Piece {
+    piece_type: PieceType,
+    position: Point
+}
+
+// Game board
+struct Board {
+    grid: [[u8; 10]; 20],
+    score: u16
+}
+
+// Game state
+struct TetrisGame {
+    board: Board,
+    current_piece: Piece
+}
+
+// Simple screen clear
+fun clear_screen() -> void {
+    @asm {
+        LD HL, 16384
+        LD BC, 6144
+        XOR A
+    clear_loop:
+        LD (HL), A
+        INC HL
+        DEC BC
+        LD A, B
+        OR C
+        JR NZ, clear_loop
+    }
+}
+
+// Initialize game
+fun init_game() -> TetrisGame {
+    let mut game: TetrisGame;
+    
+    // Clear board
+    let mut y: u8 = 0;
+    while (y < BOARD_HEIGHT) {
+        let mut x: u8 = 0;
+        while (x < BOARD_WIDTH) {
+            game.board.grid[y][x] = 0;
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+    
+    // Set initial piece
+    game.current_piece.piece_type = PieceType.T;
+    game.current_piece.position.x = 5;
+    game.current_piece.position.y = 0;
+    game.board.score = 0;
+    
+    return game;
+}
+
+// Simple render
+fun render_game(game: *TetrisGame) -> void {
+    clear_screen();
+    // Would plot game state here
+    print_u16(game.board.score);
+}
+
+// Main game loop
+fun game_loop() -> void {
+    let mut game = init_game();
+    
+    let mut frames: u8 = 0;
+    while (frames < 100) {  // Simple time limit
+        render_game(&game);
+        
+        // Simple delay
+        @asm {
+            HALT
+        }
+        
+        frames = frames + 1;
+    }
+}
+
+// Entry point
+fun main() -> void {
+    game_loop();
+}

@@ -1,0 +1,121 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   games.tetris_simple.BOARD_WIDTH: u8
+;   games.tetris_simple.BOARD_HEIGHT: u8
+
+Function games.tetris_simple.clear_screen() -> void
+  @smc
+  Instructions:
+      0: ASM ; Inline assembly from @asm block
+      1: return
+
+Function games.tetris_simple.init_game() -> games.tetris_simple.TetrisGame
+  @smc
+  Locals:
+    r1 = game: games.tetris_simple.TetrisGame
+    r2 = y: u8
+    r7 = x: u8
+  Instructions:
+      0: r3 = 0
+      1: store y, r3
+      2: loop_1:
+      3: r4 = load y
+      4: r5 = load games.tetris_simple.BOARD_HEIGHT
+      5: r6 = r4 < r5
+      6: jump_if_not r6, end_loop_2
+      7: r8 = 0
+      8: store x, r8
+      9: loop_3:
+     10: r9 = load x
+     11: r10 = load games.tetris_simple.BOARD_WIDTH
+     12: r11 = r9 < r10
+     13: jump_if_not r11, end_loop_4
+     14: r12 = 0
+     15: r13 = load game
+     16: LOAD_FIELD ; Load field board (offset 0)
+     17: LOAD_FIELD ; Load field grid (offset 0)
+     18: r16 = load y
+     19: LOAD_INDEX ; Load array element ([10]u8)
+     20: r18 = load x
+     21: r19 = r17 + r18 ; Calculate array element address
+     22: STORE_PTR ; Store to array[index] (u8)
+     23: r20 = load x
+     24: r21 = 1
+     25: r22 = r20 + r21
+     26: store x, r22
+     27: jump loop_3
+     28: end_loop_4:
+     29: r23 = load y
+     30: r24 = 1
+     31: r25 = r23 + r24
+     32: store y, r25
+     33: jump loop_1
+     34: end_loop_2:
+     35: r26 = 2
+     36: r27 = load game
+     37: LOAD_FIELD ; Load field current_piece (offset 202)
+     38: STORE_FIELD ; Store to field piece_type (offset 0)
+     39: r29 = 5
+     40: r30 = load game
+     41: LOAD_FIELD ; Load field current_piece (offset 202)
+     42: LOAD_FIELD ; Load field position (offset 1)
+     43: STORE_FIELD ; Store to field x (offset 0)
+     44: r33 = 0
+     45: r34 = load game
+     46: LOAD_FIELD ; Load field current_piece (offset 202)
+     47: LOAD_FIELD ; Load field position (offset 1)
+     48: STORE_FIELD ; Store to field y (offset 1)
+     49: r37 = 0
+     50: r38 = load game
+     51: LOAD_FIELD ; Load field board (offset 0)
+     52: STORE_FIELD ; Store to field score (offset 200)
+     53: r40 = load game
+     54: return r40
+
+Function games.tetris_simple.render_game$p_TetrisGame(game: *games.tetris_simple.TetrisGame) -> void
+  @smc
+  Instructions:
+      0: r2 = call games.tetris_simple.clear_screen
+      1: LOAD_PARAM
+      2: LOAD_FIELD ; Load field board (offset 0)
+      3: LOAD_FIELD ; Load field score (offset 200)
+      4: r0 = call print_u16_decimal ; Call runtime print_u16_decimal
+      5: return
+
+Function games.tetris_simple.game_loop() -> void
+  @smc
+  Locals:
+    r1 = game: games.tetris_simple.TetrisGame
+    r3 = frames: u8
+  Instructions:
+      0: r2 = call games.tetris_simple.init_game
+      1: store game, r2
+      2: r4 = 0
+      3: store frames, r4
+      4: loop_5:
+      5: r5 = load frames
+      6: r6 = 100
+      7: r7 = r5 < r6
+      8: jump_if_not r7, end_loop_6
+      9: r8 = load game
+     10: ADDR
+     11: r10 = load game
+     12: ADDR
+     13: r12 = call games.tetris_simple.render_game$p_TetrisGame
+     14: ASM ; Inline assembly from @asm block
+     15: r13 = load frames
+     16: r14 = 1
+     17: r15 = r13 + r14
+     18: store frames, r15
+     19: jump loop_5
+     20: end_loop_6:
+     21: return
+
+Function games.tetris_simple.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call games.tetris_simple.game_loop
+      1: return
+

@@ -1,0 +1,496 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   ...games.snake.SCREEN_WIDTH: u8
+;   ...games.snake.SCREEN_HEIGHT: u8
+;   ...games.snake.MAX_SNAKE_LENGTH: u8
+
+Function ...games.snake.init_snake() -> ...games.snake.Snake
+  @smc
+  Locals:
+    r1 = snake: u16
+  Instructions:
+      0: ALLOC ; Allocate struct Snake
+      1: ALLOC ; Allocate struct Point
+      2: r5 = 16
+      3: STORE_FIELD ; Store to Point.x
+      4: r6 = 12
+      5: STORE_FIELD ; Store to Point.y
+      6: ARRAY_INIT ; Array initializer with 1 elements
+      7: ARRAY_ELEMENT ; Initialize array[0]
+      8: STORE_FIELD ; Store to Snake.body
+      9: r7 = 1
+     10: STORE_FIELD ; Store to Snake.length
+     11: r8 = 3
+     12: STORE_FIELD ; Store to Snake.direction
+     13: r9 = 1
+     14: STORE_FIELD ; Store to Snake.alive
+     15: store snake, r2
+     16: r10 = load snake
+     17: return r10
+
+Function ...games.snake.init_game() -> ...games.snake.GameState
+  @smc
+  Locals:
+    r1 = game: u16
+  Instructions:
+      0: ALLOC ; Allocate struct GameState
+      1: r3 = call ...games.snake.init_snake
+      2: STORE_FIELD ; Store to GameState.snake
+      3: ALLOC ; Allocate struct Point
+      4: r5 = 10
+      5: STORE_FIELD ; Store to Point.x
+      6: r6 = 10
+      7: STORE_FIELD ; Store to Point.y
+      8: STORE_FIELD ; Store to GameState.food
+      9: r7 = 0
+     10: STORE_FIELD ; Store to GameState.score
+     11: r8 = 0
+     12: STORE_FIELD ; Store to GameState.game_over
+     13: store game, r2
+     14: r9 = load game
+     15: return r9
+
+Function ...games.snake.move_snake$p_Snake(snake: *...games.snake.Snake) -> void
+  @smc
+  Locals:
+    r2 = i: u8
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field length (offset 200)
+      2: r5 = 1
+      3: r6 = r4 - r5
+      4: store i, r6
+      5: loop_1:
+      6: r7 = load i
+      7: r8 = 0
+      8: r9 = r7 > r8
+      9: jump_if_not r9, end_loop_2
+     10: LOAD_PARAM
+     11: LOAD_FIELD ; Load field body (offset 0)
+     12: r12 = load i
+     13: r13 = 1
+     14: r14 = r12 - r13
+     15: LOAD_INDEX ; Load array element (...games.snake.Point)
+     16: LOAD_PARAM
+     17: LOAD_FIELD ; Load field body (offset 0)
+     18: r18 = load i
+     19: r19 = r17 + r18 ; Calculate array element address
+     20: STORE_PTR ; Store to array[index] (...games.snake.Point)
+     21: r20 = load i
+     22: r21 = 1
+     23: r22 = r20 - r21
+     24: store i, r22
+     25: jump loop_1
+     26: end_loop_2:
+     27: LOAD_PARAM
+     28: LOAD_FIELD ; Load field direction (offset 201)
+     29: r25 = 0
+     30: r26 = r24 == r25
+     31: jump_if_not r26, else_3
+     32: LOAD_PARAM
+     33: LOAD_FIELD ; Load field body (offset 0)
+     34: r29 = 0
+     35: LOAD_INDEX ; Load array element (...games.snake.Point)
+     36: LOAD_FIELD ; Load field y (offset 1)
+     37: r32 = 1
+     38: r33 = r31 - r32
+     39: LOAD_PARAM
+     40: LOAD_FIELD ; Load field body (offset 0)
+     41: r36 = 0
+     42: LOAD_INDEX ; Load array element (...games.snake.Point)
+     43: STORE_FIELD ; Store to field y (offset 1)
+     44: jump end_if_4
+     45: else_3:
+     46: LOAD_PARAM
+     47: LOAD_FIELD ; Load field direction (offset 201)
+     48: r40 = 1
+     49: r41 = r39 == r40
+     50: jump_if_not r41, else_5
+     51: LOAD_PARAM
+     52: LOAD_FIELD ; Load field body (offset 0)
+     53: r44 = 0
+     54: LOAD_INDEX ; Load array element (...games.snake.Point)
+     55: LOAD_FIELD ; Load field y (offset 1)
+     56: r47 = 1
+     57: r48 = r46 + r47
+     58: LOAD_PARAM
+     59: LOAD_FIELD ; Load field body (offset 0)
+     60: r51 = 0
+     61: LOAD_INDEX ; Load array element (...games.snake.Point)
+     62: STORE_FIELD ; Store to field y (offset 1)
+     63: jump end_if_6
+     64: else_5:
+     65: LOAD_PARAM
+     66: LOAD_FIELD ; Load field direction (offset 201)
+     67: r55 = 2
+     68: r56 = r54 == r55
+     69: jump_if_not r56, else_7
+     70: LOAD_PARAM
+     71: LOAD_FIELD ; Load field body (offset 0)
+     72: r59 = 0
+     73: LOAD_INDEX ; Load array element (...games.snake.Point)
+     74: LOAD_FIELD ; Load field x (offset 0)
+     75: r62 = 1
+     76: r63 = r61 - r62
+     77: LOAD_PARAM
+     78: LOAD_FIELD ; Load field body (offset 0)
+     79: r66 = 0
+     80: LOAD_INDEX ; Load array element (...games.snake.Point)
+     81: STORE_FIELD ; Store to field x (offset 0)
+     82: jump end_if_8
+     83: else_7:
+     84: LOAD_PARAM
+     85: LOAD_FIELD ; Load field direction (offset 201)
+     86: r70 = 3
+     87: r71 = r69 == r70
+     88: jump_if_not r71, else_9
+     89: LOAD_PARAM
+     90: LOAD_FIELD ; Load field body (offset 0)
+     91: r74 = 0
+     92: LOAD_INDEX ; Load array element (...games.snake.Point)
+     93: LOAD_FIELD ; Load field x (offset 0)
+     94: r77 = 1
+     95: r78 = r76 + r77
+     96: LOAD_PARAM
+     97: LOAD_FIELD ; Load field body (offset 0)
+     98: r81 = 0
+     99: LOAD_INDEX ; Load array element (...games.snake.Point)
+    100: STORE_FIELD ; Store to field x (offset 0)
+    101: jump end_if_10
+    102: else_9:
+    103: end_if_10:
+    104: end_if_8:
+    105: end_if_6:
+    106: end_if_4:
+    107: return
+
+Function ...games.snake.check_collision$p_Snake(snake: *...games.snake.Snake) -> bool
+  @smc
+  Locals:
+    r2 = head: u16
+    r17 = i: u8
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field body (offset 0)
+      2: r5 = 0
+      3: LOAD_INDEX ; Load array element (...games.snake.Point)
+      4: store head, r6
+      5: r7 = load head
+      6: LOAD_FIELD ; Load field x (offset 0)
+      7: r9 = load ...games.snake.SCREEN_WIDTH
+      8: r10 = r8 >= r9
+      9: r11 = load head
+     10: LOAD_FIELD ; Load field y (offset 1)
+     11: r13 = load ...games.snake.SCREEN_HEIGHT
+     12: r14 = r12 >= r13
+     13: UNKNOWN_OP_61
+     14: jump_if_not r15, else_11
+     15: r16 = 1
+     16: return r16
+     17: jump end_if_12
+     18: else_11:
+     19: end_if_12:
+     20: r18 = 1
+     21: store i, r18
+     22: loop_13:
+     23: r19 = load i
+     24: LOAD_PARAM
+     25: LOAD_FIELD ; Load field length (offset 200)
+     26: r22 = r19 < r21
+     27: jump_if_not r22, end_loop_14
+     28: r23 = load head
+     29: LOAD_FIELD ; Load field x (offset 0)
+     30: LOAD_PARAM
+     31: LOAD_FIELD ; Load field body (offset 0)
+     32: r27 = load i
+     33: LOAD_INDEX ; Load array element (...games.snake.Point)
+     34: LOAD_FIELD ; Load field x (offset 0)
+     35: r30 = r24 == r29
+     36: r31 = load head
+     37: LOAD_FIELD ; Load field y (offset 1)
+     38: LOAD_PARAM
+     39: LOAD_FIELD ; Load field body (offset 0)
+     40: r35 = load i
+     41: LOAD_INDEX ; Load array element (...games.snake.Point)
+     42: LOAD_FIELD ; Load field y (offset 1)
+     43: r38 = r32 == r37
+     44: UNKNOWN_OP_60
+     45: jump_if_not r39, else_15
+     46: r40 = 1
+     47: return r40
+     48: jump end_if_16
+     49: else_15:
+     50: end_if_16:
+     51: r41 = load i
+     52: r42 = 1
+     53: r43 = r41 + r42
+     54: store i, r43
+     55: jump loop_13
+     56: end_loop_14:
+     57: r44 = 0
+     58: return r44
+
+Function ...games.snake.check_food_collision$p_Snake$p_Point(snake: *...games.snake.Snake, food: *...games.snake.Point) -> bool
+  @smc
+  Locals:
+    r3 = head: u16
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field body (offset 0)
+      2: r6 = 0
+      3: LOAD_INDEX ; Load array element (...games.snake.Point)
+      4: store head, r7
+      5: r8 = load head
+      6: LOAD_FIELD ; Load field x (offset 0)
+      7: LOAD_PARAM
+      8: LOAD_FIELD ; Load field x (offset 0)
+      9: r12 = r9 == r11
+     10: r13 = load head
+     11: LOAD_FIELD ; Load field y (offset 1)
+     12: LOAD_PARAM
+     13: LOAD_FIELD ; Load field y (offset 1)
+     14: r17 = r14 == r16
+     15: UNKNOWN_OP_60
+     16: return r18
+
+Function ...games.snake.grow_snake$p_Snake(snake: *...games.snake.Snake) -> void
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_FIELD ; Load field length (offset 200)
+      2: r4 = load ...games.snake.MAX_SNAKE_LENGTH
+      3: r5 = r3 < r4
+      4: jump_if_not r5, else_17
+      5: LOAD_PARAM
+      6: LOAD_FIELD ; Load field length (offset 200)
+      7: r8 = 1
+      8: r9 = r7 + r8
+      9: LOAD_PARAM
+     10: STORE_FIELD ; Store to field length (offset 200)
+     11: jump end_if_18
+     12: else_17:
+     13: end_if_18:
+     14: return
+
+Function ...games.snake.generate_food$p_Snake(snake: *...games.snake.Snake) -> ...games.snake.Point
+  @smc
+  Instructions:
+      0: ALLOC ; Allocate struct Point
+      1: r3 = 15
+      2: STORE_FIELD ; Store to Point.x
+      3: r4 = 8
+      4: STORE_FIELD ; Store to Point.y
+      5: return r2
+
+Function ...games.snake.handle_input$p_Snake(snake: *...games.snake.Snake) -> void
+  @smc
+  Locals:
+    r2 = key: u8
+  Instructions:
+      0: r3 = 0
+      1: store key, r3
+      2: r4 = load key
+      3: r5 = 87
+      4: r6 = r4 == r5
+      5: jump_if_not r6, else_19
+      6: LOAD_PARAM
+      7: LOAD_FIELD ; Load field direction (offset 201)
+      8: r9 = 1
+      9: r10 = r8 != r9
+     10: jump_if_not r10, else_21
+     11: r11 = 0
+     12: LOAD_PARAM
+     13: STORE_FIELD ; Store to field direction (offset 201)
+     14: jump end_if_22
+     15: else_21:
+     16: end_if_22:
+     17: jump end_if_20
+     18: else_19:
+     19: r13 = load key
+     20: r14 = 83
+     21: r15 = r13 == r14
+     22: jump_if_not r15, else_23
+     23: LOAD_PARAM
+     24: LOAD_FIELD ; Load field direction (offset 201)
+     25: r18 = 0
+     26: r19 = r17 != r18
+     27: jump_if_not r19, else_25
+     28: r20 = 1
+     29: LOAD_PARAM
+     30: STORE_FIELD ; Store to field direction (offset 201)
+     31: jump end_if_26
+     32: else_25:
+     33: end_if_26:
+     34: jump end_if_24
+     35: else_23:
+     36: r22 = load key
+     37: r23 = 65
+     38: r24 = r22 == r23
+     39: jump_if_not r24, else_27
+     40: LOAD_PARAM
+     41: LOAD_FIELD ; Load field direction (offset 201)
+     42: r27 = 3
+     43: r28 = r26 != r27
+     44: jump_if_not r28, else_29
+     45: r29 = 2
+     46: LOAD_PARAM
+     47: STORE_FIELD ; Store to field direction (offset 201)
+     48: jump end_if_30
+     49: else_29:
+     50: end_if_30:
+     51: jump end_if_28
+     52: else_27:
+     53: r31 = load key
+     54: r32 = 68
+     55: r33 = r31 == r32
+     56: jump_if_not r33, else_31
+     57: LOAD_PARAM
+     58: LOAD_FIELD ; Load field direction (offset 201)
+     59: r36 = 2
+     60: r37 = r35 != r36
+     61: jump_if_not r37, else_33
+     62: r38 = 3
+     63: LOAD_PARAM
+     64: STORE_FIELD ; Store to field direction (offset 201)
+     65: jump end_if_34
+     66: else_33:
+     67: end_if_34:
+     68: jump end_if_32
+     69: else_31:
+     70: end_if_32:
+     71: end_if_28:
+     72: end_if_24:
+     73: end_if_20:
+     74: return
+
+Function ...games.snake.render_game$p_GameState(game: *...games.snake.GameState) -> void
+  @smc
+  Locals:
+    r2 = i: u8
+    r9 = segment: u16
+  Instructions:
+      0: r3 = 0
+      1: store i, r3
+      2: loop_35:
+      3: r4 = load i
+      4: LOAD_PARAM
+      5: LOAD_FIELD ; Load field snake (offset 0)
+      6: LOAD_FIELD ; Load field length (offset 200)
+      7: r8 = r4 < r7
+      8: jump_if_not r8, end_loop_36
+      9: LOAD_PARAM
+     10: LOAD_FIELD ; Load field snake (offset 0)
+     11: LOAD_FIELD ; Load field body (offset 0)
+     12: r13 = load i
+     13: LOAD_INDEX ; Load array element (...games.snake.Point)
+     14: store segment, r14
+     15: r15 = load i
+     16: r16 = 1
+     17: r17 = r15 + r16
+     18: store i, r17
+     19: jump loop_35
+     20: end_loop_36:
+     21: LOAD_PARAM
+     22: LOAD_FIELD ; Load field score (offset 205)
+     23: r0 = call print_u16_decimal ; Call runtime print_u16_decimal
+     24: return
+
+Function ...games.snake.game_loop() -> void
+  @smc
+  Locals:
+    r1 = game: ...games.snake.GameState
+  Instructions:
+      0: r2 = call ...games.snake.init_game
+      1: store game, r2
+      2: loop_37:
+      3: r3 = load game
+      4: LOAD_FIELD ; Load field game_over (offset 207)
+      5: r5 = ~r4
+      6: jump_if_not r5, end_loop_38
+      7: r6 = load game
+      8: LOAD_FIELD ; Load field snake (offset 0)
+      9: ADDR
+     10: r9 = load game
+     11: LOAD_FIELD ; Load field snake (offset 0)
+     12: ADDR
+     13: r12 = call ...games.snake.handle_input$p_Snake
+     14: r13 = load game
+     15: LOAD_FIELD ; Load field snake (offset 0)
+     16: ADDR
+     17: r16 = load game
+     18: LOAD_FIELD ; Load field snake (offset 0)
+     19: ADDR
+     20: r19 = call ...games.snake.move_snake$p_Snake
+     21: r20 = load game
+     22: LOAD_FIELD ; Load field snake (offset 0)
+     23: ADDR
+     24: r23 = load game
+     25: LOAD_FIELD ; Load field snake (offset 0)
+     26: ADDR
+     27: r26 = call ...games.snake.check_collision$p_Snake
+     28: jump_if_not r26, else_39
+     29: r27 = 1
+     30: r28 = load game
+     31: STORE_FIELD ; Store to field game_over (offset 207)
+     32: jump end_if_40
+     33: else_39:
+     34: end_if_40:
+     35: r29 = load game
+     36: LOAD_FIELD ; Load field snake (offset 0)
+     37: ADDR
+     38: r32 = load game
+     39: LOAD_FIELD ; Load field food (offset 203)
+     40: ADDR
+     41: r35 = load game
+     42: LOAD_FIELD ; Load field snake (offset 0)
+     43: ADDR
+     44: r38 = load game
+     45: LOAD_FIELD ; Load field food (offset 203)
+     46: ADDR
+     47: r41 = call ...games.snake.check_food_collision$p_Snake$p_Point
+     48: jump_if_not r41, else_41
+     49: r42 = load game
+     50: LOAD_FIELD ; Load field snake (offset 0)
+     51: ADDR
+     52: r45 = load game
+     53: LOAD_FIELD ; Load field snake (offset 0)
+     54: ADDR
+     55: r48 = call ...games.snake.grow_snake$p_Snake
+     56: r49 = load game
+     57: LOAD_FIELD ; Load field snake (offset 0)
+     58: ADDR
+     59: r52 = load game
+     60: LOAD_FIELD ; Load field snake (offset 0)
+     61: ADDR
+     62: r55 = call ...games.snake.generate_food$p_Snake
+     63: r56 = load game
+     64: STORE_FIELD ; Store to field food (offset 203)
+     65: r57 = load game
+     66: LOAD_FIELD ; Load field score (offset 205)
+     67: r59 = 10
+     68: r60 = r58 + r59
+     69: r61 = load game
+     70: STORE_FIELD ; Store to field score (offset 205)
+     71: jump end_if_42
+     72: else_41:
+     73: end_if_42:
+     74: r62 = load game
+     75: ADDR
+     76: r64 = load game
+     77: ADDR
+     78: r66 = call ...games.snake.render_game$p_GameState
+     79: jump loop_37
+     80: end_loop_38:
+     81: r67 = load game
+     82: LOAD_FIELD ; Load field score (offset 205)
+     83: r0 = call print_u16_decimal ; Call runtime print_u16_decimal
+     84: return
+
+Function ...games.snake.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call ...games.snake.game_loop
+      1: return
+

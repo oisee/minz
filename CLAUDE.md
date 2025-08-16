@@ -209,6 +209,43 @@ ls docs/15[0-9]_*.md      # Range 150-159
 
 See [Documentation Guide](DOCUMENTATION_GUIDE.md) for complete details.
 
+## 🤖 AI Colleague Consultation
+
+**Purpose**: Leverage AI tools (GPT-4, o4-mini, Claude) as virtual colleagues for architectural decisions, debugging, and design reviews.
+
+### When to Consult
+- Major architectural choices (parser strategy, optimization approaches)
+- Stuck issues or nonobvious bugs  
+- Design trade-offs and brainstorming
+- Sanity-checking assumptions before large refactors
+
+### How to Consult Effectively
+1. **Provide full context**: Problem statement, what you've tried, relevant code snippets, constraints
+2. **End with specific ask**: "Pros/cons of ANTLR vs hand-written parser" vs "Help with parser"
+3. **Cross-check multiple models**: Run same question through 2+ AI colleagues for consensus
+4. **Include concrete constraints**: Performance targets, maintenance concerns, team skills
+
+### Evaluating AI Advice
+- Treat as input for team discussion, not final authority
+- Cross-check factual claims against official docs
+- Plan small proof-of-concept to validate suggestions  
+- When multiple models agree, confidence increases (but still validate)
+
+### Documentation
+Keep an **AI Consultation Log** in relevant docs:
+- Date, participants (which AI models), original prompt
+- Key advice given and follow-up questions
+- Outcome and rationale for following/rejecting advice
+- Link to related issues/PRs/commits
+
+**Example Success**: August 2024 - Consulted GPT-4 and o4-mini on ANTLR vs hand-written parser for Z80 assembler. Both recommended keeping hand-written parser and fixing encoder issues instead. Decision saved significant development time and led to identifying the real problem.
+
+### Best Practices
+- Never merge critical changes solely on AI advice
+- Always do code reviews and team discussion for broad-impact decisions
+- Create prompt templates for consistent, high-quality consultations
+- Review consultation logs in retrospectives to improve question quality
+
 ## 🔧 Documentation Style: "Pragmatic Humble Solid"
 
 - ✅ **Transparent**: "Core features work" / "Experimental"  
