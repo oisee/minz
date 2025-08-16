@@ -1,0 +1,55 @@
+// Comprehensive @define test showing all syntax variations
+
+// 1. Multi-line template definition with parameters
+@define(typename, size)[[[
+    struct {0} {
+        data: [{1}]u8
+    }
+    
+    fun new_{0}() -> {0} {
+        return {0} { data: [0; {1}] };
+    }
+    
+    fun size_of_{0}() -> u8 {
+        return {1};
+    }
+]]]
+
+// 2. Single-line template (inline syntax)
+@define("CONSTANT_{0}", "{1}")[[[ const CONSTANT_{0}: u8 = {1}; ]]]
+
+// 3. Template with multiple substitutions of same parameter
+@define(name)[[[
+    fun {0}_init() -> void {
+        @print("Initializing {0}");
+    }
+    
+    fun {0}_destroy() -> void {
+        @print("Destroying {0}");
+    }
+]]]
+
+// Now use the templates:
+
+// Multi-line invocations
+@define("Buffer", 256)
+@define("SmallBuffer", 32)
+
+// Single-line invocations  
+@define("MAX", 255)
+@define("MIN", 0)
+
+// Single parameter invocation
+@define("Logger")
+@define("Manager")
+
+fun main() -> u8 {
+    // Test that all generated functions exist
+    let buf = new_Buffer();
+    let small = new_SmallBuffer();
+    
+    Logger_init();
+    Manager_init();
+    
+    return size_of_Buffer();
+}

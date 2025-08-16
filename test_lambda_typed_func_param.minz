@@ -1,0 +1,17 @@
+// Test lambda with typed function parameter
+// This demonstrates the correct way to type lambda parameters
+
+fun main() -> void {
+    // First create a simple function as a lambda
+    let add_one = |x: u8| => u8 { x + 1 };
+    
+    // Lambda with typed function parameter
+    // NOTE: We need explicit type annotation for function parameters!
+    let apply = |func: fn(u8) -> u8, x: u8| => u8 {
+        func(x)
+    };
+    
+    // Use the higher-order function
+    let result: u8 = apply(add_one, 5);
+    print_u8(result);  // Should print 6
+}

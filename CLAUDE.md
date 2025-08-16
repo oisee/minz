@@ -45,7 +45,12 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - Function overloading and interface methods
 - Error propagation with `?` suffix and `??` operator
 - Global variables with `global` keyword
-- Metafunctions: `@print`, `@abi`, `@error`
+- Metafunctions: 
+  - `@minz[[[...]]]` - Immediate compile-time execution (NO ARGS!)
+  - `@define("template", args)` - Preprocessor text substitution
+  - `@print` - Optimized string output
+  - `@error` - Compile-time errors
+  - `@if/@elif/@else` - Conditional compilation
 - Self-modifying code optimization
 
 ### 🚧 Current Limitations (Actually Less Than Expected!)
@@ -53,6 +58,27 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - String literals FULLY FUNCTIONAL (length-prefixed)
 - Arrays work for declaration/access (only literals `[1,2,3]` missing)
 - Pattern matching partially implemented
+
+## 🎯 Metafunction Design Decisions
+
+**CRITICAL:** These are settled design decisions - do not confuse them!
+
+- **@minz[[[...]]]** - Immediate compile-time execution
+  - Takes NO ARGUMENTS (not a template!)
+  - Uses @emit() to generate code line by line
+  - Example: `@minz[[[ @emit("fun foo() -> void {}") ]]]`
+
+- **@define("template", args...)** - Preprocessor macro substitution
+  - Processed BEFORE parsing (pure text replacement)
+  - Uses {0}, {1} placeholders for arguments
+  - Example: `@define("fun {0}() -> {1}", "getName", "str")`
+  - Status: ✅ FULLY IMPLEMENTED AND WORKING!
+
+- **@lua[[[...]]]** - Lua compile-time execution
+  - Full Lua scripting for complex metaprogramming
+  - Has emit() function for code generation
+
+See `docs/Metafunction_Design_Decisions.md` for complete details.
 
 ## 🚀 TSMC: Revolutionary Paradigm
 
@@ -145,10 +171,10 @@ mz program.minz -b z80 --target=cpm       # CP/M
 ## 📊 Current Metrics (v0.14.0-dev)
 - **170 examples** in test suite (88 actively tested)
 - **63% compilation success** with tree-sitter parser
-- **5% compilation success** with ANTLR (regression - investigating)
+- **ANTLR - PARKED** (regression from 75% to 5%, focusing on tree-sitter)
 - **35+ peephole patterns** for Z80 optimization
 - **Multi-backend support** with 8 targets
-- **Zero external dependencies** with ANTLR parser
+- **Tree-sitter focus** for parser improvements
 
 ## 📚 Documentation System
 

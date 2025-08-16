@@ -1,0 +1,14 @@
+// Test @minz immediate execution (no arguments)
+@minz[[[
+    @emit("fun hello_world() -> void {")
+    @emit("    @print(\"Hello world!\");")
+    @emit("}")
+]]]
+
+// For template-based generation, use @define instead
+// @define("hello_{0}", "world") would generate hello_world
+
+fn main() -> u8 {
+    hello_world();
+    return 0;
+}

@@ -90,12 +90,22 @@ func (a *Analyzer) analyzeMinzBlock(block *ast.MinzBlock) error {
 					return fmt.Errorf("error analyzing generated var: %w", err)
 				}
 			case *ast.FunctionDecl:
+				if minzDebug {
+					fmt.Printf("DEBUG: Registering generated function: %s\n", d.Name)
+				}
 				if err := a.registerFunctionSignature(d); err != nil {
 					return fmt.Errorf("error registering generated function: %w", err)
 				}
+				// Also add to the generatedDeclarations for later analysis
+				a.generatedDeclarations = append(a.generatedDeclarations, d)
+				if minzDebug {
+					fmt.Printf("DEBUG: Added function %s to generated declarations\n", d.Name)
+				}
 			default:
-				// For other types, we'll handle them in the regular passes
-				// Just note that they exist
+				// For other types, add them to generated declarations if they're Declaration types
+				if declTyped, ok := decl.(ast.Declaration); ok {
+					a.generatedDeclarations = append(a.generatedDeclarations, declTyped)
+				}
 			}
 		}
 	}
@@ -236,18 +246,32 @@ func (ctx *minzInterpreterContext) executeSimpleLine(line string) error {
 		return nil
 	}
 	
-	// Handle @emit("...") calls
-	if strings.HasPrefix(line, "@emit(") && strings.HasSuffix(line, ");") {
+	// Handle @emit("...") calls (with or without semicolon)
+	if strings.HasPrefix(line, "@emit(") && (strings.HasSuffix(line, ");") || strings.HasSuffix(line, ")")) {
 		// Extract the string content
-		content := line[6 : len(line)-2] // Remove @emit( and );
-		// Remove quotes if present
-		content = strings.Trim(content, "\"")
+		var content string
+		if strings.HasSuffix(line, ");") {
+			content = line[6 : len(line)-2] // Remove @emit( and );
+		} else {
+			content = line[6 : len(line)-1] // Remove @emit( and )
+		}
+		
+		// Handle quoted strings properly, including escaped quotes
+		if strings.HasPrefix(content, "\"") && strings.HasSuffix(content, "\"") {
+			content = content[1 : len(content)-1] // Remove outer quotes
+			// Unescape the content
+			content = strings.ReplaceAll(content, "\\\"", "\"")
+			content = strings.ReplaceAll(content, "\\n", "\n")
+			content = strings.ReplaceAll(content, "\\t", "\t")
+			content = strings.ReplaceAll(content, "\\\\", "\\")
+		}
+		
 		// Process template variables
 		content = ctx.processTemplateString(content)
 		ctx.emittedCode = append(ctx.emittedCode, content)
 		
 		if minzDebug {
-			fmt.Printf("DEBUG: Emitted: %s\n", content)
+			fmt.Printf("DEBUG: Emitted code line: %s\n", content)
 		}
 		return nil
 	}

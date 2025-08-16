@@ -1,0 +1,21 @@
+digraph MinZ_MIR {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  // Module: main
+  subgraph cluster_module {
+    label="Module: main";
+    style=dashed;
+
+    // Function: ...test_print_issue.main
+    subgraph cluster_func_0 {
+      label="...test_print_issue.main";
+      style=filled;
+      fillcolor=lightyellow;
+      "func_0_meta" [label="SMC Enabled", shape=note, style=filled, fillcolor=lightgreen];
+      "func_0_return" [label="Returns: u8", shape=house];
+      "func_0_bb0" [label="BB0:\nLOAD_STRING\nPRINT_STRING\nr3 = 42\nstore x, r3\nLOAD_STRING\nPRINT_STRING\nr5 = 0\nreturn r5\n", style=filled, fillcolor=lightgreen];
+    }
+
+  }
+}

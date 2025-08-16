@@ -1,0 +1,12 @@
+// Simple lambda call test - minimal case
+
+fun main() -> void {
+    // Create a simple lambda with explicit type
+    let add_five = |x: u8| => u8 { x + 5 };
+    
+    // Call the lambda - this should work
+    let result: u8 = add_five(10);
+    
+    // Print result
+    print_u8(result);  // Should print 15
+}

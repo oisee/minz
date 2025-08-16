@@ -1,169 +1,182 @@
-# MinZ TODO - Action Plan from Architecture Audit
+# MinZ TODO - The Big Next Things
 
-*Last Updated: 2025-08-09*  
-*Goal: Move from 60% to 95% compilation success in 28 days*
+> Last Updated: January 2025 (v0.14.0)
 
-## 🎯 Quick Wins (In Progress)
+## 🎯 Current Focus Areas
 
-### ✅ QW1: Import Statement Conversion [COMPLETED]
-- **Location**: Already implemented!
-- **Time**: 0 hours (was already working!)
-- **Impact**: Module system functional
-- **Status**: DONE - imports work with full paths!
+### 1. 🔧 Tree-Sitter Parser Fix (IMMEDIATE PRIORITY)
+**Goal:** Reach 90%+ compilation success rate
+- [ ] Fix parsing of complex expressions
+- [ ] Handle all array literal cases
+- [ ] Fix method call syntax
+- [ ] Improve error recovery
+- [ ] Create comprehensive parser test suite
+- **Note:** ANTLR is PARKED (regression from 75% to 5%)
+- **Current:** 63% success rate
 
-### ⬜ QW2: String Literal Basic Support
-- **Location**: `pkg/semantic/analyzer.go:892`
-- **Time**: 1 day
-- **Impact**: Basic string usage
+### 2. 📦 MZP Package Manager (HIGH VALUE)
+**Goal:** Simple package management for retro systems
+- [ ] Implement manifest parsing (mzp.toml)
+- [ ] Create local package installation
+- [ ] Build dependency resolver
+- [ ] Integrate with mz compiler
+- [ ] Set up package registry (GitHub Pages)
+- **Design:** See [doc #232](docs/232_MZP_Package_Manager_Design.md)
 
-### ⬜ QW3: Array Literal Initialization
-- **Location**: `pkg/semantic/analyzer.go:445`
-- **Time**: 1-2 days
-- **Impact**: Data tables work
+### 3. 🎮 Game Jam: Snake & Tetris (PROOF OF CONCEPT)
+**Goal:** Create real, playable games for ZX Spectrum
+- [ ] Build ZX Spectrum graphics library (attribute-based)
+- [ ] Implement input handling module
+- [ ] Create Snake game
+- [ ] Create Tetris with rotation system
+- [ ] Polish with title screens and sound
+- **Plan:** See [doc #231](docs/231_Game_Jam_Snake_Tetris_Plan.md)
 
-### ⬜ QW4: Add AST Dump Flag
-- **Location**: `cmd/minzc/main.go`
-- **Time**: 2 hours
-- **Impact**: External tooling
+### 4. 💻 Language Server Protocol (DEVELOPER EXPERIENCE)
+**Goal:** Professional IDE integration
+- [ ] Implement LSP server in Go
+- [ ] Add autocomplete support
+- [ ] Add go-to-definition
+- [ ] Create VSCode extension
+- [ ] Support Vim/Emacs
 
-### ⬜ QW5: Fix Simple Constant Evaluation
-- **Location**: `pkg/semantic/analyzer.go`
-- **Time**: 1 day
-- **Impact**: Const arrays work
+### 5. ⚡ Optimization Improvements (PERFORMANCE)
+**Goal:** Better code generation and optimization
+- [ ] Improve tree-shaking beyond 74%
+- [ ] Implement canonical reordering
+- [ ] Add more peephole patterns (target: 50+)
+- [ ] Implement currying for all functions
+- [ ] Optimize lambda transformations
 
-### ⬜ QW6: Enable MIR Visualization
-- **Location**: `pkg/mir/function.go`
-- **Time**: 4 hours
-- **Impact**: Visual debugging
+## ✅ Recently Completed (v0.14.0)
 
-### ⬜ QW7: Basic Error Type Flow
-- **Location**: `pkg/semantic/error_handling.go`
-- **Time**: 2 days
-- **Impact**: `?` operator works
+### Tree-Shaking Implementation
+- [x] Only include used stdlib functions
+- [x] 74% size reduction achieved (324 → 85 lines)
+- [x] Modularized stdlib generation
 
-### ⬜ QW8: Register Allocation Improvement
-- **Location**: `pkg/codegen/z80.go`
-- **Time**: 1-2 days
-- **Impact**: Better codegen
+### Metafunction Clarification
+- [x] @minz[[[]]] - Immediate execution (no args!)
+- [x] @define() - Template preprocessor (working!)
+- [x] @lua[[[]]] - Lua scripting
+- [x] Complete documentation
 
-## 📅 Sprint Plan
+### Toolchain Enhancements
+- [x] mzv - MIR VM interpreter
+- [x] mza - Macro support
+- [x] mzr - REPL with history
+- [x] mze - Full debugger
+- [x] MCP - AI colleague integration
 
-### Sprint 1: Critical Fixes (Days 1-5) - CURRENT
-**Goal**: 60% → 75% success
-- [x] Day 1: QW1 (imports) + QW4 (AST dump)
-- [ ] Day 2: QW2 (strings basic)
-- [ ] Day 3: QW3 (array literals)
-- [ ] Day 4: QW5 (const eval)
-- [ ] Day 5: QW6 (MIR viz) + Testing
+## 🚫 PARKED (Not Currently Active)
 
-### Sprint 2: Usability (Days 6-12)
-**Goal**: 75% → 85% success
-- [ ] Days 6-7: String operations suite
-- [ ] Days 8-9: Basic stdlib (io, mem, math)
-- [ ] Days 10-11: Error type flow
-- [ ] Day 12: Integration testing
+### ANTLR Parser - PARKED
+- Was default parser in early v0.14.0
+- Regression from 75% to 5% success rate
+- Focus shifted to tree-sitter
+- May revisit after tree-sitter reaches 90%
 
-### Sprint 3: Module System (Days 13-20)
-**Goal**: 85% → 90% success
-- [ ] Days 13-17: Complete module system
-- [ ] Days 18-19: Type promotion rules
-- [ ] Day 20: Documentation
+### Generic Types - PARKED
+- Design phase only
+- Not critical for current use cases
+- Revisit after core stability
 
-### Sprint 4: Testing & Polish (Days 21-28)
-**Goal**: 90% → 95% success
-- [ ] Days 21-25: Testing framework
-- [ ] Days 26-27: Bug fixes
-- [ ] Day 28: Release prep
+### Incremental Compilation - PARKED
+- Compilation already fast enough (~200ms for 1000 lines)
+- Not blocking development
+- Revisit for large projects
 
-## 🔨 Medium-Term Tasks
+### Web Playground - FUTURE
+- Would be nice for adoption
+- Requires WASM compilation
+- Not priority for MVP
 
-### Module System
-- [ ] Symbol resolution across files
-- [ ] Import path resolution
-- [ ] Namespace isolation
-- [ ] Circular dependency detection
+### Self-Hosting - DISTANT FUTURE
+- Ultimate goal
+- Requires 100% feature completeness
+- Would be amazing achievement
 
-### String Operations
-- [ ] Length-prefixed strings (LString)
-- [ ] String concatenation
-- [ ] String comparison
-- [ ] Print formatting
+## 📊 Success Metrics
 
-### Type System
-- [ ] u8 → u16 promotion
-- [ ] Numeric coercion rules
-- [ ] Pointer compatibility
+### Parser Success
+- **Current:** 63% (tree-sitter)
+- **Target:** 90%+ 
+- **Measure:** examples/ compilation rate
 
-### Pattern Matching
-- [ ] Guard conditions
-- [ ] Nested patterns
-- [ ] Exhaustiveness checking
+### Package Manager
+- **MVP:** 10 working packages
+- **Success:** 100+ packages in registry
+- **Measure:** Successful installs and builds
 
-### Standard Library
-- [ ] `stdlib/io.minz` - print, read
-- [ ] `stdlib/mem.minz` - memcpy, memset
-- [ ] `stdlib/math.minz` - abs, min, max
+### Games Performance
+- **Snake:** 50 FPS with 100+ segments
+- **Tetris:** No lag at level 20
+- **Size:** Under 16KB each
 
-### Testing Framework
-- [ ] Unit tests for parser
-- [ ] Integration test runner
-- [ ] Example verification
-- [ ] Regression detection
+### Optimization
+- **Tree-shaking:** >80% reduction (from current 74%)
+- **Peephole:** 50+ patterns (from current 35)
+- **Benchmarks:** Match hand-coded assembly
 
-## 🚀 Strategic Initiatives
+## 🗓️ Rough Timeline
 
-### Native Tree-sitter Binding
-- [ ] Go bindings to tree-sitter
-- [ ] Remove external process dependency
-- [ ] 10x parse performance
+### Phase 1: Parser Fix (Weeks 1-2)
+- Get to 75% success rate
+- Fix critical parsing bugs
+- Add test coverage
 
-### LLVM Backend
-- [ ] Complete LLVM IR generation
-- [ ] Hook into LLVM optimizations
-- [ ] Cross-platform binary generation
+### Phase 2: Core Libraries (Weeks 3-4)
+- ZX Spectrum modules
+- Package manager MVP
+- Basic registry
 
-### Generic Type System
-- [ ] Type parameters
-- [ ] Trait bounds
-- [ ] Monomorphization
+### Phase 3: Game Development (Weeks 5-8)
+- Snake implementation
+- Tetris implementation
+- Library refinement
 
-### Incremental Compilation
-- [ ] Dependency tracking
-- [ ] Cache management
-- [ ] Partial recompilation
+### Phase 4: Polish (Weeks 9-10)
+- LSP implementation
+- Optimization improvements
+- Documentation
 
-### Debugger Support
-- [ ] Debug info generation
-- [ ] Symbol maps
-- [ ] Source mapping
+## 🔗 Key Documents
 
-## 📊 Progress Tracking
+- [Complete Language Specification](docs/230_MinZ_Complete_Language_Specification.md)
+- [Game Jam Plan](docs/231_Game_Jam_Snake_Tetris_Plan.md)
+- [Package Manager Design](docs/232_MZP_Package_Manager_Design.md)
+- [Tree-Shaking Report](docs/225_Tree_Shaking_Implementation_E2E_Report.md)
+- [Metafunction Design](docs/226_Metafunction_Design_Decisions.md)
+- [Session Report](docs/229_Session_Achievement_Report_v0_14_0.md)
 
-| Date | Success Rate | Milestone |
-|------|--------------|-----------|
-| 2025-08-09 | 75-80% | Actual starting point! |
-| Sprint 1 End | 75% | Basics work |
-| Sprint 2 End | 85% | Usable |
-| Sprint 3 End | 90% | Multi-file |
-| Sprint 4 End | 95% | Production |
+## 💡 Why This Plan?
 
-## 💎 Features to Preserve
+1. **Parser First** - Nothing works without parsing
+2. **Games Prove It** - Real programs find real bugs
+3. **Packages Enable Sharing** - Community growth
+4. **Developer Experience Matters** - LSP makes it professional
+5. **Performance Is Key** - Zero-cost or nothing
 
-These already work perfectly - DO NOT BREAK:
-1. Zero-cost lambdas
-2. TSMC optimization
-3. Function overloading
-4. Interface monomorphization
-5. MIR layer (0 TODOs!)
+## 🚀 How to Contribute
 
-## 🎬 Next Actions
+1. **Fix parser bugs** - Most impactful
+2. **Write game libraries** - Graphics, sound, input
+3. **Create packages** - Share your code
+4. **Test and report** - Find edge cases
+5. **Document patterns** - Help others learn
 
-1. ✅ Complete QW1 (import statements)
-2. ⬜ Test import functionality
-3. ⬜ Move to QW2 (strings)
-4. ⬜ Update progress metrics
+## 📝 Previous TODO Items (Archived)
+
+### From Architecture Audit (August 2024)
+Many quick wins from the audit have been completed:
+- ✅ Import statements work
+- ✅ Error handling improved
+- ✅ String literals functional
+- ✅ Array support enhanced
+- ⏸️ Some items superseded by new priorities
+
+See git history for the original Architecture Audit TODO.
 
 ---
 
-*See [ACTION_PLAN_FROM_AUDIT.md](ACTION_PLAN_FROM_AUDIT.md) for detailed analysis*  
-*See [ARCHITECTURE_AUDIT.md](ARCHITECTURE_AUDIT.md) for current state assessment*
+*This TODO represents the practical path forward for MinZ: Fix parsing, build real programs, enable code sharing, and optimize relentlessly. Everything else is secondary.*

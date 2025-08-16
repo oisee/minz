@@ -1,0 +1,21 @@
+// Test function overloading with u16 types
+
+fun print(x: u8) -> void {
+    print_u8(x);
+}
+
+fun print(x: u16) -> void {
+    print_u16(x);
+}
+
+fun main() -> void {
+    let small: u8 = 42;
+    let big: u16 = 1000;
+    
+    print(small);  // Should call print(u8)
+    print(big);    // Should call print(u16)
+    
+    // Test with literals
+    print(10);     // Should infer u8
+    print(300);    // Should infer u16 (> 255)
+}

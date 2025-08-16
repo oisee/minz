@@ -1,0 +1,120 @@
+; MinZ generated code
+; Generated: 2025-08-16 10:46:45
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: tests.minz.test_define.spawn_Enemy
+tests.minz.test_define.spawn_Enemy:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct Enemy
+    LD HL, -2
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    ; Register 1 already in HL
+    ; r2 = 100
+    LD A, 100
+    ; Register 2 already in A
+    ; Store to Enemy.health
+    ; Register 1 already in HL
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r3 = 25
+    LD A, 25
+    LD B, A         ; Store to physical register B
+    ; Store to Enemy.damage
+    ; Register 1 already in HL
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; return r1
+    ; Register 1 already in HL
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: tests.minz.test_define.spawn_Boss
+tests.minz.test_define.spawn_Boss:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Allocate struct Boss
+    LD HL, -2
+    ADD HL, SP
+    LD SP, HL
+    EX DE, HL
+    LD HL, SP
+    LD D, H
+    LD E, L
+    ; r2 = 500
+    LD HL, 500
+    LD B, H
+    LD C, L
+    ; Store to Boss.health
+    LD H, D
+    LD L, E
+    PUSH HL
+    LD H, B
+    LD L, C
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; r3 = 50
+    LD A, 50
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; Store to Boss.damage
+    LD H, D
+    LD L, E
+    LD DE, 1
+    ADD HL, DE
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; return r1
+    LD H, D
+    LD L, E
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: tests.minz.test_define.main
+tests.minz.test_define.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = call tests.minz.test_define.spawn_Enemy
+    ; Call to tests.minz.test_define.spawn_Enemy (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL tests.minz.test_define.spawn_Enemy
+    ; store enemy, r2
+    LD ($F002), HL
+    ; r4 = call tests.minz.test_define.spawn_Boss
+    ; Call to tests.minz.test_define.spawn_Boss (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL tests.minz.test_define.spawn_Boss
+    ; store boss, r4
+    LD ($F006), HL
+    ; r5 = 42
+    LD A, 42
+    LD L, A         ; Store to HL (low byte)
+    ; return r5
+    ; Register 5 already in HL
+    RET
+
+; Standard library routines
+
+    END main

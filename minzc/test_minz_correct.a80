@@ -1,0 +1,99 @@
+; MinZ generated code
+; Generated: 2025-08-16 10:39:22
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 12    ; Length
+    DB "Hello world!"
+str_1:
+    DB 12    ; Length
+    DB "Hello world!"
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_minz_correct.main
+...test_minz_correct.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call ...test_minz_correct.hello_world
+    ; Call to ...test_minz_correct.hello_world (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL ...test_minz_correct.hello_world
+    ; r2 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; return r2
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_minz_correct.hello_world
+...test_minz_correct.hello_world:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_0)
+    LD HL, str_0
+    ; Print "Hello world!" (12 chars via loop)
+    CALL print_string
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_minz_correct.hello_world
+...test_minz_correct.hello_world:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = string(str_1)
+    LD HL, str_1
+    ; Print "Hello world!" (12 chars via loop)
+    CALL print_string
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; ZX Spectrum ROM print
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+
+; Standard library routines
+
+    END main

@@ -1,0 +1,123 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_define_comprehensive.new_CONSTANT_() -> ...test_define_comprehensive.CONSTANT_
+  @smc
+  Instructions:
+      0: r1 = 0
+      1: return
+
+Function ...test_define_comprehensive.size_of_CONSTANT_() -> u8
+  @smc
+  Instructions:
+      0: return
+
+Function ...test_define_comprehensive.new_Buffer() -> ...test_define_comprehensive.Buffer
+  @smc
+  Instructions:
+      0: ALLOC ; Allocate struct Buffer
+      1: r3 = 0
+      2: ARRAY_INIT ; Array initializer with 1 elements
+      3: ARRAY_ELEMENT ; Initialize array[0]
+      4: STORE_FIELD ; Store to Buffer.data
+      5: return r1
+
+Function ...test_define_comprehensive.size_of_Buffer() -> u8
+  @smc
+  Instructions:
+      0: r1 = 256
+      1: return r1
+
+Function ...test_define_comprehensive.new_SmallBuffer() -> ...test_define_comprehensive.SmallBuffer
+  @smc
+  Instructions:
+      0: ALLOC ; Allocate struct SmallBuffer
+      1: r3 = 0
+      2: ARRAY_INIT ; Array initializer with 1 elements
+      3: ARRAY_ELEMENT ; Initialize array[0]
+      4: STORE_FIELD ; Store to SmallBuffer.data
+      5: return r1
+
+Function ...test_define_comprehensive.size_of_SmallBuffer() -> u8
+  @smc
+  Instructions:
+      0: r1 = 32
+      1: return r1
+
+Function ...test_define_comprehensive.new_MAX() -> ...test_define_comprehensive.MAX
+  @smc
+  Instructions:
+      0: ALLOC ; Allocate struct MAX
+      1: r3 = 0
+      2: ARRAY_INIT ; Array initializer with 1 elements
+      3: ARRAY_ELEMENT ; Initialize array[0]
+      4: STORE_FIELD ; Store to MAX.data
+      5: return r1
+
+Function ...test_define_comprehensive.size_of_MAX() -> u8
+  @smc
+  Instructions:
+      0: r1 = 255
+      1: return r1
+
+Function ...test_define_comprehensive.new_MIN() -> ...test_define_comprehensive.MIN
+  @smc
+  Instructions:
+      0: ALLOC ; Allocate struct MIN
+      1: r3 = 0
+      2: ARRAY_INIT ; Array initializer with 1 elements
+      3: ARRAY_ELEMENT ; Initialize array[0]
+      4: STORE_FIELD ; Store to MIN.data
+      5: return r1
+
+Function ...test_define_comprehensive.size_of_MIN() -> u8
+  @smc
+  Instructions:
+      0: r1 = 0
+      1: return r1
+
+Function ...test_define_comprehensive.Logger_init() -> void
+  @smc
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Initializing Logger" (19 chars via loop)
+      2: return
+
+Function ...test_define_comprehensive.Logger_destroy() -> void
+  @smc
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Destroying Logger" (17 chars via loop)
+      2: return
+
+Function ...test_define_comprehensive.Manager_init() -> void
+  @smc
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Initializing Manager" (20 chars via loop)
+      2: return
+
+Function ...test_define_comprehensive.Manager_destroy() -> void
+  @smc
+  Instructions:
+      0: LOAD_STRING
+      1: PRINT_STRING ; Print "Destroying Manager" (18 chars via loop)
+      2: return
+
+Function ...test_define_comprehensive.main() -> u8
+  @smc
+  Locals:
+    r1 = buf: u16
+    r3 = small: u16
+  Instructions:
+      0: r2 = call ...test_define_comprehensive.new_Buffer
+      1: store buf, r2
+      2: r4 = call ...test_define_comprehensive.new_SmallBuffer
+      3: store small, r4
+      4: r5 = call ...test_define_comprehensive.Logger_init
+      5: r6 = call ...test_define_comprehensive.Manager_init
+      6: PATCH_TEMPLATE
+      7: PATCH_TARGET
+      8: r7 = call ...test_define_comprehensive.size_of_Buffer
+      9: return r7
+

@@ -1,0 +1,36 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function tests.minz.test_define.spawn_Enemy() -> tests.minz.test_define.Enemy
+  @smc
+  Instructions:
+      0: ALLOC ; Allocate struct Enemy
+      1: r2 = 100
+      2: STORE_FIELD ; Store to Enemy.health
+      3: r3 = 25
+      4: STORE_FIELD ; Store to Enemy.damage
+      5: return r1
+
+Function tests.minz.test_define.spawn_Boss() -> tests.minz.test_define.Boss
+  @smc
+  Instructions:
+      0: ALLOC ; Allocate struct Boss
+      1: r2 = 500
+      2: STORE_FIELD ; Store to Boss.health
+      3: r3 = 50
+      4: STORE_FIELD ; Store to Boss.damage
+      5: return r1
+
+Function tests.minz.test_define.main() -> u8
+  @smc
+  Locals:
+    r1 = enemy: u16
+    r3 = boss: u16
+  Instructions:
+      0: r2 = call tests.minz.test_define.spawn_Enemy
+      1: store enemy, r2
+      2: r4 = call tests.minz.test_define.spawn_Boss
+      3: store boss, r4
+      4: r5 = 42
+      5: return r5
+

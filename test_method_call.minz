@@ -1,0 +1,19 @@
+// Test method call syntax
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun Point.distance(self: Point) -> u8 {
+    // Simple Manhattan distance
+    return self.x + self.y;
+}
+
+fun main() -> void {
+    let p = Point { x: 3, y: 4 };
+    
+    // Method call syntax
+    let dist = p.distance();
+    print_u8(dist);  // Should print 7
+}

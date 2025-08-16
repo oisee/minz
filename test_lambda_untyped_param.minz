@@ -1,0 +1,16 @@
+// Test lambda with untyped parameter
+
+fun main() -> void {
+    // Lambda with untyped first parameter
+    // This is where the parser might fail
+    let apply = |func, x: u8| => u8 {
+        func(x)
+    };
+    
+    // Simple function to pass
+    let add_one = |x: u8| => u8 { x + 1 };
+    
+    // Try to use it
+    let result: u8 = apply(add_one, 5);
+    print_u8(result);  // Should print 6
+}

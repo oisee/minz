@@ -1,0 +1,12 @@
+// Test @minz as immediate compile-time execution
+@minz[[[
+    // This code executes at compile time
+    @emit("fun hello_world() -> void {")
+    @emit("    @print(\"Hello from generated function!\");")
+    @emit("}")
+]]]
+
+fn main() -> u8 {
+    hello_world();  // Call the generated function
+    return 0;
+}

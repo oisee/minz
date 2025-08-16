@@ -159,6 +159,18 @@ func (e *EnumType) Pos() Position { return e.StartPos }
 func (e *EnumType) End() Position { return e.EndPos }
 func (e *EnumType) typeNode()    {}
 
+// FunctionType represents function types (fn(T) -> R)
+type FunctionType struct {
+	ParamTypes []Type
+	ReturnType Type
+	StartPos   Position
+	EndPos     Position
+}
+
+func (f *FunctionType) Pos() Position { return f.StartPos }
+func (f *FunctionType) End() Position { return f.EndPos }
+func (f *FunctionType) typeNode()    {}
+
 // TypeIdentifier represents a named type reference
 type TypeIdentifier struct {
 	Name     string

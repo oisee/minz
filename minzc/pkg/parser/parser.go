@@ -751,6 +751,8 @@ func (p *Parser) parseType(node map[string]interface{}) ast.Type {
 		return p.parseArrayType(node)
 	case "pointer_type":
 		return p.parsePointerType(node)
+	case "function_type":
+		return p.parseFunctionType(node)
 	case "type_identifier":
 		// Check if this is a built-in primitive type
 		typeName := p.getText(node)
@@ -824,6 +826,36 @@ func (p *Parser) parsePointerType(node map[string]interface{}) *ast.PointerType 
 	}
 	
 	return ptrType
+}
+
+// parseFunctionType parses a function type (fn(T) -> R)
+func (p *Parser) parseFunctionType(node map[string]interface{}) *ast.FunctionType {
+	fnType := &ast.FunctionType{
+		ParamTypes: []ast.Type{},
+		StartPos:   p.getPosition(node, "startPosition"),
+		EndPos:     p.getPosition(node, "endPosition"),
+	}
+	
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "parameter_list":
+			// Parse parameter types
+			params := p.parseParameters(childNode)
+			for _, param := range params {
+				if param.Type != nil {
+					fnType.ParamTypes = append(fnType.ParamTypes, param.Type)
+				}
+			}
+		case "return_type":
+			fnType.ReturnType = p.parseType(childNode)
+		}
+	}
+	
+	return fnType
 }
 
 // parseBlock parses a block statement

@@ -3,17 +3,37 @@
 
 **A modern systems programming language for retro computers** (Z80, 6502, Game Boy, WebAssembly, LLVM)
 
-## 🎊 v0.14.0: ANTLR Parser Revolution! (January 2025)
+> ⚠️ **Under Construction** - MinZ is in active development (v0.14.0 Alpha). APIs and syntax may change.
 
-**🚀 MAJOR MILESTONE: ANTLR is now the DEFAULT parser!**
-- **75% Success Rate** - Better than tree-sitter's 70%!
-- **Zero Dependencies** - Pure Go, no external tools needed
-- **Self-Contained Binaries** - Single file, works everywhere
-- **Tree-sitter Fallback** - Still available via `MINZ_USE_TREE_SITTER=1`
+## 📚 Quick Links
+- **[Complete Language Specification](docs/230_MinZ_Complete_Language_Specification.md)** - Full syntax, features, and implementation details
+- **[Metafunction Design Guide](docs/226_Metafunction_Design_Decisions.md)** - @minz, @define, @lua explained
+- **[Tree-Shaking Report](docs/225_Tree_Shaking_Implementation_E2E_Report.md)** - 74% size reduction achieved
+- **[Development Roadmap](docs/228_MinZ_Specification_Article_Plan.md)** - Architecture and future plans
 
-✅ No more dependency issues • ✅ Better compatibility • ✅ Improved success rate
+## 🎊 v0.14.0: Tree-Shaking & Metafunction Revolution! (January 2025)
 
-[Get v0.14.0](https://github.com/oisee/minz/releases/tag/v0.14.0)
+### 🚀 Major Achievements
+
+**Tree-Shaking Optimization** - 74% size reduction!
+- Only includes used stdlib functions
+- 324 lines → 85 lines typical output
+- Critical for Z80 where every byte counts
+
+**Metafunction System Clarified**
+- `@minz[[[...]]]` - Immediate compile-time execution (no args!)
+- `@define(...)` - Template preprocessor (fully working!)
+- `@lua[[[...]]]` - Lua scripting at compile-time
+- See [Metafunction Design Guide](docs/226_Metafunction_Design_Decisions.md)
+
+**Complete Toolchain**
+- `mz` - Compiler with 8 backends
+- `mza` - Assembler with macro support
+- `mze` - Emulator with full debugger
+- `mzr` - REPL with history
+- `mzv` - MIR VM interpreter
+
+[Get v0.14.0](https://github.com/oisee/minz/releases/tag/v0.14.0) | [Full Report](docs/227_E2E_Super_Session_Complete_Implementation_Report.md)
 
 ## 📦 v0.13.0 Alpha "Module Revolution" (January 2025)
 
@@ -49,6 +69,41 @@ fun main() -> void {
 - **Standard Library**: 25+ functions across modules
 - **Platform Support**: ZX Spectrum (complete I/O), CP/M, MSX, CPC
 - **Optimization**: 3-5x with CTIE, 60-85% with peephole
+
+## 🚀 Quick Start
+
+### Hello World
+```minz
+fun main() -> u8 {
+    @print("Hello, MinZ!");
+    return 0;
+}
+```
+
+### Core Features at a Glance
+```minz
+// Modern syntax, zero-cost abstractions
+let numbers = [1, 2, 3, 4, 5];
+let sum = numbers.iter()
+    .filter(|x| x > 2)
+    .map(|x| x * 2)
+    .sum();  // Compiles to optimal DJNZ loop!
+
+// Metaprogramming
+@define(getter, field, type)[[[
+    fun get_{0}() -> {1} { return self.{0}; }
+]]]
+@define("x", "u8")  // Generates get_x() function
+
+// Compile-time code generation
+@minz[[[
+    for i in 0..4 {
+        @emit("fun handler_" + i + "() -> void { }")
+    }
+]]]
+```
+
+See the **[Complete Language Specification](docs/230_MinZ_Complete_Language_Specification.md)** for full syntax and features.
 
 ## 💻 **Installation & Usage**
 
@@ -302,17 +357,35 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 MIT License - See [LICENSE](LICENSE) for details.
 
+## 📖 **Documentation**
+
+### Essential Reading
+- **[Language Specification](docs/230_MinZ_Complete_Language_Specification.md)** - Complete reference with cheatsheet
+- **[TSMC Philosophy](docs/145_TSMC_Complete_Philosophy.md)** - True Self-Modifying Code explained
+- **[Optimization Guide](docs/149_World_Class_Multi_Level_Optimization_Guide.md)** - How we achieve zero-cost
+- **[Internal Architecture](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Compiler internals
+- **[Session Report](docs/229_Session_Achievement_Report_v0_14_0.md)** - Latest achievements
+
+### Implementation Status
+- **Core Features:** 80% complete
+- **Compilation Success:** 63% (tree-sitter), 75% (ANTLR)
+- **Tree-Shaking:** 74% size reduction
+- **Documentation:** 230+ detailed documents
+
 ## 🎉 **Release History**
 
 ### Recent Releases
-- **v0.13.0** (Aug 2025) - Module System Revolution
-- **v0.12.0** (Aug 2025) - Compile-Time Interface Execution (CTIE)
-- **v0.10.0** (Aug 2025) - Zero-Cost Lambda Iterators
-- **v0.9.6** (Jul 2025) - Function Overloading & Interface Methods
-- **v0.9.0** (Jul 2025) - Error Propagation System
+- **v0.14.0** (Jan 2025) - Tree-Shaking & Metafunction Clarification
+- **v0.13.0** (Jan 2025) - Module System Revolution
+- **v0.12.0** (Dec 2024) - Compile-Time Interface Execution (CTIE)
+- **v0.10.0** (Nov 2024) - Zero-Cost Lambda Iterators
+- **v0.9.6** (Oct 2024) - Function Overloading & Interface Methods
+- **v0.9.0** (Sep 2024) - Error Propagation System
 
-[Full changelog](CHANGELOG.md) | [All release notes](docs/RELEASE_NOTES.md)
+[Full changelog](CHANGELOG.md) | [All releases](https://github.com/oisee/minz/releases)
 
 ---
 
-**MinZ**: Modern abstractions, vintage performance. The future of retro computing! 🚀
+**MinZ**: Modern abstractions, vintage performance, zero compromises. 🚀
+
+> ⚠️ **Remember:** MinZ is under active development. Join us in building the future of retro computing!
