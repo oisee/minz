@@ -1,0 +1,62 @@
+; Test for 16Bit Arithmetic instructions
+    ORG $8000
+    
+    ; Setup
+    LD HL, $9000
+    LD BC, $1234
+    LD DE, $5678
+    LD SP, $FF00
+    LD A, $42
+    
+    ; INC BC
+    INC BC
+    NOP
+
+    ; INC DE
+    INC DE
+    NOP
+
+    ; INC HL
+    INC HL
+    NOP
+
+    ; INC SP
+    INC SP
+    NOP
+
+    ; DEC BC
+    DEC BC
+    NOP
+
+    ; DEC DE
+    DEC DE
+    NOP
+
+    ; DEC HL
+    DEC HL
+    NOP
+
+    ; DEC SP
+    DEC SP
+    NOP
+
+    ; ADD HL, BC
+    ADD HL, BC
+    NOP
+
+    ; ADD HL, DE
+    ADD HL, DE
+    NOP
+
+    ; ADD HL, HL
+    ADD HL, HL
+    NOP
+
+    ; ADD HL, SP
+    ADD HL, SP
+    NOP
+
+    ; Done
+    RET
+    
+    END

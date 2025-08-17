@@ -1,0 +1,78 @@
+; Test for Jump instructions
+    ORG $8000
+    
+    ; Setup
+    LD HL, $9000
+    LD BC, $1234
+    LD DE, $5678
+    LD SP, $FF00
+    LD A, $42
+    
+    ; JP nn
+    JP $1234
+    NOP
+
+    ; JR e
+    JR $+2
+    NOP
+
+    ; JP (HL)
+    JP (HL)
+    NOP
+
+    ; JP NZ, nn
+    JP NZ, $1234
+    NOP
+
+    ; JP Z, nn
+    JP Z, $1234
+    NOP
+
+    ; JP NC, nn
+    JP NC, $1234
+    NOP
+
+    ; JP C, nn
+    JP C, $1234
+    NOP
+
+    ; JP PO, nn
+    JP PO, $1234
+    NOP
+
+    ; JP PE, nn
+    JP PE, $1234
+    NOP
+
+    ; JP P, nn
+    JP P, $1234
+    NOP
+
+    ; JP M, nn
+    JP M, $1234
+    NOP
+
+    ; JR NZ, e
+    JR NZ, $+2
+    NOP
+
+    ; JR Z, e
+    JR Z, $+2
+    NOP
+
+    ; JR NC, e
+    JR NC, $+2
+    NOP
+
+    ; JR C, e
+    JR C, $+2
+    NOP
+
+    ; DJNZ e
+    DJNZ $+2
+    NOP
+
+    ; Done
+    RET
+    
+    END

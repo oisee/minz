@@ -1,0 +1,118 @@
+; Test for Call Return instructions
+    ORG $8000
+    
+    ; Setup
+    LD HL, $9000
+    LD BC, $1234
+    LD DE, $5678
+    LD SP, $FF00
+    LD A, $42
+    
+    ; CALL nn
+    CALL $1234
+    NOP
+
+    ; RET
+    RET
+    NOP
+
+    ; CALL NZ, nn
+    CALL NZ, $1234
+    NOP
+
+    ; CALL Z, nn
+    CALL Z, $1234
+    NOP
+
+    ; CALL NC, nn
+    CALL NC, $1234
+    NOP
+
+    ; CALL C, nn
+    CALL C, $1234
+    NOP
+
+    ; CALL PO, nn
+    CALL PO, $1234
+    NOP
+
+    ; CALL PE, nn
+    CALL PE, $1234
+    NOP
+
+    ; CALL P, nn
+    CALL P, $1234
+    NOP
+
+    ; CALL M, nn
+    CALL M, $1234
+    NOP
+
+    ; RET NZ
+    RET NZ
+    NOP
+
+    ; RET Z
+    RET Z
+    NOP
+
+    ; RET NC
+    RET NC
+    NOP
+
+    ; RET C
+    RET C
+    NOP
+
+    ; RET PO
+    RET PO
+    NOP
+
+    ; RET PE
+    RET PE
+    NOP
+
+    ; RET P
+    RET P
+    NOP
+
+    ; RET M
+    RET M
+    NOP
+
+    ; RST 00H
+    RST 0
+    NOP
+
+    ; RST 08H
+    RST 8
+    NOP
+
+    ; RST 10H
+    RST $10
+    NOP
+
+    ; RST 18H
+    RST $18
+    NOP
+
+    ; RST 20H
+    RST $20
+    NOP
+
+    ; RST 28H
+    RST $28
+    NOP
+
+    ; RST 30H
+    RST $30
+    NOP
+
+    ; RST 38H
+    RST $38
+    NOP
+
+    ; Done
+    RET
+    
+    END

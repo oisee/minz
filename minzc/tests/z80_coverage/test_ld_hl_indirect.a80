@@ -1,0 +1,7 @@
+    ORG $8000
+    LD A, (HL)
+    LD B, (HL)
+    LD (HL), A
+    LD (HL), 42
+    RET
+    END

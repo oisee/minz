@@ -1,0 +1,150 @@
+; Test for Arithmetic instructions
+    ORG $8000
+    
+    ; Setup
+    LD HL, $9000
+    LD BC, $1234
+    LD DE, $5678
+    LD SP, $FF00
+    LD A, $42
+    
+    ; ADD A, B
+    ADD A, B
+    NOP
+
+    ; ADD A, C
+    ADD A, C
+    NOP
+
+    ; ADD A, D
+    ADD A, D
+    NOP
+
+    ; ADD A, E
+    ADD A, E
+    NOP
+
+    ; ADD A, H
+    ADD A, H
+    NOP
+
+    ; ADD A, L
+    ADD A, L
+    NOP
+
+    ; ADD A, (HL)
+    ADD A, (HL)
+    NOP
+
+    ; ADD A, A
+    ADD A, A
+    NOP
+
+    ; ADD A, n
+    ADD A, 10
+    NOP
+
+    ; SUB B
+    SUB B
+    NOP
+
+    ; SUB C
+    SUB C
+    NOP
+
+    ; SUB D
+    SUB D
+    NOP
+
+    ; SUB E
+    SUB E
+    NOP
+
+    ; SUB H
+    SUB H
+    NOP
+
+    ; SUB L
+    SUB L
+    NOP
+
+    ; SUB (HL)
+    SUB (HL)
+    NOP
+
+    ; SUB A
+    SUB A
+    NOP
+
+    ; SUB n
+    SUB 5
+    NOP
+
+    ; INC A
+    INC A
+    NOP
+
+    ; INC B
+    INC B
+    NOP
+
+    ; INC C
+    INC C
+    NOP
+
+    ; INC D
+    INC D
+    NOP
+
+    ; INC E
+    INC E
+    NOP
+
+    ; INC H
+    INC H
+    NOP
+
+    ; INC L
+    INC L
+    NOP
+
+    ; INC (HL)
+    INC (HL)
+    NOP
+
+    ; DEC A
+    DEC A
+    NOP
+
+    ; DEC B
+    DEC B
+    NOP
+
+    ; DEC C
+    DEC C
+    NOP
+
+    ; DEC D
+    DEC D
+    NOP
+
+    ; DEC E
+    DEC E
+    NOP
+
+    ; DEC H
+    DEC H
+    NOP
+
+    ; DEC L
+    DEC L
+    NOP
+
+    ; DEC (HL)
+    DEC (HL)
+    NOP
+
+    ; Done
+    RET
+    
+    END

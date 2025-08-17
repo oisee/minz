@@ -1,0 +1,46 @@
+; Test for Stack instructions
+    ORG $8000
+    
+    ; Setup
+    LD HL, $9000
+    LD BC, $1234
+    LD DE, $5678
+    LD SP, $FF00
+    LD A, $42
+    
+    ; PUSH BC
+    PUSH BC
+    NOP
+
+    ; PUSH DE
+    PUSH DE
+    NOP
+
+    ; PUSH HL
+    PUSH HL
+    NOP
+
+    ; PUSH AF
+    PUSH AF
+    NOP
+
+    ; POP BC
+    POP BC
+    NOP
+
+    ; POP DE
+    POP DE
+    NOP
+
+    ; POP HL
+    POP HL
+    NOP
+
+    ; POP AF
+    POP AF
+    NOP
+
+    ; Done
+    RET
+    
+    END

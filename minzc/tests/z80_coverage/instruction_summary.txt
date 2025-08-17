@@ -1,0 +1,218 @@
+Z80 Instruction Coverage Test Suite
+====================================
+
+8Bit Load:
+  $78: LD A, B
+  $79: LD A, C
+  $7A: LD A, D
+  $7B: LD A, E
+  $7C: LD A, H
+  $7D: LD A, L
+  $3E: LD A, n
+  $06: LD B, n
+  $0E: LD C, n
+  $16: LD D, n
+  $1E: LD E, n
+  $26: LD H, n
+  $2E: LD L, n
+  $7E: LD A, (HL)
+  $46: LD B, (HL)
+  $4E: LD C, (HL)
+  $56: LD D, (HL)
+  $5E: LD E, (HL)
+  $66: LD H, (HL)
+  $6E: LD L, (HL)
+  $77: LD (HL), A
+  $70: LD (HL), B
+  $71: LD (HL), C
+  $72: LD (HL), D
+  $73: LD (HL), E
+  $74: LD (HL), H
+  $75: LD (HL), L
+  $36: LD (HL), n
+  $0A: LD A, (BC)
+  $1A: LD A, (DE)
+  $02: LD (BC), A
+  $12: LD (DE), A
+  $3A: LD A, (nn)
+  $32: LD (nn), A
+
+16Bit Load:
+  $01: LD BC, nn
+  $11: LD DE, nn
+  $21: LD HL, nn
+  $31: LD SP, nn
+  $2A: LD HL, (nn)
+  $22: LD (nn), HL
+  $F9: LD SP, HL
+
+Arithmetic:
+  $80: ADD A, B
+  $81: ADD A, C
+  $82: ADD A, D
+  $83: ADD A, E
+  $84: ADD A, H
+  $85: ADD A, L
+  $86: ADD A, (HL)
+  $87: ADD A, A
+  $C6: ADD A, n
+  $90: SUB B
+  $91: SUB C
+  $92: SUB D
+  $93: SUB E
+  $94: SUB H
+  $95: SUB L
+  $96: SUB (HL)
+  $97: SUB A
+  $D6: SUB n
+  $3C: INC A
+  $04: INC B
+  $0C: INC C
+  $14: INC D
+  $1C: INC E
+  $24: INC H
+  $2C: INC L
+  $34: INC (HL)
+  $3D: DEC A
+  $05: DEC B
+  $0D: DEC C
+  $15: DEC D
+  $1D: DEC E
+  $25: DEC H
+  $2D: DEC L
+  $35: DEC (HL)
+
+Logic:
+  $A0: AND B
+  $A1: AND C
+  $A2: AND D
+  $A3: AND E
+  $A4: AND H
+  $A5: AND L
+  $A6: AND (HL)
+  $A7: AND A
+  $E6: AND n
+  $B0: OR B
+  $B1: OR C
+  $B2: OR D
+  $B3: OR E
+  $B4: OR H
+  $B5: OR L
+  $B6: OR (HL)
+  $B7: OR A
+  $F6: OR n
+  $A8: XOR B
+  $A9: XOR C
+  $AA: XOR D
+  $AB: XOR E
+  $AC: XOR H
+  $AD: XOR L
+  $AE: XOR (HL)
+  $AF: XOR A
+  $EE: XOR n
+  $B8: CP B
+  $B9: CP C
+  $BA: CP D
+  $BB: CP E
+  $BC: CP H
+  $BD: CP L
+  $BE: CP (HL)
+  $BF: CP A
+  $FE: CP n
+
+Jump:
+  $C3: JP nn
+  $18: JR e
+  $E9: JP (HL)
+  $C2: JP NZ, nn
+  $CA: JP Z, nn
+  $D2: JP NC, nn
+  $DA: JP C, nn
+  $E2: JP PO, nn
+  $EA: JP PE, nn
+  $F2: JP P, nn
+  $FA: JP M, nn
+  $20: JR NZ, e
+  $28: JR Z, e
+  $30: JR NC, e
+  $38: JR C, e
+  $10: DJNZ e
+
+Call Return:
+  $CD: CALL nn
+  $C9: RET
+  $C4: CALL NZ, nn
+  $CC: CALL Z, nn
+  $D4: CALL NC, nn
+  $DC: CALL C, nn
+  $E4: CALL PO, nn
+  $EC: CALL PE, nn
+  $F4: CALL P, nn
+  $FC: CALL M, nn
+  $C0: RET NZ
+  $C8: RET Z
+  $D0: RET NC
+  $D8: RET C
+  $E0: RET PO
+  $E8: RET PE
+  $F0: RET P
+  $F8: RET M
+  $C7: RST 00H
+  $CF: RST 08H
+  $D7: RST 10H
+  $DF: RST 18H
+  $E7: RST 20H
+  $EF: RST 28H
+  $F7: RST 30H
+  $FF: RST 38H
+
+Stack:
+  $C5: PUSH BC
+  $D5: PUSH DE
+  $E5: PUSH HL
+  $F5: PUSH AF
+  $C1: POP BC
+  $D1: POP DE
+  $E1: POP HL
+  $F1: POP AF
+
+16Bit Arithmetic:
+  $03: INC BC
+  $13: INC DE
+  $23: INC HL
+  $33: INC SP
+  $0B: DEC BC
+  $1B: DEC DE
+  $2B: DEC HL
+  $3B: DEC SP
+  $09: ADD HL, BC
+  $19: ADD HL, DE
+  $29: ADD HL, HL
+  $39: ADD HL, SP
+
+Rotate Shift:
+  $07: RLCA
+  $0F: RRCA
+  $17: RLA
+  $1F: RRA
+
+Misc:
+  $00: NOP
+  $76: HALT
+  $F3: DI
+  $FB: EI
+  $27: DAA
+  $2F: CPL
+  $37: SCF
+  $3F: CCF
+  $EB: EX DE, HL
+  $08: EX AF, AF'
+  $D9: EXX
+  $E3: EX (SP), HL
+
+Io:
+  $DB: IN A, (n)
+  $D3: OUT (n), A
+
+
+Total instructions: 191

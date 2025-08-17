@@ -1,0 +1,58 @@
+; Test for Misc instructions
+    ORG $8000
+    
+    ; Setup
+    LD HL, $9000
+    LD BC, $1234
+    LD DE, $5678
+    LD SP, $FF00
+    LD A, $42
+    
+    ; NOP
+    NOP
+    NOP
+
+    ; HALT
+    HALT
+    NOP
+
+    ; DI
+    DI
+    NOP
+
+    ; EI
+    EI
+    NOP
+
+    ; DAA
+    DAA
+    NOP
+
+    ; CPL
+    CPL
+    NOP
+
+    ; SCF
+    SCF
+    NOP
+
+    ; CCF
+    CCF
+    NOP
+
+    ; EX DE, HL
+    EX DE, HL
+    NOP
+
+    ; EXX
+    EXX
+    NOP
+
+    ; EX (SP), HL
+    EX (SP), HL
+    NOP
+
+    ; Done
+    RET
+    
+    END

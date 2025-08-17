@@ -1,0 +1,17 @@
+; Test for OUT (n), A (opcode $D3)
+    ORG $8000
+    
+    ; Setup if needed
+    LD HL, $9000    ; Set HL for indirect operations
+    LD BC, $1234    ; Set BC
+    LD DE, $5678    ; Set DE
+    LD A, $42       ; Set A
+    
+    ; Test instruction
+    OUT ($FE), A
+    
+    ; Cleanup
+    NOP
+    RET
+    
+    END

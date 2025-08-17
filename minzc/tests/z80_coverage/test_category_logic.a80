@@ -1,0 +1,158 @@
+; Test for Logic instructions
+    ORG $8000
+    
+    ; Setup
+    LD HL, $9000
+    LD BC, $1234
+    LD DE, $5678
+    LD SP, $FF00
+    LD A, $42
+    
+    ; AND B
+    AND B
+    NOP
+
+    ; AND C
+    AND C
+    NOP
+
+    ; AND D
+    AND D
+    NOP
+
+    ; AND E
+    AND E
+    NOP
+
+    ; AND H
+    AND H
+    NOP
+
+    ; AND L
+    AND L
+    NOP
+
+    ; AND (HL)
+    AND (HL)
+    NOP
+
+    ; AND A
+    AND A
+    NOP
+
+    ; AND n
+    AND $0F
+    NOP
+
+    ; OR B
+    OR B
+    NOP
+
+    ; OR C
+    OR C
+    NOP
+
+    ; OR D
+    OR D
+    NOP
+
+    ; OR E
+    OR E
+    NOP
+
+    ; OR H
+    OR H
+    NOP
+
+    ; OR L
+    OR L
+    NOP
+
+    ; OR (HL)
+    OR (HL)
+    NOP
+
+    ; OR A
+    OR A
+    NOP
+
+    ; OR n
+    OR $F0
+    NOP
+
+    ; XOR B
+    XOR B
+    NOP
+
+    ; XOR C
+    XOR C
+    NOP
+
+    ; XOR D
+    XOR D
+    NOP
+
+    ; XOR E
+    XOR E
+    NOP
+
+    ; XOR H
+    XOR H
+    NOP
+
+    ; XOR L
+    XOR L
+    NOP
+
+    ; XOR (HL)
+    XOR (HL)
+    NOP
+
+    ; XOR A
+    XOR A
+    NOP
+
+    ; XOR n
+    XOR $FF
+    NOP
+
+    ; CP B
+    CP B
+    NOP
+
+    ; CP C
+    CP C
+    NOP
+
+    ; CP D
+    CP D
+    NOP
+
+    ; CP E
+    CP E
+    NOP
+
+    ; CP H
+    CP H
+    NOP
+
+    ; CP L
+    CP L
+    NOP
+
+    ; CP (HL)
+    CP (HL)
+    NOP
+
+    ; CP A
+    CP A
+    NOP
+
+    ; CP n
+    CP 42
+    NOP
+
+    ; Done
+    RET
+    
+    END

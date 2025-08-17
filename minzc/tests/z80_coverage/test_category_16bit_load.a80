@@ -1,0 +1,42 @@
+; Test for 16Bit Load instructions
+    ORG $8000
+    
+    ; Setup
+    LD HL, $9000
+    LD BC, $1234
+    LD DE, $5678
+    LD SP, $FF00
+    LD A, $42
+    
+    ; LD BC, nn
+    LD BC, $1234
+    NOP
+
+    ; LD DE, nn
+    LD DE, $5678
+    NOP
+
+    ; LD HL, nn
+    LD HL, $9ABC
+    NOP
+
+    ; LD SP, nn
+    LD SP, $FF00
+    NOP
+
+    ; LD HL, (nn)
+    LD HL, ($1234)
+    NOP
+
+    ; LD (nn), HL
+    LD ($1234), HL
+    NOP
+
+    ; LD SP, HL
+    LD SP, HL
+    NOP
+
+    ; Done
+    RET
+    
+    END

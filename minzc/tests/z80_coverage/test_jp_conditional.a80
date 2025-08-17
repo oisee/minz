@@ -1,0 +1,8 @@
+    ORG $8000
+    JP NZ, target
+    JP Z, target
+    JP NC, target
+    JP C, target
+target:
+    RET
+    END

@@ -1,0 +1,11 @@
+    ORG $8000
+    INC BC
+    INC DE
+    INC HL
+    DEC BC
+    DEC DE
+    DEC HL
+    ADD HL, BC
+    ADD HL, DE
+    RET
+    END

@@ -1,0 +1,15 @@
+    ORG $8000
+    ; Currently supported instructions
+    NOP
+    LD A, 42
+    LD B, 10
+    INC A
+    DEC B
+    ADD A, B
+    SUB C
+    CALL $1234
+    RET
+    JP $5678
+    JR $+2
+    HALT
+    END

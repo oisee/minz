@@ -1,0 +1,22 @@
+; Test for Io instructions
+    ORG $8000
+    
+    ; Setup
+    LD HL, $9000
+    LD BC, $1234
+    LD DE, $5678
+    LD SP, $FF00
+    LD A, $42
+    
+    ; IN A, (n)
+    IN A, ($FE)
+    NOP
+
+    ; OUT (n), A
+    OUT ($FE), A
+    NOP
+
+    ; Done
+    RET
+    
+    END

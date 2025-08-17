@@ -1,0 +1,7 @@
+    ORG $8000
+    LD B, 10
+loop:
+    DEC C
+    DJNZ loop
+    RET
+    END

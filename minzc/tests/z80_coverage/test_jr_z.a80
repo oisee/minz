@@ -1,0 +1,7 @@
+    ORG $8000
+    CP 0
+    JR Z, skip
+    INC A
+skip:
+    RET
+    END

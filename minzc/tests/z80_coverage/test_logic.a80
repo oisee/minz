@@ -1,0 +1,9 @@
+    ORG $8000
+    AND B
+    OR C
+    XOR D
+    AND 0x0F
+    OR 0xF0
+    XOR 0xFF
+    RET
+    END

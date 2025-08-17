@@ -1,0 +1,11 @@
+    ORG $8000
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH AF
+    POP AF
+    POP HL
+    POP DE
+    POP BC
+    RET
+    END

@@ -1,0 +1,17 @@
+; Test for JR Z, e (opcode $28)
+    ORG $8000
+    
+    ; Setup if needed
+    LD HL, $9000    ; Set HL for indirect operations
+    LD BC, $1234    ; Set BC
+    LD DE, $5678    ; Set DE
+    LD A, $42       ; Set A
+    
+    ; Test instruction
+    JR Z, $+2
+    
+    ; Cleanup
+    NOP
+    RET
+    
+    END

@@ -1,0 +1,17 @@
+; Test for LD (HL), L (opcode $75)
+    ORG $8000
+    
+    ; Setup if needed
+    LD HL, $9000    ; Set HL for indirect operations
+    LD BC, $1234    ; Set BC
+    LD DE, $5678    ; Set DE
+    LD A, $42       ; Set A
+    
+    ; Test instruction
+    LD (HL), L
+    
+    ; Cleanup
+    NOP
+    RET
+    
+    END

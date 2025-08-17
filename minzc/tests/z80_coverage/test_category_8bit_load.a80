@@ -1,0 +1,150 @@
+; Test for 8Bit Load instructions
+    ORG $8000
+    
+    ; Setup
+    LD HL, $9000
+    LD BC, $1234
+    LD DE, $5678
+    LD SP, $FF00
+    LD A, $42
+    
+    ; LD A, B
+    LD A, B
+    NOP
+
+    ; LD A, C
+    LD A, C
+    NOP
+
+    ; LD A, D
+    LD A, D
+    NOP
+
+    ; LD A, E
+    LD A, E
+    NOP
+
+    ; LD A, H
+    LD A, H
+    NOP
+
+    ; LD A, L
+    LD A, L
+    NOP
+
+    ; LD A, n
+    LD A, 42
+    NOP
+
+    ; LD B, n
+    LD B, 10
+    NOP
+
+    ; LD C, n
+    LD C, 20
+    NOP
+
+    ; LD D, n
+    LD D, 30
+    NOP
+
+    ; LD E, n
+    LD E, 40
+    NOP
+
+    ; LD H, n
+    LD H, 50
+    NOP
+
+    ; LD L, n
+    LD L, 60
+    NOP
+
+    ; LD A, (HL)
+    LD A, (HL)
+    NOP
+
+    ; LD B, (HL)
+    LD B, (HL)
+    NOP
+
+    ; LD C, (HL)
+    LD C, (HL)
+    NOP
+
+    ; LD D, (HL)
+    LD D, (HL)
+    NOP
+
+    ; LD E, (HL)
+    LD E, (HL)
+    NOP
+
+    ; LD H, (HL)
+    LD H, (HL)
+    NOP
+
+    ; LD L, (HL)
+    LD L, (HL)
+    NOP
+
+    ; LD (HL), A
+    LD (HL), A
+    NOP
+
+    ; LD (HL), B
+    LD (HL), B
+    NOP
+
+    ; LD (HL), C
+    LD (HL), C
+    NOP
+
+    ; LD (HL), D
+    LD (HL), D
+    NOP
+
+    ; LD (HL), E
+    LD (HL), E
+    NOP
+
+    ; LD (HL), H
+    LD (HL), H
+    NOP
+
+    ; LD (HL), L
+    LD (HL), L
+    NOP
+
+    ; LD (HL), n
+    LD (HL), 99
+    NOP
+
+    ; LD A, (BC)
+    LD A, (BC)
+    NOP
+
+    ; LD A, (DE)
+    LD A, (DE)
+    NOP
+
+    ; LD (BC), A
+    LD (BC), A
+    NOP
+
+    ; LD (DE), A
+    LD (DE), A
+    NOP
+
+    ; LD A, (nn)
+    LD A, ($1234)
+    NOP
+
+    ; LD (nn), A
+    LD ($1234), A
+    NOP
+
+    ; Done
+    RET
+    
+    END
