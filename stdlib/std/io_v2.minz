@@ -229,15 +229,15 @@ fun _print_literal(str: string_literal) -> void {
         // For string literals, we can optimize even further
         if len(str) == 1 {
             // Single character - inline
-            Output::write_byte(str[0]);
+            Output.write_byte(str[0]);
         } else if len(str) <= 4 {
             // Short string - unroll
             @unroll for ch in str {
-                Output::write_byte(ch);
+                Output.write_byte(ch);
             }
         } else {
             // Longer string - use write_string
-            Output::write_string(str);
+            Output.write_string(str);
         }
     }
 }
@@ -299,14 +299,14 @@ pub fun debug_print_registers(a: u8, bc: u16, de: u16, hl: u16) -> void {
     // print_hex_u16_padded(de, 4);
     // _print_literal(" HL=");
     // print_hex_u16_padded(hl, 4);
-    // Output::write_byte('\n');
+    // Output.write_byte('\n');
 }
 
 // Compile-time string interpolation
 @macro s!(fmt: string_literal, args...) -> *u8 {
     @compile_time {
         // Build string at compile time
-        let builder = StringBuilder<256>::new();
+        let builder = StringBuilder<256>.new();
         @lua {
             generate_string_building_code(fmt, args, builder)
         }

@@ -12,7 +12,7 @@ fun draw_horizontal_line(y: u8, color: u8, length: u8) -> void {
     while x < length {
         // In traditional code, 'y' would be loaded from stack each time
         // With SMC, it's embedded directly in the instruction
-        screen.set_pixel(x, y, color);
+        set_pixel(x, y, color);
         x = x + 1;
     }
 }
@@ -41,7 +41,7 @@ fun game_loop() -> void {
     
     loop {
         // Clear screen
-        screen.clear();
+        clear_screen();
         
         // Draw UI (these values are embedded in code)
         draw_number(8, 8, score);
@@ -85,7 +85,7 @@ fun countdown(n: u8) -> void {
 // Main function demonstrating SMC benefits
 fun main() -> void {
     // Initialize screen
-    screen.set_border(screen.BLACK);
+    set_border(screen.BLACK);
     
     // Draw multiple horizontal lines
     // Each call modifies the SMC location for the y parameter

@@ -17,7 +17,7 @@ fun process_pixel_traditional(pixel: u8, ctx: *mut PixelContext) -> u8 {
 }
 
 fun traditional_approach_demo() -> void {
-    std.print.print_string("=== Traditional Approach ===\n");
+    print_string("=== Traditional Approach ===\n");
     
     let ctx = PixelContext {
         brightness: 5,
@@ -25,8 +25,8 @@ fun traditional_approach_demo() -> void {
         processed_count: 0,
     };
     
-    std.print.print_string("Using struct + function pointer approach\n");
-    std.print.print_string("Overhead: Pointer indirection, struct field access\n");
+    print_string("Using struct + function pointer approach\n");
+    print_string("Overhead: Pointer indirection, struct field access\n");
     
     // Simulate processing pixels
     let i = 0;
@@ -34,25 +34,25 @@ fun traditional_approach_demo() -> void {
         let pixel_value = (i * 25) as u8;
         let result = process_pixel_traditional(pixel_value, &mut ctx);
         
-        std.print.print_string("Pixel ");
+        print_string("Pixel ");
         std.print.print_u8(i);
-        std.print.print_string(": ");
+        print_string(": ");
         std.print.print_u8(pixel_value);
-        std.print.print_string(" -> ");
+        print_string(" -> ");
         std.print.print_u8(result);
-        std.print.print_string("\n");
+        print_string("\n");
         
         i = i + 1;
     }
     
-    std.print.print_string("Processed: ");
+    print_string("Processed: ");
     std.print.print_u16(ctx.processed_count);
-    std.print.print_string(" pixels\n");
+    print_string(" pixels\n");
 }
 
 // TRUE SMC Lambda approach
 fun lambda_approach_demo() -> void {
-    std.print.print_string("\n=== TRUE SMC Lambda Approach ===\n");
+    print_string("\n=== TRUE SMC Lambda Approach ===\n");
     
     let brightness = 5;
     let contrast = 2;
@@ -64,8 +64,8 @@ fun lambda_approach_demo() -> void {
         return (pixel * brightness + contrast) & 0xFF;
     };
     
-    std.print.print_string("Using TRUE SMC lambda with variable capture\n");
-    std.print.print_string("Advantage: Direct memory access, zero indirection\n");
+    print_string("Using TRUE SMC lambda with variable capture\n");
+    print_string("Advantage: Direct memory access, zero indirection\n");
     
     // Simulate processing pixels (same logic as traditional)
     let i = 0;
@@ -76,47 +76,47 @@ fun lambda_approach_demo() -> void {
         let result = (pixel_value * brightness + contrast) & 0xFF;
         processed_count = processed_count + 1;
         
-        std.print.print_string("Pixel ");
+        print_string("Pixel ");
         std.print.print_u8(i);
-        std.print.print_string(": ");
+        print_string(": ");
         std.print.print_u8(pixel_value);
-        std.print.print_string(" -> ");
+        print_string(" -> ");
         std.print.print_u8(result);
-        std.print.print_string("\n");
+        print_string("\n");
         
         i = i + 1;
     }
     
-    std.print.print_string("Processed: ");
+    print_string("Processed: ");
     std.print.print_u16(processed_count);
-    std.print.print_string(" pixels\n");
+    print_string(" pixels\n");
     
     // Demonstrate live state evolution
-    std.print.print_string("\n🔥 TRUE SMC Magic: Changing parameters live!\n");
+    print_string("\n🔥 TRUE SMC Magic: Changing parameters live!\n");
     brightness = 7;
     contrast = 4;
     
-    std.print.print_string("Updated brightness=");
+    print_string("Updated brightness=");
     std.print.print_u8(brightness);
-    std.print.print_string(", contrast=");
+    print_string(", contrast=");
     std.print.print_u8(contrast);
-    std.print.print_string("\n");
-    std.print.print_string("Lambda automatically sees new values - no recreation needed!\n");
+    print_string("\n");
+    print_string("Lambda automatically sees new values - no recreation needed!\n");
 }
 
 fun main() -> void {
-    std.print.print_string("🚀 Lambda vs Traditional Performance Comparison 🚀\n");
-    std.print.print_string("==================================================\n");
+    print_string("🚀 Lambda vs Traditional Performance Comparison 🚀\n");
+    print_string("==================================================\n");
     
     traditional_approach_demo();
     lambda_approach_demo();
     
-    std.print.print_string("\n📊 Performance Analysis:\n");
-    std.print.print_string("Traditional: 104 Z80 instructions\n");
-    std.print.print_string("TRUE SMC Lambda: 89 Z80 instructions\n");
-    std.print.print_string("Improvement: 14.4% fewer instructions!\n");
-    std.print.print_string("Speedup: 1.2x performance boost\n");
+    print_string("\n📊 Performance Analysis:\n");
+    print_string("Traditional: 104 Z80 instructions\n");
+    print_string("TRUE SMC Lambda: 89 Z80 instructions\n");
+    print_string("Improvement: 14.4% fewer instructions!\n");
+    print_string("Speedup: 1.2x performance boost\n");
     
-    std.print.print_string("\n🏆 Winner: TRUE SMC Lambdas!\n");
-    std.print.print_string("Functional programming beats traditional OOP!\n");
+    print_string("\n🏆 Winner: TRUE SMC Lambdas!\n");
+    print_string("Functional programming beats traditional OOP!\n");
 }

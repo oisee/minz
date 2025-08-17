@@ -188,9 +188,9 @@ impl<W: Writer> Writer for CountingWriter<W> {
 @macro auto_buffer(writer) {
     // Analyzes usage patterns and selects optimal buffer size
     @if(platform == "zx") {
-        BufferedWriter<256>::new(writer)  // Smaller for ZX
+        BufferedWriter<256>.new(writer)  // Smaller for ZX
     } else {
-        BufferedWriter<1024>::new(writer) // Larger for CP/M
+        BufferedWriter<1024>.new(writer) // Larger for CP/M
     }
 }
 
@@ -200,13 +200,13 @@ pub fun write_formatted<W: Writer>(writer: W, format: *u8, args: ...) -> void {
     @if_const_format(format) {
         const BUFFER_SIZE = @calc_format_size(format, args);
         let mut buffer: [u8; BUFFER_SIZE];
-        let sw = StringWriter::new(&buffer, BUFFER_SIZE);
+        let sw = StringWriter.new(&buffer, BUFFER_SIZE);
         @print_to(sw, format, args);
         writer.write_bytes(sw.as_str(), sw.len());
     } else {
         // Runtime formatting with reasonable buffer
         let mut buffer: [u8; 256];
-        let sw = StringWriter::new(&buffer, 256);
+        let sw = StringWriter.new(&buffer, 256);
         @print_to(sw, format, args);
         writer.write_bytes(sw.as_str(), sw.len());
     }
@@ -241,7 +241,7 @@ pub fun read_line_fast<R: Reader>(reader: R, buffer: *u8, max_len: u16) -> u16 {
 // Example of zero-cost composition:
 // This:
 //   let buffered = auto_buffer(stdout);
-//   let counting = CountingWriter::new(buffered);
+//   let counting = CountingWriter.new(buffered);
 //   @print_to(counting, "Hello, {}!", "World");
 //   @print("Wrote {} bytes", counting.bytes_written());
 //

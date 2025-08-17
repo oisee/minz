@@ -69,7 +69,7 @@ fun test_string_operations() -> void {
     // Print the string and its length
     print_string(message);
     print_string(" has ");
-    print_u8_decimal(len);
+    print_u8(len);
     print_string(" characters");
 }
 

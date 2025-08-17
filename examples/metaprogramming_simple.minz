@@ -1,0 +1,59 @@
+// Simplified metaprogramming example that actually compiles
+
+// Constants that work
+const DEBUG: bool = true;
+const MAX_SPRITES: u8 = 16;
+const SCREEN_WIDTH: u16 = 256;
+const SCREEN_HEIGHT: u16 = 192;
+
+// Simple sprite structure
+struct Sprite {
+    x: u8,
+    y: u8,
+    active: bool
+}
+
+// Global sprite array
+global sprites: [Sprite; 16];
+
+// Function using the constants
+fun assert_sprite_valid(id: u8) -> bool {
+    if id >= MAX_SPRITES {
+        return false;
+    }
+    return true;
+}
+
+// Initialize sprites
+fun init_sprites() -> void {
+    let mut i: u8 = 0;
+    while i < MAX_SPRITES {
+        sprites[i].x = 0;
+        sprites[i].y = 0;
+        sprites[i].active = false;
+        i = i + 1;
+    }
+}
+
+// Draw a sprite
+fun draw_sprite(id: u8) -> void {
+    if assert_sprite_valid(id) {
+        let sprite = sprites[id];
+        if sprite.active {
+            // Draw at sprite.x, sprite.y
+            print_u8(sprite.x);
+            print_u8(sprite.y);
+        }
+    }
+}
+
+fun main() -> void {
+    init_sprites();
+    
+    // Activate first sprite
+    sprites[0].x = 10;
+    sprites[0].y = 20;
+    sprites[0].active = true;
+    
+    draw_sprite(0);
+}

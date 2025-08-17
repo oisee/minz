@@ -224,7 +224,7 @@ impl<const N: u16> BitSet<N> {
     fun count_ones(self) -> u16 {
         let mut count = 0;
         for byte in self.data {
-            count += bits::count_ones(byte) as u16;
+            count += bits.count_ones(byte) as u16;
         }
         count
     }
@@ -265,7 +265,7 @@ impl<const N: u16> FixedString<N> {
     }
     
     fun from_str(s: *str) -> Self {
-        let mut result = Self::new();
+        let mut result = Self.new();
         result.append_str(s);
         result
     }
@@ -302,13 +302,13 @@ impl<const N: u16> FixedString<N> {
     }
     
     fun append_str(mut self, s: *str) -> Result<void, void> {
-        let str_len = str::len(s);
+        let str_len = str.len(s);
         if self.len + str_len > N {
             return Err(void);
         }
         
         // Copy string data
-        mem::copy(&self.data[self.len], str::data(s), str_len);
+        mem.copy(&self.data[self.len], str.data(s), str_len);
         self.len += str_len;
         Ok(void)
     }

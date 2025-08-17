@@ -5,10 +5,10 @@ import std.print;
 import std.stream;
 
 // Re-export the zero-cost print macros
-pub use print::@print;
-pub use print::@println;
-pub use print::@format;
-pub use print::@debug;
+pub use print.@print;
+pub use print.@println;
+pub use print.@format;
+pub use print.@debug;
 
 // Optimized print functions that use Printable interface
 pub fun print<T: Printable>(value: T) -> void {
@@ -97,7 +97,7 @@ pub fun print_string_n(str: *u8, max_len: u16) -> void {
 
 // Compile-time string interpolation
 @macro sprintf(buffer: ptr, size: u16, format: string_literal, args...) {
-    let writer = StringWriter::new(buffer, size);
+    let writer = StringWriter.new(buffer, size);
     @print_to(writer, format, args);
     writer.as_str()
 }

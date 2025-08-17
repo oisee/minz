@@ -7,16 +7,16 @@ import std.core.*;
 trait Iterator {
     type Item;
     
-    fun next(mut self) -> Option<Self::Item>;
+    fun next(mut self) -> Option<Self.Item>;
     
     // Adapter methods with default implementations
     fun map<B, F>(self, f: F) -> Map<Self, F> 
-        where F: Fn(Self::Item) -> B {
+        where F: Fn(Self.Item) -> B {
         Map { iter: self, f: f }
     }
     
     fun filter<P>(self, predicate: P) -> Filter<Self, P>
-        where P: Fn(&Self::Item) -> bool {
+        where P: Fn(&Self.Item) -> bool {
         Filter { iter: self, predicate: predicate }
     }
     
@@ -34,7 +34,7 @@ trait Iterator {
     }
     
     fun chain<U>(self, other: U) -> Chain<Self, U>
-        where U: Iterator<Item = Self::Item> {
+        where U: Iterator<Item = Self.Item> {
         Chain { first: self, second: other, first_done: false }
     }
     
@@ -51,7 +51,7 @@ trait Iterator {
         count
     }
     
-    fun last(mut self) -> Option<Self::Item> {
+    fun last(mut self) -> Option<Self.Item> {
         let mut last = None;
         while let Some(item) = self.next() {
             last = Some(item);
@@ -59,15 +59,15 @@ trait Iterator {
         last
     }
     
-    fun nth(mut self, n: u16) -> Option<Self::Item> {
+    fun nth(mut self, n: u16) -> Option<Self.Item> {
         for _ in 0..n {
             self.next()?;
         }
         self.next()
     }
     
-    fun find<P>(mut self, predicate: P) -> Option<Self::Item>
-        where P: Fn(&Self::Item) -> bool {
+    fun find<P>(mut self, predicate: P) -> Option<Self.Item>
+        where P: Fn(&Self.Item) -> bool {
         while let Some(item) = self.next() {
             if predicate(&item) {
                 return Some(item);
@@ -77,7 +77,7 @@ trait Iterator {
     }
     
     fun position<P>(mut self, predicate: P) -> Option<u16>
-        where P: Fn(Self::Item) -> bool {
+        where P: Fn(Self.Item) -> bool {
         let mut index = 0;
         while let Some(item) = self.next() {
             if predicate(item) {
@@ -89,7 +89,7 @@ trait Iterator {
     }
     
     fun all<P>(mut self, predicate: P) -> bool
-        where P: Fn(Self::Item) -> bool {
+        where P: Fn(Self.Item) -> bool {
         while let Some(item) = self.next() {
             if !predicate(item) {
                 return false;
@@ -99,7 +99,7 @@ trait Iterator {
     }
     
     fun any<P>(mut self, predicate: P) -> bool
-        where P: Fn(Self::Item) -> bool {
+        where P: Fn(Self.Item) -> bool {
         while let Some(item) = self.next() {
             if predicate(item) {
                 return true;
@@ -109,7 +109,7 @@ trait Iterator {
     }
     
     fun for_each<F>(mut self, f: F) -> void
-        where F: FnMut(Self::Item) -> void {
+        where F: FnMut(Self.Item) -> void {
         while let Some(item) = self.next() {
             f(item);
         }
@@ -117,8 +117,8 @@ trait Iterator {
     
     // Collecting operations
     fun collect<C>(self) -> C
-        where C: FromIterator<Self::Item> {
-        C::from_iter(self)
+        where C: FromIterator<Self.Item> {
+        C.from_iter(self)
     }
 }
 
@@ -130,7 +130,7 @@ struct Map<I, F> {
 
 impl<I, F, B> Iterator for Map<I, F>
     where I: Iterator,
-          F: Fn(I::Item) -> B {
+          F: Fn(I.Item) -> B {
     type Item = B;
     
     fun next(mut self) -> Option<B> {
@@ -146,10 +146,10 @@ struct Filter<I, P> {
 
 impl<I, P> Iterator for Filter<I, P>
     where I: Iterator,
-          P: Fn(&I::Item) -> bool {
-    type Item = I::Item;
+          P: Fn(&I.Item) -> bool {
+    type Item = I.Item;
     
-    fun next(mut self) -> Option<I::Item> {
+    fun next(mut self) -> Option<I.Item> {
         while let Some(item) = self.iter.next() {
             if (self.predicate)(&item) {
                 return Some(item);
@@ -167,9 +167,9 @@ struct Take<I> {
 
 impl<I> Iterator for Take<I>
     where I: Iterator {
-    type Item = I::Item;
+    type Item = I.Item;
     
-    fun next(mut self) -> Option<I::Item> {
+    fun next(mut self) -> Option<I.Item> {
         if self.remaining == 0 {
             return None;
         }
@@ -186,9 +186,9 @@ struct Skip<I> {
 
 impl<I> Iterator for Skip<I>
     where I: Iterator {
-    type Item = I::Item;
+    type Item = I.Item;
     
-    fun next(mut self) -> Option<I::Item> {
+    fun next(mut self) -> Option<I.Item> {
         while self.remaining > 0 {
             self.iter.next()?;
             self.remaining -= 1;
@@ -206,9 +206,9 @@ struct Zip<A, B> {
 impl<A, B> Iterator for Zip<A, B>
     where A: Iterator,
           B: Iterator {
-    type Item = (A::Item, B::Item);
+    type Item = (A.Item, B.Item);
     
-    fun next(mut self) -> Option<(A::Item, B::Item)> {
+    fun next(mut self) -> Option<(A.Item, B.Item)> {
         match (self.a.next(), self.b.next()) {
             (Some(a), Some(b)) => Some((a, b)),
             _ => None
@@ -225,10 +225,10 @@ struct Chain<A, B> {
 
 impl<A, B> Iterator for Chain<A, B>
     where A: Iterator,
-          B: Iterator<Item = A::Item> {
-    type Item = A::Item;
+          B: Iterator<Item = A.Item> {
+    type Item = A.Item;
     
-    fun next(mut self) -> Option<A::Item> {
+    fun next(mut self) -> Option<A.Item> {
         if !self.first_done {
             match self.first.next() {
                 Some(item) => return Some(item),
@@ -247,9 +247,9 @@ struct Enumerate<I> {
 
 impl<I> Iterator for Enumerate<I>
     where I: Iterator {
-    type Item = (u16, I::Item);
+    type Item = (u16, I.Item);
     
-    fun next(mut self) -> Option<(u16, I::Item)> {
+    fun next(mut self) -> Option<(u16, I.Item)> {
         let item = self.iter.next()?;
         let index = self.count;
         self.count += 1;
@@ -362,9 +362,9 @@ struct Cycle<I> {
 
 impl<I: Clone> Iterator for Cycle<I>
     where I: Iterator {
-    type Item = I::Item;
+    type Item = I.Item;
     
-    fun next(mut self) -> Option<I::Item> {
+    fun next(mut self) -> Option<I.Item> {
         match self.iter.next() {
             Some(item) => Some(item),
             None => {

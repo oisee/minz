@@ -1,16 +1,2 @@
-enum Color {
-    RED,
-    GREEN,
-    BLUE
-}
-
-fun test_enum() -> void {
-    let c: Color = RED;
-    if (c == RED) {
-        print_u8(1);
-    }
-}
-
-fun main() -> void {
-    test_enum();
-}
+enum State { IDLE, RUNNING }
+fun main() -> void { let s = State.IDLE; }

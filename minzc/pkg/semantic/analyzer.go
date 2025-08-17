@@ -5719,6 +5719,35 @@ func (a *Analyzer) evaluateConstantExpression(expr ast.Expression) (interface{},
 		}
 		
 		return a.evaluateConstantUnaryOp(e.Operator, operand)
+	case *ast.CompileTimeIf:
+		// Evaluate @if at compile time
+		conditionValue, err := a.evaluateConstantExpression(e.Condition)
+		if err != nil {
+			return nil, fmt.Errorf("@if condition must be constant: %w", err)
+		}
+		
+		// Check if condition is true
+		var isTrue bool
+		switch v := conditionValue.(type) {
+		case int64:
+			isTrue = v != 0
+		case bool:
+			isTrue = v
+		case string:
+			isTrue = v != ""
+		default:
+			return nil, fmt.Errorf("@if condition must evaluate to boolean, number, or string, got %T", conditionValue)
+		}
+		
+		// Choose and evaluate the appropriate branch
+		if isTrue {
+			return a.evaluateConstantExpression(e.ThenExpr)
+		} else if e.ElseExpr != nil {
+			return a.evaluateConstantExpression(e.ElseExpr)
+		} else {
+			// No else branch and condition is false - return 0
+			return int64(0), nil
+		}
 	default:
 		return nil, fmt.Errorf("expression type %T cannot be evaluated at compile time", expr)
 	}
@@ -6534,9 +6563,63 @@ func (a *Analyzer) evaluateConstExpr(expr ast.Expression) (interface{}, error) {
 			return lInt << uint(rInt), nil
 		case ">>":
 			return lInt >> uint(rInt), nil
+		case ">":
+			return lInt > rInt, nil
+		case ">=":
+			return lInt >= rInt, nil
+		case "<":
+			return lInt < rInt, nil
+		case "<=":
+			return lInt <= rInt, nil
+		case "==":
+			return lInt == rInt, nil
+		case "!=":
+			return lInt != rInt, nil
+		}
+		
+		// Try boolean operations
+		if e.Operator == "&&" || e.Operator == "||" || e.Operator == "and" || e.Operator == "or" {
+			lBool := a.isTruthy(left)
+			rBool := a.isTruthy(right)
+			if e.Operator == "&&" || e.Operator == "and" {
+				return lBool && rBool, nil
+			} else {
+				return lBool || rBool, nil
+			}
 		}
 		
 		return nil, fmt.Errorf("cannot evaluate binary operator %s on constants", e.Operator)
+	case *ast.CompileTimeIf:
+		// Evaluate @if at compile time
+		conditionValue, err := a.evaluateConstExpr(e.Condition)
+		if err != nil {
+			return nil, fmt.Errorf("@if condition must be constant: %w", err)
+		}
+		
+		// Check if condition is true
+		var isTrue bool
+		switch v := conditionValue.(type) {
+		case int64:
+			isTrue = v != 0
+		case int:
+			isTrue = v != 0
+		case bool:
+			isTrue = v
+		case string:
+			isTrue = v != ""
+		default:
+			return nil, fmt.Errorf("@if condition must evaluate to boolean, number, or string, got %T", conditionValue)
+		}
+		
+		// Choose and evaluate the appropriate branch
+		if isTrue {
+			return a.evaluateConstExpr(e.ThenExpr)
+		} else if e.ElseExpr != nil {
+			return a.evaluateConstExpr(e.ElseExpr)
+		} else {
+			// No else branch and condition is false - return 0
+			return int64(0), nil
+		}
 	case *ast.Identifier:
 		// Look up constant value
 		sym := a.currentScope.Lookup(e.Name)
@@ -6979,6 +7062,12 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		// Check if it's an array type
 		if arrType, ok := arrayType.(*ir.ArrayType); ok {
 			return arrType.Element, nil
+		}
+		
+		// Check if it's a pointer type (for pointer indexing like ptr[i])
+		if ptrType, ok := arrayType.(*ir.PointerType); ok {
+			// For pointers, return the base type they point to
+			return ptrType.Base, nil
 		}
 		
 		return nil, fmt.Errorf("cannot index non-array type %s", arrayType.String())
