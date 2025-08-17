@@ -1,0 +1,10 @@
+    ORG $8000
+    
+    ; Test different RST formats
+    RST 0       ; Should be C7
+    RST 8       ; Should be CF  
+    RST 16      ; Should be D7 (RST $10)
+    RST 24      ; Should be DF (RST $18)
+    
+    HALT
+    END

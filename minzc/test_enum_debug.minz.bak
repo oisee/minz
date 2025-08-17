@@ -1,0 +1,14 @@
+enum State {
+    IDLE,
+    RUNNING
+}
+
+fun main() -> void {
+    // Test with dot syntax first
+    let s1 = State.IDLE;
+    print_u8(s1 as u8);
+    
+    // Test with :: syntax  
+    let s2 = State::RUNNING;
+    print_u8(s2 as u8);
+}

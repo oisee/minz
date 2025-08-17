@@ -1,0 +1,22 @@
+; Simple test of byte operations
+    ORG $8000
+
+; Test constants
+VAL1 EQU $1234
+VAL2 EQU $ABCD
+
+; Basic tests
+test:
+    LD A, VAL1^H    ; Should be $12
+    LD B, VAL1^L    ; Should be $34
+    LD C, VAL2^H    ; Should be $AB  
+    LD D, VAL2^L    ; Should be $CD
+    
+; Test with expressions
+ADDR EQU $8000
+test2:
+    LD A, ADDR+100^H   ; ADDR + (100^H) = $8000 + $00 = $8000, then ^H = $80
+    LD B, 100^H        ; Just 100^H = $00
+    LD C, ADDR^H       ; Just ADDR^H = $80
+    
+    END

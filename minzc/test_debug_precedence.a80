@@ -1,0 +1,17 @@
+; Debug the precedence issue
+    ORG $8000
+
+BASE EQU $1234
+OFFSET EQU $100
+
+; Step by step
+test:
+    LD A, OFFSET^H      ; $100^H = $01
+    LD B, BASE          ; $1234 & $FF = $34 (truncated to 8-bit)
+    LD C, BASE+1        ; ($1234 + 1) & $FF = $35
+    
+; The expression in question  
+debug:
+    LD A, BASE+OFFSET^H ; BASE + (OFFSET^H) = $1234 + $01 = $1235, truncated to $35
+    
+    END

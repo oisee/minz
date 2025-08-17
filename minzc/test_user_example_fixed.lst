@@ -1,0 +1,5 @@
+MinZ Z80 Assembler Listing
+==========================
+
+8000  3E 0C        LD A, 12 ; Some instruction at this address
+8000  06 22        LD B, 34 ; Code at aligned address

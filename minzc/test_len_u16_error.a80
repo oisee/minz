@@ -1,0 +1,7 @@
+; Test that @len_u16 fails with DB
+    ORG $8000
+
+bad_usage:
+    DB @len_u16, "This should fail"  ; @len_u16 produces 2 bytes, can't use with DB
+    
+    END

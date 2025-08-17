@@ -1,0 +1,15 @@
+; Simple CP/M Hello World
+    ORG $0100
+
+start:
+    LD DE, message      ; String pointer
+    LD C, 9             ; BDOS function 9: print string
+    CALL $0005          ; BDOS call
+    
+    LD C, 0             ; BDOS function 0: terminate
+    CALL $0005          ; BDOS call
+
+message:
+    DB "Hello CP/M!", 13, 10, "$"
+    
+    END

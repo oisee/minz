@@ -406,13 +406,8 @@ func encodeLDMemory(a *Assembler, dest, src string) ([]byte, error) {
 
 // resolveValue resolves an operand to a numeric value
 func (a *Assembler) resolveValue(operand string) (uint16, error) {
-	// Try to parse as number first
-	if val, err := parseNumber(operand); err == nil {
-		return val, nil
-	}
-	
-	// Try to resolve as symbol
-	return a.resolveSymbol(operand)
+	// Use the expression evaluator which handles numbers, symbols, and arithmetic
+	return a.EvaluateExpression(operand)
 }
 
 // Undocumented instruction encoders

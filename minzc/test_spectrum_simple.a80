@@ -1,0 +1,29 @@
+; Simple ZX Spectrum RST test without LDIR
+    ORG $8000
+
+start:
+    ; Test RST $10 (print character)
+    LD A, 'H'
+    RST $10
+    
+    LD A, 'e'
+    RST $10
+    
+    LD A, 'l'
+    RST $10
+    
+    LD A, 'l'
+    RST $10
+    
+    LD A, 'o'
+    RST $10
+    
+    LD A, '!'
+    RST $10
+    
+    LD A, 13  ; CR
+    RST $10
+    
+    HALT
+    
+    END

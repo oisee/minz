@@ -1,0 +1,28 @@
+; Test @len macro for length-prefixed strings
+    ORG $8000
+
+; Simple length-prefixed string
+msg1:
+    DB @len, "Hello"           ; Should be: 05 48 65 6C 6C 6F
+    
+; Length-prefixed with multiple parts
+msg2:
+    DB @len, "Hello", " ", "World"  ; Should be: 0B (11 bytes total)
+    
+; Using @count to count items
+items:
+    DB @count, 10, 20, 30, 40  ; Should be: 04 0A 14 1E 28
+    
+; Mixed content
+mixed:
+    DB @len, "A", 65, "B"      ; Should be: 03 41 41 42
+    
+; 16-bit length for data
+numbers:
+    DW @count_u16, 100, 200, 300, 400, 500  ; Should be: 05 00 (5 items)
+    
+; Using @size (alias for @len)
+msg3:
+    DB @size, "Test"           ; Should be: 04 54 65 73 74
+    
+    END

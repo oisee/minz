@@ -109,7 +109,7 @@ function generate_draw_circle(radius)
     
     -- Generate optimized unrolled loop
     for i, p in ipairs(points) do
-        code = code .. string.format("    screen.set_pixel(cx + %d, cy + %d);\n", p.x, p.y)
+        code = code .. string.format("    set_pixel(cx + %d, cy + %d);\n", p.x, p.y)
     end
     
     code = code .. "}\n"
@@ -125,7 +125,7 @@ end
 // Demo program
 fun main() -> void {
     // Clear screen
-    screen.clear(screen.BLACK, screen.BLUE, true, false);
+    clear_screen(screen.BLACK, screen.BLUE, true, false);
     
     // Draw rotating circles
     let mut angle: u8 = 0;
@@ -148,7 +148,7 @@ fun main() -> void {
         delay(1000);
         
         // Clear for next frame (simple animation)
-        screen.clear(screen.BLACK, screen.BLUE, true, false);
+        clear_screen(screen.BLACK, screen.BLUE, true, false);
         
         // Exit on Q
         if input.is_key_pressed(input.KEY_Q) {

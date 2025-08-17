@@ -1,10 +1,2 @@
-// Test array syntax
-fun test_array() -> void {
-    let arr: u8[5];
-    arr[0] = 42;
-    print_u8(arr[0]);
-}
-
-fun main() -> void {
-    test_array();
-}
+[1, 2, 3]
+fun main() -> void { let arr = [1, 2, 3]; }

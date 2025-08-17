@@ -1,0 +1,2 @@
+enum State { IDLE, RUNNING }
+fun main() -> void { let s = State::IDLE; }

@@ -1,0 +1,27 @@
+; Test operator precedence with ^H and ^L
+    ORG $8000
+
+BASE EQU $1234
+OFFSET EQU $100
+
+; Test precedence - does BASE+OFFSET^H mean (BASE+OFFSET)^H or BASE+(OFFSET^H)?
+test1:
+    LD A, BASE+OFFSET^H    ; Should be BASE + (OFFSET^H) = $1234 + $01 = $1235
+    
+; Better - explicit operations
+test2:
+    LD B, OFFSET^H         ; $01
+    LD C, BASE+1           ; $1235
+    
+; Test with constants
+LARGE EQU $ABCD
+test3:
+    LD D, LARGE^H          ; Should be $AB
+    LD E, LARGE^L          ; Should be $CD
+    
+; Test arithmetic with byte ops
+test4:
+    LD A, LARGE^H+1        ; $AB + 1 = $AC
+    LD B, LARGE^L-1        ; $CD - 1 = $CC
+    
+    END

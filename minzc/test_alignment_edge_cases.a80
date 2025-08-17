@@ -1,0 +1,23 @@
+; Test edge cases for address alignment operator ^^
+    ORG $8000
+
+; Edge case tests
+ALREADY_ALIGNED EQU $1200     ; Already aligned - should stay $1200
+NEEDS_ALIGN EQU $12FF         ; Should become $1300  
+ZERO_VAL EQU $0000            ; Should stay $0000
+ONE_BYTE EQU $0001            ; Should become $0100
+
+test_edges:
+    ; Test already aligned address
+    LD A, ALREADY_ALIGNED^^    ; Should be $1200 (no change)
+    
+    ; Test address needing alignment  
+    LD B, NEEDS_ALIGN^^        ; Should be $1300
+    
+    ; Test zero
+    LD C, ZERO_VAL^^           ; Should be $0000
+    
+    ; Test small value
+    LD D, ONE_BYTE^^           ; Should be $0100
+    
+    END

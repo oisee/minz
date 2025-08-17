@@ -1,14 +1,14 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
-Function ...test_enum_access.test() -> void
+Function test_enum_access.main() -> void
   @smc
   Locals:
-    r1 = state: u16
+    r1 = s: u16
   Instructions:
       0: r2 = 0
-      1: store state, r2
-      2: r3 = load state
+      1: store s, r2
+      2: r3 = load s
       3: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
       4: return
 

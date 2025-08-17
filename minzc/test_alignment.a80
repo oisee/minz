@@ -1,0 +1,46 @@
+; Test address alignment operator ^^
+    ORG $8000
+
+; Test cases from user example
+address EQU $1234
+aligned_address EQU address^^   ; Should be $1300
+
+; More alignment tests
+VAL1 EQU $1200
+VAL2 EQU $12FF
+VAL3 EQU $1250
+
+test_alignment:
+    ; Test the alignment results
+    LD A, address^^        ; $1234 -> $1300
+    LD B, VAL1^^           ; $1200 -> $1200 (already aligned)
+    LD C, VAL2^^           ; $12FF -> $1300
+    LD D, VAL3^^           ; $1250 -> $1300
+    
+; Test with expressions
+BASE EQU $1000
+test_expr:
+    LD A, BASE+$34^^       ; (BASE+$34)^^ = $1034^^ = $1100
+    LD B, BASE+$200^^      ; $1200^^ = $1200
+    
+; Real-world usage - align data to page boundary
+data_start EQU $1234
+aligned_data EQU data_start^^
+
+    ORG aligned_data       ; Jump to aligned address ($1300)
+buffer:
+    DS 256                 ; Full page buffer
+    
+; Test edge cases
+ZERO EQU $0000
+EDGE1 EQU $00FF
+EDGE2 EQU $FF00
+EDGE3 EQU $FFFF
+
+edge_tests:
+    LD A, ZERO^^           ; $0000 -> $0000
+    LD B, EDGE1^^          ; $00FF -> $0100
+    LD C, EDGE2^^          ; $FF00 -> $FF00
+    LD D, EDGE3^^          ; $FFFF -> $0000 (wraps around)
+    
+    END

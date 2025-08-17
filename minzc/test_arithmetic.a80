@@ -1,0 +1,29 @@
+; Test arithmetic expressions in assembler
+    ORG $8000
+    
+    ; Simple addition
+    LD A, 10+5       ; Should be 15
+    
+    ; Label arithmetic
+start:
+    LD HL, start+10  ; Address of start + 10
+    
+    ; Constants
+BUFFER_SIZE EQU 256
+    LD BC, BUFFER_SIZE+1  ; 257
+    
+    ; Expression in data
+    DB 5+3           ; Should be 8
+    
+    ; Buffer with offset
+buffer:
+    DB 20
+buffer_count:
+    DB 0
+    
+    ; Reference with simple offset
+    LD HL, buffer
+    INC HL          ; Point to buffer_count
+    LD A, (HL)
+    
+    END

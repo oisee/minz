@@ -1,0 +1,29 @@
+; Test ZX Spectrum RST calls
+    ORG $8000
+
+start:
+    ; Test RST $10 (print character)
+    LD A, 'H'
+    RST $10
+    
+    LD A, 'i'
+    RST $10
+    
+    LD A, '!'
+    RST $10
+    
+    LD A, 13  ; CR
+    RST $10
+    
+    ; Test other important instructions for Spectrum
+    LD HL, message
+    LD DE, $4000  ; Screen memory
+    LD BC, 13     ; Length
+    LDIR          ; Block copy
+    
+    HALT
+
+message:
+    DB "Hello World!", 13
+    
+    END

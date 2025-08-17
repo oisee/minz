@@ -1,0 +1,27 @@
+; Test current address symbol $
+    ORG $8000
+
+start:
+    LD A, 10                      ; At $8000
+    
+; Test current address
+current_test:
+    LD B, $                       ; Should be current address ($8002)
+    LD C, $^H                     ; High byte of current address ($80)
+    LD D, $^L                     ; Low byte of current address ($04)
+    
+; Test alignment with current address
+aligned_current EQU $^^           ; Align current address to next page
+    ORG aligned_current           ; Jump to aligned address
+    
+aligned_code:
+    LD E, $                       ; Should be at aligned address
+    LD H, $^H                     ; High byte of aligned address
+    LD L, $^L                     ; Low byte (should be $00)
+    
+; Test relative addressing
+loop:
+    JR loop                       ; Should be JR $-2 or similar
+    JP $                          ; Jump to current address (infinite loop)
+    
+    END

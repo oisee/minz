@@ -1,0 +1,8 @@
+fun render<T>(shape: T) -> void {
+    // Generic function
+    print_u8(42);
+}
+
+fun main() -> void {
+    render(10);  // Should work with u8
+}

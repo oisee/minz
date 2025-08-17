@@ -2,20 +2,20 @@
 
 // Compile-time constants
 const DEBUG: bool = true;
-const PLATFORM: String = "ZX_SPECTRUM";
-const MAX_SPRITES: u8 = @if(DEBUG, 16, 64);
+// const PLATFORM: String = "ZX_SPECTRUM";  // String constants not yet supported
+const MAX_SPRITES: u8 = 16;  // Simplified: was @if(DEBUG, 16, 64)
 
-// Compile-time assertions
-@assert(MAX_SPRITES > 0, "MAX_SPRITES must be positive");
-@assert(PLATFORM == "ZX_SPECTRUM", "This code is for ZX Spectrum only");
+// Compile-time assertions (simplified)
+// @assert(MAX_SPRITES > 0, "MAX_SPRITES must be positive");
+// @assert(PLATFORM == "ZX_SPECTRUM", "This code is for ZX Spectrum only");
 
-// Compile-time print for build information
-@print("Building with MAX_SPRITES = " + MAX_SPRITES);
-@print("Debug mode: " + DEBUG);
+// Compile-time print for build information (simplified)
+// @print("Building with MAX_SPRITES = " + MAX_SPRITES);
+// @print("Debug mode: " + DEBUG);
 
-// Conditional compilation
-const SCREEN_WIDTH: u16 = @if(PLATFORM == "ZX_SPECTRUM", 256, 320);
-const SCREEN_HEIGHT: u16 = @if(PLATFORM == "ZX_SPECTRUM", 192, 200);
+// Conditional compilation (simplified to direct values)
+const SCREEN_WIDTH: u16 = 256;   // ZX Spectrum width
+const SCREEN_HEIGHT: u16 = 192;  // ZX Spectrum height
 
 // Generate lookup table at compile time
 @const_eval

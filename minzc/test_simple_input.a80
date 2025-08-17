@@ -1,0 +1,35 @@
+; Simple ZX Spectrum input test
+    ORG $8000
+    
+    ; Print prompt
+    LD A, '>'
+    RST $10
+    LD A, ' '
+    RST $10
+    
+    ; Read one character
+    RST $18        ; Read character into A
+    
+    ; Echo it back
+    RST $10        ; Print it
+    
+    ; Print newline
+    LD A, 13
+    RST $10
+    
+    ; Print "Done"
+    LD A, 'D'
+    RST $10
+    LD A, 'o'
+    RST $10
+    LD A, 'n'
+    RST $10
+    LD A, 'e'
+    RST $10
+    LD A, 13
+    RST $10
+    
+    DI
+    HALT
+    
+    END

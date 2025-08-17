@@ -301,15 +301,8 @@ var jpInstructions = []InstructionPattern{
 	{Mnemonic: "RETI", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0x4D}},
 	{Mnemonic: "RETN", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0x45}},
 	
-	// RST instructions
-	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "0"}}, Encoding: []byte{0xC7}},
-	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "8"}}, Encoding: []byte{0xCF}},
-	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "10"}}, Encoding: []byte{0xD7}},
-	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "18"}}, Encoding: []byte{0xDF}},
-	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "20"}}, Encoding: []byte{0xE7}},
-	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "28"}}, Encoding: []byte{0xEF}},
-	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "30"}}, Encoding: []byte{0xF7}},
-	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, "38"}}, Encoding: []byte{0xFF}},
+	// RST instructions - use custom encoding function to handle any number base
+	{Mnemonic: "RST", Operands: []OperandPattern{{OpTypeImm8, ""}}, EncodingFunc: encodeRST},
 	
 	// I/O instructions
 	{Mnemonic: "IN", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeIndImm, ""}}, EncodingFunc: encodeIN},
@@ -329,6 +322,41 @@ var jpInstructions = []InstructionPattern{
 	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "E"}}, Encoding: []byte{0xED, 0x59}},
 	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "H"}}, Encoding: []byte{0xED, 0x61}},
 	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "L"}}, Encoding: []byte{0xED, 0x69}},
+}
+
+func encodeRST(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	// RST n format - n must be 0, 8, 16, 24, 32, 40, 48, or 56
+	// These map to opcodes C7, CF, D7, DF, E7, EF, F7, FF
+	
+	// Find the vector value
+	var vector uint16
+	found := false
+	for _, v := range values {
+		switch val := v.(type) {
+		case uint8:
+			vector = uint16(val)
+			found = true
+		case uint16:
+			vector = val
+			found = true
+		}
+	}
+	
+	if !found {
+		return nil, fmt.Errorf("RST requires a vector operand")
+	}
+	
+	// Map vector to opcode
+	validVectors := map[uint16]byte{
+		0x00: 0xC7, 0x08: 0xCF, 0x10: 0xD7, 0x18: 0xDF,
+		0x20: 0xE7, 0x28: 0xEF, 0x30: 0xF7, 0x38: 0xFF,
+	}
+	
+	if opcode, ok := validVectors[vector]; ok {
+		return []byte{opcode}, nil
+	}
+	
+	return nil, fmt.Errorf("invalid RST vector: %d ($%02X) - valid vectors are 0, 8, 16 ($10), 24 ($18), 32 ($20), 40 ($28), 48 ($30), 56 ($38)", vector, vector)
 }
 
 func encodeIN(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {

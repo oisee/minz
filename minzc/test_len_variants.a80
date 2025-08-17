@@ -1,0 +1,28 @@
+; Test @len_u8 and @len_u16 variants
+    ORG $8000
+
+; Using explicit @len_u8 (same as @len)
+msg1:
+    DB @len_u8, "Hello"         ; 05 48 65 6C 6C 6F
+    
+; Using @len as alias for @len_u8
+msg2:
+    DB @len, "World"            ; 05 57 6F 72 6C 64
+    
+; 16-bit length in DW context (note: DW needs the data in same statement!)
+big_msg:
+    DB @len, "This is a much longer message that could exceed 255 bytes"
+    
+; Test @count variants
+items:
+    DB @count_u8, 1, 2, 3, 4, 5  ; 05 01 02 03 04 05
+    
+; 16-bit count in DW
+many_items:
+    DW @count_u16, 100, 200, 300  ; 03 00 64 00 C8 00 2C 01
+    
+; Test that @len_u16 fails with DB (should error)
+; bad_usage:
+;     DB @len_u16, "test"       ; Should error: @len_u16 needs DW
+    
+    END

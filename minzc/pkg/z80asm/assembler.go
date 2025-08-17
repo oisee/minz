@@ -442,14 +442,19 @@ func (a *Assembler) processLine(line *Line) error {
 		return nil
 	}
 	
-	// Handle label
+	// Handle directive first if it's EQU (label is handled by EQU itself)
+	if line.Directive == "EQU" {
+		return a.processDirective(line)
+	}
+	
+	// Handle label for non-EQU lines
 	if line.Label != "" {
 		if err := a.defineLabel(line.Label); err != nil {
 			return err
 		}
 	}
 	
-	// Handle directive
+	// Handle other directives
 	if line.Directive != "" {
 		return a.processDirective(line)
 	}

@@ -1,0 +1,235 @@
+; MinZ generated code
+; Generated: 2025-08-17 04:05:52
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_array_literal.main
+array_literal_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = 1
+    LD A, 1
+    ; Register 3 already in A
+    ; r4 = 2
+    LD A, 2
+    LD B, A         ; Store to physical register B
+    ; r5 = 3
+    LD A, 3
+    LD C, A         ; Store to physical register C
+    ; Array initializer with 3 elements
+    ; Initialize array with 3 elements
+    ; Array allocated at $F004
+    LD HL, $F004
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; Initialize array[0]
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL        ; Save array base
+    LD DE, 0
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    ; Register 3 already in A
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; Initialize array[1]
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL        ; Save array base
+    LD DE, 1
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    LD A, B
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; Initialize array[2]
+    LD HL, ($F004)    ; Virtual register 2 from memory
+    PUSH HL        ; Save array base
+    LD DE, 2
+    ADD HL, DE     ; Calculate element address
+    PUSH HL        ; Save element address
+    LD A, C
+    POP HL         ; Restore element address
+    LD (HL), A
+    POP HL         ; Restore array base
+    PUSH HL        ; Save field address
+    LD A, ($F000)     ; Virtual register 0 from memory
+    POP HL         ; Restore field address
+    LD (HL), A
+    ; r6 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; Load array arr base address
+    LD HL, ($F002)
+    LD D, H
+    LD E, L
+    ; Store element 0
+    PUSH HL
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD (HL), 0    ; TODO: Need value source
+    ; r8 = 2
+    LD A, 2
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; Load array arr base address
+    LD HL, ($F002)
+    LD B, H
+    LD C, L
+    ; r10 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD L, A         ; Store to shadow HL' (now active)
+    EXX               ; Switch back to main registers
+    ; r11 = r9 + r10
+    LD H, B
+    LD L, C
+    LD D, H
+    LD E, L
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    ADD HL, DE
+    ; Store element 1
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD ($0000), A
+    ; r12 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; Load array arr base address
+    LD HL, ($F002)
+    ; r14 = 2
+    LD A, 2
+    LD L, A         ; Store to HL (low byte)
+    ; r15 = r13 + r14
+    LD D, H
+    LD E, L
+    ; Register 14 already in HL
+    ADD HL, DE
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; Store element 2
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    LD ($0000), A
+    ; r16 = load arr
+    LD HL, ($F002)
+    LD ($F020), HL    ; Virtual register 16 to memory
+    ; r17 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F020)    ; Virtual register 16 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r19 = load arr
+    LD HL, ($F002)
+    LD ($F026), HL    ; Virtual register 19 to memory
+    ; r20 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F026)    ; Virtual register 19 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r22 = load arr
+    LD HL, ($F002)
+    ; Register 22 already in HL
+    ; r23 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    ; Register 22 already in HL
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

@@ -1,0 +1,7 @@
+MinZ Z80 Assembler Listing
+==========================
+
+8000  3E 34        LD A, address ; $34 (low byte of $1234)
+8002  06 00        LD B, aligned_address ; $00 (low byte of $1300)
+8004  0E 12        LD C, address^H ; $12 (high byte of $1234)
+8006  16 13        LD D, aligned_address^H ; $13 (high byte of $1300)

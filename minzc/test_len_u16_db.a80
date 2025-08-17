@@ -1,0 +1,34 @@
+; Test @len_u16 with DB directive
+    ORG $8000
+
+; Using @len_u16 with DB - emits 2 bytes (little-endian)
+msg_with_16bit_len:
+    DB @len_u16, "Hello, World!"  ; Should be: 0D 00 48 65 6C 6C 6F 2C 20 57 6F 72 6C 64 21
+    
+; Larger string to show 16-bit is useful
+big_msg:
+    DB @len_u16
+    DB "This is a much longer message that could potentially be longer than 255 bytes. "
+    DB "In real programs, we might have very long strings for help text, "
+    DB "error messages, or data tables that exceed the 8-bit limit."
+    ; Note: @len_u16 only counts what's on the same line!
+    
+; Count with 16-bit
+items:
+    DB @count_u16, 1, 2, 3, 4, 5  ; Should be: 05 00 01 02 03 04 05
+    
+; Compare with DW version (should produce same bytes for the length)
+msg2:
+    DW @len_u16                 ; 16-bit length as word
+    DB "Test"                   ; Separate line, so length is 0
+    
+; DW with numeric values
+values:
+    DW @count_u16, 100, 200, 300  ; 03 00 64 00 C8 00 2C 01
+    
+; Mixed usage showing flexibility
+data:
+    DB @len_u8, "Short"         ; 05 53 68 6F 72 74
+    DB @len_u16, "Also short"   ; 0A 00 41 6C 73 6F 20 73 68 6F 72 74
+    
+    END

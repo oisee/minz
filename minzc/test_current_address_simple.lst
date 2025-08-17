@@ -1,0 +1,12 @@
+MinZ Z80 Assembler Listing
+==========================
+
+8000  3E 0A        LD A, 10 ; $8000
+8002  3D           DEC A ; $8002
+8003  20 FD        JR NZ, loop ; $8003: should jump back to $8002
+8005  06 05        LD B, $-start ; Should be $8005 - $8000 = $05
+8007  16 80        LD D, $^H ; High byte of current address ($80)
+8009  09 80        DW $ ; Should be $8009 (current address as 16-bit word)
+800B  80 0B        DB $^H, $^L ; Should be $80, $0D (high/low bytes)
+8100  1E 81        LD E, $^H ; High byte of aligned address
+8102  26 02        LD H, $^L ; Low byte of aligned address (should be $00)

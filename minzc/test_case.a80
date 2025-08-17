@@ -1,0 +1,9 @@
+; MinZ generated code
+; Generated: 2025-08-17 03:35:01
+
+
+; Code section
+    ORG $8000
+
+
+    END main

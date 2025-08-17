@@ -1,0 +1,36 @@
+// Test all our new fixes together
+
+// 1. @if compile-time conditional
+const DEBUG: bool = true;
+const MAX_VALUE: u8 = @if(DEBUG, 16, 64);
+
+// 2. Pointer indexing
+fun test_pointer_ops() -> void {
+    let buffer: [u8; 10];
+    let ptr: *u8 = &buffer[0];
+    
+    // This should work now!
+    ptr[0] = 65;
+    ptr[1] = 66;
+    
+    print_u8(ptr[0]);  // Should print 65 ('A')
+    print_u8(ptr[1]);  // Should print 66 ('B')
+}
+
+// 3. Enum access with . notation
+enum State {
+    IDLE,
+    RUNNING,
+    STOPPED
+}
+
+fun test_enums() -> void {
+    let s = State.RUNNING;  // Should work!
+    print_u8(s as u8);      // Should print 1
+}
+
+fun main() -> void {
+    print_u8(MAX_VALUE);    // Should print 16 (DEBUG is true)
+    test_pointer_ops();
+    test_enums();
+}

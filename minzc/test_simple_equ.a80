@@ -1,0 +1,7 @@
+; Test simple EQU
+    ORG $8000
+
+MYVAL EQU 42
+    LD A, MYVAL
+    
+    END

@@ -1,0 +1,123 @@
+; Z80 Opcode Test Program
+    ORG $8000
+    
+    ; Start
+    NOP
+    
+    ; 16-bit loads
+    LD BC, $1234
+    LD DE, $5678
+    LD HL, $9ABC
+    LD SP, $DEF0
+    
+    ; 8-bit loads
+    LD B, $42
+    LD C, $84
+    LD D, $21
+    LD E, $63
+    LD H, $A5
+    LD L, $5A
+    LD A, $7F
+    
+    ; Memory operations
+    LD (BC), A
+    LD (DE), A
+    LD ($8000), HL
+    LD ($8002), A
+    LD A, (BC)
+    LD A, (DE)
+    LD HL, ($8000)
+    LD A, ($8002)
+    
+    ; Arithmetic
+    ADD A, $11
+    SUB $22
+    AND $33
+    OR $44
+    XOR $55
+    CP $66
+    
+    ; Inc/Dec 16-bit
+    INC BC
+    INC DE
+    INC HL
+    INC SP
+    DEC BC
+    DEC DE
+    DEC HL
+    DEC SP
+    
+    ; Inc/Dec 8-bit
+    INC B
+    INC C
+    INC D
+    INC E
+    INC H
+    INC L
+    INC A
+    DEC B
+    DEC C
+    DEC D
+    DEC E
+    DEC H
+    DEC L
+    DEC A
+    
+    ; Jumps
+    JR skip1
+skip1:
+    NOP
+    NOP
+    JR NZ, skip2
+skip2:
+    NOP
+    JR Z, skip3
+skip3:
+    NOP
+    JR NC, skip4
+skip4:
+    NOP
+    JR C, skip5
+skip5:
+    NOP
+    
+    ; Stack
+    PUSH BC
+    PUSH DE
+    PUSH HL
+    PUSH AF
+    POP AF
+    POP HL
+    POP DE
+    POP BC
+    
+    ; Rotates
+    RLCA
+    RRCA
+    RLA
+    RRA
+    
+    ; Misc
+    DAA
+    CPL
+    SCF
+    CCF
+    
+    ; Exchange
+    EX DE, HL
+    EX (SP), HL
+    EX AF, AF'
+    EXX
+    
+    ; I/O
+    IN A, ($FE)
+    OUT ($FE), A
+    
+    ; Interrupts
+    DI
+    EI
+    
+    ; End
+    HALT
+    
+    END

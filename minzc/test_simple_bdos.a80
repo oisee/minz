@@ -1,0 +1,12 @@
+; Simple BDOS test
+    ORG $0100
+
+start:
+    LD E, 'H'           ; Character to output  
+    LD C, 2             ; BDOS function 2: console output
+    CALL $0005          ; BDOS call
+    
+    LD C, 0             ; BDOS function 0: terminate
+    CALL $0005          ; BDOS call
+
+    END

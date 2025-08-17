@@ -1,0 +1,9 @@
+MinZ Z80 Assembler Listing
+==========================
+
+8000  3E 0A        LD A, 10 ; At $8000
+8002  06 14        LD B, 20 ; At $8002
+8004  3E 04        LD A, current_addr ; Load current address (truncated to 8-bit)
+8006  06 80        LD B, current_high ; Load high byte
+8008  0E 04        LD C, current_low ; Load low byte
+8100  16 63        LD D, 99 ; Should be at aligned address

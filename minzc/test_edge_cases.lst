@@ -1,0 +1,7 @@
+MinZ Z80 Assembler Listing
+==========================
+
+8000  3E 00        LD A, ALREADY_ALIGNED^^ ; Should be $1200 (no change)
+8002  06 00        LD B, NEEDS_ALIGN^^ ; Should be $1300
+8004  0E 00        LD C, ZERO_VAL^^ ; Should be $0000
+8006  16 00        LD D, ONE_BYTE^^ ; Should be $0100

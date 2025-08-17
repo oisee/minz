@@ -1,0 +1,13 @@
+enum State {
+    IDLE,
+    RUNNING,
+    STOPPED
+}
+
+fun main() -> void {
+    // This should work: State::IDLE
+    let s = State::IDLE;
+    
+    // Print the value
+    print_u8(s as u8);
+}

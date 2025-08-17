@@ -1,0 +1,21 @@
+; ZX Spectrum test with proper exit
+    ORG $8000
+
+start:
+    LD A, 'H'           ; Character to output  
+    RST $10             ; ZX Spectrum print character
+    
+    LD A, 'i'
+    RST $10
+    
+    LD A, '!'
+    RST $10
+    
+    LD A, 13            ; CR
+    RST $10
+    
+    ; Exit using ZX Spectrum convention
+    LD BC, $0000        ; Exit code 0
+    RET                 ; Return to address 0 (stack empty)
+
+    END

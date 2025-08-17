@@ -1,0 +1,24 @@
+; Debug CP/M test program with step-by-step execution
+    TARGET cpm
+    MODEL 2.2
+    ORG $0100
+
+start:
+    ; Test BDOS function 2 first (single character)
+    LD E, 'H'           ; Character to output
+    LD C, 2             ; BDOS function 2: console output
+    CALL $0005          ; BDOS call
+    
+    ; Test BDOS function 9 (string)
+    LD DE, message      ; String pointer
+    LD C, 9             ; BDOS function 9: print string
+    CALL $0005          ; BDOS call
+    
+    ; Exit
+    LD C, 0             ; BDOS function 0: terminate
+    CALL $0005          ; BDOS call
+
+message:
+    DB "ello CP/M!", 13, 10, "$"
+    
+    END

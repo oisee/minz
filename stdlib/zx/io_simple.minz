@@ -1,0 +1,108 @@
+// ZX Spectrum Simple I/O - No traits, just functions
+
+// ZX Spectrum ROM routines
+const ROM_CLS: u16 = 0x0DAF;      // Clear screen
+const ROM_PRINT: u16 = 0x0010;    // Print character in A
+const ROM_KEY_SCAN: u16 = 0x028E; // Keyboard scanning
+const ROM_BEEP: u16 = 0x03B5;     // Sound generation
+
+// ZX Spectrum system variables
+const LAST_K: u16 = 0x5C08;       // Last key pressed
+const ATTR_P: u16 = 0x5C8D;       // Permanent colors
+const ATTR_T: u16 = 0x5C8F;       // Temporary colors
+const BORDCR: u16 = 0x5C48;       // Border color
+
+// Print a character to screen
+fun zx_print_char(ch: u8) -> void {
+    @asm {
+        LD A, (HL)        ; Get character
+        RST 0x10          ; ROM print routine
+    }
+}
+
+// Print a string (length-prefixed)
+fun zx_print_string(str: *u8) -> void {
+    let len = *str;       // First byte is length
+    str = str + 1;        // Skip length byte
+    let mut i: u8 = 0;
+    while i < len {
+        zx_print_char(str[i]);
+        i = i + 1;
+    }
+}
+
+// Clear the screen
+fun zx_cls() -> void {
+    @asm {
+        CALL 0x0DAF       ; ROM CLS routine
+    }
+}
+
+// Wait for a key press
+fun zx_wait_key() -> u8 {
+    @asm {
+        RST 0x18          ; ROM call
+        DB 0x15           ; Wait for key
+        ; Key is now in A register
+    }
+}
+
+// Check if key is pressed (non-blocking)
+fun zx_key_pressed() -> bool {
+    @asm {
+        CALL 0x028E       ; ROM KEY_SCAN
+        ; Carry flag set if key pressed
+        LD A, 0
+        JR NC, no_key
+        LD A, 1
+    no_key:
+    }
+}
+
+// Set border color (0-7)
+fun zx_set_border(color: u8) -> void {
+    @asm {
+        LD A, (HL)        ; Get color
+        AND 7             ; Mask to 0-7
+        OUT (254), A      ; Set border
+        ; Also update system variable
+        LD (0x5C48), A
+    }
+}
+
+// Set ink color (0-7)
+fun zx_set_ink(color: u8) -> void {
+    let attr_p = @ptr(ATTR_P);
+    let current = *attr_p;
+    *attr_p = (current & 0xF8) | (color & 0x07);
+}
+
+// Set paper color (0-7) 
+fun zx_set_paper(color: u8) -> void {
+    let attr_p = @ptr(ATTR_P);
+    let current = *attr_p;
+    *attr_p = (current & 0xC7) | ((color & 0x07) << 3);
+}
+
+// Beep (duration in ms, pitch)
+fun zx_beep(duration: u16, pitch: u16) -> void {
+    @asm {
+        ; HL = duration, DE = pitch
+        PUSH HL
+        POP DE            ; DE = duration
+        LD HL, (pitch)
+        CALL 0x03B5       ; ROM BEEP
+    }
+}
+
+// Simple cursor positioning
+fun zx_at(x: u8, y: u8) -> void {
+    @asm {
+        LD A, 22          ; AT control code
+        RST 0x10
+        LD A, (y)         ; Y position
+        RST 0x10
+        LD A, (x)         ; X position
+        RST 0x10
+    }
+}

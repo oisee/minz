@@ -1,0 +1,15 @@
+; Test EQU directive
+    ORG $8000
+
+; Simple constant
+SIZE EQU 10
+    LD A, SIZE      ; Should be 10
+    
+; Expression in EQU
+DOUBLE_SIZE EQU SIZE*2
+    LD B, DOUBLE_SIZE ; Should be 20
+    
+; Using in expression
+    LD HL, SIZE+5   ; Should be 15
+    
+    END

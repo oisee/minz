@@ -1,0 +1,9 @@
+// Test if 'self' is a reserved word that can be used
+fun process(self: u8) -> u8 {
+    return self * 2;
+}
+
+fun main() -> void {
+    let result = process(5);
+    print_u8(result);
+}

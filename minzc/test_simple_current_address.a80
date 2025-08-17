@@ -1,0 +1,26 @@
+; Simple test of current address symbol $
+    ORG $8000
+
+start:
+    LD A, 10                      ; At $8000
+    LD B, 20                      ; At $8002
+    
+; Test current address with EQU
+current_addr EQU $                ; Should be $8004
+current_high EQU $^H              ; Should be $80  
+current_low EQU $^L               ; Should be $04
+
+; Use the values
+test:
+    LD A, current_addr            ; Load current address (truncated to 8-bit)
+    LD B, current_high            ; Load high byte 
+    LD C, current_low             ; Load low byte
+    
+; Test alignment of current address
+aligned_addr EQU $^^              ; Align current address to next page
+    
+    ORG aligned_addr              ; Jump to aligned address
+aligned_section:
+    LD D, 99                      ; Should be at aligned address
+    
+    END

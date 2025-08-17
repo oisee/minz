@@ -50,6 +50,15 @@ func ParseLine(line string, lineNum int) (*Line, error) {
 		return result, nil
 	}
 	
+	// Check for LABEL EQU VALUE pattern
+	if len(tokens) >= 3 && strings.ToUpper(tokens[1]) == "EQU" {
+		result.Label = tokens[0]
+		result.Directive = "EQU"
+		// Everything after EQU is the value expression
+		result.Operands = []string{strings.Join(tokens[2:], " ")}
+		return result, nil
+	}
+	
 	// Check if first token is a directive (starts with uppercase)
 	if isDirective(tokens[0]) {
 		result.Directive = strings.ToUpper(tokens[0])

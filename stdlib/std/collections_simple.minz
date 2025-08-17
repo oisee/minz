@@ -1,0 +1,153 @@
+// MinZ Simple Collections - No generics, just practical data structures
+
+// Simple stack for u8 values
+struct StackU8 {
+    data: [u8; 32],
+    top: u8
+}
+
+fun stack_new_u8() -> StackU8 {
+    let mut s: StackU8;
+    s.top = 0;
+    return s;
+}
+
+fun stack_push_u8(s: *StackU8, value: u8) -> bool {
+    if s.top < 32 {
+        s.data[s.top] = value;
+        s.top = s.top + 1;
+        return true;
+    }
+    return false; // Stack full
+}
+
+fun stack_pop_u8(s: *StackU8) -> u8 {
+    if s.top > 0 {
+        s.top = s.top - 1;
+        return s.data[s.top];
+    }
+    return 0; // Stack empty
+}
+
+fun stack_is_empty_u8(s: *StackU8) -> bool {
+    return s.top == 0;
+}
+
+// Simple queue for u8 values (circular buffer)
+struct QueueU8 {
+    data: [u8; 32],
+    head: u8,
+    tail: u8,
+    count: u8
+}
+
+fun queue_new_u8() -> QueueU8 {
+    let mut q: QueueU8;
+    q.head = 0;
+    q.tail = 0;
+    q.count = 0;
+    return q;
+}
+
+fun queue_push_u8(q: *QueueU8, value: u8) -> bool {
+    if q.count < 32 {
+        q.data[q.tail] = value;
+        q.tail = (q.tail + 1) & 31; // Wrap around (32 = 0b100000, so & 31 works)
+        q.count = q.count + 1;
+        return true;
+    }
+    return false; // Queue full
+}
+
+fun queue_pop_u8(q: *QueueU8) -> u8 {
+    if q.count > 0 {
+        let value = q.data[q.head];
+        q.head = (q.head + 1) & 31;
+        q.count = q.count - 1;
+        return value;
+    }
+    return 0; // Queue empty
+}
+
+fun queue_is_empty_u8(q: *QueueU8) -> bool {
+    return q.count == 0;
+}
+
+// Simple fixed-size vector for u8
+struct VectorU8 {
+    data: [u8; 64],
+    size: u8
+}
+
+fun vector_new_u8() -> VectorU8 {
+    let mut v: VectorU8;
+    v.size = 0;
+    return v;
+}
+
+fun vector_push_u8(v: *VectorU8, value: u8) -> bool {
+    if v.size < 64 {
+        v.data[v.size] = value;
+        v.size = v.size + 1;
+        return true;
+    }
+    return false; // Vector full
+}
+
+fun vector_get_u8(v: *VectorU8, index: u8) -> u8 {
+    if index < v.size {
+        return v.data[index];
+    }
+    return 0; // Out of bounds
+}
+
+fun vector_set_u8(v: *VectorU8, index: u8, value: u8) -> bool {
+    if index < v.size {
+        v.data[index] = value;
+        return true;
+    }
+    return false; // Out of bounds
+}
+
+fun vector_size_u8(v: *VectorU8) -> u8 {
+    return v.size;
+}
+
+// Simple bit set for flags
+struct BitSet32 {
+    bits: [u8; 4] // 32 bits in 4 bytes
+}
+
+fun bitset_new() -> BitSet32 {
+    let mut bs: BitSet32;
+    bs.bits[0] = 0;
+    bs.bits[1] = 0;
+    bs.bits[2] = 0;
+    bs.bits[3] = 0;
+    return bs;
+}
+
+fun bitset_set(bs: *BitSet32, bit: u8) -> void {
+    if bit < 32 {
+        let byte_idx = bit >> 3; // Divide by 8
+        let bit_mask = 1 << (bit & 7); // Bit within byte
+        bs.bits[byte_idx] = bs.bits[byte_idx] | bit_mask;
+    }
+}
+
+fun bitset_clear(bs: *BitSet32, bit: u8) -> void {
+    if bit < 32 {
+        let byte_idx = bit >> 3;
+        let bit_mask = 1 << (bit & 7);
+        bs.bits[byte_idx] = bs.bits[byte_idx] & ~bit_mask;
+    }
+}
+
+fun bitset_test(bs: *BitSet32, bit: u8) -> bool {
+    if bit < 32 {
+        let byte_idx = bit >> 3;
+        let bit_mask = 1 << (bit & 7);
+        return (bs.bits[byte_idx] & bit_mask) != 0;
+    }
+    return false;
+}

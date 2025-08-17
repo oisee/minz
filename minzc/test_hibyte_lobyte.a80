@@ -1,0 +1,43 @@
+; Test high/low byte extraction operators
+    ORG $8000
+
+; Test with constants
+VALUE EQU $1234
+
+; Extract high and low bytes
+hibyte_test:
+    LD A, VALUE^H          ; Should be $12
+    LD B, VALUE^L          ; Should be $34
+    
+; Test with address
+start_addr:
+    LD C, start_addr^H     ; High byte of address
+    LD D, start_addr^L     ; Low byte of address
+    
+; Test with expressions
+OFFSET EQU 10
+test_expr:
+    LD A, start_addr+OFFSET^H    ; This won't work as expected - need parentheses support
+    LD B, start_addr+OFFSET^L    ; For now, use simpler expressions
+    
+; Test with 16-bit operations
+big_value:
+    DB VALUE^H, VALUE^L    ; Should be: 12 34
+    
+; Test case insensitive
+case_test:
+    LD A, VALUE^h          ; Lower case h
+    LD B, VALUE^l          ; Lower case l
+    
+; Define buffer first (avoid forward reference)
+buffer:
+    DS 100                 ; Some buffer space
+    
+; Real-world usage - loading 16-bit address into HL  
+load_address:
+    LD H, buffer^H         ; High byte
+    LD L, buffer^L         ; Low byte
+    ; Or alternative:
+    LD HL, buffer          ; Direct 16-bit load for comparison
+    
+    END

@@ -1,0 +1,14 @@
+; Test high bytes of alignment results
+    ORG $8000
+
+ALREADY_ALIGNED EQU $1200     ; $1200^^ = $1200
+NEEDS_ALIGN EQU $12FF         ; $12FF^^ = $1300  
+ONE_BYTE EQU $0001            ; $0001^^ = $0100
+
+test_high_bytes:
+    ; Test high bytes of aligned values
+    LD A, ALREADY_ALIGNED^^H   ; Should be $12
+    LD B, NEEDS_ALIGN^^H       ; Should be $13  
+    LD C, ONE_BYTE^^H          ; Should be $01
+    
+    END

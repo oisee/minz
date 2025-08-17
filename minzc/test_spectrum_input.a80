@@ -1,0 +1,70 @@
+; ZX Spectrum input test
+    ORG $8000
+    
+start:
+    ; Print prompt
+    LD A, 'N'
+    RST $10
+    LD A, 'a'
+    RST $10
+    LD A, 'm'
+    RST $10
+    LD A, 'e'
+    RST $10
+    LD A, '?'
+    RST $10
+    LD A, ' '
+    RST $10
+    
+    ; Read characters until Enter
+    LD B, 0        ; Counter
+input_loop:
+    RST $18        ; Read character into A
+    CP 13          ; Check for Enter
+    JP Z, done     ; If Enter, we're done
+    
+    ; Echo the character
+    RST $10        ; Print it
+    
+    INC B          ; Count characters
+    JP input_loop  ; Continue reading
+    
+done:
+    ; Print newline
+    LD A, 13
+    RST $10
+    
+    ; Print count message
+    LD A, 'G'
+    RST $10
+    LD A, 'o'
+    RST $10
+    LD A, 't'
+    RST $10
+    LD A, ' '
+    RST $10
+    
+    ; Print count as ASCII digit (simplified - single digit only)
+    LD A, B
+    ADD A, '0'     ; Convert to ASCII
+    RST $10
+    
+    LD A, ' '
+    RST $10
+    LD A, 'c'
+    RST $10
+    LD A, 'h'
+    RST $10
+    LD A, 'a'
+    RST $10
+    LD A, 'r'
+    RST $10
+    LD A, 's'
+    RST $10
+    LD A, 13
+    RST $10
+    
+    DI
+    HALT
+    
+    END

@@ -1,291 +1,247 @@
-// MinZ Standard Library - Core Module
-// Foundation types and functions that everything else builds on
+// MinZ Standard Library - Core Module (No Generics)
+// Practical implementations that work with current MinZ
 
-// Option type for nullable values
-enum Option<T> {
-    Some(T),
-    None
+// Option types for common cases
+enum OptionU8 {
+    SomeU8(u8),
+    NoneU8
 }
 
-impl<T> Option<T> {
-    fun is_some(self) -> bool {
-        match self {
-            Some(_) => true,
-            None => false
-        }
-    }
-    
-    fun is_none(self) -> bool {
-        !self.is_some()
-    }
-    
-    fun unwrap(self) -> T {
-        match self {
-            Some(val) => val,
-            None => @panic("unwrap on None value")
-        }
-    }
-    
-    fun unwrap_or(self, default: T) -> T {
-        match self {
-            Some(val) => val,
-            None => default
-        }
-    }
-    
-    fun map<U>(self, f: fn(T) -> U) -> Option<U> {
-        match self {
-            Some(val) => Some(f(val)),
-            None => None
-        }
-    }
+enum OptionU16 {
+    SomeU16(u16),
+    NoneU16
 }
 
-// Result type for error handling
-enum Result<T, E> {
-    Ok(T),
-    Err(E)
+enum OptionPtr {
+    SomePtr(*u8),
+    NonePtr
 }
 
-impl<T, E> Result<T, E> {
-    fun is_ok(self) -> bool {
-        match self {
-            Ok(_) => true,
-            Err(_) => false
-        }
-    }
-    
-    fun is_err(self) -> bool {
-        !self.is_ok()
-    }
-    
-    fun unwrap(self) -> T {
-        match self {
-            Ok(val) => val,
-            Err(_) => @panic("unwrap on Err value")
-        }
-    }
-    
-    fun unwrap_err(self) -> E {
-        match self {
-            Ok(_) => @panic("unwrap_err on Ok value"),
-            Err(err) => err
-        }
-    }
-    
-    fun map<U>(self, f: fn(T) -> U) -> Result<U, E> {
-        match self {
-            Ok(val) => Ok(f(val)),
-            Err(err) => Err(err)
-        }
-    }
-    
-    fun map_err<F>(self, f: fn(E) -> F) -> Result<T, F> {
-        match self {
-            Ok(val) => Ok(val),
-            Err(err) => Err(f(err))
-        }
-    }
+// Result types for error handling
+enum ResultU8 {
+    OkU8(u8),
+    ErrU8(u8)
 }
 
-// Basic bounds checking
-fun check_bounds(index: u16, len: u16) -> void {
-    if index >= len {
-        @panic("index out of bounds");
-    }
+enum ResultU16 {
+    OkU16(u16),
+    ErrU16(u8)  // Error code is usually u8
+}
+
+enum ResultVoid {
+    OkVoid,
+    ErrVoid(u8)
 }
 
 // Memory utilities
-namespace mem {
-    // Copy memory from src to dest
-    fun copy(dest: *u8, src: *u8, count: u16) -> void {
-        // For small copies, unroll
-        if count <= 8 {
-            for i in 0..count {
-                *dest.offset(i) = *src.offset(i);
-            }
-        } else {
-            // Use block copy for larger amounts
+fun mem_copy(dest: *u8, src: *u8, count: u16) -> void {
+    // For small copies, unroll
+    if count <= 8 {
+        for i in 0..count {
+            *(dest + i) = *(src + i);
+        }
+    } else {
+        // Use Z80 block copy
+        @asm("
+            ld hl, {src}
+            ld de, {dest}
+            ld bc, {count}
+            ldir
+        ");
+    }
+}
+
+fun mem_set(dest: *u8, value: u8, count: u16) -> void {
+    if count == 0 { return; }
+    
+    if count <= 4 {
+        for i in 0..count {
+            *(dest + i) = value;
+        }
+    } else {
+        // Set first byte then copy
+        *dest = value;
+        if count > 1 {
             @asm("
-                ld hl, {src}
+                ld hl, {dest}
                 ld de, {dest}
+                inc de
                 ld bc, {count}
+                dec bc
                 ldir
             ");
         }
     }
-    
-    // Set memory to value
-    fun set(dest: *u8, value: u8, count: u16) -> void {
-        if count == 0 { return; }
-        
-        // For very small counts, unroll
-        if count <= 4 {
-            for i in 0..count {
-                *dest.offset(i) = value;
-            }
-        } else {
-            // Set first byte then copy
-            *dest = value;
-            if count > 1 {
-                @asm("
-                    ld hl, {dest}
-                    ld de, {dest}
-                    inc de
-                    ld bc, {count}
-                    dec bc
-                    ldir
-                ");
-            }
-        }
+}
+
+fun mem_compare(a: *u8, b: *u8, count: u16) -> i8 {
+    for i in 0..count {
+        let va = *(a + i);
+        let vb = *(b + i);
+        if va < vb { return -1; }
+        if va > vb { return 1; }
     }
-    
-    // Compare memory regions
-    fun compare(a: *u8, b: *u8, count: u16) -> i8 {
-        for i in 0..count {
-            let va = *a.offset(i);
-            let vb = *b.offset(i);
-            if va < vb { return -1; }
-            if va > vb { return 1; }
-        }
-        return 0;
-    }
-    
-    // Find byte in memory
-    fun find(haystack: *u8, needle: u8, count: u16) -> Option<u16> {
-        for i in 0..count {
-            if *haystack.offset(i) == needle {
-                return Some(i);
-            }
-        }
-        return None;
-    }
+    return 0;
 }
 
 // Math utilities
-namespace math {
-    // Absolute value
-    fun abs(x: i8) -> u8 {
-        if x < 0 { -x as u8 } else { x as u8 }
+fun abs8(x: i8) -> u8 {
+    if x < 0 { return (-x) as u8; }
+    return x as u8;
+}
+
+fun abs16(x: i16) -> u16 {
+    if x < 0 { return (-x) as u16; }
+    return x as u16;
+}
+
+fun min8(a: u8, b: u8) -> u8 {
+    if a < b { return a; }
+    return b;
+}
+
+fun max8(a: u8, b: u8) -> u8 {
+    if a > b { return a; }
+    return b;
+}
+
+fun min16(a: u16, b: u16) -> u16 {
+    if a < b { return a; }
+    return b;
+}
+
+fun max16(a: u16, b: u16) -> u16 {
+    if a > b { return a; }
+    return b;
+}
+
+fun clamp8(value: u8, min: u8, max: u8) -> u8 {
+    if value < min { return min; }
+    if value > max { return max; }
+    return value;
+}
+
+// Bit manipulation
+fun count_ones_u8(x: u8) -> u8 {
+    let mut count: u8 = 0;
+    let mut val = x;
+    while val != 0 {
+        count = count + (val & 1);
+        val = val >> 1;
     }
+    return count;
+}
+
+fun count_ones_u16(x: u16) -> u8 {
+    return count_ones_u8((x & 0xFF) as u8) + count_ones_u8((x >> 8) as u8);
+}
+
+// Find first set bit (returns 0-7 for u8, or 8 if no bit set)
+fun first_one_u8(x: u8) -> u8 {
+    if x == 0 { return 8; }
     
-    fun abs16(x: i16) -> u16 {
-        if x < 0 { -x as u16 } else { x as u16 }
+    let mut pos: u8 = 0;
+    let mut val = x;
+    while (val & 1) == 0 {
+        val = val >> 1;
+        pos = pos + 1;
     }
-    
-    // Min/max functions
-    fun min(a: u8, b: u8) -> u8 {
-        if a < b { a } else { b }
+    return pos;
+}
+
+// Reverse bits in a byte
+fun reverse_bits_u8(x: u8) -> u8 {
+    let mut result: u8 = 0;
+    let mut val = x;
+    for i in 0..8 {
+        result = (result << 1) | (val & 1);
+        val = val >> 1;
     }
-    
-    fun max(a: u8, b: u8) -> u8 {
-        if a > b { a } else { b }
-    }
-    
-    fun min16(a: u16, b: u16) -> u16 {
-        if a < b { a } else { b }
-    }
-    
-    fun max16(a: u16, b: u16) -> u16 {
-        if a > b { a } else { b }
-    }
-    
-    // Clamp value to range
-    fun clamp(value: u8, min: u8, max: u8) -> u8 {
-        if value < min { min }
-        else if value > max { max }
-        else { value }
-    }
-    
-    // Integer square root (8-bit)
-    fun sqrt(n: u8) -> u8 {
-        if n == 0 { return 0; }
-        
-        let mut x = n;
-        let mut y = (x + 1) / 2;
-        
-        while y < x {
-            x = y;
-            y = (x + n / x) / 2;
-        }
-        
-        return x;
+    return result;
+}
+
+// Rotate operations
+fun rotate_left_u8(x: u8, n: u8) -> u8 {
+    let n = n & 7;  // Mod 8
+    return (x << n) | (x >> (8 - n));
+}
+
+fun rotate_right_u8(x: u8, n: u8) -> u8 {
+    let n = n & 7;  // Mod 8
+    return (x >> n) | (x << (8 - n));
+}
+
+// Simple assert without strings (for now)
+fun assert(condition: bool) -> void {
+    if !condition {
+        @print("ASSERTION FAILED\n");
+        @halt();
     }
 }
 
-// Bit manipulation utilities
-namespace bits {
-    // Count set bits (popcount)
-    fun count_ones(x: u8) -> u8 {
-        let mut count = 0;
-        let mut val = x;
-        while val != 0 {
-            count += val & 1;
-            val >>= 1;
-        }
-        return count;
+// Fixed-size array operations
+fun array_fill_u8(arr: *u8, len: u16, value: u8) -> void {
+    for i in 0..len {
+        *(arr + i) = value;
     }
-    
-    // Find first set bit (returns 0-7, or 8 if no bit set)
-    fun first_one(x: u8) -> u8 {
-        if x == 0 { return 8; }
-        
-        let mut pos = 0;
-        let mut val = x;
-        while (val & 1) == 0 {
-            val >>= 1;
-            pos += 1;
+}
+
+fun array_copy_u8(dest: *u8, src: *u8, len: u16) -> void {
+    mem_copy(dest, src, len);
+}
+
+fun array_find_u8(arr: *u8, len: u16, value: u8) -> u16 {
+    for i in 0..len {
+        if *(arr + i) == value {
+            return i;
         }
-        return pos;
     }
+    return 0xFFFF;  // Not found
+}
+
+// Simple string operations (assuming length-prefixed strings)
+fun str_len(s: *u8) -> u8 {
+    return *s;  // First byte is length
+}
+
+fun str_data(s: *u8) -> *u8 {
+    return s + 1;  // Skip length byte
+}
+
+fun str_copy(dest: *u8, src: *u8) -> void {
+    let len = str_len(src);
+    *dest = len;  // Copy length
+    mem_copy(dest + 1, src + 1, len as u16);
+}
+
+fun str_compare(a: *u8, b: *u8) -> i8 {
+    let len_a = str_len(a);
+    let len_b = str_len(b);
+    let min_len = min8(len_a, len_b);
     
-    // Reverse bits
-    fun reverse(x: u8) -> u8 {
-        let mut result = 0;
-        let mut val = x;
-        for i in 0..8 {
-            result = (result << 1) | (val & 1);
-            val >>= 1;
-        }
+    let result = mem_compare(a + 1, b + 1, min_len as u16);
+    if result != 0 {
         return result;
     }
     
-    // Rotate left
-    fun rotate_left(x: u8, n: u8) -> u8 {
-        let n = n & 7;  // Mod 8
-        return (x << n) | (x >> (8 - n));
-    }
-    
-    // Rotate right
-    fun rotate_right(x: u8, n: u8) -> u8 {
-        let n = n & 7;  // Mod 8
-        return (x >> n) | (x << (8 - n));
-    }
+    // If prefixes are equal, shorter string is less
+    if len_a < len_b { return -1; }
+    if len_a > len_b { return 1; }
+    return 0;
 }
 
-// Panic handler
-@noreturn
-fun panic(msg: *str) -> void {
-    @print("PANIC: ");
-    print_string(msg);
-    @print("\n");
-    @halt();
-}
-
-// Assertion
-fun assert(condition: bool, msg: *str) -> void {
-    if !condition {
-        panic(msg);
-    }
-}
-
-// Debug assertion (only in debug builds)
-@if(DEBUG) {
-    fun debug_assert(condition: bool, msg: *str) -> void {
-        assert(condition, msg);
-    }
+// Platform detection (compile-time)
+@if(PLATFORM == "ZX_SPECTRUM") {
+    const SCREEN_WIDTH: u16 = 256;
+    const SCREEN_HEIGHT: u16 = 192;
+    const SCREEN_ADDR: u16 = 0x4000;
+} else @if(PLATFORM == "C64") {
+    const SCREEN_WIDTH: u16 = 320;
+    const SCREEN_HEIGHT: u16 = 200;
+    const SCREEN_ADDR: u16 = 0x0400;
 } else {
-    fun debug_assert(condition: bool, msg: *str) -> void {
-        // No-op in release
-    }
+    // Generic defaults
+    const SCREEN_WIDTH: u16 = 256;
+    const SCREEN_HEIGHT: u16 = 192;
+    const SCREEN_ADDR: u16 = 0x8000;
 }

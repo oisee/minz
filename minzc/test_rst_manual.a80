@@ -1,0 +1,22 @@
+; Manual RST test
+    ORG $8000
+    
+    LD A, 'T'
+    RST 10H     ; RST to address $10 (hex notation)
+    
+    LD A, 'e'
+    RST 10H
+    
+    LD A, 's'  
+    RST 10H
+    
+    LD A, 't'
+    RST 10H
+    
+    LD A, 13
+    RST 10H
+    
+    DI          ; Disable interrupts
+    HALT        ; Stop execution
+    
+    END

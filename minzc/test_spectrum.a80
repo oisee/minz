@@ -1,0 +1,19 @@
+; Simple ZX Spectrum test
+    ORG $8000
+
+start:
+    LD A, 'H'           ; Character to output  
+    RST $10             ; ZX Spectrum print character
+    
+    LD A, 'i'
+    RST $10
+    
+    LD A, '!'
+    RST $10
+    
+    LD A, 13            ; CR
+    RST $10
+    
+    RET
+
+    END

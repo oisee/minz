@@ -1,0 +1,13 @@
+; Test overflow detection
+    ORG $8000
+
+; This should cause an overflow error (>255 bytes)
+too_long:
+    DB @len_u8
+    DB "This is a very long string that will exceed 255 bytes when we keep adding more and more text. "
+    DB "We need to make sure this is really long to trigger the overflow check. "
+    DB "Adding more text here to ensure we go over the 255 byte limit. "
+    DB "Still adding more content to make absolutely sure we exceed the limit. "
+    DB "And even more text to guarantee we trigger the overflow detection!"
+    
+    END

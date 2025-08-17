@@ -1,0 +1,13 @@
+const DEBUG: bool = true;
+const RELEASE: bool = false;
+
+fun main() -> void {
+    // @if with boolean constant
+    const mode: u8 = @if(DEBUG, 1, 0);
+    print_u8(mode);  // Should print 1
+    
+    // @if with numeric comparison
+    const MAX_SIZE: u8 = 100;
+    const size: u8 = @if(MAX_SIZE > 50, 255, 128);
+    print_u8(size);  // Should print 255
+}

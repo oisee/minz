@@ -1,0 +1,171 @@
+; MinZ generated code
+; Generated: 2025-08-17 04:47:33
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_pointer_indexing.test_pointer_index
+test_pointer_index:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r3 = load buffer
+    LD HL, ($F002)
+    ; r4 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; Load array element (u8)
+    PUSH HL
+    LD A, B
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD C, A         ; Store to physical register C
+    ; r6 = &r5
+    ; Address-of operation for register r5
+    LD HL, $F00A  ; Variable address
+    ; store ptr, r6
+    LD ($F004), HL
+    ; r7 = 65
+    LD A, 65
+    LD E, A         ; Store to physical register E
+    ; r8 = load ptr
+    LD HL, ($F004)
+    ; r9 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; Calculate array element address
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD D, H
+    LD E, L
+    ; Store to array[index] (u8)
+    LD H, D
+    LD L, E
+    PUSH HL
+    LD A, E
+    POP HL
+    LD (HL), A
+    ; r11 = 66
+    LD A, 66
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r12 = load ptr
+    LD HL, ($F004)
+    ; r13 = 1
+    LD A, 1
+    LD L, A         ; Store to HL (low byte)
+    ; Calculate array element address
+    LD D, H
+    LD E, L
+    ; Register 13 already in HL
+    ADD HL, DE
+    LD ($F01C), HL    ; Virtual register 14 to memory
+    ; Store to array[index] (u8)
+    LD HL, ($F01C)    ; Virtual register 14 from memory
+    PUSH HL
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    POP HL
+    LD (HL), A
+    ; r15 = load ptr
+    LD HL, ($F004)
+    LD ($F01E), HL    ; Virtual register 15 to memory
+    ; r16 = 0
+    LD A, 0
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    LD HL, ($F01E)    ; Virtual register 15 from memory
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r18 = load ptr
+    LD HL, ($F004)
+    ; Register 18 already in HL
+    ; r19 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; Load array element (u8)
+    ; Register 18 already in HL
+    PUSH HL
+    LD A, H
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to physical register L
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_pointer_indexing.main
+pointer_indexing_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call ...test_pointer_indexing.test_pointer_index
+    ; Call to ...test_pointer_indexing.test_pointer_index (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_pointer_index
+    ; Register 1 already in HL
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

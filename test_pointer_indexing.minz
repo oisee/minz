@@ -1,0 +1,15 @@
+fun test_pointer_index() -> void {
+    let buffer: [u8; 10];
+    let ptr: *u8 = &buffer[0];
+    
+    // This should work: indexing a pointer
+    ptr[0] = 65;  // 'A'
+    ptr[1] = 66;  // 'B' 
+    
+    print_u8(ptr[0]);
+    print_u8(ptr[1]);
+}
+
+fun main() -> void {
+    test_pointer_index();
+}

@@ -1,0 +1,11 @@
+; Test the exact user example
+    ORG $8000
+
+address:    LD A, 12              ; Some instruction at address
+aligned_address EQU address^^     ; Should align to next page
+            ORG aligned_address   ; Move to aligned address
+
+aligned_code:
+    LD B, 34                      ; Code at aligned address
+    
+    END

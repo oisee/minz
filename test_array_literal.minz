@@ -1,13 +1,6 @@
-// Test array literal syntax
-
 fun main() -> void {
-    // Array literal initialization
-    let nums = [1, 2, 3, 4, 5];
-    
-    // Access array element
-    let first = nums[0];
-    print_u8(first);  // Should print 1
-    
-    let third = nums[2];
-    print_u8(third);  // Should print 3
+    let arr = [1, 2, 3];
+    print_u8(arr[0]);
+    print_u8(arr[1]);
+    print_u8(arr[2]);
 }

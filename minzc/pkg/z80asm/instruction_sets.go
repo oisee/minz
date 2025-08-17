@@ -303,16 +303,13 @@ func registerJumpInstructions() {
 		Encoder:  encodeEDPrefix(0x45),
 	})
 	
-	// RST
-	rstVectors := []byte{0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38}
-	for i := range rstVectors {
-		addInstruction("RST", &InstructionDef{
-			Mnemonic: "RST",
-			Operands: []OperandType{OpImm8},
-			Size:     1,
-			Encoder:  makeRSTEncoder(0xC7 | (byte(i) << 3)),
-		})
-	}
+	// RST - just register once, the encoder handles all vectors
+	addInstruction("RST", &InstructionDef{
+		Mnemonic: "RST",
+		Operands: []OperandType{OpImm8},
+		Size:     1,
+		Encoder:  makeRSTEncoder(0), // Parameter not used anymore
+	})
 }
 
 // registerStackInstructions registers stack operations
@@ -737,17 +734,23 @@ func makeRSTEncoder(opcode byte) EncoderFunc {
 			return nil, err
 		}
 		
+		// Debug output
+		fmt.Printf("DEBUG RST: operand='%s', resolved value=%d ($%02X)\n", line.Operands[0], vec, vec)
+		
 		// Verify it's a valid RST vector
+		// RST vectors are at addresses 00h, 08h, 10h, 18h, 20h, 28h, 30h, 38h
+		// Accept any base (decimal, hex with $, hex with 0x, etc.)
 		validVectors := map[uint16]byte{
 			0x00: 0xC7, 0x08: 0xCF, 0x10: 0xD7, 0x18: 0xDF,
 			0x20: 0xE7, 0x28: 0xEF, 0x30: 0xF7, 0x38: 0xFF,
 		}
 		
 		if opcode, ok := validVectors[vec]; ok {
+			fmt.Printf("DEBUG RST: found opcode %02X for vector %d\n", opcode, vec)
 			return []byte{opcode}, nil
 		}
 		
-		return nil, fmt.Errorf("invalid RST vector: $%02X", vec)
+		return nil, fmt.Errorf("invalid RST vector: %d ($%02X) - valid vectors are 0, 8, 16, 24, 32, 40, 48, 56 (or $00, $08, $10, $18, $20, $28, $30, $38)", vec, vec)
 	}
 }
 

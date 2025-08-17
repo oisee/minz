@@ -1,0 +1,18 @@
+; Simple test of address alignment operator ^^
+    ORG $8000
+
+; Test values from the user example
+address EQU $1234
+aligned_address EQU address^^   ; Should be $1300
+
+; Basic alignment test
+test:
+    ; Display the alignment results
+    LD A, address           ; $34 (low byte of $1234)
+    LD B, aligned_address   ; $00 (low byte of $1300)
+    
+    ; Test high bytes  
+    LD C, address^H         ; $12 (high byte of $1234)
+    LD D, aligned_address^H ; $13 (high byte of $1300)
+    
+    END

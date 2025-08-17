@@ -1,0 +1,23 @@
+; Test DI:HALT program termination
+    ORG $8000
+    
+start:
+    ; Print message
+    LD A, 'D'
+    RST $10
+    LD A, 'o'
+    RST $10
+    LD A, 'n'
+    RST $10
+    LD A, 'e'
+    RST $10
+    LD A, '!'
+    RST $10
+    LD A, 13   ; CR
+    RST $10
+    
+    ; Properly terminate program
+    DI         ; Disable interrupts
+    HALT       ; Stop execution
+    
+    END

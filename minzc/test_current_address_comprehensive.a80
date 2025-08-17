@@ -1,0 +1,35 @@
+; Comprehensive test of current address symbol $
+    ORG $8000
+
+; Test $ in different contexts
+start:
+    LD A, 10                      ; $8000
+
+; Test relative jumps (common use of $)
+loop:                             ; $8002
+    DEC A                         ; $8002  
+    JR NZ, loop                   ; $8003: should jump back to $8002
+    
+; Test $ in expressions
+offset_test:                      ; $8005
+    LD B, $-start                 ; Should be $8005 - $8000 = $05
+    LD C, $+10                    ; Should be $8009 (current + 10)
+    LD D, $^H                     ; High byte of current address ($80)
+    
+; Test $ in data
+data_section:                     ; $800B
+    DW $                          ; Should be $800B (current address as 16-bit word)
+    DB $^H, $^L                   ; Should be $80, $0F (high/low bytes)
+    
+; Test $ with alignment 
+alignment_test:                   ; $8010
+CURRENT EQU $
+ALIGNED EQU $^^                   ; Should be $8100 (next page)
+    
+    ; Jump to aligned address
+    ORG ALIGNED
+aligned_code:
+    LD E, $^H                     ; High byte of aligned address ($81)
+    LD H, $^L                     ; Low byte of aligned address ($00)
+    
+    END

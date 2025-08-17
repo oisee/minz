@@ -1,0 +1,9 @@
+MinZ Z80 Assembler Listing
+==========================
+
+8000  3E 0C        LD A, 12 ; Some instruction at address ($8000)
+8002  06 00        LD B, TEST2 ; Should be $00 (low byte of $8000)
+8004  0E 00        LD C, TEST4 ; Should be $00 (low byte of $8100)
+8006  16 80        LD D, TEST2^H ; Should be $80 (high byte of $8000)
+8008  1E 81        LD E, TEST4^H ; Should be $81 (high byte of $8100)
+8100  26 63        LD H, 99 ; This should be at $8100

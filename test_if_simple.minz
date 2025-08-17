@@ -1,0 +1,5 @@
+fun main() -> void {
+    // Direct use of @if
+    let x: u8 = @if(true, 10, 20);
+    print_u8(x);
+}

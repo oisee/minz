@@ -198,6 +198,22 @@ func (z *Z80) step() {
 		z.L = z.fetchByte()
 		z.cycles += 7
 		
+	// LD BC, nn
+	case 0x01:
+		c := z.fetchByte()
+		b := z.fetchByte()
+		z.B = b
+		z.C = c
+		z.cycles += 10
+		
+	// LD DE, nn
+	case 0x11:
+		e := z.fetchByte()
+		d := z.fetchByte()
+		z.D = d
+		z.E = e
+		z.cycles += 10
+		
 	// LD HL, nn
 	case 0x21:
 		l := z.fetchByte()
@@ -409,6 +425,11 @@ func (z *Z80) pop() uint16 {
 	h := z.memory[z.SP]
 	z.SP++
 	return uint16(h)<<8 | uint16(l)
+}
+
+// Pop pops a 16-bit value from the stack (public version)
+func (z *Z80) Pop() uint16 {
+	return z.pop()
 }
 
 func (z *Z80) add(value uint8) {

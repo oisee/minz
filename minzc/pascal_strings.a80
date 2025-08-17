@@ -1,0 +1,32 @@
+; Pascal-style length-prefixed strings
+    ORG $8000
+    
+; Simple Pascal strings (8-bit length)
+name:
+    DB @len, "Alice"            ; 05 41 6C 69 63 65
+    
+greeting:
+    DB @len_u8, "Hello, World!" ; 0D 48 65 6C 6C 6F 2C 20 57 6F 72 6C 64 21
+    
+; Menu items with count
+menu:
+    DB @count                   ; Number of menu items
+    DB @len, "New"             ; Each item is length-prefixed
+    DB @len, "Open"
+    DB @len, "Save"
+    DB @len, "Exit"
+    
+; String data first (to avoid forward references)
+err1:
+    DB @len, "File not found"
+err2:
+    DB @len, "Out of memory"
+err3:
+    DB @len, "Invalid syntax"
+    
+; Error message table with 16-bit offsets
+error_table:
+    DW @count_u16               ; Number of errors (16-bit)
+    DW err1, err2, err3         ; Pointers to error messages
+    
+    END

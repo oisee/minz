@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strconv"
@@ -189,19 +190,10 @@ EXAMPLES:
 		for {
 			// Check for timeout
 			if maxCycles > 0 && totalCycles >= maxCycles {
-				fmt.Printf("\n🚨 Safety stop after %dM T-states\n", totalCycles/1000000)
+				if verbose {
+					fmt.Printf("\n🚨 Safety stop after %dM T-states\n", totalCycles/1000000)
+				}
 				break
-			}
-			
-			// Check for CP/M BDOS call (PC = 0x0005)
-			if target == "cpm" && z80.PC == 0x0005 {
-				handleBDOSCall(z80, verbose)
-				// Return from BDOS call - pop return address from stack
-				lowByte := z80.Z80.ReadMemory(z80.SP)
-				highByte := z80.Z80.ReadMemory(z80.SP + 1)
-				z80.PC = uint16(lowByte) | (uint16(highByte) << 8)
-				z80.SP += 2
-				continue
 			}
 			
 			// Check if we hit a RET at the start level (simple end detection)  
@@ -229,26 +221,126 @@ EXAMPLES:
 				nextInterrupt += INTERRUPT_PERIOD
 			}
 			
-			// Execute one instruction using hook-enabled execution
-			output, cyclesUsed := z80.ExecuteWithHooks(z80.PC)
+			// Save PC before instruction execution to detect changes
+			prevPC := z80.PC
+			
+			// For ZX Spectrum, check if we're about to execute a RST that we want to intercept
+			// We need to handle it BEFORE execution to prevent jumping to the RST address
+			if target == "spectrum" {
+				opcode := z80.ReadMemory(z80.PC)
+				handled := false
+				
+				switch opcode {
+				case 0xD7: // RST $10
+					if verbose {
+						fmt.Printf("🖨️  RST $10: print '%c' (0x%02X)\n", printableChar(z80.A), z80.A)
+					}
+					// Handle special characters
+					switch z80.A {
+					case 13: // CR
+						fmt.Print("\n")
+					case 10: // LF  
+						// Skip - we handle newlines with CR
+					case 8: // Backspace
+						fmt.Print("\b")
+					case 9: // Tab
+						fmt.Print("\t")
+					default:
+						if z80.A >= 32 && z80.A <= 126 {
+							fmt.Printf("%c", z80.A)
+						} else if verbose {
+							fmt.Printf("[0x%02X]", z80.A)
+						}
+					}
+					z80.PC++ // Move past the RST instruction
+					totalCycles += 11 // RST takes 11 T-states
+					handled = true
+					
+				case 0xDF: // RST $18
+					if verbose {
+						fmt.Printf("⌨️  RST $18: read character: ")
+					}
+					// Read a single character from stdin
+					var input [1]byte
+					n, err := os.Stdin.Read(input[:])
+					if err != nil || n == 0 {
+						z80.A = 0 // Return null on error
+					} else {
+						z80.A = input[0]
+						if verbose {
+							fmt.Printf("got '%c' (0x%02X)\n", printableChar(input[0]), input[0])
+						}
+					}
+					z80.PC++ // Move past the RST instruction
+					totalCycles += 11
+					handled = true
+					
+				case 0xE7: // RST $20
+					if verbose {
+						fmt.Printf("⌨️  RST $20: get next character\n")
+					}
+					// TODO: Implement proper stdin handling
+					z80.A = 0
+					z80.PC++ // Move past the RST instruction
+					totalCycles += 11
+					handled = true
+				}
+				
+				if handled {
+					continue // Skip normal instruction execution
+				}
+			}
+			
+			// Execute the instruction normally
+			cyclesUsed := uint32(z80.Z80.Step())
 			totalCycles += cyclesUsed
 			
-			// Print any output (though RST hooks handle this)
-			if output != "" && verbose {
-				fmt.Print(output)
+			
+			// Check if PC changed to $0005 (CP/M BDOS entry point)
+			// This catches CALL $0005, JP $0005, or any other way to reach it
+			if target == "cpm" && z80.PC == 0x0005 && prevPC != 0x0005 {
+				if verbose {
+					fmt.Printf("💫 BDOS entry detected (PC changed from $%04X to $0005), SP=$%04X\n", prevPC, z80.SP)
+				}
+				// Handle BDOS call
+				handleBDOSCall(z80, verbose)
+				// Return from BDOS - pop return address from stack
+				lowByte := z80.Z80.ReadMemory(z80.SP)
+				highByte := z80.Z80.ReadMemory(z80.SP + 1)
+				z80.PC = uint16(lowByte) | (uint16(highByte) << 8)
+				z80.SP += 2
+				if verbose {
+					fmt.Printf("💫 Returning to PC=$%04X, SP=$%04X\n", z80.PC, z80.SP)
+				}
+				continue
 			}
+			
+			// Note: We lose RST hook support this way, but gain proper BDOS detection
+			// TODO: Fix ExecuteWithHooks to properly return after each instruction
+			
 			
 			// Check if CPU is halted
 			if z80.Z80.IsHalted() {
-				if verbose {
-					fmt.Printf("\n🛑 CPU halted at PC=$%04X\n", z80.PC)
+				// Check if interrupts are disabled (DI:HALT combination)
+				if !z80.Z80.GetIFF1() {
+					if verbose {
+						fmt.Printf("\n🛑 DI:HALT detected at PC=$%04X - program terminated cleanly\n", z80.PC)
+					}
+					break
+				} else {
+					// HALT with interrupts enabled - wait for interrupt
+					if verbose && totalCycles == 0 {
+						fmt.Printf("\n⏸️  CPU halted at PC=$%04X (waiting for interrupt)\n", z80.PC)
+					}
+					// Continue to allow interrupts to wake the CPU
 				}
-				break
 			}
 			
 			// Safety check - prevent infinite loops
 			if totalCycles > 10000000 { // 10M cycles
-				fmt.Printf("\n🚨 Safety stop after 10M T-states\n")
+				if verbose {
+					fmt.Printf("\n🚨 Safety stop after 10M T-states\n")
+				}
 				break
 			}
 		}
@@ -341,6 +433,7 @@ func parseHexAddress(addr string) (uint16, error) {
 
 // setupSpectrumHooks configures ZX Spectrum RST interceptions
 func setupSpectrumHooks(z80 *emulator.Z80WithScreen, verbose bool) {
+	// Set up console output hooks (override the default screen hooks for console output)
 	z80.Hooks.OnRST10 = func(a byte) {
 		// RST $10 - Print character to host stdout
 		if verbose {
@@ -377,22 +470,30 @@ func setupSpectrumHooks(z80 *emulator.Z80WithScreen, verbose bool) {
 		// TODO: Implement proper stdin handling
 		return 0
 	}
+	
+	if verbose {
+		fmt.Printf("🖥️  ZX Spectrum hooks configured\n")
+	}
 }
 
 // setupCPMHooks configures CP/M BDOS system call interceptions
 func setupCPMHooks(z80 *emulator.Z80WithScreen, verbose bool) {
 	// CP/M uses CALL 5 for BDOS functions
-	// We need to hook when PC reaches address 5
+	// Detection is done in the main loop by checking for CALL $0005 instructions
+	// We don't modify memory - proper CP/M emulation!
 	
-	// Set up memory at address 5 to contain a special instruction we can detect
-	// In real CP/M, address 5 contains a JP instruction to the BDOS
-	z80.WriteMemory(0x0005, 0xED) // Use an ED prefix (unused opcode combo) as marker
-	z80.WriteMemory(0x0006, 0xFF) // Unused opcode - we'll detect this
+	// In real CP/M, address $0005 contains a JP to the BDOS
+	// We could optionally set this up for compatibility:
+	// z80.WriteMemory(0x0005, 0xC3) // JP instruction
+	// z80.WriteMemory(0x0006, 0x06) // Low byte (dummy BDOS address)
+	// z80.WriteMemory(0x0007, 0xE4) // High byte (dummy BDOS address)
+	// But we intercept CALL $0005 before it executes, so this isn't needed
 	
 	if verbose {
 		fmt.Printf("🖥️  CP/M BDOS hooks configured\n")
 	}
 }
+
 
 // setupCPCHooks configures Amstrad CPC firmware call interceptions  
 func setupCPCHooks(z80 *emulator.Z80WithScreen, verbose bool) {
@@ -411,40 +512,113 @@ func setupCPCHooks(z80 *emulator.Z80WithScreen, verbose bool) {
 
 // handleBDOSCall processes CP/M BDOS system calls
 func handleBDOSCall(z80 *emulator.Z80WithScreen, verbose bool) {
-	function := z80.C // BDOS function number in C register
+	function := z80.Z80.GetC() // BDOS function number in C register
+	
+	if verbose {
+		fmt.Printf("🖥️  BDOS call: function %d\n", function)
+	}
 	
 	switch function {
 	case 0: // System reset/exit
 		if verbose {
-			fmt.Printf("🖥️  BDOS 0 (EXIT): Program terminated\n")
+			fmt.Printf("💀 Program terminated (BDOS function 0)\n")
 		}
 		z80.Z80.SetHalted(true) // Halt the CPU
 		
 	case 2: // Console output
-		char := z80.E
+		char := z80.Z80.GetE()
 		if verbose {
-			fmt.Printf("🖥️  BDOS 2 (CONOUT): '%c' (0x%02X)\n", printableChar(char), char)
+			fmt.Printf("🖨️  BDOS console output: '%c' (0x%02X)\n", printableChar(char), char)
 		}
+		// Output the character directly
 		fmt.Printf("%c", char)
 		
 	case 9: // Print string (DE = address)
-		addr := uint16(z80.D)<<8 | uint16(z80.E)
+		addr := z80.Z80.GetDE()
 		if verbose {
-			fmt.Printf("🖥️  BDOS 9 (PRINTS): string at $%04X\n", addr)
+			fmt.Printf("🖨️  BDOS print string from $%04X\n", addr)
 		}
-		// Print string until $ terminator
-		for {
+		// Print string until $ terminator (max 255 chars for safety)
+		for i := 0; i < 255; i++ {
 			ch := z80.ReadMemory(addr)
 			if ch == '$' {
 				break
 			}
-			fmt.Printf("%c", ch)
+			// Only print printable characters, skip control characters except CR/LF
+			if ch >= 32 && ch <= 126 {
+				fmt.Printf("%c", ch)
+			} else if ch == 13 {
+				fmt.Print("\r")
+			} else if ch == 10 {
+				fmt.Print("\n")
+			} else if verbose {
+				fmt.Printf("[0x%02X]", ch)
+			}
 			addr++
+		}
+		
+	case 1: // Console input
+		if verbose {
+			fmt.Printf("⌨️  BDOS console input: ")
+		}
+		// Read a single character from stdin
+		var input [1]byte
+		n, err := os.Stdin.Read(input[:])
+		if err != nil || n == 0 {
+			z80.Z80.SetA(0) // Return null on error
+		} else {
+			z80.Z80.SetA(input[0])
+			if verbose {
+				fmt.Printf("got '%c' (0x%02X)\n", printableChar(input[0]), input[0])
+			}
+		}
+		
+	case 10: // Read console buffer
+		addr := z80.Z80.GetDE()
+		maxLen := z80.ReadMemory(addr) // First byte is max length
+		if verbose {
+			fmt.Printf("⌨️  BDOS read console buffer at $%04X, max %d chars\n", addr, maxLen)
+		}
+		
+		// Read input line
+		reader := bufio.NewReader(os.Stdin)
+		line, err := reader.ReadString('\n')
+		if err != nil {
+			line = ""
+		}
+		
+		// Remove trailing newline
+		line = strings.TrimSuffix(line, "\n")
+		line = strings.TrimSuffix(line, "\r")
+		
+		// Truncate if too long
+		if len(line) > int(maxLen) {
+			line = line[:maxLen]
+		}
+		
+		// Store actual length
+		z80.WriteMemory(addr+1, uint8(len(line)))
+		
+		// Store the characters
+		for i, ch := range []byte(line) {
+			z80.WriteMemory(addr+2+uint16(i), ch)
+		}
+		
+		if verbose {
+			fmt.Printf("  Read %d characters: %s\n", len(line), line)
+		}
+		
+	case 11: // Console status
+		// Check if input is available
+		// For simplicity, always return "ready"
+		z80.Z80.SetA(0xFF)
+		if verbose {
+			fmt.Printf("🖥️  BDOS console status: ready\n")
 		}
 		
 	default:
 		if verbose {
-			fmt.Printf("🖥️  BDOS function %d not implemented\n", function)
+			fmt.Printf("⚠️  Unimplemented BDOS function: %d\n", function)
 		}
 	}
 }

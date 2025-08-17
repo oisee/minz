@@ -1,0 +1,26 @@
+; Test ORG with alignment - debug version
+    ORG $8000
+
+address:    
+    LD A, 12                      ; Some instruction at address ($8000)
+    
+; Show the alignment calculation explicitly
+TEST1 EQU $8000
+TEST2 EQU TEST1^^                 ; Should be $8000 (already aligned)
+
+TEST3 EQU $8001  
+TEST4 EQU TEST3^^                 ; Should be $8100
+
+debug:
+    ; Load the aligned values to see them
+    LD B, TEST2                   ; Should be $00 (low byte of $8000)
+    LD C, TEST4                   ; Should be $00 (low byte of $8100)
+    LD D, TEST2^H                 ; Should be $80 (high byte of $8000)
+    LD E, TEST4^H                 ; Should be $81 (high byte of $8100)
+    
+; Now try ORG with a specific aligned address
+    ORG $8100
+aligned_section:
+    LD H, 99                      ; This should be at $8100
+    
+    END

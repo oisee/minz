@@ -43,6 +43,25 @@ func (a *Assembler) processDirective(line *Line) error {
 	}
 }
 
+// calculateLengthOfOperands calculates the total byte length of operands
+func (a *Assembler) calculateLengthOfOperands(operands []string) int {
+	length := 0
+	for _, operand := range operands {
+		if isString(operand) {
+			// String contributes its character count
+			str := parseString(operand)
+			length += len(str)
+		} else if strings.HasPrefix(operand, "@") {
+			// Skip macros - they don't contribute to the data length
+			continue
+		} else {
+			// Numeric values contribute 1 byte in DB context
+			length++
+		}
+	}
+	return length
+}
+
 // handleORG sets the origin address
 func (a *Assembler) handleORG(line *Line) error {
 	if len(line.Operands) != 1 {
@@ -70,9 +89,40 @@ func (a *Assembler) handleDB(line *Line) error {
 	
 	var bytes []byte
 	
-	for _, operand := range line.Operands {
-		// Check if it's a string
-		if isString(operand) {
+	for i, operand := range line.Operands {
+		// Check for special macros
+		if operand == "@len" || operand == "@size" || operand == "@len_u8" {
+			// Calculate length of remaining operands (8-bit with overflow check)
+			length := a.calculateLengthOfOperands(line.Operands[i+1:])
+			if length > 255 {
+				return fmt.Errorf("%s overflow: length is %d bytes (max 255)", operand, length)
+			}
+			bytes = append(bytes, byte(length))
+		} else if operand == "@len_u16" || operand == "@size16" {
+			// Calculate length of remaining operands (16-bit, emit as 2 bytes)
+			length := a.calculateLengthOfOperands(line.Operands[i+1:])
+			if length > 65535 {
+				return fmt.Errorf("%s overflow: length is %d bytes (max 65535)", operand, length)
+			}
+			// Little-endian: low byte first, then high byte
+			bytes = append(bytes, byte(length), byte(length>>8))
+		} else if operand == "@count" || operand == "@count_u8" {
+			// Count number of remaining operands (8-bit with overflow check)
+			count := len(line.Operands) - i - 1
+			if count > 255 {
+				return fmt.Errorf("%s overflow: count is %d (max 255)", operand, count)
+			}
+			bytes = append(bytes, byte(count))
+		} else if operand == "@count_u16" {
+			// Count number of remaining operands (16-bit, emit as 2 bytes)
+			count := len(line.Operands) - i - 1
+			if count > 65535 {
+				return fmt.Errorf("%s overflow: count is %d (max 65535)", operand, count)
+			}
+			// Little-endian: low byte first, then high byte
+			bytes = append(bytes, byte(count), byte(count>>8))
+		} else if isString(operand) {
+			// Handle string
 			str := parseString(operand)
 			bytes = append(bytes, []byte(str)...)
 		} else {
@@ -110,13 +160,48 @@ func (a *Assembler) handleDW(line *Line) error {
 	
 	var bytes []byte
 	
-	for _, operand := range line.Operands {
-		val, err := a.resolveValue(operand)
-		if err != nil {
-			return fmt.Errorf("invalid DW operand '%s': %w", operand, err)
+	for i, operand := range line.Operands {
+		// Check for special macros
+		if operand == "@len_u16" || operand == "@size16" {
+			// Calculate length of remaining operands (16-bit)
+			length := a.calculateLengthOfOperands(line.Operands[i+1:])
+			if length > 65535 {
+				return fmt.Errorf("%s overflow: length is %d bytes (max 65535)", operand, length)
+			}
+			// Little-endian encoding
+			bytes = append(bytes, byte(length), byte(length>>8))
+		} else if operand == "@len" || operand == "@len_u8" {
+			// For DW context, promote 8-bit length to 16-bit
+			length := a.calculateLengthOfOperands(line.Operands[i+1:])
+			if length > 255 {
+				return fmt.Errorf("%s overflow: length is %d bytes (max 255 for u8)", operand, length)
+			}
+			// Little-endian encoding (high byte will be 0)
+			bytes = append(bytes, byte(length), 0)
+		} else if operand == "@count_u16" {
+			// Count number of remaining operands (16-bit)
+			count := len(line.Operands) - i - 1
+			if count > 65535 {
+				return fmt.Errorf("%s overflow: count is %d (max 65535)", operand, count)
+			}
+			// Little-endian encoding
+			bytes = append(bytes, byte(count), byte(count>>8))
+		} else if operand == "@count" || operand == "@count_u8" {
+			// For DW context, promote 8-bit count to 16-bit
+			count := len(line.Operands) - i - 1
+			if count > 255 {
+				return fmt.Errorf("%s overflow: count is %d (max 255 for u8)", operand, count)
+			}
+			// Little-endian encoding (high byte will be 0)
+			bytes = append(bytes, byte(count), 0)
+		} else {
+			val, err := a.resolveValue(operand)
+			if err != nil {
+				return fmt.Errorf("invalid DW operand '%s': %w", operand, err)
+			}
+			// Little-endian encoding
+			bytes = append(bytes, byte(val), byte(val>>8))
 		}
-		// Little-endian encoding
-		bytes = append(bytes, byte(val), byte(val>>8))
 	}
 	
 	if a.pass == 2 {
@@ -206,6 +291,13 @@ func (a *Assembler) handleEQU(line *Line) error {
 			Name:    label,
 			Value:   value,
 			Defined: true,
+		}
+	} else {
+		// In pass 2, just verify the value matches
+		if sym, exists := a.symbols[label]; exists {
+			if sym.Value != value {
+				return fmt.Errorf("symbol '%s' value mismatch: was %d, now %d", label, sym.Value, value)
+			}
 		}
 	}
 	

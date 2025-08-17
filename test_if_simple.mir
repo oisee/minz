@@ -1,0 +1,14 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_if_simple.main() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+  Instructions:
+      0: r2 = 10
+      1: store x, r2
+      2: r3 = load x
+      3: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      4: return
+

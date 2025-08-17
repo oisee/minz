@@ -1,0 +1,60 @@
+; CP/M input test
+    ORG $0100     ; CP/M programs start at $0100
+    
+start:
+    ; Print prompt using BDOS function 9
+    LD DE, prompt
+    LD C, 9       ; BDOS function 9: Print string
+    CALL 5
+    
+    ; Read a line using BDOS function 10
+    LD DE, buffer
+    LD C, 10      ; BDOS function 10: Read console buffer
+    CALL 5
+    
+    ; Print newline
+    LD E, 13
+    LD C, 2       ; BDOS function 2: Console output
+    CALL 5
+    LD E, 10
+    LD C, 2
+    CALL 5
+    
+    ; Print result message
+    LD DE, result_msg
+    LD C, 9
+    CALL 5
+    
+    ; Get the count of characters entered
+    LD HL, buffer_count
+    LD A, (HL)        ; Number of characters actually entered
+    ADD A, '0'        ; Convert to ASCII (simplified for single digit)
+    LD E, A
+    LD C, 2           ; Print the count
+    CALL 5
+    
+    ; Print final message
+    LD DE, final_msg
+    LD C, 9
+    CALL 5
+    
+    ; Exit to CP/M
+    LD C, 0       ; BDOS function 0: System reset
+    CALL 5
+    
+prompt:
+    DB "Enter your name: $"
+    
+result_msg:
+    DB 13, 10, "You entered $"
+    
+final_msg:
+    DB " characters", 13, 10, "$"
+    
+buffer:
+    DB 20         ; Maximum characters to read
+buffer_count:
+    DB 0          ; Actual count (filled by BDOS)
+    DS 20         ; Buffer space for input
+    
+    END
