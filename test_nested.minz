@@ -1,0 +1,1 @@
+fun test(mat1: *u8, i: u8, size: u8, k: u8) -> u16 { return *(mat1 + i * size + k) as u16; }

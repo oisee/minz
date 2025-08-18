@@ -1,0 +1,7 @@
+    OUTPUT "results_fixed/test_and_sjasm.bin"
+    ORG $8000
+    LD A, $0F
+    LD B, $33
+    AND B
+    HALT
+    END

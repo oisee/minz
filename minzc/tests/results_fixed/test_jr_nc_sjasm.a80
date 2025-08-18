@@ -1,0 +1,8 @@
+    OUTPUT "results_fixed/test_jr_nc_sjasm.bin"
+    ORG $8000
+    XOR A      ; Clear carry
+    JR NC, skip
+    NOP
+skip:
+    HALT
+    END

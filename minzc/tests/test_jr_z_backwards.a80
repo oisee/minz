@@ -1,0 +1,7 @@
+    ORG $8000
+skip:
+    NOP
+    XOR A      ; Set zero flag
+    JR Z, skip ; Jump backwards
+    HALT
+    END

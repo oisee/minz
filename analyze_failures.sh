@@ -1,24 +1,21 @@
 #!/bin/bash
-# Analyze current failures
+# Analyze all compilation failures to identify patterns
 
-cd /Users/alice/dev/minz-ts
+echo "=== MinZ Compilation Failure Analysis ==="
+echo "Date: $(date)"
+echo
 
-echo "=== Analyzing Current Failures ==="
-
-count=0
-for file in sanitized_corpus/*.a80; do
-    if [ -f "$file" ] && [ $count -lt 10 ]; then
-        if ! ./minzc/mza "$file" -o /tmp/test.bin >/dev/null 2>&1; then
-            echo "Failed: $(basename $file)"
-            ./minzc/mza "$file" -o /tmp/test.bin 2>&1 | head -2
+# Collect all errors
+for file in examples/*.minz examples/feature_tests/*.minz stdlib/std/*.minz stdlib/zx/*.minz games/*.minz; do
+    if [ -f "$file" ]; then
+        error_output=$(./minzc/mz "$file" -o /tmp/test.a80 2>&1)
+        if [ $? -ne 0 ]; then
+            basename "$file"
+            echo "$error_output" | grep -E "error|undefined|cannot" | head -3
             echo "---"
-            count=$((count + 1))
         fi
     fi
 done
 
-echo ""
-echo "=== Summary ==="
-echo "Directive support is working correctly."
-echo "The core issue remains: instruction encoding gaps."
-echo "Ready to proceed to Quick Win #3: Target/Device Support"
+# Clean up
+rm -f /tmp/test.a80 /tmp/test.mir

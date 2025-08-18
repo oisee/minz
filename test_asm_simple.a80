@@ -1,0 +1,63 @@
+; MinZ generated code
+; Generated: 2025-08-17 16:57:38
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_asm_simple.test_basic_asm
+test_basic_asm:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    ; Register 2 already in A
+    ; store result, r2
+    ; Register 2 already in A
+    LD ($F002), A
+    ; Inline assembly from @asm block
+    LD A, 42
+    LD (result), A
+    ; r3 = load result
+    LD A, ($F002)
+    LD C, A         ; Store to physical register C
+    LD A, C
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+...test_asm_simple.test_basic_asm_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+...test_asm_simple.test_basic_asm_store_addr.op:
+...test_asm_simple.test_basic_asm_store_addr equ ...test_asm_simple.test_basic_asm_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_asm_simple.main
+asm_simple_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_asm_simple.test_basic_asm_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_asm_simple.test_basic_asm_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_asm_simple.test_basic_asm_store_addr), HL
+    ; r1 = call ...test_asm_simple.test_basic_asm
+    ; Call to ...test_asm_simple.test_basic_asm (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_basic_asm
+    ; return r1
+    RET
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

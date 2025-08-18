@@ -1,0 +1,26 @@
+    ORG $8000
+    
+    ; JR NZ test
+    LD A, 2
+loop1:
+    DEC A
+    JR NZ, loop1
+    
+    ; DJNZ test
+    LD B, 2
+loop2:
+    NOP
+    DJNZ loop2
+    
+    ; Memory indirect
+    LD HL, $9000
+    LD (HL), $AA
+    LD A, (HL)
+    
+    ; Logic operations
+    AND $0F
+    OR $F0
+    XOR $FF
+    
+    HALT
+    END

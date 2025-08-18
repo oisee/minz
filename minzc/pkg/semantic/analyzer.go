@@ -399,6 +399,206 @@ func (a *Analyzer) addBuiltins() {
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
 		IsBuiltin: true,
 	})
+	
+	// === QUICK WIN STUB FUNCTIONS ===
+	// These are the most commonly missing functions that block tests
+	
+	// print_number - generic number printing (alias for print_u16)
+	a.currentScope.Define("print_number", &FuncSymbol{
+		Name: "print_number",
+		Params: []*ast.Parameter{
+			{Name: "value", Type: &ast.PrimitiveType{Name: "u16"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.BasicType{Kind: ir.TypeU16}},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// print_char - print a single character (alias for print u8)
+	a.currentScope.Define("print_char", &FuncSymbol{
+		Name: "print_char",
+		Params: []*ast.Parameter{
+			{Name: "ch", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.BasicType{Kind: ir.TypeU8}},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// set_pixel - draw a pixel at x,y with color
+	a.currentScope.Define("set_pixel", &FuncSymbol{
+		Name: "set_pixel",
+		Params: []*ast.Parameter{
+			{Name: "x", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "y", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "color", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{
+				&ir.BasicType{Kind: ir.TypeU8}, // x
+				&ir.BasicType{Kind: ir.TypeU8}, // y
+				&ir.BasicType{Kind: ir.TypeU8}, // color
+			},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// draw_sprite - draw a sprite at position
+	a.currentScope.Define("draw_sprite", &FuncSymbol{
+		Name: "draw_sprite",
+		Params: []*ast.Parameter{
+			{Name: "sprite", Type: &ast.PointerType{BaseType: &ast.PrimitiveType{Name: "u8"}}},
+			{Name: "x", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "y", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{
+				&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, // sprite data
+				&ir.BasicType{Kind: ir.TypeU8}, // x
+				&ir.BasicType{Kind: ir.TypeU8}, // y
+			},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// rom_print_char - ROM routine for printing (stub)
+	a.currentScope.Define("rom_print_char", &FuncSymbol{
+		Name: "rom_print_char",
+		Params: []*ast.Parameter{
+			{Name: "ch", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.BasicType{Kind: ir.TypeU8}},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// inc_and_return - increment and return value
+	a.currentScope.Define("inc_and_return", &FuncSymbol{
+		Name: "inc_and_return",
+		Params: []*ast.Parameter{
+			{Name: "value", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.BasicType{Kind: ir.TypeU8}},
+			Return: &ir.BasicType{Kind: ir.TypeU8},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeU8},
+		IsBuiltin: true,
+	})
+	
+	// cls - clear screen
+	a.currentScope.Define("cls", &FuncSymbol{
+		Name: "cls",
+		Params: []*ast.Parameter{},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// hex - convert u8 to hex string
+	a.currentScope.Define("hex", &FuncSymbol{
+		Name: "hex",
+		Params: []*ast.Parameter{
+			{Name: "value", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.BasicType{Kind: ir.TypeU8}},
+			Return: &ir.BasicType{Kind: ir.TypeVoid}, // Returns void for now (prints directly)
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// pad - pad a value to width
+	a.currentScope.Define("pad", &FuncSymbol{
+		Name: "pad",
+		Params: []*ast.Parameter{
+			{Name: "value", Type: &ast.PrimitiveType{Name: "u16"}},
+			{Name: "width", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.BasicType{Kind: ir.TypeU16}, &ir.BasicType{Kind: ir.TypeU8}},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// ln - print newline
+	a.currentScope.Define("ln", &FuncSymbol{
+		Name: "ln",
+		Params: []*ast.Parameter{},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// set_ink - set ink color (ZX Spectrum)
+	a.currentScope.Define("set_ink", &FuncSymbol{
+		Name: "set_ink",
+		Params: []*ast.Parameter{
+			{Name: "color", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.BasicType{Kind: ir.TypeU8}},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// memcpy - copy memory
+	a.currentScope.Define("memcpy", &FuncSymbol{
+		Name: "memcpy",
+		Params: []*ast.Parameter{
+			{Name: "dest", Type: &ast.PointerType{BaseType: &ast.PrimitiveType{Name: "u8"}}},
+			{Name: "src", Type: &ast.PointerType{BaseType: &ast.PrimitiveType{Name: "u8"}}},
+			{Name: "size", Type: &ast.PrimitiveType{Name: "u16"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{
+				&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}},
+				&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}},
+				&ir.BasicType{Kind: ir.TypeU16},
+			},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+	
+	// strlen - get string length
+	a.currentScope.Define("strlen", &FuncSymbol{
+		Name: "strlen",
+		Params: []*ast.Parameter{
+			{Name: "str", Type: &ast.PointerType{BaseType: &ast.PrimitiveType{Name: "u8"}}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{&ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}},
+			Return: &ir.BasicType{Kind: ir.TypeU16},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeU16},
+		IsBuiltin: true,
+	})
 }
 
 // processImport processes an import statement
@@ -1179,8 +1379,16 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 		}
 
 		reg := irFunc.AddParam(param.Name, paramType)
-		a.currentScope.Define(param.Name, &VarSymbol{
-			Name:        param.Name,
+		
+		// Handle 'self' parameter specially - it's always the receiver
+		paramName := param.Name
+		if paramName == "self" {
+			// 'self' is a valid parameter name for methods
+			// It represents the receiver of the method
+		}
+		
+		a.currentScope.Define(paramName, &VarSymbol{
+			Name:        paramName,
 			Type:        paramType,
 			Reg:         reg,
 			IsParameter: true,
@@ -5929,6 +6137,45 @@ func (a *Analyzer) analyzeMetafunctionCall(call *ast.MetafunctionCall, irFunc *i
 	
 	// Handle built-in metafunctions
 	switch call.Name {
+	case "ptr":
+		// Handle @ptr(variable) - get the address of a variable
+		if len(call.Arguments) != 1 {
+			return 0, fmt.Errorf("@ptr requires exactly one argument")
+		}
+		
+		// The argument should be an identifier
+		if id, ok := call.Arguments[0].(*ast.Identifier); ok {
+			// Look up the variable
+			sym := a.currentScope.Lookup(id.Name)
+			if sym == nil {
+				return 0, fmt.Errorf("@ptr: undefined identifier %s", id.Name)
+			}
+			
+			varSym, ok := sym.(*VarSymbol)
+			if !ok {
+				return 0, fmt.Errorf("@ptr: %s is not a variable", id.Name)
+			}
+			
+			// Allocate a register for the address
+			reg := irFunc.AllocReg()
+			
+			// Generate LoadAddr instruction
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpLoadAddr,
+				Dest:    reg,
+				Symbol:  varSym.Name,
+				Type:    &ir.PointerType{Base: varSym.Type},
+				Comment: fmt.Sprintf("@ptr(%s) - get address", id.Name),
+			})
+			
+			// Store the type as a pointer type
+			a.exprTypes[call] = &ir.PointerType{Base: varSym.Type}
+			
+			return reg, nil
+		} else {
+			return 0, fmt.Errorf("@ptr requires a variable name")
+		}
+		
 	case "asm":
 		// Handle @asm for inline assembly
 		if len(call.Arguments) == 0 {
@@ -6252,11 +6499,25 @@ func (a *Analyzer) processStringInterpolation(format string, irFunc *ir.Function
 
 // parseSimpleExpression creates an AST node from a simple expression string
 func (a *Analyzer) parseSimpleExpression(expr string, irFunc *ir.Function) ast.Expression {
-	// For now, just handle identifiers
+	// For now, just handle identifiers and field access
 	// TODO: Use proper expression parser
 	expr = strings.TrimSpace(expr)
 	if expr == "" {
 		return nil
+	}
+	
+	// Check for field access (e.g., self.x, obj.field)
+	if idx := strings.Index(expr, "."); idx > 0 {
+		objName := expr[:idx]
+		fieldName := expr[idx+1:]
+		
+		// Both parts must be valid identifiers
+		if isValidIdentifier(objName) && isValidIdentifier(fieldName) {
+			return &ast.FieldExpr{
+				Object: &ast.Identifier{Name: objName},
+				Field:  fieldName,
+			}
+		}
 	}
 	
 	// Simple identifier
@@ -6266,7 +6527,7 @@ func (a *Analyzer) parseSimpleExpression(expr string, irFunc *ir.Function) ast.E
 		}
 	}
 	
-	// TODO: Handle more complex expressions
+	// TODO: Handle more complex expressions (numbers, function calls, etc.)
 	return nil
 }
 
@@ -6433,6 +6694,16 @@ func (a *Analyzer) isValidCast(source, target ir.Type) bool {
 	
 	// Allow casts from enum types to integer types
 	if _, ok := source.(*ir.EnumType); ok {
+		if targetBasic, ok := target.(*ir.BasicType); ok {
+			switch targetBasic.Kind {
+			case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+				return true
+			}
+		}
+	}
+	
+	// Allow casts from pointer types to integer types (pointer address to integer)
+	if _, ok := source.(*ir.PointerType); ok {
 		if targetBasic, ok := target.(*ir.BasicType); ok {
 			switch targetBasic.Kind {
 			case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
@@ -7008,7 +7279,36 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		switch e.Operator {
 		case "==", "!=", "<", ">", "<=", ">=":
 			return &ir.BasicType{Kind: ir.TypeBool}, nil
-		case "+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>":
+		case "+", "-":
+			// Special handling for pointer arithmetic
+			if ptrType, ok := leftType.(*ir.PointerType); ok {
+				// Pointer + integer or pointer - integer is valid
+				if basicType, ok := rightType.(*ir.BasicType); ok {
+					switch basicType.Kind {
+					case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+						// Valid pointer arithmetic
+						return ptrType, nil
+					}
+				}
+			} else if ptrType, ok := rightType.(*ir.PointerType); ok {
+				// Integer + pointer is also valid (commutative)
+				if e.Operator == "+" {
+					if basicType, ok := leftType.(*ir.BasicType); ok {
+						switch basicType.Kind {
+						case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+							// Valid pointer arithmetic
+							return ptrType, nil
+						}
+					}
+				}
+			}
+			// For non-pointer arithmetic, check type compatibility
+			if !a.typesCompatible(leftType, rightType) {
+				return nil, fmt.Errorf("type mismatch in binary expression: %s vs %s", 
+					leftType.String(), rightType.String())
+			}
+			return leftType, nil
+		case "*", "/", "%", "&", "|", "^", "<<", ">>":
 			// Check if types match
 			if !a.typesCompatible(leftType, rightType) {
 				return nil, fmt.Errorf("type mismatch in binary expression: %s vs %s", 

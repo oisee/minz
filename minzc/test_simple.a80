@@ -1,0 +1,20 @@
+; MinZ generated code
+; Generated: 2025-08-17 17:00:12
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_simple.main
+test_simple_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 42
+    LD A, 42
+    ; Register 1 already in A
+    ; return r1
+    RET
+
+    END main

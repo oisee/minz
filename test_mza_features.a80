@@ -1,0 +1,22 @@
+; Test MZA advanced features
+    ORG $8000
+
+test_start:
+    ; Test current address symbol
+    LD HL, $          ; Should be $8002
+    
+    ; Test byte extraction  
+    LD A, test_start^H  ; High byte of test_start
+    LD B, test_start^L  ; Low byte of test_start
+    
+    ; Test alignment  
+    NOP
+align_test:
+    DS $^^           ; Align to next 256-byte boundary
+    
+    ; Test high/low bytes in immediate values
+    LD H, test_start^H  ; High byte
+    LD L, test_start^L  ; Low byte
+    
+    RET
+    END

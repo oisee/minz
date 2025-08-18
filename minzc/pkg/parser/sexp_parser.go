@@ -1178,6 +1178,11 @@ func (p *Parser) convertParameters(node *SExpNode) []*ast.Parameter {
 					}
 				}
 				
+				// Check if this is a 'self' parameter with explicit type
+				if param.Name == "self" {
+					param.IsSelf = true
+				}
+				
 				if param.Name != "" && param.Type != nil {
 					params = append(params, param)
 				}

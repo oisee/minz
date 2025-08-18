@@ -1,0 +1,15 @@
+// Simple inline assembly test
+fun test_basic_asm() -> u8 {
+    let result: u8 = 0;
+    
+    @asm {
+        LD A, 42
+        LD (result), A
+    }
+    
+    return result;
+}
+
+fun main() -> u8 {
+    return test_basic_asm();
+}

@@ -1,0 +1,1 @@
+fun test(result: *u8, i: u8, size: u8, j: u8, sum: u16) { *(result + i * size + j) = (sum & 0xFF) as u8; }

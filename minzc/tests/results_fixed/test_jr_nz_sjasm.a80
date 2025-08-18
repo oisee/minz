@@ -1,0 +1,8 @@
+    OUTPUT "results_fixed/test_jr_nz_sjasm.bin"
+    ORG $8000
+    LD A, 5
+loop:
+    DEC A
+    JR NZ, loop
+    HALT
+    END

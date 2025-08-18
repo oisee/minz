@@ -1,0 +1,7 @@
+    ORG $8000
+    LD B, 5
+loop:
+    NOP
+    DJNZ loop
+    HALT
+    END

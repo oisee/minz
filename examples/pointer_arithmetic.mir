@@ -1,0 +1,80 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...examples.pointer_arithmetic.array_sum$p_u8$u8(data: *u8, count: u8) -> u16
+  @smc
+  Locals:
+    r3 = sum: u16
+    r5 = i: u8
+  Instructions:
+      0: r4 = 0
+      1: store sum, r4
+      2: r6 = 0
+      3: store i, r6
+      4: loop_1:
+      5: r7 = load i
+      6: LOAD_PARAM
+      7: r9 = r7 < r8
+      8: jump_if_not r9, end_loop_2
+      9: r10 = load sum
+     10: LOAD_PARAM
+     11: LOAD
+     12: r13 = r10 + r12
+     13: store sum, r13
+     14: LOAD_PARAM
+     15: r15 = 1
+     16: r16 = r14 + r15
+     17: store data, r16
+     18: r17 = load i
+     19: r18 = 1
+     20: r19 = r17 + r18
+     21: store i, r19
+     22: jump loop_1
+     23: end_loop_2:
+     24: r20 = load sum
+     25: return r20
+
+Function ...examples.pointer_arithmetic.find_max$p_u8$u8(data: *u8, count: u8) -> u8
+  @smc
+  Locals:
+    r3 = max: u8
+    r9 = i: u8
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD
+      2: store max, r5
+      3: LOAD_PARAM
+      4: r7 = 1
+      5: r8 = r6 + r7
+      6: store data, r8
+      7: r10 = 1
+      8: store i, r10
+      9: loop_3:
+     10: r11 = load i
+     11: LOAD_PARAM
+     12: r13 = r11 < r12
+     13: jump_if_not r13, end_loop_4
+     14: LOAD_PARAM
+     15: LOAD
+     16: r16 = load max
+     17: r17 = r15 > r16
+     18: jump_if_not r17, else_5
+     19: LOAD_PARAM
+     20: LOAD
+     21: store max, r19
+     22: jump end_if_6
+     23: else_5:
+     24: end_if_6:
+     25: LOAD_PARAM
+     26: r21 = 1
+     27: r22 = r20 + r21
+     28: store data, r22
+     29: r23 = load i
+     30: r24 = 1
+     31: r25 = r23 + r24
+     32: store i, r25
+     33: jump loop_3
+     34: end_loop_4:
+     35: r26 = load max
+     36: return r26
+

@@ -1,0 +1,1 @@
+fun test(data: *u8) -> u16 { return *data as u16; }

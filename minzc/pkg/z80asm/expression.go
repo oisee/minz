@@ -82,7 +82,15 @@ func (a *Assembler) EvaluateExpression(expr string) (uint16, error) {
 		if sym, ok := a.symbols[strings.ToUpper(expr)]; ok {
 			return sym.Value, nil
 		}
-		// Don't error here - let the caller handle undefined symbols
+		// In pass 1, forward references are OK - create placeholder
+		if a.pass == 1 {
+			a.symbols[strings.ToUpper(expr)] = &Symbol{
+				Name:    expr,
+				Defined: false,
+			}
+			return 0, nil
+		}
+		// In pass 2, undefined symbols are errors
 		return 0, fmt.Errorf("undefined symbol: %s", expr)
 	}
 	

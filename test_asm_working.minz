@@ -1,0 +1,32 @@
+// Working inline assembly examples
+fun test_basic_asm() -> u8 {
+    let result: u8 = 0;
+    
+    @asm {
+        LD A, 42
+        LD (result), A
+    }
+    
+    return result;
+}
+
+fun test_asm_with_vars() -> u8 {
+    let x: u8 = 10;
+    let y: u8 = 20;
+    let result: u8 = 0;
+    
+    @asm {
+        LD A, (x)
+        LD B, (y)
+        ADD A, B
+        LD (result), A
+    }
+    
+    return result;
+}
+
+fun main() -> u8 {
+    let r1 = test_basic_asm();
+    let r2 = test_asm_with_vars();
+    return r1 + r2;  // Should be 42 + 30 = 72
+}

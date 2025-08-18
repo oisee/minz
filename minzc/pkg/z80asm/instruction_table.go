@@ -430,7 +430,12 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 		}
 		// Also accept calculated offset from label
 		if addr, ok := v.(uint16); ok {
-			// Calculate relative offset from current position
+			// In pass 1, just use a placeholder
+			if a.pass == 1 {
+				result = append(result, 0) // Placeholder for size calculation
+				return result, nil
+			}
+			// In pass 2, calculate relative offset from current position
 			offset := int(addr) - int(a.currentAddr) - 2
 			if offset < -128 || offset > 127 {
 				return nil, fmt.Errorf("relative jump out of range: %d", offset)

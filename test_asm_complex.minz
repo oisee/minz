@@ -1,0 +1,19 @@
+// Complex inline assembly test
+fun test_asm_with_vars() -> u8 {
+    let x: u8 = 10;
+    let y: u8 = 20;
+    let result: u8 = 0;
+    
+    @asm {
+        LD A, (x)
+        LD B, (y)
+        ADD A, B
+        LD (result), A
+    }
+    
+    return result;
+}
+
+fun main() -> u8 {
+    return test_asm_with_vars();
+}

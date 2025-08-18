@@ -1,0 +1,8 @@
+struct Point { x: u8, y: u8 }
+fun move_point(p: *Point, dx: u8) -> void {
+    p.x = p.x + dx;
+}
+fun main() -> void {
+    let mut pt = Point { x: 10, y: 20 };
+    move_point(&pt, 5);
+}

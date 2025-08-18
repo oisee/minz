@@ -1,0 +1,29 @@
+// Test that MZR can now handle all Z80 instructions via inline assembly
+fun test_djnz() -> u8 {
+    let result: u8 = 0;
+    asm {
+        LD B, 5      // Load counter
+        LD A, 0      // Clear accumulator
+    loop:
+        INC A        // Increment A
+        DJNZ loop    // Decrement B and jump if not zero
+        // A should now be 5
+    }
+    return result;
+}
+
+fun test_jr_z() -> u8 {
+    let result: u8 = 0;
+    asm {
+        XOR A        // Set zero flag
+        JR Z, skip   // Forward reference should work now!
+        LD A, 1      // Should be skipped
+    skip:
+        LD A, 42     // Should execute
+    }
+    return result;
+}
+
+// Main test
+test_djnz();
+test_jr_z();

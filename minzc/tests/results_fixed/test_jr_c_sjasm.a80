@@ -1,0 +1,8 @@
+    OUTPUT "results_fixed/test_jr_c_sjasm.bin"
+    ORG $8000
+    SCF        ; Set carry flag
+    JR C, skip
+    NOP
+skip:
+    HALT
+    END

@@ -16,7 +16,7 @@ import (
 // REPL represents the MinZ Read-Eval-Print-Loop
 type REPL struct {
 	assembler *z80asm.Assembler
-	emulator  *emulator.Z80WithScreen
+	emulator  *emulator.REPLCompatibleZ80  // Now with 100% Z80 coverage!
 	context   *Context
 	compiler  *REPLCompiler
 	reader    *bufio.Reader
@@ -67,7 +67,7 @@ func New() *REPL {
 	}
 	return &REPL{
 		assembler:  z80asm.NewAssembler(),
-		emulator:   emulator.NewZ80WithScreen(),
+		emulator:   emulator.NewREPLCompatibleZ80(),  // 100% Z80 coverage!
 		context:    ctx,
 		compiler:   NewREPLCompiler(ctx.codeBase, ctx.dataBase),
 		reader:     bufio.NewReader(os.Stdin),
@@ -414,8 +414,8 @@ func (r *REPL) evaluate(input string) {
 	output, cycleCount := r.emulator.ExecuteWithHooks(result.EntryPoint)
 	
 	// If there was output, print it
-	if output != "" {
-		fmt.Print(output)
+	if len(output) > 0 {
+		fmt.Print(string(output))
 	}
 	
 	// Show execution stats in verbose mode

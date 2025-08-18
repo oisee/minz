@@ -1,0 +1,7 @@
+    ORG $8000
+    LD A, 5
+loop:
+    DEC A
+    JR NZ, loop
+    HALT
+    END

@@ -1,0 +1,145 @@
+; MinZ generated code
+; Generated: 2025-08-17 16:58:27
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_asm_working.test_basic_asm
+test_basic_asm:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    ; Register 2 already in A
+    ; store result, r2
+    ; Register 2 already in A
+    LD ($F002), A
+    ; Inline assembly from @asm block
+    LD A, 42
+    LD (result), A
+    ; r3 = load result
+    LD A, ($F002)
+    LD C, A         ; Store to physical register C
+    LD A, C
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+...test_asm_working.test_basic_asm_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+...test_asm_working.test_basic_asm_store_addr.op:
+...test_asm_working.test_basic_asm_store_addr equ ...test_asm_working.test_basic_asm_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_asm_working.test_asm_with_vars
+asm_with_vars:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD D, A         ; Store to physical register D
+    ; store x, r2
+    LD A, D
+    LD ($F002), A
+    ; r4 = 20
+    LD A, 20
+    LD H, A         ; Store to physical register H
+    ; store y, r4
+    LD A, H
+    LD ($F006), A
+    ; r6 = 0
+    LD A, 0
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; store result, r6
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F00A), A
+    ; Inline assembly from @asm block
+    LD A, (x)
+    LD B, (y)
+    ADD A, B
+    LD (result), A
+    ; r7 = load result
+    LD A, ($F00A)
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+...test_asm_working.test_asm_with_vars_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+...test_asm_working.test_asm_with_vars_store_addr.op:
+...test_asm_working.test_asm_with_vars_store_addr equ ...test_asm_working.test_asm_with_vars_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_asm_working.main
+asm_working_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_asm_working.test_basic_asm_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_asm_working.test_basic_asm_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_asm_working.test_basic_asm_store_addr), HL
+    ; r2 = call ...test_asm_working.test_basic_asm
+    ; Call to ...test_asm_working.test_basic_asm (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL test_basic_asm
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; store r1, r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD ($F002), A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_asm_working.test_asm_with_vars_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_asm_working.test_asm_with_vars_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_asm_working.test_asm_with_vars_store_addr), HL
+    ; r4 = call ...test_asm_working.test_asm_with_vars
+    ; Call to ...test_asm_working.test_asm_with_vars (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL asm_with_vars
+    ; store r2, r4
+    LD A, E
+    LD ($F006), A
+    ; r5 = load r1
+    LD A, ($F002)
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r6 = load r2
+    LD A, ($F006)
+    ; Register 6 already in A
+    ; r7 = r5 + r6
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r7
+    RET
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

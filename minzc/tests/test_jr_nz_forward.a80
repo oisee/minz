@@ -1,0 +1,7 @@
+    ORG $8000
+    LD A, 1
+    JR NZ, skip ; Forward reference
+    NOP
+skip:
+    HALT
+    END

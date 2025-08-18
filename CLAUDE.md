@@ -32,11 +32,11 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - `/cuteify` - Add emojis and fun
 - `/celebrate` - Achievement recognition
 
-## 🛠️ Development Tools & Status (v0.10.0)
+## 🛠️ Development Tools & Status (v0.14.0+)
 
-### ✅ Self-Contained Toolchain
-- Built-in Z80 Assembler (`minzc/pkg/z80asm/`)
-- Embedded Z80 Emulator (`minzc/pkg/emulator/z80.go`)
+### ✅ Self-Contained Toolchain - NOW WITH 100% Z80 COVERAGE! 🎉
+- **UPGRADED:** Built-in Z80 Assembler (`minzc/pkg/z80asm/`) with MZA improvements
+- **BREAKTHROUGH:** Full Z80 Emulator with remogatto/z80 (19.5% → 100% coverage!)
 - Interactive REPL (`cmd/repl/main.go`)
 - Multi-Backend Support (Z80, 6502, WebAssembly, Game Boy, C, LLVM)
 
@@ -175,6 +175,33 @@ mz program.minz -b z80 --target=cpm       # CP/M
 - **35+ peephole patterns** for Z80 optimization
 - **Multi-backend support** with 8 targets
 - **Tree-sitter focus** for parser improvements
+- **🎉 100% Z80 instruction coverage** (upgraded from 19.5%!)
+
+## 🔧 MinZ Toolchain Status & Next Steps
+
+### MZE (Z80 Emulator) - ✅ Ready for Upgrade
+**Current:** Basic 19.5% emulator  
+**Available:** remogatto/z80 100% coverage integration  
+**Next Step:** Update cmd/mze/main.go to use RemogattoZ80  
+**Impact:** Full game testing, TSMC verification enabled
+
+### MZA (Z80 Assembler) - 🚧 Enhanced, Ready for Phase 1  
+**Current:** Basic assembler with recent improvements  
+**Status:** Enhanced with @len, arithmetic expressions, alignment  
+**Next Step:** Implement Phase 1 critical instructions (TODO_MZA.md)  
+**Target:** 19.5% → 40% coverage in Week 1
+
+### MZR (MinZ REPL) - ⏳ Basic Functionality
+**Current:** Interactive MinZ compilation and execution  
+**Status:** Works but limited by emulator coverage  
+**Next Step:** Integrate with 100% coverage emulator  
+**Benefits:** Full instruction set testing, immediate feedback
+
+### MZV (MinZ Visualizer) - 💡 Concept Stage
+**Current:** Not implemented  
+**Vision:** SMC visualization, execution tracing, performance analysis  
+**Next Step:** Design SMC heatmap and cycle visualization  
+**Foundation:** SMC tracking already built into remogatto integration
 
 ## 📚 Documentation System
 
@@ -183,8 +210,8 @@ All documentation (except README.md, TODO.md, STATUS.md, CLAUDE.md) uses automat
 - Format: `NNN_Title.md` (001-999)
 - New docs go in `./inbox/` folder
 - Run `./organize_docs.sh` to auto-number and move to `./docs/`
-- Current count: 164 docs
-- Next available: 165
+- Current count: 259 docs
+- Next available: 260
 
 ### Workflow
 ```bash

@@ -596,7 +596,7 @@ module.exports = grammar({
       ))),
     ),
 
-    unary_expression: $ => prec(8, choice(
+    unary_expression: $ => prec(9, choice(
       seq('!', $.expression),
       seq('-', $.expression),
       seq('~', $.expression),
@@ -640,7 +640,7 @@ module.exports = grammar({
       '?',
     )),
 
-    cast_expression: $ => prec.left(9, seq(
+    cast_expression: $ => prec.left(8, seq(
       field('expression', $.expression),
       'as',
       field('type', $.type),

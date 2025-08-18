@@ -1,0 +1,8 @@
+Assembly errors:
+  Line 3: undefined symbol: skip
+  Problem: 'skip'
+  💡 Symbol not defined in current scope
+  Examples:
+    • Define symbol with: skip:
+    • Check for typos in symbol name
+    • Verify symbol is defined before use

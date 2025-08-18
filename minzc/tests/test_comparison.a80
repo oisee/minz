@@ -1,0 +1,25 @@
+    OUTPUT "test_out.bin"
+    ORG $8000
+    
+    ; Test critical Phase 1 instructions
+    LD A, 5
+loop:
+    DEC A
+    JR NZ, loop    ; Should assemble with MZA
+    
+    LD B, 3
+loop2:
+    NOP
+    DJNZ loop2     ; Should assemble with MZA
+    
+    ; Memory operations
+    LD HL, $9000
+    LD (HL), 42
+    LD A, (HL)
+    
+    ; Logic operations
+    LD B, $33
+    AND B
+    
+    HALT
+    END

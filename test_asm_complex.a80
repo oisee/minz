@@ -1,0 +1,77 @@
+; MinZ generated code
+; Generated: 2025-08-17 16:57:48
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_asm_complex.test_asm_with_vars
+asm_with_vars:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    ; Register 2 already in A
+    ; store x, r2
+    ; Register 2 already in A
+    LD ($F002), A
+    ; r4 = 20
+    LD A, 20
+    LD C, A         ; Store to physical register C
+    ; store y, r4
+    LD A, C
+    LD ($F006), A
+    ; r6 = 0
+    LD A, 0
+    LD E, A         ; Store to physical register E
+    ; store result, r6
+    LD A, E
+    LD ($F00A), A
+    ; Inline assembly from @asm block
+    LD A, (x)
+    LD B, (y)
+    ADD A, B
+    LD (result), A
+    ; r7 = load result
+    LD A, ($F00A)
+    LD L, A         ; Store to physical register L
+    LD A, L
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+...test_asm_complex.test_asm_with_vars_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+...test_asm_complex.test_asm_with_vars_store_addr.op:
+...test_asm_complex.test_asm_with_vars_store_addr equ ...test_asm_complex.test_asm_with_vars_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_asm_complex.main
+asm_complex_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_asm_complex.test_asm_with_vars_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_asm_complex.test_asm_with_vars_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_asm_complex.test_asm_with_vars_store_addr), HL
+    ; r1 = call ...test_asm_complex.test_asm_with_vars
+    ; Call to ...test_asm_complex.test_asm_with_vars (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL asm_with_vars
+    ; return r1
+    RET
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

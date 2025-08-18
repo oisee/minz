@@ -1,0 +1,6 @@
+    ORG $8000
+    LD A, $0F
+    LD B, $30
+    OR B
+    HALT
+    END

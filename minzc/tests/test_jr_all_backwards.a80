@@ -1,0 +1,41 @@
+    ORG $8000
+    
+    ; Test all JR instructions with backward references
+    ; (these should all work)
+    
+start:
+    ; JR unconditional
+    JR next1
+    
+next1:
+    ; JR NZ
+    LD A, 1
+    JR NZ, next2
+    
+next2:
+    ; JR Z
+    XOR A
+    JR Z, next3
+    
+next3:
+    ; JR NC
+    XOR A   ; Clear carry
+    JR NC, next4
+    
+next4:
+    ; JR C
+    SCF     ; Set carry
+    JR C, next5
+    
+next5:
+    ; DJNZ
+    LD B, 1
+    DJNZ next6
+    
+next6:
+    ; Now test backwards jumps
+    LD A, 1
+    JR NZ, start  ; Jump back to start (should work)
+    
+    HALT
+    END

@@ -1,0 +1,10 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_cast_fixed.test$p_u8(data: *u8) -> u16
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD
+      2: return r3
+

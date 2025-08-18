@@ -1,0 +1,7 @@
+    OUTPUT "results_fixed/test_ld_hl_indirect_sjasm.bin"
+    ORG $8000
+    LD HL, $9000
+    LD (HL), 42
+    LD A, (HL)
+    HALT
+    END

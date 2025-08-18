@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_asm_complex.test_asm_with_vars() -> u8
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = y: u8
+    r5 = result: u8
+  Instructions:
+      0: r2 = 10
+      1: store x, r2
+      2: r4 = 20
+      3: store y, r4
+      4: r6 = 0
+      5: store result, r6
+      6: ASM ; Inline assembly from @asm block
+      7: r7 = load result
+      8: return r7
+
+Function ...test_asm_complex.main() -> u8
+  @smc
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: r1 = call ...test_asm_complex.test_asm_with_vars
+      3: return r1
+

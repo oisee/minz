@@ -1,0 +1,7 @@
+    OUTPUT "results_fixed/test_xor_sjasm.bin"
+    ORG $8000
+    LD A, $FF
+    LD B, $0F
+    XOR B
+    HALT
+    END

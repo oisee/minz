@@ -1,0 +1,7 @@
+    ORG $8000
+    SCF        ; Set carry flag
+    JR C, skip
+    NOP
+skip:
+    HALT
+    END
