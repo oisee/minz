@@ -1,0 +1,65 @@
+; MinZ generated code
+; Generated: 2025-08-18 23:04:51
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 46    ; Length
+    DB "This is a normal string that fits in 255 chars"
+str_1:
+    DB 13    ; Length
+    DB "Hello, World!"
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_print_optimized.main
+print_optimized_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Direct print "Hi!" (3 chars)
+    ; Direct print "Hi!" (3 chars)
+    LD A, 72
+    RST 16         ; Print character
+    LD A, 105
+    RST 16         ; Print character
+    LD A, 33
+    RST 16         ; Print character
+    ; r1 = string(str_0)
+    LD HL, str_0
+    ; Print "This is a normal string that fits in 255 chars" (46 chars via loop)
+    CALL print_string
+    ; r2 = string(str_1)
+    LD HL, str_1
+    ; Print "Hello, World!" (13 chars via loop)
+    CALL print_string
+    ; return
+    RET
+
+; Runtime print helper functions
+; Print String (u8 length prefix)
+print_string:
+    ; Format: [len:u8][data...]
+    LD B, (HL)         ; B = length
+    INC HL             ; HL -> string data
+    LD A, B            ; Check if length is zero
+    OR A
+    RET Z              ; Return if empty string
+print_string_loop:
+    LD A, (HL)         ; Load character
+    RST 16             ; ZX Spectrum ROM print
+    INC HL             ; Next character
+    DJNZ print_string_loop ; Decrement B and loop
+    RET
+
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

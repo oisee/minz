@@ -1,0 +1,11 @@
+// Test optimized string printing
+fun main() -> void {
+    // Short string - uses direct print (no loop)
+    @print("Hi!");
+    
+    // Regular string - uses print_string with u8 length
+    @print("This is a normal string that fits in 255 chars");
+    
+    // Test escaping
+    @print("Hello, World!");
+}

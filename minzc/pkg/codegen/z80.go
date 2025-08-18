@@ -2527,10 +2527,29 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    CALL print_bool")
 		
 	case ir.OpPrintString:
-		// Print null-terminated string
+		// Print string - determine if String or LString based on the symbol
 		g.loadToHL(inst.Src1)
-		g.emit("    CALL print_string")
-		g.usedFunctions["print_string"] = true
+		
+		// Check if this is a long string by looking at the string data
+		// The symbol in the instruction should reference a string label
+		isLongString := false
+		if inst.Symbol != "" {
+			// Find the string in module strings
+			for _, str := range g.module.Strings {
+				if str.Label == inst.Symbol {
+					isLongString = str.IsLong
+					break
+				}
+			}
+		}
+		
+		if isLongString {
+			g.emit("    CALL print_lstring")
+			g.usedFunctions["print_lstring"] = true
+		} else {
+			g.emit("    CALL print_string")
+			g.usedFunctions["print_string"] = true
+		}
 		
 	case ir.OpPrintStringDirect:
 		// Direct print for short strings - ultra-fast!
@@ -3962,82 +3981,88 @@ func (g *Z80Generator) generatePrintHelpers() {
 	if debug {
 		fmt.Printf("DEBUG: Checking if print_string is used: %v\n", g.usedFunctions["print_string"])
 	}
+	// Generate print_string for regular String type (u8 length)
 	if g.usedFunctions["print_string"] {
 		if debug {
 			fmt.Printf("DEBUG: Generating print_string function\n")
 		}
-	g.emit("print_string:")
-	g.emit("    LD A, (HL)         ; A = first byte")
-	g.emit("    CP 255             ; Check if extended format marker")
-	g.emit("    JR Z, print_string_u16")
-	g.emit("    ; Standard u8 format: [len:u8][data...]")
-	g.emit("    LD B, A            ; B = length from first byte")
-	g.emit("    INC HL             ; HL -> string data")
-	g.emit("    OR A               ; Check if length is zero")
-	g.emit("    RET Z              ; Return if empty string")
-	g.emit("print_loop_u8:")
-	g.emit("    LD A, (HL)         ; Load character")
-	
-	// Platform-specific character output
-	switch g.targetPlatform {
-	case "cpm":
-		g.emit("    PUSH BC            ; Save counter")
-		g.emit("    PUSH HL            ; Save string pointer")
-		g.emit("    LD E, A            ; Character to E")
-		g.emit("    LD C, 2            ; BDOS function 2")
-		g.emit("    CALL 5             ; Call BDOS")
-		g.emit("    POP HL             ; Restore string pointer")
-		g.emit("    POP BC             ; Restore counter")
-	case "msx":
-		g.emit("    CALL $00A2         ; MSX BIOS CHPUT")
-	case "cpc", "amstrad":
-		g.emit("    CALL $BB5A         ; CPC TXT OUTPUT")
-	default: // "zxspectrum" and others
-		g.emit("    RST 16             ; ZX Spectrum ROM print")
+		g.emit("; Print String (u8 length prefix)")
+		g.emit("print_string:")
+		g.emit("    ; Format: [len:u8][data...]")
+		g.emit("    LD B, (HL)         ; B = length")
+		g.emit("    INC HL             ; HL -> string data")
+		g.emit("    LD A, B            ; Check if length is zero")
+		g.emit("    OR A")
+		g.emit("    RET Z              ; Return if empty string")
+		g.emit("print_string_loop:")
+		g.emit("    LD A, (HL)         ; Load character")
+		
+		// Platform-specific character output
+		switch g.targetPlatform {
+		case "cpm":
+			g.emit("    PUSH BC            ; Save counter")
+			g.emit("    PUSH HL            ; Save string pointer")
+			g.emit("    LD E, A            ; Character to E")
+			g.emit("    LD C, 2            ; BDOS function 2")
+			g.emit("    CALL 5             ; Call BDOS")
+			g.emit("    POP HL             ; Restore string pointer")
+			g.emit("    POP BC             ; Restore counter")
+		case "msx":
+			g.emit("    CALL $00A2         ; MSX BIOS CHPUT")
+		case "cpc", "amstrad":
+			g.emit("    CALL $BB5A         ; CPC TXT OUTPUT")
+		default: // "zxspectrum" and others
+			g.emit("    RST 16             ; ZX Spectrum ROM print")
+		}
+		g.emit("    INC HL             ; Next character")
+		g.emit("    DJNZ print_string_loop ; Decrement B and loop")
+		g.emit("    RET")
+		g.emit("")
 	}
-	g.emit("    INC HL             ; Next character")
-	g.emit("    DJNZ print_loop_u8 ; Decrement B and loop")
-	g.emit("    RET")
-	g.emit("")
 	
-	g.emit("print_string_u16:")
-	g.emit("    ; Extended u16 format: [255][len:u16][data...]")
-	g.emit("    INC HL             ; Skip 255 marker")
-	g.emit("    LD E, (HL)         ; E = low byte of length")
-	g.emit("    INC HL")
-	g.emit("    LD D, (HL)         ; D = high byte of length") 
-	g.emit("    INC HL             ; HL -> string data")
-	g.emit("    LD A, D            ; Check if length is zero")
-	g.emit("    OR E")
-	g.emit("    RET Z              ; Return if empty string")
-	g.emit("    ; Use 16-bit counter for large strings")
-	g.emit("print_loop_u16:")
-	g.emit("    LD A, (HL)         ; Load character")
-	
-	// Platform-specific character output for u16 loop
-	switch g.targetPlatform {
-	case "cpm":
-		g.emit("    PUSH DE            ; Save counter")
-		g.emit("    PUSH HL            ; Save string pointer")
-		g.emit("    LD E, A            ; Character to E")
-		g.emit("    LD C, 2            ; BDOS function 2")
-		g.emit("    CALL 5             ; Call BDOS")
-		g.emit("    POP HL             ; Restore string pointer")
-		g.emit("    POP DE             ; Restore counter")
-	case "msx":
-		g.emit("    CALL $00A2         ; MSX BIOS CHPUT")
-	case "cpc", "amstrad":
-		g.emit("    CALL $BB5A         ; CPC TXT OUTPUT")
-	default: // "zxspectrum" and others
-		g.emit("    RST 16             ; Print character")
-	}
-	g.emit("    INC HL             ; Next character")
-	g.emit("    DEC DE             ; Decrement 16-bit counter")
-	g.emit("    LD A, D            ; Check if counter is zero")
-	g.emit("    OR E")
-	g.emit("    JR NZ, print_loop_u16")
-	g.emit("    RET")
-	g.emit("")
+	// Generate print_lstring for LString type (u16 length)
+	if g.usedFunctions["print_lstring"] {
+		if debug {
+			fmt.Printf("DEBUG: Generating print_lstring function\n")
+		}
+		g.emit("; Print LString (u16 length prefix)")
+		g.emit("print_lstring:")
+		g.emit("    ; Format: [255][len:u16][data...]")
+		g.emit("    INC HL             ; Skip 255 marker")
+		g.emit("    LD E, (HL)         ; E = low byte of length")
+		g.emit("    INC HL")
+		g.emit("    LD D, (HL)         ; D = high byte of length") 
+		g.emit("    INC HL             ; HL -> string data")
+		g.emit("    LD A, D            ; Check if length is zero")
+		g.emit("    OR E")
+		g.emit("    RET Z              ; Return if empty string")
+		g.emit("print_lstring_loop:")
+		g.emit("    LD A, (HL)         ; Load character")
+		
+		// Platform-specific character output
+		switch g.targetPlatform {
+		case "cpm":
+			g.emit("    PUSH DE            ; Save counter")
+			g.emit("    PUSH HL            ; Save string pointer")
+			g.emit("    LD E, A            ; Character to E")
+			g.emit("    LD C, 2            ; BDOS function 2")
+			g.emit("    CALL 5             ; Call BDOS")
+			g.emit("    POP HL             ; Restore string pointer")
+			g.emit("    POP DE             ; Restore counter")
+		case "msx":
+			g.emit("    CALL $00A2         ; MSX BIOS CHPUT")
+		case "cpc", "amstrad":
+			g.emit("    CALL $BB5A         ; CPC TXT OUTPUT")
+		default: // "zxspectrum" and others
+			g.emit("    RST 16             ; Print character")
+		}
+		g.emit("    INC HL             ; Next character")
+		g.emit("    DEC DE             ; Decrement 16-bit counter")
+		g.emit("    LD A, D            ; Check if counter is zero")
+		g.emit("    OR E")
+		g.emit("    JR NZ, print_lstring_loop")
+		g.emit("    RET")
+		g.emit("")
 	}
 	
 	// Print u8 as decimal

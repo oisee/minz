@@ -6570,6 +6570,7 @@ func (a *Analyzer) generatePrintString(str string, irFunc *ir.Function) {
 		a.module.Strings = append(a.module.Strings, &ir.String{
 			Label: stringLabel,
 			Value: str,
+			IsLong: len(str) > 255, // Mark as LString if > 255 chars
 		})
 		
 		// Create a string constant
@@ -6582,10 +6583,11 @@ func (a *Analyzer) generatePrintString(str string, irFunc *ir.Function) {
 			Symbol: stringLabel,
 		})
 		
-		// Generate print instruction
+		// Generate print instruction with symbol info for type checking
 		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 			Op:      ir.OpPrintString,
 			Src1:    strReg,
+			Symbol:  stringLabel, // Pass the label so codegen can check if IsLong
 			Comment: fmt.Sprintf("Print \"%s\" (%d chars via loop)", str, len(str)),
 		})
 	}

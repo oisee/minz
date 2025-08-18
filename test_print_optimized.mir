@@ -1,0 +1,13 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_print_optimized.main() -> void
+  @smc
+  Instructions:
+      0: PRINT_STRING_DIRECT ; Direct print "Hi!" (3 chars)
+      1: LOAD_STRING
+      2: PRINT_STRING ; Print "This is a normal string that fits in 255 chars" (46 chars via loop)
+      3: LOAD_STRING
+      4: PRINT_STRING ; Print "Hello, World!" (13 chars via loop)
+      5: return
+
