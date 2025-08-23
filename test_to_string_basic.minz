@@ -1,0 +1,15 @@
+// Test @to_string metafunction
+const VERSION = 15;
+const NAME = "MinZ";
+
+fun main() -> void {
+    // Test 1: Compile-time constants
+    let msg1 = @to_string("Hello from {NAME} v0.{VERSION}!");
+    @print(msg1);  // Should print the string pointer
+    
+    // Test 2: Mixed literal and constants
+    let msg2 = @to_string("Version: {VERSION}");
+    
+    // Test 3: Just literal (no interpolation)
+    let msg3 = @to_string("Plain string");
+}

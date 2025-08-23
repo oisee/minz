@@ -1,0 +1,15 @@
+; MinZ generated code
+; Generated: 2025-08-23 23:17:25
+
+
+; Data section
+    ORG $F000
+
+test_simple_ruby.msg:
+    ; TODO: *u8 type
+
+; Code section
+    ORG $8000
+
+
+    END main

@@ -1229,6 +1229,31 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 			fmt.Printf("  Raw text: %q\n", text)
 			fmt.Printf("  Unescaped: %q\n", unescaped)
 		}
+		
+		// Check for Ruby-style interpolation #{}
+		if strings.Contains(unescaped, "#{") {
+			// Transform "Hello #{name}" to @to_string("Hello {name}")
+			interpolationStr := p.transformRubyInterpolation(unescaped)
+			if debug {
+				fmt.Printf("DEBUG: Ruby interpolation detected:\n")
+				fmt.Printf("  Original: %q\n", unescaped)
+				fmt.Printf("  Transformed: %q\n", interpolationStr)
+			}
+			return &ast.MetafunctionCall{
+				Name: "to_string",
+				Arguments: []ast.Expression{
+					&ast.StringLiteral{
+						Value:    interpolationStr,
+						IsLong:   isLong,
+						StartPos: p.getPosition(node, "startPosition"),
+						EndPos:   p.getPosition(node, "endPosition"),
+					},
+				},
+				StartPos: p.getPosition(node, "startPosition"),
+				EndPos:   p.getPosition(node, "endPosition"),
+			}
+		}
+		
 		return &ast.StringLiteral{
 			Value:    unescaped,
 			IsLong:   isLong,
@@ -2095,6 +2120,39 @@ func (p *Parser) parseStringLiteral(node map[string]interface{}) string {
 	}
 	// Process escape sequences
 	return p.unescapeString(text)
+}
+
+// transformRubyInterpolation converts Ruby-style #{} to {}
+func (p *Parser) transformRubyInterpolation(s string) string {
+	result := ""
+	i := 0
+	for i < len(s) {
+		if i+1 < len(s) && s[i] == '#' && s[i+1] == '{' {
+			// Found Ruby interpolation, convert to {
+			result += "{"
+			i += 2 // Skip #{ 
+			// Find matching }
+			braceCount := 1
+			for i < len(s) && braceCount > 0 {
+				if s[i] == '{' {
+					braceCount++
+				} else if s[i] == '}' {
+					braceCount--
+					if braceCount == 0 {
+						result += "}"
+						i++ // Skip the closing }
+						break
+					}
+				}
+				result += string(s[i])
+				i++
+			}
+		} else {
+			result += string(s[i])
+			i++
+		}
+	}
+	return result
 }
 
 // unescapeString processes escape sequences in a string

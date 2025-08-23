@@ -1,0 +1,17 @@
+// Test Ruby-style string interpolation
+const VERSION = 15;
+const NAME = "MinZ";
+
+fun main() -> void {
+    // Test 1: Ruby-style with constants
+    let msg1 = "Hello from #{NAME} v0.#{VERSION}!";
+    
+    // Test 2: Mixed Ruby style
+    let msg2 = "Version: #{VERSION}";
+    
+    // Test 3: Plain string (no interpolation)
+    let msg3 = "Plain string without interpolation";
+    
+    // Test 4: Explicit @to_string for comparison
+    let msg4 = @to_string("Compare: {NAME} vs {VERSION}");
+}

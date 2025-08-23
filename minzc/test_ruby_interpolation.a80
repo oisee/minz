@@ -1,0 +1,49 @@
+; MinZ generated code
+; Generated: 2025-08-23 23:18:00
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 22    ; Length
+    DB "Hello from MinZ v0.15!"
+str_1:
+    DB 11    ; Length
+    DB "Version: 15"
+str_2:
+    DB 34    ; Length
+    DB "Plain string without interpolation"
+str_3:
+    DB 19    ; Length
+    DB "Compare: MinZ vs 15"
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_ruby_interpolation.main
+ruby_interpolation_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; @to_string result: "Hello from MinZ v0.15!"
+    LD HL, str_0
+    ; store msg1, r2
+    LD ($F002), HL
+    ; @to_string result: "Version: 15"
+    LD HL, str_1
+    ; store msg2, r4
+    LD ($F006), HL
+    ; Load string "Plain string without interpolation"
+    LD HL, str_2
+    ; store msg3, r6
+    LD ($F00A), HL
+    ; @to_string result: "Compare: MinZ vs 15"
+    LD HL, str_3
+    ; store msg4, r8
+    LD ($F00E), HL
+    ; return
+    RET
+
+    END main

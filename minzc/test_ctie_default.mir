@@ -1,0 +1,22 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_ctie_default.add$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function test_ctie_default.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: PATCH_PARAM
+      4: return
+

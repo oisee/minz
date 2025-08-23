@@ -1593,7 +1593,7 @@ func (a *Analyzer) analyzeConstDecl(c *ast.ConstDecl) error {
 	prefixedName := a.prefixSymbol(c.Name)
 	
 	// Evaluate the constant value
-	var constValue int64
+	var constValue interface{}
 	if luaExpr, ok := c.Value.(*ast.LuaExpression); ok {
 		// Evaluate Lua expression
 		result, err := a.luaEvaluator.ProcessLuaExpr(&ast.LuaExpr{Code: luaExpr.Code})
@@ -1615,10 +1615,12 @@ func (a *Analyzer) analyzeConstDecl(c *ast.ConstDecl) error {
 	} else if numLit, ok := c.Value.(*ast.NumberLiteral); ok {
 		constValue = numLit.Value
 	} else if boolLit, ok := c.Value.(*ast.BooleanLiteral); ok {
-		if boolLit.Value {
-			constValue = 1
-		} else {
-			constValue = 0
+		constValue = boolLit.Value
+	} else if strLit, ok := c.Value.(*ast.StringLiteral); ok {
+		constValue = strLit.Value
+		// Update type to string (pointer to u8)
+		if constType == nil {
+			constType = &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}
 		}
 	} else {
 		// Try to evaluate the expression as a constant
@@ -1626,21 +1628,8 @@ func (a *Analyzer) analyzeConstDecl(c *ast.ConstDecl) error {
 		if err != nil {
 			return fmt.Errorf("cannot evaluate constant expression for %s: %w", c.Name, err)
 		}
-		// Convert to int64
-		switch v := val.(type) {
-		case int64:
-			constValue = v
-		case int:
-			constValue = int64(v)
-		case bool:
-			if v {
-				constValue = 1
-			} else {
-				constValue = 0
-			}
-		default:
-			return fmt.Errorf("unexpected constant value type for %s: %T", c.Name, val)
-		}
+		// Store the value as-is (can be int64, bool, or string)
+		constValue = val
 	}
 	
 	// Define constant in current scope (should be global scope)
@@ -1829,30 +1818,75 @@ func (a *Analyzer) analyzeTSMCAssignment(varName string, valueReg ir.Register, i
 	})
 }
 
+// registerLocalFunctionSignature registers just the signature of a local function
+// This allows forward references to work correctly
+func (a *Analyzer) registerLocalFunctionSignature(fn *ast.FunctionDecl, mangledName string) error {
+	// Convert parameter types
+	params := make([]*ast.Parameter, len(fn.Params))
+	for i, p := range fn.Params {
+		params[i] = &ast.Parameter{
+			Name: p.Name,
+			Type: p.Type,
+		}
+	}
+	
+	// Convert return type
+	returnType, err := a.convertType(fn.ReturnType)
+	if err != nil {
+		return fmt.Errorf("invalid return type for local function %s: %w", fn.Name, err)
+	}
+	
+	// Register the function symbol in current scope with original name
+	// This allows calls using just the function name
+	funcSymbol := &FuncSymbol{
+		Name:         mangledName, // Use mangled name for IR generation
+		OriginalName: fn.Name,     // Store original name for lookup
+		ReturnType:   returnType,
+		Params:       params,
+		IsLocalFunc:  true,
+	}
+	
+	// Define in current scope
+	a.currentScope.Define(fn.Name, funcSymbol)
+	
+	if debug {
+		fmt.Printf("DEBUG: Registered local function %s (mangled: %s) in scope\n", fn.Name, mangledName)
+	}
+	
+	return nil
+}
+
 // analyzeBlock analyzes a block statement
 func (a *Analyzer) analyzeBlock(block *ast.BlockStmt, irFunc *ir.Function) error {
-	// Enter new scope
-	prevScope := a.currentScope
-	a.currentScope = NewScope(a.currentScope)
-	defer func() { 
-		a.currentScope = prevScope 
-	}()
-
-	// PASS 1: Register all local function declarations first
-	// This allows functions to be called before their declaration position
+	if debug {
+		fmt.Printf("DEBUG: analyzeBlock called with %d statements for function %s\n", len(block.Statements), irFunc.Name)
+	}
+	
+	// PASS 1: Register all local function declarations BEFORE creating new scope
+	// This makes them visible in the parent scope
 	for _, stmt := range block.Statements {
+		if debug {
+			fmt.Printf("DEBUG: Checking statement type %T\n", stmt)
+		}
 		if fnDecl, ok := stmt.(*ast.FunctionDecl); ok {
 			if debug {
-				fmt.Printf("DEBUG: Pre-registering local function: %s\n", fnDecl.Name)
+				fmt.Printf("DEBUG: Found local function declaration: %s\n", fnDecl.Name)
 			}
 			// Generate unique name for local function
 			localFuncName := fmt.Sprintf("%s$%s", irFunc.Name, fnDecl.Name)
-			// Register the function signature so it can be called
+			// Register the function signature in CURRENT (parent) scope
 			if err := a.registerLocalFunctionSignature(fnDecl, localFuncName); err != nil {
 				return fmt.Errorf("failed to pre-register local function %s: %w", fnDecl.Name, err)
 			}
 		}
 	}
+	
+	// Enter new scope for block-local variables
+	prevScope := a.currentScope
+	a.currentScope = NewScope(a.currentScope)
+	defer func() { 
+		a.currentScope = prevScope 
+	}()
 
 	// PASS 2: Process all statements (including analyzing function bodies)
 	for i, stmt := range block.Statements {
@@ -2240,14 +2274,16 @@ func (a *Analyzer) analyzeConstDeclInFunc(c *ast.ConstDecl, irFunc *ir.Function)
 	}
 	
 	// Evaluate the constant value
-	var constValue int64
+	var constValue interface{}
 	if numLit, ok := c.Value.(*ast.NumberLiteral); ok {
 		constValue = numLit.Value
 	} else if boolLit, ok := c.Value.(*ast.BooleanLiteral); ok {
-		if boolLit.Value {
-			constValue = 1
-		} else {
-			constValue = 0
+		constValue = boolLit.Value
+	} else if strLit, ok := c.Value.(*ast.StringLiteral); ok {
+		constValue = strLit.Value
+		// Update type to string (pointer to u8)
+		if constType == nil {
+			constType = &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}
 		}
 	} else {
 		// Try to evaluate the expression as a constant
@@ -2255,21 +2291,8 @@ func (a *Analyzer) analyzeConstDeclInFunc(c *ast.ConstDecl, irFunc *ir.Function)
 		if err != nil {
 			return fmt.Errorf("cannot evaluate constant expression for %s: %w", c.Name, err)
 		}
-		// Convert to int64
-		switch v := val.(type) {
-		case int64:
-			constValue = v
-		case int:
-			constValue = int64(v)
-		case bool:
-			if v {
-				constValue = 1
-			} else {
-				constValue = 0
-			}
-		default:
-			return fmt.Errorf("unexpected constant value type for %s: %T", c.Name, val)
-		}
+		// Store the value as-is (can be int64, bool, or string)
+		constValue = val
 	}
 	
 	// Define constant in current scope (function scope)
@@ -3917,12 +3940,44 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 		
 		// Load constant value
 		reg := irFunc.AllocReg()
-		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-			Op:   ir.OpLoadConst,
-			Dest: reg,
-			Imm:  s.Value,
-			Type: s.Type,
-		})
+		
+		// Handle different constant value types
+		switch v := s.Value.(type) {
+		case int64:
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:   ir.OpLoadConst,
+				Dest: reg,
+				Imm:  v,
+				Type: s.Type,
+			})
+		case bool:
+			val := int64(0)
+			if v {
+				val = 1
+			}
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:   ir.OpLoadConst,
+				Dest: reg,
+				Imm:  val,
+				Type: s.Type,
+			})
+		case string:
+			// For string constants, create a string literal and load its address
+			stringLabel := fmt.Sprintf("str_%d", len(a.module.Strings))
+			a.module.Strings = append(a.module.Strings, &ir.String{
+				Label: stringLabel,
+				Value: v,
+				IsLong: len(v) > 255,
+			})
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpLoadString,
+				Dest:    reg,
+				Symbol:  stringLabel,
+				Type:    s.Type,
+			})
+		default:
+			return 0, fmt.Errorf("unsupported constant value type: %T", v)
+		}
 		return reg, nil
 	case *FuncSymbol:
 		// Function identifiers can only be used with address-of operator
@@ -4678,20 +4733,41 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		// Direct function call
 		funcName = fn.Name
 		
-		// Try to resolve overload first
-		prefixedName := funcName
-		if !strings.Contains(funcName, ".") {
-			prefixedName = a.prefixSymbol(funcName)
+		// First try to lookup without prefix (for local functions)
+		sym = a.currentScope.Lookup(funcName)
+		
+		// If found and it's a local function, use it directly
+		if sym != nil {
+			if funcSym, ok := sym.(*FuncSymbol); ok && funcSym.IsLocalFunc {
+				// Local function found, use its mangled name
+				funcName = funcSym.Name
+			}
 		}
 		
-		// Try to resolve as an overloaded function
-		funcSym, err := a.resolveOverload(prefixedName, call.Arguments, irFunc)
-		if err == nil {
-			sym = funcSym
-			funcName = funcSym.Name  // Use the mangled name
-		} else {
-			// Fall back to simple lookup (for non-overloaded functions)
-			sym = a.currentScope.Lookup(funcName)
+		// If not a local function, try overload resolution
+		isLocalFunc := false
+		if sym != nil {
+			if funcSym, ok := sym.(*FuncSymbol); ok {
+				isLocalFunc = funcSym.IsLocalFunc
+			}
+		}
+		
+		if sym == nil || !isLocalFunc {
+			// Try to resolve overload first
+			prefixedName := funcName
+			if !strings.Contains(funcName, ".") {
+				prefixedName = a.prefixSymbol(funcName)
+			}
+			
+			// Try to resolve as an overloaded function
+			funcSym, err := a.resolveOverload(prefixedName, call.Arguments, irFunc)
+			if err == nil {
+				sym = funcSym
+				funcName = funcSym.Name  // Use the mangled name
+			} else if sym == nil {
+				// Fall back to simple lookup with prefix if not found
+				sym = a.currentScope.Lookup(funcName)
+			}
 			
 			// If not found, try with module prefix
 			if sym == nil && a.currentModule != "" && a.currentModule != "main" {
@@ -5627,13 +5703,48 @@ func (a *Analyzer) analyzeFieldExpr(field *ast.FieldExpr, irFunc *ir.Function) (
 					if constSym, ok := sym.(*ConstSymbol); ok {
 						// This is a module constant - load its value
 						reg := irFunc.AllocReg()
-						irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-							Op:      ir.OpLoadConst,
-							Dest:    reg,
-							Imm:     constSym.Value,
-							Type:    constSym.Type,
-							Comment: fmt.Sprintf("Load constant %s = %d", fullName, constSym.Value),
-						})
+						
+						// Handle different constant value types
+						switch v := constSym.Value.(type) {
+						case int64:
+							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+								Op:      ir.OpLoadConst,
+								Dest:    reg,
+								Imm:     v,
+								Type:    constSym.Type,
+								Comment: fmt.Sprintf("Load constant %s = %d", fullName, v),
+							})
+						case bool:
+							val := int64(0)
+							if v {
+								val = 1
+							}
+							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+								Op:      ir.OpLoadConst,
+								Dest:    reg,
+								Imm:     val,
+								Type:    constSym.Type,
+								Comment: fmt.Sprintf("Load constant %s = %v", fullName, v),
+							})
+						case string:
+							// For string constants, create a string literal and load its address
+							stringLabel := fmt.Sprintf("str_%d", len(a.module.Strings))
+							a.module.Strings = append(a.module.Strings, &ir.String{
+								Label: stringLabel,
+								Value: v,
+								IsLong: len(v) > 255,
+							})
+							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+								Op:      ir.OpLoadString,
+								Dest:    reg,
+								Symbol:  stringLabel,
+								Type:    constSym.Type,
+								Comment: fmt.Sprintf("Load string constant %s = \"%s\"", fullName, v),
+							})
+						default:
+							return 0, fmt.Errorf("unsupported constant value type: %T", v)
+						}
+						
 						// Store type information for this expression
 						a.exprTypes[field] = constSym.Type
 						return reg, nil
@@ -6313,14 +6424,17 @@ func (a *Analyzer) analyzeMetafunctionCall(call *ast.MetafunctionCall, irFunc *i
 		}
 	}
 	
-	// Analyze arguments
+	// For @to_string, we handle arguments specially
 	var analyzedArgs []ir.Register
-	for _, arg := range call.Arguments {
-		reg, err := a.analyzeExpression(arg, irFunc)
-		if err != nil {
-			return 0, fmt.Errorf("failed to analyze metafunction argument: %w", err)
+	if call.Name != "to_string" {
+		// Analyze arguments normally
+		for _, arg := range call.Arguments {
+			reg, err := a.analyzeExpression(arg, irFunc)
+			if err != nil {
+				return 0, fmt.Errorf("failed to analyze metafunction argument: %w", err)
+			}
+			analyzedArgs = append(analyzedArgs, reg)
 		}
-		analyzedArgs = append(analyzedArgs, reg)
 	}
 	
 	// Create compilation context
@@ -6390,6 +6504,46 @@ func (a *Analyzer) analyzeMetafunctionCall(call *ast.MetafunctionCall, irFunc *i
 			return reg, nil
 		} else {
 			return 0, fmt.Errorf("@ptr requires a variable name")
+		}
+		
+	case "to_string":
+		// Handle @to_string for string interpolation
+		if len(call.Arguments) != 1 {
+			return 0, fmt.Errorf("@to_string requires exactly one argument (format string)")
+		}
+		
+		// Get the format string directly without analyzing it
+		// (we don't want to create the original string)
+		if strLit, ok := call.Arguments[0].(*ast.StringLiteral); ok {
+			// Build the interpolated string at compile time if possible
+			interpolatedStr, err := a.buildInterpolatedString(strLit.Value, irFunc)
+			if err != nil {
+				return 0, fmt.Errorf("@to_string interpolation failed: %w", err)
+			}
+			
+			// Create string literal and add to module
+			stringLabel := fmt.Sprintf("str_%d", len(a.module.Strings))
+			a.module.Strings = append(a.module.Strings, &ir.String{
+				Label: stringLabel,
+				Value: interpolatedStr,
+				IsLong: len(interpolatedStr) > 255,
+			})
+			
+			// Allocate register and load string address
+			resultReg := irFunc.AllocReg()
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpLoadString,
+				Dest:    resultReg,
+				Symbol:  stringLabel,
+				Comment: fmt.Sprintf("@to_string result: \"%s\"", interpolatedStr),
+			})
+			
+			// Set type as string pointer
+			a.exprTypes[call] = &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}
+			
+			return resultReg, nil
+		} else {
+			return 0, fmt.Errorf("@to_string requires a string literal argument")
 		}
 		
 	case "asm":
@@ -6782,6 +6936,89 @@ func isValidIdentifier(s string) bool {
 		}
 	}
 	return true
+}
+
+// buildInterpolatedString processes string interpolation for @to_string
+// It returns the final interpolated string if all values are compile-time known
+// Otherwise it generates runtime concatenation code
+func (a *Analyzer) buildInterpolatedString(format string, irFunc *ir.Function) (string, error) {
+	// Parse the format string to extract literal parts and expressions
+	parts := []struct {
+		isExpr bool
+		value  string
+	}{}
+	
+	current := ""
+	i := 0
+	for i < len(format) {
+		if i+1 < len(format) && format[i] == '{' && format[i+1] == '{' {
+			// Escaped brace
+			current += "{"
+			i += 2
+		} else if i+1 < len(format) && format[i] == '}' && format[i+1] == '}' {
+			// Escaped brace
+			current += "}"
+			i += 2
+		} else if format[i] == '{' {
+			// Start of expression
+			if current != "" {
+				parts = append(parts, struct{isExpr bool; value string}{false, current})
+				current = ""
+			}
+			i++
+			// Find matching }
+			exprStart := i
+			for i < len(format) && format[i] != '}' {
+				i++
+			}
+			if i < len(format) {
+				expr := format[exprStart:i]
+				parts = append(parts, struct{isExpr bool; value string}{true, expr})
+				i++
+			}
+		} else {
+			current += string(format[i])
+			i++
+		}
+	}
+	if current != "" {
+		parts = append(parts, struct{isExpr bool; value string}{false, current})
+	}
+	
+	// Try to build the string at compile-time
+	result := ""
+	
+	for _, part := range parts {
+		if part.isExpr {
+			// Try to evaluate at compile-time
+			expr := a.parseSimpleExpression(part.value, irFunc)
+			if expr != nil {
+				// Try to get compile-time value
+				if id, ok := expr.(*ast.Identifier); ok {
+					sym := a.currentScope.Lookup(id.Name)
+					if constSym, ok := sym.(*ConstSymbol); ok {
+						// It's a constant! Add its value to the result
+						result += fmt.Sprintf("%v", constSym.Value)
+						continue
+					}
+				}
+				// Not a compile-time constant - will need runtime concatenation
+				// For now, just add a placeholder
+				result += fmt.Sprintf("{%s}", part.value)
+			} else {
+				// Could not parse expression
+				result += fmt.Sprintf("{%s}", part.value)
+			}
+		} else {
+			// Literal string part
+			result += part.value
+		}
+	}
+	
+	// Always return the processed result
+	// If we couldn't resolve some placeholders at compile-time,
+	// they remain as {name} in the result
+	return result, nil
 }
 
 // generatePrintString generates instructions to print a string literal
@@ -7801,6 +8038,23 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			Element: elementType,
 			Length:  len(e.Elements),
 		}, nil
+	case *ast.MetafunctionCall:
+		// Handle type inference for metafunction calls
+		switch e.Name {
+		case "to_string":
+			// @to_string always returns a string pointer (str type)
+			return &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, nil
+		case "print":
+			// @print returns void
+			return &ir.BasicType{Kind: ir.TypeVoid}, nil
+		case "error":
+			// @error doesn't return (never type) - but for type inference, use void
+			return &ir.BasicType{Kind: ir.TypeVoid}, nil
+		default:
+			// For other metafunctions, try to evaluate them to determine the type
+			// For now, default to void
+			return &ir.BasicType{Kind: ir.TypeVoid}, nil
+		}
 	default:
 		return nil, fmt.Errorf("cannot infer type from expression of type %T", expr)
 	}
@@ -8781,47 +9035,6 @@ func (a *Analyzer) analyzeLocalFunctionDecl(fn *ast.FunctionDecl, parentFunc *ir
 		fmt.Printf("DEBUG: Local function %s compiled successfully with %d captured vars\n", 
 			localFuncName, len(localIRFunc.CapturedVars))
 	}
-	
-	return nil
-}
-
-// registerLocalFunctionSignature registers a local function's signature in the current scope
-func (a *Analyzer) registerLocalFunctionSignature(fn *ast.FunctionDecl, mangledName string) error {
-	// Convert parameter types
-	paramTypes := make([]ir.Type, len(fn.Params))
-	astParams := make([]*ast.Parameter, len(fn.Params))
-	
-	for i, param := range fn.Params {
-		paramType, err := a.convertType(param.Type)
-		if err != nil {
-			return fmt.Errorf("invalid parameter type for %s: %w", param.Name, err)
-		}
-		paramTypes[i] = paramType
-		astParams[i] = param
-	}
-	
-	// Convert return type
-	returnType, err := a.convertType(fn.ReturnType)
-	if err != nil {
-		return fmt.Errorf("invalid return type for %s: %w", fn.Name, err)
-	}
-	
-	// Create function symbol and register in current scope using original name
-	// This allows the local function to be called by its simple name within the parent scope
-	funcSymbol := &FuncSymbol{
-		Name:         mangledName, // Use mangled name for IR
-		OriginalName: fn.Name,     // Keep original name for lookups
-		Params:       astParams,
-		Type: &ir.FunctionType{
-			Params: paramTypes,
-			Return: returnType,
-		},
-		ReturnType: returnType,
-		IsLocalFunc: true,
-	}
-	
-	// Register using original name so it can be called naturally
-	a.currentScope.Define(fn.Name, funcSymbol)
 	
 	return nil
 }

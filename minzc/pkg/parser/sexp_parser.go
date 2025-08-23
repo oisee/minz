@@ -437,6 +437,9 @@ func (p *Parser) convertStatement(node *SExpNode) ast.Statement {
 		return p.convertVarDecl(node)
 	case "constant_declaration":
 		return p.convertConstDecl(node)
+	case "function_declaration":
+		// Local function declaration inside a block
+		return p.convertFunction(node)
 	case "return_statement":
 		return p.convertReturnStmt(node)
 	case "if_statement":
@@ -793,6 +796,31 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 		}
 		// Process escape sequences
 		text = unescapeString(text)
+		
+		// Check for Ruby-style interpolation #{}
+		if strings.Contains(text, "#{") {
+			// Transform "Hello #{name}" to @to_string("Hello {name}")
+			interpolationStr := transformRubyInterpolation(text)
+			if debug {
+				fmt.Printf("DEBUG: Ruby interpolation detected in sexp_parser:\n")
+				fmt.Printf("  Original: %q\n", text)
+				fmt.Printf("  Transformed: %q\n", interpolationStr)
+			}
+			return &ast.MetafunctionCall{
+				Name: "to_string",
+				Arguments: []ast.Expression{
+					&ast.StringLiteral{
+						Value:    interpolationStr,
+						IsLong:   isLong,
+						StartPos: node.StartPos,
+						EndPos:   node.EndPos,
+					},
+				},
+				StartPos: node.StartPos,
+				EndPos:   node.EndPos,
+			}
+		}
+		
 		return &ast.StringLiteral{
 			Value:    text,
 			IsLong:   isLong,
@@ -2262,6 +2290,39 @@ func (p *Parser) convertMirFunction(node *SExpNode) *ast.FunctionDecl {
 }
 
 // unescapeString processes escape sequences in a string
+// transformRubyInterpolation converts Ruby-style #{} to {}
+func transformRubyInterpolation(s string) string {
+	result := ""
+	i := 0
+	for i < len(s) {
+		if i+1 < len(s) && s[i] == '#' && s[i+1] == '{' {
+			// Found Ruby interpolation, convert to {
+			result += "{"
+			i += 2 // Skip #{ 
+			// Find matching }
+			braceCount := 1
+			for i < len(s) && braceCount > 0 {
+				if s[i] == '{' {
+					braceCount++
+				} else if s[i] == '}' {
+					braceCount--
+					if braceCount == 0 {
+						result += "}"
+						i++ // Skip the closing }
+						break
+					}
+				}
+				result += string(s[i])
+				i++
+			}
+		} else {
+			result += string(s[i])
+			i++
+		}
+	}
+	return result
+}
+
 func unescapeString(s string) string {
 	var result []rune
 	i := 0

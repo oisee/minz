@@ -26,7 +26,7 @@ func (v *VarSymbol) symbol() {}
 type ConstSymbol struct {
 	Name  string
 	Type  ir.Type
-	Value int64
+	Value interface{} // Can be int64, bool, or string
 }
 
 func (c *ConstSymbol) symbol() {}

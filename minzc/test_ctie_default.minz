@@ -1,0 +1,7 @@
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun main() -> void {
+    let result = add(5, 7);  // Should be computed at compile-time!
+}

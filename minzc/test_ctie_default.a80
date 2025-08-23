@@ -1,0 +1,65 @@
+; MinZ generated code
+; Generated: 2025-08-23 23:23:45
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_ctie_default.add$u8$u8
+test_ctie_default.add$u8$u8:
+; TRUE SMC function with immediate anchors
+a$immOP:
+    LD A, 0        ; a anchor (will be patched)
+a$imm0 EQU a$immOP+1
+b$immOP:
+    LD B, 0        ; b anchor (will be patched)
+b$imm0 EQU b$immOP+1
+    ; r5 = r3 + r4
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r5
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_ctie_default.main
+ctie_default_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_ctie_default.add$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_ctie_default.add$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_ctie_default.add$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (test_ctie_default.add$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (test_ctie_default.add$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; return
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW a$imm0           ; test_ctie_default.add$u8$u8.a
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW b$imm0           ; test_ctie_default.add$u8$u8.b
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+    END main
+
+
+; Assembly peephole optimization: no patterns matched

@@ -21,11 +21,11 @@ import (
 
 var (
 	outputFile   string
-	optimize     bool
-	debug        bool
-	enableSMC    bool
+	disableOptimize  bool  // Disable optimizations (enabled by default)
+	debug            bool
+	disableSMC       bool  // Disable self-modifying code (enabled by default)
 	enableTAS    bool
-	enableCTIE   bool   // Enable Compile-Time Interface Execution
+	disableCTIE  bool   // Disable Compile-Time Interface Execution (enabled by default)
 	ctieDebug    bool   // Debug CTIE decisions
 	tasFile      string
 	tasReplay    string
@@ -72,15 +72,15 @@ LANGUAGE FEATURES:
 EXAMPLES:
   mz hello.minz                      # Compile for ZX Spectrum
   mz hello.minz -t cpm               # Target CP/M systems
-  mz hello.minz -t msx -O            # Optimized MSX build
+  mz hello.minz -t msx               # MSX build (optimized by default)
   mz game.minz -b gb                 # Compile for Game Boy
   mz app.minz -b c -o app.c          # Generate C code
-  mz demo.minz --enable-smc          # Enable self-modifying code
+  mz demo.minz --disable-smc         # Disable self-modifying code
   mz --list-backends                 # List all backends
 
 OPTIMIZATION FLAGS:
-  -O, --optimize      Enable standard optimizations
-  --enable-smc        Enable self-modifying code (Z80 only)
+  --disable-optimize  Disable optimizations (enabled by default)
+  --disable-smc       Disable self-modifying code (enabled by default, Z80 only)
 
 DEBUGGING:
   -d, --debug         Show compilation details
@@ -148,9 +148,9 @@ func init() {
 	
 	// Compilation flags
 	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file (default: input.<ext> based on backend)")
-	rootCmd.Flags().BoolVarP(&optimize, "optimize", "O", false, "enable optimizations")
+	rootCmd.Flags().BoolVar(&disableOptimize, "disable-optimize", false, "disable optimizations (enabled by default)")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
-	rootCmd.Flags().BoolVar(&enableSMC, "enable-smc", false, "enable all self-modifying code optimizations including TRUE SMC (requires code in RAM)")
+	rootCmd.Flags().BoolVar(&disableSMC, "disable-smc", false, "disable all self-modifying code optimizations (enabled by default)")
 	rootCmd.Flags().BoolVar(&enableTAS, "tas", false, "enable TAS debugging with time-travel and cycle-perfect recording")
 	rootCmd.Flags().StringVar(&tasFile, "tas-record", "", "record execution to TAS file for perfect replay")
 	rootCmd.Flags().StringVar(&tasReplay, "tas-replay", "", "replay execution from TAS file")
@@ -159,7 +159,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
 	rootCmd.Flags().StringVar(&visualizeMIR, "viz", "", "generate MIR visualization in DOT format")
 	rootCmd.Flags().BoolVar(&dumpAST, "dump-ast", false, "dump AST in JSON format to stdout")
-	rootCmd.Flags().BoolVar(&enableCTIE, "enable-ctie", false, "enable Compile-Time Interface Execution (functions execute at compile-time)")
+	rootCmd.Flags().BoolVar(&disableCTIE, "disable-ctie", false, "disable Compile-Time Interface Execution (enabled by default - functions execute at compile-time)")
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 }
 
@@ -244,26 +244,26 @@ func compile(sourceFile string) error {
 	backendInstance := codegen.GetBackend(backend, nil)
 	supportsSMC := backendInstance != nil && backendInstance.SupportsFeature(codegen.FeatureSelfModifyingCode)
 	
-	// Enable SMC for all functions if flag is set OR if optimizing (and backend supports it)
-	if supportsSMC && (enableSMC || optimize) {
+	// Enable SMC for all functions unless disabled (and backend supports it)
+	if supportsSMC && !disableSMC {
 		for _, fn := range irModule.Functions {
 			fn.IsSMCEnabled = true
 		}
 		if debug {
-			if enableSMC {
-				fmt.Println("Self-modifying code optimization enabled (including TRUE SMC)")
+			if !disableSMC {
+				fmt.Println("Self-modifying code optimization enabled (including TRUE SMC) - default behavior")
 			} else {
-				fmt.Println("SMC enabled automatically with -O optimization")
+				fmt.Println("SMC disabled via --disable-smc flag")
 			}
 		}
-	} else if !supportsSMC && enableSMC {
+	} else if !supportsSMC && !disableSMC {
 		if debug {
-			fmt.Printf("Warning: Backend %s does not support self-modifying code\n", backend)
+			fmt.Printf("Warning: Backend %s does not support self-modifying code (using --disable-smc to silence)\n", backend)
 		}
 	}
 
-	// Run CTIE pass if requested (before regular optimizations)
-	if enableCTIE || optimize {
+	// Run CTIE pass (enabled by default, disabled with --disable-ctie)
+	if !disableCTIE {
 		ctieEngine := ctie.NewEngine(irModule, astFile, analyzer)
 		ctieConfig := ctie.DefaultConfig()
 		ctieConfig.DebugOutput = ctieDebug || debug
@@ -282,15 +282,12 @@ func compile(sourceFile string) error {
 		}
 	}
 
-	// Run optimization passes if requested
-	if optimize || enableSMC {
-		level := optimizer.OptLevelBasic
-		if optimize {
-			level = optimizer.OptLevelFull
-		}
+	// Run optimization passes (enabled by default)
+	if !disableOptimize {
+		level := optimizer.OptLevelFull  // Full optimization by default
 		
-		// Use TRUE SMC when optimizing OR when SMC explicitly enabled
-		useTrueSMC := optimize || enableSMC
+		// Use TRUE SMC unless disabled
+		useTrueSMC := !disableSMC
 		
 		opt := optimizer.NewOptimizerWithOptions(level, useTrueSMC)
 		if err := opt.Optimize(irModule); err != nil {
@@ -305,13 +302,13 @@ func compile(sourceFile string) error {
 	// Create backend options
 	backendOptions := &codegen.BackendOptions{
 		OptimizationLevel: 0,
-		EnableSMC:         enableSMC,
-		EnableTrueSMC:     enableSMC || optimize,
+		EnableSMC:         !disableSMC,
+		EnableTrueSMC:     !disableSMC,
 		Debug:             debug,
 		Target:            target,
 	}
 	
-	if optimize {
+	if !disableOptimize {
 		backendOptions.OptimizationLevel = 2
 	}
 
@@ -417,8 +414,8 @@ func compileFromMIR(mirFile string) error {
 	backendInstance := codegen.GetBackend(backend, nil)
 	supportsSMC := backendInstance != nil && backendInstance.SupportsFeature(codegen.FeatureSelfModifyingCode)
 	
-	// Enable SMC for all functions if flag is set OR if optimizing (and backend supports it)
-	if supportsSMC && (enableSMC || optimize) {
+	// Enable SMC for all functions unless disabled (and backend supports it)
+	if supportsSMC && !disableSMC {
 		for _, fn := range irModule.Functions {
 			// Preserve existing SMC settings from MIR
 			if !fn.IsSMCEnabled {
@@ -426,27 +423,24 @@ func compileFromMIR(mirFile string) error {
 			}
 		}
 		if debug {
-			if enableSMC {
-				fmt.Println("Self-modifying code optimization enabled (including TRUE SMC)")
+			if !disableSMC {
+				fmt.Println("Self-modifying code optimization enabled (including TRUE SMC) - default behavior")
 			} else {
-				fmt.Println("SMC enabled automatically with -O optimization")
+				fmt.Println("SMC disabled via --disable-smc flag")
 			}
 		}
-	} else if !supportsSMC && enableSMC {
+	} else if !supportsSMC && !disableSMC {
 		if debug {
-			fmt.Printf("Warning: Backend %s does not support self-modifying code\n", backend)
+			fmt.Printf("Warning: Backend %s does not support self-modifying code (using --disable-smc to silence)\n", backend)
 		}
 	}
 
-	// Run optimization passes if requested
-	if optimize || enableSMC {
-		level := optimizer.OptLevelBasic
-		if optimize {
-			level = optimizer.OptLevelFull
-		}
+	// Run optimization passes (enabled by default)
+	if !disableOptimize {
+		level := optimizer.OptLevelFull  // Full optimization by default
 		
-		// Use TRUE SMC when optimizing OR when SMC explicitly enabled
-		useTrueSMC := optimize || enableSMC
+		// Use TRUE SMC unless disabled
+		useTrueSMC := !disableSMC
 		
 		opt := optimizer.NewOptimizerWithOptions(level, useTrueSMC)
 		if err := opt.Optimize(irModule); err != nil {
@@ -461,13 +455,13 @@ func compileFromMIR(mirFile string) error {
 	// Create backend options
 	backendOptions := &codegen.BackendOptions{
 		OptimizationLevel: 0,
-		EnableSMC:         enableSMC,
-		EnableTrueSMC:     enableSMC || optimize,
+		EnableSMC:         !disableSMC,
+		EnableTrueSMC:     !disableSMC,
 		Debug:             debug,
 		Target:            target,
 	}
 
-	if optimize {
+	if !disableOptimize {
 		backendOptions.OptimizationLevel = 2
 	}
 

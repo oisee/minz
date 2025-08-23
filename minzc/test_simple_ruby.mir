@@ -1,0 +1,6 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   test_simple_ruby.msg: *u8
+

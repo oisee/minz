@@ -1,0 +1,6 @@
+fun main() -> void {
+    fun local() -> u8 {
+        return 42;
+    }
+    let x = local();
+}
