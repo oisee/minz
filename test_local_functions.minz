@@ -1,0 +1,25 @@
+fun outer(x: u8) -> u8 {
+    // Local function
+    fun double(n: u8) -> u8 {
+        return n * 2;
+    }
+    
+    // Another local function
+    fun triple(n: u8) -> u8 {
+        return n * 3;
+    }
+    
+    if x > 10 {
+        return double(x);
+    } else {
+        return triple(x);
+    }
+}
+
+fun main() -> void {
+    let result1 = outer(5);   // 5 * 3 = 15
+    print_u8(result1);
+    
+    let result2 = outer(15);  // 15 * 2 = 30
+    print_u8(result2);
+}

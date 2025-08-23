@@ -1,0 +1,107 @@
+; MinZ generated code
+; Generated: 2025-08-19 15:36:56
+
+
+; Data section
+    ORG $F000
+
+str_0:
+    DB 17    ; Length
+    DB "Hello from @minz!"
+str_1:
+    DB 17    ; Length
+    DB "Hello from @minz!"
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_simple_working.main
+simple_working_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call test_simple_working.working_hello
+    ; Call to test_simple_working.working_hello (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL working_working_hello
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_simple_working.working_hello
+working_working_hello:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Load string "Hello from @minz!"
+    LD HL, str_0
+    ; Call runtime print_string
+    ; Call to print_string (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_string
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_simple_working.working_hello
+working_working_hello:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Load string "Hello from @minz!"
+    LD HL, str_1
+    ; Call runtime print_string
+    ; Call to print_string (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_string
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+
+; Runtime print helper functions
+print_string:
+    LD A, (HL)         ; A = first byte
+    CP 255             ; Check if extended format marker
+    JR Z, print_string_u16
+    ; Standard u8 format: [len:u8][data...]
+    LD B, A            ; B = length from first byte
+    INC HL             ; HL -> string data
+    OR A               ; Check if length is zero
+    RET Z              ; Return if empty string
+print_loop_u8:
+    LD A, (HL)         ; Load character
+    RST 16             ; ZX Spectrum ROM print
+    INC HL             ; Next character
+    DJNZ print_loop_u8 ; Decrement B and loop
+    RET
+
+print_string_u16:
+    ; Extended u16 format: [255][len:u16][data...]
+    INC HL             ; Skip 255 marker
+    LD E, (HL)         ; E = low byte of length
+    INC HL
+    LD D, (HL)         ; D = high byte of length
+    INC HL             ; HL -> string data
+    LD A, D            ; Check if length is zero
+    OR E
+    RET Z              ; Return if empty string
+    ; Use 16-bit counter for large strings
+print_loop_u16:
+    LD A, (HL)         ; Load character
+    RST 16             ; Print character
+    INC HL             ; Next character
+    DEC DE             ; Decrement 16-bit counter
+    LD A, D            ; Check if counter is zero
+    OR E
+    JR NZ, print_loop_u16
+    RET
+
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

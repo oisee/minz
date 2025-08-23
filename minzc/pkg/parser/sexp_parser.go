@@ -836,6 +836,8 @@ func (p *Parser) convertExpressionNode(node *SExpNode) ast.Expression {
 		return p.convertTernaryExpr(node)
 	case "when_expression":
 		return p.convertWhenExpr(node)
+	case "case_expression":
+		return p.convertCaseExpr(node)
 	case "boolean_literal":
 		return &ast.BooleanLiteral{
 			Value:    p.getNodeText(node) == "true",
@@ -1928,108 +1930,7 @@ func (p *Parser) convertImportStmt(node *SExpNode) *ast.ImportStmt {
 	return imp
 }
 
-// convertCaseStmt converts a case statement
-func (p *Parser) convertCaseStmt(node *SExpNode) *ast.CaseStmt {
-	caseStmt := &ast.CaseStmt{
-		Arms:     []*ast.CaseArm{},
-		StartPos: node.StartPos,
-		EndPos:   node.EndPos,
-	}
-	
-	for _, child := range node.Children {
-		switch child.Type {
-		case "expression":
-			if caseStmt.Expr == nil {
-				caseStmt.Expr = p.convertExpression(child)
-			}
-		case "case_arm":
-			if arm := p.convertCaseArm(child); arm != nil {
-				caseStmt.Arms = append(caseStmt.Arms, arm)
-			}
-		}
-	}
-	
-	return caseStmt
-}
-
-// convertCaseArm converts a case arm
-func (p *Parser) convertCaseArm(node *SExpNode) *ast.CaseArm {
-	arm := &ast.CaseArm{
-		StartPos: node.StartPos,
-		EndPos:   node.EndPos,
-	}
-	
-	for _, child := range node.Children {
-		switch child.Type {
-		case "pattern":
-			arm.Pattern = p.convertPattern(child)
-		case "expression":
-			arm.Body = p.convertExpression(child)
-		case "block":
-			arm.Body = p.convertBlock(child)
-		}
-	}
-	
-	return arm
-}
-
-// convertPattern converts a pattern
-func (p *Parser) convertPattern(node *SExpNode) ast.Pattern {
-	if len(node.Children) == 0 {
-		// Empty pattern node is a wildcard (_)
-		return &ast.WildcardPattern{
-			StartPos: node.StartPos,
-			EndPos:   node.EndPos,
-		}
-	}
-	
-	child := node.Children[0]
-	switch child.Type {
-	case "_":
-		return &ast.WildcardPattern{
-			StartPos: child.StartPos,
-			EndPos:   child.EndPos,
-		}
-	case "field_expression":
-		// Parse field expression like Direction.North
-		obj := ""
-		field := ""
-		for _, fc := range child.Children {
-			if fc.Type == "postfix_expression" || fc.Type == "primary_expression" {
-				// This is the object part (Direction)
-				if obj == "" {
-					obj = p.getNodeText(fc)
-				}
-			} else if fc.Type == "identifier" {
-				// This is the field part (North)
-				field = p.getNodeText(fc)
-			}
-		}
-		return &ast.IdentifierPattern{
-			Name:     obj + "." + field,
-			StartPos: child.StartPos,
-			EndPos:   child.EndPos,
-		}
-	case "identifier":
-		return &ast.IdentifierPattern{
-			Name:     p.getNodeText(child),
-			StartPos: child.StartPos,
-			EndPos:   child.EndPos,
-		}
-	case "literal_pattern":
-		// Parse the nested literal
-		if len(child.Children) > 0 {
-			literal := child.Children[0]
-			return &ast.LiteralPattern{
-				Value:    p.convertExpression(literal),
-				StartPos: child.StartPos,
-				EndPos:   child.EndPos,
-			}
-		}
-	}
-	
-	return nil
-}
+// Case conversion methods are now in case_converter.go
 
 // convertInterfaceDecl converts interface declaration from S-expression
 func (p *Parser) convertInterfaceDecl(node *SExpNode) *ast.InterfaceDecl {

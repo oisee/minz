@@ -1,0 +1,9 @@
+enum State { IDLE, RUNNING }
+fun test(s: State) -> u8 {
+    case s {
+        State.IDLE => 1,
+        State.RUNNING => 2,
+        _ => 0
+    }
+}
+fun main() -> void {}

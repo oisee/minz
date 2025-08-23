@@ -1,0 +1,9 @@
+; Simple MIR test program for MZV
+; Calculate 5 + 3
+
+func main() -> i32 {
+    %1 = const 5
+    %2 = const 3
+    %3 = add %1, %2
+    ret %3
+}

@@ -1,0 +1,11 @@
+fun outer() -> u8 {
+    fun inner() -> u8 {
+        return 42;
+    }
+    return 43;  // Don't call inner yet
+}
+
+fun main() -> void {
+    let result = outer();
+    print_u8(result);
+}

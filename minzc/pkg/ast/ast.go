@@ -618,8 +618,8 @@ func (l *LoopAtStmt) stmtNode()    {}
 
 // CaseStmt represents a case (pattern matching) statement
 type CaseStmt struct {
-	Expr     Expression
-	Arms     []*CaseArm
+	Value    Expression
+	Arms     []CaseArm
 	StartPos Position
 	EndPos   Position
 }
@@ -627,6 +627,19 @@ type CaseStmt struct {
 func (c *CaseStmt) Pos() Position { return c.StartPos }
 func (c *CaseStmt) End() Position { return c.EndPos }
 func (c *CaseStmt) stmtNode()    {}
+
+// CaseExpr represents a case expression (returns a value)
+type CaseExpr struct {
+	Value    Expression
+	Arms     []CaseArm
+	StartPos Position
+	EndPos   Position
+}
+
+func (c *CaseExpr) Pos() Position { return c.StartPos }
+func (c *CaseExpr) End() Position { return c.EndPos }
+func (c *CaseExpr) exprNode()     {}
+func (c *CaseExpr) stmtNode()     {} // Can be used as statement
 
 // CaseArm represents a single arm of a case statement
 type CaseArm struct {
@@ -677,6 +690,30 @@ type WildcardPattern struct {
 func (w *WildcardPattern) Pos() Position { return w.StartPos }
 func (w *WildcardPattern) End() Position { return w.EndPos }
 func (w *WildcardPattern) patternNode() {}
+
+// RangePattern represents a range pattern (e.g., 1..10)
+type RangePattern struct {
+	Start    Expression // Start of range
+	RangeEnd Expression // End of range (inclusive) - renamed to avoid conflict with End() method
+	StartPos Position
+	EndPos   Position
+}
+
+func (r *RangePattern) Pos() Position { return r.StartPos }
+func (r *RangePattern) End() Position { return r.EndPos }
+func (r *RangePattern) patternNode()  {}
+
+// EnumPattern represents an enum variant pattern (e.g., State.IDLE)
+type EnumPattern struct {
+	EnumType string   // The enum type name
+	Variant  string   // The variant name
+	StartPos Position
+	EndPos   Position
+}
+
+func (e *EnumPattern) Pos() Position { return e.StartPos }
+func (e *EnumPattern) End() Position { return e.EndPos }
+func (e *EnumPattern) patternNode()  {}
 
 // ExpressionStmt represents an expression used as a statement
 type ExpressionStmt struct {

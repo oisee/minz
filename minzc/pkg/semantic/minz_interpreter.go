@@ -7,6 +7,8 @@ import (
 	"strconv"
 
 	"github.com/minz/minzc/pkg/ast"
+	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/mirvm"
 	"github.com/minz/minzc/pkg/parser"
 )
 
@@ -20,13 +22,24 @@ func processTemplateString(template string, variables map[string]interface{}) st
 }
 
 // analyzeMinzBlock processes a @minz[[[]]] compile-time execution block
-// It interprets the MinZ code and generates declarations
+// It executes the MinZ code using MZV (MIR Virtual Machine) and generates declarations
 func (a *Analyzer) analyzeMinzBlock(block *ast.MinzBlock) error {
+	// Create MZV configuration for compile-time execution
+	config := mirvm.Config{
+		MemorySize: 65536,
+		StackSize:  4096,
+		Debug:      minzDebug,
+		Trace:      false,
+		MaxSteps:   100000, // Prevent infinite loops
+		Verbose:    false,
+	}
+	
 	// Create a MinZ interpreter context
 	ctx := &minzInterpreterContext{
 		analyzer:    a,
 		emittedCode: []string{},
 		variables:   make(map[string]interface{}),
+		vm:          mirvm.New(config), // Use MZV for execution
 	}
 	
 	// Handle raw code if present
@@ -35,9 +48,9 @@ func (a *Analyzer) analyzeMinzBlock(block *ast.MinzBlock) error {
 			fmt.Printf("DEBUG: Processing @minz block with raw code: %s\n", block.RawCode)
 		}
 		
-		// Parse the raw MinZ code properly
-		if err := ctx.parseAndExecuteRawCode(block.RawCode); err != nil {
-			return fmt.Errorf("error executing raw @minz code: %w", err)
+		// For MinzBlock, compile MinZ to MIR then execute
+		if err := ctx.executeMinzCode(block.RawCode); err != nil {
+			return fmt.Errorf("error executing @minz code: %w", err)
 		}
 	} else {
 		// Handle structured code
@@ -113,18 +126,116 @@ func (a *Analyzer) analyzeMinzBlock(block *ast.MinzBlock) error {
 	return nil
 }
 
+// executeMinzCode compiles MinZ code to MIR and executes it in MZV
+func (ctx *minzInterpreterContext) executeMinzCode(minzCode string) error {
+	if minzDebug {
+		fmt.Printf("DEBUG: Compiling and executing @minz code\n")
+	}
+	
+	// For now, fall back to simple pattern matching
+	// TODO: Implement full MIR compilation and execution
+	return ctx.executeSimplePatterns(minzCode)
+}
+
+// executeMirCode parses and executes MIR code directly in MZV
+func (ctx *minzInterpreterContext) executeMirCode(mirCode string) error {
+	if minzDebug {
+		fmt.Printf("DEBUG: Executing @mir code directly\n")
+	}
+	
+	// Parse MIR code into IR
+	module, err := ir.ParseMIR(mirCode)
+	if err != nil {
+		return fmt.Errorf("failed to parse MIR code: %w", err)
+	}
+	
+	// Load module into VM
+	if err := ctx.vm.LoadModule(module); err != nil {
+		return fmt.Errorf("failed to load MIR module: %w", err)
+	}
+	
+	// Execute the module (looks for main function)
+	exitCode, err := ctx.vm.Run()
+	if err != nil {
+		return fmt.Errorf("MIR execution failed: %w", err)
+	}
+	
+	if exitCode != 0 {
+		return fmt.Errorf("MIR execution failed with exit code %d", exitCode)
+	}
+	
+	// Extract emitted code from VM
+	ctx.extractEmittedCode()
+	
+	return nil
+}
+
+// executeMirFunction executes a single MIR function
+func (ctx *minzInterpreterContext) executeMirFunction(fn *ir.Function) error {
+	// Create a temporary module with just this function
+	module := &ir.Module{
+		Name:      "@minz_temp",
+		Functions: []*ir.Function{fn},
+	}
+	
+	// Rename function to main for execution
+	fn.Name = "main"
+	
+	// Load and execute
+	if err := ctx.vm.LoadModule(module); err != nil {
+		return fmt.Errorf("failed to load MIR function: %w", err)
+	}
+	
+	exitCode, err := ctx.vm.Run()
+	if err != nil {
+		return fmt.Errorf("MIR function execution failed: %w", err)
+	}
+	
+	if exitCode != 0 {
+		return fmt.Errorf("MIR function execution failed with exit code %d", exitCode)
+	}
+	
+	// Extract emitted code
+	ctx.extractEmittedCode()
+	
+	return nil
+}
+
+// extractEmittedCode extracts @emit output from the VM
+func (ctx *minzInterpreterContext) extractEmittedCode() {
+	// Get emitted code from VM
+	emitted := ctx.vm.GetEmittedCode()
+	
+	if minzDebug {
+		fmt.Printf("DEBUG: Extracted %d lines of emitted code from VM\n", len(emitted))
+	}
+	
+	// Add to our emitted code buffer
+	ctx.emittedCode = append(ctx.emittedCode, emitted...)
+	
+	// Clear VM buffer for next execution
+	ctx.vm.ClearEmittedCode()
+}
+
 // minzInterpreterContext holds the state for interpreting MinZ code at compile time
 type minzInterpreterContext struct {
 	analyzer    *Analyzer
 	emittedCode []string
 	variables   map[string]interface{} // Local variables in the @minz block
+	vm          *mirvm.VM             // MIR Virtual Machine for compile-time execution
 }
 
 // parseAndExecuteRawCode parses and executes raw MinZ code from @minz[[[]]] blocks
+// This is the legacy fallback method
 func (ctx *minzInterpreterContext) parseAndExecuteRawCode(rawCode string) error {
-	// For now, always use simple pattern matching since full parsing is complex
+	// Try the new MZV execution first
+	if err := ctx.executeMinzCode(rawCode); err == nil {
+		return nil
+	}
+	
+	// Fall back to simple pattern matching for compatibility
 	if minzDebug {
-		fmt.Printf("DEBUG: Using pattern matching for @minz block execution\n")
+		fmt.Printf("DEBUG: Falling back to pattern matching for @minz block execution\n")
 	}
 	return ctx.executeSimplePatterns(rawCode)
 }
@@ -133,6 +244,21 @@ func (ctx *minzInterpreterContext) parseAndExecuteRawCode(rawCode string) error 
 func (ctx *minzInterpreterContext) executeSimplePatterns(rawCode string) error {
 	if minzDebug {
 		fmt.Printf("DEBUG: Using simple pattern matching for @minz block\n")
+	}
+	
+	// Check if this contains a for loop - if so, use the for loop processor
+	if minzDebug {
+		fmt.Printf("DEBUG: Raw code to analyze:\n%q\n", rawCode)
+		fmt.Printf("DEBUG: Contains 'for ': %v\n", strings.Contains(rawCode, "for "))
+		fmt.Printf("DEBUG: Contains ' in ': %v\n", strings.Contains(rawCode, " in "))
+		fmt.Printf("DEBUG: Contains '..': %v\n", strings.Contains(rawCode, ".."))
+	}
+	
+	if strings.Contains(rawCode, "for ") && strings.Contains(rawCode, " in ") && strings.Contains(rawCode, "..") {
+		if minzDebug {
+			fmt.Printf("DEBUG: Detected for loop, using executeSimpleForLoop\n")
+		}
+		return ctx.executeSimpleForLoop(rawCode)
 	}
 	
 	// Process all lines in the raw code

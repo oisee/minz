@@ -1,0 +1,51 @@
+enum Direction {
+    North,
+    South,
+    East,
+    West
+}
+
+fun describe_direction(dir: Direction) -> str {
+    case dir {
+        Direction.North => "Going up!",
+        Direction.South => "Going down!",
+        Direction.East => "Going right!",
+        Direction.West => "Going left!"
+    }
+}
+
+fun test_numbers(n: u8) -> u8 {
+    case n {
+        0 => 100,
+        1..10 => n * 10,
+        11..20 => n * 5,
+        _ => n
+    }
+}
+
+fun test_with_guard(x: u8, y: u8) -> u8 {
+    case x {
+        0 => 0,
+        n if y > 10 => n + y,
+        n => n * 2
+    }
+}
+
+fun main() -> void {
+    // Test basic pattern matching
+    let result1 = test_numbers(5);
+    print_u8(result1);  // Should print 50
+    
+    let result2 = test_numbers(15);
+    print_u8(result2);  // Should print 75
+    
+    let result3 = test_numbers(25);
+    print_u8(result3);  // Should print 25
+    
+    // Test with guards
+    let result4 = test_with_guard(5, 15);
+    print_u8(result4);  // Should print 20 (5 + 15)
+    
+    let result5 = test_with_guard(5, 5);
+    print_u8(result5);  // Should print 10 (5 * 2)
+}

@@ -1,0 +1,12 @@
+fun outer() -> u8 {
+    fun inner() -> u8 {
+        return 42;
+    }
+    
+    return inner();
+}
+
+fun main() -> void {
+    let result = outer();
+    print_u8(result);
+}

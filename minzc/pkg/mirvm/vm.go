@@ -50,6 +50,10 @@ type VM struct {
 	breakHit      bool
 	stepMode      bool
 	instructionCount int
+	
+	// Metaprogramming support
+	emittedCode   []string // Captured @emit output
+	stringPool    map[int64]string // String literals
 }
 
 // CallFrame represents a function call frame
@@ -63,11 +67,13 @@ type CallFrame struct {
 // New creates a new VM instance
 func New(config Config) *VM {
 	return &VM{
-		config:    config,
-		memory:    make([]byte, config.MemorySize),
-		funcIndex: make(map[string]*ir.Function),
-		sp:        config.StackSize, // Stack grows down
-		fp:        config.StackSize,
+		config:      config,
+		memory:      make([]byte, config.MemorySize),
+		funcIndex:   make(map[string]*ir.Function),
+		sp:          config.StackSize, // Stack grows down
+		fp:          config.StackSize,
+		emittedCode: make([]string, 0),
+		stringPool:  make(map[int64]string),
 	}
 }
 
@@ -288,6 +294,17 @@ func (vm *VM) executeInstruction() (bool, error) {
 		// Stop execution
 		return true, nil
 		
+	case ir.OpEmit:
+		// @emit instruction for metaprogramming
+		return false, vm.handleEmit(inst)
+		
+	case ir.OpLoadString:
+		// Load string literal into register
+		vm.registers[inst.Dest] = int64(inst.StringID)
+		if inst.StringValue != "" {
+			vm.stringPool[int64(inst.StringID)] = inst.StringValue
+		}
+		
 	default:
 		return false, fmt.Errorf("unknown opcode: %v", inst.Op)
 	}
@@ -341,6 +358,46 @@ func (vm *VM) returnFromFunction() error {
 	vm.fp = frame.FramePointer
 	
 	return nil
+}
+
+// handleEmit processes @emit instructions for metaprogramming
+func (vm *VM) handleEmit(inst ir.Instruction) error {
+	// Get the string to emit
+	var emitStr string
+	
+	if inst.StringValue != "" {
+		// Direct string value
+		emitStr = inst.StringValue
+	} else if inst.Src1 != 0 {
+		// String from register
+		stringID := vm.registers[inst.Src1]
+		if str, ok := vm.stringPool[stringID]; ok {
+			emitStr = str
+		} else {
+			return fmt.Errorf("invalid string ID: %d", stringID)
+		}
+	} else {
+		return fmt.Errorf("@emit requires either StringValue or Src1")
+	}
+	
+	// Add to emitted code
+	vm.emittedCode = append(vm.emittedCode, emitStr)
+	
+	if vm.config.Debug {
+		fmt.Fprintf(vm.config.OutputStream, "DEBUG: @emit: %s\n", emitStr)
+	}
+	
+	return nil
+}
+
+// GetEmittedCode returns all code emitted by @emit instructions
+func (vm *VM) GetEmittedCode() []string {
+	return vm.emittedCode
+}
+
+// ClearEmittedCode clears the emitted code buffer
+func (vm *VM) ClearEmittedCode() {
+	vm.emittedCode = make([]string, 0)
 }
 
 // handleBuiltin handles built-in functions

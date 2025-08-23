@@ -1,0 +1,14 @@
+fun outer() -> u8 {
+    fun level1() -> u8 {
+        fun level2() -> u8 {
+            return 42;
+        }
+        return level2();
+    }
+    return level1();
+}
+
+fun main() -> void {
+    let result = outer();
+    print_u8(result as u8);
+}

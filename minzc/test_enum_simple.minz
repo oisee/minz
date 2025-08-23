@@ -1,0 +1,14 @@
+enum State {
+    IDLE,
+    RUNNING,
+    STOPPED
+}
+
+fun test_enum() -> void {
+    let s = State.IDLE;
+    print_u8(s as u8);
+}
+
+fun main() -> void {
+    test_enum();
+}

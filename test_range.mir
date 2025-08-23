@@ -1,0 +1,95 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_range_pattern.categorize$u8(n: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 0
+      2: r4 = r2 == r3
+      3: JUMP_IF
+      4: jump case_expr_arm_1_3
+      5: case_expr_arm_0_2:
+      6: r5 = 0
+      7: r1 = r5
+      8: jump case_expr_end_1
+      9: r6 = 1
+     10: r7 = r2 >= r6
+     11: jump_if_not r7, 
+     12: r8 = 10
+     13: r9 = r2 <= r8
+     14: JUMP_IF
+     15: jump case_expr_arm_2_4
+     16: case_expr_arm_1_3:
+     17: r10 = 1
+     18: r1 = r10
+     19: jump case_expr_end_1
+     20: r11 = 11
+     21: r12 = r2 >= r11
+     22: jump_if_not r12, 
+     23: r13 = 50
+     24: r14 = r2 <= r13
+     25: JUMP_IF
+     26: jump case_expr_arm_3_5
+     27: case_expr_arm_2_4:
+     28: r15 = 2
+     29: r1 = r15
+     30: jump case_expr_end_1
+     31: r16 = 51
+     32: r17 = r2 >= r16
+     33: jump_if_not r17, 
+     34: r18 = 100
+     35: r19 = r2 <= r18
+     36: JUMP_IF
+     37: jump case_expr_arm_4_6
+     38: case_expr_arm_3_5:
+     39: r20 = 3
+     40: r1 = r20
+     41: jump case_expr_end_1
+     42: jump case_expr_arm_4_6
+     43: case_expr_arm_4_6:
+     44: r21 = 4
+     45: r1 = r21
+     46: case_expr_end_1:
+     47: return
+
+Function test_range_pattern.main() -> void
+  @smc
+  Instructions:
+      0: r1 = 0
+      1: r2 = 0
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r3 = call test_range_pattern.categorize$u8
+      6: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      7: r4 = 5
+      8: r5 = 5
+      9: PATCH_TEMPLATE
+     10: PATCH_TARGET
+     11: PATCH_PARAM
+     12: r6 = call test_range_pattern.categorize$u8
+     13: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     14: r7 = 25
+     15: r8 = 25
+     16: PATCH_TEMPLATE
+     17: PATCH_TARGET
+     18: PATCH_PARAM
+     19: r9 = call test_range_pattern.categorize$u8
+     20: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     21: r10 = 75
+     22: r11 = 75
+     23: PATCH_TEMPLATE
+     24: PATCH_TARGET
+     25: PATCH_PARAM
+     26: r12 = call test_range_pattern.categorize$u8
+     27: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     28: r13 = 150
+     29: r14 = 150
+     30: PATCH_TEMPLATE
+     31: PATCH_TARGET
+     32: PATCH_PARAM
+     33: r15 = call test_range_pattern.categorize$u8
+     34: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     35: return
+

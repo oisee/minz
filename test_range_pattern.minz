@@ -1,0 +1,17 @@
+fun categorize(n: u8) -> u8 {
+    case n {
+        0 => 0,          // Zero
+        1..10 => 1,      // Small
+        11..50 => 2,     // Medium
+        51..100 => 3,    // Large
+        _ => 4           // Huge
+    }
+}
+
+fun main() -> void {
+    print_u8(categorize(0));    // 0
+    print_u8(categorize(5));    // 1
+    print_u8(categorize(25));   // 2
+    print_u8(categorize(75));   // 3
+    print_u8(categorize(150));  // 4
+}

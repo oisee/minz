@@ -1,0 +1,21 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_case_typed.test() -> void
+  @smc
+  Locals:
+    r1 = x: u8
+    r3 = result: u8
+  Instructions:
+      0: r2 = 2
+      1: store x, r2
+      2: r4 = load result
+      3: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      4: return
+
+Function test_case_typed.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_case_typed.test
+      1: return
+

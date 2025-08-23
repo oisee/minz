@@ -1,0 +1,82 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_pattern_simple.test_numbers$u8(n: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 0
+      2: r4 = r2 == r3
+      3: JUMP_IF
+      4: jump case_expr_arm_1_3
+      5: case_expr_arm_0_2:
+      6: r5 = 100
+      7: r1 = r5
+      8: jump case_expr_end_1
+      9: r6 = 1
+     10: r7 = r2 == r6
+     11: JUMP_IF
+     12: jump case_expr_arm_2_4
+     13: case_expr_arm_1_3:
+     14: r8 = 110
+     15: r1 = r8
+     16: jump case_expr_end_1
+     17: r9 = 2
+     18: r10 = r2 == r9
+     19: JUMP_IF
+     20: jump case_expr_arm_3_5
+     21: case_expr_arm_2_4:
+     22: r11 = 120
+     23: r1 = r11
+     24: jump case_expr_end_1
+     25: r12 = 3
+     26: r13 = r2 == r12
+     27: JUMP_IF
+     28: jump case_expr_arm_4_6
+     29: case_expr_arm_3_5:
+     30: r14 = 130
+     31: r1 = r14
+     32: jump case_expr_end_1
+     33: jump case_expr_arm_4_6
+     34: case_expr_arm_4_6:
+     35: LOAD_PARAM
+     36: r1 = r15
+     37: case_expr_end_1:
+     38: return
+
+Function ...test_pattern_simple.main() -> void
+  @smc
+  Locals:
+    r1 = result1: u8
+    r6 = result2: u8
+    r11 = result3: u8
+  Instructions:
+      0: r2 = 0
+      1: r3 = 0
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call ...test_pattern_simple.test_numbers$u8
+      6: store result1, r4
+      7: r5 = load result1
+      8: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      9: r7 = 2
+     10: r8 = 2
+     11: PATCH_TEMPLATE
+     12: PATCH_TARGET
+     13: PATCH_PARAM
+     14: r9 = call ...test_pattern_simple.test_numbers$u8
+     15: store result2, r9
+     16: r10 = load result2
+     17: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     18: r12 = 5
+     19: r13 = 5
+     20: PATCH_TEMPLATE
+     21: PATCH_TARGET
+     22: PATCH_PARAM
+     23: r14 = call ...test_pattern_simple.test_numbers$u8
+     24: store result3, r14
+     25: r15 = load result3
+     26: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     27: return
+

@@ -500,13 +500,13 @@ module.exports = grammar({
       $.statement,
     ),
 
-    case_statement: $ => seq(
+    case_statement: $ => prec(-1, seq(
       'case',
       $.expression,
       '{',
       repeat($.case_arm),
       '}',
-    ),
+    )),
 
     case_arm: $ => seq(
       $.pattern,
@@ -520,11 +520,25 @@ module.exports = grammar({
     ),
 
     pattern: $ => choice(
+      $.range_pattern,
+      $.enum_pattern,
       $.field_expression,
       $.identifier,
       $.literal_pattern,
       '_',
     ),
+    
+    range_pattern: $ => prec(2, seq(
+      field('start', choice($.number_literal, $.identifier)),
+      '..',
+      field('end', choice($.number_literal, $.identifier)),
+    )),
+    
+    enum_pattern: $ => prec(2, seq(
+      field('type', $.identifier),
+      '.',
+      field('variant', $.identifier),
+    )),
 
     literal_pattern: $ => choice(
       $.number_literal,
@@ -535,9 +549,18 @@ module.exports = grammar({
 
     // Expressions
     expression: $ => choice(
+      $.case_expression,
       $.binary_expression,
       $.unary_expression,
       $.postfix_expression,
+    ),
+    
+    case_expression: $ => seq(
+      'case',
+      field('value', $.expression),
+      '{',
+      repeat($.case_arm),
+      '}',
     ),
 
     binary_expression: $ => choice(

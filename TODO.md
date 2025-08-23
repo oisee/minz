@@ -1,20 +1,56 @@
 # MinZ TODO - The Big Next Things
 
 > Last Updated: January 2025 (v0.14.0)
+> Success Rate: 47/58 examples (81%)
 
 ## 🎯 Current Focus Areas
 
-### 1. 🔧 Tree-Sitter Parser Fix (IMMEDIATE PRIORITY)
+### 1. 🎯 Pattern Matching (case/match) - HIGHEST IMPACT
+**Goal:** Swift/Rust-style pattern matching with Z80 jump tables
+- [ ] Implement case/match syntax parsing
+- [ ] Generate efficient jump tables (<20 T-states)
+- [ ] Support range patterns (1..10)
+- [ ] Support enum patterns with dot notation
+- [ ] Default case with `_`
+```minz
+case state {
+    State.IDLE => State.RUNNING,     // ✅ Use dot notation
+    State.RUNNING => State.STOPPED,
+    _ => State.IDLE
+}
+```
+
+### 2. 🔧 Fix Enum Member Access
+**Goal:** Make State.IDLE syntax work properly
+- [ ] Fix semantic analyzer for enum dot notation
+- [ ] No `::` operator - only dot notation
+- [ ] Should work in all contexts (case, assignments, comparisons)
+- **Note:** Parser already recognizes it, semantic layer needs fix
+
+### 3. 📦 Local/Nested Functions
+**Goal:** Enable function definitions inside functions
+- [ ] Parse nested function declarations
+- [ ] Handle closure/scope properly
+- [ ] Unblock 7+ failing examples
+```minz
+fun outer() -> void {
+    fun inner() -> void {
+        print("nested!");
+    }
+    inner();
+}
+```
+
+### 4. 🔧 Tree-Sitter Parser Improvements
 **Goal:** Reach 90%+ compilation success rate
 - [ ] Fix parsing of complex expressions
 - [ ] Handle all array literal cases
 - [ ] Fix method call syntax
 - [ ] Improve error recovery
 - [ ] Create comprehensive parser test suite
-- **Note:** ANTLR is PARKED (regression from 75% to 5%)
-- **Current:** 63% success rate
+- **Current:** 81% success rate (47/58 examples)
 
-### 2. 📦 MZP Package Manager (HIGH VALUE)
+### 5. 📦 MZP Package Manager (HIGH VALUE)
 **Goal:** Simple package management for retro systems
 - [ ] Implement manifest parsing (mzp.toml)
 - [ ] Create local package installation
@@ -23,7 +59,7 @@
 - [ ] Set up package registry (GitHub Pages)
 - **Design:** See [doc #232](docs/232_MZP_Package_Manager_Design.md)
 
-### 3. 🎮 Game Jam: Snake & Tetris (PROOF OF CONCEPT)
+### 6. 🎮 Game Jam: Snake & Tetris (PROOF OF CONCEPT)
 **Goal:** Create real, playable games for ZX Spectrum
 - [ ] Build ZX Spectrum graphics library (attribute-based)
 - [ ] Implement input handling module
@@ -32,7 +68,7 @@
 - [ ] Polish with title screens and sound
 - **Plan:** See [doc #231](docs/231_Game_Jam_Snake_Tetris_Plan.md)
 
-### 4. 💻 Language Server Protocol (DEVELOPER EXPERIENCE)
+### 7. 💻 Language Server Protocol (DEVELOPER EXPERIENCE)
 **Goal:** Professional IDE integration
 - [ ] Implement LSP server in Go
 - [ ] Add autocomplete support
@@ -40,13 +76,54 @@
 - [ ] Create VSCode extension
 - [ ] Support Vim/Emacs
 
-### 5. ⚡ Optimization Improvements (PERFORMANCE)
+### 8. ⚡ Optimization Improvements (PERFORMANCE)
 **Goal:** Better code generation and optimization
 - [ ] Improve tree-shaking beyond 74%
 - [ ] Implement canonical reordering
 - [ ] Add more peephole patterns (target: 50+)
 - [ ] Implement currying for all functions
 - [ ] Optimize lambda transformations
+
+## 🔧 Additional High-Impact Features
+
+### Module Import System
+**Goal:** Better code organization with dot notation
+```minz
+import zx.screen;
+import std.mem;
+
+fun main() -> void {
+    screen.set_border(2);  // Namespace access
+    mem.copy(src, dst, len);
+}
+```
+
+### Error Propagation with `?`
+**Goal:** Modern error handling
+```minz
+fun read_file(name: str) -> u8? {
+    let file = open(name)?;  // Propagate error
+    return file.read_byte();
+}
+```
+
+### Self Parameter in Methods
+**Goal:** Enable impl blocks with self
+```minz
+impl State {
+    fun next(self) -> State {  // 'self' not recognized currently
+        case self {
+            State.IDLE => State.RUNNING,
+            State.RUNNING => State.STOPPED
+        }
+    }
+}
+```
+
+### Template Substitution in @minz blocks
+- [ ] Fix for loop execution in @minz blocks
+- [ ] Add Ruby-style `#{variable}` interpolation
+- [ ] String concatenation for code generation
 
 ## ✅ Recently Completed (v0.14.0)
 
@@ -60,6 +137,12 @@
 - [x] @define() - Template preprocessor (working!)
 - [x] @lua[[[]]] - Lua scripting
 - [x] Complete documentation
+
+### CTIE (Compile-Time Interface Execution)
+- [x] Pure functions executed at compile-time
+- [x] 44+ T-state savings (negative-cost abstractions!)
+- [x] 43.8% of functions optimizable
+- [x] Replaces CALL with immediate values
 
 ### Toolchain Enhancements
 - [x] mzv - MIR VM interpreter

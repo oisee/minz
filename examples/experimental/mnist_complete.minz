@@ -1,0 +1,127 @@
+// Complete MNIST editor without imports (self-contained)
+
+type Editor = struct {
+    cursor_x: u8,
+    cursor_y: u8,
+    canvas: [256]bool
+};
+
+// Mock screen functions
+fun set_pixel(x: u8, y: u8) -> void {
+    // Mock implementation
+    return;
+}
+
+fun clear_pixel(x: u8, y: u8) -> void {
+    // Mock implementation
+    return;
+}
+
+fun attr_addr(x: u8, y: u8) -> u16 {
+    // ZX Spectrum attribute address calculation
+    return 0x5800 + (y * 32 + x);
+}
+
+fun editor_init() -> Editor {
+    let mut editor: Editor;
+    editor.cursor_x = 8;
+    editor.cursor_y = 8;
+    
+    let mut i: u16 = 0;
+    while i < 256 {
+        editor.canvas[i] = false;
+        i = i + 1;
+    }
+    
+    return editor;
+}
+
+// Draw the canvas
+fun draw_canvas(editor: *Editor) -> void {
+    let grid_x: u8 = 64;
+    let grid_y: u8 = 48;
+    
+    let mut y: u8 = 0;
+    while y < 16 {
+        let mut x: u8 = 0;
+        while x < 16 {
+            let px = grid_x + x;
+            let py = grid_y + y;
+            let idx: u16 = (y as u16) * 16 + (x as u16);
+            
+            if editor.canvas[idx] {
+                set_pixel(px, py);
+            } else {
+                clear_pixel(px, py);
+            }
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}
+
+// Draw cursor
+fun draw_cursor(editor: *Editor, flash: bool) -> void {
+    let grid_x: u8 = 64;
+    let grid_y: u8 = 48;
+    
+    let px = grid_x + editor.cursor_x;
+    let py = grid_y + editor.cursor_y;
+    
+    if flash {
+        set_pixel(px, py);
+    } else {
+        clear_pixel(px, py);
+    }
+}
+
+// Handle keyboard input
+fun handle_input(editor: *Editor, key: u8) -> bool {
+    if key == 81 {  // 'Q' - up
+        if editor.cursor_y > 0 {
+            editor.cursor_y = editor.cursor_y - 1;
+        }
+    } else if key == 65 {  // 'A' - down
+        if editor.cursor_y < 15 {
+            editor.cursor_y = editor.cursor_y + 1;
+        }
+    } else if key == 79 {  // 'O' - left
+        if editor.cursor_x > 0 {
+            editor.cursor_x = editor.cursor_x - 1;
+        }
+    } else if key == 80 {  // 'P' - right
+        if editor.cursor_x < 15 {
+            editor.cursor_x = editor.cursor_x + 1;
+        }
+    } else if key == 32 {  // SPACE - toggle pixel
+        let idx: u16 = (editor.cursor_y as u16) * 16 + (editor.cursor_x as u16);
+        editor.canvas[idx] = !editor.canvas[idx];
+    } else if key == 67 {  // 'C' - clear
+        let mut i: u16 = 0;
+        while i < 256 {
+            editor.canvas[i] = false;
+            i = i + 1;
+        }
+    } else if key == 88 {  // 'X' - exit
+        return false;
+    }
+    
+    return true;
+}
+
+fun main() -> void {
+    let mut editor = editor_init();
+    
+    // Main loop
+    let running = true;
+    while running {
+        draw_canvas(&editor);
+        draw_cursor(&editor, true);
+        
+        // Simulate getting a key (would be from real input)
+        let key: u8 = 88; // 'X' to exit
+        running = handle_input(&editor, key);
+    }
+    
+    return;
+}

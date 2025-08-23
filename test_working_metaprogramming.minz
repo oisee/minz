@@ -1,0 +1,17 @@
+// Demonstration of working metaprogramming using @define + @minz hybrid
+
+// This should work with the existing system
+@define("fun sprite_{0}() -> void {{ @emit(\"LD A, {0}\"); @emit(\"CALL draw_sprite\"); }}", "0")
+@define("fun sprite_{0}() -> void {{ @emit(\"LD A, {0}\"); @emit(\"CALL draw_sprite\"); }}", "1")
+@define("fun sprite_{0}() -> void {{ @emit(\"LD A, {0}\"); @emit(\"CALL draw_sprite\"); }}", "2")
+
+// Simple working @minz block
+@minz[[[
+    @emit("fun working_hello() -> void {")
+    @emit("    print_string(\"Hello from working @minz!\");")
+    @emit("}")
+]]]
+
+fun main() -> void {
+    working_hello();
+}

@@ -1,0 +1,89 @@
+// Performance Optimization Tricks
+@abi("smc")
+fun fast_fill(dest: *u8, value: u8, count: u16) -> void {
+    // SMC will patch the immediate value directly
+    asm {
+        LD A, value     ; This will be patched by SMC
+        LD BC, count
+        LD HL, dest
+    fill_loop:
+        LD (HL), A
+        INC HL
+        DEC BC
+        LD A, B
+        OR C
+        JR NZ, fill_loop
+    }
+}
+
+@abi("register: HL=src, DE=dest, BC=count")
+@extern
+fun ldir_wrapper(src: *u8, dest: *u8, count: u16) -> void;
+
+fun unrolled_copy(dest: *u8, src: *u8) -> void {
+    // Unrolled loop for 8-byte copy
+    asm {
+        LD HL, src
+        LD DE, dest
+        
+        ; Unrolled 8 times
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+        INC HL
+        INC DE
+        
+        LD A, (HL)
+        LD (DE), A
+    }
+}
+
+fun lookup_mul_by_10(x: u8) -> u16 {
+    // Fast multiplication by 10 using shifts and adds
+    let x2 = (x << 1) as u16;  // x * 2
+    let x8 = (x << 3) as u16;  // x * 8
+    return x2 + x8;             // x * 2 + x * 8 = x * 10
+}
+
+fun main() {
+    let buffer: [u8; 256];
+    
+    // Fast fill using SMC
+    fast_fill(&buffer[0], 0xAA, 256);
+    
+    // Fast copy using LDIR
+    let src: [u8; 256];
+    ldir_wrapper(&src[0], &buffer[0], 256);
+    
+    // Fast multiplication
+    let result = lookup_mul_by_10(25);  // 250
+}

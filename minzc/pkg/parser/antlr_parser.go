@@ -929,15 +929,15 @@ func (v *antlrVisitor) VisitCaseStatement(ctx *minzparser.CaseStatementContext) 
 	// Parse expression to match
 	if exprCtx := ctx.Expression(); exprCtx != nil {
 		if expr := v.VisitExpression(exprCtx.(*minzparser.ExpressionContext)); expr != nil {
-			stmt.Expr = expr.(ast.Expression)
+			stmt.Value = expr.(ast.Expression)
 		}
 	}
 	
 	// Parse case arms
-	stmt.Arms = make([]*ast.CaseArm, 0)
+	stmt.Arms = make([]ast.CaseArm, 0)
 	for _, armCtx := range ctx.AllCaseArm() {
 		if arm := v.VisitCaseArm(armCtx.(*minzparser.CaseArmContext)); arm != nil {
-			stmt.Arms = append(stmt.Arms, arm.(*ast.CaseArm))
+			stmt.Arms = append(stmt.Arms, *arm.(*ast.CaseArm))
 		}
 	}
 	

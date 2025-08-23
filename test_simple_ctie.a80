@@ -1,0 +1,242 @@
+; MinZ generated code
+; Generated: 2025-08-19 00:14:34
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_simple_ctie.multiply$u8$u8
+multiply_u8_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+multiply_u8_u8_param_a.op:
+multiply_u8_u8_param_a equ multiply_u8_u8_param_a.op + 1
+    LD A, #00      ; Parameter a (gets patched)
+    ; Register 3 already in A
+multiply_u8_u8_param_b.op:
+multiply_u8_u8_param_b equ multiply_u8_u8_param_b.op + 1
+    LD B, #00      ; Parameter b (gets patched)
+    LD A, B
+    LD B, A         ; Store to physical register B
+    ; r5 = r3 * r4
+    ; 8-bit multiplication
+    ; Register 3 already in A
+    LD B, A       ; B = multiplicand
+    LD A, B
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, ___test_simple_ctie_multiply_u8_u8_mul_done_0
+___test_simple_ctie_multiply_u8_u8_mul_loop_0:
+    LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, ___test_simple_ctie_multiply_u8_u8_mul_loop_0
+___test_simple_ctie_multiply_u8_u8_mul_done_0:
+    LD A, D
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+...test_simple_ctie.multiply$u8$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+...test_simple_ctie.multiply$u8$u8_store_addr.op:
+...test_simple_ctie.multiply$u8$u8_store_addr equ ...test_simple_ctie.multiply$u8$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_simple_ctie.calculate_area$u8$u8
+area_u8_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+area_u8_u8_param_width.op:
+area_u8_u8_param_width equ area_u8_u8_param_width.op + 1
+    LD A, #00      ; Parameter width (gets patched)
+    LD E, A         ; Store to physical register E
+area_u8_u8_param_height.op:
+area_u8_u8_param_height equ area_u8_u8_param_height.op + 1
+    LD B, #00      ; Parameter height (gets patched)
+    LD A, B
+    LD H, A         ; Store to physical register H
+    LD A, (area_u8_u8_param_width)
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD A, (area_u8_u8_param_height)
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_simple_ctie.multiply$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_simple_ctie.multiply$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_simple_ctie.multiply$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (...test_simple_ctie.multiply$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (...test_simple_ctie.multiply$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; r7 = call ...test_simple_ctie.multiply$u8$u8
+    ; Call to ...test_simple_ctie.multiply$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL multiply_u8_u8
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+...test_simple_ctie.calculate_area$u8$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+...test_simple_ctie.calculate_area$u8$u8_store_addr.op:
+...test_simple_ctie.calculate_area$u8$u8_store_addr equ ...test_simple_ctie.calculate_area$u8$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_simple_ctie.main
+simple_ctie_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 10
+    LD A, 10
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; r3 = 5
+    LD A, 5
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; r4 = 10
+    LD A, 10
+    LD ($F008), A     ; Virtual register 4 to memory
+    ; r5 = 5
+    LD A, 5
+    ; Register 5 already in A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_simple_ctie.calculate_area$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_simple_ctie.calculate_area$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_simple_ctie.calculate_area$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter width = 0
+    LD A, 0               ; Parameter value
+    LD (...test_simple_ctie.calculate_area$u8$u8_param_width+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter height = 0
+    LD A, 0               ; Parameter value
+    LD (...test_simple_ctie.calculate_area$u8$u8_param_height+1), A   ; Patch parameter immediate
+    ; r6 = call ...test_simple_ctie.calculate_area$u8$u8
+    ; Call to ...test_simple_ctie.calculate_area$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL area_u8_u8
+    LD ($F00C), HL    ; Virtual register 6 to memory
+    ; store area1, r6
+    LD A, ($F00C)     ; Virtual register 6 from memory
+    LD ($F002), A
+    ; r8 = 6
+    LD A, 6
+    LD C, A         ; Store to physical register C
+    ; r9 = 7
+    LD A, 7
+    LD B, A         ; Store to physical register B
+    ; r10 = 6
+    LD A, 6
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; r11 = 7
+    LD A, 7
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_simple_ctie.multiply$u8$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_simple_ctie.multiply$u8$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_simple_ctie.multiply$u8$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD A, 0               ; Parameter value
+    LD (...test_simple_ctie.multiply$u8$u8_param_a+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD A, 0               ; Parameter value
+    LD (...test_simple_ctie.multiply$u8$u8_param_b+1), A   ; Patch parameter immediate
+    ; r12 = call ...test_simple_ctie.multiply$u8$u8
+    ; Call to ...test_simple_ctie.multiply$u8$u8 (args: 2)
+    ; Found function, UsesTrueSMC=false
+    CALL multiply_u8_u8
+    ; store area2, r12
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F00E), A
+    ; r13 = load area1
+    LD A, ($F002)
+    LD B, A         ; Store to physical register B
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r14 = load area2
+    LD A, ($F00E)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

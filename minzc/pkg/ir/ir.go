@@ -215,6 +215,9 @@ const (
 	OpMemcpy        // Copy memory block
 	OpMemset        // Set memory block
 	
+	// Metaprogramming
+	OpEmit          // @emit instruction for compile-time code generation
+	
 	// Cast interface operations (v0.11.0)
 	OpCastInterface     // Cast to interface (compile-time resolved)
 	OpCheckCast         // Check cast conformance at compile-time
@@ -271,6 +274,10 @@ type Instruction struct {
 	TemplateName    string       // Template name for OpPatchTemplate
 	TargetAddress   string       // Target address symbol for OpPatchTarget
 	ParamName       string       // Parameter name for OpPatchParam
+	
+	// Metaprogramming fields
+	StringValue     string       // String value for @emit
+	StringID        int          // String pool ID for OpLoadString
 	PatchPoint      *PatchPoint  // Patch point definition for OpPatchPoint
 }
 

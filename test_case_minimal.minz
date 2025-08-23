@@ -1,13 +1,13 @@
-fun test_case(x: u8) -> u8 {
-    case x {
-        1 => return 10,
-        2 => return 20,
-        3 => return 30,
-        _ => return 0,
-    }
+fun test() -> void {
+    let x = 2;
+    let result = case x {
+        1 => 10,
+        2 => 20,
+        _ => 30
+    };
+    print_u8(result);
 }
 
 fun main() -> void {
-    let result = test_case(2);
-    print_u8(result);  // Should print 20
+    test();
 }

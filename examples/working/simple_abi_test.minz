@@ -1,0 +1,16 @@
+// Simple @abi test without extern
+
+@abi("smc")
+fun add_smc(x: u8, y: u8) -> u8 {
+    return x + y;
+}
+
+@abi("register")  
+fun add_register(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun main() {
+    let result1 = add_smc(5, 10);
+    let result2 = add_register(3, 4);
+}

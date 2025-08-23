@@ -1,0 +1,303 @@
+; MinZ generated code
+; Generated: 2025-08-20 14:45:26
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_pattern_simple.test_numbers$u8
+test_numbers_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+test_numbers_u8_param_n.op:
+test_numbers_u8_param_n equ test_numbers_u8_param_n.op + 1
+    LD A, #00      ; Parameter n (gets patched)
+    ; Register 2 already in A
+    ; r3 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 == r3
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___test_pattern_simple_test_numbers_u8_eq_true_0
+    LD HL, 0       ; False
+    JP ___test_pattern_simple_test_numbers_u8_eq_done_0
+___test_pattern_simple_test_numbers_u8_eq_true_0:
+    LD HL, 1       ; True
+___test_pattern_simple_test_numbers_u8_eq_done_0:
+    ; jump_if r4, case_expr_arm_0_2
+    LD A, C
+    OR A
+    JP NZ, ___test_pattern_simple_test_numbers_u8_case_expr_arm_0_2
+    ; jump case_expr_arm_1_3
+    JP ___test_pattern_simple_test_numbers_u8_case_expr_arm_1_3
+    ; case_expr_arm_0_2:
+___test_pattern_simple_test_numbers_u8_case_expr_arm_0_2:
+    ; r5 = 100
+    LD A, 100
+    LD D, A         ; Store to physical register D
+    ; unknown op 22
+    ; jump case_expr_end_1
+    JP ___test_pattern_simple_test_numbers_u8_case_expr_end_1
+    ; r6 = 1
+    LD A, 1
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r7 = r2 == r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___test_pattern_simple_test_numbers_u8_eq_true_1
+    LD HL, 0       ; False
+    JP ___test_pattern_simple_test_numbers_u8_eq_done_1
+___test_pattern_simple_test_numbers_u8_eq_true_1:
+    LD HL, 1       ; True
+___test_pattern_simple_test_numbers_u8_eq_done_1:
+    ; jump_if r7, case_expr_arm_1_3
+    LD A, L
+    OR A
+    JP NZ, ___test_pattern_simple_test_numbers_u8_case_expr_arm_1_3
+    ; jump case_expr_arm_2_4
+    JP ___test_pattern_simple_test_numbers_u8_case_expr_arm_2_4
+    ; case_expr_arm_1_3:
+___test_pattern_simple_test_numbers_u8_case_expr_arm_1_3:
+    ; r8 = 110
+    LD A, 110
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 22
+    ; jump case_expr_end_1
+    JP ___test_pattern_simple_test_numbers_u8_case_expr_end_1
+    ; r9 = 2
+    LD A, 2
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r10 = r2 == r9
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___test_pattern_simple_test_numbers_u8_eq_true_2
+    LD HL, 0       ; False
+    JP ___test_pattern_simple_test_numbers_u8_eq_done_2
+___test_pattern_simple_test_numbers_u8_eq_true_2:
+    LD HL, 1       ; True
+___test_pattern_simple_test_numbers_u8_eq_done_2:
+    ; jump_if r10, case_expr_arm_2_4
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP NZ, ___test_pattern_simple_test_numbers_u8_case_expr_arm_2_4
+    ; jump case_expr_arm_3_5
+    JP ___test_pattern_simple_test_numbers_u8_case_expr_arm_3_5
+    ; case_expr_arm_2_4:
+___test_pattern_simple_test_numbers_u8_case_expr_arm_2_4:
+    ; r11 = 120
+    LD A, 120
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 22
+    ; jump case_expr_end_1
+    JP ___test_pattern_simple_test_numbers_u8_case_expr_end_1
+    ; r12 = 3
+    LD A, 3
+    ; Register 12 already in A
+    ; r13 = r2 == r12
+    LD E, A        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___test_pattern_simple_test_numbers_u8_eq_true_3
+    LD HL, 0       ; False
+    JP ___test_pattern_simple_test_numbers_u8_eq_done_3
+___test_pattern_simple_test_numbers_u8_eq_true_3:
+    LD HL, 1       ; True
+___test_pattern_simple_test_numbers_u8_eq_done_3:
+    ; jump_if r13, case_expr_arm_3_5
+    ; Register 13 already in A
+    OR A
+    JP NZ, ___test_pattern_simple_test_numbers_u8_case_expr_arm_3_5
+    ; jump case_expr_arm_4_6
+    JP ___test_pattern_simple_test_numbers_u8_case_expr_arm_4_6
+    ; case_expr_arm_3_5:
+___test_pattern_simple_test_numbers_u8_case_expr_arm_3_5:
+    ; r14 = 130
+    LD A, 130
+    LD H, A         ; Store to physical register H
+    ; unknown op 22
+    ; jump case_expr_end_1
+    JP ___test_pattern_simple_test_numbers_u8_case_expr_end_1
+    ; jump case_expr_arm_4_6
+    JP ___test_pattern_simple_test_numbers_u8_case_expr_arm_4_6
+    ; case_expr_arm_4_6:
+___test_pattern_simple_test_numbers_u8_case_expr_arm_4_6:
+    LD A, (test_numbers_u8_param_n)
+    LD H, A         ; Store to physical register H
+    ; unknown op 22
+    ; case_expr_end_1:
+___test_pattern_simple_test_numbers_u8_case_expr_end_1:
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+...test_pattern_simple.test_numbers$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+...test_pattern_simple.test_numbers$u8_store_addr.op:
+...test_pattern_simple.test_numbers$u8_store_addr equ ...test_pattern_simple.test_numbers$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_pattern_simple.main
+pattern_simple_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    ; Register 2 already in A
+    ; r3 = 0
+    LD A, 0
+    LD ($F006), A     ; Virtual register 3 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_pattern_simple.test_numbers$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_pattern_simple.test_numbers$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_pattern_simple.test_numbers$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (...test_pattern_simple.test_numbers$u8_param_n+1), A   ; Patch parameter immediate
+    ; r4 = call ...test_pattern_simple.test_numbers$u8
+    ; Call to ...test_pattern_simple.test_numbers$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL test_numbers_u8
+    ; store result1, r4
+    LD A, C
+    LD ($F002), A
+    ; r5 = load result1
+    LD A, ($F002)
+    ; Register 5 already in A
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r7 = 2
+    LD A, 2
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = 2
+    LD A, 2
+    ; Register 8 already in A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_pattern_simple.test_numbers$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_pattern_simple.test_numbers$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_pattern_simple.test_numbers$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (...test_pattern_simple.test_numbers$u8_param_n+1), A   ; Patch parameter immediate
+    ; r9 = call ...test_pattern_simple.test_numbers$u8
+    ; Call to ...test_pattern_simple.test_numbers$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL test_numbers_u8
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; store result2, r9
+    LD A, ($F012)     ; Virtual register 9 from memory
+    LD ($F00C), A
+    ; r10 = load result2
+    LD A, ($F00C)
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r12 = 5
+    LD A, 5
+    LD E, A         ; Store to physical register E
+    ; r13 = 5
+    LD A, 5
+    LD E, A         ; Store to physical register E
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_pattern_simple.test_numbers$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_pattern_simple.test_numbers$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_pattern_simple.test_numbers$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (...test_pattern_simple.test_numbers$u8_param_n+1), A   ; Patch parameter immediate
+    ; r14 = call ...test_pattern_simple.test_numbers$u8
+    ; Call to ...test_pattern_simple.test_numbers$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL test_numbers_u8
+    ; store result3, r14
+    ; Register 14 already in A
+    LD ($F016), A
+    ; r15 = load result3
+    LD A, ($F016)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

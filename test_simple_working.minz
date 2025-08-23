@@ -1,0 +1,11 @@
+// Simple working @minz block without loops - just to verify basic functionality
+
+@minz[[[
+    @emit("fun working_hello() -> void {")
+    @emit("    print_string(\"Hello from @minz!\");")
+    @emit("}")
+]]]
+
+fun main() -> void {
+    working_hello();
+}

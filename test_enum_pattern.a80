@@ -1,0 +1,136 @@
+; MinZ generated code
+; Generated: 2025-08-21 08:33:22
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_enum_pattern2.describe$State
+test_enum_pattern2.describe$State:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+test_enum_pattern2.describe$State_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+test_enum_pattern2.describe$State_store_addr.op:
+test_enum_pattern2.describe$State_store_addr equ test_enum_pattern2.describe$State_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_enum_pattern2.main
+test_enum_pattern2.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 0
+    LD A, 0
+    ; Register 2 already in A
+    ; store idle, r2
+    LD ($F002), HL
+    ; r4 = load idle
+    LD HL, ($F002)
+    ; r5 = load idle
+    LD HL, ($F002)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_enum_pattern2.describe$State_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_enum_pattern2.describe$State_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_enum_pattern2.describe$State_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter s = 0
+    LD A, 0               ; Parameter value
+    LD (test_enum_pattern2.describe$State_param_s+1), A   ; Patch parameter immediate
+    ; r6 = call test_enum_pattern2.describe$State
+    ; Call to test_enum_pattern2.describe$State (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL test_enum_pattern2.describe$State
+    ; store result, r6
+    LD ($F006), HL
+    ; r7 = load result
+    LD HL, ($F006)
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r9 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD C', A         ; Store to shadow C'
+    EXX               ; Switch back to main registers
+    ; store running, r9
+    LD ($F010), HL
+    ; r11 = load running
+    LD HL, ($F010)
+    ; r12 = load running
+    LD HL, ($F010)
+    ; Register 12 already in HL
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_enum_pattern2.describe$State_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_enum_pattern2.describe$State_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_enum_pattern2.describe$State_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter s = 0
+    LD A, 0               ; Parameter value
+    LD (test_enum_pattern2.describe$State_param_s+1), A   ; Patch parameter immediate
+    ; r13 = call test_enum_pattern2.describe$State
+    ; Call to test_enum_pattern2.describe$State (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL test_enum_pattern2.describe$State
+    ; store result2, r13
+    LD ($F014), HL
+    ; r14 = load result2
+    LD HL, ($F014)
+    ; Register 14 already in HL
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    ; Register 14 already in HL
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+
+    END main

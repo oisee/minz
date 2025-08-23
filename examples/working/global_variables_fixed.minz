@@ -1,0 +1,53 @@
+// Test global variable initializers (corrected syntax)
+module test_global_init;
+
+// Basic type initializers (correct syntax: name: type = value)
+global g_byte: u8 = 42;
+global g_word: u16 = 0x1234;
+global g_flag: bool = true;
+
+// Constant expression initializers
+global g_calc: u8 = 10 + 5;
+global g_shift: u16 = 1 << 8;
+global g_masked: u8 = 0xFF & 0x0F;
+
+// Uninitialized globals (should default to 0)
+global g_uninit_byte: u8;
+global g_uninit_word: u16;
+
+// Entry point
+fn main() -> void {
+    // Test that globals have correct values
+    if g_byte == 42 {
+        @print("g_byte success: {}\n", g_byte);
+    }
+    
+    if g_word == 0x1234 {
+        @print("g_word success: {}\n", g_word);
+    }
+    
+    if g_flag {
+        @print("g_flag success\n");
+    }
+    
+    if g_calc == 15 {
+        @print("g_calc success: {}\n", g_calc);
+    }
+    
+    if g_shift == 256 {
+        @print("g_shift success: {}\n", g_shift);
+    }
+    
+    if g_masked == 0x0F {
+        @print("g_masked success: {}\n", g_masked);
+    }
+    
+    // Check uninitialized are zero
+    if g_uninit_byte == 0 {
+        @print("g_uninit_byte is zero\n");
+    }
+    
+    if g_uninit_word == 0 {
+        @print("g_uninit_word is zero\n");
+    }
+}

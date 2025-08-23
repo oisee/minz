@@ -1,0 +1,19 @@
+fun divide(a: u8, b: u8) -> u8? {
+    if b == 0 {
+        return null;
+    }
+    return a / b;
+}
+
+fun calculate(x: u8, y: u8) -> u8? {
+    let result = divide(x, y)?;  // Propagate error
+    return result * 2;
+}
+
+fun main() -> void {
+    let res = calculate(10, 2) ?? 0;  // Use default on error
+    print_u8(res);  // Should print 10
+    
+    let res2 = calculate(10, 0) ?? 99;  // Division by zero
+    print_u8(res2);  // Should print 99
+}

@@ -1,0 +1,12 @@
+// Simple loop test for @minz template substitution
+@minz[[[
+    for i in 0..3 {
+        @emit("fun sprite_{i}() -> void { draw_sprite({i}); }")
+    }
+]]]
+
+fun main() -> void {
+    sprite_0();
+    sprite_1();
+    sprite_2();
+}

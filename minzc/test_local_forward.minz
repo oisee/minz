@@ -1,0 +1,15 @@
+fun outer() -> u8 {
+    // Call function before it's declared (forward reference)
+    let x = inner();
+    
+    fun inner() -> u8 {
+        return 42;
+    }
+    
+    return x;
+}
+
+fun main() -> void {
+    let result = outer();
+    print_u8(result as u8);
+}

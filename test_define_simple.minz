@@ -1,0 +1,4 @@
+@define(BUFFER_SIZE, 256)
+fun main() -> void {
+    let x: u16 = BUFFER_SIZE;
+}

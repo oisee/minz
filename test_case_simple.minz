@@ -1,0 +1,45 @@
+// Test pattern matching syntax
+
+enum State {
+    IDLE,
+    RUNNING,
+    STOPPED
+}
+
+fun test_literals() -> void {
+    let x = 2;
+    case x {
+        0 => print("zero"),
+        1 => print("one"),
+        2 => print("two"),
+        _ => print("other")
+    }
+}
+
+fun test_ranges() -> void {
+    let score = 85;
+    case score {
+        0..60 => print("F"),
+        60..70 => print("D"),
+        70..80 => print("C"),
+        80..90 => print("B"),
+        90..100 => print("A"),
+        _ => print("Invalid")
+    }
+}
+
+fun test_enums() -> void {
+    let state = State.RUNNING;
+    let next = case state {
+        State.IDLE => State.RUNNING,
+        State.RUNNING => State.STOPPED,
+        State.STOPPED => State.IDLE
+    };
+    print_u8(next);
+}
+
+fun main() -> void {
+    test_literals();
+    test_ranges();
+    test_enums();
+}

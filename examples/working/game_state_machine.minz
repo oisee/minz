@@ -1,0 +1,192 @@
+// Game State Machine - Advanced Pattern Matching Demo
+// Shows hierarchical state machines and complex state transitions
+
+enum GameState {
+    MainMenu,
+    Playing,
+    Paused,
+    GameOver,
+    Loading,
+}
+
+enum PlayerState {
+    Idle,
+    Walking,
+    Running,
+    Jumping,
+    Attacking,
+    Dead,
+}
+
+enum Input {
+    Start,
+    Pause,
+    Quit,
+    Move,
+    Jump,
+    Attack,
+    Respawn,
+}
+
+// Main game state transitions
+fun update_game_state(current: GameState, input: Input) -> GameState {
+    case current {
+        GameState.MainMenu => {
+            case input {
+                Input.Start => GameState.Loading,
+                Input.Quit => GameState.MainMenu, // Stay in menu
+                _ => GameState.MainMenu,
+            }
+        },
+        GameState.Loading => GameState.Playing, // Always transition to playing
+        GameState.Playing => {
+            case input {
+                Input.Pause => GameState.Paused,
+                Input.Quit => GameState.MainMenu,
+                _ => GameState.Playing,
+            }
+        },
+        GameState.Paused => {
+            case input {
+                Input.Start => GameState.Playing, // Resume
+                Input.Quit => GameState.MainMenu,
+                _ => GameState.Paused,
+            }
+        },
+        GameState.GameOver => {
+            case input {
+                Input.Start => GameState.Loading,  // Restart
+                Input.Quit => GameState.MainMenu,
+                _ => GameState.GameOver,
+            }
+        },
+    }
+}
+
+// Player state transitions (sub-state machine)
+fun update_player_state(current: PlayerState, input: Input, game_state: GameState) -> PlayerState {
+    // Player can only act when game is playing
+    case game_state {
+        GameState.Playing => {
+            case current {
+                PlayerState.Idle => {
+                    case input {
+                        Input.Move => PlayerState.Walking,
+                        Input.Jump => PlayerState.Jumping,
+                        Input.Attack => PlayerState.Attacking,
+                        _ => PlayerState.Idle,
+                    }
+                },
+                PlayerState.Walking => {
+                    case input {
+                        Input.Jump => PlayerState.Jumping,
+                        Input.Attack => PlayerState.Attacking,
+                        _ => PlayerState.Idle, // Stop walking when no input
+                    }
+                },
+                PlayerState.Running => {
+                    case input {
+                        Input.Jump => PlayerState.Jumping,
+                        Input.Attack => PlayerState.Attacking,
+                        _ => PlayerState.Walking, // Slow down to walking
+                    }
+                },
+                PlayerState.Jumping => PlayerState.Idle, // Always land back to idle
+                PlayerState.Attacking => PlayerState.Idle, // Attack animation finished
+                PlayerState.Dead => {
+                    case input {
+                        Input.Respawn => PlayerState.Idle,
+                        _ => PlayerState.Dead,
+                    }
+                },
+            }
+        },
+        _ => current, // No player state changes when not playing
+    }
+}
+
+// Get state descriptions for display
+fun get_game_state_name(state: GameState) -> u16 {
+    case state {
+        GameState.MainMenu => 1,
+        GameState.Playing => 2,
+        GameState.Paused => 3,
+        GameState.GameOver => 4,
+        GameState.Loading => 5,
+    }
+}
+
+fun get_player_state_name(state: PlayerState) -> u16 {
+    case state {
+        PlayerState.Idle => 1,
+        PlayerState.Walking => 2,
+        PlayerState.Running => 3,
+        PlayerState.Jumping => 4,
+        PlayerState.Attacking => 5,
+        PlayerState.Dead => 6,
+    }
+}
+
+// Game simulation
+fun simulate_game() -> void {
+    let game_state = GameState.MainMenu;
+    let player_state = PlayerState.Idle;
+    
+    @print("=== Game State Machine Demo ===\n");
+    
+    // Start game
+    @print("Starting game...\n");
+    game_state = update_game_state(game_state, Input.Start);
+    @print("Game state: ");
+    @print(get_game_state_name(game_state));
+    @print("\n");
+    
+    // Transition to playing
+    game_state = update_game_state(game_state, Input.Start);
+    @print("Game state: ");
+    @print(get_game_state_name(game_state));
+    @print("\n");
+    
+    // Player actions
+    @print("\nPlayer actions:\n");
+    player_state = update_player_state(player_state, Input.Move, game_state);
+    @print("Player walking: ");
+    @print(get_player_state_name(player_state));
+    @print("\n");
+    
+    player_state = update_player_state(player_state, Input.Jump, game_state);
+    @print("Player jumping: ");
+    @print(get_player_state_name(player_state));
+    @print("\n");
+    
+    player_state = update_player_state(player_state, Input.Attack, game_state);
+    @print("Player attacking: ");
+    @print(get_player_state_name(player_state));
+    @print("\n");
+    
+    // Pause game
+    @print("\nPausing game...\n");
+    game_state = update_game_state(game_state, Input.Pause);
+    @print("Game state: ");
+    @print(get_game_state_name(game_state));
+    @print("\n");
+    
+    // Try player action while paused (should not change)
+    let old_player = player_state;
+    player_state = update_player_state(player_state, Input.Move, game_state);
+    @print("Player action while paused (should stay same): ");
+    @print(get_player_state_name(player_state));
+    @print("\n");
+    
+    // Resume and quit
+    @print("\nResuming and quitting...\n");
+    game_state = update_game_state(game_state, Input.Start);
+    game_state = update_game_state(game_state, Input.Quit);
+    @print("Final game state: ");
+    @print(get_game_state_name(game_state));
+    @print("\n");
+}
+
+fun main() -> void {
+    simulate_game();
+}

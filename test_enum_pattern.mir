@@ -1,0 +1,40 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_enum_pattern2.describe$State(s: State) -> u8
+  @smc
+  Instructions:
+      0: return
+
+Function test_enum_pattern2.main() -> void
+  @smc
+  Locals:
+    r1 = idle: u16
+    r3 = result: u16
+    r8 = running: u16
+    r10 = result2: u16
+  Instructions:
+      0: r2 = 0
+      1: store idle, r2
+      2: r4 = load idle
+      3: r5 = load idle
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: r6 = call test_enum_pattern2.describe$State
+      8: store result, r6
+      9: r7 = load result
+     10: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     11: r9 = 1
+     12: store running, r9
+     13: r11 = load running
+     14: r12 = load running
+     15: PATCH_TEMPLATE
+     16: PATCH_TARGET
+     17: PATCH_PARAM
+     18: r13 = call test_enum_pattern2.describe$State
+     19: store result2, r13
+     20: r14 = load result2
+     21: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     22: return
+

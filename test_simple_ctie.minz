@@ -1,0 +1,19 @@
+// Simple CTIE Test
+// Test if functions with constant args get executed at compile-time
+
+fun multiply(a: u8, b: u8) -> u8 {
+    return a * b;
+}
+
+fun calculate_area(width: u8, height: u8) -> u8 {
+    return multiply(width, height);
+}
+
+fun main() -> void {
+    // These should be compile-time computed if CTIE works
+    let area1 = calculate_area(10, 5);  // Should become: LD A, 50
+    let area2 = multiply(6, 7);         // Should become: LD A, 42
+    
+    print_u8(area1);
+    print_u8(area2);
+}

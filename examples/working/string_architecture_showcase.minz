@@ -1,0 +1,110 @@
+// MinZ String Architecture Showcase
+// Demonstrates the revolutionary length-prefixed string system
+//
+// NEW FEATURES:
+// - No null terminators (saves memory)
+// - O(1) string length operations  
+// - Smart optimization strategies
+// - Length-prefixed storage format
+
+fun main() -> void {
+    // Test 1: Short strings (2-4 chars) - optimal for direct RST 16
+    test_short_strings();
+    
+    // Test 2: Medium strings (5-8 chars) - context-dependent optimization
+    test_medium_strings();
+    
+    // Test 3: Long strings (9+ chars) - optimal for DJNZ loops
+    test_long_strings();
+    
+    // Test 4: Boolean values - length-prefixed constants
+    test_boolean_strings();
+    
+    // Test 5: String operations with O(1) length access
+    test_string_operations();
+}
+
+// Short strings: optimal for direct RST 16 calls
+fun test_short_strings() -> void {
+    print_string("Hi");     // 2 chars: 3 bytes total (1 len + 2 data)
+    print_string("OK");     // 2 chars: 3 bytes total
+    print_string("Go");     // 2 chars: 3 bytes total
+    print_string("Yes");    // 3 chars: 4 bytes total
+}
+
+// Medium strings: context-dependent optimization
+fun test_medium_strings() -> void {
+    print_string("Hello");  // 5 chars: 6 bytes total (1 len + 5 data)
+    print_string("World");  // 5 chars: 6 bytes total  
+    print_string("MinZ");   // 4 chars: 5 bytes total
+    print_string("Test");   // 4 chars: 5 bytes total
+}
+
+// Long strings: optimal for length-prefixed DJNZ loops
+fun test_long_strings() -> void {
+    print_string("Hello, World!");           // 13 chars: 14 bytes total
+    print_string("This is a long string");   // 21 chars: 22 bytes total
+    print_string("MinZ Programming Language with Zero-Cost Abstractions");  // 54 chars: 55 bytes total
+}
+
+// Boolean constants with length-prefixed storage
+fun test_boolean_strings() -> void {
+    let flag1: bool = true;
+    let flag2: bool = false;
+    
+    // These use the optimized bool_true_str and bool_false_str
+    // bool_true_str:  DB 4, "true"   (5 bytes total)
+    // bool_false_str: DB 5, "false"  (6 bytes total)
+    print_bool(flag1);      // "true"  - length-prefixed
+    print_bool(flag2);      // "false" - length-prefixed
+}
+
+// String operations demonstrating O(1) length access
+fun test_string_operations() -> void {
+    let message: *u8 = "Hello, MinZ!";  // Length-prefixed: DB 12, "Hello, MinZ!"
+    
+    // O(1) string length - just read first byte!
+    let len: u8 = string_length(message);
+    
+    // Print the string and its length
+    print_string(message);
+    print_string(" has ");
+    print_u8(len);
+    print_string(" characters");
+}
+
+// O(1) string length function - reads first byte
+fun string_length(s: *u8) -> u8 {
+    return s[0];  // Length is always in first byte!
+}
+
+// Memory efficiency comparison
+fun memory_efficiency_demo() -> void {
+    // Old C-style (null-terminated):
+    // "Hello" -> 'H','e','l','l','o','\0' = 6 bytes
+    
+    // New MinZ style (length-prefixed):
+    // "Hello" -> 5,'H','e','l','l','o' = 6 bytes (same!)
+    // But operations are faster and safer!
+    
+    print_string("Memory efficient!");
+}
+
+// Performance characteristics demo
+fun performance_demo() -> void {
+    // String storage format comparison:
+    
+    // Short string "Hi":
+    // Storage: DB 2, "Hi"           (3 bytes total)
+    // Print: Direct RST 16 calls    (ultra-fast)
+    
+    // Medium string "Hello":
+    // Storage: DB 5, "Hello"        (6 bytes total)
+    // Print: DJNZ loop              (optimal)
+    
+    // Long string "Hello, World!":
+    // Storage: DB 13, "Hello, World!" (14 bytes total)
+    // Print: DJNZ loop with exact count (efficient)
+    
+    print_string("Performance optimized!");
+}

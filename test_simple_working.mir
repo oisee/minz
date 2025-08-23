@@ -1,0 +1,23 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_simple_working.main() -> void
+  @smc
+  Instructions:
+      0: r1 = call test_simple_working.working_hello
+      1: return
+
+Function test_simple_working.working_hello() -> void
+  @smc
+  Instructions:
+      0: LOAD_LABEL ; Load string "Hello from @minz!"
+      1: r0 = call print_string ; Call runtime print_string
+      2: return
+
+Function test_simple_working.working_hello() -> void
+  @smc
+  Instructions:
+      0: LOAD_LABEL ; Load string "Hello from @minz!"
+      1: r0 = call print_string ; Call runtime print_string
+      2: return
+

@@ -1,0 +1,233 @@
+// Zero-Cost Interfaces in MinZ - Compile-Time Polymorphism
+// No vtables, no runtime overhead - everything resolved at compile time!
+
+// Interface definitions (compile-time contracts)
+interface Drawable {
+    fun draw(self) -> void;
+    fun get_bounds(self) -> u16;  // Returns packed x,y,w,h
+}
+
+interface Collidable {
+    fun check_collision(self, x: u8, y: u8) -> bool;
+    fun get_hitbox(self) -> u16;
+}
+
+// Sprite structure implementing Drawable
+struct Sprite {
+    x: u8
+    y: u8
+    width: u8
+    height: u8
+    data: *u8  // Pointer to sprite data
+}
+
+impl Drawable for Sprite {
+    fun draw(self) -> void {
+        // In real code, this would copy sprite data to screen
+        @print("Drawing sprite at ({}, {}) size {}x{}\n", 
+               self.x, self.y, self.width, self.height);
+    }
+    
+    fun get_bounds(self) -> u16 {
+        // Pack bounds into 16-bit value
+        return (self.x << 12) | (self.y << 8) | (self.width << 4) | self.height;
+    }
+}
+
+impl Collidable for Sprite {
+    fun check_collision(self, px: u8, py: u8) -> bool {
+        // Simple AABB collision
+        if px < self.x { return false; }
+        if py < self.y { return false; }
+        if px >= self.x + self.width { return false; }
+        if py >= self.y + self.height { return false; }
+        return true;
+    }
+    
+    fun get_hitbox(self) -> u16 {
+        return self.get_bounds();  // Reuse bounds for hitbox
+    }
+}
+
+// Text structure implementing Drawable
+struct Text {
+    x: u8
+    y: u8
+    message: *u8
+    length: u8
+}
+
+impl Drawable for Text {
+    fun draw(self) -> void {
+        @print("Drawing text '");
+        // Print characters
+        let i: u8 = 0;
+        while i < self.length {
+            let c: u8 = self.message[i];
+            @print("{}", c);
+            i = i + 1;
+        }
+        @print("' at ({}, {})\n", self.x, self.y);
+    }
+    
+    fun get_bounds(self) -> u16 {
+        // Text is 8 pixels tall, 8*length wide
+        let width: u8 = self.length * 8;
+        return (self.x << 12) | (self.y << 8) | (width << 4) | 8;
+    }
+}
+
+// Circle structure implementing both interfaces
+struct Circle {
+    center_x: u8
+    center_y: u8  
+    radius: u8
+}
+
+impl Drawable for Circle {
+    fun draw(self) -> void {
+        @print("Drawing circle at ({}, {}) radius {}\n",
+               self.center_x, self.center_y, self.radius);
+    }
+    
+    fun get_bounds(self) -> u16 {
+        // Bounding box of circle
+        let x: u8 = self.center_x - self.radius;
+        let y: u8 = self.center_y - self.radius;
+        let size: u8 = self.radius * 2;
+        return (x << 12) | (y << 8) | (size << 4) | size;
+    }
+}
+
+impl Collidable for Circle {
+    fun check_collision(self, px: u8, py: u8) -> bool {
+        // Distance-based collision for circle
+        let dx: i8 = px - self.center_x;
+        let dy: i8 = py - self.center_y;
+        // Simplified: check if within bounding box for now
+        // Real implementation would check distance <= radius
+        if dx < 0 { dx = -dx; }
+        if dy < 0 { dy = -dy; }
+        return dx <= self.radius && dy <= self.radius;
+    }
+    
+    fun get_hitbox(self) -> u16 {
+        // Use circular hitbox (encode as special format)
+        return 0x8000 | (self.center_x << 8) | (self.center_y << 4) | self.radius;
+    }
+}
+
+// Generic function with interface constraint
+// This compiles to SPECIFIC code for each type - no runtime dispatch!
+fun render_drawable<T: Drawable>(item: T) -> void {
+    item.draw();
+    let bounds = item.get_bounds();
+    @print("  Bounds: 0x{:04X}\n", bounds);
+}
+
+// Multiple constraints
+fun game_object_update<T: Drawable + Collidable>(obj: T, mouse_x: u8, mouse_y: u8) -> void {
+    obj.draw();
+    if obj.check_collision(mouse_x, mouse_y) {
+        @print("  Mouse is over object!\n");
+    }
+}
+
+// Compile-time dispatch example
+fun draw_all_shapes() -> void {
+    @print("\n=== Drawing All Shapes ===\n");
+    
+    // Each call generates SPECIALIZED code!
+    let s: Sprite;
+    s.x = 10;
+    s.y = 20;
+    s.width = 32;
+    s.height = 24;
+    render_drawable(s);  // Generates Sprite-specific code
+    
+    let msg: [u8; 5] = ['H', 'e', 'l', 'l', 'o'];
+    let t: Text;
+    t.x = 50;
+    t.y = 100;
+    t.message = &msg[0];
+    t.length = 5;
+    render_drawable(t);  // Generates Text-specific code
+    
+    let c: Circle;
+    c.center_x = 128;
+    c.center_y = 96;
+    c.radius = 20;
+    render_drawable(c);  // Generates Circle-specific code
+}
+
+// Show how interfaces enable code reuse without overhead
+fun collision_demo() -> void {
+    @print("\n=== Collision Detection ===\n");
+    
+    let s: Sprite;
+    s.x = 10;
+    s.y = 10;
+    s.width = 20;
+    s.height = 20;
+    
+    let c: Circle;
+    c.center_x = 50;
+    c.center_y = 50;
+    c.radius = 15;
+    
+    // Test points
+    let test_x: u8 = 15;
+    let test_y: u8 = 15;
+    
+    @print("Testing point ({}, {})\n", test_x, test_y);
+    
+    if s.check_collision(test_x, test_y) {
+        @print("  Hit sprite!\n");
+    }
+    
+    if c.check_collision(test_x, test_y) {
+        @print("  Hit circle!\n");
+    }
+    
+    // Objects with multiple interfaces
+    @print("\nGame object with both interfaces:\n");
+    game_object_update(c, 55, 55);
+}
+
+// Performance comparison
+fun performance_comparison() -> void {
+    @print("\n=== Performance Analysis ===\n");
+    @print("Traditional vtable approach:\n");
+    @print("  - Vtable lookup: 7 T-states\n");
+    @print("  - Indirect call: 17 T-states\n");
+    @print("  - Total overhead: 24 T-states per call\n");
+    
+    @print("\nMinZ zero-cost interfaces:\n");
+    @print("  - Direct call: 17 T-states\n");
+    @print("  - No vtable: 0 T-states\n");
+    @print("  - Total overhead: 0 T-states!\n");
+    
+    @print("\nCode generation:\n");
+    @print("  - Each generic instantiation creates specialized code\n");
+    @print("  - Interface methods are inlined when possible\n");
+    @print("  - No runtime type information needed\n");
+}
+
+fun main() -> void {
+    @print("=====================================\n");
+    @print("Zero-Cost Interfaces in MinZ\n");
+    @print("=====================================\n");
+    
+    @print("\nDemonstrating compile-time polymorphism:\n");
+    @print("- No vtables\n");
+    @print("- No runtime dispatch\n");
+    @print("- Everything resolved at compile time\n");
+    
+    draw_all_shapes();
+    collision_demo();
+    performance_comparison();
+    
+    @print("\n=====================================\n");
+    @print("✨ Zero-Cost Abstractions Work! ✨\n");
+    @print("=====================================\n");
+}

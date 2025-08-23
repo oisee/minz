@@ -1,0 +1,24 @@
+enum State {
+    IDLE,
+    RUNNING,
+    STOPPED
+}
+
+fun test_enum() -> void {
+    // This should work
+    let s = State.IDLE;
+    
+    // Pattern matching with enum
+    let msg = case s {
+        State.IDLE => 1,
+        State.RUNNING => 2,
+        State.STOPPED => 3,
+        _ => 0
+    };
+    
+    print_u8(msg);
+}
+
+fun main() -> void {
+    test_enum();
+}

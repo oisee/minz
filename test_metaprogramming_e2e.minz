@@ -1,0 +1,44 @@
+// E2E Test: Dual Metaprogramming System
+// Testing both @minz and @mir blocks
+
+// Test 1: Simple @minz block
+@minz[[[
+    @emit("fun generated_hello() -> void {")
+    @emit("    print_string(\"Hello from @minz!\");")  
+    @emit("}")
+]]]
+
+// Test 2: Loop-based code generation with @minz
+@minz[[[
+    for i in 0..3 {
+        @emit("fun sprite_{i}() -> void { draw_sprite({i}); }")
+    }
+]]]
+
+// Test 3: Direct @mir block (if parser supports it)
+@mir[[[
+    %1 = load_string "fun generated_by_mir() -> void {"
+    emit %1
+    %2 = load_string "    print_string(\"Hello from @mir!\");"
+    emit %2
+    %3 = load_string "}"
+    emit %3
+]]]
+
+// Test 4: CTIE - Compile-time function execution
+fun add_at_compile_time(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun main() -> void {
+    // This should be computed at compile time if CTIE works
+    let result = add_at_compile_time(10, 20);
+    print_u8(result);
+    
+    // Call generated functions
+    generated_hello();
+    sprite_0();
+    sprite_1(); 
+    sprite_2();
+    generated_by_mir();
+}

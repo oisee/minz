@@ -1162,6 +1162,8 @@ func (p *Parser) parseExpression(node map[string]interface{}) ast.Expression {
 	
 	nodeType, _ := node["type"].(string)
 	switch nodeType {
+	case "case_expression":
+		return p.parseCaseExpression(node)
 	case "identifier":
 		return &ast.Identifier{
 			Name:     p.getText(node),
@@ -1817,6 +1819,175 @@ func (p *Parser) parseEnumLiteral(node map[string]interface{}) *ast.EnumLiteral 
 	return enumLit
 }
 
+// parseCaseExpression parses a case expression
+func (p *Parser) parseCaseExpression(node map[string]interface{}) *ast.CaseExpr {
+	caseExpr := &ast.CaseExpr{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	// Parse the value field
+	if fields, ok := node["fields"].(map[string]interface{}); ok {
+		if value, ok := fields["value"].(map[string]interface{}); ok {
+			caseExpr.Value = p.parseExpression(value)
+		}
+	}
+	
+	// Parse case arms
+	children, _ := node["children"].([]interface{})
+	for _, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		if nodeType == "case_arm" {
+			if arm := p.parseCaseArm(childNode); arm != nil {
+				caseExpr.Arms = append(caseExpr.Arms, *arm)
+			}
+		}
+	}
+	
+	return caseExpr
+}
+
+// parseCaseArm parses a single case arm
+func (p *Parser) parseCaseArm(node map[string]interface{}) *ast.CaseArm {
+	arm := &ast.CaseArm{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	children, _ := node["children"].([]interface{})
+	for i, child := range children {
+		childNode, _ := child.(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "pattern":
+			arm.Pattern = p.parsePattern(childNode)
+		case "range_pattern":
+			arm.Pattern = p.parseRangePattern(childNode)
+		case "enum_pattern":
+			arm.Pattern = p.parseEnumPattern(childNode)
+		case "literal_pattern":
+			arm.Pattern = p.parseLiteralPattern(childNode)
+		case "_":
+			arm.Pattern = &ast.WildcardPattern{
+				StartPos: p.getPosition(childNode, "startPosition"),
+				EndPos:   p.getPosition(childNode, "endPosition"),
+			}
+		case "if":
+			// Guard condition follows
+			if i+1 < len(children) {
+				nextNode, _ := children[i+1].(map[string]interface{})
+				arm.Guard = p.parseExpression(nextNode)
+			}
+		case "expression":
+			arm.Body = p.parseExpression(childNode)
+		case "block":
+			arm.Body = p.parseBlock(childNode)
+		}
+	}
+	
+	return arm
+}
+
+// parsePattern parses a pattern (dispatcher for different pattern types)
+func (p *Parser) parsePattern(node map[string]interface{}) ast.Pattern {
+	children, _ := node["children"].([]interface{})
+	if len(children) > 0 {
+		childNode, _ := children[0].(map[string]interface{})
+		nodeType, _ := childNode["type"].(string)
+		
+		switch nodeType {
+		case "range_pattern":
+			return p.parseRangePattern(childNode)
+		case "enum_pattern":
+			return p.parseEnumPattern(childNode)
+		case "literal_pattern":
+			return p.parseLiteralPattern(childNode)
+		case "identifier":
+			return &ast.IdentifierPattern{
+				Name:     p.getText(childNode),
+				StartPos: p.getPosition(childNode, "startPosition"),
+				EndPos:   p.getPosition(childNode, "endPosition"),
+			}
+		case "_":
+			return &ast.WildcardPattern{
+				StartPos: p.getPosition(childNode, "startPosition"),
+				EndPos:   p.getPosition(childNode, "endPosition"),
+			}
+		}
+	}
+	
+	// Check if the pattern node itself is a wildcard
+	nodeText := p.getText(node)
+	if nodeText == "_" {
+		return &ast.WildcardPattern{
+			StartPos: p.getPosition(node, "startPosition"),
+			EndPos:   p.getPosition(node, "endPosition"),
+		}
+	}
+	
+	return nil
+}
+
+// parseRangePattern parses a range pattern (e.g., 1..10)
+func (p *Parser) parseRangePattern(node map[string]interface{}) *ast.RangePattern {
+	pattern := &ast.RangePattern{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	// Parse fields for start and end
+	if fields, ok := node["fields"].(map[string]interface{}); ok {
+		if start, ok := fields["start"].(map[string]interface{}); ok {
+			pattern.Start = p.parseExpression(start)
+		}
+		if end, ok := fields["end"].(map[string]interface{}); ok {
+			pattern.RangeEnd = p.parseExpression(end)
+		}
+	}
+	
+	return pattern
+}
+
+// parseEnumPattern parses an enum pattern (e.g., State.IDLE)
+func (p *Parser) parseEnumPattern(node map[string]interface{}) *ast.EnumPattern {
+	pattern := &ast.EnumPattern{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	// Parse fields for type and variant
+	if fields, ok := node["fields"].(map[string]interface{}); ok {
+		if typeNode, ok := fields["type"].(map[string]interface{}); ok {
+			pattern.EnumType = p.getText(typeNode)
+		}
+		if variantNode, ok := fields["variant"].(map[string]interface{}); ok {
+			pattern.Variant = p.getText(variantNode)
+		}
+	}
+	
+	return pattern
+}
+
+// parseLiteralPattern parses a literal pattern
+func (p *Parser) parseLiteralPattern(node map[string]interface{}) *ast.LiteralPattern {
+	pattern := &ast.LiteralPattern{
+		StartPos: p.getPosition(node, "startPosition"),
+		EndPos:   p.getPosition(node, "endPosition"),
+	}
+	
+	// Parse the literal value
+	children, _ := node["children"].([]interface{})
+	if len(children) > 0 {
+		childNode, _ := children[0].(map[string]interface{})
+		pattern.Value = p.parseExpression(childNode)
+	}
+	
+	return pattern
+}
+
 // parseLuaBlock parses a @lua[[...]] block
 func (p *Parser) parseLuaBlock(node map[string]interface{}) *ast.LuaBlock {
 	luaBlock := &ast.LuaBlock{
@@ -1986,7 +2157,7 @@ func (p *Parser) getPosition(node map[string]interface{}, key string) ast.Positi
 // parseCaseStmt parses a case statement
 func (p *Parser) parseCaseStmt(node map[string]interface{}) *ast.CaseStmt {
 	caseStmt := &ast.CaseStmt{
-		Arms:     []*ast.CaseArm{},
+		Arms:     []ast.CaseArm{},
 		StartPos: p.getPosition(node, "startPosition"),
 		EndPos:   p.getPosition(node, "endPosition"),
 	}
@@ -1998,12 +2169,12 @@ func (p *Parser) parseCaseStmt(node map[string]interface{}) *ast.CaseStmt {
 		
 		switch nodeType {
 		case "expression":
-			if caseStmt.Expr == nil {
-				caseStmt.Expr = p.parseExpression(childNode)
+			if caseStmt.Value == nil {
+				caseStmt.Value = p.parseExpression(childNode)
 			}
 		case "case_arm":
 			if arm := p.parseCaseArm(childNode); arm != nil {
-				caseStmt.Arms = append(caseStmt.Arms, arm)
+				caseStmt.Arms = append(caseStmt.Arms, *arm)
 			}
 		}
 	}
@@ -2012,133 +2183,3 @@ func (p *Parser) parseCaseStmt(node map[string]interface{}) *ast.CaseStmt {
 }
 
 // parseCaseArm parses a case arm
-func (p *Parser) parseCaseArm(node map[string]interface{}) *ast.CaseArm {
-	arm := &ast.CaseArm{
-		StartPos: p.getPosition(node, "startPosition"),
-		EndPos:   p.getPosition(node, "endPosition"),
-	}
-	
-	children, _ := node["children"].([]interface{})
-	
-	// First pass: count expressions to determine if we have a guard
-	expressionCount := 0
-	patternSeen := false
-	for _, child := range children {
-		childNode, _ := child.(map[string]interface{})
-		nodeType, _ := childNode["type"].(string)
-		if nodeType == "pattern" {
-			patternSeen = true
-		} else if nodeType == "expression" && patternSeen {
-			expressionCount++
-		}
-	}
-	
-	// Second pass: parse with knowledge of structure
-	exprIndex := 0
-	for _, child := range children {
-		childNode, _ := child.(map[string]interface{})
-		nodeType, _ := childNode["type"].(string)
-		
-		switch nodeType {
-		case "pattern":
-			arm.Pattern = p.parsePattern(childNode)
-		case "expression":
-			if arm.Pattern != nil {
-				exprIndex++
-				if expressionCount == 2 && exprIndex == 1 {
-					// Two expressions: first is guard
-					arm.Guard = p.parseExpression(childNode)
-				} else if expressionCount == 2 && exprIndex == 2 {
-					// Two expressions: second is body
-					arm.Body = p.parseExpression(childNode)
-				} else if expressionCount == 1 {
-					// One expression: it's the body
-					arm.Body = p.parseExpression(childNode)
-				}
-			}
-		case "block":
-			arm.Body = p.parseBlock(childNode)
-		}
-	}
-	
-	return arm
-}
-
-// parsePattern parses a pattern
-func (p *Parser) parsePattern(node map[string]interface{}) ast.Pattern {
-	if node == nil {
-		return nil
-	}
-	
-	// Check if this is a wildcard pattern by examining the text
-	if text := p.getText(node); text == "_" {
-		return &ast.WildcardPattern{
-			StartPos: p.getPosition(node, "startPosition"),
-			EndPos:   p.getPosition(node, "endPosition"),
-		}
-	}
-	
-	children, _ := node["children"].([]interface{})
-	if len(children) == 0 {
-		// If no children but we have text, it might be an identifier pattern
-		if text := p.getText(node); text != "" {
-			return &ast.IdentifierPattern{
-				Name:     text,
-				StartPos: p.getPosition(node, "startPosition"),
-				EndPos:   p.getPosition(node, "endPosition"),
-			}
-		}
-		return nil
-	}
-	
-	childNode, _ := children[0].(map[string]interface{})
-	nodeType, _ := childNode["type"].(string)
-	
-	switch nodeType {
-	case "_":
-		return &ast.WildcardPattern{
-			StartPos: p.getPosition(childNode, "startPosition"),
-			EndPos:   p.getPosition(childNode, "endPosition"),
-		}
-	case "field_expression":
-		// Parse field expression like Direction.North
-		obj := ""
-		field := ""
-		fieldChildren, _ := childNode["children"].([]interface{})
-		for _, fc := range fieldChildren {
-			fcNode, _ := fc.(map[string]interface{})
-			fcType, _ := fcNode["type"].(string)
-			if fcType == "identifier" {
-				if obj == "" {
-					obj = p.getText(fcNode)
-				} else {
-					field = p.getText(fcNode)
-				}
-			}
-		}
-		return &ast.IdentifierPattern{
-			Name:     obj + "." + field,
-			StartPos: p.getPosition(childNode, "startPosition"),
-			EndPos:   p.getPosition(childNode, "endPosition"),
-		}
-	case "identifier":
-		return &ast.IdentifierPattern{
-			Name:     p.getText(childNode),
-			StartPos: p.getPosition(childNode, "startPosition"),
-			EndPos:   p.getPosition(childNode, "endPosition"),
-		}
-	case "literal_pattern":
-		// Parse the nested literal
-		literalChildren, _ := childNode["children"].([]interface{})
-		if len(literalChildren) > 0 {
-			literal, _ := literalChildren[0].(map[string]interface{})
-			return &ast.LiteralPattern{
-				Value:    p.parseExpression(literal),
-				StartPos: p.getPosition(childNode, "startPosition"),
-				EndPos:   p.getPosition(childNode, "endPosition"),
-			}
-		}
-	}
-	
-	return nil
-}

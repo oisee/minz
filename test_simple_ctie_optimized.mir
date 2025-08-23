@@ -1,0 +1,57 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_simple_ctie.multiply$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: r5 = r3 * r4
+      3: return r5
+
+Function ...test_simple_ctie.calculate_area$u8$u8(width: u8, height: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: LOAD_PARAM
+      2: LOAD_PARAM
+      3: LOAD_PARAM
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: PATCH_PARAM
+      8: r7 = call ...test_simple_ctie.multiply$u8$u8
+      9: return r7
+
+Function ...test_simple_ctie.main() -> void
+  @smc
+  Locals:
+    r1 = area1: u8
+    r7 = area2: u8
+  Instructions:
+      0: r2 = 10
+      1: r3 = 5
+      2: r4 = 10
+      3: r5 = 5
+      4: PATCH_TEMPLATE
+      5: PATCH_TARGET
+      6: PATCH_PARAM
+      7: PATCH_PARAM
+      8: r6 = call ...test_simple_ctie.calculate_area$u8$u8
+      9: store area1, r6
+     10: r8 = 6
+     11: r9 = 7
+     12: r10 = 6
+     13: r11 = 7
+     14: PATCH_TEMPLATE
+     15: PATCH_TARGET
+     16: PATCH_PARAM
+     17: PATCH_PARAM
+     18: r12 = 42 ; CTIE: Computed at compile-time (was CALL ...test_simple_ctie.multiply$u8$u8)
+     19: store area2, r12
+     20: r13 = load area1
+     21: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     22: r14 = load area2
+     23: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     24: return
+

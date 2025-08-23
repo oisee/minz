@@ -1,0 +1,185 @@
+// MinZ Standard Library Metafunction Test
+// Tests the zero-cost print system and Printable interface
+
+import std.print;
+import std.io;
+import zx.io;
+
+// Test basic Printable interface
+fun test_printable_interface() -> void {
+    // Test primitive types
+    let num_u8: u8 = 255;
+    let num_u16: u16 = 65535;
+    let num_i8: i8 = -128;
+    let num_i16: i16 = -32768;
+    let flag: bool = true;
+    let message: *u8 = "Hello, MinZ!";
+    
+    // These should use the Printable interface
+    @print("u8 value: {}\n", num_u8);
+    @print("u16 value: {}\n", num_u16);
+    @print("i8 value: {}\n", num_i8);
+    @print("i16 value: {}\n", num_i16);
+    @print("bool value: {}\n", flag);
+    @print("string value: {}\n", message);
+}
+
+// Test format specifiers and wrappers
+fun test_formatting() -> void {
+    let value: u8 = 170;  // 0xAA, 0b10101010
+    
+    // Test hex formatting
+    @print("Hex: 0x{}\n", hex(value));
+    
+    // Test binary formatting
+    @print("Binary: {}\n", bin(value));
+    
+    // Test padding
+    @print("Padded: {}\n", pad(value, 5, '0'));
+}
+
+// Test compile-time constant optimization
+fun test_compile_time_constants() -> void {
+    // These should be optimized at compile-time
+    @print("Constant u8: {}\n", 42);
+    @print("Constant bool: {}\n", true);
+    @print("Constant string: {}\n", "compile-time");
+    
+    // Complex constant expression
+    const RESULT: u16 = 10 * 5 + 2;
+    @print("Complex constant: {}\n", RESULT);
+}
+
+// Test array printing
+fun test_array_printing() -> void {
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    @print("Array: {}\n", numbers);
+}
+
+// Test debug macro
+fun test_debug_printing() -> void {
+    let x: u16 = 1234;
+    @debug(x);  // Should print: [DEBUG] x = 1234
+}
+
+// Test assertion with formatting
+fun test_assertions() -> void {
+    let value: u8 = 100;
+    @assert(value > 50, "Value {} should be > 50", value);
+    
+    // This should pass
+    @assert(value == 100, "Value should be exactly 100");
+}
+
+// Test format macro for string building
+fun test_format_macro() -> void {
+    let name: *u8 = "Alice";
+    let age: u8 = 25;
+    
+    // If all constants, should be built at compile-time
+    let greeting = @format("Hello, {}! You are {} years old.", name, age);
+    @print("{}\n", greeting);
+}
+
+// Test @print with complex interpolation
+fun test_complex_interpolation() -> void {
+    let x: u16 = 256;
+    let y: u16 = 128;
+    let name: *u8 = "MinZ";
+    
+    @print("{} coordinates: ({}, {}) - Hex: (0x{}, 0x{})\n", 
+           name, x, y, hex(x), hex(y));
+}
+
+// Test platform-specific ZX Spectrum features
+fun test_zx_spectrum_features() -> void {
+    // Test ZX Spectrum specific I/O
+    cls();
+    set_ink(2);    // Green ink
+    set_paper(0);  // Black paper
+    set_border(1); // Blue border
+    
+    at(10, 12);    // Position cursor
+    @print("ZX Spectrum Test!");
+    
+    beep(50, 100); // Short beep
+}
+
+// Test mixed runtime and compile-time
+fun test_mixed_optimization() -> void {
+    let runtime_value = get_runtime_value();
+    
+    // Mix of compile-time constants and runtime values
+    @print("Runtime: {}, Constant: {}, Sum: {}\n", 
+           runtime_value, 42, runtime_value + 42);
+}
+
+fun get_runtime_value() -> u8 {
+    // Simulate a runtime value
+    return 123;
+}
+
+// Custom type implementing Printable
+struct Point {
+    x: u16,
+    y: u16,
+}
+
+impl Printable for Point {
+    fun print_to(self, writer: Writer) -> void {
+        @print("({}, {})", self.x, self.y);
+    }
+}
+
+fun test_custom_printable() -> void {
+    let point = Point { x: 100, y: 200 };
+    @print("Point: {}\n", point);
+}
+
+// Performance test - should generate minimal code
+fun test_performance() -> void {
+    // This should compile to just a few write_bytes calls
+    @print("Performance test: {}, {}, {}\n", 1, 2, 3);
+    
+    // This should be fully optimized at compile-time
+    @println("Compile-time string with constant {}", 42);
+}
+
+// Error handling test
+fun test_error_handling() -> void {
+    let file_size: u16 = 0;
+    
+    if file_size == 0 {
+        @print("Warning: File is empty\n");
+    }
+    
+    // Test panic (commented out for safety)
+    // panic("This is a test panic");
+}
+
+// Main function to run all tests
+fun main() -> void {
+    @static_print("Building stdlib metafunction test...");
+    
+    @print("=== MinZ Standard Library Metafunction Test ===\n");
+    
+    test_printable_interface();
+    test_formatting();
+    test_compile_time_constants();
+    test_array_printing();
+    test_debug_printing();
+    test_assertions();
+    test_format_macro();
+    test_complex_interpolation();
+    test_mixed_optimization();
+    test_custom_printable();
+    test_performance();
+    test_error_handling();
+    
+    // ZX Spectrum specific tests (only on ZX)
+    @if_platform("zx_spectrum") {
+        test_zx_spectrum_features();
+    }
+    
+    @print("\n=== All tests completed! ===\n");
+}

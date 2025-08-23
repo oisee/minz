@@ -1,0 +1,33 @@
+// Minimal test without any imports or standard library
+// Just test core language features
+
+fun add(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+fun test_arithmetic() -> void {
+    let x: u16 = 10;
+    let y: u16 = 20;
+    let result = add(x, y);
+}
+
+struct Point {
+    x: u16,
+    y: u16,
+}
+
+fun test_struct() -> void {
+    let p = Point { x: 100, y: 200 };
+    let sum = p.x + p.y;
+}
+
+fun test_array() -> void {
+    let arr: [u8; 3] = [1, 2, 3];
+    let first = arr[0];
+}
+
+fun main() -> void {
+    test_arithmetic();
+    test_struct();
+    test_array();
+}

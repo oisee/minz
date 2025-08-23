@@ -1,0 +1,153 @@
+; MinZ generated code
+; Generated: 2025-08-20 14:44:43
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_case_minimal.test
+case_minimal_test:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 2
+    LD A, 2
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; store x, r2
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD ($F002), A
+    ; r4 = load x
+    LD A, ($F002)
+    LD C, A         ; Store to physical register C
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; r6 = r4 == r5
+    LD E, D        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___test_case_minimal_test_eq_true_0
+    LD HL, 0       ; False
+    JP ___test_case_minimal_test_eq_done_0
+___test_case_minimal_test_eq_true_0:
+    LD HL, 1       ; True
+___test_case_minimal_test_eq_done_0:
+    ; jump_if r6, case_expr_arm_0_2
+    LD A, E
+    OR A
+    JP NZ, ___test_case_minimal_test_case_expr_arm_0_2
+    ; jump case_expr_arm_1_3
+    JP ___test_case_minimal_test_case_expr_arm_1_3
+    ; case_expr_arm_0_2:
+___test_case_minimal_test_case_expr_arm_0_2:
+    ; r7 = 10
+    LD A, 10
+    LD H, A         ; Store to physical register H
+    ; unknown op 22
+    ; jump case_expr_end_1
+    JP ___test_case_minimal_test_case_expr_end_1
+    ; r8 = 2
+    LD A, 2
+    LD L, A         ; Store to physical register L
+    ; r9 = r4 == r8
+    LD E, L        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, ___test_case_minimal_test_eq_true_1
+    LD HL, 0       ; False
+    JP ___test_case_minimal_test_eq_done_1
+___test_case_minimal_test_eq_true_1:
+    LD HL, 1       ; True
+___test_case_minimal_test_eq_done_1:
+    ; jump_if r9, case_expr_arm_1_3
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP NZ, ___test_case_minimal_test_case_expr_arm_1_3
+    ; jump case_expr_arm_2_4
+    JP ___test_case_minimal_test_case_expr_arm_2_4
+    ; case_expr_arm_1_3:
+___test_case_minimal_test_case_expr_arm_1_3:
+    ; r10 = 20
+    LD A, 20
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 22
+    ; jump case_expr_end_1
+    JP ___test_case_minimal_test_case_expr_end_1
+    ; jump case_expr_arm_2_4
+    JP ___test_case_minimal_test_case_expr_arm_2_4
+    ; case_expr_arm_2_4:
+___test_case_minimal_test_case_expr_arm_2_4:
+    ; r11 = 30
+    LD A, 30
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 22
+    ; case_expr_end_1:
+___test_case_minimal_test_case_expr_end_1:
+    ; store result, r1
+    LD A, B
+    LD ($F006), A
+    ; r12 = load result
+    LD A, ($F006)
+    ; Register 12 already in A
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_case_minimal.main
+case_minimal_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = call ...test_case_minimal.test
+    ; Call to ...test_case_minimal.test (args: 0)
+    ; Found function, UsesTrueSMC=false
+    CALL case_minimal_test
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

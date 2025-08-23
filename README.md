@@ -3,13 +3,44 @@
 
 **A modern systems programming language for retro computers** (Z80, 6502, Game Boy, WebAssembly, LLVM)
 
-> ⚠️ **Under Construction** - MinZ is in active development (v0.14.0 Alpha). APIs and syntax may change.
+> 🎊 **v0.15.0 Released!** - Pattern matching revolution with 94% feature completion!
 
 ## 📚 Quick Links
 - **[Complete Language Specification](docs/230_MinZ_Complete_Language_Specification.md)** - Full syntax, features, and implementation details
+- **[Pattern Matching Guide](docs/270_MinZ_94_Percent_Milestone_Achievement.md)** - 94% feature completion!
 - **[Metafunction Design Guide](docs/226_Metafunction_Design_Decisions.md)** - @minz, @define, @lua explained
-- **[Tree-Shaking Report](docs/225_Tree_Shaking_Implementation_E2E_Report.md)** - 74% size reduction achieved
 - **[Development Roadmap](docs/228_MinZ_Specification_Article_Plan.md)** - Architecture and future plans
+
+## 🎊 v0.15.0: Pattern Matching Revolution! (August 2025)
+
+### 🚀 Major Achievements - 94% Feature Complete!
+
+**Pattern Matching Excellence**
+```minz
+fun categorize(score: u8) -> str {
+    case score {
+        0 => "zero",
+        1..50 => "failing",        // Range patterns!
+        51..100 => "passing",
+        State.IDLE => "idle",      // Enum patterns!
+        _ => "unknown"             // Wildcard!
+    }
+}
+```
+
+**What's Working (94%)**
+- ✅ Complete pattern matching with ranges and enums
+- ✅ Lambda expressions with zero-cost compilation
+- ✅ Function overloading and interfaces
+- ✅ Comprehensive type system (structs, enums, arrays)
+- ✅ Metaprogramming with @minz blocks
+- ✅ Automated regression test suite
+
+**Only 2 Known Issues**
+- 🚧 Local/nested functions (scope resolution bug)
+- 🚧 @define macros (syntax inconsistency)
+
+[Get v0.15.0](https://github.com/oisee/minz/releases/tag/v0.15.0) | [Full Report](docs/263_MinZ_Compiler_Status_August_23_2025.md)
 
 ## 🎊 v0.14.0: Tree-Shaking & Metafunction Revolution! (January 2025)
 

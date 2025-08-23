@@ -1838,7 +1838,23 @@ func (a *Analyzer) analyzeBlock(block *ast.BlockStmt, irFunc *ir.Function) error
 		a.currentScope = prevScope 
 	}()
 
-	// Process statements
+	// PASS 1: Register all local function declarations first
+	// This allows functions to be called before their declaration position
+	for _, stmt := range block.Statements {
+		if fnDecl, ok := stmt.(*ast.FunctionDecl); ok {
+			if debug {
+				fmt.Printf("DEBUG: Pre-registering local function: %s\n", fnDecl.Name)
+			}
+			// Generate unique name for local function
+			localFuncName := fmt.Sprintf("%s$%s", irFunc.Name, fnDecl.Name)
+			// Register the function signature so it can be called
+			if err := a.registerLocalFunctionSignature(fnDecl, localFuncName); err != nil {
+				return fmt.Errorf("failed to pre-register local function %s: %w", fnDecl.Name, err)
+			}
+		}
+	}
+
+	// PASS 2: Process all statements (including analyzing function bodies)
 	for i, stmt := range block.Statements {
 		if debug {
 			fmt.Printf("DEBUG: analyzeBlock processing statement %d of type %T\n", i, stmt)
@@ -1953,9 +1969,9 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 	// If no explicit type, we need to infer from value
 	// But we must be careful about when we do type inference
 	if varType == nil && v.Value != nil {
-		// For simple literals, lambda expressions, and function calls, we can infer type safely
+		// For simple literals, lambda expressions, function calls, and case expressions, we can infer type safely
 		switch v.Value.(type) {
-		case *ast.NumberLiteral, *ast.BooleanLiteral, *ast.StringLiteral, *ast.LambdaExpr, *ast.ArrayInitializer, *ast.CallExpr:
+		case *ast.NumberLiteral, *ast.BooleanLiteral, *ast.StringLiteral, *ast.LambdaExpr, *ast.ArrayInitializer, *ast.CallExpr, *ast.CaseExpr:
 			t, err := a.inferType(v.Value)
 			if err != nil {
 				return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
@@ -2330,13 +2346,13 @@ func (a *Analyzer) analyzeIfStmt(ifStmt *ast.IfStmt, irFunc *ir.Function) error 
 // analyzeCaseStmt analyzes a case statement (pattern matching)
 func (a *Analyzer) analyzeCaseStmt(caseStmt *ast.CaseStmt, irFunc *ir.Function) error {
 	// Analyze the expression to match against
-	exprReg, err := a.analyzeExpression(caseStmt.Expr, irFunc)
+	exprReg, err := a.analyzeExpression(caseStmt.Value, irFunc)
 	if err != nil {
 		return err
 	}
 	
 	// Get the type of the expression
-	exprType := a.exprTypes[caseStmt.Expr]
+	exprType := a.exprTypes[caseStmt.Value]
 	
 	// Generate labels for each arm and the end
 	endLabel := a.generateLabel("case_end")
@@ -2441,6 +2457,92 @@ func (a *Analyzer) analyzeCaseStmt(caseStmt *ast.CaseStmt, irFunc *ir.Function) 
 	return nil
 }
 
+// analyzeCaseExpr analyzes a case expression (returns a value)
+func (a *Analyzer) analyzeCaseExpr(caseExpr *ast.CaseExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Analyze the expression to match against
+	exprReg, err := a.analyzeExpression(caseExpr.Value, irFunc)
+	if err != nil {
+		return 0, err
+	}
+	
+	// Get the type of the expression
+	exprType := a.exprTypes[caseExpr.Value]
+	
+	// Determine result type from first arm
+	var resultType ir.Type
+	if len(caseExpr.Arms) > 0 {
+		// Use the type of the first arm's body as the result type
+		// In a proper implementation, we'd check all arms have the same type
+		if _, ok := caseExpr.Arms[0].Body.(ast.Expression); ok {
+			// For now, assume all arms return the same basic type
+			// This is a simplified implementation
+			resultType = &ir.BasicType{Kind: ir.TypeU8}
+		}
+	}
+	
+	// Register the type of the case expression
+	a.exprTypes[caseExpr] = resultType
+	
+	// Allocate register for result
+	resultReg := irFunc.NextRegister
+	irFunc.NextRegister++
+	
+	// Generate labels for each arm and the end
+	endLabel := a.generateLabel("case_expr_end")
+	armLabels := make([]string, len(caseExpr.Arms))
+	for i := range caseExpr.Arms {
+		armLabels[i] = a.generateLabel(fmt.Sprintf("case_expr_arm_%d", i))
+	}
+	
+	// Generate comparison and jump code for each pattern
+	for i, arm := range caseExpr.Arms {
+		// Generate matching code for pattern
+		nextLabel := endLabel
+		if i < len(caseExpr.Arms)-1 {
+			nextLabel = armLabels[i+1]
+		}
+		
+		if err := a.analyzePattern(arm.Pattern, exprReg, exprType, armLabels[i], nextLabel, irFunc); err != nil {
+			return 0, err
+		}
+		
+		// Label for this arm
+		irFunc.EmitLabel(armLabels[i])
+		
+		// Check guard condition if present
+		if arm.Guard != nil {
+			guardReg, err := a.analyzeExpression(arm.Guard, irFunc)
+			if err != nil {
+				return 0, err
+			}
+			// Jump to next arm if guard fails
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:     ir.OpJumpIfNot,
+				Src1:   guardReg,
+				Symbol: nextLabel,
+			})
+		}
+		
+		// Evaluate arm body
+		bodyReg, err := a.analyzeExpression(arm.Body.(ast.Expression), irFunc)
+		if err != nil {
+			return 0, err
+		}
+		
+		// Move result to result register
+		irFunc.Emit(ir.OpMove, resultReg, bodyReg, 0)
+		
+		// Jump to end (unless this is the last arm)
+		if i < len(caseExpr.Arms)-1 {
+			irFunc.EmitJump(endLabel)
+		}
+	}
+	
+	// End label
+	irFunc.EmitLabel(endLabel)
+	return resultReg, nil
+}
+
 // analyzePattern analyzes a pattern and generates comparison code
 func (a *Analyzer) analyzePattern(pattern ast.Pattern, exprReg ir.Register, exprType ir.Type, 
                                   matchLabel, nextLabel string, irFunc *ir.Function) error {
@@ -2515,6 +2617,118 @@ func (a *Analyzer) analyzePattern(pattern ast.Pattern, exprReg ir.Register, expr
 		})
 		
 		// If not equal, continue to next pattern
+		irFunc.EmitJump(nextLabel)
+		
+	case *ast.EnumPattern:
+		// Enum pattern: EnumType.Variant
+		// Look up the enum type
+		symbol := a.currentScope.Lookup(p.EnumType)
+		if symbol == nil {
+			return fmt.Errorf("unknown enum type: %s", p.EnumType)
+		}
+		
+		typeSymbol, ok := symbol.(*TypeSymbol)
+		if !ok {
+			return fmt.Errorf("%s is not a type", p.EnumType)
+		}
+		
+		enumType, ok := typeSymbol.Type.(*ir.EnumType)
+		if !ok {
+			return fmt.Errorf("%s is not an enum type", p.EnumType)
+		}
+		
+		// Find the variant value
+		variantValue, exists := enumType.Variants[p.Variant]
+		if !exists {
+			return fmt.Errorf("enum %s has no variant %s", p.EnumType, p.Variant)
+		}
+		
+		// Create literal for the enum value
+		litReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpLoadImm,
+			Dest: litReg,
+			Imm:  int64(variantValue),
+		})
+		
+		// Compare against the enum value
+		condReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpEq,
+			Dest: condReg,
+			Src1: exprReg,
+			Src2: litReg,
+		})
+		
+		// Jump to match label if equal
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:    ir.OpJumpIf,
+			Src1:  condReg,
+			Label: matchLabel,
+		})
+		
+		// Otherwise continue to next pattern
+		irFunc.EmitJump(nextLabel)
+		
+	case *ast.RangePattern:
+		// Range pattern: start..end
+		// Generate: if (expr >= start && expr <= end) goto match_label
+		
+		// Evaluate start value
+		startVal := int64(0)
+		if numLit, ok := p.Start.(*ast.NumberLiteral); ok {
+			startVal = numLit.Value
+		} else {
+			return fmt.Errorf("range pattern start must be a number literal")
+		}
+		
+		// Evaluate end value
+		endVal := int64(0)
+		if numLit, ok := p.RangeEnd.(*ast.NumberLiteral); ok {
+			endVal = numLit.Value
+		} else {
+			return fmt.Errorf("range pattern end must be a number literal")
+		}
+		
+		// Check if expr >= start
+		startReg := irFunc.AllocReg()
+		irFunc.EmitImm(ir.OpLoadConst, startReg, startVal)
+		
+		cmpGeReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpGe,
+			Dest: cmpGeReg,
+			Src1: exprReg,
+			Src2: startReg,
+		})
+		
+		// If not >= start, jump to next pattern
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:     ir.OpJumpIfNot,
+			Src1:   cmpGeReg,
+			Symbol: nextLabel,
+		})
+		
+		// Check if expr <= end
+		endReg := irFunc.AllocReg()
+		irFunc.EmitImm(ir.OpLoadConst, endReg, endVal)
+		
+		cmpLeReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:   ir.OpLe,
+			Dest: cmpLeReg,
+			Src1: exprReg,
+			Src2: endReg,
+		})
+		
+		// If <= end, jump to match label
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:     ir.OpJumpIf,
+			Src1:   cmpLeReg,
+			Symbol: matchLabel,
+		})
+		
+		// Otherwise continue to next pattern
 		irFunc.EmitJump(nextLabel)
 		
 	default:
@@ -3542,6 +3756,8 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 		return a.analyzeTryExpr(e, irFunc)
 	case *ast.BlockStmt:
 		return a.analyzeBlockExpression(e, irFunc)
+	case *ast.CaseExpr:
+		return a.analyzeCaseExpr(e, irFunc)
 	default:
 		return 0, fmt.Errorf("unsupported expression type: %T", expr)
 	}
@@ -6293,25 +6509,43 @@ func (a *Analyzer) analyzeMinzMetafunctionCall(call *ast.MinzMetafunctionCall, i
 		}
 	}
 	
-	// Execute the @minz metafunction by simple template substitution
-	// For now, we just do simple string replacement
-	generatedCode := call.Code
-	
-	// Simple placeholder replacement for numbered arguments {0}, {1}, etc.
-	for i, arg := range args {
+	// Check if this is a template substitution or immediate execution
+	isTemplate := false
+	for i := range args {
 		placeholder := fmt.Sprintf("{%d}", i)
-		var replacement string
-		switch v := arg.(type) {
-		case string:
-			replacement = v
-		case int64:
-			replacement = fmt.Sprintf("%d", v)
-		case bool:
-			replacement = fmt.Sprintf("%v", v)
-		default:
-			replacement = fmt.Sprintf("%v", v)
+		if strings.Contains(call.Code, placeholder) {
+			isTemplate = true
+			break
 		}
-		generatedCode = strings.ReplaceAll(generatedCode, placeholder, replacement)
+	}
+	
+	var generatedCode string
+	
+	if isTemplate {
+		// Template substitution mode (like @define)
+		generatedCode = call.Code
+		
+		// Simple placeholder replacement for numbered arguments {0}, {1}, etc.
+		for i, arg := range args {
+			placeholder := fmt.Sprintf("{%d}", i)
+			var replacement string
+			switch v := arg.(type) {
+			case string:
+				replacement = v
+			case int64:
+				replacement = fmt.Sprintf("%d", v)
+			case bool:
+				replacement = fmt.Sprintf("%v", v)
+			default:
+				replacement = fmt.Sprintf("%v", v)
+			}
+			generatedCode = strings.ReplaceAll(generatedCode, placeholder, replacement)
+		}
+	} else {
+		// Immediate execution mode - execute the code and collect @emit output
+		// TODO: Implement actual MIR interpreter execution
+		// For now, just return empty
+		generatedCode = ""
 	}
 	
 	if debug {
@@ -7136,6 +7370,16 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 		}
 	case *ast.BooleanLiteral:
 		return &ir.BasicType{Kind: ir.TypeBool}, nil
+	case *ast.CaseExpr:
+		// Infer type from the first arm's body
+		// In a proper implementation, we'd check all arms have compatible types
+		if len(e.Arms) > 0 {
+			if bodyExpr, ok := e.Arms[0].Body.(ast.Expression); ok {
+				return a.inferType(bodyExpr)
+			}
+		}
+		// Default to u8 if we can't determine
+		return &ir.BasicType{Kind: ir.TypeU8}, nil
 	case *ast.LuaExpression:
 		// Evaluate the Lua expression to determine its type
 		result, err := a.luaEvaluator.ProcessLuaExpr(&ast.LuaExpr{Code: e.Code})

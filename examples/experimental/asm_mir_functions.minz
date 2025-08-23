@@ -1,0 +1,100 @@
+// Test file for asm and mir function syntax
+
+// Pure assembly function - direct Z80 code
+asm fun fast_memset(dst: *u8, value: u8, count: u16) -> void {
+    LD E, (IX+4)    ; dst low
+    LD D, (IX+5)    ; dst high
+    LD A, (IX+6)    ; value
+    LD C, (IX+7)    ; count low
+    LD B, (IX+8)    ; count high
+memset_loop:
+    LD (DE), A
+    INC DE
+    DEC BC
+    LD L, A         ; Save A
+    LD A, B
+    OR C
+    LD A, L         ; Restore A
+    JR NZ, memset_loop
+    RET
+}
+
+// Pure MIR function - CPU-independent
+mir fun strlen(str: *u8) -> u16 {
+    load r1, [str]      ; String pointer
+    load r2, #0         ; Counter
+    
+loop:
+    load.u8 r3, [r1]    ; Load character
+    jump.z r3, done     ; If zero, we're done
+    inc r1              ; Next character
+    inc r2              ; Increment count
+    jump loop
+    
+done:
+    return r2           ; Return count
+}
+
+// Mixed MinZ with inline assembly
+fun print_char_asm(c: u8) -> void {
+    // Store character
+    let ch = c;
+    
+    // Use assembly block for RST 16
+    asm {
+        LD A, (IX-1)    ; Load ch from stack
+        RST 0x10        ; Call ROM print routine
+    }
+}
+
+// Mixed MinZ with inline MIR
+fun copy_bytes_mir(dst: *u8, src: *u8, len: u16) -> void {
+    // Check for zero length in MinZ
+    if len == 0 {
+        return;
+    }
+    
+    // Use MIR block for the actual copy
+    mir {
+        load r1, [src]
+        load r2, [dst]
+        load r3, [len]
+        
+    copy_loop:
+        load.u8 r4, [r1]
+        store.u8 [r2], r4
+        inc r1
+        inc r2
+        dec r3
+        jump.nz copy_loop
+    }
+    
+    // MinZ code after
+    @print("Copy complete\n");
+}
+
+// Regular MinZ function for comparison
+fun add_minz(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+// Main function mixing all styles
+fun main() -> void {
+    let buffer: [u8; 10];
+    let text = "Hello";
+    
+    // Call assembly function
+    fast_memset(&buffer[0], 0, 10);
+    
+    // Call MIR function
+    let len = strlen(text);
+    
+    // Call mixed functions
+    print_char_asm('X');
+    copy_bytes_mir(&buffer[0], text, len);
+    
+    // Call regular MinZ
+    let sum = add_minz(5, 3);
+    
+    @print("Done!\n");
+}

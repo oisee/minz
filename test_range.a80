@@ -1,0 +1,407 @@
+; MinZ generated code
+; Generated: 2025-08-23 09:36:15
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_range_pattern.categorize$u8
+pattern_categorize_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+pattern_categorize_u8_param_n.op:
+pattern_categorize_u8_param_n equ pattern_categorize_u8_param_n.op + 1
+    LD A, #00      ; Parameter n (gets patched)
+    ; Register 2 already in A
+    ; r3 = 0
+    LD A, 0
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 == r3
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, test_range_pattern_categorize_u8_eq_true_0
+    LD HL, 0       ; False
+    JP test_range_pattern_categorize_u8_eq_done_0
+test_range_pattern_categorize_u8_eq_true_0:
+    LD HL, 1       ; True
+test_range_pattern_categorize_u8_eq_done_0:
+    ; jump_if r4, case_expr_arm_0_2
+    LD A, C
+    OR A
+    JP NZ, test_range_pattern_categorize_u8_case_expr_arm_0_2
+    ; jump case_expr_arm_1_3
+    JP test_range_pattern_categorize_u8_case_expr_arm_1_3
+    ; case_expr_arm_0_2:
+test_range_pattern_categorize_u8_case_expr_arm_0_2:
+    ; r5 = 0
+    LD A, 0
+    LD ($F00A), A     ; Virtual register 5 to memory
+    ; unknown op 22
+    LD HL, ($F00A)    ; Virtual register 5 from memory
+    ; jump case_expr_end_1
+    JP test_range_pattern_categorize_u8_case_expr_end_1
+    ; r6 = 1
+    LD A, 1
+    LD ($F00C), A     ; Virtual register 6 to memory
+    ; r7 = r2 >= r6
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    EX DE, HL
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, test_range_pattern_categorize_u8_ge_true_1
+    JP Z, test_range_pattern_categorize_u8_ge_true_1
+    LD HL, 0       ; False
+    JP test_range_pattern_categorize_u8_ge_done_1
+test_range_pattern_categorize_u8_ge_true_1:
+    LD HL, 1       ; True
+test_range_pattern_categorize_u8_ge_done_1:
+    ; jump_if_not r7, 
+    LD A, L
+    OR A
+    JP Z, test_range_pattern_categorize_u8_
+    ; r8 = 10
+    LD A, 10
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r9 = r2 <= r8
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, test_range_pattern_categorize_u8_le_true_2
+    JP Z, test_range_pattern_categorize_u8_le_true_2
+    LD HL, 0       ; False
+    JP test_range_pattern_categorize_u8_le_done_2
+test_range_pattern_categorize_u8_le_true_2:
+    LD HL, 1       ; True
+test_range_pattern_categorize_u8_le_done_2:
+    LD ($F012), HL    ; Virtual register 9 to memory
+    ; jump_if r9, 
+    LD A, ($F012)     ; Virtual register 9 from memory
+    OR A
+    JP NZ, test_range_pattern_categorize_u8_
+    ; jump case_expr_arm_2_4
+    JP test_range_pattern_categorize_u8_case_expr_arm_2_4
+    ; case_expr_arm_1_3:
+test_range_pattern_categorize_u8_case_expr_arm_1_3:
+    ; r10 = 1
+    LD A, 1
+    LD ($F014), A     ; Virtual register 10 to memory
+    ; unknown op 22
+    LD HL, ($F014)    ; Virtual register 10 from memory
+    ; jump case_expr_end_1
+    JP test_range_pattern_categorize_u8_case_expr_end_1
+    ; r11 = 11
+    LD A, 11
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; r12 = r2 >= r11
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, test_range_pattern_categorize_u8_ge_true_3
+    JP Z, test_range_pattern_categorize_u8_ge_true_3
+    LD HL, 0       ; False
+    JP test_range_pattern_categorize_u8_ge_done_3
+test_range_pattern_categorize_u8_ge_true_3:
+    LD HL, 1       ; True
+test_range_pattern_categorize_u8_ge_done_3:
+    ; jump_if_not r12, 
+    LD A, D
+    OR A
+    JP Z, test_range_pattern_categorize_u8_
+    ; r13 = 50
+    LD A, 50
+    LD D, A         ; Store to physical register D
+    ; r14 = r2 <= r13
+    LD E, D        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, test_range_pattern_categorize_u8_le_true_4
+    JP Z, test_range_pattern_categorize_u8_le_true_4
+    LD HL, 0       ; False
+    JP test_range_pattern_categorize_u8_le_done_4
+test_range_pattern_categorize_u8_le_true_4:
+    LD HL, 1       ; True
+test_range_pattern_categorize_u8_le_done_4:
+    ; jump_if r14, 
+    ; Register 14 already in A
+    OR A
+    JP NZ, test_range_pattern_categorize_u8_
+    ; jump case_expr_arm_3_5
+    JP test_range_pattern_categorize_u8_case_expr_arm_3_5
+    ; case_expr_arm_2_4:
+test_range_pattern_categorize_u8_case_expr_arm_2_4:
+    ; r15 = 2
+    LD A, 2
+    ; Register 15 already in A
+    ; unknown op 22
+    ; jump case_expr_end_1
+    JP test_range_pattern_categorize_u8_case_expr_end_1
+    ; r16 = 51
+    LD A, 51
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r17 = r2 >= r16
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP P, test_range_pattern_categorize_u8_ge_true_5
+    JP Z, test_range_pattern_categorize_u8_ge_true_5
+    LD HL, 0       ; False
+    JP test_range_pattern_categorize_u8_ge_done_5
+test_range_pattern_categorize_u8_ge_true_5:
+    LD HL, 1       ; True
+test_range_pattern_categorize_u8_ge_done_5:
+    ; jump_if_not r17, 
+    ; Register 17 already in A
+    OR A
+    JP Z, test_range_pattern_categorize_u8_
+    ; r18 = 100
+    LD A, 100
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r19 = r2 <= r18
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, test_range_pattern_categorize_u8_le_true_6
+    JP Z, test_range_pattern_categorize_u8_le_true_6
+    LD HL, 0       ; False
+    JP test_range_pattern_categorize_u8_le_done_6
+test_range_pattern_categorize_u8_le_true_6:
+    LD HL, 1       ; True
+test_range_pattern_categorize_u8_le_done_6:
+    ; jump_if r19, 
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP NZ, test_range_pattern_categorize_u8_
+    ; jump case_expr_arm_4_6
+    JP test_range_pattern_categorize_u8_case_expr_arm_4_6
+    ; case_expr_arm_3_5:
+test_range_pattern_categorize_u8_case_expr_arm_3_5:
+    ; r20 = 3
+    LD A, 3
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 22
+    ; jump case_expr_end_1
+    JP test_range_pattern_categorize_u8_case_expr_end_1
+    ; jump case_expr_arm_4_6
+    JP test_range_pattern_categorize_u8_case_expr_arm_4_6
+    ; case_expr_arm_4_6:
+test_range_pattern_categorize_u8_case_expr_arm_4_6:
+    ; r21 = 4
+    LD A, 4
+    LD H, A         ; Store to physical register H
+    ; unknown op 22
+    ; case_expr_end_1:
+test_range_pattern_categorize_u8_case_expr_end_1:
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+test_range_pattern.categorize$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+test_range_pattern.categorize$u8_store_addr.op:
+test_range_pattern.categorize$u8_store_addr equ test_range_pattern.categorize$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_range_pattern.main
+range_pattern_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r1 = 0
+    LD A, 0
+    LD ($F002), A     ; Virtual register 1 to memory
+    ; r2 = 0
+    LD A, 0
+    LD ($F004), A     ; Virtual register 2 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_range_pattern.categorize$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_range_pattern.categorize$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_range_pattern.categorize$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (test_range_pattern.categorize$u8_param_n+1), A   ; Patch parameter immediate
+    ; r3 = call test_range_pattern.categorize$u8
+    ; Call to test_range_pattern.categorize$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL pattern_categorize_u8
+    LD ($F006), HL    ; Virtual register 3 to memory
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F006)    ; Virtual register 3 from memory
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r4 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; r5 = 5
+    LD A, 5
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_range_pattern.categorize$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_range_pattern.categorize$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_range_pattern.categorize$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (test_range_pattern.categorize$u8_param_n+1), A   ; Patch parameter immediate
+    ; r6 = call test_range_pattern.categorize$u8
+    ; Call to test_range_pattern.categorize$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL pattern_categorize_u8
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r7 = 25
+    LD A, 25
+    LD ($F00E), A     ; Virtual register 7 to memory
+    ; r8 = 25
+    LD A, 25
+    ; Register 8 already in A
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_range_pattern.categorize$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_range_pattern.categorize$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_range_pattern.categorize$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (test_range_pattern.categorize$u8_param_n+1), A   ; Patch parameter immediate
+    ; r9 = call test_range_pattern.categorize$u8
+    ; Call to test_range_pattern.categorize$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL pattern_categorize_u8
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r10 = 75
+    LD A, 75
+    LD H, A         ; Store to physical register H
+    ; r11 = 75
+    LD A, 75
+    LD H, A         ; Store to physical register H
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_range_pattern.categorize$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_range_pattern.categorize$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_range_pattern.categorize$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (test_range_pattern.categorize$u8_param_n+1), A   ; Patch parameter immediate
+    ; r12 = call test_range_pattern.categorize$u8
+    ; Call to test_range_pattern.categorize$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL pattern_categorize_u8
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; r13 = 150
+    LD A, 150
+    LD D, A         ; Store to physical register D
+    ; r14 = 150
+    LD A, 150
+    LD E, A         ; Store to physical register E
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_range_pattern.categorize$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_range_pattern.categorize$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_range_pattern.categorize$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (test_range_pattern.categorize$u8_param_n+1), A   ; Patch parameter immediate
+    ; r15 = call test_range_pattern.categorize$u8
+    ; Call to test_range_pattern.categorize$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL pattern_categorize_u8
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main

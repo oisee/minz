@@ -1,0 +1,24 @@
+enum State {
+    IDLE,
+    RUNNING,
+    STOPPED
+}
+
+fun describe(s: State) -> u8 {
+    case s {
+        State.IDLE => 1,
+        State.RUNNING => 2,
+        State.STOPPED => 3,
+        _ => 0
+    }
+}
+
+fun main() -> void {
+    let idle = State.IDLE;
+    let result = describe(idle);
+    print_u8(result);  // Should print 1
+    
+    let running = State.RUNNING;
+    let result2 = describe(running);
+    print_u8(result2); // Should print 2
+}

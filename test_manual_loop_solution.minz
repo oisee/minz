@@ -1,0 +1,20 @@
+// Manual loop solution - demonstrates working metaprogramming
+// Until for loops are fixed, we can generate code manually
+
+@minz[[[
+    @emit("fun sprite_0() -> void { draw_sprite(0); }")
+]]]
+
+@minz[[[
+    @emit("fun sprite_1() -> void { draw_sprite(1); }")
+]]]
+
+@minz[[[
+    @emit("fun sprite_2() -> void { draw_sprite(2); }")
+]]]
+
+fun main() -> void {
+    sprite_0();
+    sprite_1(); 
+    sprite_2();
+}
