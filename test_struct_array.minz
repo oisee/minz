@@ -1,0 +1,31 @@
+// Test struct array literal optimization
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+struct Player {
+    x: u16,
+    y: u16,
+    health: u8,
+    id: u8
+}
+
+fun main() -> void {
+    // Array of simple structs
+    let points: [Point; 3] = [
+        Point { x: 10, y: 20 },
+        Point { x: 30, y: 40 },
+        Point { x: 50, y: 60 }
+    ];
+    
+    // Array of complex structs
+    let players: [Player; 2] = [
+        Player { x: 100, y: 200, health: 100, id: 1 },
+        Player { x: 300, y: 400, health: 75, id: 2 }
+    ];
+    
+    print_u8(points[0].x);
+    print_u8(players[0].health);
+}

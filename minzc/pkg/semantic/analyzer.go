@@ -3854,16 +3854,16 @@ func (a *Analyzer) analyzeIdentifier(id *ast.Identifier, irFunc *ir.Function) (i
 		
 		// Provide helpful error messages for common mistakes
 		if id.Name == "screen" {
-			return 0, fmt.Errorf("undefined identifier '%s' - did you mean to import a screen module?", id.Name)
+			return 0, a.errorAt(id, "undefined identifier '%s' - did you mean to import a screen module?", id.Name)
 		}
 		
 		// Suggest similar identifiers if available
 		suggestions := a.findSimilarIdentifiers(id.Name)
 		if len(suggestions) > 0 {
-			return 0, fmt.Errorf("undefined identifier '%s' - did you mean '%s'?", id.Name, suggestions[0])
+			return 0, a.errorAt(id, "undefined identifier '%s' - did you mean '%s'?", id.Name, suggestions[0])
 		}
 		
-		return 0, fmt.Errorf("undefined identifier '%s'", id.Name)
+		return 0, a.undefinedIdentifierError(id, "")
 	}
 
 	switch s := sym.(type) {
@@ -4871,9 +4871,9 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 			// Try to find similar function names
 			suggestions := a.findSimilarIdentifiers(funcName)
 			if len(suggestions) > 0 {
-				return 0, fmt.Errorf("undefined function: %s - did you mean '%s'?", funcName, suggestions[0])
+				return 0, a.errorAt(call, "undefined function: %s - did you mean '%s'?", funcName, suggestions[0])
 			}
-			return 0, fmt.Errorf("undefined function: %s", funcName)
+			return 0, a.undefinedFunctionError(call, funcName)
 		}
 		
 		if debug {
@@ -8265,25 +8265,93 @@ func (a *Analyzer) analyzeArrayInitializer(arr *ast.ArrayInitializer, irFunc *ir
 	// Store the type
 	a.exprTypes[arr] = arrayType
 	
-	// Generate IR for array initialization
-	// This will be handled during code generation
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:      ir.OpArrayInit,
-		Dest:    reg,
-		Type:    arrayType,
-		Comment: fmt.Sprintf("Array initializer with %d elements", len(arr.Elements)),
-	})
+	// Check if all elements are literals - use optimized data block
+	allLiterals := true
+	literalValues := make([]int64, len(arr.Elements))
+	structLiterals := make([]*ast.StructLiteral, len(arr.Elements))
+	isStructArray := false
 	
-	// Store element registers in metadata for code generation
-	for i, elemReg := range elementRegs {
+	for i, elem := range arr.Elements {
+		switch e := elem.(type) {
+		case *ast.NumberLiteral:
+			literalValues[i] = e.Value
+		case *ast.StructLiteral:
+			// Check if all fields are literals
+			structLiterals[i] = e
+			isStructArray = true
+			// We'll check if all struct fields are literals below
+		default:
+			allLiterals = false
+			break
+		}
+	}
+	
+	// For struct arrays, check if all fields are literals
+	var structData []ir.StructLiteralData
+	if isStructArray && allLiterals {
+		structData = make([]ir.StructLiteralData, len(structLiterals))
+		for i, structLit := range structLiterals {
+			if structLit == nil {
+				allLiterals = false
+				break
+			}
+			
+			fieldValues := make(map[string]int64)
+			for _, field := range structLit.Fields {
+				if numLit, ok := field.Value.(*ast.NumberLiteral); ok {
+					fieldValues[field.Name] = numLit.Value
+				} else {
+					allLiterals = false
+					break
+				}
+			}
+			
+			if allLiterals {
+				structData[i] = ir.StructLiteralData{
+					TypeName: structLit.TypeName,
+					Fields:   fieldValues,
+				}
+			}
+		}
+	}
+	
+	if allLiterals {
+		// Generate optimized literal array - single data block
+		inst := ir.Instruction{
+			Op:        ir.OpArrayLiteral,
+			Dest:      reg,
+			Type:      arrayType,
+		}
+		
+		if isStructArray {
+			inst.StructArrayData = structData
+			inst.Comment = fmt.Sprintf("Struct array literal -> DB/DW directives")
+		} else {
+			inst.LiteralData = literalValues
+			inst.Comment = fmt.Sprintf("Array literal [%v] -> DB directive", literalValues)
+		}
+		
+		irFunc.Instructions = append(irFunc.Instructions, inst)
+	} else {
+		// Generate IR for dynamic array initialization  
 		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-			Op:      ir.OpArrayElement,
+			Op:      ir.OpArrayInit,
 			Dest:    reg,
-			Src1:    elemReg,
-			Imm:     int64(i),
-			Type:    elementType,
-			Comment: fmt.Sprintf("Initialize array[%d]", i),
+			Type:    arrayType,
+			Comment: fmt.Sprintf("Array initializer with %d elements", len(arr.Elements)),
 		})
+		
+		// Store element registers in metadata for code generation
+		for i, elemReg := range elementRegs {
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpArrayElement,
+				Dest:    reg,
+				Src1:    elemReg,
+				Imm:     int64(i),
+				Type:    elementType,
+				Comment: fmt.Sprintf("Initialize array[%d]", i),
+			})
+		}
 	}
 	
 	return reg, nil

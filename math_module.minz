@@ -1,0 +1,8 @@
+// math module
+pub fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+pub fun multiply(a: u8, b: u8) -> u8 {
+    return a * b;
+}

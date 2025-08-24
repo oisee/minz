@@ -1,0 +1,156 @@
+; MinZ generated code
+; Generated: 2025-08-24 22:59:54
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_struct_array.main
+struct_array_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    ; Struct array literal -> DB/DW directives
+    LD HL, array_data_0
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; Array literal data will be at array_data_0
+    ; Store element 0
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    LD H, B
+    LD L, C
+    PUSH HL
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    SLA E
+    RL D
+    POP HL
+    ADD HL, DE
+    LD (HL), 0    ; TODO: Need value source (low)
+    INC HL
+    LD (HL), 0    ; TODO: Need value source (high)
+    ; Store element 1
+    LD ($0000), HL
+    ; Store element 2
+    LD ($0000), HL
+    ; Struct array literal -> DB/DW directives
+    LD HL, array_data_1
+    ; Array literal data will be at array_data_1
+    ; Store element 0
+    ; Register 40 already in HL
+    PUSH HL
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    EX DE, HL
+    SLA E
+    RL D
+    POP HL
+    ADD HL, DE
+    LD (HL), 0    ; TODO: Need value source (low)
+    INC HL
+    LD (HL), 0    ; TODO: Need value source (high)
+    ; Store element 1
+    ; Register 46 already in HL
+    LD ($0000), HL
+    ; Load array element (test_struct_array.Point)
+    ; Register 54 already in HL
+    PUSH HL
+    LD HL, ($F06E)    ; Virtual register 55 from memory
+    EX DE, HL
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD ($F070), A     ; Virtual register 56 to memory
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F072)    ; Virtual register 57 from memory
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; Load array element (test_struct_array.Player)
+    LD HL, ($F074)    ; Virtual register 58 from memory
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    LD HL, ($F07A)    ; Virtual register 61 from memory
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    POP DE
+    POP BC
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+; Struct array literal data
+array_data_0:
+    ; Struct array literal -> DB/DW directives
+    ; Element 0: Point
+    DB 10                ; x
+    DB 20                ; y
+    ; Element 1: Point
+    DB 30                ; x
+    DB 40                ; y
+    ; Element 2: Point
+    DB 50                ; x
+    DB 60                ; y
+array_data_1:
+    ; Struct array literal -> DB/DW directives
+    ; Element 0: Player
+    DW 100                ; x
+    DW 200                ; y
+    DB 100                ; health
+    DB 1                ; id
+    ; Element 1: Player
+    DW 300                ; x
+    DW 400                ; y
+    DB 75                ; health
+    DB 2                ; id
+
+    END main
+
+
+; Assembly peephole optimization: 5 patterns applied

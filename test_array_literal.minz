@@ -1,6 +1,17 @@
+// Test array literal syntax
+fun test_arrays() -> void {
+    // Test 1: Basic array literal
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    
+    // Test 2: Array access
+    let first: u8 = numbers[0];
+    print_u8(first);
+    
+    // Test 3: Array in expression
+    let sum: u8 = numbers[0] + numbers[1];
+    print_u8(sum);
+}
+
 fun main() -> void {
-    let arr = [1, 2, 3];
-    print_u8(arr[0]);
-    print_u8(arr[1]);
-    print_u8(arr[2]);
+    test_arrays();
 }

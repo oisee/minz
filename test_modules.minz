@@ -1,0 +1,7 @@
+// Test module imports
+import math_module;
+
+fun main() -> void {
+    let sum = math_module.add(5, 3);
+    print_u8(sum);
+}

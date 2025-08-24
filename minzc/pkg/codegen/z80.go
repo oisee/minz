@@ -12,6 +12,21 @@ import (
 
 var debug = os.Getenv("DEBUG") != ""
 
+// DataBlock represents a data block for array literals
+type DataBlock struct {
+	Label   string
+	Data    []int64
+	Comment string
+}
+
+// StructDataBlock represents a data block for struct array literals
+type StructDataBlock struct {
+	Label      string
+	StructData []ir.StructLiteralData
+	ArrayType  *ir.ArrayType
+	Comment    string
+}
+
 // Z80Generator generates Z80 assembly from IR
 type Z80Generator struct {
 	writer        io.Writer
@@ -35,6 +50,8 @@ type Z80Generator struct {
 	targetPlatform string // Target platform (zxspectrum, cpm, msx, etc.)
 	constantValues map[ir.Register]int64 // Track constant values in registers
 	usedFunctions  map[string]bool // Track which stdlib functions are actually used
+	dataBlocks     []DataBlock     // Array literal data blocks
+	structDataBlocks []StructDataBlock // Struct array literal data blocks
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -266,7 +283,10 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	g.writeHeader()
 
 	// Generate data section
-	if len(module.Globals) > 0 || len(module.Strings) > 0 {
+	if debug {
+		fmt.Printf("DEBUG: Globals=%d, Strings=%d, DataBlocks=%d\n", len(module.Globals), len(module.Strings), len(g.dataBlocks))
+	}
+	if len(module.Globals) > 0 || len(module.Strings) > 0 || len(g.dataBlocks) > 0 {
 		g.emit("\n; Data section")
 		g.emit("    ORG $F000")  // Data section at $F000
 		g.emit("")
@@ -283,6 +303,23 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 				fmt.Printf("  String: %s = \"%s\"\n", str.Label, str.Value)
 			}
 			g.generateString(str)
+		}
+		
+		// Generate array literal data blocks
+		if len(g.dataBlocks) > 0 {
+			g.emit("\n; Array literal data")
+			for _, block := range g.dataBlocks {
+				g.emit("%s:", block.Label)
+				if block.Comment != "" {
+					g.emit("    ; %s", block.Comment)
+				}
+				// Generate DB directive for u8 values
+				var values []string
+				for _, val := range block.Data {
+					values = append(values, fmt.Sprintf("%d", val))
+				}
+				g.emit("    DB %s", strings.Join(values, ", "))
+			}
 		}
 	}
 
@@ -309,6 +346,66 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	
 	// Generate standard library routines
 	g.generateStdlibRoutines()
+	
+	// Generate array literal data blocks (after functions are processed)
+	if len(g.dataBlocks) > 0 {
+		g.emit("\n; Array literal data")
+		for _, block := range g.dataBlocks {
+			g.emit("%s:", block.Label)
+			if block.Comment != "" {
+				g.emit("    ; %s", block.Comment)
+			}
+			// Generate DB directive for u8 values
+			var values []string
+			for _, val := range block.Data {
+				values = append(values, fmt.Sprintf("%d", val))
+			}
+			g.emit("    DB %s", strings.Join(values, ", "))
+		}
+	}
+	
+	// Generate struct array data blocks
+	if len(g.structDataBlocks) > 0 {
+		g.emit("\n; Struct array literal data")
+		for _, block := range g.structDataBlocks {
+			g.emit("%s:", block.Label)
+			if block.Comment != "" {
+				g.emit("    ; %s", block.Comment)
+			}
+			
+			// Get struct type from array type
+			structType := block.ArrayType.Element.(*ir.StructType)
+			
+			// Generate data for each struct
+			for i, structData := range block.StructData {
+				g.emit("    ; Element %d: %s", i, structData.TypeName)
+				
+				// Generate fields in order
+				for _, fieldName := range structType.FieldOrder {
+					fieldType := structType.Fields[fieldName]
+					value, exists := structData.Fields[fieldName]
+					if !exists {
+						value = 0 // Default to 0 if not specified
+					}
+					
+					// Generate appropriate directive based on field size
+					switch fieldType.Size() {
+					case 1:
+						g.emit("    DB %d                ; %s", value, fieldName)
+					case 2:
+						// Little-endian for Z80
+						g.emit("    DW %d                ; %s", value, fieldName)
+					default:
+						// For larger types, emit multiple bytes
+						for j := 0; j < fieldType.Size(); j++ {
+							byteVal := (value >> (j * 8)) & 0xFF
+							g.emit("    DB %d                ; %s[%d]", byteVal, fieldName, j)
+						}
+					}
+				}
+			}
+		}
+	}
 	
 	// Write footer
 	g.writeFooter()
@@ -2857,6 +2954,43 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    ; Load parameter %s", inst.Symbol)
 		// In the current implementation, parameters are loaded at function entry
 		// This instruction is just a marker - the actual load happens in prologue
+		
+	case ir.OpArrayLiteral:
+		// Optimized array literal - generate data block
+		if debug {
+			if len(inst.LiteralData) > 0 {
+				fmt.Printf("DEBUG: OpArrayLiteral with %d literals: %v\n", len(inst.LiteralData), inst.LiteralData)
+			} else if len(inst.StructArrayData) > 0 {
+				fmt.Printf("DEBUG: OpArrayLiteral with %d struct literals\n", len(inst.StructArrayData))
+			}
+		}
+		
+		// Generate a unique label for the array data
+		labelName := fmt.Sprintf("array_data_%d", g.labelCounter)
+		g.labelCounter++
+		
+		// Store reference to the data block
+		g.emit("    LD HL, %s", labelName)
+		g.storeFromHL(inst.Dest)
+		
+		if len(inst.LiteralData) > 0 {
+			// Simple array literal
+			g.dataBlocks = append(g.dataBlocks, DataBlock{
+				Label: labelName,
+				Data:  inst.LiteralData,
+				Comment: inst.Comment,
+			})
+		} else if len(inst.StructArrayData) > 0 {
+			// Struct array literal - needs special handling
+			g.structDataBlocks = append(g.structDataBlocks, StructDataBlock{
+				Label:      labelName,
+				StructData: inst.StructArrayData,
+				ArrayType:  inst.Type.(*ir.ArrayType),
+				Comment:    inst.Comment,
+			})
+		}
+		
+		g.emit("    ; Array literal data will be at %s", labelName)
 		
 	case ir.OpArrayInit:
 		// Initialize array

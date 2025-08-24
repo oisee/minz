@@ -84,6 +84,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overload set symbol lookup in method calls
 - Function signature registration for impl block methods
 
+## [0.15.0] - 2025-08-24 "Array Optimization Revolution" 🚀
+
+### Added
+- **Intelligent Array Literal Optimization** - Arrays with constant values now generate DB/DW directives instead of initialization code
+- **Struct Array Optimization** - Struct arrays with literals generate proper DB/DW based on field types
+- **61% Code Reduction** - Simple arrays reduced from 263 to 102 lines
+- **Line Numbers in Errors** - All error messages now include precise line:column information
+- **Ruby String Interpolation** - `"Hello #{name}!"` syntax for string formatting
+- **Crystal Backend** - Modern development workflow with instant testing
+
+### Changed
+- Array initialization completely revamped for literal detection
+- Error messages enhanced with source location context
+- IR enhanced with `OpArrayLiteral` and data block support
+- Code generation optimized for static data initialization
+
+### Performance
+- **61% reduction** in generated code for array literals (263 → 102 lines)
+- **Zero runtime overhead** for constant arrays - data pre-loaded in memory
+- **Smaller binaries** - Data directives instead of initialization code
+- **Faster assembly** - Fewer instructions to process
+
+### Fixed
+- Array initialization inefficiency for constant values
+- Missing line numbers in semantic analyzer errors
+- Data block generation timing in code generator
+
 ## [Unreleased]
 
 ### Added

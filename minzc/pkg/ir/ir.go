@@ -134,8 +134,9 @@ const (
 	OpCheckError    // Check carry flag for error
 	
 	// Array operations
-	OpArrayInit     // Initialize array
+	OpArrayInit     // Initialize array  
 	OpArrayElement  // Set array element during initialization
+	OpArrayLiteral  // Array literal data block (optimized)
 	
 	// Arithmetic
 	OpAdd
@@ -242,6 +243,12 @@ const (
 	RegHintBC                // Prefer BC register pair
 )
 
+// StructLiteralData represents literal data for a struct in an array
+type StructLiteralData struct {
+	TypeName string           // Struct type name
+	Fields   map[string]int64 // Field name -> literal value
+}
+
 // Instruction represents a single IR instruction
 type Instruction struct {
 	Op           Opcode
@@ -259,6 +266,14 @@ type Instruction struct {
 	SMCTarget    string            // Target label for SMC store operations
 	AsmCode      string            // Raw assembly code for OpAsm instructions
 	AsmName      string            // Optional name for named asm blocks
+	LiteralData  []int64           // Literal data values for OpArrayLiteral
+	StructArrayData []StructLiteralData // Struct literal data for struct arrays
+	
+	// PGO Metadata (Quick Win #1)
+	SourceLine   int    // Line number in original .minz file
+	SourceFile   string // Source file path
+	BasicBlockID int    // Which basic block this instruction belongs to
+	ProfileHint  string // PGO hints: "hot", "cold", "likely", "unlikely"
 	Args         []Register        // Argument registers for OpCall
 	Hint         RegisterHint      // Hint for register allocator
 	

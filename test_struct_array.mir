@@ -1,0 +1,22 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_struct_array.main() -> void
+  @smc
+  Locals:
+    r1 = points: [3]test_struct_array.Point
+    r28 = players: [2]test_struct_array.Player
+  Instructions:
+      0: UNKNOWN_OP_46 ; Struct array literal -> DB/DW directives
+      1: STORE_INDEX ; Store element 0
+      2: STORE_DIRECT ; Store element 1
+      3: STORE_DIRECT ; Store element 2
+      4: UNKNOWN_OP_46 ; Struct array literal -> DB/DW directives
+      5: STORE_INDEX ; Store element 0
+      6: STORE_DIRECT ; Store element 1
+      7: LOAD_INDEX ; Load array element (test_struct_array.Point)
+      8: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      9: LOAD_INDEX ; Load array element (test_struct_array.Player)
+     10: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     11: return
+

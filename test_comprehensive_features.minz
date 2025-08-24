@@ -1,0 +1,78 @@
+// Comprehensive feature test
+// Testing all features claimed in CLAUDE.md
+
+// 1. Core types and functions ✅
+fun test_basic_types() -> void {
+    let a: u8 = 42;
+    let b: u16 = 1000;
+    let c: i8 = -10;
+    let flag: bool = true;
+    print_u8(a);
+}
+
+// 2. Structs ✅
+struct Point {
+    x: u8,
+    y: u8
+}
+
+// 3. Arrays ✅
+fun test_arrays() -> void {
+    let arr: [u8; 3] = [1, 2, 3];  // Array literal
+    let first: u8 = arr[0];         // Array access
+    print_u8(first);
+}
+
+// 4. Global variables ✅
+global counter: u8 = 0;
+
+// 5. Function overloading
+fun print(value: u8) -> void {
+    print_u8(value);
+}
+
+fun print(value: u16) -> void {
+    print_u16(value);
+}
+
+// 6. Lambdas
+fun test_lambdas() -> void {
+    let add = |x: u8, y: u8| => u8 { return x + y; };
+    let result = add(5, 3);
+    print_u8(result);
+}
+
+// 7. Error propagation with ?
+fun divide(a: u8, b: u8) -> u8? {
+    if b == 0 {
+        return none;
+    }
+    return some(a / b);
+}
+
+fun test_error_prop() -> void {
+    let result = divide(10, 2) ?? 0;  // ?? operator
+    print_u8(result);
+}
+
+// 8. Interface methods
+interface Drawable {
+    fun draw(self) -> void;
+}
+
+// 9. For loops
+fun test_loops() -> void {
+    for i in 0..10 {
+        print_u8(i);
+    }
+}
+
+// 10. Module imports (separate file needed)
+// import math;
+
+fun main() -> void {
+    test_basic_types();
+    test_arrays();
+    test_lambdas();
+    test_loops();
+}

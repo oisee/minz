@@ -1,0 +1,33 @@
+// Comprehensive PGO Test Program
+// Tests hot/cold annotations for different function types
+
+fun hot_calculation(n: u8) -> u8 {
+    return n * 2 + 1;  // Should be marked as "hot"
+}
+
+fun cold_error_handler(code: u8) -> void {
+    @print("Error: ");
+    print_u8(code);  // Should be marked as "cold"
+}
+
+fun warm_helper(x: u8, y: u8) -> u8 {
+    return x + y;  // Should be marked as "warm"
+}
+
+fun main() -> void {
+    // Hot path - executed frequently
+    let result: u8 = hot_calculation(42);
+    
+    // Warm path - occasionally used
+    let sum: u8 = warm_helper(10, 20);
+    
+    // Cold path - rarely executed
+    if result == 0 {
+        cold_error_handler(255);
+    }
+    
+    @print("Results: ");
+    print_u8(result);
+    @print(" ");
+    print_u8(sum);
+}

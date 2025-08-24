@@ -1,0 +1,92 @@
+// Test features that actually work
+
+// Basic types and functions ✅
+fun test_basic() -> void {
+    let a: u8 = 42;
+    let b: u16 = 1000;
+    let c: bool = true;
+    print_u8(a);
+    print_u16(b);
+}
+
+// Structs ✅
+struct Point {
+    x: u8,
+    y: u8
+}
+
+// Arrays ✅
+fun test_arrays() -> void {
+    let arr: [u8; 3];
+    arr[0] = 10;
+    arr[1] = 20;
+    arr[2] = 30;
+    print_u8(arr[0]);
+}
+
+// Global variables ✅
+global counter: u8 = 0;
+
+// Function overloading ✅
+fun print(value: u8) -> void {
+    print_u8(value);
+}
+
+fun print(value: u16) -> void {
+    print_u16(value);
+}
+
+// Lambdas ✅
+fun test_lambdas() -> void {
+    let add = |x: u8, y: u8| => u8 { return x + y; };
+    let result = add(5, 3);
+    print_u8(result);
+}
+
+// For loops ✅
+fun test_loops() -> void {
+    for i in 0..10 {
+        print_u8(i);
+    }
+}
+
+// Interfaces ✅
+interface Drawable {
+    fun draw(self) -> void;
+}
+
+// Control flow ✅
+fun test_control() -> void {
+    let x: u8 = 5;
+    if x > 3 {
+        print_u8(1);
+    } else {
+        print_u8(0);
+    }
+    
+    while x > 0 {
+        x = x - 1;
+    }
+}
+
+// Enums (basic) ✅
+enum State {
+    IDLE,
+    RUNNING,
+    DONE
+}
+
+fun main() -> void {
+    test_basic();
+    test_arrays();
+    test_lambdas();
+    test_loops();
+    test_control();
+    
+    // Direct enum usage (commented - not working)
+    // let s: State = State::IDLE;
+    
+    // Global variable usage
+    counter = counter + 1;
+    print_u8(counter);
+}

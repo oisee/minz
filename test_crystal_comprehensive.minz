@@ -1,0 +1,49 @@
+// Comprehensive test for Crystal backend
+const PI = 3;
+const DEBUG = true;
+
+fun fibonacci(n: u8) -> u8 {
+    if n <= 1 {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+fun test_arithmetic() -> u8 {
+    let a = 10;
+    let b = 20;
+    let c = a + b;
+    let d = c * 2;
+    let e = d / 3;
+    return e - 5;
+}
+
+fun test_control_flow(x: u8) -> bool {
+    if x > 10 {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+fun print_number(n: u8) -> void {
+    @print("Number: ");
+    print_u8(n);
+    @print("\n");
+}
+
+fun main() -> void {
+    // Test arithmetic
+    let result = test_arithmetic();
+    print_number(result);
+    
+    // Test recursion
+    let fib = fibonacci(5);
+    print_number(fib);
+    
+    // Test control flow
+    let flag = test_control_flow(15);
+    if flag {
+        @print("Test passed!\n");
+    }
+}

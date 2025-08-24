@@ -1,0 +1,48 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function math_module.add$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function math_module.multiply$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      2: r5 = r3 * r4
+      3: return r5
+
+Function math_module.add$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function math_module.multiply$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      2: r5 = r3 * r4
+      3: return r5
+
+Function test_modules.main() -> void
+  @smc
+  Locals:
+    r1 = sum: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: PATCH_PARAM
+      4: r4 = call math_module.add
+      5: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      6: return
+

@@ -1,0 +1,28 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8(n: u8) -> u8
+  @smc
+  Instructions:
+      0: LOAD_PARAM
+      1: r3 = 1
+      2: r4 = r2 + r3
+      3: return r4
+
+Function .Users.alice.dev.minz-ts.test_pgo_e2e.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: r2 = 42
+      1: r3 = 42
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: r4 = call .Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8
+      6: store result, r4
+      7: PRINT_STRING_DIRECT ; Direct print "Result: " (8 chars)
+      8: r5 = load result
+      9: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     10: return
+

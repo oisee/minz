@@ -1,0 +1,13 @@
+// Simple PGO Test Program - tests hot/cold classification
+fun hot_function() -> u8 {
+    return 42;  // Should be marked as "hot" 
+}
+
+fun cold_function() -> u8 {
+    return 1;   // Should be marked as "cold"
+}
+
+fun main() -> void {
+    let result: u8 = hot_function();
+    print_u8(result);
+}

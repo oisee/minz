@@ -95,6 +95,10 @@ type TASDebugger struct {
 	// SMC tracking with visual timeline
 	smcEvents    []SMCEvent
 	
+	// PGO Profile collection (Quick Win #2)
+	blockExecutions map[uint16]uint64  // PC -> execution count
+	branchOutcomes  map[uint16]bool    // PC -> last branch taken?
+	
 	// Frame-perfect optimization hunting
 	huntMode     bool
 	huntGoal     OptimizationGoal
@@ -185,6 +189,8 @@ func NewTASDebugger(emu Z80Emulator) *TASDebugger {
 		saveStates:     make(map[string]*StateSnapshot),
 		inputLog:       make([]InputEvent, 0, 10000),
 		smcEvents:      make([]SMCEvent, 0, 1000),
+		blockExecutions: make(map[uint16]uint64),  // PGO: track execution counts
+		branchOutcomes:  make(map[uint16]bool),    // PGO: track branch outcomes
 		maxHistory:     1000000,  // ~16 minutes at 60fps
 		hybridRecorder: NewHybridRecorder(config),
 		recordingMode:  StrategyHybrid,
@@ -733,4 +739,32 @@ func (t *TASDebugger) PrintDetailedReport() {
 		fmt.Printf("Currently in deterministic section since cycle %d\n", 
 			t.cyclePerfect.deterministicStart)
 	}
+}
+
+// PGO: Enable profile collection (Quick Win #2)
+func (t *TASDebugger) EnablePGO() {
+	// Hook PC changes for basic block counting
+	if emulator, ok := t.emulator.(interface{ SetPCHook(func(uint16)) }); ok {
+		emulator.SetPCHook(func(pc uint16) {
+			t.blockExecutions[pc]++
+		})
+	}
+}
+
+// PGO: Get profile data for compilation
+func (t *TASDebugger) GetProfileData() map[string]interface{} {
+	// Calculate execution threshold for hot/cold classification
+	total := uint64(0)
+	for _, count := range t.blockExecutions {
+		total += count
+	}
+	threshold := total / 10  // Top 10% is "hot"
+	
+	profile := make(map[string]interface{})
+	profile["executions"] = t.blockExecutions
+	profile["branches"] = t.branchOutcomes
+	profile["hot_threshold"] = threshold
+	profile["smc_events"] = t.smcEvents
+	
+	return profile
 }

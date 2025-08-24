@@ -78,6 +78,9 @@ func (c *CrystalBackend) Generate(module *ir.Module) (string, error) {
 func (c *CrystalBackend) generateFunction(fn *ir.Function) error {
 	c.currentFunc = fn.Name
 
+	// Clean function name for Crystal (replace dots and $ with underscores)
+	cleanName := c.cleanFunctionName(fn.Name)
+
 	// Build parameter list
 	params := make([]string, len(fn.Params))
 	for i, param := range fn.Params {
@@ -87,9 +90,9 @@ func (c *CrystalBackend) generateFunction(fn *ir.Function) error {
 	// Generate function signature
 	returnType := c.mapType(fn.ReturnType)
 	if len(params) > 0 {
-		c.writeLine(fmt.Sprintf("def %s(%s) : %s", fn.Name, strings.Join(params, ", "), returnType))
+		c.writeLine(fmt.Sprintf("def %s(%s) : %s", cleanName, strings.Join(params, ", "), returnType))
 	} else {
-		c.writeLine(fmt.Sprintf("def %s : %s", fn.Name, returnType))
+		c.writeLine(fmt.Sprintf("def %s : %s", cleanName, returnType))
 	}
 
 	c.indent++
@@ -172,8 +175,11 @@ func (c *CrystalBackend) generateCall(inst *ir.Instruction) error {
 		funcName = inst.FuncName
 	}
 	
+	// Clean the function name for Crystal
+	cleanName := c.cleanFunctionName(funcName)
+	
 	// Generate function call
-	crystalCall := c.mapFunctionCall(funcName, []string{})
+	crystalCall := c.mapFunctionCall(cleanName, []string{})
 	
 	if inst.Dest != 0 {
 		destName := c.getRegisterName(inst.Dest)
@@ -277,6 +283,19 @@ func (c *CrystalBackend) getRegisterName(reg ir.Register) string {
 		}
 	}
 	return fmt.Sprintf("r%d", reg)
+}
+
+// cleanFunctionName converts MinZ function names to valid Crystal identifiers
+func (c *CrystalBackend) cleanFunctionName(name string) string {
+	// Replace dots with underscores
+	clean := strings.ReplaceAll(name, ".", "_")
+	// Replace $ with underscores  
+	clean = strings.ReplaceAll(clean, "$", "_")
+	// Remove leading underscores if too many
+	for strings.HasPrefix(clean, "___") {
+		clean = strings.TrimPrefix(clean, "_")
+	}
+	return clean
 }
 
 // mapType converts MinZ types to Crystal types

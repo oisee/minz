@@ -1,0 +1,17 @@
+// Test error propagation with ?? operator
+fun divide(a: u8, b: u8) -> u8? {
+    if b == 0 {
+        return none;
+    }
+    return some(a / b);
+}
+
+fun test() -> u8? {
+    let result = divide(10, 0)?;  // Should propagate error
+    return some(result);
+}
+
+fun main() -> void {
+    let value = test() ?? 255;  // Should use default
+    print_u8(value);
+}

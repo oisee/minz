@@ -1,0 +1,18 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_array_opt.main() -> void
+  @smc
+  Locals:
+    r1 = numbers: [5]u8
+  Instructions:
+      0: UNKNOWN_OP_46 ; Array literal [[10 20 30 40 50]] -> DB directive
+      1: STORE_INDEX ; Store element 0
+      2: STORE_DIRECT ; Store element 1
+      3: STORE_DIRECT ; Store element 2
+      4: STORE_DIRECT ; Store element 3
+      5: STORE_DIRECT ; Store element 4
+      6: LOAD_INDEX ; Load array element (u8)
+      7: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      8: return
+

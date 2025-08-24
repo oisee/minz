@@ -1,0 +1,6 @@
+// Test array literal code generation
+
+fun main() -> void {
+    let numbers: [u8; 5] = [10, 20, 30, 40, 50];
+    print_u8(numbers[0]);
+}

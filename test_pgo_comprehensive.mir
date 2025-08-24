@@ -1,0 +1,56 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_pgo_comprehensive.hot_calculation$u8(n: u8) -> u8
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor n$imm0 [PGO: Place in uncontended memory 0x8000+]
+      1: SHL
+      2: r5 = 1
+      3: r6 = r4 + r5
+      4: return r6
+
+Function ...test_pgo_comprehensive.cold_error_handler$u8(code: u8) -> void
+  @smc
+  Instructions:
+      0: PRINT_STRING_DIRECT ; Direct print "Error: " (7 chars) [PGO: Place in uncontended memory 0x8000+]
+      1: TRUE_SMC_LOAD ; Load from anchor code$imm0
+      2: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      3: return
+
+Function ...test_pgo_comprehensive.warm_helper$u8$u8(x: u8, y: u8) -> u8
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor x$imm0 [PGO: Place in uncontended memory 0x8000+]
+      1: TRUE_SMC_LOAD ; Load from anchor y$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...test_pgo_comprehensive.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+    r5 = sum: u8
+  Instructions:
+      0: PATCH_TEMPLATE ; [PGO: Place in uncontended memory 0x8000+]
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: PATCH_TEMPLATE
+      4: PATCH_TARGET
+      5: PATCH_PARAM
+      6: PATCH_PARAM
+      7: TEST
+      8: jump_if_not r13, else_1 ; [PGO: Place in uncontended memory 0x8000+]
+      9: PRINT_STRING_DIRECT ; Inlined: Direct print "Error: " (7 chars)
+     10: LOAD_PARAM ; Inlined from ...test_pgo_comprehensive.cold_error_handler$u8
+     11: r0 = call print_u8_decimal ; Inlined: Call runtime print_u8_decimal
+     12: jump end_if_2
+     13: else_1:
+     14: end_if_2:
+     15: LOAD_STRING
+     16: PRINT_STRING ; Print "Results: " (9 chars via loop)
+     17: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     18: PRINT_STRING_DIRECT ; Direct print " " (1 chars)
+     19: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+     20: return
+

@@ -39,25 +39,35 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **BREAKTHROUGH:** Full Z80 Emulator with remogatto/z80 (19.5% → 100% coverage!)
 - Interactive REPL (`cmd/repl/main.go`)
 - Multi-Backend Support (Z80, 6502, WebAssembly, Game Boy, C, LLVM)
+- Profile-Guided Optimization (PGO) with TAS debugger
 
-### ✅ Working Features (75-80% success rate)
-- Core types, functions, control flow, structs, arrays
-- Function overloading and interface methods
-- Error propagation with `?` suffix and `??` operator
-- Global variables with `global` keyword
-- Metafunctions: 
-  - `@minz[[[...]]]` - Immediate compile-time execution (NO ARGS!)
-  - `@define("template", args)` - Preprocessor text substitution
-  - `@print` - Optimized string output
-  - `@error` - Compile-time errors
-  - `@if/@elif/@else` - Conditional compilation
-- Self-modifying code optimization
+### ✅ ACTUALLY Working Features (Tested Dec 2024)
+- **Core Language**: Types (u8/u16/i8/bool), functions, control flow (if/while/for) ✅
+- **Structs**: Declaration and field access ✅
+- **Arrays**: Declaration and indexing ✅ (literals compile but need optimization)
+- **Global variables**: With `global` keyword ✅
+- **Function overloading**: Multiple signatures ✅
+- **Lambdas**: Full closure support with zero-cost implementation ✅
+- **Module imports**: Working with dot notation (`module.function()`) ✅
+- **For loops**: Range iteration (`for i in 0..10`) ✅
+- **Interfaces**: Declaration only (methods not implemented)
+- **Enums**: Declaration only (values not accessible)
+- **Metafunctions** (partially working):
+  - `@define("template", args)` - Text substitution ✅
+  - `@print` - Optimized string output ✅
+  - `@if/@elif/@else` - Conditional compilation ✅
+  - `@minz[[[...]]]` - Limited compile-time execution
 
-### 🚧 Current Limitations (Actually Less Than Expected!)
-- Module imports WORK with full paths (e.g., `zx.screen.set_border()`)
-- String literals FULLY FUNCTIONAL (length-prefixed)
-- Arrays work for declaration/access (only literals `[1,2,3]` missing)
-- Pattern matching partially implemented
+### ❌ NOT Working Features (Need Implementation)
+- **Error propagation**: `?` suffix and `??` operator NOT implemented
+- **Method calls**: `obj.method()` syntax NOT working
+- **Enum values**: `State::IDLE` syntax NOT working
+- **Pattern matching**: Only basic support
+- **Generics**: `<T>` NOT implemented
+- **Array literals**: `[1,2,3]` generates 80+ lines (should be ~10)
+- **Error messages**: No line numbers or source context
+- **Self parameter**: Methods with self NOT working
+- **Option/Result types**: Not implemented (needed for `?` operator)
 
 ## 🎯 Metafunction Design Decisions
 

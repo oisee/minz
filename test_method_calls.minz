@@ -1,0 +1,17 @@
+// Test self parameter and method calls
+struct Point {
+    x: u8,
+    y: u8
+}
+
+impl Point {
+    fun distance(self) -> u8 {
+        return self.x + self.y;  // Simplified
+    }
+}
+
+fun main() -> void {
+    let p = Point { x: 10, y: 20 };
+    let d = p.distance();
+    print_u8(d);
+}

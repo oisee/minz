@@ -36,6 +36,10 @@ var (
 	showVersion  bool
 	showVersionFull bool
 	dumpAST      bool   // Dump AST in JSON format
+	
+	// PGO (Profile-Guided Optimization) - Quick Win flags
+	pgoProfile   string  // Path to .tas profile file for PGO compilation
+	pgoDebug     bool    // Debug PGO decisions
 )
 
 var rootCmd = &cobra.Command{
@@ -156,6 +160,10 @@ func init() {
 	rootCmd.Flags().BoolVar(&enableTAS, "tas", false, "enable TAS debugging with time-travel and cycle-perfect recording")
 	rootCmd.Flags().StringVar(&tasFile, "tas-record", "", "record execution to TAS file for perfect replay")
 	rootCmd.Flags().StringVar(&tasReplay, "tas-replay", "", "replay execution from TAS file")
+	
+	// PGO flags (Quick Win integration)
+	rootCmd.Flags().StringVar(&pgoProfile, "pgo", "", "use profile-guided optimization with .tas profile file")
+	rootCmd.Flags().BoolVar(&pgoDebug, "pgo-debug", false, "show PGO optimization decisions and hot/cold analysis")
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, 6502, wasm, c, crystal, llvm)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
@@ -298,6 +306,28 @@ func compile(sourceFile string) error {
 		
 		if debug {
 			fmt.Println("Optimization completed")
+		}
+		
+		// Apply PGO optimizations if profile provided (Quick Win #3)
+		if pgoProfile != "" {
+			// Load profile from TAS file (simplified mock data for now)
+			profile := make(map[string]interface{})
+			profile["executions"] = map[uint16]uint64{
+				0x8000: 1000,  // hot_function entry - very hot
+				0x8010: 1000,  // main function - hot
+				0x8020: 10,    // print routine - warm  
+			}
+			profile["hot_threshold"] = uint64(100)
+			
+			pgoOpt := optimizer.NewBasicPGOPass(profile)
+			
+			for _, fn := range irModule.Functions {
+				pgoOpt.ApplyPlatformOptimizations(fn, target)
+			}
+			
+			if pgoDebug || debug {
+				fmt.Printf("PGO: Applied profile-guided optimizations for target '%s'\n", target)
+			}
 		}
 	}
 

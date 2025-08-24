@@ -1,0 +1,11 @@
+// Test error messages with line numbers
+fun test_error() -> void {
+    let x: u8 = 42;
+    let y: u8 = undefined_variable;  // Error on line 4
+    print_u8(x + y);
+}
+
+fun main() -> void {
+    test_error();
+    nonexistent_function();  // Error on line 10
+}

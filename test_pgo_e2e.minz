@@ -1,0 +1,10 @@
+// E2E PGO Test Program
+fun hot_function(n: u8) -> u8 {
+    return n + 1;
+}
+
+fun main() -> void {
+    let result: u8 = hot_function(42);
+    @print("Result: ");
+    print_u8(result);
+}

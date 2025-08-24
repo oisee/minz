@@ -1,0 +1,30 @@
+// Test complex error messages
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+fun test_types() -> void {
+    let p = Point { x: 10, y: 20 };
+    let invalid = p.distance();  // Line 10: method not working
+    
+    let num: u8 = "string";  // Line 12: type mismatch
+    
+    print_u8(invalid);  // Line 14: type error
+}
+
+fun test_suggestions() -> void {
+    print_u16(42);  // Line 18: should suggest print_u8
+    
+    let value = divid(10, 2);  // Line 20: should suggest 'divide'
+}
+
+fun divide(a: u8, b: u8) -> u8 {
+    return a / b;
+}
+
+fun main() -> void {
+    test_types();
+    test_suggestions();
+}

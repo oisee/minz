@@ -1,0 +1,127 @@
+; MinZ generated code
+; Generated: 2025-08-24 15:55:06
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8
+.Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+.Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_param_n.op:
+.Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_param_n equ .Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_param_n.op + 1
+    LD A, #00      ; Parameter n (gets patched)
+    ; Register 2 already in A
+    ; r3 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 + r3
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    LD A, C
+
+    ; *** SMART PATCHABLE RETURN SEQUENCE ***
+    ; Default: Store to memory (most common complex case)
+    ; For immediate use: Patch first NOP to RET for early return
+.Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_return_patch.op:
+    NOP                     ; PATCH POINT: NOP or RET (C9) for early return
+.Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_store_addr.op:
+.Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_store_addr equ .Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_store_addr.op + 1
+    LD (0000), A            ; DEFAULT: Store result (address gets patched)
+    RET                     ; Return after store
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .Users.alice.dev.minz-ts.test_pgo_e2e.main
+.Users.alice.dev.minz-ts.test_pgo_e2e.main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 42
+    LD A, 42
+    LD D, A         ; Store to physical register D
+    ; r3 = 42
+    LD A, 42
+    LD E, A         ; Store to physical register E
+    ; unknown op 39
+    ; Smart patch 'store_u8' for .Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (.Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (.Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (.Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8_param_n+1), A   ; Patch parameter immediate
+    ; r4 = call .Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8
+    ; Call to .Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8 (args: 1)
+    ; Found function, UsesTrueSMC=false
+    CALL .Users.alice.dev.minz-ts.test_pgo_e2e.hot_function$u8
+    ; store result, r4
+    LD A, H
+    LD ($F002), A
+    ; Direct print "Result: " (8 chars)
+    ; Direct print "Result: " (8 chars)
+    LD A, 82
+    RST 16         ; Print character
+    LD A, 101
+    RST 16         ; Print character
+    LD A, 115
+    RST 16         ; Print character
+    LD A, 117
+    RST 16         ; Print character
+    LD A, 108
+    RST 16         ; Print character
+    LD A, 116
+    RST 16         ; Print character
+    LD A, 58
+    RST 16         ; Print character
+    LD A, 32
+    RST 16         ; Print character
+    ; r5 = load result
+    LD A, ($F002)
+    EXX               ; Switch to shadow registers
+    LD B', A         ; Store to shadow B'
+    EXX               ; Switch back to main registers
+    ; Call runtime print_u8_decimal
+    ; Call to print_u8_decimal (args: 1)
+    ; Stack-based parameter passing
+    PUSH HL       ; Argument 0
+    CALL print_u8_decimal
+    LD ($F000), HL    ; Virtual register 0 to memory
+    ; return
+    RET
+
+; Runtime print helper functions
+print_u8_decimal:
+    LD H, 0            ; HL = A (zero extend)
+    LD L, A
+    CALL print_u16_decimal
+    RET
+
+print_u16_decimal:
+    LD BC, -10000
+    LD DE, -1000
+    CALL print_digit
+    LD BC, -1000
+    LD DE, -100
+    CALL print_digit
+    LD BC, -100
+    LD DE, -10
+    CALL print_digit
+    LD BC, -10
+    LD DE, -1
+    CALL print_digit
+    LD A, L
+    ADD A, '0'         ; Convert to ASCII
+    RST 16             ; Print last digit
+    RET
+
+
+; Standard library routines
+
+    END main

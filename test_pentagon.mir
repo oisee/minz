@@ -1,0 +1,25 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_pgo_simple.hot_function() -> u8
+  @smc
+  Instructions:
+      0: r1 = 42
+      1: return r1
+
+Function ...test_pgo_simple.cold_function() -> u8
+  @smc
+  Instructions:
+      0: r1 = 1
+      1: return r1
+
+Function ...test_pgo_simple.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
+      3: return
+
