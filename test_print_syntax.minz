@@ -1,0 +1,13 @@
+fun main() -> void {
+    let x = 42;
+    let name = 100;
+    
+    // Test 1: Position-based placeholder (C printf style)
+    @print("Value: {}", x);
+    
+    // Test 2: Named placeholder (Rust/Python style)
+    @print("Hello {name}");
+    
+    // Test 3: Multiple named placeholders
+    @print("x = {x}, name = {name}");
+}

@@ -1,0 +1,30 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_crystal_backend.greet$p_u8(user: *u8) -> *u8
+  @smc
+  Instructions:
+      0: LOAD_LABEL ; Load string "Hello from MinZ!"
+      1: return r2
+
+Function ...test_crystal_backend.add$u8$u8(a: u8, b: u8) -> u8
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function ...test_crystal_backend.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: PATCH_PARAM
+      4: LOAD_STRING
+      5: PRINT_STRING ; Print "Hello from Crystal!" (19 chars via loop)
+      6: return
+

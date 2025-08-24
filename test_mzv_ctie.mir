@@ -1,0 +1,40 @@
+; Test MIR program for MZV CTIE capabilities
+; Tests @emit functionality for metaprogramming
+
+module ctie_test
+
+func factorial(n) -> i32 {
+entry:
+    %cmp = eq %n, 0
+    br %cmp, base_case, recursive_case
+    
+base_case:
+    ret 1
+    
+recursive_case:
+    %n_minus_1 = sub %n, 1
+    %rec_result = call factorial(%n_minus_1)
+    %result = mul %n, %rec_result
+    ret %result
+}
+
+func generate_code() -> void {
+entry:
+    ; Test @emit functionality
+    emit "fun generated_add(a: u8, b: u8) -> u8 {"
+    emit "    return a + b;"
+    emit "}"
+    ret
+}
+
+func main() -> i32 {
+entry:
+    ; Test computation
+    %fact5 = call factorial(5)
+    
+    ; Test code generation
+    call generate_code()
+    
+    ; Return factorial(5) = 120
+    ret %fact5
+}

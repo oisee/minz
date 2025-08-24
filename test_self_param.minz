@@ -1,0 +1,20 @@
+// Test self parameter support
+struct Point {
+    x: u8,
+    y: u8
+}
+
+impl Point {
+    fun distance(self) -> u8 {
+        return self.x + self.y;  // Simplified distance
+    }
+    
+    fun set_x(self, val: u8) -> void {
+        self.x = val;
+    }
+}
+
+fun main() -> void {
+    let p = Point { x: 10, y: 20 };
+    let d = p.distance();
+}

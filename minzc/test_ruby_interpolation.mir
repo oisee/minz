@@ -10,12 +10,8 @@ Function ...test_ruby_interpolation.main() -> void
     r7 = msg4: u16
   Instructions:
       0: LOAD_STRING ; @to_string result: "Hello from MinZ v0.15!"
-      1: store msg1, r2
-      2: LOAD_STRING ; @to_string result: "Version: 15"
-      3: store msg2, r4
-      4: LOAD_LABEL ; Load string "Plain string without interpolation"
-      5: store msg3, r6
-      6: LOAD_STRING ; @to_string result: "Compare: MinZ vs 15"
-      7: store msg4, r8
-      8: return
+      1: LOAD_STRING ; @to_string result: "Version: 15"
+      2: LOAD_LABEL ; Load string "Plain string without interpolation"
+      3: LOAD_STRING ; @to_string result: "Compare: MinZ vs 15"
+      4: return
 

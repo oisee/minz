@@ -1,0 +1,34 @@
+// Test: String interpolation as compile-time executable interface
+// Idea: @to_string metafunction that executes at compile time
+
+// Proposed design:
+interface Stringable {
+    fun to_string() -> str;
+}
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+impl Stringable for Point {
+    fun to_string() -> str {
+        // This could execute at compile-time with CTIE!
+        return @format("({self.x}, {self.y})");
+    }
+}
+
+fun main() -> void {
+    let p = Point { x: 10, y: 20 };
+    
+    // Option 1: Explicit @to_string metafunction
+    let msg = @to_string("Point: {p}");  // CTIE executes p.to_string()
+    
+    // Option 2: String interpolation syntax sugar
+    let msg2 = s"Point: ${p}";  // s-prefix for interpolated strings
+    
+    // Option 3: Ruby-style with compile-time execution
+    let msg3 = "Point: #{p}";  // Detected and CTIE-executed
+    
+    @print(msg);
+}

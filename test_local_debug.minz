@@ -2,10 +2,9 @@ fun outer() -> u8 {
     fun inner() -> u8 {
         return 42;
     }
-    return 43;  // Don't call inner yet
+    
+    let result = inner();
+    return result;
 }
 
-fun main() -> void {
-    let result = outer();
-    print_u8(result);
-}
+fun main() -> void {}

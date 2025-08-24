@@ -1,0 +1,5 @@
+fun outer() -> u8 {
+    fun inner() -> u8 { return 1; }
+    return 2;
+}
+fun main() -> void {}

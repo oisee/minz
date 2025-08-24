@@ -46,14 +46,15 @@ var rootCmd = &cobra.Command{
 Write once, run on any Z80, 6502, or modern platform!
 
 BACKENDS:
-  z80    - Z80 assembly (default)
-  6502   - 6502 assembly  
-  68000  - Motorola 68000 assembly
-  i8080  - Intel 8080 assembly
-  gb     - Game Boy (SM83/LR35902)
-  wasm   - WebAssembly
-  c      - C99 source code
-  llvm   - LLVM IR
+  z80     - Z80 assembly (default)
+  6502    - 6502 assembly  
+  68000   - Motorola 68000 assembly
+  i8080   - Intel 8080 assembly
+  gb      - Game Boy (SM83/LR35902)
+  wasm    - WebAssembly
+  c       - C99 source code
+  crystal - Crystal source code (Ruby-style dev workflow!)
+  llvm    - LLVM IR
 
 TARGET PLATFORMS (for Z80):
   zxspectrum - ZX Spectrum (default)
@@ -75,6 +76,7 @@ EXAMPLES:
   mz hello.minz -t msx               # MSX build (optimized by default)
   mz game.minz -b gb                 # Compile for Game Boy
   mz app.minz -b c -o app.c          # Generate C code
+  mz app.minz -b crystal -o app.cr   # Generate Crystal code (Ruby-style!)
   mz demo.minz --disable-smc         # Disable self-modifying code
   mz --list-backends                 # List all backends
 
@@ -154,7 +156,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&enableTAS, "tas", false, "enable TAS debugging with time-travel and cycle-perfect recording")
 	rootCmd.Flags().StringVar(&tasFile, "tas-record", "", "record execution to TAS file for perfect replay")
 	rootCmd.Flags().StringVar(&tasReplay, "tas-replay", "", "replay execution from TAS file")
-	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, 6502, wasm, c, llvm)")
+	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, 6502, wasm, c, crystal, llvm)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
 	rootCmd.Flags().StringVar(&visualizeMIR, "viz", "", "generate MIR visualization in DOT format")

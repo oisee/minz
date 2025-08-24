@@ -1,0 +1,24 @@
+// Feature audit test
+fun main() -> void {
+    // 1. Variable binding in patterns
+    case 42 {
+        x => {  // Binding x to the value
+            print_u8(x);
+        }
+    }
+    
+    // 2. Error propagation with ??
+    let val = get_value() ?? 0;  // Null coalescing
+    
+    // 3. Array literals
+    let arr = [1, 2, 3, 4];
+    
+    // 4. Generics
+    fun identity<T>(x: T) -> T {
+        return x;
+    }
+}
+
+fun get_value() -> u8? {
+    return 42;
+}

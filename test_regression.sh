@@ -144,13 +144,13 @@ fun print(x: u16) -> void {}
 fun main() -> void { print(42); }')
 run_test "Function overloading" "$test_file" "pass"
 
-# Local functions (currently failing)
+# Local functions (now working!)
 test_file=$(create_test "local_func.minz" 'fun outer() -> u8 {
     fun inner() -> u8 { return 42; }
     return inner();
 }
 fun main() -> void {}')
-run_test "Local/nested functions" "$test_file" "fail"
+run_test "Local/nested functions" "$test_file" "pass"
 
 # Error propagation
 test_file=$(create_test "error_prop.minz" 'fun test() -> u8? {
@@ -216,6 +216,54 @@ test_file=$(create_test "ct_if.minz" '@if(DEBUG) {
 }
 fun main() -> void {}')
 run_test "@if compile-time" "$test_file" "pass"
+
+echo ""
+echo "🚧 Not Yet Implemented"
+echo "----------------------"
+
+# String interpolation
+test_file=$(create_test "string_interp.minz" 'fun main() -> void {
+    let x = 42;
+    let msg = "Value: ${x}";  // Not working - just literal string
+}')
+run_test "String interpolation \${}" "$test_file" "pass"  # Passes but doesn't interpolate
+
+# Self parameter (method syntax)
+test_file=$(create_test "self_param.minz" 'struct Point { x: u8 }
+impl Point {
+    fun get(self) -> u8 { return self.x; }
+}
+fun main() -> void {
+    let p = Point { x: 10 };
+    let x = p.get();  // Method call syntax
+}')
+run_test "Self parameter (p.method())" "$test_file" "fail"  # Method calls not supported
+
+# Variable binding in patterns
+test_file=$(create_test "var_binding.minz" 'fun main() -> void {
+    case 42 {
+        x => print_u8(x)  // Binding x to value
+    }
+}')
+run_test "Variable binding in patterns" "$test_file" "fail"  # Not implemented
+
+# Error propagation with ??
+test_file=$(create_test "null_coalesce.minz" 'fun get() -> u8? { return 42; }
+fun main() -> void {
+    let x = get() ?? 0;  // Null coalescing
+}')
+run_test "?? operator" "$test_file" "fail"  # Not implemented
+
+# Array literals
+test_file=$(create_test "array_literal.minz" 'fun main() -> void {
+    let arr = [1, 2, 3];  // Array literal syntax
+}')
+run_test "Array literals [1,2,3]" "$test_file" "fail"  # Parser issue
+
+# Generics
+test_file=$(create_test "generics.minz" 'fun identity<T>(x: T) -> T { return x; }
+fun main() -> void {}')
+run_test "Generic functions <T>" "$test_file" "fail"  # Not implemented
 
 echo ""
 echo "📊 Test Results"

@@ -1,0 +1,13 @@
+// Test string interpolation
+fun main() -> void {
+    let name = 42;
+    
+    // Test 1: Current @print syntax
+    @print("Hello {}", name);
+    
+    // Test 2: String interpolation (if supported)
+    let msg = "Hello ${name}";
+    
+    // Test 3: Ruby-style interpolation (if supported)
+    let msg2 = "Hello #{name}";
+}

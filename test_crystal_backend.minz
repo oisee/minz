@@ -1,0 +1,18 @@
+// Test MinZ → Crystal transpilation with Ruby interpolation
+const VERSION = 15;
+const NAME = "MinZ";
+
+fun greet(user: *u8) -> *u8 {
+    // This Ruby-style interpolation should map perfectly to Crystal!
+    return "Hello from MinZ!";
+}
+
+fun add(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun main() -> void {
+    // Test arithmetic
+    let result = add(5, 7);
+    @print("Hello from Crystal!");
+}
