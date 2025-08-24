@@ -36,6 +36,7 @@ var (
 	showVersion  bool
 	showVersionFull bool
 	dumpAST      bool   // Dump AST in JSON format
+	dumpMIR      bool   // Dump MIR to stdout
 	
 	// PGO (Profile-Guided Optimization) - Quick Win flags
 	pgoProfile   string  // Path to .tas profile file for PGO compilation
@@ -169,6 +170,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
 	rootCmd.Flags().StringVar(&visualizeMIR, "viz", "", "generate MIR visualization in DOT format")
 	rootCmd.Flags().BoolVar(&dumpAST, "dump-ast", false, "dump AST in JSON format to stdout")
+	rootCmd.Flags().BoolVar(&dumpMIR, "dump-mir", false, "dump MIR (intermediate representation) to stdout")
 	rootCmd.Flags().BoolVar(&disableCTIE, "disable-ctie", false, "disable Compile-Time Interface Execution (enabled by default - functions execute at compile-time)")
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 }
@@ -368,6 +370,30 @@ func compile(sourceFile string) error {
 		outputFile = base[:len(base)-len(ext)] + backendInst.GetFileExtension()
 	}
 
+	// Dump MIR if requested
+	if dumpMIR {
+		// Create a temp file and use saveIRModule, then read and print
+		tmpFile, err := os.CreateTemp("", "mir_dump_*.mir")
+		if err != nil {
+			return fmt.Errorf("failed to create temp file: %w", err)
+		}
+		tmpName := tmpFile.Name()
+		tmpFile.Close()
+		defer os.Remove(tmpName)
+		
+		if err := saveIRModule(irModule, tmpName); err != nil {
+			return fmt.Errorf("failed to format MIR: %w", err)
+		}
+		
+		content, err := os.ReadFile(tmpName)
+		if err != nil {
+			return fmt.Errorf("failed to read MIR: %w", err)
+		}
+		
+		fmt.Print(string(content))
+		return nil // Exit after dumping MIR
+	}
+	
 	// Save IR to .mir file
 	mirFile := outputFile[:len(outputFile)-len(filepath.Ext(outputFile))] + ".mir"
 	if err := saveIRModule(irModule, mirFile); err != nil {
