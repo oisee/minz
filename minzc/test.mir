@@ -1,22 +1,70 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
-Function ...test_antlr_minimal.main() -> void
+Function tests.integration.fibonacci_tail.fib_tail$u8$u16$u16(n: u8, a: u16, b: u16) -> u16
   @smc
-  Locals:
-    r1 = x: u8
-    r3 = y: u8
-    r5 = z: u8
+  @recursive
   Instructions:
-      0: r2 = 5
-      1: store x, r2
-      2: r4 = 10
-      3: store y, r4
-      4: r6 = load x
-      5: r7 = load y
-      6: r8 = r6 + r7
-      7: store z, r8
-      8: r9 = load z
-      9: r0 = call print_u8_decimal ; Call runtime print_u8_decimal
-     10: return
+      0: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      1: tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_tail_loop: ; Tail recursion loop start
+      2: TEST
+      3: jump_if_not r6, else_1
+      4: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      5: return r7
+      6: else_1:
+      7: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      8: r9 = 1
+      9: r10 = r8 == r9
+     10: jump_if_not r10, else_3
+     11: TRUE_SMC_LOAD ; Load from anchor b$imm0
+     12: return r11
+     13: else_3:
+     14: TRUE_SMC_LOAD ; Load from anchor n$imm0
+     15: TRUE_SMC_LOAD ; Load from anchor b$imm0
+     16: TRUE_SMC_LOAD ; Load from anchor a$imm0
+     17: TRUE_SMC_LOAD ; Load from anchor b$imm0
+     18: TRUE_SMC_LOAD ; Load from anchor n$imm0
+     19: TRUE_SMC_LOAD ; Load from anchor b$imm0
+     20: TRUE_SMC_LOAD ; Load from anchor a$imm0
+     21: TRUE_SMC_LOAD ; Load from anchor b$imm0
+     22: PATCH_TEMPLATE
+     23: PATCH_TARGET
+     24: PATCH_PARAM
+     25: PATCH_PARAM
+     26: PATCH_PARAM
+     27: jump tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_tail_loop ; Tail recursion optimized to loop
+
+Function tests.integration.fibonacci_tail.fibonacci$u8(n: u8) -> u16
+  @smc
+  @recursive
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      2: PATCH_TEMPLATE
+      3: PATCH_TARGET
+      4: PATCH_PARAM
+      5: PATCH_PARAM
+      6: PATCH_PARAM
+      7: r8 = call tests.integration.fibonacci_tail.fib_tail$u8$u16$u16
+      8: return r8
+
+Function tests.integration.fibonacci_tail.main() -> void
+  @smc
+  @recursive
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: LOAD_PARAM ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+      4: LOAD_PARAM ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+      5: PATCH_TEMPLATE ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+      6: PATCH_TARGET ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+      7: PATCH_PARAM ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+      8: PATCH_PARAM ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+      9: PATCH_PARAM ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+     10: r3 = call tests.integration.fibonacci_tail.fib_tail$u8$u16$u16 ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+     11: r4 = r3 ; Inlined return value
+     12: return
 

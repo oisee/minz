@@ -1,0 +1,8 @@
+// Simple test case for parameter debugging
+fun test_param(x: u8) -> u8 {
+    return x + 1;
+}
+
+fun main() -> void {
+    let result = test_param(5);
+}

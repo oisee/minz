@@ -1,0 +1,21 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_param_debug.test_param$u8(x: u8) -> u8
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor x$imm0
+      1: r3 = 1
+      2: r4 = r2 + r3
+      3: return r4
+
+Function test_param_debug.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: return
+

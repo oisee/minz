@@ -952,6 +952,17 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 			
 			// Find the parameter info
 			var param *ir.Parameter
+			
+			// Debug: Print available parameters
+			if os.Getenv("DEBUG") != "" {
+				fmt.Printf("DEBUG: Looking for parameter '%s' in function '%s'\n", paramName, g.currentFunc.Name)
+				fmt.Printf("DEBUG: Available parameters: ")
+				for i, p := range g.currentFunc.Params {
+					fmt.Printf("[%d]%s ", i, p.Name)
+				}
+				fmt.Printf("\n")
+			}
+			
 			for _, p := range g.currentFunc.Params {
 				if p.Name == paramName {
 					param = &p
