@@ -69,6 +69,14 @@ func (p *InliningPass) isInlineCandidate(fn *ir.Function) bool {
 		}
 	}
 	
+	// Don't inline functions with LOAD_PARAM instructions
+	// (proper parameter remapping not yet implemented - causes "parameter not found" errors)
+	for _, inst := range fn.Instructions {
+		if inst.Op == ir.OpLoadParam {
+			return false
+		}
+	}
+	
 	// Don't inline functions with loops (for now)
 	for _, inst := range fn.Instructions {
 		if inst.Op == ir.OpJump || inst.Op == ir.OpJumpIfNot {

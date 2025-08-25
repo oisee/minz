@@ -1,0 +1,36 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function ...test_recursive_param.factorial$u8(n: u8) -> u8
+  @smc
+  @recursive
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: r5 = 1
+      5: return r5
+      6: else_1:
+      7: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      8: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      9: TRUE_SMC_LOAD ; Load from anchor n$imm0
+     10: PATCH_TEMPLATE
+     11: PATCH_TARGET
+     12: PATCH_PARAM
+     13: r13 = call ...test_recursive_param.factorial$u8
+     14: r14 = r6 * r13
+     15: return r14
+
+Function ...test_recursive_param.main() -> void
+  @smc
+  @recursive
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: r4 = call ...test_recursive_param.factorial$u8
+      4: return
+

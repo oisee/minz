@@ -1,0 +1,11 @@
+// Test recursive function with parameter
+fun factorial(n: u8) -> u8 {
+    if n <= 1 {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+fun main() -> void {
+    let result = factorial(5);
+}

@@ -2,6 +2,7 @@ package optimizer
 
 import (
 	"fmt"
+	"os"
 	"github.com/minz/minzc/pkg/ir"
 )
 
@@ -14,7 +15,7 @@ type TailRecursionPass struct {
 // NewTailRecursionPass creates a new tail recursion optimization pass
 func NewTailRecursionPass() Pass {
 	return &TailRecursionPass{
-		diagnostics: true,
+		diagnostics: os.Getenv("MINZ_QUIET") == "" && os.Getenv("DEBUG") != "",
 		optimized:   0,
 	}
 }

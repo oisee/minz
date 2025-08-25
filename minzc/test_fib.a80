@@ -1,0 +1,236 @@
+; MinZ generated code
+; Generated: 2025-08-26 00:51:05
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: tests.integration.fibonacci_tail.fib_tail$u8$u16$u16
+tests.integration.fibonacci_tail.fib_tail$u8$u16$u16:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    ; Tail recursion loop start
+tests_integration_fibonacci_tail_fib_tail_u8_u16_u16_tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_tail_loop:
+    ; unknown op 64
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; jump_if_not r6, else_1
+    LD A, B
+    OR A
+    JP Z, tests_integration_fibonacci_tail_fib_tail_u8_u16_u16_else_1   ; Test for zero
+a$immOP:
+    LD HL, 0       ; a anchor (will be patched)
+a$imm0 EQU a$immOP+1
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; return r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    RET
+    ; else_1:
+tests_integration_fibonacci_tail_fib_tail_u8_u16_u16_else_1:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD C, A         ; Store to physical register C
+    ; r9 = 1
+    LD A, 1
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; r10 = r8 == r9
+    EXX               ; Switch to shadow registers
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP Z, tests_integration_fibonacci_tail_fib_tail_u8_u16_u16_eq_true_0
+    LD HL, 0       ; False
+    JP tests_integration_fibonacci_tail_fib_tail_u8_u16_u16_eq_done_0
+tests_integration_fibonacci_tail_fib_tail_u8_u16_u16_eq_true_0:
+    LD HL, 1       ; True
+tests_integration_fibonacci_tail_fib_tail_u8_u16_u16_eq_done_0:
+    ; jump_if_not r10, else_3
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, tests_integration_fibonacci_tail_fib_tail_u8_u16_u16_else_3   ; Test for zero
+b$immOP:
+    LD HL, 0       ; b anchor (will be patched)
+b$imm0 EQU b$immOP+1
+    LD B, H
+    LD C, L
+    ; return r11
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    LD H, B
+    LD L, C
+    RET
+    ; else_3:
+tests_integration_fibonacci_tail_fib_tail_u8_u16_u16_else_3:
+    LD A, (n$imm0)    ; Reuse from anchor
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    LD HL, (b$imm0)   ; Reuse from anchor
+    LD HL, (a$imm0)   ; Reuse from anchor
+    ; Register 16 already in HL
+    LD HL, (b$imm0)   ; Reuse from anchor
+    LD ($F022), HL    ; Virtual register 17 to memory
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to HL (low byte)
+    LD HL, (b$imm0)   ; Reuse from anchor
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    LD HL, (a$imm0)   ; Reuse from anchor
+    ; Register 23 already in HL
+    LD HL, (b$imm0)   ; Reuse from anchor
+    LD ($F030), HL    ; Virtual register 24 to memory
+    ; unknown op 39
+    ; Smart patch 'store_u8' for tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_param_n+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD HL, 0              ; Parameter value
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_param_a+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD HL, 0              ; Parameter value
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_param_b+1), HL  ; Patch parameter immediate
+    ; Tail recursion optimized to loop
+    JP tests_integration_fibonacci_tail_fib_tail_u8_u16_u16_tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_tail_loop
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: tests.integration.fibonacci_tail.fibonacci$u8
+tests.integration.fibonacci_tail.fibonacci$u8:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    LD H, A         ; Store to physical register H
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; unknown op 39
+    ; Smart patch 'store_u8' for tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_param_n+1), A   ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter a = 0
+    LD HL, 0              ; Parameter value
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_param_a+1), HL  ; Patch parameter immediate
+    ; unknown op 41
+    ; Patch parameter b = 0
+    LD HL, 0              ; Parameter value
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_param_b+1), HL  ; Patch parameter immediate
+    ; r8 = call tests.integration.fibonacci_tail.fib_tail$u8$u16$u16
+    ; Call to tests.integration.fibonacci_tail.fib_tail$u8$u16$u16 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to tests.integration.fibonacci_tail.fib_tail$u8$u16$u16
+    LD A, L
+    LD (n$imm0), A        ; Patch n
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD (a$imm0), HL       ; Patch a (atomic)
+    ; Register 7 already in HL
+    LD (b$imm0), HL       ; Patch b (atomic)
+    CALL tests.integration.fibonacci_tail.fib_tail$u8$u16$u16
+    ; return r8
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: tests.integration.fibonacci_tail.main
+fibonacci_tail_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+    ; unknown op 39
+    ; Smart patch 'store_u8' for tests.integration.fibonacci_tail.fibonacci$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (tests.integration.fibonacci_tail.fibonacci$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (tests.integration.fibonacci_tail.fibonacci$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (tests.integration.fibonacci_tail.fibonacci$u8_param_n+1), A   ; Patch parameter immediate
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to HL (low byte)
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+    ; Smart patch 'store_u8' for tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_return_patch
+    LD A, #00               ; NOP opcode
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_return_patch.op), A
+    ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_store_addr), HL
+    ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_param_n+1), A   ; Patch parameter immediate
+    ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+    ; Patch parameter a = 0
+    LD HL, 0              ; Parameter value
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_param_a+1), HL  ; Patch parameter immediate
+    ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+    ; Patch parameter b = 0
+    LD HL, 0              ; Parameter value
+    LD (tests.integration.fibonacci_tail.fib_tail$u8$u16$u16_param_b+1), HL  ; Patch parameter immediate
+    ; Inlined from tests.integration.fibonacci_tail.fibonacci$u8
+    ; Call to tests.integration.fibonacci_tail.fib_tail$u8$u16$u16 (args: 3)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to tests.integration.fibonacci_tail.fib_tail$u8$u16$u16
+    LD A, ($F00A)     ; Virtual register 5 from memory
+    LD (n$imm0), A        ; Patch n
+    LD HL, ($F00C)    ; Virtual register 6 from memory
+    LD (a$imm0), HL       ; Patch a (atomic)
+    ; Register 7 already in HL
+    LD (b$imm0), HL       ; Patch b (atomic)
+    CALL tests.integration.fibonacci_tail.fib_tail$u8$u16$u16
+    ; Inlined return value
+    ; return
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW n$imm0           ; tests.integration.fibonacci_tail.fib_tail$u8$u16$u16.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW a$imm0           ; tests.integration.fibonacci_tail.fib_tail$u8$u16$u16.a
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW b$imm0           ; tests.integration.fibonacci_tail.fib_tail$u8$u16$u16.b
+    DB 2              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW n$imm0           ; tests.integration.fibonacci_tail.fibonacci$u8.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+    END main
+
+
+; Assembly peephole optimization: 6 patterns applied

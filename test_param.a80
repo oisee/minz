@@ -1,0 +1,58 @@
+; MinZ generated code
+; Generated: 2025-08-26 00:44:44
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_param_debug.test_param$u8
+...test_param_debug.test_param$u8:
+; TRUE SMC function with immediate anchors
+x$immOP:
+    LD A, 0        ; x anchor (will be patched)
+x$imm0 EQU x$immOP+1
+    ; r3 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 + r3
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r4
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_param_debug.main
+param_debug_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_param_debug.test_param$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_param_debug.test_param$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_param_debug.test_param$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter x = 0
+    LD A, 0               ; Parameter value
+    LD (...test_param_debug.test_param$u8_param_x+1), A   ; Patch parameter immediate
+    ; return
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW x$imm0           ; ...test_param_debug.test_param$u8.x
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+    END main
+
+
+; Assembly peephole optimization: no patterns matched

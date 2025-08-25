@@ -2,6 +2,7 @@ package optimizer
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"github.com/minz/minzc/pkg/ir"
 )
@@ -41,7 +42,7 @@ func NewRecursionDetector() *RecursionDetector {
 		recursionPath: make(map[string]bool),
 		cyclePath:     make([]string, 0),
 		recursionInfo: make(map[string]*RecursionInfo),
-		diagnostics:   true, // Enable diagnostics for better analysis
+		diagnostics:   os.Getenv("MINZ_QUIET") == "" && os.Getenv("DEBUG") != "", // Respect quiet mode
 	}
 }
 

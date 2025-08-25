@@ -1,0 +1,132 @@
+; MinZ generated code
+; Generated: 2025-08-26 00:47:32
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_recursive_param.factorial$u8
+...test_recursive_param.factorial$u8:
+; TRUE SMC function with immediate anchors
+n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+n$imm0 EQU n$immOP+1
+    ; r3 = 1
+    LD A, 1
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 <= r3
+    LD E, B        ; Load 8-bit value to DE
+    LD D, 0        ; Zero extend
+    OR A           ; Clear carry
+    SBC HL, DE     ; Compare Src1 - Src2
+    JP M, ___test_recursive_param_factorial_u8_le_true_0
+    JP Z, ___test_recursive_param_factorial_u8_le_true_0
+    LD HL, 0       ; False
+    JP ___test_recursive_param_factorial_u8_le_done_0
+___test_recursive_param_factorial_u8_le_true_0:
+    LD HL, 1       ; True
+___test_recursive_param_factorial_u8_le_done_0:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, ___test_recursive_param_factorial_u8_else_1   ; Test for zero
+    ; r5 = 1
+    LD A, 1
+    LD D, A         ; Store to physical register D
+    ; return r5
+    RET
+    ; else_1:
+___test_recursive_param_factorial_u8_else_1:
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD E, A         ; Store to physical register E
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD H, A         ; Store to physical register H
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_recursive_param.factorial$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_recursive_param.factorial$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_recursive_param.factorial$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (...test_recursive_param.factorial$u8_param_n+1), A   ; Patch parameter immediate
+    ; === SMC Recursive Context Save ===
+    LD A, (...test_recursive_param.factorial$u8_param_n)
+    PUSH AF
+    ; === Update SMC Parameters ===
+    CALL ...test_recursive_param.factorial$u8
+    ; === SMC Recursive Context Restore ===
+    POP AF
+    LD (...test_recursive_param.factorial$u8_param_n), A
+    ; r14 = r6 * r13
+    ; 8-bit multiplication
+    LD A, E
+    LD B, A       ; B = multiplicand
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    LD C, A       ; C = multiplier
+    LD HL, 0      ; HL = result
+    LD A, C
+    OR A          ; Check if multiplier is 0
+    JR Z, ___test_recursive_param_factorial_u8_mul_done_1
+___test_recursive_param_factorial_u8_mul_loop_1:
+    XOR D, D    ; Optimized: was LD D, 0
+    LD E, B
+    ADD HL, DE    ; Add multiplicand to result
+    DEC C
+    JR NZ, ___test_recursive_param_factorial_u8_mul_loop_1
+___test_recursive_param_factorial_u8_mul_done_1:
+    ; return r14
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: ...test_recursive_param.main
+recursive_param_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+    ; unknown op 39
+    ; Smart patch 'store_u8' for ...test_recursive_param.factorial$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (...test_recursive_param.factorial$u8_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (...test_recursive_param.factorial$u8_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (...test_recursive_param.factorial$u8_param_n+1), A   ; Patch parameter immediate
+    ; r4 = call ...test_recursive_param.factorial$u8
+    ; Call to ...test_recursive_param.factorial$u8 (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to ...test_recursive_param.factorial$u8
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    LD (n$imm0), A        ; Patch n
+    CALL ...test_recursive_param.factorial$u8
+    ; return
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW n$imm0           ; ...test_recursive_param.factorial$u8.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+    END main
+
+
+; Assembly peephole optimization: 2 patterns applied

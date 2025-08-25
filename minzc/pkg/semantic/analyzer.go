@@ -1409,9 +1409,9 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	// Finalize SMC decision based on function properties
 	// ONLY if no explicit @abi attribute was set
 	if irFunc.CallingConvention == "" {
-		if irFunc.IsRecursive && len(irFunc.Params) > 3 {
-			// Recursive functions with many parameters should use stack
-			// (too much overhead to save/restore many SMC parameters)
+		if irFunc.IsRecursive {
+			// Recursive functions should NOT use SMC for parameters
+			// SMC patching doesn't work with recursion since parameters need to be preserved across calls
 			irFunc.IsSMCDefault = false
 			irFunc.IsSMCEnabled = false
 		} else if len(irFunc.Locals) > 6 {
@@ -1425,7 +1425,7 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 			irFunc.IsSMCEnabled = false
 		}
 	}
-	// Otherwise keep SMC (including for recursive functions with few parameters)
+	// Otherwise keep SMC (only for non-recursive functions)
 
 	// Debug output
 	// Update parameter TSMC flags based on final SMC decision
