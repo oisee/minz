@@ -400,6 +400,44 @@ func (a *Analyzer) addBuiltins() {
 		IsBuiltin: true,
 	})
 	
+	// pad - pad a string to a given length
+	a.currentScope.Define("pad", &FuncSymbol{
+		Name: "pad",
+		Params: []*ast.Parameter{
+			{Name: "str", Type: &ast.PrimitiveType{Name: "str"}},
+			{Name: "length", Type: &ast.PrimitiveType{Name: "u8"}},
+			{Name: "char", Type: &ast.PrimitiveType{Name: "u8"}},
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{
+				&ir.StringType{},
+				&ir.BasicType{Kind: ir.TypeU8},
+				&ir.BasicType{Kind: ir.TypeU8},
+			},
+			Return: &ir.StringType{},
+		},
+		ReturnType: &ir.StringType{},
+		IsBuiltin: true,
+	})
+	
+	// format - format a string with arguments (simplified sprintf)
+	a.currentScope.Define("format", &FuncSymbol{
+		Name: "format",
+		Params: []*ast.Parameter{
+			{Name: "fmt", Type: &ast.PrimitiveType{Name: "str"}},
+			{Name: "arg", Type: &ast.PrimitiveType{Name: "u16"}}, // Simplified: single numeric arg
+		},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{
+				&ir.StringType{},
+				&ir.BasicType{Kind: ir.TypeU16},
+			},
+			Return: &ir.StringType{},
+		},
+		ReturnType: &ir.StringType{},
+		IsBuiltin: true,
+	})
+	
 	// === QUICK WIN STUB FUNCTIONS ===
 	// These are the most commonly missing functions that block tests
 	

@@ -201,6 +201,14 @@ func (e *Engine) processFunctionExecute(fn *ir.Function) error {
 			continue
 		}
 		
+		// Check for nil result
+		if result == nil {
+			if e.config.DebugOutput {
+				fmt.Printf("Warning: %s returned nil result, skipping optimization\n", call.FunctionName)
+			}
+			continue
+		}
+		
 		// Replace the call with the computed value!
 		e.replaceCallWithValue(fn, call.InstIndex, result)
 		e.statistics.FunctionsExecuted++
@@ -300,6 +308,11 @@ func (e *Engine) extractConstArguments(call *ir.Instruction) []Value {
 
 // replaceCallWithConstant replaces a call with its const result
 func (e *Engine) replaceCallWithConstant(call *ir.Instruction, result Value) {
+	// Safety check for nil result
+	if result == nil {
+		return
+	}
+	
 	// Replace the call instruction with a LoadConst
 	call.Op = ir.OpLoadConst
 	call.Imm = result.ToInt()
@@ -313,6 +326,11 @@ func (e *Engine) replaceCallWithConstant(call *ir.Instruction, result Value) {
 func (e *Engine) replaceCallWithValue(fn *ir.Function, instIndex int, result Value) {
 	if instIndex >= 0 && instIndex < len(fn.Instructions) {
 		inst := &fn.Instructions[instIndex]
+		
+		// Safety check for nil result
+		if result == nil {
+			return
+		}
 		
 		// Save the original function name for comment
 		origFunc := inst.Symbol
