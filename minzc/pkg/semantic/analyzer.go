@@ -2547,9 +2547,29 @@ func (a *Analyzer) analyzeCaseExpr(caseExpr *ast.CaseExpr, irFunc *ir.Function) 
 		}
 		
 		// Evaluate arm body
-		bodyReg, err := a.analyzeExpression(arm.Body.(ast.Expression), irFunc)
-		if err != nil {
-			return 0, err
+		var bodyReg ir.Register
+		if arm.Body == nil {
+			// For simple case arms without explicit body, there might be a value
+			// This shouldn't happen with a proper parser, but handle it gracefully
+			return 0, fmt.Errorf("case arm has nil body at pattern %v", arm.Pattern)
+		}
+		
+		switch body := arm.Body.(type) {
+		case ast.Expression:
+			bodyReg, err = a.analyzeExpression(body, irFunc)
+			if err != nil {
+				return 0, err
+			}
+		case *ast.BlockStmt:
+			if err := a.analyzeBlock(body, irFunc); err != nil {
+				return 0, err
+			}
+			// For blocks, we need to handle the result differently
+			// The block should have its own return value mechanism
+			bodyReg = irFunc.NextRegister
+			irFunc.NextRegister++
+		default:
+			return 0, fmt.Errorf("unexpected case arm body type: %T", arm.Body)
 		}
 		
 		// Move result to result register

@@ -1882,9 +1882,16 @@ func (p *Parser) parseCaseArm(node map[string]interface{}) *ast.CaseArm {
 	}
 	
 	children, _ := node["children"].([]interface{})
+	if os.Getenv("DEBUG") != "" {
+		fmt.Printf("DEBUG: parseCaseArm - %d children\n", len(children))
+	}
 	for i, child := range children {
 		childNode, _ := child.(map[string]interface{})
 		nodeType, _ := childNode["type"].(string)
+		
+		if os.Getenv("DEBUG") != "" {
+			fmt.Printf("DEBUG:   child %d type: %s\n", i, nodeType)
+		}
 		
 		switch nodeType {
 		case "pattern":
@@ -1910,6 +1917,9 @@ func (p *Parser) parseCaseArm(node map[string]interface{}) *ast.CaseArm {
 			arm.Body = p.parseExpression(childNode)
 		case "block":
 			arm.Body = p.parseBlock(childNode)
+		case "postfix_expression", "primary_expression", "number_literal", "identifier":
+			// Handle simple expressions that appear directly in case arms
+			arm.Body = p.parseExpression(childNode)
 		}
 	}
 	

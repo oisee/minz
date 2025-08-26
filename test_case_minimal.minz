@@ -1,13 +1,27 @@
-fun test() -> void {
-    let x = 2;
-    let result = case x {
-        1 => 10,
-        2 => 20,
-        _ => 30
-    };
-    print_u8(result);
+// Minimal test case for pattern matching nil issue
+
+enum State {
+    A,
+    B,
+}
+
+enum Input {
+    X,
+    Y,
+}
+
+fun test(s: State, i: Input) -> u8 {
+    case s {
+        State.A => {
+            case i {
+                Input.X => 1,
+                Input.Y => 2,
+            }
+        },
+        State.B => 3,
+    }
 }
 
 fun main() -> void {
-    test();
+    let result = test(State.A, Input.X);
 }

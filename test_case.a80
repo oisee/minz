@@ -1,9 +1,76 @@
 ; MinZ generated code
-; Generated: 2025-08-17 03:53:22
+; Generated: 2025-08-26 08:56:24
 
 
 ; Code section
     ORG $8000
 
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_case_minimal.test$State
+test_case_minimal.test$State:
+; TRUE SMC function with immediate anchors
+s$immOP:
+    LD A, 0        ; s anchor (will be patched)
+s$imm0 EQU s$immOP+1
+    ; r3 = 0
+    XOR A, A    ; Optimized: was LD A, 0
+    LD B, A         ; Store to physical register B
+    ; jump_if r4, case_expr_arm_0_2
+    LD A, C
+    OR A
+    JP NZ, test_case_minimal_test_State_case_expr_arm_0_2
+    ; r8 = 2
+    LD A, 2
+    LD D, A         ; Store to physical register D
+    ; unknown op 22
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: test_case_minimal.main
+case_minimal_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; unknown op 39
+    ; Smart patch 'store_u8' for test_case_minimal.test$State_return_patch
+    LD A, #00               ; NOP opcode
+    LD (test_case_minimal.test$State_return_patch.op), A
+    ; unknown op 40
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (test_case_minimal.test$State_store_addr), HL
+    ; unknown op 41
+    ; Patch parameter s = 0
+    LD A, 0               ; Parameter value
+    LD (test_case_minimal.test$State_param_s+1), A   ; Patch parameter immediate
+    LD A, (s$imm0)    ; Reuse from anchor
+    LD L, A         ; Store to physical register L
+    ; Inlined from test_case_minimal.test$State
+    XOR A, A    ; Optimized: was LD A, 0
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; Inlined from test_case_minimal.test$State
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP NZ, test_case_minimal_main_case_expr_arm_0_2
+    ; Inlined from test_case_minimal.test$State
+    ; return
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW s$imm0           ; test_case_minimal.test$State.s
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
 
     END main
+
+
+; Assembly peephole optimization: 1 patterns applied

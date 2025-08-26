@@ -1,3 +1,27 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
+Function test_case_minimal.test$State(s: State) -> u8
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor s$imm0
+      1: LOAD_IMM
+      2: JUMP_IF
+      3: r8 = 2
+      4: r1 = r8
+      5: return
+
+Function test_case_minimal.main() -> void
+  @smc
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: TRUE_SMC_LOAD ; Inlined: Load from anchor s$imm0
+      4: LOAD_IMM ; Inlined from test_case_minimal.test$State
+      5: JUMP_IF ; Inlined from test_case_minimal.test$State
+      6: r1 = r3 ; Inlined from test_case_minimal.test$State
+      7: return
+
