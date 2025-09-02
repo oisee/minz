@@ -1,9 +1,17 @@
-// Test if 'self' is a reserved word that can be used
-fun process(self: u8) -> u8 {
-    return self * 2;
+// Test self parameter
+struct Point {
+    x: u8,
+    y: u8,
+}
+
+impl Point {
+    fun distance(self) -> u8 {
+        return self.x + self.y;
+    }
 }
 
 fun main() -> void {
-    let result = process(5);
-    print_u8(result);
+    let p = Point { x: 10, y: 20 };
+    let d = p.distance();
+    print_u8(d);
 }
