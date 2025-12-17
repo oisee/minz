@@ -149,7 +149,7 @@ crystal run hello.cr  # Test instantly!
 | **Crystal Backend** | ✅ Working | Test on modern, deploy to vintage |
 | **Multi-Backend** | ✅ Working | Z80, 6502, C, WASM, Crystal, LLVM |
 | **Pattern Matching** | 🚧 In Progress | Basic syntax parses, codegen WIP |
-| **Error Propagation** | 🟡 Partial | CY+A ABI works, `@error()` syntax WIP |
+| **Error Propagation** | ✅ Working | `@error(code)` sets CY flag + A register |
 | **Iterator Chains** | 🚧 Partial | Compiles but not DJNZ-optimized yet |
 
 ---
@@ -222,6 +222,26 @@ fun next_state(s: State) -> State {
 }
 ```
 > **Note:** Pattern matching syntax parses but code generation is still in development.
+
+### **Error Propagation**
+```minz
+enum FileError { None, NotFound, Permission }
+
+// Function that can fail - uses @error metafunction
+fun read_file?(path: u8) -> u8 ? FileError {
+    if path == 0 {
+        @error(1);  // FileError.NotFound
+    }
+    return path;
+}
+
+// Caller handles error via CY flag
+fun main() -> void {
+    let data: u8 = read_file?(5);
+    // CY flag indicates success/failure
+    // A register contains error code on failure
+}
+```
 
 ### **Inline Assembly**
 ```minz

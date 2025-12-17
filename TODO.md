@@ -67,17 +67,18 @@ Features that are documented/claimed but don't work.
 Important features for language completeness.
 
 ### 8. Error Propagation (`?` operator)
-**Status:** 🟡 Partially implemented
+**Status:** ✅ Core functionality working!
 **Working:**
 - Error type enums with CY flag + A register ABI
 - `? ErrorType` return type syntax
 - Z80 codegen: `SCF` for error, `OR A` for success, `JR NC` for checking
 - Manual error handling with inline `asm { SCF }` works
-**Not Working:**
-- `@error(EnumValue)` metafunction
-- `?? @error` propagation syntax
-- Type inference for `?`-suffixed function calls (needs explicit type)
-**Effort:** 1-2 days to complete metafunctions
+- **`@error(code)` metafunction** - NEW! Sets CY flag and returns
+**Remaining polish:**
+- `?? @error` propagation syntax (minor cleanup)
+- Enum value access (`ErrorType.Value` syntax)
+- Type inference for `?`-suffixed function calls
+**Effort:** Polish items ~4 hours each
 
 ### 9. Iterator Chain Optimization (DJNZ)
 **Status:** 🟡 Compiles but unoptimized
@@ -124,6 +125,7 @@ Nice to have, not blocking.
 
 ## ✅ Recently Completed
 
+- [x] **@error(code) metafunction** - Error propagation working! (2025-12-17)
 - [x] Ruby string interpolation (`#{var}`) - Working
 - [x] CTIE compile-time execution - Working
 - [x] Struct literals and field access - Working
@@ -140,7 +142,7 @@ Nice to have, not blocking.
 ### Current State
 | Metric | Value |
 |--------|-------|
-| Examples compiling | 47/58 (81%) |
+| Examples compiling | 48/59 (81%) |
 | Working core features | 12/20 |
 | Documented features working | ~60% |
 
