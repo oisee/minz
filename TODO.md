@@ -26,7 +26,7 @@ These issues block basic usage and must be fixed immediately.
 **Status:** ✅ DONE
 **Issue:** Binaries in repo were macOS ARM64, failed on Linux
 **Fix:** Removed tracked binaries from repo, added to .gitignore. Users build from source.
-**Commit:** (pending)
+**Commit:** 1e3a932
 
 ---
 
