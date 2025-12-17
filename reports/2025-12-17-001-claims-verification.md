@@ -15,8 +15,8 @@ This report verifies claims made in the MinZ repository documentation (README.md
 | Metric | Claimed | Actual | Status |
 |--------|---------|--------|--------|
 | Compilation Success Rate | 88% (150/170) | **81% (47/58)** | Close but overstated |
-| Error Propagation (`?`) | Working | **NOT WORKING** | Major gap |
-| Pattern Matching | Working | **NOT WORKING** | Major gap |
+| Error Propagation (`?`) | Working | **Partial** | Infra exists, syntax incomplete |
+| Pattern Matching | Working | **NOT WORKING** | Codegen gap |
 | Lambda Iterator Chains | DJNZ optimized | **Unoptimized** | Misleading |
 | Function Pointers | Working | **NOT WORKING** | Major gap |
 | Module Imports | Working | **Partial** | Library missing |
@@ -66,20 +66,36 @@ fun read_file?(path: *u8) -> *u8 ? Error {
 }
 ```
 
-**Test:**
+**Actual State:** PARTIALLY IMPLEMENTED
+
+**Working:**
+- Error type enums (e.g., `enum FileError { NotFound, Invalid }`)
+- Return type syntax: `fun foo?(x: u8) -> u8 ? FileError`
+- Z80 ABI: CY flag = error indicator, A register = error code
+- Z80 codegen: `SCF` for error, `JR NC` for checking
+- Manual error handling with inline assembly works
+
+**Test that works:**
 ```minz
-fun risky_op?(x: u8) -> u8 ? Error {
-    if x == 0 { return @error("zero value"); }
+enum MyError { None, NotFound }
+fun get_value?(x: u8) -> u8 ? MyError {
+    if x == 0 {
+        asm { LD A, 1; SCF }  // Manual error
+        return 0;
+    }
     return x * 2;
+}
+fun main() -> void {
+    let result: u8 = get_value?(5);  // Explicit type required
 }
 ```
 
-**Result:** FAILS
-```
-Error: invalid error type for function risky_op: undefined type: Error
-```
+**Not Working:**
+- `@error(EnumValue)` metafunction
+- `?? @error` propagation syntax
+- Type inference for `?`-suffixed calls
 
-**Verdict:** NOT IMPLEMENTED - Error type and `?` operator don't exist
+**Verdict:** PARTIAL - Infrastructure exists, high-level syntax incomplete
 
 ---
 

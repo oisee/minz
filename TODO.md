@@ -67,10 +67,17 @@ Features that are documented/claimed but don't work.
 Important features for language completeness.
 
 ### 8. Error Propagation (`?` operator)
-**Status:** 🔴 Not implemented
-**Issue:** `Error` type undefined, `?` operator doesn't work
-**Design:** Complete (see docs)
-**Effort:** 2-3 days
+**Status:** 🟡 Partially implemented
+**Working:**
+- Error type enums with CY flag + A register ABI
+- `? ErrorType` return type syntax
+- Z80 codegen: `SCF` for error, `OR A` for success, `JR NC` for checking
+- Manual error handling with inline `asm { SCF }` works
+**Not Working:**
+- `@error(EnumValue)` metafunction
+- `?? @error` propagation syntax
+- Type inference for `?`-suffixed function calls (needs explicit type)
+**Effort:** 1-2 days to complete metafunctions
 
 ### 9. Iterator Chain Optimization (DJNZ)
 **Status:** 🟡 Compiles but unoptimized
