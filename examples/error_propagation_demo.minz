@@ -7,10 +7,10 @@ enum MathError {
     Overflow
 }
 
-// Function that can fail - uses @error to set error
+// Function that can fail - uses @error with enum value
 fun safe_divide?(a: u8, b: u8) -> u8 ? MathError {
     if b == 0 {
-        @error(1);  // MathError.DivByZero
+        @error(MathError.DivByZero);
     }
     // Simple division for demo (real div would be more complex)
     return a;
@@ -21,11 +21,7 @@ fun checked_add?(a: u8, b: u8) -> u8 ? MathError {
     let result = a + b;
     // Check for overflow (if result < a, overflow occurred)
     if result < a {
-        asm {
-            LD A, 2       ; MathError.Overflow
-            SCF           ; Set carry flag = error
-        }
-        return 0;
+        @error(MathError.Overflow);
     }
     return result;
 }

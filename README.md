@@ -228,10 +228,10 @@ fun next_state(s: State) -> State {
 ```minz
 enum FileError { None, NotFound, Permission }
 
-// Function that can fail - uses @error metafunction
+// Function that can fail - uses @error with enum value
 fun read_file?(path: u8) -> u8 ? FileError {
     if path == 0 {
-        @error(1);  // FileError.NotFound
+        @error(FileError.NotFound);  // Proper enum syntax!
     }
     return path;
 }
@@ -243,6 +243,7 @@ fun main() -> void {
     // A register contains error code on failure
 }
 ```
+> **Note:** `@error(EnumType.Variant)` resolves to a compile-time constant for optimal code generation.
 
 ### **Inline Assembly**
 ```minz

@@ -9614,19 +9614,51 @@ func (a *Analyzer) analyzeExplicitError(errorExpr *ast.CompileTimeError, irFunc 
 		}
 	}
 	
-	// Analyze the error value expression
-	errorReg, err := a.analyzeExpression(errorExpr.ErrorValue, irFunc)
-	if err != nil {
-		return 0, fmt.Errorf("@error value: %w", err)
+	// Try to evaluate the error value at compile time for better code generation
+	var errorImm int64 = -1 // -1 means "use register"
+	var errorReg ir.Register
+
+	// Check if error value is a constant we can resolve at compile time
+	switch ev := errorExpr.ErrorValue.(type) {
+	case *ast.NumberLiteral:
+		errorImm = ev.Value
+	case *ast.FieldExpr:
+		// Check if it's an enum value access (e.g., MathError.DivideByZero)
+		if id, ok := ev.Object.(*ast.Identifier); ok {
+			if sym := a.currentScope.Lookup(id.Name); sym != nil {
+				if typeSym, isType := sym.(*TypeSymbol); isType {
+					if enumType, isEnum := typeSym.Type.(*ir.EnumType); isEnum {
+						if val, exists := enumType.Variants[ev.Field]; exists {
+							errorImm = int64(val)
+						}
+					}
+				}
+			}
+		}
 	}
-	
+
+	// If we couldn't get a compile-time constant, analyze the expression
+	if errorImm < 0 {
+		var err error
+		errorReg, err = a.analyzeExpression(errorExpr.ErrorValue, irFunc)
+		if err != nil {
+			return 0, fmt.Errorf("@error value: %w", err)
+		}
+	}
+
 	// Set CY flag (carry flag indicates error in Z80)
 	// Use OpSetError which generates: LD A, <error_code>; SCF
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+	inst := ir.Instruction{
 		Op:      ir.OpSetError,
-		Src1:    errorReg,
 		Comment: "@error() - set carry flag with error code in A",
-	})
+	}
+	if errorImm >= 0 {
+		inst.Imm = errorImm
+		inst.Comment = fmt.Sprintf("@error(%d) - set carry flag with error code in A", errorImm)
+	} else {
+		inst.Src1 = errorReg
+	}
+	irFunc.Instructions = append(irFunc.Instructions, inst)
 
 	// Generate return instruction
 	// The error code is already in A register after OpSetError

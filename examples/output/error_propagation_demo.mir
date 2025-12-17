@@ -1,19 +1,19 @@
 ; MinZ Intermediate Representation (MIR)
 ; Module: main
 
-Function .home.alice.dev.minz.examples.error_propagation_demo.safe_divide$u8$u8(a: u8, b: u8) -> u8
+Function examples.error_propagation_demo.safe_divide$u8$u8(a: u8, b: u8) -> u8
   @smc
   Instructions:
       0: TRUE_SMC_LOAD ; Load from anchor b$imm0
       1: TEST
       2: jump_if_not r5, else_1
-      3: SET_ERROR ; @error() - set carry flag with error code in A
+      3: SET_ERROR ; @error(1) - set carry flag with error code in A
       4: return ; Return with error (CY=1, A=error code)
       5: else_1:
       6: TRUE_SMC_LOAD ; Load from anchor a$imm0
-      7: return r7
+      7: return r6
 
-Function .home.alice.dev.minz.examples.error_propagation_demo.checked_add$u8$u8(a: u8, b: u8) -> u8
+Function examples.error_propagation_demo.checked_add$u8$u8(a: u8, b: u8) -> u8
   @smc
   Locals:
     r3 = result: u16
@@ -24,14 +24,13 @@ Function .home.alice.dev.minz.examples.error_propagation_demo.checked_add$u8$u8(
       3: TRUE_SMC_LOAD ; Load from anchor a$imm0
       4: r9 = r7 < r8
       5: jump_if_not r9, else_3
-      6: ASM
-      7: r10 = 0
-      8: return r10
-      9: else_3:
-     10: r11 = load result
-     11: return r11
+      6: SET_ERROR ; @error(2) - set carry flag with error code in A
+      7: return ; Return with error (CY=1, A=error code)
+      8: else_3:
+      9: r10 = load result
+     10: return r10
 
-Function .home.alice.dev.minz.examples.error_propagation_demo.main() -> void
+Function examples.error_propagation_demo.main() -> void
   @smc
   Locals:
     r1 = r1: u8
@@ -44,10 +43,10 @@ Function .home.alice.dev.minz.examples.error_propagation_demo.main() -> void
       2: PATCH_PARAM
       3: PATCH_PARAM
       4: TRUE_SMC_LOAD ; Inlined: Load from anchor b$imm0
-      5: TEST ; Inlined from .home.alice.dev.minz.examples.error_propagation_demo.safe_divide$u8$u8
-      6: jump_if_not r2, else_1 ; Inlined from .home.alice.dev.minz.examples.error_propagation_demo.safe_divide$u8$u8
-      7: SET_ERROR ; Inlined: @error() - set carry flag with error code in A
-      8: else_1: ; Inlined from .home.alice.dev.minz.examples.error_propagation_demo.safe_divide$u8$u8
+      5: TEST ; Inlined from examples.error_propagation_demo.safe_divide$u8$u8
+      6: jump_if_not r2, else_1 ; Inlined from examples.error_propagation_demo.safe_divide$u8$u8
+      7: SET_ERROR ; Inlined: @error(1) - set carry flag with error code in A
+      8: else_1: ; Inlined from examples.error_propagation_demo.safe_divide$u8$u8
       9: TRUE_SMC_LOAD ; Inlined: Load from anchor a$imm0
      10: r6 = r3 ; Inlined return value
      11: PATCH_TEMPLATE
@@ -55,21 +54,21 @@ Function .home.alice.dev.minz.examples.error_propagation_demo.main() -> void
      13: PATCH_PARAM
      14: PATCH_PARAM
      15: TRUE_SMC_LOAD ; Inlined: Load from anchor b$imm0
-     16: TEST ; Inlined from .home.alice.dev.minz.examples.error_propagation_demo.safe_divide$u8$u8
-     17: jump_if_not r5, else_1 ; Inlined from .home.alice.dev.minz.examples.error_propagation_demo.safe_divide$u8$u8
-     18: SET_ERROR ; Inlined: @error() - set carry flag with error code in A
-     19: else_1: ; Inlined from .home.alice.dev.minz.examples.error_propagation_demo.safe_divide$u8$u8
+     16: TEST ; Inlined from examples.error_propagation_demo.safe_divide$u8$u8
+     17: jump_if_not r5, else_1 ; Inlined from examples.error_propagation_demo.safe_divide$u8$u8
+     18: SET_ERROR ; Inlined: @error(1) - set carry flag with error code in A
+     19: else_1: ; Inlined from examples.error_propagation_demo.safe_divide$u8$u8
      20: TRUE_SMC_LOAD ; Inlined: Load from anchor a$imm0
      21: r12 = r6 ; Inlined return value
      22: PATCH_TEMPLATE
      23: PATCH_TARGET
      24: PATCH_PARAM
      25: PATCH_PARAM
-     26: r18 = call .home.alice.dev.minz.examples.error_propagation_demo.checked_add$u8$u8
+     26: r18 = call examples.error_propagation_demo.checked_add$u8$u8
      27: PATCH_TEMPLATE
      28: PATCH_TARGET
      29: PATCH_PARAM
      30: PATCH_PARAM
-     31: r24 = call .home.alice.dev.minz.examples.error_propagation_demo.checked_add$u8$u8
+     31: r24 = call examples.error_propagation_demo.checked_add$u8$u8
      32: return
 

@@ -918,7 +918,9 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 		
 	case ir.OpSetError:
 		// Carry-flag error ABI: Set CY=1 and error code in A
-		if inst.Imm != 0 {
+		// If Src1 is 0, use immediate value (even if Imm is 0)
+		// If Src1 is non-zero, load from that register
+		if inst.Src1 == 0 {
 			g.emit("    LD A, %d       ; Error code", inst.Imm)
 		} else {
 			g.loadToA(inst.Src1) // Load error code from register
