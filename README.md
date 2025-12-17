@@ -126,7 +126,7 @@ crystal run hello.cr  # Test instantly!
 | **v0.11.0** | Complete Toolchain | Compiler + Assembler + Emulator + REPL |
 | **v0.10.0** | Lambda Support | Lambda syntax and transformation |
 | **v0.9.6** | Function Overloading | `print(anything)` |
-| **v0.9.0** | Error Handling Design | `?` operator (in progress) |
+| **v0.9.0** | Error Handling | CY flag + A register ABI (partial) |
 | **v0.8.0** | True Self-Modifying Code | 10x performance through mutation |
 | **v0.7.0** | LLVM Backend | Modern optimizations |
 | **v0.6.0** | Module System | Professional organization |
@@ -149,7 +149,7 @@ crystal run hello.cr  # Test instantly!
 | **Crystal Backend** | ✅ Working | Test on modern, deploy to vintage |
 | **Multi-Backend** | ✅ Working | Z80, 6502, C, WASM, Crystal, LLVM |
 | **Pattern Matching** | 🚧 In Progress | Basic syntax parses, codegen WIP |
-| **Error Propagation** | 🚧 Planned | `?` operator design complete |
+| **Error Propagation** | 🟡 Partial | CY+A ABI works, `@error()` syntax WIP |
 | **Iterator Chains** | 🚧 Partial | Compiles but not DJNZ-optimized yet |
 
 ---
