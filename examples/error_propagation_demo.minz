@@ -1,0 +1,45 @@
+// Error Propagation E2E Demo
+// Demonstrates the CY flag + A register error ABI
+
+enum MathError {
+    None,
+    DivByZero,
+    Overflow
+}
+
+// Function that can fail - uses @error to set error
+fun safe_divide?(a: u8, b: u8) -> u8 ? MathError {
+    if b == 0 {
+        @error(1);  // MathError.DivByZero
+    }
+    // Simple division for demo (real div would be more complex)
+    return a;
+}
+
+// Function using manual asm for error (alternative approach)
+fun checked_add?(a: u8, b: u8) -> u8 ? MathError {
+    let result = a + b;
+    // Check for overflow (if result < a, overflow occurred)
+    if result < a {
+        asm {
+            LD A, 2       ; MathError.Overflow
+            SCF           ; Set carry flag = error
+        }
+        return 0;
+    }
+    return result;
+}
+
+fun main() -> void {
+    // Test safe_divide - should succeed
+    let r1: u8 = safe_divide?(10, 2);
+
+    // Test safe_divide with zero - should error
+    let r2: u8 = safe_divide?(10, 0);
+
+    // Test checked_add - should succeed
+    let r3: u8 = checked_add?(100, 50);
+
+    // Test checked_add with overflow
+    let r4: u8 = checked_add?(200, 100);
+}

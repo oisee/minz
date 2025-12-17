@@ -9598,10 +9598,18 @@ func (a *Analyzer) analyzeExplicitError(errorExpr *ast.CompileTimeError, irFunc 
 		if err != nil {
 			return 0, fmt.Errorf("cannot determine type of @error expression: %w", err)
 		}
-		
+
 		// Check if error type matches declared error type
-		if !a.typesCompatible(currentFuncSym.ErrorType, errorType) {
-			return 0, fmt.Errorf("@error type mismatch: function declares error type %s but got %s", 
+		// Allow integer literals when error type is an enum (pragmatic: enums compile to u8)
+		isIntegerLiteral := false
+		if basicType, ok := errorType.(*ir.BasicType); ok {
+			isIntegerLiteral = basicType.Kind == ir.TypeU8 || basicType.Kind == ir.TypeI8 ||
+				basicType.Kind == ir.TypeU16 || basicType.Kind == ir.TypeI16
+		}
+		_, declaredIsEnum := currentFuncSym.ErrorType.(*ir.EnumType)
+
+		if !a.typesCompatible(currentFuncSym.ErrorType, errorType) && !(isIntegerLiteral && declaredIsEnum) {
+			return 0, fmt.Errorf("@error type mismatch: function declares error type %s but got %s",
 				currentFuncSym.ErrorType.String(), errorType.String())
 		}
 	}
@@ -9613,24 +9621,18 @@ func (a *Analyzer) analyzeExplicitError(errorExpr *ast.CompileTimeError, irFunc 
 	}
 	
 	// Set CY flag (carry flag indicates error in Z80)
-	// For now, use a placeholder operation - we'll implement OpSetCarry later
+	// Use OpSetError which generates: LD A, <error_code>; SCF
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpLoadConst,  // Placeholder: set error flag in a register
-		Dest: ir.Register(-10), // Special register to indicate error state
-		Imm:  1,               // Error = 1
+		Op:      ir.OpSetError,
+		Src1:    errorReg,
+		Comment: "@error() - set carry flag with error code in A",
 	})
-	
-	// Return the error value
-	// The error value should be in register A for Z80 convention
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpMove,
-		Dest: ir.Register(0), // Move to register 0 (convention)
-		Src1: errorReg,
-	})
-	
+
 	// Generate return instruction
+	// The error code is already in A register after OpSetError
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op: ir.OpReturn,
+		Op:      ir.OpReturn,
+		Comment: "Return with error (CY=1, A=error code)",
 	})
 	
 	// Return dummy register (this code path won't continue)
