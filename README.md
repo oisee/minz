@@ -8,7 +8,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.15.0-brightgreen)](https://github.com/oisee/minz/releases)
 [![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
-[![Success Rate](https://img.shields.io/badge/compilation-88%25-success)]()
+[![Success Rate](https://img.shields.io/badge/compilation-81%25-success)]()
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
 **Write modern code. Deploy everywhere. From 1978 Z80 to 2025 Crystal.**
@@ -30,11 +30,10 @@ MinZ is a **revolutionary programming language** that brings modern abstractions
 const NAME = "MinZ";
 let greeting = "Hello from #{NAME}!";  // Ruby interpolation!
 
-// Zero-cost functional programming
-numbers.iter()
-    .filter(|x| x > 5)
-    .map(|x| x * 2)
-    .forEach(|x| print(x));  // Compiles to optimal DJNZ loop!
+// Structs and field access
+struct Point { x: u8, y: u8 }
+let p = Point { x: 10, y: 20 };
+let sum = p.x + p.y;
 
 // Compile-time execution (faster than zero-cost!)
 @ctie
@@ -55,18 +54,38 @@ let d = distance(10, 3);  // Becomes: LD A, 7 (computed at compile-time!)
 
 ## 🚀 **Quick Start**
 
-### **1. Install MinZ** (Zero Dependencies!)
+### **1. Install Dependencies**
+
+MinZ requires tree-sitter for parsing. Install it first:
 
 ```bash
-# macOS/Linux
+# Install tree-sitter CLI
+npm install -g tree-sitter-cli
+
+# Initialize tree-sitter config (REQUIRED!)
+tree-sitter init-config
+```
+
+### **2. Install MinZ**
+
+```bash
+# macOS/Linux - from releases
 curl -L https://github.com/oisee/minz/releases/latest/download/minz-$(uname -s)-$(uname -m).tar.gz | tar -xz
+sudo mv mz /usr/local/bin/
+
+# Or build from source (recommended)
+git clone https://github.com/oisee/minz.git
+cd minz/minzc
+go build -o mz cmd/minzc/main.go
 sudo mv mz /usr/local/bin/
 
 # Verify
 mz --version  # MinZ v0.15.0
 ```
 
-### **2. Write Your First Program**
+> **Note:** Pre-built binaries may be for a different architecture. Building from source is recommended.
+
+### **3. Write Your First Program**
 
 ```minz
 // hello.minz
@@ -78,7 +97,7 @@ fun main() -> void {
 }
 ```
 
-### **3. Compile & Run**
+### **4. Compile & Run**
 
 ```bash
 # For vintage hardware (Z80)
@@ -101,13 +120,13 @@ crystal run hello.cr  # Test instantly!
 | Version | Revolution | Impact |
 |---------|------------|--------|
 | **v0.15.0** | Ruby Interpolation + Crystal Backend | `"Hello #{name}!"` + Modern workflow |
-| **v0.14.0** | Pattern Matching | `case x { Some(v) => ... }` |
-| **v0.13.0** | Module System | `import math as m` |
+| **v0.14.0** | Pattern Matching (partial) | Basic case syntax (in progress) |
+| **v0.13.0** | Module System | `import` syntax (stdlib WIP) |
 | **v0.12.0** | CTIE (Compile-Time Execution) | Functions run at compile-time! |
 | **v0.11.0** | Complete Toolchain | Compiler + Assembler + Emulator + REPL |
-| **v0.10.0** | Lambda Iterators | `.map().filter()` → DJNZ loops |
+| **v0.10.0** | Lambda Support | Lambda syntax and transformation |
 | **v0.9.6** | Function Overloading | `print(anything)` |
-| **v0.9.0** | Error Propagation | `risky_op?()` with `?` operator |
+| **v0.9.0** | Error Handling Design | `?` operator (in progress) |
 | **v0.8.0** | True Self-Modifying Code | 10x performance through mutation |
 | **v0.7.0** | LLVM Backend | Modern optimizations |
 | **v0.6.0** | Module System | Professional organization |
@@ -119,50 +138,52 @@ crystal run hello.cr  # Test instantly!
 
 </details>
 
-### **🏆 World's First & Only**
+### **🏆 Working Features**
 
-| Feature | Description | Example |
-|---------|-------------|---------|
-| **Zero-Cost Lambdas** | Lambda iterators compile to optimal assembly | `.map(|x| x * 2)` → `ADD A, A` |
-| **Negative-Cost Functions** | CTIE executes at compile-time | `distance(3,7)` → `LD A, 4` |
-| **True SMC** | Self-modifying code with 10x gains | Functions rewrite themselves! |
-| **Ruby on Z80** | Ruby interpolation on 8-bit CPU | `"Score: #{points}"` |
-| **Smart Arrays** | Array literals → DB/DW directives | `[10,20,30]` → `DB 10,20,30` |
-| **Modern Errors** | Line numbers in all error messages | `line 42, col 8: undefined` |
-| **Pattern Matching** | ML-style on 64KB RAM | `case Some(x) => x` |
-| **Crystal Backend** | Test on modern, deploy to vintage | Same code runs 1978→2025 |
+| Feature | Status | Example |
+|---------|--------|---------|
+| **CTIE** | ✅ Working | `@ctie fun add(a,b) -> ...` executes at compile-time |
+| **Ruby Interpolation** | ✅ Working | `@print("Hello #{NAME}!")` |
+| **True SMC** | ✅ Working | Self-modifying code optimizations |
+| **Structs** | ✅ Working | `Point { x: 10, y: 20 }` with field access |
+| **Crystal Backend** | ✅ Working | Test on modern, deploy to vintage |
+| **Multi-Backend** | ✅ Working | Z80, 6502, C, WASM, Crystal, LLVM |
+| **Pattern Matching** | 🚧 In Progress | Basic syntax parses, codegen WIP |
+| **Error Propagation** | 🚧 Planned | `?` operator design complete |
+| **Iterator Chains** | 🚧 Partial | Compiles but not DJNZ-optimized yet |
 
 ---
 
 ## 📚 **Code Examples**
 
-### **Modern Functional Programming**
+### **Functions and Structs**
 ```minz
-// Zero-cost iterator chains
-let result = [1, 2, 3, 4, 5]
-    .iter()
-    .filter(|x| x % 2 == 0)
-    .map(|x| x * x)
-    .sum();  // Compiles to tight DJNZ loop!
+// Struct with field access
+struct Point { x: u8, y: u8 }
+
+fun distance(p1: Point, p2: Point) -> u8 {
+    let dx = p2.x - p1.x;
+    let dy = p2.y - p1.y;
+    return dx + dy;  // Manhattan distance
+}
+
+fun main() -> void {
+    let a = Point { x: 10, y: 20 };
+    let b = Point { x: 30, y: 40 };
+    let d = distance(a, b);
+}
 ```
 
-### **Optimized Array Literals** 🆕
+### **Arrays and Loops**
 ```minz
-// Simple arrays become DB directives
-let data: [u8; 5] = [10, 20, 30, 40, 50];
-// Generates: DB 10, 20, 30, 40, 50
+fun main() -> void {
+    let data: [u8; 5] = [10, 20, 30, 40, 50];
 
-// Struct arrays with proper alignment
-struct Player { x: u16, y: u16, health: u8 }
-let players: [Player; 2] = [
-    Player { x: 100, y: 200, health: 100 },
-    Player { x: 300, y: 400, health: 75 }
-];
-// Generates:
-//   DW 100, 200  ; x, y
-//   DB 100       ; health
-//   DW 300, 400  ; x, y  
-//   DB 75        ; health
+    for i in 0..5 {
+        let val = data[i];
+        @print("Value: #{val}");
+    }
+}
 ```
 
 ### **Ruby-Style String Interpolation**
@@ -187,31 +208,30 @@ let fib10 = fibonacci(10);  // Computed at compile-time!
 // Generates: LD A, 55  (no runtime calculation!)
 ```
 
-### **Pattern Matching**
+### **Pattern Matching** (In Progress)
 ```minz
-enum Result {
-    Ok(value: u8),
-    Error(code: u8)
-}
+// Basic enum and case syntax - codegen in development
+enum State { IDLE, RUNNING, STOPPED }
 
-case parse_input() {
-    Ok(n) => process(n),
-    Error(0) => @print("Invalid input"),
-    Error(e) => @print("Error code: #{e}")
+fun next_state(s: State) -> State {
+    case s {
+        State.IDLE => return State.RUNNING,
+        State.RUNNING => return State.STOPPED,
+        _ => return State.IDLE
+    }
 }
 ```
+> **Note:** Pattern matching syntax parses but code generation is still in development.
 
-### **Modern Error Handling**
+### **Inline Assembly**
 ```minz
-fun read_file?(path: *u8) -> *u8 ? Error {
-    let file = open(path)?;  // Propagate errors with ?
-    let data = file.read_all()?;
-    file.close()?;
-    return data;
-}
-
-fun main() -> void {
-    let content = read_file?("data.txt") ?? "default";  // Default on error
+fun fast_multiply(a: u8) -> u8 {
+    asm {
+        LD A, (a)
+        SLA A        ; Multiply by 2
+        SLA A        ; Multiply by 4
+    }
+    return a;
 }
 ```
 
@@ -272,9 +292,9 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 ## 📊 **Performance & Metrics**
 
 ### **Compilation Success Rate**
-- ✅ **88%** of examples compile successfully (150/170)
-- ✅ **63%** with tree-sitter parser
-- ✅ **75%** with ANTLR parser (v0.14.0)
+- ✅ **81%** of examples compile successfully (47/58)
+- Using tree-sitter parser (default)
+- See [Claims Verification Report](reports/2025-12-17-001-claims-verification.md) for details
 
 ### **Optimization Impact**
 | Feature | Performance Gain | Method |
@@ -282,7 +302,6 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 | **CTIE** | 3-5x faster | Compile-time execution |
 | **TRUE SMC** | 10x faster | Self-modifying code |
 | **Peephole** | 60-85% size reduction | 35+ optimization patterns |
-| **Lambda→DJNZ** | Zero overhead | Iterator optimization |
 
 ### **Language Statistics**
 - **15 major versions** in 14 months
@@ -370,10 +389,25 @@ We welcome contributions! MinZ is built by a passionate community.
 
 ### **Development Setup**
 ```bash
+# Prerequisites
+npm install -g tree-sitter-cli
+tree-sitter init-config  # REQUIRED for parsing
+
+# Clone and build
 git clone https://github.com/oisee/minz.git
-cd minz/minzc
+cd minz
+
+# Generate tree-sitter parser
+tree-sitter generate
+
+# Build compiler and tools
+cd minzc
 go build -o mz cmd/minzc/main.go
-./test_all.sh  # Run test suite
+go build -o mza cmd/mza/main.go   # Assembler
+go build -o mze cmd/mze/main.go   # Emulator
+
+# Test
+./mz ../examples/simple_add.minz -o /tmp/test.a80
 ```
 
 ---
