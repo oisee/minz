@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -281,14 +282,31 @@ After installation, mz will work from any directory.`)
 	// Parse the S-expression output
 	// Remove the statistics line at the end
 	outputStr := string(output)
-	
+
+	// Strip ANSI escape codes (color codes like \033[31m, \033[0m, etc.)
+	// These can appear in tree-sitter warnings and break S-expression parsing
+	ansiRegex := regexp.MustCompile(`\x1b\[[0-9;]*m`)
+	outputStr = ansiRegex.ReplaceAllString(outputStr, "")
+
 	lines := strings.Split(outputStr, "\n")
 	var sexpLines []string
 	for _, line := range lines {
 		// Skip empty lines and the statistics line
-		if line != "" && !strings.Contains(line, "\tParse:") {
-			sexpLines = append(sexpLines, line)
+		if line == "" || strings.Contains(line, "\tParse:") {
+			continue
 		}
+		// Skip tree-sitter warning/error lines that aren't S-expressions
+		// These start with "Warning:", "Error:", or don't start with "(" or whitespace
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "Warning:") ||
+			strings.HasPrefix(trimmed, "Error:") ||
+			strings.HasPrefix(trimmed, "No ") {
+			if debug {
+				fmt.Printf("DEBUG: Skipping tree-sitter message: %s\n", line)
+			}
+			continue
+		}
+		sexpLines = append(sexpLines, line)
 	}
 	sexpOutput := strings.Join(sexpLines, "\n")
 	
