@@ -32,9 +32,21 @@ build/
 # package-lock.json
 # yarn.lock
 
-# MinZ compiler binary
+# MinZ compiler binaries (build from source!)
+# Root level tool binaries
+/mz
+/mza
+/mze
+/mzr
+/mzv
+# Compiler main binary
+minzc/main
 minzc/minzc
 minzc/minzc.exe
+minzc/mza
+minzc/mzr
+minzc/cmd/mzr/main
+minzc/cmd/mzv/mzv
 
 # Rust build artifacts
 target/

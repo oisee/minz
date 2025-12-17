@@ -17,17 +17,16 @@ These issues block basic usage and must be fixed immediately.
 **Fix:** Added to README Quick Start section
 
 ### 2. Filter ANSI Codes from tree-sitter Output
-**Status:** 🔴 TODO
+**Status:** ✅ DONE
 **Issue:** Tree-sitter warnings with ANSI codes cause parse failures
-**Location:** `minzc/pkg/parser/parser.go:285-293`
-**Fix:** Strip ANSI escape sequences and warning lines before S-expression parsing
-**Effort:** 1 hour
+**Fix:** Added regex to strip ANSI codes + filter warning lines in parser.go
+**Commit:** c54347f
 
 ### 3. Fix Pre-built Binary Architecture
-**Status:** 🔴 TODO
-**Issue:** Binaries in repo are macOS ARM64, fail on Linux
-**Fix:** Add CI/CD to build for multiple architectures, or remove binaries
-**Effort:** 2-4 hours
+**Status:** ✅ DONE
+**Issue:** Binaries in repo were macOS ARM64, failed on Linux
+**Fix:** Removed tracked binaries from repo, added to .gitignore. Users build from source.
+**Commit:** (pending)
 
 ---
 
@@ -158,8 +157,8 @@ Nice to have, not blocking.
 ## 🗓 Suggested Sprint Plan
 
 ### Week 1: Critical Fixes
-- [ ] P0 #2: Filter ANSI codes (1 hr)
-- [ ] P0 #3: Fix binary architecture (2-4 hr)
+- [x] P0 #2: Filter ANSI codes (DONE - c54347f)
+- [x] P0 #3: Fix binary architecture (DONE - removed from git)
 - [ ] P1 #4: Array literal DB generation (2-4 hr)
 - [ ] P1 #6: Enum value access (4-8 hr)
 
