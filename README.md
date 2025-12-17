@@ -6,7 +6,7 @@
 
 ### **Modern Programming Language for Vintage & Modern Platforms**
 
-[![Version](https://img.shields.io/badge/version-0.15.1-brightgreen)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.15.2-brightgreen)](https://github.com/oisee/minz/releases)
 [![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
 [![Success Rate](https://img.shields.io/badge/compilation-81%25-success)]()
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
@@ -80,7 +80,7 @@ go build -o mz cmd/minzc/main.go
 sudo mv mz /usr/local/bin/
 
 # Verify
-mz --version  # MinZ v0.15.1
+mz --version  # MinZ v0.15.2
 ```
 
 > **Note:** Pre-built binaries may be for a different architecture. Building from source is recommended.
@@ -119,6 +119,7 @@ crystal run hello.cr  # Test instantly!
 
 | Version | Revolution | Impact |
 |---------|------------|--------|
+| **v0.15.2** | Enum Error Values | `@error(EnumType.Variant)` compile-time constants |
 | **v0.15.1** | Error Propagation | `@error(code)` sets CY flag + A register |
 | **v0.15.0** | Ruby Interpolation + Crystal Backend | `"Hello #{name}!"` + Modern workflow |
 | **v0.14.0** | Pattern Matching (partial) | Basic case syntax (in progress) |
@@ -452,7 +453,7 @@ MinZ proves that modern programming belongs on vintage hardware. Join us in buil
 
 ### **MinZ: Where Modern Dreams Meet Vintage Reality™**
 
-*From v0.1.0 to v0.15.1 and beyond - Every release a revolution!*
+*From v0.1.0 to v0.15.2 and beyond - Every release a revolution!*
 
 > ⚠️ **Remember:** MinZ is under active development. Join us in building the future of retro computing!
 
