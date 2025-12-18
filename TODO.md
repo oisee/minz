@@ -48,10 +48,12 @@ Features that are documented/claimed but don't work.
 **Effort:** 1-2 days
 
 ### 6. Enum Value Access (State.IDLE)
-**Status:** 🔴 Broken
-**Issue:** `State::IDLE` and `State.IDLE` both fail
-**Error:** `cannot use Result as value`
-**Effort:** 4-8 hours
+**Status:** ✅ DONE (dot syntax)
+**Issue:** Was failing for enum value access
+**Fix:** Fixed during error propagation work (enum resolution in semantic analyzer)
+**Working:** `State.IDLE` syntax works correctly
+**Note:** `State::IDLE` (Rust-style) not supported - use dot notation
+**Commit:** Part of v0.15.2 error propagation
 
 ### 7. Function Pointer Passing
 **Status:** 🔴 Not implemented
@@ -160,7 +162,7 @@ Nice to have, not blocking.
 - [x] P0 #2: Filter ANSI codes (DONE - c54347f)
 - [x] P0 #3: Fix binary architecture (DONE - removed from git)
 - [x] P1 #4: Array literal DB generation (DONE - clean output)
-- [ ] P1 #6: Enum value access (4-8 hr)
+- [x] P1 #6: Enum value access (DONE - State.IDLE works!)
 
 ### Week 2: Core Features
 - [ ] P1 #5: Pattern matching codegen (1-2 days)
