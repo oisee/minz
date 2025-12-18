@@ -2246,11 +2246,49 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpShl:
 		// Shift left
+		// First check: Imm field contains shift count directly (from peephole optimizer)
+		if inst.Src2 == 0 && inst.Imm >= 1 && inst.Imm <= 4 {
+			// Shift count in Imm field - generate direct SLA instructions
+			g.emit("    ; Shift left by %d (optimized, Imm)", inst.Imm)
+			g.loadToA(inst.Src1)
+			for i := int64(0); i < inst.Imm; i++ {
+				g.emit("    SLA A         ; Shift left by 1")
+			}
+			g.emit("    LD L, A")
+			g.emit("    XOR H, H    ; Optimized: was LD H, 0")
+			g.storeFromHL(inst.Dest)
+			break
+		}
+		// Second check: shift count in register is a known constant
+		if shiftCount, ok := g.constantValues[inst.Src2]; ok && shiftCount >= 1 && shiftCount <= 4 {
+			// Optimize small constant shifts to direct SLA instructions
+			// For 8-bit values: 1-4 SLA instructions is faster than a loop
+			g.emit("    ; Shift left by %d (optimized)", shiftCount)
+			g.loadToA(inst.Src1)
+			for i := int64(0); i < shiftCount; i++ {
+				g.emit("    SLA A         ; Shift left by 1")
+			}
+			g.emit("    LD L, A")
+			g.emit("    XOR H, H    ; Optimized: was LD H, 0")
+			g.storeFromHL(inst.Dest)
+			break
+		}
+
 		// Check if 16-bit or 8-bit based on type
 		if inst.Type != nil {
-			if basicType, ok := inst.Type.(*ir.BasicType); ok && 
+			if basicType, ok := inst.Type.(*ir.BasicType); ok &&
 			   (basicType.Kind == ir.TypeU16 || basicType.Kind == ir.TypeI16) {
-				// 16-bit shift left
+				// Check for constant 16-bit shift
+				if shiftCount, ok := g.constantValues[inst.Src2]; ok && shiftCount >= 1 && shiftCount <= 4 {
+					g.emit("    ; 16-bit shift left by %d (optimized)", shiftCount)
+					g.loadToHL(inst.Src1)
+					for i := int64(0); i < shiftCount; i++ {
+						g.emit("    ADD HL, HL    ; Shift left by 1")
+					}
+					g.storeFromHL(inst.Dest)
+					break
+				}
+				// 16-bit shift with variable count
 				g.emit("    ; 16-bit shift left")
 				g.loadToHL(inst.Src1)
 				g.loadToA(inst.Src2)
@@ -2266,9 +2304,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				break
 			}
 		}
-		
-		// Default 8-bit shift left
-		g.emit("    ; Shift left")
+
+		// Default 8-bit shift left with variable count (loop)
+		g.emit("    ; Shift left (variable count)")
 		g.loadToA(inst.Src1)
 		g.emit("    LD B, A       ; B = value to shift")
 		g.loadToA(inst.Src2)

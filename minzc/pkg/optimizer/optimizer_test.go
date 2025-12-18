@@ -242,9 +242,10 @@ func TestPeepholeOptimization(t *testing.T) {
 				{Op: ir.OpLoadConst, Dest: 1, Imm: 8},
 				{Op: ir.OpMul, Dest: 2, Src1: 3, Src2: 1},
 			},
+			// For small shifts (1-4), peephole uses Imm directly (no LoadConst needed)
+			// 8 = 2^3, so shift count is 3 (stored in Imm)
 			expected: []ir.Instruction{
-				{Op: ir.OpLoadConst, Dest: 1, Imm: 3}, // 8 = 2^3
-				{Op: ir.OpShl, Dest: 2, Src1: 3, Src2: 1, Comment: "SHL (optimized from MUL by power of 2)"},
+				{Op: ir.OpShl, Dest: 2, Src1: 3, Src2: 0, Imm: 3, Comment: "SHL (optimized from MUL by power of 2)"},
 			},
 		},
 	}

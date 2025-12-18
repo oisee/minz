@@ -140,6 +140,7 @@ func (p *PeepholeOptimizationPass) initializePatterns() {
 		},
 		
 		// Pattern: Multiply by power of 2 -> Shift left
+		// For small shifts (1-4), use Imm field directly for better codegen
 		{
 			Name: "mul_power2_to_shift",
 			Match: func(insts []ir.Instruction, i int) (bool, int) {
@@ -158,7 +159,22 @@ func (p *PeepholeOptimizationPass) initializePatterns() {
 				constInst := &insts[i]
 				mulInst := &insts[i+1]
 				shift := countTrailingZeros(constInst.Imm)
-				
+
+				// For small shift counts (1-4), embed in Imm for direct codegen
+				if shift >= 1 && shift <= 4 {
+					return []ir.Instruction{
+						{
+							Op:      ir.OpShl,
+							Dest:    mulInst.Dest,
+							Src1:    mulInst.Src1,
+							Src2:    0, // No register, use Imm instead
+							Imm:     int64(shift),
+							Comment: "SHL (optimized from MUL by power of 2)",
+						},
+					}
+				}
+
+				// For larger shifts, use register for shift count
 				return []ir.Instruction{
 					{
 						Op:   ir.OpLoadConst,
@@ -166,10 +182,10 @@ func (p *PeepholeOptimizationPass) initializePatterns() {
 						Imm:  int64(shift),
 					},
 					{
-						Op:   ir.OpShl,
-						Dest: mulInst.Dest,
-						Src1: mulInst.Src1,
-						Src2: constInst.Dest,
+						Op:      ir.OpShl,
+						Dest:    mulInst.Dest,
+						Src1:    mulInst.Src1,
+						Src2:    constInst.Dest,
 						Comment: "SHL (optimized from MUL by power of 2)",
 					},
 				}
