@@ -127,8 +127,9 @@ Nice to have, not blocking.
 **Effort:** 2-3 days
 
 ### 14. Generic Types
-**Status:** 🔴 Not implemented
-**Effort:** 1-2 weeks
+**Status:** 🟢 PARKED - See [ADR-002](docs/ADR_002_Generics_Parked_Crystal_Interfaces.md)
+**Decision:** Use Crystal-style `Type(T)` + Zero-Cost Interfaces instead of Rust `<T>`
+**Alternative:** Function overloading + @define macros (already working!)
 
 ### 15. LSP Server
 **Status:** 🔴 Not started
