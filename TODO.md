@@ -60,10 +60,10 @@ Features that are documented/claimed but don't work.
 **Commit:** Part of v0.15.2 error propagation
 
 ### 7. Function Pointer Passing
-**Status:** 🔴 Not implemented
-**Issue:** `fn(u8) -> u8` type parameters don't work
-**Error:** `cannot use double as value`
-**Effort:** 1-2 days
+**Status:** 🟡 PARKED - Use lambdas instead
+**Decision:** Runtime function pointers are poor fit for Z80 (indirect call overhead)
+**Alternative:** Zero-cost lambdas already work! Use `.map(|x| x * 2)` syntax
+**Future:** May add compile-time monomorphization if needed
 
 ---
 
@@ -86,9 +86,18 @@ Important features for language completeness.
 **Effort:** Polish items ~4 hours each
 
 ### 9. Iterator Chain Optimization (DJNZ)
-**Status:** 🟡 Compiles but unoptimized
-**Issue:** `.map().filter()` generates separate functions, not fused DJNZ loops
-**Claim:** README says "Compiles to tight DJNZ loop!"
+**Status:** 🟡 Partially working - needs optimization
+**Current State:**
+- DJNZ instruction IS generated
+- Loop structure exists
+- BUT: Missing loop label (critical bug)
+- BUT: Lambdas not fused (generate ~60 lines vs ideal ~12)
+**Issues Found (Dec 2025):**
+1. `djnz_loop_1:` label never emitted (will crash on assembly)
+2. `x * 2` generates shift loop instead of `SLA A`
+3. Complex comparison instead of `CP n; JR C, skip`
+4. Excessive register shuffling and virtual reg spills
+**Target:** 5x code size reduction (60 lines → 12 lines)
 **Effort:** 3-5 days
 
 ### 10. Module System stdlib
