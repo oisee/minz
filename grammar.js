@@ -290,11 +290,7 @@ module.exports = grammar({
       'struct',
       $.identifier,
       '{',
-      optional(seq(
-        repeat(seq($.field_declaration, ',')),
-        $.field_declaration,
-        optional(',')
-      )),
+      repeat(seq($.field_declaration, optional(','))),  // Allow comma OR newline between fields
       '}',
     ),
 
