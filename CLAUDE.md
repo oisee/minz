@@ -178,9 +178,9 @@ mz program.minz -b z80 --target=spectrum  # ZX Spectrum
 mz program.minz -b z80 --target=cpm       # CP/M
 ```
 
-## 📊 Current Metrics (v0.14.1)
-- **170 examples** in test suite (87 actively tested)
-- **83% compilation success** with tree-sitter parser (72/87)
+## 📊 Current Metrics (v0.14.2)
+- **100% compilation success** on core examples (72/72)
+- **18 experimental examples** requiring future features (generics, local functions, etc.)
 - **Zero-cost interface methods** working (obj.method() syntax)
 - **ANTLR - PARKED** (regression from 75% to 5%, focusing on tree-sitter)
 - **35+ peephole patterns** for Z80 optimization

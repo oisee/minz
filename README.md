@@ -8,7 +8,7 @@
 
 [![Version](https://img.shields.io/badge/version-0.15.3-brightgreen)](https://github.com/oisee/minz/releases)
 [![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
-[![Success Rate](https://img.shields.io/badge/compilation-83%25-success)]()
+[![Success Rate](https://img.shields.io/badge/compilation-100%25-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
 **Write modern code. Deploy everywhere. From 1978 Z80 to 2025 Crystal.**
@@ -318,10 +318,10 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 ## 📊 **Performance & Metrics**
 
 ### **Compilation Success Rate**
-- ✅ **83%** of examples compile successfully (72/87)
-- Using tree-sitter parser (default)
-- Zero-cost interface methods now working!
-- See [Release Notes v0.14.1](reports/2025-12-18-003-release-notes.md) for details
+- ✅ **100%** of core examples compile successfully (72/72)
+- 18 experimental examples in `examples/experimental/` (require future features)
+- Zero-cost interface methods working!
+- See [Release Notes](reports/2025-12-18-003-release-notes.md) for details
 
 ### **Optimization Impact**
 | Feature | Performance Gain | Method |
