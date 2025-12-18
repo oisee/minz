@@ -1,9 +1,9 @@
 # MinZ TODO - Priority Roadmap
 
-> **Last Updated:** 2025-12-17
-> **Version:** v0.15.0-dev
+> **Last Updated:** 2025-12-18
+> **Version:** v0.15.4-dev
 > **Compilation Success Rate:** 81% (47/58 examples)
-> **Verification Report:** [reports/2025-12-17-001-claims-verification.md](reports/2025-12-17-001-claims-verification.md)
+> **Latest Session:** [reports/2025-12-18-001-djnz-optimization-session.md](reports/2025-12-18-001-djnz-optimization-session.md)
 
 ---
 
@@ -86,19 +86,18 @@ Important features for language completeness.
 **Effort:** Polish items ~4 hours each
 
 ### 9. Iterator Chain Optimization (DJNZ)
-**Status:** 🟡 Partially working - needs optimization
+**Status:** ✅ MOSTLY DONE (3/4 issues fixed)
 **Current State:**
-- DJNZ instruction IS generated
-- Loop structure exists
-- BUT: Missing loop label (critical bug)
-- BUT: Lambdas not fused (generate ~60 lines vs ideal ~12)
-**Issues Found (Dec 2025):**
-1. `djnz_loop_1:` label never emitted (will crash on assembly)
-2. `x * 2` generates shift loop instead of `SLA A`
-3. Complex comparison instead of `CP n; JR C, skip`
-4. Excessive register shuffling and virtual reg spills
-**Target:** 5x code size reduction (60 lines → 12 lines)
-**Effort:** 3-5 days
+- DJNZ instruction IS generated ✅
+- Loop structure works ✅
+- Labels properly emitted ✅
+**Issues Fixed (Dec 2025):**
+1. ✅ `djnz_loop_1:` label bug - DCE and sanitizeLabel fixes (commit 533b816)
+2. ✅ `x * 2` now generates `SLA A` - peephole Imm optimization (commit 84331b4)
+3. ✅ `x > 25` now generates `CP 26; JR C` - 8-bit comparison opt (commit 7270030)
+4. 🟡 Register allocation still suboptimal (future work)
+**Results:** Lambda code reduced from ~15 to ~4-7 instructions
+**Remaining:** Full loop fusion, register optimization
 
 ### 10. Module System stdlib
 **Status:** 🟡 Partial
