@@ -1297,6 +1297,32 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 // registerFunctionSignature registers a function's signature in the symbol table
 // This is called in the first pass to allow forward references
 func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
+	// Track the registration scope - this is where we'll define the function symbol
+	registrationScope := a.currentScope
+
+	// If function has generic parameters, register them as placeholder types
+	// in a temporary scope so they can be resolved during type conversion
+	if len(fn.GenericParams) > 0 {
+		// Create a child scope for generic type parameters
+		genericScope := NewScope(a.currentScope)
+		for _, gp := range fn.GenericParams {
+			// Create a GenericType for this parameter
+			genericType := &ir.GenericType{
+				Name:   gp.Name,
+				Bounds: gp.Bounds,
+			}
+			// Register as a TypeSymbol so convertType can find it
+			genericScope.Define(gp.Name, &TypeSymbol{
+				Name: gp.Name,
+				Type: genericType,
+			})
+		}
+		// Temporarily use the generic scope for type conversion
+		oldScope := a.currentScope
+		a.currentScope = genericScope
+		defer func() { a.currentScope = oldScope }()
+	}
+
 	// Convert return type
 	returnType, err := a.convertType(fn.ReturnType)
 	if err != nil {
@@ -1337,45 +1363,49 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 
 	// Create function symbol
 	funcSym := &FuncSymbol{
-		Name:       mangledName,  // Use mangled name for unique identification
-		ReturnType: returnType,
-		ErrorType:  errorType,
-		Params:     fn.Params,
-		ParamTypes: paramTypes,
+		Name:          mangledName,  // Use mangled name for unique identification
+		ReturnType:    returnType,
+		ErrorType:     errorType,
+		Params:        fn.Params,
+		ParamTypes:    paramTypes,
+		IsGeneric:     len(fn.GenericParams) > 0,
+		GenericParams: fn.GenericParams,
+		GenericAST:    fn,
 	}
 	
 	// Register the specific overload with its mangled name
-	a.currentScope.Define(mangledName, funcSym)
-	
+	// Use registrationScope to ensure generic functions are registered in the correct scope
+	registrationScope.Define(mangledName, funcSym)
+
 	// Register in overload set
-	overloadSet, exists := a.currentScope.overloads[prefixedName]
+	overloadSet, exists := registrationScope.overloads[prefixedName]
 	if !exists {
 		overloadSet = &FunctionOverloadSet{
 			BaseName:  prefixedName,
 			Overloads: make(map[string]*FuncSymbol),
 		}
-		a.currentScope.overloads[prefixedName] = overloadSet
+		registrationScope.overloads[prefixedName] = overloadSet
 		// Only register the overload set as a symbol if it's different from the mangled name
 		// This prevents overwriting single functions that have no overloads
 		if prefixedName != mangledName {
-			a.currentScope.Define(prefixedName, overloadSet)
+			registrationScope.Define(prefixedName, overloadSet)
 		}
 	}
 	overloadSet.Overloads[mangledName] = funcSym
-	
+
 	// Also register without prefix for local access
 	if a.currentModule != "" && a.currentModule != "main" {
 		// Register the overload set under the unprefixed name too
-		unprefixedOverloadSet, exists := a.currentScope.overloads[fn.Name]
+		unprefixedOverloadSet, exists := registrationScope.overloads[fn.Name]
 		if !exists {
 			unprefixedOverloadSet = &FunctionOverloadSet{
 				BaseName:  fn.Name,
 				Overloads: make(map[string]*FuncSymbol),
 			}
-			a.currentScope.overloads[fn.Name] = unprefixedOverloadSet
+			registrationScope.overloads[fn.Name] = unprefixedOverloadSet
 			// Only define if different from mangled name
 			if fn.Name != mangledName {
-				a.currentScope.Define(fn.Name, unprefixedOverloadSet)
+				registrationScope.Define(fn.Name, unprefixedOverloadSet)
 			}
 		}
 		unprefixedOverloadSet.Overloads[mangledName] = funcSym
@@ -1386,16 +1416,25 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 
 // analyzeFunctionDecl analyzes a function declaration
 func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
+	// Skip generic functions during regular analysis - they are templates
+	// that get instantiated when called with concrete types
+	if len(fn.GenericParams) > 0 {
+		if debug {
+			fmt.Printf("DEBUG: Skipping generic function %s (will be monomorphized on call)\n", fn.Name)
+		}
+		return nil // Don't analyze generic functions yet - wait for monomorphization
+	}
+
 	// Get prefixed name
 	prefixedName := fn.Name
 	// Only add prefix if the name doesn't already contain a dot (module prefix)
 	if !strings.Contains(fn.Name, ".") {
 		prefixedName = a.prefixSymbol(fn.Name)
 	}
-	
+
 	// Generate mangled name for this specific overload
 	mangledName := generateMangledName(prefixedName, fn.Params)
-	
+
 	// Get the registered symbol by its mangled name
 	sym := a.currentScope.Lookup(mangledName)
 	if sym == nil {
@@ -1406,7 +1445,7 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 		// fmt.Printf("DEBUG: Symbol %s is %T, not FuncSymbol\n", mangledName, sym)
 		return fmt.Errorf("symbol %s is not a function", mangledName)
 	}
-	
+
 	// Create IR function with mangled name for unique identification
 	irFunc := ir.NewFunction(mangledName, funcSym.ReturnType)
 	
@@ -5007,12 +5046,24 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		}
 		
 		if sym == nil {
-			// Try to find similar function names
-			suggestions := a.findSimilarIdentifiers(funcName)
-			if len(suggestions) > 0 {
-				return 0, a.errorAt(call, "undefined function: %s - did you mean '%s'?", funcName, suggestions[0])
+			// Try to find a generic function template with this base name
+			genericSym := a.findGenericFunction(funcName)
+			if genericSym != nil {
+				// Found a generic template - try to monomorphize it
+				monomorphized, err := a.monomorphizeGenericCall(genericSym, call, irFunc)
+				if err != nil {
+					return 0, fmt.Errorf("error instantiating generic function %s: %w", funcName, err)
+				}
+				sym = monomorphized
+				funcName = monomorphized.Name
+			} else {
+				// Try to find similar function names
+				suggestions := a.findSimilarIdentifiers(funcName)
+				if len(suggestions) > 0 {
+					return 0, a.errorAt(call, "undefined function: %s - did you mean '%s'?", funcName, suggestions[0])
+				}
+				return 0, a.undefinedFunctionError(call, funcName)
 			}
-			return 0, a.undefinedFunctionError(call, funcName)
 		}
 		
 		if debug {
@@ -5020,14 +5071,36 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		}
 		
 		// Check if it's an overload set
-		if _, ok := sym.(*FunctionOverloadSet); ok {
-			// Try to resolve the overload
-			funcSym, err := a.resolveOverload(funcName, call.Arguments, irFunc)
-			if err != nil {
-				return 0, fmt.Errorf("error in function %s: %v", a.currentFunc.Name, err)
+		if overloadSet, ok := sym.(*FunctionOverloadSet); ok {
+			// First, check if any overload is generic
+			var genericOverload *FuncSymbol
+			for _, overload := range overloadSet.Overloads {
+				if overload.IsGeneric {
+					genericOverload = overload
+					break
+				}
 			}
-			sym = funcSym
-			funcName = funcSym.Name  // Use the mangled name
+
+			if genericOverload != nil {
+				// Found a generic overload - try to monomorphize it
+				if debug {
+					fmt.Printf("DEBUG: Found generic overload for %s, attempting monomorphization\n", funcName)
+				}
+				monomorphized, err := a.monomorphizeGenericCall(genericOverload, call, irFunc)
+				if err != nil {
+					return 0, fmt.Errorf("error instantiating generic function %s: %w", funcName, err)
+				}
+				sym = monomorphized
+				funcName = monomorphized.Name
+			} else {
+				// Try to resolve the overload normally
+				funcSym, err := a.resolveOverload(funcName, call.Arguments, irFunc)
+				if err != nil {
+					return 0, fmt.Errorf("error in function %s: %v", a.currentFunc.Name, err)
+				}
+				sym = funcSym
+				funcName = funcSym.Name // Use the mangled name
+			}
 		}
 		
 		// Check if this is a lambda variable before treating as function
@@ -9036,6 +9109,257 @@ func (a *Analyzer) findInterfaceMethod(objType ir.Type, methodName string) *Func
 		fmt.Printf("DEBUG: No implementation found for %s.%s\n", typeName, methodName)
 	}
 	return nil
+}
+
+// findGenericFunction searches for a generic function template with the given base name
+func (a *Analyzer) findGenericFunction(baseName string) *FuncSymbol {
+	// Try to find in overload set first
+	sym := a.currentScope.Lookup(baseName)
+	if overloadSet, ok := sym.(*FunctionOverloadSet); ok {
+		for _, sym := range overloadSet.Overloads {
+			if sym.IsGeneric {
+				return sym
+			}
+		}
+	}
+
+	// Try with module prefix
+	prefixedName := a.prefixSymbol(baseName)
+	sym = a.currentScope.Lookup(prefixedName)
+	if overloadSet, ok := sym.(*FunctionOverloadSet); ok {
+		for _, sym := range overloadSet.Overloads {
+			if sym.IsGeneric {
+				return sym
+			}
+		}
+	}
+
+	// Direct lookup - generic functions may be registered with T in name
+	scope := a.currentScope
+	for scope != nil {
+		// Also check overloads map directly
+		for overloadName, overloadSet := range scope.overloads {
+			for _, funcSym := range overloadSet.Overloads {
+				if funcSym.IsGeneric {
+					baseOfMangled := strings.Split(overloadName, "$")[0]
+					if baseOfMangled == baseName || baseOfMangled == prefixedName ||
+						strings.HasSuffix(baseOfMangled, "."+baseName) {
+						return funcSym
+					}
+				}
+			}
+		}
+		for name, sym := range scope.symbols {
+			if funcSym, ok := sym.(*FuncSymbol); ok {
+				if funcSym.IsGeneric {
+					// Check if the base name matches (before the $ mangling)
+					baseOfMangled := strings.Split(name, "$")[0]
+					if baseOfMangled == baseName || baseOfMangled == prefixedName ||
+						strings.HasSuffix(baseOfMangled, "."+baseName) {
+						return funcSym
+					}
+				}
+			}
+		}
+		scope = scope.parent
+	}
+
+	return nil
+}
+
+// monomorphizeGenericCall creates a specialized version of a generic function for specific types
+func (a *Analyzer) monomorphizeGenericCall(genericSym *FuncSymbol, call *ast.CallExpr, irFunc *ir.Function) (*FuncSymbol, error) {
+	if debug {
+		fmt.Printf("DEBUG: Monomorphizing generic function %s\n", genericSym.Name)
+	}
+
+	// Infer type arguments from call arguments
+	typeArgs := make(map[string]ir.Type)
+
+	for i, arg := range call.Arguments {
+		if i >= len(genericSym.Params) {
+			break
+		}
+
+		// Get the argument type
+		argType, err := a.inferType(arg)
+		if err != nil {
+			return nil, fmt.Errorf("cannot infer type for argument %d: %w", i, err)
+		}
+
+		// Get the parameter type
+		paramType := genericSym.ParamTypes[i]
+
+		// If parameter type is a GenericType, map it to the argument type
+		if gt, ok := paramType.(*ir.GenericType); ok {
+			if debug {
+				fmt.Printf("DEBUG: Mapping type parameter %s to %s\n", gt.Name, argType.String())
+			}
+			typeArgs[gt.Name] = argType
+		}
+	}
+
+	if len(typeArgs) == 0 {
+		return nil, fmt.Errorf("could not infer any type arguments for generic function")
+	}
+
+	// Generate monomorphized function name
+	var typeNames []string
+	for _, gp := range genericSym.GenericParams {
+		if t, ok := typeArgs[gp.Name]; ok {
+			typeNames = append(typeNames, mangleIRType(t))
+		}
+	}
+	monoName := genericSym.Name
+	if len(typeNames) > 0 {
+		// Replace $T with concrete types
+		monoName = strings.Replace(monoName, "$T", "$"+strings.Join(typeNames, "$"), 1)
+	}
+
+	// Check if we already have this monomorphization
+	if existing := a.currentScope.Lookup(monoName); existing != nil {
+		if funcSym, ok := existing.(*FuncSymbol); ok {
+			return funcSym, nil
+		}
+	}
+
+	// Create the monomorphized function by cloning and substituting types
+	monoFunc := &FuncSymbol{
+		Name:         monoName,
+		OriginalName: genericSym.OriginalName,
+		Params:       genericSym.Params,
+		ReturnType:   substituteType(genericSym.ReturnType, typeArgs),
+		ErrorType:    genericSym.ErrorType,
+		IsBuiltin:    false,
+		IsLocalFunc:  genericSym.IsLocalFunc,
+		IsGeneric:    false, // The monomorphized version is not generic
+	}
+
+	// Substitute parameter types
+	monoFunc.ParamTypes = make([]ir.Type, len(genericSym.ParamTypes))
+	for i, pt := range genericSym.ParamTypes {
+		monoFunc.ParamTypes[i] = substituteType(pt, typeArgs)
+	}
+
+	// Register the monomorphized function
+	a.currentScope.Define(monoName, monoFunc)
+
+	// Add to overload set if applicable
+	baseName := strings.Split(monoName, "$")[0]
+	if overloadSet, ok := a.currentScope.Lookup(baseName).(*FunctionOverloadSet); ok {
+		overloadSet.Overloads[monoName] = monoFunc
+	}
+
+	if debug {
+		fmt.Printf("DEBUG: Created monomorphized function %s with return type %s\n", monoName, monoFunc.ReturnType.String())
+	}
+
+	// Now actually generate the IR function by analyzing the generic AST with concrete types
+	if genericSym.GenericAST != nil {
+		if err := a.analyzeMonomorphizedFunction(genericSym.GenericAST, monoName, typeArgs, monoFunc); err != nil {
+			return nil, fmt.Errorf("error analyzing monomorphized function: %w", err)
+		}
+	}
+
+	return monoFunc, nil
+}
+
+// analyzeMonomorphizedFunction analyzes a generic function with concrete type substitutions
+func (a *Analyzer) analyzeMonomorphizedFunction(genericAST *ast.FunctionDecl, monoName string, typeArgs map[string]ir.Type, monoSym *FuncSymbol) error {
+	if debug {
+		fmt.Printf("DEBUG: Analyzing monomorphized function %s\n", monoName)
+	}
+
+	// CRITICAL: Clear expression type cache before analyzing monomorphized function
+	// The same AST is reused for different type instantiations, so cached types from
+	// previous monomorphizations would be incorrect
+	savedExprTypes := a.exprTypes
+	a.exprTypes = make(map[ast.Expression]ir.Type)
+	defer func() { a.exprTypes = savedExprTypes }()
+
+	// Create a new scope for the function with type parameter mappings
+	funcScope := NewScope(a.currentScope)
+
+	// Register the type arguments as TypeSymbols
+	for name, typ := range typeArgs {
+		funcScope.Define(name, &TypeSymbol{
+			Name: name,
+			Type: typ,
+		})
+	}
+
+	// Create the IR function
+	irFunc := &ir.Function{
+		Name:       monoName,
+		ReturnType: monoSym.ReturnType,
+		Params:     make([]ir.Parameter, len(genericAST.Params)),
+	}
+
+	// Convert parameters with substituted types
+	for i, param := range genericAST.Params {
+		paramType := monoSym.ParamTypes[i]
+		irFunc.Params[i] = ir.Parameter{
+			Name: param.Name,
+			Type: paramType,
+		}
+		// Register parameter in function scope
+		funcScope.Define(param.Name, &VarSymbol{
+			Name:        param.Name,
+			Type:        paramType,
+			IsParameter: true,
+		})
+	}
+
+	// Save current state
+	oldScope := a.currentScope
+	oldFunc := a.currentFunc
+
+	// Set up for function analysis
+	a.currentScope = funcScope
+	a.currentFunc = irFunc
+
+	// Analyze the function body
+	if genericAST.Body != nil {
+		if err := a.analyzeBlock(genericAST.Body, irFunc); err != nil {
+			a.currentScope = oldScope
+			a.currentFunc = oldFunc
+			return err
+		}
+	}
+
+	// Restore state
+	a.currentScope = oldScope
+	a.currentFunc = oldFunc
+
+	// Add the function to the IR module
+	a.module.Functions = append(a.module.Functions, irFunc)
+
+	if debug {
+		fmt.Printf("DEBUG: Completed analysis of monomorphized function %s with %d instructions\n", monoName, len(irFunc.Instructions))
+	}
+
+	return nil
+}
+
+// substituteType replaces generic types with concrete types
+func substituteType(t ir.Type, typeArgs map[string]ir.Type) ir.Type {
+	if t == nil {
+		return nil
+	}
+
+	switch typ := t.(type) {
+	case *ir.GenericType:
+		if concrete, ok := typeArgs[typ.Name]; ok {
+			return concrete
+		}
+		return t
+	case *ir.PointerType:
+		return &ir.PointerType{Base: substituteType(typ.Base, typeArgs)}
+	case *ir.ArrayType:
+		return &ir.ArrayType{Element: substituteType(typ.Element, typeArgs), Length: typ.Length}
+	default:
+		return t
+	}
 }
 
 // checkLambdaCaptures ensures lambda doesn't capture variables (for now)

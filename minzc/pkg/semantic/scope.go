@@ -33,15 +33,18 @@ func (c *ConstSymbol) symbol() {}
 
 // FuncSymbol represents a function
 type FuncSymbol struct {
-	Name         string
-	OriginalName string             // Original name before mangling (for local functions)
-	Params       []*ast.Parameter
-	ParamTypes   []ir.Type          // Converted parameter types for display
-	ReturnType   ir.Type
-	ErrorType    ir.Type           // Optional error type for functions ending with ?
-	Type         *ir.FunctionType  // For built-in functions
-	IsBuiltin    bool
-	IsLocalFunc  bool              // True if this is a local function
+	Name          string
+	OriginalName  string             // Original name before mangling (for local functions)
+	Params        []*ast.Parameter
+	ParamTypes    []ir.Type          // Converted parameter types for display
+	ReturnType    ir.Type
+	ErrorType     ir.Type            // Optional error type for functions ending with ?
+	Type          *ir.FunctionType   // For built-in functions
+	IsBuiltin     bool
+	IsLocalFunc   bool               // True if this is a local function
+	IsGeneric     bool               // True if this is a generic function template
+	GenericParams []*ast.GenericParam // Generic type parameters (e.g., T, U)
+	GenericAST    *ast.FunctionDecl  // Original AST for monomorphization
 }
 
 func (f *FuncSymbol) symbol() {}
@@ -53,6 +56,14 @@ type TypeSymbol struct {
 }
 
 func (t *TypeSymbol) symbol() {}
+
+// GenericTypeSymbol represents a generic type parameter (e.g., T in fn<T>)
+type GenericTypeSymbol struct {
+	Name   string   // The type parameter name (e.g., "T")
+	Bounds []string // Interface bounds (e.g., ["Drawable", "Collidable"])
+}
+
+func (g *GenericTypeSymbol) symbol() {}
 
 // NamespaceSymbol represents an imported module namespace
 type NamespaceSymbol struct {

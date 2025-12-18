@@ -549,6 +549,24 @@ func (t *FunctionType) String() string {
 	return fmt.Sprintf("fun(%s) -> %s", strings.Join(params, ", "), t.Return.String())
 }
 
+// GenericType represents a type parameter (e.g., T in fn<T: Drawable>)
+// This is a placeholder that gets replaced during monomorphization
+type GenericType struct {
+	Name   string   // The type parameter name (e.g., "T")
+	Bounds []string // Interface bounds (e.g., ["Drawable"])
+}
+
+func (t *GenericType) Size() int {
+	return 0 // Size unknown until monomorphized
+}
+
+func (t *GenericType) String() string {
+	if len(t.Bounds) > 0 {
+		return fmt.Sprintf("%s: %s", t.Name, strings.Join(t.Bounds, " + "))
+	}
+	return t.Name
+}
+
 func (t *BitStructType) Size() int {
 	return t.UnderlyingType.Size()
 }
