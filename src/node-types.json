@@ -1437,11 +1437,26 @@
       "required": true,
       "types": [
         {
-          "type": "parameter_list",
+          "type": "function_type_params",
           "named": true
         },
         {
           "type": "return_type",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "function_type_params",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "type",
           "named": true
         }
       ]

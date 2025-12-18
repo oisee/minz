@@ -5055,7 +5055,7 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		// Build the full qualified name by traversing the field expression chain
 		funcName = a.buildQualifiedName(fn)
 		sym = a.currentScope.Lookup(funcName)
-		
+
 		if sym == nil {
 			// Try as instance method call (obj.method())
 			if id, ok := fn.Object.(*ast.Identifier); ok {
@@ -7838,10 +7838,26 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			}
 			
 		case *ast.FieldExpr:
-			// Module function call
+			// Could be module function call OR instance method call
 			if id, ok := fn.Object.(*ast.Identifier); ok {
 				funcName = id.Name + "." + fn.Field
 				sym = a.currentScope.Lookup(funcName)
+
+				// If not found as module.function, try as variable.method
+				if sym == nil {
+					varSym := a.currentScope.Lookup(id.Name)
+					if varSymbol, ok := varSym.(*VarSymbol); ok {
+						// Try to find interface method implementation
+						methodFunc := a.findInterfaceMethod(varSymbol.Type, fn.Field)
+						if methodFunc != nil {
+							sym = methodFunc
+							funcName = methodFunc.Name
+							if debug {
+								fmt.Printf("DEBUG inferType: Resolved method %s.%s to %s\n", id.Name, fn.Field, funcName)
+							}
+						}
+					}
+				}
 			}
 			
 		default:
@@ -8932,6 +8948,9 @@ func (a *Analyzer) findInterfaceMethod(objType ir.Type, methodName string) *Func
 		// Try with module prefix
 		if a.currentModule != "" && a.currentModule != "main" {
 			prefixedName := a.prefixSymbol(name)
+			if debug {
+				fmt.Printf("DEBUG: Trying prefixed lookup: %s\n", prefixedName)
+			}
 			if sym := a.currentScope.Lookup(prefixedName); sym != nil {
 				if funcSym, ok := sym.(*FuncSymbol); ok {
 					if debug {
@@ -8942,7 +8961,77 @@ func (a *Analyzer) findInterfaceMethod(objType ir.Type, methodName string) *Func
 			}
 		}
 	}
-	
+
+	// Also try using the full type name from the original type
+	switch t := objType.(type) {
+	case *ir.StructType:
+		// Try with full type path
+		fullMethodName := t.Name + "." + methodName
+		if debug {
+			fmt.Printf("DEBUG: Trying full type path lookup: %s\n", fullMethodName)
+		}
+		if sym := a.currentScope.Lookup(fullMethodName); sym != nil {
+			if funcSym, ok := sym.(*FuncSymbol); ok {
+				if debug {
+					fmt.Printf("DEBUG: Found full path implementation function: %s\n", fullMethodName)
+				}
+				return funcSym
+			}
+		}
+
+		// Try with mangled name (method$SelfType)
+		// For methods with a self parameter, the mangled name includes the SHORT type name
+		// The short type name is extracted from the full type name
+		shortTypeName := typeName // Already extracted base name
+		mangledMethodName := fullMethodName + "$" + shortTypeName
+		if debug {
+			fmt.Printf("DEBUG: Trying mangled method lookup: %s\n", mangledMethodName)
+		}
+		if sym := a.currentScope.Lookup(mangledMethodName); sym != nil {
+			if funcSym, ok := sym.(*FuncSymbol); ok {
+				if debug {
+					fmt.Printf("DEBUG: Found mangled implementation function: %s\n", mangledMethodName)
+				}
+				return funcSym
+			}
+		}
+
+		// For methods with additional parameters (beyond self), search for overload set
+		// The base method name pattern is fullMethodName (TypeName.methodName)
+		// Check if there's an overload set registered for this base name
+		if overloadSet, ok := a.currentScope.Lookup(fullMethodName).(*FunctionOverloadSet); ok {
+			if debug {
+				fmt.Printf("DEBUG: Found overload set for %s with %d overloads\n", fullMethodName, len(overloadSet.Overloads))
+			}
+			// Return the first matching overload that starts with the expected prefix
+			prefix := mangledMethodName + "$"
+			for name, overload := range overloadSet.Overloads {
+				if strings.HasPrefix(name, prefix) || name == mangledMethodName {
+					if debug {
+						fmt.Printf("DEBUG: Using overload: %s\n", name)
+					}
+					return overload
+				}
+			}
+			// If no prefix match, just return the first overload
+			for _, overload := range overloadSet.Overloads {
+				return overload
+			}
+		}
+
+		// Also check for prefixed overload set
+		prefixedFullMethodName := a.prefixSymbol(typeName + "." + methodName)
+		if overloadSet, ok := a.currentScope.Lookup(prefixedFullMethodName).(*FunctionOverloadSet); ok {
+			if debug {
+				fmt.Printf("DEBUG: Found prefixed overload set for %s with %d overloads\n", prefixedFullMethodName, len(overloadSet.Overloads))
+			}
+			// Return any overload
+			for _, overload := range overloadSet.Overloads {
+				return overload
+			}
+		}
+	}
+
 	if debug {
 		fmt.Printf("DEBUG: No implementation found for %s.%s\n", typeName, methodName)
 	}
