@@ -124,10 +124,13 @@ module.exports = grammar({
     function_type: $ => seq(
       choice('fun', 'fn'),  // Consistency!
       '(',
-      optional($.parameter_list),
+      optional($.function_type_params),  // Just types, no names needed
       ')',
       $.return_type,
     ),
+
+    // For function types: fn(u8, u16) -> u8 - just types, no parameter names
+    function_type_params: $ => commaSep1($.type),
 
     return_type: $ => choice(
       seq('->', $.type, optional(seq('?', $.type_identifier))),  // -> type ? ErrorEnum

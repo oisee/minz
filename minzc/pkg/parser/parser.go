@@ -745,13 +745,15 @@ func (p *Parser) parseType(node map[string]interface{}) ast.Type {
 	if node == nil {
 		return nil
 	}
-	
-	// Handle return_type wrapper
+
+	// Handle return_type wrapper: -> type
 	if node["type"] == "return_type" {
 		children, _ := node["children"].([]interface{})
 		for _, child := range children {
 			childNode, _ := child.(map[string]interface{})
-			if childNode["type"] != "->" {
+			childType, _ := childNode["type"].(string)
+			// Skip the "->" arrow, look for "type" node
+			if childType == "type" {
 				return p.parseType(childNode)
 			}
 		}
@@ -759,6 +761,17 @@ func (p *Parser) parseType(node map[string]interface{}) ast.Type {
 	
 	nodeType, _ := node["type"].(string)
 	switch nodeType {
+	case "type":
+		// Unwrap "type" wrapper node and recurse
+		children, _ := node["children"].([]interface{})
+		for _, child := range children {
+			childNode, _ := child.(map[string]interface{})
+			childType, _ := childNode["type"].(string)
+			if childType != "" && childType != "(" && childType != ")" && childType != "," {
+				return p.parseType(childNode)
+			}
+		}
+		return nil
 	case "primitive_type":
 		return &ast.PrimitiveType{
 			Name:     p.getText(node),
@@ -861,11 +874,23 @@ func (p *Parser) parseFunctionType(node map[string]interface{}) *ast.FunctionTyp
 		
 		switch nodeType {
 		case "parameter_list":
-			// Parse parameter types
+			// Parse parameter types (named parameters)
 			params := p.parseParameters(childNode)
 			for _, param := range params {
 				if param.Type != nil {
 					fnType.ParamTypes = append(fnType.ParamTypes, param.Type)
+				}
+			}
+		case "function_type_params":
+			// Parse anonymous parameter types: fn(u8, u16) -> u8
+			paramChildren, _ := childNode["children"].([]interface{})
+			for _, paramChild := range paramChildren {
+				paramNode, _ := paramChild.(map[string]interface{})
+				paramType, _ := paramNode["type"].(string)
+				if paramType == "type" {
+					if t := p.parseType(paramNode); t != nil {
+						fnType.ParamTypes = append(fnType.ParamTypes, t)
+					}
 				}
 			}
 		case "return_type":

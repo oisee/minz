@@ -515,8 +515,9 @@ func (p *Parser) convertVarDecl(node *SExpNode) *ast.VarDecl {
 
 func (p *Parser) convertType(node *SExpNode) ast.Type {
 	// If this is already a type node (e.g., primitive_type), handle it directly
-	if node.Type == "primitive_type" || node.Type == "type_identifier" || 
-	   node.Type == "array_type" || node.Type == "pointer_type" {
+	if node.Type == "primitive_type" || node.Type == "type_identifier" ||
+	   node.Type == "array_type" || node.Type == "pointer_type" ||
+	   node.Type == "function_type" {
 		return p.convertTypeNode(node)
 	}
 	// Otherwise, it's a wrapper node with children
@@ -551,8 +552,42 @@ func (p *Parser) convertTypeNode(node *SExpNode) ast.Type {
 			StartPos: node.StartPos,
 			EndPos:   node.EndPos,
 		}
+	case "function_type":
+		return p.convertFunctionType(node)
 	}
 	return nil
+}
+
+// convertFunctionType parses a function type like fn(u8) -> u8
+func (p *Parser) convertFunctionType(node *SExpNode) *ast.FunctionType {
+	fnType := &ast.FunctionType{
+		ParamTypes: []ast.Type{},
+		StartPos:   node.StartPos,
+		EndPos:     node.EndPos,
+	}
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "function_type_params":
+			// Parse parameter types
+			for _, paramChild := range child.Children {
+				if paramChild.Type == "type" && len(paramChild.Children) > 0 {
+					if t := p.convertTypeNode(paramChild.Children[0]); t != nil {
+						fnType.ParamTypes = append(fnType.ParamTypes, t)
+					}
+				}
+			}
+		case "return_type":
+			// Parse return type
+			for _, rtChild := range child.Children {
+				if rtChild.Type == "type" && len(rtChild.Children) > 0 {
+					fnType.ReturnType = p.convertTypeNode(rtChild.Children[0])
+				}
+			}
+		}
+	}
+
+	return fnType
 }
 
 func (p *Parser) convertExpression(node *SExpNode) ast.Expression {
