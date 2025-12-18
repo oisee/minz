@@ -39,7 +39,7 @@ Features that are documented/claimed but don't work.
 **Issue:** Was generating redundant element stores alongside DB directive
 **Fix:** Skip per-element stores when all elements are literals (DB handles it)
 **Result:** `[10,20,30]` → clean `DB 10, 20, 30` with no redundant code
-**Commit:** (pending)
+**Commit:** 31a41e3
 
 ### 5. Basic Pattern Matching
 **Status:** 🔴 Parser works, codegen broken
