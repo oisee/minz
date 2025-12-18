@@ -42,10 +42,14 @@ Features that are documented/claimed but don't work.
 **Commit:** 31a41e3
 
 ### 5. Basic Pattern Matching
-**Status:** 🔴 Parser works, codegen broken
-**Issue:** `case` statements parse but semantic analysis fails
-**Error:** `undefined identifier 'return'` in case arms
-**Effort:** 1-2 days
+**Status:** ✅ WORKING (syntax clarification needed)
+**Issue:** User error - `return` used outside block context
+**Working syntax:**
+- Expression: `State.IDLE => State.RUNNING` (direct value)
+- Block: `State.IDLE => { return State.RUNNING; }` (with explicit return)
+**NOT working:** `State.IDLE => return State.RUNNING` (return is statement, not expression)
+**Note:** Rust-style `::` not supported - use dot notation
+**Commit:** Verified Dec 2025
 
 ### 6. Enum Value Access (State.IDLE)
 **Status:** ✅ DONE (dot syntax)
@@ -165,7 +169,7 @@ Nice to have, not blocking.
 - [x] P1 #6: Enum value access (DONE - State.IDLE works!)
 
 ### Week 2: Core Features
-- [ ] P1 #5: Pattern matching codegen (1-2 days)
+- [x] P1 #5: Pattern matching (WORKS - syntax clarification)
 - [ ] P1 #7: Function pointer passing (1-2 days)
 
 ### Week 3-4: Language Completeness
