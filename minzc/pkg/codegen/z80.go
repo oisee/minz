@@ -2807,7 +2807,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Decrement and jump if not zero
 		// Uses B register for Z80's native DJNZ instruction
 		g.loadToB(inst.Src1)
-		g.emit("    DJNZ %s", inst.Label)
+		g.emit("    DJNZ %s", g.sanitizeLabel(inst.Label))
 		// Store updated value back
 		g.emit("    LD A, B")
 		g.storeFromA(inst.Src1)

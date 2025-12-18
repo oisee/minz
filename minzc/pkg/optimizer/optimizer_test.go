@@ -158,6 +158,21 @@ func TestDeadCodeElimination(t *testing.T) {
 				{Op: ir.OpReturn},
 			},
 		},
+		{
+			name: "preserve DJNZ referenced label",
+			input: []ir.Instruction{
+				{Op: ir.OpLoadConst, Dest: 1, Imm: 5},
+				{Op: ir.OpLabel, Label: "djnz_loop"},
+				{Op: ir.OpLoadConst, Dest: 2, Imm: 1},
+				{Op: ir.OpDJNZ, Src1: 1, Label: "djnz_loop"},
+				{Op: ir.OpReturn},
+			},
+			expected: []ir.Instruction{
+				{Op: ir.OpLabel, Label: "djnz_loop"},
+				{Op: ir.OpDJNZ, Src1: 1, Label: "djnz_loop"},
+				{Op: ir.OpReturn},
+			},
+		},
 	}
 
 	for _, tt := range tests {

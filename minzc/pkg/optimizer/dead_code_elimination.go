@@ -200,10 +200,10 @@ func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 // markReferencedLabels marks all labels that are referenced by jumps
 func (p *DeadCodeEliminationPass) markReferencedLabels(fn *ir.Function) {
 	p.labelRefs = make(map[string]bool)
-	
+
 	for _, inst := range fn.Instructions {
 		switch inst.Op {
-		case ir.OpJump, ir.OpJumpIfNot:
+		case ir.OpJump, ir.OpJumpIfNot, ir.OpJumpIf, ir.OpDJNZ:
 			if inst.Label != "" {
 				p.labelRefs[inst.Label] = true
 			}
