@@ -2214,67 +2214,91 @@ func (a *Analyzer) analyzeVarDeclInFunc(v *ast.VarDecl, irFunc *ir.Function) err
 			// Check if this is an array initializer
 			if arrayInit, ok := v.Value.(*ast.ArrayInitializer); ok {
 				// Special handling for array initializers
-				// The array space should already be allocated for the variable
-				// Now we need to initialize each element
-				if arrayType, ok := varType.(*ir.ArrayType); ok {
-					// Generate element initialization code
-					for i, elem := range arrayInit.Elements {
-						// Analyze the element expression
-						elemReg, err := a.analyzeExpression(elem, irFunc)
-						if err != nil {
-							return fmt.Errorf("error analyzing array element %d: %w", i, err)
-						}
-						
-						// Generate code to store element at array[i]
-						// First, get the array base address
-						irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-							Op:      ir.OpLoadVar,
-							Dest:    irFunc.AllocReg(),
-							Symbol:  v.Name,
-							Type:    &ir.PointerType{Base: arrayType.Element},
-							Comment: fmt.Sprintf("Load array %s base address", v.Name),
-						})
-						baseReg := irFunc.LastAllocatedReg()
-						
-						// Calculate offset and store element
-						if i == 0 {
-							// First element - store directly
-							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-								Op:      ir.OpStoreIndex,
-								Dest:    baseReg,
-								Src1:    elemReg,
-								Imm:     0,
-								Type:    arrayType.Element,
-								Comment: fmt.Sprintf("Store element %d", i),
-							})
+				// Check if ALL elements are literals - if so, analyzeArrayLiteral already
+				// generated OpArrayLiteral with DB directive, no need for per-element stores
+				allLiterals := true
+				for _, elem := range arrayInit.Elements {
+					if _, ok := elem.(*ast.NumberLiteral); !ok {
+						// Check for struct literals with all literal fields
+						if structLit, ok := elem.(*ast.StructLiteral); ok {
+							for _, field := range structLit.Fields {
+								if _, ok := field.Value.(*ast.NumberLiteral); !ok {
+									allLiterals = false
+									break
+								}
+							}
 						} else {
-							// Other elements - calculate offset
-							offsetReg := irFunc.AllocReg()
+							allLiterals = false
+						}
+					}
+					if !allLiterals {
+						break
+					}
+				}
+
+				// Only generate element stores for non-literal arrays
+				// Literal arrays already have DB directive from OpArrayLiteral
+				if !allLiterals {
+					if arrayType, ok := varType.(*ir.ArrayType); ok {
+						// Generate element initialization code for non-literal elements
+						for i, elem := range arrayInit.Elements {
+							// Analyze the element expression
+							elemReg, err := a.analyzeExpression(elem, irFunc)
+							if err != nil {
+								return fmt.Errorf("error analyzing array element %d: %w", i, err)
+							}
+
+							// Generate code to store element at array[i]
+							// First, get the array base address
 							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-								Op:      ir.OpLoadConst,
-								Dest:    offsetReg,
-								Imm:     int64(i * int(arrayType.Element.Size())),
-								Type:    &ir.BasicType{Kind: ir.TypeU16},
-							})
-							
-							// Add offset to base
-							addrReg := irFunc.AllocReg()
-							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-								Op:      ir.OpAdd,
-								Dest:    addrReg,
-								Src1:    baseReg,
-								Src2:    offsetReg,
+								Op:      ir.OpLoadVar,
+								Dest:    irFunc.AllocReg(),
+								Symbol:  v.Name,
 								Type:    &ir.PointerType{Base: arrayType.Element},
+								Comment: fmt.Sprintf("Load array %s base address", v.Name),
 							})
-							
-							// Store element at calculated address
-							irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-								Op:      ir.OpStoreDirect,
-								Dest:    addrReg,
-								Src1:    elemReg,
-								Type:    arrayType.Element,
-								Comment: fmt.Sprintf("Store element %d", i),
-							})
+							baseReg := irFunc.LastAllocatedReg()
+
+							// Calculate offset and store element
+							if i == 0 {
+								// First element - store directly
+								irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+									Op:      ir.OpStoreIndex,
+									Dest:    baseReg,
+									Src1:    elemReg,
+									Imm:     0,
+									Type:    arrayType.Element,
+									Comment: fmt.Sprintf("Store element %d", i),
+								})
+							} else {
+								// Other elements - calculate offset
+								offsetReg := irFunc.AllocReg()
+								irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+									Op:      ir.OpLoadConst,
+									Dest:    offsetReg,
+									Imm:     int64(i * int(arrayType.Element.Size())),
+									Type:    &ir.BasicType{Kind: ir.TypeU16},
+								})
+
+								// Add offset to base
+								addrReg := irFunc.AllocReg()
+								irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+									Op:      ir.OpAdd,
+									Dest:    addrReg,
+									Src1:    baseReg,
+									Src2:    offsetReg,
+									Type:    &ir.PointerType{Base: arrayType.Element},
+								})
+
+								// Store element at calculated address
+								irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+									Op:      ir.OpStoreDirect,
+									Dest:    addrReg,
+									Src1:    elemReg,
+									Type:    arrayType.Element,
+									Comment: fmt.Sprintf("Store element %d", i),
+								})
+							}
 						}
 					}
 				}

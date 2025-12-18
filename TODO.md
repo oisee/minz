@@ -35,11 +35,11 @@ These issues block basic usage and must be fixed immediately.
 Features that are documented/claimed but don't work.
 
 ### 4. Array Literal → DB Directive Generation
-**Status:** 🔴 Incomplete
-**Issue:** Code has `TODO: Need value source` comment, doesn't generate DB
-**Claim:** README says `[10,20,30]` → `DB 10,20,30`
-**Location:** Array literal codegen in Z80 backend
-**Effort:** 2-4 hours
+**Status:** ✅ DONE
+**Issue:** Was generating redundant element stores alongside DB directive
+**Fix:** Skip per-element stores when all elements are literals (DB handles it)
+**Result:** `[10,20,30]` → clean `DB 10, 20, 30` with no redundant code
+**Commit:** (pending)
 
 ### 5. Basic Pattern Matching
 **Status:** 🔴 Parser works, codegen broken
@@ -159,7 +159,7 @@ Nice to have, not blocking.
 ### Week 1: Critical Fixes
 - [x] P0 #2: Filter ANSI codes (DONE - c54347f)
 - [x] P0 #3: Fix binary architecture (DONE - removed from git)
-- [ ] P1 #4: Array literal DB generation (2-4 hr)
+- [x] P1 #4: Array literal DB generation (DONE - clean output)
 - [ ] P1 #6: Enum value access (4-8 hr)
 
 ### Week 2: Core Features
