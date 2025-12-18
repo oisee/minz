@@ -3275,6 +3275,26 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		
 	case ir.OpGt:
 		// Greater than: Src1 > Src2
+		// Optimized path for 8-bit comparison against constant
+		if constVal, ok := g.constantValues[inst.Src2]; ok && constVal >= 0 && constVal < 255 {
+			// x > constant is equivalent to x >= constant+1
+			// Use CP instruction: if A >= (constant+1), no carry
+			g.emit("    ; Optimized: x > %d", constVal)
+			g.loadToA(inst.Src1)
+			g.emit("    CP %d          ; Compare with %d+1", constVal+1, constVal)
+			gtFalseLabel := g.getFunctionLabel("gt_false")
+			gtDoneLabel := g.getFunctionLabel("gt_done")
+			g.emit("    JR C, %s       ; If carry, x < %d+1, so x <= %d", gtFalseLabel, constVal+1, constVal)
+			g.emit("    LD HL, 1       ; True: x > %d", constVal)
+			g.emit("    JR %s", gtDoneLabel)
+			g.emit("%s:", gtFalseLabel)
+			g.emit("    LD HL, 0       ; False: x <= %d", constVal)
+			g.emit("%s:", gtDoneLabel)
+			g.labelCounter++
+			g.storeFromHL(inst.Dest)
+			break
+		}
+		// Fallback: 16-bit comparison
 		g.loadToHL(inst.Src1)
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
