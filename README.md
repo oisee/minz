@@ -151,9 +151,11 @@ crystal run hello.cr  # Test instantly!
 | **Structs** | ✅ Working | `Point { x: 10, y: 20 }` with field access |
 | **Crystal Backend** | ✅ Working | Test on modern, deploy to vintage |
 | **Multi-Backend** | ✅ Working | Z80, 6502, C, WASM, Crystal, LLVM |
-| **Pattern Matching** | 🚧 In Progress | Basic syntax parses, codegen WIP |
+| **Pattern Matching** | ✅ Working | `case s { State.IDLE => State.RUNNING }` |
+| **Enum Values** | ✅ Working | `State.IDLE`, `@error(MathError.DivByZero)` |
 | **Error Propagation** | ✅ Working | `@error(code)` sets CY flag + A register |
-| **Iterator Chains** | 🚧 Partial | Compiles but not DJNZ-optimized yet |
+| **Array Literals** | ✅ Working | `[10,20,30]` → clean `DB 10,20,30` |
+| **Iterator Chains** | 🚧 Partial | Compiles, DJNZ optimization in progress |
 
 ---
 
