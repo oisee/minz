@@ -58,16 +58,19 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
   - `@if/@elif/@else` - Conditional compilation ✅
   - `@minz[[[...]]]` - Limited compile-time execution
 
+### ✅ Recently Fixed Features (v0.14.2+)
+- **Method calls**: `obj.method()` syntax WORKING via zero-cost interface methods
+- **Self parameter**: Methods with self WORKING
+- **Generics**: `<T: Constraint>` WORKING with monomorphization!
+
 ### ❌ NOT Working Features (Need Implementation)
 - **Error propagation**: `?` suffix and `??` operator NOT implemented
-- **Method calls**: `obj.method()` syntax NOT working
 - **Enum values**: `State::IDLE` syntax NOT working
 - **Pattern matching**: Only basic support
-- **Generics**: `<T>` NOT implemented
 - **Array literals**: `[1,2,3]` generates 80+ lines (should be ~10)
 - **Error messages**: No line numbers or source context
-- **Self parameter**: Methods with self NOT working
 - **Option/Result types**: Not implemented (needed for `?` operator)
+- **Local/nested functions**: Declared inside functions NOT working
 
 ## 🎯 Metafunction Design Decisions
 

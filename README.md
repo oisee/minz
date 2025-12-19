@@ -319,7 +319,8 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 
 ### **Compilation Success Rate**
 - ✅ **100%** of core examples compile successfully (72/72)
-- 18 experimental examples in `examples/experimental/` (require future features)
+- 18 experimental examples in `examples/experimental/` (4 now passing with generics!)
+- **Generics with monomorphization** now working!
 - Zero-cost interface methods working!
 - See [Release Notes](reports/2025-12-18-003-release-notes.md) for details
 
