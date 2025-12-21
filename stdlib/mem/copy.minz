@@ -1,0 +1,387 @@
+// ============================================================================
+// MinZ Memory - Copy Module
+// ============================================================================
+// Fast memory operations optimized for Z80.
+// Includes copy, fill, compare, and search functions.
+// ============================================================================
+
+// ============================================================================
+// Memory Copy
+// ============================================================================
+
+@if((PLATFORM == "zx") || (PLATFORM == "cpm") || (PLATFORM == "msx"))
+
+// Fast block copy using LDIR
+// Copies 'count' bytes from src to dest
+// dest must not overlap with src (or must be at lower address)
+asm fun memcpy(dest: *u8, src: *u8, count: u16) -> *u8 {
+    ; dest in HL, src in DE (swapped from standard), count on stack
+    PUSH HL         ; Save dest for return
+    EX DE, HL       ; HL = src, DE = dest
+    LD BC, (IX+4)   ; BC = count from stack
+    LD A, B
+    OR C
+    JR Z, .done     ; Skip if count is 0
+    LDIR            ; Copy BC bytes from HL to DE
+.done:
+    POP HL          ; Return dest
+    RET
+}
+
+// Copy with overlap handling (memmove equivalent)
+// Safe when dest and src regions overlap
+asm fun memmove(dest: *u8, src: *u8, count: u16) -> *u8 {
+    ; Check if we need reverse copy (dest > src and overlap)
+    PUSH HL         ; Save dest
+    LD BC, (IX+4)   ; BC = count
+    LD A, B
+    OR C
+    JR Z, .done
+
+    ; Compare addresses
+    PUSH HL
+    SBC HL, DE      ; HL = dest - src
+    POP HL
+    JR NC, .forward ; dest >= src: check for overlap
+
+    ; dest < src: always safe to forward copy
+.forward_copy:
+    EX DE, HL       ; HL = src, DE = dest
+    LDIR
+    JR .done
+
+.forward:
+    ; dest >= src, need to copy backwards
+    EX DE, HL       ; HL = src, DE = dest
+    ADD HL, BC
+    DEC HL          ; HL = src + count - 1
+    EX DE, HL
+    ADD HL, BC
+    DEC HL          ; HL = dest + count - 1
+    EX DE, HL       ; HL = src end, DE = dest end
+    LDDR            ; Copy backwards
+
+.done:
+    POP HL          ; Return dest
+    RET
+}
+
+@else
+
+// Generic implementations
+fun memcpy(dest: *u8, src: *u8, count: u16) -> *u8 {
+    let i: u16 = 0;
+    while i < count {
+        dest[i] = src[i];
+        i = i + 1;
+    }
+    return dest;
+}
+
+// Note: For overlapping regions, use the asm memmove above
+// This generic version only handles non-overlapping copy
+fun memmove(dest: *u8, src: *u8, count: u16) -> *u8 {
+    // Simple forward copy - for overlapping regions use asm version
+    return memcpy(dest, src, count);
+}
+
+@endif
+
+// ============================================================================
+// Memory Fill
+// ============================================================================
+
+@if((PLATFORM == "zx") || (PLATFORM == "cpm") || (PLATFORM == "msx"))
+
+// Fast memory fill using LDIR trick
+asm fun memset(dest: *u8, value: u8, count: u16) -> *u8 {
+    ; dest in HL, value in A (from E), count on stack
+    PUSH HL         ; Save dest for return
+    LD A, E         ; value from parameter
+    LD BC, (IX+4)   ; count
+    LD A, B
+    OR C
+    JR Z, .done     ; Skip if count is 0
+
+    LD (HL), E      ; Set first byte
+    DEC BC
+    LD A, B
+    OR C
+    JR Z, .done     ; Only 1 byte
+
+    LD D, H
+    LD E, L
+    INC DE          ; DE = dest + 1
+    LDIR            ; Copy (count-1) bytes
+
+.done:
+    POP HL
+    RET
+}
+
+// Fill memory with 16-bit values (for initializing word arrays)
+// Writes count 16-bit words
+fun memset16(dest: *u8, value: u16, count: u16) -> *u8 {
+    let i: u16 = 0;
+    let lo = (value & 0xFF) as u8;
+    let hi = ((value >> 8) & 0xFF) as u8;
+    while i < count {
+        dest[i * 2] = lo;
+        dest[i * 2 + 1] = hi;
+        i = i + 1;
+    }
+    return dest;
+}
+
+// Zero memory
+fun memzero(dest: *u8, count: u16) -> *u8 {
+    return memset(dest, 0, count);
+}
+
+@else
+
+fun memset(dest: *u8, value: u8, count: u16) -> *u8 {
+    let i: u16 = 0;
+    while i < count {
+        dest[i] = value;
+        i = i + 1;
+    }
+    return dest;
+}
+
+fun memset16(dest: *u8, value: u16, count: u16) -> *u8 {
+    let i: u16 = 0;
+    let lo = (value & 0xFF) as u8;
+    let hi = ((value >> 8) & 0xFF) as u8;
+    while i < count {
+        dest[i * 2] = lo;
+        dest[i * 2 + 1] = hi;
+        i = i + 1;
+    }
+    return dest;
+}
+
+fun memzero(dest: *u8, count: u16) -> *u8 {
+    return memset(dest, 0, count);
+}
+
+@endif
+
+// ============================================================================
+// Memory Compare
+// ============================================================================
+
+@if((PLATFORM == "zx") || (PLATFORM == "cpm") || (PLATFORM == "msx"))
+
+// Compare two memory regions
+// Returns 0 if equal, <0 if a<b, >0 if a>b
+asm fun memcmp(a: *u8, b: *u8, count: u16) -> i8 {
+    ; a in HL, b in DE, count on stack
+    LD BC, (IX+4)   ; count
+.loop:
+    LD A, B
+    OR C
+    JR Z, .equal    ; All bytes compared, equal
+
+    LD A, (DE)
+    CP (HL)
+    JR NZ, .diff
+
+    INC HL
+    INC DE
+    DEC BC
+    JR .loop
+
+.diff:
+    ; A = b[i], (HL) = a[i]
+    ; If a < b: return -1, else return 1
+    LD A, (HL)
+    LD L, A
+    LD A, (DE)
+    CP L
+    LD A, 1
+    JR NC, .ret
+    LD A, -1
+    JR .ret
+
+.equal:
+    XOR A           ; Return 0
+
+.ret:
+    LD L, A
+    RET
+}
+
+@else
+
+fun memcmp(a: *u8, b: *u8, count: u16) -> i8 {
+    let i: u16 = 0;
+    while i < count {
+        if a[i] < b[i] { return -1; }
+        if a[i] > b[i] { return 1; }
+        i = i + 1;
+    }
+    return 0;
+}
+
+@endif
+
+// Check if two regions are equal
+fun memeq(a: *u8, b: *u8, count: u16) -> bool {
+    return memcmp(a, b, count) == 0;
+}
+
+// ============================================================================
+// Memory Search
+// ============================================================================
+
+// Find first occurrence of byte in memory
+// Returns pointer to byte or null if not found
+fun memchr(src: *u8, value: u8, count: u16) -> *u8 {
+    let i: u16 = 0;
+    while i < count {
+        if src[i] == value {
+            return &src[i];
+        }
+        i = i + 1;
+    }
+    return 0 as *u8;
+}
+
+// Find last occurrence of byte
+fun memrchr(src: *u8, value: u8, count: u16) -> *u8 {
+    let i = count;
+    while i > 0 {
+        i = i - 1;
+        if src[i] == value {
+            return &src[i];
+        }
+    }
+    return 0 as *u8;
+}
+
+// Count occurrences of byte
+fun memcount(src: *u8, value: u8, count: u16) -> u16 {
+    let result: u16 = 0;
+    let i: u16 = 0;
+    while i < count {
+        if src[i] == value {
+            result = result + 1;
+        }
+        i = i + 1;
+    }
+    return result;
+}
+
+// ============================================================================
+// Swap and Reverse
+// ============================================================================
+
+// Swap two memory regions of equal size
+fun memswap(a: *u8, b: *u8, count: u16) -> void {
+    let i: u16 = 0;
+    while i < count {
+        let tmp = a[i];
+        a[i] = b[i];
+        b[i] = tmp;
+        i = i + 1;
+    }
+}
+
+// Reverse bytes in place
+fun memrev(ptr: *u8, count: u16) -> void {
+    if count < 2 { return; }
+
+    let i: u16 = 0;
+    let j = count - 1;
+    while i < j {
+        let tmp = ptr[i];
+        ptr[i] = ptr[j];
+        ptr[j] = tmp;
+        i = i + 1;
+        j = j - 1;
+    }
+}
+
+// ============================================================================
+// Block Operations
+// ============================================================================
+
+// XOR memory with value (useful for simple encryption)
+fun memxor(dest: *u8, value: u8, count: u16) -> void {
+    let i: u16 = 0;
+    while i < count {
+        dest[i] = dest[i] ^ value;
+        i = i + 1;
+    }
+}
+
+// XOR two memory regions
+fun memxor_blocks(dest: *u8, src: *u8, count: u16) -> void {
+    let i: u16 = 0;
+    while i < count {
+        dest[i] = dest[i] ^ src[i];
+        i = i + 1;
+    }
+}
+
+// AND memory with value
+fun memand(dest: *u8, value: u8, count: u16) -> void {
+    let i: u16 = 0;
+    while i < count {
+        dest[i] = dest[i] & value;
+        i = i + 1;
+    }
+}
+
+// OR memory with value
+fun memor(dest: *u8, value: u8, count: u16) -> void {
+    let i: u16 = 0;
+    while i < count {
+        dest[i] = dest[i] | value;
+        i = i + 1;
+    }
+}
+
+// ============================================================================
+// Checksum
+// ============================================================================
+
+// Simple 8-bit checksum (sum of all bytes)
+fun checksum8(src: *u8, count: u16) -> u8 {
+    let sum: u8 = 0;
+    let i: u16 = 0;
+    while i < count {
+        sum = sum + src[i];
+        i = i + 1;
+    }
+    return sum;
+}
+
+// XOR checksum
+fun checksum_xor(src: *u8, count: u16) -> u8 {
+    let xor_val: u8 = 0;
+    let i: u16 = 0;
+    while i < count {
+        xor_val = xor_val ^ src[i];
+        i = i + 1;
+    }
+    return xor_val;
+}
+
+// 16-bit checksum (sum of 16-bit words)
+fun checksum16(src: *u8, count: u16) -> u16 {
+    let sum: u16 = 0;
+    let i: u16 = 0;
+    while i + 1 < count {
+        let word = (src[i] as u16) | ((src[i + 1] as u16) << 8);
+        sum = sum + word;
+        i = i + 2;
+    }
+    // Handle odd byte
+    if i < count {
+        sum = sum + src[i] as u16;
+    }
+    return sum;
+}
+

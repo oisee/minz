@@ -1,0 +1,151 @@
+// ============================================================================
+// MinZ Random Number Generator
+// ============================================================================
+// Fast PRNG suitable for games and demos.
+// Uses Linear Feedback Shift Register (LFSR) for speed.
+// Period: 65535 (never produces 0)
+// ============================================================================
+
+// ============================================================================
+// State
+// ============================================================================
+
+// PRNG state (must not be 0)
+global _rng_state: u16 = 0xACE1;
+
+// ============================================================================
+// Core Functions
+// ============================================================================
+
+// Seed the random number generator
+fun rand_seed(seed: u16) -> void {
+    _rng_state = if seed == 0 { 1 } else { seed };
+}
+
+// Get next random 16-bit value (Galois LFSR)
+// Very fast: ~20 T-states on Z80
+fun rand16() -> u16 {
+    let state = _rng_state;
+    let bit = state & 1;
+    state = state >> 1;
+    if bit != 0 {
+        state = state ^ 0xB400;  // Taps: 16, 14, 13, 11
+    }
+    _rng_state = state;
+    return state;
+}
+
+// Get random 8-bit value (0-255)
+fun rand8() -> u8 {
+    return (rand16() >> 8) as u8;
+}
+
+// Get random value in range [0, max)
+fun rand_max(max: u8) -> u8 {
+    if max == 0 { return 0; }
+    // Fast approximation: works well for power-of-2 and nearby values
+    return (rand8() % max);
+}
+
+// Get random value in range [min, max]
+fun rand_range(min: u8, max: u8) -> u8 {
+    if min >= max { return min; }
+    let range = max - min + 1;
+    return min + rand_max(range);
+}
+
+// ============================================================================
+// Boolean and Probability
+// ============================================================================
+
+// Random boolean (50/50 chance)
+fun rand_bool() -> bool {
+    return (rand16() & 1) != 0;
+}
+
+// Random boolean with probability (0-255, where 255 = always true)
+fun rand_chance(probability: u8) -> bool {
+    return rand8() < probability;
+}
+
+// ============================================================================
+// Signed Random
+// ============================================================================
+
+// Random signed 8-bit value (-128 to +127)
+fun rand_i8() -> i8 {
+    let r = rand8();
+    return r as i8;
+}
+
+// Random signed value in range [-range, +range]
+fun rand_signed(range: u8) -> i8 {
+    let r = rand_max(range * 2 + 1);
+    return (r as i8) - (range as i8);
+}
+
+// ============================================================================
+// Noise Functions
+// ============================================================================
+
+// 1D noise (consistent for same input)
+fun noise1d(x: u8) -> u8 {
+    // Simple hash
+    let h = x;
+    h = h ^ (h >> 4);
+    h = h * 0x9D;
+    h = h ^ (h >> 4);
+    return h;
+}
+
+// 2D noise (consistent for same input)
+fun noise2d(x: u8, y: u8) -> u8 {
+    let h = x ^ (y * 251);
+    h = h ^ (h >> 4);
+    h = h * 0x9D;
+    h = h ^ (h >> 4);
+    return h;
+}
+
+// Smooth 1D noise (interpolated)
+fun smooth_noise1d(x: u8, scale: u8) -> u8 {
+    let pos = x >> scale;
+    let frac = (x << (8 - scale)) & 0xFF;
+    let a = noise1d(pos);
+    let b = noise1d(pos + 1);
+    // Linear interpolation
+    return a + (((b - a) as i16 * frac as i16) >> 8) as u8;
+}
+
+// ============================================================================
+// Shuffle and Selection
+// ============================================================================
+
+// Simple table for dice rolls (precomputed for speed)
+global DICE_TABLE: [u8; 16] = [
+    1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4
+];
+
+// Roll a d6 (1-6)
+fun roll_d6() -> u8 {
+    return (rand8() % 6) + 1;
+}
+
+// Roll multiple dice and sum
+fun roll_dice(count: u8, sides: u8) -> u8 {
+    let total: u8 = 0;
+    for i in 0..count {
+        total = total + (rand8() % sides) + 1;
+    }
+    return total;
+}
+
+// Weighted random selection (weights must sum to 256)
+// Returns index 0-3 based on weights
+fun rand_weighted4(w0: u8, w1: u8, w2: u8, w3: u8) -> u8 {
+    let r = rand8();
+    if r < w0 { return 0; }
+    if r < w0 + w1 { return 1; }
+    if r < w0 + w1 + w2 { return 2; }
+    return 3;
+}

@@ -1,0 +1,159 @@
+// ============================================================================
+// MinZ Time - Delay Module
+// ============================================================================
+// Timing and delay functions for ZX Spectrum.
+// TODO: Add conditional compilation for other platforms when @if is ready.
+// ============================================================================
+
+// ============================================================================
+// Platform Constants (ZX Spectrum)
+// ============================================================================
+
+const FRAMES_PER_SECOND: u8 = 50;
+const CYCLES_PER_FRAME: u16 = 0x1110;  // ~69888 T-states per frame (PAL)
+
+// ============================================================================
+// Frame Counter
+// ============================================================================
+
+global _frame_counter: u16 = 0;
+
+// Get current frame count (wraps at 65535)
+fun get_frame_count() -> u16 {
+    return _frame_counter;
+}
+
+// Reset frame counter
+fun reset_frame_count() -> void {
+    _frame_counter = 0;
+}
+
+// Increment frame counter (call once per frame in main loop)
+fun tick_frame() -> void {
+    _frame_counter = _frame_counter + 1;
+}
+
+// ============================================================================
+// Frame Synchronization (ZX Spectrum)
+// ============================================================================
+
+// Wait for vertical blank using HALT instruction
+asm fun wait_vblank() -> void {
+    HALT
+    RET
+}
+
+// Wait for next frame (combines wait and tick)
+fun wait_frame() -> void {
+    wait_vblank();
+    tick_frame();
+}
+
+// ============================================================================
+// Delay Functions
+// ============================================================================
+
+// Delay approximately N microseconds
+// Note: Very approximate, affected by interrupts
+fun delay_us(microseconds: u16) -> void {
+    // At 3.5MHz: 3.5 T-states per microsecond
+    // Inner loop is ~14 T-states
+    let loops = microseconds / 4;
+    while loops > 0 {
+        loops = loops - 1;
+    }
+}
+
+// Delay approximately N milliseconds
+fun delay_ms(milliseconds: u16) -> void {
+    let ms = milliseconds;
+    while ms > 0 {
+        delay_us(1000);
+        ms = ms - 1;
+    }
+}
+
+// Delay N frames (most accurate on retro systems)
+fun delay_frames(frames: u8) -> void {
+    let f = frames;
+    while f > 0 {
+        wait_frame();
+        f = f - 1;
+    }
+}
+
+// Delay in seconds (whole seconds only)
+fun delay_seconds(seconds: u8) -> void {
+    let s = seconds;
+    while s > 0 {
+        delay_frames(FRAMES_PER_SECOND);
+        s = s - 1;
+    }
+}
+
+// Low-level cycle delay
+// Each iteration is approximately 26 T-states
+asm fun delay_cycles(cycles: u16) -> void {
+    ; cycles in HL
+    LD B, H
+    LD C, L
+.loop:
+    DEC BC          ; 6 T-states
+    LD A, B         ; 4 T-states
+    OR C            ; 4 T-states
+    JR NZ, .loop    ; 12/7 T-states
+    RET
+}
+
+// ============================================================================
+// Timer Utilities
+// ============================================================================
+
+// Simple stopwatch using frame counter
+global _stopwatch_start: u16 = 0;
+
+fun stopwatch_start() -> void {
+    _stopwatch_start = _frame_counter;
+}
+
+fun stopwatch_elapsed_frames() -> u16 {
+    return _frame_counter - _stopwatch_start;
+}
+
+fun stopwatch_elapsed_ms() -> u16 {
+    let frames = stopwatch_elapsed_frames();
+    // Convert frames to milliseconds: frames * 1000 / FPS
+    // Simplified: frames * 20 for 50Hz
+    return frames * 20;
+}
+
+// ============================================================================
+// Animation Timing
+// ============================================================================
+
+// Check if N frames have elapsed since last check
+global _anim_last_frame: u16 = 0;
+
+fun every_n_frames(n: u8) -> bool {
+    if _frame_counter - _anim_last_frame >= n as u16 {
+        _anim_last_frame = _frame_counter;
+        return true;
+    }
+    return false;
+}
+
+// Get animation frame index (0 to count-1, cycling)
+fun anim_frame(count: u8, speed: u8) -> u8 {
+    return ((_frame_counter / speed as u16) % count as u16) as u8;
+}
+
+// Ping-pong animation (0,1,2,3,2,1,0,1,...)
+fun anim_frame_pingpong(count: u8, speed: u8) -> u8 {
+    let cycle_len = (count - 1) * 2;
+    let pos = ((_frame_counter / speed as u16) % cycle_len as u16) as u8;
+    if pos >= count {
+        return cycle_len - pos;
+    }
+    return pos;
+}
+

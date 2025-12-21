@@ -1,0 +1,339 @@
+// ============================================================================
+// MinZ Text - String Module
+// ============================================================================
+// String manipulation functions for null-terminated strings.
+// All strings are assumed to be null-terminated (*u8).
+// ============================================================================
+
+// ============================================================================
+// Length Functions
+// ============================================================================
+
+// Get length of null-terminated string
+fun strlen(s: *u8) -> u16 {
+    let len: u16 = 0;
+    while s[len] != 0 {
+        len = len + 1;
+    }
+    return len;
+}
+
+// Get length, with maximum limit
+fun strnlen(s: *u8, max_len: u16) -> u16 {
+    let len: u16 = 0;
+    while len < max_len && s[len] != 0 {
+        len = len + 1;
+    }
+    return len;
+}
+
+// ============================================================================
+// Comparison Functions
+// ============================================================================
+
+// Compare two strings
+// Returns: 0 if equal, <0 if s1 < s2, >0 if s1 > s2
+fun strcmp(s1: *u8, s2: *u8) -> i8 {
+    let i: u16 = 0;
+    loop {
+        let c1 = s1[i];
+        let c2 = s2[i];
+
+        if c1 != c2 {
+            return if c1 < c2 { -1 } else { 1 };
+        }
+        if c1 == 0 {
+            return 0;  // Both strings ended
+        }
+        i = i + 1;
+    }
+}
+
+// Compare strings up to n characters
+fun strncmp(s1: *u8, s2: *u8, n: u16) -> i8 {
+    let i: u16 = 0;
+    while i < n {
+        let c1 = s1[i];
+        let c2 = s2[i];
+
+        if c1 != c2 {
+            return if c1 < c2 { -1 } else { 1 };
+        }
+        if c1 == 0 {
+            return 0;
+        }
+        i = i + 1;
+    }
+    return 0;
+}
+
+// Check if strings are equal
+fun streq(s1: *u8, s2: *u8) -> bool {
+    return strcmp(s1, s2) == 0;
+}
+
+// Check if string starts with prefix
+fun starts_with(s: *u8, prefix: *u8) -> bool {
+    let i: u16 = 0;
+    while prefix[i] != 0 {
+        if s[i] != prefix[i] {
+            return false;
+        }
+        i = i + 1;
+    }
+    return true;
+}
+
+// Check if string ends with suffix
+fun ends_with(s: *u8, suffix: *u8) -> bool {
+    let s_len = strlen(s);
+    let suffix_len = strlen(suffix);
+
+    if suffix_len > s_len {
+        return false;
+    }
+
+    let offset = s_len - suffix_len;
+    return streq(&s[offset], suffix);
+}
+
+// ============================================================================
+// Copy Functions
+// ============================================================================
+
+// Copy string from src to dest (including null terminator)
+// Returns pointer to dest
+fun strcpy(dest: *u8, src: *u8) -> *u8 {
+    let i: u16 = 0;
+    loop {
+        dest[i] = src[i];
+        if src[i] == 0 { break; }
+        i = i + 1;
+    }
+    return dest;
+}
+
+// Copy at most n characters (always null-terminates)
+fun strncpy(dest: *u8, src: *u8, n: u16) -> *u8 {
+    let i: u16 = 0;
+    while i < n - 1 && src[i] != 0 {
+        dest[i] = src[i];
+        i = i + 1;
+    }
+    dest[i] = 0;  // Null terminate
+    return dest;
+}
+
+// Concatenate src to end of dest
+fun strcat(dest: *u8, src: *u8) -> *u8 {
+    let dest_len = strlen(dest);
+    strcpy(&dest[dest_len], src);
+    return dest;
+}
+
+// ============================================================================
+// Search Functions
+// ============================================================================
+
+// Find first occurrence of character in string
+// Returns index of character or 0xFFFF if not found
+fun strchr_idx(s: *u8, c: u8) -> u16 {
+    let i: u16 = 0;
+    while s[i] != 0 {
+        if s[i] == c {
+            return i;
+        }
+        i = i + 1;
+    }
+    // Also check for searching for null terminator
+    if c == 0 {
+        return i;
+    }
+    return 0xFFFF;  // Not found (sentinel value)
+}
+
+// Check if character exists in string
+fun strchr_exists(s: *u8, c: u8) -> bool {
+    let i: u16 = 0;
+    while s[i] != 0 {
+        if s[i] == c {
+            return true;
+        }
+        i = i + 1;
+    }
+    return c == 0;  // True if searching for null terminator
+}
+
+// Find last occurrence of character
+// Returns index or 0xFFFF if not found
+fun strrchr_idx(s: *u8, c: u8) -> u16 {
+    let last: u16 = 0xFFFF;
+    let i: u16 = 0;
+    while s[i] != 0 {
+        if s[i] == c {
+            last = i;
+        }
+        i = i + 1;
+    }
+    if c == 0 {
+        return i;  // Return index of null terminator
+    }
+    return last;
+}
+
+// Find first occurrence of any character from set
+// Returns index or 0xFFFF if not found
+fun strpbrk_idx(s: *u8, chars: *u8) -> u16 {
+    let i: u16 = 0;
+    while s[i] != 0 {
+        let j: u16 = 0;
+        while chars[j] != 0 {
+            if s[i] == chars[j] {
+                return i;
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+    return 0xFFFF;
+}
+
+// ============================================================================
+// Modification Functions
+// ============================================================================
+
+// Reverse string in place
+fun strrev(s: *u8) -> *u8 {
+    let len = strlen(s);
+    if len < 2 { return s; }
+
+    let i: u16 = 0;
+    let j = len - 1;
+    while i < j {
+        let tmp = s[i];
+        s[i] = s[j];
+        s[j] = tmp;
+        i = i + 1;
+        j = j - 1;
+    }
+    return s;
+}
+
+// Convert to uppercase in place
+fun strupr(s: *u8) -> *u8 {
+    let i: u16 = 0;
+    while s[i] != 0 {
+        if s[i] >= 97 && s[i] <= 122 {  // 'a' to 'z'
+            s[i] = s[i] - 32;
+        }
+        i = i + 1;
+    }
+    return s;
+}
+
+// Convert to lowercase in place
+fun strlwr(s: *u8) -> *u8 {
+    let i: u16 = 0;
+    while s[i] != 0 {
+        if s[i] >= 65 && s[i] <= 90 {  // 'A' to 'Z'
+            s[i] = s[i] + 32;
+        }
+        i = i + 1;
+    }
+    return s;
+}
+
+// Trim leading whitespace (modifies string in place)
+fun ltrim(s: *u8) -> *u8 {
+    let start: u16 = 0;
+    while (s[start] == 32) || (s[start] == 9) {  // space or tab
+        start = start + 1;
+    }
+    if start > 0 {
+        let i: u16 = 0;
+        while s[start + i] != 0 {
+            s[i] = s[start + i];
+            i = i + 1;
+        }
+        s[i] = 0;
+    }
+    return s;
+}
+
+// Trim trailing whitespace
+fun rtrim(s: *u8) -> *u8 {
+    let len = strlen(s);
+    while (len > 0) && ((s[len - 1] == 32) || (s[len - 1] == 9)) {
+        len = len - 1;
+    }
+    s[len] = 0;
+    return s;
+}
+
+// Trim both ends
+fun trim(s: *u8) -> *u8 {
+    rtrim(s);
+    ltrim(s);
+    return s;
+}
+
+// ============================================================================
+// Character Classification
+// ============================================================================
+
+fun is_digit(c: u8) -> bool {
+    return c >= 48 && c <= 57;  // '0' to '9'
+}
+
+fun is_alpha(c: u8) -> bool {
+    return ((c >= 65) && (c <= 90)) || ((c >= 97) && (c <= 122));
+}
+
+fun is_alnum(c: u8) -> bool {
+    return (is_digit(c)) || (is_alpha(c));
+}
+
+fun is_space(c: u8) -> bool {
+    return ((c == 32) || (c == 9)) || ((c == 10) || (c == 13));
+}
+
+fun is_upper(c: u8) -> bool {
+    return c >= 65 && c <= 90;
+}
+
+fun is_lower(c: u8) -> bool {
+    return c >= 97 && c <= 122;
+}
+
+fun to_upper(c: u8) -> u8 {
+    return if is_lower(c) { c - 32 } else { c };
+}
+
+fun to_lower(c: u8) -> u8 {
+    return if is_upper(c) { c + 32 } else { c };
+}
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+// Fill string with character
+fun memset_str(s: *u8, c: u8, n: u16) -> *u8 {
+    let i: u16 = 0;
+    while i < n {
+        s[i] = c;
+        i = i + 1;
+    }
+    return s;
+}
+
+// Create repeated character string
+fun str_repeat(dest: *u8, c: u8, count: u8) -> *u8 {
+    let i: u8 = 0;
+    while i < count {
+        dest[i] = c;
+        i = i + 1;
+    }
+    dest[count] = 0;
+    return dest;
+}

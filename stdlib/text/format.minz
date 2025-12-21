@@ -1,0 +1,347 @@
+// ============================================================================
+// MinZ Text - Format Module
+// ============================================================================
+// Number formatting and string building utilities.
+// Designed for memory-constrained systems.
+// ============================================================================
+
+// ============================================================================
+// Digit Tables
+// ============================================================================
+
+global HEX_DIGITS: [u8; 16] = [
+    48, 49, 50, 51, 52, 53, 54, 55,  // '0'-'7'
+    56, 57, 65, 66, 67, 68, 69, 70   // '8','9','A'-'F'
+];
+
+global HEX_DIGITS_LOWER: [u8; 16] = [
+    48, 49, 50, 51, 52, 53, 54, 55,  // '0'-'7'
+    56, 57, 97, 98, 99, 100, 101, 102 // '8','9','a'-'f'
+];
+
+// ============================================================================
+// Integer to String Conversion
+// ============================================================================
+
+// Convert u8 to decimal string
+// Buffer must be at least 4 bytes (3 digits + null)
+fun u8_to_str(value: u8, buffer: *u8) -> *u8 {
+    let i: u8 = 0;
+
+    if value == 0 {
+        buffer[0] = 48;  // '0'
+        buffer[1] = 0;
+        return buffer;
+    }
+
+    // Generate digits in reverse
+    let temp: [u8; 4] = [0, 0, 0, 0];
+    let v = value;
+    while v > 0 {
+        temp[i] = 48 + (v % 10);
+        v = v / 10;
+        i = i + 1;
+    }
+
+    // Reverse into buffer
+    let j: u8 = 0;
+    while i > 0 {
+        i = i - 1;
+        buffer[j] = temp[i];
+        j = j + 1;
+    }
+    buffer[j] = 0;
+
+    return buffer;
+}
+
+// Convert i8 to decimal string
+// Buffer must be at least 5 bytes (-128 + null)
+fun i8_to_str(value: i8, buffer: *u8) -> *u8 {
+    let offset: u8 = 0;
+
+    if value < 0 {
+        buffer[0] = 45;  // '-'
+        offset = 1;
+        // Handle -128 specially
+        if value == -128 {
+            buffer[1] = 49;  // '1'
+            buffer[2] = 50;  // '2'
+            buffer[3] = 56;  // '8'
+            buffer[4] = 0;
+            return buffer;
+        }
+        u8_to_str((-value) as u8, &buffer[offset]);
+    } else {
+        u8_to_str(value as u8, buffer);
+    }
+
+    return buffer;
+}
+
+// Convert u16 to decimal string
+// Buffer must be at least 6 bytes (65535 + null)
+fun u16_to_str(value: u16, buffer: *u8) -> *u8 {
+    let i: u8 = 0;
+
+    if value == 0 {
+        buffer[0] = 48;
+        buffer[1] = 0;
+        return buffer;
+    }
+
+    let temp: [u8; 6] = [0, 0, 0, 0, 0, 0];
+    let v = value;
+    while v > 0 {
+        temp[i] = 48 + (v % 10) as u8;
+        v = v / 10;
+        i = i + 1;
+    }
+
+    let j: u8 = 0;
+    while i > 0 {
+        i = i - 1;
+        buffer[j] = temp[i];
+        j = j + 1;
+    }
+    buffer[j] = 0;
+
+    return buffer;
+}
+
+// Convert i16 to decimal string
+// Buffer must be at least 7 bytes (-32768 + null)
+fun i16_to_str(value: i16, buffer: *u8) -> *u8 {
+    if value < 0 {
+        buffer[0] = 45;  // '-'
+        if value == -32768 {
+            buffer[1] = 51; buffer[2] = 50;
+            buffer[3] = 55; buffer[4] = 54;
+            buffer[5] = 56; buffer[6] = 0;
+            return buffer;
+        }
+        u16_to_str((-value) as u16, &buffer[1]);
+    } else {
+        u16_to_str(value as u16, buffer);
+    }
+    return buffer;
+}
+
+// ============================================================================
+// Hexadecimal Conversion
+// ============================================================================
+
+// Convert u8 to 2-digit hex string (uppercase)
+fun u8_to_hex(value: u8, buffer: *u8) -> *u8 {
+    buffer[0] = HEX_DIGITS[(value >> 4) & 0x0F];
+    buffer[1] = HEX_DIGITS[value & 0x0F];
+    buffer[2] = 0;
+    return buffer;
+}
+
+// Convert u16 to 4-digit hex string
+fun u16_to_hex(value: u16, buffer: *u8) -> *u8 {
+    buffer[0] = HEX_DIGITS[((value >> 12) & 0x0F) as u8];
+    buffer[1] = HEX_DIGITS[((value >> 8) & 0x0F) as u8];
+    buffer[2] = HEX_DIGITS[((value >> 4) & 0x0F) as u8];
+    buffer[3] = HEX_DIGITS[(value & 0x0F) as u8];
+    buffer[4] = 0;
+    return buffer;
+}
+
+// Convert with $ prefix (common in assembly)
+fun u8_to_hex_asm(value: u8, buffer: *u8) -> *u8 {
+    buffer[0] = 36;  // '$'
+    u8_to_hex(value, &buffer[1]);
+    return buffer;
+}
+
+fun u16_to_hex_asm(value: u16, buffer: *u8) -> *u8 {
+    buffer[0] = 36;  // '$'
+    u16_to_hex(value, &buffer[1]);
+    return buffer;
+}
+
+// ============================================================================
+// Binary Conversion
+// ============================================================================
+
+// Convert u8 to 8-character binary string
+fun u8_to_bin(value: u8, buffer: *u8) -> *u8 {
+    let i: u8 = 0;
+    while i < 8 {
+        let mask = 0x80 >> i;
+        if (value & mask) != 0 {
+            buffer[i] = 49;  // '1'
+        } else {
+            buffer[i] = 48;  // '0'
+        }
+        i = i + 1;
+    }
+    buffer[8] = 0;
+    return buffer;
+}
+
+// ============================================================================
+// Formatted Output
+// ============================================================================
+
+// Right-pad number with spaces to width
+fun u8_to_str_padded(value: u8, buffer: *u8, width: u8) -> *u8 {
+    u8_to_str(value, buffer);
+
+    // Find current length
+    let len: u8 = 0;
+    while buffer[len] != 0 { len = len + 1; }
+
+    // Pad with spaces
+    while len < width {
+        buffer[len] = 32;  // space
+        len = len + 1;
+    }
+    buffer[len] = 0;
+
+    return buffer;
+}
+
+// Left-pad number with zeros to width
+fun u8_to_str_zero_padded(value: u8, buffer: *u8, width: u8) -> *u8 {
+    let temp: [u8; 4] = [0, 0, 0, 0];
+    u8_to_str(value, &temp[0]);
+
+    // Find length
+    let len: u8 = 0;
+    while temp[len] != 0 { len = len + 1; }
+
+    // Add leading zeros
+    let zeros = if width > len { width - len } else { 0 };
+    let i: u8 = 0;
+    while i < zeros {
+        buffer[i] = 48;  // '0'
+        i = i + 1;
+    }
+
+    // Copy number
+    let j: u8 = 0;
+    while temp[j] != 0 {
+        buffer[i] = temp[j];
+        i = i + 1;
+        j = j + 1;
+    }
+    buffer[i] = 0;
+
+    return buffer;
+}
+
+// Same for u16
+fun u16_to_str_zero_padded(value: u16, buffer: *u8, width: u8) -> *u8 {
+    let temp: [u8; 6] = [0, 0, 0, 0, 0, 0];
+    u16_to_str(value, &temp[0]);
+
+    let len: u8 = 0;
+    while temp[len] != 0 { len = len + 1; }
+
+    let zeros = if width > len { width - len } else { 0 };
+    let i: u8 = 0;
+    while i < zeros {
+        buffer[i] = 48;
+        i = i + 1;
+    }
+
+    let j: u8 = 0;
+    while temp[j] != 0 {
+        buffer[i] = temp[j];
+        i = i + 1;
+        j = j + 1;
+    }
+    buffer[i] = 0;
+
+    return buffer;
+}
+
+// ============================================================================
+// String Parsing (String to Number)
+// ============================================================================
+
+// Parse decimal string to u8
+// Stops at first non-digit
+fun str_to_u8(s: *u8) -> u8 {
+    let result: u16 = 0;
+    let i: u16 = 0;
+
+    while s[i] >= 48 && s[i] <= 57 {
+        result = result * 10 + (s[i] - 48) as u16;
+        if result > 255 { return 255; }  // Overflow
+        i = i + 1;
+    }
+
+    return result as u8;
+}
+
+// Parse decimal string to u16
+// Note: May overflow for values > 65535, caller should validate input
+fun str_to_u16(s: *u8) -> u16 {
+    let result: u16 = 0;
+    let i: u16 = 0;
+
+    while (s[i] >= 48) && (s[i] <= 57) {
+        // Simple overflow check: if result > 6553, next digit could overflow
+        if result > 6553 { return 65535; }
+        result = result * 10 + (s[i] - 48) as u16;
+        i = i + 1;
+    }
+
+    return result;
+}
+
+// Parse hex string to u8 (without $ or 0x prefix)
+fun hex_to_u8(s: *u8) -> u8 {
+    let result: u8 = 0;
+    let i: u8 = 0;
+
+    while i < 2 && s[i] != 0 {
+        let c = s[i];
+        let digit: u8 = 0;
+
+        if c >= 48 && c <= 57 {
+            digit = c - 48;
+        } else if c >= 65 && c <= 70 {
+            digit = c - 55;  // 'A' = 10
+        } else if c >= 97 && c <= 102 {
+            digit = c - 87;  // 'a' = 10
+        } else {
+            break;
+        }
+
+        result = (result << 4) | digit;
+        i = i + 1;
+    }
+
+    return result;
+}
+
+// Parse hex string to u16
+fun hex_to_u16(s: *u8) -> u16 {
+    let result: u16 = 0;
+    let i: u8 = 0;
+
+    while i < 4 && s[i] != 0 {
+        let c = s[i];
+        let digit: u8 = 0;
+
+        if c >= 48 && c <= 57 {
+            digit = c - 48;
+        } else if c >= 65 && c <= 70 {
+            digit = c - 55;
+        } else if c >= 97 && c <= 102 {
+            digit = c - 87;
+        } else {
+            break;
+        }
+
+        result = (result << 4) | (digit as u16);
+        i = i + 1;
+    }
+
+    return result;
+}

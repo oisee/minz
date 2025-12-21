@@ -1,0 +1,184 @@
+// ============================================================================
+// MinZ Input - Keyboard Module
+// ============================================================================
+// Keyboard input for ZX Spectrum with debouncing.
+// TODO: Add conditional compilation for other platforms when @if is ready.
+// ============================================================================
+
+// ============================================================================
+// Key Constants
+// ============================================================================
+
+// Letters (ASCII values)
+const KEY_A: u8 = 65;
+const KEY_B: u8 = 66;
+const KEY_C: u8 = 67;
+const KEY_D: u8 = 68;
+const KEY_E: u8 = 69;
+const KEY_F: u8 = 70;
+const KEY_G: u8 = 71;
+const KEY_H: u8 = 72;
+const KEY_I: u8 = 73;
+const KEY_J: u8 = 74;
+const KEY_K: u8 = 75;
+const KEY_L: u8 = 76;
+const KEY_M: u8 = 77;
+const KEY_N: u8 = 78;
+const KEY_O: u8 = 79;
+const KEY_P: u8 = 80;
+const KEY_Q: u8 = 81;
+const KEY_R: u8 = 82;
+const KEY_S: u8 = 83;
+const KEY_T: u8 = 84;
+const KEY_U: u8 = 85;
+const KEY_V: u8 = 86;
+const KEY_W: u8 = 87;
+const KEY_X: u8 = 88;
+const KEY_Y: u8 = 89;
+const KEY_Z: u8 = 90;
+
+// Numbers
+const KEY_0: u8 = 48;
+const KEY_1: u8 = 49;
+const KEY_2: u8 = 50;
+const KEY_3: u8 = 51;
+const KEY_4: u8 = 52;
+const KEY_5: u8 = 53;
+const KEY_6: u8 = 54;
+const KEY_7: u8 = 55;
+const KEY_8: u8 = 56;
+const KEY_9: u8 = 57;
+
+// Special keys
+const KEY_SPACE: u8 = 32;
+const KEY_ENTER: u8 = 13;
+const KEY_ESCAPE: u8 = 27;
+const KEY_BACKSPACE: u8 = 8;
+
+// Cursor keys (virtual codes)
+const KEY_LEFT: u8 = 128;
+const KEY_RIGHT: u8 = 129;
+const KEY_UP: u8 = 130;
+const KEY_DOWN: u8 = 131;
+
+// Modifier keys
+const KEY_SHIFT: u8 = 132;
+
+// ============================================================================
+// State
+// ============================================================================
+
+global _key_current: u8 = 0;
+global _key_previous: u8 = 0;
+global _key_repeat_timer: u8 = 0;
+
+const KEY_REPEAT_DELAY: u8 = 30;
+const KEY_REPEAT_RATE: u8 = 5;
+
+// ============================================================================
+// ZX Spectrum Keyboard Matrix Reading
+// ============================================================================
+
+// Read a keyboard half-row
+// Row 0: Shift, Z, X, C, V  (port 0xFEFE)
+// Row 1: A, S, D, F, G      (port 0xFDFE)
+// Row 2: Q, W, E, R, T      (port 0xFBFE)
+// Row 3: 1, 2, 3, 4, 5      (port 0xF7FE)
+// Row 4: 0, 9, 8, 7, 6      (port 0xEFFE)
+// Row 5: P, O, I, U, Y      (port 0xDFFE)
+// Row 6: Enter, L, K, J, H  (port 0xBFFE)
+// Row 7: Space, SS, M, N, B (port 0x7FFE)
+
+asm fun _read_row(port_high: u8) -> u8 {
+    LD B, A         ; Port high byte from parameter
+    LD C, 0xFE      ; Port low byte
+    IN A, (C)       ; Read keyboard row
+    CPL             ; Invert (pressed = 1)
+    AND 0x1F        ; Mask to 5 bits
+    RET
+}
+
+// Check if SPACE is pressed
+fun is_space_pressed() -> bool {
+    return (_read_row(0x7F) & 0x01) != 0;
+}
+
+// Check if ENTER is pressed
+fun is_enter_pressed() -> bool {
+    return (_read_row(0xBF) & 0x01) != 0;
+}
+
+// Check if SHIFT is pressed
+fun is_shift_pressed() -> bool {
+    return (_read_row(0xFE) & 0x01) != 0;
+}
+
+// Check cursor keys (5,6,7,8 on ZX)
+fun is_left_pressed() -> bool {
+    return (_read_row(0xF7) & 0x10) != 0;  // 5
+}
+
+fun is_down_pressed() -> bool {
+    return (_read_row(0xEF) & 0x10) != 0;  // 6
+}
+
+fun is_up_pressed() -> bool {
+    return (_read_row(0xEF) & 0x08) != 0;  // 7
+}
+
+fun is_right_pressed() -> bool {
+    return (_read_row(0xEF) & 0x04) != 0;  // 8
+}
+
+// ============================================================================
+// High-Level Input Functions
+// ============================================================================
+
+// Check if any key is pressed
+fun any_key_pressed() -> bool {
+    let row = _read_row(0x7F) | _read_row(0xBF) | _read_row(0xDF);
+    let row2 = _read_row(0xEF) | _read_row(0xF7) | _read_row(0xFB);
+    let row3 = _read_row(0xFD) | _read_row(0xFE);
+    return (row | row2 | row3) != 0;
+}
+
+// Wait for any key press (blocking)
+fun wait_any_key() -> void {
+    while !any_key_pressed() { }
+}
+
+// Wait for all keys to be released
+fun wait_no_key() -> void {
+    while any_key_pressed() { }
+}
+
+// ============================================================================
+// Direction Helpers (for games)
+// ============================================================================
+
+// Get X direction from cursor keys (-1, 0, +1)
+fun get_key_dx() -> i8 {
+    if is_left_pressed() { return -1; }
+    if is_right_pressed() { return 1; }
+    return 0;
+}
+
+// Get Y direction from cursor keys (-1, 0, +1)
+fun get_key_dy() -> i8 {
+    if is_up_pressed() { return -1; }
+    if is_down_pressed() { return 1; }
+    return 0;
+}
+
+// Check if any direction key is pressed
+fun is_direction_pressed() -> bool {
+    let pressed = is_left_pressed();
+    if pressed { return true; }
+    pressed = is_right_pressed();
+    if pressed { return true; }
+    pressed = is_up_pressed();
+    if pressed { return true; }
+    pressed = is_down_pressed();
+    return pressed;
+}
+

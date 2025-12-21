@@ -1,0 +1,417 @@
+// ============================================================================
+// MinZ Graphics - Screen Module
+// ============================================================================
+// Screen operations for ZX Spectrum.
+// TODO: Add conditional compilation for other platforms when @if is ready.
+// ============================================================================
+
+// ============================================================================
+// Screen Constants (ZX Spectrum)
+// ============================================================================
+
+const SCREEN_WIDTH: u8 = 255;  // Use 255 to fit in u8, actual is 256
+const SCREEN_HEIGHT: u8 = 192;
+const SCREEN_COLORS: u8 = 8;
+
+// ============================================================================
+// Color Constants
+// ============================================================================
+
+const COLOR_BLACK: u8 = 0;
+const COLOR_BLUE: u8 = 1;
+const COLOR_RED: u8 = 2;
+const COLOR_MAGENTA: u8 = 3;
+const COLOR_GREEN: u8 = 4;
+const COLOR_CYAN: u8 = 5;
+const COLOR_YELLOW: u8 = 6;
+const COLOR_WHITE: u8 = 7;
+
+// ============================================================================
+// Types
+// ============================================================================
+
+struct Point {
+    x: u8,
+    y: u8
+}
+
+struct Rect {
+    x: u8,
+    y: u8,
+    w: u8,
+    h: u8
+}
+
+// ============================================================================
+// Screen State
+// ============================================================================
+
+global _current_ink: u8 = 7;   // COLOR_WHITE
+global _current_paper: u8 = 0; // COLOR_BLACK
+
+// ============================================================================
+// Core Screen Functions (ZX Spectrum)
+// ============================================================================
+
+// Clear entire screen to current paper color
+asm fun clear_screen() -> void {
+    ; Clear pixel area
+    LD HL, 0x4000
+    LD DE, 0x4001
+    LD BC, 0x17FF
+    LD (HL), 0
+    LDIR
+    ; Clear attributes to current paper/ink
+    LD HL, 0x5800
+    LD DE, 0x5801
+    LD BC, 0x02FF
+    LD A, (_current_paper)
+    RLCA
+    RLCA
+    RLCA
+    OR A, (_current_ink)
+    LD (HL), A
+    LDIR
+    RET
+}
+
+// Set current ink (foreground) color
+fun set_ink(color: u8) -> void {
+    _current_ink = color & 0x07;
+}
+
+// Set current paper (background) color
+fun set_paper(color: u8) -> void {
+    _current_paper = color & 0x07;
+}
+
+// ============================================================================
+// Pixel Operations (ZX Spectrum)
+// ============================================================================
+
+// Calculate screen address for pixel at (x, y)
+// ZX Spectrum screen layout is unusual - 3 blocks of 8 char rows
+asm fun _pixel_addr(x: u8, y: u8) -> u16 {
+    ; Input: A = x (IX+2), L = y
+    ; Output: HL = screen address
+    LD A, L         ; y coordinate
+    AND 0xC0        ; top 2 bits (block)
+    RRA
+    RRA
+    RRA
+    OR 0x40         ; base = 0x4000
+    LD H, A
+    LD A, L
+    AND 0x07        ; bottom 3 bits (line in char)
+    RRCA
+    RRCA
+    RRCA
+    LD L, A
+    LD A, L
+    AND 0xE0
+    LD L, A
+    LD A, (IX+2)    ; Get x from stack frame
+    RRA
+    RRA
+    RRA
+    AND 0x1F        ; x / 8
+    OR L
+    LD L, A
+    RET
+}
+
+// Get bit mask for x position
+fun _pixel_mask(x: u8) -> u8 {
+    let bit_pos = x & 7;
+    return 0x80 >> bit_pos;
+}
+
+// Set a pixel (uses assembly for direct memory access)
+asm fun set_pixel(x: u8, y: u8) -> void {
+    ; x in A, y in L
+    PUSH AF         ; Save x
+    ; Calculate screen address (y in L)
+    LD A, L         ; y coordinate
+    AND 0xC0
+    RRA
+    RRA
+    RRA
+    OR 0x40         ; base = 0x4000
+    LD H, A
+    LD A, L
+    AND 0x07
+    RRCA
+    RRCA
+    RRCA
+    LD L, A
+    LD A, L
+    AND 0xE0
+    LD L, A
+    POP AF          ; Restore x
+    PUSH AF
+    RRA
+    RRA
+    RRA
+    AND 0x1F        ; x / 8
+    OR L
+    LD L, A         ; HL = screen address
+    ; Calculate bit mask
+    POP AF          ; x
+    AND 0x07        ; x & 7
+    LD B, A
+    LD A, 0x80      ; Start with bit 7
+    JR Z, .done_shift
+.shift:
+    RRCA
+    DJNZ .shift
+.done_shift:
+    OR (HL)         ; Set the bit
+    LD (HL), A
+    RET
+}
+
+// Clear a pixel
+asm fun clear_pixel(x: u8, y: u8) -> void {
+    ; x in A, y in L
+    PUSH AF
+    LD A, L
+    AND 0xC0
+    RRA
+    RRA
+    RRA
+    OR 0x40
+    LD H, A
+    LD A, L
+    AND 0x07
+    RRCA
+    RRCA
+    RRCA
+    LD L, A
+    LD A, L
+    AND 0xE0
+    LD L, A
+    POP AF
+    PUSH AF
+    RRA
+    RRA
+    RRA
+    AND 0x1F
+    OR L
+    LD L, A
+    POP AF
+    AND 0x07
+    LD B, A
+    LD A, 0x80
+    JR Z, .done_shift
+.shift:
+    RRCA
+    DJNZ .shift
+.done_shift:
+    CPL             ; Invert mask
+    AND (HL)        ; Clear the bit
+    LD (HL), A
+    RET
+}
+
+// Toggle a pixel (XOR)
+asm fun toggle_pixel(x: u8, y: u8) -> void {
+    ; x in A, y in L
+    PUSH AF
+    LD A, L
+    AND 0xC0
+    RRA
+    RRA
+    RRA
+    OR 0x40
+    LD H, A
+    LD A, L
+    AND 0x07
+    RRCA
+    RRCA
+    RRCA
+    LD L, A
+    LD A, L
+    AND 0xE0
+    LD L, A
+    POP AF
+    PUSH AF
+    RRA
+    RRA
+    RRA
+    AND 0x1F
+    OR L
+    LD L, A
+    POP AF
+    AND 0x07
+    LD B, A
+    LD A, 0x80
+    JR Z, .done_shift
+.shift:
+    RRCA
+    DJNZ .shift
+.done_shift:
+    XOR (HL)        ; Toggle the bit
+    LD (HL), A
+    RET
+}
+
+// Test if pixel is set
+asm fun get_pixel(x: u8, y: u8) -> bool {
+    ; x in A, y in L
+    PUSH AF
+    LD A, L
+    AND 0xC0
+    RRA
+    RRA
+    RRA
+    OR 0x40
+    LD H, A
+    LD A, L
+    AND 0x07
+    RRCA
+    RRCA
+    RRCA
+    LD L, A
+    LD A, L
+    AND 0xE0
+    LD L, A
+    POP AF
+    PUSH AF
+    RRA
+    RRA
+    RRA
+    AND 0x1F
+    OR L
+    LD L, A
+    POP AF
+    AND 0x07
+    LD B, A
+    LD A, 0x80
+    JR Z, .done_shift
+.shift:
+    RRCA
+    DJNZ .shift
+.done_shift:
+    AND (HL)        ; Test the bit
+    LD L, A         ; Return in L (bool)
+    RET
+}
+
+// ============================================================================
+// Line Drawing (Bresenham's Algorithm)
+// ============================================================================
+
+fun abs_i16(v: i16) -> i16 {
+    return if v < 0 { -v } else { v };
+}
+
+fun draw_line(x0: u8, y0: u8, x1: u8, y1: u8) -> void {
+    let dx = abs_i16((x1 as i16) - (x0 as i16));
+    let dy = abs_i16((y1 as i16) - (y0 as i16));
+    let sx: i8 = if x0 < x1 { 1 } else { -1 };
+    let sy: i8 = if y0 < y1 { 1 } else { -1 };
+    let err = dx - dy;
+
+    let x = x0 as i16;
+    let y = y0 as i16;
+
+    loop {
+        set_pixel(x as u8, y as u8);
+
+        if (x == x1 as i16) && (y == y1 as i16) { break; }
+
+        let e2 = err * 2;
+        if e2 > -dy {
+            err = err - dy;
+            x = x + sx as i16;
+        }
+        if e2 < dx {
+            err = err + dx;
+            y = y + sy as i16;
+        }
+    }
+}
+
+// Fast horizontal line
+fun draw_hline(x0: u8, x1: u8, y: u8) -> void {
+    let start: u8 = if x0 < x1 { x0 } else { x1 };
+    let end: u8 = if x0 > x1 { x0 } else { x1 };
+    let x: u8 = start;
+    while x <= end {
+        set_pixel(x, y);
+        if x == 255 { break; }  // Avoid overflow
+        x = (x + 1) as u8;
+    }
+}
+
+// Fast vertical line
+fun draw_vline(x: u8, y0: u8, y1: u8) -> void {
+    let start: u8 = if y0 < y1 { y0 } else { y1 };
+    let end: u8 = if y0 > y1 { y0 } else { y1 };
+    let y: u8 = start;
+    while y <= end {
+        set_pixel(x, y);
+        if y == 191 { break; }  // Avoid going past screen
+        y = (y + 1) as u8;
+    }
+}
+
+// ============================================================================
+// Rectangle Drawing
+// ============================================================================
+
+// Draw rectangle outline
+fun draw_rect(x: u8, y: u8, w: u8, h: u8) -> void {
+    draw_hline(x, x + w - 1, y);           // Top
+    draw_hline(x, x + w - 1, y + h - 1);   // Bottom
+    draw_vline(x, y, y + h - 1);           // Left
+    draw_vline(x + w - 1, y, y + h - 1);   // Right
+}
+
+// Fill rectangle
+fun fill_rect(x: u8, y: u8, w: u8, h: u8) -> void {
+    let row = y;
+    while row < y + h {
+        draw_hline(x, x + w - 1, row);
+        row = row + 1;
+    }
+}
+
+// ============================================================================
+// Circle Drawing (Midpoint Algorithm)
+// ============================================================================
+
+fun draw_circle(cx: u8, cy: u8, r: u8) -> void {
+    let x: i16 = r as i16;
+    let y: i16 = 0;
+    let err: i16 = 0;
+
+    while x >= y {
+        // Draw 8 octants
+        set_pixel((cx as i16 + x) as u8, (cy as i16 + y) as u8);
+        set_pixel((cx as i16 + y) as u8, (cy as i16 + x) as u8);
+        set_pixel((cx as i16 - y) as u8, (cy as i16 + x) as u8);
+        set_pixel((cx as i16 - x) as u8, (cy as i16 + y) as u8);
+        set_pixel((cx as i16 - x) as u8, (cy as i16 - y) as u8);
+        set_pixel((cx as i16 - y) as u8, (cy as i16 - x) as u8);
+        set_pixel((cx as i16 + y) as u8, (cy as i16 - x) as u8);
+        set_pixel((cx as i16 + x) as u8, (cy as i16 - y) as u8);
+
+        y = y + 1;
+        err = err + 1 + 2 * y;
+        if 2 * (err - x) + 1 > 0 {
+            x = x - 1;
+            err = err + 1 - 2 * x;
+        }
+    }
+}
+
+// ============================================================================
+// Border Control (ZX Spectrum)
+// ============================================================================
+
+asm fun set_border(color: u8) -> void {
+    OUT (254), A    ; A already has color from parameter
+    RET
+}
+

@@ -1,0 +1,121 @@
+// ============================================================================
+// MinZ Sound - Beep Module
+// ============================================================================
+// Simple sound generation for ZX Spectrum.
+// TODO: Add conditional compilation for other platforms when @if is ready.
+// ============================================================================
+
+// ============================================================================
+// ZX Spectrum Beeper (1-bit audio)
+// ============================================================================
+
+// Beep using the Spectrum's beeper
+// duration: number of cycles (higher = longer)
+// pitch: delay between toggles (higher = lower pitch)
+asm fun beep(duration: u8, pitch: u8) -> void {
+    ; duration in A, pitch in L
+    LD B, A         ; B = duration counter
+    LD C, L         ; C = pitch (delay value)
+.outer:
+    LD A, 16        ; Beeper bit ON
+    OUT (254), A
+    LD D, C         ; Inner delay
+.delay1:
+    DEC D
+    JR NZ, .delay1
+
+    XOR A           ; Beeper bit OFF
+    OUT (254), A
+    LD D, C         ; Inner delay
+.delay2:
+    DEC D
+    JR NZ, .delay2
+
+    DJNZ .outer     ; Repeat
+    RET
+}
+
+// Short click sound
+fun click() -> void {
+    beep(1, 50);
+}
+
+// Error/buzz sound
+fun buzz() -> void {
+    beep(20, 200);
+}
+
+// Success/ding sound
+fun ding() -> void {
+    beep(10, 20);
+}
+
+// ============================================================================
+// Simple Sound Effects
+// ============================================================================
+
+// Menu select sound
+fun sfx_select() -> void {
+    beep(5, 30);
+}
+
+// Error sound
+fun sfx_error() -> void {
+    beep(15, 150);
+}
+
+// Pickup/collect sound
+fun sfx_pickup() -> void {
+    beep(3, 20);
+    beep(3, 15);
+}
+
+// Jump sound (rising pitch)
+fun sfx_jump() -> void {
+    let p: u8 = 50;
+    while p > 20 {
+        beep(1, p);
+        p = p - 5;
+    }
+}
+
+// Explosion sound (noise)
+fun sfx_explosion() -> void {
+    let i: u8 = 0;
+    while i < 20 {
+        beep(1, 180 + (i * 3));
+        i = i + 1;
+    }
+}
+
+// ============================================================================
+// Music Note Helpers
+// ============================================================================
+
+// Note period values for one octave (higher = lower pitch)
+// These are approximate values for the beeper
+global NOTE_C: u8 = 239;
+global NOTE_D: u8 = 213;
+global NOTE_E: u8 = 190;
+global NOTE_F: u8 = 179;
+global NOTE_G: u8 = 159;
+global NOTE_A: u8 = 142;
+global NOTE_B: u8 = 127;
+
+// Play a note
+fun play_note(note: u8, duration: u8) -> void {
+    beep(duration, note);
+}
+
+// Short rest (silence)
+fun rest(duration: u8) -> void {
+    let d = duration;
+    while d > 0 {
+        let i: u8 = 255;
+        while i > 0 {
+            i = i - 1;
+        }
+        d = d - 1;
+    }
+}
+
