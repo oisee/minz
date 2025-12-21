@@ -127,6 +127,41 @@ let add = |x: u8, y: u8| => u8 { x + y };
 add(5, 3)  // Direct CALL - 100% performance
 ```
 
+## 📚 Standard Library (v0.15.0+)
+
+MinZ includes a comprehensive stdlib optimized for Z80/retro systems:
+
+| Module | Description |
+|--------|-------------|
+| `math/fast` | Sin/cos/sqrt lookup tables (256 entries each) |
+| `math/random` | LFSR PRNG, noise functions, probability helpers |
+| `graphics/screen` | Pixel/line/circle/rectangle (ZX Spectrum optimized) |
+| `input/keyboard` | Keyboard matrix reading, debouncing, game helpers |
+| `text/string` | strlen, strcmp, strcpy, strcat, trim, etc. |
+| `text/format` | Number to string (decimal, hex, binary) |
+| `sound/beep` | Beeper SFX (click, buzz, jump, explosion) |
+| `time/delay` | Frame timing, delays, animation helpers |
+| `mem/copy` | Fast memcpy/memset/memcmp using LDIR |
+| `cpm/bdos` | CP/M BDOS system calls |
+
+### Usage Example
+```minz
+import stdlib.graphics.screen;
+import stdlib.input.keyboard;
+import stdlib.time.delay;
+
+fun main() -> void {
+    clear_screen();
+    draw_circle(128, 96, 50);
+
+    loop {
+        wait_frame();
+        let dx = get_key_dx();
+        // Move sprite based on input...
+    }
+}
+```
+
 ## 📋 Development Commands
 
 ### Build & Test
@@ -151,11 +186,20 @@ mz program.minz -b wasm -o program.wat   # WebAssembly
 ## 📁 Project Structure
 
 ```
-minz-ts/
+minz/
 ├── minzc/              # Go compiler
 │   ├── cmd/           # CLI tools (minzc, repl, backend-info)
 │   ├── pkg/           # Compiler packages
 │   └── tests/         # Test files
+├── stdlib/            # Standard library
+│   ├── math/         # fast.minz, random.minz
+│   ├── graphics/     # screen.minz
+│   ├── input/        # keyboard.minz
+│   ├── text/         # string.minz, format.minz
+│   ├── sound/        # beep.minz
+│   ├── time/         # delay.minz
+│   ├── mem/          # copy.minz
+│   └── cpm/          # bdos.minz
 ├── grammar.js         # Tree-sitter grammar
 ├── examples/          # MinZ programs
 ├── docs/             # Documentation
@@ -185,14 +229,14 @@ mz program.minz -b z80 --target=spectrum  # ZX Spectrum
 mz program.minz -b z80 --target=cpm       # CP/M
 ```
 
-## 📊 Current Metrics (v0.14.2)
+## 📊 Current Metrics (v0.15.0)
 - **100% compilation success** on core examples (72/72)
 - **18 experimental examples** requiring future features (generics, local functions, etc.)
+- **10 stdlib modules** with 2,400+ lines of game-ready code
 - **Zero-cost interface methods** working (obj.method() syntax)
-- **ANTLR - PARKED** (regression from 75% to 5%, focusing on tree-sitter)
+- **@extern FFI** with RST optimization and inline parameters
 - **35+ peephole patterns** for Z80 optimization
 - **Multi-backend support** with 8 targets
-- **Tree-sitter focus** for parser improvements
 - **🎉 100% Z80 instruction coverage** (upgraded from 19.5%!)
 
 ## 🔧 MinZ Toolchain Status & Next Steps

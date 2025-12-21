@@ -6,7 +6,7 @@
 
 ### **Modern Programming Language for Vintage & Modern Platforms**
 
-[![Version](https://img.shields.io/badge/version-0.15.3-brightgreen)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.15.4-brightgreen)](https://github.com/oisee/minz/releases)
 [![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
 [![Success Rate](https://img.shields.io/badge/compilation-100%25-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
@@ -80,7 +80,7 @@ go build -o mz cmd/minzc/main.go
 sudo mv mz /usr/local/bin/
 
 # Verify
-mz --version  # MinZ v0.15.3
+mz --version  # MinZ v0.15.4
 ```
 
 > **Note:** Pre-built binaries may be for a different architecture. Building from source is recommended.
@@ -119,6 +119,7 @@ crystal run hello.cr  # Test instantly!
 
 | Version | Revolution | Impact |
 |---------|------------|--------|
+| **v0.15.4** | Comprehensive Stdlib | 10 modules, 2400+ lines, game-ready |
 | **v0.15.3** | Critical Fixes | ANSI filtering, cross-platform, clean array codegen |
 | **v0.15.2** | Enum Error Values | `@error(EnumType.Variant)` compile-time constants |
 | **v0.15.1** | Error Propagation | `@error(code)` sets CY flag + A register |
@@ -155,6 +156,8 @@ crystal run hello.cr  # Test instantly!
 | **Enum Values** | ✅ Working | `State.IDLE`, `@error(MathError.DivByZero)` |
 | **Error Propagation** | ✅ Working | `@error(code)` sets CY flag + A register |
 | **Array Literals** | ✅ Working | `[10,20,30]` → clean `DB 10,20,30` |
+| **Standard Library** | ✅ Working | 10 modules: math, graphics, input, text, sound, time, mem |
+| **@extern FFI** | ✅ Working | `@extern(0x0010) fun rom_print()` with RST optimization |
 | **Iterator Chains** | 🚧 Partial | Compiles, DJNZ optimization in progress |
 
 ---
@@ -312,6 +315,48 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 | **mzv** | MIR VM interpreter | `mzv program.mir` |
 
 **All tools are self-contained with zero dependencies!**
+
+---
+
+## 📚 **Standard Library**
+
+MinZ includes a comprehensive stdlib optimized for Z80/retro game development:
+
+| Module | Description | Functions |
+|--------|-------------|-----------|
+| `math/fast` | Lookup tables | `fast_sin()`, `fast_cos()`, `fast_sqrt()` |
+| `math/random` | PRNG & noise | `rand8()`, `rand_range()`, `noise2d()` |
+| `graphics/screen` | Pixel graphics | `set_pixel()`, `draw_line()`, `draw_circle()` |
+| `input/keyboard` | Input handling | `is_key_pressed()`, `get_key_dx()` |
+| `text/string` | String ops | `strlen()`, `strcmp()`, `strcpy()` |
+| `text/format` | Formatting | `u8_to_str()`, `u16_to_hex()` |
+| `sound/beep` | Beeper SFX | `beep()`, `sfx_jump()`, `sfx_explosion()` |
+| `time/delay` | Timing | `wait_frame()`, `delay_ms()`, `anim_frame()` |
+| `mem/copy` | Fast memory | `memcpy()`, `memset()`, `memcmp()` |
+| `cpm/bdos` | CP/M calls | `getchar()`, `putchar()`, `file_open()` |
+
+### **Example: Simple Game Loop**
+```minz
+import stdlib.graphics.screen;
+import stdlib.input.keyboard;
+import stdlib.time.delay;
+
+fun main() -> void {
+    clear_screen();
+    set_ink(COLOR_CYAN);
+
+    let x: u8 = 128;
+    let y: u8 = 96;
+
+    loop {
+        wait_frame();
+        clear_pixel(x, y);
+        x = (x + get_key_dx()) as u8;
+        y = (y + get_key_dy()) as u8;
+        set_pixel(x, y);
+    }
+}
+```
 
 ---
 

@@ -1,0 +1,171 @@
+// MinZ Standard Library Demo
+// Showcases the comprehensive stdlib modules
+
+// ============================================================================
+// Math Demo - Using lookup tables for fast calculations
+// ============================================================================
+
+// Fast sine using 64-entry lookup table (quarter wave)
+// Values scaled 0-127 for positive quadrant
+global SIN_QUARTER: [u8; 64] = [
+    0, 3, 6, 9, 12, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 46,
+    49, 51, 54, 57, 60, 63, 65, 68, 71, 73, 76, 78, 81, 83, 85, 88,
+    90, 92, 94, 96, 98, 100, 102, 104, 106, 107, 109, 111, 112, 113, 115, 116,
+    117, 118, 120, 121, 122, 122, 123, 124, 125, 125, 126, 126, 126, 127, 127, 127
+];
+
+fun fast_sin(angle: u8) -> u8 {
+    let idx = angle & 63;  // Get quarter index
+    return SIN_QUARTER[idx];
+}
+
+// ============================================================================
+// Random Number Generator - LFSR-based PRNG
+// ============================================================================
+
+global _rand_state: u16 = 0xACE1;
+
+fun rand16() -> u16 {
+    let lsb = _rand_state & 1;
+    _rand_state = _rand_state >> 1;
+    if lsb != 0 {
+        _rand_state = _rand_state ^ 0xB400;  // Galois LFSR taps
+    }
+    return _rand_state;
+}
+
+fun rand8() -> u8 {
+    return (rand16() & 0xFF) as u8;
+}
+
+// ============================================================================
+// Graphics Demo - Pixel plotting on ZX Spectrum
+// ============================================================================
+
+asm fun set_pixel(x: u8, y: u8) -> void {
+    PUSH AF
+    LD A, L
+    AND 0xC0
+    RRA
+    RRA
+    RRA
+    OR 0x40
+    LD H, A
+    LD A, L
+    AND 0x07
+    RRCA
+    RRCA
+    RRCA
+    LD L, A
+    LD A, L
+    AND 0xE0
+    LD L, A
+    POP AF
+    PUSH AF
+    RRA
+    RRA
+    RRA
+    AND 0x1F
+    OR L
+    LD L, A
+    POP AF
+    AND 0x07
+    LD B, A
+    LD A, 0x80
+    JR Z, .done
+.shift:
+    RRCA
+    DJNZ .shift
+.done:
+    OR (HL)
+    LD (HL), A
+    RET
+}
+
+// ============================================================================
+// Sound Demo - Beeper sound effects
+// ============================================================================
+
+asm fun beep(duration: u8, pitch: u8) -> void {
+    LD B, A
+    LD C, L
+.outer:
+    LD A, 16
+    OUT (254), A
+    LD D, C
+.d1:
+    DEC D
+    JR NZ, .d1
+    XOR A
+    OUT (254), A
+    LD D, C
+.d2:
+    DEC D
+    JR NZ, .d2
+    DJNZ .outer
+    RET
+}
+
+fun click() -> void {
+    beep(1, 50);
+}
+
+fun sfx_pickup() -> void {
+    beep(3, 20);
+    beep(3, 15);
+}
+
+// ============================================================================
+// Timing Demo - Frame-based timing
+// ============================================================================
+
+global _frame_counter: u16 = 0;
+
+asm fun wait_vblank() -> void {
+    HALT
+    RET
+}
+
+fun wait_frame() -> void {
+    wait_vblank();
+    _frame_counter = _frame_counter + 1;
+}
+
+fun delay_frames(frames: u8) -> void {
+    let f = frames;
+    while f > 0 {
+        wait_frame();
+        f = f - 1;
+    }
+}
+
+// ============================================================================
+// Main Demo
+// ============================================================================
+
+fun main() -> void {
+    // Draw a starfield using random positions
+    let i: u8 = 0;
+    while i < 50 {
+        let x = rand8();
+        let y = (rand8() & 0xBF) as u8;  // Keep y < 192
+        set_pixel(x, y);
+        i = i + 1;
+    }
+
+    // Play a sound effect
+    sfx_pickup();
+
+    // Draw a sine wave
+    let angle: u8 = 0;
+    while angle < 255 {
+        let y_offset = fast_sin(angle);
+        let y = (96 + (y_offset / 4)) as u8;  // Center around screen middle
+        set_pixel(angle, y);
+        angle = angle + 1;
+    }
+
+    // Wait for a moment
+    delay_frames(100);
+}
+
