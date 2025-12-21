@@ -263,6 +263,10 @@ fun execute_op(opcode: u8) -> u8;
 | `return: HL on_success` | Conditional return | Check flag, read appropriate reg |
 | `error: CF` | Error flag | CF set = error occurred |
 | `error: enum X in A` | Typed error code | Enum value in A when CF set |
+| `@rst(N)` | Use RST instead of CALL | Single-byte call to RST address |
+| `inline: [u8, u16]` | Inline params after call | `RST N; DB x; DW y` |
+| `inline: [asciiz]` | Inline null-term string | `RST N; DB "str", 0` |
+| `inline: [tokens]` | Tokenized expression | `RST N; DB tok1, tok2...` |
 
 #### 2.11 Clobber Lists (Register Preservation)
 ```minz
@@ -335,6 +339,129 @@ fun safe_handler(event: u8) -> u8;
 @extern(0xC910)
 fun critical_section() -> void;
 // Generates: DI; CALL 0xC910; EI
+```
+
+#### 2.15 RST Optimization (Single-Byte Calls)
+
+Z80 has 8 RST instructions (RST 0, 8, 16, 24, 32, 40, 48, 56) that are single-byte CALLs to fixed addresses. MinZ can automatically optimize:
+
+```minz
+// Explicit RST annotation
+@rst(8)
+fun fast_print(char: u8) -> void;
+
+// Or auto-optimize from @extern at RST addresses
+@extern(0x0010)  // Address 16 = RST 16 candidate
+fun rst16_print(char: u8) -> void;
+
+// Usage
+fast_print(65);
+// Generates: LD A, 65; RST 8   (2 bytes instead of 4 for CALL)
+```
+
+RST-eligible addresses: 0x0000, 0x0008, 0x0010, 0x0018, 0x0020, 0x0028, 0x0030, 0x0038
+
+#### 2.16 Inline Bytecode Parameters (Post-Call Data)
+
+Many Z80 systems pass parameters as inline data AFTER the call instruction. The called routine reads parameters from the return address on stack, then adjusts the return address to skip over them.
+
+```minz
+// Simple inline bytes
+@rst(8)
+@abi(func: A, inline: [u8, u16])
+fun syscall(func_id: u8, param1: u8, addr: u16) -> void;
+
+syscall(0x10, 5, 0xC000);
+// Generates:
+//   LD A, $10      ; func_id in A (register param)
+//   RST 8
+//   DB 5           ; param1 inline (1 byte)
+//   DW $C000       ; addr inline (2 bytes)
+
+// Null-terminated inline string
+@rst(8)
+@abi(inline: [asciiz])
+fun print_inline(msg: str) -> void;
+
+print_inline("Hello!");
+// Generates:
+//   RST 8
+//   DB "Hello!", 0
+
+// Calculator-style token stream (Scorpion ZS / Spectrum)
+@rst(8)
+@abi(inline: [tokens], token_table: "calc_tokens")
+fun calculator(expr: str) -> void;
+
+calculator("SIN X + COS Y");
+// Generates:
+//   RST 8
+//   DB $1F         ; SIN token
+//   DB $21         ; X token
+//   DB $0F         ; + token
+//   DB $22         ; COS token
+//   DB $23         ; Y token
+//   DB $00         ; END token
+```
+
+#### 2.17 Mixed Parameter Passing (Registers + Inline)
+
+Complex system calls often mix register parameters with inline data:
+
+```minz
+// Scorpion ZS 256 style system call
+@rst(8)
+@abi(
+    func: A,                    // Function ID in A register
+    inline: [u8, u16, asciiz],  // Mixed inline: byte, word, string
+    return: HL,
+    error: CF
+)
+fun zs_syscall(func: u8, flags: u8, addr: u16, name: str) -> u16;
+
+let result = zs_syscall(0x05, 0x80, 0x4000, "DATA.BIN");
+// Generates:
+//   LD A, $05          ; func in A
+//   RST 8
+//   DB $80             ; flags inline
+//   DW $4000           ; addr inline
+//   DB "DATA.BIN", 0   ; name inline (null-terminated)
+//   ; On return: result in HL, CF set on error
+
+// Variable-length inline list
+@rst(8)
+@abi(inline: [varlist(u8)])  // List terminated by 0xFF or specific marker
+fun multi_param(params: [u8]) -> void;
+
+multi_param([1, 2, 3, 4]);
+// Generates:
+//   RST 8
+//   DB 1, 2, 3, 4, $FF  ; values + terminator
+```
+
+#### 2.18 Inline Token Tables
+
+For calculator-style interfaces, define token mappings:
+
+```minz
+// Define token table for expression parsing
+@token_table("calc_tokens")
+const CALC_TOKENS = {
+    "+": 0x0F, "-": 0x10, "*": 0x04, "/": 0x05,
+    "SIN": 0x1F, "COS": 0x20, "TAN": 0x21,
+    "X": 0x21, "Y": 0x22, "Z": 0x23,
+    "END": 0x00
+};
+
+@rst(0x28)  // Spectrum calculator RST
+@abi(inline: [tokens], token_table: CALC_TOKENS)
+fun fp_calc(expr: str) -> void;
+
+fp_calc("SIN X * COS Y");
+// Compiler tokenizes the string at compile time!
+// Generates:
+//   RST $28
+//   DB $1F, $21, $04, $20, $22, $00  ; SIN X * COS Y END
 ```
 
 ### 3. Function Pointers

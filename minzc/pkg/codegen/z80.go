@@ -2423,8 +2423,15 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			// Handle extern functions
 			if targetFunc.IsExtern {
 				if targetFunc.HasExternAddress {
-					// Call to absolute address: @extern(0xC000)
-					g.emit("    CALL $%04X    ; extern %s", targetFunc.ExternAddress, targetFunc.Name)
+					addr := targetFunc.ExternAddress
+					// Check if address is RST-eligible (0, 8, 16, 24, 32, 40, 48, 56)
+					if addr <= 0x38 && addr%8 == 0 {
+						// Use RST for single-byte call (saves 2 bytes!)
+						g.emit("    RST $%02X    ; extern %s (optimized from CALL)", addr, targetFunc.Name)
+					} else {
+						// Regular CALL to absolute address: @extern(0xC000)
+						g.emit("    CALL $%04X    ; extern %s", addr, targetFunc.Name)
+					}
 				} else {
 					// Call to symbol (will be resolved by linker or is defined elsewhere)
 					cleanName := g.sanitizeFunctionName(targetFunc.Name)
