@@ -65,6 +65,8 @@ type FunctionDecl struct {
 	Body          *BlockStmt
 	IsPublic      bool
 	IsExport      bool
+	IsExtern      bool        // True if function is @extern (no body, external linkage)
+	ExternAddress Expression  // Address for @extern(0xC000), nil for @extern without address
 	Attributes    []*Attribute
 	FunctionKind  FunctionKind  // Regular, Asm, or MIR
 	StartPos      Position

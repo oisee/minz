@@ -353,7 +353,7 @@ func (p *Parser) convertFunction(node *SExpNode) *ast.FunctionDecl {
 func (p *Parser) convertAttributedDeclaration(node *SExpNode) ast.Declaration {
 	var attr *ast.Attribute
 	var decl ast.Declaration
-	
+
 	for _, child := range node.Children {
 		switch child.Type {
 		case "attribute":
@@ -367,12 +367,22 @@ func (p *Parser) convertAttributedDeclaration(node *SExpNode) ast.Declaration {
 			decl = p.convertDeclaration(child)
 		}
 	}
-	
+
 	// Add attribute to the declaration if it's a function
 	if funcDecl, ok := decl.(*ast.FunctionDecl); ok && attr != nil {
-		funcDecl.Attributes = []*ast.Attribute{attr}
+		// Prepend this attribute to existing attributes (handles chained attributes)
+		funcDecl.Attributes = append([]*ast.Attribute{attr}, funcDecl.Attributes...)
+
+		// Check for @extern attribute
+		if attr.Name == "extern" {
+			funcDecl.IsExtern = true
+			// Extract address from @extern(0xC000) if provided
+			if len(attr.Arguments) > 0 {
+				funcDecl.ExternAddress = attr.Arguments[0]
+			}
+		}
 	}
-	
+
 	return decl
 }
 

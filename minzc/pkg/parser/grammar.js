@@ -215,7 +215,7 @@ module.exports = grammar({
       optional($.parameter_list),
       ')',
       $.return_type,
-      $.block,
+      choice($.block, ';'),  // Block for regular functions, semicolon for extern prototypes
     ),
 
     asm_function: $ => seq(

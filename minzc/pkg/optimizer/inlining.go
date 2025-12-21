@@ -1,6 +1,8 @@
 package optimizer
 
 import (
+	"strings"
+
 	"github.com/minz/minzc/pkg/ir"
 )
 
@@ -52,8 +54,14 @@ func (p *InliningPass) identifyCandidates(module *ir.Module) {
 
 // isInlineCandidate checks if a function is suitable for inlining
 func (p *InliningPass) isInlineCandidate(fn *ir.Function) bool {
-	// Don't inline main or interrupt handlers
-	if fn.Name == "main" || fn.IsInterrupt {
+	// Don't inline main, interrupt handlers, or extern functions
+	if fn.Name == "main" || fn.IsInterrupt || fn.IsExtern {
+		return false
+	}
+
+	// Don't inline reducer lambdas (2-parameter lambdas for reduce operations)
+	// The parameter remapping isn't fully implemented for multi-param calls
+	if strings.HasPrefix(fn.Name, "reducer_lambda_") {
 		return false
 	}
 	

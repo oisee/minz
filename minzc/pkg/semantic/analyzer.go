@@ -1368,6 +1368,7 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 		ErrorType:     errorType,
 		Params:        fn.Params,
 		ParamTypes:    paramTypes,
+		IsExtern:      fn.IsExtern,
 		IsGeneric:     len(fn.GenericParams) > 0,
 		GenericParams: fn.GenericParams,
 		GenericAST:    fn,
@@ -1519,6 +1520,21 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 			IsParameter: true,
 			IsMutable:   true, // Parameters are mutable for TSMC references
 		})
+	}
+
+	// Handle extern functions - no body to analyze
+	if fn.IsExtern {
+		irFunc.IsExtern = true
+		// Store extern address if provided
+		if fn.ExternAddress != nil {
+			if lit, ok := fn.ExternAddress.(*ast.NumberLiteral); ok {
+				irFunc.ExternAddress = uint16(lit.Value)
+				irFunc.HasExternAddress = true
+			}
+		}
+		// Extern functions don't need body analysis or return handling
+		a.module.AddFunction(irFunc)
+		return nil
 	}
 
 	// Analyze function body
@@ -10576,16 +10592,16 @@ func (a *Analyzer) analyzeMIRBlockCode(code string) error {
 
 // shouldUseInstructionPatching determines if a function call should use instruction patching
 func (a *Analyzer) shouldUseInstructionPatching(funcSym *FuncSymbol, call *ast.CallExpr) bool {
-	// For now, enable instruction patching for non-builtin functions with simple return types
-	if funcSym.IsBuiltin {
+	// Builtin and extern functions don't use instruction patching
+	if funcSym.IsBuiltin || funcSym.IsExtern {
 		return false
 	}
-	
+
 	// Check if return type is patchable (u8, u16)
 	if funcSym.ReturnType == nil {
 		return false
 	}
-	
+
 	switch funcSym.ReturnType.String() {
 	case "u8", "u16", "i8", "i16":
 		return true

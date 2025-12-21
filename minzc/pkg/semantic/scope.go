@@ -41,6 +41,7 @@ type FuncSymbol struct {
 	ErrorType     ir.Type            // Optional error type for functions ending with ?
 	Type          *ir.FunctionType   // For built-in functions
 	IsBuiltin     bool
+	IsExtern      bool               // True if this is an extern function (no body)
 	IsLocalFunc   bool               // True if this is a local function
 	IsGeneric     bool               // True if this is a generic function template
 	GenericParams []*ast.GenericParam // Generic type parameters (e.g., T, U)

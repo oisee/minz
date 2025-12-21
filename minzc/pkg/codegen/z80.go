@@ -590,6 +590,11 @@ func (g *Z80Generator) generateString(str *ir.String) {
 
 // generateFunction generates code for a function
 func (g *Z80Generator) generateFunction(fn *ir.Function) error {
+	// Skip extern functions - they have no body, just a prototype
+	if fn.IsExtern {
+		return nil
+	}
+
 	g.currentFunc = fn
 	g.currentFunction = fn
 	g.currentInstructionIndex = 0
@@ -2415,8 +2420,18 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		}
 		
 		if targetFunc != nil {
-			g.emit("    ; Found function, UsesTrueSMC=%v", targetFunc.UsesTrueSMC)
-			if targetFunc.UsesTrueSMC {
+			// Handle extern functions
+			if targetFunc.IsExtern {
+				if targetFunc.HasExternAddress {
+					// Call to absolute address: @extern(0xC000)
+					g.emit("    CALL $%04X    ; extern %s", targetFunc.ExternAddress, targetFunc.Name)
+				} else {
+					// Call to symbol (will be resolved by linker or is defined elsewhere)
+					cleanName := g.sanitizeFunctionName(targetFunc.Name)
+					g.emit("    CALL %s    ; extern", cleanName)
+				}
+			} else if targetFunc.UsesTrueSMC {
+				g.emit("    ; Found function, UsesTrueSMC=%v", targetFunc.UsesTrueSMC)
 				// Generate TRUE SMC patching before call
 				g.generateTrueSMCCall(inst, targetFunc)
 			} else {

@@ -618,7 +618,12 @@ type Function struct {
 	CalleeSavedRegs  RegisterSet // Registers this function must preserve
 	MaxStackDepth    int         // Maximum stack depth for this function
 	CallingConvention string     // ABI calling convention ("smc", "register", "stack", etc.)
-	
+
+	// Extern function support
+	IsExtern         bool   // True if function is @extern (no body, external linkage)
+	ExternAddress    uint16 // Address for @extern(0xC000), 0 if not specified
+	HasExternAddress bool   // True if ExternAddress was explicitly set
+
 	// Local function support
 	ParentFunction string                  // Name of parent function (if this is a local function)
 	CapturedVars   map[string]*CapturedVar // Variables captured from parent scope
