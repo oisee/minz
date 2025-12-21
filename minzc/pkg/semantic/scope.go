@@ -42,6 +42,7 @@ type FuncSymbol struct {
 	Type          *ir.FunctionType   // For built-in functions
 	IsBuiltin     bool
 	IsExtern      bool               // True if this is an extern function (no body)
+	InlineParams  []string           // Inline parameter types (u8, u16, asciiz) for @inline_params
 	IsLocalFunc   bool               // True if this is a local function
 	IsGeneric     bool               // True if this is a generic function template
 	GenericParams []*ast.GenericParam // Generic type parameters (e.g., T, U)

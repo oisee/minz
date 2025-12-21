@@ -68,6 +68,7 @@ type FunctionDecl struct {
 	IsExtern      bool        // True if function is @extern (no body, external linkage)
 	ExternAddress Expression  // Address for @extern(0xC000), nil for @extern without address
 	NoRST         bool        // True if @norst - force CALL even at RST addresses
+	InlineParams  []string    // Inline parameter types from @abi(inline: [u8, u16, asciiz])
 	Attributes    []*Attribute
 	FunctionKind  FunctionKind  // Regular, Asm, or MIR
 	StartPos      Position

@@ -274,8 +274,10 @@ type Instruction struct {
 	SourceFile   string // Source file path
 	BasicBlockID int    // Which basic block this instruction belongs to
 	ProfileHint  string // PGO hints: "hot", "cold", "likely", "unlikely"
-	Args         []Register        // Argument registers for OpCall
-	Hint         RegisterHint      // Hint for register allocator
+	Args           []Register        // Argument registers for OpCall
+	InlineArgValues []int64          // Constant values for inline parameters
+	InlineArgTypes  []string         // Types for inline parameters (u8, u16, asciiz)
+	Hint           RegisterHint      // Hint for register allocator
 	
 	// VM-specific fields
 	Value        int              // Immediate value for OpLoadImm
@@ -623,7 +625,8 @@ type Function struct {
 	IsExtern         bool   // True if function is @extern (no body, external linkage)
 	ExternAddress    uint16 // Address for @extern(0xC000), 0 if not specified
 	HasExternAddress bool   // True if ExternAddress was explicitly set
-	NoRST            bool   // True if @norst - force CALL even at RST addresses
+	NoRST            bool     // True if @norst - force CALL even at RST addresses
+	InlineParams     []string // Inline parameter types from @abi(inline: [u8, u16, asciiz])
 
 	// Local function support
 	ParentFunction string                  // Name of parent function (if this is a local function)

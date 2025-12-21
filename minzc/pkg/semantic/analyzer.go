@@ -1369,6 +1369,7 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 		Params:        fn.Params,
 		ParamTypes:    paramTypes,
 		IsExtern:      fn.IsExtern,
+		InlineParams:  fn.InlineParams, // Inline parameter types for @inline_params
 		IsGeneric:     len(fn.GenericParams) > 0,
 		GenericParams: fn.GenericParams,
 		GenericAST:    fn,
@@ -1525,7 +1526,8 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	// Handle extern functions - no body to analyze
 	if fn.IsExtern {
 		irFunc.IsExtern = true
-		irFunc.NoRST = fn.NoRST // Pass through @norst flag
+		irFunc.NoRST = fn.NoRST               // Pass through @norst flag
+		irFunc.InlineParams = fn.InlineParams // Pass through inline param types
 		// Store extern address if provided
 		if fn.ExternAddress != nil {
 			if lit, ok := fn.ExternAddress.(*ast.NumberLiteral); ok {
@@ -5385,17 +5387,63 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 
 	// Generate regular call
 	resultReg := irFunc.AllocReg()
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+	callInst := ir.Instruction{
 		Op:     ir.OpCall,
 		Dest:   resultReg,
 		Symbol: funcSym.Name,  // Use actual function name (mangled for lambdas)
 		Args:   argRegs,  // Store argument registers for TRUE SMC patching
-	})
+	}
+
+	// Handle inline parameters for extern functions
+	if len(funcSym.InlineParams) > 0 && len(call.Arguments) >= len(funcSym.InlineParams) {
+		// Last N arguments are inline (where N = len(InlineParams))
+		inlineStartIdx := len(call.Arguments) - len(funcSym.InlineParams)
+		callInst.InlineArgTypes = funcSym.InlineParams
+
+		// Extract constant values from inline arguments
+		for i, argExpr := range call.Arguments[inlineStartIdx:] {
+			val := a.tryExtractConstant(argExpr)
+			callInst.InlineArgValues = append(callInst.InlineArgValues, val)
+			_ = i // Used for type mapping
+		}
+
+		// Only pass non-inline args to register preparation
+		callInst.Args = argRegs[:inlineStartIdx]
+	}
+
+	irFunc.Instructions = append(irFunc.Instructions, callInst)
 
 	// Store the return type in expression types map
 	a.exprTypes[call] = funcSym.ReturnType
 
 	return resultReg, nil
+}
+
+// tryExtractConstant attempts to extract a compile-time constant value from an expression.
+// Returns the value if found, or 0 if the expression is not a constant.
+func (a *Analyzer) tryExtractConstant(expr ast.Expression) int64 {
+	switch e := expr.(type) {
+	case *ast.NumberLiteral:
+		return e.Value
+	case *ast.Identifier:
+		// Check if this is a constant
+		if sym := a.currentScope.Lookup(e.Name); sym != nil {
+			if constSym, ok := sym.(*ConstSymbol); ok {
+				if intVal, ok := constSym.Value.(int64); ok {
+					return intVal
+				}
+				if intVal, ok := constSym.Value.(int); ok {
+					return int64(intVal)
+				}
+			}
+		}
+	case *ast.UnaryExpr:
+		// Handle negation
+		if e.Operator == "-" {
+			return -a.tryExtractConstant(e.Operand)
+		}
+	}
+	return 0
 }
 
 // analyzeBuiltinCall analyzes a built-in function call

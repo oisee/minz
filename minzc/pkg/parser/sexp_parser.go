@@ -386,6 +386,16 @@ func (p *Parser) convertAttributedDeclaration(node *SExpNode) ast.Declaration {
 		if attr.Name == "norst" {
 			funcDecl.NoRST = true
 		}
+
+		// Check for @inline_params(u8, u16, asciiz) - inline bytecode parameters after call
+		if attr.Name == "inline_params" {
+			for _, arg := range attr.Arguments {
+				// Extract type name from identifier expression
+				if ident, ok := arg.(*ast.Identifier); ok {
+					funcDecl.InlineParams = append(funcDecl.InlineParams, ident.Name)
+				}
+			}
+		}
 	}
 
 	return decl

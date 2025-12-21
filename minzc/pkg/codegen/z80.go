@@ -2437,6 +2437,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 					cleanName := g.sanitizeFunctionName(targetFunc.Name)
 					g.emit("    CALL %s    ; extern", cleanName)
 				}
+
+				// Emit inline parameters after the call (for @inline_params)
+				g.emitInlineParameters(&inst)
 			} else if targetFunc.UsesTrueSMC {
 				g.emit("    ; Found function, UsesTrueSMC=%v", targetFunc.UsesTrueSMC)
 				// Generate TRUE SMC patching before call
@@ -3717,6 +3720,34 @@ func (g *Z80Generator) emit(format string, args ...interface{}) {
 		fmt.Fprintf(g.writer, format+"\n", args...)
 	} else {
 		fmt.Fprintln(g.writer, format)
+	}
+}
+
+// emitInlineParameters emits inline data bytes/words after a call instruction
+// Used for @inline_params to embed parameters in the code stream after RST/CALL
+func (g *Z80Generator) emitInlineParameters(inst *ir.Instruction) {
+	if len(inst.InlineArgValues) == 0 {
+		return
+	}
+
+	for i, val := range inst.InlineArgValues {
+		paramType := "u8" // default
+		if i < len(inst.InlineArgTypes) {
+			paramType = inst.InlineArgTypes[i]
+		}
+
+		switch paramType {
+		case "u8", "i8":
+			g.emit("    DB $%02X    ; inline param %d", val&0xFF, i)
+		case "u16", "i16":
+			g.emit("    DW $%04X    ; inline param %d", val&0xFFFF, i)
+		case "asciiz":
+			// For asciiz, val could be an index to a string table
+			// For now, emit placeholder - full string support needs string table
+			g.emit("    DB 0    ; inline asciiz placeholder")
+		default:
+			g.emit("    DB $%02X    ; inline param %d (unknown type %s)", val&0xFF, i, paramType)
+		}
 	}
 }
 
