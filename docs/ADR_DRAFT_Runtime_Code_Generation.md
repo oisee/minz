@@ -1,8 +1,20 @@
 # ADR Draft: Runtime Code Generation & Dynamic Function Calls
 
-**Status**: DRAFT / Brainstorming
-**Date**: 2025-12-20
+**Status**: PARTIALLY IMPLEMENTED
+**Date**: 2025-12-20 (Updated: 2025-12-21)
 **Author**: Claude + Human collaboration
+
+## Implementation Status
+
+| Feature | Status | Commit |
+|---------|--------|--------|
+| `@extern(addr)` | ✅ Done | Basic FFI support |
+| RST optimization | ✅ Done | Auto RST for 0x00-0x38 |
+| `@norst` | ✅ Done | Force CALL override |
+| `@inline_params` | ✅ Done | Inline bytecode (u8, u16) |
+| `@abi(reg: X)` | 🔜 Planned | Register mapping |
+| `asciiz` strings | 🔜 Planned | Inline null-terminated |
+| Token tables | 🔜 Planned | Calculator-style |
 
 ## Context
 

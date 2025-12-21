@@ -62,6 +62,10 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **Method calls**: `obj.method()` syntax WORKING via zero-cost interface methods
 - **Self parameter**: Methods with self WORKING
 - **Generics**: `<T: Constraint>` WORKING with monomorphization!
+- **@extern FFI**: Call external functions at fixed addresses ✅
+- **RST optimization**: Auto-converts `@extern(0x08)` etc. to RST instructions ✅
+- **@norst**: Force CALL even at RST-eligible addresses ✅
+- **@inline_params**: Scorpion ZS style inline bytecode after RST/CALL ✅
 
 ### ❌ NOT Working Features (Need Implementation)
 - **Error propagation**: `?` suffix and `??` operator NOT implemented
