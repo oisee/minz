@@ -2425,7 +2425,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				if targetFunc.HasExternAddress {
 					addr := targetFunc.ExternAddress
 					// Check if address is RST-eligible (0, 8, 16, 24, 32, 40, 48, 56)
-					if addr <= 0x38 && addr%8 == 0 {
+					if addr <= 0x38 && addr%8 == 0 && !targetFunc.NoRST {
 						// Use RST for single-byte call (saves 2 bytes!)
 						g.emit("    RST $%02X    ; extern %s (optimized from CALL)", addr, targetFunc.Name)
 					} else {

@@ -381,6 +381,11 @@ func (p *Parser) convertAttributedDeclaration(node *SExpNode) ast.Declaration {
 				funcDecl.ExternAddress = attr.Arguments[0]
 			}
 		}
+
+		// Check for @norst attribute - force CALL even at RST addresses
+		if attr.Name == "norst" {
+			funcDecl.NoRST = true
+		}
 	}
 
 	return decl

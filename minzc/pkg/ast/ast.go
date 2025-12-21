@@ -67,6 +67,7 @@ type FunctionDecl struct {
 	IsExport      bool
 	IsExtern      bool        // True if function is @extern (no body, external linkage)
 	ExternAddress Expression  // Address for @extern(0xC000), nil for @extern without address
+	NoRST         bool        // True if @norst - force CALL even at RST addresses
 	Attributes    []*Attribute
 	FunctionKind  FunctionKind  // Regular, Asm, or MIR
 	StartPos      Position

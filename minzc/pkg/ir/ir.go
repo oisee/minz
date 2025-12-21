@@ -623,6 +623,7 @@ type Function struct {
 	IsExtern         bool   // True if function is @extern (no body, external linkage)
 	ExternAddress    uint16 // Address for @extern(0xC000), 0 if not specified
 	HasExternAddress bool   // True if ExternAddress was explicitly set
+	NoRST            bool   // True if @norst - force CALL even at RST addresses
 
 	// Local function support
 	ParentFunction string                  // Name of parent function (if this is a local function)

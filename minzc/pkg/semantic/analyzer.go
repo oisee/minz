@@ -1525,6 +1525,7 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	// Handle extern functions - no body to analyze
 	if fn.IsExtern {
 		irFunc.IsExtern = true
+		irFunc.NoRST = fn.NoRST // Pass through @norst flag
 		// Store extern address if provided
 		if fn.ExternAddress != nil {
 			if lit, ok := fn.ExternAddress.(*ast.NumberLiteral); ok {
