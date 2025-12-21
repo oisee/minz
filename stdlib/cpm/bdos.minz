@@ -1,0 +1,203 @@
+// CP/M BDOS (Basic Disk Operating System) Interface
+// For CP/M 2.2 and CP/M 3.0 compatibility
+//
+// BDOS entry point: CALL 0x0005
+// Function number in C register, parameter in DE
+// Result returned in A (and sometimes HL)
+
+// =============================================================================
+// BDOS Function Constants
+// =============================================================================
+
+const BDOS_SYSTEM_RESET: u8 = 0;    // Warm boot
+const BDOS_CONSOLE_INPUT: u8 = 1;   // Read char from console (waits)
+const BDOS_CONSOLE_OUTPUT: u8 = 2;  // Write char to console
+const BDOS_READER_INPUT: u8 = 3;    // Read from reader device
+const BDOS_PUNCH_OUTPUT: u8 = 4;    // Write to punch device
+const BDOS_LIST_OUTPUT: u8 = 5;     // Write to list device (printer)
+const BDOS_DIRECT_IO: u8 = 6;       // Direct console I/O
+const BDOS_GET_IOBYTE: u8 = 7;      // Get I/O byte
+const BDOS_SET_IOBYTE: u8 = 8;      // Set I/O byte
+const BDOS_PRINT_STRING: u8 = 9;    // Print $-terminated string
+const BDOS_READ_BUFFER: u8 = 10;    // Read console buffer
+const BDOS_CONSOLE_STATUS: u8 = 11; // Get console status
+const BDOS_GET_VERSION: u8 = 12;    // Get CP/M version number
+const BDOS_RESET_DISK: u8 = 13;     // Reset disk system
+const BDOS_SELECT_DISK: u8 = 14;    // Select disk drive
+const BDOS_OPEN_FILE: u8 = 15;      // Open file
+const BDOS_CLOSE_FILE: u8 = 16;     // Close file
+const BDOS_SEARCH_FIRST: u8 = 17;   // Search for first match
+const BDOS_SEARCH_NEXT: u8 = 18;    // Search for next match
+const BDOS_DELETE_FILE: u8 = 19;    // Delete file
+const BDOS_READ_SEQ: u8 = 20;       // Read sequential
+const BDOS_WRITE_SEQ: u8 = 21;      // Write sequential
+const BDOS_MAKE_FILE: u8 = 22;      // Create file
+const BDOS_RENAME_FILE: u8 = 23;    // Rename file
+const BDOS_GET_LOGIN: u8 = 24;      // Get login vector
+const BDOS_GET_DISK: u8 = 25;       // Get current disk
+const BDOS_SET_DMA: u8 = 26;        // Set DMA address
+const BDOS_GET_ALLOC: u8 = 27;      // Get allocation vector
+const BDOS_WRITE_PROTECT: u8 = 28;  // Write protect disk
+const BDOS_GET_RO: u8 = 29;         // Get read-only vector
+const BDOS_SET_ATTR: u8 = 30;       // Set file attributes
+const BDOS_GET_DPB: u8 = 31;        // Get disk parameter block
+const BDOS_GET_USER: u8 = 32;       // Get/set user code
+const BDOS_READ_RANDOM: u8 = 33;    // Read random
+const BDOS_WRITE_RANDOM: u8 = 34;   // Write random
+const BDOS_FILE_SIZE: u8 = 35;      // Compute file size
+const BDOS_SET_RANDOM: u8 = 36;     // Set random record
+const BDOS_RESET_DRIVE: u8 = 37;    // Reset drive (CP/M 3)
+
+// =============================================================================
+// Low-level BDOS call (assembly wrapper)
+// =============================================================================
+
+// Raw BDOS call - function in C, parameter in DE, returns A
+asm fun bdos_raw(func: u8, param: u16) -> u8 {
+    // func is in A, param is in HL (MinZ calling convention)
+    // We need: C = func, DE = param
+    LD C, A         ; Function number
+    EX DE, HL       ; DE = param (was in HL)
+    CALL 0x0005     ; BDOS entry
+    RET             ; Result already in A
+}
+
+// BDOS call returning 16-bit value in HL
+asm fun bdos_raw16(func: u8, param: u16) -> u16 {
+    LD C, A         ; Function number
+    EX DE, HL       ; DE = param
+    CALL 0x0005     ; BDOS entry
+    LD H, B         ; For some calls, result is in BA or HL
+    LD L, A         ; Return in HL
+    RET
+}
+
+// =============================================================================
+// Console I/O Functions
+// =============================================================================
+
+// Read a character from console (waits for input)
+fun getchar() -> u8 {
+    return bdos_raw(BDOS_CONSOLE_INPUT, 0);
+}
+
+// Write a character to console
+fun putchar(ch: u8) -> void {
+    bdos_raw(BDOS_CONSOLE_OUTPUT, ch as u16);
+}
+
+// Check if a key is available (non-blocking)
+// Returns 0xFF if key ready, 0x00 if not
+fun kbhit() -> u8 {
+    return bdos_raw(BDOS_CONSOLE_STATUS, 0);
+}
+
+// Direct console I/O
+// If param = 0xFF: return input char (or 0 if none)
+// If param = 0xFE: return console status (like kbhit)
+// Otherwise: output param as character
+fun conio(param: u8) -> u8 {
+    return bdos_raw(BDOS_DIRECT_IO, param as u16);
+}
+
+// Print a $-terminated string at address
+fun print_string(addr: *u8) -> void {
+    bdos_raw(BDOS_PRINT_STRING, addr as u16);
+}
+
+// Print a newline (CR+LF)
+fun newline() -> void {
+    putchar(13);  // CR
+    putchar(10);  // LF
+}
+
+// =============================================================================
+// Disk/Drive Functions
+// =============================================================================
+
+// Get current drive (0=A, 1=B, ...)
+fun get_drive() -> u8 {
+    return bdos_raw(BDOS_GET_DISK, 0);
+}
+
+// Select drive (0=A, 1=B, ...)
+fun select_drive(drive: u8) -> void {
+    bdos_raw(BDOS_SELECT_DISK, drive as u16);
+}
+
+// Reset disk system
+fun reset_disks() -> void {
+    bdos_raw(BDOS_RESET_DISK, 0);
+}
+
+// Set DMA address for disk operations
+fun set_dma(addr: *u8) -> void {
+    bdos_raw(BDOS_SET_DMA, addr as u16);
+}
+
+// Get/set user area (0-15)
+// If user = 0xFF, returns current user
+// Otherwise, sets user area
+fun user_area(user: u8) -> u8 {
+    return bdos_raw(BDOS_GET_USER, user as u16);
+}
+
+// Get CP/M version
+// Returns: H = 0 for CP/M, L = version (0x22 = 2.2, 0x30 = 3.0)
+fun get_version() -> u16 {
+    return bdos_raw16(BDOS_GET_VERSION, 0);
+}
+
+// =============================================================================
+// File Control Block (FCB) Structure
+// Offset 0:  Drive (0=default, 1=A, 2=B, ...)
+// Offset 1-8:  Filename (8 chars, space padded)
+// Offset 9-11: Extension (3 chars, space padded)
+// Offset 12-15: Extent info (set by BDOS)
+// Offset 16-31: Reserved/allocation
+// Offset 32-35: Random record number (for random access)
+// =============================================================================
+
+// File operations return 0 on success, 0xFF on error
+const FCB_SUCCESS: u8 = 0;
+const FCB_ERROR: u8 = 0xFF;
+
+// Open file (FCB must be initialized with filename)
+fun file_open(fcb: *u8) -> u8 {
+    return bdos_raw(BDOS_OPEN_FILE, fcb as u16);
+}
+
+// Close file
+fun file_close(fcb: *u8) -> u8 {
+    return bdos_raw(BDOS_CLOSE_FILE, fcb as u16);
+}
+
+// Create new file
+fun file_create(fcb: *u8) -> u8 {
+    return bdos_raw(BDOS_MAKE_FILE, fcb as u16);
+}
+
+// Delete file
+fun file_delete(fcb: *u8) -> u8 {
+    return bdos_raw(BDOS_DELETE_FILE, fcb as u16);
+}
+
+// Read next 128-byte record (set DMA first!)
+fun file_read(fcb: *u8) -> u8 {
+    return bdos_raw(BDOS_READ_SEQ, fcb as u16);
+}
+
+// Write next 128-byte record (set DMA first!)
+fun file_write(fcb: *u8) -> u8 {
+    return bdos_raw(BDOS_WRITE_SEQ, fcb as u16);
+}
+
+// Read random record (set record number in FCB first)
+fun file_read_random(fcb: *u8) -> u8 {
+    return bdos_raw(BDOS_READ_RANDOM, fcb as u16);
+}
+
+// Write random record
+fun file_write_random(fcb: *u8) -> u8 {
+    return bdos_raw(BDOS_WRITE_RANDOM, fcb as u16);
+}

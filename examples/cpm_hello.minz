@@ -1,0 +1,87 @@
+// CP/M Hello World Example
+// Demonstrates basic CP/M BDOS console I/O
+//
+// To compile: minzc cpm_hello.minz -o hello.com
+// To run: Load in CP/M and type HELLO
+
+import cpm.bdos;
+
+fun main() -> void {
+    // Print hello message
+    putchar('H');
+    putchar('e');
+    putchar('l');
+    putchar('l');
+    putchar('o');
+    putchar(',');
+    putchar(' ');
+    putchar('C');
+    putchar('P');
+    putchar('/');
+    putchar('M');
+    putchar('!');
+    newline();
+
+    // Show current drive
+    let drive = get_drive();
+    putchar('D');
+    putchar('r');
+    putchar('i');
+    putchar('v');
+    putchar('e');
+    putchar(':');
+    putchar(' ');
+    putchar(65 + drive);  // 'A' + drive number
+    newline();
+
+    // Show CP/M version
+    let ver = get_version();
+    let major = (ver >> 4) & 0x0F;
+    let minor = ver & 0x0F;
+    putchar('C');
+    putchar('P');
+    putchar('/');
+    putchar('M');
+    putchar(' ');
+    putchar(48 + major as u8);  // '0' + major
+    putchar('.');
+    putchar(48 + minor as u8);  // '0' + minor
+    newline();
+
+    // Wait for keypress
+    putchar('P');
+    putchar('r');
+    putchar('e');
+    putchar('s');
+    putchar('s');
+    putchar(' ');
+    putchar('a');
+    putchar('n');
+    putchar('y');
+    putchar(' ');
+    putchar('k');
+    putchar('e');
+    putchar('y');
+    putchar('.');
+    putchar('.');
+    putchar('.');
+
+    let ch = getchar();
+    newline();
+
+    putchar('Y');
+    putchar('o');
+    putchar('u');
+    putchar(' ');
+    putchar('p');
+    putchar('r');
+    putchar('e');
+    putchar('s');
+    putchar('s');
+    putchar('e');
+    putchar('d');
+    putchar(':');
+    putchar(' ');
+    putchar(ch);
+    newline();
+}
