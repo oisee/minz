@@ -1,0 +1,249 @@
+// ============================================================================
+// MinZ Math - Tribonacci PRNG Module
+// ============================================================================
+// Elite-style pseudo-random number generator based on Tribonacci sequence.
+// Uses sum of three previous values with carry for excellent randomness.
+//
+// The original Elite (1984) used this technique for generating procedural
+// galaxies, planet names, and other game content.
+// ============================================================================
+
+// ============================================================================
+// 24-bit Tribonacci State (Elite-style)
+// ============================================================================
+// Three 16-bit seeds that form a 48-bit state
+// Each step: new = (seed0 + seed1 + seed2 + carry)
+
+global _trib_seed0: u16 = 0x1234;
+global _trib_seed1: u16 = 0x5678;
+global _trib_seed2: u16 = 0x9ABC;
+
+// Initialize with custom seeds
+fun trib_seed(s0: u16, s1: u16, s2: u16) -> void {
+    _trib_seed0 = s0;
+    _trib_seed1 = s1;
+    _trib_seed2 = s2;
+    // Ensure at least one seed is non-zero
+    if (s0 == 0) && (s1 == 0) && (s2 == 0) {
+        _trib_seed0 = 1;
+    }
+}
+
+// Core Tribonacci step - returns 16-bit random value
+// This is the heart of the Elite PRNG
+fun trib16() -> u16 {
+    // Calculate sum with overflow handling
+    let sum: u16 = _trib_seed0;
+
+    // Add seed1 with carry detection
+    let temp = sum + _trib_seed1;
+    let carry1: u16 = if temp < sum { 1 } else { 0 };
+    sum = temp;
+
+    // Add seed2 with carry
+    temp = sum + _trib_seed2;
+    let carry2: u16 = if temp < sum { 1 } else { 0 };
+    sum = temp;
+
+    // Add accumulated carries (creates additional mixing)
+    sum = sum + carry1 + carry2;
+
+    // Rotate the seeds (Tribonacci shift)
+    _trib_seed0 = _trib_seed1;
+    _trib_seed1 = _trib_seed2;
+    _trib_seed2 = sum;
+
+    return sum;
+}
+
+// Fast 8-bit random using high byte (better distribution)
+fun trib8() -> u8 {
+    let r = trib16();
+    return ((r >> 8) ^ (r & 0xFF)) as u8;
+}
+
+// ============================================================================
+// Optimized Z80 Assembly Version
+// ============================================================================
+// The assembly version is significantly faster and uses proper carry handling
+
+asm fun trib16_fast() -> u16 {
+    ; Load seeds into registers
+    LD HL, (_trib_seed0)
+    LD DE, (_trib_seed1)
+    LD BC, (_trib_seed2)
+
+    ; HL = seed0 + seed1
+    ADD HL, DE
+
+    ; HL = HL + seed2 (with carry from previous add)
+    ADC HL, BC
+
+    ; Now HL contains the new random value
+    ; Rotate seeds: seed0 = seed1, seed1 = seed2, seed2 = HL
+    LD A, (_trib_seed1)
+    LD (_trib_seed0), A
+    LD A, (_trib_seed1 + 1)
+    LD (_trib_seed0 + 1), A
+
+    LD A, (_trib_seed2)
+    LD (_trib_seed1), A
+    LD A, (_trib_seed2 + 1)
+    LD (_trib_seed1 + 1), A
+
+    LD (_trib_seed2), HL
+
+    ; Return value already in HL
+    RET
+}
+
+asm fun trib8_fast() -> u8 {
+    ; Get 16-bit random
+    CALL trib16_fast
+    ; XOR high and low bytes for better 8-bit distribution
+    LD A, H
+    XOR L
+    LD L, A
+    RET
+}
+
+// ============================================================================
+// Extended 32-bit Tribonacci (for larger state space)
+// ============================================================================
+// Uses six 16-bit seeds for 96-bit state
+
+global _trib32_a0: u16 = 0x0001;
+global _trib32_a1: u16 = 0x0000;
+global _trib32_b0: u16 = 0x0000;
+global _trib32_b1: u16 = 0x0001;
+global _trib32_c0: u16 = 0x0001;
+global _trib32_c1: u16 = 0x0001;
+
+// Seed the 32-bit generator
+fun trib32_seed(a: u16, b: u16, c: u16) -> void {
+    _trib32_a0 = a;
+    _trib32_a1 = a ^ 0x5555;
+    _trib32_b0 = b;
+    _trib32_b1 = b ^ 0xAAAA;
+    _trib32_c0 = c;
+    _trib32_c1 = c ^ 0x3333;
+}
+
+// 32-bit Tribonacci step (returns low 16 bits)
+fun trib32() -> u16 {
+    // Add low words
+    let sum0 = _trib32_a0 + _trib32_b0;
+    let carry0: u16 = if sum0 < _trib32_a0 { 1 } else { 0 };
+
+    let temp = sum0 + _trib32_c0;
+    let carry1: u16 = if temp < sum0 { 1 } else { 0 };
+    sum0 = temp;
+
+    // Add high words with carries
+    let sum1 = _trib32_a1 + _trib32_b1 + carry0;
+    sum1 = sum1 + _trib32_c1 + carry1;
+
+    // Rotate: A = B, B = C, C = new sum
+    _trib32_a0 = _trib32_b0;
+    _trib32_a1 = _trib32_b1;
+    _trib32_b0 = _trib32_c0;
+    _trib32_b1 = _trib32_c1;
+    _trib32_c0 = sum0;
+    _trib32_c1 = sum1;
+
+    // Return XOR of both halves for better mixing
+    return sum0 ^ sum1;
+}
+
+// ============================================================================
+// Elite-Style Galaxy Generation
+// ============================================================================
+// These functions mimic how Elite generated procedural content
+
+// Generate a "galaxy seed" from coordinates
+fun elite_galaxy_seed(x: u8, y: u8) -> void {
+    let seed = (x as u16) * 256 + (y as u16);
+    trib_seed(seed, seed ^ 0xFFFF, seed * 3);
+}
+
+// Generate planet name character (Elite used 5-bit encoding)
+fun elite_name_char() -> u8 {
+    let r = trib8_fast();
+    // Map to A-Z range (65-90 in ASCII)
+    return 65 + (r % 26);
+}
+
+// Generate a planet name of given length
+fun elite_planet_name(buffer: *u8, length: u8) -> void {
+    let i: u8 = 0;
+    while i < length {
+        buffer[i] = elite_name_char();
+        i = i + 1;
+    }
+    buffer[length] = 0;  // Null terminate
+}
+
+// Generate planet attributes (0-255 for each)
+struct PlanetAttribs {
+    economy: u8,      // 0=Rich, 7=Poor
+    government: u8,   // 0=Anarchy, 7=Corporate
+    tech_level: u8,   // 0-15
+    population: u8,   // Billions (scaled)
+    productivity: u8  // Economic output
+}
+
+fun elite_planet_attribs(attribs: *PlanetAttribs) -> void {
+    let r1 = trib8_fast();
+    let r2 = trib8_fast();
+    let r3 = trib8_fast();
+
+    attribs.economy = r1 & 0x07;      // 0-7
+    attribs.government = r2 & 0x07;   // 0-7
+    attribs.tech_level = ((r1 + r2) >> 4) & 0x0F;  // 0-15
+    attribs.population = (r3 >> 3) + 1;  // 1-32
+    attribs.productivity = (attribs.economy + 1) * (attribs.tech_level + 1);
+}
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+// Random in range [0, max)
+fun trib_max(max: u8) -> u8 {
+    if max == 0 { return 0; }
+    return trib8_fast() % max;
+}
+
+// Random in range [min, max]
+fun trib_range(min: u8, max: u8) -> u8 {
+    if max <= min { return min; }
+    let range = max - min + 1;
+    return min + trib_max(range);
+}
+
+// Random boolean with given probability (0-255, 128 = 50%)
+fun trib_chance(probability: u8) -> bool {
+    return trib8_fast() < probability;
+}
+
+// Generate random direction (-1, 0, +1)
+fun trib_direction() -> i8 {
+    let r = trib8_fast();
+    if r < 85 { return -1; }
+    if r < 170 { return 0; }
+    return 1;
+}
+
+// Shuffle array (Fisher-Yates)
+fun trib_shuffle(arr: *u8, len: u8) -> void {
+    let i = len;
+    while i > 1 {
+        i = i - 1;
+        let j = trib_max(i + 1);
+        // Swap arr[i] and arr[j]
+        let tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+    }
+}
+
