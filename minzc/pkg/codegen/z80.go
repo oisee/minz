@@ -3726,29 +3726,60 @@ func (g *Z80Generator) emit(format string, args ...interface{}) {
 // emitInlineParameters emits inline data bytes/words after a call instruction
 // Used for @inline_params to embed parameters in the code stream after RST/CALL
 func (g *Z80Generator) emitInlineParameters(inst *ir.Instruction) {
-	if len(inst.InlineArgValues) == 0 {
+	if len(inst.InlineArgTypes) == 0 {
 		return
 	}
 
-	for i, val := range inst.InlineArgValues {
-		paramType := "u8" // default
-		if i < len(inst.InlineArgTypes) {
-			paramType = inst.InlineArgTypes[i]
-		}
-
+	for i, paramType := range inst.InlineArgTypes {
 		switch paramType {
 		case "u8", "i8":
+			val := int64(0)
+			if i < len(inst.InlineArgValues) {
+				val = inst.InlineArgValues[i]
+			}
 			g.emit("    DB $%02X    ; inline param %d", val&0xFF, i)
 		case "u16", "i16":
+			val := int64(0)
+			if i < len(inst.InlineArgValues) {
+				val = inst.InlineArgValues[i]
+			}
 			g.emit("    DW $%04X    ; inline param %d", val&0xFFFF, i)
 		case "asciiz":
-			// For asciiz, val could be an index to a string table
-			// For now, emit placeholder - full string support needs string table
-			g.emit("    DB 0    ; inline asciiz placeholder")
+			// Null-terminated string (C-style, ROM routines)
+			str := ""
+			if i < len(inst.InlineArgStrings) {
+				str = inst.InlineArgStrings[i]
+			}
+			if str != "" {
+				g.emit("    DB \"%s\", 0    ; inline asciiz", g.escapeString(str))
+			} else {
+				g.emit("    DB 0    ; inline asciiz (empty)")
+			}
+		case "cpmstr":
+			// $-terminated string (CP/M style)
+			str := ""
+			if i < len(inst.InlineArgStrings) {
+				str = inst.InlineArgStrings[i]
+			}
+			if str != "" {
+				g.emit("    DB \"%s\", '$'    ; inline cpmstr", g.escapeString(str))
+			} else {
+				g.emit("    DB '$'    ; inline cpmstr (empty)")
+			}
 		default:
+			val := int64(0)
+			if i < len(inst.InlineArgValues) {
+				val = inst.InlineArgValues[i]
+			}
 			g.emit("    DB $%02X    ; inline param %d (unknown type %s)", val&0xFF, i, paramType)
 		}
 	}
+}
+
+// escapeString escapes special characters in a string for assembly output
+func (g *Z80Generator) escapeString(s string) string {
+	// For now, just return as-is. Could add escaping for quotes, etc.
+	return s
 }
 
 // getFunctionLabel generates a function-scoped label to avoid duplicates

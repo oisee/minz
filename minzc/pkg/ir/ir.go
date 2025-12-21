@@ -274,10 +274,11 @@ type Instruction struct {
 	SourceFile   string // Source file path
 	BasicBlockID int    // Which basic block this instruction belongs to
 	ProfileHint  string // PGO hints: "hot", "cold", "likely", "unlikely"
-	Args           []Register        // Argument registers for OpCall
-	InlineArgValues []int64          // Constant values for inline parameters
-	InlineArgTypes  []string         // Types for inline parameters (u8, u16, asciiz)
-	Hint           RegisterHint      // Hint for register allocator
+	Args            []Register        // Argument registers for OpCall
+	InlineArgValues []int64          // Constant values for inline parameters (u8, u16)
+	InlineArgStrings []string        // String values for inline parameters (asciiz, cpmstr)
+	InlineArgTypes  []string         // Types for inline parameters (u8, u16, asciiz, cpmstr)
+	Hint            RegisterHint      // Hint for register allocator
 	
 	// VM-specific fields
 	Value        int              // Immediate value for OpLoadImm

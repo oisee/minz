@@ -5400,11 +5400,21 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		inlineStartIdx := len(call.Arguments) - len(funcSym.InlineParams)
 		callInst.InlineArgTypes = funcSym.InlineParams
 
-		// Extract constant values from inline arguments
+		// Extract constant values from inline arguments based on type
 		for i, argExpr := range call.Arguments[inlineStartIdx:] {
-			val := a.tryExtractConstant(argExpr)
-			callInst.InlineArgValues = append(callInst.InlineArgValues, val)
-			_ = i // Used for type mapping
+			paramType := funcSym.InlineParams[i]
+			switch paramType {
+			case "asciiz", "cpmstr":
+				// String types - extract string value
+				str := a.tryExtractString(argExpr)
+				callInst.InlineArgStrings = append(callInst.InlineArgStrings, str)
+				callInst.InlineArgValues = append(callInst.InlineArgValues, 0) // placeholder
+			default:
+				// Numeric types (u8, u16, i8, i16)
+				val := a.tryExtractConstant(argExpr)
+				callInst.InlineArgValues = append(callInst.InlineArgValues, val)
+				callInst.InlineArgStrings = append(callInst.InlineArgStrings, "") // placeholder
+			}
 		}
 
 		// Only pass non-inline args to register preparation
@@ -5444,6 +5454,25 @@ func (a *Analyzer) tryExtractConstant(expr ast.Expression) int64 {
 		}
 	}
 	return 0
+}
+
+// tryExtractString attempts to extract a compile-time string value from an expression.
+// Returns the string if found, or empty string if not a string constant.
+func (a *Analyzer) tryExtractString(expr ast.Expression) string {
+	switch e := expr.(type) {
+	case *ast.StringLiteral:
+		return e.Value
+	case *ast.Identifier:
+		// Check if this is a string constant
+		if sym := a.currentScope.Lookup(e.Name); sym != nil {
+			if constSym, ok := sym.(*ConstSymbol); ok {
+				if strVal, ok := constSym.Value.(string); ok {
+					return strVal
+				}
+			}
+		}
+	}
+	return ""
 }
 
 // analyzeBuiltinCall analyzes a built-in function call
