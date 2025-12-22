@@ -333,19 +333,25 @@ case_end_1:
 
 ## 5. Comparison with Other Z80 Compilers
 
+> **DISCLAIMER:** The comparisons below are **theoretical estimates** based on
+> documented calling conventions and optimization strategies. No actual SDCC or
+> Z88DK compilation was performed. For empirical comparison, install these
+> compilers and compile equivalent test cases.
+
 ### 5.1 SDCC (Small Device C Compiler)
 
-| Aspect | MinZ | SDCC |
+| Aspect | MinZ | SDCC (theoretical) |
 |--------|------|------|
 | Calling convention | SMC immediate patching | Stack-based |
 | Register allocation | Hierarchical (phys/shadow/mem) | Graph coloring |
 | Optimization | Peephole + inlining | Full optimizer pipeline |
-| Code density | Verbose (~30% overhead) | Good |
+| Code density | Verbose (~30% overhead) | Expected better |
 | Inline asm | Seamless | Requires __asm blocks |
 | Unique feature | Zero-cost SMC | Mature ecosystem |
 
-**SDCC Output Example (factorial):**
+**SDCC Estimated Output (factorial) - NOT VERIFIED:**
 ```asm
+; THEORETICAL - based on SDCC calling convention docs
 _factorial:
     ld hl, 2
     add hl, sp
@@ -362,7 +368,7 @@ _factorial:
     ; ... multiply ...
 ```
 
-**MinZ is faster for parameter passing but generates more code overall.**
+**Theory:** MinZ should be faster for parameter passing due to SMC, but likely generates more code overall. **Needs empirical verification.**
 
 ### 5.2 Z88DK
 
@@ -460,13 +466,14 @@ factorial:
 
 ### Simple Addition
 
-| Compiler | `add(5, 3)` size | Cycles |
-|----------|------------------|--------|
-| MinZ SMC | 28 bytes | 67 |
-| SDCC stack | 18 bytes | 89 |
-| Hand-written | 6 bytes | 21 |
+| Compiler | `add(5, 3)` size | Cycles | Verified? |
+|----------|------------------|--------|-----------|
+| MinZ SMC | 28 bytes | 67 | YES |
+| SDCC stack | ~18 bytes | ~89 | NO (estimate) |
+| Hand-written | 6 bytes | 21 | YES |
 
-**MinZ wins on speed due to SMC, loses on size.**
+**Theory:** MinZ wins on speed due to SMC, loses on size.
+**TODO:** Install SDCC and verify these estimates empirically.
 
 ---
 
