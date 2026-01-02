@@ -1,0 +1,211 @@
+// Plasma Demo with Shadow Screen Double Buffering
+// Advanced version for ZX Spectrum 128K
+// Demonstrates: globals, arrays, for loops, bitwise ops, inline asm
+//
+// Features:
+// - Double buffering using shadow screen (no flicker!)
+// - Two-wave interference pattern
+// - Smooth animation with phase offset
+// - Optimized for 128K Spectrum
+
+// Screen addresses
+const SCREEN1_ATTR: u16 = 0x5800;  // Main screen attributes
+const SCREEN2_ATTR: u16 = 0xD800;  // Shadow screen attributes (bank 7)
+
+// Animation state
+global phase1: u8 = 0;     // First wave phase
+global phase2: u8 = 0;     // Second wave phase
+global current_screen: u8 = 0;  // 0 = main, 1 = shadow
+
+// Precomputed sine table (256 entries, values 0-7)
+global sin_table: [u8; 256];
+
+// Initialize sine lookup table using triangle wave approximation
+// Output range: 0-7 for direct use as color values
+fn init_sine() -> void {
+    for i in 0..256 {
+        // Quadrant detection
+        let quadrant: u8 = (i >> 6) & 3;
+        let pos: u8 = i & 0x3F;  // Position within quadrant (0-63)
+        let mut val: u8 = 0;
+
+        // Triangle wave approximation of sine
+        // Q0: rising 0->7,  Q1: falling 7->0
+        // Q2: rising 0->7,  Q3: falling 7->0 (inverted)
+        if quadrant == 0 {
+            val = pos >> 3;  // 0-7 rising
+        }
+        if quadrant == 1 {
+            val = (63 - pos) >> 3;  // 7-0 falling
+        }
+        if quadrant == 2 {
+            val = pos >> 3;  // 0-7 rising
+        }
+        if quadrant == 3 {
+            val = (63 - pos) >> 3;  // 7-0 falling
+        }
+
+        sin_table[i] = val;
+    }
+}
+
+// Clear both screens
+fn cls_all() -> void {
+    asm {
+        ; Clear main screen bitmap
+        LD HL, 0x4000
+        LD DE, 0x4001
+        LD BC, 6143
+        LD (HL), 0
+        LDIR
+
+        ; Clear main screen attributes
+        LD HL, 0x5800
+        LD DE, 0x5801
+        LD BC, 767
+        LD (HL), 0x47      ; White INK on white PAPER (invisible)
+        LDIR
+
+        ; Switch to bank 7 for shadow screen
+        LD A, 0x17         ; Bank 7, screen 0
+        LD BC, 0x7FFD
+        OUT (C), A
+
+        ; Clear shadow screen bitmap
+        LD HL, 0xC000
+        LD DE, 0xC001
+        LD BC, 6143
+        LD (HL), 0
+        LDIR
+
+        ; Clear shadow screen attributes
+        LD HL, 0xD800
+        LD DE, 0xD801
+        LD BC, 767
+        LD (HL), 0x47
+        LDIR
+
+        ; Switch back to bank 0
+        LD A, 0x10
+        LD BC, 0x7FFD
+        OUT (C), A
+    }
+}
+
+// Switch to shadow screen for rendering
+fn select_shadow_screen() -> void {
+    asm {
+        LD A, 0x17         ; Bank 7 + screen 0 displayed
+        LD BC, 0x7FFD
+        OUT (C), A
+    }
+}
+
+// Switch to main screen for rendering
+fn select_main_screen() -> void {
+    asm {
+        LD A, 0x10         ; Bank 0 + screen 0 displayed
+        LD BC, 0x7FFD
+        OUT (C), A
+    }
+}
+
+// Flip which screen is displayed
+fn flip_display() -> void {
+    if current_screen == 0 {
+        // Show shadow screen
+        asm {
+            LD A, 0x1F     ; Bank 7 + screen 1 (shadow) displayed
+            LD BC, 0x7FFD
+            OUT (C), A
+        }
+        current_screen = 1;
+    } else {
+        // Show main screen
+        asm {
+            LD A, 0x10     ; Bank 0 + screen 0 (main) displayed
+            LD BC, 0x7FFD
+            OUT (C), A
+        }
+        current_screen = 0;
+    }
+}
+
+// Write a byte to memory address
+fn poke(addr: u16, val: u8) -> void {
+    asm {
+        POP HL          ; return address
+        POP DE          ; addr
+        POP BC          ; val in C
+        PUSH HL         ; restore return
+        LD A, C
+        LD (DE), A
+    }
+}
+
+// Render plasma to the back buffer
+fn render_plasma() -> void {
+    // Select back buffer based on current display
+    if current_screen == 0 {
+        select_shadow_screen();
+    } else {
+        select_main_screen();
+    }
+
+    let base: u16 = SCREEN1_ATTR;  // Always write to $5800 area
+                                    // (banking handles which physical RAM)
+
+    let mut y_angle: u8 = phase1;
+    let mut ptr: u16 = base;
+
+    // Render 24 rows x 32 columns = 768 attribute cells
+    for row in 0..24 {
+        let mut x_angle: u8 = phase2;
+
+        for col in 0..32 {
+            // Two-wave interference
+            let wave1: u8 = sin_table[x_angle];
+            let wave2: u8 = sin_table[y_angle];
+            let wave3: u8 = sin_table[x_angle + y_angle];  // Diagonal wave
+
+            // Combine waves for color (0-7 range)
+            let color: u8 = (wave1 + wave2 + wave3) & 7;
+
+            // Create attribute: BRIGHT + color as PAPER
+            // Format: FLASH BRIGHT PAPER INK
+            // We use: 0 1 color 000 = 0x40 | (color << 3)
+            let attr: u8 = 0x40 | (color << 3);
+
+            poke(ptr, attr);
+            ptr = ptr + 1;
+            x_angle = x_angle + 8;  // X frequency
+        }
+
+        y_angle = y_angle + 11;  // Y frequency (prime for variety)
+    }
+}
+
+// Main entry point
+fn main() -> void {
+    asm { DI }
+
+    init_sine();
+    cls_all();
+
+    asm { EI }
+
+    // Main animation loop
+    while true {
+        asm { HALT }  // Sync to frame
+
+        // Update phases
+        phase1 = phase1 + 3;   // Slow vertical movement
+        phase2 = phase2 + 5;   // Faster horizontal movement
+
+        // Render to back buffer
+        render_plasma();
+
+        // Swap buffers (instant, no tearing!)
+        flip_display();
+    }
+}

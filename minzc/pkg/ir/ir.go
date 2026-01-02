@@ -243,6 +243,32 @@ const (
 	RegHintBC                // Prefer BC register pair
 )
 
+// CodegenHints provides optimization hints from MIR analysis to code generator
+// These hints allow the code generator to emit optimal instructions directly
+// instead of relying on assembly-level peephole optimization.
+// ADR: docs/297_MIR_Value_Tracking_ADR.md
+type CodegenHints struct {
+	// Value delta hints - detected when same register is loaded with related value
+	CanUseINC    bool  // Value is previous + 1, can use INC instead of LD
+	CanUseDEC    bool  // Value is previous - 1, can use DEC instead of LD
+	CanEliminate bool  // Value unchanged, skip instruction entirely
+	CanUseXOR    bool  // Value is 0, can use XOR A (only for A register)
+
+	// Known value tracking
+	IsConstant   bool  // Value is compile-time constant
+	ConstValue   int64 // The constant value (valid if IsConstant)
+	PrevValue    int64 // Previous value in register (for delta calculation)
+
+	// Zero propagation
+	IsZero       bool  // Result is known to be zero
+
+	// Register preference (stronger than RegisterHint)
+	MustUseA     bool  // Must use accumulator (e.g., for XOR A)
+
+	// Flags awareness
+	NextUsesFlags bool // Next instruction reads flags - don't use INC/DEC
+}
+
 // StructLiteralData represents literal data for a struct in an array
 type StructLiteralData struct {
 	TypeName string           // Struct type name
@@ -279,7 +305,8 @@ type Instruction struct {
 	InlineArgStrings []string        // String values for inline parameters (asciiz, cpmstr)
 	InlineArgTypes  []string         // Types for inline parameters (u8, u16, asciiz, cpmstr)
 	Hint            RegisterHint      // Hint for register allocator
-	
+	CodegenHint     *CodegenHints     // Hints from MIR optimizer for code generation
+
 	// VM-specific fields
 	Value        int              // Immediate value for OpLoadImm
 	Target       int              // Jump target for OpJmp/OpJmpIf/OpJmpIfNot
@@ -953,6 +980,56 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("r%d = &r%d", i.Dest, i.Src1)
 	case OpLoadLabel:
 		return fmt.Sprintf("r%d = label %s", i.Dest, i.Symbol)
+	case OpMove:
+		return fmt.Sprintf("r%d = r%d", i.Dest, i.Src1)
+	case OpTest:
+		return fmt.Sprintf("test r%d", i.Src1)
+	case OpLogicalAnd:
+		return fmt.Sprintf("r%d = r%d && r%d", i.Dest, i.Src1, i.Src2)
+	case OpLogicalOr:
+		return fmt.Sprintf("r%d = r%d || r%d", i.Dest, i.Src1, i.Src2)
+	case OpLoadIndex:
+		return fmt.Sprintf("r%d = r%d[r%d]", i.Dest, i.Src1, i.Src2)
+	case OpStoreIndex:
+		return fmt.Sprintf("r%d[r%d] = r%d", i.Src1, i.Src2, i.Dest)
+	case OpLoadElement:
+		return fmt.Sprintf("r%d = r%d[%d]", i.Dest, i.Src1, i.Imm)
+	case OpStoreElement:
+		return fmt.Sprintf("r%d[%d] = r%d", i.Src1, i.Imm, i.Src2)
+	case OpLoadPtr:
+		return fmt.Sprintf("r%d = *r%d", i.Dest, i.Src1)
+	case OpStorePtr:
+		return fmt.Sprintf("*r%d = r%d", i.Dest, i.Src1)
+	case OpAlloc:
+		return fmt.Sprintf("r%d = alloc(%d)", i.Dest, i.Imm)
+	case OpFree:
+		return fmt.Sprintf("free(r%d)", i.Src1)
+	case OpPush:
+		return fmt.Sprintf("push r%d", i.Src1)
+	case OpPop:
+		return fmt.Sprintf("r%d = pop", i.Dest)
+	case OpPatchPoint:
+		return fmt.Sprintf("patch_point %s", i.PatchPointLabel)
+	case OpPatchTemplate:
+		return fmt.Sprintf("patch_template %s", i.TemplateName)
+	case OpPatchTarget:
+		return fmt.Sprintf("patch_target %s", i.TargetAddress)
+	case OpPatchParam:
+		return fmt.Sprintf("patch_param %s", i.ParamName)
+	case OpArrayInit:
+		return fmt.Sprintf("r%d = array_init(%d)", i.Dest, i.Imm)
+	case OpArrayElement:
+		return fmt.Sprintf("r%d[%d] = %d", i.Dest, i.Imm, i.Imm2)
+	case OpArrayLiteral:
+		return fmt.Sprintf("r%d = array_literal", i.Dest)
+	case OpLoadBitField:
+		return fmt.Sprintf("r%d = r%d.bits[%d:%d]", i.Dest, i.Src1, i.Imm, i.Imm2)
+	case OpStoreBitField:
+		return fmt.Sprintf("r%d.bits[%d:%d] = r%d", i.Dest, i.Imm, i.Imm2, i.Src1)
+	case OpSetError:
+		return fmt.Sprintf("set_error r%d", i.Src1)
+	case OpCheckError:
+		return fmt.Sprintf("r%d = check_error", i.Dest)
 	default:
 		return fmt.Sprintf("unknown op %d", i.Op)
 	}
