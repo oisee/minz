@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/minz/minzc/pkg/dap"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/spf13/cobra"
 )
@@ -14,6 +16,7 @@ var (
 	verbose      bool
 	cycles       bool
 	timeout      uint
+	debugMode    bool
 )
 
 var rootCmd = &cobra.Command{
@@ -130,6 +133,42 @@ func init() {
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "verbose execution info")
 	rootCmd.Flags().BoolVarP(&cycles, "cycles", "c", false, "show T-state cycle count")
 	rootCmd.Flags().UintVar(&timeout, "timeout", 0, "execution timeout in cycles (0 = no timeout)")
+
+	// Debug options
+	rootCmd.Flags().BoolVarP(&debugMode, "debug", "d", false, "start DAP debug server on stdin/stdout")
+}
+
+// debugCmd starts the DAP server for VS Code integration
+var debugCmd = &cobra.Command{
+	Use:   "debug",
+	Short: "Start DAP debug server for IDE integration",
+	Long: `Start the Debug Adapter Protocol (DAP) server.
+
+This command starts a DAP server on stdin/stdout for integration
+with VS Code and other DAP-compatible debuggers.
+
+The DAP server provides:
+  • Breakpoint support (address and source-level)
+  • Step, continue, and pause commands
+  • Register and memory inspection
+  • SMC (Self-Modifying Code) event tracking
+  • Disassembly view
+
+Usage with VS Code:
+  1. Install the MinZ Debug extension
+  2. Create a launch.json with type "minz"
+  3. Start debugging (F5)`,
+	Run: func(cmd *cobra.Command, args []string) {
+		server := dap.NewServer()
+		if err := server.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "DAP server error: %v\n", err)
+			os.Exit(1)
+		}
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(debugCmd)
 }
 
 func main() {
