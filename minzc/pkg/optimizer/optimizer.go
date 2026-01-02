@@ -44,6 +44,7 @@ func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optim
 		opt.passes = append(opt.passes,
 			NewRegisterAnalysisPass(),
 			NewConstantFoldingPass(),
+			NewMIRValueTrackingPass(), // Track values and set codegen hints (INC/DEC/XOR)
 			NewDeadCodeEliminationPass(),
 		)
 	}

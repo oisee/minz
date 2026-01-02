@@ -61,12 +61,14 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 			Replacement: "${1}LD A, B    ; Eliminated redundant LD B,A",
 		},
 		
-		// Pattern 2: Load zero optimization
+		// Pattern 2: Load zero optimization (A register only)
+		// NOTE: On Z80, XOR only works with register A - "XOR A" clears A to 0
+		// For other registers (B,C,D,E,H,L), we CANNOT use XOR - must keep LD r, 0
 		{
-			Name:        "load_zero_to_xor",
-			Description: "Replace LD r, 0 with XOR r, r (smaller and faster)",
-			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+(A|B|C|D|E|H|L),\s*0$`),
-			Replacement: "${1}XOR $2, $2    ; Optimized: was LD $2, 0",
+			Name:        "load_zero_to_xor_a",
+			Description: "Replace LD A, 0 with XOR A (smaller and faster)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+A,\s*0$`),
+			Replacement: "${1}XOR A    ; Optimized: was LD A, 0",
 		},
 		
 		// Pattern 3: Increment optimization
@@ -354,6 +356,159 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 			Pattern:     regexp.MustCompile(`(?m)^(\s*)SCF\s*\n\s*CCF$`),
 			Replacement: "${1}OR A         ; Clear carry (was SCF; CCF)",
 		},
+
+		// Pattern 36: LD r,r elimination (LD A,A = NOP)
+		{
+			Name:        "eliminate_ld_a_a",
+			Description: "Remove redundant LD A, A",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+A\s*,\s*A\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated LD A, A (NOP)",
+		},
+		{
+			Name:        "eliminate_ld_b_b",
+			Description: "Remove redundant LD B, B",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+B\s*,\s*B\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated LD B, B (NOP)",
+		},
+		{
+			Name:        "eliminate_ld_c_c",
+			Description: "Remove redundant LD C, C",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+C\s*,\s*C\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated LD C, C (NOP)",
+		},
+		{
+			Name:        "eliminate_ld_d_d",
+			Description: "Remove redundant LD D, D",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+D\s*,\s*D\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated LD D, D (NOP)",
+		},
+		{
+			Name:        "eliminate_ld_e_e",
+			Description: "Remove redundant LD E, E",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+E\s*,\s*E\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated LD E, E (NOP)",
+		},
+		{
+			Name:        "eliminate_ld_h_h",
+			Description: "Remove redundant LD H, H",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+H\s*,\s*H\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated LD H, H (NOP)",
+		},
+		{
+			Name:        "eliminate_ld_l_l",
+			Description: "Remove redundant LD L, L",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+L\s*,\s*L\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated LD L, L (NOP)",
+		},
+
+		// Pattern 37: Redundant operations elimination
+		{
+			Name:        "eliminate_add_a_0",
+			Description: "Remove ADD A, 0 (no effect)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)ADD\s+A\s*,\s*0\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated ADD A, 0",
+		},
+		{
+			Name:        "eliminate_sub_0",
+			Description: "Remove SUB 0 (no effect)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)SUB\s+0\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated SUB 0",
+		},
+		{
+			Name:        "eliminate_and_ff",
+			Description: "Remove AND $FF (no effect for 8-bit)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)AND\s+(?:\$FF|0xFF|255)\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated AND $FF",
+		},
+		{
+			Name:        "eliminate_or_0",
+			Description: "Remove OR 0 (no effect)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)OR\s+0\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated OR 0",
+		},
+		{
+			Name:        "eliminate_xor_0",
+			Description: "Remove XOR 0 (no effect)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)XOR\s+0\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated XOR 0",
+		},
+
+		// Pattern 38: Double exchange elimination
+		{
+			Name:        "eliminate_double_exx",
+			Description: "Remove double EXX (swap twice = no change)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)EXX\s*(?:;.*)?\n\s*EXX\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated double EXX",
+		},
+
+		// Pattern 39: Double CCF elimination
+		{
+			Name:        "eliminate_double_ccf",
+			Description: "Remove double CCF (complement carry twice = no change)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)CCF\s*(?:;.*)?\n\s*CCF\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated double CCF",
+		},
+
+		// Pattern 40: Double CPL elimination
+		{
+			Name:        "eliminate_double_cpl",
+			Description: "Remove double CPL (complement A twice = original)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)CPL\s*(?:;.*)?\n\s*CPL\s*(?:;.*)?$`),
+			Replacement: "${1}; Eliminated double CPL",
+		},
+
+		// Pattern 41: INC/DEC cancellation - MOVED TO LINE-BASED (eliminateIncDecPairs)
+		// These are handled in optimizeZ80Specific() to check for flag usage
+		// INC/DEC affects Z, S, H, P/V flags - must not eliminate if flags are used!
+
+		// Pattern 42: Consecutive idempotent operations
+		{
+			Name:        "eliminate_consecutive_and_a",
+			Description: "Remove consecutive AND A (idempotent)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)AND\s+A\s*(?:;.*)?\n\s*AND\s+A\s*(?:;.*)?$`),
+			Replacement: "${1}AND A        ; Removed duplicate",
+		},
+		{
+			Name:        "eliminate_consecutive_or_a",
+			Description: "Remove consecutive OR A (idempotent)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)OR\s+A\s*(?:;.*)?\n\s*OR\s+A\s*(?:;.*)?$`),
+			Replacement: "${1}OR A         ; Removed duplicate",
+		},
+		{
+			Name:        "eliminate_consecutive_scf",
+			Description: "Remove consecutive SCF (idempotent)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)SCF\s*(?:;.*)?\n\s*SCF\s*(?:;.*)?$`),
+			Replacement: "${1}SCF          ; Removed duplicate",
+		},
+
+		// Pattern 43: CP 0 after flag-setting XOR A (Z flag already set)
+		{
+			Name:        "eliminate_cp_0_after_xor_a",
+			Description: "Remove CP 0 after XOR A (Z flag already set)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)XOR\s+A\s*(?:;.*)?\n\s*CP\s+0\s*(?:;.*)?$`),
+			Replacement: "${1}XOR A        ; CP 0 eliminated (Z flag already set)",
+		},
+
+		// Pattern 44: Multiply by 2 optimization (SLA A → ADD A,A - same size but faster)
+		// SLA A = 8 T-states (2 bytes), ADD A,A = 4 T-states (1 byte) - BETTER!
+		{
+			Name:        "sla_a_to_add_a_a",
+			Description: "Replace SLA A with ADD A,A (faster and smaller)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)SLA\s+A\s*(?:;.*)?$`),
+			Replacement: "${1}ADD A, A     ; Optimized: was SLA A (faster)",
+		},
+		{
+			Name:        "eliminate_or_a_after_xor_a",
+			Description: "Remove OR A after XOR A (Z flag already set, A=0)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)XOR\s+A\s*(?:;.*)?\n\s*OR\s+A\s*(?:;.*)?$`),
+			Replacement: "${1}XOR A        ; OR A eliminated (Z flag already set)",
+		},
+		{
+			Name:        "eliminate_and_a_after_xor_a",
+			Description: "Remove AND A after XOR A (Z flag already set, A=0)",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)XOR\s+A\s*(?:;.*)?\n\s*AND\s+A\s*(?:;.*)?$`),
+			Replacement: "${1}XOR A        ; AND A eliminated (Z flag already set)",
+		},
 	}
 }
 
@@ -386,22 +541,656 @@ func (p *AssemblyPeepholePass) optimizeAssemblyLines(lines []string) []string {
 		}
 	}
 	
-	return strings.Split(assembly, "\n")
+	lines = strings.Split(assembly, "\n")
+
+	// Apply Z80-specific line-based optimizations
+	lines = p.optimizeZ80Specific(lines)
+
+	return lines
 }
 
 // Additional Z80-specific optimizations that could be added:
 
 // optimizeZ80Specific performs Z80-specific optimizations
 func (p *AssemblyPeepholePass) optimizeZ80Specific(lines []string) []string {
-	// Could add:
-	// - Shadow register usage optimization
-	// - Block transfer instruction usage (LDIR, LDDR)
-	// - Bit manipulation optimizations
-	// - Interrupt handling optimizations
-	// - Relative jump vs absolute jump decisions
-	// - Register exchange optimizations (EX DE,HL)
-	
+	// Optimization: Remove JP to immediately following label
+	lines = p.eliminateJumpToNext(lines)
+
+	// Optimization: Convert DEC B + JP/JR NZ to DJNZ
+	lines = p.optimizeDJNZ(lines)
+
+	// Optimization: Convert consecutive LD r,0 to XOR A + LD r,A
+	lines = p.optimizeConsecutiveLdZero(lines)
+
+	// Optimization: Remove duplicate consecutive XOR A (idempotent)
+	lines = p.eliminateDuplicateXorA(lines)
+
+	// Optimization: Register value propagation (INC/DEC instead of LD)
+	lines = p.propagateRegisterValues(lines)
+
+	// Optimization: Eliminate INC/DEC pairs (with flag safety check)
+	lines = p.eliminateIncDecPairs(lines)
+
 	return lines
+}
+
+// optimizeDJNZ converts DEC B followed by JP/JR NZ,label to DJNZ label
+func (p *AssemblyPeepholePass) optimizeDJNZ(lines []string) []string {
+	decBPattern := regexp.MustCompile(`^\s*DEC\s+B\s*(?:;.*)?$`)
+	jumpNZPattern := regexp.MustCompile(`^\s*J[PR]\s+NZ\s*,\s*(\S+)\s*(?:;.*)?$`)
+
+	result := make([]string, 0, len(lines))
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+
+		// Check if this is a DEC B instruction
+		if decBPattern.MatchString(line) {
+			// Look for JP/JR NZ on the next non-empty line
+			foundJump := false
+			for j := i + 1; j < len(lines) && j < i+3; j++ {
+				nextLine := strings.TrimSpace(lines[j])
+
+				// Skip empty lines and comments
+				if nextLine == "" || strings.HasPrefix(nextLine, ";") {
+					continue
+				}
+
+				// Check if this is JP/JR NZ
+				if matches := jumpNZPattern.FindStringSubmatch(lines[j]); matches != nil {
+					targetLabel := matches[1]
+					// Replace with DJNZ
+					indent := "    "
+					if idx := strings.Index(line, "DEC"); idx > 0 {
+						indent = line[:idx]
+					}
+					result = append(result, indent+"DJNZ "+targetLabel+"    ; Optimized: was DEC B + JP/JR NZ")
+					p.optimizationsCount++
+					foundJump = true
+					i = j // Skip the JP/JR instruction
+					break
+				}
+
+				// If we hit any other instruction, stop looking
+				break
+			}
+
+			if !foundJump {
+				result = append(result, line)
+			}
+		} else {
+			result = append(result, line)
+		}
+	}
+
+	return result
+}
+
+// optimizeConsecutiveLdZero converts consecutive LD r,0 instructions to XOR A + LD r,A
+// This saves bytes when clearing multiple registers to zero:
+//   Before: LD H,0 / LD D,0 / LD E,0 = 6 bytes
+//   After:  XOR A / LD H,A / LD D,A / LD E,A = 4 bytes
+// Requires 2+ consecutive LD r,0 (where r is not A) to be worthwhile.
+// ADR: docs/294_Consecutive_LD_Zero_Optimization.md
+func (p *AssemblyPeepholePass) optimizeConsecutiveLdZero(lines []string) []string {
+	// Pattern: LD r, 0 where r is B, C, D, E, H, or L (not A, as XOR A handles that)
+	ldZeroPattern := regexp.MustCompile(`^(\s*)LD\s+([BCDEHL])\s*,\s*0\s*(?:;.*)?$`)
+
+	result := make([]string, 0, len(lines))
+	i := 0
+
+	for i < len(lines) {
+		line := lines[i]
+
+		// Check if this is a LD r, 0 instruction
+		match := ldZeroPattern.FindStringSubmatch(line)
+		if match == nil {
+			result = append(result, line)
+			i++
+			continue
+		}
+
+		// Found first LD r, 0 - collect consecutive ones
+		indent := match[1]
+		registers := []string{match[2]}
+		startIdx := i
+		i++
+
+		// Look for more consecutive LD r, 0 instructions
+		for i < len(lines) {
+			nextLine := lines[i]
+			trimmed := strings.TrimSpace(nextLine)
+
+			// Skip empty lines and comments
+			if trimmed == "" || strings.HasPrefix(trimmed, ";") {
+				i++
+				continue
+			}
+
+			nextMatch := ldZeroPattern.FindStringSubmatch(nextLine)
+			if nextMatch == nil {
+				break
+			}
+
+			registers = append(registers, nextMatch[2])
+			i++
+		}
+
+		// Only optimize if we have 2+ registers
+		if len(registers) >= 2 {
+			// Emit XOR A first
+			result = append(result, indent+"XOR A        ; Clear A for multi-register zero init")
+			// Then LD r, A for each register
+			for _, reg := range registers {
+				result = append(result, indent+"LD "+reg+", A    ; Zero via A (was LD "+reg+", 0)")
+			}
+			p.optimizationsCount++
+		} else {
+			// Only 1 register - keep original
+			for j := startIdx; j < i; j++ {
+				result = append(result, lines[j])
+			}
+		}
+	}
+
+	return result
+}
+
+// eliminateDuplicateXorA removes redundant XOR A instructions when A is known to be 0
+// A is known to be 0 after XOR A, and stays 0 after LD r,A (which doesn't modify A)
+// SAFETY: Does NOT remove if the XOR A follows a label (could be SMC patch target)
+// or has SMC-related markers in comments.
+func (p *AssemblyPeepholePass) eliminateDuplicateXorA(lines []string) []string {
+	xorAPattern := regexp.MustCompile(`^(\s*)XOR\s+A\s*(?:;.*)?$`)
+	// LD r,A where r is B,C,D,E,H,L - these don't modify A
+	ldFromAPattern := regexp.MustCompile(`^\s*LD\s+[BCDEHL]\s*,\s*A\s*(?:;.*)?$`)
+	labelPattern := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_$]*:`)
+	smcPattern := regexp.MustCompile(`\$imm|SMC|PATCH`)
+
+	result := make([]string, 0, len(lines))
+	aIsZero := false      // Track if A is known to be 0
+	afterLabel := false   // Track if we just saw a label
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		// Track if this is a label - resets our knowledge and marks SMC risk
+		isLabel := labelPattern.MatchString(trimmed)
+		if isLabel {
+			afterLabel = true
+			aIsZero = false
+			result = append(result, line)
+			continue
+		}
+
+		// Skip empty lines and comments for tracking purposes
+		if trimmed == "" || strings.HasPrefix(trimmed, ";") {
+			result = append(result, line)
+			continue
+		}
+
+		// Check if this is XOR A
+		if xorAPattern.MatchString(line) {
+			// Check for SMC markers in comment
+			hasSMCMarker := smcPattern.MatchString(line)
+
+			// Keep if: A not known to be 0, follows label (SMC), or has SMC marker
+			if !aIsZero || afterLabel || hasSMCMarker {
+				result = append(result, line)
+				aIsZero = true
+			} else {
+				// Skip redundant XOR A - A is already 0
+				p.optimizationsCount++
+			}
+			afterLabel = false
+		} else if ldFromAPattern.MatchString(line) {
+			// LD r,A doesn't change A - keep aIsZero state
+			result = append(result, line)
+			afterLabel = false
+		} else {
+			// Any other instruction - assume it might change A
+			result = append(result, line)
+			aIsZero = false
+			afterLabel = false
+		}
+	}
+
+	return result
+}
+
+// RegisterState tracks the known value of a register
+type RegisterState struct {
+	known bool
+	value uint8
+}
+
+// propagateRegisterValues optimizes LD r,imm using known register values
+// - If r already contains imm: eliminate the instruction
+// - If r contains imm-1: replace with INC r
+// - If r contains imm+1: replace with DEC r
+// ADR: docs/295_Register_Value_Propagation.md
+func (p *AssemblyPeepholePass) propagateRegisterValues(lines []string) []string {
+	// Patterns
+	ldImmPattern := regexp.MustCompile(`^(\s*)LD\s+([ABCDEHL])\s*,\s*(?:\$|0x|#)?([0-9A-Fa-f]+)\s*(?:;.*)?$`)
+	ldRegPattern := regexp.MustCompile(`^(\s*)LD\s+([ABCDEHL])\s*,\s*([ABCDEHL])\s*(?:;.*)?$`)
+	incPattern := regexp.MustCompile(`^\s*INC\s+([ABCDEHL])\s*(?:;.*)?$`)
+	decPattern := regexp.MustCompile(`^\s*DEC\s+([ABCDEHL])\s*(?:;.*)?$`)
+	xorAPattern := regexp.MustCompile(`^\s*XOR\s+A\s*(?:;.*)?$`)
+	labelPattern := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_$]*:`)
+	smcPattern := regexp.MustCompile(`\$imm|SMC|PATCH`)
+	// Instructions that invalidate all registers
+	invalidateAllPattern := regexp.MustCompile(`^\s*(CALL|JP|JR|RET|RST|HALT|POP|EX|EXX|PUSH|DI|EI|IM|RETI|RETN)`)
+	// Instructions that use flags (don't optimize before these)
+	flagUsePattern := regexp.MustCompile(`^\s*(JR\s+(N?[ZC])|JP\s+(N?[ZC]|P[OE]|[PM])|CALL\s+(N?[ZC])|RET\s+(N?[ZC])|ADC|SBC|DAA|RLA|RRA|RLCA|RRCA)`)
+
+	// Register state tracking
+	regs := make(map[string]*RegisterState)
+	for _, r := range []string{"A", "B", "C", "D", "E", "H", "L"} {
+		regs[r] = &RegisterState{known: false}
+	}
+
+	invalidateAll := func() {
+		for _, state := range regs {
+			state.known = false
+		}
+	}
+
+	result := make([]string, 0, len(lines))
+	skipNextOptimize := false // Skip optimization for instruction right after label (SMC)
+
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		// Skip empty lines and comments
+		if trimmed == "" || strings.HasPrefix(trimmed, ";") {
+			result = append(result, line)
+			continue
+		}
+
+		// Check for label - invalidates tracking and marks next instruction as potential SMC
+		if labelPattern.MatchString(trimmed) {
+			invalidateAll()
+			skipNextOptimize = true
+			result = append(result, line)
+			continue
+		}
+
+		// Check for SMC markers in comments
+		hasSMCMarker := smcPattern.MatchString(line)
+
+		// Check for instructions that invalidate all registers
+		if invalidateAllPattern.MatchString(trimmed) {
+			invalidateAll()
+			result = append(result, line)
+			skipNextOptimize = false
+			continue
+		}
+
+		// Check for XOR A - sets A = 0
+		if xorAPattern.MatchString(line) {
+			regs["A"].known = true
+			regs["A"].value = 0
+			result = append(result, line)
+			skipNextOptimize = false
+			continue
+		}
+
+		// Check for INC r - increments known value
+		if match := incPattern.FindStringSubmatch(line); match != nil {
+			reg := strings.ToUpper(match[1])
+			if regs[reg].known {
+				regs[reg].value++ // Wraps naturally at 8-bit
+			}
+			result = append(result, line)
+			skipNextOptimize = false
+			continue
+		}
+
+		// Check for DEC r - decrements known value
+		if match := decPattern.FindStringSubmatch(line); match != nil {
+			reg := strings.ToUpper(match[1])
+			if regs[reg].known {
+				regs[reg].value-- // Wraps naturally at 8-bit
+			}
+			result = append(result, line)
+			skipNextOptimize = false
+			continue
+		}
+
+		// Check for LD r, r' - copy propagation
+		if match := ldRegPattern.FindStringSubmatch(line); match != nil {
+			dest := strings.ToUpper(match[2])
+			src := strings.ToUpper(match[3])
+			if dest != src { // LD A, A is a NOP
+				if regs[src].known {
+					regs[dest].known = true
+					regs[dest].value = regs[src].value
+				} else {
+					regs[dest].known = false
+				}
+			}
+			result = append(result, line)
+			skipNextOptimize = false
+			continue
+		}
+
+		// Check for LD r, imm - main optimization target
+		if match := ldImmPattern.FindStringSubmatch(line); match != nil {
+			indent := match[1]
+			reg := strings.ToUpper(match[2])
+			immStr := match[3]
+
+			// Parse immediate value
+			var imm uint64
+			fmt.Sscanf(immStr, "%x", &imm)
+			immVal := uint8(imm)
+
+			// Check if we can optimize (and should)
+			canOptimize := !skipNextOptimize && !hasSMCMarker && regs[reg].known
+
+			// Check if next instruction uses flags (conservative approach)
+			if canOptimize && i+1 < len(lines) {
+				nextLine := strings.TrimSpace(lines[i+1])
+				if flagUsePattern.MatchString(nextLine) {
+					canOptimize = false // Don't optimize - next instruction uses flags
+				}
+			}
+
+			if canOptimize {
+				currentVal := regs[reg].value
+
+				if currentVal == immVal {
+					// Same value - eliminate entirely
+					p.optimizationsCount++
+					// Update tracking (value unchanged)
+					skipNextOptimize = false
+					continue // Skip this line entirely
+				} else if currentVal+1 == immVal || (currentVal == 0xFF && immVal == 0x00) {
+					// Need value+1, use INC
+					result = append(result, fmt.Sprintf("%sINC %s        ; Was LD %s, $%02X (val prop: $%02X+1)", indent, reg, reg, immVal, currentVal))
+					regs[reg].value = immVal
+					p.optimizationsCount++
+					skipNextOptimize = false
+					continue
+				} else if currentVal-1 == immVal || (currentVal == 0x00 && immVal == 0xFF) {
+					// Need value-1, use DEC
+					result = append(result, fmt.Sprintf("%sDEC %s        ; Was LD %s, $%02X (val prop: $%02X-1)", indent, reg, reg, immVal, currentVal))
+					regs[reg].value = immVal
+					p.optimizationsCount++
+					skipNextOptimize = false
+					continue
+				}
+			}
+
+			// Can't optimize - update tracking and keep instruction
+			regs[reg].known = true
+			regs[reg].value = immVal
+			result = append(result, line)
+			skipNextOptimize = false
+			continue
+		}
+
+		// Any other instruction that modifies a register - invalidate that register
+		// This is a simplified check - in reality we'd need full instruction decoding
+		// For now, invalidate registers mentioned in the instruction
+		for _, reg := range []string{"A", "B", "C", "D", "E", "H", "L"} {
+			// Check if register appears as destination (simplified)
+			if strings.Contains(trimmed, reg+",") || strings.HasSuffix(trimmed, " "+reg) {
+				// Might be modifying this register - invalidate
+				regs[reg].known = false
+			}
+		}
+
+		result = append(result, line)
+		skipNextOptimize = false
+	}
+
+	return result
+}
+
+// eliminateJumpToNext removes JP/JR instructions that jump to the immediately following label
+func (p *AssemblyPeepholePass) eliminateJumpToNext(lines []string) []string {
+	jpPattern := regexp.MustCompile(`^\s*J[PR]\s+(?:NZ|Z|NC|C|PO|PE|P|M|)\s*,?\s*(\w+)\s*(?:;.*)?$`)
+	labelPattern := regexp.MustCompile(`^(\w+):`)
+
+	result := make([]string, 0, len(lines))
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+
+		// Check if this is a JP or JR instruction
+		if matches := jpPattern.FindStringSubmatch(line); matches != nil {
+			targetLabel := matches[1]
+
+			// Look for the label in the following lines (skip empty/comment lines)
+			foundImmediate := false
+			for j := i + 1; j < len(lines) && j < i + 5; j++ {
+				nextLine := strings.TrimSpace(lines[j])
+
+				// Skip empty lines and comments
+				if nextLine == "" || strings.HasPrefix(nextLine, ";") {
+					continue
+				}
+
+				// Check if this is our target label
+				if labelMatches := labelPattern.FindStringSubmatch(nextLine); labelMatches != nil {
+					if labelMatches[1] == targetLabel {
+						// JP/JR to next instruction - eliminate it
+						foundImmediate = true
+						p.optimizationsCount++
+						result = append(result, "    ; Eliminated JP/JR to next instruction: "+targetLabel)
+						break
+					}
+				}
+
+				// If we hit any other instruction, stop looking
+				break
+			}
+
+			if !foundImmediate {
+				result = append(result, line)
+			}
+		} else {
+			result = append(result, line)
+		}
+	}
+
+	return result
+}
+
+// eliminateIncDecPairs removes INC r; DEC r and DEC r; INC r pairs
+// SAFETY: Traces forward to check if flags are used before being overwritten
+// INC/DEC pairs might be used intentionally for flag testing (e.g., test if A==0)
+// Also respects @keep and @no-opt annotations in comments
+//
+// Flag tracing logic:
+// - Scan forward from the DEC/INC until we find either:
+//   1. Instruction that USES flags (JR Z, JP NZ, ADC, SBC, etc.) → DON'T eliminate
+//   2. Instruction that MODIFIES flags (ADD, SUB, AND, OR, XOR, CP, etc.) → safe to eliminate
+//   3. Label or control flow (CALL, JP, RET) → assume unsafe, DON'T eliminate
+func (p *AssemblyPeepholePass) eliminateIncDecPairs(lines []string) []string {
+	// Patterns for INC and DEC
+	incPattern := regexp.MustCompile(`^(\s*)INC\s+([ABCDEHL]|HL|DE|BC)\s*(?:;.*)?$`)
+	decPattern := regexp.MustCompile(`^(\s*)DEC\s+([ABCDEHL]|HL|DE|BC)\s*(?:;.*)?$`)
+
+	// Instructions that USE flags (must not optimize if flags flow to these)
+	flagUsePattern := regexp.MustCompile(`(?i)^\s*(JR\s+(N?[ZC])|JP\s+(N?[ZC]|P[OE]|[PM])|CALL\s+(N?[ZC])|RET\s+(N?[ZC])|ADC|SBC|DAA)`)
+
+	// Instructions that MODIFY/SET flags (safe to eliminate if these come before use)
+	// Most ALU ops, CP, AND, OR, XOR, ADD, SUB, INC, DEC, etc.
+	flagSetPattern := regexp.MustCompile(`(?i)^\s*(ADD|SUB|AND|OR|XOR|CP|INC|DEC|SLA|SRA|SRL|RLC|RRC|RL|RR|BIT|NEG|CCF|SCF)\s+`)
+
+	// Control flow that ends our analysis (can't trace through)
+	controlFlowPattern := regexp.MustCompile(`(?i)^\s*(JP|JR|CALL|RET|RST|RETI|RETN|DJNZ)\s*`)
+
+	// Annotation patterns to preserve instructions
+	keepPattern := regexp.MustCompile(`@keep|@no-opt|@preserve|INLINE\s+ASM`)
+
+	labelPattern := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_$]*:`)
+
+	result := make([]string, 0, len(lines))
+	i := 0
+
+	// Helper: check if flags from INC/DEC are used before being overwritten
+	// Returns true if safe to eliminate, false if flags might be used
+	checkFlagSafety := func(startIdx int) bool {
+		maxLookahead := 10 // Don't look too far ahead
+		for k := startIdx; k < len(lines) && k < startIdx+maxLookahead; k++ {
+			checkLine := strings.TrimSpace(lines[k])
+
+			// Skip empty lines and comments
+			if checkLine == "" || strings.HasPrefix(checkLine, ";") {
+				continue
+			}
+
+			// Label = control flow boundary, assume unsafe
+			if labelPattern.MatchString(checkLine) {
+				return false
+			}
+
+			// Control flow = can't trace, assume unsafe
+			if controlFlowPattern.MatchString(checkLine) {
+				// But first check if it USES flags (like JR Z)
+				if flagUsePattern.MatchString(checkLine) {
+					return false // Definitely uses flags
+				}
+				// Unconditional control flow - assume unsafe
+				return false
+			}
+
+			// Check if this instruction USES flags
+			if flagUsePattern.MatchString(checkLine) {
+				return false // Flags are used!
+			}
+
+			// Check if this instruction MODIFIES flags
+			if flagSetPattern.MatchString(checkLine) {
+				return true // Flags will be overwritten, safe to eliminate
+			}
+
+			// Instruction doesn't affect flags (like LD) - continue tracing
+		}
+
+		// Reached end of lookahead without finding flag use/set
+		// Conservative: assume unsafe
+		return false
+	}
+
+	for i < len(lines) {
+		line := lines[i]
+		trimmed := strings.TrimSpace(line)
+
+		// Skip empty lines and comments
+		if trimmed == "" || strings.HasPrefix(trimmed, ";") {
+			result = append(result, line)
+			i++
+			continue
+		}
+
+		// Check for @keep annotation - never optimize these
+		if keepPattern.MatchString(line) {
+			result = append(result, line)
+			i++
+			continue
+		}
+
+		// Check for label - don't optimize across labels (SMC safety)
+		if labelPattern.MatchString(trimmed) {
+			result = append(result, line)
+			i++
+			continue
+		}
+
+		// Check for INC r
+		incMatch := incPattern.FindStringSubmatch(line)
+		if incMatch != nil {
+			indent := incMatch[1]
+			reg := strings.ToUpper(incMatch[2])
+
+			// Look for matching DEC r on next non-empty line
+			foundMatch := false
+			decIdx := -1
+			for j := i + 1; j < len(lines) && j < i+3; j++ {
+				nextLine := strings.TrimSpace(lines[j])
+
+				// Skip empty lines and comments
+				if nextLine == "" || strings.HasPrefix(nextLine, ";") {
+					continue
+				}
+
+				// Check for matching DEC
+				decMatch := decPattern.FindStringSubmatch(lines[j])
+				if decMatch != nil && strings.ToUpper(decMatch[2]) == reg {
+					decIdx = j
+					break
+				}
+				// Hit another instruction - stop looking
+				break
+			}
+
+			if decIdx != -1 && checkFlagSafety(decIdx+1) {
+				// Safe to eliminate
+				result = append(result, indent+"; Eliminated INC "+reg+"; DEC "+reg+" (flags overwritten)")
+				p.optimizationsCount++
+				foundMatch = true
+				i = decIdx + 1
+			}
+
+			if !foundMatch {
+				result = append(result, line)
+				i++
+			}
+			continue
+		}
+
+		// Check for DEC r
+		decMatch := decPattern.FindStringSubmatch(line)
+		if decMatch != nil {
+			indent := decMatch[1]
+			reg := strings.ToUpper(decMatch[2])
+
+			// Look for matching INC r on next non-empty line
+			foundMatch := false
+			incIdx := -1
+			for j := i + 1; j < len(lines) && j < i+3; j++ {
+				nextLine := strings.TrimSpace(lines[j])
+
+				// Skip empty lines and comments
+				if nextLine == "" || strings.HasPrefix(nextLine, ";") {
+					continue
+				}
+
+				// Check for matching INC
+				incMatch := incPattern.FindStringSubmatch(lines[j])
+				if incMatch != nil && strings.ToUpper(incMatch[2]) == reg {
+					incIdx = j
+					break
+				}
+				// Hit another instruction - stop looking
+				break
+			}
+
+			if incIdx != -1 && checkFlagSafety(incIdx+1) {
+				// Safe to eliminate
+				result = append(result, indent+"; Eliminated DEC "+reg+"; INC "+reg+" (flags overwritten)")
+				p.optimizationsCount++
+				foundMatch = true
+				i = incIdx + 1
+			}
+
+			if !foundMatch {
+				result = append(result, line)
+				i++
+			}
+			continue
+		}
+
+		// Not INC or DEC - keep the line
+		result = append(result, line)
+		i++
+	}
+
+	return result
 }
 
 // optimizeForSize performs size-oriented optimizations

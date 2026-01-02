@@ -67,17 +67,23 @@ func (a *Assembler) handleORG(line *Line) error {
 	if len(line.Operands) != 1 {
 		return fmt.Errorf("ORG requires exactly one operand")
 	}
-	
+
 	addr, err := a.resolveValue(line.Operands[0])
 	if err != nil {
 		return fmt.Errorf("invalid ORG address: %w", err)
 	}
-	
+
+	// Track first ORG for multi-section code (useful for entry point fallback)
+	if a.pass == 1 && !a.hasFirstOrg {
+		a.firstOrg = addr
+		a.hasFirstOrg = true
+	}
+
 	a.currentAddr = addr
 	if a.pass == 1 && a.origin == 0x8000 { // Default origin
 		a.origin = addr
 	}
-	
+
 	return nil
 }
 
@@ -342,9 +348,23 @@ func (a *Assembler) handleALIGN(line *Line) error {
 	return nil
 }
 
-// handleEND marks end of assembly
+// handleEND marks end of assembly and optionally sets entry point
 func (a *Assembler) handleEND(line *Line) error {
-	// Could implement early termination, but for now just ignore
+	// END directive can have an optional entry point label
+	// e.g., END main  - sets execution start address to 'main' label
+	if len(line.Operands) > 0 {
+		entryLabel := line.Operands[0]
+
+		// Resolve the entry point in pass 2 (symbols are defined)
+		if a.pass == 2 {
+			entryAddr, err := a.resolveSymbol(entryLabel)
+			if err != nil {
+				return fmt.Errorf("END: cannot resolve entry point '%s': %w", entryLabel, err)
+			}
+			a.entryPoint = entryAddr
+			a.hasEntryPoint = true
+		}
+	}
 	return nil
 }
 

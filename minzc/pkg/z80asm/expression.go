@@ -252,33 +252,49 @@ func isValidSymbol(s string) bool {
 	if len(s) == 0 {
 		return false
 	}
-	
-	// Must start with letter or underscore
-	if !unicode.IsLetter(rune(s[0])) && s[0] != '_' {
+
+	// Must start with letter, underscore, or dot (for local/module labels)
+	if !unicode.IsLetter(rune(s[0])) && s[0] != '_' && s[0] != '.' {
 		return false
 	}
-	
-	// Rest can be letters, digits, or underscore
+
+	// Rest can be letters, digits, underscore, dot, or $
+	// The $ is used in MinZ for SMC parameter anchors (e.g., "param$imm0")
 	for _, r := range s[1:] {
-		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '.' && r != '$' {
 			return false
 		}
 	}
-	
+
 	return true
+}
+
+// isHexDigit checks if a character is a hex digit
+func isHexDigit(c byte) bool {
+	return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f')
 }
 
 // parseImmediate parses a number in various formats (hex, binary, decimal)
 func (a *Assembler) parseImmediate(s string) (uint16, error) {
 	s = strings.TrimSpace(s)
-	
+
 	// Handle different number formats
 	if strings.HasPrefix(s, "$") {
 		// Special case: bare "$" is current address symbol, not hex
 		if s == "$" {
 			return 0, fmt.Errorf("current address symbol not handled here")
 		}
-		// Hex: $FF
+		// Only treat as hex if followed by hex digit
+		// This allows symbols like "angle$imm0" to be parsed as symbols
+		if len(s) > 1 && isHexDigit(s[1]) {
+			// Hex: $FF
+			val, err := strconv.ParseUint(s[1:], 16, 16)
+			return uint16(val), err
+		}
+		// Not a hex number - fall through to treat as symbol
+		return 0, fmt.Errorf("not a number: %s", s)
+	} else if strings.HasPrefix(s, "#") {
+		// Hex: #FF (common Z80 format)
 		val, err := strconv.ParseUint(s[1:], 16, 16)
 		return uint16(val), err
 	} else if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {

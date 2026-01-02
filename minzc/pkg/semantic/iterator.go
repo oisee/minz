@@ -266,8 +266,9 @@ func (a *Analyzer) generateArrayIteration(chain *ast.IteratorChainExpr, sourceRe
 	for _, op := range chain.Operations {
 		switch op.Type {
 		case ast.IterOpSkip, ast.IterOpTake, ast.IterOpEnumerate,
-		     ast.IterOpChain, ast.IterOpFlatMap, ast.IterOpTakeWhile, 
-		     ast.IterOpSkipWhile, ast.IterOpPeek, ast.IterOpInspect:
+		     ast.IterOpChain, ast.IterOpFlatMap, ast.IterOpTakeWhile,
+		     ast.IterOpSkipWhile, ast.IterOpPeek, ast.IterOpInspect,
+		     ast.IterOpReduce:
 			hasEnhancedOps = true
 		}
 		if hasEnhancedOps {

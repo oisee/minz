@@ -338,43 +338,61 @@ func generateBinaryFile(result *Result) ([]byte, error) {
 func generateSNASnapshot(result *Result) ([]byte, error) {
 	// SNA format: 27-byte header + 49152 bytes of memory ($4000-$FFFF)
 	snapshot := make([]byte, 49179)
-	
-	// SNA Header (27 bytes) - basic register state
+
+	// Use EntryPoint for execution start (from END directive or first ORG)
+	// Falls back to Origin if no explicit entry point was set
+	entryPoint := result.EntryPoint
+	if entryPoint == 0 {
+		entryPoint = result.Origin
+	}
+
+	// SNA Format: PC is stored on the stack and loaded via RETN
+	// We set SP to $FFFC and store the start address at $FFFC-$FFFD
+	stackAddr := uint16(0xFFFC)
+
+	// SNA Header (27 bytes) - register state
 	snapshot[0] = 0x3F          // I register
-	snapshot[1] = 0x58          // HL'
-	snapshot[2] = 0x52          // HL'
-	snapshot[3] = 0x00          // DE'
-	snapshot[4] = 0x00          // DE'
-	snapshot[5] = 0x00          // BC'
-	snapshot[6] = 0x00          // BC'
-	snapshot[7] = 0x00          // AF'
-	snapshot[8] = 0x00          // AF'
-	snapshot[9] = byte(result.Origin)       // HL
-	snapshot[10] = byte(result.Origin >> 8) // HL
-	snapshot[11] = 0x00         // DE
-	snapshot[12] = 0x00         // DE
-	snapshot[13] = 0x00         // BC
-	snapshot[14] = 0x00         // BC
-	snapshot[15] = 0x00         // IY
-	snapshot[16] = 0x00         // IY
-	snapshot[17] = 0x00         // IX
-	snapshot[18] = 0x00         // IX
-	snapshot[19] = 0x00         // IFF2 (bit 2), others 0
+	snapshot[1] = 0x58          // HL' (low)
+	snapshot[2] = 0x52          // HL' (high)
+	snapshot[3] = 0x00          // DE' (low)
+	snapshot[4] = 0x00          // DE' (high)
+	snapshot[5] = 0x00          // BC' (low)
+	snapshot[6] = 0x00          // BC' (high)
+	snapshot[7] = 0x00          // AF' (low = F')
+	snapshot[8] = 0x00          // AF' (high = A')
+	snapshot[9] = 0x00          // HL (low)
+	snapshot[10] = 0x00         // HL (high)
+	snapshot[11] = 0x00         // DE (low)
+	snapshot[12] = 0x00         // DE (high)
+	snapshot[13] = 0x00         // BC (low)
+	snapshot[14] = 0x00         // BC (high)
+	snapshot[15] = 0x00         // IY (low)
+	snapshot[16] = 0x5C         // IY (high) - $5C00 is common for ZX Spectrum
+	snapshot[17] = 0x00         // IX (low)
+	snapshot[18] = 0x00         // IX (high)
+	snapshot[19] = 0x04         // IFF2 (bit 2 = interrupts enabled)
 	snapshot[20] = 0x00         // R register
-	snapshot[21] = 0x00         // AF
-	snapshot[22] = 0x00         // AF
-	snapshot[23] = 0xFF         // SP
-	snapshot[24] = 0xFF         // SP
+	snapshot[21] = 0x00         // AF (low = F)
+	snapshot[22] = 0x00         // AF (high = A)
+	snapshot[23] = byte(stackAddr)      // SP (low)
+	snapshot[24] = byte(stackAddr >> 8) // SP (high)
 	snapshot[25] = 0x01         // Interrupt mode (1)
 	snapshot[26] = 0x07         // Border color (white)
-	
+
 	// Memory content (48K from $4000 to $FFFF)
 	if result.Origin >= 0x4000 {
 		// Copy binary at the correct offset within the 48K memory space
 		offset := 27 + int(result.Origin - 0x4000)
 		copy(snapshot[offset:], result.Binary)
 	}
-	
+
+	// Store the entry point at SP location for RETN to pop
+	// Stack grows downward, so PC is at SP (low byte) and SP+1 (high byte)
+	// Offset in snapshot: 27 + (stackAddr - 0x4000)
+	pcOffset := 27 + int(stackAddr - 0x4000)
+	snapshot[pcOffset] = byte(entryPoint)        // PC low byte
+	snapshot[pcOffset+1] = byte(entryPoint >> 8) // PC high byte
+
 	return snapshot, nil
 }
 

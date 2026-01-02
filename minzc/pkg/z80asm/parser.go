@@ -37,12 +37,36 @@ func ParseLine(line string, lineNum int) (*Line, error) {
 		return result, nil
 	}
 	
-	// Check for label (ends with :)
+	// Check for label (ends with : OR contains : followed by more content)
 	if strings.HasSuffix(line, ":") {
 		result.Label = strings.TrimSuffix(line, ":")
 		return result, nil
 	}
-	
+
+	// Check for LABEL: INSTRUCTION pattern (label with colon followed by instruction)
+	if colonIdx := strings.Index(line, ":"); colonIdx > 0 {
+		// Make sure this isn't inside parentheses (like LD (IX+0), A)
+		beforeColon := line[:colonIdx]
+		if !strings.Contains(beforeColon, "(") && !strings.Contains(beforeColon, " ") {
+			// This is a label with following content
+			result.Label = beforeColon
+			// Parse the rest of the line
+			rest := strings.TrimSpace(line[colonIdx+1:])
+			if rest != "" {
+				// Recursively parse the rest as a new line
+				restLine, err := ParseLine(rest, lineNum)
+				if err != nil {
+					return nil, err
+				}
+				// Copy directive/mnemonic/operands from rest
+				result.Directive = restLine.Directive
+				result.Mnemonic = restLine.Mnemonic
+				result.Operands = restLine.Operands
+			}
+			return result, nil
+		}
+	}
+
 	// Split into tokens
 	tokens := strings.Fields(line)
 	if len(tokens) == 0 {

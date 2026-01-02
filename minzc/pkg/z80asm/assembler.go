@@ -18,6 +18,10 @@ type Assembler struct {
 	pass          int
 	currentAddr   uint16
 	origin        uint16
+	firstOrg      uint16 // First ORG address (for multi-section code)
+	hasFirstOrg   bool   // Whether firstOrg has been set
+	entryPoint    uint16 // Entry point from END directive
+	hasEntryPoint bool   // Whether entry point was explicitly set
 	symbols       map[string]*Symbol
 	lines         []*Line
 	output        []byte
@@ -26,7 +30,7 @@ type Assembler struct {
 	warnings      []string
 	macroProcessor *MacroProcessor
 	macroDefinition *macroDefinitionState // Current macro being defined
-	
+
 	// Target platform support
 	target        *TargetConfig
 }
@@ -213,6 +217,7 @@ func isAllDigits(s string) bool {
 type Result struct {
 	Binary      []byte
 	Origin      uint16
+	EntryPoint  uint16 // Entry point address (from END label or first ORG)
 	Size        uint16
 	Symbols     map[string]uint16
 	Listing     []ListingLine
@@ -331,14 +336,23 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 		return nil, fmt.Errorf("memory layout error: %w", err)
 	}
 	
+	// Determine entry point: END label > first ORG > origin
+	entryPoint := a.origin
+	if a.hasEntryPoint {
+		entryPoint = a.entryPoint
+	} else if a.hasFirstOrg {
+		entryPoint = a.firstOrg
+	}
+
 	// Build result
 	result := &Result{
-		Binary:  a.output,
-		Origin:  a.origin,
-		Size:    uint16(len(a.output)),
-		Symbols: make(map[string]uint16),
-		Listing: make([]ListingLine, 0),
-		Errors:  a.errors,
+		Binary:     a.output,
+		Origin:     a.origin,
+		EntryPoint: entryPoint,
+		Size:       uint16(len(a.output)),
+		Symbols:    make(map[string]uint16),
+		Listing:    make([]ListingLine, 0),
+		Errors:     a.errors,
 	}
 	
 	// Copy symbols
@@ -389,6 +403,11 @@ func (a *Assembler) reset() {
 	a.instructions = nil
 	a.errors = nil
 	a.warnings = nil
+	// Reset entry point tracking
+	a.firstOrg = 0
+	a.hasFirstOrg = false
+	a.entryPoint = 0
+	a.hasEntryPoint = false
 }
 
 // performPass executes one assembly pass

@@ -87,9 +87,18 @@ func preprocessLocalLabels(lines []*Line) ([]*Line, error) {
 	return result, nil
 }
 
-// isLocalLabel checks if a label is a local label (starts with exactly one dot)
+// isLocalLabel checks if a label is a local label
+// A local label starts with exactly one dot followed by a simple identifier
+// (no more dots in the name). Labels like ".home.alice..." are NOT local labels
+// but rather module-qualified global labels from MinZ.
 func isLocalLabel(label string) bool {
-	return strings.HasPrefix(label, ".") && !strings.HasPrefix(label, "..")
+	if !strings.HasPrefix(label, ".") || strings.HasPrefix(label, "..") {
+		return false
+	}
+	// Check if there are more dots after the first one
+	// If so, it's a module-qualified label, not a local label
+	rest := label[1:]
+	return !strings.Contains(rest, ".")
 }
 
 // getGlobalScope extracts the global scope from an expanded local label

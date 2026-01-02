@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/optimizer"
 )
 
 var debug = os.Getenv("DEBUG") != ""
@@ -279,6 +280,14 @@ func (g *Z80Generator) emitOptimizedMultiplication(multiplier int64, is16bit boo
 func (g *Z80Generator) Generate(module *ir.Module) error {
 	g.module = module
 
+	// Apply MIR-level optimizations before code generation
+	mirOptimizer := optimizer.NewMIRCombinedPass()
+	if changed, err := mirOptimizer.Run(module); err != nil {
+		return fmt.Errorf("MIR optimization failed: %w", err)
+	} else if changed && debug {
+		fmt.Printf("DEBUG: MIR optimizer applied %d optimizations\n", mirOptimizer.OptimizationsCount())
+	}
+
 	// Write header
 	g.writeHeader()
 
@@ -438,17 +447,19 @@ func (g *Z80Generator) generatePatchTable() {
 	
 	for _, fn := range g.module.Functions {
 		if fn.UsesTrueSMC {
+			cleanFuncName := g.sanitizeFunctionName(fn.Name)
 			for _, param := range fn.Params {
+				paramLabel := fmt.Sprintf("%s_param_%s", cleanFuncName, param.Name)
 				entry := struct {
-					funcName string
-					paramName string
+					funcName    string
+					paramName   string
 					anchorSymbol string
-					size int
+					size        int
 				}{
-					funcName: fn.Name,
-					paramName: param.Name,
-					anchorSymbol: fmt.Sprintf("%s$imm0", param.Name),
-					size: param.Type.Size(),
+					funcName:     fn.Name,
+					paramName:    param.Name,
+					anchorSymbol: fmt.Sprintf("%s$imm0", paramLabel),
+					size:         param.Type.Size(),
 				}
 				patchEntries = append(patchEntries, entry)
 			}
@@ -727,9 +738,13 @@ func (g *Z80Generator) generateTrueSMCFunction(fn *ir.Function) error {
 
 // generateParameterAnchor generates an anchor for a parameter at first use
 func (g *Z80Generator) generateParameterAnchor(param *ir.Parameter, destReg ir.Register) {
-	anchorOp := fmt.Sprintf("%s$immOP", param.Name)
-	anchorImm := fmt.Sprintf("%s$imm0", param.Name)
-	
+	// Use function-scoped anchor names to avoid conflicts when multiple functions
+	// have parameters with the same name
+	cleanFuncName := g.sanitizeFunctionName(g.currentFunc.Name)
+	paramLabel := fmt.Sprintf("%s_param_%s", cleanFuncName, param.Name)
+	anchorOp := fmt.Sprintf("%s$immOP", paramLabel)
+	anchorImm := fmt.Sprintf("%s$imm0", paramLabel)
+
 	g.emit("%s:", anchorOp)
 	
 	if param.Type.Size() == 1 {
@@ -984,20 +999,22 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 			// Check if this is a TSMC reference parameter
 			if param.IsTSMCRef {
 				// TSMC reference: Create anchor for indirect memory operations
+				// Use function-scoped label names to avoid conflicts
+				tsmcRefLabel := paramLabel + "_tsmc"
 				g.emit("; TSMC reference parameter %s", paramName)
-				g.emit("%s$immOP:", paramName)
-				
+				g.emit("%s$immOP:", tsmcRefLabel)
+
 				// For pointers, we emit instructions that will have their immediates patched
 				if _, ok := param.Type.(*ir.PointerType); ok {
 					// ALL pointers load the ADDRESS into HL, not the value!
 					g.emit("    LD HL, 0000      ; TSMC ref address for %s", paramName)
-					g.emit("%s$imm0 EQU %s$immOP+1", paramName, paramName)
+					g.emit("%s$imm0 EQU %s$immOP+1", tsmcRefLabel, tsmcRefLabel)
 					// Store the address (not dereferenced value)
 					g.storeFromHL(inst.Dest)
 				} else {
 					// Non-pointer TSMC ref (future extension)
 					g.emit("    LD HL, 0000      ; TSMC ref %s", paramName)
-					g.emit("%s$imm0 EQU %s$immOP+1", paramName, paramName)
+					g.emit("%s$imm0 EQU %s$immOP+1", tsmcRefLabel, tsmcRefLabel)
 					g.storeFromHL(inst.Dest)
 				}
 			} else {
@@ -1073,15 +1090,17 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 					break
 				}
 			}
-			
+
 			if param != nil && param.IsTSMCRef {
 				// TSMC reference - reload the address from immediate
+				// Use function-scoped label names to match the anchor
+				tsmcRefLabel := paramLabel + "_tsmc"
 				if _, ok := param.Type.(*ir.PointerType); ok {
 					// Reload the address from the immediate
-					g.emit("    LD HL, (%s$imm0) ; Reload TSMC ref address", paramName)
+					g.emit("    LD HL, (%s$imm0) ; Reload TSMC ref address", tsmcRefLabel)
 					g.storeFromHL(inst.Dest)
 				} else {
-					g.emit("    LD HL, (%s$imm0) ; Reload TSMC ref value", paramName)
+					g.emit("    LD HL, (%s$imm0) ; Reload TSMC ref value", tsmcRefLabel)
 					g.storeFromHL(inst.Dest)
 				}
 			} else {
@@ -1560,11 +1579,13 @@ func (g *Z80Generator) generateInterruptEpilogue(fn *ir.Function) {
 
 // generateInstruction generates code for a single IR instruction
 func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
-	// Add comment for instruction
-	if inst.Comment == "" {
-		g.emit("    ; %s", inst.String())
-	} else {
-		g.emit("    ; %s", inst.Comment)
+	// Add comment for instruction (skip for OpAsm as it would print the entire block)
+	if inst.Op != ir.OpAsm {
+		if inst.Comment == "" {
+			g.emit("    ; %s", inst.String())
+		} else {
+			g.emit("    ; %s", inst.Comment)
+		}
 	}
 
 	switch inst.Op {
@@ -1622,8 +1643,54 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			fmt.Printf("DEBUG: OpLoadConst - tracked r%d = %d\n", inst.Dest, inst.Imm)
 			fmt.Printf("DEBUG: Current constants map: %v\n", g.constantValues)
 		}
-		
-		// Load constant to register
+
+		// Check MIR-level CodegenHints for optimized emission
+		if inst.CodegenHint != nil {
+			hints := inst.CodegenHint
+
+			// Can eliminate entirely - value already in register
+			if hints.CanEliminate {
+				g.emit("    ; Eliminated LD (value unchanged, MIR hint)")
+				break
+			}
+
+			// Can use INC instead of LD (value is prev+1)
+			if hints.CanUseINC && inst.Imm < 256 {
+				// Get physical register for dest
+				physReg := g.getPhysicalReg(inst.Dest)
+				if physReg != "" && physReg != "A" {
+					g.emit("    INC %s        ; MIR hint: was LD %s, $%02X", physReg, physReg, inst.Imm)
+					break
+				} else {
+					// For A register or unknown, still use INC A
+					g.emit("    INC A        ; MIR hint: was LD A, $%02X", inst.Imm)
+					g.storeFromA(inst.Dest)
+					break
+				}
+			}
+
+			// Can use DEC instead of LD (value is prev-1)
+			if hints.CanUseDEC && inst.Imm < 256 {
+				physReg := g.getPhysicalReg(inst.Dest)
+				if physReg != "" && physReg != "A" {
+					g.emit("    DEC %s        ; MIR hint: was LD %s, $%02X", physReg, physReg, inst.Imm)
+					break
+				} else {
+					g.emit("    DEC A        ; MIR hint: was LD A, $%02X", inst.Imm)
+					g.storeFromA(inst.Dest)
+					break
+				}
+			}
+
+			// Can use XOR A for zero
+			if hints.CanUseXOR && inst.Imm == 0 {
+				g.emit("    XOR A        ; MIR hint: zero via XOR")
+				g.storeFromA(inst.Dest)
+				break
+			}
+		}
+
+		// Default: Load constant to register
 		if inst.Imm < 256 {
 			g.emit("    LD A, %d", inst.Imm)
 			g.storeFromA(inst.Dest)
@@ -1866,9 +1933,11 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Store to TSMC reference immediate operand
 		// This modifies the immediate field of the instruction that loads the parameter
 		g.loadToHL(inst.Src1)
-		
-		// The label for the immediate operand is paramName$imm0
-		immLabel := fmt.Sprintf("%s$imm0", inst.Symbol)
+
+		// The label for the immediate operand is function-scoped
+		cleanFuncName := g.sanitizeFunctionName(g.currentFunc.Name)
+		paramLabel := fmt.Sprintf("%s_param_%s", cleanFuncName, inst.Symbol)
+		immLabel := fmt.Sprintf("%s$imm0", paramLabel)
 		g.emit("    LD (%s), HL    ; Update TSMC reference immediate", immLabel)
 		
 	case ir.OpMove:
@@ -2028,14 +2097,16 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    LD BC, (mul_src2_%d)  ; BC = multiplier", g.labelCounter)
 			g.emit("    LD A, B")
 			g.emit("    OR C                 ; Check if multiplier is 0")
-			g.emit("    JR Z, .mul16_done_%d", g.labelCounter)
-			g.emit("%s:", g.getFunctionLabel("mul16_loop"))
+			doneLabel := g.getFunctionLabel("mul16_done")
+			loopLabel := g.getFunctionLabel("mul16_loop")
+			g.emit("    JR Z, %s", doneLabel)
+			g.emit("%s:", loopLabel)
 			g.emit("    ADD HL, DE           ; Result += multiplicand")
 			g.emit("    DEC BC")
 			g.emit("    LD A, B")
 			g.emit("    OR C")
-			g.emit("    JR NZ, .mul16_loop_%d", g.labelCounter)
-			g.emit("%s:", g.getFunctionLabel("mul16_done"))
+			g.emit("    JR NZ, %s", loopLabel)
+			g.emit("%s:", doneLabel)
 			g.emit("mul_src1_%d: DW 0", g.labelCounter)
 			g.emit("mul_src2_%d: DW 0", g.labelCounter)
 			g.labelCounter++
@@ -2260,7 +2331,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				g.emit("    SLA A         ; Shift left by 1")
 			}
 			g.emit("    LD L, A")
-			g.emit("    XOR H, H    ; Optimized: was LD H, 0")
+			g.emit("    LD H, 0       ; Clear H for 8-bit result in HL")
 			g.storeFromHL(inst.Dest)
 			break
 		}
@@ -2274,7 +2345,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				g.emit("    SLA A         ; Shift left by 1")
 			}
 			g.emit("    LD L, A")
-			g.emit("    XOR H, H    ; Optimized: was LD H, 0")
+			g.emit("    LD H, 0       ; Clear H for 8-bit result in HL")
 			g.storeFromHL(inst.Dest)
 			break
 		}
@@ -2755,7 +2826,12 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpLoadString:
 		// Load address of string literal
-		g.emit(fmt.Sprintf("    LD HL, %s", inst.Symbol))
+		if inst.Symbol == "" {
+			g.emit("    ; ERROR: OpLoadString with empty symbol")
+			g.emit("    LD HL, 0       ; Fallback for empty string")
+		} else {
+			g.emit("    LD HL, %s", inst.Symbol)
+		}
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpLen:
@@ -2811,7 +2887,12 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpLoadLabel:
 		// Load address of a label
-		g.emit("    LD HL, %s", inst.Symbol)
+		if inst.Symbol == "" {
+			g.emit("    ; ERROR: OpLoadLabel with empty symbol")
+			g.emit("    LD HL, 0       ; Fallback for empty label")
+		} else {
+			g.emit("    LD HL, %s", inst.Symbol)
+		}
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpLoadIndex:
@@ -3239,15 +3320,53 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 	return nil
 }
 
+// is8BitComparison checks if the instruction involves 8-bit values
+func (g *Z80Generator) is8BitComparison(inst ir.Instruction) bool {
+	if inst.Type != nil && inst.Type.Size() == 1 {
+		return true
+	}
+	// Also check if both operands are known to be 8-bit constants
+	if val1, ok1 := g.constantValues[inst.Src1]; ok1 {
+		if val2, ok2 := g.constantValues[inst.Src2]; ok2 {
+			if val1 >= 0 && val1 <= 255 && val2 >= 0 && val2 <= 255 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // generateComparison generates code for comparison operations (OPTIMIZED VERSION)
 func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 	// For comparisons, we need both operands in different registers
 	// Optimal pattern: determine which operand to load first based on the operation
-	
+
+	// Check if we can use 8-bit comparison (CP instruction)
+	use8Bit := g.is8BitComparison(inst)
+
 	switch inst.Op {
 	case ir.OpEq:
-		// Equality comparison - order doesn't matter
-		// Optimal: load Src1 to HL, Src2 to DE, then compare
+		// Equality comparison
+		if use8Bit {
+			// 8-bit optimized path: CP A, reg
+			g.emit("    ; 8-bit equality comparison")
+			g.loadToA(inst.Src1)
+			g.emit("    LD B, A")
+			g.loadToA(inst.Src2)
+			g.emit("    CP B           ; Compare A with B")
+			eqTrueLabel := g.getFunctionLabel("eq_true")
+			eqDoneLabel := g.getFunctionLabel("eq_done")
+			g.emit("    JR Z, %s", eqTrueLabel)
+			g.emit("    LD HL, 0       ; False")
+			g.emit("    JR %s", eqDoneLabel)
+			g.emit("%s:", eqTrueLabel)
+			g.emit("    LD HL, 1       ; True")
+			g.emit("%s:", eqDoneLabel)
+			g.labelCounter++
+			g.storeFromHL(inst.Dest)
+			return
+		}
+		// 16-bit fallback
 		g.loadToHL(inst.Src1)
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
@@ -3265,7 +3384,26 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		
 	case ir.OpNe:
 		// Not equal
-		// Optimal: load Src1 to HL, Src2 to DE, then compare
+		if use8Bit {
+			// 8-bit optimized path
+			g.emit("    ; 8-bit not-equal comparison")
+			g.loadToA(inst.Src1)
+			g.emit("    LD B, A")
+			g.loadToA(inst.Src2)
+			g.emit("    CP B           ; Compare A with B")
+			neTrueLabel := g.getFunctionLabel("ne_true")
+			neDoneLabel := g.getFunctionLabel("ne_done")
+			g.emit("    JR NZ, %s", neTrueLabel)
+			g.emit("    LD HL, 0       ; False")
+			g.emit("    JR %s", neDoneLabel)
+			g.emit("%s:", neTrueLabel)
+			g.emit("    LD HL, 1       ; True")
+			g.emit("%s:", neDoneLabel)
+			g.labelCounter++
+			g.storeFromHL(inst.Dest)
+			return
+		}
+		// 16-bit fallback
 		g.loadToHL(inst.Src1)
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
@@ -3280,9 +3418,31 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		g.emit("%s:", neDoneLabel)
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
-		
+
 	case ir.OpLt:
 		// Less than: Src1 < Src2
+		if use8Bit {
+			// 8-bit optimized path: A < B means carry after CP
+			g.emit("    ; 8-bit less-than comparison")
+			g.loadToA(inst.Src1)
+			g.emit("    LD B, A")
+			g.loadToA(inst.Src2)
+			g.emit("    LD C, A")
+			g.emit("    LD A, B       ; A = Src1")
+			g.emit("    CP C          ; Compare Src1 with Src2")
+			ltTrueLabel := g.getFunctionLabel("lt_true")
+			ltDoneLabel := g.getFunctionLabel("lt_done")
+			g.emit("    JR C, %s      ; Carry = Src1 < Src2", ltTrueLabel)
+			g.emit("    LD HL, 0       ; False")
+			g.emit("    JR %s", ltDoneLabel)
+			g.emit("%s:", ltTrueLabel)
+			g.emit("    LD HL, 1       ; True")
+			g.emit("%s:", ltDoneLabel)
+			g.labelCounter++
+			g.storeFromHL(inst.Dest)
+			return
+		}
+		// 16-bit fallback
 		g.loadToHL(inst.Src1)
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
@@ -3344,6 +3504,30 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		
 	case ir.OpLe:
 		// Less than or equal: Src1 <= Src2
+		if use8Bit {
+			// 8-bit optimized path: Src1 <= Src2 means NOT (Src1 > Src2)
+			// Src1 > Src2 means CP gives no carry and not zero
+			g.emit("    ; 8-bit less-or-equal comparison")
+			g.loadToA(inst.Src1)
+			g.emit("    LD B, A")
+			g.loadToA(inst.Src2)
+			g.emit("    LD C, A")
+			g.emit("    LD A, B       ; A = Src1")
+			g.emit("    CP C          ; Compare Src1 with Src2")
+			leTrueLabel := g.getFunctionLabel("le_true")
+			leDoneLabel := g.getFunctionLabel("le_done")
+			g.emit("    JR C, %s      ; Carry = Src1 < Src2, so <=", leTrueLabel)
+			g.emit("    JR Z, %s      ; Zero = Src1 == Src2, so <=", leTrueLabel)
+			g.emit("    LD HL, 0       ; False: Src1 > Src2")
+			g.emit("    JR %s", leDoneLabel)
+			g.emit("%s:", leTrueLabel)
+			g.emit("    LD HL, 1       ; True")
+			g.emit("%s:", leDoneLabel)
+			g.labelCounter++
+			g.storeFromHL(inst.Dest)
+			return
+		}
+		// 16-bit fallback
 		g.loadToHL(inst.Src1)
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
@@ -3359,9 +3543,32 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 		g.emit("%s:", leDoneLabel)
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
-		
+
 	case ir.OpGe:
 		// Greater than or equal: Src1 >= Src2
+		if use8Bit {
+			// 8-bit optimized path: Src1 >= Src2 means NOT (Src1 < Src2)
+			// Src1 < Src2 means CP gives carry
+			g.emit("    ; 8-bit greater-or-equal comparison")
+			g.loadToA(inst.Src1)
+			g.emit("    LD B, A")
+			g.loadToA(inst.Src2)
+			g.emit("    LD C, A")
+			g.emit("    LD A, B       ; A = Src1")
+			g.emit("    CP C          ; Compare Src1 with Src2")
+			geTrueLabel := g.getFunctionLabel("ge_true")
+			geDoneLabel := g.getFunctionLabel("ge_done")
+			g.emit("    JR NC, %s     ; No Carry = Src1 >= Src2", geTrueLabel)
+			g.emit("    LD HL, 0       ; False: Src1 < Src2")
+			g.emit("    JR %s", geDoneLabel)
+			g.emit("%s:", geTrueLabel)
+			g.emit("    LD HL, 1       ; True")
+			g.emit("%s:", geDoneLabel)
+			g.labelCounter++
+			g.storeFromHL(inst.Dest)
+			return
+		}
+		// 16-bit fallback
 		g.loadToHL(inst.Src1)
 		g.loadToDE(inst.Src2)
 		g.emit("    OR A           ; Clear carry")
@@ -3857,26 +4064,29 @@ func (g *Z80Generator) generateTrueSMCCall(inst ir.Instruction, targetFunc *ir.F
 	}
 	
 	// Patch each parameter anchor with the argument value
+	// Use function-scoped anchor names to match the generated anchors
+	cleanFuncName := g.sanitizeFunctionName(targetFunc.Name)
 	for i, param := range targetFunc.Params {
 		argReg := inst.Args[i]
-		anchorAddr := fmt.Sprintf("%s$imm0", param.Name)
-		
+		paramLabel := fmt.Sprintf("%s_param_%s", cleanFuncName, param.Name)
+		anchorAddr := fmt.Sprintf("%s$imm0", paramLabel)
+
 		if param.Type.Size() == 1 {
 			// 8-bit patch
 			g.loadToA(argReg)
 			g.emit("    LD (%s), A        ; Patch %s", anchorAddr, param.Name)
 		} else if param.Type.Size() == 3 {
 			// 24-bit patch - need to patch both high byte and low 16 bits
-			anchorHigh := fmt.Sprintf("%s$immHI0", param.Name)
-			anchorLow := fmt.Sprintf("%s$immLO0", param.Name)
-			
+			anchorHigh := fmt.Sprintf("%s$immHI0", paramLabel)
+			anchorLow := fmt.Sprintf("%s$immLO0", paramLabel)
+
 			// Load the 24-bit value
 			// For now, assume it's in memory as 3 consecutive bytes
-			g.loadToHL(argReg)  // This loads the low 16 bits
-			
+			g.loadToHL(argReg) // This loads the low 16 bits
+
 			// Patch low 16 bits
 			g.emit("    LD (%s), HL       ; Patch %s low 16 bits", anchorLow, param.Name)
-			
+
 			// Load high byte - for now, assume it's at argReg+2 in memory
 			// TODO: Proper 24-bit register allocation
 			g.emit("    LD A, 0           ; TODO: Load high byte of %s", param.Name)
@@ -3901,9 +4111,9 @@ func (g *Z80Generator) emitAsmBlock(code string) {
 		if trimmedLine == "" {
 			continue
 		}
-		
-		// Skip opening and closing braces from asm blocks
-		if trimmedLine == "{" || trimmedLine == "}" {
+
+		// Skip opening and closing braces from asm blocks (with or without whitespace)
+		if trimmedLine == "{" || trimmedLine == "}" || trimmedLine == " }" || strings.TrimSpace(trimmedLine) == "}" {
 			continue
 		}
 		
@@ -4107,6 +4317,18 @@ func (g *Z80Generator) getRegisterLocation(reg ir.Register) (RegisterLocation, i
 	
 	// Fallback to memory
 	return LocationMemory, g.getAbsoluteAddr(reg)
+}
+
+// getPhysicalReg returns the assembly name of the physical register allocated to a virtual register
+// Returns empty string if not allocated to a physical register (uses memory instead)
+func (g *Z80Generator) getPhysicalReg(virtReg ir.Register) string {
+	if !g.usePhysicalRegs {
+		return ""
+	}
+	if physReg, allocated := g.physicalAlloc.GetAllocation(virtReg); allocated && physReg != RegNone {
+		return g.physicalRegToAssembly(physReg)
+	}
+	return ""
 }
 
 // physicalRegToAssembly converts PhysicalReg to assembly string

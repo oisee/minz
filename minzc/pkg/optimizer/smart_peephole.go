@@ -366,10 +366,10 @@ func (p *SmartPeepholeOptimizationPass) cleanupFunction(fn *ir.Function) bool {
 	if len(fn.Instructions) == 0 {
 		return false
 	}
-	
+
 	changed := false
-	
-	// Remove dead stores
+
+	// Count register uses
 	uses := make(map[ir.Register]int)
 	for _, inst := range fn.Instructions {
 		if inst.Src1 != 0 {
@@ -379,26 +379,28 @@ func (p *SmartPeepholeOptimizationPass) cleanupFunction(fn *ir.Function) bool {
 			uses[inst.Src2]++
 		}
 	}
-	
+
 	newInstructions := []ir.Instruction{}
 	for _, inst := range fn.Instructions {
-		// Skip dead stores
-		if (inst.Op == ir.OpStoreVar || inst.Op == ir.OpStoreField) && uses[inst.Dest] == 0 {
-			changed = true
-			continue
-		}
-		
-		// Skip loads to unused registers
+		// NOTE: Do NOT remove stores here - they may have side effects
+		// (writing to hardware registers, memory-mapped I/O, etc.)
+		// Dead store elimination requires proper variable liveness analysis,
+		// which is NOT what we have here. The previous code was buggy:
+		// it checked uses[inst.Dest] for stores, but Dest isn't used for
+		// OpStoreVar - the variable is in inst.Symbol, not inst.Dest.
+		// See: https://github.com/minz-lang/minzc/issues/store-elimination-bug
+
+		// Skip loads to unused registers (this is safe)
 		if inst.Op == ir.OpLoadConst || inst.Op == ir.OpLoadVar {
-			if uses[inst.Dest] == 0 {
+			if inst.Dest != 0 && uses[inst.Dest] == 0 {
 				changed = true
 				continue
 			}
 		}
-		
+
 		newInstructions = append(newInstructions, inst)
 	}
-	
+
 	fn.Instructions = newInstructions
 	return changed
 }
