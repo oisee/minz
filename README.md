@@ -6,12 +6,12 @@
 
 ### **Modern Programming Language for Vintage & Modern Platforms**
 
-[![Version](https://img.shields.io/badge/version-0.15.4-brightgreen)](https://github.com/oisee/minz/releases)
-[![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
-[![Success Rate](https://img.shields.io/badge/compilation-100%25-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-0.16.0-brightgreen)](https://github.com/oisee/minz/releases)
+[![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%20Z80N%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
+[![Success Rate](https://img.shields.io/badge/compilation-92%25-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
-**Write modern code. Deploy everywhere. From 1978 Z80 to 2025 Crystal.**
+**Write modern code. Deploy everywhere. From 1978 Z80 to 2026 Crystal.**
 
 [Quick Start](#-quick-start) • [Features](#-revolutionary-features) • [Install](#-installation) • [Examples](#-code-examples) • [Documentation](#-documentation)
 
@@ -80,7 +80,7 @@ go build -o mz cmd/minzc/main.go
 sudo mv mz /usr/local/bin/
 
 # Verify
-mz --version  # MinZ v0.15.4
+mz --version  # MinZ v0.16.0
 ```
 
 > **Note:** Pre-built binaries may be for a different architecture. Building from source is recommended.
@@ -119,6 +119,7 @@ crystal run hello.cr  # Test instantly!
 
 | Version | Revolution | Impact |
 |---------|------------|--------|
+| **v0.16.0** | DAP Debugger + Z80N Vision | VS Code debugging, ZX Next roadmap |
 | **v0.15.4** | Comprehensive Stdlib | 10 modules, 2400+ lines, game-ready |
 | **v0.15.3** | Critical Fixes | ANSI filtering, cross-platform, clean array codegen |
 | **v0.15.2** | Enum Error Values | `@error(EnumType.Variant)` compile-time constants |
@@ -310,7 +311,8 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 |------|---------|-------|
 | **mz** | Multi-backend compiler | `mz program.minz -o program.a80` |
 | **mza** | Native Z80 assembler | `mza program.a80 -o program.bin` |
-| **mze** | Z80 emulator/debugger | `mze program.bin --debug` |
+| **mze** | Z80 emulator (100% coverage!) | `mze program.bin -v` |
+| **mze debug** | DAP server for VS Code | `mze debug` (NEW!) |
 | **mzr** | Interactive REPL | `mzr` for experimentation |
 | **mzv** | MIR VM interpreter | `mzv program.mir` |
 
@@ -374,7 +376,10 @@ fun main() -> void {
 |---------|-----------------|--------|
 | **CTIE** | 3-5x faster | Compile-time execution |
 | **TRUE SMC** | 10x faster | Self-modifying code |
-| **Peephole** | 60-85% size reduction | 35+ optimization patterns |
+| **MIR Optimizer** | 15-30% faster | Constant folding, strength reduction, DCE |
+| **Assembly Peephole** | 60-85% size reduction | 35+ Z80-specific patterns |
+
+**NEW in v0.15.5:** Two-level optimization pipeline with MIR-level optimizations (constant folding, algebraic simplification, strength reduction, copy propagation, dead code elimination) running before assembly peephole. SDCC-competitive code generation!
 
 ### **Language Statistics**
 - **15 major versions** in 14 months
@@ -390,6 +395,8 @@ fun main() -> void {
 | Platform | CPU | Status | Usage |
 |----------|-----|--------|-------|
 | ZX Spectrum | Z80 | ✅ Stable | `mz -t spectrum` |
+| ZX Spectrum Next | Z80N | 🚧 Planned | `mz -t specnext` |
+| Agon Light | eZ80 | 🚧 Planned | `mz -t agon` |
 | Commodore 64 | 6502 | ✅ Stable | `mz -b 6502` |
 | CP/M Systems | Z80 | ✅ Stable | `mz -t cpm` |
 | MSX | Z80 | ✅ Stable | `mz -t msx` |
@@ -421,10 +428,13 @@ fun main() -> void {
 - 🔄 [Lambda Iterator Implementation](docs/141_Lambda_Iterator_Revolution_Complete.md)
 - 📦 [Module System Design](docs/191_Module_System_Design.md)
 
-### **Architecture**
+### **Architecture & Roadmap**
 - 🏗️ [Compiler Architecture](minzc/docs/INTERNAL_ARCHITECTURE.md)
 - 🔧 [MIR Intermediate Representation](docs/126_MIR_Interpreter_Design.md)
 - ⚡ [Optimization Pipeline](docs/149_World_Class_Multi_Level_Optimization_Guide.md)
+- 🐛 [DAP Debugger Architecture](docs/262_Debugger_Architecture_Plan.md) (NEW!)
+- 🎮 [Z80N & eZ80 Support Vision](docs/266_Z80N_eZ80_Extended_Support_Vision.md) (NEW!)
+- 🔮 [MinZ 2026 Vision](docs/263_MinZ_2026_Vision.md)
 
 ---
 
@@ -503,7 +513,9 @@ MinZ proves that modern programming belongs on vintage hardware. Join us in buil
 
 ### **MinZ: Where Modern Dreams Meet Vintage Reality™**
 
-*From v0.1.0 to v0.15.3 and beyond - Every release a revolution!*
+*From v0.1.0 to v0.16.0 and beyond - Every release a revolution!*
+
+> **v0.16.0 Highlights:** DAP Debugger for VS Code, Z80N/eZ80 roadmap, 92% compilation success!
 
 > ⚠️ **Remember:** MinZ is under active development. Join us in building the future of retro computing!
 
