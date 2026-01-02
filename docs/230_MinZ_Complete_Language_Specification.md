@@ -1,7 +1,7 @@
 # MinZ Language Specification
 ## Zero-Cost Abstractions for Z80: From Theory to Implementation
 
-### Version 0.14.0 - Grounded in Working Implementation
+### Version 0.16.0 - DAP Debugger & Z80N/eZ80 Vision
 
 ---
 
@@ -26,6 +26,13 @@ let x: u8 = 42;              // Immutable
 let mut counter: u16 = 0;    // Mutable
 global state: u8 = 0;        // Global variable
 const MAX: u8 = 255;         // Compile-time constant
+```
+
+### Strings & Interpolation (v0.15.0+)
+```minz
+let name = "MinZ";
+let msg = "Hello #{name}!";   // Ruby-style interpolation
+@print("Score: #{score}");    // Works in @print too
 ```
 
 ### Functions

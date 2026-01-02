@@ -417,7 +417,7 @@ fun main() -> void {
 
 ### **Essential Guides**
 - 📚 [Complete Language Specification](docs/230_MinZ_Complete_Language_Specification.md)
-- 🚀 [Quick Start Tutorial](docs/QUICK_START.md)
+- 🚀 [Quick Start](#-quick-start) (see above)
 - 💎 [Crystal Backend Guide](docs/274_Crystal_Backend_Implementation_Complete.md)
 - 🏆 [Evolution Journey](docs/277_MinZ_Complete_Evolution_Journey.md)
 - 📅 [Revolutionary Timeline](docs/278_MinZ_Revolutionary_Timeline.md)
@@ -432,9 +432,14 @@ fun main() -> void {
 - 🏗️ [Compiler Architecture](minzc/docs/INTERNAL_ARCHITECTURE.md)
 - 🔧 [MIR Intermediate Representation](docs/126_MIR_Interpreter_Design.md)
 - ⚡ [Optimization Pipeline](docs/149_World_Class_Multi_Level_Optimization_Guide.md)
-- 🐛 [DAP Debugger Architecture](docs/262_Debugger_Architecture_Plan.md) (NEW!)
-- 🎮 [Z80N & eZ80 Support Vision](docs/266_Z80N_eZ80_Extended_Support_Vision.md) (NEW!)
+- 🐛 [DAP Debugger Architecture](docs/262_Debugger_Architecture_Plan.md)
+- 🎮 [Z80N & eZ80 Support Vision](docs/266_Z80N_eZ80_Extended_Support_Vision.md)
 - 🔮 [MinZ 2026 Vision](docs/263_MinZ_2026_Vision.md)
+
+### **Current Status & Analysis**
+- 📊 [Parser Analysis Report](docs/264_Parser_Analysis_Report.md) - Tree-sitter at 100% accuracy
+- ⚠️ [Known Semantic Issues](docs/265_Known_Semantic_Issues.md) - 4 documented issues, 92% success
+- 📈 [Code Generation Analysis](docs/260_MinZ_Code_Generation_Analysis.md) - Assembly output quality
 
 ---
 
