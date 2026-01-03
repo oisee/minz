@@ -6,7 +6,7 @@
 
 ### **Modern Programming Language for Vintage & Modern Platforms**
 
-[![Version](https://img.shields.io/badge/version-0.16.1-brightgreen)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.16.2-brightgreen)](https://github.com/oisee/minz/releases)
 [![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%20Z80N%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
 [![Success Rate](https://img.shields.io/badge/compilation-92%25-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
@@ -119,6 +119,7 @@ crystal run hello.cr  # Test instantly!
 
 | Version | Revolution | Impact |
 |---------|------------|--------|
+| **v0.16.2** | Smart Print Optimization | Stateful @print saves 9+ bytes, explicit loop intent |
 | **v0.16.1** | DZRP Live Testing + `loop {}` | Remote emulator execution, proper halt pattern |
 | **v0.16.0** | DAP Debugger + Z80N Vision | VS Code debugging, ZX Next roadmap |
 | **v0.15.4** | Comprehensive Stdlib | 10 modules, 2400+ lines, game-ready |
@@ -161,6 +162,7 @@ crystal run hello.cr  # Test instantly!
 | **Standard Library** | ✅ Working | 10 modules: math, graphics, input, text, sound, time, mem |
 | **@extern FFI** | ✅ Working | `@extern(0x0010) fun rom_print()` with RST optimization |
 | **DZRP Remote Run** | ✅ Working | `mzrun game.minz --reset` live emulator testing |
+| **Smart @print** | ✅ Working | Stateful optimization, reuses print_string helper |
 | **Infinite Loops** | ✅ Working | `loop { asm{EI;HALT} }` for explicit halt |
 | **Iterator Chains** | 🚧 Partial | Compiles, DJNZ optimization in progress |
 
@@ -335,6 +337,9 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 
 ### **Live Testing via DZRP**
 
+![MinZ running on ZXSpeculator](/media/image.png)
+*hello_print.minz running on ZXSpeculator via DZRP - one command from source to screen!*
+
 **DZRP (DeZog Remote Protocol)** enables revolutionary live development - compile, upload, and run on a real emulator in one command!
 
 ```bash
@@ -358,6 +363,8 @@ mzrun game.minz --reset
 - **No file juggling** - mzrun handles compile → assemble → upload → run
 - **Debug-friendly** - Works with DeZog for full source-level debugging
 - **Multiple emulators** - ZXSpeculator, ZEsarUX, and more support DZRP
+- **Step debugging** - Full breakpoints, registers, memory inspection
+- **Hot reload workflow** - Edit, save, mzrun, see results in seconds!
 
 ### **Debug & Analysis Flags**
 ```bash
