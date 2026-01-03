@@ -50,6 +50,7 @@ var (
 	timeout   int
 	verbose   bool
 	step      bool
+	reset     bool
 )
 
 var rootCmd = &cobra.Command{
@@ -71,8 +72,9 @@ Examples:
   mzrun program.minz                    # Compile and run (localhost:11000)
   mzrun --host 192.168.1.5 program.minz # Run on remote emulator
   mzrun --verbose program.minz          # Show register state
-  mzrun program.bin --load 0x8000       # Run pre-compiled binary`,
-	Args: cobra.ExactArgs(1),
+  mzrun program.bin --load 0x8000       # Run pre-compiled binary
+  mzrun --reset                         # Reset emulator (PC=0, run ROM)`,
+	Args: cobra.MaximumNArgs(1),
 	RunE: runProgram,
 }
 
@@ -84,6 +86,7 @@ func init() {
 	rootCmd.Flags().IntVar(&timeout, "timeout", 10, "Execution timeout in seconds")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 	rootCmd.Flags().BoolVar(&step, "step", false, "Single-step execution")
+	rootCmd.Flags().BoolVar(&reset, "reset", false, "Reset emulator (set PC=0x0000 and run)")
 }
 
 func main() {
@@ -93,9 +96,23 @@ func main() {
 }
 
 func runProgram(cmd *cobra.Command, args []string) error {
-	inputFile := args[0]
 	var binaryData []byte
 	var err error
+
+	// Handle reset mode
+	if reset {
+		if len(args) > 0 {
+			return fmt.Errorf("--reset does not take a file argument")
+		}
+		return doReset()
+	}
+
+	// Normal mode requires a file
+	if len(args) == 0 {
+		return fmt.Errorf("requires a minz file or binary (or use --reset)")
+	}
+
+	inputFile := args[0]
 
 	// Check if it's a .minz file that needs compilation
 	if len(inputFile) > 5 && inputFile[len(inputFile)-5:] == ".minz" {
@@ -192,6 +209,53 @@ func runProgram(cmd *cobra.Command, args []string) error {
 		regs["AF'"], regs["BC'"], regs["DE'"], regs["HL'"])
 	fmt.Printf("IX=$%04X IY=$%04X\n", regs["IX"], regs["IY"])
 
+	return nil
+}
+
+func doReset() error {
+	if verbose {
+		fmt.Printf("Connecting to %s:%d...\n", host, port)
+	}
+
+	// Connect to DZRP emulator
+	addr := fmt.Sprintf("%s:%d", host, port)
+	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
+	if err != nil {
+		return fmt.Errorf("failed to connect to DZRP emulator at %s: %w", addr, err)
+	}
+	defer conn.Close()
+
+	if verbose {
+		fmt.Println("Connected! Initializing...")
+	}
+
+	// Initialize DZRP session
+	if err := dzrpInit(conn); err != nil {
+		return fmt.Errorf("DZRP init failed: %w", err)
+	}
+
+	// Pause emulation
+	if err := dzrpPause(conn); err != nil {
+		return fmt.Errorf("failed to pause: %w", err)
+	}
+
+	// Set PC to 0x0000
+	if verbose {
+		fmt.Println("Setting PC to $0000...")
+	}
+	if err := dzrpSetPC(conn, 0x0000); err != nil {
+		return fmt.Errorf("failed to set PC: %w", err)
+	}
+
+	// Continue execution
+	if verbose {
+		fmt.Println("Starting execution from ROM...")
+	}
+	if err := dzrpContinue(conn); err != nil {
+		return fmt.Errorf("failed to continue: %w", err)
+	}
+
+	fmt.Println("Emulator reset - running from $0000")
 	return nil
 }
 
