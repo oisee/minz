@@ -2808,6 +2808,10 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 		// Generate platform-specific code for each character
 		for _, ch := range inst.Symbol {
+			// Convert LF (10) to CR (13) for ZX Spectrum
+			if ch == 10 {
+				ch = 13
+			}
 			g.emit(fmt.Sprintf("    LD A, %d", ch))
 			
 			switch g.targetPlatform {
