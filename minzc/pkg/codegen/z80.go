@@ -296,22 +296,25 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	g.emit("    ORG $8000")
 	g.emit("")
 
-	// Find main function and add entry point jump
-	var mainLabel string
+	// Generate main function FIRST (so entry point is at $8000, no JP needed)
+	var mainFn *ir.Function
 	for _, fn := range module.Functions {
 		if strings.HasSuffix(fn.Name, ".main") || fn.Name == "main" {
-			mainLabel = g.sanitizeFunctionName(fn.Name)
+			mainFn = fn
 			break
 		}
 	}
-	if mainLabel != "" {
-		g.emit("; Entry point")
-		g.emit("    JP %s", mainLabel)
-		g.emit("")
+	if mainFn != nil {
+		if err := g.generateFunction(mainFn); err != nil {
+			return err
+		}
 	}
 
-	// Generate functions
+	// Generate remaining functions
 	for _, fn := range module.Functions {
+		if fn == mainFn {
+			continue // Already generated
+		}
 		// fmt.Printf("DEBUG CodeGen: Function %s: IsSMCDefault=%v, IsSMCEnabled=%v, ptr=%p\n", fn.Name, fn.IsSMCDefault, fn.IsSMCEnabled, fn)
 		if err := g.generateFunction(fn); err != nil {
 			return err
