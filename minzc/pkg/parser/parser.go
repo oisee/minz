@@ -1067,31 +1067,44 @@ func (p *Parser) parseWhileStmt(node map[string]interface{}) *ast.WhileStmt {
 	return whileStmt
 }
 
-// parseLoopStmt parses a loop statement (including indexed loops)
-func (p *Parser) parseLoopStmt(node map[string]interface{}) *ast.LoopStmt {
-	loopStmt := &ast.LoopStmt{
-		StartPos: p.getPosition(node, "startPosition"),
-		EndPos:   p.getPosition(node, "endPosition"),
-		Mode:     ast.LoopInto, // Default mode
-	}
-	
+// parseLoopStmt parses a loop statement (including indexed loops and infinite loops)
+func (p *Parser) parseLoopStmt(node map[string]interface{}) ast.Statement {
+	startPos := p.getPosition(node, "startPosition")
+	endPos := p.getPosition(node, "endPosition")
+
 	// First check if this is an infinite loop (just "loop { ... }")
 	children, _ := node["children"].([]interface{})
 	if len(children) == 2 {
 		// Check if it's just "loop" and a block
+		var blockNode map[string]interface{}
+		isInfiniteLoop := false
 		for _, child := range children {
 			childNode, _ := child.(map[string]interface{})
 			childType, _ := childNode["type"].(string)
 			text := p.getText(childNode)
-			
+
 			if text == "loop" {
+				isInfiniteLoop = true
 				continue
 			}
 			if childType == "block" {
-				// This is an infinite loop - not a table loop
-				return nil // We don't handle infinite loops as LoopStmt
+				blockNode = childNode
 			}
 		}
+		if isInfiniteLoop && blockNode != nil {
+			// This is an infinite loop - return InfiniteLoopStmt
+			return &ast.InfiniteLoopStmt{
+				Body:     p.parseBlock(blockNode),
+				StartPos: startPos,
+				EndPos:   endPos,
+			}
+		}
+	}
+
+	loopStmt := &ast.LoopStmt{
+		StartPos: startPos,
+		EndPos:   endPos,
+		Mode:     ast.LoopInto, // Default mode
 	}
 	
 	// Check for field-based parsing (new tree-sitter output)

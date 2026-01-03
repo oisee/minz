@@ -2086,6 +2086,8 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 		return a.analyzeDoTimesStmt(s, irFunc)
 	case *ast.LoopAtStmt:
 		return a.analyzeLoopAtStmt(s, irFunc)
+	case *ast.InfiniteLoopStmt:
+		return a.analyzeInfiniteLoopStmt(s, irFunc)
 	case *ast.FunctionDecl:
 		if debug {
 			fmt.Printf("DEBUG: Found local function declaration: %s\n", s.Name)
@@ -3972,7 +3974,51 @@ func (a *Analyzer) analyzeLoopAtStmt(stmt *ast.LoopAtStmt, irFunc *ir.Function) 
 	
 	// End label
 	irFunc.EmitLabel(endLabel)
-	
+
+	return nil
+}
+
+// analyzeInfiniteLoopStmt analyzes an infinite loop (loop { ... })
+// For empty loops, generates DI; HALT for proper halt behavior
+// For non-empty loops, generates a jump-to-self pattern
+func (a *Analyzer) analyzeInfiniteLoopStmt(stmt *ast.InfiniteLoopStmt, irFunc *ir.Function) error {
+	// Check if the loop body is empty
+	isEmpty := stmt.Body == nil || len(stmt.Body.Statements) == 0
+
+	if isEmpty {
+		// Empty infinite loop - generate halt_loop: EI; HALT; JR halt_loop
+		// This is ZX Spectrum friendly:
+		// - EI enables interrupts so the system can continue (keyboard scan, FRAMES counter)
+		// - HALT stops CPU until next interrupt
+		// - JR loops back to halt again after interrupt handler runs
+		// User can press BREAK to return to BASIC
+		haltLabel := a.generateLabel("halt_loop")
+		irFunc.EmitLabel(haltLabel)
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpAsm,
+			AsmCode: "EI",
+			Comment: "Enable interrupts",
+		})
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpAsm,
+			AsmCode: "HALT",
+			Comment: "Halt until interrupt",
+		})
+		irFunc.EmitJump(haltLabel)
+	} else {
+		// Non-empty loop - generate loop label and jump back
+		loopLabel := a.generateLabel("infinite_loop")
+		irFunc.EmitLabel(loopLabel)
+
+		// Analyze the body
+		if err := a.analyzeBlock(stmt.Body, irFunc); err != nil {
+			return err
+		}
+
+		// Jump back to loop start
+		irFunc.EmitJump(loopLabel)
+	}
+
 	return nil
 }
 

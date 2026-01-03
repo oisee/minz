@@ -6,7 +6,7 @@
 
 ### **Modern Programming Language for Vintage & Modern Platforms**
 
-[![Version](https://img.shields.io/badge/version-0.16.0-brightgreen)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.16.1-brightgreen)](https://github.com/oisee/minz/releases)
 [![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%20Z80N%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
 [![Success Rate](https://img.shields.io/badge/compilation-92%25-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
@@ -119,6 +119,7 @@ crystal run hello.cr  # Test instantly!
 
 | Version | Revolution | Impact |
 |---------|------------|--------|
+| **v0.16.1** | DZRP Live Testing + `loop {}` | Remote emulator execution, proper halt pattern |
 | **v0.16.0** | DAP Debugger + Z80N Vision | VS Code debugging, ZX Next roadmap |
 | **v0.15.4** | Comprehensive Stdlib | 10 modules, 2400+ lines, game-ready |
 | **v0.15.3** | Critical Fixes | ANSI filtering, cross-platform, clean array codegen |
@@ -159,6 +160,8 @@ crystal run hello.cr  # Test instantly!
 | **Array Literals** | ✅ Working | `[10,20,30]` → clean `DB 10,20,30` |
 | **Standard Library** | ✅ Working | 10 modules: math, graphics, input, text, sound, time, mem |
 | **@extern FFI** | ✅ Working | `@extern(0x0010) fun rom_print()` with RST optimization |
+| **DZRP Remote Run** | ✅ Working | `mzrun game.minz --reset` live emulator testing |
+| **Infinite Loops** | ✅ Working | `loop { }` generates EI;HALT;JR pattern |
 | **Iterator Chains** | 🚧 Partial | Compiles, DJNZ optimization in progress |
 
 ---
@@ -253,6 +256,18 @@ fun main() -> void {
 ```
 > **Note:** `@error(EnumType.Variant)` resolves to a compile-time constant for optimal code generation.
 
+### **Infinite Loops (ZX Spectrum friendly!)**
+```minz
+fun main() -> void {
+    @print("Hello World!");
+
+    // Proper halt - generates EI; HALT; JR loop
+    // Keeps interrupts enabled, CPU halts between frames
+    loop { }
+}
+```
+> **Note:** Empty `loop { }` generates the ZX Spectrum-friendly halt pattern that keeps interrupts enabled (for keyboard/FRAMES) while halting the CPU. Press BREAK to return to BASIC!
+
 ### **Inline Assembly**
 ```minz
 fun fast_multiply(a: u8) -> u8 {
@@ -317,17 +332,31 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 | **mzr** | Interactive REPL | `mzr` for experimentation |
 | **mzv** | MIR VM interpreter | `mzv program.mir` |
 
-### **Recommended Emulator: [ZXSpeculator](https://github.com/oisee/ZXSpeculator)**
+### **Live Testing via DZRP**
 
-For live testing with **mzrun**, we recommend ZXSpeculator - a modern ZX Spectrum emulator with native DZRP support:
+**DZRP (DeZog Remote Protocol)** enables revolutionary live development - compile, upload, and run on a real emulator in one command!
+
+```bash
+# Compile, assemble, upload and run - all in one command!
+mzrun hello.minz --reset -v
+```
+
+**Recommended Emulator: [ZXSpeculator](https://github.com/oisee/ZXSpeculator)** - A modern ZX Spectrum emulator with native DZRP support, beautiful shaders, and instant feedback.
 
 ```bash
 # Start ZXSpeculator with DZRP enabled
 ./ZXSpeculator --dzrp-port 11000
 
-# Compile, assemble, upload and run in one command!
-mzrun game.minz --reset -v
+# Then from another terminal:
+mzrun game.minz --reset
+# Your code is running on the emulator!
 ```
+
+**Why DZRP is Amazing:**
+- **Instant feedback** - See your changes immediately on a real emulator
+- **No file juggling** - mzrun handles compile → assemble → upload → run
+- **Debug-friendly** - Works with DeZog for full source-level debugging
+- **Multiple emulators** - ZXSpeculator, ZEsarUX, and more support DZRP
 
 ### **Debug & Analysis Flags**
 ```bash

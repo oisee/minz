@@ -1788,19 +1788,44 @@ func (p *Parser) convertAssignmentStmt(node *SExpNode) *ast.AssignStmt {
 }
 
 func (p *Parser) convertLoopStmt(node *SExpNode) ast.Statement {
-	// MinZ loop syntax: loop <array> into <var> { ... }
-	//                   loop <array> ref to <var> { ... }
+	// MinZ loop syntax:
+	//   loop { }                         - infinite loop
+	//   loop <array> into <var> { ... }  - array iteration
+	//   loop <array> ref to <var> { ... }
+
+	// First, check if this is an infinite loop (just "loop" keyword + block)
+	// An infinite loop has only a block child (no array expression or iterator)
+	var blockChild *SExpNode
+	hasOnlyBlock := true
+	for _, child := range node.Children {
+		switch child.Type {
+		case "block":
+			blockChild = child
+		case "identifier", "ERROR", "expression":
+			hasOnlyBlock = false
+		}
+	}
+
+	if hasOnlyBlock && blockChild != nil {
+		// This is an infinite loop - return InfiniteLoopStmt
+		return &ast.InfiniteLoopStmt{
+			Body:     p.convertBlock(blockChild),
+			StartPos: node.StartPos,
+			EndPos:   node.EndPos,
+		}
+	}
+
 	loopStmt := &ast.LoopStmt{
 		StartPos: node.StartPos,
 		EndPos:   node.EndPos,
 	}
-	
+
 	// Extract the array expression and iterator from ERROR nodes
 	var arrayExpr ast.Expression
 	var mode ast.LoopMode = ast.LoopInto
 	var iterator string
 	var foundBlock bool
-	
+
 	for i, child := range node.Children {
 		switch child.Type {
 		case "ERROR":

@@ -594,6 +594,17 @@ func (l *LoopStmt) Pos() Position { return l.StartPos }
 func (l *LoopStmt) End() Position { return l.EndPos }
 func (l *LoopStmt) stmtNode()    {}
 
+// InfiniteLoopStmt represents an infinite loop (loop { ... })
+type InfiniteLoopStmt struct {
+	Body     *BlockStmt
+	StartPos Position
+	EndPos   Position
+}
+
+func (l *InfiniteLoopStmt) Pos() Position { return l.StartPos }
+func (l *InfiniteLoopStmt) End() Position { return l.EndPos }
+func (l *InfiniteLoopStmt) stmtNode()    {}
+
 // DoTimesStmt represents a counting loop (do N times)
 type DoTimesStmt struct {
 	Count    Expression // Number of iterations

@@ -23,8 +23,7 @@ fun main() -> void {
     @print(42);
     @print("\n");
 
-    // Infinite loop
-    for {
-        // Loop forever
+    // Infinite loop - generates DI; HALT
+    loop {
     }
 }
