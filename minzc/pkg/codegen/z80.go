@@ -572,6 +572,10 @@ func (g *Z80Generator) generateString(str *ir.String) {
 		escaped := ""
 		
 		for _, ch := range str.Value {
+			// Convert LF (10) to CR (13) for ZX Spectrum
+			if ch == 10 {
+				ch = 13
+			}
 			if ch >= 32 && ch <= 126 && ch != '"' && ch != '\\' {
 				escaped += string(ch)
 			} else {
@@ -4589,33 +4593,51 @@ func (g *Z80Generator) generatePrintHelpers() {
 	// Print u16 as decimal
 	if g.usedFunctions["print_u16_decimal"] || g.usedFunctions["print_u8_decimal"] || g.usedFunctions["print_i8_decimal"] || g.usedFunctions["print_i16_decimal"] {
 	g.emit("print_u16_decimal:")
+	g.emit("    XOR A")
+	g.emit("    LD (print_started), A  ; Zero = not started")
 	g.emit("    LD BC, -10000")
 	g.emit("    LD DE, 10000")
-	g.emit("    CALL print_digit")
+	g.emit("    CALL print_digit_suppress")
 	g.emit("    LD BC, -1000")
 	g.emit("    LD DE, 1000")
-	g.emit("    CALL print_digit")
+	g.emit("    CALL print_digit_suppress")
 	g.emit("    LD BC, -100")
 	g.emit("    LD DE, 100")
-	g.emit("    CALL print_digit")
+	g.emit("    CALL print_digit_suppress")
 	g.emit("    LD BC, -10")
 	g.emit("    LD DE, 10")
-	g.emit("    CALL print_digit")
+	g.emit("    CALL print_digit_suppress")
 	g.emit("    LD A, L")
 	g.emit("    ADD A, '0'         ; Convert to ASCII")
-	g.emit("    RST 16             ; Print last digit")
+	g.emit("    RST 16             ; Always print last digit")
 	g.emit("    RET")
 	g.emit("")
-	
-	// Helper function for printing digits (needed by all decimal print functions)
-	g.emit("print_digit:")
+	g.emit("print_started:")
+	g.emit("    DB 0               ; Flag: have we printed a digit?")
+	g.emit("")
+
+	// Helper function for printing digits with zero suppression
+	g.emit("print_digit_suppress:")
 	g.emit("    LD A, '0'-1")
 	g.emit("print_digit_loop:")
 	g.emit("    INC A")
 	g.emit("    ADD HL, BC         ; Subtract power of 10")
 	g.emit("    JR C, print_digit_loop")
 	g.emit("    ADD HL, DE         ; Add back one power of 10")
+	g.emit("    CP '0'             ; Is it zero?")
+	g.emit("    JR NZ, print_digit_do")
+	g.emit("    PUSH AF")
+	g.emit("    LD A, (print_started)")
+	g.emit("    OR A")
+	g.emit("    JR Z, print_digit_skip")
+	g.emit("    POP AF")
+	g.emit("print_digit_do:")
 	g.emit("    RST 16             ; Print digit")
+	g.emit("    LD A, 1")
+	g.emit("    LD (print_started), A  ; Mark as started")
+	g.emit("    RET")
+	g.emit("print_digit_skip:")
+	g.emit("    POP AF")
 	g.emit("    RET")
 	g.emit("")
 	}
@@ -4787,17 +4809,17 @@ func (g *Z80Generator) generateStdlibRoutines() {
 		g.emit("    LD C, 2            ; BDOS function 2")
 		g.emit("    LD E, 13           ; CR")
 		g.emit("    CALL 5")
-		g.emit("    LD E, 10           ; LF")
+		g.emit("    LD E, 13           ; CR (ZX Spectrum newline)")
 		g.emit("    CALL 5")
 	case "msx":
 		g.emit("    LD A, 13           ; CR")
 		g.emit("    CALL $00A2         ; MSX BIOS CHPUT")
-		g.emit("    LD A, 10           ; LF")
+		g.emit("    LD A, 13           ; CR (ZX Spectrum newline)")
 		g.emit("    CALL $00A2")
 	case "cpc", "amstrad":
 		g.emit("    LD A, 13           ; CR")
 		g.emit("    CALL $BB5A         ; CPC TXT OUTPUT")
-		g.emit("    LD A, 10           ; LF")
+		g.emit("    LD A, 13           ; CR (ZX Spectrum newline)")
 		g.emit("    CALL $BB5A")
 	default: // ZX Spectrum
 		g.emit("    LD A, 13           ; CR")
