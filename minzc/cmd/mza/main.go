@@ -73,14 +73,37 @@ EXAMPLES:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		inputFile := args[0]
-		
+
 		// Validate input file extension
 		if !strings.HasSuffix(strings.ToLower(inputFile), ".a80") {
 			fmt.Fprintf(os.Stderr, "Warning: Input file doesn't have .a80 extension\n")
 		}
-		
+
+		// Infer target from output file extension if target is generic and output is specified
+		effectiveTarget := targetFlag
+		if effectiveTarget == "generic" && outputFile != "" {
+			ext := strings.ToLower(filepath.Ext(outputFile))
+			switch ext {
+			case ".sna":
+				effectiveTarget = "zxspectrum"
+				if verbose {
+					fmt.Printf("Inferred target 'zxspectrum' from .sna output extension\n")
+				}
+			case ".tap":
+				effectiveTarget = "zxtap"
+				if verbose {
+					fmt.Printf("Inferred target 'zxtap' from .tap output extension\n")
+				}
+			case ".com":
+				effectiveTarget = "cpm"
+				if verbose {
+					fmt.Printf("Inferred target 'cpm' from .com output extension\n")
+				}
+			}
+		}
+
 		// Parse target
-		target, err := z80asm.ParseTarget(targetFlag)
+		target, err := z80asm.ParseTarget(effectiveTarget)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			fmt.Fprintf(os.Stderr, "Available targets: %s\n", strings.Join(z80asm.ListTargets(), ", "))
