@@ -1,0 +1,111 @@
+; ============================================================================
+; ZX Spectrum Color Demo
+; ============================================================================
+; Simple color cycling demo that fills attribute memory with rainbow colors.
+; Assembles to .SNA snapshot for emulator loading.
+;
+; Uses predefined ZX Spectrum symbols from mza target.
+; ============================================================================
+
+    ORG $8000
+
+; Constants (ATTR_BASE is already defined by zxspectrum target)
+SCREEN_ROWS EQU 24       ; 24 rows
+SCREEN_COLS EQU 32       ; 32 columns
+BORDER_PORT EQU $FE      ; Border color port
+
+; ============================================================================
+; Main entry point
+; ============================================================================
+main:
+    ; Initialize frame counter
+    LD A, 0
+    LD (frame), A
+
+main_loop:
+    ; Set border color from frame counter
+    LD A, (frame)
+    AND 7              ; Mask to 0-7
+    OUT (BORDER_PORT), A
+
+    ; Fill attributes with gradient
+    CALL fill_gradient
+
+    ; Simple delay
+    CALL delay
+
+    ; Increment frame
+    LD HL, frame
+    INC (HL)
+
+    ; Loop forever
+    JR main_loop
+
+; ============================================================================
+; Fill screen with diagonal gradient
+; ============================================================================
+fill_gradient:
+    LD HL, ATTR_BASE   ; Start of attribute memory (predefined $5800)
+    LD B, SCREEN_ROWS  ; 24 rows
+
+    LD A, (frame)      ; Get animation offset
+    LD C, A
+
+fill_row:
+    PUSH BC            ; Save row counter and offset
+    LD B, SCREEN_COLS  ; 32 columns per row
+
+fill_col:
+    ; Calculate color: (x + y + frame) % 8
+    LD A, B            ; Column (32 down to 1)
+    ADD A, C           ; Add row offset + frame
+    AND 7              ; Mask to 0-7 (INK color)
+
+    ; Build attribute byte:
+    ; BRIGHT (bit 6) + PAPER (bits 3-5) + INK (bits 0-2)
+    PUSH BC
+    LD B, A            ; Save INK color
+    ADD A, A           ; x2
+    ADD A, A           ; x4
+    ADD A, A           ; x8 (shift to PAPER position)
+    ADD A, B           ; Add INK color
+    OR $40             ; Add BRIGHT bit
+    POP BC
+
+    ; Write to screen
+    LD (HL), A
+    INC HL
+
+    ; Next column
+    DJNZ fill_col
+
+    ; Next row
+    POP BC             ; Restore row counter
+    INC C              ; Increment row offset for diagonal effect
+    DJNZ fill_row
+
+    RET
+
+; ============================================================================
+; Simple delay loop
+; ============================================================================
+delay:
+    LD BC, $8000       ; Delay counter
+
+delay_loop:
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, delay_loop
+    RET
+
+; ============================================================================
+; Variables
+; ============================================================================
+frame:
+    DB 0               ; Animation frame counter
+
+; ============================================================================
+; End of program
+; ============================================================================
+    END main

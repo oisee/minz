@@ -1,0 +1,338 @@
+; ============================================================================
+; ZX Spectrum Plasma Demo
+; ============================================================================
+; Classic plasma effect using sine table with runtime decompression.
+; Demonstrates the mathlib technique: 32-byte correction table -> 256-byte sin.
+;
+; Formula: color = sin(x*4 + t) + sin(y*4 + t*2) + sin((x+y)*2 + t*3)
+; ============================================================================
+
+    ORG $8000
+
+; Constants
+SCREEN_ROWS EQU 24
+SCREEN_COLS EQU 32
+BORDER_PORT EQU $FE
+
+; ============================================================================
+; Entry point
+; ============================================================================
+main:
+    ; Initialize sine table (runtime decompression)
+    CALL init_sin_table
+
+    ; Initialize frame counter
+    XOR A
+    LD (frame), A
+
+main_loop:
+    ; Set border color
+    LD A, (frame)
+    AND 7
+    OUT (BORDER_PORT), A
+
+    ; Render plasma frame
+    CALL render_plasma
+
+    ; Short delay for timing
+    CALL delay
+
+    ; Next frame
+    LD HL, frame
+    INC (HL)
+
+    JR main_loop
+
+; ============================================================================
+; Initialize sine table from correction data
+; Uses parabola approximation + correction nibbles
+; ============================================================================
+init_sin_table:
+    LD HL, sin_table      ; Destination
+    LD B, 0               ; Angle counter (0-255)
+
+init_loop:
+    PUSH BC
+    PUSH HL
+
+    ; Calculate sin(B) using parabola + correction
+    LD A, B
+    CALL generate_sin_value
+
+    POP HL
+    LD (HL), A            ; Store result
+    INC HL
+
+    POP BC
+    INC B
+    JR NZ, init_loop      ; Loop 256 times
+
+    RET
+
+; ============================================================================
+; Generate single sine value for angle in A
+; Returns result in A (0-127 for quadrants 0-1, 128-255 for quadrants 2-3)
+; ============================================================================
+generate_sin_value:
+    ; Determine quadrant (bits 6-7)
+    LD C, A               ; Save original angle
+    AND $C0               ; Isolate quadrant bits
+    RRCA
+    RRCA
+    RRCA
+    RRCA
+    RRCA
+    RRCA                  ; A = quadrant (0-3)
+    LD D, A               ; D = quadrant
+
+    ; Get quarter index (0-63)
+    LD A, C               ; Restore angle
+    AND $3F               ; Mask to 0-63
+
+    ; For quadrants 1 and 3, mirror: index = 63 - index
+    BIT 0, D              ; Check if odd quadrant
+    JR Z, no_mirror
+    LD B, A
+    LD A, 63
+    SUB B                 ; A = 63 - index
+no_mirror:
+    LD E, A               ; E = quarter index (0-63)
+
+    ; Calculate parabola: x * (64 - x) / 32
+    ; Result is 0-64 range, we'll scale to 0-127
+    LD H, 0
+    LD L, E               ; HL = x
+    LD A, 64
+    SUB E                 ; A = 64 - x
+    LD B, H
+    LD C, A               ; BC = 64 - x
+
+    ; Multiply: HL = x * (64-x)
+    CALL mult_hl_bc       ; HL = E * (64-E), max = 32*32 = 1024
+
+    ; Divide by 8 to get 0-127 range (shift right 3)
+    SRL H
+    RR L
+    SRL H
+    RR L
+    SRL H
+    RR L                  ; HL = HL / 8, now 0-128
+
+    ; Clamp to 127 max
+    LD A, L
+    CP 128
+    JR C, no_clamp
+    LD A, 127
+no_clamp:
+    LD B, A               ; B = parabola value (0-127)
+
+    ; Apply correction from table
+    LD A, E               ; Quarter index
+    SRL A                 ; Divide by 2 (2 values per byte)
+    LD HL, sin_correction
+    ADD A, L
+    LD L, A
+    JR NC, no_carry_corr
+    INC H
+no_carry_corr:
+    LD A, (HL)            ; Get packed correction byte
+
+    ; Extract nibble (high if even index, low if odd)
+    BIT 0, E
+    JR NZ, use_low_nibble
+    RRCA
+    RRCA
+    RRCA
+    RRCA                  ; Use high nibble
+use_low_nibble:
+    AND $0F               ; Mask to 4 bits (0-7 correction)
+
+    ; Subtract correction from parabola
+    LD C, A
+    LD A, B
+    SUB C
+    JR NC, corr_ok
+    XOR A                 ; Clamp to 0
+corr_ok:
+    ; A now contains sine value 0-127 for first half
+
+    ; For quadrants 2 and 3, negate: result = 256 - result (gives 129-256)
+    BIT 1, D              ; Check if quadrant 2 or 3
+    RET Z                 ; Return if quadrant 0 or 1
+
+    ; Negate for bottom half of wave
+    NEG                   ; A = -A = 256 - A
+    RET
+
+; ============================================================================
+; 8x8 multiply: HL = E * C (simple version)
+; ============================================================================
+mult_hl_bc:
+    LD H, 0
+    LD L, 0
+    LD A, E               ; Multiplicand
+    LD B, 8               ; 8 bits
+
+mult_loop:
+    SRL C                 ; Shift multiplier right
+    JR NC, mult_no_add
+    ADD HL, DE            ; Add if bit was set
+mult_no_add:
+    SLA E                 ; Shift multiplicand left
+    RL D
+    DJNZ mult_loop
+    RET
+
+; ============================================================================
+; Render one frame of plasma
+; ============================================================================
+render_plasma:
+    LD HL, ATTR_BASE      ; Attribute memory
+    LD A, (frame)
+    LD (plasma_t), A      ; Store time value
+
+    LD C, 0               ; Y counter
+
+render_row:
+    LD B, 0               ; X counter
+
+render_pixel:
+    PUSH HL
+    PUSH BC
+
+    ; Calculate plasma color for (B, C, t)
+    ; wave1 = sin[(x << 2) + t]
+    LD A, B               ; X
+    SLA A
+    SLA A                 ; X * 4
+    LD HL, plasma_t
+    ADD A, (HL)           ; + t
+    CALL fast_sin
+    LD D, A               ; D = wave1
+
+    ; wave2 = sin[(y << 2) + t*2]
+    POP BC
+    PUSH BC
+    LD A, C               ; Y
+    SLA A
+    SLA A                 ; Y * 4
+    LD HL, plasma_t
+    LD E, (HL)
+    SLA E                 ; t * 2
+    ADD A, E
+    CALL fast_sin
+    LD E, A               ; E = wave2
+
+    ; wave3 = sin[((x + y) << 1) + t*3]
+    POP BC
+    PUSH BC
+    LD A, B
+    ADD A, C              ; x + y
+    SLA A                 ; * 2
+    LD HL, plasma_t
+    LD H, (HL)            ; H = t
+    LD L, H
+    ADD A, H              ; + t
+    ADD A, L              ; + t
+    ADD A, L              ; + t (total t*3)
+    CALL fast_sin         ; A = wave3
+
+    ; Sum waves: D + E + A
+    ADD A, D
+    ADD A, E              ; A = wave1 + wave2 + wave3 (wraps, 0-255)
+
+    ; Scale to 0-7 for color: divide by 32 (shift right 5)
+    RRCA
+    RRCA
+    RRCA
+    RRCA
+    RRCA
+    AND $07               ; Color 0-7
+
+    ; Build attribute: BRIGHT + PAPER color + INK complement
+    LD B, A               ; B = color
+    LD C, A
+    INC C
+    LD A, C
+    AND $07               ; INK = (color + 1) % 8
+    LD C, A
+
+    LD A, B
+    SLA A
+    SLA A
+    SLA A                 ; PAPER in bits 3-5
+    OR C                  ; Add INK
+    OR $40                ; Add BRIGHT
+
+    POP BC
+    POP HL
+
+    ; Write attribute
+    LD (HL), A
+    INC HL
+
+    ; Next X
+    INC B
+    LD A, B
+    CP SCREEN_COLS
+    JR NZ, render_pixel
+
+    ; Next Y
+    INC C
+    LD A, C
+    CP SCREEN_ROWS
+    JR NZ, render_row
+
+    RET
+
+; ============================================================================
+; Fast sine lookup
+; Input: A = angle (0-255)
+; Output: A = sin value (0-255, centered at 128)
+; ============================================================================
+fast_sin:
+    LD HL, sin_table
+    ADD A, L
+    LD L, A
+    JR NC, sin_no_carry
+    INC H
+sin_no_carry:
+    LD A, (HL)
+    RET
+
+; ============================================================================
+; Simple delay
+; ============================================================================
+delay:
+    LD BC, $2000
+delay_loop:
+    DEC BC
+    LD A, B
+    OR C
+    JR NZ, delay_loop
+    RET
+
+; ============================================================================
+; Data
+; ============================================================================
+
+; Sine correction table (32 bytes = 64 nibbles)
+; Each nibble is correction value 0-7 for one quarter-wave sample
+sin_correction:
+    DB $01, $22, $34, $45, $55, $66, $67, $77
+    DB $77, $77, $77, $77, $77, $76, $66, $66
+    DB $55, $55, $54, $44, $43, $33, $32, $22
+    DB $22, $11, $11, $11, $00, $00, $00, $00
+
+; Variables
+frame:
+    DB 0
+plasma_t:
+    DB 0
+
+; Sine table (256 bytes) - generated at runtime
+sin_table:
+    DS 256
+
+; ============================================================================
+    END main

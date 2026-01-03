@@ -1,0 +1,114 @@
+; MinZ generated code
+; Generated: 2026-01-02 21:47:00
+
+
+; Code section
+    ORG $8000
+
+
+; Function: test_16bit_ops
+test_16bit_ops:
+    ; r2 = 4660
+    LD HL, 4660
+    LD (IX-4), L
+    LD (IX-3), H
+    ; store , r2
+    LD L, (IX-4)
+    LD H, (IX-3)
+    LD (IX-2), L
+    LD (IX-1), H
+    ; r4 = 22136
+    LD HL, 22136
+    LD (IX-8), L
+    LD (IX-7), H
+    ; store , r4
+    LD L, (IX-8)
+    LD H, (IX-7)
+    LD (IX-6), L
+    LD (IX-5), H
+    ; r6 = 100
+    LD A, 100
+    LD (IX-12), A
+    ; store , r6
+    LD L, (IX-12)
+    LD H, (IX-11)
+    LD (IX-10), L
+    LD (IX-9), H
+    ; r8 = 200
+    LD A, 200
+    LD (IX-16), A
+    ; store , r8
+    LD L, (IX-16)
+    LD H, (IX-15)
+    LD (IX-14), L
+    LD (IX-13), H
+    ; r10 = 65280
+    LD HL, 65280
+    LD (IX-20), L
+    LD (IX-19), H
+    ; store , r10
+    LD L, (IX-20)
+    LD H, (IX-19)
+    LD (IX-18), L
+    LD (IX-17), H
+    ; r12 = load b
+    LD L, (IX-24)
+    LD H, (IX-23)
+    LD (IX-24), L
+    LD (IX-23), H
+    ; r13 = load mask
+    LD L, (IX-26)
+    LD H, (IX-25)
+    LD (IX-26), L
+    LD (IX-25), H
+    ; unknown op 30
+    LD L, (IX-24)
+    LD H, (IX-23)
+    PUSH HL
+    LD L, (IX-26)
+    LD H, (IX-25)
+    POP DE
+    LD A, L
+    AND E
+    LD L, A
+    LD A, H
+    AND D
+    LD H, A
+    LD (IX-28), L
+    LD (IX-27), H
+    ; store , r14
+    LD L, (IX-28)
+    LD H, (IX-27)
+    LD (IX-22), L
+    LD (IX-21), H
+    ; r16 = load a
+    LD L, (IX-32)
+    LD H, (IX-31)
+    LD (IX-32), L
+    LD (IX-31), H
+    ; r17 = 4
+    LD A, 4
+    LD (IX-34), A
+    ; unknown op 34
+    ; TODO: Shift left
+    LD L, (IX-32)
+    LD H, (IX-31)
+    LD (IX-36), L
+    LD (IX-35), H
+    ; store , r18
+    LD L, (IX-36)
+    LD H, (IX-35)
+    LD (IX-30), L
+    LD (IX-29), H
+    ; return
+    LD SP, IX
+    POP IX
+    POP HL
+    RET
+
+; Function: main
+main:
+    ; return
+    RET
+
+    END main
