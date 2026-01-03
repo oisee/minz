@@ -291,51 +291,24 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	// Write header
 	g.writeHeader()
 
-	// Generate data section
-	if debug {
-		fmt.Printf("DEBUG: Globals=%d, Strings=%d, DataBlocks=%d\n", len(module.Globals), len(module.Strings), len(g.dataBlocks))
-	}
-	if len(module.Globals) > 0 || len(module.Strings) > 0 || len(g.dataBlocks) > 0 {
-		g.emit("\n; Data section")
-		g.emit("    ORG $F000")  // Data section at $F000
-		g.emit("")
-		for _, global := range module.Globals {
-			g.generateGlobal(global)
-		}
-		
-		// Generate string literals
-		if debug {
-			fmt.Printf("DEBUG: Generating %d strings in data section\n", len(module.Strings))
-		}
-		for _, str := range module.Strings {
-			if debug {
-				fmt.Printf("  String: %s = \"%s\"\n", str.Label, str.Value)
-			}
-			g.generateString(str)
-		}
-		
-		// Generate array literal data blocks
-		if len(g.dataBlocks) > 0 {
-			g.emit("\n; Array literal data")
-			for _, block := range g.dataBlocks {
-				g.emit("%s:", block.Label)
-				if block.Comment != "" {
-					g.emit("    ; %s", block.Comment)
-				}
-				// Generate DB directive for u8 values
-				var values []string
-				for _, val := range block.Data {
-					values = append(values, fmt.Sprintf("%d", val))
-				}
-				g.emit("    DB %s", strings.Join(values, ", "))
-			}
-		}
-	}
-
-	// Generate code section
+	// Generate code section FIRST (so binary starts with code at $8000)
 	g.emit("\n; Code section")
 	g.emit("    ORG $8000")
 	g.emit("")
+
+	// Find main function and add entry point jump
+	var mainLabel string
+	for _, fn := range module.Functions {
+		if strings.HasSuffix(fn.Name, ".main") || fn.Name == "main" {
+			mainLabel = g.sanitizeFunctionName(fn.Name)
+			break
+		}
+	}
+	if mainLabel != "" {
+		g.emit("; Entry point")
+		g.emit("    JP %s", mainLabel)
+		g.emit("")
+	}
 
 	// Generate functions
 	for _, fn := range module.Functions {
@@ -416,6 +389,30 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 		}
 	}
 	
+	// Generate data section LAST (after code, so binary starts with executable code)
+	if debug {
+		fmt.Printf("DEBUG: Globals=%d, Strings=%d, DataBlocks=%d\n", len(module.Globals), len(module.Strings), len(g.dataBlocks))
+	}
+	if len(module.Globals) > 0 || len(module.Strings) > 0 {
+		g.emit("\n; Data section")
+		g.emit("    ORG $F000")
+		g.emit("")
+		for _, global := range module.Globals {
+			g.generateGlobal(global)
+		}
+
+		// Generate string literals
+		if debug {
+			fmt.Printf("DEBUG: Generating %d strings in data section\n", len(module.Strings))
+		}
+		for _, str := range module.Strings {
+			if debug {
+				fmt.Printf("  String: %s = \"%s\"\n", str.Label, str.Value)
+			}
+			g.generateString(str)
+		}
+	}
+
 	// Write footer
 	g.writeFooter()
 
@@ -432,7 +429,7 @@ func (g *Z80Generator) writeHeader() {
 // writeFooter writes the assembly file footer
 func (g *Z80Generator) writeFooter() {
 	g.emit("")
-	g.emit("    END main")
+	g.emit("    END")
 }
 
 // generatePatchTable generates the PATCH-TABLE for TRUE SMC functions
