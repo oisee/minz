@@ -1,0 +1,63 @@
+// 10PRINT Simple - Standalone Compilable Version
+// Classic maze generator for ZX Spectrum
+// This version is self-contained without module imports
+
+// LFSR random state
+global seed: u16 = 0xACE1;
+
+// Fast random bit (0 or 1)
+fun random_bit() -> u8 {
+    // Simple LFSR
+    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) as u8 & 1;
+    seed = (seed >> 1) | ((bit as u16) << 15);
+    bit
+}
+
+// Calculate screen address for pixel
+fun screen_addr(x: u8, y: u8) -> u16 {
+    let high: u8 = 0x40 | ((y & 0xC0) >> 3) | (y & 0x07);
+    let low: u8 = ((y & 0x38) << 2) | (x >> 3);
+    (high as u16 << 8) | (low as u16)
+}
+
+// Set a pixel (simplified)
+fun set_pixel(x: u8, y: u8) -> void {
+    // Note: Actual implementation needs poke support
+    let addr = screen_addr(x, y);
+    let bit: u8 = 0x80 >> (x & 7);
+    // poke(addr, peek(addr) | bit);
+}
+
+// Draw forward slash
+fun draw_forward_slash(x: u8, y: u8) -> void {
+    for i in 0..8 {
+        set_pixel(x + i, y + i);
+    }
+}
+
+// Draw backslash
+fun draw_back_slash(x: u8, y: u8) -> void {
+    for i in 0..8 {
+        set_pixel(x + 7 - i, y + i);
+    }
+}
+
+// Draw the maze pattern
+fun draw_maze() -> void {
+    for row in 0..24 {
+        let y = row * 8;
+        for col in 0..32 {
+            let x = col * 8;
+            if random_bit() == 0 {
+                draw_forward_slash(x, y);
+            } else {
+                draw_back_slash(x, y);
+            }
+        }
+    }
+}
+
+// Main entry point
+fun main() -> void {
+    draw_maze();
+}

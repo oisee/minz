@@ -1,0 +1,94 @@
+// Fast Random Number Generator for ZX Spectrum
+// Uses LFSR (Linear Feedback Shift Register) for speed
+
+// LFSR state - seeded with non-zero value
+global seed: u16 = 0xACE1;
+
+// Fast 16-bit LFSR random
+// Taps: 16, 15, 13, 4 (maximal period: 65535)
+fun next() -> u16 {
+    asm {
+        ld hl, (seed)
+        ld a, h
+        rra
+        ld a, l
+        rra
+        xor h
+        ld h, a
+        ld a, l
+        rra
+        ld a, h
+        rra
+        xor l
+        ld l, a
+        xor h
+        ld h, a
+        ld (seed), hl
+    }
+    seed
+}
+
+// Get single random bit (fastest)
+// Returns 0 or 1
+@inline fun next_bit() -> u8 {
+    asm {
+        ld hl, (seed)
+        add hl, hl     // Shift left
+        jr nc, .no_xor
+        ld a, l
+        xor 0xB4       // Polynomial tap
+        ld l, a
+        .no_xor:
+        ld (seed), hl
+        ld a, h
+        and 1
+    }
+}
+
+// Get random byte (0-255)
+@inline fun next_u8() -> u8 {
+    (next() >> 8) as u8
+}
+
+// Random in range [0, max)
+// Uses AND mask when max is power of 2
+fun range(min: u8, max: u8) -> u8 {
+    let span = max - min;
+    let r = next_u8();
+
+    // Fast path for powers of 2
+    if (span & (span - 1)) == 0 {
+        min + (r & (span - 1))
+    } else {
+        // General case - rejection sampling would be better
+        // but modulo is acceptable for demos
+        min + (r % span)
+    }
+}
+
+// Seed the random generator
+fun set_seed(new_seed: u16) -> void {
+    // Ensure non-zero (LFSR requirement)
+    seed = if new_seed == 0 { 0xACE1 } else { new_seed };
+}
+
+// Seed from R register (good for game start randomness)
+fun seed_from_r() -> void {
+    asm {
+        ld a, r
+        ld h, a
+        ld a, r
+        ld l, a
+        ld a, h
+        or l
+        jr nz, .store
+        ld hl, 0xACE1   // Fallback if zero
+        .store:
+        ld (seed), hl
+    }
+}
+
+// Shuffle byte using seed (for variety)
+@inline fun shuffle(value: u8) -> u8 {
+    value ^ (next_u8())
+}

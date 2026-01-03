@@ -1,0 +1,164 @@
+// ZX Spectrum Graphics Library for MinZ
+// Optimized primitives with zero-cost abstractions
+
+// Screen constants
+const SCREEN_BASE: u16 = 0x4000;
+const ATTR_BASE: u16 = 0x5800;
+const SCREEN_WIDTH: u16 = 256;
+const SCREEN_HEIGHT: u16 = 192;
+const ATTR_WIDTH: u8 = 32;
+const ATTR_HEIGHT: u8 = 24;
+
+// Color constants
+const BLACK: u8 = 0;
+const BLUE: u8 = 1;
+const RED: u8 = 2;
+const MAGENTA: u8 = 3;
+const GREEN: u8 = 4;
+const CYAN: u8 = 5;
+const YELLOW: u8 = 6;
+const WHITE: u8 = 7;
+const BRIGHT: u8 = 0x40;
+const FLASH: u8 = 0x80;
+
+// Paper/Ink helpers
+@inline fun paper(color: u8) -> u8 { color << 3 }
+@inline fun ink(color: u8) -> u8 { color }
+@inline fun attr(paper_col: u8, ink_col: u8) -> u8 {
+    (paper_col << 3) | ink_col
+}
+
+// Calculate screen address from pixel coordinates
+// Uses the classic ZX Spectrum screen layout formula
+@inline fun screen_addr(x: u8, y: u8) -> u16 {
+    let high = 0x40 | ((y & 0xC0) >> 3) | ((y & 0x07));
+    let low = ((y & 0x38) << 2) | (x >> 3);
+    (high as u16 << 8) | (low as u16)
+}
+
+// Calculate attribute address from character coordinates
+@inline fun attr_addr(col: u8, row: u8) -> u16 {
+    ATTR_BASE + (row as u16 * 32) + (col as u16)
+}
+
+// Set a single pixel
+fun set_pixel(x: u8, y: u8) -> void {
+    let addr = screen_addr(x, y);
+    let bit: u8 = 0x80 >> (x & 7);
+    // Direct memory write using poke
+    poke(addr, peek(addr) | bit);
+}
+
+// Clear a single pixel
+fun clear_pixel(x: u8, y: u8) -> void {
+    let addr = screen_addr(x, y);
+    let bit: u8 = 0x80 >> (x & 7);
+    poke(addr, peek(addr) & (0xFF - bit));
+}
+
+// Get pixel state
+fun get_pixel(x: u8, y: u8) -> bool {
+    let addr = screen_addr(x, y);
+    let bit: u8 = 0x80 >> (x & 7);
+    (peek(addr) & bit) != 0
+}
+
+// Memory access helpers
+@inline fun peek(addr: u16) -> u8 {
+    // Placeholder - needs compiler support
+    0
+}
+
+@inline fun poke(addr: u16, value: u8) -> void {
+    // Placeholder - needs compiler support
+}
+
+// Clear entire screen
+fun cls() -> void {
+    for i in 0..6144 {
+        poke(SCREEN_BASE + i, 0);
+    }
+}
+
+// Clear attributes to specified color
+fun cls_attr(color: u8) -> void {
+    for i in 0..768 {
+        poke(ATTR_BASE + i, color);
+    }
+}
+
+// Set border color (uses port 254)
+// Note: Full implementation requires OUT instruction support
+fun border(color: u8) -> void {
+    // Placeholder until OUT instruction is supported
+    let _ = color;
+}
+
+// Draw horizontal line (optimized)
+fun hline(x1: u8, x2: u8, y: u8) -> void {
+    for x in x1..x2 {
+        set_pixel(x, y);
+    }
+}
+
+// Draw vertical line (optimized)
+fun vline(x: u8, y1: u8, y2: u8) -> void {
+    for y in y1..y2 {
+        set_pixel(x, y);
+    }
+}
+
+// Draw line using Bresenham's algorithm
+fun line(x0: u8, y0: u8, x1: u8, y1: u8) -> void {
+    let dx: i16 = abs(x1 as i16 - x0 as i16);
+    let dy: i16 = -abs(y1 as i16 - y0 as i16);
+    let sx: i8 = if x0 < x1 { 1 } else { -1 };
+    let sy: i8 = if y0 < y1 { 1 } else { -1 };
+    let err: i16 = dx + dy;
+
+    let x = x0;
+    let y = y0;
+
+    while true {
+        set_pixel(x, y);
+
+        if x == x1 && y == y1 { break; }
+
+        let e2 = 2 * err;
+        if e2 >= dy {
+            if x == x1 { break; }
+            err = err + dy;
+            x = (x as i8 + sx) as u8;
+        }
+        if e2 <= dx {
+            if y == y1 { break; }
+            err = err + dx;
+            y = (y as i8 + sy) as u8;
+        }
+    }
+}
+
+// Draw rectangle outline
+fun rect(x: u8, y: u8, w: u8, h: u8) -> void {
+    let x2 = x + w - 1;
+    let y2 = y + h - 1;
+    hline(x, x2, y);
+    hline(x, x2, y2);
+    vline(x, y, y2);
+    vline(x2, y, y2);
+}
+
+// Fill rectangle (attribute-based for speed)
+fun fill_rect(col: u8, row: u8, w: u8, h: u8, color: u8) -> void {
+    for r in row..(row + h) {
+        for c in col..(col + w) {
+            let addr = attr_addr(c, r);
+            poke(addr, color);
+        }
+    }
+}
+
+// Absolute value helper
+@inline fun abs(x: i16) -> i16 {
+    if x < 0 { -x } else { x }
+}

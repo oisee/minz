@@ -1,0 +1,81 @@
+// Retro Fire Simple - Standalone Compilable Version
+// Classic fire effect using attribute colors
+
+// Fire palette
+const PALETTE_0: u8 = 0x00;  // Black
+const PALETTE_1: u8 = 0x02;  // Red
+const PALETTE_2: u8 = 0x12;  // Bright red
+const PALETTE_3: u8 = 0x06;  // Yellow
+const PALETTE_4: u8 = 0x16;  // Bright yellow
+const PALETTE_5: u8 = 0x07;  // White
+const PALETTE_6: u8 = 0x47;  // Bright white
+
+// Heat buffer
+global heat: [u8; 768];
+global seed: u16 = 0xACE1;
+
+// Simple LFSR random
+fun random_u8() -> u8 {
+    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) as u8 & 1;
+    seed = (seed >> 1) | ((bit as u16) << 15);
+    (seed >> 8) as u8
+}
+
+// Seed bottom row
+fun seed_bottom() -> void {
+    for col in 0..32 {
+        heat[736 + col] = (random_u8() & 7);
+    }
+}
+
+// Propagate heat upward
+fun propagate() -> void {
+    for row in 0..23 {
+        let row_offset: u16 = row as u16 * 32;
+        let below_offset: u16 = row_offset + 32;
+
+        for col in 1..31 {
+            let idx = row_offset + col as u16;
+            let below_idx = below_offset + col as u16;
+
+            let h1 = heat[below_idx - 1];
+            let h2 = heat[below_idx];
+            let h3 = heat[below_idx + 1];
+
+            let avg: u16 = (h1 as u16 + h2 as u16 + h3 as u16) / 3;
+            let cooling: u8 = random_u8() & 1;
+
+            if avg > cooling as u16 {
+                heat[idx] = (avg - cooling as u16) as u8;
+            } else {
+                heat[idx] = 0;
+            }
+        }
+    }
+}
+
+// Get palette color for heat value
+fun palette(h: u8) -> u8 {
+    if h == 0 { return PALETTE_0; }
+    if h == 1 { return PALETTE_1; }
+    if h == 2 { return PALETTE_2; }
+    if h == 3 { return PALETTE_3; }
+    if h == 4 { return PALETTE_4; }
+    if h == 5 { return PALETTE_5; }
+    PALETTE_6
+}
+
+// Main fire loop
+fun main() -> void {
+    // Initialize heat to zero
+    for i in 0..768 {
+        heat[i] = 0;
+    }
+
+    // Main loop (simplified - no actual screen output)
+    for frame in 0..100 {
+        seed_bottom();
+        propagate();
+        // render() would write to 0x5800 here
+    }
+}

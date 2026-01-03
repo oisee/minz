@@ -1,0 +1,179 @@
+// 10PRINT - Classic Maze Generator for ZX Spectrum
+// MinZ implementation inspired by ZXSpeculator/Experiments
+// Original C version by @DeanTheCoder
+//
+// The classic one-liner from C64: 10 PRINT CHR$(205.5+RND(1)); : GOTO 10
+// Draws forward and backward slashes to create maze-like patterns
+
+import common.zx_graphics as gfx
+import common.zx_random as rnd
+
+// Configuration
+const CELL_SIZE: u8 = 8;
+const COLS: u8 = 32;        // 256 / 8
+const ROWS: u8 = 24;        // 192 / 8
+
+// Main entry point
+fun main() -> void {
+    // Initialize
+    gfx.border(gfx.BLUE);
+    gfx.cls();
+    gfx.cls_attr(gfx.attr(gfx.CYAN, gfx.BLUE));
+
+    // Seed from R register for variety
+    rnd.seed_from_r();
+
+    // Main loop - redraw on each iteration
+    while true {
+        draw_maze();
+        fill_random_areas();
+
+        // Wait for key (simplified - just delay)
+        delay_frames(60);  // ~1 second
+
+        gfx.cls();
+    }
+}
+
+// Draw the maze pattern
+fun draw_maze() -> void {
+    for row in 0..ROWS {
+        let y = row * CELL_SIZE;
+
+        for col in 0..COLS {
+            let x = col * CELL_SIZE;
+
+            // Random choice: forward slash or backslash
+            if rnd.next_bit() == 0 {
+                draw_forward_slash(x, y);
+            } else {
+                draw_back_slash(x, y);
+            }
+        }
+    }
+}
+
+// Draw forward slash: top-left to bottom-right
+// Pattern: \.
+//           \.
+//            \.
+@inline fun draw_forward_slash(x: u8, y: u8) -> void {
+    // Offset by 1 for visual appeal (like original)
+    let x0 = x + 1;
+    let y0 = y;
+
+    // Draw 8 pixels diagonally
+    for i in 0..8 {
+        gfx.set_pixel(x0 + i, y0 + i);
+    }
+
+    // Double line for thickness
+    for i in 0..8 {
+        gfx.set_pixel(x + i, y + 1 + i);
+    }
+}
+
+// Draw backslash: top-right to bottom-left
+// Pattern: ./
+//         ./
+//        ./
+@inline fun draw_back_slash(x: u8, y: u8) -> void {
+    let x0 = x + 7;
+    let y0 = y;
+
+    // Draw 8 pixels diagonally (going left)
+    for i in 0..8 {
+        gfx.set_pixel(x0 - i, y0 + i);
+    }
+
+    // Double line for thickness
+    for i in 0..8 {
+        gfx.set_pixel(x + 8 - i, y + 1 + i);
+    }
+}
+
+// Fill random enclosed areas (like original)
+fun fill_random_areas() -> void {
+    let filled: u8 = 0;
+
+    while filled < 8 {
+        // Random position
+        let x = rnd.next_u8();
+        let y = rnd.range(0, 192);
+
+        // Only fill if pixel is empty and has neighbors
+        if !gfx.get_pixel(x, y) {
+            // Check if enclosed (simplified check)
+            let has_neighbors =
+                gfx.get_pixel(x + 1, y) ||
+                gfx.get_pixel(x, y + 1) ||
+                gfx.get_pixel(x, y - 1);
+
+            if has_neighbors {
+                flood_fill(x, y);
+                filled = filled + 1;
+            }
+        }
+    }
+}
+
+// Simple flood fill
+fun flood_fill(start_x: u8, start_y: u8) -> void {
+    // Stack-based fill (limited depth for Z80)
+    let stack_x: [u8; 64];
+    let stack_y: [u8; 64];
+    let stack_ptr: u8 = 0;
+
+    // Push starting point
+    stack_x[0] = start_x;
+    stack_y[0] = start_y;
+    stack_ptr = 1;
+
+    while stack_ptr > 0 {
+        // Pop
+        stack_ptr = stack_ptr - 1;
+        let x = stack_x[stack_ptr];
+        let y = stack_y[stack_ptr];
+
+        // Bounds check
+        if x >= 255 || y >= 191 {
+            continue;
+        }
+
+        // Already filled?
+        if gfx.get_pixel(x, y) {
+            continue;
+        }
+
+        // Fill this pixel
+        gfx.set_pixel(x, y);
+
+        // Push neighbors (if room in stack)
+        if stack_ptr < 60 {
+            stack_x[stack_ptr] = x + 1;
+            stack_y[stack_ptr] = y;
+            stack_ptr = stack_ptr + 1;
+
+            stack_x[stack_ptr] = x - 1;
+            stack_y[stack_ptr] = y;
+            stack_ptr = stack_ptr + 1;
+
+            stack_x[stack_ptr] = x;
+            stack_y[stack_ptr] = y + 1;
+            stack_ptr = stack_ptr + 1;
+
+            stack_x[stack_ptr] = x;
+            stack_y[stack_ptr] = y - 1;
+            stack_ptr = stack_ptr + 1;
+        }
+    }
+}
+
+// Simple frame delay using HALT
+fun delay_frames(frames: u8) -> void {
+    for _ in 0..frames {
+        asm {
+            halt
+        }
+    }
+}

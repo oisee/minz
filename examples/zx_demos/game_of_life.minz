@@ -1,0 +1,127 @@
+// Conway's Game of Life for ZX Spectrum
+// MinZ implementation inspired by ZXSpeculator/Experiments
+// Original C version by @DeanTheCoder
+//
+// Classic cellular automaton with attribute-based display
+// Uses double buffering for smooth updates
+
+import common.zx_graphics as gfx
+import common.zx_random as rnd
+
+// Configuration
+const COLS: u8 = 32;
+const ROWS: u8 = 24;
+const CELLS: u16 = 768;
+
+// Double buffer for cells
+global current: [bool; 768];
+global next_gen: [bool; 768];
+global generation: u16 = 0;
+
+// Main entry point
+fun main() -> void {
+    gfx.border(gfx.BLACK);
+    gfx.cls();
+    gfx.cls_attr(gfx.BLACK);
+
+    // Initialize with random pattern
+    init_random_pattern();
+
+    // Main loop
+    while true {
+        render_cells();
+        compute_next_generation();
+        swap_buffers();
+        generation = generation + 1;
+
+        // Slow down for visibility
+        wait_frames(5);
+    }
+}
+
+// Initialize with random live cells (~30% density)
+fun init_random_pattern() -> void {
+    for i in 0..CELLS {
+        // ~30% chance of being alive
+        current[i] = rnd.range(0, 10) < 3;
+        next_gen[i] = false;
+    }
+}
+
+// Count live neighbors for a cell
+fun count_neighbors(idx: u16) -> u8 {
+    let count: u8 = 0;
+    let row = (idx / 32) as u8;
+    let col = (idx % 32) as u8;
+
+    // Check all 8 neighbors with wrapping
+    for dy in 0..3 {
+        for dx in 0..3 {
+            // Skip center cell
+            if dy == 1 && dx == 1 {
+                continue;
+            }
+
+            // Calculate neighbor coordinates with wrapping
+            let ny = ((row as i16 + dy as i16 - 1 + 24) % 24) as u8;
+            let nx = ((col as i16 + dx as i16 - 1 + 32) % 32) as u8;
+
+            let neighbor_idx: u16 = ny as u16 * 32 + nx as u16;
+
+            if current[neighbor_idx] {
+                count = count + 1;
+            }
+        }
+    }
+
+    count
+}
+
+// Compute next generation using Game of Life rules
+fun compute_next_generation() -> void {
+    for i in 0..CELLS {
+        let neighbors = count_neighbors(i);
+        let alive = current[i];
+
+        // Game of Life rules:
+        // - Live cell with 2-3 neighbors survives
+        // - Dead cell with exactly 3 neighbors is born
+        // - All other cells die or stay dead
+        if alive {
+            next_gen[i] = neighbors == 2 || neighbors == 3;
+        } else {
+            next_gen[i] = neighbors == 3;
+        }
+    }
+}
+
+// Swap buffers
+fun swap_buffers() -> void {
+    for i in 0..CELLS {
+        current[i] = next_gen[i];
+    }
+}
+
+// Render cells to attribute memory
+fun render_cells() -> void {
+    let attr: *u8 = 0x5800 as *u8;
+
+    for i in 0..CELLS {
+        if current[i] {
+            // Live cell: bright green
+            attr[i] = gfx.BRIGHT | gfx.attr(gfx.GREEN, gfx.GREEN);
+        } else {
+            // Dead cell: black
+            attr[i] = gfx.BLACK;
+        }
+    }
+}
+
+// Wait for specified frames
+fun wait_frames(frames: u8) -> void {
+    for _ in 0..frames {
+        asm {
+            halt
+        }
+    }
+}

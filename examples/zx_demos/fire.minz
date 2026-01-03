@@ -1,0 +1,146 @@
+// Retro Fire Effect for ZX Spectrum
+// MinZ implementation inspired by ZXSpeculator/Experiments
+// Original C version by @DeanTheCoder
+//
+// Classic demoscene fire using attribute colors
+// Heat propagates upward with random cooling
+
+import common.zx_graphics as gfx
+import common.zx_random as rnd
+
+// Configuration
+const COLS: u8 = 32;
+const ROWS: u8 = 24;
+
+// Fire palette - maps heat values to attribute colors
+// Heat 0-7 maps to: black -> red -> yellow -> white
+const FIRE_PALETTE: [u8; 8] = [
+    0x00,  // 0: Black
+    0x02,  // 1: Red
+    0x02,  // 2: Red
+    0x12,  // 3: Bright red
+    0x06,  // 4: Yellow
+    0x16,  // 5: Bright yellow
+    0x07,  // 6: White
+    0x47,  // 7: Bright white
+];
+
+// Heat buffer (0-7 per cell)
+global heat: [u8; 768];
+
+// Main entry point
+fun main() -> void {
+    gfx.border(gfx.BLACK);
+    gfx.cls();
+    gfx.cls_attr(gfx.BLACK);
+
+    // Fill screen with dither pattern for texture
+    fill_fire_texture();
+
+    // Initialize heat buffer
+    clear_heat();
+
+    // Main loop
+    while true {
+        seed_bottom_row();
+        propagate_heat();
+        render_fire();
+        wait_vsync();
+    }
+}
+
+// Fill screen with pseudo-random dither pattern
+fun fill_fire_texture() -> void {
+    let screen: *u8 = 0x4000 as *u8;
+
+    // Use a repeating pattern that looks like fire texture
+    for row in 0..192 {
+        for col in 0..32 {
+            let idx = gfx.screen_addr(col * 8, row);
+            let ptr: *u8 = idx as *u8;
+
+            // Alternating dither pattern
+            if (row + col) & 1 == 0 {
+                *ptr = 0xAA;  // 10101010
+            } else {
+                *ptr = 0x55;  // 01010101
+            }
+        }
+    }
+}
+
+// Clear heat buffer
+fun clear_heat() -> void {
+    for i in 0..768 {
+        heat[i] = 0;
+    }
+}
+
+// Seed the bottom row with random hot values
+fun seed_bottom_row() -> void {
+    let bottom_offset: u16 = 23 * 32;  // Row 23
+
+    for col in 0..COLS {
+        // Random heat: 0-7, biased toward hot
+        let h = rnd.range(3, 8);
+        heat[bottom_offset + col as u16] = h;
+    }
+}
+
+// Propagate heat upward with cooling
+fun propagate_heat() -> void {
+    // Process from top to bottom-1 (bottom is seeded separately)
+    for row in 0..23 {
+        let row_offset: u16 = row as u16 * 32;
+        let below_offset: u16 = row_offset + 32;
+
+        for col in 1..31 {  // Skip edges
+            let idx = row_offset + col as u16;
+            let below_idx = below_offset + col as u16;
+
+            // Average heat from three cells below
+            let h1 = heat[below_idx - 1];
+            let h2 = heat[below_idx];
+            let h3 = heat[below_idx + 1];
+
+            let avg = (h1 as u16 + h2 as u16 + h3 as u16) / 3;
+
+            // Random cooling
+            let cooling = rnd.next_bit();
+
+            // Apply cooling (saturate at 0)
+            if avg > cooling as u16 {
+                heat[idx] = (avg - cooling as u16) as u8;
+            } else {
+                heat[idx] = 0;
+            }
+        }
+
+        // Handle edges (simpler calculation)
+        heat[row_offset] = heat[below_offset] / 2;
+        heat[row_offset + 31] = heat[below_offset + 31] / 2;
+    }
+}
+
+// Render heat buffer to attribute memory
+fun render_fire() -> void {
+    let attr: *u8 = 0x5800 as *u8;
+
+    for i in 0..768 {
+        let h = heat[i];
+
+        // Clamp heat to palette range
+        if h > 7 {
+            attr[i] = FIRE_PALETTE[7];
+        } else {
+            attr[i] = FIRE_PALETTE[h];
+        }
+    }
+}
+
+// Wait for vertical sync
+fun wait_vsync() -> void {
+    asm {
+        halt
+    }
+}
