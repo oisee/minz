@@ -184,9 +184,12 @@ func runProgram(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println("\n=== Execution Complete ===")
-	fmt.Printf("PC=$%04X SP=$%04X\n", regs["PC"], regs["SP"])
+	fmt.Printf("PC=$%04X SP=$%04X  I=$%02X R=$%02X IM=%d\n",
+		regs["PC"], regs["SP"], regs["I"], regs["R"], regs["IM"])
 	fmt.Printf("AF=$%04X BC=$%04X DE=$%04X HL=$%04X\n",
 		regs["AF"], regs["BC"], regs["DE"], regs["HL"])
+	fmt.Printf("AF'=%04X BC'=%04X DE'=%04X HL'=%04X\n",
+		regs["AF'"], regs["BC'"], regs["DE'"], regs["HL'"])
 	fmt.Printf("IX=$%04X IY=$%04X\n", regs["IX"], regs["IY"])
 
 	return nil
@@ -356,7 +359,8 @@ func dzrpGetRegisters(conn net.Conn) (map[string]uint16, error) {
 
 	regs := make(map[string]uint16)
 	data = data[1:] // Skip error byte
-	if len(data) >= 16 {
+	if len(data) >= 28 {
+		// Main registers (16-bit)
 		regs["PC"] = binary.LittleEndian.Uint16(data[0:2])
 		regs["SP"] = binary.LittleEndian.Uint16(data[2:4])
 		regs["AF"] = binary.LittleEndian.Uint16(data[4:6])
@@ -365,6 +369,15 @@ func dzrpGetRegisters(conn net.Conn) (map[string]uint16, error) {
 		regs["HL"] = binary.LittleEndian.Uint16(data[10:12])
 		regs["IX"] = binary.LittleEndian.Uint16(data[12:14])
 		regs["IY"] = binary.LittleEndian.Uint16(data[14:16])
+		// Shadow registers (16-bit)
+		regs["AF'"] = binary.LittleEndian.Uint16(data[16:18])
+		regs["BC'"] = binary.LittleEndian.Uint16(data[18:20])
+		regs["DE'"] = binary.LittleEndian.Uint16(data[20:22])
+		regs["HL'"] = binary.LittleEndian.Uint16(data[22:24])
+		// 8-bit registers
+		regs["I"] = uint16(data[24])
+		regs["R"] = uint16(data[25])
+		regs["IM"] = uint16(data[26])
 	}
 	return regs, nil
 }
