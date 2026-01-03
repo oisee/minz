@@ -1,0 +1,61 @@
+// Hello World using ROM font data directly
+// Reads character bitmaps from ROM ($3D00) and writes to screen
+// No system variables needed!
+
+fun main() -> void {
+    asm {
+        ; Clear attributes to white paper
+        ld hl, $5800
+        ld de, $5801
+        ld bc, 767
+        ld a, $38           ; White paper, black ink
+        ld (hl), a
+        ldir
+
+        ; Print "HELLO" at top of screen
+        ld de, $4000        ; Screen position
+        ld hl, msg          ; Message pointer
+
+print_loop:
+        ld a, (hl)          ; Get character
+        or a                ; Zero terminator?
+        jr z, done
+
+        push hl             ; Save message pointer
+        push de             ; Save screen position
+
+        ; Calculate ROM font address: $3D00 + (char - 32) * 8
+        sub 32              ; ASCII to font offset
+        ld l, a
+        ld h, 0
+        add hl, hl          ; x2
+        add hl, hl          ; x4
+        add hl, hl          ; x8
+        ld bc, $3D00        ; ROM font base
+        add hl, bc          ; HL = font data address
+
+        ; Copy 8 bytes from font to screen (column)
+        pop de              ; DE = screen position
+        push de
+
+        ld b, 8             ; 8 rows per character
+copy_char:
+        ld a, (hl)          ; Get font byte
+        ld (de), a          ; Write to screen
+        inc hl              ; Next font row
+        inc d               ; Next screen row (add 256)
+        djnz copy_char
+
+        pop de              ; Restore screen position
+        inc de              ; Move to next character column
+        pop hl              ; Restore message pointer
+        inc hl              ; Next character
+        jr print_loop
+
+done:
+        ; Infinite loop
+loop:   jr loop
+
+msg:    db "HELLO WORLD!", 0
+    }
+}

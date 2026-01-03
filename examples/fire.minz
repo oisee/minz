@@ -1,0 +1,244 @@
+// Fire Effect for ZX Spectrum
+// Ported from ZXSpeculator experiments (DeanTheCoder)
+// Classic demoscene fire algorithm
+
+fun main() -> void {
+    asm {
+        di
+        ld hl, $FE00
+        ld de, $FE01
+        ld bc, 256
+        ld a, $FD
+        ld (hl), a
+        ldir
+        ld hl, $FDFD
+        ld (hl), $FB
+        inc hl
+        ld (hl), $C9
+        ld a, $FE
+        ld i, a
+        im 2
+
+        ; Build color LUT at $8200
+        call build_lut
+
+        ; Clear screen
+        ld hl, $4000
+        ld de, $4001
+        ld bc, 6143
+        ld (hl), 0
+        ldir
+
+        ; Set border to red
+        ld a, 2
+        out ($FE), a
+
+        ; Initialize random seed
+        ld a, $42
+        ld (seed), a
+
+        ei
+
+main_loop:
+        halt
+
+        ; Seed bottom row with random values (grid 320-383)
+        ld hl, grid + 320
+        ld b, 64
+seed_loop:
+        call rand
+        ld (hl), a
+        inc hl
+        djnz seed_loop
+
+        ; Apply fire algorithm: grid[i] = (grid[i+31] + grid[i+32] + grid[i+33] + grid[i+64]) * 3 / 16
+        ld hl, grid
+        ld de, grid + 31
+        ld b, 0             ; 256 iterations (first part)
+        ld c, 64            ; + 64 = 320 total
+
+fire_algo:
+        push bc
+        push hl
+
+        ; sum = grid[i+31] + grid[i+32] + grid[i+33] + grid[i+64]
+        ld a, (de)          ; grid[i+31]
+        inc de
+        ld b, a
+        ld a, (de)          ; grid[i+32]
+        add a, b
+        ld b, a
+        inc de
+        ld a, (de)          ; grid[i+33]
+        add a, b
+        ld b, a
+        dec de              ; back to i+32
+        push de
+        ld de, 32
+        add hl, de          ; point to grid[i+64] via HL+32 (we're at i, so +64 total with original offset)
+        pop de
+        push hl
+        ld hl, grid + 64
+        pop hl
+
+        ; Actually let's simplify - use indexed access
+        pop hl
+        push hl
+
+        ; Get grid[i+31]
+        push hl
+        ld bc, 31
+        add hl, bc
+        ld a, (hl)
+        ld e, a
+        pop hl
+
+        ; Get grid[i+32]
+        push hl
+        ld bc, 32
+        add hl, bc
+        ld a, (hl)
+        add a, e
+        ld e, a
+        pop hl
+
+        ; Get grid[i+33]
+        push hl
+        ld bc, 33
+        add hl, bc
+        ld a, (hl)
+        add a, e
+        ld e, a
+        pop hl
+
+        ; Get grid[i+64]
+        push hl
+        ld bc, 64
+        add hl, bc
+        ld a, (hl)
+        add a, e            ; sum in A (may overflow, that's ok)
+        pop hl
+
+        ; Multiply by 3, divide by 16: (sum * 3) >> 4
+        ld b, a
+        add a, a            ; sum * 2
+        add a, b            ; sum * 3
+        rrca
+        rrca
+        rrca
+        rrca
+        and $0F             ; >> 4
+
+        ; Store result
+        ld (hl), a
+        inc hl
+
+        pop hl
+        inc hl
+        pop bc
+
+        dec b
+        jr nz, fire_algo
+        dec c
+        jr nz, fire_algo
+
+        ; Update screen attributes from grid (rows 13-22, cols 0-31 = 320 cells)
+        ld hl, grid
+        ld de, $5800 + 416  ; Start at row 13 in attr memory
+        ld b, 0
+        ld c, 64            ; 320 = 256 + 64
+
+update_screen:
+        ld a, (hl)
+        push hl
+        ld hl, color_lut
+        ld l, a             ; color_lut[a] - assumes LUT at $xx00 boundary
+        ld h, $82           ; LUT at $8200
+        ld a, (hl)
+        pop hl
+        ld (de), a
+        inc hl
+        inc de
+        dec b
+        jr nz, update_screen
+        dec c
+        jr nz, update_screen
+
+        jp main_loop
+
+; Random number generator
+rand:
+        ld a, (seed)
+        ld b, a
+        add a, a
+        add a, a
+        add a, b
+        add a, 17
+        ld (seed), a
+        ret
+
+seed:   db 0
+
+; Build color lookup table at $8200
+build_lut:
+        ld hl, $8200
+        ld b, 0
+
+lut_loop:
+        ld a, b
+        cp 91
+        jr nc, lut_white
+        cp 81
+        jr nc, lut_yellow_white
+        cp 71
+        jr nc, lut_white_yellow
+        cp 61
+        jr nc, lut_yellow
+        cp 51
+        jr nc, lut_red_yellow
+        cp 41
+        jr nc, lut_yellow_red
+        cp 31
+        jr nc, lut_red
+        cp 21
+        jr nc, lut_red_black
+        ; Default: black
+        xor a
+        jr lut_store
+
+lut_white:
+        ld a, $3F           ; INK_WHITE + PAPER_WHITE
+        jr lut_store
+lut_yellow_white:
+        ld a, $3E           ; INK_YELLOW + PAPER_WHITE
+        jr lut_store
+lut_white_yellow:
+        ld a, $37           ; INK_WHITE + PAPER_YELLOW
+        jr lut_store
+lut_yellow:
+        ld a, $36           ; INK_YELLOW + PAPER_YELLOW
+        jr lut_store
+lut_red_yellow:
+        ld a, $32           ; INK_RED + PAPER_YELLOW
+        jr lut_store
+lut_yellow_red:
+        ld a, $16           ; INK_YELLOW + PAPER_RED
+        jr lut_store
+lut_red:
+        ld a, $12           ; INK_RED + PAPER_RED
+        jr lut_store
+lut_red_black:
+        ld a, $02           ; INK_RED + PAPER_BLACK
+
+lut_store:
+        ld (hl), a
+        inc hl
+        inc b
+        jr nz, lut_loop
+        ret
+
+; Grid buffer - 384 bytes for 12 rows * 32 cols
+grid:   ds 384
+color_lut EQU $8200
+    }
+}

@@ -700,20 +700,20 @@ func encodeEX(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
 	if len(line.Operands) != 2 {
 		return nil, fmt.Errorf("EX requires 2 operands")
 	}
-	
-	op1 := line.Operands[0]
-	op2 := line.Operands[1]
-	
+
+	op1 := strings.ToUpper(line.Operands[0])
+	op2 := strings.ToUpper(line.Operands[1])
+
 	// EX DE, HL
 	if op1 == "DE" && op2 == "HL" {
 		return []byte{0xEB}, nil
 	}
-	
+
 	// EX AF, AF'
 	if op1 == "AF" && (op2 == "AF'" || op2 == "AF") {
 		return []byte{0x08}, nil
 	}
-	
+
 	// EX (SP), HL/IX/IY
 	if op1 == "(SP)" {
 		reg, _ := parseRegister(op2)
@@ -726,7 +726,7 @@ func encodeEX(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
 			return []byte{0xFD, 0xE3}, nil
 		}
 	}
-	
+
 	return nil, fmt.Errorf("invalid EX instruction")
 }
 

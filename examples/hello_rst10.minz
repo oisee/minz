@@ -1,0 +1,29 @@
+// Hello World using RST #10 with string iterator
+// Demonstrates MinZ string handling and loops
+
+fun main() -> void {
+    asm {
+        ; Open channel 2 (main screen)
+        ld a, 2
+        call $1601      ; CHAN-OPEN
+
+        ; Clear screen
+        call $0DAF      ; CLS
+
+        ; Print string using iterator
+        ld hl, message
+print_loop:
+        ld a, (hl)      ; Get character
+        or a            ; Check for null terminator
+        jr z, done      ; If zero, we're done
+        rst $10         ; Print character
+        inc hl          ; Next character
+        jr print_loop
+
+done:
+        jr done         ; Infinite loop
+
+message:
+        db "HELLO WORLD!", 0
+    }
+}

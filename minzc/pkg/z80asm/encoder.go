@@ -143,7 +143,27 @@ func encodeLD(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
 	// Try to parse as registers
 	destReg, destIsReg := parseRegister(dest)
 	srcReg, srcIsReg := parseRegister(src)
-	
+
+	// Handle special I/R register loads (ED-prefixed)
+	if destIsReg && srcIsReg {
+		// LD I, A
+		if destReg == RegI && srcReg == RegA {
+			return []byte{0xED, 0x47}, nil
+		}
+		// LD R, A
+		if destReg == RegR && srcReg == RegA {
+			return []byte{0xED, 0x4F}, nil
+		}
+		// LD A, I
+		if destReg == RegA && srcReg == RegI {
+			return []byte{0xED, 0x57}, nil
+		}
+		// LD A, R
+		if destReg == RegA && srcReg == RegR {
+			return []byte{0xED, 0x5F}, nil
+		}
+	}
+
 	// Handle register to register moves
 	if destIsReg && srcIsReg {
 		return encodeLDRegReg(destReg, srcReg)

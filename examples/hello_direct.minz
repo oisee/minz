@@ -1,0 +1,60 @@
+// Direct screen write - simplest possible test
+
+fun main() -> void {
+    asm {
+        ; Fill attribute area with bright white
+        ld hl, 0x5800
+        ld de, 0x5801
+        ld bc, 767
+        ld a, 0x38
+        ld (hl), a
+        ldir
+
+        ; Write 'H' to top-left of screen
+        ld hl, 0x4000
+        ld a, 0x66
+        ld (hl), a
+        inc h
+        ld (hl), a
+        inc h
+        ld a, 0x7E
+        ld (hl), a
+        inc h
+        ld a, 0x66
+        ld (hl), a
+        inc h
+        ld (hl), a
+        inc h
+        ld (hl), a
+        inc h
+        ld (hl), a
+        inc h
+        xor a
+        ld (hl), a
+
+        ; Write 'I'
+        ld hl, 0x4001
+        ld a, 0x3C
+        ld (hl), a
+        inc h
+        ld a, 0x18
+        ld (hl), a
+        inc h
+        ld (hl), a
+        inc h
+        ld (hl), a
+        inc h
+        ld (hl), a
+        inc h
+        ld (hl), a
+        inc h
+        ld a, 0x3C
+        ld (hl), a
+        inc h
+        xor a
+        ld (hl), a
+
+loop:
+        jr loop
+    }
+}

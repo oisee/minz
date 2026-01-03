@@ -1,0 +1,171 @@
+// 10 PRINT CHR$(205.5+RND(1)); : GOTO 10
+// Classic one-liner maze generator for ZX Spectrum
+// Ported from ZXSpeculator experiments
+
+fun main() -> void {
+    asm {
+        ; Set border to blue
+        ld a, 1
+        out ($FE), a
+
+        ; Clear screen with cyan paper
+        ld hl, $5800
+        ld de, $5801
+        ld bc, 767
+        ld a, $28           ; Cyan paper, black ink
+        ld (hl), a
+        ldir
+
+        ; Clear pixel area
+        ld hl, $4000
+        ld de, $4001
+        ld bc, 6143
+        ld (hl), 0
+        ldir
+
+        ; Initialize random seed
+        ld a, $73
+        ld (seed), a
+
+        ; Draw maze pattern
+        ld c, 0             ; Y counter (0-23 rows, 8 pixels each)
+
+row_loop:
+        ld b, 0             ; X counter (0-31 cols, 8 pixels each)
+
+col_loop:
+        push bc
+
+        ; Get random bit
+        call rand
+        and 1
+        jr z, draw_backslash
+
+        ; Draw forward slash (/)
+        ; Pattern from top-right to bottom-left
+        ld a, b
+        add a, a
+        add a, a
+        add a, a
+        add a, 7            ; X = col*8 + 7 (start from right)
+        ld e, a
+        ld a, c
+        add a, a
+        add a, a
+        add a, a            ; Y = row*8
+        ld d, a
+
+        ld b, 8             ; 8 pixels diagonal
+slash_loop:
+        push bc
+        push de
+        call plot_pixel
+        pop de
+        pop bc
+        dec e               ; X--
+        inc d               ; Y++
+        djnz slash_loop
+        jr next_char
+
+draw_backslash:
+        ; Draw backslash (\)
+        ; Pattern from top-left to bottom-right
+        ld a, b
+        add a, a
+        add a, a
+        add a, a            ; X = col*8
+        ld e, a
+        ld a, c
+        add a, a
+        add a, a
+        add a, a            ; Y = row*8
+        ld d, a
+
+        ld b, 8
+backslash_loop:
+        push bc
+        push de
+        call plot_pixel
+        pop de
+        pop bc
+        inc e               ; X++
+        inc d               ; Y++
+        djnz backslash_loop
+
+next_char:
+        pop bc
+        inc b
+        ld a, b
+        cp 32
+        jr nz, col_loop
+
+        inc c
+        ld a, c
+        cp 24
+        jr nz, row_loop
+
+        ; Done - infinite loop
+done:
+        jr done
+
+; Plot pixel at (E, D) - E=X (0-255), D=Y (0-191)
+plot_pixel:
+        ; Calculate screen address
+        ; High byte: 010TTSSS (TT = Y/64, SSS = Y%8)
+        ; Low byte: YYYYY XXX (YYYYY = (Y/8)%8, XXX = X/8)
+        ld a, d             ; Y
+        and $C0             ; TT bits (Y/64 * 64)
+        rrca
+        rrca
+        rrca
+        or $40              ; Add base $4000
+        ld h, a
+
+        ld a, d
+        and $38             ; YYYYY bits ((Y/8)%8 * 8)
+        ld l, a
+
+        ld a, d
+        and $07             ; SSS bits (Y%8)
+        rrca
+        rrca
+        rrca
+        or h
+        ld h, a
+
+        ld a, e             ; X
+        rrca
+        rrca
+        rrca
+        and $1F             ; X/8
+        or l
+        ld l, a
+
+        ; Set the bit
+        ld a, e
+        and $07             ; X%8
+        ld b, a
+        ld a, $80           ; Start with bit 7
+        jr z, plot_set
+plot_shift:
+        rrca
+        djnz plot_shift
+plot_set:
+        or (hl)
+        ld (hl), a
+        ret
+
+; Simple random number generator
+rand:
+        ld a, (seed)
+        ld b, a
+        add a, a
+        add a, a
+        add a, b
+        add a, 17
+        ld (seed), a
+        ret
+
+seed:   db 0
+    }
+}

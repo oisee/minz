@@ -1,0 +1,226 @@
+// Classic Plasma Effect for ZX Spectrum
+// Uses IM 2 interrupt for proper vsync
+// Dynamic plasma with multiple sine wave combinations
+
+fun main() -> void {
+    asm {
+        di                  ; Disable interrupts during setup
+
+        ; === Set up IM 2 interrupt ===
+        ; Vector table at $FE00 (257 bytes, all pointing to $FDFD)
+        ; Interrupt routine at $FDFD
+
+        ld hl, $FE00        ; Vector table
+        ld de, $FE01
+        ld bc, 256
+        ld a, $FD           ; All vectors point to $FDFD
+        ld (hl), a
+        ldir
+
+        ; Write interrupt routine at $FDFD
+        ld hl, $FDFD
+        ld (hl), $FB        ; EI opcode
+        inc hl
+        ld (hl), $C9        ; RET opcode
+
+        ld a, $FE           ; I register = high byte of vector table
+        ld i, a             ; Set I register
+        im 2                ; Interrupt mode 2
+
+        ; Initialize sine table at $8100 (256 bytes)
+        call init_sine
+
+        ; Clear screen
+        ld hl, $4000
+        ld de, $4001
+        ld bc, 6143
+        ld (hl), 0
+        ldir
+
+        ; Initialize phases
+        xor a
+        ld (phase1), a
+        ld (phase2), a
+        ld (phase3), a
+
+        ei                  ; Enable interrupts
+
+main_loop:
+        halt                ; Wait for interrupt (vsync)
+
+        ; Render plasma to attributes
+        call render_plasma
+
+        ; Update animation phases (different speeds for variety)
+        ld a, (phase1)
+        add a, 2
+        ld (phase1), a
+
+        ld a, (phase2)
+        add a, 3
+        ld (phase2), a
+
+        ld a, (phase3)
+        sub 1
+        ld (phase3), a
+
+        jr main_loop
+
+; === Render plasma to attribute area ===
+render_plasma:
+        ld hl, $5800        ; Attribute memory
+        ld a, (phase2)
+        ld (row_phase), a   ; Store row phase in memory
+
+        ld c, 0             ; C = row counter (0-23)
+
+row_loop:
+        ld a, (phase1)
+        ld e, a             ; E = base column phase
+        ld a, (phase3)
+        add a, c            ; Add row to phase3
+        ld d, a             ; D = diagonal phase
+
+        ld b, 32            ; 32 columns
+
+col_loop:
+        push hl
+        push bc
+
+        ; === Calculate plasma value ===
+        ; sin1 = sin(col * 8 + phase1)
+        ld h, $81           ; Sine table high byte
+        ld l, e
+        ld a, (hl)          ; sin1
+
+        ; sin2 = sin(row * 14 + phase2)
+        ld b, a             ; Save sin1
+        ld a, c             ; Row
+        add a, a            ; row * 2
+        add a, c            ; row * 3
+        add a, a            ; row * 6
+        add a, c            ; row * 7
+        add a, a            ; row * 14
+        push de
+        ld de, (row_phase)  ; Get row_phase (only need low byte in E)
+        add a, e            ; + phase2
+        pop de
+        ld l, a
+        ld a, (hl)          ; sin2
+        add a, b            ; sin1 + sin2
+
+        ; sin3 = sin(col + row + phase3) - diagonal wave
+        ld b, a             ; Save sum
+        ld a, d             ; diagonal phase
+        ld l, a
+        ld a, (hl)          ; sin3
+        add a, b            ; sin1 + sin2 + sin3
+
+        ; sin4 = sin((col - row) * 4 + phase1) - counter-diagonal
+        ld b, a
+        ld a, e
+        sub c
+        add a, a
+        add a, a
+        ld l, a
+        ld a, (hl)
+        add a, b            ; Total of 4 sine waves
+
+        ; Convert to ZX Spectrum attribute
+        ; Use bits to create paper/ink combination
+        ld b, a             ; Save plasma value
+
+        rrca
+        rrca
+        rrca
+        and $38             ; Paper (bits 3-5)
+        ld c, a
+
+        ld a, b
+        add a, $55          ; Offset for ink color variation
+        and $07             ; Ink (bits 0-2)
+        or c                ; Combine
+        or $40              ; Add BRIGHT
+
+        pop bc
+        pop hl
+        ld (hl), a          ; Store attribute
+        inc hl
+
+        ; Advance column phase
+        ld a, e
+        add a, 8
+        ld e, a
+
+        ; Advance diagonal
+        inc d
+
+        djnz col_loop
+
+        ; Next row
+        inc c
+        ld a, c
+        cp 24
+        jr nz, row_loop
+
+        ret
+
+row_phase: dw 0             ; Temporary storage for phase2 (word for LD DE,(nn))
+
+; === Initialize sine table at $8100 ===
+init_sine:
+        ld hl, $8100
+        ld b, 0             ; 256 iterations
+
+sine_loop:
+        ; Simple approximation: triangle wave smoothed
+        ld a, b
+        cp 64
+        jr c, s_q1
+        cp 128
+        jr c, s_q2
+        cp 192
+        jr c, s_q3
+        jr s_q4
+
+s_q1:   ; 0-63: rising 128 to 255
+        ld a, b
+        add a, a            ; x2
+        add a, 128
+        jr store_sine
+
+s_q2:   ; 64-127: falling 255 to 128
+        ld a, 127
+        sub b
+        add a, a
+        add a, 128
+        jr store_sine
+
+s_q3:   ; 128-191: falling 128 to 1
+        ld a, b
+        sub 128
+        add a, a
+        ld c, a
+        ld a, 128
+        sub c
+        jr store_sine
+
+s_q4:   ; 192-255: rising 1 to 128
+        ld a, b
+        sub 192
+        add a, a
+        inc a
+
+store_sine:
+        ld (hl), a
+        inc hl
+        inc b
+        jr nz, sine_loop
+        ret
+
+; Animation phases
+phase1: db 0
+phase2: db 0
+phase3: db 0
+    }
+}

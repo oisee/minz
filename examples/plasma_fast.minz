@@ -1,0 +1,174 @@
+// Fast Plasma Effect for ZX Spectrum
+// Uses pre-calculated tables and SMC for maximum speed
+// No push/pop in inner loop, minimal memory access
+
+fun main() -> void {
+    asm {
+        di
+        ld hl, $FE00
+        ld de, $FE01
+        ld bc, 256
+        ld a, $FD
+        ld (hl), a
+        ldir
+        ld hl, $FDFD
+        ld (hl), $FB        ; EI
+        inc hl
+        ld (hl), $C9        ; RET
+        ld a, $FE
+        ld i, a
+        im 2
+
+        ; Build sine table at $8100
+        call build_sine
+
+        ; Build row offset table at $8200 (24 entries)
+        ; Each entry is sine_base + row * scale
+        call build_row_table
+
+        ; Clear screen
+        ld hl, $4000
+        ld de, $4001
+        ld bc, 6143
+        ld (hl), 0
+        ldir
+
+        ei
+
+main_loop:
+        halt                ; Sync to frame
+
+        ; Use SMC: patch phase values directly into code
+
+        ld hl, $5800        ; Attribute memory
+        ld b, 24            ; 24 rows
+
+        ; Get current phases (SMC targets)
+phase1_smc:
+        ld a, 0             ; SMC: phase1 patched here
+        ld e, a             ; E = column base phase
+
+phase2_smc:
+        ld a, 0             ; SMC: phase2 patched here
+        ld c, a             ; C = row phase offset
+
+row_loop_fast:
+        push bc
+        push hl
+
+        ; Calculate row sine offset
+        ld h, $82           ; Row table at $8200
+        ld l, b             ; Row number (24..1)
+        dec l               ; 0-based index
+        ld a, (hl)          ; Get pre-calculated row sine base
+        add a, c            ; Add row phase
+        ld d, a             ; D = row sine index
+
+        ld h, $81           ; Sine table
+        ld l, d
+        ld d, (hl)          ; D = sin(row + phase2)
+
+        pop hl              ; Restore attr pointer
+
+        ; Inner loop: 32 columns, no push/pop!
+        ld b, 32
+        ld a, e             ; A = column phase
+
+col_loop_fast:
+        ; Get sin(column + phase1)
+        ld c, a             ; Save column phase
+        push hl
+        ld h, $81
+        ld l, a
+        ld a, (hl)          ; sin1 = sin(col)
+        add a, d            ; sin1 + sin2 (row sine)
+
+        ; Quick color mapping
+        rrca
+        rrca
+        rrca
+        and $3F             ; Paper + ink
+        or $40              ; BRIGHT
+
+        pop hl
+        ld (hl), a
+        inc hl
+
+        ld a, c             ; Restore column phase
+        add a, 8            ; Next column
+        djnz col_loop_fast
+
+        ; Next row
+        pop bc
+        djnz row_loop_fast
+
+        ; Update phases (SMC style - patch the immediates)
+        ld hl, phase1_smc + 1
+        ld a, (hl)
+        add a, 3
+        ld (hl), a
+
+        ld hl, phase2_smc + 1
+        ld a, (hl)
+        add a, 2
+        ld (hl), a
+
+        jp main_loop
+
+; ---
+build_sine:
+        ld hl, $8100
+        ld c, 0             ; Counter 0-255
+
+sine_gen:
+        ; Approximate sine using parabola segments
+        ld a, c
+        and $7F             ; 0-127 range
+        cp 64
+        jr nc, sine_down
+        ; Rising: 0-63 -> 128-255
+        add a, a            ; x2
+        add a, 128
+        jr sine_store
+sine_down:
+        ; Falling: 64-127 -> 255-128
+        sub 64
+        add a, a
+        ld b, a
+        ld a, 255
+        sub b
+sine_store:
+        ; Check if in negative half (128-255)
+        bit 7, c
+        jr z, sine_pos
+        ; Negative: mirror around 128
+        sub 128
+        neg
+        add a, 128
+sine_pos:
+        ld (hl), a
+        inc hl
+        inc c
+        jr nz, sine_gen
+        ret
+
+; ---
+; Pre-calculate row * 11 for faster lookup
+build_row_table:
+        ld hl, $8200
+        ld b, 24
+        ld c, 0             ; Row counter
+row_table_loop:
+        ld a, c
+        add a, a            ; x2
+        add a, c            ; x3
+        add a, a            ; x6
+        add a, c            ; x7
+        add a, a            ; x14 (close to 11, adds variety)
+        ld (hl), a
+        inc hl
+        inc c
+        djnz row_table_loop
+        ret
+    }
+}

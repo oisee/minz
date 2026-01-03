@@ -129,23 +129,24 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 		if !strings.HasPrefix(operand, "(") || !strings.HasSuffix(operand, ")") {
 			return nil, false
 		}
-		
-		inner := operand[1:len(operand)-1]
-		
-		// Check constraint if specified
+
+		inner := strings.ToUpper(operand[1:len(operand)-1])
+		upperOperand := strings.ToUpper(operand)
+
+		// Check constraint if specified (case-insensitive)
 		if pattern.Constraint != "" {
-			if operand != pattern.Constraint {
+			if !strings.EqualFold(operand, pattern.Constraint) {
 				return nil, false
 			}
-			return operand, true
+			return upperOperand, true
 		}
-		
-		// Check if it's a valid indirect register
+
+		// Check if it's a valid indirect register (case-insensitive)
 		if inner == "HL" || inner == "BC" || inner == "DE" || inner == "SP" ||
-		   inner == "IX" || inner == "IY" {
-			return operand, true
+		   inner == "IX" || inner == "IY" || inner == "C" {
+			return upperOperand, true
 		}
-		
+
 		return nil, false
 		
 	case OpTypeIndImm:

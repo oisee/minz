@@ -1,0 +1,43 @@
+// Hello World using RST #10 (RST 16 = ROM print routine)
+
+fun main() -> void {
+    asm {
+        di             ; Disable interrupts
+
+        ; Open channel 2 (main screen) first!
+        ld a, 2
+        call 0x1601    ; CHAN-OPEN
+
+        ; Clear screen
+        call 0x0DAF    ; CLS
+
+        ; Print "Hello World!" using RST 16
+        ld a, 'H'
+        rst 0x10
+        ld a, 'e'
+        rst 0x10
+        ld a, 'l'
+        rst 0x10
+        ld a, 'l'
+        rst 0x10
+        ld a, 'o'
+        rst 0x10
+        ld a, ' '
+        rst 0x10
+        ld a, 'W'
+        rst 0x10
+        ld a, 'o'
+        rst 0x10
+        ld a, 'r'
+        rst 0x10
+        ld a, 'l'
+        rst 0x10
+        ld a, 'd'
+        rst 0x10
+        ld a, '!'
+        rst 0x10
+
+        ei             ; Re-enable interrupts
+        halt           ; Wait (keeps display stable)
+    }
+}
