@@ -161,7 +161,7 @@ crystal run hello.cr  # Test instantly!
 | **Standard Library** | ✅ Working | 10 modules: math, graphics, input, text, sound, time, mem |
 | **@extern FFI** | ✅ Working | `@extern(0x0010) fun rom_print()` with RST optimization |
 | **DZRP Remote Run** | ✅ Working | `mzrun game.minz --reset` live emulator testing |
-| **Infinite Loops** | ✅ Working | `loop { }` generates EI;HALT;JR pattern |
+| **Infinite Loops** | ✅ Working | `loop { asm{EI;HALT} }` for explicit halt |
 | **Iterator Chains** | 🚧 Partial | Compiles, DJNZ optimization in progress |
 
 ---
@@ -256,17 +256,18 @@ fun main() -> void {
 ```
 > **Note:** `@error(EnumType.Variant)` resolves to a compile-time constant for optimal code generation.
 
-### **Infinite Loops (ZX Spectrum friendly!)**
+### **Infinite Loops**
 ```minz
 fun main() -> void {
     @print("Hello World!");
 
-    // Proper halt - generates EI; HALT; JR loop
-    // Keeps interrupts enabled, CPU halts between frames
-    loop { }
+    // Explicit halt intent - generates EI; HALT; JR loop
+    loop {
+        asm { EI; HALT }
+    }
 }
 ```
-> **Note:** Empty `loop { }` generates the ZX Spectrum-friendly halt pattern that keeps interrupts enabled (for keyboard/FRAMES) while halting the CPU. Press BREAK to return to BASIC!
+> **Note:** Empty `loop { }` is optimized away. Use explicit `asm { EI; HALT }` for ZX Spectrum-friendly halt that keeps interrupts enabled.
 
 ### **Inline Assembly**
 ```minz

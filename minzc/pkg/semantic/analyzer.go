@@ -52,6 +52,13 @@ type Analyzer struct {
 	// castInterfaces        map[string]*CastInterface // Cast interfaces for compile-time dispatch (future)
 	simpleCastInterfaces  map[string]*SimpleCastInterface // Simplified cast interfaces (v0.11.0)
 	builtinModules        map[string]*BuiltinModule // Built-in module registry
+	printStats            *PrintStatistics // Track @print usage for optimization
+}
+
+// PrintStatistics tracks @print usage to optimize string printing
+type PrintStatistics struct {
+	TotalInlineChars int  // Total characters printed inline so far
+	UsesPrintString  bool // Whether print_string helper is used (for long strings)
 }
 
 // NewAnalyzer creates a new semantic analyzer
@@ -71,8 +78,9 @@ func NewAnalyzer() *Analyzer {
 		// castInterfaces:    make(map[string]*CastInterface), // future
 		simpleCastInterfaces: make(map[string]*SimpleCastInterface),
 		builtinModules:    InitBuiltinModules(),
+		printStats:        &PrintStatistics{},
 	}
-	
+
 	return analyzer
 }
 
@@ -3979,32 +3987,19 @@ func (a *Analyzer) analyzeLoopAtStmt(stmt *ast.LoopAtStmt, irFunc *ir.Function) 
 }
 
 // analyzeInfiniteLoopStmt analyzes an infinite loop (loop { ... })
-// For empty loops, generates DI; HALT for proper halt behavior
-// For non-empty loops, generates a jump-to-self pattern
+// Empty loops are optimized away (dead code elimination)
+// For explicit halt, use @halt() or asm { EI; HALT } in the loop body
 func (a *Analyzer) analyzeInfiniteLoopStmt(stmt *ast.InfiniteLoopStmt, irFunc *ir.Function) error {
 	// Check if the loop body is empty
 	isEmpty := stmt.Body == nil || len(stmt.Body.Statements) == 0
 
 	if isEmpty {
-		// Empty infinite loop - generate halt_loop: EI; HALT; JR halt_loop
-		// This is ZX Spectrum friendly:
-		// - EI enables interrupts so the system can continue (keyboard scan, FRAMES counter)
-		// - HALT stops CPU until next interrupt
-		// - JR loops back to halt again after interrupt handler runs
-		// User can press BREAK to return to BASIC
-		haltLabel := a.generateLabel("halt_loop")
-		irFunc.EmitLabel(haltLabel)
+		// Empty infinite loop - optimized away
+		// For explicit halt intent, use: loop { asm { EI; HALT } }
 		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-			Op:      ir.OpAsm,
-			AsmCode: "EI",
-			Comment: "Enable interrupts",
+			Op:      ir.OpNop,
+			Comment: "Empty loop optimized away (use asm{EI;HALT} for explicit halt)",
 		})
-		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-			Op:      ir.OpAsm,
-			AsmCode: "HALT",
-			Comment: "Halt until interrupt",
-		})
-		irFunc.EmitJump(haltLabel)
 	} else {
 		// Non-empty loop - generate loop label and jump back
 		loopLabel := a.generateLabel("infinite_loop")
@@ -7484,12 +7479,30 @@ func escapeForComment(s string) string {
 
 // generatePrintString generates instructions to print a string literal
 func (a *Analyzer) generatePrintString(str string, irFunc *ir.Function) {
-	// Smart string optimization: for short strings, use direct RST 16 calls
-	// This avoids the overhead of loops for strings <= 8 characters
-	const DIRECT_PRINT_THRESHOLD = 8
-	
-	if len(str) <= DIRECT_PRINT_THRESHOLD && len(str) > 0 {
-		// Use direct print for short strings - ultra-fast!
+	// Smart string optimization based on cumulative usage:
+	// - If print_string helper is already used, lower inline threshold to 3 chars
+	// - This saves code size by reusing the existing helper
+	//
+	// Code size analysis:
+	// - Inline: 3 bytes per char (LD A, n = 2, RST 16 = 1)
+	// - Loop: 7 + len bytes (LD HL = 3, CALL = 3, length = 1, data = len)
+	// - print_string helper: ~15 bytes (one-time cost)
+	//
+	// Once helper exists, loop wins for len >= 4:
+	//   len=3: Inline=9, Loop=10 → inline
+	//   len=4: Inline=12, Loop=11 → loop
+
+	// Choose threshold based on whether we've already needed print_string
+	inlineThreshold := 8 // Default: inline up to 8 chars
+	if a.printStats.UsesPrintString {
+		inlineThreshold = 3 // If helper exists, only inline very short strings
+	}
+
+	useInline := len(str) <= inlineThreshold && len(str) > 0
+
+	if useInline {
+		// Use direct print for short strings
+		a.printStats.TotalInlineChars += len(str)
 		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 			Op:      ir.OpPrintStringDirect,
 			Symbol:  str, // Pass the string directly
@@ -7497,6 +7510,8 @@ func (a *Analyzer) generatePrintString(str string, irFunc *ir.Function) {
 		})
 	} else {
 		// Use loop-based print for longer strings
+		a.printStats.UsesPrintString = true // Mark that we need the helper
+
 		// Create string literal and add to module
 		stringLabel := fmt.Sprintf("str_%d", len(a.module.Strings))
 		a.module.Strings = append(a.module.Strings, &ir.String{
@@ -7504,17 +7519,17 @@ func (a *Analyzer) generatePrintString(str string, irFunc *ir.Function) {
 			Value: str,
 			IsLong: len(str) > 255, // Mark as LString if > 255 chars
 		})
-		
+
 		// Create a string constant
 		strReg := irFunc.AllocReg()
-		
+
 		// Generate instruction to load string address
 		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 			Op:     ir.OpLoadString,
 			Dest:   strReg,
 			Symbol: stringLabel,
 		})
-		
+
 		// Generate print instruction with symbol info for type checking
 		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 			Op:      ir.OpPrintString,

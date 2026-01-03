@@ -23,7 +23,8 @@ fun main() -> void {
     @print(42);
     @print("\n");
 
-    // Infinite loop - generates DI; HALT
+    // Halt with explicit intent
     loop {
+        asm { EI; HALT }
     }
 }
