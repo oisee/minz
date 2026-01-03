@@ -1,4 +1,0 @@
-@define("DEBUG_VAL", "42")
-fun main() -> void {
-    let x = DEBUG_VAL;
-}

@@ -1,1 +1,0 @@
-fun test(data: *u8) -> u16 { let x = *data; return x as u16; }

@@ -1,2 +1,0 @@
-[1, 2, 3]
-fun main() -> void { let arr = [1, 2, 3]; }

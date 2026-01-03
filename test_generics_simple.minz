@@ -1,8 +1,0 @@
-fun identity<T>(x: T) -> T {
-    return x;
-}
-
-fun main() -> void {
-    let result = identity(42);
-    print_u8(result);
-}

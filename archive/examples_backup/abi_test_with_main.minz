@@ -1,8 +1,0 @@
-@abi("smc")
-fun test_func(x: u8) -> u8 {
-    return x;
-}
-
-fun main() {
-    let result = test_func(42);
-}

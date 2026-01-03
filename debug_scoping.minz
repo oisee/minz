@@ -1,4 +1,0 @@
-// Minimal test for scoping debug
-fun test() -> void {
-    let u16 a = 10;
-}

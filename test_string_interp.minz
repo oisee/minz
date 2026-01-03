@@ -1,6 +1,0 @@
-// Test string interpolation
-fun main() -> void {
-    let x: u8 = 42;
-    let msg = "The answer is ${x}";
-    print(msg);
-}

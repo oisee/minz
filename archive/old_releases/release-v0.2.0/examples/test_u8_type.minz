@@ -1,7 +1,0 @@
-// Test u8 type parsing
-
-let x: u8;
-
-fun main() -> void {
-    x = 42;
-}

@@ -1,8 +1,0 @@
-; Minimal working test with (HL)
-    ORG $8000
-
-main:
-    LD A, (HL)
-    RET
-    
-    END main

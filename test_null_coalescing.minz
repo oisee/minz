@@ -1,6 +1,0 @@
-// Test ?? operator (null coalescing)
-fun main() -> void {
-    let x: u8? = null;
-    let y: u8 = x ?? 42;  // Should use 42 if x is null
-    print_u8(y);
-}

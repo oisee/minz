@@ -1,3 +1,0 @@
-fun invalid_function( -> u8 {
-    return 1
-}

@@ -39,6 +39,17 @@ build/
 /mze
 /mzr
 /mzv
+
+# Root level compiled outputs (keep in examples/output, minzc/release_validation)
+/*.a80
+/*.mir
+/*.bin
+/*.sna
+/*.tap
+/*.dot
+/*.asm
+/*.lst
+/*.sym
 # Compiler main binary
 minzc/main
 minzc/minzc
@@ -92,7 +103,12 @@ coverage/
 # Additional ignores for new structure
 build/artifacts/
 archive/temp-files/
-archive/backups/temp/# Personal files - our memories stay here 💫
+archive/backups/temp/
+
+# Archive directory (local development clutter)
+/_archive/
+
+# Personal files - our memories stay here 💫
 /continuation/
 /.claude_memories
 /WELCOME_BACK.md
@@ -108,3 +124,4 @@ archive/backups/temp/# Personal files - our memories stay here 💫
 .env
 .env.local
 *.env
+*.bin

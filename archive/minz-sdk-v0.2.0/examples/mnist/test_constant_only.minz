@@ -1,8 +1,0 @@
-// Test only constant access
-
-import zx.screen;
-
-fn main() -> void {
-    let color = screen.BLUE;
-    return;
-}
