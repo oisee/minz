@@ -389,13 +389,13 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 		}
 	}
 	
-	// Generate data section LAST (after code, so binary starts with executable code)
+	// Generate data section LAST (contiguous with code, no separate ORG)
+	// This ensures binary can be loaded as single chunk at $8000
 	if debug {
 		fmt.Printf("DEBUG: Globals=%d, Strings=%d, DataBlocks=%d\n", len(module.Globals), len(module.Strings), len(g.dataBlocks))
 	}
 	if len(module.Globals) > 0 || len(module.Strings) > 0 {
-		g.emit("\n; Data section")
-		g.emit("    ORG $F000")
+		g.emit("\n; Data section (follows code contiguously)")
 		g.emit("")
 		for _, global := range module.Globals {
 			g.generateGlobal(global)
