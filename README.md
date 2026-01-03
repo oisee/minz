@@ -312,11 +312,21 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 | **mz** | Multi-backend compiler | `mz program.minz -o program.a80` |
 | **mza** | Native Z80 assembler | `mza program.a80 -o program.bin` |
 | **mze** | Z80 emulator (100% coverage!) | `mze program.bin -v` |
-| **mze debug** | DAP server for VS Code | `mze debug` (NEW!) |
+| **mze debug** | DAP server for VS Code | `mze debug` |
 | **mzr** | Interactive REPL | `mzr` for experimentation |
 | **mzv** | MIR VM interpreter | `mzv program.mir` |
 
+### **Debug & Analysis Flags**
+```bash
+mz program.minz --dump-mir          # Output MIR to stdout
+mz program.minz --viz graph.dot     # MIR visualization (Graphviz)
+mz program.minz --dump-ast          # AST in JSON format
+mz program.minz -d                  # Compilation details
+```
+
 **All tools are self-contained with zero dependencies!**
+
+> **Coming Soon:** `--debug-info` flag for source maps (MinZ → MIR → Z80 address mapping) to enable full source-level debugging in VS Code.
 
 ---
 
