@@ -183,6 +183,13 @@ func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 			if inst.Src2 != 0 {
 				p.used[inst.Src2] = true
 			}
+
+		case ir.OpPrintU8, ir.OpPrintU16, ir.OpPrintI8, ir.OpPrintI16,
+			 ir.OpPrintBool, ir.OpPrintString, ir.OpPrintChar:
+			// Print instructions use their source register
+			if inst.Src1 != 0 {
+				p.used[inst.Src1] = true
+			}
 		}
 		
 		// If this instruction's result is used, mark its operands as used too

@@ -51,6 +51,8 @@ var (
 	verbose   bool
 	step      bool
 	reset     bool
+	dump      uint16
+	debug     bool
 )
 
 var rootCmd = &cobra.Command{
@@ -83,10 +85,12 @@ func init() {
 	rootCmd.Flags().IntVar(&port, "port", 11000, "DZRP port")
 	rootCmd.Flags().Uint16Var(&loadAddr, "load", 0x8000, "Load address")
 	rootCmd.Flags().Uint16Var(&startAddr, "start", 0, "Start address (default: same as load)")
-	rootCmd.Flags().IntVar(&timeout, "timeout", 10, "Execution timeout in seconds")
+	rootCmd.Flags().IntVar(&timeout, "timeout", 10, "Execution timeout in seconds (0 = run forever)")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 	rootCmd.Flags().BoolVar(&step, "step", false, "Single-step execution")
 	rootCmd.Flags().BoolVar(&reset, "reset", false, "Reset emulator (set PC=0x0000 and run)")
+	rootCmd.Flags().Uint16Var(&dump, "dump", 0, "Dump N bytes from load address after execution")
+	rootCmd.Flags().BoolVar(&debug, "debug", false, "Interactive step debugger")
 }
 
 func main() {
@@ -177,6 +181,15 @@ func runProgram(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to set PC: %w", err)
 	}
 
+	if debug {
+		// Ensure emulator is paused at start address before debugger
+		if err := dzrpPause(conn); err != nil {
+			return fmt.Errorf("failed to pause at start: %w", err)
+		}
+		// Interactive debugger mode
+		return runDebugger(conn, startAddr)
+	}
+
 	if verbose {
 		fmt.Println("Starting execution...")
 	}
@@ -184,6 +197,12 @@ func runProgram(cmd *cobra.Command, args []string) error {
 	// Continue execution
 	if err := dzrpContinue(conn); err != nil {
 		return fmt.Errorf("failed to continue: %w", err)
+	}
+
+	// timeout 0 means "run forever" - just exit and leave it running
+	if timeout == 0 {
+		fmt.Println("Program running (use emulator to stop)")
+		return nil
 	}
 
 	// Wait for program to complete (or timeout)
@@ -208,6 +227,27 @@ func runProgram(cmd *cobra.Command, args []string) error {
 	fmt.Printf("AF'=%04X BC'=%04X DE'=%04X HL'=%04X\n",
 		regs["AF'"], regs["BC'"], regs["DE'"], regs["HL'"])
 	fmt.Printf("IX=$%04X IY=$%04X\n", regs["IX"], regs["IY"])
+
+	// Dump memory if requested
+	if dump > 0 {
+		fmt.Printf("\n=== Memory at $%04X (%d bytes) ===\n", loadAddr, dump)
+		mem, err := dzrpReadMem(conn, loadAddr, dump)
+		if err != nil {
+			return fmt.Errorf("failed to read memory: %w", err)
+		}
+		// Print hex dump
+		for i := 0; i < len(mem); i += 16 {
+			fmt.Printf("%04X: ", loadAddr+uint16(i))
+			end := i + 16
+			if end > len(mem) {
+				end = len(mem)
+			}
+			for j := i; j < end; j++ {
+				fmt.Printf("%02X ", mem[j])
+			}
+			fmt.Println()
+		}
+	}
 
 	return nil
 }
@@ -260,18 +300,26 @@ func doReset() error {
 }
 
 func compileMinz(inputFile string) ([]byte, error) {
-	// Create temp output file
-	tmpFile := "/tmp/mzrun_output.bin"
+	// Create temp output files
+	tmpAsm := "/tmp/mzrun_output.a80"
+	tmpBin := "/tmp/mzrun_output.bin"
 
-	// Run minzc compiler
-	cmd := exec.Command("./minzc/main", inputFile, "-o", tmpFile)
+	// Run minzc compiler to generate assembly
+	cmd := exec.Command("./minzc/main", inputFile, "-o", tmpAsm)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("compiler error: %s\n%s", err, string(output))
 	}
 
+	// Run mza assembler to generate binary
+	cmd = exec.Command("./mza", tmpAsm, "-o", tmpBin)
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("assembler error: %s\n%s", err, string(output))
+	}
+
 	// Read the compiled binary
-	data, err := os.ReadFile(tmpFile)
+	data, err := os.ReadFile(tmpBin)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read output: %w", err)
 	}
@@ -363,6 +411,32 @@ func dzrpContinue(conn net.Conn) error {
 	}
 	_, _, err := dzrpRecv(conn)
 	return err
+}
+
+func dzrpReadMem(conn net.Conn, addr uint16, length uint16) ([]byte, error) {
+	// DZRP READ_MEM format: [addr:2][length:2]
+	payload := make([]byte, 4)
+	binary.LittleEndian.PutUint16(payload[0:2], addr)
+	binary.LittleEndian.PutUint16(payload[2:4], length)
+
+	if err := dzrpSend(conn, CMD_READ_MEM, payload); err != nil {
+		return nil, err
+	}
+
+	_, data, err := dzrpRecv(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	// Response format: [error:1][data...]
+	if len(data) < 1 {
+		return nil, fmt.Errorf("empty response")
+	}
+	if data[0] != 0 {
+		return nil, fmt.Errorf("error code: %d", data[0])
+	}
+
+	return data[1:], nil
 }
 
 func dzrpWriteMem(conn net.Conn, addr uint16, data []byte) error {

@@ -825,7 +825,7 @@ module.exports = grammar({
     compile_time_print: $ => seq(
       '@print',
       '(',
-      $.string_literal,  // Only accepts a single string with { } interpolation
+      $.expression,  // Accepts string literals or expressions (numbers, variables)
       ')',
     ),
 

@@ -313,7 +313,15 @@ func (a *Assembler) parseImmediate(s string) (uint16, error) {
 		// Character literal: 'A'
 		return uint16(s[1]), nil
 	} else {
-		// Try decimal
+		// Try decimal (handle negative numbers for two's complement)
+		if strings.HasPrefix(s, "-") {
+			val, err := strconv.ParseInt(s, 10, 64)
+			if err != nil {
+				return 0, err
+			}
+			// Convert to 16-bit two's complement
+			return uint16(val & 0xFFFF), nil
+		}
 		val, err := strconv.ParseUint(s, 10, 16)
 		return uint16(val), err
 	}

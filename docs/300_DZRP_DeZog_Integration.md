@@ -40,6 +40,20 @@ Full access to all Z80 registers:
 
 ## Architecture
 
+### mzrun + External Emulator (Recommended)
+
+```
+┌─────────────┐     DZRP      ┌──────────────┐
+│   mzrun     │──────────────▶│ ZXSpeculator │
+│             │  TCP:11000    │   emulator   │
+│ compile     │               │              │
+│ assemble    │  ◀────────────│   execute    │
+│ upload      │   responses   │   display    │
+└─────────────┘               └──────────────┘
+```
+
+### MZE Built-in + DeZog (VS Code Debugging)
+
 ```
 ┌─────────────┐     DZRP      ┌─────────────┐
 │   DeZog     │──────────────│    MZE      │
@@ -51,6 +65,32 @@ Full access to all Z80 registers:
                              │    Z80      │
                              └─────────────┘
 ```
+
+## Recommended Emulators
+
+### ZXSpeculator (Recommended)
+
+**[ZXSpeculator](https://github.com/oisee/ZXSpeculator)** - A modern ZX Spectrum emulator with native DZRP support, designed for integration with MinZ toolchain.
+
+```bash
+# Start ZXSpeculator with DZRP enabled
+./ZXSpeculator --dzrp-port 11000
+
+# Connect with mzrun
+./mzrun program.minz --port 11000 --reset
+```
+
+### ZEsarUX
+
+Classic emulator with ZRCP (compatible with DZRP):
+
+```bash
+zesarux --enable-remoteprotocol --remoteprotocol-port 11000
+```
+
+### DeZog (VS Code)
+
+VS Code extension that speaks DZRP for source-level debugging. See configuration below.
 
 ## DZRP Protocol
 

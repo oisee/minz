@@ -313,8 +313,21 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 | **mza** | Native Z80 assembler | `mza program.a80 -o program.bin` |
 | **mze** | Z80 emulator (100% coverage!) | `mze program.bin -v` |
 | **mze debug** | DAP server for VS Code | `mze debug` |
+| **mzrun** | Remote runner via DZRP | `mzrun program.minz --reset` |
 | **mzr** | Interactive REPL | `mzr` for experimentation |
 | **mzv** | MIR VM interpreter | `mzv program.mir` |
+
+### **Recommended Emulator: [ZXSpeculator](https://github.com/oisee/ZXSpeculator)**
+
+For live testing with **mzrun**, we recommend ZXSpeculator - a modern ZX Spectrum emulator with native DZRP support:
+
+```bash
+# Start ZXSpeculator with DZRP enabled
+./ZXSpeculator --dzrp-port 11000
+
+# Compile, assemble, upload and run in one command!
+mzrun game.minz --reset -v
+```
 
 ### **Debug & Analysis Flags**
 ```bash

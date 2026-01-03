@@ -571,6 +571,9 @@ func (p *AssemblyPeepholePass) optimizeZ80Specific(lines []string) []string {
 	// Optimization: Eliminate INC/DEC pairs (with flag safety check)
 	lines = p.eliminateIncDecPairs(lines)
 
+	// Optimization: Eliminate redundant store/load (LD A,n; LD r,A; LD A,r -> LD A,n)
+	lines = p.eliminateRedundantStoreLoad(lines)
+
 	return lines
 }
 
@@ -1188,6 +1191,92 @@ func (p *AssemblyPeepholePass) eliminateIncDecPairs(lines []string) []string {
 		// Not INC or DEC - keep the line
 		result = append(result, line)
 		i++
+	}
+
+	return result
+}
+
+// eliminateRedundantStoreLoad eliminates LD A,n; LD r,A; LD A,r -> LD A,n
+// This pattern occurs when a constant is loaded into a virtual register then
+// immediately used (e.g., for @print(42))
+func (p *AssemblyPeepholePass) eliminateRedundantStoreLoad(lines []string) []string {
+	// Pattern: LD A, <imm>; LD <r>, A; ... (comments); LD A, <r>
+	// where <r> is the same register (B, C, D, E, H, L)
+	ldAImmPattern := regexp.MustCompile(`^\s*LD\s+A\s*,\s*(\d+|[0-9A-Fa-f]+H|\$[0-9A-Fa-f]+)\s*(?:;.*)?$`)
+	ldRegAPattern := regexp.MustCompile(`^\s*LD\s+([BCDEHLA])\s*,\s*A\s*(?:;.*)?$`)
+	ldARegPattern := regexp.MustCompile(`^\s*LD\s+A\s*,\s*([BCDEHL])\s*(?:;.*)?$`)
+
+	result := make([]string, 0, len(lines))
+
+	for i := 0; i < len(lines); i++ {
+		line := lines[i]
+
+		// Check for LD A, <imm>
+		immMatch := ldAImmPattern.FindStringSubmatch(line)
+		if immMatch != nil {
+			// Found LD A, n - look for LD r, A on next non-empty line
+			storeIdx := -1
+			var storedReg string
+
+			for j := i + 1; j < len(lines) && j < i+3; j++ {
+				nextLine := strings.TrimSpace(lines[j])
+				if nextLine == "" || strings.HasPrefix(nextLine, ";") {
+					continue
+				}
+
+				storeMatch := ldRegAPattern.FindStringSubmatch(lines[j])
+				if storeMatch != nil && storeMatch[1] != "A" {
+					storeIdx = j
+					storedReg = storeMatch[1]
+					break
+				}
+				break // Hit different instruction
+			}
+
+			if storeIdx != -1 {
+				// Found LD r, A - look for LD A, r within next few lines
+				loadIdx := -1
+				for k := storeIdx + 1; k < len(lines) && k < storeIdx+5; k++ {
+					nextLine := strings.TrimSpace(lines[k])
+					if nextLine == "" || strings.HasPrefix(nextLine, ";") {
+						continue
+					}
+
+					loadMatch := ldARegPattern.FindStringSubmatch(lines[k])
+					if loadMatch != nil && strings.ToUpper(loadMatch[1]) == storedReg {
+						loadIdx = k
+						break
+					}
+					// Check if this instruction uses A or stored reg - if so, can't optimize
+					if strings.Contains(strings.ToUpper(nextLine), " A") ||
+					   strings.Contains(strings.ToUpper(nextLine), ",A") ||
+					   strings.Contains(strings.ToUpper(nextLine), " "+storedReg) ||
+					   strings.Contains(strings.ToUpper(nextLine), ","+storedReg) {
+						break
+					}
+				}
+
+				if loadIdx != -1 {
+					// Found the pattern! Keep LD A, n but remove LD r, A and LD A, r
+					// Keep original line (LD A, n)
+					result = append(result, line+" ; (optimized: store/load eliminated)")
+					p.optimizationsCount++
+
+					// Skip the LD r, A line but keep comments between store and load
+					for j := i + 1; j <= loadIdx; j++ {
+						nextLine := strings.TrimSpace(lines[j])
+						if strings.HasPrefix(nextLine, ";") {
+							result = append(result, lines[j]) // Keep comment lines
+						}
+						// Skip the actual LD instructions
+					}
+					i = loadIdx // Continue after LD A, r
+					continue
+				}
+			}
+		}
+
+		result = append(result, line)
 	}
 
 	return result

@@ -260,10 +260,20 @@ mz program.minz -b z80 --target=cpm       # CP/M
 **Benefits:** Full instruction set testing, immediate feedback
 
 ### MZV (MinZ Visualizer) - 💡 Concept Stage
-**Current:** Not implemented  
-**Vision:** SMC visualization, execution tracing, performance analysis  
-**Next Step:** Design SMC heatmap and cycle visualization  
+**Current:** Not implemented
+**Vision:** SMC visualization, execution tracing, performance analysis
+**Next Step:** Design SMC heatmap and cycle visualization
 **Foundation:** SMC tracking already built into remogatto integration
+
+### MZRUN (Remote Runner) - ✅ Implemented
+**Current:** DZRP-based remote execution tool
+**Status:** Compile, assemble, upload, and run in one command
+**Recommended Emulator:** [ZXSpeculator](https://github.com/oisee/ZXSpeculator)
+**Usage:**
+```bash
+# Start ZXSpeculator with DZRP on port 11000, then:
+./mzrun program.minz --reset -v
+```
 
 ## 📚 Documentation System
 

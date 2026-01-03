@@ -1,0 +1,30 @@
+// Hello World using pure MinZ @print
+// No inline assembly for the main logic!
+
+// ROM call helpers (minimal asm wrappers)
+fun open_screen() -> void {
+    asm {
+        ld a, 2
+        call $1601      ; CHAN-OPEN
+        call $0DAF      ; CLS
+    }
+}
+
+fun main() -> void {
+    open_screen();
+
+    // Pure MinZ string printing!
+    @print("HELLO WORLD!\n");
+    @print("This is MinZ!\n");
+    @print("Greetings from the future!\n");
+
+    // Print some numbers too
+    @print("Answer: ");
+    @print(42);
+    @print("\n");
+
+    // Infinite loop
+    for {
+        // Loop forever
+    }
+}

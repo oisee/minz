@@ -4331,7 +4331,7 @@ func (a *Analyzer) analyzeNumberLiteral(num *ast.NumberLiteral, irFunc *ir.Funct
 		Type: numType,
 	}
 	irFunc.Instructions = append(irFunc.Instructions, inst)
-	
+
 	return reg, nil
 }
 
@@ -7428,6 +7428,14 @@ func (a *Analyzer) buildInterpolatedString(format string, irFunc *ir.Function) (
 	return result, nil
 }
 
+// escapeForComment escapes special characters in a string for use in assembly comments
+func escapeForComment(s string) string {
+	s = strings.ReplaceAll(s, "\n", "\\n")
+	s = strings.ReplaceAll(s, "\r", "\\r")
+	s = strings.ReplaceAll(s, "\t", "\\t")
+	return s
+}
+
 // generatePrintString generates instructions to print a string literal
 func (a *Analyzer) generatePrintString(str string, irFunc *ir.Function) {
 	// Smart string optimization: for short strings, use direct RST 16 calls
@@ -7439,7 +7447,7 @@ func (a *Analyzer) generatePrintString(str string, irFunc *ir.Function) {
 		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 			Op:      ir.OpPrintStringDirect,
 			Symbol:  str, // Pass the string directly
-			Comment: fmt.Sprintf("Direct print \"%s\" (%d chars)", str, len(str)),
+			Comment: fmt.Sprintf("Direct print \"%s\" (%d chars)", escapeForComment(str), len(str)),
 		})
 	} else {
 		// Use loop-based print for longer strings
@@ -7466,7 +7474,7 @@ func (a *Analyzer) generatePrintString(str string, irFunc *ir.Function) {
 			Op:      ir.OpPrintString,
 			Src1:    strReg,
 			Symbol:  stringLabel, // Pass the label so codegen can check if IsLong
-			Comment: fmt.Sprintf("Print \"%s\" (%d chars via loop)", str, len(str)),
+			Comment: fmt.Sprintf("Print \"%s\" (%d chars via loop)", escapeForComment(str), len(str)),
 		})
 	}
 }

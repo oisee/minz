@@ -833,7 +833,7 @@
       "required": true,
       "types": [
         {
-          "type": "string_literal",
+          "type": "expression",
           "named": true
         }
       ]
