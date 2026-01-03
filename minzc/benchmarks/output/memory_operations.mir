@@ -1,0 +1,94 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .home.alice.dev.minz.examples.memory_operations.mem_set$p_u8$u8$u16(dest: *u8, value: u8, count: u16) -> void
+  @smc
+  Instructions:
+      0: loop_1:
+      1: TRUE_SMC_LOAD ; Load from anchor count$imm0
+      2: TEST
+      3: jump_if_not r6, end_loop_2
+      4: TRUE_SMC_LOAD ; Load from anchor value$imm0
+      5: TRUE_SMC_LOAD ; Load from anchor dest$imm0
+      6: STORE ; Store through pointer
+      7: TRUE_SMC_LOAD ; Load from anchor dest$imm0
+      8: r10 = 1
+      9: r11 = r9 + r10
+     10: TRUE_SMC_LOAD ; Load from anchor count$imm0
+     11: r13 = 1
+     12: r14 = r12 - r13
+     13: store count, r14
+     14: store dest, r11
+     15: jump loop_1
+     16: end_loop_2:
+     17: return
+
+Function .home.alice.dev.minz.examples.memory_operations.mem_copy$p_u8$p_u8$u16(dest: *u8, src: *u8, count: u16) -> void
+  @smc
+  Instructions:
+      0: loop_3:
+      1: TRUE_SMC_LOAD ; Load from anchor count$imm0
+      2: TEST
+      3: jump_if_not r6, end_loop_4
+      4: TRUE_SMC_LOAD ; Load from anchor src$imm0
+      5: LOAD
+      6: TRUE_SMC_LOAD ; Load from anchor dest$imm0
+      7: STORE ; Store through pointer
+      8: TRUE_SMC_LOAD ; Load from anchor dest$imm0
+      9: r11 = 1
+     10: r12 = r10 + r11
+     11: r15 = r13 + r14
+     12: TRUE_SMC_LOAD ; Load from anchor src$imm0
+     13: r14 = 1
+     14: TRUE_SMC_LOAD ; Load from anchor count$imm0
+     15: r17 = 1
+     16: r18 = r16 - r17
+     17: store count, r18
+     18: store dest, r12
+     19: store src, r15
+     20: jump loop_3
+     21: end_loop_4:
+     22: return
+
+Function .home.alice.dev.minz.examples.memory_operations.mem_compare$p_u8$p_u8$u16(ptr1: *u8, ptr2: *u8, count: u16) -> i8
+  @smc
+  Instructions:
+      0: loop_5:
+      1: TRUE_SMC_LOAD ; Load from anchor count$imm0
+      2: TEST
+      3: jump_if_not r6, end_loop_6
+      4: TRUE_SMC_LOAD ; Load from anchor ptr1$imm0
+      5: LOAD
+      6: TRUE_SMC_LOAD ; Load from anchor ptr2$imm0
+      7: LOAD
+      8: r11 = r8 != r10
+      9: jump_if_not r11, else_7
+     10: TRUE_SMC_LOAD ; Load from anchor ptr1$imm0
+     11: LOAD
+     12: TRUE_SMC_LOAD ; Load from anchor ptr2$imm0
+     13: LOAD
+     14: r16 = r13 < r15
+     15: jump_if_not r16, else_9
+     16: r18 = -1 ; Folded: 
+     17: return r18
+     18: else_9:
+     19: r19 = 1
+     20: return r19
+     21: else_7:
+     22: TRUE_SMC_LOAD ; Load from anchor ptr1$imm0
+     23: r21 = 1
+     24: r22 = r20 + r21
+     25: r25 = r23 + r24
+     26: TRUE_SMC_LOAD ; Load from anchor ptr2$imm0
+     27: r24 = 1
+     28: TRUE_SMC_LOAD ; Load from anchor count$imm0
+     29: r27 = 1
+     30: r28 = r26 - r27
+     31: store count, r28
+     32: store ptr1, r22
+     33: store ptr2, r25
+     34: jump loop_5
+     35: end_loop_6:
+     36: r29 = 0
+     37: return r29
+

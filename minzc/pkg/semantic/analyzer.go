@@ -2994,16 +2994,13 @@ func (a *Analyzer) analyzeWhileStmt(whileStmt *ast.WhileStmt, irFunc *ir.Functio
 	return nil
 }
 
-// analyzeForStmt analyzes a for-in statement
+// analyzeForStmt analyzes a for-in statement with DJNZ optimization
 func (a *Analyzer) analyzeForStmt(forStmt *ast.ForStmt, irFunc *ir.Function) error {
 	// Enter new scope for loop variable
 	prevScope := a.currentScope
 	a.currentScope = NewScope(a.currentScope)
 	defer func() { a.currentScope = prevScope }()
-	
-	// Note: We don't need to analyze the whole range expression,
-	// just check its structure
-	
+
 	// Check if the range is a binary expression with ".." operator
 	binExpr, ok := forStmt.Range.(*ast.BinaryExpr)
 	if !ok {
@@ -3012,22 +3009,114 @@ func (a *Analyzer) analyzeForStmt(forStmt *ast.ForStmt, irFunc *ir.Function) err
 	if binExpr.Operator != ".." {
 		return fmt.Errorf("for loop requires '..' operator, got '%s'", binExpr.Operator)
 	}
-	
+
+	// Try to extract constant bounds for DJNZ optimization
+	startConst, startIsConst := a.getConstantValue(binExpr.Left)
+	endConst, endIsConst := a.getConstantValue(binExpr.Right)
+
+	// Check if we can use DJNZ optimization:
+	// - Start must be 0 (or we need index transformation)
+	// - End must be constant and <= 255
+	// - Loop body must not modify the iterator (checked later)
+	useDJNZ := startIsConst && endIsConst &&
+	           startConst == 0 && endConst > 0 && endConst <= 255
+
+	if useDJNZ {
+		return a.analyzeForStmtDJNZ(forStmt, irFunc, int(endConst))
+	}
+
+	// Fall back to standard comparison loop
+	return a.analyzeForStmtStandard(forStmt, binExpr, irFunc)
+}
+
+// analyzeForStmtDJNZ generates an optimized DJNZ loop for 0..N ranges
+func (a *Analyzer) analyzeForStmtDJNZ(forStmt *ast.ForStmt, irFunc *ir.Function, count int) error {
+	iteratorType := &ir.BasicType{Kind: ir.TypeU8}
+
+	// Add optimization comment
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpNop,
+		Comment: fmt.Sprintf("DJNZ OPTIMIZED: for %s in 0..%d", forStmt.Iterator, count),
+	})
+
+	// Allocate registers
+	counterReg := irFunc.AllocReg()  // B register for DJNZ (counts down)
+	iteratorReg := irFunc.AllocReg() // User-visible iterator (counts up)
+
+	// Define loop variable in scope
+	a.currentScope.Define(forStmt.Iterator, &VarSymbol{
+		Name:      forStmt.Iterator,
+		Type:      iteratorType,
+		Reg:       iteratorReg,
+		IsMutable: false, // DJNZ loops shouldn't modify iterator
+	})
+
+	// Initialize counter (B register) with loop count
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpLoadConst,
+		Dest:    counterReg,
+		Imm:     int64(count),
+		Type:    iteratorType,
+		Hint:    ir.RegHintB, // Hint for B register (DJNZ)
+		Comment: fmt.Sprintf("DJNZ counter = %d", count),
+	})
+
+	// Initialize user iterator to 0
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpLoadConst,
+		Dest:    iteratorReg,
+		Imm:     0,
+		Type:    iteratorType,
+		Comment: fmt.Sprintf("Initialize %s = 0", forStmt.Iterator),
+	})
+
+	// Loop label
+	loopLabel := a.generateLabel("djnz_loop")
+	irFunc.EmitLabel(loopLabel)
+
+	// Generate body
+	if err := a.analyzeBlock(forStmt.Body, irFunc); err != nil {
+		return err
+	}
+
+	// Increment user-visible iterator
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpInc,
+		Dest:    iteratorReg,
+		Src1:    iteratorReg,
+		Type:    iteratorType,
+		Comment: fmt.Sprintf("Increment %s", forStmt.Iterator),
+	})
+
+	// DJNZ instruction - decrement counter and jump if not zero
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpDJNZ,
+		Src1:    counterReg,
+		Label:   loopLabel,
+		Hint:    ir.RegHintB,
+		Comment: "DJNZ - decrement B and loop",
+	})
+
+	return nil
+}
+
+// analyzeForStmtStandard generates a standard comparison loop
+func (a *Analyzer) analyzeForStmtStandard(forStmt *ast.ForStmt, binExpr *ast.BinaryExpr, irFunc *ir.Function) error {
 	// Analyze start and end expressions
 	startReg, err := a.analyzeExpression(binExpr.Left, irFunc)
 	if err != nil {
 		return fmt.Errorf("error analyzing range start: %w", err)
 	}
-	
+
 	endReg, err := a.analyzeExpression(binExpr.Right, irFunc)
 	if err != nil {
 		return fmt.Errorf("error analyzing range end: %w", err)
 	}
-	
+
 	// Create loop variable
 	iteratorReg := irFunc.AllocReg()
-	iteratorType := &ir.BasicType{Kind: ir.TypeU8} // Default to u8 for now
-	
+	iteratorType := &ir.BasicType{Kind: ir.TypeU8}
+
 	// Define loop variable in scope
 	a.currentScope.Define(forStmt.Iterator, &VarSymbol{
 		Name:      forStmt.Iterator,
@@ -3035,7 +3124,7 @@ func (a *Analyzer) analyzeForStmt(forStmt *ast.ForStmt, irFunc *ir.Function) err
 		Reg:       iteratorReg,
 		IsMutable: true,
 	})
-	
+
 	// Initialize iterator with start value
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:   ir.OpMove,
@@ -3044,14 +3133,14 @@ func (a *Analyzer) analyzeForStmt(forStmt *ast.ForStmt, irFunc *ir.Function) err
 		Type: iteratorType,
 		Comment: fmt.Sprintf("Initialize loop variable %s", forStmt.Iterator),
 	})
-	
+
 	// Generate loop structure
 	loopLabel := a.generateLabel("for_loop")
 	endLabel := a.generateLabel("for_end")
-	
+
 	// Loop start
 	irFunc.EmitLabel(loopLabel)
-	
+
 	// Check if iterator < end
 	condReg := irFunc.AllocReg()
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
@@ -3062,44 +3151,56 @@ func (a *Analyzer) analyzeForStmt(forStmt *ast.ForStmt, irFunc *ir.Function) err
 		Type: &ir.BasicType{Kind: ir.TypeBool},
 		Comment: fmt.Sprintf("Check %s < end", forStmt.Iterator),
 	})
-	
+
 	// Jump to end if condition is false
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:    ir.OpJumpIfNot,
 		Src1:  condReg,
 		Label: endLabel,
 	})
-	
+
 	// Generate body
 	if err := a.analyzeBlock(forStmt.Body, irFunc); err != nil {
 		return err
 	}
-	
+
 	// Increment iterator
-	oneReg := irFunc.AllocReg()
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpLoadConst,
-		Dest: oneReg,
-		Imm:  1,
-		Type: iteratorType,
-	})
-	
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:   ir.OpAdd,
-		Dest: iteratorReg,
-		Src1: iteratorReg,
-		Src2: oneReg,
-		Type: iteratorType,
+		Op:      ir.OpInc,
+		Dest:    iteratorReg,
+		Src1:    iteratorReg,
+		Type:    iteratorType,
 		Comment: fmt.Sprintf("Increment %s", forStmt.Iterator),
 	})
-	
+
 	// Jump back to loop
 	irFunc.EmitJump(loopLabel)
-	
+
 	// End label
 	irFunc.EmitLabel(endLabel)
-	
+
 	return nil
+}
+
+// getConstantValue extracts a constant integer value from an expression
+func (a *Analyzer) getConstantValue(expr ast.Expression) (int64, bool) {
+	switch e := expr.(type) {
+	case *ast.NumberLiteral:
+		return e.Value, true
+	case *ast.Identifier:
+		// Check if identifier is a known constant
+		if sym := a.currentScope.Lookup(e.Name); sym != nil {
+			if constSym, ok := sym.(*ConstSymbol); ok {
+				if v, ok := constSym.Value.(int64); ok {
+					return v, true
+				}
+				if v, ok := constSym.Value.(int); ok {
+					return int64(v), true
+				}
+			}
+		}
+	}
+	return 0, false
 }
 
 // analyzeAsmStmt analyzes an inline assembly statement

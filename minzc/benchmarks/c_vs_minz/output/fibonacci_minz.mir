@@ -1,0 +1,42 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8(n: u8) -> u8
+  @smc
+  @recursive
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      5: return r5
+      6: else_1:
+      7: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      8: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      9: PATCH_TEMPLATE
+     10: PATCH_TARGET
+     11: PATCH_PARAM
+     12: r12 = call .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8
+     13: TRUE_SMC_LOAD ; Load from anchor n$imm0
+     14: TRUE_SMC_LOAD ; Load from anchor n$imm0
+     15: PATCH_TEMPLATE
+     16: PATCH_TARGET
+     17: PATCH_PARAM
+     18: r19 = call .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8
+     19: r20 = r12 + r19
+     20: return r20
+
+Function .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.main() -> void
+  @smc
+  @recursive
+  Locals:
+    r1 = result: u8
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: r4 = call .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8
+      4: store result, r4
+      5: return
+

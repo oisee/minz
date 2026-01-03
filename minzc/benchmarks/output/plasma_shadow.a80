@@ -1,0 +1,811 @@
+; MinZ generated code
+; Generated: 2026-01-03 12:16:35
+
+
+; Data section
+    ORG $F000
+
+.home.alice.dev.minz.examples.plasma_shadow.phase1:
+    DB 0
+.home.alice.dev.minz.examples.plasma_shadow.phase2:
+    DB 0
+.home.alice.dev.minz.examples.plasma_shadow.current_screen:
+    DB 0
+.home.alice.dev.minz.examples.plasma_shadow.sin_table:
+    DS 256
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_shadow.init_sine
+shadow_init_sine:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 256
+    LD HL, 256
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; Initialize loop variable i
+    ; for_loop_1:
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_for_loop_1:
+    ; Check i < end
+    ; 8-bit less-than comparison
+    LD A, B    ; Eliminated redundant LD B,A
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD C, A
+    LD A, B       ; A = Src1
+    CP C          ; Compare Src1 with Src2
+    JR C, _home_alice_dev_minz_examples_plasma_shadow_init_sine_lt_true_0      ; Carry = Src1 < Src2
+    LD HL, 0       ; False
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_lt_done_0
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_lt_true_0:
+    LD HL, 1       ; True
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_lt_done_0:
+    ; jump_if_not r4, for_end_2
+    LD A, C
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_for_end_2   ; Test for zero
+    ; r10 = r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; r14 = r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; r16 = 0
+    XOR A        ; MIR hint: zero via XOR
+    EXX               ; Switch to shadow registers
+    LD B, A         ; Store to shadow B' (now active)
+    EXX               ; Switch back to main registers
+    ; test r17
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; store pos, r14
+    LD A, E
+    LD ($F016), A
+    ; store val, r16
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F01E), A
+    ; store quadrant, r10
+    LD A, D
+    LD ($F00A), A
+    ; jump_if_not r19, else_3
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_else_3   ; Test for zero
+    ; r20 = load pos
+    LD A, ($F016)
+    LD L, A         ; Store to physical register L
+    ; r22 = r20 >> r0
+    ; Shift right
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_1
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_1:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_1
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_1
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_1:
+    LD L, A
+    LD H, 0
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; r22 = r20 >> r0
+    ; Shift right
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_2
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_2:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_2
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_2
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_2:
+    LD L, A
+    LD H, 0
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; r22 = r20 >> r0
+    ; Shift right
+    LD A, L
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_3
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_3:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_3
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_3
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_3:
+    LD L, A
+    LD H, 0
+    LD ($F02C), HL    ; Virtual register 22 to memory
+    ; store val, r22
+    LD A, ($F02C)     ; Virtual register 22 from memory
+    LD ($F01E), A
+    ; jump end_if_4
+    JP _home_alice_dev_minz_examples_plasma_shadow_init_sine_end_if_4
+    ; else_3:
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_else_3:
+    ; end_if_4:
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_end_if_4:
+    ; r23 = load quadrant
+    LD A, ($F00A)
+    LD L, A         ; Store to physical register L
+    ; r24 = 1
+    LD A, 1
+    LD ($F030), A     ; Virtual register 24 to memory
+    ; r25 = r23 == r24
+    ; 8-bit equality comparison
+    LD A, L
+    LD B, A
+    LD A, ($F030)     ; Virtual register 24 from memory
+    CP B           ; Compare A with B
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_true_4
+    LD HL, 0       ; False
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_done_4
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_true_4:
+    LD HL, 1       ; True
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_done_4:
+    ; jump_if_not r25, else_5
+    LD A, H
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_else_5   ; Test for zero
+    ; r26 = 63
+    LD A, 63
+    LD L, A         ; Store to physical register L
+    ; r27 = load pos
+    LD A, ($F016)
+    LD ($F036), A     ; Virtual register 27 to memory
+    ; r28 = r26 - r27
+    LD HL, ($F036)    ; Virtual register 27 from memory
+    EX DE, HL
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; r30 = r28 >> r0
+    ; Shift right
+    LD A, H
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_5
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_5:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_5
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_5
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_5:
+    LD L, A
+    LD H, 0
+    ; r30 = r28 >> r0
+    ; Shift right
+    LD A, H
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_6
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_6:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_6
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_6
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_6:
+    LD L, A
+    LD H, 0
+    ; r30 = r28 >> r0
+    ; Shift right
+    LD A, H
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_7
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_7:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_7
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_7
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_7:
+    LD L, A
+    LD H, 0
+    ; store val, r30
+    LD A, L
+    LD ($F01E), A
+    ; jump end_if_6
+    JP _home_alice_dev_minz_examples_plasma_shadow_init_sine_end_if_6
+    ; else_5:
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_else_5:
+    ; end_if_6:
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_end_if_6:
+    ; r31 = load quadrant
+    LD A, ($F00A)
+    LD ($F03E), A     ; Virtual register 31 to memory
+    ; r32 = 2
+    LD A, 2
+    LD H, A         ; Store to physical register H
+    ; r33 = r31 == r32
+    ; 8-bit equality comparison
+    LD A, ($F03E)     ; Virtual register 31 from memory
+    LD B, A
+    LD A, H
+    CP B           ; Compare A with B
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_true_8
+    LD HL, 0       ; False
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_done_8
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_true_8:
+    LD HL, 1       ; True
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_done_8:
+    ; jump_if_not r33, else_7
+    LD A, L
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_else_7   ; Test for zero
+    ; r34 = load pos
+    LD A, ($F016)
+    LD ($F044), A     ; Virtual register 34 to memory
+    ; r36 = r34 >> r0
+    ; Shift right
+    LD A, ($F044)     ; Virtual register 34 from memory
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_9
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_9:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_9
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_9
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_9:
+    LD L, A
+    LD H, 0
+    ; r36 = r34 >> r0
+    ; Shift right
+    LD A, ($F044)     ; Virtual register 34 from memory
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_10
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_10:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_10
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_10
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_10:
+    LD L, A
+    LD H, 0
+    ; r36 = r34 >> r0
+    ; Shift right
+    LD A, ($F044)     ; Virtual register 34 from memory
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_11
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_11:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_11
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_11
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_11:
+    LD L, A
+    LD H, 0
+    ; store val, r36
+    LD A, H
+    LD ($F01E), A
+    ; jump end_if_8
+    JP _home_alice_dev_minz_examples_plasma_shadow_init_sine_end_if_8
+    ; else_7:
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_else_7:
+    ; end_if_8:
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_end_if_8:
+    ; r37 = load quadrant
+    LD A, ($F00A)
+    LD L, A         ; Store to physical register L
+    ; r38 = 3
+    LD A, 3
+    LD ($F04C), A     ; Virtual register 38 to memory
+    ; r39 = r37 == r38
+    ; 8-bit equality comparison
+    LD A, L
+    LD B, A
+    LD A, ($F04C)     ; Virtual register 38 from memory
+    CP B           ; Compare A with B
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_true_12
+    LD HL, 0       ; False
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_done_12
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_true_12:
+    LD HL, 1       ; True
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_eq_done_12:
+    ; jump_if_not r39, else_9
+    LD A, H
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_else_9   ; Test for zero
+    ; r40 = 63
+    LD A, 63
+    LD L, A         ; Store to physical register L
+    ; r41 = load pos
+    LD A, ($F016)
+    LD ($F052), A     ; Virtual register 41 to memory
+    ; r42 = r40 - r41
+    LD HL, ($F052)    ; Virtual register 41 from memory
+    EX DE, HL
+    OR A          ; Clear carry
+    SBC HL, DE    ; HL = Src1 - Src2
+    ; r44 = r42 >> r0
+    ; Shift right
+    LD A, H
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_13
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_13:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_13
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_13
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_13:
+    LD L, A
+    LD H, 0
+    ; r44 = r42 >> r0
+    ; Shift right
+    LD A, H
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_14
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_14:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_14
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_14
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_14:
+    LD L, A
+    LD H, 0
+    ; r44 = r42 >> r0
+    ; Shift right
+    LD A, H
+    LD B, A       ; B = value to shift
+    LD A, ($F000)     ; Virtual register 0 from memory
+    LD C, A       ; C = shift count
+    LD A, B       ; A = value
+    OR A          ; Clear carry
+    JR Z, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_15
+    LD B, C       ; B = counter
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_15:
+    DEC B
+    JP M, _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_15
+    SRL A         ; Shift right, 0 into bit 7
+    JR _home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_loop_15
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_shr_done_15:
+    LD L, A
+    LD H, 0
+    ; store val, r44
+    LD A, L
+    LD ($F01E), A
+    ; jump end_if_10
+    JP _home_alice_dev_minz_examples_plasma_shadow_init_sine_end_if_10
+    ; else_9:
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_else_9:
+    ; end_if_10:
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_end_if_10:
+    ; Store to array[index] (u8)
+    ; Register 48 already in HL
+    PUSH HL
+    LD A, H
+    POP HL
+    LD (HL), A
+    ; Increment i
+    ; Register 3 already in A
+    INC A
+    ; Register 3 already in A
+    ; jump for_loop_1
+    JP _home_alice_dev_minz_examples_plasma_shadow_init_sine_for_loop_1
+    ; for_end_2:
+_home_alice_dev_minz_examples_plasma_shadow_init_sine_for_end_2:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_shadow.cls_all
+shadow_cls_all:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Clear main screen bitmap
+    LD HL, 0x4000
+    LD DE, 0x4001
+    LD BC, 6143
+    LD (HL), 0
+    LDIR
+    ; Clear main screen attributes
+    LD HL, 0x5800
+    LD DE, 0x5801
+    LD BC, 767
+    LD (HL), 0x47      ; White INK on white PAPER (invisible)
+    LDIR
+    ; Switch to bank 7 for shadow screen
+    LD A, 0x17         ; Bank 7, screen 0
+    LD BC, 0x7FFD
+    OUT (C), A
+    ; Clear shadow screen bitmap
+    LD HL, 0xC000
+    LD DE, 0xC001
+    LD BC, 6143
+    LD (HL), 0
+    LDIR
+    ; Clear shadow screen attributes
+    LD HL, 0xD800
+    LD DE, 0xD801
+    LD BC, 767
+    LD (HL), 0x47
+    LDIR
+    ; Switch back to bank 0
+    LD A, 0x10
+    LD BC, 0x7FFD
+    OUT (C), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_shadow.select_shadow_screen
+select_shadow_screen:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    LD A, 0x17         ; Bank 7 + screen 0 displayed
+    LD BC, 0x7FFD
+    OUT (C), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_shadow.select_main_screen
+select_main_screen:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    LD A, 0x10         ; Bank 0 + screen 0 displayed
+    LD BC, 0x7FFD
+    OUT (C), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_shadow.flip_display
+shadow_flip_display:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; test r1
+    ; Register 1 already in HL
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; jump_if_not r3, else_11
+    LD A, L
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_shadow_flip_display_else_11   ; Test for zero
+    LD A, 0x1F     ; Bank 7 + screen 1 (shadow) displayed
+    LD BC, 0x7FFD
+    OUT (C), A
+    ; r4 = 1
+    LD A, 1
+    LD H, A         ; Store to physical register H
+    ; store current_screen, r4
+    LD ($F000), HL
+    ; jump end_if_12
+    JP _home_alice_dev_minz_examples_plasma_shadow_flip_display_end_if_12
+    ; else_11:
+_home_alice_dev_minz_examples_plasma_shadow_flip_display_else_11:
+    LD A, 0x10     ; Bank 0 + screen 0 (main) displayed
+    LD BC, 0x7FFD
+    OUT (C), A
+    ; r5 = 0
+    XOR A        ; MIR hint: zero via XOR
+    LD L, A         ; Store to physical register L
+    ; end_if_12:
+_home_alice_dev_minz_examples_plasma_shadow_flip_display_end_if_12:
+    ; store current_screen, r5
+    LD ($F000), HL
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_shadow.poke$u16$u8
+poke_u16_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    POP HL          ; return address
+    POP DE          ; addr
+    POP BC          ; val in C
+    PUSH HL         ; restore return
+    LD A, C
+    LD (DE), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_shadow.render_plasma
+shadow_render_plasma:
+; IsSMCDefault=false, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; test r1
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; jump_if_not r3, else_13
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_shadow_render_plasma_else_13   ; Test for zero
+    LD A, 0x17         ; Bank 7 + screen 0 displayed
+    LD BC, 0x7FFD
+    OUT (C), A
+    ; jump end_if_14
+    JP _home_alice_dev_minz_examples_plasma_shadow_render_plasma_end_if_14
+    ; else_13:
+_home_alice_dev_minz_examples_plasma_shadow_render_plasma_else_13:
+    LD A, 0x10         ; Bank 0 + screen 0 displayed
+    LD BC, 0x7FFD
+    OUT (C), A
+    ; end_if_14:
+_home_alice_dev_minz_examples_plasma_shadow_render_plasma_end_if_14:
+    ; r7 = 22528
+    LD HL, 22528
+    LD ($F00E), HL    ; Virtual register 7 to memory
+    ; store base, r7
+    LD HL, ($F00E)    ; Virtual register 7 from memory
+    LD ($F00C), HL
+    ; r9 = load .home.alice.dev.minz.examples.plasma_shadow.phase1
+    LD HL, ($F000)
+    ; store y_angle, r9
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F010), A
+    ; r11 = load base
+    LD HL, ($F00C)
+    ; Register 11 already in HL
+    ; DJNZ OPTIMIZED: for row in 0..24
+    NOP
+    ; djnz_loop_15:
+_home_alice_dev_minz_examples_plasma_shadow_render_plasma_djnz_loop_15:
+    ; store ptr, r11
+    ; Register 11 already in HL
+    LD ($F014), HL
+    ; r15 = load .home.alice.dev.minz.examples.plasma_shadow.phase2
+    LD HL, ($F020)
+    ; Register 15 already in HL
+    ; DJNZ OPTIMIZED: for col in 0..32
+    NOP
+    ; djnz_loop_16:
+_home_alice_dev_minz_examples_plasma_shadow_render_plasma_djnz_loop_16:
+    ; r19 = addr(.home.alice.dev.minz.examples.plasma_shadow.sin_table)
+    LD HL, .home.alice.dev.minz.examples.plasma_shadow.sin_table
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; r23 = addr(.home.alice.dev.minz.examples.plasma_shadow.sin_table)
+    LD HL, .home.alice.dev.minz.examples.plasma_shadow.sin_table
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; r27 = addr(.home.alice.dev.minz.examples.plasma_shadow.sin_table)
+    LD HL, .home.alice.dev.minz.examples.plasma_shadow.sin_table
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r39 = r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; store wave1, r21
+    LD A, L
+    LD ($F024), A
+    ; store x_angle, r15
+    LD A, L
+    LD ($F01C), A
+    ; store wave3, r31
+    LD A, H
+    LD ($F034), A
+    ; store wave2, r25
+    LD A, L
+    LD ($F02C), A
+    ; store color, r39
+    LD A, H
+    LD ($F040), A
+    ; r42 = load color
+    LD A, ($F040)
+    LD L, A         ; Store to physical register L
+    ; r44 = r42 << r0
+    ; Shift left by 1 (optimized, Imm)
+    LD A, L
+    ADD A, A     ; Optimized: was SLA A (faster)
+    LD L, A
+    LD H, 0       ; Clear H for 8-bit result in HL
+    LD ($F058), HL    ; Virtual register 44 to memory
+    ; r44 = r42 << r0
+    ; Shift left by 1 (optimized, Imm)
+    LD A, L
+    ADD A, A     ; Optimized: was SLA A (faster)
+    LD L, A
+    LD ($F058), HL    ; Virtual register 44 to memory
+    ; r44 = r42 << r0
+    ; Shift left by 1 (optimized, Imm)
+    LD A, L
+    ADD A, A     ; Optimized: was SLA A (faster)
+    LD L, A
+    LD ($F058), HL    ; Virtual register 44 to memory
+    POP HL          ; return address
+    POP DE          ; addr
+    POP BC          ; val in C
+    PUSH HL         ; restore return
+    LD A, C
+    LD (DE), A
+    ; store attr, r44
+    LD A, ($F058)     ; Virtual register 44 from memory
+    LD ($F050), A
+    ; r51 = load ptr
+    LD HL, ($F014)
+    ; store ptr, r51
+    LD ($F014), HL
+    ; r54 = load x_angle
+    LD A, ($F01C)
+    LD H, A         ; Store to physical register H
+    ; Increment col
+    LD A, L
+    INC A
+    LD L, A         ; Store to physical register L
+    ; DJNZ - decrement B and loop
+    LD A, ($F020)     ; Virtual register 16 from memory
+    LD B, A
+    DJNZ _home_alice_dev_minz_examples_plasma_shadow_render_plasma_djnz_loop_16
+    LD A, B
+    LD ($F020), A     ; Virtual register 16 to memory
+    ; store x_angle, r54
+    LD A, H
+    LD ($F01C), A
+    ; r57 = load y_angle
+    LD A, ($F010)
+    LD H, A         ; Store to physical register H
+    ; Increment row
+    LD A, L
+    INC A
+    LD L, A         ; Store to physical register L
+    ; DJNZ - decrement B and loop
+    LD A, L
+    LD B, A
+    DJNZ _home_alice_dev_minz_examples_plasma_shadow_render_plasma_djnz_loop_15
+    LD A, B
+    LD L, A         ; Store to HL (low byte)
+    ; store y_angle, r57
+    LD A, H
+    LD ($F010), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_shadow.main
+plasma_shadow_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    DI
+    ; r1 = call .home.alice.dev.minz.examples.plasma_shadow.init_sine
+    ; Call to .home.alice.dev.minz.examples.plasma_shadow.init_sine (args: 0)
+    CALL shadow_init_sine
+    ; Clear main screen bitmap
+    LD HL, 0x4000
+    LD DE, 0x4001
+    LD BC, 6143
+    LD (HL), 0
+    LDIR
+    ; Clear main screen attributes
+    LD HL, 0x5800
+    LD DE, 0x5801
+    LD BC, 767
+    LD (HL), 0x47      ; White INK on white PAPER (invisible)
+    LDIR
+    ; Switch to bank 7 for shadow screen
+    LD A, 0x17         ; Bank 7, screen 0
+    LD BC, 0x7FFD
+    OUT (C), A
+    ; Clear shadow screen bitmap
+    LD HL, 0xC000
+    LD DE, 0xC001
+    LD BC, 6143
+    LD (HL), 0
+    LDIR
+    ; Clear shadow screen attributes
+    LD HL, 0xD800
+    LD DE, 0xD801
+    LD BC, 767
+    LD (HL), 0x47
+    LDIR
+    ; Switch back to bank 0
+    LD A, 0x10
+    LD BC, 0x7FFD
+    OUT (C), A
+    EI
+    ; loop_17:
+_home_alice_dev_minz_examples_plasma_shadow_main_loop_17:
+    HALT
+    ; r4 = load .home.alice.dev.minz.examples.plasma_shadow.phase1
+    LD HL, ($F000)
+    ; store phase1, r4
+    LD ($F000), HL
+    ; r7 = load .home.alice.dev.minz.examples.plasma_shadow.phase2
+    LD HL, ($F020)
+    ; Register 7 already in HL
+    ; store phase2, r7
+    ; Register 7 already in HL
+    LD ($F000), HL
+    ; r10 = call .home.alice.dev.minz.examples.plasma_shadow.render_plasma
+    ; Call to .home.alice.dev.minz.examples.plasma_shadow.render_plasma (args: 0)
+    CALL shadow_render_plasma
+    ; r11 = call .home.alice.dev.minz.examples.plasma_shadow.flip_display
+    ; Call to .home.alice.dev.minz.examples.plasma_shadow.flip_display (args: 0)
+    CALL shadow_flip_display
+    ; jump loop_17
+    JP _home_alice_dev_minz_examples_plasma_shadow_main_loop_17
+    POP DE
+    POP BC
+    RET
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main
+
+
+; Assembly peephole optimization: 5 patterns applied

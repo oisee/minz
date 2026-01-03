@@ -1,0 +1,20 @@
+// 16-bit arithmetic in MinZ
+// Equivalent to arithmetic.c
+
+fun add16(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+fun sub16(a: u16, b: u16) -> u16 {
+    return a - b;
+}
+
+fun mul8(a: u8, b: u8) -> u16 {
+    return a * b;
+}
+
+fun main() -> void {
+    let x: u16 = add16(1000, 2000);
+    let y: u16 = sub16(5000, 1000);
+    let z: u16 = mul8(25, 10);
+}

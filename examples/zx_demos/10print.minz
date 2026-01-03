@@ -1,179 +1,66 @@
-// 10PRINT - Classic Maze Generator for ZX Spectrum
-// MinZ implementation inspired by ZXSpeculator/Experiments
-// Original C version by @DeanTheCoder
+// 10PRINT Effect - MinZ Idiomatic Version
+// Classic maze pattern using zero-cost abstractions
 //
-// The classic one-liner from C64: 10 PRINT CHR$(205.5+RND(1)); : GOTO 10
-// Draws forward and backward slashes to create maze-like patterns
+// C version uses: for loops, rand(), plot(), drawr()
+// MinZ version uses: DJNZ-optimized loops, inline RNG, direct screen access
 
-import common.zx_graphics as gfx
-import common.zx_random as rnd
+const ATTR_MEM: u16 = 22528;
+const SCREEN_MEM: u16 = 16384;
+const BLUE: u8 = 1;
 
-// Configuration
-const CELL_SIZE: u8 = 8;
-const COLS: u8 = 32;        // 256 / 8
-const ROWS: u8 = 24;        // 192 / 8
+// LFSR random - inlined for zero overhead
+global seed: u16 = 0xACE1;
 
-// Main entry point
+@inline
+fun rand_bit() -> u8 {
+    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) & 1;
+    seed = (seed >> 1) | (bit << 15);
+    return bit;
+}
+
+// Plot pixel - direct screen calculation
+@inline  
+fun plot(x: u8, y: u8) -> void {
+    let addr: u16 = SCREEN_MEM;
+    addr = addr + ((y & 0xC0) << 5);
+    addr = addr + ((y & 0x38) << 2);
+    addr = addr + ((y & 0x07) << 8);
+    addr = addr + (x >> 3);
+    let mask: u8 = 0x80 >> (x & 7);
+    let ptr: *u8 = addr;
+    *ptr = *ptr | mask;
+}
+
+// Draw diagonals - DJNZ loops for 8 pixels each
+@inline
+fun draw_slash(x: u8, y: u8) -> void {
+    for i in 0..8 { plot(x + i, y + i); }
+}
+
+@inline
+fun draw_backslash(x: u8, y: u8) -> void {
+    for i in 0..8 { plot(x + 7 - i, y + i); }
+}
+
+fun clear_screen() -> void {
+    let ptr: *u8 = SCREEN_MEM;
+    for block in 0..24 {
+        for i in 0..255 { *ptr = 0; ptr = ptr + 1; }
+    }
+}
+
+// Main - nested DJNZ loops for 24x32 grid
 fun main() -> void {
-    // Initialize
-    gfx.border(gfx.BLUE);
-    gfx.cls();
-    gfx.cls_attr(gfx.attr(gfx.CYAN, gfx.BLUE));
-
-    // Seed from R register for variety
-    rnd.seed_from_r();
-
-    // Main loop - redraw on each iteration
-    while true {
-        draw_maze();
-        fill_random_areas();
-
-        // Wait for key (simplified - just delay)
-        delay_frames(60);  // ~1 second
-
-        gfx.cls();
-    }
-}
-
-// Draw the maze pattern
-fun draw_maze() -> void {
-    for row in 0..ROWS {
-        let y = row * CELL_SIZE;
-
-        for col in 0..COLS {
-            let x = col * CELL_SIZE;
-
-            // Random choice: forward slash or backslash
-            if rnd.next_bit() == 0 {
-                draw_forward_slash(x, y);
-            } else {
-                draw_back_slash(x, y);
+    clear_screen();
+    
+    loop {
+        for row in 0..24 {
+            let y: u8 = row << 3;
+            for col in 0..32 {
+                let x: u8 = col << 3;
+                if rand_bit() == 0 { draw_slash(x, y); }
+                else { draw_backslash(x, y); }
             }
-        }
-    }
-}
-
-// Draw forward slash: top-left to bottom-right
-// Pattern: \.
-//           \.
-//            \.
-@inline fun draw_forward_slash(x: u8, y: u8) -> void {
-    // Offset by 1 for visual appeal (like original)
-    let x0 = x + 1;
-    let y0 = y;
-
-    // Draw 8 pixels diagonally
-    for i in 0..8 {
-        gfx.set_pixel(x0 + i, y0 + i);
-    }
-
-    // Double line for thickness
-    for i in 0..8 {
-        gfx.set_pixel(x + i, y + 1 + i);
-    }
-}
-
-// Draw backslash: top-right to bottom-left
-// Pattern: ./
-//         ./
-//        ./
-@inline fun draw_back_slash(x: u8, y: u8) -> void {
-    let x0 = x + 7;
-    let y0 = y;
-
-    // Draw 8 pixels diagonally (going left)
-    for i in 0..8 {
-        gfx.set_pixel(x0 - i, y0 + i);
-    }
-
-    // Double line for thickness
-    for i in 0..8 {
-        gfx.set_pixel(x + 8 - i, y + 1 + i);
-    }
-}
-
-// Fill random enclosed areas (like original)
-fun fill_random_areas() -> void {
-    let filled: u8 = 0;
-
-    while filled < 8 {
-        // Random position
-        let x = rnd.next_u8();
-        let y = rnd.range(0, 192);
-
-        // Only fill if pixel is empty and has neighbors
-        if !gfx.get_pixel(x, y) {
-            // Check if enclosed (simplified check)
-            let has_neighbors =
-                gfx.get_pixel(x + 1, y) ||
-                gfx.get_pixel(x, y + 1) ||
-                gfx.get_pixel(x, y - 1);
-
-            if has_neighbors {
-                flood_fill(x, y);
-                filled = filled + 1;
-            }
-        }
-    }
-}
-
-// Simple flood fill
-fun flood_fill(start_x: u8, start_y: u8) -> void {
-    // Stack-based fill (limited depth for Z80)
-    let stack_x: [u8; 64];
-    let stack_y: [u8; 64];
-    let stack_ptr: u8 = 0;
-
-    // Push starting point
-    stack_x[0] = start_x;
-    stack_y[0] = start_y;
-    stack_ptr = 1;
-
-    while stack_ptr > 0 {
-        // Pop
-        stack_ptr = stack_ptr - 1;
-        let x = stack_x[stack_ptr];
-        let y = stack_y[stack_ptr];
-
-        // Bounds check
-        if x >= 255 || y >= 191 {
-            continue;
-        }
-
-        // Already filled?
-        if gfx.get_pixel(x, y) {
-            continue;
-        }
-
-        // Fill this pixel
-        gfx.set_pixel(x, y);
-
-        // Push neighbors (if room in stack)
-        if stack_ptr < 60 {
-            stack_x[stack_ptr] = x + 1;
-            stack_y[stack_ptr] = y;
-            stack_ptr = stack_ptr + 1;
-
-            stack_x[stack_ptr] = x - 1;
-            stack_y[stack_ptr] = y;
-            stack_ptr = stack_ptr + 1;
-
-            stack_x[stack_ptr] = x;
-            stack_y[stack_ptr] = y + 1;
-            stack_ptr = stack_ptr + 1;
-
-            stack_x[stack_ptr] = x;
-            stack_y[stack_ptr] = y - 1;
-            stack_ptr = stack_ptr + 1;
-        }
-    }
-}
-
-// Simple frame delay using HALT
-fun delay_frames(frames: u8) -> void {
-    for _ in 0..frames {
-        asm {
-            halt
         }
     }
 }

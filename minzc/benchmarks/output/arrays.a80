@@ -1,0 +1,104 @@
+; MinZ generated code
+; Generated: 2026-01-03 12:16:35
+
+
+; Data section
+    ORG $F000
+
+.home.alice.dev.minz.examples.arrays.numbers:
+    DS 10
+.home.alice.dev.minz.examples.arrays.values:
+    DS 10
+.home.alice.dev.minz.examples.arrays.items:
+    DS 15
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.arrays.main
+examples_arrays_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH DE
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, B
+    POP HL
+    LD (HL), A
+    ; Store to array[index] (u16)
+    LD HL, ($F010)    ; Virtual register 8 from memory
+    PUSH HL
+    ; Could optimize: LD H,D / LD L,E
+    LD H, D
+    LD L, E    ; Removed redundant EX DE,HL after copy
+    POP HL
+    LD (HL), E
+    INC HL
+    LD (HL), D
+    ; r9 = 1
+    LD A, 1
+    LD C, A         ; Store to physical register C
+    ; r10 = addr(.home.alice.dev.minz.examples.arrays.items)
+    LD HL, .home.alice.dev.minz.examples.arrays.items
+    LD B, H
+    LD C, L
+    ; Load array element (.home.alice.dev.minz.examples.arrays.Item)
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    LD H, B
+    LD L, C
+    PUSH HL
+    EXX               ; Switch to shadow registers
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    EXX               ; Switch to shadow registers
+    LD L, A         ; Store to shadow HL' (now active)
+    EXX               ; Switch back to main registers
+    ; r13 = 42
+    LD A, 42
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r14 = addr(.home.alice.dev.minz.examples.arrays.items)
+    LD HL, .home.alice.dev.minz.examples.arrays.items
+    ; Load array element (.home.alice.dev.minz.examples.arrays.Item)
+    PUSH HL
+    LD D, H
+    LD E, L
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    EXX               ; Switch to shadow registers
+    LD E, A         ; Store to shadow E' (now active)
+    EXX               ; Switch back to main registers
+    ; Store to field value (offset 1)
+    INC HL       ; Optimized: ADD HL,1 -> INC HL
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; Store to field id (offset 0)
+    EXX               ; Switch to shadow registers
+    PUSH HL           ; Save shadow HL
+    EXX               ; Switch back to main registers
+    POP HL            ; Load shadow HL into main HL
+    PUSH HL
+    POP DE
+    LD (DE), L
+    INC DE
+    LD (DE), H
+    ; return
+    POP DE
+    RET
+
+    END main
+
+
+; Assembly peephole optimization: 7 patterns applied

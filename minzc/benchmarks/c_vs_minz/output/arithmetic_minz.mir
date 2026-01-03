@@ -1,0 +1,54 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.arithmetic.add16$u16$u16(a: u16, b: u16) -> u16
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      2: r5 = r3 + r4
+      3: return r5
+
+Function .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.arithmetic.sub16$u16$u16(a: u16, b: u16) -> u16
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      2: r5 = r3 - r4
+      3: return r5
+
+Function .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.arithmetic.mul8$u8$u8(a: u8, b: u8) -> u16
+  @smc
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      2: r5 = r3 * r4
+      3: return r5
+
+Function .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.arithmetic.main() -> void
+  @smc
+  Locals:
+    r1 = x: u16
+    r7 = y: u16
+    r13 = z: u16
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: PATCH_PARAM
+      4: r6 = 3000 ; CTIE: Computed at compile-time (was CALL .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.arithmetic.add16$u16$u16)
+      5: PATCH_TEMPLATE
+      6: PATCH_TARGET
+      7: PATCH_PARAM
+      8: PATCH_PARAM
+      9: r12 = 4000 ; CTIE: Computed at compile-time (was CALL .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.arithmetic.sub16$u16$u16)
+     10: PATCH_TEMPLATE
+     11: PATCH_TARGET
+     12: PATCH_PARAM
+     13: PATCH_PARAM
+     14: r18 = 250 ; CTIE: Computed at compile-time (was CALL .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.arithmetic.mul8$u8$u8)
+     15: store z, r18
+     16: store x, r6
+     17: store y, r12
+     18: return
+

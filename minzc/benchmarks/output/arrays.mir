@@ -1,0 +1,25 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   .home.alice.dev.minz.examples.arrays.numbers: [10]u8
+;   .home.alice.dev.minz.examples.arrays.values: [5]u16
+;   .home.alice.dev.minz.examples.arrays.items: [5].home.alice.dev.minz.examples.arrays.Item
+
+Function .home.alice.dev.minz.examples.arrays.main() -> void
+  @smc
+  Instructions:
+      0: r2 = addr(.home.alice.dev.minz.examples.arrays.numbers)
+      1: STORE_PTR ; Store to array[index] (u8)
+      2: r6 = addr(.home.alice.dev.minz.examples.arrays.values)
+      3: STORE_PTR ; Store to array[index] (u16)
+      4: r9 = 1
+      5: r10 = addr(.home.alice.dev.minz.examples.arrays.items)
+      6: LOAD_INDEX ; Load array element (.home.alice.dev.minz.examples.arrays.Item)
+      7: r13 = 42
+      8: r14 = addr(.home.alice.dev.minz.examples.arrays.items)
+      9: LOAD_INDEX ; Load array element (.home.alice.dev.minz.examples.arrays.Item)
+     10: STORE_FIELD ; Store to field value (offset 1)
+     11: STORE_FIELD ; Store to field id (offset 0)
+     12: return
+

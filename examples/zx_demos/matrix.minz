@@ -1,153 +1,64 @@
-// The Matrix - Falling Characters Effect
-// MinZ implementation inspired by ZXSpeculator/Experiments
-// Original C version by @DeanTheCoder
-//
-// Uses attribute-only animation for maximum speed
-// Characters are pre-placed, only colors change
+// Matrix Rain - MinZ with DJNZ scroll optimization
 
-import common.zx_graphics as gfx
-import common.zx_random as rnd
+const ATTR_MEM: u16 = 22528;
+const SCREEN_MEM: u16 = 16384;
+const INK_GREEN: u8 = 4;
+const INK_WHITE: u8 = 7;
+const BRIGHT: u8 = 64;
 
-// Configuration
-const COLS: u8 = 32;
-const ROWS: u8 = 24;
+global colLUT: [u8; 768];
+global scroll_offset: u16 = 0;
+global seed: u16 = 0xBEEF;
 
-// Color gradient for the falling effect
-// From dark green to bright white (trail effect)
-const GRADIENT: [u8; 8] = [
-    0x00,  // Black (faded)
-    0x04,  // Green
-    0x04,  // Green
-    0x44,  // Bright green
-    0x44,  // Bright green
-    0x45,  // Bright green + cyan ink
-    0x47,  // Bright white
-    0x47,  // Bright white (head)
-];
-
-// Column state structure
-struct Column {
-    drop_y: u8,      // Current head position (0-23)
-    speed: u8,       // Fall speed (1-3 rows per frame)
-    length: u8,      // Trail length (4-8)
-    char_offset: u8, // Character variation
+@inline
+fun rand() -> u8 {
+    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) & 1;
+    seed = (seed >> 1) | (bit << 15);
+    return seed & 0xFF;
 }
 
-// Global state
-global columns: [Column; 32];
-global attr_buffer: [u8; 768];  // Shadow buffer for smooth update
+fun init_colors() -> void {
+    let i: u16 = 0;
+    while i < 762 {
+        // Gradient: dark green -> bright white
+        colLUT[i] = INK_GREEN; i = i + 1;
+        colLUT[i] = INK_GREEN; i = i + 1;
+        colLUT[i] = INK_GREEN + BRIGHT; i = i + 1;
+        colLUT[i] = INK_WHITE; i = i + 1;
+        colLUT[i] = INK_WHITE + BRIGHT; i = i + 1;
+        colLUT[i] = 0; i = i + 1;
+        // Random gap
+        let gap: u8 = rand() % 15;
+        while gap > 0 && i < 768 {
+            colLUT[i] = 0;
+            i = i + 1;
+            gap = gap - 1;
+        }
+    }
+}
 
-// Main entry point
+fun init_chars() -> void {
+    let ptr: *u8 = SCREEN_MEM;
+    for cell in 0..736 {
+        *ptr = 0x3A + (rand() % 33);
+        ptr = ptr + 1;
+    }
+}
+
+fun update_rain() -> void {
+    let ptr: *u8 = ATTR_MEM;
+    for col in 0..32 {
+        for row in 0..23 {
+            let idx: u16 = (scroll_offset + col * 23 + row) % 768;
+            *ptr = colLUT[idx];
+            ptr = ptr + 1;
+        }
+    }
+    scroll_offset = (scroll_offset + 1) % 768;
+}
+
 fun main() -> void {
-    // Setup
-    gfx.border(gfx.BLACK);
-    gfx.cls();
-    gfx.cls_attr(gfx.BLACK);
-
-    // Fill screen with random characters (they stay fixed)
-    fill_screen_chars();
-
-    // Initialize column states
-    init_columns();
-
-    // Main loop
-    while true {
-        update_columns();
-        render_attributes();
-        wait_vsync();
-    }
-}
-
-// Fill screen with random characters (done once)
-fun fill_screen_chars() -> void {
-    let screen: *u8 = 0x4000 as *u8;
-
-    for i in 0..6144 {
-        // Random-ish character patterns
-        let char_data = rnd.next_u8();
-        screen[i] = char_data;
-    }
-}
-
-// Initialize column drop states
-fun init_columns() -> void {
-    for i in 0..COLS {
-        columns[i].drop_y = rnd.range(0, 24);
-        columns[i].speed = rnd.range(1, 4);
-        columns[i].length = rnd.range(4, 9);
-        columns[i].char_offset = rnd.next_u8();
-    }
-
-    // Clear attribute buffer
-    for i in 0..768 {
-        attr_buffer[i] = 0;
-    }
-}
-
-// Update all column positions
-fun update_columns() -> void {
-    for col in 0..COLS {
-        let state = &columns[col];
-
-        // Advance drop position
-        state.drop_y = state.drop_y + state.speed;
-
-        // Wrap around when off screen
-        if state.drop_y >= 24 + state.length {
-            state.drop_y = 0;
-            // Randomize speed and length for variety
-            state.speed = rnd.range(1, 4);
-            state.length = rnd.range(4, 9);
-        }
-
-        // Calculate colors for this column
-        render_column(col, state);
-    }
-}
-
-// Render a single column's colors
-fun render_column(col: u8, state: *Column) -> void {
-    let head_y = state.drop_y;
-    let length = state.length;
-
-    for row in 0..ROWS {
-        let idx = row * 32 + col;
-
-        // Calculate distance from head
-        let dist: i16 = head_y as i16 - row as i16;
-
-        if dist >= 0 && dist < length as i16 {
-            // Part of the trail
-            let gradient_idx = (dist * 7) / (length as i16);
-            attr_buffer[idx] = GRADIENT[7 - gradient_idx as u8];
-        } else if dist < 0 && dist > -(length as i16) {
-            // Fading below head (wrapped)
-            let fade_idx = (-dist) as u8;
-            if fade_idx < length {
-                attr_buffer[idx] = GRADIENT[fade_idx / 2];
-            } else {
-                attr_buffer[idx] = 0;
-            }
-        } else {
-            // Dark
-            attr_buffer[idx] = 0;
-        }
-    }
-}
-
-// Blast attribute buffer to screen (fast LDIR)
-fun render_attributes() -> void {
-    asm {
-        ld hl, attr_buffer
-        ld de, 0x5800
-        ld bc, 768
-        ldir
-    }
-}
-
-// Wait for vertical sync (smooth animation)
-fun wait_vsync() -> void {
-    asm {
-        halt
-    }
+    init_colors();
+    init_chars();
+    loop { update_rain(); }
 }

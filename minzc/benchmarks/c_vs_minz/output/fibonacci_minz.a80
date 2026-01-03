@@ -1,0 +1,138 @@
+; MinZ generated code
+; Generated: 2026-01-03 12:15:21
+
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8
+.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8:
+; TRUE SMC function with immediate anchors
+fibonacci_fibonacci_u8_param_n$immOP:
+    LD A, 0        ; n anchor (will be patched)
+fibonacci_fibonacci_u8_param_n$imm0 EQU fibonacci_fibonacci_u8_param_n$immOP+1
+    ; r3 = 1
+    INC A        ; Was LD A, $01 (val prop: $00+1)
+    LD B, A         ; Store to physical register B
+    ; r4 = r2 <= r3
+    ; 8-bit less-or-equal comparison
+    ; Register 2 already in A
+    LD B, A
+    LD A, B
+    LD C, A
+    LD A, B       ; A = Src1
+    CP C          ; Compare Src1 with Src2
+    JR C, _home_alice_dev_minz_minzc_benchmarks_c_vs_minz_fibonacci_fibonacci_u8_le_true_0      ; Carry = Src1 < Src2, so <=
+    JR Z, _home_alice_dev_minz_minzc_benchmarks_c_vs_minz_fibonacci_fibonacci_u8_le_true_0      ; Zero = Src1 == Src2, so <=
+    LD HL, 0       ; False: Src1 > Src2
+    JR _home_alice_dev_minz_minzc_benchmarks_c_vs_minz_fibonacci_fibonacci_u8_le_done_0
+_home_alice_dev_minz_minzc_benchmarks_c_vs_minz_fibonacci_fibonacci_u8_le_true_0:
+    LD HL, 1       ; True
+_home_alice_dev_minz_minzc_benchmarks_c_vs_minz_fibonacci_fibonacci_u8_le_done_0:
+    ; jump_if_not r4, else_1
+    LD A, C
+    OR A
+    JP Z, _home_alice_dev_minz_minzc_benchmarks_c_vs_minz_fibonacci_fibonacci_u8_else_1   ; Test for zero
+    LD A, (n$imm0)    ; Reuse from anchor
+    LD D, A         ; Store to physical register D
+    ; return r5
+    RET
+    ; else_1:
+_home_alice_dev_minz_minzc_benchmarks_c_vs_minz_fibonacci_fibonacci_u8_else_1:
+    ; patch_template store_u8
+    ; Smart patch 'store_u8' for .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_return_patch.op), A
+    ; patch_target temp_result
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_store_addr), HL
+    ; patch_param n
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_param_n+1), A   ; Patch parameter immediate
+    ; === SMC Recursive Context Save ===
+    LD A, (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_param_n)
+    PUSH AF
+    ; === Update SMC Parameters ===
+    CALL .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8
+    ; === SMC Recursive Context Restore ===
+    POP AF
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_param_n), A
+    ; patch_template store_u8
+    ; Smart patch 'store_u8' for .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_return_patch.op), A
+    ; patch_target temp_result
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_store_addr), HL
+    ; patch_param n
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_param_n+1), A   ; Patch parameter immediate
+    ; === SMC Recursive Context Save ===
+    LD A, (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_param_n)
+    PUSH AF
+    ; === Update SMC Parameters ===
+    CALL .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8
+    ; === SMC Recursive Context Restore ===
+    POP AF
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_param_n), A
+    ; r20 = r12 + r19
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; return r20
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.main
+minz_fibonacci_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+; Recursive context handled via stack push/pop of SMC parameters
+    ; patch_template store_u8
+    ; Smart patch 'store_u8' for .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_return_patch
+    LD A, #00               ; NOP opcode
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_return_patch.op), A
+    ; patch_target temp_result
+    ; Patch storage address: temp_result
+    LD HL, temp_result
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_store_addr), HL
+    ; patch_param n
+    ; Patch parameter n = 0
+    LD A, 0               ; Parameter value
+    LD (.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8_param_n+1), A   ; Patch parameter immediate
+    ; r4 = call .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8
+    ; Call to .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8 (args: 1)
+    ; Found function, UsesTrueSMC=true
+    ; TRUE SMC call to .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    LD (fibonacci_fibonacci_u8_param_n$imm0), A        ; Patch n
+    CALL .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8
+    ; store result, r4
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F002), A
+    ; return
+    RET
+
+; TRUE SMC PATCH-TABLE
+; Format: DW anchor_addr, DB size, DB param_tag
+PATCH_TABLE:
+    DW fibonacci_fibonacci_u8_param_n$imm0           ; .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.fibonacci.fibonacci$u8.n
+    DB 1              ; Size in bytes
+    DB 0              ; Reserved for param tag
+    DW 0              ; End of table
+PATCH_TABLE_END:
+
+    END main
+
+
+; Assembly peephole optimization: 2 patterns applied

@@ -1,0 +1,196 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   .home.alice.dev.minz.examples.plasma_simple.phase: u8
+;   .home.alice.dev.minz.examples.plasma_simple.sin_table: [256]u8
+;   .home.alice.dev.minz.examples.plasma_simple.attr_ptr: u16
+
+Function .home.alice.dev.minz.examples.plasma_simple.init_sine() -> void
+  @smc
+  Locals:
+    r5 = q: u8
+    r9 = v: u8
+  Instructions:
+      0: r2 = 256
+      1: r3 = r1 ; Initialize loop variable i
+      2: for_loop_1:
+      3: r4 = r3 < r2 ; Check i < end
+      4: jump_if_not r4, for_end_2
+      5: r6 = load i
+      6: r7 = 192
+      7: r8 = r6 & r7
+      8: r10 = 0
+      9: TEST
+     10: store q, r8
+     11: store v, r10
+     12: jump_if_not r13, else_3
+     13: r14 = load i
+     14: SHR
+     15: SHR
+     16: SHR
+     17: r17 = 7
+     18: r18 = r16 & r17
+     19: store v, r18
+     20: jump end_if_4
+     21: else_3:
+     22: end_if_4:
+     23: r19 = load q
+     24: r20 = 64
+     25: r21 = r19 == r20
+     26: jump_if_not r21, else_5
+     27: r22 = 127
+     28: r23 = load i
+     29: r24 = r22 - r23
+     30: SHR
+     31: SHR
+     32: SHR
+     33: r27 = 7
+     34: r28 = r26 & r27
+     35: store v, r28
+     36: jump end_if_6
+     37: else_5:
+     38: end_if_6:
+     39: r29 = load q
+     40: r30 = 128
+     41: r31 = r29 == r30
+     42: jump_if_not r31, else_7
+     43: r32 = load i
+     44: r33 = 128
+     45: r34 = r32 - r33
+     46: SHR
+     47: SHR
+     48: SHR
+     49: r37 = 7
+     50: r38 = r36 & r37
+     51: store v, r38
+     52: jump end_if_8
+     53: else_7:
+     54: end_if_8:
+     55: r39 = load q
+     56: r40 = 192
+     57: r41 = r39 == r40
+     58: jump_if_not r41, else_9
+     59: r42 = 255
+     60: r43 = load i
+     61: r44 = r42 - r43
+     62: SHR
+     63: SHR
+     64: SHR
+     65: r47 = 7
+     66: r48 = r46 & r47
+     67: store v, r48
+     68: jump end_if_10
+     69: else_9:
+     70: end_if_10:
+     71: r50 = addr(.home.alice.dev.minz.examples.plasma_simple.sin_table)
+     72: STORE_PTR ; Store to array[index] (u8)
+     73: INC ; Increment i
+     74: jump for_loop_1
+     75: for_end_2:
+     76: return
+
+Function .home.alice.dev.minz.examples.plasma_simple.cls() -> void
+  @smc
+  Instructions:
+      0: ASM
+      1: return
+
+Function .home.alice.dev.minz.examples.plasma_simple.poke$u16$u8(addr: u16, val: u8) -> void
+  @smc
+  Instructions:
+      0: ASM
+      1: return
+
+Function .home.alice.dev.minz.examples.plasma_simple.render_plasma() -> void
+  @smc
+  Locals:
+    r1 = yval: u8
+    r3 = col: u8
+    r5 = ptr: u16
+    r11 = xval: u8
+    r17 = s1: u8
+    r21 = s2: u8
+    r25 = s3: u8
+    r31 = color: u8
+  Instructions:
+      0: r2 = load .home.alice.dev.minz.examples.plasma_simple.phase
+      1: r4 = 0
+      2: r6 = 22528
+      3: r8 = 768
+      4: r9 = r7 ; Initialize loop variable idx
+      5: for_loop_11:
+      6: r10 = r9 < r8 ; Check idx < end
+      7: store yval, r2
+      8: store col, r4
+      9: store ptr, r6
+     10: jump_if_not r10, for_end_12
+     11: r12 = load col
+     12: r15 = load .home.alice.dev.minz.examples.plasma_simple.phase
+     13: SHL
+     14: SHL
+     15: SHL
+     16: r16 = r14 + r15
+     17: r18 = addr(.home.alice.dev.minz.examples.plasma_simple.sin_table)
+     18: LOAD_INDEX ; Load array element (u8)
+     19: r22 = addr(.home.alice.dev.minz.examples.plasma_simple.sin_table)
+     20: LOAD_INDEX ; Load array element (u8)
+     21: r26 = addr(.home.alice.dev.minz.examples.plasma_simple.sin_table)
+     22: LOAD_INDEX ; Load array element (u8)
+     23: store xval, r16
+     24: store s1, r20
+     25: store s2, r24
+     26: store s3, r30
+     27: r32 = load s1
+     28: r33 = load s2
+     29: r35 = load s3
+     30: r34 = r32 + r33
+     31: r36 = r34 + r35
+     32: r37 = 7
+     33: r38 = r36 & r37
+     34: r39 = 64
+     35: r40 = r38 | r39
+     36: ASM ; Inlined from .home.alice.dev.minz.examples.plasma_simple.poke$u16$u8
+     37: store color, r40
+     38: r46 = load ptr
+     39: r47 = 1
+     40: r48 = r46 + r47
+     41: store ptr, r48
+     42: r49 = load col
+     43: r50 = 1
+     44: r51 = r49 + r50
+     45: store col, r51
+     46: r52 = load col
+     47: r53 = 32
+     48: r54 = r52 == r53
+     49: jump_if_not r54, else_13
+     50: r55 = 0
+     51: store col, r55
+     52: r56 = load yval
+     53: r57 = 11
+     54: r58 = r56 + r57
+     55: store yval, r58
+     56: jump end_if_14
+     57: else_13:
+     58: end_if_14:
+     59: INC ; Increment idx
+     60: jump for_loop_11
+     61: for_end_12:
+     62: return
+
+Function .home.alice.dev.minz.examples.plasma_simple.main() -> void
+  @smc
+  Instructions:
+      0: ASM
+      1: ASM ; Inlined from .home.alice.dev.minz.examples.plasma_simple.cls
+      2: r2 = call .home.alice.dev.minz.examples.plasma_simple.init_sine
+      3: ASM
+      4: loop_15:
+      5: ASM
+      6: r4 = load .home.alice.dev.minz.examples.plasma_simple.phase
+      7: r5 = 3
+      8: r6 = r4 + r5
+      9: store phase, r6
+     10: r7 = call .home.alice.dev.minz.examples.plasma_simple.render_plasma
+     11: jump loop_15
+

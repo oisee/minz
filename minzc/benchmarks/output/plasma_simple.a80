@@ -1,0 +1,484 @@
+; MinZ generated code
+; Generated: 2026-01-03 12:16:35
+
+
+; Data section
+    ORG $F000
+
+.home.alice.dev.minz.examples.plasma_simple.phase:
+    DB 0
+.home.alice.dev.minz.examples.plasma_simple.sin_table:
+    DS 256
+.home.alice.dev.minz.examples.plasma_simple.attr_ptr:
+    DW 22528
+
+; Code section
+    ORG $8000
+
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_simple.init_sine
+simple_init_sine:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = 256
+    LD HL, 256
+    LD ($F004), HL    ; Virtual register 2 to memory
+    ; Initialize loop variable i
+    ; for_loop_1:
+_home_alice_dev_minz_examples_plasma_simple_init_sine_for_loop_1:
+    ; Check i < end
+    ; 8-bit less-than comparison
+    LD A, B    ; Eliminated redundant LD B,A
+    LD A, ($F004)     ; Virtual register 2 from memory
+    LD C, A
+    LD A, B       ; A = Src1
+    CP C          ; Compare Src1 with Src2
+    JR C, _home_alice_dev_minz_examples_plasma_simple_init_sine_lt_true_0      ; Carry = Src1 < Src2
+    LD HL, 0       ; False
+    JR _home_alice_dev_minz_examples_plasma_simple_init_sine_lt_done_0
+_home_alice_dev_minz_examples_plasma_simple_init_sine_lt_true_0:
+    LD HL, 1       ; True
+_home_alice_dev_minz_examples_plasma_simple_init_sine_lt_done_0:
+    ; jump_if_not r4, for_end_2
+    LD A, C
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_simple_init_sine_for_end_2   ; Test for zero
+    ; r8 = r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; r10 = 0
+    XOR A        ; MIR hint: zero via XOR
+    LD E, A         ; Store to physical register E
+    ; test r11
+    LD A, H
+    OR L           ; Test HL (set flags)
+    ; store q, r8
+    LD A, D
+    LD ($F00A), A
+    ; store v, r10
+    LD A, E
+    LD ($F012), A
+    ; jump_if_not r13, else_3
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_simple_init_sine_else_3   ; Test for zero
+    ; r18 = r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    LD ($F024), HL    ; Virtual register 18 to memory
+    ; store v, r18
+    LD A, ($F024)     ; Virtual register 18 from memory
+    LD ($F012), A
+    ; jump end_if_4
+    JP _home_alice_dev_minz_examples_plasma_simple_init_sine_end_if_4
+    ; else_3:
+_home_alice_dev_minz_examples_plasma_simple_init_sine_else_3:
+    ; end_if_4:
+_home_alice_dev_minz_examples_plasma_simple_init_sine_end_if_4:
+    ; r19 = load q
+    LD A, ($F00A)
+    LD H, A         ; Store to physical register H
+    ; r20 = 64
+    LD A, 64
+    LD L, A         ; Store to physical register L
+    ; r21 = r19 == r20
+    ; 8-bit equality comparison
+    LD A, H
+    LD B, A
+    LD A, L
+    CP B           ; Compare A with B
+    JR Z, _home_alice_dev_minz_examples_plasma_simple_init_sine_eq_true_1
+    LD HL, 0       ; False
+    JR _home_alice_dev_minz_examples_plasma_simple_init_sine_eq_done_1
+_home_alice_dev_minz_examples_plasma_simple_init_sine_eq_true_1:
+    LD HL, 1       ; True
+_home_alice_dev_minz_examples_plasma_simple_init_sine_eq_done_1:
+    LD ($F02A), HL    ; Virtual register 21 to memory
+    ; jump_if_not r21, else_5
+    LD A, ($F02A)     ; Virtual register 21 from memory
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_simple_init_sine_else_5   ; Test for zero
+    ; r28 = r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; store v, r28
+    LD A, H
+    LD ($F012), A
+    ; jump end_if_6
+    JP _home_alice_dev_minz_examples_plasma_simple_init_sine_end_if_6
+    ; else_5:
+_home_alice_dev_minz_examples_plasma_simple_init_sine_else_5:
+    ; end_if_6:
+_home_alice_dev_minz_examples_plasma_simple_init_sine_end_if_6:
+    ; r29 = load q
+    LD A, ($F00A)
+    LD L, A         ; Store to physical register L
+    ; r30 = 128
+    LD A, 128
+    LD ($F03C), A     ; Virtual register 30 to memory
+    ; r31 = r29 == r30
+    ; 8-bit equality comparison
+    LD A, L
+    LD B, A
+    LD A, ($F03C)     ; Virtual register 30 from memory
+    CP B           ; Compare A with B
+    JR Z, _home_alice_dev_minz_examples_plasma_simple_init_sine_eq_true_2
+    LD HL, 0       ; False
+    JR _home_alice_dev_minz_examples_plasma_simple_init_sine_eq_done_2
+_home_alice_dev_minz_examples_plasma_simple_init_sine_eq_true_2:
+    LD HL, 1       ; True
+_home_alice_dev_minz_examples_plasma_simple_init_sine_eq_done_2:
+    ; jump_if_not r31, else_7
+    LD A, H
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_simple_init_sine_else_7   ; Test for zero
+    ; r38 = r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; store v, r38
+    LD A, L
+    LD ($F012), A
+    ; jump end_if_8
+    JP _home_alice_dev_minz_examples_plasma_simple_init_sine_end_if_8
+    ; else_7:
+_home_alice_dev_minz_examples_plasma_simple_init_sine_else_7:
+    ; end_if_8:
+_home_alice_dev_minz_examples_plasma_simple_init_sine_end_if_8:
+    ; r39 = load q
+    LD A, ($F00A)
+    LD ($F04E), A     ; Virtual register 39 to memory
+    ; r40 = 192
+    LD A, 192
+    LD H, A         ; Store to physical register H
+    ; r41 = r39 == r40
+    ; 8-bit equality comparison
+    LD A, ($F04E)     ; Virtual register 39 from memory
+    LD B, A
+    LD A, H
+    CP B           ; Compare A with B
+    JR Z, _home_alice_dev_minz_examples_plasma_simple_init_sine_eq_true_3
+    LD HL, 0       ; False
+    JR _home_alice_dev_minz_examples_plasma_simple_init_sine_eq_done_3
+_home_alice_dev_minz_examples_plasma_simple_init_sine_eq_true_3:
+    LD HL, 1       ; True
+_home_alice_dev_minz_examples_plasma_simple_init_sine_eq_done_3:
+    ; jump_if_not r41, else_9
+    LD A, L
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_simple_init_sine_else_9   ; Test for zero
+    ; r48 = r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; Register 48 already in HL
+    ; store v, r48
+    LD A, L
+    LD ($F012), A
+    ; jump end_if_10
+    JP _home_alice_dev_minz_examples_plasma_simple_init_sine_end_if_10
+    ; else_9:
+_home_alice_dev_minz_examples_plasma_simple_init_sine_else_9:
+    ; end_if_10:
+_home_alice_dev_minz_examples_plasma_simple_init_sine_end_if_10:
+    ; Store to array[index] (u8)
+    PUSH HL
+    LD A, L
+    POP HL
+    LD (HL), A
+    ; Increment i
+    ; Register 3 already in A
+    INC A
+    ; Register 3 already in A
+    ; jump for_loop_1
+    JP _home_alice_dev_minz_examples_plasma_simple_init_sine_for_loop_1
+    ; for_end_2:
+_home_alice_dev_minz_examples_plasma_simple_init_sine_for_end_2:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_simple.cls
+plasma_simple_cls:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    LD HL, 0x4000
+    LD DE, 0x4001
+    LD BC, 6143
+    LD (HL), 0
+    LDIR
+    LD HL, 0x5800
+    LD DE, 0x5801
+    LD BC, 767
+    LD (HL), 0
+    LDIR
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_simple.poke$u16$u8
+poke_u16_u8:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; Poke val to addr
+    POP HL          ; return addr
+    POP DE          ; addr param
+    POP BC          ; val in C
+    PUSH HL         ; restore return
+    LD A, C
+    LD (DE), A
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_simple.render_plasma
+simple_render_plasma:
+; IsSMCDefault=false, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    ; r2 = load .home.alice.dev.minz.examples.plasma_simple.phase
+    LD HL, ($F000)
+    ; r4 = 0
+    XOR A        ; MIR hint: zero via XOR
+    EXX               ; Switch to shadow registers
+    LD C, A         ; Store to shadow C' (now active)
+    EXX               ; Switch back to main registers
+    ; r6 = 22528
+    LD HL, 22528
+    LD B, H
+    LD C, L
+    ; r8 = 768
+    LD HL, 768
+    LD D, H
+    LD E, L
+    ; Initialize loop variable idx
+    ; for_loop_11:
+_home_alice_dev_minz_examples_plasma_simple_render_plasma_for_loop_11:
+    ; Check idx < end
+    ; 8-bit less-than comparison
+    EXX               ; Switch to shadow registers
+    LD A, E         ; From shadow E' (now active)
+    EXX               ; Switch back to main registers
+    LD B, A
+    LD A, E
+    LD C, A
+    LD A, B       ; A = Src1
+    CP C          ; Compare Src1 with Src2
+    JR C, _home_alice_dev_minz_examples_plasma_simple_render_plasma_lt_true_4      ; Carry = Src1 < Src2
+    LD HL, 0       ; False
+    JR _home_alice_dev_minz_examples_plasma_simple_render_plasma_lt_done_4
+_home_alice_dev_minz_examples_plasma_simple_render_plasma_lt_true_4:
+    LD HL, 1       ; True
+_home_alice_dev_minz_examples_plasma_simple_render_plasma_lt_done_4:
+    ; Register 10 already in HL
+    ; store yval, r2
+    EXX               ; Switch to shadow registers
+    LD A, B         ; From shadow B' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F002), A
+    ; store col, r4
+    EXX               ; Switch to shadow registers
+    LD A, C         ; From shadow C' (now active)
+    EXX               ; Switch back to main registers
+    LD ($F006), A
+    ; store ptr, r6
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    ; Could optimize: LD H,B / LD L,C
+    LD H, B
+    LD L, C
+    LD ($F00A), HL
+    ; jump_if_not r10, for_end_12
+    LD A, L
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_simple_render_plasma_for_end_12   ; Test for zero
+    ; r12 = load col
+    LD A, ($F006)
+    LD ($F018), A     ; Virtual register 12 to memory
+    ; r15 = load .home.alice.dev.minz.examples.plasma_simple.phase
+    LD HL, ($F000)
+    ; r14 = r12 << r0
+    ; Shift left by 1 (optimized, Imm)
+    LD A, ($F018)     ; Virtual register 12 from memory
+    ADD A, A     ; Optimized: was SLA A (faster)
+    LD L, A
+    LD H, 0       ; Clear H for 8-bit result in HL
+    ; r14 = r12 << r0
+    ; Shift left by 1 (optimized, Imm)
+    LD A, ($F018)     ; Virtual register 12 from memory
+    ADD A, A     ; Optimized: was SLA A (faster)
+    LD L, A
+    ; r14 = r12 << r0
+    ; Shift left by 1 (optimized, Imm)
+    LD A, ($F018)     ; Virtual register 12 from memory
+    ADD A, A     ; Optimized: was SLA A (faster)
+    LD L, A
+    ; r16 = r14 + r15
+    LD D, H
+    LD E, L
+    ADD HL, DE
+    ; Register 16 already in HL
+    ; r18 = addr(.home.alice.dev.minz.examples.plasma_simple.sin_table)
+    LD HL, .home.alice.dev.minz.examples.plasma_simple.sin_table
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; r22 = addr(.home.alice.dev.minz.examples.plasma_simple.sin_table)
+    LD HL, .home.alice.dev.minz.examples.plasma_simple.sin_table
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD L, A         ; Store to HL (low byte)
+    ; r26 = addr(.home.alice.dev.minz.examples.plasma_simple.sin_table)
+    LD HL, .home.alice.dev.minz.examples.plasma_simple.sin_table
+    ; Load array element (u8)
+    PUSH HL
+    LD A, L
+    LD E, A
+    LD D, 0
+    POP HL
+    ADD HL, DE
+    LD A, (HL)
+    LD H, A         ; Store to physical register H
+    ; r40 = r0
+    LD HL, ($F000)    ; Virtual register 0 from memory
+    ; Poke val to addr
+    POP HL          ; return addr
+    POP DE          ; addr param
+    POP BC          ; val in C
+    PUSH HL         ; restore return
+    LD A, C
+    LD (DE), A
+    ; store s1, r20
+    LD A, L
+    LD ($F022), A
+    ; store xval, r16
+    LD A, L
+    LD ($F016), A
+    ; store s3, r30
+    LD A, H
+    LD ($F032), A
+    ; store s2, r24
+    LD A, L
+    LD ($F02A), A
+    ; store color, r40
+    LD A, H
+    LD ($F03E), A
+    ; r46 = load ptr
+    LD HL, ($F00A)
+    ; store col, r12
+    LD A, ($F018)     ; Virtual register 12 from memory
+    LD ($F006), A
+    ; store ptr, r46
+    LD ($F00A), HL
+    ; r52 = load col
+    LD A, ($F006)
+    LD L, A         ; Store to physical register L
+    ; r53 = 32
+    LD A, 32
+    LD ($F06A), A     ; Virtual register 53 to memory
+    ; r54 = r52 == r53
+    ; 8-bit equality comparison
+    LD A, L
+    LD B, A
+    LD A, ($F06A)     ; Virtual register 53 from memory
+    CP B           ; Compare A with B
+    JR Z, _home_alice_dev_minz_examples_plasma_simple_render_plasma_eq_true_5
+    LD HL, 0       ; False
+    JR _home_alice_dev_minz_examples_plasma_simple_render_plasma_eq_done_5
+_home_alice_dev_minz_examples_plasma_simple_render_plasma_eq_true_5:
+    LD HL, 1       ; True
+_home_alice_dev_minz_examples_plasma_simple_render_plasma_eq_done_5:
+    ; jump_if_not r54, else_13
+    LD A, H
+    OR A
+    JP Z, _home_alice_dev_minz_examples_plasma_simple_render_plasma_else_13   ; Test for zero
+    ; r55 = 0
+    XOR A        ; MIR hint: zero via XOR
+    LD L, A         ; Store to physical register L
+    ; store col, r55
+    LD A, L
+    LD ($F006), A
+    ; r56 = load yval
+    LD A, ($F002)
+    LD L, A         ; Store to HL (low byte)
+    ; store yval, r56
+    LD A, L
+    LD ($F002), A
+    ; jump end_if_14
+    JP _home_alice_dev_minz_examples_plasma_simple_render_plasma_end_if_14
+    ; else_13:
+_home_alice_dev_minz_examples_plasma_simple_render_plasma_else_13:
+    ; end_if_14:
+_home_alice_dev_minz_examples_plasma_simple_render_plasma_end_if_14:
+    ; Increment idx
+    EXX               ; Switch to shadow registers
+    LD A, D         ; From shadow D' (now active)
+    EXX               ; Switch back to main registers
+    INC A
+    EXX               ; Switch to shadow registers
+    LD D, A         ; Store to shadow D' (now active)
+    EXX               ; Switch back to main registers
+    ; jump for_loop_11
+    JP _home_alice_dev_minz_examples_plasma_simple_render_plasma_for_loop_11
+    ; for_end_12:
+_home_alice_dev_minz_examples_plasma_simple_render_plasma_for_end_12:
+    ; return
+    RET
+; Using hierarchical register allocation (physical → shadow → memory)
+
+; Function: .home.alice.dev.minz.examples.plasma_simple.main
+plasma_simple_main:
+; IsSMCDefault=true, IsSMCEnabled=true
+; Using absolute addressing for locals (SMC style)
+    PUSH BC
+    PUSH DE
+    DI
+    LD HL, 0x4000
+    LD DE, 0x4001
+    LD BC, 6143
+    LD (HL), 0
+    LDIR
+    LD HL, 0x5800
+    LD DE, 0x5801
+    LD BC, 767
+    LD (HL), 0
+    LDIR
+    ; r2 = call .home.alice.dev.minz.examples.plasma_simple.init_sine
+    ; Call to .home.alice.dev.minz.examples.plasma_simple.init_sine (args: 0)
+    CALL simple_init_sine
+    EI
+    ; loop_15:
+_home_alice_dev_minz_examples_plasma_simple_main_loop_15:
+    HALT
+    ; r4 = load .home.alice.dev.minz.examples.plasma_simple.phase
+    LD HL, ($F000)
+    ; store phase, r4
+    LD ($F000), HL
+    ; r7 = call .home.alice.dev.minz.examples.plasma_simple.render_plasma
+    ; Call to .home.alice.dev.minz.examples.plasma_simple.render_plasma (args: 0)
+    CALL simple_render_plasma
+    ; Register 7 already in HL
+    ; jump loop_15
+    JP _home_alice_dev_minz_examples_plasma_simple_main_loop_15
+    POP DE
+    POP BC
+    RET
+
+; Standard library routines
+temp_result:
+    DW 0           ; Temporary storage for function results
+
+
+    END main
+
+
+; Assembly peephole optimization: 10 patterns applied

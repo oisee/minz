@@ -39,6 +39,7 @@ build/
 /mze
 /mzr
 /mzv
+/mzrun
 
 # Root level compiled outputs (keep in examples/output, minzc/release_validation)
 /*.a80
@@ -125,3 +126,4 @@ archive/backups/temp/
 .env.local
 *.env
 *.bin
+_zxspeculator/

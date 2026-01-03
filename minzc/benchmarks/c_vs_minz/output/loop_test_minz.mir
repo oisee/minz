@@ -1,0 +1,55 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+; Globals:
+;   .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.loop_test.screen: [256]u8
+
+Function .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.loop_test.fill_screen$u8(value: u8) -> void
+  @smc
+  Instructions:
+      0: NOP ; DJNZ OPTIMIZED: for i in 0..255
+      1: djnz_loop_1:
+      2: TRUE_SMC_LOAD ; Load from anchor value$imm0
+      3: r5 = addr(.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.loop_test.screen)
+      4: STORE_PTR ; Store to array[index] (u8)
+      5: INC ; Increment i
+      6: DJNZ ; DJNZ - decrement B and loop
+      7: return
+
+Function .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.loop_test.sum_array() -> u16
+  @smc
+  Locals:
+    r1 = total: u16
+  Instructions:
+      0: r2 = 0
+      1: NOP ; DJNZ OPTIMIZED: for i in 0..255
+      2: djnz_loop_2:
+      3: store total, r2
+      4: r5 = load total
+      5: r6 = addr(.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.loop_test.screen)
+      6: LOAD_INDEX ; Load array element (u8)
+      7: r9 = r5 + r8
+      8: INC ; Increment i
+      9: DJNZ ; DJNZ - decrement B and loop
+     10: store total, r9
+     11: r10 = load total
+     12: return r10
+
+Function .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.loop_test.main() -> void
+  @smc
+  Locals:
+    r4 = result: u16
+  Instructions:
+      0: NOP ; Inlined: DJNZ OPTIMIZED: for i in 0..255
+      1: djnz_loop_1: ; Inlined from .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.loop_test.fill_screen$u8
+      2: TRUE_SMC_LOAD ; Inlined: Load from anchor value$imm0
+      3: r2 = addr(.home.alice.dev.minz.minzc.benchmarks.c_vs_minz.loop_test.screen) ; Inlined from .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.loop_test.fill_screen$u8
+      4: STORE_PTR ; Inlined: Store to array[index] (u8)
+      5: INC ; Inlined: Increment i
+      6: DJNZ ; Inlined: DJNZ - decrement B and loop
+      7: PATCH_TEMPLATE
+      8: PATCH_TARGET
+      9: r5 = call .home.alice.dev.minz.minzc.benchmarks.c_vs_minz.loop_test.sum_array
+     10: store result, r5
+     11: return
+

@@ -1,0 +1,58 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function .home.alice.dev.minz.examples.fibonacci.fibonacci$u8(n: u8) -> u16
+  @smc
+  Locals:
+    r6 = a: u16
+    r8 = b: u16
+    r10 = i: u8
+    r15 = temp: u16
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      1: r3 = 1
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_1
+      4: TRUE_SMC_LOAD ; Load from anchor n$imm0
+      5: return r5
+      6: else_1:
+      7: r7 = 0
+      8: r9 = 1
+      9: r11 = 2
+     10: loop_3:
+     11: store a, r7
+     12: store b, r9
+     13: store i, r11
+     14: r12 = load i
+     15: TRUE_SMC_LOAD ; Load from anchor n$imm0
+     16: r14 = r12 <= r13
+     17: jump_if_not r14, end_loop_4
+     18: r16 = load a
+     19: r17 = load b
+     20: r18 = r16 + r17
+     21: store temp, r18
+     22: r19 = load b
+     23: store a, r19
+     24: r20 = load temp
+     25: store b, r20
+     26: r21 = load i
+     27: r22 = 1
+     28: r23 = r21 + r22
+     29: store i, r23
+     30: jump loop_3
+     31: end_loop_4:
+     32: r24 = load b
+     33: return r24
+
+Function .home.alice.dev.minz.examples.fibonacci.main() -> void
+  @smc
+  Locals:
+    r1 = result: u16
+  Instructions:
+      0: PATCH_TEMPLATE
+      1: PATCH_TARGET
+      2: PATCH_PARAM
+      3: r4 = call .home.alice.dev.minz.examples.fibonacci.fibonacci$u8
+      4: store result, r4
+      5: return
+

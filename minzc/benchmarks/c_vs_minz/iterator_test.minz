@@ -1,0 +1,41 @@
+// Iterator-style processing in MinZ
+// Shows zero-cost lambda advantage
+
+global data: [u8; 10];
+global result: [u8; 10];
+
+fun init_data() -> void {
+    data[0] = 1;
+    data[1] = 2;
+    data[2] = 3;
+    data[3] = 4;
+    data[4] = 5;
+    data[5] = 6;
+    data[6] = 7;
+    data[7] = 8;
+    data[8] = 9;
+    data[9] = 10;
+}
+
+// MinZ: lambdas compile to direct calls - zero overhead!
+fun map_double() -> void {
+    for i in 0..10 {
+        result[i] = data[i] * 2;
+    }
+}
+
+fun count_even() -> u8 {
+    let count: u8 = 0;
+    for i in 0..10 {
+        if (data[i] & 1) == 0 {
+            count = count + 1;
+        }
+    }
+    return count;
+}
+
+fun main() -> void {
+    init_data();
+    map_double();
+    let even_count: u8 = count_even();
+}

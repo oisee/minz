@@ -1,0 +1,23 @@
+// Loop performance test in MinZ
+// Equivalent to loop_test.c
+
+global screen: [u8; 256];
+
+fun fill_screen(value: u8) -> void {
+    for i in 0..255 {
+        screen[i] = value;
+    }
+}
+
+fun sum_array() -> u16 {
+    let total: u16 = 0;
+    for i in 0..255 {
+        total = total + screen[i];
+    }
+    return total;
+}
+
+fun main() -> void {
+    fill_screen(42);
+    let result: u16 = sum_array();
+}
