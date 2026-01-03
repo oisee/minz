@@ -1,0 +1,375 @@
+// ============================================================================
+// MinZ Math Utilities
+// ============================================================================
+//
+// Common utility functions for demos and games:
+// - Random number generation (LFSR)
+// - Square root (lookup table)
+// - Distance calculations
+// - Bit manipulation
+// - Interpolation
+//
+// ============================================================================
+
+// ============================================================================
+// Random Number Generator (16-bit LFSR)
+// ============================================================================
+// Galois LFSR with period 65535 (all values except 0)
+// Fast: ~25 T-states per random number
+
+global random_seed: u16 = 0xACE1;  // Non-zero initial seed
+
+// Initialize random seed
+fun random_init(seed: u16) {
+    if seed == 0 {
+        random_seed = 0xACE1;  // Avoid zero (LFSR would get stuck)
+    } else {
+        random_seed = seed;
+    }
+}
+
+// Generate next random number (16-bit)
+// Uses Galois LFSR with polynomial x^16 + x^14 + x^13 + x^11 + 1
+fun random() -> u16 {
+    var seed = random_seed;
+    let lsb = seed & 1;
+
+    seed = seed >> 1;
+
+    if lsb != 0 {
+        seed = seed ^ 0xB400;  // Polynomial taps
+    }
+
+    random_seed = seed;
+    return seed;
+}
+
+// Generate random byte (8-bit)
+@inline
+fun random_byte() -> u8 {
+    return (random() & 0xFF) as u8;
+}
+
+// Generate random number in range [0, max)
+fun random_range(max: u8) -> u8 {
+    if max == 0 {
+        return 0;
+    }
+    // Simple modulo - has slight bias but fast
+    return random_byte() % max;
+}
+
+// Generate random number in range [min, max]
+fun random_between(min: u8, max: u8) -> u8 {
+    if max <= min {
+        return min;
+    }
+    let range = max - min + 1;
+    return min + random_range(range);
+}
+
+// ============================================================================
+// Square Root (Lookup Table - 256 bytes)
+// ============================================================================
+
+global SQRT_TABLE: [u8; 256] = [
+    0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+    6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
+    8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+    8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+    9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11,
+    11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,
+    12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+    12, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13,
+    13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
+    13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+    14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+    14, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15,
+    15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15
+];
+
+// Fast square root lookup
+// Input: 0-255, Output: 0-15
+@inline
+fun fast_sqrt(n: u8) -> u8 {
+    return SQRT_TABLE[n];
+}
+
+// Integer square root for 16-bit numbers
+// Uses Newton-Raphson iteration
+fun sqrt_16(n: u16) -> u8 {
+    if n == 0 {
+        return 0;
+    }
+
+    // Initial guess from high byte
+    var guess: u16;
+    let high = (n >> 8) as u8;
+    if high > 0 {
+        guess = (SQRT_TABLE[high] as u16) << 4;
+    } else {
+        guess = SQRT_TABLE[(n & 0xFF) as u8] as u16;
+    }
+
+    // Newton-Raphson: x_new = (x + n/x) / 2
+    // Two iterations is usually enough
+    guess = (guess + n / guess) >> 1;
+    guess = (guess + n / guess) >> 1;
+
+    return guess as u8;
+}
+
+// ============================================================================
+// Distance Calculations
+// ============================================================================
+
+// Approximate distance using max + min/2 formula
+// Faster than sqrt(dx² + dy²), error ~8%
+fun fast_distance(dx: u8, dy: u8) -> u8 {
+    var max_val: u8;
+    var min_val: u8;
+
+    if dx > dy {
+        max_val = dx;
+        min_val = dy;
+    } else {
+        max_val = dy;
+        min_val = dx;
+    }
+
+    // distance ≈ max + min/2
+    return max_val + (min_val >> 1);
+}
+
+// More accurate distance: max + 3*min/8
+// Error ~3%
+fun better_distance(dx: u8, dy: u8) -> u8 {
+    var max_val: u8;
+    var min_val: u8;
+
+    if dx > dy {
+        max_val = dx;
+        min_val = dy;
+    } else {
+        max_val = dy;
+        min_val = dx;
+    }
+
+    // distance ≈ max + 3*min/8 = max + min/4 + min/8
+    let correction = (min_val >> 2) + (min_val >> 3);
+    return max_val + correction;
+}
+
+// Exact distance (uses sqrt)
+// Slowest but accurate
+fun exact_distance(dx: u8, dy: u8) -> u8 {
+    let dx16 = dx as u16;
+    let dy16 = dy as u16;
+    let dist_sq = dx16 * dx16 + dy16 * dy16;
+    return sqrt_16(dist_sq);
+}
+
+// ============================================================================
+// Bit Manipulation
+// ============================================================================
+
+// Population count (count set bits)
+// Uses loop - faster than SWAR on Z80!
+fun popcount(x: u8) -> u8 {
+    var count: u8 = 0;
+    var n = x;
+
+    while n != 0 {
+        count = count + (n & 1);
+        n = n >> 1;
+    }
+
+    return count;
+}
+
+// Count leading zeros
+fun clz(x: u8) -> u8 {
+    if x == 0 {
+        return 8;
+    }
+
+    var count: u8 = 0;
+    var n = x;
+
+    if (n & 0xF0) == 0 { count = count + 4; n = n << 4; }
+    if (n & 0xC0) == 0 { count = count + 2; n = n << 2; }
+    if (n & 0x80) == 0 { count = count + 1; }
+
+    return count;
+}
+
+// Count trailing zeros
+fun ctz(x: u8) -> u8 {
+    if x == 0 {
+        return 8;
+    }
+
+    var count: u8 = 0;
+    var n = x;
+
+    if (n & 0x0F) == 0 { count = count + 4; n = n >> 4; }
+    if (n & 0x03) == 0 { count = count + 2; n = n >> 2; }
+    if (n & 0x01) == 0 { count = count + 1; }
+
+    return count;
+}
+
+// Check if power of 2
+@inline
+fun is_power_of_2(x: u8) -> bool {
+    return x != 0 && (x & (x - 1)) == 0;
+}
+
+// Round up to next power of 2
+fun next_power_of_2(x: u8) -> u8 {
+    if x == 0 {
+        return 1;
+    }
+
+    var n = x - 1;
+    n = n | (n >> 1);
+    n = n | (n >> 2);
+    n = n | (n >> 4);
+    return n + 1;
+}
+
+// Reverse bits in a byte
+fun reverse_bits(x: u8) -> u8 {
+    var n = x;
+    n = ((n & 0xAA) >> 1) | ((n & 0x55) << 1);  // Swap odd/even bits
+    n = ((n & 0xCC) >> 2) | ((n & 0x33) << 2);  // Swap pairs
+    n = ((n & 0xF0) >> 4) | ((n & 0x0F) << 4);  // Swap nibbles
+    return n;
+}
+
+// Swap nibbles
+@inline
+fun swap_nibbles(x: u8) -> u8 {
+    return ((x & 0x0F) << 4) | ((x & 0xF0) >> 4);
+}
+
+// ============================================================================
+// Interpolation
+// ============================================================================
+
+// Linear interpolation: lerp(a, b, t) = a + (b-a)*t/256
+// t: 0 = a, 255 ≈ b
+fun lerp_u8(a: u8, b: u8, t: u8) -> u8 {
+    if b >= a {
+        let diff = (b - a) as u16;
+        return a + ((diff * (t as u16)) >> 8) as u8;
+    } else {
+        let diff = (a - b) as u16;
+        return a - ((diff * (t as u16)) >> 8) as u8;
+    }
+}
+
+// Signed lerp
+fun lerp_i8(a: i8, b: i8, t: u8) -> i8 {
+    let a16 = a as i16;
+    let b16 = b as i16;
+    let diff = b16 - a16;
+    let scaled = (diff * (t as i16)) >> 8;
+    return (a16 + scaled) as i8;
+}
+
+// Smooth step (cubic interpolation)
+// smoother than linear lerp, good for animations
+fun smoothstep(t: u8) -> u8 {
+    // smoothstep(t) = 3t² - 2t³ = t² * (3 - 2t)
+    let t16 = t as u16;
+    let t_sq = (t16 * t16) >> 8;  // t² in 0-255
+    let factor = 192 - ((t16 * 128) >> 8);  // 3 - 2t (scaled)
+    return ((t_sq * factor) >> 8) as u8;
+}
+
+// ============================================================================
+// Absolute Value and Sign
+// ============================================================================
+
+@inline
+fun abs_i8(x: i8) -> u8 {
+    if x < 0 {
+        return (0 - x) as u8;
+    }
+    return x as u8;
+}
+
+@inline
+fun abs_i16(x: i16) -> u16 {
+    if x < 0 {
+        return (0 - x) as u16;
+    }
+    return x as u16;
+}
+
+@inline
+fun sign_i8(x: i8) -> i8 {
+    if x < 0 {
+        return -1;
+    }
+    if x > 0 {
+        return 1;
+    }
+    return 0;
+}
+
+// ============================================================================
+// Min/Max
+// ============================================================================
+
+@inline
+fun min_u8(a: u8, b: u8) -> u8 {
+    if a < b { return a; }
+    return b;
+}
+
+@inline
+fun max_u8(a: u8, b: u8) -> u8 {
+    if a > b { return a; }
+    return b;
+}
+
+@inline
+fun min_i8(a: i8, b: i8) -> i8 {
+    if a < b { return a; }
+    return b;
+}
+
+@inline
+fun max_i8(a: i8, b: i8) -> i8 {
+    if a > b { return a; }
+    return b;
+}
+
+fun clamp_u8(x: u8, min_val: u8, max_val: u8) -> u8 {
+    if x < min_val { return min_val; }
+    if x > max_val { return max_val; }
+    return x;
+}
+
+fun clamp_i8(x: i8, min_val: i8, max_val: i8) -> i8 {
+    if x < min_val { return min_val; }
+    if x > max_val { return max_val; }
+    return x;
+}
+
+// ============================================================================
+// Memory Usage Summary
+// ============================================================================
+//
+// SQRT_TABLE: 256 bytes
+// random_seed: 2 bytes
+// Code: ~200 bytes
+//
+// Total: ~460 bytes
+//
+// ============================================================================

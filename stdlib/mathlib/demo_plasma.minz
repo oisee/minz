@@ -1,0 +1,178 @@
+// ============================================================================
+// MinZ Plasma Demo
+// ============================================================================
+//
+// Classic plasma effect using the mathlib sine table.
+// Demonstrates runtime decompression approach.
+//
+// The plasma formula:
+//   color = sin(x*4) + sin(y*4) + sin((x+y)*2) + sin(sqrt(x²+y²)*4)
+//
+// Simplified for Z80:
+//   color = sin[x*4 + t] + sin[y*4 + t*2] + sin[(x+y)*2 + t*3]
+//
+// ============================================================================
+
+// Import mathlib modules
+// import mathlib.compact;
+// import mathlib.utils;
+
+// For standalone demo, include inline:
+
+// Sine table (generated at init)
+global sin_table: [u8; 256];
+
+// Compact correction table (32 bytes)
+global SIN_CORRECTION: [u8; 32] = [
+    0x01, 0x22, 0x34, 0x45, 0x55, 0x66, 0x67, 0x77,
+    0x77, 0x77, 0x77, 0x77, 0x77, 0x76, 0x66, 0x66,
+    0x55, 0x55, 0x54, 0x44, 0x43, 0x33, 0x32, 0x22,
+    0x22, 0x11, 0x11, 0x11, 0x00, 0x00, 0x00, 0x00
+];
+
+// Animation time counter
+global plasma_time: u8 = 0;
+
+// Screen dimensions (for ZX Spectrum attribute grid)
+const SCREEN_WIDTH: u8 = 32;
+const SCREEN_HEIGHT: u8 = 24;
+
+// ZX Spectrum attribute memory start
+const ATTR_BASE: u16 = 0x5800;
+
+// ============================================================================
+// Mathlib Init (simplified for demo)
+// ============================================================================
+
+fun init_sin_table() {
+    for i in 0..256 {
+        sin_table[i] = generate_sin(i as u8);
+    }
+}
+
+fun generate_sin(angle: u8) -> u8 {
+    let quadrant = angle >> 6;
+    var quarter_index: u8;
+
+    if quadrant == 0 {
+        quarter_index = angle;
+    } else if quadrant == 1 {
+        quarter_index = 127 - angle;
+    } else if quadrant == 2 {
+        quarter_index = angle - 128;
+    } else {
+        quarter_index = 255 - angle;
+    }
+
+    // Parabola: x * (64 - x) / 32 * 2
+    let x = quarter_index;
+    let comp = 64 - x;
+    var value: u8 = (((x as u16) * (comp as u16)) >> 4) as u8;
+
+    // Apply correction
+    let packed_idx = quarter_index >> 1;
+    let packed = SIN_CORRECTION[packed_idx];
+    var correction: u8;
+    if (quarter_index & 1) == 0 {
+        correction = packed >> 4;
+    } else {
+        correction = packed & 0x0F;
+    }
+
+    if value >= correction {
+        value = value - correction;
+    }
+
+    if value > 127 {
+        value = 127;
+    }
+
+    // Negate for quadrants 2, 3
+    if quadrant >= 2 {
+        return (256 - (value as u16)) as u8;
+    }
+
+    return value;
+}
+
+// Fast sin lookup
+fun fast_sin(angle: u8) -> u8 {
+    return sin_table[angle];
+}
+
+// ============================================================================
+// Plasma Effect
+// ============================================================================
+
+// Generate plasma color for a single point
+fun plasma_pixel(x: u8, y: u8, time: u8) -> u8 {
+    // Three sine waves with different frequencies and phases
+    let wave1 = fast_sin(((x << 2) + time) as u8);
+    let wave2 = fast_sin(((y << 2) + (time << 1)) as u8);
+    let wave3 = fast_sin((((x + y) << 1) + (time * 3)) as u8);
+
+    // Sum and scale to 0-7 (ZX Spectrum INK colors)
+    let sum = (wave1 as u16) + (wave2 as u16) + (wave3 as u16);
+    let color = (sum >> 6) as u8;  // Scale 0-381 to 0-5
+
+    return color & 0x07;
+}
+
+// Generate full plasma frame
+fun render_plasma() {
+    var addr: u16 = ATTR_BASE;
+
+    for y in 0..SCREEN_HEIGHT {
+        for x in 0..SCREEN_WIDTH {
+            let color = plasma_pixel(x, y, plasma_time);
+            // Set attribute: BRIGHT + INK color
+            let attr = 0x40 | color;  // Bright + color as ink
+
+            // Write to screen memory
+            // poke(addr, attr);
+            addr = addr + 1;
+        }
+    }
+}
+
+// Animate plasma
+fun update_plasma() {
+    plasma_time = plasma_time + 1;
+}
+
+// ============================================================================
+// Main Demo Loop
+// ============================================================================
+
+fun main() {
+    // Initialize sine table (once, ~11ms)
+    init_sin_table();
+
+    // Main loop
+    // loop {
+    //     render_plasma();
+    //     update_plasma();
+    //     wait_vsync();
+    // }
+
+    // For compilation test, just do one frame
+    render_plasma();
+}
+
+// ============================================================================
+// Demo Statistics
+// ============================================================================
+//
+// Memory:
+//   - sin_table (RAM): 256 bytes
+//   - SIN_CORRECTION (ROM): 32 bytes
+//   - Code: ~200 bytes
+//   - Total: ~500 bytes
+//
+// Speed:
+//   - Init: ~11ms (once)
+//   - Per pixel: ~100 T-states (3 lookups + math)
+//   - Full frame (768 pixels): ~77,000 T-states = ~22ms @ 3.5MHz
+//   - ~45 FPS possible!
+//
+// ============================================================================

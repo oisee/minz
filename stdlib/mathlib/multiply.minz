@@ -1,0 +1,266 @@
+// ============================================================================
+// MinZ Fast Multiply Library
+// ============================================================================
+//
+// Fast 8×8 multiplication using the quarter-square method:
+//   a × b = ((a+b)² - (a-b)²) / 4
+//
+// This trades memory for speed:
+//   - ROM: 512 bytes for square tables
+//   - Speed: ~50 T-states vs ~150 T-states for shift-and-add
+//
+// For unsigned 8×8→16 multiplication.
+//
+// ============================================================================
+
+// ============================================================================
+// Square Tables (512 bytes total)
+// ============================================================================
+// squares_lo[n] = (n²/4) & 0xFF for n = 0..255
+// squares_hi[n] = (n²/4) >> 8 for n = 0..255
+//
+// These can be generated at init or stored in ROM.
+
+global SQUARES_LO: [u8; 256];
+global SQUARES_HI: [u8; 256];
+
+// ============================================================================
+// Initialization (if generating at runtime)
+// ============================================================================
+
+// Generate square tables at runtime
+// Takes ~20ms at 3.5MHz
+fun multiply_init() {
+    for i in 0..256 {
+        let n = i as u16;
+        let square_div4 = (n * n) >> 2;
+        SQUARES_LO[i] = (square_div4 & 0xFF) as u8;
+        SQUARES_HI[i] = (square_div4 >> 8) as u8;
+    }
+}
+
+// ============================================================================
+// Fast Multiply Functions
+// ============================================================================
+
+// Fast unsigned 8×8 → 16 multiply using quarter-square method
+// Returns a * b as 16-bit result
+fun fast_mult(a: u8, b: u8) -> u16 {
+    // sum = a + b (might overflow, handle with u16)
+    let sum = (a as u16) + (b as u16);
+
+    // diff = |a - b|
+    var diff: u8;
+    if a >= b {
+        diff = a - b;
+    } else {
+        diff = b - a;
+    }
+
+    // If sum > 255, we need special handling
+    if sum > 255 {
+        // (a+b)² / 4 for sum > 255
+        // Use: (256 + x)² / 4 = 16384 + 128x + x²/4
+        let x = (sum - 256) as u8;
+        let sum_sq_lo = SQUARES_LO[x];
+        let sum_sq_hi = SQUARES_HI[x] + 64;  // Add 16384 >> 8
+        // Plus 128*x
+        let extra = (x as u16) << 7;
+        let sum_sq = ((sum_sq_hi as u16) << 8) + (sum_sq_lo as u16) + extra;
+
+        // (a-b)² / 4
+        let diff_sq = ((SQUARES_HI[diff] as u16) << 8) + (SQUARES_LO[diff] as u16);
+
+        return sum_sq - diff_sq;
+    }
+
+    // Normal case: sum <= 255
+    let sum_u8 = sum as u8;
+    let sum_sq = ((SQUARES_HI[sum_u8] as u16) << 8) + (SQUARES_LO[sum_u8] as u16);
+    let diff_sq = ((SQUARES_HI[diff] as u16) << 8) + (SQUARES_LO[diff] as u16);
+
+    return sum_sq - diff_sq;
+}
+
+// Fast signed 8×8 → 16 multiply
+// Handles negative numbers correctly
+fun fast_mult_signed(a: i8, b: i8) -> i16 {
+    // Determine sign of result
+    var negative = false;
+
+    var ua: u8;
+    var ub: u8;
+
+    if a < 0 {
+        ua = (0 - a) as u8;
+        negative = !negative;
+    } else {
+        ua = a as u8;
+    }
+
+    if b < 0 {
+        ub = (0 - b) as u8;
+        negative = !negative;
+    } else {
+        ub = b as u8;
+    }
+
+    let result = fast_mult(ua, ub);
+
+    if negative {
+        return 0 - (result as i16);
+    }
+    return result as i16;
+}
+
+// ============================================================================
+// Simple Multiply (no table, for when memory is tight)
+// ============================================================================
+
+// Russian Peasant multiplication - no tables needed
+// Slower (~100-150 T-states) but uses zero ROM
+fun mult_simple(a: u8, b: u8) -> u16 {
+    var result: u16 = 0;
+    var multiplicand: u16 = a as u16;
+    var multiplier: u8 = b;
+
+    while multiplier > 0 {
+        if (multiplier & 1) != 0 {
+            result = result + multiplicand;
+        }
+        multiplicand = multiplicand << 1;
+        multiplier = multiplier >> 1;
+    }
+
+    return result;
+}
+
+// ============================================================================
+// Specialized Multiply for Common Cases
+// ============================================================================
+
+// Multiply by small constants (unrolled for speed)
+
+@inline
+fun mult_by_2(x: u8) -> u16 {
+    return (x as u16) << 1;
+}
+
+@inline
+fun mult_by_3(x: u8) -> u16 {
+    return ((x as u16) << 1) + (x as u16);
+}
+
+@inline
+fun mult_by_4(x: u8) -> u16 {
+    return (x as u16) << 2;
+}
+
+@inline
+fun mult_by_5(x: u8) -> u16 {
+    return ((x as u16) << 2) + (x as u16);
+}
+
+@inline
+fun mult_by_6(x: u8) -> u16 {
+    return ((x as u16) << 2) + ((x as u16) << 1);
+}
+
+@inline
+fun mult_by_7(x: u8) -> u16 {
+    return ((x as u16) << 3) - (x as u16);
+}
+
+@inline
+fun mult_by_8(x: u8) -> u16 {
+    return (x as u16) << 3;
+}
+
+@inline
+fun mult_by_10(x: u8) -> u16 {
+    return ((x as u16) << 3) + ((x as u16) << 1);
+}
+
+// ============================================================================
+// Division (for completeness)
+// ============================================================================
+
+// Unsigned 16/8 → 8 division
+// Returns quotient, remainder is lost
+fun div_16_8(dividend: u16, divisor: u8) -> u8 {
+    if divisor == 0 {
+        return 0xFF;  // Error: division by zero
+    }
+
+    var quotient: u8 = 0;
+    var remainder: u16 = dividend;
+    let div16 = divisor as u16;
+
+    // Simple subtraction-based division
+    while remainder >= div16 {
+        remainder = remainder - div16;
+        quotient = quotient + 1;
+    }
+
+    return quotient;
+}
+
+// Faster division by powers of 2
+@inline
+fun div_by_2(x: u16) -> u16 {
+    return x >> 1;
+}
+
+@inline
+fun div_by_4(x: u16) -> u16 {
+    return x >> 2;
+}
+
+@inline
+fun div_by_8(x: u16) -> u16 {
+    return x >> 3;
+}
+
+@inline
+fun div_by_16(x: u16) -> u16 {
+    return x >> 4;
+}
+
+// Modulo by powers of 2
+@inline
+fun mod_by_2(x: u8) -> u8 {
+    return x & 1;
+}
+
+@inline
+fun mod_by_4(x: u8) -> u8 {
+    return x & 3;
+}
+
+@inline
+fun mod_by_8(x: u8) -> u8 {
+    return x & 7;
+}
+
+@inline
+fun mod_by_16(x: u8) -> u8 {
+    return x & 15;
+}
+
+// ============================================================================
+// Memory Usage
+// ============================================================================
+//
+// With tables (fast_mult):
+//   - SQUARES_LO: 256 bytes
+//   - SQUARES_HI: 256 bytes
+//   - Total: 512 bytes
+//   - Speed: ~50 T-states per multiply
+//
+// Without tables (mult_simple):
+//   - Code only: ~30 bytes
+//   - Speed: ~100-150 T-states per multiply
+//
+// Choose based on your ROM/speed trade-off!
+//
+// ============================================================================

@@ -1,0 +1,51 @@
+// ============================================================================
+// Minimal Fast Plasma - Testing Compiler Optimization
+// ============================================================================
+
+const ATTR_BASE: u16 = 0x5800;
+const WIDTH: u8 = 32;
+const HEIGHT: u8 = 24;
+
+global frame: u8 = 0;
+global shadow1: [u8; 1024];
+global shadow2: [u8; 1024];
+global sin_table: [u8; 256];
+
+// Fast sine lookup
+fun fast_sin(angle: u8) -> u8 {
+    return sin_table[angle];
+}
+
+// Core render - should be tight loop
+fun render() {
+    let t = frame;
+
+    // Calculate offsets
+    let off1 = (fast_sin(t) >> 5) as u16;
+    let off2 = (fast_sin(t + 64) >> 5) as u16;
+
+    let base1 = off1 * 32 + off1;
+    let base2 = off2 * 32 + off2;
+
+    var dst: u16 = 0;
+
+    for y in 0..HEIGHT {
+        for x in 0..WIDTH {
+            // Read both shadows
+            let idx = dst;
+            let v1 = shadow1[base1 + idx];
+            let v2 = shadow2[base2 + idx];
+
+            // Combine
+            let color = (v1 + v2) & 0x07;
+
+            // Next pixel
+            dst = dst + 1;
+        }
+    }
+}
+
+fun main() {
+    render();
+    frame = frame + 1;
+}

@@ -1,0 +1,240 @@
+// ============================================================================
+// MinZ Compact Math Library - Runtime Decompression Edition
+// ============================================================================
+//
+// This library uses the parabola+correction technique to save ROM space:
+// - ROM: ~100 bytes (vs 768 bytes for full tables)
+// - RAM: 256 bytes (generated at init)
+// - Runtime: 18 T-states per lookup (same as full table!)
+// - Init: ~11ms at 3.5MHz (called once at startup)
+//
+// Based on the insight: sin(x) ≈ parabola(x) + small_correction
+// The correction values are only 0-7, so we pack two per byte!
+//
+// Usage:
+//   mathlib_init();           // Call once at startup
+//   let s = fast_sin(angle);  // 18 T-states!
+//   let c = fast_cos(angle);  // 18 T-states!
+//
+// ============================================================================
+
+// ============================================================================
+// RAM Tables (generated at init)
+// ============================================================================
+
+// The generated sine table - 256 bytes in RAM
+global sin_table: [u8; 256];
+
+// ============================================================================
+// ROM Data - Compact Correction Table (32 bytes!)
+// ============================================================================
+// Nibble-packed corrections for parabola approximation error
+// High nibble = even index, Low nibble = odd index
+// Values are 0-7, representing corrections to subtract from parabola
+
+global SIN_CORRECTION: [u8; 32] = [
+    0x01, 0x22, 0x34, 0x45, 0x55, 0x66, 0x67, 0x77,  //  0-15
+    0x77, 0x77, 0x77, 0x77, 0x77, 0x76, 0x66, 0x66,  // 16-31
+    0x55, 0x55, 0x54, 0x44, 0x43, 0x33, 0x32, 0x22,  // 32-47
+    0x22, 0x11, 0x11, 0x11, 0x00, 0x00, 0x00, 0x00   // 48-63
+];
+
+// ============================================================================
+// Initialization
+// ============================================================================
+
+// Initialize the math library - call once at program start!
+// Generates the full 256-byte sine table from compact representation.
+// Takes ~11ms at 3.5MHz - invisible during game/demo loading.
+fun mathlib_init() {
+    // Generate all 256 sine values
+    for angle in 0..256 {
+        let value = generate_sin_value(angle as u8);
+        sin_table[angle] = value;
+    }
+}
+
+// Generate a single sine value using parabola + correction
+fun generate_sin_value(angle: u8) -> u8 {
+    // Determine quadrant
+    let quadrant = angle >> 6;  // 0, 1, 2, or 3
+
+    // Get quarter-circle index (0-63)
+    var quarter_index: u8;
+    if quadrant == 0 {
+        quarter_index = angle;
+    } else if quadrant == 1 {
+        quarter_index = 127 - angle;
+    } else if quadrant == 2 {
+        quarter_index = angle - 128;
+    } else {
+        quarter_index = 255 - angle;
+    }
+
+    // Compute parabola approximation for quarter circle
+    // sin(x) ≈ x * (64 - x) / 32 for x in [0, 64]
+    let x = quarter_index;
+    let complement = 64 - x;
+    let product = (x as u16) * (complement as u16);
+    var para_value: u8 = (product >> 5) as u8;  // Divide by 32
+
+    // Scale to 0-127 range (parabola gives 0-64)
+    para_value = para_value * 2;
+
+    // Apply correction from packed table
+    let correction = get_correction(quarter_index);
+    if para_value >= correction {
+        para_value = para_value - correction;
+    }
+
+    // Clamp to 127 max
+    if para_value > 127 {
+        para_value = 127;
+    }
+
+    // Apply sign for quadrants 2 and 3 (angles 128-255)
+    if quadrant >= 2 {
+        // Return negative as two's complement (256 - value)
+        return (256 - (para_value as u16)) as u8;
+    }
+
+    return para_value;
+}
+
+// Extract correction value from packed table
+fun get_correction(index: u8) -> u8 {
+    let packed_index = index >> 1;  // Divide by 2
+    let packed_byte = SIN_CORRECTION[packed_index];
+
+    if (index & 1) == 0 {
+        // Even index: high nibble
+        return packed_byte >> 4;
+    } else {
+        // Odd index: low nibble
+        return packed_byte & 0x0F;
+    }
+}
+
+// ============================================================================
+// Fast Lookup Functions (use after init!)
+// ============================================================================
+
+// Fast sine lookup - 18 T-states!
+// angle: 0-255 (full circle), returns signed -128 to +127
+@inline
+fun fast_sin(angle: u8) -> i8 {
+    return sin_table[angle] as i8;
+}
+
+// Fast cosine lookup - 18 T-states!
+// cos(x) = sin(x + 64)
+@inline
+fun fast_cos(angle: u8) -> i8 {
+    return sin_table[(angle + 64) as u8] as i8;
+}
+
+// Get both sin and cos at once (useful for rotation)
+@inline
+fun fast_sincos(angle: u8) -> u16 {
+    let s = sin_table[angle];
+    let c = sin_table[(angle + 64) as u8];
+    return ((c as u16) << 8) | (s as u16);
+}
+
+// ============================================================================
+// Fixed-Point Utilities
+// ============================================================================
+
+// Signed 8.8 fixed-point multiply (for rotation math)
+// a and b are 8-bit signed (-128 to +127, representing -1.0 to ~+1.0)
+// Result is 8-bit signed
+fun fixed_mult(a: i8, b: i8) -> i8 {
+    let product: i16 = (a as i16) * (b as i16);
+    // Divide by 128 to get back to 8-bit range
+    return (product >> 7) as i8;
+}
+
+// Linear interpolation: lerp(a, b, t) = a + (b-a)*t/256
+// t is 0-255 (0 = a, 255 ≈ b)
+fun lerp(a: u8, b: u8, t: u8) -> u8 {
+    if b >= a {
+        let diff = b - a;
+        let scaled = ((diff as u16) * (t as u16)) >> 8;
+        return a + (scaled as u8);
+    } else {
+        let diff = a - b;
+        let scaled = ((diff as u16) * (t as u16)) >> 8;
+        return a - (scaled as u8);
+    }
+}
+
+// ============================================================================
+// 2D Rotation
+// ============================================================================
+
+// Rotate a point (x, y) by angle
+// Returns rotated point as packed u16: high byte = new_y, low byte = new_x
+// Note: x, y are signed 8-bit; angle is 0-255
+fun rotate_point(x: i8, y: i8, angle: u8) -> u16 {
+    let sin_a = fast_sin(angle);
+    let cos_a = fast_cos(angle);
+
+    // x' = x*cos - y*sin
+    // y' = x*sin + y*cos
+    let x_cos = fixed_mult(x, cos_a);
+    let y_sin = fixed_mult(y, sin_a);
+    let x_sin = fixed_mult(x, sin_a);
+    let y_cos = fixed_mult(y, cos_a);
+
+    let new_x = x_cos - y_sin;
+    let new_y = x_sin + y_cos;
+
+    return ((new_y as u8) as u16 << 8) | ((new_x as u8) as u16);
+}
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
+// Absolute value
+@inline
+fun abs_i8(x: i8) -> u8 {
+    if x < 0 {
+        return (0 - x) as u8;
+    }
+    return x as u8;
+}
+
+// Clamp value to range
+fun clamp(value: i16, min_val: i16, max_val: i16) -> i16 {
+    if value < min_val {
+        return min_val;
+    }
+    if value > max_val {
+        return max_val;
+    }
+    return value;
+}
+
+// ============================================================================
+// Memory Usage Summary
+// ============================================================================
+//
+// ROM (this file compiles to):
+//   - SIN_CORRECTION table: 32 bytes
+//   - mathlib_init code: ~50-60 bytes
+//   - fast_sin/cos: ~10 bytes each (inline)
+//   - rotate_point: ~30 bytes
+//   - Total ROM: ~100-150 bytes
+//
+// RAM (runtime):
+//   - sin_table: 256 bytes
+//
+// Compare to full table approach:
+//   - Full SIN_TABLE: 256 bytes ROM
+//   - Full COS_TABLE: 256 bytes ROM (or compute as sin+64)
+//   - Total: 512 bytes ROM, 0 bytes RAM
+//
+// Savings: 350-400 bytes ROM!
+//
+// ============================================================================

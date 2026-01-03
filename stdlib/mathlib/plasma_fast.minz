@@ -1,0 +1,222 @@
+// ============================================================================
+// Fast Plasma Demo - MinZ Style
+// ============================================================================
+//
+// Demoscene technique: two pre-rendered shadow screens + interference
+//
+// Instead of per-pixel sine calculations:
+// 1. Pre-render two 1KB pattern buffers at init
+// 2. Each frame: scroll buffers via offset (sin/cos)
+// 3. Add/blend values from both buffers
+// 4. Write to real attribute memory
+//
+// Scrolling is just pointer math: +32 = down, +1 = right
+// ============================================================================
+
+// ZX Spectrum constants
+const ATTR_BASE: u16 = 0x5800;
+const WIDTH: u8 = 32;
+const HEIGHT: u8 = 24;
+
+// Animation state
+global frame: u8 = 0;
+
+// Shadow buffers (32x32 each for scroll headroom)
+global shadow1: [u8; 1024];
+global shadow2: [u8; 1024];
+
+// Sine table (256 entries, generated at init)
+global sin_table: [u8; 256];
+
+// Correction table for sine generation (32 bytes)
+global SIN_CORRECTION: [u8; 32] = [
+    0x01, 0x22, 0x34, 0x45, 0x55, 0x66, 0x67, 0x77,
+    0x77, 0x77, 0x77, 0x77, 0x77, 0x76, 0x66, 0x66,
+    0x55, 0x55, 0x54, 0x44, 0x43, 0x33, 0x32, 0x22,
+    0x22, 0x11, 0x11, 0x11, 0x00, 0x00, 0x00, 0x00
+];
+
+// ============================================================================
+// Fast lookups
+// ============================================================================
+
+fun fast_sin(angle: u8) -> u8 {
+    return sin_table[angle];
+}
+
+fun fast_cos(angle: u8) -> u8 {
+    return sin_table[angle + 64];
+}
+
+// ============================================================================
+// Sine table generation (runtime decompression)
+// ============================================================================
+
+fun generate_sin(angle: u8) -> u8 {
+    let quadrant: u8 = angle >> 6;
+    let mut idx: u8 = angle & 0x3F;
+
+    // Mirror for odd quadrants
+    if (quadrant & 1) != 0 {
+        idx = 63 - idx;
+    }
+
+    // Parabola: x * (64 - x) / 8
+    let x: u16 = idx as u16;
+    let comp: u16 = (64 - idx) as u16;
+    let mut value: u8 = ((x * comp) >> 3) as u8;
+
+    // Apply correction from packed nibbles
+    let packed: u8 = SIN_CORRECTION[idx >> 1];
+    let mut correction: u8 = 0;
+    if (idx & 1) == 0 {
+        correction = packed >> 4;
+    } else {
+        correction = packed & 0x0F;
+    }
+
+    if value > correction {
+        value = value - correction;
+    } else {
+        value = 0;
+    }
+
+    if value > 127 {
+        value = 127;
+    }
+
+    // Negate for quadrants 2-3
+    if quadrant >= 2 {
+        return (128 + (127 - value)) as u8;
+    }
+
+    return value;
+}
+
+fun init_sin_table() -> void {
+    let mut i: u16 = 0;
+    while i < 256 {
+        sin_table[i] = generate_sin(i as u8);
+        i = i + 1;
+    }
+}
+
+// ============================================================================
+// Shadow buffer initialization
+// ============================================================================
+
+fun init_shadow1() -> void {
+    let mut y: u8 = 0;
+    while y < 32 {
+        let mut x: u8 = 0;
+        while x < 32 {
+            let idx: u16 = (y as u16) * 32 + (x as u16);
+            let v: u8 = fast_sin((x + y) << 2);
+            shadow1[idx] = v >> 5;
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}
+
+fun init_shadow2() -> void {
+    let mut y: u8 = 0;
+    while y < 32 {
+        let mut x: u8 = 0;
+        while x < 32 {
+            let idx: u16 = (y as u16) * 32 + (x as u16);
+            // Radial pattern
+            let dx: u8 = if x >= 16 { x - 16 } else { 16 - x };
+            let dy: u8 = if y >= 16 { y - 16 } else { 16 - y };
+            let dist: u8 = dx + dy;
+            let v: u8 = fast_sin(dist << 3);
+            shadow2[idx] = v >> 5;
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}
+
+// ============================================================================
+// Main render loop - the fast part!
+// ============================================================================
+
+fun render_frame() -> void {
+    let t: u8 = frame;
+
+    // Calculate scroll offsets using sin/cos
+    let sin_t: u8 = fast_sin(t);
+    let cos_t: u8 = fast_cos(t);
+
+    // Convert to scroll range (0-7)
+    let off1_x: u8 = sin_t >> 5;
+    let off1_y: u8 = cos_t >> 5;
+    let off2_x: u8 = cos_t >> 5;
+    let off2_y: u8 = sin_t >> 5;
+
+    // Base offsets into shadow buffers
+    let base1: u16 = ((off1_y + 4) as u16) * 32 + ((off1_x + 4) as u16);
+    let base2: u16 = ((off2_y + 4) as u16) * 32 + ((off2_x + 4) as u16);
+
+    let mut dst: u16 = 0;
+    let mut y: u8 = 0;
+
+    while y < HEIGHT {
+        let mut x: u8 = 0;
+        while x < WIDTH {
+            // Read from both shadow buffers
+            let v1: u8 = shadow1[base1 + dst];
+            let v2: u8 = shadow2[base2 + dst];
+
+            // Combine: add and wrap to 0-7
+            let color: u8 = (v1 + v2) & 0x07;
+
+            // Build attribute: BRIGHT + PAPER(color) + INK(color+1)
+            let ink: u8 = (color + 1) & 0x07;
+            let attr: u8 = 0x40 | (color << 3) | ink;
+
+            // Write to screen
+            // poke(ATTR_BASE + dst, attr);
+
+            dst = dst + 1;
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}
+
+// Set border color
+asm fun set_border(color: u8) -> void {
+    OUT ($FE), A
+    RET
+}
+
+// Simple delay
+fun delay() -> void {
+    let mut i: u16 = 0;
+    while i < 0x1000 {
+        i = i + 1;
+    }
+}
+
+// ============================================================================
+// Main entry point
+// ============================================================================
+
+fun main() -> void {
+    // Initialize sine table
+    init_sin_table();
+
+    // Pre-render shadow buffers
+    init_shadow1();
+    init_shadow2();
+
+    // Main loop
+    let mut running: u8 = 1;
+    while running == 1 {
+        set_border(frame & 0x07);
+        render_frame();
+        frame = frame + 1;
+        delay();
+    }
+}

@@ -1,0 +1,219 @@
+// ============================================================================
+// MinZ Random Number Generators
+// ============================================================================
+//
+// Two PRNG algorithms:
+// 1. LFSR (Linear Feedback Shift Register) - Fast, compact
+// 2. Tribonacci (Elite-style) - Better quality, procedural generation
+//
+// Choose based on your needs:
+// - LFSR: Games, simple effects, noise (25 T-states, 2 bytes state)
+// - Tribonacci: Procedural generation, Elite-style galaxies (50 T, 6 bytes state)
+//
+// ============================================================================
+
+// ============================================================================
+// LFSR (16-bit Galois)
+// ============================================================================
+// Fast and compact. Period: 65535.
+// Good for: particle effects, simple randomness, noise patterns
+
+global lfsr_state: u16 = 0xACE1;
+
+// Initialize LFSR
+fun lfsr_seed(seed: u16) {
+    if seed == 0 {
+        lfsr_state = 0xACE1;  // Avoid zero
+    } else {
+        lfsr_state = seed;
+    }
+}
+
+// Generate 16-bit random (Galois LFSR)
+// Polynomial: x^16 + x^14 + x^13 + x^11 + 1
+// ~25 T-states
+fun lfsr16() -> u16 {
+    var state = lfsr_state;
+    let lsb = state & 1;
+    state = state >> 1;
+    if lsb != 0 {
+        state = state ^ 0xB400;
+    }
+    lfsr_state = state;
+    return state;
+}
+
+// Generate 8-bit random
+@inline
+fun lfsr8() -> u8 {
+    return (lfsr16() & 0xFF) as u8;
+}
+
+// ============================================================================
+// Tribonacci (Elite-style)
+// ============================================================================
+// Better statistical properties. Period: ~2^48.
+// Good for: procedural generation, planet names, galaxy seeds
+//
+// Used in the original Elite (1984) for generating the universe!
+
+global trib_seed0: u16 = 0x1234;
+global trib_seed1: u16 = 0x5678;
+global trib_seed2: u16 = 0x9ABC;
+
+// Initialize Tribonacci with three seeds
+fun trib_seed(s0: u16, s1: u16, s2: u16) {
+    trib_seed0 = s0;
+    trib_seed1 = s1;
+    trib_seed2 = s2;
+    if (s0 == 0) && (s1 == 0) && (s2 == 0) {
+        trib_seed0 = 1;
+    }
+}
+
+// Generate 16-bit random (Tribonacci)
+// new = seed0 + seed1 + seed2 + carry
+// ~50 T-states
+fun trib16() -> u16 {
+    let sum0 = trib_seed0;
+    let sum1 = sum0 + trib_seed1;
+    let carry1: u16 = if sum1 < sum0 { 1 } else { 0 };
+    let sum2 = sum1 + trib_seed2;
+    let carry2: u16 = if sum2 < sum1 { 1 } else { 0 };
+    let result = sum2 + carry1 + carry2;
+
+    // Shift seeds
+    trib_seed0 = trib_seed1;
+    trib_seed1 = trib_seed2;
+    trib_seed2 = result;
+
+    return result;
+}
+
+// Generate 8-bit random (XOR high and low for better mixing)
+fun trib8() -> u8 {
+    let r = trib16();
+    return ((r >> 8) ^ (r & 0xFF)) as u8;
+}
+
+// ============================================================================
+// Convenience Functions (use LFSR by default - faster)
+// ============================================================================
+
+// Default random functions use LFSR
+@inline
+fun random() -> u16 {
+    return lfsr16();
+}
+
+@inline
+fun random_byte() -> u8 {
+    return lfsr8();
+}
+
+// Random in range [0, max)
+fun random_range(max: u8) -> u8 {
+    if max == 0 { return 0; }
+    return lfsr8() % max;
+}
+
+// Random in range [min, max]
+fun random_between(min: u8, max: u8) -> u8 {
+    if max <= min { return min; }
+    return min + random_range(max - min + 1);
+}
+
+// Random boolean (50/50)
+@inline
+fun random_bool() -> bool {
+    return (lfsr16() & 1) != 0;
+}
+
+// Random with probability (0-255, where 255 = always true)
+fun random_chance(probability: u8) -> bool {
+    return lfsr8() < probability;
+}
+
+// ============================================================================
+// Elite-Style Procedural Generation
+// ============================================================================
+
+// Generate a "planet name" style hash from coordinates
+// Similar to how Elite generated galaxy names
+fun proc_hash(x: u8, y: u8, galaxy: u8) -> u16 {
+    // Combine coordinates into seed
+    let seed0 = ((x as u16) << 8) | (y as u16);
+    let seed1 = ((galaxy as u16) << 8) | (x ^ y);
+    let seed2 = seed0 ^ seed1;
+
+    // Run a few tribonacci iterations
+    trib_seed(seed0, seed1, seed2);
+    trib16();
+    trib16();
+    return trib16();
+}
+
+// Generate deterministic "terrain" value for coordinates
+// Returns 0-255 based on position
+fun proc_terrain(x: u16, y: u16) -> u8 {
+    let seed = (x * 31337) ^ (y * 65521);
+    lfsr_seed(seed);
+    lfsr16();
+    return lfsr8();
+}
+
+// ============================================================================
+// Noise Functions
+// ============================================================================
+
+// 1D noise (for waveforms, terrain profiles)
+// Returns pseudo-random but deterministic value for position
+fun noise1d(x: u8) -> u8 {
+    // Simple hash
+    var n = x;
+    n = n ^ (n >> 4);
+    n = n * 0x7B;  // Prime multiplier
+    n = n ^ (n >> 3);
+    return n;
+}
+
+// 2D noise (for textures, terrain)
+fun noise2d(x: u8, y: u8) -> u8 {
+    var n = (x as u16) * 374761393 + (y as u16) * 668265263;
+    n = (n ^ (n >> 13)) * 1274126177;
+    return (n >> 8) as u8;
+}
+
+// ============================================================================
+// Z80 Assembly Optimized Tribonacci
+// ============================================================================
+
+asm fun trib16_asm() -> u16 {
+    ; Load seeds
+    LD HL, (trib_seed0)
+    LD DE, (trib_seed1)
+    LD BC, (trib_seed2)
+
+    ; HL = seed0 + seed1 + seed2 (with carries)
+    ADD HL, DE
+    ADC HL, BC
+
+    ; Rotate seeds
+    LD (trib_seed0), DE   ; seed0 = old seed1
+    LD (trib_seed1), BC   ; seed1 = old seed2
+    LD (trib_seed2), HL   ; seed2 = sum
+
+    ; Return sum in HL
+    RET
+}
+
+// ============================================================================
+// Memory Usage
+// ============================================================================
+//
+// LFSR: 2 bytes state, ~30 bytes code
+// Tribonacci: 6 bytes state, ~60 bytes code
+// Noise: ~40 bytes code
+// Total: ~8 bytes state, ~130 bytes code
+//
+// ============================================================================

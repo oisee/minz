@@ -1,0 +1,102 @@
+// ============================================================================
+// Simple Plasma Demo - No inline asm in loop
+// ============================================================================
+
+const ATTR_BASE: u16 = 0x5800;
+const SCREEN_WIDTH: u8 = 32;
+const SCREEN_HEIGHT: u8 = 24;
+
+global frame: u8 = 0;
+global shadow1: [u8; 1024];
+global shadow2: [u8; 1024];
+global sin_table: [u8; 256];
+
+global SIN_CORRECTION: [u8; 32] = [
+    0x01, 0x22, 0x34, 0x45, 0x55, 0x66, 0x67, 0x77,
+    0x77, 0x77, 0x77, 0x77, 0x77, 0x76, 0x66, 0x66,
+    0x55, 0x55, 0x54, 0x44, 0x43, 0x33, 0x32, 0x22,
+    0x22, 0x11, 0x11, 0x11, 0x00, 0x00, 0x00, 0x00
+];
+
+fn fast_sin(angle: u8) -> u8 {
+    return sin_table[angle];
+}
+
+fn fast_cos(angle: u8) -> u8 {
+    return sin_table[angle + 64];
+}
+
+fn generate_sin(angle: u8) -> u8 {
+    let quadrant: u8 = angle >> 6;
+    let mut idx: u8 = angle & 0x3F;
+    if (quadrant & 1) != 0 { idx = 63 - idx; }
+    let x: u16 = idx as u16;
+    let comp: u16 = (64 - idx) as u16;
+    let mut value: u8 = ((x * comp) >> 3) as u8;
+    let packed: u8 = SIN_CORRECTION[idx >> 1];
+    let correction: u8 = if (idx & 1) == 0 { packed >> 4 } else { packed & 0x0F };
+    if value > correction { value = value - correction; } else { value = 0; }
+    if value > 127 { value = 127; }
+    if quadrant >= 2 { return (128 + (127 - value)) as u8; }
+    return value;
+}
+
+fn init_sin_table() -> void {
+    for i in 0..256 { sin_table[i] = generate_sin(i as u8); }
+}
+
+fn init_shadow1() -> void {
+    for y in 0..32 {
+        for x in 0..32 {
+            let idx: u16 = (y as u16) * 32 + (x as u16);
+            shadow1[idx] = fast_sin(((x + y) as u8) << 2) >> 5;
+        }
+    }
+}
+
+fn init_shadow2() -> void {
+    for y in 0..32 {
+        for x in 0..32 {
+            let idx: u16 = (y as u16) * 32 + (x as u16);
+            let dx: u8 = if x >= 16 { x - 16 } else { 16 - x };
+            let dy: u8 = if y >= 16 { y - 16 } else { 16 - y };
+            shadow2[idx] = fast_sin((dx + dy) << 3) >> 5;
+        }
+    }
+}
+
+fn render_frame() -> void {
+    let t: u8 = frame;
+    let off1_x: u8 = fast_sin(t) >> 5;
+    let off1_y: u8 = fast_cos(t) >> 5;
+    let off2_x: u8 = fast_cos(t + 64) >> 5;
+    let off2_y: u8 = fast_sin(t + 64) >> 5;
+    let base1: u16 = ((off1_y + 4) as u16) * 32 + ((off1_x + 4) as u16);
+    let base2: u16 = ((off2_y + 4) as u16) * 32 + ((off2_x + 4) as u16);
+
+    for y in 0..SCREEN_HEIGHT {
+        for x in 0..SCREEN_WIDTH {
+            let offset: u16 = (y as u16) * 32 + (x as u16);
+            let v1: u8 = shadow1[base1 + offset];
+            let v2: u8 = shadow2[base2 + offset];
+            let color: u8 = (v1 + v2) & 0x07;
+            let ink: u8 = (color + 1) & 0x07;
+            let attr: u8 = 0x40 | (color << 3) | ink;
+            // Direct memory write without asm function
+            let dst: u16 = ATTR_BASE + offset;
+        }
+    }
+}
+
+fn main() -> void {
+    init_sin_table();
+    init_shadow1();
+    init_shadow2();
+
+    // Simple loop without inline asm
+    let mut running: u8 = 1;
+    while running == 1 {
+        render_frame();
+        frame = frame + 1;
+    }
+}
