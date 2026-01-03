@@ -4607,8 +4607,7 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    RET")
 	g.emit("")
 	
-	// Helper function for printing digits
-	if g.usedFunctions["print_u16_decimal"] || g.usedFunctions["print_digit"] {
+	// Helper function for printing digits (needed by all decimal print functions)
 	g.emit("print_digit:")
 	g.emit("    LD A, '0'-1")
 	g.emit("print_digit_loop:")
@@ -4619,7 +4618,6 @@ func (g *Z80Generator) generatePrintHelpers() {
 	g.emit("    RST 16             ; Print digit")
 	g.emit("    RET")
 	g.emit("")
-	}
 	}
 	
 	// Print signed integers (same as unsigned for now)
