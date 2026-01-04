@@ -21,6 +21,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -57,10 +58,10 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "mzrun [minz file or binary]",
+	Use:   "mzrun [minz file, binary, or TAP]",
 	Short: "MinZ Remote Runner - Execute on any DZRP-compatible emulator",
 	Long: `mzrun compiles MinZ programs and runs them on any emulator supporting
-the DeZog Remote Protocol (DZRP).
+the DeZog Remote Protocol (DZRP). Also supports instant TAP file loading.
 
 Supported emulators:
   - ZEsarUX      (built-in DZRP support)
@@ -68,13 +69,19 @@ Supported emulators:
   - CSpect       (with DeZog plugin)
   - Any DZRP-compatible emulator
 
-This enables testing MinZ programs on accurate ZX Spectrum emulators
-without needing a local display - perfect for CI/CD and headless testing.
+Supported file formats:
+  - .minz        MinZ source (compiled automatically)
+  - .tap         ZX Spectrum TAP (CODE blocks loaded directly)
+  - .bin/.other  Raw binary
+
+TAP loading bypasses tape emulation by writing CODE blocks directly to memory.
+This provides instant loading regardless of program size.
 
 Examples:
   mzrun program.minz                    # Compile and run (localhost:11000)
+  mzrun game.tap --verbose              # Load TAP, show block info
+  mzrun game.tap --debug                # Load TAP with step debugger
   mzrun --host 192.168.1.5 program.minz # Run on remote emulator
-  mzrun --verbose program.minz          # Show register state
   mzrun program.bin --load 0x8000       # Run pre-compiled binary
   mzrun --reset                         # Reset emulator (PC=0, run ROM)`,
 	Args: cobra.MaximumNArgs(1),
@@ -119,8 +126,14 @@ func runProgram(cmd *cobra.Command, args []string) error {
 
 	inputFile := args[0]
 
-	// Check if it's a .minz file that needs compilation
-	if len(inputFile) > 5 && inputFile[len(inputFile)-5:] == ".minz" {
+	// Check file extension to determine handling
+	isTap := len(inputFile) > 4 && strings.ToLower(inputFile[len(inputFile)-4:]) == ".tap"
+	isMinz := len(inputFile) > 5 && inputFile[len(inputFile)-5:] == ".minz"
+
+	if isTap {
+		// TAP file - use TAP loader
+		return runTapFile(inputFile)
+	} else if isMinz {
 		if verbose {
 			fmt.Printf("Compiling %s...\n", inputFile)
 		}
@@ -249,6 +262,124 @@ func runProgram(cmd *cobra.Command, args []string) error {
 			fmt.Println()
 		}
 	}
+
+	return nil
+}
+
+// runTapFile loads and executes a TAP file via DZRP
+func runTapFile(filename string) error {
+	// Parse TAP file
+	tap, err := ParseTapFile(filename)
+	if err != nil {
+		return fmt.Errorf("failed to parse TAP: %w", err)
+	}
+
+	if verbose {
+		tap.PrintInfo()
+	}
+
+	// Get loadable blocks
+	blocks := tap.GetAllLoadableBlocks()
+	if len(blocks) == 0 {
+		return fmt.Errorf("no CODE blocks found in TAP file")
+	}
+
+	// Use first CODE block's address if not overridden
+	firstBlock := blocks[0]
+	effectiveLoadAddr := loadAddr
+	effectiveStartAddr := startAddr
+
+	// Only use TAP addresses if user hasn't specified custom ones
+	if loadAddr == 0x8000 { // default value, use TAP's address
+		effectiveLoadAddr = firstBlock.Address
+	}
+	if startAddr == 0 {
+		effectiveStartAddr = effectiveLoadAddr
+	}
+
+	if verbose {
+		fmt.Printf("Loading %d CODE block(s) via DZRP...\n", len(blocks))
+		fmt.Printf("Connecting to %s:%d...\n", host, port)
+	}
+
+	// Connect to DZRP emulator
+	addr := fmt.Sprintf("%s:%d", host, port)
+	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
+	if err != nil {
+		return fmt.Errorf("failed to connect to DZRP emulator at %s: %w", addr, err)
+	}
+	defer conn.Close()
+
+	if verbose {
+		fmt.Println("Connected! Initializing...")
+	}
+
+	// Initialize DZRP session
+	if err := dzrpInit(conn); err != nil {
+		return fmt.Errorf("DZRP init failed: %w", err)
+	}
+
+	// Pause emulation
+	if err := dzrpPause(conn); err != nil {
+		return fmt.Errorf("failed to pause: %w", err)
+	}
+
+	// Load all CODE blocks
+	for _, block := range blocks {
+		loadTo := block.Address
+		if loadAddr != 0x8000 {
+			// User specified a load address, use it for first block
+			loadTo = effectiveLoadAddr
+		}
+		if verbose {
+			fmt.Printf("Loading \"%s\" (%d bytes) at $%04X...\n",
+				block.Name, len(block.Data), loadTo)
+		}
+		if err := dzrpWriteMem(conn, loadTo, block.Data); err != nil {
+			return fmt.Errorf("failed to write memory: %w", err)
+		}
+	}
+
+	// Set PC to start address
+	if err := dzrpSetPC(conn, effectiveStartAddr); err != nil {
+		return fmt.Errorf("failed to set PC: %w", err)
+	}
+
+	if debug {
+		// Interactive debugger mode
+		return runDebugger(conn, effectiveStartAddr)
+	}
+
+	if verbose {
+		fmt.Printf("Starting execution at $%04X...\n", effectiveStartAddr)
+	}
+
+	// Continue execution
+	if err := dzrpContinue(conn); err != nil {
+		return fmt.Errorf("failed to continue: %w", err)
+	}
+
+	// timeout 0 means "run forever"
+	if timeout == 0 {
+		fmt.Printf("Program running from $%04X (use emulator to stop)\n", effectiveStartAddr)
+		return nil
+	}
+
+	// Wait for program to complete (or timeout)
+	time.Sleep(time.Duration(timeout) * time.Second)
+
+	// Pause and read final state
+	if err := dzrpPause(conn); err != nil {
+		return fmt.Errorf("failed to pause: %w", err)
+	}
+
+	// Get final registers
+	regs, err := dzrpGetRegisters(conn)
+	if err != nil {
+		return fmt.Errorf("failed to get registers: %w", err)
+	}
+
+	fmt.Printf("TAP execution complete. PC=$%04X SP=$%04X\n", regs["PC"], regs["SP"])
 
 	return nil
 }
