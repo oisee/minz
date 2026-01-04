@@ -683,7 +683,7 @@ func runDebugger(conn net.Conn, startPC uint16) error {
 			return fmt.Errorf("failed to read memory: %w", err)
 		}
 
-		instr, size := disasm(mem, pc)
+		instr, _ := disasm(mem, pc)
 		fmt.Printf("$%04X: %-20s > ", pc, instr)
 
 		// Read command
@@ -692,9 +692,8 @@ func runDebugger(conn net.Conn, startPC uint16) error {
 
 		switch input {
 		case "", "s", "step":
-			// Single step using temp breakpoint at next instruction
-			nextPC := pc + uint16(size)
-			if err := dzrpStepTo(conn, nextPC); err != nil {
+			// Single step using CMD_STEP_INTO (properly follows JP/JR/CALL/RET)
+			if err := dzrpStepInto(conn); err != nil {
 				return err
 			}
 			// Read new PC
@@ -705,8 +704,10 @@ func runDebugger(conn net.Conn, startPC uint16) error {
 			pc = regs["PC"]
 
 		case "o", "over":
-			// Step over - if CALL, set breakpoint after it
-			if mem[0] == 0xCD { // CALL
+			// Step over - if CALL, set breakpoint after it; otherwise single step
+			if mem[0] == 0xCD || // CALL nn
+				(mem[0] == 0xC4) || (mem[0] == 0xCC) || (mem[0] == 0xD4) || (mem[0] == 0xDC) || // CALL cc,nn
+				(mem[0] == 0xE4) || (mem[0] == 0xEC) || (mem[0] == 0xF4) || (mem[0] == 0xFC) {
 				nextPC := pc + 3
 				fmt.Printf("  [step over CALL, break at $%04X]\n", nextPC)
 				if err := dzrpStepTo(conn, nextPC); err != nil {
@@ -719,9 +720,8 @@ func runDebugger(conn net.Conn, startPC uint16) error {
 					continue
 				}
 			} else {
-				// Normal step
-				nextPC := pc + uint16(size)
-				if err := dzrpStepTo(conn, nextPC); err != nil {
+				// Normal step - use CMD_STEP_INTO for proper JP/JR handling
+				if err := dzrpStepInto(conn); err != nil {
 					return err
 				}
 			}
@@ -798,6 +798,31 @@ func dzrpStepTo(conn net.Conn, targetPC uint16) error {
 
 		// CMD_CONTINUE response (seq != 0), keep waiting for notification
 		if cmd == CMD_CONTINUE {
+			continue
+		}
+	}
+}
+
+// dzrpStepInto executes exactly one instruction using CMD_STEP_INTO
+func dzrpStepInto(conn net.Conn) error {
+	if err := dzrpSend(conn, CMD_STEP_INTO, nil); err != nil {
+		return err
+	}
+
+	// Wait for pause notification
+	for {
+		seqNum, cmd, _, err := dzrpRecvRaw(conn)
+		if err != nil {
+			return err
+		}
+
+		// Check if it's a pause notification (seq=0, cmd=1)
+		if seqNum == 0 && cmd == 1 { // NTF_PAUSE
+			return nil
+		}
+
+		// CMD_STEP_INTO response (seq != 0), keep waiting for notification
+		if cmd == CMD_STEP_INTO {
 			continue
 		}
 	}

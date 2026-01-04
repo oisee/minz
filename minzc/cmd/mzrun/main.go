@@ -36,6 +36,7 @@ const (
 	CMD_PAUSE             = 7
 	CMD_READ_MEM          = 8
 	CMD_WRITE_MEM         = 9
+	CMD_STEP_INTO         = 17
 	CMD_ADD_BREAKPOINT    = 40
 	CMD_REMOVE_BREAKPOINT = 41
 )
