@@ -7,6 +7,10 @@
 //   - CSpect (with DeZog plugin)
 //   - Any emulator implementing DeZog Remote Protocol
 //
+// Environment variables:
+//   MZRUN_HOST - Default emulator host (default: localhost)
+//   MZRUN_PORT - Default emulator port (default: 11000)
+//
 // Usage:
 //   mzrun program.minz              # Compile and run
 //   mzrun --host 192.168.1.5 prog.minz  # Remote emulator
@@ -21,6 +25,8 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -44,17 +50,47 @@ const (
 var seqNum byte = 1
 
 var (
-	host      string
-	port      int
-	loadAddr  uint16
-	startAddr uint16
-	timeout   int
-	verbose   bool
-	step      bool
-	reset     bool
-	dump      uint16
-	debug     bool
+	host         string
+	port         int
+	loadAddrStr  string // String for flexible address parsing
+	startAddrStr string // String for flexible address parsing
+	timeout      int
+	verbose      bool
+	step         bool
+	reset        bool
+	dump         uint16
+	debug        bool
 )
+
+// parseAddress parses hex (0x, $), octal (0), or decimal addresses
+func parseAddress(s string) (uint16, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return 0, fmt.Errorf("empty address")
+	}
+
+	// Handle $ prefix for hex (common in Z80 world)
+	if strings.HasPrefix(s, "$") {
+		val, err := strconv.ParseUint(s[1:], 16, 16)
+		return uint16(val), err
+	}
+
+	// Handle 0x prefix for hex
+	if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+		val, err := strconv.ParseUint(s[2:], 16, 16)
+		return uint16(val), err
+	}
+
+	// Handle 0 prefix for octal (but not just "0")
+	if strings.HasPrefix(s, "0") && len(s) > 1 && s[1] >= '0' && s[1] <= '7' {
+		val, err := strconv.ParseUint(s[1:], 8, 16)
+		return uint16(val), err
+	}
+
+	// Decimal
+	val, err := strconv.ParseUint(s, 10, 16)
+	return uint16(val), err
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "mzrun [minz file or binary]",
@@ -68,6 +104,16 @@ Supported emulators:
   - CSpect       (with DeZog plugin)
   - Any DZRP-compatible emulator
 
+Environment variables:
+  MZRUN_HOST - Default emulator host (overridden by --host)
+  MZRUN_PORT - Default emulator port (overridden by --port)
+
+Address formats (for --load, --start):
+  0x8000  - Hexadecimal (0x prefix)
+  $8000   - Hexadecimal ($ prefix)
+  32768   - Decimal
+  0100000 - Octal (leading 0)
+
 This enables testing MinZ programs on accurate ZX Spectrum emulators
 without needing a local display - perfect for CI/CD and headless testing.
 
@@ -76,16 +122,29 @@ Examples:
   mzrun --host 192.168.1.5 program.minz # Run on remote emulator
   mzrun --verbose program.minz          # Show register state
   mzrun program.bin --load 0x8000       # Run pre-compiled binary
+  mzrun program.bin --load $9000        # Hex with $ prefix
   mzrun --reset                         # Reset emulator (PC=0, run ROM)`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runProgram,
 }
 
 func init() {
-	rootCmd.Flags().StringVar(&host, "host", "localhost", "DZRP emulator host/IP")
-	rootCmd.Flags().IntVar(&port, "port", 11000, "DZRP port")
-	rootCmd.Flags().Uint16Var(&loadAddr, "load", 0x8000, "Load address")
-	rootCmd.Flags().Uint16Var(&startAddr, "start", 0, "Start address (default: same as load)")
+	// Default from environment, fallback to sensible defaults
+	defaultHost := os.Getenv("MZRUN_HOST")
+	if defaultHost == "" {
+		defaultHost = "localhost"
+	}
+	defaultPort := 11000
+	if envPort := os.Getenv("MZRUN_PORT"); envPort != "" {
+		if p, err := strconv.Atoi(envPort); err == nil {
+			defaultPort = p
+		}
+	}
+
+	rootCmd.Flags().StringVar(&host, "host", defaultHost, "DZRP emulator host/IP (env: MZRUN_HOST)")
+	rootCmd.Flags().IntVar(&port, "port", defaultPort, "DZRP port (env: MZRUN_PORT)")
+	rootCmd.Flags().StringVar(&loadAddrStr, "load", "0x8000", "Load address (hex: 0x8000/$8000, dec: 32768)")
+	rootCmd.Flags().StringVar(&startAddrStr, "start", "", "Start address (default: same as load)")
 	rootCmd.Flags().IntVar(&timeout, "timeout", 10, "Execution timeout in seconds (0 = run forever)")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 	rootCmd.Flags().BoolVar(&step, "step", false, "Single-step execution")
@@ -117,6 +176,23 @@ func runProgram(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("requires a minz file or binary (or use --reset)")
 	}
 
+	// Parse load address
+	loadAddr, err := parseAddress(loadAddrStr)
+	if err != nil {
+		return fmt.Errorf("invalid --load address '%s': %w", loadAddrStr, err)
+	}
+
+	// Parse start address (defaults to load address)
+	var startAddr uint16
+	if startAddrStr != "" {
+		startAddr, err = parseAddress(startAddrStr)
+		if err != nil {
+			return fmt.Errorf("invalid --start address '%s': %w", startAddrStr, err)
+		}
+	} else {
+		startAddr = loadAddr
+	}
+
 	inputFile := args[0]
 
 	// Check if it's a .minz file that needs compilation
@@ -134,10 +210,6 @@ func runProgram(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to read binary: %w", err)
 		}
-	}
-
-	if startAddr == 0 {
-		startAddr = loadAddr
 	}
 
 	if verbose {
