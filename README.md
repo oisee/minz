@@ -572,10 +572,6 @@ MinZ proves that modern programming belongs on vintage hardware. Join us in buil
 
 <div align="center">
 
-**⭐ Star this repo to support the project!**
-
-[Discord](https://discord.gg/minz) • [Twitter](https://twitter.com/minzlang) • [Website](https://minz-lang.org)
-
 ### **MinZ: Where Modern Dreams Meet Vintage Reality™**
 
 *From v0.1.0 to v0.16.0 and beyond - Every release a revolution!*
