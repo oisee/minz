@@ -8,8 +8,9 @@
 //   - Any emulator implementing DeZog Remote Protocol
 //
 // Environment variables:
-//   MZRUN_HOST - Default emulator host (default: localhost)
-//   MZRUN_PORT - Default emulator port (default: 11000)
+//   DZRP_HOST   - Default emulator host (default: localhost)
+//   DZRP_PORT   - Default emulator port (default: 11000)
+//   DZRP_SOCKET - Socket type: tcp (default) or ws (WebSocket)
 //
 // Usage:
 //   mzrun program.minz              # Compile and run
@@ -52,6 +53,7 @@ var seqNum byte = 1
 var (
 	host         string
 	port         int
+	socketType   string // tcp or ws (WebSocket)
 	loadAddrStr  string // String for flexible address parsing
 	startAddrStr string // String for flexible address parsing
 	timeout      int
@@ -105,8 +107,9 @@ Supported emulators:
   - Any DZRP-compatible emulator
 
 Environment variables:
-  MZRUN_HOST - Default emulator host (overridden by --host)
-  MZRUN_PORT - Default emulator port (overridden by --port)
+  DZRP_HOST   - Default emulator host (overridden by --host)
+  DZRP_PORT   - Default emulator port (overridden by --port)
+  DZRP_SOCKET - Socket type: tcp (default) or ws (WebSocket)
 
 Address formats (for --load, --start):
   0x8000  - Hexadecimal (0x prefix)
@@ -130,19 +133,24 @@ Examples:
 
 func init() {
 	// Default from environment, fallback to sensible defaults
-	defaultHost := os.Getenv("MZRUN_HOST")
+	defaultHost := os.Getenv("DZRP_HOST")
 	if defaultHost == "" {
 		defaultHost = "localhost"
 	}
 	defaultPort := 11000
-	if envPort := os.Getenv("MZRUN_PORT"); envPort != "" {
+	if envPort := os.Getenv("DZRP_PORT"); envPort != "" {
 		if p, err := strconv.Atoi(envPort); err == nil {
 			defaultPort = p
 		}
 	}
+	defaultSocket := os.Getenv("DZRP_SOCKET")
+	if defaultSocket == "" {
+		defaultSocket = "tcp"
+	}
 
-	rootCmd.Flags().StringVar(&host, "host", defaultHost, "DZRP emulator host/IP (env: MZRUN_HOST)")
-	rootCmd.Flags().IntVar(&port, "port", defaultPort, "DZRP port (env: MZRUN_PORT)")
+	rootCmd.Flags().StringVar(&host, "host", defaultHost, "DZRP emulator host/IP (env: DZRP_HOST)")
+	rootCmd.Flags().IntVar(&port, "port", defaultPort, "DZRP port (env: DZRP_PORT)")
+	rootCmd.Flags().StringVar(&socketType, "socket", defaultSocket, "Socket type: tcp or ws (env: DZRP_SOCKET)")
 	rootCmd.Flags().StringVar(&loadAddrStr, "load", "0x8000", "Load address (hex: 0x8000/$8000, dec: 32768)")
 	rootCmd.Flags().StringVar(&startAddrStr, "start", "", "Start address (default: same as load)")
 	rootCmd.Flags().IntVar(&timeout, "timeout", 10, "Execution timeout in seconds (0 = run forever)")

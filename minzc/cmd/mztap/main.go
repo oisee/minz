@@ -7,8 +7,9 @@
 //   - Data blocks: flag=0xFF, data[n], checksum
 //
 // Environment variables:
-//   MZTAP_HOST - Default emulator host (default: localhost)
-//   MZTAP_PORT - Default emulator port (default: 11000)
+//   DZRP_HOST   - Default emulator host (default: localhost)
+//   DZRP_PORT   - Default emulator port (default: 11000)
+//   DZRP_SOCKET - Socket type: tcp (default) or ws (WebSocket)
 //
 // Usage:
 //   mztap program.tap                   # Load and run CODE blocks
@@ -69,6 +70,7 @@ var seqNum byte = 1
 var (
 	host       string
 	port       int
+	socketType string // tcp or ws (WebSocket)
 	list       bool
 	verbose    bool
 	run        bool
@@ -99,8 +101,9 @@ Supported emulators:
   - CSpect      (with DeZog plugin)
 
 Environment variables:
-  MZTAP_HOST - Default emulator host (overridden by --host)
-  MZTAP_PORT - Default emulator port (overridden by --port)
+  DZRP_HOST   - Default emulator host (overridden by --host)
+  DZRP_PORT   - Default emulator port (overridden by --port)
+  DZRP_SOCKET - Socket type: tcp (default) or ws (WebSocket)
 
 Address formats (for --load, --start):
   0x8000  - Hexadecimal (0x prefix)
@@ -122,19 +125,24 @@ Examples:
 
 func init() {
 	// Default from environment, fallback to sensible defaults
-	defaultHost := os.Getenv("MZTAP_HOST")
+	defaultHost := os.Getenv("DZRP_HOST")
 	if defaultHost == "" {
 		defaultHost = "localhost"
 	}
 	defaultPort := 11000
-	if envPort := os.Getenv("MZTAP_PORT"); envPort != "" {
+	if envPort := os.Getenv("DZRP_PORT"); envPort != "" {
 		if p, err := strconv.Atoi(envPort); err == nil {
 			defaultPort = p
 		}
 	}
+	defaultSocket := os.Getenv("DZRP_SOCKET")
+	if defaultSocket == "" {
+		defaultSocket = "tcp"
+	}
 
-	rootCmd.Flags().StringVar(&host, "host", defaultHost, "DZRP emulator host/IP (env: MZTAP_HOST)")
-	rootCmd.Flags().IntVar(&port, "port", defaultPort, "DZRP port (env: MZTAP_PORT)")
+	rootCmd.Flags().StringVar(&host, "host", defaultHost, "DZRP emulator host/IP (env: DZRP_HOST)")
+	rootCmd.Flags().IntVar(&port, "port", defaultPort, "DZRP port (env: DZRP_PORT)")
+	rootCmd.Flags().StringVar(&socketType, "socket", defaultSocket, "Socket type: tcp or ws (env: DZRP_SOCKET)")
 	rootCmd.Flags().BoolVar(&list, "list", false, "List TAP contents without loading")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
 	rootCmd.Flags().BoolVar(&run, "run", true, "Run CODE blocks after loading (default true)")
