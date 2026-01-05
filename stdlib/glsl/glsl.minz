@@ -1,0 +1,67 @@
+// glsl.minz - GLSL-Style Graphics Library for MinZ
+// Main module that re-exports all shader components
+//
+// Inspired by ZXSpeculator's stunning shader experiments
+// Bringing raymarching, SDFs, and procedural graphics to Z80!
+//
+// Usage:
+//   import glsl;
+//
+// Or import specific modules:
+//   import glsl.fp;       // Fixed-point math
+//   import glsl.trig;     // Trigonometry
+//   import glsl.vec;      // Vector types
+//   import glsl.sdf;      // Signed distance functions
+//   import glsl.raymarch; // Raymarching framework
+//   import glsl.dither;   // Dithering algorithms
+
+// Re-export all modules
+import glsl.fp;
+import glsl.trig;
+import glsl.vec;
+import glsl.sdf;
+import glsl.raymarch;
+import glsl.dither;
+
+// ============================================
+// Library Information
+// ============================================
+
+const GLSL_VERSION_MAJOR: u8 = 0;
+const GLSL_VERSION_MINOR: u8 = 1;
+const GLSL_VERSION_PATCH: u8 = 0;
+
+// ============================================
+// Quick Reference
+// ============================================
+//
+// Fixed-Point (8.8 format, 256 = 1.0):
+//   fp_mul, fp_div, fp_sqrt, fp_abs, fp_clamp, fp_mix
+//   fp_floor, fp_ceil, fp_fract, fp_mod
+//
+// Trigonometry (1024 = 2π):
+//   fp_sin, fp_cos, fp_tan, fp_asin, fp_acos, fp_atan, fp_atan2
+//
+// Vectors:
+//   vec2, vec3, vec4 types
+//   v2_add, v2_sub, v2_mul, v2_dot, v2_length, v2_normalize
+//   v3_add, v3_sub, v3_mul, v3_dot, v3_cross, v3_length, v3_normalize
+//   v3_rot_x, v3_rot_y, v3_rot_z
+//
+// SDFs:
+//   sdSphere, sdBox, sdPlane, sdCylinder, sdTorus, sdCapsule
+//   opUnion, opIntersection, opSubtraction
+//   opSmoothUnion, opSmoothIntersection
+//   opRep, opTwist, opBend
+//
+// Raymarching:
+//   makeRay, makeSimpleRay
+//   HitResult, Ray types
+//   calcDiffuse, calcLighting, applyFog
+//
+// Dithering:
+//   fs_dither_pixel (Floyd-Steinberg)
+//   bayer_dither_4x4, bayer_dither_8x8
+//   blue_noise_dither
+//   atkinson_dither_pixel
+

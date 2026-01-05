@@ -1,0 +1,191 @@
+// dither.minz - Dithering Algorithms for 1-bit Display
+// Essential for ZX Spectrum's monochrome attribute blocks
+//
+// Based on ZXSpeculator's Floyd-Steinberg implementation
+
+import glsl.fp;
+
+// ============================================
+// Floyd-Steinberg Error Diffusion
+// ============================================
+
+// Error distribution weights (in 16ths for integer math)
+const FS_RIGHT: u8 = 7;        // 7/16 = 0.4375
+const FS_DOWN_LEFT: u8 = 3;    // 3/16 = 0.1875
+const FS_DOWN: u8 = 5;         // 5/16 = 0.3125
+const FS_DOWN_RIGHT: u8 = 1;   // 1/16 = 0.0625
+
+// Error buffer type (one extra on each side for boundary)
+// Note: For 256-pixel width, need 258 entries
+struct ErrorBuffer {
+    data: [i8; 258]
+}
+
+// Process one pixel with Floyd-Steinberg dithering
+// Returns true if pixel should be ON (white), false for OFF (black)
+fun fs_dither_pixel(value: u8, x: u8, current_error: *ErrorBuffer, next_error: *ErrorBuffer) -> bool {
+    // Add accumulated error to pixel value
+    let adjusted: i16 = (value as i16) + (current_error.data[x + 1] as i16);
+
+    // Threshold at 128 (midpoint)
+    let output: bool = adjusted >= 128;
+
+    // Calculate quantization error
+    let quantized: i16 = if output { 255 } else { 0 };
+    let error: i16 = adjusted - quantized;
+
+    // Clamp error to i8 range
+    let err: i8 = fp_clamp(error, -127, 127) as i8;
+
+    // Distribute error to neighbors (divide by 16)
+    // Right: 7/16
+    current_error.data[x + 2] = current_error.data[x + 2] + ((err * 7) >> 4) as i8;
+
+    // Down-left: 3/16
+    next_error.data[x] = next_error.data[x] + ((err * 3) >> 4) as i8;
+
+    // Down: 5/16
+    next_error.data[x + 1] = next_error.data[x + 1] + ((err * 5) >> 4) as i8;
+
+    // Down-right: 1/16
+    next_error.data[x + 2] = next_error.data[x + 2] + ((err * 1) >> 4) as i8;
+
+    return output;
+}
+
+// Clear error buffer
+fun fs_clear_buffer(buf: *ErrorBuffer) -> void {
+    for i in 0..258 {
+        buf.data[i] = 0;
+    }
+}
+
+// ============================================
+// Ordered Dithering (Bayer Matrix)
+// ============================================
+
+// 4x4 Bayer matrix (values 0-15, need to scale)
+global BAYER_4X4: [u8; 16] = [
+     0,  8,  2, 10,
+    12,  4, 14,  6,
+     3, 11,  1,  9,
+    15,  7, 13,  5
+];
+
+// 8x8 Bayer matrix for finer gradients
+global BAYER_8X8: [u8; 64] = [
+     0, 32,  8, 40,  2, 34, 10, 42,
+    48, 16, 56, 24, 50, 18, 58, 26,
+    12, 44,  4, 36, 14, 46,  6, 38,
+    60, 28, 52, 20, 62, 30, 54, 22,
+     3, 35, 11, 43,  1, 33,  9, 41,
+    51, 19, 59, 27, 49, 17, 57, 25,
+    15, 47,  7, 39, 13, 45,  5, 37,
+    63, 31, 55, 23, 61, 29, 53, 21
+];
+
+// Ordered dither using 4x4 Bayer matrix
+// Returns true if pixel should be ON
+fun bayer_dither_4x4(value: u8, x: u8, y: u8) -> bool {
+    let idx = ((y & 3) << 2) | (x & 3);
+    let threshold = BAYER_4X4[idx] << 4;  // Scale 0-15 to 0-240
+    return value > threshold;
+}
+
+// Ordered dither using 8x8 Bayer matrix (better gradients)
+fun bayer_dither_8x8(value: u8, x: u8, y: u8) -> bool {
+    let idx = ((y & 7) << 3) | (x & 7);
+    let threshold = BAYER_8X8[idx] << 2;  // Scale 0-63 to 0-252
+    return value > threshold;
+}
+
+// ============================================
+// Simple Threshold
+// ============================================
+
+// Basic threshold dithering (harsh but fast)
+fun threshold_dither(value: u8, threshold: u8) -> bool {
+    return value > threshold;
+}
+
+// Threshold with random noise (pseudo-dithering)
+// Seed should change per pixel for randomness
+fun noise_dither(value: u8, seed: u8) -> bool {
+    // Simple LCG-style hash
+    let noise = ((seed * 179 + 17) ^ (seed >> 3)) & 0xFF;
+    let threshold = 128 + ((noise - 128) >> 2);  // 25% noise
+    return value > threshold;
+}
+
+// ============================================
+// Atkinson Dithering (Apple Macintosh style)
+// ============================================
+
+// Atkinson distributes 6/8 of error (75%), discarding 25%
+// Results in lighter, more open images
+const ATK_WEIGHT: u8 = 1;  // Each neighbor gets 1/8
+
+fun atkinson_dither_pixel(value: u8, x: u8,
+                          current_error: *ErrorBuffer,
+                          next_error: *ErrorBuffer,
+                          next_next_error: *ErrorBuffer) -> bool {
+    let adjusted: i16 = (value as i16) + (current_error.data[x + 1] as i16);
+    let output: bool = adjusted >= 128;
+    let quantized: i16 = if output { 255 } else { 0 };
+    let error: i16 = adjusted - quantized;
+
+    // Distribute 1/8 error to 6 neighbors (discard 2/8)
+    let err8: i8 = (error >> 3) as i8;
+
+    // Current row: right, right+1
+    current_error.data[x + 2] = current_error.data[x + 2] + err8;
+    current_error.data[x + 3] = current_error.data[x + 3] + err8;
+
+    // Next row: left, center, right
+    next_error.data[x] = next_error.data[x] + err8;
+    next_error.data[x + 1] = next_error.data[x + 1] + err8;
+    next_error.data[x + 2] = next_error.data[x + 2] + err8;
+
+    // Two rows down: center
+    next_next_error.data[x + 1] = next_next_error.data[x + 1] + err8;
+
+    return output;
+}
+
+// ============================================
+// Blue Noise Dithering (Void-and-Cluster)
+// ============================================
+
+// Pre-computed 8x8 blue noise pattern
+// Better visual quality than Bayer for natural images
+global BLUE_NOISE_8X8: [u8; 64] = [
+    13, 38, 24, 51,  7, 32, 19, 45,
+    56, 20, 47,  4, 40, 58, 11, 35,
+    28, 63, 10, 30, 17, 48, 27, 54,
+     2, 42, 52, 22, 61,  6, 37, 16,
+    34, 14, 33, 55, 43, 25, 59, 46,
+    49, 23, 60,  9, 31, 53,  3, 21,
+     8, 39, 18, 36, 15, 44, 29, 57,
+    50, 26, 46, 62,  1, 41, 12, 35
+];
+
+fun blue_noise_dither(value: u8, x: u8, y: u8) -> bool {
+    let idx = ((y & 7) << 3) | (x & 7);
+    let threshold = BLUE_NOISE_8X8[idx] << 2;
+    return value > threshold;
+}
+
+// ============================================
+// Gamma-Aware Dithering
+// ============================================
+
+// Apply gamma before dithering for better perceived brightness
+// Gamma 2.2 approximation using lookup or square root
+fun gamma_correct_for_dither(value: u8) -> u8 {
+    // Approximate gamma 2.2: sqrt(x/255)*255
+    // Simplified: use lookup or approximate
+    let v16: i16 = (value as i16) << 8;
+    let corrected = fp_sqrt(v16);
+    return (corrected >> 8) as u8;
+}
+

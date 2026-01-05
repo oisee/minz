@@ -1,0 +1,250 @@
+// lunar_scene.minz - Raymarched Lunar Landscape
+// Inspired by ZXSpeculator's OneSmallStep
+//
+// Features:
+// - Multiple SDF primitives with smooth union
+// - Procedural noise for terrain
+// - Atmospheric fog
+// - Floyd-Steinberg dithering
+
+import glsl.fp;
+import glsl.trig;
+import glsl.vec;
+import glsl.sdf;
+import glsl.raymarch;
+import glsl.dither;
+
+// ============================================
+// Procedural Noise
+// ============================================
+
+// Simple hash function for noise
+fun hash(p: vec2) -> i16 {
+    let dot_val = v2_dot(p, vec2 { x: 317, y: 419 });  // 1.237, 1.637 in 8.8
+    return fp_fract(fp_mul(fp_sin(dot_val), 11141));   // 43.5 in 8.8
+}
+
+// Value noise
+fun noise(p: vec2) -> i16 {
+    let i = vec2 { x: fp_floor(p.x), y: fp_floor(p.y) };
+    let f = vec2 { x: fp_fract(p.x), y: fp_fract(p.y) };
+
+    // Smoothstep for interpolation
+    let u = vec2 {
+        x: fp_mul(fp_mul(f.x, f.x), FP_ONE * 3 - fp_mul(FP_TWO, f.x)),
+        y: fp_mul(fp_mul(f.y, f.y), FP_ONE * 3 - fp_mul(FP_TWO, f.y))
+    };
+
+    // Sample corners
+    let a = hash(i);
+    let b = hash(v2_add(i, vec2 { x: FP_ONE, y: 0 }));
+    let c = hash(v2_add(i, vec2 { x: 0, y: FP_ONE }));
+    let d = hash(v2_add(i, vec2 { x: FP_ONE, y: FP_ONE }));
+
+    // Bilinear interpolation
+    let ab = fp_mix(a, b, u.x);
+    let cd = fp_mix(c, d, u.x);
+    return fp_mix(ab, cd, u.y);
+}
+
+// Fractal Brownian Motion (2 octaves for speed)
+fun fbm(p: vec2) -> i16 {
+    let value: i16 = 0;
+    let scale: i16 = FP_HALF;  // 0.5
+
+    // Octave 1
+    value = value + fp_mul(scale, noise(p));
+
+    // Octave 2
+    let p2 = v2_mulf(p, FP_TWO);
+    scale = scale >> 1;  // 0.25
+    value = value + fp_mul(scale, noise(p2));
+
+    return value;
+}
+
+// ============================================
+// Scene Definition
+// ============================================
+
+// Terrain height from noise
+fun terrain(p: vec2) -> i16 {
+    return fp_mul(fbm(v2_mulf(p, 64)), 128);  // Scale noise * 0.5
+}
+
+// Main scene SDF
+fun map(p: vec3) -> i16 {
+    // Ground plane with noise displacement
+    let ground = p.y + terrain(v3_xz(p));
+
+    // Central boulder (sphere)
+    let boulder1 = sdSphere(
+        v3_sub(p, vec3 { x: 0, y: -64, z: 256 }),  // Offset from camera
+        128  // Radius 0.5
+    );
+
+    // Second boulder
+    let boulder2 = sdSphere(
+        v3_sub(p, vec3 { x: 192, y: -38, z: 384 }),
+        77  // Radius 0.3
+    );
+
+    // Smooth union of boulders
+    let boulders = opSmoothUnion(boulder1, boulder2, 51);  // k = 0.2
+
+    // Union with ground
+    return opUnion(ground, boulders);
+}
+
+// Calculate normal
+fun calcNormal(p: vec3) -> vec3 {
+    let eps: i16 = 2;
+
+    let dx = map(vec3 { x: p.x + eps, y: p.y, z: p.z }) -
+             map(vec3 { x: p.x - eps, y: p.y, z: p.z });
+    let dy = map(vec3 { x: p.x, y: p.y + eps, z: p.z }) -
+             map(vec3 { x: p.x, y: p.y - eps, z: p.z });
+    let dz = map(vec3 { x: p.x, y: p.y, z: p.z + eps }) -
+             map(vec3 { x: p.x, y: p.y, z: p.z - eps });
+
+    return v3_normalize(vec3 { x: dx, y: dy, z: dz });
+}
+
+// ============================================
+// Raymarching
+// ============================================
+
+fun raymarch(ro: vec3, rd: vec3) -> HitResult {
+    let d: i16 = 3;  // Start slightly ahead to avoid self-intersection
+
+    for step in 0..15 {
+        let p = v3_add(ro, v3_mulf(rd, d));
+        let ds = map(p);
+
+        if ds < SURF_DIST_ROUGH {  // Use rougher threshold for speed
+            return HitResult { distance: d, hit: true, steps: step as u8 };
+        }
+        if d > MAX_DIST {
+            break;
+        }
+
+        d = d + ds;
+    }
+
+    return HitResult { distance: d, hit: false, steps: 15 };
+}
+
+// ============================================
+// Lighting
+// ============================================
+
+// Sun direction (low angle, dramatic lighting)
+const SUN_DIR: vec3 = vec3 {
+    x: 181,   // 0.707
+    y: 102,   // 0.4
+    z: -147   // -0.574
+};
+
+// Sky gradient color
+fun skyColor(rd: vec3) -> i16 {
+    // Dark at horizon, lighter at top
+    let t = fp_clamp(rd.y + 128, 0, FP_ONE);  // 0 at horizon, 1 at zenith
+    return fp_mul(t, 64);  // 0-0.25 brightness
+}
+
+// Render pixel
+fun renderPixel(x: u8, y: u8) -> u8 {
+    // Camera setup
+    let ro = vec3 { x: 0, y: 128, z: -512 };  // y=0.5, z=-2
+
+    // Create ray direction
+    let uv = vec2 {
+        x: fp_div((x as i16) - 128, 96),
+        y: fp_div(96 - (y as i16), 96)
+    };
+
+    let rd = v3_normalize(vec3 { x: uv.x, y: uv.y, z: FP_ONE });
+
+    // Raymarch
+    let result = raymarch(ro, rd);
+
+    if !result.hit {
+        // Sky
+        let sky = skyColor(rd);
+        return (sky >> 8) as u8;
+    }
+
+    // Calculate hit point and normal
+    let hit_point = v3_add(ro, v3_mulf(rd, result.distance));
+    let normal = calcNormal(hit_point);
+
+    // Diffuse lighting
+    let diffuse = calcDiffuse(normal, SUN_DIR);
+
+    // Ambient (slightly blue for lunar atmosphere)
+    let ambient: i16 = 38;  // 0.15
+
+    // Combine lighting
+    let brightness = ambient + fp_mul(FP_ONE - ambient, diffuse);
+
+    // Exponential fog
+    brightness = applyExpFog(brightness, result.distance, 13);  // density 0.05
+
+    // Gamma correction
+    brightness = gammaCorrect(brightness);
+
+    // Convert to 0-255
+    return fp_clamp(brightness, 0, 255) as u8;
+}
+
+// ============================================
+// Main
+// ============================================
+
+global error_current: ErrorBuffer;
+global error_next: ErrorBuffer;
+
+const SCREEN_BASE: u16 = 0x4000;
+
+fun plot(x: u8, y: u8) -> void {
+    let byte_x = x >> 3;
+    let bit = 7 - (x & 7);
+
+    let y_low = (y & 0x07) << 8;
+    let y_mid = (y & 0x38) << 2;
+    let y_high = (y & 0xC0) >> 6;
+
+    let addr = SCREEN_BASE + y_low + y_mid + (y_high << 11) + (byte_x as u16);
+
+    // Set pixel bit
+    asm {
+        ; addr in HL, bit position in A
+    }
+}
+
+fun main() -> void {
+    fs_clear_buffer(&error_current);
+    fs_clear_buffer(&error_next);
+
+    for y in 0..192 {
+        // Swap buffers
+        let temp = error_current;
+        error_current = error_next;
+        error_next = temp;
+        fs_clear_buffer(&error_next);
+
+        for x in 0..256 {
+            let brightness = renderPixel(x as u8, y as u8);
+            let pixel_on = fs_dither_pixel(brightness, x as u8,
+                                           &error_current, &error_next);
+            if pixel_on {
+                plot(x as u8, y as u8);
+            }
+        }
+    }
+
+    loop {
+        asm { EI; HALT }
+    }
+}
+

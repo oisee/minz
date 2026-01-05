@@ -1,0 +1,424 @@
+// fp.minz - Fixed-Point Math Library for MinZ
+// 8.8 format: 256 = 1.0, supports range -128.0 to +127.996
+//
+// Inspired by ZXSpeculator's glsl.h experiments
+// Optimized for Z80 with inline assembly where beneficial
+
+// ============================================
+// Constants (using explicit i16 literals)
+// ============================================
+
+// 1.0 in 8.8 fixed-point (256 = 1 << 8)
+const FP_ONE: i16 = 1 << 8;
+
+// 0.5 in 8.8 fixed-point (128 = 1 << 7)
+const FP_HALF: i16 = 1 << 7;
+
+// 0.25 in 8.8 fixed-point (64 = 1 << 6)
+const FP_QUARTER: i16 = 1 << 6;
+
+// 2.0 in 8.8 fixed-point (512 = 1 << 9)
+const FP_TWO: i16 = 1 << 9;
+
+// -1.0 in 8.8 fixed-point
+const FP_NEG_ONE: i16 = 0 - (1 << 8);
+
+// PI constants are too large for i16, use functions instead
+// PI ~= 3.14159 = 804 in 8.8 (0x0324)
+// PI/2 ~= 1.5708 = 402 in 8.8 (0x0192)
+// 2*PI ~= 6.2832 = 1608 in 8.8 (0x0648)
+// e ~= 2.718 = 696 in 8.8 (0x02B8)
+
+// ============================================
+// Conversion
+// ============================================
+
+// Convert integer to fixed-point
+fun fp_from_int(n: i16) -> i16 {
+    return n << 8;
+}
+
+// Convert fixed-point to integer (truncate)
+fun fp_to_int(f: i16) -> i16 {
+    return f >> 8;
+}
+
+// Convert fixed-point to integer (round)
+fun fp_round(f: i16) -> i16 {
+    return (f + 128) >> 8;
+}
+
+// ============================================
+// Basic Arithmetic
+// ============================================
+
+// Add (simple, same as integer add)
+fun fp_add(a: i16, b: i16) -> i16 {
+    return a + b;
+}
+
+// Subtract (simple, same as integer sub)
+fun fp_sub(a: i16, b: i16) -> i16 {
+    return a - b;
+}
+
+// Multiply two fixed-point numbers
+// Result = (a * b) >> 8
+// Uses Z80 assembly for 16x16->32 multiply
+fun fp_mul(a: i16, b: i16) -> i16 {
+    // Z80 16x16 signed multiply, result >> 8
+    // Returns middle 16 bits for 8.8 fixed-point
+    asm {
+        ; Arguments passed in HL (a) and DE (b)
+        ; Result returned in HL
+
+        ; Save registers
+        PUSH BC
+
+        ; Check signs and make both positive
+        LD A, H
+        XOR D
+        PUSH AF         ; Save result sign
+
+        ; Make A positive
+        BIT 7, H
+        JR Z, .a_pos
+        LD A, L
+        CPL
+        LD L, A
+        LD A, H
+        CPL
+        LD H, A
+        INC HL
+.a_pos:
+        ; Make B positive
+        BIT 7, D
+        JR Z, .b_pos
+        LD A, E
+        CPL
+        LD E, A
+        LD A, D
+        CPL
+        LD D, A
+        INC DE
+.b_pos:
+        ; Now HL and DE are both positive
+        ; Do unsigned multiply: HL * DE -> BC:HL (32-bit result)
+
+        LD B, H
+        LD C, L         ; BC = A (multiplier)
+        LD HL, 0        ; HL = low 16 bits of result
+        LD A, 16        ; 16 iterations
+
+.mul_loop:
+        ADD HL, HL      ; Shift result left
+        RL E
+        RL D            ; Shift high word left too
+        JR NC, .no_add
+        ADD HL, BC      ; Add multiplier
+        JR NC, .no_add
+        INC DE          ; Carry to high word
+.no_add:
+        DEC A
+        JR NZ, .mul_loop
+
+        ; Result is now in DE:HL (high:low)
+        ; We need (DE:HL) >> 8 = middle 16 bits
+        ; = (D << 8) | E | (H >> 0)
+        LD L, H         ; Low byte of result = high byte of low word
+        LD H, E         ; High byte = low byte of high word
+
+        ; Apply sign
+        POP AF
+        JP P, .done     ; If positive, done
+        ; Negate result
+        LD A, L
+        CPL
+        LD L, A
+        LD A, H
+        CPL
+        LD H, A
+        INC HL
+.done:
+        POP BC
+    }
+}
+
+// Divide: a / b in fixed-point
+// Result = (a << 8) / b
+fun fp_div(a: i16, b: i16) -> i16 {
+    if b == 0 {
+        return 32767;  // Max positive on div by zero
+    }
+
+    // Z80 32/16 division for fixed-point
+    asm {
+        ; a in HL, b in DE
+        ; Result: (HL << 8) / DE
+
+        PUSH BC
+
+        ; Handle signs
+        LD A, H
+        XOR D
+        PUSH AF         ; Save result sign
+
+        ; Make dividend positive
+        BIT 7, H
+        JR Z, .div_a_pos
+        LD A, L
+        CPL
+        LD L, A
+        LD A, H
+        CPL
+        LD H, A
+        INC HL
+.div_a_pos:
+        ; Make divisor positive
+        BIT 7, D
+        JR Z, .div_b_pos
+        LD A, E
+        CPL
+        LD E, A
+        LD A, D
+        CPL
+        LD D, A
+        INC DE
+.div_b_pos:
+        ; Shift HL left 8 bits into BC:HL
+        LD B, H
+        LD C, L
+        LD HL, 0
+
+        ; Now divide BC:HL by DE
+        ; Use restoring division
+        LD A, 16
+
+.div_loop:
+        ; Shift BC:HL left
+        ADD HL, HL
+        RL C
+        RL B
+        ; Try subtract DE from BC
+        LD A, C
+        SUB E
+        LD C, A
+        LD A, B
+        SBC A, D
+        LD B, A
+        JR NC, .div_no_restore
+        ; Restore BC
+        LD A, C
+        ADD A, E
+        LD C, A
+        LD A, B
+        ADC A, D
+        LD B, A
+        JR .div_next
+.div_no_restore:
+        INC L           ; Set result bit
+.div_next:
+        DEC A
+        JR NZ, .div_loop
+
+        ; Result in HL
+
+        ; Apply sign
+        POP AF
+        JP P, .div_done
+        LD A, L
+        CPL
+        LD L, A
+        LD A, H
+        CPL
+        LD H, A
+        INC HL
+.div_done:
+        POP BC
+    }
+}
+
+// ============================================
+// Comparison & Selection
+// ============================================
+
+// Absolute value
+fun fp_abs(x: i16) -> i16 {
+    if x < 0 {
+        return 0 - x;
+    }
+    return x;
+}
+
+// Sign: returns -256, 0, or 256
+fun fp_sign(x: i16) -> i16 {
+    let one: i16 = 1 << 8;
+    if x > 0 { return one; }
+    if x < 0 { return 0 - one; }
+    return 0;
+}
+
+// Minimum of two values
+fun fp_min(a: i16, b: i16) -> i16 {
+    if a < b { return a; }
+    return b;
+}
+
+// Maximum of two values
+fun fp_max(a: i16, b: i16) -> i16 {
+    if a > b { return a; }
+    return b;
+}
+
+// Clamp value between min and max
+fun fp_clamp(x: i16, lo: i16, hi: i16) -> i16 {
+    if x < lo { return lo; }
+    if x > hi { return hi; }
+    return x;
+}
+
+// Linear interpolation: mix(a, b, t) = a + t*(b-a)
+fun fp_mix(a: i16, b: i16, t: i16) -> i16 {
+    return a + fp_mul(t, b - a);
+}
+
+// Step function: 0 if x < edge, else 1
+fun fp_step(edge: i16, x: i16) -> i16 {
+    if x < edge { return 0; }
+    return 1 << 8;
+}
+
+// Smooth step (cubic interpolation)
+fun fp_smoothstep(edge0: i16, edge1: i16, x: i16) -> i16 {
+    let one: i16 = 1 << 8;
+    let two: i16 = 1 << 9;
+    let three: i16 = 3 << 8;
+    // Compute t = clamp((x - edge0) / (edge1 - edge0), 0, 1)
+    let diff: i16 = edge1 - edge0;
+    let ratio: i16 = fp_div(x - edge0, diff);
+    let t: i16 = fp_clamp(ratio, 0, one);
+    // t * t * (3 - 2*t)
+    let t2 = fp_mul(t, t);
+    let three_minus_2t = three - fp_mul(two, t);
+    return fp_mul(t2, three_minus_2t);
+}
+
+// ============================================
+// Floor, Ceil, Fract
+// ============================================
+
+// Floor: largest integer <= x (mask off fractional)
+fun fp_floor(x: i16) -> i16 {
+    // Mask off low byte to get integer part
+    // For negative: round toward -infinity
+    let one: i16 = 1 << 8;
+    let mask: i16 = 0 - one;  // 0xFF00 as signed
+    if x >= 0 {
+        return x & mask;
+    }
+    // Negative: if fractional part, go to lower integer
+    let masked = x & mask;
+    if (x & 127) != 0 {
+        return masked - one;
+    }
+    return masked;
+}
+
+// Ceil: smallest integer >= x
+fun fp_ceil(x: i16) -> i16 {
+    if (x & 127) != 0 {
+        return fp_floor(x) + (1 << 8);
+    }
+    return x;
+}
+
+// Fractional part: x - floor(x)
+fun fp_fract(x: i16) -> i16 {
+    if x >= 0 {
+        return x & 127;  // Only need low 7 bits for fract
+    }
+    // For negative, fract is 1 - |fractional|
+    let f = (0 - x) & 127;
+    if f == 0 { return 0; }
+    return (1 << 8) - f;
+}
+
+// Modulo (always positive result like GLSL)
+fun fp_mod(x: i16, y: i16) -> i16 {
+    if y == 0 { return 0; }
+    let quotient = fp_div(x, y);
+    let floored = fp_floor(quotient);
+    return x - fp_mul(y, floored);
+}
+
+// ============================================
+// Power & Exponential
+// ============================================
+
+// Square
+fun fp_sq(x: i16) -> i16 {
+    return fp_mul(x, x);
+}
+
+// Square root (Newton-Raphson)
+// Input must be non-negative
+fun fp_sqrt(x: i16) -> i16 {
+    let one: i16 = 1 << 8;
+    if x <= 0 { return 0; }
+    if x == one { return one; }
+
+    // Initial guess: x/2 or sqrt approximation
+    let guess: i16 = x >> 1;
+    if guess == 0 { guess = 1; }
+
+    // Newton-Raphson: guess = (guess + x/guess) / 2
+    // 4 iterations sufficient for 8.8
+    for i in 0..4 {
+        let div_result = fp_div(x, guess);
+        guess = (guess + div_result) >> 1;
+    }
+
+    return guess;
+}
+
+// Approximate exponential e^x using Taylor series
+// Good for small x (|x| < 2)
+fun fp_exp(x: i16) -> i16 {
+    // e^x ≈ 1 + x + x²/2 + x³/6 + x⁴/24
+    let x2 = fp_mul(x, x);
+    let x3 = fp_mul(x2, x);
+    let x4 = fp_mul(x3, x);
+
+    let one: i16 = 1 << 8;              // 256
+    let six_fp: i16 = 6 << 8;           // 1536
+    let twentyfour_fp: i16 = 24 << 8;   // 6144
+
+    let result: i16 = one;
+    result = result + x;
+    result = result + (x2 >> 1);        // x²/2
+    result = result + fp_div(x3, six_fp); // x³/6
+    result = result + fp_div(x4, twentyfour_fp); // x⁴/24
+
+    return result;
+}
+
+// Power function: x^n where n is integer
+fun fp_powi(x: i16, n: i16) -> i16 {
+    let one: i16 = 1 << 8;
+    if n == 0 { return one; }
+    if n < 0 {
+        x = fp_div(one, x);
+        n = 0 - n;
+    }
+
+    let result: i16 = one;
+    while n > 0 {
+        if (n & 1) != 0 {
+            result = fp_mul(result, x);
+        }
+        x = fp_mul(x, x);
+        n = n >> 1;
+    }
+    return result;
+}
+

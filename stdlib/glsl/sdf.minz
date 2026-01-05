@@ -1,0 +1,261 @@
+// sdf.minz - Signed Distance Functions for MinZ
+// GLSL-style SDF primitives and operators
+//
+// Ported from ZXSpeculator's OneSmallStep and Inigo Quilez's work
+
+import glsl.fp;
+import glsl.vec;
+
+// ============================================
+// 2D SDF Primitives
+// ============================================
+
+// Circle: signed distance to circle boundary
+fun sdCircle(p: vec2, r: i16) -> i16 {
+    return v2_length(p) - r;
+}
+
+// Box 2D: signed distance to axis-aligned box
+fun sdBox2D(p: vec2, b: vec2) -> i16 {
+    let d = v2_sub(v2_abs(p), b);
+    let outside = v2_length(v2_maxf(d, 0));
+    let inside = fp_min(fp_max(d.x, d.y), 0);
+    return outside + inside;
+}
+
+// Line segment
+fun sdSegment(p: vec2, a: vec2, b: vec2) -> i16 {
+    let pa = v2_sub(p, a);
+    let ba = v2_sub(b, a);
+    let h = fp_clamp(fp_div(v2_dot(pa, ba), v2_dot(ba, ba)), 0, FP_ONE);
+    return v2_length(v2_sub(pa, v2_mulf(ba, h)));
+}
+
+// Rounded box 2D
+fun sdRoundBox2D(p: vec2, b: vec2, r: i16) -> i16 {
+    let q = v2_sub(v2_abs(p), b);
+    return v2_length(v2_maxf(q, 0)) + fp_min(fp_max(q.x, q.y), 0) - r;
+}
+
+// ============================================
+// 3D SDF Primitives
+// ============================================
+
+// Sphere
+fun sdSphere(p: vec3, r: i16) -> i16 {
+    return v3_length(p) - r;
+}
+
+// Box 3D (axis-aligned)
+fun sdBox(p: vec3, b: vec3) -> i16 {
+    let q = v3_sub(v3_abs(p), b);
+    let outside = v3_length(v3_maxf(q, 0));
+    let inside = fp_min(fp_max(q.x, fp_max(q.y, q.z)), 0);
+    return outside + inside;
+}
+
+// Rounded box
+fun sdRoundBox(p: vec3, b: vec3, r: i16) -> i16 {
+    let q = v3_sub(v3_abs(p), b);
+    return v3_length(v3_maxf(q, 0)) + fp_min(fp_max(q.x, fp_max(q.y, q.z)), 0) - r;
+}
+
+// Plane (normal n must be normalized, h is height)
+fun sdPlane(p: vec3, n: vec3, h: i16) -> i16 {
+    return v3_dot(p, n) + h;
+}
+
+// Ground plane (y=0)
+fun sdGround(p: vec3) -> i16 {
+    return p.y;
+}
+
+// Infinite cylinder (along Y axis)
+fun sdCylinder(p: vec3, r: i16) -> i16 {
+    return v2_length(v3_xz(p)) - r;
+}
+
+// Capped cylinder
+fun sdCappedCylinder(p: vec3, h: i16, r: i16) -> i16 {
+    let d = v2_sub(v2_abs(v2(v2_length(v3_xz(p)), p.y)), v2(r, h));
+    return fp_min(fp_max(d.x, d.y), 0) + v2_length(v2_maxf(d, 0));
+}
+
+// Torus (ring in XZ plane)
+fun sdTorus(p: vec3, r_major: i16, r_minor: i16) -> i16 {
+    let q = v2(v2_length(v3_xz(p)) - r_major, p.y);
+    return v2_length(q) - r_minor;
+}
+
+// Cone (tip at origin, growing along +Y)
+fun sdCone(p: vec3, c: vec2, h: i16) -> i16 {
+    // c.x = sin(angle), c.y = cos(angle)
+    let q = v2(v2_length(v3_xz(p)), p.y);
+    let tip = v2_sub(q, v2(0, h));
+    let side = v2_sub(q, v2_mulf(c, fp_clamp(fp_div(v2_dot(q, c), fp_mul(h, c.y)), 0, FP_ONE)));
+
+    let d_tip = v2_length(tip);
+    let d_side = v2_length(side);
+
+    return fp_min(d_tip, d_side);
+}
+
+// Capsule (line segment with radius)
+fun sdCapsule(p: vec3, a: vec3, b: vec3, r: i16) -> i16 {
+    let pa = v3_sub(p, a);
+    let ba = v3_sub(b, a);
+    let h = fp_clamp(fp_div(v3_dot(pa, ba), v3_dot(ba, ba)), 0, FP_ONE);
+    return v3_length(v3_sub(pa, v3_mulf(ba, h))) - r;
+}
+
+// Vertical capsule (optimized for vertical orientation)
+fun sdVerticalCapsule(p: vec3, h: i16, r: i16) -> i16 {
+    let py_clamped = fp_clamp(p.y, 0, h);
+    let q = vec3 { x: p.x, y: p.y - py_clamped, z: p.z };
+    return v3_length(q) - r;
+}
+
+// ============================================
+// SDF Operators
+// ============================================
+
+// Union (min of distances)
+fun opUnion(d1: i16, d2: i16) -> i16 {
+    return fp_min(d1, d2);
+}
+
+// Intersection (max of distances)
+fun opIntersection(d1: i16, d2: i16) -> i16 {
+    return fp_max(d1, d2);
+}
+
+// Subtraction (d1 minus d2)
+fun opSubtraction(d1: i16, d2: i16) -> i16 {
+    return fp_max(d1, -d2);
+}
+
+// Smooth union (blended transition)
+fun opSmoothUnion(d1: i16, d2: i16, k: i16) -> i16 {
+    let h = fp_clamp(FP_HALF + fp_div(fp_mul(FP_HALF, d2 - d1), k), 0, FP_ONE);
+    return fp_mix(d2, d1, h) - fp_mul(fp_mul(k, h), FP_ONE - h);
+}
+
+// Smooth intersection
+fun opSmoothIntersection(d1: i16, d2: i16, k: i16) -> i16 {
+    let h = fp_clamp(FP_HALF - fp_div(fp_mul(FP_HALF, d2 - d1), k), 0, FP_ONE);
+    return fp_mix(d2, d1, h) + fp_mul(fp_mul(k, h), FP_ONE - h);
+}
+
+// Smooth subtraction
+fun opSmoothSubtraction(d1: i16, d2: i16, k: i16) -> i16 {
+    let h = fp_clamp(FP_HALF - fp_div(fp_mul(FP_HALF, d2 + d1), k), 0, FP_ONE);
+    return fp_mix(d1, -d2, h) + fp_mul(fp_mul(k, h), FP_ONE - h);
+}
+
+// ============================================
+// Domain Operations
+// ============================================
+
+// Repetition (infinite copies)
+fun opRep(p: vec3, c: vec3) -> vec3 {
+    return vec3 {
+        x: fp_mod(p.x + fp_mul(c.x, FP_HALF), c.x) - fp_mul(c.x, FP_HALF),
+        y: fp_mod(p.y + fp_mul(c.y, FP_HALF), c.y) - fp_mul(c.y, FP_HALF),
+        z: fp_mod(p.z + fp_mul(c.z, FP_HALF), c.z) - fp_mul(c.z, FP_HALF)
+    };
+}
+
+// Limited repetition
+fun opRepLim(p: i16, c: i16, l: i16) -> i16 {
+    return p - fp_mul(c, fp_clamp(fp_round(fp_div(p, c)), -l, l));
+}
+
+// Onion (hollow shell)
+fun opOnion(d: i16, thickness: i16) -> i16 {
+    return fp_abs(d) - thickness;
+}
+
+// Extrusion (2D to 3D)
+fun opExtrude(d_2d: i16, h: i16, p_y: i16) -> i16 {
+    let w = v2(d_2d, fp_abs(p_y) - h);
+    return fp_min(fp_max(w.x, w.y), 0) + v2_length(v2_maxf(w, 0));
+}
+
+// Revolution (2D to 3D rotational)
+fun opRevolve(p: vec3, offset: i16) -> vec2 {
+    return v2(v2_length(v3_xz(p)) - offset, p.y);
+}
+
+// ============================================
+// Displacement & Twist
+// ============================================
+
+// Simple displacement (add noise to surface)
+fun opDisplace(d: i16, displacement: i16) -> i16 {
+    return d + displacement;
+}
+
+// Twist around Y axis
+fun opTwist(p: vec3, k: i16) -> vec3 {
+    let angle = fp_mul(k, p.y);
+    let c = fp_cos(angle);
+    let s = fp_sin(angle);
+    return vec3 {
+        x: fp_mul(c, p.x) - fp_mul(s, p.z),
+        y: p.y,
+        z: fp_mul(s, p.x) + fp_mul(c, p.z)
+    };
+}
+
+// Bend (simple deformation)
+fun opBend(p: vec3, k: i16) -> vec3 {
+    let angle = fp_mul(k, p.x);
+    let c = fp_cos(angle);
+    let s = fp_sin(angle);
+    return vec3 {
+        x: fp_mul(c, p.x) - fp_mul(s, p.y),
+        y: fp_mul(s, p.x) + fp_mul(c, p.y),
+        z: p.z
+    };
+}
+
+// ============================================
+// Symmetry Operations
+// ============================================
+
+// Mirror across XY plane (negate Z if negative)
+fun opSymX(p: vec3) -> vec3 {
+    return vec3 { x: fp_abs(p.x), y: p.y, z: p.z };
+}
+
+fun opSymY(p: vec3) -> vec3 {
+    return vec3 { x: p.x, y: fp_abs(p.y), z: p.z };
+}
+
+fun opSymZ(p: vec3) -> vec3 {
+    return vec3 { x: p.x, y: p.y, z: fp_abs(p.z) };
+}
+
+fun opSymXZ(p: vec3) -> vec3 {
+    return vec3 { x: fp_abs(p.x), y: p.y, z: fp_abs(p.z) };
+}
+
+// ============================================
+// Normal Estimation
+// ============================================
+
+// Epsilon for normal calculation (in 8.8 format)
+const SDF_EPS: i16 = 1;  // ~0.004
+
+// Note: calcNormal requires the map() function to be defined
+// by the user. This is a template for how to do it:
+//
+// fun calcNormal(p: vec3) -> vec3 {
+//     let e = vec2 { x: SDF_EPS, y: 0 };
+//     return v3_normalize(vec3 {
+//         x: map(v3_add(p, v2_to_v3(e, 0))) - map(v3_sub(p, v2_to_v3(e, 0))),
+//         y: map(vec3{x:p.x, y:p.y+SDF_EPS, z:p.z}) - map(vec3{x:p.x, y:p.y-SDF_EPS, z:p.z}),
+//         z: map(v3_add(p, vec3{x:0,y:0,z:SDF_EPS})) - map(v3_sub(p, vec3{x:0,y:0,z:SDF_EPS}))
+//     });
+// }
+

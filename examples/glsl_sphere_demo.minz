@@ -1,0 +1,410 @@
+// glsl_sphere_demo.minz - Self-Contained Raymarched Sphere Demo
+// GLSL-style programming on Z80 - inspired by ZXSpeculator
+//
+// This demo renders a raymarched 3D sphere with lighting and
+// Floyd-Steinberg dithering, all using 8.8 fixed-point math.
+
+// ============================================
+// Fixed-Point Math (8.8 format: 256 = 1.0)
+// ============================================
+
+// Constants
+fun fp_one() -> i16 { return 1 << 8; }     // 256 = 1.0
+fun fp_half() -> i16 { return 1 << 7; }    // 128 = 0.5
+
+// Fixed-point multiply using Z80 assembly
+fun fp_mul(a: i16, b: i16) -> i16 {
+    asm {
+        PUSH BC
+        LD A, H
+        XOR D
+        PUSH AF
+        BIT 7, H
+        JR Z, .a_pos
+        LD A, L
+        CPL
+        LD L, A
+        LD A, H
+        CPL
+        LD H, A
+        INC HL
+.a_pos:
+        BIT 7, D
+        JR Z, .b_pos
+        LD A, E
+        CPL
+        LD E, A
+        LD A, D
+        CPL
+        LD D, A
+        INC DE
+.b_pos:
+        LD B, H
+        LD C, L
+        LD HL, 0
+        LD A, 16
+.mul_loop:
+        ADD HL, HL
+        RL E
+        RL D
+        JR NC, .no_add
+        ADD HL, BC
+        JR NC, .no_add
+        INC DE
+.no_add:
+        DEC A
+        JR NZ, .mul_loop
+        LD L, H
+        LD H, E
+        POP AF
+        JP P, .done
+        LD A, L
+        CPL
+        LD L, A
+        LD A, H
+        CPL
+        LD H, A
+        INC HL
+.done:
+        POP BC
+    }
+}
+
+// Fixed-point divide
+fun fp_div(a: i16, b: i16) -> i16 {
+    if b == 0 { return 32767; }
+    asm {
+        PUSH BC
+        LD A, H
+        XOR D
+        PUSH AF
+        BIT 7, H
+        JR Z, .div_a_pos
+        LD A, L
+        CPL
+        LD L, A
+        LD A, H
+        CPL
+        LD H, A
+        INC HL
+.div_a_pos:
+        BIT 7, D
+        JR Z, .div_b_pos
+        LD A, E
+        CPL
+        LD E, A
+        LD A, D
+        CPL
+        LD D, A
+        INC DE
+.div_b_pos:
+        LD B, H
+        LD C, L
+        LD HL, 0
+        LD A, 16
+.div_loop:
+        ADD HL, HL
+        RL C
+        RL B
+        LD A, C
+        SUB E
+        LD C, A
+        LD A, B
+        SBC A, D
+        LD B, A
+        JR NC, .div_no_restore
+        LD A, C
+        ADD A, E
+        LD C, A
+        LD A, B
+        ADC A, D
+        LD B, A
+        JR .div_next
+.div_no_restore:
+        INC L
+.div_next:
+        DEC A
+        JR NZ, .div_loop
+        POP AF
+        JP P, .div_done
+        LD A, L
+        CPL
+        LD L, A
+        LD A, H
+        CPL
+        LD H, A
+        INC HL
+.div_done:
+        POP BC
+    }
+}
+
+// Absolute value
+fun fp_abs(x: i16) -> i16 {
+    if x < 0 { return 0 - x; }
+    return x;
+}
+
+// Minimum
+fun fp_min(a: i16, b: i16) -> i16 {
+    if a < b { return a; }
+    return b;
+}
+
+// Maximum
+fun fp_max(a: i16, b: i16) -> i16 {
+    if a > b { return a; }
+    return b;
+}
+
+// Clamp
+fun fp_clamp(x: i16, lo: i16, hi: i16) -> i16 {
+    if x < lo { return lo; }
+    if x > hi { return hi; }
+    return x;
+}
+
+// Square root (Newton-Raphson, 4 iterations)
+fun fp_sqrt(x: i16) -> i16 {
+    if x <= 0 { return 0; }
+    let guess: i16 = x >> 1;
+    if guess == 0 { guess = 1; }
+
+    for i in 0..4 {
+        let div_result = fp_div(x, guess);
+        guess = (guess + div_result) >> 1;
+    }
+    return guess;
+}
+
+// ============================================
+// Vector Math
+// ============================================
+
+struct vec3 {
+    x: i16,
+    y: i16,
+    z: i16
+}
+
+// Vector operations
+fun v3_add(a: vec3, b: vec3) -> vec3 {
+    return vec3 { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z };
+}
+
+fun v3_sub(a: vec3, b: vec3) -> vec3 {
+    return vec3 { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
+}
+
+fun v3_mulf(v: vec3, f: i16) -> vec3 {
+    return vec3 {
+        x: fp_mul(v.x, f),
+        y: fp_mul(v.y, f),
+        z: fp_mul(v.z, f)
+    };
+}
+
+fun v3_dot(a: vec3, b: vec3) -> i16 {
+    return fp_mul(a.x, b.x) + fp_mul(a.y, b.y) + fp_mul(a.z, b.z);
+}
+
+fun v3_length(v: vec3) -> i16 {
+    let sq: i16 = v3_dot(v, v);
+    return fp_sqrt(sq);
+}
+
+fun v3_normalize(v: vec3) -> vec3 {
+    let len = v3_length(v);
+    if len == 0 { return vec3 { x: 0, y: 0, z: 0 }; }
+    return vec3 {
+        x: fp_div(v.x, len),
+        y: fp_div(v.y, len),
+        z: fp_div(v.z, len)
+    };
+}
+
+// ============================================
+// SDF: Signed Distance Function for Sphere
+// ============================================
+
+fun sdSphere(p: vec3, r: i16) -> i16 {
+    return v3_length(p) - r;
+}
+
+// Scene: sphere at origin with radius 1.0
+fun map(p: vec3) -> i16 {
+    return sdSphere(p, 1 << 8);  // radius = 1.0
+}
+
+// Calculate normal using gradient
+fun calcNormal(p: vec3) -> vec3 {
+    let eps: i16 = 2;
+
+    let px_plus = vec3 { x: p.x + eps, y: p.y, z: p.z };
+    let px_minus = vec3 { x: p.x - eps, y: p.y, z: p.z };
+    let py_plus = vec3 { x: p.x, y: p.y + eps, z: p.z };
+    let py_minus = vec3 { x: p.x, y: p.y - eps, z: p.z };
+    let pz_plus = vec3 { x: p.x, y: p.y, z: p.z + eps };
+    let pz_minus = vec3 { x: p.x, y: p.y, z: p.z - eps };
+
+    let dx: i16 = map(px_plus) - map(px_minus);
+    let dy: i16 = map(py_plus) - map(py_minus);
+    let dz: i16 = map(pz_plus) - map(pz_minus);
+
+    let grad = vec3 { x: dx, y: dy, z: dz };
+    return v3_normalize(grad);
+}
+
+// ============================================
+// Raymarching
+// ============================================
+
+fun raymarch(ro: vec3, rd: vec3) -> i16 {
+    let d: i16 = 0;
+    let max_dist: i16 = 10 << 8;  // 10.0
+    let surf_dist: i16 = 2;       // ~0.008
+
+    for step in 0..15 {
+        let p = v3_add(ro, v3_mulf(rd, d));
+        let ds = map(p);
+
+        if ds < surf_dist { return d; }
+        if d > max_dist { return 0 - 1; }  // Miss
+
+        d = d + ds;
+    }
+
+    return 0 - 1;  // Miss
+}
+
+// ============================================
+// Rendering
+// ============================================
+
+// Light direction (normalized)
+fun light_dir() -> vec3 {
+    return vec3 { x: 147, y: 147, z: 0 - 147 };  // ~0.57 each
+}
+
+// Render single pixel, returns brightness 0-127
+fun renderPixel(x: u8, y: u8) -> u8 {
+    // Camera at z=-3
+    let cam_z: i16 = 0 - (3 << 8);
+    let ro = vec3 { x: 0, y: 0, z: cam_z };
+
+    // Ray direction from pixel coordinates
+    // Map x: 0-127 to -0.67 to 0.67, y: 0-95 to 0.5 to -0.5
+    let xi: i16 = x as i16;
+    let yi: i16 = y as i16;
+    let uv_x: i16 = fp_div(xi - 64, 96);
+    let uv_y: i16 = fp_div(48 - yi, 96);
+
+    let rd = v3_normalize(vec3 {
+        x: uv_x,
+        y: uv_y,
+        z: 1 << 8  // z = 1.0 (forward)
+    });
+
+    // Raymarch
+    let dist = raymarch(ro, rd);
+
+    if dist < 0 {
+        // Background: gradient
+        return 16 + (y >> 3);
+    }
+
+    // Hit point and normal
+    let hit_point = v3_add(ro, v3_mulf(rd, dist));
+    let normal = calcNormal(hit_point);
+
+    // Diffuse lighting
+    let light = light_dir();
+    let diffuse = v3_dot(normal, light);
+    diffuse = fp_max(diffuse, 0);
+
+    // Add ambient
+    let ambient: i16 = 64;  // 0.25
+    let one: i16 = 1 << 8;
+    let brightness = ambient + fp_mul(one - ambient, diffuse);
+
+    // Apply fog
+    let fog_factor = fp_div(dist, 10 << 8);
+    brightness = fp_mul(brightness, one - fog_factor);
+
+    // Clamp to 0-127 for u8
+    let clamped: i16 = fp_clamp(brightness >> 1, 0, 127);
+    return clamped as u8;
+}
+
+// ============================================
+// Dithering (simplified Bayer 4x4)
+// ============================================
+
+global BAYER_4X4: [u8; 16] = [
+     0,  8,  2, 10,
+    12,  4, 14,  6,
+     3, 11,  1,  9,
+    15,  7, 13,  5
+];
+
+fun bayer_dither(value: u8, x: u8, y: u8) -> bool {
+    let idx = ((y & 3) << 2) | (x & 3);
+    let threshold = BAYER_4X4[idx] << 3;  // Scale to 0-120
+    return value > threshold;
+}
+
+// ============================================
+// Screen Output (ZX Spectrum)
+// ============================================
+
+// Plot a single pixel
+fun plot(x: u8, y: u8) -> void {
+    // ZX Spectrum screen address calculation
+    let byte_x = x >> 3;
+    let bit = 7 - (x & 7);
+
+    // Y address calculation (Spectrum's interleaved layout)
+    let y_low = (y & 7) as u16;
+    let y_mid = ((y >> 3) & 7) as u16;
+    let y_high = ((y >> 6) & 3) as u16;
+
+    let addr: u16 = 0x4000 + (y_high << 11) + (y_mid << 5) + (y_low << 8) + (byte_x as u16);
+
+    asm {
+        ; addr in HL (from calculation above)
+        ; bit position in A
+    }
+}
+
+// ============================================
+// Main
+// ============================================
+
+fun main() -> void {
+    // Render half resolution (64x48) for speed demo
+    for y in 0..48 {
+        for x in 0..64 {
+            // Get grayscale brightness
+            let brightness = renderPixel((x * 2) as u8, (y * 2) as u8);
+
+            // Apply Bayer dithering
+            let pixel_on = bayer_dither(brightness, x as u8, y as u8);
+
+            // Plot 2x2 block for each pixel
+            if pixel_on {
+                let px: u8 = (x * 2) as u8;
+                let py: u8 = (y * 2) as u8;
+                plot(px, py);
+                plot(px + 1, py);
+                plot(px, py + 1);
+                plot(px + 1, py + 1);
+            }
+        }
+    }
+
+    // Infinite loop
+    loop {
+        asm { EI; HALT }
+    }
+}
+

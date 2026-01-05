@@ -1,0 +1,389 @@
+// vec.minz - GLSL-Style Vector Types for MinZ
+// 2D, 3D, and 4D vectors using 8.8 fixed-point
+//
+// Inspired by ZXSpeculator's glsl.h experiments
+
+import glsl.fp;
+
+// ============================================
+// Vector Type Definitions
+// ============================================
+
+struct vec2 {
+    x: i16,
+    y: i16
+}
+
+struct vec3 {
+    x: i16,
+    y: i16,
+    z: i16
+}
+
+struct vec4 {
+    x: i16,
+    y: i16,
+    z: i16,
+    w: i16
+}
+
+// ============================================
+// Vector Constants
+// ============================================
+
+const VEC2_ZERO: vec2 = vec2 { x: 0, y: 0 };
+const VEC2_ONE: vec2 = vec2 { x: FP_ONE, y: FP_ONE };
+const VEC2_X: vec2 = vec2 { x: FP_ONE, y: 0 };
+const VEC2_Y: vec2 = vec2 { x: 0, y: FP_ONE };
+
+const VEC3_ZERO: vec3 = vec3 { x: 0, y: 0, z: 0 };
+const VEC3_ONE: vec3 = vec3 { x: FP_ONE, y: FP_ONE, z: FP_ONE };
+const VEC3_X: vec3 = vec3 { x: FP_ONE, y: 0, z: 0 };
+const VEC3_Y: vec3 = vec3 { x: 0, y: FP_ONE, z: 0 };
+const VEC3_Z: vec3 = vec3 { x: 0, y: 0, z: FP_ONE };
+
+// ============================================
+// vec2 Operations
+// ============================================
+
+// Constructor
+fun v2(x: i16, y: i16) -> vec2 {
+    return vec2 { x: x, y: y };
+}
+
+// Add two vec2
+fun v2_add(a: vec2, b: vec2) -> vec2 {
+    return vec2 { x: a.x + b.x, y: a.y + b.y };
+}
+
+// Subtract two vec2
+fun v2_sub(a: vec2, b: vec2) -> vec2 {
+    return vec2 { x: a.x - b.x, y: a.y - b.y };
+}
+
+// Multiply vec2 by vec2 (component-wise)
+fun v2_mul(a: vec2, b: vec2) -> vec2 {
+    return vec2 { x: fp_mul(a.x, b.x), y: fp_mul(a.y, b.y) };
+}
+
+// Multiply vec2 by scalar
+fun v2_mulf(v: vec2, f: i16) -> vec2 {
+    return vec2 { x: fp_mul(v.x, f), y: fp_mul(v.y, f) };
+}
+
+// Divide vec2 by scalar
+fun v2_divf(v: vec2, f: i16) -> vec2 {
+    return vec2 { x: fp_div(v.x, f), y: fp_div(v.y, f) };
+}
+
+// Negate vec2
+fun v2_neg(v: vec2) -> vec2 {
+    return vec2 { x: -v.x, y: -v.y };
+}
+
+// Dot product
+fun v2_dot(a: vec2, b: vec2) -> i16 {
+    return fp_mul(a.x, b.x) + fp_mul(a.y, b.y);
+}
+
+// Length squared (avoids sqrt)
+fun v2_length2(v: vec2) -> i16 {
+    return v2_dot(v, v);
+}
+
+// Length
+fun v2_length(v: vec2) -> i16 {
+    return fp_sqrt(v2_length2(v));
+}
+
+// Normalize
+fun v2_normalize(v: vec2) -> vec2 {
+    let len = v2_length(v);
+    if len == 0 { return VEC2_ZERO; }
+    return v2_divf(v, len);
+}
+
+// Distance between two points
+fun v2_distance(a: vec2, b: vec2) -> i16 {
+    return v2_length(v2_sub(a, b));
+}
+
+// Absolute value (component-wise)
+fun v2_abs(v: vec2) -> vec2 {
+    return vec2 { x: fp_abs(v.x), y: fp_abs(v.y) };
+}
+
+// Min (component-wise)
+fun v2_min(a: vec2, b: vec2) -> vec2 {
+    return vec2 { x: fp_min(a.x, b.x), y: fp_min(a.y, b.y) };
+}
+
+// Max (component-wise)
+fun v2_max(a: vec2, b: vec2) -> vec2 {
+    return vec2 { x: fp_max(a.x, b.x), y: fp_max(a.y, b.y) };
+}
+
+// Max with scalar
+fun v2_maxf(v: vec2, f: i16) -> vec2 {
+    return vec2 { x: fp_max(v.x, f), y: fp_max(v.y, f) };
+}
+
+// Clamp (component-wise)
+fun v2_clamp(v: vec2, lo: i16, hi: i16) -> vec2 {
+    return vec2 { x: fp_clamp(v.x, lo, hi), y: fp_clamp(v.y, lo, hi) };
+}
+
+// Linear interpolation
+fun v2_mix(a: vec2, b: vec2, t: i16) -> vec2 {
+    return vec2 {
+        x: fp_mix(a.x, b.x, t),
+        y: fp_mix(a.y, b.y, t)
+    };
+}
+
+// Reflect vector around normal
+fun v2_reflect(v: vec2, n: vec2) -> vec2 {
+    let d = v2_dot(v, n);
+    return v2_sub(v, v2_mulf(n, fp_mul(FP_TWO, d)));
+}
+
+// ============================================
+// vec3 Operations
+// ============================================
+
+// Constructor
+fun v3(x: i16, y: i16, z: i16) -> vec3 {
+    return vec3 { x: x, y: y, z: z };
+}
+
+// Add two vec3
+fun v3_add(a: vec3, b: vec3) -> vec3 {
+    return vec3 { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z };
+}
+
+// Subtract two vec3
+fun v3_sub(a: vec3, b: vec3) -> vec3 {
+    return vec3 { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
+}
+
+// Multiply vec3 by vec3 (component-wise)
+fun v3_mul(a: vec3, b: vec3) -> vec3 {
+    return vec3 {
+        x: fp_mul(a.x, b.x),
+        y: fp_mul(a.y, b.y),
+        z: fp_mul(a.z, b.z)
+    };
+}
+
+// Multiply vec3 by scalar
+fun v3_mulf(v: vec3, f: i16) -> vec3 {
+    return vec3 {
+        x: fp_mul(v.x, f),
+        y: fp_mul(v.y, f),
+        z: fp_mul(v.z, f)
+    };
+}
+
+// Divide vec3 by scalar
+fun v3_divf(v: vec3, f: i16) -> vec3 {
+    return vec3 {
+        x: fp_div(v.x, f),
+        y: fp_div(v.y, f),
+        z: fp_div(v.z, f)
+    };
+}
+
+// Negate vec3
+fun v3_neg(v: vec3) -> vec3 {
+    return vec3 { x: -v.x, y: -v.y, z: -v.z };
+}
+
+// Dot product
+fun v3_dot(a: vec3, b: vec3) -> i16 {
+    return fp_mul(a.x, b.x) + fp_mul(a.y, b.y) + fp_mul(a.z, b.z);
+}
+
+// Cross product
+fun v3_cross(a: vec3, b: vec3) -> vec3 {
+    return vec3 {
+        x: fp_mul(a.y, b.z) - fp_mul(a.z, b.y),
+        y: fp_mul(a.z, b.x) - fp_mul(a.x, b.z),
+        z: fp_mul(a.x, b.y) - fp_mul(a.y, b.x)
+    };
+}
+
+// Length squared
+fun v3_length2(v: vec3) -> i16 {
+    return v3_dot(v, v);
+}
+
+// Length
+fun v3_length(v: vec3) -> i16 {
+    return fp_sqrt(v3_length2(v));
+}
+
+// Normalize
+fun v3_normalize(v: vec3) -> vec3 {
+    let len = v3_length(v);
+    if len == 0 { return VEC3_ZERO; }
+    return v3_divf(v, len);
+}
+
+// Distance between two points
+fun v3_distance(a: vec3, b: vec3) -> i16 {
+    return v3_length(v3_sub(a, b));
+}
+
+// Absolute value (component-wise)
+fun v3_abs(v: vec3) -> vec3 {
+    return vec3 { x: fp_abs(v.x), y: fp_abs(v.y), z: fp_abs(v.z) };
+}
+
+// Min (component-wise)
+fun v3_min(a: vec3, b: vec3) -> vec3 {
+    return vec3 {
+        x: fp_min(a.x, b.x),
+        y: fp_min(a.y, b.y),
+        z: fp_min(a.z, b.z)
+    };
+}
+
+// Max (component-wise)
+fun v3_max(a: vec3, b: vec3) -> vec3 {
+    return vec3 {
+        x: fp_max(a.x, b.x),
+        y: fp_max(a.y, b.y),
+        z: fp_max(a.z, b.z)
+    };
+}
+
+// Max with scalar
+fun v3_maxf(v: vec3, f: i16) -> vec3 {
+    return vec3 {
+        x: fp_max(v.x, f),
+        y: fp_max(v.y, f),
+        z: fp_max(v.z, f)
+    };
+}
+
+// Clamp (component-wise)
+fun v3_clamp(v: vec3, lo: i16, hi: i16) -> vec3 {
+    return vec3 {
+        x: fp_clamp(v.x, lo, hi),
+        y: fp_clamp(v.y, lo, hi),
+        z: fp_clamp(v.z, lo, hi)
+    };
+}
+
+// Linear interpolation
+fun v3_mix(a: vec3, b: vec3, t: i16) -> vec3 {
+    return vec3 {
+        x: fp_mix(a.x, b.x, t),
+        y: fp_mix(a.y, b.y, t),
+        z: fp_mix(a.z, b.z, t)
+    };
+}
+
+// Reflect vector around normal
+fun v3_reflect(v: vec3, n: vec3) -> vec3 {
+    let d = v3_dot(v, n);
+    return v3_sub(v, v3_mulf(n, fp_mul(FP_TWO, d)));
+}
+
+// ============================================
+// vec3 Rotations (for 3D graphics)
+// ============================================
+
+// Rotate around X axis
+fun v3_rot_x(v: vec3, angle: i16) -> vec3 {
+    let c = fp_cos(angle);
+    let s = fp_sin(angle);
+    return vec3 {
+        x: v.x,
+        y: fp_mul(v.y, c) - fp_mul(v.z, s),
+        z: fp_mul(v.y, s) + fp_mul(v.z, c)
+    };
+}
+
+// Rotate around Y axis
+fun v3_rot_y(v: vec3, angle: i16) -> vec3 {
+    let c = fp_cos(angle);
+    let s = fp_sin(angle);
+    return vec3 {
+        x: fp_mul(v.x, c) + fp_mul(v.z, s),
+        y: v.y,
+        z: -fp_mul(v.x, s) + fp_mul(v.z, c)
+    };
+}
+
+// Rotate around Z axis
+fun v3_rot_z(v: vec3, angle: i16) -> vec3 {
+    let c = fp_cos(angle);
+    let s = fp_sin(angle);
+    return vec3 {
+        x: fp_mul(v.x, c) - fp_mul(v.y, s),
+        y: fp_mul(v.x, s) + fp_mul(v.y, c),
+        z: v.z
+    };
+}
+
+// ============================================
+// vec4 Operations (for homogeneous coords)
+// ============================================
+
+// Constructor
+fun v4(x: i16, y: i16, z: i16, w: i16) -> vec4 {
+    return vec4 { x: x, y: y, z: z, w: w };
+}
+
+// vec3 to vec4 with w component
+fun v3_to_v4(v: vec3, w: i16) -> vec4 {
+    return vec4 { x: v.x, y: v.y, z: v.z, w: w };
+}
+
+// vec4 to vec3 (drop w)
+fun v4_to_v3(v: vec4) -> vec3 {
+    return vec3 { x: v.x, y: v.y, z: v.z };
+}
+
+// Add two vec4
+fun v4_add(a: vec4, b: vec4) -> vec4 {
+    return vec4 { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z, w: a.w + b.w };
+}
+
+// Multiply vec4 by scalar
+fun v4_mulf(v: vec4, f: i16) -> vec4 {
+    return vec4 {
+        x: fp_mul(v.x, f),
+        y: fp_mul(v.y, f),
+        z: fp_mul(v.z, f),
+        w: fp_mul(v.w, f)
+    };
+}
+
+// Dot product (4D)
+fun v4_dot(a: vec4, b: vec4) -> i16 {
+    return fp_mul(a.x, b.x) + fp_mul(a.y, b.y) +
+           fp_mul(a.z, b.z) + fp_mul(a.w, b.w);
+}
+
+// ============================================
+// Swizzle helpers (common patterns)
+// ============================================
+
+fun v3_xy(v: vec3) -> vec2 {
+    return vec2 { x: v.x, y: v.y };
+}
+
+fun v3_xz(v: vec3) -> vec2 {
+    return vec2 { x: v.x, y: v.z };
+}
+
+fun v3_yz(v: vec3) -> vec2 {
+    return vec2 { x: v.y, y: v.z };
+}
+
+fun v2_to_v3(v: vec2, z: i16) -> vec3 {
+    return vec3 { x: v.x, y: v.y, z: z };
+}
+

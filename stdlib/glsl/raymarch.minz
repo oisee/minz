@@ -1,0 +1,220 @@
+// raymarch.minz - Raymarching Framework for MinZ
+// Core raymarching loop and camera utilities
+//
+// Based on ZXSpeculator's OneSmallStep techniques
+
+import glsl.fp;
+import glsl.vec;
+import glsl.trig;
+
+// ============================================
+// Raymarching Constants
+// ============================================
+
+const MAX_STEPS: u8 = 15;           // Iterations (OneSmallStep uses 15)
+const MAX_DIST: i16 = 2560;         // 10.0 in 8.8 fixed-point
+const SURF_DIST: i16 = 2;           // 0.008 - hit threshold
+const SURF_DIST_ROUGH: i16 = 6;     // 0.025 - faster, rougher
+
+// Screen dimensions in fixed-point
+const SCREEN_W: i16 = 256;
+const SCREEN_H: i16 = 192;
+const HALF_W: i16 = 128;
+const HALF_H: i16 = 96;
+
+// ============================================
+// Ray Structure
+// ============================================
+
+struct Ray {
+    origin: vec3,    // Ray origin (ro)
+    direction: vec3  // Ray direction (rd), must be normalized
+}
+
+// ============================================
+// Camera Utilities
+// ============================================
+
+// Create ray for pixel coordinate (screen space)
+// x: 0-255, y: 0-191
+// fov: field of view in angle units (256 = 90 degrees)
+fun makeRay(x: u8, y: u8, cam_pos: vec3, cam_target: vec3, fov: i16) -> Ray {
+    // Convert pixel to normalized device coordinates (-1 to 1)
+    // Subtract half screen, divide by height for aspect correction
+    let uv = vec2 {
+        x: fp_div((x as i16) - HALF_W, HALF_H),  // Aspect corrected
+        y: fp_div(HALF_H - (y as i16), HALF_H)   // Y flipped
+    };
+
+    // Calculate camera basis vectors
+    let forward = v3_normalize(v3_sub(cam_target, cam_pos));
+    let right = v3_normalize(v3_cross(forward, vec3 { x: 0, y: FP_ONE, z: 0 }));
+    let up = v3_cross(right, forward);
+
+    // Calculate FOV scale
+    let fov_scale = fp_div(FP_ONE, fp_tan(fov >> 1));  // 1/tan(fov/2)
+
+    // Build ray direction
+    let rd = v3_normalize(vec3 {
+        x: fp_mul(uv.x, right.x) + fp_mul(uv.y, up.x) + fp_mul(fov_scale, forward.x),
+        y: fp_mul(uv.x, right.y) + fp_mul(uv.y, up.y) + fp_mul(fov_scale, forward.y),
+        z: fp_mul(uv.x, right.z) + fp_mul(uv.y, up.z) + fp_mul(fov_scale, forward.z)
+    });
+
+    return Ray { origin: cam_pos, direction: rd };
+}
+
+// Simple ray: camera at origin looking down -Z
+fun makeSimpleRay(x: u8, y: u8) -> Ray {
+    let uv = vec2 {
+        x: fp_div((x as i16) - HALF_W, HALF_H),
+        y: fp_div(HALF_H - (y as i16), HALF_H)
+    };
+
+    return Ray {
+        origin: vec3 { x: 0, y: 0, z: -1024 },  // -4.0 in Z
+        direction: v3_normalize(vec3 { x: uv.x, y: uv.y, z: FP_ONE })
+    };
+}
+
+// ============================================
+// Raymarching Core
+// Note: User must define map(p: vec3) -> i16
+// ============================================
+
+// Result of raymarching
+struct HitResult {
+    distance: i16,   // Total distance traveled
+    hit: bool,       // Did we hit something?
+    steps: u8        // Number of steps taken
+}
+
+// Basic raymarch - requires map() to be defined elsewhere
+// This is a template - copy and modify for your scene
+fun raymarch_template(ro: vec3, rd: vec3) -> HitResult {
+    let d: i16 = 0;
+    let steps: u8 = 0;
+
+    for step in 0..MAX_STEPS {
+        let p = v3_add(ro, v3_mulf(rd, d));
+
+        // User must replace this with their scene's map() function
+        let ds: i16 = 0;  // = map(p);
+
+        if ds < SURF_DIST {
+            return HitResult { distance: d, hit: true, steps: step as u8 };
+        }
+        if d > MAX_DIST {
+            break;
+        }
+
+        d = d + ds;
+        steps = step as u8;
+    }
+
+    return HitResult { distance: d, hit: false, steps: steps };
+}
+
+// ============================================
+// Lighting
+// ============================================
+
+// Simple diffuse lighting with single light source
+fun calcDiffuse(normal: vec3, light_dir: vec3) -> i16 {
+    let ndotl = v3_dot(normal, light_dir);
+    return fp_max(ndotl, 0);
+}
+
+// Ambient + diffuse lighting
+fun calcLighting(normal: vec3, light_dir: vec3, ambient: i16) -> i16 {
+    let diffuse = calcDiffuse(normal, light_dir);
+    return ambient + fp_mul(FP_ONE - ambient, diffuse);
+}
+
+// Simple fog/atmosphere (distance-based)
+fun applyFog(color: i16, distance: i16, fog_density: i16) -> i16 {
+    // fog = exp(-distance * density)
+    // Simplified: linear falloff for Z80
+    let fog = FP_ONE - fp_min(fp_mul(distance, fog_density), FP_ONE);
+    return fp_mul(color, fog);
+}
+
+// Exponential fog (more realistic)
+fun applyExpFog(color: i16, distance: i16, density: i16) -> i16 {
+    // exp(-d * density) approximation
+    let t = fp_mul(distance, density);
+    if t > 512 { return 0; }  // > 2.0, fully fogged
+    let fog = FP_ONE - t + fp_mul(t, t >> 1);  // 1 - t + t²/2
+    return fp_mul(color, fog);
+}
+
+// ============================================
+// Ambient Occlusion (fast approximation)
+// ============================================
+
+// Note: Requires map() function
+// Step along normal and check distance to surface
+const AO_STEPS: u8 = 5;
+const AO_STEP_SIZE: i16 = 26;  // 0.1 in 8.8
+
+// Template for AO calculation
+// fun calcAO(p: vec3, n: vec3) -> i16 {
+//     let occ: i16 = 0;
+//     let scale: i16 = FP_ONE;
+//
+//     for i in 0..AO_STEPS {
+//         let h = fp_mul(AO_STEP_SIZE, (i + 1) as i16);
+//         let d = map(v3_add(p, v3_mulf(n, h)));
+//         occ = occ + fp_mul(scale, h - d);
+//         scale = scale >> 1;  // Decay
+//     }
+//
+//     return fp_clamp(FP_ONE - occ, 0, FP_ONE);
+// }
+
+// ============================================
+// Soft Shadows (expensive but beautiful)
+// ============================================
+
+const SHADOW_STEPS: u8 = 8;
+const SHADOW_BIAS: i16 = 2;  // Start slightly off surface
+
+// Template for soft shadow
+// fun softShadow(ro: vec3, rd: vec3, k: i16) -> i16 {
+//     let res: i16 = FP_ONE;
+//     let t: i16 = SHADOW_BIAS;
+//
+//     for i in 0..SHADOW_STEPS {
+//         let h = map(v3_add(ro, v3_mulf(rd, t)));
+//         if h < SURF_DIST { return 0; }
+//         res = fp_min(res, fp_div(fp_mul(k, h), t));
+//         t = t + h;
+//     }
+//
+//     return res;
+// }
+
+// ============================================
+// Post-Processing
+// ============================================
+
+// Gamma correction (approximate)
+fun gammaCorrect(c: i16) -> i16 {
+    // sqrt approximation for gamma 2.0
+    return fp_sqrt(c);
+}
+
+// Contrast adjustment
+fun adjustContrast(c: i16, contrast: i16) -> i16 {
+    // (c - 0.5) * contrast + 0.5
+    let centered = c - FP_HALF;
+    return fp_mul(centered, contrast) + FP_HALF;
+}
+
+// Vignette effect (darker at edges)
+fun applyVignette(c: i16, uv: vec2, strength: i16) -> i16 {
+    let dist = v2_length(uv);
+    let vig = FP_ONE - fp_mul(fp_mul(dist, dist), strength);
+    return fp_mul(c, fp_max(vig, 0));
+}
+
