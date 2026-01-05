@@ -6,7 +6,7 @@
 
 ### **Modern Programming Language for Vintage & Modern Platforms**
 
-[![Version](https://img.shields.io/badge/version-0.16.2-brightgreen)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.16.3-brightgreen)](https://github.com/oisee/minz/releases)
 [![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%20Z80N%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
 [![Success Rate](https://img.shields.io/badge/compilation-92%25-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
@@ -162,6 +162,7 @@ crystal run hello.cr  # Test instantly!
 | **Standard Library** | ✅ Working | 10 modules: math, graphics, input, text, sound, time, mem |
 | **@extern FFI** | ✅ Working | `@extern(0x0010) fun rom_print()` with RST optimization |
 | **DZRP Remote Run** | ✅ Working | `mzrun game.minz --reset` live emulator testing |
+| **Instant TAP Load** | ✅ Working | `mztap game.tap` - 500x faster than tape! |
 | **Smart @print** | ✅ Working | Stateful optimization, reuses print_string helper |
 | **Infinite Loops** | ✅ Working | `loop { asm{EI;HALT} }` for explicit halt |
 | **Iterator Chains** | 🚧 Partial | Compiles, DJNZ optimization in progress |
@@ -332,8 +333,8 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 | **mze** | Z80 emulator (100% coverage!) | `mze program.bin -v` |
 | **mze debug** | DAP server for VS Code | `mze debug` |
 | **mzrun** | Remote runner via DZRP | `mzrun program.minz --reset` |
+| **mztap** | Instant TAP loader | `mztap game.tap` (500x faster!) |
 | **mzr** | Interactive REPL | `mzr` for experimentation |
-| **mzv** | MIR VM interpreter | `mzv program.mir` |
 
 ### **Live Testing via DZRP**
 
@@ -343,27 +344,40 @@ mz game.minz -o game.a80  # Same code for ZX Spectrum!
 **DZRP (DeZog Remote Protocol)** enables revolutionary live development - compile, upload, and run on a real emulator in one command!
 
 ```bash
-# Compile, assemble, upload and run - all in one command!
+# Configure once (add to ~/.bashrc)
+export DZRP_HOST=localhost
+export DZRP_PORT=11000
+
+# Compile and run MinZ programs
 mzrun hello.minz --reset -v
+
+# Load TAP files instantly (bypasses tape emulation!)
+mztap game.tap  # 19KB loads in ~100ms instead of 55 seconds!
 ```
 
-**Recommended Emulator: [ZXSpeculator](https://github.com/oisee/ZXSpeculator)** - A modern ZX Spectrum emulator with native DZRP support, beautiful shaders, and instant feedback.
+**Recommended Emulator: [ZXSpeculator](https://github.com/deanthecoder/ZXSpeculator)** - A modern ZX Spectrum emulator with native DZRP support, beautiful shaders, and instant feedback.
 
 ```bash
 # Start ZXSpeculator with DZRP enabled
-./ZXSpeculator --dzrp-port 11000
+./ZXSpeculator --dzrp
 
 # Then from another terminal:
 mzrun game.minz --reset
 # Your code is running on the emulator!
+
+# Or load existing TAP files instantly:
+mztap --list demo.tap      # Show TAP contents
+mztap demo.tap             # Load and run
+mztap --load $9000 demo.tap  # Override load address
 ```
 
 **Why DZRP is Amazing:**
 - **Instant feedback** - See your changes immediately on a real emulator
 - **No file juggling** - mzrun handles compile → assemble → upload → run
+- **500x faster TAP loading** - mztap bypasses tape emulation entirely
 - **Debug-friendly** - Works with DeZog for full source-level debugging
-- **Multiple emulators** - ZXSpeculator, ZEsarUX, and more support DZRP
-- **Step debugging** - Full breakpoints, registers, memory inspection
+- **Multiple emulators** - ZXSpeculator, ZEsarUX, CSpect support DZRP
+- **Unified config** - DZRP_HOST, DZRP_PORT env vars work everywhere
 - **Hot reload workflow** - Edit, save, mzrun, see results in seconds!
 
 ### **Debug & Analysis Flags**
@@ -560,6 +574,45 @@ go build -o mze cmd/mze/main.go   # Emulator
 
 ---
 
+## 🔮 **Future Vision: Shader Graphics on Z80**
+
+Inspired by the stunning demos in [ZXSpeculator's Experiments](https://github.com/deanthecoder/ZXSpeculator/tree/main/Experiments) - raymarched 3D scenes, fire effects, and dithered graphics running on Z80 - we're exploring bringing shader-like programming to MinZ.
+
+**Vision: minz-glsl Library**
+```minz
+// GLSL-style vector math for Z80 (fixed-point)
+import glsl;
+
+struct vec2 { x: i16, y: i16 }
+struct vec3 { x: i16, y: i16, z: i16 }
+
+// Signed distance function - sphere
+fun sdSphere(p: vec3, r: i16) -> i16 {
+    return v3_length(p) - r;
+}
+
+// Main shader loop
+fun mainImage(fragCoord: vec2) -> u8 {
+    let uv = v2_div(fragCoord, resolution);
+    let ro = vec3 { x: 0, y: 0, z: -400 };
+    let rd = v3_normalize(vec3 { x: uv.x, y: uv.y, z: 100 });
+    return march(ro, rd);
+}
+```
+
+**Planned Features:**
+- Fixed-point vec2, vec3, vec4 (8.8 or 12.4 format)
+- Basic operations: add, sub, mul, div, dot, cross, normalize
+- SDF primitives: sphere, box, plane, torus
+- Raymarching framework
+- Dithering: Floyd-Steinberg, ordered, random
+- Optimized Z80 assembly output
+
+**Why This Matters:**
+The ZXSpeculator experiments prove that sophisticated graphics are possible on Z80. With MinZ's optimization pipeline, we can make this accessible to everyone - write shader-like code, get optimized Z80 assembly.
+
+---
+
 ## 📜 **License**
 
 MinZ is MIT licensed. See [LICENSE](LICENSE) for details.
@@ -576,7 +629,7 @@ MinZ proves that modern programming belongs on vintage hardware. Join us in buil
 
 *From v0.1.0 to v0.16.0 and beyond - Every release a revolution!*
 
-> **v0.16.0 Highlights:** DAP Debugger for VS Code, Z80N/eZ80 roadmap, 92% compilation success!
+> **v0.16.3 Highlights:** mztap instant TAP loader (500x faster!), unified DZRP toolchain, shader graphics vision!
 
 > ⚠️ **Remember:** MinZ is under active development. Join us in building the future of retro computing!
 
