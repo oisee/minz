@@ -421,7 +421,7 @@ func encodeJPImm(a *Assembler, pattern *InstructionPattern, values []interface{}
 func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	result := make([]byte, len(pattern.Encoding))
 	copy(result, pattern.Encoding)
-	
+
 	// Find relative offset
 	for _, v := range values {
 		if offset, ok := v.(int8); ok {
@@ -438,13 +438,33 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 			// In pass 2, calculate relative offset from current position
 			offset := int(addr) - int(a.currentAddr) - 2
 			if offset < -128 || offset > 127 {
+				// Auto-promote JR to JP when out of range
+				// Determine JP opcode from JR opcode in pattern.Encoding[0]
+				var jpOpcode byte
+				if len(pattern.Encoding) > 0 {
+					switch pattern.Encoding[0] {
+					case 0x18:
+						jpOpcode = 0xC3 // JR -> JP
+					case 0x20:
+						jpOpcode = 0xC2 // JR NZ -> JP NZ
+					case 0x28:
+						jpOpcode = 0xCA // JR Z -> JP Z
+					case 0x30:
+						jpOpcode = 0xD2 // JR NC -> JP NC
+					case 0x38:
+						jpOpcode = 0xDA // JR C -> JP C
+					default:
+						return nil, fmt.Errorf("relative jump out of range: %d", offset)
+					}
+					return []byte{jpOpcode, byte(addr & 0xFF), byte(addr >> 8)}, nil
+				}
 				return nil, fmt.Errorf("relative jump out of range: %d", offset)
 			}
 			result = append(result, byte(offset))
 			return result, nil
 		}
 	}
-	
+
 	return nil, fmt.Errorf("no relative offset found")
 }
 

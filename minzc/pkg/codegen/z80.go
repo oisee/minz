@@ -53,6 +53,8 @@ type Z80Generator struct {
 	usedFunctions  map[string]bool // Track which stdlib functions are actually used
 	dataBlocks     []DataBlock     // Array literal data blocks
 	structDataBlocks []StructDataBlock // Struct array literal data blocks
+	asmBlockCounter int // Counter for uniquifying inline assembly labels
+	inlineCounter   int // Counter for uniquifying labels during function inlining
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -615,6 +617,7 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	g.currentInstructionIndex = 0
 	g.stackOffset = 0
 	g.regAlloc.Reset()
+	g.inlineCounter++ // Ensure unique labels for each function instance
 
 	// Perform hierarchical register allocation if enabled
 	if g.usePhysicalRegs {
@@ -2596,9 +2599,11 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			// 16-bit store
 			g.loadToHL(inst.Src2)
 			g.emit("    POP DE")
-			g.emit("    LD (DE), L")
+			g.emit("    LD A, L")
+			g.emit("    LD (DE), A")
 			g.emit("    INC DE")
-			g.emit("    LD (DE), H")
+			g.emit("    LD A, H")
+			g.emit("    LD (DE), A")
 		}
 		
 	case ir.OpLoadField:
@@ -2628,9 +2633,11 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.loadToHL(inst.Src2)
 		g.emit("    POP DE")
 		// Store value at offset
-		g.emit("    LD (DE), L")
+		g.emit("    LD A, L")
+			g.emit("    LD (DE), A")
 		g.emit("    INC DE")
-		g.emit("    LD (DE), H")
+		g.emit("    LD A, H")
+			g.emit("    LD (DE), A")
 		
 	case ir.OpLoadBitField:
 		// Load bit field value
@@ -4008,7 +4015,7 @@ func (g *Z80Generator) getFunctionLabel(prefix string) string {
 	return fmt.Sprintf("%s_%s_%d", funcName, prefix, g.labelCounter)
 }
 
-// sanitizeLabel makes IR-generated labels function-scoped
+// sanitizeLabel makes IR-generated labels function-scoped and unique per inline instance
 func (g *Z80Generator) sanitizeLabel(label string) string {
 	if g.currentFunc == nil {
 		return label
@@ -4016,7 +4023,8 @@ func (g *Z80Generator) sanitizeLabel(label string) string {
 	// Create a sanitized function name for labels
 	funcName := strings.ReplaceAll(g.currentFunc.Name, ".", "_")
 	funcName = strings.ReplaceAll(funcName, "$", "_")
-	return fmt.Sprintf("%s_%s", funcName, label)
+	// Include inline counter to ensure uniqueness when function is inlined multiple times
+	return fmt.Sprintf("%s_%s_i%d", funcName, label, g.inlineCounter)
 }
 
 // sanitizeFunctionName creates a clean, assembler-friendly function name
@@ -4112,8 +4120,24 @@ func (g *Z80Generator) generateTrueSMCCall(inst ir.Instruction, targetFunc *ir.F
 
 // emitAsmBlock processes and emits inline assembly code
 func (g *Z80Generator) emitAsmBlock(code string) {
-	// Process the assembly code line by line
+	// Increment the asm block counter for unique labels
+	g.asmBlockCounter++
+	suffix := fmt.Sprintf("_asm%d", g.asmBlockCounter)
+
+	// First pass: collect all local labels (starting with .)
+	localLabels := make(map[string]bool)
 	lines := strings.Split(code, "\n")
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		// Check for label definition (starts with . and ends with :)
+		if strings.HasPrefix(trimmedLine, ".") && strings.Contains(trimmedLine, ":") {
+			labelEnd := strings.Index(trimmedLine, ":")
+			label := trimmedLine[:labelEnd]
+			localLabels[label] = true
+		}
+	}
+
+	// Second pass: process and emit, replacing local labels with unique versions
 	for _, line := range lines {
 		trimmedLine := strings.TrimSpace(line)
 		if trimmedLine == "" {
@@ -4124,10 +4148,25 @@ func (g *Z80Generator) emitAsmBlock(code string) {
 		if trimmedLine == "{" || trimmedLine == "}" || trimmedLine == " }" || strings.TrimSpace(trimmedLine) == "}" {
 			continue
 		}
-		
+
 		// Process !symbol references
 		processedLine := g.resolveAsmSymbols(trimmedLine)
-		
+
+		// Replace local labels with unique versions
+		for label := range localLabels {
+			// Replace label definitions (label:)
+			processedLine = strings.ReplaceAll(processedLine, label+":", label+suffix+":")
+			// Replace label references (in jump targets, etc.)
+			// Be careful to only replace the label, not substrings
+			processedLine = strings.ReplaceAll(processedLine, ", "+label, ", "+label+suffix)
+			processedLine = strings.ReplaceAll(processedLine, " "+label+"\n", " "+label+suffix+"\n")
+			processedLine = strings.ReplaceAll(processedLine, " "+label+"\r", " "+label+suffix+"\r")
+			// Handle label at end of line (no newline yet)
+			if strings.HasSuffix(processedLine, " "+label) {
+				processedLine = processedLine[:len(processedLine)-len(label)] + label + suffix
+			}
+		}
+
 		// Emit the processed line with proper indentation
 		if strings.Contains(processedLine, ":") && !strings.Contains(processedLine, "(") {
 			// Labels go at the beginning of the line

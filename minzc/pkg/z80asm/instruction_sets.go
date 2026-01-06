@@ -672,18 +672,20 @@ func makeRelativeEncoder(opcode byte) EncoderFunc {
 		if len(line.Operands) != 1 {
 			return nil, fmt.Errorf("instruction requires 1 operand")
 		}
-		
+
 		target, err := a.resolveValue(line.Operands[0])
 		if err != nil {
 			return nil, err
 		}
-		
+
 		// Calculate relative offset
 		offset := int(target) - int(a.currentAddr) - 2
 		if offset < -128 || offset > 127 {
-			return nil, fmt.Errorf("relative jump out of range: %d", offset)
+			// Auto-promote JR to JP when out of range
+			// JR (0x18) -> JP (0xC3)
+			return []byte{0xC3, byte(target & 0xFF), byte(target >> 8)}, nil
 		}
-		
+
 		return []byte{opcode, byte(offset)}, nil
 	}
 }
@@ -693,18 +695,36 @@ func makeCondRelativeEncoder(opcode byte) EncoderFunc {
 		if len(line.Operands) != 2 {
 			return nil, fmt.Errorf("instruction requires 2 operands")
 		}
-		
+
 		target, err := a.resolveValue(line.Operands[1])
 		if err != nil {
 			return nil, err
 		}
-		
+
 		// Calculate relative offset
 		offset := int(target) - int(a.currentAddr) - 2
 		if offset < -128 || offset > 127 {
-			return nil, fmt.Errorf("relative jump out of range: %d", offset)
+			// Auto-promote JR cc to JP cc when out of range
+			// JR NZ (0x20) -> JP NZ (0xC2)
+			// JR Z  (0x28) -> JP Z  (0xCA)
+			// JR NC (0x30) -> JP NC (0xD2)
+			// JR C  (0x38) -> JP C  (0xDA)
+			var jpOpcode byte
+			switch opcode {
+			case 0x20:
+				jpOpcode = 0xC2 // JP NZ
+			case 0x28:
+				jpOpcode = 0xCA // JP Z
+			case 0x30:
+				jpOpcode = 0xD2 // JP NC
+			case 0x38:
+				jpOpcode = 0xDA // JP C
+			default:
+				return nil, fmt.Errorf("relative jump out of range: %d", offset)
+			}
+			return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
 		}
-		
+
 		return []byte{opcode, byte(offset)}, nil
 	}
 }

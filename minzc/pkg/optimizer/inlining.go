@@ -1,6 +1,7 @@
 package optimizer
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/minz/minzc/pkg/ir"
@@ -137,20 +138,37 @@ func (p *InliningPass) inlineCalls(fn *ir.Function) bool {
 	return changed
 }
 
+// inlineCounter tracks unique suffixes for inlined labels
+var inlineCounter int
+
 // generateInlinedCode generates the inlined version of a function call
 func (p *InliningPass) generateInlinedCode(fn *ir.Function, call ir.Instruction, nextReg *ir.Register) []ir.Instruction {
 	var result []ir.Instruction
-	
+
+	// Increment inline counter for unique labels
+	inlineCounter++
+	labelSuffix := fmt.Sprintf("_inline%d", inlineCounter)
+
 	// Create register mapping for inlining
 	regMap := make(map[ir.Register]ir.Register)
-	
+
+	// Create label mapping for inlining (to avoid duplicates when same function inlined multiple times)
+	labelMap := make(map[string]string)
+
+	// Collect all labels from the function
+	for _, inst := range fn.Instructions {
+		if inst.Op == ir.OpLabel && inst.Label != "" {
+			labelMap[inst.Label] = inst.Label + labelSuffix
+		}
+	}
+
 	// Map parameters
 	// TODO: Proper parameter passing
 	// For now, assume parameters are passed in order starting from register 1
 	for i := 0; i < fn.NumParams; i++ {
 		regMap[ir.Register(i+1)] = ir.Register(i+1) // Identity mapping for params
 	}
-	
+
 	// Map other registers to new ones to avoid conflicts
 	for _, inst := range fn.Instructions {
 		if inst.Dest != 0 {
@@ -193,7 +211,14 @@ func (p *InliningPass) generateInlinedCode(fn *ir.Function, call ir.Instruction,
 				newInst.Src2 = mapped
 			}
 		}
-		
+
+		// Remap labels to avoid duplicates when inlining same function multiple times
+		if inst.Label != "" {
+			if mapped, ok := labelMap[inst.Label]; ok {
+				newInst.Label = mapped
+			}
+		}
+
 		// Add comment to indicate inlining
 		if newInst.Comment != "" {
 			newInst.Comment = "Inlined: " + newInst.Comment
