@@ -4012,6 +4012,11 @@ func (g *Z80Generator) getFunctionLabel(prefix string) string {
 	// Create a sanitized function name for labels
 	funcName := strings.ReplaceAll(g.currentFunc.Name, ".", "_")
 	funcName = strings.ReplaceAll(funcName, "$", "_")
+	funcName = strings.ReplaceAll(funcName, "-", "_") // Dashes are invalid in labels
+	// Ensure it doesn't start with a digit
+	if len(funcName) > 0 && funcName[0] >= '0' && funcName[0] <= '9' {
+		funcName = "_" + funcName
+	}
 	return fmt.Sprintf("%s_%s_%d", funcName, prefix, g.labelCounter)
 }
 
@@ -4023,6 +4028,11 @@ func (g *Z80Generator) sanitizeLabel(label string) string {
 	// Create a sanitized function name for labels
 	funcName := strings.ReplaceAll(g.currentFunc.Name, ".", "_")
 	funcName = strings.ReplaceAll(funcName, "$", "_")
+	funcName = strings.ReplaceAll(funcName, "-", "_") // Dashes are invalid in labels (look like subtraction)
+	// Ensure it doesn't start with a digit
+	if len(funcName) > 0 && funcName[0] >= '0' && funcName[0] <= '9' {
+		funcName = "_" + funcName
+	}
 	// Include inline counter to ensure uniqueness when function is inlined multiple times
 	return fmt.Sprintf("%s_%s_i%d", funcName, label, g.inlineCounter)
 }
@@ -4031,20 +4041,36 @@ func (g *Z80Generator) sanitizeLabel(label string) string {
 func (g *Z80Generator) sanitizeFunctionName(name string) string {
 	// Remove leading dots (from ...examples.simple_add.main)
 	name = strings.TrimLeft(name, ".")
-	
-	// Replace dots with underscores
+
+	// Extract function name + type signature, strip module path
+	// Pattern: module.path.function_name$type_signature
+	// We want: function_name_type_signature
+	dollarIdx := strings.Index(name, "$")
+	if dollarIdx == -1 {
+		dollarIdx = len(name)
+	}
+
+	// Find last . before the $ (separates module path from function name)
+	lastDotBeforeDollar := strings.LastIndex(name[:dollarIdx], ".")
+	if lastDotBeforeDollar != -1 {
+		// Take function name + everything after (including type signature)
+		name = name[lastDotBeforeDollar+1:]
+	}
+
+	// Replace dots with underscores (shouldn't be any left, but just in case)
 	name = strings.ReplaceAll(name, ".", "_")
-	
+
 	// Replace $ with underscore (from add$u16$u16)
 	name = strings.ReplaceAll(name, "$", "_")
-	
-	// Remove path-like prefixes if they're too long
-	parts := strings.Split(name, "_")
-	if len(parts) > 3 {
-		// Keep only the last 3 parts (e.g., simple_add_main)
-		name = strings.Join(parts[len(parts)-3:], "_")
+
+	// Replace dashes (invalid in labels - look like subtraction)
+	name = strings.ReplaceAll(name, "-", "_")
+
+	// Ensure label doesn't start with a digit (invalid in most assemblers)
+	if len(name) > 0 && name[0] >= '0' && name[0] <= '9' {
+		name = "_" + name
 	}
-	
+
 	return name
 }
 

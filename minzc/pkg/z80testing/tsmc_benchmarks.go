@@ -66,7 +66,7 @@ func GetAllBenchmarks() []TSMCBenchmark {
 module fibonacci;
 
 // Recursive Fibonacci - heavy function call overhead
-export fn fib_recursive(n: u16) -> u16 {
+export fun fib_recursive(n: u16) -> u16 {
     if (n <= 1) {
         return n;
     }
@@ -74,7 +74,7 @@ export fn fib_recursive(n: u16) -> u16 {
 }
 
 // Entry point
-export fn main() -> u16 {
+export fun main() -> u16 {
     return fib_recursive(10);
 }
 `,
@@ -89,7 +89,7 @@ export fn main() -> u16 {
 module fibonacci;
 
 // Iterative Fibonacci - loop with function calls
-export fn fib_iterative(n: u16) -> u16 {
+export fun fib_iterative(n: u16) -> u16 {
     if (n <= 1) {
         return n;
     }
@@ -108,11 +108,11 @@ export fn fib_iterative(n: u16) -> u16 {
     return b;
 }
 
-fn add_values(x: u16, y: u16) -> u16 {
+fun add_values(x: u16, y: u16) -> u16 {
     return x + y;
 }
 
-export fn main() -> u16 {
+export fun main() -> u16 {
     return fib_iterative(20);
 }
 `,
@@ -129,7 +129,7 @@ export fn main() -> u16 {
 module strings;
 
 // String length with character validation
-export fn strlen_custom(str: *u8) -> u16 {
+export fun strlen_custom(str: *u8) -> u16 {
     let len: u16 = 0;
     let ptr: *u8 = str;
     
@@ -143,20 +143,20 @@ export fn strlen_custom(str: *u8) -> u16 {
     return len;
 }
 
-fn is_printable(ch: u8) -> bool {
+fun is_printable(ch: u8) -> bool {
     return ch >= 32 && ch < 127;
 }
 
-fn increment(val: u16) -> u16 {
+fun increment(val: u16) -> u16 {
     return val + 1;
 }
 
-fn advance_ptr(ptr: *u8) -> *u8 {
+fun advance_ptr(ptr: *u8) -> *u8 {
     return ptr + 1;
 }
 
 // Test string at 0x9000
-export fn main() -> u16 {
+export fun main() -> u16 {
     // Initialize test string
     let test_str: *u8 = 0x9000 as *u8;
     *test_str = 'H' as u8;
@@ -189,7 +189,7 @@ export fn main() -> u16 {
 module arrays;
 
 // Array sum with element processing
-export fn array_sum(arr: *u16, size: u16) -> u16 {
+export fun array_sum(arr: *u16, size: u16) -> u16 {
     let sum: u16 = 0;
     let i: u16 = 0;
     
@@ -202,19 +202,19 @@ export fn array_sum(arr: *u16, size: u16) -> u16 {
     return sum;
 }
 
-fn get_element(arr: *u16, index: u16) -> u16 {
+fun get_element(arr: *u16, index: u16) -> u16 {
     return *(arr + index);
 }
 
-fn add_to_sum(sum: u16, val: u16) -> u16 {
+fun add_to_sum(sum: u16, val: u16) -> u16 {
     return sum + val;
 }
 
-fn next_index(i: u16) -> u16 {
+fun next_index(i: u16) -> u16 {
     return i + 1;
 }
 
-export fn main() -> u16 {
+export fun main() -> u16 {
     // Initialize test array
     let arr: *u16 = 0x9000 as *u16;
     let i: u16 = 0;
@@ -239,7 +239,7 @@ export fn main() -> u16 {
 module math;
 
 // Factorial with intermediate calculations
-export fn factorial(n: u16) -> u16 {
+export fun factorial(n: u16) -> u16 {
     if (n <= 1) {
         return 1;
     }
@@ -255,15 +255,15 @@ export fn factorial(n: u16) -> u16 {
     return result;
 }
 
-fn multiply(a: u16, b: u16) -> u16 {
+fun multiply(a: u16, b: u16) -> u16 {
     return a * b;
 }
 
-fn increment(x: u16) -> u16 {
+fun increment(x: u16) -> u16 {
     return x + 1;
 }
 
-export fn main() -> u16 {
+export fun main() -> u16 {
     return factorial(8);
 }
 `,
@@ -279,7 +279,7 @@ export fn main() -> u16 {
 module math;
 
 // Prime checking with modular arithmetic
-export fn is_prime(n: u16) -> u16 {
+export fun is_prime(n: u16) -> u16 {
     if (n <= 1) {
         return 0;
     }
@@ -303,20 +303,20 @@ export fn is_prime(n: u16) -> u16 {
     return 1;
 }
 
-fn is_even(n: u16) -> bool {
+fun is_even(n: u16) -> bool {
     return (n & 1) == 0;
 }
 
-fn divides(divisor: u16, n: u16) -> bool {
+fun divides(divisor: u16, n: u16) -> bool {
     return (n % divisor) == 0;
 }
 
-fn next_odd(n: u16) -> u16 {
+fun next_odd(n: u16) -> u16 {
     return n + 2;
 }
 
 // Integer square root approximation
-fn isqrt(n: u16) -> u16 {
+fun isqrt(n: u16) -> u16 {
     if (n < 2) {
         return n;
     }
@@ -332,7 +332,7 @@ fn isqrt(n: u16) -> u16 {
     return x;
 }
 
-export fn main() -> u16 {
+export fun main() -> u16 {
     return is_prime(97);
 }
 `,
@@ -349,7 +349,7 @@ export fn main() -> u16 {
 module matrix;
 
 // 2x2 matrix multiplication with element access functions
-export fn matrix_mult_2x2(a: *u16, b: *u16) -> u16 {
+export fun matrix_mult_2x2(a: *u16, b: *u16) -> u16 {
     // Result stored at 0x9010
     let result: *u16 = 0x9010 as *u16;
     
@@ -363,7 +363,7 @@ export fn matrix_mult_2x2(a: *u16, b: *u16) -> u16 {
     return sum_matrix(result);
 }
 
-fn calc_element(a: *u16, b: *u16, row: u16, col: u16) -> u16 {
+fun calc_element(a: *u16, b: *u16, row: u16, col: u16) -> u16 {
     let sum: u16 = 0;
     let k: u16 = 0;
     
@@ -377,27 +377,27 @@ fn calc_element(a: *u16, b: *u16, row: u16, col: u16) -> u16 {
     return sum;
 }
 
-fn get_matrix_element(m: *u16, row: u16, col: u16) -> u16 {
+fun get_matrix_element(m: *u16, row: u16, col: u16) -> u16 {
     return *(m + row * 2 + col);
 }
 
-fn add_product(sum: u16, a: u16, b: u16) -> u16 {
+fun add_product(sum: u16, a: u16, b: u16) -> u16 {
     return sum + multiply(a, b);
 }
 
-fn multiply(a: u16, b: u16) -> u16 {
+fun multiply(a: u16, b: u16) -> u16 {
     return a * b;
 }
 
-fn increment(x: u16) -> u16 {
+fun increment(x: u16) -> u16 {
     return x + 1;
 }
 
-fn sum_matrix(m: *u16) -> u16 {
+fun sum_matrix(m: *u16) -> u16 {
     return *m + *(m + 1) + *(m + 2) + *(m + 3);
 }
 
-export fn main() -> u16 {
+export fun main() -> u16 {
     // Initialize matrices
     let a: *u16 = 0x9000 as *u16;
     let b: *u16 = 0x9008 as *u16;
@@ -424,7 +424,7 @@ export fn main() -> u16 {
 module crc;
 
 // CRC-8 with polynomial 0x07
-export fn crc8_calculate(data: *u8, len: u16) -> u16 {
+export fun crc8_calculate(data: *u8, len: u16) -> u16 {
     let crc: u8 = 0;
     let i: u16 = 0;
     
@@ -436,7 +436,7 @@ export fn crc8_calculate(data: *u8, len: u16) -> u16 {
     return crc as u16;
 }
 
-fn process_byte(crc: u8, byte: u8) -> u8 {
+fun process_byte(crc: u8, byte: u8) -> u8 {
     crc = crc ^ byte;
     let bit: u8 = 0;
     
@@ -452,31 +452,31 @@ fn process_byte(crc: u8, byte: u8) -> u8 {
     return crc;
 }
 
-fn get_byte(data: *u8, index: u16) -> u8 {
+fun get_byte(data: *u8, index: u16) -> u8 {
     return *(data + index);
 }
 
-fn next_index(i: u16) -> u16 {
+fun next_index(i: u16) -> u16 {
     return i + 1;
 }
 
-fn has_msb(val: u8) -> bool {
+fun has_msb(val: u8) -> bool {
     return (val & 0x80) != 0;
 }
 
-fn shift_and_xor(val: u8) -> u8 {
+fun shift_and_xor(val: u8) -> u8 {
     return (val << 1) ^ 0x07;
 }
 
-fn shift_left(val: u8) -> u8 {
+fun shift_left(val: u8) -> u8 {
     return val << 1;
 }
 
-fn inc_bit(b: u8) -> u8 {
+fun inc_bit(b: u8) -> u8 {
     return b + 1;
 }
 
-export fn main() -> u16 {
+export fun main() -> u16 {
     // Initialize test data
     let data: *u8 = 0x9000 as *u8;
     let i: u16 = 0;
@@ -501,7 +501,7 @@ export fn main() -> u16 {
 module sorting;
 
 // Bubble sort with comparison and swap functions
-export fn bubble_sort(arr: *u16, size: u16) -> u16 {
+export fun bubble_sort(arr: *u16, size: u16) -> u16 {
     let i: u16 = 0;
     let swaps: u16 = 0;
     
@@ -522,37 +522,37 @@ export fn bubble_sort(arr: *u16, size: u16) -> u16 {
     return swaps; // Return number of swaps performed
 }
 
-fn calc_limit(size: u16, i: u16) -> u16 {
+fun calc_limit(size: u16, i: u16) -> u16 {
     return size - i - 1;
 }
 
-fn should_swap(arr: *u16, index: u16) -> bool {
+fun should_swap(arr: *u16, index: u16) -> bool {
     return get_element(arr, index) > get_element(arr, index + 1);
 }
 
-fn get_element(arr: *u16, index: u16) -> u16 {
+fun get_element(arr: *u16, index: u16) -> u16 {
     return *(arr + index);
 }
 
-fn swap_elements(arr: *u16, index: u16) -> void {
+fun swap_elements(arr: *u16, index: u16) -> void {
     let temp: u16 = get_element(arr, index);
     set_element(arr, index, get_element(arr, index + 1));
     set_element(arr, index + 1, temp);
 }
 
-fn set_element(arr: *u16, index: u16, value: u16) -> void {
+fun set_element(arr: *u16, index: u16, value: u16) -> void {
     *(arr + index) = value;
 }
 
-fn increment(x: u16) -> u16 {
+fun increment(x: u16) -> u16 {
     return x + 1;
 }
 
-fn next_index(i: u16) -> u16 {
+fun next_index(i: u16) -> u16 {
     return i + 1;
 }
 
-export fn main() -> u16 {
+export fun main() -> u16 {
     // Initialize unsorted array
     let arr: *u16 = 0x9000 as *u16;
     *arr = 8; *(arr + 1) = 3; *(arr + 2) = 5; *(arr + 3) = 1;
@@ -574,7 +574,7 @@ export fn main() -> u16 {
 module search;
 
 // Binary search with helper functions
-export fn binary_search(arr: *u16, size: u16, target: u16) -> u16 {
+export fun binary_search(arr: *u16, size: u16, target: u16) -> u16 {
     let left: u16 = 0;
     let right: u16 = size - 1;
     
@@ -596,27 +596,27 @@ export fn binary_search(arr: *u16, size: u16, target: u16) -> u16 {
     return 0xFFFF; // Not found
 }
 
-fn calculate_mid(left: u16, right: u16) -> u16 {
+fun calculate_mid(left: u16, right: u16) -> u16 {
     return (left + right) / 2;
 }
 
-fn get_element(arr: *u16, index: u16) -> u16 {
+fun get_element(arr: *u16, index: u16) -> u16 {
     return *(arr + index);
 }
 
-fn is_less(a: u16, b: u16) -> bool {
+fun is_less(a: u16, b: u16) -> bool {
     return a < b;
 }
 
-fn next_position(pos: u16) -> u16 {
+fun next_position(pos: u16) -> u16 {
     return pos + 1;
 }
 
-fn prev_position(pos: u16) -> u16 {
+fun prev_position(pos: u16) -> u16 {
     return pos - 1;
 }
 
-export fn main() -> u16 {
+export fun main() -> u16 {
     // Initialize sorted array
     let arr: *u16 = 0x9000 as *u16;
     let i: u16 = 0;
@@ -834,12 +834,12 @@ func (suite *TSMCBenchmarkSuite) GenerateReport() string {
 			report.WriteString("SMC Activity:\n")
 			report.WriteString(fmt.Sprintf("- Total modifications: %d\n", 
 				result.WithTSMC.SMCDetails.TotalEvents))
-			report.WriteString(fmt.Sprintf("- Unique locations: %d\n", 
-				result.WithTSMC.SMCDetails.UniqueLocations))
-			report.WriteString(fmt.Sprintf("- Code modifications: %d\n", 
-				result.WithTSMC.SMCDetails.CodeModifications))
-			report.WriteString(fmt.Sprintf("- Data modifications: %d\n\n", 
-				result.WithTSMC.SMCDetails.DataModifications))
+			report.WriteString(fmt.Sprintf("- Unique locations: %d\n",
+				result.WithTSMC.SMCDetails.UniqueAddresses))
+			report.WriteString(fmt.Sprintf("- Code modifications: %d\n",
+				result.WithTSMC.SMCDetails.CodeEvents))
+			report.WriteString(fmt.Sprintf("- Data modifications: %d\n\n",
+				result.WithTSMC.SMCDetails.DataEvents))
 		}
 
 		status := "✓ PASSED"

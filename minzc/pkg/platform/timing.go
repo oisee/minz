@@ -156,11 +156,11 @@ func GetFrameBudget(platform string, targetFPS int) int {
 
 // GetScanlineCycles returns T-states per scanline for the platform
 func GetScanlineCycles(platform string) int {
-	timing, exists := PlatformTimings[platform]
+	_, exists := PlatformTimings[platform]
 	if !exists {
 		return 224 // Default Spectrum value
 	}
-	
+
 	// Calculate from frame timing
 	switch platform {
 	case "spectrum", "zxspectrum":

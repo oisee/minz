@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -22,7 +23,7 @@ func TestTSMCPerformanceVerification(t *testing.T) {
 
 // Function 1: Direct parameter patching
 // TSMC can patch the multiplier directly into the instruction
-fn multiply_by_param(value: u16, multiplier: u16) -> u16 {
+fun multiply_by_param(value: u16, multiplier: u16) -> u16 {
     // Without TSMC: Load multiplier from memory/register
     // With TSMC: Multiplier is patched into the immediate field
     return value * multiplier;
@@ -30,7 +31,7 @@ fn multiply_by_param(value: u16, multiplier: u16) -> u16 {
 
 // Function 2: Loop with patchable bounds
 // TSMC patches the loop limit directly into the comparison instruction
-fn sum_to_limit(limit: u16) -> u16 {
+fun sum_to_limit(limit: u16) -> u16 {
     var sum: u16 = 0;
     var i: u16 = 1;
     
@@ -45,7 +46,7 @@ fn sum_to_limit(limit: u16) -> u16 {
 
 // Function 3: Conditional with patchable threshold
 // TSMC patches the threshold into the comparison
-fn count_above_threshold(arr: *u16, len: u16, threshold: u16) -> u16 {
+fun count_above_threshold(arr: *u16, len: u16, threshold: u16) -> u16 {
     var count: u16 = 0;
     var i: u16 = 0;
     
@@ -62,7 +63,7 @@ fn count_above_threshold(arr: *u16, len: u16, threshold: u16) -> u16 {
 
 // Function 4: Nested loops with TSMC optimization
 // Both loop bounds can be patched
-fn nested_sum(rows: u16, cols: u16) -> u16 {
+fun nested_sum(rows: u16, cols: u16) -> u16 {
     var sum: u16 = 0;
     var r: u16 = 0;
     
@@ -80,7 +81,7 @@ fn nested_sum(rows: u16, cols: u16) -> u16 {
 
 // Function 5: Function call chain
 // Tests TSMC optimization of function calls
-fn chain_calc(x: u16, y: u16, z: u16) -> u16 {
+fun chain_calc(x: u16, y: u16, z: u16) -> u16 {
     // Each function call can have its parameters patched
     var a = multiply_by_param(x, 2);
     var b = multiply_by_param(y, 3);
@@ -251,17 +252,17 @@ func TestTSMCPatternAnalysis(t *testing.T) {
 // Different TSMC optimization patterns
 
 // Pattern 1: Simple immediate patching
-fn add_immediate(x: u16, imm: u16) -> u16 {
+fun add_immediate(x: u16, imm: u16) -> u16 {
     return x + imm;  // imm gets patched
 }
 
 // Pattern 2: Comparison patching
-fn compare_equal(x: u16, val: u16) -> bool {
+fun compare_equal(x: u16, val: u16) -> bool {
     return x == val;  // val gets patched in CMP
 }
 
 // Pattern 3: Jump target patching (conditional)
-fn conditional_calc(x: u16, flag: bool) -> u16 {
+fun conditional_calc(x: u16, flag: bool) -> u16 {
     if flag {
         return x * 2;
     } else {
@@ -270,7 +271,7 @@ fn conditional_calc(x: u16, flag: bool) -> u16 {
 }
 
 // Pattern 4: Loop increment patching
-fn step_sum(start: u16, end: u16, step: u16) -> u16 {
+fun step_sum(start: u16, end: u16, step: u16) -> u16 {
     var sum: u16 = 0;
     var i: u16 = start;
     
@@ -362,7 +363,7 @@ func TestTSMCRealWorldBenchmark(t *testing.T) {
 // Simple graphics rendering functions
 
 // Fill rectangle with color
-fn fill_rect(screen: *u8, x: u16, y: u16, w: u16, h: u16, color: u8) -> void {
+fun fill_rect(screen: *u8, x: u16, y: u16, w: u16, h: u16, color: u8) -> void {
     var row: u16 = 0;
     while row < h {
         var col: u16 = 0;
@@ -377,7 +378,7 @@ fn fill_rect(screen: *u8, x: u16, y: u16, w: u16, h: u16, color: u8) -> void {
 }
 
 // Draw horizontal line
-fn draw_hline(screen: *u8, x: u16, y: u16, len: u16, color: u8) -> void {
+fun draw_hline(screen: *u8, x: u16, y: u16, len: u16, color: u8) -> void {
     var offset: u16 = y * 256 + x;
     var i: u16 = 0;
     
@@ -388,7 +389,7 @@ fn draw_hline(screen: *u8, x: u16, y: u16, len: u16, color: u8) -> void {
 }
 
 // Draw vertical line
-fn draw_vline(screen: *u8, x: u16, y: u16, len: u16, color: u8) -> void {
+fun draw_vline(screen: *u8, x: u16, y: u16, len: u16, color: u8) -> void {
     var i: u16 = 0;
     
     while i < len {
@@ -398,7 +399,7 @@ fn draw_vline(screen: *u8, x: u16, y: u16, len: u16, color: u8) -> void {
 }
 
 // Simple sprite blit (8x8)
-fn blit_sprite(screen: *u8, sprite: *u8, x: u16, y: u16) -> void {
+fun blit_sprite(screen: *u8, sprite: *u8, x: u16, y: u16) -> void {
     var row: u16 = 0;
     
     while row < 8 {

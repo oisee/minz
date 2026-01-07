@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/minz/minzc/pkg/z80asm"
 	"github.com/remogatto/z80"
 )
 
@@ -55,23 +56,41 @@ func NewE2ETestHarness(t *testing.T) (*E2ETestHarness, error) {
 		return nil, fmt.Errorf("failed to create work directory: %w", err)
 	}
 
-	// Find MinZ compiler
-	minzcPath := filepath.Join(os.Getenv("PWD"), "minzc")
-	if _, err := os.Stat(minzcPath); err != nil {
-		// Try relative path from test directory
-		minzcPath = "./minzc"
-		if _, err := os.Stat(minzcPath); err != nil {
-			os.RemoveAll(workDir)
-			return nil, fmt.Errorf("minzc compiler not found")
+	// Find MinZ compiler - try multiple paths
+	minzcPath := ""
+	candidatePaths := []string{
+		filepath.Join(os.Getenv("PWD"), "main"),
+		filepath.Join(os.Getenv("PWD"), "minzc"),
+		"./main",
+		"./minzc",
+		"../main",
+		"../../main",
+	}
+	for _, path := range candidatePaths {
+		if _, err := os.Stat(path); err == nil {
+			minzcPath = path
+			break
 		}
 	}
-
-	// Use the known sjasmplus path
-	sjasmplusPath := "/Users/alice/dev/bin/sjasmplus"
-	if _, err := os.Stat(sjasmplusPath); err != nil {
+	if minzcPath == "" {
 		os.RemoveAll(workDir)
-		return nil, fmt.Errorf("sjasmplus not found at %s: %w", sjasmplusPath, err)
+		return nil, fmt.Errorf("minzc compiler not found (tried: %v)", candidatePaths)
 	}
+
+	// sjasmplus is optional - we use built-in assembler now
+	sjasmplusPath := ""
+	sjasmplusCandidates := []string{
+		"/Users/alice/dev/bin/sjasmplus",
+		"/usr/local/bin/sjasmplus",
+		"/usr/bin/sjasmplus",
+	}
+	for _, path := range sjasmplusCandidates {
+		if _, err := os.Stat(path); err == nil {
+			sjasmplusPath = path
+			break
+		}
+	}
+	// Not fatal if sjasmplus not found - we can use built-in assembler
 
 	// Create memory with SMC tracking
 	memory := NewSMCMemory(0x8000, 0xFFFF) // Code from 0x8000 onwards
@@ -110,14 +129,15 @@ func (h *E2ETestHarness) CompileMinZ(sourceFile string, enableTSMC bool) (string
 	outputFile := filepath.Join(h.workDir, baseName+".a80")
 
 	// Build compiler arguments
+	// Note: optimizations and SMC are enabled by default in the compiler
 	args := []string{
 		sourceFile,
 		"-o", outputFile,
-		"-O", // Enable optimizations
 	}
 
-	if enableTSMC {
-		args = append(args, "--enable-true-smc")
+	if !enableTSMC {
+		// Disable SMC when not wanted
+		args = append(args, "--disable-smc")
 	}
 
 	// Run MinZ compiler
@@ -135,43 +155,25 @@ func (h *E2ETestHarness) CompileMinZ(sourceFile string, enableTSMC bool) (string
 	return outputFile, nil
 }
 
-// AssembleA80 assembles a .a80 file to binary using sjasmplus
+// AssembleA80 assembles a .a80 file to binary using the built-in MZA assembler
 func (h *E2ETestHarness) AssembleA80(a80File string) ([]byte, map[string]uint16, error) {
-	baseName := strings.TrimSuffix(filepath.Base(a80File), ".a80")
-	binFile := filepath.Join(h.workDir, baseName+".bin")
-	lstFile := filepath.Join(h.workDir, baseName+".lst")
-	labFile := filepath.Join(h.workDir, baseName+".lab")
-
-	// Run sjasmplus
-	cmd := exec.Command(h.sjasmplusPath,
-		"--raw="+binFile,    // Output raw binary
-		"--lst="+lstFile,    // Generate listing
-		"--sym="+labFile,    // Generate symbol file
-		a80File,
-	)
-
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	if err := cmd.Run(); err != nil {
-		return nil, nil, fmt.Errorf("assembly failed: %v\nstderr: %s", err, stderr.String())
-	}
-
-	// Read the binary
-	binary, err := ioutil.ReadFile(binFile)
+	// Use built-in MZA assembler
+	asm := z80asm.NewAssembler()
+	result, err := asm.AssembleFile(a80File)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to read binary: %w", err)
+		return nil, nil, fmt.Errorf("assembly failed: %v", err)
 	}
 
-	// Parse symbols from label file
-	symbols, err := h.parseLabels(labFile)
-	if err != nil {
-		// Non-fatal, just log it
-		h.t.Logf("Warning: failed to parse symbols: %v", err)
-		symbols = make(map[string]uint16)
+	// Check for assembly errors
+	if len(result.Errors) > 0 {
+		errMsgs := make([]string, len(result.Errors))
+		for i, e := range result.Errors {
+			errMsgs[i] = e.Error()
+		}
+		return nil, nil, fmt.Errorf("assembly errors:\n%s", strings.Join(errMsgs, "\n"))
 	}
 
-	return binary, symbols, nil
+	return result.Binary, result.Symbols, nil
 }
 
 // parseLabels parses sjasmplus .lab file format

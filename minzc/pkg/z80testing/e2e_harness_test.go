@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -18,12 +19,12 @@ func TestE2EHarnessBasic(t *testing.T) {
 	// Create a simple MinZ test program
 	minzSource := `
 // Simple function to test TSMC optimization
-fn add(a: u16, b: u16) -> u16 {
+fun add(a: u16, b: u16) -> u16 {
     return a + b;
 }
 
 // Function with loop to show TSMC benefits
-fn sum_range(start: u16, end: u16) -> u16 {
+fun sum_range(start: u16, end: u16) -> u16 {
     var sum: u16 = 0;
     var i: u16 = start;
     while i <= end {
@@ -34,7 +35,7 @@ fn sum_range(start: u16, end: u16) -> u16 {
 }
 
 // Entry point
-fn main() {
+fun main() {
     // Test add function
     let result = add(5, 7);
     
@@ -70,8 +71,19 @@ fn main() {
 			t.Error("Empty binary produced")
 		}
 
-		if _, ok := symbols["add"]; !ok {
-			t.Error("Symbol 'add' not found")
+		// MinZ mangles function names to include type signatures
+		// Look for any symbol containing "add" (case-insensitive)
+		foundAdd := false
+		for sym := range symbols {
+			if strings.Contains(strings.ToLower(sym), "add") {
+				foundAdd = true
+				t.Logf("Found add function symbol: %s", sym)
+				break
+			}
+		}
+		if !foundAdd {
+			t.Logf("Available symbols: %v", symbols)
+			t.Error("No 'add' function symbol found")
 		}
 	})
 
@@ -91,8 +103,19 @@ fn main() {
 			t.Error("Empty binary produced")
 		}
 
-		if _, ok := symbols["add"]; !ok {
-			t.Error("Symbol 'add' not found")
+		// MinZ mangles function names to include type signatures
+		// Look for any symbol containing "add" (case-insensitive)
+		foundAdd := false
+		for sym := range symbols {
+			if strings.Contains(strings.ToLower(sym), "add") {
+				foundAdd = true
+				t.Logf("Found add function symbol: %s", sym)
+				break
+			}
+		}
+		if !foundAdd {
+			t.Logf("Available symbols: %v", symbols)
+			t.Error("No 'add' function symbol found")
 		}
 	})
 }
@@ -108,13 +131,13 @@ func TestE2EPerformanceComparison(t *testing.T) {
 	// Create a MinZ program that benefits from TSMC
 	minzSource := `
 // Function that modifies immediate values (perfect for TSMC)
-fn multiply_by_constant(x: u16, factor: u16) -> u16 {
+fun multiply_by_constant(x: u16, factor: u16) -> u16 {
     // This immediate will be patched by TSMC
     return x * factor;
 }
 
 // Iterative function that benefits from TSMC
-fn factorial(n: u16) -> u16 {
+fun factorial(n: u16) -> u16 {
     var result: u16 = 1;
     var i: u16 = 1;
     
@@ -127,7 +150,7 @@ fn factorial(n: u16) -> u16 {
 }
 
 // Function with conditional that can be optimized by TSMC
-fn max(a: u16, b: u16) -> u16 {
+fun max(a: u16, b: u16) -> u16 {
     if a > b {
         return a;
     } else {
@@ -136,7 +159,7 @@ fn max(a: u16, b: u16) -> u16 {
 }
 
 // Array sum function
-fn sum_array(arr: *u8, len: u16) -> u16 {
+fun sum_array(arr: *u8, len: u16) -> u16 {
     var sum: u16 = 0;
     var i: u16 = 0;
     
@@ -250,13 +273,13 @@ func TestE2ETSMCTracking(t *testing.T) {
 	// Create a MinZ program that uses TSMC
 	minzSource := `
 // Function that explicitly uses TSMC for parameter patching
-fn patch_and_add(a: u16, b: u16) -> u16 {
+fun patch_and_add(a: u16, b: u16) -> u16 {
     // These immediates should be patched by TSMC
     return a + b;
 }
 
 // Function with self-modifying loop counter
-fn count_to(n: u16) -> u16 {
+fun count_to(n: u16) -> u16 {
     var count: u16 = 0;
     var i: u16 = 0;
     
@@ -371,7 +394,7 @@ func TestE2ERealWorldExample(t *testing.T) {
 	// Create a realistic MinZ program (string processing)
 	minzSource := `
 // String length function
-fn strlen(str: *u8) -> u16 {
+fun strlen(str: *u8) -> u16 {
     var len: u16 = 0;
     while str[len] != 0 {
         len = len + 1;
@@ -380,7 +403,7 @@ fn strlen(str: *u8) -> u16 {
 }
 
 // String copy function
-fn strcpy(dest: *u8, src: *u8) -> *u8 {
+fun strcpy(dest: *u8, src: *u8) -> *u8 {
     var i: u16 = 0;
     while src[i] != 0 {
         dest[i] = src[i];
@@ -391,7 +414,7 @@ fn strcpy(dest: *u8, src: *u8) -> *u8 {
 }
 
 // Convert string to uppercase
-fn to_upper(str: *u8) -> void {
+fun to_upper(str: *u8) -> void {
     var i: u16 = 0;
     while str[i] != 0 {
         if str[i] >= 97 && str[i] <= 122 {  // 'a' to 'z'
@@ -402,7 +425,7 @@ fn to_upper(str: *u8) -> void {
 }
 
 // Simple hash function
-fn hash_string(str: *u8) -> u16 {
+fun hash_string(str: *u8) -> u16 {
     var hash: u16 = 5381;
     var i: u16 = 0;
     
@@ -486,7 +509,7 @@ func BenchmarkE2ETSMC(b *testing.B) {
 	// Create a compute-intensive MinZ program
 	minzSource := `
 // Bubble sort implementation
-fn bubble_sort(arr: *u16, len: u16) -> void {
+fun bubble_sort(arr: *u16, len: u16) -> void {
     var i: u16 = 0;
     var j: u16 = 0;
     var temp: u16 = 0;
@@ -506,7 +529,7 @@ fn bubble_sort(arr: *u16, len: u16) -> void {
 }
 
 // Prime number check
-fn is_prime(n: u16) -> bool {
+fun is_prime(n: u16) -> bool {
     if n < 2 {
         return false;
     }
@@ -523,7 +546,7 @@ fn is_prime(n: u16) -> bool {
 }
 
 // Count primes up to n
-fn count_primes(n: u16) -> u16 {
+fun count_primes(n: u16) -> u16 {
     var count: u16 = 0;
     var i: u16 = 2;
     

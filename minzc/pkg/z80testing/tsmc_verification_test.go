@@ -24,11 +24,11 @@ func TestTSMCOptimizationVerification(t *testing.T) {
 			source: `
 module test;
 
-export fn test_func(x: u16) -> u16 {
+export fun test_func(x: u16) -> u16 {
     return helper(x) + helper(x + 1);
 }
 
-fn helper(n: u16) -> u16 {
+fun helper(n: u16) -> u16 {
     return n * 2;
 }
 `,
@@ -42,7 +42,7 @@ fn helper(n: u16) -> u16 {
 			source: `
 module test;
 
-export fn factorial(n: u16) -> u16 {
+export fun factorial(n: u16) -> u16 {
     if (n <= 1) {
         return 1;
     }
@@ -59,7 +59,7 @@ export fn factorial(n: u16) -> u16 {
 			source: `
 module test;
 
-export fn sum_loop(n: u16) -> u16 {
+export fun sum_loop(n: u16) -> u16 {
     let sum: u16 = 0;
     let i: u16 = 0;
     while (i < n) {
@@ -69,11 +69,11 @@ export fn sum_loop(n: u16) -> u16 {
     return sum;
 }
 
-fn add(a: u16, b: u16) -> u16 {
+fun add(a: u16, b: u16) -> u16 {
     return a + b;
 }
 
-fn inc(x: u16) -> u16 {
+fun inc(x: u16) -> u16 {
     return x + 1;
 }
 `,
@@ -166,12 +166,12 @@ func TestTSMCPatternGeneration(t *testing.T) {
 module patterns;
 
 // Function with multiple parameters
-export fn multi_param(a: u16, b: u16, c: u16) -> u16 {
+export fun multi_param(a: u16, b: u16, c: u16) -> u16 {
     return a + b + c;
 }
 
 // Function called multiple times
-export fn caller() -> u16 {
+export fun caller() -> u16 {
     let sum: u16 = 0;
     sum = sum + multi_param(1, 2, 3);
     sum = sum + multi_param(4, 5, 6);
@@ -234,7 +234,7 @@ func TestTSMCCorrectness(t *testing.T) {
 module correctness;
 
 // Complex calculation to verify correctness
-export fn complex_calc(n: u16) -> u16 {
+export fun complex_calc(n: u16) -> u16 {
     let result: u16 = 0;
     
     // Multiple operations
@@ -250,26 +250,26 @@ export fn complex_calc(n: u16) -> u16 {
     return result;
 }
 
-fn add(a: u16, b: u16) -> u16 {
+fun add(a: u16, b: u16) -> u16 {
     return a + b;
 }
 
-fn multiply(a: u16, b: u16) -> u16 {
+fun multiply(a: u16, b: u16) -> u16 {
     return a * b;
 }
 
-fn subtract(a: u16, b: u16) -> u16 {
+fun subtract(a: u16, b: u16) -> u16 {
     return a - b;
 }
 
-fn divide(a: u16, b: u16) -> u16 {
+fun divide(a: u16, b: u16) -> u16 {
     if (b == 0) {
         return 0;
     }
     return a / b;
 }
 
-fn bonus(n: u16) -> u16 {
+fun bonus(n: u16) -> u16 {
     return n * 10;
 }
 `
