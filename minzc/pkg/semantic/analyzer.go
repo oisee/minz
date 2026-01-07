@@ -4403,13 +4403,15 @@ func (a *Analyzer) analyzeBinaryExpr(bin *ast.BinaryExpr, irFunc *ir.Function) (
 	// Check for operator overloading BEFORE analyzing operands for primitive operations
 	// This allows struct types to define custom operator behavior
 	// Also supports auto-derivation (e.g., != from ==, > from <)
+	// And overloading by right operand type (e.g., Vec*Vec vs Vec*i16)
 	if operatorMethodName(bin.Operator) != "" {
-		// First, try to get the type of the left operand without fully analyzing it
-		// We need to check if it's a struct type with an operator method
+		// First, try to get the types of both operands without fully analyzing
 		leftType := a.inferExpressionType(bin.Left)
+		rightType := a.inferExpressionType(bin.Right)
 		if leftType != nil {
 			// Check if this type has an operator method (explicit or derived)
-			if deriv := a.findOperatorDerivation(leftType, bin.Operator); deriv != nil {
+			// Pass rightType to enable overload resolution by argument type
+			if deriv := a.findOperatorDerivation(leftType, bin.Operator, rightType); deriv != nil {
 				if debug {
 					derivInfo := ""
 					if deriv.Swap {
@@ -4418,8 +4420,12 @@ func (a *Analyzer) analyzeBinaryExpr(bin *ast.BinaryExpr, irFunc *ir.Function) (
 					if deriv.Negate {
 						derivInfo += " [negate]"
 					}
-					fmt.Printf("DEBUG: Operator overloading: %s %s => %s%s\n",
-						leftType.String(), bin.Operator, deriv.Method.Name, derivInfo)
+					rightTypeName := "?"
+					if rightType != nil {
+						rightTypeName = rightType.String()
+					}
+					fmt.Printf("DEBUG: Operator overloading: %s %s %s => %s%s\n",
+						leftType.String(), bin.Operator, rightTypeName, deriv.Method.Name, derivInfo)
 				}
 				// Create synthetic method call with derivation support
 				return a.analyzeOperatorMethodCall(bin, deriv, irFunc)
@@ -9018,38 +9024,39 @@ func (a *Analyzer) analyzeImplBlock(impl *ast.ImplBlock) error {
 		// Create a unique method name for registration
 		originalMethodName := method.Name
 		uniqueMethodName := implTypeIR.String() + "." + originalMethodName
-		
-		// Register the method function with a unique name
-		returnType, err := a.convertType(method.ReturnType)
-		if err != nil {
-			return fmt.Errorf("invalid return type for method %s: %w", originalMethodName, err)
-		}
-		
-		methodSymbol := &FuncSymbol{
-			Name:       uniqueMethodName,
-			ReturnType: returnType,
-			Params:     method.Params,
-		}
-		
-		// Register in the current scope
-		a.currentScope.Define(uniqueMethodName, methodSymbol)
-		
+
 		// Temporarily change the method name for IR generation
 		method.Name = uniqueMethodName
-		
+
 		// Register the method signature first (since it wasn't done in the first pass)
+		// This creates a FuncSymbol with the mangled name (including parameter types)
 		if err := a.registerFunctionSignature(method); err != nil {
 			return fmt.Errorf("error registering method %s: %w", originalMethodName, err)
 		}
-		
+
+		// Get the mangled name that registerFunctionSignature created
+		mangledMethodName := generateMangledName(uniqueMethodName, method.Params)
+
+		// Look up the actual registered symbol with mangled name
+		registeredSym := a.currentScope.Lookup(mangledMethodName)
+		methodSymbol, ok := registeredSym.(*FuncSymbol)
+		if !ok {
+			return fmt.Errorf("failed to find registered method symbol for %s", mangledMethodName)
+		}
+
 		// Analyze the method as a regular function
 		if err := a.analyzeFunctionDecl(method); err != nil {
 			return fmt.Errorf("error analyzing method %s: %w", originalMethodName, err)
 		}
-		
-		// Restore original name but add to implementation with the unique function symbol
+
+		// Restore original name
 		method.Name = originalMethodName
+
+		// Store method by both base name (for fallback) and mangled name (for overloading)
+		// The last method with this base name becomes the fallback
 		implSym.Methods[originalMethodName] = methodSymbol
+		// Store by mangled name for exact overload matching
+		implSym.Methods[mangledMethodName] = methodSymbol
 	}
 	
 	// For interface implementations, verify all interface methods are implemented
@@ -9094,6 +9101,101 @@ func (a *Analyzer) findTypeMethod(targetType ir.Type, methodName string) Symbol 
 		scope = scope.parent
 	}
 	return nil
+}
+
+// getAstTypeName extracts a string name from an ast.Type
+func getAstTypeName(t ast.Type) string {
+	if t == nil {
+		return ""
+	}
+	switch typ := t.(type) {
+	case *ast.PrimitiveType:
+		return typ.Name
+	case *ast.TypeIdentifier:
+		return typ.Name
+	case *ast.PointerType:
+		return "*" + getAstTypeName(typ.BaseType)
+	case *ast.ArrayType:
+		return "[]" + getAstTypeName(typ.ElementType)
+	default:
+		return ""
+	}
+}
+
+// findOperatorMethodBySignature finds an operator method that matches both
+// the method name AND the right operand type. This enables operator overloading
+// with different types (e.g., Vec2 * Vec2 vs Vec2 * i16).
+func (a *Analyzer) findOperatorMethodBySignature(targetType ir.Type, methodName string, rightType ir.Type) *FuncSymbol {
+	scope := a.currentScope
+	rightTypeName := ""
+	if rightType != nil {
+		rightTypeName = rightType.String()
+	}
+
+	var fallbackMethod *FuncSymbol // Method without type suffix (generic fallback)
+
+	for scope != nil {
+		for _, sym := range scope.symbols {
+			if implSym, ok := sym.(*ImplSymbol); ok {
+				if implSym.TypeName == targetType.String() {
+					for name, funcSym := range implSym.Methods {
+						// Check if this is related to our method (base name or mangled variant)
+						isBaseMethod := name == methodName
+						isMangledVariant := strings.Contains(name, "."+methodName+"$") ||
+							strings.HasSuffix(name, "."+methodName)
+
+						if isBaseMethod {
+							fallbackMethod = funcSym
+						}
+
+						// Check if method has matching parameter type
+						// Methods are named like "mul" but FuncSymbol.Name is fully qualified
+						// e.g., "test_overload.Vec2.mul$Vec2$i16"
+						if (isBaseMethod || isMangledVariant) && rightTypeName != "" {
+							// Check the function's parameter types
+							// First param is self, second is "other"
+							if len(funcSym.Params) >= 2 {
+								otherParam := funcSym.Params[1]
+								otherTypeName := getAstTypeName(otherParam.Type)
+								if debug {
+									fmt.Printf("DEBUG: Checking overload %s: param[1]=%s vs right=%s\n",
+										funcSym.Name, otherTypeName, rightTypeName)
+								}
+								// Compare types - handle module-qualified names
+								// rightTypeName might be "test_overload.Vec2" while otherTypeName is "Vec2"
+								// or vice versa, so compare base names
+								rightBase := rightTypeName
+								if idx := strings.LastIndex(rightTypeName, "."); idx != -1 {
+									rightBase = rightTypeName[idx+1:]
+								}
+								otherBase := otherTypeName
+								if idx := strings.LastIndex(otherTypeName, "."); idx != -1 {
+									otherBase = otherTypeName[idx+1:]
+								}
+								if rightBase == otherBase || rightTypeName == otherTypeName {
+									if debug {
+										fmt.Printf("DEBUG: Found exact overload: %s for right type %s (param: %s)\n",
+											funcSym.Name, rightTypeName, otherTypeName)
+									}
+									return funcSym
+								}
+							} else if debug {
+								fmt.Printf("DEBUG: Method %s has %d Params (need 2+)\n", funcSym.Name, len(funcSym.Params))
+							}
+						}
+					}
+				}
+			}
+		}
+		scope = scope.parent
+	}
+
+	// Return fallback if no exact match found
+	if fallbackMethod != nil && debug {
+		fmt.Printf("DEBUG: Using fallback method: %s (no exact match for %s)\n",
+			fallbackMethod.Name, rightTypeName)
+	}
+	return fallbackMethod
 }
 
 // operatorMethodName maps binary operators to their corresponding method names
@@ -9146,22 +9248,18 @@ type OperatorDerivation struct {
 }
 
 // findOperatorDerivation tries to find an explicit operator method or derive one.
-// Priority: 1) Explicit method, 2) Derivation from related method
+// Priority: 1) Explicit method with matching signature, 2) Derivation from related method
 // This allows users to override derived behavior if needed.
-func (a *Analyzer) findOperatorDerivation(typ ir.Type, op string) *OperatorDerivation {
+// The rightType parameter enables overloading by right operand type (e.g., Vec*Vec vs Vec*i16)
+func (a *Analyzer) findOperatorDerivation(typ ir.Type, op string, rightType ir.Type) *OperatorDerivation {
 	methodName := operatorMethodName(op)
 	if methodName == "" {
 		return nil
 	}
 
-	// Helper to get FuncSymbol from method lookup
+	// Helper to get FuncSymbol with signature matching
 	getMethod := func(name string) *FuncSymbol {
-		if sym := a.findTypeMethod(typ, name); sym != nil {
-			if funcSym, ok := sym.(*FuncSymbol); ok {
-				return funcSym
-			}
-		}
-		return nil
+		return a.findOperatorMethodBySignature(typ, name, rightType)
 	}
 
 	// 1. Check for explicit method first (always takes priority)
@@ -9228,6 +9326,15 @@ func (a *Analyzer) inferExpressionType(expr ast.Expression) ir.Type {
 		if t, ok := a.exprTypes[e]; ok {
 			return t
 		}
+	case *ast.NumberLiteral:
+		// Integer literals default to i16
+		return &ir.BasicType{Kind: ir.TypeI16}
+	case *ast.StringLiteral:
+		// String literals
+		return &ir.StringType{}
+	case *ast.BooleanLiteral:
+		// Boolean literals
+		return &ir.BasicType{Kind: ir.TypeBool}
 	case *ast.StructLiteral:
 		// Struct literal - look up the struct type
 		if e.TypeName != "" {

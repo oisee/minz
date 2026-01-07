@@ -93,6 +93,55 @@ The compiler adds comments showing derivation:
 ; Operator <= via Vec2.lt (swap+negate)
 ```
 
+## Type-Based Overloading
+
+You can define multiple overloads of the same operator for different argument types:
+
+```minz
+struct Vec2 { x: i16, y: i16 }
+
+impl Vec2 {
+    // Vec2 * Vec2 (component-wise multiplication)
+    fun mul(self, other: Vec2) -> Vec2 {
+        return Vec2 { x: self.x * other.x, y: self.y * other.y };
+    }
+
+    // Vec2 * scalar (scaling)
+    fun mul(self, scalar: i16) -> Vec2 {
+        return Vec2 { x: self.x * scalar, y: self.y * scalar };
+    }
+}
+
+fun main() -> void {
+    let v1 = Vec2 { x: 3, y: 4 };
+    let v2 = Vec2 { x: 2, y: 2 };
+
+    let v3 = v1 * v2;   // Calls Vec2.mul$Vec2$Vec2 (component-wise)
+    let v4 = v1 * 5;    // Calls Vec2.mul$Vec2$i16 (scaling)
+}
+```
+
+### Generated Assembly
+
+The compiler resolves the correct overload based on the right operand's type:
+
+```asm
+; v1 * v2 (both Vec2)
+; Operator * via test.Vec2.mul$Vec2$Vec2
+CALL test.Vec2.mul$Vec2$Vec2
+
+; v1 * 5 (Vec2 * i16)
+; Operator * via test.Vec2.mul$Vec2$i16
+CALL test.Vec2.mul$Vec2$i16
+```
+
+### Use Cases
+
+- **Vector math**: `Vec * Vec` for component-wise, `Vec * scalar` for scaling
+- **String operations**: `String * count` for repetition
+- **SDF raymarching**: `SDF - SDF` for union, `SDF * scalar` for scaling
+- **Matrix operations**: `Mat * Mat` for multiplication, `Mat * Vec` for transform
+
 ## Usage Example
 
 ```minz
