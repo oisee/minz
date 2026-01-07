@@ -4394,12 +4394,36 @@ func (a *Analyzer) analyzeBinaryExpr(bin *ast.BinaryExpr, irFunc *ir.Function) (
 		// Assignment is handled specially - don't analyze operands here
 		return a.analyzeAssignment(bin, irFunc)
 	}
-	if bin.Operator == "+=" || bin.Operator == "-=" || bin.Operator == "*=" || 
-	   bin.Operator == "/=" || bin.Operator == "%=" {
+	if bin.Operator == "+=" || bin.Operator == "-=" || bin.Operator == "*=" ||
+		bin.Operator == "/=" || bin.Operator == "%=" {
 		// Compound assignment is handled specially
 		return a.analyzeCompoundAssignment(bin, irFunc)
 	}
-	
+
+	// Check for operator overloading BEFORE analyzing operands for primitive operations
+	// This allows struct types to define custom operator behavior
+	methodName := operatorMethodName(bin.Operator)
+	if methodName != "" {
+		// First, try to get the type of the left operand without fully analyzing it
+		// We need to check if it's a struct type with an operator method
+		leftType := a.inferExpressionType(bin.Left)
+		if leftType != nil {
+			// Check if this type has an operator method
+			if methodSym := a.findTypeMethod(leftType, methodName); methodSym != nil {
+				// Found operator method! Transform to method call
+				if funcSym, ok := methodSym.(*FuncSymbol); ok {
+					if debug {
+						fmt.Printf("DEBUG: Operator overloading: %s %s => %s.%s()\n",
+							leftType.String(), bin.Operator, leftType.String(), methodName)
+					}
+					// Create synthetic method call: left.methodName(right)
+					return a.analyzeOperatorMethodCall(bin, funcSym, irFunc)
+				}
+			}
+		}
+	}
+
+	// No operator overloading - proceed with primitive operation
 	// Analyze operands
 	leftReg, err := a.analyzeExpression(bin.Left, irFunc)
 	if err != nil {
@@ -9066,6 +9090,124 @@ func (a *Analyzer) findTypeMethod(targetType ir.Type, methodName string) Symbol 
 		scope = scope.parent
 	}
 	return nil
+}
+
+// operatorMethodName maps binary operators to their corresponding method names
+// for operator overloading. Returns empty string if operator is not overloadable.
+func operatorMethodName(op string) string {
+	switch op {
+	case "+":
+		return "add"
+	case "-":
+		return "sub"
+	case "*":
+		return "mul"
+	case "/":
+		return "div"
+	case "%":
+		return "mod"
+	case "==":
+		return "eq"
+	case "!=":
+		return "ne"
+	case "<":
+		return "lt"
+	case ">":
+		return "gt"
+	case "<=":
+		return "le"
+	case ">=":
+		return "ge"
+	case "&":
+		return "bitand"
+	case "|":
+		return "bitor"
+	case "^":
+		return "bitxor"
+	case "<<":
+		return "shl"
+	case ">>":
+		return "shr"
+	default:
+		return ""
+	}
+}
+
+// inferExpressionType tries to determine the type of an expression without
+// fully analyzing it. Used for operator overloading to check if a type has
+// an operator method before committing to primitive operation.
+func (a *Analyzer) inferExpressionType(expr ast.Expression) ir.Type {
+	switch e := expr.(type) {
+	case *ast.Identifier:
+		// Look up variable type
+		if sym := a.currentScope.Lookup(e.Name); sym != nil {
+			if varSym, ok := sym.(*VarSymbol); ok {
+				return varSym.Type
+			}
+		}
+		// Also check if already analyzed
+		if t, ok := a.exprTypes[e]; ok {
+			return t
+		}
+	case *ast.StructLiteral:
+		// Struct literal - look up the struct type
+		if e.TypeName != "" {
+			if sym := a.currentScope.Lookup(e.TypeName); sym != nil {
+				if typeSym, ok := sym.(*TypeSymbol); ok {
+					return typeSym.Type
+				}
+			}
+		}
+	case *ast.FieldExpr:
+		// Field expression - need to infer the field type
+		if t, ok := a.exprTypes[e]; ok {
+			return t
+		}
+	case *ast.CallExpr:
+		// Check if already analyzed
+		if t, ok := a.exprTypes[e]; ok {
+			return t
+		}
+	}
+	// Check if the expression was already analyzed
+	if t, ok := a.exprTypes[expr]; ok {
+		return t
+	}
+	return nil
+}
+
+// analyzeOperatorMethodCall handles operator overloading by transforming
+// a binary expression like `a + b` into a method call `a.add(b)`
+func (a *Analyzer) analyzeOperatorMethodCall(bin *ast.BinaryExpr, funcSym *FuncSymbol, irFunc *ir.Function) (ir.Register, error) {
+	// Analyze left operand (receiver/self)
+	leftReg, err := a.analyzeExpression(bin.Left, irFunc)
+	if err != nil {
+		return 0, err
+	}
+
+	// Analyze right operand (argument)
+	rightReg, err := a.analyzeExpression(bin.Right, irFunc)
+	if err != nil {
+		return 0, err
+	}
+
+	// Generate method call
+	resultReg := irFunc.AllocReg()
+
+	// Emit call instruction with both arguments
+	// The method signature is: methodName(self, other)
+	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+		Op:      ir.OpCall,
+		Dest:    resultReg,
+		Args:    []ir.Register{leftReg, rightReg},
+		Symbol:  funcSym.Name,
+		Comment: fmt.Sprintf("Operator %s via %s", bin.Operator, funcSym.Name),
+	})
+
+	// Store result type
+	a.exprTypes[bin] = funcSym.ReturnType
+
+	return resultReg, nil
 }
 
 // transformLambdaAssignment transforms a lambda assignment into a function

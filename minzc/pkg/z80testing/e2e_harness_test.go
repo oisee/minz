@@ -703,3 +703,105 @@ fun main() -> void {
 		}
 	})
 }
+
+// TestE2EOperatorOverloading tests operator overloading with struct methods
+// This verifies that a + b transforms to a.add(b) when add method exists
+func TestE2EOperatorOverloading(t *testing.T) {
+	h, err := NewE2ETestHarness(t)
+	if err != nil {
+		t.Fatalf("Failed to create harness: %v", err)
+	}
+	defer h.Cleanup()
+
+	// Operator overloading test with Vec2 struct
+	minzSource := `
+struct Vec2 { x: i16, y: i16 }
+
+impl Vec2 {
+    fun add(self, other: Vec2) -> Vec2 {
+        return Vec2 { x: self.x + other.x, y: self.y + other.y };
+    }
+
+    fun eq(self, other: Vec2) -> bool {
+        return self.x == other.x && self.y == other.y;
+    }
+}
+
+fun main() -> void {
+    let v1 = Vec2 { x: 3, y: 4 };
+    let v2 = Vec2 { x: 1, y: 2 };
+
+    // Operator overloading: + uses add method
+    let v3 = v1 + v2;
+
+    // Operator overloading: == uses eq method
+    if v1 == v2 {
+        @asm("NOP");
+    }
+
+    @asm("HALT");
+}
+`
+
+	// Write source file
+	sourceFile := filepath.Join(h.workDir, "test_operators.minz")
+	if err := ioutil.WriteFile(sourceFile, []byte(minzSource), 0644); err != nil {
+		t.Fatalf("Failed to write source file: %v", err)
+	}
+
+	// Test compilation
+	t.Run("compile_operators", func(t *testing.T) {
+		a80File, err := h.CompileMinZ(sourceFile, true)
+		if err != nil {
+			t.Fatalf("Operator overloading compilation failed: %v", err)
+		}
+
+		// Read the assembly output to verify operator method calls
+		asmContent, err := ioutil.ReadFile(a80File)
+		if err != nil {
+			t.Fatalf("Failed to read assembly output: %v", err)
+		}
+		asmStr := string(asmContent)
+
+		// Verify operator method calls are generated
+		if !strings.Contains(asmStr, "Operator + via") || !strings.Contains(asmStr, ".add") {
+			t.Error("Operator + not transformed to add method call")
+		}
+		if !strings.Contains(asmStr, "Operator == via") || !strings.Contains(asmStr, ".eq") {
+			t.Error("Operator == not transformed to eq method call")
+		}
+
+		// Also verify assembly
+		binary, symbols, err := h.AssembleA80(a80File)
+		if err != nil {
+			t.Fatalf("Assembly failed: %v", err)
+		}
+
+		if len(binary) == 0 {
+			t.Error("Empty binary produced")
+		}
+
+		// Verify operator method symbols exist
+		foundAdd := false
+		foundEq := false
+
+		for sym := range symbols {
+			symLower := strings.ToLower(sym)
+			if strings.Contains(symLower, "vec2") && strings.Contains(symLower, "add") {
+				foundAdd = true
+				t.Logf("Found Vec2.add method: %s", sym)
+			}
+			if strings.Contains(symLower, "vec2") && strings.Contains(symLower, "eq") {
+				foundEq = true
+				t.Logf("Found Vec2.eq method: %s", sym)
+			}
+		}
+
+		if !foundAdd {
+			t.Error("Vec2.add method not found - operator + overloading may not be working")
+		}
+		if !foundEq {
+			t.Error("Vec2.eq method not found - operator == overloading may not be working")
+		}
+	})
+}

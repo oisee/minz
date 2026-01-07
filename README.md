@@ -250,6 +250,32 @@ fun main() -> void {
 ```
 > **Note:** UFCS transforms `obj.method(args)` to `Type_method(obj, args)` at compile-time - true zero-cost abstraction!
 
+### **Operator Overloading** (NEW in v0.17!)
+```minz
+struct Vec2 { x: i16, y: i16 }
+
+impl Vec2 {
+    fun add(self, other: Vec2) -> Vec2 {
+        return Vec2 { x: self.x + other.x, y: self.y + other.y };
+    }
+
+    fun eq(self, other: Vec2) -> bool {
+        return self.x == other.x && self.y == other.y;
+    }
+}
+
+fun main() -> void {
+    let v1 = Vec2 { x: 3, y: 4 };
+    let v2 = Vec2 { x: 1, y: 2 };
+
+    let v3 = v1 + v2;   // Transforms to v1.add(v2) -> CALL Vec2.add
+    if v1 == v2 {       // Transforms to v1.eq(v2)  -> CALL Vec2.eq
+        // ...
+    }
+}
+```
+> **Supported operators:** `+`/`add`, `-`/`sub`, `*`/`mul`, `/`/`div`, `==`/`eq`, `!=`/`ne`, `<`/`lt`, `<=`/`le`, `>`/`gt`, `>=`/`ge`
+
 ### **Pattern Matching** (In Progress)
 ```minz
 // Basic enum and case syntax - codegen in development
@@ -471,6 +497,7 @@ fun main() -> void {
 - **Generics with monomorphization** now working!
 - Zero-cost interface methods working!
 - **UFCS method syntax** now working! (`obj.method()` → `Type_method(obj)`)
+- **Operator overloading** now working! (`v1 + v2` → `v1.add(v2)`)
 - See [Release Notes](reports/2025-12-18-003-release-notes.md) for details
 
 ### **Optimization Impact**
