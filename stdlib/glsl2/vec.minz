@@ -1,0 +1,416 @@
+// vec.minz - Idiomatic GLSL-Style Vectors with Operator Overloading
+// MinZ v0.17.0 - Using UFCS + Operator Overloading for natural syntax
+//
+// Usage:
+//   let a = vec3 { x: 1, y: 2, z: 3 };
+//   let b = vec3 { x: 4, y: 5, z: 6 };
+//   let c = a + b;           // Vector addition
+//   let d = a * 2;           // Scalar multiplication
+//   let e = a * b;           // Component-wise multiplication
+//   let len = a.length();    // Method call via UFCS
+//   let n = a.normalize();   // Returns normalized vector
+
+import glsl.fp;
+
+// ============================================
+// vec2 - 2D Vector with Operators
+// ============================================
+
+struct vec2 { x: i16, y: i16 }
+
+impl vec2 {
+    // Addition: v + w
+    fun add(self, other: vec2) -> vec2 {
+        return vec2 { x: self.x + other.x, y: self.y + other.y };
+    }
+
+    // Subtraction: v - w
+    fun sub(self, other: vec2) -> vec2 {
+        return vec2 { x: self.x - other.x, y: self.y - other.y };
+    }
+
+    // Component-wise multiplication: v * w
+    fun mul(self, other: vec2) -> vec2 {
+        return vec2 { x: fp_mul(self.x, other.x), y: fp_mul(self.y, other.y) };
+    }
+
+    // Scalar multiplication: v * s
+    fun mul(self, scalar: i16) -> vec2 {
+        return vec2 { x: fp_mul(self.x, scalar), y: fp_mul(self.y, scalar) };
+    }
+
+    // Scalar division: v / s
+    fun div(self, scalar: i16) -> vec2 {
+        return vec2 { x: fp_div(self.x, scalar), y: fp_div(self.y, scalar) };
+    }
+
+    // Equality: v == w
+    fun eq(self, other: vec2) -> bool {
+        return self.x == other.x && self.y == other.y;
+    }
+
+    // Less than (by length squared for efficiency)
+    fun lt(self, other: vec2) -> bool {
+        return self.length_sq() < other.length_sq();
+    }
+
+    // Dot product: v.dot(w)
+    fun dot(self, other: vec2) -> i16 {
+        return fp_mul(self.x, other.x) + fp_mul(self.y, other.y);
+    }
+
+    // Length squared: v.length_sq()
+    fun length_sq(self) -> i16 {
+        return self.dot(self);
+    }
+
+    // Length: v.length()
+    fun length(self) -> i16 {
+        return fp_sqrt(self.length_sq());
+    }
+
+    // Normalize: v.normalize()
+    fun normalize(self) -> vec2 {
+        let len = self.length();
+        if len == 0 { return vec2 { x: 0, y: 0 }; }
+        return self / len;
+    }
+
+    // Absolute value: v.abs()
+    fun abs(self) -> vec2 {
+        return vec2 { x: fp_abs(self.x), y: fp_abs(self.y) };
+    }
+
+    // Negate: v.neg()
+    fun neg(self) -> vec2 {
+        return vec2 { x: -self.x, y: -self.y };
+    }
+
+    // Max with scalar: v.max(s)
+    fun max(self, scalar: i16) -> vec2 {
+        return vec2 { x: fp_max(self.x, scalar), y: fp_max(self.y, scalar) };
+    }
+
+    // Min with scalar: v.min(s)
+    fun min(self, scalar: i16) -> vec2 {
+        return vec2 { x: fp_min(self.x, scalar), y: fp_min(self.y, scalar) };
+    }
+
+    // Clamp: v.clamp(lo, hi)
+    fun clamp(self, lo: i16, hi: i16) -> vec2 {
+        return vec2 {
+            x: fp_clamp(self.x, lo, hi),
+            y: fp_clamp(self.y, lo, hi)
+        };
+    }
+
+    // Linear interpolation: a.mix(b, t)
+    fun mix(self, other: vec2, t: i16) -> vec2 {
+        return vec2 {
+            x: fp_mix(self.x, other.x, t),
+            y: fp_mix(self.y, other.y, t)
+        };
+    }
+
+    // Reflect: v.reflect(normal)
+    fun reflect(self, n: vec2) -> vec2 {
+        let d = self.dot(n);
+        return self - n * fp_mul(FP_TWO, d);
+    }
+
+    // Distance: a.distance(b)
+    fun distance(self, other: vec2) -> i16 {
+        return (self - other).length();
+    }
+}
+
+// ============================================
+// vec3 - 3D Vector with Operators
+// ============================================
+
+struct vec3 { x: i16, y: i16, z: i16 }
+
+impl vec3 {
+    // Addition: v + w
+    fun add(self, other: vec3) -> vec3 {
+        return vec3 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z
+        };
+    }
+
+    // Subtraction: v - w
+    fun sub(self, other: vec3) -> vec3 {
+        return vec3 {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z
+        };
+    }
+
+    // Component-wise multiplication: v * w
+    fun mul(self, other: vec3) -> vec3 {
+        return vec3 {
+            x: fp_mul(self.x, other.x),
+            y: fp_mul(self.y, other.y),
+            z: fp_mul(self.z, other.z)
+        };
+    }
+
+    // Scalar multiplication: v * s
+    fun mul(self, scalar: i16) -> vec3 {
+        return vec3 {
+            x: fp_mul(self.x, scalar),
+            y: fp_mul(self.y, scalar),
+            z: fp_mul(self.z, scalar)
+        };
+    }
+
+    // Scalar division: v / s
+    fun div(self, scalar: i16) -> vec3 {
+        return vec3 {
+            x: fp_div(self.x, scalar),
+            y: fp_div(self.y, scalar),
+            z: fp_div(self.z, scalar)
+        };
+    }
+
+    // Equality: v == w
+    fun eq(self, other: vec3) -> bool {
+        return self.x == other.x && self.y == other.y && self.z == other.z;
+    }
+
+    // Less than (by length squared)
+    fun lt(self, other: vec3) -> bool {
+        return self.length_sq() < other.length_sq();
+    }
+
+    // Dot product: v.dot(w)
+    fun dot(self, other: vec3) -> i16 {
+        return fp_mul(self.x, other.x) +
+               fp_mul(self.y, other.y) +
+               fp_mul(self.z, other.z);
+    }
+
+    // Cross product: v.cross(w)
+    fun cross(self, other: vec3) -> vec3 {
+        return vec3 {
+            x: fp_mul(self.y, other.z) - fp_mul(self.z, other.y),
+            y: fp_mul(self.z, other.x) - fp_mul(self.x, other.z),
+            z: fp_mul(self.x, other.y) - fp_mul(self.y, other.x)
+        };
+    }
+
+    // Length squared: v.length_sq()
+    fun length_sq(self) -> i16 {
+        return self.dot(self);
+    }
+
+    // Length: v.length()
+    fun length(self) -> i16 {
+        return fp_sqrt(self.length_sq());
+    }
+
+    // Normalize: v.normalize()
+    fun normalize(self) -> vec3 {
+        let len = self.length();
+        if len == 0 { return vec3 { x: 0, y: 0, z: 0 }; }
+        return self / len;
+    }
+
+    // Absolute value: v.abs()
+    fun abs(self) -> vec3 {
+        return vec3 {
+            x: fp_abs(self.x),
+            y: fp_abs(self.y),
+            z: fp_abs(self.z)
+        };
+    }
+
+    // Negate: v.neg()
+    fun neg(self) -> vec3 {
+        return vec3 { x: -self.x, y: -self.y, z: -self.z };
+    }
+
+    // Max with scalar: v.max(s)
+    fun max(self, scalar: i16) -> vec3 {
+        return vec3 {
+            x: fp_max(self.x, scalar),
+            y: fp_max(self.y, scalar),
+            z: fp_max(self.z, scalar)
+        };
+    }
+
+    // Min with scalar: v.min(s)
+    fun min(self, scalar: i16) -> vec3 {
+        return vec3 {
+            x: fp_min(self.x, scalar),
+            y: fp_min(self.y, scalar),
+            z: fp_min(self.z, scalar)
+        };
+    }
+
+    // Clamp: v.clamp(lo, hi)
+    fun clamp(self, lo: i16, hi: i16) -> vec3 {
+        return vec3 {
+            x: fp_clamp(self.x, lo, hi),
+            y: fp_clamp(self.y, lo, hi),
+            z: fp_clamp(self.z, lo, hi)
+        };
+    }
+
+    // Linear interpolation: a.mix(b, t)
+    fun mix(self, other: vec3, t: i16) -> vec3 {
+        return vec3 {
+            x: fp_mix(self.x, other.x, t),
+            y: fp_mix(self.y, other.y, t),
+            z: fp_mix(self.z, other.z, t)
+        };
+    }
+
+    // Reflect: v.reflect(normal)
+    fun reflect(self, n: vec3) -> vec3 {
+        let d = self.dot(n);
+        return self - n * fp_mul(FP_TWO, d);
+    }
+
+    // Distance: a.distance(b)
+    fun distance(self, other: vec3) -> i16 {
+        return (self - other).length();
+    }
+
+    // Swizzle helpers
+    fun xy(self) -> vec2 {
+        return vec2 { x: self.x, y: self.y };
+    }
+
+    fun xz(self) -> vec2 {
+        return vec2 { x: self.x, y: self.z };
+    }
+
+    fun yz(self) -> vec2 {
+        return vec2 { x: self.y, y: self.z };
+    }
+
+    // Rotation around X axis
+    fun rot_x(self, angle: i16) -> vec3 {
+        let c = fp_cos(angle);
+        let s = fp_sin(angle);
+        return vec3 {
+            x: self.x,
+            y: fp_mul(self.y, c) - fp_mul(self.z, s),
+            z: fp_mul(self.y, s) + fp_mul(self.z, c)
+        };
+    }
+
+    // Rotation around Y axis
+    fun rot_y(self, angle: i16) -> vec3 {
+        let c = fp_cos(angle);
+        let s = fp_sin(angle);
+        return vec3 {
+            x: fp_mul(self.x, c) + fp_mul(self.z, s),
+            y: self.y,
+            z: fp_mul(self.z, c) - fp_mul(self.x, s)
+        };
+    }
+
+    // Rotation around Z axis
+    fun rot_z(self, angle: i16) -> vec3 {
+        let c = fp_cos(angle);
+        let s = fp_sin(angle);
+        return vec3 {
+            x: fp_mul(self.x, c) - fp_mul(self.y, s),
+            y: fp_mul(self.x, s) + fp_mul(self.y, c),
+            z: self.z
+        };
+    }
+}
+
+// ============================================
+// vec4 - 4D Vector with Operators
+// ============================================
+
+struct vec4 { x: i16, y: i16, z: i16, w: i16 }
+
+impl vec4 {
+    // Addition: v + w
+    fun add(self, other: vec4) -> vec4 {
+        return vec4 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+            w: self.w + other.w
+        };
+    }
+
+    // Subtraction: v - w
+    fun sub(self, other: vec4) -> vec4 {
+        return vec4 {
+            x: self.x - other.x,
+            y: self.y - other.y,
+            z: self.z - other.z,
+            w: self.w - other.w
+        };
+    }
+
+    // Scalar multiplication: v * s
+    fun mul(self, scalar: i16) -> vec4 {
+        return vec4 {
+            x: fp_mul(self.x, scalar),
+            y: fp_mul(self.y, scalar),
+            z: fp_mul(self.z, scalar),
+            w: fp_mul(self.w, scalar)
+        };
+    }
+
+    // Dot product: v.dot(w)
+    fun dot(self, other: vec4) -> i16 {
+        return fp_mul(self.x, other.x) +
+               fp_mul(self.y, other.y) +
+               fp_mul(self.z, other.z) +
+               fp_mul(self.w, other.w);
+    }
+
+    // Extract xyz as vec3
+    fun xyz(self) -> vec3 {
+        return vec3 { x: self.x, y: self.y, z: self.z };
+    }
+}
+
+// ============================================
+// Constructors (convenience functions)
+// ============================================
+
+fun v2(x: i16, y: i16) -> vec2 {
+    return vec2 { x: x, y: y };
+}
+
+fun v3(x: i16, y: i16, z: i16) -> vec3 {
+    return vec3 { x: x, y: y, z: z };
+}
+
+fun v4(x: i16, y: i16, z: i16, w: i16) -> vec4 {
+    return vec4 { x: x, y: y, z: z, w: w };
+}
+
+// Extend vec2 to vec3
+fun v2_to_v3(v: vec2, z: i16) -> vec3 {
+    return vec3 { x: v.x, y: v.y, z: z };
+}
+
+// Extend vec3 to vec4
+fun v3_to_v4(v: vec3, w: i16) -> vec4 {
+    return vec4 { x: v.x, y: v.y, z: v.z, w: w };
+}
+
+// ============================================
+// Constants
+// ============================================
+
+const VEC2_ZERO: vec2 = vec2 { x: 0, y: 0 };
+const VEC3_ZERO: vec3 = vec3 { x: 0, y: 0, z: 0 };
+const VEC3_ONE: vec3 = vec3 { x: 256, y: 256, z: 256 };  // FP_ONE = 256
+const VEC3_X: vec3 = vec3 { x: 256, y: 0, z: 0 };
+const VEC3_Y: vec3 = vec3 { x: 0, y: 256, z: 0 };
+const VEC3_Z: vec3 = vec3 { x: 0, y: 0, z: 256 };

@@ -1,0 +1,309 @@
+// glsl2_csg_demo.minz - Idiomatic CSG Raymarching Demo
+// MinZ v0.17.0 - Showcasing operator overloading for SDF
+//
+// This demo shows the new idiomatic syntax:
+//   scene = sphere - box | cylinder    (CSG operations)
+//   result = normal * intensity        (vector math)
+
+// ============================================
+// Fixed-Point Constants
+// ============================================
+
+const FP_ONE: i16 = 256;
+const FP_HALF: i16 = 128;
+const FP_TWO: i16 = 512;
+
+// ============================================
+// Fixed-Point Math (inline for self-contained demo)
+// ============================================
+
+fun fp_mul(a: i16, b: i16) -> i16 {
+    // Simplified multiply for demo (uses Z80 shift)
+    let result: i16 = 0;
+    asm {
+        ; 8.8 fixed point multiply approximation
+        LD H, B
+        LD L, C
+        LD D, H
+        LD E, L
+        ; Simplified: just return a for now
+    }
+    return (a >> 4) * (b >> 4);  // Approximate
+}
+
+fun fp_div(a: i16, b: i16) -> i16 {
+    if b == 0 { return 32767; }
+    return (a << 4) / (b >> 4);  // Approximate
+}
+
+fun fp_max(a: i16, b: i16) -> i16 {
+    if a > b { return a; }
+    return b;
+}
+
+fun fp_min(a: i16, b: i16) -> i16 {
+    if a < b { return a; }
+    return b;
+}
+
+fun fp_abs(x: i16) -> i16 {
+    if x < 0 { return -x; }
+    return x;
+}
+
+fun fp_sqrt(x: i16) -> i16 {
+    if x <= 0 { return 0; }
+    let guess: i16 = x >> 1;
+    if guess == 0 { guess = 1; }
+    for i in 0..4 {
+        guess = (guess + fp_div(x, guess)) >> 1;
+    }
+    return guess;
+}
+
+// ============================================
+// vec3 with Operator Overloading
+// ============================================
+
+struct vec3 { x: i16, y: i16, z: i16 }
+
+impl vec3 {
+    // v + w
+    fun add(self, other: vec3) -> vec3 {
+        return vec3 { x: self.x + other.x, y: self.y + other.y, z: self.z + other.z };
+    }
+
+    // v - w
+    fun sub(self, other: vec3) -> vec3 {
+        return vec3 { x: self.x - other.x, y: self.y - other.y, z: self.z - other.z };
+    }
+
+    // v * s (scalar)
+    fun mul(self, scalar: i16) -> vec3 {
+        return vec3 {
+            x: fp_mul(self.x, scalar),
+            y: fp_mul(self.y, scalar),
+            z: fp_mul(self.z, scalar)
+        };
+    }
+
+    // v.dot(w)
+    fun dot(self, other: vec3) -> i16 {
+        return fp_mul(self.x, other.x) + fp_mul(self.y, other.y) + fp_mul(self.z, other.z);
+    }
+
+    // v.length()
+    fun length(self) -> i16 {
+        return fp_sqrt(self.dot(self));
+    }
+
+    // v.normalize()
+    fun normalize(self) -> vec3 {
+        let len = self.length();
+        if len == 0 { return vec3 { x: 0, y: 0, z: 0 }; }
+        return vec3 {
+            x: fp_div(self.x, len),
+            y: fp_div(self.y, len),
+            z: fp_div(self.z, len)
+        };
+    }
+
+    // v.abs()
+    fun abs(self) -> vec3 {
+        return vec3 { x: fp_abs(self.x), y: fp_abs(self.y), z: fp_abs(self.z) };
+    }
+
+    // v.max(s) - component-wise max with scalar
+    fun max(self, s: i16) -> vec3 {
+        return vec3 { x: fp_max(self.x, s), y: fp_max(self.y, s), z: fp_max(self.z, s) };
+    }
+
+    // v.xz() - swizzle
+    fun xz(self) -> vec2 {
+        return vec2 { x: self.x, y: self.z };
+    }
+}
+
+// ============================================
+// vec2 with Operators
+// ============================================
+
+struct vec2 { x: i16, y: i16 }
+
+impl vec2 {
+    fun add(self, other: vec2) -> vec2 {
+        return vec2 { x: self.x + other.x, y: self.y + other.y };
+    }
+
+    fun sub(self, other: vec2) -> vec2 {
+        return vec2 { x: self.x - other.x, y: self.y - other.y };
+    }
+
+    fun length(self) -> i16 {
+        return fp_sqrt(fp_mul(self.x, self.x) + fp_mul(self.y, self.y));
+    }
+
+    fun max(self, s: i16) -> vec2 {
+        return vec2 { x: fp_max(self.x, s), y: fp_max(self.y, s) };
+    }
+}
+
+// ============================================
+// Dist - SDF Distance with CSG Operators
+// ============================================
+
+struct Dist { value: i16 }
+
+impl Dist {
+    // a - b = CSG Subtraction (carve b from a)
+    fun sub(self, other: Dist) -> Dist {
+        return Dist { value: fp_max(self.value, -other.value) };
+    }
+
+    // a | b = CSG Union (combine shapes)
+    fun bitor(self, other: Dist) -> Dist {
+        return Dist { value: fp_min(self.value, other.value) };
+    }
+
+    // a & b = CSG Intersection
+    fun bitand(self, other: Dist) -> Dist {
+        return Dist { value: fp_max(self.value, other.value) };
+    }
+
+    // a.onion(thickness) = hollow shell
+    fun onion(self, thickness: i16) -> Dist {
+        return Dist { value: fp_abs(self.value) - thickness };
+    }
+}
+
+// ============================================
+// SDF Primitives (return Dist)
+// ============================================
+
+fun sphere(p: vec3, r: i16) -> Dist {
+    return Dist { value: p.length() - r };
+}
+
+fun box(p: vec3, b: vec3) -> Dist {
+    let q = p.abs() - b;
+    let outside = q.max(0).length();
+    let inside = fp_min(fp_max(q.x, fp_max(q.y, q.z)), 0);
+    return Dist { value: outside + inside };
+}
+
+fun cylinder(p: vec3, r: i16) -> Dist {
+    return Dist { value: p.xz().length() - r };
+}
+
+// ============================================
+// Scene - THE MAGIC OF OPERATOR OVERLOADING!
+// ============================================
+
+fun map(p: vec3) -> Dist {
+    // Sphere at origin
+    let body = sphere(p, FP_ONE);
+
+    // Box to carve out
+    let carve = box(p, vec3 { x: 180, y: 180, z: 180 });
+
+    // Cylinder hole
+    let hole = cylinder(p, 64);
+
+    // LOOK AT THIS BEAUTIFUL SYNTAX!
+    // CSG: (sphere - box) | cylinder_shell
+    return (body - carve) | hole.onion(10);
+}
+
+// ============================================
+// Normal Calculation
+// ============================================
+
+fun calcNormal(p: vec3) -> vec3 {
+    let e: i16 = 2;
+
+    // Natural vector math!
+    let dx = map(p + vec3 { x: e, y: 0, z: 0 }).value
+           - map(p - vec3 { x: e, y: 0, z: 0 }).value;
+    let dy = map(p + vec3 { x: 0, y: e, z: 0 }).value
+           - map(p - vec3 { x: 0, y: e, z: 0 }).value;
+    let dz = map(p + vec3 { x: 0, y: 0, z: e }).value
+           - map(p - vec3 { x: 0, y: 0, z: e }).value;
+
+    return vec3 { x: dx, y: dy, z: dz }.normalize();
+}
+
+// ============================================
+// Raymarching
+// ============================================
+
+fun raymarch(ro: vec3, rd: vec3) -> i16 {
+    let t: i16 = 0;
+
+    for i in 0..32 {
+        // NATURAL VECTOR MATH: p = ro + rd * t
+        let p = ro + rd * t;
+        let d = map(p);
+
+        if d.value < 2 { return t; }
+        if t > 5120 { return -1; }  // 20.0 max
+
+        t = t + d.value;
+    }
+    return -1;
+}
+
+// ============================================
+// Shading
+// ============================================
+
+fun shade(normal: vec3, light: vec3) -> u8 {
+    // Diffuse = normal . light
+    let diff = normal.dot(light);
+    let diffuse = fp_max(diff, 0);
+
+    // Scale to 0-255
+    return (diffuse >> 0) as u8;
+}
+
+// ============================================
+// Main
+// ============================================
+
+fun main() -> void {
+    // Camera
+    let ro = vec3 { x: 0, y: 0, z: -768 };  // -3.0
+
+    // Ray direction (center pixel)
+    let rd = vec3 { x: 0, y: 0, z: FP_ONE }.normalize();
+
+    // Raymarch
+    let t = raymarch(ro, rd);
+
+    if t >= 0 {
+        // Hit! Calculate shading
+        let hit = ro + rd * t;
+        let normal = calcNormal(hit);
+        let light = vec3 { x: 147, y: 147, z: -147 }.normalize();
+
+        let brightness = shade(normal, light);
+        // brightness now contains the shade value
+    }
+
+    @asm("HALT");
+}
+
+// ============================================
+// THE BEAUTY:
+//
+// Old v0.16 style:
+//   let scene = opUnion(opSubtraction(body, carve), hole);
+//   let hit = v3_add(ro, v3_mulf(rd, t));
+//   let diff = v3_dot(normal, light);
+//
+// New v0.17 style:
+//   let scene = (body - carve) | hole;
+//   let hit = ro + rd * t;
+//   let diff = normal.dot(light);
+//
+// Same Z80 assembly. 100% more readable!
+// ============================================

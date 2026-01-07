@@ -1,0 +1,169 @@
+// dist.minz - SDF Distance Type with CSG Operators
+// MinZ v0.17.0 - Natural CSG operations via operator overloading
+//
+// Usage:
+//   let a = sphere(p, 1.0);
+//   let b = box(p, size);
+//   let scene = a - b;           // Subtraction (carve b from a)
+//   let scene = a | b;           // Union (combine)
+//   let scene = a & b;           // Intersection (overlap)
+//   let scene = a.smooth(b, k);  // Smooth union
+
+import glsl.fp;
+
+// ============================================
+// Dist - Signed Distance Value with CSG Operators
+// ============================================
+
+// Wrapper around i16 distance value
+// Enables CSG operators: - (subtract), | (union), & (intersect)
+struct Dist { value: i16 }
+
+impl Dist {
+    // ========================================
+    // CSG Boolean Operations via Operators
+    // ========================================
+
+    // Subtraction: a - b
+    // Carves shape b out of shape a
+    // Formula: max(a, -b)
+    fun sub(self, other: Dist) -> Dist {
+        return Dist { value: fp_max(self.value, -other.value) };
+    }
+
+    // Union: a | b
+    // Combines both shapes
+    // Formula: min(a, b)
+    fun bitor(self, other: Dist) -> Dist {
+        return Dist { value: fp_min(self.value, other.value) };
+    }
+
+    // Intersection: a & b
+    // Only where both shapes overlap
+    // Formula: max(a, b)
+    fun bitand(self, other: Dist) -> Dist {
+        return Dist { value: fp_max(self.value, other.value) };
+    }
+
+    // Equality: a == b
+    fun eq(self, other: Dist) -> bool {
+        return self.value == other.value;
+    }
+
+    // Less than: a < b
+    fun lt(self, other: Dist) -> bool {
+        return self.value < other.value;
+    }
+
+    // ========================================
+    // Smooth CSG Operations (Methods)
+    // ========================================
+
+    // Smooth union: a.smooth(b, k)
+    // Blends shapes together with roundness k
+    fun smooth(self, other: Dist, k: i16) -> Dist {
+        let h = fp_clamp(
+            FP_HALF + fp_div(fp_mul(FP_HALF, other.value - self.value), k),
+            0, FP_ONE
+        );
+        let blended = fp_mix(other.value, self.value, h);
+        let correction = fp_mul(fp_mul(k, h), FP_ONE - h);
+        return Dist { value: blended - correction };
+    }
+
+    // Smooth subtraction: a.smooth_sub(b, k)
+    fun smooth_sub(self, other: Dist, k: i16) -> Dist {
+        let h = fp_clamp(
+            FP_HALF - fp_div(fp_mul(FP_HALF, other.value + self.value), k),
+            0, FP_ONE
+        );
+        let blended = fp_mix(self.value, -other.value, h);
+        let correction = fp_mul(fp_mul(k, h), FP_ONE - h);
+        return Dist { value: blended + correction };
+    }
+
+    // Smooth intersection: a.smooth_and(b, k)
+    fun smooth_and(self, other: Dist, k: i16) -> Dist {
+        let h = fp_clamp(
+            FP_HALF - fp_div(fp_mul(FP_HALF, other.value - self.value), k),
+            0, FP_ONE
+        );
+        let blended = fp_mix(other.value, self.value, h);
+        let correction = fp_mul(fp_mul(k, h), FP_ONE - h);
+        return Dist { value: blended + correction };
+    }
+
+    // ========================================
+    // Shell/Modification Operations
+    // ========================================
+
+    // Onion (hollow shell): a.onion(thickness)
+    fun onion(self, thickness: i16) -> Dist {
+        return Dist { value: fp_abs(self.value) - thickness };
+    }
+
+    // Round: a.round(r)
+    // Makes edges rounded by subtracting radius
+    fun round(self, r: i16) -> Dist {
+        return Dist { value: self.value - r };
+    }
+
+    // Annular (ring): a.annular(r)
+    // Same as onion but different name for clarity
+    fun annular(self, r: i16) -> Dist {
+        return self.onion(r);
+    }
+
+    // ========================================
+    // Utility Methods
+    // ========================================
+
+    // Get raw i16 value
+    fun raw(self) -> i16 {
+        return self.value;
+    }
+
+    // Check if inside (negative distance)
+    fun inside(self) -> bool {
+        return self.value < 0;
+    }
+
+    // Check if on surface (near zero)
+    fun on_surface(self, epsilon: i16) -> bool {
+        return fp_abs(self.value) < epsilon;
+    }
+
+    // Displacement: a.displace(d)
+    // Add noise/displacement to surface
+    fun displace(self, displacement: i16) -> Dist {
+        return Dist { value: self.value + displacement };
+    }
+
+    // Scale distance: a.scale(s)
+    // Note: Only valid for uniform scaling
+    fun scale(self, s: i16) -> Dist {
+        return Dist { value: fp_mul(self.value, s) };
+    }
+}
+
+// ============================================
+// Constructor
+// ============================================
+
+// Create Dist from raw distance value
+fun dist(value: i16) -> Dist {
+    return Dist { value: value };
+}
+
+// ============================================
+// Constants
+// ============================================
+
+// Maximum distance (for backgrounds, etc.)
+const DIST_MAX: Dist = Dist { value: 32767 };
+
+// Zero distance (on surface)
+const DIST_ZERO: Dist = Dist { value: 0 };
+
+// Small epsilon for surface detection
+const DIST_EPS: i16 = 1;  // ~0.004 in 8.8 fixed-point

@@ -1,0 +1,184 @@
+// sdf.minz - Idiomatic SDF Primitives Returning Dist
+// MinZ v0.17.0 - All primitives return Dist for natural CSG operations
+//
+// Usage:
+//   let scene = sphere(p, 1.0) - box(p, size) | cylinder(p, 0.5);
+//   //          ^-- subtract --^   ^-- union --^
+
+import glsl.fp;
+import glsl2.vec;
+import glsl2.dist;
+
+// ============================================
+// 3D SDF Primitives
+// ============================================
+
+// Sphere centered at origin
+fun sphere(p: vec3, r: i16) -> Dist {
+    return Dist { value: p.length() - r };
+}
+
+// Sphere at position
+fun sphere_at(p: vec3, center: vec3, r: i16) -> Dist {
+    return Dist { value: (p - center).length() - r };
+}
+
+// Axis-aligned box centered at origin
+fun box(p: vec3, b: vec3) -> Dist {
+    let q = p.abs() - b;
+    let outside = q.max(0).length();
+    let inside = fp_min(fp_max(q.x, fp_max(q.y, q.z)), 0);
+    return Dist { value: outside + inside };
+}
+
+// Rounded box
+fun round_box(p: vec3, b: vec3, r: i16) -> Dist {
+    let q = p.abs() - b;
+    let d = q.max(0).length() + fp_min(fp_max(q.x, fp_max(q.y, q.z)), 0) - r;
+    return Dist { value: d };
+}
+
+// Infinite cylinder along Y axis
+fun cylinder(p: vec3, r: i16) -> Dist {
+    return Dist { value: p.xz().length() - r };
+}
+
+// Capped cylinder
+fun capped_cylinder(p: vec3, h: i16, r: i16) -> Dist {
+    let d = v2(p.xz().length() - r, fp_abs(p.y) - h);
+    let outside = d.max(0).length();
+    let inside = fp_min(fp_max(d.x, d.y), 0);
+    return Dist { value: outside + inside };
+}
+
+// Torus (donut) in XZ plane
+fun torus(p: vec3, r_major: i16, r_minor: i16) -> Dist {
+    let q = v2(p.xz().length() - r_major, p.y);
+    return Dist { value: q.length() - r_minor };
+}
+
+// Ground plane (y = 0)
+fun ground(p: vec3) -> Dist {
+    return Dist { value: p.y };
+}
+
+// Plane with arbitrary normal (n must be normalized)
+fun plane(p: vec3, n: vec3, h: i16) -> Dist {
+    return Dist { value: p.dot(n) + h };
+}
+
+// Capsule (line segment with thickness)
+fun capsule(p: vec3, a: vec3, b: vec3, r: i16) -> Dist {
+    let pa = p - a;
+    let ba = b - a;
+    let h = fp_clamp(fp_div(pa.dot(ba), ba.dot(ba)), 0, FP_ONE);
+    return Dist { value: (pa - ba * h).length() - r };
+}
+
+// Vertical capsule (optimized)
+fun vcapsule(p: vec3, h: i16, r: i16) -> Dist {
+    let py_clamped = fp_clamp(p.y, 0, h);
+    let q = vec3 { x: p.x, y: p.y - py_clamped, z: p.z };
+    return Dist { value: q.length() - r };
+}
+
+// Cone (tip at origin, opening along +Y)
+fun cone(p: vec3, angle: vec2, h: i16) -> Dist {
+    // angle.x = sin(angle), angle.y = cos(angle)
+    let q = v2(p.xz().length(), p.y);
+    let tip = q - v2(0, h);
+    let t = fp_clamp(fp_div(q.dot(angle), fp_mul(h, angle.y)), 0, FP_ONE);
+    let side = q - angle * t;
+
+    return Dist { value: fp_min(tip.length(), side.length()) };
+}
+
+// Octahedron (8-sided diamond)
+fun octahedron(p: vec3, s: i16) -> Dist {
+    let q = p.abs();
+    return Dist { value: fp_mul(q.x + q.y + q.z - s, 93) };  // 93 = 1/sqrt(3) * 256
+}
+
+// ============================================
+// 2D SDF Primitives (for extrusion/revolution)
+// ============================================
+
+// Circle
+fun circle(p: vec2, r: i16) -> Dist {
+    return Dist { value: p.length() - r };
+}
+
+// 2D Box
+fun box2d(p: vec2, b: vec2) -> Dist {
+    let d = p.abs() - b;
+    let outside = d.max(0).length();
+    let inside = fp_min(fp_max(d.x, d.y), 0);
+    return Dist { value: outside + inside };
+}
+
+// Line segment
+fun segment(p: vec2, a: vec2, b: vec2) -> Dist {
+    let pa = p - a;
+    let ba = b - a;
+    let h = fp_clamp(fp_div(pa.dot(ba), ba.dot(ba)), 0, FP_ONE);
+    return Dist { value: (pa - ba * h).length() };
+}
+
+// ============================================
+// Domain Operations (return modified position)
+// ============================================
+
+// Infinite repetition
+fun op_rep(p: vec3, c: vec3) -> vec3 {
+    return vec3 {
+        x: fp_mod(p.x + fp_mul(c.x, FP_HALF), c.x) - fp_mul(c.x, FP_HALF),
+        y: fp_mod(p.y + fp_mul(c.y, FP_HALF), c.y) - fp_mul(c.y, FP_HALF),
+        z: fp_mod(p.z + fp_mul(c.z, FP_HALF), c.z) - fp_mul(c.z, FP_HALF)
+    };
+}
+
+// Twist around Y axis
+fun op_twist(p: vec3, k: i16) -> vec3 {
+    let angle = fp_mul(k, p.y);
+    let c = fp_cos(angle);
+    let s = fp_sin(angle);
+    return vec3 {
+        x: fp_mul(c, p.x) - fp_mul(s, p.z),
+        y: p.y,
+        z: fp_mul(s, p.x) + fp_mul(c, p.z)
+    };
+}
+
+// Symmetry (mirror across planes)
+fun op_sym_x(p: vec3) -> vec3 {
+    return vec3 { x: fp_abs(p.x), y: p.y, z: p.z };
+}
+
+fun op_sym_y(p: vec3) -> vec3 {
+    return vec3 { x: p.x, y: fp_abs(p.y), z: p.z };
+}
+
+fun op_sym_z(p: vec3) -> vec3 {
+    return vec3 { x: p.x, y: p.y, z: fp_abs(p.z) };
+}
+
+fun op_sym_xz(p: vec3) -> vec3 {
+    return vec3 { x: fp_abs(p.x), y: p.y, z: fp_abs(p.z) };
+}
+
+// ============================================
+// 2D to 3D Operations
+// ============================================
+
+// Extrude 2D shape along Y
+fun op_extrude(d_2d: Dist, h: i16, p_y: i16) -> Dist {
+    let w = v2(d_2d.value, fp_abs(p_y) - h);
+    return Dist {
+        value: fp_min(fp_max(w.x, w.y), 0) + w.max(0).length()
+    };
+}
+
+// Revolve 2D shape around Y (returns 2D position for SDF)
+fun op_revolve(p: vec3, offset: i16) -> vec2 {
+    return v2(p.xz().length() - offset, p.y);
+}

@@ -1,0 +1,98 @@
+// glsl2.minz - Idiomatic GLSL Library for MinZ v0.17.0
+// Natural syntax via operator overloading and UFCS
+//
+// Usage:
+//   import glsl2;
+//
+// Then write natural vector math and CSG:
+//   let result = normal * intensity + ambient;
+//   let scene = sphere(p, 1.0) - box(p, size) | cylinder(p, 0.5);
+
+// Re-export all modules
+import glsl.fp;          // Fixed-point math (fp_mul, fp_div, fp_sqrt, etc.)
+import glsl.trig;        // Trigonometry (fp_sin, fp_cos, lookup tables)
+import glsl2.vec;        // Vectors with operators (vec2, vec3, vec4)
+import glsl2.dist;       // Distance type with CSG operators
+import glsl2.sdf;        // SDF primitives returning Dist
+
+// ============================================
+// Raymarching Helpers
+// ============================================
+
+// Standard epsilon for surface detection
+const RAYMARCH_EPS: i16 = 2;      // ~0.008 in 8.8
+const RAYMARCH_MAX_DIST: i16 = 20 << 8;  // 20.0 units
+const RAYMARCH_MAX_STEPS: u8 = 64;
+
+// Calculate normal at point p using central differences
+// User must define: fun map(p: vec3) -> Dist
+// Then call: calcNormal(hit_point, map)
+//
+// Example normal calculation (user implements):
+//   fun calcNormal(p: vec3) -> vec3 {
+//       let e = 1;  // DIST_EPS
+//       return vec3 {
+//           x: map(vec3{x:p.x+e, y:p.y, z:p.z}).value - map(vec3{x:p.x-e, y:p.y, z:p.z}).value,
+//           y: map(vec3{x:p.x, y:p.y+e, z:p.z}).value - map(vec3{x:p.x, y:p.y-e, z:p.z}).value,
+//           z: map(vec3{x:p.x, y:p.y, z:p.z+e}).value - map(vec3{x:p.x, y:p.y, z:p.z-e}).value
+//       }.normalize();
+//   }
+
+// ============================================
+// Lighting Helpers
+// ============================================
+
+// Simple diffuse lighting
+fun diffuse(normal: vec3, light_dir: vec3) -> i16 {
+    return fp_max(normal.dot(light_dir), 0);
+}
+
+// Specular highlight (Blinn-Phong)
+fun specular(normal: vec3, light_dir: vec3, view_dir: vec3, shininess: i16) -> i16 {
+    let half_vec = (light_dir + view_dir).normalize();
+    let spec = fp_max(normal.dot(half_vec), 0);
+    return fp_powi(spec, fp_to_int(shininess));
+}
+
+// Fresnel (rim lighting)
+fun fresnel(normal: vec3, view_dir: vec3, power: i16) -> i16 {
+    let ndv = fp_max(normal.dot(view_dir), 0);
+    return fp_powi(FP_ONE - ndv, fp_to_int(power));
+}
+
+// Ambient occlusion approximation (simple)
+// Returns 0..FP_ONE based on how enclosed the point is
+fun ao(p: vec3, normal: vec3, step: i16, iterations: u8) -> i16 {
+    // This is a simplified AO - user should implement with their map() function
+    // let ao_sum = FP_ONE;
+    // for i in 0..iterations {
+    //     let d = step * (i + 1);
+    //     let sample_pos = p + normal * d;
+    //     let sample_dist = map(sample_pos).value;
+    //     ao_sum = ao_sum - fp_div(d - sample_dist, d);
+    // }
+    // return fp_max(ao_sum, 0);
+    return FP_ONE;  // Placeholder - implement with map()
+}
+
+// ============================================
+// Color/Shade Helpers
+// ============================================
+
+// Convert diffuse (0..FP_ONE) to ZX Spectrum bright level (0..7)
+fun shade_to_bright(shade: i16) -> u8 {
+    let clamped = fp_clamp(shade, 0, FP_ONE);
+    return (clamped >> 5) as u8;  // Divide by 32: 256 levels -> 8 levels
+}
+
+// Convert diffuse to grayscale byte (0..255)
+fun shade_to_gray(shade: i16) -> u8 {
+    let clamped = fp_clamp(shade, 0, FP_ONE);
+    return (clamped >> 0) as u8;  // High byte is already 0..255 range
+}
+
+// Fog effect: mix color with fog based on distance
+fun apply_fog(color: i16, dist: i16, fog_density: i16) -> i16 {
+    let fog_amount = fp_clamp(fp_mul(dist, fog_density), 0, FP_ONE);
+    return fp_mix(color, FP_HALF, fog_amount);  // Fade to gray
+}
