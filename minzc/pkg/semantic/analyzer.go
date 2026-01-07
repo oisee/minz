@@ -8912,50 +8912,63 @@ func (a *Analyzer) analyzeInterfaceDecl(decl *ast.InterfaceDecl) error {
 }
 
 // analyzeImplBlock analyzes an implementation block
+// Supports two forms:
+//   1. impl Interface for Type { ... } - implements an interface
+//   2. impl Type { ... } - structural methods directly on a type
 func (a *Analyzer) analyzeImplBlock(impl *ast.ImplBlock) error {
-	// Look up the interface
-	interfaceSym := a.currentScope.Lookup(impl.InterfaceName)
-	if interfaceSym == nil {
-		return fmt.Errorf("unknown interface: %s", impl.InterfaceName)
-	}
-	
-	iface, ok := interfaceSym.(*InterfaceSymbol)
-	if !ok {
-		return fmt.Errorf("%s is not an interface", impl.InterfaceName)
-	}
-	
 	// Get the implementing type
 	implType, err := a.convertType(impl.ForType)
 	if err != nil {
 		return fmt.Errorf("invalid type in impl block: %w", err)
 	}
-	
+
+	// Check if this is a structural impl (no interface) or interface impl
+	isStructuralImpl := impl.InterfaceName == ""
+
+	var iface *InterfaceSymbol
+	if !isStructuralImpl {
+		// Look up the interface
+		interfaceSym := a.currentScope.Lookup(impl.InterfaceName)
+		if interfaceSym == nil {
+			return fmt.Errorf("unknown interface: %s", impl.InterfaceName)
+		}
+
+		var ok bool
+		iface, ok = interfaceSym.(*InterfaceSymbol)
+		if !ok {
+			return fmt.Errorf("%s is not an interface", impl.InterfaceName)
+		}
+	}
+
 	// Create implementation symbol
 	implSym := &ImplSymbol{
 		InterfaceName: impl.InterfaceName,
 		TypeName:      implType.String(),
 		Methods:       make(map[string]*FuncSymbol),
 	}
-	
+
 	// Process each method implementation
 	for _, method := range impl.Methods {
-		// Check if this method is required by the interface
-		ifaceMethod, ok := iface.Methods[method.Name]
-		if !ok {
-			return fmt.Errorf("method %s is not part of interface %s", method.Name, impl.InterfaceName)
+		// For interface implementations, validate against the interface
+		if !isStructuralImpl {
+			// Check if this method is required by the interface
+			ifaceMethod, ok := iface.Methods[method.Name]
+			if !ok {
+				return fmt.Errorf("method %s is not part of interface %s", method.Name, impl.InterfaceName)
+			}
+
+			// Verify method signature matches interface
+			if len(method.Params) != len(ifaceMethod.Params) {
+				return fmt.Errorf("method %s has wrong number of parameters: expected %d, got %d",
+					method.Name, len(ifaceMethod.Params), len(method.Params))
+			}
 		}
-		
-		// Verify method signature matches interface
-		if len(method.Params) != len(ifaceMethod.Params) {
-			return fmt.Errorf("method %s has wrong number of parameters: expected %d, got %d", 
-				method.Name, len(ifaceMethod.Params), len(method.Params))
-		}
-		
-		// Check first parameter is 'self'
+
+		// Check first parameter is 'self' (required for all methods)
 		if len(method.Params) == 0 || !method.Params[0].IsSelf {
 			return fmt.Errorf("method %s must have 'self' as first parameter", method.Name)
 		}
-		
+
 		// Give the method a unique name based on the implementing type to avoid conflicts
 		implTypeIR, err := a.convertType(impl.ForType)
 		if err != nil {
@@ -9011,18 +9024,25 @@ func (a *Analyzer) analyzeImplBlock(impl *ast.ImplBlock) error {
 		implSym.Methods[originalMethodName] = methodSymbol
 	}
 	
-	// Verify all interface methods are implemented
-	for methodName := range iface.Methods {
-		if _, ok := implSym.Methods[methodName]; !ok {
-			return fmt.Errorf("type %s does not implement method %s of interface %s", 
-				implType.String(), methodName, impl.InterfaceName)
+	// For interface implementations, verify all interface methods are implemented
+	if !isStructuralImpl {
+		for methodName := range iface.Methods {
+			if _, ok := implSym.Methods[methodName]; !ok {
+				return fmt.Errorf("type %s does not implement method %s of interface %s",
+					implType.String(), methodName, impl.InterfaceName)
+			}
 		}
 	}
-	
-	// Register the implementation
-	implKey := fmt.Sprintf("%s_for_%s", impl.InterfaceName, implType.String())
+
+	// Register the implementation with an appropriate key
+	var implKey string
+	if isStructuralImpl {
+		implKey = fmt.Sprintf("_impl_%s", implType.String())
+	} else {
+		implKey = fmt.Sprintf("%s_for_%s", impl.InterfaceName, implType.String())
+	}
 	a.currentScope.Define(implKey, implSym)
-	
+
 	return nil
 }
 

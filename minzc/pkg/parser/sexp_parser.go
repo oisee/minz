@@ -2140,23 +2140,30 @@ func (p *Parser) convertGenericParameter(node *SExpNode) *ast.GenericParam {
 }
 
 // convertImplBlock converts implementation block from S-expression
+// Supports two forms:
+//   impl Interface for Type { methods... } - identifier, type, function_declaration(s)
+//   impl Type { methods... }               - type, function_declaration(s)
 func (p *Parser) convertImplBlock(node *SExpNode) *ast.ImplBlock {
 	impl := &ast.ImplBlock{
 		Methods:  []*ast.FunctionDecl{},
 		StartPos: node.StartPos,
 		EndPos:   node.EndPos,
 	}
-	
-	// The structure is: identifier (interface name), type (implementing type), function_declaration(s)
-	for i, child := range node.Children {
+
+	foundType := false
+	for _, child := range node.Children {
 		switch child.Type {
 		case "identifier":
-			if i == 0 && impl.InterfaceName == "" {
+			// If we haven't found a type yet, this could be the interface name
+			// (for "impl Interface for Type { ... }" syntax)
+			if impl.InterfaceName == "" && !foundType {
 				impl.InterfaceName = p.getNodeText(child)
 			}
-		case "type":
-			if i == 1 && impl.ForType == nil {
+		case "type", "type_identifier":
+			// The implementing type
+			if impl.ForType == nil {
 				impl.ForType = p.convertType(child)
+				foundType = true
 			}
 		case "function_declaration":
 			method := p.convertFunction(child)
@@ -2165,7 +2172,7 @@ func (p *Parser) convertImplBlock(node *SExpNode) *ast.ImplBlock {
 			}
 		}
 	}
-	
+
 	return impl
 }
 

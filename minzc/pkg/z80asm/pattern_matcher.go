@@ -11,8 +11,13 @@ func (a *Assembler) processInstruction(line *Line) error {
 	// Try table-driven encoding first
 	encoded, err := a.encodeInstructionTable(line)
 	if err == nil {
-		// Success! Add to output
-		if a.pass == 2 {
+		// Track instruction size for multi-pass convergence
+		if a.instructionSizes != nil {
+			a.instructionSizes[line.Number] = len(encoded)
+		}
+
+		// In passes 2+, add to output
+		if a.pass >= 2 {
 			inst := &AssembledInstruction{
 				Address: a.currentAddr,
 				Line:    line,
@@ -24,7 +29,7 @@ func (a *Assembler) processInstruction(line *Line) error {
 		a.currentAddr += uint16(len(encoded))
 		return nil
 	}
-	
+
 	// Fall back to old instruction processing for now
 	// This will be removed once table is complete
 	return a.processInstructionOld(line)

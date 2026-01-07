@@ -279,6 +279,21 @@ func (p *SimpleParser) parseSourceFile(filename string) (*ast.File, error) {
 				if decl != nil {
 					file.Declarations = append(file.Declarations, decl)
 				}
+			case "impl":
+				decl := p.parseImplBlock()
+				if decl != nil {
+					file.Declarations = append(file.Declarations, decl)
+				}
+			case "interface":
+				decl := p.parseInterfaceDecl()
+				if decl != nil {
+					file.Declarations = append(file.Declarations, decl)
+				}
+			case "enum":
+				decl := p.parseEnumDecl()
+				if decl != nil {
+					file.Declarations = append(file.Declarations, decl)
+				}
 			default:
 				p.advance() // skip unknown keyword
 			}
@@ -1602,10 +1617,10 @@ func (p *SimpleParser) parseAsmStmt() *ast.AsmStmt {
 	// We need to track brace depth for nested braces
 	braceDepth := 1
 	codeTokens := []Token{}
-	
+
 	for !p.isAtEnd() && braceDepth > 0 {
 		tok := p.peek()
-		
+
 		if tok.Type == TokenPunc && tok.Value == "{" {
 			braceDepth++
 		} else if tok.Type == TokenPunc && tok.Value == "}" {
@@ -1614,9 +1629,15 @@ func (p *SimpleParser) parseAsmStmt() *ast.AsmStmt {
 				break
 			}
 		}
-		
+
 		codeTokens = append(codeTokens, tok)
 		p.advance()
+	}
+
+	// DEBUG: Print collected tokens
+	fmt.Fprintf(os.Stderr, "DEBUG parseAsmStmt: collected %d tokens:\n", len(codeTokens))
+	for i, tok := range codeTokens {
+		fmt.Fprintf(os.Stderr, "  [%d] type=%d value=%q line=%d\n", i, tok.Type, tok.Value, tok.Line)
 	}
 	
 	// Expect closing brace
@@ -2082,4 +2103,170 @@ func (p *SimpleParser) parseIteratorMethod(object ast.Expression, method string)
 	
 	chain.EndPos = p.currentPos()
 	return chain
+}
+
+// parseImplBlock parses an implementation block
+// Supports two forms:
+//   impl Type { methods... }           - Structural methods
+//   impl Interface for Type { methods... } - Interface implementation
+func (p *SimpleParser) parseImplBlock() *ast.ImplBlock {
+	p.expect(TokenKeyword, "impl")
+
+	impl := &ast.ImplBlock{
+		StartPos: p.currentPos(),
+		Methods:  []*ast.FunctionDecl{},
+	}
+
+	// Parse the first identifier (could be Type or Interface name)
+	if p.peek().Type != TokenIdent {
+		return nil
+	}
+	firstName := p.advance().Value
+
+	// Check if next token is "for" (impl Interface for Type)
+	if p.peek().Type == TokenKeyword && p.peek().Value == "for" {
+		p.advance() // consume 'for'
+		impl.InterfaceName = firstName
+
+		// Parse the implementing type
+		impl.ForType = p.parseType()
+	} else {
+		// It's impl Type { ... } - structural impl without interface
+		impl.InterfaceName = "" // Empty means structural impl
+		impl.ForType = &ast.TypeIdentifier{Name: firstName}
+	}
+
+	// Parse the block
+	p.expect(TokenPunc, "{")
+
+	for p.peek().Value != "}" && !p.isAtEnd() {
+		if p.peek().Type == TokenKeyword && (p.peek().Value == "fun" || p.peek().Value == "pub") {
+			method := p.parseFunctionDecl()
+			if method != nil {
+				impl.Methods = append(impl.Methods, method)
+			}
+		} else {
+			p.advance() // skip unexpected token
+		}
+	}
+
+	p.expect(TokenPunc, "}")
+	impl.EndPos = p.currentPos()
+
+	return impl
+}
+
+// parseInterfaceDecl parses an interface declaration
+func (p *SimpleParser) parseInterfaceDecl() *ast.InterfaceDecl {
+	p.expect(TokenKeyword, "interface")
+
+	iface := &ast.InterfaceDecl{
+		StartPos: p.currentPos(),
+		Methods:  []*ast.InterfaceMethod{},
+	}
+
+	// Parse interface name
+	if p.peek().Type != TokenIdent {
+		return nil
+	}
+	iface.Name = p.advance().Value
+
+	// Parse block
+	p.expect(TokenPunc, "{")
+
+	for p.peek().Value != "}" && !p.isAtEnd() {
+		if p.peek().Type == TokenKeyword && p.peek().Value == "fun" {
+			method := p.parseInterfaceMethod()
+			if method != nil {
+				iface.Methods = append(iface.Methods, method)
+			}
+		} else {
+			p.advance() // skip unexpected token
+		}
+	}
+
+	p.expect(TokenPunc, "}")
+	iface.EndPos = p.currentPos()
+
+	return iface
+}
+
+// parseInterfaceMethod parses a method signature in an interface
+func (p *SimpleParser) parseInterfaceMethod() *ast.InterfaceMethod {
+	p.expect(TokenKeyword, "fun")
+
+	method := &ast.InterfaceMethod{
+		StartPos: p.currentPos(),
+		Params:   []*ast.Parameter{},
+	}
+
+	// Parse method name
+	if p.peek().Type != TokenIdent {
+		return nil
+	}
+	method.Name = p.advance().Value
+
+	// Parse parameters
+	p.expect(TokenPunc, "(")
+	for p.peek().Value != ")" && !p.isAtEnd() {
+		param := p.parseParameter()
+		if param != nil {
+			method.Params = append(method.Params, param)
+		}
+
+		if p.peek().Value == "," {
+			p.advance()
+		}
+	}
+	p.expect(TokenPunc, ")")
+
+	// Parse return type
+	if p.peek().Value == "-" && p.peekAhead(1).Value == ">" {
+		p.advance() // consume '-'
+		p.advance() // consume '>'
+		method.ReturnType = p.parseType()
+	}
+
+	// Consume semicolon if present
+	if p.peek().Value == ";" {
+		p.advance()
+	}
+
+	method.EndPos = p.currentPos()
+	return method
+}
+
+// parseEnumDecl parses an enum declaration
+func (p *SimpleParser) parseEnumDecl() *ast.EnumDecl {
+	p.expect(TokenKeyword, "enum")
+
+	enum := &ast.EnumDecl{
+		StartPos: p.currentPos(),
+		Variants: []string{},
+	}
+
+	// Parse enum name
+	if p.peek().Type != TokenIdent {
+		return nil
+	}
+	enum.Name = p.advance().Value
+
+	// Parse block
+	p.expect(TokenPunc, "{")
+
+	for p.peek().Value != "}" && !p.isAtEnd() {
+		if p.peek().Type == TokenIdent {
+			enum.Variants = append(enum.Variants, p.advance().Value)
+		}
+
+		// Handle comma or newline separation
+		if p.peek().Value == "," {
+			p.advance()
+		}
+	}
+
+	p.expect(TokenPunc, "}")
+	enum.EndPos = p.currentPos()
+
+	return enum
 }

@@ -906,9 +906,9 @@ func isSymbol(s string) bool {
 	if s == "" {
 		return false
 	}
-	// Symbol starts with letter or underscore
+	// Symbol starts with letter, underscore, or dot (for local labels)
 	ch := s[0]
-	return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '_'
+	return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || ch == '_' || ch == '.'
 }
 
 // encodeReg8 encodes an 8-bit register into 3 bits

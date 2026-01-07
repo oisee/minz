@@ -226,6 +226,30 @@ let fib10 = fibonacci(10);  // Computed at compile-time!
 // Generates: LD A, 55  (no runtime calculation!)
 ```
 
+### **UFCS - Method Syntax** (NEW in v0.17!)
+```minz
+struct Vec2 { x: i16, y: i16 }
+
+impl Vec2 {
+    fun add(self, other: Vec2) -> Vec2 {
+        return Vec2 { x: self.x + other.x, y: self.y + other.y };
+    }
+
+    fun length_sq(self) -> i16 {
+        return self.x * self.x + self.y * self.y;
+    }
+}
+
+fun main() -> void {
+    let v1 = Vec2 { x: 3, y: 4 };
+    let v2 = Vec2 { x: 1, y: 2 };
+
+    let v3 = v1.add(v2);       // Zero-cost! Compiles to direct CALL
+    let len = v3.length_sq();  // No vtables, no overhead
+}
+```
+> **Note:** UFCS transforms `obj.method(args)` to `Type_method(obj, args)` at compile-time - true zero-cost abstraction!
+
 ### **Pattern Matching** (In Progress)
 ```minz
 // Basic enum and case syntax - codegen in development
@@ -446,6 +470,7 @@ fun main() -> void {
 - 18 experimental examples in `examples/experimental/` (4 now passing with generics!)
 - **Generics with monomorphization** now working!
 - Zero-cost interface methods working!
+- **UFCS method syntax** now working! (`obj.method()` → `Type_method(obj)`)
 - See [Release Notes](reports/2025-12-18-003-release-notes.md) for details
 
 ### **Optimization Impact**

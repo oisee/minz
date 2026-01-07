@@ -587,3 +587,119 @@ fun count_primes(n: u16) -> u16 {
 		b.ReportMetric(comparison.CycleReduction, "improvement-%")
 	})
 }
+
+// TestE2EUFCSMethodCalls tests UFCS (Universal Function Call Syntax) method calls
+// This verifies that v.method() syntax correctly transforms to Type_method(v)
+func TestE2EUFCSMethodCalls(t *testing.T) {
+	h, err := NewE2ETestHarness(t)
+	if err != nil {
+		t.Fatalf("Failed to create harness: %v", err)
+	}
+	defer h.Cleanup()
+
+	// UFCS test program with struct methods
+	minzSource := `
+struct Vec2 {
+    x: i16,
+    y: i16
+}
+
+impl Vec2 {
+    fun add(self, other: Vec2) -> Vec2 {
+        return Vec2 { x: self.x + other.x, y: self.y + other.y };
+    }
+
+    fun length_sq(self) -> i16 {
+        return self.x * self.x + self.y * self.y;
+    }
+
+    fun scale(self, factor: i16) -> Vec2 {
+        return Vec2 { x: self.x * factor, y: self.y * factor };
+    }
+}
+
+fun main() -> void {
+    let v1 = Vec2 { x: 3, y: 4 };
+    let v2 = Vec2 { x: 1, y: 2 };
+
+    // UFCS method calls - should transform to Vec2_add(v1, v2)
+    let v3 = v1.add(v2);
+
+    // Chained method call - should transform to Vec2_length_sq(v3)
+    let len = v3.length_sq();
+
+    // Another method call
+    let scaled = v1.scale(2);
+
+    @asm("HALT");
+}
+`
+
+	// Write source file
+	sourceFile := filepath.Join(h.workDir, "test_ufcs.minz")
+	if err := ioutil.WriteFile(sourceFile, []byte(minzSource), 0644); err != nil {
+		t.Fatalf("Failed to write source file: %v", err)
+	}
+
+	// Test compilation
+	t.Run("compile_ufcs", func(t *testing.T) {
+		a80File, err := h.CompileMinZ(sourceFile, true)
+		if err != nil {
+			t.Fatalf("UFCS compilation failed: %v", err)
+		}
+
+		binary, symbols, err := h.AssembleA80(a80File)
+		if err != nil {
+			t.Fatalf("Assembly failed: %v", err)
+		}
+
+		if len(binary) == 0 {
+			t.Error("Empty binary produced")
+		}
+
+		// Verify UFCS method symbols exist
+		// Methods should be mangled as Type.methodName$signature
+		foundAdd := false
+		foundLengthSq := false
+		foundScale := false
+
+		for sym := range symbols {
+			symLower := strings.ToLower(sym)
+			if strings.Contains(symLower, "vec2") && strings.Contains(symLower, "add") {
+				foundAdd = true
+				t.Logf("Found Vec2.add method: %s", sym)
+			}
+			if strings.Contains(symLower, "vec2") && strings.Contains(symLower, "length_sq") {
+				foundLengthSq = true
+				t.Logf("Found Vec2.length_sq method: %s", sym)
+			}
+			if strings.Contains(symLower, "vec2") && strings.Contains(symLower, "scale") {
+				foundScale = true
+				t.Logf("Found Vec2.scale method: %s", sym)
+			}
+		}
+
+		if !foundAdd {
+			t.Error("Vec2.add method not found - UFCS impl block may not be working")
+		}
+		if !foundLengthSq {
+			t.Error("Vec2.length_sq method not found - UFCS impl block may not be working")
+		}
+		if !foundScale {
+			t.Error("Vec2.scale method not found - UFCS impl block may not be working")
+		}
+
+		// Verify main function exists (should call the methods)
+		foundMain := false
+		for sym := range symbols {
+			if strings.Contains(strings.ToLower(sym), "main") {
+				foundMain = true
+				t.Logf("Found main function: %s", sym)
+				break
+			}
+		}
+		if !foundMain {
+			t.Error("main function not found")
+		}
+	})
+}

@@ -340,9 +340,10 @@ module.exports = grammar({
 
     impl_block: $ => seq(
       'impl',
-      $.identifier,  // interface name
-      'for',
-      $.type,        // implementing type
+      choice(
+        seq($.identifier, 'for', $.type),  // impl Interface for Type { }
+        $.type                              // impl Type { } - structural methods
+      ),
       '{',
       repeat($.function_declaration),
       '}',
@@ -1057,7 +1058,9 @@ module.exports = grammar({
       ':',
     ),
 
-    asm_instruction: $ => /[^\n{}]+/,
+    // Allow parameter placeholders like {addr} in inline asm
+    // Matches text with optional {identifier} placeholders
+    asm_instruction: $ => /[^\n{}]*(\{[a-zA-Z_][a-zA-Z0-9_]*\}[^\n{}]*)*/,
 
     mir_instruction: $ => prec.left(seq(
       choice(

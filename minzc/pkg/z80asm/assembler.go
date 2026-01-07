@@ -6,14 +6,24 @@ import (
 	"strings"
 )
 
+// OptimizationMode controls how the assembler optimizes code
+type OptimizationMode int
+
+const (
+	OptBalanced OptimizationMode = iota // Default: size for short jumps, speed for loops
+	OptSize                             // -Os: minimize code size
+	OptSpeed                            // -O2: maximize execution speed
+)
+
 // Assembler is the main Z80 assembler
 type Assembler struct {
 	// Configuration options
-	AllowUndocumented bool // Default: true
-	Strict            bool // Sjasmplus compatibility mode
-	CaseSensitive     bool // Case sensitivity for labels
-	EnableMacros      bool // Enable macro processing
-	
+	AllowUndocumented bool             // Default: true
+	Strict            bool             // Sjasmplus compatibility mode
+	CaseSensitive     bool             // Case sensitivity for labels
+	EnableMacros      bool             // Enable macro processing
+	OptMode           OptimizationMode // Optimization mode for JJ collapse
+
 	// Internal state
 	pass          int
 	currentAddr   uint16
@@ -33,6 +43,10 @@ type Assembler struct {
 
 	// Target platform support
 	target        *TargetConfig
+
+	// Multi-pass convergence for span-dependent optimization (JJ instruction)
+	instructionSizes map[int]int  // Line number -> instruction size from previous pass
+	sizeChanged      bool         // True if any instruction size changed this pass
 }
 
 // macroDefinitionState tracks a macro being defined
@@ -314,21 +328,53 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 	lines = expandFakeInstructions(lines)
 	
 	a.lines = lines
-	
-	// Pass 1: Build symbol table and calculate addresses
+
+	// Multi-pass assembly with convergence for span-dependent optimization
+	// Pass 1: Build symbol table assuming worst-case sizes
+	// Pass 2+: Emit code, track sizes, recalculate if sizes shrink
+	// Continue until no size changes (convergence) or max passes reached
+
+	const maxPasses = 10
+
+	// Pass 1: Build initial symbol table
 	a.pass = 1
+	a.instructionSizes = make(map[int]int)
 	if err := a.performPass(); err != nil {
 		return nil, fmt.Errorf("pass 1 error: %w", err)
 	}
-	
-	// Pass 2: Generate code
-	a.pass = 2
-	a.currentAddr = a.origin
-	a.output = make([]byte, 0, 65536)
-	a.instructions = make([]*AssembledInstruction, 0)
-	
-	if err := a.performPass(); err != nil {
-		return nil, fmt.Errorf("pass 2 error: %w", err)
+
+	// Convergence loop for passes 2+
+	for passNum := 2; passNum <= maxPasses; passNum++ {
+		a.pass = passNum
+		a.sizeChanged = false
+		a.currentAddr = a.origin
+		a.output = make([]byte, 0, 65536)
+		a.instructions = make([]*AssembledInstruction, 0)
+
+		// Store previous sizes for comparison
+		prevSizes := a.instructionSizes
+		a.instructionSizes = make(map[int]int)
+
+		if err := a.performPass(); err != nil {
+			return nil, fmt.Errorf("pass %d error: %w", passNum, err)
+		}
+
+		// Check for convergence: compare sizes with previous pass
+		for lineNum, size := range a.instructionSizes {
+			if prevSize, exists := prevSizes[lineNum]; exists && prevSize != size {
+				a.sizeChanged = true
+				break
+			}
+		}
+
+		// If sizes changed, we need to recalculate symbol addresses
+		if a.sizeChanged && passNum < maxPasses {
+			// Recalculate symbol table with new sizes
+			a.recalculateSymbols()
+		} else {
+			// Converged or max passes reached
+			break
+		}
 	}
 	
 	// Validate memory layout for target platform
@@ -491,21 +537,38 @@ func (a *Assembler) defineLabel(label string) error {
 	if !a.CaseSensitive {
 		label = strings.ToUpper(label)
 	}
-	
+
 	if a.pass == 1 {
 		// Check for redefinition
 		if sym, exists := a.symbols[label]; exists && sym.Defined {
 			return fmt.Errorf("label '%s' already defined", label)
 		}
-		
+
 		a.symbols[label] = &Symbol{
 			Name:    label,
 			Value:   a.currentAddr,
 			Defined: true,
 		}
+	} else {
+		// In later passes, update the symbol value (addresses may have changed)
+		if sym, exists := a.symbols[label]; exists {
+			sym.Value = a.currentAddr
+		}
 	}
-	
+
 	return nil
+}
+
+// recalculateSymbols recalculates all symbol addresses based on current instruction sizes
+// This is called between passes when span-dependent instructions change size
+func (a *Assembler) recalculateSymbols() {
+	// Reset all symbol values (they'll be recalculated in the next pass)
+	// We don't delete them, just mark them for update
+	// The next pass will update values as it processes labels
+
+	// Reset first org tracking for the next pass
+	a.hasFirstOrg = false
+	a.firstOrg = 0
 }
 
 // resolveSymbol resolves a symbol to its value

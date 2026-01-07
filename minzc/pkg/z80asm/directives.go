@@ -292,18 +292,16 @@ func (a *Assembler) handleEQU(line *Line) error {
 		if sym, exists := a.symbols[label]; exists && sym.Defined {
 			return fmt.Errorf("symbol '%s' already defined", label)
 		}
-		
+
 		a.symbols[label] = &Symbol{
 			Name:    label,
 			Value:   value,
 			Defined: true,
 		}
 	} else {
-		// In pass 2, just verify the value matches
+		// In pass 2+, update the value (may change due to multi-pass convergence)
 		if sym, exists := a.symbols[label]; exists {
-			if sym.Value != value {
-				return fmt.Errorf("symbol '%s' value mismatch: was %d, now %d", label, sym.Value, value)
-			}
+			sym.Value = value // Update for multi-pass convergence
 		}
 	}
 	

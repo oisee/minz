@@ -276,7 +276,28 @@ var jpInstructions = []InstructionPattern{
 	
 	// DJNZ
 	{Mnemonic: "DJNZ", Operands: []OperandPattern{{OpTypeRelative, ""}}, EncodingFunc: encodeJRRel, Encoding: []byte{0x10}},
-	
+
+	// JJ - Collapsible jump (collapses to nothing/JR/JP based on distance)
+	{Mnemonic: "JJ", Operands: []OperandPattern{{OpTypeImm16, ""}}, EncodingFunc: encodeJJ, Encoding: []byte{0x18, 0xC3}},  // JR/JP opcodes
+	{Mnemonic: "JJ", Operands: []OperandPattern{{OpTypeCondition, "NZ"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCond, Encoding: []byte{0x20, 0xC2}},
+	{Mnemonic: "JJ", Operands: []OperandPattern{{OpTypeCondition, "Z"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCond, Encoding: []byte{0x28, 0xCA}},
+	{Mnemonic: "JJ", Operands: []OperandPattern{{OpTypeCondition, "NC"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCond, Encoding: []byte{0x30, 0xD2}},
+	{Mnemonic: "JJ", Operands: []OperandPattern{{OpTypeCondition, "C"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCond, Encoding: []byte{0x38, 0xDA}},
+
+	// JJ.L - Likely taken (prefer JP for speed)
+	{Mnemonic: "JJ.L", Operands: []OperandPattern{{OpTypeImm16, ""}}, EncodingFunc: encodeJJLikely, Encoding: []byte{0x18, 0xC3}},
+	{Mnemonic: "JJ.L", Operands: []OperandPattern{{OpTypeCondition, "NZ"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCondLikely, Encoding: []byte{0x20, 0xC2}},
+	{Mnemonic: "JJ.L", Operands: []OperandPattern{{OpTypeCondition, "Z"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCondLikely, Encoding: []byte{0x28, 0xCA}},
+	{Mnemonic: "JJ.L", Operands: []OperandPattern{{OpTypeCondition, "NC"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCondLikely, Encoding: []byte{0x30, 0xD2}},
+	{Mnemonic: "JJ.L", Operands: []OperandPattern{{OpTypeCondition, "C"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCondLikely, Encoding: []byte{0x38, 0xDA}},
+
+	// JJ.U - Unlikely taken (prefer JR for size + speed when not taken)
+	{Mnemonic: "JJ.U", Operands: []OperandPattern{{OpTypeImm16, ""}}, EncodingFunc: encodeJJUnlikely, Encoding: []byte{0x18, 0xC3}},
+	{Mnemonic: "JJ.U", Operands: []OperandPattern{{OpTypeCondition, "NZ"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCondUnlikely, Encoding: []byte{0x20, 0xC2}},
+	{Mnemonic: "JJ.U", Operands: []OperandPattern{{OpTypeCondition, "Z"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCondUnlikely, Encoding: []byte{0x28, 0xCA}},
+	{Mnemonic: "JJ.U", Operands: []OperandPattern{{OpTypeCondition, "NC"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCondUnlikely, Encoding: []byte{0x30, 0xD2}},
+	{Mnemonic: "JJ.U", Operands: []OperandPattern{{OpTypeCondition, "C"}, {OpTypeImm16, ""}}, EncodingFunc: encodeJJCondUnlikely, Encoding: []byte{0x38, 0xDA}},
+
 	// CALL instructions
 	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xCD}},
 	{Mnemonic: "CALL", Operands: []OperandPattern{{OpTypeCondition, "NZ"}, {OpTypeImm16, ""}}, EncodingFunc: encodeCALL, Encoding: []byte{0xC4}},
@@ -466,6 +487,232 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 	}
 
 	return nil, fmt.Errorf("no relative offset found")
+}
+
+// ============================================================================
+// JJ (Collapsible Jump) Encoding Functions
+// ============================================================================
+// JJ is a "smart jump" pseudo-instruction that collapses to:
+//   - Nothing (0 bytes) when distance = 0
+//   - JR (2 bytes) when distance ≤ 127 and appropriate
+//   - JP (3 bytes) for longer distances or when speed is preferred
+//
+// Z80 Branch Timing Analysis:
+//   JR taken:     12 T-states
+//   JR not taken:  7 T-states
+//   JP always:    10 T-states
+//
+// Decision Matrix:
+//   - Balanced mode: Forward jumps use JR (smaller), backward (loops) use JP (faster)
+//   - Speed mode: Always JP (consistent 10 T-states)
+//   - Size mode: JR when possible, JP when out of range
+//   - Likely (.L): Use JP (branch is usually taken, need speed)
+//   - Unlikely (.U): Use JR (branch rarely taken, 7 T-states when not taken)
+// ============================================================================
+
+// encodeJJ encodes unconditional JJ (collapsible jump)
+func encodeJJ(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	// Get target address
+	var target uint16
+	for _, v := range values {
+		if val, ok := v.(uint16); ok {
+			target = val
+			break
+		}
+	}
+
+	jpOpcode := pattern.Encoding[1]  // 0xC3 for unconditional JP
+
+	// Pass 1: Always use worst-case size (JP = 3 bytes) for label calculation
+	// Forward references return 0 in pass 1, so offset calculation would be wrong
+	if a.pass == 1 {
+		return []byte{jpOpcode, 0x00, 0x00}, nil // Placeholder JP
+	}
+
+	// Pass 2+: With multi-pass convergence, we can now optimize JR vs JP
+	// Labels will be recalculated if our size changes
+
+	// Calculate offset assuming JR (2 bytes)
+	currentPC := a.currentAddr + 2
+	offset := int(target) - int(currentPC)
+
+	jrOpcode := pattern.Encoding[0]  // 0x18 for unconditional JR
+
+	switch a.OptMode {
+	case OptSpeed:
+		// Always use JP for consistent 10 T-state timing
+		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+
+	case OptSize:
+		// Use JR when possible, JP only when out of range
+		if offset >= -128 && offset <= 127 {
+			return []byte{jrOpcode, byte(offset)}, nil
+		}
+		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+
+	default: // OptBalanced
+		// Forward jumps: JR (smaller, OK for one-time jumps)
+		// Backward jumps: JP (faster, loops execute many times)
+		if offset >= -128 && offset <= 127 {
+			if offset < 0 {
+				// Backward jump = likely a loop, prefer JP for speed
+				return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+			}
+			// Forward jump, use JR for size
+			return []byte{jrOpcode, byte(offset)}, nil
+		}
+		// Out of range, must use JP
+		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+	}
+}
+
+// encodeJJCond encodes conditional JJ (JJ NZ/Z/NC/C)
+func encodeJJCond(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	// Get target address (skip condition in values)
+	var target uint16
+	for _, v := range values {
+		if val, ok := v.(uint16); ok {
+			target = val
+			break
+		}
+	}
+
+	jpOpcode := pattern.Encoding[1]  // Conditional JP opcode
+
+	// Pass 1: Reserve 3 bytes for JP
+	if a.pass == 1 {
+		return []byte{jpOpcode, 0x00, 0x00}, nil
+	}
+
+	// Pass 2+: Optimize with multi-pass convergence
+	currentPC := a.currentAddr + 2
+	offset := int(target) - int(currentPC)
+
+	jrOpcode := pattern.Encoding[0]  // Conditional JR opcode
+
+	switch a.OptMode {
+	case OptSpeed:
+		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+
+	case OptSize:
+		if offset >= -128 && offset <= 127 {
+			return []byte{jrOpcode, byte(offset)}, nil
+		}
+		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+
+	default: // OptBalanced
+		if offset >= -128 && offset <= 127 {
+			if offset < 0 {
+				return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+			}
+			return []byte{jrOpcode, byte(offset)}, nil
+		}
+		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+	}
+}
+
+// encodeJJLikely encodes JJ.L (likely taken - prefer JP for speed)
+func encodeJJLikely(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	var target uint16
+	for _, v := range values {
+		if val, ok := v.(uint16); ok {
+			target = val
+			break
+		}
+	}
+
+	jpOpcode := pattern.Encoding[1]
+
+	// Pass 1: Always use JP size
+	if a.pass == 1 {
+		return []byte{jpOpcode, 0x00, 0x00}, nil
+	}
+
+	// Pass 2: Likely = branch usually taken, use JP for 10 T-state consistency
+	return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+}
+
+// encodeJJUnlikely encodes JJ.U (unlikely taken - prefer JR for speed when not taken)
+// With multi-pass convergence, emits JR when possible for better not-taken timing (7 vs 10 T)
+func encodeJJUnlikely(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	var target uint16
+	for _, v := range values {
+		if val, ok := v.(uint16); ok {
+			target = val
+			break
+		}
+	}
+
+	jpOpcode := pattern.Encoding[1]
+
+	// Pass 1: Reserve 3 bytes
+	if a.pass == 1 {
+		return []byte{jpOpcode, 0x00, 0x00}, nil
+	}
+
+	// Pass 2+: Prefer JR for unlikely branches (7 T-states when not taken vs 10)
+	currentPC := a.currentAddr + 2
+	offset := int(target) - int(currentPC)
+
+	jrOpcode := pattern.Encoding[0]
+
+	// Unlikely = branch rarely taken, prefer JR
+	if offset >= -128 && offset <= 127 {
+		return []byte{jrOpcode, byte(offset)}, nil
+	}
+	// Out of range, must use JP
+	return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+}
+
+// encodeJJCondLikely encodes conditional JJ.L
+func encodeJJCondLikely(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	var target uint16
+	for _, v := range values {
+		if val, ok := v.(uint16); ok {
+			target = val
+			break
+		}
+	}
+
+	jpOpcode := pattern.Encoding[1]
+
+	// Pass 1: Always use JP size
+	if a.pass == 1 {
+		return []byte{jpOpcode, 0x00, 0x00}, nil
+	}
+
+	// Pass 2: Likely = use JP for speed
+	return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+}
+
+// encodeJJCondUnlikely encodes conditional JJ.U
+// With multi-pass convergence, emits JR for better not-taken timing
+func encodeJJCondUnlikely(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	var target uint16
+	for _, v := range values {
+		if val, ok := v.(uint16); ok {
+			target = val
+			break
+		}
+	}
+
+	jpOpcode := pattern.Encoding[1]
+
+	// Pass 1: Reserve 3 bytes
+	if a.pass == 1 {
+		return []byte{jpOpcode, 0x00, 0x00}, nil
+	}
+
+	// Pass 2+: Prefer JR for unlikely branches
+	currentPC := a.currentAddr + 2
+	offset := int(target) - int(currentPC)
+
+	jrOpcode := pattern.Encoding[0]
+
+	if offset >= -128 && offset <= 127 {
+		return []byte{jrOpcode, byte(offset)}, nil
+	}
+	return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
 }
 
 // Arithmetic instruction patterns

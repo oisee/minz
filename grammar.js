@@ -124,13 +124,10 @@ module.exports = grammar({
     function_type: $ => seq(
       choice('fun', 'fn'),  // Consistency!
       '(',
-      optional($.function_type_params),  // Just types, no names needed
+      optional($.parameter_list),
       ')',
       $.return_type,
     ),
-
-    // For function types: fn(u8, u16) -> u8 - just types, no parameter names
-    function_type_params: $ => commaSep1($.type),
 
     return_type: $ => choice(
       seq('->', $.type, optional(seq('?', $.type_identifier))),  // -> type ? ErrorEnum
@@ -208,7 +205,6 @@ module.exports = grammar({
     ),
 
     function_declaration: $ => seq(
-      optional($.ctie_directive),  // NEW: CTIE directives for functions
       optional($.visibility),
       optional('export'),
       choice('fun', 'fn'),  // Both work - developer happiness!
@@ -219,7 +215,7 @@ module.exports = grammar({
       optional($.parameter_list),
       ')',
       $.return_type,
-      $.block,
+      choice($.block, ';'),  // Block for regular functions, semicolon for extern prototypes
     ),
 
     asm_function: $ => seq(
@@ -288,12 +284,15 @@ module.exports = grammar({
     ),
 
     struct_declaration: $ => seq(
-      optional($.ctie_directive),  // NEW: @derive for structs
       optional($.visibility),
       'struct',
       $.identifier,
       '{',
-      repeat(seq($.field_declaration, optional(','))),  // Allow comma OR newline between fields
+      optional(seq(
+        repeat(seq($.field_declaration, ',')),
+        $.field_declaration,
+        optional(',')
+      )),
       '}',
     ),
 
@@ -317,29 +316,19 @@ module.exports = grammar({
       '}',
     ),
 
-    enum_variant: $ => seq(
-      $.identifier,
-      optional(seq('=', $.number_literal))
-    ),
-
     visibility: $ => 'pub',
 
     interface_declaration: $ => seq(
-      optional($.ctie_directive),  // NEW: CTIE directives like @proof
       optional($.visibility),
       'interface',
       $.identifier,
       optional($.generic_parameters),
       '{',
-      repeat(choice(
-        $.interface_method,
-        $.cast_interface_block,
-      )),
+      repeat($.interface_method),
       '}',
     ),
 
     interface_method: $ => seq(
-      optional($.ctie_directive),  // NEW: CTIE directives like @execute
       choice('fun', 'fn'),  // Flexibility in interfaces too!
       $.identifier,
       '(',
@@ -349,27 +338,12 @@ module.exports = grammar({
       ';',
     ),
 
-    // NEW: Cast interface block - simplified first implementation
-    cast_interface_block: $ => seq(
-      'cast',
-      '<',
-      $.identifier,  // Simplified: just identifier for now
-      '>',
-      '{',
-      repeat(seq(
-        $.identifier,  // From type
-        '->',
-        '{',
-        '}',         // Empty transform for now
-      )),
-      '}',
-    ),
-
     impl_block: $ => seq(
       'impl',
-      $.identifier,  // interface name
-      'for',
-      $.type,        // implementing type
+      choice(
+        seq($.identifier, 'for', $.type),  // impl Interface for Type { }
+        $.type                              // impl Type { } - structural methods
+      ),
       '{',
       repeat($.function_declaration),
       '}',
@@ -408,7 +382,6 @@ module.exports = grammar({
       $.defer_statement,
       $.case_statement,
       $.asm_block,
-      $.compile_time_asm,
       $.mir_block,
       $.minz_block,
       $.target_block,
@@ -446,40 +419,10 @@ module.exports = grammar({
       $.block,
     ),
 
-    loop_statement: $ => prec(1, choice(
-      // Infinite loop
-      seq(
-        'loop',
-        $.block,
-      ),
-      // Indexed loop: loop table indexed to var, idx { ... }
-      seq(
-        'loop',
-        field('table', $.expression),
-        'indexed',
-        'to',
-        field('iterator', $.identifier),
-        optional(seq(',', field('index', $.identifier))),
-        $.block,
-      ),
-      // Into loop: loop table into var { ... }
-      seq(
-        'loop',
-        field('table', $.expression),
-        'into',
-        field('iterator', $.identifier),
-        $.block,
-      ),
-      // Ref to loop: loop table ref to var { ... }
-      seq(
-        'loop',
-        field('table', $.expression),
-        'ref',
-        'to',
-        field('iterator', $.identifier),
-        $.block,
-      ),
-    )),
+    loop_statement: $ => seq(
+      'loop',
+      $.block,
+    ),
 
     break_statement: $ => seq(
       'break',
@@ -499,13 +442,13 @@ module.exports = grammar({
       $.statement,
     ),
 
-    case_statement: $ => prec(-1, seq(
+    case_statement: $ => seq(
       'case',
       $.expression,
       '{',
       repeat($.case_arm),
       '}',
-    )),
+    ),
 
     case_arm: $ => seq(
       $.pattern,
@@ -519,25 +462,11 @@ module.exports = grammar({
     ),
 
     pattern: $ => choice(
-      $.range_pattern,
-      $.enum_pattern,
       $.field_expression,
       $.identifier,
       $.literal_pattern,
       '_',
     ),
-    
-    range_pattern: $ => prec(2, seq(
-      field('start', choice($.number_literal, $.identifier)),
-      '..',
-      field('end', choice($.number_literal, $.identifier)),
-    )),
-    
-    enum_pattern: $ => prec(2, seq(
-      field('type', $.identifier),
-      '.',
-      field('variant', $.identifier),
-    )),
 
     literal_pattern: $ => choice(
       $.number_literal,
@@ -548,18 +477,9 @@ module.exports = grammar({
 
     // Expressions
     expression: $ => choice(
-      $.case_expression,
       $.binary_expression,
       $.unary_expression,
       $.postfix_expression,
-    ),
-    
-    case_expression: $ => seq(
-      'case',
-      field('value', $.expression),
-      '{',
-      repeat($.case_arm),
-      '}',
     ),
 
     binary_expression: $ => choice(
@@ -575,7 +495,7 @@ module.exports = grammar({
         field('operator', operator),
         field('right', $.expression),
       ))),
-      ...['or', 'and', '||', '&&'].map(operator => prec.left(2, seq(
+      ...['or', 'and'].map(operator => prec.left(2, seq(
         field('left', $.expression),
         field('operator', operator),
         field('right', $.expression),
@@ -618,7 +538,7 @@ module.exports = grammar({
       ))),
     ),
 
-    unary_expression: $ => prec(9, choice(
+    unary_expression: $ => prec(8, choice(
       seq('!', $.expression),
       seq('-', $.expression),
       seq('~', $.expression),
@@ -662,7 +582,7 @@ module.exports = grammar({
       '?',
     )),
 
-    cast_expression: $ => prec.left(8, seq(
+    cast_expression: $ => prec.left(9, seq(
       field('expression', $.expression),
       'as',
       field('type', $.type),
@@ -825,7 +745,7 @@ module.exports = grammar({
     compile_time_print: $ => seq(
       '@print',
       '(',
-      $.expression,  // Accepts string literals or expressions (numbers, variables)
+      $.string_literal,  // Only accepts a single string with { } interpolation
       ')',
     ),
 
@@ -841,13 +761,6 @@ module.exports = grammar({
       '@error',
       optional(seq('(', optional($.expression), ')')),
     )),
-
-    compile_time_asm: $ => seq(
-      '@asm',
-      '{',
-      optional($.asm_content),
-      '}',
-    ),
 
     attribute: $ => prec.right(seq(
       '@',
@@ -910,112 +823,6 @@ module.exports = grammar({
 
     // MIR code block that can contain anything including [[ ]]
     mir_code_block: $ => prec(2, alias(/([^\]]+|\][^\]]+|\]\][^\]]+)*/, 'mir_code_content')),
-
-    // CTIE (Compile-Time Interface Execution) directives
-    ctie_directive: $ => choice(
-      $.execute_directive,
-      $.specialize_directive,
-      $.proof_directive,
-      $.derive_directive,
-      $.analyze_usage_directive,
-      $.compile_time_vtable_directive,
-    ),
-
-    execute_directive: $ => seq(
-      '@execute',
-      optional(seq('when', $.execute_condition)),
-    ),
-
-    execute_condition: $ => choice(
-      'const',  // Execute when inputs are const
-      $.expression,  // Custom condition
-    ),
-
-    specialize_directive: $ => seq(
-      '@specialize',
-      optional(seq(
-        'for',
-        '[',
-        commaSep1($.string_literal),  // Type names
-        ']',
-        optional(seq('threshold:', $.number_literal)),
-      )),
-    ),
-
-    proof_directive: $ => seq(
-      '@proof',
-      '{',
-      repeat1($.proof_invariant),
-      '}',
-    ),
-
-    proof_invariant: $ => seq(
-      $.identifier,
-      ':',
-      $.expression,
-      optional(','),
-    ),
-
-    derive_directive: $ => seq(
-      '@derive',
-      '(',
-      $.identifier,  // Interface name
-      ')',
-      optional(seq(
-        'for',
-        $.identifier,  // Type name
-        optional($.derive_options),
-      )),
-    ),
-
-    derive_options: $ => seq(
-      '{',
-      repeat1($.derive_option),
-      '}',
-    ),
-
-    derive_option: $ => seq(
-      $.identifier,
-      ':',
-      choice(
-        $.identifier,
-        $.string_literal,
-        '[',
-        commaSep1($.string_literal),
-        ']',
-      ),
-      optional(','),
-    ),
-
-    analyze_usage_directive: $ => seq(
-      '@analyze_usage',
-      '{',
-      repeat1($.usage_rule),
-      '}',
-    ),
-
-    usage_rule: $ => seq(
-      'if',
-      $.expression,
-      '->',
-      $.ctie_directive,
-      optional(','),
-    ),
-
-    compile_time_vtable_directive: $ => seq(
-      '@compile_time_vtable',
-      '{',
-      repeat1($.vtable_rule),
-      '}',
-    ),
-
-    vtable_rule: $ => seq(
-      'when',
-      $.expression,
-      '->',
-      $.identifier,  // Strategy name
-      optional(','),
-    ),
 
     // Import statements
     import_statement: $ => seq(
@@ -1251,7 +1058,9 @@ module.exports = grammar({
       ':',
     ),
 
-    asm_instruction: $ => /[^\n{}]+/,
+    // Allow parameter placeholders like {addr} in inline asm
+    // Matches text with optional {identifier} placeholders
+    asm_instruction: $ => /[^\n{}]*(\{[a-zA-Z_][a-zA-Z0-9_]*\}[^\n{}]*)*/,
 
     mir_instruction: $ => prec.left(seq(
       choice(
@@ -1312,10 +1121,6 @@ module.exports = grammar({
 });
 
 // Helper functions
-function commaSep(rule) {
-  return optional(commaSep1(rule));
-}
-
 function commaSep1(rule) {
   return sep1(rule, ',');
 }

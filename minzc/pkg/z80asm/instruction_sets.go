@@ -235,7 +235,67 @@ func registerJumpInstructions() {
 		Size:     2,
 		Encoder:  makeRelativeEncoder(0x10),
 	})
-	
+
+	// JJ - Collapsible jump (collapses to JR, JP, or nothing based on distance and optimization mode)
+	// JJ label - unconditional collapsible jump
+	addInstruction("JJ", &InstructionDef{
+		Mnemonic: "JJ",
+		Operands: []OperandType{OpAddr16}, // Takes address, decides JR/JP at assembly
+		Size:     3,                        // Max size (JP), actual may be 0-3
+		Encoder:  makeCollapsibleJumpEncoder(0x18, 0xC3), // JR opcode, JP opcode
+	})
+
+	// Conditional collapsible jumps: JJ Z, JJ NZ, JJ C, JJ NC
+	collapsibleJumps := []struct {
+		cond     string
+		jrOpcode byte
+		jpOpcode byte
+	}{
+		{"NZ", 0x20, 0xC2}, {"Z", 0x28, 0xCA}, {"NC", 0x30, 0xD2}, {"C", 0x38, 0xDA},
+	}
+
+	for _, cj := range collapsibleJumps {
+		addInstruction("JJ", &InstructionDef{
+			Mnemonic: "JJ",
+			Operands: []OperandType{OpCondition, OpAddr16},
+			Size:     3, // Max size
+			Encoder:  makeCondCollapsibleJumpEncoder(cj.jrOpcode, cj.jpOpcode),
+		})
+	}
+
+	// JJ.L (likely) and JJ.U (unlikely) variants for branch hints
+	// JJ.L - branch is likely taken (prefer JP for speed)
+	addInstruction("JJ.L", &InstructionDef{
+		Mnemonic: "JJ.L",
+		Operands: []OperandType{OpAddr16},
+		Size:     3,
+		Encoder:  makeLikelyJumpEncoder(0x18, 0xC3),
+	})
+
+	// JJ.U - branch is unlikely taken (prefer JR for size, faster when not taken)
+	addInstruction("JJ.U", &InstructionDef{
+		Mnemonic: "JJ.U",
+		Operands: []OperandType{OpAddr16},
+		Size:     3,
+		Encoder:  makeUnlikelyJumpEncoder(0x18, 0xC3),
+	})
+
+	// Conditional likely/unlikely variants
+	for _, cj := range collapsibleJumps {
+		addInstruction("JJ.L", &InstructionDef{
+			Mnemonic: "JJ.L",
+			Operands: []OperandType{OpCondition, OpAddr16},
+			Size:     3,
+			Encoder:  makeCondLikelyJumpEncoder(cj.jrOpcode, cj.jpOpcode),
+		})
+		addInstruction("JJ.U", &InstructionDef{
+			Mnemonic: "JJ.U",
+			Operands: []OperandType{OpCondition, OpAddr16},
+			Size:     3,
+			Encoder:  makeCondUnlikelyJumpEncoder(cj.jrOpcode, cj.jpOpcode),
+		})
+	}
+
 	// CALL
 	addInstruction("CALL", &InstructionDef{
 		Mnemonic: "CALL",
@@ -726,6 +786,202 @@ func makeCondRelativeEncoder(opcode byte) EncoderFunc {
 		}
 
 		return []byte{opcode, byte(offset)}, nil
+	}
+}
+
+// ============================================================================
+// JJ (Collapsible Jump) Encoders
+// JJ collapses to: nothing (distance=0), JR (distance≤127), or JP (distance>127)
+// ============================================================================
+
+// makeCollapsibleJumpEncoder creates an encoder for unconditional JJ
+func makeCollapsibleJumpEncoder(jrOpcode, jpOpcode byte) EncoderFunc {
+	return func(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
+		if len(line.Operands) != 1 {
+			return nil, fmt.Errorf("JJ requires 1 operand")
+		}
+
+		target, err := a.resolveValue(line.Operands[0])
+		if err != nil {
+			return nil, err
+		}
+
+		// Calculate offset (JR is 2 bytes, JP is 3 bytes)
+		// For collapse-to-nothing check, we use the JR size
+		offset := int(target) - int(a.currentAddr) - 2
+
+		// Collapse to nothing if jumping to next instruction
+		if offset == 0 {
+			return []byte{}, nil // Empty - jump eliminated!
+		}
+
+		// Check optimization mode
+		switch a.OptMode {
+		case OptSpeed:
+			// Always use JP for maximum speed (10 T-states vs 12 for JR taken)
+			return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+
+		case OptSize:
+			// Use JR if possible (saves 1 byte)
+			if offset >= -128 && offset <= 127 {
+				return []byte{jrOpcode, byte(offset)}, nil
+			}
+			return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+
+		default: // OptBalanced
+			// Use JR for short forward jumps, JP for backward (loops) and long jumps
+			if offset >= -128 && offset <= 127 {
+				// Backward jump (loop) - prefer JP for speed
+				if offset < 0 {
+					return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+				}
+				// Forward short jump - prefer JR for size
+				return []byte{jrOpcode, byte(offset)}, nil
+			}
+			return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+		}
+	}
+}
+
+// makeCondCollapsibleJumpEncoder creates an encoder for conditional JJ
+func makeCondCollapsibleJumpEncoder(jrOpcode, jpOpcode byte) EncoderFunc {
+	return func(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
+		if len(line.Operands) != 2 {
+			return nil, fmt.Errorf("conditional JJ requires 2 operands")
+		}
+
+		target, err := a.resolveValue(line.Operands[1])
+		if err != nil {
+			return nil, err
+		}
+
+		offset := int(target) - int(a.currentAddr) - 2
+
+		// Collapse to nothing if jumping to next instruction
+		if offset == 0 {
+			return []byte{}, nil
+		}
+
+		switch a.OptMode {
+		case OptSpeed:
+			return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+
+		case OptSize:
+			if offset >= -128 && offset <= 127 {
+				return []byte{jrOpcode, byte(offset)}, nil
+			}
+			return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+
+		default: // OptBalanced
+			if offset >= -128 && offset <= 127 {
+				if offset < 0 {
+					return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+				}
+				return []byte{jrOpcode, byte(offset)}, nil
+			}
+			return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+		}
+	}
+}
+
+// makeLikelyJumpEncoder - branch hint: likely taken (prefer JP for speed)
+func makeLikelyJumpEncoder(jrOpcode, jpOpcode byte) EncoderFunc {
+	return func(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
+		if len(line.Operands) != 1 {
+			return nil, fmt.Errorf("JJ.L requires 1 operand")
+		}
+
+		target, err := a.resolveValue(line.Operands[0])
+		if err != nil {
+			return nil, err
+		}
+
+		offset := int(target) - int(a.currentAddr) - 2
+
+		if offset == 0 {
+			return []byte{}, nil
+		}
+
+		// Likely taken: JP is faster (10 T vs 12 T when taken)
+		// Only use JR if distance > 127 is impossible (which it can't be for JP)
+		// So always use JP for likely branches
+		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+	}
+}
+
+// makeUnlikelyJumpEncoder - branch hint: unlikely taken (prefer JR for size + speed when not taken)
+func makeUnlikelyJumpEncoder(jrOpcode, jpOpcode byte) EncoderFunc {
+	return func(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
+		if len(line.Operands) != 1 {
+			return nil, fmt.Errorf("JJ.U requires 1 operand")
+		}
+
+		target, err := a.resolveValue(line.Operands[0])
+		if err != nil {
+			return nil, err
+		}
+
+		offset := int(target) - int(a.currentAddr) - 2
+
+		if offset == 0 {
+			return []byte{}, nil
+		}
+
+		// Unlikely taken: JR is faster when NOT taken (7 T vs 10 T)
+		// Use JR if distance fits, otherwise JP
+		if offset >= -128 && offset <= 127 {
+			return []byte{jrOpcode, byte(offset)}, nil
+		}
+		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+	}
+}
+
+// makeCondLikelyJumpEncoder - conditional with likely hint
+func makeCondLikelyJumpEncoder(jrOpcode, jpOpcode byte) EncoderFunc {
+	return func(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
+		if len(line.Operands) != 2 {
+			return nil, fmt.Errorf("conditional JJ.L requires 2 operands")
+		}
+
+		target, err := a.resolveValue(line.Operands[1])
+		if err != nil {
+			return nil, err
+		}
+
+		offset := int(target) - int(a.currentAddr) - 2
+
+		if offset == 0 {
+			return []byte{}, nil
+		}
+
+		// Likely: always use JP
+		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+	}
+}
+
+// makeCondUnlikelyJumpEncoder - conditional with unlikely hint
+func makeCondUnlikelyJumpEncoder(jrOpcode, jpOpcode byte) EncoderFunc {
+	return func(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
+		if len(line.Operands) != 2 {
+			return nil, fmt.Errorf("conditional JJ.U requires 2 operands")
+		}
+
+		target, err := a.resolveValue(line.Operands[1])
+		if err != nil {
+			return nil, err
+		}
+
+		offset := int(target) - int(a.currentAddr) - 2
+
+		if offset == 0 {
+			return []byte{}, nil
+		}
+
+		// Unlikely: prefer JR if distance fits
+		if offset >= -128 && offset <= 127 {
+			return []byte{jrOpcode, byte(offset)}, nil
+		}
+		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
 	}
 }
 

@@ -186,22 +186,35 @@ func (m *ModuleManager) CheckCircularDependencies() error {
 }
 
 // ExtractModuleName extracts module name from file path
+// Only includes path components when the file is in a recognized project structure
+// (src/, lib/, stdlib/). Otherwise just uses the filename to avoid polluting
+// assembly labels with system paths like /tmp.
 func ExtractModuleName(filePath string) string {
 	// Remove extension
 	name := strings.TrimSuffix(filepath.Base(filePath), ".minz")
-	
-	// Convert path separators to dots
+
+	// Convert path separators to dots only for project-relative paths
 	dir := filepath.Dir(filePath)
 	if dir != "." && dir != "" {
 		parts := strings.Split(dir, string(filepath.Separator))
-		// Remove common prefixes like "src"
-		if len(parts) > 0 && parts[0] == "src" {
-			parts = parts[1:]
+
+		// Find a recognized project root marker
+		projectStart := -1
+		for i, part := range parts {
+			if part == "src" || part == "lib" || part == "stdlib" || part == "examples" {
+				projectStart = i + 1 // Start after the marker
+				break
+			}
 		}
-		if len(parts) > 0 {
-			return strings.Join(parts, ".") + "." + name
+
+		// Only include path parts after a recognized project marker
+		if projectStart >= 0 && projectStart < len(parts) {
+			relevantParts := parts[projectStart:]
+			if len(relevantParts) > 0 {
+				return strings.Join(relevantParts, ".") + "." + name
+			}
 		}
 	}
-	
+
 	return name
 }
