@@ -6,7 +6,7 @@
 
 ### **Modern Programming Language for Vintage & Modern Platforms**
 
-[![Version](https://img.shields.io/badge/version-0.16.4-brightgreen)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.17.0-brightgreen)](https://github.com/oisee/minz/releases)
 [![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%20Z80N%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
 [![Success Rate](https://img.shields.io/badge/compilation-92%25-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
@@ -80,7 +80,7 @@ go build -o mz cmd/minzc/main.go
 sudo mv mz /usr/local/bin/
 
 # Verify
-mz --version  # MinZ v0.16.0
+mz --version  # MinZ v0.17.0
 ```
 
 > **Note:** Pre-built binaries may be for a different architecture. Building from source is recommended.
@@ -119,6 +119,7 @@ crystal run hello.cr  # Test instantly!
 
 | Version | Revolution | Impact |
 |---------|------------|--------|
+| **v0.17.0** | UFCS + Operator Overloading | `v1 + v2`, type-based dispatch, auto-derivation! |
 | **v0.16.4** | GLSL Shader Library | Raymarching, SDFs, fixed-point math on Z80! |
 | **v0.16.3** | DZRP Toolchain | mztap instant loader, unified env vars |
 | **v0.16.2** | Smart Print Optimization | Stateful @print saves 9+ bytes, explicit loop intent |
@@ -259,24 +260,43 @@ impl Vec2 {
         return Vec2 { x: self.x + other.x, y: self.y + other.y };
     }
 
+    // Type-based overloading: Vec * Vec vs Vec * scalar
+    fun mul(self, other: Vec2) -> Vec2 {
+        return Vec2 { x: self.x * other.x, y: self.y * other.y };
+    }
+    fun mul(self, scalar: i16) -> Vec2 {
+        return Vec2 { x: self.x * scalar, y: self.y * scalar };
+    }
+
+    // Only need eq + lt - get all 6 comparison ops for free!
     fun eq(self, other: Vec2) -> bool {
         return self.x == other.x && self.y == other.y;
+    }
+    fun lt(self, other: Vec2) -> bool {
+        return self.x < other.x;
     }
 }
 
 fun main() -> void {
     let v1 = Vec2 { x: 3, y: 4 };
-    let v2 = Vec2 { x: 1, y: 2 };
+    let v2 = Vec2 { x: 2, y: 2 };
 
-    let v3 = v1 + v2;   // Transforms to v1.add(v2) -> CALL Vec2.add
-    if v1 == v2 {       // Transforms to v1.eq(v2)  -> CALL Vec2.eq
-        // ...
-    }
+    let v3 = v1 + v2;   // -> CALL Vec2.add
+    let v4 = v1 * v2;   // -> CALL Vec2.mul$Vec2$Vec2 (component-wise)
+    let v5 = v1 * 5;    // -> CALL Vec2.mul$Vec2$i16  (scaling)
+
+    // All these work with just eq + lt defined:
+    if v1 == v2 { }     // Direct: eq
+    if v1 != v2 { }     // Derived: !eq
+    if v1 >  v2 { }     // Derived: swap lt
+    if v1 >= v2 { }     // Derived: !lt
 }
 ```
-> **Supported operators:** `+`/`add`, `-`/`sub`, `*`/`mul`, `/`/`div`, `==`/`eq`, `!=`/`ne`, `<`/`lt`, `<=`/`le`, `>`/`gt`, `>=`/`ge`
+> **Supported operators:** `+`/`add`, `-`/`sub`, `*`/`mul`, `/`/`div`, `%`/`mod`, `==`/`eq`, `!=`/`ne`, `<`/`lt`, `<=`/`le`, `>`/`gt`, `>=`/`ge`, `&`/`bitand`, `|`/`bitor`, `^`/`bitxor`, `<<`/`shl`, `>>`/`shr`
 >
-> **Auto-derivation:** Just implement `eq` + `lt` to get all 6 comparison operators! (`!=` from `!eq`, `>` by swapping `lt`, etc.)
+> **Type-based dispatch:** Same operator, different argument types → different methods!
+>
+> **Auto-derivation:** Just implement `eq` + `lt` to get all 6 comparison operators!
 
 ### **Pattern Matching** (In Progress)
 ```minz
@@ -500,6 +520,8 @@ fun main() -> void {
 - Zero-cost interface methods working!
 - **UFCS method syntax** now working! (`obj.method()` → `Type_method(obj)`)
 - **Operator overloading** now working! (`v1 + v2` → `v1.add(v2)`)
+- **Type-based operator dispatch** now working! (`Vec*Vec` vs `Vec*i16`)
+- **Auto-derivation** for comparisons! (just `eq` + `lt` → all 6 operators)
 - See [Release Notes](reports/2025-12-18-003-release-notes.md) for details
 
 ### **Optimization Impact**
@@ -695,9 +717,9 @@ MinZ proves that modern programming belongs on vintage hardware. Join us in buil
 
 ### **MinZ: Where Modern Dreams Meet Vintage Reality™**
 
-*From v0.1.0 to v0.16.4 and beyond - Every release a revolution!*
+*From v0.1.0 to v0.17.0 and beyond - Every release a revolution!*
 
-> **v0.16.4 Highlights:** GLSL shader library with raymarching, SDFs, and fixed-point math - 3D graphics on Z80!
+> **v0.17.0 Highlights:** UFCS method syntax + Operator overloading with type-based dispatch and auto-derivation!
 
 > ⚠️ **Remember:** MinZ is under active development. Join us in building the future of retro computing!
 
