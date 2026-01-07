@@ -275,6 +275,8 @@ fun main() -> void {
 }
 ```
 > **Supported operators:** `+`/`add`, `-`/`sub`, `*`/`mul`, `/`/`div`, `==`/`eq`, `!=`/`ne`, `<`/`lt`, `<=`/`le`, `>`/`gt`, `>=`/`ge`
+>
+> **Auto-derivation:** Just implement `eq` + `lt` to get all 6 comparison operators! (`!=` from `!eq`, `>` by swapping `lt`, etc.)
 
 ### **Pattern Matching** (In Progress)
 ```minz

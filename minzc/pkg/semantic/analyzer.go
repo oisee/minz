@@ -4402,23 +4402,27 @@ func (a *Analyzer) analyzeBinaryExpr(bin *ast.BinaryExpr, irFunc *ir.Function) (
 
 	// Check for operator overloading BEFORE analyzing operands for primitive operations
 	// This allows struct types to define custom operator behavior
-	methodName := operatorMethodName(bin.Operator)
-	if methodName != "" {
+	// Also supports auto-derivation (e.g., != from ==, > from <)
+	if operatorMethodName(bin.Operator) != "" {
 		// First, try to get the type of the left operand without fully analyzing it
 		// We need to check if it's a struct type with an operator method
 		leftType := a.inferExpressionType(bin.Left)
 		if leftType != nil {
-			// Check if this type has an operator method
-			if methodSym := a.findTypeMethod(leftType, methodName); methodSym != nil {
-				// Found operator method! Transform to method call
-				if funcSym, ok := methodSym.(*FuncSymbol); ok {
-					if debug {
-						fmt.Printf("DEBUG: Operator overloading: %s %s => %s.%s()\n",
-							leftType.String(), bin.Operator, leftType.String(), methodName)
+			// Check if this type has an operator method (explicit or derived)
+			if deriv := a.findOperatorDerivation(leftType, bin.Operator); deriv != nil {
+				if debug {
+					derivInfo := ""
+					if deriv.Swap {
+						derivInfo += " [swap]"
 					}
-					// Create synthetic method call: left.methodName(right)
-					return a.analyzeOperatorMethodCall(bin, funcSym, irFunc)
+					if deriv.Negate {
+						derivInfo += " [negate]"
+					}
+					fmt.Printf("DEBUG: Operator overloading: %s %s => %s%s\n",
+						leftType.String(), bin.Operator, deriv.Method.Name, derivInfo)
 				}
+				// Create synthetic method call with derivation support
+				return a.analyzeOperatorMethodCall(bin, deriv, irFunc)
 			}
 		}
 	}
@@ -9133,6 +9137,81 @@ func operatorMethodName(op string) string {
 	}
 }
 
+// OperatorDerivation describes how to implement an operator, possibly
+// by deriving it from another operator method
+type OperatorDerivation struct {
+	Method *FuncSymbol // The method to call
+	Negate bool        // Negate the result (e.g., ne from eq)
+	Swap   bool        // Swap operands (e.g., gt from lt: a > b = b < a)
+}
+
+// findOperatorDerivation tries to find an explicit operator method or derive one.
+// Priority: 1) Explicit method, 2) Derivation from related method
+// This allows users to override derived behavior if needed.
+func (a *Analyzer) findOperatorDerivation(typ ir.Type, op string) *OperatorDerivation {
+	methodName := operatorMethodName(op)
+	if methodName == "" {
+		return nil
+	}
+
+	// Helper to get FuncSymbol from method lookup
+	getMethod := func(name string) *FuncSymbol {
+		if sym := a.findTypeMethod(typ, name); sym != nil {
+			if funcSym, ok := sym.(*FuncSymbol); ok {
+				return funcSym
+			}
+		}
+		return nil
+	}
+
+	// 1. Check for explicit method first (always takes priority)
+	if method := getMethod(methodName); method != nil {
+		return &OperatorDerivation{Method: method}
+	}
+
+	// 2. Try derivation strategies
+	switch op {
+	case "!=": // ne from eq: a != b = !(a == b)
+		if eq := getMethod("eq"); eq != nil {
+			return &OperatorDerivation{Method: eq, Negate: true}
+		}
+
+	case ">": // gt from lt (swap): a > b = b < a
+		if lt := getMethod("lt"); lt != nil {
+			return &OperatorDerivation{Method: lt, Swap: true}
+		}
+
+	case ">=": // ge from lt (negate): a >= b = !(a < b)
+		if lt := getMethod("lt"); lt != nil {
+			return &OperatorDerivation{Method: lt, Negate: true}
+		}
+		// Or from le (swap): a >= b = b <= a
+		if le := getMethod("le"); le != nil {
+			return &OperatorDerivation{Method: le, Swap: true}
+		}
+
+	case "<=": // le from gt (negate): a <= b = !(a > b)
+		if gt := getMethod("gt"); gt != nil {
+			return &OperatorDerivation{Method: gt, Negate: true}
+		}
+		// Or from lt (swap + negate): a <= b = !(b < a) -- wait, that's wrong
+		// Actually: a <= b = b >= a, or a <= b = !(a > b)
+		// If we only have lt: a <= b = (a < b) || (a == b) -- too complex
+		// Better: a <= b = !(b < a) is WRONG. a <= b when b < a is false doesn't mean a <= b
+		// Correct: a <= b = (a < b) OR (a == b), or a <= b = NOT(a > b)
+		// Since a > b = b < a (swap), then NOT(a > b) = NOT(b < a)
+		// So: a <= b = !(b < a) -- but this is wrong! 3 <= 3 but !(3 < 3) = true... wait that's right!
+		// Let me verify: 3 <= 3? Yes. !(3 < 3)? 3 < 3 is false, so !false = true. Correct!
+		// And: 2 <= 3? Yes. !(3 < 2)? 3 < 2 is false, so !false = true. Correct!
+		// And: 4 <= 3? No. !(3 < 4)? 3 < 4 is true, so !true = false. Correct!
+		if lt := getMethod("lt"); lt != nil {
+			return &OperatorDerivation{Method: lt, Swap: true, Negate: true}
+		}
+	}
+
+	return nil
+}
+
 // inferExpressionType tries to determine the type of an expression without
 // fully analyzing it. Used for operator overloading to check if a type has
 // an operator method before committing to primitive operation.
@@ -9178,31 +9257,66 @@ func (a *Analyzer) inferExpressionType(expr ast.Expression) ir.Type {
 
 // analyzeOperatorMethodCall handles operator overloading by transforming
 // a binary expression like `a + b` into a method call `a.add(b)`
-func (a *Analyzer) analyzeOperatorMethodCall(bin *ast.BinaryExpr, funcSym *FuncSymbol, irFunc *ir.Function) (ir.Register, error) {
-	// Analyze left operand (receiver/self)
-	leftReg, err := a.analyzeExpression(bin.Left, irFunc)
+func (a *Analyzer) analyzeOperatorMethodCall(bin *ast.BinaryExpr, deriv *OperatorDerivation, irFunc *ir.Function) (ir.Register, error) {
+	funcSym := deriv.Method
+
+	// Analyze operands - swap if needed for derived operators like a > b = b < a
+	var selfExpr, otherExpr ast.Expression
+	if deriv.Swap {
+		selfExpr = bin.Right  // Swapped: right becomes self
+		otherExpr = bin.Left  // Swapped: left becomes other
+	} else {
+		selfExpr = bin.Left   // Normal: left is self
+		otherExpr = bin.Right // Normal: right is other
+	}
+
+	// Analyze self (receiver)
+	selfReg, err := a.analyzeExpression(selfExpr, irFunc)
 	if err != nil {
 		return 0, err
 	}
 
-	// Analyze right operand (argument)
-	rightReg, err := a.analyzeExpression(bin.Right, irFunc)
+	// Analyze other (argument)
+	otherReg, err := a.analyzeExpression(otherExpr, irFunc)
 	if err != nil {
 		return 0, err
 	}
 
 	// Generate method call
-	resultReg := irFunc.AllocReg()
+	callResultReg := irFunc.AllocReg()
+
+	// Build comment showing derivation
+	comment := fmt.Sprintf("Operator %s via %s", bin.Operator, funcSym.Name)
+	if deriv.Swap && deriv.Negate {
+		comment += " (swap+negate)"
+	} else if deriv.Swap {
+		comment += " (swap)"
+	} else if deriv.Negate {
+		comment += " (negate)"
+	}
 
 	// Emit call instruction with both arguments
 	// The method signature is: methodName(self, other)
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:      ir.OpCall,
-		Dest:    resultReg,
-		Args:    []ir.Register{leftReg, rightReg},
+		Dest:    callResultReg,
+		Args:    []ir.Register{selfReg, otherReg},
 		Symbol:  funcSym.Name,
-		Comment: fmt.Sprintf("Operator %s via %s", bin.Operator, funcSym.Name),
+		Comment: comment,
 	})
+
+	// If we need to negate the result (e.g., ne from eq)
+	resultReg := callResultReg
+	if deriv.Negate {
+		resultReg = irFunc.AllocReg()
+		// Emit NOT instruction: result = !callResult
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpNot,
+			Dest:    resultReg,
+			Src1:    callResultReg,
+			Comment: fmt.Sprintf("Negate for %s derivation", bin.Operator),
+		})
+	}
 
 	// Store result type
 	a.exprTypes[bin] = funcSym.ReturnType

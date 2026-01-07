@@ -34,6 +34,65 @@ v1 == v2     // Transforms to: v1.eq(v2)  -> Vec2_eq(v1, v2)
 | `<<` | `shl` | `v1 << v2` -> `v1.shl(v2)` |
 | `>>` | `shr` | `v1 >> v2` -> `v1.shr(v2)` |
 
+## Auto-Derivation
+
+MinZ automatically derives missing comparison operators from related ones. This means you only need to implement `eq` and `lt` to get all 6 comparison operators!
+
+### Derivation Rules
+
+| Operator | Derives From | Transformation |
+|----------|--------------|----------------|
+| `!=` | `eq` | `a != b` = `!(a.eq(b))` |
+| `>` | `lt` | `a > b` = `b.lt(a)` (swap operands) |
+| `>=` | `lt` | `a >= b` = `!(a.lt(b))` |
+| `<=` | `gt` or `lt` | `a <= b` = `!(a.gt(b))` or `!(b.lt(a))` |
+
+### Priority
+
+1. **Explicit method always wins** - If you define `ne`, it will be used instead of deriving from `eq`
+2. **Derivation as fallback** - Only used when explicit method is not found
+
+### Minimal Implementation Example
+
+```minz
+struct Vec2 { x: i16, y: i16 }
+
+impl Vec2 {
+    // Only define eq and lt - get !=, >, >=, <= for free!
+    fun eq(self, other: Vec2) -> bool {
+        return self.x == other.x;
+    }
+
+    fun lt(self, other: Vec2) -> bool {
+        return self.x < other.x;
+    }
+}
+
+fun main() -> void {
+    let v1 = Vec2 { x: 3, y: 4 };
+    let v2 = Vec2 { x: 1, y: 2 };
+
+    if v1 == v2 { }  // Direct: eq
+    if v1 != v2 { }  // Derived: !eq
+    if v1 <  v2 { }  // Direct: lt
+    if v1 >  v2 { }  // Derived: swap lt
+    if v1 >= v2 { }  // Derived: !lt
+    if v1 <= v2 { }  // Derived: swap+negate lt
+}
+```
+
+### Generated Assembly Comments
+
+The compiler adds comments showing derivation:
+```asm
+; Operator == via Vec2.eq
+; Operator != via Vec2.eq (negate)
+; Operator <  via Vec2.lt
+; Operator >  via Vec2.lt (swap)
+; Operator >= via Vec2.lt (negate)
+; Operator <= via Vec2.lt (swap+negate)
+```
+
 ## Usage Example
 
 ```minz
