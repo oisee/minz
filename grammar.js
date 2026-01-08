@@ -1060,7 +1060,8 @@ module.exports = grammar({
 
     // Allow parameter placeholders like {addr} in inline asm
     // Matches text with optional {identifier} placeholders
-    asm_instruction: $ => /[^\n{}]*(\{[a-zA-Z_][a-zA-Z0-9_]*\}[^\n{}]*)*/,
+    // FIXED: Changed * to + to prevent empty string matches (caused infinite loop)
+    asm_instruction: $ => /[^\n{}]+(\{[a-zA-Z_][a-zA-Z0-9_]*\}[^\n{}]*)*/,
 
     mir_instruction: $ => prec.left(seq(
       choice(
