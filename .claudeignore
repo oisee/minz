@@ -1,0 +1,42 @@
+# Git internals (CRITICAL - prevents OOM)
+.git/
+
+# Binary releases - don't parse
+releases/
+minzc/releases/
+minzc/release*/
+minzc/archive/
+_archive/
+_zxspeculator/
+
+# Root binary executables (MinZ tools)
+mz
+mza
+mzrun
+mztap
+mz_pgo
+mzr-simple
+
+# Build artifacts
+*.exe
+*.a
+*.so
+*.dylib
+*.o
+*.ir
+
+# Large generated files
+*.wasm
+*.bin
+src/parser.c
+
+# ZX Spectrum binaries
+*.tap
+*.tzx
+*.sna
+*.z80
+
+# Archives
+*.zip
+*.tar.gz
+*.tgz
