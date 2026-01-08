@@ -1,10 +1,16 @@
 # Git internals (CRITICAL - prevents OOM)
 .git/
+**/.git/
+_zxspeculator/.git/
+.git/objects/
+**/.git/objects/
 
 # Binary releases - don't parse
 releases/
 minzc/releases/
-minzc/release*/
+minzc/release/
+minzc/release-*/
+minzc/release_*/
 minzc/archive/
 _archive/
 _zxspeculator/
@@ -12,10 +18,15 @@ _zxspeculator/
 # Root binary executables (MinZ tools)
 mz
 mza
+mze
 mzrun
 mztap
 mz_pgo
 mzr-simple
+minzc/main
+minzc/mz
+minzc/mz_pgo
+minzc/minzc
 
 # Build artifacts
 *.exe
@@ -40,3 +51,24 @@ src/parser.c
 *.zip
 *.tar.gz
 *.tgz
+*.tar
+*.7z
+*.rar
+
+# Generated/cached
+node_modules/
+zig-cache/
+zig-out/
+*.pack
+*.idx
+
+# Test outputs (many small files)
+tests/**/stdout
+tests/**/stderr
+tests/**/*.stdout
+tests/**/*.stderr
+tests/**/*.err
+
+# Large generated parsers
+**/parser.c
+minzc/mz-grammar/
