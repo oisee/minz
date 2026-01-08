@@ -224,6 +224,11 @@ const (
 	OpCheckCast         // Check cast conformance at compile-time
 	OpMethodDispatch    // Static method dispatch to concrete implementation
 	OpInterfaceCall     // Interface method call (resolved at compile-time)
+
+	// I/O Port operations (v0.18.0) - for MZV platform abstraction
+	OpPortIn            // r0 = port_in(port) - read from I/O port
+	OpPortOut           // port_out(port, r0) - write to I/O port
+	OpSyscall           // syscall(id, args...) - platform system call
 )
 
 // RegisterHint provides hints to the register allocator for optimal Z80 register usage
@@ -1231,6 +1236,9 @@ func (op Opcode) String() string {
 	case OpArrayElement: return "ARRAY_ELEMENT"
 	case OpLoadElement: return "LOAD_ELEMENT"
 	case OpStoreElement: return "STORE_ELEMENT"
+	case OpPortIn: return "PORT_IN"
+	case OpPortOut: return "PORT_OUT"
+	case OpSyscall: return "SYSCALL"
 	default: return fmt.Sprintf("UNKNOWN_OP_%d", int(op))
 	}
 }

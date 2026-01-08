@@ -18,6 +18,7 @@ type Config struct {
 	Verbose      bool
 	OutputStream io.Writer
 	Breakpoints  map[string][]int // function -> instruction indices
+	Platform     Platform          // Hardware platform (nil = headless)
 }
 
 // Statistics tracks execution statistics
@@ -32,28 +33,31 @@ type Statistics struct {
 type VM struct {
 	config Config
 	stats  Statistics
-	
+
 	// Memory and registers
 	memory    []byte
 	registers [256]int64 // Virtual registers
 	pc        int         // Program counter (instruction index)
 	sp        int         // Stack pointer
 	fp        int         // Frame pointer
-	
+
 	// Module and execution state
 	module        *ir.Module
 	currentFunc   *ir.Function
 	funcIndex     map[string]*ir.Function
 	callStack     []CallFrame
-	
+
 	// Debug state
 	breakHit      bool
 	stepMode      bool
 	instructionCount int
-	
+
 	// Metaprogramming support
 	emittedCode   []string // Captured @emit output
 	stringPool    map[int64]string // String literals
+
+	// Platform abstraction (v0.18.0)
+	platform      Platform
 }
 
 // CallFrame represents a function call frame
@@ -66,7 +70,7 @@ type CallFrame struct {
 
 // New creates a new VM instance
 func New(config Config) *VM {
-	return &VM{
+	vm := &VM{
 		config:      config,
 		memory:      make([]byte, config.MemorySize),
 		funcIndex:   make(map[string]*ir.Function),
@@ -75,6 +79,15 @@ func New(config Config) *VM {
 		emittedCode: make([]string, 0),
 		stringPool:  make(map[int64]string),
 	}
+
+	// Initialize platform (default to headless if not provided)
+	if config.Platform != nil {
+		vm.platform = config.Platform
+	} else {
+		vm.platform = NewHeadlessPlatform()
+	}
+
+	return vm
 }
 
 // LoadModule loads a MIR module into the VM
@@ -304,7 +317,34 @@ func (vm *VM) executeInstruction() (bool, error) {
 		if inst.StringValue != "" {
 			vm.stringPool[int64(inst.StringID)] = inst.StringValue
 		}
-		
+
+	// Platform I/O operations (v0.18.0)
+	case ir.OpPortIn:
+		// r0 = port_in(port) - read from I/O port
+		port := uint16(inst.Imm)
+		if inst.Src1 != 0 {
+			port = uint16(vm.registers[inst.Src1])
+		}
+		vm.registers[inst.Dest] = int64(vm.platform.PortIn(port))
+
+	case ir.OpPortOut:
+		// port_out(port, r0) - write to I/O port
+		port := uint16(inst.Imm)
+		if inst.Src1 != 0 {
+			port = uint16(vm.registers[inst.Src1])
+		}
+		value := byte(vm.registers[inst.Src2])
+		vm.platform.PortOut(port, value)
+
+	case ir.OpSyscall:
+		// syscall(id, args...) - platform system call
+		syscallID := int(inst.Imm)
+		result, err := vm.handleSyscall(syscallID, inst)
+		if err != nil {
+			return false, err
+		}
+		vm.registers[inst.Dest] = result
+
 	default:
 		return false, fmt.Errorf("unknown opcode: %v", inst.Op)
 	}
@@ -436,8 +476,79 @@ func (vm *VM) handleBuiltin(name string) bool {
 		}
 		return true
 	}
-	
+
 	return false
+}
+
+// handleSyscall handles platform system calls
+func (vm *VM) handleSyscall(id int, inst ir.Instruction) (int64, error) {
+	switch id {
+	case 0: // exit(code)
+		code := int(vm.registers[inst.Src1])
+		vm.platform.Exit(code)
+		return 0, nil
+
+	case 1: // write_char(char)
+		ch := byte(vm.registers[inst.Src1])
+		vm.platform.WriteChar(ch)
+		return 1, nil
+
+	case 2: // read_char() -> char
+		ch, ok := vm.platform.ReadChar()
+		if !ok {
+			return -1, nil // EOF
+		}
+		return int64(ch), nil
+
+	case 3: // port_out(port, value)
+		port := uint16(vm.registers[inst.Src1])
+		value := byte(vm.registers[inst.Src2])
+		vm.platform.PortOut(port, value)
+		return 0, nil
+
+	case 4: // port_in(port) -> value
+		port := uint16(vm.registers[inst.Src1])
+		value := vm.platform.PortIn(port)
+		return int64(value), nil
+
+	case 10: // set_pixel(x, y, color) - if display available
+		if vm.platform.HasDisplay() {
+			x := int(vm.registers[inst.Src1])
+			y := int(vm.registers[inst.Src2])
+			color := uint32(vm.registers[0]) // color in r0
+			vm.platform.Display().SetPixel(x, y, color)
+		}
+		return 0, nil
+
+	case 11: // get_pixel(x, y) -> color
+		if vm.platform.HasDisplay() {
+			x := int(vm.registers[inst.Src1])
+			y := int(vm.registers[inst.Src2])
+			color := vm.platform.Display().GetPixel(x, y)
+			return int64(color), nil
+		}
+		return 0, nil
+
+	case 12: // clear_screen(color)
+		if vm.platform.HasDisplay() {
+			color := uint32(vm.registers[inst.Src1])
+			vm.platform.Display().Clear(color)
+		}
+		return 0, nil
+
+	default:
+		return 0, fmt.Errorf("unknown syscall: %d", id)
+	}
+}
+
+// GetPlatform returns the current platform
+func (vm *VM) GetPlatform() Platform {
+	return vm.platform
+}
+
+// SetPlatform sets the platform (for runtime platform switching)
+func (vm *VM) SetPlatform(p Platform) {
+	vm.platform = p
 }
 
 // Memory access functions
