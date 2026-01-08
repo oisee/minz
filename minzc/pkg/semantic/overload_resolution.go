@@ -134,6 +134,36 @@ func (a *Analyzer) resolveOverload(baseName string, args []ast.Expression, irFun
 					return nil, fmt.Errorf("cannot determine type of field expression %s.%s", 
 						e.Object, e.Field)
 				}
+		case *ast.CallExpr:
+			// Handle nested function calls - analyze and get return type
+			if _, err := a.analyzeExpression(e, irFunc); err == nil {
+				typ = a.exprTypes[arg]
+			}
+			if typ == nil {
+				// Try to resolve the nested call's function to get its return type
+				switch fn := e.Function.(type) {
+				case *ast.Identifier:
+					// Regular function call
+					if nestedFunc, err := a.resolveOverload(fn.Name, e.Arguments, irFunc); err == nil {
+						typ = nestedFunc.ReturnType
+						a.exprTypes[arg] = typ
+					}
+				case *ast.FieldExpr:
+					// Method call (e.g., self.dot(other))
+					// Get the type of the receiver object
+					if objType := a.inferExpressionType(fn.Object); objType != nil {
+						// Look up method in the type's impl block using findInterfaceMethod
+						methodName := fn.Field
+						if methodSym := a.findInterfaceMethod(objType, methodName); methodSym != nil {
+							typ = methodSym.ReturnType
+							a.exprTypes[arg] = typ
+						}
+					}
+				}
+			}
+			if typ == nil {
+				return nil, fmt.Errorf("cannot determine return type of nested call")
+			}
 			default:
 				return nil, fmt.Errorf("cannot determine type of argument %d (type: %T)", i, arg)
 			}

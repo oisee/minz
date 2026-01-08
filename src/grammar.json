@@ -5305,7 +5305,7 @@
     },
     "asm_instruction": {
       "type": "PATTERN",
-      "value": "[^\\n{}]*(\\{[a-zA-Z_][a-zA-Z0-9_]*\\}[^\\n{}]*)*"
+      "value": "[^\\n{}]+(\\{[a-zA-Z_][a-zA-Z0-9_]*\\}[^\\n{}]*)*"
     },
     "mir_instruction": {
       "type": "PREC_LEFT",

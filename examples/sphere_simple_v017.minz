@@ -10,7 +10,7 @@
 // Fixed-Point Math (8.8 format)
 // ============================================
 
-const FP_ONE: i16 = 256;
+const FP_ONE: i16 = 256;  // 1.0 in 8.8 fixed-point
 
 fun fp_mul(a: i16, b: i16) -> i16 {
     let ah = a >> 8;
@@ -142,14 +142,14 @@ fun main() -> void {
     cls();
 
     // Camera at z = -3.0
-    let ro = v3(0, 0, -768);
+    let ro = v3(0 as i16, 0 as i16, -768 as i16);
 
     // Sphere: center at origin, radius 1.0
-    let center = v3(0, 0, 0);
+    let center = v3(0 as i16, 0 as i16, 0 as i16);
     let radius: i16 = FP_ONE;
 
     // Light from upper-right-front
-    let light = v3(147, 147, -147).normalize();
+    let light = v3(147 as i16, 147 as i16, -147 as i16).normalize();
 
     // Render 64x48 (quarter resolution for speed)
     for py in 0..48 {

@@ -5375,9 +5375,26 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 						}
 					}
 				}
+			} else {
+				// Chained method call on any expression: expr.method()
+				// First analyze the expression to get its return type
+				_, err := a.analyzeExpression(fn.Object, irFunc)
+				if err == nil {
+					// Get the return type of the expression
+					if innerType := a.exprTypes[fn.Object]; innerType != nil {
+						// Find the method in the return type's impl block
+						methodFunc := a.findInterfaceMethod(innerType, fn.Field)
+						if methodFunc != nil {
+							sym = methodFunc
+							funcName = methodFunc.Name
+							isMethodCall = true
+							methodReceiver = fn.Object // The expression result is the receiver
+						}
+					}
+				}
 			}
 		}
-		
+
 		if sym == nil {
 			// Check if this looks like a nested public function call
 			if strings.Contains(funcName, ".") {
@@ -8186,11 +8203,33 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 			return s.Type, nil
 		case *ConstSymbol:
 			return s.Type, nil
+		case *TypeSymbol:
+			// Type name - return the type itself for struct types
+			return s.Type, nil
 		case *ModuleSymbol:
 			return nil, fmt.Errorf("module %s cannot be used as a value", s.Name)
 		default:
 			return nil, fmt.Errorf("cannot infer type from %s", e.Name)
 		}
+	case *ast.StructLiteral:
+		// Struct literal - look up the struct type
+		if e.TypeName != "" {
+			if sym := a.currentScope.Lookup(e.TypeName); sym != nil {
+				if typeSym, ok := sym.(*TypeSymbol); ok {
+					return typeSym.Type, nil
+				}
+			}
+			// Try with module prefix
+			if a.currentModule != "" {
+				prefixedName := a.prefixSymbol(e.TypeName)
+				if sym := a.currentScope.Lookup(prefixedName); sym != nil {
+					if typeSym, ok := sym.(*TypeSymbol); ok {
+						return typeSym.Type, nil
+					}
+				}
+			}
+		}
+		return nil, fmt.Errorf("cannot infer type for struct literal: %s", e.TypeName)
 	case *ast.CallExpr:
 		// Infer type from function return type
 		var funcName string
@@ -8229,8 +8268,20 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 						}
 					}
 				}
+			} else {
+				// Chained method call on any expression: expr.method()
+				// Try to infer the type of the object expression
+				innerType, err := a.inferType(fn.Object)
+				if err == nil && innerType != nil {
+					// Find the method in the return type's impl block
+					methodFunc := a.findInterfaceMethod(innerType, fn.Field)
+					if methodFunc != nil {
+						sym = methodFunc
+						funcName = methodFunc.Name
+					}
+				}
 			}
-			
+
 		default:
 			return nil, fmt.Errorf("indirect function calls not yet supported for type inference")
 		}
@@ -8311,16 +8362,38 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 					}
 				}
 			}
+			// Check for operator overloading on struct types
+			if structType, ok := leftType.(*ir.StructType); ok {
+				methodName := "sub"
+				if e.Operator == "+" {
+					methodName = "add"
+				}
+				methodFunc := a.findInterfaceMethod(structType, methodName)
+				if methodFunc != nil {
+					return methodFunc.ReturnType, nil
+				}
+			}
 			// For non-pointer arithmetic, check type compatibility
 			if !a.typesCompatible(leftType, rightType) {
-				return nil, fmt.Errorf("type mismatch in binary expression: %s vs %s", 
+				return nil, fmt.Errorf("type mismatch in binary expression: %s vs %s",
 					leftType.String(), rightType.String())
 			}
 			return leftType, nil
 		case "*", "/", "%", "&", "|", "^", "<<", ">>":
+			// Check for operator overloading on struct types
+			if structType, ok := leftType.(*ir.StructType); ok {
+				methodName := "mul"
+				if e.Operator == "/" {
+					methodName = "div"
+				}
+				methodFunc := a.findInterfaceMethod(structType, methodName)
+				if methodFunc != nil {
+					return methodFunc.ReturnType, nil
+				}
+			}
 			// Check if types match
 			if !a.typesCompatible(leftType, rightType) {
-				return nil, fmt.Errorf("type mismatch in binary expression: %s vs %s", 
+				return nil, fmt.Errorf("type mismatch in binary expression: %s vs %s",
 					leftType.String(), rightType.String())
 			}
 			// For now, just return the left type
@@ -8616,8 +8689,8 @@ func (a *Analyzer) typesCompatible(declared, inferred ir.Type) bool {
 			// i8 can only accept i8
 			return infBasic.Kind == ir.TypeI8
 		case ir.TypeI16:
-			// i16 can accept i8, i16, u8
-			return infBasic.Kind == ir.TypeI8 || infBasic.Kind == ir.TypeI16 || infBasic.Kind == ir.TypeU8
+			// i16 can accept i8, i16, u8, u16 (for numeric literals that fit)
+			return infBasic.Kind == ir.TypeI8 || infBasic.Kind == ir.TypeI16 || infBasic.Kind == ir.TypeU8 || infBasic.Kind == ir.TypeU16
 		case ir.TypeVoid:
 			// Void matches void
 			return infBasic.Kind == ir.TypeVoid
