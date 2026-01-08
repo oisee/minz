@@ -1,0 +1,202 @@
+// sphere_simple_v017.minz - Minimal Sphere Demo
+// MinZ v0.17.0 - Idiomatic Vector Syntax Showcase
+//
+// Shows clean ray-sphere intersection with operator overloading:
+//   let hit = ro + rd * t;              // Vector + Vector * scalar
+//   let normal = hit.normalize();       // UFCS method call
+//   let diff = normal.dot(light);       // Dot product method
+
+// ============================================
+// Fixed-Point Math (8.8 format)
+// ============================================
+
+const FP_ONE: i16 = 256;
+
+fun fp_mul(a: i16, b: i16) -> i16 {
+    let ah = a >> 8;
+    let al = a & 255;
+    let bh = b >> 8;
+    let bl = b & 255;
+    return (ah * bh << 8) + ah * bl + al * bh + ((al * bl) >> 8);
+}
+
+fun fp_max(a: i16, b: i16) -> i16 {
+    if a > b { return a; }
+    return b;
+}
+
+fun fp_sqrt(x: i16) -> i16 {
+    if x <= 0 { return 0; }
+    let g: i16 = 128;
+    g = (g + x / g) >> 1;
+    g = (g + x / g) >> 1;
+    g = (g + x / g) >> 1;
+    return g;
+}
+
+fun fp_div(a: i16, b: i16) -> i16 {
+    if b == 0 { return 32767; }
+    return (a << 8) / b;
+}
+
+// ============================================
+// vec3 with Operator Overloading
+// ============================================
+
+struct vec3 { x: i16, y: i16, z: i16 }
+
+impl vec3 {
+    // v + w
+    fun add(self, other: vec3) -> vec3 {
+        return vec3 { x: self.x + other.x, y: self.y + other.y, z: self.z + other.z };
+    }
+
+    // v - w
+    fun sub(self, other: vec3) -> vec3 {
+        return vec3 { x: self.x - other.x, y: self.y - other.y, z: self.z - other.z };
+    }
+
+    // v * scalar
+    fun mul(self, s: i16) -> vec3 {
+        return vec3 { x: fp_mul(self.x, s), y: fp_mul(self.y, s), z: fp_mul(self.z, s) };
+    }
+
+    // v.dot(w)
+    fun dot(self, other: vec3) -> i16 {
+        return fp_mul(self.x, other.x) + fp_mul(self.y, other.y) + fp_mul(self.z, other.z);
+    }
+
+    // v.length()
+    fun length(self) -> i16 {
+        return fp_sqrt(self.dot(self));
+    }
+
+    // v.normalize()
+    fun normalize(self) -> vec3 {
+        let len = self.length();
+        if len == 0 { return vec3 { x: 0, y: 0, z: 0 }; }
+        return vec3 { x: fp_div(self.x, len), y: fp_div(self.y, len), z: fp_div(self.z, len) };
+    }
+}
+
+// Constructor
+fun v3(x: i16, y: i16, z: i16) -> vec3 {
+    return vec3 { x: x, y: y, z: z };
+}
+
+// ============================================
+// ONE-STEP: Ray-Sphere Intersection
+// ============================================
+
+// Geometric ray-sphere test - no iteration, just quadratic formula
+fun ray_sphere(ro: vec3, rd: vec3, center: vec3, radius: i16) -> i16 {
+    let oc = ro - center;
+
+    // Solve: |ro + rd*t - center|^2 = r^2
+    // Quadratic: t^2 + 2*(oc.rd)*t + (oc.oc - r^2) = 0
+    let b = oc.dot(rd);
+    let c = oc.dot(oc) - fp_mul(radius, radius);
+    let disc = fp_mul(b, b) - c;
+
+    if disc < 0 { return -1; }
+
+    let t = -b - fp_sqrt(disc);
+    if t < 0 { return -1; }
+
+    return t;
+}
+
+// ============================================
+// ZX Spectrum Screen
+// ============================================
+
+const SCREEN: u16 = 0x4000;
+
+fun plot(x: u8, y: u8) -> void {
+    let yh = (y >> 6) & 3;
+    let ym = (y >> 3) & 7;
+    let yl = y & 7;
+    let addr: u16 = SCREEN + ((yh as u16) << 11) + ((yl as u16) << 8) + ((ym as u16) << 5) + ((x >> 3) as u16);
+    let bit: u8 = 128 >> (x & 7);
+    asm {
+        LD HL, (addr)
+        LD A, (HL)
+        OR A, (bit)
+        LD (HL), A
+    }
+}
+
+fun cls() -> void {
+    let a: u16 = SCREEN;
+    for i in 0..6144 {
+        asm { LD HL, (a); LD (HL), 0 }
+        a = a + 1;
+    }
+}
+
+// ============================================
+// Main - Render Sphere with ONE-STEP intersection
+// ============================================
+
+fun main() -> void {
+    cls();
+
+    // Camera at z = -3.0
+    let ro = v3(0, 0, -768);
+
+    // Sphere: center at origin, radius 1.0
+    let center = v3(0, 0, 0);
+    let radius: i16 = FP_ONE;
+
+    // Light from upper-right-front
+    let light = v3(147, 147, -147).normalize();
+
+    // Render 64x48 (quarter resolution for speed)
+    for py in 0..48 {
+        let y: u8 = (py * 4) as u8;
+
+        for px in 0..64 {
+            let x: u8 = (px * 4) as u8;
+
+            // Ray direction
+            let rx: i16 = ((x as i16) - 128) << 1;
+            let ry: i16 = ((y as i16) - 96) << 1;
+            let rd = v3(rx, ry, FP_ONE).normalize();
+
+            // ONE-STEP: Direct ray-sphere intersection
+            let t = ray_sphere(ro, rd, center, radius);
+
+            if t >= 0 {
+                // Hit point using idiomatic syntax!
+                let hit = ro + rd * t;
+
+                // Normal = (hit - center).normalize()
+                let normal = (hit - center).normalize();
+
+                // Diffuse: normal.dot(light)
+                let diff = fp_max(normal.dot(light), 0);
+
+                // Simple dithering based on brightness
+                if diff > 32 { plot(x + 1, y + 1); }
+                if diff > 64 { plot(x, y); }
+                if diff > 128 { plot(x + 2, y); plot(x, y + 2); }
+                if diff > 192 { plot(x + 3, y + 1); plot(x + 1, y + 3); }
+            }
+        }
+    }
+
+    loop { asm { HALT } }
+}
+
+// ============================================
+// v0.17 IDIOMATIC SYNTAX SHOWCASE:
+//
+//   let hit = ro + rd * t;           // Natural vector math
+//   let normal = (hit - center).normalize();  // Chained ops
+//   let diff = normal.dot(light);    // Method syntax
+//
+// Old v0.16 style (same assembly!):
+//   let hit = v3_add(ro, v3_mulf(rd, t));
+//   let normal = v3_normalize(v3_sub(hit, center));
+//   let diff = v3_dot(normal, light);
+// ============================================

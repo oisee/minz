@@ -1,0 +1,281 @@
+// raymarcher_v017.minz - Working Raymarcher with v0.17 Operator Overloading
+// Renders a sphere with box carved out to ZX Spectrum screen
+
+// ============================================
+// Fixed-Point Math (8.8 format)
+// ============================================
+
+const FP_ONE: i16 = 256;
+
+fun fp_mul(a: i16, b: i16) -> i16 {
+    // Simplified 8.8 multiply using shifts
+    // For small values this works well enough
+    let ah = a >> 8;
+    let al = a & 255;
+    let bh = b >> 8;
+    let bl = b & 255;
+    return (ah * bh << 8) + ah * bl + al * bh + ((al * bl) >> 8);
+}
+
+fun fp_div(a: i16, b: i16) -> i16 {
+    if b == 0 { return 32767; }
+    return (a << 8) / b;
+}
+
+fun fp_max(a: i16, b: i16) -> i16 {
+    if a > b { return a; }
+    return b;
+}
+
+fun fp_min(a: i16, b: i16) -> i16 {
+    if a < b { return a; }
+    return b;
+}
+
+fun fp_abs(x: i16) -> i16 {
+    if x < 0 { return -x; }
+    return x;
+}
+
+// Fast integer square root (good enough for 8.8)
+fun fp_sqrt(x: i16) -> i16 {
+    if x <= 0 { return 0; }
+    if x < 256 { return 16; }  // sqrt of small values
+
+    // Newton-Raphson with 3 iterations
+    let guess: i16 = 128;
+    guess = (guess + x / guess) >> 1;
+    guess = (guess + x / guess) >> 1;
+    guess = (guess + x / guess) >> 1;
+    return guess;
+}
+
+// ============================================
+// vec3 with Operators
+// ============================================
+
+struct vec3 { x: i16, y: i16, z: i16 }
+
+impl vec3 {
+    fun add(self, other: vec3) -> vec3 {
+        return vec3 { x: self.x + other.x, y: self.y + other.y, z: self.z + other.z };
+    }
+
+    fun sub(self, other: vec3) -> vec3 {
+        return vec3 { x: self.x - other.x, y: self.y - other.y, z: self.z - other.z };
+    }
+
+    fun mul(self, s: i16) -> vec3 {
+        return vec3 { x: fp_mul(self.x, s), y: fp_mul(self.y, s), z: fp_mul(self.z, s) };
+    }
+
+    fun dot(self, other: vec3) -> i16 {
+        return fp_mul(self.x, other.x) + fp_mul(self.y, other.y) + fp_mul(self.z, other.z);
+    }
+
+    fun length(self) -> i16 {
+        let len_sq = self.dot(self);
+        return fp_sqrt(len_sq);
+    }
+
+    fun normalize(self) -> vec3 {
+        let len = self.length();
+        if len == 0 { return vec3 { x: 0, y: 0, z: 0 }; }
+        return vec3 { x: fp_div(self.x, len), y: fp_div(self.y, len), z: fp_div(self.z, len) };
+    }
+
+    fun abs(self) -> vec3 {
+        return vec3 { x: fp_abs(self.x), y: fp_abs(self.y), z: fp_abs(self.z) };
+    }
+
+    fun max(self, s: i16) -> vec3 {
+        return vec3 { x: fp_max(self.x, s), y: fp_max(self.y, s), z: fp_max(self.z, s) };
+    }
+}
+
+// ============================================
+// Dist - SDF with CSG Operators
+// ============================================
+
+struct Dist { value: i16 }
+
+impl Dist {
+    // CSG Subtraction: a - b (carve b from a)
+    fun sub(self, other: Dist) -> Dist {
+        return Dist { value: fp_max(self.value, -other.value) };
+    }
+
+    // CSG Union: a | b
+    fun bitor(self, other: Dist) -> Dist {
+        return Dist { value: fp_min(self.value, other.value) };
+    }
+}
+
+// ============================================
+// SDF Primitives
+// ============================================
+
+fun sphere(p: vec3, r: i16) -> Dist {
+    return Dist { value: p.length() - r };
+}
+
+fun sdf_box(p: vec3, b: vec3) -> Dist {
+    let q = p.abs() - b;
+    let outside = q.max(0).length();
+    let inside = fp_min(fp_max(q.x, fp_max(q.y, q.z)), 0);
+    return Dist { value: outside + inside };
+}
+
+// ============================================
+// Scene: Sphere with Box Carved Out
+// ============================================
+
+fun map(p: vec3) -> Dist {
+    let s = sphere(p, 200);  // Sphere radius ~0.78
+    let b = sdf_box(p, vec3 { x: 140, y: 140, z: 140 });  // Box ~0.55
+
+    // CSG: sphere - box (carve box from sphere)
+    return s - b;
+}
+
+// ============================================
+// Raymarching
+// ============================================
+
+fun raymarch(ro: vec3, rd: vec3) -> i16 {
+    let t: i16 = 0;
+
+    for i in 0..24 {
+        let p = ro + rd * t;
+        let d = map(p);
+
+        if d.value < 4 { return t; }
+        if t > 1280 { return -1; }  // 5.0 max dist
+
+        t = t + d.value;
+    }
+    return -1;
+}
+
+// ============================================
+// Normal Calculation
+// ============================================
+
+fun calcNormal(p: vec3) -> vec3 {
+    let e: i16 = 4;
+
+    let px = vec3 { x: p.x + e, y: p.y, z: p.z };
+    let nx = vec3 { x: p.x - e, y: p.y, z: p.z };
+    let py = vec3 { x: p.x, y: p.y + e, z: p.z };
+    let ny = vec3 { x: p.x, y: p.y - e, z: p.z };
+    let pz = vec3 { x: p.x, y: p.y, z: p.z + e };
+    let nz = vec3 { x: p.x, y: p.y, z: p.z - e };
+
+    let dx = map(px).value - map(nx).value;
+    let dy = map(py).value - map(ny).value;
+    let dz = map(pz).value - map(nz).value;
+
+    return vec3 { x: dx, y: dy, z: dz }.normalize();
+}
+
+// ============================================
+// ZX Spectrum Screen
+// ============================================
+
+const SCREEN_BASE: u16 = 0x4000;
+
+// Plot pixel at (x, y) - simplified for speed
+fun plot(x: u8, y: u8) -> void {
+    // ZX Spectrum screen address calculation
+    let y_high = (y >> 6) & 3;
+    let y_mid = (y >> 3) & 7;
+    let y_low = y & 7;
+
+    let addr: u16 = SCREEN_BASE + ((y_high as u16) << 11) + ((y_low as u16) << 8) + ((y_mid as u16) << 5) + ((x >> 3) as u16);
+    let bit: u8 = 128 >> (x & 7);
+
+    // Read-modify-write
+    let current: u8 = 0;
+    asm {
+        LD HL, (addr)
+        LD A, (HL)
+        LD (current), A
+    }
+    let new_val = current | bit;
+    asm {
+        LD HL, (addr)
+        LD A, (new_val)
+        LD (HL), A
+    }
+}
+
+// Clear screen
+fun cls() -> void {
+    let addr: u16 = SCREEN_BASE;
+    for i in 0..6144 {
+        asm {
+            LD HL, (addr)
+            LD (HL), 0
+        }
+        addr = addr + 1;
+    }
+}
+
+// ============================================
+// Main Render Loop
+// ============================================
+
+fun main() -> void {
+    cls();
+
+    // Camera at z = -3.0
+    let ro = vec3 { x: 0, y: 0, z: -768 };
+
+    // Light direction (normalized-ish)
+    let light = vec3 { x: 147, y: 147, z: -147 };
+
+    // Render 64x48 (every 4th pixel for speed)
+    for py in 0..48 {
+        let y: u8 = (py * 4) as u8;
+
+        for px in 0..64 {
+            let x: u8 = (px * 4) as u8;
+
+            // Ray direction
+            let rx: i16 = ((x as i16) - 128) << 1;
+            let ry: i16 = ((y as i16) - 96) << 1;
+            let rd = vec3 { x: rx, y: ry, z: FP_ONE }.normalize();
+
+            // Raymarch
+            let t = raymarch(ro, rd);
+
+            if t >= 0 {
+                // Hit - calculate shading
+                let hit = ro + rd * t;
+                let normal = calcNormal(hit);
+                let diff = normal.dot(light);
+
+                // Simple threshold dithering
+                if diff > 64 {
+                    plot(x, y);
+                    plot(x + 1, y);
+                    plot(x, y + 1);
+                    plot(x + 1, y + 1);
+                }
+                if diff > 128 {
+                    plot(x + 2, y);
+                    plot(x + 2, y + 1);
+                }
+                if diff > 192 {
+                    plot(x + 3, y);
+                    plot(x, y + 2);
+                }
+            }
+        }
+    }
+
+    // Done - halt
+    loop {
+        asm { EI; HALT }
+    }
+}
