@@ -403,11 +403,439 @@ func NewSpectrumPlatform() *GenericPlatform {
 	return p
 }
 
+// =============================================================================
+// VDP - Video Display Processor (Agon Light style)
+// =============================================================================
+
+// VDP implements a BBC Micro / Agon Light style command processor
+type VDP struct {
+	display     *GenericDisplay
+
+	// VDU command state
+	cmdBuffer   []byte
+	cmdExpected int
+	cmdID       byte
+
+	// Graphics state
+	graphicsX   int16  // Current graphics cursor X
+	graphicsY   int16  // Current graphics cursor Y
+	originX     int16  // Graphics origin X
+	originY     int16  // Graphics origin Y
+	foreground  uint32 // Current foreground color
+	background  uint32 // Current background color
+
+	// Text state
+	textX       int
+	textY       int
+	textFG      uint32
+	textBG      uint32
+
+	// Screen mode
+	mode        int
+
+	// Sprites (simplified - up to 64 sprites)
+	sprites     [64]*Sprite
+	curSprite   int
+}
+
+// Sprite represents a hardware sprite
+type Sprite struct {
+	X, Y    int16
+	Width   int
+	Height  int
+	Visible bool
+	Bitmap  []byte
+}
+
+// NewVDP creates a new VDP attached to a display
+func NewVDP(display *GenericDisplay) *VDP {
+	return &VDP{
+		display:    display,
+		foreground: 0xFFFFFFFF, // White
+		background: 0xFF000000, // Black
+		textFG:     0xFFFFFFFF,
+		textBG:     0xFF000000,
+		mode:       0,
+	}
+}
+
+// ProcessByte processes a single byte of VDU output
+// Returns true if the byte was consumed as part of a VDU command
+func (v *VDP) ProcessByte(b byte) bool {
+	// If we're collecting a multi-byte command
+	if v.cmdExpected > 0 {
+		v.cmdBuffer = append(v.cmdBuffer, b)
+		v.cmdExpected--
+
+		if v.cmdExpected == 0 {
+			v.executeCommand()
+			v.cmdBuffer = nil
+			v.cmdID = 0
+		}
+		return true
+	}
+
+	// Check for VDU command start
+	switch b {
+	case 0: // NUL - do nothing
+		return true
+	case 4: // VDU 4 - Text at text cursor
+		return true
+	case 5: // VDU 5 - Text at graphics cursor
+		return true
+	case 7: // BEL - beep
+		return true
+	case 8: // Backspace
+		if v.textX > 0 {
+			v.textX--
+		}
+		return true
+	case 9: // Tab
+		v.textX = (v.textX + 8) &^ 7
+		return true
+	case 10: // Line feed
+		v.textY++
+		return true
+	case 11: // VDU 11 - cursor up
+		if v.textY > 0 {
+			v.textY--
+		}
+		return true
+	case 12: // CLS
+		v.display.Clear(v.background)
+		v.textX, v.textY = 0, 0
+		return true
+	case 13: // Carriage return
+		v.textX = 0
+		return true
+	case 16: // VDU 16 - CLG (clear graphics)
+		v.display.Clear(v.background)
+		return true
+	case 17: // VDU 17,c - set text colour
+		v.cmdID = 17
+		v.cmdExpected = 1
+		return true
+	case 18: // VDU 18,m,c - set graphics colour
+		v.cmdID = 18
+		v.cmdExpected = 2
+		return true
+	case 22: // VDU 22,n - set screen mode
+		v.cmdID = 22
+		v.cmdExpected = 1
+		return true
+	case 23: // VDU 23 - multi-purpose command
+		v.cmdID = 23
+		v.cmdExpected = 9 // VDU 23 takes 9 bytes
+		return true
+	case 25: // VDU 25,k,x;y; - PLOT
+		v.cmdID = 25
+		v.cmdExpected = 5
+		return true
+	case 29: // VDU 29,x;y; - set graphics origin
+		v.cmdID = 29
+		v.cmdExpected = 4
+		return true
+	case 30: // Home cursor
+		v.textX, v.textY = 0, 0
+		return true
+	case 31: // VDU 31,x,y - position cursor
+		v.cmdID = 31
+		v.cmdExpected = 2
+		return true
+	default:
+		// Printable character
+		if b >= 32 && b < 127 {
+			// Simple character output (would need font data for real rendering)
+			// For now, just advance the cursor
+			v.textX++
+			if v.textX >= v.display.Width()/8 {
+				v.textX = 0
+				v.textY++
+			}
+		}
+		return false
+	}
+}
+
+// executeCommand executes a buffered VDU command
+func (v *VDP) executeCommand() {
+	switch v.cmdID {
+	case 17: // Set text color
+		// v.cmdBuffer[0] = color index
+		v.textFG = v.display.palette[v.cmdBuffer[0]]
+
+	case 18: // Set graphics color
+		// v.cmdBuffer[0] = mode, v.cmdBuffer[1] = color
+		if v.cmdBuffer[0] == 0 { // Foreground
+			v.foreground = v.display.palette[v.cmdBuffer[1]]
+		} else { // Background
+			v.background = v.display.palette[v.cmdBuffer[1]]
+		}
+
+	case 22: // Set screen mode
+		v.mode = int(v.cmdBuffer[0])
+		// Different modes would configure different resolutions
+		// For now just clear the screen
+		v.display.Clear(v.background)
+		v.textX, v.textY = 0, 0
+		v.graphicsX, v.graphicsY = 0, 0
+
+	case 23: // Multi-purpose VDU 23
+		v.executeVDU23()
+
+	case 25: // PLOT command
+		v.executePLOT()
+
+	case 29: // Set graphics origin
+		v.originX = int16(v.cmdBuffer[0]) | int16(v.cmdBuffer[1])<<8
+		v.originY = int16(v.cmdBuffer[2]) | int16(v.cmdBuffer[3])<<8
+
+	case 31: // Position cursor
+		v.textX = int(v.cmdBuffer[0])
+		v.textY = int(v.cmdBuffer[1])
+	}
+}
+
+// executeVDU23 handles VDU 23 commands
+func (v *VDP) executeVDU23() {
+	if len(v.cmdBuffer) < 1 {
+		return
+	}
+
+	subCmd := v.cmdBuffer[0]
+	switch subCmd {
+	case 0: // System commands
+		if len(v.cmdBuffer) >= 2 {
+			v.executeSystemCommand()
+		}
+	case 27: // Sprite commands
+		if len(v.cmdBuffer) >= 2 {
+			v.executeSpriteCommand()
+		}
+	}
+}
+
+// executeSystemCommand handles VDU 23,0,n,... commands
+func (v *VDP) executeSystemCommand() {
+	// VDU 23,0,n,...
+	// cmd = v.cmdBuffer[1]
+	switch v.cmdBuffer[1] {
+	case 0x80: // Get display info
+		// Would return display dimensions, etc.
+	case 0x81: // Get cursor position
+		// Would return cursor X,Y
+	case 0x86: // Reset VDP
+		v.display.Clear(v.background)
+		v.textX, v.textY = 0, 0
+		v.graphicsX, v.graphicsY = 0, 0
+		v.originX, v.originY = 0, 0
+	}
+}
+
+// executeSpriteCommand handles VDU 23,27,n,... commands
+func (v *VDP) executeSpriteCommand() {
+	// VDU 23,27,cmd,...
+	cmd := v.cmdBuffer[1]
+	switch cmd {
+	case 0: // Select sprite
+		if len(v.cmdBuffer) >= 3 {
+			v.curSprite = int(v.cmdBuffer[2])
+			if v.curSprite >= 64 {
+				v.curSprite = 0
+			}
+		}
+	case 1: // Clear all sprites
+		for i := range v.sprites {
+			v.sprites[i] = nil
+		}
+	case 4: // Define sprite
+		// Would define sprite bitmap data
+	case 5: // Move sprite absolute
+		if sprite := v.sprites[v.curSprite]; sprite != nil && len(v.cmdBuffer) >= 6 {
+			sprite.X = int16(v.cmdBuffer[2]) | int16(v.cmdBuffer[3])<<8
+			sprite.Y = int16(v.cmdBuffer[4]) | int16(v.cmdBuffer[5])<<8
+		}
+	case 11: // Show sprite
+		if v.curSprite < 64 && v.sprites[v.curSprite] != nil {
+			v.sprites[v.curSprite].Visible = true
+		}
+	case 12: // Hide sprite
+		if v.curSprite < 64 && v.sprites[v.curSprite] != nil {
+			v.sprites[v.curSprite].Visible = false
+		}
+	}
+}
+
+// executePLOT handles VDU 25,k,x;y; commands
+func (v *VDP) executePLOT() {
+	if len(v.cmdBuffer) < 5 {
+		return
+	}
+
+	plotType := v.cmdBuffer[0]
+	x := int16(v.cmdBuffer[1]) | int16(v.cmdBuffer[2])<<8
+	y := int16(v.cmdBuffer[3]) | int16(v.cmdBuffer[4])<<8
+
+	// Apply origin offset
+	x += v.originX
+	y += v.originY
+
+	// Plot type determines the operation
+	switch plotType & 7 {
+	case 0: // Move absolute
+		v.graphicsX, v.graphicsY = x, y
+	case 1: // Line to absolute (foreground)
+		v.drawLine(int(v.graphicsX), int(v.graphicsY), int(x), int(y), v.foreground)
+		v.graphicsX, v.graphicsY = x, y
+	case 4: // Move relative
+		v.graphicsX += x
+		v.graphicsY += y
+	case 5: // Line to relative
+		newX := v.graphicsX + x
+		newY := v.graphicsY + y
+		v.drawLine(int(v.graphicsX), int(v.graphicsY), int(newX), int(newY), v.foreground)
+		v.graphicsX, v.graphicsY = newX, newY
+	}
+
+	// Additional plot operations based on upper bits
+	if plotType&0x38 != 0 {
+		switch plotType & 0x38 {
+		case 0x40: // Point
+			v.display.SetPixel(int(x), int(y), v.foreground)
+		case 0x50: // Triangle fill (would need more complex implementation)
+		case 0x60: // Rectangle fill
+			v.drawFilledRect(int(v.graphicsX), int(v.graphicsY), int(x), int(y), v.foreground)
+		case 0x90: // Circle outline
+			// v.drawCircle(int(x), int(y), radius, v.foreground)
+		}
+	}
+}
+
+// drawLine draws a line using Bresenham's algorithm
+func (v *VDP) drawLine(x0, y0, x1, y1 int, color uint32) {
+	dx := abs(x1 - x0)
+	dy := -abs(y1 - y0)
+	sx := 1
+	if x0 > x1 {
+		sx = -1
+	}
+	sy := 1
+	if y0 > y1 {
+		sy = -1
+	}
+	err := dx + dy
+
+	for {
+		v.display.SetPixel(x0, y0, color)
+
+		if x0 == x1 && y0 == y1 {
+			break
+		}
+
+		e2 := 2 * err
+		if e2 >= dy {
+			if x0 == x1 {
+				break
+			}
+			err += dy
+			x0 += sx
+		}
+		if e2 <= dx {
+			if y0 == y1 {
+				break
+			}
+			err += dx
+			y0 += sy
+		}
+	}
+}
+
+// drawFilledRect draws a filled rectangle
+func (v *VDP) drawFilledRect(x0, y0, x1, y1 int, color uint32) {
+	if x0 > x1 {
+		x0, x1 = x1, x0
+	}
+	if y0 > y1 {
+		y0, y1 = y1, y0
+	}
+
+	for y := y0; y <= y1; y++ {
+		for x := x0; x <= x1; x++ {
+			v.display.SetPixel(x, y, color)
+		}
+	}
+}
+
+func abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+// =============================================================================
+// Agon Platform with VDP
+// =============================================================================
+
+// AgonPlatform extends GenericPlatform with VDP support
+type AgonPlatform struct {
+	*GenericPlatform
+	vdp *VDP
+}
+
 // NewAgonPlatform creates an Agon Light-like platform (VDP-based)
-func NewAgonPlatform() *GenericPlatform {
+func NewAgonPlatform() *AgonPlatform {
 	// Agon Light: eZ80 + ESP32 VDP
-	// Default mode: 640x480 or 320x240
-	p := NewGenericPlatform("agon", 320, 240, 8)
-	// TODO: Add VDU command processor
-	return p
+	// Default mode: 320x240
+	generic := NewGenericPlatform("agon", 320, 240, 8)
+
+	// Initialize Agon palette (similar to CGA/EGA)
+	agonPalette := []uint32{
+		0xFF000000, // 0: Black
+		0xFFAA0000, // 1: Dark Red
+		0xFF00AA00, // 2: Dark Green
+		0xFFAAAA00, // 3: Dark Yellow
+		0xFF0000AA, // 4: Dark Blue
+		0xFFAA00AA, // 5: Dark Magenta
+		0xFF00AAAA, // 6: Dark Cyan
+		0xFFAAAAAA, // 7: Light Gray
+		0xFF555555, // 8: Dark Gray
+		0xFFFF5555, // 9: Bright Red
+		0xFF55FF55, // 10: Bright Green
+		0xFFFFFF55, // 11: Bright Yellow
+		0xFF5555FF, // 12: Bright Blue
+		0xFFFF55FF, // 13: Bright Magenta
+		0xFF55FFFF, // 14: Bright Cyan
+		0xFFFFFFFF, // 15: White
+	}
+	for i, c := range agonPalette {
+		generic.display.SetPalette(i, c)
+	}
+
+	// Extend palette to 64 colors (Agon default)
+	for i := 16; i < 64; i++ {
+		r := uint32((i & 0x03) * 85)
+		g := uint32(((i >> 2) & 0x03) * 85)
+		b := uint32(((i >> 4) & 0x03) * 85)
+		generic.display.SetPalette(i, 0xFF000000|r<<16|g<<8|b)
+	}
+
+	return &AgonPlatform{
+		GenericPlatform: generic,
+		vdp:             NewVDP(generic.display),
+	}
+}
+
+// WriteChar overrides GenericPlatform to process VDU commands
+func (p *AgonPlatform) WriteChar(b byte) {
+	// First try to process as VDU command
+	if !p.vdp.ProcessByte(b) {
+		// If not a VDU command, output normally
+		p.GenericPlatform.WriteChar(b)
+	}
+}
+
+// VDP returns the VDP instance for direct access
+func (p *AgonPlatform) VDP() *VDP {
+	return p.vdp
 }

@@ -665,3 +665,144 @@ func (vm *VM) GetStatistics() Statistics {
 	vm.stats.MemoryUsed = vm.config.StackSize - vm.sp
 	return vm.stats
 }
+
+// =============================================================================
+// Debugging Support (v0.18.0 - DAP integration)
+// =============================================================================
+
+// exited tracks if the program has exited
+var vmExited bool
+var vmExitCode int
+
+// Step executes a single instruction (for debugging)
+func (vm *VM) Step() error {
+	if vm.currentFunc == nil {
+		return fmt.Errorf("no function loaded")
+	}
+
+	// Check if we're past the end of the current function
+	if vm.pc >= len(vm.currentFunc.Instructions) {
+		// Check if we need to return from a function
+		if len(vm.callStack) > 0 {
+			if err := vm.returnFromFunction(); err != nil {
+				return err
+			}
+			return nil
+		}
+		// Otherwise, we've completed execution
+		vmExited = true
+		vmExitCode = int(vm.registers[0]) // r0 is typically return value
+		return nil
+	}
+
+	_, err := vm.executeInstruction()
+	if err != nil {
+		return err
+	}
+
+	vm.instructionCount++
+	return nil
+}
+
+// HasExited returns true if the program has finished execution
+func (vm *VM) HasExited() bool {
+	return vmExited
+}
+
+// ExitCode returns the program exit code
+func (vm *VM) ExitCode() int {
+	return vmExitCode
+}
+
+// GetCurrentLocation returns the current function name and instruction index
+func (vm *VM) GetCurrentLocation() (string, int) {
+	if vm.currentFunc == nil {
+		return "", 0
+	}
+	return vm.currentFunc.Name, vm.pc
+}
+
+// GetRegisters returns a copy of all register values
+func (vm *VM) GetRegisters() map[ir.Register]int64 {
+	regs := make(map[ir.Register]int64)
+	for i := 0; i < 256; i++ {
+		if vm.registers[i] != 0 {
+			regs[ir.Register(i)] = vm.registers[i]
+		}
+	}
+	return regs
+}
+
+// ReadMemory reads a slice of memory
+func (vm *VM) ReadMemory(addr uint32, size int) []byte {
+	if int(addr)+size > len(vm.memory) {
+		// Return what we can
+		if int(addr) >= len(vm.memory) {
+			return make([]byte, size)
+		}
+		size = len(vm.memory) - int(addr)
+	}
+
+	result := make([]byte, size)
+	copy(result, vm.memory[addr:int(addr)+size])
+	return result
+}
+
+// WriteMemory writes data to memory
+func (vm *VM) WriteMemory(addr uint32, data []byte) {
+	if int(addr) >= len(vm.memory) {
+		return
+	}
+
+	end := int(addr) + len(data)
+	if end > len(vm.memory) {
+		end = len(vm.memory)
+	}
+
+	copy(vm.memory[addr:end], data[:end-int(addr)])
+}
+
+// GetCallStack returns the current call stack
+func (vm *VM) GetCallStack() []MIRStackFrame {
+	stack := make([]MIRStackFrame, len(vm.callStack))
+	for i, frame := range vm.callStack {
+		stack[i] = MIRStackFrame{
+			FuncName:   frame.Function.Name,
+			InstIndex:  frame.ReturnPC,
+			ReturnAddr: frame.ReturnPC,
+		}
+	}
+
+	// Add current frame
+	if vm.currentFunc != nil {
+		stack = append(stack, MIRStackFrame{
+			FuncName:  vm.currentFunc.Name,
+			InstIndex: vm.pc,
+		})
+	}
+
+	return stack
+}
+
+// Reset resets the VM state for a new execution
+func (vm *VM) Reset() {
+	vmExited = false
+	vmExitCode = 0
+	vm.pc = 0
+	vm.sp = vm.config.StackSize
+	vm.fp = vm.config.StackSize
+	vm.callStack = nil
+	vm.instructionCount = 0
+	vm.breakHit = false
+	vm.stepMode = false
+
+	// Clear registers
+	for i := range vm.registers {
+		vm.registers[i] = 0
+	}
+
+	// Clear memory
+	for i := range vm.memory {
+		vm.memory[i] = 0
+	}
+}
