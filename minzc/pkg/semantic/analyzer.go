@@ -9427,6 +9427,48 @@ func (a *Analyzer) inferExpressionType(expr ast.Expression) ir.Type {
 		if t, ok := a.exprTypes[e]; ok {
 			return t
 		}
+		// Try to look up the function and get its return type
+		switch fn := e.Function.(type) {
+		case *ast.Identifier:
+			if sym := a.currentScope.Lookup(fn.Name); sym != nil {
+				switch s := sym.(type) {
+				case *FuncSymbol:
+					return s.ReturnType
+				case *FunctionOverloadSet:
+					// For overload sets, return the first overload's type as a hint
+					for _, overload := range s.Overloads {
+						return overload.ReturnType
+					}
+				}
+			}
+		case *ast.FieldExpr:
+			// Method call - get receiver type and look up method
+			if objType := a.inferExpressionType(fn.Object); objType != nil {
+				if methodSym := a.findInterfaceMethod(objType, fn.Field); methodSym != nil {
+					return methodSym.ReturnType
+				}
+			}
+		}
+	case *ast.BinaryExpr:
+		// Check if already analyzed
+		if t, ok := a.exprTypes[e]; ok {
+			return t
+		}
+		// For comparison/logical operators, result is bool
+		switch e.Operator {
+		case "==", "!=", "<", ">", "<=", ">=", "&&", "||":
+			return &ir.BasicType{Kind: ir.TypeBool}
+		default:
+			// For arithmetic operators, recursively infer from operands
+			leftType := a.inferExpressionType(e.Left)
+			if leftType != nil {
+				return leftType
+			}
+			rightType := a.inferExpressionType(e.Right)
+			if rightType != nil {
+				return rightType
+			}
+		}
 	}
 	// Check if the expression was already analyzed
 	if t, ok := a.exprTypes[expr]; ok {

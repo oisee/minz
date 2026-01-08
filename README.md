@@ -6,9 +6,9 @@
 
 ### **Modern Programming Language for Vintage & Modern Platforms**
 
-[![Version](https://img.shields.io/badge/version-0.17.0-brightgreen)](https://github.com/oisee/minz/releases)
-[![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%20Z80N%20%7C%206502%20%7C%20Crystal%20%7C%20WASM-blue)]()
-[![Success Rate](https://img.shields.io/badge/compilation-92%25-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-0.18.0-brightgreen)](https://github.com/oisee/minz/releases)
+[![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%20eZ80%20%7C%206502%20%7C%20Crystal%20%7C%20WASM%20%7C%20MIR--VM-blue)]()
+[![Success Rate](https://img.shields.io/badge/compilation-100%25-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
 **Write modern code. Deploy everywhere. From 1978 Z80 to 2026 Crystal.**
@@ -119,6 +119,7 @@ crystal run hello.cr  # Test instantly!
 
 | Version | Revolution | Impact |
 |---------|------------|--------|
+| **v0.18.0** | MZV Platform + 24-bit Types | Virtual hardware abstraction, eZ80/Agon support, DAP debugging! |
 | **v0.17.0** | UFCS + Operator Overloading | `v1 + v2`, type-based dispatch, auto-derivation! |
 | **v0.16.4** | GLSL Shader Library | Raymarching, SDFs, fixed-point math on Z80! |
 | **v0.16.3** | DZRP Toolchain | mztap instant loader, unified env vars |
@@ -152,12 +153,16 @@ crystal run hello.cr  # Test instantly!
 
 | Feature | Status | Example |
 |---------|--------|---------|
+| **MZV Platform** | ✅ NEW | Virtual hardware: spectrum, agon, headless, terminal |
+| **24-bit Types** | ✅ NEW | `u24`/`i24` for eZ80 and 16MB address space |
+| **I/O Ports** | ✅ NEW | `OpPortIn`/`OpPortOut` for Z80-style I/O |
+| **Chained Methods** | ✅ NEW | `v3(1,2,3).normalize()`, `(a-b).dot(c)` |
 | **CTIE** | ✅ Working | `@ctie fun add(a,b) -> ...` executes at compile-time |
 | **Ruby Interpolation** | ✅ Working | `@print("Hello #{NAME}!")` |
 | **True SMC** | ✅ Working | Self-modifying code optimizations |
 | **Structs** | ✅ Working | `Point { x: 10, y: 20 }` with field access |
 | **Crystal Backend** | ✅ Working | Test on modern, deploy to vintage |
-| **Multi-Backend** | ✅ Working | Z80, 6502, C, WASM, Crystal, LLVM |
+| **Multi-Backend** | ✅ Working | Z80, 6502, C, WASM, Crystal, LLVM, **MIR-VM** |
 | **Pattern Matching** | ✅ Working | `case s { State.IDLE => State.RUNNING }` |
 | **Enum Values** | ✅ Working | `State.IDLE`, `@error(MathError.DivByZero)` |
 | **Error Propagation** | ✅ Working | `@error(code)` sets CY flag + A register |
@@ -170,6 +175,8 @@ crystal run hello.cr  # Test instantly!
 | **Smart @print** | ✅ Working | Stateful optimization, reuses print_string helper |
 | **Infinite Loops** | ✅ Working | `loop { asm{EI;HALT} }` for explicit halt |
 | **Iterator Chains** | 🚧 Partial | Compiles, DJNZ optimization in progress |
+| **VDP Commands** | 🚧 Planned | Agon Light VDU protocol |
+| **DAP Debugging** | 🚧 Planned | VS Code integration for MZV |
 
 ---
 

@@ -164,6 +164,35 @@ func (a *Analyzer) resolveOverload(baseName string, args []ast.Expression, irFun
 			if typ == nil {
 				return nil, fmt.Errorf("cannot determine return type of nested call")
 			}
+		case *ast.BinaryExpr:
+			// Handle binary expressions - analyze and get result type
+			if _, err := a.analyzeExpression(e, irFunc); err == nil {
+				typ = a.exprTypes[arg]
+			}
+			if typ == nil {
+				// Infer type from operands
+				leftType := a.inferExpressionType(e.Left)
+				rightType := a.inferExpressionType(e.Right)
+
+				// For comparison operators, result is bool
+				switch e.Operator {
+				case "==", "!=", "<", ">", "<=", ">=", "&&", "||":
+					typ = &ir.BasicType{Kind: ir.TypeBool}
+					a.exprTypes[arg] = typ
+				default:
+					// For arithmetic operators, use the wider operand type
+					if leftType != nil {
+						typ = leftType
+						a.exprTypes[arg] = typ
+					} else if rightType != nil {
+						typ = rightType
+						a.exprTypes[arg] = typ
+					}
+				}
+			}
+			if typ == nil {
+				return nil, fmt.Errorf("cannot determine type of binary expression with operator %s", e.Operator)
+			}
 			default:
 				return nil, fmt.Errorf("cannot determine type of argument %d (type: %T)", i, arg)
 			}
