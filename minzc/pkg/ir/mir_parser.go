@@ -26,24 +26,48 @@ type mirParser struct {
 
 func (p *mirParser) parse() (*Module, error) {
 	p.labels = make(map[string]int)
-	
+
 	for p.scanner.Scan() {
 		p.line++
 		line := strings.TrimSpace(p.scanner.Text())
-		
+
 		// Skip empty lines and comments
 		if line == "" || strings.HasPrefix(line, "//") || strings.HasPrefix(line, ";") {
 			continue
 		}
-		
+
+		// Skip dump format headers and annotations
+		if strings.HasPrefix(line, "Locals:") || strings.HasPrefix(line, "Instructions:") ||
+			strings.HasPrefix(line, "@") || strings.HasPrefix(line, "r") && strings.Contains(line, "=") && strings.Contains(line, ":") {
+			// Skip @smc annotations and local variable declarations like "r1 = x: u8"
+			continue
+		}
+
+		// Parse Function header (dump format)
+		if strings.HasPrefix(line, "Function ") {
+			if err := p.parseFunctionHeader(line); err != nil {
+				return nil, fmt.Errorf("line %d: %v", p.line, err)
+			}
+			continue
+		}
+
 		// Parse directives and instructions
 		if strings.HasPrefix(line, ".") {
 			if err := p.parseDirective(line); err != nil {
 				return nil, fmt.Errorf("line %d: %v", p.line, err)
 			}
 		} else if strings.Contains(line, ":") && !strings.Contains(line, "=") {
-			// Label
-			label := strings.TrimSuffix(line, ":")
+			// Label (may have instruction index prefix like "8: loop_1:")
+			label := line
+			// Remove instruction index prefix if present
+			if idx := strings.Index(label, ": "); idx >= 0 {
+				// Check if prefix is a number
+				prefix := strings.TrimSpace(label[:idx])
+				if _, err := strconv.Atoi(prefix); err == nil {
+					label = strings.TrimSpace(label[idx+2:])
+				}
+			}
+			label = strings.TrimSuffix(label, ":")
 			if p.currentFunc != nil {
 				p.labels[label] = len(p.currentFunc.Instructions)
 			}
@@ -52,12 +76,12 @@ func (p *mirParser) parse() (*Module, error) {
 			if p.currentFunc == nil {
 				return nil, fmt.Errorf("line %d: instruction outside function", p.line)
 			}
-			
+
 			inst, err := p.parseInstruction(line)
 			if err != nil {
 				return nil, fmt.Errorf("line %d: %v", p.line, err)
 			}
-			
+
 			p.currentFunc.Instructions = append(p.currentFunc.Instructions, inst)
 		}
 	}
@@ -76,6 +100,29 @@ func (p *mirParser) parse() (*Module, error) {
 	}
 	
 	return p.module, nil
+}
+
+// parseFunctionHeader parses dump format: "Function name(params) -> type"
+func (p *mirParser) parseFunctionHeader(line string) error {
+	// Remove "Function " prefix
+	line = strings.TrimPrefix(line, "Function ")
+
+	// Extract function name (before parentheses)
+	name := line
+	if idx := strings.Index(name, "("); idx >= 0 {
+		name = name[:idx]
+	}
+
+	fn := &Function{
+		Name:         name,
+		Instructions: []Instruction{},
+	}
+
+	p.module.Functions = append(p.module.Functions, fn)
+	p.currentFunc = fn
+	p.labels = make(map[string]int) // Reset labels for new function
+
+	return nil
 }
 
 func (p *mirParser) parseDirective(line string) error {
@@ -161,7 +208,7 @@ func (p *mirParser) parseDirective(line string) error {
 
 func (p *mirParser) parseInstruction(line string) (Instruction, error) {
 	inst := Instruction{}
-	
+
 	// Remove comments
 	if idx := strings.Index(line, "//"); idx >= 0 {
 		line = line[:idx]
@@ -169,8 +216,22 @@ func (p *mirParser) parseInstruction(line string) (Instruction, error) {
 	if idx := strings.Index(line, ";"); idx >= 0 {
 		line = line[:idx]
 	}
-	
+
 	line = strings.TrimSpace(line)
+
+	// Remove instruction index prefix (e.g., "0: r2 = 5")
+	if idx := strings.Index(line, ": "); idx >= 0 {
+		prefix := strings.TrimSpace(line[:idx])
+		if _, err := strconv.Atoi(prefix); err == nil {
+			line = strings.TrimSpace(line[idx+2:])
+		}
+	}
+
+	// Skip special internal instructions
+	if strings.HasPrefix(line, "TRUE_SMC_") || strings.HasPrefix(line, "PATCH_") {
+		inst.Op = OpNop
+		return inst, nil
+	}
 	
 	// Parse different instruction formats
 	if strings.Contains(line, "=") {
@@ -198,32 +259,49 @@ func (p *mirParser) parseInstruction(line string) (Instruction, error) {
 			}
 		}
 		
-	} else if strings.HasPrefix(line, "jmp") {
-		// Jump instructions
+	} else if strings.HasPrefix(line, "jmp") || strings.HasPrefix(line, "jump") {
+		// Jump instructions (both jmp and jump formats)
 		parts := strings.Fields(line)
 		if len(parts) < 2 {
 			return inst, fmt.Errorf("invalid jump instruction")
 		}
-		
-		if strings.HasPrefix(line, "jmpif") {
-			inst.Op = OpJmpIf
-			if len(parts) < 3 {
-				return inst, fmt.Errorf("invalid conditional jump")
-			}
-			inst.Src1 = Register(p.parseRegister(parts[1]))
-			inst.Label = parts[2]
-		} else if strings.HasPrefix(line, "jmpnot") {
+
+		// Handle both formats: jump_if/jmpif and jump_if_not/jmpnot
+		if strings.HasPrefix(line, "jump_if_not") || strings.HasPrefix(line, "jmpnot") {
 			inst.Op = OpJmpIfNot
 			if len(parts) < 3 {
 				return inst, fmt.Errorf("invalid conditional jump")
 			}
-			inst.Src1 = Register(p.parseRegister(parts[1]))
+			// Remove trailing comma from register
+			regStr := strings.TrimSuffix(parts[1], ",")
+			inst.Src1 = Register(p.parseRegister(regStr))
+			inst.Label = parts[2]
+		} else if strings.HasPrefix(line, "jump_if") || strings.HasPrefix(line, "jmpif") {
+			inst.Op = OpJmpIf
+			if len(parts) < 3 {
+				return inst, fmt.Errorf("invalid conditional jump")
+			}
+			// Remove trailing comma from register
+			regStr := strings.TrimSuffix(parts[1], ",")
+			inst.Src1 = Register(p.parseRegister(regStr))
 			inst.Label = parts[2]
 		} else {
 			inst.Op = OpJmp
 			inst.Label = parts[1]
 		}
 		
+	} else if strings.HasPrefix(line, "store ") && !strings.Contains(line, "=") {
+		// Store to variable: store var, r%d
+		parts := strings.Fields(line)
+		if len(parts) < 3 {
+			return inst, fmt.Errorf("invalid store instruction")
+		}
+
+		inst.Op = OpStoreVar
+		// Remove trailing comma from variable name
+		inst.Symbol = strings.TrimSuffix(parts[1], ",")
+		inst.Src1 = Register(p.parseRegister(parts[2]))
+
 	} else if strings.HasPrefix(line, "push") {
 		// Push instruction
 		parts := strings.Fields(line)
@@ -325,11 +403,19 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 		return inst, nil
 	}
 	
+	// Check for load from variable: r%d = load var
+	if strings.HasPrefix(expr, "load ") {
+		varName := strings.TrimPrefix(expr, "load ")
+		inst.Op = OpLoadVar
+		inst.Symbol = strings.TrimSpace(varName)
+		return inst, nil
+	}
+
 	// Check for memory load: r0 = [r1]
 	if strings.HasPrefix(expr, "[") {
 		expr = strings.Trim(expr, "[]")
 		inst.Op = OpLoadMem
-		
+
 		// Check for offset: [r1 + 8]
 		if strings.Contains(expr, "+") {
 			parts := strings.Split(expr, "+")
@@ -339,19 +425,93 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 		} else {
 			inst.Src1 = Register(p.parseRegister(expr))
 		}
-		
+
 		inst.Size = 1 // Default to byte
 		return inst, nil
 	}
 	
-	// Check for binary operations
-	for _, op := range []string{"+", "-", "*", "/", "%", "&", "|", "^", "<<", ">>"} {
+	// Check for call instruction: r%d = call funcname
+	if strings.HasPrefix(expr, "call ") {
+		funcName := strings.TrimPrefix(expr, "call ")
+		inst.Op = OpCall
+		inst.FuncName = strings.TrimSpace(funcName)
+		return inst, nil
+	}
+
+	// Check for comparison operators (must check multi-char ops first)
+	for _, op := range []string{"<=", ">=", "==", "!=", "<", ">"} {
 		if strings.Contains(expr, op) {
-			parts := strings.Split(expr, op)
+			parts := strings.SplitN(expr, op, 2)
 			if len(parts) == 2 {
-				inst.Src1 = Register(p.parseRegister(strings.TrimSpace(parts[0])))
-				inst.Src2 = Register(p.parseRegister(strings.TrimSpace(parts[1])))
-				
+				src1 := strings.TrimSpace(parts[0])
+				src2 := strings.TrimSpace(parts[1])
+
+				// Check if src2 is an immediate value
+				if val, err := strconv.ParseInt(src2, 0, 64); err == nil {
+					inst.Src1 = Register(p.parseRegister(src1))
+					inst.Imm = val
+					// Use comparison with immediate
+					switch op {
+					case "<":
+						inst.Op = OpLt
+					case ">":
+						inst.Op = OpGt
+					case "<=":
+						inst.Op = OpLe
+					case ">=":
+						inst.Op = OpGe
+					case "==":
+						inst.Op = OpEq
+					case "!=":
+						inst.Op = OpNe
+					}
+				} else {
+					inst.Src1 = Register(p.parseRegister(src1))
+					inst.Src2 = Register(p.parseRegister(src2))
+
+					switch op {
+					case "<":
+						inst.Op = OpLt
+					case ">":
+						inst.Op = OpGt
+					case "<=":
+						inst.Op = OpLe
+					case ">=":
+						inst.Op = OpGe
+					case "==":
+						inst.Op = OpEq
+					case "!=":
+						inst.Op = OpNe
+					}
+				}
+				return inst, nil
+			}
+		}
+	}
+
+	// Check for binary operations
+	for _, op := range []string{"<<", ">>", "+", "-", "*", "/", "%", "&", "|", "^"} {
+		if strings.Contains(expr, op) {
+			parts := strings.SplitN(expr, op, 2)
+			if len(parts) == 2 {
+				src1 := strings.TrimSpace(parts[0])
+				src2 := strings.TrimSpace(parts[1])
+
+				inst.Src1 = Register(p.parseRegister(src1))
+
+				// Check if src2 is an immediate value
+				if val, err := strconv.ParseInt(src2, 0, 64); err == nil {
+					inst.Imm = val
+					// For add with immediate, use AddImm
+					if op == "+" {
+						inst.Op = OpAddImm
+						return inst, nil
+					}
+					// For other ops, treat as register (fallback)
+				}
+
+				inst.Src2 = Register(p.parseRegister(src2))
+
 				switch op {
 				case "+":
 					inst.Op = OpAdd
@@ -374,7 +534,7 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 				case ">>":
 					inst.Op = OpShr
 				}
-				
+
 				return inst, nil
 			}
 		}
