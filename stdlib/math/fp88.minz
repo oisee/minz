@@ -1,0 +1,188 @@
+// fp88.minz - Pure MinZ 8.8 Fixed-Point Math Library
+// Portable implementation - works on MZV, Z80, WASM, C, etc.
+//
+// Format: 8.8 fixed-point (256 = 1.0)
+// Range: -128.0 to +127.996 (approximately)
+
+// =============================================================================
+// Constants
+// =============================================================================
+
+fun fp_one() -> i16 { return 256; }      // 1.0
+fun fp_half() -> i16 { return 128; }     // 0.5
+fun fp_quarter() -> i16 { return 64; }   // 0.25
+fun fp_two() -> i16 { return 512; }      // 2.0
+fun fp_pi() -> i16 { return 804; }       // 3.14159... (approx)
+fun fp_e() -> i16 { return 696; }        // 2.71828... (approx)
+
+// =============================================================================
+// Basic Arithmetic
+// =============================================================================
+
+// Fixed-point multiply: (a * b) >> 8
+// Using i32 intermediate to avoid overflow
+fun fp_mul(a: i16, b: i16) -> i16 {
+    // Promote to 32-bit, multiply, then shift back
+    let a32: i32 = a as i32;
+    let b32: i32 = b as i32;
+    let result: i32 = (a32 * b32) >> 8;
+    return result as i16;
+}
+
+// Fixed-point divide: (a << 8) / b
+fun fp_div(a: i16, b: i16) -> i16 {
+    if b == 0 {
+        // Return max value for divide by zero
+        if a >= 0 { return 32767; }
+        return -32768;
+    }
+    let a32: i32 = a as i32;
+    let b32: i32 = b as i32;
+    let result: i32 = (a32 << 8) / b32;
+    return result as i16;
+}
+
+// Absolute value
+fun fp_abs(x: i16) -> i16 {
+    if x < 0 { return 0 - x; }
+    return x;
+}
+
+// Minimum of two values
+fun fp_min(a: i16, b: i16) -> i16 {
+    if a < b { return a; }
+    return b;
+}
+
+// Maximum of two values
+fun fp_max(a: i16, b: i16) -> i16 {
+    if a > b { return a; }
+    return b;
+}
+
+// Clamp value to range [lo, hi]
+fun fp_clamp(x: i16, lo: i16, hi: i16) -> i16 {
+    if x < lo { return lo; }
+    if x > hi { return hi; }
+    return x;
+}
+
+// Sign of value: -256, 0, or 256
+fun fp_sign(x: i16) -> i16 {
+    if x > 0 { return 256; }
+    if x < 0 { return -256; }
+    return 0;
+}
+
+// =============================================================================
+// Square Root (Newton-Raphson)
+// =============================================================================
+
+fun fp_sqrt(x: i16) -> i16 {
+    if x <= 0 { return 0; }
+
+    // Initial guess: x/2 or 256 (1.0), whichever is smaller
+    let guess: i16 = x >> 1;
+    if guess == 0 { guess = 1; }
+    if guess > 256 { guess = 256; }
+
+    // Newton-Raphson: guess = (guess + x/guess) / 2
+    // Run 8 iterations for convergence
+    let i: u8 = 0;
+    while i < 8 {
+        let div_result: i16 = fp_div(x, guess);
+        guess = (guess + div_result) >> 1;
+        if guess == 0 { guess = 1; }
+        i = i + 1;
+    }
+
+    return guess;
+}
+
+// =============================================================================
+// Trigonometry (Lookup Table Based)
+// =============================================================================
+
+// Sine lookup table (256 entries for 0-90 degrees)
+// Values are in 8.8 fixed-point (256 = 1.0)
+// This would normally be a const array, simplified here
+fun fp_sin_quarter(angle: u8) -> i16 {
+    // Approximate sine for first quadrant (0-63 = 0-90 degrees)
+    // Using polynomial approximation: sin(x) ≈ x - x³/6
+    let x: i16 = (angle as i16) << 2; // Scale to 0-252
+    let x2: i16 = fp_mul(x, x);
+    let x3: i16 = fp_mul(x2, x);
+    let term: i16 = fp_div(x3, 1536); // x³/6 in fixed-point
+    return x - term;
+}
+
+fun fp_sin(angle: i16) -> i16 {
+    // Normalize angle to 0-1023 (representing 0-360 degrees)
+    let a: i16 = angle & 1023;
+
+    // Determine quadrant
+    if a < 256 {
+        // 0-90 degrees
+        return fp_sin_quarter((a >> 2) as u8);
+    }
+    if a < 512 {
+        // 90-180 degrees
+        return fp_sin_quarter(((512 - a) >> 2) as u8);
+    }
+    if a < 768 {
+        // 180-270 degrees
+        return 0 - fp_sin_quarter(((a - 512) >> 2) as u8);
+    }
+    // 270-360 degrees
+    return 0 - fp_sin_quarter(((1024 - a) >> 2) as u8);
+}
+
+fun fp_cos(angle: i16) -> i16 {
+    return fp_sin(angle + 256); // cos(x) = sin(x + 90)
+}
+
+// =============================================================================
+// Linear Interpolation
+// =============================================================================
+
+// Lerp: a + t * (b - a)
+fun fp_lerp(a: i16, b: i16, t: i16) -> i16 {
+    let diff: i16 = b - a;
+    return a + fp_mul(diff, t);
+}
+
+// Smooth step: 3t² - 2t³
+fun fp_smoothstep(edge0: i16, edge1: i16, x: i16) -> i16 {
+    let t: i16 = fp_clamp(fp_div(x - edge0, edge1 - edge0), 0, 256);
+    let t2: i16 = fp_mul(t, t);
+    let t3: i16 = fp_mul(t2, t);
+    // 3t² - 2t³ = t² * (3 - 2t)
+    let factor: i16 = 768 - fp_mul(512, t); // 3 - 2t in fixed-point
+    return fp_mul(t2, factor);
+}
+
+// =============================================================================
+// Integer Square Root (for internal use)
+// =============================================================================
+
+fun isqrt(x: i16) -> i16 {
+    if x <= 0 { return 0; }
+
+    let result: i16 = 0;
+    let bit: i16 = 16384; // Highest power of 4 <= 32767
+
+    while bit > x { bit = bit >> 2; }
+
+    while bit != 0 {
+        let test: i16 = result + bit;
+        if x >= test {
+            x = x - test;
+            result = (result >> 1) + bit;
+        } else {
+            result = result >> 1;
+        }
+        bit = bit >> 2;
+    }
+
+    return result;
+}

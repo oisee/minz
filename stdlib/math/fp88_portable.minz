@@ -1,0 +1,284 @@
+// fp88_portable.minz - Portable 8.8 Fixed-Point Math Library
+// Uses @if to select implementation based on target platform
+//
+// Format: 8.8 fixed-point (256 = 1.0)
+
+// =============================================================================
+// Constants (same for all targets)
+// =============================================================================
+
+fun fp_one() -> i16 { return 256; }
+fun fp_half() -> i16 { return 128; }
+fun fp_quarter() -> i16 { return 64; }
+fun fp_two() -> i16 { return 512; }
+
+// =============================================================================
+// Core Operations - Platform-Specific Implementations
+// =============================================================================
+
+// Fixed-point multiply
+@if @target == "z80" || @target == "spectrum" {
+    // Z80 optimized: use HL*DE multiplication
+    fun fp_mul(a: i16, b: i16) -> i16 {
+        asm {
+            // a in HL, b in DE
+            PUSH BC
+            LD A, H
+            XOR D
+            PUSH AF          ; Save sign
+            BIT 7, H
+            JR Z, .a_pos
+            ; Negate HL
+            LD A, L
+            CPL
+            LD L, A
+            LD A, H
+            CPL
+            LD H, A
+            INC HL
+.a_pos:
+            BIT 7, D
+            JR Z, .b_pos
+            ; Negate DE
+            LD A, E
+            CPL
+            LD E, A
+            LD A, D
+            CPL
+            LD D, A
+            INC DE
+.b_pos:
+            ; Multiply unsigned: HL * DE -> BC:HL
+            LD B, H
+            LD C, L
+            LD HL, 0
+            LD A, 16
+.mul_loop:
+            ADD HL, HL
+            RL C
+            RL B
+            JR NC, .no_add
+            ADD HL, DE
+            JR NC, .no_add
+            INC BC
+.no_add:
+            DEC A
+            JR NZ, .mul_loop
+            ; Result in BC:HL, we need BC (high 16 bits) for 8.8
+            LD H, B
+            LD L, C
+            ; Apply sign
+            POP AF
+            JP P, .done
+            ; Negate result
+            LD A, L
+            CPL
+            LD L, A
+            LD A, H
+            CPL
+            LD H, A
+            INC HL
+.done:
+            POP BC
+        }
+    }
+}
+
+@if @target == "mir" || @target == "wasm" || @target == "c" {
+    // Pure MinZ for MIR VM and other portable targets
+    fun fp_mul(a: i16, b: i16) -> i16 {
+        let a32: i32 = a as i32;
+        let b32: i32 = b as i32;
+        let result: i32 = (a32 * b32) >> 8;
+        return result as i16;
+    }
+}
+
+// Default fallback for unknown targets
+@if !(@target == "z80" || @target == "spectrum" || @target == "mir" || @target == "wasm" || @target == "c") {
+    fun fp_mul(a: i16, b: i16) -> i16 {
+        let a32: i32 = a as i32;
+        let b32: i32 = b as i32;
+        let result: i32 = (a32 * b32) >> 8;
+        return result as i16;
+    }
+}
+
+// Fixed-point divide
+@if @target == "z80" || @target == "spectrum" {
+    fun fp_div(a: i16, b: i16) -> i16 {
+        if b == 0 {
+            if a >= 0 { return 32767; }
+            return -32768;
+        }
+        asm {
+            // Division using shift-and-subtract
+            // (a << 8) / b
+            PUSH BC
+            PUSH DE
+            ; Get signs
+            LD A, H
+            XOR D
+            PUSH AF
+            ; Make positive
+            BIT 7, H
+            JR Z, .div_a_pos
+            LD A, L
+            CPL
+            LD L, A
+            LD A, H
+            CPL
+            LD H, A
+            INC HL
+.div_a_pos:
+            BIT 7, D
+            JR Z, .div_b_pos
+            LD A, E
+            CPL
+            LD E, A
+            LD A, D
+            CPL
+            LD D, A
+            INC DE
+.div_b_pos:
+            ; Shift a left 8 bits: BC:HL = a << 8
+            LD B, H
+            LD C, L
+            LD HL, 0
+            ; 16-bit division BC:HL / DE -> HL
+            LD A, 16
+.div_loop:
+            ADD HL, HL
+            RL C
+            RL B
+            JR C, .div_sub
+            LD A, H
+            SUB E
+            LD A, B
+            SBC A, D
+            JR C, .div_no_sub
+.div_sub:
+            LD A, L
+            OR 1
+            LD L, A
+            LD A, H
+            SUB E
+            LD H, A
+            LD A, B
+            SBC A, D
+            LD B, A
+.div_no_sub:
+            DEC A
+            JR NZ, .div_loop
+            ; Apply sign
+            POP AF
+            JP P, .div_done
+            LD A, L
+            CPL
+            LD L, A
+            LD A, H
+            CPL
+            LD H, A
+            INC HL
+.div_done:
+            POP DE
+            POP BC
+        }
+    }
+}
+
+@if @target == "mir" || @target == "wasm" || @target == "c" {
+    fun fp_div(a: i16, b: i16) -> i16 {
+        if b == 0 {
+            if a >= 0 { return 32767; }
+            return -32768;
+        }
+        let a32: i32 = a as i32;
+        let b32: i32 = b as i32;
+        let result: i32 = (a32 << 8) / b32;
+        return result as i16;
+    }
+}
+
+@if !(@target == "z80" || @target == "spectrum" || @target == "mir" || @target == "wasm" || @target == "c") {
+    fun fp_div(a: i16, b: i16) -> i16 {
+        if b == 0 {
+            if a >= 0 { return 32767; }
+            return -32768;
+        }
+        let a32: i32 = a as i32;
+        let b32: i32 = b as i32;
+        let result: i32 = (a32 << 8) / b32;
+        return result as i16;
+    }
+}
+
+// =============================================================================
+// Portable Functions (same implementation for all targets)
+// =============================================================================
+
+fun fp_abs(x: i16) -> i16 {
+    if x < 0 { return 0 - x; }
+    return x;
+}
+
+fun fp_min(a: i16, b: i16) -> i16 {
+    if a < b { return a; }
+    return b;
+}
+
+fun fp_max(a: i16, b: i16) -> i16 {
+    if a > b { return a; }
+    return b;
+}
+
+fun fp_clamp(x: i16, lo: i16, hi: i16) -> i16 {
+    if x < lo { return lo; }
+    if x > hi { return hi; }
+    return x;
+}
+
+fun fp_sqrt(x: i16) -> i16 {
+    if x <= 0 { return 0; }
+
+    let guess: i16 = x >> 1;
+    if guess == 0 { guess = 1; }
+    if guess > 256 { guess = 256; }
+
+    let i: u8 = 0;
+    while i < 8 {
+        let div_result: i16 = fp_div(x, guess);
+        guess = (guess + div_result) >> 1;
+        if guess == 0 { guess = 1; }
+        i = i + 1;
+    }
+
+    return guess;
+}
+
+fun fp_lerp(a: i16, b: i16, t: i16) -> i16 {
+    let diff: i16 = b - a;
+    return a + fp_mul(diff, t);
+}
+
+fun isqrt(x: i16) -> i16 {
+    if x <= 0 { return 0; }
+
+    let result: i16 = 0;
+    let bit: i16 = 16384;
+
+    while bit > x { bit = bit >> 2; }
+
+    while bit != 0 {
+        let test: i16 = result + bit;
+        if x >= test {
+            x = x - test;
+            result = (result >> 1) + bit;
+        } else {
+            result = result >> 1;
+        }
+        bit = bit >> 2;
+    }
+
+    return result;
+}
