@@ -1,0 +1,18 @@
+// mzv_simple_test.minz - Simple test of MZV graphics syscalls
+
+fun main() -> void {
+    // Draw a simple gradient
+    let y: u8 = 0;
+    while y < 100 {
+        let x: u8 = 0;
+        while x < 100 {
+            // Color based on position
+            let r: u8 = x * 2;
+            let g: u8 = y * 2;
+            let b: u8 = 128;
+            set_pixel(x, y, r);  // Just use red for now
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}

@@ -5996,21 +5996,51 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 		
 	case "clear":
 		// clear() - clear screen (ZX Spectrum specific)
-		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-			Op:      ir.OpCall,
-			Symbol:  "zx_clear_screen",
-			Comment: "Clear ZX Spectrum screen",
-		})
+		if a.targetBackend == "mir" {
+			// MIR VM syscall 12: clear_screen(color)
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpSyscall,
+				Imm:     12,
+				Src1:    0, // color in r0 (default black)
+				Comment: "syscall: clear_screen",
+			})
+		} else {
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpCall,
+				Symbol:  "zx_clear_screen",
+				Comment: "Clear ZX Spectrum screen",
+			})
+		}
 		return 0, nil
-		
+
 	case "set_pixel":
-		// set_pixel(x: u8, y: u8)
-		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-			Op:      ir.OpCall,
-			Symbol:  "zx_set_pixel",
-			Args:    []ir.Register{argRegs[0], argRegs[1]},
-			Comment: "Set pixel at x,y",
-		})
+		// set_pixel(x: u8, y: u8, color: u8)
+		if a.targetBackend == "mir" {
+			// MIR VM syscall 10: set_pixel(x, y) with color in r0
+			// Move color to r0 first if provided
+			if len(argRegs) >= 3 {
+				irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+					Op:      ir.OpMove,
+					Dest:    0, // r0
+					Src1:    argRegs[2], // color
+					Comment: "move color to r0 for syscall",
+				})
+			}
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpSyscall,
+				Imm:     10,
+				Src1:    argRegs[0], // x
+				Src2:    argRegs[1], // y
+				Comment: "syscall: set_pixel",
+			})
+		} else {
+			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+				Op:      ir.OpCall,
+				Symbol:  "zx_set_pixel",
+				Args:    []ir.Register{argRegs[0], argRegs[1]},
+				Comment: "Set pixel at x,y",
+			})
+		}
 		return 0, nil
 		
 	case "set_ink":

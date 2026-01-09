@@ -536,6 +536,18 @@ func (vm *VM) handleSyscall(id int, inst ir.Instruction) (int64, error) {
 		}
 		return 0, nil
 
+	case 13: // get_display_width() -> width
+		if vm.platform.HasDisplay() {
+			return int64(vm.platform.Display().Width()), nil
+		}
+		return 0, nil
+
+	case 14: // get_display_height() -> height
+		if vm.platform.HasDisplay() {
+			return int64(vm.platform.Display().Height()), nil
+		}
+		return 0, nil
+
 	default:
 		return 0, fmt.Errorf("unknown syscall: %d", id)
 	}

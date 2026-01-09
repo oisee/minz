@@ -182,9 +182,9 @@ crystal run hello.cr  # Test instantly!
 
 <div align="center">
 
-![MZV Sphere Render](/media/mzv_sphere_render.png)
+![MZV Sphere Render](/media/mzv_sphere_minz.png)
 
-*Raymarched sphere with diffuse lighting and specular highlights - rendered in the MZV virtual machine framebuffer (320x240 Agon platform)*
+*Sphere with diffuse lighting using 8.8 fixed-point math (fp88.minz) - rendered in MZV framebuffer (320x240 Agon platform)*
 
 </div>
 
