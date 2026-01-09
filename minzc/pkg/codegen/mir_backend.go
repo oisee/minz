@@ -42,6 +42,12 @@ func (b *MIRBackend) SupportsFeature(feature string) bool {
 
 // Generate outputs the MIR module as text
 func (b *MIRBackend) Generate(module *ir.Module) (string, error) {
+	// Disable SMC for MIR output - MIR VM doesn't support SMC
+	for _, fn := range module.Functions {
+		fn.IsSMCEnabled = false
+		fn.IsSMCDefault = false
+	}
+
 	var sb strings.Builder
 
 	// Write header

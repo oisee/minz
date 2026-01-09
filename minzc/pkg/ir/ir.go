@@ -369,9 +369,11 @@ const (
 	TypeU8
 	TypeU16
 	TypeU24
+	TypeU32     // 32-bit unsigned (for intermediate calculations)
 	TypeI8
 	TypeI16
 	TypeI24
+	TypeI32     // 32-bit signed (for intermediate calculations)
 	TypeF8_8    // Fixed point 8.8
 	TypeF_8     // Fixed point .8 (pure fractional 8-bit)
 	TypeF_16    // Fixed point .16 (pure fractional 16-bit)
@@ -389,6 +391,8 @@ func (t *BasicType) Size() int {
 		return 2
 	case TypeU24, TypeI24, TypeF16_8, TypeF8_16:
 		return 3
+	case TypeU32, TypeI32:
+		return 4
 	default:
 		return 0
 	}
@@ -406,12 +410,16 @@ func (t *BasicType) String() string {
 		return "u16"
 	case TypeU24:
 		return "u24"
+	case TypeU32:
+		return "u32"
 	case TypeI8:
 		return "i8"
 	case TypeI16:
 		return "i16"
 	case TypeI24:
 		return "i24"
+	case TypeI32:
+		return "i32"
 	case TypeF8_8:
 		return "f8.8"
 	case TypeF_8:
@@ -1043,6 +1051,31 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("r%d = port_in(r%d)", i.Dest, i.Src1)
 	case OpPortOut:
 		return fmt.Sprintf("port_out(r%d, r%d)", i.Src1, i.Src2)
+	case OpTrueSMCLoad:
+		if i.Symbol != "" {
+			return fmt.Sprintf("r%d = smc_load %s", i.Dest, i.Symbol)
+		}
+		return fmt.Sprintf("r%d = smc_load r%d", i.Dest, i.Src1)
+	case OpTrueSMCPatch:
+		return fmt.Sprintf("smc_patch %s = r%d", i.Symbol, i.Src1)
+	case OpTSMCRefAnchor:
+		return fmt.Sprintf("tsmc_anchor %s", i.Symbol)
+	case OpTSMCRefLoad:
+		return fmt.Sprintf("r%d = tsmc_ref_load %s", i.Dest, i.Symbol)
+	case OpTSMCRefPatch:
+		return fmt.Sprintf("tsmc_ref_patch %s = r%d", i.Symbol, i.Src1)
+	case OpSMCLoadConst:
+		return fmt.Sprintf("r%d = smc_const %d", i.Dest, i.Imm)
+	case OpSMCStoreConst:
+		return fmt.Sprintf("smc_store_const %s = %d", i.Symbol, i.Imm)
+	case OpSMCParam:
+		return fmt.Sprintf("smc_param %s", i.Symbol)
+	case OpSMCSave:
+		return fmt.Sprintf("smc_save %s", i.Symbol)
+	case OpSMCRestore:
+		return fmt.Sprintf("smc_restore %s", i.Symbol)
+	case OpSMCUpdate:
+		return fmt.Sprintf("smc_update %s = r%d", i.Symbol, i.Src1)
 	default:
 		return fmt.Sprintf("unknown op %d", i.Op)
 	}

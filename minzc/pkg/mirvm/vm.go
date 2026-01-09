@@ -353,7 +353,10 @@ func (vm *VM) executeInstruction() (bool, error) {
 
 	case ir.OpAdd:
 		vm.registers[inst.Dest] = vm.registers[inst.Src1] + vm.registers[inst.Src2]
-		
+
+	case ir.OpAddImm:
+		vm.registers[inst.Dest] = vm.registers[inst.Src1] + inst.Imm
+
 	case ir.OpSub:
 		vm.registers[inst.Dest] = vm.registers[inst.Src1] - vm.registers[inst.Src2]
 		
@@ -417,6 +420,14 @@ func (vm *VM) executeInstruction() (bool, error) {
 			vm.registers[255] = -1 // Less than
 		} else {
 			vm.registers[255] = 1 // Greater than
+		}
+
+	case ir.OpTest:
+		// Test if value is zero (for conditional jumps)
+		if vm.registers[inst.Src1] == 0 {
+			vm.registers[255] = 0 // Zero
+		} else {
+			vm.registers[255] = 1 // Non-zero
 		}
 
 	case ir.OpLt:

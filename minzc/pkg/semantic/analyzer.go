@@ -604,7 +604,19 @@ func (a *Analyzer) addBuiltins() {
 		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
 		IsBuiltin: true,
 	})
-	
+
+	// clear - alias for cls (MIR VM uses this name)
+	a.currentScope.Define("clear", &FuncSymbol{
+		Name: "clear",
+		Params: []*ast.Parameter{},
+		Type: &ir.FunctionType{
+			Params: []ir.Type{},
+			Return: &ir.BasicType{Kind: ir.TypeVoid},
+		},
+		ReturnType: &ir.BasicType{Kind: ir.TypeVoid},
+		IsBuiltin: true,
+	})
+
 	// hex - convert u8 to hex string
 	a.currentScope.Define("hex", &FuncSymbol{
 		Name: "hex",
@@ -4026,6 +4038,10 @@ func (a *Analyzer) getTypeSize(t ir.Type) int {
 			return 1
 		case ir.TypeU16, ir.TypeI16:
 			return 2
+		case ir.TypeU24, ir.TypeI24:
+			return 3
+		case ir.TypeU32, ir.TypeI32:
+			return 4
 		default:
 			return 1 // Default to 1 byte
 		}
@@ -7726,31 +7742,31 @@ func (a *Analyzer) isValidCast(source, target ir.Type) bool {
 	if _, ok := source.(*ir.EnumType); ok {
 		if targetBasic, ok := target.(*ir.BasicType); ok {
 			switch targetBasic.Kind {
-			case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+			case ir.TypeU8, ir.TypeU16, ir.TypeU32, ir.TypeI8, ir.TypeI16, ir.TypeI32:
 				return true
 			}
 		}
 	}
-	
+
 	// Allow casts from pointer types to integer types (pointer address to integer)
 	if _, ok := source.(*ir.PointerType); ok {
 		if targetBasic, ok := target.(*ir.BasicType); ok {
 			switch targetBasic.Kind {
-			case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+			case ir.TypeU8, ir.TypeU16, ir.TypeU32, ir.TypeI8, ir.TypeI16, ir.TypeI32:
 				return true
 			}
 		}
 	}
-	
+
 	// Allow casts between compatible basic types
 	sourceBasic, sourceOk := source.(*ir.BasicType)
 	targetBasic, targetOk := target.(*ir.BasicType)
 	if sourceOk && targetOk {
 		// Allow casts between integer types
 		switch sourceBasic.Kind {
-		case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+		case ir.TypeU8, ir.TypeU16, ir.TypeU32, ir.TypeI8, ir.TypeI16, ir.TypeI32:
 			switch targetBasic.Kind {
-			case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+			case ir.TypeU8, ir.TypeU16, ir.TypeU32, ir.TypeI8, ir.TypeI16, ir.TypeI32:
 				return true
 			}
 		}
@@ -7968,12 +7984,16 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 			return &ir.BasicType{Kind: ir.TypeU16}, nil
 		case "u24":
 			return &ir.BasicType{Kind: ir.TypeU24}, nil
+		case "u32":
+			return &ir.BasicType{Kind: ir.TypeU32}, nil
 		case "i8":
 			return &ir.BasicType{Kind: ir.TypeI8}, nil
 		case "i16":
 			return &ir.BasicType{Kind: ir.TypeI16}, nil
 		case "i24":
 			return &ir.BasicType{Kind: ir.TypeI24}, nil
+		case "i32":
+			return &ir.BasicType{Kind: ir.TypeI32}, nil
 		case "f8.8":
 			return &ir.BasicType{Kind: ir.TypeF8_8}, nil
 		case "f.8":
@@ -8054,6 +8074,29 @@ func (a *Analyzer) convertType(astType ast.Type) (ir.Type, error) {
 		}
 		return nil, fmt.Errorf("array size must be a constant, got %T", t.Size)
 	case *ast.TypeIdentifier:
+		// First check if this is a primitive type name (parser might generate TypeIdentifier for some)
+		switch t.Name {
+		case "u8":
+			return &ir.BasicType{Kind: ir.TypeU8}, nil
+		case "u16":
+			return &ir.BasicType{Kind: ir.TypeU16}, nil
+		case "u24":
+			return &ir.BasicType{Kind: ir.TypeU24}, nil
+		case "u32":
+			return &ir.BasicType{Kind: ir.TypeU32}, nil
+		case "i8":
+			return &ir.BasicType{Kind: ir.TypeI8}, nil
+		case "i16":
+			return &ir.BasicType{Kind: ir.TypeI16}, nil
+		case "i24":
+			return &ir.BasicType{Kind: ir.TypeI24}, nil
+		case "i32":
+			return &ir.BasicType{Kind: ir.TypeI32}, nil
+		case "bool":
+			return &ir.BasicType{Kind: ir.TypeBool}, nil
+		case "void":
+			return &ir.BasicType{Kind: ir.TypeVoid}, nil
+		}
 		// Look up the type in the symbol table
 		sym := a.currentScope.Lookup(t.Name)
 		
@@ -8375,7 +8418,7 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 				// Pointer + integer or pointer - integer is valid
 				if basicType, ok := rightType.(*ir.BasicType); ok {
 					switch basicType.Kind {
-					case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+					case ir.TypeU8, ir.TypeU16, ir.TypeU32, ir.TypeI8, ir.TypeI16, ir.TypeI32:
 						// Valid pointer arithmetic
 						return ptrType, nil
 					}
@@ -8385,7 +8428,7 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 				if e.Operator == "+" {
 					if basicType, ok := leftType.(*ir.BasicType); ok {
 						switch basicType.Kind {
-						case ir.TypeU8, ir.TypeU16, ir.TypeI8, ir.TypeI16:
+						case ir.TypeU8, ir.TypeU16, ir.TypeU32, ir.TypeI8, ir.TypeI16, ir.TypeI32:
 							// Valid pointer arithmetic
 							return ptrType, nil
 						}
@@ -10833,7 +10876,8 @@ func (a *Analyzer) analyzeExplicitError(errorExpr *ast.CompileTimeError, irFunc 
 		isIntegerLiteral := false
 		if basicType, ok := errorType.(*ir.BasicType); ok {
 			isIntegerLiteral = basicType.Kind == ir.TypeU8 || basicType.Kind == ir.TypeI8 ||
-				basicType.Kind == ir.TypeU16 || basicType.Kind == ir.TypeI16
+				basicType.Kind == ir.TypeU16 || basicType.Kind == ir.TypeI16 ||
+				basicType.Kind == ir.TypeU32 || basicType.Kind == ir.TypeI32
 		}
 		_, declaredIsEnum := currentFuncSym.ErrorType.(*ir.EnumType)
 

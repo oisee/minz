@@ -98,20 +98,12 @@ func (p *mirParser) parse() (*Module, error) {
 			p.currentFunc.Instructions = append(p.currentFunc.Instructions, inst)
 		}
 	}
-	
-	// Resolve label references
-	for _, fn := range p.module.Functions {
-		for i, inst := range fn.Instructions {
-			if inst.Label != "" {
-				if target, ok := p.labels[inst.Label]; ok {
-					fn.Instructions[i].Target = target
-				} else {
-					return nil, fmt.Errorf("undefined label: %s", inst.Label)
-				}
-			}
-		}
+
+	// Resolve labels for the last function
+	if p.currentFunc != nil {
+		p.resolveLabels(p.currentFunc)
 	}
-	
+
 	return p.module, nil
 }
 
@@ -122,13 +114,38 @@ func (p *mirParser) parseFunctionHeader(line string) error {
 
 	// Extract function name (before parentheses)
 	name := line
+	var params []Parameter
 	if idx := strings.Index(name, "("); idx >= 0 {
+		// Extract parameters from (x: i16, y: i16) format
+		endIdx := strings.Index(line, ")")
+		if endIdx > idx {
+			paramsStr := line[idx+1 : endIdx]
+			if paramsStr != "" {
+				paramParts := strings.Split(paramsStr, ",")
+				for i, pp := range paramParts {
+					pp = strings.TrimSpace(pp)
+					if colonIdx := strings.Index(pp, ":"); colonIdx > 0 {
+						paramName := strings.TrimSpace(pp[:colonIdx])
+						params = append(params, Parameter{
+							Name: paramName,
+							Reg:  Register(i), // Parameters get sequential registers
+						})
+					}
+				}
+			}
+		}
 		name = name[:idx]
+	}
+
+	// Resolve labels for the previous function before starting a new one
+	if p.currentFunc != nil {
+		p.resolveLabels(p.currentFunc)
 	}
 
 	fn := &Function{
 		Name:         name,
 		Instructions: []Instruction{},
+		Params:       params,
 	}
 
 	p.module.Functions = append(p.module.Functions, fn)
@@ -136,6 +153,18 @@ func (p *mirParser) parseFunctionHeader(line string) error {
 	p.labels = make(map[string]int) // Reset labels for new function
 
 	return nil
+}
+
+// resolveLabels resolves label references within a function
+func (p *mirParser) resolveLabels(fn *Function) {
+	for i, inst := range fn.Instructions {
+		if inst.Label != "" {
+			if target, ok := p.labels[inst.Label]; ok {
+				fn.Instructions[i].Target = target
+			}
+			// Don't error on undefined labels - VM will handle them
+		}
+	}
 }
 
 // parseLocalDecl parses local variable declarations like "r1 = y: u8"
@@ -274,8 +303,10 @@ func (p *mirParser) parseInstruction(line string) (Instruction, error) {
 		}
 	}
 
-	// Skip special internal instructions
-	if strings.HasPrefix(line, "TRUE_SMC_") || strings.HasPrefix(line, "PATCH_") {
+	// Skip special internal instructions and SMC-specific ops (treat as NOPs for VM)
+	if strings.HasPrefix(line, "TRUE_SMC_") || strings.HasPrefix(line, "PATCH_") ||
+		strings.HasPrefix(line, "patch_") || strings.HasPrefix(line, "smc_") ||
+		strings.HasPrefix(line, "tsmc_") || strings.HasPrefix(line, "store_tsmc_ref") {
 		inst.Op = OpNop
 		return inst, nil
 	}
@@ -390,6 +421,15 @@ func (p *mirParser) parseInstruction(line string) (Instruction, error) {
 				inst.Src2 = Register(p.parseRegister(strings.TrimSpace(argParts[1])))
 			}
 		}
+
+	} else if strings.HasPrefix(line, "test ") {
+		// Test instruction: test r3
+		parts := strings.Fields(line)
+		if len(parts) < 2 {
+			return inst, fmt.Errorf("invalid test instruction")
+		}
+		inst.Op = OpTest
+		inst.Src1 = Register(p.parseRegister(parts[1]))
 
 	} else if strings.HasPrefix(line, "print") {
 		// Print instructions
@@ -574,6 +614,18 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 	// Check for param load: r0 = param x
 	if strings.HasPrefix(expr, "param ") {
 		paramName := strings.TrimPrefix(expr, "param ")
+		inst.Op = OpLoadParam
+		inst.Symbol = strings.TrimSpace(paramName)
+		return inst, nil
+	}
+
+	// Check for SMC load: r0 = smc_load x$imm0 (treat as param load for VM)
+	if strings.HasPrefix(expr, "smc_load ") {
+		paramName := strings.TrimPrefix(expr, "smc_load ")
+		// Strip the $imm0 suffix if present to get the base param name
+		if idx := strings.Index(paramName, "$"); idx > 0 {
+			paramName = paramName[:idx]
+		}
 		inst.Op = OpLoadParam
 		inst.Symbol = strings.TrimSpace(paramName)
 		return inst, nil

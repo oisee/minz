@@ -788,7 +788,7 @@ func (p *Parser) parseType(node map[string]interface{}) ast.Type {
 		// Check if this is a built-in primitive type
 		typeName := p.getText(node)
 		switch typeName {
-		case "u8", "u16", "u24", "i8", "i16", "i24", "bool", "void", "f8.8", "f.8", "f.16", "f16.8", "f8.16":
+		case "u8", "u16", "u24", "u32", "i8", "i16", "i24", "i32", "bool", "void", "f8.8", "f.8", "f.16", "f16.8", "f8.16":
 			// These are primitive types
 			return &ast.PrimitiveType{
 				Name:     typeName,
