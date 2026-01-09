@@ -1,6 +1,0 @@
-; Minimal CP/M test
-    ORG $0100
-
-    CALL $0005      ; Direct CALL to BDOS
-    
-    END
