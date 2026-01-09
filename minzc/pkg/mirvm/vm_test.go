@@ -734,6 +734,78 @@ Function test.main() -> void
 	}
 }
 
+// TestPointerExecution tests pointer load/store execution
+func TestPointerExecution(t *testing.T) {
+	mir := `; Pointer operations
+Function test.main() -> void
+  Instructions:
+      0: r1 = 1000
+      1: r2 = 42
+      2: *r1 = r2
+      3: r3 = *r1
+      4: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+
+	config := Config{
+		MemorySize: 4096,
+		StackSize:  1024,
+		MaxSteps:   100,
+	}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+
+	_, err = vm.Run()
+	if err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+
+	// r3 should be 42 (loaded from memory[1000])
+	if vm.registers[3] != 42 {
+		t.Errorf("r3 = %d, want 42", vm.registers[3])
+	}
+}
+
+// TestAddressOf tests address-of operator
+func TestAddressOf(t *testing.T) {
+	mir := `; Address-of operation
+Function test.main() -> void
+  Instructions:
+      0: r1 = 2000
+      1: r2 = &r1
+      2: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+
+	config := Config{
+		MemorySize: 4096,
+		StackSize:  1024,
+		MaxSteps:   100,
+	}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+
+	_, err = vm.Run()
+	if err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+
+	// r2 should have the value from r1 (2000)
+	if vm.registers[2] != 2000 {
+		t.Errorf("r2 = %d, want 2000", vm.registers[2])
+	}
+}
+
 // TestMIRParser tests MIR parsing edge cases
 func TestMIRParser(t *testing.T) {
 	tests := []struct {
@@ -894,6 +966,40 @@ Function test.add(a: u8, b: u8) -> u8
       1: r2 = param b
       2: r3 = r1 + r2
       3: return r3
+`,
+			wantErr: false,
+		},
+		{
+			name: "PointerLoad",
+			mir: `; Pointer dereference load
+Function test.main() -> void
+  Instructions:
+      0: r1 = 100
+      1: r2 = *r1
+      2: return
+`,
+			wantErr: false,
+		},
+		{
+			name: "PointerStore",
+			mir: `; Pointer store
+Function test.main() -> void
+  Instructions:
+      0: r1 = 100
+      1: r2 = 42
+      2: *r1 = r2
+      3: return
+`,
+			wantErr: false,
+		},
+		{
+			name: "AddressOf",
+			mir: `; Address-of operator
+Function test.main() -> void
+  Instructions:
+      0: r1 = 100
+      1: r2 = &r1
+      2: return
 `,
 			wantErr: false,
 		},

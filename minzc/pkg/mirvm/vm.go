@@ -327,6 +327,30 @@ func (vm *VM) executeInstruction() (bool, error) {
 		}
 		vm.registers[inst.Dest] = vm.registers[paramReg]
 
+	case ir.OpLoad, ir.OpLoadPtr:
+		// r0 = *r1 - load value from memory address in register
+		addr := int(vm.registers[inst.Src1])
+		if addr >= 0 && addr < len(vm.memory) {
+			vm.registers[inst.Dest] = int64(vm.memory[addr])
+		} else {
+			return false, fmt.Errorf("pointer dereference out of bounds: %d", addr)
+		}
+
+	case ir.OpStore, ir.OpStorePtr:
+		// *r0 = r1 - store value to memory address in register
+		addr := int(vm.registers[inst.Src1])
+		if addr >= 0 && addr < len(vm.memory) {
+			vm.memory[addr] = byte(vm.registers[inst.Src2])
+		} else {
+			return false, fmt.Errorf("pointer store out of bounds: %d", addr)
+		}
+
+	case ir.OpAddr:
+		// r0 = &r1 - get address of register (in VM, this is the register number mapped to memory)
+		// In a real VM, this would return the memory address of the variable
+		// For now, we treat register values as potential memory addresses
+		vm.registers[inst.Dest] = vm.registers[inst.Src1]
+
 	case ir.OpAdd:
 		vm.registers[inst.Dest] = vm.registers[inst.Src1] + vm.registers[inst.Src2]
 		

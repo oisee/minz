@@ -488,6 +488,15 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 		}
 	}
 
+	// Check for pointer store: *r0 = r1
+	if strings.HasPrefix(dest, "*r") {
+		ptrReg := strings.TrimPrefix(dest, "*")
+		inst.Op = OpStore
+		inst.Src1 = Register(p.parseRegister(ptrReg))
+		inst.Src2 = Register(p.parseRegister(expr))
+		return inst, nil
+	}
+
 	if strings.HasPrefix(dest, "r") {
 		inst.Dest = Register(p.parseRegister(dest))
 	} else if strings.HasPrefix(dest, "[") {
@@ -543,6 +552,22 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 		funcName := strings.TrimPrefix(expr, "call ")
 		inst.Op = OpCall
 		inst.FuncName = strings.TrimSpace(funcName)
+		return inst, nil
+	}
+
+	// Check for pointer dereference load: r0 = *r1
+	if strings.HasPrefix(expr, "*r") {
+		src := strings.TrimPrefix(expr, "*")
+		inst.Op = OpLoad
+		inst.Src1 = Register(p.parseRegister(src))
+		return inst, nil
+	}
+
+	// Check for address-of: r0 = &r1
+	if strings.HasPrefix(expr, "&r") {
+		src := strings.TrimPrefix(expr, "&")
+		inst.Op = OpAddr
+		inst.Src1 = Register(p.parseRegister(src))
 		return inst, nil
 	}
 
