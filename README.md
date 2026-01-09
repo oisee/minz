@@ -178,6 +178,16 @@ crystal run hello.cr  # Test instantly!
 | **VDP Commands** | 🚧 Planned | Agon Light VDU protocol |
 | **DAP Debugging** | 🚧 Planned | VS Code integration for MZV |
 
+### **MZV Virtual Machine Render Output**
+
+<div align="center">
+
+![MZV Sphere Render](/media/mzv_sphere_render.png)
+
+*Raymarched sphere with diffuse lighting and specular highlights - rendered in the MZV virtual machine framebuffer (320x240 Agon platform)*
+
+</div>
+
 ---
 
 ## 📚 **Code Examples**
