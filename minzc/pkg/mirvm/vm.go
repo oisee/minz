@@ -257,6 +257,76 @@ func (vm *VM) executeInstruction() (bool, error) {
 		}
 		vm.registers[varReg] = vm.registers[inst.Src1]
 
+	case ir.OpLoadIndex:
+		// r0 = r1[r2] - load from array at dynamic index
+		baseAddr := vm.registers[inst.Src1]
+		index := vm.registers[inst.Src2]
+		addr := int(baseAddr + index)
+		if addr >= 0 && addr < len(vm.memory) {
+			vm.registers[inst.Dest] = int64(vm.memory[addr])
+		} else {
+			return false, fmt.Errorf("array index out of bounds: %d", addr)
+		}
+
+	case ir.OpStoreIndex:
+		// r1[r2] = r0 - store to array at dynamic index
+		baseAddr := vm.registers[inst.Src1]
+		index := vm.registers[inst.Src2]
+		addr := int(baseAddr + index)
+		if addr >= 0 && addr < len(vm.memory) {
+			vm.memory[addr] = byte(vm.registers[inst.Dest])
+		} else {
+			return false, fmt.Errorf("array index out of bounds: %d", addr)
+		}
+
+	case ir.OpLoadElement:
+		// r0 = r1[5] - load from array at constant index
+		baseAddr := vm.registers[inst.Src1]
+		addr := int(baseAddr) + int(inst.Imm)
+		if addr >= 0 && addr < len(vm.memory) {
+			vm.registers[inst.Dest] = int64(vm.memory[addr])
+		} else {
+			return false, fmt.Errorf("array index out of bounds: %d", addr)
+		}
+
+	case ir.OpStoreElement:
+		// r1[5] = r0 - store to array at constant index
+		baseAddr := vm.registers[inst.Src1]
+		addr := int(baseAddr) + int(inst.Imm)
+		if addr >= 0 && addr < len(vm.memory) {
+			vm.memory[addr] = byte(vm.registers[inst.Dest])
+		} else {
+			return false, fmt.Errorf("array index out of bounds: %d", addr)
+		}
+
+	case ir.OpLoadField:
+		// r0 = r1.field[0] - load struct field at offset
+		baseAddr := vm.registers[inst.Src1]
+		addr := int(baseAddr) + int(inst.Imm)
+		if addr >= 0 && addr < len(vm.memory) {
+			vm.registers[inst.Dest] = int64(vm.memory[addr])
+		} else {
+			return false, fmt.Errorf("field access out of bounds: %d", addr)
+		}
+
+	case ir.OpStoreField:
+		// r1.field[0] = r0 - store struct field at offset
+		baseAddr := vm.registers[inst.Src1]
+		addr := int(baseAddr) + int(inst.Imm)
+		if addr >= 0 && addr < len(vm.memory) {
+			vm.memory[addr] = byte(vm.registers[inst.Src2])
+		} else {
+			return false, fmt.Errorf("field access out of bounds: %d", addr)
+		}
+
+	case ir.OpLoadParam:
+		// Load function parameter - params are passed in registers by convention
+		paramReg := vm.findParamRegister(inst.Symbol)
+		if paramReg < 0 {
+			return false, fmt.Errorf("undefined parameter: %s", inst.Symbol)
+		}
+		vm.registers[inst.Dest] = vm.registers[paramReg]
+
 	case ir.OpAdd:
 		vm.registers[inst.Dest] = vm.registers[inst.Src1] + vm.registers[inst.Src2]
 		
@@ -688,6 +758,19 @@ func (vm *VM) findVarRegister(name string) int {
 		}
 	}
 	// Also check parameters
+	for _, param := range vm.currentFunc.Params {
+		if param.Name == name {
+			return int(param.Reg)
+		}
+	}
+	return -1
+}
+
+// findParamRegister looks up a parameter's register by name
+func (vm *VM) findParamRegister(name string) int {
+	if vm.currentFunc == nil {
+		return -1
+	}
 	for _, param := range vm.currentFunc.Params {
 		if param.Name == name {
 			return int(param.Reg)

@@ -608,6 +608,132 @@ Function test.main() -> void
 	}
 }
 
+// TestArrayExecution tests array load/store execution
+func TestArrayExecution(t *testing.T) {
+	// Test array store and load with dynamic index
+	mir := `; Array operations
+Function test.main() -> void
+  Instructions:
+      0: r1 = 1000
+      1: r2 = 0
+      2: r3 = 42
+      3: r1[r2] = r3
+      4: r4 = 1
+      5: r5 = 43
+      6: r1[r4] = r5
+      7: r6 = r1[r2]
+      8: r7 = r1[r4]
+      9: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+
+	config := Config{
+		MemorySize: 4096,
+		StackSize:  1024,
+		MaxSteps:   100,
+	}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+
+	_, err = vm.Run()
+	if err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+
+	// Check results: r6 should be 42, r7 should be 43
+	if vm.registers[6] != 42 {
+		t.Errorf("r6 = %d, want 42", vm.registers[6])
+	}
+	if vm.registers[7] != 43 {
+		t.Errorf("r7 = %d, want 43", vm.registers[7])
+	}
+}
+
+// TestArrayConstantIndex tests array access with constant index
+func TestArrayConstantIndex(t *testing.T) {
+	mir := `; Array with constant index
+Function test.main() -> void
+  Instructions:
+      0: r1 = 1000
+      1: r2 = 99
+      2: r1[5] = r2
+      3: r3 = r1[5]
+      4: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+
+	config := Config{
+		MemorySize: 4096,
+		StackSize:  1024,
+		MaxSteps:   100,
+	}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+
+	_, err = vm.Run()
+	if err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+
+	// r3 should be 99
+	if vm.registers[3] != 99 {
+		t.Errorf("r3 = %d, want 99", vm.registers[3])
+	}
+}
+
+// TestFieldExecution tests struct field load/store execution
+func TestFieldExecution(t *testing.T) {
+	mir := `; Struct field operations
+Function test.main() -> void
+  Instructions:
+      0: r1 = 2000
+      1: r2 = 10
+      2: r1.field[0] = r2
+      3: r3 = 20
+      4: r1.field[1] = r3
+      5: r4 = r1.field[0]
+      6: r5 = r1.field[1]
+      7: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+
+	config := Config{
+		MemorySize: 4096,
+		StackSize:  1024,
+		MaxSteps:   100,
+	}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+
+	_, err = vm.Run()
+	if err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+
+	// r4 should be 10, r5 should be 20
+	if vm.registers[4] != 10 {
+		t.Errorf("r4 = %d, want 10", vm.registers[4])
+	}
+	if vm.registers[5] != 20 {
+		t.Errorf("r5 = %d, want 20", vm.registers[5])
+	}
+}
+
 // TestMIRParser tests MIR parsing edge cases
 func TestMIRParser(t *testing.T) {
 	tests := []struct {
@@ -683,6 +809,91 @@ Function test.main() -> void
       6: r7 = r1 == r2
       7: r8 = r1 != r2
       8: return
+`,
+			wantErr: false,
+		},
+		{
+			name: "ArrayLoadDynamic",
+			mir: `; Array load with dynamic index
+Function test.main() -> void
+  Instructions:
+      0: r1 = 100
+      1: r2 = 5
+      2: r3 = r1[r2]
+      3: return
+`,
+			wantErr: false,
+		},
+		{
+			name: "ArrayLoadConstant",
+			mir: `; Array load with constant index
+Function test.main() -> void
+  Instructions:
+      0: r1 = 100
+      1: r2 = r1[5]
+      2: return
+`,
+			wantErr: false,
+		},
+		{
+			name: "ArrayStoreDynamic",
+			mir: `; Array store with dynamic index
+Function test.main() -> void
+  Instructions:
+      0: r1 = 100
+      1: r2 = 5
+      2: r3 = 42
+      3: r1[r2] = r3
+      4: return
+`,
+			wantErr: false,
+		},
+		{
+			name: "ArrayStoreConstant",
+			mir: `; Array store with constant index
+Function test.main() -> void
+  Instructions:
+      0: r1 = 100
+      1: r2 = 42
+      2: r1[5] = r2
+      3: return
+`,
+			wantErr: false,
+		},
+		{
+			name: "FieldLoad",
+			mir: `; Struct field load
+Function test.main() -> void
+  Instructions:
+      0: r1 = 100
+      1: r2 = r1.field[0]
+      2: r3 = r1.field[1]
+      3: return
+`,
+			wantErr: false,
+		},
+		{
+			name: "FieldStore",
+			mir: `; Struct field store
+Function test.main() -> void
+  Instructions:
+      0: r1 = 100
+      1: r2 = 42
+      2: r1.field[0] = r2
+      3: r1.field[1] = r2
+      4: return
+`,
+			wantErr: false,
+		},
+		{
+			name: "ParamLoad",
+			mir: `; Function parameter load
+Function test.add(a: u8, b: u8) -> u8
+  Instructions:
+      0: r1 = param a
+      1: r2 = param b
+      2: r3 = r1 + r2
+      3: return r3
 `,
 			wantErr: false,
 		},

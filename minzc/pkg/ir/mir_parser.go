@@ -448,6 +448,46 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 	
 	// Parse destination
 	dest := strings.TrimSpace(parts[0])
+	expr := strings.TrimSpace(parts[1])
+
+	// Check for field store FIRST: r1.field[0] = r0 (must come before array store check)
+	if strings.Contains(dest, ".field[") {
+		dotIdx := strings.Index(dest, ".field[")
+		bracketEnd := strings.Index(dest, "]")
+		if dotIdx > 0 && bracketEnd > dotIdx {
+			base := strings.TrimSpace(dest[:dotIdx])
+			fieldIdx := strings.TrimSpace(dest[dotIdx+7 : bracketEnd])
+
+			inst.Op = OpStoreField
+			inst.Src1 = Register(p.parseRegister(base))
+			inst.Src2 = Register(p.parseRegister(expr)) // value to store
+			inst.Imm, _ = strconv.ParseInt(fieldIdx, 0, 64)
+			return inst, nil
+		}
+	}
+
+	// Check for array store: r1[r2] = r0 or r1[5] = r0
+	if strings.Contains(dest, "[") && !strings.HasPrefix(dest, "[") {
+		bracketStart := strings.Index(dest, "[")
+		bracketEnd := strings.Index(dest, "]")
+		if bracketStart > 0 && bracketEnd > bracketStart {
+			base := strings.TrimSpace(dest[:bracketStart])
+			index := strings.TrimSpace(dest[bracketStart+1 : bracketEnd])
+
+			inst.Src1 = Register(p.parseRegister(base))
+			inst.Dest = Register(p.parseRegister(expr)) // value to store
+
+			if val, err := strconv.ParseInt(index, 0, 64); err == nil {
+				inst.Op = OpStoreElement
+				inst.Imm = val
+			} else {
+				inst.Op = OpStoreIndex
+				inst.Src2 = Register(p.parseRegister(index))
+			}
+			return inst, nil
+		}
+	}
+
 	if strings.HasPrefix(dest, "r") {
 		inst.Dest = Register(p.parseRegister(dest))
 	} else if strings.HasPrefix(dest, "[") {
@@ -455,15 +495,14 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 		dest = strings.Trim(dest, "[]")
 		inst.Op = OpStoreMem
 		inst.Dest = Register(p.parseRegister(dest))
-		
+
 		// Parse source
 		src := strings.TrimSpace(parts[1])
 		inst.Src1 = Register(p.parseRegister(src))
 		return inst, nil
 	}
-	
-	// Parse source expression
-	expr := strings.TrimSpace(parts[1])
+
+	// Parse source expression (expr already set above)
 	
 	// Check for immediate value
 	if val, err := strconv.ParseInt(expr, 0, 64); err == nil {
@@ -505,6 +544,50 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 		inst.Op = OpCall
 		inst.FuncName = strings.TrimSpace(funcName)
 		return inst, nil
+	}
+
+	// Check for param load: r0 = param x
+	if strings.HasPrefix(expr, "param ") {
+		paramName := strings.TrimPrefix(expr, "param ")
+		inst.Op = OpLoadParam
+		inst.Symbol = strings.TrimSpace(paramName)
+		return inst, nil
+	}
+
+	// Check for field load: r0 = r1.field[0]
+	if strings.Contains(expr, ".field[") {
+		dotIdx := strings.Index(expr, ".field[")
+		bracketEnd := strings.Index(expr, "]")
+		if dotIdx > 0 && bracketEnd > dotIdx {
+			base := strings.TrimSpace(expr[:dotIdx])
+			fieldIdx := strings.TrimSpace(expr[dotIdx+7 : bracketEnd])
+
+			inst.Op = OpLoadField
+			inst.Src1 = Register(p.parseRegister(base))
+			inst.Imm, _ = strconv.ParseInt(fieldIdx, 0, 64)
+			return inst, nil
+		}
+	}
+
+	// Check for array load: r0 = r1[r2] or r0 = r1[5]
+	if strings.Contains(expr, "[") && strings.Contains(expr, "]") && !strings.HasPrefix(expr, "[") {
+		bracketStart := strings.Index(expr, "[")
+		bracketEnd := strings.Index(expr, "]")
+		if bracketStart > 0 && bracketEnd > bracketStart {
+			base := strings.TrimSpace(expr[:bracketStart])
+			index := strings.TrimSpace(expr[bracketStart+1 : bracketEnd])
+
+			inst.Src1 = Register(p.parseRegister(base))
+
+			if val, err := strconv.ParseInt(index, 0, 64); err == nil {
+				inst.Op = OpLoadElement
+				inst.Imm = val
+			} else {
+				inst.Op = OpLoadIndex
+				inst.Src2 = Register(p.parseRegister(index))
+			}
+			return inst, nil
+		}
 	}
 
 	// Check for binary operations FIRST (includes << and >> which would otherwise match < and >)
