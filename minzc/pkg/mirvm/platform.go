@@ -3,6 +3,9 @@ package mirvm
 
 import (
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"io"
 	"os"
 )
@@ -351,6 +354,58 @@ func (d *GenericDisplay) SetPalette(index int, color uint32) {
 // GetPalette returns the color palette
 func (d *GenericDisplay) GetPalette() []uint32 {
 	return d.palette
+}
+
+// SavePNG exports the framebuffer to a PNG file
+func (d *GenericDisplay) SavePNG(filename string) error {
+	img := image.NewRGBA(image.Rect(0, 0, d.width, d.height))
+
+	for y := 0; y < d.height; y++ {
+		for x := 0; x < d.width; x++ {
+			pixel := d.GetPixel(x, y)
+			r := uint8((pixel >> 16) & 0xFF)
+			g := uint8((pixel >> 8) & 0xFF)
+			b := uint8(pixel & 0xFF)
+			a := uint8((pixel >> 24) & 0xFF)
+			if a == 0 {
+				a = 255 // Default to opaque if alpha not set
+			}
+			img.Set(x, y, color.RGBA{R: r, G: g, B: b, A: a})
+		}
+	}
+
+	file, err := os.Create(filename)
+	if err != nil {
+		return fmt.Errorf("create file: %w", err)
+	}
+	defer file.Close()
+
+	if err := png.Encode(file, img); err != nil {
+		return fmt.Errorf("encode PNG: %w", err)
+	}
+
+	return nil
+}
+
+// ToImage converts the framebuffer to an image.Image
+func (d *GenericDisplay) ToImage() image.Image {
+	img := image.NewRGBA(image.Rect(0, 0, d.width, d.height))
+
+	for y := 0; y < d.height; y++ {
+		for x := 0; x < d.width; x++ {
+			pixel := d.GetPixel(x, y)
+			r := uint8((pixel >> 16) & 0xFF)
+			g := uint8((pixel >> 8) & 0xFF)
+			b := uint8(pixel & 0xFF)
+			a := uint8((pixel >> 24) & 0xFF)
+			if a == 0 {
+				a = 255
+			}
+			img.Set(x, y, color.RGBA{R: r, G: g, B: b, A: a})
+		}
+	}
+
+	return img
 }
 
 // =============================================================================
