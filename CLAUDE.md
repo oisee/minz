@@ -275,24 +275,29 @@ mz program.minz -b z80 --target=cpm       # CP/M
 ./mzrun program.minz --reset -v
 ```
 
-## 📚 Documentation System
+## Documentation System
 
-### Auto-Numbering System
-All documentation (except README.md, TODO.md, STATUS.md, CLAUDE.md) uses automatic numbering:
-- Format: `NNN_Title.md` (001-999)
+### Date-Prefixed Naming Convention (v0.18+)
+All documentation (except README.md, TODO.md, STATUS.md, CLAUDE.md) uses chronological numbering:
+- Format: `YYYY-MM-DD-NNN-Topic.md`
+- Example: `2026-01-08-261-Progress_Report_v0.18.md`
 - New docs go in `./inbox/` folder
-- Run `./organize_docs.sh` to auto-number and move to `./docs/`
-- Current count: 259 docs
-- Next available: 260
+- Run `./organize_docs.sh` to auto-number with today's date and move to `./docs/`
+- Current count: 300+ docs
+
+### Benefits
+- Chronological sorting by default
+- Easy to find docs by date
+- Preserves sequential numbering for reference
 
 ### Workflow
 ```bash
 # Write new doc
 echo "# My Feature" > inbox/My_Feature_Guide.md
 
-# Auto-number and organize
+# Auto-number and organize (adds today's date + next number)
 ./organize_docs.sh
-# Creates: docs/165_My_Feature_Guide.md
+# Creates: docs/2026-01-09-314-My_Feature_Guide.md
 
 # Batch process multiple docs
 cp *.md inbox/
@@ -301,9 +306,10 @@ cp *.md inbox/
 
 ### Finding Documents
 ```bash
-ls docs/ | sort -n        # List by number
-grep -l "TSMC" docs/*.md  # Find by topic
-ls docs/15[0-9]_*.md      # Range 150-159
+ls docs/ | sort             # List chronologically
+grep -l "TSMC" docs/*.md    # Find by topic
+ls docs/2026-01-*           # All January 2026 docs
+ls docs/*-26[0-9]-*         # Docs 260-269
 ```
 
 See [Documentation Guide](DOCUMENTATION_GUIDE.md) for complete details.

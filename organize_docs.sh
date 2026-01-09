@@ -2,6 +2,7 @@
 
 # Documentation Organization Script
 # Automatically numbers and moves documents from inbox/ to docs/
+# Format: YYYY-MM-DD-NNN-Topic.md
 
 set -e
 
@@ -11,24 +12,34 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}📚 MinZ Documentation Organizer${NC}"
+echo -e "${BLUE}MinZ Documentation Organizer${NC}"
 echo "================================"
 
 # Find the highest numbered document in docs/
 find_next_number() {
     local max_num=0
-    
-    # Find all numbered docs (format: NNN_*.md)
-    for file in docs/[0-9][0-9][0-9]_*.md; do
+
+    # Find all numbered docs (new format: YYYY-MM-DD-NNN-*.md)
+    for file in docs/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9]-*.md; do
         if [ -f "$file" ]; then
-            # Extract the number from filename
-            num=$(basename "$file" | cut -d'_' -f1 | sed 's/^0*//')
-            if [ "$num" -gt "$max_num" ]; then
+            # Extract the number from filename (position after third dash)
+            num=$(basename "$file" | cut -d'-' -f4 | sed 's/^0*//')
+            if [ -n "$num" ] && [ "$num" -gt "$max_num" ] 2>/dev/null; then
                 max_num=$num
             fi
         fi
     done
-    
+
+    # Also check old format for compatibility (NNN_*.md)
+    for file in docs/[0-9][0-9][0-9]_*.md; do
+        if [ -f "$file" ]; then
+            num=$(basename "$file" | cut -d'_' -f1 | sed 's/^0*//')
+            if [ -n "$num" ] && [ "$num" -gt "$max_num" ] 2>/dev/null; then
+                max_num=$num
+            fi
+        fi
+    done
+
     # Return next number
     echo $((max_num + 1))
 }
@@ -48,56 +59,59 @@ main() {
     # Create directories if they don't exist
     mkdir -p inbox
     mkdir -p docs
-    
+
     # Check if there are any files to process
     shopt -s nullglob
     files=(inbox/*.md)
-    
+
     if [ ${#files[@]} -eq 0 ]; then
         echo -e "${YELLOW}No markdown files found in inbox/${NC}"
         echo "Place your .md files in the inbox/ folder and run this script again."
         exit 0
     fi
-    
+
     echo -e "${GREEN}Found ${#files[@]} file(s) to process${NC}"
     echo
-    
+
     # Get the starting number
     next_num=$(find_next_number)
-    
+
+    # Get today's date
+    today=$(date +%Y-%m-%d)
+
     # Process each file
     for file in "${files[@]}"; do
         # Get original filename without path
         original_name=$(basename "$file")
-        
+
         # Skip .gitkeep
         if [ "$original_name" = ".gitkeep" ]; then
             continue
         fi
-        
+
         # Sanitize the name
         clean_name=$(sanitize_name "$original_name")
-        
+
         # Format the number
         formatted_num=$(format_number $next_num)
-        
-        # Create new filename
-        new_name="${formatted_num}_${clean_name}.md"
+
+        # Create new filename with date prefix: YYYY-MM-DD-NNN-Topic.md
+        new_name="${today}-${formatted_num}-${clean_name}.md"
         new_path="docs/$new_name"
-        
+
         # Move the file
         mv "$file" "$new_path"
-        
-        echo -e "${GREEN}✓${NC} $original_name"
-        echo -e "  → ${BLUE}$new_name${NC}"
+
+        echo -e "${GREEN}+${NC} $original_name"
+        echo -e "  -> ${BLUE}$new_name${NC}"
         echo
-        
+
         # Increment counter
         next_num=$((next_num + 1))
     done
-    
-    echo -e "${GREEN}✅ Documentation organized successfully!${NC}"
-    
+
+    echo -e "${GREEN}Documentation organized successfully!${NC}"
+
     # Show summary
     echo
     echo "Summary:"
