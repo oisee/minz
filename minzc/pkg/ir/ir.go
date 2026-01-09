@@ -1035,6 +1035,12 @@ func (i *Instruction) String() string {
 		return fmt.Sprintf("set_error r%d", i.Src1)
 	case OpCheckError:
 		return fmt.Sprintf("r%d = check_error", i.Dest)
+	case OpSyscall:
+		return fmt.Sprintf("syscall %d (r%d, r%d)", i.Imm, i.Src1, i.Src2)
+	case OpPortIn:
+		return fmt.Sprintf("r%d = port_in(r%d)", i.Dest, i.Src1)
+	case OpPortOut:
+		return fmt.Sprintf("port_out(r%d, r%d)", i.Src1, i.Src2)
 	default:
 		return fmt.Sprintf("unknown op %d", i.Op)
 	}

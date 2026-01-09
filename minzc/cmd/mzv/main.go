@@ -16,7 +16,7 @@ import (
 func main() {
 	var (
 		input       = flag.String("i", "", "Input MIR file")
-		output      = flag.String("o", "", "Output file (optional)")
+		output      = flag.String("o", "", "Output file (memory dump or PNG)")
 		debug       = flag.Bool("d", false, "Enable debug output")
 		trace       = flag.Bool("trace", false, "Trace execution")
 		breakpoints = flag.String("bp", "", "Comma-separated list of breakpoints (e.g., main:5,helper:10)")
@@ -24,18 +24,23 @@ func main() {
 		memSize     = flag.Int("mem", 65536, "Memory size in bytes")
 		stackSize   = flag.Int("stack", 4096, "Stack size in bytes")
 		verbose     = flag.Bool("v", false, "Verbose output")
+		platform    = flag.String("platform", "headless", "Platform: headless, spectrum, agon")
+		pngOutput   = flag.String("png", "", "Export framebuffer to PNG file")
 	)
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "MinZ Virtual Machine (MIR Interpreter) v0.1.0\n")
+		fmt.Fprintf(os.Stderr, "MinZ Virtual Machine (MIR Interpreter) v0.2.0\n")
 		fmt.Fprintf(os.Stderr, "Usage: %s -i input.mir [options]\n\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "Options:\n")
 		flag.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "\nPlatforms:\n")
+		fmt.Fprintf(os.Stderr, "  headless  - No display (default)\n")
+		fmt.Fprintf(os.Stderr, "  spectrum  - ZX Spectrum 256x192\n")
+		fmt.Fprintf(os.Stderr, "  agon      - Agon Light 320x240\n")
 		fmt.Fprintf(os.Stderr, "\nExamples:\n")
-		fmt.Fprintf(os.Stderr, "  %s -i program.mir              # Run MIR program\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  %s -i program.mir -trace       # Trace execution\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  %s -i program.mir -bp main:5   # Set breakpoint\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  %s -i program.mir -d           # Debug mode\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s -i program.mir                           # Run MIR program\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s -i graphics.mir -platform agon -png out.png  # Render to PNG\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  %s -i program.mir -trace                    # Trace execution\n", os.Args[0])
 	}
 
 	flag.Parse()
@@ -65,15 +70,33 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Create platform based on -platform flag
+	var plat mirvm.Platform
+	switch *platform {
+	case "spectrum":
+		plat = mirvm.NewSpectrumPlatform()
+		if *verbose {
+			fmt.Fprintf(os.Stderr, "Platform: ZX Spectrum (256x192)\n")
+		}
+	case "agon":
+		plat = mirvm.NewAgonPlatform()
+		if *verbose {
+			fmt.Fprintf(os.Stderr, "Platform: Agon Light (320x240)\n")
+		}
+	default:
+		plat = mirvm.NewHeadlessPlatform()
+	}
+
 	// Create VM configuration
 	config := mirvm.Config{
-		MemorySize:  *memSize,
-		StackSize:   *stackSize,
-		Debug:       *debug,
-		Trace:       *trace,
-		MaxSteps:    *maxSteps,
-		Verbose:     *verbose,
+		MemorySize:   *memSize,
+		StackSize:    *stackSize,
+		Debug:        *debug,
+		Trace:        *trace,
+		MaxSteps:     *maxSteps,
+		Verbose:      *verbose,
 		OutputStream: os.Stdout,
+		Platform:     plat,
 	}
 
 	// Parse breakpoints
@@ -83,7 +106,7 @@ func main() {
 
 	// Create and initialize VM
 	vm := mirvm.New(config)
-	
+
 	// Load module into VM
 	if err := vm.LoadModule(module); err != nil {
 		fmt.Fprintf(os.Stderr, "Error loading module: %v\n", err)
@@ -97,9 +120,20 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Write output if specified
+	// Export framebuffer to PNG if requested
+	if *pngOutput != "" && plat.HasDisplay() {
+		display := plat.Display().(*mirvm.GenericDisplay)
+		if err := display.SavePNG(*pngOutput); err != nil {
+			fmt.Fprintf(os.Stderr, "Error saving PNG: %v\n", err)
+			os.Exit(1)
+		}
+		if *verbose {
+			fmt.Fprintf(os.Stderr, "Framebuffer saved to: %s\n", *pngOutput)
+		}
+	}
+
+	// Write memory dump if specified
 	if *output != "" {
-		// Get memory dump or execution log
 		data := vm.GetMemoryDump()
 		if err := ioutil.WriteFile(*output, data, 0644); err != nil {
 			fmt.Fprintf(os.Stderr, "Error writing output: %v\n", err)

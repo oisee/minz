@@ -318,7 +318,8 @@ func isMemoryOp(inst *ir.Instruction) bool {
 
 func isControlFlow(inst *ir.Instruction) bool {
 	switch inst.Op {
-	case ir.OpJump, ir.OpJumpIf, ir.OpJumpIfNot, ir.OpCall, ir.OpReturn:
+	case ir.OpJump, ir.OpJumpIf, ir.OpJumpIfNot, ir.OpCall, ir.OpReturn, ir.OpLabel:
+		// Labels are jump targets - we can't reorder across them
 		return true
 	}
 	return false

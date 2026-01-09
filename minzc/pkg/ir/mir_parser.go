@@ -38,8 +38,18 @@ func (p *mirParser) parse() (*Module, error) {
 
 		// Skip dump format headers and annotations
 		if strings.HasPrefix(line, "Locals:") || strings.HasPrefix(line, "Instructions:") ||
-			strings.HasPrefix(line, "@") || strings.HasPrefix(line, "r") && strings.Contains(line, "=") && strings.Contains(line, ":") {
-			// Skip @smc annotations and local variable declarations like "r1 = x: u8"
+			strings.HasPrefix(line, "@") {
+			// Skip section headers and @smc annotations
+			continue
+		}
+
+		// Parse local variable declarations like "r1 = y: u8"
+		if strings.HasPrefix(line, "r") && strings.Contains(line, "=") && strings.Contains(line, ":") {
+			if p.currentFunc != nil {
+				if err := p.parseLocalDecl(line); err != nil {
+					return nil, fmt.Errorf("line %d: %v", p.line, err)
+				}
+			}
 			continue
 		}
 
@@ -56,28 +66,31 @@ func (p *mirParser) parse() (*Module, error) {
 			if err := p.parseDirective(line); err != nil {
 				return nil, fmt.Errorf("line %d: %v", p.line, err)
 			}
-		} else if strings.Contains(line, ":") && !strings.Contains(line, "=") {
-			// Label (may have instruction index prefix like "8: loop_1:")
-			label := line
-			// Remove instruction index prefix if present
-			if idx := strings.Index(label, ": "); idx >= 0 {
-				// Check if prefix is a number
-				prefix := strings.TrimSpace(label[:idx])
+		} else {
+			// Strip numeric instruction index prefix like "2: " or "10: "
+			instruction := line
+			if idx := strings.Index(line, ": "); idx >= 0 {
+				prefix := strings.TrimSpace(line[:idx])
 				if _, err := strconv.Atoi(prefix); err == nil {
-					label = strings.TrimSpace(label[idx+2:])
+					instruction = strings.TrimSpace(line[idx+2:])
 				}
 			}
-			label = strings.TrimSuffix(label, ":")
-			if p.currentFunc != nil {
-				p.labels[label] = len(p.currentFunc.Instructions)
+
+			// Check if this is a label (just "labelname:" with no spaces in the label)
+			if strings.HasSuffix(instruction, ":") && !strings.Contains(instruction[:len(instruction)-1], " ") {
+				labelName := strings.TrimSuffix(instruction, ":")
+				if p.currentFunc != nil {
+					p.labels[labelName] = len(p.currentFunc.Instructions)
+				}
+				continue
 			}
-		} else {
-			// Instruction
+
+			// It's an instruction
 			if p.currentFunc == nil {
 				return nil, fmt.Errorf("line %d: instruction outside function", p.line)
 			}
 
-			inst, err := p.parseInstruction(line)
+			inst, err := p.parseInstruction(instruction)
 			if err != nil {
 				return nil, fmt.Errorf("line %d: %v", p.line, err)
 			}
@@ -122,6 +135,40 @@ func (p *mirParser) parseFunctionHeader(line string) error {
 	p.currentFunc = fn
 	p.labels = make(map[string]int) // Reset labels for new function
 
+	return nil
+}
+
+// parseLocalDecl parses local variable declarations like "r1 = y: u8"
+func (p *mirParser) parseLocalDecl(line string) error {
+	// Format: r<num> = <name>: <type>
+	// Example: r1 = y: u8
+
+	// Remove leading "r" and find the register number
+	eqIdx := strings.Index(line, "=")
+	if eqIdx < 0 {
+		return fmt.Errorf("invalid local declaration: %s", line)
+	}
+
+	regPart := strings.TrimSpace(line[:eqIdx])
+	regNum := p.parseRegister(regPart)
+
+	// Parse the variable name and type
+	rest := strings.TrimSpace(line[eqIdx+1:])
+	colonIdx := strings.Index(rest, ":")
+	if colonIdx < 0 {
+		return fmt.Errorf("invalid local declaration (missing type): %s", line)
+	}
+
+	varName := strings.TrimSpace(rest[:colonIdx])
+	typeName := strings.TrimSpace(rest[colonIdx+1:])
+
+	local := Local{
+		Name: varName,
+		Reg:  Register(regNum),
+		Type: p.parseType(typeName),
+	}
+
+	p.currentFunc.Locals = append(p.currentFunc.Locals, local)
 	return nil
 }
 
@@ -318,10 +365,32 @@ func (p *mirParser) parseInstruction(line string) (Instruction, error) {
 		if len(parts) < 2 {
 			return inst, fmt.Errorf("invalid pop instruction")
 		}
-		
+
 		inst.Op = OpPop
 		inst.Dest = Register(p.parseRegister(parts[1]))
-		
+
+	} else if strings.HasPrefix(line, "syscall") {
+		// Syscall instruction: syscall 10 (r21, r22)
+		inst.Op = OpSyscall
+
+		// Parse syscall number
+		var syscallNum int
+		_, _ = fmt.Sscanf(line, "syscall %d", &syscallNum)
+		inst.Imm = int64(syscallNum)
+
+		// Parse register arguments from (rX, rY) format
+		if idx := strings.Index(line, "("); idx >= 0 {
+			argsStr := line[idx:]
+			argsStr = strings.Trim(argsStr, "()")
+			argParts := strings.Split(argsStr, ",")
+			if len(argParts) >= 1 {
+				inst.Src1 = Register(p.parseRegister(strings.TrimSpace(argParts[0])))
+			}
+			if len(argParts) >= 2 {
+				inst.Src2 = Register(p.parseRegister(strings.TrimSpace(argParts[1])))
+			}
+		}
+
 	} else if strings.HasPrefix(line, "print") {
 		// Print instructions
 		parts := strings.Fields(line)
@@ -370,9 +439,9 @@ func (p *mirParser) parseInstruction(line string) (Instruction, error) {
 
 func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 	inst := Instruction{}
-	
-	// Split by =
-	parts := strings.Split(line, "=")
+
+	// Split by = but only on the first occurrence (to handle == and != in expressions)
+	parts := strings.SplitN(line, "=", 2)
 	if len(parts) != 2 {
 		return inst, fmt.Errorf("invalid assignment")
 	}
@@ -438,58 +507,7 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 		return inst, nil
 	}
 
-	// Check for comparison operators (must check multi-char ops first)
-	for _, op := range []string{"<=", ">=", "==", "!=", "<", ">"} {
-		if strings.Contains(expr, op) {
-			parts := strings.SplitN(expr, op, 2)
-			if len(parts) == 2 {
-				src1 := strings.TrimSpace(parts[0])
-				src2 := strings.TrimSpace(parts[1])
-
-				// Check if src2 is an immediate value
-				if val, err := strconv.ParseInt(src2, 0, 64); err == nil {
-					inst.Src1 = Register(p.parseRegister(src1))
-					inst.Imm = val
-					// Use comparison with immediate
-					switch op {
-					case "<":
-						inst.Op = OpLt
-					case ">":
-						inst.Op = OpGt
-					case "<=":
-						inst.Op = OpLe
-					case ">=":
-						inst.Op = OpGe
-					case "==":
-						inst.Op = OpEq
-					case "!=":
-						inst.Op = OpNe
-					}
-				} else {
-					inst.Src1 = Register(p.parseRegister(src1))
-					inst.Src2 = Register(p.parseRegister(src2))
-
-					switch op {
-					case "<":
-						inst.Op = OpLt
-					case ">":
-						inst.Op = OpGt
-					case "<=":
-						inst.Op = OpLe
-					case ">=":
-						inst.Op = OpGe
-					case "==":
-						inst.Op = OpEq
-					case "!=":
-						inst.Op = OpNe
-					}
-				}
-				return inst, nil
-			}
-		}
-	}
-
-	// Check for binary operations
+	// Check for binary operations FIRST (includes << and >> which would otherwise match < and >)
 	for _, op := range []string{"<<", ">>", "+", "-", "*", "/", "%", "&", "|", "^"} {
 		if strings.Contains(expr, op) {
 			parts := strings.SplitN(expr, op, 2)
@@ -535,6 +553,57 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 					inst.Op = OpShr
 				}
 
+				return inst, nil
+			}
+		}
+	}
+
+	// Check for comparison operators (after binary ops to avoid << matching <)
+	for _, op := range []string{"<=", ">=", "==", "!=", "<", ">"} {
+		if strings.Contains(expr, op) {
+			parts := strings.SplitN(expr, op, 2)
+			if len(parts) == 2 {
+				src1 := strings.TrimSpace(parts[0])
+				src2 := strings.TrimSpace(parts[1])
+
+				// Check if src2 is an immediate value
+				if val, err := strconv.ParseInt(src2, 0, 64); err == nil {
+					inst.Src1 = Register(p.parseRegister(src1))
+					inst.Imm = val
+					// Use comparison with immediate
+					switch op {
+					case "<":
+						inst.Op = OpLt
+					case ">":
+						inst.Op = OpGt
+					case "<=":
+						inst.Op = OpLe
+					case ">=":
+						inst.Op = OpGe
+					case "==":
+						inst.Op = OpEq
+					case "!=":
+						inst.Op = OpNe
+					}
+				} else {
+					inst.Src1 = Register(p.parseRegister(src1))
+					inst.Src2 = Register(p.parseRegister(src2))
+
+					switch op {
+					case "<":
+						inst.Op = OpLt
+					case ">":
+						inst.Op = OpGt
+					case "<=":
+						inst.Op = OpLe
+					case ">=":
+						inst.Op = OpGe
+					case "==":
+						inst.Op = OpEq
+					case "!=":
+						inst.Op = OpNe
+					}
+				}
 				return inst, nil
 			}
 		}

@@ -4,6 +4,7 @@ package mirvm
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/minz/minzc/pkg/ir"
 )
@@ -93,28 +94,60 @@ func New(config Config) *VM {
 // LoadModule loads a MIR module into the VM
 func (vm *VM) LoadModule(module *ir.Module) error {
 	vm.module = module
-	
-	// Build function index
+
+	// Build function index and resolve labels for each function
 	for _, fn := range module.Functions {
 		vm.funcIndex[fn.Name] = fn
+
+		// Build label-to-index map for this function
+		labels := make(map[string]int)
+		for i, inst := range fn.Instructions {
+			if inst.Op == ir.OpLabel && inst.Label != "" {
+				labels[inst.Label] = i
+			}
+		}
+
+		// Resolve jump targets from labels to instruction indices
+		for i := range fn.Instructions {
+			inst := &fn.Instructions[i]
+			if inst.Label != "" && inst.Target == 0 {
+				switch inst.Op {
+				case ir.OpJump, ir.OpJumpIf, ir.OpJumpIfNot,
+					ir.OpJmp, ir.OpJmpIf, ir.OpJmpIfNot, ir.OpDJNZ:
+					if target, ok := labels[inst.Label]; ok {
+						inst.Target = target
+					}
+				}
+			}
+		}
 	}
-	
-	// Find main function
+
+	// Find main function (could be "main" or "module.main")
 	mainFunc, ok := vm.funcIndex["main"]
+	if !ok {
+		// Try to find a function ending in ".main"
+		for name, fn := range vm.funcIndex {
+			if strings.HasSuffix(name, ".main") {
+				mainFunc = fn
+				ok = true
+				break
+			}
+		}
+	}
 	if !ok {
 		return fmt.Errorf("no main function found")
 	}
-	
+
 	vm.currentFunc = mainFunc
 	vm.pc = 0
-	
+
 	// Initialize global variables
 	for i := range module.Globals {
 		if err := vm.initGlobal(&module.Globals[i]); err != nil {
 			return fmt.Errorf("failed to initialize global %s: %v", module.Globals[i].Name, err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -184,7 +217,11 @@ func (vm *VM) executeInstruction() (bool, error) {
 		
 	case ir.OpLoadImm:
 		vm.registers[inst.Dest] = int64(inst.Value)
-		
+
+	case ir.OpLoadConst:
+		// Same as LoadImm but uses Imm field instead of Value
+		vm.registers[inst.Dest] = inst.Imm
+
 	case ir.OpLoadReg:
 		vm.registers[inst.Dest] = vm.registers[inst.Src1]
 		
@@ -203,7 +240,23 @@ func (vm *VM) executeInstruction() (bool, error) {
 		}
 		value := vm.registers[inst.Src1]
 		vm.writeMemory(int(addr), value, inst.Size)
-		
+
+	case ir.OpLoadVar:
+		// Load from named variable - look up variable's register in current function's Locals
+		varReg := vm.findVarRegister(inst.Symbol)
+		if varReg < 0 {
+			return false, fmt.Errorf("undefined variable: %s", inst.Symbol)
+		}
+		vm.registers[inst.Dest] = vm.registers[varReg]
+
+	case ir.OpStoreVar:
+		// Store to named variable - look up variable's register in current function's Locals
+		varReg := vm.findVarRegister(inst.Symbol)
+		if varReg < 0 {
+			return false, fmt.Errorf("undefined variable: %s", inst.Symbol)
+		}
+		vm.registers[varReg] = vm.registers[inst.Src1]
+
 	case ir.OpAdd:
 		vm.registers[inst.Dest] = vm.registers[inst.Src1] + vm.registers[inst.Src2]
 		
@@ -245,7 +298,21 @@ func (vm *VM) executeInstruction() (bool, error) {
 		
 	case ir.OpNeg:
 		vm.registers[inst.Dest] = -vm.registers[inst.Src1]
-		
+
+	case ir.OpInc:
+		vm.registers[inst.Dest] = vm.registers[inst.Src1] + 1
+
+	case ir.OpDec:
+		vm.registers[inst.Dest] = vm.registers[inst.Src1] - 1
+
+	case ir.OpDJNZ:
+		// Decrement and jump if not zero (Z80-style loop optimization)
+		vm.registers[inst.Src1]--
+		if vm.registers[inst.Src1] != 0 {
+			vm.pc = inst.Target
+			return false, nil
+		}
+
 	case ir.OpCmp:
 		// Set flags based on comparison
 		a := vm.registers[inst.Src1]
@@ -257,23 +324,69 @@ func (vm *VM) executeInstruction() (bool, error) {
 		} else {
 			vm.registers[255] = 1 // Greater than
 		}
-		
-	case ir.OpJmp:
+
+	case ir.OpLt:
+		if vm.registers[inst.Src1] < vm.registers[inst.Src2] {
+			vm.registers[inst.Dest] = 1
+		} else {
+			vm.registers[inst.Dest] = 0
+		}
+
+	case ir.OpGt:
+		if vm.registers[inst.Src1] > vm.registers[inst.Src2] {
+			vm.registers[inst.Dest] = 1
+		} else {
+			vm.registers[inst.Dest] = 0
+		}
+
+	case ir.OpEq:
+		if vm.registers[inst.Src1] == vm.registers[inst.Src2] {
+			vm.registers[inst.Dest] = 1
+		} else {
+			vm.registers[inst.Dest] = 0
+		}
+
+	case ir.OpNe:
+		if vm.registers[inst.Src1] != vm.registers[inst.Src2] {
+			vm.registers[inst.Dest] = 1
+		} else {
+			vm.registers[inst.Dest] = 0
+		}
+
+	case ir.OpLe:
+		if vm.registers[inst.Src1] <= vm.registers[inst.Src2] {
+			vm.registers[inst.Dest] = 1
+		} else {
+			vm.registers[inst.Dest] = 0
+		}
+
+	case ir.OpGe:
+		if vm.registers[inst.Src1] >= vm.registers[inst.Src2] {
+			vm.registers[inst.Dest] = 1
+		} else {
+			vm.registers[inst.Dest] = 0
+		}
+
+	case ir.OpLabel:
+		// Labels are just markers, no operation needed
+		// (Jump targets are resolved to instruction indices)
+
+	case ir.OpJmp, ir.OpJump:
 		vm.pc = inst.Target
 		return false, nil
-		
-	case ir.OpJmpIf:
+
+	case ir.OpJmpIf, ir.OpJumpIf:
 		if vm.registers[inst.Src1] != 0 {
 			vm.pc = inst.Target
 			return false, nil
 		}
-		
-	case ir.OpJmpIfNot:
+
+	case ir.OpJmpIfNot, ir.OpJumpIfNot:
 		if vm.registers[inst.Src1] == 0 {
 			vm.pc = inst.Target
 			return false, nil
 		}
-		
+
 	case ir.OpCall:
 		return false, vm.callFunction(inst.FuncName)
 		
@@ -561,6 +674,26 @@ func (vm *VM) GetPlatform() Platform {
 // SetPlatform sets the platform (for runtime platform switching)
 func (vm *VM) SetPlatform(p Platform) {
 	vm.platform = p
+}
+
+// findVarRegister looks up a variable name in the current function's Locals
+// and returns the register allocated for it, or -1 if not found
+func (vm *VM) findVarRegister(name string) int {
+	if vm.currentFunc == nil {
+		return -1
+	}
+	for _, local := range vm.currentFunc.Locals {
+		if local.Name == name {
+			return int(local.Reg)
+		}
+	}
+	// Also check parameters
+	for _, param := range vm.currentFunc.Params {
+		if param.Name == name {
+			return int(param.Reg)
+		}
+	}
+	return -1
 }
 
 // Memory access functions
