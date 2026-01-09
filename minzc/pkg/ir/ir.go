@@ -220,10 +220,12 @@ const (
 	OpEmit          // @emit instruction for compile-time code generation
 	
 	// Cast interface operations (v0.11.0)
-	OpCastInterface     // Cast to interface (compile-time resolved)
-	OpCheckCast         // Check cast conformance at compile-time
-	OpMethodDispatch    // Static method dispatch to concrete implementation
-	OpInterfaceCall     // Interface method call (resolved at compile-time)
+	// DEPRECATED: Not used - MinZ uses monomorphization for generics
+	// and zero-cost interfaces (direct calls, no vtables)
+	OpCastInterface     // Cast to interface (compile-time resolved) - UNUSED
+	OpCheckCast         // Check cast conformance at compile-time - UNUSED
+	OpMethodDispatch    // Static method dispatch to concrete implementation - UNUSED
+	OpInterfaceCall     // Interface method call (resolved at compile-time) - UNUSED
 
 	// I/O Port operations (v0.18.0) - for MZV platform abstraction
 	OpPortIn            // r0 = port_in(port) - read from I/O port
