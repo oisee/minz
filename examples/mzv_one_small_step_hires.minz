@@ -1,0 +1,592 @@
+// mzv_one_small_step_hires.minz - "One Small Step" shader faithful adaptation
+// Original by @DeanTheCoder (ZXSpeculator)
+// MinZ 1-to-1 rewrite with fixed-point arithmetic at 256x192 resolution
+//
+// Fixed-point format: 8.8 (256 = 1.0)
+
+// =============================================================================
+// Fixed-Point Math Helpers
+// =============================================================================
+
+fun fp_mul(a: i16, b: i16) -> i16 {
+    let a32: i32 = a as i32;
+    let b32: i32 = b as i32;
+    let result: i32 = (a32 * b32) >> 8;
+    return result as i16;
+}
+
+fun fp_div(a: i16, b: i16) -> i16 {
+    if b == 0 { return 32767; }
+    let a32: i32 = a as i32;
+    let b32: i32 = b as i32;
+    let result: i32 = (a32 << 8) / b32;
+    return result as i16;
+}
+
+fun abs16(x: i16) -> i16 {
+    if x < 0 { return 0 - x; }
+    return x;
+}
+
+fun min16(a: i16, b: i16) -> i16 {
+    if a < b { return a; }
+    return b;
+}
+
+fun max16(a: i16, b: i16) -> i16 {
+    if a > b { return a; }
+    return b;
+}
+
+fun clamp16(x: i16, lo: i16, hi: i16) -> i16 {
+    if x < lo { return lo; }
+    if x > hi { return hi; }
+    return x;
+}
+
+fun sign16(x: i16) -> i16 {
+    if x > 0 { return 256; }
+    if x < 0 { return -256; }
+    return 0;
+}
+
+// Integer square root using Newton-Raphson
+fun isqrt(n: i16) -> i16 {
+    if n <= 0 { return 0; }
+    if n < 2 { return n; }
+    let guess: i16 = n >> 1;
+    if guess > 180 { guess = 180; }
+    let i: u8 = 0;
+    while i < 6 {
+        let div: i16 = n / guess;
+        guess = (guess + div) >> 1;
+        if guess < 1 { guess = 1; }
+        i = i + 1;
+    }
+    return guess;
+}
+
+// Fixed-point square root: sqrt(n) where n is 8.8
+fun fp_sqrt(n: i16) -> i16 {
+    if n <= 0 { return 0; }
+    let n32: i32 = n as i32;
+    let scaled: i32 = n32 << 8;
+    // Integer sqrt of scaled value
+    let guess: i32 = scaled >> 1;
+    if guess > 32000 { guess = 32000; }
+    if guess < 1 { guess = 1; }
+    let i: u8 = 0;
+    while i < 8 {
+        let div: i32 = scaled / guess;
+        guess = (guess + div) >> 1;
+        if guess < 1 { guess = 1; }
+        i = i + 1;
+    }
+    return guess as i16;
+}
+
+// 3D vector length using 32-bit intermediate to avoid overflow
+fun fp_length3(x: i16, y: i16, z: i16) -> i16 {
+    let x32: i32 = x as i32;
+    let y32: i32 = y as i32;
+    let z32: i32 = z as i32;
+    let sum: i32 = (x32 * x32 + y32 * y32 + z32 * z32) >> 8;
+    if sum > 32767 { sum = 32767; }
+    return fp_sqrt(sum as i16);
+}
+
+// 2D vector length
+fun fp_length2(x: i16, y: i16) -> i16 {
+    let x32: i32 = x as i32;
+    let y32: i32 = y as i32;
+    let sum: i32 = (x32 * x32 + y32 * y32) >> 8;
+    if sum > 32767 { sum = 32767; }
+    return fp_sqrt(sum as i16);
+}
+
+// Approximate exp(-x) for x >= 0, result in 8.8
+// Using piecewise linear approximation: exp(-x) ≈ 256/(256+x)
+fun fp_exp_neg(x: i16) -> i16 {
+    if x <= 0 { return 256; }
+    if x > 1024 { return 0; }  // exp(-4) ≈ 0
+    // Approximation: 256 * 256 / (256 + x)
+    let num: i32 = 65536;
+    let denom: i32 = 256 + (x as i32);
+    return (num / denom) as i16;
+}
+
+// Simple sine approximation (input: 0-1024 for 0-2π, output: -256 to 256)
+fun fp_sin(angle: i16) -> i16 {
+    // Normalize angle to 0-1024 range
+    let a: i16 = angle;
+    while a < 0 { a = a + 1024; }
+    while a >= 1024 { a = a - 1024; }
+
+    // Quadrant handling
+    let sign: i16 = 1;
+    if a >= 512 {
+        a = a - 512;
+        sign = -1;
+    }
+    if a >= 256 {
+        a = 512 - a;
+    }
+
+    // Parabolic approximation for 0-256 (0 to π/2)
+    // sin(x) ≈ x - x³/6 simplified to linear + correction
+    let x: i32 = a as i32;
+    let result: i32 = (x * 256 - x * x * x / 1024) / 256;
+    return (result as i16) * sign;
+}
+
+fun fp_cos(angle: i16) -> i16 {
+    return fp_sin(angle + 256);
+}
+
+// =============================================================================
+// 3D Noise Function (simplified Perlin-like)
+// Original: n31(vec3_t p) - 3D smooth noise
+// =============================================================================
+
+fun hash3d(ix: i16, iy: i16, iz: i16) -> i16 {
+    // Simple hash combining coordinates
+    let h: i32 = (ix as i32) * 7 + (iy as i32) * 157 + (iz as i32) * 113;
+    h = (h * 43758) >> 8;
+    h = h & 511;
+    return (h - 256) as i16;  // Result in -256 to 255 (i.e., -1.0 to ~1.0)
+}
+
+// Smoothstep interpolation factor
+fun smoothstep(t: i16) -> i16 {
+    // t * t * (3 - 2*t) where t is 0-256
+    let t32: i32 = t as i32;
+    let three_minus_2t: i32 = 768 - (t32 * 2);  // 3*256 - 2*t
+    let result: i32 = (t32 * t32 * three_minus_2t) >> 16;
+    return result as i16;
+}
+
+// 3D noise at point (px, py, pz) in 8.8 fixed-point
+fun noise3d(px: i16, py: i16, pz: i16) -> i16 {
+    // Integer and fractional parts
+    let ix: i16 = px >> 8;
+    let iy: i16 = py >> 8;
+    let iz: i16 = pz >> 8;
+    let fx: i16 = px & 255;
+    let fy: i16 = py & 255;
+    let fz: i16 = pz & 255;
+
+    // Smoothstep for interpolation
+    let sx: i16 = smoothstep(fx);
+    let sy: i16 = smoothstep(fy);
+    let sz: i16 = smoothstep(fz);
+
+    // Hash at 8 corners
+    let c000: i16 = hash3d(ix, iy, iz);
+    let c100: i16 = hash3d(ix + 1, iy, iz);
+    let c010: i16 = hash3d(ix, iy + 1, iz);
+    let c110: i16 = hash3d(ix + 1, iy + 1, iz);
+    let c001: i16 = hash3d(ix, iy, iz + 1);
+    let c101: i16 = hash3d(ix + 1, iy, iz + 1);
+    let c011: i16 = hash3d(ix, iy + 1, iz + 1);
+    let c111: i16 = hash3d(ix + 1, iy + 1, iz + 1);
+
+    // Trilinear interpolation using smoothstep weights
+    let nx: i16 = 256 - sx;
+    let ny: i16 = 256 - sy;
+    let nz: i16 = 256 - sz;
+
+    // Interpolate along x
+    let c00: i16 = fp_mul(c000, nx) + fp_mul(c100, sx);
+    let c10: i16 = fp_mul(c010, nx) + fp_mul(c110, sx);
+    let c01: i16 = fp_mul(c001, nx) + fp_mul(c101, sx);
+    let c11: i16 = fp_mul(c011, nx) + fp_mul(c111, sx);
+
+    // Interpolate along y
+    let c0: i16 = fp_mul(c00, ny) + fp_mul(c10, sy);
+    let c1: i16 = fp_mul(c01, ny) + fp_mul(c11, sy);
+
+    // Interpolate along z
+    return fp_mul(c0, nz) + fp_mul(c1, sz);
+}
+
+// Fractal noise (FBM) - like the original's multi-octave noise
+fun fbm_noise(px: i16, py: i16, pz: i16) -> i16 {
+    let n: i16 = noise3d(px, py, pz);
+    n = n + (noise3d(fp_mul(px, 542), fp_mul(py, 542), fp_mul(pz, 542)) >> 1);  // 2.12x
+    n = n + (noise3d(fp_mul(px, 1131), fp_mul(py, 1131), fp_mul(pz, 1131)) >> 2);  // 4.42x
+    n = n + (noise3d(fp_mul(px, 2186), fp_mul(py, 2186), fp_mul(pz, 2186)) >> 3);  // 8.54x
+    return n >> 1;  // Scale down
+}
+
+// =============================================================================
+// Rotation Functions (camera orientation)
+// =============================================================================
+
+// Rotate around Y-Z plane (pitch)
+// rot_yz rotates by angle a: y' = y*cos(a) - z*sin(a), z' = y*sin(a) + z*cos(a)
+fun rot_yz_y(y: i16, z: i16, sin_a: i16, cos_a: i16) -> i16 {
+    return fp_mul(y, cos_a) - fp_mul(z, sin_a);
+}
+
+fun rot_yz_z(y: i16, z: i16, sin_a: i16, cos_a: i16) -> i16 {
+    return fp_mul(y, sin_a) + fp_mul(z, cos_a);
+}
+
+// Rotate around X-Z plane (yaw)
+fun rot_xz_x(x: i16, z: i16, sin_a: i16, cos_a: i16) -> i16 {
+    return fp_mul(x, cos_a) - fp_mul(z, sin_a);
+}
+
+fun rot_xz_z(x: i16, z: i16, sin_a: i16, cos_a: i16) -> i16 {
+    return fp_mul(x, sin_a) + fp_mul(z, cos_a);
+}
+
+// =============================================================================
+// SDF Functions
+// =============================================================================
+
+// Box SDF
+fun sdf_box(px: i16, py: i16, pz: i16, bx: i16, by: i16, bz: i16) -> i16 {
+    let dx: i16 = abs16(px) - bx;
+    let dy: i16 = abs16(py) - by;
+    let dz: i16 = abs16(pz) - bz;
+
+    let ox: i16 = max16(dx, 0);
+    let oy: i16 = max16(dy, 0);
+    let oz: i16 = max16(dz, 0);
+
+    let outside: i16 = fp_length3(ox, oy, oz);
+    let inside: i16 = min16(max16(dx, max16(dy, dz)), 0);
+
+    return outside + inside;
+}
+
+// =============================================================================
+// Main Scene Map (Lunar Lander)
+// Adapted from original map() function
+// =============================================================================
+
+fun map(px: i16, py: i16, pz: i16) -> i16 {
+    // Ground plane with noise bump
+    let bmp: i16 = fbm_noise(px, py, pz) >> 2;  // Subtle bumps
+
+    // Ground at y = 69 (0.27 * 256) with bumps
+    let ground: i16 = py - 69 - bmp;
+
+    // Smooth blend factor for landing pad area (reduce bumps near lander)
+    let pad_x: i16 = px - 128;  // 0.5 * 256
+    let pad_z: i16 = pz - 563;  // 2.2 * 256
+    let pad_dist: i16 = fp_length2(pad_x, pad_z);
+    let pad_smooth: i16 = fp_mul(pad_dist, pad_dist) >> 4;
+
+    // Lander body - transform coordinates
+    let lx: i16 = 0 - px;  // Mirror x
+    let ly: i16 = 0 - py;  // Mirror y
+    let lz: i16 = pz;
+
+    // Body curvature adjustment
+    let z_factor: i16 = lz + 307 - sign16(lx);  // (z + 1.2 - sign(x)) in 8.8
+    let cos_zf: i16 = fp_cos(fp_mul(z_factor, 205));  // cos(z_factor * 0.8)
+    let x_scale: i16 = 243 - (cos_zf >> 2);  // 0.95 - cos(...)*0.1
+    if x_scale > 0 {
+        lx = fp_div(lx, x_scale);
+    }
+
+    // Modular legs (repeating struts)
+    let tz: i16 = lz - 128;  // z - 0.5
+    // Modulo by 102 (0.4 * 256) - simplified
+    while tz > 51 { tz = tz - 102; }
+    while tz < -51 { tz = tz + 102; }
+
+    // Strut box
+    let strut_y_size: i16 = 41 + fp_mul(ly, 64);  // 0.12 + y * 0.25
+    let strut: i16 = sdf_box(lx, ly, tz, 512, 41, strut_y_size);  // Wide struts
+
+    // Limit struts to main body area
+    let strut_limit: i16 = sdf_box(lx, ly, lz - 282, 512, 41, 435);  // z-1.1, size 1.7
+    strut = max16(strut, strut_limit);
+
+    // Side rails
+    let rail_x: i16 = abs16(lx) - 422;  // |x| - 1.65
+    let rail_z: i16 = lz - 282;  // z - 1.1
+    let rail_x_size: i16 = 136 - fp_mul(rail_z, 31);  // 0.53 - 0.12*z
+    let rails: i16 = sdf_box(rail_x, ly, rail_z, rail_x_size, 41, 410);
+    strut = min16(strut, rails);
+
+    // Main body sphere/capsule shape
+    let qx: i16 = abs16(lx);
+    let qz: i16 = fp_div(lz, fp_cos(fp_mul(lz, 26)));  // z / cos(z*0.1)
+
+    let k: i16 = fp_mul(qx, 31) + qz;  // x*0.12 + z
+
+    let body: i16 = 0;
+    if k < 0 {
+        // Hemisphere front
+        body = fp_length2(qx, qz) - 307;  // radius 1.2
+    } else if k > 635 {  // 2.48 * 256
+        // Hemisphere back
+        body = fp_length2(qx, qz - 640) - 384;  // center at z=2.5, radius 1.5
+    } else {
+        // Cylinder middle
+        body = fp_mul(qx, 253) + fp_mul(qz, -31) - 307;  // plane at 1.2
+    }
+
+    // Combine lander shape
+    let lander: i16 = 0 - max16(max16(body, ly), 0 - strut);
+
+    // Blend ground and lander
+    let blend: i16 = 128 + fp_div(lander - ground, -205);  // 0.5 + (lander-ground)/(-0.8)
+    blend = clamp16(blend, 0, 256);
+
+    let result: i16 = fp_mul(lander, 256 - blend) + fp_mul(ground, blend);
+    result = result + fp_mul(205, fp_mul(blend, 256 - blend));  // Smooth blend term
+
+    return result;
+}
+
+// =============================================================================
+// Normal Calculation (tetrahedron method from original)
+// =============================================================================
+
+fun calc_normal_x(px: i16, py: i16, pz: i16) -> i16 {
+    let eps: i16 = 3;  // 0.01 * 256 ≈ 3
+    // Tetrahedron offsets for x component
+    let d1: i16 = map(px + eps, py - eps, pz - eps);
+    let d2: i16 = map(px + eps, py + eps, pz + eps);
+    let d3: i16 = map(px - eps, py - eps, pz + eps);
+    let d4: i16 = map(px - eps, py + eps, pz - eps);
+    return d1 + d2 - d3 - d4;
+}
+
+fun calc_normal_y(px: i16, py: i16, pz: i16) -> i16 {
+    let eps: i16 = 3;
+    let d1: i16 = map(px + eps, py - eps, pz - eps);
+    let d2: i16 = map(px + eps, py + eps, pz + eps);
+    let d3: i16 = map(px - eps, py - eps, pz + eps);
+    let d4: i16 = map(px - eps, py + eps, pz - eps);
+    return 0 - d1 + d2 - d3 + d4;
+}
+
+fun calc_normal_z(px: i16, py: i16, pz: i16) -> i16 {
+    let eps: i16 = 3;
+    let d1: i16 = map(px + eps, py - eps, pz - eps);
+    let d2: i16 = map(px + eps, py + eps, pz + eps);
+    let d3: i16 = map(px - eps, py - eps, pz + eps);
+    let d4: i16 = map(px - eps, py + eps, pz - eps);
+    return 0 - d1 + d2 + d3 - d4;
+}
+
+// =============================================================================
+// Lighting
+// Light position: (6, 3, -10) -> (1536, 768, -2560) in 8.8
+// =============================================================================
+
+fun calc_lighting(px: i16, py: i16, pz: i16) -> i16 {
+    let nx: i16 = calc_normal_x(px, py, pz);
+    let ny: i16 = calc_normal_y(px, py, pz);
+    let nz: i16 = calc_normal_z(px, py, pz);
+
+    // Normalize normal
+    let len: i16 = fp_length3(nx, ny, nz);
+    if len < 16 { len = 16; }
+    nx = fp_div(nx, len);
+    ny = fp_div(ny, len);
+    nz = fp_div(nz, len);
+
+    // Light direction (from point to light at (1536, 768, -2560))
+    let lx: i16 = 1536 - px;
+    let ly: i16 = 768 - py;
+    let lz: i16 = -2560 - pz;
+
+    // Normalize light direction
+    let llen: i16 = fp_length3(lx, ly, lz);
+    if llen < 16 { llen = 16; }
+    lx = fp_div(lx, llen);
+    ly = fp_div(ly, llen);
+    lz = fp_div(lz, llen);
+
+    // Diffuse: dot(normal, light)
+    let dot: i16 = fp_mul(nx, lx) + fp_mul(ny, ly) + fp_mul(nz, lz);
+    if dot < 0 { dot = 0; }
+
+    // 0.1 ambient + 0.9 diffuse
+    let ambient: i16 = 26;  // 0.1 * 256
+    let diffuse: i16 = fp_mul(230, dot);  // 0.9 * dot
+
+    return ambient + diffuse;
+}
+
+// =============================================================================
+// Ray Marching
+// =============================================================================
+
+fun march(rox: i16, roy: i16, roz: i16, rdx: i16, rdy: i16, rdz: i16) -> i16 {
+    let d: i16 = 3;  // Start at 0.01
+    let px: i16 = rox;
+    let py: i16 = roy;
+    let pz: i16 = roz;
+
+    let i: u8 = 0;
+    while i < 15 {
+        px = rox + fp_mul(rdx, d);
+        py = roy + fp_mul(rdy, d);
+        pz = roz + fp_mul(rdz, d);
+
+        let h: i16 = map(px, py, pz);
+
+        if abs16(h) < 6 {  // Hit threshold ~0.025
+            let light: i16 = calc_lighting(px, py, pz);
+            // Apply distance fog: light * exp(-d * 0.14)
+            let fog: i16 = fp_exp_neg(fp_mul(d, 36));  // d * 0.14 * 256
+            return fp_mul(light, fog);
+        }
+
+        d = d + h;
+
+        if d > 2560 { return 0; }  // Max distance ~10.0
+
+        i = i + 1;
+    }
+
+    return 0;
+}
+
+// =============================================================================
+// Main Image (per-pixel)
+// Camera: ro = (0, 0.2, -4) rotated by rot_yz(-0.6) then rot_xz(1.1)
+// =============================================================================
+
+fun render_pixel(screen_x: i16, screen_y: i16) -> i16 {
+    // UV coordinates: (fc - R*0.5) / R.y
+    // R = (256, 192), R.y = 192
+    let uvx: i16 = screen_x - 128;  // Center at 128
+    let uvy: i16 = 96 - screen_y;   // Flip Y, center at 96
+    // Scale: divide by 192, but we'll work in larger scale
+    uvx = fp_div(uvx, 192);
+    uvy = fp_div(uvy, 192);
+
+    // Camera origin: (0, 51, -1024) which is (0, 0.2, -4)
+    let rox: i16 = 0;
+    let roy: i16 = 51;
+    let roz: i16 = -1024;
+
+    // Rotation: rot_yz(-0.6) -> angle = -154 (in our 0-1024 = 0-2π system, -0.6 rad ≈ -98)
+    let sin_yz: i16 = fp_sin(-98);
+    let cos_yz: i16 = fp_cos(-98);
+
+    let new_roy: i16 = rot_yz_y(roy, roz, sin_yz, cos_yz);
+    let new_roz: i16 = rot_yz_z(roy, roz, sin_yz, cos_yz);
+    roy = new_roy;
+    roz = new_roz;
+
+    // Rotation: rot_xz(1.1) -> angle ≈ 180 (1.1 rad)
+    let sin_xz: i16 = fp_sin(180);
+    let cos_xz: i16 = fp_cos(180);
+
+    let new_rox: i16 = rot_xz_x(rox, roz, sin_xz, cos_xz);
+    new_roz = rot_xz_z(rox, roz, sin_xz, cos_xz);
+    rox = new_rox;
+    roz = new_roz;
+
+    // Forward vector: normalize((0, 0, 0.8) - ro)
+    let fx: i16 = 0 - rox;
+    let fy: i16 = 0 - roy;
+    let fz: i16 = 205 - roz;  // 0.8 * 256 - roz
+    let flen: i16 = fp_length3(fx, fy, fz);
+    if flen < 16 { flen = 16; }
+    fx = fp_div(fx, flen);
+    fy = fp_div(fy, flen);
+    fz = fp_div(fz, flen);
+
+    // Right vector: normalize(cross((0,1,0), f))
+    // cross(up, f) = (up.y*f.z - up.z*f.y, up.z*f.x - up.x*f.z, up.x*f.y - up.y*f.x)
+    //              = (f.z, 0, -f.x) for up = (0,1,0)
+    let rx: i16 = fz;
+    let ry: i16 = 0;
+    let rz: i16 = 0 - fx;
+    let rlen: i16 = fp_length3(rx, ry, rz);
+    if rlen < 16 { rlen = 16; }
+    rx = fp_div(rx, rlen);
+    ry = fp_div(ry, rlen);
+    rz = fp_div(rz, rlen);
+
+    // Up vector: cross(f, r)
+    let ux: i16 = fp_mul(fy, rz) - fp_mul(fz, ry);
+    let uy: i16 = fp_mul(fz, rx) - fp_mul(fx, rz);
+    let uz: i16 = fp_mul(fx, ry) - fp_mul(fy, rx);
+
+    // Ray direction: f + r*uv.x + u*uv.y
+    let rdx: i16 = fx + fp_mul(rx, uvx) + fp_mul(ux, uvy);
+    let rdy: i16 = fy + fp_mul(ry, uvx) + fp_mul(uy, uvy);
+    let rdz: i16 = fz + fp_mul(rz, uvx) + fp_mul(uz, uvy);
+
+    // Normalize ray direction
+    let rdlen: i16 = fp_length3(rdx, rdy, rdz);
+    if rdlen < 16 { rdlen = 16; }
+    rdx = fp_div(rdx, rdlen);
+    rdy = fp_div(rdy, rdlen);
+    rdz = fp_div(rdz, rdlen);
+
+    // March the ray
+    let c: i16 = march(rox, roy, roz, rdx, rdy, rdz);
+
+    // Apply gamma: c *= 2.5, c *= c
+    c = fp_mul(c, 640);  // * 2.5
+    c = fp_mul(c, c);    // square
+
+    // Clamp to 0-256
+    if c < 0 { c = 0; }
+    if c > 256 { c = 256; }
+
+    return c;
+}
+
+// =============================================================================
+// Main - Full Resolution 256x192 with Floyd-Steinberg Dithering
+// =============================================================================
+
+fun main() -> void {
+    let width: i16 = 256;
+    let height: i16 = 184;  // 192 - 8 for footer like original
+
+    clear();
+
+    // Floyd-Steinberg error buffers (simplified - just propagate to next pixel)
+    let error: i16 = 0;
+
+    let y: i16 = 0;
+    while y < height {
+        error = 0;  // Reset error at start of each line
+
+        let x: i16 = 0;
+        while x < width {
+            // Render pixel
+            let c: i16 = render_pixel(x, y);
+
+            // Add error diffusion and small bias
+            c = c + error + 3;  // +0.01 bias like original
+
+            // Threshold at 128 (0.5)
+            let pixel: u8 = 0;
+            if c >= 128 {
+                pixel = 15;  // White
+                error = c - 256;  // Error for next pixel
+            } else {
+                pixel = 0;  // Black
+                error = c;  // Error for next pixel
+            }
+
+            // Propagate error (simplified - just to next pixel * 0.4375)
+            error = (error * 7) >> 4;
+
+            // Draw pixel at screen position (centered)
+            let sx: u8 = (x + 32) as u8;  // Center 256 in 320
+            let sy: u8 = (y + 28) as u8;  // Center 184 in 240
+            set_pixel(sx, sy, pixel);
+
+            x = x + 1;
+        }
+
+        y = y + 1;
+    }
+}

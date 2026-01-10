@@ -60,6 +60,12 @@ func (p *InliningPass) isInlineCandidate(fn *ir.Function) bool {
 		return false
 	}
 
+	// Don't inline SMC-enabled functions (parameter loading uses SMC anchors
+	// which can't be properly remapped during inlining)
+	if fn.IsSMCEnabled {
+		return false
+	}
+
 	// Don't inline reducer lambdas (2-parameter lambdas for reduce operations)
 	// The parameter remapping isn't fully implemented for multi-param calls
 	if strings.HasPrefix(fn.Name, "reducer_lambda_") {

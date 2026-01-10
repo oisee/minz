@@ -1,0 +1,167 @@
+// mzv_one_small_step_simple.minz - Simplified One Small Step shader
+// Based on working sphere shader, extended for lunar lander scene
+// Resolution: 128x96 (half res for faster testing)
+
+// Fixed-point multiplication: (a * b) >> 8
+fun fp_mul(a: i16, b: i16) -> i16 {
+    let a32: i32 = a as i32;
+    let b32: i32 = b as i32;
+    let result: i32 = (a32 * b32) >> 8;
+    return result as i16;
+}
+
+// Integer square root
+fun isqrt(n: i16) -> i16 {
+    if n <= 0 { return 0; }
+    if n < 2 { return n; }
+    let guess: i16 = n >> 1;
+    if guess > 180 { guess = 180; }
+    let i: u8 = 0;
+    while i < 5 {
+        let div: i16 = n / guess;
+        guess = (guess + div) >> 1;
+        if guess < 1 { guess = 1; }
+        i = i + 1;
+    }
+    return guess;
+}
+
+// 3D vector length (simplified)
+fun length3(x: i16, y: i16, z: i16) -> i16 {
+    let xs: i16 = x >> 4;
+    let ys: i16 = y >> 4;
+    let zs: i16 = z >> 4;
+    let sum: i16 = xs * xs + ys * ys + zs * zs;
+    return isqrt(sum) << 4;
+}
+
+fun abs16(x: i16) -> i16 {
+    if x < 0 { return 0 - x; }
+    return x;
+}
+
+fun min16(a: i16, b: i16) -> i16 {
+    if a < b { return a; }
+    return b;
+}
+
+fun max16(a: i16, b: i16) -> i16 {
+    if a > b { return a; }
+    return b;
+}
+
+// Sphere SDF
+fun sdf_sphere(px: i16, py: i16, pz: i16, cx: i16, cy: i16, cz: i16, r: i16) -> i16 {
+    let dx: i16 = px - cx;
+    let dy: i16 = py - cy;
+    let dz: i16 = pz - cz;
+    return length3(dx, dy, dz) - r;
+}
+
+// Box SDF
+fun sdf_box(px: i16, py: i16, pz: i16, bx: i16, by: i16, bz: i16) -> i16 {
+    let dx: i16 = abs16(px) - bx;
+    let dy: i16 = abs16(py) - by;
+    let dz: i16 = abs16(pz) - bz;
+    let ox: i16 = max16(dx, 0);
+    let oy: i16 = max16(dy, 0);
+    let oz: i16 = max16(dz, 0);
+    let outside: i16 = length3(ox, oy, oz);
+    let inside: i16 = min16(max16(dx, max16(dy, dz)), 0);
+    return outside + inside;
+}
+
+// Scene: Lunar lander on ground
+fun map(px: i16, py: i16, pz: i16) -> i16 {
+    // Body sphere at (0, 50, 0) radius 35
+    let body: i16 = sdf_sphere(px, py, pz, 0, 50, 0, 35);
+
+    // Descent stage box at (0, 20, 0) size 25x8x25
+    let stage: i16 = sdf_box(px, py - 20, pz, 25, 8, 25);
+
+    // Combine lander
+    let lander: i16 = min16(body, stage);
+
+    // Ground plane at y = -25
+    let ground: i16 = py + 25;
+
+    return min16(ground, lander);
+}
+
+// Ray march
+fun march(rox: i16, roy: i16, roz: i16, rdx: i16, rdy: i16, rdz: i16) -> i16 {
+    let px: i16 = rox;
+    let py: i16 = roy;
+    let pz: i16 = roz;
+    let t: i16 = 0;
+
+    let i: u8 = 0;
+    while i < 32 {
+        let d: i16 = map(px, py, pz);
+
+        if d < 4 {
+            // Hit - brightness based on height
+            let light: i16 = 100 + py;
+            if light < 60 { light = 60; }
+            if light > 255 { light = 255; }
+            return light;
+        }
+
+        t = t + d;
+        px = rox + fp_mul(rdx, t);
+        py = roy + fp_mul(rdy, t);
+        pz = roz + fp_mul(rdz, t);
+
+        if t > 400 { return 0; }
+
+        i = i + 1;
+    }
+
+    return 0;
+}
+
+fun main() -> void {
+    let width: i16 = 128;
+    let height: i16 = 96;
+
+    clear();
+
+    // Camera position
+    let cam_x: i16 = 0;
+    let cam_y: i16 = 50;
+    let cam_z: i16 = -200;
+
+    let y: i16 = 0;
+    while y < height {
+        let x: i16 = 0;
+        while x < width {
+            // Ray direction centered
+            let rdx: i16 = (x - 64) * 3;
+            let rdy: i16 = (48 - y) * 3;
+            let rdz: i16 = 256;
+
+            let brightness: i16 = march(cam_x, cam_y, cam_z, rdx, rdy, rdz);
+
+            if brightness >= 50 {
+                let color: u8 = 0;
+                if brightness > 200 {
+                    color = 15;
+                } else if brightness > 160 {
+                    color = 7;
+                } else if brightness > 120 {
+                    color = 8;
+                } else {
+                    color = 8;
+                }
+
+                // Draw pixel (centered on 320x240)
+                let sx: u8 = (x + 96) as u8;
+                let sy: u8 = (y + 72) as u8;
+                set_pixel(sx, sy, color);
+            }
+
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}

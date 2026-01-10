@@ -76,6 +76,11 @@ func (p *mirParser) parse() (*Module, error) {
 				}
 			}
 
+			// Remove comments before label check
+			if idx := strings.Index(instruction, ";"); idx >= 0 {
+				instruction = strings.TrimSpace(instruction[:idx])
+			}
+
 			// Check if this is a label (just "labelname:" with no spaces in the label)
 			if strings.HasSuffix(instruction, ":") && !strings.Contains(instruction[:len(instruction)-1], " ") {
 				labelName := strings.TrimSuffix(instruction, ":")

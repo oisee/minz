@@ -1,0 +1,121 @@
+// mzv_test_sphere.minz - Simple sphere test for debugging raymarcher
+
+// Fixed-point multiplication: (a * b) >> 8
+fun fp_mul(a: i16, b: i16) -> i16 {
+    let a32: i32 = a as i32;
+    let b32: i32 = b as i32;
+    let result: i32 = (a32 * b32) >> 8;
+    return result as i16;
+}
+
+// Fixed-point division: (a << 8) / b
+fun fp_div(a: i16, b: i16) -> i16 {
+    if b == 0 { return 32767; }
+    let a32: i32 = a as i32;
+    let b32: i32 = b as i32;
+    let result: i32 = (a32 << 8) / b32;
+    return result as i16;
+}
+
+// Integer square root
+fun isqrt(n: i16) -> i16 {
+    if n <= 0 { return 0; }
+    if n < 2 { return n; }
+    let guess: i16 = n >> 1;
+    if guess > 180 { guess = 180; }
+    let i: u8 = 0;
+    while i < 5 {
+        let div: i16 = n / guess;
+        guess = (guess + div) >> 1;
+        if guess < 1 { guess = 1; }
+        i = i + 1;
+    }
+    return guess;
+}
+
+// 3D vector length (simplified for smaller values)
+fun length3(x: i16, y: i16, z: i16) -> i16 {
+    // Scale down to prevent overflow
+    let xs: i16 = x >> 4;
+    let ys: i16 = y >> 4;
+    let zs: i16 = z >> 4;
+    let sum: i16 = xs * xs + ys * ys + zs * zs;
+    return isqrt(sum) << 4;
+}
+
+// Sphere SDF at origin with radius r
+fun sdf_sphere(px: i16, py: i16, pz: i16, r: i16) -> i16 {
+    return length3(px, py, pz) - r;
+}
+
+// Simple map - just a sphere at origin
+fun map(px: i16, py: i16, pz: i16) -> i16 {
+    return sdf_sphere(px, py, pz, 100);  // Sphere radius 100 (~0.4 in 8.8)
+}
+
+// Ray march
+fun march(rdx: i16, rdy: i16, rdz: i16) -> i16 {
+    // Camera at z = -400
+    let px: i16 = 0;
+    let py: i16 = 0;
+    let pz: i16 = -400;
+
+    let i: u8 = 0;
+    while i < 32 {
+        let d: i16 = map(px, py, pz);
+
+        if d < 5 {
+            // Hit - return brightness based on normal (simplified: use py)
+            let bright: i16 = 128 + py;
+            if bright < 64 { bright = 64; }
+            if bright > 255 { bright = 255; }
+            return bright;
+        }
+
+        // Advance ray
+        px = px + (rdx * d >> 8);
+        py = py + (rdy * d >> 8);
+        pz = pz + (rdz * d >> 8);
+
+        if pz > 400 { return 0; }  // Miss
+
+        i = i + 1;
+    }
+    return 0;
+}
+
+fun main() -> void {
+    let width: i16 = 80;
+    let height: i16 = 60;
+
+    clear();
+
+    let y: i16 = 0;
+    while y < height {
+        let x: i16 = 0;
+        while x < width {
+            // Ray direction
+            let rdx: i16 = (x - 40) * 4;
+            let rdy: i16 = (30 - y) * 4;
+            let rdz: i16 = 256;  // Forward
+
+            let brightness: i16 = march(rdx, rdy, rdz);
+
+            if brightness > 32 {
+                let color: u8 = 8;  // Gray
+                if brightness > 180 { color = 15; }
+                else if brightness > 140 { color = 7; }
+
+                let sx: u8 = (x * 2 + 80) as u8;
+                let sy: u8 = (y * 2 + 60) as u8;
+                set_pixel(sx, sy, color);
+                set_pixel(sx + 1, sy, color);
+                set_pixel(sx, sy + 1, color);
+                set_pixel(sx + 1, sy + 1, color);
+            }
+
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}
