@@ -385,17 +385,18 @@ fun draw_sprite(x: u8, y: u8, sprite: *u8) -> void {
 }
 ```
 
-### **MZV Sphere Rendering Demo**
+### **MZV Rendering Demos**
 
 Real-time rendered graphics using the MinZ Virtual Machine:
 
-| Simple | Fast | Shaded |
-|--------|------|--------|
-| ![Simple](examples/mzv_sphere_simple.png) | ![Fast](examples/mzv_sphere_fast.png) | ![Shaded](examples/mzv_sphere_shaded.png) |
-| 242K instructions | 1.5M instructions | 292K instructions |
+| Simple Sphere | Shaded Sphere | One Small Step |
+|---------------|---------------|----------------|
+| ![Simple](examples/mzv_sphere_simple.png) | ![Shaded](examples/mzv_sphere_shaded.png) | ![OneSmallStep](examples/mzv_one_small_step.png) |
+| 242K instructions | 1.5M instructions | 30M instructions |
+| Basic circle check | Diffuse lighting | Raymarched lunar lander |
 
 ```bash
-# One-step demo - compile and render all spheres
+# One-step demo - compile and render all examples
 cd examples && ./run_sphere_demo.sh all
 ```
 

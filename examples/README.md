@@ -60,7 +60,7 @@ Raymarched lunar lander scene adapted from the ZXSpeculator shader by @DeanTheCo
 
 ![One Small Step](mzv_one_small_step.png)
 
-**Instructions:** ~2.4M | **Features:** Raymarching, SDFs (sphere, box, ground), integer math
+**Instructions:** ~30M | **Features:** Raymarching, SDFs (sphere, box, ground), integer math, 80x60 resolution doubled to 160x120
 
 ### Running MZV Examples
 
