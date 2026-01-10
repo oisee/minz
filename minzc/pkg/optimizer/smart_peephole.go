@@ -378,6 +378,12 @@ func (p *SmartPeepholeOptimizationPass) cleanupFunction(fn *ir.Function) bool {
 		if inst.Src2 != 0 {
 			uses[inst.Src2]++
 		}
+		// Count uses in Args slice (for function calls)
+		for _, arg := range inst.Args {
+			if arg != 0 {
+				uses[arg]++
+			}
+		}
 	}
 
 	newInstructions := []ir.Instruction{}

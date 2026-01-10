@@ -39,18 +39,18 @@ func (p *DeadCodeEliminationPass) Run(module *ir.Module) (bool, error) {
 // optimizeFunction performs dead code elimination on a single function
 func (p *DeadCodeEliminationPass) optimizeFunction(fn *ir.Function) bool {
 	changed := false
-	
+
 	// Mark all used registers and referenced labels
 	p.markUsedRegisters(fn)
 	p.markReferencedLabels(fn)
-	
+
 	// Remove dead instructions
 	newInstructions := []ir.Instruction{}
 	afterUnreachable := false
-	
+
 	for _, inst := range fn.Instructions {
 		keep := true
-		
+
 		// Skip instructions after unconditional jump/return until next label
 		if afterUnreachable && inst.Op != ir.OpLabel {
 			keep = false
@@ -176,12 +176,17 @@ func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 			
 		case ir.OpCall:
 			// Mark all argument registers as used
-			// TODO: Track actual arguments
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
 			}
 			if inst.Src2 != 0 {
 				p.used[inst.Src2] = true
+			}
+			// Mark all registers in Args slice as used
+			for _, arg := range inst.Args {
+				if arg != 0 {
+					p.used[arg] = true
+				}
 			}
 
 		case ir.OpPrintU8, ir.OpPrintU16, ir.OpPrintI8, ir.OpPrintI16,
@@ -189,6 +194,33 @@ func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 			// Print instructions use their source register
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
+			}
+
+		case ir.OpSyscall:
+			// Syscall uses Src1 and Src2 as arguments
+			if inst.Src1 != 0 {
+				p.used[inst.Src1] = true
+			}
+			if inst.Src2 != 0 {
+				p.used[inst.Src2] = true
+			}
+			// Syscall 10 (set_pixel) uses r0 for color - mark as used
+			// Convention: syscalls may read r0 as an implicit argument
+			p.used[ir.Register(0)] = true
+
+		case ir.OpMove:
+			// Move uses Src1
+			if inst.Src1 != 0 {
+				p.used[inst.Src1] = true
+			}
+
+		case ir.OpPortIn, ir.OpPortOut:
+			// Port operations use their registers
+			if inst.Src1 != 0 {
+				p.used[inst.Src1] = true
+			}
+			if inst.Src2 != 0 {
+				p.used[inst.Src2] = true
 			}
 		}
 		

@@ -57,15 +57,14 @@ func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optim
 			NewInliningPass(),
 		)
 		
-		// Use TRUE SMC by default (this is the whole point of our language)
+		// Use TRUE SMC if enabled (default behavior)
+		// When SMC is disabled (enableTrueSMC=false), we skip ALL SMC passes
 		if enableTrueSMC {
 			opt.passes = append(opt.passes, NewTrueSMCPass(false)) // false = no diagnostics in production
 			// Add TSMC pattern optimization after TRUE SMC
 			opt.passes = append(opt.passes, &tsmcPatternAdapter{NewTSMCPatternOptimizer(false)})
-		} else {
-			// Fall back to old SMC if explicitly disabled
-			opt.passes = append(opt.passes, NewSelfModifyingCodePass())
 		}
+		// Note: When enableTrueSMC is false, we intentionally add NO SMC passes
 		
 		opt.passes = append(opt.passes,
 			NewTailRecursionPass(),  // Add tail recursion optimization

@@ -282,6 +282,35 @@ type StructLiteralData struct {
 	Fields   map[string]int64 // Field name -> literal value
 }
 
+// SMCAnnotation represents metadata for Self-Modifying Code
+// Option B: Annotations carry SMC intent while instructions remain regular/executable
+type SMCAnnotation struct {
+	Kind    SMCAnnotationKind
+
+	// For SMCCallSite
+	Target  string  // Function being called
+	Pattern string  // Usage pattern: "store_u8", "immediate", "reg_b", "reg_c"
+	Dest    string  // Destination variable (for store patterns)
+
+	// For SMCParam
+	ParamName string
+	Offset    int    // Byte offset in function prologue
+	Size      int    // 1 or 2 bytes
+
+	// For SMCReturn
+	Mode    string  // "patchable" or "direct"
+}
+
+// SMCAnnotationKind identifies the type of SMC annotation
+type SMCAnnotationKind int
+
+const (
+	SMCAnnotationNone     SMCAnnotationKind = iota
+	SMCAnnotationCallSite                    // @smc_call(target, pattern, dest)
+	SMCAnnotationParam                       // @smc_param(name, offset, size)
+	SMCAnnotationReturn                      // @smc_return(mode)
+)
+
 // Instruction represents a single IR instruction
 type Instruction struct {
 	Op           Opcode
@@ -331,6 +360,10 @@ type Instruction struct {
 	StringValue     string       // String value for @emit
 	StringID        int          // String pool ID for OpLoadString
 	PatchPoint      *PatchPoint  // Patch point definition for OpPatchPoint
+
+	// SMC Annotations (Option B: metadata instead of opcodes)
+	// These carry SMC intent while keeping instruction executable by VM
+	SMCAnnotations  []SMCAnnotation // Annotations attached to this instruction
 }
 
 // AsmBlock represents an inline assembly block
@@ -657,7 +690,11 @@ type Function struct {
 	
 	// Instruction Patching support
 	NeedsPatchPoints bool                 // Function will be called with instruction patching
-	
+
+	// SMC Annotations (Option B: function-level SMC metadata)
+	SMCParamAnnotations []SMCAnnotation   // @smc_param annotations for each parameter
+	SMCReturnAnnotation *SMCAnnotation    // @smc_return annotation if patchable return
+
 	// Metadata for optimization passes
 	Metadata map[string]string // Generic metadata storage
 	CalleeSavedRegs  RegisterSet // Registers this function must preserve
@@ -1079,6 +1116,73 @@ func (i *Instruction) String() string {
 	default:
 		return fmt.Sprintf("unknown op %d", i.Op)
 	}
+}
+
+// StringWithAnnotations returns the instruction string with any SMC annotations
+func (i *Instruction) StringWithAnnotations() string {
+	var parts []string
+
+	// Add annotations first (on separate lines for readability)
+	for _, ann := range i.SMCAnnotations {
+		parts = append(parts, ann.String())
+	}
+
+	// Add the instruction itself
+	parts = append(parts, i.String())
+
+	return strings.Join(parts, "\n")
+}
+
+// String returns the string representation of an SMC annotation
+func (a *SMCAnnotation) String() string {
+	switch a.Kind {
+	case SMCAnnotationCallSite:
+		if a.Dest != "" {
+			return fmt.Sprintf("@smc_call(target=%s, pattern=%s, dest=%s)", a.Target, a.Pattern, a.Dest)
+		}
+		return fmt.Sprintf("@smc_call(target=%s, pattern=%s)", a.Target, a.Pattern)
+	case SMCAnnotationParam:
+		return fmt.Sprintf("@smc_param(%s, offset=%d, size=%d)", a.ParamName, a.Offset, a.Size)
+	case SMCAnnotationReturn:
+		return fmt.Sprintf("@smc_return(mode=%s)", a.Mode)
+	default:
+		return ""
+	}
+}
+
+// AddSMCCallSiteAnnotation adds an SMC call site annotation to the instruction
+func (i *Instruction) AddSMCCallSiteAnnotation(target, pattern, dest string) {
+	i.SMCAnnotations = append(i.SMCAnnotations, SMCAnnotation{
+		Kind:    SMCAnnotationCallSite,
+		Target:  target,
+		Pattern: pattern,
+		Dest:    dest,
+	})
+}
+
+// AddSMCParamAnnotation adds an SMC param annotation to the instruction
+func (i *Instruction) AddSMCParamAnnotation(paramName string, offset, size int) {
+	i.SMCAnnotations = append(i.SMCAnnotations, SMCAnnotation{
+		Kind:      SMCAnnotationParam,
+		ParamName: paramName,
+		Offset:    offset,
+		Size:      size,
+	})
+}
+
+// HasSMCAnnotations returns true if the instruction has SMC annotations
+func (i *Instruction) HasSMCAnnotations() bool {
+	return len(i.SMCAnnotations) > 0
+}
+
+// GetSMCCallSite returns the SMC call site annotation if present
+func (i *Instruction) GetSMCCallSite() *SMCAnnotation {
+	for idx := range i.SMCAnnotations {
+		if i.SMCAnnotations[idx].Kind == SMCAnnotationCallSite {
+			return &i.SMCAnnotations[idx]
+		}
+	}
+	return nil
 }
 
 // SetMetadata sets a metadata value for the function

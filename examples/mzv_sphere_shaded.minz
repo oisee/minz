@@ -91,19 +91,15 @@ fun main() -> void {
                 // N dot L = dx*lx + dy*ly + z*lz
                 let dot: i16 = dx * lx + dy * ly + z * lz;
 
-                // Scale dot product by radius to normalize
-                // diffuse = dot / radius (approximation)
-                let diffuse: i16 = 0;
-                if radius > 0 {
-                    diffuse = dot / radius;
-                }
-                if diffuse < 0 { diffuse = 0; }
+                // Clamp negative dot product (facing away from light)
+                if dot < 0 { dot = 0; }
 
-                // Add ambient (25%) and scale to 0-255
-                // Simplified brightness calculation
-                let brightness: i16 = 64 + diffuse * 3;
+                // Scale brightness directly from dot product
+                // dot ranges from 0 to ~sqrt(3)*radius ≈ 86 for radius=50
+                // Scale to range 64-255: brightness = 64 + (dot * 191 / max_dot)
+                // Use dot * 3 to scale appropriately (191/86 ≈ 2.2, rounded to 3)
+                let brightness: i16 = 64 + (dot * 3);
                 if brightness > 255 { brightness = 255; }
-                if brightness < 0 { brightness = 64; }
 
                 // Map brightness to 8-bit palette colors
                 // Using a warm orange/yellow gradient

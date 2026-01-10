@@ -843,6 +843,10 @@ func (vm *VM) handleSyscall(id int, inst ir.Instruction) (int64, error) {
 			x := int(vm.registers[inst.Src1])
 			y := int(vm.registers[inst.Src2])
 			color := uint32(vm.registers[0]) // color in r0
+			if vm.config.Debug && (x == 160 && y == 120) {
+				// Debug output for center pixel
+				fmt.Fprintf(vm.config.OutputStream, "DEBUG set_pixel(%d, %d, %d) r0=%d\n", x, y, color, vm.registers[0])
+			}
 			vm.platform.Display().SetPixel(x, y, color)
 		}
 		return 0, nil

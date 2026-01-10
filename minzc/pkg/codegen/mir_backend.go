@@ -87,9 +87,23 @@ func (b *MIRBackend) Generate(module *ir.Module) (string, error) {
 			}
 		}
 
+		// SMC param annotations (Option B)
+		if len(fn.SMCParamAnnotations) > 0 {
+			for _, ann := range fn.SMCParamAnnotations {
+				sb.WriteString(fmt.Sprintf("  %s\n", ann.String()))
+			}
+		}
+		if fn.SMCReturnAnnotation != nil {
+			sb.WriteString(fmt.Sprintf("  %s\n", fn.SMCReturnAnnotation.String()))
+		}
+
 		// Instructions
 		sb.WriteString("  Instructions:\n")
 		for i, inst := range fn.Instructions {
+			// Output annotations on separate lines before instruction
+			for _, ann := range inst.SMCAnnotations {
+				sb.WriteString(fmt.Sprintf("         %s\n", ann.String()))
+			}
 			sb.WriteString(fmt.Sprintf("    %3d: %s\n", i, inst.String()))
 		}
 		sb.WriteString("\n")

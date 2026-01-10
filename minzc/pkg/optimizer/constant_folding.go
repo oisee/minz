@@ -38,7 +38,7 @@ func (p *ConstantFoldingPass) Run(module *ir.Module) (bool, error) {
 func (p *ConstantFoldingPass) optimizeFunction(fn *ir.Function) bool {
 	changed := false
 	p.constants = make(map[ir.Register]int64)
-	
+
 	newInstructions := []ir.Instruction{}
 	
 	for _, inst := range fn.Instructions {
@@ -157,7 +157,7 @@ func (p *ConstantFoldingPass) optimizeFunction(fn *ir.Function) bool {
 	if changed {
 		fn.Instructions = newInstructions
 	}
-	
+
 	return changed
 }
 

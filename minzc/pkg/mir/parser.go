@@ -181,14 +181,124 @@ func (p *mirParser) parseParams(params string) error {
 
 func (p *mirParser) parseFunctionAttribute() {
 	attr := strings.TrimPrefix(p.line, "@")
+
+	// Handle simple attributes
 	switch attr {
 	case "smc":
 		p.currentFunc.IsSMCEnabled = true
+		return
 	case "recursive":
 		p.currentFunc.IsRecursive = true
+		return
 	case "interrupt":
 		p.currentFunc.IsInterrupt = true
+		return
 	}
+
+	// Handle parameterized attributes
+	if strings.HasPrefix(attr, "smc_param(") {
+		// Parse @smc_param(name, offset=N, size=N)
+		ann := p.parseSMCParamAnnotation(attr)
+		if ann != nil {
+			p.currentFunc.SMCParamAnnotations = append(p.currentFunc.SMCParamAnnotations, *ann)
+		}
+	} else if strings.HasPrefix(attr, "smc_return(") {
+		// Parse @smc_return(mode=patchable)
+		ann := p.parseSMCReturnAnnotation(attr)
+		if ann != nil {
+			p.currentFunc.SMCReturnAnnotation = ann
+		}
+	}
+}
+
+// parseSMCParamAnnotation parses @smc_param(name, offset=N, size=N)
+func (p *mirParser) parseSMCParamAnnotation(attr string) *ir.SMCAnnotation {
+	// Extract content between parentheses
+	start := strings.Index(attr, "(")
+	end := strings.LastIndex(attr, ")")
+	if start == -1 || end == -1 || end <= start {
+		return nil
+	}
+
+	content := attr[start+1 : end]
+	parts := strings.Split(content, ",")
+	if len(parts) < 1 {
+		return nil
+	}
+
+	ann := &ir.SMCAnnotation{
+		Kind: ir.SMCAnnotationParam,
+	}
+
+	for i, part := range parts {
+		part = strings.TrimSpace(part)
+		if i == 0 {
+			// First part is the parameter name
+			ann.ParamName = part
+		} else if strings.HasPrefix(part, "offset=") {
+			val, _ := strconv.Atoi(strings.TrimPrefix(part, "offset="))
+			ann.Offset = val
+		} else if strings.HasPrefix(part, "size=") {
+			val, _ := strconv.Atoi(strings.TrimPrefix(part, "size="))
+			ann.Size = val
+		}
+	}
+
+	return ann
+}
+
+// parseSMCReturnAnnotation parses @smc_return(mode=patchable)
+func (p *mirParser) parseSMCReturnAnnotation(attr string) *ir.SMCAnnotation {
+	start := strings.Index(attr, "(")
+	end := strings.LastIndex(attr, ")")
+	if start == -1 || end == -1 || end <= start {
+		return nil
+	}
+
+	content := attr[start+1 : end]
+	parts := strings.Split(content, ",")
+
+	ann := &ir.SMCAnnotation{
+		Kind: ir.SMCAnnotationReturn,
+	}
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if strings.HasPrefix(part, "mode=") {
+			ann.Mode = strings.TrimPrefix(part, "mode=")
+		}
+	}
+
+	return ann
+}
+
+// parseSMCCallAnnotation parses @smc_call(target=func, pattern=store_u8, dest=var)
+func (p *mirParser) parseSMCCallAnnotation(attr string) *ir.SMCAnnotation {
+	start := strings.Index(attr, "(")
+	end := strings.LastIndex(attr, ")")
+	if start == -1 || end == -1 || end <= start {
+		return nil
+	}
+
+	content := attr[start+1 : end]
+	parts := strings.Split(content, ",")
+
+	ann := &ir.SMCAnnotation{
+		Kind: ir.SMCAnnotationCallSite,
+	}
+
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if strings.HasPrefix(part, "target=") {
+			ann.Target = strings.TrimPrefix(part, "target=")
+		} else if strings.HasPrefix(part, "pattern=") {
+			ann.Pattern = strings.TrimPrefix(part, "pattern=")
+		} else if strings.HasPrefix(part, "dest=") {
+			ann.Dest = strings.TrimPrefix(part, "dest=")
+		}
+	}
+
+	return ann
 }
 
 func (p *mirParser) parseLocals() error {
@@ -237,34 +347,56 @@ func (p *mirParser) parseLocals() error {
 }
 
 func (p *mirParser) parseInstructions() error {
+	// Collect pending annotations to attach to next instruction
+	var pendingAnnotations []ir.SMCAnnotation
+
 	for p.scanner.Scan() {
 		p.line = strings.TrimSpace(p.scanner.Text())
 		p.lineNum++
-		
+
 		if p.line == "" {
 			// End of instructions
 			break
 		}
-		
-		// Skip instruction number
+
+		// Handle @smc_call annotations (attach to next instruction)
+		if strings.HasPrefix(p.line, "@smc_call(") {
+			ann := p.parseSMCCallAnnotation(p.line[1:]) // Remove leading @
+			if ann != nil {
+				pendingAnnotations = append(pendingAnnotations, *ann)
+			}
+			continue
+		}
+
+		// Skip comments
+		if strings.HasPrefix(p.line, ";") {
+			continue
+		}
+
+		// Skip instruction number prefix
 		colonIdx := strings.Index(p.line, ":")
 		if colonIdx == -1 {
 			continue
 		}
-		
+
 		instStr := strings.TrimSpace(p.line[colonIdx+1:])
-		
+
 		// Parse instruction
 		inst, err := p.parseInstruction(instStr)
 		if err != nil {
 			return fmt.Errorf("line %d: %w", p.lineNum, err)
 		}
-		
+
 		if inst != nil {
+			// Attach any pending annotations
+			if len(pendingAnnotations) > 0 {
+				inst.SMCAnnotations = append(inst.SMCAnnotations, pendingAnnotations...)
+				pendingAnnotations = nil
+			}
 			p.currentFunc.Instructions = append(p.currentFunc.Instructions, *inst)
 		}
 	}
-	
+
 	return nil
 }
 

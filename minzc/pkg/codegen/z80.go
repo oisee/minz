@@ -1388,21 +1388,111 @@ func (g *Z80Generator) generatePatchTarget(inst *ir.Instruction) error {
 // generatePatchParam patches function parameter immediate
 func (g *Z80Generator) generatePatchParam(inst *ir.Instruction) error {
 	g.emit("    ; Patch parameter %s = %d", inst.ParamName, inst.Imm)
-	
+
 	// Load immediate value
 	if inst.Type != nil && inst.Type.Size() == 1 {
 		// 8-bit parameter
 		g.emit("    LD A, %d               ; Parameter value", inst.Imm)
-		g.emit("    LD (%s_param_%s+1), A   ; Patch parameter immediate", 
+		g.emit("    LD (%s_param_%s+1), A   ; Patch parameter immediate",
 			   inst.Symbol, inst.ParamName)
 	} else {
 		// 16-bit parameter
 		g.emit("    LD HL, %d              ; Parameter value", inst.Imm)
-		g.emit("    LD (%s_param_%s+1), HL  ; Patch parameter immediate", 
+		g.emit("    LD (%s_param_%s+1), HL  ; Patch parameter immediate",
 			   inst.Symbol, inst.ParamName)
 	}
-	
+
 	return nil
+}
+
+// generateSMCAnnotatedCall handles Option B: calls with SMC annotations
+// The annotation carries all SMC intent, instruction remains executable by VM
+func (g *Z80Generator) generateSMCAnnotatedCall(inst ir.Instruction, smcAnn *ir.SMCAnnotation) {
+	funcName := smcAnn.Target
+	cleanName := g.sanitizeFunctionName(funcName)
+
+	g.emit("")
+	g.emit("    ; *** SMC ANNOTATED CALL to %s ***", funcName)
+	g.emit("    ; Pattern: %s, Dest: %s", smcAnn.Pattern, smcAnn.Dest)
+
+	// 1. Apply SMC pattern (patch the return behavior)
+	switch smcAnn.Pattern {
+	case "immediate":
+		// For immediate use: Patch NOP → RET for early return
+		g.emit("    LD A, #C9               ; RET opcode")
+		g.emit("    LD (%s_return_patch.op), A", cleanName)
+	case "store_u8", "store_u16":
+		// For storage: Restore NOP and set storage address
+		g.emit("    LD A, #00               ; NOP opcode")
+		g.emit("    LD (%s_return_patch.op), A", cleanName)
+		if smcAnn.Dest != "" {
+			g.emit("    LD HL, %s", smcAnn.Dest)
+			g.emit("    LD (%s_store_addr), HL", cleanName)
+		}
+	case "reg_b":
+		g.emit("    LD A, #47               ; LD B, A opcode")
+		g.emit("    LD (%s_return_patch.op), A", cleanName)
+	case "reg_c":
+		g.emit("    LD A, #4F               ; LD C, A opcode")
+		g.emit("    LD (%s_return_patch.op), A", cleanName)
+	default:
+		// Default to store pattern
+		g.emit("    LD A, #00               ; NOP opcode (default store)")
+		g.emit("    LD (%s_return_patch.op), A", cleanName)
+	}
+
+	// 2. Patch parameters from SMC annotations on this instruction
+	for _, ann := range inst.SMCAnnotations {
+		if ann.Kind == ir.SMCAnnotationParam {
+			// Find the argument register for this parameter
+			paramIdx := g.findParamIndex(funcName, ann.ParamName)
+			if paramIdx >= 0 && paramIdx < len(inst.Args) {
+				argReg := inst.Args[paramIdx]
+				if ann.Size == 1 {
+					// 8-bit parameter
+					g.loadToA(argReg)
+					g.emit("    LD (%s_param_%s+1), A   ; Patch %s", cleanName, ann.ParamName, ann.ParamName)
+				} else {
+					// 16-bit parameter
+					g.loadToHL(argReg)
+					g.emit("    LD (%s_param_%s+1), HL  ; Patch %s", cleanName, ann.ParamName, ann.ParamName)
+				}
+			}
+		}
+	}
+
+	// 3. Generate the actual call
+	g.emit("    CALL %s", cleanName)
+	g.usedFunctions[funcName] = true
+
+	// 4. Store result (if not using patchable return for storage)
+	// For immediate pattern, result is in A/HL already
+	// For store pattern, patchable return already stored it
+	if smcAnn.Pattern == "immediate" || smcAnn.Pattern == "reg_b" || smcAnn.Pattern == "reg_c" {
+		g.storeFromHL(inst.Dest)
+	}
+	// For store patterns, the patchable return handles storage
+	// but we still need the result register for subsequent use
+	if smcAnn.Pattern == "store_u8" || smcAnn.Pattern == "store_u16" {
+		g.storeFromHL(inst.Dest)
+	}
+
+	g.emit("    ; *** END SMC CALL ***")
+	g.emit("")
+}
+
+// findParamIndex finds the index of a parameter by name in a function
+func (g *Z80Generator) findParamIndex(funcName, paramName string) int {
+	targetFunc := g.findFunction(funcName)
+	if targetFunc == nil {
+		return -1
+	}
+	for i, param := range targetFunc.Params {
+		if param.Name == paramName {
+			return i
+		}
+	}
+	return -1
 }
 
 // Helper functions for patch point generation
@@ -2488,56 +2578,62 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.generateComparison(inst)
 		
 	case ir.OpCall:
-		// Check if calling a TRUE SMC function
-		g.emit("    ; Call to %s (args: %d)", inst.Symbol, len(inst.Args))
-		targetFunc := g.findFunction(inst.Symbol)
-		
-		// Prepare arguments before the call
-		if len(inst.Args) > 0 {
-			g.prepareCallArguments(inst.Args, targetFunc)
-		}
-		
-		if targetFunc != nil {
-			// Handle extern functions
-			if targetFunc.IsExtern {
-				if targetFunc.HasExternAddress {
-					addr := targetFunc.ExternAddress
-					// Check if address is RST-eligible (0, 8, 16, 24, 32, 40, 48, 56)
-					if addr <= 0x38 && addr%8 == 0 && !targetFunc.NoRST {
-						// Use RST for single-byte call (saves 2 bytes!)
-						g.emit("    RST $%02X    ; extern %s (optimized from CALL)", addr, targetFunc.Name)
-					} else {
-						// Regular CALL to absolute address: @extern(0xC000)
-						g.emit("    CALL $%04X    ; extern %s", addr, targetFunc.Name)
-					}
-				} else {
-					// Call to symbol (will be resolved by linker or is defined elsewhere)
-					cleanName := g.sanitizeFunctionName(targetFunc.Name)
-					g.emit("    CALL %s    ; extern", cleanName)
-				}
-
-				// Emit inline parameters after the call (for @inline_params)
-				g.emitInlineParameters(&inst)
-			} else if targetFunc.UsesTrueSMC {
-				g.emit("    ; Found function, UsesTrueSMC=%v", targetFunc.UsesTrueSMC)
-				// Generate TRUE SMC patching before call
-				g.generateTrueSMCCall(inst, targetFunc)
-			} else {
-				// Use sanitized function name for assembler compatibility
-				cleanName := g.sanitizeFunctionName(targetFunc.Name)
-				g.emit("    CALL %s", cleanName)
-				// Track function usage
-				g.usedFunctions[targetFunc.Name] = true
-			}
+		// Check for SMC annotations (Option B: annotations + regular code)
+		if smcAnn := inst.GetSMCCallSite(); smcAnn != nil {
+			// SMC annotated call - generate parameter patches and patchable call
+			g.generateSMCAnnotatedCall(inst, smcAnn)
 		} else {
-			// Function not found in current module - might be external
-			// Use the symbol as-is
-			g.emit("    CALL %s", inst.Symbol)
-			// Track stdlib function usage
-			g.usedFunctions[inst.Symbol] = true
+			// Regular call (no SMC annotations)
+			g.emit("    ; Call to %s (args: %d)", inst.Symbol, len(inst.Args))
+			targetFunc := g.findFunction(inst.Symbol)
+
+			// Prepare arguments before the call
+			if len(inst.Args) > 0 {
+				g.prepareCallArguments(inst.Args, targetFunc)
+			}
+
+			if targetFunc != nil {
+				// Handle extern functions
+				if targetFunc.IsExtern {
+					if targetFunc.HasExternAddress {
+						addr := targetFunc.ExternAddress
+						// Check if address is RST-eligible (0, 8, 16, 24, 32, 40, 48, 56)
+						if addr <= 0x38 && addr%8 == 0 && !targetFunc.NoRST {
+							// Use RST for single-byte call (saves 2 bytes!)
+							g.emit("    RST $%02X    ; extern %s (optimized from CALL)", addr, targetFunc.Name)
+						} else {
+							// Regular CALL to absolute address: @extern(0xC000)
+							g.emit("    CALL $%04X    ; extern %s", addr, targetFunc.Name)
+						}
+					} else {
+						// Call to symbol (will be resolved by linker or is defined elsewhere)
+						cleanName := g.sanitizeFunctionName(targetFunc.Name)
+						g.emit("    CALL %s    ; extern", cleanName)
+					}
+
+					// Emit inline parameters after the call (for @inline_params)
+					g.emitInlineParameters(&inst)
+				} else if targetFunc.UsesTrueSMC {
+					g.emit("    ; Found function, UsesTrueSMC=%v", targetFunc.UsesTrueSMC)
+					// Generate TRUE SMC patching before call
+					g.generateTrueSMCCall(inst, targetFunc)
+				} else {
+					// Use sanitized function name for assembler compatibility
+					cleanName := g.sanitizeFunctionName(targetFunc.Name)
+					g.emit("    CALL %s", cleanName)
+					// Track function usage
+					g.usedFunctions[targetFunc.Name] = true
+				}
+			} else {
+				// Function not found in current module - might be external
+				// Use the symbol as-is
+				g.emit("    CALL %s", inst.Symbol)
+				// Track stdlib function usage
+				g.usedFunctions[inst.Symbol] = true
+			}
+			// Result is in HL
+			g.storeFromHL(inst.Dest)
 		}
-		// Result is in HL
-		g.storeFromHL(inst.Dest)
 		
 	case ir.OpPatchPoint:
 		// Define a patchable instruction sequence
