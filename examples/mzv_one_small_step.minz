@@ -46,9 +46,13 @@ fun isqrt(n: i16) -> i16 {
     return guess;
 }
 
-// 3D vector length squared (avoid sqrt when possible)
+// 3D vector length squared (scaled down to prevent overflow)
 fun vec3_len_sq(x: i16, y: i16, z: i16) -> i16 {
-    return (x * x / 256) + (y * y / 256) + (z * z / 256);
+    // Scale inputs down first to prevent overflow, then compute
+    let xs: i16 = x / 16;
+    let ys: i16 = y / 16;
+    let zs: i16 = z / 16;
+    return xs * xs + ys * ys + zs * zs;
 }
 
 // =============================================================================
@@ -69,7 +73,8 @@ fun sdf_sphere(px: i16, py: i16, pz: i16, cx: i16, cy: i16, cz: i16, r: i16) -> 
     let dy: i16 = py - cy;
     let dz: i16 = pz - cz;
     let len_sq: i16 = vec3_len_sq(dx, dy, dz);
-    let len: i16 = isqrt(len_sq * 256);
+    // vec3_len_sq returns (d/16)^2, so sqrt gives d/16, multiply by 16 to get d
+    let len: i16 = isqrt(len_sq) * 16;
     return len - r;
 }
 
@@ -119,8 +124,9 @@ fun march(rdx: i16, rdy: i16, rdz: i16) -> i16 {
         // Hit check
         if d < 3 {
             // Simple lighting based on y height
-            let light: i16 = 80 + py;
-            if light < 40 { light = 40; }
+            // Ground is at y=-20, lander at y=40, scale to 64-255 range
+            let light: i16 = 100 + py * 2;
+            if light < 64 { light = 64; }
             if light > 255 { light = 255; }
             return light;
         }
@@ -166,9 +172,9 @@ fun main() -> void {
             // March the ray
             let brightness: i16 = march(rdx, rdy, rdz);
 
-            // Draw 2x2 block if we hit something (brightness > 60)
+            // Draw 2x2 block if we hit something (brightness >= 64)
             // Note: Using brightness comparison instead of color > 0 to avoid u8 codegen bug
-            if brightness > 60 {
+            if brightness >= 64 {
                 // Map brightness to palette
                 let color: u8 = 1;  // Dark gray default
                 if brightness > 180 {
@@ -179,9 +185,9 @@ fun main() -> void {
                     color = 8;   // Gray
                 }
 
-                // Draw 2x2 block
-                let sx: u8 = (x * 2) as u8;
-                let sy: u8 = (y * 2) as u8;
+                // Draw 2x2 block (centered on 320x240 screen)
+                let sx: u8 = (x * 2 + 80) as u8;
+                let sy: u8 = (y * 2 + 60) as u8;
                 set_pixel(sx, sy, color);
                 set_pixel(sx + 1, sy, color);
                 set_pixel(sx, sy + 1, color);
