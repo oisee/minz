@@ -5589,8 +5589,7 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 	//	funcSym.Name, funcSym.IsBuiltin, funcSym.ReturnType, useInstructionPatching)
 	
 	if useInstructionPatching {
-		// Generate instruction patching sequence
-		// fmt.Printf("DEBUG: Generating instruction patching call for %s\n", funcSym.Name)
+		// Generate instruction patching sequence (Option B: annotations)
 		return a.generateInstructionPatchingCall(funcSym, call, argRegs, irFunc)
 	}
 
@@ -6050,11 +6049,17 @@ func (a *Analyzer) analyzeBuiltinCall(funcName string, funcSym *FuncSymbol, call
 				Comment: "syscall: set_pixel",
 			})
 		} else {
+			// For Z80 backend, include all arguments so DCE doesn't eliminate them
+			// The runtime function zx_set_pixel takes x, y, and color
+			args := []ir.Register{argRegs[0], argRegs[1]}
+			if len(argRegs) >= 3 {
+				args = append(args, argRegs[2])
+			}
 			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 				Op:      ir.OpCall,
 				Symbol:  "zx_set_pixel",
-				Args:    []ir.Register{argRegs[0], argRegs[1]},
-				Comment: "Set pixel at x,y",
+				Args:    args,
+				Comment: "Set pixel at x,y with color",
 			})
 		}
 		return 0, nil
@@ -11430,68 +11435,66 @@ func (a *Analyzer) shouldUseInstructionPatching(funcSym *FuncSymbol, call *ast.C
 	}
 }
 
-// generateInstructionPatchingCall generates a function call with instruction patching
+// generateInstructionPatchingCall generates a function call with SMC annotations
+// Option B: Emits regular instructions with SMC annotations (VM-executable)
 func (a *Analyzer) generateInstructionPatchingCall(funcSym *FuncSymbol, call *ast.CallExpr, argRegs []ir.Register, irFunc *ir.Function) (ir.Register, error) {
 	funcName := funcSym.Name
-	
+
 	// 1. Mark target function as needing patch points
 	if targetFunc := a.GetFunction(funcSym.Name); targetFunc != nil {
 		targetFunc.NeedsPatchPoints = true
 	}
-	
-	// 2. Generate patch point in target function (if not already done)
-	patchPointLabel := funcName + "_return_patch"
-	
+
 	// 2. Analyze usage pattern to determine template
 	templateName := a.analyzeUsagePattern(call)
-	
-	// 3. Generate patch template selection
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-		Op:              ir.OpPatchTemplate,
-		PatchPointLabel: patchPointLabel,
-		TemplateName:    templateName,
-	})
-	
-	// 4. If using store template, set target address
-	if templateName == "store_u8" || templateName == "store_u16" {
-		// For now, use a generic target - this would be determined by usage context
-		targetSymbol := "temp_result"
-		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-			Op:              ir.OpPatchTarget,
-			PatchPointLabel: patchPointLabel,
-			TargetAddress:   targetSymbol,
-		})
-	}
-	
-	// 5. Generate parameter patches
-	for i, argReg := range argRegs {
-		if i < len(funcSym.Params) {
-			paramName := funcSym.Params[i].Name
-			// Convert AST Type to IR Type
-			irType, err := a.convertType(funcSym.Params[i].Type)
-			if err != nil {
-				irType = &ir.BasicType{Kind: ir.TypeU8} // Default fallback
-			}
-			
-			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
-				Op:        ir.OpPatchParam,
-				Symbol:    funcName,
-				ParamName: paramName,
-				Src1:      argReg,
-				Type:      irType,
-			})
-		}
-	}
-	
-	// 6. Generate the actual call
+
+	// 3. Determine destination variable (for store patterns)
+	destVar := "temp_result" // Default - could be refined by context analysis
+
+	// 4. Create the call instruction with SMC annotation
 	resultReg := irFunc.AllocReg()
-	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+	callInst := ir.Instruction{
 		Op:     ir.OpCall,
 		Dest:   resultReg,
 		Symbol: funcName,
 		Args:   argRegs,
-	})
-	
+	}
+
+	// 5. Add SMC call site annotation to the call instruction
+	// This tells the Z80 backend: "this is an SMC call, patch parameters and use patchable return"
+	callInst.AddSMCCallSiteAnnotation(funcName, templateName, destVar)
+
+	// 6. Add parameter annotations to the call instruction
+	// These tell the backend which parameters to patch and where
+	for i, _ := range argRegs {
+		if i < len(funcSym.Params) {
+			paramName := funcSym.Params[i].Name
+			irType, err := a.convertType(funcSym.Params[i].Type)
+			if err != nil {
+				irType = &ir.BasicType{Kind: ir.TypeU8}
+			}
+			// Calculate offset: start at 1, each param takes 2 (LD A) or 3 (LD HL) bytes
+			offset := 1
+			for j := 0; j < i; j++ {
+				pType, _ := a.convertType(funcSym.Params[j].Type)
+				if pType != nil && pType.Size() == 1 {
+					offset += 2
+				} else {
+					offset += 3
+				}
+			}
+			callInst.AddSMCParamAnnotation(paramName, offset, irType.Size())
+		}
+	}
+
+	// 7. Emit the annotated call instruction
+	// VM sees: regular call instruction (executes normally)
+	// Z80 sees: call + annotations (generates param patches + patchable call)
+	irFunc.Instructions = append(irFunc.Instructions, callInst)
+
+	// Note: For store patterns, the Z80 backend generates patchable stores based on the
+	// @smc_call annotation. The VM just uses resultReg directly - no temp_result store needed.
+
 	return resultReg, nil
 }
 

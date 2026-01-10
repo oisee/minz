@@ -1,0 +1,133 @@
+// mzv_sphere_shaded.minz - Shaded sphere renderer for MZV virtual machine
+// Uses 8.8 fixed-point math with optimized functions
+//
+// Renders a sphere with proper diffuse lighting
+
+// =============================================================================
+// Optimized 8.8 Fixed-Point Math (256 = 1.0)
+// =============================================================================
+
+fun fp_mul(a: i16, b: i16) -> i16 {
+    let a32: i32 = a as i32;
+    let b32: i32 = b as i32;
+    let result: i32 = (a32 * b32) >> 8;
+    return result as i16;
+}
+
+fun fp_div(a: i16, b: i16) -> i16 {
+    if b == 0 {
+        if a >= 0 { return 32767; }
+        return -32768;
+    }
+    let a32: i32 = a as i32;
+    let b32: i32 = b as i32;
+    let result: i32 = (a32 << 8) / b32;
+    return result as i16;
+}
+
+// Fast integer square root (no fixed-point needed for distance)
+fun isqrt(n: i16) -> i16 {
+    if n <= 0 { return 0; }
+    if n < 2 { return n; }
+
+    // Initial guess using bit shift approximation
+    let guess: i16 = n >> 1;
+    if guess > 127 { guess = 127; }
+
+    // 3 Newton-Raphson iterations (reduced from 6)
+    let i: u8 = 0;
+    while i < 3 {
+        let div_result: i16 = n / guess;
+        guess = (guess + div_result) >> 1;
+        if guess == 0 { guess = 1; }
+        i = i + 1;
+    }
+
+    return guess;
+}
+
+// =============================================================================
+// Sphere Rendering with Diffuse Lighting
+// =============================================================================
+
+fun main() -> void {
+    // Sphere parameters
+    let cx: i16 = 160;      // center x
+    let cy: i16 = 120;      // center y
+    let radius: i16 = 50;   // radius (smaller for faster rendering)
+    let radius_sq: i16 = radius * radius;
+
+    // Light direction (not normalized, but consistent)
+    // Upper-left-towards: (1, -1, 1)
+    let lx: i16 = 1;
+    let ly: i16 = -1;
+    let lz: i16 = 1;
+
+    // Clear screen
+    clear();
+
+    // Only iterate over the bounding box
+    let y_start: i16 = cy - radius;
+    let y_end: i16 = cy + radius;
+    let x_start: i16 = cx - radius;
+    let x_end: i16 = cx + radius;
+
+    let y: i16 = y_start;
+    while y < y_end {
+        let x: i16 = x_start;
+        while x < x_end {
+            // Distance squared from center
+            let dx: i16 = x - cx;
+            let dy: i16 = y - cy;
+            let dist_sq: i16 = dx * dx + dy * dy;
+
+            if dist_sq < radius_sq {
+                // Calculate z from sphere equation: z = sqrt(r^2 - dist^2)
+                let z_sq: i16 = radius_sq - dist_sq;
+                let z: i16 = isqrt(z_sq);
+
+                // Normal at this point: n = (dx, dy, z) / r
+                // For dot product, we can skip division and scale later
+                // N dot L = dx*lx + dy*ly + z*lz
+                let dot: i16 = dx * lx + dy * ly + z * lz;
+
+                // Scale dot product by radius to normalize
+                // diffuse = dot / radius (approximation)
+                let diffuse: i16 = 0;
+                if radius > 0 {
+                    diffuse = dot / radius;
+                }
+                if diffuse < 0 { diffuse = 0; }
+
+                // Add ambient (25%) and scale to 0-255
+                // Simplified brightness calculation
+                let brightness: i16 = 64 + diffuse * 3;
+                if brightness > 255 { brightness = 255; }
+                if brightness < 0 { brightness = 64; }
+
+                // Map brightness to 8-bit palette colors
+                // Using a warm orange/yellow gradient
+                let color: u8 = 0;
+                if brightness > 230 {
+                    color = 15;  // White (specular highlight)
+                } else if brightness > 200 {
+                    color = 14;  // Yellow
+                } else if brightness > 170 {
+                    color = 10;  // Bright yellow
+                } else if brightness > 140 {
+                    color = 2;   // Red
+                } else if brightness > 110 {
+                    color = 6;   // Brown/orange
+                } else if brightness > 80 {
+                    color = 1;   // Dark red
+                } else {
+                    color = 0;   // Black (shadow)
+                }
+
+                set_pixel(x as u8, y as u8, color);
+            }
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}

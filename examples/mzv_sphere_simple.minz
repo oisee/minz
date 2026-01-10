@@ -1,0 +1,23 @@
+// Simple sphere without shading - just check if pixel is inside
+fun main() -> void {
+    let cx: u8 = 160;
+    let cy: u8 = 96;
+    let radius: u8 = 40;
+    
+    let y: u8 = 56;  // cy - radius
+    while y < 136 {  // cy + radius
+        let x: u8 = 120;  // cx - radius
+        while x < 200 {  // cx + radius
+            let dx: i16 = x as i16 - cx as i16;
+            let dy: i16 = y as i16 - cy as i16;
+            let dist_sq: i16 = dx * dx + dy * dy;
+            let radius_sq: i16 = radius as i16 * radius as i16;
+            
+            if dist_sq < radius_sq {
+                set_pixel(x, y, 15);  // White pixel inside sphere
+            }
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}

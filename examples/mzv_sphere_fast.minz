@@ -1,0 +1,76 @@
+// mzv_sphere_fast.minz - Fast sphere renderer for MZV virtual machine
+// Uses simplified shading without sqrt/div for better VM performance
+//
+// Renders a sphere with gradient shading based on distance from center
+
+fun main() -> void {
+    // Sphere parameters
+    let cx: i16 = 160;      // center x
+    let cy: i16 = 120;      // center y
+    let radius: i16 = 60;   // radius in pixels
+    let radius_sq: i16 = radius * radius;  // 3600
+
+    // Clear screen
+    clear();
+
+    // Only iterate over the bounding box of the sphere
+    let y_start: i16 = cy - radius;
+    let y_end: i16 = cy + radius;
+    let x_start: i16 = cx - radius;
+    let x_end: i16 = cx + radius;
+
+    let y: i16 = y_start;
+    while y < y_end {
+        let x: i16 = x_start;
+        while x < x_end {
+            // Distance squared from center
+            let dx: i16 = x - cx;
+            let dy: i16 = y - cy;
+            let dist_sq: i16 = dx * dx + dy * dy;
+
+            if dist_sq < radius_sq {
+                // Simple shading: brighter in center, darker at edges
+                // brightness = 1 - (dist_sq / radius_sq)
+                // Scale to 0-255 range
+                let brightness: i16 = 255 - (dist_sq * 255 / radius_sq);
+
+                // Add directional shading (fake light from upper-left)
+                // Shift brightness based on position
+                let light_dx: i16 = dx + radius / 2;  // Shift highlight left
+                let light_dy: i16 = dy + radius / 2;  // Shift highlight up
+                let light_dist: i16 = light_dx * light_dx + light_dy * light_dy;
+                let highlight: i16 = 255 - (light_dist * 255 / (radius_sq * 2));
+                if highlight < 0 { highlight = 0; }
+
+                // Combine base brightness with highlight
+                brightness = (brightness + highlight) / 2;
+                if brightness > 255 { brightness = 255; }
+                if brightness < 30 { brightness = 30; }  // Minimum ambient
+
+                // Create color gradient: orange to yellow based on y position
+                let r: u8 = brightness as u8;
+                let g: u8 = (brightness * (50 + (y - y_start) * 150 / (y_end - y_start)) / 255) as u8;
+                let b: u8 = (brightness / 5) as u8;
+
+                // Pack as RGB (simplified - just use brightness as palette index for now)
+                // For 8-bit indexed color, use a warm color palette index
+                let color: u8 = 0;
+                if brightness > 200 {
+                    color = 15;  // White (highlight)
+                } else if brightness > 150 {
+                    color = 10;  // Yellow
+                } else if brightness > 100 {
+                    color = 2;   // Red
+                } else if brightness > 50 {
+                    color = 1;   // Dark red
+                } else {
+                    color = 0;   // Black
+                }
+
+                set_pixel(x as u8, y as u8, color);
+            }
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}

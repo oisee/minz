@@ -675,6 +675,12 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 				src1 := strings.TrimSpace(parts[0])
 				src2 := strings.TrimSpace(parts[1])
 
+				// If src1 is empty and op is "-", this is unary negation, not subtraction
+				// Skip to let the unary negation handler deal with it
+				if src1 == "" && op == "-" {
+					continue
+				}
+
 				inst.Src1 = Register(p.parseRegister(src1))
 
 				// Check if src2 is an immediate value

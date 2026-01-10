@@ -23,6 +23,57 @@ This directory contains examples demonstrating MinZ language features and capabi
 - **`performance_tricks.minz`** - Performance-optimized code patterns
 - **`tsmc_loops.minz`** - True Self-Modifying Code loop optimizations
 
+## MZV Sphere Rendering Examples
+
+These examples demonstrate MinZ rendering graphics using the MZV (MinZ Virtual Machine) with Agon Light platform emulation (320x240, 8-bit indexed color).
+
+### Quick Start
+
+```bash
+# Run all sphere demos (requires minzc and mzv built)
+./run_sphere_demo.sh all
+```
+
+### Simple Sphere (`mzv_sphere_simple.minz`)
+Basic white sphere - checks if pixel is inside circle radius.
+
+![Simple Sphere](mzv_sphere_simple.png)
+
+**Instructions:** ~242K | **Features:** Basic distance check, single color
+
+### Fast Sphere (`mzv_sphere_fast.minz`)
+Gradient sphere with fake directional lighting.
+
+![Fast Sphere](mzv_sphere_fast.png)
+
+**Instructions:** ~1.5M | **Features:** Distance-based shading, fake highlight
+
+### Shaded Sphere (`mzv_sphere_shaded.minz`)
+Proper diffuse lighting with integer square root for surface normals.
+
+![Shaded Sphere](mzv_sphere_shaded.png)
+
+**Instructions:** ~1.7M | **Features:** Surface normals, dot product lighting, Newton-Raphson sqrt
+
+### One Small Step (`mzv_one_small_step.minz`)
+Raymarched lunar lander scene adapted from the ZXSpeculator shader by @DeanTheCoder.
+
+![One Small Step](mzv_one_small_step.png)
+
+**Instructions:** ~2.4M | **Features:** Raymarching, SDFs (sphere, box, ground), integer math
+
+### Running MZV Examples
+
+```bash
+# Compile to MIR
+./minzc examples/mzv_sphere_simple.minz -b mir --disable-smc -o sphere.mir
+
+# Run in MZV with PNG output
+./mzv -i sphere.mir -platform agon -png output.png -v
+```
+
+---
+
 ## 🚧 Experimental Features (May Not Compile)
 
 ### Advanced Type System

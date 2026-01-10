@@ -651,9 +651,21 @@ func saveIRModule(module *ir.Module, filename string) error {
 			}
 		}
 
+		// SMC param annotations (Option B)
+		for _, ann := range fn.SMCParamAnnotations {
+			fmt.Fprintf(file, "  %s\n", ann.String())
+		}
+		if fn.SMCReturnAnnotation != nil {
+			fmt.Fprintf(file, "  %s\n", fn.SMCReturnAnnotation.String())
+		}
+
 		// Instructions
 		fmt.Fprintf(file, "  Instructions:\n")
 		for i, inst := range fn.Instructions {
+			// Output SMC annotations before instruction (Option B)
+			for _, ann := range inst.SMCAnnotations {
+				fmt.Fprintf(file, "         %s\n", ann.String())
+			}
 			fmt.Fprintf(file, "    %3d: ", i)
 			
 			// Format instruction based on opcode
@@ -722,7 +734,8 @@ func saveIRModule(module *ir.Module, filename string) error {
 			case ir.OpLabel:
 				fmt.Fprintf(file, "%s:", inst.Label)
 			default:
-				fmt.Fprintf(file, "%v", inst.Op)
+				// Use the instruction's String() method for proper formatting
+				fmt.Fprintf(file, "%s", inst.String())
 			}
 
 			// Add comment if present

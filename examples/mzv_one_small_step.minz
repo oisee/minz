@@ -1,0 +1,195 @@
+// mzv_one_small_step.minz - "One Small Step" shader adaptation for MZV
+// Original by @DeanTheCoder (ZXSpeculator)
+// MinZ adaptation - simplified for MZV virtual machine
+//
+// Raymarched lunar lander scene
+
+// =============================================================================
+// Simple Math Helpers
+// =============================================================================
+
+fun abs16(x: i16) -> i16 {
+    if x < 0 { return 0 - x; }
+    return x;
+}
+
+fun min16(a: i16, b: i16) -> i16 {
+    if a < b { return a; }
+    return b;
+}
+
+fun max16(a: i16, b: i16) -> i16 {
+    if a > b { return a; }
+    return b;
+}
+
+// Integer square root (simplified)
+fun isqrt(n: i16) -> i16 {
+    if n <= 0 { return 0; }
+    if n < 2 { return n; }
+    let guess: i16 = n / 2;
+    if guess > 127 { guess = 127; }
+    if guess < 1 { guess = 1; }
+
+    // 3 Newton-Raphson iterations
+    let div1: i16 = n / guess;
+    guess = (guess + div1) / 2;
+    if guess < 1 { guess = 1; }
+
+    let div2: i16 = n / guess;
+    guess = (guess + div2) / 2;
+    if guess < 1 { guess = 1; }
+
+    let div3: i16 = n / guess;
+    guess = (guess + div3) / 2;
+
+    return guess;
+}
+
+// 3D vector length squared (avoid sqrt when possible)
+fun vec3_len_sq(x: i16, y: i16, z: i16) -> i16 {
+    return (x * x / 256) + (y * y / 256) + (z * z / 256);
+}
+
+// =============================================================================
+// Signed Distance Functions (simplified)
+// =============================================================================
+
+// Ground plane with simple hash noise
+fun sdf_ground(y: i16, x: i16, z: i16) -> i16 {
+    // Simple bump: use x,z to create variation
+    let hash: i16 = ((x * 7 + z * 13) / 16) & 15;
+    let bump: i16 = hash - 8;
+    return y + 20 - bump;
+}
+
+// Sphere SDF for lander body
+fun sdf_sphere(px: i16, py: i16, pz: i16, cx: i16, cy: i16, cz: i16, r: i16) -> i16 {
+    let dx: i16 = px - cx;
+    let dy: i16 = py - cy;
+    let dz: i16 = pz - cz;
+    let len_sq: i16 = vec3_len_sq(dx, dy, dz);
+    let len: i16 = isqrt(len_sq * 256);
+    return len - r;
+}
+
+// Box SDF for legs
+fun sdf_box(px: i16, py: i16, pz: i16, bx: i16, by: i16, bz: i16) -> i16 {
+    let dx: i16 = abs16(px) - bx;
+    let dy: i16 = abs16(py) - by;
+    let dz: i16 = abs16(pz) - bz;
+
+    let mx: i16 = max16(dx, 0);
+    let my: i16 = max16(dy, 0);
+    let mz: i16 = max16(dz, 0);
+
+    return isqrt(mx * mx + my * my + mz * mz);
+}
+
+// Combined scene: lunar lander on ground
+fun map(x: i16, y: i16, z: i16) -> i16 {
+    // Ground
+    let ground: i16 = sdf_ground(y, x, z);
+
+    // Lander body (sphere at y=40)
+    let body: i16 = sdf_sphere(x, y, z, 0, 40, 0, 25);
+
+    // Single leg (box)
+    let leg: i16 = sdf_box(x, y - 15, z, 4, 20, 4);
+
+    // Return minimum distance
+    let lander: i16 = min16(body, leg);
+    return min16(ground, lander);
+}
+
+// =============================================================================
+// Ray Marching (simplified)
+// =============================================================================
+
+fun march(rdx: i16, rdy: i16, rdz: i16) -> i16 {
+    // Camera at (0, 50, -100)
+    let px: i16 = 0;
+    let py: i16 = 50;
+    let pz: i16 = -100;
+
+    let i: u8 = 0;
+    while i < 16 {
+        let d: i16 = map(px, py, pz);
+
+        // Hit check
+        if d < 3 {
+            // Simple lighting based on y height
+            let light: i16 = 80 + py;
+            if light < 40 { light = 40; }
+            if light > 255 { light = 255; }
+            return light;
+        }
+
+        // Advance ray
+        px = px + (rdx * d / 256);
+        py = py + (rdy * d / 256);
+        pz = pz + (rdz * d / 256);
+
+        // Too far check
+        if pz > 150 { return 0; }
+
+        i = i + 1;
+    }
+
+    return 0;  // Space background
+}
+
+// =============================================================================
+// Main Rendering
+// =============================================================================
+
+fun main() -> void {
+    // Render at 80x60, doubled to 160x120
+    let width: i16 = 80;
+    let height: i16 = 60;
+
+    clear();
+
+    let y: i16 = 0;
+    while y < height {
+        let x: i16 = 0;
+        while x < width {
+            // UV: map screen to -128..128 range
+            let uvx: i16 = (x - 40) * 3;
+            let uvy: i16 = (30 - y) * 3;
+
+            // Ray direction (looking forward with slight down tilt)
+            let rdx: i16 = uvx;
+            let rdy: i16 = uvy - 30;
+            let rdz: i16 = 200;
+
+            // March the ray
+            let brightness: i16 = march(rdx, rdy, rdz);
+
+            // Draw 2x2 block if we hit something (brightness > 60)
+            // Note: Using brightness comparison instead of color > 0 to avoid u8 codegen bug
+            if brightness > 60 {
+                // Map brightness to palette
+                let color: u8 = 1;  // Dark gray default
+                if brightness > 180 {
+                    color = 15;  // White
+                } else if brightness > 140 {
+                    color = 7;   // Light gray
+                } else if brightness > 100 {
+                    color = 8;   // Gray
+                }
+
+                // Draw 2x2 block
+                let sx: u8 = (x * 2) as u8;
+                let sy: u8 = (y * 2) as u8;
+                set_pixel(sx, sy, color);
+                set_pixel(sx + 1, sy, color);
+                set_pixel(sx, sy + 1, color);
+                set_pixel(sx + 1, sy + 1, color);
+            }
+
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+}

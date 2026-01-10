@@ -53,6 +53,9 @@ type VM struct {
 	stepMode      bool
 	instructionCount int
 
+	// Return value for function calls
+	returnValue   int64
+
 	// Metaprogramming support
 	emittedCode   []string // Captured @emit output
 	stringPool    map[int64]string // String literals
@@ -67,6 +70,9 @@ type CallFrame struct {
 	ReturnPC     int
 	FramePointer int
 	LocalBase    int // Base register for locals
+	ReturnDest   ir.Register // Destination register for return value in caller
+	Args         []int64 // Argument values passed to the function
+	SavedRegs    map[ir.Register]int64 // Saved register values (caller's locals)
 }
 
 // New creates a new VM instance
@@ -320,12 +326,22 @@ func (vm *VM) executeInstruction() (bool, error) {
 		}
 
 	case ir.OpLoadParam:
-		// Load function parameter - params are passed in registers by convention
-		paramReg := vm.findParamRegister(inst.Symbol)
-		if paramReg < 0 {
+		// Load function parameter from the caller's Args array
+		paramIdx := vm.findParamIndex(inst.Symbol)
+		if paramIdx < 0 {
 			return false, fmt.Errorf("undefined parameter: %s", inst.Symbol)
 		}
-		vm.registers[inst.Dest] = vm.registers[paramReg]
+		// Get the argument value from the most recent call frame
+		if len(vm.callStack) > 0 {
+			frame := vm.callStack[len(vm.callStack)-1]
+			if paramIdx < len(frame.Args) {
+				vm.registers[inst.Dest] = frame.Args[paramIdx]
+			} else {
+				vm.registers[inst.Dest] = 0 // Default if arg not passed
+			}
+		} else {
+			vm.registers[inst.Dest] = 0 // main() has no args
+		}
 
 	case ir.OpLoad, ir.OpLoadPtr:
 		// r0 = *r1 - load value from memory address in register
@@ -493,9 +509,11 @@ func (vm *VM) executeInstruction() (bool, error) {
 		}
 
 	case ir.OpCall:
-		return false, vm.callFunction(inst.FuncName)
+		return false, vm.callFunction(inst.FuncName, inst)
 		
 	case ir.OpReturn:
+		// Save return value from Src1 register
+		vm.returnValue = vm.registers[inst.Src1]
 		if len(vm.callStack) == 0 {
 			// Returning from main
 			return true, nil
@@ -572,22 +590,78 @@ func (vm *VM) executeInstruction() (bool, error) {
 }
 
 // callFunction calls a function
-func (vm *VM) callFunction(name string) error {
+func (vm *VM) callFunction(name string, inst ir.Instruction) error {
 	fn, ok := vm.funcIndex[name]
 	if !ok {
 		// Check for built-in functions
-		if vm.handleBuiltin(name) {
+		if vm.handleBuiltin(name, inst) {
+			// Built-in handled - advance PC since we're not actually calling a function
+			vm.pc++
 			return nil
 		}
 		return fmt.Errorf("undefined function: %s", name)
 	}
-	
+
+	// Collect argument values from the registers loaded before the call
+	// Convention: look at the N instructions before the call, where N = param count
+	// Each LOAD_VAR or similar instruction puts a value in a register
+	numParams := len(fn.Params)
+	args := make([]int64, numParams)
+
+	// Scan backwards to find the argument registers
+	if numParams > 0 && vm.currentFunc != nil {
+		// Look at previous instructions to find the argument setup
+		// The MIR pattern is: load args to registers, then call
+		// We need to look at the last N*2 loads (some may be duplicated for SMC)
+		searchStart := vm.pc - 1
+		searchEnd := vm.pc - numParams*3 // Look further back to handle duplicates
+		if searchEnd < 0 {
+			searchEnd = 0
+		}
+
+		// Collect unique destination registers from loads before the call
+		argRegs := make([]ir.Register, 0, numParams)
+		seen := make(map[ir.Register]bool)
+		for i := searchStart; i >= searchEnd && len(argRegs) < numParams; i-- {
+			if i < 0 || i >= len(vm.currentFunc.Instructions) {
+				continue
+			}
+			prevInst := vm.currentFunc.Instructions[i]
+			// Check if this is a load instruction that provides an argument
+			if prevInst.Op == ir.OpLoadReg || prevInst.Op == ir.OpLoadVar ||
+				prevInst.Op == ir.OpLoadConst || prevInst.Op == ir.OpLoadParam ||
+				prevInst.Op == ir.OpLoadImm {
+				if !seen[prevInst.Dest] {
+					seen[prevInst.Dest] = true
+					// Insert at front since we're scanning backwards
+					argRegs = append([]ir.Register{prevInst.Dest}, argRegs...)
+				}
+			}
+		}
+
+		// Now get the values from those registers
+		for i := 0; i < numParams && i < len(argRegs); i++ {
+			args[i] = vm.registers[argRegs[i]]
+		}
+	}
+
+	// Save caller's local registers that might be clobbered
+	savedRegs := make(map[ir.Register]int64)
+	if vm.currentFunc != nil {
+		for _, local := range vm.currentFunc.Locals {
+			savedRegs[local.Reg] = vm.registers[local.Reg]
+		}
+	}
+
 	// Save current state
 	frame := CallFrame{
 		Function:     vm.currentFunc,
 		ReturnPC:     vm.pc + 1,
 		FramePointer: vm.fp,
 		LocalBase:    0, // TODO: Calculate local base
+		ReturnDest:   inst.Dest, // Save destination register for return value
+		Args:         args, // Pass argument values
+		SavedRegs:    savedRegs, // Saved caller's registers
 	}
 	vm.callStack = append(vm.callStack, frame)
 	
@@ -606,15 +680,23 @@ func (vm *VM) returnFromFunction() error {
 	if len(vm.callStack) == 0 {
 		return fmt.Errorf("call stack underflow")
 	}
-	
+
 	// Restore previous frame
 	frame := vm.callStack[len(vm.callStack)-1]
 	vm.callStack = vm.callStack[:len(vm.callStack)-1]
-	
+
 	vm.currentFunc = frame.Function
 	vm.pc = frame.ReturnPC
 	vm.fp = frame.FramePointer
-	
+
+	// Restore caller's saved registers
+	for reg, val := range frame.SavedRegs {
+		vm.registers[reg] = val
+	}
+
+	// Store return value in caller's destination register
+	vm.registers[frame.ReturnDest] = vm.returnValue
+
 	return nil
 }
 
@@ -659,23 +741,23 @@ func (vm *VM) ClearEmittedCode() {
 }
 
 // handleBuiltin handles built-in functions
-func (vm *VM) handleBuiltin(name string) bool {
+func (vm *VM) handleBuiltin(name string, inst ir.Instruction) bool {
 	switch name {
 	case "print_u8":
 		value := vm.registers[0] // Assuming first argument in r0
 		fmt.Fprintf(vm.config.OutputStream, "%d", byte(value))
 		return true
-		
+
 	case "print_u16":
 		value := vm.registers[0]
 		fmt.Fprintf(vm.config.OutputStream, "%d", uint16(value))
 		return true
-		
+
 	case "print_char":
 		value := vm.registers[0]
 		fmt.Fprintf(vm.config.OutputStream, "%c", byte(value))
 		return true
-		
+
 	case "memcpy":
 		// dst in r0, src in r1, size in r2
 		dst := int(vm.registers[0])
@@ -683,7 +765,7 @@ func (vm *VM) handleBuiltin(name string) bool {
 		size := int(vm.registers[2])
 		copy(vm.memory[dst:dst+size], vm.memory[src:src+size])
 		return true
-		
+
 	case "memset":
 		// dst in r0, value in r1, size in r2
 		dst := int(vm.registers[0])
@@ -691,6 +773,33 @@ func (vm *VM) handleBuiltin(name string) bool {
 		size := int(vm.registers[2])
 		for i := 0; i < size; i++ {
 			vm.memory[dst+i] = value
+		}
+		return true
+
+	case "zx_set_pixel":
+		// Read arguments from the instruction's Args slice
+		var x, y int
+		var color uint32
+		if len(inst.Args) >= 3 {
+			x = int(vm.registers[inst.Args[0]])
+			y = int(vm.registers[inst.Args[1]])
+			color = uint32(vm.registers[inst.Args[2]])
+		} else {
+			// Fallback to standard registers if Args not set
+			x = int(vm.registers[3])
+			y = int(vm.registers[4])
+			color = uint32(vm.registers[5])
+		}
+		if vm.config.Platform != nil && vm.config.Platform.HasDisplay() {
+			vm.config.Platform.Display().SetPixel(x, y, color)
+		}
+		return true
+
+	case "zx_clear_screen":
+		// Clear screen with color in r0
+		color := uint32(vm.registers[0])
+		if vm.config.Platform != nil && vm.config.Platform.HasDisplay() {
+			vm.config.Platform.Display().Clear(color)
 		}
 		return true
 	}
@@ -809,6 +918,19 @@ func (vm *VM) findParamRegister(name string) int {
 	for _, param := range vm.currentFunc.Params {
 		if param.Name == name {
 			return int(param.Reg)
+		}
+	}
+	return -1
+}
+
+// findParamIndex returns the index of a parameter by name
+func (vm *VM) findParamIndex(name string) int {
+	if vm.currentFunc == nil {
+		return -1
+	}
+	for i, param := range vm.currentFunc.Params {
+		if param.Name == name {
+			return i
 		}
 	}
 	return -1
