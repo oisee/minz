@@ -915,6 +915,13 @@ func (i *Instruction) String() string {
 	case OpJumpIfNot:
 		return fmt.Sprintf("jump_if_not r%d, %s", i.Src1, i.Label)
 	case OpCall:
+		if len(i.Args) > 0 {
+			args := make([]string, len(i.Args))
+			for j, arg := range i.Args {
+				args[j] = fmt.Sprintf("r%d", arg)
+			}
+			return fmt.Sprintf("r%d = call %s(%s)", i.Dest, i.Symbol, strings.Join(args, ", "))
+		}
 		return fmt.Sprintf("r%d = call %s", i.Dest, i.Symbol)
 	case OpCallIndirect:
 		return fmt.Sprintf("r%d = call_indirect r%d", i.Dest, i.Src1)

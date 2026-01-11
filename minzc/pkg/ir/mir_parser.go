@@ -76,11 +76,6 @@ func (p *mirParser) parse() (*Module, error) {
 				}
 			}
 
-			// Remove comments before label check
-			if idx := strings.Index(instruction, ";"); idx >= 0 {
-				instruction = strings.TrimSpace(instruction[:idx])
-			}
-
 			// Check if this is a label (just "labelname:" with no spaces in the label)
 			if strings.HasSuffix(instruction, ":") && !strings.Contains(instruction[:len(instruction)-1], " ") {
 				labelName := strings.TrimSuffix(instruction, ":")
@@ -592,11 +587,38 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 		return inst, nil
 	}
 	
-	// Check for call instruction: r%d = call funcname
+	// Check for call instruction: r%d = call funcname or r%d = call funcname(r1, r2, r3)
 	if strings.HasPrefix(expr, "call ") {
-		funcName := strings.TrimPrefix(expr, "call ")
+		funcPart := strings.TrimPrefix(expr, "call ")
 		inst.Op = OpCall
-		inst.FuncName = strings.TrimSpace(funcName)
+
+		// Check if there are argument registers in parentheses
+		if parenIdx := strings.Index(funcPart, "("); parenIdx >= 0 {
+			funcName := strings.TrimSpace(funcPart[:parenIdx])
+			inst.FuncName = funcName
+			inst.Symbol = funcName
+
+			// Parse argument registers
+			argsStr := funcPart[parenIdx+1:]
+			if closeIdx := strings.Index(argsStr, ")"); closeIdx >= 0 {
+				argsStr = argsStr[:closeIdx]
+				if strings.TrimSpace(argsStr) != "" {
+					argParts := strings.Split(argsStr, ",")
+					for _, arg := range argParts {
+						arg = strings.TrimSpace(arg)
+						if strings.HasPrefix(arg, "r") {
+							regNum := p.parseRegister(arg)
+							if regNum >= 0 {
+								inst.Args = append(inst.Args, Register(regNum))
+							}
+						}
+					}
+				}
+			}
+		} else {
+			inst.FuncName = strings.TrimSpace(funcPart)
+			inst.Symbol = inst.FuncName
+		}
 		return inst, nil
 	}
 

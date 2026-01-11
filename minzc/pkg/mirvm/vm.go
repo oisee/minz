@@ -649,10 +649,7 @@ func (vm *VM) callFunction(name string, inst ir.Instruction) error {
 	savedRegs := make(map[ir.Register]int64)
 	if vm.currentFunc != nil {
 		for _, local := range vm.currentFunc.Locals {
-			// Skip invalid register numbers
-			if local.Reg >= 0 && int(local.Reg) < len(vm.registers) {
-				savedRegs[local.Reg] = vm.registers[local.Reg]
-			}
+			savedRegs[local.Reg] = vm.registers[local.Reg]
 		}
 	}
 
@@ -780,47 +777,33 @@ func (vm *VM) handleBuiltin(name string, inst ir.Instruction) bool {
 		return true
 
 	case "zx_set_pixel":
-		// Scan backwards to find argument registers (same as regular function calls)
-		var argRegs []ir.Register
-		if vm.currentFunc != nil {
-			searchStart := vm.pc - 1
-			searchEnd := vm.pc - 10 // Look back for 3 args
-			if searchEnd < 0 {
-				searchEnd = 0
-			}
-			seen := make(map[ir.Register]bool)
-			for i := searchStart; i >= searchEnd && len(argRegs) < 3; i-- {
-				if i < 0 || i >= len(vm.currentFunc.Instructions) {
-					continue
-				}
-				prevInst := vm.currentFunc.Instructions[i]
-				// Check if this is a load instruction
-				if prevInst.Op == ir.OpLoadReg || prevInst.Op == ir.OpLoadVar ||
-					prevInst.Op == ir.OpLoadConst || prevInst.Op == ir.OpLoadParam ||
-					prevInst.Op == ir.OpLoadImm {
-					if !seen[prevInst.Dest] {
-						seen[prevInst.Dest] = true
-						argRegs = append([]ir.Register{prevInst.Dest}, argRegs...)
-					}
-				}
-			}
-		}
-
 		var x, y int
 		var color uint32
-		if len(argRegs) >= 3 {
-			x = int(vm.registers[argRegs[0]])
-			y = int(vm.registers[argRegs[1]])
-			color = uint32(vm.registers[argRegs[2]])
-		} else if len(inst.Args) >= 3 {
+		if len(inst.Args) >= 3 {
+			// Use explicit Args if available
 			x = int(vm.registers[inst.Args[0]])
 			y = int(vm.registers[inst.Args[1]])
 			color = uint32(vm.registers[inst.Args[2]])
-		} else {
-			// Last resort fallback
-			x = int(vm.registers[3])
-			y = int(vm.registers[4])
-			color = uint32(vm.registers[5])
+		} else if vm.currentFunc != nil && vm.pc >= 3 {
+			// Scan backwards for the 3 load instructions before the call
+			// These should be loading x, y, color in order
+			var loadRegs []ir.Register
+			for i := vm.pc - 1; i >= 0 && len(loadRegs) < 3; i-- {
+				prevInst := vm.currentFunc.Instructions[i]
+				// Stop if we hit another call or label
+				if prevInst.Op == ir.OpCall || prevInst.Op == ir.OpLabel {
+					break
+				}
+				// Collect load instructions (in reverse order)
+				if prevInst.Op == ir.OpLoadVar || prevInst.Op == ir.OpLoadParam {
+					loadRegs = append([]ir.Register{prevInst.Dest}, loadRegs...)
+				}
+			}
+			if len(loadRegs) >= 3 {
+				x = int(vm.registers[loadRegs[0]])
+				y = int(vm.registers[loadRegs[1]])
+				color = uint32(vm.registers[loadRegs[2]])
+			}
 		}
 		if vm.config.Platform != nil && vm.config.Platform.HasDisplay() {
 			vm.config.Platform.Display().SetPixel(x, y, color)
