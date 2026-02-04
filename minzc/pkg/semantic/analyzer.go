@@ -107,6 +107,9 @@ func (a *Analyzer) registerPredefinedConstants() {
 
 // Analyze performs semantic analysis on a file
 func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
+	// Set current file for error reporting
+	a.currentFile = file.Name
+
 	// Register predefined constants
 	a.registerPredefinedConstants()
 	
@@ -1620,35 +1623,35 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 	// Determine type
 	var varType ir.Type
 	var inferredType ir.Type
-	
+
 	// Get the declared type if present
 	if v.Type != nil {
 		t, err := a.convertType(v.Type)
 		if err != nil {
-			return fmt.Errorf("invalid type for variable %s: %w", v.Name, err)
+			return a.wrapErrorWithPosition(v, err, fmt.Sprintf("invalid type for variable %s", v.Name))
 		}
 		varType = t
 	}
-	
+
 	// Get the inferred type from value if present
 	if v.Value != nil {
 		t, err := a.inferType(v.Value)
 		if err != nil {
 			// If we have an explicit type, use it even if inference fails
 			if varType == nil {
-				return fmt.Errorf("cannot infer type for variable %s: %w", v.Name, err)
+				return a.wrapErrorWithPosition(v, err, fmt.Sprintf("cannot infer type for variable %s", v.Name))
 			}
 			// Otherwise, we'll use the explicit type
 		} else {
 			inferredType = t
 		}
 	}
-	
+
 	// Determine final type and check compatibility
 	if varType != nil && inferredType != nil {
 		// Both type annotation and initializer present - check compatibility
 		if !a.typesCompatible(varType, inferredType) {
-			return fmt.Errorf("type mismatch for variable %s: declared type %s but initializer has type %s", 
+			return a.errorAt(v, "type mismatch for variable %s: declared type %s but initializer has type %s",
 				v.Name, varType.String(), inferredType.String())
 		}
 		// Use the declared type
@@ -1658,7 +1661,7 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 		// Only initializer, use inferred type
 		varType = inferredType
 	} else {
-		return fmt.Errorf("variable %s must have either a type or an initial value", v.Name)
+		return a.errorAt(v, "variable %s must have either a type or an initial value", v.Name)
 	}
 
 	// Register variable with module prefix
@@ -1709,38 +1712,38 @@ func (a *Analyzer) analyzeVarDecl(v *ast.VarDecl) error {
 func (a *Analyzer) analyzeConstDecl(c *ast.ConstDecl) error {
 	// Constants must have a value
 	if c.Value == nil {
-		return fmt.Errorf("constant %s must have a value", c.Name)
+		return a.errorAt(c, "constant %s must have a value", c.Name)
 	}
-	
+
 	// Determine type
 	var constType ir.Type
 	var inferredType ir.Type
-	
+
 	// Get the declared type if present
 	if c.Type != nil {
 		t, err := a.convertType(c.Type)
 		if err != nil {
-			return fmt.Errorf("invalid type for constant %s: %w", c.Name, err)
+			return a.wrapErrorWithPosition(c, err, fmt.Sprintf("invalid type for constant %s", c.Name))
 		}
 		constType = t
 	}
-	
+
 	// Get the inferred type from value
 	t, err := a.inferType(c.Value)
 	if err != nil {
 		if constType == nil {
-			return fmt.Errorf("cannot infer type for constant %s: %w", c.Name, err)
+			return a.wrapErrorWithPosition(c, err, fmt.Sprintf("cannot infer type for constant %s", c.Name))
 		}
 		// Use the explicit type
 	} else {
 		inferredType = t
 	}
-	
+
 	// Determine final type and check compatibility
 	if constType != nil && inferredType != nil {
 		// Both type annotation and initializer present - check compatibility
 		if !a.typesCompatible(constType, inferredType) {
-			return fmt.Errorf("type mismatch for constant %s: declared type %s but initializer has type %s", 
+			return a.errorAt(c, "type mismatch for constant %s: declared type %s but initializer has type %s",
 				c.Name, constType.String(), inferredType.String())
 		}
 		// Use the declared type
@@ -1750,7 +1753,7 @@ func (a *Analyzer) analyzeConstDecl(c *ast.ConstDecl) error {
 		// Only initializer, use inferred type
 		constType = inferredType
 	} else {
-		return fmt.Errorf("cannot determine type for constant %s", c.Name)
+		return a.errorAt(c, "cannot determine type for constant %s", c.Name)
 	}
 	
 	// Get prefixed name
@@ -3290,7 +3293,7 @@ func (a *Analyzer) analyzeAssignStmt(stmt *ast.AssignStmt, irFunc *ir.Function) 
 			prefixedName := a.prefixSymbol(target.Name)
 			sym = a.currentScope.Lookup(prefixedName)
 			if sym == nil {
-				return fmt.Errorf("undefined variable: %s", target.Name)
+				return a.undefinedVariableError(target, target.Name)
 			}
 			target.Name = prefixedName
 		}
@@ -4623,14 +4626,14 @@ func (a *Analyzer) analyzeAssignment(bin *ast.BinaryExpr, irFunc *ir.Function) (
 			prefixedName := a.prefixSymbol(target.Name)
 			sym = a.currentScope.Lookup(prefixedName)
 			if sym == nil {
-				return 0, fmt.Errorf("undefined variable: %s", target.Name)
+				return 0, a.undefinedVariableError(target, target.Name)
 			}
 			target.Name = prefixedName
 		}
-		
+
 		// Check if variable is mutable (unless it's a pointer that will be auto-deref'd)
 		varSym := sym.(*VarSymbol)
-		
+
 		// First check if this is a TSMC reference parameter
 		isTSMCRef := a.isTSMCReference(varSym, irFunc)
 		

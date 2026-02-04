@@ -78,3 +78,59 @@ func (a *Analyzer) typeMismatchError(node ast.Node, expected, got string) error 
 		File:     a.currentFile,
 	}
 }
+
+// Helper for undefined type errors
+func (a *Analyzer) undefinedTypeError(node ast.Node, typeName string) error {
+	msg := fmt.Sprintf("undefined type: %s", typeName)
+
+	// Add suggestions if available
+	suggestions := a.findSimilarIdentifiers(typeName)
+	if len(suggestions) > 0 {
+		msg = fmt.Sprintf("%s - did you mean '%s'?", msg, suggestions[0])
+	}
+
+	return ErrorWithPosition{
+		Message:  msg,
+		Position: node.Pos(),
+		File:     a.currentFile,
+	}
+}
+
+// Helper for undefined variable errors
+func (a *Analyzer) undefinedVariableError(node ast.Node, varName string) error {
+	msg := fmt.Sprintf("undefined variable: %s", varName)
+
+	// Add suggestions if available
+	suggestions := a.findSimilarIdentifiers(varName)
+	if len(suggestions) > 0 {
+		msg = fmt.Sprintf("%s - did you mean '%s'?", msg, suggestions[0])
+	}
+
+	return ErrorWithPosition{
+		Message:  msg,
+		Position: node.Pos(),
+		File:     a.currentFile,
+	}
+}
+
+// Helper for declaration errors
+func (a *Analyzer) declarationError(node ast.Node, name string, format string, args ...interface{}) error {
+	msg := fmt.Sprintf(format, args...)
+	return ErrorWithPosition{
+		Message:  fmt.Sprintf("%s: %s", name, msg),
+		Position: node.Pos(),
+		File:     a.currentFile,
+	}
+}
+
+// Helper for wrapping errors with position
+func (a *Analyzer) wrapErrorWithPosition(node ast.Node, err error, context string) error {
+	if node == nil {
+		return fmt.Errorf("%s: %w", context, err)
+	}
+	return ErrorWithPosition{
+		Message:  fmt.Sprintf("%s: %v", context, err),
+		Position: node.Pos(),
+		File:     a.currentFile,
+	}
+}
