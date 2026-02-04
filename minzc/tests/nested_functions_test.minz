@@ -1,0 +1,110 @@
+// Comprehensive test for nested/local functions
+
+// Test 1: Simple 2-level nesting
+fun test_simple_nested() -> u8 {
+    fun inner() -> u8 {
+        return 42;
+    }
+    return inner();
+}
+
+// Test 2: 3-level nesting without variables
+fun test_3level() -> void {
+    fun level2() -> void {
+        fun level3() -> void {
+            @print("level3\n");
+        }
+        level3();
+    }
+    level2();
+}
+
+// Test 3: 3-level with variable in level2 (previously failing case)
+fun test_3level_with_var() -> void {
+    fun level2() -> void {
+        let b: u8 = 2;
+        fun level3() -> void {
+            @print("level3\n");
+        }
+        level3();
+    }
+    level2();
+}
+
+// Test 4: Variable capture from parent
+fun test_capture() -> void {
+    let a: u8 = 10;
+    fun inner() -> void {
+        let x: u8 = a;  // Capture 'a'
+    }
+    inner();
+}
+
+// Test 5: Variable capture across 2 levels
+fun test_capture_2levels() -> void {
+    let a: u8 = 10;
+    fun level2() -> void {
+        fun level3() -> void {
+            let x: u8 = a;  // Capture from grandparent
+        }
+        level3();
+    }
+    level2();
+}
+
+// Test 6: Multiple captures
+fun test_multi_capture() -> void {
+    let a: u8 = 10;
+    fun level2() -> void {
+        let b: u8 = 20;
+        fun level3() -> void {
+            let x: u8 = a;
+            let y: u8 = b;
+        }
+        level3();
+    }
+    level2();
+}
+
+// Test 7: With return values
+fun test_return_nested() -> u8 {
+    fun add_one(x: u8) -> u8 {
+        return x + 1;
+    }
+    return add_one(41);
+}
+
+// Test 8: Forward reference within same scope
+fun test_forward_ref() -> void {
+    inner();
+    fun inner() -> void {
+        @print("forward\n");
+    }
+}
+
+// Main function to run all tests
+fun main() -> void {
+    let result: u8 = test_simple_nested();
+    @print("test_simple_nested: {result}\n");
+
+    test_3level();
+    @print("test_3level: OK\n");
+
+    test_3level_with_var();
+    @print("test_3level_with_var: OK\n");
+
+    test_capture();
+    @print("test_capture: OK\n");
+
+    test_capture_2levels();
+    @print("test_capture_2levels: OK\n");
+
+    test_multi_capture();
+    @print("test_multi_capture: OK\n");
+
+    let result2: u8 = test_return_nested();
+    @print("test_return_nested: {result2}\n");
+
+    test_forward_ref();
+    @print("test_forward_ref: OK\n");
+}

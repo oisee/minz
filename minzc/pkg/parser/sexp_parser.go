@@ -450,6 +450,13 @@ func (p *Parser) convertBlock(node *SExpNode) *ast.BlockStmt {
 					EndPos:     child.EndPos,
 				})
 			}
+		} else if child.Type == "function_declaration" {
+			// Handle nested function declarations that appear directly in blocks
+			// (not wrapped in a statement node - this happens when there's a parse error nearby)
+			stmt := p.convertStatement(child)
+			if stmt != nil {
+				block.Statements = append(block.Statements, stmt)
+			}
 		}
 	}
 	
