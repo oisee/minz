@@ -32,49 +32,105 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - `/cuteify` - Add emojis and fun
 - `/celebrate` - Achievement recognition
 
-## 🛠️ Development Tools & Status (v0.14.0+)
+## 🛠️ Development Tools & Status (v0.18.0)
 
-### ✅ Self-Contained Toolchain - NOW WITH 100% Z80 COVERAGE! 🎉
-- **UPGRADED:** Built-in Z80 Assembler (`minzc/pkg/z80asm/`) with MZA improvements
-- **BREAKTHROUGH:** Full Z80 Emulator with remogatto/z80 (19.5% → 100% coverage!)
-- Interactive REPL (`cmd/repl/main.go`)
-- Multi-Backend Support (Z80, 6502, WebAssembly, Game Boy, C, LLVM)
-- Profile-Guided Optimization (PGO) with TAS debugger
+### Self-Contained Toolchain
+- **MZC** - MinZ Compiler (Go, ~90K LOC)
+- **MZA** - Z80 Assembler (built-in)
+- **MZE** - Z80 Emulator (100% coverage via remogatto/z80)
+- **MZR** - Interactive REPL
+- **MZRUN** - Remote runner (DZRP protocol)
 
-### ✅ ACTUALLY Working Features (Tested Dec 2024)
-- **Core Language**: Types (u8/u16/i8/bool), functions, control flow (if/while/for) ✅
-- **Structs**: Declaration and field access ✅
-- **Arrays**: Declaration and indexing ✅ (literals compile but need optimization)
-- **Global variables**: With `global` keyword ✅
-- **Function overloading**: Multiple signatures ✅
-- **Lambdas**: Full closure support with zero-cost implementation ✅
-- **Module imports**: Working with dot notation (`module.function()`) ✅
-- **For loops**: Range iteration (`for i in 0..10`) ✅
-- **Interfaces**: Declaration only (methods not implemented)
-- **Enums**: Declaration only (values not accessible)
-- **Metafunctions** (partially working):
-  - `@define("template", args)` - Text substitution ✅
-  - `@print` - Optimized string output ✅
-  - `@if/@elif/@else` - Conditional compilation ✅
-  - `@minz[[[...]]]` - Limited compile-time execution
+---
 
-### ✅ Recently Fixed Features (v0.14.2+)
-- **Method calls**: `obj.method()` syntax WORKING via zero-cost interface methods
-- **Self parameter**: Methods with self WORKING
-- **Generics**: `<T: Constraint>` WORKING with monomorphization!
-- **@extern FFI**: Call external functions at fixed addresses ✅
-- **RST optimization**: Auto-converts `@extern(0x08)` etc. to RST instructions ✅
-- **@norst**: Force CALL even at RST-eligible addresses ✅
-- **@inline_params**: Scorpion ZS style inline bytecode after RST/CALL ✅
+## 📊 Feature Status Legend
 
-### ❌ NOT Working Features (Need Implementation)
-- **Error propagation**: `?` suffix and `??` operator NOT implemented
-- **Enum values**: `State::IDLE` syntax NOT working
-- **Pattern matching**: Only basic support
-- **Array literals**: `[1,2,3]` generates 80+ lines (should be ~10)
-- **Error messages**: No line numbers or source context
-- **Option/Result types**: Not implemented (needed for `?` operator)
-- **Local/nested functions**: Declared inside functions NOT working
+| Tag | Meaning |
+|-----|---------|
+| ✅ **DONE** | Working in production |
+| 🚧 **WIP** | In active development |
+| 📋 **TOBE** | Planned for implementation |
+| ⏸️ **PARKED** | Deferred, may return later |
+| ❌ **REJECTED** | Will NOT be implemented |
+
+---
+
+## ✅ DONE (Working Features)
+
+### Core Language
+- Types: `u8`, `u16`, `i8`, `i16`, `bool`, `void`
+- Functions: `fun`/`fn` declaration, multiple returns
+- Control flow: `if`/`else`, `while`, `for i in 0..n`
+- Structs: declaration and field access
+- Arrays: declaration, indexing (literals need optimization)
+- Global variables: `global` keyword
+- Function overloading: multiple signatures
+
+### Advanced Features
+- **Ruby interpolation**: `"Hello #{name}!"` ✅
+- **UFCS**: `obj.method()` via zero-cost interfaces ✅
+- **Lambdas**: Full closure support, zero-cost ✅
+- **TRUE SMC**: Self-modifying code optimization ✅
+- **CTIE**: Compile-time function execution ✅
+- **@extern FFI**: Call external ROM/BIOS functions ✅
+- **RST optimization**: Auto-convert to RST instructions ✅
+- **Operator overloading**: Custom operators for types ✅
+
+### Metafunctions
+- `@define("template", args)` - Text substitution ✅
+- `@print` - Optimized string output ✅
+- `@if/@elif/@else` - Conditional compilation ✅
+- `@error` - Error propagation with CY flag ✅
+
+### Tooling
+- Error messages with file:line:col format ✅
+- Multi-backend: Z80, 6502, Crystal, WASM, C ✅
+- 100% Z80 instruction coverage in emulator ✅
+
+---
+
+## 🚧 WIP (In Development)
+
+- **Pattern matching**: Syntax parses, codegen partial
+- **@minz[[[...]]]**: Limited compile-time execution
+- **MIR interpreter**: Arrays/structs now working
+
+---
+
+## 📋 TOBE (Planned)
+
+### Week 2-4
+- **Hand-written parser** - Replace tree-sitter (OOM fix)
+- **Nested functions** - Functions inside functions
+
+### Week 5-8
+- **LSP server** - IDE support (autocomplete, errors)
+- **DAP debugger** - Step-through debugging
+- **WASM playground** - Online demo
+
+### Future
+- **Enum values**: `State::IDLE` syntax
+- **Array literal optimization**: `[1,2,3]` → 10 lines not 80
+
+---
+
+## ⏸️ PARKED (Deferred)
+
+- **Generics `<T>`** - Use function overloading instead
+- **Local/nested functions** - Workaround: use lambdas
+- **Option/Result types** - Use `@error` pattern instead
+- **`?` operator** - Use explicit error checking
+
+---
+
+## ❌ REJECTED (Won't Implement)
+
+- **C++ style templates** - Too complex for Z80 target
+- **Multiple inheritance** - Use interfaces instead
+- **Garbage collection** - Manual memory for retro targets
+- **Exceptions** - Use `@error` with CY flag instead
+- **Runtime reflection** - No runtime overhead allowed
+- **Dynamic dispatch vtables** - Zero-cost interfaces only
 
 ## 🎯 Metafunction Design Decisions
 
@@ -229,47 +285,33 @@ mz program.minz -b z80 --target=spectrum  # ZX Spectrum
 mz program.minz -b z80 --target=cpm       # CP/M
 ```
 
-## 📊 Current Metrics (v0.15.0)
-- **100% compilation success** on core examples (72/72)
-- **18 experimental examples** requiring future features (generics, local functions, etc.)
-- **10 stdlib modules** with 2,400+ lines of game-ready code
-- **Zero-cost interface methods** working (obj.method() syntax)
-- **@extern FFI** with RST optimization and inline parameters
-- **35+ peephole patterns** for Z80 optimization
-- **Multi-backend support** with 8 targets
-- **🎉 100% Z80 instruction coverage** (upgraded from 19.5%!)
+## 📊 Current Metrics (v0.18.0)
 
-## 🔧 MinZ Toolchain Status & Next Steps
+| Metric | Value |
+|--------|-------|
+| Core examples | 72/72 (100%) |
+| All examples | ~81% |
+| Stdlib modules | 10 |
+| Z80 emulator coverage | 100% |
+| Peephole patterns | 35+ |
+| Backends | 8 |
 
-### MZE (Z80 Emulator) - ✅ Ready for Upgrade
-**Current:** Basic 19.5% emulator  
-**Available:** remogatto/z80 100% coverage integration  
-**Next Step:** Update cmd/mze/main.go to use RemogattoZ80  
-**Impact:** Full game testing, TSMC verification enabled
+---
 
-### MZA (Z80 Assembler) - 🚧 Enhanced, Ready for Phase 1  
-**Current:** Basic assembler with recent improvements  
-**Status:** Enhanced with @len, arithmetic expressions, alignment  
-**Next Step:** Implement Phase 1 critical instructions (TODO_MZA.md)  
-**Target:** 19.5% → 40% coverage in Week 1
+## 🔧 Toolchain Component Status
 
-### MZR (MinZ REPL) - ⏳ Basic Functionality
-**Current:** Interactive MinZ compilation and execution  
-**Status:** Works but limited by emulator coverage  
-**Next Step:** Integrate with 100% coverage emulator  
-**Benefits:** Full instruction set testing, immediate feedback
+| Tool | Status | Description |
+|------|--------|-------------|
+| **MZC** | ✅ DONE | MinZ Compiler (Go) |
+| **MZA** | ✅ DONE | Z80 Assembler |
+| **MZE** | ✅ DONE | Z80 Emulator (100% coverage) |
+| **MZR** | 🚧 WIP | Interactive REPL |
+| **MZRUN** | ✅ DONE | Remote runner (DZRP) |
+| **MZV** | 📋 TOBE | SMC Visualizer |
+| **LSP** | 📋 TOBE | Language Server Protocol |
+| **DAP** | 📋 TOBE | Debug Adapter Protocol |
 
-### MZV (MinZ Visualizer) - 💡 Concept Stage
-**Current:** Not implemented
-**Vision:** SMC visualization, execution tracing, performance analysis
-**Next Step:** Design SMC heatmap and cycle visualization
-**Foundation:** SMC tracking already built into remogatto integration
-
-### MZRUN (Remote Runner) - ✅ Implemented
-**Current:** DZRP-based remote execution tool
-**Status:** Compile, assemble, upload, and run in one command
-**Recommended Emulator:** [ZXSpeculator](https://github.com/oisee/ZXSpeculator)
-**Usage:**
+### MZRUN Usage
 ```bash
 # Start ZXSpeculator with DZRP on port 11000, then:
 ./mzrun program.minz --reset -v
