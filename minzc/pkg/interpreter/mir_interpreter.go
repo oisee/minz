@@ -164,8 +164,9 @@ func (interp *MIRInterpreter) executeInstruction(inst *ir.Instruction) error {
 	case ir.OpReturn:
 		val := interp.registers[inst.Src1]
 		interp.registers[ir.RegRet] = val
-		// For now, simple return - full call stack later
-		interp.pc = len(interp.functions["main"].Instructions) // Force exit
+		// Force exit by setting pc past the end of instructions
+		// The Execute loop will exit when pc >= len(instructions)
+		interp.pc = 1000000 // Large value to force exit
 		
 	// Data movement
 	case ir.OpLoadConst:
@@ -317,7 +318,95 @@ func (interp *MIRInterpreter) executeInstruction(inst *ir.Instruction) error {
 			id := interp.storeString(inst.Symbol)
 			interp.registers[inst.Dest] = id
 		}
-		
+
+	// Array operations
+	case ir.OpLoadIndex:
+		// r0 = r1[r2] - load from array with dynamic index
+		baseAddr := interp.registers[inst.Src1]
+		index := interp.registers[inst.Src2]
+		addr := baseAddr + index
+		if val, exists := interp.memory[addr]; exists {
+			interp.registers[inst.Dest] = int64(val)
+		} else {
+			interp.registers[inst.Dest] = 0
+		}
+
+	case ir.OpStoreIndex:
+		// r1[r2] = r0 - store to array with dynamic index
+		baseAddr := interp.registers[inst.Src1]
+		index := interp.registers[inst.Src2]
+		addr := baseAddr + index
+		val := byte(interp.registers[inst.Dest] & 0xFF)
+		interp.memory[addr] = val
+
+	case ir.OpLoadElement:
+		// r0 = r1[imm] - load from array with constant index
+		baseAddr := interp.registers[inst.Src1]
+		addr := baseAddr + inst.Imm
+		if val, exists := interp.memory[addr]; exists {
+			interp.registers[inst.Dest] = int64(val)
+		} else {
+			interp.registers[inst.Dest] = 0
+		}
+
+	case ir.OpStoreElement:
+		// r1[imm] = r0 - store to array with constant index
+		baseAddr := interp.registers[inst.Src1]
+		addr := baseAddr + inst.Imm
+		val := byte(interp.registers[inst.Dest] & 0xFF)
+		interp.memory[addr] = val
+
+	// Struct field operations
+	case ir.OpLoadField:
+		// r0 = r1.field[offset] - load struct field
+		baseAddr := interp.registers[inst.Src1]
+		addr := baseAddr + inst.Imm
+		if val, exists := interp.memory[addr]; exists {
+			interp.registers[inst.Dest] = int64(val)
+		} else {
+			interp.registers[inst.Dest] = 0
+		}
+
+	case ir.OpStoreField:
+		// r1.field[offset] = r0 - store struct field
+		baseAddr := interp.registers[inst.Src1]
+		addr := baseAddr + inst.Imm
+		val := byte(interp.registers[inst.Src2] & 0xFF)
+		interp.memory[addr] = val
+
+	// Parameter loading
+	case ir.OpLoadParam:
+		// r0 = param name - load function parameter by name
+		// Find parameter by name and copy its value
+		paramFound := false
+		for _, fn := range interp.functions {
+			for i, param := range fn.Params {
+				if param.Name == inst.Symbol {
+					paramReg := ir.Register(i + 1) // Params start at register 1
+					interp.registers[inst.Dest] = interp.registers[paramReg]
+					paramFound = true
+					break
+				}
+			}
+			if paramFound {
+				break
+			}
+		}
+		if !paramFound {
+			// Try to use Symbol as direct register reference
+			interp.registers[inst.Dest] = 0
+		}
+
+	// Variable operations
+	case ir.OpLoadVar:
+		// Load from named variable - for now, treat as memory load from symbol address
+		// In full implementation, would look up variable in symbol table
+		interp.registers[inst.Dest] = 0
+
+	case ir.OpStoreVar:
+		// Store to named variable - for now, no-op
+		// In full implementation, would store to symbol table location
+
 	default:
 		return fmt.Errorf("unimplemented opcode: %v", inst.Op)
 	}

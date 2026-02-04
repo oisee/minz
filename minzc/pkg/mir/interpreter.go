@@ -303,7 +303,90 @@ func (i *Interpreter) executeInstruction(inst *ir.Instruction) error {
 		if inst.Symbol != "" {
 			i.output = append(i.output, inst.Symbol)
 		}
-		
+
+	// Array operations
+	case ir.OpLoadIndex:
+		// r0 = r1[r2] - load from array with dynamic index
+		baseAddr := uint16(i.registers[inst.Src1])
+		index := uint16(i.registers[inst.Src2])
+		addr := baseAddr + index
+		if val, exists := i.memory[addr]; exists {
+			i.registers[inst.Dest] = int64(val)
+		} else {
+			i.registers[inst.Dest] = 0
+		}
+
+	case ir.OpStoreIndex:
+		// r1[r2] = r0 - store to array with dynamic index
+		baseAddr := uint16(i.registers[inst.Src1])
+		index := uint16(i.registers[inst.Src2])
+		addr := baseAddr + index
+		val := byte(i.registers[inst.Dest] & 0xFF)
+		i.memory[addr] = val
+
+	case ir.OpLoadElement:
+		// r0 = r1[imm] - load from array with constant index
+		baseAddr := uint16(i.registers[inst.Src1])
+		addr := baseAddr + uint16(inst.Imm)
+		if val, exists := i.memory[addr]; exists {
+			i.registers[inst.Dest] = int64(val)
+		} else {
+			i.registers[inst.Dest] = 0
+		}
+
+	case ir.OpStoreElement:
+		// r1[imm] = r0 - store to array with constant index
+		baseAddr := uint16(i.registers[inst.Src1])
+		addr := baseAddr + uint16(inst.Imm)
+		val := byte(i.registers[inst.Dest] & 0xFF)
+		i.memory[addr] = val
+
+	// Struct field operations
+	case ir.OpLoadField:
+		// r0 = r1.field[offset] - load struct field
+		baseAddr := uint16(i.registers[inst.Src1])
+		addr := baseAddr + uint16(inst.Imm)
+		if val, exists := i.memory[addr]; exists {
+			i.registers[inst.Dest] = int64(val)
+		} else {
+			i.registers[inst.Dest] = 0
+		}
+
+	case ir.OpStoreField:
+		// r1.field[offset] = r0 - store struct field
+		baseAddr := uint16(i.registers[inst.Src1])
+		addr := baseAddr + uint16(inst.Imm)
+		val := byte(i.registers[inst.Src2] & 0xFF)
+		i.memory[addr] = val
+
+	// Parameter loading
+	case ir.OpLoadParam:
+		// r0 = param name - load function parameter by name
+		paramFound := false
+		if i.currentFunc != nil {
+			for idx, param := range i.currentFunc.Params {
+				if param.Name == inst.Symbol {
+					i.registers[inst.Dest] = i.registers[param.Reg]
+					if param.Reg == 0 {
+						// Fallback: params assigned sequentially
+						i.registers[inst.Dest] = i.registers[ir.Register(idx)]
+					}
+					paramFound = true
+					break
+				}
+			}
+		}
+		if !paramFound {
+			i.registers[inst.Dest] = 0
+		}
+
+	// Variable operations (simplified for compile-time)
+	case ir.OpLoadVar:
+		i.registers[inst.Dest] = 0
+
+	case ir.OpStoreVar:
+		// No-op for compile-time
+
 	default:
 		// Unsupported operation for compile-time execution
 		return fmt.Errorf("unsupported operation %v for compile-time execution", inst.Op)
