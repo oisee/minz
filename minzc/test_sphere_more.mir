@@ -1,0 +1,105 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_sphere_more.fp_mul$i16$i16(a: i16, b: i16) -> i16
+  @smc
+  Locals:
+    r3 = a32: i32
+    r5 = b32: i32
+    r7 = result: i32
+  Instructions:
+      0: unknown op 33
+      1: unknown op 33
+      2: store b32, r6
+      3: store a32, r4
+      4: r8 = load a32
+      5: r9 = load b32
+      6: r10 = r8 * r9
+      7: r11 = 8
+      8: r12 = r10 >> r11
+      9: store result, r12
+     10: r13 = load result
+     11: return r13
+
+Function test_sphere_more.main() -> void
+  Locals:
+    r1 = width: i16
+    r3 = height: i16
+    r5 = cx: i16
+    r7 = cy: i16
+    r9 = radius: i16
+    r11 = y: i16
+    r16 = x: i16
+    r21 = dx: i16
+    r25 = dy: i16
+    r29 = dist_sq: i32
+    r37 = radius_sq: i32
+  Instructions:
+      0: r2 = 320
+      1: r4 = 240
+      2: r6 = 160
+      3: r8 = 120
+      4: r10 = 80
+      5: syscall 12 (r0, r0)
+      6: r12 = 0
+      7: store radius, r10
+      8: store cy, r8
+      9: store width, r2
+     10: store y, r12
+     11: store height, r4
+     12: store cx, r6
+     13: loop_1:
+     14: r13 = load y
+     15: r14 = load height
+     16: r15 = r13 < r14
+     17: jump_if_not r15, end_loop_2
+     18: r17 = 0
+     19: store x, r17
+     20: loop_3:
+     21: r18 = load x
+     22: r19 = load width
+     23: r20 = r18 < r19
+     24: jump_if_not r20, end_loop_4
+     25: r22 = load x
+     26: r23 = load cx
+     27: r24 = r22 - r23
+     28: store dx, r24
+     29: r26 = load y
+     30: r27 = load cy
+     31: r28 = r26 - r27
+     32: store dy, r28
+     33: r30 = load dx
+     34: r31 = load dx
+     35: r33 = load dy
+     36: r34 = load dy
+     37: r32 = r30 * r31
+     38: r35 = r33 * r34
+     39: r36 = r32 + r35
+     40: store dist_sq, r36
+     41: r38 = load radius
+     42: r39 = load radius
+     43: r40 = r38 * r39
+     44: store radius_sq, r40
+     45: r41 = load dist_sq
+     46: r42 = load radius_sq
+     47: r43 = r41 < r42
+     48: jump_if_not r43, else_5
+     49: r0 = r46
+     50: syscall 10 (r44, r45)
+     51: jump end_if_6
+     52: else_5:
+     53: end_if_6:
+     54: r47 = load x
+     55: r48 = 1
+     56: r49 = r47 + r48
+     57: store x, r49
+     58: jump loop_3
+     59: end_loop_4:
+     60: r50 = load y
+     61: r51 = 1
+     62: r52 = r50 + r51
+     63: store y, r52
+     64: jump loop_1
+     65: end_loop_2:
+     66: return
+

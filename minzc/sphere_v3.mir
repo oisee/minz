@@ -1,0 +1,97 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function sphere_v3.main() -> void
+  Locals:
+    r1 = cx: u8
+    r3 = cy: u8
+    r5 = color_white: u8
+    r7 = color_cyan: u8
+    r9 = color_blue: u8
+    r11 = y: u8
+    r16 = x: u8
+    r21 = dx: i16
+    r25 = dy: i16
+    r29 = dist_sq: i16
+  Instructions:
+      0: r2 = 160
+      1: r4 = 120
+      2: r6 = 15
+      3: r8 = 14
+      4: r10 = 4
+      5: r12 = 60
+      6: store color_blue, r10
+      7: store color_cyan, r8
+      8: store cx, r2
+      9: store y, r12
+     10: store cy, r4
+     11: store color_white, r6
+     12: loop_1:
+     13: r13 = load y
+     14: r14 = 180
+     15: r15 = r13 < r14
+     16: jump_if_not r15, end_loop_2
+     17: r17 = 100
+     18: store x, r17
+     19: loop_3:
+     20: r18 = load x
+     21: r19 = 220
+     22: r20 = r18 < r19
+     23: jump_if_not r20, end_loop_4
+     24: r22 = load x
+     25: r23 = load cx
+     26: r24 = r22 - r23
+     27: store dx, r24
+     28: r26 = load y
+     29: r27 = load cy
+     30: r28 = r26 - r27
+     31: store dy, r28
+     32: r30 = load dx
+     33: r31 = load dx
+     34: r33 = load dy
+     35: r34 = load dy
+     36: r32 = r30 * r31
+     37: r35 = r33 * r34
+     38: r36 = r32 + r35
+     39: store dist_sq, r36
+     40: r37 = load dist_sq
+     41: r38 = 3600
+     42: r39 = r37 < r38
+     43: jump_if_not r39, else_5
+     44: r40 = load dist_sq
+     45: r41 = 1600
+     46: r42 = r40 < r41
+     47: jump_if_not r42, else_7
+     48: r0 = r45
+     49: syscall 10 (r43, r44)
+     50: jump end_if_8
+     51: else_7:
+     52: r46 = load dist_sq
+     53: r47 = 2500
+     54: r48 = r46 < r47
+     55: jump_if_not r48, else_9
+     56: r0 = r51
+     57: syscall 10 (r49, r50)
+     58: jump end_if_10
+     59: else_9:
+     60: r0 = r54
+     61: syscall 10 (r52, r53)
+     62: end_if_10:
+     63: end_if_8:
+     64: jump end_if_6
+     65: else_5:
+     66: end_if_6:
+     67: r55 = load x
+     68: r56 = 1
+     69: r57 = r55 + r56
+     70: store x, r57
+     71: jump loop_3
+     72: end_loop_4:
+     73: r58 = load y
+     74: r59 = 1
+     75: r60 = r58 + r59
+     76: store y, r60
+     77: jump loop_1
+     78: end_loop_2:
+     79: return
+

@@ -1,0 +1,39 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_sphere_debug.main() -> void
+  Locals:
+    r1 = nx: i16
+    r3 = ny: i16
+    r5 = nz: i16
+    r7 = lx: i16
+    r9 = ly: i16
+    r12 = lz: i16
+    r14 = diffuse: i32
+  Instructions:
+      0: r2 = 100
+      1: r4 = 100
+      2: r6 = 100
+      3: r8 = 128
+      4: r11 = -128
+      5: r13 = 179
+      6: store ly, r11
+      7: store lx, r8
+      8: store nx, r2
+      9: store lz, r13
+     10: store ny, r4
+     11: store nz, r6
+     12: r15 = load nx
+     13: r16 = load lx
+     14: r18 = load ny
+     15: r19 = load ly
+     16: r22 = load nz
+     17: r23 = load lz
+     18: r17 = r15 * r16
+     19: r24 = r22 * r23
+     20: r21 = r17 + r20
+     21: r25 = r21 + r24
+     22: r20 = r18 * r19
+     23: store diffuse, r25
+     24: return
+

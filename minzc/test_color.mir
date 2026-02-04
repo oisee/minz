@@ -1,0 +1,31 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_color.main() -> void
+  @smc
+  Locals:
+    r1 = r: i16
+    r3 = g: i16
+    r5 = b: i16
+    r7 = color: u32
+  Instructions:
+      0: r2 = 100
+      1: r4 = 100
+      2: r6 = 100
+      3: r8 = 4278190080
+      4: store r, r2
+      5: store g, r4
+      6: store b, r6
+      7: r9 = load r
+      8: r13 = load g
+      9: r10 = 16
+     10: r11 = r9 << r10
+     11: r12 = r8 | r11
+     12: r14 = 8
+     13: r15 = r13 << r14
+     14: r16 = r12 | r15
+     15: r17 = load b
+     16: r18 = r16 | r17
+     17: store color, r18
+     18: return
+

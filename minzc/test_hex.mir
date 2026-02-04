@@ -1,0 +1,20 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function test_hex.main() -> void
+  @smc
+  Locals:
+    r1 = a: u32
+    r3 = b: u32
+    r5 = c: u32
+  Instructions:
+      0: r2 = 4278190080
+      1: r4 = 255
+      2: store b, r4
+      3: store a, r2
+      4: r6 = load a
+      5: r7 = load b
+      6: r8 = r6 | r7
+      7: store c, r8
+      8: return
+

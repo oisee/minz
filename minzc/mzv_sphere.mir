@@ -1,0 +1,325 @@
+; MinZ Intermediate Representation (MIR)
+; Module: main
+
+Function mzv_sphere.fp_mul$i16$i16(a: i16, b: i16) -> i16
+  @smc
+  Locals:
+    r3 = a32: i32
+    r5 = b32: i32
+    r7 = result: i32
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      1: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      2: store b32, r6
+      3: store a32, r4
+      4: r8 = load a32
+      5: r9 = load b32
+      6: r10 = r8 * r9
+      7: r11 = 8
+      8: SHR
+      9: store result, r12
+     10: r13 = load result
+     11: return r13
+
+Function mzv_sphere.fp_div$i16$i16(a: i16, b: i16) -> i16
+  @smc
+  Locals:
+    r12 = a32: i32
+    r14 = b32: i32
+    r16 = result: i32
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor b$imm0
+      1: TEST
+      2: jump_if_not r5, else_1
+      3: TRUE_SMC_LOAD ; Load from anchor a$imm0
+      4: r7 = 0
+      5: r8 = r6 >= r7
+      6: jump_if_not r8, else_3
+      7: r9 = 32767
+      8: return r9
+      9: else_3:
+     10: r11 = -32768 ; Folded: 
+     11: return r11
+     12: else_1:
+     13: TRUE_SMC_LOAD ; Load from anchor a$imm0
+     14: TRUE_SMC_LOAD ; Load from anchor b$imm0
+     15: store b32, r15
+     16: store a32, r13
+     17: r17 = load a32
+     18: r20 = load b32
+     19: r18 = 8
+     20: SHL
+     21: DIV
+     22: store result, r21
+     23: r22 = load result
+     24: return r22
+
+Function mzv_sphere.fp_sqrt$i16(x: i16) -> i16
+  @smc
+  Locals:
+    r6 = guess: i16
+    r18 = i: u8
+    r23 = div_result: i16
+  Instructions:
+      0: TRUE_SMC_LOAD ; Load from anchor x$imm0
+      1: r3 = 0
+      2: r4 = r2 <= r3
+      3: jump_if_not r4, else_5
+      4: r5 = 0
+      5: return r5
+      6: else_5:
+      7: TRUE_SMC_LOAD ; Load from anchor x$imm0
+      8: SHR
+      9: TEST
+     10: store guess, r9
+     11: jump_if_not r12, else_7
+     12: r13 = 1
+     13: store guess, r13
+     14: jump end_if_8
+     15: else_7:
+     16: end_if_8:
+     17: r14 = load guess
+     18: r15 = 256
+     19: r16 = r14 > r15
+     20: jump_if_not r16, else_9
+     21: r17 = 256
+     22: store guess, r17
+     23: jump end_if_10
+     24: else_9:
+     25: end_if_10:
+     26: r19 = 0
+     27: store i, r19
+     28: loop_11:
+     29: r20 = load i
+     30: r21 = 6
+     31: r22 = r20 < r21
+     32: jump_if_not r22, end_loop_12
+     33: TRUE_SMC_LOAD ; Load from anchor x$imm0
+     34: TRUE_SMC_LOAD ; Load from anchor x$imm0
+     35: r28 = call mzv_sphere.fp_div$i16$i16
+     36: store temp_result, r28
+     37: store div_result, r28
+     38: r29 = load guess
+     39: r30 = load div_result
+     40: r31 = r29 + r30
+     41: SHR
+     42: TEST
+     43: store guess, r33
+     44: jump_if_not r36, else_13
+     45: r37 = 1
+     46: store guess, r37
+     47: jump end_if_14
+     48: else_13:
+     49: end_if_14:
+     50: r38 = load i
+     51: r39 = 1
+     52: r40 = r38 + r39
+     53: store i, r40
+     54: jump loop_11
+     55: end_loop_12:
+     56: r41 = load guess
+     57: return r41
+
+Function mzv_sphere.main() -> void
+  @smc
+  Locals:
+    r1 = width: i16
+    r3 = height: i16
+    r5 = cx: i16
+    r7 = cy: i16
+    r9 = radius: i16
+    r11 = radius_fp: i16
+    r15 = lx: i16
+    r17 = ly: i16
+    r20 = lz: i16
+    r22 = y: i16
+    r27 = x: i16
+    r32 = dx: i16
+    r36 = dy: i16
+    r40 = dist_sq: i32
+    r48 = radius_sq: i32
+    r55 = z_sq: i16
+    r59 = z: i16
+    r69 = nx: i16
+    r79 = ny: i16
+    r89 = nz: i16
+    r103 = diffuse: i32
+    r122 = brightness: i16
+    r134 = r: i16
+    r140 = g: i16
+    r152 = b: i16
+    r158 = color: u32
+  Instructions:
+      0: r2 = 320
+      1: r4 = 240
+      2: r6 = 160
+      3: r8 = 120
+      4: r10 = 80
+      5: store radius, r10
+      6: store width, r2
+      7: store height, r4
+      8: store cx, r6
+      9: store cy, r8
+     10: r12 = load radius
+     11: r13 = 8
+     12: SHL
+     13: r16 = 128
+     14: r19 = -128 ; Folded: 
+     15: r21 = 179
+     16: store radius_fp, r14
+     17: store ly, r19
+     18: store lx, r16
+     19: store lz, r21
+     20: r0 = call zx_clear_screen ; Clear ZX Spectrum screen
+     21: r23 = 0
+     22: store y, r23
+     23: loop_15:
+     24: r24 = load y
+     25: r25 = load height
+     26: r26 = r24 < r25
+     27: jump_if_not r26, end_loop_16
+     28: r28 = 0
+     29: store x, r28
+     30: loop_17:
+     31: r29 = load x
+     32: r30 = load width
+     33: r31 = r29 < r30
+     34: jump_if_not r31, end_loop_18
+     35: r33 = load x
+     36: r34 = load cx
+     37: r35 = r33 - r34
+     38: store dx, r35
+     39: r37 = load y
+     40: r38 = load cy
+     41: r39 = r37 - r38
+     42: store dy, r39
+     43: r41 = load dx
+     44: r42 = load dx
+     45: r44 = load dy
+     46: r45 = load dy
+     47: r43 = r41 * r42
+     48: r46 = r44 * r45
+     49: r47 = r43 + r46
+     50: store dist_sq, r47
+     51: r49 = load radius
+     52: r50 = load radius
+     53: r51 = r49 * r50
+     54: store radius_sq, r51
+     55: r52 = load dist_sq
+     56: r53 = load radius_sq
+     57: r54 = r52 < r53
+     58: jump_if_not r54, else_19
+     59: r56 = load radius_sq
+     60: r57 = load dist_sq
+     61: r58 = r56 - r57
+     62: store z_sq, r58
+     63: r66 = call mzv_sphere.fp_sqrt$i16
+     64: SHR
+     65: SHR
+     66: SHR
+     67: SHR
+     68: store z, r68
+     69: store temp_result, r66
+     70: r78 = call mzv_sphere.fp_div$i16$i16
+     71: store temp_result, r78
+     72: store nx, r78
+     73: r88 = call mzv_sphere.fp_div$i16$i16
+     74: store temp_result, r88
+     75: store ny, r88
+     76: r102 = call mzv_sphere.fp_div$i16$i16
+     77: store temp_result, r102
+     78: store nz, r102
+     79: r104 = load nx
+     80: r105 = load lx
+     81: r107 = load ny
+     82: r108 = load ly
+     83: r111 = load nz
+     84: r112 = load lz
+     85: r106 = r104 * r105
+     86: r113 = r111 * r112
+     87: r110 = r106 + r109
+     88: r114 = r110 + r113
+     89: r109 = r107 * r108
+     90: store diffuse, r114
+     91: r115 = load diffuse
+     92: r116 = 8
+     93: SHR
+     94: TEST
+     95: store diffuse, r117
+     96: jump_if_not r120, else_21
+     97: r121 = 0
+     98: store diffuse, r121
+     99: jump end_if_22
+    100: else_21:
+    101: end_if_22:
+    102: r123 = 51
+    103: r124 = load diffuse
+    104: r125 = 204
+    105: r126 = r124 * r125
+    106: r127 = 8
+    107: SHR
+    108: r129 = r123 + r128
+    109: store brightness, r129
+    110: r130 = load brightness
+    111: r131 = 256
+    112: r132 = r130 > r131
+    113: jump_if_not r132, else_23
+    114: r133 = 256
+    115: store brightness, r133
+    116: jump end_if_24
+    117: else_23:
+    118: end_if_24:
+    119: r135 = 255
+    120: r136 = load brightness
+    121: r137 = r135 * r136
+    122: r138 = 8
+    123: SHR
+    124: r141 = 100
+    125: store r, r139
+    126: r142 = load y
+    127: r145 = load height
+    128: r143 = 155
+    129: r144 = r142 * r143
+    130: DIV
+    131: r147 = r141 + r146
+    132: r148 = load brightness
+    133: r149 = r147 * r148
+    134: r150 = 8
+    135: SHR
+    136: r153 = 50
+    137: store g, r151
+    138: r154 = load brightness
+    139: r155 = r153 * r154
+    140: r156 = 8
+    141: SHR
+    142: r159 = 4278190080
+    143: store b, r157
+    144: r160 = load r
+    145: r164 = load g
+    146: r161 = 16
+    147: SHL
+    148: r163 = r159 | r162
+    149: r165 = 8
+    150: SHL
+    151: r167 = r163 | r166
+    152: r168 = load b
+    153: r169 = r167 | r168
+    154: store color, r169
+    155: r0 = call zx_set_pixel ; Set pixel at x,y
+    156: jump end_if_20
+    157: else_19:
+    158: end_if_20:
+    159: r173 = load x
+    160: r174 = 1
+    161: r175 = r173 + r174
+    162: store x, r175
+    163: jump loop_17
+    164: end_loop_18:
+    165: r176 = load y
+    166: r177 = 1
+    167: r178 = r176 + r177
+    168: store y, r178
+    169: jump loop_15
+    170: end_loop_16:
+    171: return
+
