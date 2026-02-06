@@ -127,3 +127,4 @@ archive/backups/temp/
 *.env
 *.bin
 _zxspeculator/
+minzc/tests/parser_corpus/
