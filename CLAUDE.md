@@ -2,6 +2,33 @@
 
 This file provides guidance to Claude Code when working with the MinZ compiler repository.
 
+---
+
+## 🚨 CURRENT PRIORITY: Native Parser Implementation
+
+**Status:** IN PROGRESS (Q1 2026)
+
+**Goal:** Replace tree-sitter with pure Go recursive descent parser to eliminate OOM issues.
+
+**Key Documents:**
+- 📋 **[NATIVE_PARSER_PLAN.md](docs/NATIVE_PARSER_PLAN.md)** - Complete implementation plan
+- 🧪 **[Parser Test Corpus](minzc/tests/parser_corpus/)** - 220 regression test files
+
+**Quick Commands:**
+```bash
+cd minzc
+./ast-gen tests/parser_corpus ../stdlib ../examples ../tests  # Generate corpus
+./ast-compare tests/parser_corpus                              # Validate
+./ast-compare -parser './new-parser' tests/parser_corpus       # Test new parser
+```
+
+**Target Metrics:**
+- 95%+ regression pass rate on 220 test files
+- <50MB memory on 10MB input files
+- Zero external dependencies
+
+---
+
 ## 🎓 Quick Start for AI Colleagues
 
 - **[MinZ Crash Course for AI Colleagues](AI_COLLEAGUES_MINZ_CRASH_COURSE.md)** - Complete training
@@ -10,6 +37,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ## 🏗️ Architecture References
 
+- **[NATIVE_PARSER_PLAN.md](docs/NATIVE_PARSER_PLAN.md)** - 🚧 Parser replacement plan (ACTIVE)
 - **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals
 - **[COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)** - Current state tracking
 - **[149_World_Class_Multi_Level_Optimization_Guide.md](docs/149_World_Class_Multi_Level_Optimization_Guide.md)** - Revolutionary optimization strategy

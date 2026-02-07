@@ -623,6 +623,9 @@ fun main() -> void {
 - 🎮 [Z80N & eZ80 Support Vision](docs/266_Z80N_eZ80_Extended_Support_Vision.md)
 - 🔮 [MinZ 2026 Vision](docs/263_MinZ_2026_Vision.md)
 
+### **Active Development (Q1 2026)**
+- 🚧 **[Native Parser Plan](docs/NATIVE_PARSER_PLAN.md)** - Replacing tree-sitter with pure Go RDP parser (in progress)
+
 ### **Current Status & Analysis**
 - 📊 [Parser Analysis Report](docs/264_Parser_Analysis_Report.md) - Tree-sitter at 100% accuracy
 - ⚠️ [Known Semantic Issues](docs/265_Known_Semantic_Issues.md) - 4 documented issues, 92% success
