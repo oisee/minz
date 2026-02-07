@@ -197,8 +197,9 @@ type PostfixOp struct {
 }
 
 // StructOp represents struct literal initialization: { field: value, ... }
+// Requires at least one field to distinguish from blocks
 type StructOp struct {
-	Fields []*FieldInit `parser:"'{' ( @@ ( ',' @@ )* ','? )? '}'"`
+	Fields []*FieldInit `parser:"'{' @@ ( ',' @@ )* ','? '}'"`
 }
 
 // FieldInit represents a field initializer: name: value
