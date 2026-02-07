@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/alecthomas/participle/v2 v2.1.4 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/codesqueak/z80 v1.1.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
