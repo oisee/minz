@@ -2,7 +2,7 @@
 
 **Goal:** Replace tree-sitter with a native Go parser to eliminate OOM issues on large files.
 
-**Target:** O(n) memory usage, no external dependencies, 90%+ compatibility with current AST.
+**Target:** O(n) memory usage, single Go dependency, 95%+ compatibility with current AST.
 
 ---
 
@@ -15,17 +15,19 @@
 | Memory (1KB file) | ~60KB | ~2KB |
 | Memory (1MB file) | 60MB+ | ~2MB |
 | Memory (10MB file) | **OOM** | ~20MB |
-| Dependencies | CGO + tree-sitter-cli | Pure Go |
+| Dependencies | CGO + tree-sitter-cli | 1 Go library |
 | Grammar bugs | 74 files affected | 0 |
 
-### Chosen Approach: Hand-Written Recursive Descent
+### Chosen Approach: Participle
 
-After analysis, we're implementing a **hand-written recursive descent parser** because:
+We're using **[Participle](https://github.com/alecthomas/participle)** - a Go parser library with struct-tag grammar:
 
-1. **Zero dependencies** - Pure Go, no external tools
-2. **Full control** - Custom error messages, recovery strategies
-3. **Proven pattern** - Used by Go's own `go/parser`
-4. **Already have example** - `minzc/pkg/z80asm/parser.go`
+1. **Fast development** - Grammar via struct tags, 2-3 weeks vs 4 weeks for hand-written
+2. **Single dependency** - Pure Go, no CGO
+3. **Good error messages** - Built-in error handling
+4. **Actively maintained** - Popular, well-documented
+
+**Execution Plan:** See `docs/plans/native-parser.md` for ralphex-compatible task breakdown.
 
 ---
 
