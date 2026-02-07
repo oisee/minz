@@ -107,6 +107,21 @@ func TestLexerTokenizes(t *testing.T) {
 			tokens: []string{"PlusEq", "MinusEq", "StarEq", "SlashEq", "PercentEq", "AmpEq", "PipeEq", "CaretEq", "EOF"},
 		},
 		{
+			name:  "shift assign operators",
+			input: "<<= >>=",
+			tokens: []string{"LtLtEq", "GtGtEq", "EOF"},
+		},
+		{
+			name:  "empty input",
+			input: "",
+			tokens: []string{"EOF"},
+		},
+		{
+			name:  "hash token",
+			input: "# #{}",
+			tokens: []string{"Hash", "Hash", "LBrace", "RBrace", "EOF"},
+		},
+		{
 			name:  "lambda",
 			input: "|x, y| => x + y",
 			tokens: []string{"Pipe", "Ident", "Comma", "Ident", "Pipe", "FatArrow", "Ident", "Plus", "Ident", "EOF"},
@@ -129,7 +144,7 @@ func TestLexerTokenizes(t *testing.T) {
 				}
 
 				typeName := tokenName(symbols, tok.Type)
-				// Skip whitespace, newlines, and comments for comparison
+				// Skip whitespace and comments for comparison (Newline tokens are kept)
 				if typeName == "whitespace" || typeName == "LineComment" || typeName == "BlockComment" {
 					continue
 				}
@@ -156,14 +171,26 @@ func TestLexerTokenizes(t *testing.T) {
 }
 
 func TestIsKeyword(t *testing.T) {
-	keywords := []string{"fun", "fn", "let", "const", "if", "else", "while", "for", "return", "struct", "enum", "impl", "import", "true", "false"}
+	keywords := []string{
+		"fun", "fn", "return",
+		"let", "var", "const", "global", "mut",
+		"if", "else", "elif", "while", "for", "in", "loop", "break", "continue", "match", "defer", "case", "when",
+		"struct", "enum", "impl", "trait", "type", "interface",
+		"import", "export", "as", "pub", "mod",
+		"true", "false",
+		"self", "Self", "nil", "null",
+		"asm", "mir",
+		"or", "and",
+		"sizeof", "alignof",
+		"u8", "u16", "u24", "u32", "i8", "i16", "i24", "i32", "bool", "void", "str", "ptr",
+	}
 	for _, kw := range keywords {
 		if !IsKeyword(kw) {
 			t.Errorf("%q should be a keyword", kw)
 		}
 	}
 
-	notKeywords := []string{"foo", "bar", "myFunc", "counter", "x"}
+	notKeywords := []string{"foo", "bar", "myFunc", "counter", "x", "main", "println"}
 	for _, id := range notKeywords {
 		if IsKeyword(id) {
 			t.Errorf("%q should not be a keyword", id)
@@ -172,7 +199,7 @@ func TestIsKeyword(t *testing.T) {
 }
 
 func TestIsPrimitiveType(t *testing.T) {
-	primitives := []string{"u8", "u16", "i8", "i16", "bool", "void", "str"}
+	primitives := []string{"u8", "u16", "u24", "u32", "i8", "i16", "i24", "i32", "bool", "void", "str", "ptr"}
 	for _, prim := range primitives {
 		if !IsPrimitiveType(prim) {
 			t.Errorf("%q should be a primitive type", prim)

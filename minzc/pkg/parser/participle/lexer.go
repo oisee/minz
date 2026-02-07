@@ -30,6 +30,8 @@ var MinZLexer = lexer.MustStateful(lexer.Rules{
 		{Name: "GtEq", Pattern: `>=`},
 		{Name: "AndAnd", Pattern: `&&`},
 		{Name: "OrOr", Pattern: `\|\|`},
+		{Name: "LtLtEq", Pattern: `<<=`},
+		{Name: "GtGtEq", Pattern: `>>=`},
 		{Name: "LtLt", Pattern: `<<`},
 		{Name: "GtGt", Pattern: `>>`},
 		{Name: "QQ", Pattern: `\?\?`},
@@ -41,8 +43,6 @@ var MinZLexer = lexer.MustStateful(lexer.Rules{
 		{Name: "AmpEq", Pattern: `&=`},
 		{Name: "PipeEq", Pattern: `\|=`},
 		{Name: "CaretEq", Pattern: `\^=`},
-		{Name: "LtLtEq", Pattern: `<<=`},
-		{Name: "GtGtEq", Pattern: `>>=`},
 
 		// Brackets and delimiters
 		{Name: "LParen", Pattern: `\(`},
@@ -90,9 +90,9 @@ var MinZLexer = lexer.MustStateful(lexer.Rules{
 	},
 })
 
-// Keywords maps keyword strings to their token types.
-// Participle uses this to distinguish keywords from identifiers.
-var Keywords = map[string]struct{}{
+// keywords maps keyword strings for use by IsKeyword.
+// Unexported to prevent external mutation of global state.
+var keywords = map[string]struct{}{
 	// Function keywords
 	"fun":      {},
 	"fn":       {},
@@ -100,6 +100,7 @@ var Keywords = map[string]struct{}{
 
 	// Variable keywords
 	"let":      {},
+	"var":      {},
 	"const":    {},
 	"global":   {},
 	"mut":      {},
@@ -115,6 +116,9 @@ var Keywords = map[string]struct{}{
 	"break":    {},
 	"continue": {},
 	"match":    {},
+	"defer":    {},
+	"case":     {},
+	"when":     {},
 
 	// Type definitions
 	"struct":   {},
@@ -126,6 +130,7 @@ var Keywords = map[string]struct{}{
 
 	// Modules
 	"import":   {},
+	"export":   {},
 	"as":       {},
 	"pub":      {},
 	"mod":      {},
@@ -144,12 +149,22 @@ var Keywords = map[string]struct{}{
 	"asm":      {},
 	"mir":      {},
 
+	// Built-in operators (keyword form)
+	"or":       {},
+	"and":      {},
+
+	// Built-in functions
+	"sizeof":   {},
+	"alignof":  {},
+
 	// Primitive types (not strictly keywords, but reserved)
 	"u8":       {},
 	"u16":      {},
+	"u24":      {},
 	"u32":      {},
 	"i8":       {},
 	"i16":      {},
+	"i24":      {},
 	"i32":      {},
 	"bool":     {},
 	"void":     {},
@@ -159,17 +174,20 @@ var Keywords = map[string]struct{}{
 
 // IsKeyword returns true if the given identifier is a keyword.
 func IsKeyword(s string) bool {
-	_, ok := Keywords[s]
+	_, ok := keywords[s]
 	return ok
 }
 
-// PrimitiveTypes is the set of primitive type names.
-var PrimitiveTypes = map[string]struct{}{
+// primitiveTypes is the set of primitive type names.
+// Unexported to prevent external mutation of global state.
+var primitiveTypes = map[string]struct{}{
 	"u8":   {},
 	"u16":  {},
+	"u24":  {},
 	"u32":  {},
 	"i8":   {},
 	"i16":  {},
+	"i24":  {},
 	"i32":  {},
 	"bool": {},
 	"void": {},
@@ -179,6 +197,6 @@ var PrimitiveTypes = map[string]struct{}{
 
 // IsPrimitiveType returns true if the given identifier is a primitive type.
 func IsPrimitiveType(s string) bool {
-	_, ok := PrimitiveTypes[s]
+	_, ok := primitiveTypes[s]
 	return ok
 }
