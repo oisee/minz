@@ -128,3 +128,5 @@ archive/backups/temp/
 *.bin
 _zxspeculator/
 minzc/tests/parser_corpus/
+minzc/ast-gen
+minzc/ast-compare
