@@ -189,10 +189,22 @@ type PostfixExpr struct {
 type PostfixOp struct {
 	Pos lexer.Position
 
-	Call  *CallOp  `parser:"  @@"`
-	Index *IndexOp `parser:"| @@"`
-	Field *FieldOp `parser:"| @@"`
-	Cast  *CastOp  `parser:"| @@"`
+	Call   *CallOp   `parser:"  @@"`
+	Index  *IndexOp  `parser:"| @@"`
+	Field  *FieldOp  `parser:"| @@"`
+	Cast   *CastOp   `parser:"| @@"`
+	Struct *StructOp `parser:"| @@"`
+}
+
+// StructOp represents struct literal initialization: { field: value, ... }
+type StructOp struct {
+	Fields []*FieldInit `parser:"'{' ( @@ ( ',' @@ )* ','? )? '}'"`
+}
+
+// FieldInit represents a field initializer: name: value
+type FieldInit struct {
+	Name  string      `parser:"@Ident ':'"`
+	Value *Expression `parser:"@@"`
 }
 
 // CallOp represents a function call: (args)
@@ -249,14 +261,14 @@ type ArrayLiteral struct {
 	Elements []*Expression `parser:"'[' ( @@ ( ',' @@ )* )? ']'"`
 }
 
-// LambdaExpr represents |params| => body or |params| { body }
+// LambdaExpr represents |params| body, |params| => body, or |params| { body }
 type LambdaExpr struct {
 	Pos lexer.Position
 
 	Params     []*LambdaParam `parser:"'|' ( @@ ( ',' @@ )* )? '|'"`
 	ReturnType *TypeRef       `parser:"( Arrow @@ )?"`
-	ArrowBody  *Expression    `parser:"( FatArrow @@"`
-	BlockBody  *Block         `parser:"| @@ )?"`
+	Arrow      bool           `parser:"@FatArrow?"`
+	Body       *Expression    `parser:"@@?"`
 }
 
 // LambdaParam represents a lambda parameter

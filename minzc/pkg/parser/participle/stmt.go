@@ -24,7 +24,6 @@ type Stmt struct {
 	Loop     *LoopStmt     `parser:"| @@"`
 	Break    *BreakStmt    `parser:"| @@"`
 	Continue *ContinueStmt `parser:"| @@"`
-	Assign   *AssignStmt   `parser:"| @@"`
 	Expr     *ExprStmt     `parser:"| @@"`
 }
 
@@ -114,18 +113,11 @@ type ContinueStmt struct {
 	Continue bool `parser:"@'continue' ';'?"`
 }
 
-// AssignStmt represents: lvalue = expr; or lvalue op= expr;
-type AssignStmt struct {
-	Pos lexer.Position
-
-	Target *Expression `parser:"@@"`
-	Op     string      `parser:"@( PlusEq | MinusEq | StarEq | SlashEq | PercentEq | AmpEq | PipeEq | CaretEq | LtLtEq | GtGtEq | Eq )"`
-	Value  *Expression `parser:"@@ ';'?"`
-}
-
-// ExprStmt represents a bare expression statement
+// ExprStmt represents an expression statement, optionally with assignment
 type ExprStmt struct {
 	Pos lexer.Position
 
-	Expr *Expression `parser:"@@ ';'?"`
+	Expr   *Expression `parser:"@@"`
+	Op     *string     `parser:"( @( PlusEq | MinusEq | StarEq | SlashEq | PercentEq | AmpEq | PipeEq | CaretEq | LtLtEq | GtGtEq | Eq )"`
+	Value  *Expression `parser:"  @@ )? ';'?"`
 }

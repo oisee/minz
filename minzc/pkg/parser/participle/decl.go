@@ -23,6 +23,16 @@ type Decl struct {
 	Global   *GlobalDecl   `parser:"| @@"`
 	Const    *ConstDecl    `parser:"| @@"`
 	Type     *TypeDecl     `parser:"| @@"`
+	Meta     *MetaDecl     `parser:"| @@"`
+}
+
+// MetaDecl represents a top-level metafunction call: @define(...), @lua[[[...]]], etc.
+type MetaDecl struct {
+	Pos lexer.Position
+
+	Name    string        `parser:"'@' @Ident"`
+	Args    []*Expression `parser:"( '(' ( @@ ( ',' @@ )* )? ')' )?"`
+	RawBody *string       `parser:"';'?"`
 }
 
 // ImportDecl represents: import path.to.module [as alias];
@@ -55,12 +65,14 @@ type TypeParam struct {
 	Constraint *TypeRef `parser:"( ':' @@ )?"`
 }
 
-// Param represents a function parameter: name: Type
+// Param represents a function parameter: name: Type or self
 type Param struct {
 	Pos lexer.Position
 
-	Name string   `parser:"@Ident"`
-	Type *TypeRef `parser:"':' @@"`
+	Self bool     `parser:"( @'self'"`
+	Ref  bool     `parser:"  @'&'? )"`
+	Name *string  `parser:"| @Ident"`
+	Type *TypeRef `parser:"  ':' @@"`
 }
 
 // StructDecl represents: [pub] struct Name<T> { fields }
