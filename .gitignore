@@ -135,3 +135,5 @@ minzc/ast-compare
 progress*.txt
 progress-*.txt
 progress-*.txt
+*.a80
+*.mir
