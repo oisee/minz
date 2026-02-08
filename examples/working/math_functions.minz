@@ -6,6 +6,10 @@ fun abs(x: i8) -> u8 {
     return x as u8;
 }
 
+fun abs(x: u8) -> u8 {
+    return x;  // u8 is always positive
+}
+
 fun min(a: u8, b: u8) -> u8 {
     if a < b {
         return a;
