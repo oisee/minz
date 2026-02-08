@@ -56,9 +56,9 @@ impl Scalable for Rectangle {
 
 // Test zero-cost lambdas
 fun test_lambdas() -> u8 {
-    let double = |x: u8| => u8 { x * 2 };
-    let add_five = |x: u8| => u8 { x + 5 };
-    let multiply = |a: u8, b: u8| => u8 { a * b };
+    let double = |x: u8| -> u8 { x * 2 };
+    let add_five = |x: u8| -> u8 { x + 5 };
+    let multiply = |a: u8, b: u8| -> u8 { a * b };
     
     let result1 = double(7);        // Should be 14
     let result2 = add_five(result1); // Should be 19
@@ -91,7 +91,7 @@ fun traditional_function(x: u8, y: u8) -> u8 {
 }
 
 fun test_performance_equivalence() -> u8 {
-    let lambda_add = |x: u8, y: u8| => u8 { x + y };
+    let lambda_add = |x: u8, y: u8| -> u8 { x + y };
     
     // Both should generate identical assembly
     let lambda_result = lambda_add(20, 22);      // Should be 42

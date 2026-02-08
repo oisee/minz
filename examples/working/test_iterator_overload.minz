@@ -1,0 +1,73 @@
+// Test function overload resolution
+// Iterator chains moved to future work - using explicit loops for now
+
+// Overloaded print functions
+fun print(x: u8) {
+    // Implementation for u8
+}
+
+fun print(x: u16) {
+    // Implementation for u16
+}
+
+fun print(b: bool) {
+    // Implementation for bool
+}
+
+// Overloaded processing functions
+fun process(x: u8) -> u8 {
+    return x * 2;
+}
+
+fun process(x: u16) -> u16 {
+    return x * 3;
+}
+
+// Test with different array types - explicit loop version
+fun test_u8_array() {
+    let bytes: [u8; 5] = [1, 2, 3, 4, 5];
+
+    // Process and print each element
+    let i: u8 = 0;
+    while i < 5 {
+        let processed = process(bytes[i]);
+        print(processed);
+        i = i + 1;
+    }
+}
+
+fun test_u16_array() {
+    let words: [u16; 3] = [1000, 2000, 3000];
+
+    let i: u8 = 0;
+    while i < 3 {
+        let processed = process(words[i]);
+        print(processed);
+        i = i + 1;
+    }
+}
+
+// Filter function for u8
+fun isAbove15(x: u8) -> bool {
+    return x > 15;
+}
+
+// Mixed operations - explicit loop
+fun test_mixed() {
+    let nums: [u8; 4] = [10, 20, 30, 40];
+
+    let i: u8 = 0;
+    while i < 4 {
+        if isAbove15(nums[i]) {
+            let processed = process(nums[i]);
+            print(processed);
+        }
+        i = i + 1;
+    }
+}
+
+fun main() {
+    test_u8_array();
+    test_u16_array();
+    test_mixed();
+}
