@@ -15,7 +15,9 @@ type StmtBlock struct {
 type Stmt struct {
 	Pos lexer.Position
 
-	Let      *LetStmt      `parser:"  @@"`
+	Asm      *AsmStmt      `parser:"  @@"`
+	Mir      *MirStmt      `parser:"| @@"`
+	Let      *LetStmt      `parser:"| @@"`
 	Const    *ConstStmt    `parser:"| @@"`
 	Return   *ReturnStmt   `parser:"| @@"`
 	If       *IfStmt       `parser:"| @@"`
@@ -24,7 +26,22 @@ type Stmt struct {
 	Loop     *LoopStmt     `parser:"| @@"`
 	Break    *BreakStmt    `parser:"| @@"`
 	Continue *ContinueStmt `parser:"| @@"`
+	Function *FunctionDecl `parser:"| @@"` // Local/nested function (after other stmts)
 	Expr     *ExprStmt     `parser:"| @@"`
+}
+
+// AsmStmt represents: asm { raw assembly code }
+type AsmStmt struct {
+	Pos lexer.Position
+
+	Code string `parser:"@AsmBlock"`
+}
+
+// MirStmt represents: mir { raw MIR code }
+type MirStmt struct {
+	Pos lexer.Position
+
+	Code string `parser:"@MirBlock"`
 }
 
 // LetStmt represents: let name: Type = value;

@@ -51,6 +51,33 @@ func (c *Converter) convertPos(p lexer.Position) ast.Position {
 // convertDecl converts a Participle Decl to ast types
 func (c *Converter) convertDecl(d *Decl) ast.Node {
 	switch {
+	case d.TripleBracket != nil:
+		// Parse @name[[[body]]] - extract name and body
+		raw := *d.TripleBracket
+		// Find name between @ and [[[
+		atIdx := 0
+		bracketIdx := strings.Index(raw, "[[[")
+		if bracketIdx > 1 {
+			name := raw[1:bracketIdx]
+			body := ""
+			if bracketIdx+3 < len(raw)-3 {
+				body = raw[bracketIdx+3 : len(raw)-3]
+			}
+			return &ast.ExpressionDecl{
+				Expression: &ast.MetafunctionCall{
+					Name: name,
+					Arguments: []ast.Expression{
+						&ast.StringLiteral{Value: body},
+					},
+				},
+				StartPos: c.convertPos(d.Pos),
+			}
+		}
+		_ = atIdx // suppress unused
+		return nil
+	case d.Module != nil:
+		// Module declarations are informational only
+		return nil
 	case d.Import != nil:
 		return c.convertImport(d.Import)
 	case d.Function != nil:
@@ -59,6 +86,8 @@ func (c *Converter) convertDecl(d *Decl) ast.Node {
 		return c.convertStruct(d.Struct)
 	case d.Enum != nil:
 		return c.convertEnum(d.Enum)
+	case d.Interface != nil:
+		return c.convertInterface(d.Interface)
 	case d.Impl != nil:
 		return c.convertImpl(d.Impl)
 	case d.Global != nil:
@@ -120,9 +149,11 @@ func (c *Converter) convertFunction(f *FunctionDecl) *ast.FunctionDecl {
 		result.Params = append(result.Params, param)
 	}
 
-	// Convert return type
+	// Convert return type (default to void if not specified)
 	if f.ReturnType != nil {
 		result.ReturnType = c.convertTypeRef(f.ReturnType)
+	} else {
+		result.ReturnType = &ast.PrimitiveType{Name: "void"}
 	}
 
 	// Convert body
@@ -169,6 +200,40 @@ func (c *Converter) convertEnum(e *EnumDecl) *ast.EnumDecl {
 
 	for _, v := range e.Variants {
 		result.Variants = append(result.Variants, v.Name)
+	}
+
+	return result
+}
+
+func (c *Converter) convertInterface(i *InterfaceDecl) *ast.InterfaceDecl {
+	result := &ast.InterfaceDecl{
+		Name:     i.Name,
+		IsPublic: i.Public,
+		StartPos: c.convertPos(i.Pos),
+	}
+
+	for _, m := range i.Methods {
+		method := &ast.InterfaceMethod{
+			Name:     m.Name,
+			StartPos: c.convertPos(m.Pos),
+		}
+		for _, p := range m.Params {
+			param := &ast.Parameter{
+				IsSelf:   p.Self,
+				StartPos: c.convertPos(p.Pos),
+			}
+			if p.Name != nil {
+				param.Name = *p.Name
+			}
+			if p.Type != nil {
+				param.Type = c.convertTypeRef(p.Type)
+			}
+			method.Params = append(method.Params, param)
+		}
+		if m.ReturnType != nil {
+			method.ReturnType = c.convertTypeRef(m.ReturnType)
+		}
+		result.Methods = append(result.Methods, method)
 	}
 
 	return result
@@ -286,6 +351,40 @@ func (c *Converter) convertStmtBlock(b *StmtBlock) *ast.BlockStmt {
 
 func (c *Converter) convertStmt(s *Stmt) ast.Statement {
 	switch {
+	case s.Asm != nil:
+		// Extract code from "asm { ... }"
+		code := s.Asm.Code
+		if len(code) > 5 {
+			// Remove "asm {" and "}"
+			code = code[4:] // Remove "asm "
+			if len(code) > 0 && code[0] == '{' {
+				code = code[1:]
+			}
+			if len(code) > 0 && code[len(code)-1] == '}' {
+				code = code[:len(code)-1]
+			}
+		}
+		return &ast.AsmStmt{
+			Code:     code,
+			StartPos: c.convertPos(s.Pos),
+		}
+	case s.Mir != nil:
+		// Extract code from "mir { ... }"
+		code := s.Mir.Code
+		if len(code) > 5 {
+			code = code[4:]
+			if len(code) > 0 && code[0] == '{' {
+				code = code[1:]
+			}
+			if len(code) > 0 && code[len(code)-1] == '}' {
+				code = code[:len(code)-1]
+			}
+		}
+		return &ast.AsmStmt{
+			Name:     "mir",
+			Code:     code,
+			StartPos: c.convertPos(s.Pos),
+		}
 	case s.Let != nil:
 		return c.convertLetStmt(s.Let)
 	case s.Const != nil:
@@ -506,19 +605,27 @@ func (c *Converter) convertTernaryExpr(t *TernaryExpr) ast.Expression {
 	if t == nil {
 		return nil
 	}
+	// Ternary removed - just pass through to null coalesce
+	// Use if-expressions instead: let x = if cond { a } else { b };
+	return c.convertNullCoalesceExpr(t.Condition)
+}
 
-	cond := c.convertOrExpr(t.Condition)
+func (c *Converter) convertNullCoalesceExpr(n *NullCoalesceExpr) ast.Expression {
+	if n == nil {
+		return nil
+	}
 
-	if t.Then != nil && t.Else != nil {
-		return &ast.TernaryExpr{
-			Condition: cond,
-			TrueExpr:  c.convertExpr(t.Then),
-			FalseExpr: c.convertExpr(t.Else),
-			StartPos:  c.convertPos(t.Pos),
+	result := c.convertOrExpr(n.Left)
+
+	for _, tail := range n.Right {
+		result = &ast.BinaryExpr{
+			Left:     result,
+			Operator: "??",
+			Right:    c.convertOrExpr(tail.Right),
 		}
 	}
 
-	return cond
+	return result
 }
 
 func (c *Converter) convertOrExpr(o *OrExpr) ast.Expression {
@@ -776,6 +883,13 @@ func (c *Converter) convertPostfixExpr(p *PostfixExpr) ast.Expression {
 				Fields:   fields,
 				StartPos: c.convertPos(suffix.Pos),
 			}
+
+		case suffix.Try:
+			// ? error propagation operator
+			result = &ast.TryExpr{
+				Expression: result,
+				StartPos:   c.convertPos(suffix.Pos),
+			}
 		}
 	}
 
@@ -798,6 +912,15 @@ func (c *Converter) convertPrimaryExpr(p *PrimaryExpr) ast.Expression {
 	case p.HexNumber != nil:
 		s := strings.TrimPrefix(*p.HexNumber, "0x")
 		s = strings.TrimPrefix(s, "0X")
+		val, _ := strconv.ParseInt(s, 16, 64)
+		return &ast.NumberLiteral{
+			Value:    val,
+			StartPos: c.convertPos(p.Pos),
+		}
+
+	case p.DollarHex != nil:
+		// ZX Spectrum style hex: $FE
+		s := strings.TrimPrefix(*p.DollarHex, "$")
 		val, _ := strconv.ParseInt(s, 16, 64)
 		return &ast.NumberLiteral{
 			Value:    val,
@@ -900,6 +1023,13 @@ func (c *Converter) convertPrimaryExpr(p *PrimaryExpr) ast.Expression {
 	case p.Lambda != nil:
 		return c.convertLambda(p.Lambda)
 
+	case p.Case != nil:
+		return c.convertCaseExpr(p.Case)
+
+	case p.Block != nil:
+		// Block expression - returns the block (used in lambdas, etc.)
+		return c.convertStmtBlock(p.Block.Body)
+
 	case p.Meta != nil:
 		return c.convertMetaExpr(p.Meta)
 	}
@@ -933,6 +1063,52 @@ func (c *Converter) convertLambda(l *LambdaExpr) ast.Expression {
 	return result
 }
 
+func (c *Converter) convertCaseExpr(ce *CaseExpr) ast.Expression {
+	result := &ast.CaseExpr{
+		Value:    c.convertExpr(ce.Value),
+		StartPos: c.convertPos(ce.Pos),
+	}
+
+	for _, arm := range ce.Arms {
+		result.Arms = append(result.Arms, ast.CaseArm{
+			Pattern:  c.convertPattern(arm.Pattern),
+			Body:     c.convertExpr(arm.Result),
+			StartPos: c.convertPos(arm.Pos),
+		})
+	}
+
+	return result
+}
+
+func (c *Converter) convertPattern(expr *Expression) ast.Pattern {
+	if expr == nil {
+		return nil
+	}
+
+	// Convert expression to appropriate pattern type
+	e := c.convertExpr(expr)
+
+	switch v := e.(type) {
+	case *ast.Identifier:
+		// Could be wildcard _, enum variant, or binding
+		if v.Name == "_" {
+			return &ast.WildcardPattern{StartPos: v.StartPos}
+		}
+		return &ast.IdentifierPattern{Name: v.Name, StartPos: v.StartPos}
+
+	case *ast.FieldExpr:
+		// Enum variant like State.IDLE or State::IDLE
+		return &ast.IdentifierPattern{
+			Name:     v.Object.(*ast.Identifier).Name + "." + v.Field,
+			StartPos: v.StartPos,
+		}
+
+	default:
+		// Treat as literal pattern
+		return &ast.LiteralPattern{Value: e, StartPos: e.Pos()}
+	}
+}
+
 func (c *Converter) convertMetaExpr(m *MetaExpr) ast.Expression {
 	result := &ast.MetafunctionCall{
 		Name:     m.Name,
@@ -958,6 +1134,7 @@ func (c *Converter) convertTypeRef(t *TypeRef) ast.Type {
 		arr := &ast.ArrayType{
 			StartPos: c.convertPos(t.Pos),
 		}
+		// C-style: [N]Type
 		if t.Array.Size != nil {
 			val, _ := strconv.ParseInt(*t.Array.Size, 10, 64)
 			arr.Size = &ast.NumberLiteral{Value: val}
@@ -965,7 +1142,31 @@ func (c *Converter) convertTypeRef(t *TypeRef) ast.Type {
 		if t.Array.Element != nil {
 			arr.ElementType = c.convertTypeRef(t.Array.Element)
 		}
+		// Rust-style: [Type; N]
+		if t.Array.RustSize != nil {
+			val, _ := strconv.ParseInt(*t.Array.RustSize, 10, 64)
+			arr.Size = &ast.NumberLiteral{Value: val}
+		}
+		if t.Array.RustElement != nil {
+			arr.ElementType = c.convertTypeRef(t.Array.RustElement)
+		}
+		// Empty array: []Type
+		if t.Array.EmptyElement != nil {
+			arr.ElementType = c.convertTypeRef(t.Array.EmptyElement)
+		}
 		result = arr
+	} else if t.Function != nil {
+		// Function type: fn(params) -> ReturnType
+		ft := &ast.FunctionType{
+			StartPos: c.convertPos(t.Pos),
+		}
+		for _, p := range t.Function.Params {
+			ft.ParamTypes = append(ft.ParamTypes, c.convertTypeRef(p))
+		}
+		if t.Function.ReturnType != nil {
+			ft.ReturnType = c.convertTypeRef(t.Function.ReturnType)
+		}
+		result = ft
 	} else if t.Name != nil {
 		name := *t.Name
 		if IsPrimitiveType(name) {

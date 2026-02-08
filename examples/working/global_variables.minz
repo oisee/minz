@@ -16,7 +16,7 @@ global g_uninit_byte: u8;
 global g_uninit_word: u16;
 
 // Entry point
-fn main() -> void {
+fun main() -> void {
     // Test that globals have correct values
     if g_byte == 42 {
         // Success

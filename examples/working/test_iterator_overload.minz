@@ -33,8 +33,9 @@ fun test_u8_array() -> void {
 }
 
 fun test_u16_array() -> void {
-    let words: [u16; 3] = [100, 200, 300];
-    
+    // Values above 255 to force u16 element type
+    let words: [u16; 3] = [1000, 2000, 3000];
+
     // Should resolve to print(u16) and process(u16)
     words
         .map(process)    // Should call process$u16

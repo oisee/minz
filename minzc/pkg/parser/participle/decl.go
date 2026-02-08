@@ -15,15 +15,25 @@ type File struct {
 type Decl struct {
 	Pos lexer.Position
 
-	Import   *ImportDecl   `parser:"  @@"`
-	Function *FunctionDecl `parser:"| @@"`
-	Struct   *StructDecl   `parser:"| @@"`
-	Enum     *EnumDecl     `parser:"| @@"`
-	Impl     *ImplDecl     `parser:"| @@"`
-	Global   *GlobalDecl   `parser:"| @@"`
-	Const    *ConstDecl    `parser:"| @@"`
-	Type     *TypeDecl     `parser:"| @@"`
-	Meta     *MetaDecl     `parser:"| @@"`
+	TripleBracket *string        `parser:"  @TripleBracketBlock"`
+	Module        *ModuleDecl    `parser:"| @@"`
+	Import        *ImportDecl    `parser:"| @@"`
+	Function      *FunctionDecl  `parser:"| @@"`
+	Struct        *StructDecl    `parser:"| @@"`
+	Enum          *EnumDecl      `parser:"| @@"`
+	Interface     *InterfaceDecl `parser:"| @@"`
+	Impl          *ImplDecl      `parser:"| @@"`
+	Global        *GlobalDecl    `parser:"| @@"`
+	Const         *ConstDecl     `parser:"| @@"`
+	Type          *TypeDecl      `parser:"| @@"`
+	Meta          *MetaDecl      `parser:"| @@"`
+}
+
+// ModuleDecl represents: module name;
+type ModuleDecl struct {
+	Pos lexer.Position
+
+	Name string `parser:"'module' @Ident ';'?"`
 }
 
 // MetaDecl represents a top-level metafunction call: @define(...), @lua[[[...]]], etc.
@@ -43,18 +53,22 @@ type ImportDecl struct {
 	Alias *string  `parser:"( 'as' @Ident )? ';'?"`
 }
 
-// FunctionDecl represents: [pub] fun/fn name<T>(params) -> Type { body }
+// FunctionDecl represents: [export] [pub] [extern/declare] fun name?<T>(params) -> Type ? ErrorType { body }
 type FunctionDecl struct {
 	Pos lexer.Position
 
 	Attributes []*Attribute  `parser:"( '@' '[' @@ ']' )*"`
+	Export     bool          `parser:"@'export'?"`
 	Public     bool          `parser:"@'pub'?"`
-	Keyword    string        `parser:"@( 'fun' | 'fn' )"`
+	Extern     bool          `parser:"@( 'extern' | 'declare' )?"`
+	Keyword    string        `parser:"@'fun'"` // only 'fun' for declarations; 'fn' is for function types only
 	Name       string        `parser:"@Ident"`
+	CanError   bool          `parser:"@Question?"` // fun name?() - can return error
 	TypeParams []*TypeParam  `parser:"( Lt @@ ( ',' @@ )* Gt )?"`
 	Params     []*Param      `parser:"'(' ( @@ ( ',' @@ )* )? ')'"`
 	ReturnType *TypeRef      `parser:"( Arrow @@ )?"`
-	Body       *StmtBlock    `parser:"@@"`
+	ErrorType  *TypeRef      `parser:"( Bang @@ )?"` // -> Type ! ErrorType
+	Body       *StmtBlock    `parser:"( @@ | ';' )"`
 }
 
 // TypeParam represents a generic type parameter: T or T: Constraint
@@ -114,6 +128,24 @@ type EnumVariant struct {
 	Value  *Expression `parser:"( '=' @@ )?"`
 }
 
+// InterfaceDecl represents: [pub] interface Name { method signatures }
+type InterfaceDecl struct {
+	Pos lexer.Position
+
+	Public  bool              `parser:"@'pub'?"`
+	Name    string            `parser:"'interface' @Ident"`
+	Methods []*MethodSignature `parser:"'{' @@* '}'"`
+}
+
+// MethodSignature represents a method signature in an interface: fun name(params) -> Type;
+type MethodSignature struct {
+	Pos lexer.Position
+
+	Name       string    `parser:"'fun' @Ident"`
+	Params     []*Param  `parser:"'(' ( @@ ( ',' @@ )* )? ')'"`
+	ReturnType *TypeRef  `parser:"( Arrow @@ )? ';'?"`
+}
+
 // ImplDecl represents: impl [Trait for] Type { methods }
 type ImplDecl struct {
 	Pos lexer.Position
@@ -123,13 +155,14 @@ type ImplDecl struct {
 	Methods []*FunctionDecl `parser:"'{' @@* '}'"`
 }
 
-// GlobalDecl represents: [pub] global name: Type = value;
+// GlobalDecl represents: [pub] global/let name: Type = value;
 type GlobalDecl struct {
 	Pos lexer.Position
 
-	Public bool        `parser:"@'pub'?"`
-	Name   string      `parser:"'global' @Ident"`
-	Type   *TypeRef    `parser:"':' @@"`
+	Public  bool        `parser:"@'pub'?"`
+	Keyword string      `parser:"@( 'global' | 'let' )"`
+	Name    string      `parser:"@Ident"`
+	Type    *TypeRef    `parser:"':' @@"`
 	Value  *Expression `parser:"( '=' @@ )? ';'?"`
 }
 

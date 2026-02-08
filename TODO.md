@@ -1,9 +1,9 @@
 # MinZ TODO - Priority Roadmap
 
-> **Last Updated:** 2025-12-18
-> **Version:** v0.15.4-dev
-> **Compilation Success Rate:** 81% (47/58 examples)
-> **Latest Session:** [reports/2025-12-18-001-djnz-optimization-session.md](reports/2025-12-18-001-djnz-optimization-session.md)
+> **Last Updated:** 2026-02-08
+> **Version:** v0.16.0-dev (Participle Parser)
+> **Parse Rate:** 100% (116/116) | **Compile Rate:** 90.5% (105/116)
+> **Parser:** Native Go (Participle) - tree-sitter replaced
 
 ---
 
@@ -117,9 +117,9 @@ Important features for language completeness.
 Nice to have, not blocking.
 
 ### 12. Local/Nested Functions
-**Status:** 🔴 Not working
-**Issue:** 7+ examples fail due to this
-**Effort:** 2-3 days
+**Status:** ✅ PARSING WORKS (v0.16)
+**Note:** Parser supports `fun inner() {}` inside functions
+**Remaining:** Semantic analysis (scoping, captures)
 
 ### 13. Self Parameter in Methods
 **Status:** 🔴 Not working
@@ -137,8 +137,53 @@ Nice to have, not blocking.
 
 ---
 
+## 🧹 Participle Parser (v0.16) ✅ COMPLETE
+
+Native Go parser replaces tree-sitter. No external dependencies.
+
+### Final Stats
+| Metric | Result |
+|--------|--------|
+| Parse rate | **100%** (116/116 examples) |
+| Compile rate | **90.5%** (105/116 examples) |
+| Corpus (old snapshots) | 82.4% (expected - old syntax) |
+
+### Syntax Rules
+| Feature | Syntax | Notes |
+|---------|--------|-------|
+| Function declaration | `fun foo() { }` | `fn` is for types only |
+| Function type | `fn(u8) -> u8` | Higher-order functions |
+| Error function | `fun name?() -> T ! Error` | `?` in name, `!` for error type |
+| Error propagation | `value?`, `get()?` | Postfix `?` operator |
+| Conditionals | `if cond { a } else { b }` | Ternary `?:` removed |
+| Array literals | `[1, 2, 3]` | NOT `{1, 2, 3}` |
+| Array types | `[u8; 10]` | Rust-style |
+| Pattern match | `case val { Pat => result }` | Also `match` keyword |
+| Attributes | `@[inline]`, `@[abi("smc")]` | Bracket form only |
+| Local functions | `fun outer() { fun inner() {} }` | Nested declarations |
+| Asm interpolation | `asm { LD HL, {var} }` | Variable substitution |
+
+### Files Updated ✅
+- [x] 52 functions: `fn` → `fun` in test_files/ and benchmarks/
+- [x] 6 examples: `{1,2,3}` → `[1,2,3]` array syntax
+- [x] error_propagation_demo: `? Error` → `! Error`
+- [x] tsmc files: `@abi()` → `@[abi()]`
+- [x] Converted `asm fun` → `fun { asm { } }`
+
+### Remaining Experimental (18 files in examples/experimental/)
+- `bits_8 { }` bitfield types
+- `loop indexed` iteration
+- Complex nested `case` expressions
+- `@lua[[[...]]]` blocks
+
+---
+
 ## ✅ Recently Completed
 
+- [x] **Participle parser v0.16** - 100% parse, 90.5% compile (2026-02-08)
+  - Native Go parser replaces tree-sitter (no external deps)
+  - `fun`/`fn` separation, `!` for error types, `case`/`match` expressions
+  - Local functions, asm interpolation, attribute syntax
 - [x] **@error(code) metafunction** - Error propagation working! (2025-12-17)
 - [x] Ruby string interpolation (`#{var}`) - Working
 - [x] CTIE compile-time execution - Working
@@ -146,19 +191,20 @@ Nice to have, not blocking.
 - [x] For/while loops - Working
 - [x] Global variables - Working
 - [x] Multi-backend support (Z80, C, Crystal, WASM) - Working
-- [x] Tree-sitter parser integration - Working (81% success)
+- [x] Tree-sitter parser - REPLACED by Participle (v0.16)
 - [x] Claims verification report - Done
 
 ---
 
 ## 📊 Success Metrics
 
-### Current State
+### Current State (v0.16)
 | Metric | Value |
 |--------|-------|
-| Examples compiling | 48/59 (81%) |
-| Working core features | 12/20 |
-| Documented features working | ~60% |
+| Examples parsing | 116/116 (100%) |
+| Examples compiling | 105/116 (90.5%) |
+| Parser | Native Go (Participle) |
+| External deps | None (tree-sitter removed) |
 
 ### Target (v1.0)
 | Metric | Target |

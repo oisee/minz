@@ -51,7 +51,8 @@ func TestParseFunctionDecl(t *testing.T) {
 		input string
 	}{
 		{"simple", "fun foo() { }"},
-		{"fn_keyword", "fn bar() { }"},
+		{"fn_type_return", "fun higher() -> fn(u8) -> u8 { }"},  // fn(params) is a function type
+		{"fn_type_param", "fun apply(f: fn(u8) -> u8, x: u8) -> u8 { }"},  // fn type as parameter
 		{"with_params", "fun add(a: u8, b: u8) { }"},
 		{"with_return", "fun get() -> u8 { }"},
 		{"full", "fun calculate(x: u16, y: u16) -> u32 { }"},

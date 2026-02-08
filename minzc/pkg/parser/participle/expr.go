@@ -29,13 +29,25 @@ type Expression struct {
 	Ternary *TernaryExpr `parser:"@@"`
 }
 
-// TernaryExpr handles ternary conditionals: cond ? then : else
+// TernaryExpr is now just a pass-through (ternary removed to free ? for error propagation)
+// Use if-expressions instead: let x = if cond { a } else { b };
 type TernaryExpr struct {
 	Pos lexer.Position
 
-	Condition *OrExpr     `parser:"@@"`
-	Then      *Expression `parser:"( '?' @@"`
-	Else      *Expression `parser:"  ':' @@ )?"`
+	Condition *NullCoalesceExpr `parser:"@@"`
+}
+
+// NullCoalesceExpr handles ?? operator (null coalescing)
+type NullCoalesceExpr struct {
+	Pos lexer.Position
+
+	Left  *OrExpr              `parser:"@@"`
+	Right []*NullCoalesceTail  `parser:"@@*"`
+}
+
+type NullCoalesceTail struct {
+	Op    string  `parser:"@QQ"`
+	Right *OrExpr `parser:"@@"`
 }
 
 // OrExpr handles || operator (lowest precedence binary)
@@ -194,6 +206,7 @@ type PostfixOp struct {
 	Field  *FieldOp  `parser:"| @@"`
 	Cast   *CastOp   `parser:"| @@"`
 	Struct *StructOp `parser:"| @@"`
+	Try    bool      `parser:"| @Question"` // ? error propagation
 }
 
 // StructOp represents struct literal initialization: { field: value, ... }
@@ -234,6 +247,7 @@ type PrimaryExpr struct {
 
 	Number    *string       `parser:"  @Number"`
 	HexNumber *string       `parser:"| @HexNumber"`
+	DollarHex *string       `parser:"| @DollarHex"` // ZX Spectrum style: $FE
 	BinNumber *string       `parser:"| @BinNumber"`
 	String    *string       `parser:"| @String"`
 	Char      *string       `parser:"| @Char"`
@@ -246,7 +260,34 @@ type PrimaryExpr struct {
 	Paren     *Expression   `parser:"| '(' @@ ')'"`
 	Array     *ArrayLiteral `parser:"| @@"`
 	Lambda    *LambdaExpr   `parser:"| @@"`
+	Lamb      *LambExpr     `parser:"| @@"` // lamb(params) -> Type { body }
+	Case      *CaseExpr     `parser:"| @@"`
+	Block     *BlockExpr    `parser:"| @@"`
 	Meta      *MetaExpr     `parser:"| @@"`
+}
+
+// CaseExpr represents case/match expression: case expr { Pattern => value, ... }
+type CaseExpr struct {
+	Pos lexer.Position
+
+	Keyword string      `parser:"@( 'case' | 'match' )"`
+	Value   *Expression `parser:"@@"`
+	Arms    []*CaseArm  `parser:"'{' ( @@ ( ',' @@ )* ','? )? '}'"`
+}
+
+// CaseArm represents a single arm in case/match: Pattern => result
+type CaseArm struct {
+	Pos lexer.Position
+
+	Pattern *Expression `parser:"@@"`
+	Result  *Expression `parser:"FatArrow @@"`
+}
+
+// BlockExpr represents a block used as an expression: { stmts; expr }
+type BlockExpr struct {
+	Pos lexer.Position
+
+	Body *StmtBlock `parser:"@@"`
 }
 
 // ScopedIdent represents Type::member access (e.g., State::IDLE)
@@ -278,6 +319,15 @@ type LambdaParam struct {
 	Type *TypeRef `parser:"( ':' @@ )?"`
 }
 
+// LambExpr represents lamb(params) -> Type { body } syntax
+type LambExpr struct {
+	Pos lexer.Position
+
+	Params     []*LambdaParam `parser:"'lamb' '(' ( @@ ( ',' @@ )* )? ')'"`
+	ReturnType *TypeRef       `parser:"( Arrow @@ )?"`
+	Body       *StmtBlock     `parser:"@@"`
+}
+
 // MetaExpr represents @metafunction(...)
 type MetaExpr struct {
 	Pos lexer.Position
@@ -290,16 +340,32 @@ type MetaExpr struct {
 type TypeRef struct {
 	Pos lexer.Position
 
-	Pointer bool       `parser:"@Star?"`
-	Array   *ArrayType `parser:"( @@"`
-	Name    *string    `parser:"| @Ident )"`
-	Generic []*TypeRef `parser:"( Lt @@ ( ',' @@ )* Gt )?"`
+	Pointer  bool          `parser:"@Star?"`
+	Function *FunctionType `parser:"( @@"`
+	Array    *ArrayType    `parser:"| @@"`
+	Name     *string       `parser:"| @Ident )"`
+	Generic  []*TypeRef    `parser:"( Lt @@ ( ',' @@ )* Gt )?"`
+	Optional bool          `parser:"@Question?"`
 }
 
-// ArrayType represents [N]Type or []Type
+// FunctionType represents fn(params) -> ReturnType
+type FunctionType struct {
+	Pos lexer.Position
+
+	Params     []*TypeRef `parser:"'fn' '(' ( @@ ( ',' @@ )* )? ')'"`
+	ReturnType *TypeRef   `parser:"( Arrow @@ )?"`
+}
+
+// ArrayType represents [N]Type, []Type, or [Type; N] (Rust-style)
 type ArrayType struct {
-	Size    *string  `parser:"'[' @Number? ']'"`
-	Element *TypeRef `parser:"@@"`
+	// Common start
+	Size    *string  `parser:"'[' ( @Number ']'"`
+	Element *TypeRef `parser:"    @@"`
+	// Rust-style: [Type; N]
+	RustElement *TypeRef `parser:"| @@"`
+	RustSize    *string  `parser:"  ';' @Number ']'"`
+	// Empty array: []Type
+	EmptyElement *TypeRef `parser:"| ']' @@ )?"`
 }
 
 // Block represents { statements }

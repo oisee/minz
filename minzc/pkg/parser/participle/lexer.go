@@ -19,6 +19,14 @@ var MinZLexer = lexer.MustStateful(lexer.Rules{
 		{Name: "LineComment", Pattern: `//[^\n]*`, Action: nil},
 		{Name: "BlockComment", Pattern: `/\*[^*]*\*+(?:[^/*][^*]*\*+)*/`, Action: nil},
 
+		// Raw code blocks (must come before keywords/identifiers)
+		// asm { ... } - captures entire block as single token
+		{Name: "AsmBlock", Pattern: `asm\s*\{([^{}]|\{[^}]*\})*\}`},
+		// mir { ... } - captures entire block as single token
+		{Name: "MirBlock", Pattern: `mir\s*\{[^}]*\}`},
+		// Triple bracket blocks: @lua[[[...]]], @minz[[[...]]]
+		{Name: "TripleBracketBlock", Pattern: `@[a-zA-Z_][a-zA-Z0-9_]*\[\[\[[\s\S]*?\]\]\]`},
+
 		// Multi-character operators (must come before single-char)
 		{Name: "FatArrow", Pattern: `=>`},
 		{Name: "Arrow", Pattern: `->`},
@@ -81,6 +89,7 @@ var MinZLexer = lexer.MustStateful(lexer.Rules{
 
 		// Number literals (order matters: hex/bin before decimal)
 		{Name: "HexNumber", Pattern: `0[xX][0-9a-fA-F]+`},
+		{Name: "DollarHex", Pattern: `\$[0-9a-fA-F]+`}, // ZX Spectrum style: $FE
 		{Name: "BinNumber", Pattern: `0[bB][01]+`},
 		{Name: "Number", Pattern: `[0-9]+(?:\.[0-9]+)?`},
 
@@ -131,9 +140,12 @@ var keywords = map[string]struct{}{
 	// Modules
 	"import":   {},
 	"export":   {},
+	"module":   {},
 	"as":       {},
 	"pub":      {},
 	"mod":      {},
+	"extern":   {},
+	"declare":  {},
 
 	// Boolean literals
 	"true":     {},

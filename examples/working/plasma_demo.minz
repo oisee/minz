@@ -1,0 +1,121 @@
+// Plasma Demo - MinZ Language Showcase
+// Two shadow screens with XOR interference
+// Note: Uses flat loops (nested loops have compiler bug)
+
+const SCREEN_ATTR: u16 = 0x5800;
+
+global phase1: u8 = 0;
+global phase2: u8 = 0;
+
+global sin_table: [u8; 256];
+global shadow1: [u8; 768];
+global shadow2: [u8; 768];
+
+// Build sine table (triangle wave 0-7)
+fun init_sine() -> void {
+    for i in 0..256 {
+        let q: u8 = i & 0xC0;
+        let v: u8 = 0;
+
+        if q == 0 {
+            v = (i >> 3) & 7;
+        }
+        if q == 0x40 {
+            v = ((127 - i) >> 3) & 7;
+        }
+        if q == 0x80 {
+            v = ((i - 128) >> 3) & 7;
+        }
+        if q == 0xC0 {
+            v = ((255 - i) >> 3) & 7;
+        }
+
+        sin_table[i] = v;
+    }
+}
+
+fun cls() -> void {
+    asm {
+        LD HL, 0x4000
+        LD DE, 0x4001
+        LD BC, 6143
+        LD (HL), 0
+        LDIR
+        LD HL, 0x5800
+        LD DE, 0x5801
+        LD BC, 767
+        LD (HL), 0
+        LDIR
+    }
+}
+
+// Render shadow1: horizontal + vertical waves
+// Using flat loop: idx -> x,y via division
+fun render_shadow1() -> void {
+    let mut xp: u8 = phase1;
+    let mut yp: u8 = phase1;
+    let mut col: u8 = 0;
+
+    for idx in 0..768 {
+        let sx: u8 = sin_table[xp];
+        let sy: u8 = sin_table[yp];
+        shadow1[idx] = (sx + sy) & 7;
+
+        xp = xp + 10;
+        col = col + 1;
+        if col == 32 {
+            col = 0;
+            xp = phase1;
+            yp = yp + 14;
+        }
+    }
+}
+
+// Render shadow2: diagonal wave
+fun render_shadow2() -> void {
+    let mut d: u8 = phase2;
+    let mut col: u8 = 0;
+
+    for idx in 0..768 {
+        shadow2[idx] = sin_table[d];
+        d = d + 8;
+
+        col = col + 1;
+        if col == 32 {
+            col = 0;
+            // row step is also 8, so d naturally accumulates
+        }
+    }
+}
+
+// Combine shadows via XOR to screen
+fun combine() -> void {
+    for i in 0..768 {
+        let c: u8 = shadow1[i] ^ shadow2[i];
+        let attr: u8 = (c & 7) | 0x40;
+        poke16(SCREEN_ATTR + i, attr);
+    }
+}
+
+fun poke16(addr: u16, val: u8) -> void {
+    asm {
+        LD HL, {addr}
+        LD (HL), {val}
+    }
+}
+
+fun main() -> void {
+    asm { DI }
+    cls();
+    init_sine();
+    asm { EI }
+
+    while true {
+        asm { HALT }
+        phase1 = phase1 + 3;
+        phase2 = phase2 + 7;
+        render_shadow1();
+        render_shadow2();
+        combine();
+    }
+}

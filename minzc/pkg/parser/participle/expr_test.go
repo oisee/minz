@@ -231,14 +231,17 @@ func TestParseArrayLiteral(t *testing.T) {
 	}
 }
 
-func TestParseTernary(t *testing.T) {
+func TestParseErrorPropagation(t *testing.T) {
+	// Ternary removed - use if-expressions instead
+	// ? is now for error propagation only
 	tests := []struct {
 		name  string
 		input string
 	}{
-		{"simple", "a ? b : c"},
-		{"nested_cond", "a > b ? x : y"},
-		{"nested_branch", "a ? b ? c : d : e"},
+		{"try_simple", "value?"},
+		{"try_call", "get_value()?"},
+		{"try_chain", "a.b()?"},
+		{"null_coalesce", "a ?? b"},
 	}
 
 	for _, tt := range tests {

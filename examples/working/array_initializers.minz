@@ -1,15 +1,15 @@
 // Array Initializers Example
-// Demonstrates the new {...} syntax for array initialization
+// Demonstrates array initialization with [...] syntax
 
 fun main() -> void {
     // Basic array initializer with curly braces
-    let colors: [u8; 3] = {255, 128, 0};  // RGB values
+    let colors: [u8; 3] = [255, 128, 0];  // RGB values
     
     // Matrix initialization
-    let matrix: [[u8; 2]; 2] = {{1, 2}, {3, 4}};
+    let matrix: [[u8; 2]; 2] = [[1, 2], [3, 4]];
     
     // Empty array (edge case)
-    let empty: [u8; 0] = {};
+    let empty: [u8; 0] = [];
     
     // Mixed with traditional syntax
     let traditional: [u8; 3] = [5, 6, 7];
@@ -39,7 +39,7 @@ fun sum_array(arr: *[u8; 4]) -> u8 {
 
 fun test_sum() -> void {
     // Initialize array and compute sum
-    let numbers: [u8; 4] = {10, 20, 30, 40};
+    let numbers: [u8; 4] = [10, 20, 30, 40];
     let total = sum_array(&numbers);
     @print("Sum: ");
     @print(total);  // Should print 100

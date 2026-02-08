@@ -1,10 +1,10 @@
 // TSMC Loop Examples - demonstrates self-modifying loop patterns
 
 // Pattern 1: Basic array sum with TSMC
-@abi("smc")
+@[abi("smc")]
 fun sum_array_tsmc(arr: *u8, count: u16) -> u16 {
-    var sum: u16 = 0;
-    var i: u16 = 0;
+    let sum: u16 = 0;
+    let i: u16 = 0;
     while i < count {
         sum = sum + *arr;
         arr = arr + 1;  // Self-modifies the dereference above
@@ -14,15 +14,15 @@ fun sum_array_tsmc(arr: *u8, count: u16) -> u16 {
 }
 
 // Pattern 2: Find maximum in array
-@abi("smc")
+@[abi("smc")]
 fun find_max_tsmc(arr: *u8, count: u16) -> u8 {
     if count == 0 {
         return 0;
     }
     
-    var max: u8 = *arr;
+    let max: u8 = *arr;
     arr = arr + 1;
-    var i: u16 = 1;
+    let i: u16 = 1;
     
     while i < count {
         if *arr > max {
@@ -35,9 +35,9 @@ fun find_max_tsmc(arr: *u8, count: u16) -> u8 {
 }
 
 // Pattern 3: Copy memory with TSMC
-@abi("smc")
+@[abi("smc")]
 fun memcpy_tsmc(dest: *u8, src: *u8, count: u16) {
-    var i: u16 = 0;
+    let i: u16 = 0;
     while i < count {
         *dest = *src;
         dest = dest + 1;  // Self-modify destination
@@ -47,7 +47,7 @@ fun memcpy_tsmc(dest: *u8, src: *u8, count: u16) {
 }
 
 // Pattern 4: String comparison with TSMC
-@abi("smc")
+@[abi("smc")]
 fun strcmp_tsmc(s1: *u8, s2: *u8) -> i8 {
     while *s1 != 0 && *s1 == *s2 {
         s1 = s1 + 1;
@@ -65,9 +65,9 @@ fun strcmp_tsmc(s1: *u8, s2: *u8) -> i8 {
 }
 
 // Pattern 5: Count occurrences of character
-@abi("smc")
+@[abi("smc")]
 fun count_char_tsmc(str: *u8, ch: u8) -> u16 {
-    var count: u16 = 0;
+    let count: u16 = 0;
     while *str != 0 {
         if *str == ch {
             count = count + 1;
@@ -80,25 +80,25 @@ fun count_char_tsmc(str: *u8, ch: u8) -> u16 {
 // Test function
 fun test_tsmc_loops() {
     // Test data
-    var data: [10]u8 = [1, 5, 3, 9, 2, 7, 4, 8, 6, 0];
-    var hello: [6]u8 = [72, 101, 108, 108, 111, 0];  // "Hello\0"
-    var world: [6]u8 = [87, 111, 114, 108, 100, 0];  // "World\0"
-    var dest: [10]u8;
+    let data: [10]u8 = [1, 5, 3, 9, 2, 7, 4, 8, 6, 0];
+    let hello: [6]u8 = [72, 101, 108, 108, 111, 0];  // "Hello\0"
+    let world: [6]u8 = [87, 111, 114, 108, 100, 0];  // "World\0"
+    let dest: [10]u8;
     
     // Test array sum
-    var sum: u16 = sum_array_tsmc(&data[0], 10);
+    let sum: u16 = sum_array_tsmc(&data[0], 10);
     
     // Test find max
-    var max: u8 = find_max_tsmc(&data[0], 10);
+    let max: u8 = find_max_tsmc(&data[0], 10);
     
     // Test memory copy
     memcpy_tsmc(&dest[0], &data[0], 10);
     
     // Test string comparison
-    var cmp: i8 = strcmp_tsmc(&hello[0], &world[0]);
+    let cmp: i8 = strcmp_tsmc(&hello[0], &world[0]);
     
     // Test character count
-    var count: u16 = count_char_tsmc(&hello[0], 108);  // Count 'l' in "Hello"
+    let count: u16 = count_char_tsmc(&hello[0], 108);  // Count 'l' in "Hello"
 }
 
 // Entry point
