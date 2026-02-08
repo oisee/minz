@@ -8,7 +8,7 @@ global sin_table: [u8; 256];
 global attr_ptr: u16 = 0x5800;
 
 // Triangle wave sine (0-7 range for colors)
-fn init_sine() -> void {
+fun init_sine() -> void {
     for i in 0..256 {
         let q: u8 = i & 0xC0;
         let v: u8 = 0;
@@ -22,7 +22,7 @@ fn init_sine() -> void {
     }
 }
 
-fn cls() -> void {
+fun cls() -> void {
     asm {
         LD HL, 0x4000
         LD DE, 0x4001
@@ -37,7 +37,7 @@ fn cls() -> void {
     }
 }
 
-fn poke(addr: u16, val: u8) -> void {
+fun poke(addr: u16, val: u8) -> void {
     asm {
         ; Poke val to addr
         POP HL          ; return addr
@@ -50,7 +50,7 @@ fn poke(addr: u16, val: u8) -> void {
 }
 
 // Direct plasma rendering
-fn render_plasma() -> void {
+fun render_plasma() -> void {
     let mut yval: u8 = phase;
     let mut col: u8 = 0;
     let mut ptr: u16 = ATTR_BASE;
@@ -74,7 +74,7 @@ fn render_plasma() -> void {
     }
 }
 
-fn main() -> void {
+fun main() -> void {
     asm { DI }
     cls();
     init_sine();

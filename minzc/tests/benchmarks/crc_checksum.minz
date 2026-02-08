@@ -32,7 +32,7 @@ export fn crc16_calculate(data: *u8, len: u16) -> u16 {
 }
 
 // Process single byte for CRC-8
-fn process_byte(crc: u8, byte: u8) -> u8 {
+fun process_byte(crc: u8, byte: u8) -> u8 {
     crc = xor_byte(crc, byte);
     let bit: u8 = 0;
     
@@ -49,7 +49,7 @@ fn process_byte(crc: u8, byte: u8) -> u8 {
 }
 
 // Process single byte for CRC-16
-fn process_byte_16(crc: u16, byte: u8) -> u16 {
+fun process_byte_16(crc: u16, byte: u8) -> u16 {
     crc = xor_high_byte(crc, byte);
     let bit: u8 = 0;
     
@@ -66,47 +66,47 @@ fn process_byte_16(crc: u16, byte: u8) -> u16 {
 }
 
 // Helper functions optimized by TSMC
-fn get_byte(data: *u8, index: u16) -> u8 {
+fun get_byte(data: *u8, index: u16) -> u8 {
     return *(data + index);
 }
 
-fn advance_index(i: u16) -> u16 {
+fun advance_index(i: u16) -> u16 {
     return i + 1;
 }
 
-fn xor_byte(a: u8, b: u8) -> u8 {
+fun xor_byte(a: u8, b: u8) -> u8 {
     return a ^ b;
 }
 
-fn xor_high_byte(crc: u16, byte: u8) -> u16 {
+fun xor_high_byte(crc: u16, byte: u8) -> u16 {
     return crc ^ (byte as u16 << 8);
 }
 
-fn has_msb_8(val: u8) -> bool {
+fun has_msb_8(val: u8) -> bool {
     return (val & 0x80) != 0;
 }
 
-fn has_msb_16(val: u16) -> bool {
+fun has_msb_16(val: u16) -> bool {
     return (val & 0x8000) != 0;
 }
 
-fn apply_polynomial_8(val: u8) -> u8 {
+fun apply_polynomial_8(val: u8) -> u8 {
     return (val << 1) ^ 0x07;
 }
 
-fn apply_polynomial_16(val: u16) -> u16 {
+fun apply_polynomial_16(val: u16) -> u16 {
     return (val << 1) ^ 0x1021;
 }
 
-fn shift_left_8(val: u8) -> u8 {
+fun shift_left_8(val: u8) -> u8 {
     return val << 1;
 }
 
-fn shift_left_16(val: u16) -> u16 {
+fun shift_left_16(val: u16) -> u16 {
     return val << 1;
 }
 
-fn inc_bit(b: u8) -> u8 {
+fun inc_bit(b: u8) -> u8 {
     return b + 1;
 }
 
@@ -128,7 +128,7 @@ export fn crc8_table_based(data: *u8, len: u16) -> u16 {
 }
 
 // Initialize CRC-8 lookup table
-fn init_crc8_table(table: *u8) -> void {
+fun init_crc8_table(table: *u8) -> void {
     let i: u16 = 0;
     
     while (i < 256) {
@@ -149,12 +149,12 @@ fn init_crc8_table(table: *u8) -> void {
     }
 }
 
-fn table_lookup(table: *u8, index: u8) -> u8 {
+fun table_lookup(table: *u8, index: u8) -> u8 {
     return *(table + index as u16);
 }
 
 // Generate test data patterns
-fn generate_test_data(data: *u8, pattern: u16, len: u16) -> void {
+fun generate_test_data(data: *u8, pattern: u16, len: u16) -> void {
     let i: u16 = 0;
     
     if (pattern == 0) {

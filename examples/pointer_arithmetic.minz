@@ -25,7 +25,7 @@ fun find_max(data: *u8, count: u8) -> u8 {
 }
 
 fun main() {
-    let numbers: [10]u8 = {1, 5, 3, 9, 2, 8, 4, 7, 6, 0};
+    let numbers: [u8; 10] = [1, 5, 3, 9, 2, 8, 4, 7, 6, 0];
     let total = array_sum(&numbers[0], 10);
     let maximum = find_max(&numbers[0], 10);
 }

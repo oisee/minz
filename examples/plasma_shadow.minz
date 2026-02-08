@@ -22,7 +22,7 @@ global sin_table: [u8; 256];
 
 // Initialize sine lookup table using triangle wave approximation
 // Output range: 0-7 for direct use as color values
-fn init_sine() -> void {
+fun init_sine() -> void {
     for i in 0..256 {
         // Quadrant detection
         let quadrant: u8 = (i >> 6) & 3;
@@ -50,7 +50,7 @@ fn init_sine() -> void {
 }
 
 // Clear both screens
-fn cls_all() -> void {
+fun cls_all() -> void {
     asm {
         ; Clear main screen bitmap
         LD HL, 0x4000
@@ -93,7 +93,7 @@ fn cls_all() -> void {
 }
 
 // Switch to shadow screen for rendering
-fn select_shadow_screen() -> void {
+fun select_shadow_screen() -> void {
     asm {
         LD A, 0x17         ; Bank 7 + screen 0 displayed
         LD BC, 0x7FFD
@@ -102,7 +102,7 @@ fn select_shadow_screen() -> void {
 }
 
 // Switch to main screen for rendering
-fn select_main_screen() -> void {
+fun select_main_screen() -> void {
     asm {
         LD A, 0x10         ; Bank 0 + screen 0 displayed
         LD BC, 0x7FFD
@@ -111,7 +111,7 @@ fn select_main_screen() -> void {
 }
 
 // Flip which screen is displayed
-fn flip_display() -> void {
+fun flip_display() -> void {
     if current_screen == 0 {
         // Show shadow screen
         asm {
@@ -132,7 +132,7 @@ fn flip_display() -> void {
 }
 
 // Write a byte to memory address
-fn poke(addr: u16, val: u8) -> void {
+fun poke(addr: u16, val: u8) -> void {
     asm {
         POP HL          ; return address
         POP DE          ; addr
@@ -144,7 +144,7 @@ fn poke(addr: u16, val: u8) -> void {
 }
 
 // Render plasma to the back buffer
-fn render_plasma() -> void {
+fun render_plasma() -> void {
     // Select back buffer based on current display
     if current_screen == 0 {
         select_shadow_screen();
@@ -186,7 +186,7 @@ fn render_plasma() -> void {
 }
 
 // Main entry point
-fn main() -> void {
+fun main() -> void {
     asm { DI }
 
     init_sine();

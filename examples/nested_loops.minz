@@ -20,9 +20,9 @@ fun multiply_matrices(result: *u8, mat1: *u8, mat2: *u8, size: u8) -> void {
 }
 
 fun main() {
-    let matrix1: [9]u8 = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    let matrix2: [9]u8 = {9, 8, 7, 6, 5, 4, 3, 2, 1};
-    let result: [9]u8;
+    let matrix1: [u8; 9] = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let matrix2: [u8; 9] = [9, 8, 7, 6, 5, 4, 3, 2, 1];
+    let result: [u8; 9];
     
     multiply_matrices(&result[0], &matrix1[0], &matrix2[0], 3);
 }

@@ -4,7 +4,7 @@ global g_sum: u16 = 0;
 global g_diff: u16 = 0;
 global g_product: u16 = 0;
 
-fn test_16bit_ops() -> void {
+fun test_16bit_ops() -> void {
     let a: u16 = 0x1234;
     let b: u16 = 0x5678;
     
@@ -27,6 +27,6 @@ fn test_16bit_ops() -> void {
     let shifted: u16 = a << 4;  // Should be 0x2340 (but truncated to 16-bit)
 }
 
-fn main() -> void {
+fun main() -> void {
     test_16bit_ops();
 }

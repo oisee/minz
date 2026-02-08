@@ -59,23 +59,23 @@ export fn strcmp_nocase(s1: *u8, s2: *u8) -> u16 {
 }
 
 // Helper functions optimized by TSMC
-fn is_printable(ch: u8) -> bool {
+fun is_printable(ch: u8) -> bool {
     return ch >= 32 && ch < 127;
 }
 
-fn increment_count(val: u16) -> u16 {
+fun increment_count(val: u16) -> u16 {
     return val + 1;
 }
 
-fn advance_pointer(ptr: *u8) -> *u8 {
+fun advance_pointer(ptr: *u8) -> *u8 {
     return ptr + 1;
 }
 
-fn next_char(ptr: *u8) -> *u8 {
+fun next_char(ptr: *u8) -> *u8 {
     return ptr + 1;
 }
 
-fn transform_char(ch: u8) -> u8 {
+fun transform_char(ch: u8) -> u8 {
     // Simple ROT13-style transformation
     if (ch >= 'A' as u8 && ch <= 'Z' as u8) {
         return ((ch - 'A' as u8 + 13) % 26) + 'A' as u8;
@@ -86,14 +86,14 @@ fn transform_char(ch: u8) -> u8 {
     return ch;
 }
 
-fn to_upper(ch: u8) -> u8 {
+fun to_upper(ch: u8) -> u8 {
     if (ch >= 'a' as u8 && ch <= 'z' as u8) {
         return ch - ('a' as u8 - 'A' as u8);
     }
     return ch;
 }
 
-fn calc_difference(a: u8, b: u8) -> u16 {
+fun calc_difference(a: u8, b: u8) -> u16 {
     if (a > b) {
         return (a - b) as u16;
     } else {

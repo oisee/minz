@@ -2,13 +2,13 @@
 // This file showcases functions that benefit significantly from TRUE SMC optimization
 
 // Function with immediate values that can be patched
-fn scale_value(x: u16, scale: u16) -> u16 {
+fun scale_value(x: u16, scale: u16) -> u16 {
     // With TSMC, the scale factor can be patched directly into the instruction
     return x * scale;
 }
 
 // Array processing with TSMC-optimizable bounds
-fn sum_array_slice(arr: *u16, start: u16, end: u16) -> u16 {
+fun sum_array_slice(arr: *u16, start: u16, end: u16) -> u16 {
     var sum: u16 = 0;
     var i: u16 = start;
     
@@ -22,7 +22,7 @@ fn sum_array_slice(arr: *u16, start: u16, end: u16) -> u16 {
 }
 
 // Conditional processing that benefits from TSMC
-fn threshold_count(arr: *u8, len: u16, threshold: u8) -> u16 {
+fun threshold_count(arr: *u8, len: u16, threshold: u8) -> u16 {
     var count: u16 = 0;
     var i: u16 = 0;
     
@@ -38,7 +38,7 @@ fn threshold_count(arr: *u8, len: u16, threshold: u8) -> u16 {
 }
 
 // Matrix-like operation (1D array treated as 2D)
-fn matrix_sum_row(matrix: *u16, width: u16, row: u16) -> u16 {
+fun matrix_sum_row(matrix: *u16, width: u16, row: u16) -> u16 {
     var sum: u16 = 0;
     var col: u16 = 0;
     var base: u16 = row * width;
@@ -53,14 +53,14 @@ fn matrix_sum_row(matrix: *u16, width: u16, row: u16) -> u16 {
 }
 
 // Polynomial evaluation - ideal for TSMC
-fn polynomial3(x: u16, a: u16, b: u16, c: u16, d: u16) -> u16 {
+fun polynomial3(x: u16, a: u16, b: u16, c: u16, d: u16) -> u16 {
     // Computes ax^3 + bx^2 + cx + d
     // TSMC can patch all coefficients directly
     return a * x * x * x + b * x * x + c * x + d;
 }
 
 // String processing with TSMC-optimizable patterns
-fn count_char(str: *u8, target: u8) -> u16 {
+fun count_char(str: *u8, target: u8) -> u16 {
     var count: u16 = 0;
     var i: u16 = 0;
     
@@ -76,7 +76,7 @@ fn count_char(str: *u8, target: u8) -> u16 {
 }
 
 // Bit manipulation function
-fn count_bits_in_range(start: u16, end: u16) -> u16 {
+fun count_bits_in_range(start: u16, end: u16) -> u16 {
     var count: u16 = 0;
     var num: u16 = start;
     
@@ -97,7 +97,7 @@ fn count_bits_in_range(start: u16, end: u16) -> u16 {
 }
 
 // Function that calls other functions (tests TSMC call optimization)
-fn process_data(data: *u16, len: u16, scale: u16, threshold: u16) -> u16 {
+fun process_data(data: *u16, len: u16, scale: u16, threshold: u16) -> u16 {
     var result: u16 = 0;
     var i: u16 = 0;
     
@@ -113,7 +113,7 @@ fn process_data(data: *u16, len: u16, scale: u16, threshold: u16) -> u16 {
 }
 
 // Main entry point for testing
-fn main() {
+fun main() {
     // Set up test data
     var test_array: [10]u16 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     var test_string: [14]u8 = "Hello, World!";

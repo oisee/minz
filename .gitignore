@@ -130,3 +130,6 @@ _zxspeculator/
 minzc/tests/parser_corpus/
 minzc/ast-gen
 minzc/ast-compare
+
+# ralphex progress logs
+progress*.txt

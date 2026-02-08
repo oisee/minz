@@ -36,11 +36,11 @@ export fn fib_iterative(n: u16) -> u16 {
 }
 
 // Helper functions that benefit from TSMC parameter patching
-fn add_values(x: u16, y: u16) -> u16 {
+fun add_values(x: u16, y: u16) -> u16 {
     return x + y;
 }
 
-fn increment(val: u16) -> u16 {
+fun increment(val: u16) -> u16 {
     return val + 1;
 }
 

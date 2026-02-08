@@ -8,7 +8,7 @@ enum MathError {
 }
 
 // Function that can fail - uses @error with enum value
-fun safe_divide?(a: u8, b: u8) -> u8 ? MathError {
+fun safe_divide?(a: u8, b: u8) -> u8 ! MathError {
     if b == 0 {
         @error(MathError.DivByZero);
     }
@@ -17,7 +17,7 @@ fun safe_divide?(a: u8, b: u8) -> u8 ? MathError {
 }
 
 // Function using manual asm for error (alternative approach)
-fun checked_add?(a: u8, b: u8) -> u8 ? MathError {
+fun checked_add?(a: u8, b: u8) -> u8 ! MathError {
     let result = a + b;
     // Check for overflow (if result < a, overflow occurred)
     if result < a {
