@@ -133,3 +133,4 @@ minzc/ast-compare
 
 # ralphex progress logs
 progress*.txt
+progress-*.txt
