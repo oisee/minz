@@ -893,7 +893,113 @@ func (c *Converter) convertPostfixExpr(p *PostfixExpr) ast.Expression {
 		}
 	}
 
+	// Check if result is an iterator chain and convert it
+	if chain := c.tryConvertIteratorChain(result); chain != nil {
+		return chain
+	}
+
 	return result
+}
+
+// isIteratorMethod checks if a method name is an iterator operation
+func isIteratorMethod(name string) bool {
+	switch name {
+	case "iter", "map", "filter", "forEach", "reduce", "collect",
+		"take", "skip", "zip", "enumerate", "flatMap", "takeWhile",
+		"skipWhile", "peek", "inspect", "sum", "count", "any", "all",
+		"find", "first", "last":
+		return true
+	}
+	return false
+}
+
+// getIteratorOpType converts method name to IteratorOpType
+func getIteratorOpType(name string) ast.IteratorOpType {
+	switch name {
+	case "map":
+		return ast.IterOpMap
+	case "filter":
+		return ast.IterOpFilter
+	case "forEach":
+		return ast.IterOpForEach
+	case "reduce":
+		return ast.IterOpReduce
+	case "collect":
+		return ast.IterOpCollect
+	case "take":
+		return ast.IterOpTake
+	case "skip":
+		return ast.IterOpSkip
+	case "zip":
+		return ast.IterOpZip
+	case "enumerate":
+		return ast.IterOpEnumerate
+	case "flatMap":
+		return ast.IterOpFlatMap
+	case "takeWhile":
+		return ast.IterOpTakeWhile
+	case "skipWhile":
+		return ast.IterOpSkipWhile
+	case "peek":
+		return ast.IterOpPeek
+	case "inspect":
+		return ast.IterOpInspect
+	default:
+		return ast.IterOpMap // default
+	}
+}
+
+// tryConvertIteratorChain checks if an expression is an iterator chain
+// and converts it to IteratorChainExpr if so
+func (c *Converter) tryConvertIteratorChain(expr ast.Expression) *ast.IteratorChainExpr {
+	// Collect the chain of method calls
+	var ops []ast.IteratorOp
+	current := expr
+
+	for {
+		callExpr, ok := current.(*ast.CallExpr)
+		if !ok {
+			break
+		}
+
+		fieldExpr, ok := callExpr.Function.(*ast.FieldExpr)
+		if !ok {
+			break
+		}
+
+		if !isIteratorMethod(fieldExpr.Field) {
+			break
+		}
+
+		// This is an iterator method call
+		var fn ast.Expression
+		if len(callExpr.Arguments) > 0 {
+			fn = callExpr.Arguments[0]
+		}
+
+		op := ast.IteratorOp{
+			Type:     getIteratorOpType(fieldExpr.Field),
+			Function: fn,
+			StartPos: callExpr.Pos(),
+			EndPos:   callExpr.End(),
+		}
+
+		// Prepend to maintain order (we're walking backwards)
+		ops = append([]ast.IteratorOp{op}, ops...)
+		current = fieldExpr.Object
+	}
+
+	// If we found at least one iterator operation, create the chain
+	if len(ops) > 0 {
+		return &ast.IteratorChainExpr{
+			Source:     current,
+			Operations: ops,
+			StartPos:   current.Pos(),
+			EndPos:     expr.End(),
+		}
+	}
+
+	return nil
 }
 
 func (c *Converter) convertPrimaryExpr(p *PrimaryExpr) ast.Expression {
