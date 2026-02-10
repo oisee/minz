@@ -308,9 +308,19 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	// Write header
 	g.writeHeader()
 
-	// Generate code section FIRST (so binary starts with code at $8000)
+	// Generate code section FIRST (so binary starts at the appropriate address)
 	g.emit("\n; Code section")
-	g.emit("    ORG $8000")
+	// Set ORG based on target platform
+	switch g.targetPlatform {
+	case "cpm":
+		g.emit("    ORG $0100  ; CP/M TPA starts at 0x0100")
+	case "agon", "mos":
+		// Agon MOS loads .bin files at 0x040000 (24-bit eZ80 address)
+		// For Z80-compatible assemblers, use 0x0000 - the loader handles relocation
+		g.emit("    ORG $0000  ; Agon MOS (loader relocates to 0x040000)")
+	default:
+		g.emit("    ORG $8000")
+	}
 	g.emit("")
 
 	// Generate main function FIRST (so entry point is at $8000, no JP needed)

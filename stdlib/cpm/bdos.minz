@@ -81,12 +81,20 @@ pub fun bdos_raw16(func: u8, param: u16) -> u16 {
 
 // Read a character from console (waits for input)
 pub fun getchar() -> u8 {
-    return bdos_raw(BDOS_CONSOLE_INPUT, 0);
+    asm {
+        LD C, 1         ; C = BDOS function 1 (console input)
+        CALL 0x0005     ; Call BDOS, returns char in A
+    }
 }
 
 // Write a character to console
 pub fun putchar(ch: u8) -> void {
-    bdos_raw(BDOS_CONSOLE_OUTPUT, ch as u16);
+    asm {
+        ; ch is in A (MinZ calling convention)
+        LD E, A         ; E = character to output
+        LD C, 2         ; C = BDOS function 2 (console output)
+        CALL 0x0005     ; Call BDOS
+    }
 }
 
 // Check if a key is available (non-blocking)

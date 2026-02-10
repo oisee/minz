@@ -15,19 +15,22 @@ type RemogattoZ80 struct {
 	cpu      *z80.Z80
 	memory   *Memory
 	ports    *Ports
-	
+
 	// State tracking
 	cycles   int
 	halted   bool
 	exitCode uint16
-	
+
 	// Exit conditions
 	exitOnRST38 bool
 	exitOnRET0  bool
 	exitOnDIHalt bool
-	
+
 	// Output capture
 	output []byte
+
+	// BDOS handler for CP/M emulation
+	bdosHandler func(function byte, de uint16) (a byte, hl uint16, handled bool)
 }
 
 // Memory implements z80.MemoryAccessor interface
@@ -178,10 +181,29 @@ func (z *RemogattoZ80) Run() error {
 		if z.halted {
 			return nil
 		}
-		
+
 		// Get current PC for exit detection
 		pc := z.cpu.PC()
-		
+
+		// CP/M BDOS intercept at 0x0005
+		if pc == 0x0005 && z.bdosHandler != nil {
+			function := z.cpu.C
+			de := z.cpu.DE()
+			a, hl, handled := z.bdosHandler(function, de)
+			if handled {
+				z.cpu.A = a
+				z.cpu.H = byte(hl >> 8)
+				z.cpu.L = byte(hl & 0xFF)
+				// Simulate RET - pop return address from stack
+				sp := z.cpu.SP()
+				retLo := z.memory.ReadByte(sp)
+				retHi := z.memory.ReadByte(sp + 1)
+				z.cpu.SetSP(sp + 2)
+				z.cpu.SetPC(uint16(retHi)<<8 | uint16(retLo))
+				continue
+			}
+		}
+
 		// Execute one instruction
 		z.cpu.DoOpcode()
 		z.cycles += int(z.cpu.Tstates)
@@ -303,6 +325,11 @@ func (z *RemogattoZ80) SetSMCTracker(tracker func(addr uint16, oldVal, newVal by
 func (z *RemogattoZ80) SetIOHandlers(read func(port uint16) byte, write func(port uint16, value byte)) {
 	z.ports.ioRead = read
 	z.ports.ioWrite = write
+}
+
+// SetBDOSHandler sets the CP/M BDOS handler for intercepting CALL 0x0005
+func (z *RemogattoZ80) SetBDOSHandler(handler func(function byte, de uint16) (a byte, hl uint16, handled bool)) {
+	z.bdosHandler = handler
 }
 
 // DumpState returns a string representation of CPU state

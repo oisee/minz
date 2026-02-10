@@ -1,87 +1,90 @@
-// CP/M Hello World Example
-// Demonstrates basic CP/M BDOS console I/O
-//
-// To compile: minzc cpm_hello.minz -o hello.com
-// To run: Load in CP/M and type HELLO
-
-import cpm.bdos;
+// CP/M Hello World - Minimal Version
+// Uses direct assembly for guaranteed correctness
 
 fun main() -> void {
-    // Print hello message
-    bdos.putchar('H');
-    bdos.putchar('e');
-    bdos.putchar('l');
-    bdos.putchar('l');
-    bdos.putchar('o');
-    bdos.putchar(',');
-    bdos.putchar(' ');
-    bdos.putchar('C');
-    bdos.putchar('P');
-    bdos.putchar('/');
-    bdos.putchar('M');
-    bdos.putchar('!');
-    bdos.newline();
+    // Print "Hi!" followed by newline
+    asm {
+        ; Print 'H'
+        LD E, 'H'
+        LD C, 2
+        CALL 5
 
-    // Show current drive
-    let drive = bdos.get_drive();
-    bdos.putchar('D');
-    bdos.putchar('r');
-    bdos.putchar('i');
-    bdos.putchar('v');
-    bdos.putchar('e');
-    bdos.putchar(':');
-    bdos.putchar(' ');
-    bdos.putchar(65 + drive);  // 'A' + drive number
-    bdos.newline();
+        ; Print 'i'
+        LD E, 'i'
+        LD C, 2
+        CALL 5
 
-    // Show CP/M version
-    let ver = bdos.get_version();
-    let major = (ver >> 4) & 0x0F;
-    let minor = ver & 0x0F;
-    bdos.putchar('C');
-    bdos.putchar('P');
-    bdos.putchar('/');
-    bdos.putchar('M');
-    bdos.putchar(' ');
-    bdos.putchar(48 + major as u8);  // '0' + major
-    bdos.putchar('.');
-    bdos.putchar(48 + minor as u8);  // '0' + minor
-    bdos.newline();
+        ; Print '!'
+        LD E, '!'
+        LD C, 2
+        CALL 5
 
-    // Wait for keypress
-    bdos.putchar('P');
-    bdos.putchar('r');
-    bdos.putchar('e');
-    bdos.putchar('s');
-    bdos.putchar('s');
-    bdos.putchar(' ');
-    bdos.putchar('a');
-    bdos.putchar('n');
-    bdos.putchar('y');
-    bdos.putchar(' ');
-    bdos.putchar('k');
-    bdos.putchar('e');
-    bdos.putchar('y');
-    bdos.putchar('.');
-    bdos.putchar('.');
-    bdos.putchar('.');
+        ; Print CR
+        LD E, 13
+        LD C, 2
+        CALL 5
 
-    let ch = bdos.getchar();
-    bdos.newline();
+        ; Print LF
+        LD E, 10
+        LD C, 2
+        CALL 5
 
-    bdos.putchar('Y');
-    bdos.putchar('o');
-    bdos.putchar('u');
-    bdos.putchar(' ');
-    bdos.putchar('p');
-    bdos.putchar('r');
-    bdos.putchar('e');
-    bdos.putchar('s');
-    bdos.putchar('s');
-    bdos.putchar('e');
-    bdos.putchar('d');
-    bdos.putchar(':');
-    bdos.putchar(' ');
-    bdos.putchar(ch);
-    bdos.newline();
+        ; Print "Press key..."
+        LD E, 'P'
+        LD C, 2
+        CALL 5
+        LD E, 'r'
+        LD C, 2
+        CALL 5
+        LD E, 'e'
+        LD C, 2
+        CALL 5
+        LD E, 's'
+        LD C, 2
+        CALL 5
+        LD E, 's'
+        LD C, 2
+        CALL 5
+        LD E, ' '
+        LD C, 2
+        CALL 5
+        LD E, 'k'
+        LD C, 2
+        CALL 5
+        LD E, 'e'
+        LD C, 2
+        CALL 5
+        LD E, 'y'
+        LD C, 2
+        CALL 5
+        LD E, '.'
+        LD C, 2
+        CALL 5
+        LD E, '.'
+        LD C, 2
+        CALL 5
+        LD E, '.'
+        LD C, 2
+        CALL 5
+
+        ; Wait for key
+        LD C, 1
+        CALL 5
+        ; Key is now in A
+
+        ; Print newline
+        PUSH AF     ; Save key
+        LD E, 13
+        LD C, 2
+        CALL 5
+        LD E, 10
+        LD C, 2
+        CALL 5
+        POP AF      ; Restore key
+
+        ; Print the key
+        LD E, A
+        LD C, 2
+        CALL 5
+    }
 }

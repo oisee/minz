@@ -78,7 +78,42 @@ SUPPORTED PLATFORMS (-t/--target):
 
 		// Create Z80 emulator with 100% coverage
 		z80 := emulator.NewRemogattoZ80WithScreen()
-		
+
+		// Set up CP/M BDOS handler if target is cpm
+		if target == "cpm" {
+			z80.SetBDOSHandler(func(function byte, de uint16) (a byte, hl uint16, handled bool) {
+				if verbose {
+					fmt.Printf("[BDOS %02X DE=%04X] ", function, de)
+				}
+				switch function {
+				case 0x01: // Console input
+					return '\n', 0, true
+				case 0x02: // Console output
+					fmt.Printf("%c", byte(de&0xFF))
+					return 0, 0, true
+				case 0x09: // Print string ($-terminated)
+					addr := de
+					for {
+						ch := z80.ReadMemory(addr)
+						if ch == '$' {
+							break
+						}
+						fmt.Printf("%c", ch)
+						addr++
+					}
+					return 0, 0, true
+				case 0x0B: // Console status
+					return 0, 0, true
+				case 0x0C: // Get version
+					return 0x22, 0x0022, true // CP/M 2.2
+				case 0x19: // Get current disk
+					return 0, 0, true // A:
+				default:
+					return 0, 0, true // Unhandled - just return
+				}
+			})
+		}
+
 		// Load binary into memory at specified address
 		z80.LoadAt(loadAddress, binary)
 		z80.SetPC(startAddress)
