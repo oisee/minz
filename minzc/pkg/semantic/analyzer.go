@@ -190,7 +190,7 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 				a.errors = append(a.errors, err)
 			}
 		case *ast.ExpressionDecl:
-			// Process top-level @minz expressions to generate code
+			// Process top-level metafunction calls
 			switch expr := d.Expression.(type) {
 			case *ast.CompileTimeMinz:
 				if _, err := a.analyzeMinzExpr(expr, nil); err != nil {
@@ -198,6 +198,11 @@ func (a *Analyzer) Analyze(file *ast.File) (*ir.Module, error) {
 				}
 			case *ast.MinzMetafunctionCall:
 				if _, err := a.analyzeMinzMetafunctionCall(expr, nil); err != nil {
+					a.errors = append(a.errors, err)
+				}
+			case *ast.MetafunctionCall:
+				// Handle top-level metafunctions like @static_assert
+				if err := a.analyzeTopLevelMetafunction(expr); err != nil {
 					a.errors = append(a.errors, err)
 				}
 			}
@@ -1320,6 +1325,19 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 // registerFunctionSignature registers a function's signature in the symbol table
 // This is called in the first pass to allow forward references
 func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
+	// Process @extern attribute - set IsExtern and ExternAddress from attribute
+	for _, attr := range fn.Attributes {
+		if attr.Name == "extern" {
+			fn.IsExtern = true
+			if len(attr.Arguments) > 0 {
+				fn.ExternAddress = attr.Arguments[0]
+			}
+		}
+		if attr.Name == "norst" {
+			fn.NoRST = true
+		}
+	}
+
 	// Track the registration scope - this is where we'll define the function symbol
 	registrationScope := a.currentScope
 
@@ -1441,6 +1459,19 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 
 // analyzeFunctionDecl analyzes a function declaration
 func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
+	// Process @extern attribute - set IsExtern and ExternAddress from attribute
+	for _, attr := range fn.Attributes {
+		if attr.Name == "extern" {
+			fn.IsExtern = true
+			if len(attr.Arguments) > 0 {
+				fn.ExternAddress = attr.Arguments[0]
+			}
+		}
+		if attr.Name == "norst" {
+			fn.NoRST = true
+		}
+	}
+
 	// Skip generic functions during regular analysis - they are templates
 	// that get instantiated when called with concrete types
 	if len(fn.GenericParams) > 0 {
@@ -1478,7 +1509,12 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	if err := a.processAbiAttributes(fn, irFunc); err != nil {
 		return fmt.Errorf("error processing @abi attributes for %s: %v", fn.Name, err)
 	}
-	
+
+	// Process @mode attributes (eZ80 CPU mode: adl or z80)
+	if err := a.processModeAttributes(fn, irFunc); err != nil {
+		return fmt.Errorf("error processing @mode attributes for %s: %v", fn.Name, err)
+	}
+
 	// Default to SMC unless overridden by attributes
 	if irFunc.CallingConvention == "" {
 		irFunc.IsSMCDefault = true
@@ -1528,15 +1564,21 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 			return fmt.Errorf("invalid parameter type for %s: %w", param.Name, err)
 		}
 
-		reg := irFunc.AddParam(param.Name, paramType)
-		
+		// Use AddParamWithRegister if a register mapping is specified
+		var reg ir.Register
+		if param.Register != "" {
+			reg = irFunc.AddParamWithRegister(param.Name, paramType, param.Register)
+		} else {
+			reg = irFunc.AddParam(param.Name, paramType)
+		}
+
 		// Handle 'self' parameter specially - it's always the receiver
 		paramName := param.Name
 		if paramName == "self" {
 			// 'self' is a valid parameter name for methods
 			// It represents the receiver of the method
 		}
-		
+
 		a.currentScope.Define(paramName, &VarSymbol{
 			Name:        paramName,
 			Type:        paramType,
@@ -1544,6 +1586,11 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 			IsParameter: true,
 			IsMutable:   true, // Parameters are mutable for TSMC references
 		})
+	}
+
+	// Propagate CPU mode from AST if set (complements @mode attribute processing)
+	if fn.CPUMode != "" && irFunc.CPUMode == "" {
+		irFunc.CPUMode = string(fn.CPUMode)
 	}
 
 	// Handle extern functions - no body to analyze
@@ -4052,6 +4099,18 @@ func (a *Analyzer) getTypeSize(t ir.Type) int {
 		return a.getTypeSize(typ.Element) * typ.Length
 	case *ir.PointerType:
 		return 2 // Pointers are 16-bit on Z80
+	case *ir.StructType:
+		// Calculate struct size by summing field sizes
+		size := 0
+		for _, fieldName := range typ.FieldOrder {
+			if fieldType, ok := typ.Fields[fieldName]; ok {
+				size += a.getTypeSize(fieldType)
+			}
+		}
+		return size
+	case *ir.BitStructType:
+		// Bit structs have the size of their underlying type
+		return a.getTypeSize(typ.UnderlyingType)
 	default:
 		return 1 // Default fallback
 	}
@@ -6964,6 +7023,159 @@ func (a *Analyzer) isTruthy(value interface{}) bool {
 	}
 }
 
+// evaluateCompileTimeCondition evaluates a condition expression at compile time
+// Supports @sizeof, @target, comparisons, and boolean operations
+func (a *Analyzer) evaluateCompileTimeCondition(expr ast.Expression) (bool, error) {
+	value, err := a.evaluateCompileTimeExpression(expr)
+	if err != nil {
+		return false, err
+	}
+	return a.isTruthy(value), nil
+}
+
+// evaluateCompileTimeExpression evaluates an expression at compile time
+// Extended version that handles metafunction calls
+func (a *Analyzer) evaluateCompileTimeExpression(expr ast.Expression) (interface{}, error) {
+	switch e := expr.(type) {
+	case *ast.NumberLiteral:
+		return e.Value, nil
+	case *ast.BooleanLiteral:
+		return e.Value, nil
+	case *ast.StringLiteral:
+		return e.Value, nil
+	case *ast.Identifier:
+		// Check for basic type names (for @sizeof comparison)
+		switch e.Name {
+		case "u8", "i8", "bool":
+			return int64(1), nil
+		case "u16", "i16":
+			return int64(2), nil
+		case "u24", "i24":
+			return int64(3), nil
+		case "u32", "i32":
+			return int64(4), nil
+		}
+		// Look up constant identifiers
+		sym := a.currentScope.Lookup(e.Name)
+		if sym == nil {
+			return nil, fmt.Errorf("undefined identifier: %s", e.Name)
+		}
+		if constSym, ok := sym.(*ConstSymbol); ok {
+			return constSym.Value, nil
+		}
+		return nil, fmt.Errorf("identifier %s is not a compile-time constant", e.Name)
+
+	case *ast.MetafunctionCall:
+		// Handle compile-time metafunctions
+		switch e.Name {
+		case "sizeof":
+			if len(e.Arguments) != 1 {
+				return nil, fmt.Errorf("@sizeof requires exactly one argument")
+			}
+			// Get type name
+			if id, ok := e.Arguments[0].(*ast.Identifier); ok {
+				typeName := id.Name
+				switch typeName {
+				case "u8", "i8", "bool":
+					return int64(1), nil
+				case "u16", "i16":
+					return int64(2), nil
+				case "u24", "i24":
+					return int64(3), nil
+				case "u32", "i32":
+					return int64(4), nil
+				default:
+					// Look up struct type
+					if sym := a.currentScope.Lookup(typeName); sym != nil {
+						if typeSym, ok := sym.(*TypeSymbol); ok {
+							return int64(a.getTypeSize(typeSym.Type)), nil
+						}
+					}
+					return nil, fmt.Errorf("@sizeof: unknown type %s", typeName)
+				}
+			}
+			return nil, fmt.Errorf("@sizeof requires a type name")
+
+		case "target":
+			targetName := a.targetPlatform
+			if targetName == "" {
+				targetName = "zxspectrum"
+			}
+			return targetName, nil
+
+		default:
+			return nil, fmt.Errorf("metafunction @%s cannot be evaluated at compile time", e.Name)
+		}
+
+	case *ast.BinaryExpr:
+		left, err := a.evaluateCompileTimeExpression(e.Left)
+		if err != nil {
+			return nil, err
+		}
+		right, err := a.evaluateCompileTimeExpression(e.Right)
+		if err != nil {
+			return nil, err
+		}
+		return a.evaluateConstantBinaryOp(left, e.Operator, right)
+
+	case *ast.UnaryExpr:
+		operand, err := a.evaluateCompileTimeExpression(e.Operand)
+		if err != nil {
+			return nil, err
+		}
+		return a.evaluateConstantUnaryOp(e.Operator, operand)
+
+	default:
+		return nil, fmt.Errorf("expression of type %T cannot be evaluated at compile time", expr)
+	}
+}
+
+// analyzeTopLevelMetafunction handles top-level metafunction calls like @static_assert
+func (a *Analyzer) analyzeTopLevelMetafunction(call *ast.MetafunctionCall) error {
+	switch call.Name {
+	case "static_assert":
+		// Handle @static_assert(condition, "error message")
+		if len(call.Arguments) < 1 || len(call.Arguments) > 2 {
+			return fmt.Errorf("@static_assert requires 1 or 2 arguments: condition [, message]")
+		}
+
+		// Evaluate the condition at compile time
+		conditionValue, err := a.evaluateCompileTimeCondition(call.Arguments[0])
+		if err != nil {
+			return fmt.Errorf("@static_assert: cannot evaluate condition at compile time: %w", err)
+		}
+
+		// If condition is false, emit compile error
+		if !conditionValue {
+			errorMsg := "static assertion failed"
+			if len(call.Arguments) == 2 {
+				if strLit, ok := call.Arguments[1].(*ast.StringLiteral); ok {
+					errorMsg = strLit.Value
+				}
+			}
+			return fmt.Errorf("@static_assert failed: %s", errorMsg)
+		}
+		return nil // Assertion passed
+
+	case "comptime_error":
+		// Handle @comptime_error("message") - always fails compilation
+		if len(call.Arguments) != 1 {
+			return fmt.Errorf("@comptime_error requires exactly one argument (message)")
+		}
+
+		errorMsg := "compile-time error"
+		if strLit, ok := call.Arguments[0].(*ast.StringLiteral); ok {
+			errorMsg = strLit.Value
+		}
+		return fmt.Errorf("@comptime_error: %s", errorMsg)
+
+	default:
+		// Unknown top-level metafunction - ignore for now
+		// (might be processed later in compilation)
+		return nil
+	}
+}
+
 // analyzeMetafunctionCall analyzes general @metafunction(...) calls
 func (a *Analyzer) analyzeMetafunctionCall(call *ast.MetafunctionCall, irFunc *ir.Function) (ir.Register, error) {
 	// Create metafunction processor if not already created
@@ -6977,9 +7189,11 @@ func (a *Analyzer) analyzeMetafunctionCall(call *ast.MetafunctionCall, irFunc *i
 		}
 	}
 	
-	// For @to_string, we handle arguments specially
+	// Some metafunctions handle their arguments specially (types, no args, etc.)
 	var analyzedArgs []ir.Register
-	if call.Name != "to_string" {
+	skipArgAnalysis := call.Name == "to_string" || call.Name == "sizeof" || call.Name == "target" ||
+		call.Name == "static_assert" || call.Name == "comptime_error"
+	if !skipArgAnalysis {
 		// Analyze arguments normally
 		for _, arg := range call.Arguments {
 			reg, err := a.analyzeExpression(arg, irFunc)
@@ -7020,6 +7234,129 @@ func (a *Analyzer) analyzeMetafunctionCall(call *ast.MetafunctionCall, irFunc *i
 	
 	// Handle built-in metafunctions
 	switch call.Name {
+	case "sizeof":
+		// Handle @sizeof(Type) - returns the size of a type in bytes at compile time
+		if len(call.Arguments) != 1 {
+			return 0, fmt.Errorf("@sizeof requires exactly one argument (type)")
+		}
+
+		// The argument should be a type identifier
+		var typeSize int
+		switch arg := call.Arguments[0].(type) {
+		case *ast.Identifier:
+			// Look up the type by name
+			typeName := arg.Name
+			switch typeName {
+			case "u8", "i8", "bool":
+				typeSize = 1
+			case "u16", "i16":
+				typeSize = 2
+			case "u24", "i24":
+				typeSize = 3
+			case "u32", "i32":
+				typeSize = 4
+			default:
+				// Try to look up as a struct type
+				if sym := a.currentScope.Lookup(typeName); sym != nil {
+					if typeSym, ok := sym.(*TypeSymbol); ok {
+						typeSize = a.getTypeSize(typeSym.Type)
+					} else {
+						return 0, fmt.Errorf("@sizeof: %s is not a type", typeName)
+					}
+				} else {
+					return 0, fmt.Errorf("@sizeof: unknown type %s", typeName)
+				}
+			}
+		default:
+			return 0, fmt.Errorf("@sizeof requires a type name as argument")
+		}
+
+		// Return the size as a compile-time constant
+		resultReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpLoadImm,
+			Dest:    resultReg,
+			Imm:     int64(typeSize),
+			Type:    &ir.BasicType{Kind: ir.TypeU16},
+			Comment: fmt.Sprintf("@sizeof = %d bytes", typeSize),
+		})
+
+		// Store the type
+		a.exprTypes[call] = &ir.BasicType{Kind: ir.TypeU16}
+
+		return resultReg, nil
+
+	case "target":
+		// Handle @target() - returns the current target platform as a string
+		if len(call.Arguments) != 0 {
+			return 0, fmt.Errorf("@target() takes no arguments")
+		}
+
+		// Create a string constant with the target platform
+		targetName := a.targetPlatform
+		if targetName == "" {
+			targetName = "zxspectrum" // Default
+		}
+
+		// Create string literal and add to module
+		stringLabel := fmt.Sprintf("target_str_%d", len(a.module.Strings))
+		a.module.Strings = append(a.module.Strings, &ir.String{
+			Label: stringLabel,
+			Value: targetName,
+		})
+
+		// Allocate register and load string address
+		resultReg := irFunc.AllocReg()
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpLoadString,
+			Dest:    resultReg,
+			Symbol:  stringLabel,
+			Comment: fmt.Sprintf("@target() = \"%s\"", targetName),
+		})
+
+		// Set type as string pointer
+		a.exprTypes[call] = &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}
+
+		return resultReg, nil
+
+	case "static_assert":
+		// Handle @static_assert(condition, "error message") - compile-time assertion
+		if len(call.Arguments) < 1 || len(call.Arguments) > 2 {
+			return 0, fmt.Errorf("@static_assert requires 1 or 2 arguments: condition [, message]")
+		}
+
+		// Evaluate the condition at compile time
+		conditionValue, err := a.evaluateCompileTimeCondition(call.Arguments[0])
+		if err != nil {
+			return 0, fmt.Errorf("@static_assert: cannot evaluate condition at compile time: %w", err)
+		}
+
+		// If condition is false, emit compile error
+		if !conditionValue {
+			errorMsg := "static assertion failed"
+			if len(call.Arguments) == 2 {
+				if strLit, ok := call.Arguments[1].(*ast.StringLiteral); ok {
+					errorMsg = strLit.Value
+				}
+			}
+			return 0, fmt.Errorf("@static_assert failed: %s", errorMsg)
+		}
+
+		// Assertion passed - no code generated
+		return 0, nil
+
+	case "comptime_error":
+		// Handle @comptime_error("message") - always fails compilation
+		if len(call.Arguments) != 1 {
+			return 0, fmt.Errorf("@comptime_error requires exactly one argument (message)")
+		}
+
+		errorMsg := "compile-time error"
+		if strLit, ok := call.Arguments[0].(*ast.StringLiteral); ok {
+			errorMsg = strLit.Value
+		}
+		return 0, fmt.Errorf("@comptime_error: %s", errorMsg)
+
 	case "ptr":
 		// Handle @ptr(variable) - get the address of a variable
 		if len(call.Arguments) != 1 {
@@ -8721,15 +9058,33 @@ func (a *Analyzer) inferType(expr ast.Expression) (ir.Type, error) {
 	case *ast.MetafunctionCall:
 		// Handle type inference for metafunction calls
 		switch e.Name {
+		case "sizeof":
+			// @sizeof(Type) returns u16 (size in bytes)
+			return &ir.BasicType{Kind: ir.TypeU16}, nil
+		case "target":
+			// @target() returns a string pointer
+			return &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, nil
 		case "to_string":
 			// @to_string always returns a string pointer (str type)
 			return &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, nil
-		case "print":
+		case "print", "println":
 			// @print returns void
 			return &ir.BasicType{Kind: ir.TypeVoid}, nil
 		case "error":
 			// @error doesn't return (never type) - but for type inference, use void
 			return &ir.BasicType{Kind: ir.TypeVoid}, nil
+		case "ptr":
+			// @ptr(var) returns a pointer to the variable's type
+			if len(e.Arguments) == 1 {
+				if id, ok := e.Arguments[0].(*ast.Identifier); ok {
+					if sym := a.currentScope.Lookup(id.Name); sym != nil {
+						if varSym, ok := sym.(*VarSymbol); ok {
+							return &ir.PointerType{Base: varSym.Type}, nil
+						}
+					}
+				}
+			}
+			return &ir.PointerType{Base: &ir.BasicType{Kind: ir.TypeU8}}, nil
 		default:
 			// For other metafunctions, try to evaluate them to determine the type
 			// For now, default to void
@@ -8871,6 +9226,36 @@ func (a *Analyzer) processAbiAttribute(attr *ast.Attribute, irFunc *ir.Function)
 		irFunc.CallingConvention = "naked"
 		irFunc.IsSMCDefault = false
 		irFunc.IsSMCEnabled = false
+	case "ez80_adl":
+		// eZ80 ADL mode: 24-bit stack-based calling convention
+		irFunc.CallingConvention = "ez80_adl"
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
+		if irFunc.Metadata == nil {
+			irFunc.Metadata = make(map[string]string)
+		}
+		irFunc.Metadata["cpu_mode"] = "adl"
+		irFunc.Metadata["address_size"] = "24"
+	case "ez80_z80":
+		// eZ80 in Z80 mode: 16-bit compatible calling convention
+		irFunc.CallingConvention = "ez80_z80"
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
+		if irFunc.Metadata == nil {
+			irFunc.Metadata = make(map[string]string)
+		}
+		irFunc.Metadata["cpu_mode"] = "z80"
+		irFunc.Metadata["address_size"] = "16"
+	case "mos":
+		// Agon MOS API: ADL mode, RST-based calls
+		irFunc.CallingConvention = "mos"
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
+		if irFunc.Metadata == nil {
+			irFunc.Metadata = make(map[string]string)
+		}
+		irFunc.Metadata["cpu_mode"] = "adl"
+		irFunc.Metadata["target_mode"] = "adl" // MOS always runs in ADL
 	default:
 		// Handle complex register mappings like "register: A=x, HL=ptr"
 		if strings.HasPrefix(value, "register:") {
@@ -8887,6 +9272,55 @@ func (a *Analyzer) processAbiAttribute(attr *ast.Attribute, irFunc *ir.Function)
 		} else {
 			return fmt.Errorf("unsupported @abi value: %s", value)
 		}
+	}
+	return nil
+}
+
+// processModeAttributes processes @mode attributes on function declarations
+func (a *Analyzer) processModeAttributes(fn *ast.FunctionDecl, irFunc *ir.Function) error {
+	for _, attr := range fn.Attributes {
+		if attr.Name == "mode" {
+			if err := a.processModeAttribute(attr, irFunc); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// processModeAttribute processes a single @mode attribute
+// This specifies the CPU execution mode for eZ80 functions
+func (a *Analyzer) processModeAttribute(attr *ast.Attribute, irFunc *ir.Function) error {
+	var value string
+	if len(attr.Arguments) > 0 {
+		if strLit, ok := attr.Arguments[0].(*ast.StringLiteral); ok {
+			value = strLit.Value
+		} else {
+			return fmt.Errorf("@mode attribute expects a string argument")
+		}
+	} else {
+		return fmt.Errorf("@mode attribute requires an argument")
+	}
+
+	switch value {
+	case "adl":
+		// ADL mode: 24-bit native eZ80 mode
+		irFunc.CPUMode = "adl"
+		if irFunc.Metadata == nil {
+			irFunc.Metadata = make(map[string]string)
+		}
+		irFunc.Metadata["cpu_mode"] = "adl"
+		irFunc.Metadata["address_size"] = "24"
+	case "z80":
+		// Z80 mode: 16-bit compatible mode on eZ80
+		irFunc.CPUMode = "z80"
+		if irFunc.Metadata == nil {
+			irFunc.Metadata = make(map[string]string)
+		}
+		irFunc.Metadata["cpu_mode"] = "z80"
+		irFunc.Metadata["address_size"] = "16"
+	default:
+		return fmt.Errorf("unsupported @mode value: %s (expected 'adl' or 'z80')", value)
 	}
 	return nil
 }
@@ -10441,7 +10875,12 @@ func (a *Analyzer) analyzeLocalFunctionDecl(fn *ast.FunctionDecl, parentFunc *ir
 	if err := a.processAbiAttributes(fn, localIRFunc); err != nil {
 		return fmt.Errorf("error processing @abi attributes for local function %s: %v", fn.Name, err)
 	}
-	
+
+	// Process @mode attributes (eZ80 CPU mode)
+	if err := a.processModeAttributes(fn, localIRFunc); err != nil {
+		return fmt.Errorf("error processing @mode attributes for local function %s: %v", fn.Name, err)
+	}
+
 	// Enable SMC by default for local functions too
 	if localIRFunc.CallingConvention == "" {
 		localIRFunc.IsSMCDefault = true

@@ -1,0 +1,605 @@
+// MOS (Machine Operating System) API for Agon Light 2
+// Agon Light 2: eZ80 CPU at 18.432 MHz, 512KB RAM
+// ESP32 coprocessor handles VDP (Video Display Processor)
+//
+// MOS API accessed via RST instructions:
+//   RST 0x00 - System call (A = function number)
+//   RST 0x08 - Get sysvars pointer (returns in IY)
+//   RST 0x10 - Output character (A = char)
+//   RST 0x18 - Print string (HL = pointer to null-terminated string)
+//   RST 0x20 - Edit line input
+//
+// Reference: https://github.com/breakintoprogram/agon-mos
+
+// =============================================================================
+// MOS Function Numbers (for RST 0x00 with function in A)
+// =============================================================================
+
+const MOS_GETKEY: u8 = 0x00;        // Get keyboard key (blocking)
+const MOS_LOAD: u8 = 0x01;          // Load file to memory
+const MOS_SAVE: u8 = 0x02;          // Save memory to file
+const MOS_CD: u8 = 0x03;            // Change directory
+const MOS_DIR: u8 = 0x04;           // List directory
+const MOS_DEL: u8 = 0x05;           // Delete file
+const MOS_REN: u8 = 0x06;           // Rename file
+const MOS_MKDIR: u8 = 0x07;         // Make directory
+const MOS_SYSVARS: u8 = 0x08;       // Get system variables pointer
+const MOS_EDITLINE: u8 = 0x09;      // Edit line (line input with editing)
+const MOS_FOPEN: u8 = 0x0A;         // Open file
+const MOS_FCLOSE: u8 = 0x0B;        // Close file
+const MOS_FGETC: u8 = 0x0C;         // Get character from file
+const MOS_FPUTC: u8 = 0x0D;         // Put character to file
+const MOS_FEOF: u8 = 0x0E;          // Check end of file
+const MOS_GETERROR: u8 = 0x0F;      // Get last error code
+const MOS_OSCLI: u8 = 0x10;         // Execute CLI command
+const MOS_COPY: u8 = 0x11;          // Copy file
+const MOS_GETRTC: u8 = 0x12;        // Get RTC time
+const MOS_SETRTC: u8 = 0x13;        // Set RTC time
+const MOS_SETINTVECTOR: u8 = 0x14;  // Set interrupt vector
+const MOS_UOPEN: u8 = 0x15;         // Open UART
+const MOS_UCLOSE: u8 = 0x16;        // Close UART
+const MOS_UGETC: u8 = 0x17;         // Get char from UART
+const MOS_UPUTC: u8 = 0x18;         // Put char to UART
+const MOS_GETFIL: u8 = 0x19;        // Get file info (FIL structure)
+const MOS_FREAD: u8 = 0x1A;         // Read from file
+const MOS_FWRITE: u8 = 0x1B;        // Write to file
+const MOS_FLSEEK: u8 = 0x1C;        // Seek in file
+
+// File open modes
+const FA_READ: u8 = 0x01;           // Read access
+const FA_WRITE: u8 = 0x02;          // Write access
+const FA_CREATE_NEW: u8 = 0x04;     // Create new file (fail if exists)
+const FA_CREATE_ALWAYS: u8 = 0x08;  // Create new file (overwrite if exists)
+const FA_OPEN_ALWAYS: u8 = 0x10;    // Open file (create if not exists)
+const FA_OPEN_APPEND: u8 = 0x30;    // Open for append
+
+// =============================================================================
+// Low-level MOS calls (assembly wrappers)
+// =============================================================================
+
+// Output a single character using RST 0x10
+@extern(0x10)
+fun mos_putchar(c: u8);
+
+// Print a null-terminated string using RST 0x18
+// Note: HL must point to the string
+@extern(0x18)
+fun mos_puts(str: *u8);
+
+// Generic MOS API call: function number in A, returns result in A
+// Parameters passed in various registers depending on function
+asm fun mos_call(func: u8) -> u8 {
+    ; func is in A (MinZ calling convention)
+    RST 0x00        ; MOS API call
+    RET             ; Result in A
+}
+
+// Get keyboard key (blocking - waits for keypress)
+fun getkey() -> u8 {
+    return mos_call(MOS_GETKEY);
+}
+
+// Get system variables pointer
+// Returns pointer to sysvars structure in IY
+asm fun get_sysvars() -> *u8 {
+    RST 0x08        ; Get sysvars pointer into IY
+    PUSH IY
+    POP HL          ; Copy IY to HL for return
+    RET
+}
+
+// Get last error code
+fun get_error() -> u8 {
+    return mos_call(MOS_GETERROR);
+}
+
+// =============================================================================
+// Console I/O Functions
+// =============================================================================
+
+// Print a newline (CR+LF)
+fun newline() {
+    mos_putchar(13);  // CR
+    mos_putchar(10);  // LF
+}
+
+// Print a hexadecimal digit (0-15)
+fun print_hex_digit(n: u8) {
+    if n < 10 {
+        mos_putchar(48 + n);  // '0' + n
+    } else {
+        mos_putchar(55 + n);  // 'A' - 10 + n
+    }
+}
+
+// Print a byte as two hex digits
+fun print_hex8(n: u8) {
+    print_hex_digit((n >> 4) & 0x0F);
+    print_hex_digit(n & 0x0F);
+}
+
+// Print a 16-bit value as four hex digits
+fun print_hex16(n: u16) {
+    print_hex8((n >> 8) as u8);
+    print_hex8(n as u8);
+}
+
+// =============================================================================
+// File System Functions
+// =============================================================================
+
+// Open a file
+// filename: null-terminated path string
+// mode: combination of FA_* flags
+// Returns: file handle (1-255) or 0 on error
+asm fun fopen(filename: *u8, mode: u8) -> u8 {
+    ; filename in HL, mode in A (after HL)
+    ; Need: HL = filename, C = mode, A = function number
+    LD C, A         ; C = mode (was passed after HL)
+    LD A, 0x0A      ; MOS_FOPEN
+    RST 0x00        ; MOS call
+    RET             ; Handle in A
+}
+
+// Close a file
+// handle: file handle from fopen
+// Returns: 0 on success
+asm fun fclose(handle: u8) -> u8 {
+    ; handle in A
+    LD C, A         ; C = file handle
+    LD A, 0x0B      ; MOS_FCLOSE
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// Read a single character from file
+// handle: file handle
+// Returns: character read, or -1 (255) on EOF/error
+asm fun fgetc(handle: u8) -> u8 {
+    LD C, A         ; C = file handle
+    LD A, 0x0C      ; MOS_FGETC
+    RST 0x00        ; MOS call
+    RET             ; Character in A
+}
+
+// Write a single character to file
+// handle: file handle
+// c: character to write
+// Returns: 0 on success
+asm fun fputc(handle: u8, c: u8) -> u8 {
+    ; handle in A, c follows
+    LD C, A         ; C = file handle
+    ; Need to get 'c' from stack or register
+    ; (calling convention specific)
+    LD A, 0x0D      ; MOS_FPUTC
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// Check for end of file
+// handle: file handle
+// Returns: non-zero if at EOF
+asm fun feof(handle: u8) -> u8 {
+    LD C, A         ; C = file handle
+    LD A, 0x0E      ; MOS_FEOF
+    RST 0x00        ; MOS call
+    RET             ; EOF status in A
+}
+
+// =============================================================================
+// File Operations
+// =============================================================================
+
+// Load a file into memory
+// filename: null-terminated path string
+// address: destination address (24-bit)
+// Returns: number of bytes loaded (in HL) or 0 on error
+asm fun load_file(filename: *u8, address: *u8) -> u16 {
+    ; filename in HL, address follows
+    ; This is simplified - actual MOS_LOAD has more parameters
+    LD A, 0x01      ; MOS_LOAD
+    RST 0x00        ; MOS call
+    RET             ; Bytes loaded in HL
+}
+
+// Save memory to a file
+// filename: null-terminated path string
+// address: source address
+// length: number of bytes to save
+// Returns: 0 on success
+asm fun save_file(filename: *u8, address: *u8, length: u16) -> u8 {
+    LD A, 0x02      ; MOS_SAVE
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// Delete a file
+// filename: null-terminated path string
+// Returns: 0 on success
+asm fun delete_file(filename: *u8) -> u8 {
+    ; filename in HL
+    LD A, 0x05      ; MOS_DEL
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// Change directory
+// path: null-terminated path string
+// Returns: 0 on success
+asm fun chdir(path: *u8) -> u8 {
+    ; path in HL
+    LD A, 0x03      ; MOS_CD
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// Create directory
+// path: null-terminated path string
+// Returns: 0 on success
+asm fun mkdir(path: *u8) -> u8 {
+    ; path in HL
+    LD A, 0x07      ; MOS_MKDIR
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// =============================================================================
+// Time Functions
+// =============================================================================
+
+// RTC Time structure
+struct RTCTime {
+    year: u8,       // Year - 1980
+    month: u8,      // 1-12
+    day: u8,        // 1-31
+    hour: u8,       // 0-23
+    minute: u8,     // 0-59
+    second: u8,     // 0-59
+}
+
+// Get current RTC time
+// time: pointer to RTCTime structure to fill
+// Returns: 0 on success
+asm fun get_rtc(time: *RTCTime) -> u8 {
+    ; time pointer in HL
+    LD A, 0x12      ; MOS_GETRTC
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// Set RTC time
+// time: pointer to RTCTime structure
+// Returns: 0 on success
+asm fun set_rtc(time: *RTCTime) -> u8 {
+    ; time pointer in HL
+    LD A, 0x13      ; MOS_SETRTC
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// =============================================================================
+// System Functions
+// =============================================================================
+
+// Execute a MOS CLI command
+// cmd: null-terminated command string
+// Returns: command result
+asm fun oscli(cmd: *u8) -> u8 {
+    ; cmd in HL
+    LD A, 0x10      ; MOS_OSCLI
+    RST 0x00        ; MOS call
+    RET             ; Result in A
+}
+
+// =============================================================================
+// Block File I/O (more efficient than character-by-character)
+// =============================================================================
+
+// Read bytes from file
+// handle: file handle
+// buffer: destination buffer
+// count: number of bytes to read
+// Returns: actual bytes read in HL
+@mode("adl")
+asm fun fread(handle: u8, buffer: *u8, count: u16) -> u16 {
+    ; handle in A, buffer in HL (stack), count in DE (stack)
+    LD C, A         ; C = file handle
+    ; Get buffer and count from stack
+    POP HL          ; return address
+    POP DE          ; buffer -> DE
+    POP BC          ; count -> BC (low 16 bits)
+    PUSH HL         ; restore return address
+    EX DE, HL       ; HL = buffer
+    LD A, 0x1A      ; MOS_FREAD
+    RST 0x00        ; MOS call
+    RET             ; Bytes read in HL
+}
+
+// Write bytes to file
+// handle: file handle
+// buffer: source buffer
+// count: number of bytes to write
+// Returns: actual bytes written in HL
+@mode("adl")
+asm fun fwrite(handle: u8, buffer: *u8, count: u16) -> u16 {
+    LD C, A         ; C = file handle
+    POP HL          ; return address
+    POP DE          ; buffer -> DE
+    POP BC          ; count -> BC
+    PUSH HL         ; restore return address
+    EX DE, HL       ; HL = buffer
+    LD A, 0x1B      ; MOS_FWRITE
+    RST 0x00        ; MOS call
+    RET             ; Bytes written in HL
+}
+
+// Seek to position in file
+// handle: file handle
+// position: byte offset from start of file (32-bit)
+// Returns: 0 on success
+@mode("adl")
+asm fun fseek(handle: u8, position: u32) -> u8 {
+    LD C, A         ; C = file handle
+    ; position is 32-bit, need to get from stack
+    ; Simplified - actual implementation needs DE:HL for 32-bit position
+    LD A, 0x1C      ; MOS_FLSEEK
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// =============================================================================
+// UART Functions (Serial Communication)
+// =============================================================================
+
+// Open UART for communication
+// baud: baud rate (0=9600, 1=19200, 2=38400, 3=57600, 4=115200)
+// Returns: 0 on success
+asm fun uart_open(baud: u8) -> u8 {
+    LD C, A         ; C = baud rate code
+    LD A, 0x15      ; MOS_UOPEN
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// Close UART
+// Returns: 0 on success
+asm fun uart_close() -> u8 {
+    LD A, 0x16      ; MOS_UCLOSE
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// Read character from UART (blocking)
+// Returns: character received
+asm fun uart_getc() -> u8 {
+    LD A, 0x17      ; MOS_UGETC
+    RST 0x00        ; MOS call
+    RET             ; Character in A
+}
+
+// Write character to UART
+// c: character to send
+// Returns: 0 on success
+asm fun uart_putc(c: u8) -> u8 {
+    LD C, A         ; C = character
+    LD A, 0x18      ; MOS_UPUTC
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// Print string to UART
+fun uart_puts(str: *u8) {
+    let i: u16 = 0;
+    while str[i] != 0 {
+        uart_putc(str[i]);
+        i = i + 1;
+    }
+}
+
+// UART baud rate constants
+const UART_9600: u8 = 0;
+const UART_19200: u8 = 1;
+const UART_38400: u8 = 2;
+const UART_57600: u8 = 3;
+const UART_115200: u8 = 4;
+
+// =============================================================================
+// System Variables (SYSVARS) Structure
+// Located at address returned by RST 0x08
+// =============================================================================
+
+struct SysVars {
+    clock: u32,         // +0: System clock (ticks since boot)
+    vdp_pflags: u8,     // +4: VDP protocol flags
+    keyascii: u8,       // +5: ASCII code of last key pressed
+    keymods: u8,        // +6: Key modifier flags
+    cursor_x: u8,       // +7: Cursor X position
+    cursor_y: u8,       // +8: Cursor Y position
+    scrchar: u8,        // +9: Character under cursor
+    scrpixel: u8,       // +10: Pixel color under cursor
+    audioChannel: u8,   // +11: Current audio channel
+    audioSuccess: u8,   // +12: Last audio operation status
+    scrWidth: u16,      // +13: Screen width in pixels
+    scrHeight: u16,     // +15: Screen height in pixels
+    scrCols: u8,        // +17: Screen columns (text mode)
+    scrRows: u8,        // +18: Screen rows (text mode)
+    scrColours: u8,     // +19: Number of colors
+    scrMode: u8,        // +20: Current screen mode
+    rtc_enable: u8,     // +21: RTC enabled flag
+    spare: u8,          // +22: Reserved
+    keydelay: u8,       // +23: Key repeat delay
+    keyrate: u8,        // +24: Key repeat rate
+    keyled: u8,         // +25: Keyboard LED status
+}
+
+// Get system clock ticks (since boot)
+// Approximately 60 ticks per second
+fun get_clock() -> u32 {
+    let sysvars = get_sysvars() as *SysVars;
+    return sysvars.clock;
+}
+
+// Get current screen mode
+fun get_screen_mode() -> u8 {
+    let sysvars = get_sysvars() as *SysVars;
+    return sysvars.scrMode;
+}
+
+// Get screen dimensions in pixels
+fun get_screen_width() -> u16 {
+    let sysvars = get_sysvars() as *SysVars;
+    return sysvars.scrWidth;
+}
+
+fun get_screen_height() -> u16 {
+    let sysvars = get_sysvars() as *SysVars;
+    return sysvars.scrHeight;
+}
+
+// Get screen dimensions in text characters
+fun get_text_cols() -> u8 {
+    let sysvars = get_sysvars() as *SysVars;
+    return sysvars.scrCols;
+}
+
+fun get_text_rows() -> u8 {
+    let sysvars = get_sysvars() as *SysVars;
+    return sysvars.scrRows;
+}
+
+// Get last key ASCII code (non-blocking check)
+fun get_last_key() -> u8 {
+    let sysvars = get_sysvars() as *SysVars;
+    return sysvars.keyascii;
+}
+
+// Get cursor position
+fun get_cursor_x() -> u8 {
+    let sysvars = get_sysvars() as *SysVars;
+    return sysvars.cursor_x;
+}
+
+fun get_cursor_y() -> u8 {
+    let sysvars = get_sysvars() as *SysVars;
+    return sysvars.cursor_y;
+}
+
+// =============================================================================
+// Interrupt Vector Functions
+// =============================================================================
+
+// Interrupt vector numbers
+const INT_TIMER0: u8 = 0;
+const INT_TIMER1: u8 = 1;
+const INT_TIMER2: u8 = 2;
+const INT_TIMER3: u8 = 3;
+const INT_TIMER4: u8 = 4;
+const INT_TIMER5: u8 = 5;
+const INT_UART0_RX: u8 = 24;
+const INT_UART0_TX: u8 = 25;
+const INT_I2C: u8 = 28;
+const INT_SPI: u8 = 30;
+
+// Set interrupt vector handler
+// vector: interrupt vector number (INT_* constants)
+// handler: pointer to interrupt handler function (or 0 to disable)
+// Returns: 0 on success
+@mode("adl")
+asm fun set_interrupt_handler(vector: u8, handler: *u8) -> u8 {
+    LD C, A         ; C = vector number
+    ; handler is in DE or on stack
+    LD A, 0x14      ; MOS_SETINTVECTOR
+    RST 0x00        ; MOS call
+    RET             ; Status in A
+}
+
+// =============================================================================
+// Timing and Delay Functions
+// =============================================================================
+
+// Delay for approximately n milliseconds
+// Note: Not precise, depends on system clock
+fun delay_ms(ms: u16) {
+    let ticks = (ms * 6) / 100;  // ~60 ticks/sec = ~16.67ms per tick
+    if ticks == 0 { ticks = 1; }
+    let start = get_clock();
+    while (get_clock() - start) < ticks as u32 {
+        // Busy wait
+    }
+}
+
+// Wait for next VBlank (for smooth animation)
+// Returns when VDP signals vertical blank
+fun wait_vblank() {
+    let start_clock = get_clock();
+    // Wait for clock to change (happens at ~60Hz on VBlank)
+    while get_clock() == start_clock {
+        // Busy wait
+    }
+}
+
+// =============================================================================
+// Console Input Functions
+// =============================================================================
+
+// Read a line of input with editing (backspace, etc.)
+// buffer: destination buffer for input
+// maxlen: maximum characters to read (buffer size - 1)
+// Returns: number of characters read
+@mode("adl")
+asm fun readline(buffer: *u8, maxlen: u8) -> u8 {
+    ; buffer in HL, maxlen in A (stack)
+    LD C, A         ; C = max length
+    LD A, 0x09      ; MOS_EDITLINE
+    RST 0x00        ; MOS call
+    RET             ; Length in A
+}
+
+// =============================================================================
+// Utility Functions
+// =============================================================================
+
+// Print a decimal number (0-255)
+fun print_u8(n: u8) {
+    if n >= 100 {
+        mos_putchar(48 + (n / 100));
+        n = n % 100;
+        mos_putchar(48 + (n / 10));
+        mos_putchar(48 + (n % 10));
+    } else if n >= 10 {
+        mos_putchar(48 + (n / 10));
+        mos_putchar(48 + (n % 10));
+    } else {
+        mos_putchar(48 + n);
+    }
+}
+
+// Print a decimal number (0-65535)
+fun print_u16(n: u16) {
+    if n >= 10000 {
+        mos_putchar(48 + ((n / 10000) as u8));
+        n = n % 10000;
+    }
+    if n >= 1000 {
+        mos_putchar(48 + ((n / 1000) as u8));
+        n = n % 1000;
+    }
+    if n >= 100 {
+        mos_putchar(48 + ((n / 100) as u8));
+        n = n % 100;
+    }
+    if n >= 10 {
+        mos_putchar(48 + ((n / 10) as u8));
+    }
+    mos_putchar(48 + ((n % 10) as u8));
+}
+
+// Print a space
+fun print_space() {
+    mos_putchar(32);
+}
+
+// Clear screen (using VDU code)
+fun cls() {
+    mos_putchar(12);  // Form feed = clear screen
+}

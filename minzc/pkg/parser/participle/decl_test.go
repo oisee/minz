@@ -234,6 +234,61 @@ func TestParseTypeDecl(t *testing.T) {
 	}
 }
 
+func TestParseExternDecl(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		wantAddr  bool
+		wantMode  bool
+		wantAbi   bool
+	}{
+		{"simple_extern", "extern fun putchar(c: u8);", false, false, false},
+		{"extern_at_hex", "extern fun mos_putchar(c: u8) at 0x10;", true, false, false},
+		{"extern_at_decimal", "extern fun call(fn: u8) at 16;", true, false, false},
+		{"extern_return_at", "extern fun getkey() -> u8 at 0x00;", true, false, false},
+		{"extern_mode_adl", `extern fun mos_call(fn: u8) at 0x08 mode "adl";`, true, true, false},
+		{"extern_mode_z80", `extern fun rom_call() at 0x10 mode "z80";`, true, true, false},
+		{"extern_abi", `extern fun custom(x: u16) at 0xC000 abi "register";`, true, false, true},
+		{"extern_full", `extern fun full(a: u8) -> u16 at 0x20 mode "adl" abi "c";`, true, true, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := declParser.ParseString("test", tt.input)
+			if err != nil {
+				t.Errorf("failed to parse %q: %v", tt.input, err)
+				return
+			}
+			if result.Function == nil {
+				t.Errorf("expected Function declaration, got %+v", result)
+				return
+			}
+			fn := result.Function
+			if !fn.Extern {
+				t.Error("expected extern to be true")
+			}
+			if tt.wantAddr && fn.AtAddress == nil {
+				t.Error("expected AtAddress to be set")
+			}
+			if !tt.wantAddr && fn.AtAddress != nil {
+				t.Error("expected AtAddress to be nil")
+			}
+			if tt.wantMode && fn.Mode == nil {
+				t.Error("expected Mode to be set")
+			}
+			if !tt.wantMode && fn.Mode != nil {
+				t.Error("expected Mode to be nil")
+			}
+			if tt.wantAbi && fn.Abi == nil {
+				t.Error("expected Abi to be set")
+			}
+			if !tt.wantAbi && fn.Abi != nil {
+				t.Error("expected Abi to be nil")
+			}
+		})
+	}
+}
+
 func TestParseFile(t *testing.T) {
 	input := `
 import std.io;

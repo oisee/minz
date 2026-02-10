@@ -1,0 +1,127 @@
+// Agon Light 2 Platform Coverage Test
+// Tests: MOS calls, VDP graphics, eZ80 features
+// Target: agon
+
+// =============================================================================
+// MOS Function Numbers
+// =============================================================================
+
+const MOS_GETKEY: u8 = 0x00;
+const MOS_FOPEN: u8 = 0x0A;
+const MOS_FCLOSE: u8 = 0x0B;
+
+// =============================================================================
+// MOS API Bindings (using extern keyword with new 2026 Vision syntax)
+// =============================================================================
+
+extern fun mos_putchar(c: u8) at 0x10;           // RST 0x10
+extern fun mos_puts(str: *u8) at 0x18;           // RST 0x18
+extern fun mos_getkey() -> u8 at 0x00 mode "adl"; // RST 0x00 in ADL mode
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+fun print_char(c: u8) {
+    mos_putchar(c);
+}
+
+fun newline() {
+    mos_putchar(13);
+    mos_putchar(10);
+}
+
+fun print_hex_digit(n: u8) {
+    if n < 10 {
+        mos_putchar(48 + n);
+    } else {
+        mos_putchar(55 + n);
+    }
+}
+
+fun print_hex8(n: u8) {
+    print_hex_digit((n >> 4) & 0x0F);
+    print_hex_digit(n & 0x0F);
+}
+
+// =============================================================================
+// Feature Tests
+// =============================================================================
+
+// Test 1: Global variables
+global tick_count: u16 = 0;
+
+// Test 2: Struct
+struct Sprite {
+    x: u16,
+    y: u16,
+    id: u8,
+}
+
+// Test 3: Functions
+fun add_values(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+// Test 4: Control flow
+fun countdown(start: u8) {
+    let i: u8 = start;
+    while i > 0 {
+        print_hex8(i);
+        mos_putchar(32);
+        i = i - 1;
+    }
+}
+
+fun test_for() -> u8 {
+    let sum: u8 = 0;
+    for i in 0..10 {
+        sum = sum + 1;
+    }
+    return sum;
+}
+
+// =============================================================================
+// VDP Commands (via mos_putchar with control codes)
+// =============================================================================
+
+fun vdp_cls() {
+    mos_putchar(12);  // Form feed = clear screen
+}
+
+fun vdp_cursor(x: u8, y: u8) {
+    mos_putchar(31);  // TAB
+    mos_putchar(x);
+    mos_putchar(y);
+}
+
+// =============================================================================
+// Main Entry Point
+// =============================================================================
+
+fun main() -> void {
+    // Clear screen
+    vdp_cls();
+
+    // Print banner
+    mos_putchar(65);  // A
+    mos_putchar(71);  // G
+    mos_putchar(79);  // O
+    mos_putchar(78);  // N
+    mos_putchar(32);  // space
+    mos_putchar(79);  // O
+    mos_putchar(75);  // K
+    newline();
+
+    // Test struct
+    let spr = Sprite { x: 100, y: 50, id: 1 };
+
+    // Test control flow
+    countdown(5);
+    newline();
+
+    // Test for loop
+    let sum = test_for();
+    print_hex8(sum);
+    newline();
+}

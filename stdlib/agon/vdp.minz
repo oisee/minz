@@ -1,0 +1,369 @@
+// VDP (Video Display Processor) API for Agon Light 2
+// The VDP is an ESP32 coprocessor that handles all video output
+// Communication is via serial packets through MOS
+//
+// VDP commands are sent as escape sequences: ESC (0x1B) followed by command bytes
+// Graphics commands use the VDU command set (BBC Micro compatible)
+//
+// Reference: https://github.com/breakintoprogram/agon-vdp
+
+import stdlib.agon.mos;
+
+// =============================================================================
+// VDU Command Constants
+// =============================================================================
+
+const VDU_NULL: u8 = 0;             // Null (no-op)
+const VDU_PRINTABLE_START: u8 = 32; // Start of printable chars
+const VDU_BACKSPACE: u8 = 8;        // Cursor left
+const VDU_TAB: u8 = 9;              // Cursor right
+const VDU_LINEFEED: u8 = 10;        // Cursor down
+const VDU_VTAB: u8 = 11;            // Cursor up
+const VDU_CLS: u8 = 12;             // Clear screen (form feed)
+const VDU_CR: u8 = 13;              // Carriage return
+const VDU_PAGED_MODE_ON: u8 = 14;   // Enable paged mode
+const VDU_PAGED_MODE_OFF: u8 = 15;  // Disable paged mode
+const VDU_CLG: u8 = 16;             // Clear graphics window
+const VDU_TEXT_COLOR: u8 = 17;      // Set text color
+const VDU_GCOL: u8 = 18;            // Set graphics color/mode
+const VDU_PALETTE: u8 = 19;         // Define palette color
+const VDU_RESET_COLORS: u8 = 20;    // Reset colors to default
+const VDU_DISABLE_CURSOR: u8 = 21;  // Disable text cursor
+const VDU_MODE: u8 = 22;            // Set screen mode
+const VDU_COMMAND: u8 = 23;         // System command (multi-byte)
+const VDU_GRAPH_WINDOW: u8 = 24;    // Define graphics window
+const VDU_PLOT: u8 = 25;            // Graphics plot command
+const VDU_RESET_WINDOWS: u8 = 26;   // Reset text/graphics windows
+const VDU_ESCAPE: u8 = 27;          // Escape (no-op in VDU)
+const VDU_TEXT_WINDOW: u8 = 28;     // Define text window
+const VDU_ORIGIN: u8 = 29;          // Set graphics origin
+const VDU_HOME: u8 = 30;            // Home cursor
+const VDU_MOVE_CURSOR: u8 = 31;     // Move text cursor
+
+// =============================================================================
+// Plot Codes (for VDU 25)
+// =============================================================================
+
+const PLOT_SOLID_LINE: u8 = 0;      // Move/draw line
+const PLOT_SOLID_LINE_INCL: u8 = 1;
+const PLOT_DOT_LINE: u8 = 16;       // Dotted line
+const PLOT_SOLID_LINE_REV: u8 = 32; // Solid line, reverse direction
+const PLOT_POINT: u8 = 64;          // Plot single point
+const PLOT_HFILL_LEFT: u8 = 80;     // Horizontal fill to left
+const PLOT_TRIANGLE: u8 = 80;       // Fill triangle
+const PLOT_HFILL_RIGHT: u8 = 81;    // Horizontal fill to right
+const PLOT_RECTANGLE: u8 = 96;      // Fill rectangle
+const PLOT_HFILL_BG: u8 = 82;       // Horizontal fill in background
+const PLOT_PARALLELOGRAM: u8 = 104; // Fill parallelogram
+const PLOT_CIRCLE_OUTLINE: u8 = 144;// Circle outline
+const PLOT_CIRCLE_FILL: u8 = 152;   // Filled circle
+const PLOT_ARC: u8 = 160;           // Arc
+const PLOT_SEGMENT: u8 = 168;       // Segment
+const PLOT_SECTOR: u8 = 176;        // Sector
+const PLOT_MOVE: u8 = 4;            // Move without plotting
+const PLOT_RELATIVE: u8 = 0;        // Relative coordinates
+const PLOT_ABSOLUTE: u8 = 4;        // Absolute coordinates
+
+// =============================================================================
+// Screen Mode Constants
+// =============================================================================
+
+const MODE_640x480x2: u8 = 0;       // 640x480, 2 colors
+const MODE_640x480x16: u8 = 1;      // 640x480, 16 colors
+const MODE_640x480x64: u8 = 2;      // 640x480, 64 colors
+const MODE_640x240x64: u8 = 3;      // 640x240, 64 colors (double height pixels)
+const MODE_320x240x64: u8 = 8;      // 320x240, 64 colors
+
+// =============================================================================
+// VDU Output Functions
+// =============================================================================
+
+// Send a single VDU byte
+fun vdu(c: u8) {
+    mos_putchar(c);
+}
+
+// Send VDU command with one parameter
+fun vdu_1(cmd: u8, p1: u8) {
+    vdu(cmd);
+    vdu(p1);
+}
+
+// Send VDU command with two 8-bit parameters
+fun vdu_2(cmd: u8, p1: u8, p2: u8) {
+    vdu(cmd);
+    vdu(p1);
+    vdu(p2);
+}
+
+// Send 16-bit value as two bytes (little-endian)
+fun vdu_16(value: u16) {
+    vdu(value as u8);
+    vdu((value >> 8) as u8);
+}
+
+// =============================================================================
+// Screen Control
+// =============================================================================
+
+// Clear the screen
+fun cls() {
+    vdu(VDU_CLS);
+}
+
+// Clear graphics window
+fun clg() {
+    vdu(VDU_CLG);
+}
+
+// Set screen mode (0-255)
+fun set_mode(mode: u8) {
+    vdu_1(VDU_MODE, mode);
+}
+
+// Reset colors to default
+fun reset_colors() {
+    vdu(VDU_RESET_COLORS);
+}
+
+// =============================================================================
+// Cursor Control
+// =============================================================================
+
+// Move text cursor to position (0-based)
+fun set_cursor(x: u8, y: u8) {
+    vdu(VDU_MOVE_CURSOR);
+    vdu(x);
+    vdu(y);
+}
+
+// Move cursor home (0, 0)
+fun cursor_home() {
+    vdu(VDU_HOME);
+}
+
+// Hide text cursor
+fun cursor_off() {
+    vdu(VDU_DISABLE_CURSOR);
+}
+
+// =============================================================================
+// Color Control
+// =============================================================================
+
+// Set text foreground color (0-15 or 0-63 depending on mode)
+fun set_text_color(color: u8) {
+    vdu_1(VDU_TEXT_COLOR, color);
+}
+
+// Set text background color
+fun set_text_bg_color(color: u8) {
+    vdu_1(VDU_TEXT_COLOR, color + 128);
+}
+
+// Set graphics color
+// mode: 0=plot, 1=OR, 2=AND, 3=XOR, 4=NOT
+// color: palette index
+fun set_graphics_color(mode: u8, color: u8) {
+    vdu(VDU_GCOL);
+    vdu(mode);
+    vdu(color);
+}
+
+// Define palette color
+// logical: logical color (0-15)
+// physical: physical color (depends on mode)
+fun define_color(logical: u8, physical: u8) {
+    vdu(VDU_PALETTE);
+    vdu(logical);
+    vdu(physical);
+    vdu(0);  // Padding for BBC compatibility
+    vdu(0);
+    vdu(0);
+}
+
+// Define palette color with RGB
+// logical: logical color (0-63)
+// r, g, b: color components (0-255)
+fun define_color_rgb(logical: u8, r: u8, g: u8, b: u8) {
+    vdu(VDU_PALETTE);
+    vdu(logical);
+    vdu(255);  // Indicates RGB follows
+    vdu(r);
+    vdu(g);
+    vdu(b);
+}
+
+// =============================================================================
+// Graphics Primitives
+// =============================================================================
+
+// Move graphics cursor to position (absolute)
+fun move_to(x: u16, y: u16) {
+    vdu(VDU_PLOT);
+    vdu(PLOT_MOVE + PLOT_ABSOLUTE);
+    vdu_16(x);
+    vdu_16(y);
+}
+
+// Draw line from current position to (x, y)
+fun draw_to(x: u16, y: u16) {
+    vdu(VDU_PLOT);
+    vdu(PLOT_SOLID_LINE + PLOT_ABSOLUTE + 1);  // +1 = draw foreground
+    vdu_16(x);
+    vdu_16(y);
+}
+
+// Draw a line between two points
+fun draw_line(x1: u16, y1: u16, x2: u16, y2: u16) {
+    move_to(x1, y1);
+    draw_to(x2, y2);
+}
+
+// Plot a single point at (x, y)
+fun plot_point(x: u16, y: u16) {
+    vdu(VDU_PLOT);
+    vdu(PLOT_POINT + PLOT_ABSOLUTE + 1);
+    vdu_16(x);
+    vdu_16(y);
+}
+
+// Draw a filled rectangle
+// (x1, y1) = one corner, (x2, y2) = opposite corner
+fun fill_rect(x1: u16, y1: u16, x2: u16, y2: u16) {
+    move_to(x1, y1);
+    vdu(VDU_PLOT);
+    vdu(PLOT_RECTANGLE + PLOT_ABSOLUTE + 1);
+    vdu_16(x2);
+    vdu_16(y2);
+}
+
+// Draw a rectangle outline
+fun draw_rect(x1: u16, y1: u16, x2: u16, y2: u16) {
+    draw_line(x1, y1, x2, y1);
+    draw_line(x2, y1, x2, y2);
+    draw_line(x2, y2, x1, y2);
+    draw_line(x1, y2, x1, y1);
+}
+
+// Draw a filled circle
+// (cx, cy) = center, radius = distance from center to edge
+fun fill_circle(cx: u16, cy: u16, radius: u16) {
+    move_to(cx, cy);
+    vdu(VDU_PLOT);
+    vdu(PLOT_CIRCLE_FILL + PLOT_ABSOLUTE + 1);
+    vdu_16(cx + radius);
+    vdu_16(cy);
+}
+
+// Draw a circle outline
+fun draw_circle(cx: u16, cy: u16, radius: u16) {
+    move_to(cx, cy);
+    vdu(VDU_PLOT);
+    vdu(PLOT_CIRCLE_OUTLINE + PLOT_ABSOLUTE + 1);
+    vdu_16(cx + radius);
+    vdu_16(cy);
+}
+
+// Draw a filled triangle
+// Three points specified in sequence
+fun fill_triangle(x1: u16, y1: u16, x2: u16, y2: u16, x3: u16, y3: u16) {
+    move_to(x1, y1);
+    move_to(x2, y2);
+    vdu(VDU_PLOT);
+    vdu(PLOT_TRIANGLE + PLOT_ABSOLUTE + 1);
+    vdu_16(x3);
+    vdu_16(y3);
+}
+
+// =============================================================================
+// Sprite Functions (VDU 23, 27)
+// Sprites are handled by the VDP using command sequences
+// =============================================================================
+
+// Select sprite for subsequent operations
+fun sprite_select(id: u8) {
+    vdu(VDU_COMMAND);  // VDU 23
+    vdu(27);           // Sprite command
+    vdu(4);            // Select sprite
+    vdu(id);
+}
+
+// Clear (delete) current sprite
+fun sprite_clear() {
+    vdu(VDU_COMMAND);
+    vdu(27);
+    vdu(5);            // Clear frames
+}
+
+// Add a frame to current sprite
+// width, height: dimensions (8-255)
+// data: pointer to bitmap data (RGBA format)
+fun sprite_add_frame(width: u8, height: u8) {
+    vdu(VDU_COMMAND);
+    vdu(27);
+    vdu(6);            // Add frame
+    vdu(width);
+    vdu(height);
+    // Bitmap data should follow via subsequent vdu() calls
+}
+
+// Show current sprite
+fun sprite_show() {
+    vdu(VDU_COMMAND);
+    vdu(27);
+    vdu(11);           // Show sprite
+}
+
+// Hide current sprite
+fun sprite_hide() {
+    vdu(VDU_COMMAND);
+    vdu(27);
+    vdu(12);           // Hide sprite
+}
+
+// Move current sprite to position
+fun sprite_move(x: u16, y: u16) {
+    vdu(VDU_COMMAND);
+    vdu(27);
+    vdu(13);           // Move to
+    vdu_16(x);
+    vdu_16(y);
+}
+
+// Set current sprite frame
+fun sprite_set_frame(frame: u8) {
+    vdu(VDU_COMMAND);
+    vdu(27);
+    vdu(10);           // Set frame
+    vdu(frame);
+}
+
+// Refresh sprites (draw all visible sprites)
+fun sprite_refresh() {
+    vdu(VDU_COMMAND);
+    vdu(27);
+    vdu(15);           // Refresh
+}
+
+// =============================================================================
+// Bitmap Functions
+// For loading and displaying bitmap images
+// =============================================================================
+
+// Select bitmap for subsequent operations
+fun bitmap_select(id: u8) {
+    vdu(VDU_COMMAND);
+    vdu(27);
+    vdu(0);            // Bitmap command
+    vdu(id);
+}
+
+// Draw selected bitmap at position
+fun bitmap_draw(x: u16, y: u16) {
+    vdu(VDU_COMMAND);
+    vdu(27);
+    vdu(3);            // Draw bitmap
+    vdu_16(x);
+    vdu_16(y);
+}

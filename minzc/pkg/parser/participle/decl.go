@@ -53,7 +53,7 @@ type ImportDecl struct {
 	Alias *string  `parser:"( 'as' @Ident )? ';'?"`
 }
 
-// FunctionDecl represents: [export] [pub] [extern/declare] fun name?<T>(params) -> Type ? ErrorType { body }
+// FunctionDecl represents: [export] [pub] [extern/declare] fun name?<T>(params) -> Type ? ErrorType [at addr] [mode "m"] [abi "a"] { body }
 type FunctionDecl struct {
 	Pos lexer.Position
 
@@ -68,6 +68,9 @@ type FunctionDecl struct {
 	Params     []*Param      `parser:"'(' ( @@ ( ',' @@ )* )? ')'"`
 	ReturnType *TypeRef      `parser:"( Arrow @@ )?"`
 	ErrorType  *TypeRef      `parser:"( Bang @@ )?"` // -> Type ! ErrorType
+	AtAddress  *Expression   `parser:"( 'at' @@ )?"`         // extern fun name() at 0x10;
+	Mode       *string       `parser:"( 'mode' @String )?"`  // mode "adl" or mode "z80"
+	Abi        *string       `parser:"( 'abi' @String )?"`   // abi "register" or abi "c"
 	Body       *StmtBlock    `parser:"( @@ | ';' )"`
 }
 
@@ -79,14 +82,15 @@ type TypeParam struct {
 	Constraint *TypeRef `parser:"( ':' @@ )?"`
 }
 
-// Param represents a function parameter: name: Type or self
+// Param represents a function parameter: name: Type [in Register] or self
 type Param struct {
 	Pos lexer.Position
 
-	Self bool     `parser:"( @'self'"`
-	Ref  bool     `parser:"  @'&'? )"`
-	Name *string  `parser:"| @Ident"`
-	Type *TypeRef `parser:"  ':' @@"`
+	Self     bool     `parser:"( @'self'"`
+	Ref      bool     `parser:"  @'&'? )"`
+	Name     *string  `parser:"| @Ident"`
+	Type     *TypeRef `parser:"  ':' @@"`
+	Register *string  `parser:"( 'in' @Ident )?"` // Register mapping: "in HL", "in A", etc.
 }
 
 // StructDecl represents: [pub] struct Name<T> { fields }

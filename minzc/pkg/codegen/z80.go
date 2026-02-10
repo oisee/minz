@@ -35,12 +35,12 @@ type Z80Generator struct {
 	currentFunc   *ir.Function
 	currentFunction *ir.Function // For DJNZ optimization
 	currentInstructionIndex int  // For DJNZ optimization
-	
+
 	// Hierarchical register allocation system
 	regAlloc         *RegisterAllocator      // Simple memory-based allocator (fallback)
 	physicalAlloc    *Z80RegisterAllocator   // Sophisticated physical register allocator
 	usePhysicalRegs  bool                    // Enable physical register allocation
-	
+
 	stackOffset   int
 	labelCounter  int
 	useShadowRegs bool // Whether to use shadow registers for current function
@@ -55,6 +55,10 @@ type Z80Generator struct {
 	structDataBlocks []StructDataBlock // Struct array literal data blocks
 	asmBlockCounter int // Counter for uniquifying inline assembly labels
 	inlineCounter   int // Counter for uniquifying labels during function inlining
+
+	// eZ80 ADL mode support
+	isEZ80Target bool   // True if targeting eZ80 processor
+	defaultADLMode bool // True if target default is ADL mode (24-bit)
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -78,6 +82,17 @@ func NewZ80Generator(w io.Writer) *Z80Generator {
 // SetTargetPlatform sets the target platform for the generator
 func (g *Z80Generator) SetTargetPlatform(platform string) {
 	g.targetPlatform = platform
+	// Enable eZ80 mode for Agon targets
+	if platform == "agon" || platform == "agon_light" || platform == "agon_light2" {
+		g.isEZ80Target = true
+		g.defaultADLMode = true // Agon runs in ADL mode by default
+	}
+}
+
+// SetEZ80Mode configures the generator for eZ80 target
+func (g *Z80Generator) SetEZ80Mode(enabled bool, defaultADL bool) {
+	g.isEZ80Target = enabled
+	g.defaultADLMode = defaultADL
 }
 
 // uniqueLabel generates a unique label with the given prefix
@@ -850,7 +865,8 @@ func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
 	
 	// Reset constant tracking for new function
 	g.constantValues = make(map[ir.Register]int64)
-	
+
+
 	// Generate instructions with SMC awareness
 	for i, inst := range fn.Instructions {
 		// Check if this is the last instruction and it's a return - replace with patch points if needed
@@ -1525,18 +1541,51 @@ func (g *Z80Generator) emitTemplateBytes(label string, template *ir.PatchTemplat
 
 // prepareCallArguments prepares arguments for a function call
 func (g *Z80Generator) prepareCallArguments(args []ir.Register, targetFunc *ir.Function) {
-	// For SMC functions, parameters are patched directly - no need to prepare here
-	if targetFunc != nil && (targetFunc.IsSMCDefault || targetFunc.IsSMCEnabled) {
+	// Check for explicit register mappings first (extern functions with "in REG" syntax)
+	// These always use their specified registers, regardless of caller's mode
+	if targetFunc != nil && targetFunc.IsExtern && g.hasExplicitRegisterMappings(targetFunc) {
+		g.emit("    ; Explicit register mapping for extern function")
+		for i, arg := range args {
+			if i >= len(targetFunc.Params) {
+				break
+			}
+			param := targetFunc.Params[i]
+			if param.TargetReg != "" {
+				g.loadToExplicitRegister(arg, param.TargetReg, param.Name, param.Type.Size())
+			} else {
+				// No explicit mapping - use default position-based
+				g.loadArgToDefaultRegister(arg, i, param)
+			}
+		}
+		return
+	}
+
+	// For SMC functions (calling other SMC functions), parameters are patched directly
+	if targetFunc != nil && (targetFunc.IsSMCDefault || targetFunc.IsSMCEnabled) && !targetFunc.IsExtern {
 		// SMC parameters are handled by generateTrueSMCCall or embedded in the function
 		return
 	}
-	
+
+	// For extern functions without explicit mappings, still pass arguments
+	// (they'll use the default register convention)
+	if targetFunc != nil && targetFunc.IsExtern {
+		g.emit("    ; Default register passing for extern function")
+		for i, arg := range args {
+			if i >= len(targetFunc.Params) {
+				break
+			}
+			param := targetFunc.Params[i]
+			g.loadArgToDefaultRegister(arg, i, param)
+		}
+		return
+	}
+
 	// Determine calling convention for non-SMC functions
 	useRegisterPassing := false
 	if targetFunc != nil && !targetFunc.IsRecursive && len(args) <= 3 {
 		useRegisterPassing = true
 	}
-	
+
 	if useRegisterPassing && targetFunc != nil {
 		// Register-based parameter passing
 		g.emit("    ; Register-based parameter passing")
@@ -1584,6 +1633,99 @@ func (g *Z80Generator) prepareCallArguments(args []ir.Register, targetFunc *ir.F
 		for i := len(args) - 1; i >= 0; i-- {
 			g.loadToHL(args[i])
 			g.emit("    PUSH HL       ; Argument %d", i)
+		}
+	}
+}
+
+// hasExplicitRegisterMappings checks if a function has any parameters with explicit register mappings
+func (g *Z80Generator) hasExplicitRegisterMappings(fn *ir.Function) bool {
+	for _, param := range fn.Params {
+		if param.TargetReg != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// loadToExplicitRegister loads a value into a specific register (A, HL, BC, DE, etc.)
+func (g *Z80Generator) loadToExplicitRegister(reg ir.Register, targetReg string, paramName string, size int) {
+	switch strings.ToUpper(targetReg) {
+	case "A":
+		g.loadToA(reg)
+		g.emit("    ; %s in A", paramName)
+	case "B":
+		g.loadToA(reg)
+		g.emit("    LD B, A       ; %s in B", paramName)
+	case "C":
+		g.loadToA(reg)
+		g.emit("    LD C, A       ; %s in C", paramName)
+	case "D":
+		g.loadToA(reg)
+		g.emit("    LD D, A       ; %s in D", paramName)
+	case "E":
+		g.loadToA(reg)
+		g.emit("    LD E, A       ; %s in E", paramName)
+	case "H":
+		g.loadToA(reg)
+		g.emit("    LD H, A       ; %s in H", paramName)
+	case "L":
+		g.loadToA(reg)
+		g.emit("    LD L, A       ; %s in L", paramName)
+	case "HL":
+		g.loadToHL(reg)
+		g.emit("    ; %s in HL", paramName)
+	case "BC":
+		g.loadToHL(reg)
+		g.emit("    LD B, H       ; %s in BC", paramName)
+		g.emit("    LD C, L")
+	case "DE":
+		g.loadToDE(reg)
+		g.emit("    ; %s in DE", paramName)
+	case "IX":
+		g.loadToHL(reg)
+		g.emit("    PUSH HL")
+		g.emit("    POP IX        ; %s in IX", paramName)
+	case "IY":
+		g.loadToHL(reg)
+		g.emit("    PUSH HL")
+		g.emit("    POP IY        ; %s in IY", paramName)
+	default:
+		// Unknown register - fall back to HL for 16-bit, A for 8-bit
+		if size == 1 {
+			g.loadToA(reg)
+			g.emit("    ; %s (unknown reg %s, using A)", paramName, targetReg)
+		} else {
+			g.loadToHL(reg)
+			g.emit("    ; %s (unknown reg %s, using HL)", paramName, targetReg)
+		}
+	}
+}
+
+// loadArgToDefaultRegister loads an argument to its default register based on position
+func (g *Z80Generator) loadArgToDefaultRegister(arg ir.Register, pos int, param ir.Parameter) {
+	if param.Type.Size() == 1 {
+		switch pos {
+		case 0:
+			g.loadToA(arg)
+			g.emit("    ; %s in A (default)", param.Name)
+		case 1:
+			g.loadToA(arg)
+			g.emit("    LD E, A       ; %s in E (default)", param.Name)
+		default:
+			g.loadToA(arg)
+			g.emit("    PUSH AF      ; %s on stack", param.Name)
+		}
+	} else {
+		switch pos {
+		case 0:
+			g.loadToHL(arg)
+			g.emit("    ; %s in HL (default)", param.Name)
+		case 1:
+			g.loadToDE(arg)
+			g.emit("    ; %s in DE (default)", param.Name)
+		default:
+			g.loadToHL(arg)
+			g.emit("    PUSH HL      ; %s on stack", param.Name)
 		}
 	}
 }
@@ -2600,15 +2742,17 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 						// Check if address is RST-eligible (0, 8, 16, 24, 32, 40, 48, 56)
 						if addr <= 0x38 && addr%8 == 0 && !targetFunc.NoRST {
 							// Use RST for single-byte call (saves 2 bytes!)
-							g.emit("    RST $%02X    ; extern %s (optimized from CALL)", addr, targetFunc.Name)
+							// For eZ80, add cross-mode suffix if needed
+							g.emitRST(addr, targetFunc, fmt.Sprintf("extern %s (optimized from CALL)", targetFunc.Name))
 						} else {
 							// Regular CALL to absolute address: @extern(0xC000)
-							g.emit("    CALL $%04X    ; extern %s", addr, targetFunc.Name)
+							// For eZ80, add cross-mode suffix if needed
+							g.emitCallAddress(addr, targetFunc, fmt.Sprintf("extern %s", targetFunc.Name))
 						}
 					} else {
 						// Call to symbol (will be resolved by linker or is defined elsewhere)
 						cleanName := g.sanitizeFunctionName(targetFunc.Name)
-						g.emit("    CALL %s    ; extern", cleanName)
+						g.emitCall(cleanName+"    ; extern", targetFunc)
 					}
 
 					// Emit inline parameters after the call (for @inline_params)
@@ -2620,7 +2764,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				} else {
 					// Use sanitized function name for assembler compatibility
 					cleanName := g.sanitizeFunctionName(targetFunc.Name)
-					g.emit("    CALL %s", cleanName)
+					g.emitCall(cleanName, targetFunc)
 					// Track function usage
 					g.usedFunctions[targetFunc.Name] = true
 				}
@@ -3071,7 +3215,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Load immediate value
 		// Track the constant value for optimization
 		g.constantValues[inst.Dest] = inst.Imm
-		
+
 		if inst.Imm <= 255 {
 			g.emit("    LD A, %d", inst.Imm)
 			g.storeFromA(inst.Dest)
@@ -3706,7 +3850,17 @@ func (g *Z80Generator) loadToA(reg ir.Register) {
 		g.emit("    XOR A")
 		return
 	}
-	
+
+	// Check if the register contains a known constant value
+	if constVal, ok := g.constantValues[reg]; ok {
+		if constVal == 0 {
+			g.emit("    XOR A          ; Constant 0")
+		} else {
+			g.emit("    LD A, %d       ; Constant", constVal)
+		}
+		return
+	}
+
 	// Use hierarchical register allocation
 	location, value := g.getRegisterLocation(reg)
 	
@@ -3825,7 +3979,13 @@ func (g *Z80Generator) loadToHL(reg ir.Register) {
 		g.emit("    LD HL, 0")
 		return
 	}
-	
+
+	// Check if the register contains a known constant value
+	if constVal, ok := g.constantValues[reg]; ok {
+		g.emit("    LD HL, %d      ; Constant", constVal)
+		return
+	}
+
 	// Use hierarchical register allocation for 16-bit loads
 	location, value := g.getRegisterLocation(reg)
 	
@@ -3880,7 +4040,13 @@ func (g *Z80Generator) loadToDE(reg ir.Register) {
 		g.emit("    LD DE, 0")
 		return
 	}
-	
+
+	// Check if the register contains a known constant value
+	if constVal, ok := g.constantValues[reg]; ok {
+		g.emit("    LD DE, %d      ; Constant", constVal)
+		return
+	}
+
 	// Use hierarchical register allocation
 	location, value := g.getRegisterLocation(reg)
 	
@@ -4168,6 +4334,78 @@ func (g *Z80Generator) sanitizeFunctionName(name string) string {
 	}
 
 	return name
+}
+
+// getCPUMode returns the CPU mode for a function ("adl", "z80", or "" for default)
+func (g *Z80Generator) getCPUMode(fn *ir.Function) string {
+	if fn == nil {
+		return ""
+	}
+	return fn.CPUMode
+}
+
+// isADLMode returns true if the function runs in ADL mode
+func (g *Z80Generator) isADLMode(fn *ir.Function) bool {
+	mode := g.getCPUMode(fn)
+	if mode == "adl" {
+		return true
+	}
+	if mode == "z80" {
+		return false
+	}
+	// Default to target's default mode
+	return g.defaultADLMode
+}
+
+// getCallSuffix returns the ADL suffix for a call between two functions
+// Returns "" for same-mode calls, ".LIL" for Z80->ADL, ".SIS" for ADL->Z80
+func (g *Z80Generator) getCallSuffix(callerFunc, calleeFunc *ir.Function) string {
+	if !g.isEZ80Target {
+		return "" // No suffix needed for non-eZ80 targets
+	}
+
+	callerADL := g.isADLMode(callerFunc)
+	calleeADL := g.isADLMode(calleeFunc)
+
+	if callerADL == calleeADL {
+		return "" // Same mode, no suffix needed
+	}
+
+	if !callerADL && calleeADL {
+		return ".LIL" // Z80 calling ADL - need LIL suffix
+	}
+
+	return ".SIS" // ADL calling Z80 - need SIS suffix
+}
+
+// emitCall emits a CALL instruction with appropriate ADL suffix for eZ80 cross-mode calls
+func (g *Z80Generator) emitCall(target string, targetFunc *ir.Function) {
+	suffix := g.getCallSuffix(g.currentFunc, targetFunc)
+	if suffix != "" {
+		g.emit("    CALL%s %s", suffix, target)
+	} else {
+		g.emit("    CALL %s", target)
+	}
+}
+
+// emitCallAddress emits a CALL to an absolute address with appropriate ADL suffix
+func (g *Z80Generator) emitCallAddress(addr uint16, targetFunc *ir.Function, comment string) {
+	suffix := g.getCallSuffix(g.currentFunc, targetFunc)
+	if suffix != "" {
+		g.emit("    CALL%s $%04X    ; %s", suffix, addr, comment)
+	} else {
+		g.emit("    CALL $%04X    ; %s", addr, comment)
+	}
+}
+
+// emitRST emits an RST instruction with appropriate ADL suffix for eZ80 cross-mode calls
+func (g *Z80Generator) emitRST(addr uint16, targetFunc *ir.Function, comment string) {
+	suffix := g.getCallSuffix(g.currentFunc, targetFunc)
+	if suffix != "" {
+		g.emit("    RST%s $%02X    ; %s", suffix, addr, comment)
+	} else {
+		g.emit("    RST $%02X    ; %s", addr, comment)
+	}
 }
 
 // findFunction finds a function in the current module

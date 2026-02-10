@@ -1,0 +1,75 @@
+// CP/M Platform Coverage Test
+// Tests: BDOS calls, console I/O
+// Target: cpm
+
+// =============================================================================
+// BDOS Function Numbers
+// =============================================================================
+
+const BDOS_CONOUT: u8 = 2;
+const BDOS_CONIN: u8 = 1;
+
+// =============================================================================
+// BDOS Interface (using extern keyword)
+// =============================================================================
+
+extern fun bdos();  // BDOS entry point
+
+// =============================================================================
+// Feature Tests
+// =============================================================================
+
+// Test 1: Global variables
+global counter: u16 = 0;
+
+// Test 2: Struct
+struct FileInfo {
+    handle: u8,
+    size: u16,
+}
+
+// Test 3: Functions
+fun increment() {
+    counter = counter + 1;
+}
+
+fun add(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+// Test 4: Control flow
+fun count_up(max: u8) -> u8 {
+    let count: u8 = 0;
+    for i in 0..max {
+        count = count + 1;
+    }
+    return count;
+}
+
+fun test_while(limit: u8) -> u8 {
+    let i: u8 = 0;
+    while i < limit {
+        i = i + 1;
+    }
+    return i;
+}
+
+// =============================================================================
+// Main Entry Point
+// =============================================================================
+
+fun main() -> void {
+    // Test struct
+    let fi = FileInfo { handle: 1, size: 1024 };
+
+    // Test counter
+    increment();
+    increment();
+
+    // Test add
+    let sum = add(100, 200);
+
+    // Test loop
+    let count = count_up(5);
+    let wcount = test_while(10);
+}

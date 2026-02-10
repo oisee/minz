@@ -283,7 +283,8 @@ minz/
 │   ├── sound/        # beep.minz
 │   ├── time/         # delay.minz
 │   ├── mem/          # copy.minz
-│   └── cpm/          # bdos.minz
+│   ├── cpm/          # bdos.minz (CP/M BDOS API)
+│   └── agon/         # mos.minz, vdp.minz (Agon Light 2)
 ├── grammar.js         # Tree-sitter grammar
 ├── examples/          # MinZ programs
 ├── docs/             # Documentation
@@ -311,6 +312,20 @@ One backend, multiple targets:
 ```bash
 mz program.minz -b z80 --target=spectrum  # ZX Spectrum
 mz program.minz -b z80 --target=cpm       # CP/M
+mz program.minz -b z80 --target=agon      # Agon Light 2 (eZ80)
+```
+
+### Agon Light 2 Support (NEW)
+Native eZ80 support with MOS/VDP APIs:
+```minz
+import stdlib.agon.mos;
+import stdlib.agon.vdp;
+
+fun main() {
+    set_mode(MODE_320x240x64);
+    fill_circle(160, 120, 50);
+    mos_puts("Hello Agon!");
+}
 ```
 
 ## 📊 Current Metrics (v0.18.0)

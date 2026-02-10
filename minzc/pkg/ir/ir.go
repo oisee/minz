@@ -708,6 +708,9 @@ type Function struct {
 	NoRST            bool     // True if @norst - force CALL even at RST addresses
 	InlineParams     []string // Inline parameter types from @abi(inline: [u8, u16, asciiz])
 
+	// eZ80 CPU mode support
+	CPUMode          string // "adl", "z80", or "" (default to target)
+
 	// Local function support
 	ParentFunction string                  // Name of parent function (if this is a local function)
 	CapturedVars   map[string]*CapturedVar // Variables captured from parent scope
@@ -715,10 +718,11 @@ type Function struct {
 
 // Parameter represents a function parameter
 type Parameter struct {
-	Name string
-	Type Type
-	Reg  Register
-	IsTSMCRef bool // True if this should use TSMC reference passing
+	Name      string
+	Type      Type
+	Reg       Register
+	TargetReg string // Explicit register mapping for extern: "A", "HL", "BC", "DE", etc.
+	IsTSMCRef bool   // True if this should use TSMC reference passing
 }
 
 // Local represents a local variable
@@ -765,19 +769,26 @@ func (f *Function) LastAllocatedReg() Register {
 
 // AddParam adds a parameter to the function
 func (f *Function) AddParam(name string, typ Type) Register {
+	return f.AddParamWithRegister(name, typ, "")
+}
+
+// AddParamWithRegister adds a parameter with an explicit target register mapping
+// The targetReg is used for extern functions to specify which CPU register the param is in
+func (f *Function) AddParamWithRegister(name string, typ Type, targetReg string) Register {
 	reg := f.AllocReg()
-	
+
 	// Check if this should be a TSMC reference parameter
 	isTSMCRef := false
 	if _, isPtr := typ.(*PointerType); isPtr && f.IsSMCEnabled {
 		// Pointer parameters in SMC functions become TSMC references
 		isTSMCRef = true
 	}
-	
+
 	f.Params = append(f.Params, Parameter{
-		Name: name,
-		Type: typ,
-		Reg:  reg,
+		Name:      name,
+		Type:      typ,
+		Reg:       reg,
+		TargetReg: targetReg,
 		IsTSMCRef: isTSMCRef,
 	})
 	f.NumParams++

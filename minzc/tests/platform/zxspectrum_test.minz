@@ -1,0 +1,77 @@
+// ZX Spectrum Platform Coverage Test
+// Tests: ROM calls, screen output, basic features
+// Target: zxspectrum
+
+// =============================================================================
+// ROM Entry Points (using extern keyword)
+// =============================================================================
+
+extern fun rom_rst10(c: u8);  // RST 10 - print character
+
+// =============================================================================
+// Feature Tests
+// =============================================================================
+
+// Test 1: Core types
+global test_u8: u8 = 42;
+global test_u16: u16 = 1000;
+global test_bool: bool = true;
+
+// Test 2: Struct
+struct Point {
+    x: u8,
+    y: u8,
+}
+
+// Test 3: Functions
+fun add_u8(a: u8, b: u8) -> u8 {
+    return a + b;
+}
+
+fun add_u16(a: u16, b: u16) -> u16 {
+    return a + b;
+}
+
+// Test 4: Control flow
+fun test_if(x: u8) -> u8 {
+    if x > 10 {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+fun test_while() -> u8 {
+    let sum: u8 = 0;
+    let i: u8 = 0;
+    while i < 5 {
+        sum = sum + i;
+        i = i + 1;
+    }
+    return sum;
+}
+
+fun test_for() -> u8 {
+    let sum: u8 = 0;
+    for i in 0..5 {
+        sum = sum + 1;
+    }
+    return sum;
+}
+
+// =============================================================================
+// Main Entry Point
+// =============================================================================
+
+fun main() -> void {
+    // Test struct
+    let p = Point { x: 10, y: 20 };
+
+    // Test function call
+    let sum = add_u8(p.x, p.y);
+
+    // Test control flow
+    let result = test_if(15);
+    let wresult = test_while();
+    let fresult = test_for();
+}

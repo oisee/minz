@@ -119,6 +119,8 @@ func (c *Converter) convertFunction(f *FunctionDecl) *ast.FunctionDecl {
 	result := &ast.FunctionDecl{
 		Name:     f.Name,
 		IsPublic: f.Public,
+		IsExport: f.Export,
+		IsExtern: f.Extern,
 		StartPos: c.convertPos(f.Pos),
 	}
 
@@ -146,6 +148,9 @@ func (c *Converter) convertFunction(f *FunctionDecl) *ast.FunctionDecl {
 		if p.Type != nil {
 			param.Type = c.convertTypeRef(p.Type)
 		}
+		if p.Register != nil {
+			param.Register = *p.Register
+		}
 		result.Params = append(result.Params, param)
 	}
 
@@ -164,6 +169,35 @@ func (c *Converter) convertFunction(f *FunctionDecl) *ast.FunctionDecl {
 	// Convert attributes
 	for _, attr := range f.Attributes {
 		result.Attributes = append(result.Attributes, c.convertAttribute(attr))
+	}
+
+	// Convert "at <address>" syntax for extern functions
+	if f.AtAddress != nil {
+		result.ExternAddress = c.convertExpr(f.AtAddress)
+	}
+
+	// Convert "mode" syntax for eZ80 CPU mode
+	if f.Mode != nil {
+		modeStr := strings.Trim(*f.Mode, "\"")
+		switch modeStr {
+		case "adl":
+			result.CPUMode = ast.CPUModeADL
+		case "z80":
+			result.CPUMode = ast.CPUModeZ80
+		default:
+			// Leave as default
+		}
+	}
+
+	// Convert "abi" syntax - add as attribute for semantic analyzer
+	if f.Abi != nil {
+		abiStr := strings.Trim(*f.Abi, "\"")
+		abiAttr := &ast.Attribute{
+			Name:      "abi",
+			Arguments: []ast.Expression{&ast.StringLiteral{Value: abiStr}},
+			StartPos:  c.convertPos(f.Pos),
+		}
+		result.Attributes = append(result.Attributes, abiAttr)
 	}
 
 	return result

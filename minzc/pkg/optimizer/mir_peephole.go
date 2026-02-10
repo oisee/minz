@@ -550,6 +550,12 @@ func (p *MIRPeepholePass) deadCodeElimination(fn *ir.Function) bool {
 		if inst.Src2 != 0 {
 			used[inst.Src2] = true
 		}
+		// Also check call arguments - they're stored in Args, not Src1/Src2
+		for _, arg := range inst.Args {
+			if arg != 0 {
+				used[arg] = true
+			}
+		}
 	}
 
 	// Mark instructions for removal

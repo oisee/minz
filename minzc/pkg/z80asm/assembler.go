@@ -15,6 +15,24 @@ const (
 	OptSpeed                            // -O2: maximize execution speed
 )
 
+// CPUMode represents the processor mode for eZ80 support
+type CPUMode int
+
+const (
+	CPUModeZ80     CPUMode = iota // Classic Z80 (16-bit only)
+	CPUModeEZ80Z80                // eZ80 in Z80 mode (ADL=0, 16-bit)
+	CPUModeEZ80ADL                // eZ80 in ADL mode (ADL=1, 24-bit native)
+)
+
+// ADL suffix codes for eZ80
+const (
+	ADLSuffixNone byte = 0x00 // No suffix
+	ADLSuffixSIS  byte = 0x40 // .SIS - Short Instruction, Short operands
+	ADLSuffixLIS  byte = 0x49 // .LIS - Long Instruction, Short operands
+	ADLSuffixSIL  byte = 0x52 // .SIL - Short Instruction, Long operands
+	ADLSuffixLIL  byte = 0x5B // .LIL - Long Instruction, Long operands
+)
+
 // Assembler is the main Z80 assembler
 type Assembler struct {
 	// Configuration options
@@ -23,6 +41,7 @@ type Assembler struct {
 	CaseSensitive     bool             // Case sensitivity for labels
 	EnableMacros      bool             // Enable macro processing
 	OptMode           OptimizationMode // Optimization mode for JJ collapse
+	CPUMode           CPUMode          // CPU mode: Z80, eZ80 Z80-mode, or eZ80 ADL-mode
 
 	// Internal state
 	pass          int
@@ -280,17 +299,93 @@ func NewAssembler() *Assembler {
 		Strict:            false,
 		CaseSensitive:     false,
 		EnableMacros:      true,
+		CPUMode:           CPUModeZ80, // Default: classic Z80
 		symbols:           make(map[string]*Symbol),
 		origin:            0x8000, // Default origin
 		macroProcessor:    NewMacroProcessor(),
 	}
-	
+
 	// Define standard macros
 	if a.EnableMacros {
 		a.macroProcessor.DefineStandardMacros()
 	}
-	
+
 	return a
+}
+
+// SetCPUMode sets the CPU mode for eZ80 support
+func (a *Assembler) SetCPUMode(mode CPUMode) {
+	a.CPUMode = mode
+}
+
+// IsEZ80 returns true if targeting eZ80 (either mode)
+func (a *Assembler) IsEZ80() bool {
+	return a.CPUMode == CPUModeEZ80Z80 || a.CPUMode == CPUModeEZ80ADL
+}
+
+// IsADLMode returns true if in eZ80 ADL mode (24-bit)
+func (a *Assembler) IsADLMode() bool {
+	return a.CPUMode == CPUModeEZ80ADL
+}
+
+// GetAddressSize returns the address size in bytes (2 for Z80/Z80-mode, 3 for ADL)
+func (a *Assembler) GetAddressSize() int {
+	if a.CPUMode == CPUModeEZ80ADL {
+		return 3
+	}
+	return 2
+}
+
+// ParseADLSuffix extracts ADL suffix from mnemonic and returns base mnemonic + suffix code
+// For example: "LD.LIL" returns ("LD", ADLSuffixLIL)
+func (a *Assembler) ParseADLSuffix(mnemonic string) (string, byte) {
+	upper := strings.ToUpper(mnemonic)
+
+	// Check for explicit 3-char suffixes
+	suffixes := map[string]byte{
+		".SIS": ADLSuffixSIS,
+		".LIS": ADLSuffixLIS,
+		".SIL": ADLSuffixSIL,
+		".LIL": ADLSuffixLIL,
+	}
+
+	for suffix, code := range suffixes {
+		if strings.HasSuffix(upper, suffix) {
+			return mnemonic[:len(mnemonic)-4], code
+		}
+	}
+
+	// Check for short suffixes (.S, .L) - resolved based on current ADL mode
+	if strings.HasSuffix(upper, ".S") {
+		base := mnemonic[:len(mnemonic)-2]
+		if a.CPUMode == CPUModeEZ80ADL {
+			return base, ADLSuffixSIL // ADL mode: .S means SIL
+		}
+		return base, ADLSuffixSIS // Z80 mode: .S means SIS
+	}
+
+	if strings.HasSuffix(upper, ".L") {
+		base := mnemonic[:len(mnemonic)-2]
+		if a.CPUMode == CPUModeEZ80ADL {
+			return base, ADLSuffixLIL // ADL mode: .L means LIL
+		}
+		return base, ADLSuffixLIS // Z80 mode: .L means LIS
+	}
+
+	return mnemonic, ADLSuffixNone
+}
+
+// GetCrossModeSuffix returns the appropriate suffix for cross-mode calls
+// callerADL: true if caller is in ADL mode
+// calleeADL: true if callee is in ADL mode
+func GetCrossModeSuffix(callerADL, calleeADL bool) byte {
+	if callerADL && !calleeADL {
+		return ADLSuffixSIS // ADL calling Z80
+	}
+	if !callerADL && calleeADL {
+		return ADLSuffixLIL // Z80 calling ADL
+	}
+	return ADLSuffixNone // Same mode, no suffix needed
 }
 
 // AssembleFile assembles a source file

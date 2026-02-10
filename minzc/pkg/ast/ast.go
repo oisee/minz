@@ -55,6 +55,15 @@ type ImportStmt struct {
 func (i *ImportStmt) Pos() Position { return i.StartPos }
 func (i *ImportStmt) End() Position { return i.EndPos }
 
+// CPUModeType represents the CPU execution mode for eZ80
+type CPUModeType string
+
+const (
+	CPUModeDefault CPUModeType = ""      // Use target default
+	CPUModeZ80     CPUModeType = "z80"   // Z80 mode (16-bit)
+	CPUModeADL     CPUModeType = "adl"   // ADL mode (24-bit)
+)
+
 // FunctionDecl represents a function declaration
 type FunctionDecl struct {
 	Name          string
@@ -69,6 +78,7 @@ type FunctionDecl struct {
 	ExternAddress Expression  // Address for @extern(0xC000), nil for @extern without address
 	NoRST         bool        // True if @norst - force CALL even at RST addresses
 	InlineParams  []string    // Inline parameter types from @abi(inline: [u8, u16, asciiz])
+	CPUMode       CPUModeType // CPU mode from @mode("adl") or @mode("z80")
 	Attributes    []*Attribute
 	FunctionKind  FunctionKind  // Regular, Asm, or MIR
 	StartPos      Position
@@ -93,7 +103,8 @@ func (f *FunctionDecl) declNode()    {}
 type Parameter struct {
 	Name     string
 	Type     Type
-	IsSelf   bool  // true if this is a 'self' parameter
+	IsSelf   bool   // true if this is a 'self' parameter
+	Register string // Register mapping for extern functions: "A", "HL", "BC", etc.
 	StartPos Position
 	EndPos   Position
 }

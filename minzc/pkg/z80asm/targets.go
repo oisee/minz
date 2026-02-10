@@ -15,6 +15,7 @@ const (
 	TargetCPM        Target = "cpm"        // CP/M systems
 	TargetMSX        Target = "msx"        // MSX computers
 	TargetGameBoy    Target = "gameboy"    // Game Boy (Z80-like)
+	TargetAgonLight2 Target = "agon"       // Agon Light 2 (eZ80)
 )
 
 // TargetConfig represents a specific Z80-based platform configuration
@@ -221,6 +222,78 @@ var targetRegistry = map[Target]*TargetConfig{
 				"RDVRM":        0x004A,  // Read VRAM
 				"WRTVRM":       0x004D,  // Write VRAM
 			},
+		},
+	},
+
+	TargetAgonLight2: {
+		Name:        "Agon Light 2",
+		Description: "Agon Light 2 computer with eZ80 CPU (24-bit ADL mode)",
+		MemoryLayout: MemoryLayout{
+			DefaultOrigin: 0x0000,    // MOS loads apps at 0x040000, but binary is relative
+			RAMStart:      0x0000,    // Full 512KB addressable in ADL mode
+			RAMSize:       0xFFFF,    // Report as 64K (16-bit field limitation)
+			ROMStart:      0x0000,    // MOS in flash
+			ROMSize:       0,         // No user-accessible ROM area
+			StackTop:      0x0000,    // Set by MOS at startup
+		},
+		OutputFormat: OutputFormat{
+			Extension:   ".bin",
+			Description: "Agon MOS executable",
+			Generator:   generateAgonBin,
+		},
+		Conventions: PlatformConventions{
+			CallConvention: "eZ80 ADL mode",
+			RegisterUsage: map[string]string{
+				"IX": "Available for user code",
+				"IY": "System use - MOS sysvars pointer",
+			},
+			CommonSymbols: map[string]uint16{
+				// MOS API - RST vector entry points
+				"MOS_INIT":       0x0000,  // RST 0x00 - System reset
+				"MOS_GETKEY":     0x0000,  // mos_getkey - wait for keypress
+				"MOS_SYSVARS":    0x0008,  // RST 0x08 - Get sysvars pointer
+				"MOS_PUTCHAR":    0x0010,  // RST 0x10 - Output character
+				"MOS_PUTS":       0x0018,  // RST 0x18 - Print string (HL)
+				"MOS_EDITLINE":   0x0020,  // RST 0x20 - Edit line input
+				// MOS API function numbers (for RST 0x08 + function in A)
+				"MOS_GETKEY_FN":     0x00, // Function: get keyboard key
+				"MOS_LOAD_FN":       0x01, // Function: load file
+				"MOS_SAVE_FN":       0x02, // Function: save file
+				"MOS_CD_FN":         0x03, // Function: change directory
+				"MOS_DIR_FN":        0x04, // Function: list directory
+				"MOS_DEL_FN":        0x05, // Function: delete file
+				"MOS_REN_FN":        0x06, // Function: rename file
+				"MOS_MKDIR_FN":      0x07, // Function: make directory
+				"MOS_SYSVARS_FN":    0x08, // Function: get sysvars
+				"MOS_EDITLINE_FN":   0x09, // Function: edit line
+				"MOS_FOPEN_FN":      0x0A, // Function: open file
+				"MOS_FCLOSE_FN":     0x0B, // Function: close file
+				"MOS_FGETC_FN":      0x0C, // Function: get char from file
+				"MOS_FPUTC_FN":      0x0D, // Function: put char to file
+				"MOS_FEOF_FN":       0x0E, // Function: check end of file
+				"MOS_GETERROR_FN":   0x0F, // Function: get last error
+				"MOS_OSCLI_FN":      0x10, // Function: execute CLI command
+				"MOS_COPY_FN":       0x11, // Function: copy file
+				"MOS_GETRTC_FN":     0x12, // Function: get RTC time
+				"MOS_SETRTC_FN":     0x13, // Function: set RTC time
+				"MOS_SETINTVECTOR_FN": 0x14, // Function: set interrupt vector
+				"MOS_UOPEN_FN":      0x15, // Function: open UART
+				"MOS_UCLOSE_FN":     0x16, // Function: close UART
+				"MOS_UGETC_FN":      0x17, // Function: get char from UART
+				"MOS_UPUTC_FN":      0x18, // Function: put char to UART
+				"MOS_GETFIL_FN":     0x19, // Function: get file info
+				"MOS_FREAD_FN":      0x1A, // Function: read from file
+				"MOS_FWRITE_FN":     0x1B, // Function: write to file
+				"MOS_FLSEEK_FN":     0x1C, // Function: seek in file
+				// VDP commands (sent via serial)
+				"VDP_PACKET":    0x17,     // VDP command packet start
+			},
+		},
+		Extensions: map[string]interface{}{
+			"cpuMode":     "eZ80ADL",  // 24-bit ADL mode
+			"adlMode":     true,       // Use 24-bit addressing
+			"clockSpeed":  18432000,   // 18.432 MHz
+			"vdpSerial":   true,       // VDP via serial to ESP32
 		},
 	},
 }
@@ -501,6 +574,22 @@ func generateTAPFile(result *Result) ([]byte, error) {
 	tap = append(tap, dataBlock...)
 	
 	return tap, nil
+}
+
+// generateAgonBin creates an Agon Light 2 MOS executable binary
+func generateAgonBin(result *Result) ([]byte, error) {
+	// Agon MOS executables are simple raw binaries
+	// MOS loads them at 0x040000 (in ADL mode address space)
+	// The binary itself is position-independent or ORG'd at 0x040000
+
+	// Maximum size check (512KB addressable, but practical limit ~480KB)
+	if len(result.Binary) > 480*1024 {
+		return nil, fmt.Errorf("Agon binary too large: %d bytes (max ~480KB)", len(result.Binary))
+	}
+
+	// For now, just return raw binary
+	// Future: could add MOS header for metadata
+	return result.Binary, nil
 }
 
 // Add target field to Assembler struct (this would go in assembler.go)
