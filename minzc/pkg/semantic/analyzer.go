@@ -944,6 +944,14 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 	// If an alias was specified, create alias symbols for all exported items
 	if imp.Alias != "" {
 		a.registerModuleAlias(imp.Path, imp.Alias)
+	} else {
+		// Automatically create a short alias using the last component of the path
+		// e.g., "cpm.bdos" -> alias "bdos", so "bdos.putchar" works
+		parts := strings.Split(imp.Path, ".")
+		if len(parts) > 1 {
+			shortAlias := parts[len(parts)-1]
+			a.registerModuleAlias(imp.Path, shortAlias)
+		}
 	}
 	
 	// Second pass: analyze all module declarations (constants, types, etc.)
@@ -969,20 +977,8 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 				fmt.Printf("Warning: failed to analyze struct %s: %v\n", d.Name, err)
 			}
 		case *ast.FunctionDecl:
-			// Analyze function declarations (to generate code for them)
-			if d.IsPublic || d.IsExport {
-				// Temporarily adjust the function name to include module prefix
-				originalName := d.Name
-				d.Name = modulePrefix + "." + d.Name
-				
-				if err := a.analyzeFunctionDecl(d); err != nil {
-					// Log warning but continue
-					fmt.Printf("Warning: failed to analyze function %s: %v\n", d.Name, err)
-				}
-				
-				// Restore original name
-				d.Name = originalName
-			}
+			// Functions are analyzed in the third pass below
+			// Skip here to avoid duplicate definitions
 		case *ast.EnumDecl:
 			// Analyze enum types
 			if err := a.analyzeEnumDecl(d); err != nil {
@@ -4582,17 +4578,33 @@ func (a *Analyzer) analyzeBinaryExpr(bin *ast.BinaryExpr, irFunc *ir.Function) (
 		return 0, fmt.Errorf("unsupported binary operator: %s", bin.Operator)
 	}
 
-	// Determine result type
-	leftType := a.exprTypes[bin.Left]
-	rightType := a.exprTypes[bin.Right]
-	
-	// For now, use the left operand's type as the result type
-	// TODO: Implement proper type promotion rules
-	resultType := leftType
-	if resultType == nil && rightType != nil {
-		resultType = rightType
+	// Determine result type - use inferType for accurate type inference
+	leftType, _ := a.inferType(bin.Left)
+	rightType, _ := a.inferType(bin.Right)
+
+	// Handle pointer arithmetic specially
+	var resultType ir.Type
+	if bin.Operator == "+" || bin.Operator == "-" {
+		// Check if left operand is a pointer
+		if ptrType, ok := leftType.(*ir.PointerType); ok {
+			// Pointer + integer preserves pointer type
+			resultType = ptrType
+		} else if bin.Operator == "+" {
+			// Check if right operand is a pointer (integer + pointer)
+			if ptrType, ok := rightType.(*ir.PointerType); ok {
+				resultType = ptrType
+			}
+		}
 	}
-	
+
+	// If not pointer arithmetic, use standard type rules
+	if resultType == nil {
+		resultType = leftType
+		if resultType == nil && rightType != nil {
+			resultType = rightType
+		}
+	}
+
 	// Store the result type
 	a.exprTypes[bin] = resultType
 	
@@ -7209,27 +7221,43 @@ func (a *Analyzer) analyzeMetafunctionCall(call *ast.MetafunctionCall, irFunc *i
 		CurrentFunction: irFunc.Name,
 		Variables:       make(map[string]metafunction.VariableInfo),
 		Constants:       make(map[string]interface{}),
+		Enums:           make(map[string]map[string]int),
 		LabelCounter:    0,
 	}
-	
-	// Populate variables from current scope
-	for name, symb := range a.currentScope.symbols {
-		switch s := symb.(type) {
-		case *VarSymbol:
-			if s.Type != nil {
-				context.Variables[name] = metafunction.VariableInfo{
-					Type:    s.Type.String(),
-					Address: name,
+
+	// Populate variables and enums from all scopes (current and parents)
+	scope := a.currentScope
+	for scope != nil {
+		for name, symb := range scope.symbols {
+			switch s := symb.(type) {
+			case *VarSymbol:
+				if s.Type != nil {
+					if _, exists := context.Variables[name]; !exists {
+						context.Variables[name] = metafunction.VariableInfo{
+							Type:    s.Type.String(),
+							Address: name,
+						}
+					}
 				}
-			}
-		case *ConstSymbol:
-			if s.Type != nil {
-				context.Variables[name] = metafunction.VariableInfo{
-					Type:    s.Type.String(),
-					Address: name,
+			case *ConstSymbol:
+				if s.Type != nil {
+					if _, exists := context.Variables[name]; !exists {
+						context.Variables[name] = metafunction.VariableInfo{
+							Type:    s.Type.String(),
+							Address: name,
+						}
+					}
+				}
+			case *TypeSymbol:
+				// Check if it's an enum type
+				if enumType, ok := s.Type.(*ir.EnumType); ok {
+					if _, exists := context.Enums[name]; !exists {
+						context.Enums[name] = enumType.Variants
+					}
 				}
 			}
 		}
+		scope = scope.parent
 	}
 	
 	// Handle built-in metafunctions

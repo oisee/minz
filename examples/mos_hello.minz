@@ -1,0 +1,81 @@
+// MOS Hello World Example for Agon Light 2
+// Demonstrates basic MOS console I/O on eZ80 platform
+//
+// To compile: minzc mos_hello.minz -o hello.bin
+// To run: Copy to Agon SD card and run from MOS
+//
+// MOS API:
+//   RST 0x10 - OSWRCH: Output character in A
+//   RST 0x00 with A=0x00 - Get key (blocking)
+
+// Direct RST calls for minimal overhead
+extern fun putchar(c: u8) at 0x10;
+
+// Get key via MOS API call (RST 0x00 with function 0x00)
+fun getkey() -> u8 {
+    asm {
+        XOR A           ; A = 0 (MOS_GETKEY function)
+        RST 0x00        ; MOS API call
+        ; Result in A
+    }
+}
+
+fun newline() -> void {
+    putchar(13);  // CR
+    putchar(10);  // LF
+}
+
+fun main() -> void {
+    // Print "Hello, Agon!"
+    putchar('H');
+    putchar('e');
+    putchar('l');
+    putchar('l');
+    putchar('o');
+    putchar(',');
+    putchar(' ');
+    putchar('A');
+    putchar('g');
+    putchar('o');
+    putchar('n');
+    putchar('!');
+    newline();
+
+    // Prompt and wait for keypress
+    putchar('P');
+    putchar('r');
+    putchar('e');
+    putchar('s');
+    putchar('s');
+    putchar(' ');
+    putchar('a');
+    putchar('n');
+    putchar('y');
+    putchar(' ');
+    putchar('k');
+    putchar('e');
+    putchar('y');
+    putchar('.');
+    putchar('.');
+    putchar('.');
+
+    let ch = getkey();
+    newline();
+
+    // Echo the pressed key
+    putchar('Y');
+    putchar('o');
+    putchar('u');
+    putchar(' ');
+    putchar('p');
+    putchar('r');
+    putchar('e');
+    putchar('s');
+    putchar('s');
+    putchar('e');
+    putchar('d');
+    putchar(':');
+    putchar(' ');
+    putchar(ch);
+    newline();
+}

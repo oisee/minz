@@ -124,6 +124,11 @@ func (c *Converter) convertFunction(f *FunctionDecl) *ast.FunctionDecl {
 		StartPos: c.convertPos(f.Pos),
 	}
 
+	// Set function kind based on asm keyword
+	if f.Asm {
+		result.FunctionKind = ast.FunctionKindAsm
+	}
+
 	// Convert generic params
 	for _, tp := range f.TypeParams {
 		gp := &ast.GenericParam{

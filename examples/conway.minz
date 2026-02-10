@@ -124,7 +124,7 @@ fun main() -> void {
     }
 
     // Main loop
-    for {
+    while true {
         // Display grid to attribute memory
         for i in 33..736 {
             let attr_addr: u16 = ATTR_MEM + i;

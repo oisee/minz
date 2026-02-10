@@ -59,29 +59,31 @@ const FA_OPEN_APPEND: u8 = 0x30;    // Open for append
 
 // Output a single character using RST 0x10
 @extern(0x10)
-fun mos_putchar(c: u8);
+pub fun mos_putchar(c: u8);
 
 // Print a null-terminated string using RST 0x18
 // Note: HL must point to the string
 @extern(0x18)
-fun mos_puts(str: *u8);
+pub fun mos_puts(str: *u8);
 
 // Generic MOS API call: function number in A, returns result in A
 // Parameters passed in various registers depending on function
-asm fun mos_call(func: u8) -> u8 {
-    ; func is in A (MinZ calling convention)
-    RST 0x00        ; MOS API call
-    RET             ; Result in A
+pub fun mos_call(func: u8) -> u8 {
+    asm {
+        ; func is in A (MinZ calling convention)
+        RST 0x00        ; MOS API call
+        ; Result in A
+    }
 }
 
 // Get keyboard key (blocking - waits for keypress)
-fun getkey() -> u8 {
+pub fun getkey() -> u8 {
     return mos_call(MOS_GETKEY);
 }
 
 // Get system variables pointer
 // Returns pointer to sysvars structure in IY
-asm fun get_sysvars() -> *u8 {
+pub asm fun get_sysvars() -> *u8 {
     RST 0x08        ; Get sysvars pointer into IY
     PUSH IY
     POP HL          ; Copy IY to HL for return
@@ -89,7 +91,7 @@ asm fun get_sysvars() -> *u8 {
 }
 
 // Get last error code
-fun get_error() -> u8 {
+pub fun get_error() -> u8 {
     return mos_call(MOS_GETERROR);
 }
 
@@ -98,13 +100,13 @@ fun get_error() -> u8 {
 // =============================================================================
 
 // Print a newline (CR+LF)
-fun newline() {
+pub fun newline() {
     mos_putchar(13);  // CR
     mos_putchar(10);  // LF
 }
 
 // Print a hexadecimal digit (0-15)
-fun print_hex_digit(n: u8) {
+pub fun print_hex_digit(n: u8) {
     if n < 10 {
         mos_putchar(48 + n);  // '0' + n
     } else {
@@ -113,13 +115,13 @@ fun print_hex_digit(n: u8) {
 }
 
 // Print a byte as two hex digits
-fun print_hex8(n: u8) {
+pub fun print_hex8(n: u8) {
     print_hex_digit((n >> 4) & 0x0F);
     print_hex_digit(n & 0x0F);
 }
 
 // Print a 16-bit value as four hex digits
-fun print_hex16(n: u16) {
+pub fun print_hex16(n: u16) {
     print_hex8((n >> 8) as u8);
     print_hex8(n as u8);
 }
@@ -132,7 +134,7 @@ fun print_hex16(n: u16) {
 // filename: null-terminated path string
 // mode: combination of FA_* flags
 // Returns: file handle (1-255) or 0 on error
-asm fun fopen(filename: *u8, mode: u8) -> u8 {
+pub asm fun fopen(filename: *u8, mode: u8) -> u8 {
     ; filename in HL, mode in A (after HL)
     ; Need: HL = filename, C = mode, A = function number
     LD C, A         ; C = mode (was passed after HL)
@@ -144,7 +146,7 @@ asm fun fopen(filename: *u8, mode: u8) -> u8 {
 // Close a file
 // handle: file handle from fopen
 // Returns: 0 on success
-asm fun fclose(handle: u8) -> u8 {
+pub asm fun fclose(handle: u8) -> u8 {
     ; handle in A
     LD C, A         ; C = file handle
     LD A, 0x0B      ; MOS_FCLOSE
@@ -155,7 +157,7 @@ asm fun fclose(handle: u8) -> u8 {
 // Read a single character from file
 // handle: file handle
 // Returns: character read, or -1 (255) on EOF/error
-asm fun fgetc(handle: u8) -> u8 {
+pub asm fun fgetc(handle: u8) -> u8 {
     LD C, A         ; C = file handle
     LD A, 0x0C      ; MOS_FGETC
     RST 0x00        ; MOS call
@@ -166,7 +168,7 @@ asm fun fgetc(handle: u8) -> u8 {
 // handle: file handle
 // c: character to write
 // Returns: 0 on success
-asm fun fputc(handle: u8, c: u8) -> u8 {
+pub asm fun fputc(handle: u8, c: u8) -> u8 {
     ; handle in A, c follows
     LD C, A         ; C = file handle
     ; Need to get 'c' from stack or register
@@ -179,7 +181,7 @@ asm fun fputc(handle: u8, c: u8) -> u8 {
 // Check for end of file
 // handle: file handle
 // Returns: non-zero if at EOF
-asm fun feof(handle: u8) -> u8 {
+pub asm fun feof(handle: u8) -> u8 {
     LD C, A         ; C = file handle
     LD A, 0x0E      ; MOS_FEOF
     RST 0x00        ; MOS call
@@ -194,7 +196,7 @@ asm fun feof(handle: u8) -> u8 {
 // filename: null-terminated path string
 // address: destination address (24-bit)
 // Returns: number of bytes loaded (in HL) or 0 on error
-asm fun load_file(filename: *u8, address: *u8) -> u16 {
+pub asm fun load_file(filename: *u8, address: *u8) -> u16 {
     ; filename in HL, address follows
     ; This is simplified - actual MOS_LOAD has more parameters
     LD A, 0x01      ; MOS_LOAD
@@ -207,7 +209,7 @@ asm fun load_file(filename: *u8, address: *u8) -> u16 {
 // address: source address
 // length: number of bytes to save
 // Returns: 0 on success
-asm fun save_file(filename: *u8, address: *u8, length: u16) -> u8 {
+pub asm fun save_file(filename: *u8, address: *u8, length: u16) -> u8 {
     LD A, 0x02      ; MOS_SAVE
     RST 0x00        ; MOS call
     RET             ; Status in A
@@ -216,7 +218,7 @@ asm fun save_file(filename: *u8, address: *u8, length: u16) -> u8 {
 // Delete a file
 // filename: null-terminated path string
 // Returns: 0 on success
-asm fun delete_file(filename: *u8) -> u8 {
+pub asm fun delete_file(filename: *u8) -> u8 {
     ; filename in HL
     LD A, 0x05      ; MOS_DEL
     RST 0x00        ; MOS call
@@ -226,7 +228,7 @@ asm fun delete_file(filename: *u8) -> u8 {
 // Change directory
 // path: null-terminated path string
 // Returns: 0 on success
-asm fun chdir(path: *u8) -> u8 {
+pub asm fun chdir(path: *u8) -> u8 {
     ; path in HL
     LD A, 0x03      ; MOS_CD
     RST 0x00        ; MOS call
@@ -236,7 +238,7 @@ asm fun chdir(path: *u8) -> u8 {
 // Create directory
 // path: null-terminated path string
 // Returns: 0 on success
-asm fun mkdir(path: *u8) -> u8 {
+pub asm fun mkdir(path: *u8) -> u8 {
     ; path in HL
     LD A, 0x07      ; MOS_MKDIR
     RST 0x00        ; MOS call
@@ -260,7 +262,7 @@ struct RTCTime {
 // Get current RTC time
 // time: pointer to RTCTime structure to fill
 // Returns: 0 on success
-asm fun get_rtc(time: *RTCTime) -> u8 {
+pub asm fun get_rtc(time: *RTCTime) -> u8 {
     ; time pointer in HL
     LD A, 0x12      ; MOS_GETRTC
     RST 0x00        ; MOS call
@@ -270,7 +272,7 @@ asm fun get_rtc(time: *RTCTime) -> u8 {
 // Set RTC time
 // time: pointer to RTCTime structure
 // Returns: 0 on success
-asm fun set_rtc(time: *RTCTime) -> u8 {
+pub asm fun set_rtc(time: *RTCTime) -> u8 {
     ; time pointer in HL
     LD A, 0x13      ; MOS_SETRTC
     RST 0x00        ; MOS call
@@ -284,7 +286,7 @@ asm fun set_rtc(time: *RTCTime) -> u8 {
 // Execute a MOS CLI command
 // cmd: null-terminated command string
 // Returns: command result
-asm fun oscli(cmd: *u8) -> u8 {
+pub asm fun oscli(cmd: *u8) -> u8 {
     ; cmd in HL
     LD A, 0x10      ; MOS_OSCLI
     RST 0x00        ; MOS call
@@ -301,7 +303,7 @@ asm fun oscli(cmd: *u8) -> u8 {
 // count: number of bytes to read
 // Returns: actual bytes read in HL
 @mode("adl")
-asm fun fread(handle: u8, buffer: *u8, count: u16) -> u16 {
+pub asm fun fread(handle: u8, buffer: *u8, count: u16) -> u16 {
     ; handle in A, buffer in HL (stack), count in DE (stack)
     LD C, A         ; C = file handle
     ; Get buffer and count from stack
@@ -321,7 +323,7 @@ asm fun fread(handle: u8, buffer: *u8, count: u16) -> u16 {
 // count: number of bytes to write
 // Returns: actual bytes written in HL
 @mode("adl")
-asm fun fwrite(handle: u8, buffer: *u8, count: u16) -> u16 {
+pub asm fun fwrite(handle: u8, buffer: *u8, count: u16) -> u16 {
     LD C, A         ; C = file handle
     POP HL          ; return address
     POP DE          ; buffer -> DE
@@ -338,7 +340,7 @@ asm fun fwrite(handle: u8, buffer: *u8, count: u16) -> u16 {
 // position: byte offset from start of file (32-bit)
 // Returns: 0 on success
 @mode("adl")
-asm fun fseek(handle: u8, position: u32) -> u8 {
+pub asm fun fseek(handle: u8, position: u32) -> u8 {
     LD C, A         ; C = file handle
     ; position is 32-bit, need to get from stack
     ; Simplified - actual implementation needs DE:HL for 32-bit position
@@ -354,7 +356,7 @@ asm fun fseek(handle: u8, position: u32) -> u8 {
 // Open UART for communication
 // baud: baud rate (0=9600, 1=19200, 2=38400, 3=57600, 4=115200)
 // Returns: 0 on success
-asm fun uart_open(baud: u8) -> u8 {
+pub asm fun uart_open(baud: u8) -> u8 {
     LD C, A         ; C = baud rate code
     LD A, 0x15      ; MOS_UOPEN
     RST 0x00        ; MOS call
@@ -363,7 +365,7 @@ asm fun uart_open(baud: u8) -> u8 {
 
 // Close UART
 // Returns: 0 on success
-asm fun uart_close() -> u8 {
+pub asm fun uart_close() -> u8 {
     LD A, 0x16      ; MOS_UCLOSE
     RST 0x00        ; MOS call
     RET             ; Status in A
@@ -371,7 +373,7 @@ asm fun uart_close() -> u8 {
 
 // Read character from UART (blocking)
 // Returns: character received
-asm fun uart_getc() -> u8 {
+pub asm fun uart_getc() -> u8 {
     LD A, 0x17      ; MOS_UGETC
     RST 0x00        ; MOS call
     RET             ; Character in A
@@ -380,7 +382,7 @@ asm fun uart_getc() -> u8 {
 // Write character to UART
 // c: character to send
 // Returns: 0 on success
-asm fun uart_putc(c: u8) -> u8 {
+pub asm fun uart_putc(c: u8) -> u8 {
     LD C, A         ; C = character
     LD A, 0x18      ; MOS_UPUTC
     RST 0x00        ; MOS call
@@ -388,7 +390,7 @@ asm fun uart_putc(c: u8) -> u8 {
 }
 
 // Print string to UART
-fun uart_puts(str: *u8) {
+pub fun uart_puts(str: *u8) {
     let i: u16 = 0;
     while str[i] != 0 {
         uart_putc(str[i]);
@@ -434,52 +436,52 @@ struct SysVars {
 
 // Get system clock ticks (since boot)
 // Approximately 60 ticks per second
-fun get_clock() -> u32 {
+pub fun get_clock() -> u32 {
     let sysvars = get_sysvars() as *SysVars;
     return sysvars.clock;
 }
 
 // Get current screen mode
-fun get_screen_mode() -> u8 {
+pub fun get_screen_mode() -> u8 {
     let sysvars = get_sysvars() as *SysVars;
     return sysvars.scrMode;
 }
 
 // Get screen dimensions in pixels
-fun get_screen_width() -> u16 {
+pub fun get_screen_width() -> u16 {
     let sysvars = get_sysvars() as *SysVars;
     return sysvars.scrWidth;
 }
 
-fun get_screen_height() -> u16 {
+pub fun get_screen_height() -> u16 {
     let sysvars = get_sysvars() as *SysVars;
     return sysvars.scrHeight;
 }
 
 // Get screen dimensions in text characters
-fun get_text_cols() -> u8 {
+pub fun get_text_cols() -> u8 {
     let sysvars = get_sysvars() as *SysVars;
     return sysvars.scrCols;
 }
 
-fun get_text_rows() -> u8 {
+pub fun get_text_rows() -> u8 {
     let sysvars = get_sysvars() as *SysVars;
     return sysvars.scrRows;
 }
 
 // Get last key ASCII code (non-blocking check)
-fun get_last_key() -> u8 {
+pub fun get_last_key() -> u8 {
     let sysvars = get_sysvars() as *SysVars;
     return sysvars.keyascii;
 }
 
 // Get cursor position
-fun get_cursor_x() -> u8 {
+pub fun get_cursor_x() -> u8 {
     let sysvars = get_sysvars() as *SysVars;
     return sysvars.cursor_x;
 }
 
-fun get_cursor_y() -> u8 {
+pub fun get_cursor_y() -> u8 {
     let sysvars = get_sysvars() as *SysVars;
     return sysvars.cursor_y;
 }
@@ -505,7 +507,7 @@ const INT_SPI: u8 = 30;
 // handler: pointer to interrupt handler function (or 0 to disable)
 // Returns: 0 on success
 @mode("adl")
-asm fun set_interrupt_handler(vector: u8, handler: *u8) -> u8 {
+pub asm fun set_interrupt_handler(vector: u8, handler: *u8) -> u8 {
     LD C, A         ; C = vector number
     ; handler is in DE or on stack
     LD A, 0x14      ; MOS_SETINTVECTOR
@@ -519,7 +521,7 @@ asm fun set_interrupt_handler(vector: u8, handler: *u8) -> u8 {
 
 // Delay for approximately n milliseconds
 // Note: Not precise, depends on system clock
-fun delay_ms(ms: u16) {
+pub fun delay_ms(ms: u16) {
     let ticks = (ms * 6) / 100;  // ~60 ticks/sec = ~16.67ms per tick
     if ticks == 0 { ticks = 1; }
     let start = get_clock();
@@ -530,7 +532,7 @@ fun delay_ms(ms: u16) {
 
 // Wait for next VBlank (for smooth animation)
 // Returns when VDP signals vertical blank
-fun wait_vblank() {
+pub fun wait_vblank() {
     let start_clock = get_clock();
     // Wait for clock to change (happens at ~60Hz on VBlank)
     while get_clock() == start_clock {
@@ -547,7 +549,7 @@ fun wait_vblank() {
 // maxlen: maximum characters to read (buffer size - 1)
 // Returns: number of characters read
 @mode("adl")
-asm fun readline(buffer: *u8, maxlen: u8) -> u8 {
+pub asm fun readline(buffer: *u8, maxlen: u8) -> u8 {
     ; buffer in HL, maxlen in A (stack)
     LD C, A         ; C = max length
     LD A, 0x09      ; MOS_EDITLINE
@@ -560,7 +562,7 @@ asm fun readline(buffer: *u8, maxlen: u8) -> u8 {
 // =============================================================================
 
 // Print a decimal number (0-255)
-fun print_u8(n: u8) {
+pub fun print_u8(n: u8) {
     if n >= 100 {
         mos_putchar(48 + (n / 100));
         n = n % 100;
@@ -575,7 +577,7 @@ fun print_u8(n: u8) {
 }
 
 // Print a decimal number (0-65535)
-fun print_u16(n: u16) {
+pub fun print_u16(n: u16) {
     if n >= 10000 {
         mos_putchar(48 + ((n / 10000) as u8));
         n = n % 10000;
@@ -595,11 +597,11 @@ fun print_u16(n: u16) {
 }
 
 // Print a space
-fun print_space() {
+pub fun print_space() {
     mos_putchar(32);
 }
 
 // Clear screen (using VDU code)
-fun cls() {
+pub fun cls() {
     mos_putchar(12);  // Form feed = clear screen
 }

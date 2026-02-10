@@ -303,13 +303,12 @@ type ArrayLiteral struct {
 	Elements []*Expression `parser:"'[' ( @@ ( ',' @@ )* )? ']'"`
 }
 
-// LambdaExpr represents |params| body, |params| => body, or |params| { body }
+// LambdaExpr represents |params| body, |params| => Type { body }, or |params| { body }
 type LambdaExpr struct {
 	Pos lexer.Position
 
 	Params     []*LambdaParam `parser:"'|' ( @@ ( ',' @@ )* )? '|'"`
-	ReturnType *TypeRef       `parser:"( Arrow @@ )?"`
-	Arrow      bool           `parser:"@FatArrow?"`
+	ReturnType *TypeRef       `parser:"( ( Arrow | FatArrow ) @@ )?"`
 	Body       *Expression    `parser:"@@?"`
 }
 

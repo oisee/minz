@@ -29,15 +29,34 @@ type LoadedModule struct {
 
 // NewModuleLoader creates a new module loader
 func NewModuleLoader() *ModuleLoader {
-	return &ModuleLoader{
+	loader := &ModuleLoader{
 		searchPaths: []string{
 			"stdlib",
-			"../stdlib", // When running from minzc directory
+			"../stdlib",        // When running from minzc directory
+			"../../stdlib",     // When running from minzc subdirectory
+			"../../../stdlib",  // When running from deeper subdirectories
 			".",
 		},
 		cache:  make(map[string]*LoadedModule),
 		parser: parser.New(),
 	}
+
+	// Also check for MINZ_STDLIB environment variable
+	if stdlibPath := os.Getenv("MINZ_STDLIB"); stdlibPath != "" {
+		loader.searchPaths = append([]string{stdlibPath}, loader.searchPaths...)
+	}
+
+	// Try to find stdlib relative to the executable
+	if execPath, err := os.Executable(); err == nil {
+		execDir := filepath.Dir(execPath)
+		loader.searchPaths = append(loader.searchPaths,
+			filepath.Join(execDir, "stdlib"),
+			filepath.Join(execDir, "../stdlib"),
+			filepath.Join(execDir, "../../stdlib"),
+		)
+	}
+
+	return loader
 }
 
 // LoadModule loads a module by its import path

@@ -53,23 +53,26 @@ const BDOS_RESET_DRIVE: u8 = 37;    // Reset drive (CP/M 3)
 // =============================================================================
 
 // Raw BDOS call - function in C, parameter in DE, returns A
-asm fun bdos_raw(func: u8, param: u16) -> u8 {
-    // func is in A, param is in HL (MinZ calling convention)
-    // We need: C = func, DE = param
-    LD C, A         ; Function number
-    EX DE, HL       ; DE = param (was in HL)
-    CALL 0x0005     ; BDOS entry
-    RET             ; Result already in A
+pub fun bdos_raw(func: u8, param: u16) -> u8 {
+    asm {
+        ; func is in A, param is in HL (MinZ calling convention)
+        ; We need: C = func, DE = param
+        LD C, A         ; Function number
+        EX DE, HL       ; DE = param (was in HL)
+        CALL 0x0005     ; BDOS entry
+        ; Result already in A
+    }
 }
 
 // BDOS call returning 16-bit value in HL
-asm fun bdos_raw16(func: u8, param: u16) -> u16 {
-    LD C, A         ; Function number
-    EX DE, HL       ; DE = param
-    CALL 0x0005     ; BDOS entry
-    LD H, B         ; For some calls, result is in BA or HL
-    LD L, A         ; Return in HL
-    RET
+pub fun bdos_raw16(func: u8, param: u16) -> u16 {
+    asm {
+        LD C, A         ; Function number
+        EX DE, HL       ; DE = param
+        CALL 0x0005     ; BDOS entry
+        LD H, B         ; For some calls, result is in BA or HL
+        LD L, A         ; Return in HL
+    }
 }
 
 // =============================================================================
@@ -77,18 +80,18 @@ asm fun bdos_raw16(func: u8, param: u16) -> u16 {
 // =============================================================================
 
 // Read a character from console (waits for input)
-fun getchar() -> u8 {
+pub fun getchar() -> u8 {
     return bdos_raw(BDOS_CONSOLE_INPUT, 0);
 }
 
 // Write a character to console
-fun putchar(ch: u8) -> void {
+pub fun putchar(ch: u8) -> void {
     bdos_raw(BDOS_CONSOLE_OUTPUT, ch as u16);
 }
 
 // Check if a key is available (non-blocking)
 // Returns 0xFF if key ready, 0x00 if not
-fun kbhit() -> u8 {
+pub fun kbhit() -> u8 {
     return bdos_raw(BDOS_CONSOLE_STATUS, 0);
 }
 
@@ -96,17 +99,17 @@ fun kbhit() -> u8 {
 // If param = 0xFF: return input char (or 0 if none)
 // If param = 0xFE: return console status (like kbhit)
 // Otherwise: output param as character
-fun conio(param: u8) -> u8 {
+pub fun conio(param: u8) -> u8 {
     return bdos_raw(BDOS_DIRECT_IO, param as u16);
 }
 
 // Print a $-terminated string at address
-fun print_string(addr: *u8) -> void {
+pub fun print_string(addr: *u8) -> void {
     bdos_raw(BDOS_PRINT_STRING, addr as u16);
 }
 
 // Print a newline (CR+LF)
-fun newline() -> void {
+pub fun newline() -> void {
     putchar(13);  // CR
     putchar(10);  // LF
 }
@@ -116,35 +119,35 @@ fun newline() -> void {
 // =============================================================================
 
 // Get current drive (0=A, 1=B, ...)
-fun get_drive() -> u8 {
+pub fun get_drive() -> u8 {
     return bdos_raw(BDOS_GET_DISK, 0);
 }
 
 // Select drive (0=A, 1=B, ...)
-fun select_drive(drive: u8) -> void {
+pub fun select_drive(drive: u8) -> void {
     bdos_raw(BDOS_SELECT_DISK, drive as u16);
 }
 
 // Reset disk system
-fun reset_disks() -> void {
+pub fun reset_disks() -> void {
     bdos_raw(BDOS_RESET_DISK, 0);
 }
 
 // Set DMA address for disk operations
-fun set_dma(addr: *u8) -> void {
+pub fun set_dma(addr: *u8) -> void {
     bdos_raw(BDOS_SET_DMA, addr as u16);
 }
 
 // Get/set user area (0-15)
 // If user = 0xFF, returns current user
 // Otherwise, sets user area
-fun user_area(user: u8) -> u8 {
+pub fun user_area(user: u8) -> u8 {
     return bdos_raw(BDOS_GET_USER, user as u16);
 }
 
 // Get CP/M version
 // Returns: H = 0 for CP/M, L = version (0x22 = 2.2, 0x30 = 3.0)
-fun get_version() -> u16 {
+pub fun get_version() -> u16 {
     return bdos_raw16(BDOS_GET_VERSION, 0);
 }
 
@@ -163,41 +166,41 @@ const FCB_SUCCESS: u8 = 0;
 const FCB_ERROR: u8 = 0xFF;
 
 // Open file (FCB must be initialized with filename)
-fun file_open(fcb: *u8) -> u8 {
+pub fun file_open(fcb: *u8) -> u8 {
     return bdos_raw(BDOS_OPEN_FILE, fcb as u16);
 }
 
 // Close file
-fun file_close(fcb: *u8) -> u8 {
+pub fun file_close(fcb: *u8) -> u8 {
     return bdos_raw(BDOS_CLOSE_FILE, fcb as u16);
 }
 
 // Create new file
-fun file_create(fcb: *u8) -> u8 {
+pub fun file_create(fcb: *u8) -> u8 {
     return bdos_raw(BDOS_MAKE_FILE, fcb as u16);
 }
 
 // Delete file
-fun file_delete(fcb: *u8) -> u8 {
+pub fun file_delete(fcb: *u8) -> u8 {
     return bdos_raw(BDOS_DELETE_FILE, fcb as u16);
 }
 
 // Read next 128-byte record (set DMA first!)
-fun file_read(fcb: *u8) -> u8 {
+pub fun file_read(fcb: *u8) -> u8 {
     return bdos_raw(BDOS_READ_SEQ, fcb as u16);
 }
 
 // Write next 128-byte record (set DMA first!)
-fun file_write(fcb: *u8) -> u8 {
+pub fun file_write(fcb: *u8) -> u8 {
     return bdos_raw(BDOS_WRITE_SEQ, fcb as u16);
 }
 
 // Read random record (set record number in FCB first)
-fun file_read_random(fcb: *u8) -> u8 {
+pub fun file_read_random(fcb: *u8) -> u8 {
     return bdos_raw(BDOS_READ_RANDOM, fcb as u16);
 }
 
 // Write random record
-fun file_write_random(fcb: *u8) -> u8 {
+pub fun file_write_random(fcb: *u8) -> u8 {
     return bdos_raw(BDOS_WRITE_RANDOM, fcb as u16);
 }

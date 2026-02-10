@@ -17,8 +17,7 @@ fun fast_fill(dest: *u8, value: u8, count: u16) -> void {
 }
 
 @abi("register: HL=src, DE=dest, BC=count")
-@extern
-fun ldir_wrapper(src: *u8, dest: *u8, count: u16) -> void;
+extern fun ldir_wrapper(src: *u8, dest: *u8, count: u16) -> void;
 
 fun unrolled_copy(dest: *u8, src: *u8) -> void {
     // Unrolled loop for 8-byte copy

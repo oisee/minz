@@ -3,7 +3,7 @@ fun array_sum(data: *u8, count: u8) -> u16 {
     let sum: u16 = 0;
     let i: u8 = 0;
     while i < count {
-        sum = sum + (*data as u16);
+        sum = sum + ((*data) as u16);
         data = data + 1;
         i = i + 1;
     }

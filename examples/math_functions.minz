@@ -6,6 +6,11 @@ fun abs(x: i8) -> u8 {
     return x as u8;
 }
 
+// Overload for unsigned (just returns the value)
+fun abs(x: u8) -> u8 {
+    return x;
+}
+
 fun min(a: u8, b: u8) -> u8 {
     if a < b {
         return a;
@@ -55,7 +60,7 @@ fun sqrt_approx(n: u16) -> u8 {
 }
 
 fun main() {
-    let a = abs(-42);
+    let a = abs(-42 as i8);
     let minimum = min(10, 20);
     let maximum = max(10, 20);
     let clamped = clamp(150, 0, 100);

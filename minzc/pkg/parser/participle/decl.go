@@ -61,6 +61,7 @@ type FunctionDecl struct {
 	Export     bool          `parser:"@'export'?"`
 	Public     bool          `parser:"@'pub'?"`
 	Extern     bool          `parser:"@( 'extern' | 'declare' )?"`
+	Asm        bool          `parser:"@'asm'?"`
 	Keyword    string        `parser:"@'fun'"` // only 'fun' for declarations; 'fn' is for function types only
 	Name       string        `parser:"@Ident"`
 	CanError   bool          `parser:"@Question?"` // fun name?() - can return error

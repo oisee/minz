@@ -62,7 +62,10 @@ func (p *Processor) LoadMetafunctions() error {
 	p.metafunctions["atomic"] = filepath.Join(p.luaPath, "io.lua")
 	p.metafunctions["inline_asm"] = filepath.Join(p.luaPath, "io.lua")
 	p.metafunctions["optimize"] = filepath.Join(p.luaPath, "io.lua")
-	
+
+	// Error propagation
+	p.metafunctions["error"] = filepath.Join(p.luaPath, "error.lua")
+
 	return nil
 }
 
@@ -101,6 +104,8 @@ func (p *Processor) ProcessMetafunctionCall(call *ast.MetafunctionCall, context 
 		return "CALL 0x0DAF  ; ROM CLS", nil
 	case "zx_beep":
 		return p.processZxBeep(call, context)
+	case "error":
+		return p.processError(call, context)
 	default:
 		return fmt.Sprintf("; Metafunction @%s not yet implemented", call.Name), nil
 	}
@@ -111,6 +116,7 @@ type CompilationContext struct {
 	CurrentFunction string
 	Variables       map[string]VariableInfo
 	Constants       map[string]interface{}
+	Enums           map[string]map[string]int // enum name -> variant name -> ordinal
 	LabelCounter    int
 }
 
@@ -460,4 +466,56 @@ CALL 0x03B5 ; ROM BEEP`, durLit.Value, pitchLit.Value), nil
 	return `LD HL, (duration)
 LD DE, (pitch)
 CALL 0x03B5 ; ROM BEEP`, nil
+}
+
+// processError implements @error for error propagation
+// ABI: Sets carry flag (CY=1) and loads error code into A, then returns
+func (p *Processor) processError(call *ast.MetafunctionCall, context *CompilationContext) (string, error) {
+	if len(call.Arguments) != 1 {
+		return "", fmt.Errorf("@error requires exactly one argument (error code)")
+	}
+
+	arg := call.Arguments[0]
+	var result []string
+	result = append(result, "; @error - raise error and return")
+
+	switch expr := arg.(type) {
+	case *ast.NumberLiteral:
+		// Compile-time constant error code
+		result = append(result, fmt.Sprintf("    LD A, %d       ; Error code", expr.Value))
+
+	case *ast.FieldExpr:
+		// Enum value like MathError.DivByZero
+		enumName := ""
+		if ident, ok := expr.Object.(*ast.Identifier); ok {
+			enumName = ident.Name
+		}
+		// Look up enum value in context
+		if context.Enums != nil {
+			if variants, ok := context.Enums[enumName]; ok {
+				if ordinal, ok := variants[expr.Field]; ok {
+					result = append(result, fmt.Sprintf("    LD A, %d       ; Error code: %s.%s", ordinal, enumName, expr.Field))
+				} else {
+					return "", fmt.Errorf("unknown enum variant %s.%s", enumName, expr.Field)
+				}
+			} else {
+				return "", fmt.Errorf("unknown enum type %s", enumName)
+			}
+		} else {
+			// Fallback to symbolic reference
+			result = append(result, fmt.Sprintf("    LD A, %s_%s  ; Error code: %s.%s", enumName, expr.Field, enumName, expr.Field))
+		}
+
+	case *ast.Identifier:
+		// Variable holding error code
+		result = append(result, fmt.Sprintf("    LD A, (%s)    ; Error code from variable", expr.Name))
+
+	default:
+		return "", fmt.Errorf("@error argument must be a constant, enum value, or variable")
+	}
+
+	result = append(result, "    SCF            ; Set carry flag (indicates error)")
+	result = append(result, "    RET            ; Return with error")
+
+	return strings.Join(result, "\n"), nil
 }

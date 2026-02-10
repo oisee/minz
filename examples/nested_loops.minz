@@ -7,8 +7,8 @@ fun multiply_matrices(result: *u8, mat1: *u8, mat2: *u8, size: u8) -> void {
             let sum: u16 = 0;
             let k: u8 = 0;
             while k < size {
-                let a = *(mat1 + i * size + k) as u16;
-                let b = *(mat2 + k * size + j) as u16;
+                let a = (*(mat1 + i * size + k)) as u16;
+                let b = (*(mat2 + k * size + j)) as u16;
                 sum = sum + a * b;
                 k = k + 1;
             }
