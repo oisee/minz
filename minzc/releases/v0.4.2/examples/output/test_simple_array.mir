@@ -1,8 +1,0 @@
-; MinZ Intermediate Representation (MIR)
-; Module: main
-
-Function ...examples.test_simple_array.main() -> void
-  @smc
-  Instructions:
-      0: return
-

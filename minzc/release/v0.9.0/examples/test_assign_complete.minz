@@ -1,5 +1,0 @@
-fun test() -> u8 {
-    var x: u8 = 5;
-    x = 10;
-    return x;
-}

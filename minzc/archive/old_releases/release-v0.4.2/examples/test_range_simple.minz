@@ -1,9 +1,0 @@
-// Simple range test
-
-fun test() {
-    var x: u8 = 0..10;  // This should fail but will show us what's happening
-}
-
-fun main() {
-    test();
-}

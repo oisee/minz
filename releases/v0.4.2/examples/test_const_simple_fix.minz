@@ -1,5 +1,0 @@
-// Test if we can work around the const issue
-fun main() -> void {
-    const X: u8 = 42;  // Define const inside function
-    let y = X;
-}

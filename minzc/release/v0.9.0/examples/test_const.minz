@@ -1,9 +1,0 @@
-module test_const;
-
-const MAGIC: u16 = 0x1234;
-const ANSWER: u8 = 42;
-
-fun main() -> void {
-    let x: u16 = MAGIC;
-    let y: u8 = ANSWER;
-}
