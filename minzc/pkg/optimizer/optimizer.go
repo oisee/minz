@@ -42,12 +42,12 @@ func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optim
 	if level >= OptLevelBasic {
 		// Basic optimizations - always run register analysis first
 		opt.passes = append(opt.passes,
+			NewLoopRerollPass(),   // Re-roll BEFORE inlining (detect repeated calls)
 			NewRegisterAnalysisPass(),
 			NewConstantFoldingPass(),
 			NewMIRValueTrackingPass(), // Track values and set codegen hints (INC/DEC/XOR)
 			NewDeadCodeEliminationPass(),
 			NewStringIntentPass(), // Detect putchar sequences → string prints
-			NewLoopRerollPass(),   // Re-roll unrolled loops (e.g., repeated calls)
 		)
 	}
 	

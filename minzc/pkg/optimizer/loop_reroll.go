@@ -1,11 +1,22 @@
 package optimizer
 
 import (
+	"fmt"
+
 	"github.com/minz/minzc/pkg/ir"
 )
 
 // LoopRerollPass detects unrolled loop patterns and re-rolls them
 // This is the inverse of loop unrolling - finding repeated patterns with varying data
+//
+// Optimization tag: SIZE (reduces code size at cost of speed)
+//
+// Currently transforms:
+//   - putchar sequences → print_string + data
+//
+// TODO: Generic transformation for any repeated call:
+//   - func(1); func(2); func(3); → data_table + loop calling func
+//
 type LoopRerollPass struct {
 	minRepeats int // Minimum repetitions to trigger (default: 3)
 }
@@ -25,8 +36,15 @@ func (p *LoopRerollPass) Name() string {
 // Run executes the pass on a module
 func (p *LoopRerollPass) Run(module *ir.Module) (bool, error) {
 	changed := false
+	debug := false // Set to true to enable debug output
 
 	for _, fn := range module.Functions {
+		if debug {
+			fmt.Printf("DEBUG LoopReroll: Function %s has %d instructions\n", fn.Name, len(fn.Instructions))
+			for i, inst := range fn.Instructions {
+				fmt.Printf("  [%d] Op=%v Imm=%d Symbol=%s\n", i, inst.Op, inst.Imm, inst.Symbol)
+			}
+		}
 		if p.optimizeFunction(fn, module) {
 			changed = true
 		}
@@ -74,6 +92,15 @@ func (p *LoopRerollPass) optimizeFunction(fn *ir.Function, module *ir.Module) bo
 			},
 			Holes: []string{"$char"},
 		},
+		// Pattern: LoadConst → LoadConst → Call (IR generates duplicate consts)
+		{
+			Instructions: []InstructionMatcher{
+				{Op: ir.OpLoadConst, ImmHole: "$value"},
+				{Op: ir.OpLoadConst, ImmHole: "$value2"}, // Duplicate const
+				{Op: ir.OpCall},
+			},
+			Holes: []string{"$value"},
+		},
 		// Pattern: LoadConst → Call (any repeated call with varying constant)
 		{
 			Instructions: []InstructionMatcher{
@@ -85,9 +112,17 @@ func (p *LoopRerollPass) optimizeFunction(fn *ir.Function, module *ir.Module) bo
 	}
 
 	changed := false
-	for _, pattern := range patterns {
+	debug := false // Enable for pattern match debugging
+
+	for pi, pattern := range patterns {
 		matches := p.findPatternMatches(fn.Instructions, pattern)
+		if debug && len(matches) > 0 {
+			fmt.Printf("DEBUG: Pattern %d found %d matches\n", pi, len(matches))
+		}
 		for _, match := range matches {
+			if debug {
+				fmt.Printf("DEBUG: Match at %d-%d with %d repeats\n", match.StartIndex, match.EndIndex, match.Repeats)
+			}
 			if match.Repeats >= p.minRepeats {
 				if p.transformMatch(fn, module, match, pattern) {
 					changed = true

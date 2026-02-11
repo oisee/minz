@@ -1,0 +1,41 @@
+// Loop Reroll Optimization Test
+// Tests detection of repeated function calls with varying constants
+
+// A simple function that does something with a value
+fun process(value: u8) -> void {
+    asm {
+        ; value is in A
+        OUT (0xFE), A    ; Output to port (ZX Spectrum border)
+    }
+}
+
+// Another function for testing
+fun beep(freq: u8) -> void {
+    asm {
+        ; freq is in A
+        LD B, A          ; Use freq as delay
+    .loop:
+        DJNZ .loop
+    }
+}
+
+fun main() -> void {
+    // Pattern 1: Repeated process() calls - should be detected
+    process(1);
+    process(2);
+    process(3);
+    process(4);
+    process(5);
+
+    // Pattern 2: Repeated beep() calls - should be detected
+    beep(100);
+    beep(80);
+    beep(60);
+    beep(40);
+
+    // Pattern 3: Mixed calls - should NOT be rolled together
+    process(10);
+    beep(50);
+    process(20);
+    beep(60);
+}
