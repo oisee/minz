@@ -1,6 +1,6 @@
 # MinZ TODO - Priority Roadmap
 
-> **Last Updated:** 2026-02-08
+> **Last Updated:** 2026-02-11
 > **Version:** v0.16.0-dev (Participle Parser)
 > **Parse Rate:** 100% (116/116) | **Compile Rate:** 90.5% (105/116)
 > **Parser:** Native Go (Participle) - tree-sitter replaced
@@ -135,6 +135,19 @@ Nice to have, not blocking.
 **Status:** 🔴 Not started
 **Effort:** 2-3 weeks
 
+### 16. Loop Reroll Generic Transformation
+**Status:** 🟡 Detection working, transform TODO
+**Issue:** Currently only transforms putchar → print_string; other patterns just annotated
+**Working:**
+- Multi-parameter pattern detection (1-7 params) ✅
+- Captures all parameter values correctly ✅
+- Putchar → print_string transformation ✅
+**TODO:**
+- Generic transformation: data table + loop for arbitrary repeated calls
+- Example: `plot(10,20); plot(15,25);...` → `data: DB 10,20,15,25,...` + loop calling plot
+**Effort:** 1-2 days
+**Tag:** SIZE optimization
+
 ---
 
 ## 🧹 Participle Parser (v0.16) ✅ COMPLETE
@@ -180,6 +193,13 @@ Native Go parser replaces tree-sitter. No external dependencies.
 
 ## ✅ Recently Completed
 
+- [x] **Loop Reroll Multi-Parameter Patterns** (2026-02-11)
+  - Pattern detection for 1-7 parameter function calls
+  - Correct IR pattern order: p1, p2, p1_dup, p2_dup, Call (interleaved)
+  - Captures all parameter values per repeat correctly
+  - Putchar → print_string transformation working
+  - Tagged as SIZE optimization
+  - TODO: Generic transformation (data table + loop) for non-putchar patterns
 - [x] **Participle parser v0.16** - 100% parse, 90.5% compile (2026-02-08)
   - Native Go parser replaces tree-sitter (no external deps)
   - `fun`/`fn` separation, `!` for error types, `case`/`match` expressions

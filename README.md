@@ -564,6 +564,7 @@ fun main() -> void {
 | **CTIE** | 3-5x faster | Compile-time execution |
 | **TRUE SMC** | 10x faster | Self-modifying code |
 | **MIR Optimizer** | 15-30% faster | Constant folding, strength reduction, DCE |
+| **Loop Reroll** | 50-80% size reduction | Detects repeated calls, collapses to loops |
 | **Assembly Peephole** | 60-85% size reduction | 35+ Z80-specific patterns |
 
 **NEW in v0.15.5:** Two-level optimization pipeline with MIR-level optimizations (constant folding, algebraic simplification, strength reduction, copy propagation, dead code elimination) running before assembly peephole. SDCC-competitive code generation!

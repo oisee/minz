@@ -199,24 +199,65 @@ type Pass interface {
 ```
 
 ### Key Optimizations
-1. **Peephole Optimization** - Pattern matching on instruction sequences
-2. **Register Allocation** - Hierarchical allocation (physical → shadow → memory)
-3. **Instruction Reordering** - Minimize register pressure
-4. **Self-Modifying Code** - Parameter patching for performance
-5. **Tail Call Optimization** - Convert to jumps
-6. **Dead Code Elimination** - Remove unreachable code
+
+Each optimization pass is tagged with its primary goal:
+- **SIZE** - Reduces code size (may cost cycles)
+- **SPEED** - Improves execution speed (may cost bytes)
+- **MEMORY** - Reduces memory usage
+
+| Pass | Tag | Description |
+|------|-----|-------------|
+| **Loop Reroll** | SIZE | Detects repeated function calls with varying params, collapses to data table + loop |
+| **Peephole Optimization** | SIZE/SPEED | Pattern matching on instruction sequences |
+| **Register Allocation** | SPEED | Hierarchical allocation (physical → shadow → memory) |
+| **Instruction Reordering** | SPEED | Minimize register pressure |
+| **Self-Modifying Code** | SPEED | Parameter patching for 10x performance |
+| **Tail Call Optimization** | SIZE/SPEED | Convert tail calls to jumps |
+| **Dead Code Elimination** | SIZE | Remove unreachable code |
+| **String Intent** | SIZE | Detect putchar sequences → print_string |
+| **Constant Folding** | SIZE/SPEED | Evaluate constants at compile-time |
+| **MIR Value Tracking** | SPEED | Track values for INC/DEC/XOR optimization |
 
 ### Optimization Pipeline (`pkg/optimizer/optimizer.go`)
 ```go
 passes := []Pass{
+    NewLoopRerollPass(),          // SIZE: Detect repeated calls BEFORE inlining
     NewRegisterAnalysisPass(),
-    NewMIRReorderingPass(),
-    NewPeepholeOptimizationPass(),
     NewConstantFoldingPass(),
+    NewMIRValueTrackingPass(),    // SPEED: Track values for INC/DEC/XOR
     NewDeadCodeEliminationPass(),
-    // ... more passes
+    NewStringIntentPass(),        // SIZE: putchar sequences → print_string
+    NewSmartPeepholeOptimizationPass(),
+    NewRegisterAllocationPass(),
+    NewInliningPass(),
+    NewTailRecursionPass(),
 }
 ```
+
+### Loop Reroll Pass (`pkg/optimizer/loop_reroll.go`)
+
+The loop reroll pass is the **inverse of loop unrolling** - it detects sequences of repeated function calls with varying constant parameters and can transform them into data tables + loops.
+
+**Pattern Detection (1-7 parameters):**
+```
+// Source MinZ:
+plot(10, 20); plot(15, 25); plot(20, 30); plot(25, 35); plot(30, 40);
+
+// IR Pattern (2-param): p1, p2, p1_dup, p2_dup, Call (repeated)
+LoadConst($p1), LoadConst($p2), LoadConst, LoadConst, Call
+
+// Detection result:
+Pattern 1 found 1 match at 0-25 with 5 repeats
+Repeat 0 captures: [10 20]
+Repeat 1 captures: [15 25]
+...
+```
+
+**Transformations:**
+1. **Putchar → print_string**: Repeated `putchar(c)` calls become single `print_string("...")`
+2. **Generic (TODO)**: Other repeated calls → data table + loop
+
+**Optimization Tag:** SIZE (reduces code size at cost of speed)
 
 ## Build System
 

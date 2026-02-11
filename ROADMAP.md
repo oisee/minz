@@ -1,10 +1,12 @@
 # MinZ Compiler Roadmap to v1.0
 
-## 🎯 Current Status (v0.14.1)
-- **Compilation Success Rate**: 65%
-- **Core Features**: Mostly working
-- **Advanced Features**: Partially implemented
-- **Unique Features**: TSMC, Zero-cost interfaces working
+## 🎯 Current Status (v0.18.0)
+- **Parse Rate**: 100% (116/116 examples)
+- **Compilation Success Rate**: 90.5%
+- **Core Features**: Working (structs, arrays, loops, functions)
+- **Advanced Features**: Partially implemented (generics, pattern matching)
+- **Unique Features**: TSMC, Zero-cost interfaces, Loop Reroll working
+- **Parser**: Native Go (Participle) - no external dependencies
 
 ## 📅 Phase 1: Core Completion (4 weeks)
 **Goal**: Reach 80% success rate
@@ -76,10 +78,19 @@
 - [ ] Debugging tools
 
 ### Sprint 13-14: Optimization & Backends
+- [x] Loop Reroll - Multi-parameter pattern detection (1-7 params)
+- [x] Putchar → print_string transformation
+- [ ] Loop Reroll - Generic data table + loop transformation
 - [ ] Advanced TSMC patterns
 - [ ] Backend improvements (6502, WASM)
 - [ ] Peephole optimization expansion
 - [ ] Benchmark suite
+
+### Optimization Tagging System
+All optimization passes are tagged by primary goal:
+- **SIZE** - Loop Reroll, String Intent, DCE, Tail Call
+- **SPEED** - TSMC, Register Allocation, Value Tracking
+- **MEMORY** - Register spilling optimization
 
 ## 🏁 v1.0 Release Criteria
 
@@ -163,5 +174,5 @@ MinZ will be the premier language for vintage computing, combining modern langua
 **"Modern abstractions, vintage performance"**
 
 ---
-*Last Updated: 2025-08-18*
-*Version: Roadmap for v0.14.1 → v1.0*
+*Last Updated: 2026-02-11*
+*Version: Roadmap for v0.18.0 → v1.0*
