@@ -1,0 +1,19 @@
+// Loop Reroll Test - 2 Parameter Function
+// Tests detection of repeated calls with 2 parameters
+
+fun plot(x: u8, y: u8) -> void {
+    asm {
+        ; x in A, y in... somewhere
+        ; Just a stub
+        NOP
+    }
+}
+
+fun main() -> void {
+    // These should be detected as repeated 2-param calls
+    plot(10, 20);
+    plot(15, 25);
+    plot(20, 30);
+    plot(25, 35);
+    plot(30, 40);
+}

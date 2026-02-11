@@ -83,31 +83,110 @@ func (p *LoopRerollPass) optimizeFunction(fn *ir.Function, module *ir.Module) bo
 	}
 
 	// Define patterns to look for
+	// IR generates LoadConst for each param, then duplicates in same order
+	// For 2 params: p1, p2, p1_dup, p2_dup, Call (interleaved pattern)
 	patterns := []PatternTemplate{
-		// Pattern: LoadConst → Call putchar (consecutive character output)
+		// 1 parameter: LoadConst(p1), LoadConst(p1_dup), Call
+		{
+			Instructions: []InstructionMatcher{
+				{Op: ir.OpLoadConst, ImmHole: "$p1"},
+				{Op: ir.OpLoadConst}, // Duplicate
+				{Op: ir.OpCall},
+			},
+			Holes: []string{"$p1"},
+		},
+		// 2 parameters: p1, p2, p1_dup, p2_dup, Call
+		{
+			Instructions: []InstructionMatcher{
+				{Op: ir.OpLoadConst, ImmHole: "$p1"},
+				{Op: ir.OpLoadConst, ImmHole: "$p2"},
+				{Op: ir.OpLoadConst}, // p1 duplicate
+				{Op: ir.OpLoadConst}, // p2 duplicate
+				{Op: ir.OpCall},
+			},
+			Holes: []string{"$p1", "$p2"},
+		},
+		// 3 parameters: p1, p2, p3, p1_dup, p2_dup, p3_dup, Call
+		{
+			Instructions: []InstructionMatcher{
+				{Op: ir.OpLoadConst, ImmHole: "$p1"},
+				{Op: ir.OpLoadConst, ImmHole: "$p2"},
+				{Op: ir.OpLoadConst, ImmHole: "$p3"},
+				{Op: ir.OpLoadConst}, // p1 dup
+				{Op: ir.OpLoadConst}, // p2 dup
+				{Op: ir.OpLoadConst}, // p3 dup
+				{Op: ir.OpCall},
+			},
+			Holes: []string{"$p1", "$p2", "$p3"},
+		},
+		// 4 parameters: p1, p2, p3, p4, p1_dup, p2_dup, p3_dup, p4_dup, Call
+		{
+			Instructions: []InstructionMatcher{
+				{Op: ir.OpLoadConst, ImmHole: "$p1"},
+				{Op: ir.OpLoadConst, ImmHole: "$p2"},
+				{Op: ir.OpLoadConst, ImmHole: "$p3"},
+				{Op: ir.OpLoadConst, ImmHole: "$p4"},
+				{Op: ir.OpLoadConst}, // p1 dup
+				{Op: ir.OpLoadConst}, // p2 dup
+				{Op: ir.OpLoadConst}, // p3 dup
+				{Op: ir.OpLoadConst}, // p4 dup
+				{Op: ir.OpCall},
+			},
+			Holes: []string{"$p1", "$p2", "$p3", "$p4"},
+		},
+		// 5 parameters
+		{
+			Instructions: []InstructionMatcher{
+				{Op: ir.OpLoadConst, ImmHole: "$p1"},
+				{Op: ir.OpLoadConst, ImmHole: "$p2"},
+				{Op: ir.OpLoadConst, ImmHole: "$p3"},
+				{Op: ir.OpLoadConst, ImmHole: "$p4"},
+				{Op: ir.OpLoadConst, ImmHole: "$p5"},
+				{Op: ir.OpLoadConst}, {Op: ir.OpLoadConst}, {Op: ir.OpLoadConst},
+				{Op: ir.OpLoadConst}, {Op: ir.OpLoadConst}, // duplicates
+				{Op: ir.OpCall},
+			},
+			Holes: []string{"$p1", "$p2", "$p3", "$p4", "$p5"},
+		},
+		// 6 parameters
+		{
+			Instructions: []InstructionMatcher{
+				{Op: ir.OpLoadConst, ImmHole: "$p1"},
+				{Op: ir.OpLoadConst, ImmHole: "$p2"},
+				{Op: ir.OpLoadConst, ImmHole: "$p3"},
+				{Op: ir.OpLoadConst, ImmHole: "$p4"},
+				{Op: ir.OpLoadConst, ImmHole: "$p5"},
+				{Op: ir.OpLoadConst, ImmHole: "$p6"},
+				{Op: ir.OpLoadConst}, {Op: ir.OpLoadConst}, {Op: ir.OpLoadConst},
+				{Op: ir.OpLoadConst}, {Op: ir.OpLoadConst}, {Op: ir.OpLoadConst}, // duplicates
+				{Op: ir.OpCall},
+			},
+			Holes: []string{"$p1", "$p2", "$p3", "$p4", "$p5", "$p6"},
+		},
+		// 7 parameters
+		{
+			Instructions: []InstructionMatcher{
+				{Op: ir.OpLoadConst, ImmHole: "$p1"},
+				{Op: ir.OpLoadConst, ImmHole: "$p2"},
+				{Op: ir.OpLoadConst, ImmHole: "$p3"},
+				{Op: ir.OpLoadConst, ImmHole: "$p4"},
+				{Op: ir.OpLoadConst, ImmHole: "$p5"},
+				{Op: ir.OpLoadConst, ImmHole: "$p6"},
+				{Op: ir.OpLoadConst, ImmHole: "$p7"},
+				{Op: ir.OpLoadConst}, {Op: ir.OpLoadConst}, {Op: ir.OpLoadConst},
+				{Op: ir.OpLoadConst}, {Op: ir.OpLoadConst}, {Op: ir.OpLoadConst},
+				{Op: ir.OpLoadConst}, // duplicates
+				{Op: ir.OpCall},
+			},
+			Holes: []string{"$p1", "$p2", "$p3", "$p4", "$p5", "$p6", "$p7"},
+		},
+		// Legacy: putchar pattern (single LoadConst without duplicate)
 		{
 			Instructions: []InstructionMatcher{
 				{Op: ir.OpLoadConst, ImmHole: "$char"},
 				{Op: ir.OpCall, Symbol: "putchar"},
 			},
 			Holes: []string{"$char"},
-		},
-		// Pattern: LoadConst → LoadConst → Call (IR generates duplicate consts)
-		{
-			Instructions: []InstructionMatcher{
-				{Op: ir.OpLoadConst, ImmHole: "$value"},
-				{Op: ir.OpLoadConst, ImmHole: "$value2"}, // Duplicate const
-				{Op: ir.OpCall},
-			},
-			Holes: []string{"$value"},
-		},
-		// Pattern: LoadConst → Call (any repeated call with varying constant)
-		{
-			Instructions: []InstructionMatcher{
-				{Op: ir.OpLoadConst, ImmHole: "$value"},
-				{Op: ir.OpCall, Src1Hole: "$func"},
-			},
-			Holes: []string{"$value"},
 		},
 	}
 
@@ -246,7 +325,24 @@ func (p *LoopRerollPass) structurallyEqual(insts []ir.Instruction, idx1, idx2 in
 
 // transformMatch transforms a matched pattern into optimized code
 func (p *LoopRerollPass) transformMatch(fn *ir.Function, module *ir.Module, match PatternMatch, pattern PatternTemplate) bool {
-	// Extract the varying values
+	debug := false // Enable debug for multi-param capture verification
+
+	// Extract the varying values for each repeat (all captured parameters)
+	// For multi-parameter patterns, we need ALL captured values, not just first
+	allValues := make([][]int64, len(match.Captures))
+	for i, capture := range match.Captures {
+		allValues[i] = make([]int64, len(pattern.Holes))
+		for j, holeName := range pattern.Holes {
+			if v, ok := capture[holeName]; ok {
+				allValues[i][j] = v
+			}
+		}
+		if debug {
+			fmt.Printf("DEBUG: Repeat %d captures: %v\n", i, allValues[i])
+		}
+	}
+
+	// Legacy: single-value extraction for putchar compatibility
 	values := make([]int64, len(match.Captures))
 	for i, capture := range match.Captures {
 		for _, holeName := range pattern.Holes {
@@ -264,10 +360,26 @@ func (p *LoopRerollPass) transformMatch(fn *ir.Function, module *ir.Module, matc
 		return p.transformToPrintString(fn, module, match, values)
 	}
 
-	// For other patterns, mark for potential loop transformation
+	// For other patterns, mark for potential loop transformation with details
 	if match.StartIndex < len(fn.Instructions) {
+		// Get the function being called
+		funcName := ""
+		patLen := len(pattern.Instructions)
+		for i := 0; i < patLen && match.StartIndex+i < len(fn.Instructions); i++ {
+			inst := fn.Instructions[match.StartIndex+i]
+			if inst.Op == ir.OpCall && inst.Symbol != "" {
+				funcName = inst.Symbol
+				break
+			}
+		}
+
+		// Build parameter summary
+		paramCount := len(pattern.Holes)
+		paramInfo := itoa(paramCount) + "-param"
+
 		fn.Instructions[match.StartIndex].Comment =
-			"[LOOP_REROLL] Detected " + itoa(match.Repeats) + " repeats"
+			"[LOOP_REROLL:" + paramInfo + "] " + itoa(match.Repeats) + " repeats of " + funcName +
+				" → potential data table + loop"
 	}
 
 	return false
