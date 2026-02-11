@@ -1,0 +1,31 @@
+// CP/M Hello World - Using function calls (for optimizer testing)
+// This version uses putchar calls that can be optimized
+
+fun putchar(ch: u8) -> void {
+    asm {
+        ; ch is in A
+        LD E, A
+        LD C, 2
+        CALL 5
+    }
+}
+
+fun main() -> void {
+    // These repeated calls should be detected by LoopRerollPass
+    putchar('H');
+    putchar('e');
+    putchar('l');
+    putchar('l');
+    putchar('o');
+    putchar('!');
+
+    // Newline
+    putchar(13);
+    putchar(10);
+
+    // More text
+    putchar('C');
+    putchar('P');
+    putchar('/');
+    putchar('M');
+}
