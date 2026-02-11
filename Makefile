@@ -33,7 +33,7 @@ help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Targets:"
-	@echo "  build        - Build all MinZ tools (mz, mza, mze, mzr, mzrun, mztap)"
+	@echo "  build        - Build all MinZ tools (mz, mza, mze, mzv, mzr, mzrun, mztap)"
 	@echo "  clean        - Remove built executables"
 	@echo "  test         - Run basic tests"
 	@echo "  install      - Install to /usr/local/bin (may need sudo)"

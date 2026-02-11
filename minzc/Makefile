@@ -6,7 +6,7 @@ BINDIR = $(PREFIX)/bin
 
 # Build all tools
 .PHONY: all
-all: mz mza mze mzr mzrun mztap
+all: mz mza mze mzv mzr mzrun mztap
 
 # Build the main compiler
 mz:
@@ -19,6 +19,10 @@ mza:
 # Build the emulator
 mze:
 	go build -o mze ./cmd/mze
+
+# Build the MZV virtual machine
+mzv:
+	go build -o mzv ./cmd/mzv
 
 # Build the REPL
 mzr:
@@ -38,7 +42,7 @@ install: all
 	@echo "Installing MinZ tools to $(BINDIR)..."
 	@mkdir -p $(BINDIR)
 	@if [ -w $(BINDIR) ]; then \
-		cp mz mza mze mzr mzrun mztap $(BINDIR)/ && \
+		cp mz mza mze mzv mzr mzrun mztap $(BINDIR)/ && \
 		echo "✅ MinZ tools installed to $(BINDIR)"; \
 	else \
 		echo "⚠️  $(BINDIR) is not writable. Try: sudo make install"; \
@@ -50,7 +54,7 @@ install: all
 install-user: all
 	@echo "Installing MinZ tools to ~/bin..."
 	@mkdir -p ~/bin
-	@cp mz mza mze mzr mzrun mztap ~/bin/
+	@cp mz mza mze mzv mzr mzrun mztap ~/bin/
 	@echo "✅ MinZ tools installed to ~/bin"
 	@echo "📝 Make sure ~/bin is in your PATH:"
 	@echo '   export PATH="$$HOME/bin:$$PATH"'
@@ -58,7 +62,7 @@ install-user: all
 # Clean build artifacts
 .PHONY: clean
 clean:
-	rm -f mz mza mze mzr mzrun mztap
+	rm -f mz mza mze mzv mzr mzrun mztap
 
 # Run tests
 .PHONY: test
@@ -78,6 +82,7 @@ help:
 	@echo "  mz    - MinZ compiler (generates Z80 assembly)"
 	@echo "  mza   - Z80 assembler (generates binary)"
 	@echo "  mze   - Z80 emulator (run/debug binaries)"
+	@echo "  mzv   - MZV virtual machine (platform abstraction)"
 	@echo "  mzr   - MinZ REPL (interactive mode)"
 	@echo "  mzrun - DZRP remote runner (run on emulators)"
 	@echo "  mztap - TAP file loader (load .tap via DZRP)"
