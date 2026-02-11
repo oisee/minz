@@ -46,6 +46,7 @@ func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optim
 			NewConstantFoldingPass(),
 			NewMIRValueTrackingPass(), // Track values and set codegen hints (INC/DEC/XOR)
 			NewDeadCodeEliminationPass(),
+			NewStringIntentPass(), // Detect putchar sequences → string prints
 		)
 	}
 	

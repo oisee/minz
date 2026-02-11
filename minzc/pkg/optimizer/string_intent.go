@@ -91,13 +91,13 @@ func (p *StringIntentPass) findPutcharSequence(insts []ir.Instruction, start int
 
 	i := start
 	for i < len(insts) {
-		// Look for pattern: CONST followed by CALL to putchar
+		// Look for pattern: LoadConst followed by CALL to putchar
 		if i+1 < len(insts) {
 			inst := insts[i]
 			nextInst := insts[i+1]
 
-			// Check for CONST with immediate value
-			if inst.Op == ir.OpConst && inst.Imm >= 0 && inst.Imm <= 255 {
+			// Check for LoadConst with immediate value (character)
+			if inst.Op == ir.OpLoadConst && inst.Imm >= 0 && inst.Imm <= 255 {
 				// Check if next is a CALL to putchar variant
 				if nextInst.Op == ir.OpCall && isPutcharCall(nextInst) {
 					// Check that the CONST result is used by the CALL
@@ -126,13 +126,12 @@ func (p *StringIntentPass) findPutcharSequence(insts []ir.Instruction, start int
 
 // isPutcharCall checks if an instruction is a call to a putchar variant
 func isPutcharCall(inst ir.Instruction) bool {
-	// Check various putchar function names
-	target := inst.CallTarget
-	if target == nil {
+	// Check various putchar function names using Symbol field
+	name := inst.Symbol
+	if name == "" {
 		return false
 	}
 
-	name := target.Name
 	return name == "putchar" ||
 		name == "putchar$u8" ||
 		name == "putch" ||
