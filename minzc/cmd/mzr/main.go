@@ -1,17 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/minz/minzc/pkg/parser"
+	"github.com/minz/minzc/pkg/codegen"
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/optimizer"
-	"github.com/minz/minzc/pkg/codegen"
+	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/readline"
 )
 
