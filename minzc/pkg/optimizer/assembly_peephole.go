@@ -509,6 +509,56 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 			Pattern:     regexp.MustCompile(`(?m)^(\s*)XOR\s+A\s*(?:;.*)?\n\s*AND\s+A\s*(?:;.*)?$`),
 			Replacement: "${1}XOR A        ; AND A eliminated (Z flag already set)",
 		},
+
+		// Pattern 45: Canonical register order - alphabetical (A,B,C,D,E,H,L)
+		// Reorder LD E,X / LD C,Y to LD C,Y / LD E,X (C before E alphabetically)
+		{
+			Name:        "canonical_order_e_c_to_c_e",
+			Description: "Reorder LD E / LD C to alphabetical LD C / LD E",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+E,\s*([^\n]+)\n(\s*)LD\s+C,\s*([^\n]+)$`),
+			Replacement: "${3}LD C, $4\n${1}LD E, $2     ; Canonical order (C before E)",
+		},
+
+		// Pattern 46: Reorder LD D,X / LD C,Y to LD C / LD D
+		{
+			Name:        "canonical_order_d_c_to_c_d",
+			Description: "Reorder LD D / LD C to alphabetical LD C / LD D",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+D,\s*([^\n]+)\n(\s*)LD\s+C,\s*([^\n]+)$`),
+			Replacement: "${3}LD C, $4\n${1}LD D, $2     ; Canonical order (C before D)",
+		},
+
+		// Pattern 46b: Reorder LD E,X / LD D,Y to LD D / LD E
+		{
+			Name:        "canonical_order_e_d_to_d_e",
+			Description: "Reorder LD E / LD D to alphabetical LD D / LD E",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+E,\s*([^\n]+)\n(\s*)LD\s+D,\s*([^\n]+)$`),
+			Replacement: "${3}LD D, $4\n${1}LD E, $2     ; Canonical order (D before E)",
+		},
+
+		// Pattern 46c: Reorder LD H,X / LD E,Y to LD E / LD H
+		{
+			Name:        "canonical_order_h_e_to_e_h",
+			Description: "Reorder LD H / LD E to alphabetical LD E / LD H",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+H,\s*([^\n]+)\n(\s*)LD\s+E,\s*([^\n]+)$`),
+			Replacement: "${3}LD E, $4\n${1}LD H, $2     ; Canonical order (E before H)",
+		},
+
+		// Pattern 46d: Reorder LD L,X / LD H,Y to LD H / LD L
+		{
+			Name:        "canonical_order_l_h_to_h_l",
+			Description: "Reorder LD L / LD H to alphabetical LD H / LD L",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)LD\s+L,\s*([^\n]+)\n(\s*)LD\s+H,\s*([^\n]+)$`),
+			Replacement: "${3}LD H, $4\n${1}LD L, $2     ; Canonical order (H before L)",
+		},
+
+		// Pattern 47: Optimize consecutive BDOS putchar calls - detect potential string
+		// This is a marker pattern for future string optimization
+		{
+			Name:        "mark_consecutive_putchar",
+			Description: "Mark consecutive LD E,char / LD C,2 / CALL 5 sequences",
+			Pattern:     regexp.MustCompile(`(?m)((?:\s*LD\s+E,\s*(?:'.'|\d+)\s*\n\s*LD\s+C,\s*2\s*\n\s*CALL\s+5\s*\n){3,})`),
+			Replacement: "; [STRING_INTENT] Consecutive putchar detected\n$1",
+		},
 	}
 }
 
