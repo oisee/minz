@@ -552,12 +552,12 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 		},
 
 		// Pattern 47: Optimize consecutive BDOS putchar calls - detect potential string
-		// This is a marker pattern for future string optimization
+		// Matches canonical form: LD C,2 / LD E,char / CALL 5 (after reordering)
 		{
 			Name:        "mark_consecutive_putchar",
-			Description: "Mark consecutive LD E,char / LD C,2 / CALL 5 sequences",
-			Pattern:     regexp.MustCompile(`(?m)((?:\s*LD\s+E,\s*(?:'.'|\d+)\s*\n\s*LD\s+C,\s*2\s*\n\s*CALL\s+5\s*\n){3,})`),
-			Replacement: "; [STRING_INTENT] Consecutive putchar detected\n$1",
+			Description: "Mark consecutive LD C,2 / LD E,char / CALL 5 sequences",
+			Pattern:     regexp.MustCompile(`(?m)((?:\s*LD\s+C,\s*2[^\n]*\n\s*LD\s+E,\s*(?:'.'|\d+)[^\n]*\n\s*CALL\s+5\s*\n){3,})`),
+			Replacement: "; [STRING_INTENT] Consecutive putchar detected - could use BDOS 9\n$1",
 		},
 	}
 }
