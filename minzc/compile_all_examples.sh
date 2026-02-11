@@ -31,7 +31,7 @@ compile_example() {
     TOTAL=$((TOTAL + 1))
     
     # Compile with full output
-    if ../minzc "$src" -o "${name}.a80" -O --enable-smc > "${name}.log" 2>&1; then
+    if ../minzc "$src" -o "${name}.a80" > "${name}.log" 2>&1; then
         SUCCESS=$((SUCCESS + 1))
         STATUS="✅"
         

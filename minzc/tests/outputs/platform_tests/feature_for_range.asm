@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2026-02-10 20:17:09
+; Generated: 2026-02-10 22:21:03
 
 
 ; Code section
@@ -7,7 +7,7 @@
 
 ; Using hierarchical register allocation (physical → shadow → memory)
 
-; Function: tmp.xuyJ0Qe7Fs.main
+; Function: tmp.NmO8eMcZEA.main
 main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
@@ -20,7 +20,7 @@ main:
     XOR A          ; Constant 0
     LD ($F002), A
     ; djnz_loop_1:
-tmp_xuyJ0Qe7Fs_main_djnz_loop_1_i1:
+tmp_NmO8eMcZEA_main_djnz_loop_1_i1:
     ; r5 = load s
     LD A, ($F002)
     LD C, A         ; Store to physical register C
@@ -31,7 +31,7 @@ tmp_xuyJ0Qe7Fs_main_djnz_loop_1_i1:
     ; DJNZ - decrement B and loop
     LD A, E
     LD B, A
-    DJNZ tmp_xuyJ0Qe7Fs_main_djnz_loop_1_i1
+    DJNZ tmp_NmO8eMcZEA_main_djnz_loop_1_i1
     LD A, B
     LD E, A         ; Store to physical register E
     ; store s, r5

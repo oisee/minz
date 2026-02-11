@@ -15,7 +15,7 @@
 0D/0
 0L | Yes(2) |
 | basic_functions | ✅ | 0
-0 | 41 | 3533 | 0
+0 | 42 | 3692 | 0
 0D/0
 0L | Yes(4) |
 | basic_test | ✅ | 0
@@ -23,7 +23,7 @@
 0D/0
 0L | Yes(4) |
 | bit_manipulation | ✅ | 0
-0 | 182 | 14217 | 0
+0 | 170 | 13196 | 0
 0D/0
 0L | Yes(18) |
 | const_only | ✅ | 0
@@ -31,23 +31,23 @@
 0D/0
 0L | No |
 | control_flow | ✅ | 0
-0 | 95 | 7368 | 0
+0 | 99 | 7526 | 0
 0D/0
 0L | Yes(9) |
 | conway | ✅ | 0
-0 | 313 | 16076 | 0
+0 | 315 | 16526 | 0
 0D/0
 0L | Yes(12) |
 | cpm_hello | ✅ | 0
-0 | 627 | 44189 | 0
+0 | 65 | 1370 | 0
 0D/0
-0L | Yes(77) |
+0L | Yes(2) |
 | enums | ✅ | 0
-0 | 175 | 13454 | 0
+0 | 176 | 12663 | 0
 0D/0
 0L | Yes(11) |
 | error_propagation_demo | ✅ | 0
-0 | 103 | 8598 | 0
+0 | 99 | 8100 | 0
 0D/0
 0L | Yes(13) |
 | fibonacci | ✅ | 0
@@ -79,7 +79,7 @@
 0D/0
 0L | Yes(207) |
 | glsl_sphere_demo | ✅ | 0
-0 | 2088 | 96598 | 0
+0 | 2087 | 96469 | 0
 0D/0
 0L | Yes(106) |
 | hello_direct | ✅ | 0
@@ -116,7 +116,7 @@
 0D/0
 0L | Yes(13) |
 | math_functions | ✅ | 0
-0 | 317 | 23231 | 0
+0 | 322 | 23424 | 0
 0D/0
 0L | Yes(20) |
 | memory_operations | ✅ | 0
@@ -128,9 +128,9 @@
 0D/0
 0L | Yes(10) |
 | mos_hello | ✅ | 0
-0 | 158 | 16261 | 0
+0 | 65 | 1447 | 0
 0D/0
-0L | Yes(6) |
+0L | Yes(2) |
 | mzv_one_small_step_hires | ✅ | 0
 0 | 4591 | 308815 | 0
 0D/0
@@ -148,7 +148,7 @@
 0D/0
 0L | Yes(67) |
 | mzv_simple_test | ✅ | 0
-0 | 81 | 5175 | 0
+0 | 80 | 5445 | 0
 0D/0
 0L | Yes(2) |
 | mzv_sphere_fast | ✅ | 0
@@ -164,7 +164,7 @@
 0D/0
 0L | Yes(8) |
 | mzv_sphere_simple | ✅ | 0
-0 | 155 | 9436 | 0
+0 | 153 | 9214 | 0
 0D/0
 0L | Yes(2) |
 | mzv_test_sphere | ✅ | 0
@@ -172,7 +172,7 @@
 0D/0
 0L | Yes(20) |
 | nested_loops | ✅ | 0
-0 | 144 | 10241 | 0
+0 | 145 | 10672 | 0
 0D/0
 0L | Yes(6) |
 | performance_tricks | ✅ | 0
@@ -188,11 +188,11 @@
 0D/0
 0L | Yes(2) |
 | plasma_shadow | ✅ | 0
-0 | 426 | 23788 | 0
+0 | 430 | 23900 | 0
 0D/0
 0L | Yes(16) |
 | plasma_simple | ✅ | 0
-0 | 218 | 12654 | 0
+0 | 223 | 12534 | 0
 0D/0
 0L | Yes(10) |
 | pointer_arithmetic | ✅ | 0
@@ -208,7 +208,7 @@
 0D/0
 0L | Yes(16) |
 | register_allocation | ✅ | 0
-0 | 33 | 2615 | 0
+0 | 34 | 2738 | 0
 0D/0
 0L | Yes(4) |
 | register_test | ✅ | 0
@@ -216,7 +216,7 @@
 0D/0
 0L | Yes(7) |
 | simple_abi_test | ✅ | 0
-0 | 22 | 2967 | 0
+0 | 22 | 3075 | 0
 0D/0
 0L | Yes(5) |
 | simple_add | ✅ | 0
@@ -253,7 +253,7 @@
 0D/0
 0L | Yes(12) |
 | string_architecture_showcase | ✅ | 0
-0 | 252 | 16750 | 0
+0 | 252 | 16640 | 0
 0D/27L | Yes(20) |
 | string_operations | ✅ | 0
 0 | 76 | 6847 | 0
@@ -268,11 +268,11 @@
 0D/0
 0L | Yes(7) |
 | zero_cost_interfaces_concept | ✅ | 0
-0 | 516 | 36286 | 0
+0 | 522 | 36468 | 0
 0D/0
 0L | Yes(30) |
 | zero_cost_test | ✅ | 0
-0 | 188 | 17293 | 0
+0 | 188 | 17499 | 0
 0D/0
 0L | Yes(38) |
 

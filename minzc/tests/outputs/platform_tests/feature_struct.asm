@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2026-02-10 20:17:09
+; Generated: 2026-02-10 22:21:03
 
 
 ; Code section
@@ -7,7 +7,7 @@
 
 ; Using hierarchical register allocation (physical → shadow → memory)
 
-; Function: tmp.fitN3fJAzw.main
+; Function: tmp.q54Sw00Lg2.main
 main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)

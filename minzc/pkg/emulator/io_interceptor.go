@@ -197,29 +197,68 @@ func (io *IOInterceptor) interceptBDOS(cpu *Z80) bool {
 	}
 	
 	switch function {
+	case 0x01: // Console input (blocking)
+		// Read a character from stdin (simplified - just return newline)
+		cpu.A = '\n'
+		return true
+
+	case 0x02: // Console output
+		ch := cpu.E
+		fmt.Printf("%c", ch)
+		return true
+
+	case 0x09: // Print string ($-terminated)
+		addr := cpu.DE()
+		for {
+			ch := cpu.ReadMemory(addr)
+			if ch == '$' {
+				break
+			}
+			fmt.Printf("%c", ch)
+			addr++
+		}
+		return true
+
+	case 0x0B: // Console status
+		cpu.A = 0 // No key waiting
+		return true
+
+	case 0x0C: // Get version
+		cpu.SetH(0x00)
+		cpu.SetL(0x22) // CP/M 2.2
+		return true
+
+	case 0x19: // Get current disk
+		cpu.A = 0 // A:
+		return true
+
 	case 0x0F: // Open file
 		return io.bdosOpen(cpu)
-		
+
 	case 0x10: // Close file
 		return io.bdosClose(cpu)
-		
+
 	case 0x14: // Read sequential
 		return io.bdosRead(cpu)
-		
+
 	case 0x15: // Write sequential
 		return io.bdosWrite(cpu)
-		
+
 	case 0x16: // Make file
 		return io.bdosMake(cpu)
-		
+
 	case 0x11: // Search first
 		return io.bdosSearchFirst(cpu)
-		
+
 	case 0x12: // Search next
 		return io.bdosSearchNext(cpu)
 	}
-	
-	return false
+
+	// Unhandled function - log and continue
+	if io.logging {
+		fmt.Printf("BDOS: unhandled function %02X\n", function)
+	}
+	return true // Continue execution
 }
 
 // Helper functions

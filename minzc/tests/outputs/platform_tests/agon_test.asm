@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2026-02-10 20:17:08
+; Generated: 2026-02-10 22:21:03
 
 
 ; Code section
@@ -15,16 +15,15 @@ main:
     PUSH DE
     ; r3 = 65
     LD A, 65
-    LD ($F006), A     ; Virtual register 3 to memory
+    ; Register 3 already in A
     ; r4 = call agon_test.mos_putchar$u8(r3)
     ; Call to agon_test.mos_putchar$u8 (args: 1)
     ; Default register passing for extern function
     ; c in A (default)
     RST $10    ; extern agon_test.mos_putchar$u8 (optimized from CALL)
-    LD ($F008), HL    ; Virtual register 4 to memory
     ; r6 = 71
     LD A, 71
-    LD C, A         ; Store to physical register C
+    LD ($F00C), A     ; Virtual register 6 to memory
     ; r7 = call agon_test.mos_putchar$u8(r6)
     ; Call to agon_test.mos_putchar$u8 (args: 1)
     ; Default register passing for extern function
@@ -32,7 +31,7 @@ main:
     RST $10    ; extern agon_test.mos_putchar$u8 (optimized from CALL)
     ; r9 = 79
     LD A, 79
-    LD E, A         ; Store to physical register E
+    LD ($F012), A     ; Virtual register 9 to memory
     ; r10 = call agon_test.mos_putchar$u8(r9)
     ; Call to agon_test.mos_putchar$u8 (args: 1)
     ; Default register passing for extern function
@@ -70,7 +69,7 @@ main:
     RST $10    ; extern agon_test.mos_putchar$u8 (optimized from CALL)
     ; r21 = 75
     LD A, 75
-    LD B, A         ; Store to physical register B
+    LD C, A         ; Store to physical register C
     ; r22 = call agon_test.mos_putchar$u8(r21)
     ; Call to agon_test.mos_putchar$u8 (args: 1)
     ; Default register passing for extern function
@@ -85,7 +84,7 @@ main:
     LD ($F032), HL    ; Virtual register 25 to memory
     ; r26 = 100
     LD A, 100
-    ; Register 26 already in A
+    LD E, A         ; Store to physical register E
     ; r27 = 50
     LD A, 50
     LD L, A         ; Store to HL (low byte)

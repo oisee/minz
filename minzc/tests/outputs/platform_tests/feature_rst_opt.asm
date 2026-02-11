@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2026-02-10 20:17:09
+; Generated: 2026-02-10 22:21:03
 
 
 ; Code section
@@ -7,15 +7,15 @@
 
 ; Using hierarchical register allocation (physical → shadow → memory)
 
-; Function: tmp.yIRfFa4DIj.main
+; Function: tmp.0dt0W1MyM4.main
 main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
     PUSH BC
     PUSH DE
-    ; r1 = call tmp.yIRfFa4DIj.rst8
-    ; Call to tmp.yIRfFa4DIj.rst8 (args: 0)
-    RST $08    ; extern tmp.yIRfFa4DIj.rst8 (optimized from CALL)
+    ; r1 = call tmp.0dt0W1MyM4.rst8
+    ; Call to tmp.0dt0W1MyM4.rst8 (args: 0)
+    RST $08    ; extern tmp.0dt0W1MyM4.rst8 (optimized from CALL)
     ; return
     POP DE
     POP BC

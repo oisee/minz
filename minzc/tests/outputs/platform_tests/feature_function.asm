@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2026-02-10 20:17:09
+; Generated: 2026-02-10 22:21:03
 
 
 ; Code section
@@ -7,7 +7,7 @@
 
 ; Using hierarchical register allocation (physical → shadow → memory)
 
-; Function: tmp.xQ5qkdCxgo.main
+; Function: tmp.JsReYl57fs.main
 main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
@@ -15,8 +15,8 @@ main:
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
-; Function: tmp.xQ5qkdCxgo.add$u8$u8
-tmp.xQ5qkdCxgo.add$u8$u8:
+; Function: tmp.JsReYl57fs.add$u8$u8
+tmp.JsReYl57fs.add$u8$u8:
 ; TRUE SMC function with immediate anchors
 add_u8_u8_param_a$immOP:
     LD A, 0        ; a anchor (will be patched)
@@ -34,10 +34,10 @@ add_u8_u8_param_b$imm0 EQU add_u8_u8_param_b$immOP+1
 ; TRUE SMC PATCH-TABLE
 ; Format: DW anchor_addr, DB size, DB param_tag
 PATCH_TABLE:
-    DW add_u8_u8_param_a$imm0           ; tmp.xQ5qkdCxgo.add$u8$u8.a
+    DW add_u8_u8_param_a$imm0           ; tmp.JsReYl57fs.add$u8$u8.a
     DB 1              ; Size in bytes
     DB 0              ; Reserved for param tag
-    DW add_u8_u8_param_b$imm0           ; tmp.xQ5qkdCxgo.add$u8$u8.b
+    DW add_u8_u8_param_b$imm0           ; tmp.JsReYl57fs.add$u8$u8.b
     DB 1              ; Size in bytes
     DB 0              ; Reserved for param tag
     DW 0              ; End of table

@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2026-02-10 20:17:09
+; Generated: 2026-02-10 22:21:03
 
 
 ; Code section
@@ -7,23 +7,23 @@
 
 ; Using hierarchical register allocation (physical → shadow → memory)
 
-; Function: tmp.eRN7Q1GdDp.main
+; Function: tmp.CvFovp8TZK.main
 main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    ; Inlined from tmp.eRN7Q1GdDp.inc
+    ; Inlined from tmp.CvFovp8TZK.inc
     LD HL, ($F000)
-    ; Inlined from tmp.eRN7Q1GdDp.inc
+    ; Inlined from tmp.CvFovp8TZK.inc
     LD ($F000), HL
     ; return
     RET
 ; Using hierarchical register allocation (physical → shadow → memory)
 
-; Function: tmp.eRN7Q1GdDp.inc
+; Function: tmp.CvFovp8TZK.inc
 inc:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
-    ; r1 = load tmp.eRN7Q1GdDp.g
+    ; r1 = load tmp.CvFovp8TZK.g
     LD HL, ($F000)
     ; store g, r1
     LD ($F000), HL
@@ -32,7 +32,7 @@ inc:
 
 ; Data section (follows code contiguously)
 
-tmp.eRN7Q1GdDp.g:
+tmp.CvFovp8TZK.g:
     DW 0
 
     END

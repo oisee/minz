@@ -1,5 +1,5 @@
 ; MinZ generated code
-; Generated: 2026-02-10 20:17:09
+; Generated: 2026-02-10 22:21:03
 
 
 ; Code section
@@ -7,7 +7,7 @@
 
 ; Using hierarchical register allocation (physical → shadow → memory)
 
-; Function: tmp.ZMR9Znqftv.main
+; Function: tmp.7DovKiLdwQ.main
 main:
 ; IsSMCDefault=true, IsSMCEnabled=true
 ; Using absolute addressing for locals (SMC style)
@@ -17,7 +17,7 @@ main:
     ; store i, r2
     LD ($F002), A
     ; loop_1:
-tmp_ZMR9Znqftv_main_loop_1_i1:
+tmp_7DovKiLdwQ_main_loop_1_i1:
     ; r3 = load i
     LD A, ($F002)
     LD C, A         ; Store to physical register C
@@ -32,16 +32,16 @@ tmp_ZMR9Znqftv_main_loop_1_i1:
     LD C, A
     LD A, B       ; A = Src1
     CP C          ; Compare Src1 with Src2
-    JR C, tmp_ZMR9Znqftv_main_lt_true_0      ; Carry = Src1 < Src2
+    JR C, tmp_7DovKiLdwQ_main_lt_true_0      ; Carry = Src1 < Src2
     LD HL, 0       ; False
-    JR tmp_ZMR9Znqftv_main_lt_done_0
-tmp_ZMR9Znqftv_main_lt_true_0:
+    JR tmp_7DovKiLdwQ_main_lt_done_0
+tmp_7DovKiLdwQ_main_lt_true_0:
     LD HL, 1       ; True
-tmp_ZMR9Znqftv_main_lt_done_0:
+tmp_7DovKiLdwQ_main_lt_done_0:
     ; jump_if_not r5, end_loop_2
     LD A, E
     OR A
-    JP Z, tmp_ZMR9Znqftv_main_end_loop_2_i1   ; Test for zero
+    JP Z, tmp_7DovKiLdwQ_main_end_loop_2_i1   ; Test for zero
     ; r6 = load i
     LD A, ($F002)
     LD H, A         ; Store to physical register H
@@ -49,9 +49,9 @@ tmp_ZMR9Znqftv_main_lt_done_0:
     LD A, H
     LD ($F002), A
     ; jump loop_1
-    JP tmp_ZMR9Znqftv_main_loop_1_i1
+    JP tmp_7DovKiLdwQ_main_loop_1_i1
     ; end_loop_2:
-tmp_ZMR9Znqftv_main_end_loop_2_i1:
+tmp_7DovKiLdwQ_main_end_loop_2_i1:
     ; return
     RET
 

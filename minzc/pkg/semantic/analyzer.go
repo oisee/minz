@@ -891,8 +891,11 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 					paramTypes = append(paramTypes, paramType)
 				}
 				
+				// Generate mangled name for the function
+				mangledName := generateMangledNameFromTypes(fnName, paramTypes)
+
 				funcSym := &FuncSymbol{
-					Name:       fnName,
+					Name:       mangledName,  // Use mangled name for CALL instructions
 					ReturnType: returnType,
 					Params:     decl.Params,
 					Type: &ir.FunctionType{
@@ -900,12 +903,11 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 						Return: returnType,
 					},
 				}
-				
-				// Register with unmangled name for module access
+
+				// Register with unmangled name for module access (lookup by bdos.putchar)
 				a.currentScope.Define(fnName, funcSym)
-				
+
 				// Also register with mangled name for overloading support
-				mangledName := generateMangledNameFromTypes(fnName, paramTypes)
 				a.currentScope.Define(mangledName, funcSym)
 			}
 		case *ast.ConstDecl:
@@ -5413,6 +5415,31 @@ func (a *Analyzer) analyzeCallExpr(call *ast.CallExpr, irFunc *ir.Function) (ir.
 		// Build the full qualified name by traversing the field expression chain
 		funcName = a.buildQualifiedName(fn)
 		sym = a.currentScope.Lookup(funcName)
+
+		// If found as FunctionOverloadSet, resolve to specific function
+		if overloadSet, ok := sym.(*FunctionOverloadSet); ok {
+			funcSym, err := a.resolveOverload(funcName, call.Arguments, irFunc)
+			if err == nil {
+				sym = funcSym
+				funcName = funcSym.Name // Use the mangled name
+			} else {
+				// Fall back to first overload if resolution fails
+				for _, overload := range overloadSet.Overloads {
+					sym = overload
+					funcName = overload.Name
+					break
+				}
+			}
+		}
+
+		// If not found directly, try overload resolution (for mangled names like bdos.putchar$u8)
+		if sym == nil {
+			funcSym, err := a.resolveOverload(funcName, call.Arguments, irFunc)
+			if err == nil {
+				sym = funcSym
+				funcName = funcSym.Name // Use the mangled name
+			}
+		}
 
 		if sym == nil {
 			// Try as instance method call (obj.method())

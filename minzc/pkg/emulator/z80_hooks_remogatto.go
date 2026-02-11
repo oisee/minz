@@ -177,6 +177,16 @@ func (z *RemogattoZ80WithScreen) Step() int {
 	return cycles
 }
 
+// SetBDOSHandler sets the CP/M BDOS handler (delegates to RemogattoZ80)
+func (z *RemogattoZ80WithScreen) SetBDOSHandler(handler func(function byte, de uint16) (a byte, hl uint16, handled bool)) {
+	z.RemogattoZ80.SetBDOSHandler(handler)
+}
+
+// ReadMemory reads a byte from memory
+func (z *RemogattoZ80WithScreen) ReadMemory(addr uint16) byte {
+	return z.RemogattoZ80.memory.ReadByte(addr)
+}
+
 // GetExitCode returns the exit code for compatibility
 func (z *RemogattoZ80WithScreen) GetExitCode() uint16 {
 	if z.exitCode != 0 {
