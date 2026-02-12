@@ -367,3 +367,77 @@ fun bitmap_draw(x: u16, y: u16) {
     vdu_16(x);
     vdu_16(y);
 }
+
+// =============================================================================
+// VDP Buffer Commands (PSRAM Buffered Drawing)
+// The VDP has 4MB PSRAM for storing command sequences.
+// Upload VDU command sequences once, then replay with a single call.
+// =============================================================================
+
+// Write data to a VDP buffer
+// id: buffer ID (0-65534, 0xFFFF = all buffers)
+// data: pointer to VDU command bytes
+// len: number of bytes to write
+// VDU 23, 0, 0xA0, id_lo, id_hi, 0, len_lo, len_hi, <data bytes>
+pub fun vdu_buffer_write(id: u16, data: *u8, len: u16) {
+    vdu(VDU_COMMAND);   // 23
+    vdu(0);
+    vdu(0xA0);          // Buffered commands
+    vdu(id as u8);      // id low byte
+    vdu((id >> 8) as u8); // id high byte
+    vdu(0);             // Command 0 = write
+    vdu_16(len);        // Length
+    // Send data bytes
+    let mut i: u16 = 0;
+    while i < len {
+        vdu(data[i]);
+        i = i + 1;
+    }
+}
+
+// Call (execute) a VDP buffer
+// id: buffer ID to execute
+// VDU 23, 0, 0xA0, id_lo, id_hi, 1
+pub fun vdu_buffer_call(id: u16) {
+    vdu(VDU_COMMAND);   // 23
+    vdu(0);
+    vdu(0xA0);          // Buffered commands
+    vdu(id as u8);      // id low byte
+    vdu((id >> 8) as u8); // id high byte
+    vdu(1);             // Command 1 = call
+}
+
+// Clear all VDP buffers
+// VDU 23, 0, 0xA0, 0xFF, 0xFF, 2
+pub fun vdu_buffer_clear_all() {
+    vdu(VDU_COMMAND);   // 23
+    vdu(0);
+    vdu(0xA0);          // Buffered commands
+    vdu(0xFF);          // 0xFFFF = all buffers
+    vdu(0xFF);
+    vdu(2);             // Command 2 = clear
+}
+
+// Swap display buffers (double buffering)
+// VDU 23, 0, 0xC3
+pub fun vdu_swap() {
+    vdu(VDU_COMMAND);   // 23
+    vdu(0);
+    vdu(0xC3);          // Swap buffers
+}
+
+// Set logical screen coordinate mode
+// VDU 23, 0, 0xC0, mode
+// mode 0 = pixel coordinates (default)
+pub fun vdu_pixel_mode() {
+    vdu(VDU_COMMAND);   // 23
+    vdu(0);
+    vdu(0xC0);          // Logical coords
+    vdu(0);             // 0 = pixel mode
+}
+
+// Set screen mode with double buffering enabled
+// mode + 128 enables double buffering
+pub fun set_mode_buffered(mode: u8) {
+    vdu_1(VDU_MODE, mode + 128);
+}

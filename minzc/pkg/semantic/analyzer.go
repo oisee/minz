@@ -869,28 +869,68 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 	a.currentModule = modulePrefix
 	defer func() { a.currentModule = prevModule }()
 	
-	// First pass: register all exported symbols
+	// Pass -1: process the module's own imports so its functions can call imported symbols
+	for _, modImp := range module.File.Imports {
+		if !a.registeredModules[modImp.Path] {
+			if err := a.processImport(modImp); err != nil {
+				if debug {
+					fmt.Printf("Warning: failed to process sub-import %s: %v\n", modImp.Path, err)
+				}
+			}
+		}
+	}
+
+	// Pass 0: register struct/enum type names first so function parameter types can resolve
+	for _, item := range module.File.Declarations {
+		switch decl := item.(type) {
+		case *ast.StructDecl:
+			if err := a.registerStructName(decl); err != nil {
+				if debug {
+					fmt.Printf("Warning: failed to pre-register struct %s: %v\n", decl.Name, err)
+				}
+			}
+		case *ast.EnumDecl:
+			if err := a.analyzeEnumDecl(decl); err != nil {
+				if debug {
+					fmt.Printf("Warning: failed to pre-register enum %s: %v\n", decl.Name, err)
+				}
+			}
+		}
+	}
+
+	// First pass: register all function signatures (exported AND internal)
+	// Internal functions need to be registered so exported functions can call them
 	for _, item := range module.File.Declarations {
 		switch decl := item.(type) {
 		case *ast.FunctionDecl:
-			if decl.IsPublic || decl.IsExport {
-				// Register exported function
+			{
+				// Register function with qualified name
 				fnName := modulePrefix + "." + decl.Name
 				returnType, err := a.convertType(decl.ReturnType)
 				if err != nil {
-					return fmt.Errorf("invalid return type for function %s: %w", decl.Name, err)
+					if debug {
+						fmt.Printf("Warning: invalid return type for function %s: %v\n", decl.Name, err)
+					}
+					continue
 				}
-				
+
 				// Convert parameters to get proper type information
 				var paramTypes []ir.Type
 				for _, param := range decl.Params {
 					paramType, err := a.convertType(param.Type)
 					if err != nil {
-						return fmt.Errorf("invalid parameter type for function %s: %w", decl.Name, err)
+						if debug {
+							fmt.Printf("Warning: invalid parameter type for function %s: %v\n", decl.Name, err)
+						}
+						paramTypes = nil
+						break
 					}
 					paramTypes = append(paramTypes, paramType)
 				}
-				
+				if paramTypes == nil && len(decl.Params) > 0 {
+					continue // Skip functions with unresolvable parameter types
+				}
+
 				// Generate mangled name for the function
 				mangledName := generateMangledNameFromTypes(fnName, paramTypes)
 
@@ -909,6 +949,22 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 
 				// Also register with mangled name for overloading support
 				a.currentScope.Define(mangledName, funcSym)
+
+				// Also register bare name for unqualified access
+				bareMangledName := generateMangledNameFromTypes(decl.Name, paramTypes)
+				a.currentScope.Define(decl.Name, funcSym)
+				a.currentScope.Define(bareMangledName, funcSym)
+
+				// Register in overload set for bare name
+				bareOverloadSet, exists := a.currentScope.overloads[decl.Name]
+				if !exists {
+					bareOverloadSet = &FunctionOverloadSet{
+						BaseName:  decl.Name,
+						Overloads: make(map[string]*FuncSymbol),
+					}
+					a.currentScope.overloads[decl.Name] = bareOverloadSet
+				}
+				bareOverloadSet.Overloads[bareMangledName] = funcSym
 			}
 		case *ast.ConstDecl:
 			if decl.IsPublic {
@@ -919,12 +975,14 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 					return fmt.Errorf("invalid type for constant %s: %w", decl.Name, err)
 				}
 				
-				// For now, we can't evaluate the value without full analysis
-				// So we'll just register the type
-				a.currentScope.Define(constName, &ConstSymbol{
+				// Register with full path and bare name
+				constSym := &ConstSymbol{
 					Name: constName,
 					Type: constType,
-				})
+				}
+				a.currentScope.Define(constName, constSym)
+				// Also register bare name for unqualified access
+				a.currentScope.Define(decl.Name, constSym)
 			}
 		case *ast.VarDecl:
 			if decl.IsPublic {
@@ -956,8 +1014,8 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 		}
 	}
 	
-	// Second pass: analyze all module declarations (constants, types, etc.)
-	// This ensures that module functions can reference module-level symbols
+	// Second pass: analyze all module declarations (constants, variables, etc.)
+	// Structs and enums were already registered in pass 0 above.
 	for _, decl := range module.File.Declarations {
 		switch d := decl.(type) {
 		case *ast.ConstDecl:
@@ -973,47 +1031,38 @@ func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt
 				fmt.Printf("Warning: failed to analyze variable %s: %v\n", d.Name, err)
 			}
 		case *ast.StructDecl:
-			// Analyze struct types
+			// Name was registered in pass 0; now analyze fields
 			if err := a.analyzeStructDecl(d); err != nil {
-				// Log warning but continue
 				fmt.Printf("Warning: failed to analyze struct %s: %v\n", d.Name, err)
 			}
 		case *ast.FunctionDecl:
 			// Functions are analyzed in the third pass below
 			// Skip here to avoid duplicate definitions
 		case *ast.EnumDecl:
-			// Analyze enum types
-			if err := a.analyzeEnumDecl(d); err != nil {
-				// Log warning but continue
-				fmt.Printf("Warning: failed to analyze enum %s: %v\n", d.Name, err)
-			}
+			// Already fully registered in pass 0 — skip
 		}
 	}
 	
-	// Third pass: analyze exported functions to generate IR
+	// Third pass: analyze ALL functions with bodies to generate IR
+	// Both exported and internal functions are needed (internal ones are called by exported ones)
 	for _, item := range module.File.Declarations {
 		switch decl := item.(type) {
 		case *ast.FunctionDecl:
-			if decl.IsPublic || decl.IsExport {
-				// Register the function in the symbol table first
-				fnSym := a.currentScope.Lookup(modulePrefix + "." + decl.Name)
-				if fnSym == nil {
-					fmt.Printf("Warning: function %s.%s not found in symbol table\n", modulePrefix, decl.Name)
-					continue
-				}
-				
-				// Create a copy of the function decl with prefixed name
-				// This ensures the IR function has the correct qualified name
-				prefixedDecl := *decl
-				prefixedDecl.Name = modulePrefix + "." + decl.Name
-				
-				// Analyze the function to generate IR
-				if err := a.analyzeFunctionDecl(&prefixedDecl); err != nil {
-					// Skip functions that fail to analyze (e.g., due to inline assembly)
-					// but still allow the module to load
-					fmt.Printf("Warning: skipping function %s due to analysis error: %v\n", decl.Name, err)
-					continue
-				}
+			// Skip functions that weren't registered (e.g., due to type resolution failures)
+			fnSym := a.currentScope.Lookup(modulePrefix + "." + decl.Name)
+			if fnSym == nil {
+				continue
+			}
+
+			// Create a copy of the function decl with prefixed name
+			prefixedDecl := *decl
+			prefixedDecl.Name = modulePrefix + "." + decl.Name
+
+			// Analyze the function to generate IR
+			if err := a.analyzeFunctionDecl(&prefixedDecl); err != nil {
+				// Skip functions that fail to analyze but still allow the module to load
+				fmt.Printf("Warning: skipping function %s due to analysis error: %v\n", decl.Name, err)
+				continue
 			}
 		}
 	}
@@ -1608,7 +1657,30 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 		return nil
 	}
 
+	// Handle asm functions - body contains raw assembly, skip normal analysis
+	if fn.FunctionKind == ast.FunctionKindAsm {
+		irFunc.IsAsm = true
+		// Walk body looking for AsmStmt nodes and emit ir.OpAsm for each
+		if fn.Body != nil {
+			for _, stmt := range fn.Body.Statements {
+				if asmStmt, ok := stmt.(*ast.AsmStmt); ok {
+					if err := a.analyzeAsmStmt(asmStmt, irFunc); err != nil {
+						return fmt.Errorf("error in asm function %s: %w", fn.Name, err)
+					}
+				}
+			}
+		}
+		// Asm functions manage their own returns via RET instructions
+		a.module.AddFunction(irFunc)
+		return nil
+	}
+
 	// Analyze function body
+	if fn.Body == nil {
+		// No body — treat as declaration only (similar to extern)
+		a.module.AddFunction(irFunc)
+		return nil
+	}
 	if err := a.analyzeBlock(fn.Body, irFunc); err != nil {
 		return fmt.Errorf("error in function %s: %w", fn.Name, err)
 	}

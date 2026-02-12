@@ -83,9 +83,9 @@ func TestAgonOutputGenerator(t *testing.T) {
 	}
 
 	// Verify header structure
-	// 0x00-0x02: JP 0x0045
-	if output[0] != 0xC3 || output[1] != 0x45 || output[2] != 0x00 {
-		t.Errorf("JP instruction wrong: %02X %02X %02X", output[0], output[1], output[2])
+	// 0x00-0x03: JP 0x000045 (24-bit JP in ADL mode)
+	if output[0] != 0xC3 || output[1] != 0x45 || output[2] != 0x00 || output[3] != 0x00 {
+		t.Errorf("JP instruction wrong: %02X %02X %02X %02X", output[0], output[1], output[2], output[3])
 	}
 
 	// 0x40-0x42: "MOS" magic

@@ -710,6 +710,7 @@ type Function struct {
 
 	// eZ80 CPU mode support
 	CPUMode          string // "adl", "z80", or "" (default to target)
+	IsAsm            bool   // True if function is an asm fun (body is raw assembly)
 
 	// Local function support
 	ParentFunction string                  // Name of parent function (if this is a local function)

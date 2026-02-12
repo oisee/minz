@@ -591,16 +591,17 @@ func generateAgonBin(result *Result) ([]byte, error) {
 	// Build the 69-byte MOS header
 	header := make([]byte, 0, 0x45)
 
-	// 0x00-0x02: JP 0x0045 (jump over header to code)
-	header = append(header, 0xC3, 0x45, 0x00)
+	// 0x00-0x03: JP 0x000045 (24-bit JP in ADL mode, jump over header to code)
+	// In ADL mode, JP is 4 bytes: C3 + 24-bit address (little-endian)
+	header = append(header, 0xC3, 0x45, 0x00, 0x00)
 
-	// 0x03: Length of program name (including null terminator)
+	// 0x04: Length of program name (including null terminator)
 	// Use a default name "program.bin" if none specified
 	progName := "program.bin"
 	nameLen := len(progName) + 1 // +1 for null terminator
 	header = append(header, byte(nameLen))
 
-	// 0x04-N: Program name with null terminator
+	// 0x05-N: Program name with null terminator
 	header = append(header, []byte(progName)...)
 	header = append(header, 0x00) // null terminator
 
