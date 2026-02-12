@@ -63,9 +63,10 @@ func TestAgonTargetSymbols(t *testing.T) {
 }
 
 func TestAgonOutputGenerator(t *testing.T) {
-	// Test the binary generator
+	// Test the binary generator with proper MOS header
+	codeBytes := []byte{0x3E, 0x42, 0xC9} // LD A, 'B' ; RET
 	result := &Result{
-		Binary:     []byte{0x3E, 0x42, 0xC9}, // LD A, 'B' ; RET
+		Binary:     codeBytes,
 		Origin:     0x0000,
 		EntryPoint: 0x0000,
 	}
@@ -75,13 +76,37 @@ func TestAgonOutputGenerator(t *testing.T) {
 		t.Fatalf("generateAgonBin failed: %v", err)
 	}
 
-	// Should be unchanged for simple binaries
-	if len(output) != 3 {
-		t.Errorf("Expected 3 bytes, got %d", len(output))
+	// Should have 69-byte header + 3 bytes of code = 72 bytes
+	expectedLen := 0x45 + len(codeBytes)
+	if len(output) != expectedLen {
+		t.Errorf("Expected %d bytes, got %d", expectedLen, len(output))
 	}
 
-	if output[0] != 0x3E || output[1] != 0x42 || output[2] != 0xC9 {
-		t.Error("Output bytes don't match input")
+	// Verify header structure
+	// 0x00-0x02: JP 0x0045
+	if output[0] != 0xC3 || output[1] != 0x45 || output[2] != 0x00 {
+		t.Errorf("JP instruction wrong: %02X %02X %02X", output[0], output[1], output[2])
+	}
+
+	// 0x40-0x42: "MOS" magic
+	if output[0x40] != 'M' || output[0x41] != 'O' || output[0x42] != 'S' {
+		t.Errorf("MOS magic wrong: %c%c%c", output[0x40], output[0x41], output[0x42])
+	}
+
+	// 0x43: Header version (0)
+	if output[0x43] != 0x00 {
+		t.Errorf("Header version wrong: %02X", output[0x43])
+	}
+
+	// 0x44: ADL mode flag (1)
+	if output[0x44] != 0x01 {
+		t.Errorf("ADL mode flag wrong: %02X", output[0x44])
+	}
+
+	// 0x45+: Code starts here
+	if output[0x45] != 0x3E || output[0x46] != 0x42 || output[0x47] != 0xC9 {
+		t.Errorf("Code bytes wrong at offset 0x45: %02X %02X %02X",
+			output[0x45], output[0x46], output[0x47])
 	}
 }
 

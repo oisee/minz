@@ -37,26 +37,48 @@ func (a *Assembler) processInstruction(line *Line) error {
 
 // encodeInstructionTable uses the table-driven approach to encode instructions
 func (a *Assembler) encodeInstructionTable(line *Line) ([]byte, error) {
-	// Get all patterns for this mnemonic
-	patterns := GetInstructionPatterns(line.Mnemonic)
+	// Parse ADL suffix (e.g., "RST.LIL" -> "RST", ADLSuffixLIL)
+	baseMnemonic, adlSuffix := a.ParseADLSuffix(line.Mnemonic)
+
+	// Get all patterns for the base mnemonic (without suffix)
+	patterns := GetInstructionPatterns(baseMnemonic)
 	if len(patterns) == 0 {
 		return nil, fmt.Errorf("unknown instruction: %s", line.Mnemonic)
 	}
-	
+
 	// Try to match each pattern
 	for _, pattern := range patterns {
 		if match, values := a.matchPattern(pattern, line); match {
+			var encoded []byte
+			var err error
+
 			// Generate encoding
 			if pattern.EncodingFunc != nil {
-				return pattern.EncodingFunc(a, &pattern, values)
+				encoded, err = pattern.EncodingFunc(a, &pattern, values)
+			} else {
+				// Simple encoding (no operands or fixed encoding)
+				encoded = make([]byte, len(pattern.Encoding))
+				copy(encoded, pattern.Encoding)
 			}
-			// Simple encoding (no operands or fixed encoding)
-			return pattern.Encoding, nil
+
+			if err != nil {
+				return nil, err
+			}
+
+			// Prepend ADL suffix byte if specified (eZ80 mode)
+			if adlSuffix != ADLSuffixNone {
+				result := make([]byte, 1+len(encoded))
+				result[0] = adlSuffix
+				copy(result[1:], encoded)
+				return result, nil
+			}
+
+			return encoded, nil
 		}
 	}
-	
+
 	// No pattern matched
-	return nil, fmt.Errorf("no matching pattern for %s with operands %v", 
+	return nil, fmt.Errorf("no matching pattern for %s with operands %v",
 		line.Mnemonic, line.Operands)
 }
 

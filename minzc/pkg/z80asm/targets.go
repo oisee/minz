@@ -229,12 +229,12 @@ var targetRegistry = map[Target]*TargetConfig{
 		Name:        "Agon Light 2",
 		Description: "Agon Light 2 computer with eZ80 CPU (24-bit ADL mode)",
 		MemoryLayout: MemoryLayout{
-			DefaultOrigin: 0x0000,    // MOS loads apps at 0x040000, but binary is relative
-			RAMStart:      0x0000,    // Full 512KB addressable in ADL mode
+			DefaultOrigin: 0x0000,    // Code assembled relative; MOS loads at 0x040000, header adds 0x45
+			RAMStart:      0x0000,    // Full 512KB addressable in ADL mode (0x040000-0x0BDFFF)
 			RAMSize:       0xFFFF,    // Report as 64K (16-bit field limitation)
-			ROMStart:      0x0000,    // MOS in flash
+			ROMStart:      0x0000,    // MOS in flash (0x000000-0x01FFFF)
 			ROMSize:       0,         // No user-accessible ROM area
-			StackTop:      0x0000,    // Set by MOS at startup
+			StackTop:      0x0000,    // Set by MOS at 0x0BFFFF (grows down)
 		},
 		OutputFormat: OutputFormat{
 			Extension:   ".bin",
@@ -576,20 +576,59 @@ func generateTAPFile(result *Result) ([]byte, error) {
 	return tap, nil
 }
 
-// generateAgonBin creates an Agon Light 2 MOS executable binary
+// generateAgonBin creates an Agon Light 2 MOS executable binary with proper header
+// Binary format documented in inbox/agon-mos-binary-format.md
 func generateAgonBin(result *Result) ([]byte, error) {
-	// Agon MOS executables are simple raw binaries
+	// Agon MOS executables require a 69-byte header
 	// MOS loads them at 0x040000 (in ADL mode address space)
-	// The binary itself is position-independent or ORG'd at 0x040000
+	// Code starts at offset 0x45 within the binary
 
 	// Maximum size check (512KB addressable, but practical limit ~480KB)
 	if len(result.Binary) > 480*1024 {
 		return nil, fmt.Errorf("Agon binary too large: %d bytes (max ~480KB)", len(result.Binary))
 	}
 
-	// For now, just return raw binary
-	// Future: could add MOS header for metadata
-	return result.Binary, nil
+	// Build the 69-byte MOS header
+	header := make([]byte, 0, 0x45)
+
+	// 0x00-0x02: JP 0x0045 (jump over header to code)
+	header = append(header, 0xC3, 0x45, 0x00)
+
+	// 0x03: Length of program name (including null terminator)
+	// Use a default name "program.bin" if none specified
+	progName := "program.bin"
+	nameLen := len(progName) + 1 // +1 for null terminator
+	header = append(header, byte(nameLen))
+
+	// 0x04-N: Program name with null terminator
+	header = append(header, []byte(progName)...)
+	header = append(header, 0x00) // null terminator
+
+	// Pad with 0xFF to reach offset 0x40
+	for len(header) < 0x40 {
+		header = append(header, 0xFF)
+	}
+
+	// 0x40-0x42: "MOS" magic marker
+	header = append(header, 'M', 'O', 'S')
+
+	// 0x43: Header version (always 0)
+	header = append(header, 0x00)
+
+	// 0x44: ADL mode flag (0x01 = 24-bit ADL mode, 0x00 = Z80 mode)
+	header = append(header, 0x01) // ADL mode enabled
+
+	// Verify header is exactly 0x45 bytes
+	if len(header) != 0x45 {
+		return nil, fmt.Errorf("internal error: MOS header is %d bytes, expected 69", len(header))
+	}
+
+	// Combine header + machine code
+	output := make([]byte, 0, len(header)+len(result.Binary))
+	output = append(output, header...)
+	output = append(output, result.Binary...)
+
+	return output, nil
 }
 
 // Add target field to Assembler struct (this would go in assembler.go)
