@@ -111,9 +111,13 @@ func mangleIRType(t ir.Type) string {
 		return fmt.Sprintf("a%d_%s", typ.Length, mangleIRType(typ.Element))
 		
 	case *ir.StructType:
-		// Use struct name if available
+		// Use bare struct name (last component) to match AST mangler
 		if typ.Name != "" {
-			return strings.ReplaceAll(typ.Name, ".", "_")
+			name := typ.Name
+			if idx := strings.LastIndex(name, "."); idx >= 0 {
+				name = name[idx+1:]
+			}
+			return strings.ReplaceAll(name, ".", "_")
 		}
 		return "struct"
 		

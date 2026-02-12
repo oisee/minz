@@ -8230,6 +8230,13 @@ func (a *Analyzer) isValidCast(source, target ir.Type) bool {
 		}
 	}
 
+	// Allow casts between pointer types (e.g., *u8 as *SysVars)
+	if _, ok := source.(*ir.PointerType); ok {
+		if _, ok := target.(*ir.PointerType); ok {
+			return true
+		}
+	}
+
 	// Allow casts between compatible basic types
 	sourceBasic, sourceOk := source.(*ir.BasicType)
 	targetBasic, targetOk := target.(*ir.BasicType)
