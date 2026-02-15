@@ -16,6 +16,7 @@ import (
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/semantic"
 	"github.com/minz/minzc/pkg/version"
+	"github.com/minz/minzc/pkg/z80asm"
 	"github.com/spf13/cobra"
 )
 
@@ -191,6 +192,12 @@ func compile(sourceFile string) error {
 	// Check if input is a MIR file
 	if filepath.Ext(sourceFile) == ".mir" {
 		return compileFromMIR(sourceFile)
+	}
+
+	// Check if input is an assembly file — route to z80asm assembler
+	ext := filepath.Ext(sourceFile)
+	if ext == ".a80" || ext == ".asm" || ext == ".z80" {
+		return assembleFile(sourceFile)
 	}
 
 	// Find project root (directory containing the source file or its parent)
@@ -578,6 +585,88 @@ func compileFromMIR(mirFile string) error {
 	if debug {
 		fmt.Printf("Successfully compiled to %s\n", outputFile)
 	}
+	return nil
+}
+
+// assembleFile assembles a .a80/.asm/.z80 file using the built-in z80asm assembler.
+// This enables a one-tool workflow: mz source.minz -> mz output.a80 -> binary
+func assembleFile(sourceFile string) error {
+	if debug {
+		fmt.Printf("Assembling %s...\n", sourceFile)
+	}
+
+	// Determine target from -t flag or infer from output extension
+	asmTarget := z80asm.TargetGeneric
+	if target != "" {
+		t, err := z80asm.ParseTarget(target)
+		if err != nil {
+			return fmt.Errorf("unknown target: %s", target)
+		}
+		asmTarget = t
+	} else if outputFile != "" {
+		// Infer from output extension
+		switch filepath.Ext(outputFile) {
+		case ".com":
+			asmTarget = z80asm.TargetCPM
+		case ".tap":
+			asmTarget = z80asm.TargetZXSpectrum
+		case ".bin":
+			asmTarget = z80asm.TargetAgonLight2
+		}
+	}
+
+	targetConfig := z80asm.GetTargetConfig(asmTarget)
+
+	// Determine output filename
+	if outputFile == "" {
+		base := sourceFile[:len(sourceFile)-len(filepath.Ext(sourceFile))]
+		outputFile = base + targetConfig.OutputFormat.Extension
+	}
+
+	// Create and configure assembler
+	assembler := z80asm.NewAssembler()
+	if err := assembler.SetTarget(asmTarget); err != nil {
+		return fmt.Errorf("failed to set assembler target: %w", err)
+	}
+
+	// Assemble
+	result, err := assembler.AssembleFile(sourceFile)
+	if err != nil {
+		return fmt.Errorf("assembly failed: %w", err)
+	}
+
+	if len(result.Errors) > 0 {
+		for _, e := range result.Errors {
+			fmt.Fprintf(os.Stderr, "  %v\n", e)
+		}
+		return fmt.Errorf("assembly failed with %d errors", len(result.Errors))
+	}
+
+	// Generate output
+	var outputData []byte
+	if targetConfig.OutputFormat.Generator != nil {
+		outputData, err = targetConfig.OutputFormat.Generator(result)
+		if err != nil {
+			return fmt.Errorf("failed to generate output: %w", err)
+		}
+	} else {
+		outputData = result.Binary
+	}
+
+	// Write output
+	if err := os.WriteFile(outputFile, outputData, 0644); err != nil {
+		return fmt.Errorf("failed to write output: %w", err)
+	}
+
+	if debug {
+		fmt.Printf("Assembled %s -> %s (%d bytes)\n", sourceFile, outputFile, len(outputData))
+	}
+
+	// Print warnings
+	for _, w := range result.Warnings {
+		fmt.Fprintf(os.Stderr, "warning: %s\n", w)
+	}
+
 	return nil
 }
 

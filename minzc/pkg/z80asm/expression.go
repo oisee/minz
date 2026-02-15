@@ -8,7 +8,7 @@ import (
 )
 
 // EvaluateExpression evaluates arithmetic expressions in assembly operands
-func (a *Assembler) EvaluateExpression(expr string) (uint16, error) {
+func (a *Assembler) EvaluateExpression(expr string) (int, error) {
 	expr = strings.TrimSpace(expr)
 	
 	// Check for combined operators first (longest patterns)
@@ -74,7 +74,7 @@ func (a *Assembler) EvaluateExpression(expr string) (uint16, error) {
 	
 	// Quick path for simple numbers
 	if val, err := a.parseImmediate(expr); err == nil {
-		return uint16(val), nil
+		return int(val), nil
 	}
 	
 	// Check for single symbol
@@ -99,7 +99,7 @@ func (a *Assembler) EvaluateExpression(expr string) (uint16, error) {
 }
 
 // evaluateArithmeticExpression handles +, -, *, / operations
-func (a *Assembler) evaluateArithmeticExpression(expr string) (uint16, error) {
+func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	// Simple tokenizer for arithmetic expressions
 	// Supports: symbol+number, symbol-number, number+number, etc.
 	
@@ -241,7 +241,7 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (uint16, error) {
 	
 	// No operators found, try to parse as immediate
 	if val, err := a.parseImmediate(expr); err == nil {
-		return uint16(val), nil
+		return int(val), nil
 	}
 	
 	return 0, fmt.Errorf("invalid expression: %s", expr)
@@ -258,10 +258,9 @@ func isValidSymbol(s string) bool {
 		return false
 	}
 
-	// Rest can be letters, digits, underscore, dot, or $
-	// The $ is used in MinZ for SMC parameter anchors (e.g., "param$imm0")
+	// Rest can be letters, digits, underscore, or dot
 	for _, r := range s[1:] {
-		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '.' && r != '$' {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '.' {
 			return false
 		}
 	}
@@ -275,7 +274,7 @@ func isHexDigit(c byte) bool {
 }
 
 // parseImmediate parses a number in various formats (hex, binary, decimal)
-func (a *Assembler) parseImmediate(s string) (uint16, error) {
+func (a *Assembler) parseImmediate(s string) (int, error) {
 	s = strings.TrimSpace(s)
 
 	// Handle different number formats
@@ -285,33 +284,33 @@ func (a *Assembler) parseImmediate(s string) (uint16, error) {
 			return 0, fmt.Errorf("current address symbol not handled here")
 		}
 		// Only treat as hex if followed by hex digit
-		// This allows symbols like "angle$imm0" to be parsed as symbols
+		// This allows symbols like "angle_imm0" to be parsed as symbols
 		if len(s) > 1 && isHexDigit(s[1]) {
 			// Hex: $FF
-			val, err := strconv.ParseUint(s[1:], 16, 16)
-			return uint16(val), err
+			val, err := strconv.ParseUint(s[1:], 16, 32)
+			return int(val), err
 		}
 		// Not a hex number - fall through to treat as symbol
 		return 0, fmt.Errorf("not a number: %s", s)
 	} else if strings.HasPrefix(s, "#") {
 		// Hex: #FF (common Z80 format)
-		val, err := strconv.ParseUint(s[1:], 16, 16)
-		return uint16(val), err
+		val, err := strconv.ParseUint(s[1:], 16, 32)
+		return int(val), err
 	} else if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
 		// Hex: 0xFF
-		val, err := strconv.ParseUint(s[2:], 16, 16)
-		return uint16(val), err
+		val, err := strconv.ParseUint(s[2:], 16, 32)
+		return int(val), err
 	} else if strings.HasPrefix(s, "%") {
 		// Binary: %11111111
-		val, err := strconv.ParseUint(s[1:], 2, 16)
-		return uint16(val), err
+		val, err := strconv.ParseUint(s[1:], 2, 32)
+		return int(val), err
 	} else if strings.HasPrefix(s, "0b") || strings.HasPrefix(s, "0B") {
 		// Binary: 0b11111111
-		val, err := strconv.ParseUint(s[2:], 2, 16)
-		return uint16(val), err
+		val, err := strconv.ParseUint(s[2:], 2, 32)
+		return int(val), err
 	} else if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") && len(s) == 3 {
 		// Character literal: 'A'
-		return uint16(s[1]), nil
+		return int(s[1]), nil
 	} else {
 		// Try decimal (handle negative numbers for two's complement)
 		if strings.HasPrefix(s, "-") {
@@ -320,9 +319,9 @@ func (a *Assembler) parseImmediate(s string) (uint16, error) {
 				return 0, err
 			}
 			// Convert to 16-bit two's complement
-			return uint16(val & 0xFFFF), nil
+			return int(val & 0xFFFFFF), nil
 		}
-		val, err := strconv.ParseUint(s, 10, 16)
-		return uint16(val), err
+		val, err := strconv.ParseUint(s, 10, 32)
+		return int(val), err
 	}
 }

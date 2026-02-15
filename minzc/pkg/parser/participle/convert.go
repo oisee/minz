@@ -1,6 +1,8 @@
 package participle
 
 import (
+	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -74,6 +76,7 @@ func (c *Converter) convertDecl(d *Decl) ast.Node {
 			}
 		}
 		_ = atIdx // suppress unused
+		fmt.Fprintf(os.Stderr, "warning: malformed @name[[[...]]] block — ignored\n")
 		return nil
 	case d.Module != nil:
 		// Module declarations are informational only
@@ -209,6 +212,9 @@ func (c *Converter) convertFunction(f *FunctionDecl) *ast.FunctionDecl {
 }
 
 func (c *Converter) convertStruct(s *StructDecl) *ast.StructDecl {
+	if len(s.Attributes) > 0 {
+		fmt.Fprintf(os.Stderr, "warning: attributes on struct '%s' are not yet supported — ignored\n", s.Name)
+	}
 	result := &ast.StructDecl{
 		Name:     s.Name,
 		IsPublic: s.Public,
@@ -231,6 +237,9 @@ func (c *Converter) convertStruct(s *StructDecl) *ast.StructDecl {
 }
 
 func (c *Converter) convertEnum(e *EnumDecl) *ast.EnumDecl {
+	if len(e.Attributes) > 0 {
+		fmt.Fprintf(os.Stderr, "warning: attributes on enum '%s' are not yet supported — ignored\n", e.Name)
+	}
 	result := &ast.EnumDecl{
 		Name:     e.Name,
 		IsPublic: e.Public,

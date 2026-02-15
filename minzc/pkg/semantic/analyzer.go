@@ -1372,7 +1372,11 @@ func (a *Analyzer) analyzeDeclaration(decl ast.Declaration) error {
 // registerFunctionSignature registers a function's signature in the symbol table
 // This is called in the first pass to allow forward references
 func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
-	// Process @extern attribute - set IsExtern and ExternAddress from attribute
+	// Process @[...] attributes - validate and apply
+	knownFuncAttrs := map[string]bool{
+		"extern": true, "norst": true, "abi": true, "mode": true,
+		"inline": true, "noreturn": true, "naked": true, "weak": true,
+	}
 	for _, attr := range fn.Attributes {
 		if attr.Name == "extern" {
 			fn.IsExtern = true
@@ -1382,6 +1386,9 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 		}
 		if attr.Name == "norst" {
 			fn.NoRST = true
+		}
+		if !knownFuncAttrs[attr.Name] {
+			fmt.Fprintf(os.Stderr, "warning: unknown attribute @[%s] on function '%s' — ignored\n", attr.Name, fn.Name)
 		}
 	}
 
@@ -1506,7 +1513,7 @@ func (a *Analyzer) registerFunctionSignature(fn *ast.FunctionDecl) error {
 
 // analyzeFunctionDecl analyzes a function declaration
 func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
-	// Process @extern attribute - set IsExtern and ExternAddress from attribute
+	// Process @[...] attributes (same validation as registerFunctionSignature)
 	for _, attr := range fn.Attributes {
 		if attr.Name == "extern" {
 			fn.IsExtern = true
@@ -7281,8 +7288,24 @@ func (a *Analyzer) analyzeTopLevelMetafunction(call *ast.MetafunctionCall) error
 		return fmt.Errorf("@comptime_error: %s", errorMsg)
 
 	default:
-		// Unknown top-level metafunction - ignore for now
-		// (might be processed later in compilation)
+		// Check if this looks like it was meant as a function attribute/decorator
+		// (e.g., @extern(0x10), @abi("smc"), @mode("adl"), @inline)
+		knownDecorators := map[string]bool{
+			"extern": true, "abi": true, "mode": true, "inline": true,
+			"norst": true, "noreturn": true, "naked": true, "weak": true,
+		}
+		if knownDecorators[call.Name] {
+			fmt.Fprintf(os.Stderr, "warning: @%s(...) as standalone decorator is not supported; use @[%s(...)] bracket syntax or inline keyword syntax instead\n", call.Name, call.Name)
+			if call.Name == "extern" {
+				fmt.Fprintf(os.Stderr, "  hint: use 'extern fun name(...) at <addr>;' instead of '@extern(<addr>)'\n")
+			} else if call.Name == "abi" {
+				fmt.Fprintf(os.Stderr, "  hint: use '@[abi(\"%s\")]' bracket syntax or 'fun name() abi \"%s\" { }' inline syntax\n", "value", "value")
+			} else if call.Name == "mode" {
+				fmt.Fprintf(os.Stderr, "  hint: use 'fun name() mode \"adl\" { }' inline syntax\n")
+			}
+		} else {
+			fmt.Fprintf(os.Stderr, "warning: unknown metafunction @%s() — ignored\n", call.Name)
+		}
 		return nil
 	}
 }

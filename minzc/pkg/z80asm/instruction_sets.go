@@ -1016,7 +1016,7 @@ func makeRSTEncoder(opcode byte) EncoderFunc {
 		// Verify it's a valid RST vector
 		// RST vectors are at addresses 00h, 08h, 10h, 18h, 20h, 28h, 30h, 38h
 		// Accept any base (decimal, hex with $, hex with 0x, etc.)
-		validVectors := map[uint16]byte{
+		validVectors := map[int]byte{
 			0x00: 0xC7, 0x08: 0xCF, 0x10: 0xD7, 0x18: 0xDF,
 			0x20: 0xE7, 0x28: 0xEF, 0x30: 0xF7, 0x38: 0xFF,
 		}
@@ -1145,7 +1145,7 @@ func makeIMEncoder(opcode byte) EncoderFunc {
 		}
 		
 		// Map mode to opcode
-		opcodeMap := map[uint16]byte{
+		opcodeMap := map[int]byte{
 			0: 0x46, 1: 0x56, 2: 0x5E,
 		}
 		

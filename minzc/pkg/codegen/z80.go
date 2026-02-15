@@ -86,6 +86,9 @@ func (g *Z80Generator) SetTargetPlatform(platform string) {
 	if platform == "agon" || platform == "agon_light" || platform == "agon_light2" {
 		g.isEZ80Target = true
 		g.defaultADLMode = true // Agon runs in ADL mode by default
+		// NOTE: Virtual registers at $F000 map to $00F000 in ADL mode (MOS area).
+		// Current Agon examples avoid virtual registers (rerolled strings, asm functions).
+		// Full fix requires 24-bit virtual register addressing (MW-5/LW-3).
 	}
 }
 
@@ -315,9 +318,9 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	case "cpm":
 		g.emit("    ORG $0100  ; CP/M TPA starts at 0x0100")
 	case "agon", "mos":
-		// Agon MOS loads .bin files at 0x040000 (24-bit eZ80 address)
-		// For Z80-compatible assemblers, use 0x0000 - the loader handles relocation
-		g.emit("    ORG $0000  ; Agon MOS (loader relocates to 0x040000)")
+		// Agon MOS loads .bin files at 0x040000 (24-bit eZ80 address space)
+		// Must use absolute address so labels resolve correctly in ADL mode
+		g.emit("    ORG $040000  ; Agon MOS executable base address")
 	default:
 		g.emit("    ORG $8000")
 	}
@@ -485,7 +488,7 @@ func (g *Z80Generator) generatePatchTable() {
 				}{
 					funcName:     fn.Name,
 					paramName:    param.Name,
-					anchorSymbol: fmt.Sprintf("%s$imm0", paramLabel),
+					anchorSymbol: fmt.Sprintf("%s_imm0", paramLabel),
 					size:         param.Type.Size(),
 				}
 				patchEntries = append(patchEntries, entry)
@@ -504,7 +507,7 @@ func (g *Z80Generator) generatePatchTable() {
 	g.emit("PATCH_TABLE:")
 	
 	for _, entry := range patchEntries {
-		g.emit("    DW %s           ; %s.%s", entry.anchorSymbol, entry.funcName, entry.paramName)
+		g.emit("    DW %s           ; %s.%s", entry.anchorSymbol, sanitizeComment(entry.funcName), entry.paramName)
 		g.emit("    DB %d              ; Size in bytes", entry.size)
 		g.emit("    DB 0              ; Reserved for param tag")
 	}
@@ -599,8 +602,8 @@ func (g *Z80Generator) generateString(str *ir.String) {
 		escaped := ""
 		
 		for _, ch := range str.Value {
-			// Convert LF (10) to CR (13) for ZX Spectrum
-			if ch == 10 {
+			// Convert LF (10) to CR (13) for ZX Spectrum only
+			if ch == 10 && g.targetPlatform == "zxspectrum" {
 				ch = 13
 			}
 			if ch >= 32 && ch <= 126 && ch != '"' && ch != '\\' {
@@ -647,7 +650,7 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	// Perform hierarchical register allocation if enabled
 	if g.usePhysicalRegs {
 		g.physicalAlloc.AllocateFunction(fn)
-		g.emit("; Using hierarchical register allocation (physical → shadow → memory)")
+		g.emit("; Using hierarchical register allocation (physical -> shadow -> memory)")
 	}
 
 	// Function label
@@ -721,7 +724,8 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 
 // generateTrueSMCFunction generates a TRUE SMC function with anchor-based parameters
 func (g *Z80Generator) generateTrueSMCFunction(fn *ir.Function) error {
-	g.emit("%s:", fn.Name)
+	cleanName := g.sanitizeFunctionName(fn.Name)
+	g.emit("%s:", cleanName)
 	g.emit("; TRUE SMC function with immediate anchors")
 	
 	// Always use absolute addressing for SMC functions
@@ -739,7 +743,7 @@ func (g *Z80Generator) generateTrueSMCFunction(fn *ir.Function) error {
 		// Check if this is first use of a parameter (could be OpTrueSMCLoad already)
 		if (inst.Op == ir.OpLoadParam || inst.Op == ir.OpTrueSMCLoad) && inst.Symbol != "" {
 			paramName := inst.Symbol
-			// Extract parameter name from symbol (might be "x$imm0" format)
+			// Extract parameter name from symbol (might be "x_imm0" format)
 			if idx := strings.Index(paramName, "$"); idx > 0 {
 				paramName = paramName[:idx]
 			}
@@ -774,8 +778,8 @@ func (g *Z80Generator) generateParameterAnchor(param *ir.Parameter, destReg ir.R
 	// have parameters with the same name
 	cleanFuncName := g.sanitizeFunctionName(g.currentFunc.Name)
 	paramLabel := fmt.Sprintf("%s_param_%s", cleanFuncName, param.Name)
-	anchorOp := fmt.Sprintf("%s$immOP", paramLabel)
-	anchorImm := fmt.Sprintf("%s$imm0", paramLabel)
+	anchorOp := fmt.Sprintf("%s_immOP", paramLabel)
+	anchorImm := fmt.Sprintf("%s_imm0", paramLabel)
 
 	g.emit("%s:", anchorOp)
 	
@@ -807,8 +811,8 @@ func (g *Z80Generator) generateParameterAnchor(param *ir.Parameter, destReg ir.R
 		g.storeFromHL(destReg)
 	} else if param.Type.Size() == 3 {
 		// 24-bit parameter - need two anchors: A for high byte, HL for low 16 bits
-		anchorHigh := fmt.Sprintf("%s$immHI", param.Name)
-		anchorLow := fmt.Sprintf("%s$immLO", param.Name)
+		anchorHigh := fmt.Sprintf("%s_immHI", param.Name)
+		anchorLow := fmt.Sprintf("%s_immLO", param.Name)
 		
 		// Load high byte into A
 		g.emit("%s:", anchorHigh)
@@ -859,7 +863,7 @@ func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
 	
 	// If this has tail recursion, add the start label
 	if fn.HasTailRecursion {
-		g.emit("%s_start:", fn.Name)
+		g.emit("%s_start:", cleanName)
 	}
 	
 	// Generate minimal prologue if needed
@@ -924,12 +928,13 @@ func (g *Z80Generator) generatePatchableReturn(fn *ir.Function, inst ir.Instruct
 	g.emit("    ; Default: Store to memory (most common complex case)")
 	g.emit("    ; For immediate use: Patch first NOP to RET for early return")
 	
-	// Generate the patch point labels
-	g.emit("%s_return_patch.op:", fn.Name)
+	// Generate the patch point labels (sanitized for assembler compatibility)
+	cleanName := g.sanitizeFunctionName(fn.Name)
+	g.emit("%s_return_patch_op:", cleanName)
 	g.emit("    NOP                     ; PATCH POINT: NOP or RET (C9) for early return")
-	
-	g.emit("%s_store_addr.op:", fn.Name)
-	g.emit("%s_store_addr equ %s_store_addr.op + 1", fn.Name, fn.Name)
+
+	g.emit("%s_store_addr_op:", cleanName)
+	g.emit("%s_store_addr equ %s_store_addr_op + 1", cleanName, cleanName)
 	g.emit("    LD (0000), A            ; DEFAULT: Store result (address gets patched)")
 	g.emit("    RET                     ; Return after store")
 }
@@ -947,11 +952,11 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 		
 	case ir.OpTrueSMCLoad:
 		// TRUE SMC: Load from anchor address (повторное использование)
-		// The symbol should already include $imm0
+		// The symbol should already include _imm0
 		anchorAddr := inst.Symbol
-		if !strings.HasSuffix(anchorAddr, "$imm0") {
-			// Legacy format - add $imm0
-			anchorAddr = strings.TrimSuffix(anchorAddr, "$immOP") + "$imm0"
+		if !strings.HasSuffix(anchorAddr, "_imm0") {
+			// Legacy format - add _imm0
+			anchorAddr = strings.TrimSuffix(anchorAddr, "_immOP") + "_imm0"
 		}
 		
 		if inst.Type != nil && inst.Type.Size() == 1 {
@@ -1035,19 +1040,19 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 				// Use function-scoped label names to avoid conflicts
 				tsmcRefLabel := paramLabel + "_tsmc"
 				g.emit("; TSMC reference parameter %s", paramName)
-				g.emit("%s$immOP:", tsmcRefLabel)
+				g.emit("%s_immOP:", tsmcRefLabel)
 
 				// For pointers, we emit instructions that will have their immediates patched
 				if _, ok := param.Type.(*ir.PointerType); ok {
 					// ALL pointers load the ADDRESS into HL, not the value!
 					g.emit("    LD HL, 0000      ; TSMC ref address for %s", paramName)
-					g.emit("%s$imm0 EQU %s$immOP+1", tsmcRefLabel, tsmcRefLabel)
+					g.emit("%s_imm0 EQU %s_immOP+1", tsmcRefLabel, tsmcRefLabel)
 					// Store the address (not dereferenced value)
 					g.storeFromHL(inst.Dest)
 				} else {
 					// Non-pointer TSMC ref (future extension)
 					g.emit("    LD HL, 0000      ; TSMC ref %s", paramName)
-					g.emit("%s$imm0 EQU %s$immOP+1", tsmcRefLabel, tsmcRefLabel)
+					g.emit("%s_imm0 EQU %s_immOP+1", tsmcRefLabel, tsmcRefLabel)
 					g.storeFromHL(inst.Dest)
 				}
 			} else {
@@ -1130,10 +1135,10 @@ func (g *Z80Generator) generateSMCInstruction(inst ir.Instruction) error {
 				tsmcRefLabel := paramLabel + "_tsmc"
 				if _, ok := param.Type.(*ir.PointerType); ok {
 					// Reload the address from the immediate
-					g.emit("    LD HL, (%s$imm0) ; Reload TSMC ref address", tsmcRefLabel)
+					g.emit("    LD HL, (%s_imm0) ; Reload TSMC ref address", tsmcRefLabel)
 					g.storeFromHL(inst.Dest)
 				} else {
-					g.emit("    LD HL, (%s$imm0) ; Reload TSMC ref value", tsmcRefLabel)
+					g.emit("    LD HL, (%s_imm0) ; Reload TSMC ref value", tsmcRefLabel)
 					g.storeFromHL(inst.Dest)
 				}
 			} else {
@@ -1160,11 +1165,13 @@ func (g *Z80Generator) generateSMCRecursiveCall(inst ir.Instruction) error {
 	fn := g.currentFunc
 	
 	g.emit("    ; === SMC Recursive Context Save ===")
-	
+
+	cleanFuncName := g.sanitizeFunctionName(fn.Name)
+
 	// Save all SMC parameters
 	for _, param := range fn.Params {
-		paramLabel := fmt.Sprintf("%s_param_%s", fn.Name, param.Name)
-		
+		paramLabel := fmt.Sprintf("%s_param_%s", cleanFuncName, param.Name)
+
 		if param.Type.Size() == 1 {
 			g.emit("    LD A, (%s)", paramLabel)
 			g.emit("    PUSH AF")
@@ -1173,18 +1180,18 @@ func (g *Z80Generator) generateSMCRecursiveCall(inst ir.Instruction) error {
 			g.emit("    PUSH HL")
 		}
 	}
-	
+
 	g.emit("    ; === Update SMC Parameters ===")
 	// Note: The semantic analyzer should have generated instructions to
 	// set up the new parameter values before the call
-	
+
 	g.emit("    CALL %s", inst.Symbol)
-	
+
 	g.emit("    ; === SMC Recursive Context Restore ===")
 	// Restore in reverse order
 	for i := len(fn.Params) - 1; i >= 0; i-- {
 		param := fn.Params[i]
-		paramLabel := fmt.Sprintf("%s_param_%s", fn.Name, param.Name)
+		paramLabel := fmt.Sprintf("%s_param_%s", cleanFuncName, param.Name)
 		
 		if param.Type.Size() == 1 {
 			g.emit("    POP AF")
@@ -1373,7 +1380,7 @@ func (g *Z80Generator) generatePatchTemplate(inst *ir.Instruction) error {
 	// SMART PATCHING: Single-byte patch based on usage pattern
 	switch inst.TemplateName {
 	case "immediate":
-		// For immediate use: Patch NOP → RET for early return (saves 24+ T-states!)
+		// For immediate use: Patch NOP -> RET for early return (saves 24+ T-states!)
 		g.emit("    LD A, #C9               ; RET opcode")
 		g.emit("    LD (%s.op), A", inst.PatchPointLabel)
 	case "store_u8", "store_u16":
@@ -1381,11 +1388,11 @@ func (g *Z80Generator) generatePatchTemplate(inst *ir.Instruction) error {
 		g.emit("    LD A, #00               ; NOP opcode")
 		g.emit("    LD (%s.op), A", inst.PatchPointLabel)
 	case "reg_b":
-		// For register transfer: Patch NOP → LD B, A
+		// For register transfer: Patch NOP -> LD B, A
 		g.emit("    LD A, #47               ; LD B, A opcode")
 		g.emit("    LD (%s.op), A", inst.PatchPointLabel)
 	case "reg_c":
-		// For register transfer: Patch NOP → LD C, A
+		// For register transfer: Patch NOP -> LD C, A
 		g.emit("    LD A, #4F               ; LD C, A opcode")
 		g.emit("    LD (%s.op), A", inst.PatchPointLabel)
 	default:
@@ -1404,9 +1411,10 @@ func (g *Z80Generator) generatePatchTarget(inst *ir.Instruction) error {
 	// Smart patching: patch the storage address directly
 	funcName := inst.PatchPointLabel // This should be the function name + "_return_patch"
 	funcBaseName := strings.TrimSuffix(funcName, "_return_patch")
-	
+	cleanBaseName := g.sanitizeFunctionName(funcBaseName)
+
 	g.emit("    LD HL, %s", inst.TargetAddress)
-	g.emit("    LD (%s_store_addr), HL", funcBaseName)
+	g.emit("    LD (%s_store_addr), HL", cleanBaseName)
 	
 	return nil
 }
@@ -1438,33 +1446,33 @@ func (g *Z80Generator) generateSMCAnnotatedCall(inst ir.Instruction, smcAnn *ir.
 	cleanName := g.sanitizeFunctionName(funcName)
 
 	g.emit("")
-	g.emit("    ; *** SMC ANNOTATED CALL to %s ***", funcName)
+	g.emit("    ; *** SMC ANNOTATED CALL to %s ***", sanitizeComment(funcName))
 	g.emit("    ; Pattern: %s, Dest: %s", smcAnn.Pattern, smcAnn.Dest)
 
 	// 1. Apply SMC pattern (patch the return behavior)
 	switch smcAnn.Pattern {
 	case "immediate":
-		// For immediate use: Patch NOP → RET for early return
+		// For immediate use: Patch NOP -> RET for early return
 		g.emit("    LD A, #C9               ; RET opcode")
-		g.emit("    LD (%s_return_patch.op), A", cleanName)
+		g.emit("    LD (%s_return_patch_op), A", cleanName)
 	case "store_u8", "store_u16":
 		// For storage: Restore NOP and set storage address
 		g.emit("    LD A, #00               ; NOP opcode")
-		g.emit("    LD (%s_return_patch.op), A", cleanName)
+		g.emit("    LD (%s_return_patch_op), A", cleanName)
 		if smcAnn.Dest != "" {
 			g.emit("    LD HL, %s", smcAnn.Dest)
 			g.emit("    LD (%s_store_addr), HL", cleanName)
 		}
 	case "reg_b":
 		g.emit("    LD A, #47               ; LD B, A opcode")
-		g.emit("    LD (%s_return_patch.op), A", cleanName)
+		g.emit("    LD (%s_return_patch_op), A", cleanName)
 	case "reg_c":
 		g.emit("    LD A, #4F               ; LD C, A opcode")
-		g.emit("    LD (%s_return_patch.op), A", cleanName)
+		g.emit("    LD (%s_return_patch_op), A", cleanName)
 	default:
 		// Default to store pattern
 		g.emit("    LD A, #00               ; NOP opcode (default store)")
-		g.emit("    LD (%s_return_patch.op), A", cleanName)
+		g.emit("    LD (%s_return_patch_op), A", cleanName)
 	}
 
 	// 2. Patch parameters from SMC annotations on this instruction
@@ -1831,9 +1839,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 	// Add comment for instruction (skip for OpAsm as it would print the entire block)
 	if inst.Op != ir.OpAsm {
 		if inst.Comment == "" {
-			g.emit("    ; %s", inst.String())
+			g.emit("    ; %s", sanitizeComment(inst.String()))
 		} else {
-			g.emit("    ; %s", inst.Comment)
+			g.emit("    ; %s", sanitizeComment(inst.Comment))
 		}
 	}
 
@@ -2186,7 +2194,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// The label for the immediate operand is function-scoped
 		cleanFuncName := g.sanitizeFunctionName(g.currentFunc.Name)
 		paramLabel := fmt.Sprintf("%s_param_%s", cleanFuncName, inst.Symbol)
-		immLabel := fmt.Sprintf("%s$imm0", paramLabel)
+		immLabel := fmt.Sprintf("%s_imm0", paramLabel)
 		g.emit("    LD (%s), HL    ; Update TSMC reference immediate", immLabel)
 		
 	case ir.OpMove:
@@ -2736,7 +2744,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.generateSMCAnnotatedCall(inst, smcAnn)
 		} else {
 			// Regular call (no SMC annotations)
-			g.emit("    ; Call to %s (args: %d)", inst.Symbol, len(inst.Args))
+			g.emit("    ; Call to %s (args: %d)", sanitizeComment(inst.Symbol), len(inst.Args))
 			targetFunc := g.findFunction(inst.Symbol)
 
 			// Prepare arguments before the call
@@ -2780,8 +2788,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				}
 			} else {
 				// Function not found in current module - might be external
-				// Use the symbol as-is
-				g.emit("    CALL %s", inst.Symbol)
+				// Sanitize the symbol for assembler compatibility
+				cleanName := g.sanitizeFunctionName(inst.Symbol)
+				g.emit("    CALL %s", cleanName)
 				// Track stdlib function usage
 				g.usedFunctions[inst.Symbol] = true
 			}
@@ -3033,21 +3042,22 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpPrintString:
 		// Print string - determine if String or LString based on the symbol
-		g.loadToHL(inst.Src1)
-		
-		// Check if this is a long string by looking at the string data
-		// The symbol in the instruction should reference a string label
 		isLongString := false
 		if inst.Symbol != "" {
-			// Find the string in module strings
+			// When Symbol is set (e.g. from loop reroller), load the label directly
+			g.emit("    LD HL, %s", inst.Symbol)
+			// Check if this is a long string by looking at the string data
 			for _, str := range g.module.Strings {
 				if str.Label == inst.Symbol {
 					isLongString = str.IsLong
 					break
 				}
 			}
+		} else {
+			// Load string address from register (normal path)
+			g.loadToHL(inst.Src1)
 		}
-		
+
 		if isLongString {
 			g.emit("    CALL print_lstring")
 			g.usedFunctions["print_lstring"] = true
@@ -3060,13 +3070,13 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Direct print for short strings - ultra-fast!
 		// Each character is loaded and printed directly
 		if inst.Comment != "" {
-			g.emit(fmt.Sprintf("    ; %s", inst.Comment))
+			g.emit(fmt.Sprintf("    ; %s", sanitizeComment(inst.Comment)))
 		}
 		
 		// Generate platform-specific code for each character
 		for _, ch := range inst.Symbol {
-			// Convert LF (10) to CR (13) for ZX Spectrum
-			if ch == 10 {
+			// Convert LF (10) to CR (13) for ZX Spectrum only
+			if ch == 10 && g.targetPlatform == "zxspectrum" {
 				ch = 13
 			}
 			g.emit(fmt.Sprintf("    LD A, %d", ch))
@@ -4148,6 +4158,15 @@ func (g *Z80Generator) storeFromHL(reg ir.Register) {
 		if physReg == RegBC || physReg == RegDE {
 			g.emit("    LD %s, H", regName[:1])
 			g.emit("    LD %s, L", regName[1:])
+		} else if physReg == RegA || physReg == RegB || physReg == RegC || physReg == RegD || physReg == RegE || physReg == RegH || physReg == RegL {
+			// Single-byte register — store L (low byte of HL)
+			if physReg == RegL {
+				g.emit("    ; Register %d already in L", reg)
+			} else if physReg == RegA {
+				g.emit("    LD A, L")
+			} else {
+				g.emit("    LD %s, L", regName)
+			}
 		}
 		
 	case LocationShadow:
@@ -4164,8 +4183,20 @@ func (g *Z80Generator) storeFromHL(reg ir.Register) {
 			g.emit("    LD %s, H", regName[:1])
 			g.emit("    LD %s, L", regName[1:])
 			g.emit("    EXX               ; Switch back")
+		} else if physReg == RegA_Shadow || physReg == RegB_Shadow || physReg == RegC_Shadow || physReg == RegD_Shadow || physReg == RegE_Shadow || physReg == RegH_Shadow || physReg == RegL_Shadow {
+			// Use unprimed name after EXX (strip trailing ')
+			unprimedName := strings.TrimSuffix(regName, "'")
+			g.emit("    EXX               ; Switch to shadow registers")
+			if physReg == RegL_Shadow {
+				g.emit("    ; Register %d already in L' (shadow)", reg)
+			} else if physReg == RegA_Shadow {
+				g.emit("    LD A, L")
+			} else {
+				g.emit("    LD %s, L", unprimedName)
+			}
+			g.emit("    EXX               ; Switch back")
 		}
-		
+
 	case LocationMemory:
 		addr := value.(uint16)
 		if !g.useAbsoluteLocals && g.isLocalRegister(reg) {
@@ -4305,31 +4336,27 @@ func (g *Z80Generator) sanitizeLabel(label string) string {
 	if len(funcName) > 0 && funcName[0] >= '0' && funcName[0] <= '9' {
 		funcName = "_" + funcName
 	}
+	// Sanitize the label itself (may contain fn.Name from optimizer passes)
+	cleanLabel := strings.ReplaceAll(label, ".", "_")
+	cleanLabel = strings.ReplaceAll(cleanLabel, "$", "_")
+	cleanLabel = strings.ReplaceAll(cleanLabel, "-", "_")
 	// Include inline counter to ensure uniqueness when function is inlined multiple times
-	return fmt.Sprintf("%s_%s_i%d", funcName, label, g.inlineCounter)
+	return fmt.Sprintf("%s_%s_i%d", funcName, cleanLabel, g.inlineCounter)
 }
 
 // sanitizeFunctionName creates a clean, assembler-friendly function name
+// Uses fully-qualified names to avoid label collisions between modules
+// e.g., stdlib.agon.mos.cls -> stdlib_agon_mos_cls
+//       stdlib.agon.vdp.cls -> stdlib_agon_vdp_cls
 func (g *Z80Generator) sanitizeFunctionName(name string) string {
 	// Remove leading dots (from ...examples.simple_add.main)
 	name = strings.TrimLeft(name, ".")
 
-	// Extract function name + type signature, strip module path
-	// Pattern: module.path.function_name$type_signature
-	// We want: function_name_type_signature
-	dollarIdx := strings.Index(name, "$")
-	if dollarIdx == -1 {
-		dollarIdx = len(name)
-	}
+	// Keep the full qualified name — do NOT strip module path.
+	// This prevents label collisions when two modules export the same
+	// function name (e.g., mos.cls vs vdp.cls).
 
-	// Find last . before the $ (separates module path from function name)
-	lastDotBeforeDollar := strings.LastIndex(name[:dollarIdx], ".")
-	if lastDotBeforeDollar != -1 {
-		// Take function name + everything after (including type signature)
-		name = name[lastDotBeforeDollar+1:]
-	}
-
-	// Replace dots with underscores (shouldn't be any left, but just in case)
+	// Replace dots with underscores
 	name = strings.ReplaceAll(name, ".", "_")
 
 	// Replace $ with underscore (from add$u16$u16)
@@ -4344,6 +4371,13 @@ func (g *Z80Generator) sanitizeFunctionName(name string) string {
 	}
 
 	return name
+}
+
+// sanitizeComment replaces characters that confuse assembler lexers in comments.
+// The z80asm lexer can misinterpret $xx as hex literals even inside ; comments.
+func sanitizeComment(s string) string {
+	s = strings.ReplaceAll(s, "$", "_")
+	return s
 }
 
 // getCPUMode returns the CPU mode for a function ("adl", "z80", or "" for default)
@@ -4411,6 +4445,11 @@ func (g *Z80Generator) emitCallAddress(addr uint16, targetFunc *ir.Function, com
 // emitRST emits an RST instruction with appropriate ADL suffix for eZ80 cross-mode calls
 func (g *Z80Generator) emitRST(addr uint16, targetFunc *ir.Function, comment string) {
 	suffix := g.getCallSuffix(g.currentFunc, targetFunc)
+	// On eZ80 targets (Agon), RST always needs .LIL suffix — MOS handlers
+	// expect it for proper 24-bit return address handling
+	if suffix == "" && g.isEZ80Target {
+		suffix = ".LIL"
+	}
 	if suffix != "" {
 		g.emit("    RST%s $%02X    ; %s", suffix, addr, comment)
 	} else {
@@ -4445,7 +4484,7 @@ func (g *Z80Generator) generateTrueSMCCall(inst ir.Instruction, targetFunc *ir.F
 	// Validate we have the right number of arguments
 	if len(inst.Args) != len(targetFunc.Params) {
 		g.emit("    ; ERROR: argument count mismatch")
-		g.emit("    CALL %s", inst.Symbol)
+		g.emit("    CALL %s", g.sanitizeFunctionName(inst.Symbol))
 		return
 	}
 	
@@ -4455,7 +4494,7 @@ func (g *Z80Generator) generateTrueSMCCall(inst ir.Instruction, targetFunc *ir.F
 	for i, param := range targetFunc.Params {
 		argReg := inst.Args[i]
 		paramLabel := fmt.Sprintf("%s_param_%s", cleanFuncName, param.Name)
-		anchorAddr := fmt.Sprintf("%s$imm0", paramLabel)
+		anchorAddr := fmt.Sprintf("%s_imm0", paramLabel)
 
 		if param.Type.Size() == 1 {
 			// 8-bit patch
@@ -4463,8 +4502,8 @@ func (g *Z80Generator) generateTrueSMCCall(inst ir.Instruction, targetFunc *ir.F
 			g.emit("    LD (%s), A        ; Patch %s", anchorAddr, param.Name)
 		} else if param.Type.Size() == 3 {
 			// 24-bit patch - need to patch both high byte and low 16 bits
-			anchorHigh := fmt.Sprintf("%s$immHI0", paramLabel)
-			anchorLow := fmt.Sprintf("%s$immLO0", paramLabel)
+			anchorHigh := fmt.Sprintf("%s_immHI0", paramLabel)
+			anchorLow := fmt.Sprintf("%s_immLO0", paramLabel)
 
 			// Load the 24-bit value
 			// For now, assume it's in memory as 3 consecutive bytes
@@ -4485,7 +4524,7 @@ func (g *Z80Generator) generateTrueSMCCall(inst ir.Instruction, targetFunc *ir.F
 	}
 	
 	// Make the call
-	g.emit("    CALL %s", targetFunc.Name)
+	g.emit("    CALL %s", cleanFuncName)
 }
 
 // emitAsmBlock processes and emits inline assembly code

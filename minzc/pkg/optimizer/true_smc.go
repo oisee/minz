@@ -25,12 +25,12 @@ type SMCAnchor struct {
 	IsImm8       bool          // true for 8-bit immediate
 	IsImm16      bool          // true for 16-bit immediate
 	Instruction  ir.Opcode     // The instruction that contains the immediate
-	Symbol       string        // Anchor symbol (e.g., "x$imm0")
+	Symbol       string        // Anchor symbol (e.g., "x_imm0")
 }
 
 // PatchEntry represents an entry in the PATCH-TABLE
 type PatchEntry struct {
-	Symbol    string    // Anchor symbol (e.g., "x$imm0")
+	Symbol    string    // Anchor symbol (e.g., "x_imm0")
 	Address   uint16    // Address to patch
 	Size      uint8     // 1 or 2 bytes
 	Bank      uint8     // Memory bank
@@ -219,7 +219,7 @@ func (p *TrueSMCPass) findAnchorPoint(fn *ir.Function, param ir.Parameter, param
 		IsImm8:       isImm8,
 		IsImm16:      isImm16,
 		Instruction:  opcode,
-		Symbol:       fmt.Sprintf("%s$imm0", param.Name),
+		Symbol:       fmt.Sprintf("%s_imm0", param.Name),
 	}
 }
 
@@ -278,7 +278,7 @@ func (p *TrueSMCPass) createSyntheticAnchor(fn *ir.Function, param ir.Parameter,
 		ParamIndex:   paramIndex,
 		Type:         param.Type,
 		FirstUseInst: beforeIndex,
-		Symbol:       fmt.Sprintf("%s$imm0", param.Name),
+		Symbol:       fmt.Sprintf("%s_imm0", param.Name),
 	}
 	
 	if param.Type.Size() == 1 {

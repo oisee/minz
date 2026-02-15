@@ -763,7 +763,7 @@ func (a *Assembler) processInstructionOld(line *Line) error {
 				a.output = append(a.output, bytes...)
 			}
 			
-			a.currentAddr += uint16(len(bytes))
+			a.currentAddr += len(bytes)
 			return nil
 		}
 	}
@@ -888,7 +888,7 @@ func isIndexedOperand(operand string, indexReg string) bool {
 }
 
 // parseOperandValue parses an operand as a numeric value
-func parseOperandValue(operand string) (uint16, error) {
+func parseOperandValue(operand string) (int, error) {
 	operand = strings.TrimSpace(operand)
 	
 	// Check if it's a symbol

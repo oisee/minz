@@ -19,7 +19,7 @@ func NewLocalLabelContext() *LocalLabelContext {
 }
 
 // processLabelForContext handles both global and local labels
-func (ctx *LocalLabelContext) processLabelForContext(label string, addr uint16, pass int) (string, error) {
+func (ctx *LocalLabelContext) processLabelForContext(label string, addr int, pass int) (string, error) {
 	// Check if it's a local label (starts with exactly one dot, not multiple dots)
 	if isLocalLabel(label) {
 		// Local label

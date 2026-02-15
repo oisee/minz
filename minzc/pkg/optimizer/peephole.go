@@ -375,13 +375,13 @@ func (p *PeepholeOptimizationPass) initializePatterns() {
 						Op:       ir.OpLoadConst,
 						Dest:     1, // Use virtual register 1 for first param
 						Imm:      insts[i].Imm,
-						Comment:  "Param 1 (SMC→register)",
+						Comment:  "Param 1 (SMC->register)",
 					},
 					{
 						Op:       ir.OpLoadConst, 
 						Dest:     2, // Use virtual register 2 for second param
 						Imm:      insts[i+2].Imm,
-						Comment:  "Param 2 (SMC→register)",
+						Comment:  "Param 2 (SMC->register)",
 					},
 					{
 						Op:       ir.OpCall,

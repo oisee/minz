@@ -1223,7 +1223,7 @@ func (f *Function) GetMetadata(key string) (string, bool) {
 
 // SMCAnchorInfo represents information about a TRUE SMC anchor
 type SMCAnchorInfo struct {
-	Symbol      string    // Anchor symbol (e.g., "x$imm0")
+	Symbol      string    // Anchor symbol (e.g., "x_imm0")
 	Address     uint16    // Address in generated code
 	Size        uint8     // 1 or 2 bytes
 	Instruction Opcode    // The instruction containing the immediate
@@ -1231,7 +1231,7 @@ type SMCAnchorInfo struct {
 
 // PatchEntry represents an entry in the PATCH-TABLE
 type PatchEntry struct {
-	Symbol   string    // Anchor symbol (e.g., "x$imm0")
+	Symbol   string    // Anchor symbol (e.g., "x_imm0")
 	Address  uint16    // Address to patch
 	Size     uint8     // 1 or 2 bytes
 	Bank     uint8     // Memory bank

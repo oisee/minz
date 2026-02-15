@@ -757,8 +757,8 @@ func (p *AssemblyPeepholePass) eliminateDuplicateXorA(lines []string) []string {
 	xorAPattern := regexp.MustCompile(`^(\s*)XOR\s+A\s*(?:;.*)?$`)
 	// LD r,A where r is B,C,D,E,H,L - these don't modify A
 	ldFromAPattern := regexp.MustCompile(`^\s*LD\s+[BCDEHL]\s*,\s*A\s*(?:;.*)?$`)
-	labelPattern := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_$]*:`)
-	smcPattern := regexp.MustCompile(`\$imm|SMC|PATCH`)
+	labelPattern := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_.]*:`)
+	smcPattern := regexp.MustCompile(`_imm|SMC|PATCH`)
 
 	result := make([]string, 0, len(lines))
 	aIsZero := false      // Track if A is known to be 0
@@ -829,8 +829,8 @@ func (p *AssemblyPeepholePass) propagateRegisterValues(lines []string) []string 
 	incPattern := regexp.MustCompile(`^\s*INC\s+([ABCDEHL])\s*(?:;.*)?$`)
 	decPattern := regexp.MustCompile(`^\s*DEC\s+([ABCDEHL])\s*(?:;.*)?$`)
 	xorAPattern := regexp.MustCompile(`^\s*XOR\s+A\s*(?:;.*)?$`)
-	labelPattern := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_$]*:`)
-	smcPattern := regexp.MustCompile(`\$imm|SMC|PATCH`)
+	labelPattern := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_.]*:`)
+	smcPattern := regexp.MustCompile(`_imm|SMC|PATCH`)
 	// Instructions that invalidate all registers
 	invalidateAllPattern := regexp.MustCompile(`^\s*(CALL|JP|JR|RET|RST|HALT|POP|EX|EXX|PUSH|DI|EI|IM|RETI|RETN)`)
 	// Instructions that use flags (don't optimize before these)
@@ -1079,7 +1079,7 @@ func (p *AssemblyPeepholePass) eliminateIncDecPairs(lines []string) []string {
 	// Annotation patterns to preserve instructions
 	keepPattern := regexp.MustCompile(`@keep|@no-opt|@preserve|INLINE\s+ASM`)
 
-	labelPattern := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_$]*:`)
+	labelPattern := regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_.]*:`)
 
 	result := make([]string, 0, len(lines))
 	i := 0

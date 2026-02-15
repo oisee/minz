@@ -128,12 +128,46 @@ func (p *MIRPeepholePass) optimizeFunction(fn *ir.Function) bool {
 }
 
 // trackConstants identifies registers with known constant values
+// Only marks a register as constant if ALL definitions are OpLoadConst
+// with the same value (registers can be reused across different scopes)
 func (p *MIRPeepholePass) trackConstants(fn *ir.Function) {
 	p.constants = make(map[ir.Register]int)
 
+	// Count definitions per register and track which are constants
+	type defInfo struct {
+		isConst bool
+		value   int
+		count   int
+	}
+	defs := make(map[ir.Register]*defInfo)
+
 	for _, inst := range fn.Instructions {
+		if inst.Dest == 0 {
+			continue
+		}
+		info, exists := defs[inst.Dest]
+		if !exists {
+			info = &defInfo{}
+			defs[inst.Dest] = info
+		}
+		info.count++
 		if inst.Op == ir.OpLoadConst {
-			p.constants[inst.Dest] = inst.Value
+			if info.count == 1 {
+				info.isConst = true
+				info.value = inst.Value
+			} else if info.isConst && info.value != inst.Value {
+				// Multiple definitions with different values
+				info.isConst = false
+			}
+		} else {
+			// Non-constant definition
+			info.isConst = false
+		}
+	}
+
+	for reg, info := range defs {
+		if info.isConst {
+			p.constants[reg] = info.value
 		}
 	}
 }

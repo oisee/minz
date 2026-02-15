@@ -22,6 +22,7 @@ const (
 type TargetConfig struct {
 	Name         string
 	Description  string
+	CPUMode      CPUMode // CPU mode: Z80, eZ80 Z80-mode, or eZ80 ADL-mode
 	MemoryLayout MemoryLayout
 	OutputFormat OutputFormat
 	Conventions  PlatformConventions
@@ -30,13 +31,13 @@ type TargetConfig struct {
 
 // MemoryLayout defines platform-specific memory organization
 type MemoryLayout struct {
-	DefaultOrigin uint16
-	RAMStart      uint16
-	RAMSize       uint16
-	ROMStart      uint16
-	ROMSize       uint16
-	ScreenBase    uint16
-	StackTop      uint16
+	DefaultOrigin int
+	RAMStart      int
+	RAMSize       int
+	ROMStart      int
+	ROMSize       int
+	ScreenBase    int
+	StackTop      int
 }
 
 // OutputFormat defines how to generate platform-specific output files
@@ -53,7 +54,7 @@ type OutputFormat struct {
 type PlatformConventions struct {
 	CallConvention string
 	RegisterUsage  map[string]string
-	CommonSymbols  map[string]uint16
+	CommonSymbols  map[string]int
 }
 
 // targetRegistry contains all supported platform configurations
@@ -73,7 +74,7 @@ var targetRegistry = map[Target]*TargetConfig{
 			Generator:   generateBinaryFile,
 		},
 		Conventions: PlatformConventions{
-			CommonSymbols: map[string]uint16{},
+			CommonSymbols: map[string]int{},
 		},
 	},
 
@@ -102,7 +103,7 @@ var targetRegistry = map[Target]*TargetConfig{
 				"IY": "System use - avoid", 
 				"I":  "Interrupt mode",
 			},
-			CommonSymbols: map[string]uint16{
+			CommonSymbols: map[string]int{
 				"ROM_CLS":       0x0DAF,  // Clear screen routine
 				"ROM_PRINT":     0x203C,  // Print string routine
 				"ROM_PRINT_A":   0x2B7E,  // Print character in A
@@ -140,7 +141,7 @@ var targetRegistry = map[Target]*TargetConfig{
 				"IY": "System use - avoid", 
 				"I":  "Interrupt mode",
 			},
-			CommonSymbols: map[string]uint16{
+			CommonSymbols: map[string]int{
 				"ROM_CLS":       0x0DAF,  // Clear screen routine
 				"ROM_PRINT":     0x203C,  // Print string routine
 				"ROM_PRINT_A":   0x2B7E,  // Print character in A
@@ -175,7 +176,7 @@ var targetRegistry = map[Target]*TargetConfig{
 				"C": "BDOS function number",
 				"DE": "Parameter for BDOS calls",
 			},
-			CommonSymbols: map[string]uint16{
+			CommonSymbols: map[string]int{
 				"BDOS":         0x0005,  // BDOS entry point
 				"WBOOT":        0x0000,  // Warm boot
 				"FCB":          0x005C,  // Default File Control Block
@@ -210,7 +211,7 @@ var targetRegistry = map[Target]*TargetConfig{
 		},
 		Conventions: PlatformConventions{
 			CallConvention: "MSX BIOS",
-			CommonSymbols: map[string]uint16{
+			CommonSymbols: map[string]int{
 				"CHPUT":        0x00A2,  // Character output
 				"CHGET":        0x009F,  // Character input
 				"INITXT":       0x006C,  // Initialize screen 0
@@ -228,10 +229,11 @@ var targetRegistry = map[Target]*TargetConfig{
 	TargetAgonLight2: {
 		Name:        "Agon Light 2",
 		Description: "Agon Light 2 computer with eZ80 CPU (24-bit ADL mode)",
+		CPUMode:     CPUModeEZ80ADL,
 		MemoryLayout: MemoryLayout{
-			DefaultOrigin: 0x0000,    // Code assembled relative; MOS loads at 0x040000, header adds 0x45
-			RAMStart:      0x0000,    // Full 512KB addressable in ADL mode (0x040000-0x0BDFFF)
-			RAMSize:       0xFFFF,    // Report as 64K (16-bit field limitation)
+			DefaultOrigin: 0x040000,  // MOS loads executables at 0x040000 in ADL mode
+			RAMStart:      0x040000,  // User RAM in ADL mode (0x040000-0x0BDFFF)
+			RAMSize:       0x07E000,  // ~504K user RAM (0x040000-0x0BDFFF)
 			ROMStart:      0x0000,    // MOS in flash (0x000000-0x01FFFF)
 			ROMSize:       0,         // No user-accessible ROM area
 			StackTop:      0x0000,    // Set by MOS at 0x0BFFFF (grows down)
@@ -247,7 +249,7 @@ var targetRegistry = map[Target]*TargetConfig{
 				"IX": "Available for user code",
 				"IY": "System use - MOS sysvars pointer",
 			},
-			CommonSymbols: map[string]uint16{
+			CommonSymbols: map[string]int{
 				// MOS API - RST vector entry points
 				"MOS_INIT":       0x0000,  // RST 0x00 - System reset
 				"MOS_GETKEY":     0x0000,  // mos_getkey - wait for keypress
@@ -335,6 +337,11 @@ func (a *Assembler) SetTarget(target Target) error {
 	a.target = config
 	a.origin = config.MemoryLayout.DefaultOrigin
 
+	// Set CPU mode from target config (e.g., eZ80 ADL for Agon)
+	if config.CPUMode != CPUModeZ80 {
+		a.SetCPUMode(config.CPUMode)
+	}
+
 	// Add platform-specific symbols
 	for symbol, addr := range config.Conventions.CommonSymbols {
 		// Store symbol in the format expected by the assembler
@@ -361,16 +368,11 @@ func (a *Assembler) ValidateMemoryLayout() error {
 	layout := a.target.MemoryLayout
 	
 	// Check if code fits in available memory
-	codeEnd := a.origin + uint16(len(a.output))
+	codeEnd := a.origin + len(a.output)
 	memoryLimit := layout.RAMStart + layout.RAMSize
-	
-	// Handle overflow in limit calculation
-	if layout.RAMStart > memoryLimit { // Overflow occurred
-		memoryLimit = 0xFFFF
-	}
-	
+
 	if codeEnd > memoryLimit {
-		return fmt.Errorf("code exceeds available RAM (ends at $%04X, limit $%04X)",
+		return fmt.Errorf("code exceeds available RAM (ends at $%06X, limit $%06X)",
 			codeEnd, memoryLimit)
 	}
 	
@@ -591,9 +593,10 @@ func generateAgonBin(result *Result) ([]byte, error) {
 	// Build the 69-byte MOS header
 	header := make([]byte, 0, 0x45)
 
-	// 0x00-0x03: JP 0x000045 (24-bit JP in ADL mode, jump over header to code)
+	// 0x00-0x03: JP 0x040045 (24-bit JP in ADL mode, jump over header to code)
+	// MOS loads executables at 0x040000, code starts at header offset 0x45
 	// In ADL mode, JP is 4 bytes: C3 + 24-bit address (little-endian)
-	header = append(header, 0xC3, 0x45, 0x00, 0x00)
+	header = append(header, 0xC3, 0x45, 0x00, 0x04)
 
 	// 0x04: Length of program name (including null terminator)
 	// Use a default name "program.bin" if none specified

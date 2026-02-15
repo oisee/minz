@@ -8,11 +8,11 @@ import (
 // MinZAssembler provides MinZ-specific assembly functionality
 type MinZAssembler struct {
 	*Assembler
-	baseAddress uint16
+	baseAddress int
 }
 
 // NewMinZAssembler creates an assembler configured for MinZ
-func NewMinZAssembler(baseAddress uint16) *MinZAssembler {
+func NewMinZAssembler(baseAddress int) *MinZAssembler {
 	asm := NewAssembler()
 	asm.AllowUndocumented = true // MinZ needs undocumented opcodes
 	
@@ -23,9 +23,9 @@ func NewMinZAssembler(baseAddress uint16) *MinZAssembler {
 }
 
 // AssembleInlineBlock assembles an asm{} block from MinZ
-func (m *MinZAssembler) AssembleInlineBlock(asmCode string, currentPC uint16) ([]byte, error) {
+func (m *MinZAssembler) AssembleInlineBlock(asmCode string, currentPC int) ([]byte, error) {
 	// Prepare the assembly source with proper origin
-	source := fmt.Sprintf("ORG $%04X\n%s", currentPC, asmCode)
+	source := fmt.Sprintf("ORG $%06X\n%s", currentPC, asmCode)
 	
 	// Assemble
 	result, err := m.AssembleString(source)
@@ -41,7 +41,7 @@ func (m *MinZAssembler) AssembleFunction(name string, body string) (*AssembledFu
 	// Build the complete assembly source
 	var source strings.Builder
 	
-	source.WriteString(fmt.Sprintf("ORG $%04X\n", m.baseAddress))
+	source.WriteString(fmt.Sprintf("ORG $%06X\n", m.baseAddress))
 	source.WriteString(fmt.Sprintf("%s:\n", name))
 	source.WriteString(body)
 	
@@ -55,7 +55,7 @@ func (m *MinZAssembler) AssembleFunction(name string, body string) (*AssembledFu
 		Name:    name,
 		Address: m.baseAddress,
 		Binary:  result.Binary,
-		Size:    uint16(len(result.Binary)),
+		Size:    len(result.Binary),
 		Symbols: result.Symbols,
 	}, nil
 }
@@ -63,10 +63,10 @@ func (m *MinZAssembler) AssembleFunction(name string, body string) (*AssembledFu
 // AssembledFunction represents an assembled MinZ function
 type AssembledFunction struct {
 	Name    string
-	Address uint16
+	Address int
 	Binary  []byte
-	Size    uint16
-	Symbols map[string]uint16
+	Size    int
+	Symbols map[string]int
 }
 
 // Example of how the MinZ compiler would use this:
@@ -111,7 +111,7 @@ func ExampleMinZIntegration() {
 func (m *MinZAssembler) AssembleSMCFunction(name string, params []SMCParam, body string) (*AssembledFunction, error) {
 	var source strings.Builder
 	
-	source.WriteString(fmt.Sprintf("ORG $%04X\n", m.baseAddress))
+	source.WriteString(fmt.Sprintf("ORG $%06X\n", m.baseAddress))
 	source.WriteString(fmt.Sprintf("%s:\n", name))
 	
 	// Generate SMC parameter labels and instructions
@@ -139,7 +139,7 @@ type SMCParam struct {
 }
 
 // FixupSMCReferences fixes up SMC parameter references after assembly
-func (m *MinZAssembler) FixupSMCReferences(binary []byte, symbols map[string]uint16, baseAddr uint16) {
+func (m *MinZAssembler) FixupSMCReferences(binary []byte, symbols map[string]int, baseAddr int) {
 	// This would patch the immediate values in the binary
 	// based on the symbol table and SMC conventions
 	

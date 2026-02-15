@@ -44,7 +44,12 @@ SUPPORTED PLATFORMS (-t/--target):
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		binaryFile := args[0]
-		
+
+		// Apply platform-specific defaults if user didn't override
+		if target == "cpm" && !cmd.Flags().Changed("load") {
+			loadAddr = 0x0100 // CP/M TPA starts at $0100
+		}
+
 		// Parse addresses
 		loadAddress := uint16(loadAddr)
 		startAddress := uint16(startAddr)

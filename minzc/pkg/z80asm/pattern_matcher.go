@@ -26,7 +26,7 @@ func (a *Assembler) processInstruction(line *Line) error {
 			a.instructions = append(a.instructions, inst)
 			a.output = append(a.output, encoded...)
 		}
-		a.currentAddr += uint16(len(encoded))
+		a.currentAddr += len(encoded)
 		return nil
 	}
 
@@ -201,7 +201,7 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 		
 		// In pass 2, calculate actual offset
 		if a.pass == 2 {
-			offset := int(target) - int(a.currentAddr) - 2
+			offset := target - a.currentAddr - 2
 			if offset < -128 || offset > 127 {
 				return nil, false // Out of range
 			}

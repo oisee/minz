@@ -45,11 +45,11 @@ type Assembler struct {
 
 	// Internal state
 	pass          int
-	currentAddr   uint16
-	origin        uint16
-	firstOrg      uint16 // First ORG address (for multi-section code)
+	currentAddr   int
+	origin        int
+	firstOrg      int    // First ORG address (for multi-section code)
 	hasFirstOrg   bool   // Whether firstOrg has been set
-	entryPoint    uint16 // Entry point from END directive
+	entryPoint    int    // Entry point from END directive
 	hasEntryPoint bool   // Whether entry point was explicitly set
 	symbols       map[string]*Symbol
 	lines         []*Line
@@ -249,10 +249,10 @@ func isAllDigits(s string) bool {
 // Result contains the assembled output
 type Result struct {
 	Binary      []byte
-	Origin      uint16
-	EntryPoint  uint16 // Entry point address (from END label or first ORG)
-	Size        uint16
-	Symbols     map[string]uint16
+	Origin      int
+	EntryPoint  int    // Entry point address (from END label or first ORG)
+	Size        int
+	Symbols     map[string]int
 	Listing     []ListingLine
 	Errors      []AssemblerError
 	Warnings    []string
@@ -260,7 +260,7 @@ type Result struct {
 
 // ListingLine represents a line in the assembly listing
 type ListingLine struct {
-	Address     uint16
+	Address     int
 	Bytes       []byte
 	LineNumber  int
 	SourceLine  string
@@ -269,7 +269,7 @@ type ListingLine struct {
 
 // AssembledInstruction represents a fully assembled instruction
 type AssembledInstruction struct {
-	Address     uint16
+	Address     int
 	Line        *Line
 	Bytes       []byte
 	Fixups      []Fixup
@@ -334,6 +334,14 @@ func (a *Assembler) GetAddressSize() int {
 		return 3
 	}
 	return 2
+}
+
+// emitWord returns value as 2 bytes (Z80) or 3 bytes (ADL mode)
+func (a *Assembler) emitWord(value int) []byte {
+	if a.CPUMode == CPUModeEZ80ADL {
+		return []byte{byte(value), byte(value >> 8), byte(value >> 16)}
+	}
+	return []byte{byte(value), byte(value >> 8)}
 }
 
 // ParseADLSuffix extracts ADL suffix from mnemonic and returns base mnemonic + suffix code
@@ -490,8 +498,8 @@ func (a *Assembler) AssembleString(source string) (*Result, error) {
 		Binary:     a.output,
 		Origin:     a.origin,
 		EntryPoint: entryPoint,
-		Size:       uint16(len(a.output)),
-		Symbols:    make(map[string]uint16),
+		Size:       len(a.output),
+		Symbols:    make(map[string]int),
 		Listing:    make([]ListingLine, 0),
 		Errors:     a.errors,
 	}
@@ -667,7 +675,7 @@ func (a *Assembler) recalculateSymbols() {
 }
 
 // resolveSymbol resolves a symbol to its value
-func (a *Assembler) resolveSymbol(name string) (uint16, error) {
+func (a *Assembler) resolveSymbol(name string) (int, error) {
 	if !a.CaseSensitive {
 		name = strings.ToUpper(name)
 	}
@@ -738,8 +746,8 @@ func (a *Assembler) EmitByte(b byte) {
 }
 
 // EmitWord emits a word (little-endian) to the output in pass 2
-func (a *Assembler) EmitWord(w uint16) {
+func (a *Assembler) EmitWord(w int) {
 	if a.pass == 2 {
-		a.output = append(a.output, byte(w), byte(w>>8))
+		a.output = append(a.output, a.emitWord(w)...)
 	}
 }

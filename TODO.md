@@ -112,6 +112,68 @@ Important features for language completeness.
 
 ---
 
+## 🎮 P2.5: MZE Emulator Platform Support
+
+Extend the MZE emulator to support multi-platform testing without real hardware.
+
+### 17. eZ80 Instruction Support in MZE
+**Status:** 📋 TOBE
+**Issue:** MZE only supports classic Z80. Agon Light 2 binaries use eZ80 instructions (24-bit addressing, ADL mode).
+**Scope:**
+- ADL mode (24-bit registers, 24-bit addresses)
+- `.LIL` / `.SIS` / `.LIS` / `.SIL` mixed-mode suffixes
+- `RST.LIL` prefix byte (`$5B`) handling
+- 24-bit `LD` / `CALL` / `JP` / `PUSH` / `POP` variants
+**Effort:** 2-3 weeks
+**Priority:** High — enables automated Agon binary testing
+
+### 18. MOS API Emulation (Agon Light 2)
+**Status:** 📋 TOBE
+**Issue:** Agon programs call MOS functions via RST instructions. Need traps/interceptors in MZE.
+**Scope:**
+- `RST.LIL $10` — `mos_putchar` (output character)
+- `RST.LIL $18` — `mos_puts` (output string)
+- `RST.LIL $08` — `mos_api` (general MOS API dispatch)
+- `mos_sysvars` — System variables struct at fixed address
+- `mos_getkey` — Keyboard input
+- `mos_fopen` / `mos_fclose` / `mos_fread` / `mos_fwrite` — File I/O (via host FS)
+- `mos_fseek` / `mos_flseek` — File seeking
+- `set_interrupt_handler` — Interrupt vector setup (stub)
+**Effort:** 1-2 weeks
+**Priority:** High — required for Agon CI testing
+
+### 19. Expanded CP/M BDOS Emulation
+**Status:** 🟡 Partial (basic I/O works)
+**Current:** `putchar` (2), `getchar` (1), `print_string` (9), `get_version` (12) working
+**TODO:**
+- BDOS 15/16/22: `file_open` / `file_close` / `make_file` (FCB support)
+- BDOS 20/21: `file_read` / `file_write` (sequential)
+- BDOS 33/34: `file_read_random` / `file_write_random`
+- BDOS 14/25: `select_drive` / `get_drive`
+- BDOS 26: `set_dma` (DMA address management)
+- BDOS 17/18: `search_first` / `search_next` (directory listing)
+- Proper FCB and DMA buffer emulation
+**Effort:** 1 week
+**Priority:** Medium — enables file I/O testing
+
+### 20. ZX Spectrum Enhanced Emulation
+**Status:** 🟡 Partial (screen + basic ROM hooks)
+**Current:** Screen memory rendering, RST handlers, basic tape I/O stubs
+**TODO:**
+- Tape loading emulation (`LOAD ""` / ROM tape routine hooks)
+- `.TAP` and `.TZX` file format support (virtual tape loading)
+- TR-DOS emulation (Beta Disk Interface):
+  - Port `$1F` (status), `$3F` (track), `$5F` (sector), `$7F` (data)
+  - Basic disk image (`.TRD`) read support
+  - DOS 3.xx command emulation (CAT, LOAD, SAVE)
+- 128K memory paging (port `$7FFD`)
+- AY-3-8912 sound chip register capture (ports `$FFFD`, `$BFFD`)
+- Kempston joystick (port `$1F`)
+**Effort:** 2-3 weeks
+**Priority:** Medium — enriches retro platform testing
+
+---
+
 ## 📋 P3: Lower Priority (Future)
 
 Nice to have, not blocking.

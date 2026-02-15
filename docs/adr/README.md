@@ -25,6 +25,8 @@ We use a lightweight format inspired by Michael Nygard's template:
 | [ADR-0003](0003-platform-independent-compilation.md) | Platform-Independent Compilation for Z80 Systems | Accepted | 2025-08-09 |
 | [ADR-0004](0004-character-literals-in-assembly.md) | Character Literals in Assembly | Accepted | 2025-08-09 |
 | [ADR-0005](0005-future-consideration-monorepo-structure.md) | Future Consideration - Monorepo Structure | Draft | 2025-08-10 |
+| [ADR-0006](0006-ez80-adl-address-widening.md) | eZ80 ADL Address Widening Strategy | Accepted | 2026-02-14 |
+| [ADR-0007](0007-platform-specific-newline-handling.md) | Platform-Specific Newline Handling | Accepted | 2026-02-14 |
 
 ## Creating a New ADR
 

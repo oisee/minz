@@ -261,7 +261,7 @@ func encodeLDRegImm(a *Assembler, dest Register, immStr string) ([]byte, error) 
 		return []byte{opcode, byte(value)}, nil
 	}
 	
-	// 16-bit immediate loads
+	// 16-bit immediate loads (24-bit in ADL mode)
 	if isReg16(dest) {
 		var opcode byte
 		switch dest {
@@ -274,13 +274,13 @@ func encodeLDRegImm(a *Assembler, dest Register, immStr string) ([]byte, error) 
 		case RegSP:
 			opcode = 0x31
 		case RegIX:
-			return []byte{0xDD, 0x21, byte(value), byte(value >> 8)}, nil
+			return append([]byte{0xDD, 0x21}, a.emitWord(value)...), nil
 		case RegIY:
-			return []byte{0xFD, 0x21, byte(value), byte(value >> 8)}, nil
+			return append([]byte{0xFD, 0x21}, a.emitWord(value)...), nil
 		default:
 			return nil, fmt.Errorf("invalid 16-bit destination register: %v", dest)
 		}
-		return []byte{opcode, byte(value), byte(value >> 8)}, nil
+		return append([]byte{opcode}, a.emitWord(value)...), nil
 	}
 	
 	return nil, fmt.Errorf("invalid destination register type: %v", dest)
@@ -364,26 +364,26 @@ func encodeLDMemory(a *Assembler, dest, src string) ([]byte, error) {
 		
 		// LD (nn), A
 		if src == "A" {
-			return []byte{0x32, byte(addr), byte(addr >> 8)}, nil
+			return append([]byte{0x32}, a.emitWord(addr)...), nil
 		}
 		// LD (nn), HL
 		if src == "HL" {
-			return []byte{0x22, byte(addr), byte(addr >> 8)}, nil
+			return append([]byte{0x22}, a.emitWord(addr)...), nil
 		}
 		// LD (nn), BC/DE/SP (ED prefix)
 		srcReg, ok := parseRegister(src)
 		if ok {
 			switch srcReg {
 			case RegBC:
-				return []byte{0xED, 0x43, byte(addr), byte(addr >> 8)}, nil
+				return append([]byte{0xED, 0x43}, a.emitWord(addr)...), nil
 			case RegDE:
-				return []byte{0xED, 0x53, byte(addr), byte(addr >> 8)}, nil
+				return append([]byte{0xED, 0x53}, a.emitWord(addr)...), nil
 			case RegSP:
-				return []byte{0xED, 0x73, byte(addr), byte(addr >> 8)}, nil
+				return append([]byte{0xED, 0x73}, a.emitWord(addr)...), nil
 			case RegIX:
-				return []byte{0xDD, 0x22, byte(addr), byte(addr >> 8)}, nil
+				return append([]byte{0xDD, 0x22}, a.emitWord(addr)...), nil
 			case RegIY:
-				return []byte{0xFD, 0x22, byte(addr), byte(addr >> 8)}, nil
+				return append([]byte{0xFD, 0x22}, a.emitWord(addr)...), nil
 			}
 		}
 	}
@@ -397,26 +397,26 @@ func encodeLDMemory(a *Assembler, dest, src string) ([]byte, error) {
 		
 		// LD A, (nn)
 		if dest == "A" {
-			return []byte{0x3A, byte(addr), byte(addr >> 8)}, nil
+			return append([]byte{0x3A}, a.emitWord(addr)...), nil
 		}
 		// LD HL, (nn)
 		if dest == "HL" {
-			return []byte{0x2A, byte(addr), byte(addr >> 8)}, nil
+			return append([]byte{0x2A}, a.emitWord(addr)...), nil
 		}
 		// LD BC/DE/SP, (nn) (ED prefix)
 		destReg, ok := parseRegister(dest)
 		if ok {
 			switch destReg {
 			case RegBC:
-				return []byte{0xED, 0x4B, byte(addr), byte(addr >> 8)}, nil
+				return append([]byte{0xED, 0x4B}, a.emitWord(addr)...), nil
 			case RegDE:
-				return []byte{0xED, 0x5B, byte(addr), byte(addr >> 8)}, nil
+				return append([]byte{0xED, 0x5B}, a.emitWord(addr)...), nil
 			case RegSP:
-				return []byte{0xED, 0x7B, byte(addr), byte(addr >> 8)}, nil
+				return append([]byte{0xED, 0x7B}, a.emitWord(addr)...), nil
 			case RegIX:
-				return []byte{0xDD, 0x2A, byte(addr), byte(addr >> 8)}, nil
+				return append([]byte{0xDD, 0x2A}, a.emitWord(addr)...), nil
 			case RegIY:
-				return []byte{0xFD, 0x2A, byte(addr), byte(addr >> 8)}, nil
+				return append([]byte{0xFD, 0x2A}, a.emitWord(addr)...), nil
 			}
 		}
 	}
@@ -425,7 +425,7 @@ func encodeLDMemory(a *Assembler, dest, src string) ([]byte, error) {
 }
 
 // resolveValue resolves an operand to a numeric value
-func (a *Assembler) resolveValue(operand string) (uint16, error) {
+func (a *Assembler) resolveValue(operand string) (int, error) {
 	// Use the expression evaluator which handles numbers, symbols, and arithmetic
 	return a.EvaluateExpression(operand)
 }

@@ -108,10 +108,10 @@ fun inc(x: u16) -> u16 {
 			}
 
 			// Check for TSMC patterns
-			if !strings.Contains(a80Content, "$imm") {
+			if !strings.Contains(a80Content, "_imm") {
 				t.Error("No TSMC immediate markers found in assembly")
 			}
-			if !strings.Contains(a80Content, "$immOP") {
+			if !strings.Contains(a80Content, "_immOP") {
 				t.Error("No TSMC operation markers found in assembly")
 			}
 
@@ -205,10 +205,10 @@ export fun caller() -> u16 {
 
 	// Verify TSMC patterns for multi-parameter function
 	expectedPatterns := []string{
-		"multi_param$imm0:",      // First parameter immediate
-		"multi_param$imm1:",      // Second parameter immediate
-		"multi_param$imm2:",      // Third parameter immediate
-		"multi_param$immOP",      // Operation marker
+		"multi_param_imm0:",      // First parameter immediate
+		"multi_param_imm1:",      // Second parameter immediate
+		"multi_param_imm2:",      // Third parameter immediate
+		"multi_param_immOP",      // Operation marker
 		"LD HL, 0000",           // Immediate load for parameter
 		"LD DE, 0000",           // Immediate load for parameter
 	}
@@ -220,7 +220,7 @@ export fun caller() -> u16 {
 	}
 
 	// Count TSMC call sites
-	callSites := strings.Count(content, "multi_param$imm0 EQU")
+	callSites := strings.Count(content, "multi_param_imm0 EQU")
 	if callSites == 0 {
 		t.Error("No TSMC call site definitions found")
 	}

@@ -1,0 +1,47 @@
+// CP/M BDOS API Demo
+// Demonstrates: stdlib module imports, BDOS function calls,
+//               and loop rerolling optimization
+import stdlib.cpm.bdos;
+
+fun print_banner() -> void {
+    putchar('='); putchar('='); putchar('='); putchar('=');
+    putchar('='); putchar('='); putchar('='); putchar('=');
+    putchar('='); putchar('='); putchar('='); putchar('=');
+    putchar('='); putchar('='); putchar('='); putchar('=');
+    putchar('='); putchar('='); putchar('='); putchar('=');
+}
+
+fun print_title() -> void {
+    putchar('M'); putchar('i'); putchar('n'); putchar('Z');
+    putchar(' '); putchar('C'); putchar('P'); putchar('/');
+    putchar('M'); putchar(' '); putchar('D'); putchar('e');
+    putchar('m'); putchar('o');
+}
+
+fun print_info() -> void {
+    putchar('C'); putchar('P'); putchar('/'); putchar('M');
+    putchar(' '); putchar('2'); putchar('.'); putchar('2');
+    putchar(' '); putchar('-'); putchar(' '); putchar('Z');
+    putchar('8'); putchar('0');
+}
+
+fun print_power() -> void {
+    putchar('R'); putchar('u'); putchar('n'); putchar('n');
+    putchar('i'); putchar('n'); putchar('g'); putchar(' ');
+    putchar('o'); putchar('n'); putchar(' '); putchar('Z');
+    putchar('8'); putchar('0'); putchar('!');
+}
+
+fun main() -> void {
+    print_banner();
+    newline();
+    print_title();
+    newline();
+    print_banner();
+    newline();
+    newline();
+    print_info();
+    newline();
+    print_power();
+    newline();
+}

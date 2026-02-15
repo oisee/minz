@@ -292,7 +292,7 @@ func TestSymbols(t *testing.T) {
 	}
 	
 	// Check symbols
-	expectedSymbols := map[string]uint16{
+	expectedSymbols := map[string]int{
 		"START": 0x8000,
 		"VALUE": 42,
 		"LOOP":  0x8006,

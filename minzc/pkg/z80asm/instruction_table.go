@@ -201,51 +201,45 @@ var ldInstructions = []InstructionPattern{
 func encodeLD8Imm(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	result := make([]byte, len(pattern.Encoding))
 	copy(result, pattern.Encoding)
-	
+
 	// Find immediate value
 	for _, v := range values {
-		if val, ok := v.(uint8); ok {
-			result = append(result, val)
-			return result, nil
-		}
-		if val, ok := v.(uint16); ok && val <= 0xFF {
+		if val, ok := v.(int); ok && val <= 0xFF {
 			result = append(result, byte(val))
 			return result, nil
 		}
 	}
-	
+
 	return nil, fmt.Errorf("no immediate value found")
 }
 
 func encodeLD16Imm(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	result := make([]byte, len(pattern.Encoding))
 	copy(result, pattern.Encoding)
-	
+
 	// Find immediate value
 	for _, v := range values {
-		if val, ok := v.(uint16); ok {
-			// Little-endian encoding
-			result = append(result, byte(val), byte(val>>8))
+		if val, ok := v.(int); ok {
+			result = append(result, a.emitWord(val)...)
 			return result, nil
 		}
 	}
-	
+
 	return nil, fmt.Errorf("no immediate value found")
 }
 
 func encodeLDMemDirect(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	result := make([]byte, len(pattern.Encoding))
 	copy(result, pattern.Encoding)
-	
+
 	// Find address value
 	for _, v := range values {
-		if addr, ok := v.(uint16); ok {
-			// Little-endian encoding
-			result = append(result, byte(addr), byte(addr>>8))
+		if addr, ok := v.(int); ok {
+			result = append(result, a.emitWord(addr)...)
 			return result, nil
 		}
 	}
-	
+
 	return nil, fmt.Errorf("no address value found")
 }
 
@@ -348,49 +342,41 @@ var jpInstructions = []InstructionPattern{
 func encodeRST(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	// RST n format - n must be 0, 8, 16, 24, 32, 40, 48, or 56
 	// These map to opcodes C7, CF, D7, DF, E7, EF, F7, FF
-	
+
 	// Find the vector value
-	var vector uint16
+	var vector int
 	found := false
 	for _, v := range values {
-		switch val := v.(type) {
-		case uint8:
-			vector = uint16(val)
-			found = true
-		case uint16:
+		if val, ok := v.(int); ok {
 			vector = val
 			found = true
 		}
 	}
-	
+
 	if !found {
 		return nil, fmt.Errorf("RST requires a vector operand")
 	}
-	
+
 	// Map vector to opcode
-	validVectors := map[uint16]byte{
+	validVectors := map[int]byte{
 		0x00: 0xC7, 0x08: 0xCF, 0x10: 0xD7, 0x18: 0xDF,
 		0x20: 0xE7, 0x28: 0xEF, 0x30: 0xF7, 0x38: 0xFF,
 	}
-	
+
 	if opcode, ok := validVectors[vector]; ok {
 		return []byte{opcode}, nil
 	}
-	
+
 	return nil, fmt.Errorf("invalid RST vector: %d ($%02X) - valid vectors are 0, 8, 16 ($10), 24 ($18), 32 ($20), 40 ($28), 48 ($30), 56 ($38)", vector, vector)
 }
 
 func encodeIN(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	// IN A, (n) format
 	result := []byte{0xDB} // IN opcode
-	
+
 	// Find port number
 	for _, v := range values {
-		switch val := v.(type) {
-		case uint8:
-			result = append(result, val)
-			return result, nil
-		case uint16:
+		if val, ok := v.(int); ok {
 			if val > 255 {
 				return nil, fmt.Errorf("port number out of range: %d", val)
 			}
@@ -398,21 +384,17 @@ func encodeIN(a *Assembler, pattern *InstructionPattern, values []interface{}) (
 			return result, nil
 		}
 	}
-	
+
 	return nil, fmt.Errorf("no port number found")
 }
 
 func encodeOUT(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	// OUT (n), A format
 	result := []byte{0xD3} // OUT opcode
-	
+
 	// Find port number
 	for _, v := range values {
-		switch val := v.(type) {
-		case uint8:
-			result = append(result, val)
-			return result, nil
-		case uint16:
+		if val, ok := v.(int); ok {
 			if val > 255 {
 				return nil, fmt.Errorf("port number out of range: %d", val)
 			}
@@ -420,22 +402,22 @@ func encodeOUT(a *Assembler, pattern *InstructionPattern, values []interface{}) 
 			return result, nil
 		}
 	}
-	
+
 	return nil, fmt.Errorf("no port number found")
 }
 
 func encodeJPImm(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	result := make([]byte, len(pattern.Encoding))
 	copy(result, pattern.Encoding)
-	
+
 	// Find address value
 	for _, v := range values {
-		if addr, ok := v.(uint16); ok {
-			result = append(result, byte(addr), byte(addr>>8))
+		if addr, ok := v.(int); ok {
+			result = append(result, a.emitWord(addr)...)
 			return result, nil
 		}
 	}
-	
+
 	return nil, fmt.Errorf("no address value found")
 }
 
@@ -450,17 +432,16 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 			return result, nil
 		}
 		// Also accept calculated offset from label
-		if addr, ok := v.(uint16); ok {
+		if addr, ok := v.(int); ok {
 			// In pass 1, just use a placeholder
 			if a.pass == 1 {
 				result = append(result, 0) // Placeholder for size calculation
 				return result, nil
 			}
 			// In pass 2, calculate relative offset from current position
-			offset := int(addr) - int(a.currentAddr) - 2
+			offset := addr - a.currentAddr - 2
 			if offset < -128 || offset > 127 {
 				// Auto-promote JR to JP when out of range
-				// Determine JP opcode from JR opcode in pattern.Encoding[0]
 				var jpOpcode byte
 				if len(pattern.Encoding) > 0 {
 					switch pattern.Encoding[0] {
@@ -477,7 +458,7 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 					default:
 						return nil, fmt.Errorf("relative jump out of range: %d", offset)
 					}
-					return []byte{jpOpcode, byte(addr & 0xFF), byte(addr >> 8)}, nil
+					return append([]byte{jpOpcode}, a.emitWord(addr)...), nil
 				}
 				return nil, fmt.Errorf("relative jump out of range: %d", offset)
 			}
@@ -513,9 +494,9 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 // encodeJJ encodes unconditional JJ (collapsible jump)
 func encodeJJ(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	// Get target address
-	var target uint16
+	var target int
 	for _, v := range values {
-		if val, ok := v.(uint16); ok {
+		if val, ok := v.(int); ok {
 			target = val
 			break
 		}
@@ -541,14 +522,14 @@ func encodeJJ(a *Assembler, pattern *InstructionPattern, values []interface{}) (
 	switch a.OptMode {
 	case OptSpeed:
 		// Always use JP for consistent 10 T-state timing
-		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+		return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 
 	case OptSize:
 		// Use JR when possible, JP only when out of range
 		if offset >= -128 && offset <= 127 {
 			return []byte{jrOpcode, byte(offset)}, nil
 		}
-		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+		return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 
 	default: // OptBalanced
 		// Forward jumps: JR (smaller, OK for one-time jumps)
@@ -556,22 +537,22 @@ func encodeJJ(a *Assembler, pattern *InstructionPattern, values []interface{}) (
 		if offset >= -128 && offset <= 127 {
 			if offset < 0 {
 				// Backward jump = likely a loop, prefer JP for speed
-				return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+				return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 			}
 			// Forward jump, use JR for size
 			return []byte{jrOpcode, byte(offset)}, nil
 		}
 		// Out of range, must use JP
-		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+		return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 	}
 }
 
 // encodeJJCond encodes conditional JJ (JJ NZ/Z/NC/C)
 func encodeJJCond(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	// Get target address (skip condition in values)
-	var target uint16
+	var target int
 	for _, v := range values {
-		if val, ok := v.(uint16); ok {
+		if val, ok := v.(int); ok {
 			target = val
 			break
 		}
@@ -586,36 +567,36 @@ func encodeJJCond(a *Assembler, pattern *InstructionPattern, values []interface{
 
 	// Pass 2+: Optimize with multi-pass convergence
 	currentPC := a.currentAddr + 2
-	offset := int(target) - int(currentPC)
+	offset := target - currentPC
 
 	jrOpcode := pattern.Encoding[0]  // Conditional JR opcode
 
 	switch a.OptMode {
 	case OptSpeed:
-		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+		return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 
 	case OptSize:
 		if offset >= -128 && offset <= 127 {
 			return []byte{jrOpcode, byte(offset)}, nil
 		}
-		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+		return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 
 	default: // OptBalanced
 		if offset >= -128 && offset <= 127 {
 			if offset < 0 {
-				return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+				return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 			}
 			return []byte{jrOpcode, byte(offset)}, nil
 		}
-		return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+		return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 	}
 }
 
 // encodeJJLikely encodes JJ.L (likely taken - prefer JP for speed)
 func encodeJJLikely(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
-	var target uint16
+	var target int
 	for _, v := range values {
-		if val, ok := v.(uint16); ok {
+		if val, ok := v.(int); ok {
 			target = val
 			break
 		}
@@ -629,15 +610,15 @@ func encodeJJLikely(a *Assembler, pattern *InstructionPattern, values []interfac
 	}
 
 	// Pass 2: Likely = branch usually taken, use JP for 10 T-state consistency
-	return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+	return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 }
 
 // encodeJJUnlikely encodes JJ.U (unlikely taken - prefer JR for speed when not taken)
 // With multi-pass convergence, emits JR when possible for better not-taken timing (7 vs 10 T)
 func encodeJJUnlikely(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
-	var target uint16
+	var target int
 	for _, v := range values {
-		if val, ok := v.(uint16); ok {
+		if val, ok := v.(int); ok {
 			target = val
 			break
 		}
@@ -652,7 +633,7 @@ func encodeJJUnlikely(a *Assembler, pattern *InstructionPattern, values []interf
 
 	// Pass 2+: Prefer JR for unlikely branches (7 T-states when not taken vs 10)
 	currentPC := a.currentAddr + 2
-	offset := int(target) - int(currentPC)
+	offset := target - currentPC
 
 	jrOpcode := pattern.Encoding[0]
 
@@ -661,14 +642,14 @@ func encodeJJUnlikely(a *Assembler, pattern *InstructionPattern, values []interf
 		return []byte{jrOpcode, byte(offset)}, nil
 	}
 	// Out of range, must use JP
-	return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+	return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 }
 
 // encodeJJCondLikely encodes conditional JJ.L
 func encodeJJCondLikely(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
-	var target uint16
+	var target int
 	for _, v := range values {
-		if val, ok := v.(uint16); ok {
+		if val, ok := v.(int); ok {
 			target = val
 			break
 		}
@@ -682,15 +663,15 @@ func encodeJJCondLikely(a *Assembler, pattern *InstructionPattern, values []inte
 	}
 
 	// Pass 2: Likely = use JP for speed
-	return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+	return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 }
 
 // encodeJJCondUnlikely encodes conditional JJ.U
 // With multi-pass convergence, emits JR for better not-taken timing
 func encodeJJCondUnlikely(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
-	var target uint16
+	var target int
 	for _, v := range values {
-		if val, ok := v.(uint16); ok {
+		if val, ok := v.(int); ok {
 			target = val
 			break
 		}
@@ -705,14 +686,14 @@ func encodeJJCondUnlikely(a *Assembler, pattern *InstructionPattern, values []in
 
 	// Pass 2+: Prefer JR for unlikely branches
 	currentPC := a.currentAddr + 2
-	offset := int(target) - int(currentPC)
+	offset := target - currentPC
 
 	jrOpcode := pattern.Encoding[0]
 
 	if offset >= -128 && offset <= 127 {
 		return []byte{jrOpcode, byte(offset)}, nil
 	}
-	return []byte{jpOpcode, byte(target & 0xFF), byte(target >> 8)}, nil
+	return append([]byte{jpOpcode}, a.emitWord(target)...), nil
 }
 
 // Arithmetic instruction patterns
@@ -773,19 +754,15 @@ var arithmeticInstructions = []InstructionPattern{
 func encodeArithImm(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	result := make([]byte, len(pattern.Encoding))
 	copy(result, pattern.Encoding)
-	
+
 	// Find immediate value
 	for _, v := range values {
-		if val, ok := v.(uint8); ok {
-			result = append(result, val)
-			return result, nil
-		}
-		if val, ok := v.(uint16); ok && val <= 0xFF {
+		if val, ok := v.(int); ok && val <= 0xFF {
 			result = append(result, byte(val))
 			return result, nil
 		}
 	}
-	
+
 	return nil, fmt.Errorf("no immediate value found")
 }
 
@@ -908,15 +885,15 @@ var miscInstructions = []InstructionPattern{
 func encodeCALL(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	result := make([]byte, len(pattern.Encoding))
 	copy(result, pattern.Encoding)
-	
+
 	// Find address value
 	for _, v := range values {
-		if addr, ok := v.(uint16); ok {
-			result = append(result, byte(addr), byte(addr>>8))
+		if addr, ok := v.(int); ok {
+			result = append(result, a.emitWord(addr)...)
 			return result, nil
 		}
 	}
-	
+
 	return nil, fmt.Errorf("no address value found")
 }
 

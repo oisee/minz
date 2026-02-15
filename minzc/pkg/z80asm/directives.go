@@ -154,7 +154,7 @@ func (a *Assembler) handleDB(line *Line) error {
 		a.output = append(a.output, bytes...)
 	}
 	
-	a.currentAddr += uint16(len(bytes))
+	a.currentAddr += len(bytes)
 	return nil
 }
 
@@ -220,7 +220,7 @@ func (a *Assembler) handleDW(line *Line) error {
 		a.output = append(a.output, bytes...)
 	}
 	
-	a.currentAddr += uint16(len(bytes))
+	a.currentAddr += len(bytes)
 	return nil
 }
 

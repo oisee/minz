@@ -273,71 +273,64 @@ func parseCondition(s string) (Condition, bool) {
 }
 
 // parseNumber parses a numeric value (decimal, hex with $/#/0x, binary, or character literal)
-func parseNumber(s string) (uint16, error) {
+func parseNumber(s string) (int, error) {
 	s = strings.TrimSpace(s)
-	
+
 	// Check for character literal 'X' or "X"
 	if (strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") && len(s) >= 3) ||
 	   (strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"") && len(s) >= 3) {
-		// Extract the content between quotes
 		content := s[1 : len(s)-1]
-		
-		// Handle escape sequences
 		if len(content) == 2 && content[0] == '\\' {
 			switch content[1] {
 			case 'n':
-				return uint16('\n'), nil
+				return int('\n'), nil
 			case 'r':
-				return uint16('\r'), nil
+				return int('\r'), nil
 			case 't':
-				return uint16('\t'), nil
+				return int('\t'), nil
 			case '\\':
-				return uint16('\\'), nil
+				return int('\\'), nil
 			case '\'':
-				return uint16('\''), nil
+				return int('\''), nil
 			case '"':
-				return uint16('"'), nil
+				return int('"'), nil
 			case '0':
-				return uint16(0), nil
+				return 0, nil
 			default:
-				// Unknown escape, use literal
-				return uint16(content[1]), nil
+				return int(content[1]), nil
 			}
 		} else if len(content) == 1 {
-			// Single character
-			return uint16(content[0]), nil
+			return int(content[0]), nil
 		} else {
 			return 0, fmt.Errorf("character literal must be a single character: %s", s)
 		}
 	}
-	
+
 	// Check for hex prefixes
 	if strings.HasPrefix(s, "$") {
-		v, err := strconv.ParseUint(s[1:], 16, 16)
-		return uint16(v), err
+		v, err := strconv.ParseUint(s[1:], 16, 32)
+		return int(v), err
 	} else if strings.HasPrefix(s, "#") {
-		v, err := strconv.ParseUint(s[1:], 16, 16)
-		return uint16(v), err
+		v, err := strconv.ParseUint(s[1:], 16, 32)
+		return int(v), err
 	} else if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
-		v, err := strconv.ParseUint(s[2:], 16, 16)
-		return uint16(v), err
+		v, err := strconv.ParseUint(s[2:], 16, 32)
+		return int(v), err
 	} else if strings.HasPrefix(s, "%") {
-		// Binary
-		v, err := strconv.ParseUint(s[1:], 2, 16)
-		return uint16(v), err
+		v, err := strconv.ParseUint(s[1:], 2, 32)
+		return int(v), err
 	}
-	
+
 	// Try decimal (handle negative numbers for two's complement)
 	if strings.HasPrefix(s, "-") {
 		val, err := strconv.ParseInt(s, 10, 64)
 		if err != nil {
 			return 0, err
 		}
-		// Convert to 16-bit two's complement
-		return uint16(val & 0xFFFF), nil
+		return int(val & 0xFFFFFF), nil
 	}
-	val, err := strconv.ParseUint(s, 10, 16)
-	return uint16(val), err
+	val, err := strconv.ParseUint(s, 10, 32)
+	return int(val), err
 }
 
 // isIndirect checks if operand is indirect addressing (HL), (nn), etc

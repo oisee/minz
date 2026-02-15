@@ -57,13 +57,13 @@ type Instruction struct {
 	Opcode  string   // Mnemonic (LD, ADD, etc.)
 	Operand1 string  // First operand
 	Operand2 string  // Second operand (if any)
-	Address uint16   // Address where this instruction will be placed
+	Address int      // Address where this instruction will be placed
 	Bytes   []byte   // Encoded bytes
 }
 
 // Symbol represents a label or constant
 type Symbol struct {
 	Name    string
-	Value   uint16
+	Value   int
 	Defined bool
 }

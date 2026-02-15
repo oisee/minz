@@ -646,13 +646,11 @@ func (p *mirParser) parseAssignment(line string) (Instruction, error) {
 		return inst, nil
 	}
 
-	// Check for SMC load: r0 = smc_load x$imm0 (treat as param load for VM)
+	// Check for SMC load: r0 = smc_load x_imm0 (treat as param load for VM)
 	if strings.HasPrefix(expr, "smc_load ") {
 		paramName := strings.TrimPrefix(expr, "smc_load ")
-		// Strip the $imm0 suffix if present to get the base param name
-		if idx := strings.Index(paramName, "$"); idx > 0 {
-			paramName = paramName[:idx]
-		}
+		// Strip the _imm0 suffix if present to get the base param name
+		paramName = strings.TrimSuffix(paramName, "_imm0")
 		inst.Op = OpLoadParam
 		inst.Symbol = strings.TrimSpace(paramName)
 		return inst, nil

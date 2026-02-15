@@ -379,7 +379,7 @@ func (p *LoopRerollPass) transformMatch(fn *ir.Function, module *ir.Module, matc
 
 		fn.Instructions[match.StartIndex].Comment =
 			"[LOOP_REROLL:" + paramInfo + "] " + itoa(match.Repeats) + " repeats of " + funcName +
-				" → potential data table + loop"
+				" -> potential data table + loop"
 	}
 
 	return false
@@ -432,7 +432,7 @@ func (p *LoopRerollPass) transformToPrintString(fn *ir.Function, module *ir.Modu
 	printStringInst := ir.Instruction{
 		Op:      ir.OpPrintString,
 		Symbol:  stringLabel,
-		Comment: "[REROLLED] " + itoa(match.Repeats) + " putchar calls → print_string(\"" + escapeString(stringValue) + "\")",
+		Comment: "[REROLLED] " + itoa(match.Repeats) + " putchar calls -> print_string(\"" + escapeString(stringValue) + "\")",
 	}
 
 	// Build new instruction list

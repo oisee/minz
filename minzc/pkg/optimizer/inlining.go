@@ -60,6 +60,20 @@ func (p *InliningPass) isInlineCandidate(fn *ir.Function) bool {
 		return false
 	}
 
+	// Don't inline asm functions (IsAsm flag or body contains OpAsm instructions)
+	// Asm functions use physical registers (A, HL) directly in raw assembly —
+	// IR-level inlining can't correctly wire up argument loading because
+	// OpAsm instructions don't reference IR virtual registers, causing the
+	// argument OpLoadConst to become dead code and get eliminated.
+	if fn.IsAsm {
+		return false
+	}
+	for _, inst := range fn.Instructions {
+		if inst.Op == ir.OpAsm {
+			return false
+		}
+	}
+
 	// Don't inline reducer lambdas (2-parameter lambdas for reduce operations)
 	// The parameter remapping isn't fully implemented for multi-param calls
 	if strings.HasPrefix(fn.Name, "reducer_lambda_") {
@@ -162,11 +176,17 @@ func (p *InliningPass) generateInlinedCode(fn *ir.Function, call ir.Instruction,
 		}
 	}
 
-	// Map parameters
-	// TODO: Proper parameter passing
-	// For now, assume parameters are passed in order starting from register 1
+	// Map parameters: connect formal parameter registers to actual argument registers
+	// The inlined function expects params in registers 1, 2, 3, ...
+	// The call instruction has the actual argument registers in call.Args
 	for i := 0; i < fn.NumParams; i++ {
-		regMap[ir.Register(i+1)] = ir.Register(i+1) // Identity mapping for params
+		formalReg := ir.Register(i + 1)
+		if i < len(call.Args) && call.Args[i] != 0 {
+			// Map the formal parameter to the actual argument register
+			regMap[formalReg] = call.Args[i]
+		} else {
+			regMap[formalReg] = formalReg // Fallback identity mapping
+		}
 	}
 
 	// Map other registers to new ones to avoid conflicts

@@ -58,20 +58,18 @@ const FA_OPEN_APPEND: u8 = 0x30;    // Open for append
 // =============================================================================
 
 // Output a single character using RST 0x10
-@extern(0x10)
-pub fun mos_putchar(c: u8);
+pub extern fun mos_putchar(c: u8) at 0x10;
 
 // Print a null-terminated string using RST 0x18
 // Note: HL must point to the string
-@extern(0x18)
-pub fun mos_puts(str: *u8);
+pub extern fun mos_puts(str: *u8) at 0x18;
 
 // Generic MOS API call: function number in A, returns result in A
 // Parameters passed in various registers depending on function
 pub fun mos_call(func: u8) -> u8 {
     asm {
         ; func is in A (MinZ calling convention)
-        RST 0x00        ; MOS API call
+        RST.LIL 0x00    ; MOS API call
         ; Result in A
     }
 }
@@ -84,7 +82,7 @@ pub fun getkey() -> u8 {
 // Get system variables pointer
 // Returns pointer to sysvars structure in IY
 pub asm fun get_sysvars() -> *u8 {
-    RST 0x08        ; Get sysvars pointer into IY
+    RST.LIL 0x08    ; Get sysvars pointer into IY
     PUSH IY
     POP HL          ; Copy IY to HL for return
     RET
@@ -139,7 +137,7 @@ pub asm fun fopen(filename: *u8, mode: u8) -> u8 {
     ; Need: HL = filename, C = mode, A = function number
     LD C, A         ; C = mode (was passed after HL)
     LD A, 0x0A      ; MOS_FOPEN
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Handle in A
 }
 
@@ -150,7 +148,7 @@ pub asm fun fclose(handle: u8) -> u8 {
     ; handle in A
     LD C, A         ; C = file handle
     LD A, 0x0B      ; MOS_FCLOSE
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -160,7 +158,7 @@ pub asm fun fclose(handle: u8) -> u8 {
 pub asm fun fgetc(handle: u8) -> u8 {
     LD C, A         ; C = file handle
     LD A, 0x0C      ; MOS_FGETC
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Character in A
 }
 
@@ -174,7 +172,7 @@ pub asm fun fputc(handle: u8, c: u8) -> u8 {
     ; Need to get 'c' from stack or register
     ; (calling convention specific)
     LD A, 0x0D      ; MOS_FPUTC
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -184,7 +182,7 @@ pub asm fun fputc(handle: u8, c: u8) -> u8 {
 pub asm fun feof(handle: u8) -> u8 {
     LD C, A         ; C = file handle
     LD A, 0x0E      ; MOS_FEOF
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; EOF status in A
 }
 
@@ -200,7 +198,7 @@ pub asm fun load_file(filename: *u8, address: *u8) -> u16 {
     ; filename in HL, address follows
     ; This is simplified - actual MOS_LOAD has more parameters
     LD A, 0x01      ; MOS_LOAD
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Bytes loaded in HL
 }
 
@@ -211,7 +209,7 @@ pub asm fun load_file(filename: *u8, address: *u8) -> u16 {
 // Returns: 0 on success
 pub asm fun save_file(filename: *u8, address: *u8, length: u16) -> u8 {
     LD A, 0x02      ; MOS_SAVE
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -221,7 +219,7 @@ pub asm fun save_file(filename: *u8, address: *u8, length: u16) -> u8 {
 pub asm fun delete_file(filename: *u8) -> u8 {
     ; filename in HL
     LD A, 0x05      ; MOS_DEL
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -231,7 +229,7 @@ pub asm fun delete_file(filename: *u8) -> u8 {
 pub asm fun chdir(path: *u8) -> u8 {
     ; path in HL
     LD A, 0x03      ; MOS_CD
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -241,7 +239,7 @@ pub asm fun chdir(path: *u8) -> u8 {
 pub asm fun mkdir(path: *u8) -> u8 {
     ; path in HL
     LD A, 0x07      ; MOS_MKDIR
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -265,7 +263,7 @@ struct RTCTime {
 pub asm fun get_rtc(time: *RTCTime) -> u8 {
     ; time pointer in HL
     LD A, 0x12      ; MOS_GETRTC
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -275,7 +273,7 @@ pub asm fun get_rtc(time: *RTCTime) -> u8 {
 pub asm fun set_rtc(time: *RTCTime) -> u8 {
     ; time pointer in HL
     LD A, 0x13      ; MOS_SETRTC
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -289,7 +287,7 @@ pub asm fun set_rtc(time: *RTCTime) -> u8 {
 pub asm fun oscli(cmd: *u8) -> u8 {
     ; cmd in HL
     LD A, 0x10      ; MOS_OSCLI
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Result in A
 }
 
@@ -302,8 +300,7 @@ pub asm fun oscli(cmd: *u8) -> u8 {
 // buffer: destination buffer
 // count: number of bytes to read
 // Returns: actual bytes read in HL
-@mode("adl")
-pub asm fun fread(handle: u8, buffer: *u8, count: u16) -> u16 {
+pub asm fun fread(handle: u8, buffer: *u8, count: u16) -> u16 mode "adl" {
     ; handle in A, buffer in HL (stack), count in DE (stack)
     LD C, A         ; C = file handle
     ; Get buffer and count from stack
@@ -313,7 +310,7 @@ pub asm fun fread(handle: u8, buffer: *u8, count: u16) -> u16 {
     PUSH HL         ; restore return address
     EX DE, HL       ; HL = buffer
     LD A, 0x1A      ; MOS_FREAD
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Bytes read in HL
 }
 
@@ -322,8 +319,7 @@ pub asm fun fread(handle: u8, buffer: *u8, count: u16) -> u16 {
 // buffer: source buffer
 // count: number of bytes to write
 // Returns: actual bytes written in HL
-@mode("adl")
-pub asm fun fwrite(handle: u8, buffer: *u8, count: u16) -> u16 {
+pub asm fun fwrite(handle: u8, buffer: *u8, count: u16) -> u16 mode "adl" {
     LD C, A         ; C = file handle
     POP HL          ; return address
     POP DE          ; buffer -> DE
@@ -331,7 +327,7 @@ pub asm fun fwrite(handle: u8, buffer: *u8, count: u16) -> u16 {
     PUSH HL         ; restore return address
     EX DE, HL       ; HL = buffer
     LD A, 0x1B      ; MOS_FWRITE
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Bytes written in HL
 }
 
@@ -339,13 +335,12 @@ pub asm fun fwrite(handle: u8, buffer: *u8, count: u16) -> u16 {
 // handle: file handle
 // position: byte offset from start of file (32-bit)
 // Returns: 0 on success
-@mode("adl")
-pub asm fun fseek(handle: u8, position: u32) -> u8 {
+pub asm fun fseek(handle: u8, position: u32) -> u8 mode "adl" {
     LD C, A         ; C = file handle
     ; position is 32-bit, need to get from stack
     ; Simplified - actual implementation needs DE:HL for 32-bit position
     LD A, 0x1C      ; MOS_FLSEEK
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -359,7 +354,7 @@ pub asm fun fseek(handle: u8, position: u32) -> u8 {
 pub asm fun uart_open(baud: u8) -> u8 {
     LD C, A         ; C = baud rate code
     LD A, 0x15      ; MOS_UOPEN
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -367,7 +362,7 @@ pub asm fun uart_open(baud: u8) -> u8 {
 // Returns: 0 on success
 pub asm fun uart_close() -> u8 {
     LD A, 0x16      ; MOS_UCLOSE
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -375,7 +370,7 @@ pub asm fun uart_close() -> u8 {
 // Returns: character received
 pub asm fun uart_getc() -> u8 {
     LD A, 0x17      ; MOS_UGETC
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Character in A
 }
 
@@ -385,7 +380,7 @@ pub asm fun uart_getc() -> u8 {
 pub asm fun uart_putc(c: u8) -> u8 {
     LD C, A         ; C = character
     LD A, 0x18      ; MOS_UPUTC
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -506,12 +501,11 @@ const INT_SPI: u8 = 30;
 // vector: interrupt vector number (INT_* constants)
 // handler: pointer to interrupt handler function (or 0 to disable)
 // Returns: 0 on success
-@mode("adl")
-pub asm fun set_interrupt_handler(vector: u8, handler: *u8) -> u8 {
+pub asm fun set_interrupt_handler(vector: u8, handler: *u8) -> u8 mode "adl" {
     LD C, A         ; C = vector number
     ; handler is in DE or on stack
     LD A, 0x14      ; MOS_SETINTVECTOR
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Status in A
 }
 
@@ -548,12 +542,11 @@ pub fun wait_vblank() {
 // buffer: destination buffer for input
 // maxlen: maximum characters to read (buffer size - 1)
 // Returns: number of characters read
-@mode("adl")
-pub asm fun readline(buffer: *u8, maxlen: u8) -> u8 {
+pub asm fun readline(buffer: *u8, maxlen: u8) -> u8 mode "adl" {
     ; buffer in HL, maxlen in A (stack)
     LD C, A         ; C = max length
     LD A, 0x09      ; MOS_EDITLINE
-    RST 0x00        ; MOS call
+    RST.LIL 0x00    ; MOS call
     RET             ; Length in A
 }
 
