@@ -222,6 +222,25 @@ func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 			if inst.Src2 != 0 {
 				p.used[inst.Src2] = true
 			}
+
+		case ir.OpDJNZ:
+			// DJNZ uses Src1 as the counter register
+			if inst.Src1 != 0 {
+				p.used[inst.Src1] = true
+			}
+
+		case ir.OpInc:
+			// INC uses and modifies Src1
+			if inst.Src1 != 0 {
+				p.used[inst.Src1] = true
+			}
+
+		case ir.OpLoad:
+			// Load from pointer uses Src1
+			if inst.Src1 != 0 {
+				p.used[inst.Src1] = true
+			}
+
 		}
 		
 		// If this instruction's result is used, mark its operands as used too

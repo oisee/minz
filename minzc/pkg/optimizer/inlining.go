@@ -232,6 +232,19 @@ func (p *InliningPass) generateInlinedCode(fn *ir.Function, call ir.Instruction,
 			}
 		}
 
+		// Remap Args registers (for OpCall instructions inside inlined body)
+		if len(inst.Args) > 0 {
+			newArgs := make([]ir.Register, len(inst.Args))
+			for i, arg := range inst.Args {
+				if mapped, ok := regMap[arg]; ok {
+					newArgs[i] = mapped
+				} else {
+					newArgs[i] = arg
+				}
+			}
+			newInst.Args = newArgs
+		}
+
 		// Remap labels to avoid duplicates when inlining same function multiple times
 		if inst.Label != "" {
 			if mapped, ok := labelMap[inst.Label]; ok {

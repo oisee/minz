@@ -168,6 +168,7 @@ func TestDeadCodeElimination(t *testing.T) {
 				{Op: ir.OpReturn},
 			},
 			expected: []ir.Instruction{
+				{Op: ir.OpLoadConst, Dest: 1, Imm: 5}, // counter used by DJNZ
 				{Op: ir.OpLabel, Label: "djnz_loop"},
 				{Op: ir.OpDJNZ, Src1: 1, Label: "djnz_loop"},
 				{Op: ir.OpReturn},

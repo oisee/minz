@@ -80,6 +80,16 @@ func (p *RegisterAnalysisPass) analyzeFunction(fn *ir.Function) {
 			if inst.Src1 != 0 {
 				fn.UsedRegisters.Add(ir.Z80_HL)
 			}
+
+		case ir.OpDJNZ:
+			// DJNZ does DEC B; JR NZ, label — uses and clobbers B (part of BC)
+			fn.UsedRegisters.Add(ir.Z80_BC)
+			fn.ModifiedRegisters.Add(ir.Z80_BC)
+
+		case ir.OpInc:
+			// INC on pointer typically uses HL
+			fn.UsedRegisters.Add(ir.Z80_HL)
+			fn.ModifiedRegisters.Add(ir.Z80_HL)
 		}
 	}
 	

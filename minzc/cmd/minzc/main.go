@@ -22,7 +22,10 @@ import (
 
 var (
 	outputFile   string
-	disableOptimize  bool  // Disable optimizations (enabled by default)
+	disableOptimize  bool  // Disable ALL optimizations (enabled by default)
+	disableIROpt     bool  // Disable IR/MIR-level optimizations only
+	disableAsmOpt    bool  // Disable assembly-level peephole only
+	disableCodegenOpt bool // Disable codegen-level constant tracking
 	debug            bool
 	disableSMC       bool  // Disable self-modifying code (enabled by default)
 	enableTAS    bool
@@ -157,6 +160,9 @@ func init() {
 	// Compilation flags
 	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file (default: input.<ext> based on backend)")
 	rootCmd.Flags().BoolVar(&disableOptimize, "disable-optimize", false, "disable optimizations (enabled by default)")
+	rootCmd.Flags().BoolVar(&disableIROpt, "disable-ir-opt", false, "disable IR/MIR-level optimizations (DCE, constant folding, inlining)")
+	rootCmd.Flags().BoolVar(&disableAsmOpt, "disable-asm-opt", false, "disable assembly-level peephole optimizations")
+	rootCmd.Flags().BoolVar(&disableCodegenOpt, "disable-codegen-opt", false, "disable codegen-level optimizations (constant tracking)")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
 	rootCmd.Flags().BoolVar(&disableSMC, "disable-smc", false, "disable all self-modifying code optimizations (enabled by default)")
 	rootCmd.Flags().BoolVar(&enableTAS, "tas", false, "enable TAS debugging with time-travel and cycle-perfect recording")
@@ -302,21 +308,21 @@ func compile(sourceFile string) error {
 	}
 
 	// Run optimization passes (enabled by default)
-	if !disableOptimize {
+	if !disableOptimize && !disableIROpt {
 		level := optimizer.OptLevelFull  // Full optimization by default
-		
+
 		// Use TRUE SMC unless disabled
 		useTrueSMC := !disableSMC
-		
+
 		opt := optimizer.NewOptimizerWithOptions(level, useTrueSMC)
 		if err := opt.Optimize(irModule); err != nil {
 			return fmt.Errorf("optimization error: %w", err)
 		}
-		
+
 		if debug {
 			fmt.Println("Optimization completed")
 		}
-		
+
 		// Apply PGO optimizations if profile provided (Quick Win #3)
 		if pgoProfile != "" {
 			// Load profile from TAS file (simplified mock data for now)
@@ -324,20 +330,22 @@ func compile(sourceFile string) error {
 			profile["executions"] = map[uint16]uint64{
 				0x8000: 1000,  // hot_function entry - very hot
 				0x8010: 1000,  // main function - hot
-				0x8020: 10,    // print routine - warm  
+				0x8020: 10,    // print routine - warm
 			}
 			profile["hot_threshold"] = uint64(100)
-			
+
 			pgoOpt := optimizer.NewBasicPGOPass(profile)
-			
+
 			for _, fn := range irModule.Functions {
 				pgoOpt.ApplyPlatformOptimizations(fn, target)
 			}
-			
+
 			if pgoDebug || debug {
 				fmt.Printf("PGO: Applied profile-guided optimizations for target '%s'\n", target)
 			}
 		}
+	} else if disableIROpt && debug {
+		fmt.Println("IR/MIR-level optimizations disabled via --disable-ir-opt")
 	}
 
 	// Create backend options
@@ -347,8 +355,10 @@ func compile(sourceFile string) error {
 		EnableTrueSMC:     !disableSMC,
 		Debug:             debug,
 		Target:            target,
+		DisableAsmOpt:     disableAsmOpt || disableOptimize,
+		DisableCodegenOpt: disableCodegenOpt || disableOptimize,
 	}
-	
+
 	if !disableOptimize {
 		backendOptions.OptimizationLevel = 2
 	}
@@ -501,20 +511,22 @@ func compileFromMIR(mirFile string) error {
 	}
 
 	// Run optimization passes (enabled by default)
-	if !disableOptimize {
+	if !disableOptimize && !disableIROpt {
 		level := optimizer.OptLevelFull  // Full optimization by default
-		
+
 		// Use TRUE SMC unless disabled
 		useTrueSMC := !disableSMC
-		
+
 		opt := optimizer.NewOptimizerWithOptions(level, useTrueSMC)
 		if err := opt.Optimize(irModule); err != nil {
 			return fmt.Errorf("optimization error: %w", err)
 		}
-		
+
 		if debug {
 			fmt.Println("Optimization completed")
 		}
+	} else if disableIROpt && debug {
+		fmt.Println("IR/MIR-level optimizations disabled via --disable-ir-opt")
 	}
 
 	// Create backend options
@@ -524,6 +536,8 @@ func compileFromMIR(mirFile string) error {
 		EnableTrueSMC:     !disableSMC,
 		Debug:             debug,
 		Target:            target,
+		DisableAsmOpt:     disableAsmOpt || disableOptimize,
+		DisableCodegenOpt: disableCodegenOpt || disableOptimize,
 	}
 
 	if !disableOptimize {

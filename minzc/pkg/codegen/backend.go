@@ -40,6 +40,12 @@ type BackendOptions struct {
 	// Debug enables debug output
 	Debug bool
 	
+	// DisableAsmOpt disables assembly-level peephole optimizations
+	DisableAsmOpt bool
+
+	// DisableCodegenOpt disables codegen-level optimizations (constant tracking)
+	DisableCodegenOpt bool
+
 	// Custom backend-specific options
 	CustomOptions map[string]interface{}
 }

@@ -59,6 +59,9 @@ type Z80Generator struct {
 	// eZ80 ADL mode support
 	isEZ80Target bool   // True if targeting eZ80 processor
 	defaultADLMode bool // True if target default is ADL mode (24-bit)
+
+	// Optimization control
+	disableConstantTracking bool // Disable codegen-level constant tracking
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -77,6 +80,11 @@ func NewZ80Generator(w io.Writer) *Z80Generator {
 		constantValues:  make(map[ir.Register]int64),
 		usedFunctions:   make(map[string]bool),
 	}
+}
+
+// SetDisableConstantTracking disables codegen-level constant tracking optimization
+func (g *Z80Generator) SetDisableConstantTracking(disable bool) {
+	g.disableConstantTracking = disable
 }
 
 // SetTargetPlatform sets the target platform for the generator
@@ -737,7 +745,10 @@ func (g *Z80Generator) generateTrueSMCFunction(fn *ir.Function) error {
 	// Don't generate anchors here - wait for first use
 	// Store function for later reference
 	g.currentFunc = fn
-	
+
+	// Reset constant tracking for new function
+	g.constantValues = make(map[ir.Register]int64)
+
 	// Generate function body
 	for _, inst := range fn.Instructions {
 		// Check if this is first use of a parameter (could be OpTrueSMCLoad already)
@@ -811,8 +822,8 @@ func (g *Z80Generator) generateParameterAnchor(param *ir.Parameter, destReg ir.R
 		g.storeFromHL(destReg)
 	} else if param.Type.Size() == 3 {
 		// 24-bit parameter - need two anchors: A for high byte, HL for low 16 bits
-		anchorHigh := fmt.Sprintf("%s_immHI", param.Name)
-		anchorLow := fmt.Sprintf("%s_immLO", param.Name)
+		anchorHigh := fmt.Sprintf("%s_immHI", paramLabel)
+		anchorLow := fmt.Sprintf("%s_immLO", paramLabel)
 		
 		// Load high byte into A
 		g.emit("%s:", anchorHigh)
@@ -1894,8 +1905,10 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.generateEpilogue()
 		
 	case ir.OpLoadConst:
-		// Track the constant value for optimization
-		g.constantValues[inst.Dest] = inst.Imm
+		// Track the constant value for optimization (unless disabled)
+		if !g.disableConstantTracking {
+			g.constantValues[inst.Dest] = inst.Imm
+		}
 		if debug {
 			fmt.Printf("DEBUG: OpLoadConst - tracked r%d = %d\n", inst.Dest, inst.Imm)
 			fmt.Printf("DEBUG: Current constants map: %v\n", g.constantValues)
@@ -1945,6 +1958,14 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				g.storeFromA(inst.Dest)
 				break
 			}
+		}
+
+		// RegHintB: load directly into B for DJNZ loops
+		if inst.Hint == ir.RegHintB && inst.Imm > 0 && inst.Imm <= 255 {
+			g.emit("    LD B, %d       ; DJNZ counter", inst.Imm)
+			g.emit("    LD A, B")
+			g.storeFromA(inst.Dest)
+			break
 		}
 
 		// Default: Load constant to register
@@ -3225,6 +3246,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 	case ir.OpDJNZ:
 		// Decrement and jump if not zero
 		// Uses B register for Z80's native DJNZ instruction
+		// Clear constant tracking for counter — DJNZ modifies B each iteration
+		delete(g.constantValues, inst.Src1)
 		g.loadToB(inst.Src1)
 		g.emit("    DJNZ %s", g.sanitizeLabel(inst.Label))
 		// Store updated value back
@@ -3233,8 +3256,10 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpLoadImm:
 		// Load immediate value
-		// Track the constant value for optimization
-		g.constantValues[inst.Dest] = inst.Imm
+		// Track the constant value for optimization (unless disabled)
+		if !g.disableConstantTracking {
+			g.constantValues[inst.Dest] = inst.Imm
+		}
 
 		if inst.Imm <= 255 {
 			g.emit("    LD A, %d", inst.Imm)

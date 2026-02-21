@@ -35,6 +35,11 @@ func (b *Z80Backend) Generate(module *ir.Module) (string, error) {
 	if b.options != nil && b.options.Target != "" {
 		gen.SetTargetPlatform(b.options.Target)
 	}
+
+	// Set codegen optimization flags
+	if b.options != nil && b.options.DisableCodegenOpt {
+		gen.SetDisableConstantTracking(true)
+	}
 	
 	// Configure based on options
 	if b.options != nil {
@@ -60,8 +65,8 @@ func (b *Z80Backend) Generate(module *ir.Module) (string, error) {
 	// Get the generated assembly
 	assembly := buf.String()
 	
-	// Apply assembly-level peephole optimization if optimization is enabled
-	if b.options != nil && b.options.OptimizationLevel > 0 {
+	// Apply assembly-level peephole optimization if optimization is enabled and not disabled
+	if b.options != nil && b.options.OptimizationLevel > 0 && !b.options.DisableAsmOpt {
 		peephole := optimizer.NewAssemblyPeepholePass()
 		optimized := peephole.OptimizeAssembly(assembly)
 		// Add a comment to show optimization ran

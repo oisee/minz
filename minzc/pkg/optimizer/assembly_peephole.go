@@ -1298,10 +1298,19 @@ func (p *AssemblyPeepholePass) eliminateRedundantStoreLoad(lines []string) []str
 						break
 					}
 					// Check if this instruction uses A or stored reg - if so, can't optimize
-					if strings.Contains(strings.ToUpper(nextLine), " A") ||
-					   strings.Contains(strings.ToUpper(nextLine), ",A") ||
-					   strings.Contains(strings.ToUpper(nextLine), " "+storedReg) ||
-					   strings.Contains(strings.ToUpper(nextLine), ","+storedReg) {
+				// Also break on control flow (DJNZ, JR, JP, CALL, RET) and
+				// instructions that implicitly modify the stored register
+				upperLine := strings.ToUpper(nextLine)
+				if strings.Contains(upperLine, " A") ||
+					   strings.Contains(upperLine, ",A") ||
+					   strings.Contains(upperLine, " "+storedReg) ||
+					   strings.Contains(upperLine, ","+storedReg) ||
+					   strings.HasPrefix(upperLine, "DJNZ") ||
+					   strings.HasPrefix(upperLine, "JR ") ||
+					   strings.HasPrefix(upperLine, "JP ") ||
+					   strings.HasPrefix(upperLine, "CALL ") ||
+					   strings.HasPrefix(upperLine, "RET") ||
+					   strings.HasPrefix(upperLine, "RST ") {
 						break
 					}
 				}
