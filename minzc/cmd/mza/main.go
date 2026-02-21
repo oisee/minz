@@ -225,7 +225,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&symbolFile, "symbols", "s", "", "generate symbol file")
 	
 	// Target options
-	rootCmd.Flags().StringVarP(&targetFlag, "target", "t", "generic", "target platform (generic, zxspectrum, zxtap, cpm, msx, gameboy)")
+	rootCmd.Flags().StringVarP(&targetFlag, "target", "t", "generic", "target platform (generic, zxspectrum, zxtap, cpm, msx, gameboy, agon)")
 	rootCmd.Flags().StringVarP(&formatFlag, "format", "f", "auto", "output format (auto, bin, sna, tap, com, rom)")
 	
 	// Assembly options

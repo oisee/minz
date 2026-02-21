@@ -4,247 +4,136 @@
 
 ![MinZ Logo](/media/minz-logo-shamrock-mint.png)
 
-### **Modern Programming Language for Vintage & Modern Platforms**
+### Modern Programming Language for Vintage Hardware
 
-[![Version](https://img.shields.io/badge/version-0.18.0-brightgreen)](https://github.com/oisee/minz/releases)
-[![Platforms](https://img.shields.io/badge/platforms-Z80%20%7C%20eZ80%20%7C%206502%20%7C%20Crystal%20%7C%20WASM%20%7C%20MIR--VM-blue)]()
-[![Success Rate](https://img.shields.io/badge/compilation-100%25-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-0.18.0--dev-blue)](https://github.com/oisee/minz/releases)
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
-**Write modern code. Deploy everywhere. From 1978 Z80 to 2026 Crystal.**
+**Write modern code. Run it on Z80, eZ80, 6502, and more.**
 
-[Quick Start](#-quick-start) • [Features](#-revolutionary-features) • [Install](#-installation) • [Examples](#-code-examples) • [Documentation](#-documentation)
-
-</div>
-
----
-
-## 🎯 **What is MinZ?**
-
-MinZ is a **revolutionary programming language** that brings modern abstractions to vintage hardware while enabling cutting-edge development workflows. Write Ruby-style code that compiles to blazing-fast Z80 assembly or modern Crystal.
-
-### **Why MinZ?**
-
-```minz
-// Modern Ruby-style syntax
-const NAME = "MinZ";
-let greeting = "Hello from #{NAME}!";  // Ruby interpolation!
-
-// Structs and field access
-struct Point { x: u8, y: u8 }
-let p = Point { x: 10, y: 20 };
-let sum = p.x + p.y;
-
-// Compile-time execution (faster than zero-cost!)
-@ctie
-fun distance(x: u8, y: u8) -> u8 {
-    return abs(x - y);
-}
-let d = distance(10, 3);  // Becomes: LD A, 7 (computed at compile-time!)
-```
-
-**Then deploy to:**
-- 🎮 **ZX Spectrum** (1982)
-- 💾 **Commodore 64** (1982)  
-- 💎 **Crystal/Ruby** (2025)
-- 🌐 **WebAssembly** (Modern browsers)
-- 🖥️ **Native C** (Any platform)
-
----
-
-## 🚀 **Quick Start**
-
-### **1. Install Dependencies**
-
-MinZ requires tree-sitter for parsing. Install it first:
-
-```bash
-# Install tree-sitter CLI
-npm install -g tree-sitter-cli
-
-# Initialize tree-sitter config (REQUIRED!)
-tree-sitter init-config
-```
-
-### **2. Install MinZ**
-
-```bash
-# macOS/Linux - from releases
-curl -L https://github.com/oisee/minz/releases/latest/download/minz-$(uname -s)-$(uname -m).tar.gz | tar -xz
-sudo mv mz /usr/local/bin/
-
-# Or build from source (recommended)
-git clone https://github.com/oisee/minz.git
-cd minz/minzc
-go build -o mz cmd/minzc/main.go
-sudo mv mz /usr/local/bin/
-
-# Verify
-mz --version  # MinZ v0.17.0
-```
-
-> **Note:** Pre-built binaries may be for a different architecture. Building from source is recommended.
-
-### **3. Write Your First Program**
-
-```minz
-// hello.minz
-const VERSION = 15;
-
-fun main() -> void {
-    let message = "Hello from MinZ v0.#{VERSION}!";
-    @print(message);
-}
-```
-
-### **4. Compile & Run**
-
-```bash
-# For vintage hardware (Z80)
-mz hello.minz -o hello.a80
-
-# For modern testing (Crystal)
-mz hello.minz -b crystal -o hello.cr
-crystal run hello.cr  # Test instantly!
-```
-
----
-
-## ✨ **Revolutionary Features**
-
-### **🎊 15 Major Revolutions Since v0.1.0**
-
-<details>
-<summary><b>Click to see the complete evolution journey</b></summary>
-
-| Version | Revolution | Impact |
-|---------|------------|--------|
-| **v0.18.0** | MZV Platform + 24-bit Types | Virtual hardware abstraction, eZ80/Agon support, DAP debugging! |
-| **v0.17.0** | UFCS + Operator Overloading | `v1 + v2`, type-based dispatch, auto-derivation! |
-| **v0.16.4** | GLSL Shader Library | Raymarching, SDFs, fixed-point math on Z80! |
-| **v0.16.3** | DZRP Toolchain | mztap instant loader, unified env vars |
-| **v0.16.2** | Smart Print Optimization | Stateful @print saves 9+ bytes, explicit loop intent |
-| **v0.16.1** | DZRP Live Testing + `loop {}` | Remote emulator execution, proper halt pattern |
-| **v0.16.0** | DAP Debugger + Z80N Vision | VS Code debugging, ZX Next roadmap |
-| **v0.15.4** | Comprehensive Stdlib | 10 modules, 2400+ lines, game-ready |
-| **v0.15.3** | Critical Fixes | ANSI filtering, cross-platform, clean array codegen |
-| **v0.15.2** | Enum Error Values | `@error(EnumType.Variant)` compile-time constants |
-| **v0.15.1** | Error Propagation | `@error(code)` sets CY flag + A register |
-| **v0.15.0** | Ruby Interpolation + Crystal Backend | `"Hello #{name}!"` + Modern workflow |
-| **v0.14.0** | Pattern Matching (partial) | Basic case syntax (in progress) |
-| **v0.13.0** | Module System | `import` syntax (stdlib WIP) |
-| **v0.12.0** | CTIE (Compile-Time Execution) | Functions run at compile-time! |
-| **v0.11.0** | Complete Toolchain | Compiler + Assembler + Emulator + REPL |
-| **v0.10.0** | Lambda Support | Lambda syntax and transformation |
-| **v0.9.6** | Function Overloading | `print(anything)` |
-| **v0.9.0** | Error Handling | CY flag + A register ABI (partial) |
-| **v0.8.0** | True Self-Modifying Code | 10x performance through mutation |
-| **v0.7.0** | LLVM Backend | Modern optimizations |
-| **v0.6.0** | Module System | Professional organization |
-| **v0.5.0** | Inline Assembly | Direct hardware control |
-| **v0.4.0** | Multi-Platform | Z80, 6502, WASM, C |
-| **v0.3.0** | Optimizer | 35+ peephole patterns |
-| **v0.2.0** | Structs & Arrays | Real programs possible |
-| **v0.1.0** | Genesis | Modern syntax for Z80 |
-
-</details>
-
-### **🏆 Working Features**
-
-| Feature | Status | Example |
-|---------|--------|---------|
-| **MZV Platform** | ✅ NEW | Virtual hardware: spectrum, agon, headless, terminal |
-| **24-bit Types** | ✅ NEW | `u24`/`i24` for eZ80 and 16MB address space |
-| **I/O Ports** | ✅ NEW | `OpPortIn`/`OpPortOut` for Z80-style I/O |
-| **Chained Methods** | ✅ NEW | `v3(1,2,3).normalize()`, `(a-b).dot(c)` |
-| **CTIE** | ✅ Working | `@ctie fun add(a,b) -> ...` executes at compile-time |
-| **Ruby Interpolation** | ✅ Working | `@print("Hello #{NAME}!")` |
-| **True SMC** | ✅ Working | Self-modifying code optimizations |
-| **Structs** | ✅ Working | `Point { x: 10, y: 20 }` with field access |
-| **Crystal Backend** | ✅ Working | Test on modern, deploy to vintage |
-| **Multi-Backend** | ✅ Working | Z80, 6502, C, WASM, Crystal, LLVM, **MIR-VM** |
-| **Pattern Matching** | ✅ Working | `case s { State.IDLE => State.RUNNING }` |
-| **Enum Values** | ✅ Working | `State.IDLE`, `@error(MathError.DivByZero)` |
-| **Error Propagation** | ✅ Working | `@error(code)` sets CY flag + A register |
-| **Array Literals** | ✅ Working | `[10,20,30]` → clean `DB 10,20,30` |
-| **Standard Library** | ✅ Working | 10 modules: math, graphics, input, text, sound, time, mem |
-| **@extern FFI** | ✅ Working | `@extern(0x0010) fun rom_print()` with RST optimization |
-| **DZRP Remote Run** | ✅ Working | `mzrun game.minz --reset` live emulator testing |
-| **Instant TAP Load** | ✅ Working | `mztap game.tap` - 500x faster than tape! |
-| **GLSL Shader Library** | ✅ Working | Raymarching, SDFs, vec3, fixed-point math! |
-| **Smart @print** | ✅ Working | Stateful optimization, reuses print_string helper |
-| **Infinite Loops** | ✅ Working | `loop { asm{EI;HALT} }` for explicit halt |
-| **Iterator Chains** | 🚧 Partial | Compiles, DJNZ optimization in progress |
-| **VDP Commands** | 🚧 Planned | Agon Light VDU protocol |
-| **DAP Debugging** | 🚧 Planned | VS Code integration for MZV |
-
-### **MZV Virtual Machine Render Output**
-
-<div align="center">
-
-![MZV Sphere Render](/media/mzv_sphere_minz.png)
-
-*Sphere with diffuse lighting using 8.8 fixed-point math (fp88.minz) - rendered in MZV framebuffer (320x240 Agon platform)*
+[Quick Start](#quick-start) | [Features](#features) | [Examples](#code-examples) | [Targets](#platform-targets) | [Toolchain](#toolchain)
 
 </div>
 
 ---
 
-## 📚 **Code Examples**
+## What is MinZ?
 
-### **Functions and Structs**
+MinZ is a programming language that compiles modern, readable code to efficient assembly for retro hardware — primarily Z80 and eZ80 systems. It includes a self-contained toolchain: compiler, assembler, emulator, and remote runner. No external dependencies.
+
 ```minz
-// Struct with field access
-struct Point { x: u8, y: u8 }
-
-fun distance(p1: Point, p2: Point) -> u8 {
-    let dx = p2.x - p1.x;
-    let dy = p2.y - p1.y;
-    return dx + dy;  // Manhattan distance
-}
+import stdlib.cpm.bdos;
 
 fun main() -> void {
-    let a = Point { x: 10, y: 20 };
-    let b = Point { x: 30, y: 40 };
-    let d = distance(a, b);
-}
-```
-
-### **Arrays and Loops**
-```minz
-fun main() -> void {
-    let data: [u8; 5] = [10, 20, 30, 40, 50];
-
-    for i in 0..5 {
-        let val = data[i];
-        @print("Value: #{val}");
+    @print("Hello from MinZ!");
+    let fib_a: u16 = 0;
+    let fib_b: u16 = 1;
+    for i in 0..10 {
+        print_u16(fib_a);
+        putchar(32);  // space
+        let next = fib_a + fib_b;
+        fib_a = fib_b;
+        fib_b = next;
     }
 }
 ```
 
-### **Ruby-Style String Interpolation**
-```minz
-const USER = "Alice";
-const SCORE = 9001;
+This compiles to Z80 assembly, assembles to a `.com` binary, and runs on CP/M:
 
-fun show_status() -> void {
-    @print("Player #{USER} scored #{SCORE} points!");
-}
+```
+$ mz fibonacci_cpm.minz -b z80 --target cpm -o fib.a80 && mza fib.a80 -o fib.com
+$ mze fib.com -t cpm
+Fibonacci:
+0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55
 ```
 
-### **Compile-Time Execution (CTIE)**
-```minz
-@ctie
-fun fibonacci(n: u8) -> u8 {
-    if n <= 1 { return n; }
-    return fibonacci(n-1) + fibonacci(n-2);
-}
+---
 
-let fib10 = fibonacci(10);  // Computed at compile-time!
-// Generates: LD A, 55  (no runtime calculation!)
+## Quick Start
+
+### Build from Source
+
+```bash
+git clone https://github.com/oisee/minz.git
+cd minz/minzc
+go build -o mz cmd/minzc/main.go     # Compiler
+go build -o mza cmd/mza/main.go      # Assembler
+go build -o mze cmd/mze/main.go      # Emulator
 ```
 
-### **UFCS - Method Syntax** (NEW in v0.17!)
+No external dependencies. Pure Go.
+
+### Compile and Run
+
+```bash
+# Compile MinZ to Z80 assembly
+./mz ../examples/hello_print.minz -o hello.a80
+
+# Assemble to binary
+./mza hello.a80 -o hello.tap
+
+# Run in emulator
+./mze hello.tap
+```
+
+### Multi-Target
+
+```bash
+mz program.minz -b z80 --target spectrum -o prog.a80   # ZX Spectrum
+mz program.minz -b z80 --target cpm -o prog.a80        # CP/M
+mz program.minz -b z80 --target agon -o prog.a80       # Agon Light 2
+mz program.minz -b crystal -o prog.cr                  # Crystal (testing)
+mz program.minz -b c -o prog.c                         # C99
+```
+
+---
+
+## Features
+
+### Working
+
+| Feature | Description |
+|---------|-------------|
+| **Types** | `u8`, `u16`, `i8`, `i16`, `bool`, `void`, pointers |
+| **Functions** | `fun`/`fn` declaration, overloading, multiple returns |
+| **Control flow** | `if`/`else`, `while`, `for i in 0..n`, `loop {}` |
+| **Structs** | Declaration, field access, UFCS method syntax |
+| **Arrays** | Declaration, indexing |
+| **Globals** | `global counter: u8 = 0;` |
+| **String interpolation** | `"Hello #{name}!"` (Ruby-style) |
+| **Inline assembly** | `asm { LD A, 42 }` blocks |
+| **CTIE** | Compile-time function execution |
+| **True SMC** | Self-modifying code optimization |
+| **@extern FFI** | `extern fun putchar(c: u8) at 0x10;` with RST optimization |
+| **Operator overloading** | `v1 + v2` via `impl` blocks |
+| **Error propagation** | `@error(code)` with CY flag ABI |
+| **Enums** | `enum State { IDLE, RUNNING }` with values |
+| **Module system** | `import stdlib.cpm.bdos;` |
+| **Lambdas** | Closure syntax, zero-cost transform |
+
+### Partial / In Progress
+
+| Feature | Status |
+|---------|--------|
+| Pattern matching | Syntax parses, codegen partial |
+| Iterator chains | Compiles, optimization in progress |
+| MIR interpreter | Arrays/structs working, not complete |
+
+### Known Limitations
+
+- Register allocator has bugs with overlapping lifetimes in complex loops
+- Some loop/arithmetic combinations produce incorrect code
+- `loadToHL` can use stale values in multi-expression contexts
+- Loop rerolling can be too aggressive across function call boundaries
+
+These are documented and being worked on. Simple programs (hello world, fibonacci, demos) work correctly. Complex programs with nested loops and heavy arithmetic may hit edge cases.
+
+---
+
+## Code Examples
+
+### Structs and Methods (UFCS)
+
 ```minz
 struct Vec2 { x: i16, y: i16 }
 
@@ -252,7 +141,6 @@ impl Vec2 {
     fun add(self, other: Vec2) -> Vec2 {
         return Vec2 { x: self.x + other.x, y: self.y + other.y };
     }
-
     fun length_sq(self) -> i16 {
         return self.x * self.x + self.y * self.y;
     }
@@ -261,504 +149,281 @@ impl Vec2 {
 fun main() -> void {
     let v1 = Vec2 { x: 3, y: 4 };
     let v2 = Vec2 { x: 1, y: 2 };
-
-    let v3 = v1.add(v2);       // Zero-cost! Compiles to direct CALL
-    let len = v3.length_sq();  // No vtables, no overhead
+    let v3 = v1 + v2;            // Zero-cost: CALL Vec2_add
+    let len = v3.length_sq();    // Zero-cost: CALL Vec2_length_sq
 }
 ```
-> **Note:** UFCS transforms `obj.method(args)` to `Type_method(obj, args)` at compile-time - true zero-cost abstraction!
 
-### **Operator Overloading** (NEW in v0.17!)
+### Compile-Time Execution (CTIE)
+
 ```minz
-struct Vec2 { x: i16, y: i16 }
-
-impl Vec2 {
-    fun add(self, other: Vec2) -> Vec2 {
-        return Vec2 { x: self.x + other.x, y: self.y + other.y };
-    }
-
-    // Type-based overloading: Vec * Vec vs Vec * scalar
-    fun mul(self, other: Vec2) -> Vec2 {
-        return Vec2 { x: self.x * other.x, y: self.y * other.y };
-    }
-    fun mul(self, scalar: i16) -> Vec2 {
-        return Vec2 { x: self.x * scalar, y: self.y * scalar };
-    }
-
-    // Only need eq + lt - get all 6 comparison ops for free!
-    fun eq(self, other: Vec2) -> bool {
-        return self.x == other.x && self.y == other.y;
-    }
-    fun lt(self, other: Vec2) -> bool {
-        return self.x < other.x;
-    }
+@ctie
+fun fibonacci(n: u8) -> u8 {
+    if n <= 1 { return n; }
+    return fibonacci(n-1) + fibonacci(n-2);
 }
+
+let fib10 = fibonacci(10);  // Becomes: LD A, 55 (no runtime cost)
+```
+
+### Inline Assembly
+
+```minz
+asm fun fast_clear_screen() {
+    LD HL, $4000
+    LD DE, $4001
+    LD BC, 6143
+    LD (HL), 0
+    LDIR
+}
+```
+
+### CP/M Program
+
+```minz
+import stdlib.cpm.bdos;
 
 fun main() -> void {
-    let v1 = Vec2 { x: 3, y: 4 };
-    let v2 = Vec2 { x: 2, y: 2 };
-
-    let v3 = v1 + v2;   // -> CALL Vec2.add
-    let v4 = v1 * v2;   // -> CALL Vec2.mul$Vec2$Vec2 (component-wise)
-    let v5 = v1 * 5;    // -> CALL Vec2.mul$Vec2$i16  (scaling)
-
-    // All these work with just eq + lt defined:
-    if v1 == v2 { }     // Direct: eq
-    if v1 != v2 { }     // Derived: !eq
-    if v1 >  v2 { }     // Derived: swap lt
-    if v1 >= v2 { }     // Derived: !lt
+    @print("Hello, CP/M!");
+    putchar(13);
+    putchar(10);
+    let ch = getchar();
+    putchar(ch);
 }
 ```
-> **Supported operators:** `+`/`add`, `-`/`sub`, `*`/`mul`, `/`/`div`, `%`/`mod`, `==`/`eq`, `!=`/`ne`, `<`/`lt`, `<=`/`le`, `>`/`gt`, `>=`/`ge`, `&`/`bitand`, `|`/`bitor`, `^`/`bitxor`, `<<`/`shl`, `>>`/`shr`
->
-> **Type-based dispatch:** Same operator, different argument types → different methods!
->
-> **Auto-derivation:** Just implement `eq` + `lt` to get all 6 comparison operators!
 
-### **Pattern Matching** (In Progress)
+### Agon Light 2 Program
+
 ```minz
-// Basic enum and case syntax - codegen in development
-enum State { IDLE, RUNNING, STOPPED }
+import stdlib.agon.mos;
+import stdlib.agon.vdp;
 
-fun next_state(s: State) -> State {
-    case s {
-        State.IDLE => return State.RUNNING,
-        State.RUNNING => return State.STOPPED,
-        _ => return State.IDLE
-    }
+fun main() -> void {
+    mos_puts("Hello from Agon Light 2!");
+    set_mode(3);
+    fill_rect(10, 10, 100, 80, 4);
 }
 ```
-> **Note:** Pattern matching syntax parses but code generation is still in development.
 
-### **Error Propagation**
+### Error Handling
+
 ```minz
 enum FileError { None, NotFound, Permission }
 
-// Function that can fail - uses @error with enum value
 fun read_file?(path: u8) -> u8 ? FileError {
     if path == 0 {
-        @error(FileError.NotFound);  // Proper enum syntax!
+        @error(FileError.NotFound);
     }
     return path;
 }
-
-// Caller handles error via CY flag
-fun main() -> void {
-    let data: u8 = read_file?(5);
-    // CY flag indicates success/failure
-    // A register contains error code on failure
-}
 ```
-> **Note:** `@error(EnumType.Variant)` resolves to a compile-time constant for optimal code generation.
 
-### **Infinite Loops**
+### Self-Modifying Code (True SMC)
+
 ```minz
-fun main() -> void {
-    @print("Hello World!");
-
-    // Explicit halt intent - generates EI; HALT; JR loop
-    loop {
-        asm { EI; HALT }
-    }
+@abi("smc")
+fun draw_pixel(x: u8, y: u8) -> void {
+    // Parameters patched directly into instruction immediates
+    // Single-byte opcode changes: 7-20 T-states vs 44+ for memory reads
+    let screen_addr = y * 32 + x;
+    // ...
 }
 ```
-> **Note:** Empty `loop { }` is optimized away. Use explicit `asm { EI; HALT }` for ZX Spectrum-friendly halt that keeps interrupts enabled.
-
-### **Inline Assembly**
-```minz
-fun fast_multiply(a: u8) -> u8 {
-    asm {
-        LD A, (a)
-        SLA A        ; Multiply by 2
-        SLA A        ; Multiply by 4
-    }
-    return a;
-}
-```
-
-### **Self-Modifying Code (TRUE SMC)**
-```minz
-@smc
-fun draw_sprite(x: u8, y: u8, sprite: *u8) -> void {
-    // This function rewrites its own code for 10x performance!
-    // Parameters are patched directly into instructions
-}
-```
-
-### **MZV Rendering Demos**
-
-Real-time rendered graphics using the MinZ Virtual Machine:
-
-| Simple Sphere | Shaded Sphere | One Small Step |
-|---------------|---------------|----------------|
-| ![Simple](examples/mzv_sphere_simple.png) | ![Shaded](examples/mzv_sphere_shaded.png) | ![OneSmallStep](examples/mzv_one_small_step.png) |
-| 242K instructions | 1.5M instructions | 30M instructions |
-| Basic circle check | Diffuse lighting | Raymarched lunar lander |
-
-```bash
-# One-step demo - compile and render all examples
-cd examples && ./run_sphere_demo.sh all
-```
-
-See [examples/README.md](examples/README.md) for full documentation.
 
 ---
 
-## 💎 **Crystal Backend: Modern Development Workflow**
+## Platform Targets
 
-### **Revolutionary Dual-Platform Development**
+### Z80 Targets (Primary)
 
-```bash
-# 1. Write MinZ with Ruby syntax
-cat > game.minz << 'EOF'
-const LIVES = 3;
-fun game_loop() -> void {
-    @print("Lives remaining: #{LIVES}");
-}
-EOF
+| Target | Status | Binary | Notes |
+|--------|--------|--------|-------|
+| **ZX Spectrum** | Working | `.tap` | Main development target, tested via mze + ZXSpeculator |
+| **CP/M** | Working | `.com` | BDOS stdlib, tested via mze with CP/M mode |
+| **Agon Light 2** | Working | `.bin` | eZ80/ADL mode, MOS + VDP stdlib, structural testing only |
+| **MSX** | Compiles | varies | Target config exists, limited testing |
 
-# 2. Test on modern platform (Crystal/Ruby ecosystem)
-mz game.minz -b crystal -o game.cr
-crystal run game.cr  # Instant testing with modern tools!
+### Other Backends
 
-# 3. Deploy to vintage hardware
-mz game.minz -o game.a80  # Same code for ZX Spectrum!
-```
+| Backend | Status | Notes |
+|---------|--------|-------|
+| **Z80** | Production | Full-featured, optimized, 5500+ lines |
+| **6502** | Basic | Generates assembly, limited testing |
+| **C99** | Working | Useful for algorithm verification |
+| **Crystal** | Working | Good for rapid testing |
 
-**Benefits:**
-- 🚀 **10x faster development** - No emulator needed for testing
-- 🐛 **Modern debugging** - Use Crystal's debugger and profiler
-- 📦 **Rich ecosystem** - Access Crystal/Ruby libraries during development
-- ✅ **Proven E2E** - Crystal backend tested with complex programs
+The Z80 backend is production-quality. C99 and Crystal are useful for testing and verification. 6502 generates code but needs more work.
 
 ---
 
-## 🛠️ **Complete Professional Toolchain**
+## Toolchain
+
+All tools are self-contained Go binaries with zero external dependencies.
 
 | Tool | Purpose | Usage |
 |------|---------|-------|
-| **mz** | Multi-backend compiler | `mz program.minz -o program.a80` |
-| **mza** | Native Z80 assembler | `mza program.a80 -o program.bin` |
-| **mze** | Z80 emulator (100% coverage!) | `mze program.bin -v` |
-| **mze debug** | DAP server for VS Code | `mze debug` |
-| **mzrun** | Remote runner via DZRP | `mzrun program.minz --reset` |
-| **mztap** | Instant TAP loader | `mztap game.tap` (500x faster!) |
-| **mzr** | Interactive REPL | `mzr` for experimentation |
+| **mz** | Compiler (MinZ to assembly) | `mz program.minz -o program.a80` |
+| **mza** | Z80 assembler | `mza program.a80 -o program.com` |
+| **mze** | Z80 emulator | `mze program.com -t cpm` |
+| **mzrun** | Remote runner (DZRP) | `mzrun program.minz --reset` |
+| **mztap** | TAP file loader | `mztap game.tap` |
+| **mzr** | Interactive REPL | `mzr` |
 
-### **Live Testing via DZRP**
+### Live Testing with DZRP
 
-![MinZ running on ZXSpeculator](/media/image.png)
-*hello_print.minz running on ZXSpeculator via DZRP - one command from source to screen!*
-
-**DZRP (DeZog Remote Protocol)** enables revolutionary live development - compile, upload, and run on a real emulator in one command!
+For ZX Spectrum development, `mzrun` compiles, assembles, and uploads to a running emulator in one command:
 
 ```bash
-# Configure once (add to ~/.bashrc)
-export DZRP_HOST=localhost
-export DZRP_PORT=11000
-
-# Compile and run MinZ programs
-mzrun hello.minz --reset -v
-
-# Load TAP files instantly (bypasses tape emulation!)
-mztap game.tap  # 19KB loads in ~100ms instead of 55 seconds!
+# Start ZXSpeculator with DZRP enabled, then:
+export DZRP_HOST=localhost DZRP_PORT=11000
+mzrun game.minz --reset -v
 ```
 
-**Recommended Emulator: [ZXSpeculator](https://github.com/deanthecoder/ZXSpeculator)** - A modern ZX Spectrum emulator with native DZRP support, beautiful shaders, and instant feedback.
+### Debug Flags
 
 ```bash
-# Start ZXSpeculator with DZRP enabled
-./ZXSpeculator --dzrp
-
-# Then from another terminal:
-mzrun game.minz --reset
-# Your code is running on the emulator!
-
-# Or load existing TAP files instantly:
-mztap --list demo.tap      # Show TAP contents
-mztap demo.tap             # Load and run
-mztap --load $9000 demo.tap  # Override load address
-```
-
-**Why DZRP is Amazing:**
-- **Instant feedback** - See your changes immediately on a real emulator
-- **No file juggling** - mzrun handles compile → assemble → upload → run
-- **500x faster TAP loading** - mztap bypasses tape emulation entirely
-- **Debug-friendly** - Works with DeZog for full source-level debugging
-- **Multiple emulators** - ZXSpeculator, ZEsarUX, CSpect support DZRP
-- **Unified config** - DZRP_HOST, DZRP_PORT env vars work everywhere
-- **Hot reload workflow** - Edit, save, mzrun, see results in seconds!
-
-### **Debug & Analysis Flags**
-```bash
-mz program.minz --dump-mir          # Output MIR to stdout
-mz program.minz --viz graph.dot     # MIR visualization (Graphviz)
-mz program.minz --dump-ast          # AST in JSON format
-mz program.minz -d                  # Compilation details
-```
-
-**All tools are self-contained with zero dependencies!**
-
-> **Coming Soon:** `--debug-info` flag for source maps (MinZ → MIR → Z80 address mapping) to enable full source-level debugging in VS Code.
-
----
-
-## 📚 **Standard Library**
-
-MinZ includes a comprehensive stdlib optimized for Z80/retro game development:
-
-| Module | Description | Functions |
-|--------|-------------|-----------|
-| `math/fast` | Lookup tables | `fast_sin()`, `fast_cos()`, `fast_sqrt()` |
-| `math/random` | PRNG & noise | `rand8()`, `rand_range()`, `noise2d()` |
-| `graphics/screen` | Pixel graphics | `set_pixel()`, `draw_line()`, `draw_circle()` |
-| `input/keyboard` | Input handling | `is_key_pressed()`, `get_key_dx()` |
-| `text/string` | String ops | `strlen()`, `strcmp()`, `strcpy()` |
-| `text/format` | Formatting | `u8_to_str()`, `u16_to_hex()` |
-| `sound/beep` | Beeper SFX | `beep()`, `sfx_jump()`, `sfx_explosion()` |
-| `time/delay` | Timing | `wait_frame()`, `delay_ms()`, `anim_frame()` |
-| `mem/copy` | Fast memory | `memcpy()`, `memset()`, `memcmp()` |
-| `cpm/bdos` | CP/M calls | `getchar()`, `putchar()`, `file_open()` |
-
-### **Example: Simple Game Loop**
-```minz
-import stdlib.graphics.screen;
-import stdlib.input.keyboard;
-import stdlib.time.delay;
-
-fun main() -> void {
-    clear_screen();
-    set_ink(COLOR_CYAN);
-
-    let x: u8 = 128;
-    let y: u8 = 96;
-
-    loop {
-        wait_frame();
-        clear_pixel(x, y);
-        x = (x + get_key_dx()) as u8;
-        y = (y + get_key_dy()) as u8;
-        set_pixel(x, y);
-    }
-}
+mz program.minz --dump-mir    # Show MIR intermediate representation
+mz program.minz --dump-ast    # AST in JSON format
+mz program.minz --viz out.dot # MIR visualization (Graphviz)
+mz program.minz -d            # Verbose compilation details
 ```
 
 ---
 
-## 📊 **Performance & Metrics**
+## Standard Library
 
-### **Compilation Success Rate**
-- ✅ **100%** of core examples compile successfully (72/72)
-- 18 experimental examples in `examples/experimental/` (4 now passing with generics!)
-- **Generics with monomorphization** now working!
-- Zero-cost interface methods working!
-- **UFCS method syntax** now working! (`obj.method()` → `Type_method(obj)`)
-- **Operator overloading** now working! (`v1 + v2` → `v1.add(v2)`)
-- **Type-based operator dispatch** now working! (`Vec*Vec` vs `Vec*i16`)
-- **Auto-derivation** for comparisons! (just `eq` + `lt` → all 6 operators)
-- See [Release Notes](reports/2025-12-18-003-release-notes.md) for details
+Stdlib modules are organized by domain. Quality varies — some modules are well-tested, others are experimental.
 
-### **Optimization Impact**
-| Feature | Performance Gain | Method |
-|---------|-----------------|--------|
-| **CTIE** | 3-5x faster | Compile-time execution |
-| **TRUE SMC** | 10x faster | Self-modifying code |
-| **MIR Optimizer** | 15-30% faster | Constant folding, strength reduction, DCE |
-| **Loop Reroll** | 50-80% size reduction | Detects repeated calls, collapses to loops |
-| **Assembly Peephole** | 60-85% size reduction | 35+ Z80-specific patterns |
+### Tested and Working
 
-**NEW in v0.15.5:** Two-level optimization pipeline with MIR-level optimizations (constant folding, algebraic simplification, strength reduction, copy propagation, dead code elimination) running before assembly peephole. SDCC-competitive code generation!
+| Module | Description |
+|--------|-------------|
+| `cpm/bdos` | CP/M BDOS calls: `putchar`, `getchar`, `print_string`, file I/O |
+| `agon/mos` | Agon MOS API: `mos_putchar`, `mos_puts`, file I/O (eZ80 ADL mode) |
+| `agon/vdp` | Agon VDP graphics: modes, shapes, sprites, buffer commands |
+| `text/format` | Number formatting: `u8_to_str`, `u16_to_hex` |
+| `mem/copy` | Fast memory ops: `memcpy`, `memset` (LDIR-based) |
 
-### **Language Statistics**
-- **15 major versions** in 14 months
-- **8 backends** (Z80, 6502, 68000, GB, WASM, C, Crystal, LLVM)
-- **280+ documentation** files
-- **Zero dependencies** - Pure Go implementation
+### Available but Less Tested
 
----
+| Module | Description |
+|--------|-------------|
+| `math/fast` | Sin/cos/sqrt lookup tables (256 entries) |
+| `math/random` | LFSR PRNG, noise functions |
+| `graphics/screen` | Pixel/line/circle drawing (ZX Spectrum) |
+| `input/keyboard` | Keyboard matrix, debouncing |
+| `text/string` | strlen, strcmp, strcpy, strcat |
+| `sound/beep` | Beeper SFX |
+| `time/delay` | Frame timing, delays |
 
-## 🎯 **Platform Support**
+### Experimental
 
-### **Vintage Targets**
-| Platform | CPU | Status | Usage |
-|----------|-----|--------|-------|
-| ZX Spectrum | Z80 | ✅ Stable | `mz -t spectrum` |
-| ZX Spectrum Next | Z80N | 🚧 Planned | `mz -t specnext` |
-| Agon Light | eZ80 | 🚧 Planned | `mz -t agon` |
-| Commodore 64 | 6502 | ✅ Stable | `mz -b 6502` |
-| CP/M Systems | Z80 | ✅ Stable | `mz -t cpm` |
-| MSX | Z80 | ✅ Stable | `mz -t msx` |
-| Amstrad CPC | Z80 | ✅ Stable | `mz -t cpc` |
-| Game Boy | SM83 | 🚧 Beta | `mz -b gb` |
-
-### **Modern Targets**
-| Platform | Backend | Status | Usage |
-|----------|---------|--------|-------|
-| Crystal | Crystal | ✅ Stable | `mz -b crystal` |
-| WebAssembly | WASM | ✅ Stable | `mz -b wasm` |
-| Native C | C99 | ✅ Stable | `mz -b c` |
-| LLVM IR | LLVM | ✅ Stable | `mz -b llvm` |
+| Module | Description |
+|--------|-------------|
+| `glsl/*` | GLSL-style shader library: fixed-point math, raymarching, SDFs |
 
 ---
 
-## 📖 **Documentation**
+## Optimization Pipeline
 
-### **Essential Guides**
-- 📚 [Complete Language Specification](docs/230_MinZ_Complete_Language_Specification.md)
-- 🚀 [Quick Start](#-quick-start) (see above)
-- 💎 [Crystal Backend Guide](docs/274_Crystal_Backend_Implementation_Complete.md)
-- 🏆 [Evolution Journey](docs/277_MinZ_Complete_Evolution_Journey.md)
-- 📅 [Revolutionary Timeline](docs/278_MinZ_Revolutionary_Timeline.md)
+MinZ applies optimizations at multiple levels:
 
-### **Advanced Topics**
-- 🔬 [CTIE: Compile-Time Execution](docs/178_CTIE_Working_Announcement.md)
-- 🎯 [True Self-Modifying Code](docs/145_TSMC_Complete_Philosophy.md)
-- 🔄 [Lambda Iterator Implementation](docs/141_Lambda_Iterator_Revolution_Complete.md)
-- 📦 [Module System Design](docs/191_Module_System_Design.md)
+1. **CTIE** — Pure functions with constant args execute at compile time
+2. **MIR optimizer** — Constant folding, strength reduction, dead code elimination
+3. **True SMC** — Self-modifying code patches parameters into instruction immediates
+4. **Loop rerolling** — Detects repeated call sequences, collapses to loops
+5. **Peephole optimizer** — 35+ Z80-specific assembly patterns
 
-### **Architecture & Roadmap**
-- 🏗️ [Compiler Architecture](minzc/docs/INTERNAL_ARCHITECTURE.md)
-- 🔧 [MIR Intermediate Representation](docs/126_MIR_Interpreter_Design.md)
-- ⚡ [Optimization Pipeline](docs/149_World_Class_Multi_Level_Optimization_Guide.md)
-- 🐛 [DAP Debugger Architecture](docs/262_Debugger_Architecture_Plan.md)
-- 🎮 [Z80N & eZ80 Support Vision](docs/266_Z80N_eZ80_Extended_Support_Vision.md)
-- 🔮 [MinZ 2026 Vision](docs/263_MinZ_2026_Vision.md)
-
-### **Active Development (Q1 2026)**
-- 🚧 **[Native Parser Plan](docs/NATIVE_PARSER_PLAN.md)** - Replacing tree-sitter with pure Go RDP parser (in progress)
-
-### **Current Status & Analysis**
-- 📊 [Parser Analysis Report](docs/264_Parser_Analysis_Report.md) - Tree-sitter at 100% accuracy
-- ⚠️ [Known Semantic Issues](docs/265_Known_Semantic_Issues.md) - 4 documented issues, 92% success
-- 📈 [Code Generation Analysis](docs/260_MinZ_Code_Generation_Analysis.md) - Assembly output quality
+Example: `fibonacci(10)` with CTIE generates `LD A, 55` — zero runtime cost.
 
 ---
 
-## 🌟 **Why Choose MinZ?**
+## Project Structure
 
-### **For Retro Enthusiasts**
-- ✅ Modern syntax for vintage hardware
-- ✅ Professional tooling for hobby projects
-- ✅ No assembly knowledge required
-- ✅ Active community and development
-
-### **For Modern Developers**
-- ✅ Learn retro computing with familiar syntax
-- ✅ Test algorithms on constrained hardware
-- ✅ Bridge to embedded systems programming
-- ✅ Unique resume skill
-
-### **For Educators**
-- ✅ Teach systems programming concepts
-- ✅ Demonstrate optimization techniques
-- ✅ Show evolution of computing
-- ✅ Hands-on hardware interaction
+```
+minz/
+  minzc/           Compiler (Go)
+    cmd/             CLI tools (mz, mza, mze, mzr, mzrun)
+    pkg/
+      parser/        Participle-based parser
+      semantic/      Type checking, analysis (~11K lines)
+      ir/            Intermediate representation
+      codegen/       Code generators (Z80, 6502, C, Crystal, etc.)
+      optimizer/     MIR + peephole optimizers
+      z80asm/        Built-in Z80 assembler
+  stdlib/          Standard library (.minz)
+    agon/            Agon Light 2 (MOS, VDP)
+    cpm/             CP/M (BDOS)
+    graphics/        Screen drawing
+    math/            Fast math, PRNG
+    text/            String, formatting
+    ...
+  examples/        Example programs
+    agon/            Agon Light 2 demos
+    cpm/             CP/M programs
+    games/           Game demos
+  docs/            300+ documentation files
+```
 
 ---
 
-## 🤝 **Contributing**
+## Current Status (February 2026)
 
-We welcome contributions! MinZ is built by a passionate community.
+MinZ is under active development. The Z80 backend is mature and produces working binaries for ZX Spectrum, CP/M, and Agon Light 2. Other backends exist but are less developed.
 
-### **How to Contribute**
-1. **Report Issues** - Found a bug? [Open an issue](https://github.com/oisee/minz/issues)
-2. **Submit PRs** - Fix bugs or add features
-3. **Write Docs** - Help others learn MinZ
-4. **Share Projects** - Show what you built!
+**What works well:**
+- Simple to medium programs (hello world, fibonacci, demos, string output)
+- Multi-target compilation (same source for Spectrum, CP/M, Agon)
+- Self-contained toolchain with zero dependencies
+- Compile-time execution (CTIE) for constant expressions
+- Inline assembly for performance-critical code
 
-### **Development Setup**
+**What needs work:**
+- Complex programs with nested loops and heavy register pressure
+- Register allocator edge cases
+- Some optimizer passes can be too aggressive
+- Non-Z80 backends are basic
+- No IDE integration yet (LSP planned)
+
+**Metrics:**
+- ~73 core examples, ~272 total (including experimental)
+- ~90K lines of Go in the compiler
+- 4 active backends: Z80 (production), 6502, C99, Crystal
+- 3 validated Z80 targets: Spectrum, CP/M, Agon Light 2
+- Zero external dependencies
+
+---
+
+## Contributing
+
 ```bash
-# Prerequisites
-npm install -g tree-sitter-cli
-tree-sitter init-config  # REQUIRED for parsing
-
-# Clone and build
-git clone https://github.com/oisee/minz.git
-cd minz
-
-# Generate tree-sitter parser
-tree-sitter generate
-
-# Build compiler and tools
+# Build everything
 cd minzc
 go build -o mz cmd/minzc/main.go
-go build -o mza cmd/mza/main.go   # Assembler
-go build -o mze cmd/mze/main.go   # Emulator
+go build -o mza cmd/mza/main.go
+go build -o mze cmd/mze/main.go
 
-# Test
-./mz ../examples/simple_add.minz -o /tmp/test.a80
+# Test an example
+./mz ../examples/hello_print.minz -o /tmp/hello.a80
+./mza /tmp/hello.a80 -o /tmp/hello.tap
+./mze /tmp/hello.tap
+
+# Run compiler tests
+go test ./pkg/...
 ```
 
----
-
-## 🎨 **GLSL Shader Library - NOW WORKING!**
-
-Inspired by [ZXSpeculator's stunning OneSmallStep](https://github.com/deanthecoder/ZXSpeculator/tree/main/Experiments) lunar raymarcher, we've implemented a complete GLSL-style shader library for Z80!
-
-**Raymarched 3D Sphere Demo** - 410 lines MinZ compiles to 4,384 lines of optimized Z80:
-
-```minz
-// Full raymarched 3D sphere with lighting!
-import glsl;
-
-// Scene: sphere at origin
-fun map(p: vec3) -> i16 {
-    return sdSphere(p, fp_one());  // SDF sphere
-}
-
-// Render pixel with raymarching
-fun renderPixel(x: u8, y: u8) -> u8 {
-    let ro = vec3 { x: 0, y: 0, z: 0 - (3 << 8) };  // Camera
-    let rd = v3_normalize(makeRay(x, y));
-
-    let dist = raymarch(ro, rd);  // 15 iterations, DJNZ optimized!
-    if dist < 0 { return 32; }    // Background
-
-    let normal = calcNormal(v3_add(ro, v3_mulf(rd, dist)));
-    let diffuse = v3_dot(normal, light_dir());
-    return fp_clamp(diffuse, 0, 127) as u8;
-}
-```
-
-**Library Modules (`stdlib/glsl/`):**
-
-| Module | Functions | Purpose |
-|--------|-----------|---------|
-| `fp.minz` | `fp_mul`, `fp_div`, `fp_sqrt` | 8.8 fixed-point math with Z80 ASM |
-| `trig.minz` | `fp_sin`, `fp_cos`, `fp_atan2` | 65-entry lookup tables |
-| `vec.minz` | `v3_dot`, `v3_cross`, `v3_normalize` | GLSL-style vectors |
-| `sdf.minz` | `sdSphere`, `sdBox`, `opSmoothUnion` | Signed Distance Functions |
-| `raymarch.minz` | `raymarch`, `calcLighting`, `applyFog` | Raymarching framework |
-| `dither.minz` | Floyd-Steinberg, Bayer, Blue Noise | 1-bit output |
-
-**Compilation Results:**
-- **DJNZ loops**: 4 (raymarching, pixel loops)
-- **True SMC calls**: 30 (parameter patching)
-- **Inlined functions**: 95 (critical path optimization)
-- **Peephole patterns**: 30 applied
-
-**This is real 3D graphics on 1980s hardware!** See `examples/glsl_sphere_demo.minz` for a complete working demo.
+Report issues at [github.com/oisee/minz/issues](https://github.com/oisee/minz/issues).
 
 ---
 
-## 📜 **License**
+## License
 
-MinZ is MIT licensed. See [LICENSE](LICENSE) for details.
+MIT. See [LICENSE](LICENSE) for details.
 
 ---
-
-## 🎉 **Join the Revolution!**
-
-MinZ proves that modern programming belongs on vintage hardware. Join us in building the future of retro computing!
 
 <div align="center">
 
-### **MinZ: Where Modern Dreams Meet Vintage Reality™**
-
-*From v0.1.0 to v0.17.0 and beyond - Every release a revolution!*
-
-> **v0.17.0 Highlights:** UFCS method syntax + Operator overloading with type-based dispatch and auto-derivation!
-
-> ⚠️ **Remember:** MinZ is under active development. Join us in building the future of retro computing!
+**MinZ: Modern syntax for vintage hardware.**
 
 </div>

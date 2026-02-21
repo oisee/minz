@@ -112,7 +112,7 @@ cd minzc
 
 ### Tooling
 - Error messages with file:line:col format ✅
-- Multi-backend: Z80, 6502, Crystal, WASM, C ✅
+- Multi-backend: Z80 (production), 6502, C, Crystal ✅
 - 100% Z80 instruction coverage in emulator ✅
 
 ---
@@ -262,9 +262,9 @@ cd minzc && make build
 
 ### Multi-Backend Compilation
 ```bash
-mz program.minz -b z80 -o program.a80    # Z80 (default)
-mz program.minz -b c -o program.c        # C code
-mz program.minz -b wasm -o program.wat   # WebAssembly
+mz program.minz -b z80 -o program.a80       # Z80 (default, production)
+mz program.minz -b c -o program.c           # C99 (testing)
+mz program.minz -b crystal -o program.cr    # Crystal (testing)
 ```
 
 ## 📁 Project Structure
@@ -337,7 +337,7 @@ fun main() {
 | Stdlib modules | 10 |
 | Z80 emulator coverage | 100% |
 | Peephole patterns | 35+ |
-| Backends | 8 |
+| Active backends | 4 (Z80, 6502, C, Crystal) |
 
 ---
 
