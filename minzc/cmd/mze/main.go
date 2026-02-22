@@ -86,16 +86,30 @@ SUPPORTED PLATFORMS (-t/--target):
 
 		// Set up CP/M BDOS handler if target is cpm
 		if target == "cpm" {
+			dmaAddr := uint16(0x0080) // Default DMA address
+			currentDisk := byte(0)    // A:
+
 			z80.SetBDOSHandler(func(function byte, de uint16) (a byte, hl uint16, handled bool) {
 				if verbose {
 					fmt.Printf("[BDOS %02X DE=%04X] ", function, de)
 				}
 				switch function {
+				case 0x00: // System reset (warm boot) — halt emulation
+					return 0, 0, true
 				case 0x01: // Console input
 					return '\n', 0, true
 				case 0x02: // Console output
 					fmt.Printf("%c", byte(de&0xFF))
 					return 0, 0, true
+				case 0x06: // Direct console I/O
+					if byte(de&0xFF) == 0xFF {
+						return 0, 0, true // No char available
+					} else if byte(de&0xFF) == 0xFE {
+						return 0, 0, true // No char available
+					} else {
+						fmt.Printf("%c", byte(de&0xFF))
+						return 0, 0, true
+					}
 				case 0x09: // Print string ($-terminated)
 					addr := de
 					for {
@@ -111,12 +125,35 @@ SUPPORTED PLATFORMS (-t/--target):
 					return 0, 0, true
 				case 0x0C: // Get version
 					return 0x22, 0x0022, true // CP/M 2.2
+				case 0x0D: // Reset disk system
+					currentDisk = 0
+					dmaAddr = 0x0080
+					return 0, 0, true
+				case 0x0E: // Select disk
+					currentDisk = byte(de & 0xFF)
+					return 0, 0, true
 				case 0x19: // Get current disk
-					return 0, 0, true // A:
+					return currentDisk, 0, true
+				case 0x1A: // Set DMA address
+					dmaAddr = de
+					if verbose {
+						fmt.Printf("[DMA=%04X] ", dmaAddr)
+					}
+					return 0, 0, true
+				case 0x20: // Get/set user code
+					if byte(de&0xFF) == 0xFF {
+						return 0, 0, true // Return current user (0)
+					}
+					return 0, 0, true
 				default:
-					return 0, 0, true // Unhandled - just return
+					if verbose {
+						fmt.Printf("[BDOS %02X unhandled] ", function)
+					}
+					return 0, 0, true
 				}
 			})
+
+			_ = dmaAddr // Will be used by file I/O handlers later
 		}
 
 		// Load binary into memory at specified address
