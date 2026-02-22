@@ -30,9 +30,8 @@ func (a *Assembler) processInstruction(line *Line) error {
 		return nil
 	}
 
-	// Fall back to old instruction processing for now
-	// This will be removed once table is complete
-	return a.processInstructionOld(line)
+	// Table-driven encoding handles all Z80 instructions
+	return fmt.Errorf("unknown instruction or invalid operands: %s", line.Mnemonic)
 }
 
 // encodeInstructionTable uses the table-driven approach to encode instructions
@@ -334,10 +333,16 @@ func parseReg8(s string) string {
 func parseReg16(s string) string {
 	s = strings.ToUpper(strings.TrimSpace(s))
 	switch s {
-	case "BC", "DE", "HL", "SP", "IX", "IY", "AF":
+	case "BC", "DE", "HL", "SP", "IX", "IY", "AF", "AF'":
 		return s
 	default:
 		return ""
 	}
+}
+
+// resolveValue resolves an operand to a numeric value
+func (a *Assembler) resolveValue(operand string) (int, error) {
+	// Use the expression evaluator which handles numbers, symbols, and arithmetic
+	return a.EvaluateExpression(operand)
 }
 

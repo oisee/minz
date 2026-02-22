@@ -350,6 +350,16 @@ var jpInstructions = []InstructionPattern{
 	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeReg8, "L"}}, Encoding: []byte{0xED, 0x69}},
 	// OUT (C),0 - undocumented, outputs zero to port C (ED 71)
 	{Mnemonic: "OUT", Operands: []OperandPattern{{OpTypeIndReg, "(C)"}, {OpTypeImm8, ""}}, EncodingFunc: encodeOUT_C_0},
+
+	// Block I/O instructions
+	{Mnemonic: "INI", Operands: nil, Encoding: []byte{0xED, 0xA2}},
+	{Mnemonic: "INIR", Operands: nil, Encoding: []byte{0xED, 0xB2}},
+	{Mnemonic: "IND", Operands: nil, Encoding: []byte{0xED, 0xAA}},
+	{Mnemonic: "INDR", Operands: nil, Encoding: []byte{0xED, 0xBA}},
+	{Mnemonic: "OUTI", Operands: nil, Encoding: []byte{0xED, 0xA3}},
+	{Mnemonic: "OTIR", Operands: nil, Encoding: []byte{0xED, 0xB3}},
+	{Mnemonic: "OUTD", Operands: nil, Encoding: []byte{0xED, 0xAB}},
+	{Mnemonic: "OTDR", Operands: nil, Encoding: []byte{0xED, 0xBB}},
 }
 
 func encodeRST(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
