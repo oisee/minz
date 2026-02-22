@@ -59,7 +59,7 @@ SUPPORTED PLATFORMS (-t/--target):
 
 		if verbose {
 			fmt.Printf("🎮 mze - MinZ Z80 Multi-Platform Emulator v2.0\n")
-			fmt.Printf("🚀 100% Z80 Instruction Coverage Enabled!\n")
+			fmt.Printf("🚀 100%% Z80 Instruction Coverage Enabled!\n")
 			fmt.Printf("🎯 Target: %s\n", target)
 			fmt.Printf("📁 Binary: %s\n", binaryFile)
 			fmt.Printf("📍 Load:   $%04X (%d)\n", loadAddress, loadAddress)

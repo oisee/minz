@@ -49,15 +49,12 @@ install: all
 		exit 1; \
 	fi
 
-# Install to user's home directory
+# Install to user's local directory (~/.local/bin)
 .PHONY: install-user
 install-user: all
-	@echo "Installing MinZ tools to ~/bin..."
-	@mkdir -p ~/bin
-	@cp mz mza mze mzv mzr mzrun mztap ~/bin/
-	@echo "✅ MinZ tools installed to ~/bin"
-	@echo "📝 Make sure ~/bin is in your PATH:"
-	@echo '   export PATH="$$HOME/bin:$$PATH"'
+	@mkdir -p ~/.local/bin
+	@for f in mz mza mze mzv mzr mzrun mztap; do [ -f $$f ] && cp -f $$f ~/.local/bin/; done
+	@echo "MinZ tools installed to ~/.local/bin/"
 
 # Clean build artifacts
 .PHONY: clean
@@ -90,7 +87,7 @@ help:
 	@echo "Targets:"
 	@echo "  all           - Build all tools"
 	@echo "  install       - Install to $(BINDIR) (may need sudo)"
-	@echo "  install-user  - Install to ~/bin (no sudo needed)"
+	@echo "  install-user  - Install to ~/.local/bin"
 	@echo "  clean         - Remove built executables"
 	@echo "  test          - Run basic compilation test"
 	@echo "  help          - Show this help"
@@ -98,5 +95,5 @@ help:
 	@echo "Examples:"
 	@echo "  make              # Build all tools"
 	@echo "  make install      # Install to /usr/local/bin"
-	@echo "  make install-user # Install to ~/bin"
+	@echo "  make install-user # Install to ~/.local/bin"
 	@echo "  sudo make install # Install with sudo if needed"
