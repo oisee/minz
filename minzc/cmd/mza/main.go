@@ -63,11 +63,29 @@ DIRECTIVES:
   MACRO/ENDM          Define macro
   END                 End of source
 
+TARGETS (-t):
+  generic      Raw binary output (.bin)
+  zxspectrum   ZX Spectrum 48K snapshot (.sna)
+  zxtap        ZX Spectrum tape file (.tap)
+  cpm          CP/M 2.2 command file (.com), ORG $0100
+  msx          MSX cartridge ROM (.rom)
+  agon         Agon Light 2 / eZ80 executable (.bin)
+
+OUTPUT FORMATS (-f):
+  auto         Use target default (default)
+  bin / raw    Raw binary, no header — overrides target format
+  sna          ZX Spectrum .SNA snapshot (49179 bytes)
+  tap          ZX Spectrum .TAP tape image
+  com          CP/M .COM executable
+
 EXAMPLES:
-  mza program.a80                     # Assemble to program.bin
-  mza -o game.rom program.a80         # Custom output file
+  mza program.a80                     # Assemble to .bin (generic)
+  mza -t zxspectrum program.a80       # ZX Spectrum .sna snapshot
+  mza -t zxtap program.a80            # ZX Spectrum .tap tape
+  mza -t cpm program.a80              # CP/M .com executable
+  mza -t zxspectrum -f bin prog.a80   # Raw binary (no SNA wrapper)
+  mza -o game.sna program.a80         # Auto-detect target from extension
   mza -l program.lst program.a80      # Generate listing
-  mza --no-macros program.a80         # Disable macro processing
   mza -s symbols.sym program.a80      # Generate symbol table
   mza -v program.a80                  # Verbose output`,
 	Args: cobra.ExactArgs(1),
@@ -167,9 +185,11 @@ EXAMPLES:
 			os.Exit(1)
 		}
 		
-		// Generate target-specific output
+		// Generate output — raw binary if format is "bin" or "raw", else target-specific
 		var outputData []byte
-		if targetConfig.OutputFormat.Generator != nil {
+		if formatFlag == "bin" || formatFlag == "raw" {
+			outputData = result.Binary
+		} else if targetConfig.OutputFormat.Generator != nil {
 			outputData, err = targetConfig.OutputFormat.Generator(result)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Failed to generate %s output: %v\n", targetConfig.Name, err)
