@@ -367,13 +367,10 @@ func (a *Assembler) handleEND(line *Line) error {
 }
 
 // handleINCLUDE includes another file
+// Note: INCLUDE is preprocessed before parsing (see preprocessIncludes in assembler.go).
+// This handler should not be reached in normal flow.
 func (a *Assembler) handleINCLUDE(line *Line) error {
-	if len(line.Operands) != 1 {
-		return fmt.Errorf("INCLUDE requires exactly one operand")
-	}
-	
-	// For now, we don't support includes
-	return fmt.Errorf("INCLUDE directive not yet implemented")
+	return fmt.Errorf("INCLUDE directive should be preprocessed before assembly; use AssembleFile() instead of AssembleString() for INCLUDE support")
 }
 
 // handleMACRO begins a macro definition

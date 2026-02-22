@@ -3,6 +3,7 @@ package z80asm
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -62,6 +63,10 @@ type Assembler struct {
 
 	// Target platform support
 	target        *TargetConfig
+
+	// Include file support
+	sourceDir     string            // Directory of the main source file
+	includedFiles map[string]bool   // Set of included files (absolute paths) for circular inclusion guard
 
 	// Multi-pass convergence for span-dependent optimization (JJ instruction)
 	instructionSizes map[int]int  // Line number -> instruction size from previous pass
@@ -398,12 +403,28 @@ func GetCrossModeSuffix(callerADL, calleeADL bool) byte {
 
 // AssembleFile assembles a source file
 func (a *Assembler) AssembleFile(filename string) (*Result, error) {
+	// Resolve absolute path for circular inclusion tracking
+	absPath, err := filepath.Abs(filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve path: %w", err)
+	}
+
+	// Set source directory for resolving relative INCLUDE paths
+	a.sourceDir = filepath.Dir(absPath)
+
 	// Read file
 	source, err := ReadFile(filename)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
-	
+
+	// Preprocess INCLUDE directives (before parsing)
+	a.includedFiles = map[string]bool{absPath: true}
+	source, err = a.preprocessIncludes(source, absPath)
+	if err != nil {
+		return nil, fmt.Errorf("include error: %w", err)
+	}
+
 	return a.AssembleString(source)
 }
 
@@ -736,6 +757,80 @@ func ReadFile(filename string) (string, error) {
 		return "", fmt.Errorf("failed to read file %s: %v", filename, err)
 	}
 	return string(content), nil
+}
+
+// preprocessIncludes recursively expands INCLUDE directives in source text.
+// It detects circular inclusions via the includedFiles set.
+func (a *Assembler) preprocessIncludes(source string, sourceFile string) (string, error) {
+	sourceFileDir := filepath.Dir(sourceFile)
+	lines := strings.Split(source, "\n")
+	var result []string
+
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		// Check for INCLUDE directive (case-insensitive)
+		upper := strings.ToUpper(trimmed)
+		if !strings.HasPrefix(upper, "INCLUDE ") && !strings.HasPrefix(upper, "INCLUDE\t") {
+			result = append(result, line)
+			continue
+		}
+
+		// Extract filename from INCLUDE directive
+		includeArg := strings.TrimSpace(trimmed[len("INCLUDE"):])
+
+		// Strip quotes if present
+		includeArg = strings.Trim(includeArg, "\"'")
+		if includeArg == "" {
+			return "", fmt.Errorf("%s:%d: INCLUDE requires a filename", sourceFile, i+1)
+		}
+
+		// Remove trailing comment
+		if idx := strings.Index(includeArg, ";"); idx >= 0 {
+			includeArg = strings.TrimSpace(includeArg[:idx])
+			includeArg = strings.Trim(includeArg, "\"'")
+		}
+
+		// Resolve path relative to the including file's directory
+		includePath := includeArg
+		if !filepath.IsAbs(includePath) {
+			includePath = filepath.Join(sourceFileDir, includePath)
+		}
+
+		absIncludePath, err := filepath.Abs(includePath)
+		if err != nil {
+			return "", fmt.Errorf("%s:%d: failed to resolve include path %q: %w", sourceFile, i+1, includeArg, err)
+		}
+
+		// Circular inclusion guard
+		if a.includedFiles[absIncludePath] {
+			return "", fmt.Errorf("%s:%d: circular INCLUDE detected: %s", sourceFile, i+1, includeArg)
+		}
+		a.includedFiles[absIncludePath] = true
+
+		// Read the included file
+		content, err := ReadFile(absIncludePath)
+		if err != nil {
+			return "", fmt.Errorf("%s:%d: %w", sourceFile, i+1, err)
+		}
+
+		// Recursively preprocess includes in the included file
+		content, err = a.preprocessIncludes(content, absIncludePath)
+		if err != nil {
+			return "", err
+		}
+
+		// Splice in the included content
+		result = append(result, fmt.Sprintf("; >>> INCLUDE %s", includeArg))
+		result = append(result, content)
+		result = append(result, fmt.Sprintf("; <<< END INCLUDE %s", includeArg))
+
+		// Remove from set after processing (allows the same file to be included
+		// from different branches, just not circularly)
+		delete(a.includedFiles, absIncludePath)
+	}
+
+	return strings.Join(result, "\n"), nil
 }
 
 // EmitByte emits a byte to the output in pass 2
