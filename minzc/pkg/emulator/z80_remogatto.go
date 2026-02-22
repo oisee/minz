@@ -31,6 +31,15 @@ type RemogattoZ80 struct {
 
 	// BDOS handler for CP/M emulation
 	bdosHandler func(function byte, de uint16) (a byte, hl uint16, handled bool)
+
+	// RST handler for Agon MOS emulation (intercepts RST vectors 0x00-0x38)
+	rstHandler func(vector byte, regs RSTRegisters) (RSTRegisters, bool)
+}
+
+// RSTRegisters provides access to CPU registers for RST handlers
+type RSTRegisters struct {
+	A, B, C, D, E, H, L byte
+	HL                   uint16
 }
 
 // Memory implements z80.MemoryAccessor interface
@@ -204,6 +213,28 @@ func (z *RemogattoZ80) Run() error {
 			}
 		}
 
+		// Agon MOS RST intercept (RST 0x00, 0x08, 0x10, 0x18, etc.)
+		if z.rstHandler != nil && (pc == 0x00 || pc == 0x08 || pc == 0x10 || pc == 0x18 || pc == 0x20 || pc == 0x28 || pc == 0x30) {
+			regs := RSTRegisters{
+				A: z.cpu.A, B: z.cpu.B, C: z.cpu.C,
+				D: z.cpu.D, E: z.cpu.E, H: z.cpu.H, L: z.cpu.L,
+				HL: z.cpu.HL(),
+			}
+			newRegs, handled := z.rstHandler(byte(pc), regs)
+			if handled {
+				z.cpu.A = newRegs.A
+				z.cpu.H = newRegs.H
+				z.cpu.L = newRegs.L
+				// Simulate RET
+				sp := z.cpu.SP()
+				retLo := z.memory.ReadByte(sp)
+				retHi := z.memory.ReadByte(sp + 1)
+				z.cpu.SetSP(sp + 2)
+				z.cpu.SetPC(uint16(retHi)<<8 | uint16(retLo))
+				continue
+			}
+		}
+
 		// Execute one instruction
 		z.cpu.DoOpcode()
 		z.cycles += int(z.cpu.Tstates)
@@ -319,6 +350,11 @@ func (z *RemogattoZ80) GetMemory(address uint16) byte {
 // SetSMCTracker sets the SMC tracking callback
 func (z *RemogattoZ80) SetSMCTracker(tracker func(addr uint16, oldVal, newVal byte)) {
 	z.memory.smcTracker = tracker
+}
+
+// SetRSTHandler sets the RST vector handler for MOS emulation
+func (z *RemogattoZ80) SetRSTHandler(handler func(vector byte, regs RSTRegisters) (RSTRegisters, bool)) {
+	z.rstHandler = handler
 }
 
 // SetIOHandlers sets custom I/O handlers

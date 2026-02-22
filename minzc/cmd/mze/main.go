@@ -156,6 +156,49 @@ SUPPORTED PLATFORMS (-t/--target):
 			_ = dmaAddr // Will be used by file I/O handlers later
 		}
 
+		// Set up Agon MOS RST handler if target is agon
+		if target == "agon" {
+			z80.SetRSTHandler(func(vector byte, regs emulator.RSTRegisters) (emulator.RSTRegisters, bool) {
+				switch vector {
+				case 0x10: // mos_putchar — character in A
+					fmt.Printf("%c", regs.A)
+					return regs, true
+				case 0x18: // mos_puts — string pointer in HL
+					addr := regs.HL
+					for {
+						ch := z80.ReadMemory(addr)
+						if ch == 0 {
+							break
+						}
+						fmt.Printf("%c", ch)
+						addr++
+					}
+					return regs, true
+				case 0x00: // MOS API call — function in A
+					if verbose {
+						fmt.Printf("[MOS %02X] ", regs.A)
+					}
+					switch regs.A {
+					case 0x00: // mos_getkey — return key (stub: newline)
+						regs.A = '\n'
+						return regs, true
+					default:
+						return regs, true
+					}
+				case 0x08: // mos_sysvars — return pointer in IY (stub)
+					if verbose {
+						fmt.Printf("[MOS SYSVARS] ")
+					}
+					return regs, true
+				default:
+					if verbose {
+						fmt.Printf("[RST %02X unhandled] ", vector)
+					}
+					return regs, true
+				}
+			})
+		}
+
 		// Load binary into memory at specified address
 		z80.LoadAt(loadAddress, binary)
 		z80.SetPC(startAddress)
