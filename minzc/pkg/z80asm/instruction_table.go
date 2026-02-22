@@ -471,6 +471,34 @@ func encodeBitIdx(a *Assembler, pattern *InstructionPattern, values []interface{
 	return []byte{prefix, 0xCB, byte(disp), opcode}, nil
 }
 
+// encodeCBIdx encodes CB-prefix shift/rotate instructions with IX/IY indexed addressing
+// Format: prefix, CB, displacement, opcode
+// Encoding[0] = DD/FD prefix, Encoding[1] = opcode
+func encodeCBIdx(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	prefix := pattern.Encoding[0]
+	opcode := pattern.Encoding[1]
+	for _, v := range values {
+		if d, ok := v.(int8); ok {
+			return []byte{prefix, 0xCB, byte(d), opcode}, nil
+		}
+	}
+	return nil, fmt.Errorf("no index displacement found")
+}
+
+// encodeIM encodes IM 0/1/2 instructions
+func encodeIM(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	for _, v := range values {
+		if mode, ok := v.(int); ok {
+			opcodeMap := map[int]byte{0: 0x46, 1: 0x56, 2: 0x5E}
+			if op, found := opcodeMap[mode]; found {
+				return []byte{0xED, op}, nil
+			}
+			return nil, fmt.Errorf("invalid interrupt mode: %d", mode)
+		}
+	}
+	return nil, fmt.Errorf("no immediate value found")
+}
+
 func encodeJPImm(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
 	result := make([]byte, len(pattern.Encoding))
 	copy(result, pattern.Encoding)
@@ -899,6 +927,92 @@ var bitInstructions = []InstructionPattern{
 	{Mnemonic: "SLL", Operands: []OperandPattern{{OpTypeReg8, "L"}}, Encoding: []byte{0xCB, 0x35}},
 	{Mnemonic: "SLL", Operands: []OperandPattern{{OpTypeIndReg, "(HL)"}}, Encoding: []byte{0xCB, 0x36}},
 	{Mnemonic: "SLL", Operands: []OperandPattern{{OpTypeReg8, "A"}}, Encoding: []byte{0xCB, 0x37}},
+	{Mnemonic: "SLL", Operands: []OperandPattern{{OpTypeIndIdx, "IX"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xDD, 0x36}},
+	{Mnemonic: "SLL", Operands: []OperandPattern{{OpTypeIndIdx, "IY"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xFD, 0x36}},
+
+	// RLC r / (HL) / (IX+d) / (IY+d) — CB 00-07
+	{Mnemonic: "RLC", Operands: []OperandPattern{{OpTypeReg8, "B"}}, Encoding: []byte{0xCB, 0x00}},
+	{Mnemonic: "RLC", Operands: []OperandPattern{{OpTypeReg8, "C"}}, Encoding: []byte{0xCB, 0x01}},
+	{Mnemonic: "RLC", Operands: []OperandPattern{{OpTypeReg8, "D"}}, Encoding: []byte{0xCB, 0x02}},
+	{Mnemonic: "RLC", Operands: []OperandPattern{{OpTypeReg8, "E"}}, Encoding: []byte{0xCB, 0x03}},
+	{Mnemonic: "RLC", Operands: []OperandPattern{{OpTypeReg8, "H"}}, Encoding: []byte{0xCB, 0x04}},
+	{Mnemonic: "RLC", Operands: []OperandPattern{{OpTypeReg8, "L"}}, Encoding: []byte{0xCB, 0x05}},
+	{Mnemonic: "RLC", Operands: []OperandPattern{{OpTypeIndReg, "(HL)"}}, Encoding: []byte{0xCB, 0x06}},
+	{Mnemonic: "RLC", Operands: []OperandPattern{{OpTypeReg8, "A"}}, Encoding: []byte{0xCB, 0x07}},
+	{Mnemonic: "RLC", Operands: []OperandPattern{{OpTypeIndIdx, "IX"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xDD, 0x06}},
+	{Mnemonic: "RLC", Operands: []OperandPattern{{OpTypeIndIdx, "IY"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xFD, 0x06}},
+
+	// RRC r / (HL) / (IX+d) / (IY+d) — CB 08-0F
+	{Mnemonic: "RRC", Operands: []OperandPattern{{OpTypeReg8, "B"}}, Encoding: []byte{0xCB, 0x08}},
+	{Mnemonic: "RRC", Operands: []OperandPattern{{OpTypeReg8, "C"}}, Encoding: []byte{0xCB, 0x09}},
+	{Mnemonic: "RRC", Operands: []OperandPattern{{OpTypeReg8, "D"}}, Encoding: []byte{0xCB, 0x0A}},
+	{Mnemonic: "RRC", Operands: []OperandPattern{{OpTypeReg8, "E"}}, Encoding: []byte{0xCB, 0x0B}},
+	{Mnemonic: "RRC", Operands: []OperandPattern{{OpTypeReg8, "H"}}, Encoding: []byte{0xCB, 0x0C}},
+	{Mnemonic: "RRC", Operands: []OperandPattern{{OpTypeReg8, "L"}}, Encoding: []byte{0xCB, 0x0D}},
+	{Mnemonic: "RRC", Operands: []OperandPattern{{OpTypeIndReg, "(HL)"}}, Encoding: []byte{0xCB, 0x0E}},
+	{Mnemonic: "RRC", Operands: []OperandPattern{{OpTypeReg8, "A"}}, Encoding: []byte{0xCB, 0x0F}},
+	{Mnemonic: "RRC", Operands: []OperandPattern{{OpTypeIndIdx, "IX"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xDD, 0x0E}},
+	{Mnemonic: "RRC", Operands: []OperandPattern{{OpTypeIndIdx, "IY"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xFD, 0x0E}},
+
+	// RL r / (HL) / (IX+d) / (IY+d) — CB 10-17
+	{Mnemonic: "RL", Operands: []OperandPattern{{OpTypeReg8, "B"}}, Encoding: []byte{0xCB, 0x10}},
+	{Mnemonic: "RL", Operands: []OperandPattern{{OpTypeReg8, "C"}}, Encoding: []byte{0xCB, 0x11}},
+	{Mnemonic: "RL", Operands: []OperandPattern{{OpTypeReg8, "D"}}, Encoding: []byte{0xCB, 0x12}},
+	{Mnemonic: "RL", Operands: []OperandPattern{{OpTypeReg8, "E"}}, Encoding: []byte{0xCB, 0x13}},
+	{Mnemonic: "RL", Operands: []OperandPattern{{OpTypeReg8, "H"}}, Encoding: []byte{0xCB, 0x14}},
+	{Mnemonic: "RL", Operands: []OperandPattern{{OpTypeReg8, "L"}}, Encoding: []byte{0xCB, 0x15}},
+	{Mnemonic: "RL", Operands: []OperandPattern{{OpTypeIndReg, "(HL)"}}, Encoding: []byte{0xCB, 0x16}},
+	{Mnemonic: "RL", Operands: []OperandPattern{{OpTypeReg8, "A"}}, Encoding: []byte{0xCB, 0x17}},
+	{Mnemonic: "RL", Operands: []OperandPattern{{OpTypeIndIdx, "IX"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xDD, 0x16}},
+	{Mnemonic: "RL", Operands: []OperandPattern{{OpTypeIndIdx, "IY"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xFD, 0x16}},
+
+	// RR r / (HL) / (IX+d) / (IY+d) — CB 18-1F
+	{Mnemonic: "RR", Operands: []OperandPattern{{OpTypeReg8, "B"}}, Encoding: []byte{0xCB, 0x18}},
+	{Mnemonic: "RR", Operands: []OperandPattern{{OpTypeReg8, "C"}}, Encoding: []byte{0xCB, 0x19}},
+	{Mnemonic: "RR", Operands: []OperandPattern{{OpTypeReg8, "D"}}, Encoding: []byte{0xCB, 0x1A}},
+	{Mnemonic: "RR", Operands: []OperandPattern{{OpTypeReg8, "E"}}, Encoding: []byte{0xCB, 0x1B}},
+	{Mnemonic: "RR", Operands: []OperandPattern{{OpTypeReg8, "H"}}, Encoding: []byte{0xCB, 0x1C}},
+	{Mnemonic: "RR", Operands: []OperandPattern{{OpTypeReg8, "L"}}, Encoding: []byte{0xCB, 0x1D}},
+	{Mnemonic: "RR", Operands: []OperandPattern{{OpTypeIndReg, "(HL)"}}, Encoding: []byte{0xCB, 0x1E}},
+	{Mnemonic: "RR", Operands: []OperandPattern{{OpTypeReg8, "A"}}, Encoding: []byte{0xCB, 0x1F}},
+	{Mnemonic: "RR", Operands: []OperandPattern{{OpTypeIndIdx, "IX"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xDD, 0x1E}},
+	{Mnemonic: "RR", Operands: []OperandPattern{{OpTypeIndIdx, "IY"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xFD, 0x1E}},
+
+	// SLA r / (HL) / (IX+d) / (IY+d) — CB 20-27
+	{Mnemonic: "SLA", Operands: []OperandPattern{{OpTypeReg8, "B"}}, Encoding: []byte{0xCB, 0x20}},
+	{Mnemonic: "SLA", Operands: []OperandPattern{{OpTypeReg8, "C"}}, Encoding: []byte{0xCB, 0x21}},
+	{Mnemonic: "SLA", Operands: []OperandPattern{{OpTypeReg8, "D"}}, Encoding: []byte{0xCB, 0x22}},
+	{Mnemonic: "SLA", Operands: []OperandPattern{{OpTypeReg8, "E"}}, Encoding: []byte{0xCB, 0x23}},
+	{Mnemonic: "SLA", Operands: []OperandPattern{{OpTypeReg8, "H"}}, Encoding: []byte{0xCB, 0x24}},
+	{Mnemonic: "SLA", Operands: []OperandPattern{{OpTypeReg8, "L"}}, Encoding: []byte{0xCB, 0x25}},
+	{Mnemonic: "SLA", Operands: []OperandPattern{{OpTypeIndReg, "(HL)"}}, Encoding: []byte{0xCB, 0x26}},
+	{Mnemonic: "SLA", Operands: []OperandPattern{{OpTypeReg8, "A"}}, Encoding: []byte{0xCB, 0x27}},
+	{Mnemonic: "SLA", Operands: []OperandPattern{{OpTypeIndIdx, "IX"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xDD, 0x26}},
+	{Mnemonic: "SLA", Operands: []OperandPattern{{OpTypeIndIdx, "IY"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xFD, 0x26}},
+
+	// SRA r / (HL) / (IX+d) / (IY+d) — CB 28-2F
+	{Mnemonic: "SRA", Operands: []OperandPattern{{OpTypeReg8, "B"}}, Encoding: []byte{0xCB, 0x28}},
+	{Mnemonic: "SRA", Operands: []OperandPattern{{OpTypeReg8, "C"}}, Encoding: []byte{0xCB, 0x29}},
+	{Mnemonic: "SRA", Operands: []OperandPattern{{OpTypeReg8, "D"}}, Encoding: []byte{0xCB, 0x2A}},
+	{Mnemonic: "SRA", Operands: []OperandPattern{{OpTypeReg8, "E"}}, Encoding: []byte{0xCB, 0x2B}},
+	{Mnemonic: "SRA", Operands: []OperandPattern{{OpTypeReg8, "H"}}, Encoding: []byte{0xCB, 0x2C}},
+	{Mnemonic: "SRA", Operands: []OperandPattern{{OpTypeReg8, "L"}}, Encoding: []byte{0xCB, 0x2D}},
+	{Mnemonic: "SRA", Operands: []OperandPattern{{OpTypeIndReg, "(HL)"}}, Encoding: []byte{0xCB, 0x2E}},
+	{Mnemonic: "SRA", Operands: []OperandPattern{{OpTypeReg8, "A"}}, Encoding: []byte{0xCB, 0x2F}},
+	{Mnemonic: "SRA", Operands: []OperandPattern{{OpTypeIndIdx, "IX"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xDD, 0x2E}},
+	{Mnemonic: "SRA", Operands: []OperandPattern{{OpTypeIndIdx, "IY"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xFD, 0x2E}},
+
+	// SRL r / (HL) / (IX+d) / (IY+d) — CB 38-3F
+	{Mnemonic: "SRL", Operands: []OperandPattern{{OpTypeReg8, "B"}}, Encoding: []byte{0xCB, 0x38}},
+	{Mnemonic: "SRL", Operands: []OperandPattern{{OpTypeReg8, "C"}}, Encoding: []byte{0xCB, 0x39}},
+	{Mnemonic: "SRL", Operands: []OperandPattern{{OpTypeReg8, "D"}}, Encoding: []byte{0xCB, 0x3A}},
+	{Mnemonic: "SRL", Operands: []OperandPattern{{OpTypeReg8, "E"}}, Encoding: []byte{0xCB, 0x3B}},
+	{Mnemonic: "SRL", Operands: []OperandPattern{{OpTypeReg8, "H"}}, Encoding: []byte{0xCB, 0x3C}},
+	{Mnemonic: "SRL", Operands: []OperandPattern{{OpTypeReg8, "L"}}, Encoding: []byte{0xCB, 0x3D}},
+	{Mnemonic: "SRL", Operands: []OperandPattern{{OpTypeIndReg, "(HL)"}}, Encoding: []byte{0xCB, 0x3E}},
+	{Mnemonic: "SRL", Operands: []OperandPattern{{OpTypeReg8, "A"}}, Encoding: []byte{0xCB, 0x3F}},
+	{Mnemonic: "SRL", Operands: []OperandPattern{{OpTypeIndIdx, "IX"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xDD, 0x3E}},
+	{Mnemonic: "SRL", Operands: []OperandPattern{{OpTypeIndIdx, "IY"}}, EncodingFunc: encodeCBIdx, Encoding: []byte{0xFD, 0x3E}},
 
 	// BIT b, r — CB (0x40 | bit<<3 | reg)
 	{Mnemonic: "BIT", Operands: []OperandPattern{{OpTypeBit, ""}, {OpTypeReg8, "B"}}, EncodingFunc: encodeBitOp, Encoding: []byte{0x40, 0x00}},
@@ -1029,6 +1143,25 @@ var miscInstructions = []InstructionPattern{
 	{Mnemonic: "NEG", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0x44}},
 	{Mnemonic: "CCF", Operands: []OperandPattern{}, Encoding: []byte{0x3F}},
 	{Mnemonic: "SCF", Operands: []OperandPattern{}, Encoding: []byte{0x37}},
+
+	// Block transfer instructions (ED prefix)
+	{Mnemonic: "LDI", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0xA0}},
+	{Mnemonic: "LDIR", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0xB0}},
+	{Mnemonic: "LDD", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0xA8}},
+	{Mnemonic: "LDDR", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0xB8}},
+
+	// Block compare instructions (ED prefix)
+	{Mnemonic: "CPI", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0xA1}},
+	{Mnemonic: "CPIR", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0xB1}},
+	{Mnemonic: "CPD", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0xA9}},
+	{Mnemonic: "CPDR", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0xB9}},
+
+	// BCD rotate (ED prefix)
+	{Mnemonic: "RLD", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0x6F}},
+	{Mnemonic: "RRD", Operands: []OperandPattern{}, Encoding: []byte{0xED, 0x67}},
+
+	// Interrupt mode (ED prefix)
+	{Mnemonic: "IM", Operands: []OperandPattern{{OpTypeImm8, ""}}, EncodingFunc: encodeIM},
 }
 
 func encodeCALL(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {

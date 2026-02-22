@@ -743,3 +743,53 @@ func TestLiveSjasmplus_BasicInstructions(t *testing.T) {
 		})
 	}
 }
+
+// TestLiveSjasmplus_MigratedInstructions tests all instructions that were migrated
+// from the old encoder to the new table-driven system, compared against sjasmplus.
+func TestLiveSjasmplus_MigratedInstructions(t *testing.T) {
+	if _, err := exec.LookPath("sjasmplus"); err != nil {
+		t.Skip("sjasmplus not installed")
+	}
+
+	tests := []struct {
+		name   string
+		source string
+	}{
+		// CB-prefix shifts/rotates: all 7 mnemonics × 8 registers
+		{"RLC_all_regs", "ORG 0\nRLC B\nRLC C\nRLC D\nRLC E\nRLC H\nRLC L\nRLC (HL)\nRLC A"},
+		{"RRC_all_regs", "ORG 0\nRRC B\nRRC C\nRRC D\nRRC E\nRRC H\nRRC L\nRRC (HL)\nRRC A"},
+		{"RL_all_regs", "ORG 0\nRL B\nRL C\nRL D\nRL E\nRL H\nRL L\nRL (HL)\nRL A"},
+		{"RR_all_regs", "ORG 0\nRR B\nRR C\nRR D\nRR E\nRR H\nRR L\nRR (HL)\nRR A"},
+		{"SLA_all_regs", "ORG 0\nSLA B\nSLA C\nSLA D\nSLA E\nSLA H\nSLA L\nSLA (HL)\nSLA A"},
+		{"SRA_all_regs", "ORG 0\nSRA B\nSRA C\nSRA D\nSRA E\nSRA H\nSRA L\nSRA (HL)\nSRA A"},
+		{"SRL_all_regs", "ORG 0\nSRL B\nSRL C\nSRL D\nSRL E\nSRL H\nSRL L\nSRL (HL)\nSRL A"},
+
+		// IX/IY indexed shifts/rotates
+		{"shifts_IX", "ORG 0\nRLC (IX+5)\nRRC (IX+5)\nRL (IX+5)\nRR (IX+5)\nSLA (IX+5)\nSRA (IX+5)\nSRL (IX+5)\nSLL (IX+5)"},
+		{"shifts_IY", "ORG 0\nRLC (IY-3)\nRRC (IY-3)\nRL (IY-3)\nRR (IY-3)\nSLA (IY-3)\nSRA (IY-3)\nSRL (IY-3)\nSLL (IY-3)"},
+
+		// Block transfer + compare (all 8)
+		{"block_transfer", "ORG 0\nLDI\nLDIR\nLDD\nLDDR"},
+		{"block_compare", "ORG 0\nCPI\nCPIR\nCPD\nCPDR"},
+
+		// BCD rotate
+		{"BCD_rotate", "ORG 0\nRLD\nRRD"},
+
+		// Interrupt mode
+		{"IM_modes", "ORG 0\nIM 0\nIM 1\nIM 2"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sjBin := assembleSjasmplus(t, tt.source)
+			asm := NewAssembler()
+			result, err := asm.AssembleString(tt.source)
+			if err != nil {
+				t.Fatalf("mza assembly failed: %v", err)
+			}
+			if !bytes.Equal(result.Binary, sjBin) {
+				t.Errorf("Binary mismatch with sjasmplus:\n  mza:      %X\n  sjasmplus: %X", result.Binary, sjBin)
+			}
+		})
+	}
+}
