@@ -38,15 +38,62 @@ func (ctx *LocalLabelContext) processLabelForContext(label string, addr int, pas
 }
 
 // expandLocalLabelReferences expands local label references in operands
+// Handles both direct references (.local) and embedded references like (.local), (.local+1)
 func (ctx *LocalLabelContext) expandLocalLabelReferences(operand string) string {
-	// If operand is a local label reference (starts with exactly one dot)
-	if isLocalLabel(operand) {
-		if ctx.currentGlobal != "" {
-			// Expand to full label name
-			return ctx.currentGlobal + operand
-		}
+	if ctx.currentGlobal == "" {
+		return operand
 	}
-	return operand
+
+	// Simple case: entire operand is a local label
+	if isLocalLabel(operand) {
+		return ctx.currentGlobal + operand
+	}
+
+	// Scan for local label references embedded in expressions
+	// A local label starts with '.' followed by a letter/underscore, then alphanumeric/_
+	result := []byte(operand)
+	i := 0
+	for i < len(result) {
+		if result[i] == '.' && i+1 < len(result) {
+			// Check if preceded by a letter/digit/underscore (part of another symbol like "foo.bar")
+			if i > 0 {
+				prev := result[i-1]
+				if (prev >= 'a' && prev <= 'z') || (prev >= 'A' && prev <= 'Z') ||
+					(prev >= '0' && prev <= '9') || prev == '_' {
+					i++
+					continue
+				}
+			}
+			// Check next char is a valid label start
+			next := result[i+1]
+			if (next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z') || next == '_' {
+				// Find end of local label name
+				end := i + 2
+				for end < len(result) {
+					c := result[end]
+					if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+						(c >= '0' && c <= '9') || c == '_' {
+						end++
+					} else {
+						break
+					}
+				}
+				localName := string(result[i:end])
+				if isLocalLabel(localName) {
+					expanded := ctx.currentGlobal + localName
+					newResult := make([]byte, 0, len(result)+len(ctx.currentGlobal))
+					newResult = append(newResult, result[:i]...)
+					newResult = append(newResult, []byte(expanded)...)
+					newResult = append(newResult, result[end:]...)
+					i += len(expanded)
+					result = newResult
+					continue
+				}
+			}
+		}
+		i++
+	}
+	return string(result)
 }
 
 // preprocessLocalLabels processes all lines to expand local labels before assembly

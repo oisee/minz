@@ -137,8 +137,9 @@ func (a *Assembler) handleDB(line *Line) error {
 			if err != nil {
 				return fmt.Errorf("invalid DB operand '%s': %w", operand, err)
 			}
-			if val > 255 {
-				return fmt.Errorf("DB value out of range: %d", val)
+			// Accept -128..255 range, truncate to byte via two's complement
+			if val > 255 || val < -128 {
+				return fmt.Errorf("DB value out of range: %d (must be -128..255)", val)
 			}
 			bytes = append(bytes, byte(val))
 		}

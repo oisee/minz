@@ -138,6 +138,15 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 		return reg, true
 		
 	case OpTypeImm8, OpTypeImm16:
+		// Reject register names — they must match OpTypeReg8/OpTypeReg16, not immediate
+		upper := strings.ToUpper(operand)
+		switch upper {
+		case "A", "B", "C", "D", "E", "F", "H", "L",
+			"BC", "DE", "HL", "SP", "AF", "IX", "IY",
+			"I", "R", "IXH", "IXL", "IYH", "IYL", "AF'":
+			return nil, false
+		}
+
 		// Try to resolve value (number or symbol)
 		value, err := a.resolveValue(operand)
 		if err != nil {
@@ -181,15 +190,28 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 		if !strings.HasPrefix(operand, "(") || !strings.HasSuffix(operand, ")") {
 			return nil, false
 		}
-		
-		inner := operand[1:len(operand)-1]
-		
+
+		inner := operand[1 : len(operand)-1]
+
+		// Reject IX/IY indexed addressing — those use OpTypeIndIdx
+		upperInner := strings.ToUpper(strings.TrimSpace(inner))
+		if strings.HasPrefix(upperInner, "IX") || strings.HasPrefix(upperInner, "IY") {
+			return nil, false
+		}
+
+		// Reject register names — those use OpTypeIndReg
+		switch upperInner {
+		case "HL", "BC", "DE", "SP", "C",
+			"A", "B", "D", "E", "H", "L":
+			return nil, false
+		}
+
 		// Resolve the address
 		addr, err := a.resolveValue(inner)
 		if err != nil {
 			return nil, false
 		}
-		
+
 		return addr, true
 		
 	case OpTypeRelative:
@@ -228,14 +250,70 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 		
 		return nil, false
 		
+	case OpTypeIndIdx:
+		// Check for (IX+d) or (IY+d) indexed addressing
+		if !strings.HasPrefix(operand, "(") || !strings.HasSuffix(operand, ")") {
+			return nil, false
+		}
+		inner := strings.TrimSpace(operand[1 : len(operand)-1])
+		upper := strings.ToUpper(inner)
+
+		// Check constraint (IX or IY)
+		prefix := pattern.Constraint
+		if prefix == "" {
+			if strings.HasPrefix(upper, "IX") {
+				prefix = "IX"
+			} else if strings.HasPrefix(upper, "IY") {
+				prefix = "IY"
+			} else {
+				return nil, false
+			}
+		}
+		if !strings.HasPrefix(upper, prefix) {
+			return nil, false
+		}
+
+		rest := inner[len(prefix):]
+		if rest == "" {
+			// (IX) = (IX+0)
+			return int8(0), true
+		}
+		if rest[0] != '+' && rest[0] != '-' {
+			return nil, false
+		}
+
+		var offsetStr string
+		if rest[0] == '+' {
+			offsetStr = strings.TrimSpace(rest[1:])
+		} else {
+			offsetStr = strings.TrimSpace(rest) // Keep the minus sign
+		}
+
+		val, err := parseNumber(offsetStr)
+		if err != nil {
+			return nil, false
+		}
+		if val > 127 && val < 0xFF80 {
+			return nil, false
+		}
+		return int8(val), true
+
 	case OpTypeBit:
-		// Parse bit number (0-7)
+		// Parse bit number (0-7) — try literal first, then resolve EQU constants
 		bit, err := strconv.Atoi(operand)
-		if err != nil || bit < 0 || bit > 7 {
+		if err != nil {
+			// Try resolving as symbol (e.g., EQU constant)
+			val, resolveErr := a.resolveValue(operand)
+			if resolveErr != nil {
+				return nil, false
+			}
+			bit = val
+		}
+		if bit < 0 || bit > 7 {
 			return nil, false
 		}
 		return uint8(bit), true
-		
+
 	default:
 		return nil, false
 	}
@@ -245,7 +323,7 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 func parseReg8(s string) string {
 	s = strings.ToUpper(strings.TrimSpace(s))
 	switch s {
-	case "A", "B", "C", "D", "E", "H", "L":
+	case "A", "B", "C", "D", "E", "H", "L", "I", "R", "F":
 		return s
 	default:
 		return ""

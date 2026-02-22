@@ -158,92 +158,184 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 		return val & 0xFF, nil // Low byte
 	}
 	
+	// Operator precedence (lowest first = checked first):
+	// 1. | (bitwise OR)
+	// 2. & (bitwise AND)
+	// 3. >> << (shifts)
+	// 4. + - (add/sub)
+	// 5. * / % (mul/div/mod)
+	// 6. ~ (unary NOT) — checked last so it binds tighter than binary ops
+
+	// Handle | (bitwise OR)
+	if idx := strings.LastIndex(expr, "|"); idx > 0 {
+		left := expr[:idx]
+		right := expr[idx+1:]
+		leftVal, err := a.EvaluateExpression(left)
+		if err != nil {
+			return 0, err
+		}
+		rightVal, err := a.EvaluateExpression(right)
+		if err != nil {
+			return 0, err
+		}
+		return leftVal | rightVal, nil
+	}
+
+	// Handle & (bitwise AND)
+	if idx := strings.LastIndex(expr, "&"); idx > 0 {
+		left := expr[:idx]
+		right := expr[idx+1:]
+		leftVal, err := a.EvaluateExpression(left)
+		if err != nil {
+			return 0, err
+		}
+		rightVal, err := a.EvaluateExpression(right)
+		if err != nil {
+			return 0, err
+		}
+		return leftVal & rightVal, nil
+	}
+
+	// Handle >> (right shift) — check before single-char operators
+	if idx := strings.LastIndex(expr, ">>"); idx > 0 {
+		left := expr[:idx]
+		right := expr[idx+2:]
+		leftVal, err := a.EvaluateExpression(left)
+		if err != nil {
+			return 0, err
+		}
+		rightVal, err := a.EvaluateExpression(right)
+		if err != nil {
+			return 0, err
+		}
+		if rightVal < 0 {
+			return 0, fmt.Errorf("negative shift count: %d", rightVal)
+		}
+		return leftVal >> uint(rightVal), nil
+	}
+
+	// Handle << (left shift)
+	if idx := strings.LastIndex(expr, "<<"); idx > 0 {
+		left := expr[:idx]
+		right := expr[idx+2:]
+		leftVal, err := a.EvaluateExpression(left)
+		if err != nil {
+			return 0, err
+		}
+		rightVal, err := a.EvaluateExpression(right)
+		if err != nil {
+			return 0, err
+		}
+		if rightVal < 0 {
+			return 0, fmt.Errorf("negative shift count: %d", rightVal)
+		}
+		return leftVal << uint(rightVal), nil
+	}
+
 	// Handle addition
 	if idx := strings.LastIndex(expr, "+"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+1:]
-		
 		leftVal, err := a.EvaluateExpression(left)
 		if err != nil {
 			return 0, err
 		}
-		
 		rightVal, err := a.EvaluateExpression(right)
 		if err != nil {
 			return 0, err
 		}
-		
 		return leftVal + rightVal, nil
 	}
-	
+
 	// Handle subtraction (but not negative numbers)
 	if idx := strings.LastIndex(expr, "-"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+1:]
-		
 		leftVal, err := a.EvaluateExpression(left)
 		if err != nil {
 			return 0, err
 		}
-		
 		rightVal, err := a.EvaluateExpression(right)
 		if err != nil {
 			return 0, err
 		}
-		
 		return leftVal - rightVal, nil
 	}
-	
+
 	// Handle multiplication
 	if idx := strings.Index(expr, "*"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+1:]
-		
 		leftVal, err := a.EvaluateExpression(left)
 		if err != nil {
 			return 0, err
 		}
-		
 		rightVal, err := a.EvaluateExpression(right)
 		if err != nil {
 			return 0, err
 		}
-		
 		return leftVal * rightVal, nil
 	}
-	
+
 	// Handle division
 	if idx := strings.Index(expr, "/"); idx > 0 {
 		left := expr[:idx]
 		right := expr[idx+1:]
-		
 		leftVal, err := a.EvaluateExpression(left)
 		if err != nil {
 			return 0, err
 		}
-		
 		rightVal, err := a.EvaluateExpression(right)
 		if err != nil {
 			return 0, err
 		}
-		
 		if rightVal == 0 {
 			return 0, fmt.Errorf("division by zero")
 		}
-		
 		return leftVal / rightVal, nil
 	}
+
+	// Handle modulo
+	if idx := strings.Index(expr, "%"); idx > 0 {
+		// Make sure it's not a binary prefix %
+		left := strings.TrimSpace(expr[:idx])
+		if left != "" {
+			right := expr[idx+1:]
+			leftVal, err := a.EvaluateExpression(left)
+			if err != nil {
+				return 0, err
+			}
+			rightVal, err := a.EvaluateExpression(right)
+			if err != nil {
+				return 0, err
+			}
+			if rightVal == 0 {
+				return 0, fmt.Errorf("division by zero")
+			}
+			return leftVal % rightVal, nil
+		}
+	}
 	
+	// Handle unary ~ (bitwise NOT) — checked after binary ops to bind tighter
+	trimmed := strings.TrimSpace(expr)
+	if strings.HasPrefix(trimmed, "~") {
+		val, err := a.EvaluateExpression(trimmed[1:])
+		if err != nil {
+			return 0, err
+		}
+		return ^val & 0xFFFFFF, nil
+	}
+
 	// Check for current address symbol
 	if expr == "$" {
 		return a.currentAddr, nil
 	}
-	
+
 	// No operators found, try to parse as immediate
 	if val, err := a.parseImmediate(expr); err == nil {
 		return int(val), nil
 	}
-	
+
 	return 0, fmt.Errorf("invalid expression: %s", expr)
 }
 
@@ -312,14 +404,13 @@ func (a *Assembler) parseImmediate(s string) (int, error) {
 		// Character literal: 'A'
 		return int(s[1]), nil
 	} else {
-		// Try decimal (handle negative numbers for two's complement)
+		// Try decimal (handle negative numbers)
 		if strings.HasPrefix(s, "-") {
 			val, err := strconv.ParseInt(s, 10, 64)
 			if err != nil {
 				return 0, err
 			}
-			// Convert to 16-bit two's complement
-			return int(val & 0xFFFFFF), nil
+			return int(val), nil
 		}
 		val, err := strconv.ParseUint(s, 10, 32)
 		return int(val), err

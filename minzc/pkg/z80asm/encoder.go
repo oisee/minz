@@ -168,15 +168,16 @@ func encodeLD(a *Assembler, line *Line, def *InstructionDef) ([]byte, error) {
 	if destIsReg && srcIsReg {
 		return encodeLDRegReg(destReg, srcReg)
 	}
-	
+
+	// Handle indirect addressing BEFORE immediate loads
+	// (IX+d) operands look like non-register non-immediate, so check first
+	if isIndirect(dest) || isIndirect(src) {
+		return encodeLDIndirect(a, dest, src)
+	}
+
 	// Handle immediate loads
 	if destIsReg && !srcIsReg {
 		return encodeLDRegImm(a, destReg, src)
-	}
-	
-	// Handle indirect addressing
-	if isIndirect(dest) || isIndirect(src) {
-		return encodeLDIndirect(a, dest, src)
 	}
 	
 	// Handle memory operations
