@@ -263,8 +263,8 @@ All tools are self-contained Go binaries with zero external dependencies.
 | Tool | Purpose | Usage |
 |------|---------|-------|
 | **mz** | Compiler (MinZ to assembly) | `mz program.minz -o program.a80` |
-| **mza** | Z80 assembler | `mza program.a80 -o program.com` |
-| **mze** | Z80 emulator | `mze program.com -t cpm` |
+| **mza** | Z80 assembler (table-driven, all Z80 ops) | `mza program.a80 -o program.com` |
+| **mze** | Z80 emulator (1335/1335 FUSE tests pass) | `mze program.com -t cpm` |
 | **mzrun** | Remote runner (DZRP) | `mzrun program.minz --reset` |
 | **mztap** | TAP file loader | `mztap game.tap` |
 | **mzr** | Interactive REPL | `mzr` |
@@ -390,6 +390,7 @@ MinZ is under active development. The Z80 backend is mature and produces working
 - ~90K lines of Go in the compiler
 - 4 active backends: Z80 (production), 6502, C99, Crystal
 - 3 validated Z80 targets: Spectrum, CP/M, Agon Light 2
+- **1335/1335 FUSE Z80 tests pass** — gold-standard CPU verification including all undocumented opcodes
 - Zero external dependencies
 
 ---
