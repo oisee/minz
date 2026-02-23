@@ -49,6 +49,9 @@ var (
 	markData     []string
 	showCycles   bool
 	noXrefs      bool
+	noABI        bool
+	abiFile      string
+	exportABIFile string
 )
 
 // parseAddress parses hex (0x, $, suffix h), or decimal addresses.
@@ -161,6 +164,9 @@ func init() {
 	rootCmd.Flags().StringArrayVar(&markData, "mark-data", nil, "Force range as data: XXXX-XXXX (repeatable)")
 	rootCmd.Flags().BoolVar(&showCycles, "cycles", false, "Show T-state cycle counts")
 	rootCmd.Flags().BoolVar(&noXrefs, "no-xrefs", false, "Suppress cross-reference comments")
+	rootCmd.Flags().BoolVar(&noABI, "no-abi", false, "Suppress ABI/syscall annotations")
+	rootCmd.Flags().StringVar(&abiFile, "abi", "", "Load additional .abi file (merged with built-in platform)")
+	rootCmd.Flags().StringVar(&exportABIFile, "export-abi", "", "Export platform ABI profile to .abi file")
 }
 
 func main() {
@@ -367,6 +373,38 @@ func runAnalyzed(inputFile string, data []byte, org uint16) error {
 
 	// Auto-label
 	a.AutoLabel()
+
+	// ABI annotation (platform system call annotations)
+	if !noABI {
+		if abiFile != "" {
+			userProfile, err := analysis.LoadABIFile(abiFile)
+			if err != nil {
+				return fmt.Errorf("failed to load ABI file %s: %w", abiFile, err)
+			}
+			builtinProfile := analysis.GetABIProfile(platform)
+			if builtinProfile != nil {
+				merged := analysis.MergeProfiles(builtinProfile, userProfile)
+				a.Platform = platform
+				a.AnnotateABIWithProfile(merged)
+			} else {
+				a.AnnotateABIWithProfile(userProfile)
+			}
+		} else {
+			a.AnnotateABI()
+		}
+	}
+
+	// Export ABI profile if requested
+	if exportABIFile != "" {
+		profile := analysis.GetABIProfile(platform)
+		if profile == nil {
+			return fmt.Errorf("no built-in ABI profile for platform %q", platform)
+		}
+		if err := analysis.ExportABIFile(profile, exportABIFile); err != nil {
+			return fmt.Errorf("failed to export ABI file: %w", err)
+		}
+		fmt.Fprintf(os.Stderr, "Exported ABI profile to %s\n", exportABIFile)
+	}
 
 	// Recompute stats
 	a.ComputeStats()
