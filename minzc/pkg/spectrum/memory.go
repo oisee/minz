@@ -297,6 +297,15 @@ func (m *Memory) ReadScreen(offset uint16) byte {
 	return 0
 }
 
+// ReadRAMDirect reads a byte directly from a specific RAM page and offset.
+// Used by snapshot savers.
+func (m *Memory) ReadRAMDirect(page int, offset uint16) byte {
+	if page >= 0 && page < 8 && offset < 16384 {
+		return m.RAM[page][offset]
+	}
+	return 0
+}
+
 // WriteRAMDirect writes a byte directly to a specific RAM page and offset.
 // Used by snapshot loaders.
 func (m *Memory) WriteRAMDirect(page int, offset uint16, val byte) {

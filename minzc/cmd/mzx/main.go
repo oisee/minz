@@ -10,14 +10,25 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
+	"time"
 
+	"github.com/ebitengine/oto/v3"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	"github.com/minz/minzc/pkg/spectrum"
 	"github.com/minz/minzc/pkg/spectrum/formats"
+)
+
+// Version info — injected at build time via ldflags.
+var (
+	version   = "dev"
+	gitCommit = "unknown"
+	buildDate = "unknown"
+	buildNum  = "0"
 )
 
 //go:embed roms/48.rom
@@ -34,9 +45,9 @@ type Game struct {
 	scale    int
 	noAudio  bool
 
-	// Audio
-	audioCtx    *audio.Context
-	audioPlayer *audio.Player
+	// Audio (direct oto for low latency)
+	otoCtx    *oto.Context
+	otoPlayer *oto.Player
 
 	// Key mapping: ebiten key → []SpecKey (some keys map to Shift+key)
 	keyMap map[ebiten.Key][]spectrum.SpecKey
@@ -44,30 +55,47 @@ type Game struct {
 	// Keystroke injection queue (for --type flag)
 	keystrokeQueue *formats.KeystrokeQueue
 
+	// Turbo mode: run many frames per tick (F3 toggle, F4 hold)
+	turbo         bool
+	turboFrames   int // frames per Update() in turbo mode
+
 	// Startup: restore stderr after first few frames (CAMetalLayer suppression)
 	startupFrames int
 }
 
 func newGame(machine *spectrum.Machine, scale int, noAudio bool) *Game {
 	g := &Game{
-		machine: machine,
-		screen:  ebiten.NewImage(machine.ScreenWidth(), machine.ScreenHeight()),
-		scale:   scale,
-		noAudio: noAudio,
-		keyMap:  buildKeyMap(),
+		machine:     machine,
+		screen:      ebiten.NewImage(machine.ScreenWidth(), machine.ScreenHeight()),
+		scale:       scale,
+		noAudio:     noAudio,
+		keyMap:      buildKeyMap(),
+		turboFrames: 20, // 20x speed (1 second = 20 frames at 50Hz)
 	}
 
 	if !noAudio {
-		g.audioCtx = audio.NewContext(audioSampleRate)
-		mixer := &audioMixer{beeper: machine.Beeper, ay: machine.AY}
+		// Use oto directly (bypassing Ebitengine audio) for minimal latency.
+		// BufferSize controls the CoreAudio/ALSA buffer — the dominant source
+		// of audio latency. 2 frames (7056 bytes = ~40ms) is the minimum
+		// that avoids underruns on most systems.
+		otoOpts := &oto.NewContextOptions{
+			SampleRate:   audioSampleRate,
+			ChannelCount: 2,
+			Format:       oto.FormatSignedInt16LE,
+			BufferSize:   40 * time.Millisecond,
+		}
+		var readyCh chan struct{}
 		var err error
-		g.audioPlayer, err = g.audioCtx.NewPlayer(mixer)
+		g.otoCtx, readyCh, err = oto.NewContext(otoOpts)
 		if err != nil {
 			log.Printf("Warning: audio init failed: %v", err)
 			g.noAudio = true
 		} else {
-			g.audioPlayer.SetBufferSize(audioSampleRate / 25) // ~40ms buffer
-			g.audioPlayer.Play()
+			<-readyCh // wait for audio hardware to be ready
+			mixer := &audioMixer{beeper: machine.Beeper, ay: machine.AY}
+			g.otoPlayer = g.otoCtx.NewPlayer(mixer)
+			g.otoPlayer.SetBufferSize(audioSampleRate / 50 * 4 * 2) // 40ms player buffer
+			g.otoPlayer.Play()
 		}
 	}
 
@@ -96,6 +124,25 @@ func (g *Game) Update() error {
 			log.Printf("Screenshot saved: %s", path)
 		}
 	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF12) {
+		path := fmt.Sprintf("mzx_snapshot_%06d.sna", g.machine.FrameCount())
+		if err := formats.SaveSNA(path, g.machine); err != nil {
+			log.Printf("Snapshot error: %v", err)
+		} else {
+			log.Printf("Snapshot saved: %s", path)
+		}
+	}
+
+	// F3: toggle turbo (max speed), F4: hold for turbo
+	if inpututil.IsKeyJustPressed(ebiten.KeyF3) {
+		g.turbo = !g.turbo
+		if g.turbo {
+			log.Printf("Turbo ON (%dx)", g.turboFrames)
+		} else {
+			log.Printf("Turbo OFF")
+		}
+	}
+	holdTurbo := ebiten.IsKeyPressed(ebiten.KeyF4)
 
 	// Sync keyboard state
 	g.syncKeyboard()
@@ -105,8 +152,14 @@ func (g *Game) Update() error {
 		g.keystrokeQueue.Update()
 	}
 
-	// Run one frame
-	g.machine.RunFrame()
+	// Run frame(s) — in turbo mode, run many frames per tick (skip ULA rendering)
+	if g.turbo || holdTurbo {
+		for i := 0; i < g.turboFrames; i++ {
+			g.machine.RunFrameFast()
+		}
+	} else {
+		g.machine.RunFrame()
+	}
 
 	return nil
 }
@@ -132,18 +185,101 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 func (g *Game) syncKeyboard() {
 	g.machine.Keyboard.Reset()
 
-	for key, specKeys := range g.keyMap {
-		if ebiten.IsKeyPressed(key) {
-			for _, sk := range specKeys {
-				g.machine.Keyboard.KeyPress(sk.Row, sk.Bit)
+	// Detect PC modifier state
+	pcShift := ebiten.IsKeyPressed(ebiten.KeyShiftLeft) || ebiten.IsKeyPressed(ebiten.KeyShiftRight)
+	pcCtrl := ebiten.IsKeyPressed(ebiten.KeyControlLeft) || ebiten.IsKeyPressed(ebiten.KeyControlRight)
+
+	// Track whether PC Shift has been "consumed" by a shifted-punctuation combo.
+	// If consumed, we don't pass it through as Caps Shift.
+	shiftConsumed := false
+
+	// --- Shifted punctuation (US keyboard layout) ---
+	// When PC Shift is held with a key that produces a different character,
+	// translate to the correct Spectrum Symbol Shift combo.
+	if pcShift {
+		// Shift + number keys → symbols on US keyboard
+		shiftNumMap := []struct {
+			key  ebiten.Key
+			spec []spectrum.SpecKey // Spectrum equivalent
+		}{
+			{ebiten.KeyDigit1, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key1}},  // ! → SS+1
+			{ebiten.KeyDigit2, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key2}},  // @ → SS+2
+			{ebiten.KeyDigit3, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key3}},  // # → SS+3
+			{ebiten.KeyDigit4, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key4}},  // $ → SS+4
+			{ebiten.KeyDigit5, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key5}},  // % → SS+5
+			{ebiten.KeyDigit6, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key6}},  // ^ → SS+6 (↑)
+			{ebiten.KeyDigit7, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key6}},  // & → SS+6 (closest)
+			{ebiten.KeyDigit8, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyB}},  // * → SS+B
+			{ebiten.KeyDigit9, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key8}},  // ( → SS+8
+			{ebiten.KeyDigit0, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key9}},  // ) → SS+9
+			{ebiten.KeyMinus, []spectrum.SpecKey{spectrum.KeySym, spectrum.Key0}},   // _ → SS+0
+			{ebiten.KeyEqual, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyK}},   // + → SS+K
+			{ebiten.KeySemicolon, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyZ}}, // : → SS+Z
+			{ebiten.KeyQuote, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyP}},   // " → SS+P
+			{ebiten.KeyComma, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyR}},   // < → SS+R
+			{ebiten.KeyPeriod, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyT}},  // > → SS+T
+			{ebiten.KeySlash, []spectrum.SpecKey{spectrum.KeySym, spectrum.KeyC}},   // ? → SS+C
+		}
+		for _, entry := range shiftNumMap {
+			if ebiten.IsKeyPressed(entry.key) {
+				for _, sk := range entry.spec {
+					g.machine.Keyboard.KeyPress(sk.Row, sk.Bit)
+				}
+				shiftConsumed = true
 			}
 		}
 	}
+
+	// --- Unshifted key mappings ---
+	// Only apply when the key ISN'T already handled by a shift combo above.
+	for key, specKeys := range g.keyMap {
+		if !ebiten.IsKeyPressed(key) {
+			continue
+		}
+		// Skip keys that were handled by shift combos
+		if pcShift && g.isShiftComboKey(key) {
+			continue
+		}
+		for _, sk := range specKeys {
+			g.machine.Keyboard.KeyPress(sk.Row, sk.Bit)
+		}
+	}
+
+	// --- Modifiers ---
+	// Left Shift → Caps Shift (only if not consumed by a shifted-punctuation combo)
+	if ebiten.IsKeyPressed(ebiten.KeyShiftLeft) && !shiftConsumed {
+		g.machine.Keyboard.KeyPress(spectrum.KeyShift.Row, spectrum.KeyShift.Bit)
+	}
+	// Right Shift → Symbol Shift (standalone, for direct Spectrum SS use)
+	// Only if not consumed by a shifted-punctuation combo
+	if ebiten.IsKeyPressed(ebiten.KeyShiftRight) && !shiftConsumed {
+		g.machine.Keyboard.KeyPress(spectrum.KeySym.Row, spectrum.KeySym.Bit)
+	}
+	// Ctrl → Symbol Shift (always, for explicit SS combos)
+	if pcCtrl {
+		g.machine.Keyboard.KeyPress(spectrum.KeySym.Row, spectrum.KeySym.Bit)
+	}
+}
+
+// isShiftComboKey returns true if this key produces a different character
+// when Shift is held on a US keyboard layout.
+func (g *Game) isShiftComboKey(key ebiten.Key) bool {
+	switch key {
+	case ebiten.KeyDigit0, ebiten.KeyDigit1, ebiten.KeyDigit2,
+		ebiten.KeyDigit3, ebiten.KeyDigit4, ebiten.KeyDigit5,
+		ebiten.KeyDigit6, ebiten.KeyDigit7, ebiten.KeyDigit8,
+		ebiten.KeyDigit9,
+		ebiten.KeyMinus, ebiten.KeyEqual,
+		ebiten.KeySemicolon, ebiten.KeyQuote,
+		ebiten.KeyComma, ebiten.KeyPeriod, ebiten.KeySlash:
+		return true
+	}
+	return false
 }
 
 func buildKeyMap() map[ebiten.Key][]spectrum.SpecKey {
 	m := map[ebiten.Key][]spectrum.SpecKey{
-		// Letters
+		// Letters (unshifted: just the letter key)
 		ebiten.KeyA: {spectrum.KeyA},
 		ebiten.KeyB: {spectrum.KeyB},
 		ebiten.KeyC: {spectrum.KeyC},
@@ -171,7 +307,7 @@ func buildKeyMap() map[ebiten.Key][]spectrum.SpecKey {
 		ebiten.KeyY: {spectrum.KeyY},
 		ebiten.KeyZ: {spectrum.KeyZ},
 
-		// Numbers
+		// Numbers (unshifted)
 		ebiten.KeyDigit0: {spectrum.Key0},
 		ebiten.KeyDigit1: {spectrum.Key1},
 		ebiten.KeyDigit2: {spectrum.Key2},
@@ -183,25 +319,30 @@ func buildKeyMap() map[ebiten.Key][]spectrum.SpecKey {
 		ebiten.KeyDigit8: {spectrum.Key8},
 		ebiten.KeyDigit9: {spectrum.Key9},
 
-		// Special keys
-		ebiten.KeyEnter:        {spectrum.KeyEnter},
-		ebiten.KeySpace:        {spectrum.KeySpace},
-		ebiten.KeyShiftLeft:    {spectrum.KeyShift},     // Caps Shift
-		ebiten.KeyShiftRight:   {spectrum.KeySym},       // Symbol Shift
-		ebiten.KeyControlLeft:  {spectrum.KeySym},       // Symbol Shift (alt mapping)
-		ebiten.KeyControlRight: {spectrum.KeySym},       // Symbol Shift (alt mapping)
-		ebiten.KeyEscape:       {spectrum.KeyShift, spectrum.Key1}, // EDIT (Caps Shift + 1)
-		ebiten.KeyTab:          {spectrum.KeyShift, spectrum.KeySym}, // Extended mode (CS + SS)
-		ebiten.KeyCapsLock:     {spectrum.KeyShift, spectrum.Key2},   // Caps Lock (CS + 2)
+		// Special keys (no shift awareness needed — handled directly)
+		ebiten.KeyEnter:   {spectrum.KeyEnter},
+		ebiten.KeySpace:   {spectrum.KeySpace},
+		ebiten.KeyEscape:  {spectrum.KeyShift, spectrum.Key1},          // EDIT (CS+1)
+		ebiten.KeyTab:     {spectrum.KeyShift, spectrum.KeySym},        // Extended mode (CS+SS)
+		ebiten.KeyCapsLock: {spectrum.KeyShift, spectrum.Key2},         // Caps Lock (CS+2)
 
-		// Arrow keys → Shift + 5/6/7/8
+		// Arrow keys → Caps Shift + 5/6/7/8
 		ebiten.KeyArrowLeft:  {spectrum.KeyShift, spectrum.Key5},
 		ebiten.KeyArrowDown:  {spectrum.KeyShift, spectrum.Key6},
 		ebiten.KeyArrowUp:    {spectrum.KeyShift, spectrum.Key7},
 		ebiten.KeyArrowRight: {spectrum.KeyShift, spectrum.Key8},
 
-		// Backspace → Shift + 0 (DELETE)
+		// Backspace → Caps Shift + 0 (DELETE)
 		ebiten.KeyBackspace: {spectrum.KeyShift, spectrum.Key0},
+
+		// Unshifted punctuation → Symbol Shift combos
+		ebiten.KeyComma:     {spectrum.KeySym, spectrum.KeyN},  // , → SS+N
+		ebiten.KeyPeriod:    {spectrum.KeySym, spectrum.KeyM},  // . → SS+M
+		ebiten.KeySlash:     {spectrum.KeySym, spectrum.KeyV},  // / → SS+V
+		ebiten.KeySemicolon: {spectrum.KeySym, spectrum.KeyO},  // ; → SS+O
+		ebiten.KeyQuote:     {spectrum.KeySym, spectrum.Key7},  // ' → SS+7
+		ebiten.KeyMinus:     {spectrum.KeySym, spectrum.KeyJ},  // - → SS+J
+		ebiten.KeyEqual:     {spectrum.KeySym, spectrum.KeyL},  // = → SS+L
 	}
 	return m
 }
@@ -219,22 +360,52 @@ type audioMixer struct {
 }
 
 func (p *audioMixer) Read(data []byte) (int, error) {
-	// Ebiten audio expects signed 16-bit stereo PCM at audioSampleRate
-	samples := len(data) / 4 // 4 bytes per stereo sample (2 bytes L + 2 bytes R)
+	// Ebiten audio expects signed 16-bit stereo PCM at audioSampleRate.
+	// We return only as many samples as available — io.Reader allows partial reads.
+	// This prevents silence gaps that cause fragmented audio.
+	maxSamples := len(data) / 4 // 4 bytes per stereo sample
 
-	// Read beeper samples (frame-synchronized from Beeper.EndFrame)
+	// Determine how many samples are available from beeper
+	beeperAvail := p.beeper.Available()
+	ayAvail := 0
+	hasAY := p.ay != nil
+	if hasAY {
+		ayAvail = p.ay.Available()
+	}
+
+	// Use the maximum of beeper/AY availability, capped by request size.
+	// If both are empty, return a small amount of silence (never block).
+	samples := beeperAvail
+	if hasAY && ayAvail > samples {
+		samples = ayAvail
+	}
+	if samples > maxSamples {
+		samples = maxSamples
+	}
+	if samples == 0 {
+		// Nothing available yet — return a tiny bit of silence to avoid spinning.
+		// 64 samples = ~1.5ms, small enough to be imperceptible.
+		samples = 64
+		if samples > maxSamples {
+			samples = maxSamples
+		}
+		for i := 0; i < samples*4; i++ {
+			data[i] = 0
+		}
+		return samples * 4, nil
+	}
+
+	// Read beeper samples
 	if cap(p.beeperBuf) < samples {
 		p.beeperBuf = make([]float32, samples)
 	}
 	p.beeperBuf = p.beeperBuf[:samples]
 	n := p.beeper.ReadSamples(p.beeperBuf)
 	for i := n; i < samples; i++ {
-		p.beeperBuf[i] = 0
+		p.beeperBuf[i] = 0 // only pads if beeper has fewer than AY
 	}
 
-	// Read AY samples from frame buffer (frame-synchronized from AY.EndFrame)
-	hasAY := p.ay != nil
-	ayN := 0
+	// Read AY samples
 	if hasAY {
 		if cap(p.ayLeft) < samples {
 			p.ayLeft = make([]float64, samples)
@@ -242,8 +413,7 @@ func (p *audioMixer) Read(data []byte) (int, error) {
 		}
 		p.ayLeft = p.ayLeft[:samples]
 		p.ayRight = p.ayRight[:samples]
-		ayN = p.ay.ReadFrameSamples(p.ayLeft, p.ayRight)
-		// Zero remainder if frame buffer underrun
+		ayN := p.ay.ReadFrameSamples(p.ayLeft, p.ayRight)
 		for i := ayN; i < samples; i++ {
 			p.ayLeft[i] = 0
 			p.ayRight[i] = 0
@@ -256,7 +426,6 @@ func (p *audioMixer) Read(data []byte) (int, error) {
 
 		var left, right float64
 		if hasAY {
-			// Mix: beeper at 60% volume, AY at 80%
 			left = beeperSample*0.6 + p.ayLeft[i]*0.8
 			right = beeperSample*0.6 + p.ayRight[i]*0.8
 		} else {
@@ -279,12 +448,10 @@ func (p *audioMixer) Read(data []byte) (int, error) {
 		sL := int16(left * 32767)
 		sR := int16(right * 32767)
 		j := i * 4
-		if j+3 < len(data) {
-			data[j+0] = byte(sL)
-			data[j+1] = byte(sL >> 8)
-			data[j+2] = byte(sR)
-			data[j+3] = byte(sR >> 8)
-		}
+		data[j+0] = byte(sL)
+		data[j+1] = byte(sL >> 8)
+		data[j+2] = byte(sR)
+		data[j+3] = byte(sR >> 8)
 	}
 
 	return samples * 4, nil
@@ -571,8 +738,308 @@ func parseHexAddr(s string) uint16 {
 	return uint16(val)
 }
 
+// ---- stringSlice: flag.Value that accumulates repeated flags and splits on commas ----
+
+type stringSlice []string
+
+func (s *stringSlice) String() string { return strings.Join(*s, ",") }
+
+func (s *stringSlice) Set(val string) error {
+	for _, part := range strings.Split(val, ",") {
+		part = strings.TrimSpace(part)
+		if part != "" {
+			*s = append(*s, part)
+		}
+	}
+	return nil
+}
+
+// ---- --load: load raw binary files into memory ----
+
+type loadSpec struct {
+	file string
+	addr uint16
+	page int // -1 = no page (use current mapping)
+}
+
+func parseLoadSpec(s string) (loadSpec, error) {
+	// Format: FILE@ADDR or FILE@ADDR:PAGE
+	atIdx := strings.LastIndex(s, "@")
+	if atIdx < 0 {
+		return loadSpec{}, fmt.Errorf("missing @ADDR in load spec: %q (expected FILE@ADDR)", s)
+	}
+	file := s[:atIdx]
+	rest := s[atIdx+1:] // ADDR or ADDR:PAGE
+
+	if file == "" {
+		return loadSpec{}, fmt.Errorf("empty filename in load spec: %q", s)
+	}
+
+	spec := loadSpec{file: file, page: -1}
+
+	if colonIdx := strings.Index(rest, ":"); colonIdx >= 0 {
+		addrStr := rest[:colonIdx]
+		pageStr := rest[colonIdx+1:]
+		spec.addr = parseHexAddr(addrStr)
+		var page int
+		if _, err := fmt.Sscanf(pageStr, "%d", &page); err != nil {
+			return loadSpec{}, fmt.Errorf("invalid page number %q in load spec", pageStr)
+		}
+		if page < 0 || page > 7 {
+			return loadSpec{}, fmt.Errorf("page must be 0-7, got %d", page)
+		}
+		spec.page = page
+	} else {
+		spec.addr = parseHexAddr(rest)
+	}
+
+	return spec, nil
+}
+
+func applyLoads(m *spectrum.Machine, specs []loadSpec) error {
+	for _, spec := range specs {
+		data, err := os.ReadFile(spec.file)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", spec.file, err)
+		}
+		if spec.page >= 0 {
+			// Write to specific 128K RAM page
+			offset := spec.addr & 0x3FFF
+			for i, b := range data {
+				m.Memory.WriteRAMDirect(spec.page, offset+uint16(i), b)
+			}
+			fmt.Printf("Loaded %d bytes from %s to $%04X page %d\n", len(data), spec.file, spec.addr, spec.page)
+		} else {
+			// Write to currently mapped memory
+			for i, b := range data {
+				m.Memory.WriteByteInternal(spec.addr+uint16(i), b)
+			}
+			fmt.Printf("Loaded %d bytes from %s to $%04X\n", len(data), spec.file, spec.addr)
+		}
+	}
+	return nil
+}
+
+// ---- --set: set CPU registers and interrupt state ----
+
+type setAssignment struct {
+	name  string // register name or command (DI, EI)
+	value uint16 // parsed hex value (unused for DI/EI)
+}
+
+func parseSetSpec(s string) ([]setAssignment, error) {
+	var assignments []setAssignment
+	for _, part := range strings.Split(s, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		upper := strings.ToUpper(part)
+		// Commands (no value)
+		if upper == "DI" || upper == "EI" {
+			assignments = append(assignments, setAssignment{name: upper})
+			continue
+		}
+		// KEY=VALUE
+		eqIdx := strings.Index(part, "=")
+		if eqIdx < 0 {
+			return nil, fmt.Errorf("invalid assignment %q (expected NAME=VALUE, DI, or EI)", part)
+		}
+		name := strings.ToUpper(strings.TrimSpace(part[:eqIdx]))
+		valStr := strings.TrimSpace(part[eqIdx+1:])
+		val := parseHexAddr(valStr)
+		assignments = append(assignments, setAssignment{name: name, value: val})
+	}
+	return assignments, nil
+}
+
+func applySetAssignments(m *spectrum.Machine, assignments []setAssignment) error {
+	for _, a := range assignments {
+		switch a.name {
+		case "PC":
+			m.CPU.SetPC(a.value)
+		case "SP":
+			m.CPU.SetSP(a.value)
+		case "AF":
+			m.CPU.SetAF(a.value)
+		case "BC":
+			m.CPU.SetBC(a.value)
+		case "DE":
+			m.CPU.SetDE(a.value)
+		case "HL":
+			m.CPU.SetHL(a.value)
+		case "IX":
+			m.CPU.SetIX(a.value)
+		case "IY":
+			m.CPU.SetIY(a.value)
+		case "AF'":
+			m.CPU.SetAF_(a.value)
+		case "BC'":
+			m.CPU.SetBC_(a.value)
+		case "DE'":
+			m.CPU.SetDE_(a.value)
+		case "HL'":
+			m.CPU.SetHL_(a.value)
+		case "A":
+			m.CPU.SetAF((a.value << 8) | (m.CPU.AF() & 0xFF))
+		case "I":
+			m.CPU.SetI(byte(a.value))
+		case "R":
+			m.CPU.SetR(byte(a.value))
+		case "IM":
+			if a.value > 2 {
+				return fmt.Errorf("IM must be 0, 1, or 2, got %d", a.value)
+			}
+			m.CPU.SetIM(byte(a.value))
+		case "DI":
+			m.CPU.SetIFF1(false)
+			m.CPU.SetIFF2(false)
+		case "EI":
+			m.CPU.SetIFF1(true)
+			m.CPU.SetIFF2(true)
+		default:
+			return fmt.Errorf("unknown register %q", a.name)
+		}
+	}
+	return nil
+}
+
+// ---- Unified --frames parser ----
+
+// captureRange is an inclusive [start, end] frame range.
+type captureRange struct {
+	start, end int
+}
+
+// captureSpec is the parsed result of --frames.
+type captureSpec struct {
+	isCount bool          // plain number: run N frames
+	count   int           // frame count (when isCount)
+	ranges  []captureRange // sorted capture ranges
+	legacy  *frameSpec    // PC=, T=, DI:HALT triggers
+}
+
+func (cs *captureSpec) containsFrame(f int) bool {
+	for _, r := range cs.ranges {
+		if f >= r.start && f <= r.end {
+			return true
+		}
+	}
+	return false
+}
+
+func (cs *captureSpec) firstStart() int {
+	if len(cs.ranges) == 0 {
+		return 0
+	}
+	return cs.ranges[0].start
+}
+
+func (cs *captureSpec) lastEnd() int {
+	if len(cs.ranges) == 0 {
+		return 0
+	}
+	return cs.ranges[len(cs.ranges)-1].end
+}
+
+// parseCaptureSpec parses the unified --frames value.
+//
+//	"50"                  → count (run 50 frames)
+//	"9839..10295"         → single range
+//	"100,9839..10295,500" → multi-range
+//	"100-200"             → dash range
+//	"PC=4000"             → legacy trigger
+//	"DI:HALT"             → legacy trigger
+func parseCaptureSpec(s string) captureSpec {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return captureSpec{isCount: true, count: 50}
+	}
+
+	// Legacy triggers: PC=, T=, DI:HALT
+	upper := strings.ToUpper(s)
+	if strings.HasPrefix(upper, "PC=") || strings.HasPrefix(upper, "T=") || upper == "DI:HALT" {
+		spec := parseFrameSpec(s)
+		return captureSpec{legacy: &spec}
+	}
+
+	// Detect range/multi syntax
+	hasRangeSyntax := strings.Contains(s, "..") || strings.ContainsAny(s, ",;")
+	if !hasRangeSyntax {
+		// Check for N-M (dash between digit groups)
+		if idx := strings.Index(s, "-"); idx > 0 && idx < len(s)-1 {
+			_, err1 := strconv.Atoi(strings.TrimSpace(s[:idx]))
+			_, err2 := strconv.Atoi(strings.TrimSpace(s[idx+1:]))
+			if err1 == nil && err2 == nil {
+				hasRangeSyntax = true
+			}
+		}
+	}
+
+	// Plain count
+	if !hasRangeSyntax {
+		if n, err := strconv.Atoi(s); err == nil {
+			return captureSpec{isCount: true, count: n}
+		}
+		return captureSpec{isCount: true, count: 50}
+	}
+
+	// Parse multi-range (split by , and ;)
+	parts := strings.FieldsFunc(s, func(r rune) bool {
+		return r == ',' || r == ';'
+	})
+	var ranges []captureRange
+	for _, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+		if r, ok := parseCaptureRange(part); ok {
+			ranges = append(ranges, r)
+		}
+	}
+
+	sort.Slice(ranges, func(i, j int) bool {
+		return ranges[i].start < ranges[j].start
+	})
+
+	return captureSpec{ranges: ranges}
+}
+
+// parseCaptureRange parses a single range element: "N..M", "N-M", or "N".
+func parseCaptureRange(s string) (captureRange, bool) {
+	// N..M (dots)
+	if idx := strings.Index(s, ".."); idx >= 0 {
+		start, err1 := strconv.Atoi(strings.TrimSpace(s[:idx]))
+		end, err2 := strconv.Atoi(strings.TrimSpace(s[idx+2:]))
+		if err1 == nil && err2 == nil {
+			if start > end {
+				start, end = end, start
+			}
+			return captureRange{start, end}, true
+		}
+		return captureRange{}, false
+	}
+	// N-M (dash)
+	if idx := strings.Index(s, "-"); idx > 0 {
+		start, err1 := strconv.Atoi(strings.TrimSpace(s[:idx]))
+		end, err2 := strconv.Atoi(strings.TrimSpace(s[idx+1:]))
+		if err1 == nil && err2 == nil {
+			if start > end {
+				start, end = end, start
+			}
+			return captureRange{start, end}, true
+		}
+	}
+	// Single number (point)
+	if n, err := strconv.Atoi(strings.TrimSpace(s)); err == nil {
+		return captureRange{n, n}, true
+	}
+	return captureRange{}, false
+}
+
 func main() {
-	modelFlag := flag.String("model", "48k", "Machine model: 48k, pentagon")
+	modelFlag := flag.String("model", "48k", "Machine model: 48k, 128k, pentagon")
 	romFlag := flag.String("rom", "", "Path to ROM file")
 	rom1Flag := flag.String("rom1", "", "Path to second ROM (128K models)")
 	snapshotFlag := flag.String("snapshot", "", "Path to .sna snapshot file")
@@ -580,23 +1047,59 @@ func main() {
 	trdFlag := flag.String("trd", "", "Path to .trd disk image")
 	sclFlag := flag.String("scl", "", "Path to .scl disk image (converted to .trd)")
 	trdLoad := flag.String("trd-load", "", "File to load from .trd/.scl (name:ext:addr, e.g. 'GAME:C:32768')")
+	trdDir := flag.Bool("trd-dir", false, "List disk directory and exit (use with --trd or --scl)")
+	tapRealtimeFlag := flag.Bool("tap-realtime", false, "Load tape in real-time (with audio, minutes to load)")
 	execFlag := flag.String("exec", "", "Execute BASIC command after boot (e.g. 'LOAD \"\"' or 'RANDOMIZE USR 32768')")
 	typeFlag := flag.String("type", "", "Type text via keystroke injection (fallback for non-standard ROMs)")
 	consoleFlag := flag.Bool("console", false, "Mirror BASIC text output (RST $10) to stdout")
 	scaleFlag := flag.Int("scale", 2, "Display scale factor (1-4)")
-	noAudioFlag := flag.Bool("no-audio", false, "Disable audio output")
+	noAudioFlag := flag.Bool("no-audio", false, "Disable all audio output")
+	noBeeperFlag := flag.Bool("no-beeper", false, "Disable beeper audio (EAR bit)")
+	noAYFlag := flag.Bool("no-ay", false, "Disable AY-3-8912 audio")
 	// Single-shot screenshot (convenience)
 	screenshotFlag := flag.String("screenshot", "", "Save single screenshot to PNG and exit (headless)")
-	framesFlag := flag.Int("frames", 50, "Frames to run before screenshot (with --screenshot)")
+
+	// Unified --frames: count, range, or multi-spec with auto turbo-skip
+	framesFlag := flag.String("frames", "50", "Frame spec: N, N..M, N-M,K (multi), PC=ADDR, DI:HALT")
 
 	// Frame dump (sequence capture, like zxs)
 	dumpFrames := flag.String("dump-frames", "", "Save every frame as PNG to directory")
 	dumpKeyframes := flag.String("dump-keyframes", "", "Save frames only when screen changes")
-	frameSpec := flag.String("frame-spec", "", "Frame range: N, N..M, PC=ADDR, PC=ADDR+N, T=TSTATES, DI:HALT")
+	skipFlag := flag.Bool("skip", false, "Turbo-skip frames before capture range (use with --frames range)")
 	noBorderFlag := flag.Bool("no-border", false, "Capture 256x192 screen only (no border)")
 	fullBorderFlag := flag.Bool("full-border", false, "Capture full ULA output (352x296) for T-state accuracy")
 	maxFrames := flag.Int("max-frames", 5000, "Max frames to run in headless mode")
+	// Raw binary loading and CPU register setup
+	var loadFlags stringSlice
+	flag.Var(&loadFlags, "load", "Load binary: FILE@ADDR or FILE@ADDR:PAGE (repeatable, comma-separated)")
+	setFlag := flag.String("set", "", "Set CPU registers: PC=8000,SP=FFFF,DI,IM=1 (hex values)")
+	runFlag := flag.String("run", "", "Load and run binary: FILE@ADDR (shortcut for --load FILE@ADDR --set PC=ADDR,SP=FFFF,DI,IM=1)")
+	saveSnapshotFlag := flag.String("save-snapshot", "", "Save .sna snapshot after running frames (headless)")
+	versionFlag := flag.Bool("version", false, "Print version and exit")
 	flag.Parse()
+
+	// --run FILE@ADDR: expand to --load + --set
+	if *runFlag != "" {
+		spec, err := parseLoadSpec(*runFlag)
+		if err != nil {
+			log.Fatalf("Invalid --run spec: %v", err)
+		}
+		loadFlags = append(loadFlags, *runFlag)
+		// Set PC to load address, SP=top of RAM, DI, IM=1
+		runSet := fmt.Sprintf("PC=%04X,SP=FFFF,DI,IM=1", spec.addr)
+		if *setFlag != "" {
+			*setFlag = runSet + "," + *setFlag // --set overrides can follow
+		} else {
+			*setFlag = runSet
+		}
+	}
+
+	if *versionFlag {
+		fmt.Printf("mzx %s (build %s)\n", version, buildNum)
+		fmt.Printf("  commit: %s\n", gitCommit)
+		fmt.Printf("  built:  %s\n", buildDate)
+		return
+	}
 
 	// --help / -h is handled by flag.Parse() automatically.
 	// With no arguments, we boot the 48K Spectrum (embedded ROM).
@@ -636,7 +1139,7 @@ func main() {
 			log.Fatalf("Error creating 48K machine: %v", err)
 		}
 
-	case "pentagon":
+	case "128k", "pentagon":
 		var rom0, rom1 []byte
 		if *romFlag != "" {
 			rom0, err = os.ReadFile(*romFlag)
@@ -658,7 +1161,17 @@ func main() {
 		}
 
 	default:
-		log.Fatalf("Unknown model: %s (supported: 48k, pentagon)", *modelFlag)
+		log.Fatalf("Unknown model: %s (supported: 48k, 128k, pentagon)", *modelFlag)
+	}
+
+	// Disable audio components based on flags
+	if *noAudioFlag || *noBeeperFlag {
+		machine.Beeper.SetEnabled(false)
+	}
+	if *noAudioFlag || *noAYFlag {
+		if machine.AY != nil {
+			machine.AY.SetEnabled(false)
+		}
 	}
 
 	// Load snapshot if provided
@@ -671,15 +1184,60 @@ func main() {
 		fmt.Printf("Loaded snapshot: %s\n", *snapshotFlag)
 	}
 
-	// Install .tap ROM trap if provided
+	// Apply --load: write raw binary files into memory
+	if len(loadFlags) > 0 {
+		var specs []loadSpec
+		for _, s := range loadFlags {
+			spec, err := parseLoadSpec(s)
+			if err != nil {
+				log.Fatalf("Invalid --load spec: %v", err)
+			}
+			specs = append(specs, spec)
+		}
+		if err := applyLoads(machine, specs); err != nil {
+			log.Fatalf("Error applying --load: %v", err)
+		}
+	}
+
+	// Apply --set: configure CPU registers
+	if *setFlag != "" {
+		assignments, err := parseSetSpec(*setFlag)
+		if err != nil {
+			log.Fatalf("Invalid --set spec: %v", err)
+		}
+		if err := applySetAssignments(machine, assignments); err != nil {
+			log.Fatalf("Error applying --set: %v", err)
+		}
+		// Print what was set
+		var parts []string
+		for _, a := range assignments {
+			if a.name == "DI" || a.name == "EI" {
+				parts = append(parts, a.name)
+			} else {
+				parts = append(parts, fmt.Sprintf("%s=$%04X", a.name, a.value))
+			}
+		}
+		fmt.Printf("Set: %s\n", strings.Join(parts, ", "))
+	}
+
+	// Install .tap loading (trap or real-time)
 	needsAutoLoad := false
+	tapRealtime := false
 	if *tapFlag != "" {
 		tap, err := formats.LoadTAP(*tapFlag)
 		if err != nil {
 			log.Fatalf("Error loading .tap file: %v", err)
 		}
-		formats.InstallTAPTrap(machine, tap)
-		fmt.Printf("Loaded tape: %s (%d blocks)\n", *tapFlag, tap.BlockCount())
+		if *tapRealtimeFlag {
+			// Real-time: pre-compute waveform, feed through port $FE bit 6
+			tapRealtime = true
+			fmt.Printf("Loaded tape (real-time): %s (%d blocks)\n", *tapFlag, tap.BlockCount())
+			formats.InstallRealtimeTAP(machine, tap)
+		} else {
+			// Trap: intercept at $0556 and inject data instantly
+			formats.InstallTAPTrap(machine, tap)
+			fmt.Printf("Loaded tape (trap): %s (%d blocks)\n", *tapFlag, tap.BlockCount())
+		}
 		needsAutoLoad = true
 	}
 
@@ -703,6 +1261,23 @@ func main() {
 			}
 			fmt.Printf("Loaded disk: %s\n", diskPath)
 		}
+		// --trd-dir: list directory and exit
+		if *trdDir {
+			entries := trd.ListDirectory()
+			if len(entries) == 0 {
+				fmt.Println("  (empty disk)")
+			} else {
+				fmt.Printf("  %-8s  %s  %5s  %6s  %s\n", "Name", "Ext", "Start", "Length", "Sectors")
+				fmt.Printf("  %-8s  %s  %5s  %6s  %s\n", "--------", "---", "-----", "------", "-------")
+				for _, e := range entries {
+					fmt.Printf("  %-8s  %c    $%04X  %6d  %d\n",
+						e.Name, e.Extension, e.Start, e.Length, e.Sectors)
+				}
+			}
+			fmt.Printf("  %d file(s)\n", len(entries))
+			return
+		}
+
 		formats.InstallTRDTraps(machine, trd)
 
 		// Optionally load a specific file from the disk
@@ -725,7 +1300,15 @@ func main() {
 
 	// Auto-load from tape if no snapshot was loaded
 	if needsAutoLoad && *snapshotFlag == "" {
-		formats.AutoLoadTAP(machine)
+		if tapRealtime {
+			// Start tape playback + LOAD ""
+			machine.PlayTape()
+			formats.WaitROMInit(machine, 100)
+			formats.ExecBASIC(machine, formats.TokenizeLOAD())
+			fmt.Println("Real-time tape loading started (F6=play/stop tape)...")
+		} else {
+			formats.AutoLoadTAP(machine)
+		}
 	}
 
 	// --console: mirror RST $10 output to stdout
@@ -750,49 +1333,53 @@ func main() {
 	if *typeFlag != "" {
 		keystrokeQueue = formats.NewKeystrokeQueue(machine, 3, 2)
 		keystrokeQueue.TypeText(*typeFlag)
-		fmt.Printf("Typing: %s (%d keystrokes queued)\n", *typeFlag, len(*typeFlag)+1)
+		fmt.Printf("Typing: %q\n", *typeFlag)
 	}
 	_ = keystrokeQueue // used in Update() for interactive mode
 
-	// Headless mode: --screenshot (single), --dump-frames, --dump-keyframes
-	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != ""
+	// Headless mode: --screenshot (single), --dump-frames, --dump-keyframes, --save-snapshot
+	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != "" || *saveSnapshotFlag != ""
 
 	if isHeadless {
-		spec := parseFrameSpec(*frameSpec)
+		cs := parseCaptureSpec(*framesFlag)
 		limit := *maxFrames
 
-		if *screenshotFlag != "" && spec.isEmpty() {
-			// Simple --screenshot: run N frames, capture one shot
-			frames := *framesFlag
+		// --- Path A: Plain count + single screenshot/snapshot ---
+		if cs.isCount && *dumpFrames == "" && *dumpKeyframes == "" {
+			frames := cs.count
 			if frames < 1 {
 				frames = 1
 			}
-			fmt.Printf("Running %d frames for screenshot...\n", frames)
+			fmt.Printf("Running %d frames...\n", frames)
 			for i := 0; i < frames; i++ {
 				machine.RunFrame()
 			}
-			if err := saveScreenshotEx(machine, *screenshotFlag, captureBorder); err != nil {
-				log.Fatalf("Error saving screenshot: %v", err)
+			if *screenshotFlag != "" {
+				if err := saveScreenshotEx(machine, *screenshotFlag, captureBorder); err != nil {
+					log.Fatalf("Error saving screenshot: %v", err)
+				}
+				fmt.Printf("Screenshot saved: %s\n", *screenshotFlag)
 			}
-			fmt.Printf("Screenshot saved: %s\n", *screenshotFlag)
+			if *saveSnapshotFlag != "" {
+				if err := formats.SaveSNA(*saveSnapshotFlag, machine); err != nil {
+					log.Fatalf("Error saving snapshot: %v", err)
+				}
+				fmt.Printf("Snapshot saved: %s\n", *saveSnapshotFlag)
+			}
 			return
 		}
 
-		// Frame dump / conditional mode
+		// --- Output setup ---
 		dumpDir := *dumpFrames
 		isKeyframeMode := false
 		if *dumpKeyframes != "" {
 			dumpDir = *dumpKeyframes
 			isKeyframeMode = true
 		}
-
-		// For --screenshot with --frame-spec, use single-file output
 		singleFile := *screenshotFlag
 		if singleFile != "" {
-			dumpDir = "" // don't create directory
+			dumpDir = ""
 		}
-
-		// Create dump directory if needed
 		if dumpDir != "" {
 			if err := os.MkdirAll(dumpDir, 0755); err != nil {
 				log.Fatalf("Error creating dump directory: %v", err)
@@ -801,33 +1388,30 @@ func main() {
 
 		var prevScreen []byte
 		capturedCount := 0
-		triggered := spec.isEmpty() // no spec = capture everything; with spec = wait for trigger
-		inRange := false
-		rangeEndFrame := 0
 
-		fmt.Printf("Running up to %d frames (headless)...\n", limit)
+		// --- Path B: Legacy triggers (PC=, T=, DI:HALT) ---
+		if cs.legacy != nil {
+			spec := *cs.legacy
+			triggered := false
+			inRange := false
+			rangeEndFrame := 0
 
-		for frame := 0; frame < limit; frame++ {
-			// Inject queued keystrokes in headless mode too
-			if keystrokeQueue != nil && !keystrokeQueue.Done() {
-				keystrokeQueue.Update()
-			}
-			machine.RunFrame()
+			fmt.Printf("Running up to %d frames (trigger mode)...\n", limit)
+			for frame := 0; frame < limit; frame++ {
+				if keystrokeQueue != nil && !keystrokeQueue.Done() {
+					keystrokeQueue.Update()
+				}
+				machine.RunFrame()
 
-			// Check triggers
-			if !spec.isEmpty() {
-				// Start trigger
 				if !inRange && spec.matchesStart(machine, frame) {
 					inRange = true
 					triggered = true
 					rangeEndFrame = frame + spec.rangeOffset
 					fmt.Printf("  Trigger START at frame %d\n", frame)
 				}
-
-				// End trigger
 				if inRange && spec.hasEnd() {
 					if spec.rangeOffset > 0 && frame >= rangeEndFrame {
-						fmt.Printf("  Trigger END at frame %d (%d frames captured)\n", frame, capturedCount)
+						fmt.Printf("  Trigger END at frame %d (%d captured)\n", frame, capturedCount)
 						break
 					}
 					if spec.matchesEnd(machine, frame) {
@@ -835,62 +1419,135 @@ func main() {
 						break
 					}
 				}
-
-				// Single-frame trigger (no range) — capture and stop
 				if triggered && !spec.hasEnd() && spec.isSingleTrigger() {
-					if err := saveScreenshotEx(machine, singleFile, captureBorder); err != nil {
-						log.Fatalf("Error saving screenshot: %v", err)
+					if singleFile != "" {
+						if err := saveScreenshotEx(machine, singleFile, captureBorder); err != nil {
+							log.Fatalf("Error saving screenshot: %v", err)
+						}
+						fmt.Printf("Screenshot saved: %s (frame %d)\n", singleFile, frame)
 					}
-					fmt.Printf("  Triggered at frame %d\n", frame)
-					fmt.Printf("Screenshot saved: %s\n", singleFile)
 					return
+				}
+
+				shouldCapture := triggered && inRange
+				if shouldCapture && isKeyframeMode {
+					fb := machine.Framebuffer()
+					if prevScreen != nil && screensEqual(prevScreen, fb) {
+						continue
+					}
+					prevScreen = make([]byte, len(fb))
+					copy(prevScreen, fb)
+				}
+				if shouldCapture && dumpDir != "" {
+					path := fmt.Sprintf("%s/frame_%06d.png", dumpDir, frame)
+					if err := saveScreenshotEx(machine, path, captureBorder); err != nil {
+						log.Printf("Warning: failed to save frame %d: %v", frame, err)
+					}
+					capturedCount++
 				}
 			}
 
-			// Should we capture this frame?
-			shouldCapture := triggered && (spec.isEmpty() || inRange)
+			if dumpDir != "" {
+				fmt.Printf("Captured %d frames to %s\n", capturedCount, dumpDir)
+			}
+			return
+		}
 
-			if shouldCapture && isKeyframeMode {
+		// --- Path C: Range-based capture (with auto turbo-skip) ---
+
+		// Convert plain count to range for dump mode
+		if cs.isCount {
+			cs.ranges = []captureRange{{0, cs.count - 1}}
+			cs.isCount = false
+		}
+
+		if len(cs.ranges) == 0 {
+			fmt.Println("No capture ranges specified")
+			return
+		}
+
+		// Print capture plan
+		for _, r := range cs.ranges {
+			if r.start == r.end {
+				fmt.Printf("  Capture frame %d\n", r.start)
+			} else {
+				fmt.Printf("  Capture frames %d..%d\n", r.start, r.end)
+			}
+		}
+
+		// Auto-raise limit to cover all ranges
+		lastEnd := cs.lastEnd()
+		if lastEnd+10 > limit {
+			limit = lastEnd + 10
+		}
+
+		// Turbo-skip to first range (only with --skip flag)
+		startFrame := 0
+		if *skipFlag {
+			skipTo := cs.firstStart() - 2 // 2 frames early for ULA warmup
+			if skipTo < 0 {
+				skipTo = 0
+			}
+			if skipTo > 0 {
+				fmt.Printf("Turbo-skipping %d frames...\n", skipTo)
+				t0 := time.Now()
+				for i := 0; i < skipTo; i++ {
+					// Inject keystrokes during turbo-skip so --skip and
+					// non-skip modes produce identical results.
+					if keystrokeQueue != nil && !keystrokeQueue.Done() {
+						keystrokeQueue.Update()
+					}
+					machine.RunFrameFast()
+				}
+				elapsed := time.Since(t0)
+				fmt.Printf("Turbo-skipped %d frames in %v (%.0f fps)\n",
+					skipTo, elapsed.Round(time.Millisecond), float64(skipTo)/elapsed.Seconds())
+				startFrame = skipTo
+			}
+		}
+
+		fmt.Printf("Running frames %d..%d...\n", startFrame, lastEnd)
+
+		for frame := startFrame; frame <= lastEnd; frame++ {
+			if keystrokeQueue != nil && !keystrokeQueue.Done() {
+				keystrokeQueue.Update()
+			}
+			machine.RunFrame()
+
+			if !cs.containsFrame(frame) {
+				continue
+			}
+
+			// Keyframe dedup
+			if isKeyframeMode {
 				fb := machine.Framebuffer()
 				if prevScreen != nil && screensEqual(prevScreen, fb) {
-					continue // screen unchanged, skip
+					continue
 				}
 				prevScreen = make([]byte, len(fb))
 				copy(prevScreen, fb)
 			}
 
-			if shouldCapture && dumpDir != "" {
+			// Single-file capture: grab first match
+			if singleFile != "" {
+				if err := saveScreenshotEx(machine, singleFile, captureBorder); err != nil {
+					log.Fatalf("Error saving screenshot: %v", err)
+				}
+				fmt.Printf("Screenshot saved: %s (frame %d)\n", singleFile, frame)
+				return
+			}
+
+			// Dump capture
+			if dumpDir != "" {
 				path := fmt.Sprintf("%s/frame_%06d.png", dumpDir, frame)
 				if err := saveScreenshotEx(machine, path, captureBorder); err != nil {
 					log.Printf("Warning: failed to save frame %d: %v", frame, err)
 				}
 				capturedCount++
 			}
-
-			// For single-frame specs like "100"
-			if !spec.isEmpty() && spec.isSingleFrame() && frame >= spec.startFrame {
-				if singleFile != "" {
-					if err := saveScreenshotEx(machine, singleFile, captureBorder); err != nil {
-						log.Fatalf("Error saving screenshot: %v", err)
-					}
-					fmt.Printf("Screenshot saved: %s (frame %d)\n", singleFile, frame)
-				}
-				return
-			}
-
-			// For frame ranges like "100..200"
-			if !spec.isEmpty() && spec.isFrameRange() && frame >= spec.endFrame {
-				break
-			}
 		}
 
-		if singleFile != "" && capturedCount == 0 {
-			// Fallback: save current screen if we ran out of frames
-			if err := saveScreenshotEx(machine, singleFile, captureBorder); err != nil {
-				log.Fatalf("Error saving screenshot: %v", err)
-			}
-			fmt.Printf("Screenshot saved: %s (max frames reached)\n", singleFile)
-		} else if dumpDir != "" {
+		if dumpDir != "" {
 			fmt.Printf("Captured %d frames to %s\n", capturedCount, dumpDir)
 		}
 		return
@@ -916,7 +1573,7 @@ func main() {
 		machine.ScreenWidth(), machine.ScreenHeight(),
 		machine.Mode.TStatesPerFrame())
 	fmt.Printf("Scale: %dx\n", scale)
-	fmt.Printf("Keys: F1=pause, F2=screenshot, F5=reset, ESC=EDIT, Tab=ExtMode\n")
+	fmt.Printf("Keys: F1=pause, F2=screenshot, F3=turbo, F4=hold-turbo, F5=reset\n")
 
 	if err := ebiten.RunGame(game); err != nil && err != ebiten.Termination {
 		log.Fatal(err)

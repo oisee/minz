@@ -63,6 +63,91 @@ func LoadSNA(path string) (*SNASnapshot, error) {
 	return s, nil
 }
 
+// SaveSNA captures the current machine state as a 48K .sna snapshot file.
+// The .sna format stores PC on the stack, so SP is decremented by 2 and PC
+// is pushed. This is a non-destructive snapshot — the machine state is not
+// modified (we write the adjusted SP/stack into the file only).
+func SaveSNA(path string, m *spectrum.Machine) error {
+	cpu := m.CPU
+
+	var data [49179]byte // 27 header + 49152 RAM
+
+	// Header: registers
+	data[0] = cpu.I()
+
+	hl_ := cpu.HL_()
+	data[1] = byte(hl_)
+	data[2] = byte(hl_ >> 8)
+	de_ := cpu.DE_()
+	data[3] = byte(de_)
+	data[4] = byte(de_ >> 8)
+	bc_ := cpu.BC_()
+	data[5] = byte(bc_)
+	data[6] = byte(bc_ >> 8)
+	af_ := cpu.AF_()
+	data[7] = byte(af_)
+	data[8] = byte(af_ >> 8)
+
+	hl := cpu.HL()
+	data[9] = byte(hl)
+	data[10] = byte(hl >> 8)
+	de := cpu.DE()
+	data[11] = byte(de)
+	data[12] = byte(de >> 8)
+	bc := cpu.BC()
+	data[13] = byte(bc)
+	data[14] = byte(bc >> 8)
+
+	iy := cpu.IY()
+	data[15] = byte(iy)
+	data[16] = byte(iy >> 8)
+	ix := cpu.IX()
+	data[17] = byte(ix)
+	data[18] = byte(ix >> 8)
+
+	// IFF2: stored in bit 2
+	if cpu.IFF2() {
+		data[19] = 0x04
+	}
+	data[20] = cpu.R()
+
+	af := cpu.AF()
+	data[21] = byte(af)
+	data[22] = byte(af >> 8)
+
+	// SP adjusted: push PC onto stack in the snapshot
+	sp := cpu.SP() - 2
+	data[23] = byte(sp)
+	data[24] = byte(sp >> 8)
+
+	data[25] = cpu.IM()
+	data[26] = m.ULA.BorderColor()
+
+	// Copy 48K RAM ($4000-$FFFF)
+	// Page 5 → $4000-$7FFF
+	for i := 0; i < 16384; i++ {
+		data[27+i] = m.Memory.ReadRAMDirect(5, uint16(i))
+	}
+	// Page 2 → $8000-$BFFF
+	for i := 0; i < 16384; i++ {
+		data[27+16384+i] = m.Memory.ReadRAMDirect(2, uint16(i))
+	}
+	// Page 0 → $C000-$FFFF
+	for i := 0; i < 16384; i++ {
+		data[27+32768+i] = m.Memory.ReadRAMDirect(0, uint16(i))
+	}
+
+	// Write PC onto the stack position in the RAM dump
+	pc := cpu.PC()
+	stackOffset := int(sp) - 0x4000
+	if stackOffset >= 0 && stackOffset+1 < 49152 {
+		data[27+stackOffset] = byte(pc)
+		data[27+stackOffset+1] = byte(pc >> 8)
+	}
+
+	return os.WriteFile(path, data[:], 0644)
+}
+
 // ApplySnapshot loads a .sna snapshot into a machine.
 // After loading, executes RETN to resume from the interrupt return address
 // on the stack (the .sna format pushes PC onto stack before saving).
