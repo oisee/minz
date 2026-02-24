@@ -1075,7 +1075,95 @@ func main() {
 	setFlag := flag.String("set", "", "Set CPU registers: PC=8000,SP=FFFF,DI,IM=1 (hex values)")
 	runFlag := flag.String("run", "", "Load and run binary: FILE@ADDR (shortcut for --load FILE@ADDR --set PC=ADDR,SP=FFFF,DI,IM=1)")
 	saveSnapshotFlag := flag.String("save-snapshot", "", "Save .sna snapshot after running frames (headless)")
+	snapshotAtTState := flag.String("snapshot-at-tstate", "", "Save .sna at exact T-state: TSTATE or TSTATE:FILE.sna")
 	versionFlag := flag.Bool("version", false, "Print version and exit")
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, `mzx - MinZ ZX Spectrum Emulator
+
+USAGE:
+  mzx [flags]                         Interactive mode (opens window)
+  mzx [flags] --screenshot FILE.png   Headless: capture one frame
+  mzx [flags] --dump-frames DIR       Headless: capture frame sequence
+
+MACHINE:
+  --model MODEL       Machine model: 48k, 128k, pentagon (default: 48k)
+  --rom FILE          Custom ROM file (16K for 48K, 32K for 128K)
+  --rom1 FILE         Second ROM for 128K models
+  --scale N           Display scale 1-4 (default: 2)
+
+LOADING:
+  --snapshot FILE.sna    Load .sna snapshot
+  --tap FILE.tap         Load .tap tape file (trap-loaded by default)
+  --tap-realtime         Real-time tape loading (with audio, slow)
+  --trd FILE.trd         Load .trd TR-DOS disk image
+  --scl FILE.scl         Load .scl disk image (auto-converted to TRD)
+  --trd-dir              List disk directory and exit
+  --trd-load NAME:E:ADDR Load specific file from disk
+
+BARE-METAL CODE:
+  --run FILE@ADDR        Load binary + set PC/SP/DI/IM1 (quick start)
+  --load FILE@ADDR       Load raw binary to memory address (hex)
+  --load FILE@ADDR:PAGE  Load to specific 128K RAM page (0-7)
+  --set REGS             Set CPU registers (hex): PC=8000,SP=FFFF,DI,IM=1
+                         Supports: PC,SP,AF,BC,DE,HL,IX,IY,AF',BC',DE',HL',
+                                   A,I,R,IM,DI,EI
+
+AUTOMATION:
+  --exec CMD             Execute BASIC command: --exec 'LOAD ""'
+  --type TEXT             Type text via keystroke injection
+                         Delay syntax: {N} = wait N frames
+                         Example: --type "{50}R" (wait 50 frames, press R)
+  --console              Mirror BASIC output (RST $10) to stdout
+
+HEADLESS CAPTURE:
+  --screenshot FILE.png  Save one screenshot and exit
+  --dump-frames DIR      Save every frame as PNG
+  --dump-keyframes DIR   Save frames only when screen changes
+  --save-snapshot FILE   Save .sna snapshot after running
+  --frames SPEC          Frame specification (default: 50):
+                           N         Run N frames
+                           N..M      Frame range (capture frames N to M)
+                           N-M,K-L   Multiple ranges (comma-separated)
+                           PC=ADDR   Trigger at PC value (hex)
+                           PC=ADDR+N Capture N frames after PC trigger
+                           T=TSTATES Trigger at T-state count
+                           DI:HALT   Trigger when CPU halts with DI
+  --skip                 Turbo-skip frames before capture range
+  --max-frames N         Max frames in headless mode (default: 5000)
+  --no-border            Capture 256x192 screen only (no border)
+  --full-border          Capture full ULA output including border
+
+SNAPSHOTS:
+  --snapshot-at-tstate T       Save .sna at exact T-state count
+  --snapshot-at-tstate T:FILE  Save to specific file at T-state
+
+AUDIO:
+  --no-audio             Disable all audio
+  --no-beeper            Disable beeper (EAR bit)
+  --no-ay                Disable AY-3-8912 sound chip
+
+KEYBOARD (interactive):
+  F3       Toggle turbo mode (20x speed)
+  F4       Hold for turbo
+  F6       Play/stop tape (real-time mode)
+  F12      Save snapshot (mzx_snapshot_NNNNNN.sna)
+  Escape   Quit
+
+EXAMPLES:
+  mzx                                              Open 48K Spectrum
+  mzx --model pentagon --tap DEMO.TAP              Load Pentagon demo
+  mzx --run code.bin@8000                           Run bare-metal binary
+  mzx --run code.bin@8000 --screenshot out.png      Run and screenshot
+  mzx --tap GAME.TAP --frames 200 --screenshot s.png
+  mzx --run demo.bin@8000 --frames DI:HALT --screenshot final.png
+  mzx --snapshot saved.sna --save-snapshot copy.sna
+  mzx --snapshot-at-tstate 500000:freeze.sna --run code.bin@8000
+  mzx --model pentagon --tap DEMO.TAP --type "{50}R" --dump-keyframes ./out/
+
+VERSION: %s (build %s, %s)
+`, version, buildNum, buildDate)
+	}
 	flag.Parse()
 
 	// --run FILE@ADDR: expand to --load + --set
@@ -1336,6 +1424,32 @@ func main() {
 		fmt.Printf("Typing: %q\n", *typeFlag)
 	}
 	_ = keystrokeQueue // used in Update() for interactive mode
+
+	// --snapshot-at-tstate: T-state precise snapshot saving
+	if *snapshotAtTState != "" {
+		var target int64
+		savePath := fmt.Sprintf("mzx_snapshot_t%s.sna", *snapshotAtTState)
+
+		// Parse "TSTATE" or "TSTATE:FILE.sna"
+		parts := strings.SplitN(*snapshotAtTState, ":", 2)
+		t, err := strconv.ParseInt(parts[0], 10, 64)
+		if err != nil {
+			log.Fatalf("Invalid T-state value %q: %v", parts[0], err)
+		}
+		target = t
+		if len(parts) == 2 {
+			savePath = parts[1]
+		}
+
+		machine.SetTStateTrap(target, func(actual int64) {
+			if err := formats.SaveSNA(savePath, machine); err != nil {
+				log.Printf("Error saving snapshot at T=%d: %v", actual, err)
+			} else {
+				fmt.Printf("Snapshot saved at T=%d (target %d): %s\n", actual, target, savePath)
+			}
+		})
+		fmt.Printf("T-state trap set at T=%d → %s\n", target, savePath)
+	}
 
 	// Headless mode: --screenshot (single), --dump-frames, --dump-keyframes, --save-snapshot
 	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != "" || *saveSnapshotFlag != ""

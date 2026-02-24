@@ -44,11 +44,11 @@ var Mode48K = &VideoMode{
 	TStatesPerLine:    224,
 	LinesPerFrame:     312,
 	FirstScreenLine:   64,
-	FirstScreenTState: 14, // pixel data starts at T=14 within each line
+	FirstScreenTState: 24, // 24 T-states = 48 pixels of left border before screen data
 	ContentionPattern: []int{6, 5, 4, 3, 2, 1, 0, 0},
 	BorderTop:         48, // lines 16..63
 	BorderBottom:      56, // lines 256..311
-	BorderLeft:        48, // pixels
+	BorderLeft:        48, // pixels (= FirstScreenTState * 2)
 	BorderRight:       48, // pixels
 	TotalPixelWidth:   352, // 48 + 256 + 48
 	TotalPixelHeight:  296, // 48 + 192 + 56
@@ -57,20 +57,22 @@ var Mode48K = &VideoMode{
 }
 
 // ModePentagon128 is the Pentagon 128K timing (no contention).
+// Timing values from FUSE/libspectrum: top_left_pixel_tstates = 17988,
+// which is line 80, col 68 within each 224 T-state scanline.
 var ModePentagon128 = &VideoMode{
 	Name:              "Pentagon128",
-	CPUClockHz:        3546900,
+	CPUClockHz:        3584000,
 	TStatesPerLine:    224,
 	LinesPerFrame:     320,
 	FirstScreenLine:   80,
-	FirstScreenTState: 14,
+	FirstScreenTState: 68, // col 68: FUSE top_left_pixel_tstates=17988, 17988%224=68
 	ContentionPattern: nil, // no contention
 	BorderTop:         64,
-	BorderBottom:      56,
+	BorderBottom:      48,
 	BorderLeft:        48,
 	BorderRight:       48,
 	TotalPixelWidth:   352,
-	TotalPixelHeight:  312, // 64 + 192 + 56
+	TotalPixelHeight:  304, // 64 + 192 + 48
 	ScreenWidth:       256,
 	ScreenHeight:      192,
 }
@@ -79,11 +81,13 @@ var ModePentagon128 = &VideoMode{
 type FrameAction byte
 
 const (
-	ActionNone        FrameAction = iota
-	ActionFetchBitmap             // ULA fetches bitmap byte from VRAM
-	ActionFetchAttr               // ULA fetches attribute byte from VRAM
-	ActionScreenPixel             // Render 8 screen pixels using cached bitmap+attr
-	ActionBorderPixel             // Render 8 border pixels
+	ActionNone              FrameAction = iota
+	ActionFetchBitmap                   // ULA fetches bitmap byte from VRAM
+	ActionFetchAttr                     // ULA fetches attribute byte from VRAM
+	ActionScreenPixel                   // Render 8 screen pixels using cached bitmap+attr
+	ActionBorderPixel                   // Render 2 border pixels (1 T-state = 2 pixels)
+	ActionFetchBitmapBorder             // Pre-fetch bitmap AND render 2 border pixels (pipeline)
+	ActionFetchAttrBorder               // Pre-fetch attr AND render 2 border pixels (pipeline)
 )
 
 // FrameEntry describes what the ULA does at a given T-state.
@@ -95,13 +99,26 @@ type FrameEntry struct {
 
 // GenerateFrameMap builds a per-T-state ULA action table for the given mode.
 // Each entry in the returned slice corresponds to one T-state in the frame.
-// Actions fire every 4 T-states (one character cell = 8 pixels = 4+4 T-states).
+// Screen pixels fire every 4 T-states (character cell).
+// Border pixels fire every T-state (2 pixels per T-state) for full resolution.
+//
+// ULA pipeline: on real hardware, the ULA pre-fetches bitmap+attr 2 T-states
+// before outputting screen pixels. We model this by fetching charCol 0's data
+// during the last 2 T-states of the left border (screenCol -2/-1), and for
+// subsequent chars, fetching at phase 2/3 of the previous char's cycle.
+// This aligns screen pixel output with border pixel timing (no 4-pixel tooth).
+//
+// The visible area doesn't necessarily start at col 0 within each T-state line.
+// On Pentagon, FirstScreenTState=68, so the leftmost visible pixel is at
+// col 44 (= 68 - BorderLeft/2). The visCol approach handles this correctly
+// for all models by computing pixel X relative to the first visible column.
 func GenerateFrameMap(mode *VideoMode) []FrameEntry {
 	total := mode.TStatesPerFrame()
 	fmap := make([]FrameEntry, total)
 
-	borderTopLines := mode.BorderTop / 1 // 1 pixel per line vertically in border
-	_ = borderTopLines
+	// First visible column: the T-state column where the leftmost border pixel is.
+	// For Pentagon: 68 - 24 = 44. For 48K: 24 - 24 = 0.
+	firstVisCol := mode.FirstScreenTState - mode.BorderLeft/2
 
 	for t := 0; t < total; t++ {
 		line := t / mode.TStatesPerLine
@@ -112,29 +129,43 @@ func GenerateFrameMap(mode *VideoMode) []FrameEntry {
 
 		// Screen data region: 192 lines of screen content
 		if displayLine >= 0 && displayLine < 192 {
-			// Within screen area timing
+			// screenCol is relative to FirstScreenTState (where charCol 0 renders)
 			screenCol := col - mode.FirstScreenTState
-			if screenCol >= 0 && screenCol < 128 { // 128 T-states for 256 pixels (2 pixels per T-state)
-				charCol := screenCol / 4 // which character column (0-31)
+
+			if screenCol == -2 {
+				// Pipeline pre-fetch: bitmap for charCol 0 + render left border pixel
+				addr := screenBitmapAddr(displayLine, 0)
+				pixelX := mode.BorderLeft + screenCol*2
+				pixelY := mode.BorderTop + displayLine
+				fmap[t] = FrameEntry{
+					Action: ActionFetchBitmapBorder,
+					Addr:   addr,
+					X:      pixelX,
+					Y:      pixelY,
+				}
+			} else if screenCol == -1 {
+				// Pipeline pre-fetch: attr for charCol 0 + render left border pixel
+				addr := screenAttrAddr(displayLine, 0)
+				pixelX := mode.BorderLeft + screenCol*2
+				pixelY := mode.BorderTop + displayLine
+				fmap[t] = FrameEntry{
+					Action: ActionFetchAttrBorder,
+					Addr:   addr,
+					X:      pixelX,
+					Y:      pixelY,
+				}
+			} else if screenCol >= 0 && screenCol < 128 {
+				// Within screen area: pipelined pattern per 4-T-state character cell
+				//   phase 0: ScreenPixel (render 8 pixels using previously fetched data)
+				//   phase 1: idle
+				//   phase 2: FetchBitmap for next character (charCol+1)
+				//   phase 3: FetchAttr for next character (charCol+1)
 				phase := screenCol % 4
 
 				switch phase {
 				case 0:
-					// Fetch bitmap byte
-					addr := screenBitmapAddr(displayLine, charCol)
-					fmap[t] = FrameEntry{
-						Action: ActionFetchBitmap,
-						Addr:   addr,
-					}
-				case 1:
-					// Fetch attribute byte
-					addr := screenAttrAddr(displayLine, charCol)
-					fmap[t] = FrameEntry{
-						Action: ActionFetchAttr,
-						Addr:   addr,
-					}
-				case 2:
-					// Render 8 pixels
+					// Render 8 screen pixels
+					charCol := screenCol / 4
 					pixelX := mode.BorderLeft + charCol*8
 					pixelY := mode.BorderTop + displayLine
 					fmap[t] = FrameEntry{
@@ -142,42 +173,59 @@ func GenerateFrameMap(mode *VideoMode) []FrameEntry {
 						X:      pixelX,
 						Y:      pixelY,
 					}
-				default:
-					// phase 3: idle within this character cell
-				}
-			} else if screenCol >= -mode.BorderLeft/2 && screenCol < 0 {
-				// Left border during screen lines
-				if col%4 == 0 {
-					pixelX := mode.BorderLeft + screenCol*2
-					pixelY := mode.BorderTop + displayLine
-					if pixelX >= 0 {
+				case 2:
+					// Pre-fetch bitmap for next character
+					nextCharCol := screenCol/4 + 1
+					if nextCharCol < 32 {
+						addr := screenBitmapAddr(displayLine, nextCharCol)
 						fmap[t] = FrameEntry{
-							Action: ActionBorderPixel,
-							X:      pixelX,
-							Y:      pixelY,
+							Action: ActionFetchBitmap,
+							Addr:   addr,
 						}
+					}
+				case 3:
+					// Pre-fetch attr for next character
+					nextCharCol := screenCol/4 + 1
+					if nextCharCol < 32 {
+						addr := screenAttrAddr(displayLine, nextCharCol)
+						fmap[t] = FrameEntry{
+							Action: ActionFetchAttr,
+							Addr:   addr,
+						}
+					}
+				default:
+					// phase 1: idle
+				}
+			} else if screenCol >= -mode.BorderLeft/2 && screenCol < -2 {
+				// Left border during screen lines (excluding pre-fetch T-states)
+				pixelX := mode.BorderLeft + screenCol*2
+				pixelY := mode.BorderTop + displayLine
+				if pixelX >= 0 {
+					fmap[t] = FrameEntry{
+						Action: ActionBorderPixel,
+						X:      pixelX,
+						Y:      pixelY,
 					}
 				}
 			} else if screenCol >= 128 && screenCol < 128+mode.BorderRight/2 {
-				// Right border during screen lines
-				if col%4 == 0 {
-					pixelX := mode.BorderLeft + 256 + (screenCol-128)*2
-					pixelY := mode.BorderTop + displayLine
-					if pixelX < mode.TotalPixelWidth {
-						fmap[t] = FrameEntry{
-							Action: ActionBorderPixel,
-							X:      pixelX,
-							Y:      pixelY,
-						}
+				// Right border during screen lines (2 pixels per T-state)
+				pixelX := mode.BorderLeft + 256 + (screenCol-128)*2
+				pixelY := mode.BorderTop + displayLine
+				if pixelX < mode.TotalPixelWidth {
+					fmap[t] = FrameEntry{
+						Action: ActionBorderPixel,
+						X:      pixelX,
+						Y:      pixelY,
 					}
 				}
 			}
 		} else if displayLine >= -mode.BorderTop && displayLine < 0 {
-			// Top border
-			if col%4 == 0 && col < (mode.TotalPixelWidth/2) {
-				pixelX := col * 2
+			// Top border: use visCol to map T-state column to pixel X
+			visCol := (col - firstVisCol + mode.TStatesPerLine) % mode.TStatesPerLine
+			if visCol < mode.TotalPixelWidth/2 {
+				pixelX := visCol * 2
 				pixelY := mode.BorderTop + displayLine
-				if pixelX < mode.TotalPixelWidth && pixelY >= 0 {
+				if pixelY >= 0 {
 					fmap[t] = FrameEntry{
 						Action: ActionBorderPixel,
 						X:      pixelX,
@@ -186,11 +234,12 @@ func GenerateFrameMap(mode *VideoMode) []FrameEntry {
 				}
 			}
 		} else if displayLine >= 192 && displayLine < 192+mode.BorderBottom {
-			// Bottom border
-			if col%4 == 0 && col < (mode.TotalPixelWidth/2) {
-				pixelX := col * 2
+			// Bottom border: use visCol to map T-state column to pixel X
+			visCol := (col - firstVisCol + mode.TStatesPerLine) % mode.TStatesPerLine
+			if visCol < mode.TotalPixelWidth/2 {
+				pixelX := visCol * 2
 				pixelY := mode.BorderTop + displayLine
-				if pixelX < mode.TotalPixelWidth && pixelY < mode.TotalPixelHeight {
+				if pixelY < mode.TotalPixelHeight {
 					fmap[t] = FrameEntry{
 						Action: ActionBorderPixel,
 						X:      pixelX,

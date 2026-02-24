@@ -4,6 +4,14 @@
 PREFIX ?= /usr/local
 BINDIR = $(PREFIX)/bin
 
+# Version info for mzx
+MZX_VERSION := 0.1.0
+MZX_BUILD_FILE := cmd/mzx/BUILD
+MZX_BUILD_NUM = $(shell cat $(MZX_BUILD_FILE) 2>/dev/null || echo 0)
+MZX_GIT_COMMIT = $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
+MZX_BUILD_DATE = $(shell date -u '+%Y-%m-%d %H:%M:%S UTC')
+MZX_LDFLAGS = -X 'main.version=$(MZX_VERSION)' -X 'main.buildNum=$(MZX_BUILD_NUM)' -X 'main.gitCommit=$(MZX_GIT_COMMIT)' -X 'main.buildDate=$(MZX_BUILD_DATE)'
+
 # Build all tools
 .PHONY: all
 all: mz mza mze mzv mzr mzrun mztap mzd mzx
@@ -40,9 +48,10 @@ mztap:
 mzd:
 	go build -o mzd ./cmd/mzd
 
-# Build the ZX Spectrum emulator
+# Build the ZX Spectrum emulator (auto-increments build number)
 mzx:
-	go build -o mzx ./cmd/mzx
+	@echo $$(($(MZX_BUILD_NUM) + 1)) > $(MZX_BUILD_FILE)
+	go build -ldflags "$(MZX_LDFLAGS)" -o mzx ./cmd/mzx
 
 # Install to system (may require sudo)
 .PHONY: install
@@ -61,7 +70,7 @@ install: all
 .PHONY: install-user
 install-user: all
 	@mkdir -p ~/.local/bin
-	@for f in mz mza mze mzv mzr mzrun mztap mzd mzx; do [ -f $$f ] && cp -f $$f ~/.local/bin/; done
+	@for f in mz mza mze mzv mzr mzrun mztap mzd mzx; do [ -f $$f ] && cp -f $$f ~/.local/bin/ && codesign -s - ~/.local/bin/$$f 2>/dev/null; done
 	@echo "MinZ tools installed to ~/.local/bin/"
 
 # Clean build artifacts

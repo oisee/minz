@@ -32,6 +32,10 @@ type Ports struct {
 
 	// Contention for port access
 	hasContention bool
+
+	// Real-time tape signal
+	tape         *TapeSignalProvider
+	getAbsTStates func() int64
 }
 
 // NewPorts creates the port dispatcher and registers default devices.
@@ -90,16 +94,44 @@ func (p *Ports) Register(dev *PortDevice) {
 func (p *Ports) readULA(addr uint16) byte {
 	highByte := byte(addr >> 8)
 	kbResult := p.keyboard.Read(highByte)
-	// Bits 0-4: keyboard, bit 5: always 1, bit 6: EAR input (0 for now), bit 7: always 1
-	return (kbResult & 0x1F) | 0xA0
+	// Bits 0-4: keyboard, bit 5: always 1, bit 6: EAR input, bit 7: always 1
+	result := (kbResult & 0x1F) | 0xA0
+
+	// Bit 6: tape signal (when real-time tape is playing)
+	if p.tape != nil && p.tape.IsPlaying() && p.getAbsTStates != nil {
+		if p.tape.GetSignal(p.getAbsTStates()) {
+			result |= 0x40 // set bit 6
+		} else {
+			result &^= 0x40 // clear bit 6
+		}
+	}
+
+	return result
 }
 
 func (p *Ports) writeULA(addr uint16, val byte) {
+	// Step ULA to current T-state BEFORE changing border color.
+	// Without this, the new color is retroactively applied to pixels
+	// that already passed (causes border effects to shift left).
+	if p.getTstates != nil {
+		p.ula.StepTo(p.getTstates())
+	}
+
 	// Bits 0-2: border color
 	p.ula.SetBorderColor(val & 0x07)
 
-	// Bit 4: EAR output (beeper)
-	ear := val&0x10 != 0
+	// Bit 3: MIC output (tape save), Bit 4: EAR output (beeper)
+	// Both contribute to speaker — SAVE uses MIC, BEEP uses EAR.
+	ear := val&0x18 != 0
+
+	// Mix tape signal into beeper: during real-time tape loading,
+	// the tape signal replaces the EAR bit for audio output.
+	// This produces the classic loading screech through the beeper.
+	if p.tape != nil && p.tape.IsPlaying() && p.getAbsTStates != nil {
+		tapeSignal := p.tape.GetSignal(p.getAbsTStates())
+		ear = ear || tapeSignal
+	}
+
 	tstate := 0
 	if p.getTstates != nil {
 		tstate = p.getTstates()
@@ -110,6 +142,12 @@ func (p *Ports) writeULA(addr uint16, val byte) {
 // ---- 128K paging ($7FFD) ----
 
 func (p *Ports) writePaging(addr uint16, val byte) {
+	// Step ULA to current T-state BEFORE changing screen page.
+	// Without this, screen page flips (e.g. page 5↔7 double buffering)
+	// retroactively apply to already-passed scanlines.
+	if p.getTstates != nil {
+		p.ula.StepTo(p.getTstates())
+	}
 	p.memory.SetPaging(val)
 }
 
@@ -122,6 +160,12 @@ func (p *Ports) readKempston(addr uint16) byte {
 // SetKempstonState sets the Kempston joystick state byte.
 func (p *Ports) SetKempstonState(state byte) {
 	p.kempstonState = state
+}
+
+// SetTape installs a real-time tape signal provider.
+func (p *Ports) SetTape(tape *TapeSignalProvider, getAbsTStates func() int64) {
+	p.tape = tape
+	p.getAbsTStates = getAbsTStates
 }
 
 // SetAY attaches an AY-3-8912 chip and registers its ports.

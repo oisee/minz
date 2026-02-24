@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/minz/minzc/pkg/spectrum"
 )
@@ -169,7 +171,8 @@ type KeystrokeQueue struct {
 }
 
 type keystroke struct {
-	specKeys []spectrum.SpecKey // keys to press simultaneously
+	specKeys    []spectrum.SpecKey // keys to press simultaneously
+	pauseFrames int               // >0: idle pause (no key), skip this many frames
 }
 
 // NewKeystrokeQueue creates a keystroke injector.
@@ -185,15 +188,64 @@ func NewKeystrokeQueue(m *spectrum.Machine, holdFrames, gapFrames int) *Keystrok
 
 // TypeText converts a text string to Spectrum keystrokes and queues them.
 // Handles letters, digits, space, enter, and common punctuation.
+//
+// Special sequences:
+//
+//	_       — pause 10 frames (0.2 sec)
+//	.       — pause 1 frame
+//	{N}     — pause N frames
+//	{wait}  — pause 50 frames (1 sec)
+//	\n      — ENTER key
+//
+// ENTER is NOT auto-appended.
+// For literal _ or . Spectrum keys, use {_} or {.}
 func (kq *KeystrokeQueue) TypeText(text string) {
-	for _, ch := range text {
-		keys := charToSpecKeys(byte(ch))
+	i := 0
+	for i < len(text) {
+		ch := text[i]
+
+		// {N}, {wait}, {_}, {.} — brace escape syntax
+		if ch == '{' {
+			end := strings.Index(text[i:], "}")
+			if end > 0 {
+				inner := text[i+1 : i+end]
+				switch inner {
+				case "wait":
+					kq.keys = append(kq.keys, keystroke{pauseFrames: 50})
+				case "_":
+					// Literal underscore: SS+0
+					kq.keys = append(kq.keys, keystroke{specKeys: charToSpecKeys('_')})
+				case ".":
+					// Literal dot: SS+M
+					kq.keys = append(kq.keys, keystroke{specKeys: charToSpecKeys('.')})
+				default:
+					if n, err := strconv.Atoi(inner); err == nil {
+						kq.keys = append(kq.keys, keystroke{pauseFrames: n})
+					}
+				}
+				i += end + 1
+				continue
+			}
+		}
+
+		// _ = 10-frame pause, . = 1-frame pause
+		if ch == '_' {
+			kq.keys = append(kq.keys, keystroke{pauseFrames: 10})
+			i++
+			continue
+		}
+		if ch == '.' {
+			kq.keys = append(kq.keys, keystroke{pauseFrames: 1})
+			i++
+			continue
+		}
+
+		keys := charToSpecKeys(ch)
 		if keys != nil {
 			kq.keys = append(kq.keys, keystroke{specKeys: keys})
 		}
+		i++
 	}
-	// Always end with ENTER
-	kq.keys = append(kq.keys, keystroke{specKeys: []spectrum.SpecKey{spectrum.KeyEnter}})
 }
 
 // Update should be called once per frame. It injects the current keystroke
@@ -205,6 +257,16 @@ func (kq *KeystrokeQueue) Update() {
 
 	kq.counter++
 
+	// Handle pause entries (no key press, just wait)
+	ks := &kq.keys[kq.pos]
+	if ks.pauseFrames > 0 {
+		if kq.counter >= ks.pauseFrames {
+			kq.counter = 0
+			kq.pos++
+		}
+		return
+	}
+
 	if kq.holding {
 		// Currently pressing a key
 		if kq.counter >= kq.frameDelay {
@@ -214,7 +276,7 @@ func (kq *KeystrokeQueue) Update() {
 			kq.pos++
 		} else {
 			// Hold the key
-			for _, sk := range kq.keys[kq.pos].specKeys {
+			for _, sk := range ks.specKeys {
 				kq.machine.Keyboard.KeyPress(sk.Row, sk.Bit)
 			}
 		}

@@ -284,6 +284,18 @@ func (m *Memory) SetPaging(val byte) {
 	}
 }
 
+// PageHi returns the RAM page index currently mapped at $C000-$FFFF.
+func (m *Memory) PageHi() int {
+	return m.ramPageHi
+}
+
+// SetPagingForce applies a port $7FFD value unconditionally (ignoring lock).
+// Used by snapshot loaders that need to restore exact paging state.
+func (m *Memory) SetPagingForce(val byte) {
+	m.pagingLocked = false
+	m.SetPaging(val)
+}
+
 // ScreenPage returns the RAM page index currently used for display.
 func (m *Memory) ScreenPage() int {
 	return m.screenPage
@@ -320,4 +332,25 @@ func (m *Memory) ResetPaging() {
 	m.romPage = 0
 	m.ramPageHi = 0
 	m.screenPage = 5
+}
+
+// Is48K returns true if this is a 48K memory layout (no banking).
+func (m *Memory) Is48K() bool {
+	return m.is48K
+}
+
+// PagingState reconstructs the port $7FFD value from current state.
+func (m *Memory) PagingState() byte {
+	var val byte
+	val |= byte(m.ramPageHi & 0x07)
+	if m.screenPage == 7 {
+		val |= 0x08
+	}
+	if m.romPage == 1 {
+		val |= 0x10
+	}
+	if m.pagingLocked {
+		val |= 0x20
+	}
+	return val
 }

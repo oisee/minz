@@ -26,6 +26,17 @@ type Machine struct {
 
 	// AY sound chip (nil for 48K without AY)
 	AY *AYChip
+
+	// Real-time tape signal provider (nil if no tape or using trap loading)
+	Tape *TapeSignalProvider
+
+	// Absolute T-state counter (never resets, used for tape timing)
+	absoluteTStates int64
+
+	// T-state trap: one-shot callback when AbsoluteTStates >= target.
+	// Used for T-state precise snapshot saving and breakpoints.
+	tstateTrapTarget int64
+	tstateTrapCB     func(actualTState int64)
 }
 
 // New48K creates a 48K ZX Spectrum machine.
@@ -141,13 +152,62 @@ func (m *Machine) RunFrame() {
 		}
 		m.CPU.DoOpcode()
 		m.ULA.StepTo(m.CPU.Tstates())
+
+		// Check T-state trap (one-shot)
+		if m.tstateTrapTarget > 0 && m.AbsoluteTStates() >= m.tstateTrapTarget {
+			cb := m.tstateTrapCB
+			m.tstateTrapTarget = 0
+			m.tstateTrapCB = nil
+			if cb != nil {
+				cb(m.AbsoluteTStates())
+			}
+		}
 	}
 
-	// Wrap T-states for next frame
+	// Track absolute T-states (for tape timing): add this frame's T-states
+	m.absoluteTStates += int64(m.frameTStates)
+
+	// Wrap T-states for next frame (overshoot carries forward)
 	m.CPU.SetTstates(m.CPU.Tstates() - m.frameTStates)
 
 	// Finalize frame
 	m.ULA.EndFrame()
+	m.Beeper.EndFrame()
+	if m.AY != nil {
+		m.AY.EndFrame()
+	}
+
+	m.frameCount++
+}
+
+// RunFrameFast executes one frame without per-T-state ULA rendering.
+// Used in turbo mode — runs ~10-20x faster than RunFrame() by skipping
+// the ULA StepTo loop. Renders the screen once at the end of the frame.
+func (m *Machine) RunFrameFast() {
+	if m.paused {
+		return
+	}
+
+	m.CPU.Interrupt()
+
+	for m.CPU.Tstates() < m.frameTStates {
+		if m.pcTraps != nil {
+			if trap, ok := m.pcTraps[m.CPU.PC()]; ok {
+				trap()
+				continue
+			}
+		}
+		m.CPU.DoOpcode()
+	}
+
+	m.absoluteTStates += int64(m.frameTStates)
+	m.CPU.SetTstates(m.CPU.Tstates() - m.frameTStates)
+
+	// Render screen from VRAM at end of frame (non-incremental)
+	m.ULA.RenderFullScreen()
+	m.ULA.EndFrame()
+
+	// Discard audio to keep buffers from overflowing
 	m.Beeper.EndFrame()
 	if m.AY != nil {
 		m.AY.EndFrame()
@@ -217,5 +277,48 @@ func (m *Machine) SetPCTrap(addr uint16, handler func()) {
 func (m *Machine) RemovePCTrap(addr uint16) {
 	if m.pcTraps != nil {
 		delete(m.pcTraps, addr)
+	}
+}
+
+// AbsoluteTStates returns the absolute T-state count since boot.
+// Within a frame, adds the current frame-local T-states for sub-frame accuracy.
+func (m *Machine) AbsoluteTStates() int64 {
+	return m.absoluteTStates + int64(m.CPU.Tstates())
+}
+
+// SetTStateTrap sets a one-shot callback that fires when AbsoluteTStates >= target.
+// The callback receives the actual T-state value at the point of firing.
+// Pass target=0 to clear the trap.
+func (m *Machine) SetTStateTrap(target int64, cb func(int64)) {
+	m.tstateTrapTarget = target
+	m.tstateTrapCB = cb
+}
+
+// SetTape installs a real-time tape signal provider.
+// Pass nil to remove the tape.
+func (m *Machine) SetTape(tape *TapeSignalProvider) {
+	m.Tape = tape
+	m.Ports.SetTape(tape, m.AbsoluteTStatesFunc())
+}
+
+// AbsoluteTStatesFunc returns a function that computes the current
+// absolute T-state count. Used by Ports for tape signal timing.
+func (m *Machine) AbsoluteTStatesFunc() func() int64 {
+	return func() int64 {
+		return m.absoluteTStates + int64(m.CPU.Tstates())
+	}
+}
+
+// PlayTape starts real-time tape playback from the current T-state.
+func (m *Machine) PlayTape() {
+	if m.Tape != nil {
+		m.Tape.Play(m.AbsoluteTStates())
+	}
+}
+
+// StopTape stops real-time tape playback.
+func (m *Machine) StopTape() {
+	if m.Tape != nil {
+		m.Tape.Stop()
 	}
 }

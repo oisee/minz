@@ -150,6 +150,7 @@ type AYChip struct {
 	frameBufPos   int // read position
 	frameBufLen   int // valid samples
 	sampleRate    int
+	enabled       bool
 }
 
 // NewAYChip creates and configures an AY/YM chip.
@@ -165,6 +166,7 @@ func NewAYChip(isYM bool, clockRate float64, sampleRate int) *AYChip {
 	} else {
 		ay.dacTable = &ayDACTable
 	}
+	ay.enabled = true
 	ay.noise = 1
 	ay.SetEnvelopePeriod(1)
 	for i := 0; i < ayToneChannels; i++ {
@@ -604,7 +606,17 @@ func (ay *AYChip) RenderSamples(left, right []float64, n int) {
 // Call this once per frame from Machine.RunFrame(), synchronized with the
 // beeper's EndFrame(). This ensures AY audio is generated at frame boundaries
 // rather than on-demand from the audio callback.
+// SetEnabled enables or disables AY audio output.
+func (ay *AYChip) SetEnabled(enabled bool) {
+	ay.enabled = enabled
+}
+
 func (ay *AYChip) EndFrame() {
+	if !ay.enabled {
+		ay.frameBufPos = 0
+		ay.frameBufLen = 0
+		return
+	}
 	n := ay.sampleRate / 50 // 882 samples at 44100Hz
 	if n > len(ay.frameBufLeft) {
 		ay.frameBufLeft = make([]float64, n)
@@ -613,6 +625,11 @@ func (ay *AYChip) EndFrame() {
 	ay.RenderSamples(ay.frameBufLeft[:n], ay.frameBufRight[:n], n)
 	ay.frameBufPos = 0
 	ay.frameBufLen = n
+}
+
+// Available returns the number of samples available for reading.
+func (ay *AYChip) Available() int {
+	return ay.frameBufLen - ay.frameBufPos
 }
 
 // ReadFrameSamples drains up to len(left) stereo sample pairs from the

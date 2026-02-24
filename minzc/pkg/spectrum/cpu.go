@@ -67,7 +67,16 @@ func NewRemogattoAdapter(memory z80.MemoryAccessor, ports z80.PortAccessor) *Rem
 }
 
 func (a *RemogattoAdapter) Reset()      { a.cpu.Reset() }
-func (a *RemogattoAdapter) DoOpcode()   { a.cpu.DoOpcode() }
+func (a *RemogattoAdapter) DoOpcode() {
+	// The remogatto/z80 library panics on undefined ED-prefix opcodes.
+	// A real Z80 treats them as NOPs. Recover and consume 8 T-states.
+	defer func() {
+		if r := recover(); r != nil {
+			a.cpu.Tstates += 8
+		}
+	}()
+	a.cpu.DoOpcode()
+}
 func (a *RemogattoAdapter) Tstates() int { return a.cpu.Tstates }
 func (a *RemogattoAdapter) SetTstates(t int) { a.cpu.Tstates = t }
 func (a *RemogattoAdapter) Halted() bool { return a.cpu.Halted }

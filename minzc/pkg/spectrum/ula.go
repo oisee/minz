@@ -91,20 +91,21 @@ func (u *ULA) StepTo(tstate int) {
 			u.lastAttr = u.memory.ReadScreen(offset)
 
 		case ActionScreenPixel:
-			// Fill border gap pixels that can't be mapped to T-states.
-			// On the real ULA, these are rendered during H-retrace of the
-			// previous line. We fill them when the first/last screen char fires.
-			if entry.X == u.mode.BorderLeft {
-				// First screen char: fill left border gap (pixels 0..borderLeft-1)
-				u.fillBorderGap(0, entry.Y, u.mode.BorderLeft)
-			} else if entry.X == u.mode.BorderLeft+248 {
-				// Last screen char (col 31): fill right border gap
-				rightStart := u.mode.BorderLeft + 256
-				u.fillBorderGap(rightStart, entry.Y, u.mode.TotalPixelWidth-rightStart)
-			}
 			u.renderScreenPixels(entry.X, entry.Y)
 
 		case ActionBorderPixel:
+			u.renderBorderPixels(entry.X, entry.Y)
+
+		case ActionFetchBitmapBorder:
+			// Pipeline: pre-fetch bitmap AND render 2 border pixels
+			offset := entry.Addr - 0x4000
+			u.lastBitmap = u.memory.ReadScreen(offset)
+			u.renderBorderPixels(entry.X, entry.Y)
+
+		case ActionFetchAttrBorder:
+			// Pipeline: pre-fetch attr AND render 2 border pixels
+			offset := entry.Addr - 0x4000
+			u.lastAttr = u.memory.ReadScreen(offset)
 			u.renderBorderPixels(entry.X, entry.Y)
 		}
 	}
@@ -163,17 +164,17 @@ func (u *ULA) renderScreenPixels(x, y int) {
 	}
 }
 
-// renderBorderPixels renders 8 pixels of border color.
+// renderBorderPixels renders 2 pixels of border color (1 T-state = 2 pixels).
 func (u *ULA) renderBorderPixels(x, y int) {
+	if y < 0 || y >= u.mode.TotalPixelHeight {
+		return
+	}
 	color := spectrumPalette[u.borderColor]
 	stride := u.mode.TotalPixelWidth * 4
 
-	for i := 0; i < 8; i++ {
+	for i := 0; i < 2; i++ {
 		px := x + i
 		if px < 0 || px >= u.mode.TotalPixelWidth {
-			continue
-		}
-		if y < 0 || y >= u.mode.TotalPixelHeight {
 			continue
 		}
 

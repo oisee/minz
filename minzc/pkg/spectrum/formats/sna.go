@@ -8,7 +8,7 @@ import (
 	"github.com/minz/minzc/pkg/spectrum"
 )
 
-// SNASnapshot holds the parsed contents of a .sna file.
+// SNASnapshot holds the parsed contents of a .sna file (48K or 128K).
 type SNASnapshot struct {
 	// Registers (from 27-byte header)
 	I          byte
@@ -22,11 +22,25 @@ type SNASnapshot struct {
 	IM         byte
 	Border     byte
 
-	// 48K RAM dump (49152 bytes: $4000-$FFFF)
+	// 48K RAM dump (49152 bytes: $4000-$FFFF as seen by CPU)
 	RAM [49152]byte
+
+	// 128K extension (only valid when Is128K is true)
+	Is128K   bool
+	PC128    uint16 // PC (128K .sna stores PC here, not on stack)
+	Port7FFD byte   // port $7FFD paging state
+	TRDos    byte   // TR-DOS ROM paged flag
+
+	// Extra pages: the 5 RAM pages NOT already in the 48K portion.
+	// The 48K portion contains pages 5, 2, and whatever PageHi was.
+	// ExtraPages stores the remaining 5 pages in ascending order,
+	// skipping the 3 already saved.
+	ExtraPages [5][16384]byte
+	// Which page indices are in ExtraPages (for reference during apply)
+	ExtraPageNums [5]int
 }
 
-// LoadSNA loads a .sna snapshot file.
+// LoadSNA loads a .sna snapshot file (auto-detects 48K vs 128K by size).
 func LoadSNA(path string) (*SNASnapshot, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -34,12 +48,12 @@ func LoadSNA(path string) (*SNASnapshot, error) {
 	}
 
 	if len(data) < 49179 { // 27 header + 49152 RAM
-		return nil, fmt.Errorf(".sna file too short: %d bytes (need 49179)", len(data))
+		return nil, fmt.Errorf(".sna file too short: %d bytes (need >= 49179)", len(data))
 	}
 
 	s := &SNASnapshot{}
 
-	// Parse 27-byte header
+	// Parse 27-byte header (same for 48K and 128K)
 	s.I = data[0]
 	s.HL_ = uint16(data[1]) | uint16(data[2])<<8
 	s.DE_ = uint16(data[3]) | uint16(data[4])<<8
@@ -57,102 +71,175 @@ func LoadSNA(path string) (*SNASnapshot, error) {
 	s.IM = data[25]
 	s.Border = data[26]
 
-	// Copy 48K RAM
+	// Copy 48K RAM portion
 	copy(s.RAM[:], data[27:27+49152])
+
+	// 128K extension: 49179 + 4 header + 5*16384 = 131103 bytes
+	if len(data) >= 131103 {
+		s.Is128K = true
+		off := 49179
+		s.PC128 = uint16(data[off]) | uint16(data[off+1])<<8
+		s.Port7FFD = data[off+2]
+		s.TRDos = data[off+3]
+		off += 4
+
+		// Read the 5 remaining pages in ascending order.
+		// Skip pages 5, 2, and PageHi (already in the 48K portion).
+		// If PageHi collides with 5 or 2, only 5 extra pages are present.
+		pageHi := int(s.Port7FFD & 0x07)
+		idx := 0
+		for page := 0; page < 8 && idx < 5; page++ {
+			if page == 5 || page == 2 || page == pageHi {
+				continue
+			}
+			s.ExtraPageNums[idx] = page
+			copy(s.ExtraPages[idx][:], data[off:off+16384])
+			off += 16384
+			idx++
+		}
+	}
 
 	return s, nil
 }
 
-// SaveSNA captures the current machine state as a 48K .sna snapshot file.
-// The .sna format stores PC on the stack, so SP is decremented by 2 and PC
-// is pushed. This is a non-destructive snapshot — the machine state is not
-// modified (we write the adjusted SP/stack into the file only).
+// SaveSNA captures the current machine state as a .sna snapshot file.
+// Automatically saves as 128K format if the machine has 128K memory.
+//
+// 48K format (49179 bytes): 27-byte header + 49152 RAM.
+//   PC is pushed onto the stack (SP decremented by 2 in the file).
+//
+// 128K format (131103 bytes): 48K portion + 4-byte extension + 5*16384 extra pages.
+//   PC stored in the extension header (not on stack).
+//   Port $7FFD state preserved for correct page restoration.
 func SaveSNA(path string, m *spectrum.Machine) error {
 	cpu := m.CPU
+	is128K := !m.Memory.Is48K()
 
-	var data [49179]byte // 27 header + 49152 RAM
-
-	// Header: registers
-	data[0] = cpu.I()
+	// Build 27-byte header (shared between 48K and 128K)
+	var hdr [27]byte
+	hdr[0] = cpu.I()
 
 	hl_ := cpu.HL_()
-	data[1] = byte(hl_)
-	data[2] = byte(hl_ >> 8)
+	hdr[1] = byte(hl_)
+	hdr[2] = byte(hl_ >> 8)
 	de_ := cpu.DE_()
-	data[3] = byte(de_)
-	data[4] = byte(de_ >> 8)
+	hdr[3] = byte(de_)
+	hdr[4] = byte(de_ >> 8)
 	bc_ := cpu.BC_()
-	data[5] = byte(bc_)
-	data[6] = byte(bc_ >> 8)
+	hdr[5] = byte(bc_)
+	hdr[6] = byte(bc_ >> 8)
 	af_ := cpu.AF_()
-	data[7] = byte(af_)
-	data[8] = byte(af_ >> 8)
+	hdr[7] = byte(af_)
+	hdr[8] = byte(af_ >> 8)
 
 	hl := cpu.HL()
-	data[9] = byte(hl)
-	data[10] = byte(hl >> 8)
+	hdr[9] = byte(hl)
+	hdr[10] = byte(hl >> 8)
 	de := cpu.DE()
-	data[11] = byte(de)
-	data[12] = byte(de >> 8)
+	hdr[11] = byte(de)
+	hdr[12] = byte(de >> 8)
 	bc := cpu.BC()
-	data[13] = byte(bc)
-	data[14] = byte(bc >> 8)
+	hdr[13] = byte(bc)
+	hdr[14] = byte(bc >> 8)
 
 	iy := cpu.IY()
-	data[15] = byte(iy)
-	data[16] = byte(iy >> 8)
+	hdr[15] = byte(iy)
+	hdr[16] = byte(iy >> 8)
 	ix := cpu.IX()
-	data[17] = byte(ix)
-	data[18] = byte(ix >> 8)
+	hdr[17] = byte(ix)
+	hdr[18] = byte(ix >> 8)
 
-	// IFF2: stored in bit 2
 	if cpu.IFF2() {
-		data[19] = 0x04
+		hdr[19] = 0x04
 	}
-	data[20] = cpu.R()
+	hdr[20] = cpu.R()
 
 	af := cpu.AF()
-	data[21] = byte(af)
-	data[22] = byte(af >> 8)
+	hdr[21] = byte(af)
+	hdr[22] = byte(af >> 8)
 
-	// SP adjusted: push PC onto stack in the snapshot
-	sp := cpu.SP() - 2
-	data[23] = byte(sp)
-	data[24] = byte(sp >> 8)
-
-	data[25] = cpu.IM()
-	data[26] = m.ULA.BorderColor()
-
-	// Copy 48K RAM ($4000-$FFFF)
-	// Page 5 → $4000-$7FFF
-	for i := 0; i < 16384; i++ {
-		data[27+i] = m.Memory.ReadRAMDirect(5, uint16(i))
-	}
-	// Page 2 → $8000-$BFFF
-	for i := 0; i < 16384; i++ {
-		data[27+16384+i] = m.Memory.ReadRAMDirect(2, uint16(i))
-	}
-	// Page 0 → $C000-$FFFF
-	for i := 0; i < 16384; i++ {
-		data[27+32768+i] = m.Memory.ReadRAMDirect(0, uint16(i))
-	}
-
-	// Write PC onto the stack position in the RAM dump
+	sp := cpu.SP()
 	pc := cpu.PC()
-	stackOffset := int(sp) - 0x4000
-	if stackOffset >= 0 && stackOffset+1 < 49152 {
-		data[27+stackOffset] = byte(pc)
-		data[27+stackOffset+1] = byte(pc >> 8)
+
+	if !is128K {
+		// 48K: push PC onto stack
+		sp -= 2
 	}
 
-	return os.WriteFile(path, data[:], 0644)
+	hdr[23] = byte(sp)
+	hdr[24] = byte(sp >> 8)
+	hdr[25] = cpu.IM()
+	hdr[26] = m.ULA.BorderColor()
+
+	// 48K RAM portion: pages 5, 2, PageHi
+	pageHi := m.Memory.PageHi()
+	var ram48 [49152]byte
+	for i := 0; i < 16384; i++ {
+		ram48[i] = m.Memory.ReadRAMDirect(5, uint16(i))
+	}
+	for i := 0; i < 16384; i++ {
+		ram48[16384+i] = m.Memory.ReadRAMDirect(2, uint16(i))
+	}
+	for i := 0; i < 16384; i++ {
+		ram48[32768+i] = m.Memory.ReadRAMDirect(pageHi, uint16(i))
+	}
+
+	if !is128K {
+		// 48K: write PC onto stack in the RAM dump
+		stackOffset := int(sp) - 0x4000
+		if stackOffset >= 0 && stackOffset+1 < 49152 {
+			ram48[stackOffset] = byte(pc)
+			ram48[stackOffset+1] = byte(pc >> 8)
+		}
+
+		// Write 49179 bytes
+		data := make([]byte, 49179)
+		copy(data[0:27], hdr[:])
+		copy(data[27:], ram48[:])
+		return os.WriteFile(path, data, 0644)
+	}
+
+	// --- 128K format ---
+	// Total: 27 header + 49152 RAM + 4 extension + 5*16384 extra = 131103
+	data := make([]byte, 131103)
+	copy(data[0:27], hdr[:])
+	copy(data[27:27+49152], ram48[:])
+
+	// Extension header
+	off := 49179
+	data[off] = byte(pc)
+	data[off+1] = byte(pc >> 8)
+	data[off+2] = m.Memory.PagingState()
+	data[off+3] = 0 // TR-DOS not paged
+	off += 4
+
+	// Write the 5 remaining pages (ascending order, skipping 5, 2, PageHi).
+	// If PageHi collides with 5 or 2, only 2 are skipped → 6 candidates.
+	// We write exactly 5 to match the 131103-byte format.
+	extraCount := 0
+	for page := 0; page < 8 && extraCount < 5; page++ {
+		if page == 5 || page == 2 || page == pageHi {
+			continue
+		}
+		for i := 0; i < 16384; i++ {
+			data[off+i] = m.Memory.ReadRAMDirect(page, uint16(i))
+		}
+		off += 16384
+		extraCount++
+	}
+
+	return os.WriteFile(path, data, 0644)
 }
 
 // ApplySnapshot loads a .sna snapshot into a machine.
-// After loading, executes RETN to resume from the interrupt return address
-// on the stack (the .sna format pushes PC onto stack before saving).
+//
+// 48K: Pops PC from stack (the .sna format pushes PC before saving).
+// 128K: Reads PC from extension header, restores all 8 RAM pages and paging state.
 func ApplySnapshot(m *spectrum.Machine, snap *SNASnapshot) {
 	cpu := m.CPU
+
+	// Reset paging before loading
+	m.Memory.ResetPaging()
 
 	// Set registers
 	cpu.SetI(snap.I)
@@ -178,7 +265,7 @@ func ApplySnapshot(m *spectrum.Machine, snap *SNASnapshot) {
 	cpu.SetIFF1(iff)
 	cpu.SetIFF2(iff)
 
-	// Load RAM into pages 5, 2, 0 (48K layout)
+	// Load the 48K RAM portion: pages 5, 2, and the page at $C000
 	// $4000-$7FFF → page 5
 	for i := 0; i < 16384; i++ {
 		m.Memory.WriteRAMDirect(5, uint16(i), snap.RAM[i])
@@ -187,23 +274,43 @@ func ApplySnapshot(m *spectrum.Machine, snap *SNASnapshot) {
 	for i := 0; i < 16384; i++ {
 		m.Memory.WriteRAMDirect(2, uint16(i), snap.RAM[16384+i])
 	}
-	// $C000-$FFFF → page 0
-	for i := 0; i < 16384; i++ {
-		m.Memory.WriteRAMDirect(0, uint16(i), snap.RAM[32768+i])
+
+	if snap.Is128K {
+		// 128K: the $C000 portion goes to whatever page Port7FFD selects
+		pageHi := int(snap.Port7FFD & 0x07)
+		for i := 0; i < 16384; i++ {
+			m.Memory.WriteRAMDirect(pageHi, uint16(i), snap.RAM[32768+i])
+		}
+
+		// Load the 5 extra pages
+		for idx := 0; idx < 5; idx++ {
+			page := snap.ExtraPageNums[idx]
+			for i := 0; i < 16384; i++ {
+				m.Memory.WriteRAMDirect(page, uint16(i), snap.ExtraPages[idx][i])
+			}
+		}
+
+		// Restore paging state (sets ramPageHi, screenPage, romPage)
+		m.Memory.SetPagingForce(snap.Port7FFD)
+
+		// PC comes from extension header (not stack)
+		cpu.SetPC(snap.PC128)
+	} else {
+		// 48K: $C000 → page 0 (default)
+		for i := 0; i < 16384; i++ {
+			m.Memory.WriteRAMDirect(0, uint16(i), snap.RAM[32768+i])
+		}
+
+		// Pop PC from stack
+		sp := cpu.SP()
+		pcLo := m.Memory.Read(sp)
+		pcHi := m.Memory.Read(sp + 1)
+		cpu.SetPC(uint16(pcLo) | uint16(pcHi)<<8)
+		cpu.SetSP(sp + 2)
 	}
 
 	// Set border color
 	m.ULA.SetBorderColor(snap.Border)
-
-	// The .sna format stores PC on the stack. Pop it to resume execution.
-	// RETN: pop PC from stack, copy IFF2 to IFF1
-	sp := cpu.SP()
-	pcLo := m.Memory.ReadScreen(0) // We need raw memory read
-	// Actually, use the Memory.Read method for flat access
-	pcLo = m.Memory.Read(sp)
-	pcHi := m.Memory.Read(sp + 1)
-	cpu.SetPC(uint16(pcLo) | uint16(pcHi)<<8)
-	cpu.SetSP(sp + 2)
 
 	// Render the screen from VRAM
 	m.ULA.RenderFullScreen()

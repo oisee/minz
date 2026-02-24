@@ -161,3 +161,32 @@ func AutoLoadTAP(m *spectrum.Machine) {
 	fmt.Println("Auto-loading from tape...")
 }
 
+// InstallRealtimeTAP sets up real-time tape loading. Instead of trapping
+// at $0556 and injecting data instantly, this pre-computes the tape waveform
+// and feeds it through port $FE bit 6, just like a real cassette player.
+// The ROM's LD-BYTES routine reads the signal in real-time.
+//
+// Pros: works with custom speedloaders, produces tape audio
+// Cons: loading takes minutes of real time (like the original)
+func InstallRealtimeTAP(m *spectrum.Machine, tap *TAPFile) {
+	blocks := make([]spectrum.TapeBlockData, len(tap.Blocks))
+	for i, b := range tap.Blocks {
+		blocks[i] = spectrum.TapeBlockData{Flag: b.Flag, Data: b.Data}
+	}
+	provider := spectrum.NewTapeSignalProvider(blocks)
+	m.SetTape(provider)
+
+	duration := float64(provider.TotalDuration()) / float64(m.Mode.CPUClockHz)
+	fmt.Printf("Real-time tape: %d blocks, %.1f seconds\n", len(tap.Blocks), duration)
+}
+
+// AutoLoadTAPRealtime starts real-time tape loading with LOAD "".
+func AutoLoadTAPRealtime(m *spectrum.Machine, tap *TAPFile) {
+	InstallRealtimeTAP(m, tap)
+	WaitROMInit(m, 100)
+	// Start tape playback just before executing LOAD ""
+	m.PlayTape()
+	ExecBASIC(m, TokenizeLOAD())
+	fmt.Println("Real-time tape loading started (press F6 to stop tape)...")
+}
+

@@ -715,6 +715,8 @@ func (s *TRDState) setBC(v uint16) {
 }
 
 // LoadTRDFile loads a specific file from the .trd image into machine RAM.
+// For BASIC files (ext 'B'/'b'), loads into the program area and executes RUN.
+// For CODE files, loads at the specified address (or entry's Start address if destAddr=0).
 func LoadTRDFile(m *spectrum.Machine, trd *TRDFile, name string, ext byte, destAddr uint16) error {
 	entry := trd.FindFile(name, ext)
 	if entry == nil {
@@ -722,12 +724,28 @@ func LoadTRDFile(m *spectrum.Machine, trd *TRDFile, name string, ext byte, destA
 	}
 
 	data := trd.ReadFile(entry)
+
+	if ext == 'B' || ext == 'b' {
+		// BASIC program: load into program area and RUN
+		WaitROMInit(m, 100)
+		LoadBASICProgram(m, data)
+		ExecBASIC(m, TokenizeRUN())
+		fmt.Printf("Loaded BASIC program '%s' (%d bytes, autostart line %d)\n",
+			name, len(data), entry.Start)
+		return nil
+	}
+
+	// CODE file: load at destAddr (or entry.Start if 0)
+	if destAddr == 0 {
+		destAddr = entry.Start
+	}
 	for i, b := range data {
 		addr := destAddr + uint16(i)
-		if addr >= 0x4000 { // don't write to ROM
+		if addr >= 0x4000 {
 			m.Memory.Write(addr, b, false)
 		}
 	}
+	fmt.Printf("Loaded CODE '%s' (%d bytes at $%04X)\n", name, len(data), destAddr)
 	return nil
 }
 
@@ -737,21 +755,30 @@ func LoadTRDFile(m *spectrum.Machine, trd *TRDFile, name string, ext byte, destA
 func AutoBootTRD(m *spectrum.Machine, trd *TRDFile) error {
 	WaitROMInit(m, 100)
 
-	// Find "boot" file (type B = BASIC)
+	// Find "boot" file (type B = BASIC), then fall back to first BASIC file
 	boot := trd.FindFile("boot", 'B')
 	if boot == nil {
 		boot = trd.FindFile("boot", 'b')
 	}
 	if boot == nil {
+		// Try first BASIC file on disk as fallback
 		entries := trd.ListDirectory()
-		if len(entries) > 0 {
-			fmt.Printf("No 'boot' file found. Disk directory:\n")
-			for i, e := range entries {
-				fmt.Printf("  [%d] %-8s.%c  start=$%04X len=%d (%d sectors)\n",
-					i, e.Name, e.Extension, e.Start, e.Length, e.Sectors)
+		for i := range entries {
+			if entries[i].Extension == 'B' || entries[i].Extension == 'b' {
+				boot = &entries[i]
+				break
 			}
 		}
-		return fmt.Errorf("no 'boot' file on disk")
+		if boot == nil {
+			if len(entries) > 0 {
+				fmt.Printf("No BASIC file found. Disk directory:\n")
+				for i, e := range entries {
+					fmt.Printf("  [%d] %-8s.%c  start=$%04X len=%d (%d sectors)\n",
+						i, e.Name, e.Extension, e.Start, e.Length, e.Sectors)
+				}
+			}
+			return fmt.Errorf("no bootable file on disk (use --trd-load name:ext:addr)")
+		}
 	}
 
 	// Load the BASIC program into the program area
