@@ -46,7 +46,7 @@ MZX is the MinZ toolchain's ZX Spectrum emulator. It's a T-state accurate emulat
 | **Keyboard** | (in ports) | 8-row matrix, directly mapped from Ebitengine key state |
 | **Beeper** | `beeper.go` | 1-bit audio from port $FE bit 4, sample-accurate edge detection |
 | **AY** | `ay.go` | AY-3-8912 PSG: 3 tone channels + noise + envelopes, stereo panning (ACB) |
-| **Formats** | `formats/` | .tap (tape), .trd/.scl (TR-DOS disk), .sna (snapshot), BASIC tokenizer, console capture |
+| **Formats** | `formats/` | .tap (tape), .trd/.scl (TR-DOS disk), .sna (48K+128K snapshot), BASIC tokenizer, console capture |
 
 ---
 
@@ -92,10 +92,12 @@ T-state accurate rendering — the ULA draws pixels as the CPU executes:
 - **Border**: Colored ring around screen, set by port $FE bits 0-2
 - **Contention**: Memory access at $4000-$7FFF adds wait states matching real hardware
 - **Flash**: Attribute bit 7 toggles foreground/background every 16 frames
+- **Pipeline**: ULA pre-fetches bitmap+attr 2 T-states before screen pixel output (no border tooth artifact)
+- **Screen page**: Double-buffering via port $7FFD bit 3 (page 5 or 7), ULA stepped before page switch
 
 ### Framebuffer sizes
 - 48K: 352×296 (48px border top/bottom, 48px border left/right)
-- Pentagon: 352×312 (64px border top, 56px border bottom)
+- Pentagon: 352×304 (64px border top, 48px border bottom)
 
 ---
 
@@ -156,6 +158,7 @@ Shifted punctuation (e.g. Shift+8 = `*`) automatically maps to the correct Spect
 | `--load` | Load raw binary to memory: `FILE@ADDR` or `FILE@ADDR:PAGE` (repeatable) |
 | `--run` | Load and run: `FILE@ADDR` (shortcut for `--load FILE@ADDR --set PC=ADDR,SP=FFFF,DI,IM=1`) |
 | `--save-snapshot` | Save .sna snapshot after running frames (headless) |
+| `--snapshot-at-tstate` | Save .sna at exact T-state: `T` or `T:FILE.sna` |
 
 ### CPU Control
 | Flag | Description |
@@ -287,7 +290,35 @@ minzc/pkg/spectrum/
 └── formats/
     ├── tap.go       # .tap tape loading + traps
     ├── trd.go       # .trd/.scl disk + TR-DOS traps
-    ├── sna.go       # .sna snapshot format
+    ├── sna.go       # .sna snapshot format (48K + 128K)
+    ├── sna_test.go  # SNA roundtrip tests (48K, 128K, collision, cross-machine)
     ├── console.go   # BASIC output capture
     └── basic.go     # BASIC tokenizer + exec
 ```
+
+---
+
+## SNA Snapshot Format
+
+Two variants, auto-detected by file size:
+
+### 48K (.sna) — 49179 bytes
+```
+Offset  Size    Content
+0       27      Register header (I, HL', DE', BC', AF', HL, DE, BC, IY, IX, IFF2, R, AF, SP, IM, Border)
+27      49152   RAM dump ($4000-$FFFF: pages 5, 2, PageHi)
+```
+PC is pushed onto the stack (SP-=2 in header). On load, PC is popped.
+
+### 128K (.sna) — 131103 bytes
+```
+Offset  Size    Content
+0       27      Register header (same as 48K)
+27      49152   RAM dump ($4000-$FFFF: pages 5, 2, PageHi)
+49179   2       PC (not on stack)
+49181   1       Port $7FFD state (paging register)
+49182   1       TR-DOS ROM flag
+49183   81920   5 extra RAM pages (16384 each, ascending order, skipping 5/2/PageHi)
+```
+
+All 8 RAM pages are preserved. Paging state (RAM page at $C000, screen page, ROM page) is fully restored.
