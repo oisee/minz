@@ -81,10 +81,7 @@ func (g *Game) Update() error {
 		restoreStderr()
 	}
 
-	// Handle special keys
-	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
-		return ebiten.Termination
-	}
+	// Handle special keys (Cmd+Q / Alt+F4 handled natively by Ebitengine)
 	if inpututil.IsKeyJustPressed(ebiten.KeyF5) {
 		g.machine.Reset()
 	}
@@ -187,10 +184,15 @@ func buildKeyMap() map[ebiten.Key][]spectrum.SpecKey {
 		ebiten.KeyDigit9: {spectrum.Key9},
 
 		// Special keys
-		ebiten.KeyEnter:     {spectrum.KeyEnter},
-		ebiten.KeySpace:     {spectrum.KeySpace},
-		ebiten.KeyShiftLeft: {spectrum.KeyShift},
-		ebiten.KeyControlLeft: {spectrum.KeySym},
+		ebiten.KeyEnter:        {spectrum.KeyEnter},
+		ebiten.KeySpace:        {spectrum.KeySpace},
+		ebiten.KeyShiftLeft:    {spectrum.KeyShift},     // Caps Shift
+		ebiten.KeyShiftRight:   {spectrum.KeySym},       // Symbol Shift
+		ebiten.KeyControlLeft:  {spectrum.KeySym},       // Symbol Shift (alt mapping)
+		ebiten.KeyControlRight: {spectrum.KeySym},       // Symbol Shift (alt mapping)
+		ebiten.KeyEscape:       {spectrum.KeyShift, spectrum.Key1}, // EDIT (Caps Shift + 1)
+		ebiten.KeyTab:          {spectrum.KeyShift, spectrum.KeySym}, // Extended mode (CS + SS)
+		ebiten.KeyCapsLock:     {spectrum.KeyShift, spectrum.Key2},   // Caps Lock (CS + 2)
 
 		// Arrow keys → Shift + 5/6/7/8
 		ebiten.KeyArrowLeft:  {spectrum.KeyShift, spectrum.Key5},
@@ -914,7 +916,7 @@ func main() {
 		machine.ScreenWidth(), machine.ScreenHeight(),
 		machine.Mode.TStatesPerFrame())
 	fmt.Printf("Scale: %dx\n", scale)
-	fmt.Printf("Keys: ESC=quit, F1=pause, F5=reset, F2=screenshot\n")
+	fmt.Printf("Keys: F1=pause, F2=screenshot, F5=reset, ESC=EDIT, Tab=ExtMode\n")
 
 	if err := ebiten.RunGame(game); err != nil && err != ebiten.Termination {
 		log.Fatal(err)
