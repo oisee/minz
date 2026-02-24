@@ -9,6 +9,7 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
@@ -76,7 +77,7 @@ func (g *Game) Update() error {
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF2) {
 		path := fmt.Sprintf("mzx_screenshot_%06d.png", g.machine.FrameCount())
-		if err := saveScreenshot(g.machine, path); err != nil {
+		if err := saveScreenshotEx(g.machine, path, false); err != nil {
 			log.Printf("Screenshot error: %v", err)
 		} else {
 			log.Printf("Screenshot saved: %s", path)
@@ -279,22 +280,37 @@ func screensEqual(a, b []byte) bool {
 	return true
 }
 
-// saveScreenshot saves the machine's current framebuffer as a PNG file.
-func saveScreenshot(m *spectrum.Machine, path string) error {
+// saveScreenshotEx saves the framebuffer as PNG, optionally cropping border.
+func saveScreenshotEx(m *spectrum.Machine, path string, noBorder bool) error {
 	fb := m.Framebuffer()
-	w := m.ScreenWidth()
-	h := m.ScreenHeight()
+	fullW := m.ScreenWidth()
+	fullH := m.ScreenHeight()
 
-	img := image.NewRGBA(image.Rect(0, 0, w, h))
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			off := (y*w + x) * 4
-			img.SetRGBA(x, y, color.RGBA{
-				R: fb[off+0],
-				G: fb[off+1],
-				B: fb[off+2],
-				A: fb[off+3],
-			})
+	var img *image.RGBA
+	if noBorder {
+		// Crop to 256x192 screen area (skip border)
+		bLeft := m.Mode.BorderLeft
+		bTop := m.Mode.BorderTop
+		img = image.NewRGBA(image.Rect(0, 0, 256, 192))
+		for y := 0; y < 192; y++ {
+			for x := 0; x < 256; x++ {
+				srcX := bLeft + x
+				srcY := bTop + y
+				off := (srcY*fullW + srcX) * 4
+				img.SetRGBA(x, y, color.RGBA{
+					R: fb[off+0], G: fb[off+1], B: fb[off+2], A: fb[off+3],
+				})
+			}
+		}
+	} else {
+		img = image.NewRGBA(image.Rect(0, 0, fullW, fullH))
+		for y := 0; y < fullH; y++ {
+			for x := 0; x < fullW; x++ {
+				off := (y*fullW + x) * 4
+				img.SetRGBA(x, y, color.RGBA{
+					R: fb[off+0], G: fb[off+1], B: fb[off+2], A: fb[off+3],
+				})
+			}
 		}
 	}
 
@@ -310,6 +326,187 @@ func saveScreenshot(m *spectrum.Machine, path string) error {
 	return nil
 }
 
+// ---- Frame spec parser (matches zxs --frame-spec syntax) ----
+
+// frameSpecType identifies the type of frame specification.
+type frameSpecType int
+
+const (
+	specNone        frameSpecType = iota
+	specSingleFrame               // "100"
+	specFrameRange                // "100..200"
+	specPCTrigger                 // "PC=4000"
+	specPCRange                   // "PC=4000..PC=4000+50" or "PC=4000+50"
+	specTTrigger                  // "T=100000"
+	specTRange                    // "T=100000..T=100000+200"
+	specDIHalt                    // "DI:HALT"
+)
+
+type frameSpec struct {
+	specType    frameSpecType
+	startFrame  int    // for specSingleFrame, specFrameRange
+	endFrame    int    // for specFrameRange
+	startPC     uint16 // for specPCTrigger, specPCRange
+	endPC       uint16 // for specPCRange (if different end)
+	startT      int    // for specTTrigger, specTRange
+	endT        int    // for specTRange
+	rangeOffset int    // +N frames after trigger
+}
+
+func (s *frameSpec) isEmpty() bool     { return s.specType == specNone }
+func (s *frameSpec) isSingleFrame() bool { return s.specType == specSingleFrame }
+func (s *frameSpec) isFrameRange() bool  { return s.specType == specFrameRange }
+
+func (s *frameSpec) isSingleTrigger() bool {
+	return s.specType == specPCTrigger || s.specType == specTTrigger || s.specType == specDIHalt
+}
+
+func (s *frameSpec) hasEnd() bool {
+	return s.specType == specFrameRange || s.specType == specPCRange ||
+		s.specType == specTRange || s.rangeOffset > 0
+}
+
+func (s *frameSpec) matchesStart(m *spectrum.Machine, frame int) bool {
+	switch s.specType {
+	case specSingleFrame:
+		return frame >= s.startFrame
+	case specFrameRange:
+		return frame >= s.startFrame
+	case specPCTrigger, specPCRange:
+		return m.CPU.PC() == s.startPC
+	case specTTrigger, specTRange:
+		return m.CPU.Tstates() >= s.startT
+	case specDIHalt:
+		return m.CPU.Halted() && !m.CPU.IFF1()
+	}
+	return false
+}
+
+func (s *frameSpec) matchesEnd(m *spectrum.Machine, frame int) bool {
+	switch s.specType {
+	case specFrameRange:
+		return frame >= s.endFrame
+	case specPCRange:
+		if s.endPC != s.startPC {
+			return m.CPU.PC() == s.endPC
+		}
+		return false // use rangeOffset
+	case specTRange:
+		return m.CPU.Tstates() >= s.endT
+	}
+	return false
+}
+
+// parseFrameSpec parses zxs-compatible frame spec syntax:
+//   "100"                   → single frame
+//   "100..200"              → frame range
+//   "PC=4000"               → trigger at PC
+//   "PC=4000+50"            → 50 frames after PC trigger
+//   "PC=4000..PC=5000"      → range between two PC values
+//   "T=100000"              → trigger at T-state
+//   "T=100000+200"          → 200 frames after T-state trigger
+//   "DI:HALT"               → trigger on dead CPU (DI + HALT)
+func parseFrameSpec(s string) frameSpec {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return frameSpec{}
+	}
+
+	// DI:HALT
+	if strings.ToUpper(s) == "DI:HALT" {
+		return frameSpec{specType: specDIHalt}
+	}
+
+	// PC=ADDR or PC=ADDR+N or PC=ADDR..PC=ADDR
+	if strings.HasPrefix(strings.ToUpper(s), "PC=") {
+		return parsePCSpec(s[3:])
+	}
+
+	// T=VALUE or T=VALUE+N
+	if strings.HasPrefix(strings.ToUpper(s), "T=") {
+		return parseTSpec(s[2:])
+	}
+
+	// Frame number or range: "100" or "100..200"
+	if strings.Contains(s, "..") {
+		parts := strings.SplitN(s, "..", 2)
+		var start, end int
+		fmt.Sscanf(parts[0], "%d", &start)
+		fmt.Sscanf(parts[1], "%d", &end)
+		return frameSpec{specType: specFrameRange, startFrame: start, endFrame: end}
+	}
+
+	var frame int
+	fmt.Sscanf(s, "%d", &frame)
+	return frameSpec{specType: specSingleFrame, startFrame: frame}
+}
+
+func parsePCSpec(s string) frameSpec {
+	// PC=ADDR..PC=ADDR
+	upper := strings.ToUpper(s)
+	if idx := strings.Index(upper, "..PC="); idx >= 0 {
+		startStr := s[:idx]
+		endStr := s[idx+5:]
+		return frameSpec{
+			specType: specPCRange,
+			startPC:  parseHexAddr(startStr),
+			endPC:    parseHexAddr(endStr),
+		}
+	}
+	// PC=ADDR+N
+	if idx := strings.Index(s, "+"); idx >= 0 {
+		addrStr := s[:idx]
+		var offset int
+		fmt.Sscanf(s[idx+1:], "%d", &offset)
+		return frameSpec{
+			specType:    specPCRange,
+			startPC:     parseHexAddr(addrStr),
+			rangeOffset: offset,
+		}
+	}
+	// PC=ADDR (single trigger)
+	return frameSpec{specType: specPCTrigger, startPC: parseHexAddr(s)}
+}
+
+func parseTSpec(s string) frameSpec {
+	// T=VAL+N
+	if idx := strings.Index(s, "+"); idx >= 0 {
+		var val, offset int
+		fmt.Sscanf(s[:idx], "%d", &val)
+		fmt.Sscanf(s[idx+1:], "%d", &offset)
+		return frameSpec{
+			specType:    specTRange,
+			startT:      val,
+			rangeOffset: offset,
+		}
+	}
+	// T=VAL..T=VAL
+	upper := strings.ToUpper(s)
+	if idx := strings.Index(upper, "..T="); idx >= 0 {
+		var start, end int
+		fmt.Sscanf(s[:idx], "%d", &start)
+		fmt.Sscanf(s[idx+4:], "%d", &end)
+		return frameSpec{specType: specTRange, startT: start, endT: end}
+	}
+	// T=VAL
+	var val int
+	fmt.Sscanf(s, "%d", &val)
+	return frameSpec{specType: specTTrigger, startT: val}
+}
+
+func parseHexAddr(s string) uint16 {
+	s = strings.TrimSpace(s)
+	var val int
+	if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+		fmt.Sscanf(s[2:], "%x", &val)
+	} else if strings.HasPrefix(s, "$") {
+		fmt.Sscanf(s[1:], "%x", &val)
+	} else {
+		fmt.Sscanf(s, "%x", &val)
+	}
+	return uint16(val)
+}
+
 func main() {
 	modelFlag := flag.String("model", "48k", "Machine model: 48k, pentagon")
 	romFlag := flag.String("rom", "", "Path to ROM file")
@@ -320,12 +517,16 @@ func main() {
 	trdLoad := flag.String("trd-load", "", "File to load from .trd (name:ext:addr, e.g. 'GAME:C:32768')")
 	scaleFlag := flag.Int("scale", 2, "Display scale factor (1-4)")
 	noAudioFlag := flag.Bool("no-audio", false, "Disable audio output")
-	screenshotFlag := flag.String("screenshot", "", "Save screenshot to PNG and exit (headless)")
+	// Single-shot screenshot (convenience)
+	screenshotFlag := flag.String("screenshot", "", "Save single screenshot to PNG and exit (headless)")
 	framesFlag := flag.Int("frames", 50, "Frames to run before screenshot (with --screenshot)")
-	screenshotOnHalt := flag.Bool("screenshot-on-halt", false, "Screenshot when CPU halts (with --screenshot)")
-	screenshotOnStable := flag.Int("screenshot-on-stable", 0, "Screenshot after N frames of unchanged screen (with --screenshot)")
-	screenshotAtPC := flag.String("screenshot-at-pc", "", "Screenshot when PC reaches address (hex, with --screenshot)")
-	maxFrames := flag.Int("max-frames", 5000, "Max frames before giving up (conditional screenshot)")
+
+	// Frame dump (sequence capture, like zxs)
+	dumpFrames := flag.String("dump-frames", "", "Save every frame as PNG to directory")
+	dumpKeyframes := flag.String("dump-keyframes", "", "Save frames only when screen changes")
+	frameSpec := flag.String("frame-spec", "", "Frame range: N, N..M, PC=ADDR, PC=ADDR+N, T=TSTATES, DI:HALT")
+	noBorder := flag.Bool("no-border", false, "Capture 256x192 screen only (no border)")
+	maxFrames := flag.Int("max-frames", 5000, "Max frames to run in headless mode")
 	flag.Parse()
 
 	if *romFlag == "" && *snapshotFlag == "" {
@@ -336,9 +537,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna")
 		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --tap game.tap")
 		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --frames 100")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --screenshot-on-halt")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --screenshot-on-stable 3")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --screenshot-at-pc 8000")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --frame-spec DI:HALT")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --frame-spec PC=8000")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --dump-frames ./frames --frame-spec 100..200")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --dump-keyframes ./kf --no-border")
 		fmt.Fprintln(os.Stderr, "  mzx --model pentagon --rom 128-0.rom --rom1 trdos.rom --trd game.trd")
 		os.Exit(1)
 	}
@@ -433,27 +635,15 @@ func main() {
 		}
 	}
 
-	// Headless screenshot mode — supports several trigger conditions
-	if *screenshotFlag != "" {
-		var triggerPC uint16
-		hasAtPC := false
-		if *screenshotAtPC != "" {
-			var pcInt int
-			if _, err := fmt.Sscanf(*screenshotAtPC, "0x%x", &pcInt); err != nil {
-				if _, err := fmt.Sscanf(*screenshotAtPC, "$%x", &pcInt); err != nil {
-					if _, err := fmt.Sscanf(*screenshotAtPC, "%x", &pcInt); err != nil {
-						log.Fatalf("Invalid --screenshot-at-pc address: %s", *screenshotAtPC)
-					}
-				}
-			}
-			triggerPC = uint16(pcInt)
-			hasAtPC = true
-		}
+	// Headless mode: --screenshot (single), --dump-frames, --dump-keyframes
+	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != ""
 
-		isConditional := *screenshotOnHalt || *screenshotOnStable > 0 || hasAtPC
+	if isHeadless {
+		spec := parseFrameSpec(*frameSpec)
+		limit := *maxFrames
 
-		if !isConditional {
-			// Simple mode: run N frames, capture
+		if *screenshotFlag != "" && spec.isEmpty() {
+			// Simple --screenshot: run N frames, capture one shot
 			frames := *framesFlag
 			if frames < 1 {
 				frames = 1
@@ -462,61 +652,124 @@ func main() {
 			for i := 0; i < frames; i++ {
 				machine.RunFrame()
 			}
-		} else {
-			// Conditional mode: run until trigger or max-frames
-			limit := *maxFrames
-			stableCount := 0
-			var prevScreen []byte
+			if err := saveScreenshotEx(machine, *screenshotFlag, *noBorder); err != nil {
+				log.Fatalf("Error saving screenshot: %v", err)
+			}
+			fmt.Printf("Screenshot saved: %s\n", *screenshotFlag)
+			return
+		}
 
-			fmt.Printf("Running up to %d frames, waiting for trigger...\n", limit)
-			triggered := false
+		// Frame dump / conditional mode
+		dumpDir := *dumpFrames
+		isKeyframeMode := false
+		if *dumpKeyframes != "" {
+			dumpDir = *dumpKeyframes
+			isKeyframeMode = true
+		}
 
-			for i := 0; i < limit; i++ {
-				machine.RunFrame()
+		// For --screenshot with --frame-spec, use single-file output
+		singleFile := *screenshotFlag
+		if singleFile != "" {
+			dumpDir = "" // don't create directory
+		}
 
-				// Check halt condition
-				if *screenshotOnHalt && machine.CPU.Halted() {
-					fmt.Printf("  HALT detected at frame %d\n", i+1)
+		// Create dump directory if needed
+		if dumpDir != "" {
+			if err := os.MkdirAll(dumpDir, 0755); err != nil {
+				log.Fatalf("Error creating dump directory: %v", err)
+			}
+		}
+
+		var prevScreen []byte
+		capturedCount := 0
+		triggered := spec.isEmpty() // no spec = capture everything; with spec = wait for trigger
+		inRange := false
+		rangeEndFrame := 0
+
+		fmt.Printf("Running up to %d frames (headless)...\n", limit)
+
+		for frame := 0; frame < limit; frame++ {
+			machine.RunFrame()
+
+			// Check triggers
+			if !spec.isEmpty() {
+				// Start trigger
+				if !inRange && spec.matchesStart(machine, frame) {
+					inRange = true
 					triggered = true
-					break
+					rangeEndFrame = frame + spec.rangeOffset
+					fmt.Printf("  Trigger START at frame %d\n", frame)
 				}
 
-				// Check PC condition (checked after frame, PC is current)
-				if hasAtPC && machine.CPU.PC() == triggerPC {
-					fmt.Printf("  PC=$%04X reached at frame %d\n", triggerPC, i+1)
-					triggered = true
-					break
-				}
-
-				// Check screen stability
-				if *screenshotOnStable > 0 {
-					fb := machine.Framebuffer()
-					if prevScreen != nil && screensEqual(prevScreen, fb) {
-						stableCount++
-						if stableCount >= *screenshotOnStable {
-							fmt.Printf("  Screen stable for %d frames at frame %d\n",
-								stableCount, i+1)
-							triggered = true
-							break
-						}
-					} else {
-						stableCount = 0
-						prevScreen = make([]byte, len(fb))
-						copy(prevScreen, fb)
+				// End trigger
+				if inRange && spec.hasEnd() {
+					if spec.rangeOffset > 0 && frame >= rangeEndFrame {
+						fmt.Printf("  Trigger END at frame %d (%d frames captured)\n", frame, capturedCount)
+						break
+					}
+					if spec.matchesEnd(machine, frame) {
+						fmt.Printf("  Trigger END at frame %d\n", frame)
+						break
 					}
 				}
+
+				// Single-frame trigger (no range) — capture and stop
+				if triggered && !spec.hasEnd() && spec.isSingleTrigger() {
+					if err := saveScreenshotEx(machine, singleFile, *noBorder); err != nil {
+						log.Fatalf("Error saving screenshot: %v", err)
+					}
+					fmt.Printf("  Triggered at frame %d\n", frame)
+					fmt.Printf("Screenshot saved: %s\n", singleFile)
+					return
+				}
 			}
 
-			if !triggered {
-				fmt.Printf("  Warning: max frames (%d) reached without trigger\n", limit)
+			// Should we capture this frame?
+			shouldCapture := triggered && (spec.isEmpty() || inRange)
+
+			if shouldCapture && isKeyframeMode {
+				fb := machine.Framebuffer()
+				if prevScreen != nil && screensEqual(prevScreen, fb) {
+					continue // screen unchanged, skip
+				}
+				prevScreen = make([]byte, len(fb))
+				copy(prevScreen, fb)
+			}
+
+			if shouldCapture && dumpDir != "" {
+				path := fmt.Sprintf("%s/frame_%06d.png", dumpDir, frame)
+				if err := saveScreenshotEx(machine, path, *noBorder); err != nil {
+					log.Printf("Warning: failed to save frame %d: %v", frame, err)
+				}
+				capturedCount++
+			}
+
+			// For single-frame specs like "100"
+			if !spec.isEmpty() && spec.isSingleFrame() && frame >= spec.startFrame {
+				if singleFile != "" {
+					if err := saveScreenshotEx(machine, singleFile, *noBorder); err != nil {
+						log.Fatalf("Error saving screenshot: %v", err)
+					}
+					fmt.Printf("Screenshot saved: %s (frame %d)\n", singleFile, frame)
+				}
+				return
+			}
+
+			// For frame ranges like "100..200"
+			if !spec.isEmpty() && spec.isFrameRange() && frame >= spec.endFrame {
+				break
 			}
 		}
 
-		if err := saveScreenshot(machine, *screenshotFlag); err != nil {
-			log.Fatalf("Error saving screenshot: %v", err)
+		if singleFile != "" && capturedCount == 0 {
+			// Fallback: save current screen if we ran out of frames
+			if err := saveScreenshotEx(machine, singleFile, *noBorder); err != nil {
+				log.Fatalf("Error saving screenshot: %v", err)
+			}
+			fmt.Printf("Screenshot saved: %s (max frames reached)\n", singleFile)
+		} else if dumpDir != "" {
+			fmt.Printf("Captured %d frames to %s\n", capturedCount, dumpDir)
 		}
-		fmt.Printf("Screenshot saved: %s (%dx%d)\n", *screenshotFlag,
-			machine.ScreenWidth(), machine.ScreenHeight())
 		return
 	}
 
