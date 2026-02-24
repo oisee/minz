@@ -4,8 +4,10 @@ const (
 	// BeeperSampleRate is the audio output sample rate.
 	BeeperSampleRate = 44100
 
-	// beeperBufSize is the circular buffer size (~2 frames worth of audio).
-	beeperBufSize = 2048
+	// beeperBufSize is the circular buffer size (~10 frames worth of audio).
+	// Must be large enough to absorb timing jitter between frame production
+	// and audio callback consumption.
+	beeperBufSize = 8192
 )
 
 // Beeper implements 1-bit audio with per-T-state sampling accuracy.
@@ -63,12 +65,25 @@ func (b *Beeper) EndFrame() {
 	// Number of output samples for this frame
 	samplesPerFrame := BeeperSampleRate / 50 // 882 samples at 50 Hz
 
-	changeIdx := 0
-	currentLevel := false
-	if len(b.changes) > 0 {
-		// Start with opposite of first change (the state before changes)
-		currentLevel = !b.changes[0].level
+	if len(b.changes) == 0 {
+		// No EAR bit changes this frame — output silence.
+		// A static EAR bit is a DC offset (inaudible on real hardware due to
+		// AC coupling). Outputting 0.0 prevents clicks from buffer underruns.
+		for i := 0; i < samplesPerFrame; i++ {
+			if b.bufCount < beeperBufSize {
+				b.buf[b.bufWrite] = 0
+				b.bufWrite = (b.bufWrite + 1) % beeperBufSize
+				b.bufCount++
+			}
+		}
+		return
 	}
+
+	changeIdx := 0
+	// Start with the level BEFORE the first transition.
+	// Since SetEar filters no-ops, the first change is always a toggle,
+	// so the level before it is the opposite of the first change's level.
+	currentLevel := !b.changes[0].level
 
 	for i := 0; i < samplesPerFrame; i++ {
 		// Map this sample's end point to a T-state
@@ -80,7 +95,6 @@ func (b *Beeper) EndFrame() {
 			changeIdx++
 		}
 
-		// Simple: use the last known level for this sample
 		var sample float32
 		if currentLevel {
 			sample = 0.5

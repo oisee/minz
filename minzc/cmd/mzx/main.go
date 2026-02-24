@@ -2,6 +2,7 @@
 package main
 
 import (
+	_ "embed"
 	"flag"
 	"fmt"
 	"image"
@@ -18,6 +19,9 @@ import (
 	"github.com/minz/minzc/pkg/spectrum"
 	"github.com/minz/minzc/pkg/spectrum/formats"
 )
+
+//go:embed roms/48.rom
+var embedded48KROM []byte
 
 const (
 	audioSampleRate = spectrum.BeeperSampleRate
@@ -36,6 +40,12 @@ type Game struct {
 
 	// Key mapping: ebiten key → []SpecKey (some keys map to Shift+key)
 	keyMap map[ebiten.Key][]spectrum.SpecKey
+
+	// Keystroke injection queue (for --type flag)
+	keystrokeQueue *formats.KeystrokeQueue
+
+	// Startup: restore stderr after first few frames (CAMetalLayer suppression)
+	startupFrames int
 }
 
 func newGame(machine *spectrum.Machine, scale int, noAudio bool) *Game {
@@ -65,6 +75,12 @@ func newGame(machine *spectrum.Machine, scale int, noAudio bool) *Game {
 }
 
 func (g *Game) Update() error {
+	// Restore stderr after a few startup frames (suppressed for CAMetalLayer warnings)
+	g.startupFrames++
+	if g.startupFrames == 3 {
+		restoreStderr()
+	}
+
 	// Handle special keys
 	if inpututil.IsKeyJustPressed(ebiten.KeyEscape) {
 		return ebiten.Termination
@@ -86,6 +102,11 @@ func (g *Game) Update() error {
 
 	// Sync keyboard state
 	g.syncKeyboard()
+
+	// Inject queued keystrokes (--type flag)
+	if g.keystrokeQueue != nil && !g.keystrokeQueue.Done() {
+		g.keystrokeQueue.Update()
+	}
 
 	// Run one frame
 	g.machine.RunFrame()
@@ -555,7 +576,11 @@ func main() {
 	snapshotFlag := flag.String("snapshot", "", "Path to .sna snapshot file")
 	tapFlag := flag.String("tap", "", "Path to .tap tape file")
 	trdFlag := flag.String("trd", "", "Path to .trd disk image")
-	trdLoad := flag.String("trd-load", "", "File to load from .trd (name:ext:addr, e.g. 'GAME:C:32768')")
+	sclFlag := flag.String("scl", "", "Path to .scl disk image (converted to .trd)")
+	trdLoad := flag.String("trd-load", "", "File to load from .trd/.scl (name:ext:addr, e.g. 'GAME:C:32768')")
+	execFlag := flag.String("exec", "", "Execute BASIC command after boot (e.g. 'LOAD \"\"' or 'RANDOMIZE USR 32768')")
+	typeFlag := flag.String("type", "", "Type text via keystroke injection (fallback for non-standard ROMs)")
+	consoleFlag := flag.Bool("console", false, "Mirror BASIC text output (RST $10) to stdout")
 	scaleFlag := flag.Int("scale", 2, "Display scale factor (1-4)")
 	noAudioFlag := flag.Bool("no-audio", false, "Disable audio output")
 	// Single-shot screenshot (convenience)
@@ -571,22 +596,8 @@ func main() {
 	maxFrames := flag.Int("max-frames", 5000, "Max frames to run in headless mode")
 	flag.Parse()
 
-	if *romFlag == "" && *snapshotFlag == "" {
-		fmt.Fprintln(os.Stderr, "Usage: mzx --rom <path> [--snapshot <path>] [options]")
-		fmt.Fprintln(os.Stderr, "\nOptions:")
-		flag.PrintDefaults()
-		fmt.Fprintln(os.Stderr, "\nExamples:")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --tap game.tap")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --frames 100")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --frame-spec DI:HALT")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --frame-spec PC=8000")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --dump-frames ./frames --frame-spec 100..200")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --dump-keyframes ./kf --no-border")
-		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --dump-frames ./f --full-border")
-		fmt.Fprintln(os.Stderr, "  mzx --model pentagon --rom 128-0.rom --rom1 trdos.rom --trd game.trd")
-		os.Exit(1)
-	}
+	// --help / -h is handled by flag.Parse() automatically.
+	// With no arguments, we boot the 48K Spectrum (embedded ROM).
 
 	scale := *scaleFlag
 	if scale < 1 {
@@ -615,6 +626,8 @@ func main() {
 			if err != nil {
 				log.Fatalf("Error reading ROM: %v", err)
 			}
+		} else {
+			romData = embedded48KROM
 		}
 		machine, err = spectrum.New48K(romData)
 		if err != nil {
@@ -628,6 +641,8 @@ func main() {
 			if err != nil {
 				log.Fatalf("Error reading ROM 0: %v", err)
 			}
+		} else {
+			rom0 = embedded48KROM
 		}
 		if *rom1Flag != "" {
 			rom1, err = os.ReadFile(*rom1Flag)
@@ -655,6 +670,7 @@ func main() {
 	}
 
 	// Install .tap ROM trap if provided
+	needsAutoLoad := false
 	if *tapFlag != "" {
 		tap, err := formats.LoadTAP(*tapFlag)
 		if err != nil {
@@ -662,16 +678,30 @@ func main() {
 		}
 		formats.InstallTAPTrap(machine, tap)
 		fmt.Printf("Loaded tape: %s (%d blocks)\n", *tapFlag, tap.BlockCount())
+		needsAutoLoad = true
 	}
 
-	// Install .trd traps / load file if provided
-	if *trdFlag != "" {
-		trd, err := formats.LoadTRD(*trdFlag)
-		if err != nil {
-			log.Fatalf("Error loading .trd file: %v", err)
+	// Install .trd or .scl traps / load file if provided
+	diskPath := *trdFlag
+	if *sclFlag != "" {
+		diskPath = *sclFlag
+	}
+	if diskPath != "" {
+		var trd *formats.TRDFile
+		if *sclFlag != "" {
+			trd, err = formats.LoadSCL(diskPath)
+			if err != nil {
+				log.Fatalf("Error loading .scl file: %v", err)
+			}
+			fmt.Printf("Loaded disk (SCL→TRD): %s\n", diskPath)
+		} else {
+			trd, err = formats.LoadTRD(diskPath)
+			if err != nil {
+				log.Fatalf("Error loading .trd file: %v", err)
+			}
+			fmt.Printf("Loaded disk: %s\n", diskPath)
 		}
 		formats.InstallTRDTraps(machine, trd)
-		fmt.Printf("Loaded disk: %s\n", *trdFlag)
 
 		// Optionally load a specific file from the disk
 		if *trdLoad != "" {
@@ -680,11 +710,47 @@ func main() {
 				log.Fatalf("Invalid --trd-load format: %v (expected name:ext:addr)", parseErr)
 			}
 			if err := formats.LoadTRDFile(machine, trd, name, ext, addr); err != nil {
-				log.Fatalf("Error loading file from .trd: %v", err)
+				log.Fatalf("Error loading file from disk: %v", err)
 			}
 			fmt.Printf("Loaded file from disk: %s.%c at $%04X\n", name, ext, addr)
+		} else {
+			// No explicit --trd-load: try autoboot from "boot" file
+			if err := formats.AutoBootTRD(machine, trd); err != nil {
+				fmt.Printf("Autoboot: %v (continuing with ROM boot)\n", err)
+			}
 		}
 	}
+
+	// Auto-load from tape if no snapshot was loaded
+	if needsAutoLoad && *snapshotFlag == "" {
+		formats.AutoLoadTAP(machine)
+	}
+
+	// --console: mirror RST $10 output to stdout
+	if *consoleFlag {
+		formats.InstallConsoleCapture(machine, os.Stdout)
+		fmt.Println("[console mode: BASIC output mirrored to stdout]")
+	}
+
+	// --exec: execute arbitrary BASIC command (tokenized, requires compatible ROM)
+	if *execFlag != "" {
+		tokens, err := formats.TokenizeBASIC(*execFlag)
+		if err != nil {
+			log.Fatalf("Cannot tokenize BASIC command: %v", err)
+		}
+		formats.WaitROMInit(machine, 100)
+		formats.ExecBASIC(machine, tokens)
+		fmt.Printf("Executing: %s -> %s\n", *execFlag, formats.FormatTokenized(tokens))
+	}
+
+	// --type: inject keystrokes (works with any ROM)
+	var keystrokeQueue *formats.KeystrokeQueue
+	if *typeFlag != "" {
+		keystrokeQueue = formats.NewKeystrokeQueue(machine, 3, 2)
+		keystrokeQueue.TypeText(*typeFlag)
+		fmt.Printf("Typing: %s (%d keystrokes queued)\n", *typeFlag, len(*typeFlag)+1)
+	}
+	_ = keystrokeQueue // used in Update() for interactive mode
 
 	// Headless mode: --screenshot (single), --dump-frames, --dump-keyframes
 	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != ""
@@ -740,6 +806,10 @@ func main() {
 		fmt.Printf("Running up to %d frames (headless)...\n", limit)
 
 		for frame := 0; frame < limit; frame++ {
+			// Inject queued keystrokes in headless mode too
+			if keystrokeQueue != nil && !keystrokeQueue.Done() {
+				keystrokeQueue.Update()
+			}
 			machine.RunFrame()
 
 			// Check triggers
@@ -831,7 +901,12 @@ func main() {
 	ebiten.SetVsyncEnabled(true)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
+	// Suppress stderr during Ebitengine init to hide CAMetalLayer warnings on macOS.
+	// Restored in Game.Update() after the first few frames.
+	suppressStderr()
+
 	game := newGame(machine, scale, *noAudioFlag)
+	game.keystrokeQueue = keystrokeQueue
 
 	fmt.Printf("MZX ZX Spectrum Emulator\n")
 	fmt.Printf("Model: %s (%dx%d, %d T-states/frame)\n",
@@ -884,4 +959,5 @@ func splitColon(s string) []string {
 	parts = append(parts, s[start:])
 	return parts
 }
+
 

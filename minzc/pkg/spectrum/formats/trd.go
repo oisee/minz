@@ -193,7 +193,7 @@ func InstallTRDTraps(m *spectrum.Machine, trd *TRDFile) {
 
 	// Cold start — just return, prevent crash
 	m.SetPCTrap(TRDOSColdStart, func() {
-		doTRDRet(m)
+		emulateRET(m)
 	})
 }
 
@@ -208,30 +208,30 @@ func (s *TRDState) dispatch() {
 	case 0x00: // Interface initialization
 		// Reset: nothing to do in emulation
 		s.setBC(0) // success
-		doTRDRet(m)
+		emulateRET(m)
 
 	case 0x01: // Drive initialization
 		// A = drive number (0-3); we only have drive 0
 		s.setBC(0)
-		doTRDRet(m)
+		emulateRET(m)
 
 	case 0x02: // Seek track
 		// A = track number; nothing to physically seek
 		s.setBC(0)
-		doTRDRet(m)
+		emulateRET(m)
 
 	case 0x03: // Set sector number
 		// A = sector number; store for later use
 		a := byte(cpu.AF() >> 8)
 		m.Memory.Write(0x5CFF, a, false) // system var: current sector
-		doTRDRet(m)
+		emulateRET(m)
 
 	case 0x04: // Set buffer address
 		// HL = address; store for later use
 		hl := cpu.HL()
 		m.Memory.Write(0x5D00, byte(hl), false)
 		m.Memory.Write(0x5D01, byte(hl>>8), false)
-		doTRDRet(m)
+		emulateRET(m)
 
 	case 0x05: // Read group of sectors
 		s.readSectors()
@@ -243,7 +243,7 @@ func (s *TRDState) dispatch() {
 		// A = stream (2=screen, 3=printer); we just return success
 		s.readSystemSector()
 		s.setBC(0)
-		doTRDRet(m)
+		emulateRET(m)
 
 	case 0x08: // Read file descriptor
 		s.readFileDescriptor()
@@ -260,7 +260,7 @@ func (s *TRDState) dispatch() {
 	case 0x0C: // Save BASIC program
 		// Not commonly needed in emulation; return success
 		s.setBC(0)
-		doTRDRet(m)
+		emulateRET(m)
 
 	case 0x0E: // Load or verify file
 		s.loadFile()
@@ -280,23 +280,23 @@ func (s *TRDState) dispatch() {
 		m.Memory.Write(trdosVarError, 0, false)
 		m.Memory.Write(0x5CD6, 0, false) // bad sector count = 0
 		s.setBC(0)
-		doTRDRet(m)
+		emulateRET(m)
 
 	case 0x16: // Select bottom side
-		doTRDRet(m)
+		emulateRET(m)
 
 	case 0x17: // Select top side
-		doTRDRet(m)
+		emulateRET(m)
 
 	case 0x18: // Read system sector (track 0, sector 8)
 		s.readSystemSector()
 		s.setBC(0)
-		doTRDRet(m)
+		emulateRET(m)
 
 	default:
 		// Unknown function — just return with no error
 		s.setBC(0)
-		doTRDRet(m)
+		emulateRET(m)
 	}
 }
 
@@ -314,7 +314,7 @@ func (s *TRDState) readSectors() {
 	if count == 0 {
 		// B=0 means verify sector address mark only
 		s.setBC(0)
-		doTRDRet(m)
+		emulateRET(m)
 		return
 	}
 
@@ -351,7 +351,7 @@ func (s *TRDState) readSectors() {
 		}
 	}
 	s.setBC(0) // success
-	doTRDRet(m)
+	emulateRET(m)
 }
 
 // writeSectors: function $06 — write B sectors from HL to track D, sector E.
@@ -392,7 +392,7 @@ func (s *TRDState) writeSectors() {
 		}
 	}
 	s.setBC(0)
-	doTRDRet(m)
+	emulateRET(m)
 }
 
 // readFileDescriptor: function $08 — read 16-byte descriptor #A into $5CDD.
@@ -402,7 +402,7 @@ func (s *TRDState) readFileDescriptor() {
 	index := int(cpu.AF() >> 8) // A register
 	if index >= TRDMaxDirEntries {
 		s.setBC(1) // no files found
-		doTRDRet(m)
+		emulateRET(m)
 		return
 	}
 	offset := index * TRDDirEntrySize
@@ -410,7 +410,7 @@ func (s *TRDState) readFileDescriptor() {
 		m.Memory.Write(trdosVarFilename+uint16(i), s.disk.Data[offset+i], false)
 	}
 	s.setBC(0)
-	doTRDRet(m)
+	emulateRET(m)
 }
 
 // writeFileDescriptor: function $09 — write 15 bytes from $5CDD to descriptor #A.
@@ -420,7 +420,7 @@ func (s *TRDState) writeFileDescriptor() {
 	index := int(cpu.AF() >> 8)
 	if index >= TRDMaxDirEntries {
 		s.setBC(1)
-		doTRDRet(m)
+		emulateRET(m)
 		return
 	}
 	offset := index * TRDDirEntrySize
@@ -428,7 +428,7 @@ func (s *TRDState) writeFileDescriptor() {
 		s.disk.Data[offset+i] = m.Memory.Read(trdosVarFilename + uint16(i))
 	}
 	s.setBC(0)
-	doTRDRet(m)
+	emulateRET(m)
 }
 
 // findFile: function $0A — find file matching name/type at $5CDD.
@@ -471,14 +471,14 @@ func (s *TRDState) findFile() {
 		if match {
 			// Found — return index in C (low byte of BC)
 			m.CPU.SetBC(uint16(i)) // B=0 (no error), C=index
-			doTRDRet(m)
+			emulateRET(m)
 			return
 		}
 	}
 
 	// Not found
 	m.CPU.SetBC(0x00FF) // B=0, C=$FF
-	doTRDRet(m)
+	emulateRET(m)
 }
 
 // loadFile: function $0E — load file using descriptor at $5CDD.
@@ -513,7 +513,7 @@ func (s *TRDState) loadFile() {
 	isVerify := m.Memory.Read(trdosVarLoadFlag) == 0xFF
 	if isVerify {
 		s.setBC(0)
-		doTRDRet(m)
+		emulateRET(m)
 		return
 	}
 
@@ -553,7 +553,7 @@ func (s *TRDState) loadFile() {
 	}
 
 	s.setBC(0)
-	doTRDRet(m)
+	emulateRET(m)
 }
 
 // saveCodeFile: function $0B — save HL bytes from DE address as CODE file.
@@ -571,7 +571,7 @@ func (s *TRDState) saveCodeFile() {
 
 	if fileCount >= TRDMaxDirEntries {
 		s.setBC(4) // directory full
-		doTRDRet(m)
+		emulateRET(m)
 		return
 	}
 
@@ -638,7 +638,7 @@ func (s *TRDState) saveCodeFile() {
 	s.disk.WriteSector(0, 0, 8, sysSec)
 
 	s.setBC(0)
-	doTRDRet(m)
+	emulateRET(m)
 }
 
 // deleteFile: function $12 — mark matching file as deleted.
@@ -677,7 +677,7 @@ func (s *TRDState) deleteFile() {
 		}
 	}
 	s.setBC(0)
-	doTRDRet(m)
+	emulateRET(m)
 }
 
 // copyToDescArea: function $13 — copy 16 bytes from HL to $5CDD.
@@ -688,7 +688,7 @@ func (s *TRDState) copyToDescArea() {
 		b := m.Memory.Read(hl + uint16(i))
 		m.Memory.Write(trdosVarFilename+uint16(i), b, false)
 	}
-	doTRDRet(m)
+	emulateRET(m)
 }
 
 // copyFromDescArea: function $14 — copy 16 bytes from $5CDD to HL.
@@ -699,7 +699,7 @@ func (s *TRDState) copyFromDescArea() {
 		b := m.Memory.Read(trdosVarFilename + uint16(i))
 		m.Memory.Write(hl+uint16(i), b, false)
 	}
-	doTRDRet(m)
+	emulateRET(m)
 }
 
 // readSystemSector reads track 0, sector 8 (disk info) into system variables.
@@ -731,10 +731,74 @@ func LoadTRDFile(m *spectrum.Machine, trd *TRDFile, name string, ext byte, destA
 	return nil
 }
 
-func doTRDRet(m *spectrum.Machine) {
-	sp := m.CPU.SP()
-	lo := m.Memory.Read(sp)
-	hi := m.Memory.Read(sp + 1)
-	m.CPU.SetPC(uint16(lo) | uint16(hi)<<8)
-	m.CPU.SetSP(sp + 2)
+// AutoBootTRD simulates TR-DOS autoboot: finds "boot" file on disk,
+// loads it as a BASIC program, sets up system variables, and executes RUN.
+// This is what the TR-DOS ROM does on power-up when a disk is inserted.
+func AutoBootTRD(m *spectrum.Machine, trd *TRDFile) error {
+	WaitROMInit(m, 100)
+
+	// Find "boot" file (type B = BASIC)
+	boot := trd.FindFile("boot", 'B')
+	if boot == nil {
+		boot = trd.FindFile("boot", 'b')
+	}
+	if boot == nil {
+		entries := trd.ListDirectory()
+		if len(entries) > 0 {
+			fmt.Printf("No 'boot' file found. Disk directory:\n")
+			for i, e := range entries {
+				fmt.Printf("  [%d] %-8s.%c  start=$%04X len=%d (%d sectors)\n",
+					i, e.Name, e.Extension, e.Start, e.Length, e.Sectors)
+			}
+		}
+		return fmt.Errorf("no 'boot' file on disk")
+	}
+
+	// Load the BASIC program into the program area
+	LoadBASICProgram(m, trd.ReadFile(boot))
+
+	// Execute RUN via the unified automation system
+	ExecBASIC(m, TokenizeRUN())
+
+	fmt.Printf("Autoboot: loaded '%s' (%d bytes)\n", boot.Name, len(trd.ReadFile(boot)))
+	return nil
 }
+
+// LoadBASICProgram loads raw BASIC program bytes into the Spectrum's
+// program area and updates system variables accordingly.
+func LoadBASICProgram(m *spectrum.Machine, data []byte) {
+	prog := readWord(m, 0x5C53)
+	if prog < 0x5CCB || prog > 0x8000 {
+		prog = 0x5CCB
+	}
+
+	for i, b := range data {
+		addr := prog + uint16(i)
+		if addr >= 0x4000 {
+			m.Memory.Write(addr, b, false)
+		}
+	}
+
+	// Update system variables
+	endProg := prog + uint16(len(data))
+
+	// VARS — end of BASIC program (start of variables area)
+	writeWord(m, 0x5C4B, endProg)
+
+	// End-of-variables marker
+	m.Memory.Write(endProg, 0x80, false)
+
+	// E_LINE — editing line (after variables + marker)
+	eLine := endProg + 1
+	writeWord(m, 0x5C59, eLine)
+}
+
+func readWord(m *spectrum.Machine, addr uint16) uint16 {
+	return uint16(m.Memory.Read(addr)) | uint16(m.Memory.Read(addr+1))<<8
+}
+
+func writeWord(m *spectrum.Machine, addr, val uint16) {
+	m.Memory.Write(addr, byte(val), false)
+	m.Memory.Write(addr+1, byte(val>>8), false)
+}
+

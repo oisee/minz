@@ -124,7 +124,7 @@ func InstallTAPTrap(m *spectrum.Machine, tap *TAPFile) {
 		if block == nil {
 			// No more blocks — signal error
 			cpu.SetAF(cpu.AF() & 0xFF00) // clear carry
-			doRet(m)
+			emulateRET(m)
 			return
 		}
 
@@ -132,7 +132,7 @@ func InstallTAPTrap(m *spectrum.Machine, tap *TAPFile) {
 		if block.Flag != expectedFlag {
 			// Wrong block type — signal error
 			cpu.SetAF(cpu.AF() & 0xFF00) // clear carry
-			doRet(m)
+			emulateRET(m)
 			return
 		}
 
@@ -149,15 +149,15 @@ func InstallTAPTrap(m *spectrum.Machine, tap *TAPFile) {
 
 		// Signal success: set carry flag
 		cpu.SetAF((cpu.AF() & 0xFF00) | uint16(flags|0x01))
-		doRet(m)
+		emulateRET(m)
 	})
 }
 
-// doRet simulates a RET instruction (pop PC from stack).
-func doRet(m *spectrum.Machine) {
-	sp := m.CPU.SP()
-	lo := m.Memory.Read(sp)
-	hi := m.Memory.Read(sp + 1)
-	m.CPU.SetPC(uint16(lo) | uint16(hi)<<8)
-	m.CPU.SetSP(sp + 2)
+// AutoLoadTAP runs LOAD "" on the Spectrum after ROM init.
+// This triggers the LD-BYTES trap which injects tape data.
+func AutoLoadTAP(m *spectrum.Machine) {
+	WaitROMInit(m, 100)
+	ExecBASIC(m, TokenizeLOAD())
+	fmt.Println("Auto-loading from tape...")
 }
+
