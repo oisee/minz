@@ -6,7 +6,7 @@ BINDIR = $(PREFIX)/bin
 
 # Build all tools
 .PHONY: all
-all: mz mza mze mzv mzr mzrun mztap
+all: mz mza mze mzv mzr mzrun mztap mzd mzx
 
 # Build the main compiler
 mz:
@@ -36,14 +36,22 @@ mzrun:
 mztap:
 	go build -o mztap ./cmd/mztap
 
+# Build the disassembler
+mzd:
+	go build -o mzd ./cmd/mzd
+
+# Build the ZX Spectrum emulator
+mzx:
+	go build -o mzx ./cmd/mzx
+
 # Install to system (may require sudo)
 .PHONY: install
 install: all
 	@echo "Installing MinZ tools to $(BINDIR)..."
 	@mkdir -p $(BINDIR)
 	@if [ -w $(BINDIR) ]; then \
-		cp mz mza mze mzv mzr mzrun mztap $(BINDIR)/ && \
-		echo "✅ MinZ tools installed to $(BINDIR)"; \
+		cp mz mza mze mzv mzr mzrun mztap mzd mzx $(BINDIR)/ && \
+		echo "MinZ tools installed to $(BINDIR)"; \
 	else \
 		echo "⚠️  $(BINDIR) is not writable. Try: sudo make install"; \
 		exit 1; \
@@ -53,22 +61,47 @@ install: all
 .PHONY: install-user
 install-user: all
 	@mkdir -p ~/.local/bin
-	@for f in mz mza mze mzv mzr mzrun mztap; do [ -f $$f ] && cp -f $$f ~/.local/bin/; done
+	@for f in mz mza mze mzv mzr mzrun mztap mzd mzx; do [ -f $$f ] && cp -f $$f ~/.local/bin/; done
 	@echo "MinZ tools installed to ~/.local/bin/"
 
 # Clean build artifacts
 .PHONY: clean
 clean:
-	rm -f mz mza mze mzv mzr mzrun mztap
+	rm -f mz mza mze mzv mzr mzrun mztap mzd mzx
 
-# Run tests
+# Run basic smoke test
 .PHONY: test
 test: mz mza mze
 	@echo "Running basic tests..."
 	./mz ../examples/hello_clean.minz -o test.a80
 	./mza -o test.bin test.a80
-	@echo "✅ Basic compilation test passed"
+	@echo "Basic compilation test passed"
 	@rm -f test.a80 test.bin
+
+# Run ALL Go unit tests across the entire toolchain
+.PHONY: test-all
+test-all:
+	@echo "=== Running all Go unit tests ==="
+	@echo ""
+	@echo "--- Z80 Emulator (FUSE test suite) ---"
+	go test ./pkg/emulator/... -count=1 -v 2>&1 | tail -5
+	@echo ""
+	@echo "--- Z80 Assembler ---"
+	go test ./pkg/z80asm/... -count=1 -v 2>&1 | tail -5
+	@echo ""
+	@echo "--- Spectrum Emulator (MZX) ---"
+	go test ./pkg/spectrum/... -count=1 -v 2>&1 | tail -5
+	@echo ""
+	@echo "--- Disassembler ---"
+	go test ./pkg/disasm/... -count=1 -v 2>&1 | tail -5
+	@echo ""
+	@echo "--- Parser ---"
+	go test ./pkg/parser/... -count=1 -v 2>&1 | tail -5
+	@echo ""
+	@echo "--- All remaining packages ---"
+	go test ./... -count=1 2>&1 | grep -E '(ok|FAIL|---)'
+	@echo ""
+	@echo "=== Test run complete ==="
 
 # Show help
 .PHONY: help
@@ -83,6 +116,8 @@ help:
 	@echo "  mzr   - MinZ REPL (interactive mode)"
 	@echo "  mzrun - DZRP remote runner (run on emulators)"
 	@echo "  mztap - TAP file loader (load .tap via DZRP)"
+	@echo "  mzd   - Z80 disassembler"
+	@echo "  mzx   - ZX Spectrum emulator (T-state accurate)"
 	@echo ""
 	@echo "Targets:"
 	@echo "  all           - Build all tools"
@@ -90,6 +125,7 @@ help:
 	@echo "  install-user  - Install to ~/.local/bin"
 	@echo "  clean         - Remove built executables"
 	@echo "  test          - Run basic compilation test"
+	@echo "  test-all      - Run ALL Go unit tests (emulator, assembler, spectrum, etc.)"
 	@echo "  help          - Show this help"
 	@echo ""
 	@echo "Examples:"

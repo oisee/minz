@@ -20,6 +20,12 @@ type Machine struct {
 
 	// Pause state
 	paused bool
+
+	// PC traps: address → handler (for ROM trap loading)
+	pcTraps map[uint16]func()
+
+	// AY sound chip (nil for 48K without AY)
+	AY *AYChip
 }
 
 // New48K creates a 48K ZX Spectrum machine.
@@ -93,6 +99,10 @@ func NewPentagon128(rom0, rom1 []byte) (*Machine, error) {
 	mem.SetTstateAccessors(getTstates, addTstates)
 	ports.SetTstateAccessors(getTstates, addTstates)
 
+	// AY-3-8912 sound chip for 128K
+	ay := NewAYChip(false, float64(mode.CPUClockHz)/2, BeeperSampleRate)
+	ports.SetAY(ay)
+
 	m := &Machine{
 		CPU:          cpu,
 		Memory:       mem,
@@ -102,6 +112,7 @@ func NewPentagon128(rom0, rom1 []byte) (*Machine, error) {
 		Beeper:       beep,
 		Mode:         mode,
 		frameTStates: mode.TStatesPerFrame(),
+		AY:           ay,
 	}
 
 	cpu.Reset()
@@ -121,6 +132,13 @@ func (m *Machine) RunFrame() {
 
 	// Execute instructions until frame boundary
 	for m.CPU.Tstates() < m.frameTStates {
+		// Check PC traps before executing
+		if m.pcTraps != nil {
+			if trap, ok := m.pcTraps[m.CPU.PC()]; ok {
+				trap()
+				continue
+			}
+		}
 		m.CPU.DoOpcode()
 		m.ULA.StepTo(m.CPU.Tstates())
 	}
@@ -131,6 +149,9 @@ func (m *Machine) RunFrame() {
 	// Finalize frame
 	m.ULA.EndFrame()
 	m.Beeper.EndFrame()
+	if m.AY != nil {
+		m.AY.EndFrame()
+	}
 
 	m.frameCount++
 }
@@ -181,4 +202,20 @@ func (m *Machine) ScreenWidth() int {
 // ScreenHeight returns the total display height in pixels.
 func (m *Machine) ScreenHeight() int {
 	return m.Mode.TotalPixelHeight
+}
+
+// SetPCTrap registers a handler that fires when PC reaches the given address.
+// Used for ROM traps (tape loading, disk I/O).
+func (m *Machine) SetPCTrap(addr uint16, handler func()) {
+	if m.pcTraps == nil {
+		m.pcTraps = make(map[uint16]func())
+	}
+	m.pcTraps[addr] = handler
+}
+
+// RemovePCTrap removes a PC trap.
+func (m *Machine) RemovePCTrap(addr uint16) {
+	if m.pcTraps != nil {
+		delete(m.pcTraps, addr)
+	}
 }

@@ -4,6 +4,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"log"
 	"os"
 
@@ -45,9 +48,9 @@ func newGame(machine *spectrum.Machine, scale int, noAudio bool) *Game {
 
 	if !noAudio {
 		g.audioCtx = audio.NewContext(audioSampleRate)
-		player := &beeperPlayer{beeper: machine.Beeper}
+		mixer := &audioMixer{beeper: machine.Beeper, ay: machine.AY}
 		var err error
-		g.audioPlayer, err = g.audioCtx.NewPlayer(player)
+		g.audioPlayer, err = g.audioCtx.NewPlayer(mixer)
 		if err != nil {
 			log.Printf("Warning: audio init failed: %v", err)
 			g.noAudio = true
@@ -70,6 +73,14 @@ func (g *Game) Update() error {
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
 		g.machine.SetPaused(!g.machine.IsPaused())
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyF2) {
+		path := fmt.Sprintf("mzx_screenshot_%06d.png", g.machine.FrameCount())
+		if err := saveScreenshot(g.machine, path); err != nil {
+			log.Printf("Screenshot error: %v", err)
+		} else {
+			log.Printf("Screenshot saved: %s", path)
+		}
 	}
 
 	// Sync keyboard state
@@ -171,57 +182,164 @@ func buildKeyMap() map[ebiten.Key][]spectrum.SpecKey {
 	return m
 }
 
-// beeperPlayer implements io.Reader for ebiten audio streaming.
-type beeperPlayer struct {
-	beeper *spectrum.Beeper
-	buf    []float32
+// audioMixer implements io.Reader for ebiten audio streaming.
+// Mixes beeper (mono) and AY chip (stereo) output.
+// AY samples are frame-synchronized: generated in Machine.RunFrame()
+// via AY.EndFrame(), then drained here by the audio callback.
+type audioMixer struct {
+	beeper    *spectrum.Beeper
+	ay        *spectrum.AYChip
+	beeperBuf []float32
+	ayLeft    []float64
+	ayRight   []float64
 }
 
-func (p *beeperPlayer) Read(data []byte) (int, error) {
+func (p *audioMixer) Read(data []byte) (int, error) {
 	// Ebiten audio expects signed 16-bit stereo PCM at audioSampleRate
 	samples := len(data) / 4 // 4 bytes per stereo sample (2 bytes L + 2 bytes R)
-	if cap(p.buf) < samples {
-		p.buf = make([]float32, samples)
+
+	// Read beeper samples (frame-synchronized from Beeper.EndFrame)
+	if cap(p.beeperBuf) < samples {
+		p.beeperBuf = make([]float32, samples)
 	}
-	p.buf = p.buf[:samples]
-
-	n := p.beeper.ReadSamples(p.buf)
-
-	// Fill remaining with silence
+	p.beeperBuf = p.beeperBuf[:samples]
+	n := p.beeper.ReadSamples(p.beeperBuf)
 	for i := n; i < samples; i++ {
-		p.buf[i] = 0
+		p.beeperBuf[i] = 0
 	}
 
-	// Convert float32 mono → signed 16-bit stereo
+	// Read AY samples from frame buffer (frame-synchronized from AY.EndFrame)
+	hasAY := p.ay != nil
+	ayN := 0
+	if hasAY {
+		if cap(p.ayLeft) < samples {
+			p.ayLeft = make([]float64, samples)
+			p.ayRight = make([]float64, samples)
+		}
+		p.ayLeft = p.ayLeft[:samples]
+		p.ayRight = p.ayRight[:samples]
+		ayN = p.ay.ReadFrameSamples(p.ayLeft, p.ayRight)
+		// Zero remainder if frame buffer underrun
+		for i := ayN; i < samples; i++ {
+			p.ayLeft[i] = 0
+			p.ayRight[i] = 0
+		}
+	}
+
+	// Mix and convert to signed 16-bit stereo
 	for i := 0; i < samples; i++ {
-		s := int16(p.buf[i] * 32767)
-		lo := byte(s)
-		hi := byte(s >> 8)
+		beeperSample := float64(p.beeperBuf[i])
+
+		var left, right float64
+		if hasAY {
+			// Mix: beeper at 60% volume, AY at 80%
+			left = beeperSample*0.6 + p.ayLeft[i]*0.8
+			right = beeperSample*0.6 + p.ayRight[i]*0.8
+		} else {
+			left = beeperSample
+			right = beeperSample
+		}
+
+		// Clamp
+		if left > 1.0 {
+			left = 1.0
+		} else if left < -1.0 {
+			left = -1.0
+		}
+		if right > 1.0 {
+			right = 1.0
+		} else if right < -1.0 {
+			right = -1.0
+		}
+
+		sL := int16(left * 32767)
+		sR := int16(right * 32767)
 		j := i * 4
 		if j+3 < len(data) {
-			data[j+0] = lo   // left low
-			data[j+1] = hi   // left high
-			data[j+2] = lo   // right low
-			data[j+3] = hi   // right high
+			data[j+0] = byte(sL)
+			data[j+1] = byte(sL >> 8)
+			data[j+2] = byte(sR)
+			data[j+3] = byte(sR >> 8)
 		}
 	}
 
 	return samples * 4, nil
 }
 
+// screensEqual compares two RGBA framebuffers for pixel-level equality.
+func screensEqual(a, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// saveScreenshot saves the machine's current framebuffer as a PNG file.
+func saveScreenshot(m *spectrum.Machine, path string) error {
+	fb := m.Framebuffer()
+	w := m.ScreenWidth()
+	h := m.ScreenHeight()
+
+	img := image.NewRGBA(image.Rect(0, 0, w, h))
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			off := (y*w + x) * 4
+			img.SetRGBA(x, y, color.RGBA{
+				R: fb[off+0],
+				G: fb[off+1],
+				B: fb[off+2],
+				A: fb[off+3],
+			})
+		}
+	}
+
+	f, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("creating screenshot file: %w", err)
+	}
+	defer f.Close()
+
+	if err := png.Encode(f, img); err != nil {
+		return fmt.Errorf("encoding PNG: %w", err)
+	}
+	return nil
+}
+
 func main() {
 	modelFlag := flag.String("model", "48k", "Machine model: 48k, pentagon")
-	romFlag := flag.String("rom", "", "Path to ROM file (required)")
+	romFlag := flag.String("rom", "", "Path to ROM file")
 	rom1Flag := flag.String("rom1", "", "Path to second ROM (128K models)")
 	snapshotFlag := flag.String("snapshot", "", "Path to .sna snapshot file")
+	tapFlag := flag.String("tap", "", "Path to .tap tape file")
+	trdFlag := flag.String("trd", "", "Path to .trd disk image")
+	trdLoad := flag.String("trd-load", "", "File to load from .trd (name:ext:addr, e.g. 'GAME:C:32768')")
 	scaleFlag := flag.Int("scale", 2, "Display scale factor (1-4)")
 	noAudioFlag := flag.Bool("no-audio", false, "Disable audio output")
+	screenshotFlag := flag.String("screenshot", "", "Save screenshot to PNG and exit (headless)")
+	framesFlag := flag.Int("frames", 50, "Frames to run before screenshot (with --screenshot)")
+	screenshotOnHalt := flag.Bool("screenshot-on-halt", false, "Screenshot when CPU halts (with --screenshot)")
+	screenshotOnStable := flag.Int("screenshot-on-stable", 0, "Screenshot after N frames of unchanged screen (with --screenshot)")
+	screenshotAtPC := flag.String("screenshot-at-pc", "", "Screenshot when PC reaches address (hex, with --screenshot)")
+	maxFrames := flag.Int("max-frames", 5000, "Max frames before giving up (conditional screenshot)")
 	flag.Parse()
 
 	if *romFlag == "" && *snapshotFlag == "" {
 		fmt.Fprintln(os.Stderr, "Usage: mzx --rom <path> [--snapshot <path>] [options]")
 		fmt.Fprintln(os.Stderr, "\nOptions:")
 		flag.PrintDefaults()
+		fmt.Fprintln(os.Stderr, "\nExamples:")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --tap game.tap")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --frames 100")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --screenshot-on-halt")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --screenshot-on-stable 3")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --screenshot-at-pc 8000")
+		fmt.Fprintln(os.Stderr, "  mzx --model pentagon --rom 128-0.rom --rom1 trdos.rom --trd game.trd")
 		os.Exit(1)
 	}
 
@@ -283,6 +401,125 @@ func main() {
 		fmt.Printf("Loaded snapshot: %s\n", *snapshotFlag)
 	}
 
+	// Install .tap ROM trap if provided
+	if *tapFlag != "" {
+		tap, err := formats.LoadTAP(*tapFlag)
+		if err != nil {
+			log.Fatalf("Error loading .tap file: %v", err)
+		}
+		formats.InstallTAPTrap(machine, tap)
+		fmt.Printf("Loaded tape: %s (%d blocks)\n", *tapFlag, tap.BlockCount())
+	}
+
+	// Install .trd traps / load file if provided
+	if *trdFlag != "" {
+		trd, err := formats.LoadTRD(*trdFlag)
+		if err != nil {
+			log.Fatalf("Error loading .trd file: %v", err)
+		}
+		formats.InstallTRDTraps(machine, trd)
+		fmt.Printf("Loaded disk: %s\n", *trdFlag)
+
+		// Optionally load a specific file from the disk
+		if *trdLoad != "" {
+			name, ext, addr, parseErr := parseTRDLoad(*trdLoad)
+			if parseErr != nil {
+				log.Fatalf("Invalid --trd-load format: %v (expected name:ext:addr)", parseErr)
+			}
+			if err := formats.LoadTRDFile(machine, trd, name, ext, addr); err != nil {
+				log.Fatalf("Error loading file from .trd: %v", err)
+			}
+			fmt.Printf("Loaded file from disk: %s.%c at $%04X\n", name, ext, addr)
+		}
+	}
+
+	// Headless screenshot mode — supports several trigger conditions
+	if *screenshotFlag != "" {
+		var triggerPC uint16
+		hasAtPC := false
+		if *screenshotAtPC != "" {
+			var pcInt int
+			if _, err := fmt.Sscanf(*screenshotAtPC, "0x%x", &pcInt); err != nil {
+				if _, err := fmt.Sscanf(*screenshotAtPC, "$%x", &pcInt); err != nil {
+					if _, err := fmt.Sscanf(*screenshotAtPC, "%x", &pcInt); err != nil {
+						log.Fatalf("Invalid --screenshot-at-pc address: %s", *screenshotAtPC)
+					}
+				}
+			}
+			triggerPC = uint16(pcInt)
+			hasAtPC = true
+		}
+
+		isConditional := *screenshotOnHalt || *screenshotOnStable > 0 || hasAtPC
+
+		if !isConditional {
+			// Simple mode: run N frames, capture
+			frames := *framesFlag
+			if frames < 1 {
+				frames = 1
+			}
+			fmt.Printf("Running %d frames for screenshot...\n", frames)
+			for i := 0; i < frames; i++ {
+				machine.RunFrame()
+			}
+		} else {
+			// Conditional mode: run until trigger or max-frames
+			limit := *maxFrames
+			stableCount := 0
+			var prevScreen []byte
+
+			fmt.Printf("Running up to %d frames, waiting for trigger...\n", limit)
+			triggered := false
+
+			for i := 0; i < limit; i++ {
+				machine.RunFrame()
+
+				// Check halt condition
+				if *screenshotOnHalt && machine.CPU.Halted() {
+					fmt.Printf("  HALT detected at frame %d\n", i+1)
+					triggered = true
+					break
+				}
+
+				// Check PC condition (checked after frame, PC is current)
+				if hasAtPC && machine.CPU.PC() == triggerPC {
+					fmt.Printf("  PC=$%04X reached at frame %d\n", triggerPC, i+1)
+					triggered = true
+					break
+				}
+
+				// Check screen stability
+				if *screenshotOnStable > 0 {
+					fb := machine.Framebuffer()
+					if prevScreen != nil && screensEqual(prevScreen, fb) {
+						stableCount++
+						if stableCount >= *screenshotOnStable {
+							fmt.Printf("  Screen stable for %d frames at frame %d\n",
+								stableCount, i+1)
+							triggered = true
+							break
+						}
+					} else {
+						stableCount = 0
+						prevScreen = make([]byte, len(fb))
+						copy(prevScreen, fb)
+					}
+				}
+			}
+
+			if !triggered {
+				fmt.Printf("  Warning: max frames (%d) reached without trigger\n", limit)
+			}
+		}
+
+		if err := saveScreenshot(machine, *screenshotFlag); err != nil {
+			log.Fatalf("Error saving screenshot: %v", err)
+		}
+		fmt.Printf("Screenshot saved: %s (%dx%d)\n", *screenshotFlag,
+			machine.ScreenWidth(), machine.ScreenHeight())
+		return
+	}
+
 	// Configure Ebitengine
 	ebiten.SetWindowSize(machine.ScreenWidth()*scale, machine.ScreenHeight()*scale)
 	ebiten.SetWindowTitle("MZX - ZX Spectrum Emulator")
@@ -298,10 +535,49 @@ func main() {
 		machine.ScreenWidth(), machine.ScreenHeight(),
 		machine.Mode.TStatesPerFrame())
 	fmt.Printf("Scale: %dx\n", scale)
-	fmt.Printf("Keys: ESC=quit, F1=pause, F5=reset\n")
+	fmt.Printf("Keys: ESC=quit, F1=pause, F5=reset, F2=screenshot\n")
 
 	if err := ebiten.RunGame(game); err != nil && err != ebiten.Termination {
 		log.Fatal(err)
 	}
+}
+
+// parseTRDLoad parses "name:ext:addr" format for --trd-load.
+func parseTRDLoad(s string) (name string, ext byte, addr uint16, err error) {
+	var addrInt int
+	parts := splitColon(s)
+	if len(parts) != 3 {
+		return "", 0, 0, fmt.Errorf("expected name:ext:addr")
+	}
+	name = parts[0]
+	if len(parts[1]) != 1 {
+		return "", 0, 0, fmt.Errorf("extension must be a single character")
+	}
+	ext = parts[1][0]
+	_, err = fmt.Sscanf(parts[2], "%d", &addrInt)
+	if err != nil {
+		// Try hex
+		_, err = fmt.Sscanf(parts[2], "0x%x", &addrInt)
+		if err != nil {
+			_, err = fmt.Sscanf(parts[2], "$%x", &addrInt)
+			if err != nil {
+				return "", 0, 0, fmt.Errorf("invalid address: %s", parts[2])
+			}
+		}
+	}
+	return name, ext, uint16(addrInt), nil
+}
+
+func splitColon(s string) []string {
+	var parts []string
+	start := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == ':' {
+			parts = append(parts, s[start:i])
+			start = i + 1
+		}
+	}
+	parts = append(parts, s[start:])
+	return parts
 }
 

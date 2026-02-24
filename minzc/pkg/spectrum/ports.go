@@ -23,6 +23,9 @@ type Ports struct {
 	// Kempston joystick state (bits: 0=right, 1=left, 2=down, 3=up, 4=fire)
 	kempstonState byte
 
+	// AY-3-8912 sound chip (nil if not present)
+	ay *AYChip
+
 	// T-state tracking for beeper and contention
 	getTstates func() int
 	addTstates func(int)
@@ -119,6 +122,50 @@ func (p *Ports) readKempston(addr uint16) byte {
 // SetKempstonState sets the Kempston joystick state byte.
 func (p *Ports) SetKempstonState(state byte) {
 	p.kempstonState = state
+}
+
+// SetAY attaches an AY-3-8912 chip and registers its ports.
+func (p *Ports) SetAY(ay *AYChip) {
+	p.ay = ay
+
+	// AY register select: $FFFD (write: select register, read: read register)
+	// Mask: bits 1, 14, 15 must be set → addr & 0xC002 == 0xC000
+	p.Register(&PortDevice{
+		Mask:  0xC002,
+		Value: 0xC000,
+		Read:  p.readAY,
+		Write: p.writeAYSelect,
+		Name:  "AY Register",
+	})
+
+	// AY data write: $BFFD
+	// Mask: bits 1, 14 must be set, bit 15 clear → addr & 0xC002 == 0x4000
+	p.Register(&PortDevice{
+		Mask:  0xC002,
+		Value: 0x4000,
+		Read:  nil,
+		Write: p.writeAYData,
+		Name:  "AY Data",
+	})
+}
+
+func (p *Ports) readAY(addr uint16) byte {
+	if p.ay == nil {
+		return 0xFF
+	}
+	return p.ay.ReadRegister(p.ay.selectedReg)
+}
+
+func (p *Ports) writeAYSelect(addr uint16, val byte) {
+	if p.ay != nil {
+		p.ay.selectedReg = val & 0x0F
+	}
+}
+
+func (p *Ports) writeAYData(addr uint16, val byte) {
+	if p.ay != nil {
+		p.ay.WriteRegister(p.ay.selectedReg, val)
+	}
 }
 
 // ---- z80.PortAccessor implementation ----

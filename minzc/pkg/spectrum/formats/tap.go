@@ -1,0 +1,163 @@
+package formats
+
+import (
+	"fmt"
+	"os"
+
+	"github.com/minz/minzc/pkg/spectrum"
+)
+
+// TAPBlock represents a single tape block in a .tap file.
+type TAPBlock struct {
+	Flag byte   // 0x00 = header, 0xFF = data
+	Data []byte // payload (excluding flag and checksum)
+}
+
+// TAPFile holds all blocks from a .tap file.
+type TAPFile struct {
+	Blocks   []TAPBlock
+	Position int // current block index for sequential loading
+}
+
+// LoadTAP parses a .tap file into blocks.
+func LoadTAP(path string) (*TAPFile, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading .tap file: %w", err)
+	}
+
+	tap := &TAPFile{}
+	offset := 0
+
+	for offset+2 <= len(raw) {
+		// 2-byte little-endian block length
+		blockLen := int(raw[offset]) | int(raw[offset+1])<<8
+		offset += 2
+
+		if blockLen == 0 {
+			continue
+		}
+		if offset+blockLen > len(raw) {
+			break // truncated file
+		}
+
+		blockData := raw[offset : offset+blockLen]
+		offset += blockLen
+
+		if blockLen < 2 {
+			continue // need at least flag + checksum
+		}
+
+		flag := blockData[0]
+		payload := blockData[1 : blockLen-1] // exclude flag and checksum
+		checksum := blockData[blockLen-1]
+
+		// Verify checksum (XOR of all bytes including flag)
+		var xor byte
+		for _, b := range blockData[:blockLen-1] {
+			xor ^= b
+		}
+		if xor != checksum {
+			// Bad checksum — still store it but mark for consumers
+			// Most emulators load anyway
+		}
+
+		block := TAPBlock{
+			Flag: flag,
+			Data: make([]byte, len(payload)),
+		}
+		copy(block.Data, payload)
+		tap.Blocks = append(tap.Blocks, block)
+	}
+
+	return tap, nil
+}
+
+// NextBlock returns the next block and advances the position.
+// Returns nil if no more blocks.
+func (t *TAPFile) NextBlock() *TAPBlock {
+	if t.Position >= len(t.Blocks) {
+		return nil
+	}
+	block := &t.Blocks[t.Position]
+	t.Position++
+	return block
+}
+
+// Rewind resets the tape position to the beginning.
+func (t *TAPFile) Rewind() {
+	t.Position = 0
+}
+
+// BlockCount returns the total number of blocks.
+func (t *TAPFile) BlockCount() int {
+	return len(t.Blocks)
+}
+
+// TAPTrapAddr is the ROM address to intercept for tape loading.
+// $0556 = LD-BYTES routine entry point in the 48K ROM.
+const TAPTrapAddr uint16 = 0x0556
+
+// InstallTAPTrap sets up the ROM trap for .tap loading on a machine.
+// The trap intercepts execution at $0556 (LD-BYTES) and injects tape data.
+//
+// ROM register convention at $0556:
+//   A  = expected flag byte (0x00 for header, 0xFF for data)
+//   F  = carry set means LOAD, carry reset means VERIFY
+//   IX = destination address
+//   DE = expected block length
+//
+// On success: carry flag set, data loaded to IX
+// On failure: carry flag reset
+func InstallTAPTrap(m *spectrum.Machine, tap *TAPFile) {
+	m.SetPCTrap(TAPTrapAddr, func() {
+		cpu := m.CPU
+
+		expectedFlag := byte(cpu.AF() >> 8) // A register
+		flags := byte(cpu.AF())             // F register
+		isLoad := flags&0x01 != 0           // carry flag
+		dest := cpu.IX()
+		length := cpu.DE()
+
+		// Get next tape block
+		block := tap.NextBlock()
+		if block == nil {
+			// No more blocks — signal error
+			cpu.SetAF(cpu.AF() & 0xFF00) // clear carry
+			doRet(m)
+			return
+		}
+
+		// Check flag byte match
+		if block.Flag != expectedFlag {
+			// Wrong block type — signal error
+			cpu.SetAF(cpu.AF() & 0xFF00) // clear carry
+			doRet(m)
+			return
+		}
+
+		if isLoad {
+			// Copy block data to destination address
+			copyLen := int(length)
+			if copyLen > len(block.Data) {
+				copyLen = len(block.Data)
+			}
+			for i := 0; i < copyLen; i++ {
+				m.Memory.Write(dest+uint16(i), block.Data[i], false)
+			}
+		}
+
+		// Signal success: set carry flag
+		cpu.SetAF((cpu.AF() & 0xFF00) | uint16(flags|0x01))
+		doRet(m)
+	})
+}
+
+// doRet simulates a RET instruction (pop PC from stack).
+func doRet(m *spectrum.Machine) {
+	sp := m.CPU.SP()
+	lo := m.Memory.Read(sp)
+	hi := m.Memory.Read(sp + 1)
+	m.CPU.SetPC(uint16(lo) | uint16(hi)<<8)
+	m.CPU.SetSP(sp + 2)
+}

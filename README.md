@@ -256,18 +256,49 @@ The Z80 backend is production-quality. C99 and Crystal are useful for testing an
 
 ---
 
-## Toolchain
+## Toolchain — End-to-End Development Ecosystem
 
-All tools are self-contained Go binaries with zero external dependencies.
+MinZ provides a complete, self-contained development ecosystem. Every tool you need — from source code to running program to screenshot — is a single Go binary with zero external dependencies. No fragile toolchain of third-party assemblers, separate emulators, or external debuggers. One `make` builds everything.
+
+```
+Source Code                          Running Program
+    |                                      |
+    v                                      v
+  [mz] compile ──> [mza] assemble ──> [mze] run (CP/M, headless)
+    |                                  [mzx] run (ZX Spectrum, graphical)
+    |                                  [mzrun] run (remote, DZRP)
+    |                                      |
+    v                                      v
+  [mzd] disassemble <──────────────── [mzx --screenshot] capture
+```
 
 | Tool | Purpose | Usage |
 |------|---------|-------|
-| **mz** | Compiler (MinZ to assembly) | `mz program.minz -o program.a80` |
-| **mza** | Z80 assembler (table-driven, all Z80 ops) | `mza program.a80 -o program.com` |
-| **mze** | Z80 emulator (1335/1335 FUSE tests pass) | `mze program.com -t cpm` |
-| **mzrun** | Remote runner (DZRP) | `mzrun program.minz --reset` |
-| **mztap** | TAP file loader | `mztap game.tap` |
+| **mz** | MinZ compiler | `mz program.minz -o program.a80` |
+| **mza** | Z80 assembler (table-driven, all Z80 ops including undocumented) | `mza program.a80 -o program.com` |
+| **mze** | Z80 emulator (1335/1335 FUSE tests) | `mze program.com -t cpm` |
+| **mzx** | ZX Spectrum emulator (T-state accurate, AY sound, .sna/.tap/.trd) | `mzx --rom 48.rom --snapshot game.sna` |
+| **mzd** | Z80 disassembler (IDA-like analysis, xrefs, ROM tables) | `mzd program.bin --org 0x8000` |
+| **mzrun** | Remote runner (DZRP protocol) | `mzrun program.minz --reset` |
 | **mzr** | Interactive REPL | `mzr` |
+
+### MZX — ZX Spectrum Emulator
+
+T-state accurate emulation with real display output. Supports 48K and Pentagon 128K models.
+
+```bash
+# Interactive emulation
+mzx --rom 48.rom --snapshot game.sna
+mzx --rom 48.rom --tap game.tap
+mzx --model pentagon --rom 128-0.rom --rom1 trdos.rom --trd game.trd
+
+# Headless screenshots (for book illustrations, CI, automated testing)
+mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --frames 100
+mzx --rom 48.rom --tap game.tap --screenshot shot.png --screenshot-on-stable 3
+mzx --rom 48.rom --snapshot demo.sna --screenshot shot.png --screenshot-on-halt
+```
+
+Features: FrameMap ULA rendering, beeper + AY-3-8912 audio (AYumi), ULA contention, .sna/.tap/.trd format support, full TR-DOS function dispatch, conditional screenshots.
 
 ### Live Testing with DZRP
 
@@ -342,41 +373,50 @@ Example: `fibonacci(10)` with CTIE generates `LD A, 55` — zero runtime cost.
 
 ```
 minz/
-  minzc/           Compiler (Go)
-    cmd/             CLI tools (mz, mza, mze, mzr, mzrun)
-    pkg/
-      parser/        Participle-based parser
-      semantic/      Type checking, analysis (~11K lines)
-      ir/            Intermediate representation
-      codegen/       Code generators (Z80, 6502, C, Crystal, etc.)
-      optimizer/     MIR + peephole optimizers
-      z80asm/        Built-in Z80 assembler
-  stdlib/          Standard library (.minz)
-    agon/            Agon Light 2 (MOS, VDP)
-    cpm/             CP/M (BDOS)
-    graphics/        Screen drawing
-    math/            Fast math, PRNG
-    text/            String, formatting
+  minzc/             Compiler & toolchain (Go, ~90K LOC)
+    cmd/               CLI tools
+      minzc/             mz — MinZ compiler
+      mza/               mza — Z80 assembler
+      mze/               mze — Z80 emulator (headless)
+      mzx/               mzx — ZX Spectrum emulator (graphical)
+      mzd/               mzd — Z80 disassembler
+      mzrun/             mzrun — DZRP remote runner
+      mzr/               mzr — REPL
+    pkg/               Core packages
+      parser/            Participle-based parser
+      semantic/          Type checking, analysis (~11K lines)
+      ir/                Intermediate representation
+      codegen/           Z80, 6502, C, Crystal backends
+      optimizer/         MIR + peephole optimizers
+      z80asm/            Z80 assembler engine (table-driven)
+      spectrum/          ZX Spectrum emulation (ULA, AY, memory, ports)
+      emulator/          Z80 CPU emulation (remogatto/z80, FUSE-tested)
+      disasm/            Disassembler with IDA-like analysis
+  stdlib/            Standard library (.minz)
+    agon/              Agon Light 2 (MOS, VDP)
+    cpm/               CP/M (BDOS)
+    graphics/          Screen drawing
+    math/              Fast math, PRNG
+    text/              String, formatting
     ...
-  examples/        Example programs
-    agon/            Agon Light 2 demos
-    cpm/             CP/M programs
-    games/           Game demos
-  docs/            300+ documentation files
+  examples/          270+ example programs
+  docs/              Technical documentation
+  reports/           Progress reports (date-numbered)
 ```
 
 ---
 
 ## Current Status (February 2026)
 
-MinZ is under active development. The Z80 backend is mature and produces working binaries for ZX Spectrum, CP/M, and Agon Light 2. Other backends exist but are less developed.
+MinZ is under active development. The Z80 backend is mature and produces working binaries for ZX Spectrum, CP/M, and Agon Light 2. The toolchain is now a complete end-to-end ecosystem: write code, compile, assemble, emulate, disassemble, screenshot — all with zero external dependencies.
 
 **What works well:**
-- Simple to medium programs (hello world, fibonacci, demos, string output)
+- Complete self-contained toolchain: compile -> assemble -> emulate -> screenshot
+- T-state accurate ZX Spectrum emulation with display, audio, and tape/disk support
 - Multi-target compilation (same source for Spectrum, CP/M, Agon)
-- Self-contained toolchain with zero dependencies
 - Compile-time execution (CTIE) for constant expressions
 - Inline assembly for performance-critical code
+- Z80 CPU emulation verified against FUSE test suite (gold standard)
 
 **What needs work:**
 - Complex programs with nested loops and heavy register pressure
@@ -387,30 +427,31 @@ MinZ is under active development. The Z80 backend is mature and produces working
 
 **Metrics:**
 - ~73 core examples, ~272 total (including experimental)
-- ~90K lines of Go in the compiler
+- ~90K lines of Go in the compiler + toolchain
 - 4 active backends: Z80 (production), 6502, C99, Crystal
 - 3 validated Z80 targets: Spectrum, CP/M, Agon Light 2
 - **1335/1335 FUSE Z80 tests pass** — gold-standard CPU verification including all undocumented opcodes
-- Zero external dependencies
+- 10 toolchain components, all pure Go, zero external dependencies
 
 ---
 
 ## Contributing
 
 ```bash
-# Build everything
+# Build all tools
 cd minzc
-go build -o mz cmd/minzc/main.go
-go build -o mza cmd/mza/main.go
-go build -o mze cmd/mze/main.go
+make all
 
-# Test an example
+# Run all tests (emulator, assembler, spectrum, parser, etc.)
+make test-all
+
+# Test an example end-to-end
 ./mz ../examples/hello_print.minz -o /tmp/hello.a80
 ./mza /tmp/hello.a80 -o /tmp/hello.tap
 ./mze /tmp/hello.tap
 
-# Run compiler tests
-go test ./pkg/...
+# Screenshot an example
+./mzx --rom roms/48.rom --snapshot demo.sna --screenshot shot.png --frames 50
 ```
 
 Report issues at [github.com/oisee/minz/issues](https://github.com/oisee/minz/issues).

@@ -272,8 +272,13 @@ mz program.minz -b crystal -o program.cr    # Crystal (testing)
 ```
 minz/
 ├── minzc/              # Go compiler
-│   ├── cmd/           # CLI tools (minzc, repl, backend-info)
+│   ├── cmd/           # CLI tools (minzc, mza, mze, mzd, mzx, mzrun, ...)
 │   ├── pkg/           # Compiler packages
+│   │   ├── spectrum/  # MZX ZX Spectrum emulator
+│   │   ├── emulator/  # Z80 CPU emulator (FUSE-tested)
+│   │   ├── z80asm/    # MZA assembler
+│   │   ├── disasm/    # MZD disassembler
+│   │   └── ...        # Parser, semantic, IR, codegen, etc.
 │   └── tests/         # Test files
 ├── stdlib/            # Standard library
 │   ├── math/         # fast.minz, random.minz
@@ -287,7 +292,8 @@ minz/
 │   └── agon/         # mos.minz, vdp.minz (Agon Light 2)
 ├── grammar.js         # Tree-sitter grammar
 ├── examples/          # MinZ programs
-├── docs/             # Documentation
+├── docs/             # Technical documentation (by topic)
+├── reports/          # Progress reports (date-numbered)
 └── releases/         # Release packages
 ```
 
@@ -346,11 +352,13 @@ fun main() {
 | Tool | Status | Description |
 |------|--------|-------------|
 | **MZC** | ✅ DONE | MinZ Compiler (Go) |
-| **MZA** | ✅ DONE | Z80 Assembler |
-| **MZE** | ✅ DONE | Z80 Emulator (100% coverage) |
+| **MZA** | ✅ DONE | Z80 Assembler (table-driven encoder) |
+| **MZE** | ✅ DONE | Z80 Emulator (1335/1335 FUSE tests) |
+| **MZX** | ✅ DONE | ZX Spectrum emulator (T-state accurate, Ebitengine) |
+| **MZD** | ✅ DONE | Z80 Disassembler (IDA-like analysis engine) |
 | **MZR** | 🚧 WIP | Interactive REPL |
 | **MZRUN** | ✅ DONE | Remote runner (DZRP) |
-| **MZV** | 📋 TOBE | SMC Visualizer |
+| **MZV** | 🚧 WIP | MinZ Virtual Machine (platform abstraction) |
 | **LSP** | 📋 TOBE | Language Server Protocol |
 | **DAP** | 📋 TOBE | Debug Adapter Protocol |
 
@@ -362,42 +370,43 @@ fun main() {
 
 ## Documentation System
 
-### Date-Prefixed Naming Convention (v0.18+)
-All documentation (except README.md, TODO.md, STATUS.md, CLAUDE.md) uses chronological numbering:
+### Two directories, two purposes:
+
+| Directory | Purpose | Naming Convention | Examples |
+|-----------|---------|-------------------|----------|
+| `reports/` | Progress reports, analysis, status updates | `YYYY-MM-DD-NNN-Topic.md` | `2026-02-23-009-MZX_Phase2_Progress_Report.md` |
+| `docs/` | Technical documentation, guides, references | `Topic_Name.md` (or date-prefixed for legacy) | `INTERNAL_ARCHITECTURE.md`, `Metafunction_Design_Decisions.md` |
+
+### Reports (`reports/`)
+Date-numbered, chronologically sorted. Tracking progress over time.
 - Format: `YYYY-MM-DD-NNN-Topic.md`
-- Example: `2026-01-08-261-Progress_Report_v0.18.md`
-- New docs go in `./inbox/` folder
-- Run `./organize_docs.sh` to auto-number with today's date and move to `./docs/`
-- Current count: 300+ docs
+- Sequential NNN counter (check `ls reports/ | sort | tail -1` for next number)
+- Content: progress reports, analysis results, benchmarks, status snapshots
 
-### Benefits
-- Chronological sorting by default
-- Easy to find docs by date
-- Preserves sequential numbering for reference
+### Docs (`docs/`)
+Topic-organized, canonical reference material. One file per topic.
+- Format: `Topic_Name.md` (descriptive, underscored)
+- Legacy files keep their date-prefixed names
+- Content: architecture guides, design decisions, ADRs, API references
 
-### Workflow
-```bash
-# Write new doc
-echo "# My Feature" > inbox/My_Feature_Guide.md
+### Workflow for Claude
+```
+# Writing a progress report:
+Write to: reports/YYYY-MM-DD-NNN-Topic.md
 
-# Auto-number and organize (adds today's date + next number)
-./organize_docs.sh
-# Creates: docs/2026-01-09-314-My_Feature_Guide.md
+# Writing technical documentation:
+Write to: docs/Topic_Name.md
 
-# Batch process multiple docs
-cp *.md inbox/
-./organize_docs.sh
+# DO NOT use inbox/ — write directly to the correct directory
 ```
 
 ### Finding Documents
 ```bash
-ls docs/ | sort             # List chronologically
-grep -l "TSMC" docs/*.md    # Find by topic
-ls docs/2026-01-*           # All January 2026 docs
-ls docs/*-26[0-9]-*         # Docs 260-269
+ls reports/ | sort          # Reports chronologically
+ls docs/ | sort             # Docs alphabetically
+grep -rl "TSMC" docs/      # Find by topic
+ls reports/2026-02-*        # All February 2026 reports
 ```
-
-See [Documentation Guide](DOCUMENTATION_GUIDE.md) for complete details.
 
 ## 🤖 AI Colleague Consultation
 
