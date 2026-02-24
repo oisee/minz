@@ -91,6 +91,17 @@ func (u *ULA) StepTo(tstate int) {
 			u.lastAttr = u.memory.ReadScreen(offset)
 
 		case ActionScreenPixel:
+			// Fill border gap pixels that can't be mapped to T-states.
+			// On the real ULA, these are rendered during H-retrace of the
+			// previous line. We fill them when the first/last screen char fires.
+			if entry.X == u.mode.BorderLeft {
+				// First screen char: fill left border gap (pixels 0..borderLeft-1)
+				u.fillBorderGap(0, entry.Y, u.mode.BorderLeft)
+			} else if entry.X == u.mode.BorderLeft+248 {
+				// Last screen char (col 31): fill right border gap
+				rightStart := u.mode.BorderLeft + 256
+				u.fillBorderGap(rightStart, entry.Y, u.mode.TotalPixelWidth-rightStart)
+			}
 			u.renderScreenPixels(entry.X, entry.Y)
 
 		case ActionBorderPixel:
@@ -171,6 +182,31 @@ func (u *ULA) renderBorderPixels(x, y int) {
 			continue
 		}
 
+		u.framebuffer[offset+0] = color[0]
+		u.framebuffer[offset+1] = color[1]
+		u.framebuffer[offset+2] = color[2]
+		u.framebuffer[offset+3] = color[3]
+	}
+}
+
+// fillBorderGap fills a run of border pixels that have no FrameMap entries.
+// These are pixels in the left/right border during screen lines that can't be
+// mapped to specific T-states (rendered during H-retrace on real hardware).
+func (u *ULA) fillBorderGap(startX, y, width int) {
+	color := spectrumPalette[u.borderColor]
+	stride := u.mode.TotalPixelWidth * 4
+	if y < 0 || y >= u.mode.TotalPixelHeight {
+		return
+	}
+	for i := 0; i < width; i++ {
+		px := startX + i
+		if px < 0 || px >= u.mode.TotalPixelWidth {
+			continue
+		}
+		offset := y*stride + px*4
+		if offset+3 >= len(u.framebuffer) {
+			continue
+		}
 		u.framebuffer[offset+0] = color[0]
 		u.framebuffer[offset+1] = color[1]
 		u.framebuffer[offset+2] = color[2]

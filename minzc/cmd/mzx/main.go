@@ -77,7 +77,7 @@ func (g *Game) Update() error {
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyF2) {
 		path := fmt.Sprintf("mzx_screenshot_%06d.png", g.machine.FrameCount())
-		if err := saveScreenshotEx(g.machine, path, false); err != nil {
+		if err := saveScreenshotEx(g.machine, path, borderStandard); err != nil {
 			log.Printf("Screenshot error: %v", err)
 		} else {
 			log.Printf("Screenshot saved: %s", path)
@@ -280,29 +280,70 @@ func screensEqual(a, b []byte) bool {
 	return true
 }
 
-// saveScreenshotEx saves the framebuffer as PNG, optionally cropping border.
-func saveScreenshotEx(m *spectrum.Machine, path string, noBorder bool) error {
+// borderMode controls how much border area is included in screenshots.
+type borderMode int
+
+const (
+	borderStandard borderMode = iota // 320x240: 32px side, 24px top/bottom (TV-visible, matches zxs)
+	borderNone                       // 256x192: screen only, no border
+	borderFull                       // Full ULA output (352x296 for 48K, 352x312 for Pentagon)
+)
+
+// Standard TV-visible border sizes (matches zxs default)
+const (
+	stdBorderSide   = 32 // pixels left and right
+	stdBorderTop    = 24 // pixels above screen
+	stdBorderBottom = 24 // pixels below screen
+)
+
+// saveScreenshotEx saves the framebuffer as PNG with the specified border mode.
+func saveScreenshotEx(m *spectrum.Machine, path string, mode borderMode) error {
 	fb := m.Framebuffer()
 	fullW := m.ScreenWidth()
 	fullH := m.ScreenHeight()
 
 	var img *image.RGBA
-	if noBorder {
-		// Crop to 256x192 screen area (skip border)
-		bLeft := m.Mode.BorderLeft
-		bTop := m.Mode.BorderTop
+	switch mode {
+	case borderNone:
+		// 256x192: screen area only
 		img = image.NewRGBA(image.Rect(0, 0, 256, 192))
 		for y := 0; y < 192; y++ {
 			for x := 0; x < 256; x++ {
-				srcX := bLeft + x
-				srcY := bTop + y
-				off := (srcY*fullW + srcX) * 4
+				off := ((m.Mode.BorderTop+y)*fullW + m.Mode.BorderLeft + x) * 4
 				img.SetRGBA(x, y, color.RGBA{
 					R: fb[off+0], G: fb[off+1], B: fb[off+2], A: fb[off+3],
 				})
 			}
 		}
-	} else {
+
+	case borderStandard:
+		// 320x240: standard TV-visible area (32px side, 24px top/bottom)
+		outW := 256 + stdBorderSide*2 // 320
+		outH := 192 + stdBorderTop + stdBorderBottom // 240
+		cropX := m.Mode.BorderLeft - stdBorderSide
+		cropY := m.Mode.BorderTop - stdBorderTop
+		if cropX < 0 {
+			cropX = 0
+		}
+		if cropY < 0 {
+			cropY = 0
+		}
+		img = image.NewRGBA(image.Rect(0, 0, outW, outH))
+		for y := 0; y < outH; y++ {
+			for x := 0; x < outW; x++ {
+				srcX := cropX + x
+				srcY := cropY + y
+				if srcX < fullW && srcY < fullH {
+					off := (srcY*fullW + srcX) * 4
+					img.SetRGBA(x, y, color.RGBA{
+						R: fb[off+0], G: fb[off+1], B: fb[off+2], A: fb[off+3],
+					})
+				}
+			}
+		}
+
+	case borderFull:
+		// Full ULA output (352x296 for 48K, 352x312 for Pentagon)
 		img = image.NewRGBA(image.Rect(0, 0, fullW, fullH))
 		for y := 0; y < fullH; y++ {
 			for x := 0; x < fullW; x++ {
@@ -525,7 +566,8 @@ func main() {
 	dumpFrames := flag.String("dump-frames", "", "Save every frame as PNG to directory")
 	dumpKeyframes := flag.String("dump-keyframes", "", "Save frames only when screen changes")
 	frameSpec := flag.String("frame-spec", "", "Frame range: N, N..M, PC=ADDR, PC=ADDR+N, T=TSTATES, DI:HALT")
-	noBorder := flag.Bool("no-border", false, "Capture 256x192 screen only (no border)")
+	noBorderFlag := flag.Bool("no-border", false, "Capture 256x192 screen only (no border)")
+	fullBorderFlag := flag.Bool("full-border", false, "Capture full ULA output (352x296) for T-state accuracy")
 	maxFrames := flag.Int("max-frames", 5000, "Max frames to run in headless mode")
 	flag.Parse()
 
@@ -541,6 +583,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --frame-spec PC=8000")
 		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --dump-frames ./frames --frame-spec 100..200")
 		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --dump-keyframes ./kf --no-border")
+		fmt.Fprintln(os.Stderr, "  mzx --rom 48.rom --snapshot game.sna --dump-frames ./f --full-border")
 		fmt.Fprintln(os.Stderr, "  mzx --model pentagon --rom 128-0.rom --rom1 trdos.rom --trd game.trd")
 		os.Exit(1)
 	}
@@ -551,6 +594,14 @@ func main() {
 	}
 	if scale > 4 {
 		scale = 4
+	}
+
+	// Resolve border mode: --no-border → 256x192, --full-border → full ULA, default → 320x240
+	captureBorder := borderStandard
+	if *noBorderFlag {
+		captureBorder = borderNone
+	} else if *fullBorderFlag {
+		captureBorder = borderFull
 	}
 
 	var machine *spectrum.Machine
@@ -652,7 +703,7 @@ func main() {
 			for i := 0; i < frames; i++ {
 				machine.RunFrame()
 			}
-			if err := saveScreenshotEx(machine, *screenshotFlag, *noBorder); err != nil {
+			if err := saveScreenshotEx(machine, *screenshotFlag, captureBorder); err != nil {
 				log.Fatalf("Error saving screenshot: %v", err)
 			}
 			fmt.Printf("Screenshot saved: %s\n", *screenshotFlag)
@@ -715,7 +766,7 @@ func main() {
 
 				// Single-frame trigger (no range) — capture and stop
 				if triggered && !spec.hasEnd() && spec.isSingleTrigger() {
-					if err := saveScreenshotEx(machine, singleFile, *noBorder); err != nil {
+					if err := saveScreenshotEx(machine, singleFile, captureBorder); err != nil {
 						log.Fatalf("Error saving screenshot: %v", err)
 					}
 					fmt.Printf("  Triggered at frame %d\n", frame)
@@ -738,7 +789,7 @@ func main() {
 
 			if shouldCapture && dumpDir != "" {
 				path := fmt.Sprintf("%s/frame_%06d.png", dumpDir, frame)
-				if err := saveScreenshotEx(machine, path, *noBorder); err != nil {
+				if err := saveScreenshotEx(machine, path, captureBorder); err != nil {
 					log.Printf("Warning: failed to save frame %d: %v", frame, err)
 				}
 				capturedCount++
@@ -747,7 +798,7 @@ func main() {
 			// For single-frame specs like "100"
 			if !spec.isEmpty() && spec.isSingleFrame() && frame >= spec.startFrame {
 				if singleFile != "" {
-					if err := saveScreenshotEx(machine, singleFile, *noBorder); err != nil {
+					if err := saveScreenshotEx(machine, singleFile, captureBorder); err != nil {
 						log.Fatalf("Error saving screenshot: %v", err)
 					}
 					fmt.Printf("Screenshot saved: %s (frame %d)\n", singleFile, frame)
@@ -763,7 +814,7 @@ func main() {
 
 		if singleFile != "" && capturedCount == 0 {
 			// Fallback: save current screen if we ran out of frames
-			if err := saveScreenshotEx(machine, singleFile, *noBorder); err != nil {
+			if err := saveScreenshotEx(machine, singleFile, captureBorder); err != nil {
 				log.Fatalf("Error saving screenshot: %v", err)
 			}
 			fmt.Printf("Screenshot saved: %s (max frames reached)\n", singleFile)
