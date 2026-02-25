@@ -1076,6 +1076,8 @@ func main() {
 	runFlag := flag.String("run", "", "Load and run binary: FILE@ADDR (shortcut for --load FILE@ADDR --set PC=ADDR,SP=FFFF,DI,IM=1)")
 	saveSnapshotFlag := flag.String("save-snapshot", "", "Save .sna snapshot after running frames (headless)")
 	snapshotAtTState := flag.String("snapshot-at-tstate", "", "Save .sna at exact T-state: TSTATE or TSTATE:FILE.sna")
+	verboseFlag := flag.Bool("verbose", false, "Verbose output: TR-DOS calls, BASIC state, loading details")
+	diagFlag := flag.Bool("diag", false, "Print system variable diagnostics (PROG, VARS, E_LINE, SP, etc.)")
 	versionFlag := flag.Bool("version", false, "Print version and exit")
 
 	flag.Usage = func() {
@@ -1142,6 +1144,10 @@ AUDIO:
   --no-audio             Disable all audio
   --no-beeper            Disable beeper (EAR bit)
   --no-ay                Disable AY-3-8912 sound chip
+
+DIAGNOSTICS:
+  --verbose              Trace TR-DOS calls, loading details
+  --diag                 Print BASIC system variables (PROG, VARS, SP, PC, etc.)
 
 KEYBOARD (interactive):
   F3       Toggle turbo mode (20x speed)
@@ -1366,7 +1372,7 @@ VERSION: %s (build %s, %s)
 			return
 		}
 
-		formats.InstallTRDTraps(machine, trd)
+		formats.InstallTRDTraps(machine, trd, *verboseFlag)
 
 		// Optionally load a specific file from the disk
 		if *trdLoad != "" {
@@ -1449,6 +1455,27 @@ VERSION: %s (build %s, %s)
 			}
 		})
 		fmt.Printf("T-state trap set at T=%d → %s\n", target, savePath)
+	}
+
+	// --diag: dump BASIC system variables and machine state
+	if *diagFlag {
+		readWord := func(addr uint16) uint16 {
+			return uint16(machine.Memory.Read(addr)) | uint16(machine.Memory.Read(addr+1))<<8
+		}
+		fmt.Printf("\n=== MZX Diagnostics ===\n")
+		fmt.Printf("CPU:    PC=$%04X SP=$%04X AF=$%04X BC=$%04X DE=$%04X HL=$%04X\n",
+			machine.CPU.PC(), machine.CPU.SP(), machine.CPU.AF(), machine.CPU.BC(), machine.CPU.DE(), machine.CPU.HL())
+		fmt.Printf("BASIC:  PROG=$%04X VARS=$%04X E_LINE=$%04X CH_ADD=$%04X\n",
+			readWord(0x5C53), readWord(0x5C4B), readWord(0x5C59), readWord(0x5C5D))
+		fmt.Printf("STACK:  ERR_SP=$%04X RAMTOP=$%04X\n",
+			readWord(0x5C3D), readWord(0x5CB2))
+		fmt.Printf("SCREEN: ATTR_P=$%02X BORDER=%d\n",
+			machine.Memory.Read(0x5C8D), machine.ULA.BorderColor())
+		fmt.Printf("MEMORY: Model=%s PageHi=%d Is48K=%v\n",
+			*modelFlag, machine.Memory.PageHi(), machine.Memory.Is48K())
+		fmt.Printf("TSTATE: %d (frame %d)\n",
+			machine.AbsoluteTStates(), machine.AbsoluteTStates()/int64(machine.Mode.TStatesPerFrame()))
+		fmt.Printf("=======================\n\n")
 	}
 
 	// Headless mode: --screenshot (single), --dump-frames, --dump-keyframes, --save-snapshot

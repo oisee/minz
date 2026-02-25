@@ -179,12 +179,14 @@ const (
 type TRDState struct {
 	disk    *TRDFile
 	machine *spectrum.Machine
+	verbose bool
 }
 
 // InstallTRDTraps sets up PC traps implementing the TR-DOS function API.
 // Supports the full $3D13 dispatch table: sector I/O, file ops, catalog, etc.
-func InstallTRDTraps(m *spectrum.Machine, trd *TRDFile) {
-	state := &TRDState{disk: trd, machine: m}
+// If verbose is true, logs every TR-DOS function call with register state.
+func InstallTRDTraps(m *spectrum.Machine, trd *TRDFile, verbose bool) {
+	state := &TRDState{disk: trd, machine: m, verbose: verbose}
 
 	// Trap the main TR-DOS entry — C register = function number
 	m.SetPCTrap(TRDOSEntryPoint, func() {
@@ -195,6 +197,15 @@ func InstallTRDTraps(m *spectrum.Machine, trd *TRDFile) {
 	m.SetPCTrap(TRDOSColdStart, func() {
 		emulateRET(m)
 	})
+
+	// Boot continuation trap ($3D03): some multi-stage boot loaders
+	// (e.g. MAXBOOT) read the directory themselves via fn=$05, parse it,
+	// set up the descriptor area ($5CDD), and then JP $3D03 expecting
+	// TR-DOS to load the file. Without the actual TR-DOS ROM, we handle
+	// this by reading the descriptor area and loading the specified file.
+	m.SetPCTrap(0x3D03, func() {
+		state.handleBootContinuation()
+	})
 }
 
 // dispatch implements the TR-DOS $3D13 function table.
@@ -203,6 +214,15 @@ func (s *TRDState) dispatch() {
 	m := s.machine
 	cpu := m.CPU
 	fn := byte(cpu.BC()) // C register = low byte of BC
+
+	if s.verbose {
+		sp := cpu.SP()
+		retLo := m.Memory.Read(sp)
+		retHi := m.Memory.Read(sp + 1)
+		retAddr := uint16(retLo) | uint16(retHi)<<8
+		fmt.Printf("[TRDOS] fn=$%02X A=$%02X BC=$%04X DE=$%04X HL=$%04X SP=$%04X ret=$%04X\n",
+			fn, byte(cpu.AF()>>8), cpu.BC(), cpu.DE(), cpu.HL(), sp, retAddr)
+	}
 
 	switch fn {
 	case 0x00: // Interface initialization
@@ -704,9 +724,91 @@ func (s *TRDState) copyFromDescArea() {
 
 // readSystemSector reads track 0, sector 8 (disk info) into system variables.
 func (s *TRDState) readSystemSector() {
-	// The real TR-DOS reads sector 9 (1-based) = sector 8 (0-based)
-	// and updates several system variables. We just ensure the
-	// descriptor area is usable.
+	m := s.machine
+	sysSec := s.disk.ReadSector(0, 0, 8)
+
+	// Copy system sector info to TR-DOS system variables in RAM.
+	// Offsets within the 256-byte system sector:
+	//   $E1: first free sector
+	//   $E2: first free track
+	//   $E3: disk type (0x16 = 80 tracks, 2 sides)
+	//   $E4: file count
+	//   $E5-$E6: free sectors (LE)
+	//   $E7: TR-DOS ID byte ($10)
+	m.Memory.Write(0x5D04, sysSec[0xE4], false) // file count → system variable
+	m.Memory.Write(0x5CF3, sysSec[0xE2], false) // first free track
+	m.Memory.Write(0x5CFA, sysSec[0xE3], false) // disk type
+	m.Memory.Write(0x5CED, sysSec[0xE1], false) // first free sector
+
+	if s.verbose {
+		fmt.Printf("[TRDOS] readSystemSector: files=%d freeTrack=%d freeSec=%d diskType=$%02X\n",
+			sysSec[0xE4], sysSec[0xE2], sysSec[0xE1], sysSec[0xE3])
+	}
+}
+
+// handleBootContinuation handles JP $3D03 from multi-stage boot loaders.
+// These loaders read the directory via fn=$05, parse it, and then JP to
+// TR-DOS expecting it to load and run the main file. We check the
+// descriptor area ($5CDD) for a filename and load it, or fall back to
+// loading the first BASIC file on disk.
+func (s *TRDState) handleBootContinuation() {
+	m := s.machine
+
+	// Read filename from descriptor area ($5CDD)
+	var descName [8]byte
+	for i := 0; i < 8; i++ {
+		descName[i] = m.Memory.Read(trdosVarFilename + uint16(i))
+	}
+	descType := m.Memory.Read(trdosVarFileType)
+
+	if s.verbose {
+		fmt.Printf("[TRDOS] boot continuation: desc='%s'.%c\n", string(descName[:]), descType)
+	}
+
+	// Try to find the file specified in the descriptor area
+	entry := s.disk.FindFile(string(descName[:]), descType)
+
+	// Fall back to the first BASIC file on disk
+	if entry == nil {
+		entries := s.disk.ListDirectory()
+		for i := range entries {
+			if entries[i].Extension == 'B' || entries[i].Extension == 'b' {
+				entry = &entries[i]
+				break
+			}
+		}
+	}
+
+	if entry == nil {
+		if s.verbose {
+			fmt.Printf("[TRDOS] boot continuation: no file found, returning\n")
+		}
+		// No file to load — set PC to ROM warm start
+		m.CPU.SetPC(0x0000)
+		return
+	}
+
+	data := s.disk.ReadFile(entry)
+	if s.verbose {
+		fmt.Printf("[TRDOS] boot continuation: loading '%s'.%c (%d bytes)\n",
+			entry.Name, entry.Extension, len(data))
+	}
+
+	if entry.Extension == 'B' || entry.Extension == 'b' {
+		// BASIC program: load into program area and execute RUN
+		LoadBASICProgram(m, data)
+		ExecBASIC(m, TokenizeRUN())
+	} else {
+		// CODE file: load at the entry's start address
+		addr := entry.Start
+		for i, b := range data {
+			a := addr + uint16(i)
+			if a >= 0x4000 {
+				m.Memory.Write(a, b, false)
+			}
+		}
+		m.CPU.SetPC(addr)
+	}
 }
 
 // setBC sets the BC register pair (B=high=error, C=low=result).
@@ -786,6 +888,21 @@ func AutoBootTRD(m *spectrum.Machine, trd *TRDFile) error {
 
 	// Execute RUN via the unified automation system
 	ExecBASIC(m, TokenizeRUN())
+
+	// Many boot loaders (e.g. MAXBOOT v9.1) write a sentinel to LAST-K
+	// ($5C08) and poll it waiting for the ISR to update it with a keypress.
+	// The 48K ROM ISR scans the keyboard but only updates LAST-K when a
+	// key IS pressed — it never clears it for "no key". So in headless
+	// mode (and in interactive mode before the user presses anything),
+	// LAST-K stays at the sentinel forever and the loader never proceeds.
+	//
+	// Fix: run a few frames while clearing LAST-K to $00 after each frame.
+	// Boot loaders that check for LAST-K==0 ("no key → proceed with
+	// default") will exit their wait loop and start loading.
+	for i := 0; i < 10; i++ {
+		m.RunFrame()
+		m.Memory.Write(0x5C08, 0, false) // Clear LAST-K
+	}
 
 	fmt.Printf("Autoboot: loaded '%s' (%d bytes)\n", boot.Name, len(trd.ReadFile(boot)))
 	return nil
