@@ -1039,7 +1039,7 @@ func parseCaptureRange(s string) (captureRange, bool) {
 }
 
 func main() {
-	modelFlag := flag.String("model", "48k", "Machine model: 48k, 128k, pentagon")
+	modelFlag := flag.String("model", "128k", "Machine model: 48k, 128k, pentagon")
 	romFlag := flag.String("rom", "", "Path to ROM file")
 	rom1Flag := flag.String("rom1", "", "Path to second ROM (128K models)")
 	snapshotFlag := flag.String("snapshot", "", "Path to .sna snapshot file")
@@ -1093,7 +1093,7 @@ USAGE:
   mzx [flags] --dump-frames DIR       Headless: capture frame sequence
 
 MACHINE:
-  --model MODEL       Machine model: 48k, 128k, pentagon (default: 48k)
+  --model MODEL       Machine model: 48k, 128k, pentagon (default: 128k)
   --rom FILE          Custom ROM file (16K for 48K, 32K for 128K)
   --rom1 FILE         Second ROM for 128K models
   --scale N           Display scale 1-4 (default: 2)

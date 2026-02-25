@@ -270,7 +270,7 @@ func (m *Memory) Data() []byte {
 //   Bit 4:    ROM page (0=128K ROM, 1=48K ROM)
 //   Bit 5:    Lock paging (no further changes until reset)
 func (m *Memory) SetPaging(val byte) {
-	if m.pagingLocked {
+	if m.is48K || m.pagingLocked {
 		return
 	}
 

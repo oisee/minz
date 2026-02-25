@@ -61,13 +61,16 @@ func NewPorts(ula *ULA, mem *Memory, kb *Keyboard, beep *Beeper, hasContention b
 	})
 
 	// 128K paging port: $7FFD (bits 1 and 15 = 0)
-	p.Register(&PortDevice{
-		Mask:  0x8002,
-		Value: 0x0000,
-		Read:  nil, // write only
-		Write: p.writePaging,
-		Name:  "128K Paging",
-	})
+	// Only register for 128K models — 48K has no paging hardware.
+	if !mem.is48K {
+		p.Register(&PortDevice{
+			Mask:  0x8002,
+			Value: 0x0000,
+			Read:  nil, // write only
+			Write: p.writePaging,
+			Name:  "128K Paging",
+		})
+	}
 
 	// Kempston joystick: $1F (bits 5-7 of low byte = 0)
 	p.Register(&PortDevice{
