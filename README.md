@@ -6,7 +6,7 @@
 
 ### Modern Programming Language for Vintage Hardware
 
-[![Version](https://img.shields.io/badge/version-0.18.0--dev-blue)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.18.0-blue)](https://github.com/oisee/minz/releases)
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
 **Write modern code. Run it on Z80, eZ80, 6502, and more.**
@@ -56,9 +56,8 @@ Fibonacci:
 ```bash
 git clone https://github.com/oisee/minz.git
 cd minz/minzc
-go build -o mz cmd/minzc/main.go     # Compiler
-go build -o mza cmd/mza/main.go      # Assembler
-go build -o mze cmd/mze/main.go      # Emulator
+make all            # Build all 9 tools
+make install-user   # Install to ~/.local/bin/
 ```
 
 No external dependencies. Pure Go.
@@ -277,7 +276,7 @@ Source Code                          Running Program
 | **mz** | MinZ compiler | `mz program.minz -o program.a80` |
 | **mza** | Z80 assembler (table-driven, all Z80 ops including undocumented) | `mza program.a80 -o program.com` |
 | **mze** | Z80 emulator (1335/1335 FUSE tests) | `mze program.com -t cpm` |
-| **mzx** | ZX Spectrum emulator (T-state accurate, AY sound, .sna/.tap/.trd) | `mzx --rom 48.rom --snapshot game.sna` |
+| **mzx** | ZX Spectrum emulator (T-state accurate, AY sound, profiler, .sna/.tap/.trd/.scl) | `mzx --snapshot game.sna` |
 | **mzd** | Z80 disassembler (IDA-like analysis, xrefs, ROM tables) | `mzd program.bin --org 0x8000` |
 | **mzrun** | Remote runner (DZRP protocol) | `mzrun program.minz --reset` |
 | **mzr** | Interactive REPL | `mzr` |
@@ -288,17 +287,27 @@ T-state accurate emulation with real display output. Supports 48K and Pentagon 1
 
 ```bash
 # Interactive emulation
-mzx --rom 48.rom --snapshot game.sna
-mzx --rom 48.rom --tap game.tap
+mzx --snapshot game.sna
+mzx --tap game.tap
 mzx --model pentagon --rom 128-0.rom --rom1 trdos.rom --trd game.trd
 
-# Headless screenshots (for book illustrations, CI, automated testing)
-mzx --rom 48.rom --snapshot game.sna --screenshot shot.png --frames 100
-mzx --rom 48.rom --tap game.tap --screenshot shot.png --screenshot-on-stable 3
-mzx --rom 48.rom --snapshot demo.sna --screenshot shot.png --screenshot-on-halt
+# Load raw binary and run (no ROM needed)
+mzx --load code.bin@8000 --set PC=8000,SP=FFFF,DI
+mzx --run code.bin@8000   # shortcut for --load + --set PC + SP + DI
+
+# Headless screenshots (for CI, automated testing, book illustrations)
+mzx --snapshot game.sna --screenshot shot.png --frames 100
+mzx --tap game.tap --screenshot shot.png --screenshot-on-stable 3
+
+# Execution profiling and tracing
+mzx --snapshot demo.sna --profile heatmap.json --frames 500
+mzx --snapshot demo.sna --trace trace.jsonl --trace-frames 100:200
+
+# Debugging
+mzx --warn-on-halt --verbose --diag --snapshot game.sna
 ```
 
-Features: FrameMap ULA rendering, beeper + AY-3-8912 audio (AYumi), ULA contention, .sna/.tap/.trd format support, full TR-DOS function dispatch, conditional screenshots.
+Features: FrameMap ULA rendering, beeper + AY-3-8912 audio (AYumi), ULA contention, .sna/.tap/.trd/.scl format support, full TR-DOS function dispatch, execution profiler/tracer, conditional screenshots, DI+HALT detection, 48K ROM included.
 
 ### Live Testing with DZRP
 
@@ -413,10 +422,13 @@ MinZ is under active development. The Z80 backend is mature and produces working
 **What works well:**
 - Complete self-contained toolchain: compile -> assemble -> emulate -> screenshot
 - T-state accurate ZX Spectrum emulation with display, audio, and tape/disk support
+- Execution profiler with memory/IO heatmaps and basic-block trace export
+- Raw binary loading (`--load`/`--run`) for testing compiled code without ROM
 - Multi-target compilation (same source for Spectrum, CP/M, Agon)
 - Compile-time execution (CTIE) for constant expressions
 - Inline assembly for performance-critical code
 - Z80 CPU emulation verified against FUSE test suite (gold standard)
+- DI+HALT lockup detection (`--warn-on-halt`)
 
 **What needs work:**
 - Complex programs with nested loops and heavy register pressure
@@ -431,7 +443,7 @@ MinZ is under active development. The Z80 backend is mature and produces working
 - 4 active backends: Z80 (production), 6502, C99, Crystal
 - 3 validated Z80 targets: Spectrum, CP/M, Agon Light 2
 - **1335/1335 FUSE Z80 tests pass** — gold-standard CPU verification including all undocumented opcodes
-- 10 toolchain components, all pure Go, zero external dependencies
+- 9 toolchain binaries, all pure Go, zero external dependencies
 
 ---
 
