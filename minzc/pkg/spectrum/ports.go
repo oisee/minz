@@ -130,22 +130,31 @@ func (p *Ports) writeULA(addr uint16, val byte) {
 	p.ula.SetBorderColor(val & 0x07)
 
 	// Bit 3: MIC output (tape save), Bit 4: EAR output (beeper)
-	// Both contribute to speaker — SAVE uses MIC, BEEP uses EAR.
-	ear := val&0x18 != 0
+	// On real hardware, both drive the speaker through different resistors:
+	//   EAR (bit 4) ≈ 2/3 volume, MIC (bit 3) ≈ 1/3 volume.
+	// The ROM BEEP routine sets MIC=1 always and toggles EAR only,
+	// so a boolean OR would see no transitions → silence.
+	var level float32
+	if val&0x10 != 0 {
+		level += 0.67 // EAR
+	}
+	if val&0x08 != 0 {
+		level += 0.33 // MIC
+	}
 
 	// Mix tape signal into beeper: during real-time tape loading,
-	// the tape signal replaces the EAR bit for audio output.
-	// This produces the classic loading screech through the beeper.
+	// the tape signal adds to the speaker output.
 	if p.tape != nil && p.tape.IsPlaying() && p.getAbsTStates != nil {
-		tapeSignal := p.tape.GetSignal(p.getAbsTStates())
-		ear = ear || tapeSignal
+		if p.tape.GetSignal(p.getAbsTStates()) {
+			level = 1.0
+		}
 	}
 
 	tstate := 0
 	if p.getTstates != nil {
 		tstate = p.getTstates()
 	}
-	p.beeper.SetEar(ear, tstate)
+	p.beeper.SetLevel(level, tstate)
 }
 
 // ---- 128K paging ($7FFD) ----

@@ -21,17 +21,25 @@ const (
 	beeperFadeLen = 32
 )
 
-// Beeper implements 1-bit audio with per-T-state sampling accuracy.
+// Beeper implements multi-level audio with per-T-state sampling accuracy.
+//
+// The ZX Spectrum speaker is driven by two bits through different resistors:
+//   - Bit 4 (EAR): ~2/3 of speaker volume — used by BEEP
+//   - Bit 3 (MIC): ~1/3 of speaker volume — used by SAVE
+//
+// This produces 4 distinct output levels, not just on/off.
+// The ROM BEEP routine sets MIC=1 always and toggles EAR, so a boolean
+// model (OR of both bits) sees no transitions and produces silence.
 //
 // Audio architecture (FUSE-style adaptive rate control):
 //
-//	Frame execution:  OUT ($FE) → SetEar(level, tstate) records transitions
+//	Frame execution:  OUT ($FE) → SetLevel(level, tstate) records transitions
 //	Frame end:        EndFrame() → downsamples transitions to PCM samples
 //	Audio callback:   ReadSamples(buf) → drains ring buffer (async goroutine)
 type Beeper struct {
 	cpuClockHz   int
 	frameTStates int
-	earBit       bool // current EAR output state
+	level        float32 // current speaker level (0.0 to 1.0)
 
 	// Per-frame accumulation: we record level transitions.
 	changes []beeperChange
@@ -55,7 +63,7 @@ type Beeper struct {
 
 type beeperChange struct {
 	tstate int
-	level  bool
+	level  float32
 }
 
 // NewBeeper creates a beeper for the given video mode.
@@ -76,13 +84,23 @@ func NewBeeper(mode *VideoMode) *Beeper {
 	return b
 }
 
-// SetEar updates the EAR bit state at the given T-state within the frame.
-func (b *Beeper) SetEar(ear bool, tstate int) {
-	if ear == b.earBit {
+// SetLevel updates the speaker level at the given T-state within the frame.
+// level should be in the range 0.0 to 1.0.
+func (b *Beeper) SetLevel(level float32, tstate int) {
+	if level == b.level {
 		return
 	}
-	b.earBit = ear
-	b.changes = append(b.changes, beeperChange{tstate: tstate, level: ear})
+	b.level = level
+	b.changes = append(b.changes, beeperChange{tstate: tstate, level: level})
+}
+
+// SetEar is a convenience wrapper for boolean on/off (used by tape signal).
+func (b *Beeper) SetEar(ear bool, tstate int) {
+	if ear {
+		b.SetLevel(1.0, tstate)
+	} else {
+		b.SetLevel(0.0, tstate)
+	}
 }
 
 // EndFrame downsamples the frame's audio data and appends to the output buffer.
@@ -146,7 +164,15 @@ func (b *Beeper) EndFrame() {
 	}
 
 	changeIdx := 0
-	currentLevel := !b.changes[0].level
+	// Start from the level just before the first change.
+	// (The level that was active before any changes in this frame.)
+	currentLevel := b.changes[0].level // will be overwritten immediately
+	if b.changes[0].tstate > 0 {
+		// There's a gap before the first change — use the pre-change level.
+		// We can infer it: it's whatever level was set before this frame,
+		// but since we only record transitions, approximate from lastSample.
+		currentLevel = b.lastSample + 0.5 // undo the -0.5 centering
+	}
 
 	// Generate samples into a temporary slice, then apply fade and write.
 	tmp := make([]float32, samplesPerFrame)
@@ -156,11 +182,7 @@ func (b *Beeper) EndFrame() {
 			currentLevel = b.changes[changeIdx].level
 			changeIdx++
 		}
-		if currentLevel {
-			tmp[i] = 0.5
-		} else {
-			tmp[i] = -0.5
-		}
+		tmp[i] = currentLevel - 0.5 // center around 0: 0.0→-0.5, 1.0→+0.5
 	}
 
 	// Anti-click: crossfade from the last sample value to the new waveform.
