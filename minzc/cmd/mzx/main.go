@@ -1086,6 +1086,7 @@ func main() {
 	noAudioFlag := flag.Bool("no-audio", false, "Disable all audio output")
 	noBeeperFlag := flag.Bool("no-beeper", false, "Disable beeper audio (EAR bit)")
 	noAYFlag := flag.Bool("no-ay", false, "Disable AY-3-8912 audio")
+	psgFlag := flag.String("psg", "", "Auto-capture AY register writes to PSG file (starts on first AY write)")
 	// Single-shot screenshot (convenience)
 	screenshotFlag := flag.String("screenshot", "", "Save single screenshot to PNG and exit (headless)")
 
@@ -1179,6 +1180,7 @@ AUDIO:
   --no-audio             Disable all audio
   --no-beeper            Disable beeper (EAR bit)
   --no-ay                Disable AY-3-8912 sound chip
+  --psg FILE             Auto-capture AY writes (.psg = classic, .psg2 = compact bitmask)
 
 PROFILING:
   --profile FILE.json    Export execution/memory/IO heatmap (exec, read, write, io)
@@ -1313,6 +1315,17 @@ VERSION: %s (build %s, %s)
 		if machine.AY != nil {
 			machine.AY.SetEnabled(false)
 		}
+	}
+
+	// PSG auto-capture (format from extension: .psg2 = compact, else classic .psg)
+	if *psgFlag != "" && machine.AY != nil {
+		machine.AY.SetPSGAutoCapture(true)
+		fmtName := "PSG"
+		if strings.HasSuffix(strings.ToLower(*psgFlag), ".psg2") {
+			machine.AY.SetPSGFormat(spectrum.PSGFormatPSG2)
+			fmtName = "PSG2"
+		}
+		fmt.Fprintf(os.Stderr, "%s: auto-capture armed, will start on first AY write → %s\n", fmtName, *psgFlag)
 	}
 
 	// Warn on DI+HALT (CPU stuck)
@@ -1587,6 +1600,22 @@ VERSION: %s (build %s, %s)
 	}
 
 	// Headless mode: --screenshot (single), --dump-frames, --dump-keyframes, --save-snapshot
+	// savePSG saves the captured PSG data to disk if recording was active.
+	savePSG := func() {
+		if *psgFlag != "" && machine.AY != nil {
+			data := machine.AY.PSGStop()
+			if data != nil && len(data) > 16 { // >16 = has actual frame data beyond header
+				if err := os.WriteFile(*psgFlag, data, 0644); err != nil {
+					fmt.Fprintf(os.Stderr, "PSG: error writing %s: %v\n", *psgFlag, err)
+				} else {
+					fmt.Fprintf(os.Stderr, "PSG: saved %d bytes to %s\n", len(data), *psgFlag)
+				}
+			} else {
+				fmt.Fprintf(os.Stderr, "PSG: no AY data captured\n")
+			}
+		}
+	}
+
 	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != "" || *saveSnapshotFlag != ""
 
 	if isHeadless {
@@ -1615,6 +1644,7 @@ VERSION: %s (build %s, %s)
 				}
 				fmt.Printf("Snapshot saved: %s\n", *saveSnapshotFlag)
 			}
+			savePSG()
 			return
 		}
 
@@ -1799,6 +1829,7 @@ VERSION: %s (build %s, %s)
 		if dumpDir != "" {
 			fmt.Printf("Captured %d frames to %s\n", capturedCount, dumpDir)
 		}
+		savePSG()
 		return
 	}
 
@@ -1827,6 +1858,7 @@ VERSION: %s (build %s, %s)
 	if err := ebiten.RunGame(game); err != nil && err != ebiten.Termination {
 		log.Fatal(err)
 	}
+	savePSG()
 }
 
 // parseTRDLoad parses disk file specifiers for --trd-load.

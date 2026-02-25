@@ -153,7 +153,24 @@ type AYChip struct {
 	ringSize    int
 	sampleRate  int
 	enabled     bool
+
+	// PSG recording — auto-starts on first AY register write.
+	psgRecording bool
+	psgAutoStart bool     // if true, recording starts on first WriteRegister
+	psgFormat    PSGFormat // PSG1 or PSG2 output format
+	psgData      []byte   // accumulated file data (including header)
+	psgDirty     uint16   // bitmask of registers written this frame
+	psgVals      [16]byte // last written value per register this frame
+	psgSilent    int      // consecutive silent frames (for compression)
 }
+
+// PSGFormat selects the recording format.
+type PSGFormat int
+
+const (
+	PSGFormatPSG1 PSGFormat = iota // Classic PSG: reg/val pairs + 0xFF
+	PSGFormatPSG2                  // Compact PSG2: 2-byte bitmask + values
+)
 
 // NewAYChip creates and configures an AY/YM chip.
 // isYM: true for YM2149, false for AY-3-8910.
@@ -344,6 +361,15 @@ func (ay *AYChip) SetEnvelopeShape(shape int) {
 // WriteRegister writes a value to an AY register (0-15).
 // This is the standard register-level interface used by port I/O.
 func (ay *AYChip) WriteRegister(reg byte, val byte) {
+	// PSG auto-capture: start recording on first register write
+	if ay.psgAutoStart && !ay.psgRecording && reg <= 13 {
+		ay.psgStartRecording()
+	}
+	if ay.psgRecording && reg <= 13 {
+		ay.psgDirty |= 1 << reg
+		ay.psgVals[reg] = val
+	}
+
 	switch reg {
 	case 0: // Channel A fine tune
 		ay.SetTone(0, (ay.channels[0].tonePeriod & 0xF00) | int(val))
@@ -618,6 +644,9 @@ func (ay *AYChip) SetEnabled(enabled bool) {
 }
 
 func (ay *AYChip) EndFrame() {
+	// Record PSG frame data before rendering audio
+	ay.PSGEndFrame()
+
 	if !ay.enabled {
 		return
 	}
@@ -667,4 +696,153 @@ func (ay *AYChip) ReadFrameSamples(left, right []float64) int {
 	ay.ringCount -= n
 	ay.mu.Unlock()
 	return n
+}
+
+// --- PSG recording ---
+
+// PSG1 file format markers.
+const (
+	psgEndFrame = 0xFF // end of frame (advance 1/50s)
+	psgMultiFF  = 0xFE // followed by 4-byte count: skip N frames
+	psgEndData  = 0xFD // end of PSG data
+)
+
+// SetPSGAutoCapture enables auto-start PSG recording on first AY write.
+func (ay *AYChip) SetPSGAutoCapture(enabled bool) {
+	ay.psgAutoStart = enabled
+}
+
+// SetPSGFormat selects PSG1 or PSG2 output format.
+func (ay *AYChip) SetPSGFormat(f PSGFormat) {
+	ay.psgFormat = f
+}
+
+// PSGRecording returns true if PSG recording is active.
+func (ay *AYChip) PSGRecording() bool {
+	return ay.psgRecording
+}
+
+func (ay *AYChip) psgStartRecording() {
+	ay.psgRecording = true
+	ay.psgSilent = 0
+	ay.psgDirty = 0
+	ay.psgData = make([]byte, 0, 65536)
+
+	switch ay.psgFormat {
+	case PSGFormatPSG2:
+		// PSG2 header: "PSG2" (4 bytes) + version(1) + 11 padding = 16 bytes
+		ay.psgData = append(ay.psgData, 'P', 'S', 'G', '2')
+		ay.psgData = append(ay.psgData, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+	default:
+		// PSG1 header: "PSG\x1A" + version(0) + 11 padding = 16 bytes
+		ay.psgData = append(ay.psgData, 'P', 'S', 'G', 0x1A)
+		ay.psgData = append(ay.psgData, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+	}
+}
+
+// PSGEndFrame finalizes the current frame's register writes in the PSG stream.
+// Call this from EndFrame() or from the machine's frame loop.
+func (ay *AYChip) PSGEndFrame() {
+	if !ay.psgRecording {
+		return
+	}
+	if ay.psgDirty == 0 {
+		// Silent frame — accumulate for compression
+		ay.psgSilent++
+	} else {
+		// Flush any accumulated silent frames first
+		ay.psgFlushSilent()
+		// Write frame data in the selected format
+		switch ay.psgFormat {
+		case PSGFormatPSG2:
+			ay.psgWriteFramePSG2()
+		default:
+			ay.psgWriteFramePSG1()
+		}
+		ay.psgDirty = 0
+	}
+}
+
+// psgWriteFramePSG1 writes classic PSG format: reg/val pairs + 0xFF.
+func (ay *AYChip) psgWriteFramePSG1() {
+	for r := byte(0); r <= 13; r++ {
+		if ay.psgDirty&(1<<r) != 0 {
+			ay.psgData = append(ay.psgData, r, ay.psgVals[r])
+		}
+	}
+	ay.psgData = append(ay.psgData, psgEndFrame)
+}
+
+// psgWriteFramePSG2 writes compact PSG2 format: 2-byte bitmask + values.
+func (ay *AYChip) psgWriteFramePSG2() {
+	mask := ay.psgDirty & 0x3FFF // only R0-R13
+	ay.psgData = append(ay.psgData, byte(mask), byte(mask>>8))
+	for r := byte(0); r <= 13; r++ {
+		if mask&(1<<r) != 0 {
+			ay.psgData = append(ay.psgData, ay.psgVals[r])
+		}
+	}
+}
+
+func (ay *AYChip) psgFlushSilent() {
+	if ay.psgSilent == 0 {
+		return
+	}
+	switch ay.psgFormat {
+	case PSGFormatPSG2:
+		// PSG2: 0x0000 bitmask = silent frame, batch with count
+		if ay.psgSilent <= 4 {
+			for i := 0; i < ay.psgSilent; i++ {
+				ay.psgData = append(ay.psgData, 0x00, 0x00) // zero bitmask = no changes
+			}
+		} else {
+			// Use 0xFFFF as multi-skip marker + 2-byte count
+			n := uint16(ay.psgSilent)
+			ay.psgData = append(ay.psgData, 0xFF, 0xFF, byte(n), byte(n>>8))
+		}
+	default:
+		// PSG1: 0xFF markers or 0xFE + 4-byte count
+		if ay.psgSilent <= 4 {
+			for i := 0; i < ay.psgSilent; i++ {
+				ay.psgData = append(ay.psgData, psgEndFrame)
+			}
+		} else {
+			n := uint32(ay.psgSilent)
+			ay.psgData = append(ay.psgData, psgMultiFF,
+				byte(n), byte(n>>8), byte(n>>16), byte(n>>24))
+		}
+	}
+	ay.psgSilent = 0
+}
+
+// PSGStop stops recording and returns the complete PSG file data.
+// Returns nil if not recording.
+func (ay *AYChip) PSGStop() []byte {
+	if !ay.psgRecording {
+		return nil
+	}
+	ay.psgRecording = false
+	ay.psgAutoStart = false
+	// Flush any remaining frame data
+	if ay.psgDirty != 0 {
+		ay.psgFlushSilent()
+		switch ay.psgFormat {
+		case PSGFormatPSG2:
+			ay.psgWriteFramePSG2()
+		default:
+			ay.psgWriteFramePSG1()
+		}
+		ay.psgDirty = 0
+	}
+	ay.psgFlushSilent()
+	// End-of-data marker
+	switch ay.psgFormat {
+	case PSGFormatPSG2:
+		ay.psgData = append(ay.psgData, 0xFF, 0xFE) // PSG2 end marker
+	default:
+		ay.psgData = append(ay.psgData, psgEndData) // 0xFD
+	}
+	result := ay.psgData
+	ay.psgData = nil
+	return result
 }
