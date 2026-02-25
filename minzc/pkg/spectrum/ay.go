@@ -6,6 +6,7 @@ package spectrum
 
 import (
 	"math"
+	"sync"
 )
 
 const (
@@ -142,15 +143,16 @@ type AYChip struct {
 	// Current register select (written via port $FFFD)
 	selectedReg byte
 
-	// Frame-synchronized audio buffer.
-	// EndFrame() renders one frame's worth of samples into this buffer,
-	// which is then drained by the audio mixer.
-	frameBufLeft  []float64
-	frameBufRight []float64
-	frameBufPos   int // read position
-	frameBufLen   int // valid samples
-	sampleRate    int
-	enabled       bool
+	// Ring buffer for audio output (like beeper — prevents inter-frame jitter).
+	mu          sync.Mutex
+	ringLeft    []float64
+	ringRight   []float64
+	ringWrite   int
+	ringRead    int
+	ringCount   int
+	ringSize    int
+	sampleRate  int
+	enabled     bool
 }
 
 // NewAYChip creates and configures an AY/YM chip.
@@ -177,10 +179,14 @@ func NewAYChip(isYM bool, clockRate float64, sampleRate int) *AYChip {
 	ay.SetPan(1, 0.5, true)
 	ay.SetPan(2, 0.9, true)
 
-	// Pre-allocate frame buffer (882 samples per frame at 44100Hz/50Hz)
-	frameSamples := sampleRate / 50
-	ay.frameBufLeft = make([]float64, frameSamples+1)
-	ay.frameBufRight = make([]float64, frameSamples+1)
+	// Ring buffer: ~10 frames of audio for jitter-free playback
+	ay.ringSize = 8192
+	ay.ringLeft = make([]float64, ay.ringSize)
+	ay.ringRight = make([]float64, ay.ringSize)
+	// Pre-fill with 1 frame of silence for startup latency
+	prefill := sampleRate / 50
+	ay.ringCount = prefill
+	ay.ringWrite = prefill
 
 	return ay
 }
@@ -613,38 +619,52 @@ func (ay *AYChip) SetEnabled(enabled bool) {
 
 func (ay *AYChip) EndFrame() {
 	if !ay.enabled {
-		ay.frameBufPos = 0
-		ay.frameBufLen = 0
 		return
 	}
 	n := ay.sampleRate / 50 // 882 samples at 44100Hz
-	if n > len(ay.frameBufLeft) {
-		ay.frameBufLeft = make([]float64, n)
-		ay.frameBufRight = make([]float64, n)
+
+	// Render into temporary buffer, then append to ring buffer.
+	tmpL := make([]float64, n)
+	tmpR := make([]float64, n)
+	ay.RenderSamples(tmpL, tmpR, n)
+
+	ay.mu.Lock()
+	for i := 0; i < n; i++ {
+		if ay.ringCount < ay.ringSize {
+			ay.ringLeft[ay.ringWrite] = tmpL[i]
+			ay.ringRight[ay.ringWrite] = tmpR[i]
+			ay.ringWrite = (ay.ringWrite + 1) % ay.ringSize
+			ay.ringCount++
+		}
 	}
-	ay.RenderSamples(ay.frameBufLeft[:n], ay.frameBufRight[:n], n)
-	ay.frameBufPos = 0
-	ay.frameBufLen = n
+	ay.mu.Unlock()
 }
 
 // Available returns the number of samples available for reading.
 func (ay *AYChip) Available() int {
-	return ay.frameBufLen - ay.frameBufPos
+	ay.mu.Lock()
+	n := ay.ringCount
+	ay.mu.Unlock()
+	return n
 }
 
 // ReadFrameSamples drains up to len(left) stereo sample pairs from the
-// frame buffer. Returns the number of samples actually read.
+// ring buffer. Returns the number of samples actually read.
 func (ay *AYChip) ReadFrameSamples(left, right []float64) int {
-	avail := ay.frameBufLen - ay.frameBufPos
 	n := len(left)
 	if n > len(right) {
 		n = len(right)
 	}
-	if n > avail {
-		n = avail
+	ay.mu.Lock()
+	if n > ay.ringCount {
+		n = ay.ringCount
 	}
-	copy(left[:n], ay.frameBufLeft[ay.frameBufPos:ay.frameBufPos+n])
-	copy(right[:n], ay.frameBufRight[ay.frameBufPos:ay.frameBufPos+n])
-	ay.frameBufPos += n
+	for i := 0; i < n; i++ {
+		left[i] = ay.ringLeft[ay.ringRead]
+		right[i] = ay.ringRight[ay.ringRead]
+		ay.ringRead = (ay.ringRead + 1) % ay.ringSize
+	}
+	ay.ringCount -= n
+	ay.mu.Unlock()
 	return n
 }

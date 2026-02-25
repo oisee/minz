@@ -92,7 +92,7 @@ func newGame(machine *spectrum.Machine, scale int, noAudio bool) *Game {
 			g.noAudio = true
 		} else {
 			<-readyCh // wait for audio hardware to be ready
-			mixer := &audioMixer{beeper: machine.Beeper, ay: machine.AY}
+			mixer := &audioMixer{beeper: machine.Beeper, ay: machine.AY, covox: machine.Covox}
 			g.otoPlayer = g.otoCtx.NewPlayer(mixer)
 			g.otoPlayer.SetBufferSize(audioSampleRate / 50 * 4 * 2) // 40ms player buffer
 			g.otoPlayer.Play()
@@ -354,9 +354,11 @@ func buildKeyMap() map[ebiten.Key][]spectrum.SpecKey {
 type audioMixer struct {
 	beeper    *spectrum.Beeper
 	ay        *spectrum.AYChip
+	covox     *spectrum.Covox
 	beeperBuf []float32
 	ayLeft    []float64
 	ayRight   []float64
+	covoxBuf  []float32
 }
 
 func (p *audioMixer) Read(data []byte) (int, error) {
@@ -365,19 +367,27 @@ func (p *audioMixer) Read(data []byte) (int, error) {
 	// This prevents silence gaps that cause fragmented audio.
 	maxSamples := len(data) / 4 // 4 bytes per stereo sample
 
-	// Determine how many samples are available from beeper
+	// Determine how many samples are available from each source
 	beeperAvail := p.beeper.Available()
 	ayAvail := 0
 	hasAY := p.ay != nil
 	if hasAY {
 		ayAvail = p.ay.Available()
 	}
+	covoxAvail := 0
+	hasCovox := p.covox != nil
+	if hasCovox {
+		covoxAvail = p.covox.Available()
+	}
 
-	// Use the maximum of beeper/AY availability, capped by request size.
-	// If both are empty, return a small amount of silence (never block).
+	// Use the maximum of all source availability, capped by request size.
+	// If all are empty, return a small amount of silence (never block).
 	samples := beeperAvail
 	if hasAY && ayAvail > samples {
 		samples = ayAvail
+	}
+	if hasCovox && covoxAvail > samples {
+		samples = covoxAvail
 	}
 	if samples > maxSamples {
 		samples = maxSamples
@@ -420,6 +430,18 @@ func (p *audioMixer) Read(data []byte) (int, error) {
 		}
 	}
 
+	// Read Covox samples
+	if hasCovox {
+		if cap(p.covoxBuf) < samples {
+			p.covoxBuf = make([]float32, samples)
+		}
+		p.covoxBuf = p.covoxBuf[:samples]
+		covN := p.covox.ReadSamples(p.covoxBuf)
+		for i := covN; i < samples; i++ {
+			p.covoxBuf[i] = 0
+		}
+	}
+
 	// Mix and convert to signed 16-bit stereo
 	for i := 0; i < samples; i++ {
 		beeperSample := float64(p.beeperBuf[i])
@@ -431,6 +453,13 @@ func (p *audioMixer) Read(data []byte) (int, error) {
 		} else {
 			left = beeperSample
 			right = beeperSample
+		}
+
+		// Mix Covox (mono, added to both channels)
+		if hasCovox {
+			covoxSample := float64(p.covoxBuf[i]) * 0.7
+			left += covoxSample
+			right += covoxSample
 		}
 
 		// Clamp
@@ -1047,6 +1076,7 @@ func main() {
 	trdFlag := flag.String("trd", "", "Path to .trd disk image")
 	sclFlag := flag.String("scl", "", "Path to .scl disk image (converted to .trd)")
 	trdLoad := flag.String("trd-load", "", "File to load from .trd/.scl (name:ext:addr, e.g. 'GAME:C:32768')")
+	trdRun := flag.String("trd-run", "", "Run BASIC program from disk (e.g. 'RAGE.B')")
 	trdDir := flag.Bool("trd-dir", false, "List disk directory and exit (use with --trd or --scl)")
 	tapRealtimeFlag := flag.Bool("tap-realtime", false, "Load tape in real-time (with audio, minutes to load)")
 	execFlag := flag.String("exec", "", "Execute BASIC command after boot (e.g. 'LOAD \"\"' or 'RANDOMIZE USR 32768')")
@@ -1105,7 +1135,8 @@ LOADING:
   --trd FILE.trd         Load .trd TR-DOS disk image
   --scl FILE.scl         Load .scl disk image (auto-converted to TRD)
   --trd-dir              List disk directory and exit
-  --trd-load NAME:E:ADDR Load specific file from disk
+  --trd-run NAME.EXT      Run BASIC program from disk (e.g. RAGE.B)
+  --trd-load NAME:E:ADDR  Load CODE file to address
 
 BARE-METAL CODE:
   --run FILE@ADDR        Load binary + set PC/SP/DI/IM1 (quick start)
@@ -1258,6 +1289,12 @@ VERSION: %s (build %s, %s)
 			if err != nil {
 				log.Fatalf("Error reading ROM 1: %v", err)
 			}
+		} else {
+			// No ROM 1 provided: use 48K ROM as ROM 1 (48K BASIC).
+			// ROM 0 handles 128K editor; ROM 1 handles BASIC execution.
+			// When only the 48K ROM is embedded, load it into both slots
+			// so ExecBASIC (which uses 48K ROM entry points) always works.
+			rom1 = embedded48KROM
 		}
 		machine, err = spectrum.NewPentagon128(rom0, rom1)
 		if err != nil {
@@ -1389,18 +1426,24 @@ VERSION: %s (build %s, %s)
 
 		formats.InstallTRDTraps(machine, trd, *verboseFlag)
 
-		// Optionally load a specific file from the disk
-		if *trdLoad != "" {
+		// --trd-run: run a specific BASIC program from disk
+		if *trdRun != "" {
+			name, ext := parseTRDRun(*trdRun)
+			if err := formats.LoadTRDFile(machine, trd, name, ext, 0); err != nil {
+				log.Fatalf("Error running %s.%c from disk: %v", name, ext, err)
+			}
+		} else if *trdLoad != "" {
+			// --trd-load: load CODE file to specific address
 			name, ext, addr, parseErr := parseTRDLoad(*trdLoad)
 			if parseErr != nil {
-				log.Fatalf("Invalid --trd-load format: %v (expected name:ext:addr)", parseErr)
+				log.Fatalf("Invalid --trd-load format: %v", parseErr)
 			}
 			if err := formats.LoadTRDFile(machine, trd, name, ext, addr); err != nil {
 				log.Fatalf("Error loading file from disk: %v", err)
 			}
 			fmt.Printf("Loaded file from disk: %s.%c at $%04X\n", name, ext, addr)
 		} else {
-			// No explicit --trd-load: try autoboot from "boot" file
+			// No explicit load: try autoboot from main BASIC file
 			if err := formats.AutoBootTRD(machine, trd); err != nil {
 				fmt.Printf("Autoboot: %v (continuing with ROM boot)\n", err)
 			}
@@ -1786,30 +1829,69 @@ VERSION: %s (build %s, %s)
 	}
 }
 
-// parseTRDLoad parses "name:ext:addr" format for --trd-load.
+// parseTRDLoad parses disk file specifiers for --trd-load.
+// Supported formats:
+//
+//	RAGE.B          → name="RAGE", ext='B', addr=0 (BASIC auto-run)
+//	RAGE:B          → name="RAGE", ext='B', addr=0 (BASIC auto-run)
+//	CODE:C:32768    → name="CODE", ext='C', addr=32768
+//	CODE:C:$8000    → name="CODE", ext='C', addr=0x8000
 func parseTRDLoad(s string) (name string, ext byte, addr uint16, err error) {
-	var addrInt int
-	parts := splitColon(s)
-	if len(parts) != 3 {
-		return "", 0, 0, fmt.Errorf("expected name:ext:addr")
-	}
-	name = parts[0]
-	if len(parts[1]) != 1 {
-		return "", 0, 0, fmt.Errorf("extension must be a single character")
-	}
-	ext = parts[1][0]
-	_, err = fmt.Sscanf(parts[2], "%d", &addrInt)
-	if err != nil {
-		// Try hex
-		_, err = fmt.Sscanf(parts[2], "0x%x", &addrInt)
-		if err != nil {
-			_, err = fmt.Sscanf(parts[2], "$%x", &addrInt)
-			if err != nil {
-				return "", 0, 0, fmt.Errorf("invalid address: %s", parts[2])
-			}
+	// Try "name.ext" format first (e.g. "RAGE.B")
+	if dotIdx := strings.LastIndex(s, "."); dotIdx > 0 && dotIdx == len(s)-2 {
+		// Single char after dot = extension
+		colons := strings.Count(s, ":")
+		if colons == 0 {
+			return s[:dotIdx], s[len(s)-1], 0, nil
 		}
 	}
-	return name, ext, uint16(addrInt), nil
+
+	parts := splitColon(s)
+	if len(parts) == 2 {
+		// name:ext (no addr — default to 0, for BASIC files)
+		if len(parts[1]) != 1 {
+			return "", 0, 0, fmt.Errorf("extension must be a single character")
+		}
+		return parts[0], parts[1][0], 0, nil
+	}
+	if len(parts) == 3 {
+		// name:ext:addr
+		if len(parts[1]) != 1 {
+			return "", 0, 0, fmt.Errorf("extension must be a single character")
+		}
+		var addrInt int
+		_, err = fmt.Sscanf(parts[2], "%d", &addrInt)
+		if err != nil {
+			_, err = fmt.Sscanf(parts[2], "0x%x", &addrInt)
+			if err != nil {
+				_, err = fmt.Sscanf(parts[2], "$%x", &addrInt)
+				if err != nil {
+					// Try plain hex
+					_, err = fmt.Sscanf(parts[2], "%x", &addrInt)
+					if err != nil {
+						return "", 0, 0, fmt.Errorf("invalid address: %s", parts[2])
+					}
+				}
+			}
+		}
+		return parts[0], parts[1][0], uint16(addrInt), nil
+	}
+	return "", 0, 0, fmt.Errorf("expected NAME.EXT or NAME:EXT or NAME:EXT:ADDR")
+}
+
+// parseTRDRun parses "NAME.EXT" or "NAME:EXT" for --trd-run.
+func parseTRDRun(s string) (name string, ext byte) {
+	// Try "NAME.EXT" format
+	if dotIdx := strings.LastIndex(s, "."); dotIdx > 0 && dotIdx == len(s)-2 {
+		return s[:dotIdx], s[len(s)-1]
+	}
+	// Try "NAME:EXT" format
+	parts := splitColon(s)
+	if len(parts) == 2 && len(parts[1]) == 1 {
+		return parts[0], parts[1][0]
+	}
+	// Fallback: assume it's a name with 'B' extension
+	return s, 'B'
 }
 
 func splitColon(s string) []string {

@@ -65,7 +65,7 @@ var ModePentagon128 = &VideoMode{
 	TStatesPerLine:    224,
 	LinesPerFrame:     320,
 	FirstScreenLine:   80,
-	FirstScreenTState: 68, // col 68: FUSE top_left_pixel_tstates=17988, 17988%224=68
+	FirstScreenTState: 66, // Adjusted from FUSE ref 68 (17988%224) — shifted 4px right to match Pentagon hardware
 	ContentionPattern: nil, // no contention
 	BorderTop:         64,
 	BorderBottom:      48,

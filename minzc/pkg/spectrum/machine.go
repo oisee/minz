@@ -27,6 +27,9 @@ type Machine struct {
 	// AY sound chip (nil for 48K without AY)
 	AY *AYChip
 
+	// Covox DAC (nil if not enabled)
+	Covox *Covox
+
 	// Profiler (nil = disabled, zero overhead when nil)
 	Profiler *Profiler
 
@@ -71,6 +74,10 @@ func New48K(romData []byte) (*Machine, error) {
 	mem.SetTstateAccessors(getTstates, addTstates)
 	ports.SetTstateAccessors(getTstates, addTstates)
 
+	// Covox DAC (mono, port $FB)
+	covox := NewCovox(mode)
+	ports.SetCovox(covox)
+
 	m := &Machine{
 		CPU:          cpu,
 		Memory:       mem,
@@ -78,6 +85,7 @@ func New48K(romData []byte) (*Machine, error) {
 		Ports:        ports,
 		Keyboard:     kb,
 		Beeper:       beep,
+		Covox:        covox,
 		Mode:         mode,
 		frameTStates: mode.TStatesPerFrame(),
 	}
@@ -121,6 +129,10 @@ func NewPentagon128(rom0, rom1 []byte) (*Machine, error) {
 	ay := NewAYChip(false, float64(mode.CPUClockHz)/2, BeeperSampleRate)
 	ports.SetAY(ay)
 
+	// Covox DAC (mono, port $FB)
+	covox := NewCovox(mode)
+	ports.SetCovox(covox)
+
 	m := &Machine{
 		CPU:          cpu,
 		Memory:       mem,
@@ -128,6 +140,7 @@ func NewPentagon128(rom0, rom1 []byte) (*Machine, error) {
 		Ports:        ports,
 		Keyboard:     kb,
 		Beeper:       beep,
+		Covox:        covox,
 		Mode:         mode,
 		frameTStates: mode.TStatesPerFrame(),
 		AY:           ay,
@@ -192,6 +205,9 @@ func (m *Machine) RunFrame() {
 	if m.AY != nil {
 		m.AY.EndFrame()
 	}
+	if m.Covox != nil {
+		m.Covox.EndFrame()
+	}
 
 	m.frameCount++
 	if prof != nil {
@@ -239,6 +255,9 @@ func (m *Machine) RunFrameFast() {
 	m.Beeper.EndFrame()
 	if m.AY != nil {
 		m.AY.EndFrame()
+	}
+	if m.Covox != nil {
+		m.Covox.EndFrame()
 	}
 
 	m.frameCount++

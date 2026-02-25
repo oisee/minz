@@ -841,12 +841,22 @@ func LoadTRDFile(m *spectrum.Machine, trd *TRDFile, name string, ext byte, destA
 	data := trd.ReadFile(entry)
 
 	if ext == 'B' || ext == 'b' {
-		// BASIC program: load into program area and RUN
+		// BASIC program: load into program area
 		WaitROMInit(m, 100)
 		LoadBASICProgram(m, data, int(entry.Length))
-		ExecBASIC(m, TokenizeRUN())
-		fmt.Printf("Loaded BASIC program '%s' (%d bytes, BASIC text %d, autostart line %d)\n",
-			name, len(data), entry.Length, entry.Start)
+
+		// Try RANDOMIZE USR first — many TR-DOS demos store machine code
+		// in the "variables" area and RUN would destroy it.
+		usrAddr := findUSRAddress(data[:entry.Length])
+		if usrAddr != 0 {
+			ExecBASIC(m, TokenizeRANDOMIZEUSR(usrAddr))
+			fmt.Printf("Loaded BASIC program '%s' (%d bytes, BASIC text %d, USR $%04X)\n",
+				name, len(data), entry.Length, usrAddr)
+		} else {
+			ExecBASIC(m, TokenizeRUN())
+			fmt.Printf("Loaded BASIC program '%s' (%d bytes, BASIC text %d, autostart line %d)\n",
+				name, len(data), entry.Length, entry.Start)
+		}
 		return nil
 	}
 

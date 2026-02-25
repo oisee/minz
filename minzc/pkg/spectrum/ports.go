@@ -26,6 +26,9 @@ type Ports struct {
 	// AY-3-8912 sound chip (nil if not present)
 	ay *AYChip
 
+	// Covox DAC (nil if not present)
+	covox *Covox
+
 	// T-state tracking for beeper and contention
 	getTstates func() int
 	addTstates func(int)
@@ -215,6 +218,30 @@ func (p *Ports) writeAYSelect(addr uint16, val byte) {
 func (p *Ports) writeAYData(addr uint16, val byte) {
 	if p.ay != nil {
 		p.ay.WriteRegister(p.ay.selectedReg, val)
+	}
+}
+
+// SetCovox attaches a Covox DAC and registers port $FB.
+func (p *Ports) SetCovox(covox *Covox) {
+	p.covox = covox
+
+	// Covox mono: port $FB (low byte = 0xFB)
+	p.Register(&PortDevice{
+		Mask:  0x00FF,
+		Value: 0x00FB,
+		Read:  nil,
+		Write: p.writeCovox,
+		Name:  "Covox",
+	})
+}
+
+func (p *Ports) writeCovox(addr uint16, val byte) {
+	if p.covox != nil {
+		tstate := 0
+		if p.getTstates != nil {
+			tstate = p.getTstates()
+		}
+		p.covox.WriteSample(val, tstate)
 	}
 }
 
