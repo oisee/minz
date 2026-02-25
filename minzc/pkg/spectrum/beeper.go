@@ -41,6 +41,10 @@ type Beeper struct {
 	frameTStates int
 	level        float32 // current speaker level (0.0 to 1.0)
 
+	// Level at the start of the current frame — used for sample generation
+	// before the first transition. Saved at each EndFrame for continuity.
+	frameStartLevel float32
+
 	// Per-frame accumulation: we record level transitions.
 	changes []beeperChange
 
@@ -54,8 +58,7 @@ type Beeper struct {
 	// Adaptive rate control: fractional sample accumulator.
 	sampleAccum float64
 
-	// Anti-click: track whether we're in a tone or silence.
-	// Used to apply short fade in/out at transitions.
+	// Anti-click: last sample value for crossfade at frame boundaries.
 	lastSample float32
 
 	enabled bool
@@ -122,30 +125,45 @@ func (b *Beeper) EndFrame() {
 	b.mu.Unlock()
 
 	if len(b.changes) == 0 {
-		// Silent frame: only produce samples if buffer is below target.
-		// This prevents silence from accumulating and causing latency.
-		if fill >= beeperTargetFill {
+		// No transitions this frame.
+		// Output silence (0.0), but fade out from lastSample if non-zero
+		// to avoid a click at the active→silent boundary.
+		if fill >= beeperTargetFill && b.lastSample == 0 {
 			return
 		}
-		// Top up to target, no more.
 		need := beeperTargetFill - fill
 		if need > samplesPerFrame {
 			need = samplesPerFrame
 		}
+		if need < 1 {
+			need = 1 // at minimum, produce the fade-out
+		}
+		// Fade from lastSample to 0.0 over fadeLen, then hold at 0.0
+		fadeLen := beeperFadeLen
+		if fadeLen > need {
+			fadeLen = need
+		}
 		b.mu.Lock()
 		for i := 0; i < need; i++ {
-			if b.bufCount < beeperBufSize {
-				b.buf[b.bufWrite] = 0
-				b.bufWrite = (b.bufWrite + 1) % beeperBufSize
-				b.bufCount++
+			if b.bufCount >= beeperBufSize {
+				break
 			}
+			var sample float32
+			if i < fadeLen && b.lastSample != 0 {
+				t := float32(i+1) / float32(fadeLen)
+				sample = b.lastSample * (1 - t)
+			}
+			b.buf[b.bufWrite] = sample
+			b.bufWrite = (b.bufWrite + 1) % beeperBufSize
+			b.bufCount++
 		}
 		b.mu.Unlock()
+		b.lastSample = 0
 		b.changes = b.changes[:0]
 		return
 	}
 
-	// Active frame (has EAR transitions).
+	// Active frame (has transitions).
 	// Adaptive rate: ±1-2 samples based on fill level.
 	if fill < beeperTargetFill-beeperNominalSPF {
 		samplesPerFrame += 2
@@ -163,16 +181,9 @@ func (b *Beeper) EndFrame() {
 		samplesPerFrame = beeperNominalSPF + 4
 	}
 
+	// Use the saved frame-start level for samples before the first transition.
 	changeIdx := 0
-	// Start from the level just before the first change.
-	// (The level that was active before any changes in this frame.)
-	currentLevel := b.changes[0].level // will be overwritten immediately
-	if b.changes[0].tstate > 0 {
-		// There's a gap before the first change — use the pre-change level.
-		// We can infer it: it's whatever level was set before this frame,
-		// but since we only record transitions, approximate from lastSample.
-		currentLevel = b.lastSample + 0.5 // undo the -0.5 centering
-	}
+	currentLevel := b.frameStartLevel
 
 	// Generate samples into a temporary slice, then apply fade and write.
 	tmp := make([]float32, samplesPerFrame)
@@ -195,7 +206,6 @@ func (b *Beeper) EndFrame() {
 	startVal := b.lastSample
 	for i := 0; i < fadeLen; i++ {
 		t := float32(i+1) / float32(fadeLen) // 0→1 over fadeLen samples
-		// Blend from startVal to the actual waveform value
 		tmp[i] = startVal*(1-t) + tmp[i]*t
 	}
 
@@ -211,6 +221,8 @@ func (b *Beeper) EndFrame() {
 	}
 	b.mu.Unlock()
 
+	// Save end-of-frame level for next frame's starting point.
+	b.frameStartLevel = b.level
 	b.changes = b.changes[:0]
 }
 
