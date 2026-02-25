@@ -36,6 +36,9 @@ type Ports struct {
 	// Real-time tape signal
 	tape         *TapeSignalProvider
 	getAbsTStates func() int64
+
+	// Profiler (nil = disabled)
+	profiler *Profiler
 }
 
 // NewPorts creates the port dispatcher and registers default devices.
@@ -233,6 +236,10 @@ func (p *Ports) ReadPort(addr uint16) byte {
 		}
 	}
 
+	if p.profiler != nil {
+		p.profiler.IORead[addr]++
+	}
+
 	// 3 T-states post-io
 	if p.addTstates != nil {
 		p.addTstates(3)
@@ -256,6 +263,10 @@ func (p *Ports) WritePort(addr uint16, val byte) {
 			dev.Write(addr, val)
 			break
 		}
+	}
+
+	if p.profiler != nil {
+		p.profiler.IOWrite[addr]++
 	}
 
 	// 3 T-states post-io

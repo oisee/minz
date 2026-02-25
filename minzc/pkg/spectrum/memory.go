@@ -37,6 +37,9 @@ type Memory struct {
 
 	// 48K mode (flat memory, no banking)
 	is48K bool
+
+	// Profiler (nil = disabled)
+	profiler *Profiler
 }
 
 // NewMemory48K creates a flat 48K memory layout: ROM + pages 5, 2, 0.
@@ -158,6 +161,9 @@ func (m *Memory) ReadByte(addr uint16) byte {
 	if m.addTstates != nil {
 		m.addTstates(3) // memory access = 3 T-states
 	}
+	if m.profiler != nil {
+		m.profiler.ReadCount[addr]++
+	}
 	return m.readByte(addr)
 }
 
@@ -170,6 +176,9 @@ func (m *Memory) WriteByte(addr uint16, val byte) {
 	}
 	if m.addTstates != nil {
 		m.addTstates(3)
+	}
+	if m.profiler != nil {
+		m.profiler.WriteCount[addr]++
 	}
 	m.writeByte(addr, val)
 }

@@ -1078,6 +1078,9 @@ func main() {
 	snapshotAtTState := flag.String("snapshot-at-tstate", "", "Save .sna at exact T-state: TSTATE or TSTATE:FILE.sna")
 	verboseFlag := flag.Bool("verbose", false, "Verbose output: TR-DOS calls, BASIC state, loading details")
 	diagFlag := flag.Bool("diag", false, "Print system variable diagnostics (PROG, VARS, E_LINE, SP, etc.)")
+	profileFlag := flag.String("profile", "", "Export execution/memory/IO heatmap to JSON file")
+	traceFlag := flag.String("trace", "", "Export basic-block execution trace to JSONL file")
+	traceFrames := flag.String("trace-frames", "", "Frame range for trace/profile: START:END (default: all)")
 	versionFlag := flag.Bool("version", false, "Print version and exit")
 
 	flag.Usage = func() {
@@ -1144,6 +1147,11 @@ AUDIO:
   --no-audio             Disable all audio
   --no-beeper            Disable beeper (EAR bit)
   --no-ay                Disable AY-3-8912 sound chip
+
+PROFILING:
+  --profile FILE.json    Export execution/memory/IO heatmap (exec, read, write, io)
+  --trace FILE.jsonl     Export basic-block execution trace (jumps, IO events)
+  --trace-frames S:E     Limit profiling/trace to frame range (e.g. 100:200)
 
 DIAGNOSTICS:
   --verbose              Trace TR-DOS calls, loading details
@@ -1455,6 +1463,56 @@ VERSION: %s (build %s, %s)
 			}
 		})
 		fmt.Printf("T-state trap set at T=%d → %s\n", target, savePath)
+	}
+
+	// --profile / --trace: set up profiler
+	if *profileFlag != "" || *traceFlag != "" {
+		prof := spectrum.NewProfiler()
+
+		// Parse --trace-frames S:E
+		if *traceFrames != "" {
+			parts := strings.SplitN(*traceFrames, ":", 2)
+			if len(parts) == 2 {
+				if s, err := strconv.ParseInt(parts[0], 10, 64); err == nil {
+					prof.FrameStart = s
+				}
+				if e, err := strconv.ParseInt(parts[1], 10, 64); err == nil {
+					prof.FrameEnd = e
+				}
+			}
+		}
+
+		if *traceFlag != "" {
+			if err := prof.SetTraceOutput(*traceFlag); err != nil {
+				log.Fatalf("Error opening trace file: %v", err)
+			}
+			fmt.Printf("Trace output: %s\n", *traceFlag)
+		}
+
+		machine.SetProfiler(prof)
+		fmt.Printf("Profiler enabled")
+		if prof.FrameStart > 0 || prof.FrameEnd >= 0 {
+			fmt.Printf(" (frames %d", prof.FrameStart)
+			if prof.FrameEnd >= 0 {
+				fmt.Printf(":%d", prof.FrameEnd)
+			} else {
+				fmt.Printf(":∞")
+			}
+			fmt.Printf(")")
+		}
+		fmt.Println()
+
+		// Deferred export and close
+		defer func() {
+			if *profileFlag != "" {
+				if err := prof.ExportProfile(*profileFlag); err != nil {
+					log.Printf("Error exporting profile: %v", err)
+				} else {
+					fmt.Printf("Profile exported: %s (%d instructions)\n", *profileFlag, prof.TotalInstrs)
+				}
+			}
+			prof.Close()
+		}()
 	}
 
 	// --diag: dump BASIC system variables and machine state

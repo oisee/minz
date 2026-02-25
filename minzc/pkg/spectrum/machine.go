@@ -27,6 +27,9 @@ type Machine struct {
 	// AY sound chip (nil for 48K without AY)
 	AY *AYChip
 
+	// Profiler (nil = disabled, zero overhead when nil)
+	Profiler *Profiler
+
 	// Real-time tape signal provider (nil if no tape or using trap loading)
 	Tape *TapeSignalProvider
 
@@ -142,6 +145,7 @@ func (m *Machine) RunFrame() {
 	m.CPU.Interrupt()
 
 	// Execute instructions until frame boundary
+	prof := m.Profiler // local copy for hot loop
 	for m.CPU.Tstates() < m.frameTStates {
 		// Check PC traps before executing
 		if m.pcTraps != nil {
@@ -149,6 +153,9 @@ func (m *Machine) RunFrame() {
 				trap()
 				continue
 			}
+		}
+		if prof != nil {
+			prof.BeforeOpcode(m.CPU.PC(), m.AbsoluteTStates())
 		}
 		m.CPU.DoOpcode()
 		m.ULA.StepTo(m.CPU.Tstates())
@@ -178,6 +185,9 @@ func (m *Machine) RunFrame() {
 	}
 
 	m.frameCount++
+	if prof != nil {
+		prof.OnFrameEnd(m.frameCount)
+	}
 }
 
 // RunFrameFast executes one frame without per-T-state ULA rendering.
@@ -190,12 +200,16 @@ func (m *Machine) RunFrameFast() {
 
 	m.CPU.Interrupt()
 
+	prof := m.Profiler
 	for m.CPU.Tstates() < m.frameTStates {
 		if m.pcTraps != nil {
 			if trap, ok := m.pcTraps[m.CPU.PC()]; ok {
 				trap()
 				continue
 			}
+		}
+		if prof != nil {
+			prof.BeforeOpcode(m.CPU.PC(), m.AbsoluteTStates())
 		}
 		m.CPU.DoOpcode()
 	}
@@ -214,6 +228,9 @@ func (m *Machine) RunFrameFast() {
 	}
 
 	m.frameCount++
+	if prof != nil {
+		prof.OnFrameEnd(m.frameCount)
+	}
 }
 
 // Reset resets the machine to initial state.
@@ -292,6 +309,14 @@ func (m *Machine) AbsoluteTStates() int64 {
 func (m *Machine) SetTStateTrap(target int64, cb func(int64)) {
 	m.tstateTrapTarget = target
 	m.tstateTrapCB = cb
+}
+
+// SetProfiler installs a profiler for execution/memory/IO heatmaps and tracing.
+// Pass nil to disable profiling.
+func (m *Machine) SetProfiler(p *Profiler) {
+	m.Profiler = p
+	m.Memory.profiler = p
+	m.Ports.profiler = p
 }
 
 // SetTape installs a real-time tape signal provider.
