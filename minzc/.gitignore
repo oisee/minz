@@ -1,2 +1,12 @@
 *.a80
 *.mir
+
+# Built binaries (platform-specific, use `make && make install-user` instead)
+/mz
+/mza
+/mzd
+/mze
+/mzrun
+/mztap
+/mzv
+/mzx
