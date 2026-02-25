@@ -1078,6 +1078,7 @@ func main() {
 	snapshotAtTState := flag.String("snapshot-at-tstate", "", "Save .sna at exact T-state: TSTATE or TSTATE:FILE.sna")
 	verboseFlag := flag.Bool("verbose", false, "Verbose output: TR-DOS calls, BASIC state, loading details")
 	diagFlag := flag.Bool("diag", false, "Print system variable diagnostics (PROG, VARS, E_LINE, SP, etc.)")
+	warnOnHalt := flag.Bool("warn-on-halt", false, "Warn on HALT with interrupts disabled (CPU stuck)")
 	profileFlag := flag.String("profile", "", "Export execution/memory/IO heatmap to JSON file")
 	traceFlag := flag.String("trace", "", "Export basic-block execution trace to JSONL file")
 	traceFrames := flag.String("trace-frames", "", "Frame range for trace/profile: START:END (default: all)")
@@ -1156,6 +1157,7 @@ PROFILING:
 DIAGNOSTICS:
   --verbose              Trace TR-DOS calls, loading details
   --diag                 Print BASIC system variables (PROG, VARS, SP, PC, etc.)
+  --warn-on-halt         Warn when HALT executes with interrupts disabled (CPU stuck)
 
 KEYBOARD (interactive):
   F3       Toggle turbo mode (20x speed)
@@ -1274,6 +1276,11 @@ VERSION: %s (build %s, %s)
 		if machine.AY != nil {
 			machine.AY.SetEnabled(false)
 		}
+	}
+
+	// Warn on DI+HALT (CPU stuck)
+	if *warnOnHalt {
+		machine.WarnOnHalt = true
 	}
 
 	// Load snapshot if provided

@@ -40,6 +40,10 @@ type Machine struct {
 	// Used for T-state precise snapshot saving and breakpoints.
 	tstateTrapTarget int64
 	tstateTrapCB     func(actualTState int64)
+
+	// WarnOnHalt: print warning to stderr when HALT executes with DI
+	WarnOnHalt    bool
+	haltWarned    bool // only warn once
 }
 
 // New48K creates a 48K ZX Spectrum machine.
@@ -158,6 +162,11 @@ func (m *Machine) RunFrame() {
 			prof.BeforeOpcode(m.CPU.PC(), m.AbsoluteTStates())
 		}
 		m.CPU.DoOpcode()
+		if m.WarnOnHalt && !m.haltWarned && m.CPU.Halted() && !m.CPU.IFF1() {
+			fmt.Fprintf(os.Stderr, "WARNING: HALT with interrupts disabled at PC=$%04X (frame %d) — CPU is stuck\n",
+				m.CPU.PC(), m.frameCount)
+			m.haltWarned = true
+		}
 		m.ULA.StepTo(m.CPU.Tstates())
 
 		// Check T-state trap (one-shot)
@@ -212,6 +221,11 @@ func (m *Machine) RunFrameFast() {
 			prof.BeforeOpcode(m.CPU.PC(), m.AbsoluteTStates())
 		}
 		m.CPU.DoOpcode()
+		if m.WarnOnHalt && !m.haltWarned && m.CPU.Halted() && !m.CPU.IFF1() {
+			fmt.Fprintf(os.Stderr, "WARNING: HALT with interrupts disabled at PC=$%04X (frame %d) — CPU is stuck\n",
+				m.CPU.PC(), m.frameCount)
+			m.haltWarned = true
+		}
 	}
 
 	m.absoluteTStates += int64(m.frameTStates)
