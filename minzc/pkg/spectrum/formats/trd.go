@@ -123,11 +123,24 @@ func (t *TRDFile) FindFile(name string, ext byte) *TRDEntry {
 }
 
 // ReadFile reads the complete contents of a file from the disk.
+//
+// For BASIC files (type 'B'/'b'), the directory entry's Length field contains
+// only the BASIC program text length — the actual file also includes a
+// "variables" area (often machine code). The full file size is Sectors × 256.
+// For all other file types, Length is the actual data length.
 func (t *TRDFile) ReadFile(entry *TRDEntry) []byte {
-	data := make([]byte, 0, int(entry.Length))
+	totalSize := int(entry.Length)
+
+	// BASIC files: Length = BASIC text only. Total = Sectors × SectorSize.
+	if (entry.Extension == 'B' || entry.Extension == 'b') &&
+		int(entry.Sectors)*TRDSectorSize > totalSize {
+		totalSize = int(entry.Sectors) * TRDSectorSize
+	}
+
+	data := make([]byte, 0, totalSize)
 	track := int(entry.StartTrack)
 	sector := int(entry.StartSec)
-	remaining := int(entry.Length)
+	remaining := totalSize
 
 	for remaining > 0 {
 		side := 0
@@ -796,7 +809,7 @@ func (s *TRDState) handleBootContinuation() {
 
 	if entry.Extension == 'B' || entry.Extension == 'b' {
 		// BASIC program: load into program area and execute RUN
-		LoadBASICProgram(m, data)
+		LoadBASICProgram(m, data, int(entry.Length))
 		ExecBASIC(m, TokenizeRUN())
 	} else {
 		// CODE file: load at the entry's start address
@@ -830,10 +843,10 @@ func LoadTRDFile(m *spectrum.Machine, trd *TRDFile, name string, ext byte, destA
 	if ext == 'B' || ext == 'b' {
 		// BASIC program: load into program area and RUN
 		WaitROMInit(m, 100)
-		LoadBASICProgram(m, data)
+		LoadBASICProgram(m, data, int(entry.Length))
 		ExecBASIC(m, TokenizeRUN())
-		fmt.Printf("Loaded BASIC program '%s' (%d bytes, autostart line %d)\n",
-			name, len(data), entry.Start)
+		fmt.Printf("Loaded BASIC program '%s' (%d bytes, BASIC text %d, autostart line %d)\n",
+			name, len(data), entry.Length, entry.Start)
 		return nil
 	}
 
@@ -851,66 +864,156 @@ func LoadTRDFile(m *spectrum.Machine, trd *TRDFile, name string, ext byte, destA
 	return nil
 }
 
-// AutoBootTRD simulates TR-DOS autoboot: finds "boot" file on disk,
-// loads it as a BASIC program, sets up system variables, and executes RUN.
-// This is what the TR-DOS ROM does on power-up when a disk is inserted.
+// AutoBootTRD simulates TR-DOS autoboot: finds the main program on disk
+// and loads it directly, bypassing any boot loader programs.
+//
+// Boot programs (like MAXBOOT v9.1) require a full TR-DOS ROM environment
+// to work. Since we emulate TR-DOS via traps only, we skip the boot file
+// and load the main program directly. This works for the vast majority of
+// TR-DOS demos and games.
 func AutoBootTRD(m *spectrum.Machine, trd *TRDFile) error {
 	WaitROMInit(m, 100)
 
-	// Find "boot" file (type B = BASIC), then fall back to first BASIC file
-	boot := trd.FindFile("boot", 'B')
-	if boot == nil {
-		boot = trd.FindFile("boot", 'b')
+	entries := trd.ListDirectory()
+	if len(entries) == 0 {
+		return fmt.Errorf("empty disk (no files)")
 	}
-	if boot == nil {
-		// Try first BASIC file on disk as fallback
-		entries := trd.ListDirectory()
+
+	// Find the main file to load. Strategy:
+	// 1. Find the first BASIC file that is NOT named "boot" — this is
+	//    typically the main program (e.g. "RAGE.B", "DEMO.B").
+	// 2. If no non-boot BASIC file, use "boot" itself.
+	// 3. If no BASIC file at all, try the first CODE file.
+	var mainFile *TRDEntry
+	var bootFile *TRDEntry
+
+	for i := range entries {
+		e := &entries[i]
+		isBASIC := e.Extension == 'B' || e.Extension == 'b'
+		isBoot := isBASIC && (trimName(e.Name) == "boot" || trimName(e.Name) == "BOOT")
+
+		if isBoot {
+			bootFile = e
+			continue
+		}
+		if isBASIC && mainFile == nil {
+			mainFile = e
+		}
+	}
+
+	// Fall back to boot file if no other BASIC file found
+	if mainFile == nil {
+		mainFile = bootFile
+	}
+
+	// Fall back to first CODE file
+	if mainFile == nil {
 		for i := range entries {
-			if entries[i].Extension == 'B' || entries[i].Extension == 'b' {
-				boot = &entries[i]
+			if entries[i].Extension == 'C' || entries[i].Extension == 'c' {
+				mainFile = &entries[i]
 				break
 			}
 		}
-		if boot == nil {
-			if len(entries) > 0 {
-				fmt.Printf("No BASIC file found. Disk directory:\n")
-				for i, e := range entries {
-					fmt.Printf("  [%d] %-8s.%c  start=$%04X len=%d (%d sectors)\n",
-						i, e.Name, e.Extension, e.Start, e.Length, e.Sectors)
+	}
+
+	if mainFile == nil {
+		fmt.Printf("Disk directory:\n")
+		for i, e := range entries {
+			fmt.Printf("  [%d] %-8s.%c  start=$%04X len=%d (%d sectors)\n",
+				i, e.Name, e.Extension, e.Start, e.Length, e.Sectors)
+		}
+		return fmt.Errorf("no bootable file on disk (use --trd-load name:ext:addr)")
+	}
+
+	data := trd.ReadFile(mainFile)
+
+	if mainFile.Extension == 'B' || mainFile.Extension == 'b' {
+		LoadBASICProgram(m, data, int(mainFile.Length))
+
+		// Try to find a RANDOMIZE USR address in the BASIC text.
+		// Many TR-DOS demos have tiny BASIC (just USR xxxx) with the real
+		// code in the "variables" area. Using RUN destroys the variables
+		// area, so we call USR directly instead.
+		usrAddr := findUSRAddress(data[:mainFile.Length])
+		if usrAddr != 0 {
+			ExecBASIC(m, TokenizeRANDOMIZEUSR(usrAddr))
+			fmt.Printf("Autoboot: loaded '%s' (%d bytes, BASIC text %d, USR $%04X)\n",
+				trimName(mainFile.Name), len(data), mainFile.Length, usrAddr)
+		} else {
+			ExecBASIC(m, TokenizeRUN())
+			fmt.Printf("Autoboot: loaded '%s' (%d bytes, BASIC text %d, autostart line %d)\n",
+				trimName(mainFile.Name), len(data), mainFile.Length, mainFile.Start)
+		}
+	} else {
+		// CODE file: load at entry's start address and set PC
+		addr := mainFile.Start
+		for i, b := range data {
+			a := addr + uint16(i)
+			if a >= 0x4000 {
+				m.Memory.Write(a, b, false)
+			}
+		}
+		m.CPU.SetPC(addr)
+		fmt.Printf("Autoboot: loaded '%s' CODE (%d bytes at $%04X)\n",
+			trimName(mainFile.Name), len(data), addr)
+	}
+
+	return nil
+}
+
+// findUSRAddress scans BASIC text for RANDOMIZE USR <number> and returns
+// the target address. Returns 0 if not found.
+//
+// In Spectrum BASIC, numbers are stored as: visible text + $0E + 5-byte
+// floating point. For small integers (the common case with USR):
+//
+//	$0E $00 $00 Lo Hi $00 → value = Lo + Hi*256
+func findUSRAddress(basic []byte) uint16 {
+	for i := 0; i < len(basic)-6; i++ {
+		// Look for RANDOMIZE ($F9) USR ($C0) ... $0E pattern
+		if basic[i] == 0xF9 { // RANDOMIZE
+			// Scan forward for USR ($C0) followed eventually by $0E
+			for j := i + 1; j < len(basic)-6; j++ {
+				if basic[j] == 0xC0 { // USR
+					// Find the hidden number ($0E + 5 bytes)
+					for k := j + 1; k < len(basic)-5; k++ {
+						if basic[k] == 0x0E {
+							// Small integer: $0E $00 $00 Lo Hi $00
+							if basic[k+1] == 0x00 {
+								lo := basic[k+3]
+								hi := basic[k+4]
+								return uint16(lo) | uint16(hi)<<8
+							}
+							break
+						}
+					}
+					break
+				}
+				if basic[j] == 0x0D { // end of line
+					break
 				}
 			}
-			return fmt.Errorf("no bootable file on disk (use --trd-load name:ext:addr)")
 		}
 	}
+	return 0
+}
 
-	// Load the BASIC program into the program area
-	LoadBASICProgram(m, trd.ReadFile(boot))
-
-	// Execute RUN via the unified automation system
-	ExecBASIC(m, TokenizeRUN())
-
-	// Many boot loaders (e.g. MAXBOOT v9.1) write a sentinel to LAST-K
-	// ($5C08) and poll it waiting for the ISR to update it with a keypress.
-	// The 48K ROM ISR scans the keyboard but only updates LAST-K when a
-	// key IS pressed — it never clears it for "no key". So in headless
-	// mode (and in interactive mode before the user presses anything),
-	// LAST-K stays at the sentinel forever and the loader never proceeds.
-	//
-	// Fix: run a few frames while clearing LAST-K to $00 after each frame.
-	// Boot loaders that check for LAST-K==0 ("no key → proceed with
-	// default") will exit their wait loop and start loading.
-	for i := 0; i < 10; i++ {
-		m.RunFrame()
-		m.Memory.Write(0x5C08, 0, false) // Clear LAST-K
+// trimName trims trailing spaces from an 8-char padded name.
+func trimName(s string) string {
+	for len(s) > 0 && s[len(s)-1] == ' ' {
+		s = s[:len(s)-1]
 	}
-
-	fmt.Printf("Autoboot: loaded '%s' (%d bytes)\n", boot.Name, len(trd.ReadFile(boot)))
-	return nil
+	return s
 }
 
 // LoadBASICProgram loads raw BASIC program bytes into the Spectrum's
 // program area and updates system variables accordingly.
-func LoadBASICProgram(m *spectrum.Machine, data []byte) {
+//
+// If basicLen > 0, it specifies where the BASIC text ends and the
+// "variables" area begins (common in TR-DOS: tiny BASIC program +
+// large machine code in variables area). If basicLen == 0, all data
+// is treated as BASIC program text.
+func LoadBASICProgram(m *spectrum.Machine, data []byte, basicLen int) {
 	prog := readWord(m, 0x5C53)
 	if prog < 0x5CCB || prog > 0x8000 {
 		prog = 0x5CCB
@@ -923,18 +1026,19 @@ func LoadBASICProgram(m *spectrum.Machine, data []byte) {
 		}
 	}
 
-	// Update system variables
-	endProg := prog + uint16(len(data))
+	// VARS: end of BASIC text (start of variables area)
+	varsOffset := len(data)
+	if basicLen > 0 && basicLen < len(data) {
+		varsOffset = basicLen
+	}
+	writeWord(m, 0x5C4B, prog+uint16(varsOffset))
 
-	// VARS — end of BASIC program (start of variables area)
-	writeWord(m, 0x5C4B, endProg)
+	// End of all data + $80 marker
+	endAll := prog + uint16(len(data))
+	m.Memory.Write(endAll, 0x80, false)
 
-	// End-of-variables marker
-	m.Memory.Write(endProg, 0x80, false)
-
-	// E_LINE — editing line (after variables + marker)
-	eLine := endProg + 1
-	writeWord(m, 0x5C59, eLine)
+	// E_LINE — editing line (after everything + marker)
+	writeWord(m, 0x5C59, endAll+1)
 }
 
 func readWord(m *spectrum.Machine, addr uint16) uint16 {
