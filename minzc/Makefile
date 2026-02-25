@@ -70,7 +70,7 @@ install: all
 .PHONY: install-user
 install-user: all
 	@mkdir -p ~/.local/bin
-	@for f in mz mza mze mzv mzr mzrun mztap mzd mzx; do [ -f $$f ] && cp -f $$f ~/.local/bin/ && codesign -s - ~/.local/bin/$$f 2>/dev/null; done
+	@for f in mz mza mze mzv mzr mzrun mztap mzd mzx; do [ -f $$f ] && cp -f $$f ~/.local/bin/ && (codesign -s - ~/.local/bin/$$f 2>/dev/null || true); done
 	@echo "MinZ tools installed to ~/.local/bin/"
 
 # Clean build artifacts
