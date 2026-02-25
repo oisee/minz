@@ -189,10 +189,10 @@ func (p *Ports) SetAY(ay *AYChip) {
 	})
 
 	// AY data write: $BFFD
-	// Mask: bits 1, 14 must be set, bit 15 clear → addr & 0xC002 == 0x4000
+	// Mask: bits 15 set, 14 clear, 1 clear → addr & 0xC002 == 0x8000
 	p.Register(&PortDevice{
 		Mask:  0xC002,
-		Value: 0x4000,
+		Value: 0x8000,
 		Read:  nil,
 		Write: p.writeAYData,
 		Name:  "AY Data",
