@@ -126,25 +126,22 @@ func (b *Beeper) EndFrame() {
 
 	if len(b.changes) == 0 {
 		// No transitions this frame.
-		// Output silence (0.0), but fade out from lastSample if non-zero
-		// to avoid a click at the active→silent boundary.
-		if fill >= beeperTargetFill && b.lastSample == 0 {
+		// Always produce a full frame of samples to prevent the audio callback
+		// from running dry (which injects silence → periodic click).
+		// Only skip if the buffer already has 3+ frames of headroom.
+		if fill > beeperNominalSPF*3 {
+			if b.lastSample != 0 {
+				b.lastSample = 0 // reset for next active frame
+			}
 			return
 		}
-		need := beeperTargetFill - fill
-		if need > samplesPerFrame {
-			need = samplesPerFrame
-		}
-		if need < 1 {
-			need = 1 // at minimum, produce the fade-out
-		}
-		// Fade from lastSample to 0.0 over fadeLen, then hold at 0.0
+		// Produce a full frame: fade from lastSample to 0.0, then hold at 0.0
 		fadeLen := beeperFadeLen
-		if fadeLen > need {
-			fadeLen = need
+		if fadeLen > samplesPerFrame {
+			fadeLen = samplesPerFrame
 		}
 		b.mu.Lock()
-		for i := 0; i < need; i++ {
+		for i := 0; i < samplesPerFrame; i++ {
 			if b.bufCount >= beeperBufSize {
 				break
 			}
