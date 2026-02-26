@@ -215,23 +215,25 @@ func NewUnsupportedInstructionError(line int, mnemonic string, operands []string
 
 // Pattern recognition helpers
 func isRegisterIndirect(symbol string) bool {
-	if !strings.HasPrefix(symbol, "(") || !strings.HasSuffix(symbol, ")") {
+	if !(strings.HasPrefix(symbol, "(") && strings.HasSuffix(symbol, ")")) &&
+		!(strings.HasPrefix(symbol, "[") && strings.HasSuffix(symbol, "]")) {
 		return false
 	}
-	inner := strings.TrimSpace(symbol[1:len(symbol)-1])
+	inner := strings.TrimSpace(symbol[1 : len(symbol)-1])
 	upper := strings.ToUpper(inner)
 	return upper == "HL" || upper == "BC" || upper == "DE" || upper == "SP" ||
 		   strings.Contains(upper, "IX") || strings.Contains(upper, "IY")
 }
 
 func isMemoryIndirect(symbol string) bool {
-	if !strings.HasPrefix(symbol, "(") || !strings.HasSuffix(symbol, ")") {
+	if !(strings.HasPrefix(symbol, "(") && strings.HasSuffix(symbol, ")")) &&
+		!(strings.HasPrefix(symbol, "[") && strings.HasSuffix(symbol, "]")) {
 		return false
 	}
 	if isRegisterIndirect(symbol) {
 		return false
 	}
-	inner := strings.TrimSpace(symbol[1:len(symbol)-1])
+	inner := strings.TrimSpace(symbol[1 : len(symbol)-1])
 	return strings.HasPrefix(inner, "$") || strings.HasPrefix(inner, "0x") || isAllDigits(inner)
 }
 

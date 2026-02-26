@@ -45,9 +45,9 @@ func ParseLine(line string, lineNum int) (*Line, error) {
 
 	// Check for LABEL: INSTRUCTION pattern (label with colon followed by instruction)
 	if colonIdx := strings.Index(line, ":"); colonIdx > 0 {
-		// Make sure this isn't inside parentheses (like LD (IX+0), A)
+		// Make sure this isn't inside parentheses/brackets (like LD (IX+0), A or LD [IX+0], A)
 		beforeColon := line[:colonIdx]
-		if !strings.Contains(beforeColon, "(") && !strings.Contains(beforeColon, " ") {
+		if !strings.Contains(beforeColon, "(") && !strings.Contains(beforeColon, "[") && !strings.Contains(beforeColon, " ") {
 			// This is a label with following content
 			result.Label = beforeColon
 			// Parse the rest of the line
@@ -129,6 +129,8 @@ func parseOperands(operandStr string) []string {
 	inQuotes := false
 	quoteChar := rune(0)
 	
+	bracketDepth := 0
+
 	for _, ch := range operandStr {
 		switch ch {
 		case '"', '\'':
@@ -153,8 +155,18 @@ func parseOperands(operandStr string) []string {
 				parenDepth--
 			}
 			current.WriteRune(ch)
+		case '[':
+			if !inQuotes {
+				bracketDepth++
+			}
+			current.WriteRune(ch)
+		case ']':
+			if !inQuotes {
+				bracketDepth--
+			}
+			current.WriteRune(ch)
 		case ',':
-			if parenDepth == 0 && !inQuotes {
+			if parenDepth == 0 && bracketDepth == 0 && !inQuotes {
 				operands = append(operands, strings.TrimSpace(current.String()))
 				current.Reset()
 			} else {
@@ -333,12 +345,21 @@ func parseNumber(s string) (int, error) {
 	return int(val), err
 }
 
-// isIndirect checks if operand is indirect addressing (HL), (nn), etc
-func isIndirect(s string) bool {
-	return strings.HasPrefix(s, "(") && strings.HasSuffix(s, ")")
+// normalizeBrackets converts bracket indirection [x] to parenthesized (x).
+func normalizeBrackets(s string) string {
+	if strings.HasPrefix(s, "[") && strings.HasSuffix(s, "]") {
+		return "(" + s[1:len(s)-1] + ")"
+	}
+	return s
 }
 
-// stripIndirect removes parentheses from indirect operand
+// isIndirect checks if operand is indirect addressing (HL), (nn), [HL], [nn], etc
+func isIndirect(s string) bool {
+	return (strings.HasPrefix(s, "(") && strings.HasSuffix(s, ")")) ||
+		(strings.HasPrefix(s, "[") && strings.HasSuffix(s, "]"))
+}
+
+// stripIndirect removes parentheses/brackets from indirect operand
 func stripIndirect(s string) string {
 	if isIndirect(s) {
 		return s[1 : len(s)-1]

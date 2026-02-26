@@ -112,7 +112,8 @@ func (a *Assembler) matchPattern(pattern InstructionPattern, line *Line) (bool, 
 // parseOperandAs tries to parse an operand as a specific type
 func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (interface{}, bool) {
 	operand = strings.TrimSpace(operand)
-	
+	operand = normalizeBrackets(operand)
+
 	switch pattern.Type {
 	case OpTypeReg8:
 		reg := parseReg8(operand)

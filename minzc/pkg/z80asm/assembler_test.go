@@ -269,6 +269,178 @@ func TestErrorHandling(t *testing.T) {
 	}
 }
 
+func TestBracketSyntax(t *testing.T) {
+	// Bracket indirection [x] should produce identical bytes to parenthesized (x)
+	tests := []struct {
+		name       string
+		bracketSrc string
+		parenSrc   string
+	}{
+		{
+			name:       "indirect register LD A,[HL]",
+			bracketSrc: "ORG $8000\nLD A, [HL]",
+			parenSrc:   "ORG $8000\nLD A, (HL)",
+		},
+		{
+			name:       "indirect immediate LD HL,[$8000]",
+			bracketSrc: "ORG $8000\nLD HL, [$8000]",
+			parenSrc:   "ORG $8000\nLD HL, ($8000)",
+		},
+		{
+			name:       "indexed IX LD A,[IX+5]",
+			bracketSrc: "ORG $8000\nLD A, [IX+5]",
+			parenSrc:   "ORG $8000\nLD A, (IX+5)",
+		},
+		{
+			name:       "indexed IY LD [IY+3],B",
+			bracketSrc: "ORG $8000\nLD [IY+3], B",
+			parenSrc:   "ORG $8000\nLD (IY+3), B",
+		},
+		{
+			name:       "indirect BC LD A,[BC]",
+			bracketSrc: "ORG $8000\nLD A, [BC]",
+			parenSrc:   "ORG $8000\nLD A, (BC)",
+		},
+		{
+			name:       "indirect DE LD A,[DE]",
+			bracketSrc: "ORG $8000\nLD A, [DE]",
+			parenSrc:   "ORG $8000\nLD A, (DE)",
+		},
+		{
+			name:       "store to indirect LD [HL],A",
+			bracketSrc: "ORG $8000\nLD [HL], A",
+			parenSrc:   "ORG $8000\nLD (HL), A",
+		},
+		{
+			name:       "store to memory LD [$9000],A",
+			bracketSrc: "ORG $8000\nLD [$9000], A",
+			parenSrc:   "ORG $8000\nLD ($9000), A",
+		},
+		{
+			name:       "store to memory 16bit LD [$9000],HL",
+			bracketSrc: "ORG $8000\nLD [$9000], HL",
+			parenSrc:   "ORG $8000\nLD ($9000), HL",
+		},
+		{
+			name:       "INC [HL]",
+			bracketSrc: "ORG $8000\nINC [HL]",
+			parenSrc:   "ORG $8000\nINC (HL)",
+		},
+		{
+			name:       "BIT 7,[HL]",
+			bracketSrc: "ORG $8000\nBIT 7, [HL]",
+			parenSrc:   "ORG $8000\nBIT 7, (HL)",
+		},
+		{
+			name:       "IN A,[C]",
+			bracketSrc: "ORG $8000\nIN A, [C]",
+			parenSrc:   "ORG $8000\nIN A, (C)",
+		},
+		{
+			name:       "OUT [C],B",
+			bracketSrc: "ORG $8000\nOUT [C], B",
+			parenSrc:   "ORG $8000\nOUT (C), B",
+		},
+		{
+			name:       "JP [HL]",
+			bracketSrc: "ORG $8000\nJP [HL]",
+			parenSrc:   "ORG $8000\nJP (HL)",
+		},
+		{
+			name:       "EX [SP],HL",
+			bracketSrc: "ORG $8000\nEX [SP], HL",
+			parenSrc:   "ORG $8000\nEX (SP), HL",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			asmBracket := NewAssembler()
+			asmParen := NewAssembler()
+
+			bracketResult, err := asmBracket.AssembleString(tt.bracketSrc)
+			if err != nil {
+				t.Fatalf("Bracket syntax failed to assemble: %v", err)
+			}
+			if len(bracketResult.Errors) > 0 {
+				t.Fatalf("Bracket syntax had errors: %v", bracketResult.Errors)
+			}
+
+			parenResult, err := asmParen.AssembleString(tt.parenSrc)
+			if err != nil {
+				t.Fatalf("Paren syntax failed to assemble: %v", err)
+			}
+
+			if !bytes.Equal(bracketResult.Binary, parenResult.Binary) {
+				t.Errorf("Bracket vs paren mismatch:\n  bracket: %X\n  paren:   %X",
+					bracketResult.Binary, parenResult.Binary)
+			}
+		})
+	}
+}
+
+func TestBracketMismatchRejected(t *testing.T) {
+	// Mismatched brackets like [) or (] must NOT be treated as valid indirection
+	tests := []struct {
+		name   string
+		source string
+	}{
+		{
+			name:   "open bracket close paren [HL)",
+			source: "ORG $8000\nLD A, [HL)",
+		},
+		{
+			name:   "open paren close bracket (HL]",
+			source: "ORG $8000\nLD A, (HL]",
+		},
+		{
+			name:   "mismatched memory indirect [$8000)",
+			source: "ORG $8000\nLD HL, [$8000)",
+		},
+		{
+			name:   "mismatched memory indirect ($8000]",
+			source: "ORG $8000\nLD HL, ($8000]",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			asm := NewAssembler()
+			asm.Strict = true
+			_, err := asm.AssembleString(tt.source)
+			if err == nil {
+				t.Errorf("Expected error for mismatched brackets in %q, but got none", tt.name)
+			}
+		})
+	}
+}
+
+func TestNormalizeBrackets(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"[HL]", "(HL)"},
+		{"[IX+5]", "(IX+5)"},
+		{"[$8000]", "($8000)"},
+		{"(HL)", "(HL)"},      // unchanged
+		{"A", "A"},            // unchanged
+		{"[HL)", "[HL)"},      // mismatched - unchanged
+		{"(HL]", "(HL]"},      // mismatched - unchanged
+		{"[]", "()"},          // edge case
+		{"[C]", "(C)"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			got := normalizeBrackets(tt.input)
+			if got != tt.expected {
+				t.Errorf("normalizeBrackets(%q) = %q, want %q", tt.input, got, tt.expected)
+			}
+		})
+	}
+}
+
 func TestSymbols(t *testing.T) {
 	source := `
 		ORG $8000
