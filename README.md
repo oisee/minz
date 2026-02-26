@@ -100,7 +100,7 @@ mz program.minz -b c -o prog.c                         # C99
 | **Arrays** | Declaration, indexing |
 | **Globals** | `global counter: u8 = 0;` |
 | **String interpolation** | `"Hello #{name}!"` (Ruby-style) |
-| **Inline assembly** | `asm { LD A, 42 }` blocks |
+| **Inline assembly** | `asm { LD A, 42 }` blocks, `[addr]` bracket indirection |
 | **CTIE** | Compile-time function execution |
 | **True SMC** | Self-modifying code optimization |
 | **@extern FFI** | `extern fun putchar(c: u8) at 0x10;` with RST optimization |
@@ -274,7 +274,7 @@ Source Code                          Running Program
 | Tool | Purpose | Usage |
 |------|---------|-------|
 | **mz** | MinZ compiler | `mz program.minz -o program.a80` |
-| **mza** | Z80 assembler (table-driven, all Z80 ops including undocumented) | `mza program.a80 -o program.com` |
+| **mza** | Z80 assembler (table-driven, all Z80 ops including undocumented, `[addr]` bracket syntax) | `mza program.a80 -o program.com` |
 | **mze** | Z80 emulator (1335/1335 FUSE tests) | `mze program.com -t cpm` |
 | **mzx** | ZX Spectrum emulator (T-state accurate, AY sound, profiler, .sna/.tap/.trd/.scl) | `mzx --snapshot game.sna` |
 | **mzd** | Z80 disassembler (IDA-like analysis, xrefs, ROM tables) | `mzd program.bin --org 0x8000` |
