@@ -107,6 +107,11 @@ jobs:
         name: codecov-umbrella
         fail_ci_if_error: false
     
+    - name: Run shadow tests (MZA vs sjasmplus)
+      working-directory: minzc
+      run: |
+        go test -v -timeout 5m ./pkg/z80asm/ -run "TestShadow|TestLiveSjasmplus"
+
     - name: Run E2E tests
       working-directory: minzc
       run: |
