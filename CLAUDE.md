@@ -4,28 +4,25 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ---
 
-## 🚨 CURRENT PRIORITY: Native Parser Implementation
+## 🚨 CURRENT PRIORITIES
 
-**Status:** IN PROGRESS (Q1 2026)
+### 1. Register Allocator & Loop Codegen Bugs
+**Status:** Known, not yet fixed. Blocks complex programs.
+- While/for loops: register allocator overwrites operands (same phys reg for two live virtuals)
+- `loadToHL` uses stale HL values in multi-expression contexts
+- Loop rerolling too aggressive across function call boundaries
+- See `docs/adr/` for ADR-0006, ADR-0007
 
-**Goal:** Replace tree-sitter with pure Go recursive descent parser to eliminate OOM issues.
+### 2. Iterator Chain Fusion
+**Status:** Semantic analysis done (~1800 LOC), codegen partial, parser wiring missing.
+- AST/IR types for 14 operations (map, filter, forEach, reduce, take, skip, zip...)
+- DJNZ optimization works for `for i in 0..N`
+- Parser doesn't emit `IteratorChainExpr` — method chains parse as `CallExpr`
+- Fusion optimizer is skeleton only (`pkg/optimizer/fusion.go`)
+- See [Iterator Implementation Status](docs/Iterator_Implementation_Status.md)
 
-**Key Documents:**
-- 📋 **[NATIVE_PARSER_PLAN.md](docs/NATIVE_PARSER_PLAN.md)** - Complete implementation plan
-- 🧪 **[Parser Test Corpus](minzc/tests/parser_corpus/)** - 220 regression test files
-
-**Quick Commands:**
-```bash
-cd minzc
-./ast-gen tests/parser_corpus ../stdlib ../examples ../tests  # Generate corpus
-./ast-compare tests/parser_corpus                              # Validate
-./ast-compare -parser './new-parser' tests/parser_corpus       # Test new parser
-```
-
-**Target Metrics:**
-- 95%+ regression pass rate on 220 test files
-- <50MB memory on 10MB input files
-- Zero external dependencies
+### 3. LSP / DAP / Developer Tooling
+**Status:** Not started. Planned after core language stability.
 
 ---
 
@@ -37,7 +34,6 @@ cd minzc
 
 ## 🏗️ Architecture References
 
-- **[NATIVE_PARSER_PLAN.md](docs/NATIVE_PARSER_PLAN.md)** - 🚧 Parser replacement plan (ACTIVE)
 - **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals
 - **[COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)** - Current state tracking
 - **[149_World_Class_Multi_Level_Optimization_Guide.md](docs/149_World_Class_Multi_Level_Optimization_Guide.md)** - Revolutionary optimization strategy
@@ -60,12 +56,14 @@ cd minzc
 - `/cuteify` - Add emojis and fun
 - `/celebrate` - Achievement recognition
 
-## 🛠️ Development Tools & Status (v0.18.0)
+## 🛠️ Development Tools & Status (v0.19.1)
 
 ### Self-Contained Toolchain
 - **MZC** - MinZ Compiler (Go, ~90K LOC)
-- **MZA** - Z80 Assembler (built-in)
+- **MZA** - Z80 Assembler (table-driven, `[addr]` bracket syntax)
 - **MZE** - Z80 Emulator (100% coverage via remogatto/z80)
+- **MZX** - ZX Spectrum Emulator (T-state accurate, AY sound, Ebitengine)
+- **MZD** - Z80 Disassembler (IDA-like analysis, ABI propagation)
 - **MZR** - Interactive REPL
 - **MZRUN** - Remote runner (DZRP protocol)
 
@@ -87,12 +85,14 @@ cd minzc
 
 ### Core Language
 - Types: `u8`, `u16`, `i8`, `i16`, `bool`, `void`
-- Functions: `fun`/`fn` declaration, multiple returns
+- Functions: `fun`/`fn` declaration, multiple returns, nested functions
 - Control flow: `if`/`else`, `while`, `for i in 0..n`
 - Structs: declaration and field access
+- Enums: `enum State { IDLE, RUNNING }` with values, `State::IDLE` syntax
 - Arrays: declaration, indexing (literals need optimization)
 - Global variables: `global` keyword
 - Function overloading: multiple signatures
+- **Native parser**: Participle-based (pure Go, replaced tree-sitter Feb 2026)
 
 ### Advanced Features
 - **Ruby interpolation**: `"Hello #{name}!"` ✅
@@ -119,33 +119,26 @@ cd minzc
 
 ## 🚧 WIP (In Development)
 
+- **Iterator chain fusion**: Semantic analysis done, parser wiring + fusion optimizer needed
 - **Pattern matching**: Syntax parses, codegen partial
 - **@minz[[[...]]]**: Limited compile-time execution
-- **MIR interpreter**: Arrays/structs now working
+- **MIR interpreter**: Arrays/structs working
+- **Array literal optimization**: IR skeleton exists, codegen not yet
 
 ---
 
 ## 📋 TOBE (Planned)
 
-### Week 2-4
-- **Hand-written parser** - Replace tree-sitter (OOM fix)
-- **Nested functions** - Functions inside functions
-
-### Week 5-8
 - **LSP server** - IDE support (autocomplete, errors)
 - **DAP debugger** - Step-through debugging
 - **WASM playground** - Online demo
-
-### Future
-- **Enum values**: `State::IDLE` syntax
-- **Array literal optimization**: `[1,2,3]` → 10 lines not 80
+- **Generator syntax** - `gen`/`yield` for lazy iteration
 
 ---
 
 ## ⏸️ PARKED (Deferred)
 
 - **Generics `<T>`** - Use function overloading instead
-- **Local/nested functions** - Workaround: use lambdas
 - **Option/Result types** - Use `@error` pattern instead
 - **`?` operator** - Use explicit error checking
 
@@ -290,7 +283,6 @@ minz/
 │   ├── mem/          # copy.minz
 │   ├── cpm/          # bdos.minz (CP/M BDOS API)
 │   └── agon/         # mos.minz, vdp.minz (Agon Light 2)
-├── grammar.js         # Tree-sitter grammar
 ├── examples/          # MinZ programs
 ├── docs/             # Technical documentation (by topic)
 ├── reports/          # Progress reports (date-numbered)
@@ -334,16 +326,18 @@ fun main() {
 }
 ```
 
-## 📊 Current Metrics (v0.18.0)
+## 📊 Current Metrics (v0.19.1)
 
 | Metric | Value |
 |--------|-------|
-| Core examples | 72/72 (100%) |
-| All examples | ~81% |
+| Core examples | ~73 (100%) |
+| All examples | ~272 total (~81% compile) |
 | Stdlib modules | 10 |
-| Z80 emulator coverage | 100% |
+| Z80 emulator coverage | 100% (1335/1335 FUSE) |
 | Peephole patterns | 35+ |
 | Active backends | 4 (Z80, 6502, C, Crystal) |
+| Parser | Participle (native Go, zero deps) |
+| Toolchain binaries | 9 (mz, mza, mze, mzx, mzd, mzr, mzrun, mzv, mztap) |
 
 ---
 
