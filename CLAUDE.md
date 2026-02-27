@@ -99,7 +99,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **UFCS**: `obj.method()` via zero-cost interfaces ✅
 - **Lambdas**: Full closure support, zero-cost ✅
 - **TRUE SMC**: Self-modifying code optimization ✅
-- **CTIE**: Compile-time function execution ✅
+- **CTIE**: Compile-Time Interface Execution (trait monomorphization) ✅
 - **@extern FFI**: Call external ROM/BIOS functions ✅
 - **RST optimization**: Auto-convert to RST instructions ✅
 - **Operator overloading**: Custom operators for types ✅

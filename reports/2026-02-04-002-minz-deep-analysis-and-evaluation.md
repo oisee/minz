@@ -31,7 +31,7 @@
 | **Developer Happiness** | Ruby-style синтаксис, приятное программирование | String interpolation, UFCS, overloading |
 | **TRUE SMC** | Самомодифицирующийся код как first-class feature | Параметры патчатся в immediates (3-10x быстрее) |
 | **Multi-Backend** | Один исходник — много платформ | 8 бэкендов: Z80, 6502, Crystal, WASM, C... |
-| **CTIE** | Compile-Time Execution | Функции исполняются при компиляции |
+| **CTIE** | Compile-Time Interface Execution | Мономорфизация трейтов при компиляции |
 
 ### 2.2 Позиционирование
 
@@ -124,7 +124,7 @@ fun read_file?(path: u8) -> u8 ? FileError {
 let data = read_file?(5);  // CY flag indicates success/failure
 ```
 
-### 3.5 CTIE (Compile-Time Execution)
+### 3.5 CTIE (Compile-Time Interface Execution)
 
 ```minz
 @ctie

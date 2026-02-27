@@ -55,7 +55,7 @@ numbers.iter()
 ```
 Lambdas compile to named functions with direct calls.
 
-#### 2. CTIE (Compile-Time Execution)
+#### 2. CTIE (Compile-Time Interface Execution)
 ```minz
 @ctie
 fun apply(f: fn(u8) -> u8, x: u8) -> u8 {

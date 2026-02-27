@@ -36,7 +36,7 @@ MinZ стремится быть **анти-C для 8-битных систем
 1. **Zero-Cost Abstractions** — лямбды, итераторы, интерфейсы компилируются в прямые CALL без vtable
 2. **TRUE SMC (Self-Modifying Code)** — революционный подход: параметры патчатся прямо в коде
 3. **Multi-Backend** — один исходник → Z80, 6502, Crystal, WASM, C, LLVM
-4. **CTIE (Compile-Time Execution)** — функции исполняются во время компиляции
+4. **CTIE (Compile-Time Interface Execution)** — мономорфизация трейтов при компиляции
 
 ### 1.3 Целевая аудитория
 
@@ -101,7 +101,7 @@ fun safe_divide?(a: u8, b: u8) -> u8 ? MathError {
 }
 ```
 
-### 2.5 CTIE — Compile-Time Execution (✅ Работает)
+### 2.5 CTIE — Compile-Time Interface Execution (✅ Работает)
 
 ```minz
 @ctie

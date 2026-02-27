@@ -39,7 +39,7 @@ fun draw_pixel(x: u8, y: u8) -> void {
 }
 ```
 
-### 3. Compile-Time Execution (CTIE)
+### 3. Compile-Time Interface Execution (CTIE)
 
 Функции выполняются во время компиляции:
 
@@ -139,7 +139,7 @@ case state {
 ✅ Ruby string interpolation
 ✅ UFCS методы и operator overloading
 ✅ Error propagation (`@error`)
-✅ CTIE (compile-time execution)
+✅ CTIE (Compile-Time Interface Execution)
 ✅ Inline assembly
 ✅ TRUE SMC
 ✅ Все базовые типы

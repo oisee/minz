@@ -164,7 +164,7 @@ interface Sortable {
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
-| Binary size reduction | 15-30% | Compare with/without CTE |
+| Binary size reduction | 15-30% | Compare with/without CTIE |
 | Performance improvement | 20-40% | Benchmark suite |
 | Compilation time increase | < 2x | Time full build |
 | Dead code eliminated | > 25% | Analyze output |
@@ -174,7 +174,7 @@ interface Sortable {
 | Risk | Mitigation |
 |------|------------|
 | Compilation becomes too slow | Incremental compilation, caching |
-| Debugging becomes difficult | Source maps, debug mode without CTE |
+| Debugging becomes difficult | Source maps, debug mode without CTIE |
 | Too much specialization | Heuristics to limit duplication |
 | Incompatible with existing code | Opt-in via @ annotations |
 
