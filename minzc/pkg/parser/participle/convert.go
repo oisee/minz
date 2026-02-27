@@ -993,7 +993,7 @@ func getIteratorOpType(name string) ast.IteratorOpType {
 	case "inspect":
 		return ast.IterOpInspect
 	default:
-		return ast.IterOpMap // default
+		return ast.IterOpMap // fallback (should not be reached for "iter" — stripped in tryConvertIteratorChain)
 	}
 }
 
@@ -1017,6 +1017,12 @@ func (c *Converter) tryConvertIteratorChain(expr ast.Expression) *ast.IteratorCh
 
 		if !isIteratorMethod(fieldExpr.Field) {
 			break
+		}
+
+		// .iter() is a chain marker, not an operation — skip it and use the object as source
+		if fieldExpr.Field == "iter" {
+			current = fieldExpr.Object
+			continue
 		}
 
 		// This is an iterator method call

@@ -1,0 +1,8 @@
+// Test: direct method chains without .iter()
+fun inc(x: u8) -> u8 { return x + 1; }
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let arr: [u8; 4] = [5, 6, 7, 8];
+    arr.map(inc).forEach(print_u8);
+}

@@ -1,0 +1,19 @@
+// Test: iterator chains in multiple functions
+fun double(x: u8) -> u8 { return x * 2; }
+fun negate(x: u8) -> u8 { return 0 - x; }
+fun print_u8(x: u8) -> void {}
+
+fun process_a() -> void {
+    let a: [u8; 3] = [1, 2, 3];
+    a.map(double).forEach(print_u8);
+}
+
+fun process_b() -> void {
+    let b: [u8; 4] = [10, 20, 30, 40];
+    b.forEach(print_u8);
+}
+
+fun main() -> void {
+    process_a();
+    process_b();
+}

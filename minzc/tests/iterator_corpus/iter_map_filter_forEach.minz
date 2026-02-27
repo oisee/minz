@@ -1,0 +1,9 @@
+// Test: full .iter().map().filter().forEach() chain
+fun triple(x: u8) -> u8 { return x * 3; }
+fun is_even(x: u8) -> bool { return (x & 1) == 0; }
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let data: [u8; 5] = [1, 2, 3, 4, 5];
+    data.iter().map(triple).filter(is_even).forEach(print_u8);
+}

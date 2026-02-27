@@ -1,0 +1,8 @@
+// Test: filter removes elements <= 5
+fun is_big(x: u8) -> bool { return x > 5; }
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let values: [u8; 8] = [1, 3, 5, 7, 9, 2, 6, 8];
+    values.filter(is_big).forEach(print_u8);
+}

@@ -1,0 +1,11 @@
+// Test: mixed lambda + function ref chain
+fun print_u8(x: u8) -> void {}
+fun is_nonzero(x: u8) -> bool { return x > 0; }
+
+fun main() -> void {
+    let nums: [u8; 5] = [0, 1, 0, 2, 0];
+    nums.iter()
+        .filter(is_nonzero)
+        .map(|x| => u8 { x * 10 })
+        .forEach(print_u8);
+}

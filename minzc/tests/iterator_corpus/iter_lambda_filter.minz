@@ -1,0 +1,7 @@
+// Test: filter with lambda expression
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let nums: [u8; 5] = [1, 2, 3, 4, 5];
+    nums.iter().filter(|x| => bool { x > 3 }).forEach(print_u8);
+}

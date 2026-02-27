@@ -1,0 +1,9 @@
+// Test: chained map + filter
+fun double(x: u8) -> u8 { return x * 2; }
+fun is_big(x: u8) -> bool { return x > 5; }
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let values: [u8; 5] = [1, 2, 3, 4, 5];
+    values.map(double).filter(is_big).forEach(print_u8);
+}

@@ -1861,6 +1861,9 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    NOP")
 		
 	case ir.OpLabel:
+		// Labels are jump targets where control flow merges — constant
+		// assumptions from prior blocks are invalid. Clear the entire map.
+		g.constantValues = make(map[ir.Register]int64)
 		g.emit("%s:", g.sanitizeLabel(inst.Label))
 		
 	case ir.OpJump:
@@ -2222,6 +2225,12 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Move from source to destination register
 		g.loadToHL(inst.Src1)
 		g.storeFromHL(inst.Dest)
+		// Propagate constant knowledge: if source is a known constant, dest inherits it
+		if val, ok := g.constantValues[inst.Src1]; ok {
+			g.constantValues[inst.Dest] = val
+		} else {
+			delete(g.constantValues, inst.Dest)
+		}
 		
 	case ir.OpAdd:
 		// Load operands efficiently
@@ -2231,6 +2240,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.loadToHL(inst.Src2)
 		g.emit("    ADD HL, DE")
 		g.storeFromHL(inst.Dest)
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
 		
 	case ir.OpSub:
 		// HL = Src1 - Src2
@@ -2240,6 +2250,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    OR A          ; Clear carry")
 		g.emit("    SBC HL, DE    ; HL = Src1 - Src2")
 		g.storeFromHL(inst.Dest)
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
 		
 	case ir.OpNeg:
 		// Negate the value (two's complement)
@@ -2290,7 +2301,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    LD H, A")
 		}
 		g.storeFromHL(inst.Dest)
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpMul:
 		// Check for constant optimization opportunity
 		var constMultiplier int64
@@ -2439,7 +2451,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD H, 0")
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpMod:
 		// Modulo operation - remainder after division
 		// Src1 % Src2 -> Dest
@@ -2465,7 +2478,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD H, 0")
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpInc:
 		// Increment register
 		if inst.Type != nil && inst.Type.Size() == 1 {
@@ -2479,13 +2493,14 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    INC HL")
 			g.storeFromHL(inst.Dest)
 		}
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpDec:
 		// Check for DJNZ optimization pattern
 		if g.canOptimizeToDJNZ(inst) {
 			return g.generateDJNZ(inst)
 		}
-		
+
 		// Decrement register
 		if inst.Type != nil && inst.Type.Size() == 1 {
 			// For byte values
@@ -2498,7 +2513,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    DEC HL")
 			g.storeFromHL(inst.Dest)
 		}
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpAnd:
 		// Bitwise AND
 		g.loadToHL(inst.Src1)
@@ -2512,7 +2528,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    AND D")
 		g.emit("    LD H, A")
 		g.storeFromHL(inst.Dest)
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpOr:
 		// Bitwise OR
 		g.loadToHL(inst.Src1)
@@ -2526,7 +2543,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    OR D")
 		g.emit("    LD H, A")
 		g.storeFromHL(inst.Dest)
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpLogicalAnd:
 		// Logical AND with short-circuit evaluation
 		// First operand: if false (0), result is false
@@ -2551,7 +2569,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 		g.emit("%s:", endLabel)
 		g.storeFromA(inst.Dest)
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpLogicalOr:
 		// Logical OR with short-circuit evaluation
 		// First operand: if true (non-zero), result is true
@@ -2576,7 +2595,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 		g.emit("%s:", endLabel)
 		g.storeFromA(inst.Dest)
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpXor:
 		// Bitwise XOR
 		// Special case for XOR with self (zeroing)
@@ -2597,7 +2617,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    LD H, A")
 			g.storeFromHL(inst.Dest)
 		}
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpShl:
 		// Shift left
 		// First check: Imm field contains shift count directly (from peephole optimizer)
@@ -2680,7 +2701,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD H, 0")
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpShr:
 		// Shift right (logical)
 		// Check if 16-bit or 8-bit based on type
@@ -2726,7 +2748,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD H, 0")
 		g.labelCounter++
 		g.storeFromHL(inst.Dest)
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpNot:
 		// Bitwise NOT (one's complement)
 		// Check if 16-bit or 8-bit based on type
@@ -2754,9 +2777,11 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    CPL           ; Complement A")
 			g.storeFromA(inst.Dest)
 		}
-		
+		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
+
 	case ir.OpEq, ir.OpNe, ir.OpLt, ir.OpGt, ir.OpLe, ir.OpGe:
 		g.generateComparison(inst)
+		delete(g.constantValues, inst.Dest) // Comparison result is computed
 		
 	case ir.OpCall:
 		// Check for SMC annotations (Option B: annotations + regular code)
@@ -3249,11 +3274,16 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Clear constant tracking for counter — DJNZ modifies B each iteration
 		delete(g.constantValues, inst.Src1)
 		g.loadToB(inst.Src1)
-		g.emit("    DJNZ %s", g.sanitizeLabel(inst.Label))
-		// Store updated value back
+		// Manual DEC B + store-back + JR NZ to ensure counter persists across iterations.
+		// Pure DJNZ would decrement B and jump atomically, but the decremented value
+		// would never get stored back to the stack slot — on the next iteration loadToB
+		// would reload the stale original count. This manual sequence costs a few extra
+		// T-states but guarantees correctness when the loop body clobbers B (e.g., CALL).
+		g.emit("    DEC B")
 		g.emit("    LD A, B")
 		g.storeFromA(inst.Src1)
-		
+		g.emit("    JR NZ, %s", g.sanitizeLabel(inst.Label))
+
 	case ir.OpLoadImm:
 		// Load immediate value
 		// Track the constant value for optimization (unless disabled)

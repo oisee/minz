@@ -1,0 +1,8 @@
+// Test: peek/inspect operations (side-effect without changing element)
+fun log_u8(x: u8) -> void {}
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let nums: [u8; 3] = [1, 2, 3];
+    nums.peek(log_u8).forEach(print_u8);
+}

@@ -1,0 +1,7 @@
+// Test: edge case - single element array
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let one: [u8; 1] = [42];
+    one.forEach(print_u8);
+}

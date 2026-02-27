@@ -1,0 +1,7 @@
+// Test: basic forEach iteration
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let numbers: [u8; 5] = [1, 2, 3, 4, 5];
+    numbers.forEach(print_u8);
+}

@@ -1,0 +1,8 @@
+// Test: simple range-based for loop (DJNZ optimization)
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    for i in 0..5 {
+        print_u8(i);
+    }
+}

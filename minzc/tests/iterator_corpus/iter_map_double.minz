@@ -1,0 +1,8 @@
+// Test: map doubles values
+fun double(x: u8) -> u8 { return x * 2; }
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let values: [u8; 3] = [1, 2, 3];
+    values.map(double).forEach(print_u8);
+}
