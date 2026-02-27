@@ -1,5 +1,9 @@
 package spectrum
 
+import (
+	"io"
+)
+
 // PortDevice is a mask-based I/O device.
 // A port matches when: (address & Mask) == Value
 type PortDevice struct {
@@ -321,6 +325,50 @@ func (p *Ports) contendPort(addr uint16) {
 	}
 	// Additional contention for ULA port accesses — already handled
 	// by the 1+3 T-state timing above.
+}
+
+// SetConsolePort registers a port device that bridges Z80 OUT to a writer (stdout)
+// and Z80 IN from a reader (stdin). The port is only active when this method is called.
+// Recommended port: $23 (safe: odd, bit 1 set — avoids ULA/Kempston/128K paging/AY/Covox).
+func (p *Ports) SetConsolePort(portNum byte, reader io.Reader, writer io.Writer) {
+	inCh := make(chan byte, 256)
+
+	// Background goroutine reads stdin byte-by-byte into channel
+	if reader != nil {
+		go func() {
+			buf := make([]byte, 1)
+			for {
+				n, err := reader.Read(buf)
+				if n > 0 {
+					inCh <- buf[0]
+				}
+				if err != nil {
+					return
+				}
+			}
+		}()
+	}
+
+	p.Register(&PortDevice{
+		Mask:  0x00FF,
+		Value: uint16(portNum),
+		Read: func(addr uint16) byte {
+			// Bit 7 = data ready flag. $00 = no data, $80|byte = data present.
+			// Z80: IN A,($23) / OR A / JR Z,nodata / AND $7F
+			select {
+			case b := <-inCh:
+				return 0x80 | (b & 0x7F)
+			default:
+				return 0x00 // no data available
+			}
+		},
+		Write: func(addr uint16, val byte) {
+			if writer != nil {
+				writer.Write([]byte{val})
+			}
+		},
+		Name: "Console",
+	})
 }
 
 func (p *Ports) ReadPortInternal(addr uint16, contend bool) byte {

@@ -1082,6 +1082,8 @@ func main() {
 	execFlag := flag.String("exec", "", "Execute BASIC command after boot (e.g. 'LOAD \"\"' or 'RANDOMIZE USR 32768')")
 	typeFlag := flag.String("type", "", "Type text via keystroke injection (fallback for non-standard ROMs)")
 	consoleFlag := flag.Bool("console", false, "Mirror BASIC text output (RST $10) to stdout")
+	consolePortFlag := flag.String("console-to-port", "", "Map Z80 I/O port to stdin/stdout (port: $23, 0xFF, or 'ay')")
+	consoleIOFlag := flag.Bool("console-io", false, "Bare-metal console on port $23 (alias for --console-to-port default)")
 	scaleFlag := flag.Int("scale", 2, "Display scale factor (1-4)")
 	noAudioFlag := flag.Bool("no-audio", false, "Disable all audio output")
 	noBeeperFlag := flag.Bool("no-beeper", false, "Disable beeper audio (EAR bit)")
@@ -1153,6 +1155,12 @@ AUTOMATION:
                          Delay syntax: {N} = wait N frames
                          Example: --type "{50}R" (wait 50 frames, press R)
   --console              Mirror BASIC output (RST $10) to stdout
+  --console-io           Bare-metal console on port $23 (no ROM needed)
+  --console-to-port N    Map specific port to stdin/stdout ($23, 0xFF, 'ay')
+                         Enables headless mode. Protocol:
+                           OUT ($23),A    → send byte to stdout
+                           IN A,($23)     → $00=no data, $80|byte=ready
+                           Z80: OR A / JR Z,poll / AND $7F → get byte
 
 HEADLESS CAPTURE:
   --screenshot FILE.png  Save one screenshot and exit
@@ -1482,6 +1490,40 @@ VERSION: %s (build %s, %s)
 		fmt.Println("[console mode: BASIC output mirrored to stdout]")
 	}
 
+	// --console-io: alias for --console-to-port default ($23)
+	if *consoleIOFlag && *consolePortFlag == "" {
+		*consolePortFlag = "default"
+	}
+
+	// --console-to-port: map Z80 I/O port to stdin/stdout (bare-metal, no ROM)
+	if *consolePortFlag != "" {
+		if strings.EqualFold(*consolePortFlag, "ay") {
+			// AY Port A (register 14) — compatible with real hardware
+			if machine.AY != nil {
+				machine.AY.SetConsoleWriter(os.Stdout)
+				fmt.Fprintf(os.Stderr, "[console-to-port: AY Port A (reg 14) → stdout]\n")
+			} else {
+				log.Fatalf("--console-to-port ay requires AY chip (use 128k model)")
+			}
+		} else {
+			portNum := 0x23 // default ($23: safe on 48K/128K — bit 1 set avoids paging)
+			if *consolePortFlag != "" && *consolePortFlag != "default" {
+				s := *consolePortFlag
+				// Accept $23, 0x23, or plain hex (like other MZX flags)
+				if strings.HasPrefix(s, "$") {
+					s = "0x" + s[1:]
+				}
+				n, err := strconv.ParseUint(s, 0, 16)
+				if err != nil || n > 255 {
+					log.Fatalf("--console-to-port: invalid port %q (use $00-$FF or 'ay')", *consolePortFlag)
+				}
+				portNum = int(n)
+			}
+			machine.Ports.SetConsolePort(byte(portNum), os.Stdin, os.Stdout)
+			fmt.Fprintf(os.Stderr, "[console-to-port: $%02X → stdin/stdout]\n", portNum)
+		}
+	}
+
 	// --exec: execute arbitrary BASIC command (tokenized, requires compatible ROM)
 	if *execFlag != "" {
 		tokens, err := formats.TokenizeBASIC(*execFlag)
@@ -1616,7 +1658,7 @@ VERSION: %s (build %s, %s)
 		}
 	}
 
-	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != "" || *saveSnapshotFlag != ""
+	isHeadless := *screenshotFlag != "" || *dumpFrames != "" || *dumpKeyframes != "" || *saveSnapshotFlag != "" || *consolePortFlag != ""
 
 	if isHeadless {
 		cs := parseCaptureSpec(*framesFlag)

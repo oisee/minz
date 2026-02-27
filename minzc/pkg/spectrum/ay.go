@@ -5,6 +5,7 @@ package spectrum
 // https://github.com/true-grue/ayumi
 
 import (
+	"io"
 	"math"
 	"sync"
 )
@@ -162,6 +163,10 @@ type AYChip struct {
 	psgDirty     uint16   // bitmask of registers written this frame
 	psgVals      [16]byte // last written value per register this frame
 	psgSilent    int      // consecutive silent frames (for compression)
+
+	// Console output via AY Port A (register 14).
+	// When set, writes to register 14 send the byte to this writer.
+	consoleWriter io.Writer
 }
 
 // PSGFormat selects the recording format.
@@ -418,7 +423,11 @@ func (ay *AYChip) WriteRegister(reg byte, val byte) {
 		ay.SetEnvelopePeriod((ay.envelopePeriod & 0x00FF) | (int(val) << 8))
 	case 13: // Envelope shape
 		ay.SetEnvelopeShape(int(val))
-	case 14, 15: // I/O ports (ignored)
+	case 14: // I/O Port A — console output when configured
+		if ay.consoleWriter != nil {
+			ay.consoleWriter.Write([]byte{val})
+		}
+	case 15: // I/O Port B (ignored)
 	}
 }
 
@@ -715,6 +724,12 @@ func (ay *AYChip) SetPSGAutoCapture(enabled bool) {
 // SetPSGFormat selects PSG1 or PSG2 output format.
 func (ay *AYChip) SetPSGFormat(f PSGFormat) {
 	ay.psgFormat = f
+}
+
+// SetConsoleWriter enables console output via AY Port A (register 14).
+// Writes to register 14 will send the byte to the provided writer.
+func (ay *AYChip) SetConsoleWriter(w io.Writer) {
+	ay.consoleWriter = w
 }
 
 // PSGRecording returns true if PSG recording is active.

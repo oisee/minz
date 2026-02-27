@@ -101,7 +101,7 @@ mz program.minz -b c -o prog.c                         # C99
 | **Globals** | `global counter: u8 = 0;` |
 | **String interpolation** | `"Hello #{name}!"` (Ruby-style) |
 | **Inline assembly** | `asm { LD A, 42 }` blocks, `[addr]` bracket indirection |
-| **CTIE** | Compile-time function execution |
+| **CTIE** | Compile-Time Interface Execution (trait monomorphization) |
 | **True SMC** | Self-modifying code optimization |
 | **@extern FFI** | `extern fun putchar(c: u8) at 0x10;` with RST optimization |
 | **Operator overloading** | `v1 + v2` via `impl` blocks |
@@ -362,6 +362,17 @@ mzx --model pentagon --rom 128-0.rom --rom1 trdos.rom --trd game.trd
 mzx --load code.bin@8000 --set PC=8000,SP=FFFF,DI
 mzx --run code.bin@8000   # shortcut for --load + --set PC + SP + DI
 
+# Bare-metal console I/O (no ROM needed, port $23)
+mzx --run code.bin@8000 --frames DI:HALT --console-io
+# Z80: OUT ($23),A → stdout | IN A,($23) → $00=empty, $80|byte=data
+
+# Console I/O with custom port or AY serial
+mzx --run code.bin@8000 --frames DI:HALT --console-to-port '$FF'
+mzx --run code.bin@8000 --frames DI:HALT --console-to-port ay
+
+# BASIC console (RST $10, needs ROM)
+mzx --snapshot game.sna --console
+
 # Headless screenshots (for CI, automated testing, book illustrations)
 mzx --snapshot game.sna --screenshot shot.png --frames 100
 mzx --tap game.tap --screenshot shot.png --screenshot-on-stable 3
@@ -374,7 +385,7 @@ mzx --snapshot demo.sna --trace trace.jsonl --trace-frames 100:200
 mzx --warn-on-halt --verbose --diag --snapshot game.sna
 ```
 
-Features: FrameMap ULA rendering, beeper + AY-3-8912 audio (AYumi), ULA contention, .sna/.tap/.trd/.scl format support, full TR-DOS function dispatch, execution profiler/tracer, conditional screenshots, DI+HALT detection, 48K ROM included.
+Features: FrameMap ULA rendering, beeper + AY-3-8912 audio (AYumi), ULA contention, .sna/.tap/.trd/.scl format support, full TR-DOS function dispatch, execution profiler/tracer, conditional screenshots, DI+HALT detection, bare-metal console I/O (port $23 or AY serial), 48K ROM included.
 
 ### Live Testing with DZRP
 
