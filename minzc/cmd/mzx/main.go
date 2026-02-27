@@ -1246,6 +1246,14 @@ VERSION: %s (build %s, %s)
 		return
 	}
 
+	// When console-io/console-to-port is active, keep stdout pure for port I/O.
+	// All diagnostic output (load info, frame counts, triggers) goes to stderr.
+	realStdout := os.Stdout
+	if *consolePortFlag != "" || *consoleIOFlag {
+		os.Stdout = os.Stderr
+	}
+	_ = realStdout // used later by console port setup
+
 	// --help / -h is handled by flag.Parse() automatically.
 	// With no arguments, we boot the 48K Spectrum (embedded ROM).
 
@@ -1500,7 +1508,7 @@ VERSION: %s (build %s, %s)
 		if strings.EqualFold(*consolePortFlag, "ay") {
 			// AY Port A (register 14) — compatible with real hardware
 			if machine.AY != nil {
-				machine.AY.SetConsoleWriter(os.Stdout)
+				machine.AY.SetConsoleWriter(realStdout)
 				fmt.Fprintf(os.Stderr, "[console-to-port: AY Port A (reg 14) → stdout]\n")
 			} else {
 				log.Fatalf("--console-to-port ay requires AY chip (use 128k model)")
@@ -1519,7 +1527,7 @@ VERSION: %s (build %s, %s)
 				}
 				portNum = int(n)
 			}
-			machine.Ports.SetConsolePort(byte(portNum), os.Stdin, os.Stdout)
+			machine.Ports.SetConsolePort(byte(portNum), os.Stdin, realStdout)
 			fmt.Fprintf(os.Stderr, "[console-to-port: $%02X → stdin/stdout]\n", portNum)
 		}
 	}
