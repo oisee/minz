@@ -229,6 +229,73 @@ fun draw_pixel(x: u8, y: u8) -> void {
 }
 ```
 
+### Zero-Cost Iterator Chains & Lambda Fusion (In Development)
+
+MinZ aims to bring functional-style iterator chains to Z80 — with zero runtime overhead. The compiler fuses chains like `.map().filter().forEach()` into a single tight loop, inlining all lambdas and using DJNZ where possible.
+
+**Target syntax:**
+
+```minz
+// Functional iterator chain — compiles to ONE loop, zero allocations
+scores.iter()
+    .map(|x| x + 5)
+    .filter(|x| x >= 90)
+    .forEach(|x| print_u8(x));
+
+// In-place mutation with ! variants
+enemies.filter!(|e| e.health > 0);
+particles.forEach!(|p| p.update());
+
+// Generators (planned)
+gen fibonacci() -> u16 {
+    let a: u16 = 0;
+    let b: u16 = 1;
+    loop {
+        yield a;
+        let tmp = a + b;
+        a = b;
+        b = tmp;
+    }
+}
+```
+
+**What the compiler produces** — the entire chain fuses into ~25 T-states/element:
+
+```asm
+; scores.iter().map(|x| x + 5).filter(|x| x >= 90).forEach(|x| print_u8(x))
+;
+; No intermediate arrays. No function call overhead. Just one DJNZ loop.
+
+    LD HL, scores            ; source pointer
+    LD B, scores_len         ; counter in B for DJNZ
+.loop:
+    LD A, (HL)               ; load element         (7 T)
+    ADD A, 5                 ; .map(|x| x + 5)      (4 T)
+    CP 90                    ; .filter(|x| x >= 90) (7 T)
+    JR C, .skip              ; skip if < 90
+    CALL print_u8            ; .forEach(...)
+.skip:
+    INC HL                   ; next element          (6 T)
+    DJNZ .loop               ; dec B, loop          (13 T)
+```
+
+Compare: a naive indexed loop with separate map/filter passes would cost 60-150+ T-states/element and allocate intermediate arrays. The fused version uses O(1) memory and runs 3-5x faster.
+
+**Key optimizations:**
+- **Lambda inlining** — closures compile to direct `CALL` or inline code, never heap-allocated
+- **Iterator fusion** — multi-stage chains merge into a single loop at compile time
+- **DJNZ loops** — arrays ≤255 elements use Z80's dedicated loop instruction (13 T-states vs 25+ for compare-jump)
+- **Pointer arithmetic** — `HL` walks the array with `INC HL`, no index multiplication
+
+**Status:** Lambda-to-function transform works. DJNZ optimization works for `for i in 0..N`. Full method-chain syntax (`.map().filter()`) and fusion optimizer are in active development.
+
+**Design documents:**
+- [Zero-Cost Iterators Revolution](docs/Zero_Cost_Iterators_Revolution.md) — complete vision
+- [DJNZ Iterator Optimization](docs/2026-01-03-301-DJNZ_Iterator_Optimization.md) — loop optimization details
+- [Generator Vision](docs/2026-01-03-302-Generator_Vision_Zero_Cost_Iteration.md) — `gen`/`yield` design
+- [Z80 Optimal Iteration Design](docs/Z80_Optimal_Iteration_Design.md) — hardware-level patterns
+- [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) — progress tracker
+
 ---
 
 ## Platform Targets
