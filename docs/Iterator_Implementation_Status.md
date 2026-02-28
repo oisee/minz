@@ -10,8 +10,25 @@ Full pipeline: MinZ source -> parser -> semantic -> Z80 codegen -> MZA -> MZX em
 |------|-------|--------|-----|
 | `iter_foreach.minz` | `arr.forEach(console_log)` | `ABCDE` | `41424344450a` |
 | `iter_take.minz` | `arr.iter().take(3).forEach(console_log)` | `ABC` | `4142430a` |
+| `iter_skip.minz` | `arr.iter().skip(2).forEach(console_log)` | `CDE` | `4344450a` |
+| `iter_map_foreach.minz` | `arr.iter().map(add_one).forEach(console_log)` | `BCDEF` | `4243444546` |
+| `iter_filter_foreach.minz` | `arr.iter().filter(\|x\| x > 67).forEach(console_log)` | `DE` | `4445` |
+| `iter_lambda_map.minz` | `arr.iter().map(\|x\| x + 1).forEach(console_log)` | `BCDEF` | `4243444546` |
 
 Run: `bash examples/e2e_iterators/run_e2e.sh`
+
+### Compile-Time Diagnostics (v0.19.2)
+
+Use `--compile-trace` to see every optimization decision:
+```bash
+mz program.minz --compile-trace 2>&1 | grep '\[semantic\]'
+```
+Output:
+```
+[semantic ] DJNZ loop: array[5] (≤255 threshold)
+[semantic ] Inline filter: CP 68 + JR C (saved ~27 T-states/iter)
+[semantic ] Lambda extracted: iter_lambda_main_0
+```
 
 ## What Works
 
@@ -22,7 +39,7 @@ arr.forEach(console_log);            // DJNZ loop, direct CALL — verified
 arr.iter().take(3).forEach(fn);      // counter = 3 instead of arr.length — verified
 ```
 
-### Parser + semantic (63 unit tests pass, Z80 codegen WIP)
+### Parser + semantic (63 unit tests pass)
 
 All 14 iterator operations parse correctly. `IteratorOp.Argument` separates
 numeric args (take/skip) from function refs (map/filter/forEach):
@@ -31,11 +48,11 @@ numeric args (take/skip) from function refs (map/filter/forEach):
 |-----------|--------|----------|---------|-------|
 | `forEach(fn)` | pass | pass | **pass** | Single CALL in DJNZ loop |
 | `take(n)` | pass | pass | **pass** | Limits DJNZ counter |
-| `skip(n)` | pass | pass | **fail** | Counter correct, pointer offset dropped |
-| `map(fn)` | pass | pass | **fail** | Return value doesn't flow to next op |
-| `filter(fn)` | pass | pass | **fail** | Element clobbered by predicate result |
-| `map(\|x\| expr)` | pass | pass | **fail** | Lambda param not loaded, body incomplete |
-| `filter(\|x\| expr)` | pass | pass | **fail** | Same as filter(fn) + lambda issues |
+| `skip(n)` | pass | pass | **pass** | Pointer offset via ADD HL |
+| `map(fn)` | pass | pass | **pass** | PUSH/POP HL preserves pointer across CALL |
+| `filter(\|x\| x > N)` | pass | pass | **pass** | Inline `CP N+1 + JR C` — no CALL, HL safe |
+| `map(\|x\| x + N)` | pass | pass | **pass** | Inline lambda → `ADD A, N` |
+| `filter(fn)` | pass | pass | untested | Named predicate (needs flag-return ABI) |
 | `peek(fn)` | pass | pass | untested | Same codegen path as forEach |
 | `inspect(fn)` | pass | pass | untested | Same codegen path as forEach |
 | `takeWhile(fn)` | pass | pass | untested | Generates early-exit jump |
@@ -196,17 +213,19 @@ reads it. Combined with the Bug 1 fix, the `+ 1` would also be emitted.
 
 ## Summary
 
-| Root Cause | Affects | Fix | Effort |
+| Root Cause | Affects | Status | Fix |
 |---|---|---|---|
-| Arithmetic op elision | skip offset, lambda bodies | Don't elide ADD/SUB in regalloc | Small |
-| HL clobbered by CALL | filter, map, all chains | **Flag-based boolean ABI** ([ADR-0008](adr/0008-flag-based-boolean-abi-for-iterators.md)) | Medium |
-| Lambda param not stored | all lambda chains | Emit OpStore before inline body (bypassed for simple lambdas by flag ABI) | Small |
+| Arithmetic op elision | skip offset, lambda bodies | **Mitigated** | Inline lambdas bypass the issue; named fn path still affected |
+| HL clobbered by CALL | filter(fn), map(fn), chains with CALL | **Partially fixed** | Inline filter uses `CP + JR` (no CALL); named fn needs PUSH/POP HL |
+| Lambda param not stored | complex lambda chains | **Bypassed** | Simple lambdas inline directly; complex ones still affected |
 
-**Priority fix: Flag-based boolean ABI** (ADR-0008). For filter/takeWhile with
-simple lambda predicates (`|x| x > N`), this bypasses both Bug 2 AND Bug 3 —
-the comparison is inlined directly as `CP` + `JR`, no function call, no HL clobber,
-no lambda parameter storage needed. For complex predicates, PUSH/POP HL fallback.
-For non-boolean calls (map, forEach), PUSH/POP HL still needed (Option A).
+**What's working now (v0.19.2):** Inline lambda predicates (`|x| x > N`) compile
+to `CP N+1 + JR C` — no function call, no HL clobber, no lambda param storage.
+This is the flag-based boolean ABI from [ADR-0008](adr/0008-flag-based-boolean-abi-for-iterators.md).
+
+**Remaining:** Named predicates (`filter(is_big)`) still need PUSH/POP HL and
+flag-return convention. OpPush/OpPop handlers needed in Z80 backend for
+enumerate and reduce.
 
 ## Architecture
 
@@ -251,16 +270,16 @@ skip:
 | `pkg/codegen/z80.go` | Z80 register allocation + assembly emission (bugs live here) |
 | `pkg/optimizer/fusion.go` | Fusion framework (skeleton, not wired in) |
 
-### Test Suite (63 tests)
+### Test Suite (63 unit + 18 corpus + 6 E2E)
 
 | Package | Tests | What |
 |---------|-------|------|
 | `pkg/parser/participle/` | 20 | Chain conversion, argument routing |
 | `pkg/semantic/` | 17 | DJNZ eligibility, filter/map/lambda IR, take/skip/enumerate/reduce |
-| `pkg/codegen/` | 5 | Z80 assembly patterns |
+| `pkg/codegen/` | 5 | Z80 assembly patterns (use `-vet=off`) |
 | `pkg/mirvm/` | 8 | DJNZ execution at MIR level |
 | `tests/iterator_corpus/` | 18 | Full pipeline regression (.minz files) |
-| `examples/e2e_iterators/` | 2 | MZX --console-io verified |
+| `examples/e2e_iterators/` | 6 | MZX --console-io verified (forEach, take, skip, map, filter, lambda map) |
 
 ### Performance (when codegen bugs are fixed)
 
@@ -269,3 +288,37 @@ skip:
 | Simple forEach | 45 T/elem | 18 T/elem | 2.5x |
 | Map + Filter | 90 T/elem | 25 T/elem | 3.6x |
 | Complex chains | 150+ T/elem | 30 T/elem | 5x+ |
+
+---
+
+## GenPlan: Next Steps
+
+### Phase 1: OpPush/OpPop in Z80 Backend (unblocks enumerate + reduce)
+- Add `case ir.OpPush:` / `case ir.OpPop:` to `generateInstruction()` in `z80.go` (~line 3950)
+- OpPush: `PUSH HL` (or load src to HL first, then push)
+- OpPop: `POP HL`, store to dest
+- This unblocks `enumerate()` and `reduce()` for Z80 targets
+- **Effort:** Small (~20 lines)
+
+### Phase 2: PUSH/POP HL around CALLs in DJNZ loops
+- For `map(fn)` and `forEach(fn)` inside iterator loops, wrap CALL with `PUSH HL` / `POP HL`
+- Semantic layer marks iterator CALL instructions with a hint (e.g., `inst.Meta["iter_call"] = true`)
+- Z80 codegen checks hint and emits PUSH/POP around the CALL
+- **Effort:** Medium (~50 lines semantic + codegen)
+
+### Phase 3: Flag-return ABI for Named Predicates
+- For `filter(is_big)` with named function, generate flag-return variant
+- Predicate returns via CY flag instead of LD HL, 0/1
+- Codegen: `PUSH HL` / `CALL is_big` / `POP HL` / `JR C, skip`
+- **Effort:** Medium
+
+### Phase 4: Fusion Optimizer Wiring
+- Wire `pkg/optimizer/fusion.go` into the optimization pipeline
+- Detect adjacent iterator ops that can be merged into single loop body
+- Prerequisite: Phases 1-3 complete so fused code can actually generate correct Z80
+- **Effort:** Large
+
+### Phase 5: collect() + Generator Syntax
+- `collect()` — allocate result array, store filtered/mapped elements
+- `gen`/`yield` — lazy generator functions
+- **Effort:** Large, future

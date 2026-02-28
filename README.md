@@ -6,7 +6,7 @@
 
 ### Modern Programming Language for Vintage Hardware
 
-[![Version](https://img.shields.io/badge/version-0.18.0-blue)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.19.2-blue)](https://github.com/oisee/minz/releases)
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
 **Write modern code. Run it on Z80, eZ80, 6502, and more.**
@@ -115,7 +115,7 @@ mz program.minz -b c -o prog.c                         # C99
 | Feature | Status |
 |---------|--------|
 | Pattern matching | Syntax parses, codegen partial |
-| Iterator chains | Core pipeline working (map/filter/forEach/take/skip + lambdas), fusion optimizer WIP |
+| Iterator chains | 6 ops E2E verified (forEach, take, skip, map, filter, lambda map), inline filter optimization, fusion WIP |
 | MIR interpreter | Arrays/structs working, not complete |
 
 ### Known Limitations
@@ -287,7 +287,7 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 - **DJNZ loops** — arrays ≤255 elements use Z80's dedicated loop instruction (13 T-states vs 25+ for compare-jump)
 - **Pointer arithmetic** — `HL` walks the array with `INC HL`, no index multiplication
 
-**Status:** Full method-chain syntax works — `.iter().map(f).filter(g).take(n).skip(n).forEach(h)` compiles to fused DJNZ loops with lambda extraction. 63 tests across parser, semantic, codegen, MIR VM, and corpus. Fusion optimizer integration is next.
+**Status:** 6 operations verified end-to-end (forEach, take, skip, map, filter with inline lambda, lambda map). Inline filter optimization: `|x| x > 67` compiles to `CP 68 + JR C` — 8 T-states vs 45 for a function call. 63 unit tests + 18 corpus + 6 E2E. Use `--compile-trace` to see optimizer decisions. Fusion optimizer integration is next.
 
 **Design documents:**
 - [Zero-Cost Iterators Revolution](docs/Zero_Cost_Iterators_Revolution.md) — complete vision
@@ -401,10 +401,11 @@ mzrun game.minz --reset -v
 ### Debug Flags
 
 ```bash
-mz program.minz --dump-mir    # Show MIR intermediate representation
-mz program.minz --dump-ast    # AST in JSON format
-mz program.minz --viz out.dot # MIR visualization (Graphviz)
-mz program.minz -d            # Verbose compilation details
+mz program.minz --dump-mir       # Show MIR intermediate representation
+mz program.minz --dump-ast       # AST in JSON format
+mz program.minz --viz out.dot    # MIR visualization (Graphviz)
+mz program.minz -d               # Verbose compilation details
+mz program.minz --compile-trace  # Structured log of all optimization decisions
 ```
 
 ---
