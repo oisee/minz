@@ -56,9 +56,9 @@ numeric args (take/skip) from function refs (map/filter/forEach):
 | `peek(fn)` | pass | pass | untested | Same codegen path as forEach |
 | `inspect(fn)` | pass | pass | untested | Same codegen path as forEach |
 | `takeWhile(fn)` | pass | pass | untested | Generates early-exit jump |
-| `enumerate()` | pass | pass | Z80 N/A | MIR OK, needs OpPush in Z80 backend |
-| `reduce(fn)` | pass | pass | Z80 N/A | MIR OK, needs OpPush in Z80 backend |
-| `reduce(init, fn)` | pass | pass | Z80 N/A | MIR OK, needs OpPush in Z80 backend |
+| `enumerate()` | pass | pass | **compiles** | OpPush/OpPop implemented (v0.19.2), needs E2E verify |
+| `reduce(fn)` | pass | pass | **compiles** | OpPush/OpPop implemented (v0.19.2), needs E2E verify |
+| `reduce(init, fn)` | pass | pass | **compiles** | OpPush/OpPop implemented (v0.19.2), needs E2E verify |
 | `skipWhile(fn)` | pass | pass | N/A | Not implemented in DJNZ mode |
 | `zip(other)` | pass | — | — | Parser only |
 | `flatMap(fn)` | pass | — | — | Parser only |
@@ -293,12 +293,11 @@ skip:
 
 ## GenPlan: Next Steps
 
-### Phase 1: OpPush/OpPop in Z80 Backend (unblocks enumerate + reduce)
-- Add `case ir.OpPush:` / `case ir.OpPop:` to `generateInstruction()` in `z80.go` (~line 3950)
-- OpPush: `PUSH HL` (or load src to HL first, then push)
+### Phase 1: OpPush/OpPop in Z80 Backend -- DONE (v0.19.2)
+- Added `case ir.OpPush:` / `case ir.OpPop:` to `generateInstruction()` in `z80.go`
+- OpPush: load src to HL, then `PUSH HL`
 - OpPop: `POP HL`, store to dest
-- This unblocks `enumerate()` and `reduce()` for Z80 targets
-- **Effort:** Small (~20 lines)
+- **Result:** 18/18 corpus tests now compile to Z80 (was 16/18)
 
 ### Phase 2: PUSH/POP HL around CALLs in DJNZ loops
 - For `map(fn)` and `forEach(fn)` inside iterator loops, wrap CALL with `PUSH HL` / `POP HL`

@@ -12,12 +12,9 @@ import (
 	"github.com/minz/minzc/pkg/semantic"
 )
 
-// knownZ80CodegenFailures lists files that pass parse+semantic but fail Z80 codegen
-// due to pre-existing OpPush limitations. These are tested separately at MIR level.
-var knownZ80CodegenFailures = map[string]bool{
-	"iter_enumerate.minz":  true, // OpPush not yet in Z80 backend
-	"iter_reduce_sum.minz": true, // OpPush not yet in Z80 backend
-}
+// knownZ80CodegenFailures lists files that pass parse+semantic but fail Z80 codegen.
+// As of v0.19.2, OpPush/OpPop are implemented — enumerate and reduce compile to Z80.
+var knownZ80CodegenFailures = map[string]bool{}
 
 // TestIteratorCorpus runs all .minz files in the iterator corpus through the
 // full compile pipeline (parse -> semantic -> codegen), verifying each compiles

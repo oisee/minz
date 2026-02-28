@@ -3676,6 +3676,17 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			g.emit("    LD (HL), A")
 		}
 		
+	case ir.OpPush:
+		// Push a virtual register onto the Z80 stack
+		g.loadToHL(inst.Src1)
+		g.emit("    PUSH HL       ; %s", inst.Comment)
+
+	case ir.OpPop:
+		// Pop from the Z80 stack into a virtual register
+		g.emit("    POP HL        ; %s", inst.Comment)
+		g.storeFromHL(inst.Dest)
+		delete(g.constantValues, inst.Dest)
+
 	default:
 		return fmt.Errorf("unsupported opcode: %v (%d)", inst.Op, int(inst.Op))
 	}
