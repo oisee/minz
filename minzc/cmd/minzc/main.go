@@ -45,6 +45,9 @@ var (
 	
 	compileTrace bool    // Structured compilation trace output
 
+	// Superoptimizer
+	superoptRules string  // Path to z80-optimizer rules.json[.gz]
+
 	// PGO (Profile-Guided Optimization) - Quick Win flags
 	pgoProfile   string  // Path to .tas profile file for PGO compilation
 	pgoDebug     bool    // Debug PGO decisions
@@ -185,6 +188,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&disableCTIE, "disable-ctie", false, "disable Compile-Time Interface Execution (enabled by default - functions execute at compile-time)")
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
+	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
 }
 
 func main() {
@@ -372,6 +376,7 @@ func compile(sourceFile string) error {
 		DisableAsmOpt:     disableAsmOpt || disableOptimize,
 		DisableCodegenOpt: disableCodegenOpt || disableOptimize,
 		Tracer:            tracer,
+		SuperoptRules:     superoptRules,
 	}
 
 	if !disableOptimize {
@@ -553,6 +558,7 @@ func compileFromMIR(mirFile string) error {
 		Target:            target,
 		DisableAsmOpt:     disableAsmOpt || disableOptimize,
 		DisableCodegenOpt: disableCodegenOpt || disableOptimize,
+		SuperoptRules:     superoptRules,
 	}
 
 	if !disableOptimize {

@@ -345,9 +345,37 @@ func (a *Analyzer) generateDJNZIteration(chain *ast.IteratorChainExpr, sourceReg
 	})
 	
 	// Apply iterator operations
+	// Operations may call functions (map, filter, forEach) which clobber HL.
+	// We PUSH/POP the array pointer around the operation block to preserve it.
 	currentReg := elementReg
 	var continueLabels []string
-	
+
+	// Check if any operation calls a function (needs pointer save/restore)
+	hasCallOps := false
+	for _, op := range chain.Operations {
+		switch op.Type {
+		case ast.IterOpMap, ast.IterOpForEach, ast.IterOpPeek, ast.IterOpInspect:
+			if op.Function != nil {
+				hasCallOps = true
+			}
+		case ast.IterOpFilter:
+			// Inline filters don't need save, but complex ones do
+			if op.Function != nil {
+				hasCallOps = true
+			}
+		case ast.IterOpReduce, ast.IterOpEnumerate:
+			hasCallOps = true
+		}
+	}
+
+	if hasCallOps {
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpPush,
+			Src1:    ptrReg,
+			Comment: "Save array pointer before operations",
+		})
+	}
+
 	for _, op := range chain.Operations {
 		// Handle filter operations specially - they need continue labels
 		if op.Type == ast.IterOpFilter {
@@ -412,6 +440,15 @@ func (a *Analyzer) generateDJNZIteration(chain *ast.IteratorChainExpr, sourceReg
 	// Emit continue labels for filters (right before loop increment)
 	for _, label := range continueLabels {
 		irFunc.EmitLabel(label)
+	}
+
+	// Restore array pointer after operations (before increment)
+	if hasCallOps {
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpPop,
+			Dest:    ptrReg,
+			Comment: "Restore array pointer after operations",
+		})
 	}
 
 	// Increment pointer to next element

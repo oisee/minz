@@ -81,7 +81,19 @@ func (b *Z80Backend) Generate(module *ir.Module) (string, error) {
 			assembly += "\n\n; Assembly peephole optimization: no patterns matched"
 		}
 	}
-	
+
+	// Apply superoptimizer rules if available
+	if b.options != nil && b.options.SuperoptRules != "" && !b.options.DisableAsmOpt {
+		superopt, err := optimizer.NewSuperoptPeepholePass(b.options.SuperoptRules)
+		if err == nil {
+			optimized := superopt.OptimizeAssembly(assembly)
+			if optimized != assembly {
+				assembly = optimized
+			}
+		}
+		// Silently skip if rules file not found — non-fatal
+	}
+
 	return assembly, nil
 }
 

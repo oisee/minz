@@ -50,6 +50,9 @@ type BackendOptions struct {
 	// Tracer for structured compilation trace output (nil = no trace)
 	Tracer *trace.Tracer
 
+	// SuperoptRules is the path to a z80-optimizer rules.json[.gz] file
+	SuperoptRules string
+
 	// Custom backend-specific options
 	CustomOptions map[string]interface{}
 }
