@@ -23,14 +23,18 @@ func (a *Analyzer) generateEnhancedDJNZIteration(chain *ast.IteratorChainExpr, s
 	for _, op := range chain.Operations {
 		switch op.Type {
 		case ast.IterOpSkip:
-			// Extract skip count from argument
-			if lit, ok := op.Function.(*ast.NumberLiteral); ok {
-				skipCount = int(lit.Value)
+			// Extract skip count from Argument field
+			if op.Argument != nil {
+				if lit, ok := op.Argument.(*ast.NumberLiteral); ok {
+					skipCount = int(lit.Value)
+				}
 			}
 		case ast.IterOpTake:
-			// Extract take count from argument
-			if lit, ok := op.Function.(*ast.NumberLiteral); ok {
-				takeCount = int(lit.Value)
+			// Extract take count from Argument field
+			if op.Argument != nil {
+				if lit, ok := op.Argument.(*ast.NumberLiteral); ok {
+					takeCount = int(lit.Value)
+				}
 			}
 		case ast.IterOpEnumerate:
 			hasEnumerate = true
@@ -436,6 +440,10 @@ func (a *Analyzer) applyEnumeratedFunction(fn ast.Expression, indexReg, elementR
 func (a *Analyzer) applyReducerFunction(fn ast.Expression, accReg, elemReg ir.Register,
 	elemType ir.Type, irFunc *ir.Function) (ir.Register, error) {
 
+	if fn == nil {
+		return 0, fmt.Errorf("reduce requires a function")
+	}
+
 	switch f := fn.(type) {
 	case *ast.LambdaExpr:
 		// Lambda with two parameters: |acc, x| expr
@@ -616,12 +624,16 @@ func analyzeIteratorChain(chain *ast.IteratorChainExpr, sourceType ir.Type) Chai
 	for _, op := range chain.Operations {
 		switch op.Type {
 		case ast.IterOpSkip:
-			if lit, ok := op.Function.(*ast.NumberLiteral); ok {
-				opt.SkipCount = int(lit.Value)
+			if op.Argument != nil {
+				if lit, ok := op.Argument.(*ast.NumberLiteral); ok {
+					opt.SkipCount = int(lit.Value)
+				}
 			}
 		case ast.IterOpTake:
-			if lit, ok := op.Function.(*ast.NumberLiteral); ok {
-				opt.TakeCount = int(lit.Value)
+			if op.Argument != nil {
+				if lit, ok := op.Argument.(*ast.NumberLiteral); ok {
+					opt.TakeCount = int(lit.Value)
+				}
 			}
 		case ast.IterOpForEach:
 			opt.HasSideEffects = true

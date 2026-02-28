@@ -1,0 +1,7 @@
+// Test: enumerate() adds index tracking
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let nums: [u8; 5] = [1, 2, 3, 4, 5];
+    nums.iter().enumerate().forEach(print_u8);
+}

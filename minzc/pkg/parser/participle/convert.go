@@ -1025,15 +1025,38 @@ func (c *Converter) tryConvertIteratorChain(expr ast.Expression) *ast.IteratorCh
 			continue
 		}
 
-		// This is an iterator method call
+		// This is an iterator method call — route args to the right field
+		opType := getIteratorOpType(fieldExpr.Field)
 		var fn ast.Expression
-		if len(callExpr.Arguments) > 0 {
-			fn = callExpr.Arguments[0]
+		var arg ast.Expression
+
+		switch opType {
+		case ast.IterOpTake, ast.IterOpSkip:
+			// Numeric argument goes to Argument, Function stays nil
+			if len(callExpr.Arguments) > 0 {
+				arg = callExpr.Arguments[0]
+			}
+		case ast.IterOpReduce:
+			// reduce(init, fn) or reduce(fn)
+			if len(callExpr.Arguments) == 2 {
+				arg = callExpr.Arguments[0] // init value
+				fn = callExpr.Arguments[1]  // reducer function
+			} else if len(callExpr.Arguments) == 1 {
+				fn = callExpr.Arguments[0] // reducer only (fold-left from first element)
+			}
+		case ast.IterOpEnumerate, ast.IterOpCollect:
+			// No arguments
+		default:
+			// map/filter/forEach/peek/inspect/takeWhile/skipWhile/flatMap/zip/chain
+			if len(callExpr.Arguments) > 0 {
+				fn = callExpr.Arguments[0]
+			}
 		}
 
 		op := ast.IteratorOp{
-			Type:     getIteratorOpType(fieldExpr.Field),
+			Type:     opType,
 			Function: fn,
+			Argument: arg,
 			StartPos: callExpr.Pos(),
 			EndPos:   callExpr.End(),
 		}

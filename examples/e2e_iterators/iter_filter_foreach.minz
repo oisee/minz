@@ -1,0 +1,28 @@
+// E2E Test: filter + forEach chain — filters values > 67 ('C')
+// Input: [65, 66, 67, 68, 69] -> filter(is_big) -> forEach(console_log)
+// Expected output: DE (only 68='D' and 69='E' pass the filter)
+// Run: mz iter_filter_foreach.minz -o t.a80 && mza t.a80 -o t.bin && mzx --run t.bin@8000 --frames DI:HALT --console-io
+
+fun is_big(x: u8) -> bool { return x > 67; }
+
+fun console_log(c: u8) -> void {
+    asm {
+        OUT ($23), A
+    }
+}
+
+fun main() -> void {
+    asm {
+        LD HL, _data
+        LD ($F002), HL
+    }
+    let arr: [u8; 5] = [65, 66, 67, 68, 69];
+    arr.filter(is_big).forEach(console_log);
+    console_log(10);
+    asm {
+        DI
+        HALT
+    _data:
+        DB 65, 66, 67, 68, 69
+    }
+}

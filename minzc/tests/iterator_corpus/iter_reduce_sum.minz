@@ -1,0 +1,7 @@
+// Test: reduce(sum) folds array with accumulator
+fun sum(acc: u8, x: u8) -> u8 { return acc + x; }
+
+fun main() -> void {
+    let nums: [u8; 5] = [1, 2, 3, 4, 5];
+    nums.iter().reduce(sum);
+}

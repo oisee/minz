@@ -16,7 +16,8 @@ func (i *IteratorChainExpr) exprNode()    {}
 // IteratorOp represents a single operation in an iterator chain
 type IteratorOp struct {
 	Type     IteratorOpType
-	Function Expression // Lambda or function reference
+	Function Expression // Lambda or function reference (map/filter/forEach/reduce)
+	Argument Expression // Numeric arg (take/skip) or init value (reduce)
 	StartPos Position
 	EndPos   Position
 }

@@ -630,7 +630,11 @@ func (a *Analyzer) applyIteratorOperation(op ast.IteratorOp, elementReg ir.Regis
 // applyIteratorFunction applies a function to an element in an iterator chain
 func (a *Analyzer) applyIteratorFunction(function ast.Expression, elementReg ir.Register,
 	elementType ir.Type, irFunc *ir.Function) (ir.Register, error) {
-	
+
+	if function == nil {
+		return elementReg, nil // No function to apply (e.g., take/skip/enumerate)
+	}
+
 	// Handle different function types
 	switch function.(type) {
 	case *ast.Identifier:

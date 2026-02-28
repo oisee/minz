@@ -522,3 +522,164 @@ fun main() -> void {
 			continueLabelIdx, printCallIdx)
 	}
 }
+
+// --- Enhanced Iterator Operations ---
+
+func TestTakeCompiles(t *testing.T) {
+	source := `
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let nums: [u8; 10] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    nums.iter().take(3).forEach(print_u8);
+}
+`
+	module := compileIteratorToMIR(t, source)
+	mainFn := findMainFunction(module)
+	if mainFn == nil {
+		t.Fatal("main function not found")
+	}
+
+	// Should use DJNZ with counter = 3 (take count)
+	if !hasOpcode(mainFn, ir.OpDJNZ) {
+		t.Error("expected DJNZ for take(3)")
+	}
+
+	// Find counter init — should be 3, not 10
+	var djnzInst *ir.Instruction
+	for i, inst := range mainFn.Instructions {
+		if inst.Op == ir.OpDJNZ {
+			djnzInst = &mainFn.Instructions[i]
+			break
+		}
+	}
+	if djnzInst == nil {
+		t.Fatal("DJNZ instruction not found")
+	}
+	counterReg := djnzInst.Src1
+	for _, inst := range mainFn.Instructions {
+		if inst.Op == ir.OpLoadConst && inst.Dest == counterReg {
+			if inst.Imm != 3 {
+				t.Errorf("expected DJNZ counter = 3 (take count), got %d", inst.Imm)
+			}
+			break
+		}
+	}
+}
+
+func TestSkipCompiles(t *testing.T) {
+	source := `
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let nums: [u8; 10] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    nums.iter().skip(2).forEach(print_u8);
+}
+`
+	module := compileIteratorToMIR(t, source)
+	mainFn := findMainFunction(module)
+	if mainFn == nil {
+		t.Fatal("main function not found")
+	}
+
+	if !hasOpcode(mainFn, ir.OpDJNZ) {
+		t.Error("expected DJNZ for skip(2)")
+	}
+
+	// Should have a comment mentioning skip=2
+	hasSkipComment := false
+	for _, inst := range mainFn.Instructions {
+		if strings.Contains(inst.Comment, "skip=2") {
+			hasSkipComment = true
+			break
+		}
+	}
+	if !hasSkipComment {
+		t.Error("expected enhanced DJNZ comment mentioning skip=2")
+	}
+}
+
+func TestTakeSkipCombined(t *testing.T) {
+	source := `
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let nums: [u8; 10] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    nums.iter().skip(2).take(5).forEach(print_u8);
+}
+`
+	module := compileIteratorToMIR(t, source)
+	mainFn := findMainFunction(module)
+	if mainFn == nil {
+		t.Fatal("main function not found")
+	}
+
+	if !hasOpcode(mainFn, ir.OpDJNZ) {
+		t.Error("expected DJNZ for skip(2).take(5)")
+	}
+
+	// Should have enhanced DJNZ comment with both skip and take
+	hasEnhancedComment := false
+	for _, inst := range mainFn.Instructions {
+		if strings.Contains(inst.Comment, "skip=2") && strings.Contains(inst.Comment, "take=5") {
+			hasEnhancedComment = true
+			break
+		}
+	}
+	if !hasEnhancedComment {
+		t.Error("expected enhanced DJNZ comment with skip=2 and take=5")
+	}
+}
+
+func TestEnumerateCompiles(t *testing.T) {
+	source := `
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let nums: [u8; 5] = [1, 2, 3, 4, 5];
+    nums.iter().enumerate().forEach(print_u8);
+}
+`
+	module := compileIteratorToMIR(t, source)
+	mainFn := findMainFunction(module)
+	if mainFn == nil {
+		t.Fatal("main function not found")
+	}
+
+	if !hasOpcode(mainFn, ir.OpDJNZ) {
+		t.Error("expected DJNZ for enumerate()")
+	}
+}
+
+func TestReduceWithFunction(t *testing.T) {
+	source := `
+fun sum(acc: u8, x: u8) -> u8 { return acc + x; }
+
+fun main() -> void {
+    let nums: [u8; 5] = [1, 2, 3, 4, 5];
+    nums.iter().reduce(sum);
+}
+`
+	module := compileIteratorToMIR(t, source)
+	mainFn := findMainFunction(module)
+	if mainFn == nil {
+		t.Fatal("main function not found")
+	}
+
+	// Reduce should use DJNZ
+	if !hasOpcode(mainFn, ir.OpDJNZ) {
+		t.Error("expected DJNZ for reduce(sum)")
+	}
+
+	// Should call sum
+	hasSumCall := false
+	for _, inst := range mainFn.Instructions {
+		if inst.Op == ir.OpCall && strings.Contains(inst.Symbol, "sum") {
+			hasSumCall = true
+			break
+		}
+	}
+	if !hasSumCall {
+		t.Error("expected call to sum in reduce body")
+	}
+}

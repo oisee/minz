@@ -14,11 +14,13 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - See `docs/adr/` for ADR-0006, ADR-0007
 
 ### 2. Iterator Chain Fusion
-**Status:** Semantic analysis done (~1800 LOC), codegen partial, parser wiring missing.
-- AST/IR types for 14 operations (map, filter, forEach, reduce, take, skip, zip...)
-- DJNZ optimization works for `for i in 0..N`
-- Parser doesn't emit `IteratorChainExpr` — method chains parse as `CallExpr`
-- Fusion optimizer is skeleton only (`pkg/optimizer/fusion.go`)
+**Status:** Core pipeline working. Parser + semantic + DJNZ codegen done. Fusion optimizer not yet wired in.
+- Parser emits `IteratorChainExpr` via `tryConvertIteratorChain()` — method chains work
+- `IteratorOp.Argument` field separates numeric args (take/skip) from function refs
+- Working: map, filter, forEach, take, skip, peek, inspect, takeWhile + lambdas
+- MIR-only (Z80 needs OpPush): enumerate, reduce
+- 63 tests across 5 packages
+- Fusion optimizer skeleton: `pkg/optimizer/fusion.go` — needs pipeline wiring
 - See [Iterator Implementation Status](docs/Iterator_Implementation_Status.md)
 
 ### 3. LSP / DAP / Developer Tooling
@@ -119,7 +121,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ## 🚧 WIP (In Development)
 
-- **Iterator chain fusion**: Semantic analysis done, parser wiring + fusion optimizer needed
+- **Iterator chain fusion**: Core pipeline done (map/filter/forEach/take/skip + lambdas), fusion optimizer needs wiring
 - **Pattern matching**: Syntax parses, codegen partial
 - **@minz[[[...]]]**: Limited compile-time execution
 - **MIR interpreter**: Arrays/structs working

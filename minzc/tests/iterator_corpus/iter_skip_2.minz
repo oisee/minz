@@ -1,0 +1,7 @@
+// Test: skip(2) skips first 2 elements
+fun print_u8(x: u8) -> void {}
+
+fun main() -> void {
+    let nums: [u8; 10] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    nums.iter().skip(2).forEach(print_u8);
+}

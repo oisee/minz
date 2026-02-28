@@ -115,7 +115,7 @@ mz program.minz -b c -o prog.c                         # C99
 | Feature | Status |
 |---------|--------|
 | Pattern matching | Syntax parses, codegen partial |
-| Iterator chains | Compiles, optimization in progress |
+| Iterator chains | Core pipeline working (map/filter/forEach/take/skip + lambdas), fusion optimizer WIP |
 | MIR interpreter | Arrays/structs working, not complete |
 
 ### Known Limitations
@@ -287,7 +287,7 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 - **DJNZ loops** — arrays ≤255 elements use Z80's dedicated loop instruction (13 T-states vs 25+ for compare-jump)
 - **Pointer arithmetic** — `HL` walks the array with `INC HL`, no index multiplication
 
-**Status:** Lambda-to-function transform works. DJNZ optimization works for `for i in 0..N`. Full method-chain syntax (`.map().filter()`) and fusion optimizer are in active development.
+**Status:** Full method-chain syntax works — `.iter().map(f).filter(g).take(n).skip(n).forEach(h)` compiles to fused DJNZ loops with lambda extraction. 63 tests across parser, semantic, codegen, MIR VM, and corpus. Fusion optimizer integration is next.
 
 **Design documents:**
 - [Zero-Cost Iterators Revolution](docs/Zero_Cost_Iterators_Revolution.md) — complete vision

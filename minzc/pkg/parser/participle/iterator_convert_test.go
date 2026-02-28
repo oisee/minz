@@ -341,3 +341,183 @@ func TestIsIteratorMethod(t *testing.T) {
 		}
 	}
 }
+
+// --- Argument field routing tests ---
+
+func TestTakeArgumentRouting(t *testing.T) {
+	source := `
+fun f() {
+	let arr: [u8; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+	arr.iter().take(5).forEach(print_u8);
+}
+`
+	file := parseAndConvert(t, source)
+	chain := findIteratorChain(file)
+	if chain == nil {
+		t.Fatal("expected IteratorChainExpr, got nil")
+	}
+	takeOp := chain.Operations[0]
+	if takeOp.Type != ast.IterOpTake {
+		t.Fatalf("op[0]: expected Take, got %v", takeOp.Type)
+	}
+	// Argument should hold the number, Function should be nil
+	if takeOp.Function != nil {
+		t.Errorf("take(5): Function should be nil, got %T", takeOp.Function)
+	}
+	if takeOp.Argument == nil {
+		t.Fatal("take(5): Argument should not be nil")
+	}
+	lit, ok := takeOp.Argument.(*ast.NumberLiteral)
+	if !ok {
+		t.Fatalf("take(5): Argument should be *NumberLiteral, got %T", takeOp.Argument)
+	}
+	if lit.Value != 5 {
+		t.Errorf("take(5): expected value 5, got %d", lit.Value)
+	}
+}
+
+func TestSkipArgumentRouting(t *testing.T) {
+	source := `
+fun f() {
+	let arr: [u8; 10] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+	arr.iter().skip(2).forEach(print_u8);
+}
+`
+	file := parseAndConvert(t, source)
+	chain := findIteratorChain(file)
+	if chain == nil {
+		t.Fatal("expected IteratorChainExpr, got nil")
+	}
+	skipOp := chain.Operations[0]
+	if skipOp.Type != ast.IterOpSkip {
+		t.Fatalf("op[0]: expected Skip, got %v", skipOp.Type)
+	}
+	if skipOp.Function != nil {
+		t.Errorf("skip(2): Function should be nil, got %T", skipOp.Function)
+	}
+	if skipOp.Argument == nil {
+		t.Fatal("skip(2): Argument should not be nil")
+	}
+	lit, ok := skipOp.Argument.(*ast.NumberLiteral)
+	if !ok {
+		t.Fatalf("skip(2): Argument should be *NumberLiteral, got %T", skipOp.Argument)
+	}
+	if lit.Value != 2 {
+		t.Errorf("skip(2): expected value 2, got %d", lit.Value)
+	}
+}
+
+func TestEnumerateNoArguments(t *testing.T) {
+	source := `
+fun f() {
+	let arr: [u8; 3] = [1, 2, 3];
+	arr.iter().enumerate().forEach(print_u8);
+}
+`
+	file := parseAndConvert(t, source)
+	chain := findIteratorChain(file)
+	if chain == nil {
+		t.Fatal("expected IteratorChainExpr, got nil")
+	}
+	enumOp := chain.Operations[0]
+	if enumOp.Type != ast.IterOpEnumerate {
+		t.Fatalf("op[0]: expected Enumerate, got %v", enumOp.Type)
+	}
+	if enumOp.Function != nil {
+		t.Errorf("enumerate(): Function should be nil, got %T", enumOp.Function)
+	}
+	if enumOp.Argument != nil {
+		t.Errorf("enumerate(): Argument should be nil, got %T", enumOp.Argument)
+	}
+}
+
+func TestReduceWithFunctionRouting(t *testing.T) {
+	source := `
+fun sum(acc: u8, x: u8) -> u8 { return acc + x; }
+
+fun f() {
+	let arr: [u8; 5] = [1, 2, 3, 4, 5];
+	arr.iter().reduce(sum);
+}
+`
+	file := parseAndConvert(t, source)
+	chain := findIteratorChain(file)
+	if chain == nil {
+		t.Fatal("expected IteratorChainExpr, got nil")
+	}
+	reduceOp := chain.Operations[0]
+	if reduceOp.Type != ast.IterOpReduce {
+		t.Fatalf("op[0]: expected Reduce, got %v", reduceOp.Type)
+	}
+	// Single-arg reduce: fn goes to Function, Argument is nil
+	if reduceOp.Function == nil {
+		t.Error("reduce(sum): Function should not be nil")
+	}
+	if reduceOp.Argument != nil {
+		t.Errorf("reduce(sum): Argument should be nil (no init value), got %T", reduceOp.Argument)
+	}
+}
+
+func TestReduceWithInitAndFunction(t *testing.T) {
+	source := `
+fun f() {
+	let arr: [u8; 5] = [1, 2, 3, 4, 5];
+	arr.iter().reduce(0, |acc, x| => u8 { acc + x });
+}
+`
+	file := parseAndConvert(t, source)
+	chain := findIteratorChain(file)
+	if chain == nil {
+		t.Fatal("expected IteratorChainExpr, got nil")
+	}
+	reduceOp := chain.Operations[0]
+	if reduceOp.Type != ast.IterOpReduce {
+		t.Fatalf("op[0]: expected Reduce, got %v", reduceOp.Type)
+	}
+	// Two-arg reduce: init → Argument, fn → Function
+	if reduceOp.Argument == nil {
+		t.Fatal("reduce(0, fn): Argument (init value) should not be nil")
+	}
+	if reduceOp.Function == nil {
+		t.Fatal("reduce(0, fn): Function should not be nil")
+	}
+	// Init value should be 0
+	lit, ok := reduceOp.Argument.(*ast.NumberLiteral)
+	if !ok {
+		t.Fatalf("reduce init: expected *NumberLiteral, got %T", reduceOp.Argument)
+	}
+	if lit.Value != 0 {
+		t.Errorf("reduce init: expected 0, got %d", lit.Value)
+	}
+	// Function should be a lambda
+	if _, ok := reduceOp.Function.(*ast.LambdaExpr); !ok {
+		t.Errorf("reduce fn: expected *LambdaExpr, got %T", reduceOp.Function)
+	}
+}
+
+func TestMapFunctionInFunctionField(t *testing.T) {
+	// Verify map/filter/forEach still use Function field (not Argument)
+	source := `
+fun double(x: u8) -> u8 { return x * 2; }
+
+fun f() {
+	let arr: [u8; 3] = [1, 2, 3];
+	arr.iter().map(double).forEach(print_u8);
+}
+`
+	file := parseAndConvert(t, source)
+	chain := findIteratorChain(file)
+	if chain == nil {
+		t.Fatal("expected IteratorChainExpr, got nil")
+	}
+	mapOp := chain.Operations[0]
+	if mapOp.Type != ast.IterOpMap {
+		t.Fatalf("op[0]: expected Map, got %v", mapOp.Type)
+	}
+	if mapOp.Function == nil {
+		t.Error("map(double): Function should not be nil")
+	}
+	if mapOp.Argument != nil {
+		t.Errorf("map(double): Argument should be nil, got %T", mapOp.Argument)
+	}
+}
