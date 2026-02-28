@@ -40,6 +40,11 @@ func (b *Z80Backend) Generate(module *ir.Module) (string, error) {
 	if b.options != nil && b.options.DisableCodegenOpt {
 		gen.SetDisableConstantTracking(true)
 	}
+
+	// Set tracer
+	if b.options != nil && b.options.Tracer != nil {
+		gen.tracer = b.options.Tracer
+	}
 	
 	// Configure based on options
 	if b.options != nil {

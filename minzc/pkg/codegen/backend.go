@@ -2,6 +2,7 @@ package codegen
 
 import (
 	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/trace"
 )
 
 // Backend defines the interface for code generation backends
@@ -45,6 +46,9 @@ type BackendOptions struct {
 
 	// DisableCodegenOpt disables codegen-level optimizations (constant tracking)
 	DisableCodegenOpt bool
+
+	// Tracer for structured compilation trace output (nil = no trace)
+	Tracer *trace.Tracer
 
 	// Custom backend-specific options
 	CustomOptions map[string]interface{}

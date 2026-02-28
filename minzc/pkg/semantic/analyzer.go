@@ -13,6 +13,7 @@ import (
 	"github.com/minz/minzc/pkg/meta"
 	"github.com/minz/minzc/pkg/metafunction"
 	"github.com/minz/minzc/pkg/parser"
+	"github.com/minz/minzc/pkg/trace"
 )
 
 var debug = os.Getenv("DEBUG") != ""
@@ -53,6 +54,7 @@ type Analyzer struct {
 	simpleCastInterfaces  map[string]*SimpleCastInterface // Simplified cast interfaces (v0.11.0)
 	builtinModules        map[string]*BuiltinModule // Built-in module registry
 	printStats            *PrintStatistics // Track @print usage for optimization
+	tracer                *trace.Tracer // Structured compilation trace output
 }
 
 // PrintStatistics tracks @print usage to optimize string printing
@@ -92,6 +94,11 @@ func (a *Analyzer) SetTargetBackend(backend string) {
 // SetTargetPlatform sets the target platform (zxspectrum, cpm, etc.)
 func (a *Analyzer) SetTargetPlatform(platform string) {
 	a.targetPlatform = platform
+}
+
+// SetTracer sets the structured compilation trace writer.
+func (a *Analyzer) SetTracer(t *trace.Tracer) {
+	a.tracer = t
 }
 
 // registerPredefinedConstants registers predefined constants like TARGET
@@ -850,7 +857,19 @@ func (a *Analyzer) registerModuleAlias(originalModule, alias string) {
 func (a *Analyzer) processLoadedModule(module *LoadedModule, imp *ast.ImportStmt) error {
 	// Always use the full path as the primary module prefix
 	modulePrefix := imp.Path
-	
+
+	// Count declarations for trace
+	funcCount, structCount := 0, 0
+	for _, decl := range module.File.Declarations {
+		switch decl.(type) {
+		case *ast.FunctionDecl:
+			funcCount++
+		case *ast.StructDecl:
+			structCount++
+		}
+	}
+	a.tracer.Log("semantic", "Module loaded: %s (%d funcs, %d structs)", modulePrefix, funcCount, structCount)
+
 	// Register the module itself
 	a.currentScope.Define(modulePrefix, &ModuleSymbol{
 		Name: modulePrefix,

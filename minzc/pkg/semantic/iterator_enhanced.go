@@ -224,16 +224,44 @@ func (a *Analyzer) generateEnhancedDJNZIteration(chain *ast.IteratorChainExpr, s
 			continue
 			
 		case ast.IterOpFilter:
-			// Call the filter predicate
+			// Try inline optimization for simple comparison lambdas
+			if lambda, ok := op.Function.(*ast.LambdaExpr); ok {
+				if flagCond, constVal, isSimple := isSimpleComparisonLambda(lambda); isSimple {
+					a.tracer.Log("semantic", "Inline filter (enhanced): CP %d + JR %s", constVal, flagCond)
+					constReg := irFunc.AllocReg()
+					irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+						Op:   ir.OpLoadConst,
+						Dest: constReg,
+						Imm:  constVal,
+						Type: &ir.BasicType{Kind: ir.TypeU8},
+						Comment: fmt.Sprintf("Inline filter constant = %d", constVal),
+					})
+
+					continueLabel := a.generateLabel("filter_continue")
+					continueLabels = append(continueLabels, continueLabel)
+
+					irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+						Op:    ir.OpJumpIfFlag,
+						Src1:  currentReg,
+						Src2:  constReg,
+						Imm:   int64(flagCond),
+						Label: continueLabel,
+						Comment: fmt.Sprintf("Inline filter: CP %d + JR %s", constVal, flagCond),
+					})
+					continue
+				}
+			}
+
+			// Fallback: call the filter predicate as a function
 			predicateResult, err := a.applyIteratorFunction(op.Function, currentReg, elementType, irFunc)
 			if err != nil {
 				return 0, fmt.Errorf("failed to apply filter predicate: %w", err)
 			}
-			
+
 			// Generate continue label for this filter
 			continueLabel := a.generateLabel("filter_continue")
 			continueLabels = append(continueLabels, continueLabel)
-			
+
 			// Jump to continue if predicate is false
 			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 				Op:    ir.OpJumpIfNot,

@@ -15,6 +15,7 @@ import (
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/semantic"
+	"github.com/minz/minzc/pkg/trace"
 	"github.com/minz/minzc/pkg/version"
 	"github.com/minz/minzc/pkg/z80asm"
 	"github.com/spf13/cobra"
@@ -42,6 +43,8 @@ var (
 	dumpAST      bool   // Dump AST in JSON format
 	dumpMIR      bool   // Dump MIR to stdout
 	
+	compileTrace bool    // Structured compilation trace output
+
 	// PGO (Profile-Guided Optimization) - Quick Win flags
 	pgoProfile   string  // Path to .tas profile file for PGO compilation
 	pgoDebug     bool    // Debug PGO decisions
@@ -95,6 +98,7 @@ OPTIMIZATION FLAGS:
 
 DEBUGGING:
   -d, --debug         Show compilation details
+  --compile-trace     Show all optimization decisions and transformations
   --dump-ast          Output AST in JSON format
   --viz file.dot      Generate MIR visualization
 
@@ -180,6 +184,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&dumpMIR, "dump-mir", false, "dump MIR (intermediate representation) to stdout")
 	rootCmd.Flags().BoolVar(&disableCTIE, "disable-ctie", false, "disable Compile-Time Interface Execution (enabled by default - functions execute at compile-time)")
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
+	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 }
 
 func main() {
@@ -246,10 +251,17 @@ func compile(sourceFile string) error {
 		astFile.ModuleName = module.ExtractModuleName(sourceFile)
 	}
 
+	// Create compile tracer (nil if --compile-trace not set)
+	var tracer *trace.Tracer
+	if compileTrace {
+		tracer = trace.New(os.Stderr)
+	}
+
 	// Perform semantic analysis with module support
 	analyzer := semantic.NewAnalyzer()
 	analyzer.SetTargetBackend(backend)
 	analyzer.SetTargetPlatform(target)
+	analyzer.SetTracer(tracer)
 	// TODO: Set module resolver on analyzer
 	irModule, err := analyzer.Analyze(astFile)
 	if err != nil {
@@ -293,7 +305,8 @@ func compile(sourceFile string) error {
 		ctieConfig := ctie.DefaultConfig()
 		ctieConfig.DebugOutput = ctieDebug || debug
 		ctieEngine.SetConfig(ctieConfig)
-		
+		ctieEngine.SetTracer(tracer)
+
 		if err := ctieEngine.Process(); err != nil {
 			return fmt.Errorf("CTIE error: %w", err)
 		}
@@ -315,6 +328,7 @@ func compile(sourceFile string) error {
 		useTrueSMC := !disableSMC
 
 		opt := optimizer.NewOptimizerWithOptions(level, useTrueSMC)
+		opt.SetTracer(tracer)
 		if err := opt.Optimize(irModule); err != nil {
 			return fmt.Errorf("optimization error: %w", err)
 		}
@@ -357,6 +371,7 @@ func compile(sourceFile string) error {
 		Target:            target,
 		DisableAsmOpt:     disableAsmOpt || disableOptimize,
 		DisableCodegenOpt: disableCodegenOpt || disableOptimize,
+		Tracer:            tracer,
 	}
 
 	if !disableOptimize {
@@ -368,7 +383,7 @@ func compile(sourceFile string) error {
 	if backendInst == nil {
 		return fmt.Errorf("unknown backend: %s", backend)
 	}
-	
+
 	if debug {
 		fmt.Printf("Using backend: %s\n", backend)
 		// Check if backend came from environment variable

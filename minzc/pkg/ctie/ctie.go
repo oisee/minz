@@ -6,6 +6,7 @@ import (
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/semantic"
+	"github.com/minz/minzc/pkg/trace"
 )
 
 // Engine is the main Compile-Time Interface Execution engine
@@ -19,6 +20,12 @@ type Engine struct {
 	// specializer *InterfaceSpecializer  // TODO: implement later
 	statistics  *Statistics
 	config      *Config
+	tracer      *trace.Tracer
+}
+
+// SetTracer sets the structured compilation trace writer.
+func (e *Engine) SetTracer(t *trace.Tracer) {
+	e.tracer = t
 }
 
 // Config holds CTIE configuration
@@ -129,7 +136,12 @@ func (e *Engine) Process() error {
 	if e.config.DebugOutput {
 		e.printStatistics()
 	}
-	
+
+	if e.statistics.FunctionsExecuted > 0 {
+		e.tracer.Log("ctie", "Executed %d functions at compile-time, eliminated %d bytes",
+			e.statistics.FunctionsExecuted, e.statistics.BytesEliminated)
+	}
+
 	return nil
 }
 

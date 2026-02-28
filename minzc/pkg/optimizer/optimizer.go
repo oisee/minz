@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/trace"
 )
 
 // OptimizationLevel represents different optimization levels
@@ -25,6 +26,12 @@ type Pass interface {
 type Optimizer struct {
 	level  OptimizationLevel
 	passes []Pass
+	tracer *trace.Tracer
+}
+
+// SetTracer sets the structured compilation trace writer.
+func (o *Optimizer) SetTracer(t *trace.Tracer) {
+	o.tracer = t
 }
 
 // NewOptimizer creates a new optimizer with the specified level
@@ -96,26 +103,30 @@ func (o *Optimizer) Optimize(module *ir.Module) error {
 	
 	// Keep running passes until no more changes
 	maxIterations := 10
+	iterations := 0
 	for iteration := 0; iteration < maxIterations; iteration++ {
+		iterations = iteration + 1
 		changed := false
-		
+
 		for _, pass := range o.passes {
 			passChanged, err := pass.Run(module)
 			if err != nil {
 				return fmt.Errorf("optimization pass %s failed: %w", pass.Name(), err)
 			}
-			
+
 			if passChanged {
 				changed = true
+				o.tracer.Log("optimizer", "%s: changed=true", pass.Name())
 			}
 		}
-		
+
 		// If no pass made changes, we're done
 		if !changed {
 			break
 		}
 	}
-	
+	o.tracer.Log("optimizer", "Completed in %d iterations", iterations)
+
 	return nil
 }
 

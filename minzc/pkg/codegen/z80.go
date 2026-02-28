@@ -9,6 +9,7 @@ import (
 
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/optimizer"
+	"github.com/minz/minzc/pkg/trace"
 )
 
 var debug = os.Getenv("DEBUG") != ""
@@ -62,6 +63,9 @@ type Z80Generator struct {
 
 	// Optimization control
 	disableConstantTracking bool // Disable codegen-level constant tracking
+
+	// Trace output
+	tracer *trace.Tracer
 }
 
 // NewZ80Generator creates a new Z80 code generator
@@ -733,6 +737,7 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 // generateTrueSMCFunction generates a TRUE SMC function with anchor-based parameters
 func (g *Z80Generator) generateTrueSMCFunction(fn *ir.Function) error {
 	cleanName := g.sanitizeFunctionName(fn.Name)
+	g.tracer.Log("codegen", "TRUE SMC: %s (patchable)", cleanName)
 	g.emit("%s:", cleanName)
 	g.emit("; TRUE SMC function with immediate anchors")
 	
@@ -1892,7 +1897,35 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.loadToA(inst.Src1)
 		g.emit("    OR A")
 		g.emit("    JP NZ, %s", inst.Symbol)
-		
+
+	case ir.OpJumpIfFlag:
+		// Inline filter: CP N + conditional JR
+		// Src1 = element register (loaded to A), Src2 = constant register,
+		// Imm = FlagCondition, Label = jump target
+		if constVal, ok := g.constantValues[inst.Src2]; ok {
+			g.tracer.Log("codegen", "Inline filter: CP %d + JR %s, %s", constVal, ir.FlagCondition(inst.Imm), g.sanitizeLabel(inst.Label))
+		}
+		g.loadToA(inst.Src1)
+		// Get the constant value for CP
+		if constVal, ok := g.constantValues[inst.Src2]; ok {
+			g.emit("    CP %d", constVal)
+		} else {
+			// Fallback: load from register
+			g.emit("    ; WARNING: OpJumpIfFlag constant not tracked, using 0")
+			g.emit("    CP 0")
+		}
+		label := g.sanitizeLabel(inst.Label)
+		switch ir.FlagCondition(inst.Imm) {
+		case ir.FlagCY:
+			g.emit("    JR C, %s", label)
+		case ir.FlagNC:
+			g.emit("    JR NC, %s", label)
+		case ir.FlagZ:
+			g.emit("    JR Z, %s", label)
+		case ir.FlagNZ:
+			g.emit("    JR NZ, %s", label)
+		}
+
 	case ir.OpReturn:
 		if inst.Src1 != 0 {
 			// Check if this function has direct return optimization

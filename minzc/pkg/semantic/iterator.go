@@ -281,9 +281,11 @@ func (a *Analyzer) generateArrayIteration(chain *ast.IteratorChainExpr, sourceRe
 	
 	if useDJNZ && hasEnhancedOps {
 		// Use enhanced DJNZ generation for complex operations
+		a.tracer.Log("semantic", "DJNZ loop (enhanced): array[%d] (≤255 threshold)", arrayType.Length)
 		return a.generateEnhancedDJNZIteration(chain, sourceReg, arrayType, elementType, irFunc)
 	} else if useDJNZ {
 		// Use standard DJNZ for simple operations
+		a.tracer.Log("semantic", "DJNZ loop: array[%d] (≤255 threshold)", arrayType.Length)
 		return a.generateDJNZIteration(chain, sourceReg, arrayType, elementType, irFunc)
 	}
 	
@@ -349,16 +351,46 @@ func (a *Analyzer) generateDJNZIteration(chain *ast.IteratorChainExpr, sourceReg
 	for _, op := range chain.Operations {
 		// Handle filter operations specially - they need continue labels
 		if op.Type == ast.IterOpFilter {
-			// Call the filter predicate
+			// Try inline optimization for simple comparison lambdas
+			if lambda, ok := op.Function.(*ast.LambdaExpr); ok {
+				if flagCond, constVal, isSimple := isSimpleComparisonLambda(lambda); isSimple {
+					a.tracer.Log("semantic", "Inline filter: CP %d + JR %s (saved ~27 T-states/iter)", constVal, flagCond)
+					// Inline: emit OpJumpIfFlag directly (no lambda, no OpCall)
+					constReg := irFunc.AllocReg()
+					irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+						Op:   ir.OpLoadConst,
+						Dest: constReg,
+						Imm:  constVal,
+						Type: &ir.BasicType{Kind: ir.TypeU8},
+						Comment: fmt.Sprintf("Inline filter constant = %d", constVal),
+					})
+
+					continueLabel := a.generateLabel("filter_continue")
+					continueLabels = append(continueLabels, continueLabel)
+
+					irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+						Op:    ir.OpJumpIfFlag,
+						Src1:  currentReg,
+						Src2:  constReg,
+						Imm:   int64(flagCond),
+						Label: continueLabel,
+						Comment: fmt.Sprintf("Inline filter: CP %d + JR %s", constVal, flagCond),
+					})
+					continue
+				}
+			}
+
+			// Fallback: call the filter predicate as a function
+			a.tracer.Log("semantic", "Filter via lambda call: %T (not inlineable)", op.Function)
 			predicateResult, err := a.applyIteratorFunction(op.Function, currentReg, elementType, irFunc)
 			if err != nil {
 				return 0, fmt.Errorf("failed to apply filter predicate: %w", err)
 			}
-			
+
 			// Generate continue label for this filter
 			continueLabel := a.generateLabel("filter_continue")
 			continueLabels = append(continueLabels, continueLabel)
-			
+
 			// Jump to continue if predicate is false
 			irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 				Op:    ir.OpJumpIfNot,
@@ -376,12 +408,12 @@ func (a *Analyzer) generateDJNZIteration(chain *ast.IteratorChainExpr, sourceReg
 			currentReg = newReg
 		}
 	}
-	
+
 	// Emit continue labels for filters (right before loop increment)
 	for _, label := range continueLabels {
 		irFunc.EmitLabel(label)
 	}
-	
+
 	// Increment pointer to next element
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:   ir.OpInc,
@@ -391,7 +423,7 @@ func (a *Analyzer) generateDJNZIteration(chain *ast.IteratorChainExpr, sourceReg
 		Hint: ir.RegHintHL,
 		Comment: "Advance to next element",
 	})
-	
+
 	// DJNZ instruction - decrement counter and jump if not zero
 	irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 		Op:    ir.OpDJNZ,
@@ -759,6 +791,7 @@ func (a *Analyzer) generateIteratorLambda(lambda *ast.LambdaExpr, elementReg ir.
 	// Generate unique lambda name specific to iterator context
 	lambdaName := fmt.Sprintf("iter_lambda_%s_%d", irFunc.Name, a.lambdaCounter)
 	a.lambdaCounter++
+	a.tracer.Log("semantic", "Lambda extracted: %s", lambdaName)
 	
 	// Validate lambda parameter count
 	if len(lambda.Params) != 1 {
@@ -909,5 +942,127 @@ func (a *Analyzer) inferIteratorLambdaReturnType(body ast.Node) (ir.Type, error)
 		return &ir.BasicType{Kind: ir.TypeVoid}, nil
 	default:
 		return nil, fmt.Errorf("cannot infer return type for lambda body type %T", body)
+	}
+}
+
+// isSimpleComparisonLambda detects lambdas of the form |x| x OP N or |x| N OP x
+// where OP is a comparison operator and N is a numeric constant.
+// Returns the comparison operator, constant value (adjusted for CP semantics),
+// the flag condition to jump on when the predicate is FALSE, and whether it matched.
+func isSimpleComparisonLambda(lambda *ast.LambdaExpr) (flagCond ir.FlagCondition, constVal int64, ok bool) {
+	// Must have exactly one parameter
+	if len(lambda.Params) != 1 {
+		return 0, 0, false
+	}
+	paramName := lambda.Params[0].Name
+
+	// Get the body expression — handle both direct expression and block with single expression/return
+	// Note: *ast.BlockStmt implements ast.Expression, so check it first (more specific)
+	var bodyExpr ast.Expression
+	switch body := lambda.Body.(type) {
+	case *ast.BlockStmt:
+		if len(body.Statements) == 1 {
+			if retStmt, ok := body.Statements[0].(*ast.ReturnStmt); ok && retStmt.Value != nil {
+				bodyExpr = retStmt.Value
+			} else if exprStmt, ok := body.Statements[0].(*ast.ExpressionStmt); ok {
+				bodyExpr = exprStmt.Expression
+			}
+		}
+	case ast.Expression:
+		bodyExpr = body
+	}
+	if bodyExpr == nil {
+		return 0, 0, false
+	}
+
+	// Must be a binary expression
+	binExpr, isBin := bodyExpr.(*ast.BinaryExpr)
+	if !isBin {
+		return 0, 0, false
+	}
+
+	// Check operator is a comparison
+	op := binExpr.Operator
+	switch op {
+	case ">", "<", ">=", "<=", "==", "!=":
+		// ok
+	default:
+		return 0, 0, false
+	}
+
+	// Determine which side is the param and which is the constant
+	var numVal int64
+	paramOnLeft := false
+
+	if ident, ok := binExpr.Left.(*ast.Identifier); ok && ident.Name == paramName {
+		if num, ok := binExpr.Right.(*ast.NumberLiteral); ok {
+			paramOnLeft = true
+			numVal = num.Value
+		} else {
+			return 0, 0, false
+		}
+	} else if ident, ok := binExpr.Right.(*ast.Identifier); ok && ident.Name == paramName {
+		if num, ok := binExpr.Left.(*ast.NumberLiteral); ok {
+			paramOnLeft = false
+			numVal = num.Value
+		} else {
+			return 0, 0, false
+		}
+	} else {
+		return 0, 0, false
+	}
+
+	// Normalize: if param is on the right, flip the operator
+	// e.g., "5 > x" becomes "x < 5"
+	if !paramOnLeft {
+		switch op {
+		case ">":
+			op = "<"
+		case "<":
+			op = ">"
+		case ">=":
+			op = "<="
+		case "<=":
+			op = ">="
+		// == and != are symmetric
+		}
+	}
+
+	// Now we have: x OP numVal (param always on left)
+	// Compute the inverted flag condition (jump when predicate is FALSE)
+	// and adjust the constant for CP semantics.
+	//
+	// Z80 CP N: sets CY if A < N, sets Z if A == N
+	//
+	// | Predicate   | True when         | False when        | CP arg | Jump on false |
+	// |-------------|-------------------|-------------------|--------|---------------|
+	// | x > N       | A >= N+1          | A < N+1 (CY=1)   | N+1    | CY            |
+	// | x >= N      | A >= N            | A < N (CY=1)     | N      | CY            |
+	// | x < N       | A < N (CY=1)     | A >= N (CY=0)    | N      | NC            |
+	// | x <= N      | A < N+1 (CY=1)  | A >= N+1 (CY=0)  | N+1    | NC            |
+	// | x == N      | A == N (ZF=1)    | A != N (ZF=0)    | N      | NZ            |
+	// | x != N      | A != N (ZF=0)   | A == N (ZF=1)    | N      | Z             |
+	flagCond, constVal = invertedFlagForComparison(op, numVal)
+	return flagCond, constVal, true
+}
+
+// invertedFlagForComparison returns the flag condition to jump on when
+// the comparison "x OP N" is FALSE, and the adjusted constant for CP.
+func invertedFlagForComparison(op string, numVal int64) (ir.FlagCondition, int64) {
+	switch op {
+	case ">":
+		return ir.FlagCY, numVal + 1 // x > N → CP N+1, jump if CY (A < N+1)
+	case ">=":
+		return ir.FlagCY, numVal // x >= N → CP N, jump if CY (A < N)
+	case "<":
+		return ir.FlagNC, numVal // x < N → CP N, jump if NC (A >= N)
+	case "<=":
+		return ir.FlagNC, numVal + 1 // x <= N → CP N+1, jump if NC (A >= N+1)
+	case "==":
+		return ir.FlagNZ, numVal // x == N → CP N, jump if NZ (A != N)
+	case "!=":
+		return ir.FlagZ, numVal // x != N → CP N, jump if Z (A == N)
+	default:
+		return ir.FlagNZ, numVal // shouldn't happen
 	}
 }
