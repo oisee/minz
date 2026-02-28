@@ -109,29 +109,51 @@ Two sub-problems:
 - **HL destroyed**: `INC HL` after the call increments the return value, not the pointer
 - **Element lost**: A holds the filter boolean, not the original element, when `console_log` is called
 
-**Fix:** Save/restore HL around every CALL inside the DJNZ loop body. Two options:
+**Fix: Flag-Based Boolean ABI** (see [ADR-0008](adr/0008-flag-based-boolean-abi-for-iterators.md))
 
-Option A — PUSH/POP HL (simple, +21 T-states per call):
+The key insight: **iterator predicates never store their boolean result** — it's
+consumed exactly once by `OpJumpIfNot`. The `LD HL, 0/1` round-trip is pure waste.
+The Z80 `CP` instruction already sets flags that encode the result. Use them directly.
+
+**Option C — Inline lambda predicates (best, no CALL at all):**
+```asm
+    LD A, (HL)           ; Load element
+    CP 68                ; filter: x > 67? (CY=1 if A < 68)
+    JR C, skip           ; Direct flag test — HL untouched!
+    CALL console_log     ; A still holds the element
+skip:
+    INC HL               ; Pointer intact
+    DJNZ loop
+```
+
+For `filter(|x| x > N)`, the lambda body is a single `CP` + conditional jump.
+No function call, no HL clobber, no element lost. **8 T-states vs 45 T-states.**
+
+**Option B — Flag-return convention for named predicates:**
 ```asm
     PUSH HL              ; Save array pointer
-    CALL is_big
+    CALL is_big          ; Sets CY flag, does NOT touch HL
+    POP HL               ; Restore pointer
+    JR C, skip           ; Direct flag test
+```
+
+The predicate function returns via flags instead of `LD HL, 0/1`.
+
+**Option A — PUSH/POP HL (fallback for non-predicate CALLs like map/forEach):**
+```asm
+    PUSH HL              ; Save array pointer
+    CALL double_u8       ; Returns result in HL (non-boolean)
     POP HL               ; Restore array pointer
 ```
 
-Option B — Use IX for the array pointer (frees HL for calls, +6 T-states per element):
-```asm
-    LD A, (IX+0)         ; Load element (19 T vs 7 T for LD A,(HL))
-    INC IX               ; Advance pointer
-```
+Still needed for `map(fn)` and `forEach(fn)` which return actual values in HL.
 
-Option A is simpler and doesn't change the overall loop structure. The element
-register (C) also needs saving — either `PUSH BC` or reload from `(HL)` after
-the call.
+**Precedent:** MinZ `@error` already uses flag-based returns (CY flag = error).
+This extends the same pattern to boolean predicates.
 
-**Where:** `z80.go` — detect that we're inside a DJNZ iterator loop (the HL
-hint is `RegHintHL`) and wrap CALL instructions with PUSH/POP HL. Also ensure
-the element value flows correctly: after `CALL map_fn`, load the result
-(from L or wherever) into A before calling the next function in the chain.
+**Where:** Semantic layer detects `filter(|x| x OP N)` pattern → inlines `CP`
+directly. For named predicates, `z80.go` generates flag-return function variant.
+See [Report 013](../reports/2026-02-28-013-Flag_Based_Boolean_ABI_Iterator_Predicates.md).
 
 ### Bug 3: Inlined lambda parameter not loaded
 
@@ -177,11 +199,14 @@ reads it. Combined with the Bug 1 fix, the `+ 1` would also be emitted.
 | Root Cause | Affects | Fix | Effort |
 |---|---|---|---|
 | Arithmetic op elision | skip offset, lambda bodies | Don't elide ADD/SUB in regalloc | Small |
-| HL clobbered by CALL | filter, map, all chains | PUSH/POP HL around CALLs in DJNZ | Medium |
-| Lambda param not stored | all lambda chains | Emit OpStore before inline body | Small |
+| HL clobbered by CALL | filter, map, all chains | **Flag-based boolean ABI** ([ADR-0008](adr/0008-flag-based-boolean-abi-for-iterators.md)) | Medium |
+| Lambda param not stored | all lambda chains | Emit OpStore before inline body (bypassed for simple lambdas by flag ABI) | Small |
 
-Fixing Bug 2 (HL clobber) unblocks the most operations — filter, map,
-and all multi-function chains would work. It's the highest-impact fix.
+**Priority fix: Flag-based boolean ABI** (ADR-0008). For filter/takeWhile with
+simple lambda predicates (`|x| x > N`), this bypasses both Bug 2 AND Bug 3 —
+the comparison is inlined directly as `CP` + `JR`, no function call, no HL clobber,
+no lambda parameter storage needed. For complex predicates, PUSH/POP HL fallback.
+For non-boolean calls (map, forEach), PUSH/POP HL still needed (Option A).
 
 ## Architecture
 
@@ -201,19 +226,17 @@ IR: Virtual register instructions (OpLoad, OpCall, OpDJNZ, ...)
     |
 Z80 Codegen: Physical register allocation + assembly emission
     |
-Assembly:
+Assembly (with flag-based boolean ABI — ADR-0008):
   LD HL, scores        ; array pointer
   LD B, 10             ; DJNZ counter
 loop:
-  PUSH HL              ; save pointer (Bug 2 fix)
   LD A, (HL)           ; load element
-  CP 90                ; filter: x >= 90?
-  JR C, skip
+  CP 90                ; filter: x >= 90? (flag-based, no CALL!)
+  JR C, skip           ; CY set = A < 90 = skip
   ADD A, 5             ; map: x + 5
-  CALL print_u8        ; forEach
+  CALL print_u8        ; forEach (PUSH/POP HL for non-bool CALLs)
 skip:
-  POP HL               ; restore pointer (Bug 2 fix)
-  INC HL
+  INC HL               ; HL untouched by filter!
   DJNZ loop
 ```
 

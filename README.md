@@ -295,6 +295,7 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 - [Generator Vision](docs/2026-01-03-302-Generator_Vision_Zero_Cost_Iteration.md) — `gen`/`yield` design
 - [Z80 Optimal Iteration Design](docs/Z80_Optimal_Iteration_Design.md) — hardware-level patterns
 - [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) — E2E verified operations, known codegen bugs, fix guide
+- [ADR-0008: Flag-Based Boolean ABI](docs/adr/0008-flag-based-boolean-abi-for-iterators.md) — `CP` + flag returns for iterator predicates (filter/takeWhile)
 
 ---
 
