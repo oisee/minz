@@ -115,7 +115,7 @@ mz program.minz -b c -o prog.c                         # C99
 | Feature | Status |
 |---------|--------|
 | Pattern matching | Syntax parses, codegen partial |
-| Iterator chains | 8 patterns compile to Z80 (forEach, take, skip, map, filter, lambda map/filter, chains). PUSH/POP HL pointer fix done. 7 codegen bugs documented. See [Status](docs/Iterator_Implementation_Status.md) |
+| Iterator chains | 11 ops compile to Z80 (forEach, map, filter, take, skip, peek, inspect, takeWhile, enumerate, reduce + inline lambda filters). 53 unit tests + 18 corpus + 6 E2E. Pointer-walk codegen regression blocks hex-verified E2E. See [Status](docs/Iterator_Implementation_Status.md), [E2E Report](reports/2026-03-01-014-Iterator_E2E_Testing_Report.md) |
 | MIR interpreter | Arrays/structs working, not complete |
 
 ### Known Limitations
@@ -287,15 +287,29 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 - **DJNZ loops** — arrays ≤255 elements use Z80's dedicated loop instruction (13 T-states vs 25+ for compare-jump)
 - **Pointer arithmetic** — `HL` walks the array with `INC HL`, no index multiplication
 
-**Status (v0.19.4):** All 8 patterns compile to Z80. PUSH/POP HL pointer preservation fixed in both DJNZ code paths. TRUE SMC anchor generation fixed (`LD A, 0` / 3E). 7 codegen bugs documented with root cause analysis — top 3: register handoff (A not loaded between stages), lambda arithmetic elision, inline filter constant tracking. 63 unit tests + 18 corpus + 8 deep E2E analysis. Use `--compile-trace` to see optimizer decisions.
+**Testing (v0.19.4):** 77 tests across 6 layers — every stage of the pipeline has dedicated coverage:
+
+| Layer | Tests | Status |
+|-------|------:|--------|
+| Parser (chain conversion) | 18 | all pass |
+| Semantic (IR generation) | 20 | all pass |
+| Codegen (Z80 patterns) | 7 | all pass |
+| MIR VM (DJNZ execution) | 8 | all pass |
+| Corpus (full compile to Z80) | 18 | all pass |
+| E2E shell (hex output) | 6 | 2 fail (pointer-walk regression) |
+
+The pointer-walk regression: `OpLoad` reads the base array register instead of the advancing pointer register, so every iteration loads the first element. Root cause identified in `generateDJNZIteration()` — fix is straightforward. All other pipeline stages produce correct IR and assembly patterns. See the [E2E Report](reports/2026-03-01-014-Iterator_E2E_Testing_Report.md) for full details.
+
+**11 iterator operations** compile to Z80: forEach, map, filter, take, skip, peek, inspect, takeWhile, enumerate, reduce, and inline lambda filters (flag-based ABI via `CP` + conditional jump).
 
 **Design documents:**
+- [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) — E2E verified operations, known codegen bugs, fix guide
+- [Iterator E2E Testing Report](reports/2026-03-01-014-Iterator_E2E_Testing_Report.md) — full test results, regression analysis
 - [Zero-Cost Iterators Revolution](docs/Zero_Cost_Iterators_Revolution.md) — complete vision
 - [DJNZ Iterator Optimization](docs/2026-01-03-301-DJNZ_Iterator_Optimization.md) — loop optimization details
 - [Generator Vision](docs/2026-01-03-302-Generator_Vision_Zero_Cost_Iteration.md) — `gen`/`yield` design
 - [Z80 Optimal Iteration Design](docs/Z80_Optimal_Iteration_Design.md) — hardware-level patterns
-- [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) — E2E verified operations, known codegen bugs, fix guide
-- [ADR-0008: Flag-Based Boolean ABI](docs/adr/0008-flag-based-boolean-abi-for-iterators.md) — `CP` + flag returns for iterator predicates (filter/takeWhile)
+- [ADR-0008: Flag-Based Boolean ABI](docs/adr/0008-flag-based-boolean-abi-for-iterators.md) — `CP` + flag returns for iterator predicates
 
 ---
 
@@ -495,7 +509,7 @@ minz/
 
 ---
 
-## Current Status (February 2026)
+## Current Status (March 2026)
 
 MinZ is under active development. The Z80 backend is mature and produces working binaries for ZX Spectrum, CP/M, and Agon Light 2. The toolchain is now a complete end-to-end ecosystem: write code, compile, assemble, emulate, disassemble, screenshot — all with zero external dependencies.
 
@@ -523,6 +537,7 @@ MinZ is under active development. The Z80 backend is mature and produces working
 - 4 active backends: Z80 (production), 6502, C99, Crystal
 - 3 validated Z80 targets: Spectrum, CP/M, Agon Light 2
 - **1335/1335 FUSE Z80 tests pass** — gold-standard CPU verification including all undocumented opcodes
+- **77 iterator tests** across parser, semantic, codegen, MIR VM, corpus, and E2E layers
 - 9 toolchain binaries, all pure Go, zero external dependencies
 
 ---

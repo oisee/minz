@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/minz/minzc/pkg/z80asm"
 	"github.com/remogatto/z80"
@@ -57,14 +56,24 @@ func NewE2ETestHarness(t *testing.T) (*E2ETestHarness, error) {
 	}
 
 	// Find MinZ compiler - try multiple paths
+	// When running via `go test ./pkg/z80testing/`, CWD is the package dir.
+	// The binary is typically at the minzc/ root (../../mz from pkg/z80testing/)
+	// or installed to ~/.local/bin/mz via `make install-user`.
 	minzcPath := ""
+	homeDir, _ := os.UserHomeDir()
 	candidatePaths := []string{
+		filepath.Join(homeDir, ".local", "bin", "mz"),
+		filepath.Join(os.Getenv("PWD"), "mz"),
 		filepath.Join(os.Getenv("PWD"), "main"),
 		filepath.Join(os.Getenv("PWD"), "minzc"),
+		"../../mz",
+		"../../main",
+		"../../minzc",
+		"./mz",
 		"./main",
 		"./minzc",
 		"../main",
-		"../../main",
+		"../mz",
 	}
 	for _, path := range candidatePaths {
 		if _, err := os.Stat(path); err == nil {
@@ -74,7 +83,8 @@ func NewE2ETestHarness(t *testing.T) (*E2ETestHarness, error) {
 	}
 	if minzcPath == "" {
 		os.RemoveAll(workDir)
-		return nil, fmt.Errorf("minzc compiler not found (tried: %v)", candidatePaths)
+		t.Skipf("minzc compiler not found (tried: %v) — run 'make install-user' or 'go build -o mz ./cmd/mze'", candidatePaths)
+		return nil, nil // unreachable after t.Skipf
 	}
 
 	// sjasmplus is optional - we use built-in assembler now
@@ -218,6 +228,41 @@ func (h *E2ETestHarness) parseLabels(labFile string) (map[string]uint16, error) 
 	return symbols, nil
 }
 
+// findSymbol looks up a function name in the symbol table, handling MinZ name mangling.
+// MinZ mangles function names with type signatures (e.g., "add" becomes "add$u16_u16").
+// This method tries exact match first, then falls back to substring matching.
+func findSymbol(symbols map[string]uint16, funcName string) (uint16, bool) {
+	// Try exact match first
+	if addr, ok := symbols[funcName]; ok {
+		return addr, true
+	}
+	// Try substring match (MinZ mangles names with $ and type suffixes)
+	funcLower := strings.ToLower(funcName)
+	for sym, addr := range symbols {
+		symLower := strings.ToLower(sym)
+		// Match if symbol starts with the function name followed by a separator
+		if strings.HasPrefix(symLower, funcLower+"$") || strings.HasPrefix(symLower, funcLower+"_") || symLower == funcLower {
+			return addr, true
+		}
+	}
+	// Try contains as last resort (for deeply mangled names)
+	for sym, addr := range symbols {
+		if strings.Contains(strings.ToLower(sym), funcLower) {
+			return addr, true
+		}
+	}
+	return 0, false
+}
+
+// symbolNames returns sorted symbol names for error messages
+func symbolNames(symbols map[string]uint16) []string {
+	names := make([]string, 0, len(symbols))
+	for name := range symbols {
+		names = append(names, name)
+	}
+	return names
+}
+
 // LoadBinary loads a binary into memory at the specified address
 func (h *E2ETestHarness) LoadBinary(binary []byte, address uint16) {
 	for i, b := range binary {
@@ -232,26 +277,29 @@ func (h *E2ETestHarness) Execute(startAddress uint16, maxCycles int) error {
 	h.cpu.SetPC(startAddress)
 	h.cpuWrapper.baseStates = 0
 	h.cycleCount = 0
-	
+
 	// Clear SMC tracker
 	h.smcTracker.Clear()
 	h.smcTracker.Enable()
 
-	// Execute until HALT or max cycles
-	startTime := time.Now()
-	for h.cycleCount < maxCycles && !h.cpu.Halted {
+	// Execute until HALT or max instructions
+	// Note: TestMemory doesn't add T-states on reads/writes, so we count
+	// instructions directly instead of relying on Tstates.
+	instrCount := 0
+	for instrCount < maxCycles && !h.cpu.Halted {
 		prevStates := h.cpu.Tstates
 		h.cpu.DoOpcode()
-		h.cycleCount += (h.cpu.Tstates - prevStates)
-		
-		// Safety timeout
-		if time.Since(startTime) > 5*time.Second {
-			return fmt.Errorf("execution timeout after %d cycles", h.cycleCount)
+		elapsed := h.cpu.Tstates - prevStates
+		if elapsed > 0 {
+			h.cycleCount += elapsed
+		} else {
+			h.cycleCount++ // Fallback: count at least 1 per instruction
 		}
+		instrCount++
 	}
 
-	if h.cycleCount >= maxCycles {
-		return fmt.Errorf("execution exceeded max cycles (%d)", maxCycles)
+	if instrCount >= maxCycles {
+		return fmt.Errorf("execution exceeded max instructions (%d)", maxCycles)
 	}
 
 	return nil
@@ -292,21 +340,29 @@ func (h *E2ETestHarness) CallFunction(address uint16, args ...uint16) error {
 	
 	// Execute until RET (when SP returns to original value + 2)
 	origSP := sp + 2
-	maxCycles := 10000
-	
-	for h.cycleCount < maxCycles && !h.cpu.Halted {
+	maxInstr := 100000
+
+	h.cycleCount = 0
+	instrCount := 0
+	for instrCount < maxInstr && !h.cpu.Halted {
 		prevStates := h.cpu.Tstates
 		h.cpu.DoOpcode()
-		h.cycleCount += (h.cpu.Tstates - prevStates)
-		
+		elapsed := h.cpu.Tstates - prevStates
+		if elapsed > 0 {
+			h.cycleCount += elapsed
+		} else {
+			h.cycleCount++ // Fallback: count at least 1 per instruction
+		}
+		instrCount++
+
 		// Check if we've returned
 		if h.cpu.SP() == origSP && h.cpu.PC() == 0x0000 {
 			break
 		}
 	}
-	
-	if h.cycleCount >= maxCycles {
-		return fmt.Errorf("function execution exceeded max cycles (%d)", maxCycles)
+
+	if instrCount >= maxInstr {
+		return fmt.Errorf("function execution exceeded max instructions (%d) at PC=0x%04X", maxInstr, h.cpu.PC())
 	}
 	
 	return nil
@@ -374,14 +430,14 @@ func (h *E2ETestHarness) ComparePerformance(sourceFile string, funcName string, 
 
 	h.LoadBinary(binary, 0x8000)
 	
-	funcAddr, ok := symbols[funcName]
+	funcAddr, ok := findSymbol(symbols, funcName)
 	if !ok {
-		return nil, fmt.Errorf("function %s not found in symbols", funcName)
+		return nil, fmt.Errorf("function %s not found in symbols (available: %v)", funcName, symbolNames(symbols))
 	}
 
 	// Clear SMC tracker
 	h.smcTracker.Clear()
-	
+
 	if err := h.CallFunction(funcAddr, args...); err != nil {
 		return nil, fmt.Errorf("execution without TSMC failed: %w", err)
 	}
@@ -402,10 +458,10 @@ func (h *E2ETestHarness) ComparePerformance(sourceFile string, funcName string, 
 	}
 
 	h.LoadBinary(binary, 0x8000)
-	
-	funcAddr, ok = symbols[funcName]
+
+	funcAddr, ok = findSymbol(symbols, funcName)
 	if !ok {
-		return nil, fmt.Errorf("function %s not found in symbols", funcName)
+		return nil, fmt.Errorf("function %s not found in symbols (available: %v)", funcName, symbolNames(symbols))
 	}
 
 	// Clear SMC tracker
