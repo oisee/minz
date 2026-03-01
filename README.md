@@ -115,7 +115,7 @@ mz program.minz -b c -o prog.c                         # C99
 | Feature | Status |
 |---------|--------|
 | Pattern matching | Syntax parses, codegen partial |
-| Iterator chains | 11 ops compile to Z80 (forEach, map, filter, take, skip, peek, inspect, takeWhile, enumerate, reduce + inline lambda filters). 53 unit tests + 18 corpus + 6 E2E. Pointer-walk codegen regression blocks hex-verified E2E. See [Status](docs/Iterator_Implementation_Status.md), [E2E Report](reports/2026-03-01-014-Iterator_E2E_Testing_Report.md) |
+| Iterator chains | 9 ops fully working on Z80 + inline lambda filters. **78 tests, 7/7 E2E hex-verified, all pass.** enumerate/reduce at MIR level (Z80 needs OpPush fix). See [Status](docs/Iterator_Implementation_Status.md), [Report](reports/2026-03-01-016-Iterator_Chain_Status_2.md) |
 | MIR interpreter | Arrays/structs working, not complete |
 
 ### Known Limitations
@@ -287,20 +287,18 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 - **DJNZ loops** — arrays ≤255 elements use Z80's dedicated loop instruction (13 T-states vs 25+ for compare-jump)
 - **Pointer arithmetic** — `HL` walks the array with `INC HL`, no index multiplication
 
-**Testing (v0.19.4):** 77 tests across 6 layers — every stage of the pipeline has dedicated coverage:
+**Testing (v0.19.4):** 78 tests across 6 layers — every stage of the pipeline has dedicated coverage:
 
 | Layer | Tests | Status |
 |-------|------:|--------|
-| Parser (chain conversion) | 18 | all pass |
-| Semantic (IR generation) | 20 | all pass |
-| Codegen (Z80 patterns) | 7 | all pass |
-| MIR VM (DJNZ execution) | 8 | all pass |
+| E2E shell (hex-verified output) | 7 | **all pass** |
 | Corpus (full compile to Z80) | 18 | all pass |
-| E2E shell (hex output) | 6 | 2 fail (pointer-walk regression) |
+| MIR VM (DJNZ execution) | 8 | all pass |
+| Codegen (Z80 patterns) | 7 | all pass |
+| Semantic (IR generation) | 20 | all pass |
+| Parser (chain conversion) | 18 | all pass |
 
-The pointer-walk regression: `OpLoad` reads the base array register instead of the advancing pointer register, so every iteration loads the first element. Root cause identified in `generateDJNZIteration()` — fix is straightforward. All other pipeline stages produce correct IR and assembly patterns. See the [E2E Report](reports/2026-03-01-014-Iterator_E2E_Testing_Report.md) for full details.
-
-**11 iterator operations** compile to Z80: forEach, map, filter, take, skip, peek, inspect, takeWhile, enumerate, reduce, and inline lambda filters (flag-based ABI via `CP` + conditional jump).
+**9 operations fully working on Z80:** forEach, map, filter, take, skip, peek, inspect, takeWhile, and inline lambda filters (`filter(|x| x > N)` compiles to `CP N+1` + `JR C` — no function call, ~27 T-states saved per iteration). enumerate and reduce work at MIR level, Z80 blocked by OpPush routing. See [Iterator Report #2](reports/2026-03-01-016-Iterator_Chain_Status_2.md) for details.
 
 **Design documents:**
 - [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) — E2E verified operations, known codegen bugs, fix guide
@@ -537,7 +535,7 @@ MinZ is under active development. The Z80 backend is mature and produces working
 - 4 active backends: Z80 (production), 6502, C99, Crystal
 - 3 validated Z80 targets: Spectrum, CP/M, Agon Light 2
 - **1335/1335 FUSE Z80 tests pass** — gold-standard CPU verification including all undocumented opcodes
-- **77 iterator tests** across parser, semantic, codegen, MIR VM, corpus, and E2E layers
+- **78 iterator tests** across 6 layers — 7/7 E2E hex-verified, all green
 - 9 toolchain binaries, all pure Go, zero external dependencies
 
 ---
