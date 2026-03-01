@@ -1,6 +1,6 @@
 # MinZ Iterator Implementation Status
 
-*Updated: 2026-02-28 — v0.19.3*
+*Updated: 2026-03-01 — v0.19.4*
 
 ## E2E Verified (MZX --console-io)
 
@@ -352,84 +352,248 @@ should be 8-bit `ADD A, C`. These are codegen register allocation issues.
 
 ## Operation Status Table
 
-| Operation | Parser | Semantic | Z80 Compiles | Z80 Correct | Notes |
-|-----------|--------|----------|:------------:|:-----------:|-------|
-| `forEach(fn)` | pass | pass | yes | **E2E pass** | DJNZ loop, direct CALL |
-| `take(n)` | pass | pass | yes | **E2E pass** | Zero-cost counter fold |
-| `skip(n)` | pass | pass | yes | **E2E pass** | Zero-cost pointer offset |
-| `map(fn)` | pass | pass | yes | **E2E pass** | TRUE SMC call, HL clobber masked |
-| `filter(fn)` | pass | pass | yes | **E2E pass** | TRUE SMC predicate, `JP Z` skip |
-| `filter(\|x\| x > N)` | pass | pass | yes | **E2E pass** | Inline `CP N+1 + JR C` |
-| `map(\|x\| x + N)` | pass | pass | yes | **E2E pass** | Lambda inlined (but +N dropped) |
-| `peek(fn)` | pass | pass | yes | untested | Same codegen path as forEach |
-| `inspect(fn)` | pass | pass | yes | untested | Same codegen path as forEach |
-| `takeWhile(fn)` | pass | pass | yes | untested | Generates early-exit jump |
-| `enumerate()` | pass | pass | **yes** (v0.19.3) | needs fix | PUSH HL wrong register |
-| `reduce(fn)` | pass | pass | **yes** (v0.19.3) | needs fix | PUSH HL wrong register |
-| `reduce(init, fn)` | pass | pass | **yes** (v0.19.3) | needs fix | Same as reduce(fn) |
-| `skipWhile(fn)` | pass | pass | N/A | N/A | Not in DJNZ mode |
-| `zip(other)` | pass | — | — | — | Parser only |
-| `flatMap(fn)` | pass | — | — | — | Parser only |
-| `collect()` | pass | — | — | — | Parser only |
+| Operation | Parser | Semantic | Z80 Compiles | Z80 Correct | Bug | Notes |
+|-----------|--------|----------|:------------:|:-----------:|:---:|-------|
+| `forEach(fn)` | pass | pass | yes | **HL fixed** | B | PUSH/POP HL, but print reads A not element |
+| `take(n)` | pass | pass | yes | **HL fixed** | B | Counter fold correct, arg handoff wrong |
+| `skip(n)` | pass | pass | yes | **needs fix** | B,E | Counter OK, pointer offset elided |
+| `map(fn)` | pass | pass | yes | **needs fix** | B | TRUE SMC correct, result not passed to next |
+| `filter(fn)` | pass | pass | yes | **needs fix** | B | Predicate correct, print gets bool not elem |
+| `filter(\|x\| x>N)` | pass | pass | yes | **needs fix** | D | Constant not tracked, OR A instead of CP N |
+| `map(\|x\| x+N)` | pass | pass | yes | **needs fix** | C | Lambda arithmetic dropped |
+| `map(fn).filter(fn)` | pass | pass | yes | **needs fix** | B | Chain wiring correct, print gets bool |
+| `peek(fn)` | pass | pass | yes | untested | — | Same codegen path as forEach |
+| `inspect(fn)` | pass | pass | yes | untested | — | Same codegen path as forEach |
+| `takeWhile(fn)` | pass | pass | yes | untested | — | Generates early-exit jump |
+| `enumerate()` | pass | pass | yes (v0.19.3) | needs fix | G | PUSH routes through HL |
+| `reduce(fn)` | pass | pass | yes (v0.19.3) | needs fix | G | PUSH routes through HL |
+| `reduce(init, fn)` | pass | pass | yes (v0.19.3) | needs fix | G | Same as reduce(fn) |
+| `skipWhile(fn)` | pass | pass | N/A | N/A | — | Not in DJNZ mode |
+| `zip(other)` | pass | — | — | — | — | Parser only |
+| `flatMap(fn)` | pass | — | — | — | — | Parser only |
+| `collect()` | pass | — | — | — | — | Parser only |
 
 ---
 
-## What Doesn't Work and Why
+## Exhaustive E2E Bug Analysis (v0.19.4)
 
-### Bug 1: Arithmetic op elision (PARTIALLY MITIGATED)
+All 8 iterator patterns compiled to Z80 assembly and analyzed instruction-by-instruction.
+Test date: 2026-03-01. Compiler built from `master` after PUSH/POP fix.
 
-The register allocator tracks which virtual register is in which physical register.
-When it sees `OpAdd(dest=r10, src1=r10, src2=r11)` and r10 is already in HL, it
-emits `; Register 10 already in HL` and **skips the ADD instruction entirely**.
+### What Got Fixed in v0.19.4
 
-**Observed in lambda `|x| x + 1`** — the `+ 1` is dropped:
+**HL pointer preservation (PUSH/POP)** — Applied to BOTH code paths:
+- `generateDJNZIteration()` in `iterator.go` (forEach, map, filter, peek, inspect)
+- `generateEnhancedDJNZIteration()` in `iterator_enhanced.go` (take, skip, enumerate, reduce)
+
+All 8 patterns now emit `PUSH HL` before operations and `POP HL` after, ensuring
+the array pointer survives function calls. Before this fix, take/skip patterns had
+NO pointer preservation.
+
+**TRUE SMC anchor generation** — `LD A, 0` (opcode 3E, 7T, 2B) instead of
+`LD A, (nn)` (opcode 3A, 13T, 3B). Correct immediate-mode SMC.
+
+### Remaining Bugs by Category
+
+#### Bug A: Counter Waste (ALL patterns, peephole target)
+
+Every DJNZ loop emits redundant register shuffling:
+
 ```asm
-    ; Inlined lambda body:
-    LD HL, ($F000)        ; Load "x"
-    LD ($F000), HL        ; No-op store
-    LD HL, ($F000)        ; Load again — WHERE IS THE ADD?
+; At init:
+    LD B, 5       ; Correct
+    LD A, B       ; Waste (4T)
+    LD B, A       ; Waste (4T)
+
+; At loop end:
+    LD A, B       ; Waste (4T)
+    DEC B         ; Correct
+    LD A, B       ; Waste (4T)
+    LD B, A       ; Waste (4T)
+    JR NZ, loop   ; Correct
 ```
 
-**Mitigated for:** Inline filter predicates (use `CP` instruction instead of arithmetic).
-**Still affects:** Lambda bodies with arithmetic (`|x| x + 1`, `|x| x * 2`).
+**Should be:** `DJNZ loop` (13/8T) instead of the 4-instruction sequence (20T).
 
-### Bug 2: HL clobbered by CALL return (PARTIALLY FIXED)
+**Root cause:** The Z80 codegen emits `OpDJNZ` as explicit `DEC B` + `JR NZ` because
+the register allocator tracks B through A intermediary. The `LD A, B` / `LD B, A`
+pairs are generated by the virtual-to-physical register mapping.
 
-DJNZ loops use HL as array pointer. But Z80 calling convention returns in HL.
-Any `CALL` inside the loop destroys the pointer.
+**Fix:** Peephole pattern in `AssemblyPeepholePass` to collapse:
+`LD A, B / DEC B / LD A, B / LD B, A / JR NZ, X` → `DJNZ X`
 
-**Fixed for:** Inline lambda filters (no CALL at all — `CP + JR` directly).
-**Still affects:** Named function calls (`map(double)`, `filter(is_big)`).
-Currently masked in E2E tests because the A register happens to hold the right value.
+**Impact:** 12T wasted per iteration across all patterns.
 
-**Fix:** PUSH/POP HL around CALLs in DJNZ loops (Phase 2 in GenPlan).
+#### Bug B: Register Handoff Between Pipeline Stages (map, filter, chain)
 
-### Bug 3: Lambda parameter not stored to SMC address (BYPASSED)
+After `CALL fn`, the result sits in L (via HL return convention). Codegen
+captures it to D (`LD D, L`). But the NEXT operation reads from A, not D.
+No `LD A, D` is inserted between pipeline stages.
 
-Inlined lambda reads from `$F000` but the element isn't stored there explicitly.
+**Observed in 04_map_fn:**
+```asm
+    CALL double        ; Result in HL.L
+    LD D, L            ; Map result saved to D
+    CALL print_u8      ; Reads from A — but A is garbage!
+```
 
-**Bypassed for:** Simple lambdas where the value flows through registers.
-**Still affects:** Complex lambda bodies that need the parameter from memory.
+**Observed in 05_filter_fn:**
+```asm
+    CALL is_big        ; Returns HL = 0/1
+    LD D, L            ; Bool in D
+    LD A, D            ; A = bool
+    OR A               ; Test
+    JP Z, skip         ; OK — filter works
+    CALL print_u8      ; Reads from A = bool (0 or 1), NOT element!
+```
 
-### Bug 4: OpPush pushes wrong register (NEW, v0.19.3)
+**Observed in 08_chain:**
+```asm
+    CALL double        ; HL.L = doubled value
+    LD D, L            ; D = doubled
+    LD A, D            ; A = doubled (correct for filter input!)
+    LD (is_big_SMC), A ; Patches is_big with doubled value (correct!)
+    CALL is_big        ; HL.L = bool
+    LD E, L            ; E = bool
+    LD A, E            ; A = bool
+    OR A               ; Test
+    JP Z, skip
+    CALL print_u8      ; A = bool (WRONG — should be doubled value in D)
+```
 
-`OpPush` always routes through HL (`loadToHL(src)` + `PUSH HL`). For enumerate
-and reduce, the semantic layer emits `OpPush elementReg` and `OpPush indexReg`,
-but both become `PUSH HL` — pushing the pointer, not the values.
+**Root cause:** The semantic layer correctly updates `currentReg` after each
+operation, but the Z80 codegen doesn't insert `LD A, <physReg>` before the
+next CALL. The calling convention requires the first argument in A, but the
+codegen doesn't bridge the gap between the result register and A.
 
-**Fix:** Register-aware push — check if src is in a pushable pair (BC/DE/HL/AF)
-and emit `PUSH` for that pair directly, or use a temp register.
+**Fix:** In the Z80 codegen's CALL handling, emit `LD A, <argReg>` when the
+argument isn't already in A. This is a register allocator issue — the arg
+register mapping doesn't consider the calling convention.
+
+**Impact:** Incorrect output for map+forEach, filter+forEach, and multi-op chains.
+
+#### Bug C: Lambda Arithmetic Elision (lambda map)
+
+Lambda `|x: u8| => u8 { x + 1 }` compiles as identity — the `+ 1` is dropped:
+
+```asm
+; Generated for |x| x + 1:
+    LD HL, ($F000)        ; Load "x" from SMC address
+    LD ($F000), HL        ; No-op store back
+    LD HL, ($F000)        ; Load again — ADD A, 1 is MISSING
+```
+
+**Root cause:** The register allocator sees `OpAdd(dest=r2, src1=r0, src2=r1)`
+where r0 is mapped to HL. It emits `; Register 2 already in HL` and **skips the
+entire ADD instruction**. The allocator's "already in register" optimization
+doesn't distinguish between "value is loaded" and "value needs computation."
+
+**Additionally:** The element is never loaded from the array (`LD A, (HL)` missing
+in lambda path) and is never stored to the SMC address ($F000) that the lambda
+reads from.
+
+**Fix:** Two-part:
+1. Don't elide arithmetic ops even if dest register is "already" mapped
+2. Ensure element is stored to the lambda's parameter address before the lambda body
+
+**Impact:** All lambda map operations produce identity instead of transformation.
+
+#### Bug D: Inline Filter Constant Not Tracked (filter lambda)
+
+`filter(|x: u8| => bool { x > 3 })` generates correct `OpJumpIfFlag` IR with
+`Src2 = constReg` holding value 4 (CP semantics: x > 3 → CP 4). But the Z80
+codegen can't find the constant value:
+
+```asm
+    LD A, C
+    ; WARNING: OpJumpIfFlag constant not tracked, using 0
+    OR A              ; Should be CP 4!
+    JR C, skip        ; OR A never sets CY → skip NEVER triggers
+```
+
+**Root cause:** The `OpLoadConst` for the filter constant is emitted, but by the
+time `OpJumpIfFlag` is processed, the `constantValues` map has lost the entry
+(likely invalidated at a label or by intervening instructions).
+
+**Consequence:** `OR A` always clears CY on Z80. `JR C` never jumps. All elements
+pass the filter. Filter is effectively a no-op.
+
+**Fix:** Either:
+1. Embed the constant value directly in `OpJumpIfFlag` (Imm field already used for
+   flag condition — need second immediate or encode both)
+2. Preserve constant tracking across the short instruction sequence between
+   `OpLoadConst` and `OpJumpIfFlag`
+
+**Impact:** All inline filter lambdas pass all elements through.
+
+#### Bug E: Skip Pointer Offset Elided (skip pattern)
+
+`skip(2)` should advance the array pointer by 2 before the loop. The IR emits
+`OpAdd ptrReg = sourceReg + offsetReg(2)`. But the register allocator sees that
+ptrReg maps to the same physical register (HL) as sourceReg and skips the ADD:
+
+```asm
+    ; Pointer to first element after skip
+    ; Register 10 already in HL    ← ADD elided! Pointer NOT advanced!
+```
+
+The counter is correct (`LD B, 3` for 5-2=3 elements), but the pointer starts at
+element 0 instead of element 2. So `skip(2).forEach(print_u8)` on `[1,2,3,4,5]`
+prints `[1,2,3]` instead of `[3,4,5]`.
+
+**Root cause:** Same as Bug C — the register allocator's "already in register"
+optimization doesn't consider that the value needs to change via arithmetic.
+
+**Fix:** Same fix as Bug C (don't elide arithmetic ops).
+
+**Impact:** `skip(n)` doesn't actually skip — iterates from beginning.
+
+#### Bug F: Unused Result Saves (all patterns with CALL)
+
+After every CALL, the codegen saves the return value even when nobody reads it:
+
+```asm
+    CALL print_u8      ; Returns void
+    LD D, L            ; Waste (4T) — nobody reads D
+```
+
+**Root cause:** The codegen always emits a store for `OpCall.Dest`, even when
+Dest is 0 (void) or the result is never used.
+
+**Fix:** Peephole pattern or codegen check — skip store if Dest == 0 or unused.
+
+**Impact:** 4T wasted per CALL, cosmetic.
+
+#### Bug G: OpPush Routes Through HL (enumerate, reduce)
+
+`OpPush` always loads the source to HL first, then `PUSH HL`. For enumerate and
+reduce where the semantic layer emits `OpPush elementReg` and `OpPush indexReg`,
+both become `PUSH HL` — pushing the pointer, not the intended values.
+
+**Fix:** Register-aware push — check if src is already in a pushable pair (BC/DE)
+and emit `PUSH BC`/`PUSH DE` directly. Only use HL routing as fallback.
+
+**Impact:** enumerate and reduce get wrong values from stack.
 
 ---
 
-## Summary
+## Bug Summary
 
-| Root Cause | Affects | Status | Effort |
-|---|---|---|---|
-| Arithmetic op elision | Lambda bodies with +/-/\* | **Mitigated** (inline filter bypasses) | Small |
-| HL clobbered by CALL | Named fn in DJNZ loops | **Partially fixed** (inline filter OK) | Medium |
-| Lambda param not stored | Complex lambda chains | **Bypassed** (simple lambdas work) | Small |
-| PUSH wrong register | enumerate, reduce | **New** — needs register-aware push | Small |
+| ID | Bug | Affects | Status | Effort | Priority |
+|---|---|---|---|---|---|
+| A | Counter waste (no DJNZ) | All 8 patterns | Peephole target | Small | P3 |
+| B | Register handoff (A not loaded) | map+forEach, filter+forEach, chains | **Open** | Medium | **P1** |
+| C | Lambda arithmetic elision | Lambda map (`\|x\| x+1`) | **Open** | Medium | **P1** |
+| D | Filter constant not tracked | Inline filter lambda (`\|x\| x>3`) | **Open** | Small | **P1** |
+| E | Skip pointer offset elided | `skip(n)` | **Open** (same root as C) | Small | **P2** |
+| F | Unused result saves | All patterns with CALL | Peephole target | Small | P3 |
+| G | OpPush wrong register | enumerate, reduce | **Open** | Small | P2 |
+
+**Root cause clustering:**
+- Bugs C + E share the same root cause: register allocator's "already in register"
+  optimization elides arithmetic ops. Fixing this one issue resolves both.
+- Bug B is a calling convention issue — argument registers not set before CALL.
+- Bug D is a constant tracking issue — value lost between OpLoadConst and OpJumpIfFlag.
 
 ---
 
@@ -476,7 +640,7 @@ skip:
 | `pkg/codegen/z80.go` | Z80 register allocation + assembly emission |
 | `pkg/optimizer/fusion.go` | Fusion framework (skeleton, not wired in) |
 
-### Test Suite (63 unit + 18 corpus + 6 E2E)
+### Test Suite (63 unit + 18 corpus + 8 E2E analysis)
 
 | Package | Tests | What |
 |---------|-------|------|
@@ -486,6 +650,7 @@ skip:
 | `pkg/mirvm/` | 8 | DJNZ execution at MIR level |
 | `tests/iterator_corpus/` | 18 | Full pipeline regression — all 18 compile to Z80 |
 | `examples/e2e_iterators/` | 6 | MZX --console-io verified |
+| `/tmp/iter_e2e_v2/` | 8 | Deep Z80 output analysis (v0.19.4) |
 
 ### Performance (measured and projected)
 
@@ -508,31 +673,57 @@ skip:
 - OpPop: `POP HL`, store to dest
 - **Result:** 18/18 corpus tests now compile to Z80 (was 16/18)
 
-### Phase 2: PUSH/POP HL around CALLs in DJNZ loops
-- For `map(fn)` and `forEach(fn)` inside iterator loops, wrap CALL with `PUSH HL` / `POP HL`
-- Semantic layer marks iterator CALL instructions with a hint (e.g., `inst.Meta["iter_call"] = true`)
-- Z80 codegen checks hint and emits PUSH/POP around the CALL
-- **Effort:** Medium (~50 lines semantic + codegen)
+### Phase 2: PUSH/POP HL around CALLs — DONE (v0.19.4)
+- Semantic layer emits `OpPush ptrReg` / `OpPop ptrReg` around operation blocks
+- Applied to both `generateDJNZIteration()` and `generateEnhancedDJNZIteration()`
+- Detects `hasCallOps` by scanning operation types before emitting
+- **Result:** HL correctly preserved in all 8 E2E patterns
 
-### Phase 3: Flag-return ABI for Named Predicates
-- For `filter(is_big)` with named function, generate flag-return variant
-- Predicate returns via CY flag instead of LD HL, 0/1
-- Codegen: `PUSH HL` / `CALL is_big` / `POP HL` / `JR C, skip`
+### Phase 3: Register Handoff Fix (Bug B) — NEXT
+- After `CALL fn`, result in L. Next CALL reads from A. Insert `LD A, <resultReg>`.
+- Fix in Z80 codegen: before emitting CALL, check if arg register matches A.
+- If not: emit `LD A, <phys_reg>` where phys_reg holds the argument.
+- Unblocks: correct output for map+forEach, filter+forEach, chains.
 - **Effort:** Medium
 
-### Phase 4: Register-Aware OpPush
+### Phase 4: Register Allocator Arithmetic Elision Fix (Bugs C, E)
+- The "already in register" optimization skips arithmetic ops when dest == src phys reg
+- Need to distinguish "value loaded" from "value needs computation"
+- Fix: only elide `OpMove`/`OpLoad` when dest==src, never elide arithmetic ops
+- Unblocks: lambda map (`|x| x+1`), skip pointer offset
+- **Effort:** Medium (register allocator change — risk of regression)
+
+### Phase 5: Inline Filter Constant Tracking (Bug D)
+- `OpJumpIfFlag` needs the constant from `Src2`, but `constantValues` map loses it
+- Option A: embed constant directly in `OpJumpIfFlag.Imm2` (new field)
+- Option B: preserve constants across the short sequence (OpLoadConst → OpJumpIfFlag)
+- Unblocks: correct inline filter lambda behavior
+- **Effort:** Small
+
+### Phase 6: Register-Aware OpPush (Bug G)
 - Fix PUSH to use the correct register pair (not always HL)
 - Check if src is already in BC/DE/HL → `PUSH` that pair directly
 - Unblocks correct enumerate and reduce E2E
 - **Effort:** Small
 
-### Phase 5: Fusion Optimizer Wiring
+### Phase 7: Flag-return ABI for Named Predicates
+- For `filter(is_big)` with named function, generate flag-return variant
+- Predicate returns via CY flag instead of LD HL, 0/1
+- Codegen: `PUSH HL` / `CALL is_big` / `POP HL` / `JR C, skip`
+- **Effort:** Medium
+
+### Phase 8: Counter Peephole (Bug A)
+- Peephole pattern: `LD A, B / DEC B / LD A, B / LD B, A / JR NZ, X` → `DJNZ X`
+- Also: `LD B, N / LD A, B / LD B, A` → `LD B, N`
+- **Effort:** Small
+
+### Phase 9: Fusion Optimizer Wiring
 - Wire `pkg/optimizer/fusion.go` into the optimization pipeline
 - Detect adjacent iterator ops that can be merged into single loop body
-- Prerequisite: Phases 1-4 complete so fused code can actually generate correct Z80
+- Prerequisite: Phases 3-6 complete so fused code can actually generate correct Z80
 - **Effort:** Large
 
-### Phase 6: collect() + Generator Syntax
+### Phase 10: collect() + Generator Syntax
 - `collect()` — allocate result array, store filtered/mapped elements
 - `gen`/`yield` — lazy generator functions
 - **Effort:** Large, future
@@ -542,6 +733,8 @@ skip:
 ## References
 
 - [ADR-0008: Flag-Based Boolean ABI](adr/0008-flag-based-boolean-abi-for-iterators.md) — `CP` + flag returns for iterator predicates
+- [ADR-0009: Superoptimizer Peephole Rules](adr/ADR-0009-superoptimizer-peephole-rules.md) — 602K proven Z80 optimizations
+- [ADR-0010: Hex Output Format](adr/ADR-0010-hex-output-format.md) — planned hex switch
 - [Zero-Cost Iterators Revolution](Zero_Cost_Iterators_Revolution.md) — design vision
 - [DJNZ Iterator Optimization](2026-01-03-301-DJNZ_Iterator_Optimization.md) — loop optimization details
 - [Z80 Optimal Iteration Design](Z80_Optimal_Iteration_Design.md) — hardware-level patterns

@@ -6,7 +6,7 @@
 
 ### Modern Programming Language for Vintage Hardware
 
-[![Version](https://img.shields.io/badge/version-0.19.2-blue)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.19.4-blue)](https://github.com/oisee/minz/releases)
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
 **Write modern code. Run it on Z80, eZ80, 6502, and more.**
@@ -115,7 +115,7 @@ mz program.minz -b c -o prog.c                         # C99
 | Feature | Status |
 |---------|--------|
 | Pattern matching | Syntax parses, codegen partial |
-| Iterator chains | 6 ops E2E verified (forEach, take, skip, map, filter, lambda map), inline filter optimization, fusion WIP |
+| Iterator chains | 8 patterns compile to Z80 (forEach, take, skip, map, filter, lambda map/filter, chains). PUSH/POP HL pointer fix done. 7 codegen bugs documented. See [Status](docs/Iterator_Implementation_Status.md) |
 | MIR interpreter | Arrays/structs working, not complete |
 
 ### Known Limitations
@@ -287,7 +287,7 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 - **DJNZ loops** — arrays ≤255 elements use Z80's dedicated loop instruction (13 T-states vs 25+ for compare-jump)
 - **Pointer arithmetic** — `HL` walks the array with `INC HL`, no index multiplication
 
-**Status:** 6 operations verified end-to-end (forEach, take, skip, map, filter with inline lambda, lambda map). Inline filter optimization: `|x| x > 67` compiles to `CP 68 + JR C` — 8 T-states vs 45 for a function call. 63 unit tests + 18 corpus + 6 E2E. Use `--compile-trace` to see optimizer decisions. Fusion optimizer integration is next.
+**Status (v0.19.4):** All 8 patterns compile to Z80. PUSH/POP HL pointer preservation fixed in both DJNZ code paths. TRUE SMC anchor generation fixed (`LD A, 0` / 3E). 7 codegen bugs documented with root cause analysis — top 3: register handoff (A not loaded between stages), lambda arithmetic elision, inline filter constant tracking. 63 unit tests + 18 corpus + 8 deep E2E analysis. Use `--compile-trace` to see optimizer decisions.
 
 **Design documents:**
 - [Zero-Cost Iterators Revolution](docs/Zero_Cost_Iterators_Revolution.md) — complete vision
