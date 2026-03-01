@@ -2,17 +2,25 @@ package optimizer
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/minz/minzc/pkg/ir"
 )
 
 // FusionOptimizer performs iterator chain fusion optimization.
-// It transforms chains like .map().filter().forEach() into single fused loops.
+// It inlines small callback functions within DJNZ iterator loops,
+// eliminating CALL/RET overhead (~27 T-states per call per element)
+// and SMC parameter patching overhead.
 //
-// Currently a detection-only pass: identifies fusible chains and annotates them.
-// Actual fusion codegen will be implemented once basic block support is in place.
+// The semantic analyzer already fuses multi-stage chains (map+filter+forEach)
+// into single DJNZ loops. This pass goes further by inlining the callback
+// function bodies directly into the loop, replacing OpCall with the callee's
+// instructions. This is specifically needed because the standard InliningPass
+// skips functions with OpTrueSMCLoad or OpLoadParam (iterator callbacks use these).
 type FusionOptimizer struct {
-	module    *ir.Module
+	module   *ir.Module
 	optimized int
+	fusionID  int // Unique ID for inlined label disambiguation
 }
 
 // NewFusionOptimizer creates a new fusion optimizer
@@ -52,95 +60,387 @@ func (f *FusionOptimizer) Optimize(module *ir.Module) error {
 		return err
 	}
 	if f.optimized > 0 {
-		fmt.Printf("Fusion optimizer: Fused %d iterator chains\n", f.optimized)
+		fmt.Printf("Fusion optimizer: Fused %d iterator callbacks\n", f.optimized)
 	}
 	return nil
 }
 
-// optimizeFunction detects and annotates fusible iterator chains in a function.
-// Returns true if any chains were detected and annotated.
+// djnzLoop represents a detected DJNZ iterator loop in MIR
+type djnzLoop struct {
+	nopIdx     int         // Index of NOP marker ("DJNZ OPTIMIZED LOOP")
+	counterIdx int         // Index of OpLoadConst for counter
+	ptrIdx     int         // Index of OpMove for pointer init
+	labelIdx   int         // Index of OpLabel for loop start
+	elementIdx int         // Index of OpLoad for element (*ptr)
+	pushIdx    int         // Index of OpPush (save array pointer)
+	popIdx     int         // Index of OpPop (restore array pointer)
+	incIdx     int         // Index of OpInc (advance pointer)
+	djnzIdx    int         // Index of OpDJNZ
+	counterReg ir.Register
+	ptrReg     ir.Register
+	elementReg ir.Register
+}
+
+// callSite represents a fusible OpCall inside a DJNZ loop
+type callSite struct {
+	idx    int             // Instruction index in function
+	inst   ir.Instruction  // The OpCall instruction
+	callee *ir.Function    // The called function
+}
+
+// optimizeFunction finds DJNZ iterator loops and inlines fusible callbacks.
 func (f *FusionOptimizer) optimizeFunction(fn *ir.Function) bool {
-	// Scan for iterator chain patterns: sequences of OpCall instructions
-	// targeting iterator operations (map, filter, forEach, take, skip, etc.)
-	// where the output of one feeds into the next.
-	//
-	// TODO: Implement actual fusion (replace N loops with 1 fused loop)
-	// For now, detect and annotate for future passes.
-	return false
+	loops := f.findDJNZLoops(fn)
+	if len(loops) == 0 {
+		return false
+	}
+
+	changed := false
+	// Process loops in reverse order so index shifts don't affect earlier loops
+	for i := len(loops) - 1; i >= 0; i-- {
+		if f.fuseLoopCallbacks(fn, loops[i]) {
+			changed = true
+		}
+	}
+	return changed
 }
 
-// IteratorChain represents a detected iterator chain
-type IteratorChain struct {
-	source               ir.Register      // Source array/string
-	sourceType           ir.Type          // Type of source
-	operations           []IteratorOperation
-	originalInstructions []ir.Instruction // Instructions to replace
+// findDJNZLoops scans for DJNZ iterator loop patterns in MIR.
+// Pattern:
+//   OpNop "DJNZ OPTIMIZED LOOP"
+//   OpLoadConst  r_counter = N
+//   OpMove       r_ptr = r_source
+//   OpLabel      djnz_loop_X:
+//   OpLoad       r_element = *r_ptr
+//   OpPush       r_ptr
+//   ... operations (OpCall, OpLoadConst, OpJumpIfFlag, etc.) ...
+//   OpPop        r_ptr
+//   OpInc        r_ptr
+//   OpDJNZ       r_counter, djnz_loop_X
+func (f *FusionOptimizer) findDJNZLoops(fn *ir.Function) []*djnzLoop {
+	var loops []*djnzLoop
+	instrs := fn.Instructions
+
+	for i := 0; i < len(instrs); i++ {
+		if instrs[i].Op == ir.OpNop && strings.Contains(instrs[i].Comment, "DJNZ OPTIMIZED LOOP") {
+			loop := f.parseDJNZLoop(instrs, i)
+			if loop != nil {
+				loops = append(loops, loop)
+			}
+		}
+	}
+	return loops
 }
 
-// IteratorOperation represents a single operation in the chain
-type IteratorOperation struct {
-	opType   string       // "map", "filter", "forEach"
-	function ir.Register  // Lambda or function to apply
+// parseDJNZLoop validates and extracts a DJNZ iterator loop structure.
+func (f *FusionOptimizer) parseDJNZLoop(instrs []ir.Instruction, nopIdx int) *djnzLoop {
+	n := len(instrs)
+	loop := &djnzLoop{nopIdx: nopIdx}
+
+	// OpLoadConst for counter (immediately after NOP)
+	idx := nopIdx + 1
+	if idx >= n || instrs[idx].Op != ir.OpLoadConst {
+		return nil
+	}
+	loop.counterIdx = idx
+	loop.counterReg = instrs[idx].Dest
+
+	// OpMove for pointer init
+	idx++
+	if idx >= n || instrs[idx].Op != ir.OpMove {
+		return nil
+	}
+	loop.ptrIdx = idx
+	loop.ptrReg = instrs[idx].Dest
+
+	// OpLabel for loop start
+	idx++
+	if idx >= n || instrs[idx].Op != ir.OpLabel {
+		return nil
+	}
+	loop.labelIdx = idx
+
+	// OpLoad for element load (*ptr)
+	idx++
+	if idx >= n || (instrs[idx].Op != ir.OpLoad && instrs[idx].Op != ir.OpLoadPtr) {
+		return nil
+	}
+	loop.elementIdx = idx
+	loop.elementReg = instrs[idx].Dest
+
+	// OpPush for saving pointer
+	idx++
+	if idx >= n || instrs[idx].Op != ir.OpPush {
+		return nil
+	}
+	loop.pushIdx = idx
+
+	// Find OpDJNZ to locate loop end
+	for j := idx + 1; j < n; j++ {
+		if instrs[j].Op == ir.OpDJNZ {
+			loop.djnzIdx = j
+			break
+		}
+	}
+	if loop.djnzIdx == 0 {
+		return nil
+	}
+
+	// Find OpInc and OpPop before DJNZ (scanning backwards)
+	for k := loop.djnzIdx - 1; k > loop.pushIdx; k-- {
+		if instrs[k].Op == ir.OpInc {
+			loop.incIdx = k
+			break
+		}
+	}
+	for k := loop.incIdx - 1; k > loop.pushIdx; k-- {
+		if instrs[k].Op == ir.OpPop {
+			loop.popIdx = k
+			break
+		}
+	}
+
+	if loop.incIdx == 0 || loop.popIdx == 0 {
+		return nil
+	}
+
+	return loop
 }
 
-// detectIteratorChain looks for iterator chain patterns
-func (f *FusionOptimizer) detectIteratorChain(instructions []ir.Instruction) *IteratorChain {
-	// Look for patterns like:
-	// r1 = load array
-	// r2 = call iter(r1)
-	// r3 = call map(r2, lambda1)
-	// r4 = call filter(r3, lambda2)
-	// call forEach(r4, lambda3)
+// fuseLoopCallbacks finds and inlines fusible OpCall instructions within a DJNZ loop.
+func (f *FusionOptimizer) fuseLoopCallbacks(fn *ir.Function, loop *djnzLoop) bool {
+	calls := f.findFusibleCalls(fn.Instructions, loop)
+	if len(calls) == 0 {
+		return false
+	}
 
-	// TODO: Implement pattern matching when basic block support is available
+	changed := false
+	// Process in reverse order to preserve indices after splice
+	for i := len(calls) - 1; i >= 0; i-- {
+		if f.inlineCallInLoop(fn, calls[i]) {
+			changed = true
+			f.optimized++
+		}
+	}
+	return changed
+}
+
+// findFusibleCalls finds OpCall instructions in the loop body that can be inlined.
+func (f *FusionOptimizer) findFusibleCalls(instrs []ir.Instruction, loop *djnzLoop) []callSite {
+	var calls []callSite
+
+	// Scan the operation region (between PUSH and POP)
+	for i := loop.pushIdx + 1; i < loop.popIdx; i++ {
+		if instrs[i].Op != ir.OpCall {
+			continue
+		}
+
+		callee := f.findFunction(instrs[i].Symbol)
+		if callee == nil {
+			continue
+		}
+
+		if f.isFusibleCallback(callee) {
+			calls = append(calls, callSite{
+				idx:    i,
+				inst:   instrs[i],
+				callee: callee,
+			})
+		}
+	}
+	return calls
+}
+
+// findFunction looks up a function by name in the module.
+func (f *FusionOptimizer) findFunction(name string) *ir.Function {
+	for _, fn := range f.module.Functions {
+		if fn.Name == name {
+			return fn
+		}
+	}
 	return nil
 }
 
-// fuseIteratorChain generates optimized code for the fused chain
-func (f *FusionOptimizer) fuseIteratorChain(fn *ir.Function, chain *IteratorChain) []ir.Instruction {
-	var result []ir.Instruction
-
-	usesDJNZ := f.shouldUseDJNZ(chain.sourceType)
-	if usesDJNZ {
-		result = f.generateDJNZLoop(fn, chain)
-	} else {
-		result = f.generate16BitLoop(fn, chain)
+// isFusibleCallback checks if a function is suitable for inlining into a DJNZ loop.
+// Criteria:
+//   - ≤ 8 instructions (small enough to not bloat the loop)
+//   - No inline assembly (uses physical registers directly)
+//   - No nested function calls (would reintroduce CALL overhead)
+//   - No loops (would create nested loops)
+//   - Exactly 1 parameter (standard iterator callback signature)
+func (f *FusionOptimizer) isFusibleCallback(fn *ir.Function) bool {
+	if len(fn.Instructions) > 8 {
+		return false
 	}
 
-	return result
-}
-
-// shouldUseDJNZ determines if we can use DJNZ optimization
-func (f *FusionOptimizer) shouldUseDJNZ(sourceType ir.Type) bool {
-	if arrayType, ok := sourceType.(*ir.ArrayType); ok {
-		return arrayType.Length <= 255
+	if fn.NumParams != 1 {
+		return false
 	}
+
+	for _, inst := range fn.Instructions {
+		switch inst.Op {
+		case ir.OpAsm:
+			return false // Physical register dependency
+		case ir.OpCall:
+			return false // Nested calls defeat the purpose
+		case ir.OpDJNZ, ir.OpJump:
+			return false // Loops inside the callback
+		}
+	}
+
 	return true
 }
 
-// generateDJNZLoop generates a DJNZ-optimized fused loop
-func (f *FusionOptimizer) generateDJNZLoop(fn *ir.Function, chain *IteratorChain) []ir.Instruction {
-	// TODO: Implement DJNZ loop generation
-	return []ir.Instruction{}
-}
+// inlineCallInLoop replaces an OpCall with the callee's body, performing:
+//   - OpTrueSMCLoad → OpMove from the actual argument
+//   - OpLoadParam/OpLoadVar(param) → OpMove from the actual argument
+//   - Register remapping to avoid conflicts
+//   - OpReturn → OpMove to the call's destination register
+func (f *FusionOptimizer) inlineCallInLoop(fn *ir.Function, call callSite) bool {
+	callee := call.callee
+	f.fusionID++
+	labelSuffix := fmt.Sprintf("_fused%d", f.fusionID)
 
-// generate16BitLoop generates a 16-bit counter loop for large arrays
-func (f *FusionOptimizer) generate16BitLoop(fn *ir.Function, chain *IteratorChain) []ir.Instruction {
-	// TODO: Implement 16-bit counter loop
-	return []ir.Instruction{}
-}
-
-// applyOperation applies a single iterator operation within a fused loop
-func (f *FusionOptimizer) applyOperation(fn *ir.Function, instructions *[]ir.Instruction,
-	current ir.Register, op IteratorOperation) ir.Register {
-	// TODO: Implement operation application
-	return current
-}
-
-// getArrayLength extracts the length from an array type
-func (f *FusionOptimizer) getArrayLength(t ir.Type) int {
-	if arrayType, ok := t.(*ir.ArrayType); ok {
-		return arrayType.Length
+	// Determine the callee's parameter register
+	var paramReg ir.Register
+	if len(callee.Params) > 0 && callee.Params[0].Reg != 0 {
+		paramReg = callee.Params[0].Reg
+	} else {
+		paramReg = ir.Register(1) // Convention: first param = r1
 	}
-	return 0
+
+	// The actual argument register from the call site
+	var argReg ir.Register
+	if len(call.inst.Args) > 0 {
+		argReg = call.inst.Args[0]
+	} else {
+		return false // No argument to pass
+	}
+
+	// Build register mapping: callee registers → new registers in caller
+	regMap := make(map[ir.Register]ir.Register)
+	regMap[paramReg] = argReg // Map parameter to actual argument
+
+	// Build label mapping for disambiguation
+	labelMap := make(map[string]string)
+	for _, inst := range callee.Instructions {
+		if inst.Op == ir.OpLabel && inst.Label != "" {
+			labelMap[inst.Label] = inst.Label + labelSuffix
+		}
+	}
+
+	// Allocate new registers for callee's internal registers
+	nextReg := fn.NextRegister
+	for _, inst := range callee.Instructions {
+		if inst.Dest != 0 {
+			if _, exists := regMap[inst.Dest]; !exists {
+				regMap[inst.Dest] = nextReg
+				nextReg++
+			}
+		}
+	}
+
+	// Parameter name for matching OpLoadVar/OpLoadParam
+	paramName := ""
+	if len(callee.Params) > 0 {
+		paramName = callee.Params[0].Name
+	}
+
+	// Generate inlined instructions
+	var inlined []ir.Instruction
+	for _, inst := range callee.Instructions {
+		// Handle SMC parameter load → move from actual argument
+		if inst.Op == ir.OpTrueSMCLoad {
+			destReg := f.mapReg(regMap, inst.Dest)
+			inlined = append(inlined, ir.Instruction{
+				Op:      ir.OpMove,
+				Dest:    destReg,
+				Src1:    argReg,
+				Comment: fmt.Sprintf("Fused: param %s ← r%d", paramName, argReg),
+			})
+			continue
+		}
+
+		// Handle regular parameter load → move from actual argument
+		if inst.Op == ir.OpLoadParam ||
+			(inst.Op == ir.OpLoadVar && paramName != "" && inst.Symbol == paramName) {
+			destReg := f.mapReg(regMap, inst.Dest)
+			inlined = append(inlined, ir.Instruction{
+				Op:      ir.OpMove,
+				Dest:    destReg,
+				Src1:    argReg,
+				Comment: fmt.Sprintf("Fused: param %s ← r%d", paramName, argReg),
+			})
+			continue
+		}
+
+		// Handle return → move result to call destination
+		if inst.Op == ir.OpReturn {
+			if inst.Src1 != 0 && call.inst.Dest != 0 {
+				src := f.mapReg(regMap, inst.Src1)
+				inlined = append(inlined, ir.Instruction{
+					Op:      ir.OpMove,
+					Dest:    call.inst.Dest,
+					Src1:    src,
+					Comment: "Fused: return value",
+				})
+			}
+			continue
+		}
+
+		// Remap registers in all other instructions
+		newInst := inst
+		if inst.Dest != 0 {
+			newInst.Dest = f.mapReg(regMap, inst.Dest)
+		}
+		if inst.Src1 != 0 {
+			newInst.Src1 = f.mapReg(regMap, inst.Src1)
+		}
+		if inst.Src2 != 0 {
+			newInst.Src2 = f.mapReg(regMap, inst.Src2)
+		}
+		if inst.Label != "" {
+			if mapped, ok := labelMap[inst.Label]; ok {
+				newInst.Label = mapped
+			}
+		}
+		if len(inst.Args) > 0 {
+			newArgs := make([]ir.Register, len(inst.Args))
+			for i, arg := range inst.Args {
+				newArgs[i] = f.mapReg(regMap, arg)
+			}
+			newInst.Args = newArgs
+		}
+
+		if newInst.Comment != "" {
+			newInst.Comment = "Fused: " + newInst.Comment
+		} else {
+			newInst.Comment = fmt.Sprintf("Fused from %s", callee.Name)
+		}
+
+		inlined = append(inlined, newInst)
+	}
+
+	if len(inlined) == 0 {
+		return false
+	}
+
+	// Splice: replace OpCall at call.idx with inlined instructions
+	old := fn.Instructions
+	result := make([]ir.Instruction, 0, len(old)+len(inlined)-1)
+	result = append(result, old[:call.idx]...)
+	result = append(result, inlined...)
+	result = append(result, old[call.idx+1:]...)
+	fn.Instructions = result
+	fn.NextRegister = nextReg
+
+	return true
+}
+
+// mapReg returns the mapped register if one exists, otherwise the original.
+func (f *FusionOptimizer) mapReg(regMap map[ir.Register]ir.Register, reg ir.Register) ir.Register {
+	if mapped, ok := regMap[reg]; ok {
+		return mapped
+	}
+	return reg
 }

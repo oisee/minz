@@ -48,7 +48,7 @@
 
 ### Iterator Chain Codegen
 - [x] Wire fusion optimizer (`pkg/optimizer/fusion.go`) into pipeline as Pass
-- [ ] Implement fusion detection logic (currently detection-only scaffold)
+- [x] Implement fusion: DJNZ loop detection + callback inlining (eliminates CALL/RET overhead ~27 T-states/element)
 - [x] Implement OpPush/OpPop in Z80 backend for enumerate/reduce
 - [x] HL clobber fix verified (PUSH/POP HL around CALL in DJNZ loops)
 - [x] MIR peephole Imm/Value fix — constants tracked correctly for skip/take offsets
@@ -56,11 +56,10 @@
 - [x] Lambda inlining fix — AddParamWithRegister + paramArgMap substitution
 - [x] Copy propagation fix — copies cleared at OpLabel merge points
 - [x] Pointer-walk verified correct (was stale binary, not a code bug — OpLoad.Src1=ptrReg confirmed)
-- [x] **7/7 E2E hex-verified tests pass** (forEach, take, skip, map, filter, inline_filter, lambda_map)
+- [x] **10/10 E2E hex-verified tests pass** (including 3 multi-stage chains: map+filter, filter+map, take+map)
 - [x] Fix inline filter constant tracking: DCE was removing OpLoadConst (OpJumpIfFlag missing from markUsedRegisters)
 - [x] Fix OpPush/OpPop register routing: direct PUSH BC/DE/HL/IX/IY based on physical allocation
-- [x] 53 unit tests + 18 corpus pass across parser/semantic/codegen/MIR VM
-- [ ] Expand test coverage for multi-stage chains (map+filter+forEach, etc.)
+- [x] 60+ unit tests + 18 corpus pass across parser/semantic/codegen/MIR VM/optimizer
 - Ref: [Iterator Implementation Status](Iterator_Implementation_Status.md)
 
 ### Loop Rerolling
