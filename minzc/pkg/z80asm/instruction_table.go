@@ -1244,6 +1244,21 @@ func encodeIndIdxDispImm(a *Assembler, pattern *InstructionPattern, values []int
 	return result, nil
 }
 
+// encodePrefixImm8 encodes prefix + opcode + immediate byte (for LD IXH/IXL/IYH/IYL, n)
+func encodePrefixImm8(a *Assembler, pattern *InstructionPattern, values []interface{}) ([]byte, error) {
+	result := make([]byte, len(pattern.Encoding))
+	copy(result, pattern.Encoding)
+
+	// Find the immediate value
+	for _, v := range values {
+		if imm, ok := v.(int); ok {
+			result = append(result, byte(imm))
+			return result, nil
+		}
+	}
+	return nil, fmt.Errorf("no immediate value found")
+}
+
 // IX/IY indexed instruction patterns
 var ixiyInstructions = []InstructionPattern{
 	// ========== LD r, (IX+d) ==========
@@ -1325,6 +1340,119 @@ var ixiyInstructions = []InstructionPattern{
 	{Mnemonic: "INC", Operands: []OperandPattern{{OpTypeReg16, "IY"}}, Encoding: []byte{0xFD, 0x23}},
 	{Mnemonic: "DEC", Operands: []OperandPattern{{OpTypeReg16, "IX"}}, Encoding: []byte{0xDD, 0x2B}},
 	{Mnemonic: "DEC", Operands: []OperandPattern{{OpTypeReg16, "IY"}}, Encoding: []byte{0xFD, 0x2B}},
+
+	// ========== UNDOCUMENTED: IX/IY half-register instructions ==========
+	// These use DD/FD prefix + the opcode that would normally use H/L.
+
+	// LD IXH/IXL/IYH/IYL, n (immediate)
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXH"}, {OpTypeImm8, ""}}, EncodingFunc: encodePrefixImm8, Encoding: []byte{0xDD, 0x26}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXL"}, {OpTypeImm8, ""}}, EncodingFunc: encodePrefixImm8, Encoding: []byte{0xDD, 0x2E}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYH"}, {OpTypeImm8, ""}}, EncodingFunc: encodePrefixImm8, Encoding: []byte{0xFD, 0x26}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYL"}, {OpTypeImm8, ""}}, EncodingFunc: encodePrefixImm8, Encoding: []byte{0xFD, 0x2E}},
+
+	// LD r, IXH/IXL (load from half-register)
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x7C}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "B"}, {OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x44}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "C"}, {OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x4C}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "D"}, {OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x54}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "E"}, {OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x5C}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x7D}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "B"}, {OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x45}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "C"}, {OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x4D}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "D"}, {OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x55}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "E"}, {OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x5D}},
+
+	// LD r, IYH/IYL
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x7C}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "B"}, {OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x44}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "C"}, {OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x4C}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "D"}, {OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x54}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "E"}, {OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x5C}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x7D}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "B"}, {OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x45}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "C"}, {OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x4D}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "D"}, {OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x55}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "E"}, {OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x5D}},
+
+	// LD IXH/IXL, r (load to half-register)
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXH"}, {OpTypeReg8, "A"}}, Encoding: []byte{0xDD, 0x67}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXH"}, {OpTypeReg8, "B"}}, Encoding: []byte{0xDD, 0x60}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXH"}, {OpTypeReg8, "C"}}, Encoding: []byte{0xDD, 0x61}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXH"}, {OpTypeReg8, "D"}}, Encoding: []byte{0xDD, 0x62}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXH"}, {OpTypeReg8, "E"}}, Encoding: []byte{0xDD, 0x63}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXL"}, {OpTypeReg8, "A"}}, Encoding: []byte{0xDD, 0x6F}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXL"}, {OpTypeReg8, "B"}}, Encoding: []byte{0xDD, 0x68}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXL"}, {OpTypeReg8, "C"}}, Encoding: []byte{0xDD, 0x69}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXL"}, {OpTypeReg8, "D"}}, Encoding: []byte{0xDD, 0x6A}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXL"}, {OpTypeReg8, "E"}}, Encoding: []byte{0xDD, 0x6B}},
+
+	// LD IYH/IYL, r
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYH"}, {OpTypeReg8, "A"}}, Encoding: []byte{0xFD, 0x67}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYH"}, {OpTypeReg8, "B"}}, Encoding: []byte{0xFD, 0x60}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYH"}, {OpTypeReg8, "C"}}, Encoding: []byte{0xFD, 0x61}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYH"}, {OpTypeReg8, "D"}}, Encoding: []byte{0xFD, 0x62}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYH"}, {OpTypeReg8, "E"}}, Encoding: []byte{0xFD, 0x63}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYL"}, {OpTypeReg8, "A"}}, Encoding: []byte{0xFD, 0x6F}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYL"}, {OpTypeReg8, "B"}}, Encoding: []byte{0xFD, 0x68}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYL"}, {OpTypeReg8, "C"}}, Encoding: []byte{0xFD, 0x69}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYL"}, {OpTypeReg8, "D"}}, Encoding: []byte{0xFD, 0x6A}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYL"}, {OpTypeReg8, "E"}}, Encoding: []byte{0xFD, 0x6B}},
+
+	// LD between half-registers (same index reg)
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXH"}, {OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x64}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXH"}, {OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x65}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXL"}, {OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x6C}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IXL"}, {OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x6D}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYH"}, {OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x64}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYH"}, {OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x65}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYL"}, {OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x6C}},
+	{Mnemonic: "LD", Operands: []OperandPattern{{OpTypeReg8, "IYL"}, {OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x6D}},
+
+	// INC/DEC half-registers
+	{Mnemonic: "INC", Operands: []OperandPattern{{OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x24}},
+	{Mnemonic: "INC", Operands: []OperandPattern{{OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x2C}},
+	{Mnemonic: "INC", Operands: []OperandPattern{{OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x24}},
+	{Mnemonic: "INC", Operands: []OperandPattern{{OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x2C}},
+	{Mnemonic: "DEC", Operands: []OperandPattern{{OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x25}},
+	{Mnemonic: "DEC", Operands: []OperandPattern{{OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x2D}},
+	{Mnemonic: "DEC", Operands: []OperandPattern{{OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x25}},
+	{Mnemonic: "DEC", Operands: []OperandPattern{{OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x2D}},
+
+	// ALU A, half-register (two-operand forms)
+	{Mnemonic: "ADD", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x84}},
+	{Mnemonic: "ADD", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x85}},
+	{Mnemonic: "ADD", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x84}},
+	{Mnemonic: "ADD", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x85}},
+	{Mnemonic: "ADC", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x8C}},
+	{Mnemonic: "ADC", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x8D}},
+	{Mnemonic: "ADC", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x8C}},
+	{Mnemonic: "ADC", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x8D}},
+	{Mnemonic: "SBC", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x9C}},
+	{Mnemonic: "SBC", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x9D}},
+	{Mnemonic: "SBC", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x9C}},
+	{Mnemonic: "SBC", Operands: []OperandPattern{{OpTypeReg8, "A"}, {OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x9D}},
+
+	// ALU half-register (one-operand forms: SUB, AND, XOR, OR, CP)
+	{Mnemonic: "SUB", Operands: []OperandPattern{{OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0x94}},
+	{Mnemonic: "SUB", Operands: []OperandPattern{{OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0x95}},
+	{Mnemonic: "SUB", Operands: []OperandPattern{{OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0x94}},
+	{Mnemonic: "SUB", Operands: []OperandPattern{{OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0x95}},
+	{Mnemonic: "AND", Operands: []OperandPattern{{OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0xA4}},
+	{Mnemonic: "AND", Operands: []OperandPattern{{OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0xA5}},
+	{Mnemonic: "AND", Operands: []OperandPattern{{OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0xA4}},
+	{Mnemonic: "AND", Operands: []OperandPattern{{OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0xA5}},
+	{Mnemonic: "XOR", Operands: []OperandPattern{{OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0xAC}},
+	{Mnemonic: "XOR", Operands: []OperandPattern{{OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0xAD}},
+	{Mnemonic: "XOR", Operands: []OperandPattern{{OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0xAC}},
+	{Mnemonic: "XOR", Operands: []OperandPattern{{OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0xAD}},
+	{Mnemonic: "OR", Operands: []OperandPattern{{OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0xB4}},
+	{Mnemonic: "OR", Operands: []OperandPattern{{OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0xB5}},
+	{Mnemonic: "OR", Operands: []OperandPattern{{OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0xB4}},
+	{Mnemonic: "OR", Operands: []OperandPattern{{OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0xB5}},
+	{Mnemonic: "CP", Operands: []OperandPattern{{OpTypeReg8, "IXH"}}, Encoding: []byte{0xDD, 0xBC}},
+	{Mnemonic: "CP", Operands: []OperandPattern{{OpTypeReg8, "IXL"}}, Encoding: []byte{0xDD, 0xBD}},
+	{Mnemonic: "CP", Operands: []OperandPattern{{OpTypeReg8, "IYH"}}, Encoding: []byte{0xFD, 0xBC}},
+	{Mnemonic: "CP", Operands: []OperandPattern{{OpTypeReg8, "IYL"}}, Encoding: []byte{0xFD, 0xBD}},
 
 	// ========== ADD IX/IY, rr ==========
 	{Mnemonic: "ADD", Operands: []OperandPattern{{OpTypeReg16, "IX"}, {OpTypeReg16, "BC"}}, Encoding: []byte{0xDD, 0x09}},

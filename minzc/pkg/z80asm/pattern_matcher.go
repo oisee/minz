@@ -319,11 +319,12 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 	}
 }
 
-// parseReg8 parses an 8-bit register name
+// parseReg8 parses an 8-bit register name (including undocumented IX/IY halves)
 func parseReg8(s string) string {
 	s = strings.ToUpper(strings.TrimSpace(s))
 	switch s {
-	case "A", "B", "C", "D", "E", "H", "L", "I", "R", "F":
+	case "A", "B", "C", "D", "E", "H", "L", "I", "R", "F",
+		"IXH", "IXL", "IYH", "IYL":
 		return s
 	default:
 		return ""

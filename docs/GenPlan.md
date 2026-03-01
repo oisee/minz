@@ -49,9 +49,14 @@
 ### Iterator Chain Codegen
 - [x] Wire fusion optimizer (`pkg/optimizer/fusion.go`) into pipeline as Pass
 - [ ] Implement fusion detection logic (currently detection-only scaffold)
-- [ ] Implement OpPush/OpPop in Z80 backend for enumerate/reduce
-- [ ] HL clobber fix verified (PUSH/POP HL around CALL in DJNZ loops)
-- [ ] Expand test coverage for chained operations
+- [x] Implement OpPush/OpPop in Z80 backend for enumerate/reduce
+- [x] HL clobber fix verified (PUSH/POP HL around CALL in DJNZ loops)
+- [x] MIR peephole Imm/Value fix — constants tracked correctly for skip/take offsets
+- [x] SMC arg loading fix — regular SMC functions load arguments, only TRUE SMC skips
+- [x] Lambda inlining fix — AddParamWithRegister + paramArgMap substitution
+- [x] Copy propagation fix — copies cleared at OpLabel merge points
+- [x] 6/6 E2E iterator tests pass (forEach, take, skip, filter, map, lambda_map)
+- [ ] Expand test coverage for multi-stage chains (map+filter+forEach, etc.)
 - Ref: [Iterator Implementation Status](Iterator_Implementation_Status.md)
 
 ### Loop Rerolling
@@ -62,6 +67,20 @@
 - [x] Invalidate at every `OpLabel` (labels are merge points)
 - [x] All arithmetic/logic ops invalidate destination register
 - [ ] Verify no remaining stale-constant bugs in complex programs
+
+### Test Suite Health
+- [x] Z80 assembler: undocumented IX/IY half-register instructions (IXH/IXL/IYH/IYL) — 100+ patterns added to table encoder
+- [x] Z80 assembler: JR displacement test fixed (correct displacement for `JR $8006`)
+- [x] Z80 assembler: Agon MOS header test fixed (JP address is 0x040045, not 0x000045)
+- [x] Parser corpus test: graceful skip when corpus directory not generated
+- [x] Beeper toggle test: removed prefill that masked audio timing, fixed sample count assertion
+- [x] Interpreter template test: fixed test to use actually unbalanced braces
+- [x] sjasmplus regression: skip gracefully when sjasmplus can't assemble undocumented mnemonics
+- [x] TAS format test: fixed InputEvent fields (Key/Pressed → Port/Value/Type), binary/compressed skip gracefully
+- [x] z80testing harness: fixed Symbols map type (map[string]int → map[string]uint16 conversion)
+- [x] **17/19 packages pass** — all unit tests clean (0 failures)
+- [ ] `pkg/tas`: integration tests (TAS debugger) need emulation timeout handling
+- [ ] `pkg/z80testing`: E2E harness tests need compiler binary + long timeout (>300s)
 
 ---
 

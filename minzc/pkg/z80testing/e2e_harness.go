@@ -173,7 +173,12 @@ func (h *E2ETestHarness) AssembleA80(a80File string) ([]byte, map[string]uint16,
 		return nil, nil, fmt.Errorf("assembly errors:\n%s", strings.Join(errMsgs, "\n"))
 	}
 
-	return result.Binary, result.Symbols, nil
+	// Convert map[string]int to map[string]uint16
+	symbols := make(map[string]uint16, len(result.Symbols))
+	for k, v := range result.Symbols {
+		symbols[k] = uint16(v)
+	}
+	return result.Binary, symbols, nil
 }
 
 // parseLabels parses sjasmplus .lab file format

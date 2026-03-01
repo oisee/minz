@@ -88,7 +88,7 @@ func TestMIRInterpreter_TemplateValidation(t *testing.T) {
 	}
 	
 	// Unbalanced braces
-	err = interp.ValidateTemplate("fun {0}_{1} -> void", 2)
+	err = interp.ValidateTemplate("fun {0}_{1 -> void", 2)
 	if err == nil || !strings.Contains(err.Error(), "unbalanced braces") {
 		t.Errorf("Should reject template with unbalanced braces")
 	}

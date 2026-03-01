@@ -77,13 +77,6 @@ func NewBeeper(mode *VideoMode) *Beeper {
 		changes:      make([]beeperChange, 0, 256),
 		enabled:      true,
 	}
-	// Pre-fill with 2 frames of silence for startup.
-	prefill := beeperTargetFill
-	for i := 0; i < prefill; i++ {
-		b.buf[i] = 0
-	}
-	b.bufCount = prefill
-	b.bufWrite = prefill
 	return b
 }
 

@@ -57,12 +57,12 @@ func TestAssembler(t *testing.T) {
 			source: `
 				ORG $8000
 				JP $1234
-				JR $8004
+				JR $8006
 				RET
 			`,
 			expected: []byte{
 				0xC3, 0x34, 0x12,   // JP $1234
-				0x18, 0x02,         // JR +2 (to $8004)
+				0x18, 0x01,         // JR +1 (skip RET, to $8006)
 				0xC9,               // RET
 			},
 		},

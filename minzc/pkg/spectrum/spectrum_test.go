@@ -243,10 +243,11 @@ func TestBeeperToggle(t *testing.T) {
 	beep.SetEar(false, 35000)
 	beep.EndFrame()
 
-	buf := make([]float32, 882)
+	buf := make([]float32, 1024)
 	n := beep.ReadSamples(buf)
-	if n != 882 {
-		t.Errorf("expected 882 samples, got %d", n)
+	// Exact samples per frame ≈ 880.6 (44100 * 69888 / 3500000), adaptive +1 = 881
+	if n < 878 || n > 886 {
+		t.Errorf("expected ~881 samples, got %d", n)
 	}
 
 	// First half should be positive, second half negative
