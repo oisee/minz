@@ -31,8 +31,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 ## 🎓 Quick Start for AI Colleagues
 
 - **[MinZ Crash Course for AI Colleagues](AI_COLLEAGUES_MINZ_CRASH_COURSE.md)** - Complete training
-- **[STABILITY_ROADMAP.md](../STABILITY_ROADMAP.md)** - 3-phase plan to v1.0
-- **[Development Roadmap 2025](../docs/129_Development_Roadmap_2025.md)** - Current priorities
+- **[GenPlan.md](docs/GenPlan.md)** - Development plan & roadmap
 
 ## 🏗️ Architecture References
 

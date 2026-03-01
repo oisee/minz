@@ -134,35 +134,32 @@ func (ra *Z80RegisterAllocator) AllocateFunction(fn *ir.Function) {
 
 // linearScanAllocation performs simple linear scan register allocation
 func (ra *Z80RegisterAllocator) linearScanAllocation(fn *ir.Function) {
-	// Build live intervals
+	// Build live intervals (with loop back-edge awareness)
 	liveIntervals := ra.computeLiveIntervals(fn)
-	
-	// Sort by start position
-	// For now, simple allocation in order
-	
-	for _, inst := range fn.Instructions {
+
+	for i, inst := range fn.Instructions {
 		// Handle destination register
 		if inst.Dest != 0 && inst.Dest != ir.RegZero {
 			if _, allocated := ra.allocation[inst.Dest]; !allocated {
 				ra.allocateRegister(inst.Dest, &inst)
 			}
 		}
-		
+
 		// Handle source registers
 		if inst.Src1 != 0 && inst.Src1 != ir.RegZero {
 			if _, allocated := ra.allocation[inst.Src1]; !allocated {
 				ra.allocateRegister(inst.Src1, &inst)
 			}
 		}
-		
+
 		if inst.Src2 != 0 && inst.Src2 != ir.RegZero {
 			if _, allocated := ra.allocation[inst.Src2]; !allocated {
 				ra.allocateRegister(inst.Src2, &inst)
 			}
 		}
-		
-		// Free dead registers after this instruction
-		ra.freeDeadRegisters(&inst, liveIntervals)
+
+		// Free registers whose live interval ends at this instruction
+		ra.freeDeadRegisters(i, liveIntervals)
 	}
 }
 
@@ -296,66 +293,120 @@ func (ra *Z80RegisterAllocator) freePhysicalRegister(physReg PhysicalReg) {
 }
 
 // computeLiveIntervals computes live intervals for all virtual registers
+// with loop back-edge awareness: registers live at loop headers are extended
+// to cover the entire loop body.
 func (ra *Z80RegisterAllocator) computeLiveIntervals(fn *ir.Function) map[ir.Register]LiveInterval {
 	intervals := make(map[ir.Register]LiveInterval)
-	
-	// Simple backward analysis
-	live := make(map[ir.Register]bool)
-	
+
+	// Phase 1: Build label → instruction index map
+	labelIndex := make(map[string]int)
+	for i, inst := range fn.Instructions {
+		if inst.Op == ir.OpLabel && inst.Label != "" {
+			labelIndex[inst.Label] = i
+		}
+	}
+
+	// Phase 2: Identify loop back-edges (jumps to earlier instructions)
+	type backEdge struct {
+		headerIdx int // Label target (loop start)
+		tailIdx   int // Jump instruction (loop end)
+	}
+	var loops []backEdge
+	for i, inst := range fn.Instructions {
+		if inst.Label == "" {
+			continue
+		}
+		switch inst.Op {
+		case ir.OpJump, ir.OpJmp, ir.OpJumpIf, ir.OpJmpIf, ir.OpJumpIfNot, ir.OpJmpIfNot,
+			ir.OpJumpIfZero, ir.OpJumpIfNotZero, ir.OpJumpIfFlag, ir.OpDJNZ:
+			if target, ok := labelIndex[inst.Label]; ok && target <= i {
+				loops = append(loops, backEdge{headerIdx: target, tailIdx: i})
+			}
+		}
+	}
+
+	// Phase 3: Backward liveness analysis
 	for i := len(fn.Instructions) - 1; i >= 0; i-- {
 		inst := &fn.Instructions[i]
-		
+
 		// Kill destination
 		if inst.Dest != 0 {
-			delete(live, inst.Dest)
-			// Record interval start
 			if interval, exists := intervals[inst.Dest]; exists {
-				interval.Start = i
-				intervals[inst.Dest] = interval
+				if i < interval.Start {
+					interval.Start = i
+					intervals[inst.Dest] = interval
+				}
 			} else {
 				intervals[inst.Dest] = LiveInterval{Start: i, End: i}
 			}
 		}
-		
-		// Generate sources
-		if inst.Src1 != 0 {
-			live[inst.Src1] = true
-			// Extend interval
-			if interval, exists := intervals[inst.Src1]; exists {
-				interval.Start = i
-				intervals[inst.Src1] = interval
-			} else {
-				intervals[inst.Src1] = LiveInterval{Start: i, End: len(fn.Instructions)}
+
+		// Generate sources — extend interval start
+		for _, src := range [2]ir.Register{inst.Src1, inst.Src2} {
+			if src == 0 {
+				continue
 			}
-		}
-		
-		if inst.Src2 != 0 {
-			live[inst.Src2] = true
-			// Extend interval
-			if interval, exists := intervals[inst.Src2]; exists {
-				interval.Start = i
-				intervals[inst.Src2] = interval
+			if interval, exists := intervals[src]; exists {
+				if i < interval.Start {
+					interval.Start = i
+				}
+				if i > interval.End {
+					interval.End = i
+				}
+				intervals[src] = interval
 			} else {
-				intervals[inst.Src2] = LiveInterval{Start: i, End: len(fn.Instructions)}
+				intervals[src] = LiveInterval{Start: i, End: i}
 			}
 		}
 	}
-	
+
+	// Phase 4: Extend intervals across loop back-edges
+	// If a register is live at the loop header, it must stay live across
+	// the entire loop body (the back-edge keeps it alive).
+	changed := true
+	for changed {
+		changed = false
+		for _, loop := range loops {
+			for reg, interval := range intervals {
+				// Register is used inside the loop
+				if interval.Start <= loop.tailIdx && interval.End >= loop.headerIdx {
+					// Extend to cover entire loop body
+					newStart := interval.Start
+					newEnd := interval.End
+					if loop.headerIdx < newStart {
+						newStart = loop.headerIdx
+					}
+					if loop.tailIdx > newEnd {
+						newEnd = loop.tailIdx
+					}
+					if newStart != interval.Start || newEnd != interval.End {
+						intervals[reg] = LiveInterval{Start: newStart, End: newEnd}
+						changed = true
+					}
+				}
+			}
+		}
+	}
+
 	return intervals
 }
 
-// freeDeadRegisters frees registers that are no longer live
-func (ra *Z80RegisterAllocator) freeDeadRegisters(inst *ir.Instruction, intervals map[ir.Register]LiveInterval) {
-	// Check each allocated register
-	for virtReg := range ra.allocation {
-		if _, exists := intervals[virtReg]; exists {
-			// If this is the last use, free the register
-			// (simplified - should check actual position)
-			if inst.Src1 == virtReg || inst.Src2 == virtReg {
-				// Mark for potential freeing after this instruction
-				// In real implementation, would check if this is last use
+// freeDeadRegisters frees registers whose live interval ends at or before instIdx
+func (ra *Z80RegisterAllocator) freeDeadRegisters(instIdx int, intervals map[ir.Register]LiveInterval) {
+	var toFree []ir.Register
+	for virtReg, physReg := range ra.allocation {
+		if interval, exists := intervals[virtReg]; exists {
+			if instIdx >= interval.End {
+				toFree = append(toFree, virtReg)
+				_ = physReg // used below
 			}
 		}
+	}
+	for _, virtReg := range toFree {
+		physReg := ra.allocation[virtReg]
+		ra.freePhysicalRegister(physReg)
+		delete(ra.allocation, virtReg)
+		delete(ra.regContents, physReg)
 	}
 }
 

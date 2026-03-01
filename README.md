@@ -527,6 +527,12 @@ MinZ is under active development. The Z80 backend is mature and produces working
 
 ---
 
+## Development
+
+See [docs/GenPlan.md](docs/GenPlan.md) for the development roadmap and current priorities.
+
+---
+
 ## Contributing
 
 ```bash

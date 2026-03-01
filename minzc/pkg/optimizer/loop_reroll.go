@@ -249,6 +249,16 @@ func (p *LoopRerollPass) tryMatchPattern(insts []ir.Instruction, start int, patt
 	match.Captures = append(match.Captures, firstCaptures)
 	match.Repeats = 1
 
+	// Detect if this is a putchar-like pattern (for newline boundary splitting)
+	calledFunc := ""
+	for i, m := range pattern.Instructions {
+		if m.Op == ir.OpCall {
+			calledFunc = insts[start+i].Symbol
+			break
+		}
+	}
+	isPutchar := containsSymbol(calledFunc, "putchar") || containsSymbol(calledFunc, "putch")
+
 	// Now try to match subsequent occurrences
 	pos := start + patLen
 	for pos <= len(insts)-patLen {
@@ -260,6 +270,21 @@ func (p *LoopRerollPass) tryMatchPattern(insts []ir.Instruction, start int, patt
 		// Verify the non-hole parts match the first occurrence
 		if !p.structurallyEqual(insts, start, pos, pattern) {
 			break
+		}
+
+		// For putchar patterns, stop at CR/LF boundaries to preserve
+		// logical text line breaks (e.g., newline() expanded inline)
+		if isPutchar {
+			hasNewline := false
+			for _, v := range captures {
+				if v == 10 || v == 13 { // LF or CR
+					hasNewline = true
+					break
+				}
+			}
+			if hasNewline {
+				break // Don't include this CR/LF — preserve line boundary
+			}
 		}
 
 		match.Captures = append(match.Captures, captures)
