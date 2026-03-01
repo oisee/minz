@@ -1,6 +1,6 @@
 # MinZ Project Status & Next Steps
 
-*2026-03-01 | MinZ v0.19.4 | Report #015*
+*2026-03-01 | MinZ v0.19.4 | Report #015 (updated: 6/6 E2E pass)*
 
 ---
 
@@ -57,7 +57,7 @@ The entire toolchain builds with `make all` — no external assemblers, emulator
 | z80testing E2E | 34 | 27 pass, 7 skip, 0 fail |
 | Iterator unit tests | 53 | 53 pass (parser 18, semantic 20, codegen 7, MIR VM 8) |
 | Iterator corpus | 18 | 18 compile to Z80 |
-| Iterator E2E shell | 6 | 0 pass (pointer-walk regression) |
+| Iterator E2E shell | 6 | 6 pass (100%) |
 | Examples | ~272 | ~81% compile |
 | All Go packages | 19 | 19 pass (codegen needs `-vet=off` — pre-existing) |
 
@@ -69,31 +69,11 @@ The test infrastructure is solid. Every compiler pipeline stage has dedicated te
 
 These block real programs from producing correct output.
 
-### 1. Iterator Pointer-Walk Regression
+### ~~1. Iterator Pointer-Walk Regression~~ RESOLVED
 
-**Symptom:** `arr.forEach(console_log)` outputs `AAAAA` instead of `ABCDE` — every iteration reads the first array element.
+**Resolution:** Not a code bug. The IR was correct all along (`OpLoad.Src1=ptrReg=r10`). The failure was caused by a stale compiler binary (built 5 hours earlier from a different code state). After rebuilding, all 6 E2E tests pass. Confirmed via `--dump-mir` and debug trace that `ptrReg` and `sourceReg` are distinct registers.
 
-**Root cause:** In `generateDJNZIteration()` (`pkg/semantic/iterator.go`), the `OpLoad` instruction that reads array elements uses `Src1=r8` (the base array pointer) instead of `Src1=r10` (the advancing pointer that gets `INC HL` each iteration).
-
-**Evidence:** Generated Z80 assembly shows:
-```asm
-; BUG: line 34 always reads from $F010 (base pointer)
-LD HL, ($F010)    ; Virtual register 8 — ALWAYS the start of array
-LD A, (HL)        ; Always reads first element
-
-; ... call, PUSH/POP HL ...
-
-; Line 48-50: register 10 correctly incremented
-LD HL, ($F014)    ; Virtual register 10 from memory
-INC HL            ; Advances to next element
-LD ($F014), HL    ; Saved back — but never read by OpLoad above
-```
-
-**Fix:** Change one register reference in the IR emit — `OpLoad.Src1` should be the pointer copy register, not the original array register.
-
-**Impact:** Blocks all 6 iterator E2E tests. All unit tests pass because they validate IR structure (correct), not execution output.
-
-**Difficulty:** Small — likely a 1-line fix in `iterator.go`.
+**Lesson:** Always rebuild before E2E testing. The `mz` binary in the working directory is not automatically rebuilt by `go test`.
 
 ### 2. Register Allocator in While/For Loops
 

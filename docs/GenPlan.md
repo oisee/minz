@@ -31,7 +31,6 @@
 - Register allocator: overwrites operands in while/for loops (same phys reg for two live virtuals)
 - `loadToHL` uses stale values in multi-expression contexts
 - Loop rerolling too aggressive across function call boundaries
-- Iterator pointer-walk regression: `OpLoad` reads base array register instead of advancing pointer — all E2E forEach/take/skip produce repeated first element
 - Inline filter constant not tracked: `filter(|x| x > 3)` compares against 0 at Z80 level
 
 ---
@@ -56,11 +55,11 @@
 - [x] SMC arg loading fix — regular SMC functions load arguments, only TRUE SMC skips
 - [x] Lambda inlining fix — AddParamWithRegister + paramArgMap substitution
 - [x] Copy propagation fix — copies cleared at OpLabel merge points
-- [ ] **Fix pointer-walk regression**: `generateDJNZIteration()` OpLoad uses base register (r8) instead of advancing pointer (r10) — every iteration reads first element
+- [x] Pointer-walk verified correct (was stale binary, not a code bug — OpLoad.Src1=ptrReg confirmed)
+- [x] **6/6 E2E hex-verified tests pass** (forEach, take, skip, map, filter, lambda_map)
 - [ ] Fix inline filter constant tracking: constantValues map loses entry between OpLoadConst and OpJumpIfFlag
 - [ ] Fix OpPush register routing: always routes through HL instead of direct PUSH BC/DE
 - [x] 53 unit tests + 18 corpus pass across parser/semantic/codegen/MIR VM
-- [ ] E2E hex-verified tests (0/6 — blocked by pointer-walk regression)
 - [ ] Expand test coverage for multi-stage chains (map+filter+forEach, etc.)
 - Ref: [Iterator Implementation Status](Iterator_Implementation_Status.md)
 
