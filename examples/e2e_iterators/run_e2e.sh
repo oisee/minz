@@ -43,9 +43,12 @@ run_test() {
 echo "=== MinZ Iterator E2E Tests (MZX --console-io) ==="
 echo ""
 
-# Working e2e tests
-run_test "iter_foreach"    "41424344450a"   # ABCDE\n
-run_test "iter_take"       "4142430a"       # ABC\n (take 3 of ABCDE)
+run_test "iter_foreach"         "41424344450a"       # ABCDE\n
+run_test "iter_take"            "4142430a"           # ABC\n (take 3 of ABCDE)
+run_test "iter_skip"            "4344450a"           # CDE\n (skip 2 of ABCDE)
+run_test "iter_map_foreach"     "020406080a0a"       # double([1..5]) + \n
+run_test "iter_filter_foreach"  "44450a"             # DE\n (filter >67 from ABCDE)
+run_test "iter_lambda_map"      "42434445460a"       # BCDEF\n (map +1 on ABCDE)
 
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
