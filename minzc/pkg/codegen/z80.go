@@ -3689,13 +3689,57 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		
 	case ir.OpPush:
 		// Push a virtual register onto the Z80 stack
-		g.loadToHL(inst.Src1)
-		g.emit("    PUSH HL       ; %s", inst.Comment)
+		// Check if already in a register pair — emit direct PUSH
+		loc, val := g.getRegisterLocation(inst.Src1)
+		if loc == LocationPhysical {
+			switch val.(PhysicalReg) {
+			case RegBC:
+				g.emit("    PUSH BC       ; %s", inst.Comment)
+			case RegDE:
+				g.emit("    PUSH DE       ; %s", inst.Comment)
+			case RegHL:
+				g.emit("    PUSH HL       ; %s", inst.Comment)
+			case RegIX:
+				g.emit("    PUSH IX       ; %s", inst.Comment)
+			case RegIY:
+				g.emit("    PUSH IY       ; %s", inst.Comment)
+			default:
+				// 8-bit register — load to HL first
+				g.loadToHL(inst.Src1)
+				g.emit("    PUSH HL       ; %s", inst.Comment)
+			}
+		} else {
+			// Memory-based — load to HL first
+			g.loadToHL(inst.Src1)
+			g.emit("    PUSH HL       ; %s", inst.Comment)
+		}
 
 	case ir.OpPop:
 		// Pop from the Z80 stack into a virtual register
-		g.emit("    POP HL        ; %s", inst.Comment)
-		g.storeFromHL(inst.Dest)
+		// Check if dest is a register pair — emit direct POP
+		loc, val := g.getRegisterLocation(inst.Dest)
+		if loc == LocationPhysical {
+			switch val.(PhysicalReg) {
+			case RegBC:
+				g.emit("    POP BC        ; %s", inst.Comment)
+			case RegDE:
+				g.emit("    POP DE        ; %s", inst.Comment)
+			case RegHL:
+				g.emit("    POP HL        ; %s", inst.Comment)
+			case RegIX:
+				g.emit("    POP IX        ; %s", inst.Comment)
+			case RegIY:
+				g.emit("    POP IY        ; %s", inst.Comment)
+			default:
+				// 8-bit register — pop to HL, then store
+				g.emit("    POP HL        ; %s", inst.Comment)
+				g.storeFromHL(inst.Dest)
+			}
+		} else {
+			// Memory-based — pop to HL, then store
+			g.emit("    POP HL        ; %s", inst.Comment)
+			g.storeFromHL(inst.Dest)
+		}
 		delete(g.constantValues, inst.Dest)
 
 	default:

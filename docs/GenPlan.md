@@ -58,7 +58,7 @@
 - [x] Pointer-walk verified correct (was stale binary, not a code bug — OpLoad.Src1=ptrReg confirmed)
 - [x] **7/7 E2E hex-verified tests pass** (forEach, take, skip, map, filter, inline_filter, lambda_map)
 - [x] Fix inline filter constant tracking: DCE was removing OpLoadConst (OpJumpIfFlag missing from markUsedRegisters)
-- [ ] Fix OpPush register routing: always routes through HL instead of direct PUSH BC/DE
+- [x] Fix OpPush/OpPop register routing: direct PUSH BC/DE/HL/IX/IY based on physical allocation
 - [x] 53 unit tests + 18 corpus pass across parser/semantic/codegen/MIR VM
 - [ ] Expand test coverage for multi-stage chains (map+filter+forEach, etc.)
 - Ref: [Iterator Implementation Status](Iterator_Implementation_Status.md)
