@@ -157,9 +157,18 @@ func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 				p.used[inst.Src2] = true
 			}
 
-		case ir.OpJumpIfNot:
+		case ir.OpJumpIf, ir.OpJumpIfNot, ir.OpJumpIfZero, ir.OpJumpIfNotZero:
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
+			}
+
+		case ir.OpJumpIfFlag:
+			// Inline filter: Src1 = element register, Src2 = constant register
+			if inst.Src1 != 0 {
+				p.used[inst.Src1] = true
+			}
+			if inst.Src2 != 0 {
+				p.used[inst.Src2] = true
 			}
 
 		case ir.OpCall:
@@ -220,6 +229,11 @@ func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 				p.used[inst.Src1] = true
 			}
 
+		case ir.OpPush:
+			if inst.Src1 != 0 {
+				p.used[inst.Src1] = true
+			}
+
 		// Pure computation ops (OpAdd, OpSub, OpMul, etc.) are NOT marked here.
 		// Their sources are only used if their dest is consumed (phase 2).
 		}
@@ -252,7 +266,9 @@ func (p *DeadCodeEliminationPass) markReferencedLabels(fn *ir.Function) {
 
 	for _, inst := range fn.Instructions {
 		switch inst.Op {
-		case ir.OpJump, ir.OpJumpIfNot, ir.OpJumpIf, ir.OpDJNZ:
+		case ir.OpJump, ir.OpJumpIf, ir.OpJumpIfNot,
+			ir.OpJumpIfZero, ir.OpJumpIfNotZero, ir.OpJumpIfFlag,
+			ir.OpDJNZ:
 			if inst.Label != "" {
 				p.labelRefs[inst.Label] = true
 			}

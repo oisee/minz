@@ -1,0 +1,26 @@
+// E2E Test: inline lambda filter + forEach chain
+// Input: [65, 66, 67, 68, 69] -> filter(|x| x > 67) -> forEach(console_log)
+// Expected output: DE\n (only 68='D' and 69='E' pass the inline filter)
+// Tests: OpJumpIfFlag with constant tracking through DCE
+
+fun console_log(c: u8) -> void {
+    asm {
+        OUT ($23), A
+    }
+}
+
+fun main() -> void {
+    asm {
+        LD HL, _data
+        LD ($F002), HL
+    }
+    let arr: [u8; 5] = [65, 66, 67, 68, 69];
+    arr.filter(|x| x > 67).forEach(console_log);
+    console_log(10);
+    asm {
+        DI
+        HALT
+    _data:
+        DB 65, 66, 67, 68, 69
+    }
+}

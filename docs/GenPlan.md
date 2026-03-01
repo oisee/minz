@@ -31,7 +31,7 @@
 - Register allocator: overwrites operands in while/for loops (same phys reg for two live virtuals)
 - `loadToHL` uses stale values in multi-expression contexts
 - Loop rerolling too aggressive across function call boundaries
-- Inline filter constant not tracked: `filter(|x| x > 3)` compares against 0 at Z80 level
+- ~~Inline filter constant not tracked~~ — FIXED: DCE now handles OpJumpIfFlag operands
 
 ---
 
@@ -56,8 +56,8 @@
 - [x] Lambda inlining fix — AddParamWithRegister + paramArgMap substitution
 - [x] Copy propagation fix — copies cleared at OpLabel merge points
 - [x] Pointer-walk verified correct (was stale binary, not a code bug — OpLoad.Src1=ptrReg confirmed)
-- [x] **6/6 E2E hex-verified tests pass** (forEach, take, skip, map, filter, lambda_map)
-- [ ] Fix inline filter constant tracking: constantValues map loses entry between OpLoadConst and OpJumpIfFlag
+- [x] **7/7 E2E hex-verified tests pass** (forEach, take, skip, map, filter, inline_filter, lambda_map)
+- [x] Fix inline filter constant tracking: DCE was removing OpLoadConst (OpJumpIfFlag missing from markUsedRegisters)
 - [ ] Fix OpPush register routing: always routes through HL instead of direct PUSH BC/DE
 - [x] 53 unit tests + 18 corpus pass across parser/semantic/codegen/MIR VM
 - [ ] Expand test coverage for multi-stage chains (map+filter+forEach, etc.)

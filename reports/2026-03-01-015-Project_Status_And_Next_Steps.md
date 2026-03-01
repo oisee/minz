@@ -57,7 +57,7 @@ The entire toolchain builds with `make all` — no external assemblers, emulator
 | z80testing E2E | 34 | 27 pass, 7 skip, 0 fail |
 | Iterator unit tests | 53 | 53 pass (parser 18, semantic 20, codegen 7, MIR VM 8) |
 | Iterator corpus | 18 | 18 compile to Z80 |
-| Iterator E2E shell | 6 | 6 pass (100%) |
+| Iterator E2E shell | 7 | 7 pass (100%) |
 | Examples | ~272 | ~81% compile |
 | All Go packages | 19 | 19 pass (codegen needs `-vet=off` — pre-existing) |
 
@@ -89,19 +89,13 @@ These block real programs from producing correct output.
 
 **Difficulty:** Large — this is the single biggest quality issue in the compiler. ADR-0006 and ADR-0007 document aspects of it. Partially mitigated by constant-map invalidation at labels, but the core issue remains.
 
-### 3. Inline Filter Constant Not Tracked
+### ~~3. Inline Filter Constant Not Tracked~~ RESOLVED
 
-**Symptom:** `filter(|x| x > 3)` passes all elements through instead of only those > 3. The generated Z80 code compares against 0 instead of 3.
+**Resolution:** The `DeadCodeEliminationPass` in `pkg/optimizer/dead_code_elimination.go` was missing `OpJumpIfFlag` from its `markUsedRegisters()` Phase 1. Since the DCE didn't know `OpJumpIfFlag` uses `Src2` (the constant register), it removed the `OpLoadConst` instruction that set the filter threshold. By the time Z80 codegen reached `OpJumpIfFlag`, the constant register had never been loaded, so `constantValues` was empty and codegen fell back to `CP 0`.
 
-**Root cause:** The `constantValues` map in `z80.go` loses the entry for the filter threshold between the `OpLoadConst` that sets it and the `OpJumpIfFlag` that consumes it. By the time codegen reaches `OpJumpIfFlag`, it can't find the constant and falls back to `OR A` (compare against 0).
+**Fix:** Added `OpJumpIfFlag` (and other missing jump opcodes: `OpJumpIf`, `OpJumpIfZero`, `OpJumpIfNotZero`) to the DCE's used-register marking. Also added `OpPush` and fixed `markReferencedLabels` to track all jump target labels. New E2E test `iter_inline_filter` verifies `filter(|x| x > 67)` correctly produces `CP 68` and filters elements.
 
-**Evidence:** Generated assembly shows `OR A` (test zero) where `CP 4` (compare 4, since > 3 means >= 4) is expected.
-
-**Fix:** Either embed the constant directly in `OpJumpIfFlag.Imm2` at IR-emit time in the semantic analyzer, or fix the `constantValues` map to not lose entries between these two adjacent instructions.
-
-**Impact:** All inline lambda filters pass everything through — they still iterate correctly, just don't filter.
-
-**Difficulty:** Medium.
+**Result:** 7/7 E2E iterator tests now pass (was 6/6). Inline lambda filters produce correct output.
 
 ---
 
@@ -153,17 +147,13 @@ These produce correct results but waste cycles or use wrong registers.
 - **Unblocks:** All 6 iterator E2E tests
 - **Effort:** ~1 line change + rebuild + verify
 
-#### Step 2: Fix inline filter constant
-- **File:** `pkg/codegen/z80.go` or `pkg/semantic/iterator.go`
-- **Change:** Embed constant in `OpJumpIfFlag.Imm2` at IR emit, or fix `constantValues` tracking
-- **Unblocks:** `filter(|x| x > N)` producing correct filtered output
-- **Effort:** Small-medium
+#### ~~Step 2: Fix inline filter constant~~ DONE
+- **Root cause:** `DeadCodeEliminationPass` missing `OpJumpIfFlag` from `markUsedRegisters()`
+- **Fix:** Added OpJumpIfFlag + other missing jump opcodes to DCE
+- **Result:** `CP 68` now emitted correctly, 7/7 E2E tests pass
 
-#### Step 3: Wire remaining E2E tests
-- **File:** `examples/e2e_iterators/run_e2e.sh`
-- **Change:** Add iter_skip, iter_map_foreach, iter_filter_foreach, iter_lambda_map to the runner
-- **Unblocks:** Full 6/6 E2E validation (after Step 1)
-- **Effort:** Small
+#### ~~Step 3: Wire remaining E2E tests~~ DONE
+- All 7 E2E tests wired and passing (added `iter_inline_filter`)
 
 ### Near-Term — Phase 1 Completion
 
@@ -199,13 +189,13 @@ Implement `gen`/`yield` for lazy iteration. Design document exists. Requires sta
 ## Priority Summary
 
 ```
-NOW:    [1] pointer-walk fix  →  [2] filter constant  →  [3] wire E2E tests
-NEXT:   [4] register allocator (the big one)  →  [5] OpPush routing
+DONE:   [1] pointer-walk fix ✓  [2] filter constant ✓  [3] wire E2E tests ✓
+NOW:    [4] register allocator (the big one)  →  [5] OpPush routing
 LATER:  [6] fusion  →  [7] superoptimizer  →  [8] pattern matching  →  [9] generators
 FUTURE: LSP  →  DAP  →  WASM playground
 ```
 
-Steps 1-3 are quick wins that prove the iterator pipeline works end-to-end. Step 4 is the long pole — fixing it unlocks the majority of currently-broken programs. Steps 6-9 are feature work that builds on a stable foundation.
+Steps 1-3 are complete — 7/7 iterator E2E tests pass. Step 4 is the long pole — fixing the register allocator unlocks the majority of currently-broken programs. Steps 6-9 are feature work that builds on a stable foundation.
 
 ---
 
