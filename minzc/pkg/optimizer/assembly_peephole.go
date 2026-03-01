@@ -551,6 +551,16 @@ func createAssemblyPeepholePatterns() []AssemblyPeepholePattern {
 			Replacement: "${3}LD H, $4\n${1}LD L, $2     ; Canonical order (H before L)",
 		},
 
+		// Pattern 48: DEC B + JR NZ → DJNZ (Z80 native loop instruction)
+		// DJNZ = DEC B + JR NZ in a single 2-byte instruction (13/8 T-states)
+		// vs DEC B (4 T) + JR NZ (12/7 T) = 3 bytes, 16/11 T-states
+		{
+			Name:        "dec_b_jr_nz_to_djnz",
+			Description: "Replace DEC B + JR NZ with DJNZ",
+			Pattern:     regexp.MustCompile(`(?m)^(\s*)DEC\s+B\s*(?:;.*)?\n\s*JR\s+NZ,\s*(\S+)\s*(?:;.*)?$`),
+			Replacement: "${1}DJNZ $2      ; Optimized: was DEC B + JR NZ",
+		},
+
 		// Pattern 47: Optimize consecutive BDOS putchar calls - detect potential string
 		// Matches canonical form: LD C,2 / LD E,char / CALL 5 (after reordering)
 		{

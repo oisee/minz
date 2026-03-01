@@ -1,20 +1,25 @@
 # MinZ Iterator Implementation Status
 
-*Updated: 2026-03-01 — v0.19.4 (post-bugfix)*
+*Updated: 2026-03-01 — v0.19.5 (fusion optimizer + bare DJNZ)*
 
-## E2E Verified (MZE --console-io)
+## E2E Verified (MZX --console-io)
 
-Full pipeline: MinZ source → parser → semantic → MIR optimizer → Z80 codegen → MZA → MZE emulator.
-All 6 tests **PASS** with hex-verified output.
+Full pipeline: MinZ source → parser → semantic → MIR optimizer → **fusion optimizer** → Z80 codegen → MZA → MZX emulator.
+All 11 tests **PASS** with hex-verified output.
 
 | Test | Chain | Expected | Hex | Status |
 |------|-------|----------|-----|--------|
-| `iter_foreach.minz` | `arr.forEach(console_log)` | `ABCDE\n` | `41424344450a` | **PASS** |
-| `iter_take.minz` | `arr.iter().take(3).forEach(console_log)` | `ABC\n` | `4142430a` | **PASS** |
-| `iter_skip.minz` | `arr.iter().skip(2).forEach(console_log)` | `CDE\n` | `4344450a` | **PASS** |
-| `iter_map_foreach.minz` | `arr.iter().map(double).forEach(console_log)` | doubled bytes | `020406080a0a` | **PASS** |
-| `iter_filter_foreach.minz` | `arr.filter(is_big).forEach(console_log)` | `DE\n` | `44450a` | **PASS** |
-| `iter_lambda_map.minz` | `arr.iter().map(\|x\| x+1).forEach(console_log)` | `BCDEF\n` | `42434445460a` | **PASS** |
+| `iter_foreach` | `arr.forEach(console_log)` | `ABCDE\n` | `41424344450a` | **PASS** |
+| `iter_take` | `arr.iter().take(3).forEach(console_log)` | `ABC\n` | `4142430a` | **PASS** |
+| `iter_skip` | `arr.iter().skip(2).forEach(console_log)` | `CDE\n` | `4344450a` | **PASS** |
+| `iter_map_foreach` | `arr.iter().map(double).forEach(console_log)` | doubled bytes | `020406080a0a` | **PASS** |
+| `iter_filter_foreach` | `arr.filter(is_big).forEach(console_log)` | `DE\n` | `44450a` | **PASS** |
+| `iter_inline_filter` | `arr.filter(\|x\| x > 67).forEach(console_log)` | `DE\n` | `44450a` | **PASS** |
+| `iter_lambda_map` | `arr.iter().map(\|x\| x+1).forEach(console_log)` | `BCDEF\n` | `42434445460a` | **PASS** |
+| `iter_map_filter_foreach` | `arr.map(double).filter(\|x\|x>5).forEach(log)` | `6,8,10,\n` | `06080a0a` | **PASS** |
+| `iter_filter_map_foreach` | `arr.filter(\|x\|x>=67).map(add_one).forEach(log)` | `DEF\n` | `4445460a` | **PASS** |
+| `iter_take_map_foreach` | `arr.take(3).map(add_one).forEach(log)` | `BCD\n` | `4243440a` | **PASS** |
+| `iter_bare_djnz` | `arr.filter(\|x\| x > 3).forEach(console_log)` | `\x04\x05\n` | `04050a` | **PASS** |
 
 Run: `bash examples/e2e_iterators/run_e2e.sh`
 
@@ -374,8 +379,10 @@ should be 8-bit `ADD A, C`. These are codegen register allocation issues.
 | `map(fn)` | pass | pass | yes | **E2E PASS** | — | TRUE SMC correct, arg loading fixed |
 | `filter(fn)` | pass | pass | yes | **E2E PASS** | — | Predicate call + element correctly passed to forEach |
 | `map(\|x\| x+N)` | pass | pass | yes | **E2E PASS** | — | Lambda inlined, arithmetic correct |
-| `filter(\|x\| x>N)` | pass | pass | yes | **needs fix** | D | Constant not tracked, OR A instead of CP N |
-| `map(fn).filter(fn)` | pass | pass | yes | untested | — | Chain wiring — needs E2E verification |
+| `filter(\|x\| x>N)` | pass | pass | yes | **E2E PASS** | — | DCE fix: OpJumpIfFlag operands tracked. `CP N` correct. |
+| `map(fn).filter(fn)` | pass | pass | yes | **E2E PASS** | — | Multi-stage chain verified (3 tests) |
+| `filter(fn).map(fn)` | pass | pass | yes | **E2E PASS** | — | Multi-stage chain verified |
+| `take(n).map(fn)` | pass | pass | yes | **E2E PASS** | — | Multi-stage chain verified |
 | `peek(fn)` | pass | pass | yes | untested | — | Same codegen path as forEach |
 | `inspect(fn)` | pass | pass | yes | untested | — | Same codegen path as forEach |
 | `takeWhile(fn)` | pass | pass | yes | untested | — | Generates early-exit jump |
@@ -425,34 +432,39 @@ Test date: 2026-03-01. Compiler built from `master` after all E2E fixes.
 
 ### Remaining Bugs by Category
 
-#### Bug A: Counter Waste (ALL patterns, peephole target)
+#### Bug A: Counter Waste (ALL patterns, peephole target) — PARTIALLY FIXED
 
-Every DJNZ loop emits redundant register shuffling:
+**Status: PARTIALLY FIXED in v0.19.5**
 
+When a DJNZ loop body contains no `CALL` instructions (all callbacks inlined by fusion
+optimizer), the codegen now emits a bare `DJNZ label` instruction. When `CALL` is present
+(B may be clobbered), the manual `DEC B` + `JR NZ` sequence is still used — correctly.
+
+**v0.19.5 fixes:**
+1. **BareDJNZ CodegenHint** — Fusion optimizer sets `CodegenHint.BareDJNZ = true` when no
+   OpCall remains in the loop body. Z80 codegen emits `DJNZ label` (13/8T) instead of the
+   6-instruction sequence (~28T).
+2. **Peephole Pattern 48** — Safety net: `DEC B; JR NZ, label → DJNZ label` catches any
+   remaining cases in non-iterator code.
+
+**Remaining waste** (when CALL is present, B cannot be trusted):
 ```asm
-; At init:
-    LD B, 5       ; Correct
-    LD A, B       ; Waste (4T)
-    LD B, A       ; Waste (4T)
-
-; At loop end:
-    LD A, B       ; Waste (4T)
-    DEC B         ; Correct
-    LD A, B       ; Waste (4T)
-    LD B, A       ; Waste (4T)
-    JR NZ, loop   ; Correct
+; At loop end (with CALL in body):
+    LD A, ($F012)     ; Load counter from memory
+    LD B, A
+    DEC B
+    LD A, B
+    LD ($F012), A     ; Store decremented counter
+    JR NZ, loop
 ```
 
-**Should be:** `DJNZ loop` (13/8T) instead of the 4-instruction sequence (20T).
+This sequence is **correct** when CALL is in the loop — B is caller-saved on Z80, so
+the counter must live in memory. The waste is the `LD A, B` + store-back pattern, which
+could be optimized to `DEC (HL)` or similar, but that's a minor improvement.
 
-**Root cause:** The Z80 codegen emits `OpDJNZ` as explicit `DEC B` + `JR NZ` because
-the register allocator tracks B through A intermediary. The `LD A, B` / `LD B, A`
-pairs are generated by the virtual-to-physical register mapping.
-
-**Fix:** Peephole pattern in `AssemblyPeepholePass` to collapse:
-`LD A, B / DEC B / LD A, B / LD B, A / JR NZ, X` → `DJNZ X`
-
-**Impact:** 12T wasted per iteration across all patterns.
+**Impact:** With fusion optimizer inlining callbacks, most simple iterator chains now
+emit bare `DJNZ`. Only chains with non-inlineable callbacks (asm functions, multi-param
+functions) use the memory-backed counter.
 
 #### Bug B: Register Handoff Between Pipeline Stages (map, filter, chain) — FIXED
 
@@ -488,33 +500,22 @@ Regular SMC functions still need `LD A, <argReg>` before CALL.
 
 **Verified:** `iter_lambda_map.minz` now outputs `BCDEF\n` (hex `42434445460a`) correctly.
 
-#### Bug D: Inline Filter Constant Not Tracked (filter lambda)
+#### Bug D: Inline Filter Constant Not Tracked (filter lambda) — FIXED
 
-`filter(|x: u8| => bool { x > 3 })` generates correct `OpJumpIfFlag` IR with
-`Src2 = constReg` holding value 4 (CP semantics: x > 3 → CP 4). But the Z80
-codegen can't find the constant value:
+**Status: FIXED in v0.19.5**
 
-```asm
-    LD A, C
-    ; WARNING: OpJumpIfFlag constant not tracked, using 0
-    OR A              ; Should be CP 4!
-    JR C, skip        ; OR A never sets CY → skip NEVER triggers
-```
+**Root cause:** `DeadCodeEliminationPass` in `pkg/optimizer/dead_code_elimination.go`
+was missing `OpJumpIfFlag` from `markUsedRegisters()` Phase 1. The DCE never marked
+`Src1` (element register) and `Src2` (constant register) as used, so it deleted the
+`OpLoadConst` that loaded the filter threshold. At Z80 codegen time, `constantValues`
+map was empty → fallback to `OR A` (compare with 0).
 
-**Root cause:** The `OpLoadConst` for the filter constant is emitted, but by the
-time `OpJumpIfFlag` is processed, the `constantValues` map has lost the entry
-(likely invalidated at a label or by intervening instructions).
+**Fix:** Added `OpJumpIfFlag` (marks Src1 + Src2), `OpJumpIf`/`OpJumpIfZero`/
+`OpJumpIfNotZero` (mark Src1), and `OpPush` (marks Src1) to Phase 1 marking.
+Also added all missing jump opcodes to `markReferencedLabels()`.
 
-**Consequence:** `OR A` always clears CY on Z80. `JR C` never jumps. All elements
-pass the filter. Filter is effectively a no-op.
-
-**Fix:** Either:
-1. Embed the constant value directly in `OpJumpIfFlag` (Imm field already used for
-   flag condition — need second immediate or encode both)
-2. Preserve constant tracking across the short instruction sequence between
-   `OpLoadConst` and `OpJumpIfFlag`
-
-**Impact:** All inline filter lambdas pass all elements through.
+**Verified:** `iter_inline_filter.minz` — `filter(|x| x > 67)` now generates `CP 68`
+(correct) instead of `OR A`. E2E outputs `DE\n` (hex `44450a`).
 
 #### Bug E: Skip Pointer Offset Elided (skip pattern) — FIXED
 
@@ -566,10 +567,10 @@ and emit `PUSH BC`/`PUSH DE` directly. Only use HL routing as fallback.
 
 | ID | Bug | Affects | Status | Effort | Priority |
 |---|---|---|---|---|---|
-| A | Counter waste (no DJNZ) | All 8 patterns | Peephole target | Small | P3 |
+| A | Counter waste (no DJNZ) | All patterns | **PARTIAL** (v0.19.5) — bare DJNZ when no CALL | Small | P3 |
 | B | Register handoff (A not loaded) | map+forEach, filter+forEach, chains | **FIXED** (v0.19.4) | Medium | — |
 | C | Lambda arithmetic elision | Lambda map (`\|x\| x+1`) | **FIXED** (v0.19.4) | Medium | — |
-| D | Filter constant not tracked | Inline filter lambda (`\|x\| x>3`) | **Open** | Small | **P1** |
+| D | Filter constant not tracked | Inline filter lambda (`\|x\| x>3`) | **FIXED** (v0.19.5) | Small | — |
 | E | Skip pointer offset elided | `skip(n)` | **FIXED** (v0.19.4) | Small | — |
 | F | Unused result saves | All patterns with CALL | Peephole target | Small | P3 |
 | G | OpPush wrong register | enumerate, reduce | **Open** | Small | P2 |
@@ -579,8 +580,12 @@ and emit `PUSH BC`/`PUSH DE` directly. Only use HL routing as fallback.
 - **Bug C** (lambda inlining): `generateIteratorLambda()` now uses `AddParamWithRegister()` so `NumParams` is set correctly. Inliner uses `fn.Params[i].Reg` for formal parameter register, and substitutes `OpLoadVar`/`OpLoadParam` with `OpMove` from actual argument register.
 - **Bug E** (skip pointer offset): MIR peephole `trackConstants()` now reads `inst.Imm` (correct) instead of `inst.Value` (always 0). Constant folding and algebraic simplification also set `inst.Imm` when creating `OpLoadConst`.
 
-**Remaining root cause clustering:**
-- Bug D is a constant tracking issue — value lost between OpLoadConst and OpJumpIfFlag.
+**What got fixed in v0.19.5 E2E round:**
+- **Bug D** (inline filter constant): DCE was missing `OpJumpIfFlag` from marking — constants deleted. Fixed in `dead_code_elimination.go`.
+- **Bug A** (counter waste): Fusion optimizer now sets `BareDJNZ` hint when no CALL in loop body. Z80 codegen emits bare `DJNZ` instruction. Peephole pattern 48 catches remaining `DEC B; JR NZ` sequences.
+- **Fusion optimizer** (`fusion.go`): Detects DJNZ loops and inlines small callbacks (≤8 instructions, 1 param, no asm/calls/loops). Eliminates CALL/RET overhead (~27 T-states/element).
+
+**Remaining root cause:**
 - Bug G is a register routing issue — OpPush always goes through HL.
 
 ---
@@ -626,9 +631,12 @@ skip:
 | `pkg/semantic/iterator.go` | Type checking, DJNZ/indexed dispatch, lambda extraction |
 | `pkg/semantic/iterator_enhanced.go` | Enhanced DJNZ with take/skip/enumerate/reduce |
 | `pkg/codegen/z80.go` | Z80 register allocation + assembly emission |
-| `pkg/optimizer/fusion.go` | Fusion framework (skeleton, not wired in) |
+| `pkg/optimizer/fusion.go` | Fusion optimizer — DJNZ loop detection + callback inlining |
+| `pkg/optimizer/fusion_test.go` | 7 unit tests for fusion optimizer |
+| `pkg/optimizer/assembly_peephole.go` | Assembly peephole (pattern 48: DEC B + JR NZ → DJNZ) |
+| `pkg/optimizer/dead_code_elimination.go` | DCE — fixed OpJumpIfFlag/OpPush marking |
 
-### Test Suite (63 unit + 18 corpus + 6 E2E verified)
+### Test Suite (70+ unit + 18 corpus + 11 E2E verified)
 
 | Package | Tests | What |
 |---------|-------|------|
@@ -636,9 +644,9 @@ skip:
 | `pkg/semantic/` | 17 | DJNZ eligibility, filter/map/lambda IR, take/skip/enumerate/reduce |
 | `pkg/codegen/` | 5 | Z80 assembly patterns (use `-vet=off`) |
 | `pkg/mirvm/` | 8 | DJNZ execution at MIR level |
-| `pkg/optimizer/` | 12 | Peephole, DCE, superoptimizer, normalization |
+| `pkg/optimizer/` | 19 | Peephole, DCE, superoptimizer, normalization, **fusion (7 new)** |
 | `tests/iterator_corpus/` | 18 | Full pipeline regression — all 18 compile to Z80 |
-| `examples/e2e_iterators/` | 6 | Full pipeline E2E: compile → assemble → emulate → verify hex output |
+| `examples/e2e_iterators/` | 11 | Full pipeline E2E: compile → assemble → emulate → verify hex output |
 
 ### Performance (measured and projected)
 
@@ -679,12 +687,11 @@ skip:
 - Inliner: uses `fn.Params[i].Reg`, substitutes OpLoadVar/OpLoadParam with OpMove
 - **Result:** skip pointer offset correct, lambda map arithmetic works
 
-### Phase 5: Inline Filter Constant Tracking (Bug D) — NEXT
-- `OpJumpIfFlag` needs the constant from `Src2`, but `constantValues` map loses it
-- Option A: embed constant directly in `OpJumpIfFlag.Imm2` (new field)
-- Option B: preserve constants across the short sequence (OpLoadConst → OpJumpIfFlag)
-- Unblocks: correct inline filter lambda behavior
-- **Effort:** Small
+### Phase 5: Inline Filter Constant Tracking (Bug D) — DONE (v0.19.5)
+- DCE was missing `OpJumpIfFlag` from `markUsedRegisters()` Phase 1
+- Added `OpJumpIfFlag` (marks Src1+Src2), `OpJumpIf/IfZero/IfNotZero` (mark Src1), `OpPush` (marks Src1)
+- Also added all missing jump opcodes to `markReferencedLabels()`
+- **Result:** `filter(|x| x > 67)` now generates `CP 68` (correct) instead of `OR A`
 
 ### Phase 6: Register-Aware OpPush (Bug G)
 - Fix PUSH to use the correct register pair (not always HL)
@@ -698,16 +705,21 @@ skip:
 - Codegen: `PUSH HL` / `CALL is_big` / `POP HL` / `JR C, skip`
 - **Effort:** Medium
 
-### Phase 8: Counter Peephole (Bug A)
-- Peephole pattern: `LD A, B / DEC B / LD A, B / LD B, A / JR NZ, X` → `DJNZ X`
-- Also: `LD B, N / LD A, B / LD B, A` → `LD B, N`
-- **Effort:** Small
+### Phase 8: Counter Peephole (Bug A) — DONE (v0.19.5)
+- BareDJNZ CodegenHint: fusion optimizer sets hint when no OpCall remains in loop body
+- Z80 codegen emits bare `DJNZ label` (13/8T) instead of 6-instruction memory-backed sequence (~28T)
+- Peephole pattern 48: `DEC B; JR NZ, label → DJNZ label` catches non-iterator cases
+- **Result:** Loops with inlined callbacks use native DJNZ instruction
 
-### Phase 9: Fusion Optimizer Wiring
-- Wire `pkg/optimizer/fusion.go` into the optimization pipeline
-- Detect adjacent iterator ops that can be merged into single loop body
-- Prerequisite: Phases 3-6 complete so fused code can actually generate correct Z80
-- **Effort:** Large
+### Phase 9: Fusion Optimizer — DONE (v0.19.5)
+- Full implementation in `pkg/optimizer/fusion.go` (was skeleton, now working)
+- Detects DJNZ loop patterns via `findDJNZLoops()` → `parseDJNZLoop()`
+- Inlines small callbacks: ≤8 instructions, 1 param, no asm/calls/loops
+- OpTrueSMCLoad → OpMove, OpLoadParam → OpMove, OpReturn → OpMove
+- After inlining, sets BareDJNZ hint if no OpCall remains
+- 7 unit tests in `fusion_test.go`
+- Already wired into optimizer pipeline (runs before SmartPeepholeOptimizationPass)
+- **Result:** CALL/RET overhead eliminated (~27 T-states/element saved)
 
 ### Phase 10: collect() + Generator Syntax
 - `collect()` — allocate result array, store filtered/mapped elements

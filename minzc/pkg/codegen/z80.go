@@ -3317,16 +3317,21 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Uses B register for Z80's native DJNZ instruction
 		// Clear constant tracking for counter — DJNZ modifies B each iteration
 		delete(g.constantValues, inst.Src1)
-		g.loadToB(inst.Src1)
-		// Manual DEC B + store-back + JR NZ to ensure counter persists across iterations.
-		// Pure DJNZ would decrement B and jump atomically, but the decremented value
-		// would never get stored back to the stack slot — on the next iteration loadToB
-		// would reload the stale original count. This manual sequence costs a few extra
-		// T-states but guarantees correctness when the loop body clobbers B (e.g., CALL).
-		g.emit("    DEC B")
-		g.emit("    LD A, B")
-		g.storeFromA(inst.Src1)
-		g.emit("    JR NZ, %s", g.sanitizeLabel(inst.Label))
+
+		if inst.CodegenHint != nil && inst.CodegenHint.BareDJNZ {
+			// No CALL in loop body — B is preserved across iterations.
+			// Use bare DJNZ: single instruction, 13/8 T-states, 2 bytes.
+			// (vs manual DEC B + LD A,B + store + JR NZ: ~30 T-states, 7+ bytes)
+			g.emit("    DJNZ %s", g.sanitizeLabel(inst.Label))
+		} else {
+			// Loop body contains CALL — B may be clobbered.
+			// Manual DEC B + store-back + JR NZ to ensure counter persists.
+			g.loadToB(inst.Src1)
+			g.emit("    DEC B")
+			g.emit("    LD A, B")
+			g.storeFromA(inst.Src1)
+			g.emit("    JR NZ, %s", g.sanitizeLabel(inst.Label))
+		}
 
 	case ir.OpLoadImm:
 		// Load immediate value

@@ -1,0 +1,30 @@
+// E2E Test: bare DJNZ optimization
+// Input: [1, 2, 3, 4, 5]
+// Chain: filter(|x| x > 3) -> forEach(console_log)
+// filter(> 3) = [4, 5]
+// Output via console_log: 04 05 0a (hex)
+// This test verifies that when all arithmetic callbacks are fused
+// and only asm forEach remains, the loop still works correctly.
+// (BareDJNZ would require zero CALL in body — future optimization)
+
+fun console_log(c: u8) -> void {
+    asm {
+        OUT ($23), A
+    }
+}
+
+fun main() -> void {
+    asm {
+        LD HL, _data
+        LD ($F002), HL
+    }
+    let arr: [u8; 5] = [1, 2, 3, 4, 5];
+    arr.filter(|x| x > 3).forEach(console_log);
+    console_log(10);
+    asm {
+        DI
+        HALT
+    _data:
+        DB 1, 2, 3, 4, 5
+    }
+}

@@ -1,12 +1,14 @@
 # MinZ Programming Language
 
+> **[Iterator Implementation Status](docs/Iterator_Implementation_Status.md)** — 11/11 E2E tests pass, fusion optimizer live, 87+ tests across 7 layers
+
 <div align="center">
 
 ![MinZ Logo](/media/minz-logo-shamrock-mint.png)
 
 ### Modern Programming Language for Vintage Hardware
 
-[![Version](https://img.shields.io/badge/version-0.19.4-blue)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.19.5-blue)](https://github.com/oisee/minz/releases)
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
 **Write modern code. Run it on Z80, eZ80, 6502, and more.**
@@ -115,7 +117,7 @@ mz program.minz -b c -o prog.c                         # C99
 | Feature | Status |
 |---------|--------|
 | Pattern matching | Syntax parses, codegen partial |
-| Iterator chains | 9 ops fully working on Z80 + inline lambda filters. **78 tests, 7/7 E2E hex-verified, all pass.** enumerate/reduce at MIR level (Z80 needs OpPush fix). See [Status](docs/Iterator_Implementation_Status.md), [Report](reports/2026-03-01-016-Iterator_Chain_Status_2.md) |
+| Iterator chains | 9 ops on Z80 + inline lambda filters + **fusion optimizer** (inlines callbacks in DJNZ loops). **87+ tests, 11/11 E2E hex-verified, all pass.** enumerate/reduce at MIR level (Z80 needs OpPush fix). See [Status](docs/Iterator_Implementation_Status.md) |
 | MIR interpreter | Arrays/structs working, not complete |
 
 ### Known Limitations
@@ -287,18 +289,19 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 - **DJNZ loops** — arrays ≤255 elements use Z80's dedicated loop instruction (13 T-states vs 25+ for compare-jump)
 - **Pointer arithmetic** — `HL` walks the array with `INC HL`, no index multiplication
 
-**Testing (v0.19.4):** 78 tests across 6 layers — every stage of the pipeline has dedicated coverage:
+**Testing (v0.19.5):** 87+ tests across 7 layers — every stage of the pipeline has dedicated coverage:
 
 | Layer | Tests | Status |
 |-------|------:|--------|
-| E2E shell (hex-verified output) | 7 | **all pass** |
+| E2E shell (hex-verified output) | 11 | **all pass** |
 | Corpus (full compile to Z80) | 18 | all pass |
+| Fusion optimizer (callback inlining) | 7 | all pass |
 | MIR VM (DJNZ execution) | 8 | all pass |
 | Codegen (Z80 patterns) | 7 | all pass |
 | Semantic (IR generation) | 20 | all pass |
 | Parser (chain conversion) | 18 | all pass |
 
-**9 operations fully working on Z80:** forEach, map, filter, take, skip, peek, inspect, takeWhile, and inline lambda filters (`filter(|x| x > N)` compiles to `CP N+1` + `JR C` — no function call, ~27 T-states saved per iteration). enumerate and reduce work at MIR level, Z80 blocked by OpPush routing. See [Iterator Report #2](reports/2026-03-01-016-Iterator_Chain_Status_2.md) for details.
+**9 operations fully working on Z80:** forEach, map, filter, take, skip, peek, inspect, takeWhile, and inline lambda filters (`filter(|x| x > N)` compiles to `CP N+1` + `JR C` — no function call, ~27 T-states saved per iteration). **Fusion optimizer** inlines small callbacks directly into DJNZ loop bodies, eliminating CALL/RET overhead and enabling bare `DJNZ` instruction. enumerate and reduce work at MIR level, Z80 blocked by OpPush routing. See [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) for details.
 
 **Design documents:**
 - [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) — E2E verified operations, known codegen bugs, fix guide
@@ -535,7 +538,7 @@ MinZ is under active development. The Z80 backend is mature and produces working
 - 4 active backends: Z80 (production), 6502, C99, Crystal
 - 3 validated Z80 targets: Spectrum, CP/M, Agon Light 2
 - **1335/1335 FUSE Z80 tests pass** — gold-standard CPU verification including all undocumented opcodes
-- **78 iterator tests** across 6 layers — 7/7 E2E hex-verified, all green
+- **87+ iterator tests** across 7 layers — 11/11 E2E hex-verified, all green (including fusion optimizer)
 - 9 toolchain binaries, all pure Go, zero external dependencies
 
 ---

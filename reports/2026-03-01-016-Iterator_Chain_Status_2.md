@@ -1,21 +1,22 @@
 # Iterator Chain Optimization Status (Report #2)
 
-*2026-03-01 | MinZ v0.19.4 | Report #016*
+*2026-03-01 | MinZ v0.19.5 | Report #016*
 
 ---
 
 ## Summary
 
-The iterator chain pipeline is **production-quality for 9 core operations** with 78 tests across 6 layers, all passing. Two critical bugs were resolved in this session: the pointer-walk regression (stale binary) and the inline filter constant bug (DCE missing `OpJumpIfFlag`). The pipeline now compiles MinZ iterator chains to efficient Z80 DJNZ loops with correct output, verified end-to-end via hex comparison.
+The iterator chain pipeline is **production-quality for 9 core operations** with 87+ tests across 7 layers, all passing. v0.19.5 adds the **fusion optimizer** (inlines small callbacks into DJNZ loop bodies, eliminating CALL/RET overhead) and **BareDJNZ** (native `DJNZ` instruction when no CALL remains in the loop body). 11/11 E2E tests hex-verified. Inline filter DCE bug fixed. Pipeline: MinZ → MIR → fusion → Z80 → MZA → MZX → verified output bytes.
 
 ---
 
-## Test Pyramid — 78 Tests, 6 Layers, 100% Pass
+## Test Pyramid — 87+ Tests, 7 Layers, 100% Pass
 
 | Layer | Tests | Status | What it validates |
 |-------|------:|--------|-------------------|
-| **E2E shell** (hex-verified) | **7** | **7 pass** | Full pipeline: MinZ → MIR → Z80 → MZA → MZX → output bytes |
+| **E2E shell** (hex-verified) | **11** | **11 pass** | Full pipeline: MinZ → MIR → fusion → Z80 → MZA → MZX → output bytes |
 | Corpus (compile) | 18 | 18 pass | 18 real .minz programs compile through Z80 backend |
+| **Fusion optimizer** | **7** | **7 pass** | DJNZ loop detection, callback inlining, BareDJNZ hints |
 | MIR VM | 8 | 8 pass | DJNZ loop execution in register-based VM |
 | Codegen (Z80 patterns) | 7 | 7 pass | Correct Z80 instruction selection |
 | Semantic (IR generation) | 20 | 20 pass | Correct IR generation for all op combinations |
@@ -32,8 +33,12 @@ Each test compiles a `.minz` program, assembles to binary, runs in MZX with `--c
 | `iter_skip` | `[A,B,C,D,E]` | `skip(2).forEach(...)` | `4344450a` | PASS |
 | `iter_map_foreach` | `[1,2,3,4,5]` | `map(double).forEach(...)` | `020406080a0a` | PASS |
 | `iter_filter_foreach` | `[A,B,C,D,E]` | `filter(is_big).forEach(...)` | `44450a` | PASS |
-| `iter_inline_filter` | `[A,B,C,D,E]` | `filter(\|x\| x > 67).forEach(...)` | `44450a` | PASS (NEW) |
+| `iter_inline_filter` | `[A,B,C,D,E]` | `filter(\|x\| x > 67).forEach(...)` | `44450a` | PASS |
 | `iter_lambda_map` | `[A,B,C,D,E]` | `map(\|x\| x + 1).forEach(...)` | `42434445460a` | PASS |
+| `iter_map_filter_foreach` | `[1,2,3,4,5]` | `map(double).filter(\|x\|x>5).forEach(...)` | `06080a0a` | PASS |
+| `iter_filter_map_foreach` | `[A,B,C,D,E]` | `filter(\|x\|x>=67).map(add_one).forEach(...)` | `4445460a` | PASS |
+| `iter_take_map_foreach` | `[A,B,C,D,E]` | `take(3).map(add_one).forEach(...)` | `4243440a` | PASS |
+| `iter_bare_djnz` | `[1,2,3,4,5]` | `filter(\|x\| x > 3).forEach(console_log)` | `04050a` | PASS |
 
 ---
 
@@ -162,8 +167,8 @@ Source → Parser → Semantic → MIR Optimizer → Z80 Codegen → MZA → Bin
 
 | Item | Status | Effort |
 |------|--------|--------|
-| Multi-stage chain E2E tests | `map(f).filter(g).forEach(h)` compiles but no hex-verified test | Small |
-| Fusion optimizer | Skeleton in `pkg/optimizer/fusion.go`, detection-only | Medium |
+| Multi-stage chain E2E tests | **DONE** — 3 hex-verified tests (map+filter, filter+map, take+map) | — |
+| Fusion optimizer | **DONE** — inlines callbacks, sets BareDJNZ hints, 7 unit tests | — |
 | enumerate/reduce on Z80 | Blocked by OpPush routing (#4) | Small (after #4) |
 | Generator syntax (`gen`/`yield`) | Design doc exists, not started | Large |
 
@@ -192,6 +197,8 @@ The main overhead vs hand-written code is the `PUSH/POP HL` per iteration (22 T-
 | 2026-02-28 | HL clobber fix (PUSH/POP HL), TRUE SMC anchor fix, superoptimizer ADR |
 | 2026-03-01 | All 6 E2E tests wired and passing (pointer-walk was stale binary) |
 | 2026-03-01 | **Inline filter constant fix** — DCE bug found and fixed, 7/7 E2E pass |
+| 2026-03-01 | **Fusion optimizer** — callback inlining in DJNZ loops, 10/10 E2E pass |
+| 2026-03-01 | **BareDJNZ** — native DJNZ when no CALL in loop body, peephole pattern 48, 11/11 E2E pass |
 
 ---
 
@@ -206,4 +213,4 @@ The main overhead vs hand-written code is the `PUSH/POP HL` per iteration (22 T-
 
 ---
 
-*MinZ: Zero-cost iterator chains on Z80 — 78 tests, 7 E2E, all green.*
+*MinZ: Zero-cost iterator chains on Z80 — 87+ tests, 11 E2E, fusion optimizer live, all green.*

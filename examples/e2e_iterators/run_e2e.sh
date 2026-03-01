@@ -53,6 +53,7 @@ run_test "iter_lambda_map"      "42434445460a"       # BCDEF\n (map +1 on ABCDE)
 run_test "iter_map_filter_foreach" "06080a0a"        # 6,8,10,\n (map double + filter >5)
 run_test "iter_filter_map_foreach" "4445460a"        # DEF\n (filter >=67 + map +1)
 run_test "iter_take_map_foreach"   "4243440a"        # BCD\n (take 3 + map +1)
+run_test "iter_bare_djnz"         "04050a"           # \x04\x05\n (filter >3 of [1..5])
 
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="

@@ -296,6 +296,9 @@ type CodegenHints struct {
 
 	// Flags awareness
 	NextUsesFlags bool // Next instruction reads flags - don't use INC/DEC
+
+	// DJNZ optimization
+	BareDJNZ bool // B register is safe throughout loop — use bare DJNZ instead of manual DEC B + JR NZ
 }
 
 // StructLiteralData represents literal data for a struct in an array

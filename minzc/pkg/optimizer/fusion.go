@@ -208,11 +208,9 @@ func (f *FusionOptimizer) parseDJNZLoop(instrs []ir.Instruction, nopIdx int) *dj
 }
 
 // fuseLoopCallbacks finds and inlines fusible OpCall instructions within a DJNZ loop.
+// After inlining, checks if no OpCall remains and sets BareDJNZ hint.
 func (f *FusionOptimizer) fuseLoopCallbacks(fn *ir.Function, loop *djnzLoop) bool {
 	calls := f.findFusibleCalls(fn.Instructions, loop)
-	if len(calls) == 0 {
-		return false
-	}
 
 	changed := false
 	// Process in reverse order to preserve indices after splice
@@ -222,7 +220,48 @@ func (f *FusionOptimizer) fuseLoopCallbacks(fn *ir.Function, loop *djnzLoop) boo
 			f.optimized++
 		}
 	}
+
+	// After inlining, check if any OpCall remains in the loop body.
+	// If none, B register won't be clobbered → can use bare DJNZ instruction.
+	f.maybeSetBareDJNZ(fn, loop)
+
 	return changed
+}
+
+// maybeSetBareDJNZ checks if a DJNZ loop body has no remaining OpCall.
+// If so, sets the BareDJNZ CodegenHint on the OpDJNZ instruction,
+// allowing the Z80 codegen to emit a single DJNZ instruction instead
+// of the manual DEC B + LD A,B + store + JR NZ sequence.
+func (f *FusionOptimizer) maybeSetBareDJNZ(fn *ir.Function, loop *djnzLoop) {
+	// Re-find the DJNZ instruction (indices may have shifted after inlining)
+	djnzIdx := -1
+	loopLabelIdx := -1
+	for i, inst := range fn.Instructions {
+		if inst.Op == ir.OpLabel && inst.Label == fn.Instructions[loop.labelIdx].Label {
+			loopLabelIdx = i
+		}
+		if inst.Op == ir.OpDJNZ && loopLabelIdx >= 0 && i > loopLabelIdx {
+			djnzIdx = i
+			break
+		}
+	}
+	if djnzIdx < 0 || loopLabelIdx < 0 {
+		return
+	}
+
+	// Check for any OpCall between loop label and DJNZ
+	for i := loopLabelIdx + 1; i < djnzIdx; i++ {
+		if fn.Instructions[i].Op == ir.OpCall {
+			return // Still has calls — B might be clobbered
+		}
+	}
+
+	// No calls in loop body — set BareDJNZ hint
+	inst := &fn.Instructions[djnzIdx]
+	if inst.CodegenHint == nil {
+		inst.CodegenHint = &ir.CodegenHints{}
+	}
+	inst.CodegenHint.BareDJNZ = true
 }
 
 // findFusibleCalls finds OpCall instructions in the loop body that can be inlined.
