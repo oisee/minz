@@ -8,7 +8,9 @@ import (
 	"github.com/minz/minzc/pkg/ir"
 )
 
-// MIRInterpreter executes MIR code at compile time for metaprogramming
+// Deprecated: MIRInterpreter is superseded by mirvm.VM which is register-based
+// and passes 75+ tests. Use mirvm.VM directly or via ctie.CompileTimeExecutor.
+// This interpreter is kept for reference only — no new features should be added.
 type MIRInterpreter struct {
 	registers  map[ir.Register]int64     // Virtual register values
 	memory     map[int64]byte            // Simulated memory space
@@ -47,7 +49,7 @@ type CallFrame struct {
 	localRegs   map[ir.Register]int64
 }
 
-// NewMIRInterpreter creates a new MIR interpreter instance
+// Deprecated: Use mirvm.New() instead. See MIRInterpreter doc comment.
 func NewMIRInterpreter() *MIRInterpreter {
 	return &MIRInterpreter{
 		registers:       make(map[ir.Register]int64),
@@ -106,11 +108,12 @@ func (interp *MIRInterpreter) setupFunction(function *ir.Function, args []int64)
 		delete(interp.registers, k)
 	}
 	
-	// Set up parameters
-	if len(args) > len(function.Params) {
+	// Set up parameters — use args length directly since Params is often
+	// not populated by the IR builder. Arguments are loaded positionally.
+	if len(function.Params) > 0 && len(args) > len(function.Params) {
 		return fmt.Errorf("too many arguments: got %d, expected %d", len(args), len(function.Params))
 	}
-	
+
 	// Load arguments into parameter registers
 	for i, arg := range args {
 		paramReg := ir.Register(i + 1) // Params start at register 1

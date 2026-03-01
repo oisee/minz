@@ -864,11 +864,9 @@ func (a *Analyzer) generateIteratorLambda(lambda *ast.LambdaExpr, elementReg ir.
 		}
 	}
 	
-	lambdaFunc.Params = append(lambdaFunc.Params, ir.Parameter{
-		Name: param.Name,
-		Type: paramType,
-	})
-	
+	paramReg := lambdaFunc.AddParamWithRegister(param.Name, paramType, "")
+	_ = paramReg // Used by the body analysis through the scope system
+
 	// Determine return type
 	var returnType ir.Type = &ir.BasicType{Kind: ir.TypeU8} // Default
 	if lambda.ReturnType != nil {

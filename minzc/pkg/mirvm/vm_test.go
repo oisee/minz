@@ -1051,6 +1051,606 @@ Function test.main() -> void
 	}
 }
 
+// TestModOp tests modulo operation
+func TestModOp(t *testing.T) {
+	tests := []struct {
+		name     string
+		mir      string
+		wantRegs map[int]int64
+	}{
+		{
+			name: "Mod_Basic",
+			mir: `; Test modulo
+Function test.main() -> void
+  Instructions:
+      0: r1 = 10
+      1: r2 = 3
+      2: r3 = r1 % r2
+      3: return
+`,
+			wantRegs: map[int]int64{3: 1},
+		},
+		{
+			name: "Mod_Even",
+			mir: `; Test modulo even division
+Function test.main() -> void
+  Instructions:
+      0: r1 = 12
+      1: r2 = 4
+      2: r3 = r1 % r2
+      3: return
+`,
+			wantRegs: map[int]int64{3: 0},
+		},
+		{
+			name: "Mod_LargerDivisor",
+			mir: `; Test modulo when divisor > dividend
+Function test.main() -> void
+  Instructions:
+      0: r1 = 3
+      1: r2 = 10
+      2: r3 = r1 % r2
+      3: return
+`,
+			wantRegs: map[int]int64{3: 3},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			module, err := ir.ParseMIR(tt.mir)
+			if err != nil {
+				t.Fatalf("Failed to parse MIR: %v", err)
+			}
+			config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 1000}
+			vm := New(config)
+			if err := vm.LoadModule(module); err != nil {
+				t.Fatalf("Failed to load module: %v", err)
+			}
+			if _, err = vm.Run(); err != nil {
+				t.Fatalf("Execution failed: %v", err)
+			}
+			for reg, want := range tt.wantRegs {
+				got := vm.registers[reg]
+				if got != want {
+					t.Errorf("Register r%d = %d, want %d", reg, got, want)
+				}
+			}
+		})
+	}
+}
+
+// TestNegOp tests negation operation
+func TestNegOp(t *testing.T) {
+	mir := `; Test negate
+Function test.main() -> void
+  Instructions:
+      0: r1 = 42
+      1: r2 = -r1
+      2: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 100}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	if _, err = vm.Run(); err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+	if vm.registers[2] != -42 {
+		t.Errorf("r2 = %d, want -42", vm.registers[2])
+	}
+}
+
+// TestNotOp tests bitwise NOT operation
+func TestNotOp(t *testing.T) {
+	mir := `; Test bitwise NOT
+Function test.main() -> void
+  Instructions:
+      0: r1 = 0xFF
+      1: r2 = ~r1
+      2: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 100}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	if _, err = vm.Run(); err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+	// ~0xFF in int64 = -256 (all bits flipped)
+	if vm.registers[2] != ^int64(0xFF) {
+		t.Errorf("r2 = %d, want %d", vm.registers[2], ^int64(0xFF))
+	}
+}
+
+// TestPushPopOps tests push and pop stack operations
+func TestPushPopOps(t *testing.T) {
+	mir := `; Test push and pop
+Function test.main() -> void
+  Instructions:
+      0: r1 = 42
+      1: r2 = 99
+      2: push r1
+      3: push r2
+      4: pop r3
+      5: pop r4
+      6: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 100}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	if _, err = vm.Run(); err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+	// Stack is LIFO: pop first gets 99, pop second gets 42
+	if vm.registers[3] != 99 {
+		t.Errorf("r3 = %d, want 99 (last pushed)", vm.registers[3])
+	}
+	if vm.registers[4] != 42 {
+		t.Errorf("r4 = %d, want 42 (first pushed)", vm.registers[4])
+	}
+}
+
+// TestTestOp tests the test (zero-check) instruction
+func TestTestOp(t *testing.T) {
+	tests := []struct {
+		name     string
+		mir      string
+		wantRegs map[int]int64
+	}{
+		{
+			name: "Test_Zero",
+			mir: `; Test zero value — jump taken
+Function test.main() -> void
+  Instructions:
+      0: r1 = 0
+      1: test r1
+      2: jump_if_not r1, is_zero
+      3: r2 = 99
+      4: jump end
+      5: is_zero:
+      6: r2 = 42
+      7: end:
+      8: return
+`,
+			wantRegs: map[int]int64{2: 42},
+		},
+		{
+			name: "Test_NonZero",
+			mir: `; Test non-zero value — jump not taken
+Function test.main() -> void
+  Instructions:
+      0: r1 = 5
+      1: test r1
+      2: jump_if_not r1, is_zero
+      3: r2 = 42
+      4: jump end
+      5: is_zero:
+      6: r2 = 99
+      7: end:
+      8: return
+`,
+			wantRegs: map[int]int64{2: 42},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			module, err := ir.ParseMIR(tt.mir)
+			if err != nil {
+				t.Fatalf("Failed to parse MIR: %v", err)
+			}
+			config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 1000}
+			vm := New(config)
+			if err := vm.LoadModule(module); err != nil {
+				t.Fatalf("Failed to load module: %v", err)
+			}
+			if _, err = vm.Run(); err != nil {
+				t.Fatalf("Execution failed: %v", err)
+			}
+			for reg, want := range tt.wantRegs {
+				got := vm.registers[reg]
+				if got != want {
+					t.Errorf("Register r%d = %d, want %d", reg, got, want)
+				}
+			}
+		})
+	}
+}
+
+// TestLeGeComparison tests le/ge comparison operations
+func TestLeGeComparison(t *testing.T) {
+	tests := []struct {
+		name     string
+		mir      string
+		wantRegs map[int]int64
+	}{
+		{
+			name: "Le_True_Equal",
+			mir: `; Test less-than-or-equal (equal case)
+Function test.main() -> void
+  Instructions:
+      0: r1 = 5
+      1: r2 = 5
+      2: r3 = r1 <= r2
+      3: return
+`,
+			wantRegs: map[int]int64{3: 1},
+		},
+		{
+			name: "Le_True_Less",
+			mir: `; Test less-than-or-equal (less case)
+Function test.main() -> void
+  Instructions:
+      0: r1 = 3
+      1: r2 = 5
+      2: r3 = r1 <= r2
+      3: return
+`,
+			wantRegs: map[int]int64{3: 1},
+		},
+		{
+			name: "Le_False",
+			mir: `; Test less-than-or-equal (greater case)
+Function test.main() -> void
+  Instructions:
+      0: r1 = 10
+      1: r2 = 5
+      2: r3 = r1 <= r2
+      3: return
+`,
+			wantRegs: map[int]int64{3: 0},
+		},
+		{
+			name: "Ge_True_Equal",
+			mir: `; Test greater-than-or-equal (equal case)
+Function test.main() -> void
+  Instructions:
+      0: r1 = 7
+      1: r2 = 7
+      2: r3 = r1 >= r2
+      3: return
+`,
+			wantRegs: map[int]int64{3: 1},
+		},
+		{
+			name: "Ge_True_Greater",
+			mir: `; Test greater-than-or-equal (greater case)
+Function test.main() -> void
+  Instructions:
+      0: r1 = 10
+      1: r2 = 5
+      2: r3 = r1 >= r2
+      3: return
+`,
+			wantRegs: map[int]int64{3: 1},
+		},
+		{
+			name: "Ge_False",
+			mir: `; Test greater-than-or-equal (less case)
+Function test.main() -> void
+  Instructions:
+      0: r1 = 3
+      1: r2 = 5
+      2: r3 = r1 >= r2
+      3: return
+`,
+			wantRegs: map[int]int64{3: 0},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			module, err := ir.ParseMIR(tt.mir)
+			if err != nil {
+				t.Fatalf("Failed to parse MIR: %v", err)
+			}
+			config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 1000}
+			vm := New(config)
+			if err := vm.LoadModule(module); err != nil {
+				t.Fatalf("Failed to load module: %v", err)
+			}
+			if _, err = vm.Run(); err != nil {
+				t.Fatalf("Execution failed: %v", err)
+			}
+			for reg, want := range tt.wantRegs {
+				got := vm.registers[reg]
+				if got != want {
+					t.Errorf("Register r%d = %d, want %d", reg, got, want)
+				}
+			}
+		})
+	}
+}
+
+// TestIncDecOps tests increment and decrement via programmatic IR construction
+func TestIncDecOps(t *testing.T) {
+	// These opcodes don't have MIR text format, so we build programmatically
+	module := &ir.Module{
+		Functions: []*ir.Function{
+			{
+				Name: "test.main",
+				Instructions: []ir.Instruction{
+					{Op: ir.OpLoadConst, Dest: 1, Imm: 10},
+					{Op: ir.OpInc, Dest: 2, Src1: 1},        // r2 = r1 + 1 = 11
+					{Op: ir.OpDec, Dest: 3, Src1: 1},        // r3 = r1 - 1 = 9
+					{Op: ir.OpLoadConst, Dest: 4, Imm: 0},
+					{Op: ir.OpInc, Dest: 5, Src1: 4},        // r5 = 0 + 1 = 1
+					{Op: ir.OpDec, Dest: 6, Src1: 4},        // r6 = 0 - 1 = -1
+					{Op: ir.OpReturn},
+				},
+			},
+		},
+	}
+
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 100}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	if _, err := vm.Run(); err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+	checks := map[int]int64{2: 11, 3: 9, 5: 1, 6: -1}
+	for reg, want := range checks {
+		got := vm.registers[reg]
+		if got != want {
+			t.Errorf("r%d = %d, want %d", reg, got, want)
+		}
+	}
+}
+
+// TestDJNZOp tests decrement-and-jump-if-not-zero
+func TestDJNZOp(t *testing.T) {
+	// DJNZ: decrement Src1 into Dest, jump to Label if result != 0
+	module := &ir.Module{
+		Functions: []*ir.Function{
+			{
+				Name: "test.main",
+				Instructions: []ir.Instruction{
+					{Op: ir.OpLoadConst, Dest: 1, Imm: 0},   // r1 = counter (accumulator)
+					{Op: ir.OpLoadConst, Dest: 2, Imm: 5},   // r2 = loop count
+					{Op: ir.OpLabel, Label: "loop"},           // loop:
+					{Op: ir.OpLoadConst, Dest: 3, Imm: 1},   // r3 = 1
+					{Op: ir.OpAdd, Dest: 1, Src1: 1, Src2: 3}, // r1 += 1
+					{Op: ir.OpDJNZ, Dest: 2, Src1: 2, Label: "loop"}, // r2--; if r2 != 0 goto loop
+					{Op: ir.OpReturn},
+				},
+			},
+		},
+	}
+
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 1000}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	if _, err := vm.Run(); err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+	// Should have accumulated 5 (5 iterations)
+	if vm.registers[1] != 5 {
+		t.Errorf("r1 = %d, want 5 (5 iterations)", vm.registers[1])
+	}
+	// Loop counter should be 0
+	if vm.registers[2] != 0 {
+		t.Errorf("r2 = %d, want 0 (loop counter depleted)", vm.registers[2])
+	}
+}
+
+// TestHaltOp tests the halt instruction stops execution
+func TestHaltOp(t *testing.T) {
+	mir := `; Test halt instruction
+Function test.main() -> void
+  Instructions:
+      0: r1 = 42
+      1: halt
+      2: r1 = 99
+      3: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 100}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	_, _ = vm.Run() // halt may or may not return an error
+	// r1 should still be 42, not 99 (execution stopped at halt)
+	if vm.registers[1] != 42 {
+		t.Errorf("r1 = %d, want 42 (halt should stop before r1=99)", vm.registers[1])
+	}
+}
+
+// TestDivByZero tests division by zero handling
+func TestDivByZero(t *testing.T) {
+	mir := `; Test division by zero
+Function test.main() -> void
+  Instructions:
+      0: r1 = 42
+      1: r2 = 0
+      2: r3 = r1 / r2
+      3: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 100}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	_, err = vm.Run()
+	if err == nil {
+		t.Error("Expected error for division by zero")
+	}
+	if err != nil && !strings.Contains(err.Error(), "division by zero") && !strings.Contains(err.Error(), "divide by zero") {
+		t.Errorf("Expected division by zero error, got: %v", err)
+	}
+}
+
+// TestModByZero tests modulo by zero handling
+func TestModByZero(t *testing.T) {
+	mir := `; Test modulo by zero
+Function test.main() -> void
+  Instructions:
+      0: r1 = 42
+      1: r2 = 0
+      2: r3 = r1 % r2
+      3: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 100}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	_, err = vm.Run()
+	if err == nil {
+		t.Error("Expected error for modulo by zero")
+	}
+}
+
+// TestFunctionCall tests inter-function calls
+func TestFunctionCall(t *testing.T) {
+	mir := `; Test function call
+Function test.add(a: u8, b: u8) -> u8
+  Instructions:
+      0: r1 = param a
+      1: r2 = param b
+      2: r3 = r1 + r2
+      3: return r3
+
+Function test.main() -> void
+  Instructions:
+      0: r1 = 10
+      1: r2 = 20
+      2: r3 = call test.add(r1, r2)
+      3: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 1000}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	if _, err = vm.Run(); err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+	// r3 should be 30 (10 + 20)
+	if vm.registers[3] != 30 {
+		t.Errorf("r3 = %d, want 30", vm.registers[3])
+	}
+}
+
+// TestPrintOp tests print instruction (output capture)
+func TestPrintOp(t *testing.T) {
+	mir := `; Test print instruction
+Function test.main() -> void
+  Instructions:
+      0: r1 = 65
+      1: printchar r1
+      2: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+	var buf strings.Builder
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 100, OutputStream: &buf}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	if _, err = vm.Run(); err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+	// Should have printed 'A' (ASCII 65)
+	if buf.String() != "A" {
+		t.Errorf("Output = %q, want %q", buf.String(), "A")
+	}
+}
+
+// TestAddImm tests add-immediate instruction
+func TestAddImm(t *testing.T) {
+	mir := `; Test add immediate
+Function test.main() -> void
+  Instructions:
+      0: r1 = 10
+      1: r2 = r1 + 5
+      2: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 100}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	if _, err = vm.Run(); err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+	if vm.registers[2] != 15 {
+		t.Errorf("r2 = %d, want 15", vm.registers[2])
+	}
+}
+
+// TestGetStatistics tests statistics tracking
+func TestGetStatistics(t *testing.T) {
+	mir := `; Simple program for statistics
+Function test.main() -> void
+  Instructions:
+      0: r1 = 42
+      1: r2 = 10
+      2: r3 = r1 + r2
+      3: return
+`
+	module, err := ir.ParseMIR(mir)
+	if err != nil {
+		t.Fatalf("Failed to parse MIR: %v", err)
+	}
+	config := Config{MemorySize: 4096, StackSize: 1024, MaxSteps: 100}
+	vm := New(config)
+	if err := vm.LoadModule(module); err != nil {
+		t.Fatalf("Failed to load module: %v", err)
+	}
+	if _, err = vm.Run(); err != nil {
+		t.Fatalf("Execution failed: %v", err)
+	}
+	stats := vm.GetStatistics()
+	// 3 or 4 depending on whether return counts as an executed instruction
+	if stats.InstructionsExecuted < 3 || stats.InstructionsExecuted > 4 {
+		t.Errorf("InstructionsExecuted = %d, want 3-4", stats.InstructionsExecuted)
+	}
+}
+
 // BenchmarkSimpleLoop benchmarks a simple counting loop
 func BenchmarkSimpleLoop(b *testing.B) {
 	mir := `; Benchmark loop

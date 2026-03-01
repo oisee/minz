@@ -1601,9 +1601,11 @@ func (g *Z80Generator) prepareCallArguments(args []ir.Register, targetFunc *ir.F
 		return
 	}
 
-	// For SMC functions (calling other SMC functions), parameters are patched directly
-	if targetFunc != nil && (targetFunc.IsSMCDefault || targetFunc.IsSMCEnabled) && !targetFunc.IsExtern {
-		// SMC parameters are handled by generateTrueSMCCall or embedded in the function
+	// For TRUE SMC functions, parameters are patched at the call site by generateTrueSMCCall.
+	// Regular SMC functions (IsSMCDefault/IsSMCEnabled without UsesTrueSMC) still need
+	// standard argument loading into registers (A for first u8 param, etc.).
+	if targetFunc != nil && targetFunc.UsesTrueSMC && !targetFunc.IsExtern {
+		// TRUE SMC parameters are handled by generateTrueSMCCall
 		return
 	}
 
@@ -1876,6 +1878,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Labels are jump targets where control flow merges — constant
 		// assumptions from prior blocks are invalid. Clear the entire map.
 		g.constantValues = make(map[ir.Register]int64)
+		g.currentRegister = 0 // HL contents unknown at merge point
 		g.emit("%s:", g.sanitizeLabel(inst.Label))
 		
 	case ir.OpJump:
@@ -2883,7 +2886,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			// Result is in HL
 			g.storeFromHL(inst.Dest)
 		}
-		
+		g.currentRegister = 0 // CALL clobbers HL
+
 	case ir.OpPatchPoint:
 		// Define a patchable instruction sequence
 		return g.generatePatchPoint(&inst)
@@ -4099,28 +4103,40 @@ func (g *Z80Generator) storeFromA(reg ir.Register) {
 	}
 }
 
-// loadToHL loads a virtual register to HL
+// loadToHL loads a virtual register to HL.
+// Uses dynamic tracking via currentRegister to avoid stale HL values
+// in multi-expression contexts where HL gets clobbered between uses.
 func (g *Z80Generator) loadToHL(reg ir.Register) {
 	if reg == ir.RegZero {
 		g.emit("    LD HL, 0")
+		g.currentRegister = 0
+		return
+	}
+
+	// Dynamic tracking: skip load if HL already has this value
+	if g.currentRegister == reg {
+		g.emit("    ; Register %d already in HL (tracked)", reg)
 		return
 	}
 
 	// Check if the register contains a known constant value
 	if constVal, ok := g.constantValues[reg]; ok {
 		g.emit("    LD HL, %d      ; Constant", constVal)
+		g.currentRegister = reg
 		return
 	}
 
 	// Use hierarchical register allocation for 16-bit loads
 	location, value := g.getRegisterLocation(reg)
-	
+
 	switch location {
 	case LocationPhysical:
 		physReg := value.(PhysicalReg)
 		if physReg == RegHL {
-			// Already in HL
-			g.emit("    ; Register %d already in HL", reg)
+			// Static allocator says HL, but dynamic tracking says clobbered.
+			// Reload from memory backup.
+			g.loadToHLFromMemory(reg)
+			g.currentRegister = reg
 			return
 		}
 		// Move from physical register to HL
@@ -4129,7 +4145,7 @@ func (g *Z80Generator) loadToHL(reg ir.Register) {
 			g.emit("    LD H, %s", regName[:1]) // BC->B, DE->D
 			g.emit("    LD L, %s", regName[1:]) // BC->C, DE->E
 		}
-		
+
 	case LocationShadow:
 		physReg := value.(PhysicalReg)
 		regName := g.physicalRegToAssembly(physReg)
@@ -4145,18 +4161,23 @@ func (g *Z80Generator) loadToHL(reg ir.Register) {
 			g.emit("    LD L, %s", regName[1:])
 			g.emit("    EXX               ; Switch back")
 		}
-		
+
 	case LocationMemory:
-		addr := value.(uint16)
-		if !g.useAbsoluteLocals && g.isLocalRegister(reg) {
-			// Stack-based local variable - use IX+offset
-			offset := g.getLocalOffset(reg)
-			g.emit("    LD L, (IX%+d)     ; Virtual register %d from stack (low)", offset, reg)
-			g.emit("    LD H, (IX%+d)     ; Virtual register %d from stack (high)", offset+1, reg)
-		} else {
-			// Absolute addressing
-			g.emit("    LD HL, ($%04X)    ; Virtual register %d from memory", addr, reg)
-		}
+		g.loadToHLFromMemory(reg)
+	}
+	g.currentRegister = reg
+}
+
+// loadToHLFromMemory loads a virtual register to HL from its memory location.
+// Used as fallback when physical HL allocation is stale.
+func (g *Z80Generator) loadToHLFromMemory(reg ir.Register) {
+	if !g.useAbsoluteLocals && g.isLocalRegister(reg) {
+		offset := g.getLocalOffset(reg)
+		g.emit("    LD L, (IX%+d)     ; Virtual register %d from stack (low)", offset, reg)
+		g.emit("    LD H, (IX%+d)     ; Virtual register %d from stack (high)", offset+1, reg)
+	} else {
+		addr := g.getAbsoluteAddr(reg)
+		g.emit("    LD HL, ($%04X)    ; Virtual register %d from memory", addr, reg)
 	}
 }
 

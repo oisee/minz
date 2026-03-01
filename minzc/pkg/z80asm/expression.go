@@ -80,7 +80,11 @@ func (a *Assembler) EvaluateExpression(expr string) (int, error) {
 	// Check for single symbol
 	if isValidSymbol(expr) {
 		if sym, ok := a.symbols[strings.ToUpper(expr)]; ok {
-			return sym.Value, nil
+			if sym.Defined || a.pass == 1 {
+				return sym.Value, nil
+			}
+			// Pass 2+: placeholder from pass 1 was never defined
+			return 0, fmt.Errorf("undefined symbol: %s", expr)
 		}
 		// In pass 1, forward references are OK - create placeholder
 		if a.pass == 1 {

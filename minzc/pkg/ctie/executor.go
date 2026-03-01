@@ -3,7 +3,9 @@ package ctie
 import (
 	"fmt"
 	"math"
+
 	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/mirvm"
 )
 
 // Value represents a compile-time value
@@ -21,22 +23,29 @@ type IntValue struct {
 	Size ir.Type // u8, u16, i8, i16, etc.
 }
 
-func (v IntValue) Type() ir.Type    { return v.Size }
-func (v IntValue) String() string   { return fmt.Sprintf("%d", v.Val) }
-func (v IntValue) ToInt() int64     { return v.Val }
-func (v IntValue) ToBool() bool     { return v.Val != 0 }
-func (v IntValue) Clone() Value     { return IntValue{Val: v.Val, Size: v.Size} }
+func (v IntValue) Type() ir.Type  { return v.Size }
+func (v IntValue) String() string { return fmt.Sprintf("%d", v.Val) }
+func (v IntValue) ToInt() int64   { return v.Val }
+func (v IntValue) ToBool() bool   { return v.Val != 0 }
+func (v IntValue) Clone() Value   { return IntValue{Val: v.Val, Size: v.Size} }
 
 // BoolValue represents a boolean at compile time
 type BoolValue struct {
 	Val bool
 }
 
-func (v BoolValue) Type() ir.Type    { return &ir.BasicType{Kind: ir.TypeBool} }
-func (v BoolValue) String() string   { return fmt.Sprintf("%v", v.Val) }
-func (v BoolValue) ToInt() int64     { if v.Val { return 1 } else { return 0 } }
-func (v BoolValue) ToBool() bool     { return v.Val }
-func (v BoolValue) Clone() Value     { return BoolValue{Val: v.Val} }
+func (v BoolValue) Type() ir.Type { return &ir.BasicType{Kind: ir.TypeBool} }
+func (v BoolValue) String() string {
+	return fmt.Sprintf("%v", v.Val)
+}
+func (v BoolValue) ToInt() int64 {
+	if v.Val {
+		return 1
+	}
+	return 0
+}
+func (v BoolValue) ToBool() bool { return v.Val }
+func (v BoolValue) Clone() Value { return BoolValue{Val: v.Val} }
 
 // ArrayValue represents an array at compile time
 type ArrayValue struct {
@@ -44,10 +53,10 @@ type ArrayValue struct {
 	ElemType ir.Type
 }
 
-func (v ArrayValue) Type() ir.Type    { return v.ElemType } // Return element type for now
-func (v ArrayValue) String() string   { return fmt.Sprintf("[%d elements]", len(v.Elements)) }
-func (v ArrayValue) ToInt() int64     { return int64(len(v.Elements)) }
-func (v ArrayValue) ToBool() bool     { return len(v.Elements) > 0 }
+func (v ArrayValue) Type() ir.Type  { return v.ElemType }
+func (v ArrayValue) String() string { return fmt.Sprintf("[%d elements]", len(v.Elements)) }
+func (v ArrayValue) ToInt() int64   { return int64(len(v.Elements)) }
+func (v ArrayValue) ToBool() bool   { return len(v.Elements) > 0 }
 func (v ArrayValue) Clone() Value {
 	cloned := make([]Value, len(v.Elements))
 	for i, elem := range v.Elements {
@@ -56,38 +65,32 @@ func (v ArrayValue) Clone() Value {
 	return ArrayValue{Elements: cloned, ElemType: v.ElemType}
 }
 
-// ExecutionContext holds the state for compile-time execution
-type ExecutionContext struct {
-	Stack      []Value
-	Locals     map[string]Value
-	Globals    map[string]Value
-	Memory     map[int64]Value
-	ReturnVal  Value
-	PC         int // Program counter
-	CallDepth  int
-	MaxDepth   int
-	InstCount  int
-	MaxInsts   int
-}
-
-// CompileTimeExecutor executes MIR at compile time
+// CompileTimeExecutor executes MIR at compile time using mirvm.VM as the
+// execution backend. This replaces the old stack-based executor which had
+// impedance mismatch with MIR's register-based instructions.
 type CompileTimeExecutor struct {
-	module       *ir.Module
-	purity       *PurityAnalyzer
-	cache        map[string]Value // Memoization cache
-	diagnostics  []string
+	module      *ir.Module
+	purity      *PurityAnalyzer
+	cache       map[string]Value // Memoization cache
+	diagnostics []string
+	useLegacy   bool // Set true to fall back to old stack-based executor
 }
 
-// NewCompileTimeExecutor creates a new compile-time executor
+// NewCompileTimeExecutor creates a new compile-time executor backed by mirvm.VM.
 func NewCompileTimeExecutor(module *ir.Module) *CompileTimeExecutor {
 	return &CompileTimeExecutor{
-		module:  module,
-		purity:  NewPurityAnalyzer(module),
-		cache:   make(map[string]Value),
+		module: module,
+		purity: NewPurityAnalyzer(module),
+		cache:  make(map[string]Value),
 	}
 }
 
-// Execute runs a function at compile time with given arguments
+// SetLegacyMode enables the old stack-based executor as fallback.
+func (e *CompileTimeExecutor) SetLegacyMode(legacy bool) {
+	e.useLegacy = legacy
+}
+
+// Execute runs a function at compile time with given arguments.
 func (e *CompileTimeExecutor) Execute(fn *ir.Function, args []Value) (Value, error) {
 	// Check if function is pure
 	if !e.purity.IsPure(fn) {
@@ -102,27 +105,15 @@ func (e *CompileTimeExecutor) Execute(fn *ir.Function, args []Value) (Value, err
 		}
 	}
 
-	// Create execution context
-	ctx := &ExecutionContext{
-		Stack:     make([]Value, 0, 256),
-		Locals:    make(map[string]Value),
-		Globals:   make(map[string]Value),
-		Memory:    make(map[int64]Value),
-		CallDepth: 0,
-		MaxDepth:  100,
-		InstCount: 0,
-		MaxInsts:  10000, // Prevent infinite loops
+	var result Value
+	var err error
+
+	if e.useLegacy {
+		result, err = e.executeLegacy(fn, args)
+	} else {
+		result, err = e.executeMirvm(fn, args)
 	}
 
-	// Set up parameters
-	for i, param := range fn.Params {
-		if i < len(args) {
-			ctx.Locals[param.Name] = args[i]
-		}
-	}
-
-	// Execute function
-	result, err := e.executeFunction(fn, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -136,223 +127,254 @@ func (e *CompileTimeExecutor) Execute(fn *ir.Function, args []Value) (Value, err
 	return result, nil
 }
 
-// executeFunction executes a single function
-func (e *CompileTimeExecutor) executeFunction(fn *ir.Function, ctx *ExecutionContext) (Value, error) {
-	// Check recursion depth
-	ctx.CallDepth++
-	if ctx.CallDepth > ctx.MaxDepth {
+// executeMirvm runs the function using mirvm.VM — the reliable register-based backend.
+func (e *CompileTimeExecutor) executeMirvm(fn *ir.Function, args []Value) (Value, error) {
+	// Build a temporary module with the target function and any callees
+	tempModule := &ir.Module{
+		Functions: e.module.Functions,
+		Globals:   e.module.Globals,
+	}
+
+	config := mirvm.Config{
+		MemorySize: 4096,
+		StackSize:  1024,
+		MaxSteps:   10000,
+	}
+	vm := mirvm.New(config)
+	if err := vm.LoadModule(tempModule); err != nil {
+		return nil, fmt.Errorf("mirvm load failed: %v", err)
+	}
+
+	// Set up argument registers (MIR convention: params in r1, r2, ...)
+	for i, arg := range args {
+		vm.SetRegister(i+1, arg.ToInt())
+	}
+
+	// Run the specific function
+	retVal, err := vm.RunFunction(fn.Name)
+	if err != nil {
+		return nil, fmt.Errorf("mirvm execution failed for %s: %v", fn.Name, err)
+	}
+
+	// Wrap return value
+	resultType := fn.ReturnType
+	if resultType == nil {
+		resultType = &ir.BasicType{Kind: ir.TypeU8}
+	}
+	return IntValue{Val: retVal, Size: resultType}, nil
+}
+
+// executeLegacy is the old stack-based executor kept as fallback.
+func (e *CompileTimeExecutor) executeLegacy(fn *ir.Function, args []Value) (Value, error) {
+	ctx := &legacyExecutionContext{
+		stack:     make([]Value, 0, 256),
+		locals:    make(map[string]Value),
+		globals:   make(map[string]Value),
+		memory:    make(map[int64]Value),
+		callDepth: 0,
+		maxDepth:  100,
+		instCount: 0,
+		maxInsts:  10000,
+	}
+
+	// Set up parameters
+	for i, param := range fn.Params {
+		if i < len(args) {
+			ctx.locals[param.Name] = args[i]
+		}
+	}
+
+	// Build label map for this function
+	ctx.labelMap = make(map[string]int)
+	for i, inst := range fn.Instructions {
+		if inst.Op == ir.OpLabel && inst.Label != "" {
+			ctx.labelMap[inst.Label] = i
+		}
+	}
+
+	return e.executeFunctionLegacy(fn, ctx)
+}
+
+// legacyExecutionContext holds the state for the old stack-based executor.
+type legacyExecutionContext struct {
+	stack     []Value
+	locals    map[string]Value
+	globals   map[string]Value
+	memory    map[int64]Value
+	returnVal Value
+	pc        int
+	callDepth int
+	maxDepth  int
+	instCount int
+	maxInsts  int
+	labelMap  map[string]int
+}
+
+func (e *CompileTimeExecutor) executeFunctionLegacy(fn *ir.Function, ctx *legacyExecutionContext) (Value, error) {
+	ctx.callDepth++
+	if ctx.callDepth > ctx.maxDepth {
 		return nil, fmt.Errorf("max recursion depth exceeded")
 	}
-	defer func() { ctx.CallDepth-- }()
+	defer func() { ctx.callDepth-- }()
 
-	// Execute instructions
-	for ctx.PC = 0; ctx.PC < len(fn.Instructions); {
-		inst := &fn.Instructions[ctx.PC]
-		
-		// Check instruction limit
-		ctx.InstCount++
-		if ctx.InstCount > ctx.MaxInsts {
+	for ctx.pc = 0; ctx.pc < len(fn.Instructions); {
+		inst := &fn.Instructions[ctx.pc]
+		ctx.instCount++
+		if ctx.instCount > ctx.maxInsts {
 			return nil, fmt.Errorf("max instruction count exceeded (possible infinite loop)")
 		}
-
-		// Execute instruction
-		if err := e.executeInstruction(inst, ctx); err != nil {
-			return nil, fmt.Errorf("at instruction %d: %v", ctx.PC, err)
+		if err := e.executeInstructionLegacy(inst, ctx); err != nil {
+			return nil, fmt.Errorf("at instruction %d: %v", ctx.pc, err)
 		}
-
-		// Check for return
-		if ctx.ReturnVal != nil {
-			return ctx.ReturnVal, nil
+		if ctx.returnVal != nil {
+			return ctx.returnVal, nil
 		}
-
-		ctx.PC++
+		ctx.pc++
 	}
 
-	// No explicit return - return last stack value or nil
-	if len(ctx.Stack) > 0 {
-		return ctx.Stack[len(ctx.Stack)-1], nil
+	if len(ctx.stack) > 0 {
+		return ctx.stack[len(ctx.stack)-1], nil
 	}
 	return nil, nil
 }
 
-// executeInstruction executes a single MIR instruction
-func (e *CompileTimeExecutor) executeInstruction(inst *ir.Instruction, ctx *ExecutionContext) error {
+func (e *CompileTimeExecutor) executeInstructionLegacy(inst *ir.Instruction, ctx *legacyExecutionContext) error {
 	switch inst.Op {
-	// Arithmetic operations
 	case ir.OpAdd:
-		return e.executeBinaryOp(ctx, func(a, b int64) int64 { return a + b })
+		return e.legacyBinaryOp(ctx, func(a, b int64) int64 { return a + b })
 	case ir.OpSub:
-		return e.executeBinaryOp(ctx, func(a, b int64) int64 { return a - b })
+		return e.legacyBinaryOp(ctx, func(a, b int64) int64 { return a - b })
 	case ir.OpMul:
-		return e.executeBinaryOp(ctx, func(a, b int64) int64 { return a * b })
+		return e.legacyBinaryOp(ctx, func(a, b int64) int64 { return a * b })
 	case ir.OpDiv:
-		return e.executeBinaryOp(ctx, func(a, b int64) int64 {
+		return e.legacyBinaryOp(ctx, func(a, b int64) int64 {
 			if b == 0 {
 				panic("division by zero")
 			}
 			return a / b
 		})
 	case ir.OpMod:
-		return e.executeBinaryOp(ctx, func(a, b int64) int64 {
+		return e.legacyBinaryOp(ctx, func(a, b int64) int64 {
 			if b == 0 {
 				panic("modulo by zero")
 			}
 			return a % b
 		})
-
-	// Bitwise operations
 	case ir.OpAnd:
-		return e.executeBinaryOp(ctx, func(a, b int64) int64 { return a & b })
+		return e.legacyBinaryOp(ctx, func(a, b int64) int64 { return a & b })
 	case ir.OpOr:
-		return e.executeBinaryOp(ctx, func(a, b int64) int64 { return a | b })
+		return e.legacyBinaryOp(ctx, func(a, b int64) int64 { return a | b })
 	case ir.OpXor:
-		return e.executeBinaryOp(ctx, func(a, b int64) int64 { return a ^ b })
+		return e.legacyBinaryOp(ctx, func(a, b int64) int64 { return a ^ b })
 	case ir.OpNot:
-		return e.executeUnaryOp(ctx, func(a int64) int64 { return ^a })
+		return e.legacyUnaryOp(ctx, func(a int64) int64 { return ^a })
 	case ir.OpShl:
-		return e.executeBinaryOp(ctx, func(a, b int64) int64 { return a << uint(b) })
+		return e.legacyBinaryOp(ctx, func(a, b int64) int64 { return a << uint(b) })
 	case ir.OpShr:
-		return e.executeBinaryOp(ctx, func(a, b int64) int64 { return a >> uint(b) })
-
-	// Comparison operations
+		return e.legacyBinaryOp(ctx, func(a, b int64) int64 { return a >> uint(b) })
 	case ir.OpEq:
-		return e.executeComparison(ctx, func(a, b int64) bool { return a == b })
+		return e.legacyComparison(ctx, func(a, b int64) bool { return a == b })
 	case ir.OpNe:
-		return e.executeComparison(ctx, func(a, b int64) bool { return a != b })
+		return e.legacyComparison(ctx, func(a, b int64) bool { return a != b })
 	case ir.OpLt:
-		return e.executeComparison(ctx, func(a, b int64) bool { return a < b })
+		return e.legacyComparison(ctx, func(a, b int64) bool { return a < b })
 	case ir.OpLe:
-		return e.executeComparison(ctx, func(a, b int64) bool { return a <= b })
+		return e.legacyComparison(ctx, func(a, b int64) bool { return a <= b })
 	case ir.OpGt:
-		return e.executeComparison(ctx, func(a, b int64) bool { return a > b })
+		return e.legacyComparison(ctx, func(a, b int64) bool { return a > b })
 	case ir.OpGe:
-		return e.executeComparison(ctx, func(a, b int64) bool { return a >= b })
-
-	// Stack operations
+		return e.legacyComparison(ctx, func(a, b int64) bool { return a >= b })
 	case ir.OpLoadConst:
-		val := e.parseConstant(inst)
-		ctx.Stack = append(ctx.Stack, val)
-		return nil
-
+		val := IntValue{Val: inst.Imm, Size: inst.Type}
+		ctx.stack = append(ctx.stack, val)
 	case ir.OpLoadVar:
-		if val, ok := ctx.Locals[inst.Symbol]; ok {
-			ctx.Stack = append(ctx.Stack, val)
+		if val, ok := ctx.locals[inst.Symbol]; ok {
+			ctx.stack = append(ctx.stack, val)
 		} else {
 			return fmt.Errorf("undefined variable: %s", inst.Symbol)
 		}
-		return nil
-
 	case ir.OpStoreVar:
-		if len(ctx.Stack) == 0 {
+		if len(ctx.stack) == 0 {
 			return fmt.Errorf("stack underflow")
 		}
-		val := ctx.Stack[len(ctx.Stack)-1]
-		ctx.Stack = ctx.Stack[:len(ctx.Stack)-1]
-		ctx.Locals[inst.Symbol] = val
-		return nil
-
+		val := ctx.stack[len(ctx.stack)-1]
+		ctx.stack = ctx.stack[:len(ctx.stack)-1]
+		ctx.locals[inst.Symbol] = val
 	case ir.OpLoadParam:
-		if val, ok := ctx.Locals[inst.Symbol]; ok {
-			ctx.Stack = append(ctx.Stack, val)
+		if val, ok := ctx.locals[inst.Symbol]; ok {
+			ctx.stack = append(ctx.stack, val)
 		} else {
 			return fmt.Errorf("undefined parameter: %s", inst.Symbol)
 		}
-		return nil
-
-	// Control flow
 	case ir.OpJump:
-		// Find target label
-		targetPC := e.findLabel(inst.Label)
-		if targetPC < 0 {
+		if targetPC, ok := ctx.labelMap[inst.Label]; ok {
+			ctx.pc = targetPC - 1
+		} else {
 			return fmt.Errorf("undefined label: %s", inst.Label)
 		}
-		ctx.PC = targetPC - 1 // -1 because PC will be incremented
-		return nil
-
 	case ir.OpJumpIf:
-		if len(ctx.Stack) == 0 {
+		if len(ctx.stack) == 0 {
 			return fmt.Errorf("stack underflow")
 		}
-		cond := ctx.Stack[len(ctx.Stack)-1]
-		ctx.Stack = ctx.Stack[:len(ctx.Stack)-1]
-		
+		cond := ctx.stack[len(ctx.stack)-1]
+		ctx.stack = ctx.stack[:len(ctx.stack)-1]
 		if cond.ToBool() {
-			targetPC := e.findLabel(inst.Label)
-			if targetPC < 0 {
+			if targetPC, ok := ctx.labelMap[inst.Label]; ok {
+				ctx.pc = targetPC - 1
+			} else {
 				return fmt.Errorf("undefined label: %s", inst.Label)
 			}
-			ctx.PC = targetPC - 1
 		}
-		return nil
-
+	case ir.OpLabel:
+		// No-op — labels resolved via labelMap
 	case ir.OpReturn:
-		if len(ctx.Stack) > 0 {
-			ctx.ReturnVal = ctx.Stack[len(ctx.Stack)-1]
+		if len(ctx.stack) > 0 {
+			ctx.returnVal = ctx.stack[len(ctx.stack)-1]
 		}
-		return nil
-
-	// Function calls
 	case ir.OpCall:
-		return e.executeCall(inst, ctx)
-
-	// These opcodes don't exist yet, skip for now
-	// TODO: Add compile-time specific opcodes
-
+		return e.legacyCall(inst, ctx)
 	default:
 		return fmt.Errorf("unsupported operation for compile-time execution: %v", inst.Op)
 	}
-}
-
-// executeBinaryOp executes a binary operation
-func (e *CompileTimeExecutor) executeBinaryOp(ctx *ExecutionContext, op func(int64, int64) int64) error {
-	if len(ctx.Stack) < 2 {
-		return fmt.Errorf("stack underflow")
-	}
-	
-	b := ctx.Stack[len(ctx.Stack)-1]
-	a := ctx.Stack[len(ctx.Stack)-2]
-	ctx.Stack = ctx.Stack[:len(ctx.Stack)-2]
-	
-	result := op(a.ToInt(), b.ToInt())
-	ctx.Stack = append(ctx.Stack, IntValue{Val: result, Size: a.Type()})
-	
 	return nil
 }
 
-// executeUnaryOp executes a unary operation
-func (e *CompileTimeExecutor) executeUnaryOp(ctx *ExecutionContext, op func(int64) int64) error {
-	if len(ctx.Stack) < 1 {
+func (e *CompileTimeExecutor) legacyBinaryOp(ctx *legacyExecutionContext, op func(int64, int64) int64) error {
+	if len(ctx.stack) < 2 {
 		return fmt.Errorf("stack underflow")
 	}
-	
-	a := ctx.Stack[len(ctx.Stack)-1]
-	ctx.Stack = ctx.Stack[:len(ctx.Stack)-1]
-	
+	b := ctx.stack[len(ctx.stack)-1]
+	a := ctx.stack[len(ctx.stack)-2]
+	ctx.stack = ctx.stack[:len(ctx.stack)-2]
+	result := op(a.ToInt(), b.ToInt())
+	ctx.stack = append(ctx.stack, IntValue{Val: result, Size: a.Type()})
+	return nil
+}
+
+func (e *CompileTimeExecutor) legacyUnaryOp(ctx *legacyExecutionContext, op func(int64) int64) error {
+	if len(ctx.stack) < 1 {
+		return fmt.Errorf("stack underflow")
+	}
+	a := ctx.stack[len(ctx.stack)-1]
+	ctx.stack = ctx.stack[:len(ctx.stack)-1]
 	result := op(a.ToInt())
-	ctx.Stack = append(ctx.Stack, IntValue{Val: result, Size: a.Type()})
-	
+	ctx.stack = append(ctx.stack, IntValue{Val: result, Size: a.Type()})
 	return nil
 }
 
-// executeComparison executes a comparison operation
-func (e *CompileTimeExecutor) executeComparison(ctx *ExecutionContext, op func(int64, int64) bool) error {
-	if len(ctx.Stack) < 2 {
+func (e *CompileTimeExecutor) legacyComparison(ctx *legacyExecutionContext, op func(int64, int64) bool) error {
+	if len(ctx.stack) < 2 {
 		return fmt.Errorf("stack underflow")
 	}
-	
-	b := ctx.Stack[len(ctx.Stack)-1]
-	a := ctx.Stack[len(ctx.Stack)-2]
-	ctx.Stack = ctx.Stack[:len(ctx.Stack)-2]
-	
+	b := ctx.stack[len(ctx.stack)-1]
+	a := ctx.stack[len(ctx.stack)-2]
+	ctx.stack = ctx.stack[:len(ctx.stack)-2]
 	result := op(a.ToInt(), b.ToInt())
-	ctx.Stack = append(ctx.Stack, BoolValue{Val: result})
-	
+	ctx.stack = append(ctx.stack, BoolValue{Val: result})
 	return nil
 }
 
-// executeCall executes a function call
-func (e *CompileTimeExecutor) executeCall(inst *ir.Instruction, ctx *ExecutionContext) error {
-	// Get function
+func (e *CompileTimeExecutor) legacyCall(inst *ir.Instruction, ctx *legacyExecutionContext) error {
 	var fn *ir.Function
 	for _, f := range e.module.Functions {
 		if f.Name == inst.Symbol {
@@ -361,96 +383,68 @@ func (e *CompileTimeExecutor) executeCall(inst *ir.Instruction, ctx *ExecutionCo
 		}
 	}
 	if fn == nil {
-		// Check for builtin
-		return e.executeBuiltin(inst.Symbol, ctx)
+		return e.legacyBuiltin(inst.Symbol, ctx)
 	}
-
-	// Check purity
 	if !e.purity.IsPure(fn) {
 		return fmt.Errorf("cannot call impure function %s at compile-time", fn.Name)
 	}
-
-	// Pop arguments
 	argCount := len(fn.Params)
-	if len(ctx.Stack) < argCount {
+	if len(ctx.stack) < argCount {
 		return fmt.Errorf("not enough arguments for %s", fn.Name)
 	}
-	
 	args := make([]Value, argCount)
 	for i := argCount - 1; i >= 0; i-- {
-		args[i] = ctx.Stack[len(ctx.Stack)-1]
-		ctx.Stack = ctx.Stack[:len(ctx.Stack)-1]
+		args[i] = ctx.stack[len(ctx.stack)-1]
+		ctx.stack = ctx.stack[:len(ctx.stack)-1]
 	}
-
-	// Execute function
 	result, err := e.Execute(fn, args)
 	if err != nil {
 		return fmt.Errorf("error calling %s: %v", fn.Name, err)
 	}
-
-	// Push result
 	if result != nil {
-		ctx.Stack = append(ctx.Stack, result)
+		ctx.stack = append(ctx.stack, result)
 	}
-	
 	return nil
 }
 
-// executeBuiltin executes a builtin function
-func (e *CompileTimeExecutor) executeBuiltin(name string, ctx *ExecutionContext) error {
+func (e *CompileTimeExecutor) legacyBuiltin(name string, ctx *legacyExecutionContext) error {
 	switch name {
 	case "abs":
-		if len(ctx.Stack) < 1 {
+		if len(ctx.stack) < 1 {
 			return fmt.Errorf("stack underflow")
 		}
-		val := ctx.Stack[len(ctx.Stack)-1].ToInt()
-		ctx.Stack[len(ctx.Stack)-1] = IntValue{Val: int64(math.Abs(float64(val))), Size: &ir.BasicType{Kind: ir.TypeU8}}
+		val := ctx.stack[len(ctx.stack)-1].ToInt()
+		ctx.stack[len(ctx.stack)-1] = IntValue{Val: int64(math.Abs(float64(val))), Size: &ir.BasicType{Kind: ir.TypeU8}}
 		return nil
-		
 	case "min":
-		if len(ctx.Stack) < 2 {
+		if len(ctx.stack) < 2 {
 			return fmt.Errorf("stack underflow")
 		}
-		b := ctx.Stack[len(ctx.Stack)-1].ToInt()
-		a := ctx.Stack[len(ctx.Stack)-2].ToInt()
-		ctx.Stack = ctx.Stack[:len(ctx.Stack)-2]
+		b := ctx.stack[len(ctx.stack)-1].ToInt()
+		a := ctx.stack[len(ctx.stack)-2].ToInt()
+		ctx.stack = ctx.stack[:len(ctx.stack)-2]
 		if a < b {
-			ctx.Stack = append(ctx.Stack, IntValue{Val: a, Size: &ir.BasicType{Kind: ir.TypeU8}})
+			ctx.stack = append(ctx.stack, IntValue{Val: a, Size: &ir.BasicType{Kind: ir.TypeU8}})
 		} else {
-			ctx.Stack = append(ctx.Stack, IntValue{Val: b, Size: &ir.BasicType{Kind: ir.TypeU8}})
+			ctx.stack = append(ctx.stack, IntValue{Val: b, Size: &ir.BasicType{Kind: ir.TypeU8}})
 		}
 		return nil
-		
 	case "max":
-		if len(ctx.Stack) < 2 {
+		if len(ctx.stack) < 2 {
 			return fmt.Errorf("stack underflow")
 		}
-		b := ctx.Stack[len(ctx.Stack)-1].ToInt()
-		a := ctx.Stack[len(ctx.Stack)-2].ToInt()
-		ctx.Stack = ctx.Stack[:len(ctx.Stack)-2]
+		b := ctx.stack[len(ctx.stack)-1].ToInt()
+		a := ctx.stack[len(ctx.stack)-2].ToInt()
+		ctx.stack = ctx.stack[:len(ctx.stack)-2]
 		if a > b {
-			ctx.Stack = append(ctx.Stack, IntValue{Val: a, Size: &ir.BasicType{Kind: ir.TypeU8}})
+			ctx.stack = append(ctx.stack, IntValue{Val: a, Size: &ir.BasicType{Kind: ir.TypeU8}})
 		} else {
-			ctx.Stack = append(ctx.Stack, IntValue{Val: b, Size: &ir.BasicType{Kind: ir.TypeU8}})
+			ctx.stack = append(ctx.stack, IntValue{Val: b, Size: &ir.BasicType{Kind: ir.TypeU8}})
 		}
 		return nil
-		
 	default:
 		return fmt.Errorf("unknown builtin: %s", name)
 	}
-}
-
-// parseConstant parses a constant value from an instruction
-func (e *CompileTimeExecutor) parseConstant(inst *ir.Instruction) Value {
-	// Use immediate value
-	return IntValue{Val: inst.Imm, Size: inst.Type}
-}
-
-// findLabel finds the PC for a label
-func (e *CompileTimeExecutor) findLabel(label string) int {
-	// This would need to be implemented based on how labels are stored
-	// For now, return -1 (not found)
-	return -1
 }
 
 // makeCacheKey creates a cache key for memoization

@@ -152,10 +152,13 @@ func (p *MIRPeepholePass) trackConstants(fn *ir.Function) {
 		}
 		info.count++
 		if inst.Op == ir.OpLoadConst {
+			// Use Imm field (set by semantic analyzer) rather than Value
+			// (which is a VM-specific field that defaults to 0)
+			constVal := int(inst.Imm)
 			if info.count == 1 {
 				info.isConst = true
-				info.value = inst.Value
-			} else if info.isConst && info.value != inst.Value {
+				info.value = constVal
+			} else if info.isConst && info.value != constVal {
 				// Multiple definitions with different values
 				info.isConst = false
 			}
@@ -238,6 +241,7 @@ func (p *MIRPeepholePass) constantFolding(fn *ir.Function) bool {
 		if canFold {
 			// Replace with LoadConst
 			inst.Op = ir.OpLoadConst
+			inst.Imm = int64(result)
 			inst.Value = result
 			inst.Src1 = 0
 			inst.Src2 = 0
@@ -289,6 +293,7 @@ func (p *MIRPeepholePass) algebraicSimplification(fn *ir.Function) bool {
 			// x - x = 0
 			if inst.Src1 == inst.Src2 {
 				inst.Op = ir.OpLoadConst
+				inst.Imm = 0
 				inst.Value = 0
 				inst.Src1 = 0
 				inst.Src2 = 0
@@ -301,6 +306,7 @@ func (p *MIRPeepholePass) algebraicSimplification(fn *ir.Function) bool {
 			// x * 0 = 0
 			if (const1 && val1 == 0) || (const2 && val2 == 0) {
 				inst.Op = ir.OpLoadConst
+				inst.Imm = 0
 				inst.Value = 0
 				inst.Src1 = 0
 				inst.Src2 = 0
@@ -335,6 +341,7 @@ func (p *MIRPeepholePass) algebraicSimplification(fn *ir.Function) bool {
 			// 0 / x = 0 (when x != 0)
 			if const1 && val1 == 0 && (!const2 || val2 != 0) {
 				inst.Op = ir.OpLoadConst
+				inst.Imm = 0
 				inst.Value = 0
 				inst.Src1 = 0
 				inst.Src2 = 0
@@ -347,6 +354,7 @@ func (p *MIRPeepholePass) algebraicSimplification(fn *ir.Function) bool {
 			// x & 0 = 0
 			if (const1 && val1 == 0) || (const2 && val2 == 0) {
 				inst.Op = ir.OpLoadConst
+				inst.Imm = 0
 				inst.Value = 0
 				inst.Src1 = 0
 				inst.Src2 = 0
@@ -404,6 +412,7 @@ func (p *MIRPeepholePass) algebraicSimplification(fn *ir.Function) bool {
 			// x ^ x = 0
 			if inst.Src1 == inst.Src2 {
 				inst.Op = ir.OpLoadConst
+				inst.Imm = 0
 				inst.Value = 0
 				inst.Src1 = 0
 				inst.Src2 = 0
@@ -533,6 +542,12 @@ func (p *MIRPeepholePass) copyPropagation(fn *ir.Function) bool {
 
 	for i := range fn.Instructions {
 		inst := &fn.Instructions[i]
+
+		// Labels are merge points — copies from prior blocks are invalid.
+		// A register modified inside a loop body is not the same as its initial copy.
+		if inst.Op == ir.OpLabel {
+			copies = make(map[ir.Register]ir.Register)
+		}
 
 		// Track Move instructions
 		if inst.Op == ir.OpMove && inst.Src1 != 0 {

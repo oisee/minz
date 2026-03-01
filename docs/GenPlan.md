@@ -42,7 +42,7 @@
 ### Register Allocator
 - [x] Liveness analysis: loop back-edge awareness (extends intervals across DJNZ/JR NZ back-edges)
 - [x] Dead register freeing: registers now freed when live interval ends (was a no-op)
-- [ ] Fix `loadToHL` stale values in multi-expression contexts (physical alloc not updated during codegen)
+- [x] Fix `loadToHL` stale values: dynamic `currentRegister` tracking replaces static allocator trust
 - [ ] Verify no remaining register conflicts in complex loop programs
 - See ADR-0006 (address widening), ADR-0007 (newline handling)
 

@@ -83,6 +83,7 @@ const (
 	OpJumpIfNot
 	OpJumpIfZero
 	OpJumpIfNotZero
+	OpJumpIfFlag    // Jump based on CPU flag condition (CY/NC/Z/NZ) — used for inline filter predicates
 	OpCall
 	OpCallIndirect  // Indirect function call through register
 	OpReturn
@@ -249,6 +250,27 @@ const (
 	RegHintDE                // Prefer DE register pair
 	RegHintBC                // Prefer BC register pair
 )
+
+// FlagCondition represents a CPU flag condition for OpJumpIfFlag
+type FlagCondition uint8
+
+const (
+	FlagCY FlagCondition = iota // Carry set (CF=1)
+	FlagNC                      // Carry not set (CF=0)
+	FlagZ                       // Zero set (ZF=1)
+	FlagNZ                      // Zero not set (ZF=0)
+)
+
+// String returns the string representation of a FlagCondition
+func (f FlagCondition) String() string {
+	switch f {
+	case FlagCY: return "CY"
+	case FlagNC: return "NC"
+	case FlagZ:  return "Z"
+	case FlagNZ: return "NZ"
+	default: return "??"
+	}
+}
 
 // CodegenHints provides optimization hints from MIR analysis to code generator
 // These hints allow the code generator to emit optimal instructions directly
@@ -1306,6 +1328,7 @@ func (op Opcode) String() string {
 	case OpJumpIfNot: return "JUMP_IF_NOT"
 	case OpJumpIfZero: return "JUMP_IF_ZERO"
 	case OpJumpIfNotZero: return "JUMP_IF_NOT_ZERO"
+	case OpJumpIfFlag: return "JUMP_IF_FLAG"
 	case OpCall: return "CALL"
 	case OpCallIndirect: return "CALL_INDIRECT"
 	case OpReturn: return "RETURN"

@@ -176,11 +176,16 @@ func (p *InliningPass) generateInlinedCode(fn *ir.Function, call ir.Instruction,
 		}
 	}
 
-	// Map parameters: connect formal parameter registers to actual argument registers
-	// The inlined function expects params in registers 1, 2, 3, ...
-	// The call instruction has the actual argument registers in call.Args
+	// Map parameters: connect formal parameter registers to actual argument registers.
+	// Use Params[i].Reg to get the actual register assigned to each parameter,
+	// falling back to registers 1, 2, ... for functions that don't set Param.Reg.
 	for i := 0; i < fn.NumParams; i++ {
-		formalReg := ir.Register(i + 1)
+		var formalReg ir.Register
+		if i < len(fn.Params) && fn.Params[i].Reg != 0 {
+			formalReg = fn.Params[i].Reg
+		} else {
+			formalReg = ir.Register(i + 1)
+		}
 		if i < len(call.Args) && call.Args[i] != 0 {
 			// Map the formal parameter to the actual argument register
 			regMap[formalReg] = call.Args[i]
@@ -199,10 +204,38 @@ func (p *InliningPass) generateInlinedCode(fn *ir.Function, call ir.Instruction,
 		}
 	}
 	
+	// Build parameter name → argument register map for OpLoadVar/OpLoadParam substitution.
+	// When inlining, "load x" (where x is a parameter) becomes a move from the actual argument.
+	paramArgMap := make(map[string]ir.Register)
+	for i, param := range fn.Params {
+		if i < len(call.Args) && call.Args[i] != 0 {
+			paramArgMap[param.Name] = call.Args[i]
+		}
+	}
+
 	// Generate inlined instructions
 	for _, inst := range fn.Instructions {
 		newInst := inst
-		
+
+		// Replace parameter loads with moves from the argument register.
+		// This handles the case where a function loads its parameter by name
+		// (OpLoadVar/OpLoadParam with Symbol matching a parameter name).
+		if (inst.Op == ir.OpLoadVar || inst.Op == ir.OpLoadParam) && inst.Symbol != "" {
+			if argReg, ok := paramArgMap[inst.Symbol]; ok {
+				destReg := regMap[inst.Dest]
+				if destReg == 0 {
+					destReg = inst.Dest
+				}
+				result = append(result, ir.Instruction{
+					Op:      ir.OpMove,
+					Dest:    destReg,
+					Src1:    argReg,
+					Comment: fmt.Sprintf("Inlined: load param %s from arg r%d", inst.Symbol, argReg),
+				})
+				continue
+			}
+		}
+
 		// Skip return instructions
 		if inst.Op == ir.OpReturn {
 			// Map return value to call destination

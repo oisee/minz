@@ -197,6 +197,43 @@ func (vm *VM) Run() (int, error) {
 	return 1, fmt.Errorf("execution limit exceeded (%d instructions)", vm.config.MaxSteps)
 }
 
+// SetRegister sets a virtual register value (for pre-loading arguments).
+func (vm *VM) SetRegister(reg int, value int64) {
+	if reg >= 0 && reg < len(vm.registers) {
+		vm.registers[reg] = value
+	}
+}
+
+// GetRegister reads a virtual register value.
+func (vm *VM) GetRegister(reg int) int64 {
+	if reg >= 0 && reg < len(vm.registers) {
+		return vm.registers[reg]
+	}
+	return 0
+}
+
+// RunFunction sets the VM to run a specific function by name and executes it.
+// Returns the value in the return register (r0 or RegRet convention).
+func (vm *VM) RunFunction(name string) (int64, error) {
+	fn, ok := vm.funcIndex[name]
+	if !ok {
+		return 0, fmt.Errorf("function %s not found", name)
+	}
+
+	vm.currentFunc = fn
+	vm.pc = 0
+	vm.instructionCount = 0
+
+	exitCode, err := vm.Run()
+	if err != nil {
+		return 0, err
+	}
+
+	_ = exitCode
+	// Return value convention: register 0 holds return value
+	return vm.registers[0], nil
+}
+
 // executeInstruction executes a single MIR instruction
 func (vm *VM) executeInstruction() (bool, error) {
 	if vm.pc >= len(vm.currentFunc.Instructions) {

@@ -1,21 +1,31 @@
 # MinZ Iterator Implementation Status
 
-*Updated: 2026-03-01 — v0.19.4*
+*Updated: 2026-03-01 — v0.19.4 (post-bugfix)*
 
-## E2E Verified (MZX --console-io)
+## E2E Verified (MZE --console-io)
 
-Full pipeline: MinZ source → parser → semantic → MIR optimizer → Z80 codegen → MZA → MZX emulator.
+Full pipeline: MinZ source → parser → semantic → MIR optimizer → Z80 codegen → MZA → MZE emulator.
+All 6 tests **PASS** with hex-verified output.
 
-| Test | Chain | Output | Hex |
-|------|-------|--------|-----|
-| `iter_foreach.minz` | `arr.forEach(console_log)` | `ABCDE` | `41424344450a` |
-| `iter_take.minz` | `arr.iter().take(3).forEach(console_log)` | `ABC` | `4142430a` |
-| `iter_skip.minz` | `arr.iter().skip(2).forEach(console_log)` | `CDE` | `4344450a` |
-| `iter_map_foreach.minz` | `arr.iter().map(double).forEach(console_log)` | `\x02\x04\x06\x08\x0a` | `0204060a` |
-| `iter_filter_foreach.minz` | `arr.filter(is_big).forEach(console_log)` | `DE` | `4445` |
-| `iter_lambda_map.minz` | `arr.iter().map(\|x\| x+1).forEach(console_log)` | `BCDEF` | `4243444546` |
+| Test | Chain | Expected | Hex | Status |
+|------|-------|----------|-----|--------|
+| `iter_foreach.minz` | `arr.forEach(console_log)` | `ABCDE\n` | `41424344450a` | **PASS** |
+| `iter_take.minz` | `arr.iter().take(3).forEach(console_log)` | `ABC\n` | `4142430a` | **PASS** |
+| `iter_skip.minz` | `arr.iter().skip(2).forEach(console_log)` | `CDE\n` | `4344450a` | **PASS** |
+| `iter_map_foreach.minz` | `arr.iter().map(double).forEach(console_log)` | doubled bytes | `020406080a0a` | **PASS** |
+| `iter_filter_foreach.minz` | `arr.filter(is_big).forEach(console_log)` | `DE\n` | `44450a` | **PASS** |
+| `iter_lambda_map.minz` | `arr.iter().map(\|x\| x+1).forEach(console_log)` | `BCDEF\n` | `42434445460a` | **PASS** |
 
 Run: `bash examples/e2e_iterators/run_e2e.sh`
+
+### Bugs Fixed in This E2E Round (v0.19.4)
+
+| Bug | Root Cause | Fix Location |
+|-----|-----------|--------------|
+| **skip outputs ABC not CDE** | MIR peephole read `inst.Value` (always 0) instead of `inst.Imm` for constants → `r12=2` tracked as `r12=0` → `r8+r12` folded to `r8` | `mir_peephole.go`: `trackConstants()`, `constantFolding()`, `algebraicSimplification()` |
+| **filter outputs bool not element** | `prepareCallArguments()` skipped arg loading for ALL SMC functions, not just TRUE SMC | `z80.go`: changed condition to `targetFunc.UsesTrueSMC` |
+| **lambda outputs garbage** | `generateIteratorLambda` didn't call `AddParamWithRegister` → `NumParams=0` → inliner never mapped params; inliner assumed params at regs 1,2,... but lambda used reg 0 | `iterator.go`: use `AddParamWithRegister`; `inlining.go`: use `fn.Params[i].Reg`, add OpLoadVar/OpLoadParam substitution |
+| **copy propagation across labels** | MIR peephole didn't clear copy map at `OpLabel` merge points | `mir_peephole.go`: clear copies at every `OpLabel` |
 
 ### Compile-Time Diagnostics (v0.19.2+)
 
@@ -101,24 +111,28 @@ let arr: [u8; 5] = [65, 66, 67, 68, 69];
 arr.iter().skip(2).forEach(console_log);    // 'C', 'D', 'E' only
 ```
 
-**Z80 output:**
+**Z80 output** (v0.19.4 — after Imm fix):
 ```asm
     ; ENHANCED DJNZ LOOP: skip=2, take=5, total=3
     LD B, 3                          ; Counter = 5 - 2 = 3
-    ; Pointer to first element after skip
-    ; (HL already points past first 2 elements)
+    ; Skip offset = 2 elements
+    LD DE, 2                         ; Offset constant
+    ADD HL, DE                       ; Advance pointer past skipped elements
+    PUSH HL                          ; Save array pointer
 .loop:
     LD A, (HL)
-    LD C, A
     CALL console_log_u8
-    INC HL
+    POP HL                           ; Restore pointer
+    INC HL                           ; Next element
+    PUSH HL                          ; Save for next iteration
     DEC B
     JR NZ, .loop
+    POP HL                           ; Final cleanup
 ```
 
-**Zero-cost:** `skip(2)` compiles to `LD B, 3` + offset pointer. No "skip loop"
+**Zero-cost:** `skip(2)` compiles to `LD B, 3` + `ADD HL, DE` offset. No "skip loop"
 that reads and discards 2 elements. The compiler knows the skip amount at compile
-time and adjusts the loop bounds.
+time and adjusts both the loop counter and start pointer.
 
 ---
 
@@ -213,7 +227,9 @@ is_big_u8:
 ```
 
 **What works:** Filter logic is correct — `CP 68` + `JR C` correctly tests `x > 67`.
-The `JP Z, .filter_continue` skips non-matching elements.
+The `JP Z, .filter_continue` skips non-matching elements. After the fix to
+`prepareCallArguments()`, the forEach function receives the original element value
+in A (not the boolean filter result).
 
 **What's not ideal:** The predicate returns `HL = 0/1` and we test with `OR A / JP Z`.
 The flag-based ABI (ADR-0008) would eliminate this — `CP 68` already sets the flags
@@ -221,47 +237,45 @@ we need, so the entire `LD HL, 0/1` + `OR A` dance is wasted work.
 
 ---
 
-### 6. `map(|x| x + 1)` — Lambda Inlining (with caveats)
+### 6. `map(|x| x + 1)` — Lambda Inlining
 
 ```minz
 let arr: [u8; 5] = [65, 66, 67, 68, 69];
 arr.iter().map(|x| => u8 { x + 1 }).forEach(console_log);  // 'B','C','D','E','F'
 ```
 
-**Z80 output** (lambda inlined into loop):
+**Z80 output** (v0.19.4 — lambda correctly inlined):
 ```asm
     LD B, 5
 .loop:
-    ; Inlined from iter_lambda_main_0
-    LD HL, ($F000)                   ; Load lambda param (SMC address)
-    LD ($F000), HL                   ; Store back (no-op)
-    LD HL, ($F000)                   ; Load again
-    LD C, L                          ; C = result
+    LD A, (HL)                       ; Load element
+    PUSH HL                          ; Save array pointer
+    ; Inlined: load param x from arg r11
+    ; Lambda body: x + 1
+    LD C, A                          ; Element to C
+    INC C                            ; +1 (optimized from ADD)
+    ; forEach: console_log
+    LD A, C
     CALL console_log_u8
-    ; Advance pointer
-    LD H, D
-    LD L, E                          ; Restore HL from DE
-    INC HL
-    LD D, H
-    LD E, L                          ; Save HL to DE
+    POP HL                           ; Restore pointer
+    INC HL                           ; Next element
     DEC B
     JR NZ, .loop
 ```
 
-**This passes E2E** — the test outputs `BCDEF`. But look at the code quality:
-- The `+ 1` from `|x| x + 1` is **missing** — the lambda compiles as identity
-- It works because `$F000` happens to hold the right values from a prior store
-- `LD HL, ($F000)` / `LD ($F000), HL` / `LD HL, ($F000)` is three redundant loads
+**E2E PASS** — outputs `BCDEF\n` (hex `42434445460a`).
 
-**Root cause:** Bug 1 (arithmetic elision) drops the `ADD A, 1`, and Bug 3 (lambda
-param not stored) means the element isn't explicitly stored to `$F000`. The test
-passes by accident, not by design. This is the priority fix area.
+**What's good:**
+- Lambda body correctly inlined — `INC C` implements `x + 1`
+- Parameter `x` correctly mapped from element register (r11) via `OpMove`
+- PUSH/POP HL preserves array pointer across operations
+- `AddParamWithRegister` + inliner `paramArgMap` fix made this work
 
-**Ideal output** (what it should be):
+**Ideal output** (peephole optimization target):
 ```asm
 .loop:
     LD A, (HL)           ; Load element
-    ADD A, 1             ; Lambda body: x + 1
+    INC A                ; Lambda body: x + 1
     CALL console_log_u8  ; forEach
     INC HL               ; Next element
     DJNZ .loop
@@ -354,14 +368,14 @@ should be 8-bit `ADD A, C`. These are codegen register allocation issues.
 
 | Operation | Parser | Semantic | Z80 Compiles | Z80 Correct | Bug | Notes |
 |-----------|--------|----------|:------------:|:-----------:|:---:|-------|
-| `forEach(fn)` | pass | pass | yes | **HL fixed** | B | PUSH/POP HL, but print reads A not element |
-| `take(n)` | pass | pass | yes | **HL fixed** | B | Counter fold correct, arg handoff wrong |
-| `skip(n)` | pass | pass | yes | **needs fix** | B,E | Counter OK, pointer offset elided |
-| `map(fn)` | pass | pass | yes | **needs fix** | B | TRUE SMC correct, result not passed to next |
-| `filter(fn)` | pass | pass | yes | **needs fix** | B | Predicate correct, print gets bool not elem |
+| `forEach(fn)` | pass | pass | yes | **E2E PASS** | — | PUSH/POP HL preserves pointer across CALL |
+| `take(n)` | pass | pass | yes | **E2E PASS** | — | Counter fold to `LD B, n` — zero overhead |
+| `skip(n)` | pass | pass | yes | **E2E PASS** | — | Pointer offset + counter adjust — zero overhead |
+| `map(fn)` | pass | pass | yes | **E2E PASS** | — | TRUE SMC correct, arg loading fixed |
+| `filter(fn)` | pass | pass | yes | **E2E PASS** | — | Predicate call + element correctly passed to forEach |
+| `map(\|x\| x+N)` | pass | pass | yes | **E2E PASS** | — | Lambda inlined, arithmetic correct |
 | `filter(\|x\| x>N)` | pass | pass | yes | **needs fix** | D | Constant not tracked, OR A instead of CP N |
-| `map(\|x\| x+N)` | pass | pass | yes | **needs fix** | C | Lambda arithmetic dropped |
-| `map(fn).filter(fn)` | pass | pass | yes | **needs fix** | B | Chain wiring correct, print gets bool |
+| `map(fn).filter(fn)` | pass | pass | yes | untested | — | Chain wiring — needs E2E verification |
 | `peek(fn)` | pass | pass | yes | untested | — | Same codegen path as forEach |
 | `inspect(fn)` | pass | pass | yes | untested | — | Same codegen path as forEach |
 | `takeWhile(fn)` | pass | pass | yes | untested | — | Generates early-exit jump |
@@ -378,20 +392,36 @@ should be 8-bit `ADD A, C`. These are codegen register allocation issues.
 ## Exhaustive E2E Bug Analysis (v0.19.4)
 
 All 8 iterator patterns compiled to Z80 assembly and analyzed instruction-by-instruction.
-Test date: 2026-03-01. Compiler built from `master` after PUSH/POP fix.
+Test date: 2026-03-01. Compiler built from `master` after all E2E fixes.
 
 ### What Got Fixed in v0.19.4
 
-**HL pointer preservation (PUSH/POP)** — Applied to BOTH code paths:
+**Round 1: HL pointer preservation (PUSH/POP):**
 - `generateDJNZIteration()` in `iterator.go` (forEach, map, filter, peek, inspect)
 - `generateEnhancedDJNZIteration()` in `iterator_enhanced.go` (take, skip, enumerate, reduce)
+- All 8 patterns now emit `PUSH HL` before operations and `POP HL` after
 
-All 8 patterns now emit `PUSH HL` before operations and `POP HL` after, ensuring
-the array pointer survives function calls. Before this fix, take/skip patterns had
-NO pointer preservation.
-
-**TRUE SMC anchor generation** — `LD A, 0` (opcode 3E, 7T, 2B) instead of
+**Round 1: TRUE SMC anchor generation** — `LD A, 0` (opcode 3E, 7T, 2B) instead of
 `LD A, (nn)` (opcode 3A, 13T, 3B). Correct immediate-mode SMC.
+
+**Round 2: MIR peephole Imm vs Value** (`mir_peephole.go`):
+- `trackConstants()` read `inst.Value` (always 0) instead of `inst.Imm` — all constants tracked as 0
+- `constantFolding()` and `algebraicSimplification()` now set `inst.Imm` when creating OpLoadConst
+- **Impact:** Fixed skip pointer offset (Bug E) and any other constant-dependent optimization
+
+**Round 2: SMC arg loading** (`z80.go`):
+- `prepareCallArguments()` returned early for ALL SMC functions — changed to only skip for `UsesTrueSMC`
+- **Impact:** Fixed filter element passthrough (Bug B)
+
+**Round 2: Lambda inlining** (`iterator.go` + `inlining.go`):
+- `generateIteratorLambda()` now uses `AddParamWithRegister()` (sets NumParams correctly)
+- Inliner uses `fn.Params[i].Reg` for formal parameter registers (not hardcoded 1, 2, ...)
+- Inliner substitutes `OpLoadVar`/`OpLoadParam` matching parameter names with `OpMove` from argument register
+- **Impact:** Fixed lambda map/filter (Bugs C, partially)
+
+**Round 2: Copy propagation at labels** (`mir_peephole.go`):
+- Copy map cleared at every `OpLabel` (merge points invalidate all tracked copies)
+- **Impact:** Fixed forEach producing wrong values after optimization
 
 ### Remaining Bugs by Category
 
@@ -424,79 +454,39 @@ pairs are generated by the virtual-to-physical register mapping.
 
 **Impact:** 12T wasted per iteration across all patterns.
 
-#### Bug B: Register Handoff Between Pipeline Stages (map, filter, chain)
+#### Bug B: Register Handoff Between Pipeline Stages (map, filter, chain) — FIXED
 
-After `CALL fn`, the result sits in L (via HL return convention). Codegen
-captures it to D (`LD D, L`). But the NEXT operation reads from A, not D.
-No `LD A, D` is inserted between pipeline stages.
+**Status: FIXED in v0.19.4**
 
-**Observed in 04_map_fn:**
-```asm
-    CALL double        ; Result in HL.L
-    LD D, L            ; Map result saved to D
-    CALL print_u8      ; Reads from A — but A is garbage!
-```
+**Root cause:** `prepareCallArguments()` in z80.go returned early for ALL SMC
+functions (`IsSMCDefault || IsSMCEnabled`), not loading arguments into registers.
+After a filter predicate call, A had the filter result (0/1) instead of the element.
 
-**Observed in 05_filter_fn:**
-```asm
-    CALL is_big        ; Returns HL = 0/1
-    LD D, L            ; Bool in D
-    LD A, D            ; A = bool
-    OR A               ; Test
-    JP Z, skip         ; OK — filter works
-    CALL print_u8      ; Reads from A = bool (0 or 1), NOT element!
-```
+**Fix:** Changed condition to `targetFunc.UsesTrueSMC` — only TRUE SMC functions
+(which patch parameters directly into instruction immediates) skip standard arg loading.
+Regular SMC functions still need `LD A, <argReg>` before CALL.
 
-**Observed in 08_chain:**
-```asm
-    CALL double        ; HL.L = doubled value
-    LD D, L            ; D = doubled
-    LD A, D            ; A = doubled (correct for filter input!)
-    LD (is_big_SMC), A ; Patches is_big with doubled value (correct!)
-    CALL is_big        ; HL.L = bool
-    LD E, L            ; E = bool
-    LD A, E            ; A = bool
-    OR A               ; Test
-    JP Z, skip
-    CALL print_u8      ; A = bool (WRONG — should be doubled value in D)
-```
+**Verified:** `iter_filter_foreach.minz` now outputs `DE\n` (hex `44450a`) correctly.
 
-**Root cause:** The semantic layer correctly updates `currentReg` after each
-operation, but the Z80 codegen doesn't insert `LD A, <physReg>` before the
-next CALL. The calling convention requires the first argument in A, but the
-codegen doesn't bridge the gap between the result register and A.
+#### Bug C: Lambda Arithmetic Elision (lambda map) — FIXED
 
-**Fix:** In the Z80 codegen's CALL handling, emit `LD A, <argReg>` when the
-argument isn't already in A. This is a register allocator issue — the arg
-register mapping doesn't consider the calling convention.
+**Status: FIXED in v0.19.4**
 
-**Impact:** Incorrect output for map+forEach, filter+forEach, and multi-op chains.
+**Root cause (multi-part):**
+1. `generateIteratorLambda()` appended to `Params` directly without calling
+   `AddParamWithRegister()`, leaving `NumParams = 0`. The inliner's parameter
+   mapping loop never executed.
+2. The inliner assumed parameters at registers 1, 2, ... but lambda functions
+   used register 0.
+3. Inlined `OpLoadVar x` was not converted to `OpMove` from the argument register.
 
-#### Bug C: Lambda Arithmetic Elision (lambda map)
+**Fix (3 files):**
+- `iterator.go`: Use `AddParamWithRegister()` so `NumParams` is set correctly
+- `inlining.go`: Use `fn.Params[i].Reg` for formal parameter register instead of `ir.Register(i+1)`
+- `inlining.go`: Build `paramArgMap` (name→argReg) and substitute `OpLoadVar`/`OpLoadParam`
+  with `OpMove` from actual argument register during inlining
 
-Lambda `|x: u8| => u8 { x + 1 }` compiles as identity — the `+ 1` is dropped:
-
-```asm
-; Generated for |x| x + 1:
-    LD HL, ($F000)        ; Load "x" from SMC address
-    LD ($F000), HL        ; No-op store back
-    LD HL, ($F000)        ; Load again — ADD A, 1 is MISSING
-```
-
-**Root cause:** The register allocator sees `OpAdd(dest=r2, src1=r0, src2=r1)`
-where r0 is mapped to HL. It emits `; Register 2 already in HL` and **skips the
-entire ADD instruction**. The allocator's "already in register" optimization
-doesn't distinguish between "value is loaded" and "value needs computation."
-
-**Additionally:** The element is never loaded from the array (`LD A, (HL)` missing
-in lambda path) and is never stored to the SMC address ($F000) that the lambda
-reads from.
-
-**Fix:** Two-part:
-1. Don't elide arithmetic ops even if dest register is "already" mapped
-2. Ensure element is stored to the lambda's parameter address before the lambda body
-
-**Impact:** All lambda map operations produce identity instead of transformation.
+**Verified:** `iter_lambda_map.minz` now outputs `BCDEF\n` (hex `42434445460a`) correctly.
 
 #### Bug D: Inline Filter Constant Not Tracked (filter lambda)
 
@@ -526,27 +516,22 @@ pass the filter. Filter is effectively a no-op.
 
 **Impact:** All inline filter lambdas pass all elements through.
 
-#### Bug E: Skip Pointer Offset Elided (skip pattern)
+#### Bug E: Skip Pointer Offset Elided (skip pattern) — FIXED
 
-`skip(2)` should advance the array pointer by 2 before the loop. The IR emits
-`OpAdd ptrReg = sourceReg + offsetReg(2)`. But the register allocator sees that
-ptrReg maps to the same physical register (HL) as sourceReg and skips the ADD:
+**Status: FIXED in v0.19.4**
 
-```asm
-    ; Pointer to first element after skip
-    ; Register 10 already in HL    ← ADD elided! Pointer NOT advanced!
-```
+**Root cause:** MIR peephole optimizer's `trackConstants()` read `inst.Value` (always 0)
+instead of `inst.Imm` (the actual constant value from the semantic layer). The skip
+offset `r12 = 2` was tracked as `r12 = 0`, so `algebraicSimplification` transformed
+`r10 = r8 + r12` into `r10 = r8 + 0 = r8` (OpMove) — the pointer was never advanced.
 
-The counter is correct (`LD B, 3` for 5-2=3 elements), but the pointer starts at
-element 0 instead of element 2. So `skip(2).forEach(print_u8)` on `[1,2,3,4,5]`
-prints `[1,2,3]` instead of `[3,4,5]`.
+**Fix:** (`mir_peephole.go`):
+- `trackConstants()`: Read `int(inst.Imm)` instead of `inst.Value`
+- `constantFolding()`: Set both `inst.Imm` and `inst.Value` when creating OpLoadConst
+- `algebraicSimplification()`: Set `inst.Imm` in all 5 identity-to-constant cases (x-x, x*0, 0/x, x&0, x^x)
 
-**Root cause:** Same as Bug C — the register allocator's "already in register"
-optimization doesn't consider that the value needs to change via arithmetic.
-
-**Fix:** Same fix as Bug C (don't elide arithmetic ops).
-
-**Impact:** `skip(n)` doesn't actually skip — iterates from beginning.
+**Verified:** `iter_skip.minz` now outputs `CDE\n` (hex `4344450a`) correctly.
+Z80 assembly shows `ADD HL, DE` with DE=2 to advance pointer past skipped elements.
 
 #### Bug F: Unused Result Saves (all patterns with CALL)
 
@@ -582,18 +567,21 @@ and emit `PUSH BC`/`PUSH DE` directly. Only use HL routing as fallback.
 | ID | Bug | Affects | Status | Effort | Priority |
 |---|---|---|---|---|---|
 | A | Counter waste (no DJNZ) | All 8 patterns | Peephole target | Small | P3 |
-| B | Register handoff (A not loaded) | map+forEach, filter+forEach, chains | **Open** | Medium | **P1** |
-| C | Lambda arithmetic elision | Lambda map (`\|x\| x+1`) | **Open** | Medium | **P1** |
+| B | Register handoff (A not loaded) | map+forEach, filter+forEach, chains | **FIXED** (v0.19.4) | Medium | — |
+| C | Lambda arithmetic elision | Lambda map (`\|x\| x+1`) | **FIXED** (v0.19.4) | Medium | — |
 | D | Filter constant not tracked | Inline filter lambda (`\|x\| x>3`) | **Open** | Small | **P1** |
-| E | Skip pointer offset elided | `skip(n)` | **Open** (same root as C) | Small | **P2** |
+| E | Skip pointer offset elided | `skip(n)` | **FIXED** (v0.19.4) | Small | — |
 | F | Unused result saves | All patterns with CALL | Peephole target | Small | P3 |
 | G | OpPush wrong register | enumerate, reduce | **Open** | Small | P2 |
 
-**Root cause clustering:**
-- Bugs C + E share the same root cause: register allocator's "already in register"
-  optimization elides arithmetic ops. Fixing this one issue resolves both.
-- Bug B is a calling convention issue — argument registers not set before CALL.
+**What got fixed in v0.19.4 E2E round:**
+- **Bug B** (filter arg loading): `prepareCallArguments()` now only skips arg loading for TRUE SMC functions (`UsesTrueSMC`), not all SMC functions. Regular SMC functions correctly load arguments via registers.
+- **Bug C** (lambda inlining): `generateIteratorLambda()` now uses `AddParamWithRegister()` so `NumParams` is set correctly. Inliner uses `fn.Params[i].Reg` for formal parameter register, and substitutes `OpLoadVar`/`OpLoadParam` with `OpMove` from actual argument register.
+- **Bug E** (skip pointer offset): MIR peephole `trackConstants()` now reads `inst.Imm` (correct) instead of `inst.Value` (always 0). Constant folding and algebraic simplification also set `inst.Imm` when creating `OpLoadConst`.
+
+**Remaining root cause clustering:**
 - Bug D is a constant tracking issue — value lost between OpLoadConst and OpJumpIfFlag.
+- Bug G is a register routing issue — OpPush always goes through HL.
 
 ---
 
@@ -640,7 +628,7 @@ skip:
 | `pkg/codegen/z80.go` | Z80 register allocation + assembly emission |
 | `pkg/optimizer/fusion.go` | Fusion framework (skeleton, not wired in) |
 
-### Test Suite (63 unit + 18 corpus + 8 E2E analysis)
+### Test Suite (63 unit + 18 corpus + 6 E2E verified)
 
 | Package | Tests | What |
 |---------|-------|------|
@@ -648,9 +636,9 @@ skip:
 | `pkg/semantic/` | 17 | DJNZ eligibility, filter/map/lambda IR, take/skip/enumerate/reduce |
 | `pkg/codegen/` | 5 | Z80 assembly patterns (use `-vet=off`) |
 | `pkg/mirvm/` | 8 | DJNZ execution at MIR level |
+| `pkg/optimizer/` | 12 | Peephole, DCE, superoptimizer, normalization |
 | `tests/iterator_corpus/` | 18 | Full pipeline regression — all 18 compile to Z80 |
-| `examples/e2e_iterators/` | 6 | MZX --console-io verified |
-| `/tmp/iter_e2e_v2/` | 8 | Deep Z80 output analysis (v0.19.4) |
+| `examples/e2e_iterators/` | 6 | Full pipeline E2E: compile → assemble → emulate → verify hex output |
 
 ### Performance (measured and projected)
 
@@ -679,21 +667,19 @@ skip:
 - Detects `hasCallOps` by scanning operation types before emitting
 - **Result:** HL correctly preserved in all 8 E2E patterns
 
-### Phase 3: Register Handoff Fix (Bug B) — NEXT
-- After `CALL fn`, result in L. Next CALL reads from A. Insert `LD A, <resultReg>`.
-- Fix in Z80 codegen: before emitting CALL, check if arg register matches A.
-- If not: emit `LD A, <phys_reg>` where phys_reg holds the argument.
-- Unblocks: correct output for map+forEach, filter+forEach, chains.
-- **Effort:** Medium
+### Phase 3: Register Handoff Fix (Bug B) — DONE (v0.19.4)
+- Fixed `prepareCallArguments()` to only skip arg loading for TRUE SMC (`UsesTrueSMC`)
+- Regular SMC functions now correctly load arguments via `LD A, <argReg>`
+- **Result:** filter+forEach, map+forEach chains output correct values
 
-### Phase 4: Register Allocator Arithmetic Elision Fix (Bugs C, E)
-- The "already in register" optimization skips arithmetic ops when dest == src phys reg
-- Need to distinguish "value loaded" from "value needs computation"
-- Fix: only elide `OpMove`/`OpLoad` when dest==src, never elide arithmetic ops
-- Unblocks: lambda map (`|x| x+1`), skip pointer offset
-- **Effort:** Medium (register allocator change — risk of regression)
+### Phase 4: MIR Peephole Imm Fix + Lambda Inlining (Bugs C, E) — DONE (v0.19.4)
+- MIR peephole: `trackConstants()` now reads `inst.Imm`, not `inst.Value`
+- MIR peephole: `constantFolding()` and `algebraicSimplification()` set `inst.Imm`
+- Lambda: `generateIteratorLambda()` uses `AddParamWithRegister()`
+- Inliner: uses `fn.Params[i].Reg`, substitutes OpLoadVar/OpLoadParam with OpMove
+- **Result:** skip pointer offset correct, lambda map arithmetic works
 
-### Phase 5: Inline Filter Constant Tracking (Bug D)
+### Phase 5: Inline Filter Constant Tracking (Bug D) — NEXT
 - `OpJumpIfFlag` needs the constant from `Src2`, but `constantValues` map loses it
 - Option A: embed constant directly in `OpJumpIfFlag.Imm2` (new field)
 - Option B: preserve constants across the short sequence (OpLoadConst → OpJumpIfFlag)

@@ -231,3 +231,134 @@ func TestDJNZStoreBackPersistence(t *testing.T) {
 		t.Error("expected LD A, B to save counter value")
 	}
 }
+
+// --- Inline Filter Codegen Tests (ADR-0008) ---
+
+// TestInlineFilterCodegen verifies OpJumpIfFlag generates CP N + JR cond, label
+func TestInlineFilterCodegen(t *testing.T) {
+	fn := ir.NewFunction("main", &ir.BasicType{Kind: ir.TypeVoid})
+
+	counter := fn.AllocReg()
+	element := fn.AllocReg()
+	constReg := fn.AllocReg()
+
+	// Load counter = 5
+	fn.Instructions = append(fn.Instructions, ir.Instruction{
+		Op: ir.OpLoadConst, Dest: counter, Imm: 5,
+		Type: &ir.BasicType{Kind: ir.TypeU8}, Hint: ir.RegHintB,
+	})
+
+	fn.EmitLabel("loop")
+
+	// Load element (simulate)
+	fn.Instructions = append(fn.Instructions, ir.Instruction{
+		Op: ir.OpLoadConst, Dest: element, Imm: 42,
+		Type: &ir.BasicType{Kind: ir.TypeU8},
+	})
+
+	// Load CP constant (x > 67 → CP 68)
+	fn.Instructions = append(fn.Instructions, ir.Instruction{
+		Op: ir.OpLoadConst, Dest: constReg, Imm: 68,
+		Type: &ir.BasicType{Kind: ir.TypeU8},
+	})
+
+	// OpJumpIfFlag: CP 68 + JR C, filter_continue
+	fn.Instructions = append(fn.Instructions, ir.Instruction{
+		Op:    ir.OpJumpIfFlag,
+		Src1:  element,
+		Src2:  constReg,
+		Imm:   int64(ir.FlagCY),
+		Label: "filter_continue",
+		Comment: "Inline filter: CP 68 + JR CY",
+	})
+
+	// Filtered body: call print
+	fn.Instructions = append(fn.Instructions, ir.Instruction{
+		Op: ir.OpCall, Symbol: "print_u8", Args: []ir.Register{element},
+	})
+
+	fn.EmitLabel("filter_continue")
+
+	fn.Instructions = append(fn.Instructions, ir.Instruction{
+		Op: ir.OpDJNZ, Src1: counter, Label: "loop", Hint: ir.RegHintB,
+	})
+	fn.Instructions = append(fn.Instructions, ir.Instruction{Op: ir.OpReturn})
+
+	module := &ir.Module{Functions: []*ir.Function{fn}}
+	asm := generateZ80(t, module)
+
+	// Should contain CP 68
+	if !strings.Contains(asm, "CP 68") {
+		t.Errorf("expected 'CP 68' in output, got:\n%s", asm)
+	}
+
+	// Should contain JR C, (jump on carry)
+	if !strings.Contains(asm, "JR C,") {
+		t.Errorf("expected 'JR C,' in output, got:\n%s", asm)
+	}
+
+	// Should NOT contain OR A (that's the old boolean-testing path)
+	// The OR A before CP would destroy the flags.
+	// Count OR A occurrences — there should be none between the element load and the CP
+	lines := strings.Split(asm, "\n")
+	for i, line := range lines {
+		if strings.Contains(line, "CP 68") {
+			// Check the line immediately before is NOT "OR A"
+			if i > 0 && strings.TrimSpace(lines[i-1]) == "OR A" {
+				t.Error("inline filter should NOT have OR A before CP")
+			}
+			break
+		}
+	}
+}
+
+// TestInlineFilterAllConditions tests all flag conditions generate correctly
+func TestInlineFilterAllConditions(t *testing.T) {
+	tests := []struct {
+		name     string
+		flag     ir.FlagCondition
+		expected string
+	}{
+		{"FlagCY", ir.FlagCY, "JR C,"},
+		{"FlagNC", ir.FlagNC, "JR NC,"},
+		{"FlagZ", ir.FlagZ, "JR Z,"},
+		{"FlagNZ", ir.FlagNZ, "JR NZ,"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			fn := ir.NewFunction("main", &ir.BasicType{Kind: ir.TypeVoid})
+
+			element := fn.AllocReg()
+			constReg := fn.AllocReg()
+
+			fn.Instructions = append(fn.Instructions, ir.Instruction{
+				Op: ir.OpLoadConst, Dest: element, Imm: 42,
+				Type: &ir.BasicType{Kind: ir.TypeU8},
+			})
+			fn.Instructions = append(fn.Instructions, ir.Instruction{
+				Op: ir.OpLoadConst, Dest: constReg, Imm: 10,
+				Type: &ir.BasicType{Kind: ir.TypeU8},
+			})
+			fn.Instructions = append(fn.Instructions, ir.Instruction{
+				Op:    ir.OpJumpIfFlag,
+				Src1:  element,
+				Src2:  constReg,
+				Imm:   int64(tc.flag),
+				Label: "skip",
+			})
+			fn.EmitLabel("skip")
+			fn.Instructions = append(fn.Instructions, ir.Instruction{Op: ir.OpReturn})
+
+			module := &ir.Module{Functions: []*ir.Function{fn}}
+			asm := generateZ80(t, module)
+
+			if !strings.Contains(asm, tc.expected) {
+				t.Errorf("expected %q in output, got:\n%s", tc.expected, asm)
+			}
+			if !strings.Contains(asm, "CP 10") {
+				t.Errorf("expected 'CP 10' in output, got:\n%s", asm)
+			}
+		})
+	}
+}

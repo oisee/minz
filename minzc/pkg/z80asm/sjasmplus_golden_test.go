@@ -793,3 +793,67 @@ func TestLiveSjasmplus_MigratedInstructions(t *testing.T) {
 		})
 	}
 }
+
+// TestLiveSjasmplus_BracketSyntax verifies that MZA bracket indirection syntax
+// [addr] produces identical bytes to sjasmplus with --syntax=abf.
+// Bracket syntax: [HL] == (HL), [$8000] == ($8000), [IX+5] == (IX+5)
+func TestLiveSjasmplus_BracketSyntax(t *testing.T) {
+	if _, err := exec.LookPath("sjasmplus"); err != nil {
+		t.Skip("sjasmplus not found in PATH")
+	}
+
+	tests := []struct {
+		name       string
+		bracket    string // MZA bracket syntax
+		paren      string // Equivalent parenthesis syntax (for sjasmplus reference)
+	}{
+		// Register indirect
+		{"LD A,[HL]", "LD A,[HL]", "LD A,(HL)"},
+		{"LD [HL],B", "LD [HL],B", "LD (HL),B"},
+		{"LD A,[BC]", "LD A,[BC]", "LD A,(BC)"},
+		{"LD A,[DE]", "LD A,[DE]", "LD A,(DE)"},
+		{"LD [BC],A", "LD [BC],A", "LD (BC),A"},
+		{"LD [DE],A", "LD [DE],A", "LD (DE),A"},
+
+		// Absolute addressing
+		{"LD A,[$8000]", "LD A,[$8000]", "LD A,($8000)"},
+		{"LD [$8000],A", "LD [$8000],A", "LD ($8000),A"},
+		{"LD HL,[$4000]", "LD HL,[$4000]", "LD HL,($4000)"},
+		{"LD [$4000],HL", "LD [$4000],HL", "LD ($4000),HL"},
+
+		// IX/IY indexed
+		{"LD [IX+5],A", "LD [IX+5],A", "LD (IX+5),A"},
+		{"LD A,[IX+5]", "LD A,[IX+5]", "LD A,(IX+5)"},
+		{"LD [IY+2],42", "LD [IY+2],42", "LD (IY+2),42"},
+		{"LD A,[IY+0]", "LD A,[IY+0]", "LD A,(IY+0)"},
+
+		// Bit ops with bracket syntax
+		{"BIT 3,[HL]", "BIT 3,[HL]", "BIT 3,(HL)"},
+		{"SET 5,[HL]", "SET 5,[HL]", "SET 5,(HL)"},
+		{"RES 0,[HL]", "RES 0,[HL]", "RES 0,(HL)"},
+		{"BIT 3,[IX+5]", "BIT 3,[IX+5]", "BIT 3,(IX+5)"},
+		{"BIT 3,[IY+2]", "BIT 3,[IY+2]", "BIT 3,(IY+2)"},
+
+		// Stack operations (SP indirect)
+		{"LD SP,[$1234]", "LD SP,[$1234]", "LD SP,($1234)"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Assemble bracket syntax with MZA
+			asm := NewAssembler()
+			mzaResult, mzaErr := asm.AssembleString(tt.bracket)
+			if mzaErr != nil {
+				t.Fatalf("MZA failed on bracket syntax %q: %v", tt.bracket, mzaErr)
+			}
+
+			// Assemble paren syntax with sjasmplus as reference
+			sjBin := assembleSjasmplus(t, tt.paren)
+
+			if !bytes.Equal(mzaResult.Binary, sjBin) {
+				t.Errorf("Bracket syntax mismatch:\n  MZA bracket %q: %X\n  sjasmplus paren %q: %X",
+					tt.bracket, mzaResult.Binary, tt.paren, sjBin)
+			}
+		})
+	}
+}

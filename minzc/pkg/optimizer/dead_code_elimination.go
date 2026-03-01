@@ -129,23 +129,26 @@ func (p *DeadCodeEliminationPass) optimizeFunction(fn *ir.Function) bool {
 	return changed
 }
 
-// markUsedRegisters marks all registers that are used
+// markUsedRegisters marks all registers that are used.
+// Uses two-phase analysis: first marks registers consumed by side-effecting
+// instructions, then iteratively propagates through data-flow dependencies.
 func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 	p.used = make(map[ir.Register]bool)
-	
+
 	// Mark function parameters as used
 	for i := 0; i < fn.NumParams; i++ {
 		p.used[ir.Register(i+1)] = true
 	}
-	
-	// Mark registers used in instructions
+
+	// Phase 1: Mark registers directly consumed by side-effecting instructions
+	// (returns, stores, calls, prints, jumps, syscalls, port I/O, etc.)
 	for _, inst := range fn.Instructions {
 		switch inst.Op {
 		case ir.OpReturn:
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
 			}
-			
+
 		case ir.OpStoreVar, ir.OpStoreField:
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
@@ -153,27 +156,12 @@ func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 			if inst.Src2 != 0 {
 				p.used[inst.Src2] = true
 			}
-			
-		case ir.OpAdd, ir.OpSub, ir.OpMul, ir.OpDiv, ir.OpMod,
-			 ir.OpAnd, ir.OpOr, ir.OpXor, ir.OpShl, ir.OpShr,
-			 ir.OpEq, ir.OpNe, ir.OpLt, ir.OpGt, ir.OpLe, ir.OpGe:
-			if inst.Src1 != 0 {
-				p.used[inst.Src1] = true
-			}
-			if inst.Src2 != 0 {
-				p.used[inst.Src2] = true
-			}
-			
-		case ir.OpNeg, ir.OpNot, ir.OpLoadVar, ir.OpLoadField:
-			if inst.Src1 != 0 {
-				p.used[inst.Src1] = true
-			}
-			
+
 		case ir.OpJumpIfNot:
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
 			}
-			
+
 		case ir.OpCall:
 			// Mark all argument registers as used
 			if inst.Src1 != 0 {
@@ -182,40 +170,34 @@ func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 			if inst.Src2 != 0 {
 				p.used[inst.Src2] = true
 			}
-			// Mark all registers in Args slice as used
 			for _, arg := range inst.Args {
 				if arg != 0 {
 					p.used[arg] = true
 				}
 			}
+			// Call results are used if dest is consumed (handled in phase 2)
 
 		case ir.OpPrintU8, ir.OpPrintU16, ir.OpPrintI8, ir.OpPrintI16,
 			 ir.OpPrintBool, ir.OpPrintString, ir.OpPrintChar:
-			// Print instructions use their source register
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
 			}
 
 		case ir.OpSyscall:
-			// Syscall uses Src1 and Src2 as arguments
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
 			}
 			if inst.Src2 != 0 {
 				p.used[inst.Src2] = true
 			}
-			// Syscall 10 (set_pixel) uses r0 for color - mark as used
-			// Convention: syscalls may read r0 as an implicit argument
 			p.used[ir.Register(0)] = true
 
 		case ir.OpMove:
-			// Move uses Src1
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
 			}
 
 		case ir.OpPortIn, ir.OpPortOut:
-			// Port operations use their registers
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
 			}
@@ -224,32 +206,41 @@ func (p *DeadCodeEliminationPass) markUsedRegisters(fn *ir.Function) {
 			}
 
 		case ir.OpDJNZ:
-			// DJNZ uses Src1 as the counter register
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
 			}
 
 		case ir.OpInc:
-			// INC uses and modifies Src1
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
 			}
 
 		case ir.OpLoad:
-			// Load from pointer uses Src1
 			if inst.Src1 != 0 {
 				p.used[inst.Src1] = true
 			}
 
+		// Pure computation ops (OpAdd, OpSub, OpMul, etc.) are NOT marked here.
+		// Their sources are only used if their dest is consumed (phase 2).
 		}
-		
-		// If this instruction's result is used, mark its operands as used too
-		if inst.Dest != 0 && p.used[inst.Dest] {
-			if inst.Src1 != 0 {
-				p.used[inst.Src1] = true
-			}
-			if inst.Src2 != 0 {
-				p.used[inst.Src2] = true
+	}
+
+	// Phase 2: Iterative data-flow propagation.
+	// If an instruction's dest is used, its sources become used too.
+	// Iterate until stable (removing OpAdd makes its LoadConst sources dead).
+	changed := true
+	for changed {
+		changed = false
+		for _, inst := range fn.Instructions {
+			if inst.Dest != 0 && p.used[inst.Dest] {
+				if inst.Src1 != 0 && !p.used[inst.Src1] {
+					p.used[inst.Src1] = true
+					changed = true
+				}
+				if inst.Src2 != 0 && !p.used[inst.Src2] {
+					p.used[inst.Src2] = true
+					changed = true
+				}
 			}
 		}
 	}

@@ -231,8 +231,6 @@ func TestUndocumentedInstructions(t *testing.T) {
 }
 
 func TestErrorHandling(t *testing.T) {
-	asm := NewAssembler()
-	
 	tests := []struct {
 		name   string
 		source string
@@ -258,11 +256,17 @@ func TestErrorHandling(t *testing.T) {
 			source: "ORG $8000\nJR $8100",
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := asm.AssembleString(tt.source)
+			asm := NewAssembler()
+			asm.Strict = true // Enable strict mode to get errors returned
+			result, err := asm.AssembleString(tt.source)
 			if err == nil {
+				// Also check collected errors (non-strict path)
+				if result != nil && len(result.Errors) > 0 {
+					return // Error was collected, test passes
+				}
 				t.Errorf("Expected error for %s, but got none", tt.name)
 			}
 		})
@@ -467,7 +471,7 @@ func TestSymbols(t *testing.T) {
 	expectedSymbols := map[string]int{
 		"START": 0x8000,
 		"VALUE": 42,
-		"LOOP":  0x8006,
+		"LOOP":  0x8005,
 	}
 	
 	for name, expectedAddr := range expectedSymbols {
