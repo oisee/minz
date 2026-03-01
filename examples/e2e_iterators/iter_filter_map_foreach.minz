@@ -1,0 +1,30 @@
+// E2E Test: multi-stage chain — filter + map + forEach
+// Input: [65, 66, 67, 68, 69] (A,B,C,D,E)
+// Chain: filter(|x| x >= 67) -> map(|x| x + 1) -> forEach(console_log)
+// filter(>= 67) = [67, 68, 69] (C,D,E)
+// map(+1) = [68, 69, 70] (D,E,F)
+// Expected output: 44 45 46 0a (hex: D, E, F, newline)
+
+fun add_one(x: u8) -> u8 { return x + 1; }
+
+fun console_log(c: u8) -> void {
+    asm {
+        OUT ($23), A
+    }
+}
+
+fun main() -> void {
+    asm {
+        LD HL, _data
+        LD ($F002), HL
+    }
+    let arr: [u8; 5] = [65, 66, 67, 68, 69];
+    arr.filter(|x| x >= 67).map(add_one).forEach(console_log);
+    console_log(10);
+    asm {
+        DI
+        HALT
+    _data:
+        DB 65, 66, 67, 68, 69
+    }
+}

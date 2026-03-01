@@ -50,6 +50,9 @@ run_test "iter_map_foreach"     "020406080a0a"       # double([1..5]) + \n
 run_test "iter_filter_foreach"  "44450a"             # DE\n (filter >67 from ABCDE)
 run_test "iter_inline_filter"   "44450a"             # DE\n (inline lambda filter >67)
 run_test "iter_lambda_map"      "42434445460a"       # BCDEF\n (map +1 on ABCDE)
+run_test "iter_map_filter_foreach" "06080a0a"        # 6,8,10,\n (map double + filter >5)
+run_test "iter_filter_map_foreach" "4445460a"        # DEF\n (filter >=67 + map +1)
+run_test "iter_take_map_foreach"   "4243440a"        # BCD\n (take 3 + map +1)
 
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="

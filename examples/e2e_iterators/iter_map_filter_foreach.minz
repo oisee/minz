@@ -1,0 +1,30 @@
+// E2E Test: multi-stage chain — map + filter + forEach
+// Input: [1, 2, 3, 4, 5]
+// Chain: map(double) -> filter(|x| x > 5) -> forEach(console_log)
+// double([1..5]) = [2, 4, 6, 8, 10]
+// filter(> 5) = [6, 8, 10]
+// Expected output: 06 08 0a 0a (hex: 6, 8, 10, newline)
+
+fun double(x: u8) -> u8 { return x * 2; }
+
+fun console_log(c: u8) -> void {
+    asm {
+        OUT ($23), A
+    }
+}
+
+fun main() -> void {
+    asm {
+        LD HL, _data
+        LD ($F002), HL
+    }
+    let arr: [u8; 5] = [1, 2, 3, 4, 5];
+    arr.map(double).filter(|x| x > 5).forEach(console_log);
+    console_log(10);
+    asm {
+        DI
+        HALT
+    _data:
+        DB 1, 2, 3, 4, 5
+    }
+}
