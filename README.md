@@ -2,6 +2,7 @@
 
 ### Hot off the press
 
+- **[VSCode Tooling Sprint](reports/2026-03-02-019-VSCode_Tooling_Sprint_Report.md)** — LSP server, full syntax highlighting, SLD source maps, DeZog debugging, 9 compile commands ([guide](docs/VSCode_Tooling_Guide.md))
 - **[Register Allocator Overhaul](reports/2026-03-02-018-Register_Allocator_Overhaul_Results.md)** — 7.8x iterator speedup (207T → 26T per element), full MinZ→asm pipeline walkthrough
 - **[Iterator Reality Check](reports/2026-03-02-017-Iterator_Reality_Check.md)** — honest status: 11/11 E2E correct, before/after the overhaul
 - **[Iterator Status](docs/Iterator_Implementation_Status.md)** — 11/11 E2E, 26T/element post-overhaul, operation matrix, known bugs
@@ -364,6 +365,7 @@ Source Code                          Running Program
 | **mzd** | Z80 disassembler (IDA-like analysis, xrefs, ROM tables) | `mzd program.bin --org 0x8000` |
 | **mzrun** | Remote runner (DZRP protocol) | `mzrun program.minz --reset` |
 | **mzr** | Interactive REPL | `mzr` |
+| **mzlsp** | LSP server (diagnostics, hover, goto-def, completion) | auto-started by VSCode extension |
 
 ### MZX — ZX Spectrum Emulator
 
@@ -531,7 +533,7 @@ MinZ is under active development. The Z80 backend is mature and produces working
 - Register allocator edge cases
 - Some optimizer passes can be too aggressive
 - Non-Z80 backends are basic
-- No IDE integration yet (LSP planned)
+- LSP server is new — hover/goto-def/completion work, but workspace-wide features are still TODO
 
 **Metrics:**
 - ~73 core examples, ~272 total (including experimental)
@@ -540,7 +542,7 @@ MinZ is under active development. The Z80 backend is mature and produces working
 - 3 validated Z80 targets: Spectrum, CP/M, Agon Light 2
 - **1335/1335 FUSE Z80 tests pass** — gold-standard CPU verification including all undocumented opcodes
 - **87+ iterator tests** across 7 layers — 11/11 E2E hex-verified, all green (including fusion optimizer)
-- 9 toolchain binaries, all pure Go, zero external dependencies
+- 10 toolchain binaries (including mzlsp), all pure Go, zero external dependencies
 
 ---
 

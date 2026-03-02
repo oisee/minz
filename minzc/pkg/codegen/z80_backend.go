@@ -45,6 +45,11 @@ func (b *Z80Backend) Generate(module *ir.Module) (string, error) {
 	if b.options != nil && b.options.Tracer != nil {
 		gen.tracer = b.options.Tracer
 	}
+
+	// Enable SLD source annotations
+	if b.options != nil && b.options.EmitSLD {
+		gen.emitSLD = true
+	}
 	
 	// Configure based on options
 	if b.options != nil {

@@ -55,6 +55,11 @@ type Analyzer struct {
 	builtinModules        map[string]*BuiltinModule // Built-in module registry
 	printStats            *PrintStatistics // Track @print usage for optimization
 	tracer                *trace.Tracer // Structured compilation trace output
+
+	// Source position tracking for debug info / SLD generation
+	currentSourceLine int              // Current source line being analyzed
+	currentSourceCol  int              // Current source column being analyzed
+	sourceLineSnaps   []sourceLineSnap // Instruction index → source line snapshots
 }
 
 // PrintStatistics tracks @print usage to optimize string printing
@@ -84,6 +89,87 @@ func NewAnalyzer() *Analyzer {
 	}
 
 	return analyzer
+}
+
+// trackSourcePos updates the current source position from an AST node.
+// Called at entry to analyzeStatement/analyzeExpression so that any IR instructions
+// emitted during that analysis inherit the correct source location.
+// Also records a snapshot mapping the current instruction count to the source line
+// so that stampSourcePositions can retroactively assign positions.
+func (a *Analyzer) trackSourcePos(node ast.Node) {
+	if node == nil {
+		return
+	}
+	pos := node.Pos()
+	if pos.Line > 0 {
+		a.currentSourceLine = pos.Line
+		a.currentSourceCol = pos.Column
+		// Record instruction index → source line for retroactive stamping
+		if a.currentFunc != nil {
+			idx := len(a.currentFunc.Instructions)
+			a.sourceLineSnaps = append(a.sourceLineSnaps, sourceLineSnap{instIdx: idx, line: pos.Line})
+		}
+	}
+}
+
+// sourceLineSnap records that at instruction index instIdx, the source line was `line`.
+type sourceLineSnap struct {
+	instIdx int
+	line    int
+}
+
+// emitInst appends an instruction to irFunc with source position auto-populated.
+func (a *Analyzer) emitInst(irFunc *ir.Function, inst ir.Instruction) {
+	if inst.SourceLine == 0 && a.currentSourceLine > 0 {
+		inst.SourceLine = a.currentSourceLine
+	}
+	if inst.SourceFile == "" && a.currentFile != "" {
+		inst.SourceFile = a.currentFile
+	}
+	irFunc.Instructions = append(irFunc.Instructions, inst)
+}
+
+// stampSourcePositions walks all instructions in a function and fills in any
+// missing SourceFile/SourceLine fields. Uses the sourceLineSnaps recorded during
+// analysis to assign positions retroactively, then propagates via nearest-neighbor.
+func (a *Analyzer) stampSourcePositions(irFunc *ir.Function) {
+	if irFunc == nil || len(irFunc.Instructions) == 0 {
+		return
+	}
+
+	// Phase 1: Assign from sourceLineSnaps (reverse walk — each snap applies to instructions at or after its index)
+	if len(a.sourceLineSnaps) > 0 {
+		snapIdx := len(a.sourceLineSnaps) - 1
+		for i := len(irFunc.Instructions) - 1; i >= 0; i-- {
+			// Find the most recent snap at or before this instruction index
+			for snapIdx > 0 && a.sourceLineSnaps[snapIdx].instIdx > i {
+				snapIdx--
+			}
+			if snapIdx >= 0 && a.sourceLineSnaps[snapIdx].instIdx <= i {
+				inst := &irFunc.Instructions[i]
+				if inst.SourceLine == 0 {
+					inst.SourceLine = a.sourceLineSnaps[snapIdx].line
+				}
+			}
+		}
+	}
+
+	// Phase 2: Fill SourceFile and forward-propagate any remaining gaps
+	lastLine := 0
+	for i := range irFunc.Instructions {
+		inst := &irFunc.Instructions[i]
+		if inst.SourceFile == "" && a.currentFile != "" {
+			inst.SourceFile = a.currentFile
+		}
+		if inst.SourceLine > 0 {
+			lastLine = inst.SourceLine
+		} else if lastLine > 0 {
+			inst.SourceLine = lastLine
+		}
+	}
+
+	// Reset snaps for next function
+	a.sourceLineSnaps = nil
 }
 
 // SetTargetBackend sets the target backend for @target directive processing
@@ -1753,10 +1839,11 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 	}
 	// fmt.Printf("  IR Function Name: %s\n", irFunc.Name)
 
+	// Stamp source positions on all instructions (fills gaps via propagation)
+	a.stampSourcePositions(irFunc)
+
 	// Add function to module
 	a.module.AddFunction(irFunc)
-	
-	// fmt.Printf("DEBUG: Before adding to module %s: IsSMCDefault=%v, IsSMCEnabled=%v, ptr=%p\n", fn.Name, irFunc.IsSMCDefault, irFunc.IsSMCEnabled, irFunc)
 
 	return nil
 }
@@ -2216,7 +2303,10 @@ func (a *Analyzer) analyzeStatement(stmt ast.Statement, irFunc *ir.Function) err
 	if stmt == nil {
 		return fmt.Errorf("encountered nil statement - likely a parsing error")
 	}
-	
+
+	// Track source position for debug info propagation
+	a.trackSourcePos(stmt)
+
 	switch s := stmt.(type) {
 	case *ast.VarDecl:
 		return a.analyzeVarDeclInFunc(s, irFunc)
@@ -4218,7 +4308,10 @@ func (a *Analyzer) analyzeExpression(expr ast.Expression, irFunc *ir.Function) (
 	if expr == nil {
 		return 0, fmt.Errorf("unsupported expression type: <nil>")
 	}
-	
+
+	// Track source position for debug info propagation
+	a.trackSourcePos(expr)
+
 	// Debug: print expression type
 	if fieldExpr, ok := expr.(*ast.FieldExpr); ok {
 		if id, ok := fieldExpr.Object.(*ast.Identifier); ok && id.Name == "screen" {

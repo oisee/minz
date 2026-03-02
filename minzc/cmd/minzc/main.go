@@ -51,6 +51,9 @@ var (
 	// PGO (Profile-Guided Optimization) - Quick Win flags
 	pgoProfile   string  // Path to .tas profile file for PGO compilation
 	pgoDebug     bool    // Debug PGO decisions
+
+	// Debug info
+	emitSLD      bool    // Emit SLD file for DeZog source-level debugging
 )
 
 var rootCmd = &cobra.Command{
@@ -189,6 +192,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
+	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
 }
 
 func main() {
@@ -377,6 +381,8 @@ func compile(sourceFile string) error {
 		DisableCodegenOpt: disableCodegenOpt || disableOptimize,
 		Tracer:            tracer,
 		SuperoptRules:     superoptRules,
+		EmitSLD:           emitSLD,
+		SourceFile:        sourceFile,
 	}
 
 	if !disableOptimize {
@@ -459,7 +465,26 @@ func compile(sourceFile string) error {
 	if err := os.WriteFile(outputFile, []byte(generatedCode), 0644); err != nil {
 		return fmt.Errorf("failed to write output file: %w", err)
 	}
-	
+
+	// Generate SLD file for DeZog debugging if requested
+	if emitSLD && backend == "z80" {
+		sldFile := outputFile[:len(outputFile)-len(filepath.Ext(outputFile))] + ".sld"
+		// Assemble the .a80 to get address mappings
+		asm := z80asm.NewAssembler()
+		result, err := asm.AssembleString(generatedCode)
+		if err == nil && result != nil {
+			if sldErr := codegen.GenerateSLDFromAssembly(outputFile, result, sldFile); sldErr != nil {
+				if debug {
+					fmt.Printf("Warning: failed to generate SLD file: %v\n", sldErr)
+				}
+			} else if debug {
+				fmt.Printf("Generated SLD file: %s\n", sldFile)
+			}
+		} else if debug {
+			fmt.Printf("Warning: SLD assembly pass failed: %v\n", err)
+		}
+	}
+
 	// Add TAS debugging support if enabled
 	if enableTAS {
 		if err := addTASSupport(outputFile); err != nil {

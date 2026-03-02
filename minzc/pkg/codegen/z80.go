@@ -66,6 +66,11 @@ type Z80Generator struct {
 	// Optimization control
 	disableConstantTracking bool // Disable codegen-level constant tracking
 
+	// Source position tracking for SLD generation
+	lastSourceLine int    // Last emitted source line (avoid duplicate annotations)
+	lastSourceFile string // Last emitted source file
+	emitSLD        bool   // Whether to emit SLD annotations
+
 	// Trace output
 	tracer *trace.Tracer
 }
@@ -1863,6 +1868,15 @@ func (g *Z80Generator) generateInterruptEpilogue(fn *ir.Function) {
 
 // generateInstruction generates code for a single IR instruction
 func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
+	// Emit source position annotation for SLD generation
+	if inst.SourceFile != "" && inst.SourceLine > 0 {
+		if inst.SourceLine != g.lastSourceLine || inst.SourceFile != g.lastSourceFile {
+			g.emit("    ; @src:%s:%d", inst.SourceFile, inst.SourceLine)
+			g.lastSourceLine = inst.SourceLine
+			g.lastSourceFile = inst.SourceFile
+		}
+	}
+
 	// Add comment for instruction (skip for OpAsm as it would print the entire block)
 	if inst.Op != ir.OpAsm {
 		if inst.Comment == "" {

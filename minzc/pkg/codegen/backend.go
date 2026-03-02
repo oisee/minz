@@ -53,6 +53,12 @@ type BackendOptions struct {
 	// SuperoptRules is the path to a z80-optimizer rules.json[.gz] file
 	SuperoptRules string
 
+	// EmitSLD enables SLD source annotation comments in generated assembly
+	EmitSLD bool
+
+	// SourceFile is the path to the original MinZ source file (for SLD)
+	SourceFile string
+
 	// Custom backend-specific options
 	CustomOptions map[string]interface{}
 }

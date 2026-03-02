@@ -17,6 +17,9 @@ func typesEqual(a, b ir.Type) bool {
 
 // analyzeIteratorChainExpr analyzes an iterator chain and generates optimized code
 func (a *Analyzer) analyzeIteratorChainExpr(chain *ast.IteratorChainExpr, irFunc *ir.Function) (ir.Register, error) {
+	// Track source position from the chain expression for debug info
+	a.trackSourcePos(chain)
+
 	// Get the source type to determine iteration strategy
 	sourceType, err := a.inferType(chain.Source)
 	if err != nil {
