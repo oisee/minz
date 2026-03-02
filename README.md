@@ -1,6 +1,6 @@
 # MinZ Programming Language
 
-> **[Iterator Status](docs/Iterator_Implementation_Status.md)** — 11/11 E2E pass, correct but ~5x slower than ideal (register allocator bottleneck)
+> **[Iterator Status](docs/Iterator_Implementation_Status.md)** | **[Reality Check](reports/2026-03-02-017-Iterator_Reality_Check.md)** — 11/11 E2E pass, correct but ~5x slower than ideal (register allocator bottleneck)
 
 <div align="center">
 
