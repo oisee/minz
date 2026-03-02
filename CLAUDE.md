@@ -14,13 +14,12 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - See `docs/adr/` for ADR-0006, ADR-0007
 
 ### 2. Iterator Chain Fusion
-**Status:** Core pipeline working. Parser + semantic + DJNZ codegen done. Fusion optimizer not yet wired in.
-- Parser emits `IteratorChainExpr` via `tryConvertIteratorChain()` — method chains work
-- `IteratorOp.Argument` field separates numeric args (take/skip) from function refs
-- Working: map, filter, forEach, take, skip, peek, inspect, takeWhile + lambdas
-- MIR-only (Z80 needs OpPush): enumerate, reduce
-- 63 tests across 5 packages
-- Fusion optimizer skeleton: `pkg/optimizer/fusion.go` — needs pipeline wiring
+**Status:** Pipeline correct (11/11 E2E), fusion optimizer live. ~5x perf overhead from memory-backed registers.
+- 11/11 E2E hex-verified: forEach, take, skip, map, filter, lambda map/filter, multi-stage chains
+- Fusion optimizer inlines small callbacks into DJNZ loops (eliminates CALL/RET)
+- **Broken on Z80:** enumerate (B=counter+index conflict), reduce (A overwritten by 2nd SMC param)
+- **Bottleneck:** Register allocator puts all virtuals through $F0xx memory (~207T actual vs ~43T ideal per element)
+- 87+ tests across 7 layers
 - See [Iterator Implementation Status](docs/Iterator_Implementation_Status.md)
 
 ### 3. LSP / DAP / Developer Tooling
@@ -120,7 +119,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ## 🚧 WIP (In Development)
 
-- **Iterator chain fusion**: Core pipeline done (map/filter/forEach/take/skip + lambdas), fusion optimizer needs wiring
+- **Iterator chain fusion**: 11/11 E2E correct, fusion optimizer live, ~5x perf overhead (register allocator bottleneck)
 - **Pattern matching**: Syntax parses, codegen partial
 - **@minz[[[...]]]**: Limited compile-time execution
 - **MIR interpreter**: Arrays/structs working

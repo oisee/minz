@@ -1,6 +1,6 @@
 # MinZ Programming Language
 
-> **[Iterator Implementation Status](docs/Iterator_Implementation_Status.md)** — 11/11 E2E tests pass, fusion optimizer live, 87+ tests across 7 layers
+> **[Iterator Status](docs/Iterator_Implementation_Status.md)** — 11/11 E2E pass, correct but ~5x slower than ideal (register allocator bottleneck)
 
 <div align="center">
 
@@ -303,13 +303,9 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 
 **9 operations fully working on Z80:** forEach, map, filter, take, skip, peek, inspect, takeWhile, and inline lambda filters (`filter(|x| x > N)` compiles to `CP N+1` + `JR C` — no function call, ~27 T-states saved per iteration). **Fusion optimizer** inlines small callbacks directly into DJNZ loop bodies, eliminating CALL/RET overhead and enabling bare `DJNZ` instruction. enumerate and reduce work at MIR level, Z80 blocked by OpPush routing. See [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) for details.
 
-**Design documents:**
-- [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) — E2E verified operations, known codegen bugs, fix guide
-- [Iterator E2E Testing Report](reports/2026-03-01-014-Iterator_E2E_Testing_Report.md) — full test results, regression analysis
-- [Zero-Cost Iterators Revolution](docs/Zero_Cost_Iterators_Revolution.md) — complete vision
-- [DJNZ Iterator Optimization](docs/2026-01-03-301-DJNZ_Iterator_Optimization.md) — loop optimization details
-- [Generator Vision](docs/2026-01-03-302-Generator_Vision_Zero_Cost_Iteration.md) — `gen`/`yield` design
-- [Z80 Optimal Iteration Design](docs/Z80_Optimal_Iteration_Design.md) — hardware-level patterns
+**Documentation:**
+- [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) — actual compiler output, known bugs, performance reality
+- [Iterator Reality Check (Report #017)](reports/2026-03-02-017-Iterator_Reality_Check.md) — grounded analysis of T-state costs
 - [ADR-0008: Flag-Based Boolean ABI](docs/adr/0008-flag-based-boolean-abi-for-iterators.md) — `CP` + flag returns for iterator predicates
 
 ---
