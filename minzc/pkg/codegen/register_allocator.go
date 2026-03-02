@@ -163,78 +163,135 @@ func (ra *Z80RegisterAllocator) linearScanAllocation(fn *ir.Function) {
 	}
 }
 
+// hintToPhysical maps a RegisterHint to the preferred PhysicalReg.
+// Returns RegNone if no mapping exists.
+func hintToPhysical(hint ir.RegisterHint) PhysicalReg {
+	switch hint {
+	case ir.RegHintA:
+		return RegA
+	case ir.RegHintB:
+		return RegB
+	case ir.RegHintC:
+		return RegC
+	case ir.RegHintD:
+		return RegD
+	case ir.RegHintE:
+		return RegE
+	case ir.RegHintH:
+		return RegH
+	case ir.RegHintL:
+		return RegL
+	case ir.RegHintHL:
+		return RegHL
+	case ir.RegHintDE:
+		return RegDE
+	case ir.RegHintBC:
+		return RegBC
+	default:
+		return RegNone
+	}
+}
+
 // allocateRegister allocates a physical register for a virtual register
 func (ra *Z80RegisterAllocator) allocateRegister(virtReg ir.Register, inst *ir.Instruction) PhysicalReg {
-	// Try to get a free register
+	// Try hint-preferred register first
+	if inst.Hint != ir.RegHintNone {
+		preferred := hintToPhysical(inst.Hint)
+		if preferred != RegNone && ra.tryAllocateSpecific(preferred) {
+			ra.allocation[virtReg] = preferred
+			ra.regContents[preferred] = virtReg
+			return preferred
+		}
+	}
+
+	// Try to get a free register (general allocation)
 	physReg := ra.getFreeRegister(inst)
-	
+
 	if physReg != RegNone {
 		ra.allocation[virtReg] = physReg
 		ra.regContents[physReg] = virtReg
 		return physReg
 	}
-	
+
 	// No free register - need to spill
 	spillReg := ra.selectSpillRegister()
 	ra.spillRegister(spillReg)
-	
+
 	// Now allocate the freed register
 	ra.allocation[virtReg] = spillReg
 	ra.regContents[spillReg] = virtReg
-	
+
 	return spillReg
+}
+
+// tryAllocateSpecific attempts to allocate a specific physical register.
+// Returns true if the register was free and is now allocated.
+func (ra *Z80RegisterAllocator) tryAllocateSpecific(physReg PhysicalReg) bool {
+	if !ra.freeRegs.available[physReg] {
+		return false
+	}
+	ra.freeRegs.available[physReg] = false
+	// For register pairs, also mark components as unavailable
+	switch physReg {
+	case RegBC:
+		ra.freeRegs.available[RegB] = false
+		ra.freeRegs.available[RegC] = false
+	case RegDE:
+		ra.freeRegs.available[RegD] = false
+		ra.freeRegs.available[RegE] = false
+	case RegHL:
+		ra.freeRegs.available[RegH] = false
+		ra.freeRegs.available[RegL] = false
+	case RegB:
+		// If B is allocated individually, BC pair is no longer available
+		ra.freeRegs.available[RegBC] = false
+	case RegC:
+		ra.freeRegs.available[RegBC] = false
+	case RegD:
+		ra.freeRegs.available[RegDE] = false
+	case RegE:
+		ra.freeRegs.available[RegDE] = false
+	case RegH:
+		ra.freeRegs.available[RegHL] = false
+	case RegL:
+		ra.freeRegs.available[RegHL] = false
+	}
+	return true
 }
 
 // getFreeRegister finds a free physical register suitable for the instruction
 func (ra *Z80RegisterAllocator) getFreeRegister(inst *ir.Instruction) PhysicalReg {
 	// For 16-bit operations, prefer register pairs
 	if inst.Type != nil && inst.Type.Size() > 1 {
-		if ra.freeRegs.available[RegHL] {
-			ra.freeRegs.available[RegHL] = false
-			ra.freeRegs.available[RegH] = false
-			ra.freeRegs.available[RegL] = false
-			return RegHL
+		for _, pair := range []PhysicalReg{RegHL, RegDE, RegBC} {
+			if ra.tryAllocateSpecific(pair) {
+				return pair
+			}
 		}
-		if ra.freeRegs.available[RegDE] {
-			ra.freeRegs.available[RegDE] = false
-			ra.freeRegs.available[RegD] = false
-			ra.freeRegs.available[RegE] = false
-			return RegDE
-		}
-		if ra.freeRegs.available[RegBC] {
-			ra.freeRegs.available[RegBC] = false
-			ra.freeRegs.available[RegB] = false
-			ra.freeRegs.available[RegC] = false
-			return RegBC
-		}
-		
 		// Try shadow registers if enabled
 		if ra.useShadowRegs {
-			if ra.freeRegs.available[RegHL_Shadow] {
-				ra.freeRegs.available[RegHL_Shadow] = false
+			if ra.tryAllocateSpecific(RegHL_Shadow) {
 				return RegHL_Shadow
 			}
 		}
 	}
-	
+
 	// For 8-bit operations
 	for _, reg := range []PhysicalReg{RegA, RegB, RegC, RegD, RegE, RegH, RegL} {
-		if ra.freeRegs.available[reg] {
-			ra.freeRegs.available[reg] = false
+		if ra.tryAllocateSpecific(reg) {
 			return reg
 		}
 	}
-	
+
 	// Try shadow registers for 8-bit
 	if ra.useShadowRegs {
 		for _, reg := range []PhysicalReg{RegB_Shadow, RegC_Shadow, RegD_Shadow, RegE_Shadow} {
-			if ra.freeRegs.available[reg] {
-				ra.freeRegs.available[reg] = false
+			if ra.tryAllocateSpecific(reg) {
 				return reg
 			}
 		}
 	}
-	
+
 	return RegNone
 }
 

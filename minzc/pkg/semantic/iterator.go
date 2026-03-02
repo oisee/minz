@@ -341,6 +341,7 @@ func (a *Analyzer) generateDJNZIteration(chain *ast.IteratorChainExpr, sourceReg
 		Dest: elementReg,
 		Src1: ptrReg,
 		Type: elementType,
+		Hint: ir.RegHintA, // Prefer A register for element (accumulator operations)
 		Comment: "Load element via pointer",
 	})
 	
@@ -373,6 +374,12 @@ func (a *Analyzer) generateDJNZIteration(chain *ast.IteratorChainExpr, sourceReg
 			Op:      ir.OpPush,
 			Src1:    ptrReg,
 			Comment: "Save array pointer before operations",
+		})
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpPush,
+			Src1:    counterReg,
+			Hint:    ir.RegHintB,
+			Comment: "Save DJNZ counter before operations (BC preserved across CALL)",
 		})
 	}
 
@@ -442,8 +449,14 @@ func (a *Analyzer) generateDJNZIteration(chain *ast.IteratorChainExpr, sourceReg
 		irFunc.EmitLabel(label)
 	}
 
-	// Restore array pointer after operations (before increment)
+	// Restore counter and array pointer after operations (before increment)
 	if hasCallOps {
+		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
+			Op:      ir.OpPop,
+			Dest:    counterReg,
+			Hint:    ir.RegHintB,
+			Comment: "Restore DJNZ counter after operations (BC preserved across CALL)",
+		})
 		irFunc.Instructions = append(irFunc.Instructions, ir.Instruction{
 			Op:      ir.OpPop,
 			Dest:    ptrReg,

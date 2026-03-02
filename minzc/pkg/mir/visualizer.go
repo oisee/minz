@@ -347,6 +347,6 @@ func (v *Visualizer) emit(format string, args ...interface{}) {
 	if len(args) > 0 {
 		fmt.Fprintf(v.writer, format+"\n", args...)
 	} else {
-		fmt.Fprintf(v.writer, format+"\n")
+		fmt.Fprint(v.writer, format+"\n")
 	}
 }

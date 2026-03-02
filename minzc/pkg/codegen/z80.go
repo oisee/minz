@@ -49,6 +49,8 @@ type Z80Generator struct {
 	useAbsoluteLocals bool // Whether to use absolute addressing for locals
 	emittedParams map[string]bool // Track which SMC parameters have been emitted
 	currentRegister ir.Register // Track which virtual register is currently in HL
+	currentA ir.Register // Track which virtual register is currently in A
+	currentB ir.Register // Track which virtual register is currently in B
 	targetPlatform string // Target platform (zxspectrum, cpm, msx, etc.)
 	constantValues map[ir.Register]int64 // Track constant values in registers
 	usedFunctions  map[string]bool // Track which stdlib functions are actually used
@@ -1879,6 +1881,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// assumptions from prior blocks are invalid. Clear the entire map.
 		g.constantValues = make(map[ir.Register]int64)
 		g.currentRegister = 0 // HL contents unknown at merge point
+		g.currentA = 0 // A contents unknown at merge point
+		g.currentB = 0 // B contents unknown at merge point
 		g.emit("%s:", g.sanitizeLabel(inst.Label))
 		
 	case ir.OpJump:
@@ -2529,11 +2533,17 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			// For byte values
 			g.loadToA(inst.Src1)
 			g.emit("    INC A")
+			g.currentA = 0 // A changed (incremented)
 			g.storeFromA(inst.Dest)
 		} else {
 			// For word values
 			g.loadToHL(inst.Src1)
 			g.emit("    INC HL")
+			// After INC HL, HL holds the incremented value of Dest.
+			// If Dest == Src1 (in-place increment), HL tracks Dest.
+			if inst.Dest == inst.Src1 {
+				g.currentRegister = inst.Dest
+			}
 			g.storeFromHL(inst.Dest)
 		}
 		delete(g.constantValues, inst.Dest) // Computed value, not a known constant
@@ -2825,6 +2835,8 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 	case ir.OpEq, ir.OpNe, ir.OpLt, ir.OpGt, ir.OpLe, ir.OpGe:
 		g.generateComparison(inst)
 		delete(g.constantValues, inst.Dest) // Comparison result is computed
+		g.currentA = 0 // Comparisons use A for CP instruction
+		g.currentB = 0 // Some comparisons use B as temp
 		
 	case ir.OpCall:
 		// Check for SMC annotations (Option B: annotations + regular code)
@@ -2883,10 +2895,14 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				// Track stdlib function usage
 				g.usedFunctions[inst.Symbol] = true
 			}
-			// Result is in HL
-			g.storeFromHL(inst.Dest)
+			// Result is in HL — skip store for void returns (Dest == 0)
+			if inst.Dest != 0 {
+				g.storeFromHL(inst.Dest)
+			}
 		}
-		g.currentRegister = 0 // CALL clobbers HL
+		// Invalidate register tracking based on callee's clobber set.
+		// If we know which registers the callee modifies, only invalidate those.
+		g.invalidateAfterCall(g.findFunction(inst.Symbol))
 
 	case ir.OpPatchPoint:
 		// Define a patchable instruction sequence
@@ -3318,17 +3334,27 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Clear constant tracking for counter — DJNZ modifies B each iteration
 		delete(g.constantValues, inst.Src1)
 
-		if inst.CodegenHint != nil && inst.CodegenHint.BareDJNZ {
-			// No CALL in loop body — B is preserved across iterations.
+		// Check if counter is physically in B (from hint-aware allocation)
+		counterInB := false
+		if g.usePhysicalRegs {
+			if phys, ok := g.physicalAlloc.GetAllocation(inst.Src1); ok && phys == RegB {
+				counterInB = true
+			}
+		}
+
+		if (inst.CodegenHint != nil && inst.CodegenHint.BareDJNZ) || counterInB {
+			// B register holds the counter (via hint allocation or fusion).
+			// If calls are present, BC is saved/restored via PUSH/POP in the loop body.
 			// Use bare DJNZ: single instruction, 13/8 T-states, 2 bytes.
-			// (vs manual DEC B + LD A,B + store + JR NZ: ~30 T-states, 7+ bytes)
 			g.emit("    DJNZ %s", g.sanitizeLabel(inst.Label))
+			g.currentB = 0 // DJNZ modifies B
 		} else {
-			// Loop body contains CALL — B may be clobbered.
-			// Manual DEC B + store-back + JR NZ to ensure counter persists.
+			// Counter not in B — use manual DEC + store-back + JR NZ.
 			g.loadToB(inst.Src1)
 			g.emit("    DEC B")
 			g.emit("    LD A, B")
+			g.currentB = 0 // DEC B changed B (no longer the original value)
+			g.currentA = 0 // LD A, B changed A
 			g.storeFromA(inst.Src1)
 			g.emit("    JR NZ, %s", g.sanitizeLabel(inst.Label))
 		}
@@ -3697,7 +3723,18 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Check if already in a register pair — emit direct PUSH
 		loc, val := g.getRegisterLocation(inst.Src1)
 		if loc == LocationPhysical {
-			switch val.(PhysicalReg) {
+			physReg := val.(PhysicalReg)
+			// Map individual registers to their containing pair for PUSH
+			pushPair := physReg
+			switch physReg {
+			case RegB, RegC:
+				pushPair = RegBC
+			case RegD, RegE:
+				pushPair = RegDE
+			case RegH, RegL:
+				pushPair = RegHL
+			}
+			switch pushPair {
 			case RegBC:
 				g.emit("    PUSH BC       ; %s", inst.Comment)
 			case RegDE:
@@ -3709,7 +3746,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 			case RegIY:
 				g.emit("    PUSH IY       ; %s", inst.Comment)
 			default:
-				// 8-bit register — load to HL first
+				// Shadow or other — load to HL first
 				g.loadToHL(inst.Src1)
 				g.emit("    PUSH HL       ; %s", inst.Comment)
 			}
@@ -3724,26 +3761,41 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// Check if dest is a register pair — emit direct POP
 		loc, val := g.getRegisterLocation(inst.Dest)
 		if loc == LocationPhysical {
-			switch val.(PhysicalReg) {
+			physReg := val.(PhysicalReg)
+			// Map individual registers to their containing pair for POP
+			popPair := physReg
+			switch physReg {
+			case RegB, RegC:
+				popPair = RegBC
+			case RegD, RegE:
+				popPair = RegDE
+			case RegH, RegL:
+				popPair = RegHL
+			}
+			switch popPair {
 			case RegBC:
 				g.emit("    POP BC        ; %s", inst.Comment)
+				g.currentB = inst.Dest // B restored from stack
 			case RegDE:
 				g.emit("    POP DE        ; %s", inst.Comment)
 			case RegHL:
 				g.emit("    POP HL        ; %s", inst.Comment)
+				g.currentRegister = inst.Dest
 			case RegIX:
 				g.emit("    POP IX        ; %s", inst.Comment)
 			case RegIY:
 				g.emit("    POP IY        ; %s", inst.Comment)
 			default:
-				// 8-bit register — pop to HL, then store
+				// Shadow or other — pop to HL, then store
 				g.emit("    POP HL        ; %s", inst.Comment)
 				g.storeFromHL(inst.Dest)
+				g.currentRegister = 0
 			}
 		} else {
 			// Memory-based — pop to HL, then store
 			g.emit("    POP HL        ; %s", inst.Comment)
 			g.storeFromHL(inst.Dest)
+			g.currentRegister = 0 // HL used as temp
 		}
 		delete(g.constantValues, inst.Dest)
 
@@ -4027,6 +4079,13 @@ func (g *Z80Generator) generateComparison(inst ir.Instruction) {
 func (g *Z80Generator) loadToA(reg ir.Register) {
 	if reg == ir.RegZero {
 		g.emit("    XOR A")
+		g.currentA = 0
+		return
+	}
+
+	// Dynamic tracking: skip load if A already has this value
+	if g.currentA == reg && reg != 0 {
+		g.emit("    ; Register %d already in A (tracked)", reg)
 		return
 	}
 
@@ -4037,18 +4096,20 @@ func (g *Z80Generator) loadToA(reg ir.Register) {
 		} else {
 			g.emit("    LD A, %d       ; Constant", constVal)
 		}
+		g.currentA = reg
 		return
 	}
 
 	// Use hierarchical register allocation
 	location, value := g.getRegisterLocation(reg)
-	
+
 	switch location {
 	case LocationPhysical:
 		physReg := value.(PhysicalReg)
 		if physReg == RegA {
 			// Already in A, no operation needed
 			g.emit("    ; Register %d already in A", reg)
+			g.currentA = reg
 			return
 		}
 		// Move from physical register to A
@@ -4059,7 +4120,7 @@ func (g *Z80Generator) loadToA(reg ir.Register) {
 		} else {
 			g.emit("    LD A, %s", regName)
 		}
-		
+
 	case LocationShadow:
 		physReg := value.(PhysicalReg)
 		// Access shadow register (need to switch register set)
@@ -4080,7 +4141,7 @@ func (g *Z80Generator) loadToA(reg ir.Register) {
 			}
 			g.emit("    EXX               ; Switch back to main registers")
 		}
-		
+
 	case LocationMemory:
 		// Fallback to memory-based allocation
 		addr := value.(uint16)
@@ -4093,19 +4154,33 @@ func (g *Z80Generator) loadToA(reg ir.Register) {
 			g.emit("    LD A, ($%04X)     ; Virtual register %d from memory", addr, reg)
 		}
 	}
+	g.currentA = reg
 }
 
 // storeFromA stores A to a virtual register
 func (g *Z80Generator) storeFromA(reg ir.Register) {
+	// Dynamic tracking: if A already holds this register, skip store to A-allocated location
+	if g.currentA == reg && reg != 0 {
+		location, value := g.getRegisterLocation(reg)
+		if location == LocationPhysical {
+			physReg := value.(PhysicalReg)
+			if physReg == RegA {
+				g.emit("    ; Register %d already in A (tracked, skip store)", reg)
+				return
+			}
+		}
+	}
+
 	// Use hierarchical register allocation
 	location, value := g.getRegisterLocation(reg)
-	
+
 	switch location {
 	case LocationPhysical:
 		physReg := value.(PhysicalReg)
 		if physReg == RegA {
 			// Already in A, no operation needed
 			g.emit("    ; Register %d already in A", reg)
+			g.currentA = reg
 			return
 		}
 		// Move from A to physical register
@@ -4116,7 +4191,11 @@ func (g *Z80Generator) storeFromA(reg ir.Register) {
 		} else {
 			g.emit("    LD %s, A         ; Store to physical register %s", regName, regName)
 		}
-		
+		// Track if we stored to B
+		if physReg == RegB {
+			g.currentB = reg
+		}
+
 	case LocationShadow:
 		physReg := value.(PhysicalReg)
 		// Store to shadow register (need to switch register set)
@@ -4137,7 +4216,7 @@ func (g *Z80Generator) storeFromA(reg ir.Register) {
 			}
 			g.emit("    EXX               ; Switch back to main registers")
 		}
-		
+
 	case LocationMemory:
 		// Fallback to memory-based allocation
 		addr := value.(uint16)
@@ -4318,9 +4397,13 @@ func (g *Z80Generator) loadToDE(reg ir.Register) {
 
 // storeFromHL stores HL to a virtual register
 func (g *Z80Generator) storeFromHL(reg ir.Register) {
+	if reg == 0 {
+		return // No destination (void)
+	}
+
 	// Use hierarchical register allocation
 	location, value := g.getRegisterLocation(reg)
-	
+
 	switch location {
 	case LocationPhysical:
 		physReg := value.(PhysicalReg)
@@ -4334,14 +4417,21 @@ func (g *Z80Generator) storeFromHL(reg ir.Register) {
 		if physReg == RegBC || physReg == RegDE {
 			g.emit("    LD %s, H", regName[:1])
 			g.emit("    LD %s, L", regName[1:])
+			if physReg == RegBC {
+				g.currentB = 0 // B changed (got H)
+			}
 		} else if physReg == RegA || physReg == RegB || physReg == RegC || physReg == RegD || physReg == RegE || physReg == RegH || physReg == RegL {
 			// Single-byte register — store L (low byte of HL)
 			if physReg == RegL {
 				g.emit("    ; Register %d already in L", reg)
 			} else if physReg == RegA {
 				g.emit("    LD A, L")
+				g.currentA = 0 // A changed (got L)
 			} else {
 				g.emit("    LD %s, L", regName)
+				if physReg == RegB {
+					g.currentB = 0 // B changed (got L)
+				}
 			}
 		}
 		
@@ -4963,6 +5053,31 @@ func (g *Z80Generator) getPhysicalReg(virtReg ir.Register) string {
 	return ""
 }
 
+// invalidateAfterCall clears register tracking based on callee's clobber set.
+// If the callee is known and has a small clobber set, only invalidate those registers.
+// Otherwise, conservatively invalidate everything.
+func (g *Z80Generator) invalidateAfterCall(callee *ir.Function) {
+	if callee != nil && callee.ModifiedRegisters != 0 {
+		// Use per-function clobber set
+		if callee.ModifiedRegisters.Contains(ir.Z80_HL) || callee.ModifiedRegisters.Contains(ir.Z80_H) || callee.ModifiedRegisters.Contains(ir.Z80_L) {
+			g.currentRegister = 0
+		}
+		if callee.ModifiedRegisters.Contains(ir.Z80_A) || callee.ModifiedRegisters.Contains(ir.Z80_AF) {
+			g.currentA = 0
+		}
+		if callee.ModifiedRegisters.Contains(ir.Z80_B) || callee.ModifiedRegisters.Contains(ir.Z80_BC) {
+			g.currentB = 0
+		}
+	} else {
+		// Unknown callee or no analysis data — assume everything clobbered
+		g.currentRegister = 0
+		g.currentA = 0
+		g.currentB = 0
+	}
+	// Always clear constant tracking after any call (conservative but safe)
+	g.constantValues = make(map[ir.Register]int64)
+}
+
 // physicalRegToAssembly converts PhysicalReg to assembly string
 func (g *Z80Generator) physicalRegToAssembly(reg PhysicalReg) string {
 	switch reg {
@@ -4995,8 +5110,14 @@ func (g *Z80Generator) physicalRegToAssembly(reg PhysicalReg) string {
 
 // loadToB loads a virtual register to B
 func (g *Z80Generator) loadToB(reg ir.Register) {
+	// Dynamic tracking: skip load if B already has this value
+	if g.currentB == reg && reg != 0 {
+		g.emit("    ; Register %d already in B (tracked)", reg)
+		return
+	}
 	g.loadToA(reg)
 	g.emit("    LD B, A")
+	g.currentB = reg
 }
 
 // canOptimizeToDJNZ checks if we can optimize DEC + JUMP_IF_NOT_ZERO to DJNZ

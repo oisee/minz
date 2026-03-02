@@ -201,8 +201,12 @@ func (w *WhenContext) Call(address uint16) *WhenContext {
 }
 
 func (w *WhenContext) ExecuteUntil(address uint16) *WhenContext {
-	for w.tc.cpu.PC() != address && !w.tc.cpu.Halted {
+	const maxCycles = 1000000
+	for w.tc.cpu.PC() != address && !w.tc.cpu.Halted && w.tc.cpu.Tstates < maxCycles {
 		w.tc.cpu.DoOpcode()
+	}
+	if w.tc.cpu.Tstates >= maxCycles {
+		w.tc.t.Fatalf("ExecuteUntil(0x%04X): exceeded %d T-states (stuck at PC=0x%04X)", address, maxCycles, w.tc.cpu.PC())
 	}
 	w.cycles = w.tc.cpu.Tstates
 	return w

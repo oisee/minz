@@ -185,7 +185,7 @@ func NewTASDebugger(emu Z80Emulator) *TASDebugger {
 	
 	return &TASDebugger{
 		emulator:       emu,
-		stateHistory:   make([]StateSnapshot, 0, 1000000),
+		stateHistory:   make([]StateSnapshot, 0, 100),
 		saveStates:     make(map[string]*StateSnapshot),
 		inputLog:       make([]InputEvent, 0, 10000),
 		smcEvents:      make([]SMCEvent, 0, 1000),

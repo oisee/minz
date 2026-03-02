@@ -230,26 +230,58 @@ func (h *E2ETestHarness) parseLabels(labFile string) (map[string]uint16, error) 
 
 // findSymbol looks up a function name in the symbol table, handling MinZ name mangling.
 // MinZ mangles function names with type signatures (e.g., "add" becomes "add$u16_u16").
-// This method tries exact match first, then falls back to substring matching.
+// This method tries exact match first, then falls back to suffix matching.
+// When multiple symbols match, the shortest one wins (function entry, not sub-labels).
 func findSymbol(symbols map[string]uint16, funcName string) (uint16, bool) {
 	// Try exact match first
 	if addr, ok := symbols[funcName]; ok {
 		return addr, true
 	}
-	// Try substring match (MinZ mangles names with $ and type suffixes)
 	funcLower := strings.ToLower(funcName)
+
+	// Try suffix match: symbol ends with _funcName (MinZ pattern: file_func)
+	// Prefer the shortest match to get the function entry, not sub-labels like _main_djnz_loop_1
+	bestSym := ""
+	bestAddr := uint16(0)
 	for sym, addr := range symbols {
 		symLower := strings.ToLower(sym)
-		// Match if symbol starts with the function name followed by a separator
-		if strings.HasPrefix(symLower, funcLower+"$") || strings.HasPrefix(symLower, funcLower+"_") || symLower == funcLower {
-			return addr, true
+		// Match if symbol ends with _funcName (e.g., "filter_foreach_perf_main" ends with "_main")
+		if strings.HasSuffix(symLower, "_"+funcLower) || symLower == funcLower {
+			if bestSym == "" || len(sym) < len(bestSym) {
+				bestSym = sym
+				bestAddr = addr
+			}
 		}
 	}
-	// Try contains as last resort (for deeply mangled names)
+	if bestSym != "" {
+		return bestAddr, true
+	}
+
+	// Try prefix match with separator (for type-mangled names like "main$u8")
+	for sym, addr := range symbols {
+		symLower := strings.ToLower(sym)
+		if strings.HasPrefix(symLower, funcLower+"$") || strings.HasPrefix(symLower, funcLower+"_") {
+			if bestSym == "" || len(sym) < len(bestSym) {
+				bestSym = sym
+				bestAddr = addr
+			}
+		}
+	}
+	if bestSym != "" {
+		return bestAddr, true
+	}
+
+	// Try contains as last resort — prefer shortest match to avoid sub-label ambiguity
 	for sym, addr := range symbols {
 		if strings.Contains(strings.ToLower(sym), funcLower) {
-			return addr, true
+			if bestSym == "" || len(sym) < len(bestSym) {
+				bestSym = sym
+				bestAddr = addr
+			}
 		}
+	}
+	if bestSym != "" {
+		return bestAddr, true
 	}
 	return 0, false
 }
@@ -376,6 +408,11 @@ func (h *E2ETestHarness) GetResult() uint16 {
 // GetCycles returns the number of cycles executed
 func (h *E2ETestHarness) GetCycles() int {
 	return h.cycleCount
+}
+
+// GetCompilerPath returns the path to the MinZ compiler being used
+func (h *E2ETestHarness) GetCompilerPath() string {
+	return h.minzcPath
 }
 
 // GetSMCStats returns SMC statistics
