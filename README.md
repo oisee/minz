@@ -4,7 +4,7 @@
 
 - **[Register Allocator Overhaul](reports/2026-03-02-018-Register_Allocator_Overhaul_Results.md)** — 7.8x iterator speedup (207T → 26T per element), full MinZ→asm pipeline walkthrough
 - **[Iterator Reality Check](reports/2026-03-02-017-Iterator_Reality_Check.md)** — honest status: 11/11 E2E correct, before/after the overhaul
-- **[Iterator Status](docs/Iterator_Implementation_Status.md)** — forEach, map, filter, take, skip, lambda — all working with DJNZ fusion
+- **[Iterator Status](docs/Iterator_Implementation_Status.md)** — 11/11 E2E, 26T/element post-overhaul, operation matrix, known bugs
 - **[Project Status](reports/2026-03-01-015-Project_Status_And_Next_Steps.md)** — v0.19 roadmap and priorities
 
 <div align="center">
