@@ -6,7 +6,7 @@
 
 ---
 
-## Current State (v0.19.4, March 2026)
+## Current State (v0.19.5, March 2026)
 
 | Metric | Value |
 |--------|-------|
@@ -14,18 +14,20 @@
 | All examples | ~272 total (~81% compile) |
 | Stdlib modules | 10 |
 | Z80 emulator coverage | 100% (1335/1335 FUSE tests) |
-| Peephole patterns | 35+ |
-| Active backends | 4 (Z80, 6502, C, Crystal) |
+| Peephole patterns | 67 (asm) + MIR passes |
+| Active backends | 7 (Z80, 6502, C, Crystal, i8080, GB, LLVM) |
 | Parser | Participle (native Go, zero deps) |
-| Toolchain binaries | 9 |
+| Toolchain binaries | 10 (mz, mza, mze, mzx, mzd, mzr, mzrun, mzv, mztap, mzlsp) |
 
 ### What's Working
 - Core language: types, functions, structs, enums, arrays, control flow
 - Advanced features: lambdas, TSMC, CTIE, UFCS, operator overloading, string interpolation
-- Iterator chains: map/filter/forEach/take/skip + lambdas via DJNZ
+- Iterator chains: map/filter/forEach/take/skip + lambdas via DJNZ (11/11 E2E, 26T/elem)
 - Metafunctions: @define, @print, @if/@elif/@else, @error
 - Multi-target: ZX Spectrum, CP/M, Agon Light 2
-- Full toolchain: MZC, MZA, MZE, MZX, MZD, MZR, MZRUN
+- Full toolchain: MZC, MZA, MZE, MZX, MZD, MZR, MZRUN, MZLSP
+- **VSCode extension** (v0.5.0): LSP server, full syntax highlighting, SLD source maps, DeZog debugging
+- **MIR**: 118 opcodes, 24 types, 13+ optimizer passes, standalone VM
 
 ### Known Blockers
 - Register allocator: overwrites operands in while/for loops (same phys reg for two live virtuals)
@@ -172,14 +174,25 @@ Extract duplicated code between headless emulator and ZX Spectrum emulator:
 
 **Goal**: Professional tooling for real-world development.
 
-### LSP Server
-- [ ] Autocomplete for types, functions, struct fields
-- [ ] Go-to-definition
-- [ ] Error diagnostics with file:line:col
-- [ ] Hover information for types and functions
+### LSP Server (mzlsp) — DONE (basic), incremental improvements
+- [x] Error diagnostics with file:line:col (parse + semantic)
+- [x] Go-to-definition (functions, structs, enums, variables)
+- [x] Hover information for types and functions
+- [x] Completion (keywords, types, metafunctions, symbols, iterator methods after `.`)
+- [ ] Incremental document sync (TextDocumentSync=2)
+- [ ] Workspace-wide symbol search
+- [ ] Signature help on function calls
 
-### DAP Debugger
-- [ ] Source-level debugging via MZE
+### Source-Level Debugging (DeZog) — DONE (basic)
+- [x] SLD source map generation (`--emit-sld` flag)
+- [x] Source position propagation (IR → Z80 assembly → SLD)
+- [x] VSCode DeZog integration (one-click F5 debugging)
+- [x] Function names in call stack (SLD label entries)
+- [ ] Handle `asm {}` blocks in SLD (map to asm keyword line)
+- [ ] Test with real ZX Spectrum emulator integration
+
+### DAP Debugger (future — beyond DeZog)
+- [ ] Native DAP server for MZE-based debugging
 - [ ] Breakpoints, step execution
 - [ ] Variable inspection
 - [ ] Integration with VS Code
@@ -247,6 +260,9 @@ Extract duplicated code between headless emulator and ZX Spectrum emulator:
 - [Agon eZ80 Plan](Agon_eZ80_Plan.md) — Agon Light 2 platform support
 - [Backend Harmonization Plan](../minzc/pkg/codegen/BACKEND_HARMONIZATION_PLAN.md) — multi-backend consistency
 - [Native Parser Plan](NATIVE_PARSER_PLAN.md) — Participle parser technical reference (completed)
+- [MIR Architecture Guide](MIR_Architecture_Guide.md) — full opcode reference, type system, optimization pipeline
+- [MIR vs Other 8-bit IRs](MIR_vs_Other_8bit_IRs.md) — comparison with SDCC iCode, cc65, z88dk, QBE, ACK
+- [VSCode Tooling Guide](VSCode_Tooling_Guide.md) — extension, LSP, SLD debugging
 
 ### Architecture Decision Records
 - `docs/adr/ADR-0006` — Address widening
