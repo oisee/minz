@@ -1,0 +1,50 @@
+
+module strings;
+
+// String length with character validation
+export fun strlen_custom(str: *u8) -> u16 {
+    let len: u16 = 0;
+    let ptr: *u8 = str;
+    
+    while (*ptr != 0) {
+        if (is_printable(*ptr)) {
+            len = increment(len);
+        }
+        ptr = advance_ptr(ptr);
+    }
+    
+    return len;
+}
+
+fun is_printable(ch: u8) -> bool {
+    return ch >= 32 && ch < 127;
+}
+
+fun increment(val: u16) -> u16 {
+    return val + 1;
+}
+
+fun advance_ptr(ptr: *u8) -> *u8 {
+    return ptr + 1;
+}
+
+// Test string at 0x9000
+export fun main() -> u16 {
+    // Initialize test string
+    let test_str: *u8 = 0x9000 as *u8;
+    *test_str = 'H' as u8;
+    *(test_str + 1) = 'e' as u8;
+    *(test_str + 2) = 'l' as u8;
+    *(test_str + 3) = 'l' as u8;
+    *(test_str + 4) = 'o' as u8;
+    *(test_str + 5) = ' ' as u8;
+    *(test_str + 6) = 'W' as u8;
+    *(test_str + 7) = 'o' as u8;
+    *(test_str + 8) = 'r' as u8;
+    *(test_str + 9) = 'l' as u8;
+    *(test_str + 10) = 'd' as u8;
+    *(test_str + 11) = '!' as u8;
+    *(test_str + 12) = 0;
+    
+    return strlen_custom(test_str);
+}

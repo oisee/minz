@@ -1,0 +1,15 @@
+
+module fibonacci;
+
+// Recursive Fibonacci - heavy function call overhead
+export fun fib_recursive(n: u16) -> u16 {
+    if (n <= 1) {
+        return n;
+    }
+    return fib_recursive(n - 1) + fib_recursive(n - 2);
+}
+
+// Entry point
+export fun main() -> u16 {
+    return fib_recursive(10);
+}

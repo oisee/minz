@@ -1,0 +1,63 @@
+
+module sorting;
+
+// Bubble sort with comparison and swap functions
+export fun bubble_sort(arr: *u16, size: u16) -> u16 {
+    let i: u16 = 0;
+    let swaps: u16 = 0;
+    
+    while (i < size - 1) {
+        let j: u16 = 0;
+        let limit: u16 = calc_limit(size, i);
+        
+        while (j < limit) {
+            if (should_swap(arr, j)) {
+                swap_elements(arr, j);
+                swaps = increment(swaps);
+            }
+            j = next_index(j);
+        }
+        i = next_index(i);
+    }
+    
+    return swaps; // Return number of swaps performed
+}
+
+fun calc_limit(size: u16, i: u16) -> u16 {
+    return size - i - 1;
+}
+
+fun should_swap(arr: *u16, index: u16) -> bool {
+    return get_element(arr, index) > get_element(arr, index + 1);
+}
+
+fun get_element(arr: *u16, index: u16) -> u16 {
+    return *(arr + index);
+}
+
+fun swap_elements(arr: *u16, index: u16) -> void {
+    let temp: u16 = get_element(arr, index);
+    set_element(arr, index, get_element(arr, index + 1));
+    set_element(arr, index + 1, temp);
+}
+
+fun set_element(arr: *u16, index: u16, value: u16) -> void {
+    *(arr + index) = value;
+}
+
+fun increment(x: u16) -> u16 {
+    return x + 1;
+}
+
+fun next_index(i: u16) -> u16 {
+    return i + 1;
+}
+
+export fun main() -> u16 {
+    // Initialize unsorted array
+    let arr: *u16 = 0x9000 as *u16;
+    *arr = 8; *(arr + 1) = 3; *(arr + 2) = 5; *(arr + 3) = 1;
+    *(arr + 4) = 9; *(arr + 5) = 2; *(arr + 6) = 7; *(arr + 7) = 4;
+    
+    return bubble_sort(arr, 8);
+}

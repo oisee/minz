@@ -1,0 +1,40 @@
+
+module arrays;
+
+// Array sum with element processing
+export fun array_sum(arr: *u16, size: u16) -> u16 {
+    let sum: u16 = 0;
+    let i: u16 = 0;
+    
+    while (i < size) {
+        let val: u16 = get_element(arr, i);
+        sum = add_to_sum(sum, val);
+        i = next_index(i);
+    }
+    
+    return sum;
+}
+
+fun get_element(arr: *u16, index: u16) -> u16 {
+    return *(arr + index);
+}
+
+fun add_to_sum(sum: u16, val: u16) -> u16 {
+    return sum + val;
+}
+
+fun next_index(i: u16) -> u16 {
+    return i + 1;
+}
+
+export fun main() -> u16 {
+    // Initialize test array
+    let arr: *u16 = 0x9000 as *u16;
+    let i: u16 = 0;
+    while (i < 10) {
+        *(arr + i) = i + 1;
+        i = i + 1;
+    }
+    
+    return array_sum(arr, 10);
+}
