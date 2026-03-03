@@ -2,6 +2,7 @@
 
 ### Hot off the press
 
+- **[MIR Analysis: Multi-Language IR?](reports/2026-03-02-020-MIR_Analysis_Multi_Language_IR_Feasibility.md)** — 118 opcodes, 24 types, 13+ optimizer passes. Can it compile PL/M and Ada? ([architecture guide](docs/MIR_Architecture_Guide.md))
 - **[VSCode Tooling Sprint](reports/2026-03-02-019-VSCode_Tooling_Sprint_Report.md)** — LSP server, full syntax highlighting, SLD source maps, DeZog debugging, 9 compile commands ([guide](docs/VSCode_Tooling_Guide.md))
 - **[Register Allocator Overhaul](reports/2026-03-02-018-Register_Allocator_Overhaul_Results.md)** — 7.8x iterator speedup (207T → 26T per element), full MinZ→asm pipeline walkthrough
 - **[Iterator Reality Check](reports/2026-03-02-017-Iterator_Reality_Check.md)** — honest status: 11/11 E2E correct, before/after the overhaul
