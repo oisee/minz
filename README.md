@@ -2,6 +2,8 @@
 
 ### Hot off the press
 
+- **[Honest Assessment — Code-Verified Status](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md)** — Every claim verified by live test runs: 75% compile rate, 1 production backend, what actually works vs. what doesn't
+- **[MIR Backend Test Suite](reports/2026-03-04-023-MIR_Backend_Test_Suite.md)** — 11 handcrafted .mir programs, full MIR→Z80→binary→emulate pipeline validation (9/11 pass)
 - **[VSCode: Edit, Compile & Run in One Click](reports/2026-03-04-022-VSCode_Tooling_And_Codegen_Fixes.md)** — Cmd+Alt+R compiles and runs MinZ in the terminal. 3 SMC codegen fixes, loop rerolling in action, 25% binary size savings. Try it: `examples/cpm/playground.minz`
 - **[MIR Language Compatibility Deep Dive](reports/2026-03-03-021-MIR_Language_Compatibility_Deep_Dive.md)** — why PL/M scores 9/10 and Ada 4/10, what to fix, MIR vs SDCC/cc65/z88dk/QBE/ACK ([comparison](docs/MIR_vs_Other_8bit_IRs.md))
 - **[MIR Analysis: Multi-Language IR?](reports/2026-03-02-020-MIR_Analysis_Multi_Language_IR_Feasibility.md)** — 118 opcodes, 24 types, 13+ optimizer passes. Can it compile PL/M and Ada? ([architecture guide](docs/MIR_Architecture_Guide.md))
@@ -92,8 +94,8 @@ No external dependencies. Pure Go.
 mz program.minz -b z80 --target spectrum -o prog.a80   # ZX Spectrum
 mz program.minz -b z80 --target cpm -o prog.a80        # CP/M
 mz program.minz -b z80 --target agon -o prog.a80       # Agon Light 2
-mz program.minz -b crystal -o prog.cr                  # Crystal (testing)
-mz program.minz -b c -o prog.c                         # C99
+mz program.minz -b c -o prog.c                         # C99 (partial — simple programs only)
+mz program.minz -b crystal -o prog.cr                  # Crystal (stub — not functional)
 ```
 
 ---
@@ -330,16 +332,21 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 | **Agon Light 2** | Working | `.bin` | eZ80/ADL mode, MOS + VDP stdlib, structural testing only |
 | **MSX** | Compiles | varies | Target config exists, limited testing |
 
-### Other Backends
+### Other Backends (verified 2026-03-04)
 
 | Backend | Status | Notes |
 |---------|--------|-------|
 | **Z80** | Production | Full-featured, optimized, 5500+ lines |
-| **6502** | Basic | Generates assembly, limited testing |
-| **C99** | Working | Useful for algorithm verification |
-| **Crystal** | Working | Good for rapid testing |
+| **C99** | Partial | Produced real binaries; variable redeclaration bug in scoped locals |
+| **M68k** | Untested | Most complete non-Z80 (28 opcodes, real register allocator); never assembled |
+| **i8080** | Untested | Structurally correct (all-memory approach); never assembled |
+| **6502** | Broken | Arithmetic uses `$00` placeholder; never assembled |
+| **LLVM** | Broken | JumpIf fallthrough hardcoded, type errors; llc fails |
+| **WASM** | Broken | Label/jump emit as comments; WAT validation fails |
+| **Crystal** | Stub | Control flow emits comments, function args always empty |
+| **Game Boy** | Stub | Add, Sub, LoadVar, StoreVar all emit only comments |
 
-The Z80 backend is production-quality. C99 and Crystal are useful for testing and verification. 6502 generates code but needs more work.
+Only the Z80 backend is production-quality. The C backend can produce working binaries for simple programs. All others are experimental — they generate text output but have never produced working executables. See [Report #025](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md) for the full audit.
 
 ---
 
@@ -367,7 +374,8 @@ Source Code                          Running Program
 | **mzx** | ZX Spectrum emulator (T-state accurate, AY sound, profiler, .sna/.tap/.trd/.scl) | `mzx --snapshot game.sna` |
 | **mzd** | Z80 disassembler (IDA-like analysis, xrefs, ROM tables) | `mzd program.bin --org 0x8000` |
 | **mzrun** | Remote runner (DZRP protocol) | `mzrun program.minz --reset` |
-| **mzr** | Interactive REPL | `mzr` |
+| **mzv** | MIR VM runner (breakpoints, tracing, PNG export) | `mzv program.mir` |
+| ~~**mzr**~~ | ~~Interactive REPL~~ | ❌ Broken — compilation pipeline not wired |
 | **mzlsp** | LSP server (diagnostics, hover, goto-def, completion) | auto-started by VSCode extension |
 
 ### MZX — ZX Spectrum Emulator
@@ -496,7 +504,7 @@ minz/
       parser/            Participle-based parser
       semantic/          Type checking, analysis (~11K lines)
       ir/                Intermediate representation
-      codegen/           Z80, 6502, C, Crystal backends
+      codegen/           Z80 (production), C (partial), + 8 experimental backends
       optimizer/         MIR + peephole optimizers
       z80asm/            Z80 assembler engine (table-driven)
       spectrum/          ZX Spectrum emulation (ULA, AY, memory, ports)
@@ -532,20 +540,23 @@ MinZ is under active development. The Z80 backend is mature and produces working
 - DI+HALT lockup detection (`--warn-on-halt`)
 
 **What needs work:**
-- Complex programs with nested loops and heavy register pressure
-- Register allocator edge cases
-- Some optimizer passes can be too aggressive
-- Non-Z80 backends are basic
-- LSP server is new — hover/goto-def/completion work, but workspace-wide features are still TODO
+- Register allocator: stale HL tracking in loops causes wrong results (ADR-0006) — blocks complex programs
+- Feature test suite: 9/11 advanced feature tests fail
+- Non-Spectrum targets: Agon 0/3 examples compile, CP/M 3/4 fail (stdlib import resolution)
+- Non-Z80 backends: only C produces any working binaries; rest are stubs/broken
+- MZR REPL: broken — compilation pipeline not wired through semantic analysis
+- LSP server: hover/goto-def/completion work, workspace-wide features TODO
 
-**Metrics:**
-- ~73 core examples, ~272 total (including experimental)
-- ~90K lines of Go in the compiler + toolchain
-- 4 active backends: Z80 (production), 6502, C99, Crystal
-- 3 validated Z80 targets: Spectrum, CP/M, Agon Light 2
+**Metrics (verified 2026-03-04):**
+- 71/73 core examples compile (97%), 131/173 all examples (75%)
+- ~125K lines of Go in the compiler + toolchain
+- 1 production backend (Z80) + 1 partial (C) + 8 experimental/broken
+- Z80 targets: Spectrum (primary, tested), CP/M (mostly works), Agon Light 2 (structural only)
 - **1335/1335 FUSE Z80 tests pass** — gold-standard CPU verification including all undocumented opcodes
 - **87+ iterator tests** across 7 layers — 11/11 E2E hex-verified, all green (including fusion optimizer)
-- 10 toolchain binaries (including mzlsp), all pure Go, zero external dependencies
+- **9/11 MIR backend tests pass** — full MIR→Z80→binary→emulate pipeline validated
+- 20/20 Go test packages pass, 0 fail
+- 9 working toolchain binaries (mzr REPL is broken), all pure Go, zero external dependencies
 
 ---
 
