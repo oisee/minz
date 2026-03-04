@@ -58,7 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Compile on save for diagnostics
     vscode.workspace.onDidSaveTextDocument((document) => {
-        if (document.languageId === 'minz' || document.fileName.endsWith('.minz') || document.fileName.endsWith('.mz')) {
+        if (document.languageId === 'minz' || document.languageId === 'mir' || document.fileName.endsWith('.minz') || document.fileName.endsWith('.mz') || document.fileName.endsWith('.mir')) {
             compileForDiagnostics(document);
         }
     });
@@ -214,9 +214,10 @@ function getMinZContext(): { filePath: string; config: vscode.WorkspaceConfigura
     }
 
     const isMinzFile = activeEditor.document.fileName.endsWith('.minz') ||
-                       activeEditor.document.fileName.endsWith('.mz');
-    if (!isMinzFile && activeEditor.document.languageId !== 'minz') {
-        vscode.window.showErrorMessage('No MinZ file is currently open.');
+                       activeEditor.document.fileName.endsWith('.mz') ||
+                       activeEditor.document.fileName.endsWith('.mir');
+    if (!isMinzFile && activeEditor.document.languageId !== 'minz' && activeEditor.document.languageId !== 'mir') {
+        vscode.window.showErrorMessage('No MinZ or MIR file is currently open.');
         return null;
     }
 
@@ -546,7 +547,7 @@ class MinZDebugConfigProvider implements vscode.DebugConfigurationProvider {
         // If no config, provide a default
         if (!config.type) {
             const activeEditor = vscode.window.activeTextEditor;
-            if (!activeEditor || (!activeEditor.document.fileName.endsWith('.minz') && !activeEditor.document.fileName.endsWith('.mz'))) {
+            if (!activeEditor || (!activeEditor.document.fileName.endsWith('.minz') && !activeEditor.document.fileName.endsWith('.mz') && !activeEditor.document.fileName.endsWith('.mir'))) {
                 return undefined;
             }
 
