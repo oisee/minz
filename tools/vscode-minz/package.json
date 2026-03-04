@@ -2,7 +2,7 @@
   "name": "minz-language-support",
   "displayName": "MinZ Language Support",
   "description": "Language support for MinZ - a systems programming language for Z80",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "publisher": "minz-lang",
   "repository": {
     "type": "git",
