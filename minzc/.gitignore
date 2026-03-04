@@ -1,5 +1,7 @@
 *.a80
 *.mir
+# But keep handcrafted MIR test programs
+!tests/mir_backend/*.mir
 
 # Built binaries (platform-specific, use `make && make install-user` instead)
 /mz

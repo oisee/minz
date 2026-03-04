@@ -1,0 +1,32 @@
+; MIR Backend Test: Branching & Control Flow
+; Tests: jump, jump_if_not with conditions
+; Expected output: ABCOK
+
+Function main() -> void
+  Instructions:
+      ; Always print 'A'
+      0: r1 = 65
+      1: PRINT r1
+      ; if 1 != 0, print 'B'
+      2: r2 = 1
+      3: jump_if_not r2, skip_b
+      4: r3 = 66
+      5: PRINT r3
+      6: skip_b:
+      ; if 0 != 0 (false), skip 'X', else print 'C'
+      7: r4 = 0
+      8: jump_if_not r4, print_c
+      9: r5 = 88
+      10: PRINT r5
+      11: jump done_c
+      12: print_c:
+      13: r6 = 67
+      14: PRINT r6
+      15: done_c:
+      ; Print "OK"
+      16: r7 = 79
+      17: PRINT r7
+      18: r8 = 75
+      19: PRINT r8
+      20: return
+

@@ -1,0 +1,61 @@
+; MIR Backend Test: Comparisons with Branching
+; Tests: eq, ne, lt, gt via conditional branches
+; Expected output: YNYNOK
+
+Function main() -> void
+  Instructions:
+      ; EQ: 5 == 5 -> true -> 'Y'
+      0: r1 = 5
+      1: r2 = 5
+      2: r3 = r1 == r2
+      3: jump_if_not r3, eq_no
+      4: r4 = 89
+      5: PRINT r4
+      6: jump eq_done
+      7: eq_no:
+      8: r5 = 78
+      9: PRINT r5
+      10: eq_done:
+      ; NE: 5 != 5 -> false -> 'N'
+      11: r6 = 5
+      12: r7 = 5
+      13: r8 = r6 != r7
+      14: jump_if_not r8, ne_no
+      15: r9 = 89
+      16: PRINT r9
+      17: jump ne_done
+      18: ne_no:
+      19: r10 = 78
+      20: PRINT r10
+      21: ne_done:
+      ; LT: 3 < 7 -> true -> 'Y'
+      22: r11 = 3
+      23: r12 = 7
+      24: r13 = r11 < r12
+      25: jump_if_not r13, lt_no
+      26: r14 = 89
+      27: PRINT r14
+      28: jump lt_done
+      29: lt_no:
+      30: r15 = 78
+      31: PRINT r15
+      32: lt_done:
+      ; GT: 3 > 7 -> false -> 'N'
+      33: r16 = 3
+      34: r17 = 7
+      35: r18 = r16 > r17
+      36: jump_if_not r18, gt_no
+      37: r19 = 89
+      38: PRINT r19
+      39: jump gt_done
+      40: gt_no:
+      41: r20 = 78
+      42: PRINT r20
+      43: gt_done:
+      ; Print "OK"
+      44: r21 = 79
+      45: PRINT r21
+      46: r22 = 75
+      47: PRINT r22
+      48: return
+

@@ -1,0 +1,31 @@
+; MIR Backend Test: Countdown Loop
+; Tests: decrementing loop from 5 to 1
+; Expected output: 54321OK
+
+Function main() -> void
+  Instructions:
+      ; counter = 5 (r1)
+      0: r1 = 5
+      1: countdown:
+      ; if counter == 0, exit
+      2: r2 = 0
+      3: r3 = r1 == r2
+      4: jump_if_not r3, not_zero
+      5: jump done
+      6: not_zero:
+      ; print digit: counter + '0'
+      7: r4 = 48
+      8: r5 = r1 + r4
+      9: PRINT r5
+      ; counter = counter - 1
+      10: r6 = 1
+      11: r1 = r1 - r6
+      12: jump countdown
+      13: done:
+      ; Print "OK"
+      14: r7 = 79
+      15: PRINT r7
+      16: r8 = 75
+      17: PRINT r8
+      18: return
+

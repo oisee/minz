@@ -45,6 +45,17 @@
           "light": "./icons/minz-light.svg",
           "dark": "./icons/minz-dark.svg"
         }
+      },
+      {
+        "id": "mir",
+        "aliases": [
+          "MIR",
+          "MinZ IR"
+        ],
+        "extensions": [
+          ".mir"
+        ],
+        "configuration": "./mir-language-configuration.json"
       }
     ],
     "grammars": [
@@ -52,6 +63,11 @@
         "language": "minz",
         "scopeName": "source.minz",
         "path": "./syntaxes/minz.tmLanguage.json"
+      },
+      {
+        "language": "mir",
+        "scopeName": "source.mir",
+        "path": "./syntaxes/mir.tmLanguage.json"
       }
     ],
     "snippets": [

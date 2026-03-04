@@ -1,0 +1,61 @@
+; MIR Backend Test: All Comparison Operators
+; Tests: le, ge operators
+; Expected output: YYNNOK
+
+Function main() -> void
+  Instructions:
+      ; LE: 3 <= 5 -> true -> 'Y'
+      0: r1 = 3
+      1: r2 = 5
+      2: r3 = r1 <= r2
+      3: jump_if_not r3, le_no
+      4: r4 = 89
+      5: PRINT r4
+      6: jump le_done
+      7: le_no:
+      8: r5 = 78
+      9: PRINT r5
+      10: le_done:
+      ; GE: 5 >= 5 -> true -> 'Y'
+      11: r6 = 5
+      12: r7 = 5
+      13: r8 = r6 >= r7
+      14: jump_if_not r8, ge_no
+      15: r9 = 89
+      16: PRINT r9
+      17: jump ge_done
+      18: ge_no:
+      19: r10 = 78
+      20: PRINT r10
+      21: ge_done:
+      ; LE: 5 <= 3 -> false -> 'N'
+      22: r11 = 5
+      23: r12 = 3
+      24: r13 = r11 <= r12
+      25: jump_if_not r13, le2_no
+      26: r14 = 89
+      27: PRINT r14
+      28: jump le2_done
+      29: le2_no:
+      30: r15 = 78
+      31: PRINT r15
+      32: le2_done:
+      ; GE: 3 >= 5 -> false -> 'N'
+      33: r16 = 3
+      34: r17 = 5
+      35: r18 = r16 >= r17
+      36: jump_if_not r18, ge2_no
+      37: r19 = 89
+      38: PRINT r19
+      39: jump ge2_done
+      40: ge2_no:
+      41: r20 = 78
+      42: PRINT r20
+      43: ge2_done:
+      ; Print "OK"
+      44: r21 = 79
+      45: PRINT r21
+      46: r22 = 75
+      47: PRINT r22
+      48: return
+

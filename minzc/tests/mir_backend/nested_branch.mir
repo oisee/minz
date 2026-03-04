@@ -1,0 +1,43 @@
+; MIR Backend Test: Nested Branches
+; Tests: if-else inside if-else
+; Expected output: BDOK
+
+Function main() -> void
+  Instructions:
+      ; outer if: 5 > 3 -> true
+      0: r1 = 5
+      1: r2 = 3
+      2: r3 = r1 > r2
+      3: jump_if_not r3, outer_else
+      ; inner if: 2 > 4 -> false
+      4: r4 = 2
+      5: r5 = 4
+      6: r6 = r4 > r5
+      7: jump_if_not r6, inner_else
+      8: r7 = 65
+      9: PRINT r7
+      10: jump inner_done
+      11: inner_else:
+      12: r8 = 66
+      13: PRINT r8
+      14: inner_done:
+      15: jump outer_done
+      16: outer_else:
+      17: r9 = 67
+      18: PRINT r9
+      19: outer_done:
+      ; second if: 1 == 1 -> true
+      20: r10 = 1
+      21: r11 = 1
+      22: r12 = r10 == r11
+      23: jump_if_not r12, skip_d
+      24: r13 = 68
+      25: PRINT r13
+      26: skip_d:
+      ; Print "OK"
+      27: r14 = 79
+      28: PRINT r14
+      29: r15 = 75
+      30: PRINT r15
+      31: return
+

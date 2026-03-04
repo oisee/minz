@@ -1,0 +1,39 @@
+; MIR Backend Test: Arithmetic & Logic (basic)
+; Tests: add, sub, mul on u8
+; Expected output: 7Fa3OK
+
+Function main() -> void
+  Instructions:
+      ; ADD: 3 + 4 = 7, print '7' (48+7=55)
+      0: r1 = 3
+      1: r2 = 4
+      2: r3 = r1 + r2
+      3: r4 = 48
+      4: r5 = r3 + r4
+      5: PRINT r5
+      ; SUB result as hex: 15 + 55 = 70 = 'F'
+      6: r6 = 15
+      7: r7 = 55
+      8: r8 = r6 + r7
+      9: PRINT r8
+      ; MUL: 3*5=15, 15+82=97='a'
+      10: r9 = 3
+      11: r10 = 5
+      12: r11 = r9 * r10
+      13: r12 = 82
+      14: r13 = r11 + r12
+      15: PRINT r13
+      ; SUB: 9-6=3, 3+48=51='3'
+      16: r14 = 9
+      17: r15 = 6
+      18: r16 = r14 - r15
+      19: r17 = 48
+      20: r18 = r16 + r17
+      21: PRINT r18
+      ; Print "OK"
+      22: r19 = 79
+      23: PRINT r19
+      24: r20 = 75
+      25: PRINT r20
+      26: return
+

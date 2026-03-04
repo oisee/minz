@@ -1,0 +1,26 @@
+; MIR Backend Test: Variables via Virtual Registers
+; Tests: values persist in memory-backed virtual registers
+; Expected output: ABOK
+;
+; Virtual registers r1..rN are memory-backed at $F000+.
+; Values written to a register persist and can be read back later.
+
+Function main() -> void
+  Instructions:
+      ; Store 'A' in r1 and 'B' in r2
+      0: r1 = 65
+      1: r2 = 66
+      ; Overwrite working registers with other values
+      2: r3 = 0
+      3: r4 = 0
+      ; Print r1 (should still be 'A' = 65 from memory)
+      4: PRINT r1
+      ; Print r2 (should still be 'B' = 66 from memory)
+      5: PRINT r2
+      ; Print "OK"
+      6: r5 = 79
+      7: PRINT r5
+      8: r6 = 75
+      9: PRINT r6
+      10: return
+

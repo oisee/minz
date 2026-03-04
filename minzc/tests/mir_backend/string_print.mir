@@ -1,0 +1,26 @@
+; MIR Backend Test: String Print via Putchar Loop
+; Tests: printing a string one character at a time
+; Expected output: Hello!OK
+
+Function main() -> void
+  Instructions:
+      ; Print "Hello!" character by character
+      0: r1 = 72
+      1: PRINT r1
+      2: r2 = 101
+      3: PRINT r2
+      4: r3 = 108
+      5: PRINT r3
+      6: r4 = 108
+      7: PRINT r4
+      8: r5 = 111
+      9: PRINT r5
+      10: r6 = 33
+      11: PRINT r6
+      ; Print "OK"
+      12: r7 = 79
+      13: PRINT r7
+      14: r8 = 75
+      15: PRINT r8
+      16: return
+

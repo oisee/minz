@@ -1,0 +1,29 @@
+; MIR Backend Test: While-style Loop
+; Tests: loop counting 0..9, printing each digit
+; Expected output: 0123456789OK
+
+Function main() -> void
+  Instructions:
+      ; i = 0 (r1 is our counter)
+      0: r1 = 0
+      ; while i < 10
+      1: loop_start:
+      2: r2 = 10
+      3: r3 = r1 < r2
+      4: jump_if_not r3, loop_end
+      ; print digit: i + '0'
+      5: r4 = 48
+      6: r5 = r1 + r4
+      7: PRINT r5
+      ; i = i + 1
+      8: r6 = 1
+      9: r1 = r1 + r6
+      10: jump loop_start
+      11: loop_end:
+      ; Print "OK"
+      12: r7 = 79
+      13: PRINT r7
+      14: r8 = 75
+      15: PRINT r8
+      16: return
+

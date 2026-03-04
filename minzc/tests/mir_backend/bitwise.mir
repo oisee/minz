@@ -1,0 +1,34 @@
+; MIR Backend Test: Bitwise Operations
+; Tests: and, or, xor
+; Expected output: 214OK
+
+Function main() -> void
+  Instructions:
+      ; AND: 3 & 6 = 2, print '2' (48+2=50)
+      0: r1 = 3
+      1: r2 = 6
+      2: r3 = r1 & r2
+      3: r4 = 48
+      4: r5 = r3 + r4
+      5: PRINT r5
+      ; OR: 1 | 0 = 1, print '1' (48+1=49)
+      6: r6 = 1
+      7: r7 = 0
+      8: r8 = r6 | r7
+      9: r9 = 48
+      10: r10 = r8 + r9
+      11: PRINT r10
+      ; XOR: 7 ^ 3 = 4, print '4' (48+4=52)
+      12: r11 = 7
+      13: r12 = 3
+      14: r13 = r11 ^ r12
+      15: r14 = 48
+      16: r15 = r13 + r14
+      17: PRINT r15
+      ; Print "OK"
+      18: r16 = 79
+      19: PRINT r16
+      20: r17 = 75
+      21: PRINT r17
+      22: return
+

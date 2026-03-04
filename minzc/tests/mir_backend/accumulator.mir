@@ -1,0 +1,52 @@
+; MIR Backend Test: Accumulator Pattern
+; Tests: running sum in a loop (common PL/M pattern)
+; sum = 1+2+3+4+5 = 15, print as 'F' (15+55=70='F')
+; sum = 1+2+3 = 6, print '6' (6+48=54)
+; Expected output: F6OK
+
+Function main() -> void
+  Instructions:
+      ; sum=0 (r1), i=1 (r2)
+      0: r1 = 0
+      1: r2 = 1
+      ; while i <= 5: sum += i; i++
+      2: acc_loop:
+      3: r3 = 5
+      4: r4 = r2 > r3
+      5: jump_if_not r4, acc_body
+      6: jump acc_done
+      7: acc_body:
+      8: r1 = r1 + r2
+      9: r5 = 1
+      10: r2 = r2 + r5
+      11: jump acc_loop
+      12: acc_done:
+      ; sum=15, print 'F': 15+55=70
+      13: r6 = 55
+      14: r7 = r1 + r6
+      15: PRINT r7
+      ; Second: sum of 1+2+3 = 6
+      16: r1 = 0
+      17: r2 = 1
+      18: acc2_loop:
+      19: r8 = 3
+      20: r9 = r2 > r8
+      21: jump_if_not r9, acc2_body
+      22: jump acc2_done
+      23: acc2_body:
+      24: r1 = r1 + r2
+      25: r10 = 1
+      26: r2 = r2 + r10
+      27: jump acc2_loop
+      28: acc2_done:
+      ; sum=6, print '6': 6+48=54
+      29: r11 = 48
+      30: r12 = r1 + r11
+      31: PRINT r12
+      ; Print "OK"
+      32: r13 = 79
+      33: PRINT r13
+      34: r14 = 75
+      35: PRINT r14
+      36: return
+
