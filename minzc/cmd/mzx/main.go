@@ -1155,12 +1155,13 @@ AUTOMATION:
                          Delay syntax: {N} = wait N frames
                          Example: --type "{50}R" (wait 50 frames, press R)
   --console              Mirror BASIC output (RST $10) to stdout
-  --console-io           Bare-metal console on port $23 (no ROM needed)
+  --console-io           Bare-metal console on port $23 + stderr on $25
   --console-to-port N    Map specific port to stdin/stdout ($23, 0xFF, 'ay')
-                         Enables headless mode. Protocol:
-                           OUT ($23),A    → send byte to stdout
+                         Also registers port $25 → stderr. Protocol:
+                           OUT ($23),A    → send byte to host stdout
                            IN A,($23)     → $00=no data, $80|byte=ready
-                           Z80: OR A / JR Z,poll / AND $7F → get byte
+                           OUT ($25),A    → send byte to host stderr
+                           DI / HALT      → exit with A as process exit code
 
 HEADLESS CAPTURE:
   --screenshot FILE.png  Save one screenshot and exit
@@ -1191,7 +1192,8 @@ AUDIO:
   --psg FILE             Auto-capture AY writes (.psg = classic, .psg2 = compact bitmask)
 
 PROFILING:
-  --profile FILE.json    Export execution/memory/IO heatmap (exec, read, write, io)
+  --profile FILE.json    Export heatmap: exec, read, write, stack push/pop,
+                         I/O, memory snapshot at hot addresses, stack depth
   --trace FILE.jsonl     Export basic-block execution trace (jumps, IO events)
   --trace-frames S:E     Limit profiling/trace to frame range (e.g. 100:200)
 

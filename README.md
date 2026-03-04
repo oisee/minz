@@ -2,6 +2,7 @@
 
 ### Hot off the press
 
+- **v0.20.1: Profiler + Emulator upgrades** — 7-channel profiler (exec/read/write/stack push/pop/IO + memory snapshot), stderr port $25, DI+HALT exit with A register as process exit code. Stack depth tracking via SP-delta detection.
 - **[Honest Assessment — Code-Verified Status](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md)** — Every claim verified by live test runs: 75% compile rate, 1 production backend, what actually works vs. what doesn't
 - **[MIR Backend Test Suite](reports/2026-03-04-023-MIR_Backend_Test_Suite.md)** — 11 handcrafted .mir programs, full MIR→Z80→binary→emulate pipeline validation (9/11 pass)
 - **[VSCode: Edit, Compile & Run in One Click](reports/2026-03-04-022-VSCode_Tooling_And_Codegen_Fixes.md)** — Cmd+Alt+R compiles and runs MinZ in the terminal. 3 SMC codegen fixes, loop rerolling in action, 25% binary size savings. Try it: `examples/cpm/playground.minz`
@@ -19,7 +20,7 @@
 
 ### Modern Programming Language for Vintage Hardware
 
-[![Version](https://img.shields.io/badge/version-0.19.5-blue)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.20.1-blue)](https://github.com/oisee/minz/releases)
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
 **Write modern code. Run it on Z80, eZ80, 6502, and more.**
@@ -370,8 +371,8 @@ Source Code                          Running Program
 |------|---------|-------|
 | **mz** | MinZ compiler | `mz program.minz -o program.a80` |
 | **mza** | Z80 assembler (table-driven, all Z80 ops including undocumented, `[addr]` bracket syntax) | `mza program.a80 -o program.com` |
-| **mze** | Z80 emulator (1335/1335 FUSE tests) | `mze program.com -t cpm` |
-| **mzx** | ZX Spectrum emulator (T-state accurate, AY sound, profiler, .sna/.tap/.trd/.scl) | `mzx --snapshot game.sna` |
+| **mze** | Z80 emulator (1335/1335 FUSE tests, profiler, console I/O, stderr port) | `mze program.com -t cpm --console-io` |
+| **mzx** | ZX Spectrum emulator (T-state accurate, AY, profiler, .sna/.tap/.trd/.scl, console I/O) | `mzx --snapshot game.sna` |
 | **mzd** | Z80 disassembler (IDA-like analysis, xrefs, ROM tables) | `mzd program.bin --org 0x8000` |
 | **mzrun** | Remote runner (DZRP protocol) | `mzrun program.minz --reset` |
 | **mzv** | MIR VM runner (breakpoints, tracing, PNG export) | `mzv program.mir` |
@@ -392,9 +393,10 @@ mzx --model pentagon --rom 128-0.rom --rom1 trdos.rom --trd game.trd
 mzx --load code.bin@8000 --set PC=8000,SP=FFFF,DI
 mzx --run code.bin@8000   # shortcut for --load + --set PC + SP + DI
 
-# Bare-metal console I/O (no ROM needed, port $23)
+# Bare-metal console I/O (no ROM needed)
 mzx --run code.bin@8000 --frames DI:HALT --console-io
-# Z80: OUT ($23),A → stdout | IN A,($23) → $00=empty, $80|byte=data
+# OUT ($23),A → stdout | IN A,($23) → stdin | OUT ($25),A → stderr
+# DI + HALT → exit with A register as process exit code
 
 # Console I/O with custom port or AY serial
 mzx --run code.bin@8000 --frames DI:HALT --console-to-port '$FF'
@@ -407,15 +409,16 @@ mzx --snapshot game.sna --console
 mzx --snapshot game.sna --screenshot shot.png --frames 100
 mzx --tap game.tap --screenshot shot.png --screenshot-on-stable 3
 
-# Execution profiling and tracing
+# Execution profiling (7-channel heatmap + memory snapshot)
 mzx --snapshot demo.sna --profile heatmap.json --frames 500
+# Profile includes: exec, read, write, stack_push, stack_pop, io, mem_snapshot
 mzx --snapshot demo.sna --trace trace.jsonl --trace-frames 100:200
 
 # Debugging
 mzx --warn-on-halt --verbose --diag --snapshot game.sna
 ```
 
-Features: FrameMap ULA rendering, beeper + AY-3-8912 audio (AYumi), ULA contention, .sna/.tap/.trd/.scl format support, full TR-DOS function dispatch, execution profiler/tracer, conditional screenshots, DI+HALT detection, bare-metal console I/O (port $23 or AY serial), 48K ROM included.
+Features: FrameMap ULA rendering, beeper + AY-3-8912 audio (AYumi), ULA contention, .sna/.tap/.trd/.scl format support, full TR-DOS function dispatch, 7-channel execution profiler (exec/read/write/stack push/pop/IO + memory snapshot), basic-block tracer, conditional screenshots, T-state snapshots, DI+HALT exit with A as exit code, bare-metal console I/O (port $23 stdout, $25 stderr, or AY serial), 48K ROM included.
 
 ### Live Testing with DZRP
 

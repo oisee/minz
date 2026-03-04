@@ -38,23 +38,37 @@ var rootCmd = &cobra.Command{
 	Short: "MinZ Z80 Multi-Platform Emulator v2.0 - 100% Coverage!",
 	Long: `mze - MinZ Z80 Multi-Platform Emulator v2.0
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-NOW WITH 100% Z80 INSTRUCTION COVERAGE!
-
-Cycle-accurate Z80 emulator with complete instruction set support
+100% Z80 instruction coverage (1335/1335 FUSE tests)
 
 FEATURES:
   All 256+ Z80 opcodes including undocumented instructions
-  DJNZ, conditional jumps, memory operations - ALL WORKING!
-  Execution profiler with heatmaps and basic-block trace
-  Bidirectional console I/O on configurable ports
+  Execution profiler: exec/read/write/stack heatmaps + memory snapshot
+  Basic-block trace (JSONL)
+  Bidirectional console I/O: port $23 stdin/stdout, port $25 stderr
+  DI+HALT exit with A register as process exit code
   T-state breakpoints for precise debugging
-  Full game compatibility
-  TSMC performance verification ready
+  CP/M BDOS emulation, Agon MOS RST handlers
+
+CONSOLE I/O (--console-io):
+  OUT ($23), A   → send byte to host stdout
+  IN  A, ($23)   → $00 = no data, $80|byte = data ready
+  OUT ($25), A   → send byte to host stderr
+  DI / HALT      → exit with A as process exit code
+
+PROFILING (--profile FILE.json):
+  exec         instruction execution count per PC
+  read/write   memory access count per byte
+  stack_push   bytes written by PUSH/CALL/RST (SP-delta detection)
+  stack_pop    bytes read by POP/RET
+  io_read/write  port I/O counts
+  mem_snapshot   byte value at every hot address (final state)
+  stack_depth    lowest SP seen (deepest stack usage)
 
 SUPPORTED PLATFORMS (-t/--target):
   spectrum - ZX Spectrum (default)
   cpm - CP/M 2.2 BDOS
-  cpc - Amstrad CPC`,
+  cpc - Amstrad CPC
+  agon - Agon Light 2 (eZ80 MOS RST handlers)`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		binaryFile := args[0]
@@ -375,7 +389,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&debugMode, "debug", "d", false, "start DAP debug server on stdin/stdout")
 
 	// Profiler options
-	rootCmd.Flags().StringVar(&profilePath, "profile", "", "export execution heatmap to JSON file")
+	rootCmd.Flags().StringVar(&profilePath, "profile", "", "export heatmap JSON (exec/read/write/stack/io + memory snapshot)")
 	rootCmd.Flags().StringVar(&tracePath, "trace", "", "export basic-block trace to JSONL file")
 
 	// Console I/O options
