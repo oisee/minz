@@ -87,6 +87,22 @@ test: mz mza mze
 	@echo "Basic compilation test passed"
 	@rm -f test.a80 test.bin
 
+# Run MIR backend tests (MIR→Z80→emulate pipeline)
+.PHONY: test-mir
+test-mir:
+	@echo "=== MIR Backend Tests ==="
+	go test ./pkg/codegen/ -run "^TestMIRBackend$$" -v -timeout 120s -count=1 -vet=off
+	@echo ""
+	@echo "=== MIR Backend Tests Complete ==="
+
+# Run MIR backend benchmarks
+.PHONY: bench-mir
+bench-mir:
+	@echo "=== MIR Backend Benchmarks ==="
+	go test ./pkg/codegen/ -run "^$$" -bench "^BenchmarkMIRBackend$$" -timeout 120s -count=1 -vet=off -benchmem
+	@echo ""
+	@echo "=== MIR Backend Benchmarks Complete ==="
+
 # Run ALL Go unit tests across the entire toolchain
 .PHONY: test-all
 test-all:
@@ -106,6 +122,9 @@ test-all:
 	@echo ""
 	@echo "--- Parser ---"
 	go test ./pkg/parser/... -count=1 -v 2>&1 | tail -5
+	@echo ""
+	@echo "--- MIR Backend (codegen pipeline) ---"
+	go test ./pkg/codegen/ -run "^TestMIRBackend$$" -v -timeout 120s -count=1 -vet=off 2>&1 | tail -20
 	@echo ""
 	@echo "--- All remaining packages ---"
 	go test ./... -count=1 2>&1 | grep -E '(ok|FAIL|---)'
@@ -134,7 +153,9 @@ help:
 	@echo "  install-user  - Install to ~/.local/bin"
 	@echo "  clean         - Remove built executables"
 	@echo "  test          - Run basic compilation test"
-	@echo "  test-all      - Run ALL Go unit tests (emulator, assembler, spectrum, etc.)"
+	@echo "  test-mir      - Run MIR backend tests (MIR->Z80->emulate pipeline)"
+	@echo "  bench-mir     - Run MIR backend benchmarks"
+	@echo "  test-all      - Run ALL Go unit tests (emulator, assembler, spectrum, MIR, etc.)"
 	@echo "  help          - Show this help"
 	@echo ""
 	@echo "Examples:"

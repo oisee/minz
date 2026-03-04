@@ -144,6 +144,10 @@ Extract duplicated code between headless emulator and ZX Spectrum emulator:
 - [ ] ROM-friendly read-only array placement
 
 ### MIR Improvements
+- [x] **MIR backend test suite** — 11 handcrafted .mir programs, full pipeline validation (9/11 pass, 2 known bugs)
+- [x] MIR parser bug fixes: SplitN for `==`/`!=`/`<=`/`>=`, Locals→Instructions transition
+- [ ] Fix stale HL tracking in loops (ADR-0006) — blocks loop_while and accumulator tests
+- [ ] Add function call MIR tests (call, return with values)
 - [ ] Complete array/struct support in MIR interpreter
 - [ ] Expand `@minz[[[...]]]` compile-time execution capabilities
 
@@ -263,6 +267,7 @@ Extract duplicated code between headless emulator and ZX Spectrum emulator:
 - [MIR Architecture Guide](MIR_Architecture_Guide.md) — full opcode reference, type system, optimization pipeline
 - [MIR vs Other 8-bit IRs](MIR_vs_Other_8bit_IRs.md) — comparison with SDCC iCode, cc65, z88dk, QBE, ACK
 - [VSCode Tooling Guide](VSCode_Tooling_Guide.md) — extension, LSP, SLD debugging
+- [MIR Backend Test Suite Report](../reports/2026-03-04-023-MIR_Backend_Test_Suite.md) — 11 test programs, pipeline validation
 
 ### Architecture Decision Records
 - `docs/adr/ADR-0006` — Address widening

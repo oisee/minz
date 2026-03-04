@@ -128,6 +128,14 @@ func (p *mirParser) parseFunction() error {
 			if err := p.parseLocals(); err != nil {
 				return err
 			}
+			// parseLocals may have stopped at the Instructions: header
+			// (unscan is a no-op, so check p.line directly)
+			if strings.HasPrefix(p.line, "Instructions:") {
+				if err := p.parseInstructions(); err != nil {
+					return err
+				}
+				break
+			}
 			continue
 		}
 		
@@ -410,15 +418,16 @@ func (p *mirParser) parseInstruction(instStr string) (*ir.Instruction, error) {
 	inst := &ir.Instruction{}
 	
 	// Assignment format: r1 = ...
+	// Use SplitN to handle operators containing '=' (==, !=, <=, >=)
 	if strings.Contains(instStr, "=") {
-		parts := strings.Split(instStr, "=")
+		parts := strings.SplitN(instStr, "=", 2)
 		if len(parts) == 2 {
 			destStr := strings.TrimSpace(parts[0])
 			if strings.HasPrefix(destStr, "r") {
 				regNum, _ := strconv.Atoi(destStr[1:])
 				inst.Dest = ir.Register(regNum)
 			}
-			
+
 			rhs := strings.TrimSpace(parts[1])
 			return p.parseRHS(inst, rhs)
 		}
