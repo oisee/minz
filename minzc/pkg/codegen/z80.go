@@ -364,7 +364,6 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 		if fn == mainFn {
 			continue // Already generated
 		}
-		// fmt.Printf("DEBUG CodeGen: Function %s: IsSMCDefault=%v, IsSMCEnabled=%v, ptr=%p\n", fn.Name, fn.IsSMCDefault, fn.IsSMCEnabled, fn)
 		if err := g.generateFunction(fn); err != nil {
 			return err
 		}
@@ -762,7 +761,7 @@ func (g *Z80Generator) generateTrueSMCFunction(fn *ir.Function) error {
 	g.constantValues = make(map[ir.Register]int64)
 
 	// Generate function body
-	for _, inst := range fn.Instructions {
+	for i, inst := range fn.Instructions {
 		// Check if this is first use of a parameter (could be OpTrueSMCLoad already)
 		if (inst.Op == ir.OpLoadParam || inst.Op == ir.OpTrueSMCLoad) && inst.Symbol != "" {
 			paramName := inst.Symbol
@@ -773,7 +772,7 @@ func (g *Z80Generator) generateTrueSMCFunction(fn *ir.Function) error {
 			if strings.HasSuffix(paramName, "_imm0") {
 				paramName = strings.TrimSuffix(paramName, "_imm0")
 			}
-			
+
 			if !anchoredParams[paramName] {
 				// Generate anchor at first use
 				param := g.findParameter(fn, paramName)
@@ -784,15 +783,26 @@ func (g *Z80Generator) generateTrueSMCFunction(fn *ir.Function) error {
 				}
 			}
 		}
-		
+
+		// Check if this is the last instruction and it's a return - replace with patch points if needed
+		isLastInst := i == len(fn.Instructions)-1
+		if isLastInst && inst.Op == ir.OpReturn && fn.NeedsPatchPoints {
+			g.generatePatchableReturn(fn, inst)
+			continue
+		}
+
 		if err := g.generateSMCInstruction(inst); err != nil {
 			return err
 		}
 	}
-	
-	// Add RET if not already present
+
+	// Add RET/patchable return if not already present
 	if len(fn.Instructions) == 0 || fn.Instructions[len(fn.Instructions)-1].Op != ir.OpReturn {
-		g.emit("    RET")
+		if fn.NeedsPatchPoints {
+			g.generatePatchableReturn(fn, ir.Instruction{Op: ir.OpReturn})
+		} else {
+			g.emit("    RET")
+		}
 	}
 	
 	return nil
@@ -1454,16 +1464,17 @@ func (g *Z80Generator) generatePatchParam(inst *ir.Instruction) error {
 	g.emit("    ; Patch parameter %s = %d", inst.ParamName, inst.Imm)
 
 	// Load immediate value
+	cleanSymbol := g.sanitizeFunctionName(inst.Symbol)
 	if inst.Type != nil && inst.Type.Size() == 1 {
-		// 8-bit parameter
+		// 8-bit parameter — use the EQU label (_imm0) instead of label+1
 		g.emit("    LD A, %d               ; Parameter value", inst.Imm)
-		g.emit("    LD (%s_param_%s+1), A   ; Patch parameter immediate",
-			   inst.Symbol, inst.ParamName)
+		g.emit("    LD (%s_param_%s_imm0), A   ; Patch parameter immediate",
+			   cleanSymbol, inst.ParamName)
 	} else {
 		// 16-bit parameter
 		g.emit("    LD HL, %d              ; Parameter value", inst.Imm)
-		g.emit("    LD (%s_param_%s+1), HL  ; Patch parameter immediate",
-			   inst.Symbol, inst.ParamName)
+		g.emit("    LD (%s_param_%s_imm0), HL  ; Patch parameter immediate",
+			   cleanSymbol, inst.ParamName)
 	}
 
 	return nil
@@ -1513,13 +1524,13 @@ func (g *Z80Generator) generateSMCAnnotatedCall(inst ir.Instruction, smcAnn *ir.
 			if paramIdx >= 0 && paramIdx < len(inst.Args) {
 				argReg := inst.Args[paramIdx]
 				if ann.Size == 1 {
-					// 8-bit parameter
+					// 8-bit parameter — use the EQU label (_imm0) instead of label+1
 					g.loadToA(argReg)
-					g.emit("    LD (%s_param_%s+1), A   ; Patch %s", cleanName, ann.ParamName, ann.ParamName)
+					g.emit("    LD (%s_param_%s_imm0), A   ; Patch %s", cleanName, ann.ParamName, ann.ParamName)
 				} else {
-					// 16-bit parameter
+					// 16-bit parameter — use the EQU label (_imm0) instead of label+1
 					g.loadToHL(argReg)
-					g.emit("    LD (%s_param_%s+1), HL  ; Patch %s", cleanName, ann.ParamName, ann.ParamName)
+					g.emit("    LD (%s_param_%s_imm0), HL  ; Patch %s", cleanName, ann.ParamName, ann.ParamName)
 				}
 			}
 		}
@@ -2855,6 +2866,10 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 	case ir.OpCall:
 		// Check for SMC annotations (Option B: annotations + regular code)
 		if smcAnn := inst.GetSMCCallSite(); smcAnn != nil {
+			// Ensure target function has patch points for the labels we reference
+			if targetFunc := g.findFunction(smcAnn.Target); targetFunc != nil {
+				targetFunc.NeedsPatchPoints = true
+			}
 			// SMC annotated call - generate parameter patches and patchable call
 			g.generateSMCAnnotatedCall(inst, smcAnn)
 		} else {

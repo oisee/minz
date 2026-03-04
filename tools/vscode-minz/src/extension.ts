@@ -17,6 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Register commands
     context.subscriptions.push(
         vscode.commands.registerCommand('minz.compile', () => compileMinZ()),
+        vscode.commands.registerCommand('minz.compileAndRun', () => compileAndRun()),
         vscode.commands.registerCommand('minz.compileToIR', () => compileToIR()),
         vscode.commands.registerCommand('minz.compileToMIR', () => compileToMIR()),
         vscode.commands.registerCommand('minz.compileToASM', () => compileToASM()),
@@ -47,13 +48,6 @@ export function activate(context: vscode.ExtensionContext) {
             { open: '"', close: '"' },
             { open: "'", close: "'" },
             { open: '|', close: '|' }
-        ],
-        surroundingPairs: [
-            ['{', '}'],
-            ['[', ']'],
-            ['(', ')'],
-            ['"', '"'],
-            ["'", "'"]
         ]
     });
 
@@ -296,7 +290,7 @@ async function compileMinZ() {
     const enableOpt = ctx.config.get<boolean>('enableOptimizations', true);
 
     const args = [`"${ctx.filePath}"`, '-o', `"${outputFile}"`];
-    if (enableOpt) { args.push('-O'); }
+    if (!enableOpt) { args.push('--disable-optimize'); }
 
     const result = await runCompiler(ctx, args, 'Compiling to Z80 assembly');
     if (result.success) {
@@ -306,6 +300,53 @@ async function compileMinZ() {
     } else {
         vscode.window.showErrorMessage('Compilation failed — see MinZ output');
     }
+}
+
+async function compileAndRun() {
+    const ctx = getMinZContext();
+    if (!ctx) { return; }
+    await vscode.window.activeTextEditor?.document.save();
+    const outputDir = await ensureOutputDir(ctx);
+    const fileName = path.basename(ctx.filePath, path.extname(ctx.filePath));
+    const asmFile = path.join(outputDir, `${fileName}.a80`);
+    const comFile = path.join(outputDir, `${fileName}.com`);
+
+    // Step 1: Compile MinZ → ASM
+    const compileResult = await runCompiler(ctx, [`"${ctx.filePath}"`, '-t', 'cpm', '-o', `"${asmFile}"`], 'Step 1: Compile');
+    if (!compileResult.success) {
+        vscode.window.showErrorMessage('Compilation failed — see MinZ output');
+        return;
+    }
+
+    // Step 2: Assemble ASM → COM
+    const mzaPath = path.join(path.dirname(ctx.compilerPath), 'mza');
+    const fullAsmFile = path.resolve(ctx.workingDir, asmFile);
+    const fullComFile = path.resolve(ctx.workingDir, comFile);
+    const assembleCmd = `${mzaPath} -o "${fullComFile}" "${fullAsmFile}"`;
+    outputChannel.appendLine(`Step 2: Assemble: ${assembleCmd}`);
+
+    const assembleOk = await new Promise<boolean>((resolve) => {
+        exec(assembleCmd, { cwd: ctx.workingDir }, (error, stdout, stderr) => {
+            if (stdout) { outputChannel.appendLine(stdout); }
+            if (stderr) { outputChannel.appendLine(stderr); }
+            if (error) {
+                outputChannel.appendLine(`Assembly error: ${error.message}`);
+                resolve(false);
+            } else {
+                resolve(true);
+            }
+        });
+    });
+    if (!assembleOk) {
+        vscode.window.showErrorMessage('Assembly failed — see MinZ output');
+        return;
+    }
+
+    // Step 3: Run in emulator with console output
+    const mzePath = path.join(path.dirname(ctx.compilerPath), 'mze');
+    const terminal = vscode.window.createTerminal({ name: `MinZ: ${fileName}`, cwd: ctx.workingDir });
+    terminal.show();
+    terminal.sendText(`${mzePath} -t cpm "${fullComFile}"`);
 }
 
 async function compileToIR() {
@@ -397,7 +438,7 @@ async function compileOptimized() {
     const enableSMC = ctx.config.get<boolean>('enableSMC', false);
     const enableTrueSMC = ctx.config.get<boolean>('enableTrueSMC', false);
 
-    const args = [`"${ctx.filePath}"`, '-O', '-o', `"${outputFile}"`];
+    const args = [`"${ctx.filePath}"`, '-o', `"${outputFile}"`];
     if (enableSMC) { args.push('--enable-smc'); }
     if (enableTrueSMC) { args.push('--enable-true-smc'); }
 

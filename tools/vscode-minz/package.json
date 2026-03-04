@@ -67,6 +67,11 @@
         "icon": "$(play)"
       },
       {
+        "command": "minz.compileAndRun",
+        "title": "MinZ: Compile & Run (CP/M)",
+        "icon": "$(terminal)"
+      },
+      {
         "command": "minz.compileToIR",
         "title": "MinZ: Compile to IR",
         "icon": "$(symbol-misc)"
@@ -116,8 +121,13 @@
         },
         {
           "when": "editorLangId == minz",
-          "command": "minz.compileToMIR",
+          "command": "minz.compileAndRun",
           "group": "minz@2"
+        },
+        {
+          "when": "editorLangId == minz",
+          "command": "minz.compileToMIR",
+          "group": "minz@3"
         },
         {
           "when": "editorLangId == minz",
@@ -168,6 +178,12 @@
         "command": "minz.compile",
         "key": "ctrl+alt+b",
         "mac": "cmd+alt+b",
+        "when": "editorLangId == minz"
+      },
+      {
+        "command": "minz.compileAndRun",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
         "when": "editorLangId == minz"
       },
       {

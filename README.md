@@ -2,9 +2,10 @@
 
 ### Hot off the press
 
+- **[VSCode: Edit, Compile & Run in One Click](reports/2026-03-04-022-VSCode_Tooling_And_Codegen_Fixes.md)** — Cmd+Alt+R compiles and runs MinZ in the terminal. 3 SMC codegen fixes, loop rerolling in action, 25% binary size savings. Try it: `examples/cpm/playground.minz`
 - **[MIR Language Compatibility Deep Dive](reports/2026-03-03-021-MIR_Language_Compatibility_Deep_Dive.md)** — why PL/M scores 9/10 and Ada 4/10, what to fix, MIR vs SDCC/cc65/z88dk/QBE/ACK ([comparison](docs/MIR_vs_Other_8bit_IRs.md))
 - **[MIR Analysis: Multi-Language IR?](reports/2026-03-02-020-MIR_Analysis_Multi_Language_IR_Feasibility.md)** — 118 opcodes, 24 types, 13+ optimizer passes. Can it compile PL/M and Ada? ([architecture guide](docs/MIR_Architecture_Guide.md))
-- **[VSCode Tooling Sprint](reports/2026-03-02-019-VSCode_Tooling_Sprint_Report.md)** — LSP server, full syntax highlighting, SLD source maps, DeZog debugging, 9 compile commands ([guide](docs/VSCode_Tooling_Guide.md))
+- **[VSCode Tooling Sprint](reports/2026-03-02-019-VSCode_Tooling_Sprint_Report.md)** — LSP server, full syntax highlighting, SLD source maps, DeZog debugging, 10 compile commands ([guide](docs/VSCode_Tooling_Guide.md))
 - **[Register Allocator Overhaul](reports/2026-03-02-018-Register_Allocator_Overhaul_Results.md)** — 7.8x iterator speedup (207T → 26T per element), full MinZ→asm pipeline walkthrough
 - **[Iterator Reality Check](reports/2026-03-02-017-Iterator_Reality_Check.md)** — honest status: 11/11 E2E correct, before/after the overhaul
 - **[Iterator Status](docs/Iterator_Implementation_Status.md)** — 11/11 E2E, 26T/element post-overhaul, operation matrix, known bugs

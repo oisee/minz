@@ -25,6 +25,7 @@ var (
 	outputFile   string
 	disableOptimize  bool  // Disable ALL optimizations (enabled by default)
 	disableIROpt     bool  // Disable IR/MIR-level optimizations only
+	disableReroll    bool  // Disable loop reroll optimization only
 	disableAsmOpt    bool  // Disable assembly-level peephole only
 	disableCodegenOpt bool // Disable codegen-level constant tracking
 	debug            bool
@@ -171,6 +172,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file (default: input.<ext> based on backend)")
 	rootCmd.Flags().BoolVar(&disableOptimize, "disable-optimize", false, "disable optimizations (enabled by default)")
 	rootCmd.Flags().BoolVar(&disableIROpt, "disable-ir-opt", false, "disable IR/MIR-level optimizations (DCE, constant folding, inlining)")
+	rootCmd.Flags().BoolVar(&disableReroll, "disable-reroll", false, "disable loop reroll optimization (putchar sequence merging)")
 	rootCmd.Flags().BoolVar(&disableAsmOpt, "disable-asm-opt", false, "disable assembly-level peephole optimizations")
 	rootCmd.Flags().BoolVar(&disableCodegenOpt, "disable-codegen-opt", false, "disable codegen-level optimizations (constant tracking)")
 	rootCmd.Flags().BoolVarP(&debug, "debug", "d", false, "enable debug output")
@@ -332,10 +334,10 @@ func compile(sourceFile string) error {
 	if !disableOptimize && !disableIROpt {
 		level := optimizer.OptLevelFull  // Full optimization by default
 
-		// Use TRUE SMC unless disabled
-		useTrueSMC := !disableSMC
-
-		opt := optimizer.NewOptimizerWithOptions(level, useTrueSMC)
+		opt := optimizer.NewOptimizerWithOpts(level, optimizer.OptimizerOptions{
+			EnableTrueSMC: !disableSMC,
+			DisableReroll: disableReroll,
+		})
 		opt.SetTracer(tracer)
 		if err := opt.Optimize(irModule); err != nil {
 			return fmt.Errorf("optimization error: %w", err)
@@ -559,10 +561,10 @@ func compileFromMIR(mirFile string) error {
 	if !disableOptimize && !disableIROpt {
 		level := optimizer.OptLevelFull  // Full optimization by default
 
-		// Use TRUE SMC unless disabled
-		useTrueSMC := !disableSMC
-
-		opt := optimizer.NewOptimizerWithOptions(level, useTrueSMC)
+		opt := optimizer.NewOptimizerWithOpts(level, optimizer.OptimizerOptions{
+			EnableTrueSMC: !disableSMC,
+			DisableReroll: disableReroll,
+		})
 		if err := opt.Optimize(irModule); err != nil {
 			return fmt.Errorf("optimization error: %w", err)
 		}

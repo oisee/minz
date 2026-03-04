@@ -39,17 +39,32 @@ func NewOptimizer(level OptimizationLevel) *Optimizer {
 	return NewOptimizerWithOptions(level, false)
 }
 
+// OptimizerOptions holds configuration for individual optimization passes
+type OptimizerOptions struct {
+	EnableTrueSMC  bool
+	DisableReroll  bool
+}
+
 // NewOptimizerWithOptions creates a new optimizer with options
 func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optimizer {
+	return NewOptimizerWithOpts(level, OptimizerOptions{EnableTrueSMC: enableTrueSMC})
+}
+
+// NewOptimizerWithOpts creates a new optimizer with full options control
+func NewOptimizerWithOpts(level OptimizationLevel, opts OptimizerOptions) *Optimizer {
 	opt := &Optimizer{
 		level: level,
 	}
-	
+
 	// Configure passes based on optimization level
 	if level >= OptLevelBasic {
 		// Basic optimizations - always run register analysis first
+		if !opts.DisableReroll {
+			opt.passes = append(opt.passes,
+				NewLoopRerollPass(),   // Re-roll BEFORE inlining (detect repeated calls)
+			)
+		}
 		opt.passes = append(opt.passes,
-			NewLoopRerollPass(),   // Re-roll BEFORE inlining (detect repeated calls)
 			NewRegisterAnalysisPass(),
 			NewConstantFoldingPass(),
 			NewMIRValueTrackingPass(), // Track values and set codegen hints (INC/DEC/XOR)
@@ -69,7 +84,7 @@ func NewOptimizerWithOptions(level OptimizationLevel, enableTrueSMC bool) *Optim
 		
 		// Use TRUE SMC if enabled (default behavior)
 		// When SMC is disabled (enableTrueSMC=false), we skip ALL SMC passes
-		if enableTrueSMC {
+		if opts.EnableTrueSMC {
 			opt.passes = append(opt.passes, NewTrueSMCPass(false)) // false = no diagnostics in production
 			// Add TSMC pattern optimization after TRUE SMC
 			opt.passes = append(opt.passes, &tsmcPatternAdapter{NewTSMCPatternOptimizer(false)})

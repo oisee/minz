@@ -1,0 +1,42 @@
+// MinZ Playground — edit, compile, and run!
+// Usage: Cmd+Alt+R in VSCode (or MinZ: Compile & Run)
+
+fun putchar(ch: u8) -> void {
+    asm {
+        LD E, A
+        LD C, 2
+        CALL 5
+    }
+}
+
+fun newline() -> void {
+    putchar(13);
+    putchar(10);
+}
+
+fun main() -> void {
+    // Hello message
+    putchar('H'); putchar('e'); putchar('l'); putchar('l'); putchar('o');
+    putchar(' ');
+    putchar('M'); putchar('i'); putchar('n'); putchar('Z'); putchar('!');
+    newline();
+
+    // Count from 0 to 9
+    let mut i: u8 = 0;
+    while i < 10 {
+        putchar(i + 48);   // '0' + i
+        putchar(' ');
+        i = i + 1;
+    }
+    newline();
+
+    // Simple arithmetic
+    let x: u8 = 3 + 4;
+    putchar('3'); putchar('+'); putchar('4'); putchar('=');
+    putchar(x + 48);
+    newline();
+
+    // Done!
+    putchar('O'); putchar('K');
+    newline();
+}
