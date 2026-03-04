@@ -135,8 +135,10 @@ SUPPORTED PLATFORMS (-t/--target):
 				os.Exit(1)
 			}
 			z80.RemogattoZ80.SetConsolePort(port, os.Stdin, os.Stdout)
+			// Also register stderr port ($25) for host-side error output
+			z80.RemogattoZ80.SetStderrPort(0x25, os.Stderr)
 			if verbose {
-				fmt.Printf("Console I/O on port $%02X\n", port)
+				fmt.Printf("Console I/O on port $%02X (stderr on $25)\n", port)
 			}
 		}
 
@@ -215,6 +217,11 @@ SUPPORTED PLATFORMS (-t/--target):
 			fmt.Printf("   IX=$%04X  IY=$%04X\n", regs.IX, regs.IY)
 
 			fmt.Println("\nPowered by remogatto/z80 - 100% instruction coverage!")
+		}
+
+		// Use A register value as process exit code (DI+HALT convention)
+		if exitCode != 0 {
+			os.Exit(int(exitCode))
 		}
 	},
 }

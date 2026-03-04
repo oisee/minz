@@ -141,6 +141,10 @@ type Ports struct {
 	consolePort byte
 	consoleIn   <-chan byte
 	consoleOut  io.Writer
+
+	// Stderr port mapping (write-only, e.g. $25)
+	stderrPort byte
+	stderrOut  io.Writer
 }
 
 func NewPorts(output *[]byte) *Ports {
@@ -172,6 +176,14 @@ func (p *Ports) SetConsolePort(port byte, reader io.Reader, writer io.Writer) {
 	}
 }
 
+// SetStderrPort configures a write-only stderr port.
+// OUT to this port sends bytes to the writer (typically os.Stderr).
+// IN from this port always returns 0x00.
+func (p *Ports) SetStderrPort(port byte, writer io.Writer) {
+	p.stderrPort = port
+	p.stderrOut = writer
+}
+
 func (p *Ports) ReadPort(address uint16) byte {
 	if p.profiler != nil {
 		p.profiler.OnIORead(address)
@@ -190,6 +202,11 @@ func (p *Ports) ReadPort(address uint16) byte {
 		return 0x00
 	}
 
+	// Stderr port is write-only — IN always returns 0x00
+	if p.stderrPort != 0 && byte(address&0xFF) == p.stderrPort {
+		return 0x00
+	}
+
 	if p.ioRead != nil {
 		return p.ioRead(address)
 	}
@@ -205,6 +222,14 @@ func (p *Ports) WritePort(address uint16, b byte) {
 	if p.consolePort != 0 && byte(address&0xFF) == p.consolePort {
 		if p.consoleOut != nil {
 			p.consoleOut.Write([]byte{b})
+		}
+		return
+	}
+
+	// Stderr port output
+	if p.stderrPort != 0 && byte(address&0xFF) == p.stderrPort {
+		if p.stderrOut != nil {
+			p.stderrOut.Write([]byte{b})
 		}
 		return
 	}
@@ -387,9 +412,10 @@ func (z *RemogattoZ80) Run() error {
 			return nil
 		}
 
-		// DI:HALT sequence
+		// DI:HALT sequence — A register is the exit code
 		if z.exitOnDIHalt && z.cpu.Halted && z.cpu.IFF1 == 0 {
 			z.halted = true
+			z.exitCode = uint16(z.cpu.A)
 			// WarnOnHalt: warn about stuck CPU
 			if z.WarnOnHalt && !z.haltWarned {
 				fmt.Fprintf(os.Stderr, "WARNING: HALT with interrupts disabled at PC=$%04X (CPU stuck)\n", pc)
@@ -540,6 +566,11 @@ func (z *RemogattoZ80) SetBDOSHandler(handler func(function byte, de uint16) (a 
 // SetConsolePort configures bidirectional console I/O on a specific port.
 func (z *RemogattoZ80) SetConsolePort(port byte, reader io.Reader, writer io.Writer) {
 	z.ports.SetConsolePort(port, reader, writer)
+}
+
+// SetStderrPort configures a write-only port for stderr output.
+func (z *RemogattoZ80) SetStderrPort(port byte, writer io.Writer) {
+	z.ports.SetStderrPort(port, writer)
 }
 
 // DumpState returns a string representation of CPU state

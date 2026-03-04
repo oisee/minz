@@ -371,6 +371,24 @@ func (p *Ports) SetConsolePort(portNum byte, reader io.Reader, writer io.Writer)
 	})
 }
 
+// SetStderrPort registers a write-only port device for stderr output.
+// Recommended port: $25 (safe: odd, avoids ULA/Kempston/128K paging/AY/Covox).
+func (p *Ports) SetStderrPort(portNum byte, writer io.Writer) {
+	p.Register(&PortDevice{
+		Mask:  0x00FF,
+		Value: uint16(portNum),
+		Read: func(addr uint16) byte {
+			return 0x00 // write-only port, IN always returns 0
+		},
+		Write: func(addr uint16, val byte) {
+			if writer != nil {
+				writer.Write([]byte{val})
+			}
+		},
+		Name: "Stderr",
+	})
+}
+
 func (p *Ports) ReadPortInternal(addr uint16, contend bool) byte {
 	for _, dev := range p.devices {
 		if dev.Read != nil && (addr&dev.Mask) == dev.Value {

@@ -1528,7 +1528,9 @@ VERSION: %s (build %s, %s)
 				portNum = int(n)
 			}
 			machine.Ports.SetConsolePort(byte(portNum), os.Stdin, realStdout)
-			fmt.Fprintf(os.Stderr, "[console-to-port: $%02X → stdin/stdout]\n", portNum)
+			// Also register stderr port ($25) for host-side error output
+			machine.Ports.SetStderrPort(0x25, os.Stderr)
+			fmt.Fprintf(os.Stderr, "[console-to-port: $%02X → stdin/stdout, $25 → stderr]\n", portNum)
 		}
 	}
 
@@ -1754,6 +1756,13 @@ VERSION: %s (build %s, %s)
 							log.Fatalf("Error saving screenshot: %v", err)
 						}
 						fmt.Printf("Screenshot saved: %s (frame %d)\n", singleFile, frame)
+					}
+					// DI:HALT exit: use A register as process exit code
+					if spec.specType == specDIHalt {
+						exitCode := int(machine.CPU.AF() >> 8)
+						if exitCode != 0 {
+							os.Exit(exitCode)
+						}
 					}
 					return
 				}
