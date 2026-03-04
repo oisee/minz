@@ -8,26 +8,35 @@
 
 ## Current State (v0.19.5, March 2026)
 
-| Metric | Value |
-|--------|-------|
-| Core examples | ~73 (100%) |
-| All examples | ~272 total (~81% compile) |
-| Stdlib modules | 10 |
-| Z80 emulator coverage | 100% (1335/1335 FUSE tests) |
-| Peephole patterns | 67 (asm) + MIR passes |
-| Active backends | 7 (Z80, 6502, C, Crystal, i8080, GB, LLVM) |
-| Parser | Participle (native Go, zero deps) |
-| Toolchain binaries | 10 (mz, mza, mze, mzx, mzd, mzr, mzrun, mzv, mztap, mzlsp) |
+| Metric | Claimed | Verified (2026-03-04) |
+|--------|---------|----------------------|
+| Core examples | ~73 (100%) | 71/73 (97%) |
+| All examples (excl. archive) | ~272 (~81% compile) | 131/173 (75%) |
+| Stdlib modules | 10 | 12 documented (real), ~35-40 of 55 files compile |
+| Z80 emulator coverage | 100% | 100% (1335/1335 FUSE) — verified |
+| Peephole patterns | 67 | 67 (asm) + MIR passes |
+| Production backends | 7 "active" | **1 production (Z80) + 1 partial (C)** + 8 experimental/broken |
+| MIR backend tests | — | 9/11 pass, 2 known bugs (ADR-0006) |
+| Parser | Participle | Participle (native Go, zero deps) — verified |
+| Toolchain binaries | 10 | 8 working + MZV (works, undersold) + MZR (broken) |
+| Go test packages | — | 20/20 pass, 0 fail |
 
 ### What's Working
 - Core language: types, functions, structs, enums, arrays, control flow
 - Advanced features: lambdas, TSMC, CTIE, UFCS, operator overloading, string interpolation
 - Iterator chains: map/filter/forEach/take/skip + lambdas via DJNZ (11/11 E2E, 26T/elem)
 - Metafunctions: @define, @print, @if/@elif/@else, @error
-- Multi-target: ZX Spectrum, CP/M, Agon Light 2
-- Full toolchain: MZC, MZA, MZE, MZX, MZD, MZR, MZRUN, MZLSP
+- Multi-target: ZX Spectrum (primary), CP/M, Agon Light 2
+- Working toolchain: MZC, MZA, MZE, MZX, MZD, MZLSP, MZRUN, MZTAP, MZV
 - **VSCode extension** (v0.5.0): LSP server, full syntax highlighting, SLD source maps, DeZog debugging
 - **MIR**: 118 opcodes, 24 types, 13+ optimizer passes, standalone VM
+
+### What's Not Working (verified)
+- **MZR REPL**: compileModule() returns empty module, :run prints "coming soon"
+- **Non-Z80 backends**: C partial, rest are stubs/broken (see Report #025)
+- **feature_tests/**: 9/11 fail — advanced language features break in combination
+- **Non-Spectrum targets**: agon 0/3, cpm 3/4 fail (stdlib import resolution)
+- **Complex projects**: zvdb 0/10, mnist 0/3, zx_demos 2/10
 
 ### Known Blockers
 - Register allocator: overwrites operands in while/for loops (same phys reg for two live virtuals)

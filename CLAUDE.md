@@ -112,7 +112,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ### Tooling
 - Error messages with file:line:col format ✅
-- Multi-backend: Z80 (production), 6502, C, Crystal ✅
+- Multi-backend: Z80 (production), C (partial), i8080/M68k (untested), 6502/GB/WASM/LLVM/Crystal (stubs/broken) ✅
 - 100% Z80 instruction coverage in emulator ✅
 
 ---
@@ -122,15 +122,16 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **Iterator chain fusion**: 11/11 E2E correct, fusion optimizer live, ~5x perf overhead (register allocator bottleneck)
 - **Pattern matching**: Syntax parses, codegen partial
 - **@minz[[[...]]]**: Limited compile-time execution
-- **MIR interpreter**: Arrays/structs working
+- **MIR VM**: Arrays/structs working (mirvm package, MZV runner works)
 - **Array literal optimization**: IR skeleton exists, codegen not yet
+- **MZR REPL**: ❌ Broken — `compileModule()` returns empty module, `:run` unimplemented
 
 ---
 
 ## 📋 TOBE (Planned)
 
-- **LSP server** - IDE support (autocomplete, errors)
-- **DAP debugger** - Step-through debugging
+- **DAP debugger** - Step-through debugging (native, beyond DeZog)
+- **MZR REPL** - Fix compilation pipeline (semantic analysis not wired)
 - **WASM playground** - Online demo
 - **Generator syntax** - `gen`/`yield` for lazy iteration
 
@@ -326,18 +327,20 @@ fun main() {
 }
 ```
 
-## 📊 Current Metrics (v0.19.1)
+## 📊 Current Metrics (v0.19.5, verified 2026-03-04)
 
 | Metric | Value |
 |--------|-------|
-| Core examples | ~73 (100%) |
-| All examples | ~272 total (~81% compile) |
-| Stdlib modules | 10 |
+| Core examples | 71/73 (97%) |
+| All examples | 131/173 (75%) — failures in agon, cpm, feature_tests, zvdb, zx_demos |
+| Stdlib modules | 12 documented (real), ~35-40 of 55 files compile |
 | Z80 emulator coverage | 100% (1335/1335 FUSE) |
-| Peephole patterns | 35+ |
-| Active backends | 4 (Z80, 6502, C, Crystal) |
+| Peephole patterns | 67 (asm) + MIR passes |
+| Production backends | 1 (Z80) + 1 partial (C) + 8 experimental/broken |
+| MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
 | Parser | Participle (native Go, zero deps) |
-| Toolchain binaries | 9 (mz, mza, mze, mzx, mzd, mzr, mzrun, mzv, mztap) |
+| Toolchain binaries | 8 working (mz, mza, mze, mzx, mzd, mzlsp, mzrun, mztap) + mzv (works) + mzr (broken) |
+| Go test packages | 20/20 pass, 0 fail |
 
 ---
 
@@ -350,11 +353,12 @@ fun main() {
 | **MZE** | ✅ DONE | Z80 Emulator (1335/1335 FUSE tests) |
 | **MZX** | ✅ DONE | ZX Spectrum emulator (T-state accurate, Ebitengine) |
 | **MZD** | ✅ DONE | Z80 Disassembler (IDA-like analysis engine) |
-| **MZR** | 🚧 WIP | Interactive REPL |
+| **MZLSP** | ✅ DONE | Language Server Protocol (diagnostics, hover, goto-def, completion) |
 | **MZRUN** | ✅ DONE | Remote runner (DZRP) |
-| **MZV** | 🚧 WIP | MinZ Virtual Machine (platform abstraction) |
-| **LSP** | 📋 TOBE | Language Server Protocol |
-| **DAP** | 📋 TOBE | Debug Adapter Protocol |
+| **MZTAP** | ✅ DONE | TAP file loader |
+| **MZV** | ✅ DONE | MIR Virtual Machine runner (breakpoints, tracing, PNG export) |
+| **MZR** | ❌ BROKEN | Interactive REPL (compileModule returns empty, :run unimplemented) |
+| **DAP** | 📋 TOBE | Debug Adapter Protocol (native, beyond DeZog) |
 
 ### MZRUN Usage
 ```bash
