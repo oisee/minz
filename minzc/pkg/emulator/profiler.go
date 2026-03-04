@@ -27,6 +27,10 @@ type Profiler struct {
 	ReadCount  [65536]uint32 // Memory reads
 	WriteCount [65536]uint32 // Memory writes
 
+	// Stack access heatmaps — tracks PUSH/POP by SP-delta detection.
+	StackPush [65536]uint32 // SP decremented → write to this address
+	StackPop  [65536]uint32 // SP incremented → read from this address
+
 	// I/O heatmaps — sparse, keyed by port address.
 	IORead  map[uint16]uint32
 	IOWrite map[uint16]uint32
@@ -42,8 +46,16 @@ type Profiler struct {
 	blockInstrs  int    // instructions in current block
 	inBlock      bool   // whether we're inside a block
 
+	// SP tracking for stack heatmap.
+	prevSP    uint16
+	spTracked bool // false until first BeforeOpcode sets prevSP
+
+	// Memory snapshot — captured at export time via SetMemorySnapshot().
+	memSnapshot []byte // nil until snapshot is taken
+
 	// Stats.
 	TotalInstrs uint64
+	StackDepth  uint16 // high-water mark: lowest SP seen
 }
 
 // NewProfiler creates a profiler that collects heatmaps.
@@ -66,7 +78,7 @@ func (p *Profiler) SetTraceOutput(path string) error {
 }
 
 // BeforeOpcode is called before each CPU instruction.
-// Records execution count and tracks basic block boundaries.
+// Records execution count, detects stack operations via SP delta, and tracks basic blocks.
 func (p *Profiler) BeforeOpcode(pc uint16, tstates int64) {
 	p.ExecCount[pc]++
 	p.TotalInstrs++
@@ -106,6 +118,48 @@ func (p *Profiler) BeforeOpcode(pc uint16, tstates int64) {
 	p.blockStartT = tstates
 	p.prevPC = pc
 	p.blockInstrs = 1
+}
+
+// TrackSP is called after each instruction with the current SP.
+// Detects pushes (SP decreased) and pops (SP increased) by comparing
+// with the previous SP value. Uses signed delta to handle uint16 wraparound.
+// Only tracks deltas of ±6 bytes (3 words) — larger jumps are LD SP,nn
+// re-initialization and are ignored.
+func (p *Profiler) TrackSP(sp uint16) {
+	if !p.spTracked {
+		p.prevSP = sp
+		p.StackDepth = sp
+		p.spTracked = true
+		return
+	}
+	delta := int16(sp - p.prevSP)
+	if delta < 0 && delta >= -6 {
+		// SP decreased → push (PUSH, CALL, RST, INT)
+		for i := int16(0); i < -delta; i++ {
+			p.StackPush[sp+uint16(i)]++
+		}
+	} else if delta > 0 && delta <= 6 {
+		// SP increased → pop (POP, RET)
+		for i := int16(0); i < delta; i++ {
+			p.StackPop[p.prevSP+uint16(i)]++
+		}
+	}
+	// Track high-water mark (lowest SP = deepest stack usage)
+	if p.StackDepth == 0 || sp < p.StackDepth {
+		// Only update if it looks like a real stack address (not initial 0)
+		if sp != 0 {
+			p.StackDepth = sp
+		}
+	}
+	p.prevSP = sp
+}
+
+// SetMemorySnapshot captures a copy of the full 64KB memory for inclusion
+// in the profile export. Call this just before ExportProfile() to see
+// what's at the hot addresses.
+func (p *Profiler) SetMemorySnapshot(mem []byte) {
+	p.memSnapshot = make([]byte, len(mem))
+	copy(p.memSnapshot, mem)
 }
 
 // OnMemRead increments the read heatmap.
@@ -169,25 +223,51 @@ func (p *Profiler) Close() {
 }
 
 // ExportProfile writes the heatmap data to a JSON file.
+// If SetMemorySnapshot() was called, hot addresses include their byte values.
 func (p *Profiler) ExportProfile(path string) error {
 	type profileData struct {
-		Meta    map[string]interface{} `json:"meta"`
-		Exec    map[string]uint32      `json:"exec,omitempty"`
-		Read    map[string]uint32      `json:"read,omitempty"`
-		Write   map[string]uint32      `json:"write,omitempty"`
-		IORead  map[string]uint32      `json:"io_read,omitempty"`
-		IOWrite map[string]uint32      `json:"io_write,omitempty"`
+		Meta      map[string]interface{} `json:"meta"`
+		Exec      map[string]uint32      `json:"exec,omitempty"`
+		Read      map[string]uint32      `json:"read,omitempty"`
+		Write     map[string]uint32      `json:"write,omitempty"`
+		StackPush map[string]uint32      `json:"stack_push,omitempty"`
+		StackPop  map[string]uint32      `json:"stack_pop,omitempty"`
+		IORead    map[string]uint32      `json:"io_read,omitempty"`
+		IOWrite   map[string]uint32      `json:"io_write,omitempty"`
+		// Memory snapshot at hot addresses: "ADDR": "XX" (hex byte value)
+		MemSnapshot map[string]string `json:"mem_snapshot,omitempty"`
+	}
+
+	meta := map[string]interface{}{
+		"total_instrs": p.TotalInstrs,
+	}
+	if p.spTracked {
+		meta["stack_depth"] = fmt.Sprintf("%04X", p.StackDepth)
 	}
 
 	data := profileData{
-		Meta: map[string]interface{}{
-			"total_instrs": p.TotalInstrs,
-		},
-		Exec:    sparseMap(p.ExecCount[:]),
-		Read:    sparseMap(p.ReadCount[:]),
-		Write:   sparseMap(p.WriteCount[:]),
-		IORead:  portMap(p.IORead),
-		IOWrite: portMap(p.IOWrite),
+		Meta:      meta,
+		Exec:      sparseMap(p.ExecCount[:]),
+		Read:      sparseMap(p.ReadCount[:]),
+		Write:     sparseMap(p.WriteCount[:]),
+		StackPush: sparseMap(p.StackPush[:]),
+		StackPop:  sparseMap(p.StackPop[:]),
+		IORead:    portMap(p.IORead),
+		IOWrite:   portMap(p.IOWrite),
+	}
+
+	// Include memory values at all addresses that had any activity
+	if p.memSnapshot != nil {
+		snap := make(map[string]string)
+		for i := 0; i < 65536; i++ {
+			if p.ExecCount[i] > 0 || p.ReadCount[i] > 0 || p.WriteCount[i] > 0 ||
+				p.StackPush[i] > 0 || p.StackPop[i] > 0 {
+				snap[fmt.Sprintf("%04X", i)] = fmt.Sprintf("%02X", p.memSnapshot[i])
+			}
+		}
+		if len(snap) > 0 {
+			data.MemSnapshot = snap
+		}
 	}
 
 	f, err := os.Create(path)

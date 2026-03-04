@@ -175,6 +175,9 @@ func (m *Machine) RunFrame() {
 			prof.BeforeOpcode(m.CPU.PC(), m.AbsoluteTStates())
 		}
 		m.CPU.DoOpcode()
+		if prof != nil {
+			prof.TrackSP(m.CPU.SP())
+		}
 		if m.WarnOnHalt && !m.haltWarned && m.CPU.Halted() && !m.CPU.IFF1() {
 			fmt.Fprintf(os.Stderr, "WARNING: HALT with interrupts disabled at PC=$%04X (frame %d) — CPU is stuck\n",
 				m.CPU.PC(), m.frameCount)
@@ -237,6 +240,9 @@ func (m *Machine) RunFrameFast() {
 			prof.BeforeOpcode(m.CPU.PC(), m.AbsoluteTStates())
 		}
 		m.CPU.DoOpcode()
+		if prof != nil {
+			prof.TrackSP(m.CPU.SP())
+		}
 		if m.WarnOnHalt && !m.haltWarned && m.CPU.Halted() && !m.CPU.IFF1() {
 			fmt.Fprintf(os.Stderr, "WARNING: HALT with interrupts disabled at PC=$%04X (frame %d) — CPU is stuck\n",
 				m.CPU.PC(), m.frameCount)

@@ -191,6 +191,8 @@ SUPPORTED PLATFORMS (-t/--target):
 
 		// --- Export profiler data ---
 		if prof != nil {
+			// Capture memory snapshot so profile shows what's at hot addresses
+			prof.SetMemorySnapshot(z80.RemogattoZ80.Memory())
 			if profilePath != "" {
 				if err := prof.ExportProfile(profilePath); err != nil {
 					fmt.Fprintf(os.Stderr, "Error exporting profile: %v\n", err)

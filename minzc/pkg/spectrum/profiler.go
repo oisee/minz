@@ -24,6 +24,10 @@ type Profiler struct {
 	ReadCount  [65536]uint32 // Memory reads (including opcode fetches)
 	WriteCount [65536]uint32 // Memory writes
 
+	// Stack access heatmaps — tracks PUSH/POP by SP-delta detection.
+	StackPush [65536]uint32 // SP decremented → write to this address
+	StackPop  [65536]uint32 // SP incremented → read from this address
+
 	// I/O heatmaps — sparse, keyed by port address.
 	IORead  map[uint16]uint32
 	IOWrite map[uint16]uint32
@@ -39,6 +43,13 @@ type Profiler struct {
 	blockInstrs  int    // instructions in current block
 	inBlock      bool   // whether we're inside a block
 
+	// SP tracking for stack heatmap.
+	prevSP    uint16
+	spTracked bool
+
+	// Memory snapshot — captured at export time via SetMemorySnapshot().
+	memSnapshot []byte
+
 	// Frame tracking.
 	frameCount uint64
 
@@ -48,6 +59,7 @@ type Profiler struct {
 
 	// Stats.
 	TotalInstrs uint64
+	StackDepth  uint16 // high-water mark: lowest SP seen
 }
 
 // NewProfiler creates a profiler that collects heatmaps.
@@ -140,6 +152,43 @@ func (p *Profiler) AfterOpcode(newPC uint16) {
 	// AfterOpcode is reserved for future per-instruction trace features.
 }
 
+// TrackSP is called after each instruction with the current SP.
+// Detects pushes (SP decreased) and pops (SP increased).
+// Uses signed delta to handle uint16 wraparound; ignores large SP changes (LD SP,nn).
+func (p *Profiler) TrackSP(sp uint16) {
+	if !p.isActive() {
+		return
+	}
+	if !p.spTracked {
+		p.prevSP = sp
+		p.StackDepth = sp
+		p.spTracked = true
+		return
+	}
+	delta := int16(sp - p.prevSP)
+	if delta < 0 && delta >= -6 {
+		for i := int16(0); i < -delta; i++ {
+			p.StackPush[sp+uint16(i)]++
+		}
+	} else if delta > 0 && delta <= 6 {
+		for i := int16(0); i < delta; i++ {
+			p.StackPop[p.prevSP+uint16(i)]++
+		}
+	}
+	if p.StackDepth == 0 || sp < p.StackDepth {
+		if sp != 0 {
+			p.StackDepth = sp
+		}
+	}
+	p.prevSP = sp
+}
+
+// SetMemorySnapshot captures a copy of memory for inclusion in profile export.
+func (p *Profiler) SetMemorySnapshot(mem []byte) {
+	p.memSnapshot = make([]byte, len(mem))
+	copy(p.memSnapshot, mem)
+}
+
 // OnMemRead increments the read heatmap.
 func (p *Profiler) OnMemRead(addr uint16) {
 	p.ReadCount[addr]++
@@ -221,26 +270,49 @@ func (p *Profiler) Close() {
 // ExportProfile writes the heatmap data to a JSON file.
 func (p *Profiler) ExportProfile(path string) error {
 	type profileData struct {
-		Meta    map[string]interface{} `json:"meta"`
-		Exec    map[string]uint32      `json:"exec,omitempty"`
-		Read    map[string]uint32      `json:"read,omitempty"`
-		Write   map[string]uint32      `json:"write,omitempty"`
-		IORead  map[string]uint32      `json:"io_read,omitempty"`
-		IOWrite map[string]uint32      `json:"io_write,omitempty"`
+		Meta        map[string]interface{} `json:"meta"`
+		Exec        map[string]uint32      `json:"exec,omitempty"`
+		Read        map[string]uint32      `json:"read,omitempty"`
+		Write       map[string]uint32      `json:"write,omitempty"`
+		StackPush   map[string]uint32      `json:"stack_push,omitempty"`
+		StackPop    map[string]uint32      `json:"stack_pop,omitempty"`
+		IORead      map[string]uint32      `json:"io_read,omitempty"`
+		IOWrite     map[string]uint32      `json:"io_write,omitempty"`
+		MemSnapshot map[string]string      `json:"mem_snapshot,omitempty"`
+	}
+
+	meta := map[string]interface{}{
+		"frames":       p.frameCount,
+		"total_instrs": p.TotalInstrs,
+		"frame_start":  p.FrameStart,
+		"frame_end":    p.FrameEnd,
+	}
+	if p.spTracked {
+		meta["stack_depth"] = fmt.Sprintf("%04X", p.StackDepth)
 	}
 
 	data := profileData{
-		Meta: map[string]interface{}{
-			"frames":       p.frameCount,
-			"total_instrs": p.TotalInstrs,
-			"frame_start":  p.FrameStart,
-			"frame_end":    p.FrameEnd,
-		},
-		Exec:    sparseMap(p.ExecCount[:]),
-		Read:    sparseMap(p.ReadCount[:]),
-		Write:   sparseMap(p.WriteCount[:]),
-		IORead:  portMap(p.IORead),
-		IOWrite: portMap(p.IOWrite),
+		Meta:      meta,
+		Exec:      sparseMap(p.ExecCount[:]),
+		Read:      sparseMap(p.ReadCount[:]),
+		Write:     sparseMap(p.WriteCount[:]),
+		StackPush: sparseMap(p.StackPush[:]),
+		StackPop:  sparseMap(p.StackPop[:]),
+		IORead:    portMap(p.IORead),
+		IOWrite:   portMap(p.IOWrite),
+	}
+
+	if p.memSnapshot != nil {
+		snap := make(map[string]string)
+		for i := 0; i < 65536; i++ {
+			if p.ExecCount[i] > 0 || p.ReadCount[i] > 0 || p.WriteCount[i] > 0 ||
+				p.StackPush[i] > 0 || p.StackPop[i] > 0 {
+				snap[fmt.Sprintf("%04X", i)] = fmt.Sprintf("%02X", p.memSnapshot[i])
+			}
+		}
+		if len(snap) > 0 {
+			data.MemSnapshot = snap
+		}
 	}
 
 	f, err := os.Create(path)

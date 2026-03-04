@@ -387,6 +387,11 @@ func (z *RemogattoZ80) Run() error {
 		z.safeDoOpcode()
 		z.cycles += int(z.cpu.Tstates)
 
+		// Profiler: track SP changes (stack push/pop detection)
+		if prof != nil {
+			prof.TrackSP(z.cpu.SP())
+		}
+
 		// T-state trap check
 		if z.tstateTrapTarget > 0 && int64(z.cycles) >= z.tstateTrapTarget {
 			cb := z.tstateTrapCB
@@ -515,6 +520,11 @@ func (z *RemogattoZ80) SetMemory(address uint16, value byte) {
 // GetMemory reads a memory location
 func (z *RemogattoZ80) GetMemory(address uint16) byte {
 	return z.memory.data[address]
+}
+
+// Memory returns the full 64KB memory as a slice (for snapshots/profiling).
+func (z *RemogattoZ80) Memory() []byte {
+	return z.memory.data[:]
 }
 
 // GetI returns the interrupt vector register

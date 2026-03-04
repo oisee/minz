@@ -1620,6 +1620,8 @@ VERSION: %s (build %s, %s)
 		// Deferred export and close
 		defer func() {
 			if *profileFlag != "" {
+				// Capture memory snapshot so profile shows what's at hot addresses
+				prof.SetMemorySnapshot(machine.Memory.Data())
 				if err := prof.ExportProfile(*profileFlag); err != nil {
 					log.Printf("Error exporting profile: %v", err)
 				} else {
