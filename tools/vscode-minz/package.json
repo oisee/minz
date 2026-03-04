@@ -68,7 +68,7 @@
       },
       {
         "command": "minz.compileAndRun",
-        "title": "MinZ: Compile & Run (CP/M)",
+        "title": "MinZ: Compile & Run",
         "icon": "$(terminal)"
       },
       {
@@ -281,6 +281,12 @@
           "type": "boolean",
           "default": true,
           "description": "Enable optimizations by default"
+        },
+        "minz.target": {
+          "type": "string",
+          "default": "cpm",
+          "enum": ["cpm", "zxspectrum", "msx", "cpc", "amstrad"],
+          "description": "Target platform for Compile & Run"
         },
         "minz.enableSMC": {
           "type": "boolean",

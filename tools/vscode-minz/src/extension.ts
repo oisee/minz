@@ -308,21 +308,26 @@ async function compileAndRun() {
     await vscode.window.activeTextEditor?.document.save();
     const outputDir = await ensureOutputDir(ctx);
     const fileName = path.basename(ctx.filePath, path.extname(ctx.filePath));
+
+    // Get target from settings (default: cpm)
+    const target = ctx.config.get<string>('target', 'cpm');
+    const binExt = target === 'cpm' ? '.com' : '.bin';
+
     const asmFile = path.join(outputDir, `${fileName}.a80`);
-    const comFile = path.join(outputDir, `${fileName}.com`);
+    const binFile = path.join(outputDir, `${fileName}${binExt}`);
 
     // Step 1: Compile MinZ → ASM
-    const compileResult = await runCompiler(ctx, [`"${ctx.filePath}"`, '-t', 'cpm', '-o', `"${asmFile}"`], 'Step 1: Compile');
+    const compileResult = await runCompiler(ctx, [`"${ctx.filePath}"`, '-t', target, '-o', `"${asmFile}"`], `Step 1: Compile (${target})`);
     if (!compileResult.success) {
         vscode.window.showErrorMessage('Compilation failed — see MinZ output');
         return;
     }
 
-    // Step 2: Assemble ASM → COM
+    // Step 2: Assemble ASM → binary
     const mzaPath = path.join(path.dirname(ctx.compilerPath), 'mza');
     const fullAsmFile = path.resolve(ctx.workingDir, asmFile);
-    const fullComFile = path.resolve(ctx.workingDir, comFile);
-    const assembleCmd = `${mzaPath} -o "${fullComFile}" "${fullAsmFile}"`;
+    const fullBinFile = path.resolve(ctx.workingDir, binFile);
+    const assembleCmd = `${mzaPath} -o "${fullBinFile}" "${fullAsmFile}"`;
     outputChannel.appendLine(`Step 2: Assemble: ${assembleCmd}`);
 
     const assembleOk = await new Promise<boolean>((resolve) => {
@@ -342,11 +347,21 @@ async function compileAndRun() {
         return;
     }
 
-    // Step 3: Run in emulator with console output
+    // Step 3: Run in emulator
     const mzePath = path.join(path.dirname(ctx.compilerPath), 'mze');
-    const terminal = vscode.window.createTerminal({ name: `MinZ: ${fileName}`, cwd: ctx.workingDir });
+    const mzxPath = path.join(path.dirname(ctx.compilerPath), 'mzx');
+    const terminal = vscode.window.createTerminal({ name: `MinZ: ${fileName} (${target})`, cwd: ctx.workingDir });
     terminal.show();
-    terminal.sendText(`${mzePath} -t cpm "${fullComFile}"`);
+
+    if (target === 'cpm') {
+        terminal.sendText(`${mzePath} -t cpm "${fullBinFile}"`);
+    } else if (target === 'zxspectrum') {
+        // ZX Spectrum — use MZX graphical emulator
+        terminal.sendText(`${mzxPath} "${fullBinFile}"`);
+    } else {
+        // Other targets — use mze with target flag
+        terminal.sendText(`${mzePath} -t ${target} "${fullBinFile}"`);
+    }
 }
 
 async function compileToIR() {
