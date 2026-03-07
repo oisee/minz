@@ -62,6 +62,13 @@ type z80cg struct {
 	constVals  map[Reg]int64 // virtual reg → compile-time constant value (for peepholes)
 	deadConsts map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
 
+	// holdsPhys is a bidirectional alias map for local copy-propagation within a
+	// basic block.  holdsPhys[r] = s means physical register r currently holds the
+	// same value as s (and holdsPhys[s] = r by symmetry).  Used to eliminate
+	// redundant LD instructions: if A ≡ D, we skip "LD A, D" before an ALU op.
+	// The map is cleared at every block boundary and at any CALL.
+	holdsPhys map[string]string
+
 	// trampolines: small glue blocks emitted after main function body that
 	// perform block-argument parallel copies then jump to the real target.
 	// Needed for BrIf edges where the non-fall-through path requires copies.
@@ -87,6 +94,90 @@ type parallelCopy struct {
 func (g *z80cg) emit(s string) { g.sb.WriteString(s); g.sb.WriteByte('\n') }
 func (g *z80cg) emitf(f string, args ...any) { g.emit(fmt.Sprintf(f, args...)) }
 func (g *z80cg) comment(s string)            { g.emitf("    ; %s", s) }
+
+// isSimpleReg reports whether s names a plain physical register (no parens,
+// no digits) — safe to use as an alias key in holdsPhys.
+func isSimpleReg(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, c := range s {
+		if !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+			return false
+		}
+	}
+	return true
+}
+
+// ── Register topology ─────────────────────────────────────────────────────────
+//
+// Writing to a 16-bit pair register (e.g. HL) implicitly changes its bytes
+// (H, L), and vice versa: writing to H invalidates HL.  These tables encode
+// that topology so invalidate() can clear all affected aliases at once.
+
+// regBytes maps a 16-bit register to its 8-bit byte components.
+var regBytes = map[string][]string{
+	"BC": {"B", "C"},
+	"DE": {"D", "E"},
+	"HL": {"H", "L"},
+	"IX": {"IXH", "IXL"},
+	"IY": {"IYH", "IYL"},
+}
+
+// regParent maps an 8-bit component to its 16-bit parent register.
+var regParent = map[string]string{
+	"B": "BC", "C": "BC",
+	"D": "DE", "E": "DE",
+	"H": "HL", "L": "HL",
+	"IXH": "IX", "IXL": "IX",
+	"IYH": "IY", "IYL": "IY",
+}
+
+// killOne removes a single register and its bidirectional partner from holdsPhys.
+func (g *z80cg) killOne(r string) {
+	if partner, ok := g.holdsPhys[r]; ok {
+		delete(g.holdsPhys, partner)
+		delete(g.holdsPhys, r)
+	}
+}
+
+// invalidate removes all tracking for r: kills r itself, its byte components
+// (if r is a 16-bit pair), and its parent pair (if r is an 8-bit component).
+func (g *z80cg) invalidate(r string) {
+	g.killOne(r)
+	if bytes, ok := regBytes[r]; ok {
+		for _, b := range bytes {
+			g.killOne(b)
+		}
+	}
+	if parent, ok := regParent[r]; ok {
+		g.killOne(parent)
+	}
+}
+
+// setCopy records that dst was loaded from src (they now hold the same value).
+// Invalidates dst's old aliases and clears src's previous bidirectional link
+// before establishing the new one, preventing stale reverse entries.
+func (g *z80cg) setCopy(dst, src string) {
+	g.invalidate(dst)
+	g.killOne(src) // break src's old reverse-link (could be left by a prior setCopy)
+	if isSimpleReg(dst) && isSimpleReg(src) {
+		g.holdsPhys[dst] = src
+		g.holdsPhys[src] = dst
+	}
+}
+
+// holdsValue reports whether physical register a currently holds the same
+// value as b (either they are the same register, or a copy alias exists).
+func (g *z80cg) holdsValue(a, b string) bool {
+	return a == b || g.holdsPhys[a] == b
+}
+
+// emitLDA emits "LD A, src" and records the copy alias A ≡ src.
+func (g *z80cg) emitLDA(src string) {
+	g.emitf("    LD A, %s", src)
+	g.setCopy("A", src)
+}
 
 // loc returns the physical location name for virtual register r.
 func (g *z80cg) loc(r Reg) string {
@@ -191,6 +282,7 @@ func (g *z80cg) genFunc(f *Func) {
 	g.cmpSwapped = make(map[Reg]bool)
 	g.constVals = make(map[Reg]int64)
 	g.deadConsts = computeDeadConsts(f, g.ar)
+	g.holdsPhys = make(map[string]string)
 	g.trampolines = g.trampolines[:0]
 	g.trampIdx = 0
 
@@ -216,6 +308,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	if b.Label != "entry" {
 		g.emitf(".%s_%s:", sanitizeIdent(f.Name), sanitizeIdent(b.Label))
 	}
+	clear(g.holdsPhys) // all register aliases unknown at block entry
 
 	for _, inst := range b.Insts {
 		g.genInst(inst)
@@ -259,9 +352,11 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpNeg:
 		g.emit("    NEG")
+		g.invalidate("A")
 
 	case OpNot:
 		g.emit("    CPL")
+		g.invalidate("A")
 
 	case OpShl:
 		g.genShift("SLA", inst)
@@ -383,12 +478,14 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		if mnem == "ADD" && lhs == dst {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv == 1 {
 				g.emitf("    INC %s", dst)
+				g.invalidate(dst) // dst changed; kill any alias it held
 				return
 			}
 		}
 		if mnem == "SUB" && lhs == dst {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv == 1 {
 				g.emitf("    DEC %s", dst)
+				g.invalidate(dst)
 				return
 			}
 		}
@@ -399,6 +496,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		//   ADD: commutative → just ADD A, lhs.
 		//   SUB: A = lhs - A → NEG first (A = -A), then ADD A, lhs.
 		if rhs == "A" && lhs != "A" {
+			g.invalidate("A") // A about to hold a new result
 			switch mnem {
 			case "ADD":
 				g.emitf("    ADD A, %s", lhs)
@@ -412,13 +510,37 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			}
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
+				g.setCopy(dst, "A")
 			}
 			return
 		}
+		// Coalescing: if A already holds lhs or (commutative) rhs, skip LD A, reg.
+		isCommutative := mnem == "ADD" || mnem == "AND" || mnem == "OR" || mnem == "XOR"
+		if g.holdsValue("A", lhs) {
+			// A == lhs already — skip LD A, lhs.
+			g.invalidate("A")
+			g.emit8ALU(mnem, rhs)
+			if dst != "A" {
+				g.emitf("    LD %s, A", dst)
+				g.setCopy(dst, "A")
+			}
+			return
+		}
+		if isCommutative && g.holdsValue("A", rhs) {
+			// A == rhs, commutative swap: emit OP A, lhs instead.
+			g.invalidate("A")
+			g.emit8ALU(mnem, lhs)
+			if dst != "A" {
+				g.emitf("    LD %s, A", dst)
+				g.setCopy(dst, "A")
+			}
+			return
+		}
+
 		// Immediate peephole: AND/OR/XOR/ADD/SUB n — no register needed for rhs.
 		if cv, ok := g.constVals[inst.Src[1]]; ok {
 			if lhs != "A" {
-				g.emitf("    LD A, %s", lhs)
+				g.emitLDA(lhs)
 			}
 			switch mnem {
 			case "AND", "OR", "XOR", "SUB":
@@ -428,17 +550,21 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			default:
 				g.emit8ALU(mnem, rhs)
 			}
+			g.invalidate("A") // ALU result is a new value — break old lhs alias
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
+				g.setCopy(dst, "A")
 			}
 			return
 		}
 		if lhs != "A" {
-			g.emitf("    LD A, %s", lhs)
+			g.emitLDA(lhs)
 		}
 		g.emit8ALU(mnem, rhs)
+		g.invalidate("A") // ALU result is a new value — break old lhs alias
 		if dst != "A" {
 			g.emitf("    LD %s, A", dst)
+			g.setCopy(dst, "A")
 		}
 	} else {
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
@@ -446,10 +572,12 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				if mnem == "ADD" && cv == 1 {
 					g.emitf("    INC %s", dst)
+					g.invalidate(dst) // pair + its bytes all change
 					return
 				}
 				if mnem == "SUB" && cv == 1 {
 					g.emitf("    DEC %s", dst)
+					g.invalidate(dst)
 					return
 				}
 			}
@@ -463,6 +591,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emitMov(dst, lhs, w)
 			}
 			g.emitf("    ADD %s, %s", dst, rhs)
+			g.invalidate(dst)
 		case "SUB":
 			// SBC HL,rr (but clobbers carry; assume carry=0 before).
 			if lhs != dst {
@@ -471,6 +600,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			g.emit("    SCF")
 			g.emit("    CCF") // clear carry
 			g.emitf("    SBC %s, %s", dst, rhs)
+			g.invalidate(dst)
 		default:
 			g.comment(fmt.Sprintf("TODO: 16-bit %s %s, %s → %s", mnem, lhs, rhs, dst))
 		}
@@ -495,10 +625,12 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 	src := g.loc(inst.Src[0])
 	if dst != src {
 		g.emitf("    LD %s, %s", dst, src)
+		g.setCopy(dst, src)
 	}
 	// Shift count in Src[1] — on Z80 shifts are always by 1.
 	// For constant counts, emit N rotates; variable shifts → TODO.
 	g.emitf("    %s %s", mnem, dst)
+	g.invalidate(dst) // shift modifies dst
 }
 
 // ── Type conversions ──────────────────────────────────────────────────────────
@@ -566,10 +698,11 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// → LD A,B / CP 0), and the constant no longer needs to be
 	// materialised into a register (eliminating a dead store).
 	if cv, ok := g.constVals[inst.Src[1]]; ok {
-		if lhs != "A" {
-			g.emitf("    LD A, %s", lhs)
+		if !g.holdsValue("A", lhs) {
+			g.emitLDA(lhs)
 		}
 		g.emitf("    CP %d", cv)
+		// CP does not modify A; aliases remain valid.
 		return
 	}
 
@@ -582,18 +715,22 @@ func (g *z80cg) genCmp(inst *Inst) {
 		// This is the swapped comparison; condCode will invert it.
 		g.emitf("    CP %s", lhs)
 		g.cmpSwapped[inst.Dst] = true
+		// CP does not modify A; aliases remain valid.
 		return
 	}
 
-	if lhs != "A" {
-		g.emitf("    LD A, %s", lhs)
+	// Coalescing: A already holds lhs — skip LD A, lhs.
+	if !g.holdsValue("A", lhs) {
+		g.emitLDA(lhs)
 	}
 	g.emitf("    CP %s", rhs)
+	// CP does not modify A; aliases remain valid.
 }
 
 // ── Calls ─────────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genCall(inst *Inst) {
+	clear(g.holdsPhys) // calls clobber all volatile registers
 	if inst.Op == OpCallIndirect {
 		ptr := g.loc(inst.Src[0])
 		g.emitf("    CALL (%s)          ; indirect", ptr)
@@ -611,6 +748,9 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 	}
 	if widthBits <= 8 {
 		g.emitf("    LD %s, %s", dst, src)
+		if isSimpleReg(dst) && isSimpleReg(src) {
+			g.setCopy(dst, src)
+		}
 		return
 	}
 	// 16-bit register move.
