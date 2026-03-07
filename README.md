@@ -2,6 +2,7 @@
 
 ### Hot off the press
 
+- **[MIR2 Codegen Quality Sprint](reports/2026-03-07-028-MIR2_Codegen_Quality_Sprint.md)** — 42 tests, 9 verified Z80 functions (gcd, max3, popcount, min8 + prior), shadow register guard, DSE pass, AND/OR/XOR immediate peepholes. Real assembly quality: min8 = 5 instructions, max3 = 7 on hot path.
 - **v0.20.1: Profiler + Emulator upgrades** — 7-channel profiler (exec/read/write/stack push/pop/IO + memory snapshot), stderr port $25, DI+HALT exit with A register as process exit code. Stack depth tracking via SP-delta detection.
 - **[Honest Assessment — Code-Verified Status](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md)** — Every claim verified by live test runs: 75% compile rate, 1 production backend, what actually works vs. what doesn't
 - **[MIR Backend Test Suite](reports/2026-03-04-023-MIR_Backend_Test_Suite.md)** — 11 handcrafted .mir programs, full MIR→Z80→binary→emulate pipeline validation (9/11 pass)
