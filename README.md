@@ -2,6 +2,7 @@
 
 ### Hot off the press
 
+- **[MIR2 Architecture & Progress (~22%)](reports/2026-03-07-029-MIR2_Architecture_And_Progress.md)** — topology-aware `holdsPhys`, SoA256 layout (H=field/L=index), PBQP domain map, progress bar. ADRs: [0011](docs/adr/0011-mir2-codegen-dse-and-shadow-guard.md) [0012](docs/adr/0012-mir2-array-layout-soa256.md). [Roadmap](docs/MIR2_Roadmap.md).
 - **[MIR2 Codegen Quality Sprint](reports/2026-03-07-028-MIR2_Codegen_Quality_Sprint.md)** — 42 tests, 9 verified Z80 functions (gcd, max3, popcount, min8 + prior), shadow register guard, DSE pass, AND/OR/XOR immediate peepholes. Real assembly quality: min8 = 5 instructions, max3 = 7 on hot path.
 - **v0.20.1: Profiler + Emulator upgrades** — 7-channel profiler (exec/read/write/stack push/pop/IO + memory snapshot), stderr port $25, DI+HALT exit with A register as process exit code. Stack depth tracking via SP-delta detection.
 - **[Honest Assessment — Code-Verified Status](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md)** — Every claim verified by live test runs: 75% compile rate, 1 production backend, what actually works vs. what doesn't
