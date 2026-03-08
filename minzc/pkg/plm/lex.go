@@ -192,17 +192,24 @@ func (l *Lexer) tokenize() error {
 			continue
 		}
 
-		// Number: decimal or hex (0FFH, 1AH, 255)
+		// Number: decimal, hex (0FFH), or binary (01010101B).
+		// PL/M-80 allows '$' as a digit separator inside numbers; the lexer
+		// already strips '$' from identifier text, but numbers need separate
+		// handling. We scan hex-digit chars (plus '$' separator) and then
+		// check for H or B suffix.
 		if ch >= '0' && ch <= '9' {
 			start := l.pos
-			for l.pos < len(l.src) && isHexDigit(l.src[l.pos]) {
+			for l.pos < len(l.src) && (isHexDigit(l.src[l.pos]) || l.src[l.pos] == '$') {
 				l.pos++
 			}
-			// Hex suffix H?
-			if l.pos < len(l.src) && l.src[l.pos] == 'H' {
+			// Hex suffix H or binary suffix B?
+			if l.pos < len(l.src) && (l.src[l.pos] == 'H' || l.src[l.pos] == 'B') {
 				l.pos++
 			}
-			l.emit(TokNumber, string(l.src[start:l.pos]), line)
+			// Emit with '$' separators stripped.
+			raw := string(l.src[start:l.pos])
+			raw = strings.ReplaceAll(raw, "$", "")
+			l.emit(TokNumber, raw, line)
 			continue
 		}
 

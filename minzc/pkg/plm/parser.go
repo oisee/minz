@@ -340,6 +340,15 @@ func (p *parser) parseVarDeclAfterKeyword(_ int) (*VarDecl, error) {
 	if p.l.IsKind(TokLParen) {
 		p.l.Next()
 		for {
+			// Skip numeric names produced by LITERALLY macro expansion.
+			if p.l.IsKind(TokNumber) {
+				p.l.Next()
+				if !p.l.IsKind(TokComma) {
+					break
+				}
+				p.l.Next()
+				continue
+			}
 			t, err := p.l.ExpectKind(TokIdent)
 			if err != nil {
 				return nil, err
@@ -561,7 +570,9 @@ func (p *parser) parseProcDecl(name string) (*ProcDecl, error) {
 	}
 
 	// Optional return type: BYTE / WORD / ADDRESS
-	if p.l.Is("BYTE") || p.l.Is("WORD") || p.l.Is("ADDRESS") {
+	// Allow multiple type tokens (e.g. PROCEDURE BYTE BYTE EXTERNAL from
+	// BEXT LITERALLY 'BYTE EXTERNAL' expansion); last one wins.
+	for p.l.Is("BYTE") || p.l.Is("WORD") || p.l.Is("ADDRESS") || p.l.Is("ADDR") {
 		ty, err := p.parseType()
 		if err != nil {
 			return nil, err
@@ -582,8 +593,25 @@ func (p *parser) parseProcDecl(name string) (*ProcDecl, error) {
 		return nil, err
 	}
 
-	// EXTERNAL procedures have no body.
+	// EXTERNAL procedures may still have a trailing DECLARE + END block in
+	// the source (PL/M-80 convention: declare param types then END name;).
+	// Consume it so the module-level loop isn't confused by a stray END.
 	if isExternal {
+		for p.l.Is("DECLARE") {
+			p.l.Next()
+			if _, err := p.parseVarDeclGroupList(); err != nil {
+				return nil, err
+			}
+		}
+		if p.l.Is("END") {
+			p.l.Next()
+			if p.l.IsKind(TokIdent) {
+				p.l.Next() // skip name after END
+			}
+			if _, err := p.l.ExpectKind(TokSemicolon); err != nil {
+				return nil, err
+			}
+		}
 		return pd, nil
 	}
 
@@ -630,6 +658,21 @@ func (p *parser) parseStmt() (Stmt, error) {
 	if t.Kind == TokSemicolon {
 		p.l.Next()
 		return &DoBlock{}, nil // empty block as no-op
+	}
+	// NUMBER = expr; or NUMBER; — LITERALLY macro replaced a variable name with a
+	// number (e.g. M LITERALLY '20' then M = READCS → 20 = READCS).  Skip it.
+	if t.Kind == TokNumber {
+		p.l.Next()
+		if p.l.IsKind(TokEq) {
+			p.l.Next()
+			if _, err := p.parseExpr(); err != nil {
+				return nil, err
+			}
+		}
+		if _, err := p.l.ExpectKind(TokSemicolon); err != nil {
+			return nil, err
+		}
+		return &DoBlock{}, nil
 	}
 	switch {
 	case t.Kind == TokIdent && t.Val == "CALL":
@@ -1060,6 +1103,28 @@ func (p *parser) parseAssignOrCallStmtWithName(name Token) (Stmt, error) {
 			return &AssignStmt{Name: name.Val, Val: val}, nil
 		}
 	}
+	// NAME.FIELD ... — record/struct field access; consume field chain then continue.
+	for p.l.IsKind(TokDot) {
+		p.l.Next() // consume '.'
+		if p.l.IsKind(TokIdent) {
+			p.l.Next() // consume field name
+		}
+		if p.l.IsKind(TokLParen) {
+			p.l.Next()
+			p.skipBalancedParenContent()
+		}
+	}
+	if p.l.IsKind(TokEq) {
+		p.l.Next()
+		val, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.ExpectKind(TokSemicolon); err != nil {
+			return nil, err
+		}
+		return &AssignStmt{Name: name.Val, Val: val}, nil
+	}
 	// NAME; — no-arg call (bare procedure call without parentheses)
 	if p.l.IsKind(TokSemicolon) {
 		p.l.Next()
@@ -1258,11 +1323,23 @@ func (p *parser) parseUnaryExpr() (Expr, error) {
 		}
 		// .IDENT — address-of operator (like C's &).
 		// .IDENT(idx) — address of array element: consume the subscript.
+		// .IDENT.FIELD — record field address: consume the field chain.
 		if kw.Kind == TokIdent {
 			p.l.Next() // consume ident
 			if p.l.IsKind(TokLParen) {
 				p.l.Next()
 				p.skipBalancedParenContent()
+			}
+			// Consume chained .field accessors (record field address)
+			for p.l.IsKind(TokDot) {
+				p.l.Next()
+				if p.l.IsKind(TokIdent) {
+					p.l.Next()
+				}
+				if p.l.IsKind(TokLParen) {
+					p.l.Next()
+					p.skipBalancedParenContent()
+				}
 			}
 			return &VarRef{Name: kw.Val}, nil
 		}
@@ -1387,7 +1464,28 @@ func (p *parser) parsePrimary() (Expr, error) {
 			if _, err := p.l.ExpectKind(TokRParen); err != nil {
 				return nil, err
 			}
+			// NAME(args).FIELD — consume trailing field chain (record access)
+			for p.l.IsKind(TokDot) {
+				p.l.Next()
+				if p.l.IsKind(TokIdent) {
+					p.l.Next()
+				}
+			}
 			return &CallExpr{Fn: name.Val, Args: args}, nil
+		}
+
+		// NAME.FIELD — record field access; consume field chain and treat as VarRef.
+		if p.l.IsKind(TokDot) {
+			for p.l.IsKind(TokDot) {
+				p.l.Next()
+				if p.l.IsKind(TokIdent) {
+					p.l.Next()
+				}
+				if p.l.IsKind(TokLParen) {
+					p.l.Next()
+					p.skipBalancedParenContent()
+				}
+			}
 		}
 
 		// Plain variable reference.
@@ -1398,11 +1496,15 @@ func (p *parser) parsePrimary() (Expr, error) {
 	}
 }
 
-// parseNumber parses a PL/M-80 integer literal: decimal or hex (0FFH).
+// parseNumber parses a PL/M-80 integer literal: decimal, hex (0FFH), or
+// binary (01010101B).  '$' digit separators are already stripped by the lexer.
 func parseNumber(s string) (uint64, error) {
 	s = strings.ToUpper(s)
 	if strings.HasSuffix(s, "H") {
 		return strconv.ParseUint(s[:len(s)-1], 16, 64)
+	}
+	if strings.HasSuffix(s, "B") {
+		return strconv.ParseUint(s[:len(s)-1], 2, 64)
 	}
 	return strconv.ParseUint(s, 10, 64)
 }
