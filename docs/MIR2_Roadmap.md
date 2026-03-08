@@ -9,12 +9,12 @@ developed in parallel with the production compiler.
 
 ```
 Phase 1  ████████████████████  100%  Core pipeline            ✅ DONE
-Phase 2  ███████████████░░░░░   75%  Codegen quality          ← HERE
-Phase 3  ░░░░░░░░░░░░░░░░░░░░    0%  Feature coverage
+Phase 2  ████████████████████  100%  Codegen quality          ✅ DONE
+Phase 3  ░░░░░░░░░░░░░░░░░░░░    0%  Feature coverage         ← HERE
 Phase 4  ░░░░░░░░░░░░░░░░░░░░    0%  minz→MIR2 lowering
 Phase 5  ░░░░░░░░░░░░░░░░░░░░    0%  Optimisation (PBQP)
 
-Overall  ████░░░░░░░░░░░░░░░░   ~22% → production + PBQP
+Overall  █████░░░░░░░░░░░░░░░   ~25% → production + PBQP
          │    │         │    │
          │    │         │    └─ 100% — PBQP memory layout live
          │    │         └─────  ~80% — real MinZ programs compile
@@ -48,9 +48,11 @@ Overall = P1×1.0 + P2×0.75 + P3×0 + P4×0 + P5×0 = 22.5%.
 - [x] DSE pass — suppress `OpConst` emission when peephole made it dead
 - [x] AND/OR/XOR/ADD/SUB imm8 — no register needed for rhs constant
 - [x] `holdsPhys` — bidirectional alias map, topology-aware (INC DE invalidates D+E)
-- [ ] **TermBrIf2** — multi-flag branch using both Z and C from one CP
-      eliminates the redundant `CP B` in GCD; needed for `<=` and `>=`
-- [ ] More examples: `rol8`, `is_pow2`, `min16`, `swap_nibbles`, signed arithmetic
+- [x] **TermBrIf2** — three-way branch using Z and C from one CP
+      eliminates the redundant `CP B` in GCD; `ge` block gone entirely
+- [x] More examples: `rol8`, `is_pow2`, `swap_nibbles` — shift+OR idiom, bit-trick
+- [x] `genShift` constant-count: emits N copies of SLA/SRL for compile-time counts
+- [ ] `min16` — deferred: needs 16-bit comparison in genCmp (Phase 3 SBC HL,DE)
 
 ---
 
@@ -59,7 +61,10 @@ Overall = P1×1.0 + P2×0.75 + P3×0 + P4×0 + P5×0 = 22.5%.
 Goal: cover enough of the language to run real MinZ programs through MIR2.
 
 ### 3a — Scalars and pointers
-- [ ] `OpGlobal(sym)` → `LD HL, label` (global variable address)
+- [x] `OpAddrOf(sym)` → `LD HL, label` + global data emission (`DB`/`DW`)
+- [x] VM: `resolveSymbol` handles `Module.Globals` (pre-allocated in heap)
+- [x] `compileModule` helper: merged AllocResults for multi-function modules
+- [x] E2E verified: `add_to_counter` — global read/add/store, multi-call persistence
 - [ ] u8/u16 mixed-width arithmetic (zero-extend, sign-extend — `OpExt`/`OpSext` already exist)
 - [ ] Verifier: enforce type width constraints at OpLoad/OpStore
 
@@ -177,13 +182,13 @@ The real PBQP wins are **interprocedural** (contracts, pages, banks).
 | sum_range   | yes      | ~140 (n=10)     | loop + accumulate |
 | mul8        | yes      | ~220 (6×7)      | shift-add loop |
 | min8        | yes      | ~25             | baseline |
-| gcd         | yes      | —               | redundant CP known issue → Phase 2 |
+| gcd         | yes      | —               | TermBrIf2: one CP, three-way branch, ge block gone |
 | max3        | yes      | —               | 3-arg comparison chain |
 | popcount    | yes      | —               | AND+shift loop |
-| rol8        | —        | —               | Phase 2 |
-| is_pow2     | —        | —               | Phase 2 |
-| min16       | —        | —               | Phase 2 (16-bit cmp) |
-| swap_nibbles| —        | —               | Phase 2 |
+| rol8        | yes      | —               | (x<<1)\|(x>>7), genShift N-copy path |
+| is_pow2     | yes      | —               | x&(x-1)==0 bit-trick, CP 0 peephole |
+| swap_nibbles| yes      | —               | (x<<4)\|(x>>4), 4×SLA + 4×SRL |
+| min16       | —        | —               | Phase 3 (needs SBC HL,DE in genCmp) |
 | memcpy      | —        | —               | Phase 3c (OpPtrBump) |
 | struct_init | —        | —               | Phase 3b |
 | iter_filter | —        | —               | Phase 3c |
