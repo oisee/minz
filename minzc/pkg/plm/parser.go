@@ -38,7 +38,10 @@ func ParseModuleFile(path, src string) (*Module, error) {
 	return p.parseModule()
 }
 
-type parser struct{ l *Lexer }
+type parser struct {
+	l         *Lexer
+	extraDecls []*VarDecl // extra VarDecls emitted by multi-BASED name lists
+}
 
 // ── Module ────────────────────────────────────────────────────────────────────
 
@@ -277,6 +280,9 @@ func (p *parser) parseVarDeclGroupList() ([]*VarDecl, error) {
 			return nil, err
 		}
 		result = append(result, vd)
+		// Drain any extra VarDecls emitted by multi-BASED name list splitting.
+		result = append(result, p.extraDecls...)
+		p.extraDecls = nil
 		// parseVarDeclAfterKeyword already consumed ';' if it was the last one,
 		// but for comma-separated groups we need to handle ','  before ';'.
 		// Actually, we restructure: parseVarDeclAfterKeyword stops at ',' or ';'
@@ -339,6 +345,9 @@ func (p *parser) parseVarDeclAfterKeyword(_ int) (*VarDecl, error) {
 
 	if p.l.IsKind(TokLParen) {
 		p.l.Next()
+		// Collect per-name (name, based) pairs — different names may have different BASED.
+		type nameBased struct{ name, based string }
+		var pairs []nameBased
 		for {
 			// Skip numeric names produced by LITERALLY macro expansion.
 			if p.l.IsKind(TokNumber) {
@@ -353,18 +362,14 @@ func (p *parser) parseVarDeclAfterKeyword(_ int) (*VarDecl, error) {
 			if err != nil {
 				return nil, err
 			}
-			vd.Names = append(vd.Names, t.Val)
-			// Optional per-name BASED in multi-name list: (s BASED a, d BASED b, l)
+			based := ""
 			if p.l.Is("BASED") {
 				p.l.Next()
 				if p.l.IsKind(TokIdent) {
-					if vd.Based == "" {
-						vd.Based = p.l.Next().Val // keep first BASED
-					} else {
-						p.l.Next()
-					}
+					based = p.l.Next().Val
 				}
 			}
+			pairs = append(pairs, nameBased{t.Val, based})
 			if !p.l.IsKind(TokComma) {
 				break
 			}
@@ -386,6 +391,35 @@ func (p *parser) parseVarDeclAfterKeyword(_ int) (*VarDecl, error) {
 			}
 			vd.Size = &n
 			p.skipBalancedParenContent()
+		}
+		// Group names with the same BASED into a single VarDecl; names with
+		// different BASED values become separate VarDecls appended to result.
+		// The first group goes into vd; extra groups are returned as additional decls.
+		if len(pairs) > 0 {
+			// Populate vd with first group (same based as pairs[0]).
+			firstBased := pairs[0].based
+			vd.Names = nil
+			vd.Based = firstBased
+			for _, nb := range pairs {
+				if nb.based == firstBased {
+					vd.Names = append(vd.Names, nb.name)
+				}
+			}
+			// Extra groups: names with a different based.
+			seen := map[string]bool{firstBased: true}
+			for _, nb := range pairs {
+				if seen[nb.based] {
+					continue
+				}
+				seen[nb.based] = true
+				extra := &VarDecl{Ty: vd.Ty, Size: vd.Size, AtAddr: vd.AtAddr, Based: nb.based}
+				for _, nb2 := range pairs {
+					if nb2.based == nb.based {
+						extra.Names = append(extra.Names, nb2.name)
+					}
+				}
+				p.extraDecls = append(p.extraDecls, extra)
+			}
 		}
 	} else {
 		t, err := p.l.ExpectKind(TokIdent)

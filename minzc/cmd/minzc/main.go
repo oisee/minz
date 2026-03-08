@@ -221,9 +221,17 @@ func compile(sourceFile string) error {
 		return compileFromMIR(sourceFile)
 	}
 
-	// Check if input is a PL/M-80 file, or if --emit=nanz is requested
 	ext := filepath.Ext(sourceFile)
-	if ext == ".plm" || emitFormat == "nanz" {
+
+	// PL/M-80: --emit=nanz transpiles to readable Nanz source.
+	// Full PL/M→Z80 compilation is not yet wired (needs HIR→MIR2→Z80 pipeline).
+	if ext == ".plm" {
+		if emitFormat == "nanz" {
+			return compilePLMToNanz(sourceFile)
+		}
+		return fmt.Errorf(".plm compilation to Z80 not yet implemented; use --emit=nanz to transpile to Nanz source")
+	}
+	if emitFormat == "nanz" {
 		return compilePLMToNanz(sourceFile)
 	}
 

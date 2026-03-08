@@ -283,6 +283,15 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 			return []hir.Stmt{&hir.StoreStmt{Ptr: indexedPtr, Val: val}}, nil
 		}
 
+		// PL/M scalar assignment to an array variable (no explicit index) means
+		// element 0: arr = val; → arr[0] = val
+		if _, ok := pl.arraySize(s.Name); ok {
+			elemTy := plmToMIR2(pl.typeOf(s.Name))
+			base := &hir.AddrOfExpr{Sym: s.Name}
+			indexedPtr := &hir.IndexExpr{Base: base, Idx: hir.U8(0), ElemTy: elemTy}
+			return []hir.Stmt{&hir.StoreStmt{Ptr: indexedPtr, Val: val}}, nil
+		}
+
 		ty := plmToMIR2(pl.typeOf(s.Name))
 		return []hir.Stmt{hir.Assign(hir.Var(s.Name, ty), val)}, nil
 

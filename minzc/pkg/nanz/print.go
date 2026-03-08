@@ -173,8 +173,20 @@ func (p *printer) stmt(s hir.Stmt) {
 		p.expr(s.Val)
 		p.nl()
 	case *hir.StoreStmt:
-		// ptr^ = val  (postfix ^)
 		p.tab()
+		// Sugar: &sym[idx]^ = val  →  sym[idx] = val
+		if ix, ok := s.Ptr.(*hir.IndexExpr); ok {
+			if ao, ok := ix.Base.(*hir.AddrOfExpr); ok {
+				p.write(ao.Sym)
+				p.write("[")
+				p.expr(ix.Idx)
+				p.write("] = ")
+				p.expr(s.Val)
+				p.nl()
+				break
+			}
+		}
+		// General case: ptr^ = val  (postfix ^)
 		p.exprParen(s.Ptr)
 		p.write("^ = ")
 		p.expr(s.Val)
@@ -376,7 +388,12 @@ func (p *printer) expr(e hir.Expr) {
 		p.expr(e.X)
 		p.write(")")
 	case *hir.IndexExpr:
-		p.exprParen(e.Base)
+		// Sugar: (&sym)[i]  →  sym[i]  (array variable indexed directly)
+		if ao, ok := e.Base.(*hir.AddrOfExpr); ok {
+			p.write(ao.Sym)
+		} else {
+			p.exprParen(e.Base)
+		}
 		p.write("[")
 		p.expr(e.Idx)
 		p.write("]")
