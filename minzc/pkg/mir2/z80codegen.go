@@ -48,6 +48,52 @@ func Z80Codegen(m *Module, ar *AllocResult) string {
 		cg.genFunc(f)
 		sb.WriteByte('\n')
 	}
+
+	// Emit global variable data sections.
+	if len(m.Globals) > 0 {
+		sb.WriteString("; globals\n")
+		for _, g := range m.Globals {
+			w := ByteWidth(g.Ty)
+			if w == 0 {
+				continue
+			}
+			sb.WriteString(sanitizeIdent(g.Name) + ":\n")
+			// Emit as DB sequence for all types — always readable,
+			// correct for struct fields, and unambiguous byte order.
+			sb.WriteString("    DB ")
+			for i := 0; i < w; i++ {
+				if i > 0 {
+					sb.WriteString(", ")
+				}
+				b := byte(0)
+				if i < len(g.Init) {
+					b = g.Init[i]
+				}
+				fmt.Fprintf(&sb, "%d", b)
+			}
+			sb.WriteByte('\n')
+		}
+	}
+
+	// Emit string pool — NUL-terminated byte sequences.
+	// Symbol names: @mir2.str.N → mir2_str_N (sanitized for assembler).
+	if m.Strings.Len() > 0 {
+		sb.WriteString("; strings\n")
+		for i := 0; i < m.Strings.Len(); i++ {
+			sym := sanitizeIdent(m.Strings.Symbol(i))
+			s := m.Strings.At(i)
+			sb.WriteString(sym + ":\n")
+			sb.WriteString("    DB ")
+			for j, c := range []byte(s) {
+				if j > 0 {
+					sb.WriteString(", ")
+				}
+				fmt.Fprintf(&sb, "%d", c)
+			}
+			sb.WriteString(", 0\n") // NUL terminator
+		}
+	}
+
 	return sb.String()
 }
 
@@ -58,7 +104,8 @@ type z80cg struct {
 	sb         *strings.Builder
 	fn         *Func   // current function
 	blockIdx   int     // index of current block in fn.Blocks (for fall-through)
-	cmpSwapped map[Reg]bool  // dst reg → operands were swapped in genCmp
+	cmpSwapped  map[Reg]bool // dst reg → operands were swapped in genCmp
+	cmpAndZero  map[Reg]bool // dst reg → comparison used AND A (rhs=0), use NZ/Z not NC/C
 	constVals  map[Reg]int64 // virtual reg → compile-time constant value (for peepholes)
 	deadConsts map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
 
@@ -223,6 +270,14 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
+			// Call/CallIndirect args live in inst.Args, not inst.Src — count them
+			// as non-peephole uses so their LD is not suppressed.
+			for _, src := range inst.Args {
+				if _, isConst := constVal[src]; isConst {
+					totalUses[src]++
+					// call args are never peephole-foldable
+				}
+			}
 			for _, src := range inst.Src {
 				cv, isConst := constVal[src]
 				if !isConst {
@@ -280,6 +335,7 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 func (g *z80cg) genFunc(f *Func) {
 	g.fn = f
 	g.cmpSwapped = make(map[Reg]bool)
+	g.cmpAndZero = make(map[Reg]bool)
 	g.constVals = make(map[Reg]int64)
 	g.deadConsts = computeDeadConsts(f, g.ar)
 	g.holdsPhys = make(map[string]string)
@@ -417,6 +473,63 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpAddrOf:
 		g.emitf("    LD %s, %s", dst, inst.Sym)
 
+	case OpPtrAdd:
+		// Runtime pointer advance: dst = base_ptr + offset_u16.
+		// Z80: needs both operands in 16-bit register pairs.
+		// Optimal: base in HL (dst), offset in DE → ADD HL, DE (11T, no A clobber).
+		base := g.loc(inst.Src[0])
+		off := g.loc(inst.Src[1])
+		if dst != base {
+			g.emitMov(dst, base, 16)
+		}
+		// Ensure offset is in a 16-bit pair different from dst.
+		offPair := off
+		if len(off) == 1 { // 8-bit reg (A, B, C, D, E, H, L) — zero-extend to pair
+			offPair = "DE"
+			if dst == "DE" {
+				offPair = "BC"
+			}
+			g.emitf("    LD %s, 0", offPair)
+			g.emitf("    LD %s, %s", lowByte(offPair), off)
+		} else if off == dst {
+			// Same pair: ADD HL, HL doubles the pointer — that's wrong.
+			// Move offset to temp pair first.
+			offPair = "DE"
+			if dst == "DE" {
+				offPair = "BC"
+			}
+			g.emitMov(offPair, off, 16)
+		}
+		g.emitf("    ADD %s, %s", dst, offPair)
+		g.invalidate(dst)
+
+	case OpField, OpPtrBump:
+		// Advance pointer by compile-time byte offset.
+		// OpField: struct field access; OpPtrBump: iterator advance.
+		// Same Z80 codegen for AoS layout (Phase 3). SoA256 INC L lowering: Phase 3c.
+		src := g.loc(inst.Src[0])
+		offset := inst.Imm
+		if dst != src {
+			g.emitMov(dst, src, 16) // copy base ptr
+		}
+		switch {
+		case offset == 0:
+			// nothing — dst already at target
+		case offset <= 3:
+			for range offset {
+				g.emitf("    INC %s", dst)
+			}
+		default:
+			// LD BC, offset; ADD HL, BC  (or equivalent pair for dst)
+			tmp := "BC"
+			if dst == "BC" {
+				tmp = "DE"
+			}
+			g.emitf("    LD %s, %d", tmp, offset)
+			g.emitf("    ADD %s, %s", dst, tmp)
+		}
+		g.invalidate(dst)
+
 	case OpAlloca:
 		// Reserve bytes on stack; dst = current SP.
 		n := inst.Imm
@@ -474,17 +587,23 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	w := inst.Ty.Width()
 
 	if w <= 8 {
-		// Peephole: ADD/SUB dst, 1 where dst == lhs → INC/DEC dst (avoids clobbering A).
+		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
+		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
+		// N=4 would be 16T vs 15T — worse in T-states, skip and fall through to ALU.
 		if mnem == "ADD" && lhs == dst {
-			if cv, ok := g.constVals[inst.Src[1]]; ok && cv == 1 {
-				g.emitf("    INC %s", dst)
-				g.invalidate(dst) // dst changed; kill any alias it held
+			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
+				for range cv {
+					g.emitf("    INC %s", dst)
+				}
+				g.invalidate(dst)
 				return
 			}
 		}
 		if mnem == "SUB" && lhs == dst {
-			if cv, ok := g.constVals[inst.Src[1]]; ok && cv == 1 {
-				g.emitf("    DEC %s", dst)
+			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
+				for range cv {
+					g.emitf("    DEC %s", dst)
+				}
 				g.invalidate(dst)
 				return
 			}
@@ -627,9 +746,15 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 		g.emitf("    LD %s, %s", dst, src)
 		g.setCopy(dst, src)
 	}
-	// Shift count in Src[1] — on Z80 shifts are always by 1.
-	// For constant counts, emit N rotates; variable shifts → TODO.
-	g.emitf("    %s %s", mnem, dst)
+	// Shift count in Src[1] — Z80 shifts are always by 1 per instruction.
+	// For constant counts, emit N copies.  Variable shifts → TODO.
+	count := int64(1)
+	if cv, ok := g.constVals[inst.Src[1]]; ok && cv > 0 {
+		count = cv
+	}
+	for i := int64(0); i < count; i++ {
+		g.emitf("    %s %s", mnem, dst)
+	}
 	g.invalidate(dst) // shift modifies dst
 }
 
@@ -701,8 +826,13 @@ func (g *z80cg) genCmp(inst *Inst) {
 		if !g.holdsValue("A", lhs) {
 			g.emitLDA(lhs)
 		}
-		g.emitf("    CP %d", cv)
-		// CP does not modify A; aliases remain valid.
+		if cv == 0 {
+			g.emit("    AND A") // AND A ≡ CP 0 for all flags; 1B/4T vs 2B/7T
+			g.cmpAndZero[inst.Dst] = true
+		} else {
+			g.emitf("    CP %d", cv)
+		}
+		// CP/AND A does not modify A; aliases remain valid.
 		return
 	}
 
@@ -772,6 +902,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 	switch t := t.(type) {
 	case *TermRet:
 		// Move each return value to its calling-convention physical register.
+		// Skip the move if the destination already holds the same value (copy alias).
 		for i, rv := range t.Vals {
 			if i >= len(g.fn.Contract.Returns) {
 				break
@@ -779,7 +910,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			ret := g.fn.Contract.Returns[i]
 			retLoc := canonicalReturnLoc(ret.Class, ret.Ty)
 			src := g.loc(rv)
-			if src != retLoc {
+			if src != retLoc && !g.holdsValue(retLoc, src) {
 				g.emitMov(retLoc, src, ret.Ty.Width())
 			}
 		}
@@ -820,6 +951,57 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		} else {
 			g.emitf("    JP %s, %s", cc, thenLbl)
 			g.emitf("    JP %s", elseLbl)
+		}
+
+	case *TermBrIf2:
+		// Three-way unsigned comparison: one CP, three outcomes (==, <, >).
+		// Emit: CP rhs (with A=lhs), then JP Z eq, JP C lt, fall-through/JP gt.
+		lhs := g.loc(t.Lhs)
+		rhs := g.loc(t.Rhs)
+
+		// Emit the CP (same logic as genCmp).
+		if cv, ok := g.constVals[t.Rhs]; ok {
+			if !g.holdsValue("A", lhs) {
+				g.emitLDA(lhs)
+			}
+			g.emitf("    CP %d", cv)
+		} else if rhs == "A" && lhs != "A" {
+			// A already holds rhs; swap: CP lhs computes rhs-lhs.
+			// Eq is still Z (rhs-lhs==0 ↔ rhs==lhs), but C now means rhs<lhs.
+			// So we swap Lt↔Gt below.
+			g.emitf("    CP %s", lhs)
+			// Build copies for eq, swapped lt/gt.
+			eqCopies := g.buildBlockCopies(f, t.Eq, t.EqArgs)
+			ltCopies := g.buildBlockCopies(f, t.Gt, t.GtArgs) // swapped: C→gt
+			gtCopies := g.buildBlockCopies(f, t.Lt, t.LtArgs) // swapped: NC,NZ→lt
+			eqLbl := g.branchLabel(f, t.Eq, eqCopies)
+			ltLbl := g.branchLabel(f, t.Gt, ltCopies)
+			gtLbl := g.branchLabel(f, t.Lt, gtCopies)
+			g.emitf("    JP Z, %s", eqLbl)
+			g.emitf("    JP C, %s", ltLbl)
+			if !g.isFallThrough(f, t.Lt) || len(gtCopies) != 0 {
+				g.emitf("    JP %s", gtLbl)
+			}
+			return
+		} else {
+			if !g.holdsValue("A", lhs) {
+				g.emitLDA(lhs)
+			}
+			g.emitf("    CP %s", rhs)
+		}
+
+		// Build copies for each of the three edges.
+		eqCopies := g.buildBlockCopies(f, t.Eq, t.EqArgs)
+		ltCopies := g.buildBlockCopies(f, t.Lt, t.LtArgs)
+		gtCopies := g.buildBlockCopies(f, t.Gt, t.GtArgs)
+		eqLbl := g.branchLabel(f, t.Eq, eqCopies)
+		ltLbl := g.branchLabel(f, t.Lt, ltCopies)
+		gtLbl := g.branchLabel(f, t.Gt, gtCopies)
+
+		g.emitf("    JP Z, %s", eqLbl)
+		g.emitf("    JP C, %s", ltLbl)
+		if !g.isFallThrough(f, t.Gt) || len(gtCopies) != 0 {
+			g.emitf("    JP %s", gtLbl)
 		}
 
 	case *TermUnreachable:
@@ -959,17 +1141,25 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 		m := &moves[first]
 		if m.ty.Width() <= 8 {
 			// u8 cycle: use A as scratch.
+			//
+			// Walk BACKWARD through the cycle so we always read old values.
+			// Example 3-cycle D→C, C→E, E→D:
+			//   Save A = D  (free the D slot)
+			//   LD D, E     (backward: who writes TO D? E→D. Do it now while E is clean.)
+			//   LD E, C     (backward: who writes TO E? C→E.)
+			//   LD C, A     (put D_old into C, the first.dst)
+			firstDst := m.dst
 			if m.src != "A" {
 				g.emitf("    LD A, %s", m.src)
 			}
 			m.done = true
-			cur := m.dst
+			cur := m.src // start at the freed slot (m.src moved to A)
 			for {
 				found := false
 				for i := range moves {
-					if !moves[i].done && moves[i].src == cur {
+					if !moves[i].done && moves[i].dst == cur {
 						g.emitf("    LD %s, %s", moves[i].dst, moves[i].src)
-						cur = moves[i].dst
+						cur = moves[i].src // the source is the new freed slot
 						moves[i].done = true
 						found = true
 						break
@@ -979,8 +1169,8 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 					break
 				}
 			}
-			if cur != "A" {
-				g.emitf("    LD %s, A", cur)
+			if firstDst != "A" {
+				g.emitf("    LD %s, A", firstDst)
 			}
 		} else {
 			// u16 cycle: use stack.
@@ -1032,6 +1222,20 @@ func (g *z80cg) condCode(f *Func, cond Reg) string {
 				c := inst.Cond
 				if g.cmpSwapped[cond] {
 					c = c.Swap() // operands were swapped → invert condition
+				}
+				// When genCmp emitted AND A (rhs=0), carry is always 0.
+				// Replace NC/C-based conditions with NZ/Z-based ones:
+				//   CmpGt(n, 0) → n != 0 → NZ
+				//   CmpGe(n, 0) → n >= 0 → always true → handled as NC (fine)
+				//   CmpLt(n, 0) → never for unsigned → C (never fires)
+				//   CmpLe(n, 0) → n == 0 → Z
+				if g.cmpAndZero[cond] {
+					switch c {
+					case CmpGt, CmpUgt:
+						return "NZ"
+					case CmpLe, CmpUle:
+						return "Z"
+					}
 				}
 				return cmpCondCode(c)
 			}

@@ -138,6 +138,11 @@ func lowerFunc(m *mir2.Module, f *Func) {
 
 	// Lower body.
 	l.lowerBlock(f.Body)
+
+	// Implicit return for void functions that fall off the end of the current block.
+	if !bld.Cur.IsSealed() {
+		bld.Ret()
+	}
 }
 
 // classForParam chooses a register class for the i-th parameter.
@@ -279,6 +284,10 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		l.lowerForRange(st)
 		return false
 
+	case *ForEachStmt:
+		l.lowerForEach(st)
+		return false
+
 	case *BreakStmt:
 		ctx := l.curLoop()
 		args := l.collectArgs(ctx.mutated)
@@ -331,19 +340,24 @@ func (l *lowerer) lowerIf(st *IfStmt) bool {
 		elseLabel = l.fresh("if_else")
 	}
 
+	// For no-else ifs, pre-collect envBefore values for the false edge args.
+	// We must do this BEFORE emitting any new instructions so the regs are
+	// the current values (not post-then).
+	var falseEdgeArgs []mir2.Reg
+	if !hasElse {
+		falseEdgeArgs = l.collectArgs(mutated)
+	}
+
 	// Emit the branch.
 	condReg := l.lowerCond(st.Cond)
 	if hasElse {
 		l.bld.BrIf(condReg, thenLabel, nil, elseLabel, nil)
 	} else {
-		// No else: false edge falls through to join with unchanged values.
-		// If there are mutated vars, the join block params will be fed from
-		// both the then-Jmp and the original values on the false edge.
-		// Since BrIf false goes directly to join, we can't pass args there.
-		// Solution: if no else and vars mutated in then, don't use block params
-		// for join — the variable has the old value on the false path.
-		// (Handled below: join only gets block params if both paths are live.)
-		l.bld.BrIf(condReg, thenLabel, nil, joinLabel, nil)
+		// No else: false edge goes to join with the current (pre-then) values
+		// of mutated vars.  The true (then) edge will jump to join with the
+		// post-mutation values.  The join block will have block params for each
+		// mutated var that receives from both paths.
+		l.bld.BrIf(condReg, thenLabel, nil, joinLabel, falseEdgeArgs)
 	}
 
 	// ── then branch ──
@@ -399,21 +413,15 @@ func (l *lowerer) lowerIf(st *IfStmt) bool {
 			joinEnv[name] = r
 		}
 	} else if !hasElse {
-		// No else: true path jumps with args; false path has no args
-		// (BrIf false went directly to join with no block params).
-		// We can still create block params because BrIf false passes no args —
-		// but then the false edge's params would be uninitialised.
-		// Safest: use the then-branch's updated env (optimistic; works if then
-		// always updates the variable, which scanMutations guarantees).
-		// For correctness with "if without else", the false path keeps envBefore.
-		// We must pick one: use envAfterThen for params that came from then,
-		// and envBefore for params that didn't change (i.e., no mutation in then
-		// from false path perspective). Since BrIf false gives join NO args,
-		// we cannot create block params for mutated vars here — just use envBefore.
+		// No else: both paths now supply args (true=then-branch values,
+		// false=envBefore values via falseEdgeArgs).  Create block params so
+		// the join receives the correct value from whichever path executed.
 		joinEnv = cloneMap(envBefore)
-		// Apply then-branch mutations that we can trust (then ran, join follows).
-		// This is unsound if the condition was false (mutation didn't happen).
-		// For now: leave envBefore for safety; a later pass can refine this.
+		for _, name := range mutated {
+			ty := l.envTy[name]
+			r := l.bld.BlockParam(join, ty, classForExpr(ty))
+			joinEnv[name] = r
+		}
 	} else {
 		joinEnv = cloneMap(envAfterElse)
 	}
@@ -525,6 +533,117 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 		Cond: &BinExpr{Op: "<", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: st.End, Ty: mir2.TyBool},
 		Body: whileBody,
 	})
+}
+
+// lowerForEach lowers a ForEachStmt.
+//
+// MIR2 structure (ptr → HL, counter → B for DJNZ):
+//
+//	entry:
+//	    ptr0 = lower(Ptr) + Start * stride
+//	    cnt0 = lower(Len)
+//	    jmp @fe_head(ptr0, cnt0, ...mutated_init...)
+//	fe_head(ptr, cnt, ...mutated...):
+//	    cond = cnt != 0
+//	    brif cond @fe_body @fe_exit(ptr, cnt, ...mutated...)
+//	fe_body:
+//	    x = Load(ptr, ElemTy)
+//	    [body]
+//	    ptr_next = PtrBump(ptr, stride)
+//	    cnt_next = Sub(cnt, 1)
+//	    jmp @fe_head(ptr_next, cnt_next, ...updated_mutated...)
+//	fe_exit(ptr, cnt, ...mutated...):   -- ptr/cnt discarded
+//	    [continue]
+func (l *lowerer) lowerForEach(st *ForEachStmt) {
+	envBefore := cloneMap(l.env)
+	stride := int64(mir2.ByteWidth(st.ElemTy))
+	if stride < 1 {
+		stride = 1
+	}
+
+	// Compute initial pointer (with optional start offset).
+	ptrReg := l.lowerExpr(st.Ptr)
+	if st.Start != nil {
+		startReg := l.lowerExpr(st.Start)
+		if stride > 1 {
+			factor := l.bld.Const(stride, mir2.TyU16, mir2.ClassPointer)
+			startReg = l.bld.Mul(startReg, factor, mir2.TyU16, mir2.ClassIndex)
+		}
+		ptrReg = l.bld.PtrAdd(ptrReg, startReg, mir2.ClassPointer)
+	}
+	// Compute element count.
+	cntReg := l.lowerExpr(st.Len)
+
+	// Collect user env vars used/mutated in the body (for block params).
+	allUsed := map[string]bool{}
+	scanUsedInBlock(st.Body, envBefore, allUsed)
+	muts := scanMutations(st.Body, envBefore)
+	for name := range muts {
+		allUsed[name] = true
+	}
+	// Don't thread the element variable itself (it's fresh each iteration).
+	delete(allUsed, st.Var)
+	mutated := sortedKeys(allUsed, envBefore)
+
+	headLabel := l.fresh("fe_head")
+	bodyLabel := l.fresh("fe_body")
+	exitLabel := l.fresh("fe_exit")
+
+	// Jump to loop head: (ptr, cnt, mutated...)
+	initArgs := append([]mir2.Reg{ptrReg, cntReg}, l.collectArgs(mutated)...)
+	l.bld.Jmp(headLabel, initArgs...)
+
+	// ── fe_head(ptr, cnt, mutated...) ──
+	head := l.bld.SwitchToNewBlock(headLabel)
+	headPtr := l.bld.BlockParam(head, mir2.TyPtr, mir2.ClassPointer) // HL
+	headCnt := l.bld.BlockParam(head, mir2.TyU8, mir2.ClassCounter)  // B → DJNZ
+	headEnv := cloneMap(envBefore)
+	for _, name := range mutated {
+		ty := l.envTy[name]
+		r := l.bld.BlockParam(head, ty, classForLoop(ty, name))
+		headEnv[name] = r
+	}
+	l.env = headEnv
+
+	// brif (cnt != 0) → body, else → exit
+	zero8 := l.bld.Const(0, mir2.TyU8, mir2.ClassAcc)
+	cond := l.bld.Cmp(mir2.CmpNe, headCnt, zero8, mir2.ClassFlag, false)
+	exitArgs := append([]mir2.Reg{headPtr, headCnt}, l.collectArgs(mutated)...)
+	l.bld.BrIf(cond, bodyLabel, nil, exitLabel, exitArgs)
+
+	// ── fe_body ──
+	l.bld.SwitchToNewBlock(bodyLabel)
+	l.env = cloneMap(headEnv)
+
+	// Load element: x = *ptr
+	xReg := l.bld.Load(headPtr, st.ElemTy, classForExpr(st.ElemTy))
+	l.bind(st.Var, xReg, st.ElemTy)
+
+	l.pushLoop(loopCtx{headLabel: headLabel, exitLabel: exitLabel, mutated: mutated})
+	l.lowerBlock(st.Body)
+	l.popLoop()
+
+	// Advance: ptr_next = PtrBump(ptr, stride); cnt_next = Sub(cnt, 1)
+	ptrNext := l.bld.PtrBump(headPtr, stride, mir2.ClassPointer)
+	one := l.bld.Const(1, mir2.TyU8, mir2.ClassCounter)
+	cntNext := l.bld.Sub(headCnt, one, mir2.TyU8, mir2.ClassCounter)
+
+	backArgs := append([]mir2.Reg{ptrNext, cntNext}, l.collectArgs(mutated)...)
+	l.bld.Jmp(headLabel, backArgs...)
+
+	// ── fe_exit(ptr, cnt, mutated...) ──
+	exit := l.bld.SwitchToNewBlock(exitLabel)
+	l.bld.BlockParam(exit, mir2.TyPtr, mir2.ClassPointer) // discard ptr
+	l.bld.BlockParam(exit, mir2.TyU8, mir2.ClassCounter)  // discard cnt
+	exitEnv := cloneMap(envBefore)
+	for _, name := range mutated {
+		ty := l.envTy[name]
+		r := l.bld.BlockParam(exit, ty, classForExpr(ty))
+		exitEnv[name] = r
+	}
+	// Element var goes out of scope.
+	delete(exitEnv, st.Var)
+	l.env = exitEnv
 }
 
 // ── Switch lowering ───────────────────────────────────────────────────────────
@@ -667,7 +786,16 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	case *CallExpr:
 		args := make([]mir2.Reg, len(ex.Args))
 		for i, a := range ex.Args {
-			args[i] = l.lowerExpr(a)
+			r := l.lowerExpr(a)
+			// Coerce arg to its calling-convention register class.
+			// E.g. arg[0] must be in ClassAcc (A), but classForExpr returns
+			// ClassGeneral for safety.  Emit an explicit Move so the allocator
+			// puts the value in the right physical register.
+			tgtCls := classForParam(a.ExprTy(), i)
+			if tgtCls != classForExpr(a.ExprTy()) {
+				r = l.bld.Move(r, a.ExprTy(), tgtCls)
+			}
+			args[i] = r
 		}
 		if ex.Ty == mir2.TyVoid {
 			l.bld.CallVoid(ex.Fn, args, mir2.CallAttrs{})
@@ -911,6 +1039,8 @@ func scanStmt(s Stmt, env map[string]mir2.Reg, muts map[string]bool) {
 		scanBlock(st.Body, env, muts)
 	case *ForRangeStmt:
 		scanBlock(st.Body, env, muts)
+	case *ForEachStmt:
+		scanBlock(st.Body, env, muts)
 	case *SwitchStmt:
 		for _, c := range st.Cases {
 			scanBlock(c.Body, env, muts)
@@ -1034,6 +1164,13 @@ func scanUsedInStmt(s Stmt, env map[string]mir2.Reg, used map[string]bool) {
 		if st.End != nil {
 			scanUsedExpr(st.End, env, used)
 		}
+		scanUsedInBlock(st.Body, env, used)
+	case *ForEachStmt:
+		scanUsedExpr(st.Ptr, env, used)
+		if st.Start != nil {
+			scanUsedExpr(st.Start, env, used)
+		}
+		scanUsedExpr(st.Len, env, used)
 		scanUsedInBlock(st.Body, env, used)
 	case *SwitchStmt:
 		scanUsedExpr(st.Val, env, used)

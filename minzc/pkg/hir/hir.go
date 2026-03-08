@@ -133,6 +133,25 @@ type ExprStmt struct{ Expr Expr }
 
 func (*ExprStmt) hirStmt() {}
 
+// ForEachStmt iterates over a contiguous slice of memory:
+//
+//	for x: ElemTy in ptr[start..end] { body }
+//
+// Lowers to a DJNZ-friendly loop in MIR2:
+//
+//	ptr → ClassPointer (HL); counter → ClassCounter (B)
+//	loop: x = *ptr; body; ptr += stride; counter--; if counter != 0 goto loop
+type ForEachStmt struct {
+	Var    string  // element variable name (bound in body)
+	ElemTy mir2.Ty // type of each element
+	Ptr    Expr    // base pointer (TyPtr)
+	Start  Expr    // start index (often IntLitExpr{0})
+	Len    Expr    // element count (= end - start when start=0)
+	Body   *Block
+}
+
+func (*ForEachStmt) hirStmt() {}
+
 // BreakStmt exits the nearest enclosing loop.
 type BreakStmt struct{}
 
