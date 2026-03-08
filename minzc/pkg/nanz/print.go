@@ -231,6 +231,30 @@ func (p *printer) stmt(s hir.Stmt) {
 		}
 		p.indent--
 		p.line("}")
+	case *hir.ForEachStmt:
+		// for x: T in ptr[start..start+len]
+		p.tab()
+		p.writef("for %s: %s in ", s.Var, tyStr(s.ElemTy))
+		p.expr(s.Ptr)
+		p.write("[")
+		if s.Start != nil {
+			p.expr(s.Start)
+		} else {
+			p.write("0")
+		}
+		p.write("..")
+		if s.Start != nil {
+			p.expr(s.Start)
+			p.write(" + ")
+		}
+		p.expr(s.Len)
+		p.write("] {\n")
+		p.indent++
+		for _, bs := range s.Body.Body {
+			p.stmt(bs)
+		}
+		p.indent--
+		p.line("}")
 	case *hir.ExprStmt:
 		p.tab()
 		p.expr(s.Expr)

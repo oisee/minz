@@ -114,6 +114,42 @@ func TestParseRoundtrip(t *testing.T) {
 	}
 }
 
+func TestForEach(t *testing.T) {
+	src := `fun sum_bytes(buf: ^u8, len: u8) -> u16 {
+    var total: u16 = 0
+    for b: u8 in buf[0..len] {
+        total = (total + u16(b))
+    }
+    return total
+}
+`
+	m, err := nanz.Parse(src, "foreach_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(m.Funcs) != 1 {
+		t.Fatalf("funcs: want 1, got %d", len(m.Funcs))
+	}
+	f := m.Funcs[0]
+	if f.Name != "sum_bytes" {
+		t.Errorf("func name: want sum_bytes, got %s", f.Name)
+	}
+	// Body should contain: VarDeclStmt, ForEachStmt, ReturnStmt
+	if len(f.Body.Body) != 3 {
+		t.Errorf("body stmts: want 3, got %d", len(f.Body.Body))
+	}
+
+	// Check roundtrip
+	printed := nanz.Print(m)
+	_, err = nanz.Parse(printed, "foreach_test2")
+	if err != nil {
+		t.Errorf("roundtrip parse failed: %v\n\nPrinted:\n%s", err, printed)
+	}
+	if !strings.Contains(printed, "for b: u8 in") {
+		t.Errorf("printed output missing for-each loop:\n%s", printed)
+	}
+}
+
 func TestAtDecl(t *testing.T) {
 	src := `global port: u8 at(0xFE)
 global screen: [u8; 6912] at(0x4000)

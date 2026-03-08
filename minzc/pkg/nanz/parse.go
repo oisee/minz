@@ -871,25 +871,132 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Optional explicit element type: for x: T in ...
+	var elemTy mir2.Ty = mir2.TyU8
+	if p.l.is(tokColon) {
+		p.l.next()
+		elemTy, err = p.parseType()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if err := p.l.eatIdent("in"); err != nil {
 		return nil, err
 	}
-	start, err := p.parseExpr()
+
+	// Parse the base expression (primary + field/call but NOT index — we handle
+	// index specially to detect the [start..end] slice form).
+	// Use parsePrimary directly to avoid parsePostfix consuming '[' as an index.
+	base, err := p.parsePrimary()
 	if err != nil {
 		return nil, err
 	}
-	if _, err := p.l.eat(tokDotDot); err != nil {
-		return nil, err
-	}
-	end, err := p.parseExpr()
+	// Consume dot/call/deref postfixes but stop before [
+	base, err = p.parsePostfixNoBrack(base)
 	if err != nil {
 		return nil, err
 	}
-	body, err := p.parseBlock()
-	if err != nil {
-		return nil, err
+
+	// ── for x: T in ptr[start..end] → ForEachStmt ──
+	if p.l.is(tokLBrack) {
+		p.l.next()
+		// Optional start (default 0)
+		var startExpr hir.Expr = &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}
+		if !p.l.is(tokDotDot) {
+			startExpr, err = p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+		}
+		if _, err := p.l.eat(tokDotDot); err != nil {
+			return nil, err
+		}
+		endExpr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.eat(tokRBrack); err != nil {
+			return nil, err
+		}
+		// Compute len = end - start; if start == literal 0, len = end directly.
+		var lenExpr hir.Expr
+		if lit, ok := startExpr.(*hir.IntLitExpr); ok && lit.Val == 0 {
+			lenExpr = endExpr
+		} else {
+			lenExpr = &hir.BinExpr{Op: "-", L: endExpr, R: startExpr, Ty: endExpr.ExprTy()}
+		}
+		body, err := p.parseBlock()
+		if err != nil {
+			return nil, err
+		}
+		return &hir.ForEachStmt{
+			Var: varTok.val, ElemTy: elemTy,
+			Ptr: base, Start: startExpr, Len: lenExpr,
+			Body: body,
+		}, nil
 	}
-	return &hir.ForRangeStmt{Var: varTok.val, Start: start, End: end, Body: body}, nil
+
+	// ── for i in start..end → ForRangeStmt ──
+	// base is the start expression here.
+	if p.l.is(tokDotDot) {
+		p.l.next()
+		end, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		body, err := p.parseBlock()
+		if err != nil {
+			return nil, err
+		}
+		return &hir.ForRangeStmt{Var: varTok.val, Start: base, End: end, Body: body}, nil
+	}
+
+	return nil, fmt.Errorf("line %d: for: expected ptr[start..end] or start..end after 'in'", p.l.peek().line)
+}
+
+// parsePostfixNoBrack is like parsePostfix but stops before '['.
+// Used by parseFor to detect whether the next token is a range slice.
+func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
+	for {
+		t := p.l.peek()
+		switch t.kind {
+		case tokCaret:
+			p.l.next()
+			base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+		case tokDot:
+			p.l.next()
+			fieldTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return nil, err
+			}
+			base = &hir.FieldExpr{X: base, Field: fieldTok.val, Ty: mir2.TyU8}
+		case tokLParen:
+			p.l.next()
+			var args []hir.Expr
+			for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+				a, err := p.parseExpr()
+				if err != nil {
+					return nil, err
+				}
+				args = append(args, a)
+				if p.l.is(tokComma) {
+					p.l.next()
+				}
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			name := ""
+			if vr, ok := base.(*hir.VarRefExpr); ok {
+				name = vr.Name
+			}
+			base = &hir.CallExpr{Fn: name, Args: args, Ty: mir2.TyVoid}
+		default:
+			return base, nil
+		}
+	}
 }
 
 func (p *parser) parseReturn() (hir.Stmt, error) {
@@ -1094,7 +1201,7 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			p.l.next()
 			base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
 		case tokLBrack:
-			// base[idx] — index
+			// base[idx] — index (range slices are handled by parseFor directly)
 			p.l.next()
 			idx, err := p.parseExpr()
 			if err != nil {
