@@ -34,8 +34,11 @@ func Compile(src string) (*hir.Module, error) {
 // LowerModule converts a parsed PL/M-80 Module to a HIR module.
 func LowerModule(pm *Module) (*hir.Module, error) {
 	l := &modLowerer{
-		pm:      pm,
-		fnRetTy: make(map[string]PLMType),
+		pm:           pm,
+		fnRetTy:      make(map[string]PLMType),
+		globalArrays: make(map[string]int),
+		globalBased:  make(map[string]string),
+		globalAt:     make(map[string]*uint16),
 	}
 	return l.lower()
 }
@@ -43,8 +46,11 @@ func LowerModule(pm *Module) (*hir.Module, error) {
 // ── Module lowerer ────────────────────────────────────────────────────────────
 
 type modLowerer struct {
-	pm      *Module
-	fnRetTy map[string]PLMType // return type per procedure name (first-pass)
+	pm           *Module
+	fnRetTy      map[string]PLMType  // return type per procedure name
+	globalArrays map[string]int      // name → array size (0 = scalar)
+	globalBased  map[string]string   // name → base variable (BASED)
+	globalAt     map[string]*uint16  // name → AT address
 }
 
 func (l *modLowerer) lower() (*hir.Module, error) {
@@ -62,12 +68,37 @@ func (l *modLowerer) lower() (*hir.Module, error) {
 		switch d := d.(type) {
 		case *VarDecl:
 			for _, name := range d.Names {
-				ty := plmToMIR2(d.Ty)
-				// mir2.Global has no Addr field; AT() address is recorded as a
-				// comment for future linker support.
-				g := mir2.Global{Name: name, Ty: ty}
+				elemTy := plmToMIR2(d.Ty)
+
+				// Track array metadata.
+				if d.Size != nil {
+					l.globalArrays[name] = *d.Size
+				}
+				// Track BASED variables — don't emit globals for them.
+				if d.Based != "" {
+					l.globalBased[name] = d.Based
+					continue
+				}
+				// Track AT addresses.
+				if d.AtAddr != nil {
+					addr := *d.AtAddr
+					l.globalAt[name] = &addr
+				}
+
+				// Build global type (scalar or array).
+				var gTy mir2.Ty = elemTy
+				if d.Size != nil {
+					gTy = &mir2.ArrayTy{Elem: elemTy, Len: *d.Size}
+				}
+
+				g := mir2.Global{Name: name, Ty: gTy}
+				if d.AtAddr != nil {
+					addr := *d.AtAddr
+					g.At = &addr
+				}
 				hm.Globals = append(hm.Globals, g)
 			}
+
 		case *ProcDecl:
 			f, err := l.lowerProc(d)
 			if err != nil {
@@ -82,9 +113,12 @@ func (l *modLowerer) lower() (*hir.Module, error) {
 // ── Procedure lowerer ─────────────────────────────────────────────────────────
 
 type procLowerer struct {
-	ml         *modLowerer
-	paramTypes map[string]PLMType // name → PLM type (from DECLARE inside proc)
-	localTypes map[string]PLMType // non-param locals
+	ml          *modLowerer
+	paramTypes  map[string]PLMType // name → PLM type (from DECLARE inside proc)
+	localTypes  map[string]PLMType // non-param locals
+	localArrays map[string]int     // name → array size for local arrays
+	localBased  map[string]string  // name → base variable for BASED locals
+	localAt     map[string]*uint16 // name → AT address for local vars
 }
 
 func (l *modLowerer) lowerProc(pd *ProcDecl) (*hir.Func, error) {
@@ -112,11 +146,26 @@ func (l *modLowerer) lowerProc(pd *ProcDecl) (*hir.Func, error) {
 		params = append(params, hir.Param{Name: name, Ty: plmToMIR2(ty)})
 	}
 
-	// Collect non-param locals (for VarDeclStmt at top of body).
+	// Collect non-param locals.
 	localTypes := make(map[string]PLMType)
-	for n, ty := range declared {
-		if !paramSet[n] {
-			localTypes[n] = ty
+	localArrays := make(map[string]int)
+	localBased := make(map[string]string)
+	localAt := make(map[string]*uint16)
+	for _, vd := range pd.Decls {
+		for _, n := range vd.Names {
+			if !paramSet[n] {
+				localTypes[n] = vd.Ty
+				if vd.Size != nil {
+					localArrays[n] = *vd.Size
+				}
+				if vd.Based != "" {
+					localBased[n] = vd.Based
+				}
+				if vd.AtAddr != nil {
+					addr := *vd.AtAddr
+					localAt[n] = &addr
+				}
+			}
 		}
 	}
 
@@ -127,18 +176,35 @@ func (l *modLowerer) lowerProc(pd *ProcDecl) (*hir.Func, error) {
 	}
 
 	pl := &procLowerer{
-		ml:         l,
-		paramTypes: declared,
-		localTypes: localTypes,
+		ml:          l,
+		paramTypes:  declared,
+		localTypes:  localTypes,
+		localArrays: localArrays,
+		localBased:  localBased,
+		localAt:     localAt,
 	}
 
 	// Emit local variable declarations at the top of the body.
 	var stmts []hir.Stmt
 	for _, vd := range pd.Decls {
 		for _, name := range vd.Names {
-			if !paramSet[name] {
-				stmts = append(stmts, hir.Decl(name, plmToMIR2(vd.Ty), nil))
+			if paramSet[name] {
+				continue
 			}
+			// BASED variables have no storage — they alias through a pointer.
+			if vd.Based != "" {
+				continue
+			}
+			elemTy := plmToMIR2(vd.Ty)
+			decl := &hir.VarDeclStmt{Name: name, Ty: elemTy}
+			if vd.Size != nil {
+				decl.ArrayLen = *vd.Size
+			}
+			if vd.AtAddr != nil {
+				addr := *vd.AtAddr
+				decl.At = &addr
+			}
+			stmts = append(stmts, decl)
 		}
 	}
 
@@ -166,6 +232,28 @@ func (pl *procLowerer) typeOf(name string) PLMType {
 	return PLMWord // default
 }
 
+// arraySize returns (size, true) if name is a known array in this scope.
+func (pl *procLowerer) arraySize(name string) (int, bool) {
+	if n, ok := pl.localArrays[name]; ok {
+		return n, true
+	}
+	if n, ok := pl.ml.globalArrays[name]; ok {
+		return n, true
+	}
+	return 0, false
+}
+
+// basedVar returns (baseVarName, true) if name is BASED on another variable.
+func (pl *procLowerer) basedVar(name string) (string, bool) {
+	if b, ok := pl.localBased[name]; ok {
+		return b, true
+	}
+	if b, ok := pl.ml.globalBased[name]; ok {
+		return b, true
+	}
+	return "", false
+}
+
 // ── Statement lowering ────────────────────────────────────────────────────────
 
 func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
@@ -175,6 +263,26 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		// BASED variable write: X BASED Y → *Y = val
+		if base, ok := pl.basedVar(s.Name); ok {
+			baseTy := plmToMIR2(pl.typeOf(base))
+			ptr := hir.Var(base, baseTy)
+			return []hir.Stmt{&hir.StoreStmt{Ptr: ptr, Val: val}}, nil
+		}
+
+		// Array element write: arr(idx) = val → *(&arr + idx) = val
+		if s.Idx != nil {
+			idx, err := pl.lowerExpr(s.Idx)
+			if err != nil {
+				return nil, err
+			}
+			elemTy := plmToMIR2(pl.typeOf(s.Name))
+			base := &hir.AddrOfExpr{Sym: s.Name}
+			indexedPtr := &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy}
+			return []hir.Stmt{&hir.StoreStmt{Ptr: indexedPtr, Val: val}}, nil
+		}
+
 		ty := plmToMIR2(pl.typeOf(s.Name))
 		return []hir.Stmt{hir.Assign(hir.Var(s.Name, ty), val)}, nil
 
@@ -238,16 +346,15 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 		}
 		var cases []*hir.SwitchCase
 		for i, arm := range s.Arms {
-			armBlk, err := pl.lowerAsBlock(arm)
+			armStmts, err := pl.lowerStmtList([]Stmt{arm})
 			if err != nil {
 				return nil, err
 			}
-			cases = append(cases, hir.Case(int64(i), armBlk))
+			cases = append(cases, hir.Case(int64(i), hir.Blk(armStmts...)))
 		}
 		return []hir.Stmt{hir.Switch(sel, cases, nil)}, nil
 
 	case *DoToStmt:
-		// Desugar: var = start; WHILE var <= end { body; var = var + step }
 		ty := plmToMIR2(pl.typeOf(s.Var))
 		start, err := pl.lowerExpr(s.Start)
 		if err != nil {
@@ -257,32 +364,29 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
-		var step hir.Expr
+		var step hir.Expr = hir.U16(1)
 		if s.Step != nil {
 			step, err = pl.lowerExpr(s.Step)
 			if err != nil {
 				return nil, err
 			}
-		} else {
-			step = hir.U8(1)
 		}
-		lhs := hir.Var(s.Var, ty)
-		init := hir.Assign(lhs, start)
-		// Use I < (end + step) instead of I <= end to avoid the broken CmpLe path.
-		endPlusStep := &hir.BinExpr{Op: "+", L: end, R: step, Ty: ty}
-		cond := hir.Lt(hir.Var(s.Var, ty), endPlusStep)
+		// init: var = start
+		init := hir.Assign(hir.Var(s.Var, ty), start)
+		// cond: var < (end + 1)  (avoids broken CmpLe on unsigned)
+		endPlus1 := &hir.BinExpr{Op: "+", L: end, R: hir.U16(1), Ty: ty}
+		cond := &hir.BinExpr{Op: "<", L: hir.Var(s.Var, ty), R: endPlus1, Ty: mir2.TyBool}
 		bodyStmts, err := pl.lowerStmtList(s.Body)
 		if err != nil {
 			return nil, err
 		}
-		// Append: var = var + step
-		inc := hir.Assign(hir.Var(s.Var, ty),
-			&hir.BinExpr{Op: "+", L: hir.Var(s.Var, ty), R: step, Ty: ty})
+		inc := hir.Assign(hir.Var(s.Var, ty), &hir.BinExpr{
+			Op: "+", L: hir.Var(s.Var, ty), R: step, Ty: ty,
+		})
 		bodyStmts = append(bodyStmts, inc)
 		return []hir.Stmt{init, hir.While(cond, hir.Blk(bodyStmts...))}, nil
 
 	case *EnableStmt:
-		// Lower as an ExprStmt calling a built-in intrinsic @ei
 		return []hir.Stmt{&hir.ExprStmt{Expr: hir.Call("@ei", mir2.TyVoid)}}, nil
 
 	case *DisableStmt:
@@ -292,7 +396,7 @@ func (pl *procLowerer) lowerStmt(s Stmt) ([]hir.Stmt, error) {
 		return []hir.Stmt{&hir.ExprStmt{Expr: hir.Call("@halt", mir2.TyVoid)}}, nil
 
 	case *GoToStmt:
-		// GO TO is not yet lowered; emit a call to a placeholder intrinsic.
+		// Lower as a call to a synthesized label intrinsic.
 		return []hir.Stmt{&hir.ExprStmt{Expr: hir.Call("@goto_"+s.Label, mir2.TyVoid)}}, nil
 
 	default:
@@ -341,6 +445,12 @@ func (pl *procLowerer) lowerExpr(e Expr) (hir.Expr, error) {
 		return hir.U16(int64(e.Val)), nil
 
 	case *VarRef:
+		// BASED variable read: X BASED Y → *Y (load through pointer)
+		if base, ok := pl.basedVar(e.Name); ok {
+			elemTy := plmToMIR2(pl.typeOf(e.Name))
+			baseTy := plmToMIR2(pl.typeOf(base))
+			return &hir.LoadExpr{Ptr: hir.Var(base, baseTy), Ty: elemTy}, nil
+		}
 		ty := plmToMIR2(pl.typeOf(e.Name))
 		return hir.Var(e.Name, ty), nil
 
@@ -379,6 +489,16 @@ func (pl *procLowerer) lowerExpr(e Expr) (hir.Expr, error) {
 		}
 
 	case *CallExpr:
+		// Check: is this actually an array subscript read?  arr(i) in expr context.
+		if _, ok := pl.arraySize(e.Fn); ok && len(e.Args) == 1 {
+			idx, err := pl.lowerExpr(e.Args[0])
+			if err != nil {
+				return nil, err
+			}
+			elemTy := plmToMIR2(pl.typeOf(e.Fn))
+			base := &hir.AddrOfExpr{Sym: e.Fn}
+			return &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy}, nil
+		}
 		var retTy mir2.Ty = mir2.TyVoid
 		if rt, ok := pl.ml.fnRetTy[e.Fn]; ok {
 			retTy = plmToMIR2(rt)
@@ -442,23 +562,23 @@ func plmOp(op string) string {
 	case "XOR":
 		return "^"
 	default:
-		return op
+		return op // +, -, *, /, <, >, <=, >= pass through
 	}
 }
 
 // binaryResultTy returns the result type of a binary operation.
 // Comparison operators always produce TyBool.
-// Arithmetic/bitwise: promote to wider of the two operands.
 func binaryResultTy(l, r mir2.Ty, op string) mir2.Ty {
 	switch op {
 	case "==", "!=", "<", "<=", ">", ">=":
 		return mir2.TyBool
 	}
+	// Promote: if either side is wider, use the wider type.
 	if l == mir2.TyU16 || r == mir2.TyU16 {
 		return mir2.TyU16
 	}
 	if l == mir2.TyPtr || r == mir2.TyPtr {
 		return mir2.TyPtr
 	}
-	return l
+	return mir2.TyU8
 }

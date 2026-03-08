@@ -1052,8 +1052,14 @@ func (p *parser) parseAssignOrCallStmtWithName(name Token) (Stmt, error) {
 		}
 		// arr(n) = val;  or  arr(n), arr2(m) = val;  (multi-target array assignment)
 		if p.l.IsKind(TokEq) || p.l.IsKind(TokComma) {
+			// Save the index expression (first arg) for single-target array writes.
+			var savedIdx Expr
+			if len(args) == 1 {
+				savedIdx = args[0]
+			}
 			for p.l.IsKind(TokComma) {
 				p.l.Next()
+				savedIdx = nil // multi-target: drop index info
 				if p.l.IsKind(TokIdent) {
 					p.l.Next()
 				}
@@ -1071,7 +1077,7 @@ func (p *parser) parseAssignOrCallStmtWithName(name Token) (Stmt, error) {
 				if _, err := p.l.ExpectKind(TokSemicolon); err != nil {
 					return nil, err
 				}
-				return &AssignStmt{Name: name.Val, Val: val}, nil
+				return &AssignStmt{Name: name.Val, Idx: savedIdx, Val: val}, nil
 			}
 		}
 		if _, err := p.l.ExpectKind(TokSemicolon); err != nil {

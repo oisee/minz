@@ -12,8 +12,10 @@ import (
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/mir"
 	"github.com/minz/minzc/pkg/module"
+	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
+	"github.com/minz/minzc/pkg/plm"
 	"github.com/minz/minzc/pkg/semantic"
 	"github.com/minz/minzc/pkg/trace"
 	"github.com/minz/minzc/pkg/version"
@@ -55,6 +57,9 @@ var (
 
 	// Debug info
 	emitSLD      bool    // Emit SLD file for DeZog source-level debugging
+
+	// Transpiler flags
+	emitFormat   string  // emit format: "nanz" (print HIR as Nanz source)
 )
 
 var rootCmd = &cobra.Command{
@@ -195,6 +200,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
+	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz (print HIR as Nanz source, works with .plm input)")
 }
 
 func main() {
@@ -215,8 +221,13 @@ func compile(sourceFile string) error {
 		return compileFromMIR(sourceFile)
 	}
 
-	// Check if input is an assembly file — route to z80asm assembler
+	// Check if input is a PL/M-80 file, or if --emit=nanz is requested
 	ext := filepath.Ext(sourceFile)
+	if ext == ".plm" || emitFormat == "nanz" {
+		return compilePLMToNanz(sourceFile)
+	}
+
+	// Check if input is an assembly file — route to z80asm assembler
 	if ext == ".a80" || ext == ".asm" || ext == ".z80" {
 		return assembleFile(sourceFile)
 	}
@@ -291,10 +302,13 @@ func compile(sourceFile string) error {
 	backendInstance := codegen.GetBackend(backend, nil)
 	supportsSMC := backendInstance != nil && backendInstance.SupportsFeature(codegen.FeatureSelfModifyingCode)
 	
-	// Enable SMC for all functions unless disabled (and backend supports it)
+	// Enable SMC only for functions that explicitly need it (UsesTrueSMC or IsSMCDefault).
+	// ADR-0010: register-first is the default — do NOT force SMC on all functions.
 	if supportsSMC && !disableSMC {
 		for _, fn := range irModule.Functions {
-			fn.IsSMCEnabled = true
+			if fn.UsesTrueSMC || fn.IsSMCDefault {
+				fn.IsSMCEnabled = true
+			}
 		}
 		if debug {
 			if !disableSMC {
@@ -536,11 +550,11 @@ func compileFromMIR(mirFile string) error {
 	backendInstance := codegen.GetBackend(backend, nil)
 	supportsSMC := backendInstance != nil && backendInstance.SupportsFeature(codegen.FeatureSelfModifyingCode)
 	
-	// Enable SMC for all functions unless disabled (and backend supports it)
+	// Enable SMC only for functions that explicitly need it (UsesTrueSMC or IsSMCDefault).
+	// ADR-0010: register-first is the default — do NOT force SMC on all functions.
 	if supportsSMC && !disableSMC {
 		for _, fn := range irModule.Functions {
-			// Preserve existing SMC settings from MIR
-			if !fn.IsSMCEnabled {
+			if fn.UsesTrueSMC || fn.IsSMCDefault {
 				fn.IsSMCEnabled = true
 			}
 		}
@@ -652,6 +666,32 @@ func compileFromMIR(mirFile string) error {
 
 // assembleFile assembles a .a80/.asm/.z80 file using the built-in z80asm assembler.
 // This enables a one-tool workflow: mz source.minz -> mz output.a80 -> binary
+func compilePLMToNanz(sourceFile string) error {
+	src, err := os.ReadFile(sourceFile)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", sourceFile, err)
+	}
+
+	hirMod, err := plm.Compile(string(src))
+	if err != nil {
+		return fmt.Errorf("PL/M compile: %w", err)
+	}
+
+	nanzSrc := nanz.Print(hirMod)
+
+	if outputFile != "" {
+		if err := os.WriteFile(outputFile, []byte(nanzSrc), 0644); err != nil {
+			return fmt.Errorf("write %s: %w", outputFile, err)
+		}
+		if debug {
+			fmt.Printf("Wrote Nanz source to %s\n", outputFile)
+		}
+	} else {
+		fmt.Print(nanzSrc)
+	}
+	return nil
+}
+
 func assembleFile(sourceFile string) error {
 	if debug {
 		fmt.Printf("Assembling %s...\n", sourceFile)
