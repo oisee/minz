@@ -1,0 +1,1359 @@
+package nanz
+
+// parse.go — hand-written recursive-descent parser.
+// Nanz source → hir.Module
+//
+// Grammar (informal):
+//
+//	module      = (struct_decl | global_decl | fun_decl)*
+//	struct_decl = 'struct' IDENT '{' (IDENT ':' type '\n')* '}'
+//	global_decl = 'global' IDENT ':' type ['at' '(' expr ')'] ['=' array_lit | '=' expr] '\n'
+//	fun_decl    = ['@extern'] 'fun' IDENT '(' params ')' ['->' type] ('{' stmt* '}' | '\n')
+//	params      = (IDENT ':' type (',' IDENT ':' type)*)?
+//
+//	stmt        = var_decl | assign | store | if_stmt | while_stmt | for_stmt
+//	            | return_stmt | expr_stmt | break | continue | switch_stmt | block
+//	var_decl    = 'var' IDENT ':' type ['at' '(' expr ')'] ['=' (array_lit | expr)]
+//	assign      = expr '=' expr                (where lhs is lvalue)
+//	store       = '^' expr '=' expr
+//	if_stmt     = 'if' expr '{' stmt* '}' ['else' '{' stmt* '}']
+//	while_stmt  = 'while' expr '{' stmt* '}'
+//	for_stmt    = 'for' IDENT 'in' expr '..' expr '{' stmt* '}'
+//	return_stmt = 'return' [expr]
+//	switch_stmt = 'switch' expr '{' ('case' INT ':' stmt*)* ['default' ':' stmt*] '}'
+//
+//	type        = '^' type | '[' type ';' INT ']' | IDENT
+//	expr        = ... (Pratt parser, standard binary precedence)
+
+import (
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
+)
+
+// Parse parses Nanz source and returns a HIR module.
+func Parse(src, name string) (*hir.Module, error) {
+	l := newLexer(src)
+	p := &parser{l: l, name: name}
+	return p.parseModule()
+}
+
+// ── Lexer ─────────────────────────────────────────────────────────────────────
+
+type tokKind int
+
+const (
+	tokEOF tokKind = iota
+	tokIdent
+	tokInt
+	tokString
+	tokArrow   // ->
+	tokDotDot  // ..
+	tokLBrace  // {
+	tokRBrace  // }
+	tokLParen  // (
+	tokRParen  // )
+	tokLBrack  // [
+	tokRBrack  // ]
+	tokColon   // :
+	tokSemi    // ;
+	tokComma   // ,
+	tokDot     // .
+	tokEq      // =
+	tokEqEq    // ==
+	tokBang    // !
+	tokBangEq  // !=
+	tokLt      // <
+	tokLtEq    // <=
+	tokGt      // >
+	tokGtEq    // >=
+	tokPlus    // +
+	tokMinus   // -
+	tokStar    // *
+	tokSlash   // /
+	tokPercent // %
+	tokAmp     // &
+	tokPipe    // |
+	tokCaret   // ^ (also used as pointer dereference)
+	tokTilde   // ~
+	tokLtLt   // <<
+	tokGtGt   // >>
+	tokAt      // @
+)
+
+type token struct {
+	kind tokKind
+	val  string
+	line int
+}
+
+type lexer struct {
+	src    []byte
+	pos    int
+	line   int
+	tokens []token
+	cur    int
+}
+
+func newLexer(src string) *lexer {
+	l := &lexer{src: []byte(src), line: 1}
+	l.tokenize()
+	return l
+}
+
+func (l *lexer) tokenize() {
+	for l.pos < len(l.src) {
+		ch := l.src[l.pos]
+
+		if ch == ' ' || ch == '\t' || ch == '\r' {
+			l.pos++
+			continue
+		}
+		if ch == '\n' {
+			l.line++
+			l.pos++
+			continue
+		}
+		// Line comment //
+		if ch == '/' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '/' {
+			for l.pos < len(l.src) && l.src[l.pos] != '\n' {
+				l.pos++
+			}
+			continue
+		}
+		// Block comment /* ... */
+		if ch == '/' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '*' {
+			l.pos += 2
+			for l.pos < len(l.src) {
+				if l.src[l.pos] == '\n' {
+					l.line++
+				}
+				if l.src[l.pos] == '*' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '/' {
+					l.pos += 2
+					break
+				}
+				l.pos++
+			}
+			continue
+		}
+
+		line := l.line
+		// Multi-char tokens
+		switch {
+		case ch == '-' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
+			l.emit(tokArrow, "->", line); l.pos += 2; continue
+		case ch == '.' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '.':
+			l.emit(tokDotDot, "..", line); l.pos += 2; continue
+		case ch == '=' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '=':
+			l.emit(tokEqEq, "==", line); l.pos += 2; continue
+		case ch == '!' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '=':
+			l.emit(tokBangEq, "!=", line); l.pos += 2; continue
+		case ch == '<' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '=':
+			l.emit(tokLtEq, "<=", line); l.pos += 2; continue
+		case ch == '>' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '=':
+			l.emit(tokGtEq, ">=", line); l.pos += 2; continue
+		case ch == '<' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '<':
+			l.emit(tokLtLt, "<<", line); l.pos += 2; continue
+		case ch == '>' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
+			l.emit(tokGtGt, ">>", line); l.pos += 2; continue
+		}
+
+		// Single-char
+		var k tokKind
+		switch ch {
+		case '{':
+			k = tokLBrace
+		case '}':
+			k = tokRBrace
+		case '(':
+			k = tokLParen
+		case ')':
+			k = tokRParen
+		case '[':
+			k = tokLBrack
+		case ']':
+			k = tokRBrack
+		case ':':
+			k = tokColon
+		case ';':
+			k = tokSemi
+		case ',':
+			k = tokComma
+		case '.':
+			k = tokDot
+		case '=':
+			k = tokEq
+		case '!':
+			k = tokBang
+		case '<':
+			k = tokLt
+		case '>':
+			k = tokGt
+		case '+':
+			k = tokPlus
+		case '-':
+			k = tokMinus
+		case '*':
+			k = tokStar
+		case '/':
+			k = tokSlash
+		case '%':
+			k = tokPercent
+		case '&':
+			k = tokAmp
+		case '|':
+			k = tokPipe
+		case '^':
+			k = tokCaret
+		case '~':
+			k = tokTilde
+		case '@':
+			k = tokAt
+		default:
+			// String literal
+			if ch == '"' {
+				l.pos++
+				start := l.pos
+				for l.pos < len(l.src) && l.src[l.pos] != '"' {
+					l.pos++
+				}
+				s := string(l.src[start:l.pos])
+				if l.pos < len(l.src) {
+					l.pos++
+				}
+				l.emit(tokString, s, line)
+				continue
+			}
+			// Number
+			if ch >= '0' && ch <= '9' {
+				start := l.pos
+				// hex 0x...
+				if ch == '0' && l.pos+1 < len(l.src) && (l.src[l.pos+1] == 'x' || l.src[l.pos+1] == 'X') {
+					l.pos += 2
+					for l.pos < len(l.src) && isHexDigit(l.src[l.pos]) {
+						l.pos++
+					}
+				} else {
+					for l.pos < len(l.src) && l.src[l.pos] >= '0' && l.src[l.pos] <= '9' {
+						l.pos++
+					}
+				}
+				l.emit(tokInt, string(l.src[start:l.pos]), line)
+				continue
+			}
+			// Identifier
+			if isIdentStart(ch) {
+				start := l.pos
+				for l.pos < len(l.src) && isIdentCont(l.src[l.pos]) {
+					l.pos++
+				}
+				l.emit(tokIdent, string(l.src[start:l.pos]), line)
+				continue
+			}
+			// Unknown — skip
+			l.pos++
+			continue
+		}
+		l.emit(k, string(ch), line)
+		l.pos++
+	}
+	l.emit(tokEOF, "", l.line)
+}
+
+func (l *lexer) emit(k tokKind, v string, line int) {
+	l.tokens = append(l.tokens, token{kind: k, val: v, line: line})
+}
+
+func (l *lexer) peek() token {
+	if l.cur < len(l.tokens) {
+		return l.tokens[l.cur]
+	}
+	return token{kind: tokEOF}
+}
+func (l *lexer) next() token {
+	t := l.peek()
+	if t.kind != tokEOF {
+		l.cur++
+	}
+	return t
+}
+func (l *lexer) is(k tokKind) bool         { return l.peek().kind == k }
+func (l *lexer) isIdent(v string) bool      { return l.peek().kind == tokIdent && l.peek().val == v }
+func (l *lexer) eat(k tokKind) (token, error) {
+	t := l.next()
+	if t.kind != k {
+		return t, fmt.Errorf("line %d: expected token kind %d, got %q", t.line, k, t.val)
+	}
+	return t, nil
+}
+func (l *lexer) eatIdent(v string) error {
+	t := l.next()
+	if t.kind != tokIdent || t.val != v {
+		return fmt.Errorf("line %d: expected %q, got %q", t.line, v, t.val)
+	}
+	return nil
+}
+
+func isIdentStart(c byte) bool {
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_'
+}
+func isIdentCont(c byte) bool {
+	return isIdentStart(c) || (c >= '0' && c <= '9')
+}
+func isHexDigit(c byte) bool {
+	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+}
+
+// ── Parser ────────────────────────────────────────────────────────────────────
+
+type parser struct {
+	l       *lexer
+	name    string
+	structs map[string]*mir2.StructTy
+}
+
+func (p *parser) parseModule() (*hir.Module, error) {
+	m := &hir.Module{Name: p.name}
+	p.structs = make(map[string]*mir2.StructTy)
+
+	for !p.l.is(tokEOF) {
+		t := p.l.peek()
+		switch {
+		case t.kind == tokIdent && t.val == "struct":
+			st, err := p.parseStructDecl()
+			if err != nil {
+				return nil, err
+			}
+			m.Structs = append(m.Structs, st)
+			p.structs[st.Name] = st
+
+		case t.kind == tokIdent && t.val == "global":
+			g, err := p.parseGlobalDecl()
+			if err != nil {
+				return nil, err
+			}
+			m.Globals = append(m.Globals, g)
+
+		case t.kind == tokIdent && t.val == "fun":
+			f, err := p.parseFunDecl(false)
+			if err != nil {
+				return nil, err
+			}
+			m.Funcs = append(m.Funcs, f)
+
+		case t.kind == tokAt:
+			// @extern fun ...
+			p.l.next()
+			attr := p.l.peek()
+			if attr.kind == tokIdent && attr.val == "extern" {
+				p.l.next()
+				if err := p.l.eatIdent("fun"); err != nil {
+					return nil, err
+				}
+				f, err := p.parseFunDecl(true)
+				if err != nil {
+					return nil, err
+				}
+				m.Funcs = append(m.Funcs, f)
+			} else {
+				return nil, fmt.Errorf("line %d: unexpected @%s", attr.line, attr.val)
+			}
+
+		default:
+			return nil, fmt.Errorf("line %d: unexpected token %q at module level", t.line, t.val)
+		}
+	}
+	return m, nil
+}
+
+// ── Struct ────────────────────────────────────────────────────────────────────
+
+func (p *parser) parseStructDecl() (*mir2.StructTy, error) {
+	if err := p.l.eatIdent("struct"); err != nil {
+		return nil, err
+	}
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := p.l.eat(tokLBrace); err != nil {
+		return nil, err
+	}
+	st := &mir2.StructTy{Name: nameTok.val}
+	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		fieldName, err := p.l.eat(tokIdent)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.eat(tokColon); err != nil {
+			return nil, err
+		}
+		ty, err := p.parseType()
+		if err != nil {
+			return nil, err
+		}
+		st.Fields = append(st.Fields, mir2.StructField{Name: fieldName.val, Ty: ty})
+		// optional comma or newline separator — just consume comma if present
+		if p.l.is(tokComma) {
+			p.l.next()
+		}
+	}
+	if _, err := p.l.eat(tokRBrace); err != nil {
+		return nil, err
+	}
+	return st, nil
+}
+
+// ── Global declaration ────────────────────────────────────────────────────────
+
+func (p *parser) parseGlobalDecl() (mir2.Global, error) {
+	if err := p.l.eatIdent("global"); err != nil {
+		return mir2.Global{}, err
+	}
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return mir2.Global{}, err
+	}
+	if _, err := p.l.eat(tokColon); err != nil {
+		return mir2.Global{}, err
+	}
+	ty, err := p.parseType()
+	if err != nil {
+		return mir2.Global{}, err
+	}
+	g := mir2.Global{Name: nameTok.val, Ty: ty}
+
+	// at(addr)?
+	if p.l.isIdent("at") {
+		p.l.next()
+		if _, err := p.l.eat(tokLParen); err != nil {
+			return g, err
+		}
+		addrExpr, err := p.parseExpr()
+		if err != nil {
+			return g, err
+		}
+		if _, err := p.l.eat(tokRParen); err != nil {
+			return g, err
+		}
+		if lit, ok := addrExpr.(*hir.IntLitExpr); ok {
+			addr := uint16(lit.Val)
+			g.At = &addr
+		}
+	}
+
+	// = initializer?
+	if p.l.is(tokEq) {
+		p.l.next()
+		init, err := p.parseInitializer(ty)
+		if err != nil {
+			return g, err
+		}
+		g.Init = init
+	}
+
+	return g, nil
+}
+
+func (p *parser) parseInitializer(ty mir2.Ty) ([]byte, error) {
+	if p.l.is(tokLBrack) {
+		// Array initializer [v1, v2, ...]
+		p.l.next()
+		var data []byte
+		for !p.l.is(tokRBrack) && !p.l.is(tokEOF) {
+			e, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if lit, ok := e.(*hir.IntLitExpr); ok {
+				// Emit as 1 or 2 bytes depending on element type
+				elemTy := ty
+				if at, ok := ty.(*mir2.ArrayTy); ok {
+					elemTy = at.Elem
+				}
+				switch elemTy.Width() {
+				case 8:
+					data = append(data, byte(lit.Val))
+				case 16:
+					data = append(data, byte(lit.Val), byte(lit.Val>>8))
+				default:
+					data = append(data, byte(lit.Val))
+				}
+			}
+			if p.l.is(tokComma) {
+				p.l.next()
+			}
+		}
+		if _, err := p.l.eat(tokRBrack); err != nil {
+			return nil, err
+		}
+		return data, nil
+	}
+	// Scalar initializer
+	e, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	if lit, ok := e.(*hir.IntLitExpr); ok {
+		switch ty.Width() {
+		case 8:
+			return []byte{byte(lit.Val)}, nil
+		case 16:
+			return []byte{byte(lit.Val), byte(lit.Val >> 8)}, nil
+		}
+	}
+	return nil, nil
+}
+
+// ── Function declaration ──────────────────────────────────────────────────────
+
+func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
+	// 'fun' already consumed by caller for @extern; consume here for plain fun
+	if !isExtern {
+		if err := p.l.eatIdent("fun"); err != nil {
+			return nil, err
+		}
+	}
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := p.l.eat(tokLParen); err != nil {
+		return nil, err
+	}
+	var params []hir.Param
+	for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+		pname, err := p.l.eat(tokIdent)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.eat(tokColon); err != nil {
+			return nil, err
+		}
+		pty, err := p.parseType()
+		if err != nil {
+			return nil, err
+		}
+		params = append(params, hir.Param{Name: pname.val, Ty: pty})
+		if p.l.is(tokComma) {
+			p.l.next()
+		}
+	}
+	if _, err := p.l.eat(tokRParen); err != nil {
+		return nil, err
+	}
+
+	retTy := mir2.Ty(mir2.TyVoid)
+	if p.l.is(tokArrow) {
+		p.l.next()
+		retTy, err = p.parseType()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	f := &hir.Func{
+		Name:     nameTok.val,
+		Params:   params,
+		RetTy:    retTy,
+		IsExtern: isExtern,
+	}
+
+	if isExtern || !p.l.is(tokLBrace) {
+		// No body
+		return f, nil
+	}
+
+	body, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+	f.Body = body
+	return f, nil
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+func (p *parser) parseType() (mir2.Ty, error) {
+	t := p.l.peek()
+
+	// ^T — pointer to T
+	if t.kind == tokCaret {
+		p.l.next()
+		// Consume inner type if present (^u8, ^u16, ^Point…).
+		// MIR2 TyPtr is untyped — we parse and discard the element type.
+		if !p.l.is(tokEOF) && !p.l.is(tokComma) && !p.l.is(tokRParen) &&
+			!p.l.is(tokLBrace) && !p.l.is(tokRBrace) && !p.l.is(tokSemi) &&
+			!p.l.is(tokEq) && !p.l.is(tokArrow) {
+			_, _ = p.parseType()
+		}
+		return mir2.TyPtr, nil
+	}
+
+	// [T; N] — array
+	if t.kind == tokLBrack {
+		p.l.next()
+		elemTy, err := p.parseType()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.eat(tokSemi); err != nil {
+			return nil, err
+		}
+		lenTok, err := p.l.eat(tokInt)
+		if err != nil {
+			return nil, err
+		}
+		n, err := strconv.Atoi(lenTok.val)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.eat(tokRBrack); err != nil {
+			return nil, err
+		}
+		return mir2.NewArray(elemTy, n), nil
+	}
+
+	// Named type
+	if t.kind == tokIdent {
+		p.l.next()
+		switch t.val {
+		case "u8":
+			return mir2.TyU8, nil
+		case "u16":
+			return mir2.TyU16, nil
+		case "i8":
+			return mir2.TyI8, nil
+		case "i16":
+			return mir2.TyI16, nil
+		case "bool":
+			return mir2.TyBool, nil
+		case "void":
+			return mir2.TyVoid, nil
+		case "ptr":
+			return mir2.TyPtr, nil
+		default:
+			// Named struct type
+			if st, ok := p.structs[t.val]; ok {
+				return st, nil
+			}
+			return nil, fmt.Errorf("line %d: unknown type %q", t.line, t.val)
+		}
+	}
+
+	return nil, fmt.Errorf("line %d: expected type, got %q", t.line, t.val)
+}
+
+// ── Block & statements ────────────────────────────────────────────────────────
+
+func (p *parser) parseBlock() (*hir.Block, error) {
+	if _, err := p.l.eat(tokLBrace); err != nil {
+		return nil, err
+	}
+	var stmts []hir.Stmt
+	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		s, err := p.parseStmt()
+		if err != nil {
+			return nil, err
+		}
+		if s != nil {
+			stmts = append(stmts, s)
+		}
+	}
+	if _, err := p.l.eat(tokRBrace); err != nil {
+		return nil, err
+	}
+	return &hir.Block{Body: stmts}, nil
+}
+
+func (p *parser) parseStmt() (hir.Stmt, error) {
+	t := p.l.peek()
+
+	switch {
+	case t.kind == tokIdent && t.val == "var":
+		return p.parseVarDecl()
+	case t.kind == tokIdent && t.val == "let":
+		return p.parseLetDecl()
+	case t.kind == tokIdent && t.val == "if":
+		return p.parseIf()
+	case t.kind == tokIdent && t.val == "while":
+		return p.parseWhile()
+	case t.kind == tokIdent && t.val == "for":
+		return p.parseFor()
+	case t.kind == tokIdent && t.val == "return":
+		return p.parseReturn()
+	case t.kind == tokIdent && t.val == "break":
+		p.l.next()
+		return &hir.BreakStmt{}, nil
+	case t.kind == tokIdent && t.val == "continue":
+		p.l.next()
+		return &hir.ContinueStmt{}, nil
+	case t.kind == tokIdent && t.val == "switch":
+		return p.parseSwitch()
+	case t.kind == tokLBrace:
+		return p.parseBlock()
+	default:
+		// expr (= expr)? — assignment or bare call
+		return p.parseExprStmt()
+	}
+}
+
+// parseLetDecl parses: let name [: T] = expr
+// Type is inferred from the RHS if not specified.
+func (p *parser) parseLetDecl() (hir.Stmt, error) {
+	if err := p.l.eatIdent("let"); err != nil {
+		return nil, err
+	}
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return nil, err
+	}
+
+	var ty mir2.Ty
+
+	// Optional explicit type: let x: T = ...
+	if p.l.is(tokColon) {
+		p.l.next()
+		ty, err = p.parseType()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if _, err := p.l.eat(tokEq); err != nil {
+		return nil, err
+	}
+
+	init, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+
+	// Infer type from RHS if not given
+	if ty == nil {
+		ty = init.ExprTy()
+	}
+
+	// Unwrap array type
+	d := &hir.VarDeclStmt{Name: nameTok.val}
+	if at, ok := ty.(*mir2.ArrayTy); ok {
+		d.Ty = at.Elem
+		d.ArrayLen = at.Len
+	} else {
+		d.Ty = ty
+		d.Init = init
+	}
+	return d, nil
+}
+
+func (p *parser) parseVarDecl() (hir.Stmt, error) {
+	if err := p.l.eatIdent("var"); err != nil {
+		return nil, err
+	}
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := p.l.eat(tokColon); err != nil {
+		return nil, err
+	}
+	ty, err := p.parseType()
+	if err != nil {
+		return nil, err
+	}
+
+	d := &hir.VarDeclStmt{Name: nameTok.val}
+
+	// Unwrap array type
+	if at, ok := ty.(*mir2.ArrayTy); ok {
+		d.Ty = at.Elem
+		d.ArrayLen = at.Len
+	} else {
+		d.Ty = ty
+	}
+
+	// at(addr)?
+	if p.l.isIdent("at") {
+		p.l.next()
+		if _, err := p.l.eat(tokLParen); err != nil {
+			return nil, err
+		}
+		addrExpr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.eat(tokRParen); err != nil {
+			return nil, err
+		}
+		if lit, ok := addrExpr.(*hir.IntLitExpr); ok {
+			addr := uint16(lit.Val)
+			d.At = &addr
+		}
+	}
+
+	// = initializer?
+	if p.l.is(tokEq) {
+		p.l.next()
+		if p.l.is(tokLBrack) {
+			p.l.next()
+			for !p.l.is(tokRBrack) && !p.l.is(tokEOF) {
+				e, err := p.parseExpr()
+				if err != nil {
+					return nil, err
+				}
+				d.Initial = append(d.Initial, e)
+				if p.l.is(tokComma) {
+					p.l.next()
+				}
+			}
+			if _, err := p.l.eat(tokRBrack); err != nil {
+				return nil, err
+			}
+		} else {
+			init, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			d.Init = init
+		}
+	}
+
+	return d, nil
+}
+
+func (p *parser) parseIf() (hir.Stmt, error) {
+	if err := p.l.eatIdent("if"); err != nil {
+		return nil, err
+	}
+	cond, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	then, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+	s := &hir.IfStmt{Cond: cond, Then: then}
+	if p.l.isIdent("else") {
+		p.l.next()
+		els, err := p.parseBlock()
+		if err != nil {
+			return nil, err
+		}
+		s.Else = els
+	}
+	return s, nil
+}
+
+func (p *parser) parseWhile() (hir.Stmt, error) {
+	if err := p.l.eatIdent("while"); err != nil {
+		return nil, err
+	}
+	cond, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	body, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+	return &hir.WhileStmt{Cond: cond, Body: body}, nil
+}
+
+func (p *parser) parseFor() (hir.Stmt, error) {
+	if err := p.l.eatIdent("for"); err != nil {
+		return nil, err
+	}
+	varTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return nil, err
+	}
+
+	// Optional explicit element type: for x: T in ...
+	var elemTy mir2.Ty = mir2.TyU8
+	if p.l.is(tokColon) {
+		p.l.next()
+		elemTy, err = p.parseType()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if err := p.l.eatIdent("in"); err != nil {
+		return nil, err
+	}
+
+	// Parse the base expression (primary + field/call but NOT index — we handle
+	// index specially to detect the [start..end] slice form).
+	// Use parsePrimary directly to avoid parsePostfix consuming '[' as an index.
+	base, err := p.parsePrimary()
+	if err != nil {
+		return nil, err
+	}
+	// Consume dot/call/deref postfixes but stop before [
+	base, err = p.parsePostfixNoBrack(base)
+	if err != nil {
+		return nil, err
+	}
+
+	// ── for x: T in ptr[start..end] → ForEachStmt ──
+	if p.l.is(tokLBrack) {
+		p.l.next()
+		// Optional start (default 0)
+		var startExpr hir.Expr = &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}
+		if !p.l.is(tokDotDot) {
+			startExpr, err = p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+		}
+		if _, err := p.l.eat(tokDotDot); err != nil {
+			return nil, err
+		}
+		endExpr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.eat(tokRBrack); err != nil {
+			return nil, err
+		}
+		// Compute len = end - start; if start == literal 0, len = end directly.
+		var lenExpr hir.Expr
+		if lit, ok := startExpr.(*hir.IntLitExpr); ok && lit.Val == 0 {
+			lenExpr = endExpr
+		} else {
+			lenExpr = &hir.BinExpr{Op: "-", L: endExpr, R: startExpr, Ty: endExpr.ExprTy()}
+		}
+		body, err := p.parseBlock()
+		if err != nil {
+			return nil, err
+		}
+		return &hir.ForEachStmt{
+			Var: varTok.val, ElemTy: elemTy,
+			Ptr: base, Start: startExpr, Len: lenExpr,
+			Body: body,
+		}, nil
+	}
+
+	// ── for i in start..end → ForRangeStmt ──
+	// base is the start expression here.
+	if p.l.is(tokDotDot) {
+		p.l.next()
+		end, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		body, err := p.parseBlock()
+		if err != nil {
+			return nil, err
+		}
+		return &hir.ForRangeStmt{Var: varTok.val, Start: base, End: end, Body: body}, nil
+	}
+
+	return nil, fmt.Errorf("line %d: for: expected ptr[start..end] or start..end after 'in'", p.l.peek().line)
+}
+
+// parsePostfixNoBrack is like parsePostfix but stops before '['.
+// Used by parseFor to detect whether the next token is a range slice.
+func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
+	for {
+		t := p.l.peek()
+		switch t.kind {
+		case tokCaret:
+			p.l.next()
+			base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+		case tokDot:
+			p.l.next()
+			fieldTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return nil, err
+			}
+			base = &hir.FieldExpr{X: base, Field: fieldTok.val, Ty: mir2.TyU8}
+		case tokLParen:
+			p.l.next()
+			var args []hir.Expr
+			for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+				a, err := p.parseExpr()
+				if err != nil {
+					return nil, err
+				}
+				args = append(args, a)
+				if p.l.is(tokComma) {
+					p.l.next()
+				}
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			name := ""
+			if vr, ok := base.(*hir.VarRefExpr); ok {
+				name = vr.Name
+			}
+			base = &hir.CallExpr{Fn: name, Args: args, Ty: mir2.TyVoid}
+		default:
+			return base, nil
+		}
+	}
+}
+
+func (p *parser) parseReturn() (hir.Stmt, error) {
+	if err := p.l.eatIdent("return"); err != nil {
+		return nil, err
+	}
+	// No value if next is } or EOF
+	if p.l.is(tokRBrace) || p.l.is(tokEOF) {
+		return &hir.ReturnStmt{}, nil
+	}
+	val, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	return &hir.ReturnStmt{Val: val}, nil
+}
+
+func (p *parser) parseSwitch() (hir.Stmt, error) {
+	if err := p.l.eatIdent("switch"); err != nil {
+		return nil, err
+	}
+	val, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := p.l.eat(tokLBrace); err != nil {
+		return nil, err
+	}
+	s := &hir.SwitchStmt{Val: val}
+	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		if p.l.isIdent("case") {
+			p.l.next()
+			intTok, err := p.l.eat(tokInt)
+			if err != nil {
+				return nil, err
+			}
+			v, _ := strconv.ParseInt(intTok.val, 0, 64)
+			if _, err := p.l.eat(tokColon); err != nil {
+				return nil, err
+			}
+			var body []hir.Stmt
+			for !p.l.isIdent("case") && !p.l.isIdent("default") && !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+				st, err := p.parseStmt()
+				if err != nil {
+					return nil, err
+				}
+				body = append(body, st)
+			}
+			s.Cases = append(s.Cases, &hir.SwitchCase{Val: v, Body: &hir.Block{Body: body}})
+		} else if p.l.isIdent("default") {
+			p.l.next()
+			if _, err := p.l.eat(tokColon); err != nil {
+				return nil, err
+			}
+			var body []hir.Stmt
+			for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+				st, err := p.parseStmt()
+				if err != nil {
+					return nil, err
+				}
+				body = append(body, st)
+			}
+			s.Default = &hir.Block{Body: body}
+		} else {
+			break
+		}
+	}
+	if _, err := p.l.eat(tokRBrace); err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+func (p *parser) parseExprStmt() (hir.Stmt, error) {
+	lhs, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	// Assignment?
+	if p.l.is(tokEq) {
+		p.l.next()
+		rhs, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		switch lv := lhs.(type) {
+		case *hir.LoadExpr:
+			// ptr^ = val → StoreStmt
+			return &hir.StoreStmt{Ptr: lv.Ptr, Val: rhs}, nil
+		case *hir.IndexExpr:
+			// arr[i] = val → AssignStmt (HIR lowerer handles ptr arithmetic)
+			return &hir.AssignStmt{Target: lv, Val: rhs}, nil
+		default:
+			return &hir.AssignStmt{Target: lhs, Val: rhs}, nil
+		}
+	}
+	return &hir.ExprStmt{Expr: lhs}, nil
+}
+
+// ── Expression parser (Pratt) ─────────────────────────────────────────────────
+
+func (p *parser) parseExpr() (hir.Expr, error) { return p.parseBinary(0) }
+
+type binop struct {
+	op   string
+	prec int
+}
+
+var binops = map[tokKind]binop{
+	tokPipe:    {"|", 1},
+	tokCaret:   {"^", 2},  // bitwise XOR when used as infix
+	tokAmp:     {"&", 3},
+	tokEqEq:    {"==", 4},
+	tokBangEq:  {"!=", 4},
+	tokLt:      {"<", 5},
+	tokLtEq:    {"<=", 5},
+	tokGt:      {">", 5},
+	tokGtEq:    {">=", 5},
+	tokLtLt:    {"<<", 6},
+	tokGtGt:    {">>", 6},
+	tokPlus:    {"+", 7},
+	tokMinus:   {"-", 7},
+	tokStar:    {"*", 8},
+	tokSlash:   {"/", 8},
+	tokPercent: {"%", 8},
+}
+
+func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
+	lhs, err := p.parseUnary()
+	if err != nil {
+		return nil, err
+	}
+	for {
+		t := p.l.peek()
+		bo, ok := binops[t.kind]
+		if !ok || bo.prec <= minPrec {
+			break
+		}
+		// ^ is ambiguous: as infix it's XOR; as prefix it's deref.
+		// We only treat ^ as infix here (we're in parseBinary, so lhs is already parsed).
+		p.l.next()
+		rhs, err := p.parseBinary(bo.prec)
+		if err != nil {
+			return nil, err
+		}
+		ty := resultTy(lhs.ExprTy(), rhs.ExprTy(), bo.op)
+		lhs = &hir.BinExpr{Op: bo.op, L: lhs, R: rhs, Ty: ty}
+	}
+	return lhs, nil
+}
+
+func (p *parser) parseUnary() (hir.Expr, error) {
+	t := p.l.peek()
+	switch t.kind {
+	case tokMinus:
+		p.l.next()
+		x, err := p.parseUnary()
+		if err != nil {
+			return nil, err
+		}
+		return &hir.UnaryExpr{Op: "-", X: x, Ty: x.ExprTy()}, nil
+	case tokBang:
+		p.l.next()
+		x, err := p.parseUnary()
+		if err != nil {
+			return nil, err
+		}
+		return &hir.UnaryExpr{Op: "!", X: x, Ty: mir2.TyBool}, nil
+	case tokTilde:
+		p.l.next()
+		x, err := p.parseUnary()
+		if err != nil {
+			return nil, err
+		}
+		return &hir.UnaryExpr{Op: "~", X: x, Ty: x.ExprTy()}, nil
+	case tokAmp:
+		// &name — address-of
+		p.l.next()
+		nameTok, err := p.l.eat(tokIdent)
+		if err != nil {
+			return nil, err
+		}
+		return &hir.AddrOfExpr{Sym: nameTok.val}, nil
+	}
+	return p.parsePostfixFull()
+}
+
+func (p *parser) parsePostfixFull() (hir.Expr, error) {
+	base, err := p.parsePrimary()
+	if err != nil {
+		return nil, err
+	}
+	return p.parsePostfix(base)
+}
+
+func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
+	for {
+		t := p.l.peek()
+		switch t.kind {
+		case tokCaret:
+			// expr^ — postfix dereference (load)
+			p.l.next()
+			base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+		case tokLBrack:
+			// base[idx] — index (range slices are handled by parseFor directly)
+			p.l.next()
+			idx, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRBrack); err != nil {
+				return nil, err
+			}
+			base = &hir.IndexExpr{Base: base, Idx: idx, ElemTy: mir2.TyU8}
+		case tokDot:
+			// base.field — field access
+			p.l.next()
+			fieldTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return nil, err
+			}
+			base = &hir.FieldExpr{X: base, Field: fieldTok.val, Ty: mir2.TyU8}
+		case tokLParen:
+			// call: base must be VarRefExpr (function name)
+			p.l.next()
+			var args []hir.Expr
+			for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+				a, err := p.parseExpr()
+				if err != nil {
+					return nil, err
+				}
+				args = append(args, a)
+				if p.l.is(tokComma) {
+					p.l.next()
+				}
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			name := ""
+			if vr, ok := base.(*hir.VarRefExpr); ok {
+				name = vr.Name
+			}
+			base = &hir.CallExpr{Fn: name, Args: args, Ty: mir2.TyVoid}
+		default:
+			return base, nil
+		}
+	}
+}
+
+func (p *parser) parsePrimary() (hir.Expr, error) {
+	t := p.l.peek()
+
+	switch t.kind {
+	case tokInt:
+		p.l.next()
+		v, err := strconv.ParseInt(t.val, 0, 64)
+		if err != nil {
+			return nil, fmt.Errorf("line %d: bad integer %q: %v", t.line, t.val, err)
+		}
+		ty := mir2.Ty(mir2.TyU8)
+		if v > 255 || v < 0 {
+			ty = mir2.TyU16
+		}
+		return &hir.IntLitExpr{Val: v, Ty: ty}, nil
+
+	case tokIdent:
+		switch t.val {
+		case "true":
+			p.l.next()
+			return &hir.BoolLitExpr{Val: true}, nil
+		case "false":
+			p.l.next()
+			return &hir.BoolLitExpr{Val: false}, nil
+		case "u8", "u16", "i8", "i16":
+			// cast: u8(expr)
+			p.l.next()
+			ty := map[string]mir2.Ty{
+				"u8": mir2.TyU8, "u16": mir2.TyU16,
+				"i8": mir2.TyI8, "i16": mir2.TyI16,
+			}[t.val]
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return nil, err
+			}
+			x, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			return &hir.CastExpr{X: x, Ty: ty}, nil
+		}
+		p.l.next()
+		return &hir.VarRefExpr{Name: t.val, Ty: mir2.TyU8}, nil
+
+	case tokLParen:
+		p.l.next()
+		e, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.eat(tokRParen); err != nil {
+			return nil, err
+		}
+		return e, nil
+
+	case tokString:
+		p.l.next()
+		return &hir.AddrOfExpr{Sym: "@str." + strings.ReplaceAll(t.val, " ", "_")}, nil
+
+	case tokAt:
+		// @ptr(T, addr) — typed constant pointer to absolute address
+		p.l.next()
+		if !p.l.isIdent("ptr") {
+			return nil, fmt.Errorf("line %d: expected @ptr(...), got @%s", t.line, p.l.peek().val)
+		}
+		p.l.next()
+		if _, err := p.l.eat(tokLParen); err != nil {
+			return nil, err
+		}
+		elemTy, err := p.parseType()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.eat(tokComma); err != nil {
+			return nil, err
+		}
+		addrExpr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := p.l.eat(tokRParen); err != nil {
+			return nil, err
+		}
+		addr := uint16(0)
+		if lit, ok := addrExpr.(*hir.IntLitExpr); ok {
+			addr = uint16(lit.Val)
+		}
+		return &hir.ConstPtrExpr{ElemTy: elemTy, Addr: addr}, nil
+	}
+
+	return nil, fmt.Errorf("line %d: unexpected token %q in expression", t.line, t.val)
+}
+
+// ── Type helpers ──────────────────────────────────────────────────────────────
+
+func resultTy(l, r mir2.Ty, op string) mir2.Ty {
+	switch op {
+	case "==", "!=", "<", "<=", ">", ">=":
+		return mir2.TyBool
+	}
+	if l == mir2.TyU16 || r == mir2.TyU16 {
+		return mir2.TyU16
+	}
+	if l == mir2.TyPtr || r == mir2.TyPtr {
+		return mir2.TyPtr
+	}
+	return l
+}

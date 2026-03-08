@@ -2,6 +2,12 @@
 
 ### Hot off the press
 
+- **[Full Pipeline Walk-Through: PL/M → Nanz → HIR → MIR2 → Z80](reports/2026-03-09-035-Pipeline_All_Stages_Walkthrough.md)** — all intermediate stages with real output: `--emit=nanz`, `--emit=hir`, `--emit=mir2-raw`, `--emit=mir2`, `.a80`, and `mzd` disassembly. Three-path comparison (PLM direct / PLM→Nanz / native Nanz). HIR dump reveals a type-inference bug in the PL/M frontend fixed by the Nanz round-trip.
+- **[PL/M-80 E2E Pipeline: `mz file.plm -o file.com`](reports/2026-03-09-034-PLM_To_Z80_Pipeline_Walk_Through.md)** — `compileViaHIR` function wired, binary verified via MZE emulator (`fib(10)=55`, `abs_diff(10,3)=7`, `max3(5,12,7)=12`). `--emit=mir2`, `--emit=mir2-raw`, `--emit=hir` flags added.
+- **[PL/M-80 Frontend: 26/26 corpus, 1338 functions → HIR](reports/2026-03-08-032-PLM80_HIR_Coverage_And_Pipeline.md)** — full PL/M-80 parser (100% Intel 80 Tools corpus), preprocessor with `$INCLUDE` + LITERALLY alias chains, 1338 functions / 11661 statements lowered to HIR. ADR: [0014](docs/adr/0014-plm80-frontend-strategy.md). Pipeline: PL/M-80 → HIR → MIR2 → Z80 asm end-to-end wired.
+- **[PL/M-80 Parser: 26/26 corpus coverage](reports/2026-03-08-031-PLM80_Parser_Corpus_100pct.md)** — LITERALLY macro chains, `$INCLUDE` CP/M resolution, `''` escaped quotes, binary literals, record field access. [ADR-0014](docs/adr/0014-plm80-frontend-strategy.md).
+- **[MIR2 Architecture & Progress (~22%)](reports/2026-03-07-029-MIR2_Architecture_And_Progress.md)** — topology-aware `holdsPhys`, SoA256 layout (H=field/L=index), PBQP domain map, progress bar. ADRs: [0011](docs/adr/0011-mir2-codegen-dse-and-shadow-guard.md) [0012](docs/adr/0012-mir2-array-layout-soa256.md). [Roadmap](docs/MIR2_Roadmap.md).
+- **[MIR2 Codegen Quality Sprint](reports/2026-03-07-028-MIR2_Codegen_Quality_Sprint.md)** — 42 tests, 9 verified Z80 functions (gcd, max3, popcount, min8 + prior), shadow register guard, DSE pass, AND/OR/XOR immediate peepholes. Real assembly quality: min8 = 5 instructions, max3 = 7 on hot path.
 - **v0.20.1: Profiler + Emulator upgrades** — 7-channel profiler (exec/read/write/stack push/pop/IO + memory snapshot), stderr port $25, DI+HALT exit with A register as process exit code. Stack depth tracking via SP-delta detection.
 - **[Honest Assessment — Code-Verified Status](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md)** — Every claim verified by live test runs: 75% compile rate, 1 production backend, what actually works vs. what doesn't
 - **[MIR Backend Test Suite](reports/2026-03-04-023-MIR_Backend_Test_Suite.md)** — 11 handcrafted .mir programs, full MIR→Z80→binary→emulate pipeline validation (9/11 pass)
@@ -123,6 +129,7 @@ mz program.minz -b crystal -o prog.cr                  # Crystal (stub — not f
 | **Enums** | `enum State { IDLE, RUNNING }` with values |
 | **Module system** | `import stdlib.cpm.bdos;` |
 | **Lambdas** | Closure syntax, zero-cost transform |
+| **PL/M-80 frontend** | Parse + HIR lowering for all 26 Intel 80 Tools corpus files (100%); 1338 functions, 11661 statements |
 
 ### Partial / In Progress
 
@@ -348,6 +355,31 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 | **Game Boy** | Stub | Add, Sub, LoadVar, StoreVar all emit only comments |
 
 Only the Z80 backend is production-quality. The C backend can produce working binaries for simple programs. All others are experimental — they generate text output but have never produced working executables. See [Report #025](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md) for the full audit.
+
+### Language Frontends
+
+MinZ compiles its own language, and also includes a **PL/M-80 frontend** for compiling historical Intel/CP/M era programs:
+
+| Frontend | Status | Corpus | Pipeline |
+|----------|--------|--------|----------|
+| **MinZ** | Production | — | MinZ → HIR → MIR2 → Z80 |
+| **PL/M-80** | Working (parse + HIR) | 26/26 Intel 80 Tools (100%) | PL/M-80 → HIR → MIR2 → Z80 |
+
+**PL/M-80 coverage** (Intel 80 Tools corpus): algolm compiler, BASIC-E compiler/parser/synthesizer, ML80 assembler (l81/l82/l83/m81), TeX, CP/M utilities, Kermit — 1338 functions / 943 globals / 11661 statements lowered to HIR from 26 source files. Handles LITERALLY macro chains, `$INCLUDE` with CP/M device designators, binary literals, record field access, EXTERNAL procedures, all PL/M-80 statement forms. See [ADR-0014](docs/adr/0014-plm80-frontend-strategy.md).
+
+**Pipeline emit flags** (works with `.plm` and `.nanz` input):
+
+```bash
+mz program.plm --emit=nanz       # Transpile to Nanz surface syntax (round-trip)
+mz program.plm --emit=hir        # HIR typed-tree dump (types on every node)
+mz program.plm --emit=mir2-raw   # MIR2 before optimisation (DSE/ReorderBlocks)
+mz program.plm --emit=mir2       # MIR2 after optimisation passes
+mz program.plm                   # .a80 assembly (default)
+mz program.plm -o prog.com -t cpm  # Assemble to CP/M binary
+```
+
+The Nanz transpiler is lossless: `mz prog.plm --emit=nanz | mz --stdin` produces
+byte-identical assembly to compiling `.plm` directly.
 
 ---
 

@@ -9,11 +9,15 @@ import (
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/codegen"
 	"github.com/minz/minzc/pkg/ctie"
+	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/mir"
 	"github.com/minz/minzc/pkg/module"
+	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
+	"github.com/minz/minzc/pkg/pipeline"
+	"github.com/minz/minzc/pkg/plm"
 	"github.com/minz/minzc/pkg/semantic"
 	"github.com/minz/minzc/pkg/trace"
 	"github.com/minz/minzc/pkg/version"
@@ -55,6 +59,9 @@ var (
 
 	// Debug info
 	emitSLD      bool    // Emit SLD file for DeZog source-level debugging
+
+	// Transpiler flags
+	emitFormat   string  // emit format: "nanz" (HIR pretty-printed as Nanz source), "mir2-raw", "mir2"
 )
 
 var rootCmd = &cobra.Command{
@@ -195,6 +202,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
+	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz (HIR as Nanz syntax), hir (HIR typed tree), mir2-raw, mir2 (works with .plm/.nanz input)")
 }
 
 func main() {
@@ -215,8 +223,20 @@ func compile(sourceFile string) error {
 		return compileFromMIR(sourceFile)
 	}
 
-	// Check if input is an assembly file — route to z80asm assembler
 	ext := filepath.Ext(sourceFile)
+
+	// PL/M-80 and Nanz: routed through the new HIR→MIR2→Z80 pipeline.
+	if ext == ".plm" || ext == ".nanz" {
+		if emitFormat == "nanz" {
+			return compilePLMToNanz(sourceFile)
+		}
+		return compileViaHIR(sourceFile)
+	}
+	if emitFormat == "nanz" {
+		return compilePLMToNanz(sourceFile)
+	}
+
+	// Check if input is an assembly file — route to z80asm assembler
 	if ext == ".a80" || ext == ".asm" || ext == ".z80" {
 		return assembleFile(sourceFile)
 	}
@@ -291,10 +311,13 @@ func compile(sourceFile string) error {
 	backendInstance := codegen.GetBackend(backend, nil)
 	supportsSMC := backendInstance != nil && backendInstance.SupportsFeature(codegen.FeatureSelfModifyingCode)
 	
-	// Enable SMC for all functions unless disabled (and backend supports it)
+	// Enable SMC only for functions that explicitly need it (UsesTrueSMC or IsSMCDefault).
+	// ADR-0010: register-first is the default — do NOT force SMC on all functions.
 	if supportsSMC && !disableSMC {
 		for _, fn := range irModule.Functions {
-			fn.IsSMCEnabled = true
+			if fn.UsesTrueSMC || fn.IsSMCDefault {
+				fn.IsSMCEnabled = true
+			}
 		}
 		if debug {
 			if !disableSMC {
@@ -536,11 +559,11 @@ func compileFromMIR(mirFile string) error {
 	backendInstance := codegen.GetBackend(backend, nil)
 	supportsSMC := backendInstance != nil && backendInstance.SupportsFeature(codegen.FeatureSelfModifyingCode)
 	
-	// Enable SMC for all functions unless disabled (and backend supports it)
+	// Enable SMC only for functions that explicitly need it (UsesTrueSMC or IsSMCDefault).
+	// ADR-0010: register-first is the default — do NOT force SMC on all functions.
 	if supportsSMC && !disableSMC {
 		for _, fn := range irModule.Functions {
-			// Preserve existing SMC settings from MIR
-			if !fn.IsSMCEnabled {
+			if fn.UsesTrueSMC || fn.IsSMCDefault {
 				fn.IsSMCEnabled = true
 			}
 		}
@@ -652,6 +675,134 @@ func compileFromMIR(mirFile string) error {
 
 // assembleFile assembles a .a80/.asm/.z80 file using the built-in z80asm assembler.
 // This enables a one-tool workflow: mz source.minz -> mz output.a80 -> binary
+func compileViaHIR(sourceFile string) error {
+	src, err := os.ReadFile(sourceFile)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", sourceFile, err)
+	}
+
+	ext := filepath.Ext(sourceFile)
+
+	// Parse source → *hir.Module
+	var hirMod *hir.Module
+	switch ext {
+	case ".plm":
+		hirMod, err = plm.Compile(string(src))
+		if err != nil {
+			return fmt.Errorf("PL/M compile: %w", err)
+		}
+	case ".nanz":
+		hirMod, err = nanz.Parse(string(src), sourceFile)
+		if err != nil {
+			return fmt.Errorf("Nanz parse: %w", err)
+		}
+	default:
+		return fmt.Errorf("unsupported extension for HIR pipeline: %s", ext)
+	}
+
+	// Run all pipeline stages (always, cheaply; we may want any step).
+	steps, err := pipeline.CompileHIRSteps(hirMod)
+	if err != nil {
+		return fmt.Errorf("HIR compile: %w", err)
+	}
+
+	// --emit=hir  → HIR structural dump (typed tree, before lowering to MIR2)
+	if emitFormat == "hir" {
+		text := steps.HIR
+		if outputFile != "" {
+			if err := os.WriteFile(outputFile, []byte(text), 0644); err != nil {
+				return fmt.Errorf("write %s: %w", outputFile, err)
+			}
+		} else {
+			fmt.Print(text)
+		}
+		return nil
+	}
+	// --emit=mir2  → print MIR2 dump (post-optimisation) to stdout or -o file
+	if emitFormat == "mir2" {
+		text := steps.MIR2Opt
+		if outputFile != "" {
+			if err := os.WriteFile(outputFile, []byte(text), 0644); err != nil {
+				return fmt.Errorf("write %s: %w", outputFile, err)
+			}
+		} else {
+			fmt.Print(text)
+		}
+		return nil
+	}
+	// --emit=mir2-raw  → raw MIR2 before optimisation passes
+	if emitFormat == "mir2-raw" {
+		text := steps.MIR2Raw
+		if outputFile != "" {
+			if err := os.WriteFile(outputFile, []byte(text), 0644); err != nil {
+				return fmt.Errorf("write %s: %w", outputFile, err)
+			}
+		} else {
+			fmt.Print(text)
+		}
+		return nil
+	}
+
+	asmSrc := steps.Assembly
+
+	// Determine output path
+	base := sourceFile[:len(sourceFile)-len(ext)]
+	out := outputFile
+
+	// Emit assembly if output is .a80 or no output flag given
+	if out == "" || filepath.Ext(out) == ".a80" {
+		if out == "" {
+			out = base + ".a80"
+		}
+		if err := os.WriteFile(out, []byte(asmSrc), 0644); err != nil {
+			return fmt.Errorf("write %s: %w", out, err)
+		}
+		if debug {
+			fmt.Printf("Wrote assembly to %s\n", out)
+		}
+		return nil
+	}
+
+	// Otherwise assemble to binary
+	bin, errs := pipeline.Assemble(asmSrc, target)
+	if len(errs) > 0 {
+		return fmt.Errorf("assemble: %v", errs[0])
+	}
+	if err := os.WriteFile(out, bin, 0644); err != nil {
+		return fmt.Errorf("write %s: %w", out, err)
+	}
+	if debug {
+		fmt.Printf("Wrote binary to %s (%d bytes)\n", out, len(bin))
+	}
+	return nil
+}
+
+func compilePLMToNanz(sourceFile string) error {
+	src, err := os.ReadFile(sourceFile)
+	if err != nil {
+		return fmt.Errorf("read %s: %w", sourceFile, err)
+	}
+
+	hirMod, err := plm.Compile(string(src))
+	if err != nil {
+		return fmt.Errorf("PL/M compile: %w", err)
+	}
+
+	nanzSrc := nanz.Print(hirMod)
+
+	if outputFile != "" {
+		if err := os.WriteFile(outputFile, []byte(nanzSrc), 0644); err != nil {
+			return fmt.Errorf("write %s: %w", outputFile, err)
+		}
+		if debug {
+			fmt.Printf("Wrote Nanz source to %s\n", outputFile)
+		}
+	} else {
+		fmt.Print(nanzSrc)
+	}
+	return nil
+}
+
 func assembleFile(sourceFile string) error {
 	if debug {
 		fmt.Printf("Assembling %s...\n", sourceFile)
