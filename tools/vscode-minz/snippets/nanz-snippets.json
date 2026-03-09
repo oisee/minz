@@ -1,0 +1,106 @@
+{
+  "Function declaration": {
+    "prefix": "fun",
+    "body": [
+      "fun ${1:name}(${2:params}) -> ${3:void} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "Declare a Nanz function"
+  },
+  "External function": {
+    "prefix": "extern",
+    "body": [
+      "@extern fun ${1:name}(${2:params}) -> ${3:void}"
+    ],
+    "description": "Declare an external (FFI) function"
+  },
+  "Variable declaration": {
+    "prefix": "var",
+    "body": [
+      "var ${1:name}: ${2:u8} = ${3:0}"
+    ],
+    "description": "Declare a variable"
+  },
+  "If statement": {
+    "prefix": "if",
+    "body": [
+      "if ${1:cond} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "If statement"
+  },
+  "If-else statement": {
+    "prefix": "ife",
+    "body": [
+      "if ${1:cond} {",
+      "\t$2",
+      "} else {",
+      "\t$0",
+      "}"
+    ],
+    "description": "If-else statement"
+  },
+  "While loop": {
+    "prefix": "while",
+    "body": [
+      "while ${1:cond} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "While loop"
+  },
+  "For range loop": {
+    "prefix": "for",
+    "body": [
+      "for ${1:i} in ${2:0}..${3:n} {",
+      "\t$0",
+      "}"
+    ],
+    "description": "For range loop"
+  },
+  "Struct declaration": {
+    "prefix": "struct",
+    "body": [
+      "struct ${1:Name} {",
+      "\t${2:field}: ${3:u8}",
+      "}"
+    ],
+    "description": "Struct declaration"
+  },
+  "Global variable": {
+    "prefix": "global",
+    "body": [
+      "global ${1:name}: ${2:u8} = ${3:0}"
+    ],
+    "description": "Global variable"
+  },
+  "Switch statement": {
+    "prefix": "switch",
+    "body": [
+      "switch ${1:expr} {",
+      "\tcase ${2:0}:",
+      "\t\t$0",
+      "\tdefault:",
+      "\t\t",
+      "}"
+    ],
+    "description": "Switch statement"
+  },
+  "Return statement": {
+    "prefix": "ret",
+    "body": "return ${1:value}",
+    "description": "Return statement"
+  },
+  "Ranged type": {
+    "prefix": "u8range",
+    "body": "u8<${1:0}..${2:255}>",
+    "description": "Ranged u8 type (triggers LUTGen)"
+  },
+  "Pointer dereference store": {
+    "prefix": "store",
+    "body": "^${1:ptr} = ${2:value}",
+    "description": "Store through pointer"
+  }
+}

@@ -1,8 +1,8 @@
 {
   "name": "minz-language-support",
-  "displayName": "MinZ Language Support",
-  "description": "Language support for MinZ - a systems programming language for Z80",
-  "version": "0.6.0",
+  "displayName": "MinZ / Nanz Language Support",
+  "description": "Language support for MinZ and Nanz — systems programming languages for Z80",
+  "version": "0.7.0",
   "publisher": "minz-lang",
   "repository": {
     "type": "git",
@@ -20,11 +20,13 @@
   ],
   "keywords": [
     "minz",
+    "nanz",
     "z80",
     "assembly",
     "systems programming",
     "zx spectrum",
     "retro",
+    "plm80",
     "dezog"
   ],
   "main": "./out/extension.js",
@@ -47,6 +49,17 @@
         }
       },
       {
+        "id": "nanz",
+        "aliases": [
+          "Nanz",
+          "nanz"
+        ],
+        "extensions": [
+          ".nanz"
+        ],
+        "configuration": "./nanz-language-configuration.json"
+      },
+      {
         "id": "mir",
         "aliases": [
           "MIR",
@@ -65,6 +78,11 @@
         "path": "./syntaxes/minz.tmLanguage.json"
       },
       {
+        "language": "nanz",
+        "scopeName": "source.nanz",
+        "path": "./syntaxes/nanz.tmLanguage.json"
+      },
+      {
         "language": "mir",
         "scopeName": "source.mir",
         "path": "./syntaxes/mir.tmLanguage.json"
@@ -74,12 +92,16 @@
       {
         "language": "minz",
         "path": "./snippets/minz-snippets.json"
+      },
+      {
+        "language": "nanz",
+        "path": "./snippets/nanz-snippets.json"
       }
     ],
     "commands": [
       {
         "command": "minz.compile",
-        "title": "MinZ: Compile to Z80 Assembly",
+        "title": "MinZ/Nanz: Compile to Z80 Assembly",
         "icon": "$(play)"
       },
       {
@@ -131,32 +153,32 @@
     "menus": {
       "editor/context": [
         {
-          "when": "editorLangId == minz",
+          "when": "editorLangId == minz || editorLangId == nanz",
           "command": "minz.compile",
           "group": "minz@1"
         },
         {
-          "when": "editorLangId == minz",
+          "when": "editorLangId == minz || editorLangId == nanz",
           "command": "minz.compileAndRun",
           "group": "minz@2"
         },
         {
-          "when": "editorLangId == minz",
+          "when": "editorLangId == minz || editorLangId == nanz",
           "command": "minz.compileToMIR",
           "group": "minz@3"
         },
         {
-          "when": "editorLangId == minz",
+          "when": "editorLangId == minz || editorLangId == nanz",
           "command": "minz.compileToASM",
           "group": "minz@3"
         },
         {
-          "when": "editorLangId == minz",
+          "when": "editorLangId == minz || editorLangId == nanz",
           "command": "minz.compileAll",
           "group": "minz@4"
         },
         {
-          "when": "editorLangId == minz",
+          "when": "editorLangId == minz || editorLangId == nanz",
           "command": "minz.compileOptimized",
           "group": "minz@5"
         },
@@ -173,12 +195,12 @@
       ],
       "editor/title": [
         {
-          "when": "editorLangId == minz",
+          "when": "editorLangId == minz || editorLangId == nanz",
           "command": "minz.compile",
           "group": "navigation@1"
         },
         {
-          "when": "editorLangId == minz",
+          "when": "editorLangId == minz || editorLangId == nanz",
           "command": "minz.compileOptimized",
           "group": "navigation@2"
         },
@@ -194,37 +216,37 @@
         "command": "minz.compile",
         "key": "ctrl+alt+b",
         "mac": "cmd+alt+b",
-        "when": "editorLangId == minz"
+        "when": "editorLangId == minz || editorLangId == nanz"
       },
       {
         "command": "minz.compileAndRun",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
-        "when": "editorLangId == minz"
+        "when": "editorLangId == minz || editorLangId == nanz"
       },
       {
         "command": "minz.compileOptimized",
         "key": "ctrl+alt+o",
         "mac": "cmd+alt+o",
-        "when": "editorLangId == minz"
+        "when": "editorLangId == minz || editorLangId == nanz"
       },
       {
         "command": "minz.compileToMIR",
         "key": "ctrl+alt+m",
         "mac": "cmd+alt+m",
-        "when": "editorLangId == minz"
+        "when": "editorLangId == minz || editorLangId == nanz"
       },
       {
         "command": "minz.compileToASM",
         "key": "ctrl+alt+i",
         "mac": "cmd+alt+i",
-        "when": "editorLangId == minz"
+        "when": "editorLangId == minz || editorLangId == nanz"
       },
       {
         "command": "minz.compileAll",
         "key": "ctrl+alt+shift+b",
         "mac": "cmd+alt+shift+b",
-        "when": "editorLangId == minz"
+        "when": "editorLangId == minz || editorLangId == nanz"
       },
       {
         "command": "minz.showAST",
@@ -324,8 +346,10 @@
   },
   "activationEvents": [
     "onLanguage:minz",
+    "onLanguage:nanz",
     "workspaceContains:**/*.minz",
-    "workspaceContains:**/*.mz"
+    "workspaceContains:**/*.mz",
+    "workspaceContains:**/*.nanz"
   ],
   "scripts": {
     "vscode:prepublish": "npm run compile",

@@ -16,6 +16,7 @@ import (
 
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/semantic"
 )
@@ -310,6 +311,16 @@ func (s *Server) analyzeAndPublish(uri string) {
 	filePath := uriToPath(uri)
 	diagnostics := []Diagnostic{}
 
+	// Route .nanz files through the Nanz parser → HIR pipeline.
+	if filepath.Ext(filePath) == ".nanz" {
+		diagnostics = s.analyzeNanz(filePath, content)
+		s.sendNotification("textDocument/publishDiagnostics", PublishDiagnosticsParams{
+			URI:         uri,
+			Diagnostics: diagnostics,
+		})
+		return
+	}
+
 	// Parse — write content to temp file since parser reads from disk
 	tmpFile, tmpErr := os.CreateTemp("", "mzlsp-*.minz")
 	if tmpErr != nil {
@@ -370,6 +381,52 @@ func (s *Server) analyzeAndPublish(uri string) {
 		URI:         uri,
 		Diagnostics: diagnostics,
 	})
+}
+
+// analyzeNanz parses a Nanz file and returns LSP diagnostics.
+func (s *Server) analyzeNanz(filePath, content string) []Diagnostic {
+	var diagnostics []Diagnostic
+	_, err := nanz.Parse(content, filepath.Base(filePath))
+	if err != nil {
+		// Nanz errors have the form "line N: message"
+		diags := extractNanzDiagnostics(err.Error(), filePath)
+		if len(diags) > 0 {
+			diagnostics = append(diagnostics, diags...)
+		} else {
+			diagnostics = append(diagnostics, Diagnostic{
+				Range:    Range{Start: Position{0, 0}, End: Position{0, 20}},
+				Severity: DiagnosticSeverityError,
+				Source:   "nanz",
+				Message:  err.Error(),
+			})
+		}
+	}
+	return diagnostics
+}
+
+// extractNanzDiagnostics parses Nanz error strings of the form "line N: message".
+var nanzLineRe = regexp.MustCompile(`(?m)line\s+(\d+):\s*(.+)`)
+
+func extractNanzDiagnostics(errStr, filePath string) []Diagnostic {
+	var diags []Diagnostic
+	for _, m := range nanzLineRe.FindAllStringSubmatch(errStr, -1) {
+		lineNum, _ := strconv.Atoi(m[1])
+		line := max0(lineNum - 1)
+		diags = append(diags, Diagnostic{
+			Range:    Range{Start: Position{line, 0}, End: Position{line, 80}},
+			Severity: DiagnosticSeverityError,
+			Source:   "nanz",
+			Message:  strings.TrimSpace(m[2]),
+		})
+	}
+	return diags
+}
+
+func max0(n int) int {
+	if n < 0 {
+		return 0
+	}
+	return n
 }
 
 // --- Hover ---

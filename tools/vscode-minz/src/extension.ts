@@ -58,7 +58,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Compile on save for diagnostics
     vscode.workspace.onDidSaveTextDocument((document) => {
-        if (document.languageId === 'minz' || document.languageId === 'mir' || document.fileName.endsWith('.minz') || document.fileName.endsWith('.mz') || document.fileName.endsWith('.mir')) {
+        const lang = document.languageId;
+        const name = document.fileName;
+        if (lang === 'minz' || lang === 'nanz' || lang === 'mir' ||
+            name.endsWith('.minz') || name.endsWith('.mz') || name.endsWith('.nanz') || name.endsWith('.mir')) {
             compileForDiagnostics(document);
         }
     });
@@ -127,11 +130,12 @@ async function startLSP(context: vscode.ExtensionContext) {
         const clientOptions = {
             documentSelector: [
                 { scheme: 'file', language: 'minz' },
+                { scheme: 'file', language: 'nanz' },
             ],
             outputChannel: outputChannel,
         };
 
-        lspClient = new LanguageClient('minz', 'MinZ Language Server', serverOptions, clientOptions);
+        lspClient = new LanguageClient('minz', 'MinZ/Nanz Language Server', serverOptions, clientOptions);
         lspClient.start();
         outputChannel.appendLine(`LSP server started: ${lspBinary}`);
     } catch (e: any) {
@@ -213,11 +217,12 @@ function getMinZContext(): { filePath: string; config: vscode.WorkspaceConfigura
         return null;
     }
 
-    const isMinzFile = activeEditor.document.fileName.endsWith('.minz') ||
-                       activeEditor.document.fileName.endsWith('.mz') ||
-                       activeEditor.document.fileName.endsWith('.mir');
-    if (!isMinzFile && activeEditor.document.languageId !== 'minz' && activeEditor.document.languageId !== 'mir') {
-        vscode.window.showErrorMessage('No MinZ or MIR file is currently open.');
+    const name = activeEditor.document.fileName;
+    const lang = activeEditor.document.languageId;
+    const isMinzFile = name.endsWith('.minz') || name.endsWith('.mz') ||
+                       name.endsWith('.nanz') || name.endsWith('.mir');
+    if (!isMinzFile && lang !== 'minz' && lang !== 'nanz' && lang !== 'mir') {
+        vscode.window.showErrorMessage('No MinZ, Nanz, or MIR file is currently open.');
         return null;
     }
 
