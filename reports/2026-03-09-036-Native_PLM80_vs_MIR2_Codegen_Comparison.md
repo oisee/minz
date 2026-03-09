@@ -25,6 +25,9 @@ Note: PL/M-80 V4.0 targets the **Intel 8080**, not Z80. The instruction set is a
 subset — no `CP`, `NEG`, `DJNZ`, `EX DE,HL`, etc. Arguments passed via **memory variables**
 at absolute addresses, not registers.
 
+The assembly listings below are translated from 8080 to **Z80 syntax** for readability.
+The opcodes are identical bytes — only the mnemonics differ.
+
 ### Source adaptation
 
 The original `report_demo.plm` needed two PL/M-80 conformance fixes:
@@ -64,37 +67,37 @@ END DEMO;
 
 ## ABS_DIFF comparison
 
-### Native PL/M-80 V4.0 (8080, from listing)
+### Native PL/M-80 V4.0 (Z80 syntax, from listing)
 
 Parameters and locals are stored in **memory** at absolute addresses (`A`=0x0000, `B`=0x0001
-relative to module base). The calling convention passes parameters via `MOV M,E` / `MOV M,C`
+relative to module base). The calling convention passes parameters via `LD (HL),E` / `LD (HL),C`
 (caller stores BC/DE register pair values into memory slots via HL pointer).
 
 ```asm
 ; PROC  ABS_DIFF
-0000  LXI  H,B        ; HL = addr of B param slot
-0003  MOV  M,E        ; store B (from DE) to mem
-0004  DCX  H          ; HL = addr of A param slot
-0005  MOV  M,C        ; store A (from BC) to mem
+0000  LD HL, (B)       ; HL = addr of B param slot   [LXI H,B]
+0003  LD (HL), E       ; store B (from DE) to mem    [MOV M,E]
+0004  DEC HL           ; HL = addr of A param slot   [DCX H]
+0005  LD (HL), C       ; store A (from BC) to mem    [MOV M,C]
 ; IF A > B THEN
-0006  LDA  B          ; A = [B]
-0009  LXI  H,A        ; HL = addr of A
-000C  CMP  M          ; B - [A]
-000D  JNC  @1         ; jump if B >= A  (i.e. NOT A > B)
+0006  LD A, (B)        ; A = mem[B]                  [LDA B]
+0009  LD HL, (A)       ; HL = addr of A              [LXI H,A]
+000C  CP (HL)          ; B - mem[A]                  [CMP M]
+000D  JP NC, @1        ; jump if B >= A  (NOT A > B) [JNC @1]
 ; RETURN A - B
-0010  LXI  H,B        ; HL = addr of B
-0013  LDA  A          ; A = [A]
-0016  SUB  M          ; A = A - [B]
+0010  LD HL, (B)       ; HL = addr of B              [LXI H,B]
+0013  LD A, (A)        ; A = mem[A]                  [LDA A]
+0016  SUB (HL)         ; A = A - mem[B]              [SUB M]
 0017  RET
 @1:
 ; RETURN B - A
-0018  LXI  H,A        ; HL = addr of A
-001B  LDA  B          ; A = [B]
-001E  SUB  M          ; A = B - [A]
+0018  LD HL, (A)       ; HL = addr of A              [LXI H,A]
+001B  LD A, (B)        ; A = mem[B]                  [LDA B]
+001E  SUB (HL)         ; A = B - mem[A]              [SUB M]
 001F  RET
 @2:
 ; END ABS_DIFF
-0020  RET             ; fallthrough guard
+0020  RET              ; fallthrough guard
 ```
 **Size: 33 bytes. Instructions: 14 (+ 1 guard RET).**
 
@@ -138,46 +141,46 @@ so the compiler must use `LXI H, addr` + `CMP M` for every comparison.
 
 ## FIB comparison
 
-### Native PL/M-80 V4.0 (8080, from listing)
+### Native PL/M-80 V4.0 (Z80 syntax, from listing)
 
 Variables `N`=0x02, `A`=0x03, `B`=0x04, `T`=0x05 in absolute memory.
 
 ```asm
 ; PROC  FIB
-0021  LXI  H,N        ; store parameter N
-0024  MOV  M,C
+0021  LD HL, (N)       ; HL = addr of N param slot   [LXI H,N]
+0024  LD (HL), C       ; store N (from BC) to mem    [MOV M,C]
 ; A = 0
-0025  LXI  H,A
-0028  MVI  M,0H
+0025  LD HL, (A)       ;                             [LXI H,A]
+0028  LD (HL), 0       ; mem[A] = 0                  [MVI M,0H]
 ; B = 1
-002A  INX  H
-002B  MVI  M,1H
+002A  INC HL           ; HL = addr of B              [INX H]
+002B  LD (HL), 1       ; mem[B] = 1                  [MVI M,1H]
 ; DO WHILE N > 0
 @3:
-002D  MVI  A,0H       ; load literal 0
-002F  LXI  H,N        ; HL = addr of N
-0032  CMP  M          ; 0 - [N], sets CF if N > 0
-0033  JNC  @4         ; exit if N == 0
+002D  LD A, 0          ; A = 0 (literal)             [MVI A,0H]
+002F  LD HL, (N)       ; HL = addr of N              [LXI H,N]
+0032  CP (HL)          ; 0 - mem[N]; CF set if N > 0 [CMP M]
+0033  JP NC, @4        ; exit if N == 0              [JNC @4]
 ; T = B
-0036  LDA  B
-0039  STA  T
+0036  LD A, (B)        ; A = mem[B]                  [LDA B]
+0039  LD (T), A        ; mem[T] = A                  [STA T]
 ; B = A + B
-003C  LXI  H,A
-003F  ADD  M          ; A = A(acc) + [A]
-0040  INX  H          ; HL = addr of B
-0041  MOV  M,A        ; [B] = result
+003C  LD HL, (A)       ; HL = addr of A              [LXI H,A]
+003F  ADD A, (HL)      ; A = mem[B] + mem[A]         [ADD M]
+0040  INC HL           ; HL = addr of B              [INX H]
+0041  LD (HL), A       ; mem[B] = result             [MOV M,A]
 ; A = T
-0042  LDA  T
-0045  DCX  H          ; HL = addr of A
-0046  MOV  M,A
+0042  LD A, (T)        ; A = mem[T]                  [LDA T]
+0045  DEC HL           ; HL = addr of A              [DCX H]
+0046  LD (HL), A       ; mem[A] = A                  [MOV M,A]
 ; N = N - 1
-0047  DCX  H          ; HL = addr of N
-0048  DCR  M          ; [N]--
+0047  DEC HL           ; HL = addr of N              [DCX H]
+0048  DEC (HL)         ; mem[N]--                    [DCR M]
 ; END loop
-0049  JMP  @3
+0049  JP @3            ;                             [JMP @3]
 @4:
 ; RETURN A
-004C  LDA  A          ; wait — LDA reads from addr A (0x0003), not reg A!
+004C  LD A, (A)        ; A = mem[A]  (addr 0x0003)   [LDA A]
 004F  RET
 ```
 **Size: 47 bytes. Instructions: 20 (+1 guard RET in ABS_DIFF).**
@@ -233,10 +236,10 @@ body, eliminating all memory traffic.
 
 **Notable plm80c cleverness:** `B = A + B` is compiled as:
 ```asm
-LXI  H,A     ; HL points to A
-ADD  M        ; acc = acc + [A]   (acc was already loaded with B via LDA)
-INX  H        ; HL now points to B
-MOV  M,A      ; store result to B
+LD HL, (A)   ; HL points to A              [LXI H,A]
+ADD A, (HL)  ; A = mem[B] + mem[A]         [ADD M]  (A was preloaded with B)
+INC HL       ; HL now points to B          [INX H]
+LD (HL), A   ; mem[B] = result             [MOV M,A]
 ```
 It uses the `INX H` after the `ADD M` to reuse the HL pointer for the store — saves one
 `LXI H,B` instruction. That's a smart peephole for memory-based codegen.
@@ -249,9 +252,9 @@ It uses the `INX H` after the `ADD M` to reuse the HL pointer for the store — 
 PL/M-80 V4.0 calling convention (8080 memory-based):
   Caller: pass args in BC/DE register pair
   Callee: immediately store args to absolute memory addrs
-          (LXI H,addr + MOV M,C/E)
-  Variables: accessed via LDA/STA (2-byte absolute) or
-             LXI H,addr + MOV/ADD/CMP M (3-byte + 1-byte)
+          (LD HL,addr + LD (HL),C/E)
+  Variables: accessed via LD A,(addr) / LD (addr),A  or
+             LD HL,addr + LD r,(HL) / ADD A,(HL) / CP (HL)
   Return: value in accumulator A
 
 MIR2 Z80 calling convention (register-first):
