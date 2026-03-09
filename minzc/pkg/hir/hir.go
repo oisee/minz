@@ -26,13 +26,24 @@ import "github.com/minz/minzc/pkg/mir2"
 
 // ── Module ────────────────────────────────────────────────────────────────────
 
+// InterfaceDecl is a Go-style interface declaration.
+// It records the set of method names required by the interface.
+// For now, Nanz interfaces are structural (duck-typed): any type that has all
+// listed methods satisfies the interface.  No vtable is emitted; dispatch is
+// monomorphised at call sites.
+type InterfaceDecl struct {
+	Name    string   // e.g. "Animal"
+	Methods []string // method names, e.g. ["speak", "move"]
+}
+
 // Module is the top-level HIR unit.
 type Module struct {
-	Name    string
-	Funcs   []*Func
-	Globals []mir2.Global      // reuse mir2.Global directly
-	Structs []*mir2.StructTy   // named struct type declarations
-	Strings []string           // interned string literals (index = position)
+	Name       string
+	Funcs      []*Func
+	Globals    []mir2.Global      // reuse mir2.Global directly
+	Structs    []*mir2.StructTy   // named struct type declarations
+	Interfaces []*InterfaceDecl   // interface declarations (zero-cost, monomorphised)
+	Strings    []string           // interned string literals (index = position)
 }
 
 // FuncByName returns the first HIR function with the given name, or nil.

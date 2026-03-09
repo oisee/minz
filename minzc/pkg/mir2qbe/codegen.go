@@ -221,7 +221,12 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 	case mir2.OpConst:
 		g.printf("\t%%r%d =%s copy %d\n", dst, ty, inst.Imm)
 	case mir2.OpMove:
-		def("copy", reg(a))
+		// Use g.regTy[dst] so pointer-promoted regs get "l", not "w"
+		dstTy := ty
+		if t := g.regTy[dst]; t != "" {
+			dstTy = t
+		}
+		g.printf("\t%%r%d =%s copy %%r%d\n", dst, dstTy, a)
 
 	// Memory
 	case mir2.OpLoad:
@@ -314,11 +319,15 @@ func (g *gen) emitCallIndirect(inst *mir2.Inst) {
 }
 
 func (g *gen) buildCallExpr(fn string, args []mir2.Reg, retTy mir2.Ty) string {
-	// Resolve arg types — we don't have them per-arg here, so use w for all
-	// (acceptable for correctness testing of u8/u16 programs)
+	// Use g.regTy for each arg so pointer regs are passed as "l", matching
+	// the callee's parameter declaration (also promoted to "l" if pointer).
 	argParts := make([]string, len(args))
 	for i, a := range args {
-		argParts[i] = fmt.Sprintf("w %%r%d", a)
+		ty := g.regTy[a]
+		if ty == "" {
+			ty = "w"
+		}
+		argParts[i] = fmt.Sprintf("%s %%r%d", ty, a)
 	}
 	return fmt.Sprintf("call %s(%s)", fn, strings.Join(argParts, ", "))
 }
@@ -667,6 +676,14 @@ func typeBits(ty mir2.Ty) int {
 }
 
 func byteWidth(ty mir2.Ty) int {
+	// StructTy uses its own Width() (sum of field widths in bits).
+	if _, isStruct := ty.(*mir2.StructTy); isStruct {
+		bw := ty.Width() / 8
+		if bw < 1 {
+			return 1
+		}
+		return bw
+	}
 	bits := typeBits(ty)
 	if bits < 8 {
 		return 1

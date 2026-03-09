@@ -309,17 +309,100 @@ func isHexDigit(c byte) bool {
 
 // ── Parser ────────────────────────────────────────────────────────────────────
 
+// methodInfo records a struct method's mangled function name and return type.
+type methodInfo struct {
+	funcName string
+	retTy    mir2.Ty
+}
+
+// opOverload records an operator overload's mangled function name and return type.
+type opOverload struct {
+	funcName string
+	retTy    mir2.Ty
+}
+
 type parser struct {
 	l           *lexer
 	name        string
 	structs     map[string]*mir2.StructTy
+	interfaces  map[string]*hir.InterfaceDecl   // interface name → declaration
 	lambdas     []*hir.Func // anonymous functions generated from |params| body syntax
 	lambdaCount int
+	// Week 1: UFCS + struct methods + operator overloading
+	globalTypes map[string]mir2.Ty              // module-level: global varname → type (persistent)
+	varTypes    map[string]mir2.Ty              // current function scope: varname → type (reset per func)
+	methodTable map[string]map[string]methodInfo // structName → methodName → info
+	opTable     map[string]opOverload             // op symbol ("+", "-", ...) → overload
+}
+
+// exprTy returns the known type of an expression, consulting varTypes and
+// globalTypes for VarRefExpr (since VarRefExpr.Ty defaults to TyU8 at parse time).
+func (p *parser) exprTy(e hir.Expr) mir2.Ty {
+	if vr, ok := e.(*hir.VarRefExpr); ok {
+		if ty, found := p.varTypes[vr.Name]; found {
+			return ty
+		}
+		if ty, found := p.globalTypes[vr.Name]; found {
+			return ty
+		}
+	}
+	return e.ExprTy()
+}
+
+// opToFuncName maps an operator token kind to a mangled function name.
+func opToFuncName(k tokKind) string {
+	switch k {
+	case tokPlus:
+		return "op_add"
+	case tokMinus:
+		return "op_sub"
+	case tokStar:
+		return "op_mul"
+	case tokSlash:
+		return "op_div"
+	case tokPercent:
+		return "op_rem"
+	case tokEqEq:
+		return "op_eq"
+	case tokBangEq:
+		return "op_ne"
+	case tokLt:
+		return "op_lt"
+	case tokLtEq:
+		return "op_le"
+	case tokGt:
+		return "op_gt"
+	case tokGtEq:
+		return "op_ge"
+	case tokAmp:
+		return "op_and"
+	case tokPipe:
+		return "op_or"
+	case tokCaret:
+		return "op_xor"
+	}
+	return "op_unknown"
+}
+
+// isOpToken returns true if k can be used as an operator function name.
+func isOpToken(k tokKind) bool {
+	switch k {
+	case tokPlus, tokMinus, tokStar, tokSlash, tokPercent,
+		tokEqEq, tokBangEq, tokLt, tokLtEq, tokGt, tokGtEq,
+		tokAmp, tokPipe, tokCaret:
+		return true
+	}
+	return false
 }
 
 func (p *parser) parseModule() (*hir.Module, error) {
 	m := &hir.Module{Name: p.name}
 	p.structs = make(map[string]*mir2.StructTy)
+	p.interfaces = make(map[string]*hir.InterfaceDecl)
+	p.methodTable = make(map[string]map[string]methodInfo)
+	p.opTable = make(map[string]opOverload)
+	p.globalTypes = make(map[string]mir2.Ty)
+	p.varTypes = make(map[string]mir2.Ty)
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -331,6 +414,14 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			}
 			m.Structs = append(m.Structs, st)
 			p.structs[st.Name] = st
+
+		case t.kind == tokIdent && t.val == "interface":
+			decl, err := p.parseInterfaceDecl()
+			if err != nil {
+				return nil, err
+			}
+			p.interfaces[decl.Name] = decl
+			m.Interfaces = append(m.Interfaces, decl)
 
 		case t.kind == tokIdent && t.val == "global":
 			g, err := p.parseGlobalDecl()
@@ -411,6 +502,67 @@ func (p *parser) parseStructDecl() (*mir2.StructTy, error) {
 	return st, nil
 }
 
+// ── Interface declaration ─────────────────────────────────────────────────────
+
+// parseInterfaceDecl parses: interface Name { methodName; ... }
+// Method lines may optionally start with the keyword "fun"; return types and
+// parameter lists are skipped (the parser only captures method names).
+// Separator between entries is flexible: the Nanz lexer is whitespace-agnostic,
+// so we just look for identifiers until we hit '}'.
+func (p *parser) parseInterfaceDecl() (*hir.InterfaceDecl, error) {
+	if err := p.l.eatIdent("interface"); err != nil {
+		return nil, err
+	}
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := p.l.eat(tokLBrace); err != nil {
+		return nil, err
+	}
+	decl := &hir.InterfaceDecl{Name: nameTok.val}
+	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		// Optional "fun" keyword before the method name.
+		if p.l.isIdent("fun") {
+			p.l.next()
+		}
+		// Expect a method name identifier.
+		methodTok, err := p.l.eat(tokIdent)
+		if err != nil {
+			return nil, err
+		}
+		decl.Methods = append(decl.Methods, methodTok.val)
+		// Skip the rest of the line until '}', ';', or next method.
+		// Since the Nanz lexer is whitespace-insensitive, we skip tokens
+		// until we see a tokRBrace or the next method entry (next tokIdent
+		// that is not part of a type annotation).  The simplest rule:
+		// skip until we see '}' or a bare identifier (which we'll re-read
+		// at the top of the loop).  We handle optional comma separators and
+		// any type signature tokens.
+		for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+			// A comma is an explicit separator — consume and move on.
+			if p.l.is(tokComma) {
+				p.l.next()
+				break
+			}
+			// If the next token is an identifier that is NOT a keyword we
+			// recognise as part of a type signature ('fun' is handled at the
+			// top of the outer loop), it likely starts the next method name.
+			// Stop skipping so the outer loop can read it.
+			next := p.l.peek()
+			if next.kind == tokIdent {
+				// Could be the next method name or "fun".  Stop here.
+				break
+			}
+			p.l.next()
+		}
+	}
+	if _, err := p.l.eat(tokRBrace); err != nil {
+		return nil, err
+	}
+	return decl, nil
+}
+
 // ── Global declaration ────────────────────────────────────────────────────────
 
 func (p *parser) parseGlobalDecl() (mir2.Global, error) {
@@ -429,6 +581,7 @@ func (p *parser) parseGlobalDecl() (mir2.Global, error) {
 		return mir2.Global{}, err
 	}
 	g := mir2.Global{Name: nameTok.val, Ty: ty}
+	p.globalTypes[nameTok.val] = ty // register for UFCS/field-offset lookup
 
 	// at(addr)?
 	if p.l.isIdent("at") {
@@ -521,10 +674,46 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 			return nil, err
 		}
 	}
-	nameTok, err := p.l.eat(tokIdent)
-	if err != nil {
-		return nil, err
+
+	// ── Parse function name ────────────────────────────────────────────────────
+	// Three forms:
+	//   fun foo(...)               → regular function, name = "foo"
+	//   fun Vec2.add(...)          → struct method, name = "Vec2_add", registered in methodTable
+	//   fun +(a: Vec2, b: Vec2)    → operator overload, name = "op_add", registered in opTable
+	var funcName string
+	var opSym string // non-empty if this is an operator overload
+
+	if isOpToken(p.l.peek().kind) {
+		// Operator overload: fun + / fun * / etc.
+		opTok := p.l.next()
+		opSym = opTok.val
+		funcName = opToFuncName(opTok.kind)
+	} else {
+		nameTok, err := p.l.eat(tokIdent)
+		if err != nil {
+			return nil, err
+		}
+		if p.l.is(tokDot) {
+			// Struct method: fun TypeName.methodName(...)
+			p.l.next()
+			methodTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return nil, err
+			}
+			structName := nameTok.val
+			methodName := methodTok.val
+			funcName = structName + "_" + methodName
+			// Pre-register method name (retTy filled in below after parsing)
+			if p.methodTable[structName] == nil {
+				p.methodTable[structName] = make(map[string]methodInfo)
+			}
+			// Placeholder — retTy updated after return type is parsed
+			p.methodTable[structName][methodName] = methodInfo{funcName: funcName, retTy: mir2.TyVoid}
+		} else {
+			funcName = nameTok.val
+		}
 	}
+
 	if _, err := p.l.eat(tokLParen); err != nil {
 		return nil, err
 	}
@@ -550,6 +739,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		return nil, err
 	}
 
+	var err error
 	retTy := mir2.Ty(mir2.TyVoid)
 	if p.l.is(tokArrow) {
 		p.l.next()
@@ -559,8 +749,28 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		}
 	}
 
+	// Update method/op tables now that we know the return type
+	if opSym != "" {
+		p.opTable[opSym] = opOverload{funcName: funcName, retTy: retTy}
+	} else {
+		// Update methodTable if this is a struct method (find by funcName)
+		for structName, methods := range p.methodTable {
+			for methodName, info := range methods {
+				if info.funcName == funcName {
+					p.methodTable[structName][methodName] = methodInfo{funcName: funcName, retTy: retTy}
+				}
+			}
+		}
+	}
+
+	// Reset var scope and populate from params for the function body
+	p.varTypes = make(map[string]mir2.Ty)
+	for _, param := range params {
+		p.varTypes[param.Name] = param.Ty
+	}
+
 	f := &hir.Func{
-		Name:     nameTok.val,
+		Name:     funcName,
 		Params:   params,
 		RetTy:    retTy,
 		IsExtern: isExtern,
@@ -644,6 +854,11 @@ func (p *parser) parseType() (mir2.Ty, error) {
 			// Named struct type
 			if st, ok := p.structs[t.val]; ok {
 				return st, nil
+			}
+			// Interface type: treated as an opaque pointer at the call site.
+			// Monomorphisation happens at the call site; no vtable is emitted.
+			if _, ok := p.interfaces[t.val]; ok {
+				return mir2.TyPtr, nil
 			}
 			return nil, fmt.Errorf("line %d: unknown type %q", t.line, t.val)
 		}
@@ -806,9 +1021,11 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	if at, ok := ty.(*mir2.ArrayTy); ok {
 		d.Ty = at.Elem
 		d.ArrayLen = at.Len
+		p.varTypes[nameTok.val] = at.Elem
 	} else {
 		d.Ty = ty
 		d.Init = init
+		p.varTypes[nameTok.val] = ty
 	}
 	return d, nil
 }
@@ -835,8 +1052,10 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 	if at, ok := ty.(*mir2.ArrayTy); ok {
 		d.Ty = at.Elem
 		d.ArrayLen = at.Len
+		p.varTypes[nameTok.val] = at.Elem
 	} else {
 		d.Ty = ty
+		p.varTypes[nameTok.val] = ty
 	}
 
 	// at(addr)?
@@ -1035,7 +1254,7 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 			if err != nil {
 				return nil, err
 			}
-			base = &hir.FieldExpr{X: base, Field: fieldTok.val, Ty: mir2.TyU8}
+			base = p.makeFieldExpr(base, fieldTok.val)
 		case tokLParen:
 			p.l.next()
 			var args []hir.Expr
@@ -1206,6 +1425,14 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Operator overloading: if lhs is a struct type and this op has an overload,
+		// emit a CallExpr instead of BinExpr.
+		if ov, hasOv := p.opTable[bo.op]; hasOv {
+			if _, isStruct := p.exprTy(lhs).(*mir2.StructTy); isStruct {
+				lhs = &hir.CallExpr{Fn: ov.funcName, Args: []hir.Expr{lhs, rhs}, Ty: ov.retTy}
+				continue
+			}
+		}
 		ty := resultTy(lhs.ExprTy(), rhs.ExprTy(), bo.op)
 		lhs = &hir.BinExpr{Op: bo.op, L: lhs, R: rhs, Ty: ty}
 	}
@@ -1278,6 +1505,8 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 		case tokDot:
 			// base.field    — struct field access
 			// base.method() — UFCS method call: rewritten to method(base, args...)
+			//                 If base's type is a struct with a registered method, use
+			//                 the mangled name (e.g. Vec2_add). Otherwise use fieldName.
 			p.l.next()
 			fieldTok, err := p.l.eat(tokIdent)
 			if err != nil {
@@ -1300,9 +1529,19 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				if _, err := p.l.eat(tokRParen); err != nil {
 					return nil, err
 				}
-				base = &hir.CallExpr{Fn: fieldTok.val, Args: args, Ty: mir2.TyVoid}
+				// Type-aware dispatch: if base is a struct with this method registered,
+				// use the mangled name and known return type.
+				callName := fieldTok.val
+				callRetTy := mir2.Ty(mir2.TyVoid)
+				if st, ok := p.exprTy(base).(*mir2.StructTy); ok {
+					if info, found := p.methodTable[st.Name][fieldTok.val]; found {
+						callName = info.funcName
+						callRetTy = info.retTy
+					}
+				}
+				base = &hir.CallExpr{Fn: callName, Args: args, Ty: callRetTy}
 			} else {
-				base = &hir.FieldExpr{X: base, Field: fieldTok.val, Ty: mir2.TyU8}
+				base = p.makeFieldExpr(base, fieldTok.val)
 			}
 		case tokLParen:
 			// call: base must be VarRefExpr (function name)
@@ -1508,6 +1747,35 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 }
 
 // ── Type helpers ──────────────────────────────────────────────────────────────
+
+// makeFieldExpr builds a FieldExpr for base.fieldName, computing the byte
+// offset from the known struct layout when the base type is a known struct.
+//
+// For struct Vec2 { x: u8, y: u8 }:
+//   - v.x → FieldExpr{Offset: 0, Ty: u8}
+//   - v.y → FieldExpr{Offset: 1, Ty: u8}
+//
+// If the base type is not a known struct (unknown variable, or non-struct type),
+// the offset defaults to 0 and the field type defaults to u8. This is safe:
+// the lowerer only emits an extra OpPtrAdd when offset > 0.
+func (p *parser) makeFieldExpr(base hir.Expr, fieldName string) *hir.FieldExpr {
+	fieldTy := mir2.Ty(mir2.TyU8)
+	fieldOffset := 0
+
+	if st, ok := p.exprTy(base).(*mir2.StructTy); ok {
+		byteOffset := 0
+		for _, f := range st.Fields {
+			if f.Name == fieldName {
+				fieldTy = f.Ty
+				fieldOffset = byteOffset
+				break
+			}
+			byteOffset += f.Ty.Width() / 8
+		}
+	}
+
+	return &hir.FieldExpr{X: base, Field: fieldName, Offset: fieldOffset, Ty: fieldTy}
+}
 
 func resultTy(l, r mir2.Ty, op string) mir2.Ty {
 	switch op {

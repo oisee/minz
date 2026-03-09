@@ -443,5 +443,420 @@ func TestParseRangedType_Helpers(t *testing.T) {
 	}
 }
 
+// ── Struct methods (fun TypeName.method) ──────────────────────────────────────
+
+func TestStructMethods(t *testing.T) {
+	src := `struct Vec2 {
+    x: u8
+    y: u8
+}
+
+fun Vec2.add(self: Vec2, other: Vec2) -> Vec2 {
+    return self
+}
+
+fun Vec2.scale(self: Vec2, factor: u8) -> Vec2 {
+    return self
+}
+
+fun use_vec(a: Vec2, b: Vec2) -> Vec2 {
+    var c: Vec2
+    c = a.add(b)
+    return c
+}
+`
+	m, err := nanz.Parse(src, "struct_method_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	// Expect: Vec2_add, Vec2_scale, use_vec (3 funcs total)
+	funcNames := make(map[string]bool)
+	for _, f := range m.Funcs {
+		funcNames[f.Name] = true
+	}
+	if !funcNames["Vec2_add"] {
+		t.Errorf("expected function named Vec2_add, got funcs: %v", funcNames)
+	}
+	if !funcNames["Vec2_scale"] {
+		t.Errorf("expected function named Vec2_scale, got funcs: %v", funcNames)
+	}
+	if len(m.Funcs) != 3 {
+		t.Errorf("funcs: want 3, got %d: %v", len(m.Funcs), funcNames)
+	}
+
+	// Vec2_add must have 2 params of struct type
+	var addFunc *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "Vec2_add" {
+			addFunc = f
+		}
+	}
+	if addFunc == nil {
+		t.Fatal("Vec2_add not found")
+	}
+	if len(addFunc.Params) != 2 {
+		t.Errorf("Vec2_add params: want 2, got %d", len(addFunc.Params))
+	}
+	if addFunc.Params[0].Name != "self" {
+		t.Errorf("Vec2_add param[0]: want 'self', got %q", addFunc.Params[0].Name)
+	}
+}
+
+func TestStructMethodUFCS(t *testing.T) {
+	// When v: Vec2 and Vec2.add is declared, v.add(other) → CallExpr{Fn:"Vec2_add"}
+	src := `struct Vec2 {
+    x: u8
+    y: u8
+}
+
+fun Vec2.len(self: Vec2) -> u8 {
+    return self.x
+}
+
+fun compute(v: Vec2) -> u8 {
+    return v.len()
+}
+`
+	m, err := nanz.Parse(src, "ufcs_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	// Find "compute" and inspect its body
+	var compute *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "compute" {
+			compute = f
+		}
+	}
+	if compute == nil {
+		t.Fatal("compute not found")
+	}
+
+	// Body[0] should be ReturnStmt with CallExpr{Fn: "Vec2_len"}
+	ret, ok := compute.Body.Body[0].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("body[0]: want ReturnStmt, got %T", compute.Body.Body[0])
+	}
+	call, ok := ret.Val.(*hir.CallExpr)
+	if !ok {
+		t.Fatalf("return val: want CallExpr, got %T", ret.Val)
+	}
+	if call.Fn != "Vec2_len" {
+		t.Errorf("UFCS dispatch: want Fn=Vec2_len, got %q", call.Fn)
+	}
+	if len(call.Args) != 1 {
+		t.Errorf("UFCS args: want 1 (self), got %d", len(call.Args))
+	}
+}
+
+// ── Operator overloading ───────────────────────────────────────────────────────
+
+func TestOperatorOverloading(t *testing.T) {
+	src := `struct Vec2 {
+    x: u8
+    y: u8
+}
+
+fun +(a: Vec2, b: Vec2) -> Vec2 {
+    return a
+}
+
+fun -(a: Vec2, b: Vec2) -> Vec2 {
+    return a
+}
+
+fun compute(a: Vec2, b: Vec2) -> Vec2 {
+    return a + b
+}
+`
+	m, err := nanz.Parse(src, "op_overload_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	// op_add and op_sub functions should exist
+	funcNames := make(map[string]bool)
+	for _, f := range m.Funcs {
+		funcNames[f.Name] = true
+	}
+	if !funcNames["op_add"] {
+		t.Errorf("expected function op_add, got: %v", funcNames)
+	}
+	if !funcNames["op_sub"] {
+		t.Errorf("expected function op_sub, got: %v", funcNames)
+	}
+
+	// compute body: return a + b → CallExpr{Fn:"op_add"}
+	var compute *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "compute" {
+			compute = f
+		}
+	}
+	if compute == nil {
+		t.Fatal("compute not found")
+	}
+	ret, ok := compute.Body.Body[0].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("body[0]: want ReturnStmt, got %T", compute.Body.Body[0])
+	}
+	call, ok := ret.Val.(*hir.CallExpr)
+	if !ok {
+		t.Fatalf("return val: want CallExpr{op_add}, got %T", ret.Val)
+	}
+	if call.Fn != "op_add" {
+		t.Errorf("op dispatch: want op_add, got %q", call.Fn)
+	}
+	if len(call.Args) != 2 {
+		t.Errorf("op_add args: want 2, got %d", len(call.Args))
+	}
+}
+
+func TestOperatorNoOverloadForPrimitives(t *testing.T) {
+	// Even when op_add is declared for Vec2, primitive u8 + u8 should stay BinExpr
+	src := `struct Vec2 { x: u8, y: u8 }
+
+fun +(a: Vec2, b: Vec2) -> Vec2 { return a }
+
+fun prim(x: u8, y: u8) -> u8 {
+    return x + y
+}
+`
+	m, err := nanz.Parse(src, "op_prim_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	var prim *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "prim" {
+			prim = f
+		}
+	}
+	if prim == nil {
+		t.Fatal("prim not found")
+	}
+	ret, ok := prim.Body.Body[0].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("body[0]: want ReturnStmt, got %T", prim.Body.Body[0])
+	}
+	// x + y with u8 operands should remain BinExpr (not CallExpr)
+	if _, isBin := ret.Val.(*hir.BinExpr); !isBin {
+		t.Errorf("primitive + should stay BinExpr, got %T", ret.Val)
+	}
+}
+
+// ── Struct field offset resolution ────────────────────────────────────────────
+
+func TestStructFieldOffsets(t *testing.T) {
+	// struct Color { r: u8, g: u8, b: u8 }
+	// Field offsets: r=0, g=1, b=2
+	src := `struct Color {
+    r: u8
+    g: u8
+    b: u8
+}
+
+fun get_green(c: Color) -> u8 {
+    return c.g
+}
+
+fun get_blue(c: Color) -> u8 {
+    return c.b
+}
+`
+	m, err := nanz.Parse(src, "field_offset_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	// Find get_green and get_blue
+	funcs := make(map[string]*hir.Func)
+	for _, f := range m.Funcs {
+		funcs[f.Name] = f
+	}
+
+	// get_green: return c.g → FieldExpr{Field:"g", Offset:1}
+	fg := funcs["get_green"]
+	if fg == nil {
+		t.Fatal("get_green not found")
+	}
+	ret1 := fg.Body.Body[0].(*hir.ReturnStmt)
+	field1 := ret1.Val.(*hir.FieldExpr)
+	if field1.Field != "g" {
+		t.Errorf("field name: want g, got %q", field1.Field)
+	}
+	if field1.Offset != 1 {
+		t.Errorf("g offset: want 1, got %d", field1.Offset)
+	}
+
+	// get_blue: return c.b → FieldExpr{Field:"b", Offset:2}
+	fb := funcs["get_blue"]
+	if fb == nil {
+		t.Fatal("get_blue not found")
+	}
+	ret2 := fb.Body.Body[0].(*hir.ReturnStmt)
+	field2 := ret2.Val.(*hir.FieldExpr)
+	if field2.Field != "b" {
+		t.Errorf("field name: want b, got %q", field2.Field)
+	}
+	if field2.Offset != 2 {
+		t.Errorf("b offset: want 2, got %d", field2.Offset)
+	}
+}
+
+func TestStructFieldOffsets_U16(t *testing.T) {
+	// Mixed widths: struct Vec3d { x: u16, y: u16, z: u8 }
+	// x=0 (2 bytes), y=2 (2 bytes), z=4 (1 byte)
+	src := `struct Vec3d {
+    x: u16
+    y: u16
+    z: u8
+}
+
+fun get_z(v: Vec3d) -> u8 {
+    return v.z
+}
+`
+	m, err := nanz.Parse(src, "field_offset_u16_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	var getZ *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "get_z" {
+			getZ = f
+		}
+	}
+	if getZ == nil {
+		t.Fatal("get_z not found")
+	}
+	ret := getZ.Body.Body[0].(*hir.ReturnStmt)
+	field := ret.Val.(*hir.FieldExpr)
+	if field.Offset != 4 {
+		t.Errorf("z offset: want 4 (2+2+0), got %d", field.Offset)
+	}
+}
+
+// ── Interface declaration ─────────────────────────────────────────────────────
+
+func TestInterfaceDecl(t *testing.T) {
+	src := `
+struct Dog {
+    name: u16
+}
+
+interface Animal {
+    speak
+    move
+}
+
+fun Dog.speak(self: Dog) -> void {
+    self[0] = 1
+}
+`
+	m, err := nanz.Parse(src, "interface_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(m.Interfaces) != 1 {
+		t.Fatalf("interfaces: want 1, got %d", len(m.Interfaces))
+	}
+	iface := m.Interfaces[0]
+	if iface.Name != "Animal" {
+		t.Errorf("interface name: want Animal, got %s", iface.Name)
+	}
+	if len(iface.Methods) != 2 {
+		t.Fatalf("interface methods: want 2, got %d: %v", len(iface.Methods), iface.Methods)
+	}
+	if iface.Methods[0] != "speak" {
+		t.Errorf("method[0]: want speak, got %s", iface.Methods[0])
+	}
+	if iface.Methods[1] != "move" {
+		t.Errorf("method[1]: want move, got %s", iface.Methods[1])
+	}
+	// Verify struct still parsed
+	if len(m.Structs) != 1 || m.Structs[0].Name != "Dog" {
+		t.Errorf("struct Dog not found")
+	}
+	// Roundtrip
+	printed := nanz.Print(m)
+	if !strings.Contains(printed, "interface Animal") {
+		t.Errorf("printed output missing 'interface Animal':\n%s", printed)
+	}
+	if !strings.Contains(printed, "speak") {
+		t.Errorf("printed output missing method 'speak':\n%s", printed)
+	}
+	m2, err := nanz.Parse(printed, "interface_test2")
+	if err != nil {
+		t.Errorf("roundtrip parse failed: %v\n\nPrinted:\n%s", err, printed)
+	}
+	if len(m2.Interfaces) != 1 || m2.Interfaces[0].Name != "Animal" {
+		t.Errorf("roundtrip: interface Animal not found")
+	}
+}
+
+func TestStructParamUFCS(t *testing.T) {
+	// Verify that a struct-typed parameter resolves UFCS dispatch correctly:
+	// a.speak() where a: Dog → Dog_speak(a, ...)
+	// and that LowerModule doesn't panic (classForParam handles *mir2.StructTy).
+	src := `
+struct Dog {
+    name: u8
+}
+
+fun Dog.speak(self: Dog) -> void {
+    self[0] = 1
+}
+
+fun make_sound(a: Dog) -> void {
+    a.speak()
+}
+`
+	m, err := nanz.Parse(src, "struct_param_ufcs_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	// Find make_sound and verify its body contains a call to Dog_speak.
+	var makeSoundFunc *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "make_sound" {
+			makeSoundFunc = f
+			break
+		}
+	}
+	if makeSoundFunc == nil {
+		t.Fatal("make_sound function not found")
+	}
+	if len(makeSoundFunc.Body.Body) == 0 {
+		t.Fatal("make_sound body is empty")
+	}
+	exprStmt, ok := makeSoundFunc.Body.Body[0].(*hir.ExprStmt)
+	if !ok {
+		t.Fatalf("make_sound body[0]: want ExprStmt, got %T", makeSoundFunc.Body.Body[0])
+	}
+	callExpr, ok := exprStmt.Expr.(*hir.CallExpr)
+	if !ok {
+		t.Fatalf("make_sound body[0] expr: want CallExpr, got %T", exprStmt.Expr)
+	}
+	if callExpr.Fn != "Dog_speak" {
+		t.Errorf("UFCS dispatch: want Dog_speak, got %s", callExpr.Fn)
+	}
+
+	// LowerModule must not panic (classForParam must handle *mir2.StructTy).
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatalf("LowerModule panicked: %v", r)
+			}
+		}()
+		hir.LowerModule(m)
+	}()
+}
+
 // Unused import guard: hir is used elsewhere in the file.
 var _ = (*hir.Module)(nil)

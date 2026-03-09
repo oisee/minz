@@ -124,6 +124,58 @@ func (l *lowerer) bind(name string, r mir2.Reg, ty mir2.Ty) {
 	l.envTy[name] = ty
 }
 
+// findGlobal looks up a global by name in the MIR2 module.
+func (l *lowerer) findGlobal(name string) (mir2.Global, bool) {
+	for _, g := range l.m.Globals {
+		if g.Name == name {
+			return g, true
+		}
+	}
+	return mir2.Global{}, false
+}
+
+// globalAddr emits AddrOf for a global variable name.
+func (l *lowerer) globalAddr(name string) mir2.Reg {
+	return l.bld.AddrOf(name, mir2.ClassPointer)
+}
+
+// lowerExprAddr lowers an expression to its address (lvalue), rather than its value.
+// Used for field-store targets (origin.y = v) and eventually local struct alloca.
+func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
+	switch e := ex.(type) {
+	case *VarRefExpr:
+		if _, ok := l.findGlobal(e.Name); ok {
+			return l.globalAddr(e.Name)
+		}
+		panic(fmt.Sprintf("hir/lower: cannot take address of non-global variable %q", e.Name))
+	case *FieldExpr:
+		baseAddr := l.lowerExprAddr(e.X)
+		if e.Offset > 0 {
+			return l.bld.Field(baseAddr, int64(e.Offset), mir2.ClassPointer)
+		}
+		return baseAddr
+	case *IndexExpr:
+		// base[i] address — same as lowerIndex but without the final Load
+		baseAddr := l.lowerExpr(e.Base)
+		idx := l.lowerExpr(e.Idx)
+		stride := int64(e.ElemStride)
+		if stride == 0 {
+			stride = int64(e.ElemTy.Width() / 8)
+		}
+		if stride > 1 {
+			width := e.ElemTy.Width()
+			sizeTy := mir2.Ty(mir2.TyU16)
+			if width <= 8 {
+				sizeTy = mir2.TyU8
+			}
+			idx = l.bld.Mul(idx, l.bld.Const(stride, sizeTy, mir2.ClassAcc), sizeTy, mir2.ClassAcc)
+		}
+		return l.bld.PtrAdd(baseAddr, idx, mir2.ClassPointer)
+	default:
+		panic(fmt.Sprintf("hir/lower: cannot take address of %T", ex))
+	}
+}
+
 // ── Function lowering ─────────────────────────────────────────────────────────
 
 func lowerFunc(m *mir2.Module, f *Func) {
@@ -182,6 +234,10 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 //	pos 2 → ClassCounter (B) — common for a count/length 3rd arg
 func classForParam(ty mir2.Ty, pos int) mir2.RegClass {
 	if ty == mir2.TyPtr {
+		return mir2.ClassPointer
+	}
+	if _, isStruct := ty.(*mir2.StructTy); isStruct {
+		// Struct params are passed as pointers (address in HL on Z80).
 		return mir2.ClassPointer
 	}
 	if ty == mir2.TyU16 || ty == mir2.TyI16 {
@@ -284,12 +340,26 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		val := l.lowerExpr(st.Val)
 		switch tgt := st.Target.(type) {
 		case *VarRefExpr:
-			// Re-bind the variable to the new vreg (SSA-style rename).
+			// Global variable: store through pointer.
+			if g, found := l.findGlobal(tgt.Name); found {
+				addr := l.globalAddr(tgt.Name)
+				l.bld.Store(addr, val, g.Ty)
+				return false
+			}
+			// Re-bind the local variable to the new vreg (SSA-style rename).
 			// Type is already in envTy; just update the register.
 			l.env[tgt.Name] = val
 		case *DerefExpr:
 			ptr := l.lowerExpr(tgt.Ptr)
 			l.bld.Store(ptr, val, tgt.Ty)
+		case *FieldExpr:
+			// Store to struct field: compute field address then store.
+			addr := l.lowerExprAddr(tgt)
+			l.bld.Store(addr, val, tgt.Ty)
+		case *IndexExpr:
+			// arr[i] = val: compute element address then store.
+			addr := l.lowerExprAddr(tgt)
+			l.bld.Store(addr, val, tgt.ElemTy)
 		default:
 			panic(fmt.Sprintf("hir/lower: unsupported AssignStmt target %T", st.Target))
 		}
@@ -841,6 +911,17 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			// Check if it's a module-level function name used as a value.
 			if l.hirFuncNames[ex.Name] {
 				return mir2.NoReg // function reference — resolved at call site
+			}
+			// Check if it's a global variable.
+			if g, found := l.findGlobal(ex.Name); found {
+				addr := l.globalAddr(ex.Name)
+				if _, isStruct := g.Ty.(*mir2.StructTy); isStruct {
+					// Struct global: return the address (pointer to struct).
+					// FieldExpr uses this address as base for offset computation.
+					return addr
+				}
+				// Scalar global: load and return the value.
+				return l.bld.Load(addr, g.Ty, classForExpr(g.Ty))
 			}
 			panic(fmt.Sprintf("hir/lower: undefined variable %q", ex.Name))
 		}

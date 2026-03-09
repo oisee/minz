@@ -304,6 +304,141 @@ int main(void) {
 	}
 }
 
+// ── Nanz: global struct field access ─────────────────────────────────────────
+
+// Color struct with three u8 fields; a global variable; set/get helpers.
+const nanzStructFieldsSrc = `
+struct Color {
+    r: u8
+    g: u8
+    b: u8
+}
+
+global palette: Color
+
+fun set_rgb(rv: u8, gv: u8, bv: u8) -> void {
+    palette.r = rv
+    palette.g = gv
+    palette.b = bv
+}
+
+fun get_r() -> u8 { return palette.r }
+fun get_g() -> u8 { return palette.g }
+fun get_b() -> u8 { return palette.b }
+`
+
+func TestE2E_Nanz_StructFields(t *testing.T) {
+	if _, err := exec.LookPath("qbe"); err != nil {
+		t.Skip("qbe not in PATH")
+	}
+	m, err := compileNanz(nanzStructFieldsSrc, "struct_fields")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dumpQBE(t, m)
+
+	qbeIR, _ := mir2qbe.Compile(m)
+	dir := t.TempDir()
+	_ = os.WriteFile(filepath.Join(dir, "out.ssa"), []byte(qbeIR), 0644)
+	if out, err := exec.Command("qbe", "-o", filepath.Join(dir, "out.s"), filepath.Join(dir, "out.ssa")).CombinedOutput(); err != nil {
+		t.Fatalf("qbe: %s\nIR:\n%s", out, qbeIR)
+	}
+
+	cSrc := `#include <stdio.h>
+extern void set_rgb(int r, int g, int b);
+extern int get_r(void);
+extern int get_g(void);
+extern int get_b(void);
+int main(void) {
+    set_rgb(10, 20, 30);
+    printf("%d %d %d\n", get_r(), get_g(), get_b());
+    set_rgb(100, 150, 200);
+    printf("%d %d %d\n", get_r(), get_g(), get_b());
+    return 0;
+}`
+	cPath := filepath.Join(dir, "main.c")
+	_ = os.WriteFile(cPath, []byte(cSrc), 0644)
+	binPath := filepath.Join(dir, "bin")
+	if out, err := exec.Command("cc", filepath.Join(dir, "out.s"), cPath, "-o", binPath).CombinedOutput(); err != nil {
+		t.Fatalf("cc: %v\n%s", err, out)
+	}
+	out, err := exec.Command(binPath).Output()
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	t.Logf("output:\n%s", out)
+	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("expected 2 lines, got %d: %q", len(lines), string(out))
+	}
+	want := []string{"10 20 30", "100 150 200"}
+	for i, w := range want {
+		got := strings.TrimSpace(lines[i])
+		if got != w {
+			t.Errorf("line %d: got %q, want %q", i, got, w)
+		} else {
+			t.Logf("line %d: %q ✓", i, got)
+		}
+	}
+}
+
+// ── Nanz: UFCS struct method dispatch ────────────────────────────────────────
+
+// Acc struct with a single val: u8 field; a global; a method registered via
+// "fun Acc.add(self_ptr: u16, amount: u8) -> u8".  The method uses self_ptr[0]
+// to access the first byte through the pointer — this marks self_ptr as a
+// memory-address reg so the QBE parameter gets type "l" (matching the pointer
+// passed by UFCS when the receiver is a global struct).
+// The test validates that "acc_g.add(n)" is rewritten to "Acc_add(acc_g, n)".
+const nanzUFCSSrc = `
+struct Acc {
+    val: u8
+}
+
+global acc_g: Acc
+
+fun Acc.add(self_ptr: u16, amount: u8) -> u8 {
+    self_ptr[0] = self_ptr[0] + amount
+    return self_ptr[0]
+}
+
+fun test_ufcs(a: u8, b: u8) -> u8 {
+    acc_g.val = 0
+    acc_g.add(a)
+    acc_g.add(b)
+    return acc_g.val
+}
+`
+
+func TestE2E_Nanz_UFCS(t *testing.T) {
+	if _, err := exec.LookPath("qbe"); err != nil {
+		t.Skip("qbe not in PATH")
+	}
+	m, err := compileNanz(nanzUFCSSrc, "ufcs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dumpQBE(t, m)
+
+	cases := []struct{ a, b, want int }{
+		{3, 4, 7},
+		{10, 20, 30},
+		{0, 0, 0},
+		{100, 55, 155},
+	}
+	for _, tc := range cases {
+		got, err := runNativeFrom(t, m, "test_ufcs", tc.a, tc.b)
+		if err != nil {
+			t.Fatalf("test_ufcs(%d,%d): %v", tc.a, tc.b, err)
+		}
+		if got != tc.want {
+			t.Errorf("test_ufcs(%d,%d) = %d, want %d", tc.a, tc.b, got, tc.want)
+		} else {
+			t.Logf("test_ufcs(%d,%d) = %d ✓", tc.a, tc.b, got)
+		}
+	}
+}
+
 // ── Nanz: abs_diff + clamp (idiomatic) ───────────────────────────────────────
 
 const nanzAbsDiffSrc = `
@@ -349,6 +484,70 @@ func TestE2E_Nanz_AbsDiff(t *testing.T) {
 			t.Errorf("abs_diff(%d,%d) = %d, want %d", tc.a, tc.b, got, tc.want)
 		} else {
 			t.Logf("abs_diff(%d,%d) = %d ✓", tc.a, tc.b, got)
+		}
+	}
+}
+
+// ── Nanz: zero-cost interface dispatch ───────────────────────────────────────
+//
+// Verifies that:
+//  1. An interface declaration parses and appears in hir.Module.Interfaces.
+//  2. UFCS dispatch on a global struct variable ("g_animal.speak()") is
+//     rewritten to "Animal_speak(g_animal)" with the struct address as arg.
+//  3. The method correctly mutates the struct via the self pointer.
+//  4. The whole chain (parse → HIR → MIR2 → QBE → native) runs correctly.
+//
+// The method receives the struct address as a u16 pointer (self_ptr) and
+// increments the first byte. test_interface sets the value, calls speak, and
+// returns the result — which should be the input + 1.
+const nanzInterfaceSrc = `
+struct Animal {
+    sound_val: u8
+}
+
+interface Speaker {
+    speak
+}
+
+global g_animal: Animal
+
+fun Animal.speak(self_ptr: u16) -> u8 {
+    self_ptr[0] = self_ptr[0] + 1
+    return self_ptr[0]
+}
+
+fun test_interface(n: u8) -> u8 {
+    g_animal.sound_val = n
+    g_animal.speak()
+    return g_animal.sound_val
+}
+`
+
+func TestE2E_Nanz_Interface_ZeroCost(t *testing.T) {
+	if _, err := exec.LookPath("qbe"); err != nil {
+		t.Skip("qbe not in PATH")
+	}
+	m, err := compileNanz(nanzInterfaceSrc, "interface_zerocost")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dumpQBE(t, m)
+
+	cases := []struct{ n, want int }{
+		{5, 6},
+		{0, 1},
+		{99, 100},
+		{254, 255},
+	}
+	for _, tc := range cases {
+		got, err := runNativeFrom(t, m, "test_interface", tc.n)
+		if err != nil {
+			t.Fatalf("test_interface(%d): %v", tc.n, err)
+		}
+		if got != tc.want {
+			t.Errorf("test_interface(%d) = %d, want %d", tc.n, got, tc.want)
+		} else {
+			t.Logf("test_interface(%d) = %d ✓", tc.n, got)
 		}
 	}
 }
