@@ -61,6 +61,7 @@ func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 
 	// Per-function optimisation passes.
 	for _, f := range m.Funcs {
+		mir2.EliminateDeadBlocks(f)
 		mir2.ReorderBlocks(f)
 		mir2.DeadStoreElim(f)
 	}
@@ -104,6 +105,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 
 	// Per-function optimisation passes.
 	for _, f := range m.Funcs {
+		mir2.EliminateDeadBlocks(f)
 		mir2.ReorderBlocks(f)
 		mir2.DeadStoreElim(f)
 	}

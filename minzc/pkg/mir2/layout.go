@@ -2,6 +2,53 @@ package mir2
 
 import "strings"
 
+// EliminateDeadBlocks removes blocks unreachable from the entry block (f.Blocks[0]).
+//
+// A block is unreachable if no control-flow path from the entry leads to it.
+// This happens after constant-folding eliminates branches, or when code is
+// written after an unconditional return.
+//
+// The pass is a simple BFS over the CFG successor relation, then a compaction
+// of f.Blocks to only live blocks. It is idempotent and safe to run before
+// ReorderBlocks (which also ignores unreachable blocks, but keeps them).
+func EliminateDeadBlocks(f *Func) {
+	if len(f.Blocks) <= 1 {
+		return
+	}
+
+	// Build label → index map.
+	labelIdx := make(map[string]int, len(f.Blocks))
+	for i, b := range f.Blocks {
+		labelIdx[b.Label] = i
+	}
+
+	// BFS from the entry block.
+	reachable := make([]bool, len(f.Blocks))
+	reachable[0] = true
+	queue := []int{0}
+	for len(queue) > 0 {
+		cur := queue[0]
+		queue = queue[1:]
+		for _, succ := range termSuccessors(f.Blocks[cur].Term) {
+			si, ok := labelIdx[succ]
+			if !ok || reachable[si] {
+				continue
+			}
+			reachable[si] = true
+			queue = append(queue, si)
+		}
+	}
+
+	// Compact to only reachable blocks (preserves relative order).
+	live := f.Blocks[:0]
+	for i, b := range f.Blocks {
+		if reachable[i] {
+			live = append(live, b)
+		}
+	}
+	f.Blocks = live
+}
+
 // ReorderBlocks reorders f.Blocks to maximise fall-through opportunities.
 //
 // Algorithm: DFS preorder with hot-successor-first ordering.
