@@ -107,7 +107,11 @@ func NewE2ETestHarness(t *testing.T) (*E2ETestHarness, error) {
 	ports := NewTestPorts()
 	cpu := z80.NewZ80(memory, ports)
 	cpuWrapper := &E2ECPUWrapper{z80: cpu}
-	
+
+	// Wire cpu into TestMemory and TestPorts for real T-state counting
+	memory.TestMemory.cpu = cpu
+	ports.cpu = cpu
+
 	// Set up SMC tracking
 	memory.SetCPU(cpuWrapper)
 

@@ -14,12 +14,15 @@ type TestContext struct {
 	t      *testing.T
 }
 
-// TestMemory implements MemoryAccessor with test utilities
+// TestMemory implements MemoryAccessor with test utilities.
+// It tracks real T-states by incrementing cpu.Tstates on every memory access,
+// mirroring the fuseMemory pattern used in FUSE tests.
 type TestMemory struct {
-	data    [65536]byte
-	writes  map[uint16][]byte
-	reads   map[uint16]int
-	romEnd  uint16
+	data   [65536]byte
+	writes map[uint16][]byte
+	reads  map[uint16]int
+	romEnd uint16
+	cpu    *z80.Z80 // for T-state counting; nil = no counting
 }
 
 func NewTestMemory() *TestMemory {
@@ -31,11 +34,17 @@ func NewTestMemory() *TestMemory {
 }
 
 func (m *TestMemory) ReadByte(address uint16) byte {
+	if m.cpu != nil {
+		m.cpu.Tstates += 3
+	}
 	m.reads[address]++
 	return m.data[address]
 }
 
 func (m *TestMemory) WriteByte(address uint16, value byte) {
+	if m.cpu != nil {
+		m.cpu.Tstates += 3
+	}
 	if address < m.romEnd {
 		return // ROM protection
 	}
@@ -44,21 +53,43 @@ func (m *TestMemory) WriteByte(address uint16, value byte) {
 }
 
 // Implement other MemoryAccessor methods...
-func (m *TestMemory) ReadByteInternal(address uint16) byte { return m.ReadByte(address) }
-func (m *TestMemory) WriteByteInternal(address uint16, value byte) { m.WriteByte(address, value) }
-func (m *TestMemory) ContendRead(address uint16, time int) {}
-func (m *TestMemory) ContendReadNoMreq(address uint16, time int) {}
-func (m *TestMemory) ContendReadNoMreq_loop(address uint16, time int, count uint) {}
-func (m *TestMemory) ContendWriteNoMreq(address uint16, time int) {}
-func (m *TestMemory) ContendWriteNoMreq_loop(address uint16, time int, count uint) {}
+func (m *TestMemory) ReadByteInternal(address uint16) byte         { return m.data[address] }
+func (m *TestMemory) WriteByteInternal(address uint16, value byte) { m.data[address] = value }
+func (m *TestMemory) ContendRead(address uint16, time int) {
+	if m.cpu != nil {
+		m.cpu.Tstates += time
+	}
+}
+func (m *TestMemory) ContendReadNoMreq(address uint16, time int) {
+	if m.cpu != nil {
+		m.cpu.Tstates += time
+	}
+}
+func (m *TestMemory) ContendReadNoMreq_loop(address uint16, time int, count uint) {
+	if m.cpu != nil {
+		m.cpu.Tstates += time * int(count)
+	}
+}
+func (m *TestMemory) ContendWriteNoMreq(address uint16, time int) {
+	if m.cpu != nil {
+		m.cpu.Tstates += time
+	}
+}
+func (m *TestMemory) ContendWriteNoMreq_loop(address uint16, time int, count uint) {
+	if m.cpu != nil {
+		m.cpu.Tstates += time * int(count)
+	}
+}
 func (m *TestMemory) Read(address uint16) byte { return m.ReadByte(address) }
 func (m *TestMemory) Write(address uint16, value byte, protectROM bool) { m.WriteByte(address, value) }
 func (m *TestMemory) Data() []byte { return m.data[:] }
 
-// TestPorts implements PortAccessor for testing
+// TestPorts implements PortAccessor for testing.
+// With cpu set, ContendPort methods add real T-states (1T pre + 3T post = 4T per I/O).
 type TestPorts struct {
 	in  map[uint16]byte
 	out map[uint16][]byte
+	cpu *z80.Z80 // for T-state counting; nil = no counting
 }
 
 func NewTestPorts() *TestPorts {
@@ -77,17 +108,29 @@ func (p *TestPorts) WritePort(address uint16, b byte) {
 }
 
 func (p *TestPorts) ReadPortInternal(address uint16, contend bool) byte { return p.ReadPort(address) }
-func (p *TestPorts) WritePortInternal(address uint16, b byte, contend bool) { p.WritePort(address, b) }
-func (p *TestPorts) ContendPortPreio(address uint16) {}
-func (p *TestPorts) ContendPortPostio(address uint16) {}
+func (p *TestPorts) WritePortInternal(address uint16, b byte, contend bool) {
+	p.WritePort(address, b)
+}
+func (p *TestPorts) ContendPortPreio(address uint16) {
+	if p.cpu != nil {
+		p.cpu.Tstates += 1
+	}
+}
+func (p *TestPorts) ContendPortPostio(address uint16) {
+	if p.cpu != nil {
+		p.cpu.Tstates += 3
+	}
+}
 
 // DSL Functions
 
-// NewTest creates a new test context
+// NewTest creates a new test context with real T-state counting.
 func NewTest(t *testing.T) *TestContext {
 	memory := NewTestMemory()
 	ports := NewTestPorts()
 	cpu := z80.NewZ80(memory, ports)
+	memory.cpu = cpu // wire for T-state counting
+	ports.cpu = cpu  // wire for port contention T-states
 	return &TestContext{
 		cpu:    cpu,
 		memory: memory,

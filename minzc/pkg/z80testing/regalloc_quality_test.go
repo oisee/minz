@@ -63,10 +63,11 @@ fun main() -> void {
 	perElement := cycles / 5
 	t.Logf("forEach(call) 5 elements: %d T-states total, ~%d T-states/element", cycles, perElement)
 
-	// Current measurement: 132T total (~26T/element) — excellent!
-	// Pre-optimization baseline was ~1035T (~207T/element).
-	// Regression threshold at 500T catches any significant degradation.
-	maxAcceptable := 500
+	// Baseline (2026-03-09, real T-states): 1324T total (~264T/element).
+	// MIR1 codegen with $F0xx memory round-trips — most time in LD (addr),A / LD A,(addr).
+	// NOTE: old threshold of 500 was based on instruction counts (not T-states).
+	// Regression threshold at 2000T catches significant degradation.
+	maxAcceptable := 2000
 	if cycles > maxAcceptable {
 		asmBytes, _ := os.ReadFile(a80File)
 		t.Logf("Assembly:\n%s", string(asmBytes))
@@ -134,10 +135,11 @@ fun main() -> void {
 	perElement := cycles / 5
 	t.Logf("map+forEach 5 elements: %d T-states total, ~%d T-states/element", cycles, perElement)
 
-	// Current measurement: 184T total (~36T/element) — excellent!
-	// Two-stage chain (map + forEach) with function calls.
-	// Regression threshold at 1000T catches significant degradation.
-	maxAcceptable := 1000
+	// Baseline (2026-03-09, real T-states): 1915T total (~383T/element).
+	// MIR1 codegen with $F0xx memory round-trips.
+	// NOTE: old threshold of 1000 was based on instruction counts (not T-states).
+	// Regression threshold at 3000T catches significant degradation.
+	maxAcceptable := 3000
 	if cycles > maxAcceptable {
 		asmBytes, _ := os.ReadFile(a80File)
 		t.Logf("Assembly:\n%s", string(asmBytes))
@@ -203,10 +205,11 @@ fun main() -> void {
 	perElement := cycles / 5
 	t.Logf("filter+forEach 5 elements: %d T-states total, ~%d T-states/element", cycles, perElement)
 
-	// Current measurement: 132T total (~26T/element) — excellent!
-	// Filter with inline lambda comparison + forEach with call.
-	// Regression threshold at 500T catches significant degradation.
-	maxAcceptable := 500
+	// Baseline (2026-03-09, real T-states): 1469T total (~293T/element).
+	// MIR1 codegen with $F0xx memory round-trips.
+	// NOTE: old threshold of 500 was based on instruction counts (not T-states).
+	// Regression threshold at 2200T catches significant degradation.
+	maxAcceptable := 2200
 	if cycles > maxAcceptable {
 		asmBytes, _ := os.ReadFile(a80File)
 		t.Logf("Assembly:\n%s", string(asmBytes))

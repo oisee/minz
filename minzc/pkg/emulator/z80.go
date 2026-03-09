@@ -1,6 +1,6 @@
 package emulator
 
-import ()
+import "github.com/minz/minzc/pkg/z80timing"
 
 const (
 	MEMORY_SIZE = 65536
@@ -153,248 +153,239 @@ func (z *Z80) step() {
 	switch opcode {
 	// NOP
 	case 0x00:
-		z.cycles += 4
-		
+		z.cycles += z80timing.NOP
+
 	// LD r, r'
 	case 0x78: // LD A, B
 		z.A = z.B
-		z.cycles += 4
+		z.cycles += z80timing.LD_r_r
 	case 0x79: // LD A, C
 		z.A = z.C
-		z.cycles += 4
+		z.cycles += z80timing.LD_r_r
 	case 0x7A: // LD A, D
 		z.A = z.D
-		z.cycles += 4
+		z.cycles += z80timing.LD_r_r
 	case 0x7B: // LD A, E
 		z.A = z.E
-		z.cycles += 4
+		z.cycles += z80timing.LD_r_r
 	case 0x7C: // LD A, H
 		z.A = z.H
-		z.cycles += 4
+		z.cycles += z80timing.LD_r_r
 	case 0x7D: // LD A, L
 		z.A = z.L
-		z.cycles += 4
-		
+		z.cycles += z80timing.LD_r_r
+
 	// LD r, n
 	case 0x3E: // LD A, n
 		z.A = z.fetchByte()
-		z.cycles += 7
+		z.cycles += z80timing.LD_r_n
 	case 0x06: // LD B, n
 		z.B = z.fetchByte()
-		z.cycles += 7
+		z.cycles += z80timing.LD_r_n
 	case 0x0E: // LD C, n
 		z.C = z.fetchByte()
-		z.cycles += 7
+		z.cycles += z80timing.LD_r_n
 	case 0x16: // LD D, n
 		z.D = z.fetchByte()
-		z.cycles += 7
+		z.cycles += z80timing.LD_r_n
 	case 0x1E: // LD E, n
 		z.E = z.fetchByte()
-		z.cycles += 7
+		z.cycles += z80timing.LD_r_n
 	case 0x26: // LD H, n
 		z.H = z.fetchByte()
-		z.cycles += 7
+		z.cycles += z80timing.LD_r_n
 	case 0x2E: // LD L, n
 		z.L = z.fetchByte()
-		z.cycles += 7
-		
-	// LD BC, nn
-	case 0x01:
+		z.cycles += z80timing.LD_r_n
+
+	// LD rr, nn
+	case 0x01: // LD BC, nn
 		c := z.fetchByte()
 		b := z.fetchByte()
 		z.B = b
 		z.C = c
-		z.cycles += 10
-		
-	// LD DE, nn
-	case 0x11:
+		z.cycles += z80timing.LD_rr_nn
+	case 0x11: // LD DE, nn
 		e := z.fetchByte()
 		d := z.fetchByte()
 		z.D = d
 		z.E = e
-		z.cycles += 10
-		
-	// LD HL, nn
-	case 0x21:
+		z.cycles += z80timing.LD_rr_nn
+	case 0x21: // LD HL, nn
 		l := z.fetchByte()
 		h := z.fetchByte()
 		z.H = h
 		z.L = l
-		z.cycles += 10
-		
+		z.cycles += z80timing.LD_rr_nn
+
 	// ADD A, r
 	case 0x80: // ADD A, B
 		z.add(z.B)
-		z.cycles += 4
+		z.cycles += z80timing.ADD_A_r
 	case 0x81: // ADD A, C
 		z.add(z.C)
-		z.cycles += 4
+		z.cycles += z80timing.ADD_A_r
 	case 0x82: // ADD A, D
 		z.add(z.D)
-		z.cycles += 4
+		z.cycles += z80timing.ADD_A_r
 	case 0x83: // ADD A, E
 		z.add(z.E)
-		z.cycles += 4
+		z.cycles += z80timing.ADD_A_r
 	case 0x84: // ADD A, H
 		z.add(z.H)
-		z.cycles += 4
+		z.cycles += z80timing.ADD_A_r
 	case 0x85: // ADD A, L
 		z.add(z.L)
-		z.cycles += 4
-		
+		z.cycles += z80timing.ADD_A_r
+
 	// ADD A, n
 	case 0xC6:
 		z.add(z.fetchByte())
-		z.cycles += 7
-		
+		z.cycles += z80timing.ADD_A_n
+
 	// SUB r
 	case 0x90: // SUB B
 		z.sub(z.B)
-		z.cycles += 4
+		z.cycles += z80timing.SUB_r
 	case 0x91: // SUB C
 		z.sub(z.C)
-		z.cycles += 4
-		
+		z.cycles += z80timing.SUB_r
+
 	// INC r
 	case 0x3C: // INC A
 		z.A = z.inc(z.A)
-		z.cycles += 4
+		z.cycles += z80timing.INC_r
 	case 0x04: // INC B
 		z.B = z.inc(z.B)
-		z.cycles += 4
+		z.cycles += z80timing.INC_r
 	case 0x0C: // INC C
 		z.C = z.inc(z.C)
-		z.cycles += 4
-		
+		z.cycles += z80timing.INC_r
+
 	// DEC r
 	case 0x3D: // DEC A
 		z.A = z.dec(z.A)
-		z.cycles += 4
+		z.cycles += z80timing.DEC_r
 	case 0x05: // DEC B
 		z.B = z.dec(z.B)
-		z.cycles += 4
-		
+		z.cycles += z80timing.DEC_r
+
 	// CALL nn
 	case 0xCD:
 		addr := z.fetchWord()
 		z.push(z.PC)
 		z.PC = addr
-		z.cycles += 17
-		
+		z.cycles += z80timing.CALL_nn
+
 	// RST instructions (single-byte CALL to fixed addresses)
 	case 0xC7: // RST 00h
 		z.PC++
 		z.push(z.PC)
 		z.PC = 0x0000
-		z.cycles += 11
+		z.cycles += z80timing.RST_n
 	case 0xCF: // RST 08h
 		z.PC++
 		z.push(z.PC)
 		z.PC = 0x0008
-		z.cycles += 11
+		z.cycles += z80timing.RST_n
 	case 0xD7: // RST 10h
 		z.PC++
 		z.push(z.PC)
 		z.PC = 0x0010
-		z.cycles += 11
+		z.cycles += z80timing.RST_n
 	case 0xDF: // RST 18h
 		z.PC++
 		z.push(z.PC)
 		z.PC = 0x0018
-		z.cycles += 11
+		z.cycles += z80timing.RST_n
 	case 0xE7: // RST 20h
 		z.PC++
 		z.push(z.PC)
 		z.PC = 0x0020
-		z.cycles += 11
+		z.cycles += z80timing.RST_n
 	case 0xEF: // RST 28h
 		z.PC++
 		z.push(z.PC)
 		z.PC = 0x0028
-		z.cycles += 11
+		z.cycles += z80timing.RST_n
 	case 0xF7: // RST 30h
 		z.PC++
 		z.push(z.PC)
 		z.PC = 0x0030
-		z.cycles += 11
-	case 0xFF: // RST 38h - MinZ exit convention
+		z.cycles += z80timing.RST_n
+	case 0xFF: // RST 38h — MinZ exit convention
 		z.PC++
 		if z.exitOnRST38 {
-			// Cross-platform MinZ exit convention
-			// HL register contains the exit code
 			z.exitCode = uint16(z.H)<<8 | uint16(z.L)
 			z.halted = true
 		} else {
-			// Normal RST behavior if exit convention disabled
 			z.push(z.PC)
 			z.PC = 0x0038
 		}
-		z.cycles += 11
-		
+		z.cycles += z80timing.RST_n
+
 	// RET
 	case 0xC9:
 		returnAddr := z.pop()
 		z.PC = returnAddr
-		z.cycles += 10
-		
-		// Target-specific exit convention: RET to 0x0000 means program exit
-		// BC register contains the exit code (like ZX Spectrum BASIC's USR function)
+		z.cycles += z80timing.RET
+		// MinZ exit: RET to 0x0000 = program exit; BC = exit code
 		if z.exitOnRET0 && returnAddr == 0x0000 {
-			z.exitCode = uint16(z.B)<<8 | uint16(z.C) // BC = exit code
-			z.halted = true // Signal clean program termination
+			z.exitCode = uint16(z.B)<<8 | uint16(z.C)
+			z.halted = true
 		}
-		
+
 	// PUSH rr
 	case 0xF5: // PUSH AF
 		z.push(uint16(z.A)<<8 | uint16(z.F))
-		z.cycles += 11
+		z.cycles += z80timing.PUSH_rr
 	case 0xC5: // PUSH BC
 		z.push(uint16(z.B)<<8 | uint16(z.C))
-		z.cycles += 11
-		
+		z.cycles += z80timing.PUSH_rr
+
 	// POP rr
 	case 0xF1: // POP AF
 		af := z.pop()
 		z.A = uint8(af >> 8)
 		z.F = uint8(af & 0xFF)
-		z.cycles += 10
-		
+		z.cycles += z80timing.POP_rr
+
 	// JP nn
 	case 0xC3:
 		z.PC = z.fetchWord()
-		z.cycles += 10
-		
+		z.cycles += z80timing.JP_nn
+
 	// JR n
 	case 0x18:
 		offset := int8(z.fetchByte())
 		z.PC = uint16(int(z.PC) + int(offset))
-		z.cycles += 12
-		
+		z.cycles += z80timing.JR_e
+
 	// CP n
 	case 0xFE:
 		z.compare(z.fetchByte())
-		z.cycles += 7
-		
-	// OUT (n), A
+		z.cycles += z80timing.CP_n
+
+	// OUT (n), A — note: 11T textbook; remogatto measures 7T for non-ZX ports
 	case 0xD3:
 		port := z.fetchByte()
 		z.ioWrite(port, z.A)
 		z.cycles += 11
-		
+
 	// IN A, (n)
 	case 0xDB:
 		port := z.fetchByte()
 		z.A = z.ioRead(port)
 		z.cycles += 11
-		
+
 	// HALT
 	case 0x76:
 		z.halted = true
-		z.cycles += 4
-		
+		z.cycles += z80timing.HALT
+
 	default:
-		// Unknown opcode - treat as NOP
-		z.cycles += 4
+		// Unknown opcode — treat as NOP for now
+		z.cycles += z80timing.NOP
 	}
 }
 

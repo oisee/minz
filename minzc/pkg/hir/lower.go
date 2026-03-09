@@ -48,8 +48,17 @@ func LowerModule(hm *Module) *mir2.Module {
 	for _, s := range hm.Strings {
 		m.Strings.Intern(s)
 	}
+
+	// Collect all function names and HIR func map for callback inlining.
+	funcNames := make(map[string]bool, len(hm.Funcs))
+	hirFuncs := make(map[string]*Func, len(hm.Funcs))
 	for _, f := range hm.Funcs {
-		lowerFunc(m, f)
+		funcNames[f.Name] = true
+		hirFuncs[f.Name] = f
+	}
+
+	for _, f := range hm.Funcs {
+		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs)
 	}
 	return m
 }
@@ -73,6 +82,19 @@ type lowerer struct {
 	// envTy maps variable names to their type (stable: set once, never changed).
 	env   map[string]mir2.Reg
 	envTy map[string]mir2.Ty
+
+	// hirFuncNames is the set of all function names in the HIR module.
+	// Used to distinguish function references from undefined variables.
+	hirFuncNames map[string]bool
+
+	// hirFuncs maps function names to their HIR Func for callback inlining
+	// in iterator chain fusion (map/filter/forEach).
+	hirFuncs map[string]*Func
+
+	// fnAliases maps local variable names to function names.
+	// e.g. "let f = |x| x+1" → fnAliases["f"] = "lambda_0"
+	// Calls through "f" are resolved to "lambda_0" at call sites.
+	fnAliases map[string]string
 
 	// loopStack is the stack of enclosing loops (top = innermost).
 	// Needed by BreakStmt and ContinueStmt.
@@ -105,6 +127,10 @@ func (l *lowerer) bind(name string, r mir2.Reg, ty mir2.Ty) {
 // ── Function lowering ─────────────────────────────────────────────────────────
 
 func lowerFunc(m *mir2.Module, f *Func) {
+	lowerFuncWithFuncNames(m, f, nil, nil)
+}
+
+func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, hirFuncs map[string]*Func) {
 	mf := m.AddFunc(f.Name)
 	if f.IsExtern {
 		mf.Attrs.IsExtern = true
@@ -119,12 +145,15 @@ func lowerFunc(m *mir2.Module, f *Func) {
 
 	bld := mir2.NewBuilder(mf)
 	l := &lowerer{
-		hf:    f,
-		m:     m,
-		mf:    mf,
-		bld:   bld,
-		env:   make(map[string]mir2.Reg),
-		envTy: make(map[string]mir2.Ty),
+		hf:           f,
+		m:            m,
+		mf:           mf,
+		bld:          bld,
+		env:          make(map[string]mir2.Reg),
+		envTy:        make(map[string]mir2.Ty),
+		hirFuncNames: funcNames,
+		hirFuncs:     hirFuncs,
+		fnAliases:    make(map[string]string),
 	}
 
 	bld.SwitchToNewBlock("entry")
@@ -233,6 +262,18 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		var r mir2.Reg
 		if st.Init != nil {
 			r = l.lowerExpr(st.Init)
+			if r == mir2.NoReg {
+				// Init is a function reference (lambda or module function).
+				// Record as alias so calls through this variable are resolved.
+				if vr, ok := st.Init.(*VarRefExpr); ok {
+					funcName := vr.Name
+					if alias, isAlias := l.fnAliases[vr.Name]; isAlias {
+						funcName = alias
+					}
+					l.fnAliases[st.Name] = funcName
+				}
+				return false
+			}
 		} else {
 			r = l.bld.Const(0, st.Ty, classForExpr(st.Ty))
 		}
@@ -264,6 +305,9 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return true
 
 	case *ExprStmt:
+		if l.tryLowerIterChain(st.Expr) {
+			return false
+		}
 		l.lowerExpr(st.Expr)
 		return false
 
@@ -587,6 +631,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 
 	headLabel := l.fresh("fe_head")
 	bodyLabel := l.fresh("fe_body")
+	contLabel := l.fresh("fe_cont") // continue trampoline: advance ptr/cnt → head
 	exitLabel := l.fresh("fe_exit")
 
 	// Jump to loop head: (ptr, cnt, mutated...)
@@ -619,11 +664,27 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	xReg := l.bld.Load(headPtr, st.ElemTy, classForExpr(st.ElemTy))
 	l.bind(st.Var, xReg, st.ElemTy)
 
-	l.pushLoop(loopCtx{headLabel: headLabel, exitLabel: exitLabel, mutated: mutated})
+	// ContinueStmt jumps to fe_cont (not fe_head) so ptr/cnt are advanced first.
+	l.pushLoop(loopCtx{headLabel: contLabel, exitLabel: exitLabel, mutated: mutated})
 	l.lowerBlock(st.Body)
 	l.popLoop()
 
-	// Advance: ptr_next = PtrBump(ptr, stride); cnt_next = Sub(cnt, 1)
+	// Fall-through from body → fe_cont with current mutated values.
+	l.bld.Jmp(contLabel, l.collectArgs(mutated)...)
+
+	// ── fe_cont(mutated...) — advance ptr/cnt, back-edge to fe_head ──
+	// This is the target for ContinueStmt inside the body, as well as the
+	// normal fall-through path. It advances ptr/cnt (using headPtr/headCnt
+	// which dominate this block) and loops back.
+	cont := l.bld.SwitchToNewBlock(contLabel)
+	contEnv := cloneMap(headEnv)
+	for _, name := range mutated {
+		ty := l.envTy[name]
+		r := l.bld.BlockParam(cont, ty, classForExpr(ty))
+		contEnv[name] = r
+	}
+	l.env = contEnv
+
 	ptrNext := l.bld.PtrBump(headPtr, stride, mir2.ClassPointer)
 	one := l.bld.Const(1, mir2.TyU8, mir2.ClassCounter)
 	cntNext := l.bld.Sub(headCnt, one, mir2.TyU8, mir2.ClassCounter)
@@ -773,6 +834,14 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	case *VarRefExpr:
 		r, ok := l.env[ex.Name]
 		if !ok {
+			// Check if it's a function alias (let f = |x| ...).
+			if _, isAlias := l.fnAliases[ex.Name]; isAlias {
+				return mir2.NoReg // function reference — resolved at call site
+			}
+			// Check if it's a module-level function name used as a value.
+			if l.hirFuncNames[ex.Name] {
+				return mir2.NoReg // function reference — resolved at call site
+			}
 			panic(fmt.Sprintf("hir/lower: undefined variable %q", ex.Name))
 		}
 		return r
@@ -784,6 +853,13 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		return l.lowerUnaryExpr(ex)
 
 	case *CallExpr:
+		// Resolve function name: may be a direct name, a local alias (let f = |x| ...), or
+		// a module-level function reference.
+		fnName := ex.Fn
+		if alias, ok := l.fnAliases[fnName]; ok {
+			fnName = alias
+		}
+
 		args := make([]mir2.Reg, len(ex.Args))
 		for i, a := range ex.Args {
 			r := l.lowerExpr(a)
@@ -798,11 +874,11 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			args[i] = r
 		}
 		if ex.Ty == mir2.TyVoid {
-			l.bld.CallVoid(ex.Fn, args, mir2.CallAttrs{})
+			l.bld.CallVoid(fnName, args, mir2.CallAttrs{})
 			return mir2.NoReg
 		}
 		cls := classForRet(ex.Ty)
-		return l.bld.Call(ex.Fn, args, ex.Ty, cls, mir2.CallAttrs{})
+		return l.bld.Call(fnName, args, ex.Ty, cls, mir2.CallAttrs{})
 
 	case *AddrOfExpr:
 		return l.bld.AddrOf(ex.Sym, mir2.ClassPointer)
@@ -1191,4 +1267,331 @@ func sortStrings(ss []string) {
 			ss[j], ss[j-1] = ss[j-1], ss[j]
 		}
 	}
+}
+
+// ── Iterator chain fusion ─────────────────────────────────────────────────────
+//
+// Recognizes UFCS-rewritten iterator chains of the form:
+//
+//	ptr.map(f).filter(g).forEach(h, n)
+//
+// which the parser rewrites to:
+//
+//	forEach(filter(map(ptr, f), g), h, n)
+//
+// and fuses them into a single ForEachStmt with inlined bodies — no CALL overhead
+// for the lambda/function callbacks.
+
+type iterStage struct {
+	kind string // "map" or "filter"
+	fn   string // resolved function name
+}
+
+type iterChain struct {
+	ptr    Expr        // base pointer expression
+	len    Expr        // element count
+	stages []iterStage // transformation stages (innermost-first)
+	cbName string      // forEach callback function name
+	elemTy mir2.Ty     // element type (from callback's first param)
+}
+
+// tryLowerIterChain detects iterator chain patterns and lowers them to a fused
+// ForEachStmt (avoiding CALL overhead for lambda callbacks).
+// Returns true if the pattern was recognized and lowered.
+func (l *lowerer) tryLowerIterChain(expr Expr) bool {
+	chain, ok := l.recognizeIterChain(expr)
+	if !ok {
+		return false
+	}
+	l.lowerFusedForEach(chain)
+	return true
+}
+
+// recognizeIterChain matches: forEach(src, cb, len) where src may be nested map/filter.
+func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
+	call, ok := expr.(*CallExpr)
+	if !ok || call.Fn != "forEach" || len(call.Args) != 3 {
+		return iterChain{}, false
+	}
+
+	cbName := l.resolveFunc(call.Args[1])
+	if cbName == "" {
+		return iterChain{}, false
+	}
+
+	chain := iterChain{
+		len:    call.Args[2],
+		cbName: cbName,
+		elemTy: mir2.TyU8, // default; refined from callback param below
+	}
+	if cbFn, ok2 := l.hirFuncs[cbName]; ok2 && len(cbFn.Params) > 0 {
+		chain.elemTy = cbFn.Params[0].Ty
+	}
+
+	// Unwrap nested map/filter calls (collected outermost-first, reversed below).
+	src := call.Args[0]
+	for {
+		inner, ok2 := src.(*CallExpr)
+		if !ok2 {
+			break
+		}
+		if (inner.Fn == "map" || inner.Fn == "filter") && len(inner.Args) == 2 {
+			fn := l.resolveFunc(inner.Args[1])
+			if fn == "" {
+				break
+			}
+			chain.stages = append(chain.stages, iterStage{kind: inner.Fn, fn: fn})
+			src = inner.Args[0]
+		} else {
+			break
+		}
+	}
+	// Reverse: stages were collected outermost→innermost; we want innermost-first.
+	for i, j := 0, len(chain.stages)-1; i < j; i, j = i+1, j-1 {
+		chain.stages[i], chain.stages[j] = chain.stages[j], chain.stages[i]
+	}
+	chain.ptr = src
+	return chain, true
+}
+
+// resolveFunc resolves a callback VarRefExpr to a function name.
+func (l *lowerer) resolveFunc(arg Expr) string {
+	vr, ok := arg.(*VarRefExpr)
+	if !ok {
+		return ""
+	}
+	if alias, ok2 := l.fnAliases[vr.Name]; ok2 {
+		return alias
+	}
+	if l.hirFuncNames[vr.Name] {
+		return vr.Name
+	}
+	return ""
+}
+
+// lowerFusedForEach builds the fused ForEachStmt body and lowers it.
+func (l *lowerer) lowerFusedForEach(chain iterChain) {
+	const elemVar = "__iter_elem__"
+	elemTy := chain.elemTy
+	var bodyStmts []Stmt
+
+	// Apply each stage (map / filter).
+	for _, stage := range chain.stages {
+		fn := l.hirFuncs[stage.fn]
+		paramName := elemVar // fallback if func not found
+		if fn != nil && len(fn.Params) > 0 {
+			paramName = fn.Params[0].Name
+		}
+
+		switch stage.kind {
+		case "map":
+			var rhs Expr
+			if fn != nil && fn.Body != nil {
+				if ret := extractReturnExpr(fn.Body); ret != nil {
+					rhs = renameExpr(ret, paramName, elemVar)
+				}
+			}
+			if rhs == nil {
+				// Complex or unknown body — emit a call.
+				rhs = &CallExpr{
+					Fn:   stage.fn,
+					Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
+					Ty:   elemTy,
+				}
+			}
+			bodyStmts = append(bodyStmts, &AssignStmt{
+				Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
+				Val:    rhs,
+			})
+
+		case "filter":
+			var cond Expr
+			if fn != nil && fn.Body != nil {
+				if ret := extractReturnExpr(fn.Body); ret != nil {
+					cond = renameExpr(ret, paramName, elemVar)
+				}
+			}
+			if cond == nil {
+				cond = &CallExpr{
+					Fn:   stage.fn,
+					Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
+					Ty:   mir2.TyBool,
+				}
+			}
+			// if !cond { continue }
+			// Prefer inverting comparison operators directly (avoids double-flag issue).
+			bodyStmts = append(bodyStmts, &IfStmt{
+				Cond: invertCond(cond),
+				Then: &Block{Body: []Stmt{&ContinueStmt{}}},
+			})
+		}
+	}
+
+	// Inline the forEach callback.
+	cbFn := l.hirFuncs[chain.cbName]
+	if cbFn == nil || cbFn.Body == nil {
+		// Unknown function — emit a call.
+		bodyStmts = append(bodyStmts, &ExprStmt{
+			Expr: &CallExpr{
+				Fn:   chain.cbName,
+				Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
+				Ty:   mir2.TyVoid,
+			},
+		})
+	} else {
+		paramName := elemVar
+		if len(cbFn.Params) > 0 {
+			paramName = cbFn.Params[0].Name
+		}
+		for _, s := range cbFn.Body.Body {
+			renamed := renameStmt(s, paramName, elemVar)
+			// ReturnStmt inside an inlined forEach callback = end of iteration body
+			// (not return from the outer function). Skip it.
+			if _, isRet := renamed.(*ReturnStmt); isRet {
+				continue
+			}
+			bodyStmts = append(bodyStmts, renamed)
+		}
+	}
+
+	forEach := &ForEachStmt{
+		Var:    elemVar,
+		ElemTy: elemTy,
+		Ptr:    chain.ptr,
+		Start:  &IntLitExpr{Val: 0, Ty: mir2.TyU8},
+		Len:    chain.len,
+		Body:   &Block{Body: bodyStmts},
+	}
+	l.lowerForEach(forEach)
+}
+
+// extractReturnExpr extracts the return value from the last statement of a block.
+// Returns nil if the block is complex (not a simple single return expression).
+func extractReturnExpr(body *Block) Expr {
+	if body == nil || len(body.Body) == 0 {
+		return nil
+	}
+	if rs, ok := body.Body[len(body.Body)-1].(*ReturnStmt); ok && rs.Val != nil {
+		return rs.Val
+	}
+	return nil
+}
+
+// renameExpr deep-copies an expression, renaming VarRefExpr{Name:from} → {Name:to}.
+func renameExpr(e Expr, from, to string) Expr {
+	if e == nil {
+		return nil
+	}
+	switch ex := e.(type) {
+	case *IntLitExpr:
+		return &IntLitExpr{Val: ex.Val, Ty: ex.Ty}
+	case *BoolLitExpr:
+		return &BoolLitExpr{Val: ex.Val}
+	case *VarRefExpr:
+		if ex.Name == from {
+			return &VarRefExpr{Name: to, Ty: ex.Ty}
+		}
+		return &VarRefExpr{Name: ex.Name, Ty: ex.Ty}
+	case *BinExpr:
+		return &BinExpr{Op: ex.Op, L: renameExpr(ex.L, from, to), R: renameExpr(ex.R, from, to), Ty: ex.Ty}
+	case *UnaryExpr:
+		return &UnaryExpr{Op: ex.Op, X: renameExpr(ex.X, from, to), Ty: ex.Ty}
+	case *CastExpr:
+		return &CastExpr{X: renameExpr(ex.X, from, to), Ty: ex.Ty}
+	case *CallExpr:
+		args := make([]Expr, len(ex.Args))
+		for i, a := range ex.Args {
+			args[i] = renameExpr(a, from, to)
+		}
+		return &CallExpr{Fn: ex.Fn, Args: args, Ty: ex.Ty}
+	case *LoadExpr:
+		return &LoadExpr{Ptr: renameExpr(ex.Ptr, from, to), Ty: ex.Ty}
+	case *IndexExpr:
+		return &IndexExpr{
+			Base: renameExpr(ex.Base, from, to), Idx: renameExpr(ex.Idx, from, to),
+			ElemTy: ex.ElemTy, ElemStride: ex.ElemStride,
+		}
+	case *FieldExpr:
+		return &FieldExpr{X: renameExpr(ex.X, from, to), Field: ex.Field, Offset: ex.Offset, Ty: ex.Ty}
+	case *AddrOfExpr:
+		return &AddrOfExpr{Sym: ex.Sym}
+	case *ConstPtrExpr:
+		return &ConstPtrExpr{ElemTy: ex.ElemTy, Addr: ex.Addr}
+	default:
+		return e
+	}
+}
+
+// renameStmt deep-copies a statement, renaming variables as in renameExpr.
+func renameStmt(s Stmt, from, to string) Stmt {
+	if s == nil {
+		return nil
+	}
+	switch st := s.(type) {
+	case *ExprStmt:
+		return &ExprStmt{Expr: renameExpr(st.Expr, from, to)}
+	case *ReturnStmt:
+		return &ReturnStmt{Val: renameExpr(st.Val, from, to)}
+	case *AssignStmt:
+		return &AssignStmt{Target: renameExpr(st.Target, from, to), Val: renameExpr(st.Val, from, to)}
+	case *VarDeclStmt:
+		return &VarDeclStmt{Name: st.Name, Ty: st.Ty, Init: renameExpr(st.Init, from, to)}
+	case *IfStmt:
+		var els *Block
+		if st.Else != nil {
+			els = renameBlock(st.Else, from, to)
+		}
+		return &IfStmt{Cond: renameExpr(st.Cond, from, to), Then: renameBlock(st.Then, from, to), Else: els}
+	case *Block:
+		return renameBlock(st, from, to)
+	case *BreakStmt:
+		return &BreakStmt{}
+	case *ContinueStmt:
+		return &ContinueStmt{}
+	case *StoreStmt:
+		return &StoreStmt{Ptr: renameExpr(st.Ptr, from, to), Val: renameExpr(st.Val, from, to)}
+	case *WhileStmt:
+		return &WhileStmt{Cond: renameExpr(st.Cond, from, to), Body: renameBlock(st.Body, from, to)}
+	default:
+		return s
+	}
+}
+
+// renameBlock deep-copies a block, renaming variables.
+func renameBlock(b *Block, from, to string) *Block {
+	if b == nil {
+		return nil
+	}
+	stmts := make([]Stmt, len(b.Body))
+	for i, s := range b.Body {
+		stmts[i] = renameStmt(s, from, to)
+	}
+	return &Block{Body: stmts}
+}
+
+// invertCond returns the logical negation of a condition expression.
+// For comparison BinExprs it flips the operator (e.g. > → <=), which lets
+// lowerCond produce a direct Cmp without an extra flag-compare for "!".
+func invertCond(e Expr) Expr {
+	if bin, ok := e.(*BinExpr); ok {
+		var inv string
+		switch bin.Op {
+		case "==":
+			inv = "!="
+		case "!=":
+			inv = "=="
+		case "<":
+			inv = ">="
+		case "<=":
+			inv = ">"
+		case ">":
+			inv = "<="
+		case ">=":
+			inv = "<"
+		}
+		if inv != "" {
+			return &BinExpr{Op: inv, L: bin.L, R: bin.R, Ty: bin.Ty}
+		}
+	}
+	return &UnaryExpr{Op: "!", X: e, Ty: mir2.TyBool}
 }
