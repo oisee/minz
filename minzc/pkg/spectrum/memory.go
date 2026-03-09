@@ -162,7 +162,11 @@ func (m *Memory) ReadByte(addr uint16) byte {
 		m.addTstates(3) // memory access = 3 T-states
 	}
 	if m.profiler != nil {
-		m.profiler.ReadCount[addr]++
+		if addr >= 0xC000 {
+			m.profiler.OnMemReadPaged(addr, m.ramPageHi)
+		} else {
+			m.profiler.ReadCount[addr]++
+		}
 	}
 	return m.readByte(addr)
 }
@@ -178,7 +182,11 @@ func (m *Memory) WriteByte(addr uint16, val byte) {
 		m.addTstates(3)
 	}
 	if m.profiler != nil {
-		m.profiler.WriteCount[addr]++
+		if addr >= 0xC000 {
+			m.profiler.OnMemWritePaged(addr, m.ramPageHi)
+		} else {
+			m.profiler.WriteCount[addr]++
+		}
 	}
 	m.writeByte(addr, val)
 }
@@ -346,6 +354,16 @@ func (m *Memory) ResetPaging() {
 // Is48K returns true if this is a 48K memory layout (no banking).
 func (m *Memory) Is48K() bool {
 	return m.is48K
+}
+
+// RAMPages returns a pointer to all 8 RAM pages (for profiler snapshot).
+func (m *Memory) RAMPages() *[8][16384]byte {
+	return &m.RAM
+}
+
+// ROMPages returns a pointer to all 4 ROM pages (for profiler snapshot).
+func (m *Memory) ROMPages() *[4][16384]byte {
+	return &m.ROM
 }
 
 // PagingState reconstructs the port $7FFD value from current state.

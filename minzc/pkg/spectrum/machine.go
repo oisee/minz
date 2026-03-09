@@ -172,7 +172,11 @@ func (m *Machine) RunFrame() {
 			}
 		}
 		if prof != nil {
-			prof.BeforeOpcode(m.CPU.PC(), m.AbsoluteTStates())
+			pc := m.CPU.PC()
+			prof.BeforeOpcode(pc, m.AbsoluteTStates())
+			if pc >= 0xC000 {
+				prof.OnExecPaged(pc, m.Memory.PageHi())
+			}
 		}
 		m.CPU.DoOpcode()
 		if prof != nil {
@@ -237,7 +241,11 @@ func (m *Machine) RunFrameFast() {
 			}
 		}
 		if prof != nil {
-			prof.BeforeOpcode(m.CPU.PC(), m.AbsoluteTStates())
+			pc := m.CPU.PC()
+			prof.BeforeOpcode(pc, m.AbsoluteTStates())
+			if pc >= 0xC000 {
+				prof.OnExecPaged(pc, m.Memory.PageHi())
+			}
 		}
 		m.CPU.DoOpcode()
 		if prof != nil {

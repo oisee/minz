@@ -20,9 +20,17 @@ import (
 //	p.Close()
 type Profiler struct {
 	// Memory access heatmaps — one counter per 16-bit address.
+	// These count accesses in the Z80's 64K address space (flat view).
 	ExecCount  [65536]uint32 // Instruction execution at each PC
 	ReadCount  [65536]uint32 // Memory reads (including opcode fetches)
 	WriteCount [65536]uint32 // Memory writes
+
+	// Page-aware heatmaps for the $C000-$FFFF banked region (128K only).
+	// Index: [page][offset] where offset = addr - 0xC000.
+	// These separate accesses that hit different physical pages at the same address.
+	PagedExec  [8][16384]uint32
+	PagedRead  [8][16384]uint32
+	PagedWrite [8][16384]uint32
 
 	// Stack access heatmaps — tracks PUSH/POP by SP-delta detection.
 	StackPush [65536]uint32 // SP decremented → write to this address
@@ -47,8 +55,11 @@ type Profiler struct {
 	prevSP    uint16
 	spTracked bool
 
-	// Memory snapshot — captured at export time via SetMemorySnapshot().
+	// Memory snapshot — captured at export time.
+	// Flat 64K view (legacy), plus full banked RAM for 128K.
 	memSnapshot []byte
+	ramPages    *[8][16384]byte // all 8 RAM pages (nil = not captured)
+	romPages    *[4][16384]byte // ROM pages (nil = not captured)
 
 	// Frame tracking.
 	frameCount uint64
@@ -183,20 +194,55 @@ func (p *Profiler) TrackSP(sp uint16) {
 	p.prevSP = sp
 }
 
-// SetMemorySnapshot captures a copy of memory for inclusion in profile export.
+// SetMemorySnapshot captures a flat 64K view for inclusion in profile export.
 func (p *Profiler) SetMemorySnapshot(mem []byte) {
 	p.memSnapshot = make([]byte, len(mem))
 	copy(p.memSnapshot, mem)
 }
 
-// OnMemRead increments the read heatmap.
+// SetFullMemorySnapshot captures all RAM and ROM pages for 128K-aware export.
+func (p *Profiler) SetFullMemorySnapshot(ram *[8][16384]byte, rom *[4][16384]byte) {
+	r := new([8][16384]byte)
+	*r = *ram
+	p.ramPages = r
+	if rom != nil {
+		ro := new([4][16384]byte)
+		*ro = *rom
+		p.romPages = ro
+	}
+}
+
+// OnMemRead increments the read heatmap (flat view).
 func (p *Profiler) OnMemRead(addr uint16) {
 	p.ReadCount[addr]++
 }
 
-// OnMemWrite increments the write heatmap.
+// OnMemReadPaged increments both flat and page-aware read heatmaps.
+func (p *Profiler) OnMemReadPaged(addr uint16, page int) {
+	p.ReadCount[addr]++
+	if addr >= 0xC000 {
+		p.PagedRead[page][addr-0xC000]++
+	}
+}
+
+// OnMemWrite increments the write heatmap (flat view).
 func (p *Profiler) OnMemWrite(addr uint16) {
 	p.WriteCount[addr]++
+}
+
+// OnMemWritePaged increments both flat and page-aware write heatmaps.
+func (p *Profiler) OnMemWritePaged(addr uint16, page int) {
+	p.WriteCount[addr]++
+	if addr >= 0xC000 {
+		p.PagedWrite[page][addr-0xC000]++
+	}
+}
+
+// OnExecPaged increments page-aware exec heatmap for $C000+ addresses.
+func (p *Profiler) OnExecPaged(pc uint16, page int) {
+	if pc >= 0xC000 {
+		p.PagedExec[page][pc-0xC000]++
+	}
 }
 
 // OnIORead increments the I/O read heatmap.
@@ -270,15 +316,19 @@ func (p *Profiler) Close() {
 // ExportProfile writes the heatmap data to a JSON file.
 func (p *Profiler) ExportProfile(path string) error {
 	type profileData struct {
-		Meta        map[string]interface{} `json:"meta"`
-		Exec        map[string]uint32      `json:"exec,omitempty"`
-		Read        map[string]uint32      `json:"read,omitempty"`
-		Write       map[string]uint32      `json:"write,omitempty"`
-		StackPush   map[string]uint32      `json:"stack_push,omitempty"`
-		StackPop    map[string]uint32      `json:"stack_pop,omitempty"`
-		IORead      map[string]uint32      `json:"io_read,omitempty"`
-		IOWrite     map[string]uint32      `json:"io_write,omitempty"`
-		MemSnapshot map[string]string      `json:"mem_snapshot,omitempty"`
+		Meta        map[string]interface{}            `json:"meta"`
+		Exec        map[string]uint32                 `json:"exec,omitempty"`
+		Read        map[string]uint32                 `json:"read,omitempty"`
+		Write       map[string]uint32                 `json:"write,omitempty"`
+		PagedExec   map[string]map[string]uint32      `json:"paged_exec,omitempty"`
+		PagedRead   map[string]map[string]uint32      `json:"paged_read,omitempty"`
+		PagedWrite  map[string]map[string]uint32      `json:"paged_write,omitempty"`
+		StackPush   map[string]uint32                 `json:"stack_push,omitempty"`
+		StackPop    map[string]uint32                 `json:"stack_pop,omitempty"`
+		IORead      map[string]uint32                 `json:"io_read,omitempty"`
+		IOWrite     map[string]uint32                 `json:"io_write,omitempty"`
+		MemSnapshot map[string]string                 `json:"mem_snapshot,omitempty"`
+		RAMPages    map[string]map[string]string      `json:"ram_pages,omitempty"`
 	}
 
 	meta := map[string]interface{}{
@@ -302,6 +352,12 @@ func (p *Profiler) ExportProfile(path string) error {
 		IOWrite:   portMap(p.IOWrite),
 	}
 
+	// Page-aware heatmaps for $C000-$FFFF (only pages with activity)
+	data.PagedExec = pagedSparseMap(&p.PagedExec)
+	data.PagedRead = pagedSparseMap(&p.PagedRead)
+	data.PagedWrite = pagedSparseMap(&p.PagedWrite)
+
+	// Flat memory snapshot at hot addresses
 	if p.memSnapshot != nil {
 		snap := make(map[string]string)
 		for i := 0; i < 65536; i++ {
@@ -315,6 +371,35 @@ func (p *Profiler) ExportProfile(path string) error {
 		}
 	}
 
+	// Full RAM pages: include pages that had any paged activity
+	if p.ramPages != nil {
+		pages := make(map[string]map[string]string)
+		for pg := 0; pg < 8; pg++ {
+			hasActivity := false
+			for i := 0; i < 16384; i++ {
+				if p.PagedExec[pg][i] > 0 || p.PagedRead[pg][i] > 0 || p.PagedWrite[pg][i] > 0 {
+					hasActivity = true
+					break
+				}
+			}
+			if !hasActivity {
+				continue
+			}
+			pageSnap := make(map[string]string)
+			for i := 0; i < 16384; i++ {
+				if p.PagedExec[pg][i] > 0 || p.PagedRead[pg][i] > 0 || p.PagedWrite[pg][i] > 0 {
+					pageSnap[fmt.Sprintf("%04X", 0xC000+i)] = fmt.Sprintf("%02X", p.ramPages[pg][i])
+				}
+			}
+			if len(pageSnap) > 0 {
+				pages[fmt.Sprintf("page_%d", pg)] = pageSnap
+			}
+		}
+		if len(pages) > 0 {
+			data.RAMPages = pages
+		}
+	}
+
 	f, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("creating profile: %w", err)
@@ -324,6 +409,27 @@ func (p *Profiler) ExportProfile(path string) error {
 	enc := json.NewEncoder(f)
 	enc.SetIndent("", "  ")
 	return enc.Encode(data)
+}
+
+// pagedSparseMap converts [8][16384]uint32 page arrays to nested maps.
+// Keys: "page_N" → {"C000": count, ...}. Only non-zero entries, only active pages.
+func pagedSparseMap(arr *[8][16384]uint32) map[string]map[string]uint32 {
+	result := make(map[string]map[string]uint32)
+	for pg := 0; pg < 8; pg++ {
+		m := make(map[string]uint32)
+		for i, v := range arr[pg] {
+			if v > 0 {
+				m[fmt.Sprintf("%04X", 0xC000+i)] = v
+			}
+		}
+		if len(m) > 0 {
+			result[fmt.Sprintf("page_%d", pg)] = m
+		}
+	}
+	if len(result) == 0 {
+		return nil
+	}
+	return result
 }
 
 // sparseMap converts a 64K counter array to a map with only non-zero entries.
