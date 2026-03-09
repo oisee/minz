@@ -2,6 +2,9 @@
 
 ### Hot off the press
 
+- **[JRS pseudo-instruction in MZA](minzc/pkg/z80asm/fake_instructions.go)** — codegen now emits `JRS` for all local-label branches. MZA expands to `JR` (2 bytes) when offset fits and condition is JR-compatible (NZ/Z/NC/C), auto-promotes to `JP` (3 bytes) when offset > ±127 via existing multi-pass convergence, and emits `JP` directly for conditions JR doesn't support (PE/PO/P/M). Zero codegen complexity — MZA sorts it out.
+- **[LUTGen: compile-time lookup tables from ranged types](reports/2026-03-09-038-Nanz_PLM_HIR_MIR2_Z80_E2E_Snapshot.md)** — annotate a parameter with `u8<0..255>` and the compiler evaluates the function body at compile time for all 256 inputs, emitting a page-aligned `DB` table. A `popcount` loop that runs 8 iterations becomes 3 instructions + RET at runtime (`LD HL, lut / LD L, C / LD A, (HL) / RET`).
+- **[Nanz & PL/M: Factual Status, Real Examples](reports/2026-03-09-042-Nanz_PLM_Factual_Status_And_Examples.md)** — three separate pipelines, what each can do, real compiled Z80 output, honest gaps. Corrects earlier claim that "Nanz is what MinZ lowers to".
 - **[Native PL/M-80 V4.0 vs MIR2 Z80 Backend](reports/2026-03-09-036-Native_PLM80_vs_MIR2_Codegen_Comparison.md)** — `plm80c` (Intel PL/M-80 V4.0, built from source) vs our MIR2 backend: **−46% code size** (80B→43B), zero memory traffic in register-allocated loop body vs 6 loads/4 stores per iteration. Full side-by-side listing with T-state analysis.
 - **[Full Pipeline Walk-Through: PL/M → Nanz → HIR → MIR2 → Z80](reports/2026-03-09-035-Pipeline_All_Stages_Walkthrough.md)** — all intermediate stages with real output: `--emit=nanz`, `--emit=hir`, `--emit=mir2-raw`, `--emit=mir2`, `.a80`, and `mzd` disassembly. Three-path comparison (PLM direct / PLM→Nanz / native Nanz). HIR dump reveals a type-inference bug in the PL/M frontend fixed by the Nanz round-trip.
 - **[PL/M-80 E2E Pipeline: `mz file.plm -o file.com`](reports/2026-03-09-034-PLM_To_Z80_Pipeline_Walk_Through.md)** — `compileViaHIR` function wired, binary verified via MZE emulator (`fib(10)=55`, `abs_diff(10,3)=7`, `max3(5,12,7)=12`). `--emit=mir2`, `--emit=mir2-raw`, `--emit=hir` flags added.
@@ -131,6 +134,11 @@ mz program.minz -b crystal -o prog.cr                  # Crystal (stub — not f
 | **Module system** | `import stdlib.cpm.bdos;` |
 | **Lambdas** | Closure syntax, zero-cost transform |
 | **PL/M-80 frontend** | Parse + HIR lowering for all 26 Intel 80 Tools corpus files (100%); 1338 functions, 11661 statements |
+| **Nanz frontend** | New active source language for the MIR2 backend; arithmetic, control flow, loops, function calls |
+| **LUTGen** | `u8<lo..hi>` ranged type annotation → compile-time table generation; popcount loop → 3-instruction LUT at runtime |
+| **Flag-return ABI** | Functions returning `bool` from a comparison pass the result via carry flag — no `LD A, 0/1` materialization |
+| **Interprocedural CC opt** | Register class chosen per call-site: params coerced to A/B/C/HL/DE based on callee contract |
+| **JRS pseudo-instruction** | Codegen emits `JRS` for all branches; MZA picks `JR` (2B) or `JP` (3B) based on offset and condition |
 
 ### Partial / In Progress
 
@@ -152,6 +160,87 @@ These are documented and being worked on. Simple programs (hello world, fibonacc
 ---
 
 ## Code Examples
+
+### Nanz: New Active Frontend for MIR2
+
+Nanz is the primary language for the HIR→MIR2→Z80 pipeline. Real compiled output:
+
+```nanz
+fun abs_diff(a: u8, b: u8) -> u8 {
+    if a > b { return a - b }
+    return b - a
+}
+
+fun clamp(x: u8, lo: u8, hi: u8) -> u8 {
+    if x < lo { return lo }
+    if x > hi { return hi }
+    return x
+}
+```
+
+Generated Z80 (actual `mz` output):
+
+```asm
+abs_diff:
+    CP C
+    JR Z, .abs_diff_if_join2
+    JR C, .abs_diff_if_join2
+.abs_diff_if_then1:
+    SUB C
+    LD C, A
+    RET
+.abs_diff_if_join2:
+    NEG
+    ADD A, C
+    LD C, A
+    RET
+
+clamp:
+    CP D                    ; x vs lo
+    JR NC, .clamp_if_join2
+.clamp_if_then1:
+    LD A, D
+    RET
+.clamp_if_join2:
+    CP C                    ; x vs hi
+    JR Z, .clamp_if_join4
+    JR C, .clamp_if_join4
+.clamp_if_then3:
+    LD A, C
+    RET
+.clamp_if_join4:
+    RET
+```
+
+### LUTGen: Compile-Time Lookup Tables
+
+Annotate with `u8<0..255>` — the compiler evaluates the function for all 256 values and emits a page-aligned table:
+
+```nanz
+fun popcount(x: u8<0..255>) -> u8 {
+    var n: u8 = 0
+    var v: u8 = x
+    while v != 0 {
+        n = n + (v & 1)
+        v = v >> 1
+    }
+    return n
+}
+```
+
+The loop above never runs at runtime. Generated Z80:
+
+```asm
+popcount:
+    LD HL, popcount_lut
+    LD L, C                 ; C = input (index into table)
+    LD A, (HL)              ; table lookup — H unchanged = page base
+    RET
+
+    ALIGN 256
+popcount_lut:
+    DB 0, 1, 1, 2, 1, 2, 2, 3, ...   ; 256 bytes, evaluated at compile time
+```
 
 ### Structs and Methods (UFCS)
 
@@ -359,12 +448,17 @@ Only the Z80 backend is production-quality. The C backend can produce working bi
 
 ### Language Frontends
 
-MinZ compiles its own language, and also includes a **PL/M-80 frontend** for compiling historical Intel/CP/M era programs:
+Three separate source languages compile through the same HIR → MIR2 → Z80 backend:
 
-| Frontend | Status | Corpus | Pipeline |
-|----------|--------|--------|----------|
-| **MinZ** | Production | — | MinZ → HIR → MIR2 → Z80 |
-| **PL/M-80** | Working (parse + HIR) | 26/26 Intel 80 Tools (100%) | PL/M-80 → HIR → MIR2 → Z80 |
+| Frontend | Status | Pipeline | Notes |
+|----------|--------|----------|-------|
+| **Nanz** | Active — primary MIR2 frontend | Nanz → HIR → MIR2 → Z80 | The new surface language; arithmetic, control flow, loops, LUTGen, flag-return ABI, interprocedural CC opt |
+| **PL/M-80** | Working | PL/M-80 → HIR → MIR2 → Z80 | 26/26 Intel 80 Tools corpus (100%); 1338 functions, 11661 statements |
+| **MinZ** | Frozen on MIR1 | MinZ → MIR1 → old Z80 codegen | Not being developed; will eventually route through HIR→MIR2 once the Participle parser → HIR wiring is done |
+
+**Three pipelines, one backend.** `.nanz` and `.plm` files go through `compileViaHIR()` → HIR → MIR2 → Z80. `.minz` files use the old MIR1 path (`pkg/codegen/z80.go`, 5,800 LOC). MIR1 is frozen; all new work goes into MIR2.
+
+**Nanz** is a minimal, type-safe language designed as a clean target for the MIR2 backend. Working features: arithmetic/bitwise ops, if/else, while, for-range, function calls, u8/u16/i8/i16/bool types, `u8<lo..hi>` ranged types for LUT generation, interprocedural calling-convention optimization, flag-return ABI (comparison results passed via carry flag — no bool materialization).
 
 **PL/M-80 coverage** (Intel 80 Tools corpus): algolm compiler, BASIC-E compiler/parser/synthesizer, ML80 assembler (l81/l82/l83/m81), TeX, CP/M utilities, Kermit — 1338 functions / 943 globals / 11661 statements lowered to HIR from 26 source files. Handles LITERALLY macro chains, `$INCLUDE` with CP/M device designators, binary literals, record field access, EXTERNAL procedures, all PL/M-80 statement forms. See [ADR-0014](docs/adr/0014-plm80-frontend-strategy.md).
 
@@ -562,36 +656,36 @@ minz/
 
 ## Current Status (March 2026)
 
-MinZ is under active development. The Z80 backend is mature and produces working binaries for ZX Spectrum, CP/M, and Agon Light 2. The toolchain is now a complete end-to-end ecosystem: write code, compile, assemble, emulate, disassemble, screenshot — all with zero external dependencies.
+MinZ is under active development. The Z80 backend is mature and produces working binaries for ZX Spectrum, CP/M, and Agon Light 2. A new compiler backend — **MIR2** — is now the active development target, fed by the **Nanz** and **PL/M-80** frontends via a typed HIR layer.
 
 **What works well:**
-- Complete self-contained toolchain: compile -> assemble -> emulate -> screenshot
-- T-state accurate ZX Spectrum emulation with display, audio, and tape/disk support
+- **MIR2 pipeline**: Nanz/PL/M-80 → HIR → MIR2 → Z80, fully wired end-to-end
+- **LUTGen**: `u8<lo..hi>` ranged types → compile-time table generation, verified via emulator
+- **Flag-return ABI + interprocedural CC optimization**: comparison results travel via flags, no bool materialization
+- **JRS pseudo-instruction**: codegen emits `JRS`, MZA picks JR vs JP based on offset — saves 1B per short branch
+- Complete self-contained toolchain: compile → assemble → emulate → screenshot
+- T-state accurate ZX Spectrum emulation with display, audio, tape/disk support
 - Execution profiler with memory/IO heatmaps and basic-block trace export
-- Raw binary loading (`--load`/`--run`) for testing compiled code without ROM
 - Multi-target compilation (same source for Spectrum, CP/M, Agon)
 - Compile-time execution (CTIE) for constant expressions
-- Inline assembly for performance-critical code
 - Z80 CPU emulation verified against FUSE test suite (gold standard)
-- DI+HALT lockup detection (`--warn-on-halt`)
 
 **What needs work:**
-- Register allocator: stale HL tracking in loops causes wrong results (ADR-0006) — blocks complex programs
-- Feature test suite: 9/11 advanced feature tests fail
-- Non-Spectrum targets: Agon 0/3 examples compile, CP/M 3/4 fail (stdlib import resolution)
+- MIR2: pointer-indexed array access (`ptr[i]` in loops) — broken due to HL conflict between base pointer and index arithmetic; use `ForEachStmt` (sequential scan) instead
+- MIR2: non-zero-lo LUT (e.g. `u8<10..20>`) — contract opt changes param class after LUTGen builds body; unit tests pass, pipeline broken
+- MinZ (`.minz`): register allocator stale HL tracking in loops — blocks complex programs (ADR-0006)
+- MinZ: 9/11 advanced feature tests fail
 - Non-Z80 backends: only C produces any working binaries; rest are stubs/broken
 - MZR REPL: broken — compilation pipeline not wired through semantic analysis
-- LSP server: hover/goto-def/completion work, workspace-wide features TODO
 
-**Metrics (verified 2026-03-04):**
+**Metrics (verified 2026-03-09):**
 - 71/73 core examples compile (97%), 131/173 all examples (75%)
 - ~125K lines of Go in the compiler + toolchain
-- 1 production backend (Z80) + 1 partial (C) + 8 experimental/broken
-- Z80 targets: Spectrum (primary, tested), CP/M (mostly works), Agon Light 2 (structural only)
+- **MIR2**: 53/53 unit tests pass; E2E fib(1..10), clamp, abs_diff, max3 verified via MZE
+- **PL/M-80**: 26/26 Intel 80 Tools corpus files parse + compile → Z80 (100%)
 - **1335/1335 FUSE Z80 tests pass** — gold-standard CPU verification including all undocumented opcodes
-- **87+ iterator tests** across 7 layers — 11/11 E2E hex-verified, all green (including fusion optimizer)
-- **9/11 MIR backend tests pass** — full MIR→Z80→binary→emulate pipeline validated
-- 20/20 Go test packages pass, 0 fail
+- **87+ iterator tests** across 7 layers — 11/11 E2E hex-verified (MinZ/MIR1 pipeline)
+- 23/23 Go test packages pass, 0 fail
 - 9 working toolchain binaries (mzr REPL is broken), all pure Go, zero external dependencies
 
 ---
