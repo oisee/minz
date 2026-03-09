@@ -245,10 +245,13 @@ func TestE2EFlagReturn(t *testing.T) {
 	clampLines := extractFunc(fullAsm, "clampByte")
 	t.Logf("clampByte body:\n%s", clampLines)
 
-	// The clamp body must contain JP C or JP NC (direct flag branch after CALL
-	// isLess — either the taken or not-taken edge uses the carry flag directly).
-	if !strings.Contains(clampLines, "JP C") && !strings.Contains(clampLines, "JP NC") {
-		t.Errorf("clampByte missing JP C/JP NC — caller not using flag-return ABI:\n%s", clampLines)
+	// The clamp body must contain a carry-flag conditional branch after CALL isLess
+	// (direct flag branch — either JP C/JP NC or JRS C/JRS NC from codegen).
+	hasCarryBranch := strings.Contains(clampLines, "JP C") || strings.Contains(clampLines, "JP NC") ||
+		strings.Contains(clampLines, "JRS C") || strings.Contains(clampLines, "JRS NC") ||
+		strings.Contains(clampLines, "JR C") || strings.Contains(clampLines, "JR NC")
+	if !hasCarryBranch {
+		t.Errorf("clampByte missing carry-flag branch — caller not using flag-return ABI:\n%s", clampLines)
 	}
 	// Must NOT contain AND A between CALL and JP (that would defeat the purpose).
 	if strings.Contains(clampLines, "AND A") {

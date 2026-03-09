@@ -24,6 +24,19 @@ func expandFakeInstructions(lines []*Line) []*Line {
 		
 		mnemonic := strings.ToUpper(line.Mnemonic)
 		
+		// JRS — "JR if possible and Short, else JP" pseudo-instruction.
+		// Emitted by MIR2 codegen for all local label branches.
+		// Rules:
+		//   - Unconditional or condition in {NZ,Z,NC,C} → JR (2B)
+		//     MZA's encodeJRRel auto-promotes JR→JP if offset > ±127.
+		//   - Condition not supported by JR (PE,PO,P,M) → JP (3B, always).
+		// Codegen never needs to know which conditions JR supports.
+		if mnemonic == "JRS" {
+			expanded := expandJRS(line)
+			result = append(result, expanded)
+			continue
+		}
+
 		// Check for fake LD instructions
 		if mnemonic == "LD" && len(line.Operands) == 2 {
 			expanded := tryExpandFakeLD(line)
@@ -32,7 +45,7 @@ func expandFakeInstructions(lines []*Line) []*Line {
 				continue
 			}
 		}
-		
+
 		// Not a fake instruction, keep as-is
 		result = append(result, line)
 	}
@@ -301,6 +314,32 @@ func tryExpandFakeLD(line *Line) []*Line {
 	}
 	
 	return result
+}
+
+// expandJRS expands a JRS (JR-if-Short) pseudo-instruction into JR or JP.
+// Conditions supported by JR (NZ/Z/NC/C + unconditional) → JR.
+// Conditions only supported by JP (PE/PO/P/M) → JP.
+// MZA's encodeJRRel auto-promotes JR→JP when offset > ±127.
+func expandJRS(line *Line) *Line {
+	newMnemonic := "JR"
+	if len(line.Operands) >= 1 {
+		cond := strings.ToUpper(strings.TrimSpace(line.Operands[0]))
+		switch cond {
+		case "NZ", "Z", "NC", "C":
+			// JR supports these — keep as JR
+		case "PE", "PO", "P", "M":
+			newMnemonic = "JP"
+		}
+		// Unconditional JRS (operand is a label, not a condition) stays JR.
+	}
+	return &Line{
+		Number:   line.Number,
+		Label:    line.Label,
+		Mnemonic: newMnemonic,
+		Operands: line.Operands,
+		Comment:  line.Comment,
+		IsBlank:  line.IsBlank,
+	}
 }
 
 // is16BitReg checks if a string is a 16-bit register name

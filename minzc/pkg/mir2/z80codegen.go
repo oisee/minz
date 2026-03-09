@@ -394,11 +394,12 @@ func (g *z80cg) genFunc(f *Func) {
 		g.genBlock(f, b)
 	}
 
-	// Emit trampoline blocks: small copy+JP stubs for BrIf edges with block args.
+	// Emit trampoline blocks: small copy+JR stubs for BrIf edges with block args.
+	// MZA auto-promotes JR→JP if the target is beyond ±127 bytes.
 	for _, tramp := range g.trampolines {
 		g.emitf("%s:", tramp.label)
 		g.emitParallelCopy(tramp.copies)
-		g.emitf("    JP %s", tramp.target)
+		g.emitf("    JRS %s", tramp.target)
 	}
 }
 
@@ -516,7 +517,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 		exitCopies := g.buildBlockCopies(f, peep.checkBrif.Else, peep.checkBrif.ElseArgs)
 		g.emitParallelCopy(exitCopies)
 		if !g.isFallThrough(f, peep.checkBrif.Else) || len(exitCopies) != 0 {
-			g.emitf("    JP %s", blockLabel(f.Name, peep.checkBrif.Else))
+			g.emitf("    JRS %s", blockLabel(f.Name, peep.checkBrif.Else))
 		}
 	} else {
 		g.genTerm(f, b.Term)
@@ -1426,9 +1427,9 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		copies := g.buildBlockCopies(f, t.Target, t.Args)
 		g.emitParallelCopy(copies)
 		// Fall-through elimination: if the target is the very next physical block,
-		// the JP is redundant — execution falls through naturally.
+		// the JR is redundant — execution falls through naturally.
 		if !g.isFallThrough(f, t.Target) {
-			g.emitf("    JP %s", blockLabel(f.Name, t.Target))
+			g.emitf("    JRS %s", blockLabel(f.Name, t.Target))
 		}
 
 	case *TermBrIf:
@@ -1439,7 +1440,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		elseCopies := g.buildBlockCopies(f, t.Else, t.ElseArgs)
 
 		// If a branch has non-trivial copies, it cannot be a fall-through:
-		// redirect it through a trampoline that performs the copies then JP.
+		// redirect it through a trampoline that performs the copies then JR.
 		thenLbl := g.branchLabel(f, t.Then, thenCopies)
 		elseLbl := g.branchLabel(f, t.Else, elseCopies)
 
@@ -1449,34 +1450,36 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 
 		// Two-condition sentinels: CmpGt/CmpLe with lhs in A (no operand swap).
 		// CGT = NC && NZ (a > b); CLE = C || Z (a ≤ b).
+		// Note: CLE/CGT need two jumps — first uses JR, second uses JR too.
+		// MZA auto-promotes any JR to JP when out of range.
 		if cc == "CLE" {
 			// a ≤ b: branch to then if C (a<b) or Z (a==b).
-			g.emitf("    JP C, %s", thenLbl)
-			g.emitf("    JP Z, %s", thenLbl)
+			g.emitf("    JRS C, %s", thenLbl)
+			g.emitf("    JRS Z, %s", thenLbl)
 			if !elseFT {
-				g.emitf("    JP %s", elseLbl)
+				g.emitf("    JRS %s", elseLbl)
 			}
 		} else if cc == "CGT" {
-			// a > b: branch to else if Z (a==b) or C (a<b), else fall/JP to then.
-			g.emitf("    JP Z, %s", elseLbl)
-			g.emitf("    JP C, %s", elseLbl)
+			// a > b: branch to else if Z (a==b) or C (a<b), else fall/JR to then.
+			g.emitf("    JRS Z, %s", elseLbl)
+			g.emitf("    JRS C, %s", elseLbl)
 			if !thenFT {
-				g.emitf("    JP %s", thenLbl)
+				g.emitf("    JRS %s", thenLbl)
 			}
 		} else if elseFT {
-			g.emitf("    JP %s, %s", cc, thenLbl)
+			g.emitf("    JRS %s, %s", cc, thenLbl)
 			// else falls through naturally
 		} else if thenFT {
-			g.emitf("    JP %s, %s", invertCC(cc), elseLbl)
+			g.emitf("    JRS %s, %s", invertCC(cc), elseLbl)
 			// then falls through naturally
 		} else {
-			g.emitf("    JP %s, %s", cc, thenLbl)
-			g.emitf("    JP %s", elseLbl)
+			g.emitf("    JRS %s, %s", cc, thenLbl)
+			g.emitf("    JRS %s", elseLbl)
 		}
 
 	case *TermBrIf2:
 		// Three-way unsigned comparison: one CP, three outcomes (==, <, >).
-		// Emit: CP rhs (with A=lhs), then JP Z eq, JP C lt, fall-through/JP gt.
+		// Emit: CP rhs (with A=lhs), then JR Z eq, JR C lt, fall-through/JR gt.
 		lhs := g.loc(t.Lhs)
 		rhs := g.loc(t.Rhs)
 
@@ -1498,10 +1501,10 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			eqLbl := g.branchLabel(f, t.Eq, eqCopies)
 			ltLbl := g.branchLabel(f, t.Gt, ltCopies)
 			gtLbl := g.branchLabel(f, t.Lt, gtCopies)
-			g.emitf("    JP Z, %s", eqLbl)
-			g.emitf("    JP C, %s", ltLbl)
+			g.emitf("    JRS Z, %s", eqLbl)
+			g.emitf("    JRS C, %s", ltLbl)
 			if !g.isFallThrough(f, t.Lt) || len(gtCopies) != 0 {
-				g.emitf("    JP %s", gtLbl)
+				g.emitf("    JRS %s", gtLbl)
 			}
 			return
 		} else {
@@ -1519,10 +1522,10 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		ltLbl := g.branchLabel(f, t.Lt, ltCopies)
 		gtLbl := g.branchLabel(f, t.Gt, gtCopies)
 
-		g.emitf("    JP Z, %s", eqLbl)
-		g.emitf("    JP C, %s", ltLbl)
+		g.emitf("    JRS Z, %s", eqLbl)
+		g.emitf("    JRS C, %s", ltLbl)
 		if !g.isFallThrough(f, t.Gt) || len(gtCopies) != 0 {
-			g.emitf("    JP %s", gtLbl)
+			g.emitf("    JRS %s", gtLbl)
 		}
 
 	case *TermDJNZ:

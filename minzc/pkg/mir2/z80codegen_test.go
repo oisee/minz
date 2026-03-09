@@ -29,7 +29,7 @@ func TestZ80CodegenFibonacci(t *testing.T) {
 		"fibonacci:",       // function entry label
 		".fibonacci_base:", // base block label
 		"CP ",              // comparison
-		"JP ",              // branch
+		"JRS ",             // branch (JRS = JR-if-Short, auto-promotes to JP if needed)
 		"ADD HL",           // 16-bit add (a+b in loop_body)
 		"RET",              // return
 	}
