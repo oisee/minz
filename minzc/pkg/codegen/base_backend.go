@@ -59,10 +59,17 @@ func (b *BaseBackend) PreprocessModule(module *ir.Module) error {
 		}
 	}
 	
-	// Apply SMC options if supported
+	// Apply SMC options if supported.
+	// Only enable SMC for functions that actually need it:
+	//   UsesTrueSMC=true  → anchor-based patching (TRUE SMC, explicit in source)
+	//   IsSMCDefault=true → function was marked for SMC convention by the analyzer
+	// Normal functions (register/stack convention) must NOT be forced into the SMC
+	// codegen path — they use generateFunction() + physical register allocation.
 	if b.options != nil && b.options.EnableSMC && b.features[FeatureSelfModifyingCode] {
 		for _, fn := range module.Functions {
-			fn.IsSMCEnabled = true
+			if fn.UsesTrueSMC || fn.IsSMCDefault {
+				fn.IsSMCEnabled = true
+			}
 		}
 	}
 	

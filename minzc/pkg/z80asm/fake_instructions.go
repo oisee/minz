@@ -251,7 +251,50 @@ func tryExpandFakeLD(line *Line) []*Line {
 			Mnemonic: "POP",
 			Operands: []string{"HL"},
 		})
-		
+
+	// Pseudo-instructions: LD rr, SP (not valid Z80; expand to LD rr,0 + ADD rr,SP)
+	// LD HL, SP  → LD HL, 0 (3B/10T) + ADD HL, SP (1B/11T) = 4B/21T
+	// LD IX, SP  → LD IX, 0 (4B/14T) + ADD IX, SP (2B/15T) = 6B/29T
+	// LD IY, SP  → LD IY, 0 (4B/14T) + ADD IY, SP (2B/15T) = 6B/29T
+	case dst == "HL" && src == "SP":
+		result = append(result, &Line{
+			Number:   line.Number,
+			Mnemonic: "LD",
+			Operands: []string{"HL", "0"},
+			Comment:  line.Comment + " (LD HL,SP expanded: clear then add)",
+		})
+		result = append(result, &Line{
+			Number:   line.Number,
+			Mnemonic: "ADD",
+			Operands: []string{"HL", "SP"},
+		})
+
+	case dst == "IX" && src == "SP":
+		result = append(result, &Line{
+			Number:   line.Number,
+			Mnemonic: "LD",
+			Operands: []string{"IX", "0"},
+			Comment:  line.Comment + " (LD IX,SP expanded: clear then add)",
+		})
+		result = append(result, &Line{
+			Number:   line.Number,
+			Mnemonic: "ADD",
+			Operands: []string{"IX", "SP"},
+		})
+
+	case dst == "IY" && src == "SP":
+		result = append(result, &Line{
+			Number:   line.Number,
+			Mnemonic: "LD",
+			Operands: []string{"IY", "0"},
+			Comment:  line.Comment + " (LD IY,SP expanded: clear then add)",
+		})
+		result = append(result, &Line{
+			Number:   line.Number,
+			Mnemonic: "ADD",
+			Operands: []string{"IY", "SP"},
+		})
+
 	default:
 		// Not a fake instruction we recognize
 		return nil

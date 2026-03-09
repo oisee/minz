@@ -55,6 +55,13 @@ const (
 	RegBC_Shadow
 	RegDE_Shadow
 	RegHL_Shadow
+
+	// Undocumented register halves — stable on all Z80 NMOS/CMOS and clones.
+	// NOT available on SM83 (Game Boy). Use DD-prefix (IX) or FD-prefix (IY) encoding.
+	RegIXH
+	RegIXL
+	RegIYH
+	RegIYL
 )
 
 // RegisterPool tracks available registers
@@ -97,6 +104,16 @@ func (ra *Z80RegisterAllocator) initializeRegisterPool() {
 	ra.freeRegs.available[RegHL] = true
 	// IX/IY usually reserved for frame pointer and special uses
 	// SP is never allocated
+}
+
+// ResetPool resets the register pool to the initial all-available state.
+// Call this before pre-claiming local-resident registers for a new function,
+// so stale claims from the previous function don't leak through.
+func (ra *Z80RegisterAllocator) ResetPool() {
+	for k := range ra.freeRegs.available {
+		delete(ra.freeRegs.available, k)
+	}
+	ra.initializeRegisterPool()
 }
 
 // EnableShadowRegisters enables use of shadow registers
@@ -187,6 +204,14 @@ func hintToPhysical(hint ir.RegisterHint) PhysicalReg {
 		return RegDE
 	case ir.RegHintBC:
 		return RegBC
+	case ir.RegHintIXH:
+		return RegIXH
+	case ir.RegHintIXL:
+		return RegIXL
+	case ir.RegHintIYH:
+		return RegIYH
+	case ir.RegHintIYL:
+		return RegIYL
 	default:
 		return RegNone
 	}

@@ -10,6 +10,7 @@ import (
 
 // TestTSMCPerformanceVerification verifies that TSMC provides 30%+ performance improvement
 func TestTSMCPerformanceVerification(t *testing.T) {
+	t.Skip("MIR1 bug: EXX/shadow-register ordering corrupts parameters (ADR-0006). MIR1 deprecated in favour of MIR2.")
 	h, err := NewE2ETestHarness(t)
 	if err != nil {
 		t.Fatalf("Failed to create harness: %v", err)

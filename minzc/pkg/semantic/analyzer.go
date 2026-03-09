@@ -1674,9 +1674,11 @@ func (a *Analyzer) analyzeFunctionDecl(fn *ast.FunctionDecl) error {
 		return fmt.Errorf("error processing @mode attributes for %s: %v", fn.Name, err)
 	}
 
-	// Default to SMC unless overridden by attributes
+	// ADR-0010: register-first is the default; SMC opt-in via @abi(smc)
 	if irFunc.CallingConvention == "" {
-		irFunc.IsSMCDefault = true
+		irFunc.CallingConvention = "register"
+		irFunc.IsSMCDefault = false
+		irFunc.IsSMCEnabled = false
 		irFunc.SMCParamOffsets = make(map[string]int)
 	}
 	
@@ -10349,9 +10351,9 @@ func (a *Analyzer) transformLambdaAssignment(varDecl *ast.VarDecl, lambda *ast.L
 	// Create IR function - use same conventions as traditional functions
 	lambdaFunc := &ir.Function{
 		Name:              funcName,
-		CallingConvention: "smc",    // TRUE SMC like traditional functions
-		IsSMCDefault:      true,     // Enable SMC by default
-		IsSMCEnabled:      true,     // Full SMC support
+		CallingConvention: "register", // ADR-0010: register-first; fused lambdas ignore CC
+		IsSMCDefault:      false,
+		IsSMCEnabled:      false,
 	}
 	
 	// Add parameters
@@ -11150,9 +11152,11 @@ func (a *Analyzer) analyzeLocalFunctionDecl(fn *ast.FunctionDecl, parentFunc *ir
 		return fmt.Errorf("error processing @mode attributes for local function %s: %v", fn.Name, err)
 	}
 
-	// Enable SMC by default for local functions too
+	// ADR-0010: register-first for local functions too
 	if localIRFunc.CallingConvention == "" {
-		localIRFunc.IsSMCDefault = true
+		localIRFunc.CallingConvention = "register"
+		localIRFunc.IsSMCDefault = false
+		localIRFunc.IsSMCEnabled = false
 		localIRFunc.SMCParamOffsets = make(map[string]int)
 	}
 	
@@ -12130,6 +12134,16 @@ func (a *Analyzer) analyzeMIRBlockCode(code string) error {
 func (a *Analyzer) shouldUseInstructionPatching(funcSym *FuncSymbol, call *ast.CallExpr) bool {
 	// Builtin and extern functions don't use instruction patching
 	if funcSym.IsBuiltin || funcSym.IsExtern {
+		return false
+	}
+
+	// ADR-0010: only use instruction patching for explicitly SMC-convention functions.
+	// If function not found (e.g. stdlib/module), default to no patching (register-first).
+	targetFunc := a.GetFunction(funcSym.Name)
+	if targetFunc == nil {
+		return false
+	}
+	if !targetFunc.IsSMCEnabled && targetFunc.CallingConvention != "smc" {
 		return false
 	}
 

@@ -47,6 +47,7 @@ type Z80Generator struct {
 	useShadowRegs bool // Whether to use shadow registers for current function
 	localVarBase  uint16 // Base address for local variables (absolute addressing)
 	useAbsoluteLocals bool // Whether to use absolute addressing for locals
+	useIXFrame        bool // Whether IX frame was set up (PUSH IX / LD IX,SP) in prologue
 	emittedParams map[string]bool // Track which SMC parameters have been emitted
 	currentRegister ir.Register // Track which virtual register is currently in HL
 	currentA ir.Register // Track which virtual register is currently in A
@@ -58,6 +59,10 @@ type Z80Generator struct {
 	structDataBlocks []StructDataBlock // Struct array literal data blocks
 	asmBlockCounter int // Counter for uniquifying inline assembly labels
 	inlineCounter   int // Counter for uniquifying labels during function inlining
+
+	// Local variable register residents: maps local.Reg → physical register name.
+	// When non-empty, OpLoadVar/OpStoreVar use the register directly instead of $F0xx.
+	localResidents map[ir.Register]PhysicalReg
 
 	// eZ80 ADL mode support
 	isEZ80Target bool   // True if targeting eZ80 processor
@@ -326,6 +331,10 @@ func (g *Z80Generator) Generate(module *ir.Module) error {
 	} else if changed && debug {
 		fmt.Printf("DEBUG: MIR optimizer applied %d optimizations\n", mirOptimizer.OptimizationsCount())
 	}
+
+	// Annotate loop variables with register hints (attractors) so the allocator
+	// can keep them in physical registers instead of spilling to $F0xx.
+	optimizer.NewLoopVarHinter().Run(module)
 
 	// Write header
 	g.writeHeader()
@@ -662,13 +671,36 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 	g.currentFunction = fn
 	g.currentInstructionIndex = 0
 	g.stackOffset = 0
+	g.useIXFrame = false
+	g.useShadowRegs = false
 	g.regAlloc.Reset()
 	g.inlineCounter++ // Ensure unique labels for each function instance
 
 	// Perform hierarchical register allocation if enabled
+	g.localResidents = make(map[ir.Register]PhysicalReg)
 	if g.usePhysicalRegs {
+		// Pre-coloring: claim hinted local registers BEFORE the linear scan runs,
+		// so instruction temporaries cannot steal them.
+		// Reset pool first to clear any stale claims from the previous function.
+		g.physicalAlloc.ResetPool()
+		for _, local := range fn.Locals {
+			if local.Hint == ir.RegHintNone {
+				continue
+			}
+			phys := hintToPhysical(local.Hint)
+			if phys == RegNone {
+				continue
+			}
+			if g.physicalAlloc.tryAllocateSpecific(phys) {
+				g.localResidents[local.Reg] = phys
+			}
+		}
+
+		// Now run the linear scan — it won't touch pre-claimed local registers.
 		g.physicalAlloc.AllocateFunction(fn)
-		g.emit("; Using hierarchical register allocation (physical -> shadow -> memory)")
+		if len(g.localResidents) > 0 {
+			g.emit("; Using hierarchical register allocation (physical -> shadow -> memory)")
+		}
 	}
 
 	// Function label
@@ -697,14 +729,29 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 
 	// Allocate addresses/offsets for local variables
 	if g.useAbsoluteLocals {
-		// Absolute addressing mode
+		// Absolute addressing mode.
+		//
+		// Instruction virtual registers use the fallback formula: localVarBase + reg*2.
+		// For fibonacci-style functions (params present), locals get high register numbers
+		// (r6, r8, r10...) while instruction temps get low numbers (r2, r3, r4...).
+		// Sequential allocation starting at localVarBase ($F000) would put locals at
+		// $F000, $F002, $F004... which collides with instruction temp fallback addresses.
+		//
+		// Fix: place params+locals in a separate area at localVarBase+0x100 ($F100+).
+		// Instruction temps at $F000+reg*2 (max ~$F0C8 for reg≤100) never reach $F100+.
+		localSeqBase := g.localVarBase + 0x100
 		localOffset := uint16(0)
+		for _, param := range fn.Params {
+			addr := localSeqBase + localOffset
+			g.regAlloc.SetAddress(param.Reg, addr)
+			localOffset += 2
+		}
 		localAddresses := make(map[string]uint16)
 		for _, local := range fn.Locals {
-			addr := g.localVarBase + localOffset
+			addr := localSeqBase + localOffset
 			localAddresses[local.Name] = addr
 			g.regAlloc.SetAddress(local.Reg, addr)
-			localOffset += uint16(local.Type.Size())
+			localOffset += 2
 		}
 	} else {
 		// Stack-based addressing mode (IX+offset)
@@ -723,9 +770,19 @@ func (g *Z80Generator) generateFunction(fn *ir.Function) error {
 
 	// Reset constant tracking for new function
 	g.constantValues = make(map[ir.Register]int64)
-	
+
+	// Eliminate PUSH/POP pairs around calls where the callee provably doesn't
+	// clobber the saved register (lazy caller-save elimination).
+	skipInst := g.eliminateUnnecessaryCallerSaves(fn.Instructions)
+
 	// Generate instructions
 	for i, inst := range fn.Instructions {
+		if skipInst[i] {
+			if inst.Op == ir.OpPush || inst.Op == ir.OpPop {
+				g.emit("    ; (caller-save elim: %s skipped — callee doesn't clobber)", inst.Comment)
+			}
+			continue
+		}
 		g.currentInstructionIndex = i
 		if err := g.generateInstruction(inst); err != nil {
 			return err
@@ -917,8 +974,17 @@ func (g *Z80Generator) generateSMCFunction(fn *ir.Function) error {
 	g.constantValues = make(map[ir.Register]int64)
 
 
+	// Eliminate PUSH/POP pairs where callee provably doesn't clobber the register.
+	skipInst := g.eliminateUnnecessaryCallerSaves(fn.Instructions)
+
 	// Generate instructions with SMC awareness
 	for i, inst := range fn.Instructions {
+		if skipInst[i] {
+			if inst.Op == ir.OpPush || inst.Op == ir.OpPop {
+				g.emit("    ; (caller-save elim: %s skipped)", inst.Comment)
+			}
+			continue
+		}
 		// Check if this is the last instruction and it's a return - replace with patch points if needed
 		isLastInst := i == len(fn.Instructions)-1
 		if isLastInst && inst.Op == ir.OpReturn && fn.NeedsPatchPoints {
@@ -1250,6 +1316,20 @@ func (g *Z80Generator) generateSMCRecursiveCall(inst ir.Instruction) error {
 	return nil
 }
 
+// functionReturnsHL reports whether fn returns its value in HL (i.e. u16/i16 return type).
+// Such functions must not PUSH/POP HL in prologue/epilogue, and must not use shadow
+// registers (EXX before POP HL would lose the return value).
+func (g *Z80Generator) functionReturnsHL(fn *ir.Function) bool {
+	if fn.ReturnType == nil {
+		return false
+	}
+	bt, ok := fn.ReturnType.(*ir.BasicType)
+	if !ok {
+		return false
+	}
+	return bt.Kind == ir.TypeU16 || bt.Kind == ir.TypeI16
+}
+
 // generatePrologue generates function prologue
 func (g *Z80Generator) generatePrologue(fn *ir.Function) {
 	// Generate lean prologue based on actual register usage
@@ -1260,7 +1340,10 @@ func (g *Z80Generator) generatePrologue(fn *ir.Function) {
 		return
 	}
 	
-	// Save only the registers we actually modify
+	// Save only the registers we actually modify.
+	// HL is the return register for u16 — never save/restore it for such functions,
+	// or the return value would be overwritten by the POP in the epilogue.
+	hlIsReturnReg := g.functionReturnsHL(fn)
 	if fn.ModifiedRegisters.Contains(ir.Z80_AF) {
 		g.emit("    PUSH AF")
 	}
@@ -1270,37 +1353,45 @@ func (g *Z80Generator) generatePrologue(fn *ir.Function) {
 	if fn.ModifiedRegisters.Contains(ir.Z80_DE) {
 		g.emit("    PUSH DE")
 	}
-	if fn.ModifiedRegisters.Contains(ir.Z80_HL) {
+	if fn.ModifiedRegisters.Contains(ir.Z80_HL) && !hlIsReturnReg {
 		g.emit("    PUSH HL")
 	}
 	
-	// Setup stack frame if using stack-based locals
-	if !g.useAbsoluteLocals && (len(fn.Locals) > 0 || len(fn.Params) > 0) {
+	// Setup stack frame if using stack-based locals (recursive functions only).
+	// Non-recursive functions use $F0xx absolute addressing — no IX frame needed.
+	// IX is also needed when we load params via (IX+offset): recursive, SMC, or >3 params.
+	needsIXFrame := !g.useAbsoluteLocals && (len(fn.Locals) > 0 || len(fn.Params) > 0)
+	needsIXForParams := g.useAbsoluteLocals && (fn.IsRecursive || fn.IsSMCEnabled || len(fn.Params) > 3)
+	g.useIXFrame = needsIXFrame || needsIXForParams
+
+	if needsIXFrame {
 		g.emit("    PUSH IX")
-		g.emit("    LD IX, SP")
-		
-		// Allocate space for locals
+		g.emit("    LD IX, SP") // MZA expands to: LD IX,0 + ADD IX,SP (6B/29T)
+
+		// Allocate space for locals (DEC SP is cheaper for ≤4 bytes)
 		if g.stackOffset > 0 {
-			if g.stackOffset <= 127 {
-				// Small frame - use ADD SP
-				g.emit("    LD HL, -%d", g.stackOffset)
-				g.emit("    ADD HL, SP")
-				g.emit("    LD SP, HL")
+			if g.stackOffset <= 4 {
+				for i := 0; i < g.stackOffset; i++ {
+					g.emit("    DEC SP")
+				}
 			} else {
-				// Large frame
 				g.emit("    LD HL, -%d", g.stackOffset)
 				g.emit("    ADD HL, SP")
 				g.emit("    LD SP, HL")
 			}
 		}
-	} else if len(fn.Locals) > 0 || len(fn.Params) > 0 {
-		// Even in absolute mode, we might need IX for parameters
+	} else if needsIXForParams {
+		// Absolute locals but need IX to load stack-passed parameters via (IX+offset)
 		g.emit("    PUSH IX")
-		g.emit("    LD IX, SP")
+		g.emit("    LD IX, SP") // MZA expands to: LD IX,0 + ADD IX,SP (6B/29T)
 	}
 	
-	// Check if we should use shadow registers for this function
-	if fn.UsedRegisters.Contains(ir.Z80_BC_SHADOW | ir.Z80_DE_SHADOW | ir.Z80_HL_SHADOW) {
+	// Check if we should use shadow registers for this function.
+	// Shadow registers are incompatible with:
+	//   - local residents (pre-colored locals live in main BC/DE/HL; EXX would hide them)
+	//   - u16 return values (EXX before epilogue POP loses the HL return value)
+	if fn.UsedRegisters.Contains(ir.Z80_BC_SHADOW|ir.Z80_DE_SHADOW|ir.Z80_HL_SHADOW) &&
+		len(g.localResidents) == 0 && !hlIsReturnReg {
 		g.useShadowRegs = true
 		g.emit("    EXX           ; Switch to shadow registers")
 	}
@@ -1366,14 +1457,15 @@ func (g *Z80Generator) generateEpilogue() {
 		g.emit("    EXX           ; Restore main registers")
 	}
 	
-	// Restore stack frame if we used it
-	if len(fn.Locals) > 0 || len(fn.Params) > 0 {
+	// Restore stack frame only if we actually set up an IX frame in the prologue
+	if g.useIXFrame {
 		g.emit("    LD SP, IX")
 		g.emit("    POP IX")
 	}
 	
-	// Restore registers in reverse order
-	if fn.ModifiedRegisters.Contains(ir.Z80_HL) {
+	// Restore registers in reverse order.
+	// HL is the return register for u16 — must not POP it (would overwrite return value).
+	if fn.ModifiedRegisters.Contains(ir.Z80_HL) && !g.functionReturnsHL(fn) {
 		g.emit("    POP HL")
 	}
 	if fn.ModifiedRegisters.Contains(ir.Z80_DE) {
@@ -1798,36 +1890,47 @@ func (g *Z80Generator) loadParametersFromRegisters(fn *ir.Function) {
 		// Use traditional stack-based parameters
 		return
 	}
-	
+
 	g.emit("    ; Load parameters from registers")
-	
+
 	for i, param := range fn.Params {
+		// Use the LOCAL variable's register for the storage address, not param.Reg.
+		// The local variable register has the address that OpLoadVar/OpStoreVar will use.
+		// param.Reg may differ from the local variable's Reg in the IR.
+		storeReg := param.Reg
+		for _, local := range fn.Locals {
+			if local.Name == param.Name {
+				storeReg = local.Reg
+				break
+			}
+		}
+
 		if param.Type.Size() == 1 {
 			// 8-bit parameter
 			switch i {
 			case 0:
 				// Parameter already in A
-				g.storeFromA(param.Reg)
+				g.storeFromA(storeReg)
 			case 1:
 				g.emit("    LD A, E       ; Get parameter %s", param.Name)
-				g.storeFromA(param.Reg)
+				g.storeFromA(storeReg)
 			case 2:
 				g.emit("    LD A, D       ; Get parameter %s", param.Name)
-				g.storeFromA(param.Reg)
+				g.storeFromA(storeReg)
 			}
 		} else {
 			// 16-bit parameter
 			switch i {
 			case 0:
 				// Parameter already in HL
-				g.storeFromHL(param.Reg)
+				g.storeFromHL(storeReg)
 			case 1:
 				g.emit("    EX DE, HL     ; Get parameter %s from DE", param.Name)
-				g.storeFromHL(param.Reg)
+				g.storeFromHL(storeReg)
 			case 2:
 				// Parameter on stack
 				g.emit("    POP HL        ; Get parameter %s from stack", param.Name)
-				g.storeFromHL(param.Reg)
+				g.storeFromHL(storeReg)
 			}
 		}
 	}
@@ -2081,7 +2184,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		// First, determine the type of the variable
 		var varType ir.Type
 		var localReg ir.Register
-		
+
 		// Check if this is a global variable by symbol name
 		if inst.Symbol != "" {
 			// Look up global variable
@@ -2098,6 +2201,17 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 						break
 					}
 				}
+				// If not found in locals, check parameters.
+				// Parameters are stored by loadParametersFromRegisters to param.Reg's address.
+				if localReg == 0 && g.currentFunc != nil {
+					for _, param := range g.currentFunc.Params {
+						if param.Name == inst.Symbol {
+							localReg = param.Reg
+							varType = param.Type
+							break
+						}
+					}
+				}
 			}
 		} else {
 			// Local variable by register
@@ -2110,6 +2224,43 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				}
 			}
 		}
+
+		// Fast path: local variable is resident in a physical register — no memory access needed.
+		if phys, resident := g.localResidents[localReg]; resident && localReg != 0 {
+			regName := g.physicalRegToAssembly(phys)
+			isU8local := false
+			if bt, ok := varType.(*ir.BasicType); ok {
+				isU8local = bt.Kind == ir.TypeU8 || bt.Kind == ir.TypeI8 || bt.Kind == ir.TypeBool
+			}
+			if isU8local {
+				g.emit("    LD A, %s      ; load resident %s", regName, inst.Symbol)
+				g.storeFromA(inst.Dest)
+			} else {
+				// For 16-bit pair residents: copy to HL if needed, then persist to memory.
+				// Note: HL is used as both the resident home for some variables AND as a
+				// scratch register for DE→HL copies. Writes to memory ensure correctness
+				// when multiple u16 residents are interleaved in a single expression.
+				switch phys {
+				case RegHL:
+					// value already in HL — just track (no copy, no memory write)
+					g.currentRegister = inst.Dest
+					break
+				case RegDE:
+					g.emit("    LD H, D       ; load resident %s", inst.Symbol)
+					g.emit("    LD L, E")
+				case RegBC:
+					g.emit("    LD H, B       ; load resident %s", inst.Symbol)
+					g.emit("    LD L, C")
+				default:
+					goto loadVarFromMemory
+				}
+				// DE/BC cases: persist HL to memory so subsequent reloads are correct
+				// even if HL is later clobbered by another operation.
+				g.storeFromHL(inst.Dest)
+			}
+			break
+		}
+	loadVarFromMemory:
 		
 		// Load value based on type
 		isU8 := false
@@ -2209,19 +2360,51 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 				}
 			}
 		}
-		
+
+		// Fast path: local variable is resident in a physical register — store directly.
+		if phys, resident := g.localResidents[localReg]; resident && localReg != 0 {
+			isU8store := false
+			if bt, ok := varType.(*ir.BasicType); ok {
+				isU8store = bt.Kind == ir.TypeU8 || bt.Kind == ir.TypeI8 || bt.Kind == ir.TypeBool
+			}
+			if isU8store {
+				if inst.Src1 != ir.RegZero {
+					g.loadToA(inst.Src1)
+				}
+				regName := g.physicalRegToAssembly(phys)
+				g.emit("    LD %s, A      ; store resident %s", regName, inst.Symbol)
+			} else {
+				if inst.Src1 != ir.RegZero {
+					g.loadToHL(inst.Src1)
+				}
+				switch phys {
+				case RegHL:
+					// value already in HL
+				case RegDE:
+					// Use pseudo-instruction LD DE, HL (expanded by MZA to LD D,H : LD E,L)
+					g.emit("    LD DE, HL     ; store resident %s → DE", inst.Symbol)
+				case RegBC:
+					g.emit("    LD BC, HL     ; store resident %s → BC", inst.Symbol)
+				default:
+					goto storeVarToMemory
+				}
+			}
+			break
+		}
+	storeVarToMemory:
+
 		// Load value based on type
 		isU8 := false
 		if basicType, ok := varType.(*ir.BasicType); ok {
 			isU8 = basicType.Kind == ir.TypeU8 || basicType.Kind == ir.TypeI8
 		}
-		
+
 		if isU8 {
 			// For 8-bit values, load to A
 			if inst.Src1 != ir.RegZero {
 				g.loadToA(inst.Src1)
 			}
-			
+
 			// Store 8-bit value
 			if inst.Symbol != "" {
 				globalAddr := g.getGlobalAddr(inst.Symbol)
@@ -2957,7 +3140,7 @@ func (g *Z80Generator) generateInstruction(inst ir.Instruction) error {
 		g.emit("    LD SP, HL")
 		// Return pointer in result register
 		g.emit("    EX DE, HL")
-		g.emit("    LD HL, SP")
+		g.emit("    LD HL, SP") // MZA expands to: LD HL,0 + ADD HL,SP (4B/21T)
 		g.storeFromHL(inst.Dest)
 		
 	case ir.OpLoad:
@@ -4504,6 +4687,11 @@ func (g *Z80Generator) storeFromHL(reg ir.Register) {
 			g.emit("    LD ($%04X), HL    ; Virtual register %d to memory", addr, reg)
 		}
 	}
+	// After storing, HL still contains reg's value — update tracking so callers
+	// that ask "is reg already in HL?" get a correct answer.  This prevents stale
+	// tracking when e.g. ADD HL, DE writes a new result into HL but the previous
+	// loadToHL call left g.currentRegister pointing at an older virtual register.
+	g.currentRegister = reg
 }
 
 // getAbsoluteAddr gets the absolute address for a local variable
@@ -5184,25 +5372,19 @@ func (g *Z80Generator) generateDJNZ(decInst ir.Instruction) error {
 
 // shouldUseStackLocals determines if a function should use stack-based locals
 func (g *Z80Generator) shouldUseStackLocals(fn *ir.Function) bool {
-	// Use stack locals for:
-	// 1. Recursive functions (required)
+	// Stack locals are ONLY needed for recursive functions: a recursive call would
+	// overwrite the same $F0xx absolute addresses used by the caller frame.
+	// For non-recursive functions, $F0xx absolute spilling is always safe because
+	// each function is assigned a distinct $F0xx range by the register allocator,
+	// and values that survive calls are saved with PUSH/POP around the CALL site
+	// (same as the SMC codegen path does). No IX frame = -29T overhead per call.
 	if g.isRecursive(fn) {
 		return true
 	}
-	
-	// 2. Functions with many locals (> 6)
+	// Safety valve: very large local counts may overflow the $F0xx scratch region.
 	if len(fn.Locals) > 6 {
 		return true
 	}
-	
-	// 3. Functions that call other functions (preserve locals across calls)
-	for _, inst := range fn.Instructions {
-		if inst.Op == ir.OpCall {
-			return true
-		}
-	}
-	
-	// Otherwise use absolute addressing for speed
 	return false
 }
 
@@ -5215,6 +5397,122 @@ func (g *Z80Generator) isRecursive(fn *ir.Function) bool {
 		}
 	}
 	return false
+}
+
+// hintToZ80Reg maps a RegisterHint to the IR Z80Register that would be clobbered.
+// When there is no hint, OpPush always goes through HL (either the value is already
+// tracked there, or it gets loaded via loadToHL before PUSH HL). So we return Z80_HL
+// as the default instead of 0 (which would conservatively keep the save).
+func hintToZ80Reg(hint ir.RegisterHint) ir.Z80Register {
+	switch hint {
+	case ir.RegHintA:
+		return ir.Z80_A
+	case ir.RegHintB, ir.RegHintC, ir.RegHintBC:
+		return ir.Z80_BC
+	case ir.RegHintD, ir.RegHintE, ir.RegHintDE:
+		return ir.Z80_DE
+	case ir.RegHintH, ir.RegHintL, ir.RegHintHL:
+		return ir.Z80_HL
+	case ir.RegHintIXH, ir.RegHintIXL:
+		return ir.Z80_IX
+	case ir.RegHintIYH, ir.RegHintIYL:
+		return ir.Z80_IY
+	default:
+		// No hint: the OpPush codegen always ends up doing PUSH HL (loads to HL first).
+		return ir.Z80_HL
+	}
+}
+
+// eliminateUnnecessaryCallerSaves returns a set of instruction indices to skip.
+//
+// Pattern: OpPush(reg) … OpCall(callee) … OpPop(reg) where:
+//   - There is no OpLabel between the PUSH and POP (same basic block)
+//   - The callee is a known leaf function (no OpCall inside it)
+//   - The callee's ModifiedRegisters does NOT contain the register being pushed
+//
+// When these conditions hold the save is provably useless and both the OpPush
+// and its paired OpPop are marked for skipping.
+func (g *Z80Generator) eliminateUnnecessaryCallerSaves(instructions []ir.Instruction) map[int]bool {
+	skip := make(map[int]bool)
+
+	// Build a fast symbol → function map from the module.
+	funcByName := make(map[string]*ir.Function, len(g.module.Functions))
+	for _, f := range g.module.Functions {
+		funcByName[f.Name] = f
+	}
+
+	for i, inst := range instructions {
+		if inst.Op != ir.OpPush || skip[i] {
+			continue
+		}
+
+		pushedVReg := inst.Src1
+		z80Reg := hintToZ80Reg(inst.Hint)
+
+		// Scan forward for OpCall (abort on OpLabel = basic-block boundary).
+		callIdx := -1
+		for j := i + 1; j < len(instructions); j++ {
+			switch instructions[j].Op {
+			case ir.OpLabel:
+				goto nextPush // basic block ends
+			case ir.OpCall:
+				callIdx = j
+				goto foundCall
+			}
+		}
+		goto nextPush
+
+	foundCall:
+		// Scan forward for the matching OpPop (same virtual register, abort on label).
+		{
+			popIdx := -1
+			for j := callIdx + 1; j < len(instructions); j++ {
+				switch instructions[j].Op {
+				case ir.OpLabel:
+					goto nextPush
+				case ir.OpPop:
+					if instructions[j].Dest == pushedVReg {
+						popIdx = j
+						goto foundPop
+					}
+				}
+			}
+			goto nextPush
+
+		foundPop:
+			// Look up the callee.
+			calleeSymbol := instructions[callIdx].Symbol
+			callee, ok := funcByName[calleeSymbol]
+			if !ok || callee.IsExtern {
+				// External or unknown — be conservative.
+				goto nextPush
+			}
+
+			// Only trust ModifiedRegisters for leaf functions (no OpCall inside),
+			// because register_analysis.go conservatively marks all volatile regs
+			// for any OpCall it sees.
+			isLeaf := true
+			for _, ci := range callee.Instructions {
+				if ci.Op == ir.OpCall {
+					isLeaf = false
+					break
+				}
+			}
+			if !isLeaf {
+				goto nextPush
+			}
+
+			// If the callee doesn't clobber this register, skip both PUSH and POP.
+			if !callee.ModifiedRegisters.Contains(z80Reg) {
+				skip[i] = true
+				skip[popIdx] = true
+			}
+		}
+
+	nextPush:
+	}
+
+	return skip
 }
 
 // getLocalOffset calculates the IX+offset for a local variable

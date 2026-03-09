@@ -54,9 +54,11 @@ func (b *Z80Backend) Generate(module *ir.Module) (string, error) {
 	// Configure based on options
 	if b.options != nil {
 		if b.options.EnableSMC {
-			// Enable SMC for all functions
+			// Only enable SMC for functions that explicitly need it.
 			for _, fn := range module.Functions {
-				fn.IsSMCEnabled = true
+				if fn.UsesTrueSMC || fn.IsSMCDefault {
+					fn.IsSMCEnabled = true
+				}
 			}
 		}
 		

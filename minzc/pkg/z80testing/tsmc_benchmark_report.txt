@@ -1,7 +1,7 @@
 TSMC Performance Benchmark Report
 =================================
 
-Generated: 2026-03-02T23:14:43Z
+Generated: 2026-03-09T10:31:55Z
 
 Executive Summary
 -----------------
@@ -16,18 +16,7 @@ Detailed Results
 ### fibonacci_recursive
 Recursive Fibonacci calculation (n=10)
 
-ERROR: no-TSMC test failed: assembly failed: assembly errors:
-line 45: unknown instruction or invalid operands: LD
-line 23: unknown instruction or invalid operands: LD
-line 25: unknown instruction or invalid operands: LD
-line 27: unknown instruction or invalid operands: LD
-line 45: unknown instruction or invalid operands: LD
-line 102: unknown instruction or invalid operands: LD
-line 104: unknown instruction or invalid operands: LD
-line 106: unknown instruction or invalid operands: LD
-line 127: unknown instruction or invalid operands: LD
-line 129: unknown instruction or invalid operands: LD
-line 131: unknown instruction or invalid operands: LD
+ERROR: no-TSMC test failed: function fib_recursive not found in symbols
 
 ### fibonacci_iterative
 Iterative Fibonacci calculation (n=20)
@@ -61,14 +50,12 @@ ERROR: no-TSMC test failed: function factorial not found in symbols
 Check if number is prime with optimizations
 
 ERROR: no-TSMC test failed: assembly failed: assembly errors:
-line 148: unknown instruction or invalid operands: LD
-line 150: unknown instruction or invalid operands: LD
-line 385: unknown instruction or invalid operands: JR
-line 389: unknown instruction or invalid operands: DJNZ
-line 437: unknown instruction or invalid operands: JR
-line 441: unknown instruction or invalid operands: DJNZ
-line 520: unknown instruction or invalid operands: JR
-line 524: unknown instruction or invalid operands: DJNZ
+line 450: unknown instruction or invalid operands: JR
+line 454: unknown instruction or invalid operands: DJNZ
+line 501: unknown instruction or invalid operands: JR
+line 505: unknown instruction or invalid operands: DJNZ
+line 588: unknown instruction or invalid operands: JR
+line 592: unknown instruction or invalid operands: DJNZ
 
 ### matrix_multiply
 2x2 matrix multiplication

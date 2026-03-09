@@ -42,6 +42,15 @@ const (
 	Z80_BC_SHADOW
 	Z80_DE_SHADOW
 	Z80_HL_SHADOW
+
+	// Undocumented register halves (stable on all real Z80 NMOS/CMOS and clones).
+	// IXH/IXL occupy the H/L slots within DD-prefixed instructions.
+	// IYH/IYL occupy the H/L slots within FD-prefixed instructions.
+	// NOT available on SM83 (Game Boy). Available everywhere else.
+	Z80_IXH
+	Z80_IXL
+	Z80_IYH
+	Z80_IYL
 )
 
 // RegisterSet tracks which Z80 registers are used
@@ -249,7 +258,39 @@ const (
 	RegHintHL                // Prefer HL register pair (for pointers)
 	RegHintDE                // Prefer DE register pair
 	RegHintBC                // Prefer BC register pair
+	RegHintIXH               // Prefer IXH (undocumented high byte of IX)
+	RegHintIXL               // Prefer IXL (undocumented low byte of IX)
+	RegHintIYH               // Prefer IYH (undocumented high byte of IY)
+	RegHintIYL               // Prefer IYL (undocumented low byte of IY)
 )
+
+// LocationKind specifies how a single parameter or return value is passed.
+type LocationKind uint8
+
+const (
+	LK_PhysReg  LocationKind = iota // Standard register (A, B, HL, DE, ...)
+	LK_Stack                        // Stack slot (PUSH/POP)
+	LK_Flag                         // CPU flag (CF, ZF — for boolean returns)
+	LK_SMCPatch                     // SMC immediate patch (loop-invariant constants)
+)
+
+// ConventionLocation describes where one parameter or return value lives.
+type ConventionLocation struct {
+	Kind        LocationKind
+	Reg         Z80Register  // valid if Kind == LK_PhysReg
+	Flag        FlagCondition // valid if Kind == LK_Flag (reuses CY/NC/Z/NZ — declared below)
+	StackOffset int          // valid if Kind == LK_Stack
+	Size        int          // 1 or 2 bytes
+}
+
+// FunctionContract is the typed calling convention for one function.
+// nil = fall back to CallingConvention string (backward compatibility).
+type FunctionContract struct {
+	Params     []ConventionLocation // where each parameter arrives
+	Returns    []ConventionLocation // where each return value goes
+	Clobbers   RegisterSet          // registers destroyed by this function
+	StackBytes int                  // total stack frame size
+}
 
 // FlagCondition represents a CPU flag condition for OpJumpIfFlag
 type FlagCondition uint8
@@ -724,7 +765,8 @@ type Function struct {
 	Metadata map[string]string // Generic metadata storage
 	CalleeSavedRegs  RegisterSet // Registers this function must preserve
 	MaxStackDepth    int         // Maximum stack depth for this function
-	CallingConvention string     // ABI calling convention ("smc", "register", "stack", etc.)
+	CallingConvention string          // ABI calling convention ("smc", "register", "stack", etc.)
+	Contract         *FunctionContract // Typed calling convention; nil = use CallingConvention string
 
 	// Extern function support
 	IsExtern         bool   // True if function is @extern (no body, external linkage)
@@ -756,7 +798,8 @@ type Local struct {
 	Name   string
 	Type   Type
 	Reg    Register
-	Offset int // Stack offset if spilled
+	Offset int          // Stack offset if spilled
+	Hint   RegisterHint // Preferred physical register (attractor); RegHintNone = no preference
 }
 
 // CapturedVar represents a variable captured from a parent scope in a local function
@@ -775,8 +818,8 @@ func NewFunction(name string, returnType Type) *Function {
 		ReturnType:      returnType,
 		NextReg:         1, // Start from 1, 0 is reserved
 		NextRegister:    1, // Same as NextReg
-		IsSMCDefault:    true, // SMC is the default!
-		IsSMCEnabled:    true, // Enable SMC by default
+		IsSMCDefault:    false, // ADR-0010: register-first is the default
+		IsSMCEnabled:    false, // ADR-0010: SMC opt-in via @abi(smc)
 		SMCParamOffsets: make(map[string]int),
 	}
 }
