@@ -351,6 +351,14 @@ func blockUseDef(f *Func, b *Block, isEntry bool) (use *RegSet, def *RegSet) {
 		for _, arg := range t.GtArgs {
 			addUse(arg)
 		}
+	case *TermDJNZ:
+		addUse(t.Counter)
+		for _, arg := range t.BodyArgs {
+			addUse(arg)
+		}
+		for _, arg := range t.ExitArgs {
+			addUse(arg)
+		}
 	case *TermRet:
 		for _, v := range t.Vals {
 			addUse(v)
@@ -369,6 +377,8 @@ func termSuccessors(t Term) []string {
 		return []string{t.Then, t.Else}
 	case *TermBrIf2:
 		return []string{t.Eq, t.Lt, t.Gt}
+	case *TermDJNZ:
+		return []string{t.Body, t.Exit}
 	case *TermRet, *TermUnreachable:
 		return nil
 	}

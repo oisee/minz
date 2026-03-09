@@ -1643,3 +1643,281 @@ func TestDoubleSumZ80(t *testing.T) {
 		t.Logf("VM double_sum(3,4) = %d ✓", res[0].I)
 	}
 }
+
+// ── min16 ─────────────────────────────────────────────────────────────────────
+//
+// fun min16(a: u16, b: u16) -> u16 { if a < b { return a } else { return b } }
+//
+// First 16-bit comparison test: uses SBC HL, DE to set C flag.
+// Convention: a → HL (ClassPointer), b → DE (ClassIndex), return → HL.
+func buildMin16(m *mir2.Module) *mir2.Func {
+	f := m.AddFunc("min16")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassPointer}}
+	bld := mir2.NewBuilder(f)
+
+	bld.SwitchToNewBlock("entry")
+	a := bld.Param("a", mir2.TyU16, mir2.ClassPointer)
+	bv := bld.Param("b", mir2.TyU16, mir2.ClassIndex)
+
+	// a < b (unsigned): SBC HL(=a), DE(=b) → C flag
+	clt := bld.Cmp(mir2.CmpUlt, a, bv, mir2.ClassFlag, false)
+	bld.BrIf(clt, "a_wins", nil, "b_wins", nil)
+
+	bld.SwitchToNewBlock("a_wins")
+	bld.Ret(a)
+
+	bld.SwitchToNewBlock("b_wins")
+	bvHL := bld.Move(bv, mir2.TyU16, mir2.ClassPointer) // EX DE,HL or LD HL,DE
+	bld.Ret(bvHL)
+
+	return f
+}
+
+// bootstrapHL_DE loads HL and DE then calls funcName.
+// The result is read from HL after HALT.
+func bootstrapHL_DE(funcName string, hlVal, deVal int) string {
+	return fmt.Sprintf(`
+    ORG 0x%04X
+    LD SP, 0xFF00
+    LD HL, %d
+    LD DE, %d
+    CALL %s
+    DI
+    HALT
+`, testLoadAddr, hlVal, deVal, funcName)
+}
+
+func TestMin16Z80(t *testing.T) {
+	m := &mir2.Module{Name: "min16"}
+	buildMin16(m)
+	asm := compileFunc(t, m)
+	t.Log("\n" + asm)
+
+	// Verify SBC HL, DE is in the output (16-bit comparison).
+	if !strings.Contains(asm, "SBC HL, DE") {
+		t.Errorf("expected 'SBC HL, DE' in assembly:\n%s", asm)
+	}
+
+	cases := []struct{ a, b, want int }{
+		{3, 7, 3},
+		{7, 3, 3},
+		{5, 5, 5},
+		{0, 1000, 0},
+		{1000, 0, 0},
+		{300, 301, 300},
+		{1000, 999, 999},
+		{0, 65535, 0},
+		{65535, 0, 0},
+		{32767, 32768, 32767},
+	}
+	for _, tc := range cases {
+		src := bootstrapHL_DE("min16", tc.a, tc.b) + "\n" + asm
+		_, hl, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("min16(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(hl) != tc.want {
+			t.Errorf("min16(%d,%d) = %d, want %d", tc.a, tc.b, int(hl), tc.want)
+		} else {
+			t.Logf("min16(%d,%d) = %d ✓", tc.a, tc.b, int(hl))
+		}
+	}
+}
+
+// ── @print intrinsic ──────────────────────────────────────────────────────────
+//
+// TestPrintStrZ80 verifies the @mir.io.print.str intrinsic:
+//
+//	fun greet(s: *u8) -> void {
+//	    @mir.io.print.str(s)
+//	}
+//
+// The intrinsic is inlined as a NUL-terminated string output loop via
+// OUT (0x01), A — the debug console port in the MZE emulator.
+// The test verifies that the emulator captures the expected string.
+
+// buildGreet builds a simple function that calls @mir.io.print.str with its
+// string-pointer argument.
+func buildGreet(m *mir2.Module) *mir2.Func {
+	f := m.AddFunc("greet")
+	// No return value: void function
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	ptr := b.Param("s", mir2.TyPtr, mir2.ClassPointer) // HL = string pointer
+
+	// Emit @mir.io.print.str(ptr) — inlined by codegen
+	b.IntrinsicVoid("io.print.str", []mir2.Reg{ptr})
+	b.Ret()
+
+	return f
+}
+
+// runZ80WithOutput assembles and runs src; returns captured OUT(0x01) output and error.
+func runZ80WithOutput(t *testing.T, src string) (string, error) {
+	t.Helper()
+	asm := z80asm.NewAssembler()
+	res, asmErr := asm.AssembleString(src)
+	if asmErr != nil {
+		return "", fmt.Errorf("assemble: %w", asmErr)
+	}
+	if len(res.Errors) > 0 {
+		var sb strings.Builder
+		for _, e := range res.Errors {
+			sb.WriteString(e.Error())
+			sb.WriteByte('\n')
+		}
+		return "", fmt.Errorf("assemble errors:\n%s", sb.String())
+	}
+	z80 := emulator.NewRemogattoZ80()
+	if loadErr := z80.LoadMemory(testLoadAddr, res.Binary); loadErr != nil {
+		return "", fmt.Errorf("load memory: %w", loadErr)
+	}
+	z80.SetPC(testLoadAddr)
+	if runErr := z80.Run(); runErr != nil {
+		return "", fmt.Errorf("run: %w", runErr)
+	}
+	return string(z80.GetOutput()), nil
+}
+
+func TestPrintStrZ80(t *testing.T) {
+	m := &mir2.Module{Name: "print_test"}
+	buildGreet(m)
+	// Intern the string into the module's string pool so it gets emitted as data.
+	strSym, _ := m.Strings.Intern("Hello, MIR2!")
+
+	asm := compileFunc(t, m)
+	t.Logf("generated assembly:\n%s", asm)
+
+	// The sanitized symbol for "@mir2.str.0" → "_mir2_str_0"
+	_ = strSym
+
+	// Bootstrap: load HL = address of "Hello, MIR2!", call greet, HALT.
+	boot := fmt.Sprintf(`
+    ORG 0x%04X
+    LD SP, 0xFF00
+    LD HL, _mir2_str_0
+    CALL greet
+    DI
+    HALT
+`, testLoadAddr)
+
+	src := boot + "\n" + asm
+	got, err := runZ80WithOutput(t, src)
+	if err != nil {
+		t.Fatalf("greet: %v", err)
+	}
+	want := "Hello, MIR2!"
+	if got != want {
+		t.Errorf("print output = %q, want %q", got, want)
+	} else {
+		t.Logf("print output = %q ✓", got)
+	}
+}
+
+// ── sum_array_djnz ─────────────────────────────────────────────────────────────
+//
+// Same as sum_array but uses TermDJNZ explicitly (do-while loop structure).
+// Assumes count >= 1 (caller guarantees non-empty array).
+// The loop body ends with DJNZ instead of DEC B + JP loop_head.
+func buildSumArrayDJNZ(m *mir2.Module) *mir2.Func {
+	f := m.AddFunc("sum_array_djnz")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	base := b.Param("base", mir2.TyPtr, mir2.ClassPointer)   // HL
+	count := b.Param("count", mir2.TyU8, mir2.ClassCounter)  // B
+	acc0 := b.Const(0, mir2.TyU8, mir2.ClassAcc)
+	accG := b.Move(acc0, mir2.TyU8, mir2.ClassGeneral) // acc in C
+	// Initial check: if count == 0, skip loop.
+	zero8 := b.Const(0, mir2.TyU8, mir2.ClassGeneral)
+	notZero := b.Cmp(mir2.CmpNe, count, zero8, mir2.ClassFlag, false)
+	// body.Params order: cnt(B), ptr(HL), acc(C)
+	b.BrIf(notZero, "loop_body", []mir2.Reg{count, base, accG}, "exit", []mir2.Reg{accG})
+
+	// loop_body(cnt: ClassCounter, ptr: ClassPointer, acc: ClassGeneral)
+	// Counter MUST be Params[0] for DJNZ (body.Params[0] receives decremented B).
+	body := b.SwitchToNewBlock("loop_body")
+	cntB := b.BlockParam(body, mir2.TyU8, mir2.ClassCounter)   // B (counter, implicit in DJNZ) — must be Params[0]
+	ptrB := b.BlockParam(body, mir2.TyPtr, mir2.ClassPointer)  // HL
+	accB := b.BlockParam(body, mir2.TyU8, mir2.ClassGeneral)   // C
+
+	elem := b.Load(ptrB, mir2.TyU8, mir2.ClassAcc)             // LD A, (HL)
+	sum := b.Add(elem, accB, mir2.TyU8, mir2.ClassAcc)         // ADD A, C
+	accNew := b.Move(sum, mir2.TyU8, mir2.ClassGeneral)        // LD C, A
+	ptr2 := b.PtrBump(ptrB, 1, mir2.ClassPointer)              // INC HL
+	// TermDJNZ: decrement cntB (B), jump to loop_body if non-zero.
+	// BodyArgs = args for body.Params[1:] (ptr and acc; counter is implicit as Params[0]).
+	b.DJNZ(cntB, "loop_body", []mir2.Reg{ptr2, accNew}, "exit", []mir2.Reg{accNew})
+
+	exit := b.SwitchToNewBlock("exit")
+	resultC := b.BlockParam(exit, mir2.TyU8, mir2.ClassGeneral)
+	resultA := b.Move(resultC, mir2.TyU8, mir2.ClassAcc)       // LD A, C
+	b.Ret(resultA)
+
+	return f
+}
+
+func TestSumArrayDJNZZ80(t *testing.T) {
+	m := &mir2.Module{Name: "sum_array_djnz"}
+	buildSumArrayDJNZ(m)
+	asm := compileFunc(t, m)
+	t.Log("\n" + asm)
+
+	// Verify DJNZ instruction is in the generated code.
+	if !strings.Contains(asm, "DJNZ") {
+		t.Errorf("expected DJNZ in generated assembly:\n%s", asm)
+	}
+
+	cases := []struct {
+		data []int
+		want int
+	}{
+		{[]int{10, 20, 30, 40, 50}, 150},
+		{[]int{1, 2, 3, 4, 5, 6, 7}, 28},
+		{[]int{100}, 100},
+		{[]int{255, 1}, 0}, // overflow: 256 mod 256 = 0
+	}
+	for _, tc := range cases {
+		// Build data section.
+		var dataLines []string
+		for _, v := range tc.data {
+			dataLines = append(dataLines, fmt.Sprintf("    DB %d", v))
+		}
+		data := "test_arr_djnz:\n" + strings.Join(dataLines, "\n")
+		boot := fmt.Sprintf(`
+    ORG 0x%04X
+    LD SP, 0xFF00
+    LD HL, test_arr_djnz
+    LD B, %d
+    CALL sum_array_djnz
+    DI
+    HALT
+`, testLoadAddr, len(tc.data))
+		src := boot + "\n" + asm + "\n" + data
+		a, _, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("sum_array_djnz(%v): %v", tc.data, err)
+			continue
+		}
+		if int(a) != tc.want {
+			t.Errorf("sum_array_djnz(%v) = %d, want %d", tc.data, int(a), tc.want)
+		} else {
+			t.Logf("sum_array_djnz(%v) = %d ✓", tc.data, int(a))
+		}
+	}
+}
+
+func TestSumArrayDJNZPeephole(t *testing.T) {
+	// The existing buildSumArray uses the pre-check while-loop structure.
+	// The DJNZ peephole should automatically convert it to DJNZ.
+	m := &mir2.Module{Name: "sum_array_peep"}
+	buildSumArray(m)
+	asm := compileFunc(t, m)
+	t.Log("\n" + asm)
+	if !strings.Contains(asm, "DJNZ") {
+		t.Errorf("expected DJNZ peephole to apply:\n%s", asm)
+	}
+}

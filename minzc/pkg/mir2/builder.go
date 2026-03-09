@@ -334,6 +334,41 @@ func (b *Builder) BrIf2(lhs, rhs Reg, eq string, eqArgs []Reg, lt string, ltArgs
 	})
 }
 
+// Push emits a PUSH instruction (spill register to stack).
+func (b *Builder) Push(r Reg, ty Ty) {
+	b.emit(&Inst{Op: OpPush, Src: [2]Reg{r}, Ty: ty})
+}
+
+// Pop emits a POP instruction (restore register from stack).
+func (b *Builder) Pop(ty Ty, cls RegClass) Reg {
+	r := b.reg()
+	b.emit(&Inst{Op: OpPop, Dst: r, Ty: ty, Cls: cls})
+	return r
+}
+
+// PtrBumpSoA256Element advances a SoA256 pointer to the next element: INC L (4T).
+// stride = -1 signals "SoA256 element advance".
+func (b *Builder) PtrBumpSoA256Element(ptr Reg, cls RegClass) Reg {
+	return b.PtrBump(ptr, -1, cls)
+}
+
+// PtrBumpSoA256Field switches a SoA256 pointer to the next field column: INC H (4T).
+// stride = 256 signals "SoA256 field column switch".
+func (b *Builder) PtrBumpSoA256Field(ptr Reg, cls RegClass) Reg {
+	return b.PtrBump(ptr, 256, cls)
+}
+
+// DJNZ emits a Z80 DJNZ terminator.
+// counter must be in ClassCounter (B). The body block's first param receives
+// the decremented counter. BodyArgs are args for body.Params[1:].
+func (b *Builder) DJNZ(counter Reg, body string, bodyArgs []Reg, exit string, exitArgs []Reg) {
+	b.Cur.Seal(&TermDJNZ{
+		Counter:  counter,
+		Body:     body, BodyArgs: bodyArgs,
+		Exit:     exit, ExitArgs: exitArgs,
+	})
+}
+
 // Ret seals the current block with a return.
 func (b *Builder) Ret(vals ...Reg) { b.Cur.Seal(&TermRet{Vals: vals}) }
 

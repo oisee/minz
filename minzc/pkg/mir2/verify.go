@@ -135,6 +135,18 @@ func verifyTermArgs(fromLabel string, term Term, blockMap map[string]blockInfo) 
 			return err
 		}
 		return check(t.Gt, t.GtArgs)
+	case *TermDJNZ:
+		// Body block's first param is the counter (implicit from B); BodyArgs = remaining params.
+		bodyInfo, ok := blockMap[t.Body]
+		if !ok {
+			return fmt.Errorf("block @%s: djnz branch to unknown block @%s", fromLabel, t.Body)
+		}
+		if len(t.BodyArgs)+1 != len(bodyInfo.params) {
+			return fmt.Errorf(
+				"block @%s: djnz to @%s supplies %d body args but block has %d params (counter is implicit)",
+				fromLabel, t.Body, len(t.BodyArgs), len(bodyInfo.params))
+		}
+		return check(t.Exit, t.ExitArgs)
 	}
 	return nil // TermRet / TermUnreachable have no targets
 }

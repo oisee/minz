@@ -494,7 +494,7 @@ func (z *RemogattoZ80) GetSP() uint16 {
 
 // GetOutput returns captured output
 func (z *RemogattoZ80) GetOutput() []byte {
-	return z.output
+	return *z.ports.output
 }
 
 // GetExitCode returns the exit code

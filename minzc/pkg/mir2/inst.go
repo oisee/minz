@@ -109,6 +109,14 @@ func (inst *Inst) Uses() []Reg {
 	switch inst.Op {
 	case OpStore, OpPatch:
 		return filterNoReg(inst.Src[0], inst.Src[1])
+	case OpPush:
+		if inst.Src[0] != NoReg {
+			return []Reg{inst.Src[0]}
+		}
+		return nil
+	case OpPop:
+		// no uses (pops from implicit stack)
+		return nil
 	case OpCall:
 		return inst.Args
 	case OpCallIndirect:
@@ -143,7 +151,7 @@ func filterNoReg(regs ...Reg) []Reg {
 // Terminators carry block-argument values to successor blocks, which
 // eliminates the need for phi nodes.
 //
-// Concrete types: *TermJmp, *TermBrIf, *TermBrIf2, *TermRet, *TermUnreachable.
+// Concrete types: *TermJmp, *TermBrIf, *TermBrIf2, *TermDJNZ, *TermRet, *TermUnreachable.
 type Term interface {
 	isTerm()
 	termUses() []Reg   // all Reg values read by this terminator
@@ -223,6 +231,43 @@ func (t *TermBrIf2) termUses() []Reg {
 }
 func (t *TermBrIf2) Successors() []string { return []string{t.Eq, t.Lt, t.Gt} }
 
+// TermDJNZ is the Z80 DJNZ (Decrement B and Jump if Non-Zero) terminator.
+//
+// DJNZ atomically decrements the B register (ClassCounter) and branches to
+// Body if B != 0, or falls through to Exit if B == 0.
+//
+//	Z80: DJNZ rel8  — 13T taken (B≠0), 8T not taken (B=0)
+//
+// Compared to the equivalent DEC B (4T) + JP NZ (10T) + pre-check AND A (4T) + JP Z (10T)
+// = 28T, DJNZ saves 15T per iteration.
+//
+// Counter is the virtual register holding the current iteration count.
+// It must be allocated to ClassCounter (B register).
+// After DJNZ, B holds (Counter - 1); on the next iteration Body receives this value.
+//
+// BodyArgs: args for body block params EXCLUDING the counter (body.Params[0]).
+// The body block's first param (ClassCounter) implicitly receives the decremented B.
+// ExitArgs: args for exit block params.
+type TermDJNZ struct {
+	Counter  Reg
+	Body     string
+	BodyArgs []Reg
+	Exit     string
+	ExitArgs []Reg
+}
+
+func (*TermDJNZ) isTerm() {}
+func (t *TermDJNZ) termUses() []Reg {
+	all := make([]Reg, 0, 1+len(t.BodyArgs)+len(t.ExitArgs))
+	if t.Counter != NoReg {
+		all = append(all, t.Counter)
+	}
+	all = append(all, t.BodyArgs...)
+	all = append(all, t.ExitArgs...)
+	return all
+}
+func (t *TermDJNZ) Successors() []string { return []string{t.Body, t.Exit} }
+
 // TermRet returns from the function.
 // Vals is empty for void returns; multiple values for multi-return.
 type TermRet struct{ Vals []Reg }
@@ -252,6 +297,9 @@ func TermString(term Term) string {
 			t.Eq, regList(t.EqArgs),
 			t.Lt, regList(t.LtArgs),
 			t.Gt, regList(t.GtArgs))
+	case *TermDJNZ:
+		return fmt.Sprintf("djnz %%r%d, @%s(%s), @%s(%s)",
+			t.Counter, t.Body, regList(t.BodyArgs), t.Exit, regList(t.ExitArgs))
 	case *TermRet:
 		if len(t.Vals) == 0 {
 			return "ret void"

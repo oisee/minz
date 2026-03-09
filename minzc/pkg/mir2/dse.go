@@ -97,6 +97,14 @@ func termRegUses(t Term) []Reg {
 		out = append(out, v.LtArgs...)
 		out = append(out, v.GtArgs...)
 		return out
+	case *TermDJNZ:
+		uses := make([]Reg, 0, 1+len(v.BodyArgs)+len(v.ExitArgs))
+		if v.Counter != NoReg {
+			uses = append(uses, v.Counter)
+		}
+		uses = append(uses, v.BodyArgs...)
+		uses = append(uses, v.ExitArgs...)
+		return uses
 	case *TermRet:
 		return v.Vals
 	}

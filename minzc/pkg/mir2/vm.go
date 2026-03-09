@@ -280,6 +280,32 @@ func (vm *VM) execTerm(fr *frame, blk *Block) ([]Value, error) {
 		}
 		return vm.execBlock(fr, next, collectArgs(fr, args))
 
+	case *TermDJNZ:
+		// Decrement counter, branch to Body if non-zero, else Exit.
+		cval := fr.get(t.Counter).I
+		cval-- // decrement
+		if cval != 0 {
+			// Body: first block param receives the decremented counter.
+			// BodyArgs are args for body.Params[1:].
+			bodyBlock := fr.fn.BlockByLabel(t.Body)
+			if bodyBlock == nil {
+				return nil, fmt.Errorf("djnz body: unknown block @%s", t.Body)
+			}
+			// Build args: [decremented counter] + BodyArgs.
+			bodyArgVals := make([]Value, 1+len(t.BodyArgs))
+			bodyArgVals[0] = Value{I: cval}
+			for i, r := range t.BodyArgs {
+				bodyArgVals[i+1] = fr.get(r)
+			}
+			return vm.execBlock(fr, bodyBlock, bodyArgVals)
+		}
+		// Exit path.
+		exitBlock := fr.fn.BlockByLabel(t.Exit)
+		if exitBlock == nil {
+			return nil, fmt.Errorf("djnz exit: unknown block @%s", t.Exit)
+		}
+		return vm.execBlock(fr, exitBlock, collectArgs(fr, t.ExitArgs))
+
 	case *TermUnreachable:
 		return nil, fmt.Errorf("mir2.VM: reached unreachable in @%s block @%s",
 			fr.fn.Name, blk.Label)

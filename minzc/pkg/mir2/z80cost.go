@@ -1,17 +1,19 @@
 package mir2
 
+import "github.com/minz/minzc/pkg/z80timing"
+
 // Z80PhysLocs is the canonical list of all physical storage locations on a Z80.
 //
-// Cost tiers (T-states):
+// Cost tiers (T-states from pkg/z80timing):
 //
 //	Tier 0 — primary 8-bit:  A B C D E H L        (0T overhead)
 //	Tier 0 — primary 16-bit: HL DE BC              (0T overhead)
-//	Tier 1 — index 16-bit:   IX IY                 (+8T: DD/FD prefix per instr)
-//	Tier 1 — index 8-bit:    IXH IXL IYH IYL       (+8T: undocumented halves)
-//	Tier 2 — shadow 8-bit:   B' C' D' E' H' L'     (+8T: EXX in + EXX out per region)
-//	Tier 2 — shadow acc:     A'                    (+4T: EX AF,AF' in + out)
-//	Tier 3 — stack slot:     (SP-relative)          (21T: PUSH 11T + POP 10T)
-//	Tier 4 — memory slot:    $F0xx                  (26–32T: LD (nn),r + LD r,(nn))
+//	Tier 1 — index 16-bit:   IX IY                 (+4T: DD/FD prefix per instr)
+//	Tier 1 — index 8-bit:    IXH IXL IYH IYL       (+4T: undocumented halves)
+//	Tier 2 — shadow via EXX: B' C' D' E' H' L'     (+8T: EXX in + EXX out per region)
+//	Tier 2 — shadow acc:     A'                    (+8T: EX AF,AF' in + out)
+//	Tier 3 — stack slot:     (SP-relative)          (z80timing.StackRoundTrip = 21T)
+//	Tier 4 — memory slot:    $F0xx                  (z80timing.MemRoundTrip8 = 26T)
 //	Special — CPU flag:      CY/Z flag              (0T: set by cmp/sub naturally)
 var Z80PhysLocs = []PhysLoc{
 	// ── Tier 0: primary 8-bit ────────────────────────────────────────────────
@@ -53,17 +55,15 @@ var Z80PhysLocs = []PhysLoc{
 
 // Z80CostTable is a concrete CostTable for Z80 targets.
 //
-// Cost semantics (abstract units ≈ T-states):
+// All costs are in T-states as defined in pkg/z80timing.
+// Key derived constants:
 //
-//	0        perfect fit (e.g. B for ClassCounter, HL for ClassPointer)
-//	2        same-tier alternative with negligible penalty
-//	4        same-tier but requires an extra MOV or EX
-//	6        wrong tier but usable (e.g. BC as a secondary pointer)
-//	8        index-register tier (DD/FD prefix on every instruction)
-//	10       EXX shadow region overhead (in + out = ~8T)
-//	21       stack PUSH/POP (11T + 10T)
-//	28       memory $F0xx (LD (nn),r = 13T + LD r,(nn) = 13T + 2T setup)
-//	InfCost  physically impossible for this class
+//	Reg-reg move:      z80timing.RegRegMove      =  4T  (LD r, r')
+//	Immediate load:    z80timing.LD_r_n           =  7T  (LD r, n)
+//	Stack round-trip:  z80timing.StackRoundTrip   = 21T  (PUSH+POP)
+//	Memory round-trip: z80timing.MemRoundTrip8    = 26T  (LD (nn),A + LD A,(nn))
+//	IXY overhead:      z80timing.IXY_OVERHEAD     =  4T  (DD/FD prefix per instr)
+//	Flag materialise:  z80timing.FlagMaterialise8 =  8T  (SCF+SBC A,A)
 type Z80CostTable struct{}
 
 var _ CostTable = (*Z80CostTable)(nil)
@@ -111,42 +111,38 @@ func (Z80CostTable) Cost(cls RegClass, loc PhysLoc) int {
 
 // costAcc: ClassAcc → prefers A (8-bit accumulator).
 // Most Z80 ALU ops write to A.  Other 8-bit regs require LD A,r / LD r,A wrapping.
-//
-// For 16-bit values (u16/ptr) locCompatible already filters out 8-bit locs,
-// so the costs below for HL/DE/BC/IX/IY are only reached for 16-bit virtuals.
-// InfCost is reserved for truly impossible combos (ClassAcc + CPU flag).
 func costAcc(loc PhysLoc) int {
 	switch loc.Kind {
 	case LocReg:
 		switch loc.Name {
 		case "A":
 			return 0
-		case "B", "C", "D", "E":
-			return 4 // LD A,r + LD r,A; often fused
-		case "H", "L":
-			return 4
+		case "B", "C", "D", "E", "H", "L":
+			// LD A,r (4T) + LD r,A (4T) = 8T per round-trip,
+			// but in practice only one direction matters → cost 4.
+			return z80timing.RegRegMove
 		// 16-bit: u8 values can't reach here (locCompatible blocks them).
 		// For u16 [acc] (e.g. ext u8→u16), HL is best: LD H,0 / LD L,A.
 		case "HL":
-			return 4
+			return z80timing.RegRegMove
 		case "DE":
-			return 6
+			return z80timing.RegRegMove + 2
 		case "BC":
-			return 8
+			return z80timing.RegRegMove + 4
 		}
 	case LocIXY:
-		return 10 // IX/IY: 16-bit, DD/FD prefix overhead; beats stack (21T)
+		// IX/IY: 16-bit, DD/FD prefix overhead; beats stack.
+		return z80timing.RegRegMove + z80timing.IXY_OVERHEAD + 2
 	case LocIXY8:
-		return 8 // undocumented halves; prefix overhead per use
+		// Undocumented halves; prefix overhead per use.
+		return z80timing.RegRegMove + z80timing.IXY_OVERHEAD
 	case LocShadow:
-		// EX AF,AF' / EXX emission not yet implemented — shadow is physically
-		// valid but assigning here generates broken code. InfCost until codegen
-		// supports EXX regions. ClassAccShadow is the proper class for A'.
+		// EX AF,AF' / EXX not yet implemented in codegen.
 		return InfCost
 	case LocStack:
-		return 21
+		return z80timing.StackRoundTrip
 	case LocMem:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
 		return InfCost
 	}
@@ -161,23 +157,20 @@ func costCounter(loc PhysLoc) int {
 		switch loc.Name {
 		case "B":
 			return 0
-		case "C", "D", "E", "H", "L":
-			return 4
-		case "A":
-			return 4
+		case "C", "D", "E", "H", "L", "A":
+			return z80timing.RegRegMove
 		case "HL", "DE", "BC":
 			return InfCost // 16-bit pairs aren't byte counters
 		}
 	case LocIXY8:
-		return 8
+		return z80timing.RegRegMove + z80timing.IXY_OVERHEAD
 	case LocShadow:
-		// EXX emission not implemented — shadow regs are off-limits for all
-		// standard classes until codegen supports EXX region detection.
+		// EXX not implemented.
 		return InfCost
 	case LocStack:
-		return 21
+		return z80timing.StackRoundTrip
 	case LocMem:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
 		return InfCost
 	}
@@ -189,37 +182,34 @@ func costCounter(loc PhysLoc) int {
 // A and B are given a slightly higher cost (2) so that ClassAcc and
 // ClassCounter always win A and B when there is competition.  C, D, E, H, L
 // are the preferred "general" registers (cost 0).
-//
-// 16-bit values (locCompatible blocks u8→HL etc.) get reasonable pair costs.
 func costGeneral(loc PhysLoc) int {
 	switch loc.Kind {
 	case LocReg:
 		switch loc.Name {
 		case "A", "B":
-			return 2 // usable but prefer C/D/E/H/L so ClassAcc/Counter win
+			// Usable but prefer C/D/E/H/L so ClassAcc/Counter win.
+			return 2
 		case "C", "D", "E", "H", "L":
 			return 0
 		// 16-bit: only reachable for u16+ values (locCompatible blocks u8).
 		case "HL":
-			return 2 // HL is the best general-purpose 16-bit register
+			return 2
 		case "DE":
 			return 2
 		case "BC":
-			return 4
+			return z80timing.RegRegMove
 		}
 	case LocIXY:
-		return 8 // 16-bit index; prefix overhead
+		return z80timing.RegRegMove + z80timing.IXY_OVERHEAD
 	case LocIXY8:
-		return 8 // undocumented halves: prefix overhead
+		return z80timing.RegRegMove + z80timing.IXY_OVERHEAD
 	case LocShadow:
-		// EXX emission not yet implemented in codegen — shadow registers are
-		// physically valid but assigning here would generate broken code.
-		// Keep InfCost until EXX region detection is implemented.
+		// EXX not implemented.
 		return InfCost
 	case LocStack:
-		return 21
+		return z80timing.StackRoundTrip
 	case LocMem:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
 		return InfCost
 	}
@@ -235,24 +225,18 @@ func costPointer(loc PhysLoc) int {
 		case "HL":
 			return 0
 		case "DE":
-			return 4 // EX DE,HL or use with restrictions
+			return z80timing.RegRegMove // EX DE,HL or use with restrictions
 		case "BC":
-			return 6 // very limited: only LD A,(BC)/LD (BC),A
+			return z80timing.RegRegMove + 2 // very limited: only LD A,(BC)/LD (BC),A
 		case "A", "B", "C", "D", "E", "H", "L":
 			return InfCost // 8-bit registers cannot hold 16-bit addresses
 		}
 	case LocIXY:
-		return 8 // IX/IY+d addressing; DD/FD prefix = +8T per instr
+		// IX/IY+d addressing; DD/FD prefix = IXY_OVERHEAD per instr
+		return z80timing.RegRegMove + z80timing.IXY_OVERHEAD
 	case LocIXY8:
 		return InfCost // 8-bit halves can't be 16-bit pointers
 	case LocShadow:
-		if loc.Name == "A'" {
-			return InfCost
-		}
-		// HL',DE',BC' via EXX — accessible but expensive region overhead
-		if loc.Name == "H'" || loc.Name == "L'" {
-			return InfCost // shadow pair, not easily addressable as pointer
-		}
 		return InfCost
 	case LocStack:
 		return InfCost // SP-relative addressing requires extra ADD HL,SP
@@ -272,14 +256,14 @@ func costIndex(loc PhysLoc) int {
 		case "DE":
 			return 0
 		case "HL":
-			return 4
+			return z80timing.RegRegMove
 		case "BC":
-			return 6
+			return z80timing.RegRegMove + 2
 		case "A", "B", "C", "D", "E", "H", "L":
 			return InfCost
 		}
 	case LocIXY:
-		return 8 // IX/IY usable as source with +d addressing
+		return z80timing.RegRegMove + z80timing.IXY_OVERHEAD
 	case LocIXY8:
 		return InfCost
 	case LocShadow:
@@ -305,15 +289,16 @@ func costPair(loc PhysLoc) int {
 			return InfCost
 		}
 	case LocIXY:
-		return 8 // IX/IY are 16-bit but have prefix overhead
+		return z80timing.RegRegMove + z80timing.IXY_OVERHEAD // IX/IY are 16-bit but have prefix overhead
 	case LocIXY8:
 		return InfCost
 	case LocShadow:
-		return 10 // EXX shadow pairs: accessible as pairs but region overhead
+		// HL',DE',BC' via EXX — region overhead ~8T per region
+		return z80timing.EXX * 2
 	case LocStack:
-		return 21
+		return z80timing.StackRoundTrip
 	case LocMem:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
 		return InfCost
 	}
@@ -333,11 +318,11 @@ func costIX(loc PhysLoc) int {
 	case LocReg:
 		switch loc.Name {
 		case "HL":
-			return 8 // spill IX → HL: lose +d addressing, 8T per use
+			return z80timing.IXY_OVERHEAD * 2 // spill IX → HL: lose +d addressing
 		case "DE":
-			return 10
+			return z80timing.IXY_OVERHEAD*2 + 2
 		case "BC":
-			return 10
+			return z80timing.IXY_OVERHEAD*2 + 2
 		case "A", "B", "C", "D", "E", "H", "L":
 			return InfCost
 		}
@@ -346,9 +331,9 @@ func costIX(loc PhysLoc) int {
 	case LocShadow:
 		return InfCost
 	case LocStack:
-		return 21
+		return z80timing.StackRoundTrip
 	case LocMem:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
 		return InfCost
 	}
@@ -368,11 +353,11 @@ func costIY(loc PhysLoc) int {
 	case LocReg:
 		switch loc.Name {
 		case "HL":
-			return 8
+			return z80timing.IXY_OVERHEAD * 2
 		case "DE":
-			return 10
+			return z80timing.IXY_OVERHEAD*2 + 2
 		case "BC":
-			return 10
+			return z80timing.IXY_OVERHEAD*2 + 2
 		case "A", "B", "C", "D", "E", "H", "L":
 			return InfCost
 		}
@@ -381,9 +366,9 @@ func costIY(loc PhysLoc) int {
 	case LocShadow:
 		return InfCost
 	case LocStack:
-		return 21
+		return z80timing.StackRoundTrip
 	case LocMem:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
 		return InfCost
 	}
@@ -399,18 +384,19 @@ func costIXY8(loc PhysLoc) int {
 	case LocReg:
 		switch loc.Name {
 		case "A", "B", "C", "D", "E":
-			return 4 // primary 8-bit: needs LD r,IXH etc. (2B/8T)
+			// LD r, IXH etc. (2B/8T) — one direction only
+			return z80timing.RegRegMove + z80timing.IXY_OVERHEAD
 		case "H", "L":
 			return InfCost // H/L conflict with IX prefix
 		case "HL", "DE", "BC":
 			return InfCost
 		}
 	case LocShadow:
-		return 12
+		return z80timing.EXX + z80timing.RegRegMove
 	case LocStack:
-		return 21
+		return z80timing.StackRoundTrip
 	case LocMem:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocFlag, LocIXY:
 		return InfCost
 	}
@@ -428,19 +414,17 @@ func costShadow(loc PhysLoc) int {
 		return 0
 	case LocReg:
 		switch loc.Name {
-		case "B", "C", "D", "E", "H", "L":
-			return 8 // primary reg: can store shadow value but wastes a primary reg
-		case "A":
-			return 8
+		case "B", "C", "D", "E", "H", "L", "A":
+			return z80timing.EXX * 2 // primary reg: region overhead
 		case "HL", "DE", "BC":
-			return 8
+			return z80timing.EXX * 2
 		}
 	case LocIXY8:
-		return 12
+		return z80timing.EXX + z80timing.RegRegMove
 	case LocStack:
-		return 21
+		return z80timing.StackRoundTrip
 	case LocMem:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocFlag, LocIXY:
 		return InfCost
 	}
@@ -457,17 +441,17 @@ func costAccShadow(loc PhysLoc) int {
 		return InfCost // other shadow regs not accessible as A'
 	case LocReg:
 		if loc.Name == "A" {
-			return 4 // EX AF,AF' = 4T each way
+			return z80timing.EX_AF_AF // single exchange = 4T
 		}
 		if loc.Name == "B" || loc.Name == "C" || loc.Name == "D" ||
 			loc.Name == "E" || loc.Name == "H" || loc.Name == "L" {
-			return 8 // needs A as intermediary
+			return z80timing.EX_AF_AF + z80timing.RegRegMove // needs A as intermediary
 		}
 		return InfCost
 	case LocStack:
-		return 21
+		return z80timing.StackRoundTrip
 	case LocMem:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocFlag, LocIXY, LocIXY8:
 		return InfCost
 	}
@@ -484,14 +468,14 @@ func costStack(loc PhysLoc) int {
 	case LocReg:
 		switch loc.Name {
 		case "HL", "DE", "BC":
-			return 21 // PUSH/POP semantics: 21T round-trip
+			return z80timing.StackRoundTrip
 		case "A", "B", "C", "D", "E", "H", "L":
-			return 21 // push AF, pop AF, extract
+			return z80timing.StackRoundTrip // push AF, pop AF, extract
 		}
 	case LocShadow:
-		return 10
+		return z80timing.EXX * 2
 	case LocIXY:
-		return 21 // PUSH IX / POP IX = 15T+14T = 29T on NMOS, ~21T on CMOS
+		return z80timing.PUSH_IX + z80timing.POP_IX // 15T+14T = 29T
 	case LocIXY8:
 		return InfCost
 	case LocFlag:
@@ -510,18 +494,19 @@ func costMem(loc PhysLoc) int {
 	case LocReg:
 		switch loc.Name {
 		case "A":
-			return 26 // LD A,(nn) = 13T, LD (nn),A = 13T
+			return z80timing.MemRoundTrip8 // LD (nn),A + LD A,(nn) = 26T
 		case "B", "C", "D", "E", "H", "L":
-			return 28 // LD A,(nn) + LD r,A = 13T+4T = 17T load overhead
+			// LD A,(nn) (13T) + LD r,A (4T) = 17T load; store same as A
+			return z80timing.MemRoundTrip8 + 2
 		case "HL", "DE", "BC":
-			return 28
+			return z80timing.MemRoundTrip8 + 2
 		}
 	case LocIXY:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocIXY8:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocShadow:
-		return 30
+		return z80timing.MemRoundTrip8 + 4
 	case LocFlag:
 		return InfCost
 	}
@@ -529,26 +514,27 @@ func costMem(loc PhysLoc) int {
 }
 
 // costFlag: ClassFlag → CPU flag register (CY/Z).
-// Materialising a flag into a register is expensive; prefer keeping it as a flag.
+// A flag value is already set "for free" as a side-effect of CMP/SUB/ADD etc.
+// Materialising it into a register costs ~8T (SCF+SBC A,A pattern).
 func costFlag(loc PhysLoc) int {
 	switch loc.Kind {
 	case LocFlag:
 		return 0
 	case LocReg:
 		if loc.Name == "A" {
-			// Materialise: LD A,0 / JR NC,$+3 / INC A — ~15T; or SCF+SBC A,A — 8T
-			return 8
+			// Materialise via SCF+SBC A,A: 4T+4T = 8T
+			return z80timing.FlagMaterialise8
 		}
-		// Other regs: need A as intermediary
 		if loc.Name == "B" || loc.Name == "C" || loc.Name == "D" ||
 			loc.Name == "E" || loc.Name == "H" || loc.Name == "L" {
-			return 12
+			// Materialise to A (8T) + LD r,A (4T) = 12T
+			return z80timing.FlagMaterialise8 + z80timing.RegRegMove
 		}
 		return InfCost
 	case LocStack:
-		return 21 // PUSH AF / POP AF
+		return z80timing.PUSH_rr // PUSH AF
 	case LocMem:
-		return 28
+		return z80timing.MemRoundTrip8 + 2
 	case LocIXY, LocIXY8, LocShadow:
 		return InfCost
 	}

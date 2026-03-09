@@ -243,6 +243,20 @@ func addTermUses(live *RegSet, t Term) {
 				live.Add(a)
 			}
 		}
+	case *TermDJNZ:
+		if t.Counter != NoReg {
+			live.Add(t.Counter)
+		}
+		for _, a := range t.BodyArgs {
+			if a != NoReg {
+				live.Add(a)
+			}
+		}
+		for _, a := range t.ExitArgs {
+			if a != NoReg {
+				live.Add(a)
+			}
+		}
 	case *TermRet:
 		for _, v := range t.Vals {
 			if v != NoReg {

@@ -36,9 +36,22 @@ type Param struct {
 }
 
 // Return is one return value slot (one element of a multi-return tuple).
+//
+// When Class == ClassFlag the return value is communicated via the CPU flag
+// register rather than a general-purpose register.  FlagCond specifies which
+// Z80 condition code means "true":
+//
+//	CmpLt  → C flag set   (e.g. "return a < b" after CP; no register needed)
+//	CmpEq  → Z flag set   (e.g. "return a == b")
+//	CmpNe  → NZ (Z clear) (e.g. "return a != b")
+//	CmpGe  → NC (C clear)
+//
+// Callers test with JP <FlagCond_as_cc>, eliminating AND A / CP 0.
+// Materialization to a register uses SBC A,A (for C-based) or JR+SCF (for Z-based).
 type Return struct {
-	Ty    Ty
-	Class RegClass
+	Ty       Ty
+	Class    RegClass
+	FlagCond CmpCond // only meaningful when Class == ClassFlag
 }
 
 // ── Attributes ────────────────────────────────────────────────────────────────

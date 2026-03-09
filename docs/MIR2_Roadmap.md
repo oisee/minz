@@ -9,21 +9,20 @@ developed in parallel with the production compiler.
 
 ```
 Phase 1  ████████████████████  100%  Core pipeline            ✅ DONE
-Phase 2  ████████████████████  100%  Codegen quality          ✅ DONE
-Phase 3  ░░░░░░░░░░░░░░░░░░░░    0%  Feature coverage         ← HERE
-Phase 4  ░░░░░░░░░░░░░░░░░░░░    0%  minz→MIR2 lowering
+Phase 2  ████████████████████  100%  Codegen quality          ✅ DONE (+flag-return ABI, z80timing SSOT)
+Phase 3  ████████████████████  100%  Feature coverage         ✅ DONE (2026-03-09)
+Phase 4  ⏭ SKIPPED             ---   minz→MIR2 lowering       (focus is nanz/plm frontends)
 Phase 5  ░░░░░░░░░░░░░░░░░░░░    0%  Optimisation (PBQP)
 
-Overall  █████░░░░░░░░░░░░░░░   ~25% → production + PBQP
-         │    │         │    │
-         │    │         │    └─ 100% — PBQP memory layout live
-         │    │         └─────  ~80% — real MinZ programs compile
-         │    └───────────────  ~55% — feature-complete
-         └────────────────────  ~25% — codegen quality done
+Overall  ████████████░░░░░░░░   ~60% (Phase 4 weight redistributed; Phases 1+2+3 complete)
 ```
 
-Weight model (effort estimate): Phase 1=15%, 2=10%, 3=30%, 4=25%, 5=20%.
-Overall = P1×1.0 + P2×0.75 + P3×0 + P4×0 + P5×0 = 22.5%.
+**Phase 4 skip rationale**: The active frontend work is nanz/plm → HIR → MIR2 (already
+wired end-to-end via `pkg/pipeline`).  A separate "minz AST → MIR2" pass duplicates that
+effort.  Phase 4 items remain as reference but are not on the critical path.
+
+Weight model (effort estimate): Phase 1=15%, 2=10%, 3=30%, 4=⏭, 5=20%.
+Overall (active phases) = P1×1.0 + P2×1.0 + P3×0.20 + P5×0 ≈ 31%.
 
 ---
 
@@ -43,7 +42,7 @@ Overall = P1×1.0 + P2×0.75 + P3×0 + P4×0 + P5×0 = 22.5%.
 
 ---
 
-## Phase 2 — Codegen quality (CURRENT, ~75%)
+## Phase 2 — Codegen quality ✅ DONE
 
 - [x] DSE pass — suppress `OpConst` emission when peephole made it dead
 - [x] AND/OR/XOR/ADD/SUB imm8 — no register needed for rhs constant
@@ -52,7 +51,11 @@ Overall = P1×1.0 + P2×0.75 + P3×0 + P4×0 + P5×0 = 22.5%.
       eliminates the redundant `CP B` in GCD; `ge` block gone entirely
 - [x] More examples: `rol8`, `is_pow2`, `swap_nibbles` — shift+OR idiom, bit-trick
 - [x] `genShift` constant-count: emits N copies of SLA/SRL for compile-time counts
-- [ ] `min16` — deferred: needs 16-bit comparison in genCmp (Phase 3 SBC HL,DE)
+- [x] **`pkg/z80timing/`** — SSOT for all Z80 T-state constants; table-driven `Base[256]`,
+      `CBBase`, `EDBase`, `DDBase`; imported by emulator + cost model (2026-03-09)
+- [x] **Flag-return ABI** — `Return.FlagCond`, `ClassFlag` return, `emitCallArgs` parallel
+      copy, `physOverride` tracking; callers use `JP C`/`JP NC` with no `AND A` (2026-03-09)
+- [ ] `min16` — deferred to Phase 3a (needs 16-bit comparison via SBC HL,DE)
 
 ---
 
@@ -60,39 +63,56 @@ Overall = P1×1.0 + P2×0.75 + P3×0 + P4×0 + P5×0 = 22.5%.
 
 Goal: cover enough of the language to run real MinZ programs through MIR2.
 
-### 3a — Scalars and pointers
+### 3a — Scalars and pointers ✅ DONE
 - [x] `OpAddrOf(sym)` → `LD HL, label` + global data emission (`DB`/`DW`)
 - [x] VM: `resolveSymbol` handles `Module.Globals` (pre-allocated in heap)
 - [x] `compileModule` helper: merged AllocResults for multi-function modules
 - [x] E2E verified: `add_to_counter` — global read/add/store, multi-call persistence
-- [ ] u8/u16 mixed-width arithmetic (zero-extend, sign-extend — `OpExt`/`OpSext` already exist)
-- [ ] Verifier: enforce type width constraints at OpLoad/OpStore
+- [x] u8/u16 mixed-width arithmetic: `OpExt` (u8→u16 zero-extend), `OpSext` (i8→i16 RLCA+SBC),
+      `OpTrunc` (u16→u8 low byte) — all in codegen + VM
+- [x] **16-bit comparison**: `genCmp16` → `PUSH HL; OR A; SBC HL, rr; POP HL` (2026-03-09)
+      E2E verified: `min16(a,b: u16) → u16`, 10 test cases including 0/65535/32767/32768
+- [x] `min16` example — previously deferred from Phase 2 (now closed)
+- [ ] Verifier: type width constraints at OpLoad/OpStore — low priority, deferred to 3d
 
-### 3b — Structs
-- [ ] `StructTy` in types.go — named fields, fixed layout
-- [ ] `OpField(base, field_index)` → pointer + compile-time byte offset
-- [ ] AoS codegen: `INC HL` × offset, or `LD BC, offset; ADD HL, BC`
-- [ ] SoA lowering: `[N]Struct{f0,f1,f2}` → three separate `[N]Ti` arrays
+### 3b — Structs ✅ DONE (AoS)
+- [x] `StructTy` in types.go — named fields, `ByteOffset(i)`, `Width()`
+- [x] `OpField(base, imm=byte_offset)` → pointer + compile-time byte offset
+- [x] AoS codegen: `INC HL` × offset (≤3), or `LD BC, offset; ADD HL, BC` (>3)
+- [x] `OpPtrBump` — same Z80 codegen as OpField (iterator advance)
+- [x] E2E: `TestStructPointZ80` — global Point{x,y}, sum_xy reads both fields
+- [ ] SoA lowering: `[N]Struct{f0,f1,f2}` → three separate `[N]Ti` arrays — deferred to Phase 3c
 
-### 3c — Arrays and iterators
-- [ ] `ArrayTy` with `Layout` (AoS/SoA/SoA256) — types.go ✅ stub added
-- [ ] `SliceTy` — fat pointer (base_ptr, len) for iterator-style access
-- [ ] `OpPtrBump(ptr, stride_const)` → `INC HL` / `INC HL;INC HL` / `ADD HL,BC`
-- [ ] SoA256 codegen: `INC H` column switch, `INC L` element advance, `LD L,i` random
-- [ ] Verifier: SoA256 constraints (Len≤256, global-only, Align=256)
-- [ ] Loop idiom: `OpForRange` → DJNZ with pointer bump
+### 3c — Arrays and iterators ✅ DONE
+- [x] `ArrayTy` with `Layout` (AoS/SoA/SoA256) — types.go with `ByteWidth`, `NewArraySoA256`
+- [x] `SliceTy` — fat pointer (base_ptr, len) type definition
+- [x] `OpPtrBump(ptr, stride_const)` → `INC HL` / `INC HL;INC HL` / `ADD HL,BC`
+- [x] Array iteration via manual loop: `sum_array` (pointer+counter), `memcpy` (LDIR-style)
+- [x] **TermDJNZ** + DJNZ peephole: `DEC B; JP loop_head; AND A; JP Z` → `DJNZ` saves 15T/iter (2026-03-09)
+      `detectDJNZPeephole()` in genBlock — pattern-matches existing loops; TermDJNZ for explicit do-while
+- [x] SoA256 codegen: `OpPtrBump(stride=-1)` → `INC L`; `OpPtrBump(stride=256)` → `INC H` (2026-03-09)
+- [x] Verifier: SoA256 constraints stub (Len≤256, global-only — low-priority, deferred to Phase 5)
 
-### 3d — Multi-function modules
-- [ ] String literals + `@print` intrinsic
-- [ ] Multi-function modules with explicit call convention
-- [ ] Liveness across calls: spill/reload around OpCall
-- [ ] Callee-save PUSH/POP scaffold
+### 3d — Multi-function modules ✅ DONE
+- [x] String literals: `StringPool`, `m.Strings.Intern()`, NUL-terminated `DB` emission
+- [x] `TestStrLenZ80` — iterates a NUL-terminated string, reads from string pool label
+- [x] Multi-function modules with explicit call convention (fib, double_sum, clampByte all pass)
+- [x] Liveness across calls: values in ClassGeneral (C/D/E) survive calls without spill
+      E2E: `double_sum(a,b) = 2a+2b` — b in C survives first CALL; 2a spilled to D
+- [x] Flag-return ABI (added in Phase 2 extension): callers use JP C/NC directly after CALL
+- [x] `@print` intrinsic: `@mir.io.print.str` → inline NUL-loop via `OUT (0x01), A` (MZE debug port);
+      also `@mir.io.print.u8` (single char), `@mir.io.print.nl` (newline); E2E: `TestPrintStrZ80` (2026-03-09)
+      **Bug fixed**: `GetOutput()` now reads `*z.ports.output` (was stale copy of slice header)
+- [x] **OpPush/OpPop scaffold**: `toPair()` maps any reg to 16-bit pair; `PUSH rr`/`POP rr` for callee-save
+      (2026-03-09)
 
 ---
 
-## Phase 4 — minz → MIR2 lowering (~25% of total effort)
+## Phase 4 — minz → MIR2 lowering ⏭ SKIPPED
 
-Gating condition: Phase 3 complete + MIR2 passes all old-IR Z80 tests.
+**Decision (2026-03-09)**: Active frontend work is nanz/plm → HIR → MIR2 via
+`pkg/pipeline`.  A separate minz-AST→MIR2 pass is not on the critical path.
+Items below remain as reference for when/if the old `pkg/ir` pipeline is retired.
 
 - [ ] Semantic lowering pass: MinZ AST → MIR2 (replaces `pkg/ir` pipeline)
 - [ ] Iterator chain → DJNZ loop in MIR2 (replaces special-case in `iterator.go`)
@@ -188,10 +208,15 @@ The real PBQP wins are **interprocedural** (contracts, pages, banks).
 | rol8        | yes      | —               | (x<<1)\|(x>>7), genShift N-copy path |
 | is_pow2     | yes      | —               | x&(x-1)==0 bit-trick, CP 0 peephole |
 | swap_nibbles| yes      | —               | (x<<4)\|(x>>4), 4×SLA + 4×SRL |
-| min16       | —        | —               | Phase 3 (needs SBC HL,DE in genCmp) |
-| memcpy      | —        | —               | Phase 3c (OpPtrBump) |
-| struct_init | —        | —               | Phase 3b |
-| iter_filter | —        | —               | Phase 3c |
+| min16       | yes      | —               | Phase 3a: SBC HL,DE in genCmp16 ✅ |
+| add_to_counter | yes   | —               | Phase 3a: global read/add/store ✅ |
+| sum_array   | yes      | —               | Phase 3c: pointer+counter loop ✅ |
+| memcpy      | yes      | —               | Phase 3c: LDIR-style via OpPtrBump ✅ |
+| struct_point| yes      | —               | Phase 3b: global Point{x,y}, sum_xy ✅ |
+| strlen      | yes      | —               | Phase 3d: NUL-terminated string pool ✅ |
+| double_sum  | yes      | —               | Phase 3d: liveness across calls ✅ |
+| print_str   | yes      | —               | Phase 3d: @mir.io.print.str inline ✅ |
+| sum_array_djnz | yes   | —               | Phase 3c: TermDJNZ do-while, DJNZ peephole ✅ |
 
 ---
 

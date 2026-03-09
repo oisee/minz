@@ -103,6 +103,11 @@ const (
 	OpLoadPatched // %v    = load_patched %slot     : ty [cls]   — read current value
 	OpPatch       //         patch %slot, %newval               — write new value (Dst=NoReg)
 
+	// ── Stack operations ───────────────────────────────────────────────────────
+	// Callee-save scaffold for preserving register pairs across calls.
+	OpPush // push register pair to stack (Z80: PUSH rr)
+	OpPop  // pop from stack into register pair (Z80: POP rr)
+
 	// ── Inline assembly ────────────────────────────────────────────────────────
 	// Template syntax is target-specific; see AsmExtra for fields.
 	// Use ClsHard=true on result/input regs that the template hard-requires.
@@ -137,6 +142,8 @@ var opNames = [opCount]string{
 	OpPatchSlot:    "patch_slot",
 	OpLoadPatched:  "load_patched",
 	OpPatch:        "patch",
+	OpPush:         "push",
+	OpPop:          "pop",
 	OpAsm:          "asm",
 }
 
@@ -152,7 +159,8 @@ func IsUnary(op Op) bool { return op == OpNeg || op == OpNot }
 func IsConversion(op Op) bool { return op == OpExt || op == OpSext || op == OpTrunc }
 
 // IsSideEffect reports whether op has no result (Dst must be NoReg).
-func IsSideEffect(op Op) bool { return op == OpStore || op == OpPatch }
+// OpPush and OpPop are side-effecting (modify stack pointer).
+func IsSideEffect(op Op) bool { return op == OpStore || op == OpPatch || op == OpPush }
 
 // ── Comparison predicate ──────────────────────────────────────────────────────
 
