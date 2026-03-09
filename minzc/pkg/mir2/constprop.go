@@ -1,5 +1,226 @@
 package mir2
 
+// collectKnownConsts returns a map of Reg → int64 for every OpConst-defined
+// register in f.  This is the seed used by PropagateConstants, FoldConstants,
+// and ConstantCallElim.
+func collectKnownConsts(f *Func) map[Reg]int64 {
+	m := make(map[Reg]int64)
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op == OpConst {
+				m[inst.Dst] = inst.Imm
+			}
+		}
+	}
+	return m
+}
+
+// FoldConstants folds pure instructions whose operands are all compile-time
+// constants into a single OpConst.
+//
+// Processes each block's instructions in forward order, updating the known-
+// constant map after each fold so that later instructions in the same block
+// can chain (e.g. x=Const(3); y=Mul(x,2) → y=Const(6); z=Add(y,1) → z=Const(7)).
+//
+// Supports:
+//   - Unary:   OpNeg, OpNot, OpMove, OpExt, OpTrunc, OpSext
+//   - Binary:  OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpMod
+//              OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar
+//   - Compare: OpCmp (all conditions, signed and unsigned)
+//
+// Returns true if any instruction was folded.  Callers should follow with
+// DeadStoreElim to remove the now-unused original operand definitions.
+func FoldConstants(f *Func) bool {
+	consts := collectKnownConsts(f)
+	changed := false
+
+	for _, b := range f.Blocks {
+		for i, inst := range b.Insts {
+			if inst.Dst == NoReg {
+				continue
+			}
+			folded, ok := tryFoldInst(inst, consts)
+			if !ok {
+				continue
+			}
+			b.Insts[i] = &Inst{
+				Op:  OpConst,
+				Dst: inst.Dst,
+				Imm: folded,
+				Ty:  inst.Ty,
+				Cls: inst.Cls,
+			}
+			consts[inst.Dst] = folded
+			changed = true
+		}
+	}
+	return changed
+}
+
+// tryFoldInst attempts to evaluate inst at compile time using the known
+// constant values in consts.  Returns (result, true) on success.
+func tryFoldInst(inst *Inst, consts map[Reg]int64) (int64, bool) {
+	src0, ok0 := consts[inst.Src[0]]
+	src1, ok1 := consts[inst.Src[1]]
+
+	switch inst.Op {
+
+	// ── Unary ────────────────────────────────────────────────────────────────
+	case OpMove:
+		if !ok0 {
+			return 0, false
+		}
+		return maskToWidth(src0, inst.Ty), true
+	case OpNeg:
+		if !ok0 {
+			return 0, false
+		}
+		return maskToWidth(-src0, inst.Ty), true
+	case OpNot:
+		if !ok0 {
+			return 0, false
+		}
+		return maskToWidth(^src0, inst.Ty), true
+	case OpExt, OpTrunc:
+		if !ok0 {
+			return 0, false
+		}
+		return maskToWidth(src0, inst.Ty), true
+	case OpSext:
+		if !ok0 {
+			return 0, false
+		}
+		// Sign-extend from SrcTy width to inst.Ty width.
+		srcBits := 8
+		if inst.SrcTy != nil {
+			srcBits = inst.SrcTy.Width()
+		}
+		v := src0
+		if srcBits < 64 {
+			shift := 64 - srcBits
+			v = (v << shift) >> shift // arithmetic right shift
+		}
+		return maskToWidth(v, inst.Ty), true
+
+	// ── Binary arithmetic ─────────────────────────────────────────────────────
+	case OpAdd:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return maskToWidth(src0+src1, inst.Ty), true
+	case OpSub:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return maskToWidth(src0-src1, inst.Ty), true
+	case OpMul:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return maskToWidth(src0*src1, inst.Ty), true
+	case OpDiv:
+		if !ok0 || !ok1 || src1 == 0 {
+			return 0, false
+		}
+		// Unsigned division.
+		return maskToWidth(int64(uint64(src0)/uint64(src1)), inst.Ty), true
+	case OpSDiv:
+		if !ok0 || !ok1 || src1 == 0 {
+			return 0, false
+		}
+		return maskToWidth(src0/src1, inst.Ty), true
+	case OpMod:
+		if !ok0 || !ok1 || src1 == 0 {
+			return 0, false
+		}
+		return maskToWidth(int64(uint64(src0)%uint64(src1)), inst.Ty), true
+
+	// ── Bitwise ───────────────────────────────────────────────────────────────
+	case OpAnd:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return maskToWidth(src0&src1, inst.Ty), true
+	case OpOr:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return maskToWidth(src0|src1, inst.Ty), true
+	case OpXor:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return maskToWidth(src0^src1, inst.Ty), true
+	case OpShl:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return maskToWidth(src0<<uint(src1), inst.Ty), true
+	case OpShr:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return maskToWidth(int64(uint64(src0)>>uint(src1)), inst.Ty), true
+	case OpSar:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return maskToWidth(src0>>uint(src1), inst.Ty), true
+
+	// ── Comparison ────────────────────────────────────────────────────────────
+	case OpCmp:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		return foldCmpCond(inst.Cond, src0, src1), true
+	}
+	return 0, false
+}
+
+// maskToWidth masks v to the bit-width of ty (e.g. u8 → &0xFF).
+// Returns v unchanged for wide or unknown types.
+func maskToWidth(v int64, ty Ty) int64 {
+	if ty == nil {
+		return v
+	}
+	w := ty.Width()
+	if w <= 0 || w >= 64 {
+		return v
+	}
+	return v & int64((1<<w)-1)
+}
+
+// foldCmpCond evaluates a comparison at compile time.
+func foldCmpCond(cond CmpCond, lhs, rhs int64) int64 {
+	var result bool
+	switch cond {
+	case CmpEq:
+		result = lhs == rhs
+	case CmpNe:
+		result = lhs != rhs
+	case CmpLt:
+		result = lhs < rhs // signed
+	case CmpLe:
+		result = lhs <= rhs
+	case CmpGt:
+		result = lhs > rhs
+	case CmpGe:
+		result = lhs >= rhs
+	case CmpUlt:
+		result = uint64(lhs) < uint64(rhs)
+	case CmpUle:
+		result = uint64(lhs) <= uint64(rhs)
+	case CmpUgt:
+		result = uint64(lhs) > uint64(rhs)
+	case CmpUge:
+		result = uint64(lhs) >= uint64(rhs)
+	}
+	if result {
+		return 1
+	}
+	return 0
+}
+
 // PropagateConstants performs forward constant propagation over block params.
 //
 // A block param at position i is folded when every predecessor edge that passes
@@ -27,13 +248,12 @@ func PropagateConstants(f *Func) bool {
 
 	// ── Step 1: seed const map from all OpConst instructions ─────────────────
 
-	consts := make(map[Reg]int64) // reg → compile-time value
+	consts := collectKnownConsts(f) // reg → compile-time value
 	constTy := make(map[Reg]Ty)
 	constCls := make(map[Reg]RegClass)
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
 			if inst.Op == OpConst {
-				consts[inst.Dst] = inst.Imm
 				constTy[inst.Dst] = inst.Ty
 				constCls[inst.Dst] = inst.Cls
 			}

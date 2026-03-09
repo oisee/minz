@@ -63,8 +63,15 @@ func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 	for _, f := range m.Funcs {
 		mir2.EliminateDeadBlocks(f)
 		mir2.ReorderBlocks(f)
-		for mir2.PropagateConstants(f) {
-		} // iterate to fixpoint
+		// Constant pipeline: propagate → fold → call-elim → repeat to fixpoint.
+		for {
+			p := mir2.PropagateConstants(f)
+			c := mir2.FoldConstants(f)
+			e := mir2.ConstantCallElim(m, f)
+			if !p && !c && !e {
+				break
+			}
+		}
 		mir2.DeadStoreElim(f)
 	}
 	s.MIR2Opt = m.Dump()
@@ -109,8 +116,14 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	for _, f := range m.Funcs {
 		mir2.EliminateDeadBlocks(f)
 		mir2.ReorderBlocks(f)
-		for mir2.PropagateConstants(f) {
-		} // iterate to fixpoint
+		for {
+			p := mir2.PropagateConstants(f)
+			c := mir2.FoldConstants(f)
+			e := mir2.ConstantCallElim(m, f)
+			if !p && !c && !e {
+				break
+			}
+		}
 		mir2.DeadStoreElim(f)
 	}
 
