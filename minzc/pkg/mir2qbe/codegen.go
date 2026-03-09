@@ -43,6 +43,11 @@ type gen struct {
 
 	// per-function: preds[blockLabel][paramIndex] = list of (predLabel, argReg)
 	preds map[string][][]predEdge
+
+	// per-function: QBE type ("w" or "l") for each virtual register.
+	// Built by scanRegTypes before emitting a function.
+	// Used to decide when to zero-extend a "w" pointer to "l" for memory ops.
+	regTy map[mir2.Reg]string
 }
 
 type predEdge struct {
@@ -91,6 +96,8 @@ func (g *gen) emitFunc(f *mir2.Func) {
 
 	// Build predecessor map for phi synthesis
 	g.buildPreds(f)
+	// Build reg→qbeType map so pointer coercions work correctly
+	g.scanRegTypes(f)
 
 	// Signature
 	retTy := ""
@@ -100,7 +107,7 @@ func (g *gen) emitFunc(f *mir2.Func) {
 
 	params := make([]string, len(f.Contract.Params))
 	for i, p := range f.Contract.Params {
-		params[i] = fmt.Sprintf("%s %%r%d", qbeTy(p.Ty), p.Reg)
+		params[i] = fmt.Sprintf("%s %%r%d", g.regTy[p.Reg], p.Reg)
 	}
 	g.printf("export function %s$%s(%s) {\n", retTy, f.Name, strings.Join(params, ", "))
 
@@ -126,7 +133,7 @@ func (g *gen) emitBlock(f *mir2.Func, b *mir2.Block) {
 		for j, e := range edges {
 			parts[j] = fmt.Sprintf("@%s %%r%d", e.from, e.arg)
 		}
-		g.printf("\t%%r%d =%s phi %s\n", bp.Dst, qbeTy(bp.Ty), strings.Join(parts, ", "))
+		g.printf("\t%%r%d =%s phi %s\n", bp.Dst, g.regTy[bp.Dst], strings.Join(parts, ", "))
 	}
 
 	// Instructions
@@ -228,7 +235,7 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 		default:
 			loadOp = "loadw"
 		}
-		g.printf("\t%%r%d =%s %s %s\n", dst, ty, loadOp, reg(a))
+		g.printf("\t%%r%d =%s %s %s\n", dst, ty, loadOp, g.ptrReg(a, dst, "ld"))
 
 	case mir2.OpStore:
 		ptr, val := inst.Src[0], inst.Src[1]
@@ -242,7 +249,7 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 		default:
 			storeOp = "storew"
 		}
-		g.printf("\t%s %s, %s\n", storeOp, reg(val), reg(ptr))
+		g.printf("\t%s %s, %s\n", storeOp, reg(val), g.ptrReg(ptr, dst, "st"))
 
 	case mir2.OpAddrOf:
 		g.printf("\t%%r%d =l copy $%s\n", dst, inst.Sym)
@@ -252,14 +259,16 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 		g.printf("\t%%r%d =l alloc4 %d\n", dst, inst.Imm)
 
 	case mir2.OpField, mir2.OpPtrBump:
-		// pointer + compile-time offset
-		g.printf("\t%%r%d =l add %s, %d\n", dst, reg(a), inst.Imm)
+		// pointer + compile-time offset — base may be w (u16 addr on Z80)
+		g.printf("\t%%r%d =l add %s, %d\n", dst, g.ptrReg(a, dst, "fld"), inst.Imm)
 
 	case mir2.OpPtrAdd:
-		// pointer + runtime offset (offset in w, ptr in l — need ext)
-		tmp := fmt.Sprintf("%%rtmp%d", dst)
-		g.printf("\t%s =l extsw %s\n", tmp, reg(b2))
-		g.printf("\t%%r%d =l add %s, %s\n", dst, reg(a), tmp)
+		// pointer + runtime offset. Both may be "w" when ptr is typed u16 on Z80.
+		// Zero-extend both to "l" for a valid QBE 64-bit add.
+		baseL := g.ptrReg(a, dst, "pa")
+		idxL := fmt.Sprintf("%%rpaidx%d", dst)
+		g.printf("\t%s =l extsw %s\n", idxL, reg(b2))
+		g.printf("\t%%r%d =l add %s, %s\n", dst, baseL, idxL)
 
 	// Function calls
 	case mir2.OpCall:
@@ -418,6 +427,157 @@ func (g *gen) buildPreds(f *mir2.Func) {
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
+
+// findPointerRegs returns the set of virtual registers used as memory addresses.
+// On Z80, these are u16 (MIR2 type TyU16 or TyPtr), but on native 64-bit targets
+// they must be "l" (64-bit). We propagate bidirectionally through moves and
+// phi edges so that all regs that carry the same address value get "l" type.
+func findPointerRegs(f *mir2.Func) map[mir2.Reg]bool {
+	ptrs := make(map[mir2.Reg]bool)
+
+	// Seed: registers directly used as pointer operands, or produced by
+	// OpAddrOf/OpAlloca/OpPtrAdd/OpField/OpPtrBump (which produce TyPtr).
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			switch inst.Op {
+			case mir2.OpPtrAdd, mir2.OpField, mir2.OpPtrBump,
+				mir2.OpAddrOf, mir2.OpAlloca:
+				ptrs[inst.Dst] = true
+				ptrs[inst.Src[0]] = true // base is also a ptr
+			case mir2.OpLoad:
+				ptrs[inst.Src[0]] = true
+			case mir2.OpStore:
+				ptrs[inst.Src[0]] = true // Src[0] = ptr
+			}
+			// Any reg with MIR2 type TyPtr is always a pointer.
+			if inst.Ty == mir2.TyPtr && inst.Dst != mir2.NoReg {
+				ptrs[inst.Dst] = true
+			}
+		}
+	}
+	// Function params declared as TyPtr are pointers.
+	for _, p := range f.Contract.Params {
+		if p.Ty == mir2.TyPtr {
+			ptrs[p.Reg] = true
+		}
+	}
+
+	// Propagate bidirectionally to fixed point.
+	// Two rules:
+	//   (1) move/phi edge: if either side is ptr → both sides are ptr
+	//   (2) terminator arg → block param: pointer-ness flows both ways
+	mark := func(r mir2.Reg) bool {
+		if ptrs[r] {
+			return false
+		}
+		ptrs[r] = true
+		return true
+	}
+
+	changed := true
+	for changed {
+		changed = false
+		// Propagate through OpMove: ptr ↔ Src[0]
+		for _, b := range f.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op == mir2.OpMove && inst.Dst != mir2.NoReg {
+					if ptrs[inst.Src[0]] {
+						changed = mark(inst.Dst) || changed
+					}
+					if ptrs[inst.Dst] {
+						changed = mark(inst.Src[0]) || changed
+					}
+				}
+			}
+		}
+		// Propagate through terminator args ↔ block params (bidirectional).
+		for _, b := range f.Blocks {
+			propagateArgs := func(target string, args []mir2.Reg) {
+				tb := blockByLabel(f, target)
+				if tb == nil {
+					return
+				}
+				for i, arg := range args {
+					if i >= len(tb.Params) {
+						break
+					}
+					param := tb.Params[i].Dst
+					if ptrs[arg] {
+						changed = mark(param) || changed
+					}
+					if ptrs[param] {
+						changed = mark(arg) || changed
+					}
+				}
+			}
+			switch t := b.Term.(type) {
+			case *mir2.TermJmp:
+				propagateArgs(t.Target, t.Args)
+			case *mir2.TermBrIf:
+				propagateArgs(t.Then, t.ThenArgs)
+				propagateArgs(t.Else, t.ElseArgs)
+			case *mir2.TermBrIf2:
+				propagateArgs(t.Eq, t.EqArgs)
+				propagateArgs(t.Lt, t.LtArgs)
+				propagateArgs(t.Gt, t.GtArgs)
+			case *mir2.TermDJNZ:
+				propagateArgs(t.Body, t.BodyArgs)
+				propagateArgs(t.Exit, t.ExitArgs)
+			}
+		}
+	}
+	return ptrs
+}
+
+func blockByLabel(f *mir2.Func, label string) *mir2.Block {
+	for _, b := range f.Blocks {
+		if b.Label == label {
+			return b
+		}
+	}
+	return nil
+}
+
+// scanRegTypes builds g.regTy mapping each virtual register to its QBE type.
+// u16 registers used as memory addresses are promoted to "l" (64-bit pointer).
+func (g *gen) scanRegTypes(f *mir2.Func) {
+	ptrRegs := findPointerRegs(f)
+	g.regTy = make(map[mir2.Reg]string)
+	setTy := func(r mir2.Reg, ty mir2.Ty) {
+		t := qbeTy(ty)
+		if ptrRegs[r] {
+			t = "l"
+		}
+		g.regTy[r] = t
+	}
+	for _, p := range f.Contract.Params {
+		setTy(p.Reg, p.Ty)
+	}
+	for _, b := range f.Blocks {
+		for _, bp := range b.Params {
+			setTy(bp.Dst, bp.Ty)
+		}
+		for _, inst := range b.Insts {
+			if inst.Dst != mir2.NoReg {
+				setTy(inst.Dst, inst.Ty)
+			}
+		}
+	}
+}
+
+// ptrReg returns reg(r) if r is already "l"-typed, otherwise emits a
+// zero-extension to "l" and returns the extended tmp name.
+// tag is a short label for the tmp name (for readability).
+func (g *gen) ptrReg(r mir2.Reg, ctx mir2.Reg, tag string) string {
+	rStr := fmt.Sprintf("%%r%d", r)
+	if g.regTy[r] == "l" {
+		return rStr
+	}
+	// r is "w" (e.g. u16 address) — zero-extend to l
+	tmp := fmt.Sprintf("%%rp%s%d", tag, ctx)
+	g.printf("\t%s =l extsw %s\n", tmp, rStr)
+	return tmp
+}
 
 var tmpCounter int
 
