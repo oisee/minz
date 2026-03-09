@@ -293,6 +293,18 @@ func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 
 	result := &AllocResult{Locs: make(map[Reg]PhysLoc)}
 
+	// Copy coalescing: collect OpMove pairs (dst → src).
+	// When allocating dst, we try to reuse src's PhysLoc to turn the move
+	// into a no-op (codegen already skips OpMove when dst.loc == src.loc).
+	coalesceHint := make(map[Reg]Reg)
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op == OpMove && inst.Src[0] != NoReg && inst.Dst != NoReg {
+				coalesceHint[inst.Dst] = inst.Src[0]
+			}
+		}
+	}
+
 	// Collect all virtual regs to allocate.
 	regs := make([]Reg, 0, len(info))
 	for r := range info {
@@ -326,6 +338,20 @@ func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 				usedByNeighbors[loc] = true
 			}
 		})
+
+		// Copy coalescing: if r is the dst of OpMove(src), and src is already
+		// allocated to a location compatible with r's class and not blocked by
+		// neighbours, reuse that location — the OpMove becomes a no-op.
+		if hintSrc, ok := coalesceHint[r]; ok {
+			if srcLoc, allocated := result.Locs[hintSrc]; allocated {
+				if !usedByNeighbors[srcLoc] &&
+					locCompatible(ri.Ty, srcLoc) &&
+					ct.Cost(ri.Cls, srcLoc) < InfCost {
+					result.Locs[r] = srcLoc
+					continue
+				}
+			}
+		}
 
 		// Find minimum-cost compatible available location.
 		best := PhysLoc{}
