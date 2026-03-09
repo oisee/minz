@@ -38,6 +38,16 @@ type Steps struct {
 	Assembly string // Final .a80 text
 }
 
+// Options configures optional pipeline passes.
+type Options struct {
+	// ContractOpt enables Phase 5b interprocedural contract optimisation.
+	// Default true — only disable for A/B comparison or debugging.
+	ContractOpt bool
+}
+
+// DefaultOptions returns options with all recommended passes enabled.
+func DefaultOptions() Options { return Options{ContractOpt: true} }
+
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
 func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 	var s Steps
@@ -80,9 +90,15 @@ func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 	return s, nil
 }
 
-// CompileHIR runs the full HIR→MIR2→Z80 pipeline and returns .a80 assembly.
+// CompileHIR runs the full HIR→MIR2→Z80 pipeline with default options.
 // It does NOT assemble to binary; call Assemble for that.
 func CompileHIR(hm *hir.Module) (string, error) {
+	return CompileHIRWithOptions(hm, DefaultOptions())
+}
+
+// CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
+// Use this to compare output with/without specific optimisation passes.
+func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// Lower HIR → MIR2.
 	m := hir.LowerModule(hm)
 
@@ -97,10 +113,13 @@ func CompileHIR(hm *hir.Module) (string, error) {
 		return "", fmt.Errorf("MIR2 verify: %w", err)
 	}
 
-	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
 	ct := mir2.Z80CostTable{}
-	cs := mir2.OptimizeContracts(m, ct)
-	mir2.ApplyContracts(m, cs)
+
+	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
+	if opts.ContractOpt {
+		cs := mir2.OptimizeContracts(m, ct)
+		mir2.ApplyContracts(m, cs)
+	}
 
 	// Register allocation: per-function, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}

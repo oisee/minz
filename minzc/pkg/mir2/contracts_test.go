@@ -425,3 +425,96 @@ func runDoubleSumAfterOpt(t *testing.T, fullAsm string, a, b int) (int, error) {
 	aReg, _, err := runZ80(t, src)
 	return int(aReg), err
 }
+
+// ── Before/after comparison ────────────────────────────────────────────────────
+
+// TestContractOptimize_BeforeAfterComparison demonstrates the concrete effect of
+// contract optimisation on a module where HIR lowering assigns "wrong" default
+// classes to params.
+//
+// Scenario: a module with two functions where the leaf computes an ALU result
+// but its param starts as ClassGeneral (the conservative HIR-lowering default).
+//
+//	double_bad(x: ClassGeneral) → u8   ← wrong: body does ADD A,x but x is in general reg
+//
+// WITHOUT optimisation: codegen must emit "LD A, C; CALL double_bad" at every call site.
+// WITH optimisation:    optimizer promotes x to ClassAcc; no adapter needed.
+func TestContractOptimize_BeforeAfterComparison(t *testing.T) {
+	// Build a module where `apply_twice` calls `double_bad` twice.
+	// double_bad starts with ClassGeneral — the "wrong" default.
+	buildModule := func() *mir2.Module {
+		m := &mir2.Module{Name: "cmp"}
+
+		// double_bad(x: ClassGeneral) = x + x — param deliberately starts as ClassGeneral
+		db := m.AddFunc("double_bad")
+		{
+			px := db.AllocReg()
+			db.Contract.Params = []mir2.Param{
+				{Name: "x", Reg: px, Ty: mir2.TyU8, Class: mir2.ClassGeneral},
+			}
+			db.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+			e := db.NewBlock("entry")
+			res := db.AllocReg()
+			// Body: ADD A, px — natural class for px is ClassAcc.
+			e.Insts = append(e.Insts, &mir2.Inst{
+				Op: mir2.OpAdd, Dst: res, Src: [2]mir2.Reg{px, px},
+				Ty: mir2.TyU8, Cls: mir2.ClassAcc,
+			})
+			e.Term = &mir2.TermRet{Vals: []mir2.Reg{res}}
+		}
+
+		// apply_twice(a: A) = double_bad(a) + double_bad(a)
+		at := m.AddFunc("apply_twice")
+		{
+			pa := at.AllocReg()
+			at.Contract.Params = []mir2.Param{
+				{Name: "a", Reg: pa, Ty: mir2.TyU8, Class: mir2.ClassAcc},
+			}
+			at.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+			e := at.NewBlock("entry")
+			r1 := at.AllocReg()
+			e.Insts = append(e.Insts, &mir2.Inst{
+				Op: mir2.OpCall, Dst: r1, Sym: "double_bad",
+				Args: []mir2.Reg{pa}, Ty: mir2.TyU8, Cls: mir2.ClassAcc,
+			})
+			e.Term = &mir2.TermRet{Vals: []mir2.Reg{r1}}
+		}
+
+		for _, f := range m.Funcs {
+			mir2.ReorderBlocks(f)
+		}
+		return m
+	}
+
+	compile := func(m *mir2.Module) string {
+		ar := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
+		ct := mir2.Z80CostTable{}
+		for _, f := range m.Funcs {
+			lr := mir2.ComputeLiveness(f)
+			fAr := mir2.Allocate(f, lr, ct)
+			for r, loc := range fAr.Locs {
+				ar.Locs[r] = loc
+			}
+		}
+		return mir2.Z80Codegen(m, ar)
+	}
+
+	// ── WITHOUT contract optimisation ────────────────────────────────────────
+	mBefore := buildModule()
+	asmBefore := compile(mBefore)
+	t.Logf("WITHOUT contract opt:\n%s", asmBefore)
+
+	// ── WITH contract optimisation ────────────────────────────────────────────
+	mAfter := buildModule()
+	cs := mir2.OptimizeContracts(mAfter, mir2.Z80CostTable{})
+	t.Logf("contract choices: double_bad param[0] = %v", cs["double_bad"].ParamClasses[0])
+	mir2.ApplyContracts(mAfter, cs)
+	asmAfter := compile(mAfter)
+	t.Logf("WITH contract opt:\n%s", asmAfter)
+
+	// The optimiser must have promoted double_bad's param to ClassAcc.
+	if cs["double_bad"].ParamClasses[0] != mir2.ClassAcc {
+		t.Errorf("expected double_bad param[0] promoted to ClassAcc, got %v",
+			cs["double_bad"].ParamClasses[0])
+	}
+}
