@@ -2,6 +2,7 @@
 
 ### Hot off the press
 
+- **[Native PL/M-80 V4.0 vs MIR2 Z80 Backend](reports/2026-03-09-036-Native_PLM80_vs_MIR2_Codegen_Comparison.md)** — `plm80c` (Intel PL/M-80 V4.0, built from source) vs our MIR2 backend: **−46% code size** (80B→43B), zero memory traffic in register-allocated loop body vs 6 loads/4 stores per iteration. Full side-by-side listing with T-state analysis.
 - **[Full Pipeline Walk-Through: PL/M → Nanz → HIR → MIR2 → Z80](reports/2026-03-09-035-Pipeline_All_Stages_Walkthrough.md)** — all intermediate stages with real output: `--emit=nanz`, `--emit=hir`, `--emit=mir2-raw`, `--emit=mir2`, `.a80`, and `mzd` disassembly. Three-path comparison (PLM direct / PLM→Nanz / native Nanz). HIR dump reveals a type-inference bug in the PL/M frontend fixed by the Nanz round-trip.
 - **[PL/M-80 E2E Pipeline: `mz file.plm -o file.com`](reports/2026-03-09-034-PLM_To_Z80_Pipeline_Walk_Through.md)** — `compileViaHIR` function wired, binary verified via MZE emulator (`fib(10)=55`, `abs_diff(10,3)=7`, `max3(5,12,7)=12`). `--emit=mir2`, `--emit=mir2-raw`, `--emit=hir` flags added.
 - **[PL/M-80 Frontend: 26/26 corpus, 1338 functions → HIR](reports/2026-03-08-032-PLM80_HIR_Coverage_And_Pipeline.md)** — full PL/M-80 parser (100% Intel 80 Tools corpus), preprocessor with `$INCLUDE` + LITERALLY alias chains, 1338 functions / 11661 statements lowered to HIR. ADR: [0014](docs/adr/0014-plm80-frontend-strategy.md). Pipeline: PL/M-80 → HIR → MIR2 → Z80 asm end-to-end wired.

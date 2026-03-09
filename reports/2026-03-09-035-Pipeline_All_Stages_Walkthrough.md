@@ -5,10 +5,9 @@
 **Source file:** `report_demo.plm` — two functions: `abs_diff` and `fib`
 
 > **Scope note:** All compilation paths in this report go through the MinZ `mz` compiler.
-> A comparison against a *native* PL/M-80 compiler (e.g. `plm80c` by Mark Ogden, or the
-> original Intel PL/M-80 running under CP/M emulation) is not yet included — no native
-> PL/M compiler is currently installed. That comparison (native codegen quality vs our
-> MIR2 backend) is left as future work.
+> For a comparison against the actual Intel PL/M-80 V4.0 compiler (`plm80c` by Mark Ogden,
+> built from source), see **[Report #036](2026-03-09-036-Native_PLM80_vs_MIR2_Codegen_Comparison.md)**
+> — our MIR2 backend produces 46% smaller and significantly faster code than PL/M V4.0.
 
 ---
 
