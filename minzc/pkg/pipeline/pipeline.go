@@ -61,11 +61,16 @@ func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 		return s, fmt.Errorf("MIR2 verify: %w", err)
 	}
 
+	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
+	ct := mir2.Z80CostTable{}
+	cs := mir2.OptimizeContracts(m, ct)
+	mir2.ApplyContracts(m, cs)
+
 	// Register allocation: per-function, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
 	for _, f := range m.Funcs {
 		lr := mir2.ComputeLiveness(f)
-		ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+		ar := mir2.Allocate(f, lr, ct)
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc
 		}
@@ -92,11 +97,16 @@ func CompileHIR(hm *hir.Module) (string, error) {
 		return "", fmt.Errorf("MIR2 verify: %w", err)
 	}
 
+	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
+	ct := mir2.Z80CostTable{}
+	cs := mir2.OptimizeContracts(m, ct)
+	mir2.ApplyContracts(m, cs)
+
 	// Register allocation: per-function, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
 	for _, f := range m.Funcs {
 		lr := mir2.ComputeLiveness(f)
-		ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+		ar := mir2.Allocate(f, lr, ct)
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc
 		}

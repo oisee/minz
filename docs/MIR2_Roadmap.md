@@ -12,7 +12,7 @@ Phase 1  ████████████████████  100%  Cor
 Phase 2  ████████████████████  100%  Codegen quality          ✅ DONE (+flag-return ABI, z80timing SSOT)
 Phase 3  ████████████████████  100%  Feature coverage         ✅ DONE (2026-03-09)
 Phase 4  ⏭ SKIPPED             ---   minz→MIR2 lowering       (focus is nanz/plm frontends)
-Phase 5  ░░░░░░░░░░░░░░░░░░░░    0%  Optimisation (PBQP)
+Phase 5  ████░░░░░░░░░░░░░░░░   20%  Optimisation (PBQP — 5b done)
 
 Overall  ████████████░░░░░░░░   ~60% (Phase 4 weight redistributed; Phases 1+2+3 complete)
 ```
@@ -130,23 +130,23 @@ Items below remain as reference for when/if the old `pkg/ir` pipeline is retired
 - [ ] Coalescing: eliminate moves by pre-colouring interfering vregs
 - [ ] EXX region allocation (ADR-0013): assign B'/C'/D'/E' to loop scalars
 
-### 5b — PBQP: Function contract optimisation (interprocedural)
+### 5b — PBQP: Function contract optimisation (interprocedural) ✅ DONE (2026-03-09)
 
-Optimise calling conventions across the call graph — which register carries
-each argument and return value.
+- [x] `BuildCallGraph(m)` — scans OpCall instructions, Kahn topo sort (leaves first)
+- [x] `OptimizeContracts(m, ct)` — greedy DP: for each function in topo order,
+      enumerate candidate class vectors (cartesian product, conflict-filtered),
+      pick minimum `unaryCost + edgeCost`; stability rule keeps current on ties
+- [x] `ApplyContracts(m, cs)` — patches Contract.Params[i].Class in place
+- [x] Wired into `pkg/pipeline` before `Allocate`; 23/23 packages pass
+- [x] `inferNaturalClass` — heuristic: ALU src→ClassAcc, Load ptr→ClassPointer,
+      TermDJNZ counter→ClassCounter, OpCall arg[i]→callee.Params[i].Class
+- [x] Conflict filter: two params with same uniquely-forced physical reg rejected
+- [x] CostTable interface (`Cost(cls, loc)`, `Locs()`) — target-neutral; works for
+      Z80, SM83, eZ80, 6502 without changes to optimizer logic
+- [x] 11 new tests: 5 call graph + 6 contract optimisation
 
-- **Nodes**: functions
-- **Variables per node**: register class for each param/return
-- **Edge**: call site — cost matrix of save/restore overhead for each
-  (caller-choice, callee-choice) pair
-- **Objective**: minimise total register traffic (saves + restores + copies)
-  across all call sites, weighted by call frequency
-
-Payoff: eliminates `LD A, B; CALL foo; LD B, A` sequences where callee
-could simply accept argument in B and return in B.
-
-Gating: needs call graph (Phase 3d) + real programs (Phase 4) to measure
-actual call frequencies.
+On Z80: confirms manually-chosen contracts are already optimal for current examples.
+Automatic class selection enabled when lowering from HIR (no manual annotation needed).
 
 ### 5c — PBQP: SoA256 page assignment (memory layout)
 
