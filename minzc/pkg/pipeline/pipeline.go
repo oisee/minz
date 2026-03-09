@@ -59,6 +59,9 @@ func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 	m := hir.LowerModule(hm)
 	s.MIR2Raw = m.Dump()
 
+	// Module-level: replace ranged-param pure functions with LUTs.
+	mir2.LUTGen(m)
+
 	// Per-function optimisation passes.
 	for _, f := range m.Funcs {
 		mir2.EliminateDeadBlocks(f)
@@ -111,6 +114,9 @@ func CompileHIR(hm *hir.Module) (string, error) {
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// Lower HIR → MIR2.
 	m := hir.LowerModule(hm)
+
+	// Module-level: replace ranged-param pure functions with LUTs.
+	mir2.LUTGen(m)
 
 	// Per-function optimisation passes.
 	for _, f := range m.Funcs {

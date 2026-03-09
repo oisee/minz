@@ -304,6 +304,61 @@ func (t *SliceTy) Width() int     { return 32 } // 16-bit ptr + 16-bit len on Z8
 func (t *SliceTy) String() string { return "[]" + t.Elem.String() }
 func (t *SliceTy) isTy()          {}
 
+// ── Ranged ────────────────────────────────────────────────────────────────────
+
+// RangedTy is a base integer type annotated with a compile-time value range
+// [Lo, Hi).  The range is inclusive-lo, exclusive-hi following Go convention.
+//
+// Example:  u8<0..64> → RangedTy{Base: TyU8, Lo: 0, Hi: 64}
+//
+// Semantics:
+//   - Width(), IsSigned() etc. delegate to Base — the type is storage-identical
+//     to its base type; no runtime overhead.
+//   - The range annotation is used by the optimiser only:
+//     • LUTGen detects single-ranged-param functions (range ≤ 256) and replaces
+//       the call with a table-lookup.
+//     • Future: bounds-check elimination for array indexing.
+//   - Two RangedTy values are equal iff Base, Lo, and Hi all match.
+type RangedTy struct {
+	Base Ty
+	Lo   int64 // inclusive lower bound
+	Hi   int64 // exclusive upper bound  (Hi - Lo = range size)
+}
+
+func (t *RangedTy) Width() int     { return t.Base.Width() }
+func (t *RangedTy) String() string { return fmt.Sprintf("%s<%d..%d>", t.Base, t.Lo, t.Hi-1) }
+func (t *RangedTy) isTy()          {}
+
+// NewRanged creates a ranged type.  hi is the exclusive upper bound (i.e. the
+// value one past the last legal value — same convention as Go slices/ranges).
+func NewRanged(base Ty, lo, hi int64) *RangedTy {
+	return &RangedTy{Base: base, Lo: lo, Hi: hi}
+}
+
+// IsRanged reports whether ty is a ranged integer type.
+func IsRanged(ty Ty) bool {
+	_, ok := ty.(*RangedTy)
+	return ok
+}
+
+// RangeOf returns the [Lo, Hi) bounds of ty.
+// If ty is not a RangedTy it returns (0, 0, false).
+func RangeOf(ty Ty) (lo, hi int64, ok bool) {
+	if r, isR := ty.(*RangedTy); isR {
+		return r.Lo, r.Hi, true
+	}
+	return 0, 0, false
+}
+
+// BaseOf unwraps a RangedTy and returns the underlying base type.
+// For any other type it returns ty unchanged.
+func BaseOf(ty Ty) Ty {
+	if r, ok := ty.(*RangedTy); ok {
+		return r.Base
+	}
+	return ty
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 // ByteWidth returns the byte width of a type (Width()/8, rounded up).

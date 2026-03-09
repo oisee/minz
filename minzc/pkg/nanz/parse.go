@@ -310,9 +310,11 @@ func isHexDigit(c byte) bool {
 // ── Parser ────────────────────────────────────────────────────────────────────
 
 type parser struct {
-	l       *lexer
-	name    string
-	structs map[string]*mir2.StructTy
+	l           *lexer
+	name        string
+	structs     map[string]*mir2.StructTy
+	lambdas     []*hir.Func // anonymous functions generated from |params| body syntax
+	lambdaCount int
 }
 
 func (p *parser) parseModule() (*hir.Module, error) {
@@ -366,6 +368,8 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			return nil, fmt.Errorf("line %d: unexpected token %q at module level", t.line, t.val)
 		}
 	}
+	// Append lambdas generated during parsing (non-capturing anonymous functions).
+	m.Funcs = append(m.Funcs, p.lambdas...)
 	return m, nil
 }
 
@@ -620,17 +624,18 @@ func (p *parser) parseType() (mir2.Ty, error) {
 	// Named type
 	if t.kind == tokIdent {
 		p.l.next()
+		var base mir2.Ty
 		switch t.val {
 		case "u8":
-			return mir2.TyU8, nil
+			base = mir2.TyU8
 		case "u16":
-			return mir2.TyU16, nil
+			base = mir2.TyU16
 		case "i8":
-			return mir2.TyI8, nil
+			base = mir2.TyI8
 		case "i16":
-			return mir2.TyI16, nil
+			base = mir2.TyI16
 		case "bool":
-			return mir2.TyBool, nil
+			base = mir2.TyBool
 		case "void":
 			return mir2.TyVoid, nil
 		case "ptr":
@@ -642,9 +647,61 @@ func (p *parser) parseType() (mir2.Ty, error) {
 			}
 			return nil, fmt.Errorf("line %d: unknown type %q", t.line, t.val)
 		}
+		// Optional range annotation: T<lo..hi>  (hi is inclusive in source)
+		if base != nil && p.l.is(tokLt) {
+			return p.parseRangedType(base)
+		}
+		return base, nil
 	}
 
 	return nil, fmt.Errorf("line %d: expected type, got %q", t.line, t.val)
+}
+
+// parseRangedType parses the <lo..hi> suffix that follows an integer base type.
+// The cursor must be positioned at the '<' token.
+// hi in source syntax is INCLUSIVE; we store it as exclusive (hi+1) in RangedTy.
+//
+//	u8<0..63>   → RangedTy{Base: TyU8, Lo: 0, Hi: 64}
+//	u16<100..200> → RangedTy{Base: TyU16, Lo: 100, Hi: 201}
+func (p *parser) parseRangedType(base mir2.Ty) (mir2.Ty, error) {
+	// Consume '<'
+	ltTok, err := p.l.eat(tokLt)
+	if err != nil {
+		return nil, err
+	}
+
+	loTok, err := p.l.eat(tokInt)
+	if err != nil {
+		return nil, fmt.Errorf("line %d: expected integer lo in range type", ltTok.line)
+	}
+	lo, err := strconv.ParseInt(loTok.val, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("line %d: invalid range lo %q: %v", loTok.line, loTok.val, err)
+	}
+
+	if _, err := p.l.eat(tokDotDot); err != nil {
+		return nil, fmt.Errorf("line %d: expected '..' in range type", loTok.line)
+	}
+
+	hiTok, err := p.l.eat(tokInt)
+	if err != nil {
+		return nil, fmt.Errorf("line %d: expected integer hi in range type", loTok.line)
+	}
+	hi, err := strconv.ParseInt(hiTok.val, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("line %d: invalid range hi %q: %v", hiTok.line, hiTok.val, err)
+	}
+
+	if _, err := p.l.eat(tokGt); err != nil {
+		return nil, fmt.Errorf("line %d: expected '>' to close range type", hiTok.line)
+	}
+
+	if lo > hi {
+		return nil, fmt.Errorf("line %d: range lo (%d) > hi (%d)", ltTok.line, lo, hi)
+	}
+
+	// hi in source is inclusive → store exclusive (hi+1) to match Go convention
+	return mir2.NewRanged(base, lo, hi+1), nil
 }
 
 // ── Block & statements ────────────────────────────────────────────────────────
@@ -732,9 +789,16 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 		return nil, err
 	}
 
-	// Infer type from RHS if not given
+	// Infer type from RHS if not given.
 	if ty == nil {
 		ty = init.ExprTy()
+	}
+	// If the explicit type is non-void and the init is a call with unknown (void) return type,
+	// patch the call's type so the lowerer emits a value call (not CallVoid).
+	if ty != nil && ty != mir2.TyVoid {
+		if call, ok := init.(*hir.CallExpr); ok && call.Ty == mir2.TyVoid {
+			call.Ty = ty
+		}
 	}
 
 	// Unwrap array type
@@ -1212,13 +1276,34 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			}
 			base = &hir.IndexExpr{Base: base, Idx: idx, ElemTy: mir2.TyU8}
 		case tokDot:
-			// base.field — field access
+			// base.field    — struct field access
+			// base.method() — UFCS method call: rewritten to method(base, args...)
 			p.l.next()
 			fieldTok, err := p.l.eat(tokIdent)
 			if err != nil {
 				return nil, err
 			}
-			base = &hir.FieldExpr{X: base, Field: fieldTok.val, Ty: mir2.TyU8}
+			if p.l.is(tokLParen) {
+				// Method call: base.method(a, b) → method(base, a, b)
+				p.l.next()
+				args := []hir.Expr{base}
+				for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+					a, err := p.parseExpr()
+					if err != nil {
+						return nil, err
+					}
+					args = append(args, a)
+					if p.l.is(tokComma) {
+						p.l.next()
+					}
+				}
+				if _, err := p.l.eat(tokRParen); err != nil {
+					return nil, err
+				}
+				base = &hir.CallExpr{Fn: fieldTok.val, Args: args, Ty: mir2.TyVoid}
+			} else {
+				base = &hir.FieldExpr{X: base, Field: fieldTok.val, Ty: mir2.TyU8}
+			}
 		case tokLParen:
 			// call: base must be VarRefExpr (function name)
 			p.l.next()
@@ -1308,6 +1393,10 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		p.l.next()
 		return &hir.AddrOfExpr{Sym: "@str." + strings.ReplaceAll(t.val, " ", "_")}, nil
 
+	case tokPipe:
+		// |params| expr  or  |params| { stmts }  — non-capturing lambda
+		return p.parseLambda()
+
 	case tokAt:
 		// @ptr(T, addr) — typed constant pointer to absolute address
 		p.l.next()
@@ -1340,6 +1429,82 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 	}
 
 	return nil, fmt.Errorf("line %d: unexpected token %q in expression", t.line, t.val)
+}
+
+// ── Lambda ────────────────────────────────────────────────────────────────────
+
+// parseLambda parses a non-capturing lambda expression: |params| expr or |params| { stmts }.
+//
+// The lambda is desugared into an anonymous top-level function "lambda_N" and the
+// expression returns a VarRefExpr naming that function. Zero-cost: no closure, no
+// heap allocation. Params default to u8 if the type annotation is omitted.
+//
+//	lambda = '|' [param (',' param)*] '|' ('{' stmt* '}' | expr)
+//	param  = IDENT [':' type]
+func (p *parser) parseLambda() (hir.Expr, error) {
+	if _, err := p.l.eat(tokPipe); err != nil {
+		return nil, err
+	}
+
+	// Parse parameter list: |x: u8, y: u8|  or  |x, y|  or  ||
+	var params []hir.Param
+	for !p.l.is(tokPipe) && !p.l.is(tokEOF) {
+		pname, err := p.l.eat(tokIdent)
+		if err != nil {
+			return nil, fmt.Errorf("line %d: lambda: expected parameter name: %w", pname.line, err)
+		}
+		pty := mir2.Ty(mir2.TyU8) // default type
+		if p.l.is(tokColon) {
+			p.l.next()
+			pty, err = p.parseType()
+			if err != nil {
+				return nil, err
+			}
+		}
+		params = append(params, hir.Param{Name: pname.val, Ty: pty})
+		if p.l.is(tokComma) {
+			p.l.next()
+		}
+	}
+	if _, err := p.l.eat(tokPipe); err != nil {
+		return nil, fmt.Errorf("lambda: expected closing '|': %w", err)
+	}
+
+	// Parse body: block { ... } or single expression → implicit return
+	var body *hir.Block
+	if p.l.is(tokLBrace) {
+		var err error
+		body, err = p.parseBlock()
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		expr, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		body = &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: expr}}}
+	}
+
+	// Infer return type from single-expression body.
+	retTy := mir2.Ty(mir2.TyVoid)
+	if len(body.Body) == 1 {
+		if rs, ok := body.Body[0].(*hir.ReturnStmt); ok && rs.Val != nil {
+			retTy = rs.Val.ExprTy()
+		}
+	}
+
+	// Generate a unique name and register the anonymous function.
+	name := fmt.Sprintf("lambda_%d", p.lambdaCount)
+	p.lambdaCount++
+	p.lambdas = append(p.lambdas, &hir.Func{
+		Name:   name,
+		Params: params,
+		RetTy:  retTy,
+		Body:   body,
+	})
+
+	return &hir.VarRefExpr{Name: name, Ty: retTy}, nil
 }
 
 // ── Type helpers ──────────────────────────────────────────────────────────────

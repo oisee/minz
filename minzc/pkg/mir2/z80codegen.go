@@ -57,6 +57,10 @@ func Z80Codegen(m *Module, ar *AllocResult) string {
 			if w == 0 {
 				continue
 			}
+			// Page-aligned globals (e.g. LUT tables): emit ALIGN directive first.
+			if at, ok := g.Ty.(*ArrayTy); ok && at.Align > 0 {
+				fmt.Fprintf(&sb, "    ALIGN %d\n", at.Align)
+			}
 			sb.WriteString(sanitizeIdent(g.Name) + ":\n")
 			// Emit as DB sequence for all types — always readable,
 			// correct for struct fields, and unambiguous byte order.
@@ -131,6 +135,23 @@ type z80cg struct {
 	// Needed for BrIf edges where the non-fall-through path requires copies.
 	trampolines []trampolineBlock
 	trampIdx    int
+
+	// Page-aligned LUT optimisation (21T vs 39T).
+	// Pre-scanned per block; cleared at each new block.
+	//
+	// lutLoadPat: Load dst → pattern descriptor for page-aligned table accesses.
+	//   When set, emit LD HL,sym + LD L,src8 + LD A,(HL) instead of the
+	//   general Ext+PtrAdd+Load sequence.
+	// lutSkip: virtual regs whose emit is merged into the Load instruction above.
+	//   Affected: Ext(idx16), AddrOf(base), PtrAdd(ptr).
+	lutLoadPat map[Reg]lutLoadPat
+	lutSkip    map[Reg]bool
+}
+
+// lutLoadPat describes a page-aligned LUT access merged at codegen time.
+type lutLoadPat struct {
+	sym     string // page-aligned global symbol
+	src8Reg Reg    // virtual reg holding the 8-bit index (after lo-subtract if any)
 }
 
 // trampolineBlock is emitted after all regular blocks of a function.
@@ -362,6 +383,8 @@ func (g *z80cg) genFunc(f *Func) {
 	g.physOverride = make(map[Reg]string)
 	g.trampolines = g.trampolines[:0]
 	g.trampIdx = 0
+	g.lutLoadPat = make(map[Reg]lutLoadPat)
+	g.lutSkip = make(map[Reg]bool)
 
 	label := sanitizeIdent(f.Name)
 	g.emitf("%s:", label)
@@ -379,6 +402,90 @@ func (g *z80cg) genFunc(f *Func) {
 	}
 }
 
+// ── Page-aligned LUT pre-scan ──────────────────────────────────────────────────
+
+// scanLUTPatterns detects the pattern emitted by LUTGen for page-aligned tables:
+//
+//	idx16 = Ext(src8, u8→u16, ClassIndex)
+//	base  = AddrOf("sym")                      ← sym has Align==256
+//	ptr   = PtrAdd(base, idx16)
+//	dst   = Load(ptr, u8, ClassAcc)
+//
+// When found:
+//   - g.lutLoadPat[dst] = {sym, src8Reg}
+//   - g.lutSkip[idx16, base, ptr] = true
+//
+// The pattern is cleared (g.lutLoadPat, g.lutSkip rebuilt) at each new block.
+// This is safe because LUTGen only ever creates single-use intermediate regs.
+func (g *z80cg) scanLUTPatterns(b *Block) {
+	// Reset per-block maps (keep same map objects; just clear them).
+	clear(g.lutLoadPat)
+	clear(g.lutSkip)
+
+	// Build: reg → defining instruction (within this block only).
+	defInst := make(map[Reg]*Inst, len(b.Insts))
+	for _, inst := range b.Insts {
+		if inst.Dst != NoReg {
+			defInst[inst.Dst] = inst
+		}
+	}
+
+	for _, inst := range b.Insts {
+		// Looking for: dst = Load(ptr, u8)
+		if inst.Op != OpLoad || inst.Ty.Width() != 8 || inst.Dst == NoReg {
+			continue
+		}
+		ptrReg := inst.Src[0]
+
+		// ptr = PtrAdd(base, idx16)
+		ptrInst, ok := defInst[ptrReg]
+		if !ok || ptrInst.Op != OpPtrAdd {
+			continue
+		}
+		baseReg := ptrInst.Src[0]
+		idx16Reg := ptrInst.Src[1]
+
+		// base = AddrOf(sym) where sym is page-aligned
+		baseInst, ok := defInst[baseReg]
+		if !ok || baseInst.Op != OpAddrOf {
+			continue
+		}
+		sym := baseInst.Sym
+		if !g.isGlobalPageAligned(sym) {
+			continue
+		}
+
+		// idx16 = Ext(src8, u8→u16)
+		extInst, ok := defInst[idx16Reg]
+		if !ok || extInst.Op != OpExt {
+			continue
+		}
+		if extInst.SrcTy == nil || extInst.SrcTy.Width() != 8 || extInst.Ty.Width() != 16 {
+			continue
+		}
+		src8Reg := extInst.Src[0]
+
+		// Pattern matched: record and mark intermediates for skipping.
+		g.lutLoadPat[inst.Dst] = lutLoadPat{sym: sym, src8Reg: src8Reg}
+		g.lutSkip[idx16Reg] = true
+		g.lutSkip[baseReg] = true
+		g.lutSkip[ptrReg] = true
+	}
+}
+
+// isGlobalPageAligned reports whether the named global in the current module
+// has Align == 256 (i.e. is a page-aligned LUT candidate).
+func (g *z80cg) isGlobalPageAligned(sym string) bool {
+	for _, gl := range g.mod.Globals {
+		if gl.Name == sym {
+			if at, ok := gl.Ty.(*ArrayTy); ok {
+				return at.Align == 256
+			}
+		}
+	}
+	return false
+}
+
 // ── Block ─────────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genBlock(f *Func, b *Block) {
@@ -386,6 +493,10 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 		g.emitf(".%s_%s:", sanitizeIdent(f.Name), sanitizeIdent(b.Label))
 	}
 	clear(g.holdsPhys) // all register aliases unknown at block entry
+
+	// Pre-scan: identify page-aligned LUT access patterns so we can merge
+	// Ext + AddrOf + PtrAdd + Load into: LD HL,sym; LD L,src8; LD A,(HL).
+	g.scanLUTPatterns(b)
 
 	// Detect DJNZ peephole: DEC B + JP loop_head → DJNZ loop_body.
 	peep := g.detectDJNZPeephole(f, b)
@@ -415,6 +526,12 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 // ── Instructions ──────────────────────────────────────────────────────────────
 
 func (g *z80cg) genInst(inst *Inst) {
+	// Instructions merged into a page-aligned LUT load are skipped here;
+	// their code is emitted by the Load case below.
+	if g.lutSkip[inst.Dst] {
+		return
+	}
+
 	dst := g.loc(inst.Dst)
 
 	switch inst.Op {
@@ -494,6 +611,26 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.genCmp(inst)
 
 	case OpLoad:
+		// Page-aligned LUT fast path:
+		//   LD HL, sym   ; 10T (L=0 guaranteed by ALIGN 256)
+		//   LD L, idx8   ;  4T
+		//   LD A, (HL)   ;  7T  → 21T total vs 39T general
+		if pat, ok := g.lutLoadPat[inst.Dst]; ok {
+			src8 := g.loc(pat.src8Reg)
+			g.emitf("    LD HL, %s", sanitizeIdent(pat.sym))
+			g.invalidate("HL")
+			g.emitf("    LD L, %s", src8)
+			g.invalidate("L")
+			if dst != "A" {
+				g.emitf("    LD A, (HL)")
+				g.invalidate("A")
+				g.emitMov(dst, "A", 8)
+			} else {
+				g.emitf("    LD A, (HL)")
+				g.invalidate("A")
+			}
+			break
+		}
 		ptr := g.loc(inst.Src[0])
 		w := inst.Ty.Width()
 		if w <= 8 {

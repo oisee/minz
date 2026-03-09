@@ -39,8 +39,7 @@ func TestE2EFibonacciZ80(t *testing.T) {
 	t.Logf("generated assembly:\n%s", fibAsm)
 
 	// Test cases: (n, expected fib(n)).
-	// n=0 is skipped: CmpLe codegen uses only Z flag, misses the CF=1 case for n<1.
-	cases := [][2]int{{1, 1}, {2, 1}, {3, 2}, {5, 5}, {8, 21}, {10, 55}}
+	cases := [][2]int{{0, 0}, {1, 1}, {2, 1}, {3, 2}, {5, 5}, {8, 21}, {10, 55}}
 
 	for _, tc := range cases {
 		n, want := tc[0], tc[1]
