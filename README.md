@@ -2,6 +2,7 @@
 
 ### Hot off the press
 
+- **[MIR2→QBE: Native Backend & Correctness Oracle](reports/2026-03-09-045-MIR2_To_QBE_Native_Backend_And_Correctness_Oracle.md)** — `pkg/mir2qbe` compiles MIR2 modules to [QBE IL](https://c9x.me/compile/) and runs them natively on arm64/x86_64. Full pipeline: Nanz/PL/M → HIR → MIR2 → QBE → `cc` → native binary. Correctness oracle: if Z80 emulator and native binary agree, the bug (if any) is in Z80 codegen. 4/4 E2E tests: PL/M `abs_diff` + `fib`, Nanz `sum_array` (real `ptr[i]` loop with bidirectional pointer type inference), Nanz `abs_diff`. Side-by-side QBE IL vs hand-written + arm64 disasm comparison. `brew install qbe` is all you need.
 - **[E2E Overview: Architecture, Frontends, MIR2, and PBQP Roadmap](reports/2026-03-09-043-E2E_Overview_Architecture_And_Roadmap.md)** — comprehensive deep-dive: what Nanz/MinZ/PL/M-80 each are and why, MIR1 vs MIR2 design philosophy, how register classes map to PBQP, interprocedural contract optimization with before/after assembly, LUTGen, flag-return ABI, JRS, and the full roadmap to graph-coloring PBQP. Honest gap list included.
 - **[JRS pseudo-instruction in MZA](minzc/pkg/z80asm/fake_instructions.go)** — codegen now emits `JRS` for all local-label branches. MZA expands to `JR` (2 bytes) when offset fits and condition is JR-compatible (NZ/Z/NC/C), auto-promotes to `JP` (3 bytes) when offset > ±127 via existing multi-pass convergence, and emits `JP` directly for conditions JR doesn't support (PE/PO/P/M). Zero codegen complexity — MZA sorts it out.
 - **[LUTGen: compile-time lookup tables from ranged types](reports/2026-03-09-038-Nanz_PLM_HIR_MIR2_Z80_E2E_Snapshot.md)** — annotate a parameter with `u8<0..255>` and the compiler evaluates the function body at compile time for all 256 inputs, emitting a page-aligned `DB` table. A `popcount` loop that runs 8 iterations becomes 3 instructions + RET at runtime (`LD HL, lut / LD L, C / LD A, (HL) / RET`).
@@ -431,21 +432,22 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 | **Agon Light 2** | Working | `.bin` | eZ80/ADL mode, MOS + VDP stdlib, structural testing only |
 | **MSX** | Compiles | varies | Target config exists, limited testing |
 
-### Other Backends (verified 2026-03-04)
+### Backends
 
 | Backend | Status | Notes |
 |---------|--------|-------|
-| **Z80** | Production | Full-featured, optimized, 5500+ lines |
-| **C99** | Partial | Produced real binaries; variable redeclaration bug in scoped locals |
-| **M68k** | Untested | Most complete non-Z80 (28 opcodes, real register allocator); never assembled |
-| **i8080** | Untested | Structurally correct (all-memory approach); never assembled |
-| **6502** | Broken | Arithmetic uses `$00` placeholder; never assembled |
-| **LLVM** | Broken | JumpIf fallthrough hardcoded, type errors; llc fails |
-| **WASM** | Broken | Label/jump emit as comments; WAT validation fails |
-| **Crystal** | Stub | Control flow emits comments, function args always empty |
-| **Game Boy** | Stub | Add, Sub, LoadVar, StoreVar all emit only comments |
+| **Z80** | ✅ Production | Full-featured, optimized, 5500+ lines, MIR2 active target |
+| **QBE (native)** | ✅ Working | MIR2→QBE IL→arm64/x86_64. Correctness oracle: 4/4 E2E tests. `brew install qbe` |
+| **C99** | ⚠️ Partial | Produced real binaries; variable redeclaration bug in scoped locals |
+| **M68k** | 🧪 Untested | Most complete non-Z80 (28 opcodes, real register allocator); never assembled |
+| **i8080** | 🧪 Untested | Structurally correct (all-memory approach); never assembled |
+| **6502** | ❌ Broken | Arithmetic uses `$00` placeholder; never assembled |
+| **LLVM** | ❌ Broken | JumpIf fallthrough hardcoded, type errors; llc fails |
+| **WASM** | ❌ Broken | Label/jump emit as comments; WAT validation fails |
+| **Crystal** | ❌ Stub | Control flow emits comments, function args always empty |
+| **Game Boy** | ❌ Stub | Add, Sub, LoadVar, StoreVar all emit only comments |
 
-Only the Z80 backend is production-quality. The C backend can produce working binaries for simple programs. All others are experimental — they generate text output but have never produced working executables. See [Report #025](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md) for the full audit.
+Only Z80 is production-quality. **QBE is new (2026-03-09)** — `pkg/mir2qbe` translates MIR2 directly to QBE IL, which compiles to native arm64/x86_64 via `qbe` + `cc`. Used as a correctness oracle: same MIR2 module → Z80 emulator vs native binary; agreement means the pipeline is correct. See [Report #045](reports/2026-03-09-045-MIR2_To_QBE_Native_Backend_And_Correctness_Oracle.md).
 
 ### Language Frontends
 
@@ -683,10 +685,11 @@ MinZ is under active development. The Z80 backend is mature and produces working
 - 71/73 core examples compile (97%), 131/173 all examples (75%)
 - ~125K lines of Go in the compiler + toolchain
 - **MIR2**: 53/53 unit tests pass; E2E fib(1..10), clamp, abs_diff, max3 verified via MZE
+- **MIR2→QBE**: 4/4 E2E tests — PL/M + Nanz → native arm64 binary via QBE (correctness oracle)
 - **PL/M-80**: 26/26 Intel 80 Tools corpus files parse + compile → Z80 (100%)
 - **1335/1335 FUSE Z80 tests pass** — gold-standard CPU verification including all undocumented opcodes
 - **87+ iterator tests** across 7 layers — 11/11 E2E hex-verified (MinZ/MIR1 pipeline)
-- 23/23 Go test packages pass, 0 fail
+- 24/24 Go test packages pass, 0 fail
 - 9 working toolchain binaries (mzr REPL is broken), all pure Go, zero external dependencies
 
 ---
