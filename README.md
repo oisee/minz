@@ -2,6 +2,7 @@
 
 ### Hot off the press
 
+- **[E2E Overview: Architecture, Frontends, MIR2, and PBQP Roadmap](reports/2026-03-09-043-E2E_Overview_Architecture_And_Roadmap.md)** — comprehensive deep-dive: what Nanz/MinZ/PL/M-80 each are and why, MIR1 vs MIR2 design philosophy, how register classes map to PBQP, interprocedural contract optimization with before/after assembly, LUTGen, flag-return ABI, JRS, and the full roadmap to graph-coloring PBQP. Honest gap list included.
 - **[JRS pseudo-instruction in MZA](minzc/pkg/z80asm/fake_instructions.go)** — codegen now emits `JRS` for all local-label branches. MZA expands to `JR` (2 bytes) when offset fits and condition is JR-compatible (NZ/Z/NC/C), auto-promotes to `JP` (3 bytes) when offset > ±127 via existing multi-pass convergence, and emits `JP` directly for conditions JR doesn't support (PE/PO/P/M). Zero codegen complexity — MZA sorts it out.
 - **[LUTGen: compile-time lookup tables from ranged types](reports/2026-03-09-038-Nanz_PLM_HIR_MIR2_Z80_E2E_Snapshot.md)** — annotate a parameter with `u8<0..255>` and the compiler evaluates the function body at compile time for all 256 inputs, emitting a page-aligned `DB` table. A `popcount` loop that runs 8 iterations becomes 3 instructions + RET at runtime (`LD HL, lut / LD L, C / LD A, (HL) / RET`).
 - **[Nanz & PL/M: Factual Status, Real Examples](reports/2026-03-09-042-Nanz_PLM_Factual_Status_And_Examples.md)** — three separate pipelines, what each can do, real compiled Z80 output, honest gaps. Corrects earlier claim that "Nanz is what MinZ lowers to".
