@@ -236,7 +236,131 @@ some moves are free and others are expensive — the optimizer finds those sweet
 
 ---
 
-## Test Coverage (12 new tests in contracts_test.go)
+## Scale Tests — Real Assembly Before/After
+
+Four scale levels, all in `contracts_scale_test.go`. Each builds a module with all params
+deliberately set to `ClassGeneral` (conservative HIR default), then measures adapter elimination.
+
+### Mini — 2 functions, 1 caller
+
+```
+double(x: ClassGeneral) = x + x
+apply(x: ClassGeneral)  = double(x)
+```
+
+| | Before | After |
+|-|--------|-------|
+| `double` | `LD A,C` / `ADD A,C` / `RET` | `ADD A,A` / `RET` |
+| `apply`  | `LD A,C` / `CALL double`     | `CALL double` |
+| **LD A, adapters** | **2** | **0 (−100%)** |
+
+### Middle — 3 functions: hash → encode → process (fan-out)
+
+`process(x)` calls `encode(x)` twice and `hash(x)` once.
+
+| | Before | After |
+|-|--------|-------|
+| `hash`    | `LD A,C` / `ADD A,C` / `INC A` | `ADD A,A` / `INC A` ✓ |
+| `encode`  | `LD A,C` / `CALL hash`          | `CALL hash`           ✓ |
+| `process` | `LD A,C` × 3 (before each call) | `LD A,C` × 3 — **unavoidable** |
+| **LD A, adapters** | **5** | **3 (−40%)** |
+
+Why do 3 adapters remain in `process`? This is a **live-across-call spill**, not a contract
+problem. `px` (param `x`) must survive three successive CALLs that each clobber A. The
+allocator correctly spills `px` to C between calls. Contract opt cannot fix this — it
+requires Phase 5a coalescing or explicit spill moves in the IR.
+
+```asm
+process:
+    LD A, C        ; restore px from spill slot C
+    CALL encode    ; A clobbered
+    LD A, C        ; restore px again
+    CALL encode    ; A clobbered again
+    LD A, C        ; restore px one more time
+    CALL hash
+    ADD A, B
+    RET
+```
+
+### Long — 8 functions: u8 chain + ptr chain + fan-in tops
+
+```
+u8 chain:  leaf_u8 → step1 → step2 → step3
+ptr chain: leaf_ptr (Load src) → ptr_wrap
+fan-in:    top_a(x: u8, ptr: ptr) → step3(x) + ptr_wrap(ptr)
+           top_b(x: u8)           → step3(x) × 3
+```
+
+| | Before | After |
+|-|--------|-------|
+| `leaf_u8` chain (4 funcs) | 4 × `LD A,C` | 0 adapters in chain ✓ |
+| `leaf_ptr` | `LD A,(HL)` (was already ClassPointer!) | unchanged ✓ |
+| `ptr_wrap` | `CALL leaf_ptr` | `CALL leaf_ptr` ✓ |
+| `top_a` | `LD A,C / CALL step3 / CALL ptr_wrap` | `CALL step3 / CALL ptr_wrap` |
+| `top_b` | `LD A,C` × 3 | `LD A,B` × 3 (spill B, not C) |
+| **LD A, adapters** | **10** | **6 (−40%)** |
+
+Contract choices confirmed:
+```
+leaf_u8  params=[acc]
+step1    params=[acc]
+step2    params=[acc]
+step3    params=[acc]
+leaf_ptr params=[pointer]   ← Load source → ClassPointer ✓
+ptr_wrap params=[pointer]   ← propagated up from leaf_ptr
+top_a    params=[acc, pointer]
+top_b    params=[acc]
+```
+
+**Interesting observation in `top_b`**: after promotion to `ClassAcc`, the allocator spills
+`px` to B (ClassCounter) for the live-across-call interval — so adapters become `LD A,B`
+instead of `LD A,C`. This hints that ClassCounter might be the ideal class for `top_b`'s
+param (skipping the initial A→B copy). Phase 5a coalescing would see this.
+
+### Stress — 100-function linear chain
+
+```
+f000(x: General) = x+x  [leaf]
+f001(x: General) → f000(x)
+f002(x: General) → f001(x)
+...
+f099(x: General) → f098(x)
+```
+
+```
+OptimizeContracts(100 funcs): 1.97ms
+all 100 functions correctly promoted to ClassAcc ✓
+```
+
+Linear time O(N×K) where K = candidate combinations per function (≤9 for u8 params).
+No exponential blowup. Verified correct bottom-up propagation across the full chain.
+
+---
+
+## What Contract Opt Cannot Fix (Known Limitations)
+
+### Live-across-call spills
+
+When a function passes the **same arg to multiple calls** (e.g. `process(x)` calls
+`encode(x)` three times), `x` must be kept alive across each call. The allocator spills it
+to a general register (C or B). Contract opt sees the entry-point cost but not the
+downstream spill cost — so it still promotes `x` to ClassAcc even though ClassGeneral would
+avoid the initial A→C move.
+
+**Fix**: Phase 5a coalescing — the allocator would prefer ClassGeneral for args that are
+immediately spilled after entry.
+
+### Recursive functions
+
+The topo sort places recursive functions at the end (cycle members). Their contracts are
+optimised with incomplete callee information. In practice, recursive functions (like `fib`)
+use the same register for arg and result (A→A), so the contract is already optimal.
+
+---
+
+## Test Coverage (16 tests across 2 files)
+
+### `contracts_test.go` — correctness (12 tests)
 
 | Test | What it verifies |
 |------|-----------------|
@@ -253,6 +377,15 @@ some moves are free and others are expensive — the optimizer finds those sweet
 | `TestBestLocForClass` | A/B/HL/DE are cheapest for their classes |
 | `TestClassMoveCost` | same class=0T, different class>0T |
 
+### `contracts_scale_test.go` — scale and performance (4 tests)
+
+| Test | Scope | Adapters saved | Time |
+|------|-------|---------------|------|
+| `TestContractScale_Mini` | 2 funcs | 2→0 (−100%) | <1ms |
+| `TestContractScale_Middle` | 3 funcs, fan-out | 5→3 (−40%) | <1ms |
+| `TestContractScale_Long` | 8 funcs, mixed types | 10→6 (−40%) | <1ms |
+| `TestContractScale_Stress` | 100-func chain | all 100 → ClassAcc | 1.97ms |
+
 ---
 
 ## Phase 5 Roadmap Status
@@ -264,5 +397,6 @@ Phase 5c — SoA256 page assignment (memory layout PBQP)             [ ] gated o
 Phase 5d — Bank switching layout (128K targets)                    [ ] gated on 128K backend
 ```
 
-Next: Phase 5a (DCE, constant propagation across blocks) unlocks further 5b gains because
-more params become dead/constant-propagated, simplifying the candidate space.
+**Next logical step**: Phase 5a coalescing — eliminate the live-across-call spill cost that
+contract opt currently cannot see. Once coalescing is in place, re-running 5b on the same
+modules will find additional improvements (e.g. `top_b`'s param settling at ClassCounter).
