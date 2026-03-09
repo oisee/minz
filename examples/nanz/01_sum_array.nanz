@@ -1,0 +1,14 @@
+// Nanz — same logic as 01_sum_array.plm, direct translation.
+// No iterator chain — just a while loop with index.
+// This is what a mechanical PLM→Nanz conversion produces.
+
+fun sum_array(ptr: u16, n: u8) -> u8 {
+    var s: u8 = 0
+    var i: u8 = 0
+    while i < n {
+        // ptr[i] — index expr lowered to OpPtrAdd + Load
+        s = s + ptr[i]
+        i = i + 1
+    }
+    return s
+}

@@ -1,0 +1,30 @@
+// Nanz — LUT generation demo.
+//
+// The function is written as normal iterative logic.
+// The u8<0..255> range annotation tells LUTGen:
+//   "this function is pure and its input fits in a byte — precompute it."
+//
+// Compile-time:
+//   LUTGen evaluates popcount(0), popcount(1), ..., popcount(255) via the MIR2 VM.
+//   Result: a 256-byte read-only global "popcount_lut" with ALIGN 256.
+//   The function body is replaced with a 3-instruction table lookup.
+//
+// Generated Z80 (verified output, 21T):
+//   popcount:
+//       LD HL, popcount_lut   ; 10T
+//       LD L, A               ;  4T  (or LD L, C if contract opt moves param to C)
+//       LD A, (HL)            ;  7T
+//       RET
+//
+// Without the annotation (plain u8 param), this compiles to a real loop: ~70-150 T-states.
+// With it: 3 instructions. The loop ran at compile time, not runtime.
+
+fun popcount(x: u8<0..255>) -> u8 {
+    var n: u8 = 0
+    var v: u8 = x
+    while v != 0 {
+        n = n + (v & 1)
+        v = v >> 1
+    }
+    return n
+}
