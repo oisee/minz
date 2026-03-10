@@ -173,6 +173,27 @@ func (g *z80cg) emit(s string) { g.sb.WriteString(s); g.sb.WriteByte('\n') }
 func (g *z80cg) emitf(f string, args ...any) { g.emit(fmt.Sprintf(f, args...)) }
 func (g *z80cg) comment(s string)            { g.emitf("    ; %s", s) }
 
+// isIXY reports whether reg is an index register (IX or IY).
+// Z80 indexed loads/stores require explicit displacement: (IX+d), never bare (IX).
+func isIXY(reg string) bool { return reg == "IX" || reg == "IY" }
+
+// ptrIndirect returns the memory-operand string for a pointer register.
+// For IX/IY the Z80 requires an explicit displacement byte — even zero:
+//
+//	HL → "(HL)"
+//	IX → "(IX+0)"   DE → "(DE)"
+//
+// An optional byte offset d shifts the displacement for 16-bit multi-byte accesses.
+func ptrIndirect(ptr string, d int) string {
+	if isIXY(ptr) {
+		if d == 0 {
+			return fmt.Sprintf("(%s+0)", ptr)
+		}
+		return fmt.Sprintf("(%s+%d)", ptr, d)
+	}
+	return fmt.Sprintf("(%s)", ptr)
+}
+
 // isSimpleReg reports whether s names a plain physical register (no parens,
 // no digits) — safe to use as an alias key in holdsPhys.
 func isSimpleReg(s string) bool {
@@ -635,9 +656,14 @@ func (g *z80cg) genInst(inst *Inst) {
 		ptr := g.loc(inst.Src[0])
 		w := inst.Ty.Width()
 		if w <= 8 {
-			g.emitf("    LD %s, (%s)", dst, ptr)
+			g.emitf("    LD %s, %s", dst, ptrIndirect(ptr, 0))
+		} else if isIXY(ptr) {
+			// 16-bit load via IX/IY: use displacement addressing — avoids INC/DEC IX.
+			// LD lo, (IX+0) ; LD hi, (IX+1)  — 2×19T = 38T
+			g.emitf("    LD %s, %s     ; lo", lowByte(dst), ptrIndirect(ptr, 0))
+			g.emitf("    LD %s, %s     ; hi", highByte(dst), ptrIndirect(ptr, 1))
 		} else {
-			// 16-bit load: LD L,(ptr) / INC ptr / LD H,(ptr) — little-endian
+			// 16-bit load via HL/DE/BC: INC/DEC trick — little-endian
 			g.emitf("    LD %s, (%s)     ; lo", lowByte(dst), ptr)
 			g.emitf("    INC %s", ptr)
 			g.emitf("    LD %s, (%s)     ; hi", highByte(dst), ptr)
@@ -649,7 +675,12 @@ func (g *z80cg) genInst(inst *Inst) {
 		val := g.loc(inst.Src[1])
 		w := inst.Ty.Width()
 		if w <= 8 {
-			g.emitf("    LD (%s), %s", ptr, val)
+			g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), val)
+		} else if isIXY(ptr) {
+			// 16-bit store via IX/IY: use displacement addressing — avoids INC/DEC IX.
+			// LD (IX+0), lo ; LD (IX+1), hi  — 2×19T = 38T
+			g.emitf("    LD %s, %s     ; lo", ptrIndirect(ptr, 0), lowByte(val))
+			g.emitf("    LD %s, %s     ; hi", ptrIndirect(ptr, 1), highByte(val))
 		} else {
 			g.emitf("    LD (%s), %s     ; lo", ptr, lowByte(val))
 			g.emitf("    INC %s", ptr)
@@ -1395,11 +1426,22 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		g.emit("    EX DE, HL")
 	case dst == "DE" && src == "HL":
 		g.emit("    EX DE, HL")
+	case (dst == "IX" || dst == "IY") && (src == "HL" || src == "DE" || src == "BC"):
+		// HL/DE/BC → IX/IY: undocumented byte-copy (DD/FD prefix, 2×8T = 16T).
+		// Faster than PUSH/POP (21T) and doesn't touch stack.
+		g.emitf("    LD %s, %s", highByte(dst), highByte(src)) // LD IXH, H
+		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))   // LD IXL, L
+	case (src == "IX" || src == "IY") && (dst == "HL" || dst == "DE" || dst == "BC"):
+		// IX/IY → HL/DE/BC: same undocumented byte-copy.
+		g.emitf("    LD %s, %s", highByte(dst), highByte(src)) // LD H, IXH
+		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))   // LD L, IXL
 	default:
 		// General 16-bit move via PUSH/POP.
 		g.emitf("    PUSH %s", src)
 		g.emitf("    POP %s", dst)
 	}
+	// Track the copy alias so downstream redundant moves can be suppressed.
+	g.setCopy(dst, src)
 }
 
 // ── Terminators ───────────────────────────────────────────────────────────────
