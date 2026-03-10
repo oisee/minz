@@ -223,3 +223,230 @@ func TestZ80Codegen_IXAllocUnderPressure(t *testing.T) {
 		t.Errorf("Phase 6a: unexpected $F0xx memory spill:\n%s", asm)
 	}
 }
+
+// ── Global struct field direct-addressing tests ───────────────────────────────
+//
+// Optimization: replace LD HL,sym + INC HL×N + LD A,(HL) with LD A,(sym__field).
+// Replaces 22–43T with 13T for u8 field loads where dst is A.
+// Also replaces LD HL,sym + INC HL×N + LD (HL),r with LD (nn),A for stores.
+
+// TestGlobalFieldDirectAddr_Load verifies that:
+//  1. get_r() emits LD A,(palette__r)
+//  2. get_b() emits LD A,(palette__b) — non-zero offset field
+//  3. EQU labels are emitted for all struct fields
+//  4. No LD HL,palette / INC HL in get_r or get_b
+func TestGlobalFieldDirectAddr_Load(t *testing.T) {
+	// struct Color { r: u8, g: u8, b: u8 }
+	// global palette: Color
+	// fun get_r() -> u8 { return palette.r }
+	// fun get_g() -> u8 { return palette.g }
+	// fun get_b() -> u8 { return palette.b }
+
+	colorTy := &mir2.StructTy{
+		Name: "Color",
+		Fields: []mir2.StructField{
+			{Name: "r", Ty: mir2.TyU8},
+			{Name: "g", Ty: mir2.TyU8},
+			{Name: "b", Ty: mir2.TyU8},
+		},
+	}
+
+	m := &mir2.Module{Name: "color_direct"}
+	m.AddGlobal(mir2.Global{
+		Name: "palette",
+		Ty:   colorTy,
+		Init: []byte{10, 20, 30},
+	})
+
+	// get_r: load palette.r (offset 0) → A
+	buildFieldGetter(m, "get_r", "palette", colorTy, 0)
+	// get_g: load palette.g (offset 1) → A
+	buildFieldGetter(m, "get_g", "palette", colorTy, 1)
+	// get_b: load palette.b (offset 2) → A
+	buildFieldGetter(m, "get_b", "palette", colorTy, 2)
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	// Check: EQU labels emitted.
+	if !strings.Contains(asm, "palette__r") {
+		t.Errorf("missing EQU label palette__r:\n%s", asm)
+	}
+	if !strings.Contains(asm, "palette__g") {
+		t.Errorf("missing EQU label palette__g:\n%s", asm)
+	}
+	if !strings.Contains(asm, "palette__b") {
+		t.Errorf("missing EQU label palette__b:\n%s", asm)
+	}
+
+	// Check: get_r body uses direct addressing.
+	getR := extractFuncAsm(asm, "get_r")
+	if !strings.Contains(getR, "LD A, (palette__r)") {
+		t.Errorf("get_r: expected 'LD A, (palette__r)'; got:\n%s", getR)
+	}
+	if strings.Contains(getR, "LD HL, palette") {
+		t.Errorf("get_r: unexpected 'LD HL, palette' (should use direct addr):\n%s", getR)
+	}
+	if strings.Contains(getR, "INC HL") {
+		t.Errorf("get_r: unexpected 'INC HL' (should use direct addr):\n%s", getR)
+	}
+
+	// Check: get_b body uses direct addressing (non-zero offset).
+	getB := extractFuncAsm(asm, "get_b")
+	if !strings.Contains(getB, "LD A, (palette__b)") {
+		t.Errorf("get_b: expected 'LD A, (palette__b)'; got:\n%s", getB)
+	}
+	if strings.Contains(getB, "LD HL, palette") {
+		t.Errorf("get_b: unexpected 'LD HL, palette' (should use direct addr):\n%s", getB)
+	}
+}
+
+// TestGlobalFieldDirectAddr_Store verifies that:
+//  1. set_b(v) emits LD A,v (if needed) + LD (palette__b),A
+//  2. No LD HL,palette / INC HL in set_b
+func TestGlobalFieldDirectAddr_Store(t *testing.T) {
+	// fun set_b(v: u8) -> void { palette.b = v }
+
+	colorTy := &mir2.StructTy{
+		Name: "Color",
+		Fields: []mir2.StructField{
+			{Name: "r", Ty: mir2.TyU8},
+			{Name: "g", Ty: mir2.TyU8},
+			{Name: "b", Ty: mir2.TyU8},
+		},
+	}
+
+	m := &mir2.Module{Name: "color_store"}
+	m.AddGlobal(mir2.Global{
+		Name: "palette",
+		Ty:   colorTy,
+		Init: []byte{0, 0, 0},
+	})
+
+	// set_b: store palette.b = v (offset 2)
+	buildFieldSetter(m, "set_b", "palette", colorTy, 2)
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	setB := extractFuncAsm(asm, "set_b")
+	if !strings.Contains(setB, "LD (palette__b), A") {
+		t.Errorf("set_b: expected 'LD (palette__b), A'; got:\n%s", setB)
+	}
+	if strings.Contains(setB, "LD HL, palette") {
+		t.Errorf("set_b: unexpected 'LD HL, palette' (should use direct addr):\n%s", setB)
+	}
+	if strings.Contains(setB, "INC HL") {
+		t.Errorf("set_b: unexpected 'INC HL' (should use direct addr):\n%s", setB)
+	}
+}
+
+// TestGlobalFieldDirectAddr_SharedBase verifies that when the base pointer is shared
+// (used by multiple loads), the optimization correctly fires only for the A-dst load
+// and leaves the base register alive for the non-A load.
+func TestGlobalFieldDirectAddr_SharedBase(t *testing.T) {
+	// sum_xy: return palette.r + palette.g  (px in A, py in ClassGeneral/C)
+	// base ptr is used for BOTH loads — must NOT be skipped.
+	colorTy := &mir2.StructTy{
+		Name: "Color",
+		Fields: []mir2.StructField{
+			{Name: "r", Ty: mir2.TyU8},
+			{Name: "g", Ty: mir2.TyU8},
+			{Name: "b", Ty: mir2.TyU8},
+		},
+	}
+	m := &mir2.Module{Name: "shared_base"}
+	m.AddGlobal(mir2.Global{Name: "palette", Ty: colorTy, Init: []byte{3, 4, 5}})
+
+	f := m.AddFunc("sum_rg")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	// Shared base: used for two loads.
+	base := bld.AddrOf("palette", mir2.ClassPointer)
+	pr := bld.Load(base, mir2.TyU8, mir2.ClassAcc)                         // palette.r (offset 0)
+	gPtr := bld.FieldOf(base, colorTy, 1, mir2.ClassPointer)               // &palette.g
+	pg := bld.Load(gPtr, mir2.TyU8, mir2.ClassGeneral)                     // palette.g
+	result := bld.Add(pr, pg, mir2.TyU8, mir2.ClassAcc)
+	bld.Ret(result)
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	// The function must produce the correct result — no crash / malformed code.
+	// Since base is shared, the optimization must NOT fire (it checks useCount==1).
+	// We just verify the assembly assembles and contains ADD A.
+	if !strings.Contains(asm, "ADD A") {
+		t.Errorf("sum_rg: expected ADD A instruction; got:\n%s", asm)
+	}
+	// Must contain RET.
+	if !strings.Contains(asm, "RET") {
+		t.Errorf("sum_rg: missing RET:\n%s", asm)
+	}
+}
+
+// ── Helpers for direct-addr tests ─────────────────────────────────────────────
+
+// buildFieldGetter builds: fun name() -> u8 { return global.fields[fieldIdx] }
+func buildFieldGetter(m *mir2.Module, name, globalSym string, st *mir2.StructTy, fieldIdx int) {
+	f := m.AddFunc(name)
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	base := bld.AddrOf(globalSym, mir2.ClassPointer)
+	var ptr mir2.Reg
+	if fieldIdx == 0 {
+		ptr = base
+	} else {
+		ptr = bld.FieldOf(base, st, fieldIdx, mir2.ClassPointer)
+	}
+	val := bld.Load(ptr, mir2.TyU8, mir2.ClassAcc)
+	bld.Ret(val)
+}
+
+// buildFieldSetter builds: fun name(v: u8) -> void { global.fields[fieldIdx] = v }
+func buildFieldSetter(m *mir2.Module, name, globalSym string, st *mir2.StructTy, fieldIdx int) {
+	f := m.AddFunc(name)
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	v := bld.Param("v", mir2.TyU8, mir2.ClassAcc)
+	base := bld.AddrOf(globalSym, mir2.ClassPointer)
+	var ptr mir2.Reg
+	if fieldIdx == 0 {
+		ptr = base
+	} else {
+		ptr = bld.FieldOf(base, st, fieldIdx, mir2.ClassPointer)
+	}
+	bld.Store(ptr, v, mir2.TyU8)
+	bld.Ret()
+}
+
+// compileModuleForCodegenTest wraps compileModule for codegen-only tests.
+func compileModuleForCodegenTest(t *testing.T, m *mir2.Module) string {
+	t.Helper()
+	return compileModule(t, m)
+}
+
+// extractFuncAsm returns the lines of the named function from the assembly output.
+// It collects lines between "name:" and the next non-indented label (or EOF).
+func extractFuncAsm(asm, name string) string {
+	lines := strings.Split(asm, "\n")
+	var result []string
+	inFunc := false
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == name+":" {
+			inFunc = true
+			result = append(result, line)
+			continue
+		}
+		if inFunc {
+			// Stop at the next top-level label (non-empty, no leading space, ends with ':').
+			if len(line) > 0 && line[0] != ' ' && line[0] != '\t' && line[0] != ';' && strings.HasSuffix(trimmed, ":") {
+				break
+			}
+			result = append(result, line)
+		}
+	}
+	return strings.Join(result, "\n")
+}

@@ -61,6 +61,12 @@ func (p *printer) module(m *hir.Module) {
 		p.nl()
 	}
 
+	// Interface declarations
+	for _, iface := range m.Interfaces {
+		p.interfaceDecl(iface)
+		p.nl()
+	}
+
 	// Global variables
 	for _, g := range m.Globals {
 		p.global(g)
@@ -82,6 +88,14 @@ func (p *printer) structDecl(st *mir2.StructTy) {
 	p.writef("struct %s {\n", st.Name)
 	for _, f := range st.Fields {
 		p.writef("    %s: %s\n", f.Name, tyStr(f.Ty))
+	}
+	p.write("}\n")
+}
+
+func (p *printer) interfaceDecl(iface *hir.InterfaceDecl) {
+	p.writef("interface %s {\n", iface.Name)
+	for _, m := range iface.Methods {
+		p.writef("    %s\n", m)
 	}
 	p.write("}\n")
 }

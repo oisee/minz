@@ -61,7 +61,8 @@ func Z80Codegen(m *Module, ar *AllocResult) string {
 			if at, ok := g.Ty.(*ArrayTy); ok && at.Align > 0 {
 				fmt.Fprintf(&sb, "    ALIGN %d\n", at.Align)
 			}
-			sb.WriteString(sanitizeIdent(g.Name) + ":\n")
+			sanitized := sanitizeIdent(g.Name)
+			sb.WriteString(sanitized + ":\n")
 			// Emit as DB sequence for all types — always readable,
 			// correct for struct fields, and unambiguous byte order.
 			sb.WriteString("    DB ")
@@ -76,6 +77,26 @@ func Z80Codegen(m *Module, ar *AllocResult) string {
 				fmt.Fprintf(&sb, "%d", b)
 			}
 			sb.WriteByte('\n')
+			// For struct globals, emit EQU labels for each field so that direct
+			// addressing (LD A,(sym__field)) works without pointer arithmetic.
+			// Format: sanitizeIdent(sym)__fieldName  EQU  sym + byteOffset
+			if st, ok := g.Ty.(*StructTy); ok {
+				off := 0
+				for _, f := range st.Fields {
+					var equLbl string
+					if f.Name != "" {
+						equLbl = sanitized + "__" + f.Name
+					} else {
+						equLbl = fmt.Sprintf("%s__off%d", sanitized, off)
+					}
+					if off == 0 {
+						fmt.Fprintf(&sb, "%s    EQU  %s\n", equLbl, sanitized)
+					} else {
+						fmt.Fprintf(&sb, "%s    EQU  %s + %d\n", equLbl, sanitized, off)
+					}
+					off += ByteWidth(f.Ty)
+				}
+			}
 		}
 	}
 
@@ -147,6 +168,17 @@ type z80cg struct {
 	lutLoadPat map[Reg]lutLoadPat
 	lutSkip    map[Reg]bool
 
+	// Global struct field direct-addressing optimisation.
+	// Pre-scanned per block; cleared at each new block.
+	//
+	// globalFieldLoad[loadDst]  → info for emitting LD A,(sym__field) / LD (sym__field),A
+	// globalFieldStore[addrReg] → info for emitting LD (sym__field),val
+	// globalFieldSkip[r]        → these intermediate regs are no-ops in genInst
+	//   Affected: AddrOf(base), Field(fptr), and (for stores) the store's addrReg.
+	globalFieldLoad  map[Reg]globalFieldInfo
+	globalFieldStore map[Reg]globalFieldInfo
+	globalFieldSkip  map[Reg]bool
+
 	// lastFlagsLhs / lastFlagsRhs track the effective operands of the most recent
 	// flags-setting instruction (SUB / CP / AND A) within the current block.
 	// Empty strings mean "unknown / not tracked".
@@ -159,6 +191,17 @@ type z80cg struct {
 type lutLoadPat struct {
 	sym     string // page-aligned global symbol
 	src8Reg Reg    // virtual reg holding the 8-bit index (after lo-subtract if any)
+}
+
+// globalFieldInfo describes a global struct field access that can be lowered
+// to direct Z80 addressing: LD A,(sym__field) or LD (sym__field),A.
+//
+// The EQU label is: {sanitizeIdent(sym)}__{fieldName}  (or just sanitizeIdent(sym) for offset 0).
+// Emission: LD A,(sym__field)  for loads; LD A,val + LD (sym__field),A  for stores.
+type globalFieldInfo struct {
+	sym       string // global symbol name (raw, before sanitize)
+	offset    int64  // byte offset within the global
+	fieldName string // field name for the EQU label (may be empty → use offset)
 }
 
 // trampolineBlock is emitted after all regular blocks of a function.
@@ -413,6 +456,9 @@ func (g *z80cg) genFunc(f *Func) {
 	g.trampIdx = 0
 	g.lutLoadPat = make(map[Reg]lutLoadPat)
 	g.lutSkip = make(map[Reg]bool)
+	g.globalFieldLoad = make(map[Reg]globalFieldInfo)
+	g.globalFieldStore = make(map[Reg]globalFieldInfo)
+	g.globalFieldSkip = make(map[Reg]bool)
 
 	label := sanitizeIdent(f.Name)
 	g.emitf("%s:", label)
@@ -515,6 +561,241 @@ func (g *z80cg) isGlobalPageAligned(sym string) bool {
 	return false
 }
 
+// globalFieldLabel returns the EQU label for a global struct field access.
+// Format: sanitizeIdent(sym)__fieldName  (or just sanitizeIdent(sym) for offset 0 / no name).
+func globalFieldLabel(sym string, offset int64, fieldName string) string {
+	base := sanitizeIdent(sym)
+	if fieldName != "" {
+		return base + "__" + fieldName
+	}
+	if offset == 0 {
+		return base
+	}
+	return fmt.Sprintf("%s__off%d", base, offset)
+}
+
+// globalStructField looks up a global in the module by symbol name and returns its
+// StructTy if it has one, plus the field name for a given byte offset.
+// Returns ("", -1, false) when not found or not a struct global.
+func (g *z80cg) globalStructField(sym string, offset int64) (fieldName string, found bool) {
+	for _, gl := range g.mod.Globals {
+		if gl.Name != sym {
+			continue
+		}
+		st, ok := gl.Ty.(*StructTy)
+		if !ok {
+			return "", false
+		}
+		// Find field by byte offset.
+		off := int64(0)
+		for _, f := range st.Fields {
+			if off == offset {
+				return f.Name, true
+			}
+			off += int64(ByteWidth(f.Ty))
+		}
+		// Offset is valid but doesn't align with a named field boundary — still use it.
+		return "", false
+	}
+	return "", false
+}
+
+// scanGlobalFieldPatterns detects patterns where a global struct field is loaded
+// or stored via AddrOf + optional Field + Load/Store.  When found, the load/store
+// is rewritten to use Z80 direct addressing (LD A,(sym__field) or LD (sym__field),A).
+//
+// Patterns detected (u8 only — all addressable via single LD A,(nn)):
+//
+//	Load pattern (with field):
+//	  base  = AddrOf(sym)            [OpAddrOf]
+//	  fptr  = Field(base, imm)       [OpField]
+//	  dst   = Load(fptr, u8)         [OpLoad]
+//
+//	Load pattern (field 0, no OpField):
+//	  base  = AddrOf(sym)            [OpAddrOf]
+//	  dst   = Load(base, u8)         [OpLoad]
+//
+//	Store pattern (with field):
+//	  base  = AddrOf(sym)
+//	  fptr  = Field(base, imm)
+//	          Store(fptr, val, u8)   [OpStore, Dst==NoReg]
+//
+//	Store pattern (field 0):
+//	  base  = AddrOf(sym)
+//	          Store(base, val, u8)
+//
+// Only fires when the AddrOf refers to a global in m.Globals (not a func symbol).
+// Only u8 loads and stores are handled (single-byte LD A,(nn) / LD (nn),A).
+func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
+	// Reset per-block maps.
+	clear(g.globalFieldLoad)
+	clear(g.globalFieldStore)
+	clear(g.globalFieldSkip)
+
+	// Build: reg → defining instruction within this block.
+	defInst := make(map[Reg]*Inst, len(b.Insts))
+	for _, inst := range b.Insts {
+		if inst.Dst != NoReg {
+			defInst[inst.Dst] = inst
+		}
+	}
+
+	// Helper: check if sym names a module-level global (not a string or function symbol).
+	isGlobal := func(sym string) bool {
+		for _, gl := range g.mod.Globals {
+			if gl.Name == sym {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Count uses of each virtual reg in this block (instructions + block terminators).
+	// Used to guard against skipping intermediates that are shared with other users.
+	useCount := make(map[Reg]int)
+	for _, inst := range b.Insts {
+		for _, s := range inst.Src {
+			if s != NoReg {
+				useCount[s]++
+			}
+		}
+		for _, s := range inst.Args {
+			if s != NoReg {
+				useCount[s]++
+			}
+		}
+	}
+	if b.Term != nil {
+		for _, s := range b.Term.termUses() {
+			if s != NoReg {
+				useCount[s]++
+			}
+		}
+	}
+
+	// Scan Load instructions.
+	// Only mark intermediates as skip when:
+	//   1. The load's allocated destination IS A (LD A,(nn) is the only direct read on Z80).
+	//   2. Each intermediate register (AddrOf/Field results) is used exactly once —
+	//      by this Load (and the Field uses the AddrOf, counted once).
+	//      If an intermediate is shared (e.g., base ptr reused for multiple fields),
+	//      we must not skip it or the other consumer will see a dead register.
+	for _, inst := range b.Insts {
+		if inst.Op == OpLoad && inst.Ty.Width() == 8 && inst.Dst != NoReg {
+			// Only apply when the allocated destination is the A register.
+			if g.ar.Loc(inst.Dst).Name != "A" {
+				continue
+			}
+			ptrReg := inst.Src[0]
+			ptrInst, hasDef := defInst[ptrReg]
+			if !hasDef {
+				continue
+			}
+
+			switch ptrInst.Op {
+			case OpAddrOf:
+				// Pattern: Load(AddrOf(sym), u8)  — offset 0
+				if !isGlobal(ptrInst.Sym) {
+					continue
+				}
+				// Only skip AddrOf if its result is used only by this Load.
+				if useCount[ptrReg] != 1 {
+					continue
+				}
+				fieldName, _ := g.globalStructField(ptrInst.Sym, 0)
+				g.globalFieldLoad[inst.Dst] = globalFieldInfo{
+					sym:       ptrInst.Sym,
+					offset:    0,
+					fieldName: fieldName,
+				}
+				g.globalFieldSkip[ptrReg] = true
+
+			case OpField:
+				// Pattern: Load(Field(AddrOf(sym), imm), u8)
+				// Guard: Field result used only by this Load, AddrOf result used only by Field.
+				if useCount[ptrReg] != 1 {
+					continue
+				}
+				baseReg := ptrInst.Src[0]
+				baseDef, ok := defInst[baseReg]
+				if !ok || baseDef.Op != OpAddrOf {
+					continue
+				}
+				if !isGlobal(baseDef.Sym) {
+					continue
+				}
+				if useCount[baseReg] != 1 {
+					continue
+				}
+				offset := ptrInst.Imm
+				fieldName, _ := g.globalStructField(baseDef.Sym, offset)
+				g.globalFieldLoad[inst.Dst] = globalFieldInfo{
+					sym:       baseDef.Sym,
+					offset:    offset,
+					fieldName: fieldName,
+				}
+				g.globalFieldSkip[ptrReg] = true    // Field result
+				g.globalFieldSkip[baseReg] = true   // AddrOf result
+			}
+		}
+	}
+
+	// Scan Store instructions (Dst==NoReg, Src[0]=addr, Src[1]=val).
+	for _, inst := range b.Insts {
+		if inst.Op != OpStore || inst.Ty.Width() != 8 {
+			continue
+		}
+		addrReg := inst.Src[0]
+		addrInst, hasDef := defInst[addrReg]
+		if !hasDef {
+			continue
+		}
+
+		switch addrInst.Op {
+		case OpAddrOf:
+			if !isGlobal(addrInst.Sym) {
+				continue
+			}
+			// Only skip if the AddrOf result is used solely by this Store.
+			if useCount[addrReg] != 1 {
+				continue
+			}
+			fieldName, _ := g.globalStructField(addrInst.Sym, 0)
+			g.globalFieldStore[addrReg] = globalFieldInfo{
+				sym:       addrInst.Sym,
+				offset:    0,
+				fieldName: fieldName,
+			}
+			g.globalFieldSkip[addrReg] = true
+
+		case OpField:
+			if useCount[addrReg] != 1 {
+				continue
+			}
+			baseReg2 := addrInst.Src[0]
+			baseDef, ok := defInst[baseReg2]
+			if !ok || baseDef.Op != OpAddrOf {
+				continue
+			}
+			if !isGlobal(baseDef.Sym) {
+				continue
+			}
+			if useCount[baseReg2] != 1 {
+				continue
+			}
+			offset := addrInst.Imm
+			fieldName, _ := g.globalStructField(baseDef.Sym, offset)
+			g.globalFieldStore[addrReg] = globalFieldInfo{
+				sym:       baseDef.Sym,
+				offset:    offset,
+				fieldName: fieldName,
+			}
+			g.globalFieldSkip[addrReg] = true     // Field result
+			g.globalFieldSkip[baseReg2] = true    // AddrOf result
+		}
+	}
+}
+
 // ── Block ─────────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genBlock(f *Func, b *Block) {
@@ -528,6 +809,10 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Pre-scan: identify page-aligned LUT access patterns so we can merge
 	// Ext + AddrOf + PtrAdd + Load into: LD HL,sym; LD L,src8; LD A,(HL).
 	g.scanLUTPatterns(b)
+
+	// Pre-scan: identify global struct field accesses so we can emit
+	// LD A,(sym__field) / LD (sym__field),A instead of LD HL,sym + INC HL… + LD A,(HL).
+	g.scanGlobalFieldPatterns(b)
 
 	// Detect DJNZ peephole: DEC B + JP loop_head → DJNZ loop_body.
 	peep := g.detectDJNZPeephole(f, b)
@@ -560,6 +845,13 @@ func (g *z80cg) genInst(inst *Inst) {
 	// Instructions merged into a page-aligned LUT load are skipped here;
 	// their code is emitted by the Load case below.
 	if g.lutSkip[inst.Dst] {
+		return
+	}
+
+	// Instructions merged into a global-field direct-addressing sequence are
+	// skipped here; their code is emitted by the Load/Store case below.
+	// (Stores have Dst==NoReg; check the addr-reg via the instruction's Src[0].)
+	if inst.Op != OpStore && g.globalFieldSkip[inst.Dst] {
 		return
 	}
 
@@ -710,6 +1002,18 @@ func (g *z80cg) genInst(inst *Inst) {
 			}
 			break
 		}
+		// Global struct field direct-addressing fast path:
+		//   LD A, (sym__field)   ; 13T, 3 bytes — direct memory addressing
+		// Replaces: LD HL,sym + INC HL×N + LD r,(HL) + (LD A,r)  = 33–43T, 4–8 bytes.
+		// Only u8 loads where dst == A are eligible without clobbering risk.
+		// When dst != A the intermediates (AddrOf/Field) are NOT skipped in this path,
+		// so the original HL-indirect code is emitted instead.
+		if info, ok := g.globalFieldLoad[inst.Dst]; ok && dst == "A" {
+			lbl := globalFieldLabel(info.sym, info.offset, info.fieldName)
+			g.emitf("    LD A, (%s)", lbl)
+			g.invalidate("A")
+			break
+		}
 		ptr := g.loc(inst.Src[0])
 		w := inst.Ty.Width()
 		if w <= 8 {
@@ -728,6 +1032,21 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 	case OpStore:
+		// Global struct field direct-addressing fast path:
+		//   LD A, val           ; 4T (omitted when val is already A)
+		//   LD (sym__field), A  ; 13T
+		// Replaces: LD HL,sym + INC HL×N + LD (HL),r  = 29T, 5–8 bytes.
+		// Only u8 stores are eligible (LD (nn),A requires A as source).
+		addrReg := inst.Src[0]
+		if info, ok := g.globalFieldStore[addrReg]; ok && inst.Ty.Width() == 8 {
+			val := g.loc(inst.Src[1])
+			lbl := globalFieldLabel(info.sym, info.offset, info.fieldName)
+			if val != "A" {
+				g.emitLDA(val)
+			}
+			g.emitf("    LD (%s), A", lbl)
+			break
+		}
 		ptr := g.loc(inst.Src[0])
 		val := g.loc(inst.Src[1])
 		w := inst.Ty.Width()

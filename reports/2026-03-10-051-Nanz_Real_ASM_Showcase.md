@@ -227,57 +227,212 @@ the call site, not virtual dispatch.
 
 ---
 
-## 4. BranchEquiv: VM-proven redundant branch removal
+## 4. abs_diff: пять оптимизационных проходов до предела
 
 ```nanz
 fun abs_diff(a: u8, b: u8) -> u8 {
     if a == b {
-        return 0          // ← programmer wrote this as a micro-optimization hint
+        return 0          // программист написал как «микро-оптимизацию»
     }
     if a < b {
-        return b - a      // when a==b: b-a = 0 ← same result!
+        return b - a
     }
-    return a - b          // when a==b: a-b = 0 ← same result!
+    return a - b
 }
 ```
 
-**Before BranchEquiv** (hypothetical — the `if a == b` check would produce):
+### Финальный Z80-вывод (4 инструкции, 18T)
+
 ```z80
 abs_diff:
-    CP C                ; a == b?
-    JP Z, .zero         ; ← 10T + 3 bytes, taken on equal inputs
-    CP C                ; a < b? (second compare, flags already set — wasted!)
-    JRS NC, ...
-.zero:
-    XOR A               ; return 0
-    RET
+    SUB B       ; A = a − b, carry = (a < b unsigned)   4T
+    RET NC      ; если a ≥ b → возвращаем a−b в A       11T/5T
+.b_minus_a:
+    NEG         ; A = −A = b−a                           8T
+    RET         ;                                        10T
 ```
 
-**After BranchEquiv** (actual compiler output):
+Это **минимально возможный** размер для корректной реализации abs_diff на Z80:
+никаких сравнений, никаких переходов кроме условного RET, никаких спиллов.
+Итого: 4 инструкции / 6 байт.  Путь «a ≥ b»: 4+5=9T.  Путь «a < b»: 4+11+8+10=33T.
+
+---
+
+### Цепочка проходов: от исходника до предела
+
+#### Шаг 0 — после парсинга и HIR-лоуэринга
+
+MIR2 содержит три блока: `@eq_check`, `@lt_check`, `@a_minus_b`.
+
+```
+@eq_check:   eq = cmp_eq(a, b);  br_if eq → @zero, @lt_check
+@zero:       ret 0
+@lt_check:   lt = cmp_lt(a, b);  br_if lt → @b_minus_a, @a_minus_b
+@b_minus_a:  r1 = sub(b, a);  ret r1
+@a_minus_b:  r2 = sub(a, b);  ret r2
+```
+
+Предполагаемый Z80 (до оптимизаций): ~11 инструкций, 2 CP, 2 JP, 1 XOR A.
+
+---
+
+#### Шаг 1 — BranchEquiv (VM-доказанное удаление ветки)
+
+**Вопрос:** нужна ли ветка `if a == b → return 0`?
+
+Компилятор запускает MIR2-VM для всех 256 пар `(v, v)`:
+```
+original(v, v) → @zero → returns 0
+patched(v, v)  → пропускает @zero → CP C (a<b? нет) → SUB C → returns v−v=0
+```
+Для всех 256 граничных значений результат одинаков.  Ветка удаляется.
+
+```
+@lt_check:   lt = cmp_lt(a, b);  br_if lt → @b_minus_a, @a_minus_b
+@b_minus_a:  r1 = sub(b, a);  ret r1
+@a_minus_b:  r2 = sub(a, b);  ret r2
+```
+
+Сохранено: `JP Z` (10T, 3B) + второй `CP C` (4T, 1B) + мёртвый блок `@zero`.
+Итого **−14T, −4 байта**.
+
+---
+
+#### Шаг 2 — CondRetSink
+
+Паттерн: `br_if cond, @then, @else` где `@else` — тривиальный блок возврата
+(нет параметров, нет побочных эффектов, единственный предшественник).
+
+`@a_minus_b` удовлетворяет всем условиям:
+
+```
+@lt_check:   lt = cmp_lt(a, b)
+             r2 = sub(a, b)        ← поднято из @a_minus_b
+             cond_ret lt, [r2], @b_minus_a
+@b_minus_a:  ...                    ← @a_minus_b теперь мёртв
+```
+
+Новый терминатор `TermCondRet`:
+- `cond == 0` → вернуть `vals` (путь «a ≥ b»: `r2 = a−b`, сразу возврат)
+- `cond != 0` → прыжок в `@b_minus_a`
+
+На Z80 это `RET CC` — условный возврат, без перехода к метке.
+
+---
+
+#### Шаг 3 — applySubSwapNeg
+
+После подъёма `r2 = sub(a, b)` блок `@b_minus_a` ещё содержит `r1 = sub(b, a)`.
+Два вычитания с перевёрнутыми операндами — лишняя работа.
+
+Проход обнаруживает: `sub(b, a)` — это операнды `sub(a, b)` в обратном порядке.
+Замена: `r1 = neg(r2)`.  На Z80: одна инструкция `NEG` вместо `LD A,B; SUB C`.
+
+```
+@b_minus_a:  r1 = neg(r2) [ClassAcc];  ret r1
+```
+
+---
+
+#### Шаг 4 — hoistReorderSubBeforeCmp + CmpSubCarry
+
+В блоке `@lt_check` после подъёма Sub порядок инструкций:
+
+```
+lt = cmp_lt(a, b)   ← был здесь раньше
+r2 = sub(a, b)      ← только что поднят
+```
+
+`hoistReorderSubBeforeCmp` переставляет Sub **перед** Cmp:
+
+```
+r2 = sub(a, b)      ← теперь первый
+lt = cmp_lt(a, b)   ← теперь второй
+```
+
+...и одновременно преобразует CmpLt в `CmpSubCarry(r2, b)`:
+
+```
+r2  = sub(a, b)            ; A = a−b, carry = (a<b)
+lt  = cmp_sub_carry(r2, b) ; = carry из предыдущего Sub, CP не нужен
+cond_ret lt, [r2], @b_minus_a
+```
+
+`CmpSubCarry` семантика (MIR2 VM): `(r2 + b) ≥ 256` = `(a < b unsigned)` — математически эквивалентно carry из `a−b`.
+
+**Два эффекта:**
+
+1. **CP устранён в Z80-кодогене:** `genCmp` для `CmpSubCarry` ничего не эмитирует — флаг carry уже выставлен Sub.
+
+2. **Спилл `LD C, A` устранён в PBQP:** `a` больше не является операндом `cmp_sub_carry` (Src[0]=`r2`, не `a`), поэтому PBQP не видит конфликта `a(→A)` vs `r2(→A)` и выделяет `r2 → A` без спилла.
+
+---
+
+#### Шаг 5 — Z80-кодоген: финальная склейка
+
+```
+sub(a, b) → r2 [A]    : SUB B          (A = a−b, carry = a<b)
+cmp_sub_carry(r2, b)  : (пусто)
+cond_ret lt, [r2], @b_minus_a:
+    return vals: r2 уже в A (return reg) → ничего дополнительно
+    RET invertCC("C") = RET NC
+@b_minus_a:
+    neg(r2) [ClassAcc] : NEG            (r2 в A от Sub — NEG верен)
+    ret r1             : RET
+```
+
+Итог: `SUB B / RET NC / NEG / RET`.
+
+---
+
+### Таблица прогресса по проходам
+
+| После прохода | Z80-инструкции | T-state (путь a<b) | T-state (путь a≥b) |
+|---|---|---|---|
+| Исходный HIR | ~11 | ~47T | ~45T |
+| BranchEquiv | ~8 | ~38T | ~36T |
+| CondRetSink | ~6 | ~34T | ~25T |
+| applySubSwapNeg | ~5 | ~26T | ~25T |
+| hoistReorder + CmpSubCarry | **4** | **33T** | **9T** |
+
+Путь `a<b` (33T): `SUB B`(4) + `RET NC`(11, не взят) + `NEG`(8) + `RET`(10).
+Путь `a≥b` (9T): `SUB B`(4) + `RET NC`(5, взят).
+
+---
+
+### Выживание при inline
+
+При инлайне `abs_diff` в вызывающую функцию `TermCondRet` не превращается в
+`RET CC` — вместо этого он разворачивается в `TermBrIf`:
+
+```
+cond_ret lt, [r2], @then
+    ↓  (inline: ret → jmp @cont)
+br_if lt, @then(%ta...), @abs_diff_cont(r2)
+```
+
+На Z80 условный возврат становится **условным переходом**:
+
 ```z80
-abs_diff:
-    CP C                ; a < b?   (single comparison — no eq-check)
-    JRS NC, .abs_diff_if_join4
-    NEG                 ; A = -A = -(a-b) = b-a (when a<b: positive)
-    ADD A, C
-    LD C, A
-    RET
-    SUB C               ; a - b (when a≥b)
-    LD C, A
-    RET
+; abs_diff inlined в caller
+    SUB B
+    JR NC, .caller_uses_result   ; a ≥ b → r2 = a−b в A → прыгаем к использованию
+    NEG                          ; a < b → A = b−a
+.caller_uses_result:
+    ; A уже содержит |a−b|, продолжаем caller-код без RET/CALL
 ```
 
-**Proof mechanism:**
-```
-For all 256 values v:
-    original(v, v)  →  takes @zero  →  returns 0
-    patched(v, v)   →  skips @zero  →  CP C (false) →  SUB C = 0
-    Equal ✓ for all 256 boundary inputs
-```
+Никакого `CALL abs_diff` / `RET`.  Четыре инструкции остаются теми же самыми,
+только `RET NC` → `JR NC, .label`.  Это корректно потому что `TermCondRet` на
+уровне MIR2 — абстракция потока управления, а не Z80-специфичная инструкция:
+Z80-кодоген сам решает, что эмитировать (`RET CC` или `JR CC`), исходя из того,
+является ли текущий контекст функцией верхнего уровня или инлайн-фрагментом.
 
-The compiler ran **256 VM executions** and confirmed: the early-exit is dead code.
-Savings: `JP Z` (10T, 3B) + second `CP C` (4T, 1B) + dead `zero` block removed.
-**14T + 4 bytes**, zero programmer effort.
+**Размер abs_diff как standalone: 6 байт.**
+**Размер CALL + RET: 3 + 1 = 4 байта.**
+Инлайн выгоден по скорости (−17T на call overhead), по размеру — нет для одного
+вызова (6 > 4).  PBQP с таблицей T-state косто проголосует за inline при частых
+вызовах или при N≥2 call-sites в одном hot-path.
 
 ---
 
@@ -488,7 +643,7 @@ multi-variable loop mutation.
 | Struct field access (3 fields) | 8 | get: 4, set: 9 | `INC HL` chains for offsets |
 | UFCS dispatch | `obj.method(args)` | direct `CALL` | zero vtable |
 | Zero-cost interface | `interface Animal { speak }` | direct `CALL` | monomorphized at call site |
-| BranchEquiv (abs_diff eq-exit) | 7 → 7 | removed `JP Z` + second `CP` | 14T + 4B saved, VM-proven |
+| abs_diff (5 passes, full chain) | 7 → 4 | `SUB B / RET NC / NEG / RET` | 9T (a≥b) / 33T (a<b), inline→`JR NC` |
 | LUTGen (popcount, 256 range) | 8 → 4 | `LD H / LD L / LD A,(HL) / RET` | 18T, loop never runs |
 | forEach closure capture (sum) | 3 lambda lines | 6 per element, DJNZ | 38T/element, no CALL |
 | forEach closure capture (max) | 5 lambda lines | 7 per element | conditional capture works |
