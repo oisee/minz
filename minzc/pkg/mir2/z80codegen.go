@@ -634,13 +634,16 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpLoad:
 		// Page-aligned LUT fast path:
-		//   LD HL, sym   ; 10T (L=0 guaranteed by ALIGN 256)
-		//   LD L, idx8   ;  4T
-		//   LD A, (HL)   ;  7T  → 21T total vs 39T general
+		//   LD H, sym^H  ;  7T, 2 bytes — only need the page (high byte)
+		//   LD L, idx8   ;  4T           — L is overwritten anyway
+		//   LD A, (HL)   ;  7T  → 18T total vs 21T (LD HL) vs 39T general
+		// MZA supports the ^H suffix: sym^H extracts (addr >> 8) & 0xFF.
+		// LD HL, sym would also load L=low(sym), which is immediately
+		// discarded by the following LD L — wasted 3T and 1 byte.
 		if pat, ok := g.lutLoadPat[inst.Dst]; ok {
 			src8 := g.loc(pat.src8Reg)
-			g.emitf("    LD HL, %s", sanitizeIdent(pat.sym))
-			g.invalidate("HL")
+			g.emitf("    LD H, %s^H", sanitizeIdent(pat.sym))
+			g.invalidate("H")
 			g.emitf("    LD L, %s", src8)
 			g.invalidate("L")
 			if dst != "A" {
