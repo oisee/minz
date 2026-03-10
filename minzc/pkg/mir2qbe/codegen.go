@@ -643,6 +643,15 @@ func qbeCmp(c mir2.CmpCond, signed bool) string {
 			return "sge"
 		}
 		return "uge"
+	// Explicit unsigned variants — always unsigned regardless of signed flag.
+	case mir2.CmpUlt:
+		return "ult"
+	case mir2.CmpUle:
+		return "ule"
+	case mir2.CmpUgt:
+		return "ugt"
+	case mir2.CmpUge:
+		return "uge"
 	}
 	return "eq"
 }

@@ -22,7 +22,16 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - 87+ tests across 7 layers
 - See [Iterator Implementation Status](docs/Iterator_Implementation_Status.md)
 
-### 3. LSP / DAP / Developer Tooling
+### 3. MIR2 Open Bugs
+**Status:** 6 tracked bugs, 2 blocking (🔴). See **[docs/Open_Bugs_RCA.md](docs/Open_Bugs_RCA.md)** for full RCA.
+- 🔴 **BUG-003** `ptr[i]` in while loop — invalid `EX DE,HL` / `ADD F,DE` (PtrAdd cycle)
+- 🔴 **BUG-006** Zero-size struct globals not emitted (undefined symbol at link time)
+- 🟡 **BUG-001** GCD parallel-copy bloat (PBQP affinity edges / Union-Find pre-coalescing)
+- 🟡 **BUG-002** forEach constant rematerialization in parallel-copy resolver
+- 🟡 **BUG-004** Non-zero-lo LUT contract opt class mismatch (pipeline ordering)
+- 🟡 **BUG-005** `applySubSwapNeg` missing u16 guard (one-line fix, workaround exists)
+
+### 4. LSP / DAP / Developer Tooling
 **Status:** Not started. Planned after core language stability.
 
 ---
@@ -31,6 +40,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 - **[MinZ Crash Course for AI Colleagues](AI_COLLEAGUES_MINZ_CRASH_COURSE.md)** - Complete training
 - **[GenPlan.md](docs/GenPlan.md)** - Development plan & roadmap
+- **[Open Bugs & RCA](docs/Open_Bugs_RCA.md)** - Known issues with root cause analysis
 
 ## 🏗️ Architecture References
 
