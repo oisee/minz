@@ -1833,7 +1833,18 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.emitCallArgs(inst.Args, callee.Contract.Params)
 	}
 
-	g.emitf("    CALL %s", sym)
+	// Check if callee has a fixed address (ExternAddr)
+	if callee != nil && callee.Attrs.ExternAddr != 0 {
+		addr := callee.Attrs.ExternAddr
+		// RST addresses on Z80: 0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38
+		if addr <= 0x38 && addr%8 == 0 {
+			g.emitf("    RST 0x%02X", addr)
+		} else {
+			g.emitf("    CALL 0x%04X", addr)
+		}
+	} else {
+		g.emitf("    CALL %s", sym)
+	}
 
 	// The CALL clobbers A and F (volatile registers on Z80).  Remove physOverride
 	// entries for any virtual register that was relocated into A or F by

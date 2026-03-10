@@ -64,6 +64,11 @@ type FuncAttrs struct {
 	// The function is defined elsewhere (ROM routine, stdlib, FFI).
 	IsExtern bool
 
+	// ExternAddr: if non-zero, the function lives at a fixed address.
+	// Z80 codegen emits RST n (if addr is 0x00/0x08/0x10/0x18/0x20/0x28/0x30/0x38)
+	// or CALL addr otherwise, instead of CALL sym.
+	ExternAddr uint16
+
 	// IsComptime: the function is an @-function that can be evaluated at
 	// compile time on the MIR2 VM.  Callers with known arguments may fold
 	// the call to a constant.

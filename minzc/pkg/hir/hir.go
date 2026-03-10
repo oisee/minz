@@ -61,17 +61,19 @@ func (m *Module) FuncByName(name string) *Func {
 
 // Func is a HIR function.
 type Func struct {
-	Name     string
-	Params   []Param
-	RetTy    mir2.Ty  // mir2.TyVoid for void functions
-	Body     *Block   // nil for extern
-	IsExtern bool
+	Name       string
+	Params     []Param
+	RetTy      mir2.Ty  // mir2.TyVoid for void functions
+	Body       *Block   // nil for extern
+	IsExtern   bool
+	ExternAddr uint16   // non-zero → @extern(addr) — call via CALL/RST to fixed address
 }
 
 // Param is a typed, named function parameter.
 type Param struct {
-	Name string
-	Ty   mir2.Ty
+	Name     string
+	Ty       mir2.Ty
+	RegClass mir2.RegClass // 0 (ClassGeneral) = auto-assign; non-zero overrides classForParam
 }
 
 // ── Statements ────────────────────────────────────────────────────────────────

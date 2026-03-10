@@ -325,6 +325,7 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	mf := m.AddFunc(f.Name)
 	if f.IsExtern {
 		mf.Attrs.IsExtern = true
+		mf.Attrs.ExternAddr = f.ExternAddr
 		return
 	}
 
@@ -352,6 +353,9 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	// Bind parameters to virtual registers.
 	for i, p := range f.Params {
 		cls := classForParam(p.Ty, i)
+		if p.RegClass != 0 {
+			cls = p.RegClass
+		}
 		r := bld.Param(p.Name, p.Ty, cls)
 		l.bind(p.Name, r, p.Ty)
 	}

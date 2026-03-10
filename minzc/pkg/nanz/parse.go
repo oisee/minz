@@ -307,6 +307,39 @@ func isHexDigit(c byte) bool {
 	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
 }
 
+// processStringEscapes converts escape sequences in a raw string literal value
+// (the content between the quotes, as captured by the lexer) to their byte values.
+func processStringEscapes(s string) string {
+	var b strings.Builder
+	i := 0
+	for i < len(s) {
+		if s[i] == '\\' && i+1 < len(s) {
+			i++
+			switch s[i] {
+			case 'n':
+				b.WriteByte('\n')
+			case 't':
+				b.WriteByte('\t')
+			case 'r':
+				b.WriteByte('\r')
+			case '0':
+				b.WriteByte(0)
+			case '\\':
+				b.WriteByte('\\')
+			case '"':
+				b.WriteByte('"')
+			default:
+				b.WriteByte('\\')
+				b.WriteByte(s[i])
+			}
+		} else {
+			b.WriteByte(s[i])
+		}
+		i++
+	}
+	return b.String()
+}
+
 // ── Parser ────────────────────────────────────────────────────────────────────
 
 // methodInfo records a struct method's mangled function name and return type.
@@ -324,6 +357,7 @@ type opOverload struct {
 type parser struct {
 	l           *lexer
 	name        string
+	module      *hir.Module // current module being built (set in parseModule)
 	structs     map[string]*mir2.StructTy
 	interfaces  map[string]*hir.InterfaceDecl   // interface name → declaration
 	lambdas     []*hir.Func // anonymous functions generated from |params| body syntax
@@ -403,6 +437,7 @@ func isOpToken(k tokKind) bool {
 
 func (p *parser) parseModule() (*hir.Module, error) {
 	m := &hir.Module{Name: p.name}
+	p.module = m
 	p.structs = make(map[string]*mir2.StructTy)
 	p.interfaces = make(map[string]*hir.InterfaceDecl)
 	p.methodTable = make(map[string]map[string]methodInfo)
@@ -448,11 +483,28 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			m.Funcs = append(m.Funcs, f)
 
 		case t.kind == tokAt:
-			// @extern fun ...
+			// @extern fun ...  or  @extern(0xNNNN) fun ...
 			p.l.next()
 			attr := p.l.peek()
 			if attr.kind == tokIdent && attr.val == "extern" {
 				p.l.next()
+				// Optional address: @extern(0xNNNN) fun ...
+				var externAddr uint16
+				if p.l.is(tokLParen) {
+					p.l.next()
+					addrTok, err := p.l.eat(tokInt)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: expected address in @extern(...)", attr.line)
+					}
+					addr64, err := strconv.ParseUint(addrTok.val, 0, 16)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: invalid address %q: %v", addrTok.line, addrTok.val, err)
+					}
+					externAddr = uint16(addr64)
+					if _, err := p.l.eat(tokRParen); err != nil {
+						return nil, err
+					}
+				}
 				if err := p.l.eatIdent("fun"); err != nil {
 					return nil, err
 				}
@@ -460,6 +512,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				if err != nil {
 					return nil, err
 				}
+				f.ExternAddr = externAddr
 				m.Funcs = append(m.Funcs, f)
 			} else {
 				return nil, fmt.Errorf("line %d: unexpected @%s", attr.line, attr.val)
@@ -735,6 +788,33 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	var paramIfaceNames []string        // parallel to params: interface name or ""
 	var paramPtrElems []*mir2.StructTy  // parallel to params: ^Struct elem type or nil
 	for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+		// Check for @z80_X register class annotation BEFORE param name
+		var regClass mir2.RegClass
+		if p.l.is(tokAt) {
+			p.l.next()
+			annot := p.l.peek()
+			if annot.kind == tokIdent {
+				switch annot.val {
+				case "z80_a":
+					regClass = mir2.ClassAcc
+					p.l.next()
+				case "z80_hl":
+					regClass = mir2.ClassPointer
+					p.l.next()
+				case "z80_de":
+					regClass = mir2.ClassIndex
+					p.l.next()
+				case "z80_b":
+					regClass = mir2.ClassCounter
+					p.l.next()
+				case "z80_c":
+					regClass = mir2.ClassGeneral
+					p.l.next()
+				default:
+					return nil, fmt.Errorf("line %d: unknown register annotation @%s", annot.line, annot.val)
+				}
+			}
+		}
 		pname, err := p.l.eat(tokIdent)
 		if err != nil {
 			return nil, err
@@ -746,7 +826,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		if err != nil {
 			return nil, err
 		}
-		params = append(params, hir.Param{Name: pname.val, Ty: pty})
+		params = append(params, hir.Param{Name: pname.val, Ty: pty, RegClass: regClass})
 		paramIfaceNames = append(paramIfaceNames, ifaceName)
 		paramPtrElems = append(paramPtrElems, ptrElem)
 		if p.l.is(tokComma) {
@@ -1870,15 +1950,66 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 
 	case tokString:
 		p.l.next()
-		return &hir.AddrOfExpr{Sym: "@str." + strings.ReplaceAll(t.val, " ", "_")}, nil
+		s := processStringEscapes(t.val)
+		// Deduplicate and intern
+		idx := -1
+		for i, existing := range p.module.Strings {
+			if existing == s {
+				idx = i
+				break
+			}
+		}
+		if idx == -1 {
+			idx = len(p.module.Strings)
+			p.module.Strings = append(p.module.Strings, s)
+		}
+		return &hir.AddrOfExpr{Sym: fmt.Sprintf("@mir2.str.%d", idx)}, nil
 
 	case tokPipe:
 		// |params| expr  or  |params| { stmts }  — non-capturing lambda
 		return p.parseLambda()
 
 	case tokAt:
-		// @ptr(T, addr) — typed constant pointer to absolute address
+		// @print(expr), @print_nl(), @print_u8(expr), @ptr(T, addr)
 		p.l.next()
+		if p.l.isIdent("print") {
+			p.l.next()
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return nil, err
+			}
+			arg, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			return &hir.CallExpr{Fn: "@mir.io.print.str", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
+		}
+		if p.l.isIdent("print_nl") {
+			p.l.next()
+			if p.l.is(tokLParen) {
+				p.l.next()
+				if _, err := p.l.eat(tokRParen); err != nil {
+					return nil, err
+				}
+			}
+			return &hir.CallExpr{Fn: "@mir.io.print.nl", Args: nil, Ty: mir2.TyVoid}, nil
+		}
+		if p.l.isIdent("print_u8") {
+			p.l.next()
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return nil, err
+			}
+			arg, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			return &hir.CallExpr{Fn: "@mir.io.print.u8", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
+		}
 		if !p.l.isIdent("ptr") {
 			return nil, fmt.Errorf("line %d: expected @ptr(...), got @%s", t.line, p.l.peek().val)
 		}

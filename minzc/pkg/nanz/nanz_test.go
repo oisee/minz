@@ -7,6 +7,7 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/pipeline"
 )
 
 const sampleNanz = `struct Point {
@@ -1399,5 +1400,166 @@ fun caller(n: u8) -> u8 {
 	}
 	if call.Fn != "Acc_add" {
 		t.Errorf("UFCS dispatch: want Acc_add, got %s", call.Fn)
+	}
+}
+
+// ── Hello World / @print / @extern(addr) ─────────────────────────────────────
+
+// TestExternAddr verifies that @extern(0x0010) fun ... sets ExternAddr=0x10.
+func TestExternAddr(t *testing.T) {
+	src := `@extern(0x0010) fun print_char(a: u8) -> void`
+	m, err := nanz.Parse(src, "extern_addr_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(m.Funcs) != 1 {
+		t.Fatalf("funcs: want 1, got %d", len(m.Funcs))
+	}
+	f := m.Funcs[0]
+	if f.Name != "print_char" {
+		t.Errorf("func name: want print_char, got %q", f.Name)
+	}
+	if !f.IsExtern {
+		t.Error("IsExtern: want true")
+	}
+	if f.ExternAddr != 0x0010 {
+		t.Errorf("ExternAddr: want 0x0010, got 0x%04X", f.ExternAddr)
+	}
+}
+
+// TestHelloWorldASM verifies that a Nanz program using @print("Hello, World!\n")
+// produces Z80 assembly containing the string bytes and the OUT instruction.
+func TestHelloWorldASM(t *testing.T) {
+	src := `@extern fun puts(ptr: ^u8) -> void
+
+fun main() -> void {
+    @print("Hello, World!\n")
+    @print_nl()
+}
+`
+	m, err := nanz.Parse(src, "hello_world")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	// Verify string was interned
+	if len(m.Strings) != 1 {
+		t.Errorf("strings: want 1, got %d: %v", len(m.Strings), m.Strings)
+	}
+	if len(m.Strings) >= 1 && m.Strings[0] != "Hello, World!\n" {
+		t.Errorf("string[0]: want %q, got %q", "Hello, World!\n", m.Strings[0])
+	}
+
+	// Verify @print parses to a CallExpr{Fn:"@mir.io.print.str"}
+	mainFunc := m.FuncByName("main")
+	if mainFunc == nil {
+		t.Fatal("main not found")
+	}
+	if len(mainFunc.Body.Body) < 2 {
+		t.Fatalf("main body stmts: want >=2, got %d", len(mainFunc.Body.Body))
+	}
+	stmt0, ok := mainFunc.Body.Body[0].(*hir.ExprStmt)
+	if !ok {
+		t.Fatalf("body[0]: want ExprStmt, got %T", mainFunc.Body.Body[0])
+	}
+	call0, ok := stmt0.Expr.(*hir.CallExpr)
+	if !ok {
+		t.Fatalf("body[0].Expr: want CallExpr, got %T", stmt0.Expr)
+	}
+	if call0.Fn != "@mir.io.print.str" {
+		t.Errorf("@print fn: want @mir.io.print.str, got %q", call0.Fn)
+	}
+
+	// Compile through the full pipeline to Z80 assembly.
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("CompileHIR: %v", err)
+	}
+
+	// Assembly must contain the string bytes ("Hello, World!\n" = 72 101 108 ...)
+	// The string is emitted as a DB sequence in the MIR2 string pool section.
+	// Check for 'H' (decimal 72) and presence of OUT instruction.
+	checks := []string{
+		"72",  // 'H' in decimal (DB encoding)
+		"OUT", // OUT (0x01), A — the print_str loop
+	}
+	for _, want := range checks {
+		if !strings.Contains(asm, want) {
+			t.Errorf("assembly missing %q\n\nFull asm:\n%s", want, asm)
+		}
+	}
+
+	// Assembly must reference the string pool symbol.
+	if !strings.Contains(asm, "@mir2.str.") {
+		t.Errorf("assembly missing @mir2.str. symbol\n\nFull asm:\n%s", asm)
+	}
+}
+
+// TestHelloWorldStringEscapes verifies that processStringEscapes correctly
+// handles escape sequences like \n, \t, \\, \".
+func TestHelloWorldStringEscapes(t *testing.T) {
+	src := `fun greet() -> void {
+    @print("Line1\nLine2\ttabbed")
+}
+`
+	m, err := nanz.Parse(src, "escape_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(m.Strings) != 1 {
+		t.Fatalf("strings: want 1, got %d", len(m.Strings))
+	}
+	got := m.Strings[0]
+	want := "Line1\nLine2\ttabbed"
+	if got != want {
+		t.Errorf("string[0]: want %q, got %q", want, got)
+	}
+}
+
+// TestExternAddrRST verifies that RST address (multiple of 8, ≤0x38) is
+// correctly stored in ExternAddr.
+func TestExternAddrRST(t *testing.T) {
+	cases := []struct {
+		src  string
+		name string
+		addr uint16
+	}{
+		{`@extern(0x0008) fun rst8() -> void`, "rst8", 0x0008},
+		{`@extern(0x0038) fun rst56() -> void`, "rst56", 0x0038},
+		{`@extern(0x1234) fun call_fixed() -> void`, "call_fixed", 0x1234},
+	}
+	for _, tc := range cases {
+		m, err := nanz.Parse(tc.src, "rst_test")
+		if err != nil {
+			t.Errorf("%s: Parse: %v", tc.name, err)
+			continue
+		}
+		if len(m.Funcs) != 1 {
+			t.Errorf("%s: want 1 func, got %d", tc.name, len(m.Funcs))
+			continue
+		}
+		if m.Funcs[0].ExternAddr != tc.addr {
+			t.Errorf("%s: ExternAddr want 0x%04X, got 0x%04X", tc.name, tc.addr, m.Funcs[0].ExternAddr)
+		}
+	}
+}
+
+// TestRegisterAnnotation verifies that @z80_a, @z80_hl etc. on params
+// set the RegClass field correctly.
+func TestRegisterAnnotation(t *testing.T) {
+	src := `@extern(0x0010) fun print_char(@z80_a c: u8) -> void`
+	m, err := nanz.Parse(src, "reg_annot_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(m.Funcs) != 1 {
+		t.Fatalf("funcs: want 1, got %d", len(m.Funcs))
+	}
+	f := m.Funcs[0]
+	if len(f.Params) != 1 {
+		t.Fatalf("params: want 1, got %d", len(f.Params))
+	}
+	if f.Params[0].RegClass != mir2.ClassAcc {
+		t.Errorf("param[0].RegClass: want ClassAcc (%d), got %d", mir2.ClassAcc, f.Params[0].RegClass)
 	}
 }
