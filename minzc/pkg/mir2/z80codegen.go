@@ -2,6 +2,7 @@ package mir2
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -202,6 +203,10 @@ type globalFieldInfo struct {
 	sym       string // global symbol name (raw, before sanitize)
 	offset    int64  // byte offset within the global
 	fieldName string // field name for the EQU label (may be empty → use offset)
+	// HL-chain: when true, emit LD HL,sym chain instead of LD (sym__field),A.
+	hlChain bool // part of a consecutive-field HL-chain group
+	hlHead  bool // first in group → emit LD HL,sym before
+	hlLast  bool // last in group  → no INC HL after
 }
 
 // trampolineBlock is emitted after all regular blocks of a function.
@@ -794,6 +799,70 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 			g.globalFieldSkip[baseReg2] = true    // AddrOf result
 		}
 	}
+
+	// ── HL-chain detection ──────────────────────────────────────────────────────
+	// When 2+ stores to the same global struct cover consecutive byte offsets and
+	// all value registers are safe (not H or L, which alias with the HL pointer),
+	// replace independent LD (sym__field),A sequences with:
+	//   LD HL,sym  ;  LD (HL),r  ;  INC HL  ;  LD (HL),r  ;  ...
+	// Saves 8T and 4 bytes for a 3-field struct (61T→53T, 12B→8B).
+	type hlEntry struct {
+		addrReg Reg
+		valReg  Reg
+		offset  int64
+	}
+	symStores := make(map[string][]hlEntry)
+	for addrReg, info := range g.globalFieldStore {
+		for _, inst := range b.Insts {
+			if inst.Op == OpStore && inst.Src[0] == addrReg {
+				symStores[info.sym] = append(symStores[info.sym], hlEntry{
+					addrReg: addrReg,
+					valReg:  inst.Src[1],
+					offset:  info.offset,
+				})
+				break
+			}
+		}
+	}
+	for _, entries := range symStores {
+		if len(entries) < 2 {
+			continue
+		}
+		sort.Slice(entries, func(i, j int) bool { return entries[i].offset < entries[j].offset })
+		// Check consecutive offsets.
+		consecutive := true
+		for i := 1; i < len(entries); i++ {
+			if entries[i].offset != entries[i-1].offset+1 {
+				consecutive = false
+				break
+			}
+		}
+		if !consecutive {
+			continue
+		}
+		// Check all value regs safe (not H/L which aliases with HL pointer).
+		safe := true
+		for _, e := range entries {
+			if e.valReg != NoReg {
+				loc := g.ar.Loc(e.valReg).Name
+				if loc == "H" || loc == "L" {
+					safe = false
+					break
+				}
+			}
+		}
+		if !safe {
+			continue
+		}
+		// Mark as HL-chain.
+		for i, e := range entries {
+			entry := g.globalFieldStore[e.addrReg]
+			entry.hlChain = true
+			entry.hlHead = (i == 0)
+			entry.hlLast = (i == len(entries)-1)
+			g.globalFieldStore[e.addrReg] = entry
+		}
+	}
 }
 
 // ── Block ─────────────────────────────────────────────────────────────────────
@@ -1032,19 +1101,32 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 	case OpStore:
-		// Global struct field direct-addressing fast path:
-		//   LD A, val           ; 4T (omitted when val is already A)
-		//   LD (sym__field), A  ; 13T
-		// Replaces: LD HL,sym + INC HL×N + LD (HL),r  = 29T, 5–8 bytes.
-		// Only u8 stores are eligible (LD (nn),A requires A as source).
 		addrReg := inst.Src[0]
 		if info, ok := g.globalFieldStore[addrReg]; ok && inst.Ty.Width() == 8 {
-			val := g.loc(inst.Src[1])
-			lbl := globalFieldLabel(info.sym, info.offset, info.fieldName)
-			if val != "A" {
-				g.emitLDA(val)
+			if info.hlChain {
+				// HL-chain: consecutive field stores share one LD HL,sym base load.
+				//   head:  LD HL, sym   ; 10T
+				//   each:  LD (HL), r   ; 7T  (r already in correct reg)
+				//          INC HL       ; 6T  (omitted for last)
+				if info.hlHead {
+					g.emitf("    LD HL, %s", sanitizeIdent(info.sym))
+				}
+				val := g.loc(inst.Src[1])
+				g.emitf("    LD (HL), %s", val)
+				if !info.hlLast {
+					g.emitf("    INC HL")
+				}
+			} else {
+				// Global struct field direct-addressing fast path:
+				//   LD A, val           ; 4T (omitted when val is already A)
+				//   LD (sym__field), A  ; 13T
+				val := g.loc(inst.Src[1])
+				lbl := globalFieldLabel(info.sym, info.offset, info.fieldName)
+				if val != "A" {
+					g.emitLDA(val)
+				}
+				g.emitf("    LD (%s), A", lbl)
 			}
-			g.emitf("    LD (%s), A", lbl)
 			break
 		}
 		ptr := g.loc(inst.Src[0])

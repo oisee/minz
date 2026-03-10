@@ -385,6 +385,117 @@ func TestGlobalFieldDirectAddr_SharedBase(t *testing.T) {
 	}
 }
 
+// TestGlobalFieldChainStore verifies that 2+ consecutive field stores to the same
+// global struct are emitted as an HL-chain (LD HL,sym; LD (HL),r; INC HL; ...).
+// set_rgb(rv,gv,bv): stores palette.r, palette.g, palette.b in sequence.
+// Expected: LD HL,palette / LD (HL),C / INC HL / LD (HL),D / INC HL / LD (HL),E
+// NOT:      LD A,C / LD (palette__r),A / LD A,D / LD (palette__g),A / ...
+func TestGlobalFieldChainStore(t *testing.T) {
+	colorTy := &mir2.StructTy{
+		Name: "Color",
+		Fields: []mir2.StructField{
+			{Name: "r", Ty: mir2.TyU8},
+			{Name: "g", Ty: mir2.TyU8},
+			{Name: "b", Ty: mir2.TyU8},
+		},
+	}
+	m := &mir2.Module{Name: "chain_store"}
+	m.AddGlobal(mir2.Global{Name: "palette", Ty: colorTy})
+
+	f := m.AddFunc("set_rgb")
+	f.Contract.Params = []mir2.Param{
+		{Name: "rv", Ty: mir2.TyU8, Class: mir2.ClassGeneral},
+		{Name: "gv", Ty: mir2.TyU8, Class: mir2.ClassGeneral},
+		{Name: "bv", Ty: mir2.TyU8, Class: mir2.ClassGeneral},
+	}
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	rv := bld.Param("rv", mir2.TyU8, mir2.ClassGeneral)
+	gv := bld.Param("gv", mir2.TyU8, mir2.ClassGeneral)
+	bv := bld.Param("bv", mir2.TyU8, mir2.ClassGeneral)
+
+	base := bld.AddrOf("palette", mir2.ClassPointer)
+	ptrG := bld.FieldOf(base, colorTy, 1, mir2.ClassPointer)
+	ptrB := bld.FieldOf(base, colorTy, 2, mir2.ClassPointer) // uses fresh AddrOf internally
+	// Use a fresh base for each store so useCount[base]==1 per store.
+	base2 := bld.AddrOf("palette", mir2.ClassPointer)
+	base3 := bld.AddrOf("palette", mir2.ClassPointer)
+	_ = ptrG
+	_ = ptrB
+
+	// Build independent stores: each with its own base+field chain.
+	b0 := base
+	b1 := bld.FieldOf(base2, colorTy, 1, mir2.ClassPointer)
+	b2 := bld.FieldOf(base3, colorTy, 2, mir2.ClassPointer)
+	bld.Store(b0, rv, mir2.TyU8)
+	bld.Store(b1, gv, mir2.TyU8)
+	bld.Store(b2, bv, mir2.TyU8)
+	bld.Ret()
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	funcAsm := extractFuncAsm(asm, "set_rgb")
+
+	// Must contain LD HL, palette (the chain head).
+	if !strings.Contains(funcAsm, "LD HL, palette") {
+		t.Errorf("expected LD HL, palette (chain head); got:\n%s", funcAsm)
+	}
+	// Must contain LD (HL) stores (not LD (palette__X), A).
+	if !strings.Contains(funcAsm, "LD (HL)") {
+		t.Errorf("expected LD (HL) stores; got:\n%s", funcAsm)
+	}
+	// Must contain INC HL (for advancing through fields).
+	if !strings.Contains(funcAsm, "INC HL") {
+		t.Errorf("expected INC HL; got:\n%s", funcAsm)
+	}
+	// Should NOT contain LD (palette__r), A (the old direct-addr path).
+	if strings.Contains(funcAsm, "LD (palette__") {
+		t.Errorf("should not emit direct LD (palette__X), A for chain stores; got:\n%s", funcAsm)
+	}
+	// Must end with RET.
+	if !strings.Contains(funcAsm, "RET") {
+		t.Errorf("missing RET:\n%s", funcAsm)
+	}
+}
+
+// TestGlobalFieldChainStore_TwoFields verifies the 2-field case (2-field chain).
+func TestGlobalFieldChainStore_TwoFields(t *testing.T) {
+	pt := &mir2.StructTy{
+		Name:   "Point",
+		Fields: []mir2.StructField{{Name: "x", Ty: mir2.TyU8}, {Name: "y", Ty: mir2.TyU8}},
+	}
+	m := &mir2.Module{Name: "chain_2"}
+	m.AddGlobal(mir2.Global{Name: "pt", Ty: pt})
+
+	f := m.AddFunc("set_xy")
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	xv := bld.Param("xv", mir2.TyU8, mir2.ClassGeneral)
+	yv := bld.Param("yv", mir2.TyU8, mir2.ClassGeneral)
+	b0 := bld.AddrOf("pt", mir2.ClassPointer)
+	b1 := bld.AddrOf("pt", mir2.ClassPointer)
+	b1f := bld.FieldOf(b1, pt, 1, mir2.ClassPointer)
+	bld.Store(b0, xv, mir2.TyU8)
+	bld.Store(b1f, yv, mir2.TyU8)
+	bld.Ret()
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+	funcAsm := extractFuncAsm(asm, "set_xy")
+
+	if !strings.Contains(funcAsm, "LD HL, pt") {
+		t.Errorf("expected LD HL, pt; got:\n%s", funcAsm)
+	}
+	if !strings.Contains(funcAsm, "LD (HL)") {
+		t.Errorf("expected LD (HL) stores; got:\n%s", funcAsm)
+	}
+	// Two-field chain: one INC HL between x and y, no INC HL after y.
+	if strings.Count(funcAsm, "INC HL") != 1 {
+		t.Errorf("expected exactly 1 INC HL for 2-field chain, got:\n%s", funcAsm)
+	}
+}
+
 // ── Helpers for direct-addr tests ─────────────────────────────────────────────
 
 // buildFieldGetter builds: fun name() -> u8 { return global.fields[fieldIdx] }
