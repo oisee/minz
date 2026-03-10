@@ -36,7 +36,7 @@ fun get_g() -> u8 { return palette.g }
 fun get_b() -> u8 { return palette.b }
 ```
 
-**Compiled Z80** (with global struct field direct-addressing optimization):
+**Compiled Z80** (two optimizations active — see progression below):
 ```z80
 ; EQU aliases emitted from struct field layout
 palette__r EQU palette + 0
@@ -44,13 +44,13 @@ palette__g EQU palette + 1
 palette__b EQU palette + 2
 
 set_rgb:
-    LD A, C             ; rv (ClassGeneral → C)
-    LD (palette__r), A  ; palette.r ← rv        13T
-    LD A, D             ; gv
-    LD (palette__g), A  ; palette.g ← gv        13T
-    LD A, E             ; bv
-    LD (palette__b), A  ; palette.b ← bv        13T
-    RET
+    LD HL, palette      ; HL-chain head: one base load for all three fields  10T
+    LD (HL), C          ; palette.r ← rv                                      7T
+    INC HL              ;                                                      6T
+    LD (HL), D          ; palette.g ← gv                                      7T
+    INC HL              ;                                                      6T
+    LD (HL), E          ; palette.b ← bv                                      7T
+    RET                 ;                                                     10T
 
 get_r:
     LD A, (palette__r)  ; direct load: 13T
@@ -69,32 +69,33 @@ palette:
     DB 0, 0, 0          ; 3-byte inline struct in data section
 ```
 
-**What happened:**
-- `struct Color` is a 3-byte record.  Field offsets are computed at **parse time**
-  by `makeFieldExpr()` in `pkg/nanz/parse.go`.
-- The `scanGlobalFieldPatterns` pre-pass in z80codegen recognizes the
-  `AddrOf(palette) + [Field(n)] + Load` chain and fuses it into a single
-  `LD A, (palette__field)` instruction.
-- EQU labels are emitted automatically after each global with a StructTy.
+**Three-generation progression for `set_rgb`:**
 
-**T-state comparison:**
+| Generation | Output | T-states | Bytes |
+|---|---|---|---|
+| v1 — HL-reload per field | `LD HL,palette / LD (HL),C / LD HL,palette / INC HL / LD (HL),D / ...` | 79T | 14B |
+| v2 — direct addressing | `LD A,C / LD (palette__r),A / LD A,D / LD (palette__g),A / ...` | 61T | 12B |
+| v3 — HL-chain (**today**) | `LD HL,palette / LD (HL),C / INC HL / LD (HL),D / INC HL / LD (HL),E` | **53T** | **8B** |
 
-| function | before (HL-indirect) | after (direct addr) | saved |
-|----------|---------------------|---------------------|-------|
-| `get_r()` | 31T | 23T | −26% |
-| `get_g()` | 37T | 23T | −38% |
-| `get_b()` | 43T | 23T | −46% |
-| `set_rgb()` total | 79T | 61T | −23% |
+v3 is the natural optimum: one base load amortized over all three stores.
 
-The getter improvement is largest for high-offset fields: `get_b` was
-`LD HL,palette / INC HL / INC HL / LD C,(HL) / LD A,C` (43T) and is now a
-single direct load (23T).
+**What each pass added:**
+- **`scanGlobalFieldPatterns` (v2):** fuses `AddrOf + Field + Load/Store` →
+  `LD A,(sym__field)` / `LD (sym__field),A` for single-field accesses.
+  Getters: 31–43T → 23T each.
+- **HL-chain detection (v3):** when 2+ consecutive field stores share the same
+  global base in the same block and value regs are safe (not H/L), emits a
+  single `LD HL,sym` + `LD (HL),r / INC HL` sequence instead of
+  independent direct stores.  Saves 8T and 4B on 3-field setter.
 
-**Known gap:** `LD HL, palette` is no longer needed at all for single-field
-accesses.  When `set_rgb` writes three different fields the params arrive in
-C/D/E — there's still a `LD A, reg` before each `LD (sym), A`.  A future
-peephole could coalesce adjacent field stores into a short HL-INC chain if
-the param is already in A.
+**T-state summary:**
+
+| function | baseline | v2 (direct) | v3 (HL-chain) | total saved |
+|----------|----------|-------------|---------------|-------------|
+| `get_r()` | 31T | 23T | 23T | −26% |
+| `get_g()` | 37T | 23T | 23T | −38% |
+| `get_b()` | 43T | 23T | 23T | −46% |
+| `set_rgb()` | 79T | 61T | **53T** | **−33%** |
 
 ---
 
@@ -713,7 +714,8 @@ improvement.
 
 | Feature | Source | Z80 output | Notes |
 |---------|--------|-----------|-------|
-| Struct field access (3 fields) | `palette.r = rv` | `LD (palette__r), A` | EQU labels, direct addr; get_b: 43T → 23T |
+| Struct field access — getters | `palette.r` | `LD A,(palette__r)` | EQU labels, direct addr; 43T → 23T |
+| Struct field access — setter 3 fields | `set_rgb(r,g,b)` | `LD HL,sym / LD (HL),C / INC HL / ...` | HL-chain; 79T → 53T, 14B → 8B |
 | UFCS dispatch | `obj.method(args)` | `CALL Obj_method` | zero vtable |
 | Zero-cost interface | `interface Animal { speak }` | direct `CALL` | compile-time only, no runtime cost |
 | abs_diff u8 (5 passes) | 7 lines → 4 instr | `SUB B / RET NC / NEG / RET` | 9T (a≥b) / 33T (a<b) |
