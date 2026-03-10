@@ -1,0 +1,9 @@
+fun abs_diff(a: u8, b: u8) -> u8 {
+    if a == b {
+        return 0
+    }
+    if a < b {
+        return b - a
+    }
+    return a - b
+}

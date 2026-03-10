@@ -743,3 +743,262 @@ fun abs_diff_u16(a: u16, b: u16) -> u16  // u16 variant (no overloading yet)
 ```
 
 All examples compile with the current `mz` binary on the `master` branch.
+
+---
+
+## Appendix: Sprint diff — actual output after 2026-03-10 sprint
+
+**Methodology:** all examples re-compiled after rebuilding `mz` from master
+(commits 480b29e … 811472a).  Sources archived in
+`reports/showcase-src/2026-03-10/`.  One section per example that changed.
+
+---
+
+### §1, §3, §5, §6 — no change
+
+`set_rgb` (HL-chain), `get_r/g/b` (direct-addr), interface dispatch,
+`Dog_speak`/`Cat_speak`, `feed` (interface param), `popcount` (LUTGen),
+`sum_chain` / `max_chain` (forEach closure) — output byte-for-byte
+identical to what the report shows.  These optimizations are stable.
+
+---
+
+### §2 `sum_two` — `return acc_g.val` improved 📈 (lowerExprForRet)
+
+**Before** (pre-sprint):
+```z80
+sum_two:
+    ...
+    LD HL, acc_g
+    LD C, (HL)          ; load field to C (ClassGeneral)
+    LD A, C             ; copy to A for ClassAcc return
+    RET
+```
+
+**After** (post-sprint):
+```z80
+sum_two:
+    ...
+    LD A, (acc_g__val)  ; direct-address load straight into A
+    RET
+```
+
+**What changed:** `lowerExprForRet` intercepts `FieldExpr` / `LoadExpr`
+at the top-level of a `ReturnStmt` and allocates the load with `ClassAcc`
+instead of `ClassGeneral`.  Combined with `scanGlobalFieldPatterns`, the
+EQU alias `acc_g__val EQU acc_g` lets codegen emit `LD A, (acc_g__val)`
+directly.
+
+**Savings:** 3 instructions → 1 instruction; 10+7+4T = 21T → 13T (**−38%**).
+
+---
+
+### §4a `abs_diff` u8 — extra `LD C,A` appeared ⚠️ (register allocation drift)
+
+**Before** (what report showed):
+```z80
+abs_diff:
+    SUB B           ; b was ClassCounter → B
+    RET NC
+.b_minus_a:
+    NEG
+    RET
+```
+
+**After** (actual now):
+```z80
+abs_diff:
+    SUB D           ; b now ClassGeneral → D
+    LD C, A         ; copy result to C (ClassGeneral return?)
+    RET NC
+.b_minus_a:
+    NEG
+    RET
+```
+
+**What changed:** the contract optimizer assigned `b` to `ClassGeneral`
+(D) rather than `ClassCounter` (B), and the return contract for the
+`sub(a,b)` result path switched to `ClassGeneral` (C).  The
+`NEG; RET` path still returns in `A` (`ClassAcc`), creating an
+inconsistency between the two return paths.
+
+**Cost:** +1 instruction (`LD C, A`), +4T on the fast path.
+
+**Status:** regression in register allocation; `b` should be `ClassCounter`
+(B) and the return should be `ClassAcc` (A) throughout.  Needs
+investigation in contract optimizer or PBQP cost table.
+
+---
+
+### §4b `abs_diff_u16` — carry-clear changed, slow-path NEG broken ⚠️
+
+**Before** (what report showed):
+```z80
+abs_diff_u16:
+    AND A               ; clear carry  4T
+    SBC HL, DE
+    RET NC
+.neg_hl:
+    LD A, L
+    NEG                 ; 16-bit NEG sequence, correct
+    LD L, A
+    LD A, 0
+    SBC A, H
+    LD H, A
+    RET
+```
+
+**After** (actual now):
+```z80
+abs_diff_u16:
+    SCF                 ; set carry
+    CCF                 ; complement → clear carry (8T instead of 4T)
+    SBC HL, DE
+    RET NC
+.abs_diff_u16_if_then1:
+    NEG                 ; 8-bit NEG only! HL not negated
+    RET
+```
+
+**Two regressions:**
+
+1. **`AND A` → `SCF; CCF`** to clear carry (+4T) — the peephole that
+   recognises `SCF; CCF` → `AND A` for the carry-clear idiom is missing or
+   not firing.
+
+2. **16-bit NEG → 8-bit NEG** — the slow path now emits only `NEG; RET`.
+   This negates only A, leaving H intact.  For a `u16` return this is
+   **functionally wrong** on any input where the high byte is non-zero.
+   Root cause: `applySubSwapNeg` forces `ClassAcc` on the hoisted
+   instruction, collapsing the 16-bit sequence to 8-bit.  The guard
+   `h.Ty.Width() <= 8` (noted as deferred in the report) is still missing.
+
+**Status:** known bugs, deferred.  `abs_diff_u16` produces wrong results for
+`|a − b| > 255`; marked ⚠️ in the report.
+
+---
+
+### §7 `mapInPlace` — `ADD A,2` regressed to `LD D,2; INC C; INC C` ⚠️
+
+**Before** (what report showed):
+```z80
+add2_inplace:
+    LD B, C
+.fe_head:
+    LD A, B
+    AND A
+    JRS Z, .fe_exit
+.fe_body:
+    LD A, (HL)          ; load element
+    ADD A, 2            ; add constant  7T
+    LD (HL), A          ; write back
+.fe_cont:
+    INC HL
+    DJNZ .fe_body
+.fe_exit:
+    RET
+```
+
+**After** (actual now):
+```z80
+add2_inplace:
+    LD B, C
+.fe_head:
+    LD A, B
+    AND A
+    JRS Z, .fe_exit
+.fe_body:
+    LD C, (HL)          ; load to C (not A!)
+    LD D, 2             ; dead load — D never used
+    INC C               ; +1
+    INC C               ; +1 (two increments instead of ADD A,2)
+    LD (HL), C          ; write back from C
+.fe_cont:
+    INC HL
+    DJNZ .fe_body
+.fe_exit:
+    RET
+
+lambda_0:               ; standalone lambda emitted but never called
+    LD C, 2
+    ADD A, C
+    LD C, A
+    RET
+```
+
+**What changed:** the mapInPlace loop body now:
+- Loads element to `C` (ClassGeneral) instead of `A`
+- Emits a dead `LD D, 2` (constant loaded but unused)
+- Replaces `ADD A, 2` with `INC C; INC C` (correct for adding 2, but
+  only works for small constants ≤ 3)
+- Also emits a standalone `lambda_0` function that is never called
+
+**Per-element cost:** 7+10+4+4+7+6+13 = **51T** vs old 7+7+7+6+13 = **40T**
+(regression +11T/element, +27%).
+
+**Status:** regression in constant-add lowering for mapInPlace.  The
+`ADD A,imm` peephole should fire but doesn't when the element is in C
+(not A).  `LD D, 2` is a dead store that DSE should eliminate.
+
+---
+
+### §8 `gcd` — major improvement in loop body 📈 (coalescer)
+
+**Before** (what report showed — inner loop per iteration):
+```z80
+; if-then branch (a > b: a = a − b):
+    LD A, C
+    SUB D
+    LD C, A
+    LD A, C         ← redundant copy  (4T)
+    LD C, D         ← parallel-copy swap  (4T)
+    LD D, A         ←                      (4T)
+.loop_back:
+    LD A, D         ← re-sync at block boundary  (4T)
+    LD D, C         ←                            (4T)
+    LD C, A         ←                            (4T)
+    JRS .loop_head
+```
+6+ redundant `LD r,r` moves per iteration.
+
+**After** (actual now):
+```z80
+; if-then branch:
+    LD A, C
+    SUB D
+    LD C, A
+    JRS .gcd_loop_head1   ← directly back to loop, no swap block
+; if-else branch:
+    LD A, D
+    SUB C
+    LD D, A
+    JRS .gcd_loop_head1   ← same
+```
+
+**What changed:** post-allocation coalescer (Phase 6c) eliminated the
+`loop_back` trampoline and all its parallel-copy moves.  The only
+remaining swap is in `.gcd_trmp0` (the exit path from the equality check),
+which is on the cold path.
+
+**Savings (inner loop, if_then path):**  old ≈ 4+4+4+4+4+4 = 24T in copy
+overhead per iteration → new = 0T overhead.  Hot-path per iteration drops
+from ~70T to ~46T (**−34%**).
+
+---
+
+### Sprint diff summary
+
+| Example | Result | ΔT (key path) | Root cause |
+|---------|--------|----------------|------------|
+| `set_rgb` / `get_*` | ✅ unchanged | — | stable |
+| `sum_two` return | 📈 improved | −8T (return) | `lowerExprForRet` |
+| `abs_diff` u8 | ⚠️ regressed | +4T (fast path) | contract alloc drift, b→D not B |
+| `abs_diff_u16` | ⚠️ broken | +4T + wrong slow path | `applySubSwapNeg` guard missing |
+| `popcount` LUTGen | ✅ unchanged | — | stable |
+| `forEach` sum/max | ✅ unchanged | — | stable |
+| `mapInPlace` | ⚠️ regressed | +11T/element | constant-add not through A |
+| `gcd` | 📈 improved | −24T/iteration | Phase 6c coalescer |
+
+**Net:** 2 improvements, 3 regressions.  The regressions (`abs_diff` u8,
+`mapInPlace`) are register-allocation issues unrelated to today's sprint
+features; they need targeted fixes.

@@ -1,0 +1,9 @@
+fun popcount(x: u8<0..255>) -> u8 {
+    var n: u8 = 0
+    var v: u8 = x
+    while v != 0 {
+        n = n + (v & 1)
+        v = v >> 1
+    }
+    return n
+}

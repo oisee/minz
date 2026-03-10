@@ -1,0 +1,17 @@
+struct Color {
+    r: u8
+    g: u8
+    b: u8
+}
+
+global palette: Color
+
+fun set_rgb(rv: u8, gv: u8, bv: u8) -> void {
+    palette.r = rv
+    palette.g = gv
+    palette.b = bv
+}
+
+fun get_r() -> u8 { return palette.r }
+fun get_g() -> u8 { return palette.g }
+fun get_b() -> u8 { return palette.b }

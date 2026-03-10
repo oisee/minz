@@ -137,3 +137,6 @@ progress-*.txt
 progress-*.txt
 *.a80
 *.mir
+
+# Showcase snapshots: track assembly evolution over time
+!reports/showcase-src/**/*.a80

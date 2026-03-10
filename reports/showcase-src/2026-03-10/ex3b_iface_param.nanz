@@ -1,0 +1,7 @@
+interface Animal { speak }
+struct Dog {}
+fun Dog.speak(self: Dog) -> u8 { return 1 }
+
+fun feed(a: Animal) -> u8 {
+    return a.speak()
+}
