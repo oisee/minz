@@ -57,10 +57,145 @@ func LowerModule(hm *Module) *mir2.Module {
 		hirFuncs[f.Name] = f
 	}
 
+	// Collect global names for free-variable detection.
+	globalNames := make(map[string]bool, len(hm.Globals))
+	for _, g := range hm.Globals {
+		globalNames[g.Name] = true
+	}
+
 	for _, f := range hm.Funcs {
+		// Skip standalone lowering of lambdas that capture outer locals.
+		// Such functions are always inlined via lowerFusedForEach; lowering
+		// them directly would panic on the free-variable references.
+		if hasFreeVars(f, globalNames, funcNames) {
+			continue
+		}
 		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs)
 	}
 	return m
+}
+
+// hasFreeVars reports whether f references any variable that is not one of its
+// own parameters, not a global, and not a module-level function name.
+// Such functions are capture-lambdas that must be inlined rather than lowered
+// as standalone MIR2 functions.
+func hasFreeVars(f *Func, globalNames, funcNames map[string]bool) bool {
+	if f.Body == nil {
+		return false
+	}
+	bound := make(map[string]bool, len(f.Params))
+	for _, p := range f.Params {
+		bound[p.Name] = true
+	}
+	return blockHasFreeRef(f.Body, bound, globalNames, funcNames)
+}
+
+func blockHasFreeRef(blk *Block, bound, globals, funcs map[string]bool) bool {
+	for _, s := range blk.Body {
+		if stmtHasFreeRef(s, bound, globals, funcs) {
+			return true
+		}
+	}
+	return false
+}
+
+func stmtHasFreeRef(s Stmt, bound, globals, funcs map[string]bool) bool {
+	switch st := s.(type) {
+	case *Block:
+		return blockHasFreeRef(st, bound, globals, funcs)
+	case *VarDeclStmt:
+		if st.Init != nil && exprHasFreeRef(st.Init, bound, globals, funcs) {
+			return true
+		}
+		bound[st.Name] = true // newly bound
+	case *AssignStmt:
+		if exprHasFreeRef(st.Val, bound, globals, funcs) {
+			return true
+		}
+		if d, ok := st.Target.(*DerefExpr); ok {
+			return exprHasFreeRef(d.Ptr, bound, globals, funcs)
+		}
+	case *ReturnStmt:
+		if st.Val != nil {
+			return exprHasFreeRef(st.Val, bound, globals, funcs)
+		}
+	case *ExprStmt:
+		return exprHasFreeRef(st.Expr, bound, globals, funcs)
+	case *StoreStmt:
+		return exprHasFreeRef(st.Ptr, bound, globals, funcs) ||
+			exprHasFreeRef(st.Val, bound, globals, funcs)
+	case *IfStmt:
+		return exprHasFreeRef(st.Cond, bound, globals, funcs) ||
+			blockHasFreeRef(st.Then, bound, globals, funcs) ||
+			(st.Else != nil && blockHasFreeRef(st.Else, bound, globals, funcs))
+	case *WhileStmt:
+		return exprHasFreeRef(st.Cond, bound, globals, funcs) ||
+			blockHasFreeRef(st.Body, bound, globals, funcs)
+	case *ForEachStmt:
+		if exprHasFreeRef(st.Ptr, bound, globals, funcs) {
+			return true
+		}
+		if st.Len != nil && exprHasFreeRef(st.Len, bound, globals, funcs) {
+			return true
+		}
+		bound[st.Var] = true // element variable is bound inside the body
+		return blockHasFreeRef(st.Body, bound, globals, funcs)
+	case *ForRangeStmt:
+		if st.Start != nil && exprHasFreeRef(st.Start, bound, globals, funcs) {
+			return true
+		}
+		if st.End != nil && exprHasFreeRef(st.End, bound, globals, funcs) {
+			return true
+		}
+		bound[st.Var] = true // loop variable is bound inside the body
+		return blockHasFreeRef(st.Body, bound, globals, funcs)
+	case *SwitchStmt:
+		if exprHasFreeRef(st.Val, bound, globals, funcs) {
+			return true
+		}
+		for _, c := range st.Cases {
+			if blockHasFreeRef(c.Body, bound, globals, funcs) {
+				return true
+			}
+		}
+		if st.Default != nil {
+			return blockHasFreeRef(st.Default, bound, globals, funcs)
+		}
+	}
+	return false
+}
+
+func exprHasFreeRef(e Expr, bound, globals, funcs map[string]bool) bool {
+	if e == nil {
+		return false
+	}
+	switch ex := e.(type) {
+	case *VarRefExpr:
+		return !bound[ex.Name] && !globals[ex.Name] && !funcs[ex.Name]
+	case *BinExpr:
+		return exprHasFreeRef(ex.L, bound, globals, funcs) ||
+			exprHasFreeRef(ex.R, bound, globals, funcs)
+	case *UnaryExpr:
+		return exprHasFreeRef(ex.X, bound, globals, funcs)
+	case *CallExpr:
+		for _, a := range ex.Args {
+			if exprHasFreeRef(a, bound, globals, funcs) {
+				return true
+			}
+		}
+	case *FieldExpr:
+		return exprHasFreeRef(ex.X, bound, globals, funcs)
+	case *LoadExpr:
+		return exprHasFreeRef(ex.Ptr, bound, globals, funcs)
+	case *DerefExpr:
+		return exprHasFreeRef(ex.Ptr, bound, globals, funcs)
+	case *CastExpr:
+		return exprHasFreeRef(ex.X, bound, globals, funcs)
+	case *IndexExpr:
+		return exprHasFreeRef(ex.Base, bound, globals, funcs) ||
+			exprHasFreeRef(ex.Idx, bound, globals, funcs)
+	}
+	return false
 }
 
 // ── Per-function lowering state ───────────────────────────────────────────────

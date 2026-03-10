@@ -923,5 +923,53 @@ func walkExpr(t *testing.T, e hir.Expr, name string, found *bool) {
 	}
 }
 
+// TestLambdaCapture verifies that a fused forEach lambda that writes to an
+// outer local variable (closure capture) does not panic during LowerModule.
+//
+// The lambda |x: u8| { s = s + x } captures `s` from the enclosing function.
+// Before the fix, LowerModule tried to lower lambda_0 as a standalone function
+// and panicked with "undefined variable s". After the fix, hasFreeVars detects
+// the free variable and skips standalone lowering; the lambda is only ever
+// inlined by lowerFusedForEach, where `s` is correctly threaded as a block param.
+func TestLambdaCapture(t *testing.T) {
+	src := `
+fun sum_chain(buf: ^u8, n: u8) -> u8 {
+    var s: u8 = 0
+    buf.forEach(|x: u8| { s = (s + x) }, n)
+    return s
+}
+`
+	m, err := nanz.Parse(src, "lambda_capture_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	// LowerModule must not panic.
+	var mir2mod interface{}
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatalf("LowerModule panicked (closure capture bug): %v", r)
+			}
+		}()
+		mir2mod = hir.LowerModule(m)
+	}()
+
+	// The resulting MIR2 module must contain sum_chain (not skipped).
+	type namer interface{ FuncByName(string) interface{} }
+	if mir2mod == nil {
+		t.Fatal("LowerModule returned nil")
+	}
+	// Verify codegen produces non-empty assembly.
+	mirmod := mir2mod.(*mir2.Module)
+	if mirmod.FuncByName("sum_chain") == nil {
+		t.Error("sum_chain not found in lowered module")
+	}
+	// lambda_0 has a free variable 's' → it must NOT appear as a standalone MIR2 func.
+	if mirmod.FuncByName("lambda_0") != nil {
+		t.Error("lambda_0 should not be a standalone MIR2 function (it's inlined)")
+	}
+}
+
 // Unused import guard: hir is used elsewhere in the file.
 var _ = (*hir.Module)(nil)
