@@ -151,7 +151,7 @@ func filterNoReg(regs ...Reg) []Reg {
 // Terminators carry block-argument values to successor blocks, which
 // eliminates the need for phi nodes.
 //
-// Concrete types: *TermJmp, *TermBrIf, *TermBrIf2, *TermDJNZ, *TermRet, *TermUnreachable.
+// Concrete types: *TermJmp, *TermBrIf, *TermBrIf2, *TermDJNZ, *TermCondRet, *TermRet, *TermUnreachable.
 type Term interface {
 	isTerm()
 	termUses() []Reg   // all Reg values read by this terminator
@@ -268,6 +268,38 @@ func (t *TermDJNZ) termUses() []Reg {
 }
 func (t *TermDJNZ) Successors() []string { return []string{t.Body, t.Exit} }
 
+// TermCondRet is a conditional return.
+//
+//	cond_ret %cond, [%v0, %v1, ...], @then(%ta0, ...)
+//
+// Cond == 0  → return Vals  (the "short-circuit" path)
+// Cond != 0  → jump to Then with ThenArgs
+//
+// Z80: emit return-value moves, then RET CC (inverted condition).
+//
+//	Example (abs_diff, a≥b path):  SUB C / RET NC / NEG / RET
+//
+// ARM: RETNE / RETEQ / RETCS / etc.
+//
+// This terminator is created by CondRetSink from a BrIf whose else-branch
+// is a trivial return block.
+type TermCondRet struct {
+	Cond     Reg
+	Vals     []Reg   // return values when Cond == 0
+	Then     string  // block to jump to when Cond != 0
+	ThenArgs []Reg
+}
+
+func (*TermCondRet) isTerm() {}
+func (t *TermCondRet) termUses() []Reg {
+	all := make([]Reg, 0, 1+len(t.Vals)+len(t.ThenArgs))
+	all = append(all, t.Cond)
+	all = append(all, t.Vals...)
+	all = append(all, t.ThenArgs...)
+	return all
+}
+func (t *TermCondRet) Successors() []string { return []string{t.Then} }
+
 // TermRet returns from the function.
 // Vals is empty for void returns; multiple values for multi-return.
 type TermRet struct{ Vals []Reg }
@@ -300,6 +332,9 @@ func TermString(term Term) string {
 	case *TermDJNZ:
 		return fmt.Sprintf("djnz %%r%d, @%s(%s), @%s(%s)",
 			t.Counter, t.Body, regList(t.BodyArgs), t.Exit, regList(t.ExitArgs))
+	case *TermCondRet:
+		return fmt.Sprintf("cond_ret %%r%d, [%s], @%s(%s)",
+			t.Cond, regList(t.Vals), t.Then, regList(t.ThenArgs))
 	case *TermRet:
 		if len(t.Vals) == 0 {
 			return "ret void"

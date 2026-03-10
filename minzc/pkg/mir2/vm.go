@@ -306,6 +306,24 @@ func (vm *VM) execTerm(fr *frame, blk *Block) ([]Value, error) {
 		}
 		return vm.execBlock(fr, exitBlock, collectArgs(fr, t.ExitArgs))
 
+	case *TermCondRet:
+		cond := fr.get(t.Cond)
+		if cond.I == 0 {
+			// Return path (cond is false/zero).
+			rets := make([]Value, len(t.Vals))
+			for i, r := range t.Vals {
+				rets[i] = fr.get(r)
+			}
+			return rets, nil
+		}
+		// Jump path (cond is non-zero).
+		args := collectArgs(fr, t.ThenArgs)
+		next := fr.fn.BlockByLabel(t.Then)
+		if next == nil {
+			return nil, fmt.Errorf("cond_ret then: unknown block @%s", t.Then)
+		}
+		return vm.execBlock(fr, next, args)
+
 	case *TermUnreachable:
 		return nil, fmt.Errorf("mir2.VM: reached unreachable in @%s block @%s",
 			fr.fn.Name, blk.Label)

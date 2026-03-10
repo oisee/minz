@@ -147,6 +147,8 @@ func verifyTermArgs(fromLabel string, term Term, blockMap map[string]blockInfo) 
 				fromLabel, t.Body, len(t.BodyArgs), len(bodyInfo.params))
 		}
 		return check(t.Exit, t.ExitArgs)
+	case *TermCondRet:
+		return check(t.Then, t.ThenArgs)
 	}
 	return nil // TermRet / TermUnreachable have no targets
 }

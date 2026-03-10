@@ -146,6 +146,7 @@ type z80cg struct {
 	//   Affected: Ext(idx16), AddrOf(base), PtrAdd(ptr).
 	lutLoadPat map[Reg]lutLoadPat
 	lutSkip    map[Reg]bool
+
 }
 
 // lutLoadPat describes a page-aligned LUT access merged at codegen time.
@@ -1612,6 +1613,30 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		g.emitParallelCopy(exitCopies)
 		if !g.isFallThrough(f, t.Exit) || len(exitCopies) != 0 {
 			g.emitf("    JP %s", blockLabel(f.Name, t.Exit))
+		}
+
+	case *TermCondRet:
+		// Move each return value to its calling-convention register (same as TermRet).
+		for i, rv := range t.Vals {
+			if i >= len(g.fn.Contract.Returns) {
+				break
+			}
+			ret := g.fn.Contract.Returns[i]
+			retLoc := canonicalReturnLoc(ret.Class, ret.Ty)
+			src := g.loc(rv)
+			if src != retLoc && !g.holdsValue(retLoc, src) {
+				g.emitMov(retLoc, src, ret.Ty.Width())
+			}
+		}
+		// Emit conditional return: RET when Cond == 0 (inverted condition).
+		cc := g.condCode(f, t.Cond)
+		g.emitf("    RET %s", invertCC(cc))
+		// Emit jump to Then (with fall-through elimination).
+		copies := g.buildBlockCopies(f, t.Then, t.ThenArgs)
+		thenLbl := g.branchLabel(f, t.Then, copies)
+		g.emitParallelCopy(copies)
+		if !g.isFallThrough(f, t.Then) || len(copies) != 0 {
+			g.emitf("    JRS %s", thenLbl)
 		}
 
 	case *TermUnreachable:

@@ -83,6 +83,10 @@ func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 			mir2.EliminateDeadBlocks(f)
 			mir2.DeadStoreElim(f) // clean up now-unused cmp instruction
 		}
+		// Conditional-return sink: convert BrIf-with-trivial-else into TermCondRet.
+		if mir2.CondRetSink(f) {
+			mir2.EliminateDeadBlocks(f)
+		}
 	}
 	s.MIR2Opt = m.Dump()
 
@@ -141,6 +145,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		if mir2.BranchEquiv(m, f) {
 			mir2.EliminateDeadBlocks(f)
 			mir2.DeadStoreElim(f)
+		}
+		if mir2.CondRetSink(f) {
+			mir2.EliminateDeadBlocks(f)
 		}
 	}
 
