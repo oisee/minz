@@ -80,11 +80,16 @@ LD L, (IX+0)      ; lo byte
 LD H, (IX+1)      ; hi byte
 ```
 
-**16-bit HL↔IX copy** uses undocumented byte-copy instructions:
+**16-bit register↔IX copy:** DE/BC→IX uses undocumented byte-copy (16T < PUSH/POP 21T):
 ```asm
-LD IXl, L        ; DD 6D — 2×8T = 16T total
-LD IXh, H        ; DD 67   vs PUSH HL / POP IX = 21T
+LD IXH, D        ; DD 62 — D not substituted by DD prefix ✓
+LD IXL, E        ; DD 6B — E not substituted ✓  (total 16T)
+LD IXH, B        ; DD 60 — B not substituted ✓
+LD IXL, C        ; DD 69 — C not substituted ✓
 ```
+**HL→IX byte-copy is INVALID.** The DD prefix substitutes H→IXH and L→IXL in *both*
+source and destination operands, so `LD IXH, H` encodes as `LD IXH, IXH` (NOP).
+HL↔IX must use `PUSH HL / POP IX` (21T). MZA correctly rejects `LD IXH, H`.
 
 **Bug C fix:** `emitMov` for 16-bit moves now calls `g.setCopy(dst, src)` after every path so alias tracking works correctly.
 

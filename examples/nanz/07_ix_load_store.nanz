@@ -4,14 +4,22 @@
 // is needed, PBQP places it in IX. The codegen emits correct (IX+0)
 // displacement addressing — Z80 requires the +d byte even for d=0.
 //
-// Moving HL→IX uses undocumented byte instructions (16T vs 21T PUSH/POP):
-//   LD IXH, H    ; DD 67
-//   LD IXL, L    ; DD 6D
+// Moving non-HL registers → IX uses undocumented byte instructions (16T vs 21T PUSH/POP):
+//   LD IXH, D    ; DD 62  (D → IXH, safe: D not substituted by DD prefix)
+//   LD IXL, E    ; DD 6B  (E → IXL, safe)
+//   LD IXH, B    ; DD 60  (B → IXH)
+//   LD IXL, C    ; DD 69  (C → IXL)
+//
+// IMPORTANT: LD IXH, H / LD IXL, L are INVALID on Z80.
+// The DD prefix substitutes H→IXH and L→IXL in ALL operands, so
+// "LD IXH, H" encodes as LD IXH, IXH (NOP). Same for IXL, L → IXL, IXL.
+// HL→IX copy must use PUSH HL / POP IX (21T).
 //
 // Actual compiled output (mz 07_ix_load_store.nanz):
 //
 //   roundtrip_ix:
-//       LD IXH, H         ; ← undocumented: copy HL→IX (16T, not PUSH/POP=21T)
+//       PUSH HL           ; ← HL→IX: must use PUSH/POP (21T)
+//       POP IX            ;   (LD IXH,H would be a NOP — DD prefix replaces H with IXH)
 //       LD IXL, L
 //       LD (IX+0), C      ; store val through IX pointer
 //       LD C, (DE)        ; de_ptr load

@@ -1429,15 +1429,28 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		g.emit("    EX DE, HL")
 	case dst == "DE" && src == "HL":
 		g.emit("    EX DE, HL")
-	case (dst == "IX" || dst == "IY") && (src == "HL" || src == "DE" || src == "BC"):
-		// HL/DE/BC → IX/IY: undocumented byte-copy (DD/FD prefix, 2×8T = 16T).
-		// Faster than PUSH/POP (21T) and doesn't touch stack.
-		g.emitf("    LD %s, %s", highByte(dst), highByte(src)) // LD IXH, H
-		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))   // LD IXL, L
-	case (src == "IX" || src == "IY") && (dst == "HL" || dst == "DE" || dst == "BC"):
-		// IX/IY → HL/DE/BC: same undocumented byte-copy.
-		g.emitf("    LD %s, %s", highByte(dst), highByte(src)) // LD H, IXH
-		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))   // LD L, IXL
+	case (dst == "IX" || dst == "IY") && (src == "DE" || src == "BC"):
+		// DE/BC → IX/IY: undocumented byte-copy (DD/FD prefix), 2×8T = 16T.
+		// Safe because D, E, B, C are NOT substituted by the DD/FD prefix.
+		// e.g. DE→IX: LD IXH, D (DD 62) / LD IXL, E (DD 6B)
+		//      BC→IX: LD IXH, B (DD 60) / LD IXL, C (DD 69)
+		g.emitf("    LD %s, %s", highByte(dst), highByte(src))
+		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))
+	case (dst == "IX" || dst == "IY") && src == "HL":
+		// HL→IX: byte-copy is INVALID — DD prefix substitutes H→IXH, L→IXL,
+		// so LD IXH,H encodes as LD IXH,IXH (NOP). Must use PUSH/POP.
+		g.emitf("    PUSH HL")
+		g.emitf("    POP %s", dst)
+	case (src == "IX" || src == "IY") && (dst == "DE" || dst == "BC"):
+		// IX/IY → DE/BC: safe byte-copy, D/E/B/C not substituted by DD prefix.
+		// e.g. IX→DE: LD D, IXH (DD 57? no — DD 7A? no) actually DD prefix on LD D,H:
+		// opcode 0x54 = LD D,H → DD 54 = LD D,IXH ✓ (D is destination, IXH is source)
+		g.emitf("    LD %s, %s", highByte(dst), highByte(src))
+		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))
+	case (src == "IX" || src == "IY") && dst == "HL":
+		// IX→HL: byte-copy INVALID (H,L substituted). Must use PUSH/POP.
+		g.emitf("    PUSH %s", src)
+		g.emit("    POP HL")
 	default:
 		// General 16-bit move via PUSH/POP.
 		g.emitf("    PUSH %s", src)
