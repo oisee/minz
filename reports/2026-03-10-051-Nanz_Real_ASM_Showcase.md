@@ -244,6 +244,55 @@ If you write `g_cat.speak()`, you get `CALL Cat_speak`.  No runtime dispatch.
 Same performance as hand-written assembly — this is CTIE (Compile-Time
 Interface Execution), trait monomorphization at the call site.
 
+### 3b. Interface as a parameter type (NEW — 2026-03-10)
+
+Before today, `interface Animal { speak }` was **documentation only** — it was
+parsed and stored but never consulted.  Now it works as a real parameter type:
+
+```nanz
+// Works: only Dog implements Animal in this module
+interface Animal { speak }
+struct Dog {}
+fun Dog.speak(self: Dog) -> u8 { return 1 }
+
+fun feed(a: Animal) -> u8 {   // ← Animal now valid as param type
+    return a.speak()           // ← dispatches to Dog_speak at compile time
+}
+```
+
+**Compiled Z80 for `feed`:**
+```z80
+feed:
+    CALL Dog_speak    ; monomorphized to the unique implementor
+    RET
+```
+
+**Rules:**
+- **Unique implementor** → monomorphize at parse time: `a.speak()` → `Dog_speak`
+- **Multiple implementors** → compile error:
+  ```
+  line 8: ambiguous dispatch: a.speak() — multiple types implement Animal: [Dog Cat]; use concrete type
+  ```
+- **Zero implementors** → compile error:
+  ```
+  line 8: no type in this module implements interface Animal method "speak"
+  ```
+
+**Comparison with Go / Rust / Zig:**
+
+| Language | Association | Check |
+|----------|-------------|-------|
+| **Rust** | explicit `impl Animal for Dog` | declaration-time |
+| **Go** | implicit (duck typing) | use-site assignment |
+| **Zig** | implicit comptime duck typing | instantiation-time |
+| **Nanz** | implicit (duck typing) | use-site call, unique-impl monomorphization |
+
+**Current limitation:** if both `Dog` and `Cat` implement `Animal`, calling
+`a.speak()` inside `fun feed(a: Animal)` is "ambiguous" — the compiler can't
+pick one statically.  The workaround is the concrete type: `fun feed(a: Dog)`.
+True multi-type monomorphization (generating `feed__Dog` + `feed__Cat` from the
+same function definition) is deferred to the generics sprint.
+
 ---
 
 ## 4. abs_diff — two flavours
