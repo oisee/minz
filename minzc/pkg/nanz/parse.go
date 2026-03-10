@@ -1615,7 +1615,13 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			return &hir.CastExpr{X: x, Ty: ty}, nil
 		}
 		p.l.next()
-		return &hir.VarRefExpr{Name: t.val, Ty: mir2.TyU8}, nil
+		ty := mir2.Ty(mir2.TyU8)
+		if t2, ok := p.varTypes[t.val]; ok {
+			ty = t2
+		} else if t2, ok := p.globalTypes[t.val]; ok {
+			ty = t2
+		}
+		return &hir.VarRefExpr{Name: t.val, Ty: ty}, nil
 
 	case tokLParen:
 		p.l.next()

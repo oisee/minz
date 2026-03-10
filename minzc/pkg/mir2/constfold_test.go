@@ -169,3 +169,70 @@ func TestFoldConst_WithPropagation(t *testing.T) {
 		t.Errorf("expected LD A, 22 (20+2 propagated+folded); got:\n%s", asm)
 	}
 }
+
+// ── SimplifyIdentities tests ──────────────────────────────────────────────────
+
+// TestSimplifyIdentities_PtrAddZero verifies that PtrAdd(base, Const(0)) is
+// replaced with Move(base), eliminating the redundant zero-offset pointer add.
+func TestSimplifyIdentities_PtrAddZero(t *testing.T) {
+	m := &mir2.Module{Name: "test"}
+	f := m.AddFunc("ptradd_zero")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyPtr, Class: mir2.ClassPointer}}
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	base := f.AllocReg()
+	f.Contract.Params = []mir2.Param{{Reg: base, Ty: mir2.TyPtr, Class: mir2.ClassPointer}}
+	zero := b.Const(0, mir2.TyU16, mir2.ClassIndex)
+	ptr := b.PtrAdd(base, zero, mir2.ClassPointer)
+	b.Ret(ptr)
+
+	changed := mir2.SimplifyIdentities(f)
+	if !changed {
+		t.Fatal("SimplifyIdentities: expected PtrAdd(base, Const(0)) to be simplified")
+	}
+
+	// After simplification, the PtrAdd instruction should be an OpMove.
+	block := f.Blocks[0]
+	found := false
+	for _, inst := range block.Insts {
+		if inst.Dst == ptr {
+			if inst.Op != mir2.OpMove {
+				t.Errorf("expected OpMove, got %v", inst.Op)
+			}
+			if inst.Src[0] != base {
+				t.Errorf("expected Move(base=%v), got Move(%v)", base, inst.Src[0])
+			}
+			found = true
+		}
+	}
+	if !found {
+		t.Error("could not find instruction for ptr reg after simplification")
+	}
+}
+
+// TestSimplifyIdentities_PtrAddNonZero verifies that PtrAdd with a non-zero
+// constant offset is NOT simplified (only zero is an identity).
+func TestSimplifyIdentities_PtrAddNonZero(t *testing.T) {
+	m := &mir2.Module{Name: "test"}
+	f := m.AddFunc("ptradd_nonzero")
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	base := f.AllocReg()
+	f.Contract.Params = []mir2.Param{{Reg: base, Ty: mir2.TyPtr, Class: mir2.ClassPointer}}
+	two := b.Const(2, mir2.TyU16, mir2.ClassIndex)
+	ptr := b.PtrAdd(base, two, mir2.ClassPointer)
+	b.Ret(ptr)
+
+	changed := mir2.SimplifyIdentities(f)
+	if changed {
+		t.Error("SimplifyIdentities: must NOT simplify PtrAdd(base, Const(2))")
+	}
+
+	// Instruction must still be OpPtrAdd.
+	block := f.Blocks[0]
+	for _, inst := range block.Insts {
+		if inst.Dst == ptr && inst.Op != mir2.OpPtrAdd {
+			t.Errorf("expected OpPtrAdd to remain, got %v", inst.Op)
+		}
+	}
+}

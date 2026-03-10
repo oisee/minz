@@ -858,5 +858,70 @@ fun make_sound(a: Dog) -> void {
 	}()
 }
 
+// TestVarRefExprTy_GlobalStruct verifies that a global struct variable referenced
+// in a call site gets its correct type (*mir2.StructTy), not the hardcoded TyU8.
+// This is the fix for Bug A (LD A, HL invalid Z80 instruction).
+func TestVarRefExprTy_GlobalStruct(t *testing.T) {
+	src := `
+struct Dog { sound: u8 }
+global g_dog: Dog
+
+fun Dog.bark(self: Dog) -> u8 {
+    return self[0]
+}
+
+fun test() -> u8 {
+    return g_dog.bark()
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+
+	// Find the function named "test".
+	testFn := m.FuncByName("test")
+	if testFn == nil {
+		t.Fatal("function 'test' not found")
+	}
+
+	// Walk the body looking for VarRefExpr{Name: "g_dog"}.
+	// After the fix, it must NOT have type TyU8.
+	found := false
+	for _, s := range testFn.Body.Body {
+		if rs, ok := s.(*hir.ReturnStmt); ok && rs.Val != nil {
+			walkExpr(t, rs.Val, "g_dog", &found)
+		}
+	}
+
+	// The key assertion: LowerModule must not panic (previously it panicked or
+	// emitted invalid LD A,HL because g_dog had TyU8 instead of *StructTy).
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("LowerModule panicked (VarRefExpr.Ty bug): %v", r)
+			}
+		}()
+		hir.LowerModule(m)
+	}()
+}
+
+func walkExpr(t *testing.T, e hir.Expr, name string, found *bool) {
+	t.Helper()
+	switch ex := e.(type) {
+	case *hir.VarRefExpr:
+		if ex.Name == name {
+			*found = true
+			if ex.Ty == mir2.TyU8 {
+				t.Errorf("VarRefExpr{%q}.Ty = TyU8 (hardcoded); expected struct type after fix", name)
+			}
+		}
+	case *hir.CallExpr:
+		for _, a := range ex.Args {
+			walkExpr(t, a, name, found)
+		}
+	}
+}
+
 // Unused import guard: hir is used elsewhere in the file.
 var _ = (*hir.Module)(nil)

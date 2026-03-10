@@ -384,6 +384,35 @@ func PropagateConstants(f *Func) bool {
 	return true
 }
 
+// SimplifyIdentities replaces instructions whose result is trivially equal to
+// one of their operands.  Currently handles:
+//
+//   OpPtrAdd(base, Const(0)) → OpMove(base)
+//
+// This fires after FoldConstants has turned any literal 0 offset into OpConst.
+// Returns true if any instruction was rewritten.
+func SimplifyIdentities(f *Func) bool {
+	consts := collectKnownConsts(f)
+	changed := false
+	for _, b := range f.Blocks {
+		for i, inst := range b.Insts {
+			if inst.Op == OpPtrAdd {
+				if v, ok := consts[inst.Src[1]]; ok && v == 0 {
+					b.Insts[i] = &Inst{
+						Op:  OpMove,
+						Dst: inst.Dst,
+						Src: [2]Reg{inst.Src[0]},
+						Ty:  inst.Ty,
+						Cls: inst.Cls,
+					}
+					changed = true
+				}
+			}
+		}
+	}
+	return changed
+}
+
 // rewriteBlockUses replaces every *use* of `old` within block b (instructions
 // and the terminator) with `new_`.  Instruction Dst fields are definitions —
 // never rewritten.

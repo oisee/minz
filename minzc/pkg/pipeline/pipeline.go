@@ -66,12 +66,13 @@ func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 	for _, f := range m.Funcs {
 		mir2.EliminateDeadBlocks(f)
 		mir2.ReorderBlocks(f)
-		// Constant pipeline: propagate → fold → call-elim → repeat to fixpoint.
+		// Constant pipeline: propagate → fold → identity-simplify → call-elim → repeat to fixpoint.
 		for {
 			p := mir2.PropagateConstants(f)
 			c := mir2.FoldConstants(f)
+			s := mir2.SimplifyIdentities(f)
 			e := mir2.ConstantCallElim(m, f)
-			if !p && !c && !e {
+			if !p && !c && !s && !e {
 				break
 			}
 		}
