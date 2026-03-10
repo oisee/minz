@@ -1086,7 +1086,15 @@ func (g *z80cg) genInst(inst *Inst) {
 		ptr := g.loc(inst.Src[0])
 		w := inst.Ty.Width()
 		if w <= 8 {
-			g.emitf("    LD %s, %s", dst, ptrIndirect(ptr, 0))
+			// Z80 restriction: only LD A,(BC) and LD A,(DE) exist for BC/DE indirect.
+			// Any other destination register must load through A first.
+			if (ptr == "BC" || ptr == "DE") && dst != "A" {
+				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
+				g.invalidate("A")
+				g.emitMov(dst, "A", 8)
+			} else {
+				g.emitf("    LD %s, %s", dst, ptrIndirect(ptr, 0))
+			}
 		} else if isIXY(ptr) {
 			// 16-bit load via IX/IY: use displacement addressing — avoids INC/DEC IX.
 			// LD lo, (IX+0) ; LD hi, (IX+1)  — 2×19T = 38T

@@ -333,6 +333,7 @@ type parser struct {
 	globalInterfaceTypes map[string]string               // module-level: global varname → interface name
 	varTypes             map[string]mir2.Ty              // current function scope: varname → type (reset per func)
 	varInterfaceTypes    map[string]string               // current function scope: varname → interface name
+	varPtrElem           map[string]*mir2.StructTy       // current function scope: varname → pointed-to struct (for ^Struct params)
 	methodTable          map[string]map[string]methodInfo // structName → methodName → info
 	opTable     map[string]opOverload             // op symbol ("+", "-", ...) → overload
 	// use-before-init analysis
@@ -410,6 +411,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.globalInterfaceTypes = make(map[string]string)
 	p.varTypes = make(map[string]mir2.Ty)
 	p.varInterfaceTypes = make(map[string]string)
+	p.varPtrElem = make(map[string]*mir2.StructTy)
 	p.uninitVars = make(map[string]int)
 
 	for !p.l.is(tokEOF) {
@@ -730,7 +732,8 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		return nil, err
 	}
 	var params []hir.Param
-	var paramIfaceNames []string // parallel to params: interface name or ""
+	var paramIfaceNames []string        // parallel to params: interface name or ""
+	var paramPtrElems []*mir2.StructTy  // parallel to params: ^Struct elem type or nil
 	for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
 		pname, err := p.l.eat(tokIdent)
 		if err != nil {
@@ -739,12 +742,13 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		if _, err := p.l.eat(tokColon); err != nil {
 			return nil, err
 		}
-		pty, ifaceName, err := p.parseTypeWithIface()
+		pty, ifaceName, ptrElem, err := p.parseParamType()
 		if err != nil {
 			return nil, err
 		}
 		params = append(params, hir.Param{Name: pname.val, Ty: pty})
 		paramIfaceNames = append(paramIfaceNames, ifaceName)
+		paramPtrElems = append(paramPtrElems, ptrElem)
 		if p.l.is(tokComma) {
 			p.l.next()
 		}
@@ -780,11 +784,15 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	// Reset var scope and populate from params for the function body
 	p.varTypes = make(map[string]mir2.Ty)
 	p.varInterfaceTypes = make(map[string]string)
+	p.varPtrElem = make(map[string]*mir2.StructTy)
 	p.uninitVars = make(map[string]int) // fresh tracking per function
 	for i, param := range params {
 		p.varTypes[param.Name] = param.Ty
 		if i < len(paramIfaceNames) && paramIfaceNames[i] != "" {
 			p.varInterfaceTypes[param.Name] = paramIfaceNames[i]
+		}
+		if i < len(paramPtrElems) && paramPtrElems[i] != nil {
+			p.varPtrElem[param.Name] = paramPtrElems[i]
 		}
 	}
 
@@ -904,6 +912,42 @@ func (p *parser) parseTypeWithIface() (mir2.Ty, string, error) {
 	}
 	ty, err := p.parseType()
 	return ty, "", err
+}
+
+// parseParamType parses a parameter type and returns (ty, ifaceName, ptrElemSt, error).
+// Handles three cases:
+//   - Interface name (e.g. "Animal") → (TyPtr, "Animal", nil, nil)
+//   - ^StructName (e.g. ^Acc)        → (TyPtr, "", *StructTy, nil)
+//   - Any other type                 → (ty, "", nil, err)
+func (p *parser) parseParamType() (mir2.Ty, string, *mir2.StructTy, error) {
+	t := p.l.peek()
+	// Interface name?
+	if t.kind == tokIdent {
+		if _, ok := p.interfaces[t.val]; ok {
+			p.l.next()
+			return mir2.TyPtr, t.val, nil, nil
+		}
+	}
+	// ^T — pointer type
+	if t.kind == tokCaret {
+		p.l.next()
+		// Peek at inner type: is it a known struct?
+		var elemSt *mir2.StructTy
+		if next := p.l.peek(); next.kind == tokIdent {
+			if st, ok := p.structs[next.val]; ok {
+				elemSt = st
+			}
+		}
+		// Consume inner type
+		if !p.l.is(tokEOF) && !p.l.is(tokComma) && !p.l.is(tokRParen) &&
+			!p.l.is(tokLBrace) && !p.l.is(tokRBrace) && !p.l.is(tokSemi) &&
+			!p.l.is(tokEq) && !p.l.is(tokArrow) {
+			_, _ = p.parseType()
+		}
+		return mir2.TyPtr, "", elemSt, nil
+	}
+	ty, err := p.parseType()
+	return ty, "", nil, err
 }
 
 // findImplementors returns all struct names that satisfy every method in the
@@ -1332,7 +1376,13 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 		switch t.kind {
 		case tokCaret:
 			p.l.next()
-			base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+			isStructPtr := false
+			if vr, ok := base.(*hir.VarRefExpr); ok {
+				isStructPtr = p.varPtrElem[vr.Name] != nil
+			}
+			if !isStructPtr {
+				base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+			}
 		case tokDot:
 			p.l.next()
 			fieldTok, err := p.l.eat(tokIdent)
@@ -1625,9 +1675,19 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 		t := p.l.peek()
 		switch t.kind {
 		case tokCaret:
-			// expr^ — postfix dereference (load)
+			// expr^ — postfix dereference.
+			// For ^Struct pointers, `self^` is transparent: .field access and method
+			// calls via varPtrElem already handle field resolution correctly on the
+			// pointer itself.  Only emit a LoadExpr for ^primitive (^u8, ^u16) vars.
 			p.l.next()
-			base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+			isStructPtr := false
+			if vr, ok := base.(*hir.VarRefExpr); ok {
+				isStructPtr = p.varPtrElem[vr.Name] != nil
+			}
+			if !isStructPtr {
+				base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+			}
+			// else: `self^` on ^Struct — keep base as-is; subsequent .field handles it
 		case tokLBrack:
 			// base[idx] — index (range slices are handled by parseFor directly)
 			p.l.next()
@@ -1666,14 +1726,25 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				if _, err := p.l.eat(tokRParen); err != nil {
 					return nil, err
 				}
-				// Type-aware dispatch: if base is a struct with this method registered,
-				// use the mangled name and known return type.
+				// Type-aware dispatch: if base is a struct (or ^Struct pointer) with
+				// this method registered, use the mangled name and known return type.
 				callName := fieldTok.val
 				callRetTy := mir2.Ty(mir2.TyVoid)
 				if st, ok := p.exprTy(base).(*mir2.StructTy); ok {
 					if info, found := p.methodTable[st.Name][fieldTok.val]; found {
 						callName = info.funcName
 						callRetTy = info.retTy
+					}
+				}
+				// ^Struct pointer receiver: look up method by the pointed-to struct.
+				if callName == fieldTok.val {
+					if vr, vrOk := base.(*hir.VarRefExpr); vrOk {
+						if st2 := p.varPtrElem[vr.Name]; st2 != nil {
+							if info, found := p.methodTable[st2.Name][fieldTok.val]; found {
+								callName = info.funcName
+								callRetTy = info.retTy
+							}
+						}
 					}
 				}
 				// Interface dispatch: if base is a variable with a known interface type,
@@ -1931,7 +2002,15 @@ func (p *parser) makeFieldExpr(base hir.Expr, fieldName string) *hir.FieldExpr {
 	fieldTy := mir2.Ty(mir2.TyU8)
 	fieldOffset := 0
 
-	if st, ok := p.exprTy(base).(*mir2.StructTy); ok {
+	// Find the struct type: either the base is directly a struct, or a ^Struct pointer.
+	var st *mir2.StructTy
+	if s, ok := p.exprTy(base).(*mir2.StructTy); ok {
+		st = s
+	} else if vr, ok := base.(*hir.VarRefExpr); ok {
+		st = p.varPtrElem[vr.Name] // nil if not a ^Struct pointer
+	}
+
+	if st != nil {
 		byteOffset := 0
 		for _, f := range st.Fields {
 			if f.Name == fieldName {

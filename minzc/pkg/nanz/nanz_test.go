@@ -1224,3 +1224,180 @@ fun get_val() -> u8 {
 		t.Errorf("expected warning for returning uninitialized 'v', got: %v", m.Warnings)
 	}
 }
+
+// ── ^Struct pointer receiver syntax ──────────────────────────────────────────
+
+// TestPtrReceiver_FieldReadWrite verifies that `self: ^Acc` style pointer params:
+//   - Parse correctly (no error)
+//   - Field reads (`self.val`) resolve to the correct struct field (offset=0, Ty=TyU8)
+//   - Field writes (`self.val = X`) lower without panic
+//   - UFCS dispatch through `^Struct` receiver works
+func TestPtrReceiver_FieldReadWrite(t *testing.T) {
+	src := `
+struct Acc {
+    val: u8
+}
+
+global acc_g: Acc
+
+fun Acc.add(self: ^Acc, amount: u8) -> u8 {
+    self.val = self.val + amount
+    return self.val
+}
+
+fun Acc.reset(self: ^Acc) -> void {
+    self.val = 0
+}
+
+fun sum_two(a: u8, b: u8) -> u8 {
+    acc_g.reset()
+    acc_g.add(a)
+    acc_g.add(b)
+    return acc_g.val
+}
+`
+	m, err := nanz.Parse(src, "ptr_receiver_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	// Verify Acc.add body: body[0] is assign self.val = ..., body[1] is return self.val
+	var addFunc *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "Acc_add" {
+			addFunc = f
+			break
+		}
+	}
+	if addFunc == nil {
+		t.Fatal("Acc_add not found")
+	}
+	if len(addFunc.Body.Body) < 2 {
+		t.Fatalf("Acc_add: expected ≥2 stmts, got %d", len(addFunc.Body.Body))
+	}
+
+	// body[0]: AssignStmt with FieldExpr target
+	assign, ok := addFunc.Body.Body[0].(*hir.AssignStmt)
+	if !ok {
+		t.Fatalf("Acc_add body[0]: want AssignStmt, got %T", addFunc.Body.Body[0])
+	}
+	fe, ok := assign.Target.(*hir.FieldExpr)
+	if !ok {
+		t.Fatalf("Acc_add assign target: want FieldExpr, got %T", assign.Target)
+	}
+	if fe.Field != "val" {
+		t.Errorf("FieldExpr.Field: want 'val', got %q", fe.Field)
+	}
+	if fe.Offset != 0 {
+		t.Errorf("FieldExpr.Offset: want 0, got %d", fe.Offset)
+	}
+	if fe.Ty != mir2.TyU8 {
+		t.Errorf("FieldExpr.Ty: want TyU8, got %v", fe.Ty)
+	}
+
+	// Lowering must not panic
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatalf("LowerModule panicked: %v", r)
+			}
+		}()
+		hir.LowerModule(m)
+	}()
+}
+
+// TestPtrReceiver_ExplicitDeref verifies that `self^.field` (explicit deref syntax)
+// produces the same FieldExpr as auto-deref `self.field`.
+func TestPtrReceiver_ExplicitDeref(t *testing.T) {
+	src := `
+struct Counter {
+    n: u8
+}
+
+fun Counter.inc(self: ^Counter) -> void {
+    self^.n = self^.n + 1
+}
+`
+	m, err := nanz.Parse(src, "explicit_deref_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	var incFunc *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "Counter_inc" {
+			incFunc = f
+			break
+		}
+	}
+	if incFunc == nil {
+		t.Fatal("Counter_inc not found")
+	}
+	assign, ok := incFunc.Body.Body[0].(*hir.AssignStmt)
+	if !ok {
+		t.Fatalf("Counter_inc body[0]: want AssignStmt, got %T", incFunc.Body.Body[0])
+	}
+	fe, ok := assign.Target.(*hir.FieldExpr)
+	if !ok {
+		t.Fatalf("Counter_inc assign target: want FieldExpr, got %T", assign.Target)
+	}
+	if fe.Field != "n" {
+		t.Errorf("FieldExpr.Field: want 'n', got %q", fe.Field)
+	}
+
+	// LowerModule must not panic
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatalf("LowerModule panicked: %v", r)
+			}
+		}()
+		hir.LowerModule(m)
+	}()
+}
+
+// TestPtrReceiver_UFCS verifies that UFCS dispatch works on a ^Struct var:
+// acc_g.add(n) → Acc_add(addr_of(acc_g), n)
+func TestPtrReceiver_UFCS(t *testing.T) {
+	src := `
+struct Acc { val: u8 }
+
+global acc_g: Acc
+
+fun Acc.add(self: ^Acc, amount: u8) -> u8 {
+    self.val = self.val + amount
+    return self.val
+}
+
+fun caller(n: u8) -> u8 {
+    return acc_g.add(n)
+}
+`
+	m, err := nanz.Parse(src, "ptr_receiver_ufcs_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	var callerFunc *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "caller" {
+			callerFunc = f
+			break
+		}
+	}
+	if callerFunc == nil {
+		t.Fatal("caller not found")
+	}
+
+	ret, ok := callerFunc.Body.Body[0].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("caller body[0]: want ReturnStmt, got %T", callerFunc.Body.Body[0])
+	}
+	call, ok := ret.Val.(*hir.CallExpr)
+	if !ok {
+		t.Fatalf("caller return: want CallExpr, got %T", ret.Val)
+	}
+	if call.Fn != "Acc_add" {
+		t.Errorf("UFCS dispatch: want Acc_add, got %s", call.Fn)
+	}
+}

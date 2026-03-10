@@ -496,6 +496,41 @@ func TestGlobalFieldChainStore_TwoFields(t *testing.T) {
 	}
 }
 
+// TestZ80Load_NoBCDEIndirectToNonA verifies that OpLoad via BC/DE pointer
+// never emits "LD X,(DE)" or "LD X,(BC)" where X≠A — those instructions don't
+// exist on Z80. The only valid BC/DE indirect loads are LD A,(BC) / LD A,(DE).
+//
+// Reproduces the Acc_add bug: self_ptr arrives in HL (ClassPointer); after
+// EX DE,HL the ptr lives in DE; loading into a ClassGeneral (D) register used
+// to emit the illegal "LD D,(DE)".
+func TestZ80Load_NoBCDEIndirectToNonA(t *testing.T) {
+	// Build: fun acc_load(ptr: ^u8, amount: u8) -> u8 { return (*ptr) + amount }
+	// ptr → ClassPointer (HL), amount → ClassGeneral (C)
+	// With register pressure the allocator may put the loaded value in D/E/B/C.
+	m := &mir2.Module{Name: "ptrload"}
+	f := m.AddFunc("acc_load")
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	ptr := bld.Param("ptr", mir2.TyU16, mir2.ClassPointer)
+	amt := bld.Param("amt", mir2.TyU8, mir2.ClassGeneral)
+	val := bld.Load(ptr, mir2.TyU8, mir2.ClassGeneral)
+	sum := bld.Add(val, amt, mir2.TyU8, mir2.ClassAcc)
+	bld.Ret(sum)
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	// No illegal BC/DE indirect loads to non-A registers.
+	for _, bad := range []string{
+		"LD B,(DE)", "LD C,(DE)", "LD D,(DE)", "LD E,(DE)", "LD H,(DE)", "LD L,(DE)",
+		"LD B,(BC)", "LD C,(BC)", "LD D,(BC)", "LD E,(BC)", "LD H,(BC)", "LD L,(BC)",
+	} {
+		if strings.Contains(asm, bad) {
+			t.Errorf("illegal Z80 instruction emitted: %q\nFull asm:\n%s", bad, asm)
+		}
+	}
+}
+
 // ── Helpers for direct-addr tests ─────────────────────────────────────────────
 
 // buildFieldGetter builds: fun name() -> u8 { return global.fields[fieldIdx] }

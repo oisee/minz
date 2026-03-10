@@ -282,7 +282,11 @@ func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
 		if _, ok := l.findGlobal(e.Name); ok {
 			return l.globalAddr(e.Name)
 		}
-		panic(fmt.Sprintf("hir/lower: cannot take address of non-global variable %q", e.Name))
+		// Local pointer variable (e.g. param `self: ^Acc`): the register value IS the address.
+		if reg, ok := l.env[e.Name]; ok {
+			return reg
+		}
+		panic(fmt.Sprintf("hir/lower: cannot take address of local variable %q", e.Name))
 	case *FieldExpr:
 		baseAddr := l.lowerExprAddr(e.X)
 		if e.Offset > 0 {
