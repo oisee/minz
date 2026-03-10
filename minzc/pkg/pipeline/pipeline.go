@@ -90,11 +90,11 @@ func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 	cs := mir2.OptimizeContracts(m, ct)
 	mir2.ApplyContracts(m, cs)
 
-	// Register allocation: per-function, combined result for codegen.
+	// Register allocation: per-function PBQP, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
 	for _, f := range m.Funcs {
 		lr := mir2.ComputeLiveness(f)
-		ar := mir2.Allocate(f, lr, ct)
+		ar := mir2.PBQPAllocate(f, lr, ct)
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc
 		}
@@ -147,11 +147,11 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		mir2.ApplyContracts(m, cs)
 	}
 
-	// Register allocation: per-function, combined result for codegen.
+	// Register allocation: per-function PBQP, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
 	for _, f := range m.Funcs {
 		lr := mir2.ComputeLiveness(f)
-		ar := mir2.Allocate(f, lr, ct)
+		ar := mir2.PBQPAllocate(f, lr, ct)
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc
 		}
