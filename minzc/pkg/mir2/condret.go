@@ -85,6 +85,13 @@ func CondRetSink(f *Func) bool {
 		hoistReorderSubBeforeCmp(blk)
 		changed = true
 	}
+	// Also apply fusionSubCmpInBlock to ALL blocks (not just CondRetSink ones):
+	// this fuses Sub(x,y) immediately followed by Cmp(CmpGe/CmpLt, x,y) into
+	// CmpSubCarry/CmpSubCarryNot, removing the original operands from the Cmp's
+	// use set before register allocation.
+	for _, blk := range f.Blocks {
+		fusionSubCmpInBlock(blk)
+	}
 	return changed
 }
 
@@ -149,6 +156,51 @@ func hoistReorderSubBeforeCmp(blk *Block) {
 			cmp.SrcTy = s.Ty // width of the sub operands (needed by VM for carry check)
 			break
 		}
+	}
+}
+
+// fusionSubCmpInBlock fuses a Sub(x,y) that IMMEDIATELY PRECEDES a Cmp(x,y) in
+// the same block into a CmpSubCarry / CmpSubCarryNot.
+//
+// This handles the IAR abs_diff pattern:
+//
+//	r = sub(a, b)           // carry set by subtraction
+//	cmp = CmpGe(a, b)       // same operands — carry already encodes a >= b (NC)
+//
+// After fusion:
+//
+//	r = sub(a, b)
+//	cmp = CmpSubCarryNot(r, b)  // Z80 codegen emits nothing; BrIf uses NC
+//
+// This removes `a` from the Cmp's use set, which eliminates the live-range
+// interference between `a` (original param, was in A) and `r` (sub result,
+// also wants A) — allowing the allocator to put `r` in A without spilling `a`.
+func fusionSubCmpInBlock(blk *Block) {
+	insts := blk.Insts
+	for i := 0; i+1 < len(insts); i++ {
+		sub := insts[i]
+		if sub.Op != OpSub {
+			continue
+		}
+		cmp := insts[i+1]
+		if cmp.Op != OpCmp || cmp.Dst == NoReg {
+			continue
+		}
+		if cmp.Src[0] != sub.Src[0] || cmp.Src[1] != sub.Src[1] {
+			continue
+		}
+		// Sub and Cmp reference the same original operands.
+		// Replace Cmp's lhs with the sub result (removes `a` from use set).
+		cmp.Src[0] = sub.Dst
+		cmp.SrcTy = sub.Ty
+		switch cmp.Cond {
+		case CmpLt, CmpUlt:
+			cmp.Cond = CmpSubCarry
+		case CmpGe, CmpUge:
+			cmp.Cond = CmpSubCarryNot
+		}
+		// Apply mutation (slice elements are pointers — already mutated above
+		// since cmp is a pointer; no re-assign needed).
 	}
 }
 

@@ -1657,10 +1657,9 @@ func (g *z80cg) genSext(inst *Inst) {
 // ── Compare ───────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genCmp(inst *Inst) {
-	// CmpSubCarry: carry flag already set by the immediately preceding SUB.
-	// Src[0] = sub result (r), Src[1] = original rhs (b).
-	// carry ≡ (r + b) >= 2^width ≡ original_a < b unsigned — emit nothing.
-	if inst.Cond == CmpSubCarry {
+	// CmpSubCarry / CmpSubCarryNot: carry flag already set by the immediately
+	// preceding SUB.  No instruction needed — carry encodes a < b (C) or a >= b (NC).
+	if inst.Cond == CmpSubCarry || inst.Cond == CmpSubCarryNot {
 		return
 	}
 
@@ -1749,17 +1748,25 @@ func (g *z80cg) genCmp(inst *Inst) {
 		return
 	}
 
+	// Sub+Cmp flag fusion: if the immediately preceding instruction was
+	// SUB with the same operands, the carry flag is already set correctly.
+	//   CmpLt/CmpUlt  → C  (borrow from SUB)
+	//   CmpGe/CmpUge  → NC (no borrow from SUB)
+	// CRITICAL: check BEFORE loading lhs into A, because if r = Sub(a,b)
+	// lives in A and lhs is somewhere else (e.g. B), emitLDA would overwrite
+	// r.  The IAR abs_diff pattern depends on this: r must survive to the
+	// return path after the comparison.
+	subCmpFused := (inst.Cond == CmpLt || inst.Cond == CmpUlt ||
+		inst.Cond == CmpGe || inst.Cond == CmpUge) &&
+		g.lastFlagsLhs == lhs && g.lastFlagsRhs == rhs
+	if subCmpFused {
+		// Flags valid from preceding SUB — skip both LD A and CP.
+		return
+	}
+
 	// Coalescing: A already holds lhs — skip LD A, lhs.
 	if !g.holdsValue("A", lhs) {
 		g.emitLDA(lhs)
-	}
-	// Sub+CmpLt flag fusion: if the immediately preceding instruction was
-	// SUB with the same operands (A=lhs, rhs unchanged), the carry flag is
-	// already set identically to what CP would produce → skip the CP.
-	if (inst.Cond == CmpLt || inst.Cond == CmpUlt) &&
-		g.lastFlagsLhs == lhs && g.lastFlagsRhs == rhs {
-		// Flags valid from preceding SUB — no CP needed.
-		return
 	}
 	g.lastFlagsLhs = ""
 	g.lastFlagsRhs = ""
@@ -2460,7 +2467,7 @@ func cmpCondCode(c CmpCond) string {
 		return "NZ"
 	case CmpLt, CmpUlt, CmpSubCarry:
 		return "C"
-	case CmpGe, CmpUge:
+	case CmpGe, CmpUge, CmpSubCarryNot:
 		return "NC"
 	case CmpLe, CmpUle:
 		// LE: JP Z / JP C — requires two jumps; emit Z for now (backend TODO).

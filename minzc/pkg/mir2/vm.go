@@ -431,6 +431,10 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 			// Use SrcTy (operand width), not Ty (result=TyBool with Width()=1).
 			width := uint(inst.SrcTy.Width())
 			ok = (ua+ub) >= (1 << width)
+		case CmpSubCarryNot:
+			// Complement of CmpSubCarry: no borrow ≡ orig_a >= orig_b unsigned.
+			width := uint(inst.SrcTy.Width())
+			ok = (ua+ub) < (1 << width)
 		}
 		if ok {
 			result = Value{I: 1}

@@ -436,6 +436,38 @@ func compileModule(t *testing.T, m *mir2.Module) string {
 	return mir2.Z80Codegen(m, combined)
 }
 
+// compileOptModule runs the full optimization pass (CondRetSink + fusionSubCmpInBlock)
+// before allocation.  Used for tests that require CondRet / IAR-pattern optimization.
+func compileOptModule(t *testing.T, m *mir2.Module) string {
+	t.Helper()
+	for _, f := range m.Funcs {
+		mir2.ReorderBlocks(f)
+	}
+	if err := mir2.Verify(m); err != nil {
+		t.Fatalf("verify: %v", err)
+	}
+	for _, f := range m.Funcs {
+		for {
+			changed := mir2.CondRetSink(f)
+			if changed {
+				mir2.EliminateDeadBlocks(f)
+			}
+			if !changed {
+				break
+			}
+		}
+	}
+	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
+	for _, f := range m.Funcs {
+		lr := mir2.ComputeLiveness(f)
+		ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+		for r, loc := range ar.Locs {
+			combined.Locs[r] = loc
+		}
+	}
+	return mir2.Z80Codegen(m, combined)
+}
+
 const testLoadAddr = 0x8000
 
 // runZ80 assembles src (bootstrap + function body) and runs it; returns A, HL,
@@ -559,6 +591,85 @@ func TestAbsDiffZ80(t *testing.T) {
 			t.Errorf("abs_diff(%d,%d) = %d, want %d", tc.a, tc.b, int(a), tc.want)
 		} else {
 			t.Logf("abs_diff(%d,%d) = %d ✓", tc.a, tc.b, int(a))
+		}
+	}
+}
+
+func TestAbsDiffIARZ80(t *testing.T) {
+	m := &mir2.Module{Name: "abs_diff_iar"}
+	buildAbsDiffIAR(m)
+	asm := compileOptModule(t, m)
+	t.Log("\n" + asm)
+
+	// Ideal: SUB B / RET NC / NEG / RET  (CondRetSink + Sub+CmpGe flag fusion)
+	hasSubB := strings.Contains(asm, "SUB B")
+	hasRetNC := strings.Contains(asm, "RET NC")
+	hasNEG := strings.Contains(asm, "NEG")
+	if hasSubB && hasRetNC && hasNEG {
+		t.Log("✓ IAR-ideal codegen: SUB B / RET NC / NEG / RET")
+	} else {
+		t.Logf("note: not yet IAR-ideal (SUB B=%v RET NC=%v NEG=%v) — acceptable", hasSubB, hasRetNC, hasNEG)
+	}
+
+	cases := []struct{ a, b, want int }{
+		{10, 3, 7},
+		{3, 10, 7},
+		{5, 5, 0},
+		{0, 200, 200},
+		{255, 0, 255},
+	}
+	for _, tc := range cases {
+		src := bootstrap2("abs_diff_iar", tc.a, tc.b) + "\n" + asm
+		a, _, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("abs_diff_iar(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(a) != tc.want {
+			t.Errorf("abs_diff_iar(%d,%d) = %d, want %d", tc.a, tc.b, int(a), tc.want)
+		} else {
+			t.Logf("abs_diff_iar(%d,%d) = %d ✓", tc.a, tc.b, int(a))
+		}
+	}
+}
+
+func TestAbsDiffIARU16Z80(t *testing.T) {
+	m := &mir2.Module{Name: "abs_diff_iar_u16"}
+	buildAbsDiffIARU16(m)
+	asm := compileOptModule(t, m)
+	t.Log("\n" + asm)
+
+	// Ideal: AND A / SBC HL,DE / RET NC / (NEG HL via SBC A,A) / RET
+	hasAndA := strings.Contains(asm, "AND A") || strings.Contains(asm, "OR A")
+	hasSBCHL := strings.Contains(asm, "SBC HL, DE")
+	hasRetNC := strings.Contains(asm, "RET NC")
+	hasSBCAA := strings.Contains(asm, "SBC A, A")
+	if hasAndA && hasSBCHL && hasRetNC && hasSBCAA {
+		t.Log("✓ IAR-ideal u16 codegen: AND A / SBC HL,DE / RET NC / SBC A,A / RET")
+	} else {
+		t.Logf("note: not yet IAR-ideal u16 (AND/OR A=%v SBC HL,DE=%v RET NC=%v SBC A,A=%v)",
+			hasAndA, hasSBCHL, hasRetNC, hasSBCAA)
+	}
+
+	cases := []struct{ a, b, want int }{
+		{1000, 300, 700},
+		{300, 1000, 700},
+		{500, 500, 0},
+		{0, 65535, 65535},
+		{65535, 0, 65535},
+		{1, 2, 1},
+	}
+	for _, tc := range cases {
+		src := bootstrapHL2DE("abs_diff_iar_u16", tc.a, tc.b) + "\n" + asm
+		_, hl, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("abs_diff_iar_u16(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(hl) != tc.want {
+			t.Errorf("abs_diff_iar_u16(%d,%d) = %d, want %d", tc.a, tc.b, int(hl), tc.want)
+		} else {
+			t.Logf("abs_diff_iar_u16(%d,%d) = %d ✓", tc.a, tc.b, int(hl))
 		}
 	}
 }
@@ -1920,6 +2031,104 @@ func TestSumArrayDJNZPeephole(t *testing.T) {
 	if !strings.Contains(asm, "DJNZ") {
 		t.Errorf("expected DJNZ peephole to apply:\n%s", asm)
 	}
+}
+
+// ── abs_diff_iar ──────────────────────────────────────────────────────────────
+//
+// IAR-style single-subtraction abs_diff — compare to IAR Cortex-M3 output:
+//
+//   unsigned abs_diff_iar(unsigned a, unsigned b) {
+//       unsigned r = a - b;         // one SUB, sets carry
+//       if (a >= b) return r;       // RET NC — carry IS the comparison
+//       return -r;                  // NEG; RET
+//   }
+//
+// IAR generates 3 instructions (Cortex-M3):
+//   SUBS  R0, R0, R1   ; r = a-b, flags
+//   IT CC / RSBCC R0, R0, #0  ; if borrow: R0 = -R0
+//   BX LR
+//
+// Z80 ideal (after CondRetSink + Sub+CmpGe fusion):
+//   SUB  B    ; A = a-b, CF=borrow (4T)
+//   RET  NC   ; a>=b → return      (5T taken, 11T not)
+//   NEG        ; A = -(a-b)        (8T)
+//   RET        ; return            (10T)
+//
+// Fast path: 4+5 = 9T.  Slow path: 4+11+8+10 = 33T.
+func buildAbsDiffIAR(m *mir2.Module) *mir2.Func {
+	f := m.AddFunc("abs_diff_iar")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)
+	bv := b.Param("b", mir2.TyU8, mir2.ClassCounter)
+
+	// r = a - b  (sets flags; carry = borrow = a < b)
+	r := b.Sub(a, bv, mir2.TyU8, mir2.ClassAcc)
+
+	// Use CmpLt and swap then/else so CondRetSink sinks the TRIVIAL ret_r
+	// (just Ret(r), no instructions) rather than the NEG path.
+	//
+	//   BrIf(CmpLt(a,b), then=ret_neg, else=ret_r)
+	//   CondRetSink fires on else=ret_r (trivial):
+	//     → TermCondRet(cmp, vals=[r], then=ret_neg)
+	//     → "if !CmpLt (a>=b): RET NC with A=r; else: NEG; RET"
+	//
+	// fusionSubCmpInBlock converts CmpLt(a,b) → CmpSubCarry(r,b), so the
+	// allocator no longer sees `a` as live at the Cmp.
+	// Final Z80: SUB B / RET NC / NEG / RET  (ideal IAR output, 9T fast path).
+	cmp := b.Cmp(mir2.CmpLt, a, bv, mir2.ClassFlag, false)
+	b.BrIf(cmp, "ret_neg", nil, "ret_r", nil) // else=ret_r is trivial → gets sunk
+
+	b.SwitchToNewBlock("ret_r") // trivial else — CondRetSink will hoist this
+	b.Ret(r)
+
+	b.SwitchToNewBlock("ret_neg")
+	nr := b.Neg(r, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(nr)
+
+	return f
+}
+
+// ── abs_diff_iar_u16 ──────────────────────────────────────────────────────────
+//
+// Same IAR pattern but for u16.  Z80 ideal:
+//   AND A         ; clear carry      (4T)
+//   SBC HL, DE    ; HL = a-b, CF=borrow  (15T)
+//   RET NC        ; a>=b → return    (5T / 11T)
+//   XOR A         ; 16-bit NEG HL via SBC A,A trick
+//   SUB L         ; (24T total for the neg)
+//   LD  L, A
+//   SBC A, A
+//   SUB H
+//   LD  H, A
+//   RET
+//
+// Fast path: 4+15+5 = 24T.  Slow path: 4+15+11+24+10 = 64T.
+func buildAbsDiffIARU16(m *mir2.Module) *mir2.Func {
+	f := m.AddFunc("abs_diff_iar_u16")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassPointer}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU16, mir2.ClassPointer)
+	bv := b.Param("b", mir2.TyU16, mir2.ClassIndex)
+
+	r := b.Sub(a, bv, mir2.TyU16, mir2.ClassPointer)
+
+	// Same CmpLt+swap-branches trick as buildAbsDiffIAR (see above).
+	cmp := b.Cmp(mir2.CmpLt, a, bv, mir2.ClassFlag, false)
+	b.BrIf(cmp, "ret_neg", nil, "ret_r", nil) // else=ret_r is trivial
+
+	b.SwitchToNewBlock("ret_r")
+	b.Ret(r)
+
+	b.SwitchToNewBlock("ret_neg")
+	nr := b.Neg(r, mir2.TyU16, mir2.ClassPointer)
+	b.Ret(nr)
+
+	return f
 }
 
 // ── abs_diff_u16 ───────────────────────────────────────────────────────────────

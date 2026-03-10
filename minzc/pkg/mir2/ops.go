@@ -189,10 +189,21 @@ const (
 	// This lets PBQP allocate the sub result to A without interference from
 	// the original `a` operand, which is no longer listed as a live use.
 	CmpSubCarry
+
+	// CmpSubCarryNot is the complement of CmpSubCarry.
+	//
+	// Semantics: given r = sub(a, b), CmpSubCarryNot(r, b) ≡ (a >= b) unsigned,
+	// i.e. no borrow from the subtraction.  Z80 codegen emits NO instruction —
+	// carry=0 (NC) after the preceding SUB already encodes a >= b.
+	//
+	// Produced by fusionSubCmpInBlock when Sub(a,b) is immediately followed by
+	// Cmp(CmpGe/CmpUge, a, b) — the IAR abs_diff pattern.
+	CmpSubCarryNot
 )
 
 func (c CmpCond) String() string {
-	names := [...]string{"eq", "ne", "lt", "le", "gt", "ge", "ult", "ule", "ugt", "uge", "sub_carry"}
+	names := [...]string{"eq", "ne", "lt", "le", "gt", "ge", "ult", "ule", "ugt", "uge",
+		"sub_carry", "sub_carry_not"}
 	if int(c) < len(names) {
 		return names[c]
 	}
