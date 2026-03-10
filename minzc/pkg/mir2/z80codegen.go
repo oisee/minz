@@ -1571,8 +1571,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				}
 				g.emitMov(dst, lhs, w)
 			}
-			g.emit("    SCF")
-			g.emit("    CCF") // clear carry
+			g.emit("    OR A") // clear carry (1b/4T; SCF+CCF would be 2b/8T)
 			g.emitf("    SBC %s, %s", dst, rhs)
 			g.invalidate(dst)
 		default:
