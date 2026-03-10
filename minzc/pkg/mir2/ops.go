@@ -178,10 +178,21 @@ const (
 	CmpUle                // <= unsigned
 	CmpUgt                // >  unsigned
 	CmpUge                // >= unsigned
+
+	// CmpSubCarry is a synthetic condition produced by hoistReorderSubBeforeCmp.
+	//
+	// Semantics: given r = sub(a, b), CmpSubCarry(r, b) ≡ (a < b) unsigned,
+	// computed as (r + b) >= 2^width.  Identical to the carry flag set by the
+	// preceding unsigned subtraction — so Z80 codegen emits NO instruction
+	// (carry is already in F).
+	//
+	// This lets PBQP allocate the sub result to A without interference from
+	// the original `a` operand, which is no longer listed as a live use.
+	CmpSubCarry
 )
 
 func (c CmpCond) String() string {
-	names := [...]string{"eq", "ne", "lt", "le", "gt", "ge", "ult", "ule", "ugt", "uge"}
+	names := [...]string{"eq", "ne", "lt", "le", "gt", "ge", "ult", "ule", "ugt", "uge", "sub_carry"}
 	if int(c) < len(names) {
 		return names[c]
 	}

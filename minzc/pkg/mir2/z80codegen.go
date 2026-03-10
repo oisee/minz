@@ -1219,6 +1219,13 @@ func (g *z80cg) genSext(inst *Inst) {
 // ── Compare ───────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genCmp(inst *Inst) {
+	// CmpSubCarry: carry flag already set by the immediately preceding SUB.
+	// Src[0] = sub result (r), Src[1] = original rhs (b).
+	// carry ≡ (r + b) >= 2^width ≡ original_a < b unsigned — emit nothing.
+	if inst.Cond == CmpSubCarry {
+		return
+	}
+
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
 
@@ -2013,7 +2020,7 @@ func cmpCondCode(c CmpCond) string {
 		return "Z"
 	case CmpNe:
 		return "NZ"
-	case CmpLt, CmpUlt:
+	case CmpLt, CmpUlt, CmpSubCarry:
 		return "C"
 	case CmpGe, CmpUge:
 		return "NC"

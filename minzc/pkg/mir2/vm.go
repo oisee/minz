@@ -425,6 +425,12 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 			ok = ua > ub
 		case CmpUge:
 			ok = ua >= ub
+		case CmpSubCarry:
+			// Src[0]=r where r = orig_a - orig_b (mod 2^width).
+			// Carry from sub ≡ (r + b) >= 2^width ≡ orig_a < orig_b unsigned.
+			// Use SrcTy (operand width), not Ty (result=TyBool with Width()=1).
+			width := uint(inst.SrcTy.Width())
+			ok = (ua+ub) >= (1 << width)
 		}
 		if ok {
 			result = Value{I: 1}

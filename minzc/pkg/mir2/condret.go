@@ -93,8 +93,15 @@ func CondRetSink(f *Func) bool {
 // operands, move the Sub to the position just before the Cmp.
 //
 // After CondRetSink, a hoisted Sub ends up AFTER an existing CmpLt that
-// tests the same operands.  Reordering so Sub precedes CmpLt lets the Z80
-// codegen skip the subsequent CP (Sub already sets identical carry flags).
+// tests the same operands.  After the reorder, the Cmp is converted to
+// CmpSubCarry(subResult, y): carry from the Sub already encodes x<y, so
+// Z80 codegen emits no CP instruction.  Crucially, the original lhs x
+// is no longer a live source of the Cmp, which removes the interference
+// between x (→A) and subResult (→A) in the PBQP allocator — allowing
+// subResult to live in A with no spill.
+//
+// CmpSubCarry semantics (VM): (r + b) >= 2^width, where r = x−y and b = y.
+// This equals the unsigned borrow from x−y, i.e. x < y.  See ops.go.
 //
 // This reorder is always safe: neither instruction depends on the other.
 func hoistReorderSubBeforeCmp(blk *Block) {
@@ -129,6 +136,17 @@ func hoistReorderSubBeforeCmp(blk *Block) {
 			// Shift instructions in [i, j-1] one position right, then insert Sub at i.
 			copy(insts[i+1:j+1], insts[i:j])
 			insts[i] = s
+			// The Cmp is now at position i+1.  Convert it to CmpSubCarry:
+			//   - Src[0] = s.Dst  (the sub result register, in A after SUB)
+			//   - Cond   = CmpSubCarry
+			// This removes cx from the Cmp's use set, eliminating the
+			// PBQP interference between cx (→A) and s.Dst (→A).
+			// Z80 codegen: CmpSubCarry emits nothing (carry already in F).
+			// VM: evaluates as (s.Dst + cy) >= 2^width = (cx < cy unsigned).
+			cmp := insts[i+1]
+			cmp.Src[0] = s.Dst
+			cmp.Cond = CmpSubCarry
+			cmp.SrcTy = s.Ty // width of the sub operands (needed by VM for carry check)
 			break
 		}
 	}
