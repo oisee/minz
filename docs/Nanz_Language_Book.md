@@ -19,6 +19,8 @@
 6. [Zero-Cost Abstractions on Z80](#chapter-6-zero-cost-abstractions-on-z80)
 7. [Relation to MinZ and PL/M](#chapter-7-relation-to-minz-and-plm)
 8. [Comparison with Other Languages](#chapter-8-comparison-with-other-languages)
+9. [Z80 Extern Functions and Register Contracts](#chapter-9-z80-extern-functions-and-register-contracts)
+10. [Deep Optimization: CondRetSink and Flag Fusion](#chapter-10-deep-optimization-condret-sink-and-flag-fusion)
 - [Appendix A: Complete Syntax Grammar](#appendix-a-complete-syntax-grammar)
 - [Appendix B: Register Class Reference](#appendix-b-register-class-reference)
 - [Appendix C: CLI Usage](#appendix-c-cli-usage)
@@ -1150,6 +1152,434 @@ sum_array:
 This is ~8 instructions, ~43 T-states per element. The Nanz `for x: u8 in ptr[0..n]` version produces assembly of comparable quality. The compiler may emit one or two additional register moves if virtual registers are spilled to the $F0xx memory region, but with PBQP register allocation this is increasingly rare for small functions.
 
 The real advantage of Nanz over assembly is not performance — it is **composability**. Iterator chains, struct methods, and operator overloading let you build larger programs without losing track of register assignments, while the compiler ensures the generated code remains correct.
+
+---
+
+## Chapter 9: Z80 Extern Functions and Register Contracts
+
+### 9.1 The @extern Annotation
+
+`@extern` declares a function whose body lives outside the Nanz module — in Z80 assembly, ROM, or a separately assembled file. The simplest form:
+
+```nanz
+@extern fun print_char(c: u8) -> void
+@extern fun rom_print(s: ptr) -> void
+```
+
+The compiler assigns register classes to the parameters and return value exactly as it would for any Nanz function. `print_char(c: u8)` will get `ClassAcc` (A) for `c` and `ClassPointer` (HL) for a pointer, following the standard register-first calling convention.
+
+### 9.2 Annotated @extern: Machine-Specific Register Contracts
+
+Some external functions demand **specific** physical registers — ROM routines, BIOS calls, OS syscalls, and RST handlers all have fixed ABIs baked into their implementation. You cannot move them.
+
+The extended `@extern` syntax lets you annotate parameter and return register classes explicitly:
+
+```nanz
+@extern("rst28", params=[z80_a], returns=[z80_a])
+fun rst28_sqrt(x: u8) -> u8
+
+@extern("bdos", params=[z80_c, z80_de], returns=[z80_a])
+fun bdos_call(fn_code: u8, param: u16) -> u8
+
+@extern("set_palette", params=[z80_hl, z80_bc])
+fun set_palette(ptr: u16, count: u16) -> void
+```
+
+The first string argument is the symbol name in the linker output. The `params=` and `returns=` lists map left-to-right to the function's parameter and return types.
+
+### 9.3 Z80 Register Class Aliases
+
+The `z80_*` aliases are readable names for MIR2 register classes, usable in `@extern` annotations:
+
+| Alias | MIR2 class | Z80 physical | Typical use |
+|-------|-----------|-------------|-------------|
+| `z80_a` | `ClassAcc` | A | 8-bit ALU result, first u8 param/return |
+| `z80_b` | `ClassCounter` | B | DJNZ counter, loop variables |
+| `z80_c` | `ClassGeneral` (C slot) | C | Second 8-bit param |
+| `z80_hl` | `ClassPointer` | HL | Pointer, u16 param/return |
+| `z80_de` | `ClassIndex` | DE | Second u16 param, index register |
+| `z80_bc` | `ClassCounter16` | BC | 16-bit counter / loop bound |
+
+These names exist for human readability. Inside the compiler they map to MIR2 `RegClass` values. The calling convention constraint becomes a hard edge in the PBQP interference graph — the allocator cannot reassign the parameter to another register class.
+
+**Effect on the caller:** If the compiled Nanz code holds `x` in C (from some prior allocation), and you call `rst28_sqrt(x)` with `params=[z80_a]`, the compiler emits `LD A, C` before the call. If `x` is already in A, the move is elided. The function's contract annotation gives the compiler the information it needs to generate the correct prefix code.
+
+### 9.4 Annotated @extern Example: ZX Spectrum ROM Calls
+
+The ZX Spectrum ROM is full of routines with fixed register ABIs. In Nanz:
+
+```nanz
+// CLS — clear screen.  No parameters.
+@extern("$0DAF")
+fun cls() -> void
+
+// PRINT-A — print character in A to lower screen.
+@extern("$0010", params=[z80_a])
+fun print_char(c: u8) -> void
+
+// PIXEL-ADD — convert (y=H, x=L) to HL=screen address, B=pixel mask.
+@extern("$22AA", params=[z80_hl], returns=[z80_hl])
+fun pixel_addr(yx: u16) -> u16
+```
+
+The first string argument is a symbol or absolute address (prefixed `$` for hex). The assembler/linker resolves it.
+
+### 9.5 RST Instructions and Inline-Parameter ABIs
+
+Several Z80 systems use RST (restart) instructions in a non-standard way: a **function code byte** is placed immediately after the `RST` instruction in the instruction stream, rather than in a register:
+
+```asm
+RST 8       ; call OS
+DB  0x42    ; function code — in the instruction stream, not in A/B/C/HL
+```
+
+The called routine reads `(SP)` to find the opcode stream pointer, extracts the DB byte, increments the return address past it, then dispatches.
+
+**This is not a register-passing ABI.** The parameter is embedded in the instruction stream — there is no register that holds it before the call. `@extern` cannot model this: `@extern` constrains which physical register a Nanz value lives in, but the function-code byte does not correspond to any Nanz value.
+
+#### The Right Abstraction: Metafunction or Inline ASM
+
+**Option 1: `@rst` metafunction (recommended)**
+
+```nanz
+// Expands to: RST 8 ; DB code
+@rst(8, 0x42)          // OS call with function code 0x42
+
+// With a Nanz helper:
+fun os_call(code: u8) -> void {
+    // This requires @asm; the code byte is a compile-time literal.
+    // Use @rst metafunction instead:
+}
+```
+
+**Option 2: Inline `@asm` block**
+
+```nanz
+fun dos_open(filename: u8) -> void {
+    @asm {
+        RST 8
+        DB  0x66        // DOS OPEN function code
+    }
+}
+```
+
+**Option 3: Per-function wrappers (always safe)**
+
+```nanz
+// One Nanz function per RST code:
+@extern("_rst8_open")   // defined in a hand-written asm file
+fun dos_open(filename_ptr: ptr) -> u8
+
+@extern("_rst8_close")
+fun dos_close(handle: u8) -> u8
+```
+
+The wrappers in assembly:
+```asm
+_rst8_open:    ; HL = filename_ptr (from ClassPointer ABI)
+    RST  8
+    DB   0x66  ; OPEN
+    RET
+
+_rst8_close:   ; A = handle (from ClassAcc ABI)
+    RST  8
+    DB   0x69  ; CLOSE
+    RET
+```
+
+This separates the "call with inline literal" awkwardness from Nanz — each wrapper is a tiny asm stub, and the Nanz side sees a clean function with a normal register ABI.
+
+**Recommendation:** Use Option 3 (asm wrappers) for any RST-with-DB routine. It is the most maintainable, the most compiler-friendly, and it lets the PBQP allocator optimize callers normally. Reserve `@asm` blocks for truly one-off sequences where writing a separate function is overkill.
+
+---
+
+## Chapter 10: Deep Optimization: CondRetSink and Flag Fusion
+
+This chapter walks through the complete optimization pipeline that transforms a naive `abs_diff` implementation into the tightest possible Z80 assembly. It demonstrates five MIR2 passes working in concert, and explains what happens when the same function operates on `u8` vs `u16` values.
+
+### 10.1 The Example: abs_diff
+
+```nanz
+fun abs_diff(a: u8, b: u8) -> u8 {
+    if a < b {
+        return b - a
+    }
+    return a - b
+}
+```
+
+Naive Z80 output (before optimization):
+
+```asm
+abs_diff:          ; a=A, b=B (from PBQP contract)
+    LD C, A        ; save a
+    CP B           ; compare a vs b
+    JR NC, .else
+.then:
+    LD A, B        ; b
+    SUB C          ; b - a
+    RET
+.else:
+    LD A, C        ; a
+    SUB B          ; a - b
+    RET
+```
+
+8 instructions, ~28-40 T-states. The optimal output is 4 instructions:
+
+```asm
+abs_diff:
+    SUB B          ; A = a - b, carry = (a < b unsigned)
+    RET NC         ; if a >= b: return a-b
+    NEG            ; A = -(a-b) = b-a
+    RET
+```
+
+Getting there requires five passes.
+
+### 10.2 Pass 1: CondRetSink (`mir2/condret.go`)
+
+**What it does:** Finds a `BrIf(cond, @then, @else)` where the `@else` branch is a trivial exit (no parameters, single predecessor, all-pure instructions, terminates with `Ret`). Hoists `@else`'s instructions into the current block and replaces the `BrIf` with `TermCondRet`.
+
+**MIR2 before:**
+```
+block @entry:
+    %cond = cmp.ult %a, %b
+    br_if %cond, @then(), @else()
+
+block @else:
+    %r2 = sub %a, %b
+    ret %r2
+
+block @then:
+    %r1 = sub %b, %a
+    ret %r1
+```
+
+**MIR2 after:**
+```
+block @entry:
+    %cond = cmp.ult %a, %b
+    %r2   = sub %a, %b          ← hoisted from @else
+    cond_ret %cond, [%r2], @then()
+
+block @then:                     ← unchanged
+    %r1 = sub %b, %a
+    ret %r1
+```
+
+`TermCondRet` semantics: if `%cond == 0` → return `[%r2]`; if `%cond != 0` → jump `@then`. Z80 emits `RET <invertedCC>`.
+
+**Z80 after this pass:**
+
+```asm
+abs_diff:
+    CP B           ; cmp.ult(a, b): sets carry = (A < B)
+    SUB B          ; r2 = a - b (hoisted; may clobber flags)
+    RET NC         ; if a >= b: return r2
+    ; @then: r1 = b - a
+    LD A, B
+    SUB C          ; (A was clobbered; C holds original a)
+    RET
+```
+
+Progress: eliminated one conditional branch and one label.
+
+### 10.3 Pass 2: SubSwapNeg (`applySubSwapNeg` in `condret.go`)
+
+Fired by CondRetSink immediately after hoisting.
+
+**What it does:** If a hoisted `sub(%a, %b)` was placed in the current block, and the then-block contains `sub(%b, %a)` (reversed operands), replace the then-block instruction with `neg(%r2)`. This is correct because `neg(a-b) = -(a-b) = b-a`.
+
+**MIR2 after:**
+```
+block @entry:
+    %cond = cmp.ult %a, %b
+    %r2   = sub %a, %b
+    cond_ret %cond, [%r2], @then()
+
+block @then:
+    %r1 = neg %r2               ← was: sub %b, %a
+    ret %r1
+```
+
+The `neg` result is forced to `ClassAcc` (A register), because Z80's `NEG` instruction always reads and writes A.
+
+**Z80 after this pass:**
+
+```asm
+abs_diff:
+    CP B           ; cmp.ult
+    SUB B          ; r2 = a - b
+    RET NC
+    NEG            ; r1 = -r2 = b - a
+    RET
+```
+
+Five instructions. The `CP B` is now redundant — `SUB B` sets carry in the same way.
+
+### 10.4 Pass 3: hoistReorderSubBeforeCmp
+
+**What it does:** Finds a `cmp.uolt(x, y)` at position i and a `sub(x, y)` at a later position j in the same block. If no instruction between i and j redefines x or y, moves the Sub to position i (just before the Cmp) and converts the Cmp to `cmp.sub_carry(r_sub, y)`.
+
+**Semantics of `CmpSubCarry`:** Given `r = x − y` (unsigned), `CmpSubCarry(r, y) ≡ (x < y unsigned) ≡ carry flag from the preceding `SUB``. No Z80 instruction is emitted — the carry is already in the flags register from the `SUB`.
+
+**MIR2 after:**
+```
+block @entry:
+    %r2   = sub %a, %b              ← moved before cmp
+    %cond = cmp.sub_carry %r2, %b   ← carry from the SUB above
+    cond_ret %cond, [%r2], @then()
+```
+
+**Z80 after this pass:**
+
+```asm
+abs_diff:
+    SUB B          ; r2 = a − b, carry = (a < b)   [CP B eliminated!]
+    RET NC         ; if a >= b: return r2
+    NEG            ; r1 = -(a-b) = b-a
+    RET
+```
+
+Four instructions. `CP B` is gone.
+
+### 10.5 Pass 4: PBQP Register Allocation
+
+The CmpSubCarry transformation changes the Cmp's source from `%a` (the original parameter) to `%r2` (the sub result). This is the critical register interference fix.
+
+Before the transformation: PBQP sees `%cond = cmp.ult(%a, %b)` using `%a`. Both `%a` and `%r2` (the sub result) need A for arithmetic, but they cannot simultaneously occupy A — PBQP inserts a spill (`LD C, A`).
+
+After `CmpSubCarry`: `%a` is no longer a live source of the Cmp. The interference edge `%a(→A) ↔ %r2(→A)` disappears. PBQP can allocate `%r2` directly to A, no spill needed.
+
+### 10.6 Pass 5: Dead Block Elimination
+
+`@else` was left in place by CondRetSink (now unreachable). EliminateDeadBlocks removes it.
+
+### 10.7 Full Optimization Summary
+
+| Pass | Action | Before → After |
+|------|--------|----------------|
+| 1. CondRetSink | Hoist @else, replace BrIf | 8 instr → 6 instr |
+| 2. SubSwapNeg | sub(b,a) → neg(r2) in @then | removes LD A,B |
+| 3. HoistReorder | Sub before Cmp; Cmp→CmpSubCarry | 6 instr → 5 instr |
+| 3a. CP elim | CmpSubCarry emits nothing | 5 instr → 4 instr |
+| 4. PBQP | CmpSubCarry removes interference | spill LD C,A gone |
+| 5. DeadBlock | Remove unreachable @else | cleanup |
+
+### 10.8 Inline Survival
+
+What happens when `abs_diff` is inlined at a call site?
+
+After inlining, the `TermCondRet` becomes a `TermBrIf`:
+
+```
+block @call_site:
+    ...
+    %result = call abs_diff(%x, %y)   ← before inlining
+    ; after inlining:
+    %r2   = sub %x, %y
+    %cond = cmp.sub_carry %r2, %y
+    br_if %cond, @call_neg(%r2), @after(%r2)   ← TermCondRet → TermBrIf
+
+block @call_neg(%v):
+    %neg_v = neg %v
+    jmp @after(%neg_v)
+
+block @after(%res):
+    ; use %res ...
+```
+
+The Z80 output for the inlined site:
+
+```asm
+    SUB E          ; r2 = x - y (y in E, x in A after contract opt)
+    JR NC, .after  ; if x >= y: skip negation
+    NEG            ; r = -(x-y) = y-x
+.after:
+    ; use A ...
+```
+
+Same 4 instructions, zero call overhead (no `CALL`/`RET`). The `RET NC` becomes `JR NC, .label`. The optimization survives inlining intact.
+
+### 10.9 abs_diff(u16, u16) — The 16-bit Case
+
+```nanz
+fun abs_diff16(a: u16, b: u16) -> u16 {
+    if a < b {
+        return b - a
+    }
+    return a - b
+}
+```
+
+The same five passes fire at the IR level. The result at the MIR2 level is identical:
+
+```
+%r2   = sub %a, %b : u16
+%cond = cmp.sub_carry %r2, %b
+cond_ret %cond, [%r2], @then
+
+@then:
+    %r1 = neg %r2 : u16
+    ret %r1
+```
+
+But the Z80 ISA introduces constraints that make the u16 case longer.
+
+#### 10.9.1 16-bit Subtraction
+
+Z80 has no direct `SUB HL, DE`. The only 16-bit subtraction with carry output is `SBC HL, rr`, which requires carry to be clear first:
+
+```asm
+abs_diff16:        ; a=HL, b=DE
+    AND A          ; 4T — clear carry (OR A also works, same timing)
+    SBC HL, DE     ; 15T — HL = a−b, carry = (a < b unsigned)
+    RET NC         ; 11T/5T — if a≥b: return HL=a-b
+```
+
+Three instructions for the fast path (30T total when taken). Compare to `SUB B` + `RET NC` for u8 (8+11 = 19T when taken).
+
+#### 10.9.2 16-bit NEG
+
+Z80 has no 16-bit `NEG` instruction. The two's complement negation of HL uses the NEG+SBC trick:
+
+```asm
+    ; HL = x (we want HL = -x = b-a)
+    LD A, L        ; 4T — low byte
+    NEG            ; 4T — A = -L mod 256, carry = (L != 0) = borrow into high byte
+    LD L, A        ; 4T — store low byte of result
+    LD A, 0        ; 7T — (cannot use XOR A: that clears carry)
+    SBC A, H       ; 4T — A = 0 − H − carry = -(H + borrow) = correct high byte
+    LD H, A        ; 4T — store high byte
+    RET            ; 10T
+```
+
+Total slow path (a < b): 4 + 15 + 5 + 4 + 4 + 4 + 7 + 4 + 4 + 10 = **61T**, 10 instructions.
+
+Note: `LD A, 0` (7T, 2 bytes `3E 00`) is needed because `XOR A` would clear the carry left by `NEG`. No shorter alternative preserves carry while zeroing A.
+
+#### 10.9.3 Current Limitation: ClassAcc for u16 NEG
+
+The `applySubSwapNeg` pass currently forces `ClassAcc` on the `neg` result (`inst.Cls = ClassAcc`). This is correct for u8 — `NEG` always operates on A. For u16, however, `ClassAcc` is the 8-bit A register, and a u16 value does not fit.
+
+**Status:** This is a known bug for u16 abs_diff with the current compiler. The fix requires two changes:
+1. `applySubSwapNeg`: skip or use a different class when `h.Ty.Width() > 8`
+2. `z80codegen OpNeg` for u16: emit the 6-instruction NEG+SBC sequence instead of a single `NEG`
+
+Until fixed, `abs_diff16` compiles correctly via the fallback path (without the SubSwapNeg optimization), producing slightly more code but correct output.
+
+#### 10.9.4 Summary: u8 vs u16
+
+| Property | abs_diff(u8,u8) | abs_diff(u16,u16) |
+|----------|----------------|-------------------|
+| Fast path (a≥b) | `SUB B; RET NC` — 2 instr, 19T | `AND A; SBC HL,DE; RET NC` — 3 instr, 30T |
+| Slow path (a<b) | `NEG; RET` — 2 instr, 14T | 7-instruction 16-bit NEG, 37T |
+| Single NEG instruction | ✅ `NEG` | ❌ (must use NEG+SBC, 6 instr) |
+| CP elimination | ✅ CmpSubCarry | ✅ same (no `AND A; SBC` repeated) |
+| applySubSwapNeg | ✅ works | ⚠️ bug (ClassAcc mismatch, fix pending) |
+
+The u8 case is special because the Z80 ISA offers `NEG` and `SUB r` as single-instruction primitives that perfectly match the two operations needed. The u16 case is structurally identical at the MIR2 level but requires more Z80 instructions due to ISA limitations.
 
 ---
 
