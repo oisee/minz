@@ -4,13 +4,13 @@ struct Acc {
 
 global acc_g: Acc
 
-fun Acc.add(self_ptr: u16, amount: u8) -> u8 {
-    self_ptr[0] = self_ptr[0] + amount
-    return self_ptr[0]
+fun Acc.add(self: ^Acc, amount: u8) -> u8 {
+    self.val = self.val + amount
+    return self.val
 }
 
-fun Acc.reset(self_ptr: u16) -> void {
-    self_ptr[0] = 0
+fun Acc.reset(self: ^Acc) -> void {
+    self.val = 0
 }
 
 fun sum_two(a: u8, b: u8) -> u8 {

@@ -101,6 +101,11 @@ v3 is the natural optimum: one base load amortized over all three stores.
 
 ## 2. UFCS method dispatch — `Acc.add`, no vtable
 
+> **Updated 2026-03-10 (commit 4aa5fad):** rewritten with typed pointer receiver
+> syntax `self: ^Acc` instead of the previous `self_ptr: u16` + `self_ptr[0]`
+> idiom. The old form leaked "pointer = u16" into the API; the new form is typed,
+> readable, and lets the compiler resolve field offsets and method dispatch cleanly.
+
 ```nanz
 struct Acc {
     val: u8
@@ -108,13 +113,13 @@ struct Acc {
 
 global acc_g: Acc
 
-fun Acc.add(self_ptr: u16, amount: u8) -> u8 {
-    self_ptr[0] = self_ptr[0] + amount
-    return self_ptr[0]
+fun Acc.add(self: ^Acc, amount: u8) -> u8 {
+    self.val = self.val + amount   // auto-deref field access on ^Acc receiver
+    return self.val
 }
 
-fun Acc.reset(self_ptr: u16) -> void {
-    self_ptr[0] = 0
+fun Acc.reset(self: ^Acc) -> void {
+    self.val = 0
 }
 
 fun sum_two(a: u8, b: u8) -> u8 {
@@ -128,19 +133,17 @@ fun sum_two(a: u8, b: u8) -> u8 {
 **Compiled Z80:**
 ```z80
 Acc_add:
-    EX DE, HL           ; self_ptr arrives in HL (ClassPointer)
-    LD D, (DE)          ; load self_ptr[0]
+    LD D, (HL)          ; load self.val  (self arrives in HL as ClassPointer)
     LD A, D
     ADD A, C            ; + amount
     LD C, A
-    EX DE, HL
-    LD (DE), C          ; store result
-    LD C, (HL)
+    LD (HL), C          ; store result back
+    LD A, (HL)          ; load for return
     RET
 
 Acc_reset:
     LD C, 0
-    LD (HL), C          ; *self_ptr = 0
+    LD (HL), C          ; self.val = 0
     RET
 
 sum_two:
@@ -152,9 +155,7 @@ sum_two:
     LD HL, acc_g
     LD A, mem           ; b  ← known bug: register spill for second arg
     CALL Acc_add
-    LD HL, acc_g
-    LD C, (HL)
-    LD A, C
+    LD A, (acc_g__val)  ; return acc_g.val (direct addressing, lowerExprForRet)
     RET
 ```
 
@@ -175,6 +176,24 @@ fun @sum_two(%r18: u8 [acc], %r19: u8 [general]) -> u8 [acc]
 - `acc_g.reset()` became `call @Acc_reset(addr_of acc_g)` — **direct CALL, zero vtable**.
 - `acc_g.add(a)` became `call @Acc_add(addr_of acc_g, a)` — same.
 - The struct pointer travels in **HL** (ClassPointer per calling convention).
+- `return acc_g.val` → `LD A, (acc_g__val)` — direct addressing via `lowerExprForRet`.
+
+**How `self: ^Acc` works:**
+
+The `^Acc` type in a parameter position means "pointer to Acc".  The parser
+records the element struct in `varPtrElem["self"]` so that:
+
+1. **Field access**: `self.val` resolves to `FieldExpr{X: VarRef("self"), offset: 0}`.
+   The lowerer calls `lowerExpr(VarRef("self"))` → pointer register (HL), then loads
+   from `(HL)`.  No extra instructions vs the old `self_ptr[0]` form.
+
+2. **Field store**: `self.val = X` becomes `AssignStmt{Target: FieldExpr{...}}`.
+   `lowerExprAddr(VarRef("self"))` now returns the register value directly (it IS
+   the address), enabling `Store(HL, val, TyU8)` → `LD (HL), val`.
+
+3. **UFCS dispatch**: `acc_g.add(n)` — parser sees `acc_g` has type `*StructTy(Acc)`,
+   looks up `methodTable["Acc"]["add"]` → `Acc_add`.  Passes `addr_of(acc_g)` as first
+   arg.  The callee receives the address in HL as a `^Acc` receiver.
 
 **Known bug:** `sum_two` emits `LD A, mem` for the second argument to the
 second `Acc_add` call — `mem` is a literal sentinel indicating a register
@@ -244,6 +263,14 @@ demo:
 If you write `g_cat.speak()`, you get `CALL Cat_speak`.  No runtime dispatch.
 Same performance as hand-written assembly — this is CTIE (Compile-Time
 Interface Execution), trait monomorphization at the call site.
+
+**Known bug (zero-size struct globals):** `struct Dog {}` and `struct Cat {}`
+have no fields, so the codegen emits no bytes for `g_dog` and `g_cat` in the
+globals section.  The symbol `g_dog` is undefined at link time.  `LD HL, g_dog`
+references a phantom address.  For methods that don't access any fields (as
+here), this is harmless — the pointer value in HL is never dereferenced.  But
+MZA correctly rejects it as an undefined symbol.  Fix: emit a bare `g_dog: EQU $`
+label (or `DB 0`) for zero-size struct globals so they have a valid address.
 
 ### 3b. Interface as a parameter type (NEW — 2026-03-10)
 
@@ -986,11 +1013,67 @@ from ~70T to ~46T (**−34%**).
 
 ---
 
+---
+
+### §2 update — `^Struct` pointer receiver (post-sprint, commit 4aa5fad)
+
+The ex2 source was rewritten from `self_ptr: u16` + `self_ptr[0]` to the
+typed pointer syntax `self: ^Acc`.  This is a **language design fix**, not
+purely an optimization: the old form was misleading (looks like a raw u16,
+not a typed pointer) and also hid a latent codegen bug.
+
+**Old source / old output (before 4aa5fad):**
+```nanz
+fun Acc.add(self_ptr: u16, amount: u8) -> u8 {
+    self_ptr[0] = self_ptr[0] + amount
+    return self_ptr[0]
+}
+```
+```z80
+Acc_add:
+    EX DE, HL           ; register pressure forced self_ptr into DE
+    LD D, (DE)          ; ← ILLEGAL Z80 INSTRUCTION (only LD A,(DE) exists)
+    LD A, D
+    ADD A, C
+    LD C, A
+    EX DE, HL
+    LD (DE), C
+    LD C, (HL)
+    RET
+```
+
+**New source / new output (4aa5fad):**
+```nanz
+fun Acc.add(self: ^Acc, amount: u8) -> u8 {
+    self.val = self.val + amount
+    return self.val
+}
+```
+```z80
+Acc_add:
+    LD D, (HL)          ; load self.val — valid, HL stays as pointer
+    LD A, D
+    ADD A, C
+    LD (HL), C
+    LD A, (HL)
+    RET
+```
+
+Two fixes in one commit:
+1. **`LD D,(DE)` illegal instruction guard** in `z80codegen.go`: BC/DE
+   indirect loads to non-A registers now route through A automatically.
+2. **`^Struct` pointer receiver syntax** in the Nanz parser: `self: ^Acc`
+   provides typed field resolution, clean UFCS dispatch, and correct
+   store-through-pointer lowering without the EX DE,HL shuffle.
+
+---
+
 ### Sprint diff summary
 
 | Example | Result | ΔT (key path) | Root cause |
 |---------|--------|----------------|------------|
 | `set_rgb` / `get_*` | ✅ unchanged | — | stable |
+| `sum_two` / `Acc_add` | 📈 fixed + redesigned | illegal→valid Z80 | `^Acc` receiver + BC/DE guard |
 | `sum_two` return | 📈 improved | −8T (return) | `lowerExprForRet` |
 | `abs_diff` u8 | ⚠️ regressed | +4T (fast path) | contract alloc drift, b→D not B |
 | `abs_diff_u16` | ⚠️ broken | +4T + wrong slow path | `applySubSwapNeg` guard missing |
@@ -999,6 +1082,6 @@ from ~70T to ~46T (**−34%**).
 | `mapInPlace` | ⚠️ regressed | +11T/element | constant-add not through A |
 | `gcd` | 📈 improved | −24T/iteration | Phase 6c coalescer |
 
-**Net:** 2 improvements, 3 regressions.  The regressions (`abs_diff` u8,
-`mapInPlace`) are register-allocation issues unrelated to today's sprint
-features; they need targeted fixes.
+**Net:** 3 improvements (UFCS receiver syntax + sum_two return + gcd), 3
+regressions.  The regressions (`abs_diff` u8, `abs_diff_u16`, `mapInPlace`)
+are register-allocation issues unrelated to the sprint features.
