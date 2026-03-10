@@ -277,7 +277,7 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	}
 
 	// ── R1 back-assignment (reverse stack order) ──────────────────────────────
-
+	// Also reset assigned sentinel so coalescing sees correct state.
 	for i := len(r1Stack) - 1; i >= 0; i-- {
 		e := r1Stack[i]
 		r := e.node
@@ -309,6 +309,12 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 			result.Locs[r] = allLocs[best]
 		}
 	}
+
+	// ── Phase 6c: post-allocation copy coalescing ─────────────────────────────
+	// Eliminate parallel copies at block boundaries and within-block OpMoves
+	// by reassigning block params / OpMove dsts to their source's PhysLoc
+	// when no IG neighbour conflict prevents it.
+	coalesceAllocResult(f, result, lr)
 
 	return result
 }

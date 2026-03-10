@@ -200,3 +200,102 @@ func TestPBQP_FourPointers_NoSpill(t *testing.T) {
 			ar.Locs[p0], ar.Locs[p1], ar.Locs[p2], ar.Locs[p3])
 	}
 }
+
+// ── Phase 6c: copy coalescing tests ──────────────────────────────────────────
+
+// TestCoalesce_BlockBoundary checks that a value passed across a TermJmp edge
+// gets the same physical location as the target block's param.
+// Without coalescing, PBQP might assign different locations and the codegen
+// would emit a trampoline copy.
+func TestCoalesce_BlockBoundary(t *testing.T) {
+	// IR:
+	//   fun bounce() -> u8 [acc]
+	//   @entry:
+	//     %r1 = const 42 : u8 [acc]
+	//     jmp @finish(%r1)
+	//   @finish(%r2: u8 [acc]):
+	//     ret %r2
+	m := &mir2.Module{Name: "coalesce_bb"}
+	f := m.AddFunc("bounce")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	bld := mir2.NewBuilder(f)
+	entry := bld.SwitchToNewBlock("entry")
+	r1 := bld.Const(42, mir2.TyU8, mir2.ClassAcc)
+
+	finish := bld.SwitchToNewBlock("finish")
+	r2 := bld.BlockParam(finish, mir2.TyU8, mir2.ClassAcc)
+	bld.Ret(r2)
+
+	bld.SwitchTo(entry)
+	bld.Jmp("finish", r1)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.PBQPAllocate(f, lr, mir2.Z80CostTable{})
+
+	t.Logf("r1=%v  r2=%v", ar.Locs[r1], ar.Locs[r2])
+	if ar.Locs[r1] != ar.Locs[r2] {
+		t.Errorf("coalesce: block boundary copy not eliminated: arg=%v param=%v",
+			ar.Locs[r1], ar.Locs[r2])
+	}
+}
+
+// TestCoalesce_OpMove checks that an OpMove between two non-interfering regs
+// is eliminated by coalescing (both get the same physical location).
+func TestCoalesce_OpMove(t *testing.T) {
+	// IR:
+	//   fun movecopy() -> u8 [acc]
+	//   @entry:
+	//     %r1 = const 7 : u8 [acc]
+	//     %r2 = move %r1 : u8 [acc]   <- should coalesce
+	//     ret %r2
+	m := &mir2.Module{Name: "coalesce_move"}
+	f := m.AddFunc("movecopy")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	r1 := bld.Const(7, mir2.TyU8, mir2.ClassAcc)
+	r2 := bld.Move(r1, mir2.TyU8, mir2.ClassAcc)
+	bld.Ret(r2)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.PBQPAllocate(f, lr, mir2.Z80CostTable{})
+
+	t.Logf("r1=%v  r2=%v", ar.Locs[r1], ar.Locs[r2])
+	if ar.Locs[r1] != ar.Locs[r2] {
+		t.Errorf("coalesce: OpMove not eliminated: src=%v dst=%v",
+			ar.Locs[r1], ar.Locs[r2])
+	}
+}
+
+// TestCoalesce_NoCoalesceIfInterfering verifies that coalescing does not merge
+// regs that are simultaneously live: r1 is still used after Move(r1)→r2, so
+// r1 and r2 interfere and must stay in different physical locations.
+func TestCoalesce_NoCoalesceIfInterfering(t *testing.T) {
+	// IR:
+	//   @entry:
+	//     %r1 = const 1 : u8 [acc]
+	//     %r2 = move %r1 : u8 [acc]   <- r1 still live (used below)
+	//     %r3 = add %r1, %r2           <- r1 and r2 simultaneously live here
+	//     ret %r3
+	m := &mir2.Module{Name: "coalesce_nocoal"}
+	f := m.AddFunc("nocoal")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	r1 := bld.Const(1, mir2.TyU8, mir2.ClassAcc)
+	r2 := bld.Move(r1, mir2.TyU8, mir2.ClassAcc)
+	r3 := bld.Add(r1, r2, mir2.TyU8, mir2.ClassAcc)
+	bld.Ret(r3)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.PBQPAllocate(f, lr, mir2.Z80CostTable{})
+
+	t.Logf("r1=%v  r2=%v  r3=%v", ar.Locs[r1], ar.Locs[r2], ar.Locs[r3])
+	if ar.Locs[r1] == ar.Locs[r2] {
+		t.Errorf("coalesce: incorrectly merged interfering regs r1 and r2 both to %v",
+			ar.Locs[r1])
+	}
+}
