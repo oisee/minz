@@ -1000,8 +1000,27 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpNeg:
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
-		g.emit("    NEG")
-		g.invalidate("A")
+		if inst.Ty.Width() == 16 {
+			// 16-bit NEG HL using the classic demo-scene SBC A,A trick:
+			//   XOR A      ; A=0, CF=0
+			//   SUB L      ; A = 0-L, CF=1 if L≠0 (borrow)
+			//   LD L, A    ; save negated low byte
+			//   SBC A, A   ; A = 0-CF → 0x00 or 0xFF (propagate borrow)
+			//   SUB H      ; A = -CF - H  (correct high byte with borrow)
+			//   LD H, A    ; save negated high byte
+			// 6 bytes, 24T — saves 2 bytes and 7T vs NEG-based sequence.
+			g.emit("    XOR A")
+			g.emit("    SUB L")
+			g.emit("    LD L, A")
+			g.emit("    SBC A, A")
+			g.emit("    SUB H")
+			g.emit("    LD H, A")
+			g.invalidate("A")
+			g.invalidate("HL")
+		} else {
+			g.emit("    NEG")
+			g.invalidate("A")
+		}
 
 	case OpNot:
 		g.lastFlagsLhs = ""
@@ -1430,6 +1449,16 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		case "SUB":
 			// SBC HL,rr (but clobbers carry; assume carry=0 before).
 			if lhs != dst {
+				// emitMov for HL↔DE emits EX DE,HL which is a SWAP, not a copy.
+				// Update rhs to reflect the new physical location of the original value.
+				if (dst == "HL" && lhs == "DE") || (dst == "DE" && lhs == "HL") {
+					switch rhs {
+					case "HL":
+						rhs = "DE"
+					case "DE":
+						rhs = "HL"
+					}
+				}
 				g.emitMov(dst, lhs, w)
 			}
 			g.emit("    SCF")

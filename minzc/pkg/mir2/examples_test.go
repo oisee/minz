@@ -1921,3 +1921,133 @@ func TestSumArrayDJNZPeephole(t *testing.T) {
 		t.Errorf("expected DJNZ peephole to apply:\n%s", asm)
 	}
 }
+
+// ── abs_diff_u16 ───────────────────────────────────────────────────────────────
+//
+// fun abs_diff_u16(a: u16, b: u16) -> u16 {
+//     if a >= b { return a - b }
+//     return b - a      // b-a = -(a-b); uses SBC A,A trick for 16-bit NEG
+// }
+//
+// Z80 calling convention: a → HL (ClassPointer), b → DE (ClassIndex).
+func buildAbsDiffU16(m *mir2.Module) *mir2.Func {
+	f := m.AddFunc("abs_diff_u16")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassPointer}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU16, mir2.ClassPointer)
+	bv := b.Param("b", mir2.TyU16, mir2.ClassIndex)
+
+	// if a >= b → a_ge_b
+	cmp := b.Cmp(mir2.CmpGe, a, bv, mir2.ClassFlag, false)
+	b.BrIf(cmp, "a_ge_b", nil, "b_gt_a", nil)
+
+	// a_ge_b: return a - b  (HL = HL - DE; CondRetSink should fire)
+	b.SwitchToNewBlock("a_ge_b")
+	diff1 := b.Sub(a, bv, mir2.TyU16, mir2.ClassPointer)
+	b.Ret(diff1)
+
+	// b_gt_a: return b - a, i.e. -(a - b). Compiler computes sub(b,a)
+	// and the 16-bit NEG path fires via OpNeg + SBC A,A trick.
+	b.SwitchToNewBlock("b_gt_a")
+	diff2 := b.Sub(bv, a, mir2.TyU16, mir2.ClassPointer)
+	b.Ret(diff2)
+
+	return f
+}
+
+// bootstrapHL2DE loads HL and DE before calling a two-u16-arg function.
+func bootstrapHL2DE(funcName string, argHL, argDE int) string {
+	return fmt.Sprintf(`
+    ORG 0x%04X
+    LD SP, 0xFF00
+    LD HL, %d
+    LD DE, %d
+    CALL %s
+    DI
+    HALT
+`, testLoadAddr, argHL, argDE, funcName)
+}
+
+func TestAbsDiffU16Z80(t *testing.T) {
+	m := &mir2.Module{Name: "abs_diff_u16"}
+	buildAbsDiffU16(m)
+	asm := compileFunc(t, m)
+	t.Log("\n" + asm)
+
+	// The compiler emits Sub(b, a) via EX DE,HL + SBC HL,DE directly (operand swap),
+	// which is more efficient than going through OpNeg.  The SBC A,A trick is still
+	// exercised when OpNeg u16 is emitted explicitly — see TestNegU16Z80.
+
+	cases := []struct{ a, b, want int }{
+		{1000, 300, 700},
+		{300, 1000, 700},
+		{500, 500, 0},
+		{0, 65535, 65535},
+		{65535, 0, 65535},
+		{1, 2, 1},
+	}
+	for _, tc := range cases {
+		src := bootstrapHL2DE("abs_diff_u16", tc.a, tc.b) + "\n" + asm
+		_, hl, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("abs_diff_u16(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(hl) != tc.want {
+			t.Errorf("abs_diff_u16(%d,%d) = %d, want %d", tc.a, tc.b, int(hl), tc.want)
+		} else {
+			t.Logf("abs_diff_u16(%d,%d) = %d ✓", tc.a, tc.b, int(hl))
+		}
+	}
+}
+
+// TestNegU16Z80 exercises OpNeg on a u16 value and verifies the XOR/SUB/SBC A,A
+// demo-scene trick is emitted.  Conceptually: neg_u16(x) = -x as unsigned u16.
+func TestNegU16Z80(t *testing.T) {
+	m := &mir2.Module{Name: "neg_u16"}
+	f := m.AddFunc("neg_u16")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassPointer}}
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	x := b.Param("x", mir2.TyU16, mir2.ClassPointer)
+	nx := b.Neg(x, mir2.TyU16, mir2.ClassPointer)
+	b.Ret(nx)
+
+	asm := compileFunc(t, m)
+	t.Log("\n" + asm)
+
+	// Must use the SBC A,A trick, not the old NEG-based 8-bit sequence.
+	if !strings.Contains(asm, "SBC A, A") {
+		t.Errorf("expected SBC A, A trick for 16-bit NEG:\n%s", asm)
+	}
+
+	cases := []struct{ x, want int }{
+		{0, 0},
+		{1, 65535},
+		{256, 65280},
+		{1000, 64536},
+		{65535, 1},
+	}
+	for _, tc := range cases {
+		src := fmt.Sprintf(`
+    ORG 0x%04X
+    LD SP, 0xFF00
+    LD HL, %d
+    CALL neg_u16
+    DI
+    HALT
+`, testLoadAddr, tc.x) + asm
+		_, hl, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("neg_u16(%d): %v", tc.x, err)
+			continue
+		}
+		if int(hl) != tc.want {
+			t.Errorf("neg_u16(%d) = %d, want %d", tc.x, int(hl), tc.want)
+		} else {
+			t.Logf("neg_u16(%d) = %d ✓", tc.x, int(hl))
+		}
+	}
+}
