@@ -1125,3 +1125,102 @@ fun render() -> void {
 
 // Unused import guard: hir is used elsewhere in the file.
 var _ = (*hir.Module)(nil)
+
+// ── use-before-init warnings ──────────────────────────────────────────────────
+
+// TestUseBeforeInit_WarnOnUninitVar verifies that a var declared without an
+// initializer and then passed directly to a function triggers a warning.
+func TestUseBeforeInit_WarnOnUninitVar(t *testing.T) {
+	src := `
+fun sink(p: ^u8) -> void {}
+
+fun test() -> void {
+    var ptr: ^u8
+    sink(ptr)
+}
+`
+	m, err := nanz.Parse(src, "ubi_test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	if len(m.Warnings) == 0 {
+		t.Fatal("expected at least one warning for use-before-init, got none")
+	}
+	found := false
+	for _, w := range m.Warnings {
+		if strings.Contains(w, "ptr") && strings.Contains(w, "before initialization") {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("expected warning mentioning 'ptr' and 'before initialization', got: %v", m.Warnings)
+	}
+}
+
+// TestUseBeforeInit_NoWarnAfterAssign verifies that assigning a var before use
+// suppresses the warning.
+func TestUseBeforeInit_NoWarnAfterAssign(t *testing.T) {
+	src := `
+@extern fun get_ptr() -> ^u8
+fun sink(p: ^u8) -> void {}
+
+fun test() -> void {
+    var ptr: ^u8
+    ptr = get_ptr()
+    sink(ptr)
+}
+`
+	m, err := nanz.Parse(src, "ubi_no_warn")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	for _, w := range m.Warnings {
+		if strings.Contains(w, "ptr") {
+			t.Errorf("unexpected warning for 'ptr' (it was assigned before use): %s", w)
+		}
+	}
+}
+
+// TestUseBeforeInit_NoWarnOnInitDecl verifies that var with initializer produces no warning.
+func TestUseBeforeInit_NoWarnOnInitDecl(t *testing.T) {
+	src := `
+fun sink(v: u8) -> void {}
+
+fun test() -> void {
+    var x: u8 = 42
+    sink(x)
+}
+`
+	m, err := nanz.Parse(src, "ubi_init_decl")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	for _, w := range m.Warnings {
+		if strings.Contains(w, "x") && strings.Contains(w, "before initialization") {
+			t.Errorf("unexpected use-before-init warning for initialized var: %s", w)
+		}
+	}
+}
+
+// TestUseBeforeInit_ReturnUninit verifies that returning an uninitialized var warns.
+func TestUseBeforeInit_ReturnUninit(t *testing.T) {
+	src := `
+fun get_val() -> u8 {
+    var v: u8
+    return v
+}
+`
+	m, err := nanz.Parse(src, "ubi_return")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	found := false
+	for _, w := range m.Warnings {
+		if strings.Contains(w, "v") && strings.Contains(w, "before initialization") {
+			found = true
+		}
+	}
+	if !found {
+		t.Errorf("expected warning for returning uninitialized 'v', got: %v", m.Warnings)
+	}
+}

@@ -44,6 +44,7 @@ type Module struct {
 	Structs    []*mir2.StructTy   // named struct type declarations
 	Interfaces []*InterfaceDecl   // interface declarations (zero-cost, monomorphised)
 	Strings    []string           // interned string literals (index = position)
+	Warnings   []string           // use-before-init and other diagnostic warnings
 }
 
 // FuncByName returns the first HIR function with the given name, or nil.

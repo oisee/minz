@@ -335,6 +335,9 @@ type parser struct {
 	varInterfaceTypes    map[string]string               // current function scope: varname → interface name
 	methodTable          map[string]map[string]methodInfo // structName → methodName → info
 	opTable     map[string]opOverload             // op symbol ("+", "-", ...) → overload
+	// use-before-init analysis
+	uninitVars  map[string]int  // varname → declaration line; nil disables tracking (at branches)
+	warnings    []string        // accumulated diagnostic warnings
 }
 
 // exprTy returns the known type of an expression, consulting varTypes and
@@ -407,6 +410,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.globalInterfaceTypes = make(map[string]string)
 	p.varTypes = make(map[string]mir2.Ty)
 	p.varInterfaceTypes = make(map[string]string)
+	p.uninitVars = make(map[string]int)
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -465,6 +469,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	}
 	// Append lambdas generated during parsing (non-capturing anonymous functions).
 	m.Funcs = append(m.Funcs, p.lambdas...)
+	m.Warnings = p.warnings
 	return m, nil
 }
 
@@ -775,6 +780,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	// Reset var scope and populate from params for the function body
 	p.varTypes = make(map[string]mir2.Ty)
 	p.varInterfaceTypes = make(map[string]string)
+	p.uninitVars = make(map[string]int) // fresh tracking per function
 	for i, param := range params {
 		p.varTypes[param.Name] = param.Ty
 		if i < len(paramIfaceNames) && paramIfaceNames[i] != "" {
@@ -1056,6 +1062,12 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Warn if any uninit var is used in the init expression.
+	p.warnUninitInExpr(init)
+	// 'let' always provides an initializer — the declared name is init'd from the start.
+	if p.uninitVars != nil {
+		delete(p.uninitVars, nameTok.val)
+	}
 
 	// Infer type from RHS if not given.
 	if ty == nil {
@@ -1111,8 +1123,17 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 		p.varTypes[nameTok.val] = ty
 	}
 
+	// Track this var as uninitialized until we see an init or at(addr).
+	if p.uninitVars != nil {
+		p.uninitVars[nameTok.val] = nameTok.line
+	}
+
 	// at(addr)?
 	if p.l.isIdent("at") {
+		// Memory-mapped variable — treated as initialized (address is the init).
+		if p.uninitVars != nil {
+			delete(p.uninitVars, nameTok.val)
+		}
 		p.l.next()
 		if _, err := p.l.eat(tokLParen); err != nil {
 			return nil, err
@@ -1132,6 +1153,10 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 
 	// = initializer?
 	if p.l.is(tokEq) {
+		// Has explicit initializer — no longer uninitialized.
+		if p.uninitVars != nil {
+			delete(p.uninitVars, nameTok.val)
+		}
 		p.l.next()
 		if p.l.is(tokLBrack) {
 			p.l.next()
@@ -1168,6 +1193,9 @@ func (p *parser) parseIf() (hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+	p.warnUninitInExpr(cond)
+	// Stop tracking after a branch — conservative, avoids false positives.
+	p.uninitVars = nil
 	then, err := p.parseBlock()
 	if err != nil {
 		return nil, err
@@ -1192,6 +1220,8 @@ func (p *parser) parseWhile() (hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+	p.warnUninitInExpr(cond)
+	p.uninitVars = nil // stop tracking inside loops (conservative)
 	body, err := p.parseBlock()
 	if err != nil {
 		return nil, err
@@ -1234,6 +1264,8 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+	p.warnUninitInExpr(base)
+	p.uninitVars = nil // stop tracking inside loops (conservative)
 
 	// ── for x: T in ptr[start..end] → ForEachStmt ──
 	if p.l.is(tokLBrack) {
@@ -1347,7 +1379,47 @@ func (p *parser) parseReturn() (hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+	p.warnUninitInExpr(val)
 	return &hir.ReturnStmt{Val: val}, nil
+}
+
+// warnUninitInExpr walks a HIR expression and emits use-before-init warnings
+// for any VarRefExpr that refers to a variable still in uninitVars.
+// Each variable is warned only once (then removed from uninitVars).
+// No-op when uninitVars is nil (tracking disabled, e.g. inside branches).
+func (p *parser) warnUninitInExpr(e hir.Expr) {
+	if p.uninitVars == nil || e == nil {
+		return
+	}
+	switch ex := e.(type) {
+	case *hir.VarRefExpr:
+		if line, ok := p.uninitVars[ex.Name]; ok {
+			p.warnings = append(p.warnings,
+				fmt.Sprintf("warning: '%s' used before initialization (declared at line %d)", ex.Name, line))
+			delete(p.uninitVars, ex.Name) // warn only once per var
+		}
+	case *hir.BinExpr:
+		p.warnUninitInExpr(ex.L)
+		p.warnUninitInExpr(ex.R)
+	case *hir.UnaryExpr:
+		p.warnUninitInExpr(ex.X)
+	case *hir.CallExpr:
+		for _, arg := range ex.Args {
+			p.warnUninitInExpr(arg)
+		}
+	case *hir.CastExpr:
+		p.warnUninitInExpr(ex.X)
+	case *hir.LoadExpr:
+		p.warnUninitInExpr(ex.Ptr)
+	case *hir.DerefExpr:
+		p.warnUninitInExpr(ex.Ptr)
+	case *hir.FieldExpr:
+		p.warnUninitInExpr(ex.X)
+	case *hir.IndexExpr:
+		p.warnUninitInExpr(ex.Base)
+		p.warnUninitInExpr(ex.Idx)
+	// IntLitExpr, BoolLitExpr, AddrOfExpr, ConstPtrExpr: no variable refs
+	}
 }
 
 func (p *parser) parseSwitch() (hir.Stmt, error) {
@@ -1358,6 +1430,8 @@ func (p *parser) parseSwitch() (hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
+	p.warnUninitInExpr(val)
+	p.uninitVars = nil // stop tracking inside switch (conservative)
 	if _, err := p.l.eat(tokLBrace); err != nil {
 		return nil, err
 	}
@@ -1418,6 +1492,14 @@ func (p *parser) parseExprStmt() (hir.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
+		// If lhs is a simple var being assigned, it is now initialized — remove from uninit set.
+		if vr, ok := lhs.(*hir.VarRefExpr); ok {
+			if p.uninitVars != nil {
+				delete(p.uninitVars, vr.Name)
+			}
+		}
+		// Warn for any uninit var used in the rhs.
+		p.warnUninitInExpr(rhs)
 		switch lv := lhs.(type) {
 		case *hir.LoadExpr:
 			// ptr^ = val → StoreStmt
@@ -1429,6 +1511,8 @@ func (p *parser) parseExprStmt() (hir.Stmt, error) {
 			return &hir.AssignStmt{Target: lhs, Val: rhs}, nil
 		}
 	}
+	// Not an assignment: lhs is a value expression — check for uninit use.
+	p.warnUninitInExpr(lhs)
 	return &hir.ExprStmt{Expr: lhs}, nil
 }
 
