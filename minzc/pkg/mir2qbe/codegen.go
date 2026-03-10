@@ -661,7 +661,7 @@ func isSigned(ty mir2.Ty) bool {
 		return false
 	}
 	switch ty {
-	case mir2.TyI8, mir2.TyI16:
+	case mir2.TyI8, mir2.TyI16, mir2.TyI24, mir2.TyI32:
 		return true
 	}
 	return false
@@ -678,8 +678,16 @@ func typeBits(ty mir2.Ty) int {
 		return 8
 	case mir2.TyU16, mir2.TyI16:
 		return 16
+	case mir2.TyU24, mir2.TyI24:
+		return 24
+	case mir2.TyU32, mir2.TyI32:
+		return 32
 	case mir2.TyPtr:
 		return 64
+	}
+	// Fixed-point, arrays, etc. — use Width()
+	if w := ty.Width(); w > 0 {
+		return w
 	}
 	return 32
 }

@@ -51,6 +51,10 @@ var Z80PhysLocs = []PhysLoc{
 	{Kind: LocMem, Name: "mem"},
 	// ── Special: CPU flag register ───────────────────────────────────────────
 	{Kind: LocFlag, Name: "F"},
+	// ── 32-bit: shadow pair (main rr + shadow rr' via EXX) ───────────────────
+	{Kind: LocDWord, Name: "HL"}, // HL (lo) + H'L' (hi) via EXX
+	{Kind: LocDWord, Name: "DE"}, // DE (lo) + D'E' (hi) via EXX
+	{Kind: LocDWord, Name: "BC"}, // BC (lo) + B'C' (hi) via EXX
 }
 
 // Z80CostTable is a concrete CostTable for Z80 targets.
@@ -103,6 +107,8 @@ func (Z80CostTable) Cost(cls RegClass, loc PhysLoc) int {
 		return costMem(loc)
 	case ClassFlag:
 		return costFlag(loc)
+	case ClassDWord:
+		return costDWord(loc)
 	}
 	return InfCost
 }
@@ -509,6 +515,37 @@ func costMem(loc PhysLoc) int {
 		return z80timing.MemRoundTrip8 + 4
 	case LocFlag:
 		return InfCost
+	}
+	return InfCost
+}
+
+// costDWord: ClassDWord → 32-bit shadow pair (HL+H'L', DE+D'E', BC+B'C').
+//
+// Each 32-bit operation costs ~8T in EXX overhead (two EXX instructions ×4T each).
+// HL is strongly preferred: Z80 has ADD HL,rr and ADC HL,rr for 32-bit add/sub.
+// DE and BC require temporary HL use for arithmetic, adding extra overhead.
+//
+// Cost convention: base cost excludes the per-operation EXX overhead, which is
+// captured implicitly in the codegen.  HL = 0 ensures the allocator assigns
+// arithmetic results to HL first; DE = 4, BC = 6 as fallbacks for non-arithmetic
+// values (e.g. loop invariants, function parameters).
+func costDWord(loc PhysLoc) int {
+	switch loc.Kind {
+	case LocDWord:
+		switch loc.Name {
+		case "HL":
+			return 0 // preferred: ADD HL,rr / ADC HL,rr available natively
+		case "DE":
+			return 4 // usable; arithmetic requires routing via HL
+		case "BC":
+			return 6 // least preferred; same limitation as DE
+		}
+	case LocMem:
+		// Spill: 4 bytes × LD (nn),r / LD r,(nn) = 4 × 26T = 104T
+		return z80timing.MemRoundTrip8 * 4
+	case LocStack:
+		// Two PUSH+POP pairs (hi + lo) = 2 × 21T = 42T
+		return z80timing.StackRoundTrip * 2
 	}
 	return InfCost
 }

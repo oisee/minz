@@ -947,16 +947,27 @@ func (p *parser) parseType() (mir2.Ty, error) {
 			base = mir2.TyU8
 		case "u16":
 			base = mir2.TyU16
+		case "u24":
+			base = mir2.TyU24
+		case "u32":
+			base = mir2.TyU32
 		case "i8":
 			base = mir2.TyI8
 		case "i16":
 			base = mir2.TyI16
+		case "i24":
+			base = mir2.TyI24
+		case "i32":
+			base = mir2.TyI32
 		case "bool":
 			base = mir2.TyBool
 		case "void":
 			return mir2.TyVoid, nil
 		case "ptr":
 			return mir2.TyPtr, nil
+		case "f", "f8", "f16":
+			// Fixed-point types reserved; arithmetic semantics (>>fracBits after mul) not yet codegen'd.
+			return nil, fmt.Errorf("line %d: fixed-point type %q not yet available in Nanz (coming soon)", t.line, t.val)
 		default:
 			// Named struct type
 			if st, ok := p.structs[t.val]; ok {

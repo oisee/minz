@@ -332,10 +332,15 @@ func Allocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 		ri := info[r]
 
 		// Build set of locations already used by interfering neighbours.
+		// Also add physical aliases (e.g. LocDWord{"HL"} → also mark LocReg{"HL"},
+		// LocReg{"H"}, LocReg{"L"}, LocShadow{"H'"}, LocShadow{"L'"} as used).
 		usedByNeighbors := make(map[PhysLoc]bool)
 		ig.Neighbors(r).Each(func(n Reg) {
 			if loc, ok := result.Locs[n]; ok {
 				usedByNeighbors[loc] = true
+				for _, alias := range physicalAliases(loc) {
+					usedByNeighbors[alias] = true
+				}
 			}
 		})
 
@@ -430,6 +435,70 @@ func locCompatible(ty Ty, loc PhysLoc) bool {
 		return w <= 8
 	case LocShadow:
 		return w <= 8
+	case LocDWord:
+		return w == 32 || w == 24 // u24 promoted to shadow pair (upper byte = 0)
 	}
 	return false
+}
+
+// dwordPairOf returns the 32-bit pair name that a register belongs to,
+// or "" if it doesn't belong to any DWord pair.
+//
+// HL family: HL, H, L, H', L'  → "HL"
+// DE family: DE, D, E, D', E'  → "DE"
+// BC family: BC, B, C, B', C'  → "BC"
+func dwordPairOf(name string) string {
+	switch name {
+	case "HL", "H", "L", "H'", "L'":
+		return "HL"
+	case "DE", "D", "E", "D'", "E'":
+		return "DE"
+	case "BC", "B", "C", "B'", "C'":
+		return "BC"
+	}
+	return ""
+}
+
+// physicalAliases returns all PhysLoc values that physically alias with loc
+// due to register overlap (LocDWord ↔ LocReg/LocShadow sub-registers).
+//
+// Called when building usedByNeighbors so that LocDWord{"HL"} prevents
+// LocReg{"HL"}, LocReg{"H"}, LocReg{"L"}, LocShadow{"H'"}, LocShadow{"L'"}
+// from being assigned to an interfering virtual register, and vice versa.
+func physicalAliases(loc PhysLoc) []PhysLoc {
+	if loc.Kind == LocDWord {
+		switch loc.Name {
+		case "HL":
+			return []PhysLoc{
+				{Kind: LocReg, Name: "HL"},
+				{Kind: LocReg, Name: "H"},
+				{Kind: LocReg, Name: "L"},
+				{Kind: LocShadow, Name: "H'"},
+				{Kind: LocShadow, Name: "L'"},
+			}
+		case "DE":
+			return []PhysLoc{
+				{Kind: LocReg, Name: "DE"},
+				{Kind: LocReg, Name: "D"},
+				{Kind: LocReg, Name: "E"},
+				{Kind: LocShadow, Name: "D'"},
+				{Kind: LocShadow, Name: "E'"},
+			}
+		case "BC":
+			return []PhysLoc{
+				{Kind: LocReg, Name: "BC"},
+				{Kind: LocReg, Name: "B"},
+				{Kind: LocReg, Name: "C"},
+				{Kind: LocShadow, Name: "B'"},
+				{Kind: LocShadow, Name: "C'"},
+			}
+		}
+		return nil
+	}
+	// For non-DWord locs, check if they belong to a DWord pair.
+	pair := dwordPairOf(loc.Name)
+	if pair != "" {
+		return []PhysLoc{{Kind: LocDWord, Name: pair}}
+	}
+	return nil
 }

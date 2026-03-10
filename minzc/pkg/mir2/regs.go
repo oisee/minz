@@ -26,6 +26,7 @@ const NoReg Reg = 0
 //	  ClassPointer → HL  (preferred for LD/INC/DEC; soft otherwise)
 //	  ClassIndex   → DE  (preferred for LDIR source; soft otherwise)
 //	  ClassPair    → HL, DE, BC  (any 16-bit pair)
+//	  ClassDWord   → HL+H'L', DE+D'E', BC+B'C'  (32-bit via EXX; ~8T per op)
 //
 //	Tier 1 — index registers (cost +8T per instr, DD/FD prefix)
 //	  ClassIX      → IX  (16-bit; (IX+d) addressing)
@@ -61,6 +62,7 @@ const (
 	ClassPointer                 // memory pointer: Z80=HL, x86/ARM=any GPR
 	ClassIndex                   // secondary pointer: Z80=DE, x86/ARM=any GPR
 	ClassPair                    // any 16-bit pair: Z80=HL/DE/BC
+	ClassDWord                  // 32-bit via shadow pair: Z80=HL+H'L' / DE+D'E' / BC+B'C'
 
 	// ── Tier 1: index registers ────────────────────────────────────────────────
 	ClassIX   // Z80=IX (16-bit); spill cost ~16T vs 32T for $F0xx
@@ -97,6 +99,7 @@ var classNames = [classCount]string{
 	ClassPointer:   "pointer",
 	ClassIndex:     "index",
 	ClassPair:      "pair",
+	ClassDWord:     "dword",
 	ClassIX:        "ix",
 	ClassIY:        "iy",
 	ClassIXY8:      "ixy8",
@@ -110,7 +113,7 @@ var classNames = [classCount]string{
 // Tier reports the spill cost tier of the class (0=cheapest, 4=most expensive).
 func (c RegClass) Tier() int {
 	switch c {
-	case ClassGeneral, ClassAcc, ClassCounter, ClassPointer, ClassIndex, ClassPair:
+	case ClassGeneral, ClassAcc, ClassCounter, ClassPointer, ClassIndex, ClassPair, ClassDWord:
 		return 0
 	case ClassIX, ClassIY, ClassIXY8:
 		return 1
@@ -159,8 +162,10 @@ var PrimaryClasses = func() ClassSet {
 
 // ClassOf returns the natural default class for a type:
 //
-//	bool → ClassFlag  (use CPU flag when possible)
+//	bool → ClassFlag    (use CPU flag when possible)
 //	ptr  → ClassPointer
+//	u32  → ClassDWord   (32-bit via shadow pair on Z80)
+//	i32  → ClassDWord
 //	else → ClassGeneral
 func ClassOf(ty Ty) RegClass {
 	if ty == TyBool {
@@ -168,6 +173,12 @@ func ClassOf(ty Ty) RegClass {
 	}
 	if ty == TyPtr {
 		return ClassPointer
+	}
+	if ty == TyU32 || ty == TyI32 || ty == TyU24 || ty == TyI24 {
+		// Z80: all 24/32-bit values use HL+H'L' shadow pair (ClassDWord).
+		// u24: upper byte of shadow pair is always zero (3-byte load/store).
+		// eZ80: u24 will use native 24-bit ADL registers in a future backend.
+		return ClassDWord
 	}
 	return ClassGeneral
 }
@@ -205,6 +216,7 @@ const (
 	LocStack                 // PUSH/POP stack slot
 	LocMem                   // absolute memory address ($F0xx)
 	LocFlag                  // CPU flag register
+	LocDWord                 // 32-bit shadow pair: main rr + shadow rr' (via EXX)
 )
 
 // CostTable maps (RegClass, PhysLoc) → cost.

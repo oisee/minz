@@ -945,7 +945,23 @@ func (g *z80cg) genInst(inst *Inst) {
 			return
 		}
 		if !g.deadConsts[inst.Dst] {
-			g.emitf("    LD %s, %d", dst, inst.Imm)
+			w := inst.Ty.Width()
+			if w >= 24 {
+				// 24/32-bit constant via shadow pair.
+				//   LD rr, lo16   (10T)
+				//   EXX           (4T)
+				//   LD rr, hi     (10T) — hi8 for u24, hi16 for u32
+				//   EXX           (4T)  = 28T total
+				// For u24: hi is at most 0x00FF, so shadow H' is always 0.
+				lo := uint32(inst.Imm) & 0xFFFF
+				hi := uint32(inst.Imm) >> 16
+				g.emitf("    LD %s, %d", dst, lo)
+				g.emit("    EXX")
+				g.emitf("    LD %s, %d", dst, hi)
+				g.emit("    EXX")
+			} else {
+				g.emitf("    LD %s, %d", dst, inst.Imm)
+			}
 		}
 
 	case OpMove:
@@ -1104,7 +1120,52 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 		ptr := g.loc(inst.Src[0])
 		w := inst.Ty.Width()
-		if w <= 8 {
+		if w == 24 {
+			// 24-bit load (3 bytes little-endian) into DWord shadow pair.
+			// Shadow H' (high byte of hi16) is always zero for u24 semantics.
+			if isIXY(ptr) {
+				g.emitf("    LD %s, %s     ; byte0 lo_lo", lowByte(dst), ptrIndirect(ptr, 0))
+				g.emitf("    LD %s, %s     ; byte1 lo_hi", highByte(dst), ptrIndirect(ptr, 1))
+				g.emit("    EXX")
+				g.emitf("    LD %s, %s     ; byte2 hi_lo (shadow)", lowByte(dst), ptrIndirect(ptr, 2))
+				g.emitf("    LD %s, 0        ; hi_hi always 0 for u24", highByte(dst))
+				g.emit("    EXX")
+			} else {
+				g.emitf("    LD %s, (%s)     ; byte0 lo_lo", lowByte(dst), ptr)
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD %s, (%s)     ; byte1 lo_hi", highByte(dst), ptr)
+				g.emitf("    INC %s", ptr)
+				g.emit("    EXX")
+				g.emitf("    LD %s, (%s)     ; byte2 hi8 (shadow lo)", lowByte(dst), ptr)
+				g.emitf("    LD %s, 0        ; hi_hi always 0 for u24", highByte(dst))
+				g.emit("    EXX")
+				g.emitf("    DEC %s", ptr)
+				g.emitf("    DEC %s", ptr)
+			}
+		} else if w == 32 {
+			// 32-bit load via ptr (must not be same pair as dst DWord).
+			if isIXY(ptr) {
+				g.emitf("    LD %s, %s     ; byte0 lo_lo", lowByte(dst), ptrIndirect(ptr, 0))
+				g.emitf("    LD %s, %s     ; byte1 lo_hi", highByte(dst), ptrIndirect(ptr, 1))
+				g.emit("    EXX")
+				g.emitf("    LD %s, %s     ; byte2 hi_lo (shadow)", lowByte(dst), ptrIndirect(ptr, 2))
+				g.emitf("    LD %s, %s     ; byte3 hi_hi (shadow)", highByte(dst), ptrIndirect(ptr, 3))
+				g.emit("    EXX")
+			} else {
+				g.emitf("    LD %s, (%s)     ; byte0 lo_lo", lowByte(dst), ptr)
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD %s, (%s)     ; byte1 lo_hi", highByte(dst), ptr)
+				g.emitf("    INC %s", ptr)
+				g.emit("    EXX")
+				g.emitf("    LD %s, (%s)     ; byte2 hi_lo (shadow)", lowByte(dst), ptr)
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD %s, (%s)     ; byte3 hi_hi (shadow)", highByte(dst), ptr)
+				g.emit("    EXX")
+				g.emitf("    DEC %s", ptr)
+				g.emitf("    DEC %s", ptr)
+				g.emitf("    DEC %s", ptr)
+			}
+		} else if w <= 8 {
 			// Z80 restriction: only LD A,(BC) and LD A,(DE) exist for BC/DE indirect.
 			// Any other destination register must load through A first.
 			if (ptr == "BC" || ptr == "DE") && dst != "A" {
@@ -1159,7 +1220,51 @@ func (g *z80cg) genInst(inst *Inst) {
 		ptr := g.loc(inst.Src[0])
 		val := g.loc(inst.Src[1])
 		w := inst.Ty.Width()
-		if w <= 8 {
+		if w == 24 {
+			// 24-bit store: write 3 bytes little-endian.
+			if isIXY(ptr) {
+				g.emitf("    LD %s, %s     ; byte0 lo_lo", ptrIndirect(ptr, 0), lowByte(val))
+				g.emitf("    LD %s, %s     ; byte1 lo_hi", ptrIndirect(ptr, 1), highByte(val))
+				g.emit("    EXX")
+				g.emitf("    LD %s, %s     ; byte2 hi8 (shadow lo)", ptrIndirect(ptr, 2), lowByte(val))
+				g.emit("    EXX")
+			} else {
+				g.emitf("    LD (%s), %s     ; byte0 lo_lo", ptr, lowByte(val))
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD (%s), %s     ; byte1 lo_hi", ptr, highByte(val))
+				g.emitf("    INC %s", ptr)
+				g.emit("    EXX")
+				g.emitf("    LD (%s), %s     ; byte2 hi8 (shadow lo)", ptr, lowByte(val))
+				g.emit("    EXX")
+				g.emitf("    DEC %s", ptr)
+				g.emitf("    DEC %s", ptr)
+			}
+		} else if w == 32 {
+			// 32-bit store: write 4 bytes little-endian.
+			if isIXY(ptr) {
+				// Via IX/IY displacement: 4 × LD (IX+d),r = 4×19T = 76T.
+				g.emitf("    LD %s, %s     ; byte0 lo_lo", ptrIndirect(ptr, 0), lowByte(val))
+				g.emitf("    LD %s, %s     ; byte1 lo_hi", ptrIndirect(ptr, 1), highByte(val))
+				g.emit("    EXX")
+				g.emitf("    LD %s, %s     ; byte2 hi_lo (shadow)", ptrIndirect(ptr, 2), lowByte(val))
+				g.emitf("    LD %s, %s     ; byte3 hi_hi (shadow)", ptrIndirect(ptr, 3), highByte(val))
+				g.emit("    EXX")
+			} else {
+				// Via ptr INC trick (HL/DE/BC): ptr is advanced then restored.
+				g.emitf("    LD (%s), %s     ; byte0 lo_lo", ptr, lowByte(val))
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD (%s), %s     ; byte1 lo_hi", ptr, highByte(val))
+				g.emitf("    INC %s", ptr)
+				g.emit("    EXX")
+				g.emitf("    LD (%s), %s     ; byte2 hi_lo (shadow)", ptr, lowByte(val))
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD (%s), %s     ; byte3 hi_hi (shadow)", ptr, highByte(val))
+				g.emit("    EXX")
+				g.emitf("    DEC %s", ptr)
+				g.emitf("    DEC %s", ptr)
+				g.emitf("    DEC %s", ptr)
+			}
+		} else if w <= 8 {
 			g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), val)
 		} else if isIXY(ptr) {
 			// 16-bit store via IX/IY: use displacement addressing — avoids INC/DEC IX.
@@ -1321,6 +1426,11 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	rhs := g.loc(inst.Src[1])
 	w := inst.Ty.Width()
 
+	if w >= 24 {
+		g.genBinOp32(mnem, dst, lhs, rhs)
+		return
+	}
+
 	if w <= 8 {
 		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
 		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
@@ -1471,6 +1581,131 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	}
 }
 
+// genBinOp32 emits 32-bit ADD or SUB using the Z80 EXX / shadow-pair technique.
+//
+// The 32-bit value is split across main and shadow register banks:
+//
+//	LocDWord{"HL"}: main HL = lo16, shadow H'L' = hi16 (via EXX)
+//
+// For ADD (dst=HL, rhs=DE):
+//
+//	ADD HL, DE    ; lo ← lo(lhs) + lo(rhs), carry set if overflow  (11T)
+//	EXX           ; switch to shadow bank: HL←H'L', DE←D'E'        (4T)
+//	ADC HL, DE    ; hi ← hi(lhs) + hi(rhs) + carry                 (15T)
+//	EXX           ; switch back to main bank                         (4T)
+//
+// For SUB (dst=HL, rhs=DE):
+//
+//	AND A         ; clear carry                                      (4T)
+//	SBC HL, DE   ; lo ← lo(lhs) - lo(rhs), borrow in carry         (15T)
+//	EXX           ; switch to shadow bank                            (4T)
+//	SBC HL, DE   ; hi ← hi(lhs) - hi(rhs) - borrow                 (15T)
+//	EXX           ; switch back                                       (4T)
+//
+// EXX simultaneously swaps BC↔BC', DE↔DE', HL↔HL', so after EXX:
+//   - "HL" refers to the old H'L' (hi of lhs/dst)
+//   - "DE" refers to the old D'E' (hi of rhs)
+//
+// This works because both dst and rhs are LocDWord with the same name in both
+// banks.  The rhs DWord is restored to its original state after the final EXX.
+//
+// Limitation: Z80 only provides ADD/ADC/SBC with HL as destination.
+// When dst≠HL, we temporarily use HL via emitMov32 (TODO: optimise).
+func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
+	// ADD is commutative: if rhs == dst and lhs != dst, swap so we don't clobber rhs.
+	if mnem == "ADD" && rhs == dst && lhs != dst {
+		lhs, rhs = rhs, lhs
+	}
+
+	// SUB when lhs != dst and rhs == dst: moving lhs into dst would clobber rhs.
+	// Special case lhs=DE, dst=HL: use EX DE,HL to swap lo/hi words in place,
+	// then SBC computes original_lhs - original_rhs in HL.
+	if mnem == "SUB" && lhs != dst && rhs == dst {
+		if lhs == "DE" && dst == "HL" {
+			// EX DE,HL swaps main words; EXX + EX DE,HL + EXX swaps shadow words.
+			// After: HL = old DE = lhs_lo, DE = old HL = rhs_lo  (and same in shadow).
+			g.emit("    EX DE, HL")
+			g.emit("    EXX")
+			g.emit("    EX DE, HL")
+			g.emit("    EXX")
+			g.emit("    AND A")
+			g.emit("    SBC HL, DE") // lhs_lo - rhs_lo
+			g.emit("    EXX")
+			g.emit("    SBC HL, DE") // lhs_hi - rhs_hi - borrow
+			g.emit("    EXX")
+			return
+		}
+		// General fallback: save rhs on stack, move lhs to dst, reload rhs to DE.
+		// Only HL is supported as dst for now.
+		g.comment(fmt.Sprintf("TODO: 32-bit SUB rhs==dst non-EX case: %s - %s → %s", lhs, rhs, dst))
+		return
+	}
+
+	// Ensure lhs is in dst before the operation.
+	if lhs != dst {
+		g.emitMov32(dst, lhs)
+	}
+
+	switch mnem {
+	case "ADD":
+		if dst == "HL" {
+			// Native 32-bit add: ADD HL,rr / EXX / ADC HL,rr / EXX
+			g.emitf("    ADD HL, %s", rhs)
+			g.emit("    EXX")
+			g.emitf("    ADC HL, %s", rhs)
+			g.emit("    EXX")
+		} else {
+			// Non-HL dst: save HL, use it as scratch, then move result.
+			g.comment(fmt.Sprintf("32-bit ADD via HL scratch: %s += %s", dst, rhs))
+			g.emit("    PUSH HL")     // save main HL
+			g.emit("    EXX")
+			g.emit("    PUSH HL")     // save shadow HL
+			g.emit("    EXX")
+			// Transfer dst to HL.
+			g.emitMov32("HL", dst)
+			// Now add rhs (rhs was LocDWord; after emitMov32 we haven't clobbered it
+			// because emitMov32 uses PUSH/POP+EXX which preserves all non-HL regs).
+			g.emitf("    ADD HL, %s", rhs)
+			g.emit("    EXX")
+			g.emitf("    ADC HL, %s", rhs)
+			g.emit("    EXX")
+			// Move result from HL to dst, then restore HL.
+			g.emitMov32(dst, "HL")
+			g.emit("    EXX")
+			g.emit("    POP HL")      // restore shadow HL
+			g.emit("    EXX")
+			g.emit("    POP HL")      // restore main HL
+		}
+	case "SUB":
+		if dst == "HL" {
+			g.emit("    AND A")       // clear carry
+			g.emitf("    SBC HL, %s", rhs)
+			g.emit("    EXX")
+			g.emitf("    SBC HL, %s", rhs)
+			g.emit("    EXX")
+		} else {
+			g.comment(fmt.Sprintf("32-bit SUB via HL scratch: %s -= %s", dst, rhs))
+			g.emit("    PUSH HL")
+			g.emit("    EXX")
+			g.emit("    PUSH HL")
+			g.emit("    EXX")
+			g.emitMov32("HL", dst)
+			g.emit("    AND A")
+			g.emitf("    SBC HL, %s", rhs)
+			g.emit("    EXX")
+			g.emitf("    SBC HL, %s", rhs)
+			g.emit("    EXX")
+			g.emitMov32(dst, "HL")
+			g.emit("    EXX")
+			g.emit("    POP HL")
+			g.emit("    EXX")
+			g.emit("    POP HL")
+		}
+	default:
+		g.comment(fmt.Sprintf("TODO: 32-bit %s %s, %s → %s", mnem, lhs, rhs, dst))
+	}
+}
+
 // emit8ALU emits an 8-bit ALU instruction with A as the implicit destination.
 // MZA requires "ADD A, src" (two operands) but "SUB/AND/OR/XOR src" (one operand).
 func (g *z80cg) emit8ALU(mnem, src string) {
@@ -1485,6 +1720,11 @@ func (g *z80cg) emit8ALU(mnem, src string) {
 // ── Shifts ────────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genShift(mnem string, inst *Inst) {
+	w := inst.Ty.Width()
+	if w >= 24 {
+		g.genShift32(mnem, inst)
+		return
+	}
 	dst := g.loc(inst.Dst)
 	src := g.loc(inst.Src[0])
 	if dst != src {
@@ -1503,6 +1743,77 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 	g.invalidate(dst) // shift modifies dst
 }
 
+// genShift32 emits 24/32-bit shifts via the EXX shadow-pair technique.
+//
+// SHL by 1 (logical left):
+//
+//	ADD HL, HL    ; lo16 <<= 1, carry = old bit15  (11T)
+//	EXX           ; switch to shadow                (4T)
+//	ADC HL, HL    ; hi16 <<= 1, carry in from lo   (15T)
+//	EXX           ; switch back                      (4T)  = 34T per bit
+//
+// SHR by 1 (logical right):
+//
+//	EXX           ; switch to shadow
+//	SRL H         ; hi16: H >>= 1 (zero-extend), carry = old bit0  (8T)
+//	RR  L         ; hi16: L = carry<<7 | L>>1                      (8T)
+//	EXX           ; back to main
+//	RR  H         ; lo16: H = carry<<7 | H>>1                      (8T)
+//	RR  L         ; lo16: L = carry<<7 | L>>1                      (8T)  = 40T per bit
+//
+// SAR by 1 (arithmetic right, sign-extend):
+//
+//	EXX / SRA H / RR L / EXX / RR H / RR L  (same as SHR but SRA preserves sign)
+func (g *z80cg) genShift32(mnem string, inst *Inst) {
+	dst := g.loc(inst.Dst)
+	src := g.loc(inst.Src[0])
+	if dst != src {
+		g.emitMov32(dst, src)
+	}
+
+	count := int64(1)
+	if cv, ok := g.constVals[inst.Src[1]]; ok && cv > 0 {
+		count = cv
+	}
+
+	hi := highByte(dst) // e.g. "H" for dst="HL"
+	lo := lowByte(dst)  // e.g. "L"
+
+	switch mnem {
+	case "SHL":
+		// Left shift: ADD HL,HL / EXX / ADC HL,HL / EXX  (× count)
+		for i := int64(0); i < count; i++ {
+			g.emitf("    ADD %s, %s", dst, dst)
+			g.emit("    EXX")
+			g.emitf("    ADC %s, %s", dst, dst)
+			g.emit("    EXX")
+		}
+	case "SHR":
+		// Logical right shift: EXX / SRL H / RR L / EXX / RR H / RR L  (× count)
+		for i := int64(0); i < count; i++ {
+			g.emit("    EXX")
+			g.emitf("    SRL %s", hi)
+			g.emitf("    RR  %s", lo)
+			g.emit("    EXX")
+			g.emitf("    RR  %s", hi)
+			g.emitf("    RR  %s", lo)
+		}
+	case "SAR":
+		// Arithmetic right shift: sign bit preserved via SRA on high byte.
+		for i := int64(0); i < count; i++ {
+			g.emit("    EXX")
+			g.emitf("    SRA %s", hi)
+			g.emitf("    RR  %s", lo)
+			g.emit("    EXX")
+			g.emitf("    RR  %s", hi)
+			g.emitf("    RR  %s", lo)
+		}
+	default:
+		g.comment(fmt.Sprintf("TODO: 32-bit shift %s", mnem))
+	}
+	g.invalidate(dst)
+}
+
 // ── Multiply ──────────────────────────────────────────────────────────────────
 
 // genMul emits 8-bit unsigned multiply via shift-and-add.
@@ -1512,8 +1823,12 @@ func (g *z80cg) genMul(inst *Inst) {
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
 
+	if inst.Ty.Width() >= 24 {
+		g.genMul32(inst)
+		return
+	}
 	if inst.Ty.Width() > 8 {
-		g.comment(fmt.Sprintf("TODO: 16-bit mul → %s", dst))
+		g.genMul16(inst)
 		return
 	}
 
@@ -1603,6 +1918,241 @@ func (g *z80cg) genMul(inst *Inst) {
 	g.comment(fmt.Sprintf("TODO: general mul %s * %s → %s", lhs, rhs, dst))
 }
 
+// genMul16 emits 16-bit multiply.
+//
+// Constants:
+//
+//	0:       LD H,0 / LD L,0
+//	1:       no-op
+//	2^n:     n × ADD HL,HL  (7T per shift)
+//	3,5,6,9: PUSH HL / POP BC + shift+add sequence
+//
+// Variable (software shift-and-add, Russian-peasant LSB-first, 16 iterations):
+//
+//	BC = multiplicand (lhs)
+//	DE = multiplier   (rhs)
+//	HL = result = 0
+//	A  = 16 (iteration counter — DEC A / JR NZ preserves SRL carry)
+//	loop:
+//	  SRL D / RR E   → DE >>= 1, old bit0 → carry
+//	  JR NC, no_add  → skip if bit was 0
+//	  ADD HL, BC     → result += multiplicand (carry from ADD is ignored by next SRL)
+//	no_add:
+//	  SLA C / RL B   → BC <<= 1 (next power-of-2 multiplicand)
+//	  DEC A / JR NZ loop
+//
+// SRL D is independent of incoming carry, so ADD HL,BC's carry does not corrupt
+// the extraction.  Total: ~320T worst case.
+func (g *z80cg) genMul16(inst *Inst) {
+	dst := g.loc(inst.Dst)
+	lhs := g.loc(inst.Src[0])
+
+	cv, isConst := g.constVals[inst.Src[1]]
+
+	// Ensure lhs is in HL (u16 multiply needs HL for ADD HL,rr).
+	if lhs != "HL" {
+		g.emitf("    LD H, %s", highByte(lhs))
+		g.emitf("    LD L, %s", lowByte(lhs))
+		g.invalidate("HL")
+	}
+	_ = dst // result ends up in HL
+
+	if isConst {
+		switch cv {
+		case 0:
+			g.emit("    LD H, 0")
+			g.emit("    LD L, 0")
+			g.invalidate("HL")
+			return
+		case 1:
+			return
+		}
+		if cv > 0 && cv&(cv-1) == 0 { // power-of-2: log2(cv) × ADD HL,HL
+			for n := cv; n > 1; n >>= 1 {
+				g.emit("    ADD HL, HL")
+			}
+			g.invalidate("HL")
+			return
+		}
+		// Small multiples via PUSH/POP BC save + shift sequences.
+		if cv == 3 || cv == 5 || cv == 6 || cv == 9 {
+			g.emit("    PUSH HL") // save x → BC
+			g.emit("    POP BC")  // BC = x (17T)
+			switch cv {
+			case 3: // x*2 + x
+				g.emit("    ADD HL, HL") // HL = x*2
+				g.emit("    ADD HL, BC") // HL = x*3
+			case 5: // x*4 + x
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, HL") // HL = x*4
+				g.emit("    ADD HL, BC") // HL = x*5
+			case 6: // x*4 + x*2
+				g.emit("    ADD HL, HL")  // HL = x*2
+				g.emit("    PUSH HL")
+				g.emit("    POP BC")       // BC = x*2
+				g.emit("    ADD HL, HL")  // HL = x*4
+				g.emit("    ADD HL, BC")  // HL = x*6
+			case 9: // x*8 + x
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, HL") // HL = x*8
+				g.emit("    ADD HL, BC") // HL = x*9
+			}
+			g.invalidate("HL")
+			return
+		}
+	}
+
+	// Variable or unsupported constant: software shift-and-add loop.
+	// Register layout:
+	//   BC = multiplicand (lhs, copied from HL)
+	//   DE = multiplier   (rhs)
+	//   HL = result = 0
+	//   A  = iteration counter (16)
+	rhs := g.loc(inst.Src[1])
+	loopLbl := fmt.Sprintf(".%s_m16_%d_lp", sanitizeIdent(g.fn.Name), int(inst.Dst))
+	skipLbl := fmt.Sprintf(".%s_m16_%d_sk", sanitizeIdent(g.fn.Name), int(inst.Dst))
+	g.comment(fmt.Sprintf("mul16 %s * %s → HL  (~320T, 16-iter shift-and-add)", lhs, rhs))
+	g.emit("    PUSH BC")              // save BC across multiply
+	g.emit("    LD B, H")
+	g.emit("    LD C, L")             // BC = multiplicand (lhs)
+	// Load multiplier into DE.
+	if rhs != "DE" {
+		g.emitf("    LD D, %s", highByte(rhs))
+		g.emitf("    LD E, %s", lowByte(rhs))
+		g.invalidate("DE")
+	}
+	g.emit("    LD H, 0")
+	g.emit("    LD L, 0")             // HL = result = 0
+	g.emit("    LD A, 16")            // A = bit counter
+	g.emitf("%s:", loopLbl)
+	g.emit("    SRL D")               // DE >>= 1 (logical right shift, bit0 → carry)
+	g.emit("    RR E")
+	g.emitf("    JRS NC, %s", skipLbl)
+	g.emit("    ADD HL, BC")          // result += multiplicand (current bit weight)
+	g.emitf("%s:", skipLbl)
+	g.emit("    SLA C")               // BC <<= 1 (multiplicand doubles)
+	g.emit("    RL B")
+	g.emit("    DEC A")               // counter-- (does not affect carry)
+	g.emitf("    JRS NZ, %s", loopLbl)
+	g.emit("    POP BC")              // restore BC
+	g.invalidate("HL")
+	g.invalidate("DE")
+	g.invalidate("BC")
+}
+
+// genMul32 emits 24/32-bit multiply by a constant via SHL-and-add.
+//
+// Power-of-2 constants: log2(cv) × SHL32 (ADD HL,HL / EXX / ADC HL,HL / EXX per bit).
+// Small constants (3,5,6,9): LD+saves using emitMov32 for the partial product.
+// General constants: decompose into Σ 2^k terms (binary method).
+// Variable multiplier: TODO (software loop).
+func (g *z80cg) genMul32(inst *Inst) {
+	dst := g.loc(inst.Dst)
+	lhs := g.loc(inst.Src[0])
+
+	// Emit one 32-bit left-shift-by-1 on the register pair p.
+	shl1 := func(p string) {
+		g.emitf("    ADD %s, %s", p, p)
+		g.emit("    EXX")
+		g.emitf("    ADC %s, %s", p, p)
+		g.emit("    EXX")
+	}
+
+	cv, isConst := g.constVals[inst.Src[1]]
+
+	if !isConst {
+		rhs := g.loc(inst.Src[1])
+		g.comment(fmt.Sprintf("TODO: 32-bit variable mul %s * %s → %s", lhs, rhs, dst))
+		return
+	}
+
+	// Ensure lhs is in dst before operating.
+	if dst != lhs {
+		g.emitMov32(dst, lhs)
+	}
+
+	switch cv {
+	case 0:
+		// dst = 0: load zero constant.
+		g.emitf("    LD %s, 0", dst)
+		g.emit("    EXX")
+		g.emitf("    LD %s, 0", dst)
+		g.emit("    EXX")
+		g.invalidate(dst)
+		return
+	case 1:
+		// dst = lhs — already done by move above.
+		return
+	}
+
+	// Power-of-2: log2(cv) left shifts.
+	if cv > 0 && cv&(cv-1) == 0 {
+		shifts := 0
+		for n := cv; n > 1; n >>= 1 {
+			shifts++
+		}
+		for i := 0; i < shifts; i++ {
+			shl1(dst)
+		}
+		g.invalidate(dst)
+		return
+	}
+
+	// Binary decomposition: dst = Σ (dst_orig << k) for each set bit k in cv.
+	// Uses a saved copy of the original value to accumulate.
+	// Only valid when dst is HL (has ADD/ADC). For others, fall through to TODO.
+	if dst == "HL" && cv > 0 {
+		// Save original in DE (push to stack if DE is occupied).
+		g.emit("    PUSH DE")      // save main DE
+		g.emit("    EXX")
+		g.emit("    PUSH DE")      // save shadow DE
+		g.emit("    EXX")
+		// Copy lhs (already in HL/H'L') to DE/D'E'.
+		g.emitMov32("DE", "HL")
+		// Accumulate: acc = 0, then for each set bit k add (orig << k).
+		// Clear HL for accumulation.
+		g.emitf("    LD HL, 0")
+		g.emit("    EXX")
+		g.emitf("    LD HL, 0")
+		g.emit("    EXX")
+		shift := 0
+		for bit := int64(0); bit < 32; bit++ {
+			if cv&(1<<bit) != 0 {
+				// Shift DE/D'E' to the current bit position (relative to prev shift).
+				for i := shift; i < int(bit); i++ {
+					// SHL DE by 1: ADD HL,DE / ... — no, we shift DE itself.
+					// Use: EXX / SLA E / RL D / EXX / SLA E / RL D
+					// Wait, that shifts D'E'. Let's use ADD DE,DE — Z80 has no ADD DE,DE.
+					// Instead: shift DE using SLA/RL pattern.
+					g.emit("    EXX")
+					g.emit("    SLA E")
+					g.emit("    RL  D")
+					g.emit("    EXX")
+					g.emit("    SLA E")
+					g.emit("    RL  D")
+				}
+				shift = int(bit)
+				// acc (HL/H'L') += DE/D'E'.
+				g.emitf("    ADD HL, DE")
+				g.emit("    EXX")
+				g.emitf("    ADC HL, DE")
+				g.emit("    EXX")
+			}
+		}
+		// Restore DE.
+		g.emit("    EXX")
+		g.emit("    POP DE")
+		g.emit("    EXX")
+		g.emit("    POP DE")
+		g.invalidate(dst)
+		return
+	}
+
+	// Fallback for non-HL dst or complex constants.
+	g.comment(fmt.Sprintf("TODO: 32-bit mul by %d in %s", cv, dst))
+}
+
 // ── Type conversions ──────────────────────────────────────────────────────────
 
 func (g *z80cg) genExt(inst *Inst) {
@@ -1665,6 +2215,13 @@ func (g *z80cg) genCmp(inst *Inst) {
 
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
+
+	// 32-bit DWord comparison: must dispatch before isPairReg (DWord locs also
+	// have pair names like "HL", so they'd otherwise fall into genCmp16).
+	if g.isDWord(inst.Src[0]) || g.isDWord(inst.Src[1]) {
+		g.genCmp32(inst)
+		return
+	}
 
 	// 16-bit comparison: one or both operands are register pairs (HL/DE/BC/…).
 	// Z80 only supports SBC HL, rr for 16-bit flag-setting subtraction.
@@ -1913,6 +2470,38 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 	}
 }
 
+// ── 32-bit DWord helpers ──────────────────────────────────────────────────────
+
+// isDWord reports whether virtual register r is allocated to a LocDWord.
+func (g *z80cg) isDWord(r Reg) bool {
+	return r != NoReg && g.ar.Loc(r).Kind == LocDWord
+}
+
+// emitMov32 moves a 32-bit DWord value from src pair to dst pair using PUSH/EXX.
+//
+// Strategy (47T, 5 instructions):
+//
+//	PUSH src      ; push main src_lo  (11T)
+//	EXX           ; switch to shadow  (4T)
+//	PUSH src      ; push shadow src_hi (11T)
+//	POP dst       ; pop into shadow dst_hi (10T)
+//	EXX           ; switch back (4T)
+//	POP dst       ; pop into main dst_lo (10T)
+//
+// The push of src_lo happens before EXX, so it's the main-bank value.
+// After EXX, src refers to the shadow-bank value (src_hi).
+func (g *z80cg) emitMov32(dst, src string) {
+	if dst == src {
+		return
+	}
+	g.emitf("    PUSH %s", src)     // save main src_lo
+	g.emit("    EXX")               // switch to shadow
+	g.emitf("    PUSH %s", src)     // save shadow src_hi
+	g.emitf("    POP %s", dst)      // restore shadow dst_hi
+	g.emit("    EXX")               // switch back to main
+	g.emitf("    POP %s", dst)      // restore main dst_lo
+}
+
 // ── Move helper ───────────────────────────────────────────────────────────────
 
 func (g *z80cg) emitMov(dst, src string, widthBits int) {
@@ -1965,6 +2554,13 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		}
 		return
 	}
+
+	// 32-bit DWord move via PUSH/EXX sequence.
+	if widthBits == 32 {
+		g.emitMov32(dst, src)
+		return
+	}
+
 	// 16-bit register move.
 	switch {
 	case dst == "HL" && src == "DE":
@@ -2621,6 +3217,7 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	// SBC HL, rr requires lhs in HL.  If lhs is already HL we proceed.
 	// If rhs is HL and lhs is DE, EX DE,HL is the cheapest fix.
 	// Otherwise move lhs byte-by-byte into HL.
+	origLhs, origRhs := lhs, rhs
 	if lhs != "HL" {
 		if lhs == "DE" && rhs == "HL" {
 			// Swap via EX DE,HL: after EX, HL=old_DE=lhs, DE=old_HL=rhs.
@@ -2648,14 +3245,92 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		}
 	}
 
+	// Track whether we used EX DE,HL to put lhs into HL.  If so, after
+	// PUSH/SBC/POP we must EX DE,HL again to restore the allocator's
+	// expected physical layout (HL=original_rhs, DE=original_lhs).
+	// EX DE,HL does NOT affect any flags, so carry is preserved.
+	// True when we moved orig_rhs(HL) to DE and loaded orig_lhs into HL.
+	// After PUSH/SBC/POP the allocator expects HL=orig_rhs again.
+	swappedDE := origRhs == "HL" && origLhs != "HL"
+
 	// lhs is now in HL.  SBC HL, rr clobbers HL; save and restore so the
 	// original lhs value survives for use in taken/not-taken branches.
 	// TODO: elide PUSH/POP when liveness shows HL is dead after this compare.
 	g.emit("    PUSH HL") // save lhs
 	g.emit("    OR A")    // clear carry; idempotent for A
 	g.emitf("    SBC HL, %s", rhs)
-	g.emit("    POP HL")  // restore lhs
-	g.invalidate("HL")
+	g.emit("    POP HL") // restore lhs
+	if swappedDE {
+		// Restore physical registers to allocator-expected layout:
+		//   before compare: HL=orig_rhs, DE=orig_lhs
+		//   after EX+PUSH/SBC/POP:  HL=orig_lhs, DE=orig_rhs
+		//   after this EX:          HL=orig_rhs, DE=orig_lhs  ✓
+		g.emit("    EX DE, HL")
+		g.invalidate("HL")
+		g.invalidate("DE")
+	} else {
+		g.invalidate("HL")
+	}
+}
+
+// genCmp32 emits a non-destructive 32-bit unsigned comparison (lhs vs rhs)
+// via a PUSH/SBC-chain/POP pattern; carry is set if lhs < rhs, NC if lhs >= rhs.
+//
+// Strategy (lhs=HL+H'L', rhs=DE+D'E'):
+//
+//	PUSH HL          ; save a_lo  (11T)
+//	EXX
+//	PUSH HL          ; save a_hi  (11T, HL = H'L' after EXX)
+//	EXX
+//	AND A            ; clear carry (4T)
+//	SBC HL, DE       ; a_lo - b_lo; carry = lo borrow (15T)
+//	EXX
+//	SBC HL, DE       ; a_hi - b_hi - lo_carry; carry = 32-bit borrow (15T)
+//	EXX
+//	EXX              ; switch to restore a_hi
+//	POP HL           ; restore H'L' (10T); carry preserved by POP rr
+//	EXX
+//	POP HL           ; restore HL  (10T); carry preserved
+//
+// Total: 91T.  For the typical abs_diff pattern this is followed immediately by
+// BrIf which branches on carry — no intermediate store of the flag needed.
+func (g *z80cg) genCmp32(inst *Inst) {
+	lhs := g.loc(inst.Src[0])
+	rhs := g.loc(inst.Src[1])
+
+	// CmpGt/CmpLe: swap operands so the carry encodes the right condition.
+	//   CmpUgt(a,b): a>b ↔ b<a → swap, then carry = (b<a) ✓
+	//   CmpUle(a,b): a≤b ↔ b≥a → swap, then NC = (b≥a) ✓
+	isGtOrLe := inst.Cond == CmpGt || inst.Cond == CmpUgt ||
+		inst.Cond == CmpLe || inst.Cond == CmpUle
+	if isGtOrLe {
+		lhs, rhs = rhs, lhs
+		g.cmpSwapped[inst.Dst] = true
+	}
+
+	// Z80 SBC requires lhs in HL.  The allocator biases ClassDWord toward HL (cost 0),
+	// so lhs=HL is the common case.
+	if lhs != "HL" {
+		g.comment(fmt.Sprintf("TODO: genCmp32 lhs=%s not HL (rhs=%s)", lhs, rhs))
+		return
+	}
+
+	// Non-destructive 32-bit comparison (lhs preserved by PUSH/POP):
+	g.emit("    PUSH HL")         // save a_lo (main HL)
+	g.emit("    EXX")
+	g.emit("    PUSH HL")         // save a_hi (shadow HL = H'L')
+	g.emit("    EXX")
+	g.emit("    AND A")           // clear carry
+	g.emitf("    SBC HL, %s", rhs) // a_lo - b_lo; carry = lo borrow
+	g.emit("    EXX")
+	g.emitf("    SBC HL, %s", rhs) // a_hi - b_hi - lo_carry; carry = 32-bit borrow
+	g.emit("    EXX")
+	// Restore a (carry preserved by POP rr — POP does not affect flags):
+	g.emit("    EXX")
+	g.emit("    POP HL")           // restore H'L' (a_hi)
+	g.emit("    EXX")
+	g.emit("    POP HL")           // restore HL   (a_lo)
+	g.invalidate("HL")             // HL was clobbered during SBC, now restored; flush cache
 }
 
 // ── PUSH/POP pair helpers ─────────────────────────────────────────────────────

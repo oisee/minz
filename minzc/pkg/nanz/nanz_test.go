@@ -1563,3 +1563,106 @@ func TestRegisterAnnotation(t *testing.T) {
 		t.Errorf("param[0].RegClass: want ClassAcc (%d), got %d", mir2.ClassAcc, f.Params[0].RegClass)
 	}
 }
+
+// ── New integer types (u24 / i24 / u32 / i32) ────────────────────────────────
+
+func TestNewIntTypes_Parse(t *testing.T) {
+	src := `
+fun foo(a: u24, b: i24, c: u32, d: i32) -> u32 {
+    return c
+}
+`
+	m, err := nanz.Parse(src, "new_int_types")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(m.Funcs) != 1 {
+		t.Fatalf("funcs: want 1, got %d", len(m.Funcs))
+	}
+	f := m.Funcs[0]
+	cases := []struct {
+		idx  int
+		want mir2.Ty
+		name string
+	}{
+		{0, mir2.TyU24, "u24"},
+		{1, mir2.TyI24, "i24"},
+		{2, mir2.TyU32, "u32"},
+		{3, mir2.TyI32, "i32"},
+	}
+	for _, tc := range cases {
+		if f.Params[tc.idx].Ty != tc.want {
+			t.Errorf("param[%d] (%s): want %v, got %v", tc.idx, tc.name, tc.want, f.Params[tc.idx].Ty)
+		}
+	}
+	if f.RetTy != mir2.TyU32 {
+		t.Errorf("return type: want u32, got %v", f.RetTy)
+	}
+}
+
+// ── Fixed-point types (f.8 / f8.8 / f.16 / f8.16 / f16.8) ───────────────────
+
+func TestFixedPointTypes_Parse(t *testing.T) {
+	// Fixed-point syntax is locked ("coming soon") in the Nanz parser.
+	// The types exist in the MIR2 IR (pkg/mir2/types.go) but are not
+	// yet surface-level syntax. This test verifies the parser rejects them.
+	cases := []struct {
+		name string
+		src  string
+	}{
+		{"f.8", `fun foo(x: f.8) -> f.8 { return x }`},
+		{"f.16", `fun foo(x: f.16) -> f.16 { return x }`},
+		{"f8.8", `fun foo(x: f8.8) -> f8.8 { return x }`},
+		{"f8.16", `fun foo(x: f8.16) -> f8.16 { return x }`},
+		{"f16.8", `fun foo(x: f16.8) -> f16.8 { return x }`},
+		{"f16.16", `fun foo(x: f16.16) -> f16.16 { return x }`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := nanz.Parse(tc.src, "fxp_test")
+			if err == nil {
+				t.Fatal("expected parse error for locked fixed-point type, got nil")
+			}
+		})
+	}
+}
+
+func TestFixedPointTypes_Width(t *testing.T) {
+	cases := []struct {
+		ty    mir2.Ty
+		width int
+	}{
+		{mir2.TyF0_8, 8},
+		{mir2.TyF0_16, 16},
+		{mir2.TyF8_8, 16},
+		{mir2.TyF8_16, 24},
+		{mir2.TyF16_8, 24},
+		{mir2.TyF16_16, 32},
+	}
+	for _, tc := range cases {
+		if tc.ty.Width() != tc.width {
+			t.Errorf("%v.Width(): want %d, got %d", tc.ty, tc.width, tc.ty.Width())
+		}
+	}
+}
+
+func TestNewIntTypes_Width(t *testing.T) {
+	cases := []struct {
+		ty    mir2.Ty
+		width int
+		name  string
+	}{
+		{mir2.TyU24, 24, "u24"},
+		{mir2.TyI24, 24, "i24"},
+		{mir2.TyU32, 32, "u32"},
+		{mir2.TyI32, 32, "i32"},
+	}
+	for _, tc := range cases {
+		if tc.ty.Width() != tc.width {
+			t.Errorf("%s.Width(): want %d, got %d", tc.name, tc.width, tc.ty.Width())
+		}
+		if tc.ty.String() != tc.name {
+			t.Errorf("%s.String(): want %q, got %q", tc.name, tc.name, tc.ty.String())
+		}
+	}
+}

@@ -596,3 +596,133 @@ func extractFuncAsm(asm, name string) string {
 	}
 	return strings.Join(result, "\n")
 }
+
+// ── ClassDWord / 32-bit tests ─────────────────────────────────────────────────
+
+// TestDWord_Const verifies that a 32-bit constant is loaded via EXX:
+//   LD rr, lo16 / EXX / LD rr, hi16 / EXX
+func TestDWord_Const(t *testing.T) {
+	m := &mir2.Module{Name: "dword_const"}
+	f := m.AddFunc("dword_const")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU32, Class: mir2.ClassDWord}}
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	c := bld.Const(0x12345678, mir2.TyU32, mir2.ClassDWord)
+	bld.Ret(c)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	// EXX must appear (for hi16 load).
+	if !strings.Contains(asm, "EXX") {
+		t.Error("32-bit const load must use EXX")
+	}
+	// lo16 = 0x5678 = 22136; hi16 = 0x1234 = 4660
+	if !strings.Contains(asm, "22136") {
+		t.Errorf("expected lo16 22136 (0x5678) in asm:\n%s", asm)
+	}
+	if !strings.Contains(asm, "4660") {
+		t.Errorf("expected hi16 4660 (0x1234) in asm:\n%s", asm)
+	}
+	if !strings.Contains(asm, "RET") {
+		t.Error("must have RET")
+	}
+}
+
+// TestDWord_Add32 verifies 32-bit addition uses ADD HL,rr / EXX / ADC HL,rr / EXX.
+func TestDWord_Add32(t *testing.T) {
+	m := &mir2.Module{Name: "add32"}
+	f := m.AddFunc("add32")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU32, Class: mir2.ClassDWord}}
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	r1 := bld.Param("a", mir2.TyU32, mir2.ClassDWord)
+	r2 := bld.Param("b", mir2.TyU32, mir2.ClassDWord)
+	r3 := bld.Add(r1, r2, mir2.TyU32, mir2.ClassDWord)
+	bld.Ret(r3)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	// Must use EXX (for shadow bank access).
+	if !strings.Contains(asm, "EXX") {
+		t.Error("32-bit add must use EXX")
+	}
+	// Must have 16-bit ADD (ADD HL,rr) and ADC (ADC HL,rr).
+	if !strings.Contains(asm, "ADD HL") {
+		t.Error("32-bit add must have ADD HL,rr")
+	}
+	if !strings.Contains(asm, "ADC HL") {
+		t.Error("32-bit add must have ADC HL,rr")
+	}
+	if !strings.Contains(asm, "RET") {
+		t.Error("must have RET")
+	}
+}
+
+// TestDWord_Sub32 verifies 32-bit subtraction uses AND A / SBC HL,rr / EXX / SBC HL,rr / EXX.
+func TestDWord_Sub32(t *testing.T) {
+	m := &mir2.Module{Name: "sub32"}
+	f := m.AddFunc("sub32")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU32, Class: mir2.ClassDWord}}
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	r1 := bld.Param("a", mir2.TyU32, mir2.ClassDWord)
+	r2 := bld.Param("b", mir2.TyU32, mir2.ClassDWord)
+	r3 := bld.Sub(r1, r2, mir2.TyU32, mir2.ClassDWord)
+	bld.Ret(r3)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	if !strings.Contains(asm, "EXX") {
+		t.Error("32-bit sub must use EXX")
+	}
+	if !strings.Contains(asm, "SBC HL") {
+		t.Error("32-bit sub must have SBC HL,rr")
+	}
+	if !strings.Contains(asm, "AND A") {
+		t.Error("32-bit sub must clear carry with AND A before SBC")
+	}
+	if !strings.Contains(asm, "RET") {
+		t.Error("must have RET")
+	}
+}
+
+// TestDWord_AllocNoAliasConflict verifies that a u32 DWord and a u16 pair
+// in the same function do not get aliased physical locations.
+// E.g. if u32 → LocDWord{"HL"}, then u16 must NOT get LocReg{"HL"}.
+func TestDWord_AllocNoAliasConflict(t *testing.T) {
+	m := &mir2.Module{Name: "noalias"}
+	f := m.AddFunc("noalias")
+	// Two live regs: u32 (DWord) + u16 (Pair) — must not share HL.
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	r1 := bld.Param("a", mir2.TyU32, mir2.ClassDWord)
+	r2 := bld.Param("b", mir2.TyU16, mir2.ClassPair)
+	// Keep both live by using them in a throw-away add (result unused but forces liveness).
+	_ = bld.Add(r2, r2, mir2.TyU16, mir2.ClassPair) // keep r2 live
+	bld.Ret(r1)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+
+	loc1 := ar.Loc(r1)
+	loc2 := ar.Loc(r2)
+	t.Logf("r1(u32) → %+v, r2(u16) → %+v", loc1, loc2)
+
+	if loc1.Kind != mir2.LocDWord {
+		t.Errorf("u32 register should be LocDWord, got %+v", loc1)
+	}
+	// r2 (u16) must not be in the same pair as r1 (DWord).
+	if loc2.Name == loc1.Name {
+		t.Errorf("u32 LocDWord{%s} and u16 LocReg{%s} share the same pair name — alias conflict!",
+			loc1.Name, loc2.Name)
+	}
+}
