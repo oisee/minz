@@ -78,9 +78,60 @@ func CondRetSink(f *Func) bool {
 		if thenBlock != nil {
 			applySubSwapNeg(elseBlock.Insts, thenBlock)
 		}
+		// Sub+CmpLt flag fusion: if the block's cond_ret condition is from a
+		// CmpLt(x, y) and we hoisted Sub(x, y) with the same operands, reorder
+		// so Sub comes just before CmpLt.  At Z80 codegen time, a "last flags"
+		// peephole will then suppress the redundant CP instruction.
+		hoistReorderSubBeforeCmp(blk)
 		changed = true
 	}
 	return changed
+}
+
+// hoistReorderSubBeforeCmp reorders instructions in blk: for each
+// OpCmp(CmpLt/CmpUlt, x, y) that has a later OpSub(x, y) with the same
+// operands, move the Sub to the position just before the Cmp.
+//
+// After CondRetSink, a hoisted Sub ends up AFTER an existing CmpLt that
+// tests the same operands.  Reordering so Sub precedes CmpLt lets the Z80
+// codegen skip the subsequent CP (Sub already sets identical carry flags).
+//
+// This reorder is always safe: neither instruction depends on the other.
+func hoistReorderSubBeforeCmp(blk *Block) {
+	insts := blk.Insts
+	for i := 0; i < len(insts); i++ {
+		inst := insts[i]
+		if inst.Op != OpCmp || inst.Dst == NoReg {
+			continue
+		}
+		if inst.Cond != CmpLt && inst.Cond != CmpUlt {
+			continue
+		}
+		cx, cy := inst.Src[0], inst.Src[1]
+		// Find Sub(cx, cy) at a LATER position in the block.
+		for j := i + 1; j < len(insts); j++ {
+			s := insts[j]
+			if s.Op != OpSub || s.Src[0] != cx || s.Src[1] != cy {
+				continue
+			}
+			// Safety: no instruction between i+1 and j-1 redefines cx or cy.
+			safe := true
+			for k := i + 1; k < j; k++ {
+				if insts[k].Dst == cx || insts[k].Dst == cy {
+					safe = false
+					break
+				}
+			}
+			if !safe {
+				continue
+			}
+			// Move Sub from position j to position i (just before Cmp at i).
+			// Shift instructions in [i, j-1] one position right, then insert Sub at i.
+			copy(insts[i+1:j+1], insts[i:j])
+			insts[i] = s
+			break
+		}
+	}
 }
 
 // applySubSwapNeg rewrites instructions in thenBlock that are the operand-swapped

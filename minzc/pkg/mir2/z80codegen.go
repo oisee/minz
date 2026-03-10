@@ -147,6 +147,12 @@ type z80cg struct {
 	lutLoadPat map[Reg]lutLoadPat
 	lutSkip    map[Reg]bool
 
+	// lastFlagsLhs / lastFlagsRhs track the effective operands of the most recent
+	// flags-setting instruction (SUB / CP / AND A) within the current block.
+	// Empty strings mean "unknown / not tracked".
+	// Used by genCmp to suppress a redundant CP when SUB already set the same flags.
+	lastFlagsLhs string // physical location of the lhs (always A at time of emission)
+	lastFlagsRhs string // physical location or immediate string of the rhs
 }
 
 // lutLoadPat describes a page-aligned LUT access merged at codegen time.
@@ -515,7 +521,9 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	if b.Label != "entry" {
 		g.emitf(".%s_%s:", sanitizeIdent(f.Name), sanitizeIdent(b.Label))
 	}
-	clear(g.holdsPhys) // all register aliases unknown at block entry
+	clear(g.holdsPhys)       // all register aliases unknown at block entry
+	g.lastFlagsLhs = ""      // flags state unknown at block entry
+	g.lastFlagsRhs = ""
 
 	// Pre-scan: identify page-aligned LUT access patterns so we can merge
 	// Ext + AddrOf + PtrAdd + Load into: LD HL,sym; LD L,src8; LD A,(HL).
@@ -555,6 +563,10 @@ func (g *z80cg) genInst(inst *Inst) {
 		return
 	}
 
+	// Flag-clobbering ops clear lastFlagsLhs/Rhs explicitly in their cases.
+	// Flag-preserving ops (LD, PUSH, POP, …) leave the tracker intact so that
+	// the Sub+CmpLt flag-fusion peephole can fire across an intervening LD.
+
 	dst := g.loc(inst.Dst)
 
 	switch inst.Op {
@@ -562,6 +574,8 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.constVals[inst.Dst] = inst.Imm
 		if dst == "F" {
 			// Bool constant into flag register: SCF (true) or AND A (false, clears C+sets Z).
+			g.lastFlagsLhs = ""
+			g.lastFlagsRhs = ""
 			if inst.Imm != 0 {
 				g.emit("    SCF")
 			} else {
@@ -581,45 +595,84 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.emitMov(dst, src, inst.Ty.Width())
 
 	case OpAdd:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genBinOp("ADD", inst)
 
 	case OpSub:
+		g.lastFlagsLhs = "" // clear stale tracking before this sub
+		g.lastFlagsRhs = ""
 		g.genBinOp("SUB", inst)
+		// Record that flags were set by SUB(lhs, rhs) for the Sub+CmpLt fusion.
+		// Only track 8-bit subs; 16-bit uses SBC which sets different flags.
+		if inst.Ty.Width() <= 8 {
+			rhsP := g.loc(inst.Src[1])
+			if cv, ok := g.constVals[inst.Src[1]]; ok {
+				rhsP = fmt.Sprintf("%d", cv)
+			}
+			if rhsP != "A" { // skip NEG-trick case (rhs was in A)
+				g.lastFlagsLhs = g.loc(inst.Src[0]) // logical lhs
+				g.lastFlagsRhs = rhsP
+			}
+		}
 
 	case OpMul:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genMul(inst)
 
 	case OpAnd:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genBinOp("AND", inst)
 
 	case OpOr:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genBinOp("OR", inst)
 
 	case OpXor:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genBinOp("XOR", inst)
 
 	case OpNeg:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.emit("    NEG")
 		g.invalidate("A")
 
 	case OpNot:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.emit("    CPL")
 		g.invalidate("A")
 
 	case OpShl:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genShift("SLA", inst)
 
 	case OpShr:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genShift("SRL", inst)
 
 	case OpSar:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genShift("SRA", inst)
 
 	case OpExt:
 		// Zero-extend srcTy → Ty.  Primary case: u8 → u16 into HL.
+		// genExt may emit XOR (flag-clobbering) — clear to be safe.
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genExt(inst)
 
 	case OpSext:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genSext(inst)
 
 	case OpTrunc:
@@ -693,6 +746,8 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 	case OpCall, OpCallIndirect:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.genCall(inst)
 
 	case OpAddrOf:
@@ -700,8 +755,11 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpPtrAdd:
 		// Runtime pointer advance: dst = base_ptr + offset_u16.
+		// ADD HL, DE (16-bit) clobbers H and C flags.
 		// Z80: needs both operands in 16-bit register pairs.
 		// Optimal: base in HL (dst), offset in DE → ADD HL, DE (11T, no A clobber).
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		base := g.loc(inst.Src[0])
 		off := g.loc(inst.Src[1])
 		if dst != base {
@@ -732,6 +790,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Advance pointer by compile-time byte offset.
 		// OpField: struct field access; OpPtrBump: iterator advance.
 		// SoA256 special strides: -1 → INC L (element advance), 256 → INC H (field switch).
+		// INC and ADD clobber flags.
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		src := g.loc(inst.Src[0])
 		offset := inst.Imm
 		if dst != src {
@@ -812,6 +873,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.invalidate(pair)
 
 	case OpAsm:
+		// Inline asm may emit any instruction — conservatively clobber flags.
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		if inst.Asm != nil {
 			g.emitf("    %s", inst.Asm.Template)
 		}
@@ -1213,6 +1277,8 @@ func (g *z80cg) genCmp(inst *Inst) {
 		if !g.holdsValue("A", lhs) {
 			g.emitLDA(lhs)
 		}
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		if cv == 0 {
 			g.emit("    AND A") // AND A ≡ CP 0 for all flags; 1B/4T vs 2B/7T
 			g.cmpAndZero[inst.Dst] = true
@@ -1230,6 +1296,8 @@ func (g *z80cg) genCmp(inst *Inst) {
 	if rhs == "A" && lhs != "A" {
 		// A already holds rhs. CP lhs computes A−lhs = rhs−lhs.
 		// This is the swapped comparison; condCode will invert it.
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
 		g.emitf("    CP %s", lhs)
 		g.cmpSwapped[inst.Dst] = true
 		// CP does not modify A; aliases remain valid.
@@ -1240,6 +1308,16 @@ func (g *z80cg) genCmp(inst *Inst) {
 	if !g.holdsValue("A", lhs) {
 		g.emitLDA(lhs)
 	}
+	// Sub+CmpLt flag fusion: if the immediately preceding instruction was
+	// SUB with the same operands (A=lhs, rhs unchanged), the carry flag is
+	// already set identically to what CP would produce → skip the CP.
+	if (inst.Cond == CmpLt || inst.Cond == CmpUlt) &&
+		g.lastFlagsLhs == lhs && g.lastFlagsRhs == rhs {
+		// Flags valid from preceding SUB — no CP needed.
+		return
+	}
+	g.lastFlagsLhs = ""
+	g.lastFlagsRhs = ""
 	g.emitf("    CP %s", rhs)
 	// CP does not modify A; aliases remain valid.
 }
