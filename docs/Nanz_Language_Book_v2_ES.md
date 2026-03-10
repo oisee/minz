@@ -34,6 +34,8 @@
 
 ---
 
+<a id="chapter-1-what-is-nanz"></a>
+
 ## Capítulo 1: ¿Qué es Nanz?
 
 Nanz (extensión `.nanz`) es el lenguaje frontend activo del compilador MinZ. Es de tipado estático, imperativo, y está diseñado para dos audiencias:
@@ -99,6 +101,8 @@ mz legacy.plm --emit=nanz       # traducir PL/M a código fuente Nanz
 Nanz es deliberadamente minimalista. La gramática cabe en una pantalla. Sin recolector de basura, sin runtime, sin dispatch dinámico. Cada abstracción — lambdas, iteradores, métodos de structs, interfaces — compila a instrucciones Z80 directas sin overhead más allá de lo que escribirías a mano.
 
 ---
+
+<a id="chapter-2-syntax-reference"></a>
 
 ## Capítulo 2: Referencia de Sintaxis
 
@@ -428,6 +432,8 @@ Estos se reconocen por el parser como llamadas a métodos UFCS sobre expresiones
 
 ---
 
+<a id="chapter-3-type-system"></a>
+
 ## Capítulo 3: Sistema de Tipos
 
 ### 3.1 Tipos MIR2
@@ -483,6 +489,8 @@ struct Color { r: u8, g: u8, b: u8 }  // total: 3 bytes
 El parser calcula los offsets en tiempo de parseo sumando `Ty.Width() / 8` por cada campo precedente. Los campos de structs globales reciben etiquetas EQU en ensamblador: `palette__r EQU palette + 0`.
 
 ---
+
+<a id="chapter-4-compilation-pipeline"></a>
 
 ## Capítulo 4: Pipeline de Compilación
 
@@ -541,6 +549,8 @@ mz source.nanz -o output.a80     # Z80 assembly (default)
 
 ---
 
+<a id="chapter-5-mir2-intermediate-representation"></a>
+
 ## Capítulo 5: Representación Intermedia MIR2
 
 MIR2 es el IR central. Usa **argumentos de bloque** (estilo Cranelift/MLIR) en lugar de nodos phi.
@@ -592,6 +602,8 @@ Los argumentos de bloque definen registros en la entrada. Los argumentos se pasa
 `TermCondRet` es producido por la pasada de optimización CondRetSink — permite el retorno condicional de instrucción única del Z80.
 
 ---
+
+<a id="chapter-6-optimization-passes"></a>
 
 ## Capítulo 6: Pasadas de Optimización
 
@@ -688,6 +700,8 @@ Esto elige convenciones de llamada por función de forma global, reduciendo movi
 
 ---
 
+<a id="chapter-7-z80-code-generation"></a>
+
 ## Capítulo 7: Generación de Código Z80
 
 `pkg/mir2/z80codegen.go` — convierte MIR2 asignado a texto ensamblador.
@@ -742,6 +756,8 @@ LD IXL, E    ; DD 6B — 8T (total 16T)
 **Detección de cadena HL:** Múltiples almacenamientos consecutivos de campo al mismo struct → un solo `LD HL, sym` + cadena `LD (HL), r; INC HL` (ahorra recargar HL).
 
 ---
+
+<a id="chapter-8-iterator-chains-and-fusion"></a>
 
 ## Capítulo 8: Cadenas de Iteradores y Fusión
 
@@ -841,6 +857,8 @@ DJNZ .loop
 
 ---
 
+<a id="chapter-9-zero-cost-abstractions"></a>
+
 ## Capítulo 9: Abstracciones de Coste Cero
 
 Cada abstracción en Nanz compila a instrucciones Z80 directas. Aquí está la demostración.
@@ -880,6 +898,8 @@ Cada `|x| expr` se convierte en `lambda_N` — una función regular. Cuando se u
 `a + b` sobre tipos struct despacha a `op_add(a, b)` — una llamada a función regular. Sin verificación de tipos en tiempo de ejecución.
 
 ---
+
+<a id="chapter-10-qbe-correctness-oracle"></a>
 
 ## Capítulo 10: Oráculo de Corrección QBE
 
@@ -929,6 +949,8 @@ Mapeos clave (`pkg/mir2qbe/codegen.go`):
 Ver [Apéndice D](#appendix-d-installing-external-tools).
 
 ---
+
+<a id="chapter-11-plm-80-corpus-seeding-and-idiomatic-translation"></a>
 
 ## Capítulo 11: PL/M-80: Corpus Inicial y Traducción Idiomática
 
@@ -1140,6 +1162,8 @@ Comparación real (del Informe #036) — el **mismo código fuente PL/M** compil
 El compilador de Intel almacena todos los parámetros y locales en memoria (convención de llamada 8080). La ABI registro-primero de MIR2 mantiene los valores en A/B/C/D/HL — cero tráfico de memoria en bucles calientes.
 
 ---
+
+<a id="chapter-12-compiled-output-gallery"></a>
 
 ## Capítulo 12: Galería de Salida Compilada
 
@@ -1495,6 +1519,8 @@ El coalescente de fase 6c eliminó todo el overhead de copia en los límites de 
 
 ---
 
+<a id="chapter-13-relation-to-minz-and-plm"></a>
+
 ## Capítulo 13: Relación con MinZ y PL/M
 
 ### 13.1 Los Tres Frontends
@@ -1549,6 +1575,8 @@ El pipeline antiguo de MinZ (flag `-b`) soporta múltiples objetivos. Estos NO e
 Estos usan el IR antiguo (MIR1), no MIR2. El plan a largo plazo es retirar MIR1 y enrutar todos los frontends a través de HIR → MIR2.
 
 ---
+
+<a id="appendix-a-complete-syntax-grammar"></a>
 
 ## Apéndice A: Gramática Completa de la Sintaxis
 
@@ -1644,6 +1672,8 @@ args           = (expr (',' expr)*)?
 
 ---
 
+<a id="appendix-b-register-classes-and-cost-table"></a>
+
 ## Apéndice B: Clases de Registros y Tabla de Costes
 
 ### Registros Físicos Z80
@@ -1674,6 +1704,8 @@ args           = (expr (',' expr)*)?
 ClassFlag es especial: representa los flags de la CPU Z80 (Z, CY, etc.) y cuesta 0T. Los resultados booleanos de comparaciones se mantienen en flags sin materializar a un registro.
 
 ---
+
+<a id="appendix-c-cli-reference"></a>
 
 ## Apéndice C: Referencia de CLI
 
@@ -1737,6 +1769,8 @@ go test ./pkg/mir2qbe/... -vet=off -v
 
 ---
 
+<a id="appendix-d-installing-external-tools"></a>
+
 ## Apéndice D: Instalación de Herramientas Externas
 
 ### QBE (Oráculo de Corrección)
@@ -1784,6 +1818,8 @@ cd minzc && make mze
 Se usa para: ejecutar binarios Z80 compilados, evaluación de constantes dentro del compilador (LUTGen, BranchEquiv).
 
 ---
+
+<a id="appendix-e-known-bugs-and-limitations"></a>
 
 ## Apéndice E: Errores Conocidos y Limitaciones
 

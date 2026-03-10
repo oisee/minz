@@ -34,6 +34,8 @@
 
 ---
 
+<a id="chapter-1-what-is-nanz"></a>
+
 ## Kapitola 1: Čo je Nanz?
 
 Nanz (prípona `.nanz`) je aktívny frontendový jazyk kompilátora MinZ. Je staticky typovaný, imperatívny a navrhnutý pre dve cieľové skupiny:
@@ -99,6 +101,8 @@ mz legacy.plm --emit=nanz       # preklad PL/M do zdrojového kódu Nanz
 Nanz je zámerne minimalistický. Gramatika sa zmestí na jednu obrazovku. Žiadny garbage collector, žiadny runtime, žiadny dynamický dispatch. Každá abstrakcia — lambdy, iterátory, metódy štruktúr, rozhrania — sa kompiluje na priame Z80 inštrukcie bez réžie navyše oproti tomu, čo by ste napísali ručne.
 
 ---
+
+<a id="chapter-2-syntax-reference"></a>
 
 ## Kapitola 2: Referencia syntaxe
 
@@ -428,6 +432,8 @@ Tieto sú rozpoznávané parserom ako UFCS volania metód na ukazovateľových v
 
 ---
 
+<a id="chapter-3-type-system"></a>
+
 ## Kapitola 3: Typový systém
 
 ### 3.1 Typy MIR2
@@ -483,6 +489,8 @@ struct Color { r: u8, g: u8, b: u8 }  // total: 3 bytes
 Parser počíta offsety v čase parsovania sčítaním `Ty.Width() / 8` pre každé predchádzajúce pole. Polia globálnych štruktúr dostávajú EQU štítky v assembly: `palette__r EQU palette + 0`.
 
 ---
+
+<a id="chapter-4-compilation-pipeline"></a>
 
 ## Kapitola 4: Kompilačný pipeline
 
@@ -541,6 +549,8 @@ mz source.nanz -o output.a80     # Z80 assembly (default)
 
 ---
 
+<a id="chapter-5-mir2-intermediate-representation"></a>
+
 ## Kapitola 5: MIR2 medzilehlá reprezentácia
 
 MIR2 je jadrový IR. Používa **argumenty blokov** (štýl Cranelift/MLIR) namiesto phi uzlov.
@@ -592,6 +602,8 @@ Argumenty blokov definujú registre na vstupe. Argumenty sa odovzdávajú na ka�
 `TermCondRet` je produkovaný optimalizačným prechodom CondRetSink — umožňuje Z80 jednoinštrukčný podmienený návrat.
 
 ---
+
+<a id="chapter-6-optimization-passes"></a>
 
 ## Kapitola 6: Optimalizačné prechody
 
@@ -688,6 +700,8 @@ Toto vyberá volacie konvencie pre jednotlivé funkcie globálne, čím sa zniž
 
 ---
 
+<a id="chapter-7-z80-code-generation"></a>
+
 ## Kapitola 7: Generovanie Z80 kódu
 
 `pkg/mir2/z80codegen.go` — konvertuje alokovaný MIR2 na text assembly.
@@ -742,6 +756,8 @@ LD IXL, E    ; DD 6B — 8T (total 16T)
 **Detekcia HL-reťazca:** Viaceré po sebe idúce zápisy polí do tej istej štruktúry → jedno `LD HL, sym` + `LD (HL), r; INC HL` reťazec (ušetrí opätovné načítanie HL).
 
 ---
+
+<a id="chapter-8-iterator-chains-and-fusion"></a>
 
 ## Kapitola 8: Reťazce iterátorov a fúzia
 
@@ -841,6 +857,8 @@ DJNZ .loop
 
 ---
 
+<a id="chapter-9-zero-cost-abstractions"></a>
+
 ## Kapitola 9: Abstrakcie s nulovými nákladmi
 
 Každá abstrakcia v Nanz sa kompiluje na priame Z80 inštrukcie. Tu je dôkaz.
@@ -880,6 +898,8 @@ Každý `|x| expr` sa stáva `lambda_N` — bežnou funkciou. Pri použití v re
 `a + b` na typoch štruktúr dispatchuje na `op_add(a, b)` — bežné volanie funkcie. Žiadna runtime kontrola typov.
 
 ---
+
+<a id="chapter-10-qbe-correctness-oracle"></a>
 
 ## Kapitola 10: QBE oracle správnosti
 
@@ -929,6 +949,8 @@ Kľúčové mapovania (`pkg/mir2qbe/codegen.go`):
 Viď [Príloha D](#appendix-d-installing-external-tools).
 
 ---
+
+<a id="chapter-11-plm-80-corpus-seeding-and-idiomatic-translation"></a>
 
 ## Kapitola 11: PL/M-80: Seedovanie korpusu a idiomatický preklad
 
@@ -1140,6 +1162,8 @@ Reálne porovnanie (z Reportu #036) — **rovnaký PL/M zdrojový kód** skompil
 Kompilér Intel ukladá všetky parametre a lokálne premenné do pamäte (volacia konvencia 8080). ABI MIR2 uprednostňujúce registre drží hodnoty v A/B/C/D/HL — nulová pamäťová prevádzka v horúcich slučkách.
 
 ---
+
+<a id="chapter-12-compiled-output-gallery"></a>
 
 ## Kapitola 12: Galéria skompilovaného výstupu
 
@@ -1495,6 +1519,8 @@ Koalescer fázy 6c eliminoval všetku réžiu kopírovania na hraniciach blokov 
 
 ---
 
+<a id="chapter-13-relation-to-minz-and-plm"></a>
+
 ## Kapitola 13: Vzťah k MinZ a PL/M
 
 ### 13.1 Tri frontendy
@@ -1549,6 +1575,8 @@ Starý pipeline MinZ (flag `-b`) podporuje viacero cieľov. Tieto NIE SÚ dostup
 Tieto používajú starý IR (MIR1), nie MIR2. Dlhodobý plán je vyradiť MIR1 a smerovať všetky frontendy cez HIR → MIR2.
 
 ---
+
+<a id="appendix-a-complete-syntax-grammar"></a>
 
 ## Príloha A: Kompletná gramatika syntaxe
 
@@ -1644,6 +1672,8 @@ args           = (expr (',' expr)*)?
 
 ---
 
+<a id="appendix-b-register-classes-and-cost-table"></a>
+
 ## Príloha B: Triedy registrov a tabuľka nákladov
 
 ### Fyzické registre Z80
@@ -1674,6 +1704,8 @@ args           = (expr (',' expr)*)?
 ClassFlag je špeciálny: reprezentuje Z80 CPU flagy (Z, CY, atď.) a stojí 0T. Booleovské výsledky porovnaní sa uchovávajú vo flagoch bez materializácie do registra.
 
 ---
+
+<a id="appendix-c-cli-reference"></a>
 
 ## Príloha C: Referencia CLI
 
@@ -1737,6 +1769,8 @@ go test ./pkg/mir2qbe/... -vet=off -v
 
 ---
 
+<a id="appendix-d-installing-external-tools"></a>
+
 ## Príloha D: Inštalácia externých nástrojov
 
 ### QBE (oracle správnosti)
@@ -1784,6 +1818,8 @@ cd minzc && make mze
 Používa sa na: spúšťanie skompilovaných Z80 bináriek, vyhodnocovanie konštánt vnútri kompilátora (LUTGen, BranchEquiv).
 
 ---
+
+<a id="appendix-e-known-bugs-and-limitations"></a>
 
 ## Príloha E: Známe chyby a obmedzenia
 
