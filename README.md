@@ -216,6 +216,49 @@ clamp:
     RET
 ```
 
+### PBQP Allocator: Hot Registers in Cheap Slots
+
+The PBQP allocator weights each virtual register's cost by its use count.
+A register used 10× pays 10× the slot cost, so the solver puts it in the
+cheapest location — even when that means displacing a low-use register.
+
+Four simultaneously-live pointer registers → HL / DE / BC / **IX** (no spill):
+
+```nanz
+// Four pointer params, all live simultaneously
+fun sum_four(p0: ptr, p1: ptr, p2: ptr, p3: ptr) -> u8 {
+    return p0[0] + p1[0] + p2[0] + p3[0]
+}
+```
+
+```asm
+four_ptrs:
+    LD A, (HL)      ; p0 → HL  (cost 0 — primary pointer reg)
+    LD B, (DE)      ; p1 → DE  (cost 4)
+    LD C, (BC)      ; p2 → BC  (cost 6)
+    LD D, (IX+0)    ; p3 → IX  (cost 8) ← overflow pool, not $F0xx memory!
+    ADD A, B
+    LD A, C
+    ADD A, D
+    LD B, A
+    ADD A, B
+    RET
+```
+
+High-use vs low-use — PBQP picks optimal assignment:
+
+```
+r_heavy (used 10×) → A   (cost 10 × 0T =  0T)
+r_light (used  1×) → C   (cost  1 × 6T =  6T)   total: 6T
+
+greedy (arbitrary):
+r_heavy            → A   (lucky — same result by chance here)
+r_light            → B   (cost  1 × 4T =  4T)   total: 4T ← greedy wins by coincidence
+```
+
+When allocation order disfavours the heavy register, PBQP's delta-sort
+(`2nd_best − best`) guarantees it claims the primary slot regardless.
+
 ### LUTGen: Compile-Time Lookup Tables
 
 Annotate with `u8<0..255>` — the compiler evaluates the function for all 256 values and emits a page-aligned table:
