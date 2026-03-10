@@ -17,7 +17,7 @@
 2. [Referencia syntaxe](#chapter-2-syntax-reference)
 3. [Typový systém](#chapter-3-type-system)
 4. [Kompilačný pipeline](#chapter-4-compilation-pipeline)
-5. [MIR2 medziprezentácia](#chapter-5-mir2-intermediate-representation)
+5. [MIR2 medzilehlá reprezentácia](#chapter-5-mir2-intermediate-representation)
 6. [Optimalizačné prechody](#chapter-6-optimization-passes)
 7. [Generovanie Z80 kódu](#chapter-7-z80-code-generation)
 8. [Reťazce iterátorov a fúzia](#chapter-8-iterator-chains-and-fusion)
@@ -344,7 +344,7 @@ acc_g.add(5)    // → Acc_add(&acc_g, 5) — direct CALL, no vtable
 
 **Prijímač ukazovateľom** (`self: ^Acc`):
 - `self.val` automaticky dereferencuje — vyriešuje offset poľa cez `varPtrElem`.
-- `self^.val` tiež funguje (explicitná deferencia, rovnaký výsledok).
+- `self^.val` tiež funguje (explicitná dereferencia, rovnaký výsledok).
 - Ukazovateľ cestuje v HL (ClassPointer). Čítanie polí: `LD reg, (HL)` na offsete 0, `INC HL; LD reg, (HL)` na offsete 1, atď.
 
 **Prijímač hodnotou** (`self: Acc`):
@@ -412,7 +412,7 @@ let inc = |x| x + 1                 // type defaults to u8
 Každá lambda sa stáva funkciou najvyššej úrovne `lambda_N` (sekvenčné počítadlo). Referencia na mieste volania je `VarRefExpr{Name: "lambda_N"}`.
 
 **Pravidlá zachytávania:**
-- **Lambdy fúzovaných iterátorov** (forEach/map/filter): môžu zachytávať a meniť vonkajšie lokálne premenné. Kompilér deteguje voľné premenné cez `hasFreeVars()`, preskočí samostatné zosúladenie a prevádza zachytené premenné ako parametre blokov cez DJNZ slučku. Nulová halda, nulový spill.
+- **Lambdy fúzovaných iterátorov** (forEach/map/filter): môžu zachytávať a meniť vonkajšie lokálne premenné. Kompilér deteguje voľné premenné cez `hasFreeVars()`, preskočí samostatné zníženie a prevádza zachytené premenné ako parametre blokov cez DJNZ slučku. Nulová halda, nulový spill.
 - **Nefúzované lambdy** (ukazovatele na funkcie): nemôžu zachytávať vonkajšie lokálne premenné — žiadny runtime rámec. Prístupné sú len globálne premenné.
 
 ### 2.17 Iterátorové metódy (UFCS na ukazovateľoch)
@@ -541,7 +541,7 @@ mz source.nanz -o output.a80     # Z80 assembly (default)
 
 ---
 
-## Kapitola 5: MIR2 medziprezentácia
+## Kapitola 5: MIR2 medzilehlá reprezentácia
 
 MIR2 je jadrový IR. Používa **argumenty blokov** (štýl Cranelift/MLIR) namiesto phi uzlov.
 
@@ -799,7 +799,7 @@ fun sum(buf: ^u8, n: u8) -> u8 {
 
 `s` je voľná premenná v lambde. Kompilér:
 1. Deteguje voľnú referenciu cez `hasFreeVars()`.
-2. Preskočí samostatné zosúladenie `lambda_N`.
+2. Preskočí samostatné zníženie `lambda_N`.
 3. Prevedie `s` ako parameter bloku cez DJNZ slučku.
 
 Výsledok: `s` žije v registri (napr. C) po celý čas — nulový spill, nulová halda.
@@ -1497,7 +1497,7 @@ Koalescer fázy 6c eliminoval všetku réžiu kopírovania na hraniciach blokov 
 
 ## Kapitola 13: Vzťah k MinZ a PL/M
 
-### 11.1 Tri frontendy
+### 13.1 Tri frontendy
 
 | Jazyk | Prípona | Parser | Backend | Stav |
 |-------|---------|--------|---------|------|
@@ -1514,13 +1514,13 @@ if ext == ".plm" || ext == ".nanz" {
 }
 ```
 
-### 11.2 Kedy použiť ktorý
+### 13.2 Kedy použiť ktorý
 
 **Nanz** — nové Z80/CP/M programy, moderná syntax, LUTGen, PBQP alokácia.
 **MinZ** — existujúce `.minz` programy, ktoré fungujú. Má metafunkcie (`@define`, `@print`), ktoré zatiaľ nie sú v Nanz.
 **PL/M-80** — portovanie staršieho CP/M softvéru. 100 % korpusu Intel 80 Tools sa parsuje.
 
-### 11.3 Chýbajúce vlastnosti (Nanz vs. MinZ)
+### 13.3 Chýbajúce vlastnosti (Nanz vs. MinZ)
 
 Nanz v súčasnosti nemá:
 - `@define` preprocesorové makrá
@@ -1530,7 +1530,7 @@ Nanz v súčasnosti nemá:
 - Preťažovanie funkcií (MinZ to má; Nanz vyžaduje odlišné názvy)
 - `@extern` s anotáciami tried registrov (dokumentované, ale zatiaľ neparsované)
 
-### 11.4 Ďalšie backendy (len MinZ)
+### 13.4 Ďalšie backendy (len MinZ)
 
 Starý pipeline MinZ (flag `-b`) podporuje viacero cieľov. Tieto NIE SÚ dostupné pre Nanz (ktorý vždy prechádza cez MIR2 → Z80):
 

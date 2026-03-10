@@ -23,7 +23,7 @@
 8. [Cadenas de Iteradores y Fusión](#chapter-8-iterator-chains-and-fusion)
 9. [Abstracciones de Coste Cero](#chapter-9-zero-cost-abstractions)
 10. [Oráculo de Corrección QBE](#chapter-10-qbe-correctness-oracle)
-11. [PL/M-80: Corpus de Pruebas y Traducción Idiomática](#chapter-11-plm-80-corpus-seeding-and-idiomatic-translation)
+11. [PL/M-80: Corpus Inicial y Traducción Idiomática](#chapter-11-plm-80-corpus-seeding-and-idiomatic-translation)
 12. [Galería de Salida Compilada](#chapter-12-compiled-output-gallery)
 13. [Relación con MinZ y PL/M](#chapter-13-relation-to-minz-and-plm)
 - [Apéndice A: Gramática Completa de la Sintaxis](#appendix-a-complete-syntax-grammar)
@@ -847,7 +847,7 @@ Cada abstracción en Nanz compila a instrucciones Z80 directas. Aquí está la d
 
 ### 9.1 UFCS — Coste Cero
 
-`obj.method(args)` se desazucara a `method(obj, args)` en tiempo de parseo. La tabla de métodos es un `map[string]map[string]methodInfo` consultado solo durante el parseo.
+`obj.method(args)` se transforma en `method(obj, args)` en tiempo de parseo. La tabla de métodos es un `map[string]map[string]methodInfo` consultado solo durante el parseo.
 
 **Coste: cero.** `CALL Acc_add` es idéntico a una llamada escrita a mano.
 
@@ -930,7 +930,7 @@ Ver [Apéndice D](#appendix-d-installing-external-tools).
 
 ---
 
-## Capítulo 11: PL/M-80: Corpus de Pruebas y Traducción Idiomática
+## Capítulo 11: PL/M-80: Corpus Inicial y Traducción Idiomática
 
 ### 11.1 El Rol de PL/M en la Creación del Ecosistema Nanz
 
@@ -1497,7 +1497,7 @@ El coalescente de fase 6c eliminó todo el overhead de copia en los límites de 
 
 ## Capítulo 13: Relación con MinZ y PL/M
 
-### 11.1 Los Tres Frontends
+### 13.1 Los Tres Frontends
 
 | Lenguaje | Extensión | Parser | Backend | Estado |
 |----------|-----------|--------|---------|--------|
@@ -1514,13 +1514,13 @@ if ext == ".plm" || ext == ".nanz" {
 }
 ```
 
-### 11.2 Cuándo Usar Cada Uno
+### 13.2 Cuándo Usar Cada Uno
 
 **Nanz** — programas nuevos para Z80/CP/M, sintaxis moderna, LUTGen, asignación PBQP.
 **MinZ** — programas `.minz` existentes que funcionan. Tiene metafunciones (`@define`, `@print`) que aún no están en Nanz.
 **PL/M-80** — portado de software legacy de CP/M. El 100% del corpus de Intel 80 Tools se parsea.
 
-### 11.3 Diferencias de Funcionalidades (Nanz vs. MinZ)
+### 13.3 Diferencias de Funcionalidades (Nanz vs. MinZ)
 
 Nanz actualmente carece de:
 - Macros de preprocesador `@define`
@@ -1530,7 +1530,7 @@ Nanz actualmente carece de:
 - Sobrecarga de funciones (MinZ la tiene; Nanz requiere nombres distintos)
 - `@extern` con anotaciones de clase de registro (documentado pero aún no parseado)
 
-### 11.4 Otros Backends (Solo MinZ)
+### 13.4 Otros Backends (Solo MinZ)
 
 El pipeline antiguo de MinZ (flag `-b`) soporta múltiples objetivos. Estos NO están disponibles para Nanz (que siempre va por MIR2 → Z80):
 

@@ -1497,7 +1497,7 @@ Phase 6c coalescer eliminated all block-boundary copy overhead from the hot loop
 
 ## Chapter 13: Relation to MinZ and PL/M
 
-### 11.1 The Three Frontends
+### 13.1 The Three Frontends
 
 | Language | Extension | Parser | Backend | Status |
 |----------|-----------|--------|---------|--------|
@@ -1514,13 +1514,13 @@ if ext == ".plm" || ext == ".nanz" {
 }
 ```
 
-### 11.2 When to Use Which
+### 13.2 When to Use Which
 
 **Nanz** — new Z80/CP/M programs, modern syntax, LUTGen, PBQP allocation.
 **MinZ** — existing `.minz` programs that work. Has metafunctions (`@define`, `@print`) not yet in Nanz.
 **PL/M-80** — porting legacy CP/M software. 100% of Intel 80 Tools corpus parses.
 
-### 11.3 Feature Gaps (Nanz vs. MinZ)
+### 13.3 Feature Gaps (Nanz vs. MinZ)
 
 Nanz currently lacks:
 - `@define` preprocessor macros
@@ -1530,7 +1530,7 @@ Nanz currently lacks:
 - Function overloading (MinZ has it; Nanz requires distinct names)
 - `@extern` with register class annotations (documented but not yet parsed)
 
-### 11.4 Other Backends (MinZ-only)
+### 13.4 Other Backends (MinZ-only)
 
 The MinZ old pipeline (`-b` flag) supports multiple targets. These are NOT available for Nanz (which always goes through MIR2 → Z80):
 
