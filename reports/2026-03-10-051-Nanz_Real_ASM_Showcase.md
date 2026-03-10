@@ -1085,3 +1085,123 @@ Two fixes in one commit:
 **Net:** 3 improvements (UFCS receiver syntax + sum_two return + gcd), 3
 regressions.  The regressions (`abs_diff` u8, `abs_diff_u16`, `mapInPlace`)
 are register-allocation issues unrelated to the sprint features.
+
+---
+
+## Post-Sprint Appendix 3 — abs_diff_u16 + IAR CSE pattern (2026-03-10)
+
+### 4a. 16-bit NEG — demo-scene SBC A,A trick
+
+The `OpNeg u16` codegen was updated with the classic Z80 demo-scene trick
+(6 bytes, 24T) replacing the NEG-based sequence (8 bytes, 31T):
+
+```z80
+; NEW (6B, 24T)           ; OLD (8B, 31T)
+XOR A                     ; LD A, L
+SUB L                     ; NEG
+LD  L, A                  ; LD L, A
+SBC A, A    ; ← magic     ; LD A, 0    ← 7T + 2B wasteful
+SUB H                     ; SBC A, H
+LD  H, A                  ; LD H, A
+```
+
+`SBC A, A` is mathematically exact: it propagates the borrow from the
+low-byte subtraction — `A = 0 - CF` → `0x00` or `0xFF` — then `SUB H`
+gives the correct two's complement high byte.  Saves **2 bytes, 7T** per
+`NEG HL` use.
+
+### 4b. abs_diff_u16 (u16 variant, direct operand-swap path)
+
+Calling convention: `a → HL (ClassPointer)`, `b → DE (ClassIndex)`.
+
+```nanz
+fun abs_diff_u16(a: u16, b: u16) -> u16 {
+    if a >= b { return a - b }
+    return b - a
+}
+```
+
+MIR2 compiles this as: `Sub(a,b)` in the a≥b branch; `Sub(b,a)` in the
+b>a branch.  The compiler takes the direct `EX DE,HL / SBC HL,DE` path
+for `Sub(b,a)` — more efficient than going through `OpNeg`:
+
+```z80
+abs_diff_u16:
+    PUSH HL          ; save a                    (11T)
+    OR A             ; clear carry               (4T)
+    SBC HL, DE       ; HL = a−b (for comparison) (15T)
+    POP HL           ; restore a                 (10T)
+    JRS C, .b_gt_a   ; a < b → slow path         (12T)
+.a_ge_b:
+    SCF / CCF        ; clear carry               (8T)
+    SBC HL, DE       ; HL = a−b                  (15T)
+    RET
+.b_gt_a:
+    EX DE, HL        ; HL = b, DE = a            (4T)
+    SCF / CCF        ;                           (8T)
+    SBC HL, DE       ; HL = b−a                  (15T)
+    RET
+```
+
+**Bug fixed**: `EX DE,HL` is a swap, not a copy.  After the exchange,
+the original `rhs` register (HL → now DE) was incorrectly still
+referenced as "HL" in the `SBC` emit.  Patched in `genBinOp` 16-bit SUB
+case: detect HL↔DE exchange and remap `rhs` before emitting `SBC`.
+
+### 4c. IAR-style CSE abs_diff — ideal codegen achieved ✅
+
+IAR Cortex-M3 compiles `unsigned abs_diff(a, b) { r=a-b; if(a>=b) return r; return -r; }` in **3 instructions**:
+```
+SUBS  R0, R0, R1   ; r = a−b, set flags
+IT CC              ; if carry (a < b):
+RSBCC R0, R0, #0  ;   R0 = −R0
+BX LR
+```
+
+After three new MIR2 optimizations, MIR2/Z80 now achieves the **ideal equivalent**:
+
+```z80
+abs_diff_iar:
+    SUB B           ; A = a−b, CF = borrow      4T
+    RET NC          ; a ≥ b → return A           5T (fast path)
+.ret_neg:
+    NEG             ; A = −(a−b) = b−a           8T
+    RET             ;                            10T
+
+; Fast path: 9T.  Slow path: 33T.
+```
+
+**u16 variant** (SBC HL,DE + SBC A,A NEG trick):
+```z80
+abs_diff_iar_u16:
+    SCF / CCF       ; 8T
+    SBC HL, DE      ; HL = a−b, CF = borrow     15T
+    RET NC          ; a ≥ b → return HL          5T (fast path: 28T)
+.ret_neg:
+    XOR A           ; 16-bit NEG HL via
+    SUB L           ;   SBC A,A trick           24T
+    LD  L, A
+    SBC A, A
+    SUB H
+    LD  H, A
+    RET             ;                           10T
+
+; Fast path: 28T.  Slow path: 62T.
+```
+
+Three compiler changes were required:
+
+| Component | What it does |
+|-----------|-------------|
+| `fusionSubCmpInBlock` | Sub(x,y) + Cmp(CmpLt/CmpGe, x,y) → `CmpSubCarry`/`CmpSubCarryNot`.  Removes `x` from Cmp use set before allocation (eliminates A-register interference) |
+| `CmpSubCarryNot` | Complement of `CmpSubCarry` — "NC from preceding SUB = a≥b".  Codegen emits nothing; `cmpCondCode` returns "NC" |
+| Sub+CmpGe genCmp fusion | Extended `lastFlagsLhs` check to CmpGe/CmpUge; moved BEFORE `emitLDA` to prevent `r` being clobbered by an `a`-reload |
+
+The IAR pattern requires `CmpLt` + swapped branches in the IR (so
+`CondRetSink` sinks the trivial `Ret(r)` branch, not the NEG path):
+
+```
+BrIf(CmpLt(a,b), then=ret_neg, else=ret_r)   ← ret_r is trivial
+CondRetSink → TermCondRet(CmpSubCarry, vals=[r], then=ret_neg)
+→ SUB B / RET NC / .ret_neg: NEG / RET
+```
