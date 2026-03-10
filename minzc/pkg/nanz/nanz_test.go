@@ -1031,5 +1031,97 @@ fun run(buf: ^u8, n: u8) {
 	}()
 }
 
+// ── Interface as parameter type ───────────────────────────────────────────────
+
+// TestInterfaceParamType_UniqueImpl: fun feed(a: Animal) { a.speak() }
+// Only Dog implements Animal → dispatch monomorphizes to Dog_speak.
+func TestInterfaceParamType_UniqueImpl(t *testing.T) {
+	src := `
+interface Animal { speak }
+struct Dog {}
+fun Dog.speak(self: Dog) -> u8 { return 1 }
+
+fun feed(a: Animal) -> u8 {
+    return a.speak()
+}
+`
+	m, err := nanz.Parse(src, "iface_param_unique")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	feed := m.FuncByName("feed")
+	if feed == nil {
+		t.Fatal("feed not found")
+	}
+	ret, ok := feed.Body.Body[0].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("body[0]: want ReturnStmt, got %T", feed.Body.Body[0])
+	}
+	call, ok := ret.Val.(*hir.CallExpr)
+	if !ok {
+		t.Fatalf("return value: want CallExpr, got %T", ret.Val)
+	}
+	if call.Fn != "Dog_speak" {
+		t.Errorf("expected call to Dog_speak, got %q", call.Fn)
+	}
+}
+
+// TestInterfaceParamType_AmbiguousImpl: two structs implement the interface →
+// compiler must return an error (ambiguous, use concrete type).
+func TestInterfaceParamType_AmbiguousImpl(t *testing.T) {
+	src := `
+interface Animal { speak }
+struct Dog {}
+struct Cat {}
+fun Dog.speak(self: Dog) -> u8 { return 1 }
+fun Cat.speak(self: Cat) -> u8 { return 2 }
+
+fun feed(a: Animal) -> u8 {
+    return a.speak()
+}
+`
+	_, err := nanz.Parse(src, "iface_param_ambiguous")
+	if err == nil {
+		t.Fatal("expected error for ambiguous interface dispatch, got nil")
+	}
+	if !strings.Contains(err.Error(), "ambiguous") {
+		t.Errorf("expected 'ambiguous' in error, got: %v", err)
+	}
+}
+
+// TestInterfaceGlobalType: global declared with interface type.
+func TestInterfaceGlobalType(t *testing.T) {
+	src := `
+interface Drawable { draw }
+struct Sprite {}
+fun Sprite.draw(self: Sprite) -> void {}
+
+global g_thing: Drawable
+
+fun render() -> void {
+    g_thing.draw()
+}
+`
+	m, err := nanz.Parse(src, "iface_global")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	render := m.FuncByName("render")
+	if render == nil {
+		t.Fatal("render not found")
+	}
+	expr, ok := render.Body.Body[0].(*hir.ExprStmt)
+	if !ok {
+		t.Fatalf("body[0]: want ExprStmt, got %T", render.Body.Body[0])
+	}
+	call, ok := expr.Expr.(*hir.CallExpr)
+	if !ok {
+		t.Fatalf("expr: want CallExpr, got %T", expr.Expr)
+	}
+	if call.Fn != "Sprite_draw" {
+		t.Errorf("expected call to Sprite_draw, got %q", call.Fn)
+	}
+}
+
 // Unused import guard: hir is used elsewhere in the file.
 var _ = (*hir.Module)(nil)

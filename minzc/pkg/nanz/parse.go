@@ -329,9 +329,11 @@ type parser struct {
 	lambdas     []*hir.Func // anonymous functions generated from |params| body syntax
 	lambdaCount int
 	// Week 1: UFCS + struct methods + operator overloading
-	globalTypes map[string]mir2.Ty              // module-level: global varname → type (persistent)
-	varTypes    map[string]mir2.Ty              // current function scope: varname → type (reset per func)
-	methodTable map[string]map[string]methodInfo // structName → methodName → info
+	globalTypes          map[string]mir2.Ty              // module-level: global varname → type (persistent)
+	globalInterfaceTypes map[string]string               // module-level: global varname → interface name
+	varTypes             map[string]mir2.Ty              // current function scope: varname → type (reset per func)
+	varInterfaceTypes    map[string]string               // current function scope: varname → interface name
+	methodTable          map[string]map[string]methodInfo // structName → methodName → info
 	opTable     map[string]opOverload             // op symbol ("+", "-", ...) → overload
 }
 
@@ -402,7 +404,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.methodTable = make(map[string]map[string]methodInfo)
 	p.opTable = make(map[string]opOverload)
 	p.globalTypes = make(map[string]mir2.Ty)
+	p.globalInterfaceTypes = make(map[string]string)
 	p.varTypes = make(map[string]mir2.Ty)
+	p.varInterfaceTypes = make(map[string]string)
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -576,12 +580,15 @@ func (p *parser) parseGlobalDecl() (mir2.Global, error) {
 	if _, err := p.l.eat(tokColon); err != nil {
 		return mir2.Global{}, err
 	}
-	ty, err := p.parseType()
+	ty, ifaceName, err := p.parseTypeWithIface()
 	if err != nil {
 		return mir2.Global{}, err
 	}
 	g := mir2.Global{Name: nameTok.val, Ty: ty}
 	p.globalTypes[nameTok.val] = ty // register for UFCS/field-offset lookup
+	if ifaceName != "" {
+		p.globalInterfaceTypes[nameTok.val] = ifaceName
+	}
 
 	// at(addr)?
 	if p.l.isIdent("at") {
@@ -718,6 +725,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		return nil, err
 	}
 	var params []hir.Param
+	var paramIfaceNames []string // parallel to params: interface name or ""
 	for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
 		pname, err := p.l.eat(tokIdent)
 		if err != nil {
@@ -726,11 +734,12 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		if _, err := p.l.eat(tokColon); err != nil {
 			return nil, err
 		}
-		pty, err := p.parseType()
+		pty, ifaceName, err := p.parseTypeWithIface()
 		if err != nil {
 			return nil, err
 		}
 		params = append(params, hir.Param{Name: pname.val, Ty: pty})
+		paramIfaceNames = append(paramIfaceNames, ifaceName)
 		if p.l.is(tokComma) {
 			p.l.next()
 		}
@@ -765,8 +774,12 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 
 	// Reset var scope and populate from params for the function body
 	p.varTypes = make(map[string]mir2.Ty)
-	for _, param := range params {
+	p.varInterfaceTypes = make(map[string]string)
+	for i, param := range params {
 		p.varTypes[param.Name] = param.Ty
+		if i < len(paramIfaceNames) && paramIfaceNames[i] != "" {
+			p.varInterfaceTypes[param.Name] = paramIfaceNames[i]
+		}
 	}
 
 	f := &hir.Func{
@@ -870,6 +883,46 @@ func (p *parser) parseType() (mir2.Ty, error) {
 	}
 
 	return nil, fmt.Errorf("line %d: expected type, got %q", t.line, t.val)
+}
+
+// parseTypeWithIface is like parseType but also returns the interface name when
+// the type is an interface (e.g. "Animal" → TyPtr, "Animal").  Returns ("", nil)
+// for the interface name when the type is not an interface.
+func (p *parser) parseTypeWithIface() (mir2.Ty, string, error) {
+	t := p.l.peek()
+	if t.kind == tokIdent {
+		if _, ok := p.interfaces[t.val]; ok {
+			p.l.next()
+			return mir2.TyPtr, t.val, nil
+		}
+	}
+	ty, err := p.parseType()
+	return ty, "", err
+}
+
+// findImplementors returns all struct names that satisfy every method in the
+// named interface AND have methodName in their methodTable.
+func (p *parser) findImplementors(ifaceName, methodName string) []string {
+	decl := p.interfaces[ifaceName]
+	if decl == nil {
+		return nil
+	}
+	var result []string
+	for structName, methods := range p.methodTable {
+		ok := true
+		for _, m := range decl.Methods {
+			if _, has := methods[m]; !has {
+				ok = false
+				break
+			}
+		}
+		if ok {
+			if _, has := methods[methodName]; has {
+				result = append(result, structName)
+			}
+		}
+	}
+	return result
 }
 
 // parseRangedType parses the <lo..hi> suffix that follows an integer base type.
@@ -1537,6 +1590,32 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 					if info, found := p.methodTable[st.Name][fieldTok.val]; found {
 						callName = info.funcName
 						callRetTy = info.retTy
+					}
+				}
+				// Interface dispatch: if base is a variable with a known interface type,
+				// resolve to the unique implementing struct's method.
+				if callName == fieldTok.val {
+					if vr, ok2 := base.(*hir.VarRefExpr); ok2 {
+						ifaceName := p.varInterfaceTypes[vr.Name]
+						if ifaceName == "" {
+							ifaceName = p.globalInterfaceTypes[vr.Name]
+						}
+						if ifaceName != "" {
+							impls := p.findImplementors(ifaceName, fieldTok.val)
+							switch len(impls) {
+							case 1:
+								if info, found := p.methodTable[impls[0]][fieldTok.val]; found {
+									callName = info.funcName
+									callRetTy = info.retTy
+								}
+							case 0:
+								return nil, fmt.Errorf("line %d: no type in this module implements interface %s method %q",
+									fieldTok.line, ifaceName, fieldTok.val)
+							default:
+								return nil, fmt.Errorf("line %d: ambiguous dispatch: %s.%s() — multiple types implement %s: %v; use concrete type",
+									fieldTok.line, vr.Name, fieldTok.val, ifaceName, impls)
+							}
+						}
 					}
 				}
 				base = &hir.CallExpr{Fn: callName, Args: args, Ty: callRetTy}
