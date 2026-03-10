@@ -343,20 +343,29 @@ func (a *Assembler) evaluateArithmeticExpression(expr string) (int, error) {
 	return 0, fmt.Errorf("invalid expression: %s", expr)
 }
 
-// isValidSymbol checks if a string is a valid symbol name
+// isValidSymbol checks if a string is a valid symbol name.
+//
+// '$' is allowed in mid-position as a compiler-reserved mangling separator.
+// User-facing frontends (Nanz, PL/M, Pascal) must forbid '$' in identifiers,
+// so names like "Outer$Inner$Deep" are unambiguous: they can only come from
+// the compiler's name mangling for nested scopes (e.g. Pascal nested procedures).
+//
+// No conflict with the expression evaluator: '$' as hex prefix ($FF) and
+// current-address ($) are only recognized at token start, never mid-symbol.
 func isValidSymbol(s string) bool {
 	if len(s) == 0 {
 		return false
 	}
 
 	// Must start with letter, underscore, or dot (for local/module labels)
+	// Note: '$' is NOT allowed at start — avoids ambiguity with $FF (hex) and $ (PC).
 	if !unicode.IsLetter(rune(s[0])) && s[0] != '_' && s[0] != '.' {
 		return false
 	}
 
-	// Rest can be letters, digits, underscore, or dot
+	// Rest can be letters, digits, underscore, dot, or '$' (mangling separator)
 	for _, r := range s[1:] {
-		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '.' {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '.' && r != '$' {
 			return false
 		}
 	}

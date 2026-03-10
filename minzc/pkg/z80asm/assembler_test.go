@@ -482,3 +482,44 @@ func TestSymbols(t *testing.T) {
 		}
 	}
 }
+
+// TestDollarMangledSymbols verifies that '$' works as a compiler-reserved
+// mangling separator in mid-position (for nested procedure names, e.g. Pascal).
+// '$' must NOT be allowed at the start of a symbol (conflict with $FF hex prefix
+// and $ current-address), but is safe mid-symbol because parseImmediate only
+// checks for '$' at token start.
+func TestDollarMangledSymbols(t *testing.T) {
+	source := `
+		ORG $8000
+
+	Outer$Inner$Deep:
+		LD A, 1
+		RET
+
+	main:
+		CALL Outer$Inner$Deep
+	`
+
+	asm := NewAssembler()
+	result, err := asm.AssembleString(source)
+	if err != nil {
+		t.Fatalf("Assembly with $ mangled symbols failed: %v", err)
+	}
+
+	// Default CaseSensitive=false, so labels are stored upper-cased
+	if _, ok := result.Symbols["OUTER$INNER$DEEP"]; !ok {
+		t.Error("Symbol OUTER$INNER$DEEP not found — '$' should be valid mid-symbol")
+	}
+
+	// Verify CALL is present somewhere in the binary (CD 00 80 = CALL $8000)
+	found := false
+	for i := 0; i+2 < len(result.Binary); i++ {
+		if result.Binary[i] == 0xCD && result.Binary[i+1] == 0x00 && result.Binary[i+2] == 0x80 {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("CALL $8000 (Outer$Inner$Deep) not found in binary: %X", result.Binary)
+	}
+}
