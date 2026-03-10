@@ -401,6 +401,29 @@ func classForRet(ty mir2.Ty) mir2.RegClass {
 	return mir2.ClassAcc // A
 }
 
+// lowerExprForRet lowers an expression that is the direct value of a ReturnStmt.
+// For a LoadExpr or FieldExpr at the top level, it uses classForRet (ClassAcc)
+// instead of classForExpr (ClassGeneral), so the load goes directly into A and
+// avoids the redundant LD C,(HL); LD A,C sequence.
+func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
+	switch ex := e.(type) {
+	case *LoadExpr:
+		if ex.Ty.Width() <= 8 {
+			ptr := l.lowerExpr(ex.Ptr)
+			return l.bld.Load(ptr, ex.Ty, classForRet(ex.Ty))
+		}
+	case *FieldExpr:
+		if ex.Ty.Width() <= 8 {
+			base := l.lowerExpr(ex.X)
+			if ex.Offset > 0 {
+				base = l.bld.Field(base, int64(ex.Offset), mir2.ClassPointer)
+			}
+			return l.bld.Load(base, ex.Ty, classForRet(ex.Ty))
+		}
+	}
+	return l.lowerExpr(e)
+}
+
 // classForExpr picks a "natural" class for an intermediate expression result.
 //
 // We use ClassGeneral (B/C/D/E) rather than ClassAcc (A) for 8-bit
@@ -502,7 +525,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 
 	case *ReturnStmt:
 		if st.Val != nil {
-			r := l.lowerExpr(st.Val)
+			r := l.lowerExprForRet(st.Val)
 			l.bld.Ret(r)
 		} else {
 			l.bld.Ret()

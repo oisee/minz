@@ -566,3 +566,94 @@ func TestHIRIndex(t *testing.T) {
 		}
 	}
 }
+
+// TestLoadDirectToReturnUsesClassAcc verifies that lowerExprForRet eliminates
+// the redundant LD C,(HL); LD A,C pattern for LoadExpr/FieldExpr at return sites.
+// Without the fix, classForExpr returns ClassGeneral → LD C,(HL), then LD A,C.
+// With the fix, classForRet returns ClassAcc → LD A,(HL) directly.
+func TestLoadDirectToReturnUsesClassAcc(t *testing.T) {
+	// palette: global u8 = 42
+	// get_r() -> u8 { return *palette }   (LoadExpr at return site)
+	hm := &hir.Module{Name: "test_ret_load"}
+	hm.Globals = []mir2.Global{{Name: "palette", Ty: mir2.TyU8, Init: []byte{42}}}
+	hm.Funcs = append(hm.Funcs, &hir.Func{
+		Name:  "get_r",
+		RetTy: mir2.TyU8,
+		Body: hir.Blk(
+			hir.Ret(&hir.LoadExpr{
+				Ptr: hir.Addr("palette"),
+				Ty:  mir2.TyU8,
+			}),
+		),
+	})
+
+	genAsm := compileHIR(t, hm)
+	t.Logf("get_r generated:\n%s", genAsm)
+
+	// Must NOT emit the redundant load-to-C-then-copy-to-A pattern.
+	if strings.Contains(genAsm, "LD C, (") && strings.Contains(genAsm, "LD A, C") {
+		t.Errorf("redundant 'LD C,(addr); LD A,C' pattern; lowerExprForRet should use ClassAcc:\n%s", genAsm)
+	}
+	// Must load directly into A.
+	if !strings.Contains(genAsm, "LD A, (") {
+		t.Errorf("expected direct 'LD A,(addr)' load in output:\n%s", genAsm)
+	}
+
+	// Run: get_r() should return 42 (the initial value of palette).
+	boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n    CALL get_r\n    DI\n    HALT\n", testLoadAddr)
+	a, _, err := runZ80(t, boot+genAsm)
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if a != 42 {
+		t.Errorf("get_r() = %d, want 42", a)
+	}
+}
+
+// TestFieldExprReturnUsesClassAcc verifies that returning a struct field (FieldExpr)
+// at offset 0 also uses ClassAcc directly (no intermediate C register).
+func TestFieldExprReturnUsesClassAcc(t *testing.T) {
+	// struct Color { r: u8, g: u8, b: u8 }
+	// global palette: Color = {7, 8, 9}
+	// get_r() -> u8 { return palette.r }   (FieldExpr offset 0)
+	colorTy := &mir2.StructTy{
+		Name: "Color",
+		Fields: []mir2.StructField{
+			{Name: "r", Ty: mir2.TyU8},
+			{Name: "g", Ty: mir2.TyU8},
+			{Name: "b", Ty: mir2.TyU8},
+		},
+	}
+	hm := &hir.Module{Name: "test_field_ret"}
+	hm.Globals = []mir2.Global{{Name: "palette", Ty: colorTy, Init: []byte{7, 8, 9}}}
+	hm.Funcs = append(hm.Funcs, &hir.Func{
+		Name:  "get_r",
+		RetTy: mir2.TyU8,
+		Body: hir.Blk(
+			hir.Ret(&hir.FieldExpr{
+				X:      hir.Addr("palette"),
+				Field:  "r",
+				Offset: 0,
+				Ty:     mir2.TyU8,
+			}),
+		),
+	})
+
+	genAsm := compileHIR(t, hm)
+	t.Logf("get_r (field) generated:\n%s", genAsm)
+
+	// Must NOT emit the redundant load-to-C-then-copy-to-A pattern.
+	if strings.Contains(genAsm, "LD C, (") && strings.Contains(genAsm, "LD A, C") {
+		t.Errorf("redundant 'LD C,(addr); LD A,C' for FieldExpr return; lowerExprForRet should use ClassAcc:\n%s", genAsm)
+	}
+
+	// Run: get_r() must return 7 (palette.r).
+	boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n    CALL get_r\n    DI\n    HALT\n", testLoadAddr)
+	a, _, err := runZ80(t, boot+genAsm)
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if a != 7 {
+		t.Errorf("get_r() = %d, want 7 (palette.r)", a)
+	}
+}
