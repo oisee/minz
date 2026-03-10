@@ -529,7 +529,10 @@ let greet = |x: u8| {
 
 Parameter types default to `u8` if omitted: `|x| x + 1` is valid.
 
-Lambdas are **non-capturing**: they cannot close over variables from the enclosing function. Each lambda becomes a top-level function named `lambda_N` (where N is a sequential counter).
+Each lambda becomes a top-level function named `lambda_N` (N is a sequential counter). **Capture rules** depend on context:
+
+- **Fused iterator lambdas** (`forEach`/`map`/`filter` chains that get inlined): may read and write outer local variables. The compiler detects free variables, skips standalone lowering of the lambda, and threads the captured vars as SSA block params through the DJNZ loop — zero spill, zero heap.
+- **Non-fused lambdas** (passed as function pointers): cannot capture outer locals (no runtime frame to address them). Only globals are accessible.
 
 ```nanz
 // |x: u8| x * 2  becomes:
@@ -802,10 +805,9 @@ The `u8<0..255>` annotation tells LUTGen: this function is pure (no I/O, no glob
 
 ```asm
 popcount:
-    LD HL, popcount_lut
-    LD L, C         ; L = x (parameter in C via contract opt)
-    LD A, (HL)      ; A = popcount_lut[x]
-    LD C, A
+    LD H, popcount_lut^H  ; 7T — load page base (high byte only; ^H = addr>>8)
+    LD L, C               ; 4T — L = x (parameter in C via contract opt)
+    LD A, (HL)            ; 7T — A = popcount_lut[x]
     RET
 
 ; globals
@@ -814,7 +816,7 @@ popcount_lut:
     DB 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, ...
 ```
 
-The 256-entry table is aligned to a 256-byte boundary. Since `ALIGN 256` guarantees that `popcount_lut` starts at an address with the low byte zero, we can index it with `LD L, A` (set the low byte of HL) rather than a full 16-bit add. This is the **page-aligned fast path**: 21 T-states vs ~70-150 T-states for the iterative version.
+The 256-entry table is aligned to a 256-byte boundary. Since `ALIGN 256` guarantees the low byte of `popcount_lut`'s address is always zero, only the **high byte** (the page base) needs loading — `LD H, popcount_lut^H` (7T) instead of `LD HL, popcount_lut` (10T). Then `LD L, C` sets the index. This is the **page-aligned fast path**: **18 T-states** (body only; 7+4+7) vs ~70-150 T-states for the iterative loop version. (`^H` is MZA's high-byte extraction suffix, equivalent to `(address >> 8) & 0xFF`.)
 
 Without the range annotation, `popcount(x: u8)` compiles to a real loop.
 
