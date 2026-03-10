@@ -35,7 +35,7 @@
         },
         {
           "name": "keyword.declaration.nanz",
-          "match": "\\b(fun|fn|var|let|struct|global)\\b"
+          "match": "\\b(fun|fn|var|let|struct|global|interface)\\b"
         },
         {
           "name": "keyword.other.nanz",
@@ -70,6 +70,23 @@
     },
     "functions": {
       "patterns": [
+        {
+          "comment": "Method declaration: fun Type.method( — must come before plain function",
+          "match": "\\b(fun|fn)\\s+([A-Za-z_][A-Za-z0-9_]*)\\.([A-Za-z_][A-Za-z0-9_]*)\\s*\\(",
+          "captures": {
+            "1": { "name": "keyword.declaration.nanz" },
+            "2": { "name": "entity.name.type.nanz" },
+            "3": { "name": "entity.name.function.nanz" }
+          }
+        },
+        {
+          "comment": "Operator overload declaration: fun +(  fun -( etc.",
+          "match": "\\b(fun|fn)\\s+([+\\-*/<>=!&|^]+)\\s*\\(",
+          "captures": {
+            "1": { "name": "keyword.declaration.nanz" },
+            "2": { "name": "entity.name.function.operator.nanz keyword.operator.nanz" }
+          }
+        },
         {
           "comment": "Function declaration: fun name(",
           "match": "\\b(fun|fn)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*\\(",

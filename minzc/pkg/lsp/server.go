@@ -386,7 +386,7 @@ func (s *Server) analyzeAndPublish(uri string) {
 // analyzeNanz parses a Nanz file and returns LSP diagnostics.
 func (s *Server) analyzeNanz(filePath, content string) []Diagnostic {
 	var diagnostics []Diagnostic
-	_, err := nanz.Parse(content, filepath.Base(filePath))
+	m, err := nanz.Parse(content, filepath.Base(filePath))
 	if err != nil {
 		// Nanz errors have the form "line N: message"
 		diags := extractNanzDiagnostics(err.Error(), filePath)
@@ -401,7 +401,32 @@ func (s *Server) analyzeNanz(filePath, content string) []Diagnostic {
 			})
 		}
 	}
+	// Surface use-before-init and other compile-time warnings.
+	if m != nil {
+		for _, w := range m.Warnings {
+			diag := extractNanzWarningDiagnostic(w)
+			diagnostics = append(diagnostics, diag)
+		}
+	}
 	return diagnostics
+}
+
+// nanzWarnLineRe extracts "declared at line N" from a use-before-init warning.
+var nanzWarnLineRe = regexp.MustCompile(`declared at line (\d+)`)
+
+// extractNanzWarningDiagnostic converts a use-before-init warning string to an LSP Diagnostic.
+func extractNanzWarningDiagnostic(w string) Diagnostic {
+	line := 0
+	if m := nanzWarnLineRe.FindStringSubmatch(w); m != nil {
+		n, _ := strconv.Atoi(m[1])
+		line = max0(n - 1)
+	}
+	return Diagnostic{
+		Range:    Range{Start: Position{line, 0}, End: Position{line, 80}},
+		Severity: DiagnosticSeverityWarning,
+		Source:   "nanz",
+		Message:  strings.TrimPrefix(w, "warning: "),
+	}
 }
 
 // extractNanzDiagnostics parses Nanz error strings of the form "line N: message".
