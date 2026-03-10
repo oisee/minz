@@ -971,5 +971,65 @@ fun sum_chain(buf: ^u8, n: u8) -> u8 {
 	}
 }
 
+// TestMapInPlace verifies that buf.mapInPlace(|x: u8| x+2, n) is recognised as
+// an iterator chain, lowers without panic, and emits a Store-back in the loop.
+func TestMapInPlace(t *testing.T) {
+	src := `
+fun run(buf: ^u8, n: u8) {
+    buf.mapInPlace(|x: u8| (x + 2), n)
+}
+`
+	m, err := nanz.Parse(src, "mapinplace_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	var mirmod *mir2.Module
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatalf("LowerModule panicked: %v", r)
+			}
+		}()
+		mirmod = hir.LowerModule(m)
+	}()
+	fn := mirmod.FuncByName("run")
+	if fn == nil {
+		t.Fatal("run not found")
+	}
+	// Verify a Store instruction exists (the write-back).
+	foundStore := false
+	for _, blk := range fn.Blocks {
+		for _, inst := range blk.Insts {
+			if inst.Op == mir2.OpStore {
+				foundStore = true
+			}
+		}
+	}
+	if !foundStore {
+		t.Error("mapInPlace: expected OpStore write-back in MIR2, found none")
+	}
+}
+
+// TestMapInPlaceWithFilter verifies that filter + mapInPlace fusion works.
+func TestMapInPlaceWithFilter(t *testing.T) {
+	src := `
+fun run(buf: ^u8, n: u8) {
+    buf.filter(|x: u8| (x > 0)).mapInPlace(|x: u8| (x * 2), n)
+}
+`
+	m, err := nanz.Parse(src, "mapinplace_filter_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	func() {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Fatalf("LowerModule panicked: %v", r)
+			}
+		}()
+		hir.LowerModule(m)
+	}()
+}
+
 // Unused import guard: hir is used elsewhere in the file.
 var _ = (*hir.Module)(nil)

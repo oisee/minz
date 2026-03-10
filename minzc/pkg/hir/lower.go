@@ -874,6 +874,13 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	l.lowerBlock(st.Body)
 	l.popLoop()
 
+	// mapInPlace: store the (possibly transformed) element value back to ptr.
+	if st.MutateInPlace {
+		if finalVal, ok := l.env[st.Var]; ok {
+			l.bld.Store(headPtr, finalVal, st.ElemTy)
+		}
+	}
+
 	// Fall-through from body → fe_cont with current mutated values.
 	l.bld.Jmp(contLabel, l.collectArgs(mutated)...)
 
@@ -1507,6 +1514,7 @@ type iterChain struct {
 	ptr    Expr        // base pointer expression
 	len    Expr        // element count
 	stages []iterStage // transformation stages (innermost-first)
+	mutate bool        // mapInPlace: store transformed element back to ptr
 	cbName string      // forEach callback function name
 	elemTy mir2.Ty     // element type (from callback's first param)
 }
@@ -1523,10 +1531,22 @@ func (l *lowerer) tryLowerIterChain(expr Expr) bool {
 	return true
 }
 
-// recognizeIterChain matches: forEach(src, cb, len) where src may be nested map/filter.
+// recognizeIterChain matches forEach(src,cb,n) and mapInPlace(src,cb,n)
+// where src may be nested map/filter stages.
 func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 	call, ok := expr.(*CallExpr)
-	if !ok || call.Fn != "forEach" || len(call.Args) != 3 {
+	if !ok {
+		return iterChain{}, false
+	}
+	isMutate := false
+	switch call.Fn {
+	case "forEach":
+	case "mapInPlace":
+		isMutate = true
+	default:
+		return iterChain{}, false
+	}
+	if len(call.Args) != 3 {
 		return iterChain{}, false
 	}
 
@@ -1538,6 +1558,7 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 	chain := iterChain{
 		len:    call.Args[2],
 		cbName: cbName,
+		mutate: isMutate,
 		elemTy: mir2.TyU8, // default; refined from callback param below
 	}
 	if cbFn, ok2 := l.hirFuncs[cbName]; ok2 && len(cbFn.Params) > 0 {
@@ -1643,9 +1664,35 @@ func (l *lowerer) lowerFusedForEach(chain iterChain) {
 		}
 	}
 
-	// Inline the forEach callback.
+	// Inline the terminal callback.
+	// For mapInPlace: the callback is a value-transform (like map); assign result to elemVar.
+	// For forEach: the callback is a side-effect action; emit inline stmts.
 	cbFn := l.hirFuncs[chain.cbName]
-	if cbFn == nil || cbFn.Body == nil {
+	if chain.mutate {
+		// mapInPlace: apply callback as a transform, result stored back by lowerForEach.
+		var rhs Expr
+		paramName := elemVar
+		if cbFn != nil && cbFn.Body != nil {
+			if len(cbFn.Params) > 0 {
+				paramName = cbFn.Params[0].Name
+			}
+			if ret := extractReturnExpr(cbFn.Body); ret != nil {
+				rhs = renameExpr(ret, paramName, elemVar)
+			}
+		}
+		if rhs == nil {
+			// Complex body — emit a call and use its return value.
+			rhs = &CallExpr{
+				Fn:   chain.cbName,
+				Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
+				Ty:   elemTy,
+			}
+		}
+		bodyStmts = append(bodyStmts, &AssignStmt{
+			Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
+			Val:    rhs,
+		})
+	} else if cbFn == nil || cbFn.Body == nil {
 		// Unknown function — emit a call.
 		bodyStmts = append(bodyStmts, &ExprStmt{
 			Expr: &CallExpr{
@@ -1671,11 +1718,12 @@ func (l *lowerer) lowerFusedForEach(chain iterChain) {
 	}
 
 	forEach := &ForEachStmt{
-		Var:    elemVar,
-		ElemTy: elemTy,
-		Ptr:    chain.ptr,
-		Start:  &IntLitExpr{Val: 0, Ty: mir2.TyU8},
-		Len:    chain.len,
+		Var:           elemVar,
+		ElemTy:        elemTy,
+		Ptr:           chain.ptr,
+		Start:         &IntLitExpr{Val: 0, Ty: mir2.TyU8},
+		Len:           chain.len,
+		MutateInPlace: chain.mutate,
 		Body:   &Block{Body: bodyStmts},
 	}
 	l.lowerForEach(forEach)

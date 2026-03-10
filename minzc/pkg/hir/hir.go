@@ -153,12 +153,13 @@ func (*ExprStmt) hirStmt() {}
 //	ptr → ClassPointer (HL); counter → ClassCounter (B)
 //	loop: x = *ptr; body; ptr += stride; counter--; if counter != 0 goto loop
 type ForEachStmt struct {
-	Var    string  // element variable name (bound in body)
-	ElemTy mir2.Ty // type of each element
-	Ptr    Expr    // base pointer (TyPtr)
-	Start  Expr    // start index (often IntLitExpr{0})
-	Len    Expr    // element count (= end - start when start=0)
-	Body   *Block
+	Var           string  // element variable name (bound in body)
+	ElemTy        mir2.Ty // type of each element
+	Ptr           Expr    // base pointer (TyPtr)
+	Start         Expr    // start index (often IntLitExpr{0})
+	Len           Expr    // element count (= end - start when start=0)
+	Body          *Block
+	MutateInPlace bool    // if true: store transformed element back to ptr after body
 }
 
 func (*ForEachStmt) hirStmt() {}
