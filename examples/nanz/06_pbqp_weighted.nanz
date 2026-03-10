@@ -1,0 +1,40 @@
+// 06_pbqp_weighted.nanz — Phase 6b: weighted cost vectors
+//
+// Two ClassAcc registers with very different use counts.
+// PBQP computes nodeCost[r][loc] = useCount × ct.Cost(cls, loc).
+//   heavy (used 10×): delta = 10×4 - 10×0 = 40  → allocated first → gets A
+//   light (used  1×): delta =  1×4 -  1×0 =  4  → gets next best (B, C, ...)
+//
+// The greedy allocator has no use-count weighting — assignment order
+// is arbitrary. PBQP's delta-sort guarantees the hot register wins A.
+//
+// Actual compiled output (mz 06_pbqp_weighted.nanz):
+//
+//   weighted:
+//       LD C, 1          ; light → C  (1× use, cost 6T)
+//       ADD A, A         ; heavy starts in A (0T per use × 10 uses = 0T total)
+//       LD D, A
+//       ADD A, D
+//       ... (8 more iterations)
+//       ADD A, C         ; final: heavy(A) + light(C)
+//       RET
+
+fun weighted(x: u8) -> u8 {
+    // r_light: defined once, used once in the final add
+    var light: u8 = 1
+
+    // r_heavy: accumulated 10 times through repeated addition
+    var heavy: u8 = x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+
+    // Both live here — PBQP puts heavy in A (0T/use), light in C (6T/use)
+    return heavy + light
+}

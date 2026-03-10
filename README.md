@@ -218,46 +218,90 @@ clamp:
 
 ### PBQP Allocator: Hot Registers in Cheap Slots
 
+([`examples/nanz/05_four_pointers.nanz`](examples/nanz/05_four_pointers.nanz) · [`06_pbqp_weighted.nanz`](examples/nanz/06_pbqp_weighted.nanz) · [`07_ix_load_store.nanz`](examples/nanz/07_ix_load_store.nanz))
+
 The PBQP allocator weights each virtual register's cost by its use count.
 A register used 10× pays 10× the slot cost, so the solver puts it in the
 cheapest location — even when that means displacing a low-use register.
 
-Four simultaneously-live pointer registers → HL / DE / BC / **IX** (no spill):
+**Four simultaneously-live pointer registers → HL / DE / BC / IX (no spill):**
 
 ```nanz
-// Four pointer params, all live simultaneously
-fun sum_four(p0: ptr, p1: ptr, p2: ptr, p3: ptr) -> u8 {
-    return p0[0] + p1[0] + p2[0] + p3[0]
+// examples/nanz/05_four_pointers.nanz
+fun four_ptrs(p0: ptr, p1: ptr, p2: ptr, p3: ptr) -> u8 {
+    var v0: u8 = p0[0]
+    var v1: u8 = p1[0]
+    var v2: u8 = p2[0]
+    var v3: u8 = p3[0]    // p3 → IX under register pressure
+    var s01: u8 = v0 + v1
+    var s23: u8 = v2 + v3
+    return s01 + s23
 }
 ```
 
 ```asm
 four_ptrs:
-    LD A, (HL)      ; p0 → HL  (cost 0 — primary pointer reg)
-    LD B, (DE)      ; p1 → DE  (cost 4)
-    LD C, (BC)      ; p2 → BC  (cost 6)
-    LD D, (IX+0)    ; p3 → IX  (cost 8) ← overflow pool, not $F0xx memory!
-    ADD A, B
+    LD C, (HL)      ; p0 → HL  (cost 0)
+    LD D, (DE)      ; p1 → DE  (cost 4)
+    LD E, (BC)      ; p2 → BC  (cost 6)
+    LD H, (IX+0)    ; p3 → IX  (cost 8) ← (IX+0) not $F0xx memory!
     LD A, C
     ADD A, D
-    LD B, A
-    ADD A, B
+    LD C, A
+    LD A, E
+    ADD A, H
+    ...
     RET
 ```
 
-High-use vs low-use — PBQP picks optimal assignment:
+**High-use vs low-use — PBQP always puts the hot reg in the cheap slot:**
 
+```nanz
+// examples/nanz/06_pbqp_weighted.nanz
+fun weighted(x: u8) -> u8 {
+    var light: u8 = 1          // used 1×  — displaced to C
+    var heavy: u8 = x          // used 10× — stays in A (0T per use)
+    heavy = heavy + x          // ... repeated 9 more times
+    ...
+    return heavy + light
+}
 ```
-r_heavy (used 10×) → A   (cost 10 × 0T =  0T)
-r_light (used  1×) → C   (cost  1 × 6T =  6T)   total: 6T
 
-greedy (arbitrary):
-r_heavy            → A   (lucky — same result by chance here)
-r_light            → B   (cost  1 × 4T =  4T)   total: 4T ← greedy wins by coincidence
+```asm
+weighted:
+    LD C, 1          ; light → C  (1× use, forced out of A)
+    ADD A, A         ; heavy stays in A throughout (10× use, 0T/use)
+    LD D, A
+    ADD A, D
+    ...              ; 8 more iterations — all in A, zero memory traffic
+    ADD A, C         ; final: heavy(A) + light(C)
+    RET
 ```
 
-When allocation order disfavours the heavy register, PBQP's delta-sort
-(`2nd_best − best`) guarantees it claims the primary slot regardless.
+**IX store/load — undocumented HL→IX copy (16T vs 21T PUSH/POP):**
+
+```nanz
+// examples/nanz/07_ix_load_store.nanz
+fun roundtrip_ix(hl_ptr: ptr, de_ptr: ptr, bc_ptr: ptr, val: u8) -> u8 {
+    bc_ptr[0] = val           // bc_ptr overflows to IX under 4-reg pressure
+    var a: u8 = hl_ptr[0]
+    var b: u8 = de_ptr[0]
+    var back: u8 = bc_ptr[0]
+    return a + b + back
+}
+```
+
+```asm
+roundtrip_ix:
+    LD IXH, H         ; undocumented DD 67 — copy HL→IX (16T, not PUSH/POP=21T)
+    LD IXL, L         ; undocumented DD 6D
+    LD (IX+0), C      ; store val through IX pointer
+    LD C, (DE)
+    LD D, (BC)
+    LD E, (HL)
+    ...
+    RET
+```
 
 ### LUTGen: Compile-Time Lookup Tables
 

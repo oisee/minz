@@ -1,0 +1,29 @@
+// 05_four_pointers.nanz — Phase 6a/6b showcase
+//
+// Four simultaneously-live pointer parameters.
+// PBQP assigns them HL/DE/BC/IX in cost order — no $F0xx memory spill.
+//
+// Actual compiled output (mz 05_four_pointers.nanz):
+//
+//   four_ptrs:
+//       LD C, (HL)       ; p0 → HL
+//       LD D, (DE)       ; p1 → DE
+//       LD E, (BC)       ; p2 → BC
+//       LD H, (IX+0)     ; p3 → IX  ← (IX+0) addressing, not $F0xx!
+//       LD A, C
+//       ADD A, D
+//       LD C, A
+//       LD A, E
+//       ADD A, H
+//       ...
+//       RET
+
+fun four_ptrs(p0: ptr, p1: ptr, p2: ptr, p3: ptr) -> u8 {
+    var v0: u8 = p0[0]
+    var v1: u8 = p1[0]
+    var v2: u8 = p2[0]
+    var v3: u8 = p3[0]
+    var s01: u8 = v0 + v1
+    var s23: u8 = v2 + v3
+    return s01 + s23
+}

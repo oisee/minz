@@ -1,0 +1,39 @@
+// 07_ix_load_store.nanz — Phase 6a: IX/IY indexed addressing
+//
+// When HL/DE/BC are occupied by other live pointers and a 4th pointer
+// is needed, PBQP places it in IX. The codegen emits correct (IX+0)
+// displacement addressing — Z80 requires the +d byte even for d=0.
+//
+// Moving HL→IX uses undocumented byte instructions (16T vs 21T PUSH/POP):
+//   LD IXH, H    ; DD 67
+//   LD IXL, L    ; DD 6D
+//
+// Actual compiled output (mz 07_ix_load_store.nanz):
+//
+//   roundtrip_ix:
+//       LD IXH, H         ; ← undocumented: copy HL→IX (16T, not PUSH/POP=21T)
+//       LD IXL, L
+//       LD (IX+0), C      ; store val through IX pointer
+//       LD C, (DE)        ; de_ptr load
+//       LD D, (BC)        ; bc_ptr load
+//       LD E, (HL)        ; hl_ptr load (HL restored after IX copy)
+//       ...
+//       RET
+
+// Three pointers: HL/DE/BC fully occupied. val in A.
+fun sum_with_ix(hl_ptr: ptr, de_ptr: ptr, bc_ptr: ptr) -> u8 {
+    var a: u8 = hl_ptr[0]
+    var b: u8 = de_ptr[0]
+    var c: u8 = bc_ptr[0]
+    return a + b + c
+}
+
+// Four live regs: 3 pointers + val. ix_ptr overflows to IX.
+// Store through IX, reload, verify round-trip.
+fun roundtrip_ix(hl_ptr: ptr, de_ptr: ptr, bc_ptr: ptr, val: u8) -> u8 {
+    bc_ptr[0] = val           // emits: LD (IX+0), r  (bc_ptr → IX under pressure)
+    var a: u8 = hl_ptr[0]
+    var b: u8 = de_ptr[0]
+    var back: u8 = bc_ptr[0] // emits: LD r, (IX+0)
+    return a + b + back
+}
