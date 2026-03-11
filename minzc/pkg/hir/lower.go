@@ -1060,6 +1060,17 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 // ── Expression lowering ───────────────────────────────────────────────────────
 
 // lowerExpr lowers a HIR expression and returns the virtual register holding
+// lowerExprAs lowers e, but if e is an integer literal with a narrower type
+// than wantTy, emits the constant with wantTy instead.  This handles patterns
+// like "0 - r" where r:u16 — the parser types the literal 0 as u8 but the
+// arithmetic must be 16-bit.
+func (l *lowerer) lowerExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
+	if lit, ok := e.(*IntLitExpr); ok && lit.Ty != wantTy && lit.Ty.Width() < wantTy.Width() {
+		return l.bld.Const(lit.Val, wantTy, classForExpr(wantTy))
+	}
+	return l.lowerExpr(e)
+}
+
 // the result.
 func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	switch ex := e.(type) {
@@ -1232,10 +1243,13 @@ func (l *lowerer) lowerBinExpr(ex *BinExpr) mir2.Reg {
 		return l.lowerCond(ex)
 	}
 
-	lReg := l.lowerExpr(ex.L)
-	rReg := l.lowerExpr(ex.R)
 	ty := ex.Ty
 	cls := classForExpr(ty)
+	// Type-widen integer literals to match the expression result type.
+	// e.g. "0 - r" where r:u16 parses literal 0 as u8; promote to u16 so
+	// the codegen sees a 16-bit const, not an 8-bit one.
+	lReg := l.lowerExprAs(ex.L, ty)
+	rReg := l.lowerExprAs(ex.R, ty)
 
 	switch ex.Op {
 	case "+":

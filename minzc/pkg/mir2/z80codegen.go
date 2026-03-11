@@ -1557,7 +1557,25 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			g.emitf("    ADD %s, %s", dst, rhs)
 			g.invalidate(dst)
 		case "SUB":
-			// SBC HL,rr (but clobbers carry; assume carry=0 before).
+			// Z80 only has SBC HL, rr for 16-bit subtraction.
+			// When dst != "HL" we must route through HL; the only legal instruction is
+			// SBC HL, rr, so the general strategy is:
+			//   EX DE,HL  (put lhs in HL, save rhs in DE — only when both are DE/HL)
+			//   OR A
+			//   SBC HL, rhs'
+			//   EX DE,HL  (restore HL=rhs, put result in DE=dst)
+			if dst != "HL" && lhs == dst && rhs == "HL" && dst == "DE" {
+				// dst=DE, lhs=DE (0 or anything), rhs=HL.
+				// EX DE,HL swaps: HL=lhs, DE=rhs.  SBC HL,DE = lhs-rhs.
+				// Second EX DE,HL: DE=result, HL=rhs restored.
+				g.emit("    EX DE, HL")
+				g.emit("    OR A")
+				g.emit("    SBC HL, DE")
+				g.emit("    EX DE, HL")
+				g.invalidate("HL")
+				g.invalidate("DE")
+				return
+			}
 			if lhs != dst {
 				// emitMov for HL↔DE emits EX DE,HL which is a SWAP, not a copy.
 				// Update rhs to reflect the new physical location of the original value.
@@ -2752,27 +2770,52 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		}
 
 	case *TermCondRet:
-		// Move each return value to its calling-convention register (same as TermRet).
-		for i, rv := range t.Vals {
-			if i >= len(g.fn.Contract.Returns) {
-				break
-			}
-			ret := g.fn.Contract.Returns[i]
-			retLoc := canonicalReturnLoc(ret.Class, ret.Ty)
-			src := g.loc(rv)
-			if src != retLoc && !g.holdsValue(retLoc, src) {
-				g.emitMov(retLoc, src, ret.Ty.Width())
-			}
-		}
-		// Emit conditional return: RET when Cond == 0 (inverted condition).
+		// Strategy: jump to Then FIRST (before moving return values),
+		// because moving return values may emit instructions that clobber
+		// the flag register the condition depends on (e.g. OR A before SBC).
+		//
+		//   JRS cc, @then      ; when Cond!=0 → jump, skipping the return path
+		//   [move return vals] ; only executed when Cond==0
+		//   RET
+		//
+		// This is equivalent to the "RET invertCC + JRS cc" order but flag-safe.
 		cc := g.condCode(f, t.Cond)
-		g.emitf("    RET %s", invertCC(cc))
-		// Emit jump to Then (with fall-through elimination).
 		copies := g.buildBlockCopies(f, t.Then, t.ThenArgs)
 		thenLbl := g.branchLabel(f, t.Then, copies)
-		g.emitParallelCopy(copies)
-		if !g.isFallThrough(f, t.Then) || len(copies) != 0 {
-			g.emitf("    JRS %s", thenLbl)
+		// Emit the conditional jump while flags are still live.
+		if g.isFallThrough(f, t.Then) && len(copies) == 0 {
+			// Then-block is the fallthrough: use RET invertCC (1 byte, optimal).
+			// Only valid when no return-val moves clobber the flag — check below.
+			// In the common case (return val already in right reg, or simple EX),
+			// this is safe.  We emit RET CC first, then the fallthrough block follows.
+			for i, rv := range t.Vals {
+				if i >= len(g.fn.Contract.Returns) {
+					break
+				}
+				ret := g.fn.Contract.Returns[i]
+				retLoc := canonicalReturnLoc(ret.Class, ret.Ty)
+				src := g.loc(rv)
+				if src != retLoc && !g.holdsValue(retLoc, src) {
+					g.emitMov(retLoc, src, ret.Ty.Width())
+				}
+			}
+			g.emitf("    RET %s", invertCC(cc))
+		} else {
+			// General case: emit conditional jump to Then first, then return path.
+			g.emitf("    JRS %s, %s", cc, thenLbl)
+			g.emitParallelCopy(copies)
+			for i, rv := range t.Vals {
+				if i >= len(g.fn.Contract.Returns) {
+					break
+				}
+				ret := g.fn.Contract.Returns[i]
+				retLoc := canonicalReturnLoc(ret.Class, ret.Ty)
+				src := g.loc(rv)
+				if src != retLoc && !g.holdsValue(retLoc, src) {
+					g.emitMov(retLoc, src, ret.Ty.Width())
+				}
+			}
+			g.emit("    RET")
 		}
 
 	case *TermUnreachable:

@@ -61,6 +61,12 @@ func CondRetSink(f *Func) bool {
 		if !allPure(elseBlock.Insts) {
 			continue
 		}
+		// Require: hoisted instructions must not clobber the carry flag when
+		// the branch condition is carry-based (CmpLt/CmpGe/CmpSubCarry…).
+		// If they do, Z80 codegen would use the wrong carry for cond_ret.
+		if condIsCarryBased(f, brif.Cond) && anyFlagClobberer(elseBlock.Insts) {
+			continue
+		}
 		// Hoist instructions from @else into the current block.
 		blk.Insts = append(blk.Insts, elseBlock.Insts...)
 		// Replace BrIf with TermCondRet.
@@ -261,4 +267,46 @@ func countPredecessors(f *Func, label string) int {
 		}
 	}
 	return n
+}
+
+// condIsCarryBased reports whether the register cond is produced by a carry-
+// based comparison (CmpLt, CmpGe, CmpUlt, CmpUge, CmpSubCarry, CmpSubCarryNot).
+// These comparisons leave a result in the CPU carry flag; any subsequent
+// instruction that modifies carry will invalidate the condition.
+func condIsCarryBased(f *Func, cond Reg) bool {
+	for _, blk := range f.Blocks {
+		for _, inst := range blk.Insts {
+			if inst.Dst != cond {
+				continue
+			}
+			switch inst.Cond {
+			case CmpLt, CmpUlt, CmpGe, CmpUge,
+				CmpSubCarry, CmpSubCarryNot:
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// anyFlagClobberer reports whether any instruction in the slice would clobber
+// the carry flag in a way that breaks a preceding carry-based condition.
+//
+// The specific pattern we block is sub(const_0, x) — i.e. "0 - x" — which
+// the Z80 backend emits as OR A (clears carry) + SBC HL, rr.  A plain
+// sub(y, x) where y is not const_0 is handled by applySubSwapNeg (-> Neg)
+// which does not suffer from the same flag-clobber issue.
+func anyFlagClobberer(insts []*Inst) bool {
+	// Collect const-zero registers defined in the slice.
+	constZero := map[Reg]bool{}
+	for _, inst := range insts {
+		if inst.Op == OpConst && inst.Imm == 0 {
+			constZero[inst.Dst] = true
+		}
+		// sub(const_0, x) emits OR A on Z80, clobbering carry.
+		if inst.Op == OpSub && len(inst.Src) >= 1 && constZero[inst.Src[0]] {
+			return true
+		}
+	}
+	return false
 }
