@@ -766,10 +766,22 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		}
 		code := strings.Join(lines, "\n    ")
 		// Resolve named input operands to virtual registers.
+		// If no explicit (in ...) clause, auto-infer from @z80_X-annotated params:
+		// every param with a register annotation is implicitly consumed by the asm block.
 		var ins []mir2.Reg
-		for _, op := range st.Ins {
-			if r, ok := l.env[op.Name]; ok {
-				ins = append(ins, r)
+		if len(st.Ins) == 0 {
+			for _, p := range l.hf.Params {
+				if p.RegClass != 0 {
+					if r, ok := l.env[p.Name]; ok {
+						ins = append(ins, r)
+					}
+				}
+			}
+		} else {
+			for _, op := range st.Ins {
+				if r, ok := l.env[op.Name]; ok {
+					ins = append(ins, r)
+				}
 			}
 		}
 		var outs []mir2.Reg
