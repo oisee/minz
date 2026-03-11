@@ -115,6 +115,10 @@ func stmtHasFreeRef(s Stmt, bound, globals, funcs map[string]bool) bool {
 		if d, ok := st.Target.(*DerefExpr); ok {
 			return exprHasFreeRef(d.Ptr, bound, globals, funcs)
 		}
+		// A plain variable assignment (c = a - b) binds the target name.
+		if vr, ok := st.Target.(*VarRefExpr); ok {
+			bound[vr.Name] = true
+		}
 	case *ReturnStmt:
 		if st.Val != nil {
 			return exprHasFreeRef(st.Val, bound, globals, funcs)

@@ -186,6 +186,11 @@ type z80cg struct {
 	// Used by genCmp to suppress a redundant CP when SUB already set the same flags.
 	lastFlagsLhs string // physical location of the lhs (always A at time of emission)
 	lastFlagsRhs string // physical location or immediate string of the rhs
+
+	// tailCallInst: set by genBlock when the last instruction of a block is an
+	// OpCall whose result feeds directly into TermRet (tail call pattern).
+	// genCall emits JP instead of CALL; genTerm skips RET when this is set.
+	tailCallInst *Inst
 }
 
 // lutLoadPat describes a page-aligned LUT access merged at codegen time.
@@ -887,6 +892,22 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Detect DJNZ peephole: DEC B + JP loop_head → DJNZ loop_body.
 	peep := g.detectDJNZPeephole(f, b)
 
+	// Detect tail call: last instruction is OpCall whose result feeds directly
+	// into TermRet. genCall will emit JP instead of CALL; genTerm skips RET.
+	g.tailCallInst = nil
+	if len(b.Insts) > 0 && peep.bodyLbl == "" {
+		last := b.Insts[len(b.Insts)-1]
+		if last.Op == OpCall {
+			if ret, ok := b.Term.(*TermRet); ok {
+				isTail := len(ret.Vals) == 0 ||
+					(len(ret.Vals) == 1 && ret.Vals[0] == last.Dst)
+				if isTail {
+					g.tailCallInst = last
+				}
+			}
+		}
+	}
+
 	limit := len(b.Insts)
 	if peep.skipLast {
 		limit-- // skip final DEC B; DJNZ handles it
@@ -1035,8 +1056,17 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.invalidate("A")
 			g.invalidate("HL")
 		} else {
+			// Z80 NEG always operates on A; ensure source is in A first.
+			srcLoc := g.loc(inst.Src[0])
+			if srcLoc != "A" && !g.holdsValue("A", srcLoc) {
+				g.emitf("    LD A, %s", srcLoc)
+			}
 			g.emit("    NEG")
 			g.invalidate("A")
+			// Record that inst.Dst is now in A so TermRet can skip the redundant move.
+			if g.loc(inst.Dst) != "A" {
+				g.physOverride[inst.Dst] = "A"
+			}
 		}
 
 	case OpNot:
@@ -2408,6 +2438,17 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.emitCallArgs(inst.Args, callee.Contract.Params)
 	}
 
+	// Tail call optimisation: if this is the tail call instruction detected by
+	// genBlock, emit JP instead of CALL so the callee's RET returns to our caller.
+	if inst == g.tailCallInst {
+		if callee != nil && callee.Attrs.ExternAddr != 0 {
+			g.emitf("    JP 0x%04X", callee.Attrs.ExternAddr)
+		} else {
+			g.emitf("    JP %s", sym)
+		}
+		return // genTerm will skip RET
+	}
+
 	// Check if callee has a fixed address (ExternAddr)
 	if callee != nil && callee.Attrs.ExternAddr != 0 {
 		addr := callee.Attrs.ExternAddr
@@ -2646,11 +2687,20 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 func (g *z80cg) genTerm(f *Func, t Term) {
 	switch t := t.(type) {
 	case *TermRet:
+		// Tail call: JP was already emitted by genCall; skip all moves and RET.
+		if g.tailCallInst != nil {
+			g.tailCallInst = nil
+			return
+		}
 		// Move each return value to its calling-convention physical register.
-		// Skip the move if the destination already holds the same value (copy alias).
+		// Skip the move if the destination already holds the same value (copy alias),
+		// or if the return value is NoReg (void call result — nothing to move).
 		for i, rv := range t.Vals {
 			if i >= len(g.fn.Contract.Returns) {
 				break
+			}
+			if rv == NoReg {
+				continue // void call result; return register already correct
 			}
 			ret := g.fn.Contract.Returns[i]
 			retLoc := canonicalReturnLoc(ret.Class, ret.Ty)

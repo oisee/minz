@@ -110,6 +110,11 @@ func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 		}
 	}
 
+	// Compile-time assertion checks (assert fn(args) == expected).
+	if err := RunAsserts(hm, m); err != nil {
+		return s, err
+	}
+
 	s.Assembly = mir2.Z80Codegen(m, combined)
 	return s, nil
 }

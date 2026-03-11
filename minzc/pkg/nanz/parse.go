@@ -373,6 +373,9 @@ type parser struct {
 	// use-before-init analysis
 	uninitVars  map[string]int  // varname → declaration line; nil disables tracking (at branches)
 	warnings    []string        // accumulated diagnostic warnings
+	// function return type table — populated as functions are parsed so that
+	// call expressions can get the correct Ty instead of TyVoid.
+	funcSigs map[string]mir2.Ty
 }
 
 // exprTy returns the known type of an expression, consulting varTypes and
@@ -442,6 +445,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.interfaces = make(map[string]*hir.InterfaceDecl)
 	p.methodTable = make(map[string]map[string]methodInfo)
 	p.opTable = make(map[string]opOverload)
+	p.funcSigs = make(map[string]mir2.Ty)
 	p.globalTypes = make(map[string]mir2.Ty)
 	p.globalInterfaceTypes = make(map[string]string)
 	p.varTypes = make(map[string]mir2.Ty)
@@ -970,6 +974,9 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 			}
 		}
 	}
+
+	// Register function signature for call-site typing.
+	p.funcSigs[funcName] = retTy
 
 	// Update method/op tables now that we know the return type
 	if opSym != "" {
@@ -1701,7 +1708,13 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 			if vr, ok := base.(*hir.VarRefExpr); ok {
 				name = vr.Name
 			}
-			base = &hir.CallExpr{Fn: name, Args: args, Ty: mir2.TyVoid}
+			callTy := mir2.Ty(mir2.TyVoid)
+			if name != "" {
+				if ty, ok := p.funcSigs[name]; ok {
+					callTy = ty
+				}
+			}
+			base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
 		default:
 			return base, nil
 		}
@@ -2125,7 +2138,13 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			if vr, ok := base.(*hir.VarRefExpr); ok {
 				name = vr.Name
 			}
-			base = &hir.CallExpr{Fn: name, Args: args, Ty: mir2.TyVoid}
+			callTy := mir2.Ty(mir2.TyVoid)
+			if name != "" {
+				if ty, ok := p.funcSigs[name]; ok {
+					callTy = ty
+				}
+			}
+			base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
 		default:
 			return base, nil
 		}

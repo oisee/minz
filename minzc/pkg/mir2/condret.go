@@ -307,6 +307,10 @@ func anyFlagClobberer(insts []*Inst) bool {
 		if inst.Op == OpSub && len(inst.Src) >= 1 && constZero[inst.Src[0]] {
 			return true
 		}
+		// NEG emits Z80 NEG which clobbers carry.
+		if inst.Op == OpNeg {
+			return true
+		}
 	}
 	return false
 }

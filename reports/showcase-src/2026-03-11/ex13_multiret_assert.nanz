@@ -1,0 +1,35 @@
+// ex13 — Multiple return values with compile-time assert verification
+//
+// Nanz supports -> (T1, T2) for multi-return.
+// Z80 ABI: return[0] → HL, return[1] → DE.
+// Callers unpack with: let (a, b) = fn(...)
+
+// Return the min and max of two u16 values.
+fun minmax(a: u16, b: u16) -> (u16, u16) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+
+fun swap(a: u16, b: u16) -> (u16, u16) {
+    return (b, a)
+}
+
+// Unpack only the first return value (min).
+fun min_of(a: u16, b: u16) -> u16 {
+    let (lo, _) = minmax(a, b)
+    return lo
+}
+
+// Unpack only the second return value (max).
+fun max_of(a: u16, b: u16) -> u16 {
+    let (_, hi) = minmax(a, b)
+    return hi
+}
+
+// Compile-time verification using assert.
+assert min_of(10, 20) == 10
+assert min_of(20, 10) == 10
+assert min_of(7, 7) == 7
+assert max_of(10, 20) == 20
+assert max_of(30, 5) == 30
+assert max_of(7, 7) == 7
