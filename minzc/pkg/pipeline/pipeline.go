@@ -43,13 +43,19 @@ type Options struct {
 	// ContractOpt enables Phase 5b interprocedural contract optimisation.
 	// Default true — only disable for A/B comparison or debugging.
 	ContractOpt bool
+	// AnnotateTStates adds T-state cost comments to every Z80 instruction line.
+	AnnotateTStates bool
 }
 
 // DefaultOptions returns options with all recommended passes enabled.
 func DefaultOptions() Options { return Options{ContractOpt: true} }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
-func CompileHIRSteps(hm *hir.Module) (Steps, error) {
+func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
+	var opt Options
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
 	var s Steps
 
 	// Capture HIR before lowering.
@@ -115,7 +121,9 @@ func CompileHIRSteps(hm *hir.Module) (Steps, error) {
 		return s, err
 	}
 
-	s.Assembly = mir2.Z80Codegen(m, combined)
+	s.Assembly = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
+		AnnotateTStates: opt.AnnotateTStates,
+	})
 	return s, nil
 }
 

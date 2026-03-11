@@ -59,6 +59,7 @@ var (
 
 	// Debug info
 	emitSLD      bool    // Emit SLD file for DeZog source-level debugging
+	annotateTStates bool // Annotate each instruction with its Z80 T-state cost
 
 	// Transpiler flags
 	emitFormat   string  // emit format: "nanz" (HIR pretty-printed as Nanz source), "mir2-raw", "mir2"
@@ -202,6 +203,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
+	rootCmd.Flags().BoolVar(&annotateTStates, "annotate-tstates", false, "annotate each Z80 instruction with its T-state cost")
 	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz (HIR as Nanz syntax), hir (HIR typed tree), mir2-raw, mir2 (works with .plm/.nanz input)")
 }
 
@@ -701,7 +703,10 @@ func compileViaHIR(sourceFile string) error {
 	}
 
 	// Run all pipeline stages (always, cheaply; we may want any step).
-	steps, err := pipeline.CompileHIRSteps(hirMod)
+	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{
+		ContractOpt:     true,
+		AnnotateTStates: annotateTStates,
+	})
 	if err != nil {
 		return fmt.Errorf("HIR compile: %w", err)
 	}
