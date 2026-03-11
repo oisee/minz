@@ -282,6 +282,14 @@ func (l *lexer) next() token {
 }
 func (l *lexer) is(k tokKind) bool         { return l.peek().kind == k }
 func (l *lexer) isIdent(v string) bool      { return l.peek().kind == tokIdent && l.peek().val == v }
+// peekN returns the n-th token ahead without consuming any (0 == peek()).
+func (l *lexer) peekN(n int) token {
+	idx := l.cur + n
+	if idx < len(l.tokens) {
+		return l.tokens[idx]
+	}
+	return token{kind: tokEOF}
+}
 func (l *lexer) eat(k tokKind) (token, error) {
 	t := l.next()
 	if t.kind != k {
@@ -2151,6 +2159,36 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 	}
 }
 
+// parseStructLit parses the body of a struct literal: { field: expr, ... }
+// The struct name has already been consumed by the caller.
+func (p *parser) parseStructLit(st *mir2.StructTy) (*hir.StructLitExpr, error) {
+	if _, err := p.l.eat(tokLBrace); err != nil {
+		return nil, err
+	}
+	var fields []hir.FieldInit
+	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		name, err := p.l.eat(tokIdent)
+		if err != nil {
+			return nil, fmt.Errorf("line %d: struct literal: expected field name", name.line)
+		}
+		if _, err := p.l.eat(tokColon); err != nil {
+			return nil, err
+		}
+		val, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		fields = append(fields, hir.FieldInit{Name: name.val, Val: val})
+		if p.l.is(tokComma) {
+			p.l.next()
+		}
+	}
+	if _, err := p.l.eat(tokRBrace); err != nil {
+		return nil, err
+	}
+	return &hir.StructLitExpr{St: st, Fields: fields}, nil
+}
+
 func (p *parser) parsePrimary() (hir.Expr, error) {
 	t := p.l.peek()
 
@@ -2193,6 +2231,15 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				return nil, err
 			}
 			return &hir.CastExpr{X: x, Ty: ty}, nil
+		}
+		// Struct literal: StructName { field: val, ... }
+		if st, ok := p.structs[t.val]; ok && p.l.peekN(1).kind == tokLBrace {
+			p.l.next() // consume struct name
+			lit, err := p.parseStructLit(st)
+			if err != nil {
+				return nil, err
+			}
+			return lit, nil
 		}
 		p.l.next()
 		ty := mir2.Ty(mir2.TyU8)

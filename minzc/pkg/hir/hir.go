@@ -371,6 +371,25 @@ type IndexExpr struct {
 func (*IndexExpr) hirExpr()          {}
 func (e *IndexExpr) ExprTy() mir2.Ty { return e.ElemTy }
 
+// FieldInit is one field initializer inside a StructLitExpr.
+type FieldInit struct {
+	Name string
+	Val  Expr
+}
+
+// StructLitExpr constructs a struct value inline: Color{r: 255, g: 0, b: 0}
+// Lowered to a sequence of field stores.  When used as an expression value it
+// allocates a temporary on the stack and returns a pointer (TyPtr) to it.
+// When used directly as the RHS of an assignment whose target is a DerefExpr
+// or a global VarRefExpr the lowerer writes fields in-place (no alloca needed).
+type StructLitExpr struct {
+	St     *mir2.StructTy
+	Fields []FieldInit
+}
+
+func (*StructLitExpr) hirExpr()          {}
+func (*StructLitExpr) ExprTy() mir2.Ty   { return mir2.TyPtr }
+
 // ── Convenience constructors ──────────────────────────────────────────────────
 
 func U8(n int64) *IntLitExpr  { return &IntLitExpr{Val: n, Ty: mir2.TyU8} }

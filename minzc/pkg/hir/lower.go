@@ -581,6 +581,24 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				return false
 			}
 		}
+		// Struct literal in-place construction: target = StructName{...}
+		// Write each field directly into the target memory — no alloca needed.
+		if lit, ok := st.Val.(*StructLitExpr); ok {
+			switch tgt := st.Target.(type) {
+			case *DerefExpr:
+				// palette^ = Color{...}
+				base := l.lowerExpr(tgt.Ptr)
+				l.emitStructLitFields(lit, base)
+				return false
+			case *VarRefExpr:
+				// global_struct = Color{...}
+				if _, found := l.findGlobal(tgt.Name); found {
+					base := l.globalAddr(tgt.Name)
+					l.emitStructLitFields(lit, base)
+					return false
+				}
+			}
+		}
 		val := l.lowerExpr(st.Val)
 		switch tgt := st.Target.(type) {
 		case *VarRefExpr:
@@ -1297,6 +1315,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 
 	case *IndexExpr:
 		return l.lowerIndex(ex)
+
+	case *StructLitExpr:
+		return l.lowerStructLitAlloca(ex)
 
 	default:
 		panic(fmt.Sprintf("hir/lower: unhandled expression type %T", e))
@@ -2160,4 +2181,47 @@ func invertCond(e Expr) Expr {
 		}
 	}
 	return &UnaryExpr{Op: "!", X: e, Ty: mir2.TyBool}
+}
+
+// emitStructLitFields stores each field of lit into the struct whose base
+// pointer is in base.  Fields may appear in any order; unmentioned fields are
+// left uninitialized (caller must zero if needed).
+func (l *lowerer) emitStructLitFields(lit *StructLitExpr, base mir2.Reg) {
+	for _, fi := range lit.Fields {
+		// Find the matching struct field to get its type and byte offset.
+		var fieldTy mir2.Ty
+		byteOff := 0
+		for idx, sf := range lit.St.Fields {
+			if sf.Name == fi.Name {
+				fieldTy = sf.Ty
+				byteOff = lit.St.ByteOffset(idx)
+				break
+			}
+		}
+		if fieldTy == nil {
+			panic(fmt.Sprintf("hir/lower: struct %q has no field %q", lit.St.Name, fi.Name))
+		}
+		val := l.lowerExpr(fi.Val)
+		var addr mir2.Reg
+		if byteOff == 0 {
+			addr = base
+		} else {
+			addr = l.bld.Field(base, int64(byteOff), mir2.ClassPointer)
+		}
+		l.bld.Store(addr, val, fieldTy)
+	}
+}
+
+// lowerStructLitAlloca lowers a StructLitExpr as a standalone expression:
+// allocates a temporary stack frame, writes fields into it, and returns the
+// pointer.  Used when the literal appears in non-assignment contexts (function
+// arguments, return values, etc.).
+func (l *lowerer) lowerStructLitAlloca(lit *StructLitExpr) mir2.Reg {
+	bytes := int64(lit.St.Width() / 8)
+	if bytes == 0 {
+		bytes = 1
+	}
+	base := l.bld.Alloca(bytes)
+	l.emitStructLitFields(lit, base)
+	return base
 }

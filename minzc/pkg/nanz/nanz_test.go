@@ -1907,3 +1907,81 @@ assert add(3, 4) == 8
 	}
 	t.Logf("expected error: %v", err)
 }
+
+// TestStructLiteral_Parse verifies that struct literal syntax parses correctly.
+func TestStructLiteral_Parse(t *testing.T) {
+	src := `struct Color {
+    r: u8
+    g: u8
+    b: u8
+}
+
+global palette: Color
+
+fun set_palette() -> void {
+    palette = Color{ r: 255, g: 128, b: 0 }
+}
+`
+	m, err := nanz.Parse(src, "struct_lit_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	// set_palette should have one AssignStmt whose Val is a StructLitExpr
+	var fn *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "set_palette" {
+			fn = f
+			break
+		}
+	}
+	if fn == nil {
+		t.Fatal("set_palette not found")
+	}
+	assign, ok := fn.Body.Body[0].(*hir.AssignStmt)
+	if !ok {
+		t.Fatalf("expected AssignStmt, got %T", fn.Body.Body[0])
+	}
+	lit, ok := assign.Val.(*hir.StructLitExpr)
+	if !ok {
+		t.Fatalf("expected StructLitExpr, got %T", assign.Val)
+	}
+	if lit.St.Name != "Color" {
+		t.Errorf("struct name: want Color, got %q", lit.St.Name)
+	}
+	if len(lit.Fields) != 3 {
+		t.Errorf("field count: want 3, got %d", len(lit.Fields))
+	}
+	if lit.Fields[0].Name != "r" {
+		t.Errorf("field[0]: want r, got %q", lit.Fields[0].Name)
+	}
+}
+
+// TestStructLiteral_Codegen verifies that a struct literal compiles to valid Z80.
+func TestStructLiteral_Codegen(t *testing.T) {
+	src := `struct Color {
+    r: u8
+    g: u8
+    b: u8
+}
+
+global palette: Color
+
+fun set_red() -> void {
+    palette = Color{ r: 255, g: 0, b: 0 }
+}
+`
+	m, err := nanz.Parse(src, "struct_lit_codegen_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("CompileHIR: %v", err)
+	}
+	// Must contain field stores for r=255 (0xFF), g=0, b=0
+	if !strings.Contains(asm, "255") && !strings.Contains(asm, "0xFF") &&
+		!strings.Contains(asm, "0ffh") {
+		t.Errorf("expected r=255 store in output; got:\n%s", asm)
+	}
+	t.Logf("struct literal Z80 output:\n%s", asm)
+}
