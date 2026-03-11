@@ -587,14 +587,19 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			switch tgt := st.Target.(type) {
 			case *DerefExpr:
 				// palette^ = Color{...}
-				base := l.lowerExpr(tgt.Ptr)
-				l.emitStructLitFields(lit, base)
+				// Runtime pointer: capture once (the ptr may be HL itself) and
+				// reuse — the fieldStore scanner handles this case via runtime INC.
+				ptrReg := l.lowerExpr(tgt.Ptr)
+				l.emitStructLitFields(lit, func() mir2.Reg { return ptrReg })
 				return false
 			case *VarRefExpr:
 				// global_struct = Color{...}
+				// Emit a fresh AddrOf per field so each AddrOf has useCount==1 —
+				// that allows the HL-chain optimizer in z80codegen to fire:
+				//   LD HL,sym ; LD (HL),n ; INC HL ; LD (HL),n ; ...
 				if _, found := l.findGlobal(tgt.Name); found {
-					base := l.globalAddr(tgt.Name)
-					l.emitStructLitFields(lit, base)
+					name := tgt.Name
+					l.emitStructLitFields(lit, func() mir2.Reg { return l.globalAddr(name) })
 					return false
 				}
 			}
@@ -2183,10 +2188,12 @@ func invertCond(e Expr) Expr {
 	return &UnaryExpr{Op: "!", X: e, Ty: mir2.TyBool}
 }
 
-// emitStructLitFields stores each field of lit into the struct whose base
-// pointer is in base.  Fields may appear in any order; unmentioned fields are
-// left uninitialized (caller must zero if needed).
-func (l *lowerer) emitStructLitFields(lit *StructLitExpr, base mir2.Reg) {
+// emitStructLitFields stores each field of lit into the target struct.
+// baseProvider is called once per field to get a fresh base address register;
+// this ensures each OpAddrOf result has useCount==1, enabling the HL-chain
+// optimization in z80codegen (LD HL,sym ; LD (HL),n ; INC HL ; ...).
+// Fields may appear in any source order; unmentioned fields are left uninitialized.
+func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mir2.Reg) {
 	for _, fi := range lit.Fields {
 		// Find the matching struct field to get its type and byte offset.
 		var fieldTy mir2.Ty
@@ -2202,6 +2209,7 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, base mir2.Reg) {
 			panic(fmt.Sprintf("hir/lower: struct %q has no field %q", lit.St.Name, fi.Name))
 		}
 		val := l.lowerExpr(fi.Val)
+		base := baseProvider()
 		var addr mir2.Reg
 		if byteOff == 0 {
 			addr = base
@@ -2222,6 +2230,6 @@ func (l *lowerer) lowerStructLitAlloca(lit *StructLitExpr) mir2.Reg {
 		bytes = 1
 	}
 	base := l.bld.Alloca(bytes)
-	l.emitStructLitFields(lit, base)
+	l.emitStructLitFields(lit, func() mir2.Reg { return base })
 	return base
 }

@@ -451,6 +451,12 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					if src == inst.Src[1] {
 						foldedUses[src]++
 					}
+				case OpStore:
+					// LD (HL),n / LD (IX+d),n — 8-bit stores can take an immediate
+					// operand directly; no register needed for the value.
+					if src == inst.Src[1] && inst.Ty.Width() <= 8 {
+						foldedUses[src]++
+					}
 				case OpMul:
 					// genMul folds constant Src[1] into shift sequences.
 					if src == inst.Src[1] {
@@ -1280,19 +1286,27 @@ func (g *z80cg) genInst(inst *Inst) {
 				if info.hlHead {
 					g.emitf("    LD HL, %s", sanitizeIdent(info.sym))
 				}
-				val := g.loc(inst.Src[1])
-				g.emitf("    LD (HL), %s", val)
+				if cv, ok := g.constVals[inst.Src[1]]; ok {
+					g.emitf("    LD (HL), %d", cv)
+				} else {
+					val := g.loc(inst.Src[1])
+					g.emitf("    LD (HL), %s", val)
+				}
 				if !info.hlLast {
 					g.emitf("    INC HL")
 				}
 			} else {
 				// Global struct field direct-addressing fast path:
-				//   LD A, val           ; 4T (omitted when val is already A)
+				//   LD A, val           ; 4T (omitted when val is already A or known constant)
 				//   LD (sym__field), A  ; 13T
-				val := g.loc(inst.Src[1])
 				lbl := globalFieldLabel(info.sym, info.offset, info.fieldName)
-				if val != "A" {
-					g.emitLDA(val)
+				if cv, ok := g.constVals[inst.Src[1]]; ok {
+					g.emitf("    LD A, %d", cv)
+				} else {
+					val := g.loc(inst.Src[1])
+					if val != "A" {
+						g.emitLDA(val)
+					}
 				}
 				g.emitf("    LD (%s), A", lbl)
 			}
@@ -1346,7 +1360,13 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    DEC %s", ptr)
 			}
 		} else if w <= 8 {
-			g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), val)
+			if cv, ok := g.constVals[inst.Src[1]]; ok {
+				// LD (HL),n = 10T/2B  or  LD (IX+d),n = 19T/4B
+				// Cheaper than: LD r,n (7T) + LD (HL),r (7T) = 14T/3B
+				g.emitf("    LD %s, %d", ptrIndirect(ptr, 0), cv)
+			} else {
+				g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), val)
+			}
 		} else if isIXY(ptr) {
 			// 16-bit store via IX/IY: use displacement addressing — avoids INC/DEC IX.
 			// LD (IX+0), lo ; LD (IX+1), hi  — 2×19T = 38T
