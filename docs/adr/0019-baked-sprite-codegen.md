@@ -75,6 +75,121 @@ concept: **field values live in instruction immediates, not in a data section**.
 
 ---
 
+### Part 1b: `@smc` Function Parameters — the Foundational Primitive
+
+Before `StorageBakedSprite` can exist, a more fundamental primitive is required:
+**function parameters that are baked as instruction immediates instead of register slots**.
+
+```nanz
+fun draw_player(
+    @smc r0: u16,   // baked as:  LD HL, 0xDEAD  ← patchable immediate
+    @smc r1: u16,   //            LD HL, 0xBEEF  ← patchable immediate
+    @smc r2: u16,
+) -> void {
+    r0^ = Row2{ b1: 0b11000011, b2: 0b00111100 }
+    r1^ = Row2{ b1: 0b11111111, b2: 0b11111111 }
+    r2^ = Row2{ b1: 0b11000011, b2: 0b00111100 }
+}
+```
+
+The compiler emits `draw_player` with each `@smc` parameter as a `LD HL, imm16`
+immediate.  It also **auto-generates** a patch accessor per parameter:
+`draw_player_set_r0(v: u16)`, `draw_player_set_r1(v: u16)`, etc.
+
+`set_pos` is then a plain function:
+```nanz
+fun player_set_pos(x: u8, y: u8) -> void {
+    draw_player_set_r0(zx_pixel_addr(x, y+0))
+    draw_player_set_r1(zx_pixel_addr(x, y+1))
+    draw_player_set_r2(zx_pixel_addr(x, y+2))
+}
+```
+
+#### The composition story
+
+The generated body for the example above composes from three existing pieces:
+
+```
+@smc r0: u16           →  LD HL, imm16     (new primitive)
+r0^ = Row2{0x3C, 0x0F} →  LD (HL), 0x3C   (LD (HL),n folding  — ✅ done)
+                           INC HL           (HL-chain optimizer — ✅ done)
+                           LD (HL), 0x0F   (LD (HL),n folding  — ✅ done)
+```
+
+Full generated assembly for a 2-byte-wide, 3-row sprite:
+
+```z80
+; fun draw_player()  ; @smc → non-reentrant, non-recursive
+; clobbers: HL
+draw_player:
+    LD HL, 0x4152        ; r0 — 10T  ← patched by draw_player_set_r0
+    LD (HL), 0b11000011  ;      7T
+    INC HL               ;      6T
+    LD (HL), 0b00111100  ;      7T
+    LD HL, 0x4252        ; r1 — 10T  ← patched by draw_player_set_r1
+    LD (HL), 0b11111111  ;      7T
+    INC HL               ;      6T
+    LD (HL), 0b11111111  ;      7T
+    LD HL, 0x4352        ; r2 — 10T  ← patched by draw_player_set_r2
+    LD (HL), 0b11000011  ;      7T
+    INC HL               ;      6T
+    LD (HL), 0b00111100  ;      7T
+    RET                  ;     10T
+; = Method 5 (Compiled Sprites) from antique-toy/ch16, generated automatically
+```
+
+This is **exactly Method 5** from antique-toy/ch16-sprites/draft.md, and it falls
+out of:
+1. `@smc` parameter → `LD HL, imm16` (one new codegen path)
+2. struct literal deref `ptr^ = Struct{...}` → HL-chain (already working)
+3. `LD (HL), n` constant folding (already working)
+
+No special "BakedSprite" codegen is needed for the draw function itself.
+
+#### `write_bytes` syntax sugar
+
+`write_bytes(r0, b1, b2, b3)` is surface syntax for `r0^ = Row3{b1, b2, b3}`.
+When `b1..b3` are compile-time constants, the struct literal dereference triggers
+the HL-chain optimizer and produces the optimal instruction sequence.
+
+Note: HL-chain currently fires for global struct field stores.  Extension to
+pointer-based stores (`@smc ptr^ = Struct{...}`) requires one additional codegen
+case: detecting `Store(Field(ptr, 0), v0) ; Store(Field(ptr, 1), v1) ; ...`
+where `ptr` is HL, and emitting `LD (HL), v0 ; INC HL ; LD (HL), v1`.
+
+#### `@smc` parameters are implicitly `@nonreentrant`
+
+A function with any `@smc` parameter embeds patchable state in its own code.
+Two simultaneous activations would corrupt each other's immediates.  The compiler
+enforces:
+
+| Constraint | Mechanism |
+|---|---|
+| No self-calls | Static call-graph check → compile error |
+| No mutual recursion | Cycle detection in call graph → compile error |
+| Called from ISR AND from main | Call-site analysis → warning (cannot prove safety) |
+| Called from two ISRs | Same → warning |
+
+`@nonreentrant` as an explicit annotation is legal but redundant — `@smc` implies
+it.  The attribute is useful for documentation and for non-`@smc` functions that
+happen to be non-reentrant for other reasons.
+
+#### Two-level design
+
+```
+@smc parameters          ← orthogonal primitive (general purpose)
+        ↑ synthesises
+StorageBakedSprite        ← high-level sugar: compiler generates the @smc
+                            draw function from struct pixel data automatically
+```
+
+`StorageBakedSprite` is the right user-facing abstraction when pixel data lives in
+a struct and the user wants `player.draw()` / `player.set_pos(x, y)`.
+`@smc` parameters are the right primitive when the user writes the draw function
+manually, or when the shape doesn't fit the fixed-grid sprite model.
+
+---
+
 ### Part 2: Storage mode taxonomy
 
 #### StorageNormal (current, always on)
@@ -409,27 +524,40 @@ Now (done):
   StorageClass field in mir2.Global
   ADR-0019
 
-After copy-coalescing stabilises:
-  StorageSMCGetter:
-    - parser: @smc annotation
-    - mir2: OpSMCRead, OpSMCWrite ops (or reuse OpPatchSlot)
-    - codegen: synthesise getter function with EQU labels
-    - conflict detection: AddrOf on @smc global → error
+Phase A — @smc function parameters (foundational primitive):
+  Prerequisite: BUG-003 (ptr[i] in while loop) fixed
+  - parser: @smc annotation on function parameters
+  - HIR: Param.SMC bool field
+  - MIR2: @smc param → Loc == LocSMCImm16 (new location kind, not a register)
+  - z80codegen:
+    - emit LD HL, <default_val> for @smc HL-class param
+    - record EQU label pointing at the imm16 operand bytes
+    - auto-synthesise set_<param>(v: u16) patcher
+  - HL-chain extension: pointer-based consecutive stores
+    (Store(Field(ptr,0),v0) ; Store(Field(ptr,1),v1) → LD (HL),v0 ; INC HL ; LD (HL),v1)
+  - conflict detection:
+    - @smc function in recursive call graph → compile error
+    - AddrOf on @smc param → compile error
+    - call from ISR context → warning
+  - test corpus: antique-toy/ch16-sprites Method 5 reproduced via @smc + struct literal
 
-After PBQP contracts:
-  StoragePhantom:
-    - two-pass codegen (read collection → write emission)
-    - cost oracle integration with GPU superoptimizer
+Phase B — StorageSMCGetter (global fields as getter immediates):
+  - parser: @smc annotation on global declarations
+  - codegen: synthesise getter function with EQU labels
+  - conflict detection: AddrOf on @smc global → error
 
-After StoragePhantom:
-  StorageBakedSprite:
-    - @baked_sprite parser annotation
-    - BakedSpriteGen pass (new pkg/mir2/bakedsprite.go)
-    - ZXPixelAddr / ZXAttrAddr compile-time functions
-    - synth draw() / set_pos() / set_frame()
-    - patch table architecture
-    - three levels: overwrite / masked / preshift
-    - test corpus: antique-toy/ch16-sprites/draft.md Method 5 examples
+Phase C — StoragePhantom (per-read-site immediates):
+  After PBQP contracts stable
+  - two-pass codegen (read collection → write emission)
+
+Phase D — StorageBakedSprite (high-level sugar over @smc):
+  After Phase A complete
+  - @baked_sprite / @masked_sprite / @preshift_sprite parser annotations
+  - BakedSpriteGen pass: synthesises draw() with @smc parameters from struct pixel data
+  - ZXPixelAddr / ZXAttrAddr compile-time functions
+  - synth set_pos() / set_frame() calling the auto-generated @smc patchers
+  - three levels: overwrite / masked / preshift
+  - test corpus: antique-toy/ch16-sprites/draft.md Method 5 examples
 ```
 
 ---
@@ -475,6 +603,15 @@ addresses still computed at runtime.
 Generate the compiled sprite in a separate tool and `@include` it.
 **Rejected**: breaks the single-source-of-truth property of Nanz; requires a
 separate build step; doesn't integrate with `set_pos()` / `set_frame()`.
+
+### Struct-level magic without `@smc` parameter primitive
+Generate the baked draw function internally in a `BakedSpriteGen` compiler pass
+without exposing `@smc` parameters to the user.
+**Rejected** (as primary approach): `@smc` parameters are a general, orthogonal
+primitive reusable beyond sprites (SMC parameter injection, phantom function inputs,
+patchable kernels).  Hiding them inside a struct annotation loses this generality.
+The struct annotation (`StorageBakedSprite`) is the right *sugar* on top of `@smc`
+parameters — not a replacement for them.
 
 ### C-style struct with __attribute__((smc))
 **Rejected**: C requires `&field` to be a valid memory address.  This is a
