@@ -2370,7 +2370,22 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			}
 			return &hir.CallExpr{Fn: "@mir.io.print.u8", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
 		}
-		// @console_log(expr) — OUT (0x01), A  single raw byte to stdout
+		// @print_dec(expr) — print u8 value as decimal digits via OUT ($23)
+		if p.l.isIdent("print_dec") {
+			p.l.next()
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return nil, err
+			}
+			arg, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			return &hir.CallExpr{Fn: "@mir.io.print.dec", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
+		}
+		// @console_log(expr) — OUT ($23), A  single raw byte to stdout
 		if p.l.isIdent("console_log") {
 			p.l.next()
 			if _, err := p.l.eat(tokLParen); err != nil {

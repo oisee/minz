@@ -1490,8 +1490,8 @@ fun main() -> void {
 	}
 
 	// Assembly must reference the string pool symbol.
-	if !strings.Contains(asm, "@mir2.str.") {
-		t.Errorf("assembly missing @mir2.str. symbol\n\nFull asm:\n%s", asm)
+	if !strings.Contains(asm, "_mir2_str_") {
+		t.Errorf("assembly missing _mir2_str_ symbol (sanitized from @mir2.str.)\n\nFull asm:\n%s", asm)
 	}
 }
 
@@ -2209,16 +2209,16 @@ fun main() -> void {
 		t.Fatalf("compile: %v", err)
 	}
 
-	// Both OUT instructions must be present.
-	if !strings.Contains(asm, "OUT (0x01), A") {
-		t.Errorf("missing OUT (0x01) for console_log\n%s", asm)
+	// Both OUT instructions must be present (mze/mzx standard ports $23/$25).
+	if !strings.Contains(asm, "OUT (0x23), A") {
+		t.Errorf("missing OUT (0x23) for console_log\n%s", asm)
 	}
-	if !strings.Contains(asm, "OUT (0x02), A") {
-		t.Errorf("missing OUT (0x02) for console_err\n%s", asm)
+	if !strings.Contains(asm, "OUT (0x25), A") {
+		t.Errorf("missing OUT (0x25) for console_err\n%s", asm)
 	}
 
-	// RET must be present — the bug caused it to be dropped.
-	if !strings.Contains(asm, "    RET") {
-		t.Errorf("missing RET at end of void main()\n%s", asm)
+	// main() must terminate with DI+HALT (not RET) so mze can detect program end.
+	if !strings.Contains(asm, "    DI") || !strings.Contains(asm, "    HALT") {
+		t.Errorf("void main() must end with DI+HALT for mze compatibility\n%s", asm)
 	}
 }

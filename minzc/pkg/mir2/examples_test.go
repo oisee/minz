@@ -1849,7 +1849,7 @@ func TestMin16Z80(t *testing.T) {
 //	}
 //
 // The intrinsic is inlined as a NUL-terminated string output loop via
-// OUT (0x01), A — the debug console port in the MZE emulator.
+// OUT ($23), A — the mze/mzx standard console port.
 // The test verifies that the emulator captures the expected string.
 
 // buildGreet builds a simple function that calls @mir.io.print.str with its
@@ -1869,7 +1869,7 @@ func buildGreet(m *mir2.Module) *mir2.Func {
 	return f
 }
 
-// runZ80WithOutput assembles and runs src; returns captured OUT(0x01) output and error.
+// runZ80WithOutput assembles and runs src; returns captured OUT($23) output and error.
 func runZ80WithOutput(t *testing.T, src string) (string, error) {
 	t.Helper()
 	asm := z80asm.NewAssembler()

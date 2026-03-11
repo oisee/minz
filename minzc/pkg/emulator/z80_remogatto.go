@@ -234,8 +234,8 @@ func (p *Ports) WritePort(address uint16, b byte) {
 		return
 	}
 
-	// Legacy console output port
-	if address&0xFF == 0x01 {
+	// MIR2 console output port ($23 = stdout, $25 = stderr — mze/mzx standard)
+	if address&0xFF == 0x23 || address&0xFF == 0x25 {
 		*p.output = append(*p.output, b)
 	}
 
