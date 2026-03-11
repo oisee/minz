@@ -374,3 +374,12 @@ go test ./pkg/... -vet=off
 
 The tests dynamically detect which tools are available (`qbe`, `cc`) and skip
 paths whose dependencies are missing.
+
+---
+
+<details>
+<summary>🇷🇺 На русском</summary>
+
+→ [Жизнь байта: как `abs_diff` пережила пять трансляций и осталась собой](./2026-03-10-052-Round_Trip_Deep_Dive_RU.md)
+
+</details>

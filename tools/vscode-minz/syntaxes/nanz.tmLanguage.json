@@ -38,6 +38,10 @@
           "match": "\\b(fun|fn|var|let|struct|global|interface)\\b"
         },
         {
+          "name": "keyword.other.assert.nanz",
+          "match": "\\bassert\\b"
+        },
+        {
           "name": "keyword.other.nanz",
           "match": "\\b(at)\\b"
         },
@@ -51,7 +55,7 @@
       "patterns": [
         {
           "name": "storage.type.nanz",
-          "match": "\\b(u8|u16|i8|i16|bool|void)\\b"
+          "match": "\\b(u8|u16|u24|u32|i8|i16|i24|i32|bool|void)\\b"
         },
         {
           "comment": "Ranged type annotation: u8<lo..hi>",
