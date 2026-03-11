@@ -36,6 +36,20 @@ type InterfaceDecl struct {
 	Methods []string // method names, e.g. ["speak", "move"]
 }
 
+// Assert is a module-level compile-time assertion.
+//
+//	assert fn(arg1, arg2) == expected
+//
+// Assertions are checked after MIR2 lowering by running the call in the
+// MIR2 VM.  They are NOT emitted into the generated binary.
+type Assert struct {
+	FuncName string   // function to call
+	Args     []int64  // literal integer arguments
+	Expected int64    // expected return value
+	Source   string   // original source text (for error messages)
+	Line     int      // source line number
+}
+
 // Module is the top-level HIR unit.
 type Module struct {
 	Name       string
@@ -45,6 +59,7 @@ type Module struct {
 	Interfaces []*InterfaceDecl   // interface declarations (zero-cost, monomorphised)
 	Strings    []string           // interned string literals (index = position)
 	Warnings   []string           // use-before-init and other diagnostic warnings
+	Asserts    []Assert           // compile-time assertions (checked via MIR2 VM)
 }
 
 // FuncByName returns the first HIR function with the given name, or nil.

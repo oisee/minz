@@ -1754,3 +1754,156 @@ fun minmax(a: u16, b: u16) -> (u16, u16) {
 	}
 	t.Logf("minmax Z80:\n%s", asm)
 }
+
+// ── fold / reduce ─────────────────────────────────────────────────────────────
+
+func TestFold_Sum_ReturnValue(t *testing.T) {
+	// fold(ptr, init, cb, n) — result used as return value
+	src := `
+global data: [u8; 4] = [10, 20, 30, 40]
+
+fun add_u8(acc: u8, x: u8) -> u8 {
+    return acc + x
+}
+
+fun sum_data() -> u8 {
+    return fold(&data, 0, add_u8, 4)
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile error: %v", err)
+	}
+	if !strings.Contains(asm, "sum_data:") {
+		t.Error("no sum_data label in output")
+	}
+	// Should contain a DJNZ loop for the fold.
+	if !strings.Contains(asm, "DJNZ") {
+		t.Error("expected DJNZ loop in fold output")
+	}
+	t.Logf("sum_data Z80:\n%s", asm)
+}
+
+func TestFold_LetBinding(t *testing.T) {
+	// fold result bound to a let variable
+	src := `
+global nums: [u8; 3] = [1, 2, 3]
+
+fun add_u8(acc: u8, x: u8) -> u8 {
+    return acc + x
+}
+
+fun total() -> u8 {
+    let s = fold(&nums, 0, add_u8, 3)
+    return s
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile error: %v", err)
+	}
+	if !strings.Contains(asm, "total:") {
+		t.Error("no total label in output")
+	}
+	t.Logf("total Z80:\n%s", asm)
+}
+
+func TestFold_Reduce_Synonym(t *testing.T) {
+	// reduce is a synonym for fold
+	src := `
+global vals: [u8; 2] = [5, 3]
+
+fun add_u8(acc: u8, x: u8) -> u8 {
+    return acc + x
+}
+
+fun using_reduce() -> u8 {
+    return reduce(&vals, 0, add_u8, 2)
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile error: %v", err)
+	}
+}
+
+// ── assert ────────────────────────────────────────────────────────────────────
+
+func TestAssert_Parse(t *testing.T) {
+	src := `
+fun add(a: u8, b: u8) -> u8 {
+    return a + b
+}
+
+assert add(3, 4) == 7
+assert add(0, 0) == 0
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	if len(m.Asserts) != 2 {
+		t.Fatalf("want 2 asserts, got %d", len(m.Asserts))
+	}
+	if m.Asserts[0].FuncName != "add" {
+		t.Errorf("assert[0] FuncName: want 'add', got %q", m.Asserts[0].FuncName)
+	}
+	if m.Asserts[0].Expected != 7 {
+		t.Errorf("assert[0] Expected: want 7, got %d", m.Asserts[0].Expected)
+	}
+}
+
+func TestAssert_PassesCompilation(t *testing.T) {
+	src := `
+fun abs_diff(a: u8, b: u8) -> u8 {
+    if a >= b { return a - b }
+    return b - a
+}
+
+assert abs_diff(10, 5) == 5
+assert abs_diff(5, 10) == 5
+assert abs_diff(7, 7) == 0
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile error (asserts should pass): %v", err)
+	}
+}
+
+func TestAssert_FailsCompilation(t *testing.T) {
+	src := `
+fun add(a: u8, b: u8) -> u8 {
+    return a + b
+}
+
+assert add(3, 4) == 8
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err == nil {
+		t.Fatal("expected compile error from failing assert, got nil")
+	}
+	if !strings.Contains(err.Error(), "assert") {
+		t.Errorf("expected error message to mention 'assert', got: %v", err)
+	}
+	t.Logf("expected error: %v", err)
+}

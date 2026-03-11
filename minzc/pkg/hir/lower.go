@@ -521,6 +521,12 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 	case *VarDeclStmt:
 		var r mir2.Reg
 		if st.Init != nil {
+			// Check for fold/reduce: let result = fold(ptr, init, cb, n)
+			if foldReg, ok := l.tryLowerFold(st.Init); ok {
+				chain, _ := l.recognizeIterChain(st.Init)
+				l.bind(st.Name, foldReg, chain.foldAccTy)
+				return false
+			}
 			r = l.lowerExpr(st.Init)
 			if r == mir2.NoReg {
 				// Init is a function reference (lambda or module function).
@@ -541,6 +547,13 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *AssignStmt:
+		// Check for fold/reduce: x = fold(ptr, init, cb, n)
+		if foldReg, ok := l.tryLowerFold(st.Val); ok {
+			if tgt, ok2 := st.Target.(*VarRefExpr); ok2 {
+				l.env[tgt.Name] = foldReg
+				return false
+			}
+		}
 		val := l.lowerExpr(st.Val)
 		switch tgt := st.Target.(type) {
 		case *VarRefExpr:
@@ -578,8 +591,13 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 			l.bld.Ret(regs...)
 		} else if st.Val != nil {
-			r := l.lowerExprForRet(st.Val)
-			l.bld.Ret(r)
+			// Check for fold/reduce: return fold(ptr, init, cb, n)
+			if foldReg, ok := l.tryLowerFold(st.Val); ok {
+				l.bld.Ret(foldReg)
+			} else {
+				r := l.lowerExprForRet(st.Val)
+				l.bld.Ret(r)
+			}
 		} else {
 			l.bld.Ret()
 		}
@@ -1635,6 +1653,10 @@ type iterChain struct {
 	mutate bool        // mapInPlace: store transformed element back to ptr
 	cbName string      // forEach callback function name
 	elemTy mir2.Ty     // element type (from callback's first param)
+	// fold fields (isFold=true when chain is fold/reduce, not forEach):
+	isFold    bool    // true → fold terminal (returns accumulator)
+	foldInit  Expr    // initial accumulator value
+	foldAccTy mir2.Ty // accumulator type (cb's return type)
 }
 
 // tryLowerIterChain detects iterator chain patterns and lowers them to a fused
@@ -1645,8 +1667,22 @@ func (l *lowerer) tryLowerIterChain(expr Expr) bool {
 	if !ok {
 		return false
 	}
-	l.lowerFusedForEach(chain)
+	if chain.isFold {
+		l.lowerFusedFold(chain) // result discarded (fold as ExprStmt = side-effect only)
+	} else {
+		l.lowerFusedForEach(chain)
+	}
 	return true
+}
+
+// tryLowerFold recognizes a fold/reduce call and returns the result register.
+// Returns (reg, true) on success; (NoReg, false) if expr is not a fold chain.
+func (l *lowerer) tryLowerFold(expr Expr) (mir2.Reg, bool) {
+	chain, ok := l.recognizeIterChain(expr)
+	if !ok || !chain.isFold {
+		return mir2.NoReg, false
+	}
+	return l.lowerFusedFold(chain), true
 }
 
 // recognizeIterChain matches forEach(src,cb,n) and mapInPlace(src,cb,n)
@@ -1656,6 +1692,41 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 	if !ok {
 		return iterChain{}, false
 	}
+	// ── fold/reduce ─────────────────────────────────────────────────────────────
+	// fold(src, init, cb, n)  where cb(acc, elem) -> acc
+	if call.Fn == "fold" || call.Fn == "reduce" {
+		if len(call.Args) != 4 {
+			return iterChain{}, false
+		}
+		cbName := l.resolveFunc(call.Args[2])
+		if cbName == "" {
+			return iterChain{}, false
+		}
+		// Infer accumulator type from callback's return type (default u8).
+		accTy := mir2.Ty(mir2.TyU8)
+		elemTy := mir2.Ty(mir2.TyU8)
+		if cbFn, ok2 := l.hirFuncs[cbName]; ok2 {
+			if cbFn.RetTy != nil && cbFn.RetTy != mir2.TyVoid {
+				accTy = cbFn.RetTy
+			}
+			if len(cbFn.Params) >= 2 {
+				elemTy = cbFn.Params[1].Ty
+			} else if len(cbFn.Params) == 1 {
+				elemTy = cbFn.Params[0].Ty
+			}
+		}
+		return iterChain{
+			ptr:       call.Args[0],
+			foldInit:  call.Args[1],
+			len:       call.Args[3],
+			cbName:    cbName,
+			elemTy:    elemTy,
+			isFold:    true,
+			foldAccTy: accTy,
+		}, true
+	}
+
+	// ── forEach / mapInPlace ─────────────────────────────────────────────────
 	isMutate := false
 	switch call.Fn {
 	case "forEach":
@@ -1845,6 +1916,68 @@ func (l *lowerer) lowerFusedForEach(chain iterChain) {
 		Body:   &Block{Body: bodyStmts},
 	}
 	l.lowerForEach(forEach)
+}
+
+// lowerFusedFold lowers fold(src, init, cb, n) to a DJNZ accumulator loop.
+//
+// The accumulator variable "__fold_acc__" is bound in the lowerer's env before
+// calling lowerForEach; scanMutations detects it as mutated and threads it
+// through block parameters automatically.  After the loop, l.env["__fold_acc__"]
+// holds the final register with the accumulated result.
+func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
+	const accVar = "__fold_acc__"
+	const elemVar = "__iter_elem__"
+	accTy := chain.foldAccTy
+	elemTy := chain.elemTy
+
+	// 1. Seed the accumulator.
+	initReg := l.lowerExpr(chain.foldInit)
+	// Promote initReg to accTy class if needed.
+	l.bind(accVar, initReg, accTy)
+
+	// 2. Build the loop body: __fold_acc__ = cb(__fold_acc__, __iter_elem__)
+	var bodyExpr Expr
+	cbFn := l.hirFuncs[chain.cbName]
+	if cbFn != nil && cbFn.Body != nil && len(cbFn.Params) >= 2 {
+		if ret := extractReturnExpr(cbFn.Body); ret != nil {
+			accParamName := cbFn.Params[0].Name
+			elemParamName := cbFn.Params[1].Name
+			// Double rename: acc param → accVar, elem param → elemVar.
+			bodyExpr = renameExpr(ret, accParamName, accVar)
+			bodyExpr = renameExpr(bodyExpr, elemParamName, elemVar)
+		}
+	}
+	if bodyExpr == nil {
+		// Complex or unknown callback — emit a call.
+		bodyExpr = &CallExpr{
+			Fn: chain.cbName,
+			Args: []Expr{
+				&VarRefExpr{Name: accVar, Ty: accTy},
+				&VarRefExpr{Name: elemVar, Ty: elemTy},
+			},
+			Ty: accTy,
+		}
+	}
+	bodyStmts := []Stmt{
+		&AssignStmt{
+			Target: &VarRefExpr{Name: accVar, Ty: accTy},
+			Val:    bodyExpr,
+		},
+	}
+
+	// 3. Run the ForEachStmt — lowerForEach threads __fold_acc__ via block params.
+	forEach := &ForEachStmt{
+		Var:    elemVar,
+		ElemTy: elemTy,
+		Ptr:    chain.ptr,
+		Start:  &IntLitExpr{Val: 0, Ty: mir2.TyU8},
+		Len:    chain.len,
+		Body:   &Block{Body: bodyStmts},
+	}
+	l.lowerForEach(forEach)
+
+	// 4. Return the final accumulator register.
+	return l.env[accVar]
 }
 
 // extractReturnExpr extracts the return value from the last statement of a block.

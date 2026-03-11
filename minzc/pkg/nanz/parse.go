@@ -518,6 +518,13 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				return nil, fmt.Errorf("line %d: unexpected @%s", attr.line, attr.val)
 			}
 
+		case t.kind == tokIdent && t.val == "assert":
+			a, err := p.parseAssert()
+			if err != nil {
+				return nil, err
+			}
+			m.Asserts = append(m.Asserts, a)
+
 		default:
 			return nil, fmt.Errorf("line %d: unexpected token %q at module level", t.line, t.val)
 		}
@@ -526,6 +533,101 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	m.Funcs = append(m.Funcs, p.lambdas...)
 	m.Warnings = p.warnings
 	return m, nil
+}
+
+// parseAssert parses: assert fn(arg, ...) == expected
+// or: assert expected == fn(arg, ...)
+// Only literal integer arguments and expected values are supported.
+func (p *parser) parseAssert() (hir.Assert, error) {
+	tok := p.l.peek()
+	line := tok.line
+	if err := p.l.eatIdent("assert"); err != nil {
+		return hir.Assert{}, err
+	}
+
+	// Parse: ident(args...)
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return hir.Assert{}, fmt.Errorf("line %d: assert: expected function name", line)
+	}
+	if _, err2 := p.l.eat(tokLParen); err2 != nil {
+		return hir.Assert{}, fmt.Errorf("line %d: assert: expected '(' after function name", line)
+	}
+
+	var args []int64
+	for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+		if len(args) > 0 {
+			if _, err2 := p.l.eat(tokComma); err2 != nil {
+				return hir.Assert{}, fmt.Errorf("line %d: assert: expected ',' between arguments", line)
+			}
+		}
+		// Optionally negative.
+		neg := false
+		if p.l.is(tokMinus) {
+			p.l.next()
+			neg = true
+		}
+		intTok, err2 := p.l.eat(tokInt)
+		if err2 != nil {
+			return hir.Assert{}, fmt.Errorf("line %d: assert: expected integer literal argument", line)
+		}
+		v, err3 := strconv.ParseInt(intTok.val, 0, 64)
+		if err3 != nil {
+			return hir.Assert{}, fmt.Errorf("line %d: assert: invalid integer %q", line, intTok.val)
+		}
+		if neg {
+			v = -v
+		}
+		args = append(args, v)
+	}
+	if _, err2 := p.l.eat(tokRParen); err2 != nil {
+		return hir.Assert{}, fmt.Errorf("line %d: assert: expected ')'", line)
+	}
+
+	// Parse: == expected
+	if _, err2 := p.l.eat(tokEqEq); err2 != nil {
+		return hir.Assert{}, fmt.Errorf("line %d: assert: expected '==' after call", line)
+	}
+	neg := false
+	if p.l.is(tokMinus) {
+		p.l.next()
+		neg = true
+	}
+	expTok, err := p.l.eat(tokInt)
+	if err != nil {
+		return hir.Assert{}, fmt.Errorf("line %d: assert: expected integer literal after '=='", line)
+	}
+	expected, err := strconv.ParseInt(expTok.val, 0, 64)
+	if err != nil {
+		return hir.Assert{}, fmt.Errorf("line %d: assert: invalid integer %q", line, expTok.val)
+	}
+	if neg {
+		expected = -expected
+	}
+
+	src := fmt.Sprintf("assert %s(%s) == %d", nameTok.val, intSliceStr(args), expected)
+	return hir.Assert{
+		FuncName: nameTok.val,
+		Args:     args,
+		Expected: expected,
+		Source:   src,
+		Line:     line,
+	}, nil
+}
+
+func intSliceStr(vs []int64) string {
+	parts := make([]string, len(vs))
+	for i, v := range vs {
+		parts[i] = strconv.FormatInt(v, 10)
+	}
+	s := ""
+	for i, p := range parts {
+		if i > 0 {
+			s += ", "
+		}
+		s += p
+	}
+	return s
 }
 
 // ── Struct ────────────────────────────────────────────────────────────────────

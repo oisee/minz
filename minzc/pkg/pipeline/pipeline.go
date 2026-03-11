@@ -174,9 +174,42 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		}
 	}
 
+	// Compile-time assertion checks (assert fn(args) == expected).
+	if err := RunAsserts(hm, m); err != nil {
+		return "", err
+	}
+
 	// Z80 assembly text.
 	asm := mir2.Z80Codegen(m, combined)
 	return asm, nil
+}
+
+// RunAsserts evaluates module-level compile-time assertions via the MIR2 VM.
+// Called after MIR2 is fully optimised and allocated.
+// Returns an error for the first failing assertion, or nil if all pass.
+func RunAsserts(hm *hir.Module, m *mir2.Module) error {
+	if len(hm.Asserts) == 0 {
+		return nil
+	}
+	vm := mir2.NewVM(m)
+	for _, a := range hm.Asserts {
+		args := make([]mir2.Value, len(a.Args))
+		for i, v := range a.Args {
+			args[i] = mir2.Value{I: v}
+		}
+		rets, err := vm.Call(a.FuncName, args)
+		if err != nil {
+			return fmt.Errorf("line %d: assert %q: VM error: %w", a.Line, a.Source, err)
+		}
+		if len(rets) == 0 {
+			return fmt.Errorf("line %d: assert %q: function returned no value", a.Line, a.Source)
+		}
+		if rets[0].I != a.Expected {
+			return fmt.Errorf("line %d: assert %q: got %d, want %d",
+				a.Line, a.Source, rets[0].I, a.Expected)
+		}
+	}
+	return nil
 }
 
 // Assemble assembles .a80 text to a binary using MZA.
