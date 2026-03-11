@@ -3380,20 +3380,41 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 		// General cycle: break with a temporary.
 		m := &moves[first]
 		if m.ty.Width() <= 8 {
-			// u8 cycle: use A as scratch.
+			// u8 cycle: break by saving the first node's source to a scratch register.
 			//
 			// Walk BACKWARD through the cycle so we always read old values.
-			// Example 3-cycle D→C, C→E, E→D:
-			//   Save A = D  (free the D slot)
-			//   LD D, E     (backward: who writes TO D? E→D. Do it now while E is clean.)
-			//   LD E, C     (backward: who writes TO E? C→E.)
-			//   LD C, A     (put D_old into C, the first.dst)
+			// Example 3-cycle D→C, C→E, E→D (scratch=A):
+			//   LD A, D     (save D into scratch)
+			//   LD D, E     (backward: who writes TO D? E→D. E still original.)
+			//   LD E, C     (backward: who writes TO E? C→E. C still original.)
+			//   LD C, A     (put D_old into C via scratch)
+			//
+			// When A is part of the cycle, using A as scratch would overwrite it
+			// during the walk before the final restore.  Pick the first 8-bit
+			// register not involved in any pending move instead.
+			cycleRegs := map[string]bool{}
+			for i := range moves {
+				if !moves[i].done {
+					cycleRegs[moves[i].src] = true
+					cycleRegs[moves[i].dst] = true
+				}
+			}
+			scratch := "A"
+			if cycleRegs["A"] {
+				for _, r := range []string{"C", "E", "H", "L", "D", "B"} {
+					if !cycleRegs[r] {
+						scratch = r
+						break
+					}
+				}
+			}
+
 			firstDst := m.dst
-			if m.src != "A" {
-				g.emitf("    LD A, %s", m.src)
+			if m.src != scratch {
+				g.emitf("    LD %s, %s", scratch, m.src)
 			}
 			m.done = true
-			cur := m.src // start at the freed slot (m.src moved to A)
+			cur := m.src // start at the freed slot (m.src saved to scratch)
 			for {
 				found := false
 				for i := range moves {
@@ -3409,8 +3430,8 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 					break
 				}
 			}
-			if firstDst != "A" {
-				g.emitf("    LD %s, A", firstDst)
+			if firstDst != scratch {
+				g.emitf("    LD %s, %s", firstDst, scratch)
 			}
 		} else {
 			// u16 cycle: use stack.

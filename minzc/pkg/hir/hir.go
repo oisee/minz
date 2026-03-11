@@ -423,6 +423,18 @@ type StructLitExpr struct {
 func (*StructLitExpr) hirExpr()          {}
 func (*StructLitExpr) ExprTy() mir2.Ty   { return mir2.TyPtr }
 
+// RangeSourceExpr is produced by range(lo..hi) / range(hi..lo).
+// It is a pure counter source — no memory pointer, no Load.
+// Rev=true means hi < lo in source (e.g. range(n..0)): counts from Lo down to Hi+1.
+// When used as an iterator source the element value equals the current counter value.
+type RangeSourceExpr struct {
+	Lo, Hi Expr
+	Rev    bool // true when written as range(hi..lo), i.e. counting down
+}
+
+func (*RangeSourceExpr) hirExpr()        {}
+func (*RangeSourceExpr) ExprTy() mir2.Ty { return mir2.TyU8 }
+
 // ── Convenience constructors ──────────────────────────────────────────────────
 
 func U8(n int64) *IntLitExpr  { return &IntLitExpr{Val: n, Ty: mir2.TyU8} }

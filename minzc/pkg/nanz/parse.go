@@ -2364,6 +2364,33 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			}
 			return &hir.CastExpr{X: x, Ty: ty}, nil
 		}
+		// range(lo..hi) or range(hi..lo) — counter-based iterator source.
+		// Produces a RangeSourceExpr; Rev=true when lo > hi (back-counting).
+		if t.val == "range" && p.l.peekN(1).kind == tokLParen {
+			p.l.next() // consume "range"
+			p.l.next() // consume "("
+			lo, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err2 := p.l.eat(tokDotDot); err2 != nil {
+				return nil, fmt.Errorf("line %d: range: expected lo..hi", t.line)
+			}
+			hi, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err2 := p.l.eat(tokRParen); err2 != nil {
+				return nil, err2
+			}
+			// Detect back-counting: if lo is an ident/var and hi is literal 0,
+			// or hi < lo literally — set Rev=true.
+			rev := false
+			if lit, ok2 := hi.(*hir.IntLitExpr); ok2 && lit.Val == 0 {
+				rev = true
+			}
+			return &hir.RangeSourceExpr{Lo: lo, Hi: hi, Rev: rev}, nil
+		}
 		// Struct literal: StructName { field: val, ... }
 		if st, ok := p.structs[t.val]; ok && p.l.peekN(1).kind == tokLBrace {
 			p.l.next() // consume struct name

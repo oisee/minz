@@ -1826,8 +1826,8 @@ type iterStage struct {
 }
 
 type iterChain struct {
-	ptr    Expr        // base pointer expression
-	len    Expr        // element count
+	ptr    Expr        // base pointer expression (nil for range sources)
+	len    Expr        // element count (nil for range sources — count derived from range)
 	stages []iterStage // transformation stages (innermost-first)
 	mutate bool        // mapInPlace: store transformed element back to ptr
 	cbName string      // forEach callback function name
@@ -1836,6 +1836,11 @@ type iterChain struct {
 	isFold    bool    // true → fold terminal (returns accumulator)
 	foldInit  Expr    // initial accumulator value
 	foldAccTy mir2.Ty // accumulator type (cb's return type)
+	// range source fields (isRange=true when source is range(lo..hi)):
+	isRange  bool // true → counter-based source, no memory/pointer
+	rangeLo  Expr // inclusive start (or the "count-from" value for back-counting)
+	rangeHi  Expr // exclusive end  (or 0 for back-counting)
+	rangeRev bool // true when range(hi..lo): B starts at lo, counts down to 0 (DJNZ direct)
 }
 
 // tryLowerIterChain detects iterator chain patterns and lowers them to a fused
@@ -1847,9 +1852,17 @@ func (l *lowerer) tryLowerIterChain(expr Expr) bool {
 		return false
 	}
 	if chain.isFold {
-		l.lowerFusedFold(chain) // result discarded (fold as ExprStmt = side-effect only)
+		if chain.isRange {
+			l.lowerRangeFold(chain)
+		} else {
+			l.lowerFusedFold(chain)
+		}
 	} else {
-		l.lowerFusedForEach(chain)
+		if chain.isRange {
+			l.lowerRangeForEach(chain)
+		} else {
+			l.lowerFusedForEach(chain)
+		}
 	}
 	return true
 }
@@ -1860,6 +1873,9 @@ func (l *lowerer) tryLowerFold(expr Expr) (mir2.Reg, bool) {
 	chain, ok := l.recognizeIterChain(expr)
 	if !ok || !chain.isFold {
 		return mir2.NoReg, false
+	}
+	if chain.isRange {
+		return l.lowerRangeFold(chain), true
 	}
 	return l.lowerFusedFold(chain), true
 }
@@ -1872,12 +1888,24 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 		return iterChain{}, false
 	}
 	// ── fold/reduce ─────────────────────────────────────────────────────────────
-	// fold(src, init, cb, n)  where cb(acc, elem) -> acc
+	// Chainable:  range(lo..hi).fold(init, cb)  → Args=[range, init, cb] (3 args)
+	// Functional: fold(src, init, cb, n)         → Args=[src, init, cb, n] (4 args)
 	if call.Fn == "fold" || call.Fn == "reduce" {
-		if len(call.Args) != 4 {
+		var (
+			srcExpr  Expr
+			initExpr Expr
+			cbArg    Expr
+			lenExpr  Expr
+		)
+		switch len(call.Args) {
+		case 3: // chainable: fold(range_src, init, cb)
+			srcExpr, initExpr, cbArg = call.Args[0], call.Args[1], call.Args[2]
+		case 4: // functional: fold(ptr_src, init, cb, n)
+			srcExpr, initExpr, cbArg, lenExpr = call.Args[0], call.Args[1], call.Args[2], call.Args[3]
+		default:
 			return iterChain{}, false
 		}
-		cbName := l.resolveFunc(call.Args[2])
+		cbName := l.resolveFunc(cbArg)
 		if cbName == "" {
 			return iterChain{}, false
 		}
@@ -1894,18 +1922,28 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 				elemTy = cbFn.Params[0].Ty
 			}
 		}
-		return iterChain{
-			ptr:       call.Args[0],
-			foldInit:  call.Args[1],
-			len:       call.Args[3],
+		chain := iterChain{
+			foldInit:  initExpr,
 			cbName:    cbName,
 			elemTy:    elemTy,
 			isFold:    true,
 			foldAccTy: accTy,
-		}, true
+		}
+		if rs, ok2 := srcExpr.(*RangeSourceExpr); ok2 {
+			chain.isRange = true
+			chain.rangeLo = rs.Lo
+			chain.rangeHi = rs.Hi
+			chain.rangeRev = rs.Rev
+		} else {
+			chain.ptr = srcExpr
+			chain.len = lenExpr
+		}
+		return chain, true
 	}
 
 	// ── forEach / mapInPlace ─────────────────────────────────────────────────
+	// Chainable range form: range(lo..hi).forEach(cb)  → Args=[range, cb] (2 args)
+	// Standard form:        forEach(src, cb, n)         → Args=[src, cb, n] (3 args)
 	isMutate := false
 	switch call.Fn {
 	case "forEach":
@@ -1914,6 +1952,30 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 	default:
 		return iterChain{}, false
 	}
+
+	// Detect range-source form (2 args).
+	if len(call.Args) == 2 {
+		if rs, ok2 := call.Args[0].(*RangeSourceExpr); ok2 {
+			cbName := l.resolveFunc(call.Args[1])
+			if cbName == "" {
+				return iterChain{}, false
+			}
+			elemTy := mir2.Ty(mir2.TyU8)
+			if cbFn, ok3 := l.hirFuncs[cbName]; ok3 && len(cbFn.Params) > 0 {
+				elemTy = cbFn.Params[0].Ty
+			}
+			return iterChain{
+				cbName:   cbName,
+				mutate:   isMutate,
+				elemTy:   elemTy,
+				isRange:  true,
+				rangeLo:  rs.Lo,
+				rangeHi:  rs.Hi,
+				rangeRev: rs.Rev,
+			}, true
+		}
+	}
+
 	if len(call.Args) != 3 {
 		return iterChain{}, false
 	}
@@ -2157,6 +2219,210 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 
 	// 4. Return the final accumulator register.
 	return l.env[accVar]
+}
+
+// ── Range-based (counter-only) iterator lowering ─────────────────────────────
+//
+// range(lo..hi).forEach(cb)   — pure DJNZ loop, no memory access
+// range(lo..hi).fold(init,cb) — DJNZ accumulator loop, result in register
+//
+// Back-counting range(hi..lo) (Rev=true):
+//   B = lo (the starting value), counts down to 0 via DJNZ directly.
+//   Element value = B (current counter). DJNZ is the ONLY branch instruction.
+//
+// Forward-counting range(lo..hi) (Rev=false):
+//   Count = hi - lo (or just hi when lo==0).
+//   B = count, counts down. Element value = lo + (count_init - B) if needed.
+//   If element is unused ("_"), generates identical code to back-counting.
+//
+// Implementation: desugars to a ForRangeStmt so the existing lowerForRange
+// path generates the DJNZ loop and threads captured vars as block params.
+
+// lowerRangeForEach lowers range(lo..hi).forEach(cb) to a counter-only loop.
+func (l *lowerer) lowerRangeForEach(chain iterChain) {
+	const elemVar = "__iter_elem__"
+	elemTy := chain.elemTy
+	cbFn := l.hirFuncs[chain.cbName]
+
+	// Build the loop body by inlining the callback (same as lowerFusedForEach
+	// but without a Load — the element IS the counter).
+	var bodyStmts []Stmt
+	if cbFn != nil && cbFn.Body != nil && len(cbFn.Params) >= 1 {
+		paramName := cbFn.Params[0].Name
+		for _, st := range cbFn.Body.Body {
+			if _, isRet := st.(*ReturnStmt); isRet {
+				continue
+			}
+			bodyStmts = append(bodyStmts, renameStmt(st, paramName, elemVar))
+		}
+	} else {
+		bodyStmts = []Stmt{&ExprStmt{Expr: &CallExpr{
+			Fn:   chain.cbName,
+			Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
+			Ty:   mir2.TyVoid,
+		}}}
+	}
+
+	l.lowerRangeLoop(chain, elemVar, elemTy, bodyStmts)
+}
+
+// lowerRangeFold lowers range(lo..hi).fold(init, cb) to a DJNZ accumulator loop.
+func (l *lowerer) lowerRangeFold(chain iterChain) mir2.Reg {
+	const accVar = "__fold_acc__"
+	const elemVar = "__iter_elem__"
+	accTy := chain.foldAccTy
+	elemTy := chain.elemTy
+
+	// Seed the accumulator.
+	initReg := l.lowerExpr(chain.foldInit)
+	l.bind(accVar, initReg, accTy)
+
+	// Build the loop body: __fold_acc__ = cb(__fold_acc__, __iter_elem__)
+	var bodyExpr Expr
+	cbFn := l.hirFuncs[chain.cbName]
+	if cbFn != nil && cbFn.Body != nil && len(cbFn.Params) >= 2 {
+		if ret := extractReturnExpr(cbFn.Body); ret != nil {
+			bodyExpr = renameExpr(ret, cbFn.Params[0].Name, accVar)
+			bodyExpr = renameExpr(bodyExpr, cbFn.Params[1].Name, elemVar)
+		}
+	} else if cbFn != nil && cbFn.Body != nil && len(cbFn.Params) == 1 {
+		// Single-param cb: acc-only fold (element unused).
+		if ret := extractReturnExpr(cbFn.Body); ret != nil {
+			bodyExpr = renameExpr(ret, cbFn.Params[0].Name, accVar)
+		}
+	}
+	if bodyExpr == nil {
+		bodyExpr = &CallExpr{
+			Fn: chain.cbName,
+			Args: []Expr{
+				&VarRefExpr{Name: accVar, Ty: accTy},
+				&VarRefExpr{Name: elemVar, Ty: elemTy},
+			},
+			Ty: accTy,
+		}
+	}
+	bodyStmts := []Stmt{&AssignStmt{
+		Target: &VarRefExpr{Name: accVar, Ty: accTy},
+		Val:    bodyExpr,
+	}}
+
+	l.lowerRangeLoop(chain, elemVar, elemTy, bodyStmts)
+	return l.env[accVar]
+}
+
+// lowerRangeLoop emits a counter-only DJNZ loop for range(lo..hi) sources.
+//
+// Uses TermDJNZ directly — no CmpNe/AND A inside the loop at all.
+//
+//	entry:
+//	    cnt = countExpr              B = n (ClassCounter)
+//	    cond = (cnt != 0)            AND A while cnt may share A — pre-check only
+//	    BrIf(cond, rng_body, rng_exit)
+//
+//	rng_body(cnt: B, mutated...):
+//	    elem = cnt                   element = current B value
+//	    [body stmts]                 may update mutated vars
+//	    DJNZ rng_body(cnt-1, mutated...) | rng_exit(mutated...)
+//	    ──> emitted as TermDJNZ; no CmpNe, no register clobber
+//
+//	rng_exit(mutated...):
+//
+// The pre-check uses A freely (before any acc block param is live).
+// DJNZ handles all subsequent iterations without touching A.
+func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty, bodyStmts []Stmt) {
+	envBefore := cloneMap(l.env)
+
+	// Compute loop count (initial B value).
+	var countExpr Expr
+	if chain.rangeRev {
+		countExpr = chain.rangeLo // range(n..0): n iterations
+	} else {
+		lo := chain.rangeLo
+		hi := chain.rangeHi
+		if lit, ok := lo.(*IntLitExpr); ok && lit.Val == 0 {
+			countExpr = hi
+		} else {
+			countExpr = &BinExpr{Op: "-", L: hi, R: lo, Ty: hi.ExprTy()}
+		}
+	}
+	cntReg := l.lowerExpr(countExpr) // typically ClassAcc (A from func param)
+
+	// Scan body for mutated outer vars (block params for loop-carried state).
+	elemInitReg := l.bld.Const(0, elemTy, mir2.ClassGeneral)
+	l.bind(elemVar, elemInitReg, elemTy)
+	syntheticBody := &Block{Body: bodyStmts}
+	allUsed := map[string]bool{}
+	scanUsedInBlock(syntheticBody, envBefore, allUsed)
+	muts := scanMutations(syntheticBody, envBefore)
+	for name := range muts {
+		allUsed[name] = true
+	}
+	delete(allUsed, elemVar)
+	mutated := sortedKeys(allUsed, envBefore)
+
+	bodyLabel := l.fresh("rng_body")
+	exitLabel := l.fresh("rng_exit")
+
+	// Pre-check: skip loop if cnt == 0.
+	// cntReg is typically in A (ClassAcc from func param position 0).
+	// AND A sets Z if A==0 without extra cost; the trampoline sorts out
+	// the A→B (counter) and 0→A (acc) parallel copies before the loop body.
+	zero8 := l.bld.Const(0, mir2.TyU8, mir2.ClassAcc)
+	cond0 := l.bld.Cmp(mir2.CmpNe, cntReg, zero8, mir2.ClassFlag, false)
+	entryBodyArgs := append([]mir2.Reg{cntReg}, l.collectArgs(mutated)...)
+	exitArgs0 := l.collectArgs(mutated)
+	l.bld.BrIf(cond0, bodyLabel, entryBodyArgs, exitLabel, exitArgs0)
+
+	// ── rng_body(cnt: B, mutated...) ──
+	body := l.bld.SwitchToNewBlock(bodyLabel)
+	bodyCnt := l.bld.BlockParam(body, mir2.TyU8, mir2.ClassCounter) // B
+	bodyEnv := cloneMap(envBefore)
+	for _, name := range mutated {
+		ty := l.envTy[name]
+		// For fold loops, put the accumulator in ClassAcc (A) — the result
+		// is returned, so keeping it in A avoids a LD A,C copy at exit.
+		cls := classForLoop(ty, name)
+		if chain.isFold {
+			cls = classForRet(ty)
+		}
+		r := l.bld.BlockParam(body, ty, cls)
+		bodyEnv[name] = r
+	}
+	l.env = bodyEnv
+
+	// Element = current B value.
+	l.bind(elemVar, bodyCnt, elemTy)
+
+	// DJNZ loops have no CmpNe/AND A comparison — A is free for ALU results.
+	// Don't set inLoopContext, so lowerBinExpr uses classForALUResult (ClassAcc)
+	// rather than classForExpr (ClassGeneral), keeping acc in A without spills.
+	prevInLoop := l.inLoopContext
+	l.inLoopContext = false
+	l.pushLoop(loopCtx{headLabel: bodyLabel, exitLabel: exitLabel, mutated: mutated})
+	l.lowerBlock(syntheticBody)
+	l.popLoop()
+	l.inLoopContext = prevInLoop
+
+	// TermDJNZ: B--; if B!=0 goto body(mutated...) else exit(mutated...).
+	// Counter (bodyCnt) is implicit — NOT passed in bodyBackArgs or exitArgs1.
+	bodyBackArgs := l.collectArgs(mutated)
+	exitArgs1 := l.collectArgs(mutated)
+	l.bld.DJNZ(bodyCnt, bodyLabel, bodyBackArgs, exitLabel, exitArgs1)
+
+	// ── rng_exit(mutated...) ──
+	exit := l.bld.SwitchToNewBlock(exitLabel)
+	exitEnv := cloneMap(envBefore)
+	for _, name := range mutated {
+		ty := l.envTy[name]
+		cls := classForExpr(ty)
+		if chain.isFold {
+			cls = classForRet(ty) // keep acc in A for clean return
+		}
+		r := l.bld.BlockParam(exit, ty, cls)
+		exitEnv[name] = r
+	}
+	delete(exitEnv, elemVar)
+	l.env = exitEnv
 }
 
 // extractReturnExpr extracts the return value from the last statement of a block.

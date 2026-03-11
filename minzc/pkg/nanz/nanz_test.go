@@ -2312,3 +2312,59 @@ fun main() -> void {
 		t.Errorf("OUT (0x23), A missing\n%s", funcAsm)
 	}
 }
+
+// ── range fold ────────────────────────────────────────────────────────────────
+
+// TestRangeFold_Compiles verifies that range(0..n).fold(init, cb) compiles
+// without hanging (regression for the PropagateConstants DJNZ-offset bug)
+// and produces a DJNZ loop with an accumulator ADD in the body.
+func TestRangeFold_Compiles(t *testing.T) {
+	src := `
+fun sum_range(n: u8) -> u8 {
+    return range(0..n).fold(0, |acc: u8, i: u8| { return acc + i })
+}
+`
+	m, err := nanz.Parse(src, "range_fold_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+	if !strings.Contains(asm, "DJNZ") {
+		t.Errorf("expected DJNZ in output\n%s", asm)
+	}
+	if !strings.Contains(asm, "ADD A") {
+		t.Errorf("expected ADD A (accumulator update) in output\n%s", asm)
+	}
+	// The trampoline must NOT be a no-op A↔B swap (LD A,B / LD B,A loses n).
+	// After the fix, the swap uses a third register as scratch (LD C,A / LD A,B / LD B,C).
+	if strings.Contains(asm, "LD A, B\n    LD B, A") {
+		t.Errorf("incorrect A↔B swap in trampoline (loses n)\n%s", asm)
+	}
+	t.Logf("sum_range Z80:\n%s", asm)
+}
+
+// TestRangeForEach_Compiles verifies range(0..n).forEach(cb) compiles without error.
+func TestRangeForEach_Compiles(t *testing.T) {
+	src := `
+@extern fun cb(v: u8)
+
+fun call_each(n: u8) -> void {
+    range(0..n).forEach(|i: u8| { cb(i) })
+}
+`
+	m, err := nanz.Parse(src, "range_foreach_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+	if !strings.Contains(asm, "DJNZ") {
+		t.Errorf("expected DJNZ in output\n%s", asm)
+	}
+	t.Logf("call_each Z80:\n%s", asm)
+}
