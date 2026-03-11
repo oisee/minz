@@ -2,8 +2,7 @@
 
 ; fun sum_to(n: u8 = C) -> u8 = A ; clobbers: D, E, F, HL
 sum_to:
-    LD D, 0
-    LD A, D
+    LD A, 0
     LD (acc_u8), A
     LD D, 0
     LD A, D
@@ -14,7 +13,7 @@ sum_to:
     LD A, D
     ADD A, 1
     CP C
-    JRS C, .sum_to_trmp0
+    JRS C, .sum_to_loop_exit3
 .sum_to_loop_body2:
     LD HL, acc_u8
     LD E, (HL)
@@ -29,11 +28,6 @@ sum_to:
 .sum_to_loop_exit3:
     LD A, (acc_u8)
     RET
-.sum_to_trmp0:
-    LD A, C
-    LD C, D
-    LD D, A
-    JRS .sum_to_loop_exit3
 
 ; fun factorial(n: u8 = C) -> u16 = HL ; clobbers: A, D, DE, E, F
 factorial:
@@ -52,7 +46,7 @@ factorial:
     LD A, D
     ADD A, 1
     CP C
-    JRS C, .factorial_loop_exit3
+    JRS C, .factorial_trmp0
 .factorial_loop_body2:
     LD HL, acc_u16
     LD L, (HL)     ; lo
@@ -96,11 +90,15 @@ factorial:
     LD H, (HL)     ; hi
     DEC HL
     RET
+.factorial_trmp0:
+    LD A, C
+    LD C, D
+    LD D, A
+    JRS .factorial_loop_exit3
 
 ; fun count_in_range(arr_ptr: ptr = HL, len: u8 = C, lo: u8 = D, hi: u8 = E) -> u8 = A ; clobbers: BC, DE, F, H, L
 count_in_range:
-    LD H, 0
-    LD A, H
+    LD A, 0
     LD (acc_u8), A
     LD H, 0
     LD B, H

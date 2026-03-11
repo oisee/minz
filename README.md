@@ -1,7 +1,24 @@
 # MinZ Programming Language
 
+### ★ [Nanz → Z80 Showcase: Definitive Edition](reports/2026-03-11-056-Nanz_Z80_Showcase_Definitive.md)
+
+**15 verified examples** — from `abs_diff` (4 instructions, optimal) to `@smc` compiled sprites (demoscene-quality output from high-level source). Every code block is actual compiler output, no hand-editing.
+
+| Highlight | Output |
+|-----------|--------|
+| `abs_diff` u8 | `SUB C / RET NC / NEG / RET` — **4 instructions, identical to hand-ASM** |
+| `popcount` LUTGen | `LD H,lut^H / LD L,C / LD A,(HL)` — **3 instructions + 256B table** |
+| `min_of(a,b)` | `JP minmax` — **1 instruction** (tail-call elimination) |
+| `@smc draw_row` | `LD HL,0 / LD(HL),195 / INC HL / LD(HL),60 / RET` — **compiled sprite from `Row2{b0:195,b1:60}`** |
+| multi-return annotation | `-> (u16=HL, u16=DE)` — correct, verified against allocator |
+
+→ **[Full showcase with source, output, T-state analysis and quality table](reports/2026-03-11-056-Nanz_Z80_Showcase_Definitive.md)**
+
+---
+
 ### Hot off the press
 
+- **[HIR text parser + `.hir` file support](docs/HIR_Guide.md)** — `mz file.hir` now works end-to-end. `ParseHIR()` round-trips any `--emit=hir` output identically. Enables writing compiler frontends in any language (emit HIR text, pipe to `mz`). 6 tests, 1,434-line parser. [HIR Guide](docs/HIR_Guide.md)
 - **[`@smc` parameters — Phase A: baked immediates and compiled sprites](reports/2026-03-11-055-SMC_Parameters_Phase_A_Breakthrough.md)** — `@smc r0: u16` bakes a function parameter as a `LD HL, imm16` immediate instead of an ABI register. Writing `r0^ = Row2{ b0: 195, b1: 60 }` emits `LD (HL), 195 / INC HL / LD (HL), 60` — zero alloca, zero register passing. Auto-synthesised patcher `draw_row_set_r0(new_addr: u16)` patches the baked imm16 in ~40T. Two `@smc` params give HL+DE independently. This is the foundation for ZX Spectrum compiled sprites: draw in ~36T/row vs ~168T/row LDIR. [Showcase section §10](reports/2026-03-10-051-Nanz_Real_ASM_Showcase.md#10-smc-function-parameters--baked-immediates-and-compiled-sprites) | [ADR-0019](docs/adr/0019-baked-sprite-codegen.md)
 - **Codegen correctness fixes (2026-03-11)** — Three Z80 codegen bugs squashed: **(1)** function annotation multi-return showed `-> (u16=HL, u16=HL)` — now reads actual allocated registers via `TermRet` scan, correctly showing `-> (u16=HL, u16=DE)`; **(2)** `clobbers: BC` false-positive in callers — ExtraRets of CALL instructions no longer counted as caller-side clobbers; **(3)** `PUSH A; POP HL` invalid widening — `emitMov` now detects 8-bit→16-bit and emits `LD L, A; LD H, 0` instead. Bonus: `ADD DE, HL` invalid Z80 instruction fixed — 16-bit ADD now routes through HL with `EX DE,HL` when destination is DE.
 - **[`@smc` showcase section added to ASM Showcase](reports/2026-03-10-051-Nanz_Real_ASM_Showcase.md)** — §10 shows real compiled output: single-row 36T draw, two-row sprite with HL+DE addressing, composition table (4 pieces that clicked together), and the full 16×8 sprite projection. `ex10b_fib_iter.nanz`, `ex10c_fib_fold.nanz` added to `showcase-src/2026-03-11/`.

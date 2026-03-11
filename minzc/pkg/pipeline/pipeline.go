@@ -217,9 +217,23 @@ func RunAsserts(hm *hir.Module, m *mir2.Module) error {
 		if len(rets) == 0 {
 			return fmt.Errorf("line %d: assert %q: function returned no value", a.Line, a.Source)
 		}
-		if rets[0].I != a.Expected {
-			return fmt.Errorf("line %d: assert %q: got %d, want %d",
-				a.Line, a.Source, rets[0].I, a.Expected)
+		if len(a.ExpectedMulti) > 0 {
+			// Multi-return comparison: check each return value.
+			if len(rets) < len(a.ExpectedMulti) {
+				return fmt.Errorf("line %d: assert %q: function returned %d values, want %d",
+					a.Line, a.Source, len(rets), len(a.ExpectedMulti))
+			}
+			for i, want := range a.ExpectedMulti {
+				if rets[i].I != want {
+					return fmt.Errorf("line %d: assert %q: return[%d] got %d, want %d",
+						a.Line, a.Source, i, rets[i].I, want)
+				}
+			}
+		} else {
+			if rets[0].I != a.Expected {
+				return fmt.Errorf("line %d: assert %q: got %d, want %d",
+					a.Line, a.Source, rets[0].I, a.Expected)
+			}
 		}
 	}
 	return nil

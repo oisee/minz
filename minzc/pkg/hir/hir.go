@@ -43,11 +43,12 @@ type InterfaceDecl struct {
 // Assertions are checked after MIR2 lowering by running the call in the
 // MIR2 VM.  They are NOT emitted into the generated binary.
 type Assert struct {
-	FuncName string   // function to call
-	Args     []int64  // literal integer arguments
-	Expected int64    // expected return value
-	Source   string   // original source text (for error messages)
-	Line     int      // source line number
+	FuncName       string   // function to call
+	Args           []int64  // literal integer arguments
+	Expected       int64    // expected return value (single-return)
+	ExpectedMulti  []int64  // expected values for multi-return; non-nil overrides Expected
+	Source         string   // original source text (for error messages)
+	Line           int      // source line number
 }
 
 // Module is the top-level HIR unit.

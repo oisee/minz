@@ -977,7 +977,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	g.tailCallInst = nil
 	if len(b.Insts) > 0 && peep.bodyLbl == "" {
 		last := b.Insts[len(b.Insts)-1]
-		if last.Op == OpCall {
+		if last.Op == OpCall && !isIntrinsic(last.Sym) {
 			if ret, ok := b.Term.(*TermRet); ok {
 				isTail := len(ret.Vals) == 0 ||
 					(len(ret.Vals) == 1 && ret.Vals[0] == last.Dst)
@@ -2563,6 +2563,18 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.emit("    OUT (0x01), A")
 		g.invalidate("A")
 		return
+
+	case "@mir.io.console.log":
+		// console_log(n: u8) — OUT (0x01), A  (same channel as @print_u8)
+		g.emit("    OUT (0x01), A")
+		g.invalidate("A")
+		return
+
+	case "@mir.io.console.err":
+		// console_err(n: u8) — OUT (0x02), A  (stderr channel)
+		g.emit("    OUT (0x02), A")
+		g.invalidate("A")
+		return
 	}
 
 	sym := sanitizeIdent(inst.Sym)
@@ -3396,6 +3408,14 @@ func blockLabel(funcName, blockLabel string) string {
 		return sanitizeIdent(funcName)
 	}
 	return fmt.Sprintf(".%s_%s", sanitizeIdent(funcName), sanitizeIdent(blockLabel))
+}
+
+// isIntrinsic reports whether sym is a built-in intrinsic handled inline by
+// genCall (i.e. the call does NOT lower to a real CALL/JP instruction).
+// Intrinsics must NOT be treated as tail calls because genCall returns early
+// without consuming g.tailCallInst, which would cause genTerm to skip RET.
+func isIntrinsic(sym string) bool {
+	return strings.HasPrefix(sym, "@mir.")
 }
 
 func sanitizeIdent(s string) string {

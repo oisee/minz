@@ -17,7 +17,7 @@ factorial_fold:
     LD A, D
     ADD A, 1
     CP C
-    JRS C, .factorial_fold_trmp0
+    JRS C, .factorial_fold_loop_exit3
 .factorial_fold_loop_body2:
     LD HL, acc
     LD L, (HL)     ; lo
@@ -61,11 +61,6 @@ factorial_fold:
     LD H, (HL)     ; hi
     DEC HL
     RET
-.factorial_fold_trmp0:
-    LD A, C
-    LD C, D
-    LD D, A
-    JRS .factorial_fold_loop_exit3
 
 ; globals
 acc:

@@ -596,10 +596,53 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 		return hir.Assert{}, fmt.Errorf("line %d: assert: expected ')'", line)
 	}
 
-	// Parse: == expected
+	// Parse: == expected  OR  == (v1, v2, ...)
 	if _, err2 := p.l.eat(tokEqEq); err2 != nil {
 		return hir.Assert{}, fmt.Errorf("line %d: assert: expected '==' after call", line)
 	}
+
+	// Multi-return tuple: == (v1, v2)
+	if p.l.is(tokLParen) {
+		p.l.next() // consume '('
+		var multi []int64
+		for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+			if len(multi) > 0 {
+				if _, err2 := p.l.eat(tokComma); err2 != nil {
+					return hir.Assert{}, fmt.Errorf("line %d: assert: expected ',' in tuple", line)
+				}
+			}
+			neg2 := false
+			if p.l.is(tokMinus) {
+				p.l.next()
+				neg2 = true
+			}
+			vTok, err2 := p.l.eat(tokInt)
+			if err2 != nil {
+				return hir.Assert{}, fmt.Errorf("line %d: assert: expected integer in tuple", line)
+			}
+			v, err3 := strconv.ParseInt(vTok.val, 0, 64)
+			if err3 != nil {
+				return hir.Assert{}, fmt.Errorf("line %d: assert: invalid integer %q", line, vTok.val)
+			}
+			if neg2 {
+				v = -v
+			}
+			multi = append(multi, v)
+		}
+		if _, err2 := p.l.eat(tokRParen); err2 != nil {
+			return hir.Assert{}, fmt.Errorf("line %d: assert: expected ')' after tuple", line)
+		}
+		src := fmt.Sprintf("assert %s(%s) == (%s)", nameTok.val, intSliceStr(args), intSliceStr(multi))
+		return hir.Assert{
+			FuncName:      nameTok.val,
+			Args:          args,
+			ExpectedMulti: multi,
+			Source:        src,
+			Line:          line,
+		}, nil
+	}
+
+	// Single-value expected
 	neg := false
 	if p.l.is(tokMinus) {
 		p.l.next()
@@ -2326,6 +2369,36 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				return nil, err
 			}
 			return &hir.CallExpr{Fn: "@mir.io.print.u8", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
+		}
+		// @console_log(expr) — OUT (0x01), A  single raw byte to stdout
+		if p.l.isIdent("console_log") {
+			p.l.next()
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return nil, err
+			}
+			arg, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			return &hir.CallExpr{Fn: "@mir.io.console.log", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
+		}
+		// @console_err(expr) — OUT (0x02), A  single raw byte to stderr
+		if p.l.isIdent("console_err") {
+			p.l.next()
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return nil, err
+			}
+			arg, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			return &hir.CallExpr{Fn: "@mir.io.console.err", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
 		}
 		if !p.l.isIdent("ptr") {
 			return nil, fmt.Errorf("line %d: expected @ptr(...), got @%s", t.line, p.l.peek().val)

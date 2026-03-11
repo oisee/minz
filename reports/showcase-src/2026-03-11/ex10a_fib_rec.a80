@@ -7,8 +7,8 @@ fib:
     JRS Z, .fib_if_then1
     JRS .fib_if_join2
 .fib_if_then1:
-    PUSH A
-    POP HL
+    LD L, A
+    LD H, 0
     RET
 .fib_if_join2:
     LD C, 1

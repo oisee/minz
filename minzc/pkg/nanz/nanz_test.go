@@ -2187,3 +2187,38 @@ func TestSMCParam_NoBloat_SingleByte(t *testing.T) {
 		t.Errorf("expected patcher function 'draw_sprite_set_r0:' in output")
 	}
 }
+
+// TestConsoleLog_VoidFuncRET verifies that a void function whose last
+// instruction before 'return' is an intrinsic call (@console_log / @console_err)
+// still emits a trailing RET.  Regression for: intrinsic OpCall was
+// mis-detected as a tail call, causing genTerm(TermRet) to skip RET.
+func TestConsoleLog_VoidFuncRET(t *testing.T) {
+	src := `
+fun main() -> void {
+    @console_log(42)
+    @console_err(7)
+    return
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+
+	// Both OUT instructions must be present.
+	if !strings.Contains(asm, "OUT (0x01), A") {
+		t.Errorf("missing OUT (0x01) for console_log\n%s", asm)
+	}
+	if !strings.Contains(asm, "OUT (0x02), A") {
+		t.Errorf("missing OUT (0x02) for console_err\n%s", asm)
+	}
+
+	// RET must be present — the bug caused it to be dropped.
+	if !strings.Contains(asm, "    RET") {
+		t.Errorf("missing RET at end of void main()\n%s", asm)
+	}
+}

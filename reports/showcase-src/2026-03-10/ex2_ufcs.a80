@@ -11,8 +11,7 @@ Acc_add:
 
 ; fun Acc_reset(self: ptr = HL) ; clobbers: C
 Acc_reset:
-    LD C, 0
-    LD (HL), C
+    LD (HL), 0
     RET
 
 ; fun sum_two(a: u8 = C, b: u8 = mem) -> u8 = A ; clobbers: HL

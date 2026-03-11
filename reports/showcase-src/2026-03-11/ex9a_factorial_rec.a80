@@ -8,8 +8,8 @@ factorial:
     JRS .factorial_if_join2
 .factorial_if_then1:
     LD A, 1
-    PUSH A
-    POP HL
+    LD L, A
+    LD H, 0
     RET
 .factorial_if_join2:
     LD C, 1

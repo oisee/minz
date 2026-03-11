@@ -71,7 +71,9 @@ func New() *Z80 {
 	
 	// Default I/O handlers
 	z.ioWrite = func(port uint8, value uint8) {
-		if port == 0x01 { // Simple console output port
+		if port == 0x01 { // console stdout (OUT (0x01), A)
+			z.output = append(z.output, value)
+		} else if port == 0x02 { // console stderr (OUT (0x02), A) — also captured in output for testing
 			z.output = append(z.output, value)
 		}
 	}

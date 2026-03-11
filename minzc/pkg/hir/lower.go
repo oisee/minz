@@ -577,6 +577,14 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				}
 				return false
 			}
+		} else if _, isStruct := st.Ty.(*mir2.StructTy); isStruct {
+			// Local struct variable without init: allocate stack space.
+			// Returns a pointer register (ClassPointer = HL on Z80).
+			size := int64(st.Ty.Width() / 8)
+			if size <= 0 {
+				size = 1
+			}
+			r = l.bld.Alloca(size)
 		} else {
 			r = l.bld.Const(0, st.Ty, classForExpr(st.Ty))
 		}
