@@ -2,34 +2,45 @@
 
 ; fun double(n: u8 = A) -> u8 = A ; clobbers: C
 double:
-    ADD A, A
-    LD C, A
-    RET
+    ADD A, A                            ; 4T
+    LD C, A                             ; 4T
+    RET                                 ; 10T
+    ; — block "entry": 18T
+; — double worst-case block: 18T
 
 ; fun clamp(v: u8 = A, lo: u8 = C, hi: u8 = D) -> u8 = A ; clobbers: F
 clamp:
-    CP C
-    JRS NC, .clamp_if_join2
+    CP C                                ; 4T
+    JRS NC, .clamp_if_join2             ; 12T/7T
+    ; — block "entry": 16T
 .clamp_if_then1:
-    LD A, C
-    RET
+    LD A, C                             ; 4T
+    RET                                 ; 10T
+    ; — block "if_then1": 14T
 .clamp_if_join2:
-    CP D
-    RET CGT
+    CP D                                ; 4T
+    RET CGT                             ; 11T/5T
+    ; — block "if_join2": 15T
 .clamp_if_then3:
-    LD A, D
-    RET
+    LD A, D                             ; 4T
+    RET                                 ; 10T
+    ; — block "if_then3": 14T
+; — clamp worst-case block: 16T
 
 ; fun abs_diff(a: u8 = A, b: u8 = D) -> u8 = A ; clobbers: C, F
 abs_diff:
-    SUB D
-    LD C, A
-    JRS C, .abs_diff_if_join2
+    SUB D                               ; 4T
+    LD C, A                             ; 4T
+    JRS C, .abs_diff_if_join2           ; 12T/7T
+    ; — block "entry": 20T
 .abs_diff_if_then1:
-    LD A, C
-    RET
+    LD A, C                             ; 4T
+    RET                                 ; 10T
+    ; — block "if_then1": 14T
 .abs_diff_if_join2:
-    LD A, C
-    NEG
-    RET
+    LD A, C                             ; 4T
+    NEG                                 ; 8T
+    RET                                 ; 10T
+    ; — block "if_join2": 22T
+; — abs_diff worst-case block: 22T
 
