@@ -21,13 +21,41 @@ type Module struct {
 
 // ── Global variables ──────────────────────────────────────────────────────────
 
+// StorageClass controls how a global's data is represented in the output.
+// See ADR-0019 for the full design.
+type StorageClass uint8
+
+const (
+	// StorageNormal: data lives in the data section as a DB sequence.
+	// &field is a valid memory address.  Default for all globals.
+	StorageNormal StorageClass = iota
+
+	// StorageSMCGetter: field values are baked into immediates inside a
+	// synthesised getter function.  &field is forbidden.  Reads go through
+	// the getter (7T per field vs 13T from data section).  Writes patch the
+	// getter's immediate bytes.
+	StorageSMCGetter
+
+	// StoragePhantom: field values are baked at every individual read site.
+	// &field is forbidden.  Reads are 7T regardless of call overhead.
+	// Writes patch every read site (13T × N_sites).  Best when read-dominant.
+	StoragePhantom
+
+	// StorageBakedSprite: a ZX Spectrum compiled sprite — pixel data AND
+	// screen addresses are baked into a synthesised draw function.
+	// set_pos() patches address immediates; set_frame() patches pixel immediates.
+	// See ADR-0019.  Only valid on ZX Spectrum target.
+	StorageBakedSprite
+)
+
 // Global is a module-level variable or constant.
 type Global struct {
-	Name    string  // linker symbol name
+	Name    string       // linker symbol name
 	Ty      Ty
-	Init    []byte  // initial bytes; len must equal ByteWidth(Ty) or len(Init)==0 means zeroed
-	IsConst bool    // true = read-only (placed in ROM on Z80)
-	At      *uint16 // if non-nil: variable is placed at this absolute address (EQU / AT)
+	Init    []byte       // initial bytes; len must equal ByteWidth(Ty) or len(Init)==0 means zeroed
+	IsConst bool         // true = read-only (placed in ROM on Z80)
+	At      *uint16      // if non-nil: variable is placed at this absolute address (EQU / AT)
+	Storage StorageClass // how the global's data is stored; default StorageNormal
 }
 
 // ── String pool ───────────────────────────────────────────────────────────────
