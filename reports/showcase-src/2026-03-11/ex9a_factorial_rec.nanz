@@ -1,0 +1,8 @@
+// Recursive factorial: n! = n * (n-1) * ... * 1
+// Works for n ≤ 12 (fits in u16)
+fun factorial(n: u8) -> u16 {
+    if n <= 1 {
+        return 1
+    }
+    return n * factorial(n - 1)
+}
