@@ -2064,3 +2064,126 @@ fun draw_row(@smc r0: u16) -> void {
 	}
 	t.Logf("@smc struct literal Z80:\n%s", asm)
 }
+
+func TestSMCParam_EmissionQuality(t *testing.T) {
+	src := `struct Row2 {
+    b0: u8
+    b1: u8
+}
+
+fun draw_row(@smc r0: u16) -> void {
+    r0^ = Row2{ b0: 195, b1: 60 }
+}
+`
+	m, err := nanz.Parse(src, "smc_quality_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("CompileHIR: %v", err)
+	}
+
+	t.Logf("full Z80 output:\n%s", asm)
+
+	// ── Assert ABSENT: alloca anti-patterns ──────────────────────────────────
+	if strings.Contains(asm, "DEC SP") {
+		t.Errorf("REGRESSION: alloca anti-pattern 'DEC SP' found in output (alloca fallback triggered)")
+	}
+	if strings.Contains(asm, "LD BC, SP") {
+		t.Errorf("REGRESSION: alloca anti-pattern 'LD BC, SP' found in output (alloca base pointer setup)")
+	}
+	if strings.Contains(asm, "PUSH BC") {
+		t.Errorf("REGRESSION: alloca anti-pattern 'PUSH BC' found in output (alloca-to-pointer copy sequence)")
+	}
+
+	// ── Assert PRESENT: optimal SMC pattern ──────────────────────────────────
+	if !strings.Contains(asm, "draw_row$r0$imm") {
+		t.Errorf("expected EQU label 'draw_row$r0$imm' in output")
+	}
+	if !strings.Contains(asm, "draw_row_set_r0:") {
+		t.Errorf("expected patcher function 'draw_row_set_r0:' in output")
+	}
+	if !strings.Contains(asm, "LD HL, 0") {
+		t.Errorf("expected baked immediate slot 'LD HL, 0' in output")
+	}
+	if !strings.Contains(asm, "LD (HL), 195") {
+		t.Errorf("expected first field store 'LD (HL), 195' in output")
+	}
+	if !strings.Contains(asm, "INC HL") {
+		t.Errorf("expected chain advancement 'INC HL' in output")
+	}
+	if !strings.Contains(asm, "LD (HL), 60") {
+		t.Errorf("expected second field store 'LD (HL), 60' in output")
+	}
+
+	// ── Instruction count in draw_row body ───────────────────────────────────
+	// Find draw_row: label and count indented instruction lines until blank line
+	// or next non-indented label.
+	lines := strings.Split(asm, "\n")
+	inBody := false
+	instrCount := 0
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "draw_row:" {
+			inBody = true
+			continue
+		}
+		if !inBody {
+			continue
+		}
+		// Stop at blank line or next label (non-indented, non-empty, ends with ':')
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			break
+		}
+		if len(line) > 0 && line[0] != ' ' && line[0] != '\t' {
+			break
+		}
+		// Skip comment-only lines and EQU directives
+		if strings.HasPrefix(trimmed, ";") || strings.Contains(trimmed, "EQU") {
+			continue
+		}
+		instrCount++
+	}
+
+	t.Logf("draw_row body instruction count: %d", instrCount)
+
+	// LD HL,0 + LD (HL),195 + INC HL + LD (HL),60 + RET = 5 instructions
+	// Allow ≤ 7 to be conservative (e.g. extra EX or LD A,n intermediate).
+	if instrCount > 7 {
+		t.Errorf("draw_row body is bloated: %d instructions (want ≤ 7; optimal is 5)", instrCount)
+	}
+}
+
+func TestSMCParam_NoBloat_SingleByte(t *testing.T) {
+	src := `fun draw_sprite(@smc r0: u16) -> void {
+    var b: u8 = 195
+    r0^ = b
+}
+`
+	m, err := nanz.Parse(src, "smc_nobloat_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("CompileHIR: %v", err)
+	}
+
+	t.Logf("draw_sprite Z80 output:\n%s", asm)
+
+	// Constant should be folded through the local var → direct LD (HL), 195
+	if !strings.Contains(asm, "LD (HL), 195") {
+		t.Errorf("expected const-folded store 'LD (HL), 195' in output (const folding through local var)")
+	}
+
+	// No alloca fallback
+	if strings.Contains(asm, "DEC SP") {
+		t.Errorf("REGRESSION: alloca anti-pattern 'DEC SP' found in output")
+	}
+
+	// Patcher must be present
+	if !strings.Contains(asm, "draw_sprite_set_r0:") {
+		t.Errorf("expected patcher function 'draw_sprite_set_r0:' in output")
+	}
+}

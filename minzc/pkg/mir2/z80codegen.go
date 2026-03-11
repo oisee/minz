@@ -1690,7 +1690,39 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// SUB/AND/OR/XOR on 16-bit require workarounds; emit comment for now.
 		switch mnem {
 		case "ADD":
-			// Ensure lhs is in dst (HL usually).
+			// Z80 only has ADD HL, rr.  If dst is not HL we must route
+			// through HL.  The common case is dst=DE, which can be handled
+			// cheaply with EX DE,HL:
+			//   EX DE, HL          ; HL ← lhs (was in DE), DE ← old HL
+			//   ADD HL, <rhs'>     ; rhs' adjusted for any EX swap
+			//   EX DE, HL          ; DE ← result, HL ← restored old value
+			if dst != "HL" {
+				// After EX DE,HL: the register formerly in DE is now in HL,
+				// and what was in HL is now in DE.
+				adjustedRhs := rhs
+				if lhs == "DE" && dst == "DE" {
+					g.emit("    EX DE, HL")
+					if rhs == "HL" {
+						adjustedRhs = "DE" // what was HL is now in DE after EX
+					}
+					g.emitf("    ADD HL, %s", adjustedRhs)
+					g.emit("    EX DE, HL")
+					g.invalidate("HL")
+					g.invalidate("DE")
+					break
+				}
+				// General fallback: move lhs to HL, add rhs, move result to dst.
+				// Track rhs renaming if lhs is moved from HL/DE.
+				if rhs == "HL" && lhs == "DE" {
+					adjustedRhs = "DE" // lhs/dst swap via EX
+				}
+				g.emitMov("HL", lhs, w)
+				g.emitf("    ADD HL, %s", adjustedRhs)
+				g.emitMov(dst, "HL", w)
+				g.invalidate(dst)
+				break
+			}
+			// Standard path: dst == HL.
 			if lhs != dst {
 				g.emitMov(dst, lhs, w)
 			}
@@ -2783,7 +2815,23 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		g.emitf("    PUSH %s", src)
 		g.emit("    POP HL")
 	default:
+		// If src is an 8-bit register being widened to a 16-bit pair,
+		// PUSH/POP is wrong: PUSH A doesn't exist (only PUSH AF, which
+		// would corrupt the low byte with the flags register).
+		// Use zero-extension instead: LD lo, src ; LD hi, 0.
+		if isSimpleReg(src) && !isPairReg(src) && isPairReg(dst) {
+			lo := lowByte(dst)
+			hi := highByte(dst)
+			if lo != src {
+				g.emitf("    LD %s, %s", lo, src)
+			}
+			g.emitf("    LD %s, 0", hi)
+			break
+		}
 		// General 16-bit move via PUSH/POP.
+		// PUSH/POP only works with 16-bit register pairs; 8-bit regs must
+		// not reach here (they would silently emit e.g. PUSH AF instead of
+		// PUSH A, corrupting the low byte with the flags register).
 		g.emitf("    PUSH %s", src)
 		g.emitf("    POP %s", dst)
 	}
@@ -3737,6 +3785,11 @@ func funcAnnotation(f *Func, ar *AllocResult) string {
 			sb.WriteString(reg)
 		}
 	} else if len(f.Contract.Returns) > 1 {
+		// For multi-return, the contract optimizer may change Return[i].Class
+		// after lowering (e.g. both u16 slots become ClassPointer).  Use the
+		// actual allocated physical locations from the first TermRet instead,
+		// which reflect what the allocator and codegen actually produce.
+		retLocs := multiReturnLocs(f, ar)
 		sb.WriteString(" -> (")
 		for i, r := range f.Contract.Returns {
 			if i > 0 {
@@ -3747,7 +3800,13 @@ func funcAnnotation(f *Func, ar *AllocResult) string {
 			} else {
 				sb.WriteString("?")
 			}
-			if reg := classToRegName(r.Class, r.Ty); reg != "" {
+			reg := ""
+			if i < len(retLocs) && retLocs[i] != "" {
+				reg = retLocs[i]
+			} else {
+				reg = classToRegName(r.Class, r.Ty)
+			}
+			if reg != "" {
 				sb.WriteString(" = ")
 				sb.WriteString(reg)
 			}
@@ -3773,6 +3832,28 @@ func funcAnnotation(f *Func, ar *AllocResult) string {
 	}
 
 	return sb.String()
+}
+
+// multiReturnLocs returns the physical register name for each return position
+// by scanning the function's TermRet instructions and looking up the allocator
+// result.  This is more accurate than classToRegName(Contract.Returns[i].Class)
+// because the contract optimizer may reassign classes after lowering.
+// Returns a slice with one entry per return position; entries may be "" if unknown.
+func multiReturnLocs(f *Func, ar *AllocResult) []string {
+	n := len(f.Contract.Returns)
+	if n == 0 {
+		return nil
+	}
+	for _, b := range f.Blocks {
+		if ret, ok := b.Term.(*TermRet); ok && len(ret.Vals) == n {
+			locs := make([]string, n)
+			for i, v := range ret.Vals {
+				locs[i] = ar.Loc(v).Name
+			}
+			return locs
+		}
+	}
+	return nil
 }
 
 // classToRegName maps a RegClass to the canonical Z80 register name for that class.
@@ -3835,10 +3916,16 @@ func computeClobbers(f *Func, ar *AllocResult) []string {
 					seen[loc.Name] = true
 				}
 			}
-			for _, er := range inst.ExtraRets {
-				if er != NoReg {
-					if loc := ar.Loc(er); loc.Name != "" && !owned[loc.Name] {
-						seen[loc.Name] = true
+			// ExtraRets on OpCall are callee-provided return values, not
+			// registers independently clobbered by the caller.  Counting them
+			// as clobbers of the *caller* is wrong (e.g. "larger" calling
+			// "minmax" would wrongly show "clobbers: BC" for DE/BC extra returns).
+			if inst.Op != OpCall {
+				for _, er := range inst.ExtraRets {
+					if er != NoReg {
+						if loc := ar.Loc(er); loc.Name != "" && !owned[loc.Name] {
+							seen[loc.Name] = true
+						}
 					}
 				}
 			}

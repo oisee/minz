@@ -7,8 +7,8 @@ fib_iter:
     JRS Z, .fib_iter_if_then1
     JRS .fib_iter_if_join2
 .fib_iter_if_then1:
-    PUSH A
-    POP HL
+    LD L, A
+    LD H, 0
     RET
 .fib_iter_if_join2:
     LD C, 0
@@ -24,7 +24,9 @@ fib_iter:
     CP D
     JRS NC, .fib_iter_trmp0
 .fib_iter_loop_body4:
-    ADD DE, HL
+    EX DE, HL
+    ADD HL, DE
+    EX DE, HL
     INC A
     EX DE, HL
     JRS .fib_iter_loop_head3

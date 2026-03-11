@@ -670,9 +670,28 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		for i, ty := range st.Tys {
 			returns[i] = mir2.Return{Ty: ty, Class: classForRetPos(ty, i)}
 		}
+		// Look up callee HIR params for type-directed literal coercion.
+		// This handles the case where an integer literal like "10" is parsed
+		// as u8 but the callee expects u16 (e.g. minmax(a: u16, b: u16)).
+		var calleeParams []Param
+		if callee, ok := l.hirFuncs[st.Call.Fn]; ok && callee != nil {
+			calleeParams = callee.Params
+		}
 		args := make([]mir2.Reg, len(st.Call.Args))
 		for i, a := range st.Call.Args {
-			args[i] = l.lowerExpr(a)
+			// Determine the callee's expected parameter type and class for this position.
+			// Use lowerExprAs to widen integer literals to the callee's type,
+			// then apply the calling-convention class coercion (same as regular CallExpr).
+			paramTy := a.ExprTy()
+			if i < len(calleeParams) {
+				paramTy = calleeParams[i].Ty
+			}
+			r := l.lowerExprAs(a, paramTy)
+			tgtCls := classForParam(paramTy, i)
+			if tgtCls != classForExpr(paramTy) {
+				r = l.bld.Move(r, paramTy, tgtCls)
+			}
+			args[i] = r
 		}
 		regs := l.bld.CallMulti(st.Call.Fn, args, returns, mir2.CallAttrs{})
 		for i, name := range st.Names {
