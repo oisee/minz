@@ -326,8 +326,8 @@ LUT generation example:
 fun sin_table(angle: u8<0..255>) -> u8 { ... }
 // → Evaluates sin_table(0..255) at compile time via MIR2 VM
 // → Emits: sin_table_lut: DB 0, 1, 3, 6, 9, ... (256 bytes)
-// → Function body replaced by: LD HL, sin_table_lut+angle / LD A,(HL) / RET
-// → Runtime cost: 3 instructions, ~21T — no computation at all
+// → Function body replaced by table lookup: LD HL, sin_table_lut / LD D,0 / LD E,angle / ADD HL,DE / LD A,(HL) / RET
+// → Runtime cost: 6 instructions, ~39T — no computation at all
 ```
 
 ### 2.13 Interfaces and UFCS
@@ -516,7 +516,7 @@ Operators for primitive types (`u8 + u8`) use Z80 ALU instructions directly — 
 
 Nanz supports a composable iterator chain syntax on arrays and pointers. The crucial property: **the chain is fused at compile time into a single DJNZ loop**. No intermediate arrays. No function pointer overhead. No virtual dispatch.
 
-### 5.1 The Three Combinators
+### 5.1 Combinators
 
 | Method | Meaning |
 |--------|---------|
@@ -672,7 +672,7 @@ The constant-folding pipeline reduces `Sub(8, 3)` to `Const(5)`. The DJNZ counte
 
 Earlier this caused a **hang** in `PropagateConstants`: when the count was a folded constant, the counter param appeared to have only one incoming value (`Const(5)` from the entry), so the pass "proved" it was always 5, materialized a new `Const(5)` every iteration (`changed=true`), and looped forever. The fix: record the DJNZ back-edge counter itself as an incoming value for the counter param, preventing the false "all-same" proof.
 
-### 6.5 The Parallel Copy Bug That Wasn't
+### 6.5 The Parallel Copy Bug: Caught by Dual-VM
 
 When the range fold first compiled with correct semantics, the Z80 binary produced wrong results even though the MIR2 VM gave correct answers. This is exactly the class of **codegen bug** that would be invisible without dual-VM verification.
 
@@ -866,16 +866,16 @@ fun sin(a: u8<0..255>) -> u8 { ... }
 
 // After LUTGen (at compile time):
 // sin_lut: DB 0, 1, 3, 6, 9, 12, ...  ← 256 bytes, computed via MIR2 VM
-// fun sin(a: u8) → LD HL, sin_lut+a / LD A,(HL) / RET  (3 insts, ~21T)
+// fun sin(a: u8) → LD HL, sin_lut / LD D,0 / LD E,a / ADD HL,DE / LD A,(HL) / RET  (6 insts, ~39T)
 ```
 
-The MIR2 VM evaluates the function 256 times — it is fast because the VM is a simple interpreter. The table is emitted as a `DB` sequence. At runtime, the lookup is 3 instructions.
+The MIR2 VM evaluates the function 256 times — it is fast because the VM is a simple interpreter. The table is emitted as a `DB` sequence. At runtime, the lookup is 6 instructions (constant-time, no branching).
 
 ### 8.3 BranchEquiv
 
 The BranchEquiv pass uses the MIR2 VM to prove when a conditional branch is redundant:
 
-**Observation:** For `abs_diff`, the branch `if a == b` is guarded by a `CmpEq` that fires only when `a == b`. But on that boundary, both `a - b = 0` and `b - a = 0` — the two branches produce the same result. The branch is redundant.
+**Observation:** In the MIR2 IR for `abs_diff`, a `CmpEq` guard appears after other optimizations (not from source code directly). At the equality boundary `a == b`, both `a - b = 0` and `b - a = 0` — the two branches produce the same result. The branch is redundant at the MIR2 level.
 
 **Proof technique:** Run the VM with 256 boundary inputs `(v, v)` for all v in 0..255. If both sides return the same value, the branch is provably dead.
 
@@ -895,9 +895,11 @@ fun abs_diff(a: u8, b: u8) -> u8 {
 
 **Pass 1: CondRetSink** — hoists the trivial else-block into the entry, converts `BrIf` to `TermCondRet` (= `RET CC`):
 
+> *Note: intermediate diagrams use `B` for the second parameter illustratively. After PBQP allocation (Pass 5), the contract optimizer assigns it to `C` — see the final output below.*
+
 ```asm
 abs_diff:
-    CP B        ; cmp a < b
+    CP B        ; cmp a < b  (illustrative; actual reg = C after PBQP)
     SUB B       ; a - b (hoisted)
     RET NC      ; if a >= b: return a-b
 ```
@@ -1117,11 +1119,12 @@ The compiler emits:
 ZX Spectrum ROM call example:
 
 ```nanz
-@extern(0x0010) fun CHANEL(channel: u8) -> void   // HL = channel addr
-@extern(0x0033) fun CHAN_K(c: u8) -> void          // RST 0x10 variant
+@extern(0x0010) fun PRINT_CHAR(c: u8) -> void   // RST 0x10 — print char in A (1 byte, 11T)
+@extern(0x0018) fun GET_KEY() -> u8             // RST 0x18 — keyboard scan
+@extern(0x1601) fun CHAN_OPEN(c: u8) -> void    // CALL 0x1601 — open channel (3 bytes, 17T)
 
 fun print_char(c: u8) {
-    CHAN_K(c)   // → RST 0x10 (1 byte)
+    PRINT_CHAR(c)   // → RST 0x10 (1 byte)
 }
 ```
 
@@ -1232,7 +1235,7 @@ pixel_addr:
 
 Before Fix A: `* 256` emitted 8 × `ADD HL, HL` (56T). After Fix A: `LD H, L / LD L, 0` (8T). **7× faster.** The `fill_rect` inner loop uses exactly this pattern for computing screen offsets.
 
-### 11.4 LUT Synthesis: sin(x) in 3 Instructions
+### 11.4 LUT Synthesis: sin(x) in 6 Instructions
 
 ```nanz
 fun sin_approx(angle: u8<0..255>) -> u8 {
@@ -1260,7 +1263,7 @@ sin_approx:
     RET
 ```
 
-3 instructions at runtime. The 50-instruction computation runs **zero times** in the final binary — it ran once per table entry at compile time.
+6 instructions at runtime (constant-time table lookup). The 50-instruction computation runs **zero times** in the final binary — it ran once per table entry at compile time.
 
 ### 11.5 Iterator Chain: Zero CALL Overhead
 
@@ -1322,7 +1325,7 @@ top_decl    = struct_decl
             | interface_decl
             | global_decl
             | fun_decl
-            | '@extern' ('@(' INT ')')? 'fun' fun_decl_inner
+            | '@extern' ('(' INT ')')? 'fun' fun_decl_inner
             | 'assert' assert_expr
 
 struct_decl    = 'struct' IDENT '{' field_decl* '}'
