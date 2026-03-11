@@ -466,6 +466,7 @@ func (g *z80cg) genFunc(f *Func) {
 	g.globalFieldSkip = make(map[Reg]bool)
 
 	label := sanitizeIdent(f.Name)
+	g.emitf("; %s", funcAnnotation(f, g.ar))
 	g.emitf("%s:", label)
 
 	for i, b := range f.Blocks {
@@ -3528,5 +3529,180 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 		skipLast:  true,
 		bodyLbl:   blockLabel(f.Name, brif.Then),
 		checkBrif: brif,
+	}
+}
+
+// ── Function annotation comment ───────────────────────────────────────────────
+
+// funcAnnotation builds a one-line ABI summary for a function:
+//
+//	fn name(param0: type = REG, ...) -> ret = REG [recursive] [clobbers: REG, ...]
+//
+// This is emitted as a "; ..." comment immediately before the function label.
+func funcAnnotation(f *Func, ar *AllocResult) string {
+	var sb strings.Builder
+
+	sb.WriteString("fun ")
+	sb.WriteString(f.Name)
+	sb.WriteByte('(')
+	for i, p := range f.Contract.Params {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		loc := ar.Loc(p.Reg)
+		sb.WriteString(p.Name)
+		sb.WriteString(": ")
+		if p.Ty != nil {
+			sb.WriteString(p.Ty.String())
+		} else {
+			sb.WriteString("?")
+		}
+		if loc.Name != "" {
+			sb.WriteString(" = ")
+			sb.WriteString(loc.Name)
+		}
+	}
+	sb.WriteByte(')')
+
+	// Return values (class → canonical register name).
+	if len(f.Contract.Returns) == 1 {
+		r := f.Contract.Returns[0]
+		sb.WriteString(" -> ")
+		if r.Ty != nil {
+			sb.WriteString(r.Ty.String())
+		} else {
+			sb.WriteString("?")
+		}
+		if reg := classToRegName(r.Class, r.Ty); reg != "" {
+			sb.WriteString(" = ")
+			sb.WriteString(reg)
+		}
+	} else if len(f.Contract.Returns) > 1 {
+		sb.WriteString(" -> (")
+		for i, r := range f.Contract.Returns {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			if r.Ty != nil {
+				sb.WriteString(r.Ty.String())
+			} else {
+				sb.WriteString("?")
+			}
+			if reg := classToRegName(r.Class, r.Ty); reg != "" {
+				sb.WriteString(" = ")
+				sb.WriteString(reg)
+			}
+		}
+		sb.WriteByte(')')
+	}
+
+	// Recursive check: any OpCall instruction that calls f itself?
+	if isRecursive(f) {
+		sb.WriteString(" [recursive]")
+	}
+
+	// Clobber set: all Dst phys locs that aren't param or return locs.
+	clobbers := computeClobbers(f, ar)
+	if len(clobbers) > 0 {
+		sb.WriteString(" ; clobbers: ")
+		for i, name := range clobbers {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(name)
+		}
+	}
+
+	return sb.String()
+}
+
+// classToRegName maps a RegClass to the canonical Z80 register name for that class.
+// ty is used to disambiguate (e.g. ClassAcc is always A, ClassPointer is HL for 16-bit).
+func classToRegName(cls RegClass, ty Ty) string {
+	switch cls {
+	case ClassAcc:
+		return "A"
+	case ClassPointer:
+		return "HL"
+	case ClassIndex:
+		return "DE"
+	case ClassCounter:
+		return "B"
+	case ClassGeneral:
+		return "C"
+	}
+	return ""
+}
+
+// isRecursive reports whether f contains a direct recursive call to itself.
+func isRecursive(f *Func) bool {
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op == OpCall && inst.Sym == f.Name {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// computeClobbers returns the sorted list of physical register names written by f
+// that are not in f's parameter or return register set.
+func computeClobbers(f *Func, ar *AllocResult) []string {
+	// Collect param and return phys names (these are "owned" by the ABI).
+	owned := make(map[string]bool)
+	for _, p := range f.Contract.Params {
+		if loc := ar.Loc(p.Reg); loc.Name != "" {
+			owned[loc.Name] = true
+		}
+	}
+	for _, r := range f.Contract.Returns {
+		if reg := classToRegName(r.Class, r.Ty); reg != "" {
+			owned[reg] = true
+		}
+	}
+
+	// Collect Dst phys locs from all instructions.
+	seen := make(map[string]bool)
+	for _, b := range f.Blocks {
+		for _, p := range b.Params {
+			if loc := ar.Loc(p.Dst); loc.Name != "" && !owned[loc.Name] {
+				seen[loc.Name] = true
+			}
+		}
+		for _, inst := range b.Insts {
+			if inst.Dst != NoReg {
+				if loc := ar.Loc(inst.Dst); loc.Name != "" && !owned[loc.Name] {
+					seen[loc.Name] = true
+				}
+			}
+			for _, er := range inst.ExtraRets {
+				if er != NoReg {
+					if loc := ar.Loc(er); loc.Name != "" && !owned[loc.Name] {
+						seen[loc.Name] = true
+					}
+				}
+			}
+		}
+	}
+
+	if len(seen) == 0 {
+		return nil
+	}
+	// Sort for determinism.
+	out := make([]string, 0, len(seen))
+	for name := range seen {
+		out = append(out, name)
+	}
+	sortStrings(out)
+	return out
+}
+
+func sortStrings(ss []string) {
+	// Simple insertion sort for small lists.
+	for i := 1; i < len(ss); i++ {
+		for j := i; j > 0 && ss[j] < ss[j-1]; j-- {
+			ss[j], ss[j-1] = ss[j-1], ss[j]
+		}
 	}
 }
