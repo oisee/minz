@@ -146,7 +146,122 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 		}
 	}
 
-	return sb.String()
+	return asmPeepholePass(sb.String())
+}
+
+// asmPeepholePass applies post-emit string-level peephole optimisations:
+//  1. Double EX DE,HL elimination — two consecutive EX DE,HL cancel; remove both.
+//  2. Single-JP function → EQU alias — a function whose entire body is one JP
+//     becomes a zero-byte/zero-T EQU alias (tail-call guaranteed by contract).
+func asmPeepholePass(src string) string {
+	lines := strings.Split(src, "\n")
+	lines = elimDoubleExDeHl(lines)
+	lines = elimSingleJpEqu(lines)
+	return strings.Join(lines, "\n")
+}
+
+// elimDoubleExDeHl removes consecutive EX DE,HL pairs.
+// Blank lines and comment-only lines between the pair are preserved.
+func elimDoubleExDeHl(lines []string) []string {
+	const exLine = "    EX DE, HL"
+	out := make([]string, 0, len(lines))
+	for i := 0; i < len(lines); i++ {
+		if strings.TrimSpace(lines[i]) != "EX DE, HL" {
+			out = append(out, lines[i])
+			continue
+		}
+		// lines[i] is an EX DE,HL. Look for a second one after skipping
+		// blank/comment lines (no real instructions between).
+		j := i + 1
+		for j < len(lines) {
+			t := strings.TrimSpace(lines[j])
+			if t == "" || strings.HasPrefix(t, ";") {
+				j++
+				continue
+			}
+			break
+		}
+		if j < len(lines) && strings.TrimSpace(lines[j]) == "EX DE, HL" {
+			// Skip both EX DE,HL lines (drop them from output).
+			i = j // loop increment makes i = j+1
+			continue
+		}
+		out = append(out, lines[i])
+	}
+	return out
+}
+
+// elimSingleJpEqu converts a function that is exactly one JP target into an EQU.
+//
+// Pattern (consecutive lines, optionally separated by blank/comment lines):
+//
+//	funcname:
+//	    JP  target
+//
+// → replaced with a single line:
+//
+//	funcname    EQU target
+//
+// Safety conditions:
+//   - No additional instructions in the block (comments/blanks OK).
+//   - No local labels between funcname: and JP (would break relative refs).
+//   - Not "main" (entry point must remain a real label).
+func elimSingleJpEqu(lines []string) []string {
+	out := make([]string, 0, len(lines))
+	i := 0
+	for i < len(lines) {
+		line := lines[i]
+		// Match a bare label line: word followed by ':' with no leading whitespace.
+		if !strings.HasPrefix(line, " ") && strings.HasSuffix(strings.TrimSpace(line), ":") {
+			label := strings.TrimSuffix(strings.TrimSpace(line), ":")
+			if label != "main" && label != "" && !strings.Contains(label, ".") {
+				// Scan forward past blank/comment lines to find first instruction.
+				j := i + 1
+				for j < len(lines) {
+					t := strings.TrimSpace(lines[j])
+					if t == "" || strings.HasPrefix(t, ";") {
+						j++
+						continue
+					}
+					break
+				}
+				if j < len(lines) {
+					instr := strings.TrimSpace(lines[j])
+					// Must be exactly "JP target" (not DJNZ, not JP cc).
+					if strings.HasPrefix(instr, "JP ") && !strings.Contains(instr, ",") {
+						target := strings.TrimSpace(strings.TrimPrefix(instr, "JP "))
+						// Check that the next non-blank/comment line after JP is
+						// a top-level label or end-of-section (not another instruction
+						// inside this "function").
+						k := j + 1
+						for k < len(lines) {
+							t := strings.TrimSpace(lines[k])
+							if t == "" || strings.HasPrefix(t, ";") {
+								k++
+								continue
+							}
+							break
+						}
+						nextIsTopLevel := k >= len(lines) ||
+							(!strings.HasPrefix(lines[k], " ") && strings.HasSuffix(strings.TrimSpace(lines[k]), ":")) ||
+							lines[k] == "; globals" || lines[k] == "; strings"
+						if nextIsTopLevel {
+							// Emit EQU alias, skip all consumed lines.
+							out = append(out, fmt.Sprintf("%s    EQU %s", label, target))
+							// Preserve blank lines that came before JP (already in out
+							// via j-loop... actually they were skipped). Emit one blank
+							// to maintain section spacing.
+							i = j + 1
+							continue
+						}
+					}
+				}
+			}
+		}
+		out = append(out, line)
+		i++
+	}
+	return out
 }
 
 // ── Internal codegen state ────────────────────────────────────────────────────
