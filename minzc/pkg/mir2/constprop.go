@@ -294,6 +294,13 @@ func PropagateConstants(f *Func) bool {
 				k := paramKey{t.Body, i + 1}
 				incoming[k] = append(incoming[k], a)
 			}
+			// The DJNZ back-edge implicitly provides a decremented counter for
+			// body.Params[0] on each iteration.  Recording t.Counter (a block
+			// param, never in consts) here prevents PropagateConstants from
+			// "proving" the counter is always the initial constant when that
+			// initial count was folded to a literal (e.g. range(3..8) → Const(5)).
+			// Without this, the fixpoint loop would materialise Const(5) forever.
+			incoming[paramKey{t.Body, 0}] = append(incoming[paramKey{t.Body, 0}], t.Counter)
 			addEdgeArgs(t.Exit, t.ExitArgs)
 		}
 	}

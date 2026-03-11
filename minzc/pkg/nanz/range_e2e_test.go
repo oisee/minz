@@ -98,3 +98,53 @@ fun sum_range(n: u8) -> u8 {
 		}
 	}
 }
+
+func TestRangeVariants_Asm(t *testing.T) {
+	cases := []struct {
+		name string
+		src  string
+		want []string // asm substrings that must appear
+		bad  []string // asm substrings that must NOT appear
+	}{
+		{
+			name: "range(n..0) fold — direct DJNZ, no SUB",
+			src:  `fun f(n: u8) -> u8 { return range(n..0).fold(0, |acc: u8, i: u8| { return acc + i }) }`,
+			want: []string{"DJNZ", "ADD A"},
+			bad:  []string{"SUB"},
+		},
+		{
+			name: "range(0..n) fold — direct DJNZ, no SUB",
+			src:  `fun f(n: u8) -> u8 { return range(0..n).fold(0, |acc: u8, i: u8| { return acc + i }) }`,
+			want: []string{"DJNZ", "ADD A"},
+			bad:  []string{"SUB"},
+		},
+		{
+			name: "range(3..8) fold — DJNZ with count=5 via SUB or Const(5)",
+			src:  `fun f() -> u8 { return range(3..8).fold(0, |acc: u8, i: u8| { return acc + i }) }`,
+			want: []string{"DJNZ", "ADD A"},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			m, err := nanz.Parse(tc.src, "range_variant_test")
+			if err != nil {
+				t.Fatalf("parse: %v", err)
+			}
+			asm, err := pipeline.CompileHIR(m)
+			if err != nil {
+				t.Fatalf("compile: %v", err)
+			}
+			t.Logf("asm:\n%s", asm)
+			for _, w := range tc.want {
+				if !strings.Contains(asm, w) {
+					t.Errorf("missing %q in output", w)
+				}
+			}
+			for _, b := range tc.bad {
+				if strings.Contains(asm, b) {
+					t.Errorf("unexpected %q in output", b)
+				}
+			}
+		})
+	}
+}
