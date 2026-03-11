@@ -749,7 +749,20 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 		}
 		code := strings.Join(lines, "\n    ")
-		l.bld.Asm(code, nil, nil, clobbers, mir2.TyVoid, mir2.ClassAcc)
+		// Resolve named input operands to virtual registers.
+		var ins []mir2.Reg
+		for _, op := range st.Ins {
+			if r, ok := l.env[op.Name]; ok {
+				ins = append(ins, r)
+			}
+		}
+		var outs []mir2.Reg
+		for _, op := range st.Outs {
+			if r, ok := l.env[op.Name]; ok {
+				outs = append(outs, r)
+			}
+		}
+		l.bld.Asm(code, ins, outs, clobbers, mir2.TyVoid, mir2.ClassAcc)
 		return false
 
 	case *IfStmt:

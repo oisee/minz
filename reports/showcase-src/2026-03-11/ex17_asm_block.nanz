@@ -6,9 +6,10 @@
 //   mzc ex17_asm_block.nanz -o ex17_asm_block.bin
 //   mze ex17_asm_block.bin --console-io
 
-fun set_border(col: u8) -> void {
-    // Inline Z80: set ZX Spectrum border colour
-    asm z80 { OUT (0xFE), A }
+fun set_border(@z80_a col: u8) -> void {
+    // Inline Z80: set ZX Spectrum border colour.
+    // (in col) tells the IR that the asm block reads the 'col' register.
+    asm z80 (in col) { OUT (0xFE), A }
     return
 }
 

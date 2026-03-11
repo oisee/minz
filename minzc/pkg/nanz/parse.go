@@ -1873,12 +1873,17 @@ func (p *parser) warnUninitInExpr(e hir.Expr) {
 // parseAsm parses an inline assembly block:
 //
 //	asm z80 { LD A, 0x42 / OUT (0x23), A }
-//	asm { LD A, 0x42 }   — target = "" (matches any)
+//	asm { LD A, 0x42 }              — target = "" (matches any)
+//	asm z80 (in n, m) { OUT (0x23), A } — explicit input operands
 //
 // The braces' byte positions in the source are used to extract the raw asm
 // text verbatim (so Z80 syntax like "LD (HL), A" is preserved exactly).
 // '/' inside the block acts as a line separator — each '/' becomes '\n    '
 // in the output, allowing single-line multi-instruction asm blocks.
+//
+// Optional operand list (in varname, ...) before '{' tells the IR which
+// variables the asm block reads.  This prevents the register allocator from
+// moving those variables to a different physical register.
 func (p *parser) parseAsm() (hir.Stmt, error) {
 	if err := p.l.eatIdent("asm"); err != nil {
 		return nil, err
@@ -1890,6 +1895,29 @@ func (p *parser) parseAsm() (hir.Stmt, error) {
 		target = p.l.peek().val
 		p.l.next()
 	}
+
+	// Optional operand list: (in x, y) before the asm body '{'.
+	var ins []hir.AsmOperand
+	if p.l.is(tokLParen) {
+		p.l.next() // consume '('
+		if p.l.peek().kind == tokIdent && p.l.peek().val == "in" {
+			p.l.next() // consume 'in'
+			for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+				name, err := p.l.eat(tokIdent)
+				if err != nil {
+					return nil, fmt.Errorf("line %d: asm (in): expected variable name", name.line)
+				}
+				ins = append(ins, hir.AsmOperand{Name: name.val})
+				if p.l.is(tokComma) {
+					p.l.next()
+				}
+			}
+		}
+		if _, err := p.l.eat(tokRParen); err != nil {
+			return nil, err
+		}
+	}
+
 	// The '{' token carries its source byte offset in token.pos.
 	lbrace := p.l.peek()
 	if lbrace.kind != tokLBrace {
@@ -1921,7 +1949,7 @@ func (p *parser) parseAsm() (hir.Stmt, error) {
 
 	// Extract raw source between the braces.
 	code := strings.TrimSpace(string(p.l.src[startPos:closeTok.pos]))
-	return &hir.AsmStmt{Target: target, Code: code, ClobberAll: true}, nil
+	return &hir.AsmStmt{Target: target, Code: code, ClobberAll: true, Ins: ins}, nil
 }
 
 func (p *parser) parseSwitch() (hir.Stmt, error) {

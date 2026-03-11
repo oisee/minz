@@ -253,10 +253,18 @@ func (*StoreStmt) hirStmt() {}
 //
 // When ClobberAll is true (default when no explicit clobber list is given),
 // every register class is considered clobbered.  This is conservative but safe.
+// AsmOperand names a variable that the asm block reads (Ins) or writes (Outs).
+// The lowerer resolves Name to the MIR2 virtual register currently bound in env.
+type AsmOperand struct {
+	Name string // variable name in scope
+}
+
 type AsmStmt struct {
 	Target     string        // architecture tag, e.g. "z80"; "" = any
 	Code       string        // verbatim assembly text
 	ClobberAll bool          // true when no explicit clobber list
+	Ins        []AsmOperand  // explicit input operands  — (in x, y)
+	Outs       []AsmOperand  // explicit output operands — (out x)
 }
 
 func (*AsmStmt) hirStmt() {}

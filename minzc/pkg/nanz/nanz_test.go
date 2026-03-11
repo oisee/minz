@@ -2262,3 +2262,53 @@ fun main() -> void {
 		t.Errorf("void main() must end with DI+HALT for mze compatibility\n%s", asm)
 	}
 }
+
+// TestAsmBlock_InOperand verifies that asm z80 (in varname) {} correctly
+// declares the named variable as an input to the asm block so the allocator
+// keeps it in the annotated register.
+func TestAsmBlock_InOperand(t *testing.T) {
+	src := `
+fun console_out(@z80_a n: u8) -> void {
+    asm z80 (in n) { OUT (0x23), A }
+    return
+}
+
+fun main() -> void {
+    console_out(65)
+    return
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+	// The asm body must appear verbatim.
+	if !strings.Contains(asm, "    OUT (0x23), A") {
+		t.Errorf("OUT (0x23), A missing from output\n%s", asm)
+	}
+	// The asm block must NOT emit any extra LD for the parameter before the OUT —
+	// n was declared (in n) so the allocator knows A is consumed by the asm.
+	// Check the console_out function section only.
+	start := strings.Index(asm, "console_out:")
+	if start < 0 {
+		t.Fatalf("console_out label not found\n%s", asm)
+	}
+	end := strings.Index(asm[start:], "\n\n")
+	if end < 0 {
+		end = len(asm) - start
+	}
+	funcAsm := asm[start : start+end]
+	// With (in n) declared, the allocator knows A is consumed by the asm.
+	// There must be NO extra LD A, ... spill before OUT — the param arrives in A directly.
+	if strings.Contains(funcAsm, "LD A,") || strings.Contains(funcAsm, "LD A, C") {
+		t.Errorf("unexpected LD A spill before OUT; param should arrive in A directly:\n%s", funcAsm)
+	}
+	// Sanity: OUT must still be there.
+	if !strings.Contains(funcAsm, "OUT (0x23), A") {
+		t.Errorf("OUT (0x23), A missing\n%s", funcAsm)
+	}
+}
