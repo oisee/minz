@@ -287,7 +287,13 @@ func PropagateConstants(f *Func) bool {
 			addEdgeArgs(t.Lt, t.LtArgs)
 			addEdgeArgs(t.Gt, t.GtArgs)
 		case *TermDJNZ:
-			addEdgeArgs(t.Body, t.BodyArgs)
+			// BodyArgs maps to body.Params[1:] — counter is Params[0], implicit.
+			// Offset incoming indices by 1 so the counter param gets no incoming
+			// from BodyArgs (it's handled by the BrIf ThenArgs on the first entry).
+			for i, a := range t.BodyArgs {
+				k := paramKey{t.Body, i + 1}
+				incoming[k] = append(incoming[k], a)
+			}
 			addEdgeArgs(t.Exit, t.ExitArgs)
 		}
 	}
