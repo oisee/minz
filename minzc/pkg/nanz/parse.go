@@ -902,13 +902,17 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	var paramIfaceNames []string        // parallel to params: interface name or ""
 	var paramPtrElems []*mir2.StructTy  // parallel to params: ^Struct elem type or nil
 	for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
-		// Check for @z80_X register class annotation BEFORE param name
+		// Check for @z80_X / @smc annotation BEFORE param name
 		var regClass mir2.RegClass
+		var smcParam bool
 		if p.l.is(tokAt) {
 			p.l.next()
 			annot := p.l.peek()
 			if annot.kind == tokIdent {
 				switch annot.val {
+				case "smc":
+					smcParam = true
+					p.l.next()
 				case "z80_a":
 					regClass = mir2.ClassAcc
 					p.l.next()
@@ -940,7 +944,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		if err != nil {
 			return nil, err
 		}
-		params = append(params, hir.Param{Name: pname.val, Ty: pty, RegClass: regClass})
+		params = append(params, hir.Param{Name: pname.val, Ty: pty, RegClass: regClass, SMC: smcParam})
 		paramIfaceNames = append(paramIfaceNames, ifaceName)
 		paramPtrElems = append(paramPtrElems, ptrElem)
 		if p.l.is(tokComma) {

@@ -320,6 +320,15 @@ func (b *Builder) PatchSlot(init int64, ty Ty, cls RegClass) Reg {
 	return r
 }
 
+// PatchSlotNamed is like PatchSlot but attaches a symbol name used by the
+// Z80 backend to emit an EQU label and synthesise a set_<param> patcher
+// function.  sym should be "funcName$paramName" (dollar-separated).
+func (b *Builder) PatchSlotNamed(sym string, init int64, ty Ty, cls RegClass) Reg {
+	r := b.reg()
+	b.emit(&Inst{Op: OpPatchSlot, Dst: r, Sym: sym, Imm: init, Ty: ty, Cls: cls})
+	return r
+}
+
 // LoadPatched reads the current value of a mutable immediate.
 func (b *Builder) LoadPatched(slot Reg, ty Ty, cls RegClass) Reg {
 	r := b.reg()

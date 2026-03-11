@@ -1985,3 +1985,82 @@ fun set_red() -> void {
 	}
 	t.Logf("struct literal Z80 output:\n%s", asm)
 }
+
+func TestSMCParam_Parse(t *testing.T) {
+	src := `fun draw(@smc r0: u16) -> void {
+}`
+	m, err := nanz.Parse(src, "smc_parse_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(m.Funcs) == 0 {
+		t.Fatal("no functions parsed")
+	}
+	f := m.Funcs[0]
+	if len(f.Params) != 1 {
+		t.Fatalf("expected 1 param, got %d", len(f.Params))
+	}
+	if !f.Params[0].SMC {
+		t.Errorf("expected Param.SMC=true for @smc r0")
+	}
+	if f.Params[0].Name != "r0" {
+		t.Errorf("expected param name 'r0', got %q", f.Params[0].Name)
+	}
+}
+
+func TestSMCParam_Codegen_SingleByte(t *testing.T) {
+	src := `fun draw_sprite(@smc r0: u16) -> void {
+    var b: u8 = 195
+    r0^ = b
+}
+`
+	m, err := nanz.Parse(src, "smc_codegen_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("CompileHIR: %v", err)
+	}
+	// Must have the baked LD HL,0 slot and the EQU label
+	if !strings.Contains(asm, "draw_sprite$r0$imm") {
+		t.Errorf("expected EQU label 'draw_sprite$r0$imm' in output; got:\n%s", asm)
+	}
+	// Must have the auto-generated patcher
+	if !strings.Contains(asm, "draw_sprite_set_r0:") {
+		t.Errorf("expected patcher 'draw_sprite_set_r0:' in output; got:\n%s", asm)
+	}
+	t.Logf("@smc single-byte Z80:\n%s", asm)
+}
+
+func TestSMCParam_Codegen_StructLit(t *testing.T) {
+	src := `struct Row2 {
+    b0: u8
+    b1: u8
+}
+
+fun draw_row(@smc r0: u16) -> void {
+    r0^ = Row2{ b0: 195, b1: 60 }
+}
+`
+	m, err := nanz.Parse(src, "smc_struct_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("CompileHIR: %v", err)
+	}
+	// Must have the patcher EQU and synthesised function
+	if !strings.Contains(asm, "draw_row$r0$imm") {
+		t.Errorf("expected EQU label in output; got:\n%s", asm)
+	}
+	if !strings.Contains(asm, "draw_row_set_r0:") {
+		t.Errorf("expected patcher function in output; got:\n%s", asm)
+	}
+	// Should have INC HL for the second field
+	if !strings.Contains(asm, "INC") {
+		t.Errorf("expected INC HL for second field; got:\n%s", asm)
+	}
+	t.Logf("@smc struct literal Z80:\n%s", asm)
+}

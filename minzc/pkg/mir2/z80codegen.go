@@ -205,6 +205,11 @@ type z80cg struct {
 	// genCall emits JP instead of CALL; genTerm skips RET when this is set.
 	tailCallInst *Inst
 
+	// smcPatchers: synthesised patcher functions for @smc parameters.
+	// Populated during OpPatchSlot codegen when inst.Sym != "".
+	// Flushed after each function body is emitted.
+	smcPatchers []smcPatcherInfo
+
 	// T-state annotation (enabled via Z80CodegenOptions.AnnotateTStates).
 	// annotateT: emit "; NNT" / "; NT/MT" trailing comments on instruction lines.
 	// blockT:    accumulated T-states for the current block (reset at block entry).
@@ -212,6 +217,13 @@ type z80cg struct {
 	annotateT bool
 	blockT    int
 	fnWorstT  int
+}
+
+// smcPatcherInfo records metadata for a synthesised @smc patcher function.
+// Sym is "funcName$paramName"; eqLabel is the EQU pointing at the imm16 bytes.
+type smcPatcherInfo struct {
+	sym     string // e.g. "draw_player$r0"
+	eqLabel string // e.g. "draw_player$r0$imm"
 }
 
 // lutLoadPat describes a page-aligned LUT access merged at codegen time.
@@ -505,6 +517,7 @@ func (g *z80cg) genFunc(f *Func) {
 	g.physOverride = make(map[Reg]string)
 	g.trampolines = g.trampolines[:0]
 	g.trampIdx = 0
+	g.smcPatchers = g.smcPatchers[:0]
 	g.lutLoadPat = make(map[Reg]lutLoadPat)
 	g.lutSkip = make(map[Reg]bool)
 	g.globalFieldLoad = make(map[Reg]globalFieldInfo)
@@ -532,6 +545,25 @@ func (g *z80cg) genFunc(f *Func) {
 	// Emit function-level T-state summary (worst-case block = deepest hot path).
 	if g.annotateT && g.fnWorstT > 0 {
 		g.emitf("; — %s worst-case block: %dT", label, g.fnWorstT)
+	}
+
+	// Emit synthesised @smc patcher functions for any named PatchSlots.
+	// Each patcher: draw_player_set_r0(v: u16 in HL) → patches imm16 bytes in draw_player.
+	for _, p := range g.smcPatchers {
+		// Derive patcher name: "funcName$paramName" → "funcName_set_paramName"
+		parts := strings.SplitN(p.sym, "$", 2)
+		patcherName := p.sym // fallback if no $
+		if len(parts) == 2 {
+			patcherName = parts[0] + "_set_" + parts[1]
+		}
+		g.emitf("\n; synthesised @smc patcher — fun %s(v: u16 = HL)", patcherName)
+		g.emitf("; patches imm16 at %s", p.eqLabel)
+		g.emitf("%s:", patcherName)
+		g.emitf("    LD A, L")
+		g.emitf("    LD (%s), A", p.eqLabel)
+		g.emitf("    LD A, H")
+		g.emitf("    LD (%s+1), A", p.eqLabel)
+		g.emitf("    RET")
 	}
 }
 
@@ -1465,12 +1497,19 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.emitf("    LD %s, SP", dst)
 
 	case OpPatchSlot:
-		// Mutable immediate: emit initial value; the byte after LD is patchable.
+		// Mutable immediate: emit initial value; the byte(s) after LD are patchable.
 		w := inst.Ty.Width()
 		if w <= 8 {
 			g.emitf("    LD %s, %d          ; [patch_slot init=%d]", dst, inst.Imm, inst.Imm)
 		} else {
+			// 16-bit @smc slot (LD HL, imm16): emit EQU pointing at the imm16 bytes.
 			g.emitf("    LD %s, %d          ; [patch_slot init=%d]", dst, inst.Imm, inst.Imm)
+		}
+		// Named slot (@smc parameter): record EQU label and register patcher.
+		if inst.Sym != "" {
+			eqLabel := inst.Sym + "$imm"
+			g.sb.WriteString(eqLabel + "  EQU $-" + fmt.Sprintf("%d", w/8) + "\n")
+			g.smcPatchers = append(g.smcPatchers, smcPatcherInfo{sym: inst.Sym, eqLabel: eqLabel})
 		}
 
 	case OpLoadPatched:

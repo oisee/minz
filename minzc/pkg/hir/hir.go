@@ -90,6 +90,7 @@ type Param struct {
 	Name     string
 	Ty       mir2.Ty
 	RegClass mir2.RegClass // 0 (ClassGeneral) = auto-assign; non-zero overrides classForParam
+	SMC      bool          // @smc: baked as LD HL,imm16 immediate — not a register param
 }
 
 // ── Statements ────────────────────────────────────────────────────────────────

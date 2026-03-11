@@ -384,13 +384,23 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	bld.SwitchToNewBlock("entry")
 
 	// Bind parameters to virtual registers.
-	for i, p := range f.Params {
-		cls := classForParam(p.Ty, i)
+	// @smc params are NOT MIR2 contract params — they become PatchSlots in the
+	// entry block (LD HL, imm16 with EQU label; auto-patcher synthesised by z80codegen).
+	nonSMCIdx := 0
+	for _, p := range f.Params {
+		if p.SMC {
+			sym := f.Name + "$" + p.Name
+			r := bld.PatchSlotNamed(sym, 0, mir2.TyPtr, mir2.ClassPointer)
+			l.bind(p.Name, r, mir2.TyPtr)
+			continue
+		}
+		cls := classForParam(p.Ty, nonSMCIdx)
 		if p.RegClass != 0 {
 			cls = p.RegClass
 		}
 		r := bld.Param(p.Name, p.Ty, cls)
 		l.bind(p.Name, r, p.Ty)
+		nonSMCIdx++
 	}
 
 	// Lower body.
@@ -586,11 +596,12 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		if lit, ok := st.Val.(*StructLitExpr); ok {
 			switch tgt := st.Target.(type) {
 			case *DerefExpr:
-				// palette^ = Color{...}
-				// Runtime pointer: capture once (the ptr may be HL itself) and
-				// reuse — the fieldStore scanner handles this case via runtime INC.
+				// ptr^ = Struct{...}
+				// Use sequential chaining: each field address derived from the
+				// PREVIOUS field address + diff, so no base reg stays live across
+				// multiple Field ops — all can share HL.
 				ptrReg := l.lowerExpr(tgt.Ptr)
-				l.emitStructLitFields(lit, func() mir2.Reg { return ptrReg })
+				l.emitStructLitFieldsChained(lit, ptrReg)
 				return false
 			case *VarRefExpr:
 				// global_struct = Color{...}
@@ -683,6 +694,11 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 
 	case *StoreStmt:
 		ptr := l.lowerExpr(st.Ptr)
+		// ptr^ = Struct{...}: use chained stores instead of alloca round-trip.
+		if lit, ok := st.Val.(*StructLitExpr); ok {
+			l.emitStructLitFieldsChained(lit, ptr)
+			return false
+		}
 		val := l.lowerExpr(st.Val)
 		l.bld.Store(ptr, val, st.Val.ExprTy())
 		return false
@@ -2217,6 +2233,66 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 			addr = l.bld.Field(base, int64(byteOff), mir2.ClassPointer)
 		}
 		l.bld.Store(addr, val, fieldTy)
+	}
+}
+
+// emitStructLitFieldsChained stores fields in ascending offset order using
+// sequential address chaining: each addr = Field(prevAddr, offsetDiff).
+// This keeps only one pointer reg live at a time — all can share HL,
+// enabling the INC HL / LD (HL),n pattern for @smc and other pointer writes.
+//
+// Each field value is lowered just before its Store, not upfront.  Lowering
+// all values in advance would put two ClassAcc (A) vregs live simultaneously,
+// causing the allocator to spill to alloca instead of keeping everything in
+// registers.
+func (l *lowerer) emitStructLitFieldsChained(lit *StructLitExpr, startAddr mir2.Reg) {
+	// Build sorted (offset, ty, valExpr) list — store HIR Expr, not lowered Reg.
+	type fieldEntry struct {
+		byteOff int
+		ty      mir2.Ty
+		valExpr Expr
+	}
+	entries := make([]fieldEntry, 0, len(lit.Fields))
+	for _, fi := range lit.Fields {
+		var fieldTy mir2.Ty
+		byteOff := 0
+		for idx, sf := range lit.St.Fields {
+			if sf.Name == fi.Name {
+				fieldTy = sf.Ty
+				byteOff = lit.St.ByteOffset(idx)
+				break
+			}
+		}
+		if fieldTy == nil {
+			panic(fmt.Sprintf("hir/lower: struct %q has no field %q", lit.St.Name, fi.Name))
+		}
+		entries = append(entries, fieldEntry{byteOff, fieldTy, fi.Val})
+	}
+	// Sort ascending by byte offset (insertion sort — small N).
+	for i := 1; i < len(entries); i++ {
+		for j := i; j > 0 && entries[j].byteOff < entries[j-1].byteOff; j-- {
+			entries[j], entries[j-1] = entries[j-1], entries[j]
+		}
+	}
+	// Emit stores with sequential chaining: prevAddr → Field(prevAddr, diff) → Store.
+	// Lower each val expression immediately before its Store so it is dead by the
+	// time the next val is lowered — no A-register live range overlap.
+	prevAddr := startAddr
+	prevOff := 0
+	for i, e := range entries {
+		var addr mir2.Reg
+		if i == 0 && e.byteOff == 0 {
+			addr = startAddr
+		} else if i == 0 {
+			addr = l.bld.Field(startAddr, int64(e.byteOff), mir2.ClassPointer)
+		} else {
+			diff := e.byteOff - prevOff
+			addr = l.bld.Field(prevAddr, int64(diff), mir2.ClassPointer)
+		}
+		val := l.lowerExpr(e.valExpr) // lower just before Store — short live range
+		l.bld.Store(addr, val, e.ty)
+		prevAddr = addr
+		prevOff = e.byteOff
 	}
 }
 
