@@ -255,6 +255,13 @@ type lowerer struct {
 	// Needed by BreakStmt and ContinueStmt.
 	loopStack []loopCtx
 
+	// inLoopContext is true whenever we are lowering expressions that form part
+	// of a loop — either the loop head condition or the loop body.  It is used
+	// to suppress classForALUResult: loop-carried values that live across ALU
+	// operations must not be forced into A, which is a transient workspace for
+	// comparisons and increments.
+	inLoopContext bool
+
 	// labelSeq generates unique block labels within this function.
 	labelSeq int
 }
@@ -491,6 +498,22 @@ func classForExpr(ty mir2.Ty) mir2.RegClass {
 		return mir2.ClassPointer
 	}
 	return mir2.ClassGeneral
+}
+
+// classForALUResult returns the preferred class for an 8-bit ALU operation
+// result. Z80 ALU ops (ADD, SUB, AND, OR, XOR, NEG) always write to A, so
+// ClassAcc avoids a spurious LD C,A after the instruction.
+// 16-bit variants write to HL → ClassPointer.
+// Other ops (MUL, shifts) are not pure A-writes → ClassGeneral.
+func classForALUResult(op string, ty mir2.Ty) mir2.RegClass {
+	if ty == mir2.TyU16 || ty == mir2.TyI16 {
+		return mir2.ClassPointer
+	}
+	switch op {
+	case "+", "-", "&", "|", "^":
+		return mir2.ClassAcc
+	}
+	return classForExpr(ty)
 }
 
 // classForLoop chooses a good class for a loop-carried variable.
@@ -854,6 +877,8 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 	}
 	l.env = headEnv
 
+	prevInLoopCtx := l.inLoopContext
+	l.inLoopContext = true
 	cond := l.lowerCond(st.Cond)
 	// True → body (no block params on body, no args needed).
 	// False → exit (with block params, pass current head-env values).
@@ -866,6 +891,7 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 	l.pushLoop(loopCtx{headLabel: headLabel, exitLabel: exitLabel, mutated: mutated})
 	l.lowerBlock(st.Body)
 	l.popLoop()
+	l.inLoopContext = prevInLoopCtx
 	// Back-edge: jump to head with updated values.
 	backArgs := l.collectArgs(mutated)
 	l.bld.Jmp(headLabel, backArgs...)
@@ -989,9 +1015,12 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	l.bind(st.Var, xReg, st.ElemTy)
 
 	// ContinueStmt jumps to fe_cont (not fe_head) so ptr/cnt are advanced first.
+	prevInLoopCtx2 := l.inLoopContext
+	l.inLoopContext = true
 	l.pushLoop(loopCtx{headLabel: contLabel, exitLabel: exitLabel, mutated: mutated})
 	l.lowerBlock(st.Body)
 	l.popLoop()
+	l.inLoopContext = prevInLoopCtx2
 
 	// mapInPlace: store the (possibly transformed) element value back to ptr.
 	if st.MutateInPlace {
@@ -1332,7 +1361,16 @@ func (l *lowerer) lowerBinExpr(ex *BinExpr) mir2.Reg {
 	}
 
 	ty := ex.Ty
-	cls := classForExpr(ty)
+	// Use ClassAcc for 8-bit ALU results outside loop contexts — Z80 ALU ops
+	// always write to A, avoiding a spurious LD C,A.  Inside loops (head
+	// condition or body) values may be loop-carried or live across ALU ops
+	// that transiently clobber A, so fall back to ClassGeneral.
+	var cls mir2.RegClass
+	if !l.inLoopContext {
+		cls = classForALUResult(ex.Op, ty)
+	} else {
+		cls = classForExpr(ty)
+	}
 	// Type-widen integer literals to match the expression result type.
 	// e.g. "0 - r" where r:u16 parses literal 0 as u8; promote to u16 so
 	// the codegen sees a 16-bit const, not an 8-bit one.
@@ -1367,7 +1405,12 @@ func (l *lowerer) lowerBinExpr(ex *BinExpr) mir2.Reg {
 func (l *lowerer) lowerUnaryExpr(ex *UnaryExpr) mir2.Reg {
 	xReg := l.lowerExpr(ex.X)
 	ty := ex.Ty
-	cls := classForExpr(ty)
+	var cls mir2.RegClass
+	if !l.inLoopContext {
+		cls = classForALUResult(ex.Op, ty)
+	} else {
+		cls = classForExpr(ty)
+	}
 	switch ex.Op {
 	case "-":
 		return l.bld.Neg(xReg, ty, cls)

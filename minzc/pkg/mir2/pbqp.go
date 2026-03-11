@@ -114,6 +114,12 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 // It is a drop-in replacement for Allocate.
 func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	info := collectRegInfo(f)
+
+	// Pre-PBQP: propagate class hints through phi-web edges and return values.
+	// This ensures ALU op results (ClassAcc) flow to block params that feed
+	// returns, so PBQP assigns them to A without spurious LD C,A copies.
+	propagateClassHints(f, info)
+
 	ig := BuildInterferenceGraph(f, lr)
 	allLocs := ct.Locs()
 

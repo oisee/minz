@@ -107,6 +107,37 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 	// once a reg has been given its affinity partner's location we lock it so
 	// that a later edge in the same scan cannot undo or rotate it.
 	recolored := make(map[Reg]bool, len(result.Locs))
+
+	// ── ISA output-constraint recoloring ──────────────────────────────────────
+	// Instructions that always write to A on Z80 (ADD, SUB, AND, OR, XOR, NEG
+	// with 8-bit operands) should live in A.  Recolor their Dst to A if safe,
+	// so that subsequent block-arg affinity edges can chain from A to the
+	// block params that receive the value.
+	locA := PhysLoc{Kind: LocReg, Name: "A"}
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Dst == NoReg || recolored[inst.Dst] {
+				continue
+			}
+			if !isaAlwaysWritesA(inst) {
+				continue
+			}
+			if result.Locs[inst.Dst] == locA {
+				continue // already optimal
+			}
+			safe := true
+			ig.Neighbors(inst.Dst).Each(func(n Reg) {
+				if result.Locs[n] == locA {
+					safe = false
+				}
+			})
+			if safe {
+				result.Locs[inst.Dst] = locA
+				recolored[inst.Dst] = true
+			}
+		}
+	}
+
 	for _, e := range edges {
 		if recolored[e.dst] {
 			continue // already committed this reg's location
@@ -128,4 +159,18 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 			recolored[e.dst] = true
 		}
 	}
+}
+
+// isaAlwaysWritesA reports whether inst always writes its result to the A
+// register on Z80 (8-bit ALU ops: ADD, SUB, AND, OR, XOR, NEG).
+// 16-bit variants (ADD HL,rr etc.) write to HL, not A.
+func isaAlwaysWritesA(inst *Inst) bool {
+	if inst.Ty.Width() > 8 {
+		return false
+	}
+	switch inst.Op {
+	case OpAdd, OpSub, OpAnd, OpOr, OpXor, OpNeg:
+		return true
+	}
+	return false
 }
