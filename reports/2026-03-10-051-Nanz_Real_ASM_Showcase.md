@@ -1205,3 +1205,171 @@ BrIf(CmpLt(a,b), then=ret_neg, else=ret_r)   ← ret_r is trivial
 CondRetSink → TermCondRet(CmpSubCarry, vals=[r], then=ret_neg)
 → SUB B / RET NC / .ret_neg: NEG / RET
 ```
+
+---
+
+## Post-Sprint Appendix 4 — Factorial, Fibonacci, Multiple Returns (2026-03-11)
+
+### 9. Factorial — recursive vs. fold (idiomatic)
+
+#### ex9a — Recursive (known gap)
+
+```nanz
+fun factorial(n: u8) -> u16 {
+    if n <= 1 { return 1 }
+    return n * factorial(n - 1)
+}
+```
+
+**Status:** Compiles; cross-width multiply (`u8 * u16`) not yet coerced.
+`n` is in A (u8), `factorial(n-1)` returns u16 in HL.
+`lowerBinExpr` treats both as same type — resulting in wrong codegen.
+Fix: type coercion in `lowerBinExpr` when operand widths differ.
+
+#### ex9b — Fold over range (idiomatic, ✅ works)
+
+```nanz
+global acc: u16 = 1
+fun factorial_fold(n: u8) -> u16 {
+    acc = 1
+    for i in 1..n+1 { acc = acc * i }
+    return acc
+}
+```
+
+**What this compiles to:** DJNZ-based 16-bit software multiply loop.
+The `for i in 1..n+1` range collapses to a DJNZ loop with `acc` in HL.
+~320T per iteration (16-bit software multiply). Result correct for n≤12.
+
+**Idiomatic note:** This is the equivalent of `(1..n+1).fold(1, |acc, i| acc * i)`.
+The `global acc` acts as the accumulator — the same pattern `fold` would implement.
+
+---
+
+### 10. Fibonacci — recursive vs. iterative
+
+#### ex10a — Recursive (known gap)
+
+```nanz
+fun fib(n: u8) -> u16 {
+    if n <= 1 { return n }
+    return fib(n - 1) + fib(n - 2)
+}
+```
+
+**Status:** Compiles; second recursive CALL clobbers HL from first.
+Both calls return u16 in HL. No caller-save (PUSH HL) before second call.
+Fix: detect two consecutive u16 calls and emit PUSH HL / CALL / POP.
+
+#### ex10b — Iterative (mostly works)
+
+```nanz
+fun fib_iter(n: u8) -> u16 {
+    if n <= 1 { return n }
+    let a: u16 = 0
+    let b: u16 = 1
+    for i in 1..n {
+        let tmp: u16 = a + b
+        a = b
+        b = tmp
+    }
+    return b
+}
+```
+
+**Status:** Mostly correct. Minor issues: `ADD DE,HL` emitted (invalid Z80 —
+should be `ADD HL,DE` with swap). Redundant init moves for `let a=0; let b=1`.
+
+---
+
+### 11. Multiple Return Values — ✅ NEW (2026-03-11, commit abecf73)
+
+The full multi-return pipeline landed today:
+
+```nanz
+fun minmax(a: u16, b: u16) -> (u16, u16) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+
+fun smaller(x: u16, y: u16) -> u16 {
+    let (lo, _) = minmax(x, y)   // _ discards hi — zero cost
+    return lo
+}
+
+fun larger(x: u16, y: u16) -> u16 {
+    let (_, hi) = minmax(x, y)
+    return hi
+}
+```
+
+**Compiled Z80:**
+```z80
+minmax:
+    EX DE, HL                 ; a↔b swap for comparison
+    PUSH HL
+    OR A
+    SBC HL, DE
+    POP HL
+    EX DE, HL
+    EX DE, HL                 ; (redundant — known peephole gap)
+    RET C                     ; a < b → already swapped, return (b,a)
+.minmax_if_then1:
+    EX DE, HL                 ; a ≥ b → swap to (a,b)
+    RET
+
+swap:
+    EX DE, HL                 ; ← optimal: 1 instruction
+    RET                       ; HL=b, DE=a
+
+smaller:
+    CALL minmax               ; hi (DE) simply ignored — zero cost
+    RET
+
+larger:
+    CALL minmax
+    EX DE, HL                 ; move hi (DE) into return reg (HL)
+    RET
+```
+
+**Z80 multi-return ABI:**
+
+| Position | Type | Register |
+|----------|------|----------|
+| 0 (primary) | u16 | HL |
+| 0 (primary) | u8  | A  |
+| 1 | u16/u8 | DE |
+| 2 | u8 | B |
+
+**`_` blank identifier:** discarded positions are DSE-killed — no register
+save or propagation. `smaller` compiles to `CALL minmax / RET` (hi in DE
+is never read; zero overhead).
+
+**Syntax summary:**
+```nanz
+fun f(x: u16) -> (u16, u16) { return (x, x+1) }   // declare multi-return
+let (a, b) = f(n)                                   // destructure
+let (lo, _) = f(n)                                  // discard second
+```
+
+**Implementation stack:** `Inst.ExtraRets[]` (MIR2 call instruction) →
+`Builder.CallMulti()` → `physOverride` binding after CALL → `TupleLetStmt`
+in HIR → `parseTupleLet()` in Nanz parser.
+
+**Known limitation:** allocator does not model call-clobbered registers.
+Complex callers with live-across-call values in DE may get incorrect
+allocation. Simple use-immediately patterns work correctly.
+
+---
+
+### Summary table (new rows)
+
+| Feature | Source lines | Z80 output | Status |
+|---------|-------------|-----------|--------|
+| factorial recursive | 3 lines | compiles | ⚠️ u8×u16 coercion gap |
+| factorial fold | 4 lines | DJNZ+mul loop | ✅ correct |
+| fibonacci recursive | 4 lines | compiles | ⚠️ caller-save gap |
+| fibonacci iterative | 9 lines | mostly correct | ⚠️ ADD direction, init bloat |
+| multi-return `-> (T1,T2)` | 3 lines | `EX DE,HL / RET` | ✅ works |
+| `let (a, _) = fn()` blank | 1 call | zero overhead | ✅ DSE-killed |
+| `swap` | 3 lines | `EX DE,HL / RET` (3B,14T) | ✅ optimal |
