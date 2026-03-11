@@ -38,10 +38,12 @@ type InterfaceDecl struct {
 
 // Assert is a module-level compile-time assertion.
 //
-//	assert fn(arg1, arg2) == expected
+//	assert fn(arg1, arg2) == expected           — check both MIR2 VM and Z80 binary
+//	assert fn(arg1, arg2) == expected via mir2  — check MIR2 VM only (fast)
+//	assert fn(arg1, arg2) == expected via z80   — check Z80 binary only
 //
-// Assertions are checked after MIR2 lowering by running the call in the
-// MIR2 VM.  They are NOT emitted into the generated binary.
+// Assertions are checked after MIR2 optimisation.  They are NOT emitted into
+// the generated binary.
 type Assert struct {
 	FuncName       string   // function to call
 	Args           []int64  // literal integer arguments
@@ -49,6 +51,7 @@ type Assert struct {
 	ExpectedMulti  []int64  // expected values for multi-return; non-nil overrides Expected
 	Source         string   // original source text (for error messages)
 	Line           int      // source line number
+	Via            string   // "" = both MIR2+Z80; "mir2" = MIR2 VM only; "z80" = Z80 only
 }
 
 // Module is the top-level HIR unit.

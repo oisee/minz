@@ -633,13 +633,18 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 		if _, err2 := p.l.eat(tokRParen); err2 != nil {
 			return hir.Assert{}, fmt.Errorf("line %d: assert: expected ')' after tuple", line)
 		}
+		via := p.parseAssertVia()
 		src := fmt.Sprintf("assert %s(%s) == (%s)", nameTok.val, intSliceStr(args), intSliceStr(multi))
+		if via != "" {
+			src += " via " + via
+		}
 		return hir.Assert{
 			FuncName:      nameTok.val,
 			Args:          args,
 			ExpectedMulti: multi,
 			Source:        src,
 			Line:          line,
+			Via:           via,
 		}, nil
 	}
 
@@ -661,14 +666,37 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 		expected = -expected
 	}
 
+	via := p.parseAssertVia()
 	src := fmt.Sprintf("assert %s(%s) == %d", nameTok.val, intSliceStr(args), expected)
+	if via != "" {
+		src += " via " + via
+	}
 	return hir.Assert{
 		FuncName: nameTok.val,
 		Args:     args,
 		Expected: expected,
 		Source:   src,
 		Line:     line,
+		Via:      via,
 	}, nil
+}
+
+// parseAssertVia consumes an optional "via mir2" or "via z80" suffix.
+// Returns "" if no via clause is present.
+func (p *parser) parseAssertVia() string {
+	if !p.l.is(tokIdent) || p.l.peek().val != "via" {
+		return ""
+	}
+	p.l.next() // consume "via"
+	if !p.l.is(tokIdent) {
+		return ""
+	}
+	target := p.l.peek().val
+	if target == "mir2" || target == "z80" {
+		p.l.next()
+		return target
+	}
+	return ""
 }
 
 func intSliceStr(vs []int64) string {

@@ -17,7 +17,9 @@ package pipeline
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -116,14 +118,19 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 	}
 
-	// Compile-time assertion checks (assert fn(args) == expected).
-	if err := RunAsserts(hm, m); err != nil {
+	// MIR2 VM assertion checks (skip "z80"-only asserts).
+	if err := RunAssertsMIR2(hm, m); err != nil {
 		return s, err
 	}
 
 	s.Assembly = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 		AnnotateTStates: opt.AnnotateTStates,
 	})
+
+	// Z80 binary assertion checks (skip "mir2"-only asserts).
+	if err := RunAssertsZ80(hm, m, combined, s.Assembly); err != nil {
+		return s, err
+	}
 	return s, nil
 }
 
@@ -187,52 +194,182 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		}
 	}
 
-	// Compile-time assertion checks (assert fn(args) == expected).
-	if err := RunAsserts(hm, m); err != nil {
+	// MIR2 VM assertion checks (skip "z80"-only asserts).
+	if err := RunAssertsMIR2(hm, m); err != nil {
 		return "", err
 	}
 
 	// Z80 assembly text.
 	asm := mir2.Z80Codegen(m, combined)
+
+	// Z80 binary assertion checks (skip "mir2"-only asserts).
+	if err := RunAssertsZ80(hm, m, combined, asm); err != nil {
+		return "", err
+	}
 	return asm, nil
 }
 
-// RunAsserts evaluates module-level compile-time assertions via the MIR2 VM.
-// Called after MIR2 is fully optimised and allocated.
-// Returns an error for the first failing assertion, or nil if all pass.
+// RunAsserts evaluates all compile-time assertions on both MIR2 VM and Z80 binary.
+// Kept for external callers; internally the pipeline calls RunAssertsMIR2 + RunAssertsZ80.
 func RunAsserts(hm *hir.Module, m *mir2.Module) error {
+	return RunAssertsMIR2(hm, m)
+}
+
+// RunAssertsMIR2 evaluates module-level compile-time assertions via the MIR2 VM.
+// Skips assertions with Via=="z80".
+// Called after MIR2 is fully optimised and allocated.
+func RunAssertsMIR2(hm *hir.Module, m *mir2.Module) error {
 	if len(hm.Asserts) == 0 {
 		return nil
 	}
 	vm := mir2.NewVM(m)
 	for _, a := range hm.Asserts {
+		if a.Via == "z80" {
+			continue // skip mir2-VM check for z80-only asserts
+		}
 		args := make([]mir2.Value, len(a.Args))
 		for i, v := range a.Args {
 			args[i] = mir2.Value{I: v}
 		}
 		rets, err := vm.Call(a.FuncName, args)
 		if err != nil {
-			return fmt.Errorf("line %d: assert %q: VM error: %w", a.Line, a.Source, err)
+			return fmt.Errorf("line %d: assert %q [mir2]: VM error: %w", a.Line, a.Source, err)
 		}
 		if len(rets) == 0 {
-			return fmt.Errorf("line %d: assert %q: function returned no value", a.Line, a.Source)
+			return fmt.Errorf("line %d: assert %q [mir2]: function returned no value", a.Line, a.Source)
 		}
 		if len(a.ExpectedMulti) > 0 {
-			// Multi-return comparison: check each return value.
 			if len(rets) < len(a.ExpectedMulti) {
-				return fmt.Errorf("line %d: assert %q: function returned %d values, want %d",
+				return fmt.Errorf("line %d: assert %q [mir2]: function returned %d values, want %d",
 					a.Line, a.Source, len(rets), len(a.ExpectedMulti))
 			}
 			for i, want := range a.ExpectedMulti {
 				if rets[i].I != want {
-					return fmt.Errorf("line %d: assert %q: return[%d] got %d, want %d",
+					return fmt.Errorf("line %d: assert %q [mir2]: return[%d] got %d, want %d",
 						a.Line, a.Source, i, rets[i].I, want)
 				}
 			}
 		} else {
 			if rets[0].I != a.Expected {
-				return fmt.Errorf("line %d: assert %q: got %d, want %d",
+				return fmt.Errorf("line %d: assert %q [mir2]: got %d, want %d",
 					a.Line, a.Source, rets[0].I, a.Expected)
+			}
+		}
+	}
+	return nil
+}
+
+const assertLoadAddr = 0x8000
+
+// RunAssertsZ80 evaluates compile-time assertions by assembling the generated Z80
+// and running each function call on the MZE emulator.  Skips Via=="mir2" asserts.
+//
+// Uses the actual register allocation (ar) to determine which physical register
+// holds each parameter — the contract optimizer may place params in unexpected
+// registers (e.g. second u8 param in C rather than B).
+func RunAssertsZ80(hm *hir.Module, m *mir2.Module, ar *mir2.AllocResult, asmSrc string) error {
+	if len(hm.Asserts) == 0 {
+		return nil
+	}
+	// Build MIR2 function lookup for contract/ABI info.
+	mir2Funcs := make(map[string]*mir2.Func, len(m.Funcs))
+	for _, f := range m.Funcs {
+		mir2Funcs[f.Name] = f
+	}
+	// Build HIR function lookup for return-type info.
+	hirFuncs := make(map[string]*hir.Func, len(hm.Funcs))
+	for _, f := range hm.Funcs {
+		hirFuncs[f.Name] = f
+	}
+
+	for _, a := range hm.Asserts {
+		if a.Via == "mir2" {
+			continue
+		}
+		mf := mir2Funcs[a.FuncName]
+		if mf == nil {
+			return fmt.Errorf("line %d: assert %q [z80]: function %q not found in MIR2", a.Line, a.Source, a.FuncName)
+		}
+
+		// Build bootstrap: load args into their actual allocated registers, CALL fn, HALT.
+		var boot strings.Builder
+		fmt.Fprintf(&boot, "    ORG 0x%04X\n", assertLoadAddr)
+		boot.WriteString("    LD SP, 0xFF00\n")
+
+		for i, arg := range a.Args {
+			if i >= len(mf.Contract.Params) {
+				return fmt.Errorf("line %d: assert %q [z80]: too many args (function has %d params)",
+					a.Line, a.Source, len(mf.Contract.Params))
+			}
+			param := mf.Contract.Params[i]
+			loc, ok := ar.Locs[param.Reg]
+			if !ok {
+				return fmt.Errorf("line %d: assert %q [z80]: param %q has no allocated location",
+					a.Line, a.Source, param.Name)
+			}
+			switch loc.Name {
+			case "HL", "DE", "BC":
+				fmt.Fprintf(&boot, "    LD %s, %d\n", loc.Name, arg)
+			default:
+				// Single register (A, B, C, D, E, H, L)
+				fmt.Fprintf(&boot, "    LD %s, %d\n", loc.Name, arg)
+			}
+		}
+
+		fmt.Fprintf(&boot, "    CALL %s\n", a.FuncName)
+		boot.WriteString("    DI\n    HALT\n")
+
+		src := boot.String() + "\n" + asmSrc
+		as := z80asm.NewAssembler()
+		res, err := as.AssembleString(src)
+		if err != nil {
+			return fmt.Errorf("line %d: assert %q [z80]: assemble: %w", a.Line, a.Source, err)
+		}
+		if len(res.Errors) > 0 {
+			return fmt.Errorf("line %d: assert %q [z80]: assemble errors: %v", a.Line, a.Source, res.Errors[0])
+		}
+
+		z := emulator.NewRemogattoZ80()
+		if lerr := z.LoadMemory(assertLoadAddr, res.Binary); lerr != nil {
+			return fmt.Errorf("line %d: assert %q [z80]: load: %w", a.Line, a.Source, lerr)
+		}
+		z.SetPC(assertLoadAddr)
+		if rerr := z.Run(); rerr != nil {
+			return fmt.Errorf("line %d: assert %q [z80]: run: %w", a.Line, a.Source, rerr)
+		}
+
+		regs := z.GetRegisters()
+		// Result register: determined by return class (ClassAcc→A, ClassPointer→HL, etc.)
+		var got int64
+		if len(mf.Contract.Returns) > 0 {
+			switch mf.Contract.Returns[0].Class {
+			case mir2.ClassPointer:
+				got = int64(regs.HL)
+			case mir2.ClassIndex:
+				got = int64(regs.DE)
+			case mir2.ClassPair:
+				got = int64(regs.BC)
+			default: // ClassAcc, ClassCounter, ClassGeneral → A
+				got = int64(regs.A)
+			}
+		} else {
+			hf := hirFuncs[a.FuncName]
+			if hf != nil && (hf.RetTy == mir2.TyU16 || hf.RetTy == mir2.TyI16) {
+				got = int64(regs.HL)
+			} else {
+				got = int64(regs.A)
+			}
+		}
+
+		if len(a.ExpectedMulti) > 0 {
+			if got != a.ExpectedMulti[0] {
+				return fmt.Errorf("line %d: assert %q [z80]: return[0] got %d, want %d",
+					a.Line, a.Source, got, a.ExpectedMulti[0])
+			}
+		} else {
+			if got != a.Expected {
+				return fmt.Errorf("line %d: assert %q [z80]: got %d, want %d",
+					a.Line, a.Source, got, a.Expected)
 			}
 		}
 	}

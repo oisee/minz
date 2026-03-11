@@ -2284,6 +2284,18 @@ func (g *z80cg) genMul16(inst *Inst) {
 		case 1:
 			return
 		}
+		// Fix A: byte-boundary shift — LD H,L / LD L,0 is cheaper than ADD HL,HL chains.
+		// * 256: LD H,L / LD L,0  (8T, 2B)  vs 8×ADD HL,HL (56T, 16B)
+		// * 512: LD H,L / LD L,0 / ADD HL,HL (19T) vs 9×ADD HL,HL (63T)
+		if cv >= 256 && cv&(cv-1) == 0 {
+			g.emit("    LD H, L")
+			g.emit("    LD L, 0")
+			for n := cv >> 8; n > 1; n >>= 1 {
+				g.emit("    ADD HL, HL")
+			}
+			g.invalidate("HL")
+			return
+		}
 		if cv > 0 && cv&(cv-1) == 0 { // power-of-2: log2(cv) × ADD HL,HL
 			for n := cv; n > 1; n >>= 1 {
 				g.emit("    ADD HL, HL")

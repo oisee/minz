@@ -2368,3 +2368,81 @@ fun call_each(n: u8) -> void {
 	}
 	t.Logf("call_each Z80:\n%s", asm)
 }
+
+// TestAssert_ViaParser checks that "via mir2" and "via z80" suffixes parse correctly.
+func TestAssert_ViaParser(t *testing.T) {
+	src := `
+fun add(a: u8, b: u8) -> u8 { return a + b }
+
+assert add(1, 2) == 3
+assert add(1, 2) == 3 via mir2
+assert add(1, 2) == 3 via z80
+`
+	m, err := nanz.Parse(src, "via_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if len(m.Asserts) != 3 {
+		t.Fatalf("want 3 asserts, got %d", len(m.Asserts))
+	}
+	cases := []struct{ via string }{{""}, {"mir2"}, {"z80"}}
+	for i, c := range cases {
+		if m.Asserts[i].Via != c.via {
+			t.Errorf("assert[%d].Via = %q, want %q", i, m.Asserts[i].Via, c.via)
+		}
+	}
+}
+
+// TestAssert_DualVM verifies that asserts run on BOTH the MIR2 VM and the Z80 binary
+// when no "via" clause is specified. A correct function should pass both.
+func TestAssert_DualVM(t *testing.T) {
+	src := `
+fun sum_range(n: u8) -> u8 {
+    return range(0..n).fold(0, |acc: u8, i: u8| { return acc + i })
+}
+
+assert sum_range(0)  == 0
+assert sum_range(1)  == 1
+assert sum_range(4)  == 10
+assert sum_range(5)  == 15
+assert sum_range(10) == 55
+`
+	m, err := nanz.Parse(src, "dualvm_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if len(m.Asserts) != 5 {
+		t.Fatalf("want 5 asserts, got %d", len(m.Asserts))
+	}
+	for _, a := range m.Asserts {
+		if a.Via != "" {
+			t.Errorf("assert %q: expected empty Via (both), got %q", a.Source, a.Via)
+		}
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("dual-VM assert failed: %v", err)
+	}
+}
+
+// TestAssert_DualVM_FailsZ80 ensures that a function that passes the MIR2 VM but
+// would fail Z80 binary verification is detected. We use "via z80" to test the
+// Z80 runner directly with a known-good function (to verify Z80 runner works).
+func TestAssert_ViaZ80_SumRange(t *testing.T) {
+	src := `
+fun sum_range(n: u8) -> u8 {
+    return range(0..n).fold(0, |acc: u8, i: u8| { return acc + i })
+}
+
+assert sum_range(5)  == 15 via z80
+assert sum_range(10) == 55 via z80
+`
+	m, err := nanz.Parse(src, "z80only_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("z80-only assert failed: %v", err)
+	}
+}

@@ -2392,6 +2392,8 @@ func TestMulU16ConstZ80(t *testing.T) {
 		{9, []struct{ a, want int }{{7, 63}, {100, 900}}},
 		{8, []struct{ a, want int }{{100, 800}, {1000, 8000}}},
 		{16, []struct{ a, want int }{{100, 1600}, {4096, 0}}},
+		{256, []struct{ a, want int }{{1, 256}, {200, 51200}, {257, 256}}},  // Fix A: LD H,L / LD L,0
+		{512, []struct{ a, want int }{{1, 512}, {100, 51200}, {129, 512}}},  // Fix A: byte-swap + ADD HL,HL
 	}
 	for _, tc := range cases {
 		tc := tc
@@ -2418,6 +2420,22 @@ func TestMulU16ConstZ80(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestMulU16Const256Asm(t *testing.T) {
+	// Fix A: * 256 must use LD H,L / LD L,0 (byte-swap), not 8× ADD HL,HL
+	m := &mir2.Module{Name: "mul_u16_by_256"}
+	buildMulU16(m, 256, true)
+	asm := compileFunc(t, m)
+	t.Log("\n" + asm)
+	if !strings.Contains(asm, "LD H, L") || !strings.Contains(asm, "LD L, 0") {
+		t.Errorf("expected LD H,L / LD L,0 byte-swap; got:\n%s", asm)
+	}
+	// Count ADD HL,HL — should be 0 for *256
+	count := strings.Count(asm, "ADD HL, HL")
+	if count != 0 {
+		t.Errorf("expected 0 ADD HL,HL for *256, got %d", count)
 	}
 }
 
