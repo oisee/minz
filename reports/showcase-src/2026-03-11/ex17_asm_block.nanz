@@ -1,0 +1,30 @@
+// ex17: Inline asm z80 {} blocks
+// Verbatim Z80 assembly mixed with Nanz code.
+// Non-matching targets (6502, ez80) are silently skipped.
+//
+// Run:
+//   mzc ex17_asm_block.nanz -o ex17_asm_block.bin
+//   mze ex17_asm_block.bin --console-io
+
+fun set_border(col: u8) -> void {
+    // Inline Z80: set ZX Spectrum border colour
+    asm z80 { OUT (0xFE), A }
+    return
+}
+
+fun nop_slide() -> void {
+    // Multi-instruction asm block using '/' as line separator
+    asm z80 { NOP / NOP / NOP / NOP }
+    return
+}
+
+fun main() -> void {
+    set_border(2)   // red border
+    nop_slide()
+
+    // This 6502 block is silently skipped (wrong target)
+    asm 6502 { LDA #$02 / STA $FE }
+
+    @print("asm blocks work!\n")
+    return
+}

@@ -88,6 +88,7 @@ type token struct {
 	kind tokKind
 	val  string
 	line int
+	pos  int // byte offset in source where this token starts
 }
 
 type lexer struct {
@@ -264,7 +265,7 @@ func (l *lexer) tokenize() {
 }
 
 func (l *lexer) emit(k tokKind, v string, line int) {
-	l.tokens = append(l.tokens, token{kind: k, val: v, line: line})
+	l.tokens = append(l.tokens, token{kind: k, val: v, line: line, pos: l.pos})
 }
 
 func (l *lexer) peek() token {
@@ -1346,6 +1347,8 @@ func (p *parser) parseStmt() (hir.Stmt, error) {
 		return &hir.ContinueStmt{}, nil
 	case t.kind == tokIdent && t.val == "switch":
 		return p.parseSwitch()
+	case t.kind == tokIdent && t.val == "asm":
+		return p.parseAsm()
 	case t.kind == tokLBrace:
 		return p.parseBlock()
 	default:
@@ -1865,6 +1868,60 @@ func (p *parser) warnUninitInExpr(e hir.Expr) {
 		p.warnUninitInExpr(ex.Idx)
 	// IntLitExpr, BoolLitExpr, AddrOfExpr, ConstPtrExpr: no variable refs
 	}
+}
+
+// parseAsm parses an inline assembly block:
+//
+//	asm z80 { LD A, 0x42 / OUT (0x23), A }
+//	asm { LD A, 0x42 }   — target = "" (matches any)
+//
+// The braces' byte positions in the source are used to extract the raw asm
+// text verbatim (so Z80 syntax like "LD (HL), A" is preserved exactly).
+// '/' inside the block acts as a line separator — each '/' becomes '\n    '
+// in the output, allowing single-line multi-instruction asm blocks.
+func (p *parser) parseAsm() (hir.Stmt, error) {
+	if err := p.l.eatIdent("asm"); err != nil {
+		return nil, err
+	}
+	// Optional target tag (e.g. "z80", "ez80", "6502").
+	// Identifiers: "z80", "ez80"; integers: "6502" (tokenized as int).
+	target := ""
+	if p.l.peek().kind == tokIdent || p.l.peek().kind == tokInt {
+		target = p.l.peek().val
+		p.l.next()
+	}
+	// The '{' token carries its source byte offset in token.pos.
+	lbrace := p.l.peek()
+	if lbrace.kind != tokLBrace {
+		return nil, fmt.Errorf("line %d: asm block: expected '{', got %q", lbrace.line, lbrace.val)
+	}
+	p.l.next() // consume '{'
+	startPos := lbrace.pos + 1 // byte offset of first char inside the block
+
+	// Walk the token stream to find the matching '}'.
+	depth := 1
+	var closeTok token
+	for depth > 0 {
+		t := p.l.peek()
+		if t.kind == tokEOF {
+			return nil, fmt.Errorf("line %d: asm block: unterminated '{'", lbrace.line)
+		}
+		if t.kind == tokLBrace {
+			depth++
+		} else if t.kind == tokRBrace {
+			depth--
+			if depth == 0 {
+				closeTok = t
+				break
+			}
+		}
+		p.l.next()
+	}
+	p.l.next() // consume closing '}'
+
+	// Extract raw source between the braces.
+	code := strings.TrimSpace(string(p.l.src[startPos:closeTok.pos]))
+	return &hir.AsmStmt{Target: target, Code: code, ClobberAll: true}, nil
 }
 
 func (p *parser) parseSwitch() (hir.Stmt, error) {

@@ -33,6 +33,7 @@ package hir
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
 )
@@ -728,6 +729,27 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		}
 		val := l.lowerExpr(st.Val)
 		l.bld.Store(ptr, val, st.Val.ExprTy())
+		return false
+
+	case *AsmStmt:
+		// Inline assembly block.  We currently compile only for Z80; skip blocks
+		// whose target tag doesn't match.  Empty target = match any.
+		if st.Target != "" && st.Target != "z80" {
+			return false // wrong target — silently skip
+		}
+		// Clobbers: if no explicit list, clobber everything (conservative).
+		clobbers := mir2.AllClasses
+		// "/" is an inline instruction separator — expand to newline.
+		// Each line is stripped so the codegen's own "    " prefix applies cleanly.
+		var lines []string
+		for _, line := range strings.Split(st.Code, "/") {
+			line = strings.TrimSpace(line)
+			if line != "" {
+				lines = append(lines, line)
+			}
+		}
+		code := strings.Join(lines, "\n    ")
+		l.bld.Asm(code, nil, nil, clobbers, mir2.TyVoid, mir2.ClassAcc)
 		return false
 
 	case *IfStmt:

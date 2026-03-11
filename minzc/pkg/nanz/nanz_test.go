@@ -2188,6 +2188,46 @@ func TestSMCParam_NoBloat_SingleByte(t *testing.T) {
 	}
 }
 
+// TestAsmBlock verifies inline asm z80 {} blocks:
+//   - verbatim code emission with correct indentation
+//   - multi-instruction "/" separator expansion
+//   - non-matching target (6502) silently skipped
+func TestAsmBlock(t *testing.T) {
+	src := `
+fun set_border(col: u8) -> void {
+    asm z80 { LD A, col / OUT (0xFE), A }
+    return
+}
+
+fun main() -> void {
+    set_border(2)
+    asm 6502 { LDA #$02 / STA $FE }
+    @print("ok\n")
+    return
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+
+	// Z80 asm must appear verbatim with proper indentation.
+	if !strings.Contains(asm, "    LD A, col") {
+		t.Errorf("missing 'LD A, col' in output\n%s", asm)
+	}
+	if !strings.Contains(asm, "    OUT (0xFE), A") {
+		t.Errorf("missing 'OUT (0xFE), A' in output\n%s", asm)
+	}
+	// 6502 block must be silently dropped — no 6502 mnemonics.
+	if strings.Contains(asm, "LDA") || strings.Contains(asm, "STA") {
+		t.Errorf("6502 asm leaked into output\n%s", asm)
+	}
+}
+
 // TestConsoleLog_VoidFuncRET verifies that a void function whose last
 // instruction before 'return' is an intrinsic call (@console_log / @console_err)
 // still emits a trailing RET.  Regression for: intrinsic OpCall was

@@ -238,6 +238,29 @@ type StoreStmt struct {
 
 func (*StoreStmt) hirStmt() {}
 
+// AsmStmt is an inline assembly block.
+//
+//	asm z80 { LD A, $42 / OUT ($FE), A }         — clobber all (conservative)
+//	asm z80 (in x @z80_a) clobbers(f) { ADD A, 1 } — explicit operands
+//
+// Target is the architecture tag ("z80", "ez80", "6502", ...).  An empty
+// target matches the current compilation target.  A non-matching target block
+// is silently skipped during lowering.
+//
+// Code is the raw assembly text, passed verbatim to the backend codegen.
+// The "/" character may be used as an instruction separator (each "/" becomes
+// a newline in the final output for readability).
+//
+// When ClobberAll is true (default when no explicit clobber list is given),
+// every register class is considered clobbered.  This is conservative but safe.
+type AsmStmt struct {
+	Target     string        // architecture tag, e.g. "z80"; "" = any
+	Code       string        // verbatim assembly text
+	ClobberAll bool          // true when no explicit clobber list
+}
+
+func (*AsmStmt) hirStmt() {}
+
 // ── Expressions ───────────────────────────────────────────────────────────────
 
 // Expr is the HIR expression interface.
