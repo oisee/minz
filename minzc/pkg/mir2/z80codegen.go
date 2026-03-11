@@ -2921,23 +2921,11 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			g.tailCallInst = nil
 			return
 		}
-		// Move each return value to its calling-convention physical register.
-		// Skip the move if the destination already holds the same value (copy alias),
-		// or if the return value is NoReg (void call result — nothing to move).
-		for i, rv := range t.Vals {
-			if i >= len(g.fn.Contract.Returns) {
-				break
-			}
-			if rv == NoReg {
-				continue // void call result; return register already correct
-			}
-			ret := g.fn.Contract.Returns[i]
-			retLoc := canonicalReturnLoc(ret.Class, ret.Ty)
-			src := g.loc(rv)
-			if src != retLoc && !g.holdsValue(retLoc, src) {
-				g.emitMov(retLoc, src, ret.Ty.Width())
-			}
-		}
+		// Move return values to their calling-convention physical registers using
+		// parallel copy resolution.  Sequential moves are incorrect when two return
+		// values share the same physical register after constant folding/PBQP
+		// (e.g. both [acc]=A), causing write-after-write clobber.
+		g.emitParallelCopy(g.buildReturnCopies(t.Vals))
 		// main() is the program entry point: use XOR A / DI / HALT instead of
 		// RET so mze/mzx can detect program termination cleanly.  XOR A zeroes
 		// A for a clean exit code 0.
@@ -3097,38 +3085,16 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		copies := g.buildBlockCopies(f, t.Then, t.ThenArgs)
 		thenLbl := g.branchLabel(f, t.Then, copies)
 		// Emit the conditional jump while flags are still live.
+		retCopies := g.buildReturnCopies(t.Vals)
 		if g.isFallThrough(f, t.Then) && len(copies) == 0 {
 			// Then-block is the fallthrough: use RET invertCC (1 byte, optimal).
-			// Only valid when no return-val moves clobber the flag — check below.
-			// In the common case (return val already in right reg, or simple EX),
-			// this is safe.  We emit RET CC first, then the fallthrough block follows.
-			for i, rv := range t.Vals {
-				if i >= len(g.fn.Contract.Returns) {
-					break
-				}
-				ret := g.fn.Contract.Returns[i]
-				retLoc := canonicalReturnLoc(ret.Class, ret.Ty)
-				src := g.loc(rv)
-				if src != retLoc && !g.holdsValue(retLoc, src) {
-					g.emitMov(retLoc, src, ret.Ty.Width())
-				}
-			}
+			g.emitParallelCopy(retCopies)
 			g.emitf("    RET %s", invertCC(cc))
 		} else {
 			// General case: emit conditional jump to Then first, then return path.
 			g.emitf("    JRS %s, %s", cc, thenLbl)
 			g.emitParallelCopy(copies)
-			for i, rv := range t.Vals {
-				if i >= len(g.fn.Contract.Returns) {
-					break
-				}
-				ret := g.fn.Contract.Returns[i]
-				retLoc := canonicalReturnLoc(ret.Class, ret.Ty)
-				src := g.loc(rv)
-				if src != retLoc && !g.holdsValue(retLoc, src) {
-					g.emitMov(retLoc, src, ret.Ty.Width())
-				}
-			}
+			g.emitParallelCopy(retCopies)
 			g.emit("    RET")
 		}
 
@@ -3153,6 +3119,30 @@ func (g *z80cg) branchLabel(f *Func, target string, copies []parallelCopy) strin
 		target: realLbl,
 	})
 	return tramLbl
+}
+
+// buildReturnCopies computes the parallel copies needed to move return values
+// into their calling-convention physical registers.
+// Using parallel copy resolution (instead of sequential emitMov) is essential
+// when two return values are allocated to the same physical register after
+// constant folding/PBQP — sequential moves would clobber one value.
+func (g *z80cg) buildReturnCopies(vals []Reg) []parallelCopy {
+	var copies []parallelCopy
+	for i, rv := range vals {
+		if i >= len(g.fn.Contract.Returns) {
+			break
+		}
+		if rv == NoReg {
+			continue // void call result; return register already correct
+		}
+		ret := g.fn.Contract.Returns[i]
+		retLoc := canonicalReturnLoc(ret.Class, ret.Ty)
+		src := g.loc(rv)
+		if src != retLoc && !g.holdsValue(retLoc, src) {
+			copies = append(copies, parallelCopy{srcName: src, dstName: retLoc, ty: ret.Ty})
+		}
+	}
+	return copies
 }
 
 // buildBlockCopies computes the parallel copies needed to pass args to a

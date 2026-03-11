@@ -456,16 +456,24 @@ func classForRet(ty mir2.Ty) mir2.RegClass {
 // classForRetPos chooses the return class for position pos in a multi-return function.
 //
 //	pos 0 → same as classForRet (A for u8, HL for u16)
-//	pos 1 → ClassIndex (DE)
-//	pos 2 → ClassCounter (B for u8) or ClassIndex (DE-hi… not ideal; use B)
+//	pos 1 → ClassCounter (B) for u8/u16; ClassIndex (DE) for pointers/u16 pairs
+//	pos 2 → ClassGeneral (C/D/E)
+//
+// Note: ClassIndex (DE) is a 16-bit pair and cannot hold an 8-bit return value
+// directly — using it for u8 causes the allocator to spill to memory.
+// Use ClassCounter (B) for the second u8 return instead.
 func classForRetPos(ty mir2.Ty, pos int) mir2.RegClass {
+	w := ty.Width()
 	switch pos {
 	case 0:
 		return classForRet(ty)
 	case 1:
-		return mir2.ClassIndex // DE
+		if w <= 8 {
+			return mir2.ClassCounter // B — 8-bit register, fits u8
+		}
+		return mir2.ClassIndex // DE — 16-bit pair for u16/ptr
 	default:
-		return mir2.ClassCounter // B
+		return mir2.ClassGeneral // C/D/E
 	}
 }
 
@@ -654,10 +662,18 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 
 	case *ReturnStmt:
 		if len(st.Vals) > 0 {
-			// Multi-return.
+			// Multi-return: coerce each value to its contract register class so
+			// PBQP allocates it to the correct physical register.  Without this,
+			// all constants get [general] class and may be allocated to the same
+			// physical register, causing TermRet to emit invalid parallel copies.
 			regs := make([]mir2.Reg, len(st.Vals))
 			for i, v := range st.Vals {
-				regs[i] = l.lowerExpr(v)
+				r := l.lowerExpr(v)
+				cls := classForRetPos(v.ExprTy(), i)
+				if cls != 0 {
+					r = l.bld.Move(r, v.ExprTy(), cls)
+				}
+				regs[i] = r
 			}
 			l.bld.Ret(regs...)
 		} else if st.Val != nil {

@@ -99,11 +99,11 @@ func ApplyContracts(m *Module, cs ContractSet) {
 				f.Contract.Params[i].Class = ch.ParamClasses[i]
 			}
 		}
-		for i := range f.Contract.Returns {
-			if i < len(ch.ReturnClasses) {
-				f.Contract.Returns[i].Class = ch.ReturnClasses[i]
-			}
-		}
+		// Return classes are NOT overridden here.
+		// The lowerer sets them via classForRetPos (coerced at ReturnStmt via Move).
+		// Updating return classes without also patching the producing instruction's Cls
+		// causes PBQP to allocate to the original class while TermRet codegen generates
+		// copies to the (now wrong) contract location — the multi-return clobber bug.
 	}
 }
 
