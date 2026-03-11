@@ -227,9 +227,9 @@ func compile(sourceFile string) error {
 
 	ext := filepath.Ext(sourceFile)
 
-	// PL/M-80 and Nanz: routed through the new HIR→MIR2→Z80 pipeline.
-	if ext == ".plm" || ext == ".nanz" {
-		if emitFormat == "nanz" {
+	// PL/M-80, Nanz, and HIR text: routed through the new HIR→MIR2→Z80 pipeline.
+	if ext == ".plm" || ext == ".nanz" || ext == ".hir" {
+		if emitFormat == "nanz" && ext != ".hir" {
 			return compilePLMToNanz(sourceFile)
 		}
 		return compileViaHIR(sourceFile)
@@ -697,6 +697,11 @@ func compileViaHIR(sourceFile string) error {
 		hirMod, err = nanz.Parse(string(src), sourceFile)
 		if err != nil {
 			return fmt.Errorf("Nanz parse: %w", err)
+		}
+	case ".hir":
+		hirMod, err = hir.ParseHIR(string(src), filepath.Base(sourceFile))
+		if err != nil {
+			return fmt.Errorf("HIR parse: %w", err)
 		}
 	default:
 		return fmt.Errorf("unsupported extension for HIR pipeline: %s", ext)
