@@ -61,11 +61,38 @@ fun fib_iter(n: u8) -> u16 {
 **Status**: compiles, mostly correct loop structure. Minor register init bloat (redundant moves).
 `ADD DE, HL` emitted — invalid Z80, should be `ADD HL, DE` with swap. Known 16-bit add direction issue.
 
-## Multiple Return Values
+### ex11 — Multiple Return Values (minmax / swap)
 
-Not yet in Nanz parser. `-> (u16, u16)` syntax gives parse error.
-MIR2 itself supports `Contract.Returns[]` slice (multiple returns).
-Nanz TODO: tuple return syntax + lowering.
+```nanz
+fun minmax(a: u16, b: u16) -> (u16, u16) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+
+fun smaller(x: u16, y: u16) -> u16 {
+    let (lo, _) = minmax(x, y)  // _ discards hi — zero cost
+    return lo
+}
+```
+
+**Status**: ✅ WORKS. New feature landed today.
+
+Generated Z80 for `swap(a: u16, b: u16) -> (u16, u16)`:
+```z80
+swap:
+    EX DE, HL      ; swap a↔b in one instruction
+    RET            ; HL=b (first return), DE=a (second return)
+```
+2 instructions, 3 bytes, 14T — optimal.
+
+Z80 ABI for multi-return:
+- Position 0 → HL (ClassPointer for u16)
+- Position 1 → DE (ClassIndex)
+- Position 2 → B  (ClassCounter)
+
+**`_` blank identifier**: Discarded positions are DSE-killed — no register save or propagation needed. `smaller` compiles to `CALL minmax / RET` (hi in DE simply ignored).
+
+**Known limitation**: Allocator does not model call-clobbered registers. Complex callers with live-across-call values in DE may get incorrect allocation. Simple use-immediately patterns work correctly.
 
 ## Known Gaps Exposed Today
 
@@ -82,3 +109,7 @@ Nanz TODO: tuple return syntax + lowering.
 - `sub(const_0, r)` correct via CondRetSink fix (no more carry clobber)
 - `SBC DE, HL` invalid case fixed via EX DE,HL trick
 - Integer literal widening: `0 - r:u16` now emits `const 0 : u16` not u8
+- **Multiple return values** (`-> (u16, u16)`, `return (e1, e2)`, `let (a, _) = fn(...)`) — full pipeline working
+  - `swap` → `EX DE,HL / RET` (3 bytes, 14T, optimal)
+  - `_` blank identifier → zero-cost (DSE removes unused ExtraRet)
+  - End-to-end: HIR.RetTys → MIR2.ExtraRets → Z80 physOverride → correct register binding

@@ -54,6 +54,20 @@ func collectRegInfo(f *Func) map[Reg]RegInfo {
 			if inst.Dst != NoReg {
 				add(inst.Dst, inst.Ty, inst.Cls)
 			}
+			// Extra return-value regs from multi-return calls.
+			for i, r := range inst.ExtraRets {
+				if r != NoReg {
+					var ty Ty = TyU16
+					if i < len(inst.ExtraRetTys) {
+						ty = inst.ExtraRetTys[i]
+					}
+					cls := ClassIndex
+					if i < len(inst.ExtraRetClasses) {
+						cls = inst.ExtraRetClasses[i]
+					}
+					add(r, ty, cls)
+				}
+			}
 		}
 	}
 	return m

@@ -1666,3 +1666,91 @@ func TestNewIntTypes_Width(t *testing.T) {
 		}
 	}
 }
+
+// ── Multiple return values ────────────────────────────────────────────────────
+
+func TestMultiReturn_Parse(t *testing.T) {
+	src := `
+fun minmax(a: u16, b: u16) -> (u16, u16) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	if len(m.Funcs) != 1 {
+		t.Fatalf("want 1 func, got %d", len(m.Funcs))
+	}
+	f := m.Funcs[0]
+	if len(f.RetTys) != 2 {
+		t.Fatalf("want 2 RetTys, got %d", len(f.RetTys))
+	}
+	if f.RetTys[0] != mir2.TyU16 || f.RetTys[1] != mir2.TyU16 {
+		t.Errorf("RetTys: want [u16, u16], got [%v, %v]", f.RetTys[0], f.RetTys[1])
+	}
+}
+
+func TestMultiReturn_TupleLet(t *testing.T) {
+	src := `
+fun minmax(a: u16, b: u16) -> (u16, u16) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+fun caller(x: u16, y: u16) -> u16 {
+    let (lo, hi) = minmax(x, y)
+    return hi
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	caller := m.FuncByName("caller")
+	if caller == nil {
+		t.Fatal("caller func not found")
+	}
+	_ = caller
+}
+
+func TestMultiReturn_BlankIdentifier(t *testing.T) {
+	src := `
+fun swap(a: u16, b: u16) -> (u16, u16) {
+    return (b, a)
+}
+fun onlyfirst(x: u16, y: u16) -> u16 {
+    let (r, _) = swap(x, y)
+    return r
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	if m.FuncByName("onlyfirst") == nil {
+		t.Fatal("onlyfirst not found")
+	}
+}
+
+func TestMultiReturn_E2E_Z80(t *testing.T) {
+	src := `
+fun minmax(a: u16, b: u16) -> (u16, u16) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile error: %v", err)
+	}
+	// minmax should return lo in HL and hi in DE.
+	if !strings.Contains(asm, "minmax:") {
+		t.Error("no minmax label in output")
+	}
+	t.Logf("minmax Z80:\n%s", asm)
+}

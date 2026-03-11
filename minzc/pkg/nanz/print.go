@@ -158,7 +158,13 @@ func (p *printer) function(f *hir.Func) {
 		p.writef("%s: %s", param.Name, tyStr(param.Ty))
 	}
 	p.write(")")
-	if f.RetTy != mir2.TyVoid {
+	if len(f.RetTys) > 0 {
+		strs := make([]string, len(f.RetTys))
+		for i, ty := range f.RetTys {
+			strs[i] = tyStr(ty)
+		}
+		p.writef(" -> (%s)", strings.Join(strs, ", "))
+	} else if f.RetTy != mir2.TyVoid {
 		p.writef(" -> %s", tyStr(f.RetTy))
 	}
 	if f.Body == nil {

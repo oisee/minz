@@ -61,6 +61,23 @@ type Inst struct {
 	// Variadic argument list (OpCall, OpCallIndirect)
 	Args []Reg
 
+	// Extra return-value registers for multi-return calls (OpCall only).
+	//
+	// After the CALL instruction the callee's return values live in fixed
+	// calling-convention registers:
+	//   pos 0 → Dst  (HL for u16 / A for u8 — as usual)
+	//   pos 1 → ExtraRets[0]  (DE for u16/u8, class = ExtraRetClasses[0])
+	//   pos 2 → ExtraRets[1]  (B  for u8,     class = ExtraRetClasses[1])
+	//
+	// The allocator gives each ExtraRets[i] the class ExtraRetClasses[i].
+	// Codegen binds the physical register via physOverride immediately after
+	// emitting CALL so that subsequent uses see the correct location.
+	// If an ExtraRet is never used, DSE removes it and no physical register
+	// is consumed (equivalent to Go's `_` blank identifier).
+	ExtraRets       []Reg
+	ExtraRetClasses []RegClass
+	ExtraRetTys     []Ty
+
 	// Inline assembly (OpAsm)
 	Asm *AsmExtra
 

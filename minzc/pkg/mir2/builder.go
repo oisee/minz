@@ -243,6 +243,49 @@ func (b *Builder) Call(fn string, args []Reg, retTy Ty, cls RegClass, attr CallA
 	return r
 }
 
+// CallMulti emits a direct call that returns multiple values.
+//
+// returns is a slice describing each return position (Ty + Class).
+// The first entry is the primary result (allocated as for Call); subsequent
+// entries become ExtraRets on the instruction, each allocated to the given class.
+//
+// Returns a []Reg of length len(returns); NoReg at position i if returns[i].Ty == TyVoid.
+func (b *Builder) CallMulti(fn string, args []Reg, returns []Return, attr CallAttrs) []Reg {
+	if len(returns) == 0 {
+		b.emit(&Inst{Op: OpCall, Sym: fn, Args: args, Ty: TyVoid, CallAttr: attr})
+		return nil
+	}
+	// Allocate result regs.
+	regs := make([]Reg, len(returns))
+	for i, ret := range returns {
+		if ret.Ty != TyVoid {
+			regs[i] = b.reg()
+		}
+	}
+
+	inst := &Inst{
+		Op:       OpCall,
+		Dst:      regs[0],
+		Sym:      fn,
+		Args:     args,
+		Ty:       returns[0].Ty,
+		Cls:      returns[0].Class,
+		CallAttr: attr,
+	}
+	// Attach extra return regs.
+	if len(returns) > 1 {
+		inst.ExtraRets = regs[1:]
+		inst.ExtraRetClasses = make([]RegClass, len(returns)-1)
+		inst.ExtraRetTys = make([]Ty, len(returns)-1)
+		for i, ret := range returns[1:] {
+			inst.ExtraRetClasses[i] = ret.Class
+			inst.ExtraRetTys[i] = ret.Ty
+		}
+	}
+	b.emit(inst)
+	return regs
+}
+
 // CallVoid emits a void direct call.
 func (b *Builder) CallVoid(fn string, args []Reg, attr CallAttrs) {
 	b.emit(&Inst{Op: OpCall, Sym: fn, Args: args, Ty: TyVoid, CallAttr: attr})

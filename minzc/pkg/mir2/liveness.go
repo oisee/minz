@@ -323,6 +323,12 @@ func blockUseDef(f *Func, b *Block, isEntry bool) (use *RegSet, def *RegSet) {
 		if inst.Dst != NoReg {
 			def.Add(inst.Dst)
 		}
+		// Extra return-value regs for multi-return calls are also defs.
+		for _, r := range inst.ExtraRets {
+			if r != NoReg {
+				def.Add(r)
+			}
+		}
 	}
 
 	// Terminator operands are uses at block exit.

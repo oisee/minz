@@ -86,6 +86,11 @@ func verifyFunc(f *Func) error {
 			if inst.Dst != NoReg {
 				defined[inst.Dst] = true
 			}
+			for _, r := range inst.ExtraRets {
+				if r != NoReg {
+					defined[r] = true
+				}
+			}
 		}
 
 		// Check terminator uses.

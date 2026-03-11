@@ -552,6 +552,12 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		if inst.Dst != NoReg && len(rets) > 0 {
 			fr.set(inst.Dst, rets[0])
 		}
+		// Capture extra return values (positions 1, 2, …).
+		for i, r := range inst.ExtraRets {
+			if r != NoReg && i+1 < len(rets) {
+				fr.set(r, rets[i+1])
+			}
+		}
 		return nil
 
 	case OpCallIndirect:

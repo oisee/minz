@@ -125,11 +125,20 @@ func dumpStmt(sb *strings.Builder, s Stmt, indent string) {
 		fmt.Fprintf(sb, "%s%s = %s\n", indent, dumpExpr(st.Target), dumpExpr(st.Val))
 
 	case *ReturnStmt:
-		if st.Val != nil {
+		if len(st.Vals) > 0 {
+			strs := make([]string, len(st.Vals))
+			for i, v := range st.Vals {
+				strs[i] = dumpExpr(v)
+			}
+			fmt.Fprintf(sb, "%sreturn (%s)\n", indent, strings.Join(strs, ", "))
+		} else if st.Val != nil {
 			fmt.Fprintf(sb, "%sreturn %s\n", indent, dumpExpr(st.Val))
 		} else {
 			fmt.Fprintf(sb, "%sreturn\n", indent)
 		}
+
+	case *TupleLetStmt:
+		fmt.Fprintf(sb, "%slet (%s) = %s(...)\n", indent, strings.Join(st.Names, ", "), st.Call.Fn)
 
 	case *IfStmt:
 		fmt.Fprintf(sb, "%sif %s\n", indent, dumpExpr(st.Cond))

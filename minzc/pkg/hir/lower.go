@@ -119,6 +119,22 @@ func stmtHasFreeRef(s Stmt, bound, globals, funcs map[string]bool) bool {
 		if st.Val != nil {
 			return exprHasFreeRef(st.Val, bound, globals, funcs)
 		}
+		for _, v := range st.Vals {
+			if exprHasFreeRef(v, bound, globals, funcs) {
+				return true
+			}
+		}
+	case *TupleLetStmt:
+		for _, a := range st.Call.Args {
+			if exprHasFreeRef(a, bound, globals, funcs) {
+				return true
+			}
+		}
+		for _, name := range st.Names {
+			if name != "_" {
+				bound[name] = true
+			}
+		}
 	case *ExprStmt:
 		return exprHasFreeRef(st.Expr, bound, globals, funcs)
 	case *StoreStmt:
@@ -329,8 +345,14 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		return
 	}
 
-	// Set return type.
-	if f.RetTy != mir2.TyVoid {
+	// Set return type(s).
+	if len(f.RetTys) > 0 {
+		// Multi-return: use RetTys slice.
+		mf.Contract.Returns = make([]mir2.Return, len(f.RetTys))
+		for i, ty := range f.RetTys {
+			mf.Contract.Returns[i] = mir2.Return{Ty: ty, Class: classForRetPos(ty, i)}
+		}
+	} else if f.RetTy != mir2.TyVoid {
 		cls := classForRet(f.RetTy)
 		mf.Contract.Returns = []mir2.Return{{Ty: f.RetTy, Class: cls}}
 	}
@@ -401,12 +423,28 @@ func classForParam(ty mir2.Ty, pos int) mir2.RegClass {
 	}
 }
 
-// classForRet chooses the return class.
+// classForRet chooses the return class for a single-return function.
 func classForRet(ty mir2.Ty) mir2.RegClass {
 	if ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer // HL
 	}
 	return mir2.ClassAcc // A
+}
+
+// classForRetPos chooses the return class for position pos in a multi-return function.
+//
+//	pos 0 → same as classForRet (A for u8, HL for u16)
+//	pos 1 → ClassIndex (DE)
+//	pos 2 → ClassCounter (B for u8) or ClassIndex (DE-hi… not ideal; use B)
+func classForRetPos(ty mir2.Ty, pos int) mir2.RegClass {
+	switch pos {
+	case 0:
+		return classForRet(ty)
+	case 1:
+		return mir2.ClassIndex // DE
+	default:
+		return mir2.ClassCounter // B
+	}
 }
 
 // lowerExprForRet lowers an expression that is the direct value of a ReturnStmt.
@@ -532,13 +570,41 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *ReturnStmt:
-		if st.Val != nil {
+		if len(st.Vals) > 0 {
+			// Multi-return.
+			regs := make([]mir2.Reg, len(st.Vals))
+			for i, v := range st.Vals {
+				regs[i] = l.lowerExpr(v)
+			}
+			l.bld.Ret(regs...)
+		} else if st.Val != nil {
 			r := l.lowerExprForRet(st.Val)
 			l.bld.Ret(r)
 		} else {
 			l.bld.Ret()
 		}
 		return true
+
+	case *TupleLetStmt:
+		// Build Returns slice for CallMulti.
+		returns := make([]mir2.Return, len(st.Tys))
+		for i, ty := range st.Tys {
+			returns[i] = mir2.Return{Ty: ty, Class: classForRetPos(ty, i)}
+		}
+		args := make([]mir2.Reg, len(st.Call.Args))
+		for i, a := range st.Call.Args {
+			args[i] = l.lowerExpr(a)
+		}
+		regs := l.bld.CallMulti(st.Call.Fn, args, returns, mir2.CallAttrs{})
+		for i, name := range st.Names {
+			if name == "_" || i >= len(regs) {
+				continue
+			}
+			if regs[i] != mir2.NoReg {
+				l.bind(name, regs[i], st.Tys[i])
+			}
+		}
+		return false
 
 	case *ExprStmt:
 		if l.tryLowerIterChain(st.Expr) {
@@ -1487,6 +1553,13 @@ func scanUsedInStmt(s Stmt, env map[string]mir2.Reg, used map[string]bool) {
 		if st.Val != nil {
 			scanUsedExpr(st.Val, env, used)
 		}
+		for _, v := range st.Vals {
+			scanUsedExpr(v, env, used)
+		}
+	case *TupleLetStmt:
+		for _, a := range st.Call.Args {
+			scanUsedExpr(a, env, used)
+		}
 	case *ExprStmt:
 		scanUsedExpr(st.Expr, env, used)
 	case *StoreStmt:
@@ -1840,7 +1913,11 @@ func renameStmt(s Stmt, from, to string) Stmt {
 	case *ExprStmt:
 		return &ExprStmt{Expr: renameExpr(st.Expr, from, to)}
 	case *ReturnStmt:
-		return &ReturnStmt{Val: renameExpr(st.Val, from, to)}
+		newVals := make([]Expr, len(st.Vals))
+		for i, v := range st.Vals {
+			newVals[i] = renameExpr(v, from, to)
+		}
+		return &ReturnStmt{Val: renameExpr(st.Val, from, to), Vals: newVals}
 	case *AssignStmt:
 		return &AssignStmt{Target: renameExpr(st.Target, from, to), Val: renameExpr(st.Val, from, to)}
 	case *VarDeclStmt:

@@ -2442,6 +2442,31 @@ func (g *z80cg) genCall(inst *Inst) {
 			}
 		}
 	}
+
+	// Multi-return: bind ExtraRets[i] to the physical register that holds
+	// return position i+1.  We do this via physOverride so that subsequent
+	// uses of these virtual regs see the correct physical location without
+	// emitting any extra move instructions.
+	for i, r := range inst.ExtraRets {
+		if r == NoReg {
+			continue
+		}
+		// Determine the physical register for return position i+1.
+		var retClass RegClass
+		var retTy Ty = TyU16
+		if i < len(inst.ExtraRetClasses) {
+			retClass = inst.ExtraRetClasses[i]
+		} else {
+			retClass = ClassIndex // default: DE for pos 1
+		}
+		if i < len(inst.ExtraRetTys) {
+			retTy = inst.ExtraRetTys[i]
+		} else if callee != nil && i+1 < len(callee.Contract.Returns) {
+			retTy = callee.Contract.Returns[i+1].Ty
+		}
+		phys := canonicalReturnLoc(retClass, retTy)
+		g.physOverride[r] = phys
+	}
 }
 
 // emitCallArgs emits the parallel-copy argument setup for a CALL instruction.

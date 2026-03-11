@@ -63,10 +63,11 @@ func (m *Module) FuncByName(name string) *Func {
 type Func struct {
 	Name       string
 	Params     []Param
-	RetTy      mir2.Ty  // mir2.TyVoid for void functions
-	Body       *Block   // nil for extern
+	RetTy      mir2.Ty   // mir2.TyVoid for void functions (single-return)
+	RetTys     []mir2.Ty // non-empty → multiple return values (overrides RetTy)
+	Body       *Block    // nil for extern
 	IsExtern   bool
-	ExternAddr uint16   // non-zero → @extern(addr) — call via CALL/RST to fixed address
+	ExternAddr uint16    // non-zero → @extern(addr) — call via CALL/RST to fixed address
 }
 
 // Param is a typed, named function parameter.
@@ -109,10 +110,29 @@ type AssignStmt struct {
 
 func (*AssignStmt) hirStmt() {}
 
-// ReturnStmt exits the current function.  Val is nil for void returns.
-type ReturnStmt struct{ Val Expr }
+// ReturnStmt exits the current function.
+//   - Single-return: Val is the (possibly nil for void) value.
+//   - Multi-return:  Vals is non-empty (Val is nil); corresponds to Func.RetTys.
+type ReturnStmt struct {
+	Val  Expr   // single return value (nil for void or multi-return)
+	Vals []Expr // multi-return values; non-empty overrides Val
+}
 
 func (*ReturnStmt) hirStmt() {}
+
+// TupleLetStmt binds the multiple return values of a function call:
+//
+//	let (a, b) = minmax(x, y)
+//
+// Names and Tys correspond positionally to the callee's RetTys.
+// Use "_" in Names to discard a position (like Go's blank identifier).
+type TupleLetStmt struct {
+	Names []string  // variable names; "_" = discard
+	Tys   []mir2.Ty // type for each position (must match callee's RetTys)
+	Call  *CallExpr // the multi-return call expression
+}
+
+func (*TupleLetStmt) hirStmt() {}
 
 // IfStmt is a conditional branch.  Else may be nil.
 type IfStmt struct {
@@ -355,8 +375,9 @@ func Addr(sym string) *AddrOfExpr       { return &AddrOfExpr{Sym: sym} }
 func Load(ptr Expr, ty mir2.Ty) *LoadExpr { return &LoadExpr{Ptr: ptr, Ty: ty} }
 func Cast(x Expr, ty mir2.Ty) *CastExpr { return &CastExpr{X: x, Ty: ty} }
 
-func Ret(val Expr) *ReturnStmt { return &ReturnStmt{Val: val} }
-func RetVoid() *ReturnStmt     { return &ReturnStmt{} }
+func Ret(val Expr) *ReturnStmt        { return &ReturnStmt{Val: val} }
+func RetVoid() *ReturnStmt            { return &ReturnStmt{} }
+func RetMulti(vals ...Expr) *ReturnStmt { return &ReturnStmt{Vals: vals} }
 func Decl(name string, ty mir2.Ty, init Expr) *VarDeclStmt {
 	return &VarDeclStmt{Name: name, Ty: ty, Init: init}
 }

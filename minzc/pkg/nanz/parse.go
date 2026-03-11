@@ -839,11 +839,33 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 
 	var err error
 	retTy := mir2.Ty(mir2.TyVoid)
+	var retTys []mir2.Ty // non-nil → multi-return
 	if p.l.is(tokArrow) {
 		p.l.next()
-		retTy, err = p.parseType()
-		if err != nil {
-			return nil, err
+		// -> (T1, T2, …) — multi-return tuple
+		if p.l.is(tokLParen) {
+			p.l.next()
+			for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+				ty, err2 := p.parseType()
+				if err2 != nil {
+					return nil, err2
+				}
+				retTys = append(retTys, ty)
+				if p.l.is(tokComma) {
+					p.l.next()
+				}
+			}
+			if _, err = p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			if len(retTys) > 0 {
+				retTy = retTys[0] // keep RetTy as primary for compatibility
+			}
+		} else {
+			retTy, err = p.parseType()
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -880,6 +902,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		Name:     funcName,
 		Params:   params,
 		RetTy:    retTy,
+		RetTys:   retTys,
 		IsExtern: isExtern,
 	}
 
@@ -1167,12 +1190,21 @@ func (p *parser) parseStmt() (hir.Stmt, error) {
 	}
 }
 
-// parseLetDecl parses: let name [: T] = expr
+// parseLetDecl parses:
+//   - let name [: T] = expr           — single binding
+//   - let (a, b [, …]) = fn(args)     — tuple destructuring of multi-return call
+//
 // Type is inferred from the RHS if not specified.
 func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	if err := p.l.eatIdent("let"); err != nil {
 		return nil, err
 	}
+
+	// Tuple destructuring: let (a, b) = fn(...)
+	if p.l.is(tokLParen) {
+		return p.parseTupleLet()
+	}
+
 	nameTok, err := p.l.eat(tokIdent)
 	if err != nil {
 		return nil, err
@@ -1228,6 +1260,72 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 		p.varTypes[nameTok.val] = ty
 	}
 	return d, nil
+}
+
+// parseTupleLet parses: let (a, b [, c]) = fn(args)
+// The RHS must be a call expression.  Types are inferred from the callee's
+// RetTys if available, otherwise left as TyVoid (lowerer will use ExtraRetTys).
+func (p *parser) parseTupleLet() (hir.Stmt, error) {
+	if _, err := p.l.eat(tokLParen); err != nil {
+		return nil, err
+	}
+	var names []string
+	for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+		tok := p.l.peek()
+		if tok.kind == tokIdent {
+			p.l.next()
+			names = append(names, tok.val) // includes "_" as a valid identifier
+		} else {
+			return nil, fmt.Errorf("expected identifier in tuple binding, got %v", tok)
+		}
+		if p.l.is(tokComma) {
+			p.l.next()
+		}
+	}
+	if _, err := p.l.eat(tokRParen); err != nil {
+		return nil, err
+	}
+	if _, err := p.l.eat(tokEq); err != nil {
+		return nil, err
+	}
+	// RHS must be a call expression.
+	callExpr, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	ce, ok := callExpr.(*hir.CallExpr)
+	if !ok {
+		return nil, fmt.Errorf("right-hand side of tuple let must be a function call, got %T", callExpr)
+	}
+
+	// Determine types from known function declaration (if available).
+	tys := make([]mir2.Ty, len(names))
+	if f := p.module.FuncByName(ce.Fn); f != nil && len(f.RetTys) > 0 {
+		for i := range tys {
+			if i < len(f.RetTys) {
+				tys[i] = f.RetTys[i]
+			} else {
+				tys[i] = mir2.TyU16 // default
+			}
+		}
+	} else {
+		// Fallback: guess u16 for all positions.
+		for i := range tys {
+			tys[i] = mir2.TyU16
+		}
+	}
+
+	// Register bound names in varTypes.
+	for i, name := range names {
+		if name != "_" {
+			p.varTypes[name] = tys[i]
+			if p.uninitVars != nil {
+				delete(p.uninitVars, name)
+			}
+		}
+	}
+
+	return &hir.TupleLetStmt{Names: names, Tys: tys, Call: ce}, nil
 }
 
 func (p *parser) parseVarDecl() (hir.Stmt, error) {
@@ -1515,6 +1613,42 @@ func (p *parser) parseReturn() (hir.Stmt, error) {
 	// No value if next is } or EOF
 	if p.l.is(tokRBrace) || p.l.is(tokEOF) {
 		return &hir.ReturnStmt{}, nil
+	}
+	// Multi-return: return (e1, e2, …)
+	// Disambiguate from a parenthesised single expression: if we see '(' followed
+	// by an expression and then a comma, it's a tuple return.
+	if p.l.is(tokLParen) {
+		// Speculatively parse as tuple. We check for comma after first element.
+		p.l.next() // consume '('
+		first, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		if p.l.is(tokComma) {
+			// It's a multi-return tuple.
+			vals := []hir.Expr{first}
+			for p.l.is(tokComma) {
+				p.l.next()
+				v, err2 := p.parseExpr()
+				if err2 != nil {
+					return nil, err2
+				}
+				vals = append(vals, v)
+			}
+			if _, err2 := p.l.eat(tokRParen); err2 != nil {
+				return nil, err2
+			}
+			for _, v := range vals {
+				p.warnUninitInExpr(v)
+			}
+			return &hir.ReturnStmt{Vals: vals}, nil
+		}
+		// Single parenthesised expression — consume ')' and treat as single return.
+		if _, err2 := p.l.eat(tokRParen); err2 != nil {
+			return nil, err2
+		}
+		p.warnUninitInExpr(first)
+		return &hir.ReturnStmt{Val: first}, nil
 	}
 	val, err := p.parseExpr()
 	if err != nil {
