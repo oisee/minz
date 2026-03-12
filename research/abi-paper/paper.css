@@ -1,0 +1,153 @@
+@page {
+  size: letter;
+  margin: 0.75in 0.6in;
+  @top-center {
+    content: "DRAFT — Per-Function Calling Convention Optimization for Irregular Register Architectures";
+    font-size: 7pt;
+    color: #999;
+    font-family: "Times New Roman", serif;
+  }
+  @bottom-center {
+    content: counter(page);
+    font-size: 9pt;
+    font-family: "Times New Roman", serif;
+  }
+}
+
+body {
+  font-family: "Times New Roman", "DejaVu Serif", Georgia, serif;
+  font-size: 9pt;
+  line-height: 1.25;
+  column-count: 2;
+  column-gap: 0.3in;
+  column-rule: 0.5pt solid #ddd;
+  text-align: justify;
+  hyphens: auto;
+}
+
+h1 {
+  column-span: all;
+  text-align: center;
+  font-size: 16pt;
+  margin-top: 0;
+  margin-bottom: 4pt;
+  line-height: 1.2;
+}
+
+/* Abstract and author span both columns */
+h1 + p, .abstract, .author-block {
+  column-span: all;
+}
+
+h2 {
+  font-size: 11pt;
+  margin-top: 10pt;
+  margin-bottom: 4pt;
+  border-bottom: none;
+}
+
+h3 {
+  font-size: 9.5pt;
+  margin-top: 8pt;
+  margin-bottom: 3pt;
+}
+
+p {
+  margin: 0 0 4pt 0;
+  text-indent: 1em;
+}
+
+/* First paragraph after heading: no indent */
+h1 + p, h2 + p, h3 + p, h4 + p {
+  text-indent: 0;
+}
+
+code, pre code {
+  font-family: "DejaVu Sans Mono", "Courier New", monospace;
+  font-size: 7.5pt;
+}
+
+pre {
+  background: #f8f8f8;
+  border: 0.5pt solid #ddd;
+  padding: 3pt 4pt;
+  margin: 4pt 0;
+  overflow-x: auto;
+  line-height: 1.2;
+  break-inside: avoid;
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 8pt;
+  margin: 6pt auto;
+  break-inside: avoid;
+}
+
+th, td {
+  border: 0.5pt solid #999;
+  padding: 2pt 4pt;
+  text-align: left;
+}
+
+th {
+  background: #f0f0f0;
+  font-weight: bold;
+}
+
+caption {
+  font-size: 8pt;
+  font-weight: bold;
+  margin-bottom: 2pt;
+  text-align: center;
+}
+
+blockquote {
+  font-style: italic;
+  margin: 4pt 8pt;
+  padding-left: 6pt;
+  border-left: 2pt solid #ccc;
+}
+
+/* Definition lists for theorem/proof */
+dl {
+  margin: 4pt 0;
+}
+dt {
+  font-weight: bold;
+  font-style: italic;
+}
+
+strong {
+  font-weight: bold;
+}
+
+em {
+  font-style: italic;
+}
+
+/* Keywords */
+.keywords {
+  column-span: all;
+  font-size: 8pt;
+  margin-bottom: 8pt;
+}
+
+/* References section */
+.references {
+  font-size: 8pt;
+}
+
+/* Footnotes */
+.footnote {
+  font-size: 7pt;
+}
+
+ul, ol {
+  margin: 3pt 0;
+  padding-left: 14pt;
+}
+
+li {
+  margin-bottom: 2pt;
+}
