@@ -5,8 +5,10 @@ sum_chain:
     LD A, 0
     LD B, C
 .sum_chain_fe_head1:
+    LD E, A
     LD A, B
     AND A
+    LD A, E    ; restore block param from scratch
     JRS Z, .sum_chain_fe_exit4
 .sum_chain_fe_body2:
     LD C, (HL)
@@ -22,8 +24,10 @@ max_chain:
     LD A, 0
     LD B, C
 .max_chain_fe_head1:
+    LD E, A
     LD A, B
     AND A
+    LD A, E    ; restore block param from scratch
     JRS Z, .max_chain_fe_exit4
 .max_chain_fe_body2:
     LD C, (HL)

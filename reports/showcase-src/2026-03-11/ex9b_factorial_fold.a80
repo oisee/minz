@@ -14,7 +14,10 @@ factorial_fold:
     LD A, C
     LD C, E
 .factorial_fold_loop_head2:
+    LD E, A
+    LD A, E
     CP C
+    LD A, E    ; restore block param from scratch
     JRS NC, .factorial_fold_trmp0
 .factorial_fold_loop_body3:
     LD HL, (acc)    ; u16 direct load (20T, no A clobber)

@@ -359,6 +359,13 @@ type z80cg struct {
 	// downstream, it emits LD D,A and reroutes pendingAccReg to "D".
 	pendingAccReg Reg
 
+	// ptrAddPushHL: set by scanPtrAddBase when a ptr_add's base is in HL and
+	// the base virtual is live after the instruction (needs to survive across
+	// the loop body). The value is the ptr_add result virtual (Dst).
+	// OpPtrAdd emits PUSH HL before ADD HL,rr; OpLoad emits POP HL after
+	// the load to restore the saved base ptr.
+	ptrAddPushHL Reg
+
 	// tailCallInst: set by genBlock when the last instruction of a block is an
 	// OpCall whose result feeds directly into TermRet (tail call pattern).
 	// genCall emits JP instead of CALL; genTerm skips RET when this is set.
@@ -1171,6 +1178,64 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	}
 }
 
+// scanPtrAddBase detects OpPtrAdd instructions where the base pointer is in HL
+// AND the base virtual is live after the ptr_add (e.g. needed on a loop
+// back-edge).  In that case ADD HL,rr would clobber HL (the base), so we
+// arrange for PUSH HL before the ADD and POP HL after the subsequent load.
+//
+// Sets g.ptrAddPushHL = ptr_add.Dst  when the pattern fires; cleared by the
+// OpLoad codegen after it emits the POP HL.
+func (g *z80cg) scanPtrAddBase(b *Block) {
+	g.ptrAddPushHL = NoReg
+
+	for idx, inst := range b.Insts {
+		if inst.Op != OpPtrAdd {
+			continue
+		}
+		baseReg := inst.Src[0]
+		if g.ar.Loc(baseReg).Name != "HL" {
+			continue // base not in HL — no clobber risk
+		}
+
+		// Check if baseReg is live after this ptr_add.
+		// A base is live-after if it appears in any later instruction's sources
+		// OR in the block terminator's argument list.
+		liveAfter := false
+		for _, later := range b.Insts[idx+1:] {
+			for _, s := range later.Src {
+				if s == baseReg {
+					liveAfter = true
+					break
+				}
+			}
+			for _, a := range later.Args {
+				if a == baseReg {
+					liveAfter = true
+					break
+				}
+			}
+			if liveAfter {
+				break
+			}
+		}
+		if !liveAfter {
+			if t := b.Term; t != nil {
+				for _, r := range t.termUses() {
+					if r == baseReg {
+						liveAfter = true
+						break
+					}
+				}
+			}
+		}
+
+		if liveAfter {
+			g.ptrAddPushHL = inst.Dst
+			return // one pattern per block is enough
+		}
+	}
+}
+
 // ── Block ─────────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genBlock(f *Func, b *Block) {
@@ -1184,6 +1249,15 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	g.curBlock = b
 	g.pendingFlagReg = NoReg
 	g.pendingAccReg = NoReg
+	// If a block param is allocated to A, any compare instruction in this block
+	// would clobber it with "LD A, lhs". Mark it as pending so materializePendingAcc
+	// can save it to a scratch register before the clobber occurs.
+	for _, bp := range b.Params {
+		if bp.Dst != NoReg && g.ar.Loc(bp.Dst).Name == "A" {
+			g.pendingAccReg = bp.Dst
+			break
+		}
+	}
 
 	// Pre-scan: identify page-aligned LUT access patterns so we can merge
 	// Ext + AddrOf + PtrAdd + Load into: LD HL,sym; LD L,src8; LD A,(HL).
@@ -1192,6 +1266,11 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Pre-scan: identify global struct field accesses so we can emit
 	// LD A,(sym__field) / LD (sym__field),A instead of LD HL,sym + INC HL… + LD A,(HL).
 	g.scanGlobalFieldPatterns(b)
+
+	// Pre-scan: detect ptr_add+load patterns where the base (ptr) is in HL
+	// and must survive across the instruction (e.g. in a loop).  Arranges
+	// for PUSH HL / ADD HL,rr / LD dst,(HL) / POP HL to preserve the base.
+	g.scanPtrAddBase(b)
 
 	// Detect DJNZ peephole: DEC B + JP loop_head → DJNZ loop_body.
 	peep := g.detectDJNZPeephole(f, b)
@@ -1560,6 +1639,16 @@ func (g *z80cg) genInst(inst *Inst) {
 			}
 		}
 
+		// POP HL to restore the base ptr that was saved by OpPtrAdd (scanPtrAddBase).
+		// The ptr_add emitted PUSH HL before ADD HL,rr; we restore it here, after the
+		// load that consumed the ptr_add result.  This puts the original pointer back
+		// in HL so the back-edge parallel copy can read it correctly.
+		if g.ptrAddPushHL == inst.Src[0] {
+			g.emit("    POP HL         ; restore base ptr (saved by ptr_add)")
+			g.ptrAddPushHL = NoReg
+			g.invalidate("HL")
+		}
+
 	case OpStore:
 		addrReg := inst.Src[0]
 		if info, ok := g.globalFieldStore[addrReg]; ok && inst.Ty.Width() == 8 {
@@ -1725,35 +1814,66 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpPtrAdd:
 		// Runtime pointer advance: dst = base_ptr + offset_u16.
-		// ADD HL, DE (16-bit) clobbers H and C flags.
-		// Z80: needs both operands in 16-bit register pairs.
-		// Optimal: base in HL (dst), offset in DE → ADD HL, DE (11T, no A clobber).
+		// Z80 ONLY has ADD HL, rr — there is no ADD DE,rr or ADD BC,rr.
+		// Strategy: get base into HL, offset into DE (or BC), emit ADD HL,rr,
+		// then move result from HL to dst if dst != HL.
+		//
+		// When the base is in HL and is live after this instruction (loop body
+		// pattern: ptr survives to the next iteration), scanPtrAddBase sets
+		// g.ptrAddPushHL = inst.Dst.  We emit PUSH HL before the ADD to save
+		// the base; the subsequent OpLoad emits POP HL to restore it.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		base := g.loc(inst.Src[0])
 		off := g.loc(inst.Src[1])
-		if dst != base {
-			g.emitMov(dst, base, 16)
+
+		// PUSH HL to preserve the base ptr before the ADD clobbers it.
+		if g.ptrAddPushHL == inst.Dst {
+			g.emit("    PUSH HL") // base is in HL; save it for POP HL after load
 		}
-		// Ensure offset is in a 16-bit pair different from dst.
-		offPair := off
-		if len(off) == 1 { // 8-bit reg (A, B, C, D, E, H, L) — zero-extend to pair
-			offPair = "DE"
-			if dst == "DE" {
-				offPair = "BC"
-			}
-			g.emitf("    LD %s, 0", offPair)
-			g.emitf("    LD %s, %s", lowByte(offPair), off)
-		} else if off == dst {
-			// Same pair: ADD HL, HL doubles the pointer — that's wrong.
-			// Move offset to temp pair first.
-			offPair = "DE"
-			if dst == "DE" {
-				offPair = "BC"
-			}
-			g.emitMov(offPair, off, 16)
+
+		// Determine the offset pair: must be a 16-bit pair ≠ HL.
+		// Choose DE; fall back to BC if DE is the base (moving base to HL would
+		// clobber DE, so the offset must already be safe there) or same as dst.
+		offPair := "DE"
+		if base == "DE" || off == "HL" {
+			offPair = "BC"
 		}
-		g.emitf("    ADD %s, %s", dst, offPair)
+
+		// Place offset into offPair BEFORE moving the base (avoids clobbering
+		// the offset when base and off share a register like DE).
+		if off != offPair {
+			if len(off) == 1 { // 8-bit: zero-extend into pair
+				g.emitf("    LD %s, 0", offPair)
+				g.emitf("    LD %s, %s", lowByte(offPair), off)
+			} else {
+				g.emitMov(offPair, off, 16)
+			}
+		}
+
+		// Get base into HL.
+		if base != "HL" {
+			g.emitMov("HL", base, 16)
+		}
+
+		// ADD HL, offPair — the only valid 16-bit add on Z80.
+		g.emitf("    ADD HL, %s", offPair)
+
+		// When the base was PUSHed to save it, keep the result in HL and
+		// override the dst's physical location so the subsequent load uses
+		// LD r,(HL) directly — avoiding the LD D,H;LD E,L byte-copy that
+		// would force the load through A (LD A,(DE)) and clobber the accumulator.
+		if g.ptrAddPushHL == inst.Dst {
+			if dst != "HL" {
+				g.physOverride[inst.Dst] = "HL"
+			}
+		} else {
+			// Move result from HL to dst if needed.
+			if dst != "HL" {
+				g.emitMov(dst, "HL", 16)
+				g.invalidate("HL")
+			}
+		}
 		g.invalidate(dst)
 
 	case OpField, OpPtrBump:
@@ -1944,6 +2064,16 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			return
 		}
 
+		// If there is a pending ClassAcc value in A that is still live after this
+		// instruction, save it to a scratch register before we overwrite A.
+		// This fires when two successive 8-bit ALU ops both need A: the first
+		// result (r33=acc) must survive while the second (r35=i+1) runs.
+		// Skip when the peephole below will use INC/DEC (does not touch A).
+		willUseINCDEC := (mnem == "ADD" || mnem == "SUB") && lhs == dst
+		if !willUseINCDEC {
+			g.materializePendingAcc(inst)
+		}
+
 		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
 		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
 		// N=4 would be 16T vs 15T — worse in T-states, skip and fall through to ALU.
@@ -1987,6 +2117,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
 				g.setCopy(dst, "A")
+			} else {
+				g.pendingAccReg = inst.Dst
 			}
 			return
 		}
@@ -1999,6 +2131,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
 				g.setCopy(dst, "A")
+			} else {
+				g.pendingAccReg = inst.Dst
 			}
 			return
 		}
@@ -2009,6 +2143,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
 				g.setCopy(dst, "A")
+			} else {
+				g.pendingAccReg = inst.Dst
 			}
 			return
 		}
@@ -2030,6 +2166,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
 				g.setCopy(dst, "A")
+			} else {
+				g.pendingAccReg = inst.Dst
 			}
 			return
 		}
@@ -2041,6 +2179,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		if dst != "A" {
 			g.emitf("    LD %s, A", dst)
 			g.setCopy(dst, "A")
+		} else {
+			g.pendingAccReg = inst.Dst
 		}
 	} else {
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
@@ -2877,7 +3017,8 @@ func (g *z80cg) flagStillNeeded(upcomingInst *Inst) bool {
 }
 
 // accStillNeeded reports whether pendingAccReg is used as a source
-// in any instruction AFTER upcomingInst in the current block.
+// in any instruction AFTER upcomingInst in the current block, or by
+// the block's terminal (e.g. passed as a block arg to a successor).
 func (g *z80cg) accStillNeeded(upcomingInst *Inst) bool {
 	if g.curBlock == nil {
 		return false
@@ -2893,6 +3034,15 @@ func (g *z80cg) accStillNeeded(upcomingInst *Inst) bool {
 		}
 		for _, s := range inst.Src {
 			if s == g.pendingAccReg {
+				return true
+			}
+		}
+	}
+	// Also check the block terminal — block params are passed via term args
+	// (e.g. TermBrIf passes acc through to the loop body block).
+	if g.curBlock.Term != nil {
+		for _, r := range g.curBlock.Term.termUses() {
+			if r == g.pendingAccReg {
 				return true
 			}
 		}
@@ -3564,6 +3714,21 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 // ── Terminators ───────────────────────────────────────────────────────────────
 
 func (g *z80cg) genTerm(f *Func, t Term) {
+	// If any block param was saved to a scratch register (via materializePendingAcc),
+	// restore it to its canonical physical location before any terminal jump or ret.
+	// This ensures live-through values (used in successor blocks without explicit
+	// block params) are in their allocator-assigned locations when those blocks run.
+	// physOverride[r] was valid within this block; canonical location = ar.Loc(r).
+	for _, bp := range g.curBlock.Params {
+		if scratch, ok := g.physOverride[bp.Dst]; ok {
+			canon := g.ar.Loc(bp.Dst).Name
+			if canon != "" && canon != scratch {
+				g.emitf("    LD %s, %s    ; restore block param from scratch", canon, scratch)
+			}
+			delete(g.physOverride, bp.Dst)
+		}
+	}
+
 	switch t := t.(type) {
 	case *TermRet:
 		// Tail call: JP was already emitted by genCall; skip all moves and RET.
@@ -3854,7 +4019,10 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 		if i >= len(target.Params) {
 			break
 		}
-		src := g.ar.Loc(arg).Name
+		// Use g.loc (which respects physOverride) so that values saved to scratch
+		// registers by materializePendingAcc/materializePendingFlag are correctly
+		// moved to their canonical destination in the target block.
+		src := g.loc(arg)
 		dst := g.ar.Loc(target.Params[i].Dst).Name
 		if src != dst {
 			copies = append(copies, parallelCopy{srcName: src, dstName: dst, ty: target.Params[i].Ty})

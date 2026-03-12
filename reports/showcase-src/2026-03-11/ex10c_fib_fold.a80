@@ -5,27 +5,27 @@ fib_fold:
     LD D, 0
     LD E, 1
     LD H, 1
-.fib_fold_loop_head2:
+    LD H, E
+    LD L, E
     LD A, H
+.fib_fold_loop_head2:
+    LD E, A
+    LD A, E
     CP C
+    LD A, E    ; restore block param from scratch
     JRS NC, .fib_fold_loop_exit4
 .fib_fold_loop_body3:
     LD L, D
     LD H, 0
-    ADD HL, E
+    ADD HL, HL
     LD D, H
     LD E, L
-    LD B, 1
-    LD A, H
-    ADD A, 1
-    LD D, E
-    LD D, E
-    LD E, D
-    LD E, E
-    LD H, A
+    INC A
+    LD D, H
+    LD D, L
+    LD H, D
+    LD L, E
     JRS .fib_fold_loop_head2
 .fib_fold_loop_exit4:
-    LD H, E
-    LD L, E
     RET
 

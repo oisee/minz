@@ -11,7 +11,7 @@ sum_to:
 .sum_to_loop_head2:
     LD A, D
     CP C
-    JRS NC, .sum_to_loop_exit4
+    JRS NC, .sum_to_trmp0
 .sum_to_loop_body3:
     LD HL, acc_u8
     LD E, (HL)
@@ -26,6 +26,11 @@ sum_to:
 .sum_to_loop_exit4:
     LD A, (acc_u8)
     RET
+.sum_to_trmp0:
+    LD A, C
+    LD C, D
+    LD D, A
+    JRS .sum_to_loop_exit4
 
 ; fun factorial(n: u8 = A) -> u16 = HL ; clobbers: C, D, DE, F
 factorial:
@@ -41,7 +46,10 @@ factorial:
     LD A, C
     LD C, E
 .factorial_loop_head2:
+    LD E, A
+    LD A, E
     CP C
+    LD A, E    ; restore block param from scratch
     JRS NC, .factorial_trmp0
 .factorial_loop_body3:
     LD HL, (acc_u16)    ; u16 direct load (20T, no A clobber)
@@ -80,18 +88,23 @@ factorial:
     LD D, C
     JRS .factorial_loop_exit4
 
-; fun count_in_range(arr_ptr: ptr = HL, len: u8 = C, lo: u8 = A, hi: u8 = B) -> u8 = A ; clobbers: BC, D, DE, E, F, IXH, IXL
+; fun count_in_range(arr_ptr: ptr = HL, len: u8 = C, lo: u8 = A, hi: u8 = B) -> u8 = A ; clobbers: BC, D, DE, E, F, IXH, IXL, IYH
 count_in_range:
     LD HL, acc_u8
     LD (HL), 0
     LD D, 0
     LD B, H
     LD C, L
+    LD IXH, B
     LD IXL, D
+    LD IYH, A
+    LD A, C
 .count_in_range_loop_head2:
+    LD E, A
     LD A, IXL
-    CP C
-    JRS NC, .count_in_range_loop_exit4
+    CP E
+    LD A, E    ; restore block param from scratch
+    JRS NC, .count_in_range_trmp0
 .count_in_range_loop_body3:
     LD E, IXL
     LD D, 0
@@ -99,12 +112,11 @@ count_in_range:
     POP HL
     ADD HL, DE
     LD D, (HL)
-    CP D
-    JRS C, .count_in_range_if_then5
-    JRS Z, .count_in_range_if_then5
-    JRS .count_in_range_if_join6
+    LD A, D
+    CP IYH
+    JRS C, .count_in_range_if_join6
 .count_in_range_if_then5:
-    LD A, B
+    LD A, IXH
     CP D
     JRS C, .count_in_range_if_join8
 .count_in_range_if_then7:
@@ -124,6 +136,11 @@ count_in_range:
 .count_in_range_loop_exit4:
     LD A, (acc_u8)
     RET
+.count_in_range_trmp0:
+    LD C, A
+    LD H, B
+    LD L, C
+    JRS .count_in_range_loop_exit4
 
 ; globals
 acc_u8:

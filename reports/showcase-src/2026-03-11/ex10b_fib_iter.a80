@@ -17,25 +17,22 @@ fib_iter:
     LD D, C
     LD E, C
     LD C, A
+    LD H, D
+    LD L, D
+    LD A, E
 .fib_iter_loop_head4:
+    LD E, A
     LD A, E
     CP C
+    LD A, E    ; restore block param from scratch
     JRS NC, .fib_iter_loop_exit6
 .fib_iter_loop_body5:
     EX DE, HL
-    ADD HL, D
+    ADD HL, DE
     EX DE, HL
-    LD B, 1
-    LD A, E
-    ADD A, 1
-    LD E, A
-    PUSH D
-    LD D, D
-    LD D, E
-    POP D
+    INC A
+    EX DE, HL
     JRS .fib_iter_loop_head4
 .fib_iter_loop_exit6:
-    LD H, D
-    LD L, D
     RET
 
