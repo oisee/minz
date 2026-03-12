@@ -20,9 +20,10 @@ zero bytes because its ABI matches the callee's — is a direct consequence.
 
 ## Task Breakdown
 
-### Phase 1: Code Analysis
+### Phase 1: Code Analysis ✅
 
 Find and document the ABI optimizer in the Nanz/MinZ compiler:
+**Artifact:** [FINDINGS.md](FINDINGS.md) — verified against source 2026-03-12
 
 1. **Locate** the component that assigns registers to function parameters and
    return values. Key files likely in `pkg/mir2/`, `pkg/hir/`, or `pkg/pipeline/`.
@@ -37,42 +38,37 @@ Find and document the ABI optimizer in the Nanz/MinZ compiler:
 
 4. **Document** as pseudocode suitable for a paper.
 
-### Phase 2: Formalization
+### Phase 2: Formalization ✅
 
-1. **Problem statement**: Given call graph G=(F,E), register file R,
-   for each f∈F choose ABI(f) to minimize Σ cost(e) over all edges.
+**Artifact:** [FORMALIZATION.md](FORMALIZATION.md)
 
-2. **Complexity analysis**: What is the time complexity? Is it polynomial
-   for structured programs (like Krause 2013)?
+1. **Problem statement**: PFCCO formalized with cost function, constraints, variables.
+2. **Complexity analysis**: O(n) for bounded params on DAG call graphs.
+3. **Optimality proof sketch**: Greedy DP on topo order is optimal for DAGs.
+4. **PBQP/ILP connection**: PFCCO has PBQP structure; ILP formulation noted.
 
-3. **Correctness**: Does the algorithm preserve program semantics?
-   (ABI is internal — external linkage functions keep fixed ABI.)
+### Phase 3: Examples ✅
 
-### Phase 3: Examples
+**Artifact:** [EXAMPLES.md](EXAMPLES.md)
 
-Generate ≥3 end-to-end examples showing per-function ABI wins:
+4 examples with source, optimizer decisions, Z80 output, SDCC comparison, T-state analysis:
+1. Call chain forwarding (transitive ABI propagation, 3 levels → EQU collapse)
+2. abs_diff (ALU register class selection, 22T savings vs stack ABI)
+3. min_of/minmax (zero-byte EQU alias — the crown jewel, ~120T savings)
+4. Iterator DJNZ loop (ClassCounter for loop count, 4T×N savings)
 
-For each example, show:
-- MinZ source code
-- Nanz output (per-function ABI)
-- What a fixed-ABI compiler would emit (HL=arg1, DE=arg2, stack for rest)
-- Instruction count and T-state difference
+**Note:** Multi-return syntax (`-> (T1, T2)`) does not parse in current compiler;
+examples 1-2 compile, example 3 is hand-traced from the optimizer logic.
 
-Priority examples:
-1. `min_of` / `minmax` — EQU alias (0 bytes, 0T)
-2. `abs_diff` — SUB C / RET NC / NEG / RET (register choice eliminates MOVs)
-3. Iterator chain — DJNZ with counter in B (ABI puts count in ClassCounter)
-4. Multi-return — (HL, DE) layout matching caller's expectations
+### Phase 4: Related Work Gap ✅
 
-### Phase 4: Related Work Gap
+**Artifact:** [RELATED_WORK.md](RELATED_WORK.md)
 
-One paragraph positioning vs:
-- Krause 2013: optimal intraprocedural RA, fixed ABI (our lower layer)
-- Krause 2022: empirical global ABI search (one ABI for all functions)
-- MSVC /GL: per-function CC for internal linkage (x86, no formal theory)
-- Wall 1986: interprocedural RA for RISC (many registers, regular file)
+Positioning vs 6 prior works with gap analysis table.
+Key positioning paragraph ready for paper insertion.
+Unique contribution = per-function × irregular register file × formal optimality × production.
 
-### Phase 5: Paper Draft
+### Phase 5: Paper Draft 📋 TODO
 
 Structure:
 ```
@@ -101,3 +97,18 @@ Structure:
 - Wall 1986: "Global Register Allocation at Link Time" (SIGPLAN)
 - US5428793: Interprocedural register allocation patent
 - SDCC source: sdcc.sourceforge.net (z80 backend, ralloc2.cc)
+- Scholz & Eckstein 2002: "Register Allocation for Irregular Architectures" (PBQP)
+
+### Local PDF copies
+
+**`/mnt/safe/optimal-register-allocation-in-polynomial-time-1yfn9r69k7.pdf`**
+- Krause 2013: "Optimal Register Allocation in Polynomial Time" (CC 2013) — **KEY REFERENCE**
+
+**`/mnt/safe/z80-compiler/`:**
+- `2112.01397v2.pdf` — Krause 2022: "Efficient Calling Conventions for Irregular Architectures" — **KEY REFERENCE**
+- `2010.04633v2.pdf` — Krause & Lesser: "C for a tiny system" (SDCC on Padauk) — **relevant**
+- `2011.10789v1.pdf` — Krause: "lospre in linear time" (redundancy elimination) — background
+- `1310.2378v4.pdf` — Adler, Kolliopoulos, Krause et al.: Disjoint Paths (graph theory, not RA)
+- `1011.2136v1.pdf` — Adler, Krause: tree-width lower bounds (graph theory)
+- `1901.04325v1.pdf` — Adler, Krause: tree-width lower bounds (graph theory)
+- `2010.04527v2.pdf` — Krause: "Constant-time connectivity tests" (unrelated)
