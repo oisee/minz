@@ -68,18 +68,22 @@ Positioning vs 6 prior works with gap analysis table.
 Key positioning paragraph ready for paper insertion.
 Unique contribution = per-function × irregular register file × formal optimality × production.
 
-### Phase 5: Paper Draft 📋 TODO
+### Phase 5: Paper Draft ✅
 
-Structure:
+**Artifact:** [DRAFT.md](DRAFT.md) — v0.1 complete structure with all sections
+**Maintainer notes:** [NOTE_TO_MAINTAINER.md](NOTE_TO_MAINTAINER.md) — prioritized action items
+
+Structure (as implemented):
 ```
-1. Introduction
-2. Background (Z80 register file, Krause 2013/2022)
-3. Problem Formulation
-4. Algorithm
-5. Implementation (Nanz/MinZ)
-6. Evaluation (vs SDCC, vs Hi-Tech C)
-7. Related Work
-8. Conclusion + Future Work
+1. Introduction — contributions, motivation
+2. Background — Z80 register file, fixed vs per-fn CC, Nanz pipeline, register classes
+3. Problem Formulation — PFCCO definition, naturalClass, constraints
+4. Algorithm — Greedy DP, three-layer system, complexity, optimality proof
+5. Implementation — 455 LOC Go, cost table, pipeline position
+6. Evaluation — 7 examples vs SDCC 4.2.0 with T-state analysis
+7. Related Work — Krause 2013/2022, De Bus, LLVM IPRA, Wall, MSVC, PBQP
+8. Future Work — shadow registers, recursion, PGO, benchmarks
+9. Conclusion
 ```
 
 ## Key Questions To Answer
