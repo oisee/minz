@@ -16,3 +16,5 @@ demo:
     JP Dog_speak
 
 ; globals
+g_dog:
+g_cat:

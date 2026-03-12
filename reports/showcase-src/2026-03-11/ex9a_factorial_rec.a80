@@ -8,8 +8,8 @@ factorial:
     JRS .factorial_if_join2
 .factorial_if_then1:
     LD A, 1
+    LD H, A
     LD L, A
-    LD H, 0
     RET
 .factorial_if_join2:
     LD C, 1
@@ -20,11 +20,13 @@ factorial:
     LD H, A
     LD L, A
     ; mul16 A * HL → HL  (~320T, 16-iter shift-and-add)
+    PUSH AF
+    PUSH DE
+    LD D, H
+    LD E, L
     PUSH BC
     LD B, H
     LD C, L
-    LD D, H
-    LD E, L
     LD H, 0
     LD L, 0
     LD A, 16
@@ -39,5 +41,7 @@ factorial:
     DEC A
     JRS NZ, .factorial_m16_9_lp
     POP BC
+    POP DE
+    POP AF
     RET
 

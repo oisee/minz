@@ -14,9 +14,12 @@ clamp:
     RET
 .clamp_if_join2:
     CP C
-    RET CGT
+    JRS Z, .clamp_cret0
+    JRS C, .clamp_cret0
 .clamp_if_then3:
     LD A, C
+    RET
+.clamp_cret0:
     RET
 
 ; fun abs_diff(a: u8 = A, b: u8 = C) -> u8 = A ; clobbers: F

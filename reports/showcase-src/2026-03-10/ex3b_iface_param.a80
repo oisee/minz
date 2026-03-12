@@ -6,6 +6,5 @@ Dog_speak:
     RET
 
 ; fun feed(a: ptr = HL) -> u8 = A
-feed:
-    JP Dog_speak
+feed    EQU Dog_speak
 

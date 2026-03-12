@@ -1041,7 +1041,13 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 }
 
 // lowerForRange desugars a ForRangeStmt to a while-equivalent.
-// for v in start..end → v = start; while v < end { body; v++ }
+// for v in start..end → v = start; hi = end; while v < hi { body; v++ }
+//
+// The upper bound is evaluated ONCE before the loop and bound to a synthetic
+// variable __for_hi_N.  This prevents expressions like (n+1) from being
+// re-evaluated as an ADD inside the loop header on every iteration, which
+// would force 'n' into the A register as the ADD lhs and corrupt it via
+// the body's scratch uses of A (loads, mul16 counter, etc.).
 func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 	var ty mir2.Ty = mir2.TyU8
 	if st.End != nil {
@@ -1050,14 +1056,19 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 	initReg := l.lowerExpr(st.Start)
 	l.bind(st.Var, initReg, ty)
 
-	// Synthesise a WhileStmt: while v < end { body; v = v + 1 }
+	// Precompute the loop upper bound once, outside the loop.
+	endReg := l.lowerExpr(st.End)
+	endName := l.fresh("__for_hi_")
+	l.bind(endName, endReg, ty)
+
+	// Synthesise a WhileStmt: while v < hi { body; v = v + 1 }
 	one := &IntLitExpr{Val: 1, Ty: ty}
 	whileBody := &Block{Body: append(st.Body.Body, &AssignStmt{
 		Target: &VarRefExpr{Name: st.Var, Ty: ty},
 		Val:    &BinExpr{Op: "+", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: one, Ty: ty},
 	})}
 	l.lowerWhile(&WhileStmt{
-		Cond: &BinExpr{Op: "<", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: st.End, Ty: mir2.TyBool},
+		Cond: &BinExpr{Op: "<", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: &VarRefExpr{Name: endName, Ty: ty}, Ty: mir2.TyBool},
 		Body: whileBody,
 	})
 }

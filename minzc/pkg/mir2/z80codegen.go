@@ -325,6 +325,16 @@ type z80cg struct {
 	globalFieldStore map[Reg]globalFieldInfo
 	globalFieldSkip  map[Reg]bool
 
+	// globalU16StoreSym[addrReg] = sym: addrReg holds the address of a u16 global.
+	// Enables emitting LD (sym), HL (16T, no A clobber) instead of the
+	// byte-by-byte DE-based sequence (LD A,lo; LD (DE),A; INC DE; LD A,hi; LD (DE),A; DEC DE).
+	globalU16StoreSym map[Reg]string
+
+	// globalU16LoadSym[addrReg] = sym: addrReg holds the address of a u16 global load.
+	// Enables emitting LD HL, (sym) (20T, no A clobber) instead of the
+	// byte-by-byte sequence LD A,(HL)/INC HL/LD H,(HL)/LD L,A that uses A as scratch.
+	globalU16LoadSym map[Reg]string
+
 	// lastFlagsLhs / lastFlagsRhs track the effective operands of the most recent
 	// flags-setting instruction (SUB / CP / AND A) within the current block.
 	// Empty strings mean "unknown / not tracked".
@@ -398,10 +408,12 @@ type globalFieldInfo struct {
 
 // trampolineBlock is emitted after all regular blocks of a function.
 // It resolves block-argument copies for one outgoing BrIf edge.
+// If isRet is true, the block ends with RET instead of JRS target.
 type trampolineBlock struct {
 	label  string        // local label for this trampoline
 	copies []parallelCopy
 	target string        // real destination label (already formatted)
+	isRet  bool          // true → emit RET instead of JRS target
 }
 
 // parallelCopy is a single register-to-register move in a parallel copy sequence.
@@ -685,6 +697,8 @@ func (g *z80cg) genFunc(f *Func) {
 	g.globalFieldLoad = make(map[Reg]globalFieldInfo)
 	g.globalFieldStore = make(map[Reg]globalFieldInfo)
 	g.globalFieldSkip = make(map[Reg]bool)
+	g.globalU16StoreSym = make(map[Reg]string)
+	g.globalU16LoadSym = make(map[Reg]string)
 	g.fnWorstT = 0
 
 	label := sanitizeIdent(f.Name)
@@ -701,7 +715,11 @@ func (g *z80cg) genFunc(f *Func) {
 	for _, tramp := range g.trampolines {
 		g.emitf("%s:", tramp.label)
 		g.emitParallelCopy(tramp.copies)
-		g.emitf("    JRS %s", tramp.target)
+		if tramp.isRet {
+			g.emit("    RET")
+		} else {
+			g.emitf("    JRS %s", tramp.target)
+		}
 	}
 
 	// Emit function-level T-state summary (worst-case block = deepest hot path).
@@ -883,6 +901,8 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	clear(g.globalFieldLoad)
 	clear(g.globalFieldStore)
 	clear(g.globalFieldSkip)
+	clear(g.globalU16StoreSym)
+	clear(g.globalU16LoadSym)
 
 	// Build: reg → defining instruction within this block.
 	defInst := make(map[Reg]*Inst, len(b.Insts))
@@ -1109,6 +1129,45 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 			entry.hlLast = (i == len(entries)-1)
 			g.globalFieldStore[e.addrReg] = entry
 		}
+	}
+
+	// ── u16 direct-address store detection ──────────────────────────────────────
+	// Pattern: OpStore(w=16, addrReg=AddrOf(sym), valReg)
+	// Enables LD (sym), HL (16T, no A clobber) when valReg is in HL.
+	for _, inst := range b.Insts {
+		if inst.Op != OpStore || inst.Ty.Width() != 16 {
+			continue
+		}
+		addrReg := inst.Src[0]
+		def, ok := defInst[addrReg]
+		if !ok || def.Op != OpAddrOf || !isGlobal(def.Sym) {
+			continue
+		}
+		g.globalU16StoreSym[addrReg] = def.Sym
+	}
+
+	// ── u16 direct-address load detection ────────────────────────────────────
+	// Pattern: OpLoad(w=16, addrReg=AddrOf(sym)) → dst (u16, must be HL)
+	// Enables LD HL, (sym) (20T, no A clobber) instead of INC/DEC trick via A.
+	// Only fires when addrReg is used solely by this load (useCount==1) so we
+	// can safely skip the AddrOf instruction (suppress LD HL,sym).
+	for _, inst := range b.Insts {
+		if inst.Op != OpLoad || inst.Ty.Width() != 16 || inst.Dst == NoReg {
+			continue
+		}
+		if g.ar.Loc(inst.Dst).Name != "HL" {
+			continue // only LD HL,(nn) exists for direct u16 load
+		}
+		addrReg := inst.Src[0]
+		def, ok := defInst[addrReg]
+		if !ok || def.Op != OpAddrOf || !isGlobal(def.Sym) {
+			continue
+		}
+		if useCount[addrReg] != 1 {
+			continue // addr reg used by other instructions too
+		}
+		g.globalU16LoadSym[addrReg] = def.Sym
+		g.globalFieldSkip[addrReg] = true // suppress LD HL, sym from OpAddrOf
 	}
 }
 
@@ -1402,6 +1461,17 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.invalidate("A")
 			break
 		}
+		// u16 direct-address load: LD HL, (sym) — 20T, no A clobber.
+		// Fires when the address comes from OpAddrOf(global) and dst is HL.
+		// Avoids the INC/DEC trick (LD A,(HL)/INC HL/LD H,(HL)/LD L,A) that
+		// uses A as scratch and corrupts loop counters stored in A.
+		if inst.Ty.Width() == 16 {
+			if sym, ok := g.globalU16LoadSym[inst.Src[0]]; ok && dst == "HL" {
+				g.emitf("    LD HL, (%s)    ; u16 direct load (20T, no A clobber)", sanitizeIdent(sym))
+				g.invalidate("HL")
+				break
+			}
+		}
 		ptr := g.loc(inst.Src[0])
 		w := inst.Ty.Width()
 		// If the POINTER value itself is spilled to a memory slot ($Fxxx), reload it
@@ -1511,21 +1581,36 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.emitf("    INC HL")
 				}
 			} else {
-				// Global struct field direct-addressing fast path:
-				//   LD A, val           ; 4T (omitted when val is already A or known constant)
-				//   LD (sym__field), A  ; 13T
+				// Global struct field direct-addressing fast path.
 				lbl := globalFieldLabel(info.sym, info.offset, info.fieldName)
 				if cv, ok := g.constVals[inst.Src[1]]; ok {
-					g.emitf("    LD A, %d", cv)
+					// Constant store: LD HL, sym; LD (HL), imm — 10T+10T = 20T, no A clobber.
+					// Avoids LD A, imm (4T) + LD (sym), A (13T) which would destroy A (= first param).
+					g.emitf("    LD HL, %s", lbl)
+					g.emitf("    LD (HL), %d", cv)
+					g.invalidate("HL")
 				} else {
+					//   LD A, val           ; 4T (omitted when val is already A)
+					//   LD (sym__field), A  ; 13T
 					val := g.loc(inst.Src[1])
 					if val != "A" {
 						g.emitLDA(val)
 					}
+					g.emitf("    LD (%s), A", lbl)
 				}
-				g.emitf("    LD (%s), A", lbl)
 			}
 			break
+		}
+		// u16 direct-address store: LD (sym), HL — 16T, no A clobber.
+		// Fires when the address register traces back to OpAddrOf(global) and the
+		// value is allocated to HL.  Avoids the byte-by-byte DE path that clobbers A.
+		if inst.Ty.Width() == 16 {
+			if sym, ok := g.globalU16StoreSym[inst.Src[0]]; ok {
+				if g.loc(inst.Src[1]) == "HL" {
+					g.emitf("    LD (%s), HL    ; u16 direct store (16T, no A clobber)", sanitizeIdent(sym))
+					break
+				}
+			}
 		}
 		ptr := g.loc(inst.Src[0])
 		val := g.loc(inst.Src[1])
@@ -2036,17 +2121,24 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				return
 			}
 			if lhs != dst {
-				// emitMov for HL↔DE emits EX DE,HL which is a SWAP, not a copy.
-				// Update rhs to reflect the new physical location of the original value.
+				// When lhs and dst are the HL/DE pair AND the rhs is the other member,
+				// use EX DE,HL (a true swap, 4T) to move lhs→dst while simultaneously
+				// placing the old dst contents into lhs's old location.
+				// This keeps rhs accessible in the swapped location.
+				// Note: emitMov(HL,DE) does byte-by-byte (LD H,D; LD L,E) — it preserves
+				// DE but does NOT produce the swap that the rhs update below relies on.
 				if (dst == "HL" && lhs == "DE") || (dst == "DE" && lhs == "HL") {
+					g.emit("    EX DE, HL")
+					// After EX DE,HL: whatever was in HL is now in DE, and vice versa.
 					switch rhs {
 					case "HL":
 						rhs = "DE"
 					case "DE":
 						rhs = "HL"
 					}
+				} else {
+					g.emitMov(dst, lhs, w)
 				}
-				g.emitMov(dst, lhs, w)
 			}
 			g.emit("    OR A") // clear carry (1b/4T; SCF+CCF would be 2b/8T)
 			g.emitf("    SBC %s, %s", dst, rhs)
@@ -2553,6 +2645,10 @@ func (g *z80cg) genMul16(inst *Inst) {
 	loopLbl := fmt.Sprintf(".%s_m16_%d_lp", sanitizeIdent(g.fn.Name), int(inst.Dst))
 	skipLbl := fmt.Sprintf(".%s_m16_%d_sk", sanitizeIdent(g.fn.Name), int(inst.Dst))
 	g.comment(fmt.Sprintf("mul16 %s * %s → HL  (~320T, 16-iter shift-and-add)", lhs, rhs))
+	// Save AF and DE: the multiply uses A as a loop counter and clobbers DE by
+	// shifting it 16 times.  Any live variable in A, D, or E would be corrupted.
+	g.emit("    PUSH AF")             // preserve A (= possible live variable) and F
+	g.emit("    PUSH DE")             // preserve D and E across multiply
 	// Load multiplier into DE BEFORE overwriting BC with the multiplicand.
 	// (rhs may be in C/B/BC which gets clobbered by LD B,H; LD C,L below.)
 	if rhs != "DE" {
@@ -2561,8 +2657,9 @@ func (g *z80cg) genMul16(inst *Inst) {
 			g.emitf("    LD E, %s", lowByte(rhs))
 		} else {
 			// 8-bit rhs: zero-extend into DE.
-			g.emit("    LD D, 0")
+			// Load E first so that rhs="D" reads the old D before it is zeroed.
 			g.emitf("    LD E, %s", rhs)
+			g.emit("    LD D, 0")
 		}
 		g.invalidate("DE")
 	}
@@ -2583,6 +2680,8 @@ func (g *z80cg) genMul16(inst *Inst) {
 	g.emit("    DEC A")               // counter-- (does not affect carry)
 	g.emitf("    JRS NZ, %s", loopLbl)
 	g.emit("    POP BC")              // restore BC
+	g.emit("    POP DE")              // restore old DE (live variables in D/E preserved)
+	g.emit("    POP AF")              // restore old A (live variables in A preserved)
 	g.invalidate("HL")
 	g.invalidate("DE")
 	g.invalidate("BC")
@@ -3396,9 +3495,13 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 	// 16-bit register move.
 	switch {
 	case dst == "HL" && src == "DE":
-		g.emit("    EX DE, HL")
+		// Copy DE→HL: must NOT use EX DE,HL (swap destroys DE).
+		g.emitf("    LD %s, %s", highByte(dst), highByte(src)) // LD H, D
+		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))   // LD L, E
 	case dst == "DE" && src == "HL":
-		g.emit("    EX DE, HL")
+		// Copy HL→DE: must NOT use EX DE,HL (swap destroys HL).
+		g.emitf("    LD %s, %s", highByte(dst), highByte(src)) // LD D, H
+		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))   // LD E, L
 	case (dst == "IX" || dst == "IY") && (src == "DE" || src == "BC"):
 		// DE/BC → IX/IY: undocumented byte-copy (DD/FD prefix), 2×8T = 16T.
 		// Safe because D, E, B, C are NOT substituted by the DD/FD prefix.
@@ -3627,22 +3730,60 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		//   [move return vals] ; only executed when Cond==0
 		//   RET
 		//
-		// This is equivalent to the "RET invertCC + JRS cc" order but flag-safe.
+		// Compound conditions CGT/CLE need two jumps — no single Z80 condition
+		// encodes (NC && NZ) or (C || Z). Handle them separately.
 		cc := g.condCode(f, t.Cond)
 		copies := g.buildBlockCopies(f, t.Then, t.ThenArgs)
 		thenLbl := g.branchLabel(f, t.Then, copies)
-		// Emit the conditional jump while flags are still live.
 		retCopies := g.buildReturnCopies(t.Vals)
-		if g.isFallThrough(f, t.Then) && len(copies) == 0 {
-			// Then-block is the fallthrough: use RET invertCC (1 byte, optimal).
-			g.emitParallelCopy(retCopies)
-			g.emitf("    RET %s", invertCC(cc))
-		} else {
-			// General case: emit conditional jump to Then first, then return path.
-			g.emitf("    JRS %s, %s", cc, thenLbl)
-			g.emitParallelCopy(copies)
+		thenFT := g.isFallThrough(f, t.Then) && len(copies) == 0
+
+		switch cc {
+		case "CLE":
+			// a ≤ b: take Then if C (a<b) or Z (a==b).
+			// Jump to Then with two conditional JRs; fall through to RET.
+			g.emitf("    JRS C, %s", thenLbl)
+			g.emitf("    JRS Z, %s", thenLbl)
 			g.emitParallelCopy(retCopies)
 			g.emit("    RET")
+		case "CGT":
+			// a > b: take Then if NC && NZ.
+			// Invert: skip Then (jump to ret path) if C or Z.
+			retLbl := fmt.Sprintf(".%s_cret%d", sanitizeIdent(f.Name), g.trampIdx)
+			g.trampIdx++
+			g.emitf("    JRS Z, %s", retLbl)
+			g.emitf("    JRS C, %s", retLbl)
+			if !thenFT {
+				g.emitf("    JRS %s", thenLbl)
+			}
+			// Register ret path as trampoline so it's emitted AFTER the fallthrough
+			// then-block (otherwise the inline label would block the fallthrough path).
+			g.trampolines = append(g.trampolines, trampolineBlock{
+				label:  retLbl,
+				copies: retCopies,
+				isRet:  true,
+			})
+		default:
+			if thenFT && len(retCopies) == 0 {
+				// Then-block is the fallthrough AND return path is empty:
+				// use RET invertCC (1 byte, optimal). Only safe when retCopies is
+				// empty — otherwise retCopies would corrupt registers that @then
+				// reads, since they execute before the branch is resolved.
+				g.emitf("    RET %s", invertCC(cc))
+			} else if thenFT {
+				// Then-block is the fallthrough but retCopies are non-trivial.
+				// Jump to @then when condition is true (skipping the return path),
+				// then fall through to @then naturally.
+				g.emitf("    JRS %s, %s", cc, thenLbl)
+				g.emitParallelCopy(retCopies)
+				g.emit("    RET")
+			} else {
+				// General case: emit conditional jump to Then first, then return path.
+				g.emitf("    JRS %s, %s", cc, thenLbl)
+				g.emitParallelCopy(copies)
+				g.emitParallelCopy(retCopies)
+				g.emit("    RET")
+			}
 		}
 
 	case *TermUnreachable:
@@ -3728,7 +3869,6 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	if len(copies) == 0 {
 		return
 	}
-
 	type move struct {
 		src, dst string
 		ty       Ty
