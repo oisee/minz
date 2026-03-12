@@ -438,6 +438,19 @@ type RangeSourceExpr struct {
 func (*RangeSourceExpr) hirExpr()        {}
 func (*RangeSourceExpr) ExprTy() mir2.Ty { return mir2.TyU8 }
 
+// CondExpr is an if-as-expression: if Cond { Then } else { Else }.
+// Both branches must produce the same type Ty.
+// Used for: let x = if c { a } else { b }
+type CondExpr struct {
+	Cond Expr
+	Then Expr // value from then-branch
+	Else Expr // value from else-branch
+	Ty   mir2.Ty
+}
+
+func (*CondExpr) hirExpr()          {}
+func (e *CondExpr) ExprTy() mir2.Ty { return e.Ty }
+
 // ── Convenience constructors ──────────────────────────────────────────────────
 
 func U8(n int64) *IntLitExpr  { return &IntLitExpr{Val: n, Ty: mir2.TyU8} }

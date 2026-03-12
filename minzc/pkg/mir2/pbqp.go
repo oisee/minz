@@ -199,8 +199,8 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 						if c >= InfCost {
 							continue
 						}
-						// Conflict: r and nb assigned to same physical loc → ∞.
-						if allLocs[i] == allLocs[j] {
+						// Conflict: r and nb overlap (same or aliased loc) → skip.
+						if physicallyConflicts(allLocs[i], allLocs[j]) {
 							continue
 						}
 						if c < best {
@@ -251,11 +251,21 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	nextMem := 0
 	for _, r := range remaining {
 		rs := states[r]
-		// Collect locs blocked by already-assigned neighbours.
+		// Collect locs blocked by already-assigned neighbours (including aliases).
 		blocked := make(map[int]bool)
 		ig.Neighbors(r).Each(func(n Reg) {
 			if idx := assigned[n]; idx >= 0 {
 				blocked[idx] = true
+				// Also block sub-register aliases (e.g. if neighbour is in DE,
+				// block D and E; if neighbour is in D, block DE).
+				for _, alias := range physicalAliases(allLocs[idx]) {
+					for j, l := range allLocs {
+						if l == alias {
+							blocked[j] = true
+							break
+						}
+					}
+				}
 			}
 		})
 		best := -1
@@ -297,7 +307,7 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 			if c >= InfCost {
 				continue
 			}
-			if nbIdx >= 0 && allLocs[i] == allLocs[nbIdx] {
+			if nbIdx >= 0 && physicallyConflicts(allLocs[i], allLocs[nbIdx]) {
 				continue // conflict with neighbour
 			}
 			if c < bestCost {
@@ -379,6 +389,22 @@ func pbqpDelta(cv []int) int {
 		return 0
 	}
 	return second - best
+}
+
+// physicallyConflicts reports whether two physical locations alias each other.
+// Two locations conflict when one is a sub-register of the other
+// (e.g. D and DE both alias because D is the high byte of DE).
+// Uses physicalAliases from alloc.go for the sub-register mapping.
+func physicallyConflicts(a, b PhysLoc) bool {
+	if a == b {
+		return true
+	}
+	for _, alias := range physicalAliases(a) {
+		if alias == b {
+			return true
+		}
+	}
+	return false
 }
 
 // pbqpSpillIdx returns the index of the first LocMem location in locs, or 0.

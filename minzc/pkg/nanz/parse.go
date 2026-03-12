@@ -1613,6 +1613,63 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 	return d, nil
 }
 
+// parseCondExpr parses an if-as-expression:
+//
+//	if cond { val } else { val }
+//
+// The body of each branch must be a single return statement or a single expression.
+// Returns a *hir.CondExpr suitable for use as an initializer in let/var declarations.
+func (p *parser) parseCondExpr() (hir.Expr, error) {
+	if err := p.l.eatIdent("if"); err != nil {
+		return nil, err
+	}
+	cond, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	thenBlock, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+	if !p.l.isIdent("else") {
+		return nil, fmt.Errorf("line %d: if-expression requires an else branch", p.l.peek().line)
+	}
+	p.l.next() // consume "else"
+	elseBlock, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+	// Extract the single expression from each branch (must be a return or bare expr).
+	thenExpr := extractBlockExpr(thenBlock)
+	if thenExpr == nil {
+		return nil, fmt.Errorf("if-expression then-branch must contain a single expression or return")
+	}
+	elseExpr := extractBlockExpr(elseBlock)
+	if elseExpr == nil {
+		return nil, fmt.Errorf("if-expression else-branch must contain a single expression or return")
+	}
+	ty := thenExpr.ExprTy()
+	if ty == nil {
+		ty = elseExpr.ExprTy()
+	}
+	return &hir.CondExpr{Cond: cond, Then: thenExpr, Else: elseExpr, Ty: ty}, nil
+}
+
+// extractBlockExpr returns the single expression from a block that contains
+// either a ReturnStmt or an ExprStmt, or nil if the block doesn't match.
+func extractBlockExpr(blk *hir.Block) hir.Expr {
+	if len(blk.Body) != 1 {
+		return nil
+	}
+	switch s := blk.Body[0].(type) {
+	case *hir.ReturnStmt:
+		return s.Val
+	case *hir.ExprStmt:
+		return s.Expr
+	}
+	return nil
+}
+
 func (p *parser) parseIf() (hir.Stmt, error) {
 	if err := p.l.eatIdent("if"); err != nil {
 		return nil, err
@@ -2367,6 +2424,10 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 
 	case tokIdent:
 		switch t.val {
+		case "if":
+			// if-as-expression: if cond { val } else { val }
+			// Returns a CondExpr — used in: let x = if c { a } else { b }
+			return p.parseCondExpr()
 		case "true":
 			p.l.next()
 			return &hir.BoolLitExpr{Val: true}, nil

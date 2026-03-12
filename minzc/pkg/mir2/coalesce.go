@@ -127,7 +127,7 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 			}
 			safe := true
 			ig.Neighbors(inst.Dst).Each(func(n Reg) {
-				if result.Locs[n] == locA {
+				if physicallyConflicts(result.Locs[n], locA) {
 					safe = false
 				}
 			})
@@ -147,10 +147,12 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 		if !srcOk || !dstOk || result.Locs[e.dst] == srcLoc {
 			continue // already coalesced or one reg is unallocated (spill)
 		}
-		// Recolor dst → srcLoc if no IG neighbour of dst uses srcLoc.
+		// Recolor dst → srcLoc if no IG neighbour of dst uses srcLoc or any
+		// of its physical aliases (e.g. C and BC alias — coalescing to C is
+		// unsafe if a neighbour is in BC, and vice versa).
 		safe := true
 		ig.Neighbors(e.dst).Each(func(n Reg) {
-			if result.Locs[n] == srcLoc {
+			if physicallyConflicts(result.Locs[n], srcLoc) {
 				safe = false
 			}
 		})

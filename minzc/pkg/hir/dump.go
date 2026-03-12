@@ -240,6 +240,9 @@ func dumpExpr(e Expr) string {
 	case *IndexExpr:
 		return fmt.Sprintf("(%s)[%s]:%s", dumpExpr(ex.Base), dumpExpr(ex.Idx), ex.ElemTy)
 
+	case *CondExpr:
+		return fmt.Sprintf("(if %s then %s else %s):%s", dumpExpr(ex.Cond), dumpExpr(ex.Then), dumpExpr(ex.Else), ex.Ty)
+
 	case nil:
 		return "<nil>"
 

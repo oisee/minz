@@ -3,7 +3,10 @@
 ; fun gcd(a: u8 = A, b: u8 = C) -> u8 = A ; clobbers: F
 gcd:
 .gcd_loop_head1:
+    LD E, A
+    LD A, E
     CP C
+    LD A, E    ; restore block param from scratch
     JRS Z, .gcd_loop_exit3
 .gcd_loop_body2:
     CP C

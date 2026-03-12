@@ -22,7 +22,7 @@ sum_two:
     LD A, C
     CALL Acc_add
     LD HL, acc_g
-    LD A, mem
+    LD A, ($F000)
     CALL Acc_add
     LD A, (acc_g__val)
     RET

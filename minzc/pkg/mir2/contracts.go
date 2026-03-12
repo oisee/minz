@@ -342,6 +342,16 @@ func edgeCost(f *Func, choice *ContractChoice, cg *CallGraph, cs ContractSet, ct
 //   - Arg[i] of OpCall to a known callee → callee.Contract.Params[i].Class
 //   - Otherwise → ClassGeneral
 func inferNaturalClass(f *Func, r Reg, m *Module) RegClass {
+	return inferNaturalClassSeen(f, r, m, map[Reg]bool{})
+}
+
+// inferNaturalClassSeen is the cycle-safe implementation of inferNaturalClass.
+// The seen map prevents infinite recursion in degenerate (non-SSA) graphs.
+func inferNaturalClassSeen(f *Func, r Reg, m *Module, seen map[Reg]bool) RegClass {
+	if seen[r] {
+		return ClassGeneral
+	}
+	seen[r] = true
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
 			src := inst.Src
@@ -349,6 +359,17 @@ func inferNaturalClass(f *Func, r Reg, m *Module) RegClass {
 			case OpAdd, OpSub, OpAnd, OpOr, OpXor, OpCmp, OpMul:
 				if len(src) > 0 && src[0] == r {
 					return ClassAcc
+				}
+				// Second ALU operand: 16-bit → ClassIndex (DE in SBC HL,DE);
+				// 8-bit → ClassGeneral (any register allowed as rhs).
+				// Checking src[1] before the OpMove case prevents a spurious
+				// ClassPointer inference when r is both a comparison rhs AND
+				// the source of a move that feeds a TermCondRet return slot.
+				if len(src) > 1 && src[1] == r {
+					if inst.Ty == TyU16 || inst.Ty == TyI16 || inst.Ty == TyPtr {
+						return ClassIndex
+					}
+					return ClassGeneral
 				}
 			case OpLoad:
 				if len(src) > 0 && src[0] == r {
@@ -361,6 +382,15 @@ func inferNaturalClass(f *Func, r Reg, m *Module) RegClass {
 			case OpField, OpPtrBump, OpPtrAdd:
 				if len(src) > 0 && src[0] == r {
 					return ClassPointer
+				}
+			case OpMove:
+				// Follow the move chain: the natural class of r is whatever
+				// class the move destination naturally wants.  This handles
+				// swap-style functions where a param is returned in a
+				// different slot (e.g. %r4 = move %r1; ret %r3, %r4 →
+				// %r1 naturally wants the class of the second return slot).
+				if len(src) > 0 && src[0] == r {
+					return inferNaturalClassSeen(f, inst.Dst, m, seen)
 				}
 			case OpCall:
 				// If r is passed as arg[i] to a known callee, the natural
@@ -377,9 +407,26 @@ func inferNaturalClass(f *Func, r Reg, m *Module) RegClass {
 				}
 			}
 		}
-		// TermDJNZ counter
-		if djnz, ok := b.Term.(*TermDJNZ); ok && djnz.Counter == r {
-			return ClassCounter
+		// Check terminators for natural-class inference.
+		switch t := b.Term.(type) {
+		case *TermDJNZ:
+			if t.Counter == r {
+				return ClassCounter
+			}
+		case *TermRet:
+			// If r is returned in slot i, it naturally wants the class of
+			// f.Contract.Returns[i] (e.g. slot 0 = HL = ClassPointer).
+			for i, v := range t.Vals {
+				if v == r && i < len(f.Contract.Returns) {
+					return f.Contract.Returns[i].Class
+				}
+			}
+		case *TermCondRet:
+			for i, v := range t.Vals {
+				if v == r && i < len(f.Contract.Returns) {
+					return f.Contract.Returns[i].Class
+				}
+			}
 		}
 	}
 	return ClassGeneral

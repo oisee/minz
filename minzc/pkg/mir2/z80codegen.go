@@ -82,6 +82,10 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 		for _, g := range m.Globals {
 			w := ByteWidth(g.Ty)
 			if w == 0 {
+				// Zero-size struct: emit the label so address-of references resolve,
+				// but no data bytes — the struct occupies no memory at runtime.
+				sanitized := sanitizeIdent(g.Name)
+				sb.WriteString(sanitized + ":\n")
 				continue
 			}
 			// Page-aligned globals (e.g. LUT tables): emit ALIGN directive first.
@@ -321,12 +325,46 @@ type z80cg struct {
 	globalFieldStore map[Reg]globalFieldInfo
 	globalFieldSkip  map[Reg]bool
 
+	// globalU16StoreSym[addrReg] = sym: addrReg holds the address of a u16 global.
+	// Enables emitting LD (sym), HL (16T, no A clobber) instead of the
+	// byte-by-byte DE-based sequence (LD A,lo; LD (DE),A; INC DE; LD A,hi; LD (DE),A; DEC DE).
+	globalU16StoreSym map[Reg]string
+
+	// globalU16LoadSym[addrReg] = sym: addrReg holds the address of a u16 global load.
+	// Enables emitting LD HL, (sym) (20T, no A clobber) instead of the
+	// byte-by-byte sequence LD A,(HL)/INC HL/LD H,(HL)/LD L,A that uses A as scratch.
+	globalU16LoadSym map[Reg]string
+
 	// lastFlagsLhs / lastFlagsRhs track the effective operands of the most recent
 	// flags-setting instruction (SUB / CP / AND A) within the current block.
 	// Empty strings mean "unknown / not tracked".
 	// Used by genCmp to suppress a redundant CP when SUB already set the same flags.
 	lastFlagsLhs string // physical location of the lhs (always A at time of emission)
 	lastFlagsRhs string // physical location or immediate string of the rhs
+
+	// curBlock is the block currently being code-generated.
+	// Set at the start of genBlock; used by materializePendingFlag for forward scans.
+	curBlock *Block
+
+	// pendingFlagReg is the ClassFlag virtual register produced by the most
+	// recent genCmp that has not yet been consumed (by OR/AND/brif).
+	// Before any new CP that would clobber F, materializePendingFlag() checks
+	// whether this register is still live and, if so, emits SBC A,A; LD D,A
+	// so the value survives in "D" (via physOverride).
+	pendingFlagReg Reg
+
+	// pendingAccReg is a ClassAcc virtual register currently in A that may be
+	// clobbered by an upcoming "LD A, imm" in a subsequent genCmp.
+	// When genCmp is about to emit "LD A, imm", if pendingAccReg is still live
+	// downstream, it emits LD D,A and reroutes pendingAccReg to "D".
+	pendingAccReg Reg
+
+	// ptrAddPushHL: set by scanPtrAddBase when a ptr_add's base is in HL and
+	// the base virtual is live after the instruction (needs to survive across
+	// the loop body). The value is the ptr_add result virtual (Dst).
+	// OpPtrAdd emits PUSH HL before ADD HL,rr; OpLoad emits POP HL after
+	// the load to restore the saved base ptr.
+	ptrAddPushHL Reg
 
 	// tailCallInst: set by genBlock when the last instruction of a block is an
 	// OpCall whose result feeds directly into TermRet (tail call pattern).
@@ -377,10 +415,12 @@ type globalFieldInfo struct {
 
 // trampolineBlock is emitted after all regular blocks of a function.
 // It resolves block-argument copies for one outgoing BrIf edge.
+// If isRet is true, the block ends with RET instead of JRS target.
 type trampolineBlock struct {
 	label  string        // local label for this trampoline
 	copies []parallelCopy
 	target string        // real destination label (already formatted)
+	isRet  bool          // true → emit RET instead of JRS target
 }
 
 // parallelCopy is a single register-to-register move in a parallel copy sequence.
@@ -508,12 +548,21 @@ func (g *z80cg) holdsValue(a, b string) bool {
 }
 
 // emitLDA emits "LD A, src" and records the copy alias A ≡ src.
+// When src is a LocMem address ($Fxxx), emits "LD A, ($Fxxx)" — the only
+// valid Z80 form for loading an 8-bit value from an absolute 16-bit address.
 func (g *z80cg) emitLDA(src string) {
-	g.emitf("    LD A, %s", src)
+	if strings.HasPrefix(src, "$") {
+		g.emitf("    LD A, (%s)", src)
+	} else {
+		g.emitf("    LD A, %s", src)
+	}
 	g.setCopy("A", src)
 }
 
 // loc returns the physical location name for virtual register r.
+// For LocMem registers the allocator stores the actual byte address in Offset;
+// return it as a hex literal so the assembler resolves it correctly.
+// e.g. Offset=0xF001 → "$F001", which assembles as LD D, ($F001) / LD ($F001), A etc.
 func (g *z80cg) loc(r Reg) string {
 	if r == NoReg {
 		return "?"
@@ -521,7 +570,11 @@ func (g *z80cg) loc(r Reg) string {
 	if phys, ok := g.physOverride[r]; ok {
 		return phys
 	}
-	return g.ar.Loc(r).Name
+	pl := g.ar.Loc(r)
+	if pl.Kind == LocMem {
+		return fmt.Sprintf("$%04X", pl.Offset)
+	}
+	return pl.Name
 }
 
 // ── Function ──────────────────────────────────────────────────────────────────
@@ -651,6 +704,8 @@ func (g *z80cg) genFunc(f *Func) {
 	g.globalFieldLoad = make(map[Reg]globalFieldInfo)
 	g.globalFieldStore = make(map[Reg]globalFieldInfo)
 	g.globalFieldSkip = make(map[Reg]bool)
+	g.globalU16StoreSym = make(map[Reg]string)
+	g.globalU16LoadSym = make(map[Reg]string)
 	g.fnWorstT = 0
 
 	label := sanitizeIdent(f.Name)
@@ -667,7 +722,11 @@ func (g *z80cg) genFunc(f *Func) {
 	for _, tramp := range g.trampolines {
 		g.emitf("%s:", tramp.label)
 		g.emitParallelCopy(tramp.copies)
-		g.emitf("    JRS %s", tramp.target)
+		if tramp.isRet {
+			g.emit("    RET")
+		} else {
+			g.emitf("    JRS %s", tramp.target)
+		}
 	}
 
 	// Emit function-level T-state summary (worst-case block = deepest hot path).
@@ -849,6 +908,8 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	clear(g.globalFieldLoad)
 	clear(g.globalFieldStore)
 	clear(g.globalFieldSkip)
+	clear(g.globalU16StoreSym)
+	clear(g.globalU16LoadSym)
 
 	// Build: reg → defining instruction within this block.
 	defInst := make(map[Reg]*Inst, len(b.Insts))
@@ -1076,6 +1137,103 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 			g.globalFieldStore[e.addrReg] = entry
 		}
 	}
+
+	// ── u16 direct-address store detection ──────────────────────────────────────
+	// Pattern: OpStore(w=16, addrReg=AddrOf(sym), valReg)
+	// Enables LD (sym), HL (16T, no A clobber) when valReg is in HL.
+	for _, inst := range b.Insts {
+		if inst.Op != OpStore || inst.Ty.Width() != 16 {
+			continue
+		}
+		addrReg := inst.Src[0]
+		def, ok := defInst[addrReg]
+		if !ok || def.Op != OpAddrOf || !isGlobal(def.Sym) {
+			continue
+		}
+		g.globalU16StoreSym[addrReg] = def.Sym
+	}
+
+	// ── u16 direct-address load detection ────────────────────────────────────
+	// Pattern: OpLoad(w=16, addrReg=AddrOf(sym)) → dst (u16, must be HL)
+	// Enables LD HL, (sym) (20T, no A clobber) instead of INC/DEC trick via A.
+	// Only fires when addrReg is used solely by this load (useCount==1) so we
+	// can safely skip the AddrOf instruction (suppress LD HL,sym).
+	for _, inst := range b.Insts {
+		if inst.Op != OpLoad || inst.Ty.Width() != 16 || inst.Dst == NoReg {
+			continue
+		}
+		if g.ar.Loc(inst.Dst).Name != "HL" {
+			continue // only LD HL,(nn) exists for direct u16 load
+		}
+		addrReg := inst.Src[0]
+		def, ok := defInst[addrReg]
+		if !ok || def.Op != OpAddrOf || !isGlobal(def.Sym) {
+			continue
+		}
+		if useCount[addrReg] != 1 {
+			continue // addr reg used by other instructions too
+		}
+		g.globalU16LoadSym[addrReg] = def.Sym
+		g.globalFieldSkip[addrReg] = true // suppress LD HL, sym from OpAddrOf
+	}
+}
+
+// scanPtrAddBase detects OpPtrAdd instructions where the base pointer is in HL
+// AND the base virtual is live after the ptr_add (e.g. needed on a loop
+// back-edge).  In that case ADD HL,rr would clobber HL (the base), so we
+// arrange for PUSH HL before the ADD and POP HL after the subsequent load.
+//
+// Sets g.ptrAddPushHL = ptr_add.Dst  when the pattern fires; cleared by the
+// OpLoad codegen after it emits the POP HL.
+func (g *z80cg) scanPtrAddBase(b *Block) {
+	g.ptrAddPushHL = NoReg
+
+	for idx, inst := range b.Insts {
+		if inst.Op != OpPtrAdd {
+			continue
+		}
+		baseReg := inst.Src[0]
+		if g.ar.Loc(baseReg).Name != "HL" {
+			continue // base not in HL — no clobber risk
+		}
+
+		// Check if baseReg is live after this ptr_add.
+		// A base is live-after if it appears in any later instruction's sources
+		// OR in the block terminator's argument list.
+		liveAfter := false
+		for _, later := range b.Insts[idx+1:] {
+			for _, s := range later.Src {
+				if s == baseReg {
+					liveAfter = true
+					break
+				}
+			}
+			for _, a := range later.Args {
+				if a == baseReg {
+					liveAfter = true
+					break
+				}
+			}
+			if liveAfter {
+				break
+			}
+		}
+		if !liveAfter {
+			if t := b.Term; t != nil {
+				for _, r := range t.termUses() {
+					if r == baseReg {
+						liveAfter = true
+						break
+					}
+				}
+			}
+		}
+
+		if liveAfter {
+			g.ptrAddPushHL = inst.Dst
+			return // one pattern per block is enough
+		}
+	}
 }
 
 // ── Block ─────────────────────────────────────────────────────────────────────
@@ -1088,6 +1246,18 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	g.lastFlagsLhs = ""      // flags state unknown at block entry
 	g.lastFlagsRhs = ""
 	g.blockT = 0             // reset per-block T-state accumulator
+	g.curBlock = b
+	g.pendingFlagReg = NoReg
+	g.pendingAccReg = NoReg
+	// If a block param is allocated to A, any compare instruction in this block
+	// would clobber it with "LD A, lhs". Mark it as pending so materializePendingAcc
+	// can save it to a scratch register before the clobber occurs.
+	for _, bp := range b.Params {
+		if bp.Dst != NoReg && g.ar.Loc(bp.Dst).Name == "A" {
+			g.pendingAccReg = bp.Dst
+			break
+		}
+	}
 
 	// Pre-scan: identify page-aligned LUT access patterns so we can merge
 	// Ext + AddrOf + PtrAdd + Load into: LD HL,sym; LD L,src8; LD A,(HL).
@@ -1096,6 +1266,11 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// Pre-scan: identify global struct field accesses so we can emit
 	// LD A,(sym__field) / LD (sym__field),A instead of LD HL,sym + INC HL… + LD A,(HL).
 	g.scanGlobalFieldPatterns(b)
+
+	// Pre-scan: detect ptr_add+load patterns where the base (ptr) is in HL
+	// and must survive across the instruction (e.g. in a loop).  Arranges
+	// for PUSH HL / ADD HL,rr / LD dst,(HL) / POP HL to preserve the base.
+	g.scanPtrAddBase(b)
 
 	// Detect DJNZ peephole: DEC B + JP loop_head → DJNZ loop_body.
 	peep := g.detectDJNZPeephole(f, b)
@@ -1365,8 +1540,27 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.invalidate("A")
 			break
 		}
+		// u16 direct-address load: LD HL, (sym) — 20T, no A clobber.
+		// Fires when the address comes from OpAddrOf(global) and dst is HL.
+		// Avoids the INC/DEC trick (LD A,(HL)/INC HL/LD H,(HL)/LD L,A) that
+		// uses A as scratch and corrupts loop counters stored in A.
+		if inst.Ty.Width() == 16 {
+			if sym, ok := g.globalU16LoadSym[inst.Src[0]]; ok && dst == "HL" {
+				g.emitf("    LD HL, (%s)    ; u16 direct load (20T, no A clobber)", sanitizeIdent(sym))
+				g.invalidate("HL")
+				break
+			}
+		}
 		ptr := g.loc(inst.Src[0])
 		w := inst.Ty.Width()
+		// If the POINTER value itself is spilled to a memory slot ($Fxxx), reload it
+		// into HL first. Z80 supports LD HL,(nn) for this (3 bytes, 16T).
+		// After this, ptr=="HL" and the rest of the OpLoad path works unchanged.
+		if strings.HasPrefix(ptr, "$") {
+			g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
+			g.invalidate("HL")
+			ptr = "HL"
+		}
 		if w == 24 {
 			// 24-bit load (3 bytes little-endian) into DWord shadow pair.
 			// Shadow H' (high byte of hi16) is always zero for u24 semantics.
@@ -1429,10 +1623,30 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.emitf("    LD %s, %s     ; hi", highByte(dst), ptrIndirect(ptr, 1))
 		} else {
 			// 16-bit load via HL/DE/BC: INC/DEC trick — little-endian
-			g.emitf("    LD %s, (%s)     ; lo", lowByte(dst), ptr)
-			g.emitf("    INC %s", ptr)
-			g.emitf("    LD %s, (%s)     ; hi", highByte(dst), ptr)
-			g.emitf("    DEC %s", ptr)
+			if dst == ptr {
+				// Self-pointer: LD L,(HL) corrupts the address in HL before INC HL.
+				// Use A as scratch: LD A,(HL) / INC HL / LD H,(HL) / LD L,A
+				g.emitf("    LD A, (%s)     ; lo", ptr)
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD %s, (%s)     ; hi", highByte(dst), ptr)
+				g.emitf("    LD %s, A       ; lo", lowByte(dst))
+				g.invalidate("A")
+			} else {
+				g.emitf("    LD %s, (%s)     ; lo", lowByte(dst), ptr)
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD %s, (%s)     ; hi", highByte(dst), ptr)
+				g.emitf("    DEC %s", ptr)
+			}
+		}
+
+		// POP HL to restore the base ptr that was saved by OpPtrAdd (scanPtrAddBase).
+		// The ptr_add emitted PUSH HL before ADD HL,rr; we restore it here, after the
+		// load that consumed the ptr_add result.  This puts the original pointer back
+		// in HL so the back-edge parallel copy can read it correctly.
+		if g.ptrAddPushHL == inst.Src[0] {
+			g.emit("    POP HL         ; restore base ptr (saved by ptr_add)")
+			g.ptrAddPushHL = NoReg
+			g.invalidate("HL")
 		}
 
 	case OpStore:
@@ -1456,25 +1670,46 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.emitf("    INC HL")
 				}
 			} else {
-				// Global struct field direct-addressing fast path:
-				//   LD A, val           ; 4T (omitted when val is already A or known constant)
-				//   LD (sym__field), A  ; 13T
+				// Global struct field direct-addressing fast path.
 				lbl := globalFieldLabel(info.sym, info.offset, info.fieldName)
 				if cv, ok := g.constVals[inst.Src[1]]; ok {
-					g.emitf("    LD A, %d", cv)
+					// Constant store: LD HL, sym; LD (HL), imm — 10T+10T = 20T, no A clobber.
+					// Avoids LD A, imm (4T) + LD (sym), A (13T) which would destroy A (= first param).
+					g.emitf("    LD HL, %s", lbl)
+					g.emitf("    LD (HL), %d", cv)
+					g.invalidate("HL")
 				} else {
+					//   LD A, val           ; 4T (omitted when val is already A)
+					//   LD (sym__field), A  ; 13T
 					val := g.loc(inst.Src[1])
 					if val != "A" {
 						g.emitLDA(val)
 					}
+					g.emitf("    LD (%s), A", lbl)
 				}
-				g.emitf("    LD (%s), A", lbl)
 			}
 			break
+		}
+		// u16 direct-address store: LD (sym), HL — 16T, no A clobber.
+		// Fires when the address register traces back to OpAddrOf(global) and the
+		// value is allocated to HL.  Avoids the byte-by-byte DE path that clobbers A.
+		if inst.Ty.Width() == 16 {
+			if sym, ok := g.globalU16StoreSym[inst.Src[0]]; ok {
+				if g.loc(inst.Src[1]) == "HL" {
+					g.emitf("    LD (%s), HL    ; u16 direct store (16T, no A clobber)", sanitizeIdent(sym))
+					break
+				}
+			}
 		}
 		ptr := g.loc(inst.Src[0])
 		val := g.loc(inst.Src[1])
 		w := inst.Ty.Width()
+		// If ptr is spilled to a memory slot ($Fxxx), reload it into HL first.
+		if strings.HasPrefix(ptr, "$") {
+			g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
+			g.invalidate("HL")
+			ptr = "HL"
+		}
 		if w == 24 {
 			// 24-bit store: write 3 bytes little-endian.
 			if isIXY(ptr) {
@@ -1531,11 +1766,41 @@ func (g *z80cg) genInst(inst *Inst) {
 			// 16-bit store via IX/IY: use displacement addressing — avoids INC/DEC IX.
 			// LD (IX+0), lo ; LD (IX+1), hi  — 2×19T = 38T
 			g.emitf("    LD %s, %s     ; lo", ptrIndirect(ptr, 0), lowByte(val))
-			g.emitf("    LD %s, %s     ; hi", ptrIndirect(ptr, 1), highByte(val))
-		} else {
+			if !isPairReg(val) {
+				g.emitf("    LD %s, 0     ; hi (zero-extend u8→u16)", ptrIndirect(ptr, 1))
+			} else {
+				g.emitf("    LD %s, %s     ; hi", ptrIndirect(ptr, 1), highByte(val))
+			}
+		} else if ptr == "HL" {
+			// LD (HL), r is valid for any r — use INC/DEC trick.
 			g.emitf("    LD (%s), %s     ; lo", ptr, lowByte(val))
 			g.emitf("    INC %s", ptr)
-			g.emitf("    LD (%s), %s     ; hi", ptr, highByte(val))
+			if !isPairReg(val) {
+				g.emitf("    LD (%s), 0     ; hi (zero-extend u8→u16)", ptr)
+			} else {
+				g.emitf("    LD (%s), %s     ; hi", ptr, highByte(val))
+			}
+			g.emitf("    DEC %s", ptr)
+		} else {
+			// DE/BC: only LD (DE),A / LD (BC),A are valid — route both bytes through A.
+			lo := lowByte(val)
+			if lo != "A" {
+				g.emitf("    LD A, %s", lo)
+				g.invalidate("A")
+			}
+			g.emitf("    LD (%s), A     ; lo", ptr)
+			g.emitf("    INC %s", ptr)
+			if !isPairReg(val) {
+				g.emitf("    XOR A          ; hi = 0 (zero-extend u8→u16)")
+				g.invalidate("A")
+			} else {
+				hi := highByte(val)
+				if hi != "A" {
+					g.emitf("    LD A, %s", hi)
+					g.invalidate("A")
+				}
+			}
+			g.emitf("    LD (%s), A     ; hi", ptr)
 			g.emitf("    DEC %s", ptr)
 		}
 
@@ -1549,35 +1814,66 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpPtrAdd:
 		// Runtime pointer advance: dst = base_ptr + offset_u16.
-		// ADD HL, DE (16-bit) clobbers H and C flags.
-		// Z80: needs both operands in 16-bit register pairs.
-		// Optimal: base in HL (dst), offset in DE → ADD HL, DE (11T, no A clobber).
+		// Z80 ONLY has ADD HL, rr — there is no ADD DE,rr or ADD BC,rr.
+		// Strategy: get base into HL, offset into DE (or BC), emit ADD HL,rr,
+		// then move result from HL to dst if dst != HL.
+		//
+		// When the base is in HL and is live after this instruction (loop body
+		// pattern: ptr survives to the next iteration), scanPtrAddBase sets
+		// g.ptrAddPushHL = inst.Dst.  We emit PUSH HL before the ADD to save
+		// the base; the subsequent OpLoad emits POP HL to restore it.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		base := g.loc(inst.Src[0])
 		off := g.loc(inst.Src[1])
-		if dst != base {
-			g.emitMov(dst, base, 16)
+
+		// PUSH HL to preserve the base ptr before the ADD clobbers it.
+		if g.ptrAddPushHL == inst.Dst {
+			g.emit("    PUSH HL") // base is in HL; save it for POP HL after load
 		}
-		// Ensure offset is in a 16-bit pair different from dst.
-		offPair := off
-		if len(off) == 1 { // 8-bit reg (A, B, C, D, E, H, L) — zero-extend to pair
-			offPair = "DE"
-			if dst == "DE" {
-				offPair = "BC"
-			}
-			g.emitf("    LD %s, 0", offPair)
-			g.emitf("    LD %s, %s", lowByte(offPair), off)
-		} else if off == dst {
-			// Same pair: ADD HL, HL doubles the pointer — that's wrong.
-			// Move offset to temp pair first.
-			offPair = "DE"
-			if dst == "DE" {
-				offPair = "BC"
-			}
-			g.emitMov(offPair, off, 16)
+
+		// Determine the offset pair: must be a 16-bit pair ≠ HL.
+		// Choose DE; fall back to BC if DE is the base (moving base to HL would
+		// clobber DE, so the offset must already be safe there) or same as dst.
+		offPair := "DE"
+		if base == "DE" || off == "HL" {
+			offPair = "BC"
 		}
-		g.emitf("    ADD %s, %s", dst, offPair)
+
+		// Place offset into offPair BEFORE moving the base (avoids clobbering
+		// the offset when base and off share a register like DE).
+		if off != offPair {
+			if len(off) == 1 { // 8-bit: zero-extend into pair
+				g.emitf("    LD %s, 0", offPair)
+				g.emitf("    LD %s, %s", lowByte(offPair), off)
+			} else {
+				g.emitMov(offPair, off, 16)
+			}
+		}
+
+		// Get base into HL.
+		if base != "HL" {
+			g.emitMov("HL", base, 16)
+		}
+
+		// ADD HL, offPair — the only valid 16-bit add on Z80.
+		g.emitf("    ADD HL, %s", offPair)
+
+		// When the base was PUSHed to save it, keep the result in HL and
+		// override the dst's physical location so the subsequent load uses
+		// LD r,(HL) directly — avoiding the LD D,H;LD E,L byte-copy that
+		// would force the load through A (LD A,(DE)) and clobber the accumulator.
+		if g.ptrAddPushHL == inst.Dst {
+			if dst != "HL" {
+				g.physOverride[inst.Dst] = "HL"
+			}
+		} else {
+			// Move result from HL to dst if needed.
+			if dst != "HL" {
+				g.emitMov(dst, "HL", 16)
+				g.invalidate("HL")
+			}
+		}
 		g.invalidate(dst)
 
 	case OpField, OpPtrBump:
@@ -1618,11 +1914,33 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	case OpAlloca:
 		// Reserve bytes on stack; dst = current SP.
+		// Z80 has no direct "LD rp, SP" (only the reverse LD SP,rp is valid).
+		// Use: LD HL,0 / ADD HL,SP (→ HL=SP), then copy to dst if needed.
 		n := inst.Imm
 		for range n {
 			g.emit("    DEC SP")
 		}
-		g.emitf("    LD %s, SP", dst)
+		switch dst {
+		case "HL":
+			g.emit("    LD HL, 0")
+			g.emit("    ADD HL, SP")
+		case "DE":
+			g.emit("    LD HL, 0")
+			g.emit("    ADD HL, SP")
+			g.emit("    EX DE, HL")
+		case "BC":
+			g.emit("    LD HL, 0")
+			g.emit("    ADD HL, SP")
+			g.emit("    LD B, H")
+			g.emit("    LD C, L")
+		default:
+			// Fallback for any other pair name — assume HL is safe here.
+			g.emit("    LD HL, 0")
+			g.emit("    ADD HL, SP")
+			if dst != "HL" {
+				g.emitf("    ; WARN: alloca dst=%s not handled, using HL", dst)
+			}
+		}
 
 	case OpPatchSlot:
 		// Mutable immediate: emit initial value; the byte(s) after LD are patchable.
@@ -1700,6 +2018,62 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	}
 
 	if w <= 8 {
+		// Special case: boolean OR with a ClassFlag operand — Z80 cannot LD A, F
+		// or OR F.  Materialize the flag condition as 0/1 via a conditional skip:
+		//   (ensure A holds the non-flag operand)
+		//   JR Ncc, skip    ; if condition false, skip setting bit 0
+		//   OR 1            ; A |= 1 (condition true)
+		// skip:
+		// Also treat a source as a flag if it's the pending carry-flag result
+		// (g.loc() may return "A" because PBQP assigned it there, but the
+		// actual value is still live in the carry flag via pendingFlagReg).
+		isPendingFlag0 := len(inst.Src) > 0 && inst.Src[0] == g.pendingFlagReg
+		isPendingFlag1 := len(inst.Src) > 1 && inst.Src[1] == g.pendingFlagReg
+		if mnem == "OR" && (lhs == "F" || rhs == "F" || isPendingFlag0 || isPendingFlag1) {
+			var flagSrc Reg
+			var otherLoc string
+			if lhs == "F" || isPendingFlag0 {
+				flagSrc = inst.Src[0]
+				otherLoc = rhs
+			} else {
+				flagSrc = inst.Src[1]
+				otherLoc = lhs
+			}
+			// Consume the pending flag tracking for flagSrc.
+			if flagSrc == g.pendingFlagReg {
+				g.pendingFlagReg = NoReg
+			}
+			if otherLoc != "A" && !g.holdsValue("A", otherLoc) {
+				g.emitLDA(otherLoc)
+			}
+			g.invalidate("A")
+			cc := g.condCode(g.fn, flagSrc)
+			skipLbl := fmt.Sprintf(".%s_orf_%d_sk", sanitizeIdent(g.fn.Name), int(inst.Dst))
+			g.emitf("    JR %s, %s", invertCC(cc), skipLbl)
+			g.emit("    OR 1")
+			g.emitf("%s:", skipLbl)
+			if dst != "A" {
+				g.emitf("    LD %s, A", dst)
+				g.setCopy(dst, "A")
+			}
+			// Result is in A (or dst). Track it as a pending acc value in case
+			// a subsequent genCmp overwrites A with "LD A, imm".
+			if dst == "A" {
+				g.pendingAccReg = inst.Dst
+			}
+			return
+		}
+
+		// If there is a pending ClassAcc value in A that is still live after this
+		// instruction, save it to a scratch register before we overwrite A.
+		// This fires when two successive 8-bit ALU ops both need A: the first
+		// result (r33=acc) must survive while the second (r35=i+1) runs.
+		// Skip when the peephole below will use INC/DEC (does not touch A).
+		willUseINCDEC := (mnem == "ADD" || mnem == "SUB") && lhs == dst
+		if !willUseINCDEC {
+			g.materializePendingAcc(inst)
+		}
+
 		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
 		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
 		// N=4 would be 16T vs 15T — worse in T-states, skip and fall through to ALU.
@@ -1743,6 +2117,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
 				g.setCopy(dst, "A")
+			} else {
+				g.pendingAccReg = inst.Dst
 			}
 			return
 		}
@@ -1755,6 +2131,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
 				g.setCopy(dst, "A")
+			} else {
+				g.pendingAccReg = inst.Dst
 			}
 			return
 		}
@@ -1765,6 +2143,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
 				g.setCopy(dst, "A")
+			} else {
+				g.pendingAccReg = inst.Dst
 			}
 			return
 		}
@@ -1786,6 +2166,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
 				g.setCopy(dst, "A")
+			} else {
+				g.pendingAccReg = inst.Dst
 			}
 			return
 		}
@@ -1797,6 +2179,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		if dst != "A" {
 			g.emitf("    LD %s, A", dst)
 			g.setCopy(dst, "A")
+		} else {
+			g.pendingAccReg = inst.Dst
 		}
 	} else {
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
@@ -1877,20 +2261,48 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				return
 			}
 			if lhs != dst {
-				// emitMov for HL↔DE emits EX DE,HL which is a SWAP, not a copy.
-				// Update rhs to reflect the new physical location of the original value.
+				// When lhs and dst are the HL/DE pair AND the rhs is the other member,
+				// use EX DE,HL (a true swap, 4T) to move lhs→dst while simultaneously
+				// placing the old dst contents into lhs's old location.
+				// This keeps rhs accessible in the swapped location.
+				// Note: emitMov(HL,DE) does byte-by-byte (LD H,D; LD L,E) — it preserves
+				// DE but does NOT produce the swap that the rhs update below relies on.
 				if (dst == "HL" && lhs == "DE") || (dst == "DE" && lhs == "HL") {
+					g.emit("    EX DE, HL")
+					// After EX DE,HL: whatever was in HL is now in DE, and vice versa.
 					switch rhs {
 					case "HL":
 						rhs = "DE"
 					case "DE":
 						rhs = "HL"
 					}
+				} else {
+					g.emitMov(dst, lhs, w)
 				}
-				g.emitMov(dst, lhs, w)
 			}
 			g.emit("    OR A") // clear carry (1b/4T; SCF+CCF would be 2b/8T)
 			g.emitf("    SBC %s, %s", dst, rhs)
+			g.invalidate(dst)
+		case "OR", "AND", "XOR":
+			// Z80 has no 16-bit OR/AND/XOR directly; operate byte-by-byte.
+			// Strategy: load each byte pair through A.
+			// If lhs != dst, move lhs into dst first.
+			if lhs != dst {
+				g.emitMov(dst, lhs, w)
+			}
+			hi := highByte(dst)
+			lo := lowByte(dst)
+			hi_rhs := highByte(rhs)
+			lo_rhs := lowByte(rhs)
+			// High byte: A = dst_hi OP rhs_hi → dst_hi
+			g.emitf("    LD A, %s", hi)
+			g.emitf("    %s %s", mnem, hi_rhs)
+			g.emitf("    LD %s, A", hi)
+			// Low byte: A = dst_lo OP rhs_lo → dst_lo
+			g.emitf("    LD A, %s", lo)
+			g.emitf("    %s %s", mnem, lo_rhs)
+			g.emitf("    LD %s, A", lo)
+			g.invalidate("A")
 			g.invalidate(dst)
 		default:
 			g.comment(fmt.Sprintf("TODO: 16-bit %s %s, %s → %s", mnem, lhs, rhs, dst))
@@ -2053,6 +2465,37 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 	count := int64(1)
 	if cv, ok := g.constVals[inst.Src[1]]; ok && cv > 0 {
 		count = cv
+	}
+	if w == 16 {
+		// Z80 has no SLA/SRL/SRA on register pairs.
+		// SHL u16: use ADD dst,dst (doubles the value = shift left by 1). 11T each.
+		//   Special case: SHL by 8 on a zero-extended u8 → LD H,L / LD L,0. 11T total.
+		// SHR u16: SRL H / RR L (logical right shift with carry). 8T+8T=16T each.
+		// SAR u16: SRA H / RR L (arithmetic right shift). 8T+8T=16T each.
+		hi := highByte(dst)
+		lo := lowByte(dst)
+		if mnem == "SLA" && count == 8 {
+			// Byte-swap optimisation: u8 zero-extended to u16, shift left 8 bits.
+			// After ext u8→u16, the u8 value is in the low byte (L/E/C).
+			// Result = {value, 0}: move low byte to high, zero low byte.
+			g.emitf("    LD %s, %s", hi, lo)
+			g.emitf("    LD %s, 0", lo)
+		} else {
+			for i := int64(0); i < count; i++ {
+				switch mnem {
+				case "SLA":
+					g.emitf("    ADD %s, %s", dst, dst) // valid: ADD HL,HL etc.
+				case "SRL":
+					g.emitf("    SRL %s", hi)
+					g.emitf("    RR  %s", lo)
+				case "SRA":
+					g.emitf("    SRA %s", hi)
+					g.emitf("    RR  %s", lo)
+				}
+			}
+		}
+		g.invalidate(dst)
+		return
 	}
 	for i := int64(0); i < count; i++ {
 		g.emitf("    %s %s", mnem, dst)
@@ -2342,15 +2785,27 @@ func (g *z80cg) genMul16(inst *Inst) {
 	loopLbl := fmt.Sprintf(".%s_m16_%d_lp", sanitizeIdent(g.fn.Name), int(inst.Dst))
 	skipLbl := fmt.Sprintf(".%s_m16_%d_sk", sanitizeIdent(g.fn.Name), int(inst.Dst))
 	g.comment(fmt.Sprintf("mul16 %s * %s → HL  (~320T, 16-iter shift-and-add)", lhs, rhs))
+	// Save AF and DE: the multiply uses A as a loop counter and clobbers DE by
+	// shifting it 16 times.  Any live variable in A, D, or E would be corrupted.
+	g.emit("    PUSH AF")             // preserve A (= possible live variable) and F
+	g.emit("    PUSH DE")             // preserve D and E across multiply
+	// Load multiplier into DE BEFORE overwriting BC with the multiplicand.
+	// (rhs may be in C/B/BC which gets clobbered by LD B,H; LD C,L below.)
+	if rhs != "DE" {
+		if isPairReg(rhs) {
+			g.emitf("    LD D, %s", highByte(rhs))
+			g.emitf("    LD E, %s", lowByte(rhs))
+		} else {
+			// 8-bit rhs: zero-extend into DE.
+			// Load E first so that rhs="D" reads the old D before it is zeroed.
+			g.emitf("    LD E, %s", rhs)
+			g.emit("    LD D, 0")
+		}
+		g.invalidate("DE")
+	}
 	g.emit("    PUSH BC")              // save BC across multiply
 	g.emit("    LD B, H")
 	g.emit("    LD C, L")             // BC = multiplicand (lhs)
-	// Load multiplier into DE.
-	if rhs != "DE" {
-		g.emitf("    LD D, %s", highByte(rhs))
-		g.emitf("    LD E, %s", lowByte(rhs))
-		g.invalidate("DE")
-	}
 	g.emit("    LD H, 0")
 	g.emit("    LD L, 0")             // HL = result = 0
 	g.emit("    LD A, 16")            // A = bit counter
@@ -2365,6 +2820,8 @@ func (g *z80cg) genMul16(inst *Inst) {
 	g.emit("    DEC A")               // counter-- (does not affect carry)
 	g.emitf("    JRS NZ, %s", loopLbl)
 	g.emit("    POP BC")              // restore BC
+	g.emit("    POP DE")              // restore old DE (live variables in D/E preserved)
+	g.emit("    POP AF")              // restore old A (live variables in A preserved)
 	g.invalidate("HL")
 	g.invalidate("DE")
 	g.invalidate("BC")
@@ -2535,12 +2992,159 @@ func (g *z80cg) genSext(inst *Inst) {
 
 // ── Compare ───────────────────────────────────────────────────────────────────
 
+// flagStillNeeded reports whether pendingFlagReg is used as a source
+// in any instruction AFTER upcomingInst in the current block.
+func (g *z80cg) flagStillNeeded(upcomingInst *Inst) bool {
+	if g.curBlock == nil {
+		return false
+	}
+	seen := false
+	for _, inst := range g.curBlock.Insts {
+		if inst == upcomingInst {
+			seen = true
+			continue
+		}
+		if !seen {
+			continue
+		}
+		for _, s := range inst.Src {
+			if s == g.pendingFlagReg {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// accStillNeeded reports whether pendingAccReg is used as a source
+// in any instruction AFTER upcomingInst in the current block, or by
+// the block's terminal (e.g. passed as a block arg to a successor).
+func (g *z80cg) accStillNeeded(upcomingInst *Inst) bool {
+	if g.curBlock == nil {
+		return false
+	}
+	seen := false
+	for _, inst := range g.curBlock.Insts {
+		if inst == upcomingInst {
+			seen = true
+			continue
+		}
+		if !seen {
+			continue
+		}
+		for _, s := range inst.Src {
+			if s == g.pendingAccReg {
+				return true
+			}
+		}
+	}
+	// Also check the block terminal — block params are passed via term args
+	// (e.g. TermBrIf passes acc through to the loop body block).
+	if g.curBlock.Term != nil {
+		for _, r := range g.curBlock.Term.termUses() {
+			if r == g.pendingAccReg {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// pickScratch8 returns an 8-bit scratch register that is not currently
+// occupied by any live virtual register at or after upcomingInst.
+// Prefers E, H, L (unlikely to hold params) before D, B, C.
+// Always excludes "A" and "F".
+func (g *z80cg) pickScratch8(upcomingInst *Inst) string {
+	// Collect physical locations of all live values from upcomingInst onwards.
+	livePhys := map[string]bool{"A": true, "F": true}
+	if g.curBlock != nil {
+		seen := false
+		for _, inst := range g.curBlock.Insts {
+			if inst == upcomingInst {
+				seen = true
+			}
+			if !seen {
+				continue
+			}
+			for _, src := range inst.Src {
+				if loc := g.loc(src); loc != "" {
+					livePhys[loc] = true
+				}
+			}
+		}
+	}
+	// Also protect any physOverride destinations already in use.
+	for _, loc := range g.physOverride {
+		livePhys[loc] = true
+	}
+	for _, r := range []string{"E", "H", "L", "D", "B", "C"} {
+		if !livePhys[r] {
+			return r
+		}
+	}
+	return "D" // last-resort fallback
+}
+
+// materializePendingFlag checks whether the most recent ClassFlag result
+// (pendingFlagReg) is still needed after upcomingInst. If so, it emits:
+//
+//	SBC A, A      ; A = 0xFF if condition-true, 0x00 if condition-false
+//	LD  <scratch>, A
+//
+// where <scratch> is a register that is not currently holding any live value,
+// and reroutes pendingFlagReg via physOverride so subsequent genBinOp reads
+// it from there rather than from the (now-clobbered) carry flag.
+func (g *z80cg) materializePendingFlag(upcomingInst *Inst) {
+	if g.pendingFlagReg == NoReg {
+		return
+	}
+	if !g.flagStillNeeded(upcomingInst) {
+		g.pendingFlagReg = NoReg
+		return
+	}
+	scratch := g.pickScratch8(upcomingInst)
+	// Materialize carry → 0xFF (true) or 0x00 (false) via SBC A, A.
+	g.emit("    SBC A, A")
+	g.invalidate("A")
+	g.emitf("    LD %s, A", scratch)
+	g.physOverride[g.pendingFlagReg] = scratch
+	g.pendingFlagReg = NoReg
+}
+
+// materializePendingAcc checks whether pendingAccReg (a ClassAcc value
+// currently in A) is still needed after upcomingInst. If so, it saves A
+// to a scratch register that is not currently holding any live value,
+// and reroutes pendingAccReg via physOverride so the upcoming "LD A, imm"
+// in genCmp does not clobber the live value.
+func (g *z80cg) materializePendingAcc(upcomingInst *Inst) {
+	if g.pendingAccReg == NoReg {
+		return
+	}
+	if !g.accStillNeeded(upcomingInst) {
+		g.pendingAccReg = NoReg
+		return
+	}
+	scratch := g.pickScratch8(upcomingInst)
+	g.emitf("    LD %s, A", scratch)
+	g.physOverride[g.pendingAccReg] = scratch
+	g.pendingAccReg = NoReg
+}
+
 func (g *z80cg) genCmp(inst *Inst) {
 	// CmpSubCarry / CmpSubCarryNot: carry flag already set by the immediately
 	// preceding SUB.  No instruction needed — carry encodes a < b (C) or a >= b (NC).
 	if inst.Cond == CmpSubCarry || inst.Cond == CmpSubCarryNot {
 		return
 	}
+
+	// Before emitting any flag-clobbering comparison instruction:
+	// 1. Materialize any live ClassFlag register whose carry would be overwritten.
+	// 2. Save any live ClassAcc register whose A value would be overwritten by
+	//    the "LD A, imm" used to set up the CP operand.
+	// Both are saved to "D" (scratch) via physOverride; the OR-from-flag handler
+	// in genBinOp will then read them from "D" instead of from "F"/"A".
+	g.materializePendingFlag(inst)
+	g.materializePendingAcc(inst)
 
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
@@ -2586,6 +3190,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 				}
 				g.emitf("    CP %s", lhs)
 				g.cmpSwapped[inst.Dst] = true
+				g.pendingFlagReg = inst.Dst
 				return
 			}
 			// lhs IS "A": force-swap would clobber the live value in A.
@@ -2616,6 +3221,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 			g.emitf("    CP %d", cv)
 		}
 		// CP/AND A does not modify A; aliases remain valid.
+		g.pendingFlagReg = inst.Dst
 		return
 	}
 
@@ -2626,11 +3232,20 @@ func (g *z80cg) genCmp(inst *Inst) {
 	if rhs == "A" && lhs != "A" {
 		// A already holds rhs. CP lhs computes A−lhs = rhs−lhs.
 		// This is the swapped comparison; condCode will invert it.
+		// For CmpLt/CmpGe (and unsigned variants), the equality case (A==lhs)
+		// is not captured by a single carry flag after the reversal, so we need
+		// two jumps (CGT/CLE) in TermBrIf.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		g.emitf("    CP %s", lhs)
 		g.cmpSwapped[inst.Dst] = true
+		swappedCond := inst.Cond.Swap()
+		if swappedCond == CmpGt || swappedCond == CmpUgt ||
+			swappedCond == CmpLe || swappedCond == CmpUle {
+			g.cmpNeedsTwo[inst.Dst] = true
+		}
 		// CP does not modify A; aliases remain valid.
+		g.pendingFlagReg = inst.Dst
 		return
 	}
 
@@ -2650,6 +3265,23 @@ func (g *z80cg) genCmp(inst *Inst) {
 		return
 	}
 
+	// Special case: rhs is currently in A but lhs is not.
+	// We cannot emit "LD A, lhs; CP A" (overwrites rhs before compare).
+	// Instead keep A=rhs and emit "CP lhs" — the comparison is reversed.
+	// Record the swap so condCode inverts the condition.  The swapped condition
+	// may require two jumps (CmpGt/CmpLe) to handle the equality case.
+	if rhs == "A" && !g.holdsValue("A", lhs) {
+		g.emitf("    CP %s", lhs)
+		g.cmpSwapped[inst.Dst] = true
+		swappedCond := inst.Cond.Swap()
+		if swappedCond == CmpGt || swappedCond == CmpUgt ||
+			swappedCond == CmpLe || swappedCond == CmpUle {
+			g.cmpNeedsTwo[inst.Dst] = true
+		}
+		g.pendingFlagReg = inst.Dst
+		return
+	}
+
 	// Coalescing: A already holds lhs — skip LD A, lhs.
 	if !g.holdsValue("A", lhs) {
 		g.emitLDA(lhs)
@@ -2658,6 +3290,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 	g.lastFlagsRhs = ""
 	g.emitf("    CP %s", rhs)
 	// CP does not modify A; aliases remain valid.
+	g.pendingFlagReg = inst.Dst
 }
 
 // ── Calls ─────────────────────────────────────────────────────────────────────
@@ -2979,9 +3612,26 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 	// ── Normal register moves ─────────────────────────────────────────────────
 
 	if widthBits <= 8 {
-		g.emitf("    LD %s, %s", dst, src)
-		if isSimpleReg(dst) && isSimpleReg(src) {
-			g.setCopy(dst, src)
+		// LocMem spill slot: "LD r, $Fxxx" and "LD $Fxxx, r" are not valid Z80.
+		// Only "LD A, (nn)" and "LD (nn), A" work for absolute 8-bit memory I/O.
+		// Route all other combinations through A.
+		switch {
+		case strings.HasPrefix(src, "$") && dst == "A":
+			g.emitf("    LD A, (%s)", src)
+		case strings.HasPrefix(src, "$"):
+			g.emitf("    LD A, (%s)", src)
+			g.emitf("    LD %s, A", dst)
+			g.invalidate("A")
+		case strings.HasPrefix(dst, "$") && src == "A":
+			g.emitf("    LD (%s), A", dst)
+		case strings.HasPrefix(dst, "$"):
+			g.emitLDA(src)
+			g.emitf("    LD (%s), A", dst)
+		default:
+			g.emitf("    LD %s, %s", dst, src)
+			if isSimpleReg(dst) && isSimpleReg(src) {
+				g.setCopy(dst, src)
+			}
 		}
 		return
 	}
@@ -2995,9 +3645,13 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 	// 16-bit register move.
 	switch {
 	case dst == "HL" && src == "DE":
-		g.emit("    EX DE, HL")
+		// Copy DE→HL: must NOT use EX DE,HL (swap destroys DE).
+		g.emitf("    LD %s, %s", highByte(dst), highByte(src)) // LD H, D
+		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))   // LD L, E
 	case dst == "DE" && src == "HL":
-		g.emit("    EX DE, HL")
+		// Copy HL→DE: must NOT use EX DE,HL (swap destroys HL).
+		g.emitf("    LD %s, %s", highByte(dst), highByte(src)) // LD D, H
+		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))   // LD E, L
 	case (dst == "IX" || dst == "IY") && (src == "DE" || src == "BC"):
 		// DE/BC → IX/IY: undocumented byte-copy (DD/FD prefix), 2×8T = 16T.
 		// Safe because D, E, B, C are NOT substituted by the DD/FD prefix.
@@ -3034,6 +3688,18 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			g.emitf("    LD %s, 0", hi)
 			break
 		}
+		// LocMem spill slot → register pair: use LD rr, (nn).
+		// Z80 supports: LD HL,(nn) [native], LD DE/BC/SP,(nn) [ED-prefix].
+		// Cannot use PUSH/POP since PUSH nn is not a valid Z80 instruction.
+		if strings.HasPrefix(src, "$") {
+			g.emitf("    LD %s, (%s)", dst, src)
+			break
+		}
+		// register pair → LocMem spill slot: use LD (nn), rr.
+		if strings.HasPrefix(dst, "$") {
+			g.emitf("    LD (%s), %s", dst, src)
+			break
+		}
 		// General 16-bit move via PUSH/POP.
 		// PUSH/POP only works with 16-bit register pairs; 8-bit regs must
 		// not reach here (they would silently emit e.g. PUSH AF instead of
@@ -3048,6 +3714,21 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 // ── Terminators ───────────────────────────────────────────────────────────────
 
 func (g *z80cg) genTerm(f *Func, t Term) {
+	// If any block param was saved to a scratch register (via materializePendingAcc),
+	// restore it to its canonical physical location before any terminal jump or ret.
+	// This ensures live-through values (used in successor blocks without explicit
+	// block params) are in their allocator-assigned locations when those blocks run.
+	// physOverride[r] was valid within this block; canonical location = ar.Loc(r).
+	for _, bp := range g.curBlock.Params {
+		if scratch, ok := g.physOverride[bp.Dst]; ok {
+			canon := g.ar.Loc(bp.Dst).Name
+			if canon != "" && canon != scratch {
+				g.emitf("    LD %s, %s    ; restore block param from scratch", canon, scratch)
+			}
+			delete(g.physOverride, bp.Dst)
+		}
+	}
+
 	switch t := t.(type) {
 	case *TermRet:
 		// Tail call: JP was already emitted by genCall; skip all moves and RET.
@@ -3214,22 +3895,60 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		//   [move return vals] ; only executed when Cond==0
 		//   RET
 		//
-		// This is equivalent to the "RET invertCC + JRS cc" order but flag-safe.
+		// Compound conditions CGT/CLE need two jumps — no single Z80 condition
+		// encodes (NC && NZ) or (C || Z). Handle them separately.
 		cc := g.condCode(f, t.Cond)
 		copies := g.buildBlockCopies(f, t.Then, t.ThenArgs)
 		thenLbl := g.branchLabel(f, t.Then, copies)
-		// Emit the conditional jump while flags are still live.
 		retCopies := g.buildReturnCopies(t.Vals)
-		if g.isFallThrough(f, t.Then) && len(copies) == 0 {
-			// Then-block is the fallthrough: use RET invertCC (1 byte, optimal).
-			g.emitParallelCopy(retCopies)
-			g.emitf("    RET %s", invertCC(cc))
-		} else {
-			// General case: emit conditional jump to Then first, then return path.
-			g.emitf("    JRS %s, %s", cc, thenLbl)
-			g.emitParallelCopy(copies)
+		thenFT := g.isFallThrough(f, t.Then) && len(copies) == 0
+
+		switch cc {
+		case "CLE":
+			// a ≤ b: take Then if C (a<b) or Z (a==b).
+			// Jump to Then with two conditional JRs; fall through to RET.
+			g.emitf("    JRS C, %s", thenLbl)
+			g.emitf("    JRS Z, %s", thenLbl)
 			g.emitParallelCopy(retCopies)
 			g.emit("    RET")
+		case "CGT":
+			// a > b: take Then if NC && NZ.
+			// Invert: skip Then (jump to ret path) if C or Z.
+			retLbl := fmt.Sprintf(".%s_cret%d", sanitizeIdent(f.Name), g.trampIdx)
+			g.trampIdx++
+			g.emitf("    JRS Z, %s", retLbl)
+			g.emitf("    JRS C, %s", retLbl)
+			if !thenFT {
+				g.emitf("    JRS %s", thenLbl)
+			}
+			// Register ret path as trampoline so it's emitted AFTER the fallthrough
+			// then-block (otherwise the inline label would block the fallthrough path).
+			g.trampolines = append(g.trampolines, trampolineBlock{
+				label:  retLbl,
+				copies: retCopies,
+				isRet:  true,
+			})
+		default:
+			if thenFT && len(retCopies) == 0 {
+				// Then-block is the fallthrough AND return path is empty:
+				// use RET invertCC (1 byte, optimal). Only safe when retCopies is
+				// empty — otherwise retCopies would corrupt registers that @then
+				// reads, since they execute before the branch is resolved.
+				g.emitf("    RET %s", invertCC(cc))
+			} else if thenFT {
+				// Then-block is the fallthrough but retCopies are non-trivial.
+				// Jump to @then when condition is true (skipping the return path),
+				// then fall through to @then naturally.
+				g.emitf("    JRS %s, %s", cc, thenLbl)
+				g.emitParallelCopy(retCopies)
+				g.emit("    RET")
+			} else {
+				// General case: emit conditional jump to Then first, then return path.
+				g.emitf("    JRS %s, %s", cc, thenLbl)
+				g.emitParallelCopy(copies)
+				g.emitParallelCopy(retCopies)
+				g.emit("    RET")
+			}
 		}
 
 	case *TermUnreachable:
@@ -3300,7 +4019,10 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 		if i >= len(target.Params) {
 			break
 		}
-		src := g.ar.Loc(arg).Name
+		// Use g.loc (which respects physOverride) so that values saved to scratch
+		// registers by materializePendingAcc/materializePendingFlag are correctly
+		// moved to their canonical destination in the target block.
+		src := g.loc(arg)
 		dst := g.ar.Loc(target.Params[i].Dst).Name
 		if src != dst {
 			copies = append(copies, parallelCopy{srcName: src, dstName: dst, ty: target.Params[i].Ty})
@@ -3315,7 +4037,6 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	if len(copies) == 0 {
 		return
 	}
-
 	type move struct {
 		src, dst string
 		ty       Ty
@@ -3447,7 +4168,15 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			}
 		} else {
 			// u16 cycle: use stack.
-			g.emitf("    PUSH %s", m.src)
+			// If m.src is a LocMem spill slot ($Fxxx), PUSH is invalid.
+			// Save the LocMem value into the destination first (it will be
+			// overwritten by the cycle walk anyway), then push that pair.
+			if strings.HasPrefix(m.src, "$") {
+				g.emitf("    LD %s, (%s)", m.dst, m.src) // load LocMem into dest pair
+				g.emitf("    PUSH %s", m.dst)             // save that value on stack
+			} else {
+				g.emitf("    PUSH %s", m.src)
+			}
 			m.done = true
 			cur := m.dst
 			for {
@@ -3465,7 +4194,13 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 					break
 				}
 			}
-			g.emitf("    POP %s", cur)
+			if strings.HasPrefix(cur, "$") {
+				// POP into LocMem: pop to HL then store.
+				g.emit("    POP HL")
+				g.emitf("    LD (%s), HL", cur)
+			} else {
+				g.emitf("    POP %s", cur)
+			}
 		}
 	}
 }
@@ -3477,7 +4212,27 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		return
 	}
 	if ty.Width() <= 8 {
-		g.emitf("    LD %s, %s", dst, src)
+		switch {
+		case strings.HasPrefix(src, "$") && dst == "A":
+			g.emitf("    LD A, (%s)", src)
+		case strings.HasPrefix(src, "$"):
+			g.emitf("    LD A, (%s)", src)
+			g.emitf("    LD %s, A", dst)
+			g.invalidate("A")
+		case strings.HasPrefix(dst, "$") && src == "A":
+			g.emitf("    LD (%s), A", dst)
+		case strings.HasPrefix(dst, "$"):
+			g.emitLDA(src)
+			g.emitf("    LD (%s), A", dst)
+		default:
+			g.emitf("    LD %s, %s", dst, src)
+		}
+	} else if strings.HasPrefix(src, "$") {
+		// LocMem spill slot → register pair: LD rr, (nn).
+		g.emitf("    LD %s, (%s)", dst, src)
+	} else if strings.HasPrefix(dst, "$") {
+		// register pair → LocMem spill slot: LD (nn), rr.
+		g.emitf("    LD (%s), %s", dst, src)
 	} else {
 		// 16-bit non-destructive copy: two 8-bit LDs.
 		g.emitf("    LD %s, %s", highByte(dst), highByte(src))

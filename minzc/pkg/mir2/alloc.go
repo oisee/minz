@@ -277,6 +277,23 @@ func addTermUses(live *RegSet, t Term) {
 				live.Add(v)
 			}
 		}
+	case *TermCondRet:
+		// TermCondRet was missing — this omission caused Cond/Vals to be absent
+		// from the live set, making cond_ret operands appear non-interfering with
+		// the instructions immediately before the terminator.
+		if t.Cond != NoReg {
+			live.Add(t.Cond)
+		}
+		for _, v := range t.Vals {
+			if v != NoReg {
+				live.Add(v)
+			}
+		}
+		for _, a := range t.ThenArgs {
+			if a != NoReg {
+				live.Add(a)
+			}
+		}
 	}
 }
 
@@ -509,10 +526,47 @@ func physicalAliases(loc PhysLoc) []PhysLoc {
 		}
 		return nil
 	}
-	// For non-DWord locs, check if they belong to a DWord pair.
-	pair := dwordPairOf(loc.Name)
-	if pair != "" {
-		return []PhysLoc{{Kind: LocDWord, Name: pair}}
+	// Sub-register aliasing: 16-bit pairs and their 8-bit byte components overlap.
+	// A virtual in DE blocks D and E (and vice versa); same for HL↔H/L, BC↔B/C.
+	// Without this, the allocator can assign one virtual to DE and another to D,
+	// causing the 8-bit value to be silently clobbered when the pair is written.
+	if loc.Kind == LocReg {
+		switch loc.Name {
+		case "HL":
+			return []PhysLoc{
+				{Kind: LocReg, Name: "H"},
+				{Kind: LocReg, Name: "L"},
+				{Kind: LocDWord, Name: "HL"},
+			}
+		case "DE":
+			return []PhysLoc{
+				{Kind: LocReg, Name: "D"},
+				{Kind: LocReg, Name: "E"},
+				{Kind: LocDWord, Name: "DE"},
+			}
+		case "BC":
+			return []PhysLoc{
+				{Kind: LocReg, Name: "B"},
+				{Kind: LocReg, Name: "C"},
+				{Kind: LocDWord, Name: "BC"},
+			}
+		case "H", "L":
+			return []PhysLoc{
+				{Kind: LocReg, Name: "HL"},
+				{Kind: LocDWord, Name: "HL"},
+			}
+		case "D", "E":
+			return []PhysLoc{
+				{Kind: LocReg, Name: "DE"},
+				{Kind: LocDWord, Name: "DE"},
+			}
+		case "B", "C":
+			return []PhysLoc{
+				{Kind: LocReg, Name: "BC"},
+				{Kind: LocDWord, Name: "BC"},
+			}
+		}
 	}
+	// For non-LocReg non-LocDWord locs (shadow, IXY, etc.), no pair overlap applies.
 	return nil
 }
