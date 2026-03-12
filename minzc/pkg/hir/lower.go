@@ -215,6 +215,10 @@ func exprHasFreeRef(e Expr, bound, globals, funcs map[string]bool) bool {
 	case *IndexExpr:
 		return exprHasFreeRef(ex.Base, bound, globals, funcs) ||
 			exprHasFreeRef(ex.Idx, bound, globals, funcs)
+	case *CondExpr:
+		return exprHasFreeRef(ex.Cond, bound, globals, funcs) ||
+			exprHasFreeRef(ex.Then, bound, globals, funcs) ||
+			exprHasFreeRef(ex.Else, bound, globals, funcs)
 	}
 	return false
 }
@@ -1430,6 +1434,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	case *StructLitExpr:
 		return l.lowerStructLitAlloca(ex)
 
+	case *CondExpr:
+		return l.lowerCondExpr(ex)
+
 	default:
 		panic(fmt.Sprintf("hir/lower: unhandled expression type %T", e))
 	}
@@ -1482,6 +1489,37 @@ func (l *lowerer) lowerIndex(ex *IndexExpr) mir2.Reg {
 
 	ptr := l.bld.PtrAdd(base, offset, mir2.ClassPointer)
 	return l.bld.Load(ptr, ex.ElemTy, classForExpr(ex.ElemTy))
+}
+
+// lowerCondExpr lowers: if Cond { Then } else { Else }  →  result register.
+// Emits a BrIf to a then-block and an else-block, both converging at a join
+// block with a block parameter that carries the result value.
+func (l *lowerer) lowerCondExpr(ex *CondExpr) mir2.Reg {
+	cond := l.lowerCond(ex.Cond)
+	cls := classForExpr(ex.Ty)
+
+	thenLabel := l.fresh("cond_then")
+	elseLabel := l.fresh("cond_else")
+	joinLabel := l.fresh("cond_join")
+
+	l.bld.BrIf(cond, thenLabel, nil, elseLabel, nil)
+
+	// then-branch
+	thenBlk := l.bld.SwitchToNewBlock(thenLabel)
+	_ = thenBlk
+	thenVal := l.lowerExpr(ex.Then)
+	l.bld.Jmp(joinLabel, thenVal)
+
+	// else-branch
+	elseBlk := l.bld.SwitchToNewBlock(elseLabel)
+	_ = elseBlk
+	elseVal := l.lowerExpr(ex.Else)
+	l.bld.Jmp(joinLabel, elseVal)
+
+	// join block: a block parameter receives the value from whichever branch
+	joinBlk := l.bld.SwitchToNewBlock(joinLabel)
+	result := l.bld.BlockParam(joinBlk, ex.Ty, cls)
+	return result
 }
 
 // lowerBinExpr lowers a binary expression.
