@@ -404,19 +404,28 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 	case OpCmp:
 		var ok bool
 		ua, ub := uint64(a.I), uint64(b.I)
+		// For signed comparisons, sign-extend operands from their source width.
+		// Values are stored truncated (e.g. i8 -5 → 251), so we must recover
+		// the sign bit before comparing with Go's int64 operators.
+		sa, sb := a, b
+		if inst.SrcTy != nil {
+			w := inst.SrcTy.Width()
+			sa = signExtend(a, w)
+			sb = signExtend(b, w)
+		}
 		switch inst.Cond {
 		case CmpEq:
 			ok = a.I == b.I
 		case CmpNe:
 			ok = a.I != b.I
 		case CmpLt:
-			ok = a.I < b.I
+			ok = sa.I < sb.I
 		case CmpLe:
-			ok = a.I <= b.I
+			ok = sa.I <= sb.I
 		case CmpGt:
-			ok = a.I > b.I
+			ok = sa.I > sb.I
 		case CmpGe:
-			ok = a.I >= b.I
+			ok = sa.I >= sb.I
 		case CmpUlt:
 			ok = ua < ub
 		case CmpUle:

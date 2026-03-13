@@ -1608,27 +1608,50 @@ func (l *lowerer) lowerUnaryExpr(ex *UnaryExpr) mir2.Reg {
 
 // lowerCond lowers a condition expression and returns a ClassFlag vreg.
 // Handles comparison ops directly; for non-bool expressions wraps in != 0.
+// For ordering comparisons (<, <=, >, >=), picks signed or unsigned CmpCond
+// based on the operand type: i8/i16 → signed (CmpLt etc.), u8/u16 → unsigned (CmpUlt etc.).
+// Eq/Ne are sign-agnostic (bit patterns match regardless of interpretation).
 func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 	if bin, ok := e.(*BinExpr); ok {
 		var cmp mir2.CmpCond
+		signed := mir2.IsSigned(bin.L.ExprTy())
 		switch bin.Op {
 		case "==":
 			cmp = mir2.CmpEq
 		case "!=":
 			cmp = mir2.CmpNe
 		case "<":
-			cmp = mir2.CmpLt
+			if signed {
+				cmp = mir2.CmpLt
+			} else {
+				cmp = mir2.CmpUlt
+			}
 		case "<=":
-			cmp = mir2.CmpLe
+			if signed {
+				cmp = mir2.CmpLe
+			} else {
+				cmp = mir2.CmpUle
+			}
 		case ">":
-			cmp = mir2.CmpGt
+			if signed {
+				cmp = mir2.CmpGt
+			} else {
+				cmp = mir2.CmpUgt
+			}
 		case ">=":
-			cmp = mir2.CmpGe
+			if signed {
+				cmp = mir2.CmpGe
+			} else {
+				cmp = mir2.CmpUge
+			}
 		default:
 			goto fallback
 		}
 		lReg := l.lowerExpr(bin.L)
 		rReg := l.lowerExpr(bin.R)
+		if signed {
+			return l.bld.CmpWithSrcTy(cmp, lReg, rReg, mir2.ClassFlag, false, bin.L.ExprTy())
+		}
 		return l.bld.Cmp(cmp, lReg, rReg, mir2.ClassFlag, false)
 	}
 fallback:

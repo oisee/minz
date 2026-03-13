@@ -169,6 +169,15 @@ func (b *Builder) Cmp(cond CmpCond, lhs, rhs Reg, cls RegClass, clsHard bool) Re
 	return r
 }
 
+// CmpWithSrcTy is like Cmp but records the operand type in SrcTy.
+// This is needed for signed comparisons (CmpLt/Le/Gt/Ge) so the VM
+// can sign-extend operands before comparing.
+func (b *Builder) CmpWithSrcTy(cond CmpCond, lhs, rhs Reg, cls RegClass, clsHard bool, srcTy Ty) Reg {
+	r := b.reg()
+	b.emit(&Inst{Op: OpCmp, Dst: r, Src: [2]Reg{lhs, rhs}, Cond: cond, Ty: TyBool, SrcTy: srcTy, Cls: cls, ClsHard: clsHard})
+	return r
+}
+
 // ── Memory ────────────────────────────────────────────────────────────────────
 
 // Load emits a memory load from address ptr.

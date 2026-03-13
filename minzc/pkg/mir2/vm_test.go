@@ -226,3 +226,61 @@ func TestVMDump(t *testing.T) {
 		}
 	}
 }
+
+func TestVMSignedComparison(t *testing.T) {
+	// max_i8(a, b) → a >= b ? a : b   (signed comparison)
+	// With i8: -5 is stored as 251. Signed comparison must recover the sign.
+	//
+	//   fun @max_i8(a: i8, b: i8) -> i8
+	//     block @entry:
+	//       %cmp = cmp ge %a, %b : bool   [SrcTy=i8]
+	//       br_if %cmp, @ret_a(), @ret_b()
+	//     block @ret_a:
+	//       ret %a
+	//     block @ret_b:
+	//       ret %b
+	m := &mir2.Module{Name: "signed_cmp"}
+	f := m.AddFunc("max_i8")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyI8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyI8, mir2.ClassAcc)
+	bParam := b.Param("b", mir2.TyI8, mir2.ClassGeneral)
+
+	cmp := b.CmpWithSrcTy(mir2.CmpGe, a, bParam, mir2.ClassFlag, false, mir2.TyI8)
+	b.BrIf(cmp, "ret_a", nil, "ret_b", nil)
+
+	retA := b.SwitchToNewBlock("ret_a")
+	_ = retA
+	b.Ret(a)
+
+	retB := b.SwitchToNewBlock("ret_b")
+	_ = retB
+	b.Ret(bParam)
+
+	vm := mir2.NewVM(m)
+
+	tests := []struct {
+		a, b, want int64
+	}{
+		{5, 3, 5},       // 5 >= 3 → true → return 5
+		{3, 5, 5},       // 3 >= 5 → false → return 5
+		{251, 5, 5},     // -5 (251) >= 5 → false (signed) → return 5
+		{5, 251, 5},     // 5 >= -5 (251) → true (signed) → return 5
+		{251, 253, 253}, // -5 >= -3 → false → return -3 (253)
+		{253, 251, 253}, // -3 >= -5 → true → return -3 (253)
+		{0, 0, 0},       // equal
+	}
+
+	for _, tc := range tests {
+		got, err := vm.Call("max_i8", []mir2.Value{{I: tc.a}, {I: tc.b}})
+		if err != nil {
+			t.Errorf("max_i8(%d, %d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if len(got) != 1 || got[0].I != tc.want {
+			t.Errorf("max_i8(%d, %d) = %d, want %d", tc.a, tc.b, got[0].I, tc.want)
+		}
+	}
+}
