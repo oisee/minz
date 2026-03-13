@@ -159,7 +159,7 @@ func (cg *m6502cg) genInst(inst *Inst) {
 		if lhs != "A" {
 			cg.genMoveToA(lhs)
 		}
-		cg.emit("    CMP %s", cg.operand(cg.loc(inst.Src[1])))
+		cg.emit("    CMP %s", cg.ensureOperand(cg.loc(inst.Src[1])))
 
 	default:
 		cg.comment("TODO: %s (op=%d)", inst.Op, inst.Op)
@@ -219,7 +219,7 @@ func (cg *m6502cg) genAdd(dst, lhs, rhs string) {
 		cg.genMoveToA(lhs)
 	}
 	cg.emit("    CLC")
-	cg.emit("    ADC %s", cg.operand(rhs))
+	cg.emit("    ADC %s", cg.ensureOperand(rhs))
 	if dst != "A" {
 		cg.genMoveFromA(dst)
 	}
@@ -230,7 +230,7 @@ func (cg *m6502cg) genSub(dst, lhs, rhs string) {
 		cg.genMoveToA(lhs)
 	}
 	cg.emit("    SEC")
-	cg.emit("    SBC %s", cg.operand(rhs))
+	cg.emit("    SBC %s", cg.ensureOperand(rhs))
 	if dst != "A" {
 		cg.genMoveFromA(dst)
 	}
@@ -240,7 +240,7 @@ func (cg *m6502cg) genBitwise(op, dst, lhs, rhs string) {
 	if lhs != "A" {
 		cg.genMoveToA(lhs)
 	}
-	cg.emit("    %s %s", op, cg.operand(rhs))
+	cg.emit("    %s %s", op, cg.ensureOperand(rhs))
 	if dst != "A" {
 		cg.genMoveFromA(dst)
 	}
@@ -288,10 +288,30 @@ func (cg *m6502cg) genMoveFromA(dst string) {
 	}
 }
 
-func (cg *m6502cg) operand(loc string) string {
+// zpScratch is a reserved zero-page address used as a temporary when a
+// register value must be used as an ALU operand.  On NMOS 6502, ADC/SBC/AND/
+// ORA/EOR/CMP cannot take a register name — only #imm, zp, abs, or indexed
+// modes.  We spill to this scratch byte before the ALU instruction.
+const zpScratch = "$00" // ZP $00 — safe because we don't use it for allocation
+
+// ensureOperand makes sure `loc` is usable as an ALU operand (the second
+// arg to ADC/SBC/AND/ORA/EOR/CMP).  On NMOS 6502, these instructions accept
+// #imm, zp, abs, or indexed modes — NOT a register name.
+//
+// If loc is A, X, or Y we spill to zpScratch first.  Note: when the caller
+// has already loaded lhs into A and rhs is also A (e.g. "a + a"), we must
+// still spill because "ADC A" is not a valid instruction.
+func (cg *m6502cg) ensureOperand(loc string) string {
 	switch loc {
-	case "A", "X", "Y":
-		return loc
+	case "A":
+		cg.emit("    STA %s", zpScratch)
+		return zpScratch
+	case "X":
+		cg.emit("    STX %s", zpScratch)
+		return zpScratch
+	case "Y":
+		cg.emit("    STY %s", zpScratch)
+		return zpScratch
 	default:
 		return loc
 	}
