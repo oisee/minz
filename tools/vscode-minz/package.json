@@ -148,6 +148,31 @@
         "command": "minz.startDebugging",
         "title": "MinZ: Start Debugging (DeZog)",
         "icon": "$(debug-start)"
+      },
+      {
+        "command": "minz.compileNative",
+        "title": "Nanz: Compile to Native (C99 + QBE)",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "minz.compileNativeC",
+        "title": "Nanz: Compile to Native (C99 only)",
+        "icon": "$(file-binary)"
+      },
+      {
+        "command": "minz.compileNativeQBE",
+        "title": "Nanz: Compile to Native (QBE only)",
+        "icon": "$(file-binary)"
+      },
+      {
+        "command": "minz.emitC",
+        "title": "Nanz: Emit C99 Code",
+        "icon": "$(code)"
+      },
+      {
+        "command": "minz.emitQBE",
+        "title": "Nanz: Emit QBE IL",
+        "icon": "$(code)"
       }
     ],
     "menus": {
@@ -191,6 +216,21 @@
           "when": "editorLangId == minz",
           "command": "minz.startDebugging",
           "group": "minz@7"
+        },
+        {
+          "when": "editorLangId == nanz",
+          "command": "minz.compileNative",
+          "group": "minz@8"
+        },
+        {
+          "when": "editorLangId == nanz",
+          "command": "minz.emitC",
+          "group": "minz@9"
+        },
+        {
+          "when": "editorLangId == nanz",
+          "command": "minz.emitQBE",
+          "group": "minz@9"
         }
       ],
       "editor/title": [

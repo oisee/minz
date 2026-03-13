@@ -1,8 +1,17 @@
 // nanz2native: compile Nanz source to native AMD64 via MIR2→C99 and MIR2→QBE.
-// Prints the generated C/QBE IL, compiles to native, runs, and shows disassembly.
+//
+// Usage:
+//
+//	nanz2native                         # run built-in demos
+//	nanz2native file.nanz               # compile file via both backends, run
+//	nanz2native -c file.nanz            # C99 backend only
+//	nanz2native -q file.nanz            # QBE backend only
+//	nanz2native -emit-c file.nanz       # print generated C99, don't compile
+//	nanz2native -emit-qbe file.nanz     # print generated QBE IL, don't compile
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,6 +23,15 @@ import (
 	"github.com/minz/minzc/pkg/mir2c"
 	"github.com/minz/minzc/pkg/mir2qbe"
 	"github.com/minz/minzc/pkg/nanz"
+)
+
+var (
+	flagC       = flag.Bool("c", false, "C99 backend only")
+	flagQ       = flag.Bool("q", false, "QBE backend only")
+	flagEmitC   = flag.Bool("emit-c", false, "print generated C99 and exit")
+	flagEmitQBE = flag.Bool("emit-qbe", false, "print generated QBE IL and exit")
+	flagRun     = flag.Bool("run", true, "compile and run (default true)")
+	flagDisasm  = flag.Bool("disasm", false, "show disassembly")
 )
 
 // Library examples — pure functions, called from a generated main wrapper.
@@ -209,6 +227,134 @@ func compileNanz(src, name string) (*mir2.Module, error) {
 }
 
 func main() {
+	flag.Parse()
+
+	// If a file argument is given, compile that file
+	if flag.NArg() > 0 {
+		compileFile(flag.Arg(0))
+		return
+	}
+
+	// Otherwise, run built-in demos
+	runDemos()
+}
+
+// compileFile compiles a .nanz file to native via C99 and/or QBE backends.
+func compileFile(filename string) {
+	srcBytes, err := os.ReadFile(filename)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "read: %v\n", err)
+		os.Exit(1)
+	}
+	src := string(srcBytes)
+	name := strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))
+
+	m, err := compileNanz(src, name)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "compile: %v\n", err)
+		os.Exit(1)
+	}
+
+	dir, err := os.MkdirTemp("", "nanz2native")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "tmpdir: %v\n", err)
+		os.Exit(1)
+	}
+	defer os.RemoveAll(dir)
+
+	// Write tiny C runtime for @extern print_num / print_char
+	rtPath := filepath.Join(dir, "runtime.c")
+	os.WriteFile(rtPath, []byte(runtimeC), 0644)
+
+	// Emit-only modes: print and exit immediately
+	if *flagEmitC {
+		cCode, err := mir2c.Compile(m)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "mir2c: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Print(cCode)
+		return
+	}
+	if *flagEmitQBE {
+		qbeIR, err := mir2qbe.Compile(m)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "mir2qbe: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Print(qbeIR)
+		return
+	}
+
+	doC := !*flagQ || *flagC
+	doQBE := !*flagC || *flagQ
+	if !*flagC && !*flagQ {
+		doC = true
+		doQBE = true
+	}
+
+	// ── C99 backend ──
+	if doC {
+		cCode, err := mir2c.Compile(m)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "mir2c: %v\n", err)
+		} else {
+			fmt.Printf("── C99 output ──\n%s\n", cCode)
+			cPath := filepath.Join(dir, name+".c")
+			binPath := filepath.Join(dir, name+"_c")
+			os.WriteFile(cPath, []byte(cCode), 0644)
+
+			out, err := exec.Command("cc", "-O0", "-o", binPath, cPath, rtPath).CombinedOutput()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "cc: %v\n%s\n", err, out)
+			} else {
+				if *flagDisasm {
+					disasm, _ := exec.Command("objdump", "-d", "-M", "intel", binPath).Output()
+					fmt.Printf("── C99 → AMD64 disassembly ──\n%s\n", filterDisasm(string(disasm)))
+				}
+				if *flagRun {
+					result, _ := exec.Command(binPath).CombinedOutput()
+					fmt.Printf("── C99 run ──\n%s", string(result))
+				}
+			}
+		}
+	}
+
+	// ── QBE backend ──
+	if doQBE {
+		qbeIR, err := mir2qbe.Compile(m)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "mir2qbe: %v\n", err)
+		} else {
+			fmt.Printf("── QBE IL output ──\n%s\n", qbeIR)
+
+			ssaPath := filepath.Join(dir, name+".ssa")
+			asmPath := filepath.Join(dir, name+".s")
+			os.WriteFile(ssaPath, []byte(qbeIR), 0644)
+
+			out, err := exec.Command("qbe", "-o", asmPath, ssaPath).CombinedOutput()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "qbe: %v\n%s\n", err, out)
+			} else {
+				asmBytes, _ := os.ReadFile(asmPath)
+				fmt.Printf("── QBE → AMD64 assembly ──\n%s\n", string(asmBytes))
+
+				binPath := filepath.Join(dir, name+"_q")
+				out, err = exec.Command("cc", "-O0", "-o", binPath, asmPath, rtPath).CombinedOutput()
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "cc(qbe): %v\n%s\n", err, out)
+				} else {
+					if *flagRun {
+						result, _ := exec.Command(binPath).CombinedOutput()
+						fmt.Printf("── QBE run ──\n%s", string(result))
+					}
+				}
+			}
+		}
+	}
+}
+
+func runDemos() {
 	dir, err := os.MkdirTemp("", "nanz2native")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "tmpdir: %v\n", err)

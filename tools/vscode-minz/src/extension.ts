@@ -26,6 +26,11 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('minz.showAST', () => showAST()),
         vscode.commands.registerCommand('minz.debugBuild', () => debugBuild()),
         vscode.commands.registerCommand('minz.startDebugging', () => startDebugging()),
+        vscode.commands.registerCommand('minz.compileNative', () => compileNative()),
+        vscode.commands.registerCommand('minz.compileNativeC', () => compileNative('-c')),
+        vscode.commands.registerCommand('minz.compileNativeQBE', () => compileNative('-q')),
+        vscode.commands.registerCommand('minz.emitC', () => emitNativeIR('-emit-c')),
+        vscode.commands.registerCommand('minz.emitQBE', () => emitNativeIR('-emit-qbe')),
         diagnosticCollection
     );
 
@@ -486,6 +491,68 @@ async function showAST() {
     } else {
         vscode.window.showWarningMessage('AST generation not available');
     }
+}
+
+// ---------- Native Compilation (nanz2native) ----------
+
+function getNanz2NativePath(ctx: ReturnType<typeof getMinZContext>): string {
+    if (!ctx) { return 'nanz2native'; }
+    // Try alongside the compiler binary, then fall back to PATH
+    const compilerDir = path.dirname(ctx.compilerPath);
+    const candidate = path.join(compilerDir, 'nanz2native');
+    if (fs.existsSync(candidate)) { return candidate; }
+    return 'nanz2native';
+}
+
+async function compileNative(backendFlag?: string) {
+    const ctx = getMinZContext();
+    if (!ctx) { return; }
+    await vscode.window.activeTextEditor?.document.save();
+
+    const nanz2native = getNanz2NativePath(ctx);
+    const args = ['-run', '-disasm'];
+    if (backendFlag) { args.push(backendFlag); }
+    args.push(`"${ctx.filePath}"`);
+
+    const cmd = `${nanz2native} ${args.join(' ')}`;
+    outputChannel.clear();
+    outputChannel.show();
+    outputChannel.appendLine(`Compile to native: ${cmd}`);
+
+    exec(cmd, { cwd: ctx.workingDir }, (error, stdout, stderr) => {
+        if (stdout) { outputChannel.appendLine(stdout); }
+        if (stderr) { outputChannel.appendLine(stderr); }
+        if (error) {
+            outputChannel.appendLine(`Error: ${error.message}`);
+            vscode.window.showErrorMessage('Native compilation failed — see MinZ output');
+        } else {
+            const backend = backendFlag === '-c' ? 'C99' : backendFlag === '-q' ? 'QBE' : 'C99+QBE';
+            vscode.window.showInformationMessage(`Native compilation (${backend}) complete`);
+        }
+    });
+}
+
+async function emitNativeIR(emitFlag: string) {
+    const ctx = getMinZContext();
+    if (!ctx) { return; }
+    await vscode.window.activeTextEditor?.document.save();
+
+    const nanz2native = getNanz2NativePath(ctx);
+    const cmd = `${nanz2native} ${emitFlag} "${ctx.filePath}"`;
+
+    exec(cmd, { cwd: ctx.workingDir }, async (error, stdout, stderr) => {
+        if (error) {
+            outputChannel.clear();
+            outputChannel.show();
+            if (stderr) { outputChannel.appendLine(stderr); }
+            outputChannel.appendLine(`Error: ${error.message}`);
+            return;
+        }
+        // Show generated code in a new tab beside the source
+        const lang = emitFlag === '-emit-c' ? 'c' : 'plaintext';
+        const doc = await vscode.workspace.openTextDocument({ content: stdout, language: lang });
+        vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
+    });
 }
 
 // ---------- Debug Build + DeZog ----------
