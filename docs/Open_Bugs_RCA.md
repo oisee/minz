@@ -1,6 +1,6 @@
 # MIR2 Open Bugs — Root Cause Analysis
 
-**Last updated:** 2026-03-10
+**Last updated:** 2026-03-13
 **Status key:** 🔴 blocking | 🟡 degraded (correct but slow) | 🟢 tracked/deferred
 
 ---
@@ -166,13 +166,61 @@ operations remain valid.
 
 ---
 
+## BUG-007 🟡 Spurious adapter LD when caller/callee share convention
+
+**Symptom:** When two functions share an identical PFCCO contract, the codegen
+emits a spurious `LD` that overwrites the first argument with the second.
+
+**Reproducer:**
+```nanz
+fun add(a: u8, b: u8) -> u8 { return a + b }
+fun add_then_double(a: u8, b: u8) -> u8 {
+    let s = add(a, b)
+    return s + s
+}
+```
+
+Both functions get contract `(a=A, b=C)`.  `add_then_double` should call
+`add(a, b)` with no setup (args already in place), but codegen emits:
+```z80
+add_then_double:
+    LD A, C         ; WRONG: overwrites a with b
+    CALL add        ; computes add(b, b) instead of add(a, b)
+    ADD A, A
+    RET
+```
+
+**Masked by:** Constant folding in `main`.  If `add_then_double(3, 4)` is
+called with constants, `main` is folded to `LD A, 14; RET` (correct).  But
+the `add_then_double` function body is wrong for dynamic inputs.
+
+**RCA:** The call-site lowering in `z80codegen.go` emits argument setup
+moves based on the *default* convention expectation, not the *actual*
+convention assigned by PFCCO.  When PFCCO assigns an identical convention
+to both caller and callee, the setup code should be a no-op, but the
+codegen doesn't check for this case.
+
+**Fix options:**
+1. **Skip identity moves:** Before emitting call-site argument setup, check
+   if the source and destination registers are the same.  Skip the `LD` if so.
+2. **Post-RA dead move elimination:** A peephole pass that removes `LD X, X`
+   (literal same register) and identity parallel copies.
+
+**Priority:** Medium.  Masked by constant folding in most small programs, but
+will cause incorrect results in larger programs with dynamic call chains.
+
+**Discovered:** 2026-03-13, during PFCCO paper validation.
+
+---
+
 ## Summary table
 
 | Bug | Category | Severity | Fix size | Status |
 |-----|----------|----------|----------|--------|
 | BUG-001 GCD parallel-copy | Allocator (affinity) | 🟡 | Large | Open |
 | BUG-002 forEach const rematl | Codegen (parallel copy) | 🟡 | Small | Deferred |
-| BUG-003 ptr[i] in while loop | HIR/codegen (PtrAdd) | 🔴 | Medium | Open |
+| BUG-003 ptr[i] in while loop | HIR/codegen (PtrAdd) | ~~🔴~~ | Medium | **FIXED** (37b934d) |
 | BUG-004 Non-zero-lo LUT | Pipeline ordering | 🟡 | Small | Open |
 | BUG-005 SubSwapNeg u16 guard | condret.go | 🟡 | Trivial | Deferred (workaround) |
 | BUG-006 Zero-size struct global | Global emitter | 🔴 | Small | Open |
+| BUG-007 Spurious adapter LD | Codegen (PFCCO+RA) | 🟡 | Medium | Open |

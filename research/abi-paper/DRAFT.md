@@ -1,7 +1,7 @@
 # Per-Function Calling Convention Optimization for Irregular Register Architectures
 
 **Target venue:** CC 2027 or LCTES 2027
-**Draft status:** v0.1 — structure + content, needs polish
+**Draft status:** v0.2 — updated with post-merge codegen (2026-03-13)
 
 ---
 
@@ -441,19 +441,32 @@ fun min_of(a: u16, b: u16) -> u16 {
 | Function | Nanz | SDCC |
 |----------|------|------|
 | swap | `EX DE,HL; RET` — **2 bytes, 14T** | Frame + stores — 26 bytes, 236T |
-| min_of | `JP minmax` — **3 bytes** (0 with EQU) | ~40 bytes, ~200T |
+| min_of | `min_of EQU minmax` — **0 bytes** | ~40 bytes, ~200T |
 
 **EQU collapse.** Because PFCCO aligned `min_of`'s contract with `minmax`'s
 (both: param1=HL, param2=DE, return=HL), the tail call `min_of → minmax`
-requires no argument setup and no result extraction.  The assembler can
-replace `min_of: JP minmax` with `min_of EQU minmax` — a **zero-byte
-function**.  This is an emergent property: nobody programmed "detect alias
-opportunities."  It falls out of cost minimization.
+requires no argument setup and no result extraction.  The compiler emits
+`min_of EQU minmax` — a **zero-byte function alias**.  This is an emergent
+property: nobody programmed "detect alias opportunities."  It falls out of
+cost minimization.
 
 C cannot express multi-return, forcing SDCC to use pointer out-parameters
 with stack frames.  The 17× speedup on `swap` is partly a language-level
 advantage (multi-return syntax) and partly an ABI-level advantage
 (per-function register assignment).
+
+> **Footnote: The Degenerate Case.** An amusing edge case: the optimizer can
+> reduce `swap` to a bare `RET` (0 bytes of useful work) by *reversing* the
+> parameter convention — `swap(a: u16 = DE, b: u16 = HL)` means the values
+> arrive already "swapped."  The swap happens in the *ABI*, not in the
+> function body.  While technically optimal for the function in isolation,
+> this is a degenerate solution: the caller still pays `CALL` + `RET`
+> (27 T-states) for a no-op.  A production compiler should detect trivial
+> function bodies and inline them rather than convention-optimize.  We use
+> the honest `EX DE,HL; RET` version in our evaluation.  The degenerate case
+> does, however, illustrate the power of the approach: PFCCO treats calling
+> conventions as a first-class optimization variable, and when taken to its
+> logical extreme, the ABI *becomes* the implementation.
 
 ### 6.5 Fibonacci: Recursive ABI Alignment
 
@@ -474,13 +487,48 @@ convention returns in DE, requiring `EX DE,HL` after every recursive call.
 | abs_diff (u16) | 10 | 16 | **1.6×** | 1.2× |
 | gcd | 14 | 19 | **1.4×** | ~1.5× per iter |
 | swap | 2 | 26 | **13×** | **17×** |
-| min_of | 3 (0) | ~40 | **13×+** | **20×+** |
+| min_of | **0** (EQU) | ~40 | **∞** | **∞** |
 | forEach | 12 | 29 | **2.4×** | **2.3×** |
 | fib | ~26 | ~28 | 1.1× | ~1.2× per call |
 
 Per-function ABI's advantage scales with structural complexity: more
 functions, deeper call graphs, multi-return.  For isolated leaf functions,
 SDCC's global ABI is near-optimal.
+
+### 6.7 Limitations
+
+Several known limitations affect the evaluation:
+
+1. **Peephole optimizer gaps.** The GCD example still contains redundant
+   instructions: a duplicate `CP C` (loop condition re-evaluated for the
+   branch) and a `LD E,A; LD A,E` no-op from the parallel-copy resolver.
+   These are peephole misses (tracked as BUG-001), not PFCCO deficiencies,
+   but they inflate Nanz's byte counts.
+
+2. **Degenerate convention swaps.** As noted in §6.4, PFCCO can "solve" a
+   function by reversing its calling convention rather than emitting useful
+   instructions.  Without inlining, this wastes CALL/RET overhead (27T).
+   The optimizer does not currently account for function body triviality
+   when choosing conventions.
+
+3. **Shadow register classes are hardcoded.** ClassDWord (HL+H'L') and
+   ClassShadow are assigned by type, not optimized by PFCCO.  The EXX
+   atomicity constraint makes shadow register optimization a distinct
+   problem (§8).
+
+4. **Recursive functions use heuristic contracts.** Cycle members in the
+   call graph receive default conventions rather than optimal ones.
+   SCC-based fixed-point iteration would address this.
+
+5. **Comparison baseline.** Our comparison targets SDCC 4.2.0, not the
+   latest trunk (4.4.x), which includes further improvements to Krause's
+   ABI selection.
+
+6. **Codegen correctness gaps.** A spurious adapter move bug exists where
+   the register allocator emits unnecessary `LD` instructions when caller
+   and callee share identical conventions (BUG-007).  This is masked by
+   constant folding in simple programs but produces incorrect results for
+   dynamic inputs in chained function calls.
 
 ---
 

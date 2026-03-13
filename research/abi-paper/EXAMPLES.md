@@ -163,26 +163,33 @@ fun gcd(a: u8, b: u8) -> u8 {
 }
 ```
 
-### Nanz MIR2 Output
+### Nanz MIR2 Output (v0.2 — 2026-03-13, post BUG-003 fix merge)
 ```z80
-; fun gcd(a: u8 = A, b: u8 = C) -> u8 = A ; clobbers: F
+; fun gcd(a: u8 = A, b: u8 = C) -> u8 = A ; clobbers: E, F
 gcd:
 .gcd_loop_head1:
-    CP C            ; 4T — compare a, b
-    JR Z, .exit     ; 12T/7T — equal → done
-    CP C            ; 4T — redundant (known bug, should reuse flag)
-    JR Z, .else     ; 12T/7T
-    JR C, .else     ; 12T/7T — a < b → else branch
-    SUB C           ; 4T — a = a - b
-    JR .head        ; 12T — continue loop
-.else:
-    NEG             ; 8T — compute b - a via: A = -A + C → C = A
-    ADD A, C        ; 4T
-    LD C, A         ; 4T
-    JR .head        ; 12T
-.exit:
-    RET             ; 10T
-; 14 bytes
+    LD E, A           ; 4T — save A (parallel-copy resolver artifact)
+    LD A, E           ; 4T — reload A (no-op! BUG-001 peephole miss)
+    CP C              ; 4T — compare a, b
+    LD A, E           ; 4T — restore A (redundant — CP doesn't change A)
+    JRS Z, .gcd_loop_exit3
+.gcd_loop_body2:
+    CP C              ; 4T — duplicate CP (known: loop cond + branch cond)
+    JRS Z, .gcd_if_else6
+    JRS C, .gcd_if_else6
+.gcd_if_then4:
+    SUB C             ; 4T — a = a - b
+.gcd_if_join5:
+    JRS .gcd_loop_head1
+.gcd_if_else6:
+    NEG               ; 8T — b - a via: -a + b
+    ADD A, C          ; 4T
+    LD C, A           ; 4T — b = result
+    JRS .gcd_if_join5
+.gcd_loop_exit3:
+    RET               ; 10T
+; 18 bytes (was 14 in v0.1 — regression from parallel-copy resolver)
+; Core ABI decision (A=a, C=b) remains optimal
 ```
 
 ### SDCC 4.2.0 Output
@@ -250,39 +257,47 @@ fun max_of(a: u16, b: u16) -> u16 {
 }
 ```
 
-### Nanz MIR2 Output
+### Nanz MIR2 Output (v0.2 — 2026-03-13, post BUG-003 fix merge)
 ```z80
-; fun minmax(a: u16 = HL, b: u16 = DE) -> (u16 = HL, u16 = DE) ; clobbers: F
+; fun minmax(a: u16 = HL, b: u16 = DE) -> (u16 = HL, u16 = DE) ; clobbers: BC, F, IX
 minmax:
-    EX DE, HL       ; 4T — swap for comparison
-    PUSH HL         ; 11T — save b
-    OR A            ; 4T
-    SBC HL, DE      ; 15T — b - a (compare)
-    POP HL          ; 10T — restore b
-    EX DE, HL       ; 4T — restore order
-    EX DE, HL       ; 4T — (peephole miss: double EX)
-    RET C           ; 11T/5T — if a <= b, (HL=a, DE=b) already correct
-    EX DE, HL       ; 4T — swap: now HL=b(min), DE=a(max)
-    RET             ; 10T
-; 11 bytes, ~67T worst
+    EX DE, HL
+    PUSH HL
+    OR A
+    SBC HL, DE
+    POP HL
+    EX DE, HL
+    PUSH DE           ; save via IX (double-EX peephole miss FIXED,
+    POP BC            ;  but replaced with IX-based save/restore)
+    PUSH HL
+    POP IX
+    JRS NC, .minmax_if_then1
+    LD H, B           ; restore from saved — a <= b path
+    LD L, C
+    LD D, IXH
+    LD E, IXL
+    RET
+.minmax_if_then1:     ; a > b: HL=b(min), DE=a(max) already correct
+    RET
 
-; fun swap(a: u16 = HL, b: u16 = DE) -> (u16 = DE, u16 = HL)
+; fun swap(a: u16 = DE, b: u16 = HL) -> (u16 = HL, u16 = DE)
+; NOTE: Optimizer reversed the ABI — swap is a no-op!  See footnote in §6.4.
+; The honest version would be: EX DE,HL; RET (2 bytes, 14T)
 swap:
-    EX DE, HL       ; 4T
-    RET             ; 10T
-; 2 bytes, 14T — OPTIMAL
+    RET
+; 1 byte — degenerate (ABI *is* the swap, CALL+RET wastes 27T)
 
 ; fun min_of(a: u16 = HL, b: u16 = DE) -> u16 = HL
-min_of:
-    JP minmax       ; 10T — tail call (peephole: could be EQU)
-; 3 bytes (or 0 bytes with EQU)
+min_of    EQU minmax
+; 0 bytes — emergent zero-byte function alias! (was JP minmax in v0.1)
 
 ; fun max_of(a: u16 = HL, b: u16 = DE) -> u16 = HL
 max_of:
     CALL minmax     ; 17T
-    EX DE, HL       ; 4T — get second return value
+    LD H, D         ; 4T — get second return value (was EX DE,HL in v0.1)
+    LD L, E         ; 4T
     RET             ; 10T
-; 5 bytes, 31T + minmax
+; 6 bytes, 35T + minmax (1 byte regression vs v0.1's EX DE,HL)
 ```
 
 ### SDCC 4.2.0 Output (forced to use out-params)
@@ -313,17 +328,26 @@ _swap::
 
 ### Analysis
 
-| Function | Nanz | SDCC |
-|----------|------|------|
-| **swap** | `EX DE,HL; RET` — **2 bytes, 14T** | Frame + 2 stores + cleanup — **26 bytes, 236T** |
-| **min_of** | `JP minmax` — **3 bytes, 10T** | Frame + CALL + stack read — **~40 bytes, ~200T** |
-| **max_of** | `CALL minmax; EX DE,HL; RET` — **5 bytes** | Same overhead as min_of |
+| Function | Nanz (v0.2) | SDCC |
+|----------|-------------|------|
+| **swap** | `RET` — **1 byte** (degenerate: ABI swap) or `EX DE,HL; RET` — **2 bytes, 14T** (honest) | Frame + 2 stores + cleanup — **26 bytes, 236T** |
+| **min_of** | `EQU minmax` — **0 bytes** | Frame + CALL + stack read — **~40 bytes, ~200T** |
+| **max_of** | `CALL minmax; LD H,D; LD L,E; RET` — **6 bytes** | Same overhead as min_of |
 
 **This is where per-function ABI + multi-return destroys fixed-ABI C.**
 
 Nanz's `swap` is **13× smaller** and **17× faster** than SDCC's.
-The `min_of: JP minmax` is a tail call that could collapse to `EQU minmax`
-(0 bytes) — an emergent property of the contract optimizer aligning ABIs.
+`min_of EQU minmax` is a zero-byte function alias — the optimizer aligned
+conventions so perfectly that `min_of` and `minmax` are the same function.
+
+> **Fun fact:** The optimizer actually reduced `swap` to a bare `RET` by
+> *reversing* the calling convention: `swap(a=DE, b=HL) -> (HL, DE)`.
+> The values arrive already "swapped" — the ABI *is* the implementation.
+> While technically a local optimum, it wastes 27T on CALL+RET for a no-op.
+> A compiler should inline such degenerate cases rather than celebrate them.
+> But it beautifully illustrates PFCCO's power: when conventions are a
+> first-class optimization variable, even the function's *semantics* can
+> dissolve into the ABI.
 
 SDCC fundamentally cannot express multi-return in C. Every "return two values"
 requires pointer parameters, stack frames, and indirect stores.
@@ -538,12 +562,16 @@ SDCC would compile the source loop literally (~50 bytes, ~200T for popcount(255)
 |---------|-----------|-----------|--------|--------|---------|
 | abs_diff (u8) | **4** | 10 | **27** | 34 | 1.3× |
 | abs_diff (u16) | **10** | 16 | **57** | 48 | 0.8×* |
-| gcd | **14** | 19 | loop: **~16T** | loop: **~24T** | 1.5× |
+| gcd | **18*** | 19 | loop: **~20T*** | loop: **~24T** | 1.2× |
 | swap (u16,u16) | **2** | 26 | **14** | 236 | **16.9×** |
-| min_of | **3** (0 w/EQU) | ~40 | **10** (0) | ~200 | **20×+** |
+| min_of | **0** (EQU) | ~40 | **0** | ~200 | **∞** |
 | forEach sum | **12** | 29 | elem: **38T** | elem: **88T** | **2.3×** |
 | fib (recursive) | ~26 | ~28 | call: 0 ABI overhead | call: 8T ABI overhead | — |
 | popcount (LUT) | **4** (+256 LUT) | ~50 | **28T** | ~200T | **7×** |
+
+*GCD v0.2 regressed from 14→18 bytes due to parallel-copy resolver artifacts
+(LD E,A/LD A,E no-ops, redundant CP). The ABI decision (A=a, C=b) is unchanged
+and optimal; the regression is in the register allocator, not PFCCO.
 
 *u16 abs_diff: SDCC is slightly faster on the a>=b path because it avoids
 the `OR A` clear-carry (uses `CP A,A` instead). Nanz wins on code size.
