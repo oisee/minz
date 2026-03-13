@@ -1,0 +1,66 @@
+// ex18: User-defined console I/O via asm z80 {} blocks
+//
+// Demonstrates that @console_log / @console_err are NOT magic —
+// they are just asm z80 blocks that any user can write directly.
+//
+// Port conventions (mze / mzx --console-io):
+//   OUT ($23), A  →  stdout
+//   OUT ($25), A  →  stderr
+//
+// The @z80_a annotation pins the parameter to register A so the
+// OUT instruction reads it without any intermediate move.
+// (in n) declares the asm block reads that parameter — the IR
+// then knows A is consumed and the allocator cannot reassign it.
+//
+// Generated Z80 for console_log:
+//   console_log:
+//       OUT (0x23), A    ; 2 bytes, 11 T-states
+//       RET              ; 1 byte,  10 T-states
+//
+// Run:
+//   mzc ex18_user_console_io.nanz -o ex18_user_console_io.bin
+//   mze ex18_user_console_io.bin --console-io
+
+fun console_log(@z80_a n: u8) -> void {
+    asm z80 (in n) { OUT (0x23), A }
+    return
+}
+
+fun console_err(@z80_a n: u8) -> void {
+    asm z80 (in n) { OUT (0x25), A }
+    return
+}
+
+fun print_str(@z80_hl s: u16) -> void {
+    // walk s until NUL, OUT each byte to stdout
+    asm z80 (in s) {
+        LD A, (HL)
+        OR A
+        JR Z, _ps_done
+_ps_loop:
+        OUT (0x23), A
+        INC HL
+        LD A, (HL)
+        OR A
+        JR NZ, _ps_loop
+_ps_done:
+    }
+    return
+}
+
+fun main() -> void {
+    // stdout: 'A', 'B', newline
+    console_log(65)
+    console_log(66)
+    console_log(10)
+
+    // stderr: 'E', 'R', 'R', newline
+    console_err(69)
+    console_err(82)
+    console_err(82)
+    console_err(10)
+
+    // @print uses the built-in intrinsic (same OUT $23 under the hood)
+    @print("same thing!\n")
+    return
+}

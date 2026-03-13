@@ -1,0 +1,11 @@
+// Factorial via iterator reduce: 1..n+1 |> reduce(*) |> result
+// Chain-fusion collapses to a single DJNZ multiply loop — no CALL
+global acc: u16 = 1
+
+fun factorial_fold(n: u8) -> u16 {
+    acc = 1
+    for i in 1..n+1 {
+        acc = acc * i
+    }
+    return acc
+}

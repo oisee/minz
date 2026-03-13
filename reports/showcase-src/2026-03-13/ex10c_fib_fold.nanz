@@ -1,0 +1,17 @@
+// Fibonacci — fold-style: same algorithm as fib_iter but expressed as a
+// mutation-based accumulation (current Nanz idiom for fold).
+//
+// When multi-value reduce lands, this will become:
+//   let (_, b) = reduce(1..n, (0, 1), |(a, b), _| (b, a + b))
+//
+// The for loop compiles to a DJNZ loop on Z80 — same output as fib_iter.
+fun fib_fold(n: u8) -> u16 {
+    var a: u16 = 0
+    var b: u16 = 1
+    for i in 1..n {
+        let tmp: u16 = a + b
+        a = b
+        b = tmp
+    }
+    return b
+}
