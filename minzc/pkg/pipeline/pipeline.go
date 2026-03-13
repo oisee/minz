@@ -67,9 +67,6 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	m := hir.LowerModule(hm)
 	s.MIR2Raw = m.Dump()
 
-	// Module-level: replace ranged-param pure functions with LUTs.
-	mir2.LUTGen(m)
-
 	// Per-function optimisation passes.
 	for _, f := range m.Funcs {
 		mir2.EliminateDeadBlocks(f)
@@ -104,9 +101,18 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 
 	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
+	// Run BEFORE LUTGen so that synthetic LUT functions (which have hardcoded
+	// class requirements in their Sub instructions) are not re-optimised and
+	// given a conflicting class (BUG-004).
 	ct := mir2.Z80CostTable{}
 	cs := mir2.OptimizeContracts(m, ct)
 	mir2.ApplyContracts(m, cs)
+
+	// Module-level: replace ranged-param pure functions with LUTs.
+	// Must run AFTER contract optimisation — LUT synthesis inherits the
+	// already-chosen param class and the contract optimizer never sees the
+	// synthetic Sub instruction.
+	mir2.LUTGen(m)
 
 	// Register allocation: per-function PBQP, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
@@ -146,9 +152,6 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// Lower HIR → MIR2.
 	m := hir.LowerModule(hm)
 
-	// Module-level: replace ranged-param pure functions with LUTs.
-	mir2.LUTGen(m)
-
 	// Per-function optimisation passes.
 	for _, f := range m.Funcs {
 		mir2.EliminateDeadBlocks(f)
@@ -179,10 +182,16 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	ct := mir2.Z80CostTable{}
 
 	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
+	// Run BEFORE LUTGen so synthetic LUT functions keep their original param class
+	// and are not re-assigned a conflicting one (BUG-004).
 	if opts.ContractOpt {
 		cs := mir2.OptimizeContracts(m, ct)
 		mir2.ApplyContracts(m, cs)
 	}
+
+	// Module-level: replace ranged-param pure functions with LUTs.
+	// Must run AFTER contract optimisation (see above).
+	mir2.LUTGen(m)
 
 	// Register allocation: per-function PBQP, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}

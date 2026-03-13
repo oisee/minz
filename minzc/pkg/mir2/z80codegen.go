@@ -428,6 +428,10 @@ type parallelCopy struct {
 	srcName string
 	dstName string
 	ty      Ty
+	// isImm marks a constant rematerialisation: no source register, just emit
+	// LD dstName, immVal after all register-to-register copies are resolved.
+	isImm  bool
+	immVal int64
 }
 
 func (g *z80cg) emit(s string) {
@@ -1505,26 +1509,65 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.genCmp(inst)
 
 	case OpLoad:
-		// Page-aligned LUT fast path:
-		//   LD H, sym^H  ;  7T, 2 bytes — only need the page (high byte)
-		//   LD L, idx8   ;  4T           — L is overwritten anyway
-		//   LD A, (HL)   ;  7T  → 18T total vs 21T (LD HL) vs 39T general
-		// MZA supports the ^H suffix: sym^H extracts (addr >> 8) & 0xFF.
-		// LD HL, sym would also load L=low(sym), which is immediately
-		// discarded by the following LD L — wasted 3T and 1 byte.
+		// Page-aligned LUT fast path (Phase 6e — BC★/DE★ optimization):
+		//
+		//   Baseline (HL path, 18T):
+		//     LD H, sym^H  ;  7T  — only need the page (high byte)
+		//     LD L, idx8   ;  4T  — L is overwritten anyway
+		//     LD A, (HL)   ;  7T
+		//
+		//   BC★ (14T, saves 4T when idx is already in C):
+		//     LD B, sym^H  ;  7T  — page base into B
+		//                  ;  0T  — C already holds the index
+		//     LD A, (BC)   ;  7T
+		//
+		//   DE★ (14T, saves 4T when idx is already in E):
+		//     LD D, sym^H  ;  7T  — page base into D
+		//                  ;  0T  — E already holds the index
+		//     LD A, (DE)   ;  7T
+		//
+		// Note: BC★ and DE★ fire as a post-allocation codegen check.
+		// Phase 6e PBQP nudge (see pbqp_affinity.go) biases the allocator
+		// toward C/E for LUT indices so these paths fire more often.
 		if pat, ok := g.lutLoadPat[inst.Dst]; ok {
 			src8 := g.loc(pat.src8Reg)
-			g.emitf("    LD H, %s^H", sanitizeIdent(pat.sym))
-			g.invalidate("H")
-			g.emitf("    LD L, %s", src8)
-			g.invalidate("L")
-			if dst != "A" {
-				g.emitf("    LD A, (HL)")
-				g.invalidate("A")
-				g.emitMov(dst, "A", 8)
-			} else {
-				g.emitf("    LD A, (HL)")
-				g.invalidate("A")
+			sym := sanitizeIdent(pat.sym)
+			switch src8 {
+			case "C": // BC★: index already in C — use B as page-high
+				g.emitf("    LD B, %s^H    ; BC★ LUT (14T)", sym)
+				g.invalidate("B")
+				if dst != "A" {
+					g.emitf("    LD A, (BC)")
+					g.invalidate("A")
+					g.emitMov(dst, "A", 8)
+				} else {
+					g.emitf("    LD A, (BC)")
+					g.invalidate("A")
+				}
+			case "E": // DE★: index already in E — use D as page-high
+				g.emitf("    LD D, %s^H    ; DE★ LUT (14T)", sym)
+				g.invalidate("D")
+				if dst != "A" {
+					g.emitf("    LD A, (DE)")
+					g.invalidate("A")
+					g.emitMov(dst, "A", 8)
+				} else {
+					g.emitf("    LD A, (DE)")
+					g.invalidate("A")
+				}
+			default: // HL path (18T)
+				g.emitf("    LD H, %s^H", sym)
+				g.invalidate("H")
+				g.emitf("    LD L, %s", src8)
+				g.invalidate("L")
+				if dst != "A" {
+					g.emitf("    LD A, (HL)")
+					g.invalidate("A")
+					g.emitMov(dst, "A", 8)
+				} else {
+					g.emitf("    LD A, (HL)")
+					g.invalidate("A")
+				}
 			}
 			break
 		}
@@ -4019,13 +4062,28 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 		if i >= len(target.Params) {
 			break
 		}
+		dst := g.ar.Loc(target.Params[i].Dst).Name
+		ty := target.Params[i].Ty
 		// Use g.loc (which respects physOverride) so that values saved to scratch
 		// registers by materializePendingAcc/materializePendingFlag are correctly
 		// moved to their canonical destination in the target block.
 		src := g.loc(arg)
-		dst := g.ar.Loc(target.Params[i].Dst).Name
-		if src != dst {
-			copies = append(copies, parallelCopy{srcName: src, dstName: dst, ty: target.Params[i].Ty})
+		if src == dst {
+			continue // pre-coalescing or same-location allocation — no copy needed
+		}
+		// If this argument is a compile-time constant, mark it for deferred
+		// rematerialisation AFTER all register-to-register copies are resolved.
+		// Emitting LD dst, imm inline would clobber live source registers that
+		// other copies still need (BUG-002).
+		// Guard: only rematerialise if src != dst (handled above) to avoid
+		// overwriting a live value when a const reg was pre-coalesced with its
+		// loop param (they share a root; the const check would fire spuriously).
+		if cv, isConst := g.constVals[arg]; isConst && dst != "" {
+			copies = append(copies, parallelCopy{dstName: dst, ty: ty, isImm: true, immVal: cv})
+			continue
+		}
+		if src != "" {
+			copies = append(copies, parallelCopy{srcName: src, dstName: dst, ty: ty})
 		}
 	}
 	return copies
@@ -4033,6 +4091,8 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 
 // emitParallelCopy resolves and emits a set of parallel register moves,
 // correctly handling cycles (e.g. HL↔DE → EX DE,HL).
+// Constant rematerialisations (isImm=true) are emitted AFTER all register-to-
+// register moves so they don't clobber live source registers.
 func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	if len(copies) == 0 {
 		return
@@ -4042,8 +4102,18 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 		ty       Ty
 		done     bool
 	}
-	moves := make([]move, len(copies))
-	for i, c := range copies {
+	// Separate constants from register moves; emit register moves first.
+	var immCopies []parallelCopy
+	var regCopies []parallelCopy
+	for _, c := range copies {
+		if c.isImm {
+			immCopies = append(immCopies, c)
+		} else {
+			regCopies = append(regCopies, c)
+		}
+	}
+	moves := make([]move, len(regCopies))
+	for i, c := range regCopies {
 		moves[i] = move{src: c.srcName, dst: c.dstName, ty: c.ty}
 	}
 
@@ -4201,6 +4271,15 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			} else {
 				g.emitf("    POP %s", cur)
 			}
+		}
+	}
+	// After all register-to-register moves are resolved, emit constant assignments.
+	// Done last so they cannot clobber live source registers.
+	for _, c := range immCopies {
+		if c.ty.Width() <= 8 {
+			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFF)
+		} else {
+			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFFFF)
 		}
 	}
 }

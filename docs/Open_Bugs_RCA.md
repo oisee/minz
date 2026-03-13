@@ -41,32 +41,25 @@ preferred alignment.
 
 ---
 
-## BUG-002 🟡 forEach entry scheduling — constant rematerialization in block params
+## BUG-002 ✅ FIXED forEach entry scheduling — constant rematerialization in block params
+
+**Fixed in:** 2026-03-12 (parallelCopy isImm/immVal deferred emission)
 
 **Symptom:** `forEach` iterator prologue emits `LD D,0; LD B,C; LD C,D` —
 a constant `0` is being passed as a block parameter through the parallel-copy
 mechanism instead of being rematerialized inline.
 
-**Example:**
-```z80
-forEach:
-    LD D, 0      ; unnecessary — D=0 should be rematerialized at use site
-    LD B, C      ; move counter to B
-    LD C, D      ; C = 0 (was D)
-```
-
 **RCA:** The loop head receives `(counter, accumulator=0)` as block params.
 The `accumulator=0` is a constant in the IR (`OpConst 0`), but the allocator
-treats it as any other virtual register.  The parallel-copy resolver emits
-`LD D, 0` then a swap to get the constant into the expected register.  A
-*rematerialization* optimization would recognize that constants can be
-re-computed at any use site and never need a "copy" instruction.
+treated it as any other virtual register.  The parallel-copy resolver emitted
+`LD D, 0` then a swap to get the constant into the expected register.
 
-**Fix:** In the parallel-copy resolver, when the source of a copy is a constant
-value (tracked via `constVals` map), emit `LD dst, imm` directly instead of
-`LD dst, src_reg`.  Estimated: ~20-30 lines.
-
-**Priority:** Low.  Cosmetic for simple cases; more impactful for longer chains.
+**Fix:** Extended `parallelCopy` struct with `isImm bool` and `immVal int64`.
+In `buildBlockCopies`, when the source is a constant (`constVals` map), set
+`isImm=true` instead of emitting inline.  In `emitParallelCopy`, all register
+moves are resolved first, then `LD dst, imm` emissions follow — preventing
+constant rematerialization from clobbering live source registers mid-swap.
+Also added `src == dst` early-exit to handle pre-coalesced or same-location pairs.
 
 ---
 
@@ -105,47 +98,40 @@ scratch register (BC or stack) to break the cycle safely.
 
 ---
 
-## BUG-004 🟡 Non-zero-lo LUT (e.g. `u8<10..20>`) — contract opt class mismatch
+## BUG-004 ✅ FIXED Non-zero-lo LUT (e.g. `u8<10..20>`) — contract opt class mismatch
+
+**Fixed in:** 2026-03-12 (pipeline reordering — LUTGen moved after OptimizeContracts)
 
 **Symptom:** LUTGen correctly builds the lookup table and emits `Sub(x, Const(lo))`
-before the table lookup.  But the interprocedural contract optimizer runs AFTER
-LUTGen and infers a different register class for the parameter (e.g. ClassAcc
-instead of ClassCounter), which conflicts with the hardcoded `Sub(lo)` that
-assumes a specific class.  Unit tests pass (bypass contract opt), pipeline broken.
+before the table lookup.  But the interprocedural contract optimizer ran AFTER
+LUTGen and inferred a different register class for the parameter (e.g. ClassAcc
+instead of ClassCounter), conflicting with the hardcoded `Sub(lo)` that assumed
+ClassAcc.  Unit tests passed (bypass contract opt), pipeline broken.
 
-**RCA:** `LUTGen` rebuilds the function body with a fixed IR structure:
-`Param(lo_sub) → Sub(lo) → Ext(u16) → AddrOf → PtrAdd → Load → Ret`.
-The contract optimizer runs after LUTGen and reassigns the param class.  The
-new class is incompatible with the Sub instruction's expected ClassAcc.
+**RCA:** `LUTGen` rebuilt the function body with a fixed IR structure.  The
+contract optimizer ran after LUTGen and reassigned the param class, producing
+a class mismatch.
 
-**Fix:** After LUTGen transforms a function, mark it as `Contract.Fixed = true`
-(or equivalent) to prevent the contract optimizer from re-inferring the class.
-Alternatively, have LUTGen annotate the Sub instruction with the class it needs.
-
-**Priority:** Low.  Only affects ranged types with non-zero lower bound.
+**Fix:** In `pipeline.go` (`CompileHIRSteps` and `CompileHIRWithOptions`), moved
+`mir2.LUTGen(m)` to run AFTER `OptimizeContracts` + `ApplyContracts`.  Contract
+optimizer sees the original function signatures; LUTGen synthesizes after
+contracts are frozen.
 
 ---
 
-## BUG-005 🟡 `applySubSwapNeg` missing u16 guard
+## BUG-005 ✅ FIXED `applySubSwapNeg` missing u16 guard
+
+**Fixed in:** 2026-03-12 (condret.go — width-conditional ClassPointer vs ClassAcc)
 
 **Symptom:** For u16 subtraction in the "swapped" branch of abs_diff-style code,
-`applySubSwapNeg` sets `ClassAcc` on the hoisted instruction.  For u16, ClassAcc
-maps to A (8-bit), but the result needs to be in HL (16-bit, ClassPointer).
-This produces incorrect codegen for u16 abs_diff via the classic pattern.
+`applySubSwapNeg` set `ClassAcc` on the hoisted instruction.  For u16, ClassAcc
+maps to A (8-bit), but the result needs HL (16-bit, ClassPointer).
 
-**RCA:** `applySubSwapNeg` in `condret.go` replaces `sub(y,x)` with `neg(r_h)`
-and inherits the class from the hoisted instruction.  The hoisted instruction
-is in ClassAcc for u8, which is correct.  For u16, the hoisted instruction
-should be ClassPointer.  No width guard exists.
+**RCA:** `applySubSwapNeg` in `condret.go` replaced `sub(y,x)` with `neg(r_h)`
+and inherited the class from the hoisted instruction without checking width.
 
-**Fix:** In `applySubSwapNeg`, check `h.Ty.Width() > 8` and set `ClassPointer`
-instead of `ClassAcc`.  One line.
-
-**Workaround:** The IAR-style pattern (Sub then Neg directly, commit 96598d2)
-avoids `applySubSwapNeg` entirely for u16 by using `fusionSubCmpInBlock` +
-`CmpSubCarryNot` instead.
-
-**Priority:** Low.  Workaround available.
+**Fix:** Added `h.Ty.Width() > 8` guard: emit `inst.Cls = ClassPointer` for
+16-bit, `ClassAcc` for 8-bit.  One-line fix.
 
 ---
 
@@ -170,9 +156,9 @@ operations remain valid.
 
 | Bug | Category | Severity | Fix size | Status |
 |-----|----------|----------|----------|--------|
-| BUG-001 GCD parallel-copy | Allocator (affinity) | 🟡 | Large | Open |
-| BUG-002 forEach const rematl | Codegen (parallel copy) | 🟡 | Small | Deferred |
+| BUG-001 GCD parallel-copy | Allocator (affinity) | 🟡 | Large | Open (Phase 6e nudge applied) |
+| BUG-002 forEach const rematl | Codegen (parallel copy) | 🟡 | Small | ✅ Fixed 2026-03-12 |
 | BUG-003 ptr[i] in while loop | HIR/codegen (PtrAdd) | 🔴 | Medium | Open |
-| BUG-004 Non-zero-lo LUT | Pipeline ordering | 🟡 | Small | Open |
-| BUG-005 SubSwapNeg u16 guard | condret.go | 🟡 | Trivial | Deferred (workaround) |
+| BUG-004 Non-zero-lo LUT | Pipeline ordering | 🟡 | Small | ✅ Fixed 2026-03-12 |
+| BUG-005 SubSwapNeg u16 guard | condret.go | 🟡 | Trivial | ✅ Fixed 2026-03-12 |
 | BUG-006 Zero-size struct global | Global emitter | 🔴 | Small | Open |
