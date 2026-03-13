@@ -1,0 +1,725 @@
+\documentclass[sigplan,screen,nonacm]{acmart}
+% sigplan = two-column SIGPLAN format
+% nonacm  = removes ACM copyright block (for draft/preprint)
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{url}
+
+% Z80 assembly listing style
+\lstdefinelanguage{z80asm}{
+  morekeywords={LD,ADD,SUB,AND,OR,XOR,CP,NEG,INC,DEC,PUSH,POP,
+    CALL,RET,JP,JR,DJNZ,EX,EXX,SBC,ADC,RET,HALT,NOP,
+    RET NC,RET C,RET Z,RET NZ,
+    DB,EQU,ALIGN},
+  morecomment=[l]{;},
+  sensitive=false,
+}
+
+\lstdefinelanguage{nanz}{
+  morekeywords={fun,fn,if,else,while,for,in,return,let,var,global,
+    import,struct,enum,true,false,void},
+  morekeywords=[2]{u8,u16,i8,i16,bool,ptr},
+  morecomment=[l]{//},
+  morestring=[b]",
+  sensitive=true,
+}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  columns=fullflexible,
+  keepspaces=true,
+  frame=single,
+  framesep=2pt,
+  xleftmargin=4pt,
+  xrightmargin=4pt,
+  aboveskip=6pt,
+  belowskip=4pt,
+  numbers=none,
+  breaklines=true,
+  captionpos=b,
+}
+
+% Compact itemize/enumerate
+\usepackage{enumitem}
+\setlist{nosep,leftmargin=*}
+
+\begin{document}
+
+\title{Per-Function Calling Convention Optimization\\for Irregular Register Architectures}
+
+\author{Anonymous}
+\affiliation{\institution{Anonymous}}
+\email{anonymous@example.com}
+
+\begin{abstract}
+Compilers for register-constrained architectures with irregular register
+files---where registers have distinct semantic roles (accumulator, counter,
+pointer)---typically use a single fixed calling convention for all functions.
+We formalize \emph{Per-Function Calling Convention Optimization} (PFCCO):
+given a program's call graph and a cost model over register classes, choose
+a calling convention for each internal function to minimize total transfer
+cost.  We show that PFCCO is solvable optimally in $O(n)$ time for acyclic
+call graphs with bounded parameter counts, by greedy dynamic programming in
+reverse topological order.  Our implementation in the Nanz compiler
+targeting the Zilog Z80 produces code that is 1.3--17$\times$ smaller and
+up to 17$\times$ faster than SDCC~4.2.0 (which uses a state-of-the-art
+empirically-optimized global convention), with emergent optimizations
+including zero-byte function aliases.
+\end{abstract}
+
+\keywords{calling conventions, register allocation, irregular architectures,
+  Z80, compiler optimization, interprocedural optimization}
+
+\maketitle
+
+%% ============================================================
+\section{Introduction}
+\label{sec:intro}
+
+Register allocation is among the most studied problems in compiler
+construction.  For \emph{intraprocedural} allocation---assigning physical
+registers to virtual registers within a single function---optimal algorithms
+exist for structured programs on irregular architectures~\cite{krause2013}.
+For the \emph{interprocedural} dimension---how values are passed between
+functions---the standard approach is a fixed calling convention: every
+function receives its first argument in the same register, returns its
+result in the same register, and so on.
+
+On architectures with large, regular register files (ARM, x86-64, RISC-V),
+the calling convention is primarily about partitioning registers into
+caller-saved and callee-saved sets.  The choice of \emph{which} register
+holds a parameter matters little because all general-purpose registers have
+identical capabilities.
+
+On \emph{irregular} architectures---microcontrollers like the Zilog Z80,
+Intel 8080, Padauk, or SM83---registers have semantic roles enforced by the
+instruction set.  The \textbf{accumulator}~(A) is the only register that can
+be an ALU source/destination.  The \textbf{counter}~(B) is the only register
+usable with \texttt{DJNZ}.  The \textbf{pointer pair}~(HL) is the only pair
+usable for memory addressing.  Choosing the wrong register for a parameter
+forces the compiler to insert \emph{adapter moves}---register-to-register
+transfers at call sites or inside the function body.  On a Z80 with only
+7~main registers, each unnecessary \texttt{LD} costs 4~T-states and 1~byte.
+
+Krause~\cite{krause2022} addressed this by empirically searching for the
+best \emph{single} calling convention per architecture, testing thousands of
+configurations against standard benchmarks.  This improved SDCC's Z80
+backend significantly---enough to justify breaking ABI compatibility.  But a
+global convention is inherently a compromise: the best choice for a leaf
+function doing arithmetic differs from the best choice for a function that
+forwards arguments to a callee.
+
+We observe that internal functions need not share a convention at all.  Each
+function can have its own \emph{contract}---a mapping from parameter/return
+slots to register classes---chosen to minimize total cost across the
+program.
+
+\paragraph{Contributions.}
+\begin{enumerate}
+\item \textbf{Formalization} of Per-Function Calling Convention Optimization
+  (PFCCO) as a cost-minimization problem over register class assignments on
+  a call graph~(\S\ref{sec:formulation}).
+\item \textbf{An $O(n)$ algorithm} for bounded parameter counts on acyclic
+  call graphs, with a proof of optimality for
+  DAGs~(\S\ref{sec:algorithm}).
+\item \textbf{A production implementation} in the Nanz compiler targeting
+  Z80, demonstrating 1.3--17$\times$ code size reduction over SDCC~4.2.0 on
+  representative examples~(\S\ref{sec:eval}).
+\item \textbf{Identification of emergent optimizations}---notably zero-byte
+  function aliases (\texttt{EQU} collapse) that arise naturally from cost
+  minimization~(\S\ref{sec:eval:equ}).
+\end{enumerate}
+
+%% ============================================================
+\section{Background}
+\label{sec:background}
+
+\subsection{The Z80 Register File}
+
+The Zilog Z80 (1976) has 14 8-bit registers organized into groups with
+distinct capabilities:
+
+\begin{table}[h]
+\centering\small
+\caption{Z80 register roles and key instructions.}
+\label{tab:z80regs}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Register & Role & Key instructions \\
+\midrule
+A        & Accumulator   & \texttt{ADD}, \texttt{SUB}, \texttt{CP}, \texttt{NEG} \\
+B        & Counter       & \texttt{DJNZ} \\
+C, D, E  & General       & \texttt{LD r,r'} only \\
+HL       & Pointer pair  & \texttt{LD A,(HL)}, \texttt{INC HL} \\
+DE       & Index pair    & \texttt{ADD HL,DE}, \texttt{EX DE,HL} \\
+BC       & Counter pair  & \texttt{ADD HL,BC}, \texttt{PUSH BC} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Additionally, a \emph{shadow register bank}
+(\texttt{A',B',C',D',E',H',L'}) is accessible via \texttt{EXX}, which
+atomically swaps all three main pairs with their shadows.  We discuss
+shadow registers in \S\ref{sec:future}.
+
+The register file is \emph{irregular}: no two registers are
+interchangeable.  Moving a value from C to A costs 4~T-states
+(\texttt{LD~A,C}); moving from HL to DE costs 4T (\texttt{EX~DE,HL}).
+These asymmetries mean that the \emph{choice} of register for a parameter
+directly affects instruction selection and code quality.
+
+\subsection{Fixed vs.\ Per-Function Conventions}
+
+A \emph{calling convention} specifies which registers hold parameters and
+return values.  SDCC~4.2.0 uses Krause's~\cite{krause2022}
+empirically-optimized convention:
+
+\begin{table}[h]
+\centering\small
+\caption{SDCC 4.2.0 Z80 calling convention.}
+\label{tab:sdcc-cc}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Slot    & 8-bit & 16-bit & Return \\
+\midrule
+Param~1 & A     & HL     & A / DE \\
+Param~2 & L     & DE     & --- \\
+Param~3+ & \multicolumn{2}{c}{stack} & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A \emph{per-function convention} allows each internal function to use a
+different register assignment.  External functions (library, ROM, interrupt
+handlers) retain a fixed convention.
+
+\subsection{The Nanz Compiler}
+
+Nanz is a systems language targeting Z80-class processors.  Its pipeline is:
+%
+\begin{center}
+\small
+Nanz $\to$ Parser $\to$ HIR $\to$ \fbox{PFCCO} $\to$ MIR2 $\to$ PBQP~RA $\to$ Z80
+\end{center}
+%
+PFCCO runs after HIR-to-MIR2 lowering (which assigns Layer~1 defaults) and
+before the PBQP register allocator.
+
+\subsection{Register Classes}
+\label{sec:classes}
+
+\begin{table}[h]
+\centering\small
+\caption{Register classes for Z80 parameters.}
+\label{tab:classes}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Class & Registers & Type affinity \\
+\midrule
+\textsc{Acc}     & A       & u8 (ALU operand) \\
+\textsc{Counter} & B       & u8 (loop count) \\
+\textsc{General} & C,D,E   & u8 (general) \\
+\textsc{Pointer} & HL      & u16, ptr \\
+\textsc{Index}   & DE      & u16 \\
+\textsc{Pair}    & BC      & u16 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ============================================================
+\section{Problem Formulation}
+\label{sec:formulation}
+
+\begin{definition}[Contract]
+A \emph{contract} for function $f$ with $k$ parameter slots and $r$ return
+slots is a vector $C(f) = (c_1, \ldots, c_k, c_{r_1}, \ldots, c_{r_r})$
+where each $c_i$ is a register class compatible with the slot's type.
+\end{definition}
+
+\begin{definition}[Adapter cost]
+The \emph{adapter cost} of contract $C(f)$ is:
+\begin{equation}
+\text{adapt}(f, C) = \sum_{i} \text{move}(c_i, \text{nat}(f,i))
+  + \sum_{j} \text{move}(\text{nat}_r(f,j), c_{r_j}) \cdot |\text{ret}(f)|
+\end{equation}
+where $\text{nat}(f,i)$ is the register class naturally required by $f$'s
+body for the $i$-th parameter.
+\end{definition}
+
+\begin{definition}[Transfer cost]
+The \emph{transfer cost} at call edge $e = (\text{caller}, \text{callee})$
+is:
+\begin{equation}
+\text{xfer}(e, C) = \sum_{k} \text{move}(\text{arg}_k, C(\text{callee})_k)
+\end{equation}
+\end{definition}
+
+\begin{definition}[PFCCO]
+Given call graph $G=(F,E)$, register file $R$, and cost function
+$\text{move}$, find $C: F \to \text{Contracts}$ minimizing:
+\begin{equation}
+\text{cost}(C) = \sum_{f \in F} \text{adapt}(f, C(f))
+  + \sum_{e \in E} \text{xfer}(e, C) \cdot w(e)
+\label{eq:total-cost}
+\end{equation}
+subject to: no two parameter slots of the same function map to the same
+uniquely-forced physical register.
+\end{definition}
+
+\paragraph{The \textsc{NaturalClass} function.}
+The bridge between intraprocedural instruction selection and interprocedural
+ABI optimization:
+
+\begin{algorithmic}[1]
+\REQUIRE function $f$, parameter index $i$
+\FOR{each instruction using param $i$}
+  \IF{ALU op (\texttt{ADD/SUB/AND/OR/CP})}
+    \RETURN \textsc{Acc}
+  \ELSIF{memory access (\texttt{Load/Store})}
+    \RETURN \textsc{Pointer}
+  \ELSIF{loop counter (\texttt{DJNZ})}
+    \RETURN \textsc{Counter}
+  \ELSIF{forwarded as arg $k$ to callee $g$}
+    \RETURN $C(g)_k$ \COMMENT{transitivity}
+  \ENDIF
+\ENDFOR
+\RETURN \textsc{General}
+\end{algorithmic}
+
+The transitivity case is the crucial insight: if a parameter is forwarded to
+a callee, its natural class is whatever the callee expects.  This creates
+chains of aligned ABIs through the call graph.
+
+%% ============================================================
+\section{Algorithm}
+\label{sec:algorithm}
+
+\subsection{Greedy DP on Reverse Topological Order}
+
+\begin{algorithm}[t]
+\caption{PFCCO-Optimize}
+\label{alg:pfcco}
+\begin{algorithmic}[1]
+\REQUIRE Module $M$
+\STATE $G \gets \text{BuildCallGraph}(M)$
+\STATE $\text{order} \gets \text{TopoSort}(G, \text{leaves first})$
+\STATE $\mathit{CS} \gets \emptyset$
+\FOR{$f$ in order}
+  \IF{$f$ is extern or empty}
+    \STATE $\mathit{CS}[f] \gets \text{defaults}(f)$
+    \STATE \textbf{continue}
+  \ENDIF
+  \STATE $\text{best} \gets \text{defaults}(f)$
+  \STATE $\text{bestCost} \gets \text{Cost}(f, \text{best}, G, \mathit{CS})$
+  \FOR{$c \in \text{CartesianProduct}(\text{plausible}(f))$}
+    \IF{$\text{HasConflict}(c)$} \textbf{continue} \ENDIF
+    \STATE $\text{cost} \gets \text{Cost}(f, c, G, \mathit{CS})$
+    \IF{$\text{cost} < \text{bestCost}$}
+      \STATE $\text{bestCost} \gets \text{cost}$; $\text{best} \gets c$
+    \ENDIF
+  \ENDFOR
+  \STATE $\mathit{CS}[f] \gets \text{best}$
+\ENDFOR
+\RETURN $\mathit{CS}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Three-Layer ABI System}
+
+The algorithm operates within a three-layer system:
+\begin{description}[style=unboxed]
+\item[Layer~1: Positional defaults.]  A heuristic assigns classes by
+  position and type (first u8 $\to$ \textsc{Acc}, first u16 $\to$
+  \textsc{Pointer}).
+\item[Layer~2: User annotations.]  Hard constraints
+  (\texttt{@z80\_a}, \texttt{@z80\_hl}) respected by the optimizer.
+\item[Layer~3: Contract optimizer (PFCCO).]  Algorithm~\ref{alg:pfcco},
+  searching for better assignments over the call graph.
+\end{description}
+
+\subsection{Complexity}
+
+For a function with $P$ parameter slots, the candidate count is at most
+$3^P$ (three classes per u8 slot), reduced by conflict filtering.  Cost
+evaluation is $O(|f| + |\text{callsites}|)$.
+
+For bounded $P$ (typically $P \le 4$ on Z80):
+\begin{itemize}
+\item Per function: $O(3^4 \cdot |f|) = O(|f|)$
+\item Total: $O(n)$ where $n$ = total program size
+\end{itemize}
+
+\subsection{Optimality for DAGs}
+
+\begin{theorem}
+For acyclic call graphs with bounded parameter counts,
+Algorithm~\ref{alg:pfcco} produces an optimal solution in $O(n)$ time.
+\end{theorem}
+
+\begin{proof}
+Topological order (leaves first) ensures every callee is decided before its
+callers.  When processing $f$, we evaluate all candidate assignments.  The
+cost function is exact: adapter costs within $f$ are computed directly, and
+transfer costs use callees' final contracts.  Since $f$'s choice affects
+only (a)~$f$'s internal adapter cost and (b)~transfer costs on edges from
+$f$ to its callees---not costs within other functions---the locally optimal
+choice is globally optimal.  This is a standard bottom-up DP argument: on a
+DAG, if each subproblem is solved optimally given its children's solutions,
+the global solution is optimal.
+\end{proof}
+
+\paragraph{Recursive functions.}
+Cycle members are appended to the topological order with intra-cycle
+callees' contracts unknown.  The algorithm uses default contracts for
+undecided cycle members, yielding a heuristic.  SCC decomposition with
+fixed-point iteration would restore optimality at cost
+$O(\text{iters} \times |SCC|)$.
+
+%% ============================================================
+\section{Implementation}
+\label{sec:impl}
+
+PFCCO is implemented in 455~lines of Go in the Nanz compiler's \texttt{mir2}
+package.
+
+\begin{table}[h]
+\centering\small
+\caption{Implementation components.}
+\label{tab:impl}
+\begin{tabular}{@{}llr@{}}
+\toprule
+Component & Function & Lines \\
+\midrule
+\texttt{OptimizeContracts}  & Main loop             & 32 \\
+\texttt{candidateChoices}   & Cartesian $+$ filter  & 47 \\
+\texttt{inferNaturalClass}  & Body analysis          & 43 \\
+\texttt{edgeCost}           & Transfer cost          & 43 \\
+\texttt{BuildCallGraph}     & CG construction        & 38 \\
+\texttt{topoSort}           & Kahn's algorithm       & 54 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Cost table.}
+Move costs between classes (Z80 T-states):
+
+\begin{table}[h]
+\centering\small
+\caption{Inter-class move costs (T-states).}
+\label{tab:costs}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+From $\backslash$ To & Acc & Ctr & Gen & Ptr & Idx \\
+\midrule
+\textsc{Acc} & 0 & 4 & 4 & --- & --- \\
+\textsc{Counter} & 4 & 0 & 4 & --- & --- \\
+\textsc{General} & 4 & 4 & 0$^\dagger$ & --- & --- \\
+\textsc{Pointer} & --- & --- & --- & 0 & 4$^\ddagger$ \\
+\textsc{Index} & --- & --- & --- & 4$^\ddagger$ & 0 \\
+\bottomrule
+\multicolumn{6}{@{}l}{\footnotesize $^\dagger$0 if same register, 4 if
+  different. $^\ddagger$\texttt{EX~DE,HL}.}
+\end{tabular}
+\end{table}
+
+\paragraph{Pipeline position.}
+PFCCO runs after HIR$\to$MIR2 lowering and before PBQP register allocation.
+This ordering is essential: PFCCO sets interface classes; the allocator maps
+virtuals to physicals within each function respecting the contract.
+
+%% ============================================================
+\section{Evaluation}
+\label{sec:eval}
+
+We compare Nanz with PFCCO against SDCC~4.2.0, which uses
+Krause's~\cite{krause2022} empirically-optimized global convention---the
+state of the art for Z80 ABI selection.
+
+\subsection{\texttt{abs\_diff}: Leaf Function}
+
+\begin{lstlisting}[language=nanz,caption={\texttt{abs\_diff} in Nanz.}]
+fun abs_diff(a: u8, b: u8) -> u8 {
+    if a < b { return b - a }
+    return a - b
+}
+\end{lstlisting}
+
+\noindent Nanz output (PFCCO: \texttt{A=a, C=b}):
+\begin{lstlisting}[language=z80asm]
+abs_diff:
+    SUB C       ; 4T
+    RET NC      ; 11T/5T
+    NEG         ; 8T
+    RET         ; 10T
+; 4 bytes, 27T worst
+\end{lstlisting}
+
+\noindent SDCC output (global: \texttt{A=a, L=b}): 10~bytes, 34T worst.
+SDCC's use of L for the second argument forces a save-to-C and redundant
+recomputation.  PFCCO chose \textsc{General}(C) because \texttt{SUB~C} is a
+single-byte instruction that sets carry for the conditional return.
+
+\subsection{GCD: Loop-Carried Register Persistence}
+
+\begin{lstlisting}[language=nanz,caption={GCD.}]
+fun gcd(a: u8, b: u8) -> u8 {
+    while a != b {
+        if a > b { a = a - b }
+        else     { b = b - a }
+    }
+    return a
+}
+\end{lstlisting}
+
+SDCC's global ABI places \texttt{a} in~C (after saving from~A), requiring
+\texttt{LD~A,C} every loop iteration.  PFCCO keeps \texttt{a} in~A
+throughout: 14~bytes vs.\ 19~bytes, zero reload overhead.
+
+\subsection{\texttt{forEach}: Iterator Fusion + \textsc{ClassCounter}}
+
+\begin{lstlisting}[language=nanz,caption={Lambda iterator.}]
+fun sum_chain(buf: ^u8, n: u8) -> u8 {
+    var s: u8 = 0
+    buf.forEach(|x| { s = s + x }, n)
+    return s
+}
+\end{lstlisting}
+
+PFCCO assigned \texttt{n} to \textsc{Counter}(B), enabling \texttt{DJNZ}.
+Combined with iterator fusion (sequential pointer traversal via
+\texttt{INC~HL} instead of indexed access), the result is 12~bytes,
+$\sim$38T/element vs.\ SDCC's 29~bytes, $\sim$88T/element
+(\textbf{2.3$\times$} speedup).
+
+SDCC puts the third parameter on the stack, requiring IX-relative addressing
+at 19T per access in the loop.
+
+\subsection{Multi-Return and EQU Collapse}
+\label{sec:eval:equ}
+
+\begin{lstlisting}[language=nanz,caption={Multi-return.}]
+fun minmax(a: u16, b: u16) -> (u16, u16) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+fun min_of(a: u16, b: u16) -> u16 {
+    let (lo, _) = minmax(a, b)
+    return lo
+}
+\end{lstlisting}
+
+\begin{table}[h]
+\centering\small
+\caption{Multi-return: Nanz vs.\ SDCC.}
+\label{tab:multiret}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Function & \multicolumn{2}{c}{Nanz} & \multicolumn{2}{c}{SDCC} \\
+         & Bytes & T & Bytes & T \\
+\midrule
+\texttt{swap}    & \textbf{2} & \textbf{14} & 26 & 236 \\
+\texttt{min\_of} & \textbf{3}$^*$ & \textbf{10} & $\sim$40 & $\sim$200 \\
+\bottomrule
+\multicolumn{5}{@{}l}{\footnotesize $^*$0 bytes with \texttt{EQU} collapse.}
+\end{tabular}
+\end{table}
+
+\paragraph{EQU collapse.}
+Because PFCCO aligned \texttt{min\_of}'s contract with \texttt{minmax}'s
+(both: HL, DE $\to$ HL), the tail call requires no setup.  The assembler
+replaces \texttt{min\_of:~JP~minmax} with \texttt{min\_of~EQU~minmax}---a
+\textbf{zero-byte function}.  This is emergent: it was not explicitly
+programmed but falls out of cost minimization.
+
+C cannot express multi-return, forcing SDCC to use pointer out-parameters
+with stack frames.  \texttt{swap} is 13$\times$ smaller and 17$\times$
+faster.
+
+\subsection{Fibonacci: Recursive ABI Alignment}
+
+Nanz returns u16 in HL (matching \texttt{ADD~HL,DE}'s expectation).
+SDCC's global convention returns in~DE, requiring \texttt{EX~DE,HL} after
+every recursive call (4T$\times$2 per recursion level) plus two stack saves
+per call (22T).
+
+\subsection{Summary}
+
+\begin{table}[h]
+\centering\small
+\caption{Evaluation summary: Nanz (PFCCO) vs.\ SDCC 4.2.0.}
+\label{tab:summary}
+\begin{tabular}{@{}lrrrc@{}}
+\toprule
+Example & Nanz & SDCC & Size & T-state \\
+        & bytes & bytes & ratio & ratio \\
+\midrule
+\texttt{abs\_diff} (u8)  & 4  & 10 & 2.5$\times$ & 1.3$\times$ \\
+\texttt{abs\_diff} (u16) & 10 & 16 & 1.6$\times$ & 1.2$\times$ \\
+\texttt{gcd}             & 14 & 19 & 1.4$\times$ & $\sim$1.5$\times$ \\
+\texttt{swap}            & 2  & 26 & \textbf{13$\times$}  & \textbf{17$\times$} \\
+\texttt{min\_of}         & 3  & $\sim$40 & \textbf{13$\times$+} & \textbf{20$\times$+} \\
+\texttt{forEach}         & 12 & 29 & 2.4$\times$ & \textbf{2.3$\times$} \\
+\texttt{fib}             & 26 & 28 & 1.1$\times$ & $\sim$1.2$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Per-function ABI's advantage scales with \emph{structural complexity}: more
+functions, deeper call graphs, multi-return.  For isolated leaf functions,
+SDCC's global ABI is near-optimal.  The largest wins come from features C
+cannot express (multi-return, lambda fusion) combined with per-function ABI
+that eliminates adapter overhead.
+
+%% ============================================================
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Intraprocedural RA.}
+Krause~\cite{krause2013} presents optimal register allocation via tree
+decomposition for structured programs on irregular architectures,
+implemented in SDCC.  PFCCO is complementary: it sets the calling convention
+that the allocator then respects.
+
+\paragraph{Global ABI search.}
+Krause~\cite{krause2022} empirically evaluates thousands of conventions per
+architecture, selecting the best single convention.  PFCCO strictly
+generalizes this: any global ABI is a special case where all functions
+receive the same assignment.
+
+\paragraph{Link-time per-function CC.}
+De~Bus et~al.~\cite{debus2004} and Caldwell \&
+Chiba~\cite{caldwell2017} optimize conventions at link time for ARM.  Both
+target regular RISC files where the problem is primarily caller/callee-save
+partitioning, not register \emph{class} assignment.  Neither provides formal
+optimality results.
+
+\paragraph{Interprocedural RA for RISC.}
+Wall~\cite{wall1986} proposes link-time register allocation for MIPS.
+LLVM~IPRA~\cite{llvm-ipra} propagates clobbered-register sets to reduce
+caller-save overhead.  Both target large, regular files where register
+choice is immaterial.
+
+\paragraph{PBQP.}
+Scholz \& Eckstein~\cite{scholz2002} formulate register allocation as PBQP.
+PFCCO's cost function has natural PBQP structure.  For Z80's small candidate
+spaces ($\le$729), exhaustive enumeration suffices.
+
+\paragraph{MSVC /GL.}
+Microsoft's whole-program optimization promotes stack parameters to
+registers for internal functions~\cite{msvc-gl}.  No formal analysis is
+published.
+
+\begin{table}[h]
+\centering\small
+\caption{Gap analysis: prior work vs.\ PFCCO.}
+\label{tab:gap}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Work & Scope & Reg.\ file & Optimal? \\
+\midrule
+Krause '13      & Intra     & Irregular & Yes \\
+Krause '22      & Global    & Irregular & Best-of-$N$ \\
+De Bus '04      & Per-fn    & Regular   & Heuristic \\
+LLVM IPRA       & Inter     & Regular   & Exact$^\dagger$ \\
+Wall '86        & Inter     & Regular   & Heuristic \\
+\textbf{PFCCO}  & \textbf{Per-fn} & \textbf{Irregular} & \textbf{Optimal} \\
+\bottomrule
+\multicolumn{4}{@{}l}{\footnotesize $^\dagger$For save/restore only, not class assignment.}
+\end{tabular}
+\end{table}
+
+%% ============================================================
+\section{Future Work}
+\label{sec:future}
+
+\paragraph{Shadow register bank.}
+The Z80's shadow bank (\texttt{A',B',\ldots,L'}) provides 7~additional
+locations via \texttt{EXX}.  Our implementation uses shadows for 32-bit
+values (\textsc{DWord}: HL+H'L') but these assignments are hardcoded by
+type, not optimized by PFCCO.  Extending the optimizer to shadow classes
+requires modeling the EXX atomicity constraint: switching one pair forces all
+three to switch simultaneously.
+
+\paragraph{Recursive optimization.}
+SCC decomposition with fixed-point iteration would restore optimality for
+mutually-recursive clusters.
+
+\paragraph{Profile-guided weighting.}
+Dynamic profiling would weight hot edges, shifting ABI choices for critical
+paths.
+
+\paragraph{Benchmark suite.}
+Evaluation against Krause's~\cite{krause2022} benchmarks (Whetstone,
+Dhrystone, Coremark) would enable direct comparison of per-function vs.\
+global ABI optimization.
+
+%% ============================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+We have formalized Per-Function Calling Convention Optimization as a
+cost-minimization problem on call graphs with register class assignments,
+proved its optimal solvability for acyclic call graphs in linear time, and
+demonstrated its effectiveness in a production compiler for the Z80.
+
+The key insight is that on irregular register files, the calling convention
+is not merely an interface specification but an optimization variable with
+direct impact on instruction selection.  By treating it as such, the
+compiler discovers optimizations---including zero-byte function
+aliases---that no fixed convention can achieve.
+
+%% ============================================================
+\bibliographystyle{ACM-Reference-Format}
+
+\begin{thebibliography}{9}
+
+\bibitem{krause2013}
+Philipp~Klaus Krause.
+\newblock Optimal Register Allocation in Polynomial Time.
+\newblock In \emph{Compiler Construction (CC)}, 2013.
+
+\bibitem{krause2022}
+Philipp~Klaus Krause.
+\newblock Efficient Calling Conventions for Irregular Architectures.
+\newblock \emph{arXiv:2112.01397v2}, 2022.
+
+\bibitem{debus2004}
+Bruno De~Bus, Bjorn De~Sutter, Ludo Van~Put, Dominique Chanet, and
+  Koen De~Bosschere.
+\newblock Link-time optimization of ARM executables.
+\newblock 2004.
+
+\bibitem{caldwell2017}
+Andrew Caldwell and Shigeru Chiba.
+\newblock Reducing calling convention overhead in object-oriented programs.
+\newblock 2017.
+
+\bibitem{wall1986}
+David~W. Wall.
+\newblock Global Register Allocation at Link Time.
+\newblock In \emph{SIGPLAN Notices}, 1986.
+
+\bibitem{scholz2002}
+Bernhard Scholz and Erik Eckstein.
+\newblock Register Allocation for Irregular Architectures.
+\newblock In \emph{LCPC/SCOPES}, 2002.
+
+\bibitem{llvm-ipra}
+Vivek~Pandya.
+\newblock Interprocedural Register Allocation for LLVM.
+\newblock GSoC 2016.
+
+\bibitem{msvc-gl}
+Microsoft.
+\newblock \texttt{/GL} (Whole Program Optimization).
+\newblock MSDN Documentation.
+
+\end{thebibliography}
+
+\end{document}

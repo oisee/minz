@@ -1,0 +1,37 @@
+
+assert abs_diff(0, 1) == 1
+assert abs_diff(1, 0) == 1
+assert abs_diff(10, 0) == 10
+assert abs_diff(20, -10) == 30
+
+fun abs_diff(a: i8, b: i8) -> u8 {
+    c = a - b
+    if (a>=b) {
+        return c
+    }
+    return -c
+}
+
+// fun abs_diff(a: u8, b: u8) -> u8 {
+//     if a == b {
+//         return 0
+//     }
+//     if a < b {
+//         return b - a
+//     }
+//     return a - b
+// }
+
+
+// fun keke(a: u8) -> u8 {
+//     if a == 0  {
+//         c = abs_diff(0, 1)
+//         return 0
+//     } else {
+//         return keke(a-1)
+//     }
+// }
+
+
+
+// assert keke(0) == 1
