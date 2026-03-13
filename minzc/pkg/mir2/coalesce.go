@@ -58,8 +58,6 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 			edges = append(edges, affEdge{dst: tb.Params[paramIdx].Dst, src: arg})
 		}
 	}
-	addEdges := func(target string, args []Reg) { addEdgesAt(target, args, 0) }
-
 	for _, b := range f.Blocks {
 		// Within-block: OpMove affinities.
 		for _, inst := range b.Insts {
@@ -68,21 +66,9 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 			}
 		}
 		// Inter-block: block param/arg affinities per outgoing edge.
-		switch t := b.Term.(type) {
-		case *TermJmp:
-			addEdges(t.Target, t.Args)
-		case *TermBrIf:
-			addEdges(t.Then, t.ThenArgs)
-			addEdges(t.Else, t.ElseArgs)
-		case *TermBrIf2:
-			addEdges(t.Eq, t.EqArgs)
-			addEdges(t.Lt, t.LtArgs)
-			addEdges(t.Gt, t.GtArgs)
-		case *TermDJNZ:
-			// BodyArgs does NOT include the counter (Params[0]); offset by 1.
-			addEdgesAt(t.Body, t.BodyArgs, 1)
-			addEdges(t.Exit, t.ExitArgs)
-		}
+		b.Term.ForEachEdge(func(target string, args []Reg, paramOffset int) {
+			addEdgesAt(target, args, paramOffset)
+		})
 	}
 
 	if len(edges) == 0 {

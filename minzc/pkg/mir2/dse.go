@@ -72,49 +72,6 @@ func countRegUses(f *Func) map[Reg]int {
 }
 
 // termRegUses returns all registers read by a terminator.
-// Uses a type switch because Term.termUses() is package-private.
 func termRegUses(t Term) []Reg {
-	switch v := t.(type) {
-	case *TermJmp:
-		return v.Args
-	case *TermBrIf:
-		out := make([]Reg, 0, 1+len(v.ThenArgs)+len(v.ElseArgs))
-		if v.Cond != NoReg {
-			out = append(out, v.Cond)
-		}
-		out = append(out, v.ThenArgs...)
-		out = append(out, v.ElseArgs...)
-		return out
-	case *TermBrIf2:
-		out := make([]Reg, 0, 2+len(v.EqArgs)+len(v.LtArgs)+len(v.GtArgs))
-		if v.Lhs != NoReg {
-			out = append(out, v.Lhs)
-		}
-		if v.Rhs != NoReg {
-			out = append(out, v.Rhs)
-		}
-		out = append(out, v.EqArgs...)
-		out = append(out, v.LtArgs...)
-		out = append(out, v.GtArgs...)
-		return out
-	case *TermDJNZ:
-		uses := make([]Reg, 0, 1+len(v.BodyArgs)+len(v.ExitArgs))
-		if v.Counter != NoReg {
-			uses = append(uses, v.Counter)
-		}
-		uses = append(uses, v.BodyArgs...)
-		uses = append(uses, v.ExitArgs...)
-		return uses
-	case *TermCondRet:
-		out := make([]Reg, 0, 1+len(v.Vals)+len(v.ThenArgs))
-		if v.Cond != NoReg {
-			out = append(out, v.Cond)
-		}
-		out = append(out, v.Vals...)
-		out = append(out, v.ThenArgs...)
-		return out
-	case *TermRet:
-		return v.Vals
-	}
-	return nil
+	return t.termUses()
 }

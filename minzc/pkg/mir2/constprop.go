@@ -268,40 +268,20 @@ func PropagateConstants(f *Func) bool {
 	}
 	incoming := make(map[paramKey][]Reg) // → arg regs from each predecessor
 
-	addEdgeArgs := func(target string, args []Reg) {
-		for i, a := range args {
-			k := paramKey{target, i}
-			incoming[k] = append(incoming[k], a)
-		}
-	}
-
 	for _, b := range f.Blocks {
-		switch t := b.Term.(type) {
-		case *TermJmp:
-			addEdgeArgs(t.Target, t.Args)
-		case *TermBrIf:
-			addEdgeArgs(t.Then, t.ThenArgs)
-			addEdgeArgs(t.Else, t.ElseArgs)
-		case *TermBrIf2:
-			addEdgeArgs(t.Eq, t.EqArgs)
-			addEdgeArgs(t.Lt, t.LtArgs)
-			addEdgeArgs(t.Gt, t.GtArgs)
-		case *TermDJNZ:
-			// BodyArgs maps to body.Params[1:] — counter is Params[0], implicit.
-			// Offset incoming indices by 1 so the counter param gets no incoming
-			// from BodyArgs (it's handled by the BrIf ThenArgs on the first entry).
-			for i, a := range t.BodyArgs {
-				k := paramKey{t.Body, i + 1}
+		// ForEachEdge handles paramOffset (DJNZ body=1, everything else=0).
+		b.Term.ForEachEdge(func(target string, args []Reg, paramOffset int) {
+			for i, a := range args {
+				k := paramKey{target, i + paramOffset}
 				incoming[k] = append(incoming[k], a)
 			}
-			// The DJNZ back-edge implicitly provides a decremented counter for
-			// body.Params[0] on each iteration.  Recording t.Counter (a block
-			// param, never in consts) here prevents PropagateConstants from
-			// "proving" the counter is always the initial constant when that
-			// initial count was folded to a literal (e.g. range(3..8) → Const(5)).
-			// Without this, the fixpoint loop would materialise Const(5) forever.
+		})
+		// DJNZ back-edge: the implicit counter (Params[0]) receives a
+		// decremented value each iteration.  Record it as a non-constant
+		// incoming so PropagateConstants doesn't "prove" the counter is
+		// always the initial constant (which would loop forever).
+		if t, ok := b.Term.(*TermDJNZ); ok {
 			incoming[paramKey{t.Body, 0}] = append(incoming[paramKey{t.Body, 0}], t.Counter)
-			addEdgeArgs(t.Exit, t.ExitArgs)
 		}
 	}
 

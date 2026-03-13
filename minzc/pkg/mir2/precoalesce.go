@@ -85,25 +85,9 @@ func propagateClassHints(f *Func, info map[Reg]RegInfo) {
 					}
 				}
 			}
-			propagateArgs := func(target string, args []Reg) { propagateArgsAt(target, args, 0) }
-
-			switch t := b.Term.(type) {
-			case *TermJmp:
-				propagateArgs(t.Target, t.Args)
-			case *TermBrIf:
-				propagateArgs(t.Then, t.ThenArgs)
-				propagateArgs(t.Else, t.ElseArgs)
-			case *TermBrIf2:
-				propagateArgs(t.Eq, t.EqArgs)
-				propagateArgs(t.Lt, t.LtArgs)
-				propagateArgs(t.Gt, t.GtArgs)
-			case *TermDJNZ:
-				// BodyArgs[0] maps to body.Params[1]; Params[0] is the implicit counter.
-				propagateArgsAt(t.Body, t.BodyArgs, 1)
-				propagateArgs(t.Exit, t.ExitArgs)
-			case *TermCondRet:
-				propagateArgs(t.Then, t.ThenArgs)
-			}
+			b.Term.ForEachEdge(func(target string, args []Reg, paramOffset int) {
+				propagateArgsAt(target, args, paramOffset)
+			})
 		}
 	}
 }

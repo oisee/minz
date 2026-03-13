@@ -173,6 +173,15 @@ type Term interface {
 	isTerm()
 	termUses() []Reg   // all Reg values read by this terminator
 	Successors() []string // successor block labels
+
+	// ForEachEdge calls fn for every outgoing CFG edge that carries block
+	// arguments.  paramOffset is the index into the target block's Params
+	// that args[0] maps to — this is 1 for TermDJNZ body (implicit counter
+	// occupies Params[0]) and 0 everywhere else.
+	//
+	// Edges that are not block jumps (e.g. TermRet values, TermCondRet return
+	// values) are NOT reported — only edges to successor blocks with args.
+	ForEachEdge(fn func(target string, args []Reg, paramOffset int))
 }
 
 // TermJmp is an unconditional jump with optional block arguments.
@@ -188,6 +197,7 @@ type TermJmp struct {
 func (*TermJmp) isTerm()               {}
 func (t *TermJmp) termUses() []Reg      { return t.Args }
 func (t *TermJmp) Successors() []string { return []string{t.Target} }
+func (t *TermJmp) ForEachEdge(fn func(string, []Reg, int)) { fn(t.Target, t.Args, 0) }
 
 // TermBrIf is a conditional branch with optional block arguments per edge.
 //
@@ -212,6 +222,10 @@ func (t *TermBrIf) termUses() []Reg {
 	return all
 }
 func (t *TermBrIf) Successors() []string { return []string{t.Then, t.Else} }
+func (t *TermBrIf) ForEachEdge(fn func(string, []Reg, int)) {
+	fn(t.Then, t.ThenArgs, 0)
+	fn(t.Else, t.ElseArgs, 0)
+}
 
 // TermBrIf2 is a three-way branch driven by a single unsigned comparison.
 //
@@ -247,6 +261,11 @@ func (t *TermBrIf2) termUses() []Reg {
 	return all
 }
 func (t *TermBrIf2) Successors() []string { return []string{t.Eq, t.Lt, t.Gt} }
+func (t *TermBrIf2) ForEachEdge(fn func(string, []Reg, int)) {
+	fn(t.Eq, t.EqArgs, 0)
+	fn(t.Lt, t.LtArgs, 0)
+	fn(t.Gt, t.GtArgs, 0)
+}
 
 // TermDJNZ is the Z80 DJNZ (Decrement B and Jump if Non-Zero) terminator.
 //
@@ -285,6 +304,13 @@ func (t *TermDJNZ) termUses() []Reg {
 }
 func (t *TermDJNZ) Successors() []string { return []string{t.Body, t.Exit} }
 
+// ForEachEdge: body edge has paramOffset=1 because Params[0] is the implicit
+// counter — BodyArgs[0] maps to Params[1].  Exit edge has offset 0.
+func (t *TermDJNZ) ForEachEdge(fn func(string, []Reg, int)) {
+	fn(t.Body, t.BodyArgs, 1) // ← THE offset: Params[0]=counter, BodyArgs[0]→Params[1]
+	fn(t.Exit, t.ExitArgs, 0)
+}
+
 // TermCondRet is a conditional return.
 //
 //	cond_ret %cond, [%v0, %v1, ...], @then(%ta0, ...)
@@ -316,6 +342,10 @@ func (t *TermCondRet) termUses() []Reg {
 	return all
 }
 func (t *TermCondRet) Successors() []string { return []string{t.Then} }
+func (t *TermCondRet) ForEachEdge(fn func(string, []Reg, int)) {
+	fn(t.Then, t.ThenArgs, 0)
+	// Vals are return values, not a block edge — not reported.
+}
 
 // TermRet returns from the function.
 // Vals is empty for void returns; multiple values for multi-return.
@@ -324,6 +354,7 @@ type TermRet struct{ Vals []Reg }
 func (*TermRet) isTerm()               {}
 func (t *TermRet) termUses() []Reg      { return t.Vals }
 func (*TermRet) Successors() []string   { return nil }
+func (*TermRet) ForEachEdge(func(string, []Reg, int)) {} // no successors
 
 // TermUnreachable marks dead code.
 type TermUnreachable struct{}
@@ -331,6 +362,7 @@ type TermUnreachable struct{}
 func (*TermUnreachable) isTerm()               {}
 func (*TermUnreachable) termUses() []Reg        { return nil }
 func (*TermUnreachable) Successors() []string   { return nil }
+func (*TermUnreachable) ForEachEdge(func(string, []Reg, int)) {} // no successors
 
 // TermString formats a terminator for dump output.
 func TermString(term Term) string {
