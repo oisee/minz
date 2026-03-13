@@ -2170,6 +2170,24 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 	}
 	for {
 		t := p.l.peek()
+		// "expr as type" cast — high precedence postfix.
+		if t.kind == tokIdent && t.val == "as" {
+			p.l.next() // consume "as"
+			tyTok, err2 := p.l.eat(tokIdent)
+			if err2 != nil {
+				return nil, err2
+			}
+			ty, ok2 := map[string]mir2.Ty{
+				"u8": mir2.TyU8, "u16": mir2.TyU16,
+				"i8": mir2.TyI8, "i16": mir2.TyI16,
+				"bool": mir2.TyBool,
+			}[tyTok.val]
+			if !ok2 {
+				return nil, fmt.Errorf("line %d: unknown cast target type %q", tyTok.line, tyTok.val)
+			}
+			lhs = &hir.CastExpr{X: lhs, Ty: ty}
+			continue
+		}
 		bo, ok := binops[t.kind]
 		if !ok || bo.prec <= minPrec {
 			break
