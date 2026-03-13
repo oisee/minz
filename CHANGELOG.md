@@ -1,314 +1,78 @@
-# MinZ Language Changelog
+# Changelog
 
-All notable changes to the MinZ programming language will be documented in this file.
+Development log for the MinZ compiler project. Each entry links to the full report.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [0.14.0] - 2025-08-13 "ANTLR Parser Revolution" 🎊
-
-### Added
-- **ANTLR as Default Parser** - Pure Go implementation with zero dependencies
-- **75% Success Rate** - Better than tree-sitter's 70%!
-- **Complete Control Flow** - Full if/while/for/loop statement support
-- **Pattern Matching** - Case statements with literal, identifier, and wildcard patterns
-- **Self-Contained Binaries** - No external tools required
-- **Parser Selection** - Environment variables for parser choice
-
-### Changed
-- **ANTLR is now DEFAULT** - No configuration needed for best compatibility
-- **Tree-sitter is now fallback** - Available via `MINZ_USE_TREE_SITTER=1`
-- **Improved error messages** - Better ANTLR parse error reporting
-- **Zero subprocess spawning** - All parsing happens in-process
-
-### Performance
-- **75% compilation success** (111/148 examples) vs tree-sitter's 70%
-- **Zero dependencies** - No external tools needed
-- **~9MB binary size** - Slightly larger but fully self-contained
-- **No IPC overhead** - Direct in-process parsing
-
-### Migration
-- No changes needed - ANTLR is automatic default
-- Use `MINZ_USE_TREE_SITTER=1` for legacy parser
-- Full backward compatibility maintained
-
-## [0.11.0] - 2025-08-11 "Cast Interface Revolution" 🚀
-
-### Added
-- **Revolutionary Cast Interface System** - Swift-style protocol conformance with ZERO runtime overhead!
-- **Compile-Time Method Dispatch** - All interface calls resolved at compile time to direct CALLs
-- **`cast<T>` Syntax** - Beautiful, modern syntax for declaring type conformance
-- **Zero-Cost Abstractions** - No vtables, no indirection, just direct assembly calls
-- **SimpleCastInterface** - Semantic analysis infrastructure for cast interfaces
-- **New IR Opcodes** - OpCastInterface, OpCheckCast, OpMethodDispatch, OpInterfaceCall
-- **Tree-sitter Grammar Extension** - Full support for cast interface blocks
-- **AST Node Architecture** - CastInterfaceBlock, CastRule, CastTransform structures
-
-### Changed
-- Interface declarations now support `cast<T>` blocks for compile-time dispatch
-- Method calls on interfaces are resolved statically at compile time
-- Improved semantic analysis for interface conformance checking
-- Enhanced IR generation for zero-cost interface operations
-
-### Performance
-- **2.8x faster** than traditional vtable dispatch (17 vs 48 T-states)
-- **100% compile-time resolution** - no runtime overhead whatsoever
-- **Zero memory overhead** - no vtables needed, saving 48+ bytes per type
-- **Direct CALL instructions** - optimal Z80 performance for interface methods
-
-### Technical Details
-- Parse-time recognition of cast interface syntax
-- Compile-time dispatch table construction
-- Static method resolution to concrete implementations
-- Future-ready for generic interfaces and protocol extensions
-
-## [0.9.6] - 2025-08-05 "Swift & Ruby Dreams"
-
-### Added
-- **Function Overloading** - Multiple functions with same name, different parameters!
-- **Interface Self Parameter Resolution** - Methods now work with natural `object.method()` syntax
-- **Name Mangling System** - Functions get unique names based on parameter types
-- **Overload Resolution** - Compile-time selection of correct function
-- **Method Call Dispatch** - Zero-cost interface method calls
-- **TypeIdentifier Support** - Proper handling of user-defined types in mangling
-
-### Changed  
-- Both `fn` and `fun` keywords now work - developer choice!
-- Interface methods properly resolve self parameter type
-- Method calls compile to direct function calls (no vtables)
-- Improved error messages for overload resolution failures
-
-### Fixed
-- Interface method registration in impl blocks
-- Self parameter type resolution for interface methods
-- Overload set symbol lookup in method calls
-- Function signature registration for impl block methods
-
-## [0.15.0] - 2025-08-24 "Array Optimization Revolution" 🚀
-
-### Added
-- **Intelligent Array Literal Optimization** - Arrays with constant values now generate DB/DW directives instead of initialization code
-- **Struct Array Optimization** - Struct arrays with literals generate proper DB/DW based on field types
-- **61% Code Reduction** - Simple arrays reduced from 263 to 102 lines
-- **Line Numbers in Errors** - All error messages now include precise line:column information
-- **Ruby String Interpolation** - `"Hello #{name}!"` syntax for string formatting
-- **Crystal Backend** - Modern development workflow with instant testing
-
-### Changed
-- Array initialization completely revamped for literal detection
-- Error messages enhanced with source location context
-- IR enhanced with `OpArrayLiteral` and data block support
-- Code generation optimized for static data initialization
-
-### Performance
-- **61% reduction** in generated code for array literals (263 → 102 lines)
-- **Zero runtime overhead** for constant arrays - data pre-loaded in memory
-- **Smaller binaries** - Data directives instead of initialization code
-- **Faster assembly** - Fewer instructions to process
-
-### Fixed
-- Array initialization inefficiency for constant values
-- Missing line numbers in semantic analyzer errors
-- Data block generation timing in code generator
-
-## [Unreleased]
-
-### Added
-- Enhanced lambda syntax with `=>` for typed return expressions
-- Robust import system with duplicate module prevention
-- Comprehensive regression testing infrastructure
-- Tree-sitter grammar improvements for lambda expressions
-- Advanced precedence resolution for complex expressions
-
-### Changed
-- Lambda syntax updated from `|x| -> u8 { }` to `|x| => u8 { }`
-- Import system now prevents double registration when using aliases
-- Enhanced debug output for import resolution
-- Improved grammar conflict resolution between lambda and union types
-
-### Fixed
-- Double module registration issue with import aliases
-- Lambda expression precedence conflicts with union types
-- Import system robustness and error handling
-- Tree-sitter parsing for complex lambda expressions
-
-## [0.8.0] - 2025-07-30
-
-### Added
-- TRUE SMC Lambda implementation with performance improvements
-- Advanced lambda support with self-modifying code optimization
-- 14.4% fewer instructions than traditional function approaches
-- Absolute address capture for lambda variables
-- Live state evolution in lambda functions
-- Comprehensive lambda performance analysis
-
-### Changed
-- Lambda functions now use TRUE SMC for optimization
-- Enhanced compiler optimization pipeline for lambdas
-- Improved runtime performance with zero allocation overhead
-
-### Performance
-- 1.2x performance speedup for lambda operations
-- Superior performance compared to traditional Z80 function calls
-- Zero allocation overhead for lambda captures
-
-## [0.7.0] - 2025-07-28
-
-### Added
-- Production-ready TSMC reference system
-- Revolutionary diagnostic system with root cause analysis
-- Small offset optimization for array/struct access
-- Automatic GitHub issue generation for suspicious patterns
-- TSMC reference reading for immediate operand access
-
-### Changed
-- 15-40% overall speedup from intelligent optimization
-- 25-60% code size reduction for common patterns
-- 3x faster struct field access for small offsets
-- Zero-indirection I/O through TSMC references
-
-### Fixed
-- Multiple optimization pipeline issues
-- TSMC reference implementation stability
-- Code generation for complex assignment patterns
-
-## [0.6.0] - 2025-07-25
-
-### Added
-- Complete bit field support with structured access
-- Advanced assignment implementation for all types
-- Auto-dereference for pointer operations
-- Enhanced semantic analysis for TSMC references
-- Comprehensive test-driven development infrastructure
-
-### Changed
-- Improved bit field syntax and semantics
-- Enhanced pointer and reference handling
-- Better error messages and debugging support
-- Streamlined compilation pipeline
-
-### Fixed
-- Bit field assignment and access patterns
-- Pointer arithmetic edge cases
-- Type system consistency issues
-- Memory layout optimization problems
-
-## [0.5.1] - 2025-07-20
-
-### Added
-- Lua metaprogramming integration
-- Advanced code generation from Lua scripts
-- Module system improvements
-- Enhanced standard library support
-
-### Changed
-- Better Lua integration performance
-- Improved module loading mechanisms
-- Enhanced error reporting for Lua blocks
-
-### Fixed
-- Lua interpreter initialization issues
-- Module dependency resolution
-- Code generation from complex Lua expressions
-
-## [0.5.0] - 2025-07-15
-
-### Added
-- Self-modifying code (SMC) support
-- TRUE SMC optimization framework
-- Revolutionary TSMC reference philosophy
-- Advanced register allocation system
-- Shadow register optimization
-
-### Changed
-- Complete compiler architecture overhaul
-- Enhanced Z80 code generation
-- Improved optimization pipeline
-- Better memory management
-
-### Performance
-- 3-5x performance improvement with TRUE SMC
-- Ultra-fast interrupt handlers using shadow registers
-- Optimized register allocation for Z80 architecture
-
-## [0.4.1] - 2025-07-10
-
-### Added
-- Comprehensive language feature set
-- Advanced struct and enum support
-- Inline assembly integration
-- @abi attribute system for assembly interop
-
-### Changed
-- Enhanced type system
-- Better code organization
-- Improved documentation
-
-### Fixed
-- Multiple parsing edge cases
-- Type inference improvements
-- Code generation stability
-
-## [0.4.0] - 2025-07-05
-
-### Added
-- Complete MinZ language specification
-- Advanced optimization framework
-- Professional compiler architecture
-- Comprehensive example suite
-
-### Changed
-- Major language design improvements
-- Enhanced developer experience
-- Better tooling integration
-
-### Performance
-- Significant compilation speed improvements
-- Better generated code quality
-- Reduced memory usage
-
-## [0.3.0] - 2025-06-30
-
-### Added
-- Advanced language constructs
-- Module system implementation
-- Standard library foundation
-- Comprehensive testing framework
-
-### Changed
-- Improved syntax and semantics
-- Better error handling
-- Enhanced documentation
-
-## [0.2.0] - 2025-06-25
-
-### Added
-- Core language features
-- Basic compiler infrastructure
-- Z80 code generation
-- Initial optimization passes
-
-### Changed
-- Fundamental architecture improvements
-- Better code organization
-- Enhanced testing
-
-## [0.1.0] - 2025-06-20
-
-### Added
-- Initial MinZ language implementation
-- Basic tree-sitter grammar
-- Simple compiler prototype
-- Core Z80 assembly generation
+For pre-MIR2 history (v0.1–v0.15, 2025), see git log.
 
 ---
 
-## Legend
+## 2026-03-13
 
-- **Added** for new features
-- **Changed** for changes in existing functionality  
-- **Deprecated** for soon-to-be removed features
-- **Removed** for now removed features
-- **Fixed** for any bug fixes
-- **Security** for vulnerability fixes
-- **Performance** for performance improvements
+- **[Showcase #068: PreallocCoalesce Impact](reports/2026-03-13-068-Showcase_ForEachEdge_SignedCmp_PreallocImpact.md)** — 6 assembly files improved: `mapInPlace` 5 instructions → 1 DJNZ; `factorial_fold` mul16 eliminated; `forEach` trampoline removed. ForEachEdge refactor (~75 LOC removed). Signed i8/i16 comparison working in VM.
+- **[BUG-001 Phase 1: PreallocCoalesce](reports/2026-03-13-067-BUG001_PreallocCoalesce_Wired.md)** — Pre-allocation coalescing wired into pipeline.
+- **[MOS 6502 Backend: E2E Harness](reports/2026-03-13-067-6502_Backend_E2E_Harness.md)** — 35/35 tests. Dual-VM oracle (MIR2 VM vs sim6502). Console I/O for Apple II/C64/BBC Micro.
+- **[Phase 6f: Trivial Inliner](reports/2026-03-13-066-MultiPass_Contracts_Achievement_Article.md)** — `swap(a,b).1 == a` → zero instructions. `min_of(a,b)` → `EQU minmax` (0 bytes).
+- **[Phase 6e: Multi-Pass Contracts](reports/2026-03-13-065-Phase6e_Complete_MultiPass_Mul16_DJNZ.md)** — mul16 rhs→DE nudge, DJNZ counter→B nudge, BC★/DE★ LUT codegen.
+- **[Showcase #064](reports/2026-03-13-064-Showcase_Update_Phase6e_BCstar_And_BugFixes.md)** — BUG-002/004/005 fixed. 23/23 showcase.
+
+## 2026-03-12
+
+- **[BUG-003 Fixed: `ptr[i]` in While Loop](reports/2026-03-12-062-BUG003_PtrIdx_While_Loop_Fixed.md)** — 5 interacting codegen bugs. Real pointer-loop programs now work.
+- **[All 23 Showcase Passing](reports/2026-03-12-061-All_Showcase_Passing_ForRange_And_Codegen_Fixes.md)** — ForRange precomputation, u16 global loads, constant store fix, EX DE,HL swap semantics.
+- **[Codegen Fixes & Allocator Roadmap](reports/2026-03-12-060-Codegen_Fixes_And_Allocator_Roadmap.md)** — u8→u16 zero-extension, self-pointer load, mul16 operand order. +3 showcase.
+
+## 2026-03-11
+
+- **[Frontend & Backend Diagnostic](reports/2026-03-11-059-Frontend_Backend_Diagnostic.md)** — Full system health: 25/28 green, 160+ MIR2 tests.
+- **[`range(lo..hi)` + Parallel Copy Fix](reports/2026-03-11-057-Range_Iterator_And_Parallel_Copy_Fix.md)** — Counter-based iterator: `fold` → 1 instruction/iteration.
+- **[Nanz Z80 Showcase Definitive](reports/2026-03-11-056-Nanz_Z80_Showcase_Definitive.md)** — 15 verified examples with T-state analysis.
+- **[`@smc` Parameters Phase A](reports/2026-03-11-055-SMC_Parameters_Phase_A_Breakthrough.md)** — Baked immediates: `@smc r0: u16` → `LD HL, imm16`. Compiled sprites 36T/row.
+- **[Output Quality & Allocator Trilogy](reports/2026-03-11-054-Nanz_Z80_Output_Quality_And_Allocator_Trilogy.md)** — Struct literals, `LD (HL), n` folding, StorageClass, ADR-0019.
+
+## 2026-03-10
+
+- **[ASM Showcase: `abs_diff` Optimal](reports/2026-03-10-051-Nanz_Real_ASM_Showcase.md)** — 5-pass optimization: 8 → 4 instructions (`SUB C / RET NC / NEG / RET`).
+- **[LUT Pointer Selection](reports/2026-03-10-049-LUT_Pointer_Selection_And_PBQP_Edge_Costs.md)** — 21T → 18T LUT. BC★ 14T.
+- **[Phase 6: PBQP + IX/IY + Coalescing](reports/2026-03-10-048-Phase6_Register_Allocator_Revolution.md)** — Greedy → PBQP. 4 simultaneous pointers, zero spills.
+
+## 2026-03-09
+
+- **[Nanz Week 1: UFCS + Interfaces](reports/2026-03-09-046-Nanz_Week1_RCA_And_Phase6_Plan.md)** — Go-style interfaces → direct `CALL`. Zero vtable, zero indirection.
+- **[MIR2→QBE Native Backend](reports/2026-03-09-045-MIR2_To_QBE_Native_Backend_And_Correctness_Oracle.md)** — Correctness oracle: 4/4 E2E tests.
+- **[E2E Overview & Roadmap](reports/2026-03-09-043-E2E_Overview_Architecture_And_Roadmap.md)** — Architecture deep-dive.
+- **[LUTGen](reports/2026-03-09-038-Nanz_PLM_HIR_MIR2_Z80_E2E_Snapshot.md)** — `u8<0..255>` → compile-time table.
+- **[Native PL/M-80 vs MIR2](reports/2026-03-09-036-Native_PLM80_vs_MIR2_Codegen_Comparison.md)** — −46% code size vs Intel PL/M-80 V4.0.
+
+## 2026-03-08
+
+- **[PL/M-80 Frontend: 26/26 corpus](reports/2026-03-08-032-PLM80_HIR_Coverage_And_Pipeline.md)** — 100% Intel 80 Tools; 1338 functions → HIR → MIR2 → Z80.
+
+## 2026-03-07
+
+- **[MIR2 Architecture](reports/2026-03-07-029-MIR2_Architecture_And_Progress.md)** — PBQP domain map.
+- **[MIR2 Codegen Quality Sprint](reports/2026-03-07-028-MIR2_Codegen_Quality_Sprint.md)** — 42 tests, 9 verified functions, DSE.
+
+## 2026-03-04 and earlier
+
+- **[Honest Assessment](reports/2026-03-04-025-Honest_Assessment_Code_Verified.md)** — Every claim verified by live test runs.
+- **[MIR Backend Test Suite](reports/2026-03-04-023-MIR_Backend_Test_Suite.md)** — 11 .mir programs, pipeline validation.
+- **[VSCode: Edit, Compile & Run](reports/2026-03-04-022-VSCode_Tooling_And_Codegen_Fixes.md)** — Cmd+Alt+R compiles and runs.
+- **[VSCode Tooling Sprint](reports/2026-03-02-019-VSCode_Tooling_Sprint_Report.md)** — LSP, syntax highlighting, DeZog.
+- **[Register Allocator Overhaul](reports/2026-03-02-018-Register_Allocator_Overhaul_Results.md)** — 7.8x iterator speedup.
+- **[Iterator Status](docs/Iterator_Implementation_Status.md)** — 11/11 E2E correct.
+- **[Project Status](reports/2026-03-01-015-Project_Status_And_Next_Steps.md)** — v0.19 roadmap.
+
+---
+
+## Pre-MIR2 era (2025)
+
+| Version | Date | Highlights |
+|---------|------|------------|
+| v0.15.0 | 2025-08-24 | Array literal optimization, Ruby string interpolation |
+| v0.14.0 | 2025-08-13 | ANTLR parser (replaced tree-sitter), 75% compile rate |
+| v0.11.0 | 2025-08-11 | Cast interface system, zero-cost dispatch |
+| v0.9.6 | 2025-08-05 | Function overloading, UFCS |
+| v0.8.0 | 2025-07-30 | TRUE SMC lambda, 14.4% fewer instructions |
+| v0.7.0 | 2025-07-28 | TSMC reference system, diagnostics |
+| v0.5.0 | 2025-07-15 | Self-modifying code framework |
+| v0.1.0 | 2025-06-20 | Initial implementation |
