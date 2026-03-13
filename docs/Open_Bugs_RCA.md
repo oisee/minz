@@ -135,7 +135,7 @@ and inherited the class from the hoisted instruction without checking width.
 
 ---
 
-## BUG-006 🔴 Zero-size struct globals (`struct Dog {}`) not emitted
+## BUG-006 ✅ FIXED Zero-size struct globals (`struct Dog {}`) not emitted
 
 **Symptom:** `global g_dog: Dog` where `Dog` has no fields emits no bytes.
 Subsequent `LD HL, g_dog` references an undefined symbol, causing MZA to fail.
@@ -152,7 +152,7 @@ operations remain valid.
 
 ---
 
-## BUG-007 🟡 Spurious adapter LD when caller/callee share convention
+## BUG-007 ✅ FIXED Spurious adapter LD when caller/callee share convention
 
 **Symptom:** When two functions share an identical PFCCO contract, the codegen
 emits a spurious `LD` that overwrites the first argument with the second.
