@@ -369,6 +369,31 @@ fun abs_diff(a: u8, b: u8) -> u8 {
 }
 ```
 
+**Nanz output** (4 bytes):
+```z80
+; fun abs_diff(a: u8 = A, b: u8 = C) -> u8 = A
+abs_diff:
+    SUB C           ; 4T  — A = a-b, sets CY if a < b
+    RET NC          ; 5T  — return (a-b) if a >= b
+    NEG             ; 8T  — A = b-a
+    RET             ; 10T
+```
+
+**SDCC 4.2.0 output** (10 bytes):
+```z80
+_abs_diff::
+    ld   c, a       ; 4T  — save a (forced by global ABI)
+    sub  a, l       ; 4T  — a - b (2nd arg in L, not C!)
+    jr   C, 00102$  ; 7T
+    ld   a, c       ; 4T  — reload a
+    sub  a, l       ; 4T  — a - b AGAIN (redundant!)
+    ret             ; 10T
+00102$:
+    ld   a, l       ; 4T
+    sub  a, c       ; 4T  — b - a
+    ret             ; 10T
+```
+
 | | Nanz (PFCCO) | SDCC 4.2.0 |
 |---|---|---|
 | Contract | A=a, C=b | A=a, L=b |
@@ -392,10 +417,57 @@ fun gcd(a: u8, b: u8) -> u8 {
 }
 ```
 
+**Nanz output** (14 bytes, ideal; 18 bytes actual with allocator artifacts):
+```z80
+; fun gcd(a: u8 = A, b: u8 = C) -> u8 = A
+gcd:
+.loop:
+    CP C              ; 4T  — compare a, b
+    JR Z, .exit       ; 7T  — equal → done
+    JR C, .else       ; 7T  — a < b → else
+    SUB C             ; 4T  — a = a - b
+    JR .loop          ; 12T
+.else:
+    NEG               ; 8T  — b - a via -a + b
+    ADD A, C          ; 4T
+    LD C, A           ; 4T  — b = result
+    JR .loop          ; 12T
+.exit:
+    RET               ; 10T
+```
+*(Note: actual compiler output has 4 extra bytes from parallel-copy
+resolver artifacts — `LD E,A; LD A,E` no-ops and duplicate `CP C`.
+These are peephole misses (BUG-001), not PFCCO deficiencies.)*
+
+**SDCC 4.2.0 output** (19 bytes):
+```z80
+_gcd::
+    ld   c, a         ; 4T  — save a to C
+.loop:
+    ld   a, c         ; 4T  — RELOAD a every iteration!
+    sub  a, l         ; 4T  — compare a - b
+    jr   Z, .exit     ; 7T
+    ld   a, l         ; 4T
+    sub  a, c         ; 4T  — compare b - a
+    jr   NC, .else    ; 7T
+    ld   a, c         ; 4T  — a - b
+    sub  a, l         ; 4T
+    ld   c, a         ; 4T
+    jr   .loop        ; 12T
+.else:
+    ld   a, l         ; 4T  — b - a
+    sub  a, c         ; 4T
+    ld   l, a         ; 4T
+    jr   .loop        ; 12T
+.exit:
+    ld   a, c         ; 4T  — return a
+    ret               ; 10T
+```
+
 | | Nanz | SDCC |
 |---|---|---|
 | Contract | A=a, C=b | C=a, L=b |
-| Bytes | 14 | 19 |
+| Bytes | 14 (18 actual) | 19 |
 | Reload per iteration | **0** | 1 (LD A,C) |
 
 SDCC's global ABI forces `a` into C at function entry (A is the first-arg
@@ -411,6 +483,42 @@ fun sum_chain(buf: ^u8, n: u8) -> u8 {
     buf.forEach(|x: u8| { s = (s + x) }, n)
     return s
 }
+```
+
+**Nanz output** (12 bytes):
+```z80
+; fun sum_chain(buf: ptr = HL, n: u8 = C) -> u8 = A
+sum_chain:
+    LD A, 0           ; 7T  — s = 0
+    LD B, C           ; 4T  — n → B (ClassCounter for DJNZ)
+.loop:
+    ADD A, (HL)       ; 7T  — s += *buf
+    INC HL            ; 6T  — buf++
+    DJNZ .loop        ; 13T — B--, loop if nonzero
+    RET               ; 10T
+```
+
+**SDCC 4.2.0 output** (29 bytes):
+```z80
+_sum_array::
+    push ix             ; 15T — frame setup
+    ld   ix, #0         ; 14T
+    add  ix, sp         ; 15T
+    ex   de, hl         ; 4T  — buf to DE
+    ld   bc, #0x0       ; 10T — i=0, s=0
+.loop:
+    ld   a, b           ; 4T  — i
+    sub  a, 4(ix)       ; 19T — compare i < n (IX-relative!)
+    jr   NC, .exit      ; 7T
+    ld   l, b           ; 4T  — compute buf[i]
+    ld   h, #0          ; 7T
+    add  hl, de         ; 11T — HL = buf + i
+    ld   a, (hl)        ; 7T  — load element
+    add  a, c           ; 4T  — s += buf[i]
+    ld   c, a           ; 4T
+    inc  b              ; 4T  — i++
+    jr   .loop          ; 12T
+.exit:                  ; ... frame teardown ...
 ```
 
 | | Nanz | SDCC |
@@ -436,6 +544,41 @@ fun min_of(a: u16, b: u16) -> u16 {
     let (lo, _) = minmax(a, b)
     return lo
 }
+```
+
+**Nanz output:**
+```z80
+; fun swap(a: u16 = HL, b: u16 = DE) -> (u16 = HL, u16 = DE)
+swap:
+    EX DE, HL       ; 4T  — the entire function
+    RET             ; 10T
+; 2 bytes, 14T
+
+; fun min_of(a: u16 = HL, b: u16 = DE) -> u16 = HL
+min_of    EQU minmax
+; 0 bytes — zero-byte function alias
+```
+
+**SDCC 4.2.0 output** (swap via out-params, 26 bytes):
+```z80
+_swap::
+    push ix               ; 15T — frame pointer setup
+    ld   ix, #0           ; 14T
+    add  ix, sp           ; 15T
+    ld   c, l / ld b, h   ; 8T  — save a to BC
+    ld   l, 4(ix)         ; 19T — load out_a ptr
+    ld   h, 5(ix)         ; 19T
+    ld   (hl), e          ; 7T  — *out_a = b
+    inc  hl               ; 6T
+    ld   (hl), d          ; 7T
+    ld   l, 6(ix)         ; 19T — load out_b ptr
+    ld   h, 7(ix)         ; 19T
+    ld   (hl), c          ; 7T  — *out_b = a
+    inc  hl               ; 6T
+    ld   (hl), b          ; 7T
+    pop  ix               ; 14T
+    ; ... stack cleanup, return via JP (HL) ...
+; 26 bytes, ~236T
 ```
 
 | Function | Nanz | SDCC |
