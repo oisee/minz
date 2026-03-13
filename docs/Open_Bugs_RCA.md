@@ -65,36 +65,18 @@ Also added `src == dst` early-exit to handle pre-coalesced or same-location pair
 
 ## BUG-003 ✅ FIXED `ptr[i]` inside while loop — broken EX DE,HL / ADD F,DE
 
-**Symptom:** Accessing `ptr[i]` inside a while loop produces invalid Z80:
+**Fixed in:** 2026-03-12 (5 interacting codegen fixes, report #062)
+
+**Symptom:** Accessing `ptr[i]` inside a while loop produced invalid Z80:
 `EX DE,HL` at wrong points, `ADD F,DE` (F is not a general register).
 
-**Example:**
-```nanz
-while i < n {
-    val = ptr[i]    // ← breaks codegen
-    i = i + 1
-}
-```
+**RCA:** Not one bug but five layered codegen errors: (1) `OpPtrAdd` emitted
+`ADD DE,BC` — invalid Z80; fixed with PUSH HL / ADD HL,off / LD r,(HL) / POP HL.
+(2) `coalesceAllocResult` missed pair/component aliases (C vs BC). (3) Block param
+in A clobbered by loop compare. (4) `pendingAccReg` not set after 8-bit ADD.
+(5) `buildBlockCopies` used canonical loc instead of `physOverride`.
 
-**RCA:** The HIR loop variable threading pass adds ALL variables read/written in
-the loop body to the set of loop block parameters.  When both a pointer `ptr`
-(u16, ClassPointer→HL) and an index `i` (u8, ClassCounter→B) are loop params,
-the parallel-copy resolver must emit a sequence to simultaneously update HL and
-B across the back-edge.  The `PtrAdd` instruction (`ADD HL, DE`) requires HL=ptr
-and DE=i_extended.  If the copy resolution moves HL before DE is set (or uses F
-as if it were a register), the sequence is invalid.
-
-**Sub-issues:**
-- `OpPtrAdd` on Z80 requires `HL += DE`; if `ptr` was in DE before the copy,
-  using `EX DE,HL` leaves the wrong register pair in HL.
-- Loop-back parallel copy walks BACKWARD (correct per design) but the PtrAdd
-  register constraints aren't respected during cycle resolution.
-
-**Fix:** In `emitParallelCopy`, when a cycle involves HL and DE, check if any
-live instruction between the copies requires HL as a pointer base.  Use a
-scratch register (BC or stack) to break the cycle safely.
-
-**Priority:** High.  Blocks any loop that iterates over an array.
+E2E verified: `sum_array(ptr, 4) = 100`, `sum_array(ptr, 5) = 150`.
 
 ---
 
