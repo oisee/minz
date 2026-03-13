@@ -30,18 +30,14 @@ max_chain:
     LD A, E    ; restore block param from scratch
     JRS Z, .max_chain_fe_exit4
 .max_chain_fe_body2:
-    LD C, (HL)
-    CP C
-    JRS NC, .max_chain_trmp0
+    LD A, (HL)
+    AND A
+    JRS Z, .max_chain_if_join6
 .max_chain_if_then5:
 .max_chain_if_join6:
-    LD A, C
 .max_chain_fe_cont3:
     INC HL
     DJNZ .max_chain_fe_body2
 .max_chain_fe_exit4:
     RET
-.max_chain_trmp0:
-    LD C, A
-    JRS .max_chain_if_join6
 

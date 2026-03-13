@@ -15,11 +15,7 @@ add2_inplace:
     LD (HL), A
 .add2_inplace_fe_cont3:
     INC HL
-    LD A, 1
-    NEG
-    ADD A, B
-    LD B, A
-    JRS .add2_inplace_fe_head1
+    DJNZ .add2_inplace_fe_body2
 .add2_inplace_fe_exit4:
     RET
 
