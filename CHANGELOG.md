@@ -8,6 +8,9 @@ For pre-MIR2 history (v0.1–v0.15, 2025), see git log.
 
 ## 2026-03-13
 
+- **[Nanz Language Book v4](docs/Nanz_Language_Book_v4.md)** — 14 chapters + 4 appendices. New: `as` cast, signed comparison, PreallocCoalesce, trivial inliner, 6502 backend, `mzn` native compiler, `@smc`. Available as [PDF](releases/v0.21.2/Nanz_Language_Book_v4.pdf) / [EPUB](releases/v0.21.2/Nanz_Language_Book_v4.epub).
+- **[MinZ vs Nanz Feature Gap Analysis](docs/MinZ_vs_Nanz_Feature_Gap.md)** — Complete gap analysis: enums, @error, imports, strings, type aliases. Implementation proposals with effort estimates.
+- **`mzn` native compiler** — `mzn file.nanz` compiles to AMD64 via C99 or QBE. VSCode integration. `expr as type` cast syntax.
 - **[Showcase #068: PreallocCoalesce Impact](reports/2026-03-13-068-Showcase_ForEachEdge_SignedCmp_PreallocImpact.md)** — 6 assembly files improved: `mapInPlace` 5 instructions → 1 DJNZ; `factorial_fold` mul16 eliminated; `forEach` trampoline removed. ForEachEdge refactor (~75 LOC removed). Signed i8/i16 comparison working in VM.
 - **[BUG-001 Phase 1: PreallocCoalesce](reports/2026-03-13-067-BUG001_PreallocCoalesce_Wired.md)** — Pre-allocation coalescing wired into pipeline.
 - **[MOS 6502 Backend: E2E Harness](reports/2026-03-13-067-6502_Backend_E2E_Harness.md)** — 35/35 tests. Dual-VM oracle (MIR2 VM vs sim6502). Console I/O for Apple II/C64/BBC Micro.

@@ -1,0 +1,2540 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+\documentclass[
+  11pt,
+  a4paper,
+]{report}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+  \setmainfont[]{DejaVu Sans}
+  \setmonofont[]{Menlo}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Smaller code font for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}\small}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+\title{The Nanz Language Book — v4}
+\author{MinZ Project}
+\date{2026-03-13}
+
+\begin{document}
+\maketitle
+
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\section{The Nanz Language Book --- v4}\label{the-nanz-language-book-v4}
+
+\begin{quote}
+\textbf{Modern language. Vintage iron. Zero overhead.}
+
+Nanz is a statically typed systems language that compiles to Z80
+assembly with no runtime, no garbage collector, and no performance tax.
+Every abstraction --- iterators, lambdas, interfaces, closures ---
+disappears at compile time and leaves only tight machine code.
+
+\emph{Also targets native AMD64 via C99 and QBE, and MOS 6502.}
+\end{quote}
+
+\textbf{Version:} MinZ compiler v0.19.6+ (commit 973bf50) \textbf{Date:}
+2026-03-13 \textbf{Status:} Core features stable · 23/23 showcase ·
+20/20 test packages
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Table of Contents}\label{table-of-contents}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \hyperref[chapter-1-what-is-nanz]{What is Nanz?}
+\item
+  \hyperref[chapter-2-syntax-reference]{Syntax Reference}
+\item
+  \hyperref[chapter-3-type-system]{Type System}
+\item
+  \hyperref[chapter-4-structs-methods-and-interfaces]{Structs, Methods,
+  and Interfaces}
+\item
+  \hyperref[chapter-5-iterator-chains]{Iterator Chains}
+\item
+  \hyperref[chapter-6-range-counter-based-iteration]{\texttt{range(lo..hi)}
+  --- Counter-Based Iteration}
+\item
+  \hyperref[chapter-7-compile-time-assertions]{Compile-Time Assertions
+  --- Dual-VM Verification}
+\item
+  \hyperref[chapter-8-the-optimization-pipeline]{The Optimization
+  Pipeline}
+\item
+  \hyperref[chapter-9-multiple-compilation-targets]{Multiple Compilation
+  Targets}
+\item
+  \hyperref[chapter-10-z80-extern-and-register-contracts]{Z80 Extern and
+  Register Contracts}
+\item
+  \hyperref[chapter-11-verified-codegen-showcase]{Verified Codegen:
+  Showcase}
+\item
+  \hyperref[chapter-12-self-modifying-code-smc]{Self-Modifying Code:
+  \texttt{@smc}}
+\item
+  \hyperref[chapter-13-native-compilation-mzn]{Native Compilation:
+  \texttt{mzn}}
+\item
+  \hyperref[chapter-14-roadmap-whats-coming]{Roadmap: What's Coming}
+\end{enumerate}
+
+\begin{itemize}
+\tightlist
+\item
+  \hyperref[appendix-a-grammar]{Appendix A: Grammar}
+\item
+  \hyperref[appendix-b-register-classes]{Appendix B: Register Classes}
+\item
+  \hyperref[appendix-c-cli-and-tools]{Appendix C: CLI and Tools}
+\item
+  \hyperref[appendix-d-whats-new-in-v4]{Appendix D: What's New in v4}
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 1: What is Nanz?}\label{chapter-1-what-is-nanz}
+
+Nanz (\texttt{.nanz}) is the active frontend language of the
+\textbf{MinZ compiler system}. It targets the MIR2 backend --- a modern,
+SSA-like intermediate representation with:
+
+\begin{itemize}
+\tightlist
+\item
+  Interprocedural calling convention optimization (PFCCO)
+\item
+  PBQP register allocator (cost-weighted physical register assignment)
+\item
+  Pre-allocation coalescing (block-parameter register unification)
+\item
+  LUT synthesis (pure functions with bounded inputs → lookup tables)
+\item
+  Compile-time assertion evaluation on both the MIR2 VM \emph{and} the
+  Z80 binary
+\item
+  A Z80 emulator used as a constant evaluator \emph{inside} the compiler
+\item
+  Multiple backends: Z80 (production), MOS 6502, C99, QBE
+  (AMD64/ARM64/RISC-V)
+\end{itemize}
+
+\subsubsection{1.1 The Compilation
+Pipeline}\label{the-compilation-pipeline}
+
+\begin{verbatim}
+source.nanz
+    │
+    ▼  nanz.Parse()
+*hir.Module             ← High-level IR: structured control flow, named vars
+    │
+    ▼  hir.LowerModule()
+*mir2.Module (raw)      ← SSA-like virtual registers, typed ops
+    │
+    ▼  Optimization passes
+*mir2.Module (opt)      ← Constants folded, dead stores removed, LUTs generated,
+    │                       branches eliminated, conditional returns sunk
+    ▼  Compile-time assertions (MIR2 VM)
+    │                   ← Each assert fn(args)==expected runs on the MIR2 VM
+    ▼  Contract optimization (PFCCO)
+    │                   ← Interprocedural calling convention selection
+    ▼  PreallocCoalesce
+    │                   ← Block-param → block-arg register unification
+    ▼  PBQP register allocation
+    │                   ← Virtual regs → physical Z80 regs (cost-weighted)
+    ▼  Post-allocation coalescing
+    │                   ← Eliminate redundant moves across block boundaries
+    ▼  Z80Codegen
+source.a80              ← MZA-compatible Z80 assembly text
+    │
+    ▼  Compile-time assertions (Z80 binary)
+    │                   ← Same asserts now run on the real assembled binary
+    ▼  mza (MZA assembler)
+source.bin / .tap       ← Ready to run on Z80 hardware or emulator
+\end{verbatim}
+
+The compiler runs assertions \textbf{twice}: once on the abstract MIR2
+VM (fast, catches algorithm bugs) and once on the assembled Z80 binary
+(catches codegen bugs). If both pass, the function is correct by
+construction.
+
+\subsubsection{1.2 Nanz vs.~MinZ}\label{nanz-vs.-minz}
+
+MinZ (\texttt{.minz}) is the original frontend, targeting MIR1 + an
+older codegen. That pipeline is \textbf{frozen} --- it works but is not
+developed further.
+
+Nanz is the \textbf{replacement}: same syntax spirit, radically better
+backend. New programs go in Nanz.
+
+\textbf{Features only in Nanz:} PFCCO contracts, PreallocCoalesce,
+dual-VM asserts, \texttt{as} cast, \texttt{mzn} native backend, signed
+comparison, trivial inliner, ForEachEdge, LUTGen, BranchEquiv,
+CondRetSink+CmpSubCarry, \texttt{@smc} parameters, 6502 backend.
+
+\textbf{Features only in MinZ (frozen):} Enums, string interpolation,
+\texttt{@error} propagation, \texttt{@define} macros, \texttt{@if/@elif}
+conditional compilation, \texttt{import} system. See
+\href{MinZ_vs_Nanz_Feature_Gap.md}{Feature Gap Analysis} for the parity
+roadmap.
+
+\subsubsection{1.3 Nanz vs.~PL/M-80}\label{nanz-vs.-plm-80}
+
+PL/M-80 (\texttt{.plm}) is an Intel language from the 1970s, used to
+write CP/M and early microcomputer software. The MinZ compiler includes
+a complete PL/M-80 parser that compiles PL/M programs through the
+\textbf{same HIR→MIR2→Z80 pipeline} as Nanz.
+
+This means: - 26/26 Intel PL/M-80 Tools reference files parse
+successfully (100\%) - 1338 functions, 943 globals, 11661 statements →
+HIR → Z80 - PL/M programs benefit from PBQP allocation, LUTGen, and all
+MIR2 passes
+
+\subsubsection{1.4 Design Philosophy}\label{design-philosophy}
+
+\textbf{No runtime system.} No garbage collector. No dynamic dispatch
+vtables. Every abstraction is transparent at compile time: lambdas
+become inline code, interfaces become direct function calls, iterators
+become DJNZ loops.
+
+\textbf{Provable by construction.} Compile-time assertions checked on
+two independent VMs catch two classes of bugs that historically slip
+through: - \emph{Algorithm bugs}: both VMs produce the wrong answer -
+\emph{Codegen bugs}: the MIR2 VM gives the right answer; the Z80 binary
+diverges
+
+\textbf{Target-honest.} The optimizer knows it is targeting Z80. It
+knows that \texttt{SUB\ B} followed by \texttt{RET\ NC} is shorter than
+a branch. It uses the Z80 carry flag to communicate comparison results.
+It emits \texttt{DJNZ} instead of \texttt{DEC\ B\ /\ JR\ NZ}. These are
+not peepholes applied after the fact --- they emerge from the MIR2 pass
+structure.
+
+\textbf{Multi-target.} The same Nanz source can compile to Z80 assembly
+(production), MOS 6502 assembly (retro), C99 (verification), and QBE IL
+(native AMD64/ARM64). All backends consume the same MIR2 IR.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 2: Syntax
+Reference}\label{chapter-2-syntax-reference}
+
+\subsubsection{2.1 Module Structure}\label{module-structure}
+
+A Nanz source file is a \textbf{module}: a flat sequence of top-level
+declarations that may appear in any order. No imports, no forward
+declarations required.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{// Declarations may appear in any order.}
+\NormalTok{struct Vec2 \{ x: u8, y: u8 \}}
+
+\NormalTok{global origin: Vec2}
+
+\NormalTok{fun Vec2.add(self: \^{}Vec2, other: Vec2) {-}\textgreater{} Vec2 \{ ... \}}
+
+\NormalTok{interface Shape \{ area \}}
+
+\NormalTok{fun area(s: Shape) {-}\textgreater{} u16 \{ ... \}}
+
+\NormalTok{assert area\_of\_unit\_square() == 1}
+\end{Highlighting}
+\end{Shaded}
+
+Comments: \texttt{//} line, \texttt{/*\ */} block.
+
+\subsubsection{2.2 Functions}\label{functions}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun name(param1: Type1, param2: Type2) {-}\textgreater{} ReturnType \{}
+\NormalTok{    // body}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{fn} is accepted as an alias for \texttt{fun}. Functions with no
+return value use \texttt{void} or omit the \texttt{-\textgreater{}}
+clause entirely:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun clear(buf: \^{}u8, n: u8) \{}
+\NormalTok{    var i: u8 = 0}
+\NormalTok{    while i \textless{} n \{}
+\NormalTok{        buf[i] = 0}
+\NormalTok{        i = i + 1}
+\NormalTok{    \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Multiple return values:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun swap(a: u8, b: u8) {-}\textgreater{} (u8, u8) \{}
+\NormalTok{    return (b, a)}
+\NormalTok{\}}
+
+\NormalTok{fun divmod(a: u8, b: u8) {-}\textgreater{} (u8, u8) \{}
+\NormalTok{    return (a / b, a \% b)}
+\NormalTok{\}}
+
+\NormalTok{// Call site:}
+\NormalTok{let (q, r) = divmod(10, 3)    // q=3, r=1}
+\NormalTok{let (\_, r2) = divmod(10, 3)   // discard quotient with \_}
+\end{Highlighting}
+\end{Shaded}
+
+Return values are assigned to registers: pos0→HL (or A for u8), pos1→DE,
+pos2→B. The \texttt{\_} blank identifier triggers dead store elimination
+--- the discarded value is never computed.
+
+\textbf{Operator overloading} --- operators are functions with the
+operator symbol as name:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun +(a: Vec2, b: Vec2) {-}\textgreater{} Vec2 \{}
+\NormalTok{    return Vec2\{ x: a.x + b.x, y: a.y + b.y \}}
+\NormalTok{\}}
+\NormalTok{// Now: a + b → op\_add(a, b) → Vec2\_add{-}style call}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Struct methods} --- namespaced with \texttt{Type.method}:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun Vec2.scale(self: \^{}Vec2, factor: u8) {-}\textgreater{} Vec2 \{}
+\NormalTok{    return Vec2\{ x: self.x * factor, y: self.y * factor \}}
+\NormalTok{\}}
+\NormalTok{// v.scale(3) → Vec2\_scale(\&v, 3)  — UFCS, zero cost}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{2.3 Variables}\label{variables}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{var i: u8 = 0       // explicit type, optional initializer}
+\NormalTok{let x = 42          // type inferred (u8)}
+\NormalTok{let y: u16 = 1000   // explicit type overrides inference}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Use-before-init warning:} The compiler tracks uninitialized
+variables at parse time and emits warnings on use:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{var ptr: \^{}u8          // no initializer}
+\NormalTok{let v = ptr\^{}          // ⚠ warning: ptr used before initialization}
+\end{Highlighting}
+\end{Shaded}
+
+This catches a whole class of bugs that would be silent in C.
+
+\subsubsection{2.4 Global Variables}\label{global-variables}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{global counter: u8 = 0}
+\NormalTok{global screen: [u8; 6912] at(0x4000)   // hardware{-}mapped ZX Spectrum VRAM}
+\NormalTok{global palette: Color at(0xFF00)        // peripheral mapped at fixed address}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{at(addr)} clause maps the global to a specific Z80 address
+--- no pointer arithmetic needed.
+
+\subsubsection{2.5 Control Flow}\label{control-flow}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{// if / else}
+\NormalTok{if x \textgreater{} 0 \{}
+\NormalTok{    do\_positive(x)}
+\NormalTok{\} else \{}
+\NormalTok{    do\_non\_positive()}
+\NormalTok{\}}
+
+\NormalTok{// while}
+\NormalTok{while i \textless{} n \{}
+\NormalTok{    process(arr[i])}
+\NormalTok{    i = i + 1}
+\NormalTok{\}}
+
+\NormalTok{// for i in range}
+\NormalTok{for i in 0..n \{}
+\NormalTok{    process(i)}
+\NormalTok{\}}
+
+\NormalTok{// for each element in array}
+\NormalTok{for x in buf[0..n] \{}
+\NormalTok{    process(x)}
+\NormalTok{\}}
+
+\NormalTok{// switch}
+\NormalTok{switch state \{}
+\NormalTok{    case 0: idle()}
+\NormalTok{    case 1: run()}
+\NormalTok{    default: error()}
+\NormalTok{\}}
+
+\NormalTok{// break / continue}
+\NormalTok{while true \{}
+\NormalTok{    if done \{ break \}}
+\NormalTok{    if skip \{ continue \}}
+\NormalTok{    work()}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{2.6 Pointers and Arrays}\label{pointers-and-arrays}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{var p: \^{}u8              // typed pointer to u8}
+\NormalTok{var q: ptr              // untyped pointer}
+
+\NormalTok{let val = p\^{}            // dereference → u8}
+\NormalTok{let elem = p[3]         // index (equivalent to (p+3)\^{}) → u8}
+\NormalTok{p[0] = 42               // store through pointer}
+
+\NormalTok{let addr = \&my\_global   // address{-}of}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Pointer arithmetic} is done at the Z80 level via \texttt{LD\ HL}
++ \texttt{ADD\ HL,DE}. The programmer does not write offset calculations
+manually --- the compiler emits them from \texttt{ptr{[}i{]}}.
+
+\subsubsection{2.7 Structs}\label{structs}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{struct Color \{}
+\NormalTok{    r: u8}
+\NormalTok{    g: u8}
+\NormalTok{    b: u8}
+\NormalTok{\}}
+
+\NormalTok{struct Vec3d \{}
+\NormalTok{    x: u16}
+\NormalTok{    y: u16}
+\NormalTok{    z: u8       // z.Offset = 4 (computed at parse time from field layout)}
+\NormalTok{\}}
+
+\NormalTok{global sky: Color}
+
+\NormalTok{fun set\_sky(r: u8, g: u8, b: u8) \{}
+\NormalTok{    sky = Color\{ r: r, g: g, b: b \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Field offsets are computed at parse time from the struct declaration.
+Mixed-width structs (u8 + u16) lay out correctly with byte-accurate
+offsets.
+
+\textbf{Consecutive field stores} are fused into an HL-chain:
+\texttt{LD\ HL,\ \&sky\ /\ LD\ (HL),\ r\ /\ INC\ HL\ /\ LD\ (HL),\ g\ /\ INC\ HL\ /\ LD\ (HL),\ b}
+--- 53T vs.~61T for three separate absolute stores. This optimization
+fires automatically when fields are stored in declaration order.
+
+\subsubsection{2.8 Lambdas}\label{lambdas}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{// Inline lambda expression}
+\NormalTok{let double = |x: u8| \{ return x * 2 \}}
+
+\NormalTok{// Lambda used in iterator chain (fused — no CALL emitted)}
+\NormalTok{arr.map(|x: u8| x * 2).forEach(|x: u8| process(x), n)}
+
+\NormalTok{// Lambda capturing outer variable (zero{-}cost — threaded as block param)}
+\NormalTok{var sum: u8 = 0}
+\NormalTok{arr.forEach(|x: u8| \{ sum = sum + x \}, n)}
+\NormalTok{// sum is threaded through the DJNZ loop as a register — no heap, no spill}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{2.9 Casts}\label{casts}
+
+Nanz supports two equivalent cast syntaxes:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{// Function{-}style cast (original syntax)}
+\NormalTok{let byte = u8(some\_u16)     // truncate: take low byte}
+\NormalTok{let word = u16(some\_u8)     // zero{-}extend to 16 bits}
+\NormalTok{let signed = i8(some\_u8)    // reinterpret (same bits, signed semantics)}
+
+\NormalTok{// "as" cast (added in v4)}
+\NormalTok{let byte = some\_u16 as u8   // same as u8(some\_u16)}
+\NormalTok{let word = some\_u8 as u16   // same as u16(some\_u8)}
+\NormalTok{let signed = some\_u8 as i8  // same as i8(some\_u8)}
+\end{Highlighting}
+\end{Shaded}
+
+Both forms produce the same HIR \texttt{CastExpr} and generate identical
+code. Use whichever reads better in context --- \texttt{as} is cleaner
+in chains: \texttt{(a\ +\ b)\ as\ u16\ *\ 256}.
+
+\subsubsection{2.10 Extern Functions}\label{extern-functions}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{@extern fun rom\_print(s: ptr) {-}\textgreater{} void           // resolved at link time}
+\NormalTok{@extern(0x0010) fun rst\_10h(a: u8) {-}\textgreater{} void      // RST 0x10 (single byte CALL)}
+\NormalTok{@extern(0xBB00) fun bc\_sendchar(c: u8) {-}\textgreater{} void  // CALL 0xBB00 (CP/M BDOS{-}style)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{@extern(addr)} functions with \texttt{addr} that is a multiple
+of 8 and ≤ 0x38 emit \texttt{RST\ n} (1 byte, 11T). All other
+\texttt{@extern(addr)} functions emit \texttt{CALL\ addr} (3 bytes,
+17T). The compiler selects the cheaper form automatically.
+
+\subsubsection{2.11 Register Annotations on
+Parameters}\label{register-annotations-on-parameters}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun fast\_op(@z80\_a x: u8, @z80\_b count: u8, @z80\_hl ptr: \^{}u8) {-}\textgreater{} u8 \{ ... \}}
+\end{Highlighting}
+\end{Shaded}
+
+Available annotations: \texttt{@z80\_a}, \texttt{@z80\_b},
+\texttt{@z80\_c}, \texttt{@z80\_hl}, \texttt{@z80\_de}. These override
+the PBQP allocator's choice for that parameter --- use only when calling
+from hand-written assembly that has specific register constraints.
+
+\subsubsection{2.12 Ranged Types}\label{ranged-types}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun double\_angle(a: u8\textless{}0..359\textgreater{}) {-}\textgreater{} u16\textless{}0..718\textgreater{} \{ return u16(a) * 2 \}}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{u8\textless{}lo..hi\textgreater{}} declares a parameter or
+return with a guaranteed value range. The compiler uses this to: 1.
+Verify the range at call sites (static check, no runtime overhead) 2.
+Auto-generate a \textbf{lookup table} when the range is small enough (≤
+256 values, pure function)
+
+LUT generation example:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun sin\_table(angle: u8\textless{}0..255\textgreater{}) {-}\textgreater{} u8 \{ ... \}}
+\NormalTok{// → Evaluates sin\_table(0..255) at compile time via MIR2 VM}
+\NormalTok{// → Emits: sin\_table\_lut: DB 0, 1, 3, 6, 9, ... (256 bytes)}
+\NormalTok{// → Function body replaced by table lookup: LD HL, sin\_table\_lut / LD D,0 / LD E,angle / ADD HL,DE / LD A,(HL) / RET}
+\NormalTok{// → Runtime cost: 6 instructions, \textasciitilde{}39T — no computation at all}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{2.13 Interfaces and UFCS}\label{interfaces-and-ufcs}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{interface Animal \{}
+\NormalTok{    speak}
+\NormalTok{    eat}
+\NormalTok{\}}
+
+\NormalTok{fun Dog.speak(self: Dog) \{ ... \}}
+\NormalTok{fun Cat.speak(self: Cat) \{ ... \}}
+
+\NormalTok{// Interface as parameter type — monomorphized at compile time:}
+\NormalTok{fun feed(a: Animal) \{}
+\NormalTok{    a.speak()   // → Dog\_speak(a) or Cat\_speak(a) depending on concrete type}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Cost: zero.} No vtable. No fat pointer. The concrete type is
+resolved at compile time. \texttt{a.speak()} emits a direct
+\texttt{CALL\ Dog\_speak} or \texttt{CALL\ Cat\_speak}.
+
+\textbf{UFCS} --- uniform function call syntax --- lets you write
+\texttt{a.method(args)} for any function
+\texttt{fun\ Type.method(self:\ Type,\ args)}. It desugars at parse
+time:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{v.scale(3)   →   Vec2\_scale(\&v, 3)   →   CALL Vec2\_scale}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{2.14 Inline Assembly}\label{inline-assembly}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun fast\_clear() \{}
+\NormalTok{    asm \{}
+\NormalTok{        XOR A}
+\NormalTok{        LD (HL), A}
+\NormalTok{        INC HL}
+\NormalTok{        DJNZ {-}3}
+\NormalTok{    \}}
+\NormalTok{\}}
+
+\NormalTok{// Target{-}gated: only included for Z80 backend}
+\NormalTok{fun platform\_init() \{}
+\NormalTok{    asm(z80) \{}
+\NormalTok{        DI}
+\NormalTok{        LD SP, 0xFFFF}
+\NormalTok{        EI}
+\NormalTok{    \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Inline assembly blocks emit Z80 instructions verbatim. The
+\texttt{asm(z80)} variant is only included when compiling for Z80 ---
+\texttt{asm(mir2)} runs on the MIR2 VM instead.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 3: Type System}\label{chapter-3-type-system}
+
+\subsubsection{3.1 Numeric Types}\label{numeric-types}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Type & Width & Description \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{u8} & 8-bit & Unsigned byte --- Z80 registers A/B/C/D/E/H/L \\
+\texttt{u16} & 16-bit & Unsigned word --- Z80 register pairs HL/DE/BC \\
+\texttt{i8} & 8-bit & Signed byte (same registers, signed arithmetic) \\
+\texttt{i16} & 16-bit & Signed word \\
+\texttt{u24} & 24-bit & 24-bit unsigned (eZ80 / Agon Light 2 native) \\
+\texttt{u32} & 32-bit & 32-bit via Z80 EXX shadow pair
+(\texttt{HL\textquotesingle{}/DE\textquotesingle{}/BC\textquotesingle{}}) \\
+\texttt{i32} & 32-bit & Signed 32-bit via shadow pair \\
+\texttt{f8.8} & 16-bit & Fixed-point: 8 integer bits + 8 fractional
+bits \\
+\texttt{f16.8} & 24-bit & Fixed-point: 16 integer + 8 fractional \\
+\texttt{f8.16} & 24-bit & Fixed-point: 8 integer + 16 fractional \\
+\texttt{f16.16} & 32-bit & Fixed-point: 16 integer + 16 fractional \\
+\texttt{bool} & 8-bit & false=0, true≠0 \\
+\texttt{void} & --- & Return type only \\
+\end{longtable}
+
+\textbf{Fixed-point types} parse with dot notation: \texttt{f8.8} is
+``f'' followed by ``8'' (integer bits) ``.'' ``8'' (fractional bits).
+The compiler handles arithmetic (add/sub exact, mul/div require shifts
+that the optimizer emits).
+
+\subsubsection{3.2 Signed Arithmetic}\label{signed-arithmetic}
+
+Signed types (\texttt{i8}, \texttt{i16}) use the same physical registers
+as unsigned but with signed comparison semantics:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun max\_i8(a: i8, b: i8) {-}\textgreater{} i8 \{}
+\NormalTok{    if a \textgreater{} b \{ return a \}}
+\NormalTok{    return b}
+\NormalTok{\}}
+
+\NormalTok{assert max\_i8(5, 3) == 5         // both positive}
+\NormalTok{assert max\_i8(251, 5) == 5       // 251 = {-}5 in i8, so max({-}5, 5) = 5}
+\NormalTok{assert max\_i8(251, 253) == 253   // max({-}5, {-}3) = {-}3 = 253}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{How it works:} Values are stored truncated --- \texttt{i8(-5)}
+is \texttt{251} in memory. The lowerer picks \texttt{CmpGe} for signed
+and \texttt{CmpUge} for unsigned (via \texttt{IsSigned()}). The MIR2 VM
+sign-extends both operands before signed comparison:
+\texttt{signExtend(251,\ 8)\ =\ -5}. This makes
+\texttt{(-5)\ \textless{}\ 5} evaluate to \texttt{true}.
+
+On Z80 hardware, signed comparison uses the \texttt{S\^{}V} flag
+combination (sign XOR overflow) --- the same approach the Z80 was
+designed for.
+
+\subsubsection{3.3 Pointer Types}\label{pointer-types}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.3158}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.6842}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Type
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Description
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{ptr} & Untyped 16-bit Z80 address \\
+\texttt{\^{}T} & Typed pointer to T (human-readable; same as
+\texttt{ptr} at machine level) \\
+\end{longtable}
+
+\texttt{\^{}Struct} pointer receivers enable clean method syntax:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun Acc.add(self: \^{}Acc, amount: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    self.val = self.val + amount}
+\NormalTok{    return self.val}
+\NormalTok{\}}
+\NormalTok{// self\^{}.val also works (explicit dereference)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{3.4 The u32 ``ClassDWord'' via EXX Shadow
+Pair}\label{the-u32-classdword-via-exx-shadow-pair}
+
+32-bit values on Z80 --- without a 32-bit bus --- use the \textbf{EXX
+shadow register pair} trick:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun add32(a: u32, b: u32) {-}\textgreater{} u32 \{ return a + b \}}
+\end{Highlighting}
+\end{Shaded}
+
+Generated Z80:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{; fun add32(a: u32 = HL/DE\textquotesingle{}, b: u32 = HL\textquotesingle{}/DE) {-}\textgreater{} u32 = HL/DE}
+\FunctionTok{add32:}
+    \BuiltInTok{ADD}\NormalTok{ HL}\OperatorTok{,}\NormalTok{ DE      }\CommentTok{; low 16 bits: HL += DE}
+\NormalTok{    EXX             }\CommentTok{; swap to shadow pair}
+    \BuiltInTok{ADC}\NormalTok{ HL}\OperatorTok{,}\NormalTok{ DE      }\CommentTok{; high 16 bits: HL\textquotesingle{} += DE\textquotesingle{} + carry}
+\NormalTok{    EXX}
+    \ControlFlowTok{RET}
+\end{Highlighting}
+\end{Shaded}
+
+5 instructions. The PBQP allocator places the 32-bit halves in the main
+and shadow \texttt{HL} --- they don't interfere with each other because
+EXX separates them.
+
+\subsubsection{3.5 Calling Convention}\label{calling-convention}
+
+The calling convention is \textbf{not fixed} --- it is computed per
+function by the PBQP register allocator and interprocedural contract
+optimizer (PFCCO). Typical Z80 mapping:
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Class & Z80 register & Typical use \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ClassAcc & A & First u8 param, return value \\
+ClassCounter & B & Second u8 param, loop counter \\
+ClassPointer & HL & u16 params, pointer args, return value \\
+ClassIndex & DE & Second u16 param \\
+ClassPair & BC & Third param or general pair \\
+ClassGeneral & C/D/E/H/L & Remaining 8-bit params \\
+ClassDWord & HL+shadow & u32 values \\
+\end{longtable}
+
+The \textbf{contract optimizer} (PFCCO) searches across the call graph
+for the assignment that minimizes total T-states for caller+callee. The
+result is that calling conventions are tailored to the specific set of
+functions in your program --- not a fixed ABI.
+
+\textbf{Example:} If function \texttt{f(a,\ b)} always calls
+\texttt{g(b)}, PFCCO will assign \texttt{b} to the same register in both
+functions, eliminating the move at the call site. This is computed
+globally, not locally --- the optimizer sees the entire call graph.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 4: Structs, Methods, and
+Interfaces}\label{chapter-4-structs-methods-and-interfaces}
+
+\subsubsection{4.1 Struct Declaration and
+Layout}\label{struct-declaration-and-layout}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{struct Sprite \{}
+\NormalTok{    x: u8       // offset 0}
+\NormalTok{    y: u8       // offset 1}
+\NormalTok{    frame: u8   // offset 2}
+\NormalTok{    tile: u8    // offset 3}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+The compiler computes byte offsets at parse time: \texttt{x} at 0,
+\texttt{y} at 1, \texttt{frame} at 2, \texttt{tile} at 3. Mixed-width
+structs with \texttt{u16} fields get 2-byte offsets:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{struct Vec3d \{}
+\NormalTok{    x: u16   // offset 0}
+\NormalTok{    y: u16   // offset 2}
+\NormalTok{    z: u8    // offset 4}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{4.2 Methods and UFCS}\label{methods-and-ufcs}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun Sprite.move(self: \^{}Sprite, dx: i8, dy: i8) \{}
+\NormalTok{    self.x = u8(i8(self.x) + dx)}
+\NormalTok{    self.y = u8(i8(self.y) + dy)}
+\NormalTok{\}}
+
+\NormalTok{// Call site:}
+\NormalTok{sprite.move(+1, 0)   →   Sprite\_move(\&sprite, 1, 0)   →   CALL Sprite\_move}
+\end{Highlighting}
+\end{Shaded}
+
+Zero overhead. The method table exists only in the parser --- no runtime
+representation.
+
+\subsubsection{4.3 Interfaces and Static
+Dispatch}\label{interfaces-and-static-dispatch}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{interface Drawable \{}
+\NormalTok{    draw}
+\NormalTok{\}}
+
+\NormalTok{fun Circle.draw(self: \^{}Circle) \{ ... \}}
+\NormalTok{fun Rect.draw(self: \^{}Rect) \{ ... \}}
+
+\NormalTok{fun render\_all(shape: Drawable) \{}
+\NormalTok{    shape.draw()}
+\NormalTok{\}}
+
+\NormalTok{// render\_all(my\_circle):}
+\NormalTok{//   → only one implementation of \textquotesingle{}draw\textquotesingle{} for Circle exists}
+\NormalTok{//   → monomorphized to: CALL Circle\_draw}
+\end{Highlighting}
+\end{Shaded}
+
+When multiple implementors exist, the compiler requires a statically
+known concrete type at the call site. When a function parameter is typed
+as an interface and only one implementor exists in the module, the call
+is \textbf{monomorphized automatically} --- no code change required.
+
+\subsubsection{4.4 Operator Overloading}\label{operator-overloading}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{struct Vec2 \{ x: u8, y: u8 \}}
+
+\NormalTok{fun +(a: Vec2, b: Vec2) {-}\textgreater{} Vec2 \{}
+\NormalTok{    return Vec2\{ x: a.x + b.x, y: a.y + b.y \}}
+\NormalTok{\}}
+
+\NormalTok{let v1 = Vec2\{ x: 10, y: 20 \}}
+\NormalTok{let v2 = Vec2\{ x: 5, y: 3 \}}
+\NormalTok{let v3 = v1 + v2   // → op\_add(v1, v2) → Vec2\_add{-}like dispatch}
+\end{Highlighting}
+\end{Shaded}
+
+Operators for primitive types (\texttt{u8\ +\ u8}) use Z80 ALU
+instructions directly --- overloading only fires when one operand is a
+struct type.
+
+\textbf{Vec3 with operator overloading --- a 3D wireframe building
+block:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{struct Vec3 \{ x: i8, y: i8, z: i8 \}}
+
+\NormalTok{fun +(a: Vec3, b: Vec3) {-}\textgreater{} Vec3 \{}
+\NormalTok{    return Vec3 \{ x: a.x + b.x, y: a.y + b.y, z: a.z + b.z \}}
+\NormalTok{\}}
+
+\NormalTok{fun midpoint(a: Vec3, b: Vec3) {-}\textgreater{} Vec3 \{}
+\NormalTok{    return Vec3 \{}
+\NormalTok{        x: (a.x + b.x) \textgreater{}\textgreater{} 1,   // division by 2 via arithmetic shift}
+\NormalTok{        y: (a.y + b.y) \textgreater{}\textgreater{} 1,}
+\NormalTok{        z: (a.z + b.z) \textgreater{}\textgreater{} 1}
+\NormalTok{    \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Zero-cost: the compiler inlines structs into registers. PFCCO picks the
+optimal layout (\texttt{x→H,\ y→L,\ z→D} or whatever minimizes total
+moves).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 5: Iterator Chains}\label{chapter-5-iterator-chains}
+
+Nanz supports a composable iterator chain syntax on arrays and pointers.
+The crucial property: \textbf{the chain is fused at compile time into a
+single DJNZ loop}. No intermediate arrays. No function pointer overhead.
+No virtual dispatch.
+
+\subsubsection{5.1 Combinators}\label{combinators}
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Method & Meaning \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{ptr.map(λ)} & Transform each element \\
+\texttt{ptr.filter(λ)} & Keep elements where λ is true \\
+\texttt{ptr.forEach(λ,\ n)} & Execute λ for each of n elements \\
+\texttt{ptr.fold(init,\ λ)} & Reduce n elements to a single value \\
+\texttt{ptr.reduce(λ)} & Reduce with first element as init \\
+\texttt{ptr.take(k)} & Keep first k elements \\
+\texttt{ptr.skip(k)} & Skip first k elements \\
+\texttt{ptr.enumerate()} & Add element index \\
+\texttt{ptr.chain(other)} & Concatenate two iterators \\
+\end{longtable}
+
+\subsubsection{5.2 Fusion}\label{fusion}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{arr.map(|x: u8| x * 2).filter(|x: u8| x \textgreater{} 10).forEach(|x: u8| process(x), n)}
+\end{Highlighting}
+\end{Shaded}
+
+The parser recognizes this chain pattern. The HIR lowerer's
+\texttt{recognizeIterChain} function fuses all stages before emitting
+any MIR2 instructions. The result is a single loop:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{.loop:}
+\NormalTok{    LD A}\OperatorTok{,} \OperatorTok{(}\NormalTok{HL}\OperatorTok{)}       \CommentTok{; load element}
+    \BuiltInTok{INC}\NormalTok{ HL           }\CommentTok{; advance pointer}
+    \BuiltInTok{ADD}\NormalTok{ A}\OperatorTok{,}\NormalTok{ A         }\CommentTok{; map: x * 2  (strength{-}reduced from MUL)}
+\NormalTok{    CP }\DecValTok{11}            \CommentTok{; filter: x \textgreater{} 10 → x \textgreater{}= 11}
+\NormalTok{    JR C}\OperatorTok{,} \OperatorTok{.}\NormalTok{skip      }\CommentTok{; skip if filter fails}
+    \ControlFlowTok{CALL}\NormalTok{ process     }\CommentTok{; forEach body}
+\FunctionTok{.skip:}
+\NormalTok{    DJNZ }\OperatorTok{.}\NormalTok{loop       }\CommentTok{; B{-}{-}; branch if B ≠ 0}
+\end{Highlighting}
+\end{Shaded}
+
+No intermediate storage. No lambda calls. The filter check and map
+transform are inlined.
+
+\subsubsection{5.3 Closure Capture}\label{closure-capture}
+
+Lambdas inside chains can capture and mutate outer variables:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{var sum: u8 = 0}
+\NormalTok{arr.forEach(|x: u8| \{ sum = sum + x \}, n)}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{sum} is not spilled to memory. It is threaded through the DJNZ
+loop as a \textbf{block parameter} --- a loop-carried SSA value that
+lives in a register:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{    LD B}\OperatorTok{,}\NormalTok{ n          }\CommentTok{; counter}
+\NormalTok{    LD C}\OperatorTok{,} \DecValTok{0}          \CommentTok{; sum = 0 (in C)}
+\FunctionTok{.loop:}
+\NormalTok{    LD A}\OperatorTok{,} \OperatorTok{(}\NormalTok{HL}\OperatorTok{)}       \CommentTok{; x}
+    \BuiltInTok{ADD}\NormalTok{ A}\OperatorTok{,}\NormalTok{ C         }\CommentTok{; sum + x}
+\NormalTok{    LD C}\OperatorTok{,}\NormalTok{ A          }\CommentTok{; sum = result}
+    \BuiltInTok{INC}\NormalTok{ HL}
+\NormalTok{    DJNZ }\OperatorTok{.}\NormalTok{loop}
+\NormalTok{    LD A}\OperatorTok{,}\NormalTok{ C          }\CommentTok{; move sum to A for return/use}
+\end{Highlighting}
+\end{Shaded}
+
+This is \textbf{zero-cost closure capture} --- \texttt{sum} is a CPU
+register throughout the loop.
+
+\subsubsection{5.4 E2E Verification}\label{e2e-verification}
+
+All 11 iterator chain combinations are verified end-to-end:
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+Chain & Binary & T-states \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+forEach & hex-verified & \textasciitilde43T/elem \\
+map+forEach & hex-verified & \textasciitilde50T/elem \\
+filter+forEach & hex-verified & \textasciitilde52T/elem \\
+map+filter+forEach & hex-verified & \textasciitilde57T/elem \\
+take+forEach & hex-verified & \textasciitilde43T/elem \\
+skip+forEach & hex-verified & \textasciitilde43T/elem \\
+lambda map & hex-verified & \textasciitilde50T/elem \\
+lambda filter & hex-verified & \textasciitilde52T/elem \\
+multi-stage & hex-verified & varies \\
+fold & hex-verified & \textasciitilde30T/elem \\
+forEach with capture & hex-verified & \textasciitilde30T/elem \\
+\end{longtable}
+
+``Hex-verified'' means: compiled to Z80 binary, loaded into the MZE
+emulator, executed, result checked against expected value.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{Chapter 6: \texttt{range(lo..hi)} ---
+Counter-Based
+Iteration}{Chapter 6: range(lo..hi) --- Counter-Based Iteration}}\label{chapter-6-rangelo..hi-counter-based-iteration}
+
+\subsubsection{6.1 Overview}\label{overview}
+
+\texttt{range(lo..hi)} is a \textbf{counter-based iterator source} ---
+no memory pointer, no \texttt{LD\ A,(HL)}, no \texttt{INC\ HL}. Elements
+are the DJNZ counter value itself, counting down from \texttt{hi−lo} to
+\texttt{1}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun sum\_range(n: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    return range(0..n).fold(0, |acc: u8, i: u8| \{ return acc + i \})}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Generated Z80:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{; fun sum\_range(n: u8 = A) {-}\textgreater{} u8 = A}
+\FunctionTok{sum\_range:}
+\NormalTok{    LD B}\OperatorTok{,} \DecValTok{0}              \CommentTok{; acc init = 0}
+    \BuiltInTok{AND}\NormalTok{ A                }\CommentTok{; pre{-}check: n == 0?}
+\NormalTok{    JRS NZ}\OperatorTok{,} \OperatorTok{.}\NormalTok{trmp0}
+\NormalTok{    JRS }\OperatorTok{.}\NormalTok{rng\_exit2}
+\FunctionTok{.rng\_body1:}
+    \BuiltInTok{ADD}\NormalTok{ A}\OperatorTok{,}\NormalTok{ B             }\CommentTok{; acc += counter  ← ONE instruction per iteration}
+\NormalTok{    DJNZ }\OperatorTok{.}\NormalTok{rng\_body1      }\CommentTok{; B{-}{-}; branch if B ≠ 0}
+\NormalTok{    LD B}\OperatorTok{,}\NormalTok{ A}
+    \ControlFlowTok{JP} \OperatorTok{.}\NormalTok{rng\_exit2}
+\FunctionTok{.rng\_exit2:}
+\NormalTok{    LD A}\OperatorTok{,}\NormalTok{ B}
+    \ControlFlowTok{RET}
+\FunctionTok{.trmp0:}
+\NormalTok{    LD C}\OperatorTok{,}\NormalTok{ A              }\CommentTok{; save n (parallel copy resolver)}
+\NormalTok{    LD A}\OperatorTok{,}\NormalTok{ B              }\CommentTok{; A = 0 (acc init)}
+\NormalTok{    LD B}\OperatorTok{,}\NormalTok{ C              }\CommentTok{; B = n (counter)}
+\NormalTok{    JRS }\OperatorTok{.}\NormalTok{rng\_body1}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Body: one instruction per iteration --- \texttt{ADD\ A,\ B}.} No
+loads. No stores. No spills.
+
+\subsubsection{6.2 Counting Semantics}\label{counting-semantics}
+
+\texttt{range(0..n)} counts \textbf{DOWN}: DJNZ starts at B=n and
+decrements to 0. The element values are \texttt{n,\ n-1,\ ...,\ 1} ---
+the counter itself.
+
+This means
+\texttt{range(0..n).fold(0,\ \textbar{}acc,i\textbar{}\ acc+i)} computes
+**sum(1..n) = n*(n+1)/2**, not sum(0..n-1). This is intentional:
+counting down is the natural direction for DJNZ, and computing the
+triangular number is the correct mathematical result.
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule\noalign{}
+n & Expected result & Formula \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+0 & 0 & n=0: loop doesn't run \\
+1 & 1 & just 1 \\
+4 & 10 & 4+3+2+1 \\
+5 & 15 & 5+4+3+2+1 \\
+10 & 55 & 10×11/2 \\
+\end{longtable}
+
+\textbf{All five verified on the Z80 binary} via
+\texttt{TestRangeFold\_E2E\_SumRange}.
+
+\subsubsection{6.3 The Parallel Copy Bug: Caught by
+Dual-VM}\label{the-parallel-copy-bug-caught-by-dual-vm}
+
+When the range fold first compiled with correct semantics, the Z80
+binary produced wrong results even though the MIR2 VM gave correct
+answers. This is exactly the class of \textbf{codegen bug} that would be
+invisible without dual-VM verification.
+
+\textbf{Root cause:} The parallel copy resolver used register A as a
+scratch for cycle-breaking. For the \texttt{A↔B} cycle in the range fold
+trampoline, both A and B ended up as 0. The counter never loaded n.
+
+\textbf{Fix:} Collect the full set of registers in the cycle
+(\texttt{cycleRegs}). If A is in the cycle, pick the first non-cycle
+8-bit register as scratch:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{; Correct parallel copy for A↔B cycle, scratch=C:}
+\NormalTok{LD C}\OperatorTok{,}\NormalTok{ A     }\CommentTok{; save n (A\textquotesingle{}s original value)}
+\NormalTok{LD A}\OperatorTok{,}\NormalTok{ B     }\CommentTok{; A = 0 (acc init)}
+\NormalTok{LD B}\OperatorTok{,}\NormalTok{ C     }\CommentTok{; B = n (counter)}
+\end{Highlighting}
+\end{Shaded}
+
+This bug was invisible to the MIR2 VM. The dual-VM assertion system
+caught it immediately.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 7: Compile-Time Assertions --- Dual-VM
+Verification}\label{chapter-7-compile-time-assertions-dual-vm-verification}
+
+\subsubsection{7.1 The Idea}\label{the-idea}
+
+Compile-time assertions are checked as part of compilation. If an
+assertion fails, the build fails. No separate test runner needed.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun gcd(a: u8, b: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    while b != 0 \{}
+\NormalTok{        let t = b}
+\NormalTok{        b = a \% b}
+\NormalTok{        a = t}
+\NormalTok{    \}}
+\NormalTok{    return a}
+\NormalTok{\}}
+
+\NormalTok{assert gcd(12, 8) == 4}
+\NormalTok{assert gcd(100, 75) == 25}
+\NormalTok{assert gcd(17, 13) == 1}
+\end{Highlighting}
+\end{Shaded}
+
+These three assertions run every time the code compiles. If you break
+\texttt{gcd}, you know immediately.
+
+\subsubsection{7.2 Dual-VM Execution}\label{dual-vm-execution}
+
+By default, \textbf{each assertion runs twice}:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{MIR2 VM} --- fast abstract interpreter. Runs on the SSA-form
+  intermediate representation, before register allocation. Catches
+  algorithm bugs.
+\item
+  \textbf{Z80 binary} --- assembles the generated asm, loads into MZE
+  (the Z80 emulator), calls the function, reads the result register.
+  Catches codegen bugs.
+\end{enumerate}
+
+\begin{verbatim}
+[MIR2 optimization complete]
+    ↓
+assert gcd(12, 8) == 4  ← MIR2 VM: fast, ABI-agnostic
+    ↓
+[PBQP register allocation + Z80 codegen]
+    ↓
+assert gcd(12, 8) == 4  ← Z80 binary: slow, bit-exact
+\end{verbatim}
+
+If both pass: the function is correct by construction.
+
+\subsubsection{7.3 What Each VM Catches}\label{what-each-vm-catches}
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule\noalign{}
+Situation & MIR2 VM & Z80 binary & What happened \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{sum\_range(5)\ =\ 15} & 15 & 15 & All good \\
+\texttt{sum\_range(5)\ =\ 7} & 7 & 7 & \textbf{Algorithm bug} \\
+\texttt{sum\_range(5)\ =\ 15} & 15 & 0 & \textbf{Codegen bug} (e.g.~the
+A↔B swap) \\
+\end{longtable}
+
+The third row is the canonical example. The MIR2 VM is ABI-agnostic ---
+it doesn't simulate physical registers, so it cannot observe the swap
+corruption. The Z80 binary check catches it immediately.
+
+\subsubsection{7.4 Syntax Variants}\label{syntax-variants}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{// Default: run on both MIR2 VM and Z80 binary}
+\NormalTok{assert sum\_range(5) == 15}
+
+\NormalTok{// Only run on MIR2 VM (fast — skips Z80 assembly + emulator)}
+\NormalTok{assert sum\_range(5) == 15 via mir2}
+
+\NormalTok{// Only run on Z80 binary (skips MIR2 VM)}
+\NormalTok{assert sum\_range(5) == 15 via z80}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{7.5 Multi-Value Assertions}\label{multi-value-assertions}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun divmod(a: u8, b: u8) {-}\textgreater{} (u8, u8) \{ ... \}}
+
+\NormalTok{assert divmod(10, 3) == (3, 1)   // quotient=3, remainder=1}
+\end{Highlighting}
+\end{Shaded}
+
+Multi-return functions return a tuple. The assert syntax compares each
+return value independently.
+
+\subsubsection{7.6 How Z80 Asserts Work}\label{how-z80-asserts-work}
+
+The Z80 assert runner uses the \textbf{actual register allocation} to
+build the calling bootstrap:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Look up the compiled function's \texttt{Contract.Params} from the MIR2
+  module
+\item
+  Look up each param's physical location from the \texttt{AllocResult}
+  (the output of PBQP)
+\item
+  Emit \texttt{LD\ \textless{}actual\_reg\textgreater{},\ arg\_value}
+  --- correct even if the optimizer chose C instead of B
+\item
+  Emit \texttt{CALL\ funcname} + \texttt{DI\ /\ HALT}
+\item
+  Assemble with MZA, load into MZE, run
+\item
+  Read the result from the return register (determined by
+  \texttt{Contract.Returns{[}0{]}.Class})
+\end{enumerate}
+
+This means Z80 asserts are \textbf{robust to calling convention
+changes}: if the contract optimizer re-assigns params to different
+registers between compiler versions, the assert runner automatically
+adapts.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 8: The Optimization
+Pipeline}\label{chapter-8-the-optimization-pipeline}
+
+\subsubsection{8.1 Overview of Passes}\label{overview-of-passes}
+
+\begin{verbatim}
+LUTGen              ← replace bounded pure functions with lookup tables
+PropagateConstants  ← find params that are always the same value
+FoldConstants       ← evaluate constant expressions (1+2 → 3)
+SimplifyIdentities  ← x+0→x, x*1→x, x-x→0, etc.
+ConstantCallElim    ← calls with all-const args → folded to result
+DeadStoreElim       ← remove unused instructions
+BranchEquiv         ← remove redundant conditional branches (VM-proved)
+CondRetSink         ← convert BrIf-with-trivial-else to TermCondRet
+hoistReorder        ← move Sub before Cmp for CmpSubCarry fusion
+CmpSubCarry         ← replace Cmp+Sub pair with single carry-flag result
+ContractOpt (PFCCO) ← interprocedural calling convention optimization
+PreallocCoalesce    ← block-param ↔ block-arg register unification
+PBQPAllocate        ← physical register assignment (cost-weighted)
+CopyCoalesce        ← eliminate redundant moves across block boundaries
+TrivialInliner      ← inline single-instruction callees (swap→0 insts)
+Z80Codegen          ← emit Z80 assembly text
+\end{verbatim}
+
+\subsubsection{8.2 LUT Generation}\label{lut-generation}
+
+Any pure function with a \texttt{u8\textless{}lo..hi\textgreater{}}
+ranged parameter where the range fits in ≤ 256 values is replaced with a
+lookup table at compile time:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{// Before: 50{-}instruction sin computation}
+\NormalTok{fun sin(a: u8\textless{}0..255\textgreater{}) {-}\textgreater{} u8 \{ ... \}}
+
+\NormalTok{// After LUTGen (at compile time):}
+\NormalTok{// sin\_lut: DB 0, 1, 3, 6, 9, 12, ...  ← 256 bytes, computed via MIR2 VM}
+\NormalTok{// fun sin(a: u8) → LD HL, sin\_lut / ADD HL,DE / LD A,(HL) / RET  (6 insts, \textasciitilde{}39T)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{8.3 BranchEquiv}\label{branchequiv}
+
+The BranchEquiv pass uses the MIR2 VM to prove when a conditional branch
+is redundant:
+
+\textbf{Example:} In the MIR2 IR for \texttt{abs\_diff}, a
+\texttt{CmpEq} guard appears after optimizations. At the equality
+boundary \texttt{a\ ==\ b}, both \texttt{a\ -\ b\ =\ 0} and
+\texttt{b\ -\ a\ =\ 0}. The branch is provably dead. Run the VM with 256
+boundary inputs \texttt{(v,\ v)} for all v. If both sides return the
+same value, the branch is dead. Replace \texttt{BrIf(CmpEq)} →
+\texttt{Jmp}. Save 10T + 3 bytes per call.
+
+\subsubsection{8.4 CondRetSink and Flag Fusion: abs\_diff in 4
+Instructions}\label{condretsink-and-flag-fusion-abs_diff-in-4-instructions}
+
+This five-pass optimization transforms \texttt{abs\_diff} from 8
+instructions to 4:
+
+\textbf{Input:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun abs\_diff(a: u8, b: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    if a \textless{} b \{ return b {-} a \}}
+\NormalTok{    return a {-} b}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Pass 1: CondRetSink} → hoists trivial else-block, converts
+\texttt{BrIf} to \texttt{TermCondRet} (= \texttt{RET\ CC}) \textbf{Pass
+2: SubSwapNeg} → \texttt{b\ -\ a} when we already have \texttt{a\ -\ b}
+→ \texttt{NEG} \textbf{Pass 3: hoistReorder} → moves \texttt{Sub} before
+\texttt{Cmp} so carry flag contains comparison result \textbf{Pass 4:
+CmpSubCarry} → replaces \texttt{Cmp} with no-op (carry already set by
+\texttt{SUB}) \textbf{Pass 5: PBQP} → no interference, both map to A
+
+\textbf{Final output: 4 instructions.}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{abs\_diff:}   \CommentTok{; a=A, b=C}
+    \BuiltInTok{SUB}\NormalTok{ C       }\CommentTok{; A = a{-}b, carry = (a \textless{} b unsigned)}
+    \ControlFlowTok{RET}\NormalTok{ NC      }\CommentTok{; if a \textgreater{}= b: return a{-}b (4T+10T = 14T)}
+    \BuiltInTok{NEG}         \CommentTok{; A = {-}(a{-}b) = b{-}a  (8T)}
+    \ControlFlowTok{RET}         \CommentTok{; (10T)}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{8.5 PreallocCoalesce: DJNZ from 5 Instructions to
+1}\label{prealloccoalesce-djnz-from-5-instructions-to-1}
+
+New in v4. Before PBQP allocation, PreallocCoalesce unifies
+block-parameter virtual registers with their corresponding
+block-argument virtual registers when live ranges don't overlap.
+
+\textbf{Before PreallocCoalesce (ex7\_mapinplace):}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{    LD A}\OperatorTok{,} \DecValTok{1}
+    \BuiltInTok{NEG}
+    \BuiltInTok{ADD}\NormalTok{ A}\OperatorTok{,}\NormalTok{ B}
+\NormalTok{    LD B}\OperatorTok{,}\NormalTok{ A}
+\NormalTok{    JRS }\OperatorTok{.}\NormalTok{add2\_inplace\_fe\_head1}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{After PreallocCoalesce:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{    DJNZ }\OperatorTok{.}\NormalTok{add2\_inplace\_fe\_body2}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Saving: 4 instructions, \textasciitilde30T per iteration.} The
+counter was unified with register B, allowing the back-edge to emit a
+single DJNZ instead of manual decrement + jump.
+
+Impact across 6 showcase files: - \texttt{mapInPlace}: 5 instructions →
+1 DJNZ - \texttt{factorial\_fold}: mul16 routine eliminated entirely -
+\texttt{forEach/max\_chain}: trampoline block removed -
+\texttt{fib\_iter}: 3 EX DE,HL instructions eliminated -
+\texttt{fib\_fold}: 6 redundant register moves removed
+
+\subsubsection{8.6 Trivial Inliner}\label{trivial-inliner}
+
+New in v4. When a callee is a trivial function (single instruction or
+alias), the inliner replaces the call entirely:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun swap(a: u8, b: u8) {-}\textgreater{} (u8, u8) \{ return (b, a) \}}
+\NormalTok{fun min\_of(a: u8, b: u8) {-}\textgreater{} u8 \{ return minmax(a, b).0 \}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  \texttt{swap(a,b).1\ ==\ a} → \textbf{zero instructions} (the compiler
+  proves the identity statically)
+\item
+  \texttt{min\_of(a,b)} → \texttt{EQU\ minmax} (\textbf{0 bytes} ---
+  just an alias label)
+\end{itemize}
+
+\subsubsection{8.7 Interprocedural Contract Optimization
+(PFCCO)}\label{interprocedural-contract-optimization-pfcco}
+
+The contract optimizer searches for the best calling convention across
+the entire call graph:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Build call graph} --- topological sort (callees before
+  callers)
+\item
+  \textbf{Candidate choices} --- cartesian product of plausible register
+  classes for each param
+\item
+  \textbf{Conflict filtering} --- reject assignments where two params
+  must share one physical reg
+\item
+  \textbf{Edge cost} --- cost of crossing each call edge for a given
+  contract pair
+\item
+  \textbf{Greedy DP} --- assign contracts to minimize total T-states
+  across all callers
+\end{enumerate}
+
+Result: for a function called in a tight loop, the optimizer assigns the
+param directly to the register the loop already has the value in ---
+eliminating all move instructions at the call site.
+
+\subsubsection{8.8 Multiply Strength
+Reduction}\label{multiply-strength-reduction}
+
+\textbf{Standard power-of-2}: N × \texttt{ADD\ HL,\ HL}.
+
+\textbf{Byte-boundary optimization:} \texttt{*\ 256} = ``move low byte
+to high byte'':
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{; x * 256:}
+\NormalTok{LD H}\OperatorTok{,}\NormalTok{ L     }\CommentTok{; H = L (low byte becomes high byte)}
+\NormalTok{LD L}\OperatorTok{,} \DecValTok{0}     \CommentTok{; L = 0}
+\CommentTok{; result: HL = x * 256 in 8T, 2 bytes (was: 56T, 16 bytes for 8×ADD HL,HL)}
+\end{Highlighting}
+\end{Shaded}
+
+For \texttt{*\ 512}, \texttt{*\ 1024} --- byte-swap + remaining shifts.
+\textbf{Small composites} (3, 5, 6, 9): PUSH+POP+shift+add sequences (no
+loop).
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 9: Multiple Compilation
+Targets}\label{chapter-9-multiple-compilation-targets}
+
+Nanz/MIR2 supports multiple output backends. The same source compiles to
+different targets from the same IR.
+
+\subsubsection{9.1 The Backend Spectrum}\label{the-backend-spectrum}
+
+\begin{verbatim}
+*mir2.Module
+    ├── Z80Codegen         → .a80 assembly  [production]
+    ├── M6502Codegen       → .s   assembly  [retro: Apple II, C64, BBC Micro]
+    ├── mir2c.Codegen      → .c   file      [verification + portability]
+    ├── mir2qbe.Codegen    → .ssa (QBE)     [native: x86-64, ARM64, RISC-V]
+    └── (planned) mir2llvm → LLVM IR        [future]
+\end{verbatim}
+
+\subsubsection{9.2 MOS 6502 Backend}\label{mos-6502-backend}
+
+New in v4. The 6502 backend compiles Nanz through the same MIR2 pipeline
+to 6502 assembly. \textbf{35/35 tests pass} with a dual-VM oracle (MIR2
+VM vs sim6502).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun abs\_diff(a: u8, b: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    if a \textless{} b \{ return b {-} a \}}
+\NormalTok{    return a {-} b}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{; 6502 output:}
+\FunctionTok{abs\_diff:}
+\NormalTok{    SEC}
+\NormalTok{    SBC param\_b     }\CommentTok{; A = a {-} b}
+\NormalTok{    BCS }\OperatorTok{.}\NormalTok{done       }\CommentTok{; if a \textgreater{}= b, done}
+\NormalTok{    EOR }\OperatorTok{\#$}\NormalTok{FF        }\CommentTok{; NEG via complement + 1}
+    \BuiltInTok{ADC} \OperatorTok{\#$}\BaseNTok{01}
+\FunctionTok{.done:}
+\NormalTok{    RTS}
+\end{Highlighting}
+\end{Shaded}
+
+Console I/O adapters for Apple II, Commodore 64, and BBC Micro are
+included for testing.
+
+\subsubsection{9.3 MIR2→C: Verification
+Backend}\label{mir2c-verification-backend}
+
+\textbf{MIR2→C is a verification and portability tool.} It translates
+MIR2 to C99 that \texttt{gcc}/\texttt{clang} can compile and run:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{// Generated by mir2c:}
+\DataTypeTok{uint8\_t}\NormalTok{ abs\_diff}\OperatorTok{(}\DataTypeTok{uint8\_t}\NormalTok{ a}\OperatorTok{,} \DataTypeTok{uint8\_t}\NormalTok{ b}\OperatorTok{)} \OperatorTok{\{}
+    \ControlFlowTok{if} \OperatorTok{(}\NormalTok{a }\OperatorTok{\textless{}}\NormalTok{ b}\OperatorTok{)} \ControlFlowTok{return}\NormalTok{ b }\OperatorTok{{-}}\NormalTok{ a}\OperatorTok{;}
+    \ControlFlowTok{return}\NormalTok{ a }\OperatorTok{{-}}\NormalTok{ b}\OperatorTok{;}
+\OperatorTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Uses:} Cross-checking (Z80 vs host), portability target
+(play-test game logic on a fast machine before deploying to Z80),
+reference for overflow semantics.
+
+\subsubsection{9.4 MIR2→QBE: Native
+Backend}\label{mir2qbe-native-backend}
+
+\textbf{QBE} is a minimalist compiler backend that compiles
+\texttt{.ssa} files to x86-64, ARM64, or RISC-V native code.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{\# Generated QBE for abs\_diff}
+\NormalTok{export function w $abs\_diff(w \%a, w \%b) \{}
+\NormalTok{@entry}
+\NormalTok{    \%cond =w cultw \%a, \%b}
+\NormalTok{    jnz \%cond, @then, @else}
+\NormalTok{@then}
+\NormalTok{    \%r1 =w sub \%b, \%a}
+\NormalTok{    ret \%r1}
+\NormalTok{@else}
+\NormalTok{    \%r2 =w sub \%a, \%b}
+\NormalTok{    ret \%r2}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{\texorpdfstring{9.5 The \texttt{mzn} Native
+Compiler}{9.5 The mzn Native Compiler}}\label{the-mzn-native-compiler}
+
+New in v4. The \texttt{mzn} CLI compiles Nanz directly to native AMD64
+executables:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Compile via QBE (default)}
+\ExtensionTok{mzn}\NormalTok{ program.nanz}
+
+\CommentTok{\# Compile via C99}
+\ExtensionTok{mzn} \AttributeTok{{-}c}\NormalTok{ program.nanz}
+
+\CommentTok{\# Both backends}
+\ExtensionTok{mzn} \AttributeTok{{-}c} \AttributeTok{{-}q}\NormalTok{ program.nanz}
+
+\CommentTok{\# Emit C99 source (inspect only)}
+\ExtensionTok{mzn} \AttributeTok{{-}emit{-}c}\NormalTok{ program.nanz}
+
+\CommentTok{\# Emit QBE IL (inspect only)}
+\ExtensionTok{mzn} \AttributeTok{{-}emit{-}qbe}\NormalTok{ program.nanz}
+\end{Highlighting}
+\end{Shaded}
+
+This enables native-speed testing of Nanz programs on the development
+machine --- the same logic runs on both Z80 and AMD64.
+
+\subsubsection{9.6 The Big Picture: Four Verification
+Targets}\label{the-big-picture-four-verification-targets}
+
+\begin{verbatim}
+abs_diff(10, 3) == 7
+    checked by:  MIR2 VM (abstract)
+                 Z80 binary via MZE (physical Z80)
+                 6502 binary via sim6502 (physical 6502)
+                 C binary via gcc (host native)
+                 QBE binary via QBE (modern native)
+\end{verbatim}
+
+If all five agree, you can be extremely confident the function is
+correct.
+
+\subsubsection{9.7 Z80 Platform Targets}\label{z80-platform-targets}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4286}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3214}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Target flag
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Platform
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Notes
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{-\/-target=spectrum} & ZX Spectrum 48K/128K & Default entry
+0x8000, screen at 0x4000 \\
+\texttt{-\/-target=cpm} & CP/M systems & TPA entry 0x0100, BDOS at
+0x0005 \\
+\texttt{-\/-target=agon} & Agon Light 2 (eZ80) & MOS API, VDP graphics,
+u24 native \\
+\texttt{-\/-target=generic} & Bare Z80 & No platform assumptions \\
+\end{longtable}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 10: Z80 Extern and Register
+Contracts}\label{chapter-10-z80-extern-and-register-contracts}
+
+\subsubsection{10.1 Basic @extern}\label{basic-extern}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{@extern fun process(x: u8) {-}\textgreater{} void}
+\end{Highlighting}
+\end{Shaded}
+
+The compiler assigns register classes to \texttt{process}'s parameter as
+normal. It will probably put \texttt{x} in A (ClassAcc). At the call
+site: \texttt{LD\ A,\ value\ /\ CALL\ process}.
+
+\subsubsection{10.2 RST Optimization}\label{rst-optimization}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{@extern(0x10) fun rst\_16(c: u8) {-}\textgreater{} void   // RST 0x10}
+\NormalTok{@extern(0x28) fun rst\_40(c: u8) {-}\textgreater{} void   // RST 0x28}
+\NormalTok{@extern(0xBB00) fun bdos\_call(c: u8) {-}\textgreater{} void  // CALL 0xBB00}
+\end{Highlighting}
+\end{Shaded}
+
+The compiler emits: - \texttt{RST\ n} for addresses that are multiples
+of 8 and ≤ 0x38 (1 byte, 11T) - \texttt{CALL\ addr} for all other
+addresses (3 bytes, 17T)
+
+\subsubsection{10.3 Annotated @extern: Precise Register
+Contracts}\label{annotated-extern-precise-register-contracts}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{@extern fun LD\_BYTES(@z80\_a type: u8, @z80\_de dest: ptr, @z80\_b count: u8) {-}\textgreater{} void}
+\NormalTok{// Spectrum ROM 0x0556: A=type, DE=dest, BC=length}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{@z80\_*} annotations override PBQP for those parameters.
+
+\subsubsection{10.4 The ABI Is Not Fixed}\label{the-abi-is-not-fixed}
+
+Unlike traditional languages, Nanz does not have a fixed calling
+convention. You can observe the chosen convention in the generated
+assembly comment:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{; fun abs\_diff(a: u8 = A, b: u8 = C) {-}\textgreater{} u8 = A ; clobbers: F}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 11: Verified Codegen ---
+Showcase}\label{chapter-11-verified-codegen-showcase}
+
+23 showcase examples, all verified. Here are the highlights.
+
+\subsubsection{11.1 abs\_diff: Five Passes to Four
+Instructions}\label{abs_diff-five-passes-to-four-instructions}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun abs\_diff(a: u8, b: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    if a \textless{} b \{ return b {-} a \}}
+\NormalTok{    return a {-} b}
+\NormalTok{\}}
+
+\NormalTok{assert abs\_diff(10, 3) == 7}
+\NormalTok{assert abs\_diff(3, 10) == 7}
+\NormalTok{assert abs\_diff(5, 5)  == 0}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{; fun abs\_diff(a: u8 = A, b: u8 = C) {-}\textgreater{} u8 = A ; clobbers: F}
+\FunctionTok{abs\_diff:}
+    \BuiltInTok{SUB}\NormalTok{ C       }\CommentTok{; a {-} b, carry = (a \textless{} b)}
+    \ControlFlowTok{RET}\NormalTok{ NC      }\CommentTok{; a \textgreater{}= b: return a{-}b}
+    \BuiltInTok{NEG}         \CommentTok{; {-}(a{-}b) = b{-}a}
+    \ControlFlowTok{RET}
+\end{Highlighting}
+\end{Shaded}
+
+4 instructions. Both MIR2 VM and Z80 binary verify all three asserts.
+
+\subsubsection{11.2 sum\_range: One Instruction per
+Iteration}\label{sum_range-one-instruction-per-iteration}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun sum\_range(n: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    return range(0..n).fold(0, |acc: u8, i: u8| \{ return acc + i \})}
+\NormalTok{\}}
+
+\NormalTok{assert sum\_range(0)  == 0}
+\NormalTok{assert sum\_range(5)  == 15}
+\NormalTok{assert sum\_range(10) == 55}
+\end{Highlighting}
+\end{Shaded}
+
+Loop body: \texttt{ADD\ A,\ B} --- one instruction. Verified on Z80
+binary for all five test values.
+
+\subsubsection{11.3 mapInPlace: DJNZ Direct
+(PreallocCoalesce)}\label{mapinplace-djnz-direct-prealloccoalesce}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun add2\_inplace(buf: \^{}u8, n: u8) \{}
+\NormalTok{    buf.map(|x: u8| x + 2).forEach(|x: u8| \{ buf\^{} = x \}, n)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{; Loop back{-}edge:}
+\NormalTok{    DJNZ }\OperatorTok{.}\NormalTok{add2\_inplace\_fe\_body2    }\CommentTok{; single instruction (was 5)}
+\end{Highlighting}
+\end{Shaded}
+
+PreallocCoalesce unified the loop counter with register B, replacing a
+5-instruction decrement-branch-reload sequence with a single DJNZ.
+
+\subsubsection{11.4 swap: Zero
+Instructions}\label{swap-zero-instructions}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun swap(a: u8, b: u8) {-}\textgreater{} (u8, u8) \{ return (b, a) \}}
+
+\NormalTok{assert swap(3, 7) == (7, 3)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{; fun swap(a: u8 = DE, b: u8 = HL) {-}\textgreater{} (u16 = HL, u16 = DE)}
+\FunctionTok{swap:}
+    \ControlFlowTok{RET}         \CommentTok{; arguments already in return positions}
+\end{Highlighting}
+\end{Shaded}
+
+The trivial inliner proves that \texttt{swap(a,b).1\ ==\ a} at compile
+time --- zero instructions needed.
+
+\subsubsection{11.5 Iterator Chain: Zero CALL
+Overhead}\label{iterator-chain-zero-call-overhead}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun sum\_filtered(buf: \^{}u8, n: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    var total: u8 = 0}
+\NormalTok{    buf.filter(|x: u8| x \textgreater{} 50).forEach(|x: u8| \{ total = total + x \}, n)}
+\NormalTok{    return total}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sum\_filtered:}
+\NormalTok{    LD C}\OperatorTok{,} \DecValTok{0}          \CommentTok{; total = 0}
+\FunctionTok{.loop:}
+\NormalTok{    LD A}\OperatorTok{,} \OperatorTok{(}\NormalTok{HL}\OperatorTok{)}       \CommentTok{; load element}
+    \BuiltInTok{INC}\NormalTok{ HL}
+\NormalTok{    CP }\DecValTok{51}            \CommentTok{; filter: x \textgreater{} 50 → x \textgreater{}= 51}
+\NormalTok{    JR C}\OperatorTok{,} \OperatorTok{.}\NormalTok{skip      }\CommentTok{; skip if filtered}
+    \BuiltInTok{ADD}\NormalTok{ A}\OperatorTok{,}\NormalTok{ C         }\CommentTok{; total += x}
+\NormalTok{    LD C}\OperatorTok{,}\NormalTok{ A}
+\FunctionTok{.skip:}
+\NormalTok{    DJNZ }\OperatorTok{.}\NormalTok{loop}
+\NormalTok{    LD A}\OperatorTok{,}\NormalTok{ C          }\CommentTok{; return total}
+    \ControlFlowTok{RET}
+\end{Highlighting}
+\end{Shaded}
+
+No \texttt{CALL} for filter, no \texttt{CALL} for forEach body, no
+intermediate buffer. \texttt{total} is threaded as register C
+throughout.
+
+\subsubsection{11.6 add32: 32-bit on an 8-bit
+CPU}\label{add32-32-bit-on-an-8-bit-cpu}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun add32(a: u32, b: u32) {-}\textgreater{} u32 \{ return a + b \}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{add32:}
+    \BuiltInTok{ADD}\NormalTok{ HL}\OperatorTok{,}\NormalTok{ DE      }\CommentTok{; low 16 bits}
+\NormalTok{    EXX}
+    \BuiltInTok{ADC}\NormalTok{ HL}\OperatorTok{,}\NormalTok{ DE      }\CommentTok{; high 16 bits + carry}
+\NormalTok{    EXX}
+    \ControlFlowTok{RET}
+\end{Highlighting}
+\end{Shaded}
+
+5 instructions using Z80 shadow register pair.
+
+\subsubsection{11.7 GCD: While Loop with
+Modulo}\label{gcd-while-loop-with-modulo}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun gcd(a: u8, b: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    while b != 0 \{}
+\NormalTok{        let t = b}
+\NormalTok{        b = a \% b}
+\NormalTok{        a = t}
+\NormalTok{    \}}
+\NormalTok{    return a}
+\NormalTok{\}}
+
+\NormalTok{assert gcd(12, 8) == 4}
+\NormalTok{assert gcd(100, 75) == 25}
+\NormalTok{assert gcd(17, 13) == 1}
+\end{Highlighting}
+\end{Shaded}
+
+Compiles correctly with parallel-copy resolution at loop back-edge.
+Known BUG-001: extra register shuffles at loop boundaries
+(\textasciitilde25\% slower than hand-written). Fix in progress via PBQP
+affinity edges.
+
+\subsubsection{11.8 Full Showcase: 23/23
+PASS}\label{full-showcase-2323-pass}
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule\noalign{}
+\# & Example & Key feature & Status \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & struct layout & Struct field offset computation & PASS \\
+2 & UFCS dispatch & \texttt{obj.method()} → direct CALL & PASS \\
+3 & zero-cost interfaces & Monomorphized dispatch & PASS \\
+3b & interface param & Interface-typed function param & PASS \\
+4a & abs\_diff u8 & 4-instruction optimal & PASS \\
+4b & abs\_diff u16 & 16-bit variant & PASS \\
+5 & LUT popcount & Compile-time table generation & PASS \\
+6 & forEach iterator & Trampoline eliminated (v4) & PASS \\
+7 & mapInPlace & 5 insts → 1 DJNZ (v4) & PASS \\
+8 & GCD & While loop with modulo & PASS \\
+9a & factorial (recursive) & Contract: n=A & PASS \\
+9b & factorial (fold) & mul16 eliminated (v4) & PASS \\
+10a & fibonacci (recursive) & Recursive u16 & PASS \\
+10b & fibonacci (iterative) & Fewer clobbers (v4) & PASS \\
+10c & fibonacci (fold) & 6 moves removed (v4) & PASS \\
+11 & minmax multiret & \texttt{swap(a,b)\ →\ RET} & PASS \\
+12 & assert & Compile-time verification & PASS \\
+13 & multiret assert & Tuple return assertion & PASS \\
+14 & fold assert & For-range accumulator & PASS \\
+15 & @smc sprite & Self-modifying code & PASS \\
+16 & hello MZE & Console output & PASS \\
+17 & inline asm & Z80 asm blocks & PASS \\
+18 & console I/O & User interaction & PASS \\
+\end{longtable}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{Chapter 12: Self-Modifying Code:
+\texttt{@smc}}{Chapter 12: Self-Modifying Code: @smc}}\label{chapter-12-self-modifying-code-smc}
+
+\subsubsection{12.1 The Concept}\label{the-concept}
+
+Z80 has no immediate-mode operand for many instructions. Loading a value
+from memory costs \textasciitilde13T. But if the value changes rarely,
+the compiler can \textbf{bake it into the instruction stream} and patch
+the bytes when the value changes.
+
+\subsubsection{\texorpdfstring{12.2 \texttt{@smc}
+Parameters}{12.2 @smc Parameters}}\label{smc-parameters}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun draw\_sprite(@smc x: u16, @smc y: u16) \{}
+\NormalTok{    // x and y are baked as immediate operands:}
+\NormalTok{    // LD HL, \textless{}x\textgreater{}  → 3 bytes, x is patched in{-}place}
+\NormalTok{    // The compiler auto{-}generates set\_x() and set\_y() patcher functions}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Generated Z80:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{draw\_sprite:}
+\NormalTok{    LD HL}\OperatorTok{,} \BaseNTok{0x0000}       \CommentTok{; x baked here}
+\NormalTok{draw\_sprite}\OperatorTok{$}\NormalTok{x}\OperatorTok{$}\NormalTok{imm EQU }\OperatorTok{${-}}\DecValTok{2}   \CommentTok{; patch address for x}
+
+\CommentTok{; Auto{-}generated patcher:}
+\FunctionTok{draw\_sprite\_set\_x:}
+\NormalTok{    LD A}\OperatorTok{,}\NormalTok{ L}
+\NormalTok{    LD }\OperatorTok{(}\NormalTok{draw\_sprite}\OperatorTok{$}\NormalTok{x}\OperatorTok{$}\NormalTok{imm}\OperatorTok{),}\NormalTok{ A}
+\NormalTok{    LD A}\OperatorTok{,}\NormalTok{ H}
+\NormalTok{    LD }\OperatorTok{(}\NormalTok{draw\_sprite}\OperatorTok{$}\NormalTok{x}\OperatorTok{$}\NormalTok{imm }\OperatorTok{+} \DecValTok{1}\OperatorTok{),}\NormalTok{ A}
+    \ControlFlowTok{RET}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Call \texttt{draw\_sprite\_set\_x(new\_x)} to change x} --- the
+value is patched directly into the instruction bytes. Next call to
+\texttt{draw\_sprite} uses the new value without any memory load.
+
+\subsubsection{12.3 Compiled Sprites}\label{compiled-sprites}
+
+\texttt{@smc} parameters enable \textbf{compiled sprites} --- each
+sprite frame is a hard-coded sequence of \texttt{LD\ (addr),\ val}
+instructions where both the address and value are baked immediates:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun render\_frame(@smc addr: u16) \{}
+\NormalTok{    // addr patched to screen position}
+\NormalTok{    // Each pixel write is a single LD (HL), n instruction}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+For a 16×8 sprite: 346T compiled vs \textasciitilde1344T LDIR.
+\textbf{3.8× faster.}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{\texorpdfstring{Chapter 13: Native Compilation:
+\texttt{mzn}}{Chapter 13: Native Compilation: mzn}}\label{chapter-13-native-compilation-mzn}
+
+\subsubsection{13.1 Overview}\label{overview-1}
+
+The \texttt{mzn} binary compiles Nanz to native AMD64 executables via
+two paths:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{C99 path:} Nanz → MIR2 → C99 → gcc/clang → native binary
+\item
+  \textbf{QBE path:} Nanz → MIR2 → QBE IL → qbe → native binary
+\end{itemize}
+
+\subsubsection{13.2 Usage}\label{usage}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Compile via QBE (default, faster compile)}
+\ExtensionTok{mzn}\NormalTok{ program.nanz}
+
+\CommentTok{\# Compile via C99 (wider platform support)}
+\ExtensionTok{mzn} \AttributeTok{{-}c}\NormalTok{ program.nanz}
+
+\CommentTok{\# Both backends (cross{-}check)}
+\ExtensionTok{mzn} \AttributeTok{{-}c} \AttributeTok{{-}q}\NormalTok{ program.nanz}
+
+\CommentTok{\# Inspect intermediate output}
+\ExtensionTok{mzn} \AttributeTok{{-}emit{-}c}\NormalTok{ program.nanz      }\CommentTok{\# show C99}
+\ExtensionTok{mzn} \AttributeTok{{-}emit{-}qbe}\NormalTok{ program.nanz    }\CommentTok{\# show QBE IL}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{13.3 VSCode Integration}\label{vscode-integration}
+
+Right-click any \texttt{.nanz} file for native compilation commands:
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Command & What it does \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Nanz: Compile to Native (C99 + QBE) & \texttt{mzn\ -c\ -q\ file.nanz} \\
+Nanz: Compile to Native (C99 only) & \texttt{mzn\ -c\ file.nanz} \\
+Nanz: Compile to Native (QBE only) & \texttt{mzn\ -q\ file.nanz} \\
+Nanz: Emit C99 Code & Opens C99 beside source \\
+Nanz: Emit QBE IL & Opens QBE IL beside source \\
+\end{longtable}
+
+\subsubsection{13.4 Why Both Backends?}\label{why-both-backends}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{C99:} Maximum portability. Any platform with a C compiler.
+  Readable output. Good for debugging MIR2 semantics.
+\item
+  \textbf{QBE:} Faster compile times. Strict SSA validation (catches
+  malformed MIR2). Native code quality closer to LLVM.
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Chapter 14: Roadmap --- What's
+Coming}\label{chapter-14-roadmap-whats-coming}
+
+\subsubsection{Planned Features}\label{planned-features}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3704}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2963}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Feature
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Priority
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Status
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{Enums} & High & Parser work only --- MIR2 already supports
+integer constants \\
+\textbf{\texttt{@error} propagation} & High & CY flag pattern, depends
+on enums \\
+\textbf{Import system} & High & Module merging exists (PL/M), parser
+needs \texttt{import} keyword \\
+\textbf{Type aliases} & Medium & \textasciitilde30 LOC, pure syntactic
+sugar \\
+\textbf{String literals} & Medium & \texttt{"text"} → \texttt{\^{}u8}
+null-terminated byte array \\
+\textbf{Arena allocator} & Medium & Bump allocator for games/dynamic
+allocation \\
+\textbf{Fast multiply} & Medium & Square table LUT:
+\texttt{f(a)*f(b)\ =\ ((a+b)²-(a-b)²)/4} \\
+\textbf{BUG-001 fix} & Medium & PBQP affinity edges for block-param
+alignment \\
+\textbf{Compiled sprites} & Low & \texttt{@smc} + attribute-only
+rendering \\
+\textbf{Tetris} & Fun & Attribute-only, keyboard input, frame sync \\
+\end{longtable}
+
+\subsubsection{Architecture Aspirations}\label{architecture-aspirations}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Z80 signed codegen:} \texttt{S\^{}V} flag for hardware i8/i16
+  \texttt{\textless{}}/\texttt{\textgreater{}=}
+\item
+  \textbf{WASM backend:} Nanz → MIR2 → WASM for browser demos
+\item
+  \textbf{Pattern matching:} Enum destructuring with exhaustiveness
+  checking
+\item
+  \textbf{Generator syntax:} \texttt{gen\ \{\ yield\ \}} for lazy
+  iteration
+\end{itemize}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Appendix A: Grammar}\label{appendix-a-grammar}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{module      = top\_decl*}
+\NormalTok{top\_decl    = struct\_decl}
+\NormalTok{            | interface\_decl}
+\NormalTok{            | global\_decl}
+\NormalTok{            | fun\_decl}
+\NormalTok{            | \textquotesingle{}@extern\textquotesingle{} (\textquotesingle{}(\textquotesingle{} INT \textquotesingle{})\textquotesingle{})? \textquotesingle{}fun\textquotesingle{} fun\_decl\_inner}
+\NormalTok{            | \textquotesingle{}assert\textquotesingle{} assert\_expr}
+
+\NormalTok{struct\_decl    = \textquotesingle{}struct\textquotesingle{} IDENT \textquotesingle{}\{\textquotesingle{} field\_decl* \textquotesingle{}\}\textquotesingle{}}
+\NormalTok{field\_decl     = IDENT \textquotesingle{}:\textquotesingle{} type \textquotesingle{},\textquotesingle{}?}
+
+\NormalTok{interface\_decl = \textquotesingle{}interface\textquotesingle{} IDENT \textquotesingle{}\{\textquotesingle{} method\_name* \textquotesingle{}\}\textquotesingle{}}
+\NormalTok{method\_name    = IDENT \textquotesingle{},\textquotesingle{}?}
+
+\NormalTok{global\_decl    = \textquotesingle{}global\textquotesingle{} IDENT \textquotesingle{}:\textquotesingle{} type at\_clause? (\textquotesingle{}=\textquotesingle{} expr)?}
+\NormalTok{at\_clause      = \textquotesingle{}at\textquotesingle{} \textquotesingle{}(\textquotesingle{} expr \textquotesingle{})\textquotesingle{}}
+
+\NormalTok{fun\_decl       = (\textquotesingle{}fun\textquotesingle{} | \textquotesingle{}fn\textquotesingle{}) fun\_decl\_inner}
+\NormalTok{fun\_decl\_inner = (op\_sym | IDENT (\textquotesingle{}.\textquotesingle{} IDENT)?) \textquotesingle{}(\textquotesingle{} params \textquotesingle{})\textquotesingle{} (\textquotesingle{}{-}\textgreater{}\textquotesingle{} ret\_type)?}
+\NormalTok{                 (\textquotesingle{}\{\textquotesingle{} stmt* \textquotesingle{}\}\textquotesingle{} | /* extern: no body */)}
+\NormalTok{ret\_type       = type | \textquotesingle{}(\textquotesingle{} type (\textquotesingle{},\textquotesingle{} type)* \textquotesingle{})\textquotesingle{}}
+\NormalTok{params         = (param (\textquotesingle{},\textquotesingle{} param)*)?}
+\NormalTok{param          = reg\_ann? IDENT \textquotesingle{}:\textquotesingle{} type}
+\NormalTok{reg\_ann        = \textquotesingle{}@z80\_a\textquotesingle{} | \textquotesingle{}@z80\_b\textquotesingle{} | \textquotesingle{}@z80\_c\textquotesingle{} | \textquotesingle{}@z80\_hl\textquotesingle{} | \textquotesingle{}@z80\_de\textquotesingle{}}
+\NormalTok{op\_sym         = \textquotesingle{}+\textquotesingle{} | \textquotesingle{}{-}\textquotesingle{} | \textquotesingle{}*\textquotesingle{} | \textquotesingle{}/\textquotesingle{} | \textquotesingle{}\%\textquotesingle{} | \textquotesingle{}==\textquotesingle{} | \textquotesingle{}!=\textquotesingle{} | \textquotesingle{}\textless{}\textquotesingle{} | \textquotesingle{}\textless{}=\textquotesingle{}}
+\NormalTok{               | \textquotesingle{}\textgreater{}\textquotesingle{} | \textquotesingle{}\textgreater{}=\textquotesingle{} | \textquotesingle{}\&\textquotesingle{} | \textquotesingle{}|\textquotesingle{} | \textquotesingle{}\^{}\textquotesingle{}}
+
+\NormalTok{type           = \textquotesingle{}\^{}\textquotesingle{} type}
+\NormalTok{               | \textquotesingle{}[\textquotesingle{} type \textquotesingle{};\textquotesingle{} INT \textquotesingle{}]\textquotesingle{}}
+\NormalTok{               | \textquotesingle{}u8\textquotesingle{} (\textquotesingle{}\textless{}\textquotesingle{} INT \textquotesingle{}..\textquotesingle{} INT \textquotesingle{}\textgreater{}\textquotesingle{})?}
+\NormalTok{               | \textquotesingle{}u16\textquotesingle{} (\textquotesingle{}\textless{}\textquotesingle{} INT \textquotesingle{}..\textquotesingle{} INT \textquotesingle{}\textgreater{}\textquotesingle{})?}
+\NormalTok{               | \textquotesingle{}u24\textquotesingle{} | \textquotesingle{}u32\textquotesingle{} | \textquotesingle{}i8\textquotesingle{} | \textquotesingle{}i16\textquotesingle{} | \textquotesingle{}i24\textquotesingle{} | \textquotesingle{}i32\textquotesingle{}}
+\NormalTok{               | \textquotesingle{}f8.8\textquotesingle{} | \textquotesingle{}f8.16\textquotesingle{} | \textquotesingle{}f16.8\textquotesingle{} | \textquotesingle{}f16.16\textquotesingle{} | \textquotesingle{}f.8\textquotesingle{} | \textquotesingle{}f.16\textquotesingle{}}
+\NormalTok{               | \textquotesingle{}bool\textquotesingle{} | \textquotesingle{}void\textquotesingle{} | \textquotesingle{}ptr\textquotesingle{}}
+\NormalTok{               | IDENT}
+
+\NormalTok{stmt           = var\_decl | let\_decl | if\_stmt | while\_stmt | for\_stmt}
+\NormalTok{               | return\_stmt | \textquotesingle{}break\textquotesingle{} | \textquotesingle{}continue\textquotesingle{} | switch\_stmt}
+\NormalTok{               | asm\_block | block | expr\_stmt}
+
+\NormalTok{var\_decl       = \textquotesingle{}var\textquotesingle{} IDENT \textquotesingle{}:\textquotesingle{} type at\_clause? (\textquotesingle{}=\textquotesingle{} (array\_init | expr))?}
+\NormalTok{let\_decl       = \textquotesingle{}let\textquotesingle{} (IDENT | \textquotesingle{}(\textquotesingle{} IDENT (\textquotesingle{},\textquotesingle{} IDENT)* \textquotesingle{})\textquotesingle{}) (\textquotesingle{}:\textquotesingle{} type)? \textquotesingle{}=\textquotesingle{} expr}
+\NormalTok{array\_init     = \textquotesingle{}[\textquotesingle{} expr (\textquotesingle{},\textquotesingle{} expr)* \textquotesingle{}]\textquotesingle{}}
+
+\NormalTok{if\_stmt        = \textquotesingle{}if\textquotesingle{} expr block (\textquotesingle{}else\textquotesingle{} block)?}
+\NormalTok{while\_stmt     = \textquotesingle{}while\textquotesingle{} expr block}
+\NormalTok{for\_stmt       = \textquotesingle{}for\textquotesingle{} IDENT (\textquotesingle{}:\textquotesingle{} type)? \textquotesingle{}in\textquotesingle{}}
+\NormalTok{                 (expr \textquotesingle{}[\textquotesingle{} expr? \textquotesingle{}..\textquotesingle{} expr? \textquotesingle{}]\textquotesingle{} block   // ForEachStmt (array)}
+\NormalTok{                 | expr \textquotesingle{}..\textquotesingle{} expr block)                  // ForRangeStmt (int range)}
+\NormalTok{return\_stmt    = \textquotesingle{}return\textquotesingle{} (expr | \textquotesingle{}(\textquotesingle{} expr (\textquotesingle{},\textquotesingle{} expr)* \textquotesingle{})\textquotesingle{})?}
+\NormalTok{switch\_stmt    = \textquotesingle{}switch\textquotesingle{} expr \textquotesingle{}\{\textquotesingle{} case\_clause* default\_clause? \textquotesingle{}\}\textquotesingle{}}
+\NormalTok{case\_clause    = \textquotesingle{}case\textquotesingle{} INT \textquotesingle{}:\textquotesingle{} stmt*}
+\NormalTok{default\_clause = \textquotesingle{}default\textquotesingle{} \textquotesingle{}:\textquotesingle{} stmt*}
+\NormalTok{asm\_block      = \textquotesingle{}asm\textquotesingle{} (\textquotesingle{}(\textquotesingle{} IDENT \textquotesingle{})\textquotesingle{})? \textquotesingle{}\{\textquotesingle{} asm\_line* \textquotesingle{}\}\textquotesingle{}}
+\NormalTok{block          = \textquotesingle{}\{\textquotesingle{} stmt* \textquotesingle{}\}\textquotesingle{}}
+
+\NormalTok{expr\_stmt      = expr (\textquotesingle{}=\textquotesingle{} expr)?}
+
+\NormalTok{expr           = binary\_expr}
+\NormalTok{binary\_expr    = unary\_expr ((binop | \textquotesingle{}as\textquotesingle{} type) binary\_expr)*}
+\NormalTok{binop          = \textquotesingle{}+\textquotesingle{} | \textquotesingle{}{-}\textquotesingle{} | \textquotesingle{}*\textquotesingle{} | \textquotesingle{}/\textquotesingle{} | \textquotesingle{}\%\textquotesingle{} | \textquotesingle{}\&\textquotesingle{} | \textquotesingle{}|\textquotesingle{} | \textquotesingle{}\^{}\textquotesingle{}}
+\NormalTok{               | \textquotesingle{}\textless{}\textless{}\textquotesingle{} | \textquotesingle{}\textgreater{}\textgreater{}\textquotesingle{} | \textquotesingle{}==\textquotesingle{} | \textquotesingle{}!=\textquotesingle{} | \textquotesingle{}\textless{}\textquotesingle{} | \textquotesingle{}\textless{}=\textquotesingle{} | \textquotesingle{}\textgreater{}\textquotesingle{} | \textquotesingle{}\textgreater{}=\textquotesingle{}}
+
+\NormalTok{unary\_expr     = \textquotesingle{}{-}\textquotesingle{} unary\_expr | \textquotesingle{}!\textquotesingle{} unary\_expr | \textquotesingle{}\textasciitilde{}\textquotesingle{} unary\_expr}
+\NormalTok{               | \textquotesingle{}\&\textquotesingle{} IDENT | postfix\_expr}
+
+\NormalTok{postfix\_expr   = primary}
+\NormalTok{                 ( \textquotesingle{}\^{}\textquotesingle{}                              // dereference}
+\NormalTok{                 | \textquotesingle{}[\textquotesingle{} expr \textquotesingle{}]\textquotesingle{}                    // index}
+\NormalTok{                 | \textquotesingle{}.\textquotesingle{} IDENT                       // field access}
+\NormalTok{                 | \textquotesingle{}.\textquotesingle{} IDENT \textquotesingle{}(\textquotesingle{} args \textquotesingle{})\textquotesingle{}          // UFCS method call}
+\NormalTok{                 | \textquotesingle{}(\textquotesingle{} args \textquotesingle{})\textquotesingle{}                    // function call}
+\NormalTok{                 | \textquotesingle{}.map\textquotesingle{} \textquotesingle{}(\textquotesingle{} lambda \textquotesingle{})\textquotesingle{}           // iterator chain}
+\NormalTok{                 | \textquotesingle{}.filter\textquotesingle{} \textquotesingle{}(\textquotesingle{} lambda \textquotesingle{})\textquotesingle{}}
+\NormalTok{                 | \textquotesingle{}.forEach\textquotesingle{} \textquotesingle{}(\textquotesingle{} lambda (\textquotesingle{},\textquotesingle{} expr)? \textquotesingle{})\textquotesingle{}}
+\NormalTok{                 | \textquotesingle{}.fold\textquotesingle{} \textquotesingle{}(\textquotesingle{} expr \textquotesingle{},\textquotesingle{} lambda \textquotesingle{})\textquotesingle{}}
+\NormalTok{                 | \textquotesingle{}.reduce\textquotesingle{} \textquotesingle{}(\textquotesingle{} lambda \textquotesingle{})\textquotesingle{}}
+\NormalTok{                 | \textquotesingle{}.take\textquotesingle{} \textquotesingle{}(\textquotesingle{} expr \textquotesingle{})\textquotesingle{}}
+\NormalTok{                 | \textquotesingle{}.skip\textquotesingle{} \textquotesingle{}(\textquotesingle{} expr \textquotesingle{})\textquotesingle{}}
+\NormalTok{                 | \textquotesingle{}.enumerate\textquotesingle{} \textquotesingle{}(\textquotesingle{} \textquotesingle{})\textquotesingle{}}
+\NormalTok{                 | \textquotesingle{}.chain\textquotesingle{} \textquotesingle{}(\textquotesingle{} expr \textquotesingle{})\textquotesingle{}}
+\NormalTok{                 )*}
+
+\NormalTok{primary        = INT | \textquotesingle{}true\textquotesingle{} | \textquotesingle{}false\textquotesingle{} | STRING}
+\NormalTok{               | (\textquotesingle{}u8\textquotesingle{}|\textquotesingle{}u16\textquotesingle{}|\textquotesingle{}i8\textquotesingle{}|\textquotesingle{}i16\textquotesingle{}) \textquotesingle{}(\textquotesingle{} expr \textquotesingle{})\textquotesingle{}   // cast}
+\NormalTok{               | \textquotesingle{}@ptr\textquotesingle{} \textquotesingle{}(\textquotesingle{} type \textquotesingle{},\textquotesingle{} expr \textquotesingle{})\textquotesingle{}}
+\NormalTok{               | \textquotesingle{}@print\_u8\textquotesingle{} \textquotesingle{}(\textquotesingle{} expr \textquotesingle{})\textquotesingle{} | \textquotesingle{}@print\_nl\textquotesingle{} \textquotesingle{}(\textquotesingle{} \textquotesingle{})\textquotesingle{} | \textquotesingle{}@print\_dec\textquotesingle{} \textquotesingle{}(\textquotesingle{} expr \textquotesingle{})\textquotesingle{}}
+\NormalTok{               | \textquotesingle{}@smc\textquotesingle{} IDENT \textquotesingle{}:\textquotesingle{} type              // SMC parameter}
+\NormalTok{               | \textquotesingle{}range\textquotesingle{} \textquotesingle{}(\textquotesingle{} expr \textquotesingle{}..\textquotesingle{} expr \textquotesingle{})\textquotesingle{}     // range source}
+\NormalTok{               | \textquotesingle{}|\textquotesingle{} lambda\_params \textquotesingle{}|\textquotesingle{} (block | expr)    // lambda}
+\NormalTok{               | IDENT \textquotesingle{}\{\textquotesingle{} field\_init (\textquotesingle{},\textquotesingle{} field\_init)* \textquotesingle{}\}\textquotesingle{}  // struct literal}
+\NormalTok{               | \textquotesingle{}(\textquotesingle{} expr (\textquotesingle{},\textquotesingle{} expr)* \textquotesingle{})\textquotesingle{}           // parenthesized / tuple}
+\NormalTok{               | IDENT}
+
+\NormalTok{lambda\_params  = (IDENT (\textquotesingle{}:\textquotesingle{} type)? (\textquotesingle{},\textquotesingle{} IDENT (\textquotesingle{}:\textquotesingle{} type)?)*)?}
+\NormalTok{lambda         = \textquotesingle{}|\textquotesingle{} lambda\_params \textquotesingle{}|\textquotesingle{} (block | expr)}
+
+\NormalTok{assert\_expr    = IDENT \textquotesingle{}(\textquotesingle{} (INT (\textquotesingle{},\textquotesingle{} INT)*)? \textquotesingle{})\textquotesingle{} \textquotesingle{}==\textquotesingle{} (INT | \textquotesingle{}(\textquotesingle{} INT (\textquotesingle{},\textquotesingle{} INT)* \textquotesingle{})\textquotesingle{})}
+\NormalTok{                 (\textquotesingle{}via\textquotesingle{} (\textquotesingle{}mir2\textquotesingle{} | \textquotesingle{}z80\textquotesingle{}))?}
+
+\NormalTok{field\_init     = IDENT \textquotesingle{}:\textquotesingle{} expr}
+\NormalTok{args           = (expr (\textquotesingle{},\textquotesingle{} expr)*)?}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Appendix B: Register
+Classes}\label{appendix-b-register-classes}
+
+\subsubsection{MIR2 Register Classes}\label{mir2-register-classes}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.1489}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2766}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2766}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2979}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Class
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Z80 register
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Typical use
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Cost (access)
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ClassAcc & A & Accumulator, u8 return, first param & 0T (ALU
+implicit) \\
+ClassCounter & B & DJNZ counter, second u8 param & 4T (LD A,B) \\
+ClassPointer & HL & u16 param/return, pointer & 0T (ADD HL implicit) \\
+ClassIndex & DE & Second u16 param & 4T (EX DE,HL to use in ADD) \\
+ClassPair & BC & Third param, general pair & varies \\
+ClassGeneral & C/D/E/H/L & Remaining 8-bit params & 4T (LD A,r) \\
+ClassDWord & HL+HL' & u32 via EXX shadow pair & \textasciitilde34T
+(ADD+EXX+ADC+EXX) \\
+ClassFlag & F (flags) & Boolean return via carry/zero & 0T at call, 4T
+materialize \\
+\end{longtable}
+
+\subsubsection{Physical Register
+Availability}\label{physical-register-availability}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3030}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4848}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2121}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Register
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Purpose in PBQP
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Notes
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+A & ClassAcc & Cannot be used for indirect load to non-A \\
+B & ClassCounter & DJNZ uses B implicitly \\
+C & ClassGeneral & Most flexible 8-bit \\
+D, E & ClassGeneral & DE pair for 16-bit address \\
+H, L & ClassPointer (HL) & HL is the Z80's main 16-bit ALU reg \\
+IX, IY & ClassIndex & Struct field access (\texttt{IX+d} addressing) \\
+HL', DE', BC' & ClassShadow, ClassDWord & EXX-accessed shadow pair \\
+A' & ClassAccShadow & EX AF,AF' \\
+F & ClassFlag & Carry = comparison result; no \texttt{LD\ r,F} --- save
+via PUSH AF only \\
+\end{longtable}
+
+\subsubsection{Memory-Backed Registers
+(\$F0xx)}\label{memory-backed-registers-f0xx}
+
+When the interference graph has more simultaneously-live variables than
+physical registers, the allocator spills to absolute addresses in the
+\texttt{\$F0xx} range:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{LD }\OperatorTok{($}\NormalTok{F001}\OperatorTok{),}\NormalTok{ A   }\CommentTok{; spill — 13T}
+\NormalTok{LD A}\OperatorTok{,} \OperatorTok{($}\NormalTok{F001}\OperatorTok{)}   \CommentTok{; reload — 13T}
+\end{Highlighting}
+\end{Shaded}
+
+Each round-trip costs 26T. The PreallocCoalesce pass (new in v4) reduces
+spills by unifying block-parameter registers.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Appendix C: CLI and Tools}\label{appendix-c-cli-and-tools}
+
+\subsubsection{Compiling Nanz}\label{compiling-nanz}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Compile to Z80 assembly}
+\ExtensionTok{mz}\NormalTok{ source.nanz }\AttributeTok{{-}o}\NormalTok{ output.a80}
+
+\CommentTok{\# Compile and assemble to binary}
+\ExtensionTok{mz}\NormalTok{ source.nanz }\AttributeTok{{-}o}\NormalTok{ output.bin }\AttributeTok{{-}{-}assemble}
+
+\CommentTok{\# Compile to TAP (ZX Spectrum tape image)}
+\ExtensionTok{mz}\NormalTok{ source.nanz }\AttributeTok{{-}{-}target}\OperatorTok{=}\NormalTok{spectrum }\AttributeTok{{-}o}\NormalTok{ game.tap}
+
+\CommentTok{\# Emit intermediate representations}
+\ExtensionTok{mz}\NormalTok{ source.nanz }\AttributeTok{{-}{-}emit{-}hir}        \CommentTok{\# HIR dump}
+\ExtensionTok{mz}\NormalTok{ source.nanz }\AttributeTok{{-}{-}emit{-}mir2}       \CommentTok{\# MIR2 before optimization}
+\ExtensionTok{mz}\NormalTok{ source.nanz }\AttributeTok{{-}{-}emit{-}mir2{-}opt}   \CommentTok{\# MIR2 after optimization}
+\ExtensionTok{mz}\NormalTok{ source.nanz }\AttributeTok{{-}{-}emit{-}asm}        \CommentTok{\# Z80 assembly}
+
+\CommentTok{\# Annotate T{-}states in output assembly}
+\ExtensionTok{mz}\NormalTok{ source.nanz }\AttributeTok{{-}{-}annotate{-}tstates} \AttributeTok{{-}o}\NormalTok{ annotated.a80}
+
+\CommentTok{\# Compile to native AMD64}
+\ExtensionTok{mzn}\NormalTok{ source.nanz                  }\CommentTok{\# via QBE (default)}
+\ExtensionTok{mzn} \AttributeTok{{-}c}\NormalTok{ source.nanz               }\CommentTok{\# via C99}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{The Toolchain}\label{the-toolchain}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2222}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.2963}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.4815}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Tool
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Binary
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Description
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+MZC & \texttt{mz} & MinZ Compiler (Nanz/MinZ/PL/M-80 → Z80) \\
+MZN & \texttt{mzn} & Native compiler (Nanz → AMD64 via C99/QBE) \\
+MZA & \texttt{mza} & Z80 Assembler (table-driven, bracket syntax) \\
+MZE & \texttt{mze} & Z80 Emulator (1335/1335 FUSE tests passing) \\
+MZX & \texttt{mzx} & ZX Spectrum emulator (T-state accurate, AY
+sound) \\
+MZD & \texttt{mzd} & Z80 Disassembler (IDA-like analysis, ABI
+propagation) \\
+MZLSP & \texttt{mzlsp} & Language Server Protocol (diagnostics, hover,
+goto-def) \\
+MZRUN & \texttt{mzrun} & Remote runner (DZRP protocol, for real
+hardware) \\
+MZTAP & \texttt{mztap} & TAP file loader \\
+MZV & \texttt{mzv} & MIR2 VM runner (breakpoints, tracing, PNG
+export) \\
+\end{longtable}
+
+\subsubsection{Running Tests}\label{running-tests}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\BuiltInTok{cd}\NormalTok{ minzc}
+
+\CommentTok{\# All packages}
+\ExtensionTok{go}\NormalTok{ test ./pkg/... }\AttributeTok{{-}vet}\OperatorTok{=}\NormalTok{off}
+
+\CommentTok{\# Specific test by name}
+\ExtensionTok{go}\NormalTok{ test ./pkg/nanz/ }\AttributeTok{{-}run}\NormalTok{ TestRangeFold\_E2E\_SumRange }\AttributeTok{{-}v}
+
+\CommentTok{\# Z80 emulator tests}
+\ExtensionTok{go}\NormalTok{ test ./pkg/mir2/ }\AttributeTok{{-}run}\NormalTok{ TestMulU16ConstZ80 }\AttributeTok{{-}v}
+
+\CommentTok{\# MOS 6502 E2E tests}
+\ExtensionTok{go}\NormalTok{ test ./pkg/mir2/ }\AttributeTok{{-}run}\NormalTok{ TestM6502 }\AttributeTok{{-}v}
+
+\CommentTok{\# All iterator chain tests}
+\ExtensionTok{go}\NormalTok{ test ./pkg/nanz/ }\AttributeTok{{-}run}\NormalTok{ TestRange }\AttributeTok{{-}v}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\subsection{Appendix D: What's New in
+v4}\label{appendix-d-whats-new-in-v4}
+
+Features shipped since v3 (2026-03-11):
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3462}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3462}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3077}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Feature
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Chapter
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Status
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{expr\ as\ type} cast syntax & 2.9 & Shipped \\
+Signed comparison (i8/i16) & 3.2 & Shipped \\
+PreallocCoalesce & 8.5 & Shipped --- 6 showcase files improved \\
+Trivial inliner & 8.6 & Shipped --- \texttt{swap→RET},
+\texttt{min\_of→EQU} \\
+ForEachEdge visitor & 8.1 & Shipped --- \textasciitilde75 LOC removed \\
+\texttt{mzn} native compiler & 13 & Shipped \\
+MOS 6502 backend & 9.2 & Shipped --- 35/35 tests \\
+VSCode native compilation & 13.3 & Shipped \\
+BUG-003 fix (ptr{[}i{]} in while) & --- & Fixed (5 interacting codegen
+bugs) \\
+BUG-006 fix (zero-size globals) & --- & Fixed (bare label emission) \\
+BUG-007 fix (spurious adapter LD) & --- & Fixed (identity copy skip) \\
+Multi-pass contract nudges & 8.7 & Shipped (mul16 rhs→DE, DJNZ→B) \\
+\end{longtable}
+
+\subsubsection{Assembly improvements (v3 →
+v4)}\label{assembly-improvements-v3-v4}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2812}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2188}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2500}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Example
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Before
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+After
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Saving
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+ex7\_mapInPlace & 5-inst loop back-edge & 1 DJNZ & 4 insts,
+\textasciitilde30T/iter \\
+ex6\_forEach/max\_chain & trampoline + 3 insts & AND A + JRS Z &
+trampoline eliminated \\
+ex9b\_factorial\_fold & 56 lines + mul16 & 32 lines & mul16 routine
+gone \\
+ex10b\_fib\_iter & 3× EX DE,HL & ADD HL,HL & 3 insts removed \\
+ex10c\_fib\_fold & 8 register shuffles & 2 moves & 6 moves removed \\
+ex9a\_factorial\_rec & n=B contract & n=A contract & natural ABI \\
+\end{longtable}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\emph{MinZ Compiler --- modern abstractions, vintage iron, zero
+overhead.} \emph{https://github.com/oisee/minz}
+
+\end{document}
