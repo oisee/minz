@@ -128,6 +128,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// Register allocation: per-function PBQP, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
 	for _, f := range m.Funcs {
+		mir2.PreallocCoalesce(f) // BUG-001 fix: union block-arg/param pairs before PBQP
 		lr := mir2.ComputeLiveness(f)
 		ar := mir2.PBQPAllocate(f, lr, ct)
 		for r, loc := range ar.Locs {
@@ -215,6 +216,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// Register allocation: per-function PBQP, combined result for codegen.
 	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
 	for _, f := range m.Funcs {
+		mir2.PreallocCoalesce(f) // BUG-001 fix: union block-arg/param pairs before PBQP
 		lr := mir2.ComputeLiveness(f)
 		ar := mir2.PBQPAllocate(f, lr, ct)
 		for r, loc := range ar.Locs {

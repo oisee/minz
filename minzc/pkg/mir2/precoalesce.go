@@ -59,16 +59,17 @@ func propagateClassHints(f *Func, info map[Reg]RegInfo) {
 	for changed {
 		changed = false
 		for _, b := range f.Blocks {
-			propagateArgs := func(target string, args []Reg) {
+			propagateArgsAt := func(target string, args []Reg, paramOffset int) {
 				tb := blockByLabel[target]
 				if tb == nil {
 					return
 				}
 				for i, arg := range args {
-					if i >= len(tb.Params) || arg == NoReg {
+					paramIdx := i + paramOffset
+					if paramIdx >= len(tb.Params) || arg == NoReg {
 						break
 					}
-					paramInfo, ok := info[tb.Params[i].Dst]
+					paramInfo, ok := info[tb.Params[paramIdx].Dst]
 					if !ok {
 						continue
 					}
@@ -84,6 +85,7 @@ func propagateClassHints(f *Func, info map[Reg]RegInfo) {
 					}
 				}
 			}
+			propagateArgs := func(target string, args []Reg) { propagateArgsAt(target, args, 0) }
 
 			switch t := b.Term.(type) {
 			case *TermJmp:
@@ -96,7 +98,8 @@ func propagateClassHints(f *Func, info map[Reg]RegInfo) {
 				propagateArgs(t.Lt, t.LtArgs)
 				propagateArgs(t.Gt, t.GtArgs)
 			case *TermDJNZ:
-				propagateArgs(t.Body, t.BodyArgs)
+				// BodyArgs[0] maps to body.Params[1]; Params[0] is the implicit counter.
+				propagateArgsAt(t.Body, t.BodyArgs, 1)
 				propagateArgs(t.Exit, t.ExitArgs)
 			case *TermCondRet:
 				propagateArgs(t.Then, t.ThenArgs)
@@ -230,55 +233,94 @@ func PreallocCoalesce(f *Func) PreallocCoalesceMap {
 	}
 
 	// For each CFG edge, union arg[i] with target.Params[i].
-	// Skip pairs where either side has a hard class constraint that conflicts
-	// with the other — forcing them together would produce an impossible class.
-	unionsafe := func(argReg, paramDst Reg, argCls, paramCls RegClass, argHard, paramHard bool) {
-		if argHard && paramHard && argCls != paramCls {
-			return // conflicting hard constraints — leave separate
+	// classOf returns the register class for a virtual register by checking
+	// function contract params first (they are not stored as block params),
+	// then block params, then instruction dsts.
+	classOf := func(r Reg) RegClass {
+		// Function parameters live in the contract, not in block params.
+		for _, cp := range f.Contract.Params {
+			if cp.Reg == r {
+				return cp.Class
+			}
 		}
-		union(argReg, paramDst)
+		for _, b := range f.Blocks {
+			for _, bp := range b.Params {
+				if bp.Dst == r {
+					return bp.Class
+				}
+			}
+			for _, inst := range b.Insts {
+				if inst.Dst == r {
+					return inst.Cls
+				}
+			}
+		}
+		return ClassGeneral
 	}
 
-	mergeEdge := func(target string, args []Reg) {
+	// contractParamRegs holds function parameter registers whose physical
+	// location is determined by OptimizeContracts (runs before us).  These
+	// must NOT be coalesced with internal block params: doing so would let
+	// PBQP override the ABI decision and produce a calling-convention mismatch.
+	contractParamRegs := make(map[Reg]bool, len(f.Contract.Params))
+	for _, cp := range f.Contract.Params {
+		contractParamRegs[cp.Reg] = true
+	}
+
+	// Only merge when both sides have the same class (or an allowed upgrade).
+	// Merging across class boundaries forces the argument into a specific
+	// physical register, which can break the function's calling convention.
+	// Merging a function contract param with an internal block param is also
+	// prohibited: it allows PBQP to reassign the param to a different physreg
+	// than what OptimizeContracts chose, causing an ABI mismatch for callers.
+	mergeEdgeAt := func(target string, args []Reg, paramOffset int) {
 		tb := blockByLabel[target]
 		if tb == nil {
 			return
 		}
 		for i, arg := range args {
-			if arg == NoReg || i >= len(tb.Params) {
+			paramIdx := i + paramOffset
+			if arg == NoReg || paramIdx >= len(tb.Params) {
 				continue
 			}
-			// Determine class constraints for the arg (from defining instruction).
-			var argCls RegClass
-			var argHard bool
-			for _, b := range f.Blocks {
-				for _, inst := range b.Insts {
-					if inst.Dst == arg {
-						argCls = inst.Cls
-						argHard = inst.ClsHard
-					}
-				}
+			// Don't coalesce function contract params — their physreg is
+			// fixed by OptimizeContracts; coalescing would override that.
+			if contractParamRegs[arg] {
+				continue
 			}
-			unionsafe(arg, tb.Params[i].Dst, argCls, tb.Params[i].Class, argHard, false)
+			argCls := classOf(arg)
+			paramCls := tb.Params[paramIdx].Class
+			// Allow: equal classes, or the well-known ClassGeneral→ClassAcc upgrade.
+			if argCls != paramCls && !canUpgradeClass(argCls, paramCls) {
+				continue // incompatible classes — would force wrong physreg
+			}
+			union(arg, tb.Params[paramIdx].Dst)
 		}
 	}
+	mergeEdge := func(target string, args []Reg) { mergeEdgeAt(target, args, 0) }
 
 	for _, b := range f.Blocks {
 		switch t := b.Term.(type) {
 		case *TermJmp:
 			mergeEdge(t.Target, t.Args)
 		case *TermBrIf:
-			mergeEdge(t.Then, t.ThenArgs)
-			mergeEdge(t.Else, t.ElseArgs)
+			// Only merge unconditional-like paths (Else when ThenArgs empty,
+			// or only the args that cannot conflict with the condition reg).
+			// Merging across conditional branches risks promoting a merged
+			// register to ClassAcc (A) which conflicts with the condition
+			// computation (AND/CP etc.) also needing A in the source block.
+			// For safety, we skip BrIf merges here; coalesceAllocResult's
+			// affinity pass handles them post-allocation without class issues.
 		case *TermBrIf2:
-			mergeEdge(t.Eq, t.EqArgs)
-			mergeEdge(t.Lt, t.LtArgs)
-			mergeEdge(t.Gt, t.GtArgs)
+			// Same concern as BrIf: skip to avoid ClassAcc conflicts.
 		case *TermDJNZ:
-			mergeEdge(t.Body, t.BodyArgs)
+			// Do NOT merge BodyArgs: body→body is a back-edge. Merging
+			// creates a register defined both as a block param and as an
+			// instruction Dst in the same block, breaking liveness analysis.
+			// Only merge the exit edge (an unconditional forward jump).
 			mergeEdge(t.Exit, t.ExitArgs)
 		case *TermCondRet:
-			mergeEdge(t.Then, t.ThenArgs)
+			// CondRet has a condition — same ClassAcc risk as BrIf. Skip.
 		}
 	}
 

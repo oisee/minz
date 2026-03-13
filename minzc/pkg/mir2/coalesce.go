@@ -45,18 +45,20 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 	type affEdge struct{ dst, src Reg }
 	var edges []affEdge
 
-	addEdges := func(target string, args []Reg) {
+	addEdgesAt := func(target string, args []Reg, paramOffset int) {
 		tb := blockByLabel[target]
 		if tb == nil || len(args) == 0 {
 			return
 		}
 		for i, arg := range args {
-			if i >= len(tb.Params) {
+			paramIdx := i + paramOffset
+			if paramIdx >= len(tb.Params) {
 				break
 			}
-			edges = append(edges, affEdge{dst: tb.Params[i].Dst, src: arg})
+			edges = append(edges, affEdge{dst: tb.Params[paramIdx].Dst, src: arg})
 		}
 	}
+	addEdges := func(target string, args []Reg) { addEdgesAt(target, args, 0) }
 
 	for _, b := range f.Blocks {
 		// Within-block: OpMove affinities.
@@ -77,7 +79,8 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 			addEdges(t.Lt, t.LtArgs)
 			addEdges(t.Gt, t.GtArgs)
 		case *TermDJNZ:
-			addEdges(t.Body, t.BodyArgs)
+			// BodyArgs does NOT include the counter (Params[0]); offset by 1.
+			addEdgesAt(t.Body, t.BodyArgs, 1)
 			addEdges(t.Exit, t.ExitArgs)
 		}
 	}
@@ -85,6 +88,31 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 	if len(edges) == 0 {
 		return
 	}
+
+	// Build a register-class index so we can guard recoloring below.
+	// We must not recolor a register to a physical location that is
+	// incompatible with its class (e.g. ClassCounter must stay in B).
+	regClass := make(map[Reg]RegClass, len(result.Locs))
+	for _, cp := range f.Contract.Params {
+		regClass[cp.Reg] = cp.Class
+	}
+	for _, b := range f.Blocks {
+		for _, bp := range b.Params {
+			if bp.Dst != NoReg {
+				regClass[bp.Dst] = bp.Class
+			}
+		}
+		for _, inst := range b.Insts {
+			if inst.Dst != NoReg {
+				regClass[inst.Dst] = inst.Cls
+			}
+		}
+	}
+
+	// ct is needed to check whether a physical location is finite-cost for
+	// a given register class.  We use Z80CostTable (the only cost table in
+	// use) to determine compatibility.
+	ct := Z80CostTable{}
 
 	// ── Single-pass coalescing ─────────────────────────────────────────────
 	//
@@ -146,6 +174,15 @@ func coalesceAllocResult(f *Func, result *AllocResult, lr *LivenessResult) {
 		_, dstOk := result.Locs[e.dst]
 		if !srcOk || !dstOk || result.Locs[e.dst] == srcLoc {
 			continue // already coalesced or one reg is unallocated (spill)
+		}
+		// Class-compatibility guard: do not recolor dst to srcLoc if srcLoc
+		// is not a legal home for dst's register class.  For example, a
+		// ClassCounter register must stay in B; recoloring it to A would
+		// break DJNZ.  Use InfCost as the "illegal" sentinel.
+		if dstCls, ok := regClass[e.dst]; ok {
+			if ct.Cost(dstCls, srcLoc) >= InfCost {
+				continue
+			}
 		}
 		// Recolor dst → srcLoc if no IG neighbour of dst uses srcLoc or any
 		// of its physical aliases (e.g. C and BC alias — coalescing to C is

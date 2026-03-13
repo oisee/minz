@@ -1,7 +1,7 @@
 TSMC Performance Benchmark Report
 =================================
 
-Generated: 2026-03-13T00:16:26Z
+Generated: 2026-03-13T15:32:08Z
 
 Executive Summary
 -----------------
@@ -50,12 +50,12 @@ ERROR: no-TSMC test failed: function factorial not found in symbols
 Check if number is prime with optimizations
 
 ERROR: no-TSMC test failed: assembly failed: assembly errors:
-line 431: unknown instruction or invalid operands: JR
-line 435: unknown instruction or invalid operands: DJNZ
-line 483: unknown instruction or invalid operands: JR
-line 487: unknown instruction or invalid operands: DJNZ
-line 572: unknown instruction or invalid operands: JR
-line 576: unknown instruction or invalid operands: DJNZ
+line 450: unknown instruction or invalid operands: JR
+line 454: unknown instruction or invalid operands: DJNZ
+line 501: unknown instruction or invalid operands: JR
+line 505: unknown instruction or invalid operands: DJNZ
+line 588: unknown instruction or invalid operands: JR
+line 592: unknown instruction or invalid operands: DJNZ
 
 ### matrix_multiply
 2x2 matrix multiplication

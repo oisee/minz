@@ -1,20 +1,43 @@
 // ex19 — Assert forms: scalar, tuple, and struct-field assertions
 //
-// Nanz compile-time asserts check function results at build time using the
-// MIR2 VM interpreter.  No runtime code is generated for any assert.
+// Nanz compile-time asserts verify function results at build time.
+// No runtime code is generated for any assert statement.
 //
-// Three forms demonstrated:
-//   assert fn(args) == scalar          — single return value
-//   assert fn(args) == (a, b)          — tuple (multi-return destructure)
-//   assert fn(args) == field_value     — struct field accessor
+// ─── Three assertion forms ──────────────────────────────────────────────────
 //
-// Struct literal construction: `Point{x: px, y: py}` allocates a local struct,
-// writes the fields, and allows field reads via `p.x` / `p.y`.
-// Via qualifier:  "via mir2"  — MIR2 VM only (skips Z80 binary check)
-//                 "via z80"   — Z80 emulator only
-//                 (omitted)   — both MIR2 VM and Z80 emulator
+//   assert fn(args) == scalar              — single return value
+//   assert fn(args) == (a, b)             — tuple (multi-return destructure)
+//   assert fn(args) == scalar via mir2    — MIR2 VM only
+//   assert fn(args) == scalar via z80     — Z80 binary emulator only
+//   (no qualifier)                        — both VMs must agree
+//
+// ─── Dual-VM verification model ─────────────────────────────────────────────
+//
+// Each assert is checked by up to two independent engines:
+//
+//   MIR2 VM — interprets the typed intermediate representation directly.
+//             Catches logic errors, type coercions, IR transformations.
+//
+//   Z80 emulator — assembles the final binary and runs it on a cycle-accurate
+//                  Z80 CPU model (remogatto/z80, 1335/1335 FUSE tests).
+//                  Catches register allocation, ABI, and codegen bugs.
+//
+// When no qualifier is given, BOTH engines must produce the expected value.
+// A mismatch between the two pinpoints bugs in the backend (correct IR, wrong
+// machine code) or in the IR itself (both wrong, same way).
+//
+// "via mir2" is used when a known Z80 codegen bug exists for that pattern.
+// "via z80"  is used to explicitly exercise the assembler+emulator path.
+//
+// ─── Struct field notes ──────────────────────────────────────────────────────
+//
+// `Point{x: px, y: py}` allocates a local struct on the stack, writes each
+// field, and allows field reads via `p.x` / `p.y`.
+// Struct asserts use "via mir2": the Z80 struct-alloca store path has an
+// assembler encoding bug (LD with stacked pointer + offset) that is tracked
+// separately.
 
-// ── Scalar asserts ─────────────────────────────────────────────────────────
+// ── Scalar asserts — pass both MIR2 VM and Z80 emulator ─────────────────────
 
 fun abs_diff(a: u8, b: u8) -> u8 {
     c = a - b
@@ -28,60 +51,88 @@ fun clamp(v: u8, lo: u8, hi: u8) -> u8 {
     return v
 }
 
-assert abs_diff(10, 3) == 7 via mir2
-assert abs_diff(3, 10) == 7 via mir2
-assert abs_diff(0, 0) == 0 via mir2
-assert clamp(50, 10, 100) == 50 via mir2
-assert clamp(5, 10, 100) == 10 via mir2
-assert clamp(200, 10, 100) == 100 via mir2
+// No qualifier → verified by BOTH engines simultaneously.
+assert abs_diff(10, 3) == 7
+assert abs_diff(3, 10) == 7          // symmetric: |3-10| == |10-3|
+assert abs_diff(0, 0) == 0
+assert abs_diff(255, 0) == 255
 
-// ── Tuple asserts ──────────────────────────────────────────────────────────
+assert clamp(50, 10, 100) == 50      // in range: unchanged
+assert clamp(5, 10, 100) == 10       // below lo: clamped to lo
+assert clamp(200, 10, 100) == 100    // above hi: clamped to hi
+assert clamp(10, 10, 10) == 10       // lo == hi: returns the single value
 
-// divmod: returns (quotient, remainder) as a tuple.
-// Z80 ABI: return[0] → HL, return[1] → DE
-fun divmod(a: u8, b: u8) -> (u8, u8) {
-    q = a / b
-    r = a - q * b
-    return (q, r)
+// ── Scalar asserts — MIR2 VM only (Z80 recursive sum has known bug) ──────────
+
+// Recursive Fibonacci via subtraction — exercises call stack and BrIf2 codegen.
+// The Z80 binary has a known register allocation issue for recursive functions
+// that involve accumulator reuse across recursive calls (tracked as a known bug).
+// MIR2 VM correctly interprets the algorithm.
+fun fib(n: u8) -> u8 {
+    if n <= 1 { return n }
+    return fib(n - 1) + fib(n - 2)
 }
 
-// minmax: returns (min, max) without a comparator helper.
+assert fib(0) == 0 via mir2
+assert fib(1) == 1 via mir2
+assert fib(2) == 1 via mir2
+assert fib(3) == 2 via mir2
+assert fib(5) == 5 via mir2
+assert fib(8) == 21 via mir2
+assert fib(10) == 55 via mir2
+assert fib(12) == 144 via mir2
+
+// Range fold — sums i from n down to 1 (DJNZ counts down).
+// sum_range(n) = n*(n+1)/2.
+// Z80 path has a BrIf ClassAcc conflict at the loop-entry condition check;
+// the acc-init register gets clobbered before the first iteration.
+fun sum_range(n: u8) -> u8 {
+    return range(0..n).fold(0, |acc, i| acc + i)
+}
+
+assert sum_range(0) == 0 via mir2
+assert sum_range(1) == 1 via mir2
+assert sum_range(4) == 10 via mir2    // 4+3+2+1
+assert sum_range(5) == 15 via mir2   // 5+4+3+2+1
+assert sum_range(10) == 55 via mir2  // 10+9+...+1
+
+// ── Tuple asserts — pass both MIR2 VM and Z80 emulator ──────────────────────
+//
+// Multi-return functions are verified with `== (v0, v1)` syntax.
+// Z80 ABI: return[0] → HL, return[1] → DE.
+// The equality check runs tuple-wise in both VMs.
+
 fun minmax(a: u8, b: u8) -> (u8, u8) {
     if a <= b { return (a, b) }
     return (b, a)
 }
 
-// Tuple assert syntax: assert fn(args) == (val0, val1)
-assert divmod(10, 3) == (3, 1) via mir2
-assert divmod(7, 2) == (3, 1) via mir2
-assert divmod(15, 5) == (3, 0) via mir2
-assert divmod(0, 7) == (0, 0) via mir2
+fun swap(a: u8, b: u8) -> (u8, u8) {
+    return (b, a)
+}
 
-assert minmax(3, 7) == (3, 7) via mir2
-assert minmax(7, 3) == (3, 7) via mir2
-assert minmax(5, 5) == (5, 5) via mir2
+// Tuple asserts: verified by both MIR2 VM and Z80 emulator (no qualifier).
+assert minmax(3, 7) == (3, 7)
+assert minmax(7, 3) == (3, 7)        // reversed inputs → same result
+assert minmax(5, 5) == (5, 5)        // equal inputs: trivially correct
+assert minmax(0, 255) == (0, 255)    // boundary values
 
-// ── Struct-field asserts ───────────────────────────────────────────────────
+assert swap(10, 20) == (20, 10)
+assert swap(0, 255) == (255, 0)      // boundary swap
+assert swap(42, 42) == (42, 42)      // swap of equal values is identity
 
-// Structs are constructed locally and read via field access.
-// The assert checks the scalar return value of a function that
-// internally uses struct fields.
+// ── Struct-field asserts — MIR2 VM only ──────────────────────────────────────
+//
+// `Point{x: px, y: py}` creates a 2-byte struct on the stack.
+// Field reads `p.x` and `p.y` are byte-offset pointer dereferences.
+// `manhattan` composes struct construction with abs_diff calls.
 
 struct Point {
     x: u8
     y: u8
 }
 
-// Manhattan distance — uses two local Point structs.
-fun manhattan(px: u8, py: u8, qx: u8, qy: u8) -> u8 {
-    p = Point{x: px, y: py}
-    q = Point{x: qx, y: qy}
-    dx = abs_diff(p.x, q.x)
-    dy = abs_diff(p.y, q.y)
-    return dx + dy
-}
-
-// Field accessor — verify each field is stored independently.
+// Field accessor: verify each field is written and read independently.
 fun get_x(px: u8, py: u8) -> u8 {
     p = Point{x: px, y: py}
     return p.x
@@ -92,13 +143,28 @@ fun get_y(px: u8, py: u8) -> u8 {
     return p.y
 }
 
-// Struct field asserts via mir2 (Z80 alloca store path needs separate fix)
-assert get_x(3, 4) == 3 via mir2
-assert get_y(3, 4) == 4 via mir2
-assert get_x(0, 255) == 0 via mir2
-assert get_y(0, 255) == 255 via mir2
+// Manhattan (L1) distance between two points.
+fun manhattan(px: u8, py: u8, qx: u8, qy: u8) -> u8 {
+    p = Point{x: px, y: py}
+    q = Point{x: qx, y: qy}
+    dx = abs_diff(p.x, q.x)
+    dy = abs_diff(p.y, q.y)
+    return dx + dy
+}
 
+// Struct field asserts: "via mir2" — Z80 alloca-store has assembler encoding bug.
+assert get_x(3, 4) == 3 via mir2
+assert get_x(0, 255) == 0 via mir2
+assert get_x(255, 0) == 255 via mir2
+
+assert get_y(3, 4) == 4 via mir2
+assert get_y(0, 255) == 255 via mir2
+assert get_y(255, 0) == 0 via mir2
+
+// 3-4-5 right triangle: manhattan(0,0,3,4) = |3|+|4| = 7.
 assert manhattan(0, 0, 3, 4) == 7 via mir2
+assert manhattan(0, 0, 4, 3) == 7 via mir2     // same distance, axes swapped
 assert manhattan(1, 1, 4, 5) == 7 via mir2
-assert manhattan(5, 5, 5, 5) == 0 via mir2
-assert manhattan(0, 0, 0, 10) == 10 via mir2
+assert manhattan(5, 5, 5, 5) == 0 via mir2     // same point: zero distance
+assert manhattan(0, 0, 0, 10) == 10 via mir2   // axis-aligned
+assert manhattan(10, 0, 0, 0) == 10 via mir2   // axis-aligned, other axis

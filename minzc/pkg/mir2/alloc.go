@@ -34,9 +34,16 @@ func collectRegInfo(f *Func) map[Reg]RegInfo {
 	m := make(map[Reg]RegInfo)
 
 	add := func(r Reg, ty Ty, cls RegClass) {
-		if r != NoReg {
-			m[r] = RegInfo{Ty: ty, Cls: cls}
+		if r == NoReg {
+			return
 		}
+		// After PreallocCoalesce, a register may appear as both a block-param
+		// Dst and an instruction Dst.  Prefer the entry with the non-zero Ty;
+		// a zero Ty would make locCompatible panic.
+		if existing, ok := m[r]; ok && existing.Ty.Width() > 0 && ty.Width() == 0 {
+			return
+		}
+		m[r] = RegInfo{Ty: ty, Cls: cls}
 	}
 
 	// Function contract params.
