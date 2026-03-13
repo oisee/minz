@@ -14,12 +14,10 @@ fib_iter:
     LD C, 0
     LD D, 1
     LD E, 1
-    LD D, C
-    LD E, C
     LD C, A
-    LD H, D
-    LD L, D
-    LD A, E
+    LD DE, 0
+    LD HL, 1
+    LD A, 1
 .fib_iter_loop_head4:
     LD E, A
     LD A, E

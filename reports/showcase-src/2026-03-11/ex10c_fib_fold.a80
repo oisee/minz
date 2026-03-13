@@ -5,9 +5,8 @@ fib_fold:
     LD D, 0
     LD E, 1
     LD H, 1
-    LD H, E
-    LD L, E
-    LD A, H
+    LD HL, 1
+    LD A, 1
 .fib_fold_loop_head2:
     LD E, A
     LD A, E

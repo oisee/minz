@@ -10,9 +10,8 @@ factorial_fold:
     DEC HL
     LD C, 1
     INC A
-    LD E, A
-    LD A, C
-    LD C, E
+    LD C, A
+    LD A, 1
 .factorial_fold_loop_head2:
     LD E, A
     LD A, E

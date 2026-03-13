@@ -10,10 +10,10 @@ Cat_speak:
     LD A, 2
     RET
 
-; fun demo() -> u8 = A ; clobbers: HL
+; fun demo() -> u8 = A
 demo:
-    LD HL, g_dog
-    JP Dog_speak
+    LD A, 1
+    RET
 
 ; globals
 g_dog:

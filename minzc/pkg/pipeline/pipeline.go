@@ -100,6 +100,17 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, fmt.Errorf("MIR2 verify: %w", err)
 	}
 
+	// Phase 6f: inline trivial functions (≤4 instructions, single block, leaf).
+	// Run BEFORE contract optimisation: inlining removes call-graph edges,
+	// shrinking the optimiser's search space and eliminating degenerate cases
+	// (e.g. bare-RET swap when the return value is identity-projected).
+	if mir2.InlineTrivial(m, 4) {
+		for _, f := range m.Funcs {
+			mir2.PropagateCopies(f)
+			mir2.DeadStoreElim(f)
+		}
+	}
+
 	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
 	// Run BEFORE LUTGen so that synthetic LUT functions (which have hardcoded
 	// class requirements in their Sub instructions) are not re-optimised and
@@ -180,6 +191,14 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	}
 
 	ct := mir2.Z80CostTable{}
+
+	// Phase 6f: inline trivial functions (≤4 instructions, single block, leaf).
+	if mir2.InlineTrivial(m, 4) {
+		for _, f := range m.Funcs {
+			mir2.PropagateCopies(f)
+			mir2.DeadStoreElim(f)
+		}
+	}
 
 	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
 	// Run BEFORE LUTGen so synthetic LUT functions keep their original param class

@@ -6,8 +6,8 @@ sum_to:
     LD (HL), 0
     LD C, 0
     INC A
-    LD D, C
     LD C, A
+    LD D, 0
 .sum_to_loop_head2:
     LD A, D
     CP C
@@ -42,9 +42,8 @@ factorial:
     DEC HL
     LD C, 1
     INC A
-    LD E, A
-    LD A, C
-    LD C, E
+    LD C, A
+    LD A, 1
 .factorial_loop_head2:
     LD E, A
     LD A, E
@@ -96,9 +95,9 @@ count_in_range:
     LD B, H
     LD C, L
     LD IXH, B
-    LD IXL, D
     LD IYH, A
     LD A, C
+    LD IXL, 0
 .count_in_range_loop_head2:
     LD E, A
     LD A, IXL

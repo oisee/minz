@@ -14,16 +14,22 @@ Acc_reset:
     LD (HL), 0
     RET
 
-; fun sum_two(a: u8 = C, b: u8 = mem) -> u8 = A ; clobbers: HL
+; fun sum_two(a: u8 = C, b: u8 = D) -> u8 = A ; clobbers: E, HL
 sum_two:
+    LD HL, acc_g__val
+    LD (HL), 0
     LD HL, acc_g
-    CALL Acc_reset
+    LD E, (HL)
+    LD A, E
+    ADD A, C
+    LD (HL), A
+    LD A, (HL)
     LD HL, acc_g
+    LD C, (HL)
     LD A, C
-    CALL Acc_add
-    LD HL, acc_g
-    LD A, ($F000)
-    CALL Acc_add
+    ADD A, D
+    LD (HL), A
+    LD A, (HL)
     LD A, (acc_g__val)
     RET
 

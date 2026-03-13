@@ -11,7 +11,7 @@ sum_to:
 .sum_to_loop_head2:
     LD A, D
     CP C
-    JRS NC, .sum_to_loop_exit4
+    JRS NC, .sum_to_trmp0
 .sum_to_loop_body3:
     LD HL, acc_u8
     LD E, (HL)
@@ -26,6 +26,11 @@ sum_to:
 .sum_to_loop_exit4:
     LD A, (acc_u8)
     RET
+.sum_to_trmp0:
+    LD A, C
+    LD C, D
+    LD D, A
+    JRS .sum_to_loop_exit4
 
 ; fun factorial(n: u8 = A) -> u16 = HL ; clobbers: C, D, DE, F
 factorial:

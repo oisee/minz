@@ -18,7 +18,7 @@ main:
     DI
     HALT
 
-; fun set_border(col: u8 = C)
+; fun set_border(col: u8 = A)
 set_border:
     OUT (0xFE), A
     RET

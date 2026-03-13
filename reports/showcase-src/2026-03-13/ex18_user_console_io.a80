@@ -29,12 +29,12 @@ main:
     DI
     HALT
 
-; fun console_log(n: u8 = C)
+; fun console_log(n: u8 = A)
 console_log:
     OUT (0x23), A
     RET
 
-; fun console_err(n: u8 = C)
+; fun console_err(n: u8 = A)
 console_err:
     OUT (0x25), A
     RET
