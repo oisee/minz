@@ -18,8 +18,12 @@ package mir2c_test
 // Path 5 — Z80 assembly (show only):
 //   Nanz → HIR → pipeline.CompileHIR → Z80 asm text (logged, not executed)
 //
+// Path 6 — 6502 emulation:
+//   Nanz → HIR → MIR2 → M6502Codegen → tinyAsm → sim6502 emulator
+//
 // Path 3 requires `qbe` in PATH (skipped if absent).
 // Paths 2 and 4 require `cc` in PATH (present everywhere).
+// Path 6 always runs (sim6502 is in-process, no external tools).
 
 import (
 	"fmt"
@@ -35,6 +39,7 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/qbe2mir2"
+	"github.com/minz/minzc/pkg/sim6502run"
 )
 
 // ── path implementations ──────────────────────────────────────────────────────
@@ -144,6 +149,16 @@ func path5_z80asm(t *testing.T, nanzSrc, modName string) string {
 	return asm
 }
 
+// path6_6502: MIR2 → M6502Codegen → tinyAsm → sim6502 emulator.
+func path6_6502(t *testing.T, m *mir2.Module, funcName string, args ...int) (int, error) {
+	t.Helper()
+	a, err := sim6502run.Run(m, funcName, args...)
+	if err != nil {
+		return 0, fmt.Errorf("6502: %w", err)
+	}
+	return int(a), nil
+}
+
 // ── round-trip runner ─────────────────────────────────────────────────────────
 
 type rtCase struct {
@@ -206,6 +221,13 @@ func runRoundTrip(t *testing.T, m *mir2.Module, funcName string, cases []rtCase)
 				} else {
 					results["4:QBE↔MIR2→C"] = int64(v)
 				}
+			}
+
+			// Path 6: MIR2 → 6502 codegen → sim6502
+			if v, err := path6_6502(t, m, funcName, tc.args...); err != nil {
+				errs["6:6502"] = err.Error()
+			} else {
+				results["6:6502"] = int64(v)
 			}
 
 			// Report any errors

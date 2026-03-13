@@ -1099,5 +1099,118 @@ func TestDual_6502_CmpBrIf(t *testing.T) {
 	}
 }
 
+// ── Loop E2E Tests (TermJmp with block args = phi nodes) ────────────────────
+
+// buildFib6502 builds fib(n): while loop with 3 loop variables (a, b, i).
+//
+//	entry: a=0, b=1, i=0 → jmp loop(a, b, i)
+//	loop(aP, bP, iP): br_if2 iP, n → done(aP), body(aP, bP, iP), unreachable
+//	body: t=bP, newB=aP+bP, newI=iP+1 → jmp loop(t, newB, newI)
+//	done(result): ret result
+func buildFib6502() *mir2.Module {
+	m := &mir2.Module{Name: "fib"}
+	f := m.AddFunc("fib")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	n := b.Param("n", mir2.TyU8, mir2.ClassAcc)
+	a0 := b.Const(0, mir2.TyU8, mir2.ClassGeneral)
+	b0 := b.Const(1, mir2.TyU8, mir2.ClassGeneral)
+	i0 := b.Const(0, mir2.TyU8, mir2.ClassGeneral)
+	b.Jmp("loop", a0, b0, i0, n) // thread n through as 4th param
+
+	loopBlk := b.SwitchToNewBlock("loop")
+	aP := b.BlockParam(loopBlk, mir2.TyU8, mir2.ClassGeneral)
+	bP := b.BlockParam(loopBlk, mir2.TyU8, mir2.ClassGeneral)
+	iP := b.BlockParam(loopBlk, mir2.TyU8, mir2.ClassGeneral)
+	nP := b.BlockParam(loopBlk, mir2.TyU8, mir2.ClassGeneral) // n threaded through loop
+	// if i == n → done, if i < n → body, if i > n → done (shouldn't happen)
+	b.BrIf2(iP, nP, "done", []mir2.Reg{aP}, "body", nil, "done", []mir2.Reg{aP})
+
+	b.SwitchToNewBlock("body")
+	// t = bP (will become new a)
+	// newB = aP + bP
+	// newI = iP + 1
+	newB := b.Add(aP, bP, mir2.TyU8, mir2.ClassGeneral)
+	one := b.Const(1, mir2.TyU8, mir2.ClassGeneral)
+	newI := b.Add(iP, one, mir2.TyU8, mir2.ClassGeneral)
+	b.Jmp("loop", bP, newB, newI, nP) // loop(bP, aP+bP, iP+1, n)
+
+	doneBlk := b.SwitchToNewBlock("done")
+	result := b.BlockParam(doneBlk, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(result)
+
+	return m
+}
+
+func TestDual_6502_Fib(t *testing.T) {
+	m := buildFib6502()
+
+	asmText := compile6502Module(t, m)
+	t.Log("\n" + asmText)
+
+	for _, tc := range []struct{ n, want uint8 }{
+		{0, 0}, {1, 1}, {2, 1}, {3, 2}, {4, 3},
+		{5, 5}, {6, 8}, {7, 13}, {8, 21}, {10, 55},
+	} {
+		assertDual1(t, m, "fib", tc.n)
+	}
+}
+
+// buildGCD6502 builds gcd(a, b) using BrIf2 + loop with block args.
+//
+//	loop(aP, bP): br_if2 aP, bP → done(aP), a_lt_b(aP, bP), a_gt_b(aP, bP)
+//	a_lt_b: newB = bP - aP → jmp loop(aP, newB)
+//	a_gt_b: newA = aP - bP → jmp loop(newA, bP)
+//	done(result): ret result
+func buildGCD6502() *mir2.Module {
+	m := &mir2.Module{Name: "gcd"}
+	f := m.AddFunc("gcd")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)
+	bv := b.Param("b", mir2.TyU8, mir2.ClassGeneral)
+	b.Jmp("loop", a, bv)
+
+	loopBlk := b.SwitchToNewBlock("loop")
+	aP := b.BlockParam(loopBlk, mir2.TyU8, mir2.ClassGeneral)
+	bP := b.BlockParam(loopBlk, mir2.TyU8, mir2.ClassGeneral)
+	b.BrIf2(aP, bP,
+		"done", []mir2.Reg{aP},
+		"a_lt_b", nil,
+		"a_gt_b", nil,
+	)
+
+	b.SwitchToNewBlock("a_lt_b")
+	newB := b.Sub(bP, aP, mir2.TyU8, mir2.ClassGeneral)
+	b.Jmp("loop", aP, newB)
+
+	b.SwitchToNewBlock("a_gt_b")
+	newA := b.Sub(aP, bP, mir2.TyU8, mir2.ClassGeneral)
+	b.Jmp("loop", newA, bP)
+
+	doneBlk := b.SwitchToNewBlock("done")
+	result := b.BlockParam(doneBlk, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(result)
+
+	return m
+}
+
+func TestDual_6502_GCD(t *testing.T) {
+	m := buildGCD6502()
+
+	asmText := compile6502Module(t, m)
+	t.Log("\n" + asmText)
+
+	for _, tc := range [][2]uint8{
+		{12, 8}, {8, 12}, {15, 5}, {100, 75}, {7, 7}, {1, 255}, {17, 13},
+	} {
+		assertDual2(t, m, "gcd", tc[0], tc[1])
+	}
+}
+
 // Ensure we don't use the bytes import unnecessarily — suppress unused import
 var _ = bytes.Compare

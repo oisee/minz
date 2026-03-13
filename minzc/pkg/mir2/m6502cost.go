@@ -400,6 +400,33 @@ func m6502CostMem(loc PhysLoc) int {
 	return InfCost
 }
 
+// M6502CodegenCostTable wraps M6502CostTable but filters out locations that
+// the current 6502 codegen cannot handle (flags "P", stack, absolute memory).
+// This forces the allocator to place all values in A/X/Y/ZP where the codegen
+// can emit valid instructions.
+type M6502CodegenCostTable struct {
+	M6502CostTable
+	locs []PhysLoc
+}
+
+func NewM6502CodegenCostTable() M6502CodegenCostTable {
+	var filtered []PhysLoc
+	for _, loc := range M6502PhysLocs {
+		switch loc.Kind {
+		case LocFlag, LocStack:
+			continue // codegen can't store to flags or stack
+		case LocMem:
+			if loc.Offset >= 0x100 {
+				continue // codegen can't handle absolute memory
+			}
+		}
+		filtered = append(filtered, loc)
+	}
+	return M6502CodegenCostTable{locs: filtered}
+}
+
+func (ct M6502CodegenCostTable) Locs() []PhysLoc { return ct.locs }
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 func isZPPair(name string) bool {

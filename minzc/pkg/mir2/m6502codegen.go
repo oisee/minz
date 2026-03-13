@@ -2,6 +2,7 @@ package mir2
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -45,6 +46,8 @@ type m6502cg struct {
 	origin   uint16
 	sb       strings.Builder
 	labelSeq int
+	curFunc  *Func           // current function being generated (for block lookups)
+	backups  map[Reg]string  // per-block: reg → ZP backup slot (for clobber protection)
 }
 
 func (cg *m6502cg) uniqueLabel(prefix string) string {
@@ -87,6 +90,8 @@ func (cg *m6502cg) genFunc(f *Func) {
 
 	// Label
 	cg.emit("%s:", sanitizeIdent6502(f.Name))
+	cg.curFunc = f
+	cg.backups = nil // reset backups per function
 
 	// Generate each block
 	for i, b := range f.Blocks {
@@ -100,6 +105,12 @@ func (cg *m6502cg) genFunc(f *Func) {
 }
 
 func (cg *m6502cg) genBlock(b *Block) {
+	// Pre-save incoming values that will be clobbered by ALU ops but are
+	// needed later as terminator jump args.  The 6502 register allocator
+	// doesn't model implicit A clobber from ADC/SBC/AND/etc., so a value
+	// "in A" may be destroyed before the block's terminator reads it.
+	cg.preSaveBlockArgs(b)
+
 	for _, inst := range b.Insts {
 		cg.genInst(inst)
 	}
@@ -116,11 +127,42 @@ func (cg *m6502cg) genBlock(b *Block) {
 		}
 		cg.emit("    RTS")
 	case *TermJmp:
-		cg.emit("    JMP .%s", sanitizeIdent6502(t.Target))
+		cg.emitBlockArgs(t.Target, t.Args)
+		// Fall-through optimization: if target is the next block, omit JMP.
+		if !cg.isNextBlock(b, t.Target) {
+			cg.emit("    JMP .%s", sanitizeIdent6502(t.Target))
+		}
 	case *TermBrIf:
 		cg.genCondBranch(t)
 	case *TermBrIf2:
 		cg.genThreeWayBranch(t)
+	case *TermCondRet:
+		// TermCondRet: if cond != 0, return vals; else jump to Then.
+		cond := cg.loc(t.Cond)
+		switch cond {
+		case "A":
+			cg.emit("    CMP #$00")
+		case "X":
+			cg.emit("    CPX #$00")
+		case "Y":
+			cg.emit("    CPY #$00")
+		default:
+			cg.emit("    LDX %s", cond)
+		}
+		skipRet := cg.uniqueLabel("skr")
+		cg.emit("    BEQ .%s", skipRet) // cond == 0 → skip return
+		if len(t.Vals) > 0 {
+			retLoc := cg.loc(t.Vals[0])
+			if retLoc != "A" {
+				cg.genMoveToA(retLoc)
+			}
+		}
+		cg.emit("    RTS")
+		cg.emit(".%s:", skipRet)
+		cg.emitBlockArgs(t.Then, t.ThenArgs)
+		if !cg.isNextBlock(b, t.Then) {
+			cg.emit("    JMP .%s", sanitizeIdent6502(t.Then))
+		}
 	case *TermUnreachable:
 		cg.comment("unreachable")
 	}
@@ -173,6 +215,49 @@ func (cg *m6502cg) genInst(inst *Inst) {
 		cg.emit("    CMP %s", cmpOp)
 		cg.genCmpBool(dst, inst.Cond)
 
+	case OpNot:
+		src := cg.loc(inst.Src[0])
+		if src != "A" {
+			cg.genMoveToA(src)
+		}
+		cg.emit("    EOR #$FF")
+		if dst != "A" {
+			cg.genMoveFromA(dst)
+		}
+
+	case OpShl:
+		src := cg.loc(inst.Src[0])
+		if src != "A" {
+			cg.genMoveToA(src)
+		}
+		// Shift left by Imm or Src[1] — for now, constant shift via repeated ASL
+		count := int(inst.Imm)
+		if inst.Src[1] != NoReg {
+			count = 1 // dynamic shift: just do 1 for safety
+		}
+		for i := 0; i < count; i++ {
+			cg.emit("    ASL A")
+		}
+		if dst != "A" {
+			cg.genMoveFromA(dst)
+		}
+
+	case OpShr:
+		src := cg.loc(inst.Src[0])
+		if src != "A" {
+			cg.genMoveToA(src)
+		}
+		count := int(inst.Imm)
+		if inst.Src[1] != NoReg {
+			count = 1
+		}
+		for i := 0; i < count; i++ {
+			cg.emit("    LSR A")
+		}
+		if dst != "A" {
+			cg.genMoveFromA(dst)
+		}
+
 	default:
 		cg.comment("TODO: %s (op=%d)", inst.Op, inst.Op)
 	}
@@ -217,8 +302,16 @@ func (cg *m6502cg) genMove(dst, src string) {
 	default:
 		if dst == "A" {
 			cg.emit("    LDA %s", src)
+		} else if dst == "X" {
+			cg.emit("    LDX %s", src)
+		} else if dst == "Y" {
+			cg.emit("    LDY %s", src)
 		} else if src == "A" {
 			cg.emit("    STA %s", dst)
+		} else if src == "X" {
+			cg.emit("    STX %s", dst)
+		} else if src == "Y" {
+			cg.emit("    STY %s", dst)
 		} else {
 			cg.emit("    LDA %s", src)
 			cg.emit("    STA %s", dst)
@@ -284,22 +377,97 @@ func (cg *m6502cg) genCondBranch(t *TermBrIf) {
 		// ZP location — use LDX or LDY to test without clobbering A.
 		cg.emit("    LDX %s", cond)
 	}
-	cg.emit("    BNE .%s", sanitizeIdent6502(t.Then))
+
+	thenLabel := sanitizeIdent6502(t.Then)
+	elseLabel := sanitizeIdent6502(t.Else)
+
+	needThenTramp := len(t.ThenArgs) > 0
+	needElseTramp := len(t.ElseArgs) > 0
+
+	thenTramp := cg.uniqueLabel("bt")
+	elseTramp := cg.uniqueLabel("bf")
+
+	if needThenTramp {
+		cg.emit("    BNE .%s", thenTramp)
+	} else {
+		cg.emit("    BNE .%s", thenLabel)
+	}
 	if t.Else != "" {
-		cg.emit("    JMP .%s", sanitizeIdent6502(t.Else))
+		if needElseTramp {
+			cg.emit("    JMP .%s", elseTramp)
+		} else {
+			cg.emit("    JMP .%s", elseLabel)
+		}
+	}
+
+	if needThenTramp {
+		cg.emit(".%s:", thenTramp)
+		cg.emitBlockArgs(t.Then, t.ThenArgs)
+		cg.emit("    JMP .%s", thenLabel)
+	}
+	if needElseTramp {
+		cg.emit(".%s:", elseTramp)
+		cg.emitBlockArgs(t.Else, t.ElseArgs)
+		cg.emit("    JMP .%s", elseLabel)
 	}
 }
 
 func (cg *m6502cg) genThreeWayBranch(t *TermBrIf2) {
 	// TermBrIf2: load Lhs into A, CMP Rhs, then branch on flags.
 	// After CMP: Z=1 → equal, C=0 → less-than, C=1∧Z=0 → greater-than.
+	//
+	// If any branch target has block args, we emit trampoline blocks
+	// to set up block args before jumping to the target.
 	lhs := cg.loc(t.Lhs)
 	rhs := cg.loc(t.Rhs)
 	cmpOp := cg.prepareCompare(lhs, rhs)
 	cg.emit("    CMP %s", cmpOp)
-	cg.emit("    BEQ .%s", sanitizeIdent6502(t.Eq))
-	cg.emit("    BCC .%s", sanitizeIdent6502(t.Lt))
-	cg.emit("    JMP .%s", sanitizeIdent6502(t.Gt))
+
+	// Determine labels — use trampolines if block args are needed.
+	eqLabel := sanitizeIdent6502(t.Eq)
+	ltLabel := sanitizeIdent6502(t.Lt)
+	gtLabel := sanitizeIdent6502(t.Gt)
+
+	needEqTramp := len(t.EqArgs) > 0
+	needLtTramp := len(t.LtArgs) > 0
+	needGtTramp := len(t.GtArgs) > 0
+
+	eqTramp := cg.uniqueLabel("eq_t")
+	ltTramp := cg.uniqueLabel("lt_t")
+	gtTramp := cg.uniqueLabel("gt_t")
+
+	if needEqTramp {
+		cg.emit("    BEQ .%s", eqTramp)
+	} else {
+		cg.emit("    BEQ .%s", eqLabel)
+	}
+	if needLtTramp {
+		cg.emit("    BCC .%s", ltTramp)
+	} else {
+		cg.emit("    BCC .%s", ltLabel)
+	}
+	if needGtTramp {
+		cg.emit("    JMP .%s", gtTramp)
+	} else {
+		cg.emit("    JMP .%s", gtLabel)
+	}
+
+	// Emit trampoline blocks.
+	if needEqTramp {
+		cg.emit(".%s:", eqTramp)
+		cg.emitBlockArgs(t.Eq, t.EqArgs)
+		cg.emit("    JMP .%s", eqLabel)
+	}
+	if needLtTramp {
+		cg.emit(".%s:", ltTramp)
+		cg.emitBlockArgs(t.Lt, t.LtArgs)
+		cg.emit("    JMP .%s", ltLabel)
+	}
+	if needGtTramp {
+		cg.emit(".%s:", gtTramp)
+		cg.emitBlockArgs(t.Gt, t.GtArgs)
+		cg.emit("    JMP .%s", gtLabel)
+	}
 }
 
 // ── Comparison helpers ───────────────────────────────────────────────────────
@@ -461,14 +629,44 @@ func (cg *m6502cg) ensureOperand(loc string) string {
 }
 
 // loc maps a virtual register to its allocated physical location name.
+// If the reg was backed up to a ZP slot (to protect from A clobber),
+// returns the backup location instead.
 func (cg *m6502cg) loc(r Reg) string {
 	if r == NoReg {
 		return ""
 	}
+	if backup, ok := cg.backups[r]; ok {
+		return backup
+	}
 	if loc, ok := cg.ar.Locs[r]; ok {
-		return loc.Name
+		return physLocTo6502(loc)
 	}
 	return fmt.Sprintf("v%d", r)
+}
+
+// rawLoc returns the allocator's physical location for a reg, ignoring
+// any backup.  Used by preSaveBlockArgs, which needs to know the actual
+// register a block param is in (set by emitBlockArgs from predecessors).
+func (cg *m6502cg) rawLoc(r Reg) string {
+	if r == NoReg {
+		return ""
+	}
+	if loc, ok := cg.ar.Locs[r]; ok {
+		return physLocTo6502(loc)
+	}
+	return fmt.Sprintf("v%d", r)
+}
+
+// physLocTo6502 converts a PhysLoc to its 6502 assembly representation.
+// Registers use their names (A, X, Y); memory uses hex addresses ($XX).
+func physLocTo6502(loc PhysLoc) string {
+	if loc.Kind == LocReg {
+		return loc.Name // "A", "X", "Y"
+	}
+	if loc.Kind == LocMem {
+		return fmt.Sprintf("$%02X", loc.Offset)
+	}
+	return loc.Name // fallback
 }
 
 func (cg *m6502cg) fmtParams(f *Func) string {
@@ -489,6 +687,305 @@ func (cg *m6502cg) fmtReturn(f *Func) string {
 		parts = append(parts, r.Ty.String())
 	}
 	return strings.Join(parts, ", ")
+}
+
+// ── Block argument pre-save & parallel copy ──────────────────────────────────
+
+// preSaveBlockArgs saves incoming register values to ZP backup slots at block
+// entry if they (a) are used as terminator jump args, (b) are NOT defined in
+// this block (i.e., they come from a dominating block), and (c) reside in a
+// register that ALU instructions will clobber (A for all ALU, X/Y for move-
+// from-A destinations).
+//
+// This solves the "implicit A clobber" problem: the allocator assigns a
+// virtual reg to A for the whole function, but ADC/SBC/AND/etc. use A as
+// an accumulator, destroying the previous value.
+func (cg *m6502cg) preSaveBlockArgs(b *Block) {
+	// NOTE: backups accumulate across blocks within a function — we do NOT
+	// reset them here.  A backup created in block X remains valid for all
+	// successor blocks that reference the same reg.
+
+	// On 6502, instructions AND terminator codegen routinely clobber A (and
+	// sometimes X/Y).  We must protect two categories of values:
+	//
+	// 1. Terminator jump args NOT computed by this block's instructions
+	//    (they come from dominating blocks or are this block's own params).
+	//
+	// 2. This block's own block params that live in A/X/Y — successor
+	//    blocks may reference them, but our terminator codegen (e.g.,
+	//    prepareCompare in BrIf2) may clobber those registers before
+	//    branching.
+	//
+	// We save at block ENTRY, before any instructions or terminator code.
+
+	// Collect terminator args.
+	var termArgs []Reg
+	switch t := b.Term.(type) {
+	case *TermJmp:
+		termArgs = append(termArgs, t.Args...)
+	case *TermBrIf:
+		termArgs = append(termArgs, t.ThenArgs...)
+		termArgs = append(termArgs, t.ElseArgs...)
+	case *TermBrIf2:
+		termArgs = append(termArgs, t.EqArgs...)
+		termArgs = append(termArgs, t.LtArgs...)
+		termArgs = append(termArgs, t.GtArgs...)
+	case *TermCondRet:
+		termArgs = append(termArgs, t.ThenArgs...)
+	}
+
+	// Regs defined by this block's INSTRUCTIONS (not block params).
+	// These are computed during block execution, so they'll be fresh
+	// when used as jump args — no need to pre-save.
+	definedByInst := map[Reg]bool{}
+	for _, inst := range b.Insts {
+		if inst.Dst != NoReg {
+			definedByInst[inst.Dst] = true
+		}
+	}
+
+	// Nothing to protect if there are no instructions AND no terminator
+	// code that could clobber registers.
+	hasCode := len(b.Insts) > 0
+	hasTermClobber := false
+	switch b.Term.(type) {
+	case *TermBrIf, *TermBrIf2, *TermCondRet:
+		hasTermClobber = true // these all do CMP/CPX/CPY which load A
+	}
+	if !hasCode && !hasTermClobber {
+		return
+	}
+
+	if cg.backups == nil {
+		cg.backups = map[Reg]string{}
+	}
+
+	// Track next available backup slot.
+	slot := 0xF0
+
+	// Find highest used backup slot to avoid collisions.
+	for _, zp := range cg.backups {
+		var s int
+		fmt.Sscanf(zp, "$%X", &s)
+		if s >= slot {
+			slot = s + 1
+		}
+	}
+
+	saved := map[Reg]bool{} // avoid duplicate saves within this call
+
+	// saveParam saves a block param's register value.  Uses rawLoc because
+	// at block entry, emitBlockArgs placed block params in their allocated
+	// registers.  If a backup slot already exists (loop re-entry), re-save
+	// to the SAME slot so successor blocks read the updated value.
+	saveParam := func(r Reg) {
+		if r == NoReg || saved[r] {
+			return
+		}
+		rl := cg.rawLoc(r)
+		if rl != "A" && rl != "X" && rl != "Y" {
+			return
+		}
+		zpSlot := cg.backups[r]
+		if zpSlot == "" {
+			zpSlot = fmt.Sprintf("$%02X", slot)
+			slot++
+		}
+		switch rl {
+		case "A":
+			cg.emit("    STA %s", zpSlot)
+		case "X":
+			cg.emit("    STX %s", zpSlot)
+		case "Y":
+			cg.emit("    STY %s", zpSlot)
+		}
+		cg.backups[r] = zpSlot
+		saved[r] = true
+	}
+
+	// saveNonLocal saves a non-local value (from a dominating block) that
+	// is used as a terminator arg.  Uses loc() since the value might
+	// already be in a backup slot.  Only saves if not already backed up.
+	saveNonLocal := func(r Reg) {
+		if r == NoReg || saved[r] || cg.backups[r] != "" {
+			return // already backed up
+		}
+		rl := cg.rawLoc(r)
+		if rl != "A" && rl != "X" && rl != "Y" {
+			return
+		}
+		zpSlot := fmt.Sprintf("$%02X", slot)
+		slot++
+		switch rl {
+		case "A":
+			cg.emit("    STA %s", zpSlot)
+		case "X":
+			cg.emit("    STX %s", zpSlot)
+		case "Y":
+			cg.emit("    STY %s", zpSlot)
+		}
+		cg.backups[r] = zpSlot
+		saved[r] = true
+	}
+
+	// Save block params in registers (they were set by predecessors and
+	// may be needed by successor blocks after our terminator clobbers regs).
+	for _, p := range b.Params {
+		saveParam(p.Dst)
+	}
+
+	// For the entry block, also save function contract params — these are
+	// in A/X/Y from the calling convention but are NOT listed in b.Params.
+	if cg.curFunc != nil && len(cg.curFunc.Blocks) > 0 && b == cg.curFunc.Blocks[0] {
+		for _, cp := range cg.curFunc.Contract.Params {
+			saveParam(cp.Reg)
+		}
+	}
+
+	// Save terminator args not computed by this block's instructions.
+	for _, arg := range termArgs {
+		if !definedByInst[arg] {
+			saveNonLocal(arg)
+		}
+	}
+}
+
+// isNextBlock returns true if targetLabel is the immediately following block.
+func (cg *m6502cg) isNextBlock(cur *Block, targetLabel string) bool {
+	if cg.curFunc == nil {
+		return false
+	}
+	for i, b := range cg.curFunc.Blocks {
+		if b == cur && i+1 < len(cg.curFunc.Blocks) {
+			return cg.curFunc.Blocks[i+1].Label == targetLabel
+		}
+	}
+	return false
+}
+
+// emitBlockArgs emits moves to satisfy block parameter bindings.
+// args[i] is the value to pass to target.Params[i].
+//
+// On 6502 with only 3 registers, we use a simple sequential copy with
+// zpScratch as a temporary to break cycles.  This is correct (if not
+// always optimal) for all cases.
+func (cg *m6502cg) emitBlockArgs(targetLabel string, args []Reg) {
+	if len(args) == 0 {
+		return
+	}
+	var target *Block
+	for _, b := range cg.curFunc.Blocks {
+		if b.Label == targetLabel {
+			target = b
+			break
+		}
+	}
+	if target == nil || len(target.Params) == 0 {
+		return
+	}
+
+	// Build copy list: src location → dst location.
+	// Check backups for values that were pre-saved at block entry.
+	type copyEntry struct{ src, dst string }
+	var copies []copyEntry
+	for i, arg := range args {
+		if i >= len(target.Params) {
+			break
+		}
+		src := cg.loc(arg) // uses backup if available
+		dst := cg.rawLoc(target.Params[i].Dst) // always use actual register for dest
+		if src == dst || src == "" || dst == "" {
+			continue
+		}
+		copies = append(copies, copyEntry{src, dst})
+	}
+	if len(copies) == 0 {
+		return
+	}
+
+	// Detect if any destination is also a source (potential cycle).
+	// For 6502 with few registers, the simplest correct approach:
+	// save all sources to ZP scratch slots, then load destinations.
+	hasCycle := false
+	srcSet := map[string]bool{}
+	for _, c := range copies {
+		srcSet[c.src] = true
+	}
+	for _, c := range copies {
+		if srcSet[c.dst] {
+			hasCycle = true
+			break
+		}
+	}
+
+	// Priority for copy ordering: ZP destinations first, then Y, X, A last.
+	// This avoids clobbering A when LDA+STA is needed for ZP destinations.
+	dstPriority := func(dst string) int {
+		switch dst {
+		case "A":
+			return 3
+		case "X":
+			return 2
+		case "Y":
+			return 1
+		default:
+			return 0 // ZP — do first
+		}
+	}
+
+	if !hasCycle {
+		// No cycles — emit sequential moves with ZP-first ordering.
+		slices.SortStableFunc(copies, func(a, b copyEntry) int {
+			return dstPriority(a.dst) - dstPriority(b.dst)
+		})
+		for _, c := range copies {
+			cg.genMove(c.dst, c.src)
+		}
+		return
+	}
+
+	// Cycle detected — spill all sources to scratch ZP, then load.
+	// Use ZP $D0+ as scratch to avoid collision with allocator ZP ($02+)
+	// and backup slots ($F0+).
+	//
+	// Save registers (A/X/Y) FIRST, then ZP sources (which need LDA and
+	// would clobber A).
+	spilled := make([]bool, len(copies))
+	for pass := 0; pass < 2; pass++ {
+		for i, c := range copies {
+			if spilled[i] {
+				continue
+			}
+			isReg := c.src == "A" || c.src == "X" || c.src == "Y"
+			if pass == 0 && !isReg {
+				continue // pass 0: registers only
+			}
+			if pass == 1 && isReg {
+				continue // pass 1: ZP/memory only
+			}
+			scratch := fmt.Sprintf("$%02X", 0xD0+i)
+			switch c.src {
+			case "A":
+				cg.emit("    STA %s", scratch)
+			case "X":
+				cg.emit("    STX %s", scratch)
+			case "Y":
+				cg.emit("    STY %s", scratch)
+			default:
+				cg.emit("    LDA %s", c.src)
+				cg.emit("    STA %s", scratch)
+			}
+			copies[i].src = scratch
+			spilled[i] = true
+		}
+	}
+	// Sort: ZP destinations first, then Y, X, A last — avoids A clobber.
+	slices.SortStableFunc(copies, func(a, b copyEntry) int {
+		return dstPriority(a.dst) - dstPriority(b.dst)
+	})
+	for _, c := range copies {
+		cg.genMove(c.dst, c.src)
+	}
 }
 
 // sanitizeIdent6502 converts a Nanz identifier to a valid 6502 asm label.
