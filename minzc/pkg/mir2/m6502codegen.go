@@ -40,10 +40,16 @@ func M6502Codegen(mod *Module, ar *AllocResult, opts ...M6502CodegenOptions) str
 }
 
 type m6502cg struct {
-	mod    *Module
-	ar     *AllocResult
-	origin uint16
-	sb     strings.Builder
+	mod      *Module
+	ar       *AllocResult
+	origin   uint16
+	sb       strings.Builder
+	labelSeq int
+}
+
+func (cg *m6502cg) uniqueLabel(prefix string) string {
+	cg.labelSeq++
+	return fmt.Sprintf("%s_%d", prefix, cg.labelSeq)
 }
 
 func (cg *m6502cg) emit(format string, args ...any) {
@@ -101,7 +107,13 @@ func (cg *m6502cg) genBlock(b *Block) {
 	// Block terminator
 	switch t := b.Term.(type) {
 	case *TermRet:
-		_ = t
+		// Ensure return value is in A (6502 calling convention).
+		if len(t.Vals) > 0 {
+			retLoc := cg.loc(t.Vals[0])
+			if retLoc != "A" {
+				cg.genMoveToA(retLoc)
+			}
+		}
 		cg.emit("    RTS")
 	case *TermJmp:
 		cg.emit("    JMP .%s", sanitizeIdent6502(t.Target))
@@ -156,10 +168,10 @@ func (cg *m6502cg) genInst(inst *Inst) {
 
 	case OpCmp:
 		lhs := cg.loc(inst.Src[0])
-		if lhs != "A" {
-			cg.genMoveToA(lhs)
-		}
-		cg.emit("    CMP %s", cg.ensureOperand(cg.loc(inst.Src[1])))
+		rhs := cg.loc(inst.Src[1])
+		cmpOp := cg.prepareCompare(lhs, rhs)
+		cg.emit("    CMP %s", cmpOp)
+		cg.genCmpBool(dst, inst.Cond)
 
 	default:
 		cg.comment("TODO: %s (op=%d)", inst.Op, inst.Op)
@@ -215,39 +227,63 @@ func (cg *m6502cg) genMove(dst, src string) {
 }
 
 func (cg *m6502cg) genAdd(dst, lhs, rhs string) {
-	if lhs != "A" {
-		cg.genMoveToA(lhs)
-	}
+	op := cg.prepareALU(lhs, rhs)
 	cg.emit("    CLC")
-	cg.emit("    ADC %s", cg.ensureOperand(rhs))
+	cg.emit("    ADC %s", op)
 	if dst != "A" {
 		cg.genMoveFromA(dst)
 	}
 }
 
 func (cg *m6502cg) genSub(dst, lhs, rhs string) {
-	if lhs != "A" {
-		cg.genMoveToA(lhs)
-	}
+	op := cg.prepareALU(lhs, rhs)
 	cg.emit("    SEC")
-	cg.emit("    SBC %s", cg.ensureOperand(rhs))
+	cg.emit("    SBC %s", op)
 	if dst != "A" {
 		cg.genMoveFromA(dst)
 	}
 }
 
-func (cg *m6502cg) genBitwise(op, dst, lhs, rhs string) {
-	if lhs != "A" {
-		cg.genMoveToA(lhs)
-	}
-	cg.emit("    %s %s", op, cg.ensureOperand(rhs))
+func (cg *m6502cg) genBitwise(mnem, dst, lhs, rhs string) {
+	op := cg.prepareALU(lhs, rhs)
+	cg.emit("    %s %s", mnem, op)
 	if dst != "A" {
 		cg.genMoveFromA(dst)
 	}
+}
+
+// prepareALU loads lhs into A and returns a safe operand for the rhs.
+// Handles the case where loading lhs into A would clobber rhs.
+func (cg *m6502cg) prepareALU(lhs, rhs string) string {
+	if lhs == "A" {
+		return cg.ensureOperand(rhs)
+	}
+	// lhs not in A — loading it will clobber A.
+	// If rhs is in A, spill rhs first.
+	if rhs == "A" {
+		cg.emit("    STA %s", zpScratch)
+		cg.genMoveToA(lhs)
+		return zpScratch
+	}
+	cg.genMoveToA(lhs)
+	return cg.ensureOperand(rhs)
 }
 
 func (cg *m6502cg) genCondBranch(t *TermBrIf) {
 	// TermBrIf: Cond != 0 → Then, Cond == 0 → Else.
+	// Test the condition without clobbering other registers.
+	cond := cg.loc(t.Cond)
+	switch cond {
+	case "A":
+		cg.emit("    CMP #$00")
+	case "X":
+		cg.emit("    CPX #$00")
+	case "Y":
+		cg.emit("    CPY #$00")
+	default:
+		// ZP location — use LDX or LDY to test without clobbering A.
+		cg.emit("    LDX %s", cond)
+	}
 	cg.emit("    BNE .%s", sanitizeIdent6502(t.Then))
 	if t.Else != "" {
 		cg.emit("    JMP .%s", sanitizeIdent6502(t.Else))
@@ -255,11 +291,118 @@ func (cg *m6502cg) genCondBranch(t *TermBrIf) {
 }
 
 func (cg *m6502cg) genThreeWayBranch(t *TermBrIf2) {
-	// TermBrIf2: CMP sets Z and C.
-	// Z set → Eq, C set → Lt, neither → Gt.
+	// TermBrIf2: load Lhs into A, CMP Rhs, then branch on flags.
+	// After CMP: Z=1 → equal, C=0 → less-than, C=1∧Z=0 → greater-than.
+	lhs := cg.loc(t.Lhs)
+	rhs := cg.loc(t.Rhs)
+	cmpOp := cg.prepareCompare(lhs, rhs)
+	cg.emit("    CMP %s", cmpOp)
 	cg.emit("    BEQ .%s", sanitizeIdent6502(t.Eq))
 	cg.emit("    BCC .%s", sanitizeIdent6502(t.Lt))
 	cg.emit("    JMP .%s", sanitizeIdent6502(t.Gt))
+}
+
+// ── Comparison helpers ───────────────────────────────────────────────────────
+
+// prepareCompare loads lhs into A and returns an operand string for CMP.
+// Handles the tricky case where loading lhs into A would clobber rhs.
+func (cg *m6502cg) prepareCompare(lhs, rhs string) string {
+	if lhs == "A" {
+		return cg.ensureOperand(rhs)
+	}
+	// lhs is not in A — we need to load it.  But if rhs IS in A,
+	// loading lhs would clobber rhs, so spill rhs first.
+	if rhs == "A" {
+		cg.emit("    STA %s", zpScratch)
+		cg.genMoveToA(lhs)
+		return zpScratch
+	}
+	cg.genMoveToA(lhs)
+	return cg.ensureOperand(rhs)
+}
+
+// genCmpBool materializes a boolean (0/1) into dst based on 6502 flags
+// set by the immediately preceding CMP instruction.
+//
+// IMPORTANT: On 6502, LDA/LDX/LDY clobber Z and N flags.  We must branch
+// BEFORE loading any value, so that the branch decisions use CMP's flags.
+// We also load directly into the target register (LDX/LDY when possible)
+// to avoid clobbering A, which may still hold a live value.
+//
+// 6502 CMP flag semantics (unsigned):
+//
+//	A == operand → Z=1, C=1
+//	A >  operand → Z=0, C=1
+//	A <  operand → Z=0, C=0
+func (cg *m6502cg) genCmpBool(dst string, cond CmpCond) {
+	// Pick load instruction that targets dst directly (avoids clobbering A).
+	ldImm := "LDA"
+	switch dst {
+	case "X":
+		ldImm = "LDX"
+	case "Y":
+		ldImm = "LDY"
+	}
+
+	setTrue := cg.uniqueLabel("ct")
+	done := cg.uniqueLabel("cd")
+
+	// Emit branch-first pattern: branch on CMP flags, then load constant.
+	switch cond {
+	case CmpEq:
+		cg.emit("    BEQ .%s", setTrue)
+	case CmpNe:
+		cg.emit("    BNE .%s", setTrue)
+	case CmpLt, CmpUlt:
+		cg.emit("    BCC .%s", setTrue)
+	case CmpGe, CmpUge:
+		cg.emit("    BCS .%s", setTrue)
+	case CmpGt, CmpUgt:
+		// C=1 AND Z=0 → true.  Two branches needed.
+		falseL := cg.uniqueLabel("cf")
+		cg.emit("    BEQ .%s", falseL) // equal → false
+		cg.emit("    BCS .%s", setTrue) // carry set → greater → true
+		cg.emit(".%s:", falseL)
+		cg.emit("    %s #$00", ldImm)
+		cg.emit("    JMP .%s", done)
+		cg.emit(".%s:", setTrue)
+		cg.emit("    %s #$01", ldImm)
+		cg.emit(".%s:", done)
+		cg.genCmpBoolStore(dst, ldImm)
+		return
+	case CmpLe, CmpUle:
+		// Z=1 OR C=0 → true.
+		cg.emit("    BEQ .%s", setTrue)
+		cg.emit("    BCC .%s", setTrue)
+		cg.emit("    %s #$00", ldImm)
+		cg.emit("    JMP .%s", done)
+		cg.emit(".%s:", setTrue)
+		cg.emit("    %s #$01", ldImm)
+		cg.emit(".%s:", done)
+		cg.genCmpBoolStore(dst, ldImm)
+		return
+	default:
+		cg.comment("TODO: CmpCond %d", cond)
+		cg.emit("    %s #$00", ldImm)
+		cg.genCmpBoolStore(dst, ldImm)
+		return
+	}
+	// Common case: single branch condition
+	cg.emit("    %s #$00", ldImm) // false
+	cg.emit("    JMP .%s", done)
+	cg.emit(".%s:", setTrue)
+	cg.emit("    %s #$01", ldImm) // true
+	cg.emit(".%s:", done)
+	cg.genCmpBoolStore(dst, ldImm)
+}
+
+// genCmpBoolStore handles ZP destinations: if dst is not A/X/Y, the boolean
+// was loaded into A and must be stored to the ZP location.
+func (cg *m6502cg) genCmpBoolStore(dst, ldImm string) {
+	if ldImm == "LDA" && dst != "A" {
+		// ZP destination — store from A
+		cg.emit("    STA %s", dst)
+	}
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

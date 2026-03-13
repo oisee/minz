@@ -206,6 +206,12 @@ func boot6502_2(funcName string, arg0, arg1 uint8) string {
 		arg0, arg1, funcName)
 }
 
+// boot6502_3 generates bootstrap: LDA #arg0; LDX #arg1; LDY #arg2; JSR funcName; BRK
+func boot6502_3(funcName string, arg0, arg1, arg2 uint8) string {
+	return fmt.Sprintf("    LDA #$%02X\n    LDX #$%02X\n    LDY #$%02X\n    JSR %s\n    BRK\n",
+		arg0, arg1, arg2, funcName)
+}
+
 // ── Dual-VM assertion ───────────────────────────────────────────────────────
 //
 // assertDual runs the same MIR2 function through both:
@@ -280,6 +286,36 @@ func assertDual2(t *testing.T, m *mir2.Module, funcName string, arg0, arg1 uint8
 		t.Errorf("%s(%d, %d): VM=%d, 6502=%d — MISMATCH", funcName, arg0, arg1, vmVal, hwA)
 	} else {
 		t.Logf("%s(%d, %d): VM=%d, 6502=%d ✓", funcName, arg0, arg1, vmVal, hwA)
+	}
+
+	return dualResult{vmVal: vmVal, hwA: hwA, funcName: funcName}
+}
+
+// assertDual3 tests a 3-argument function through both VM and 6502.
+func assertDual3(t *testing.T, m *mir2.Module, funcName string, arg0, arg1, arg2 uint8) dualResult {
+	t.Helper()
+
+	// 1. MIR2 VM
+	vm := &mir2.VM{Module: m, MaxSteps: 100000}
+	vmRes, vmErr := vm.Call(funcName, []mir2.Value{{I: int64(arg0)}, {I: int64(arg1)}, {I: int64(arg2)}})
+	if vmErr != nil {
+		t.Fatalf("VM.Call(%s, %d, %d, %d): %v", funcName, arg0, arg1, arg2, vmErr)
+	}
+	vmVal := vmRes[0].I & 0xFF
+
+	// 2. 6502 target
+	asmText := compile6502Module(t, m)
+	src := boot6502_3(funcName, arg0, arg1, arg2) + "\n" + stripDirectives(asmText)
+	hwA, _, _, hwErr := run6502(t, src)
+	if hwErr != nil {
+		t.Fatalf("6502(%s, %d, %d, %d): %v", funcName, arg0, arg1, arg2, hwErr)
+	}
+
+	// 3. Cross-check
+	if uint8(vmVal) != hwA {
+		t.Errorf("%s(%d, %d, %d): VM=%d, 6502=%d — MISMATCH", funcName, arg0, arg1, arg2, vmVal, hwA)
+	} else {
+		t.Logf("%s(%d, %d, %d): VM=%d, 6502=%d ✓", funcName, arg0, arg1, arg2, vmVal, hwA)
 	}
 
 	return dualResult{vmVal: vmVal, hwA: hwA, funcName: funcName}
@@ -874,6 +910,192 @@ func TestE2E_6502_ConsoleMixed(t *testing.T) {
 		t.Errorf("output = %q, want %q", res.Output, "1234")
 	} else {
 		t.Logf("mixed console: %q (port/A2/C64/BBC) ✓", res.Output)
+	}
+}
+
+// ── Branching E2E Tests (BrIf2 three-way branch) ────────────────────────────
+
+// buildAbsDiff6502 builds: abs_diff(a, b) = if a>b then a-b elif a<b then b-a else 0
+func buildAbsDiff6502() *mir2.Module {
+	m := &mir2.Module{Name: "abs_diff"}
+	f := m.AddFunc("abs_diff")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)
+	bv := b.Param("b", mir2.TyU8, mir2.ClassGeneral)
+	b.BrIf2(a, bv, "eq", nil, "a_lt_b", nil, "a_gt_b", nil)
+
+	b.SwitchToNewBlock("eq")
+	zero := b.Const(0, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(zero)
+
+	b.SwitchToNewBlock("a_lt_b")
+	diff1 := b.Sub(bv, a, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(diff1)
+
+	b.SwitchToNewBlock("a_gt_b")
+	diff2 := b.Sub(a, bv, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(diff2)
+
+	return m
+}
+
+func TestE2E_6502_AbsDiff(t *testing.T) {
+	m := buildAbsDiff6502()
+	asmText := compile6502Module(t, m)
+	t.Log("\n" + asmText)
+
+	cases := []struct{ a, b, want uint8 }{
+		{10, 3, 7}, {3, 10, 7}, {5, 5, 0}, {200, 100, 100}, {0, 255, 255},
+	}
+	for _, tc := range cases {
+		src := boot6502_2("abs_diff", tc.a, tc.b) + "\n" + stripDirectives(asmText)
+		got, _, _, err := run6502(t, src)
+		if err != nil {
+			t.Errorf("abs_diff(%d, %d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if got != tc.want {
+			t.Errorf("abs_diff(%d, %d) = %d, want %d", tc.a, tc.b, got, tc.want)
+		} else {
+			t.Logf("abs_diff(%d, %d) = %d ✓", tc.a, tc.b, got)
+		}
+	}
+}
+
+func TestDual_6502_AbsDiff(t *testing.T) {
+	m := buildAbsDiff6502()
+	for _, tc := range [][2]uint8{{10, 3}, {3, 10}, {5, 5}, {200, 100}, {0, 255}, {1, 0}, {0, 0}} {
+		assertDual2(t, m, "abs_diff", tc[0], tc[1])
+	}
+}
+
+// buildClamp6502 builds: clamp(x, lo, hi) — cascaded BrIf2, no block params
+func buildClamp6502() *mir2.Module {
+	m := &mir2.Module{Name: "clamp"}
+	f := m.AddFunc("clamp")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	x := b.Param("x", mir2.TyU8, mir2.ClassAcc)
+	lo := b.Param("lo", mir2.TyU8, mir2.ClassGeneral)
+	hi := b.Param("hi", mir2.TyU8, mir2.ClassGeneral)
+	// Compare x vs lo: x==lo → check_hi, x<lo → ret_lo, x>lo → check_hi
+	b.BrIf2(x, lo, "check_hi", nil, "ret_lo", nil, "check_hi", nil)
+
+	b.SwitchToNewBlock("ret_lo")
+	loA := b.Move(lo, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(loA)
+
+	b.SwitchToNewBlock("check_hi")
+	// Compare x vs hi: x==hi → ret_x, x<hi → ret_x, x>hi → ret_hi
+	b.BrIf2(x, hi, "ret_x", nil, "ret_x", nil, "ret_hi", nil)
+
+	b.SwitchToNewBlock("ret_hi")
+	hiA := b.Move(hi, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(hiA)
+
+	b.SwitchToNewBlock("ret_x")
+	b.Ret(x)
+
+	return m
+}
+
+func TestDual_6502_Clamp(t *testing.T) {
+	m := buildClamp6502()
+	for _, tc := range [][3]uint8{
+		{5, 0, 10},     // in range
+		{0, 5, 10},     // below lo → 5
+		{15, 5, 10},    // above hi → 10
+		{5, 5, 5},      // all equal
+		{128, 10, 200}, // in range
+		{0, 0, 255},    // lo edge
+		{255, 0, 255},  // hi edge
+		{0, 100, 200},  // below
+		{250, 100, 200}, // above
+	} {
+		assertDual3(t, m, "clamp", tc[0], tc[1], tc[2])
+	}
+}
+
+// buildMax36502 builds: max3(a, b, c) — cascaded BrIf2, no block params
+func buildMax36502() *mir2.Module {
+	m := &mir2.Module{Name: "max3"}
+	f := m.AddFunc("max3")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)
+	bv := b.Param("b", mir2.TyU8, mir2.ClassGeneral)
+	c := b.Param("c", mir2.TyU8, mir2.ClassGeneral)
+	// Compare a vs b: a==b → check_ac, a<b → check_bc, a>b → check_ac
+	b.BrIf2(a, bv, "check_ac", nil, "check_bc", nil, "check_ac", nil)
+
+	b.SwitchToNewBlock("check_ac")
+	// max(a,b) = a. Compare a vs c.
+	b.BrIf2(a, c, "ret_a", nil, "ret_c", nil, "ret_a", nil)
+
+	b.SwitchToNewBlock("check_bc")
+	// max(a,b) = b. Compare b vs c.
+	b.BrIf2(bv, c, "ret_b", nil, "ret_c2", nil, "ret_b", nil)
+
+	b.SwitchToNewBlock("ret_a")
+	b.Ret(a)
+
+	b.SwitchToNewBlock("ret_b")
+	bvA := b.Move(bv, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(bvA)
+
+	b.SwitchToNewBlock("ret_c")
+	cA := b.Move(c, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(cA)
+
+	b.SwitchToNewBlock("ret_c2")
+	cA2 := b.Move(c, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(cA2)
+
+	return m
+}
+
+func TestDual_6502_Max3(t *testing.T) {
+	m := buildMax36502()
+	for _, tc := range [][3]uint8{
+		{1, 2, 3}, {3, 2, 1}, {2, 3, 1}, {7, 7, 7}, {100, 200, 150},
+		{0, 0, 0}, {255, 0, 0}, {0, 255, 0}, {0, 0, 255},
+	} {
+		assertDual3(t, m, "max3", tc[0], tc[1], tc[2])
+	}
+}
+
+// TestDual_6502_CmpBrIf tests OpCmp (boolean materialization) + TermBrIf path.
+// This is the alternative to BrIf2 — compare produces a boolean, BrIf tests it.
+func TestDual_6502_CmpBrIf(t *testing.T) {
+	// max2(a, b) = if a > b then a else b  (using OpCmp + BrIf)
+	m := &mir2.Module{Name: "max2"}
+	f := m.AddFunc("max2")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)
+	bv := b.Param("b", mir2.TyU8, mir2.ClassGeneral)
+	cond := b.Cmp(mir2.CmpUgt, a, bv, mir2.ClassAcc, false)
+	b.BrIf(cond, "ret_a", nil, "ret_b", nil)
+
+	b.SwitchToNewBlock("ret_a")
+	b.Ret(a)
+
+	b.SwitchToNewBlock("ret_b")
+	b.Ret(bv)
+
+	for _, tc := range [][2]uint8{
+		{10, 3}, {3, 10}, {5, 5}, {255, 0}, {0, 255}, {100, 100},
+	} {
+		assertDual2(t, m, "max2", tc[0], tc[1])
 	}
 }
 
