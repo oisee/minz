@@ -70,11 +70,15 @@ reverse topological order.  Our implementation in the Nanz compiler
 targeting the Zilog Z80 produces code that is 1.3--17$\times$ smaller and
 up to 17$\times$ faster than SDCC~4.2.0 (which uses a state-of-the-art
 empirically-optimized global convention), with emergent optimizations
-including zero-byte function aliases.
+including zero-byte function aliases.  We validate architecture-independence
+by applying the same algorithm, unmodified, to the MOS~6502---an
+architecture with even more extreme register irregularity (3~registers,
+asymmetric capabilities)---achieving correct results across a five-path
+cross-compilation oracle.
 \end{abstract}
 
 \keywords{calling conventions, register allocation, irregular architectures,
-  Z80, compiler optimization, interprocedural optimization}
+  Z80, 6502, compiler optimization, interprocedural optimization}
 
 \maketitle
 
@@ -134,6 +138,10 @@ program.
 \item \textbf{Identification of emergent optimizations}---notably zero-byte
   function aliases (\texttt{EQU} collapse) that arise naturally from cost
   minimization~(\S\ref{sec:eval:equ}).
+\item \textbf{Cross-architecture validation} on the MOS~6502, demonstrating
+  that the same PFCCO algorithm (zero changes to optimizer code) produces
+  correct, optimized calling conventions on a fundamentally different register
+  file~(\S\ref{sec:eval:6502}).
 \end{enumerate}
 
 %% ============================================================
@@ -173,6 +181,40 @@ interchangeable.  Moving a value from C to A costs 4~T-states
 (\texttt{LD~A,C}); moving from HL to DE costs 4T (\texttt{EX~DE,HL}).
 These asymmetries mean that the \emph{choice} of register for a parameter
 directly affects instruction selection and code quality.
+
+\subsection{The 6502 Register File}
+\label{sec:6502regs}
+
+The MOS~6502 (1975) has only 3~programmer-visible registers, making it the
+most register-constrained popular architecture:
+
+\begin{table}[h]
+\centering\small
+\caption{6502 register roles and key instructions.}
+\label{tab:6502regs}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Register & Role & Key instructions \\
+\midrule
+A        & Accumulator   & \texttt{ADC}, \texttt{SBC}, \texttt{AND}, \texttt{ORA}, \texttt{EOR}, \texttt{CMP} \\
+X        & Index          & \texttt{LDX}, \texttt{STX}, \texttt{(zp,X)} indirect \\
+Y        & Index          & \texttt{LDY}, \texttt{STY}, \texttt{(zp),Y} indirect-indexed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The 6502 is \emph{more} irregular than the Z80: A~is the \emph{sole} ALU
+operand (all arithmetic and logical operations implicitly read and write~A),
+X~and~Y are not interchangeable (X~supports \texttt{(zp,X)} pre-indexed
+addressing while Y~supports \texttt{(zp),Y} post-indexed addressing), and
+there are no 16-bit register pairs---16-bit values must reside in zero-page
+memory.  Transferring between X~and~Y requires two instructions through~A
+(\texttt{TXA;TAY} or \texttt{TYA;TAX}, 4~cycles).
+
+This extreme irregularity makes PFCCO \emph{more} impactful: choosing the
+wrong register for a parameter on the 6502 is catastrophic, since there is no
+``just use another general register'' fallback.  We use the 6502 as a
+cross-architecture validation target in \S\ref{sec:eval:6502}.
 
 \subsection{Fixed vs.\ Per-Function Conventions}
 
