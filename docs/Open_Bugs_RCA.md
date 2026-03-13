@@ -63,7 +63,7 @@ Also added `src == dst` early-exit to handle pre-coalesced or same-location pair
 
 ---
 
-## BUG-003 🔴 `ptr[i]` inside while loop — broken EX DE,HL / ADD F,DE
+## BUG-003 ✅ FIXED `ptr[i]` inside while loop — broken EX DE,HL / ADD F,DE
 
 **Symptom:** Accessing `ptr[i]` inside a while loop produces invalid Z80:
 `EX DE,HL` at wrong points, `ADD F,DE` (F is not a general register).
