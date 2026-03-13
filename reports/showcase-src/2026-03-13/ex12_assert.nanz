@@ -1,0 +1,36 @@
+// ex12 — Compile-time assertions (assert keyword)
+//
+// assert fn(args) == expected evaluates the call at compile time using the
+// MIR2 VM and fails the build if the result doesn't match.
+// No runtime code is generated for asserts.
+
+fun double(n: u8) -> u8 {
+    return n + n
+}
+
+fun clamp(v: u8, lo: u8, hi: u8) -> u8 {
+    if v < lo { return lo }
+    if v > hi { return hi }
+    return v
+}
+
+fun abs_diff(a: u8, b: u8) -> u8 {
+    c = a - b
+    if a >= b {
+        return c
+    }
+    return -c
+}
+
+// Compile-time contract: these are checked at build time.
+assert double(0) == 0
+assert double(5) == 10
+assert double(127) == 254
+
+assert clamp(50, 10, 100) == 50
+assert clamp(5, 10, 100) == 10
+assert clamp(200, 10, 100) == 100
+
+assert abs_diff(5, 3) == 2
+assert abs_diff(3, 5) == 2
+assert abs_diff(0, 0) == 0

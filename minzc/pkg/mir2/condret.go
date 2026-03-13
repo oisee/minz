@@ -231,12 +231,16 @@ func applySubSwapNeg(hoisted []*Inst, thenBlock *Block) {
 			}
 			if inst.Src[0] == hy && inst.Src[1] == hx {
 				// Replace sub(y, x) with neg(r_h).
-				// Force ClassAcc: NEG always reads/writes A, so the result must
-				// be in A.  This avoids a spurious round-trip through ClassGeneral.
+				// For u8: NEG reads/writes A → ClassAcc.
+				// For u16: result lives in HL → ClassPointer.
 				inst.Op = OpNeg
 				inst.Src[0] = h.Dst
 				inst.Src[1] = NoReg
-				inst.Cls = ClassAcc
+				if h.Ty.Width() > 8 {
+					inst.Cls = ClassPointer
+				} else {
+					inst.Cls = ClassAcc
+				}
 			}
 		}
 	}

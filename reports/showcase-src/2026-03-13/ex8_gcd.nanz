@@ -1,0 +1,7 @@
+fun gcd(a: u8, b: u8) -> u8 {
+    while a != b {
+        if a > b { a = a - b }
+        else     { b = b - a }
+    }
+    return a
+}

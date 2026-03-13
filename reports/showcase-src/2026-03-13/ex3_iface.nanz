@@ -1,0 +1,16 @@
+interface Animal {
+    speak
+}
+
+struct Dog {}
+struct Cat {}
+
+global g_dog: Dog
+global g_cat: Cat
+
+fun Dog.speak(self: Dog) -> u8 { return 1 }
+fun Cat.speak(self: Cat) -> u8 { return 2 }
+
+fun demo() -> u8 {
+    return g_dog.speak()
+}

@@ -44,6 +44,13 @@ package mir2
 
 import "slices"
 
+// regState holds the per-virtual-register data used by the PBQP solver:
+// the register's class/type info and a mutable cost vector indexed by allLocs.
+type regState struct {
+	info  RegInfo
+	costs []int // cost per locs index; InfCost = excluded
+}
+
 // ── Cost vector ───────────────────────────────────────────────────────────────
 
 // nodeCosts returns a map[Reg][]int: for each virtual reg, a slice of costs
@@ -124,10 +131,6 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	allLocs := ct.Locs()
 
 	// Collect candidates for each virtual reg.
-	type regState struct {
-		info  RegInfo
-		costs []int // cost per locs index; InfCost = excluded
-	}
 	states := make(map[Reg]*regState, len(info))
 	for r, ri := range info {
 		states[r] = &regState{info: ri}
@@ -138,6 +141,11 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	for r, cv := range raw {
 		states[r].costs = cv
 	}
+
+	// Phase 6e: PBQP affinity nudges — applied before solver to bias allocation.
+	applyLUTAffinityNudge(f, states, allLocs)          // LUT index → C/E (BC★/DE★ 14T path)
+	applyMul16DEAffinityNudge(f, states, allLocs)      // mul16 rhs → DE (skip LD D/E setup, 8T)
+	applyDJNZCounterAffinityNudge(f, states, allLocs)  // DJNZ counter → B (skip LD B,r, 4T)
 
 	result := &AllocResult{Locs: make(map[Reg]PhysLoc)}
 

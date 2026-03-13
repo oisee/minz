@@ -1,0 +1,15 @@
+// Iterative Fibonacci: single loop, O(n) time, O(1) space.
+// Two running sums — tight DJNZ loop on Z80.
+fun fib_iter(n: u8) -> u16 {
+    if n <= 1 {
+        return n
+    }
+    let a: u16 = 0
+    let b: u16 = 1
+    for i in 1..n {
+        let tmp: u16 = a + b
+        a = b
+        b = tmp
+    }
+    return b
+}

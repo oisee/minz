@@ -50,38 +50,67 @@ type ContractChoice struct {
 }
 
 // OptimizeContracts finds the globally-optimal register classes for all
-// function contracts in m, using a greedy DP on the call graph.
+// function contracts in m, using a greedy DP on the call graph with
+// multi-pass convergence.
+//
+// Pass 0: bottom-up topo order (callees before callers) — same as before.
+//         No incoming cost (callers not yet decided).
+// Pass 1+: re-evaluate every function with incomingEdgeCost included so that
+//          callees with multiple callers can "pull back" an EX DE,HL from
+//          N call sites into the callee body when N×moveCost > bodyMoveCost.
 //
 // Callers should call ApplyContracts(m, cs) before running Allocate.
 func OptimizeContracts(m *Module, ct CostTable) ContractSet {
 	cg := BuildCallGraph(m)
 	cs := make(ContractSet, len(m.Funcs))
 
-	for _, name := range cg.Order() {
-		f := m.FuncByName(name)
-		if f == nil {
-			continue
-		}
-		// Skip extern/no-body functions — their contract is fixed by the ABI.
-		if f.Attrs.IsExtern || len(f.Blocks) == 0 {
-			cs[name] = currentChoice(f)
-			continue
-		}
-
-		// Start with the current (manually-set) contract as the reference.
-		// Only replace it when a candidate is STRICTLY cheaper (stable: ties keep current).
-		current := currentChoice(f)
-		bestChoice := current
-		bestCost := unaryCostWithMod(f, current, ct, m) + edgeCost(f, current, cg, cs, ct)
-
-		for _, choice := range candidateChoices(f, ct) {
-			cost := unaryCostWithMod(f, choice, ct, m) + edgeCost(f, choice, cg, cs, ct)
-			if cost < bestCost {
-				bestCost = cost
-				bestChoice = choice
+	const maxPasses = 4
+	for pass := 0; pass < maxPasses; pass++ {
+		changed := false
+		for _, name := range cg.Order() {
+			f := m.FuncByName(name)
+			if f == nil {
+				continue
 			}
+			// Skip extern/no-body functions — their contract is fixed by the ABI.
+			if f.Attrs.IsExtern || len(f.Blocks) == 0 {
+				if cs[name] == nil {
+					cs[name] = currentChoice(f)
+					changed = true
+				}
+				continue
+			}
+
+			// Start with the current (manually-set) contract as the reference.
+			// Only replace it when a candidate is STRICTLY cheaper (stable: ties keep current).
+			current := currentChoice(f)
+			var inc int
+			if pass > 0 {
+				inc = incomingEdgeCost(f, current, m, cs, ct)
+			}
+			bestChoice := current
+			bestCost := unaryCostWithMod(f, current, ct, m) + edgeCost(f, current, cg, cs, ct) + inc
+
+			for _, choice := range candidateChoices(f, ct) {
+				var choiceInc int
+				if pass > 0 {
+					choiceInc = incomingEdgeCost(f, choice, m, cs, ct)
+				}
+				cost := unaryCostWithMod(f, choice, ct, m) + edgeCost(f, choice, cg, cs, ct) + choiceInc
+				if cost < bestCost {
+					bestCost = cost
+					bestChoice = choice
+				}
+			}
+
+			if cs[name] == nil || !choiceEqual(cs[name], bestChoice) {
+				changed = true
+			}
+			cs[name] = bestChoice
 		}
-		cs[name] = bestChoice
+		if !changed {
+			break
+		}
 	}
 	return cs
 }
@@ -278,6 +307,82 @@ func unaryCostWithMod(f *Func, choice *ContractChoice, ct CostTable, m *Module) 
 		}
 	}
 	return total
+}
+
+// incomingEdgeCost sums the move costs that all callers of f in m would pay
+// if f adopted the given contract choice.
+//
+// This is the "reverse" of edgeCost: edgeCost asks "how much does f pay to call
+// its callees?"; incomingEdgeCost asks "how much do all of f's callers pay to
+// call f?"
+//
+// Used in OptimizeContracts pass 1+ so that a callee with N callers can pull
+// an adapter move back into its body when N×moveCost > bodyMoveCost.
+func incomingEdgeCost(f *Func, choice *ContractChoice, m *Module, cs ContractSet, ct CostTable) int {
+	total := 0
+	for _, caller := range m.Funcs {
+		if caller == f {
+			continue
+		}
+		callerChoice, hasCaller := cs[caller.Name]
+		if !hasCaller {
+			callerChoice = currentChoice(caller)
+		}
+		ri := collectRegInfo(caller)
+
+		// For caller's own params, use the caller's chosen class (not the
+		// raw contract which hasn't been Apply'd yet).
+		paramOverride := make(map[Reg]RegClass, len(caller.Contract.Params))
+		for i, p := range caller.Contract.Params {
+			if i < len(callerChoice.ParamClasses) {
+				paramOverride[p.Reg] = callerChoice.ParamClasses[i]
+			}
+		}
+
+		for _, b := range caller.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op != OpCall || inst.Sym != f.Name {
+					continue
+				}
+				for ai, arg := range inst.Args {
+					if ai >= len(choice.ParamClasses) {
+						break
+					}
+					var argClass RegClass
+					if cls, isParam := paramOverride[arg]; isParam {
+						argClass = cls
+					} else if argInfo, haveInfo := ri[arg]; haveInfo {
+						argClass = argInfo.Cls
+					} else {
+						argClass = ClassGeneral
+					}
+					wantClass := choice.ParamClasses[ai]
+					if argClass != wantClass {
+						total += classMoveCost(argClass, wantClass, ct)
+					}
+				}
+			}
+		}
+	}
+	return total
+}
+
+// choiceEqual reports whether two ContractChoices are identical.
+func choiceEqual(a, b *ContractChoice) bool {
+	if len(a.ParamClasses) != len(b.ParamClasses) || len(a.ReturnClasses) != len(b.ReturnClasses) {
+		return false
+	}
+	for i := range a.ParamClasses {
+		if a.ParamClasses[i] != b.ParamClasses[i] {
+			return false
+		}
+	}
+	for i := range a.ReturnClasses {
+		if a.ReturnClasses[i] != b.ReturnClasses[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // edgeCost is the sum of move costs at all call sites from f to its callees,
