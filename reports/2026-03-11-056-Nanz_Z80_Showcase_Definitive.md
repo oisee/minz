@@ -1,6 +1,7 @@
 # Report 056 — Nanz → Z80 Showcase: Definitive Edition
 
 **Date**: 2026-03-11
+**Last updated**: 2026-03-13 (Phase 6f inliner + multi-pass contracts)
 **Status**: Living document — recompiled against current compiler on each update
 **Examples**: 15 verified, all output confirmed by automated test suite
 
@@ -15,19 +16,19 @@
 |---------|-----------|-----------|------------|----------|
 | `abs_diff` u8 | 7 | **4** | = optimal | Arithmetic |
 | `popcount` LUTGen | 8 | **3** | = optimal | Compile-time eval |
-| `swap` u16 | 1 | **2** | = optimal | Multi-return |
-| `min_of` | 1 | **1** | = optimal | Tail call |
+| `swap` u16 | 1 | **1** | = optimal | Multi-return / PFCCO |
+| `min_of` | 1 | **0 bytes** | = optimal | Inliner alias (EQU) |
 | `@smc draw_row` 2B | 2 | **5** | = optimal | Compiled sprite |
 | `@smc draw_row4` 4B | 2 | **9** | = optimal | Compiled sprite |
 | `@smc patcher` | — | **5** | = optimal | Auto-synthesised |
 | `abs_diff` u16 | 4 | 5 | ~optimal | 16-bit arithmetic |
 | `gcd` | 6 | 12 | good | Loop w/ branches |
-| `minmax` u16 | 2 | 10 | ~optimal* | Multi-return 16-bit |
+| `minmax` u16 | 2 | 17 | good | Multi-return 16-bit |
 | `fib_fold` | 6 | 13 | good* | Fibonacci loop |
 | `factorial` fold | 5 | ~30 | fair* | u16 multiply loop |
 | `forEach/DJNZ` | 3 | ~8 | good | Iterator fusion |
 
-*known gaps: double EX, some dead LD ops in loop init — open allocator bugs
+*some dead LD ops in loop init — open allocator issue (ADR-0006/0007)
 
 ---
 
@@ -96,7 +97,7 @@ popcount_lut:
 
 ---
 
-## §3 — Multiple Return Values: swap, minmax, tail call
+## §3 — Multiple Return Values: swap, minmax, inliner alias
 
 Nanz supports `-> (T1, T2)` multi-return with Z80 ABI: first return → HL,
 second return → DE. Callers unpack with `let (a, b) = fn(...)`.
@@ -121,40 +122,56 @@ fun max_of(a: u16, b: u16) -> u16 {
 ```
 
 ```z80
-; fun swap(a: u16 = HL, b: u16 = DE) -> (u16 = DE, u16 = HL)
+; fun swap(a: u16 = DE, b: u16 = HL) -> (u16 = HL, u16 = DE)
 swap:
-    EX DE, HL       ; one instruction — swap in-register
-    RET
+    RET             ; bare RET — PFCCO twisted ABI: b arrives in HL, a in DE,
+                    ; which is exactly the multi-return layout (HL, DE). 1 instruction.
 
-; fun minmax(a: u16 = HL, b: u16 = DE) -> (u16 = HL, u16 = DE) ; clobbers: F
+; fun minmax(a: u16 = HL, b: u16 = DE) -> (u16 = HL, u16 = DE) ; clobbers: BC, F, IX
 minmax:
     EX DE, HL
     PUSH HL
     OR A
-    SBC HL, DE      ; 16-bit compare via SBC
+    SBC HL, DE      ; 16-bit compare: NC if a ≤ b
     POP HL
     EX DE, HL
-    EX DE, HL       ; TODO: peephole — double EX is a dead no-op
-    RET C
-.minmax_if_then1:
-    EX DE, HL
+    PUSH DE
+    POP BC          ; BC = a (saved before conditional)
+    PUSH HL
+    POP IX          ; IX = b (saved before conditional)
+    JRS NC, .minmax_if_then1
+    LD H, B         ; a ≤ b: load min(=a) into HL
+    LD L, C
+    LD D, IXH       ; load max(=b) into DE
+    LD E, IXL
     RET
+.minmax_if_then1:
+    RET             ; a > b: HL=b, DE=a already correct — just RET
 
-; fun min_of(x: u16 = HL, y: u16 = DE) -> u16 = HL
-min_of:
-    JP minmax       ; tail call! — zero overhead, JP not CALL
+; fun min_of(a: u16 = HL, b: u16 = DE) -> u16 = HL
+min_of    EQU minmax        ; Phase 6f: inliner + copy-prop — min_of IS minmax
+                            ; (same args, same return register, zero transformation)
 
-; fun max_of(x: u16 = HL, y: u16 = DE) -> u16 = HL
+; fun max_of(a: u16 = HL, b: u16 = DE) -> u16 = HL
 max_of:
     CALL minmax
-    EX DE, HL
+    LD H, D         ; extract second return value (max) from DE into HL
+    LD L, E
     RET
 ```
 
 Highlights:
-- `swap` = 2 instructions — as fast as possible
-- `min_of` = 1 instruction (`JP minmax`) — perfect tail-call elimination
-- Annotations are correct: `-> (u16 = HL, u16 = DE)` (was `HL, HL` bug, now fixed)
+- **`swap` = 1 instruction** (`RET`) — PFCCO (per-function calling convention
+  optimisation) detects that with args arriving as `(DE=a, HL=b)`, the
+  multi-return layout `(HL, DE)` is already satisfied. Zero data moves.
+- **`min_of` = 0 bytes** (`EQU minmax`) — the Phase 6f inliner expands
+  `minmax` inline, copy propagation sees the first projection is identity,
+  DSE removes all moves. The symbol becomes a direct alias for `minmax`.
+  `CALL min_of` and `CALL minmax` are byte-for-byte identical.
+- **`minmax` double-EX eliminated** — the previous `EX DE,HL / EX DE,HL`
+  dead no-op is gone; PBQP now allocates BC and IX for the saved pair values,
+  resolving the liveness conflict cleanly.
+- Annotations correct: `-> (u16 = HL, u16 = DE)` verified against allocator output.
 
 ---
 
