@@ -18,6 +18,8 @@
 
 ### Hot off the press
 
+- **[MOS 6502 Backend: E2E Test Harness, Console I/O & Dual-VM Cross-Check](reports/2026-03-13-067-6502_Backend_E2E_Harness.md)** — The 6502 backend is alive. **35/35 tests pass** — same MIR2 IR compiled to both Z80 and 6502, verified by emulator. Fixed critical codegen bug: ALU instructions (ADC/SBC/AND/ORA/EOR/CMP) now correctly spill register operands to ZP scratch via `ensureOperand()` — `ADC X` (invalid) becomes `STX $00; ADC $00` (valid NMOS 6502). **E2E pipeline:** MIR2 → M6502CostTable → M6502Codegen → tinyAsm6502 → sim6502 (MIT) → assert A/X/Y. **Dual-VM oracle:** every test runs through both MIR2 VM interpreter and 6502 emulator — if they disagree, it's a codegen bug. **Console I/O** captures output from 4 platforms simultaneously: bare-metal I/O port (`STA $F001`), Apple II COUT (`JSR $FDED`), C64 CHROUT (`JSR $FFD2`), BBC Micro OSWRCH (`JSR $FFEE`) — all route to the same buffer via `MappableMemory` write handler + planted `STA $F001; RTS` stubs. `TestE2E_6502_ConsoleMixed` proves all four in one program: output = `"1234"` ✓. Working ops: const, add, sub, neg, and/or/xor, cmp, call(JSR), ret(RTS), jmp. Missing: loops (needs branch fix), 16-bit math, memory access, SMC. **[Feature matrix & roadmap →](reports/2026-03-13-067-6502_Backend_E2E_Harness.md#z80-vs-6502-backend-completeness)**
+
 - **[Phase 6f: Trivial Function Inliner — `swap(a,b).1 == a` Realized in Machine Code](reports/2026-03-13-066-MultiPass_Contracts_Achievement_Article.md)** — Two optimizations shipped: **(1)** multi-pass `OptimizeContracts` with `incomingEdgeCost` — the contract optimizer now sums what ALL callers pay for each ABI choice. For N≥2 callers of `swap`, it correctly picks the convention that costs 4T total instead of 4N T. Loop trampolines eliminated in `ex9b` and `ex14/sum_to`. **(2)** `InlineTrivial + PropagateCopies` (`pkg/mir2/inline.go`) — single-block leaf functions with ≤4 instructions are inlined at every call site; `OpMove` chains folded by copy propagation; DSE removes dead instructions. **Key results:** `let (_, b2) = swap(a, b); use(b2)` compiles to zero instructions — the CALL, the EX DE,HL adapter, the RET, and the result extraction all disappear; `min_of(a,b)` becomes `EQU minmax` (a zero-byte alias, down from `JP minmax`); UFCS helpers inline at call sites. **26/26 pkg tests PASS.**
 
 - **[BUG-003 Fixed: `ptr[i]` in While Loop — 5 Interacting Codegen Correctness Fixes](reports/2026-03-12-062-BUG003_PtrIdx_While_Loop_Fixed.md)** — Closed the last major open bug blocking real pointer-loop programs. The root cause was not one bug but five layered codegen errors that only surfaced together: **(1)** `OpPtrAdd` emitted `ADD DE, BC` — invalid Z80 (only `ADD HL, rr` exists); fixed with PUSH HL / ADD HL, off / LD r,(HL) / POP HL to preserve base ptr across loop iterations. **(2)** `coalesceAllocResult` safety check used exact equality — missed pair/component aliases, letting n=C and ptr=BC coexist (C is the low byte of BC); fixed by calling `physicallyConflicts` instead of `==`. **(3)** Block param in A was clobbered by the loop compare's `LD A, i` — fixed: detect block params allocated to A at block entry, save to scratch before compare, restore with `LD A, E` before the terminal jump. **(4)** `pendingAccReg` was only set in the OR-with-flag path; a second consecutive ADD (`i = i + 1`) overwrote acc in A silently — fixed: set `pendingAccReg` after every 8-bit result left in A. **(5)** `buildBlockCopies` used `g.ar.Loc(arg)` (canonical, ignores `physOverride`) so the back-jump parallel copy saw a no-op (A→A) instead of the correct E→A restore — fixed by switching to `g.loc(arg)`. E2E verified via emulator: `sum_array(ptr, 4) = 100 ✓`, `sum_array(ptr, 5) = 150 ✓`. **23/23 showcase PASS, 26/26 test packages PASS.**
@@ -570,13 +572,43 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 | **C99** | ⚠️ Partial | Produced real binaries; variable redeclaration bug in scoped locals |
 | **M68k** | 🧪 Untested | Most complete non-Z80 (28 opcodes, real register allocator); never assembled |
 | **i8080** | 🧪 Untested | Structurally correct (all-memory approach); never assembled |
-| **6502** | ❌ Broken | Arithmetic uses `$00` placeholder; never assembled |
+| **6502** | ⚠️ Working | **35/35 tests**, E2E via sim6502 emulator, dual-VM cross-check, console I/O (A2/C64/BBC). [Report #067](reports/2026-03-13-067-6502_Backend_E2E_Harness.md) |
 | **LLVM** | ❌ Broken | JumpIf fallthrough hardcoded, type errors; llc fails |
 | **WASM** | ❌ Broken | Label/jump emit as comments; WAT validation fails |
 | **Crystal** | ❌ Stub | Control flow emits comments, function args always empty |
 | **Game Boy** | ❌ Stub | Add, Sub, LoadVar, StoreVar all emit only comments |
 
 Only Z80 is production-quality. **QBE is new (2026-03-09)** — `pkg/mir2qbe` translates MIR2 directly to QBE IL, which compiles to native arm64/x86_64 via `qbe` + `cc`. Used as a correctness oracle: same MIR2 module → Z80 emulator vs native binary; agreement means the pipeline is correct. See [Report #045](reports/2026-03-09-045-MIR2_To_QBE_Native_Backend_And_Correctness_Oracle.md).
+
+### 6502 Backend — E2E Verified (NEW)
+
+The MOS 6502 backend compiles MIR2 IR to valid NMOS 6502 assembly, assembled
+and executed on an in-process emulator.  **35/35 tests pass.**
+
+```
+MIR2 IR ─┬─→ VM.Call()           → reference ─┐
+          │                                     ├→ assert equal (dual-VM oracle)
+          └─→ M6502Codegen → asm → sim6502 → A ┘
+```
+
+**What works (E2E verified):** `add`, `sub`, `neg`, `double`, `and`/`or`/`xor`,
+function calls (`JSR`/`RTS`), constants, console output (4 platforms).
+
+**Console I/O** — four OS vectors captured simultaneously (zero conflicts):
+
+| Address | System | Convention |
+|---------|--------|-----------|
+| `$F001` | Bare metal | `STA $F001` (I/O port) |
+| `$FDED` | Apple II | `JSR $FDED` (COUT) |
+| `$FFD2` | C64 | `JSR $FFD2` (CHROUT) |
+| `$FFEE` | BBC Micro | `JSR $FFEE` (OSWRCH) |
+
+All share the same calling convention: char in A.  In MinZ:
+`@extern("$FFEE") fun putchar(c: u8)`.
+
+**Missing (roadmap):** loops, 16-bit math, memory access, SMC.
+See [Report #067](reports/2026-03-13-067-6502_Backend_E2E_Harness.md) for
+the full feature matrix and Z80 vs 6502 comparison.
 
 ### Language Frontends
 
