@@ -11,7 +11,7 @@ sum_to:
 .sum_to_loop_head2:
     LD A, D
     CP C
-    JRS NC, .sum_to_trmp0
+    JRS NC, .sum_to_loop_exit4
 .sum_to_loop_body3:
     LD HL, acc_u8
     LD E, (HL)
@@ -26,11 +26,6 @@ sum_to:
 .sum_to_loop_exit4:
     LD A, (acc_u8)
     RET
-.sum_to_trmp0:
-    LD A, C
-    LD C, D
-    LD D, A
-    JRS .sum_to_loop_exit4
 
 ; fun factorial(n: u8 = A) -> u16 = HL ; clobbers: C, D, DE, F
 factorial:
@@ -49,7 +44,7 @@ factorial:
     LD A, E
     CP C
     LD A, E    ; restore block param from scratch
-    JRS NC, .factorial_loop_exit4
+    JRS NC, .factorial_trmp0
 .factorial_loop_body3:
     LD HL, (acc_u16)    ; u16 direct load (20T, no A clobber)
     ; mul16 HL * A → HL  (~320T, 16-iter shift-and-add)
@@ -83,6 +78,9 @@ factorial:
 .factorial_loop_exit4:
     LD HL, (acc_u16)    ; u16 direct load (20T, no A clobber)
     RET
+.factorial_trmp0:
+    LD D, C
+    JRS .factorial_loop_exit4
 
 ; fun count_in_range(arr_ptr: ptr = HL, len: u8 = C, lo: u8 = A, hi: u8 = B) -> u8 = A ; clobbers: BC, D, DE, E, F, IXH, IXL, IYH
 count_in_range:

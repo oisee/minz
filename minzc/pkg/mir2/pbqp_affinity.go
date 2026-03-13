@@ -21,6 +21,33 @@ package mir2
 //              lower src8's cost for E by LUTBCStarReward (4T)
 //    Rationale: if src8 ends up in C, codegen emits LD B, sym^H + LD A,(BC) = 14T
 //               instead of LD H,sym^H + LD L,src8 + LD A,(HL) = 18T.
+//
+//  mul16 rhs → DE
+//    Detected: OpMul with 16-bit type; Src[1] is the multiplier (rhs)
+//    Reward:   lower rhs's cost for DE by Mul16DEReward (8T)
+//    Rationale: genMul16 fast path skips LD D,high(rhs); LD E,low(rhs) = 8T
+//               when rhs is already in DE.
+//
+//  DJNZ counter → B
+//    Detected: TermDJNZ.Counter
+//    Reward:   lower counter's cost for B by DJNZCounterReward (4T)
+//    Rationale: DJNZ requires the counter in B.  If the counter is in another
+//               register (e.g. C from ClassGeneral), the codegen emits LD B,r.
+//               The nudge biases allocation toward B, eliminating that move.
+
+// Mul16DEReward is the T-state savings when the mul16 rhs is already in DE:
+//
+//	rhs NOT in DE: LD D, high(rhs) (4T) + LD E, low(rhs) (4T) = 8T overhead
+//	rhs in DE:     no setup needed = 0T overhead
+//	Savings: 8T
+const Mul16DEReward = 8
+
+// DJNZCounterReward is the T-state savings when the DJNZ counter is already in B:
+//
+//	counter NOT in B: LD B, counter (4T)
+//	counter in B:     no move needed = 0T
+//	Savings: 4T
+const DJNZCounterReward = 4
 
 // LUTBCStarReward is the T-state savings from the BC★/DE★ optimisation:
 //
@@ -127,5 +154,77 @@ func collectLUTSrc8Regs(f *Func) map[Reg]struct{} {
 		}
 	}
 	return result
+}
+
+// applyMul16DEAffinityNudge scans f for 16-bit multiply instructions and
+// lowers the node cost for the rhs (multiplier) register toward DE by
+// Mul16DEReward.  This biases the allocator to place the multiplier in DE
+// so genMul16 can skip the LD D,h; LD E,l setup.
+func applyMul16DEAffinityNudge(f *Func, states map[Reg]*regState, allLocs []PhysLoc) {
+	idxDE := -1
+	for i, loc := range allLocs {
+		if loc.Kind == LocReg && loc.Name == "DE" {
+			idxDE = i
+			break
+		}
+	}
+	if idxDE < 0 {
+		return
+	}
+
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op != OpMul || inst.Ty.Width() != 16 || len(inst.Src) < 2 {
+				continue
+			}
+			rhs := inst.Src[1]
+			rs, ok := states[rhs]
+			if !ok {
+				continue
+			}
+			if rs.costs[idxDE] < InfCost {
+				if rs.costs[idxDE] >= Mul16DEReward {
+					rs.costs[idxDE] -= Mul16DEReward
+				} else {
+					rs.costs[idxDE] = 0
+				}
+			}
+		}
+	}
+}
+
+// applyDJNZCounterAffinityNudge scans f for TermDJNZ terminators and lowers
+// the node cost for the Counter register toward B by DJNZCounterReward.
+// This biases the allocator to place the counter in B so the DJNZ codegen
+// can skip the LD B, counter move.
+func applyDJNZCounterAffinityNudge(f *Func, states map[Reg]*regState, allLocs []PhysLoc) {
+	idxB := -1
+	for i, loc := range allLocs {
+		if loc.Kind == LocReg && loc.Name == "B" {
+			idxB = i
+			break
+		}
+	}
+	if idxB < 0 {
+		return
+	}
+
+	for _, b := range f.Blocks {
+		t, ok := b.Term.(*TermDJNZ)
+		if !ok {
+			continue
+		}
+		rs, ok := states[t.Counter]
+		if !ok {
+			continue
+		}
+		if rs.costs[idxB] < InfCost {
+			if rs.costs[idxB] >= DJNZCounterReward {
+				rs.costs[idxB] -= DJNZCounterReward
+			} else {
+				rs.costs[idxB] = 0
+			}
+		}
+	}
 }
 

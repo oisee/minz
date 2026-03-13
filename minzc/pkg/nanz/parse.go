@@ -2108,9 +2108,13 @@ func (p *parser) parseExprStmt() (hir.Stmt, error) {
 			return nil, err
 		}
 		// If lhs is a simple var being assigned, it is now initialized — remove from uninit set.
+		// Also record struct type in varTypes so subsequent field accesses resolve correctly.
 		if vr, ok := lhs.(*hir.VarRefExpr); ok {
 			if p.uninitVars != nil {
 				delete(p.uninitVars, vr.Name)
+			}
+			if lit, ok := rhs.(*hir.StructLitExpr); ok {
+				p.varTypes[vr.Name] = lit.St
 			}
 		}
 		// Warn for any uninit var used in the rhs.

@@ -1,0 +1,104 @@
+// ex19 — Assert forms: scalar, tuple, and struct-field assertions
+//
+// Nanz compile-time asserts check function results at build time using the
+// MIR2 VM interpreter.  No runtime code is generated for any assert.
+//
+// Three forms demonstrated:
+//   assert fn(args) == scalar          — single return value
+//   assert fn(args) == (a, b)          — tuple (multi-return destructure)
+//   assert fn(args) == field_value     — struct field accessor
+//
+// Struct literal construction: `Point{x: px, y: py}` allocates a local struct,
+// writes the fields, and allows field reads via `p.x` / `p.y`.
+// Via qualifier:  "via mir2"  — MIR2 VM only (skips Z80 binary check)
+//                 "via z80"   — Z80 emulator only
+//                 (omitted)   — both MIR2 VM and Z80 emulator
+
+// ── Scalar asserts ─────────────────────────────────────────────────────────
+
+fun abs_diff(a: u8, b: u8) -> u8 {
+    c = a - b
+    if a >= b { return c }
+    return -c
+}
+
+fun clamp(v: u8, lo: u8, hi: u8) -> u8 {
+    if v < lo { return lo }
+    if v > hi { return hi }
+    return v
+}
+
+assert abs_diff(10, 3) == 7 via mir2
+assert abs_diff(3, 10) == 7 via mir2
+assert abs_diff(0, 0) == 0 via mir2
+assert clamp(50, 10, 100) == 50 via mir2
+assert clamp(5, 10, 100) == 10 via mir2
+assert clamp(200, 10, 100) == 100 via mir2
+
+// ── Tuple asserts ──────────────────────────────────────────────────────────
+
+// divmod: returns (quotient, remainder) as a tuple.
+// Z80 ABI: return[0] → HL, return[1] → DE
+fun divmod(a: u8, b: u8) -> (u8, u8) {
+    q = a / b
+    r = a - q * b
+    return (q, r)
+}
+
+// minmax: returns (min, max) without a comparator helper.
+fun minmax(a: u8, b: u8) -> (u8, u8) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+
+// Tuple assert syntax: assert fn(args) == (val0, val1)
+assert divmod(10, 3) == (3, 1) via mir2
+assert divmod(7, 2) == (3, 1) via mir2
+assert divmod(15, 5) == (3, 0) via mir2
+assert divmod(0, 7) == (0, 0) via mir2
+
+assert minmax(3, 7) == (3, 7) via mir2
+assert minmax(7, 3) == (3, 7) via mir2
+assert minmax(5, 5) == (5, 5) via mir2
+
+// ── Struct-field asserts ───────────────────────────────────────────────────
+
+// Structs are constructed locally and read via field access.
+// The assert checks the scalar return value of a function that
+// internally uses struct fields.
+
+struct Point {
+    x: u8
+    y: u8
+}
+
+// Manhattan distance — uses two local Point structs.
+fun manhattan(px: u8, py: u8, qx: u8, qy: u8) -> u8 {
+    p = Point{x: px, y: py}
+    q = Point{x: qx, y: qy}
+    dx = abs_diff(p.x, q.x)
+    dy = abs_diff(p.y, q.y)
+    return dx + dy
+}
+
+// Field accessor — verify each field is stored independently.
+fun get_x(px: u8, py: u8) -> u8 {
+    p = Point{x: px, y: py}
+    return p.x
+}
+
+fun get_y(px: u8, py: u8) -> u8 {
+    p = Point{x: px, y: py}
+    return p.y
+}
+
+// Struct field asserts via mir2 (Z80 alloca store path needs separate fix)
+assert get_x(3, 4) == 3 via mir2
+assert get_y(3, 4) == 4 via mir2
+assert get_x(0, 255) == 0 via mir2
+assert get_y(0, 255) == 255 via mir2
+
+assert manhattan(0, 0, 3, 4) == 7 via mir2
+assert manhattan(1, 1, 4, 5) == 7 via mir2
+assert manhattan(5, 5, 5, 5) == 0 via mir2
+assert manhattan(0, 0, 0, 10) == 10 via mir2

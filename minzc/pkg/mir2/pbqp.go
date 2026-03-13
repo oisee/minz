@@ -142,8 +142,10 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 		states[r].costs = cv
 	}
 
-	// Phase 6e: apply LUT BC★/DE★ affinity nudge — bias index regs toward C/E.
-	applyLUTAffinityNudge(f, states, allLocs)
+	// Phase 6e: PBQP affinity nudges — applied before solver to bias allocation.
+	applyLUTAffinityNudge(f, states, allLocs)          // LUT index → C/E (BC★/DE★ 14T path)
+	applyMul16DEAffinityNudge(f, states, allLocs)      // mul16 rhs → DE (skip LD D/E setup, 8T)
+	applyDJNZCounterAffinityNudge(f, states, allLocs)  // DJNZ counter → B (skip LD B,r, 4T)
 
 	result := &AllocResult{Locs: make(map[Reg]PhysLoc)}
 
