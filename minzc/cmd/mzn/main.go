@@ -1,13 +1,15 @@
-// mzn: compile Nanz source to native AMD64 via MIR2→C99 and MIR2→QBE.
+// mzn: compile Nanz source to native binary via MIR2→C99 and MIR2→QBE.
+// Targets the host platform (whatever qbe + cc produce).
 //
 // Usage:
 //
-//	mzn                         # run built-in demos
-//	mzn file.nanz               # compile file via both backends, run
+//	mzn file.nanz               # compile via QBE, run, show IL + asm
+//	mzn -o hello file.nanz      # compile via QBE → ./hello binary
 //	mzn -c file.nanz            # C99 backend only
-//	mzn -q file.nanz            # QBE backend only
+//	mzn -c -q file.nanz         # both backends
 //	mzn -emit-c file.nanz       # print generated C99, don't compile
 //	mzn -emit-qbe file.nanz     # print generated QBE IL, don't compile
+//	mzn                         # run built-in demos
 package main
 
 import (
@@ -30,6 +32,7 @@ var (
 	flagQ       = flag.Bool("q", false, "QBE backend only")
 	flagEmitC   = flag.Bool("emit-c", false, "print generated C99 and exit")
 	flagEmitQBE = flag.Bool("emit-qbe", false, "print generated QBE IL and exit")
+	flagOutput  = flag.String("o", "", "output binary path (keep binary instead of temp)")
 	flagRun     = flag.Bool("run", true, "compile and run (default true)")
 	flagDisasm  = flag.Bool("disasm", false, "show disassembly")
 )
@@ -289,6 +292,7 @@ func compileFile(filename string) {
 	// Default: QBE only. Use -c for C99, -c -q for both.
 	doC := *flagC
 	doQBE := *flagQ || !*flagC
+	quiet := *flagOutput != "" // -o mode: build silently
 
 	// ── C99 backend ──
 	if doC {
@@ -296,9 +300,14 @@ func compileFile(filename string) {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "mir2c: %v\n", err)
 		} else {
-			fmt.Printf("── C99 output ──\n%s\n", cCode)
+			if !quiet {
+				fmt.Printf("── C99 output ──\n%s\n", cCode)
+			}
 			cPath := filepath.Join(dir, name+".c")
 			binPath := filepath.Join(dir, name+"_c")
+			if quiet && !doQBE {
+				binPath = *flagOutput
+			}
 			os.WriteFile(cPath, []byte(cCode), 0644)
 
 			out, err := exec.Command("cc", "-O0", "-o", binPath, cPath, rtPath).CombinedOutput()
@@ -309,7 +318,7 @@ func compileFile(filename string) {
 					disasm, _ := exec.Command("objdump", "-d", "-M", "intel", binPath).Output()
 					fmt.Printf("── C99 → AMD64 disassembly ──\n%s\n", filterDisasm(string(disasm)))
 				}
-				if *flagRun {
+				if *flagRun && !quiet {
 					result, _ := exec.Command(binPath).CombinedOutput()
 					fmt.Printf("── C99 run ──\n%s", string(result))
 				}
@@ -323,7 +332,9 @@ func compileFile(filename string) {
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "mir2qbe: %v\n", err)
 		} else {
-			fmt.Printf("── QBE IL output ──\n%s\n", qbeIR)
+			if !quiet {
+				fmt.Printf("── QBE IL output ──\n%s\n", qbeIR)
+			}
 
 			ssaPath := filepath.Join(dir, name+".ssa")
 			asmPath := filepath.Join(dir, name+".s")
@@ -333,15 +344,20 @@ func compileFile(filename string) {
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "qbe: %v\n%s\n", err, out)
 			} else {
-				asmBytes, _ := os.ReadFile(asmPath)
-				fmt.Printf("── QBE → AMD64 assembly ──\n%s\n", string(asmBytes))
+				if !quiet {
+					asmBytes, _ := os.ReadFile(asmPath)
+					fmt.Printf("── QBE → AMD64 assembly ──\n%s\n", string(asmBytes))
+				}
 
 				binPath := filepath.Join(dir, name+"_q")
+				if quiet {
+					binPath = *flagOutput
+				}
 				out, err = exec.Command("cc", "-O0", "-o", binPath, asmPath, rtPath).CombinedOutput()
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "cc(qbe): %v\n%s\n", err, out)
 				} else {
-					if *flagRun {
+					if *flagRun && !quiet {
 						result, _ := exec.Command(binPath).CombinedOutput()
 						fmt.Printf("── QBE run ──\n%s", string(result))
 					}
