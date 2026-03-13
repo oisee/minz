@@ -8,7 +8,7 @@
 |-----------|--------|
 | `abs_diff` u8 | `SUB C / RET NC / NEG / RET` — **4 instructions, identical to hand-ASM** |
 | `popcount` LUTGen | `LD H,lut^H / LD L,C / LD A,(HL)` — **3 instructions + 256B table** |
-| `min_of(a,b)` | `JP minmax` — **1 instruction** (tail-call elimination) |
+| `min_of(a,b)` | `EQU minmax` — **0 bytes** (inliner + copy-prop alias) |
 | `@smc draw_row` | `LD HL,0 / LD(HL),195 / INC HL / LD(HL),60 / RET` — **compiled sprite from `Row2{b0:195,b1:60}`** |
 | multi-return annotation | `-> (u16=HL, u16=DE)` — correct, verified against allocator |
 
@@ -17,6 +17,8 @@
 ---
 
 ### Hot off the press
+
+- **[Phase 6f: Trivial Function Inliner — `swap(a,b).1 == a` Realized in Machine Code](reports/2026-03-13-066-MultiPass_Contracts_Achievement_Article.md)** — Two optimizations shipped: **(1)** multi-pass `OptimizeContracts` with `incomingEdgeCost` — the contract optimizer now sums what ALL callers pay for each ABI choice. For N≥2 callers of `swap`, it correctly picks the convention that costs 4T total instead of 4N T. Loop trampolines eliminated in `ex9b` and `ex14/sum_to`. **(2)** `InlineTrivial + PropagateCopies` (`pkg/mir2/inline.go`) — single-block leaf functions with ≤4 instructions are inlined at every call site; `OpMove` chains folded by copy propagation; DSE removes dead instructions. **Key results:** `let (_, b2) = swap(a, b); use(b2)` compiles to zero instructions — the CALL, the EX DE,HL adapter, the RET, and the result extraction all disappear; `min_of(a,b)` becomes `EQU minmax` (a zero-byte alias, down from `JP minmax`); UFCS helpers inline at call sites. **26/26 pkg tests PASS.**
 
 - **[BUG-003 Fixed: `ptr[i]` in While Loop — 5 Interacting Codegen Correctness Fixes](reports/2026-03-12-062-BUG003_PtrIdx_While_Loop_Fixed.md)** — Closed the last major open bug blocking real pointer-loop programs. The root cause was not one bug but five layered codegen errors that only surfaced together: **(1)** `OpPtrAdd` emitted `ADD DE, BC` — invalid Z80 (only `ADD HL, rr` exists); fixed with PUSH HL / ADD HL, off / LD r,(HL) / POP HL to preserve base ptr across loop iterations. **(2)** `coalesceAllocResult` safety check used exact equality — missed pair/component aliases, letting n=C and ptr=BC coexist (C is the low byte of BC); fixed by calling `physicallyConflicts` instead of `==`. **(3)** Block param in A was clobbered by the loop compare's `LD A, i` — fixed: detect block params allocated to A at block entry, save to scratch before compare, restore with `LD A, E` before the terminal jump. **(4)** `pendingAccReg` was only set in the OR-with-flag path; a second consecutive ADD (`i = i + 1`) overwrote acc in A silently — fixed: set `pendingAccReg` after every 8-bit result left in A. **(5)** `buildBlockCopies` used `g.ar.Loc(arg)` (canonical, ignores `physOverride`) so the back-jump parallel copy saw a no-op (A→A) instead of the correct E→A restore — fixed by switching to `g.loc(arg)`. E2E verified via emulator: `sum_array(ptr, 4) = 100 ✓`, `sum_array(ptr, 5) = 150 ✓`. **23/23 showcase PASS, 26/26 test packages PASS.**
 
