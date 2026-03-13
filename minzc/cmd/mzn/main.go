@@ -286,12 +286,9 @@ func compileFile(filename string) {
 		return
 	}
 
-	doC := !*flagQ || *flagC
-	doQBE := !*flagC || *flagQ
-	if !*flagC && !*flagQ {
-		doC = true
-		doQBE = true
-	}
+	// Default: QBE only. Use -c for C99, -c -q for both.
+	doC := *flagC
+	doQBE := *flagQ || !*flagC
 
 	// ── C99 backend ──
 	if doC {
