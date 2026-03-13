@@ -537,7 +537,7 @@ async function emitNativeIR(emitFlag: string) {
     if (!ctx) { return; }
     await vscode.window.activeTextEditor?.document.save();
 
-    const mzn = getNanz2NativePath(ctx);
+    const mzn = getMznPath(ctx);
     const cmd = `${mzn} ${emitFlag} "${ctx.filePath}"`;
 
     exec(cmd, { cwd: ctx.workingDir }, async (error, stdout, stderr) => {
