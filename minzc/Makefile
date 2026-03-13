@@ -14,7 +14,7 @@ MZX_LDFLAGS = -X 'main.version=$(MZX_VERSION)' -X 'main.buildNum=$(MZX_BUILD_NUM
 
 # Build all tools
 .PHONY: all
-all: mz mza mze mzv mzr mzrun mztap mzd mzx
+all: mz mza mze mzv mzn mzr mzrun mztap mzd mzx mzlsp
 
 # Build the main compiler
 mz:
@@ -48,6 +48,14 @@ mztap:
 mzd:
 	go build -o mzd ./cmd/mzd
 
+# Build the native compiler (Nanz → C99/QBE → AMD64)
+mzn:
+	go build -o mzn ./cmd/mzn
+
+# Build the LSP server
+mzlsp:
+	go build -o mzlsp ./cmd/mzlsp
+
 # Build the ZX Spectrum emulator (auto-increments build number)
 mzx:
 	@echo $$(($(MZX_BUILD_NUM) + 1)) > $(MZX_BUILD_FILE)
@@ -59,7 +67,7 @@ install: all
 	@echo "Installing MinZ tools to $(BINDIR)..."
 	@mkdir -p $(BINDIR)
 	@if [ -w $(BINDIR) ]; then \
-		cp mz mza mze mzv mzr mzrun mztap mzd mzx $(BINDIR)/ && \
+		cp mz mza mze mzv mzn mzr mzrun mztap mzd mzx mzlsp $(BINDIR)/ && \
 		echo "MinZ tools installed to $(BINDIR)"; \
 	else \
 		echo "⚠️  $(BINDIR) is not writable. Try: sudo make install"; \
@@ -70,13 +78,13 @@ install: all
 .PHONY: install-user
 install-user: all
 	@mkdir -p ~/.local/bin
-	@for f in mz mza mze mzv mzr mzrun mztap mzd mzx; do [ -f $$f ] && cp -f $$f ~/.local/bin/ && (codesign -s - ~/.local/bin/$$f 2>/dev/null || true); done
+	@for f in mz mza mze mzv mzn mzr mzrun mztap mzd mzx mzlsp; do [ -f $$f ] && cp -f $$f ~/.local/bin/ && (codesign -s - ~/.local/bin/$$f 2>/dev/null || true); done
 	@echo "MinZ tools installed to ~/.local/bin/"
 
 # Clean build artifacts
 .PHONY: clean
 clean:
-	rm -f mz mza mze mzv mzr mzrun mztap mzd mzx
+	rm -f mz mza mze mzv mzn mzr mzrun mztap mzd mzx mzlsp
 
 # Run basic smoke test
 .PHONY: test
@@ -141,6 +149,8 @@ help:
 	@echo "  mza   - Z80 assembler (generates binary)"
 	@echo "  mze   - Z80 emulator (run/debug binaries)"
 	@echo "  mzv   - MZV virtual machine (platform abstraction)"
+	@echo "  mzn   - Native compiler (Nanz -> C99/QBE -> AMD64)"
+	@echo "  mzlsp - Language Server Protocol"
 	@echo "  mzr   - MinZ REPL (interactive mode)"
 	@echo "  mzrun - DZRP remote runner (run on emulators)"
 	@echo "  mztap - TAP file loader (load .tap via DZRP)"
