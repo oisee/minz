@@ -230,6 +230,23 @@ func compileNanz(src, name string) (*mir2.Module, error) {
 }
 
 func main() {
+	// Allow flags in any position (Go's flag package stops at first non-flag arg).
+	// Reorder os.Args so all flags come before positional args.
+	var flags, args []string
+	for i := 1; i < len(os.Args); i++ {
+		a := os.Args[i]
+		if strings.HasPrefix(a, "-") {
+			flags = append(flags, a)
+			// If flag takes a value (e.g. -o path), grab next arg too
+			if (a == "-o") && i+1 < len(os.Args) {
+				i++
+				flags = append(flags, os.Args[i])
+			}
+		} else {
+			args = append(args, a)
+		}
+	}
+	os.Args = append([]string{os.Args[0]}, append(flags, args...)...)
 	flag.Parse()
 
 	// If a file argument is given, compile that file
