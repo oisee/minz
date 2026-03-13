@@ -493,15 +493,15 @@ async function showAST() {
     }
 }
 
-// ---------- Native Compilation (nanz2native) ----------
+// ---------- Native Compilation (mzn) ----------
 
-function getNanz2NativePath(ctx: ReturnType<typeof getMinZContext>): string {
-    if (!ctx) { return 'nanz2native'; }
+function getMznPath(ctx: ReturnType<typeof getMinZContext>): string {
+    if (!ctx) { return 'mzn'; }
     // Try alongside the compiler binary, then fall back to PATH
     const compilerDir = path.dirname(ctx.compilerPath);
-    const candidate = path.join(compilerDir, 'nanz2native');
+    const candidate = path.join(compilerDir, 'mzn');
     if (fs.existsSync(candidate)) { return candidate; }
-    return 'nanz2native';
+    return 'mzn';
 }
 
 async function compileNative(backendFlag?: string) {
@@ -509,12 +509,12 @@ async function compileNative(backendFlag?: string) {
     if (!ctx) { return; }
     await vscode.window.activeTextEditor?.document.save();
 
-    const nanz2native = getNanz2NativePath(ctx);
+    const mzn = getMznPath(ctx);
     const args = ['-run', '-disasm'];
     if (backendFlag) { args.push(backendFlag); }
     args.push(`"${ctx.filePath}"`);
 
-    const cmd = `${nanz2native} ${args.join(' ')}`;
+    const cmd = `${mzn} ${args.join(' ')}`;
     outputChannel.clear();
     outputChannel.show();
     outputChannel.appendLine(`Compile to native: ${cmd}`);
@@ -537,8 +537,8 @@ async function emitNativeIR(emitFlag: string) {
     if (!ctx) { return; }
     await vscode.window.activeTextEditor?.document.save();
 
-    const nanz2native = getNanz2NativePath(ctx);
-    const cmd = `${nanz2native} ${emitFlag} "${ctx.filePath}"`;
+    const mzn = getNanz2NativePath(ctx);
+    const cmd = `${mzn} ${emitFlag} "${ctx.filePath}"`;
 
     exec(cmd, { cwd: ctx.workingDir }, async (error, stdout, stderr) => {
         if (error) {

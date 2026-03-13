@@ -1,13 +1,13 @@
-// nanz2native: compile Nanz source to native AMD64 via MIR2→C99 and MIR2→QBE.
+// mzn: compile Nanz source to native AMD64 via MIR2→C99 and MIR2→QBE.
 //
 // Usage:
 //
-//	nanz2native                         # run built-in demos
-//	nanz2native file.nanz               # compile file via both backends, run
-//	nanz2native -c file.nanz            # C99 backend only
-//	nanz2native -q file.nanz            # QBE backend only
-//	nanz2native -emit-c file.nanz       # print generated C99, don't compile
-//	nanz2native -emit-qbe file.nanz     # print generated QBE IL, don't compile
+//	mzn                         # run built-in demos
+//	mzn file.nanz               # compile file via both backends, run
+//	mzn -c file.nanz            # C99 backend only
+//	mzn -q file.nanz            # QBE backend only
+//	mzn -emit-c file.nanz       # print generated C99, don't compile
+//	mzn -emit-qbe file.nanz     # print generated QBE IL, don't compile
 package main
 
 import (
@@ -255,7 +255,7 @@ func compileFile(filename string) {
 		os.Exit(1)
 	}
 
-	dir, err := os.MkdirTemp("", "nanz2native")
+	dir, err := os.MkdirTemp("", "mzn")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "tmpdir: %v\n", err)
 		os.Exit(1)
@@ -355,7 +355,7 @@ func compileFile(filename string) {
 }
 
 func runDemos() {
-	dir, err := os.MkdirTemp("", "nanz2native")
+	dir, err := os.MkdirTemp("", "mzn")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "tmpdir: %v\n", err)
 		os.Exit(1)
