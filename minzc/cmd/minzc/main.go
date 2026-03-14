@@ -694,7 +694,32 @@ func compileViaHIR(sourceFile string) error {
 			return fmt.Errorf("PL/M compile: %w", err)
 		}
 	case ".nanz":
-		hirMod, err = nanz.Parse(string(src), sourceFile)
+		// Resolve stdlib path: look for stdlib/ relative to the binary, or
+		// relative to the source file's project root.
+		absSource, _ := filepath.Abs(sourceFile)
+		baseDir := filepath.Dir(absSource)
+		stdlibDir := ""
+		// Walk up from binary location to find stdlib/
+		if exePath, err2 := os.Executable(); err2 == nil {
+			candidate := filepath.Join(filepath.Dir(exePath), "..", "stdlib")
+			if info, err3 := os.Stat(candidate); err3 == nil && info.IsDir() {
+				stdlibDir = candidate
+			}
+		}
+		// Also try relative to source file (common in development)
+		if stdlibDir == "" {
+			for dir := baseDir; dir != filepath.Dir(dir); dir = filepath.Dir(dir) {
+				candidate := filepath.Join(dir, "stdlib")
+				if info, err3 := os.Stat(candidate); err3 == nil && info.IsDir() {
+					stdlibDir = candidate
+					break
+				}
+			}
+		}
+		hirMod, err = nanz.ParseWithOpts(string(src), sourceFile, nanz.ParseOpts{
+			BaseDir:   baseDir,
+			StdlibDir: stdlibDir,
+		})
 		if err != nil {
 			return fmt.Errorf("Nanz parse: %w", err)
 		}

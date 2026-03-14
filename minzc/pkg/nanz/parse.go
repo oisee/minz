@@ -27,6 +27,8 @@ package nanz
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -34,10 +36,25 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 )
 
-// Parse parses Nanz source and returns a HIR module.
+// ParseOpts configures module-aware parsing (import resolution).
+type ParseOpts struct {
+	BaseDir    string            // directory of the source file (for relative imports)
+	StdlibDir  string            // path to stdlib/ root (for stdlib imports)
+	Loaded     map[string]bool   // already-loaded module paths (circular import detection)
+}
+
+// Parse parses Nanz source and returns a HIR module (no import resolution).
 func Parse(src, name string) (*hir.Module, error) {
+	return ParseWithOpts(src, name, ParseOpts{})
+}
+
+// ParseWithOpts parses Nanz source with import resolution enabled.
+func ParseWithOpts(src, name string, opts ParseOpts) (*hir.Module, error) {
 	l := newLexer(src)
-	p := &parser{l: l, name: name}
+	if opts.Loaded == nil {
+		opts.Loaded = make(map[string]bool)
+	}
+	p := &parser{l: l, name: name, opts: opts}
 	return p.parseModule()
 }
 
@@ -369,6 +386,7 @@ type opOverload struct {
 type parser struct {
 	l           *lexer
 	name        string
+	opts        ParseOpts
 	module      *hir.Module // current module being built (set in parseModule)
 	structs     map[string]*mir2.StructTy
 	interfaces  map[string]*hir.InterfaceDecl   // interface name → declaration
@@ -388,9 +406,11 @@ type parser struct {
 	// function return type table — populated as functions are parsed so that
 	// call expressions can get the correct Ty instead of TyVoid.
 	funcSigs    map[string]mir2.Ty
-	typeAliases map[string]mir2.Ty              // type X = Y — structural alias
-	enums       map[string]map[string]int64     // enumName → {variantName → value}
-	enumBaseTy  map[string]mir2.Ty              // enumName → base type (default TyU8)
+	typeAliases     map[string]mir2.Ty              // type X = Y — structural alias
+	enums           map[string]map[string]int64     // enumName → {variantName → value}
+	enumBaseTy      map[string]mir2.Ty              // enumName → base type (default TyU8)
+	importedModules map[string]string               // modPath → mangled prefix (for qualified access)
+	funcAliases     map[string]string               // local name → mangled name (for unqualified imports)
 }
 
 // exprTy returns the known type of an expression, consulting varTypes and
@@ -470,6 +490,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.typeAliases = make(map[string]mir2.Ty)
 	p.enums = make(map[string]map[string]int64)
 	p.enumBaseTy = make(map[string]mir2.Ty)
+	p.funcAliases = make(map[string]string)
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -538,6 +559,11 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				m.Funcs = append(m.Funcs, f)
 			} else {
 				return nil, fmt.Errorf("line %d: unexpected @%s", attr.line, attr.val)
+			}
+
+		case t.kind == tokIdent && t.val == "import":
+			if err := p.parseImport(); err != nil {
+				return nil, err
 			}
 
 		case t.kind == tokIdent && t.val == "type":
@@ -644,6 +670,283 @@ func (p *parser) parseEnumDecl() error {
 	p.enums[nameTok.val] = variants
 	p.enumBaseTy[nameTok.val] = mir2.TyU8
 	return nil
+}
+
+// parseImport parses:
+//
+//	import math.gcd                  → qualified: math.gcd.funcname(...)
+//	import math.gcd { gcd }          → unqualified: gcd(...)
+//	import math.gcd { gcd as g }     → aliased: g(...)
+//	import math.gcd { * }            → glob: all symbols unqualified
+//
+// The imported module is parsed recursively and merged into the current module.
+// Function names are mangled with the module prefix (dots replaced with $).
+func (p *parser) parseImport() error {
+	p.l.next() // consume "import"
+	line := p.l.peek().line
+
+	// Parse dot-separated module path: math.gcd → ["math", "gcd"]
+	var parts []string
+	for {
+		tok, err := p.l.eat(tokIdent)
+		if err != nil {
+			return fmt.Errorf("line %d: import: expected module name", line)
+		}
+		parts = append(parts, tok.val)
+		if !p.l.is(tokDot) {
+			break
+		}
+		p.l.next() // consume '.'
+	}
+	modPath := strings.Join(parts, ".")
+
+	// Parse optional selective import: { name, name as alias, * }
+	type importSym struct {
+		name  string // original name in imported module
+		alias string // local alias (empty = same as name)
+	}
+	var selected []importSym
+	globImport := false
+	qualified := true // default: qualified access (math.gcd.funcname)
+
+	if p.l.is(tokLBrace) {
+		p.l.next() // consume '{'
+		qualified = false
+		for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+			if len(selected) > 0 {
+				if _, err := p.l.eat(tokComma); err != nil {
+					return fmt.Errorf("line %d: import: expected ',' between names", line)
+				}
+			}
+			// Glob: { * }
+			if p.l.is(tokStar) {
+				p.l.next()
+				globImport = true
+				break
+			}
+			nameTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return fmt.Errorf("line %d: import: expected symbol name", line)
+			}
+			sym := importSym{name: nameTok.val}
+			// Optional: name as alias
+			if p.l.is(tokIdent) && p.l.peek().val == "as" {
+				p.l.next() // consume "as"
+				aliasTok, err := p.l.eat(tokIdent)
+				if err != nil {
+					return fmt.Errorf("line %d: import: expected alias after 'as'", line)
+				}
+				sym.alias = aliasTok.val
+			}
+			selected = append(selected, sym)
+		}
+		if _, err := p.l.eat(tokRBrace); err != nil {
+			return fmt.Errorf("line %d: import: expected '}'", line)
+		}
+	}
+
+	// Resolve module path to filesystem
+	filePath, err := p.resolveModulePath(modPath, line)
+	if err != nil {
+		return err
+	}
+
+	// Circular import detection
+	absPath, _ := filepath.Abs(filePath)
+	if p.opts.Loaded[absPath] {
+		return fmt.Errorf("line %d: import %s: circular import detected", line, modPath)
+	}
+
+	// Load and parse imported module
+	src, err := os.ReadFile(filePath)
+	if err != nil {
+		return fmt.Errorf("line %d: import %s: %w", line, modPath, err)
+	}
+
+	childOpts := ParseOpts{
+		BaseDir:   filepath.Dir(filePath),
+		StdlibDir: p.opts.StdlibDir,
+		Loaded:    make(map[string]bool),
+	}
+	for k, v := range p.opts.Loaded {
+		childOpts.Loaded[k] = v
+	}
+	childOpts.Loaded[absPath] = true
+
+	imported, err := ParseWithOpts(string(src), modPath, childOpts)
+	if err != nil {
+		return fmt.Errorf("line %d: import %s: %w", line, modPath, err)
+	}
+
+	// Merge imported module into current module.
+	// Module prefix for name mangling: "math.gcd" → "math$gcd$"
+	modPrefix := strings.ReplaceAll(modPath, ".", "$") + "$"
+
+	// Merge functions
+	for _, f := range imported.Funcs {
+		mangledName := modPrefix + f.Name
+		origName := f.Name
+		f.Name = mangledName
+
+		// Register mangled function signature
+		p.funcSigs[mangledName] = f.RetTy
+
+		if globImport {
+			// Glob: also register under original name → mangled name
+			p.funcSigs[origName] = f.RetTy
+			p.funcAliases[origName] = mangledName
+		}
+		for _, sym := range selected {
+			if sym.name == origName {
+				localName := sym.name
+				if sym.alias != "" {
+					localName = sym.alias
+				}
+				p.funcSigs[localName] = f.RetTy
+				p.funcAliases[localName] = mangledName
+			}
+		}
+
+		p.module.Funcs = append(p.module.Funcs, f)
+	}
+
+	// Merge structs
+	for _, st := range imported.Structs {
+		mangledName := modPrefix + st.Name
+		origName := st.Name
+		st.Name = mangledName
+		p.structs[mangledName] = st
+
+		if globImport {
+			p.structs[origName] = st
+		}
+		for _, sym := range selected {
+			if sym.name == origName {
+				localName := sym.name
+				if sym.alias != "" {
+					localName = sym.alias
+				}
+				p.structs[localName] = st
+			}
+		}
+
+		p.module.Structs = append(p.module.Structs, st)
+	}
+
+	// Merge globals
+	for _, g := range imported.Globals {
+		mangledName := modPrefix + g.Name
+		origName := g.Name
+		g.Name = mangledName
+		p.globalTypes[mangledName] = g.Ty
+
+		if globImport {
+			p.globalTypes[origName] = g.Ty
+		}
+		for _, sym := range selected {
+			if sym.name == origName {
+				localName := sym.name
+				if sym.alias != "" {
+					localName = sym.alias
+				}
+				p.globalTypes[localName] = g.Ty
+			}
+		}
+
+		p.module.Globals = append(p.module.Globals, g)
+	}
+
+	// Merge string literals
+	p.module.Strings = append(p.module.Strings, imported.Strings...)
+
+	// Merge enums
+	for eName, variants := range p.childEnums(imported) {
+		mangledEnum := modPrefix + eName
+		p.enums[mangledEnum] = variants
+		p.enumBaseTy[mangledEnum] = mir2.TyU8
+
+		if globImport {
+			p.enums[eName] = variants
+			p.enumBaseTy[eName] = mir2.TyU8
+		}
+		for _, sym := range selected {
+			if sym.name == eName {
+				localName := sym.name
+				if sym.alias != "" {
+					localName = sym.alias
+				}
+				p.enums[localName] = variants
+				p.enumBaseTy[localName] = mir2.TyU8
+			}
+		}
+	}
+
+	// Merge type aliases
+	for aName, aTy := range p.childTypeAliases(imported) {
+		mangledAlias := modPrefix + aName
+		p.typeAliases[mangledAlias] = aTy
+
+		if globImport {
+			p.typeAliases[aName] = aTy
+		}
+		for _, sym := range selected {
+			if sym.name == aName {
+				localName := sym.name
+				if sym.alias != "" {
+					localName = sym.alias
+				}
+				p.typeAliases[localName] = aTy
+			}
+		}
+	}
+
+	// For qualified import, register module prefix so that
+	// "math.gcd.funcname()" resolves during expression parsing.
+	if qualified {
+		if p.importedModules == nil {
+			p.importedModules = make(map[string]string)
+		}
+		p.importedModules[modPath] = modPrefix
+	}
+
+	return nil
+}
+
+// childEnums is a no-op placeholder — enums from imported modules are already
+// in the parser's enums map from the child parse.  For now returns empty map;
+// a proper implementation would pass enum data through hir.Module.
+func (p *parser) childEnums(_ *hir.Module) map[string]map[string]int64 {
+	return nil
+}
+
+// childTypeAliases — same placeholder as childEnums.
+func (p *parser) childTypeAliases(_ *hir.Module) map[string]mir2.Ty {
+	return nil
+}
+
+// resolveModulePath converts a dot-separated module path to a filesystem path.
+// Search order: baseDir (local), then stdlibDir.
+func (p *parser) resolveModulePath(modPath string, line int) (string, error) {
+	relPath := strings.ReplaceAll(modPath, ".", string(filepath.Separator)) + ".nanz"
+
+	// 1. Local: relative to current file
+	if p.opts.BaseDir != "" {
+		candidate := filepath.Join(p.opts.BaseDir, relPath)
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate, nil
+		}
+	}
+
+	// 2. Stdlib
+	if p.opts.StdlibDir != "" {
+		candidate := filepath.Join(p.opts.StdlibDir, relPath)
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate, nil
+		}
+	}
+
+	return "", fmt.Errorf("line %d: import %s: module not found (searched %s, %s)",
+		line, modPath, p.opts.BaseDir, p.opts.StdlibDir)
 }
 
 // parseAssert parses: assert fn(arg, ...) == expected
@@ -2038,6 +2341,10 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 			if vr, ok := base.(*hir.VarRefExpr); ok {
 				name = vr.Name
 			}
+			// Resolve import alias: "add" → "mylib$math$add"
+			if resolved, ok := p.funcAliases[name]; ok {
+				name = resolved
+			}
 			callTy := mir2.Ty(mir2.TyVoid)
 			if name != "" {
 				if ty, ok := p.funcSigs[name]; ok {
@@ -2474,15 +2781,100 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			}
 			base = &hir.IndexExpr{Base: base, Idx: idx, ElemTy: mir2.TyU8}
 		case tokDot:
+			// Qualified module access: mod.func(args) or mod.sub.func(args)
 			// base.field    — struct field access
 			// base.method() — UFCS method call: rewritten to method(base, args...)
-			//                 If base's type is a struct with a registered method, use
-			//                 the mangled name (e.g. Vec2_add). Otherwise use fieldName.
 			p.l.next()
 			fieldTok, err := p.l.eat(tokIdent)
 			if err != nil {
 				return nil, err
 			}
+
+			// Check for qualified module call: mod.func(...) or mod.sub.func(...)
+			if vr, ok := base.(*hir.VarRefExpr); ok && p.importedModules != nil {
+				resolved := false
+				// Try progressively longer module paths: "mod", "mod.sub", "mod.sub.pkg"
+				modKey := vr.Name
+				member := fieldTok.val
+				for !resolved {
+					if prefix, found := p.importedModules[modKey]; found {
+						if p.l.is(tokLParen) {
+							// Module-qualified function call: mod.func(args)
+							mangledName := prefix + member
+							p.l.next() // consume '('
+							var args []hir.Expr
+							for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+								a, err2 := p.parseExpr()
+								if err2 != nil {
+									return nil, err2
+								}
+								args = append(args, a)
+								if p.l.is(tokComma) {
+									p.l.next()
+								}
+							}
+							if _, err2 := p.l.eat(tokRParen); err2 != nil {
+								return nil, err2
+							}
+							callTy := mir2.Ty(mir2.TyVoid)
+							if ty, ok2 := p.funcSigs[mangledName]; ok2 {
+								callTy = ty
+							}
+							base = &hir.CallExpr{Fn: mangledName, Args: args, Ty: callTy}
+							resolved = true
+							break
+						}
+						// Module-qualified enum: mod.EnumName.VARIANT
+						if variants, eOk := p.enums[prefix+member]; eOk && p.l.is(tokDot) {
+							p.l.next() // consume '.'
+							vTok, err2 := p.l.eat(tokIdent)
+							if err2 != nil {
+								return nil, fmt.Errorf("line %d: %s.%s. expected variant", fieldTok.line, modKey, member)
+							}
+							val, ok2 := variants[vTok.val]
+							if !ok2 {
+								return nil, fmt.Errorf("line %d: %s.%s.%s: unknown variant", vTok.line, modKey, member, vTok.val)
+							}
+							base = &hir.IntLitExpr{Val: val, Ty: mir2.TyU8}
+							resolved = true
+							break
+						}
+						// Module-qualified struct literal: mod.StructName { ... }
+						if st, sOk := p.structs[prefix+member]; sOk && p.l.is(tokLBrace) {
+							lit, err2 := p.parseStructLit(st)
+							if err2 != nil {
+								return nil, err2
+							}
+							base = lit
+							resolved = true
+							break
+						}
+						// Module-qualified global: mod.varname
+						if ty, gOk := p.globalTypes[prefix+member]; gOk {
+							base = &hir.VarRefExpr{Name: prefix + member, Ty: ty}
+							resolved = true
+							break
+						}
+						break
+					}
+					// Not a module yet — maybe "mod.sub" is a longer module path
+					// Check if next token continues the path: mod.sub.pkg.func(...)
+					if !p.l.is(tokDot) {
+						break
+					}
+					modKey = modKey + "." + member
+					p.l.next() // consume '.'
+					nextTok, err2 := p.l.eat(tokIdent)
+					if err2 != nil {
+						return nil, err2
+					}
+					member = nextTok.val
+				}
+				if resolved {
+					continue // continue outer parsePostfix loop
+				}
+			}
+
 			if p.l.is(tokLParen) {
 				// Method call: base.method(a, b) → method(base, a, b)
 				p.l.next()
@@ -2571,6 +2963,10 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			name := ""
 			if vr, ok := base.(*hir.VarRefExpr); ok {
 				name = vr.Name
+			}
+			// Resolve import alias: "add" → "mylib$math$add"
+			if resolved, ok := p.funcAliases[name]; ok {
+				name = resolved
 			}
 			callTy := mir2.Ty(mir2.TyVoid)
 			if name != "" {
