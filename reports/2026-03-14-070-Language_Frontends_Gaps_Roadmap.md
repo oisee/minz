@@ -375,6 +375,13 @@ before lowering.  The same mechanism works:
 
 ### Name Mangling
 
+In Nanz source, dots are natural:
+```nanz
+import stdlib.graphics.screen
+screen.draw_pixel(x, y, c)
+```
+
+In assembly output, dots are replaced with `$` to avoid conflict with MZA local labels:
 ```
 Nanz source:   import math.gcd → gcd(12, 8)
 Internal HIR:  math.gcd.gcd (dot-separated)
@@ -386,8 +393,8 @@ Asm output:    stdlib$graphics$screen$draw_pixel
 ```
 
 Dot chosen for Nanz because: natural, matches Go/Java/Python import conventions.
-`$` chosen for asm because: valid in Z80 labels, no conflict with `.local` labels,
-standard in Z80 assembler practice.
+`$` chosen for asm because: valid in Z80 labels, not valid in Nanz identifiers
+(no ambiguity), no conflict with `.local` labels, standard in Z80 assembler practice.
 
 ### Estimated Effort: 2-3 weeks
 
@@ -489,8 +496,9 @@ with HIR dump is lossless.
   Game DSLs (sprite definitions, level layouts, state machines) become
   first-class compile-time constructs.
 - **Debugging**: `--emit=lanz` gives readable, parseable HIR
-- **Covers other gaps indirectly**: complex patterns (error handling, pattern
-  matching) can be prototyped as Lanz macros before hardcoding in the compiler
+- **Gap coverage**: complex patterns (goto desugaring, switch fall-through,
+  ObjC dispatch) can be implemented as Lanz macros instead of compiler changes
+- **Self-hosting potential**: compiler could be written in Lanz
 
 ### Status: Practical — needed for meta-function evolution
 
@@ -550,6 +558,7 @@ pipe/trans ──┬→ reusable pipelines
 - **Compile-time inheritance** — needed for Pascal TP5.5 objects and ObjC frontend.
   Not for Nanz itself.
 - **Lanz** — practical for meta-functions but not blocking games or frontends.
+  High ROI when prioritized (see §6).
 - **Lifetime annotations** — future optimization, not blocking anything.
 - **Generics** — use function overloading (existing) or @define macros.
 

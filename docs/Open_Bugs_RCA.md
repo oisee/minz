@@ -181,6 +181,66 @@ will cause incorrect results in larger programs with dynamic call chains.
 
 ---
 
+## BUG-008 🔴 Arena codegen: impossible `LD IXL, (IX+d)` + self-pointer loss
+
+**Symptom:** `Arena_alloc` generates `LD IXL, (IX+0)` and `LD IXH, (IX+1)` —
+instructions that cannot be encoded on Z80.  MZA correctly rejects them.
+MIR2 VM tests pass (don't touch Z80 codegen), masking the bug.
+
+**Verified:** MZA outputs `unknown instruction or invalid operands: LD` for both.
+
+**Reproducer:**
+```nanz
+struct Arena { ptr: u16, end: u16 }
+fun Arena.alloc(self: ^Arena, n: u16) -> u16 {
+    let result: u16 = self.ptr
+    let next: u16 = result + n
+    if next > self.end { return 0 }
+    self.ptr = next
+    return result
+}
+```
+
+**RCA (3 compounding bugs):**
+
+1. **PBQP missing constraint:** Allocator assigns ClassIXY8 (IXH/IXL) as
+   destination for IX-indexed loads.  No constraint prevents dest=IXL when
+   source=(IX+d) — the DD prefix can't remap both simultaneously.
+
+2. **Self-clobber:** Even if the instruction existed, `LD IXL, (IX+0)` would
+   change IX itself, making the subsequent `LD IXH, (IX+1)` read from a
+   corrupted base address.  Must use scratch registers (A, B, etc).
+
+3. **`LD H, IXH` invalid:** DD prefix remaps H→IXH, so `LD H, IXH` becomes
+   `LD IXH, IXH` (NOP).  Valid IXH/IXL instructions require other operand
+   to be A/B/C/D/E only.  MZA correctly rejects `LD H, IXH`.
+
+4. **Self-pointer lost:** After `ADD HL, BC` (computing `next`), HL no longer
+   holds `self`.  Codegen derives `self.end` from `next` via `PUSH HL; POP IX;
+   INC IX; INC IX` — but `next+2 ≠ self+2`.
+
+5. **Codegen blind combination:** `z80codegen.go:1662-1666` calls `lowByte(dst)`
+   and `ptrIndirect(ptr, d)` without checking if both are IX-family.
+
+**Location:** `pkg/mir2/z80codegen.go:1662-1666`, `pkg/mir2/pbqp.go`
+
+**Fix options:**
+1. PBQP constraint: infinite cost for IXY8 dest with IX-indexed source
+2. Codegen guard: if dest is IXH/IXL and ptr is IX, route through A register
+3. Both (recommended)
+
+**Broader impact:** Any struct method that does arithmetic (clobbers HL) then
+accesses another field will hit the same pattern.  Blocks non-trivial struct
+methods on Z80.
+
+**Priority:** 🔴 Blocking.  Arena and all struct-with-pointer-receiver methods
+broken on Z80 path.
+
+**Discovered:** 2026-03-14, during arena allocator Z80 code review.
+See Report #071 for full analysis.
+
+---
+
 ## Summary table
 
 | Bug | Category | Severity | Fix size | Status |
@@ -192,3 +252,4 @@ will cause incorrect results in larger programs with dynamic call chains.
 | BUG-005 SubSwapNeg u16 guard | condret.go | 🟡 | Trivial | ✅ Fixed 2026-03-12 |
 | BUG-006 Zero-size struct global | Global emitter | 🔴 | Small | Open |
 | BUG-007 Spurious adapter LD | Codegen (PFCCO+RA) | 🟡 | Medium | Open |
+| BUG-008 Arena IXL,(IX+d) | Allocator+Codegen | 🔴 | Medium | Open |
