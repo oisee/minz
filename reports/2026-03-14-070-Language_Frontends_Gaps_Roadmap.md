@@ -18,7 +18,7 @@ implementation roadmap looks like.
 | **Critical gaps** | Modules + strings + enums = ~4-5 weeks to "write real Z80 games" |
 | **`pipe`/`trans`** | First-class named iterator pipelines, zero new codegen needed (~250 LOC, 4-5 days) |
 | **String types** | Three types: `string` (u8-prefix), `cstr` (null-term), `rstr` (ROM) |
-| **Module system** | File = module, `$` separator, HIR merging (extends PL/M mechanism) |
+| **Module system** | File = module, dot syntax in Nanz, `$` mangling in asm, HIR merging |
 | **Enum design** | Compile-time integer constants, zero runtime cost (EQU labels) |
 
 ---
@@ -326,29 +326,40 @@ Constant parts folded into ROM strings.
 3. Must produce unique symbols (no name collisions)
 4. Must work with existing Z80 flat address space (no dynamic linking)
 
-### Design: File = Module, `$` Separator
+### Design: File = Module, Dot Syntax
+
+**In Nanz source** — dot-separated paths (human-readable):
 
 ```nanz
 // file: math/gcd.nanz
 fun gcd(a: u8, b: u8) -> u8 { ... }
 
 // file: game/main.nanz
-import math$gcd
+import math.gcd
 
 fun main() {
-    let d = gcd(12, 8)   // resolves to math$gcd$gcd
+    let d = gcd(12, 8)   // resolves to math.gcd.gcd internally
 }
 ```
 
-Assembly output: `math$gcd$gcd` as the label.  No collisions.
+**In Z80 assembly output** — `$` mangling (MZA-safe, no conflict with `.local` labels):
+
+```asm
+math$gcd$gcd:
+    ; ... function body ...
+```
+
+Dot in Nanz source, `$` in asm output.  The compiler translates at emission time.
+MZA already uses `.` prefix for local labels (`.loop`, `.skip`), so module labels
+must use a different separator in asm.  `$` is standard in Z80 assembler practice.
 
 ### Import Variants
 
 ```nanz
-import math$gcd              // import module, use qualified: gcd.gcd(...)
-import math$gcd { gcd }      // import specific symbol, use unqualified: gcd(...)
-import math$gcd { gcd as g } // import with alias: g(...)
-import math$gcd { * }        // import all (glob)
+import math.gcd              // import module, use qualified: math.gcd.gcd(...)
+import math.gcd { gcd }      // import specific symbol, use unqualified: gcd(...)
+import math.gcd { gcd as g } // import with alias: g(...)
+import math.gcd { * }        // import all (glob)
 ```
 
 ### Implementation: HIR Module Merging
@@ -356,25 +367,27 @@ import math$gcd { * }        // import all (glob)
 The existing PL/M frontend already merges multiple modules into one `*hir.Module`
 before lowering.  The same mechanism works:
 
-1. Parser resolves `import` statements
+1. Parser resolves `import` statements, maps dot-paths to filesystem paths
 2. Parses imported `.nanz` files
 3. Merges their HIR declarations (with mangled names) into the main module
 4. Lowerer sees one flat module — no changes to MIR2 or Z80 codegen
+5. Z80 codegen replaces `.` with `$` in emitted labels
 
 ### Name Mangling
 
 ```
-Module path: math/gcd.nanz
-Function: gcd(u8, u8) -> u8
-Mangled: math$gcd$gcd
+Nanz source:   import math.gcd → gcd(12, 8)
+Internal HIR:  math.gcd.gcd (dot-separated)
+Asm output:    math$gcd$gcd (dollar-separated, MZA-safe)
 
-Module path: stdlib/graphics/screen.nanz
-Function: draw_pixel(u8, u8, u8)
-Mangled: stdlib$graphics$screen$draw_pixel
+Nanz source:   import stdlib.graphics.screen → draw_pixel(x, y, c)
+Internal HIR:  stdlib.graphics.screen.draw_pixel
+Asm output:    stdlib$graphics$screen$draw_pixel
 ```
 
-`$` chosen because: valid in Z80 assembler labels, not valid in Nanz identifiers
-(no ambiguity), readable in disassembly.
+Dot chosen for Nanz because: natural, matches Go/Java/Python import conventions.
+`$` chosen for asm because: valid in Z80 labels, no conflict with `.local` labels,
+standard in Z80 assembler practice.
 
 ### Estimated Effort: 2-3 weeks
 
@@ -452,7 +465,7 @@ Zero runtime cost.  Just EQU labels.
 
 ---
 
-## 6. Lanz — HIR as Lisp (Future/Research)
+## 6. Lanz — HIR as Lisp (Practical Meta-Tool)
 
 ### Concept
 
@@ -462,16 +475,28 @@ with HIR dump is lossless.
 
 ### Value
 
-- **Typed macros**: operate on HIR nodes, not syntax — more powerful than Rust
-  proc macros
-- **DSL factory**: write a macro, get a domain-specific language for free
+- **Meta-functions**: `@minz[[[...]]]` and `@define` emit code as text today.
+  Lanz lets meta-functions emit **typed HIR nodes** as S-expressions — simpler,
+  safer, and composable.  Instead of string concatenation:
+  ```go
+  @emit("fun foo() -> u8 { return 42 }")
+  ```
+  You write structured HIR:
+  ```lisp
+  (fun foo () u8 (return 42))
+  ```
+- **DSL factory**: write a macro, get a domain-specific language for free.
+  Game DSLs (sprite definitions, level layouts, state machines) become
+  first-class compile-time constructs.
 - **Debugging**: `--emit=lanz` gives readable, parseable HIR
-- **Self-hosting potential**: compiler could be written in Lanz
+- **Covers other gaps indirectly**: complex patterns (error handling, pattern
+  matching) can be prototyped as Lanz macros before hardcoding in the compiler
 
-### Status: Research/Future
+### Status: Practical — needed for meta-function evolution
 
-Not needed for any current use case.  Interesting academically.  Estimated effort:
-1-2 weeks when prioritized.
+Not a research curiosity — this is the natural next step for `@minz[[[...]]]`.
+Estimated effort: 1-2 weeks.  Enables rapid prototyping of new language features
+as macros before committing to compiler changes.
 
 ---
 
@@ -524,7 +549,7 @@ pipe/trans ──┬→ reusable pipelines
   not for Z80 games.  switch + enum covers 95% of cases.
 - **Compile-time inheritance** — needed for Pascal TP5.5 objects and ObjC frontend.
   Not for Nanz itself.
-- **Lanz** — research project.  No current use case requires it.
+- **Lanz** — practical for meta-functions but not blocking games or frontends.
 - **Lifetime annotations** — future optimization, not blocking anything.
 - **Generics** — use function overloading (existing) or @define macros.
 
