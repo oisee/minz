@@ -131,22 +131,44 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 		}
 	}
 
-	// Emit string pool — NUL-terminated byte sequences.
+	// Emit string pool — encoding depends on StringKind.
 	// Symbol names: @mir2.str.N → mir2_str_N (sanitized for assembler).
 	if m.Strings.Len() > 0 {
 		sb.WriteString("; strings\n")
 		for i := 0; i < m.Strings.Len(); i++ {
 			sym := sanitizeIdent(m.Strings.Symbol(i))
 			s := m.Strings.At(i)
+			kind := m.Strings.Kind(i)
 			sb.WriteString(sym + ":\n")
-			sb.WriteString("    DB ")
-			for j, c := range []byte(s) {
-				if j > 0 {
-					sb.WriteString(", ")
+
+			switch kind {
+			case StrSString:
+				// SString: [len:u8][bytes...]
+				fmt.Fprintf(&sb, "    DB %d", len(s))
+				for _, c := range []byte(s) {
+					fmt.Fprintf(&sb, ", %d", c)
 				}
-				fmt.Fprintf(&sb, "%d", c)
+				sb.WriteByte('\n')
+			case StrLString:
+				// LString: [len_lo:u8][len_hi:u8][bytes...]
+				lo := len(s) & 0xFF
+				hi := (len(s) >> 8) & 0xFF
+				fmt.Fprintf(&sb, "    DB %d, %d", lo, hi)
+				for _, c := range []byte(s) {
+					fmt.Fprintf(&sb, ", %d", c)
+				}
+				sb.WriteByte('\n')
+			case StrCString:
+				// CString: [bytes...][0x00]
+				sb.WriteString("    DB ")
+				for j, c := range []byte(s) {
+					if j > 0 {
+						sb.WriteString(", ")
+					}
+					fmt.Fprintf(&sb, "%d", c)
+				}
+				sb.WriteString(", 0\n")
 			}
-			sb.WriteString(", 0\n") // NUL terminator
 		}
 	}
 

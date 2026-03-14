@@ -60,30 +60,57 @@ type Global struct {
 
 // ── String pool ───────────────────────────────────────────────────────────────
 
+// StringKind describes the encoding of a string literal.
+type StringKind int
+
+const (
+	// StrSString is a Pascal-style u8-length-prefixed string (max 255 bytes).
+	// Memory: [len:u8][bytes...]
+	// This is the default string kind ("hello").
+	StrSString StringKind = iota
+
+	// StrLString is a u16-length-prefixed string (max 65535 bytes).
+	// Memory: [len_lo:u8][len_hi:u8][bytes...]
+	StrLString
+
+	// StrCString is a C-style NUL-terminated string.
+	// Memory: [bytes...][0x00]
+	StrCString
+)
+
 // StringPool stores all string literals for the module.
-// Strings are NUL-terminated internally.  Each entry is addressable via its
-// symbol @mir2.str.<idx>.
+// Each entry has a kind (SString/LString/CString) that controls encoding.
 type StringPool struct {
-	data []string // UTF-8 strings (without NUL; NUL is appended at link time)
-	syms []string // pre-computed symbol names
+	data  []string     // UTF-8 strings (raw bytes, no prefix/terminator)
+	kinds []StringKind // encoding per entry
+	syms  []string     // pre-computed symbol names
 }
 
-// Intern adds s to the pool (deduplicating) and returns its symbol name and index.
+// Intern adds s to the pool (deduplicating by content+kind) and returns its symbol name and index.
 func (sp *StringPool) Intern(s string) (sym string, idx int) {
+	return sp.InternKind(s, StrSString)
+}
+
+// InternKind adds s with a specific encoding to the pool.
+func (sp *StringPool) InternKind(s string, kind StringKind) (sym string, idx int) {
 	for i, existing := range sp.data {
-		if existing == s {
+		if existing == s && sp.kinds[i] == kind {
 			return sp.syms[i], i
 		}
 	}
 	idx = len(sp.data)
 	sym = fmt.Sprintf("@mir2.str.%d", idx)
 	sp.data = append(sp.data, s)
+	sp.kinds = append(sp.kinds, kind)
 	sp.syms = append(sp.syms, sym)
 	return sym, idx
 }
 
-// At returns the string at index idx (without NUL).
+// At returns the string at index idx (raw bytes, no prefix/terminator).
 func (sp *StringPool) At(idx int) string { return sp.data[idx] }
+
+// Kind returns the encoding kind at index idx.
+func (sp *StringPool) Kind(idx int) StringKind { return sp.kinds[idx] }
 
 // Len returns the number of interned strings.
 func (sp *StringPool) Len() int { return len(sp.data) }

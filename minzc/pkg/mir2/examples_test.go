@@ -1537,8 +1537,8 @@ func TestStrLenZ80(t *testing.T) {
 	// Intern a test string into the module's string pool.
 	m := &mir2.Module{Name: "strlen"}
 	buildStrLen(m)
-	helloSym, _ := m.Strings.Intern("Hello")
-	worldSym, _ := m.Strings.Intern("World!")
+	helloSym, _ := m.Strings.InternKind("Hello", mir2.StrCString)
+	worldSym, _ := m.Strings.InternKind("World!", mir2.StrCString)
 
 	asm := compileFunc(t, m)
 	t.Log("\n" + asm)
@@ -1900,7 +1900,7 @@ func TestPrintStrZ80(t *testing.T) {
 	m := &mir2.Module{Name: "print_test"}
 	buildGreet(m)
 	// Intern the string into the module's string pool so it gets emitted as data.
-	strSym, _ := m.Strings.Intern("Hello, MIR2!")
+	strSym, _ := m.Strings.InternKind("Hello, MIR2!", mir2.StrCString)
 
 	asm := compileFunc(t, m)
 	t.Logf("generated assembly:\n%s", asm)

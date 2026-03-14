@@ -46,8 +46,12 @@ func LowerModule(hm *Module) *mir2.Module {
 	for _, g := range hm.Globals {
 		m.AddGlobal(g)
 	}
-	for _, s := range hm.Strings {
-		m.Strings.Intern(s)
+	for i, s := range hm.Strings {
+		kind := mir2.StrSString // default
+		if i < len(hm.StrKinds) {
+			kind = hm.StrKinds[i]
+		}
+		m.Strings.InternKind(s, kind)
 	}
 
 	// Collect all function names and HIR func map for callback inlining.

@@ -234,8 +234,26 @@ func (l *lexer) tokenize() {
 		case '@':
 			k = tokAt
 		default:
-			// String literal
+			// String literal: "...", c"...", l"...", """..."""
 			if ch == '"' {
+				// Triple-quote: """..."""
+				if l.pos+2 < len(l.src) && l.src[l.pos+1] == '"' && l.src[l.pos+2] == '"' {
+					l.pos += 3 // skip opening """
+					start := l.pos
+					for l.pos+2 < len(l.src) {
+						if l.src[l.pos] == '"' && l.src[l.pos+1] == '"' && l.src[l.pos+2] == '"' {
+							break
+						}
+						l.pos++
+					}
+					s := string(l.src[start:l.pos])
+					if l.pos+2 < len(l.src) {
+						l.pos += 3 // skip closing """
+					}
+					l.emit(tokString, s, line)
+					continue
+				}
+				// Regular string
 				l.pos++
 				start := l.pos
 				for l.pos < len(l.src) && l.src[l.pos] != '"' {
@@ -263,6 +281,41 @@ func (l *lexer) tokenize() {
 					}
 				}
 				l.emit(tokInt, string(l.src[start:l.pos]), line)
+				continue
+			}
+			// Prefixed string literal: c"..." → CString, l"..." → LString
+			// Also handles c"""...""" and l"""...""" triple-quote variants.
+			if (ch == 'c' || ch == 'l') && l.pos+1 < len(l.src) && l.src[l.pos+1] == '"' {
+				prefix := string(ch)
+				l.pos++ // skip prefix char, now at opening quote
+				// Check for triple-quote: c"""..."""
+				if l.pos+2 < len(l.src) && l.src[l.pos+1] == '"' && l.src[l.pos+2] == '"' {
+					l.pos += 3 // skip """
+					start := l.pos
+					for l.pos+2 < len(l.src) {
+						if l.src[l.pos] == '"' && l.src[l.pos+1] == '"' && l.src[l.pos+2] == '"' {
+							break
+						}
+						l.pos++
+					}
+					s := string(l.src[start:l.pos])
+					if l.pos+2 < len(l.src) {
+						l.pos += 3 // skip closing """
+					}
+					l.emit(tokString, prefix+"\x00"+s, line)
+					continue
+				}
+				// Single-quote prefix string: c"..."
+				l.pos++ // skip opening quote
+				start := l.pos
+				for l.pos < len(l.src) && l.src[l.pos] != '"' {
+					l.pos++
+				}
+				s := string(l.src[start:l.pos])
+				if l.pos < len(l.src) {
+					l.pos++
+				}
+				l.emit(tokString, prefix+"\x00"+s, line)
 				continue
 			}
 			// Identifier
@@ -1635,6 +1688,10 @@ func (p *parser) parseType() (mir2.Ty, error) {
 		case "void":
 			return mir2.TyVoid, nil
 		case "ptr":
+			return mir2.TyPtr, nil
+		case "String", "SString", "LString", "CString":
+			// All string types are pointers at the MIR2 level.
+			// The encoding difference is tracked in the string pool, not the type system.
 			return mir2.TyPtr, nil
 		case "f", "f8", "f16":
 			// Fixed-point types reserved; arithmetic semantics (>>fracBits after mul) not yet codegen'd.
@@ -3151,11 +3208,27 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 
 	case tokString:
 		p.l.next()
-		s := processStringEscapes(t.val)
-		// Deduplicate and intern
+		raw := t.val
+		kind := mir2.StrSString // default: SString (u8-prefix)
+
+		// Detect prefixed strings: c\x00... → CString, l\x00... → LString
+		if len(raw) >= 2 && raw[1] == '\x00' {
+			switch raw[0] {
+			case 'c':
+				kind = mir2.StrCString
+				raw = raw[2:]
+			case 'l':
+				kind = mir2.StrLString
+				raw = raw[2:]
+			}
+		}
+
+		s := processStringEscapes(raw)
+
+		// Deduplicate and intern with kind
 		idx := -1
 		for i, existing := range p.module.Strings {
-			if existing == s {
+			if existing == s && i < len(p.module.StrKinds) && p.module.StrKinds[i] == kind {
 				idx = i
 				break
 			}
@@ -3163,6 +3236,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		if idx == -1 {
 			idx = len(p.module.Strings)
 			p.module.Strings = append(p.module.Strings, s)
+			p.module.StrKinds = append(p.module.StrKinds, kind)
 		}
 		return &hir.AddrOfExpr{Sym: fmt.Sprintf("@mir2.str.%d", idx)}, nil
 

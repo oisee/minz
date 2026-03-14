@@ -1,0 +1,17 @@
+fun greet() {
+    @print(c"Hello, World!")
+}
+
+fun greet_pascal() {
+    @print("Pascal-style string")
+}
+
+fun greet_long() {
+    @print(l"Long string with u16 prefix")
+}
+
+fun multiline() {
+    @print(c"""This is a
+multi-line string
+with triple quotes""")
+}

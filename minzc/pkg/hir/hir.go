@@ -76,6 +76,7 @@ type Module struct {
 	Structs    []*mir2.StructTy   // named struct type declarations
 	Interfaces []*InterfaceDecl   // interface declarations (zero-cost, monomorphised)
 	Strings    []string           // interned string literals (index = position)
+	StrKinds   []mir2.StringKind  // encoding per string (SString/LString/CString)
 	Warnings   []string           // use-before-init and other diagnostic warnings
 	Asserts    []Assert           // top-level compile-time assertions (each gets fresh VM)
 	Sandboxes  []Sandbox          // grouped assertions (shared VM per sandbox)
