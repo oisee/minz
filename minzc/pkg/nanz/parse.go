@@ -464,6 +464,13 @@ type parser struct {
 	enumBaseTy      map[string]mir2.Ty              // enumName → base type (default TyU8)
 	importedModules map[string]string               // modPath → mangled prefix (for qualified access)
 	funcAliases     map[string]string               // local name → mangled name (for unqualified imports)
+	pipes           map[string][]pipeStep           // pipe/trans name → stages
+}
+
+// pipeStep is one stage in a named pipe/trans declaration.
+type pipeStep struct {
+	kind string // "map" or "filter"
+	fn   string // lifted lambda/function name
 }
 
 // exprTy returns the known type of an expression, consulting varTypes and
@@ -544,6 +551,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.enums = make(map[string]map[string]int64)
 	p.enumBaseTy = make(map[string]mir2.Ty)
 	p.funcAliases = make(map[string]string)
+	p.pipes = make(map[string][]pipeStep)
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -626,6 +634,11 @@ func (p *parser) parseModule() (*hir.Module, error) {
 
 		case t.kind == tokIdent && t.val == "enum":
 			if err := p.parseEnumDecl(); err != nil {
+				return nil, err
+			}
+
+		case t.kind == tokIdent && (t.val == "pipe" || t.val == "trans"):
+			if err := p.parsePipeDecl(); err != nil {
 				return nil, err
 			}
 
@@ -722,6 +735,77 @@ func (p *parser) parseEnumDecl() error {
 
 	p.enums[nameTok.val] = variants
 	p.enumBaseTy[nameTok.val] = mir2.TyU8
+	return nil
+}
+
+// parsePipeDecl parses a named pipe/trans declaration:
+//
+//	pipe alive { filter(|i: u8| particles[i].life > 0) }
+//	trans on_screen { use alive; filter(|i: u8| particles[i].x < 255) }
+//
+// Each step is either a map/filter with a lambda, or "use other_pipe" which
+// includes all steps from another pipe (snapshot at definition time).
+// The lambdas are lifted to top-level functions just like inline lambdas.
+func (p *parser) parsePipeDecl() error {
+	p.l.next() // consume "pipe" or "trans"
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return fmt.Errorf("line %d: pipe: expected name", p.l.line)
+	}
+	if _, err := p.l.eat(tokLBrace); err != nil {
+		return fmt.Errorf("line %d: pipe %s: expected '{'", nameTok.line, nameTok.val)
+	}
+
+	var steps []pipeStep
+	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		stepTok := p.l.peek()
+		if stepTok.kind != tokIdent {
+			return fmt.Errorf("line %d: pipe %s: expected step (map, filter, use)", stepTok.line, nameTok.val)
+		}
+		switch stepTok.val {
+		case "use":
+			p.l.next() // consume "use"
+			refTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return fmt.Errorf("line %d: pipe %s: use: expected pipe name", p.l.line, nameTok.val)
+			}
+			ref, ok := p.pipes[refTok.val]
+			if !ok {
+				return fmt.Errorf("line %d: pipe %s: unknown pipe %q", refTok.line, nameTok.val, refTok.val)
+			}
+			steps = append(steps, ref...) // snapshot — copy steps
+		case "map", "filter":
+			kind := stepTok.val
+			p.l.next() // consume "map" or "filter"
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return fmt.Errorf("line %d: pipe %s: %s: expected '('", p.l.line, nameTok.val, kind)
+			}
+			lambdaExpr, err := p.parseLambda()
+			if err != nil {
+				return fmt.Errorf("line %d: pipe %s: %s: %w", p.l.line, nameTok.val, kind, err)
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return fmt.Errorf("line %d: pipe %s: %s: expected ')'", p.l.line, nameTok.val, kind)
+			}
+			fnName := ""
+			if vr, ok := lambdaExpr.(*hir.VarRefExpr); ok {
+				fnName = vr.Name
+			}
+			steps = append(steps, pipeStep{kind: kind, fn: fnName})
+		default:
+			return fmt.Errorf("line %d: pipe %s: unknown step %q (expected map, filter, use)", stepTok.line, nameTok.val, stepTok.val)
+		}
+		// Optional semicolon between steps
+		if p.l.is(tokSemi) {
+			p.l.next()
+		}
+	}
+
+	if _, err := p.l.eat(tokRBrace); err != nil {
+		return fmt.Errorf("line %d: pipe %s: expected '}'", p.l.line, nameTok.val)
+	}
+
+	p.pipes[nameTok.val] = steps
 	return nil
 }
 
@@ -2377,6 +2461,30 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 			if err != nil {
 				return nil, err
 			}
+			// .apply(pipeName) — expand pipe stages into nested map/filter calls
+			if fieldTok.val == "apply" && p.l.is(tokLParen) {
+				p.l.next() // consume '('
+				pipeTok, err := p.l.eat(tokIdent)
+				if err != nil {
+					return nil, fmt.Errorf("line %d: apply: expected pipe name", p.l.line)
+				}
+				steps, ok := p.pipes[pipeTok.val]
+				if !ok {
+					return nil, fmt.Errorf("line %d: apply: unknown pipe %q", pipeTok.line, pipeTok.val)
+				}
+				if _, err := p.l.eat(tokRParen); err != nil {
+					return nil, err
+				}
+				// Wrap base in nested map/filter calls (innermost first)
+				for _, step := range steps {
+					base = &hir.CallExpr{
+						Fn:   step.kind,
+						Args: []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
+						Ty:   mir2.TyVoid,
+					}
+				}
+				continue
+			}
 			base = p.makeFieldExpr(base, fieldTok.val)
 		case tokLParen:
 			p.l.next()
@@ -2930,6 +3038,30 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				if resolved {
 					continue // continue outer parsePostfix loop
 				}
+			}
+
+			// .apply(pipeName) — expand pipe stages into nested map/filter calls
+			if fieldTok.val == "apply" && p.l.is(tokLParen) {
+				p.l.next() // consume '('
+				pipeTok, err := p.l.eat(tokIdent)
+				if err != nil {
+					return nil, fmt.Errorf("line %d: apply: expected pipe name", p.l.line)
+				}
+				steps, ok := p.pipes[pipeTok.val]
+				if !ok {
+					return nil, fmt.Errorf("line %d: apply: unknown pipe %q", pipeTok.line, pipeTok.val)
+				}
+				if _, err := p.l.eat(tokRParen); err != nil {
+					return nil, err
+				}
+				for _, step := range steps {
+					base = &hir.CallExpr{
+						Fn:   step.kind,
+						Args: []hir.Expr{base, &hir.VarRefExpr{Name: step.fn, Ty: mir2.TyU8}},
+						Ty:   mir2.TyVoid,
+					}
+				}
+				continue
 			}
 
 			if p.l.is(tokLParen) {

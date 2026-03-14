@@ -3784,7 +3784,28 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 	// This ensures live-through values (used in successor blocks without explicit
 	// block params) are in their allocator-assigned locations when those blocks run.
 	// physOverride[r] was valid within this block; canonical location = ar.Loc(r).
+	//
+	// EXCEPTION: For TermDJNZ, do NOT restore block params that are explicitly
+	// passed as body-edge args (BodyArgs).  Those params receive their new values
+	// from the parallel copy emitted by the DJNZ handler.  Restoring them from
+	// scratch would overwrite the computed result with the stale initial value.
+	djnzBodyArgs := map[Reg]bool{}
+	if td, ok := t.(*TermDJNZ); ok {
+		bodyBlock := f.BlockByLabel(td.Body)
+		if bodyBlock != nil {
+			for i, arg := range td.BodyArgs {
+				if i+1 < len(bodyBlock.Params) {
+					djnzBodyArgs[bodyBlock.Params[i+1].Dst] = true
+					_ = arg // only need the param dst
+				}
+			}
+		}
+	}
 	for _, bp := range g.curBlock.Params {
+		if djnzBodyArgs[bp.Dst] {
+			delete(g.physOverride, bp.Dst)
+			continue
+		}
 		if scratch, ok := g.physOverride[bp.Dst]; ok {
 			canon := g.ar.Loc(bp.Dst).Name
 			if canon != "" && canon != scratch {

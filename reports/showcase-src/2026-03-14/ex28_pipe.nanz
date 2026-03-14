@@ -1,0 +1,24 @@
+// Pipe/Trans: named reusable iterator pipelines
+// Compile-time construct — zero runtime overhead, fuses into DJNZ loops
+
+fun add_acc(acc: u8, x: u8) -> u8 { return (acc + x) }
+
+// Named pipe with map stage — doubles each element
+pipe doubled { map(|x: u8| x + x) }
+
+// Compose pipes with 'use' — snapshot at definition time
+trans tripled { use doubled; map(|x: u8| x + 1) }
+
+// Apply pipe to range source + fold terminal
+// range(0..5) counts 5,4,3,2,1 → doubled → 10,8,6,4,2 → sum = 30
+assert sum_doubled() == 30
+fun sum_doubled() -> u8 {
+    return range(0..5).apply(doubled).fold(0, add_acc)
+}
+
+// Composed pipe: doubled + add 1
+// range(0..3) counts 3,2,1 → doubled → 6,4,2 → +1 → 7,5,3 → sum = 15
+assert sum_tripled() == 15
+fun sum_tripled() -> u8 {
+    return range(0..3).apply(tripled).fold(0, add_acc)
+}

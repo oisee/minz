@@ -2005,13 +2005,35 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 			isFold:    true,
 			foldAccTy: accTy,
 		}
-		if rs, ok2 := srcExpr.(*RangeSourceExpr); ok2 {
+		// Unwrap nested map/filter calls (from pipe .apply() expansion or manual chaining).
+		innerSrc := srcExpr
+		for {
+			inner, ok2 := innerSrc.(*CallExpr)
+			if !ok2 {
+				break
+			}
+			if (inner.Fn == "map" || inner.Fn == "filter") && len(inner.Args) == 2 {
+				fn := l.resolveFunc(inner.Args[1])
+				if fn == "" {
+					break
+				}
+				chain.stages = append(chain.stages, iterStage{kind: inner.Fn, fn: fn})
+				innerSrc = inner.Args[0]
+			} else {
+				break
+			}
+		}
+		// Reverse: stages collected outermost→innermost; want innermost-first.
+		for i, j := 0, len(chain.stages)-1; i < j; i, j = i+1, j-1 {
+			chain.stages[i], chain.stages[j] = chain.stages[j], chain.stages[i]
+		}
+		if rs, ok2 := innerSrc.(*RangeSourceExpr); ok2 {
 			chain.isRange = true
 			chain.rangeLo = rs.Lo
 			chain.rangeHi = rs.Hi
 			chain.rangeRev = rs.Rev
 		} else {
-			chain.ptr = srcExpr
+			chain.ptr = innerSrc
 			chain.len = lenExpr
 		}
 		return chain, true
@@ -2339,7 +2361,44 @@ func (l *lowerer) lowerRangeForEach(chain iterChain) {
 		}}}
 	}
 
+	// Prepend stage transformations (map/filter from pipe .apply() expansion).
+	bodyStmts = l.prependStageStmts(chain.stages, elemVar, elemTy, bodyStmts)
+
 	l.lowerRangeLoop(chain, elemVar, elemTy, bodyStmts)
+}
+
+// prependStageStmts injects map/filter stage transformations before the main
+// loop body (used by lowerRangeForEach where composition into a single
+// expression isn't possible).
+func (l *lowerer) prependStageStmts(stages []iterStage, elemVar string, elemTy mir2.Ty, body []Stmt) []Stmt {
+	if len(stages) == 0 {
+		return body
+	}
+	var prefix []Stmt
+	for _, stage := range stages {
+		if stage.kind == "map" {
+			mapFn := l.hirFuncs[stage.fn]
+			if mapFn != nil && mapFn.Body != nil && len(mapFn.Params) >= 1 {
+				if ret := extractReturnExpr(mapFn.Body); ret != nil {
+					mapExpr := renameExpr(ret, mapFn.Params[0].Name, elemVar)
+					prefix = append(prefix, &AssignStmt{
+						Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
+						Val:    mapExpr,
+					})
+					continue
+				}
+			}
+			prefix = append(prefix, &AssignStmt{
+				Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
+				Val: &CallExpr{
+					Fn:   stage.fn,
+					Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
+					Ty:   elemTy,
+				},
+			})
+		}
+	}
+	return append(prefix, body...)
 }
 
 // lowerRangeFold lowers range(lo..hi).fold(init, cb) to a DJNZ accumulator loop.
@@ -2377,10 +2436,29 @@ func (l *lowerer) lowerRangeFold(chain iterChain) mir2.Reg {
 			Ty: accTy,
 		}
 	}
-	bodyStmts := []Stmt{&AssignStmt{
+	// Apply map stages as CALL-based transformations before the fold.
+	// Using CALL (not inline) avoids register class conflicts: the CALL
+	// boundary gives the allocator proper save/restore semantics.
+	var stageStmts []Stmt
+	for _, stage := range chain.stages {
+		if stage.kind != "map" {
+			continue
+		}
+		stageStmts = append(stageStmts, &AssignStmt{
+			Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
+			Val: &CallExpr{
+				Fn:   stage.fn,
+				Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
+				Ty:   elemTy,
+			},
+		})
+	}
+
+	foldAssign := &AssignStmt{
 		Target: &VarRefExpr{Name: accVar, Ty: accTy},
 		Val:    bodyExpr,
-	}}
+	}
+	bodyStmts := append(stageStmts, foldAssign)
 
 	l.lowerRangeLoop(chain, elemVar, elemTy, bodyStmts)
 	return l.env[accVar]

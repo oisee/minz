@@ -2652,3 +2652,94 @@ fun test() -> u8 { return State.INVALID }
 		t.Errorf("error should mention 'unknown variant', got: %v", err)
 	}
 }
+
+func TestPipeDecl(t *testing.T) {
+	src := `
+fun is_alive(x: u8) -> bool { return (x > 0) }
+fun double(x: u8) -> u8 { return (x + x) }
+
+pipe alive { filter(|x: u8| x > 0) }
+trans doubled { map(|x: u8| x + x) }
+
+fun process(buf: ^u8, n: u8) {
+    forEach(filter(buf, is_alive, n), double, n)
+}
+`
+	m, err := nanz.Parse(src, "pipe_test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	// Should have the user functions + 2 lifted lambdas
+	if len(m.Funcs) < 4 {
+		t.Errorf("expected at least 4 funcs (2 user + 2 lambdas), got %d", len(m.Funcs))
+	}
+}
+
+func TestPipeApply(t *testing.T) {
+	src := `
+global buf: [u8; 4] = [1, 0, 3, 0]
+
+fun print_u8(x: u8) {}
+
+pipe alive { filter(|x: u8| x > 0) }
+
+fun main() {
+    buf.apply(alive).forEach(print_u8, 4)
+}
+`
+	m, err := nanz.Parse(src, "pipe_apply_test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	// The apply should expand into a nested filter(...) call
+	// which recognizeIterChain then unwraps.
+	// main's body should contain a CallExpr "forEach" wrapping "filter"
+	if len(m.Funcs) < 2 {
+		t.Errorf("expected at least 2 funcs, got %d", len(m.Funcs))
+	}
+}
+
+func TestPipeUse(t *testing.T) {
+	src := `
+pipe base_filter { filter(|x: u8| x > 0) }
+trans extended { use base_filter; map(|x: u8| x + x) }
+
+fun print_u8(x: u8) {}
+global buf: [u8; 4] = [1, 0, 3, 0]
+
+fun main() {
+    buf.apply(extended).forEach(print_u8, 4)
+}
+`
+	m, err := nanz.Parse(src, "pipe_use_test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	if len(m.Funcs) < 2 {
+		t.Errorf("expected at least 2 funcs, got %d", len(m.Funcs))
+	}
+}
+
+func TestPipeUnknown(t *testing.T) {
+	src := `
+fun main() {
+    var x: u8 = 0
+}
+`
+	// This won't use apply, so let's test unknown pipe in apply
+	src2 := `
+global buf: [u8; 4] = [1, 2, 3, 4]
+fun print_u8(x: u8) {}
+fun main() {
+    buf.apply(nonexistent).forEach(print_u8, 4)
+}
+`
+	_, _ = nanz.Parse(src, "pipe_ok_test") // just to use src
+	_, err := nanz.Parse(src2, "pipe_unknown_test")
+	if err == nil {
+		t.Fatal("expected error for unknown pipe 'nonexistent'")
+	}
+	if !strings.Contains(err.Error(), "unknown pipe") {
+		t.Errorf("error should mention 'unknown pipe', got: %v", err)
+	}
+}
