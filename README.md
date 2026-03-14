@@ -18,10 +18,11 @@
 
 ### Latest
 
+- **[Nanz Language Book v4.1](docs/Nanz_Language_Book_v4.1.md)** — 15 chapters + 5 appendices. New: `sizeof(Type)`, `sandbox` blocks, struct-based arena allocator (Chapter 15). Available as [PDF](releases/v0.21.3/Nanz_Language_Book_v4.1.pdf), [EPUB](releases/v0.21.3/Nanz_Language_Book_v4.1.epub), and [LaTeX](releases/v0.21.3/Nanz_Language_Book_v4.1.tex).
+- **[Arena allocator + sandbox + sizeof](reports/2026-03-14-069-Arena_Allocator_Sandbox_Sizeof.md)** — struct-based bump allocator with `^Arena` pointer receiver, `arena_split` chaining, `sizeof(Type)` compile-time constant, `sandbox` blocks for shared VM state. All E2E verified.
 - **[PreallocCoalesce delivers](reports/2026-03-13-068-Showcase_ForEachEdge_SignedCmp_PreallocImpact.md)** — `mapInPlace` loop: 5 instructions → **1 DJNZ**. `factorial_fold`: entire mul16 routine eliminated. 6/23 showcase files produce tighter Z80.
 - **[MOS 6502 backend alive](reports/2026-03-13-067-6502_Backend_E2E_Harness.md)** — 35/35 tests, dual-VM oracle (MIR2 VM vs sim6502), console I/O for Apple II/C64/BBC Micro.
 - **[Trivial inliner](reports/2026-03-13-066-MultiPass_Contracts_Achievement_Article.md)** — `swap(a,b).1 == a` → zero instructions. `min_of(a,b)` → `EQU minmax` (0 bytes).
-- **[Nanz Language Book v4](docs/Nanz_Language_Book_v4.md)** — 14 chapters + 4 appendices. `as` cast, signed comparison, PreallocCoalesce, trivial inliner, 6502 backend, `mzn` native compiler, `@smc`. Available as [PDF](releases/v0.21.2/Nanz_Language_Book_v4.pdf) and [EPUB](releases/v0.21.2/Nanz_Language_Book_v4.epub).
 - **[MinZ vs Nanz Feature Gap](docs/MinZ_vs_Nanz_Feature_Gap.md)** — what Nanz is missing (enums, @error, imports) and how to close each gap. [PDF](releases/v0.21.2/MinZ_vs_Nanz_Feature_Gap.pdf).
 
 [Full changelog →](CHANGELOG.md)
@@ -32,7 +33,7 @@
 
 ### Modern Programming Language for Vintage Hardware
 
-[![Version](https://img.shields.io/badge/version-0.21.2-blue)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.21.3-blue)](https://github.com/oisee/minz/releases)
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
 **Write modern code. Run it on Z80, eZ80, 6502, and more.**
