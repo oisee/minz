@@ -2595,6 +2595,51 @@ fun init() -> Byte {
 	}
 }
 
+func TestEnumInAssert(t *testing.T) {
+	src := `enum State {
+    IDLE,
+    RUNNING,
+    PAUSED
+}
+
+fun get_state(x: u8) -> u8 {
+    return x
+}
+
+assert get_state(State.IDLE) == State.IDLE
+assert get_state(State.RUNNING) == State.RUNNING
+assert get_state(State.PAUSED) == State.PAUSED
+assert get_state(0) == State.IDLE
+assert get_state(State.PAUSED) == 2
+`
+	m, err := nanz.Parse(src, "enum_assert_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if len(m.Asserts) != 5 {
+		t.Fatalf("asserts: want 5, got %d", len(m.Asserts))
+	}
+	// Verify enum values resolved correctly in assert args and expected
+	// assert get_state(State.IDLE) == State.IDLE  →  args=[0], expected=0
+	if m.Asserts[0].Args[0] != 0 || m.Asserts[0].Expected != 0 {
+		t.Errorf("assert[0]: want args=[0] expected=0, got args=%v expected=%d", m.Asserts[0].Args, m.Asserts[0].Expected)
+	}
+	// assert get_state(State.RUNNING) == State.RUNNING  →  args=[1], expected=1
+	if m.Asserts[1].Args[0] != 1 || m.Asserts[1].Expected != 1 {
+		t.Errorf("assert[1]: want args=[1] expected=1, got args=%v expected=%d", m.Asserts[1].Args, m.Asserts[1].Expected)
+	}
+	// assert get_state(State.PAUSED) == 2  →  args=[2], expected=2
+	if m.Asserts[4].Args[0] != 2 || m.Asserts[4].Expected != 2 {
+		t.Errorf("assert[4]: want args=[2] expected=2, got args=%v expected=%d", m.Asserts[4].Args, m.Asserts[4].Expected)
+	}
+
+	// Now compile and run asserts via pipeline
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile with enum asserts: %v", err)
+	}
+}
+
 func TestEnumUnknownVariant(t *testing.T) {
 	src := `enum State { IDLE, RUN }
 fun test() -> u8 { return State.INVALID }

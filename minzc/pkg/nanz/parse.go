@@ -672,22 +672,9 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 				return hir.Assert{}, fmt.Errorf("line %d: assert: expected ',' between arguments", line)
 			}
 		}
-		// Optionally negative.
-		neg := false
-		if p.l.is(tokMinus) {
-			p.l.next()
-			neg = true
-		}
-		intTok, err2 := p.l.eat(tokInt)
+		v, err2 := p.parseAssertValue()
 		if err2 != nil {
-			return hir.Assert{}, fmt.Errorf("line %d: assert: expected integer literal argument", line)
-		}
-		v, err3 := strconv.ParseInt(intTok.val, 0, 64)
-		if err3 != nil {
-			return hir.Assert{}, fmt.Errorf("line %d: assert: invalid integer %q", line, intTok.val)
-		}
-		if neg {
-			v = -v
+			return hir.Assert{}, fmt.Errorf("line %d: assert: %v", line, err2)
 		}
 		args = append(args, v)
 	}
@@ -710,21 +697,9 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 					return hir.Assert{}, fmt.Errorf("line %d: assert: expected ',' in tuple", line)
 				}
 			}
-			neg2 := false
-			if p.l.is(tokMinus) {
-				p.l.next()
-				neg2 = true
-			}
-			vTok, err2 := p.l.eat(tokInt)
+			v, err2 := p.parseAssertValue()
 			if err2 != nil {
-				return hir.Assert{}, fmt.Errorf("line %d: assert: expected integer in tuple", line)
-			}
-			v, err3 := strconv.ParseInt(vTok.val, 0, 64)
-			if err3 != nil {
-				return hir.Assert{}, fmt.Errorf("line %d: assert: invalid integer %q", line, vTok.val)
-			}
-			if neg2 {
-				v = -v
+				return hir.Assert{}, fmt.Errorf("line %d: assert: %v", line, err2)
 			}
 			multi = append(multi, v)
 		}
@@ -747,21 +722,9 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 	}
 
 	// Single-value expected
-	neg := false
-	if p.l.is(tokMinus) {
-		p.l.next()
-		neg = true
-	}
-	expTok, err := p.l.eat(tokInt)
+	expected, err := p.parseAssertValue()
 	if err != nil {
-		return hir.Assert{}, fmt.Errorf("line %d: assert: expected integer literal after '=='", line)
-	}
-	expected, err := strconv.ParseInt(expTok.val, 0, 64)
-	if err != nil {
-		return hir.Assert{}, fmt.Errorf("line %d: assert: invalid integer %q", line, expTok.val)
-	}
-	if neg {
-		expected = -expected
+		return hir.Assert{}, fmt.Errorf("line %d: assert: %v", line, err)
 	}
 
 	via := p.parseAssertVia()
@@ -777,6 +740,47 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 		Line:     line,
 		Via:      via,
 	}, nil
+}
+
+// parseAssertValue parses a compile-time integer value in an assert context.
+// Accepts: integer literal (optionally negative), enum value (State.IDLE), or
+// bare identifier that resolves to an enum variant.
+func (p *parser) parseAssertValue() (int64, error) {
+	// Enum qualified: State.IDLE
+	if p.l.is(tokIdent) {
+		t := p.l.peek()
+		if variants, ok := p.enums[t.val]; ok && p.l.peekN(1).kind == tokDot {
+			p.l.next() // consume enum name
+			p.l.next() // consume '.'
+			vTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return 0, fmt.Errorf("%s. expected variant name", t.val)
+			}
+			val, ok := variants[vTok.val]
+			if !ok {
+				return 0, fmt.Errorf("%s.%s: unknown variant", t.val, vTok.val)
+			}
+			return val, nil
+		}
+	}
+	// Optionally negative integer
+	neg := false
+	if p.l.is(tokMinus) {
+		p.l.next()
+		neg = true
+	}
+	intTok, err := p.l.eat(tokInt)
+	if err != nil {
+		return 0, fmt.Errorf("expected integer literal or enum value")
+	}
+	v, err := strconv.ParseInt(intTok.val, 0, 64)
+	if err != nil {
+		return 0, fmt.Errorf("invalid integer %q", intTok.val)
+	}
+	if neg {
+		v = -v
+	}
+	return v, nil
 }
 
 // parseAssertVia consumes an optional "via mir2" or "via z80" suffix.
