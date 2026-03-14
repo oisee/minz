@@ -1,0 +1,31 @@
+enum State {
+    IDLE,
+    RUNNING,
+    PAUSED,
+    GAME_OVER
+}
+
+enum Color {
+    RED = 1,
+    GREEN = 2,
+    BLUE = 4,
+    WHITE = 7
+}
+
+fun get_default_state() -> u8 {
+    return State.GAME_OVER
+}
+
+fun mix_colors() -> u8 {
+    return (Color.RED + Color.BLUE)
+}
+
+fun identity(x: u8) -> u8 {
+    return x
+}
+
+assert get_default_state() == 3
+assert mix_colors() == 5
+assert identity(State.IDLE) == 0
+assert identity(State.GAME_OVER) == State.GAME_OVER
+assert identity(Color.WHITE) == 7

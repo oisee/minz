@@ -1,0 +1,8 @@
+import mathlib.ops { add, double }
+
+fun compute(x: u8) -> u8 {
+    return add(double(x), 1)
+}
+
+assert compute(5) == 11
+assert compute(10) == 21
