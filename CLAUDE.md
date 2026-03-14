@@ -98,7 +98,8 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - Functions: `fun`/`fn` declaration, multiple returns, nested functions
 - Control flow: `if`/`else`, `while`, `for i in 0..n`
 - Structs: declaration and field access
-- Enums: `enum State { IDLE, RUNNING }` with values, `State::IDLE` syntax
+- Enums: `enum State { IDLE, RUNNING }` with values, `State.IDLE` dot syntax
+- Type aliases: `type PlayerID = u8` — structural, zero-cost
 - Arrays: declaration, indexing (literals need optimization)
 - Global variables: `global` keyword
 - Function overloading: multiple signatures

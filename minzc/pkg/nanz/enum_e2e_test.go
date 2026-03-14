@@ -86,7 +86,7 @@ func TestEnum_E2E_AutoNumbered(t *testing.T) {
 }
 
 fun get_right() -> u8 {
-    return Dir::RIGHT
+    return Dir.RIGHT
 }
 `
 	got, err := compileAndRunEnum(t, src, "get_right")
@@ -94,7 +94,7 @@ fun get_right() -> u8 {
 		t.Fatalf("compile/run: %v", err)
 	}
 	if got != 3 {
-		t.Errorf("Dir::RIGHT: want 3, got %d", got)
+		t.Errorf("Dir.RIGHT: want 3, got %d", got)
 	}
 }
 
@@ -107,7 +107,7 @@ func TestEnum_E2E_ExplicitValues(t *testing.T) {
 }
 
 fun get_blue() -> u8 {
-    return Color::BLUE
+    return Color.BLUE
 }
 `
 	got, err := compileAndRunEnum(t, src, "get_blue")
@@ -115,7 +115,7 @@ fun get_blue() -> u8 {
 		t.Fatalf("compile/run: %v", err)
 	}
 	if got != 4 {
-		t.Errorf("Color::BLUE: want 4, got %d", got)
+		t.Errorf("Color.BLUE: want 4, got %d", got)
 	}
 }
 
@@ -129,7 +129,7 @@ func TestEnum_E2E_MixedAutoExplicit(t *testing.T) {
 }
 
 fun get_critical() -> u8 {
-    return Prio::CRITICAL
+    return Prio.CRITICAL
 }
 `
 	got, err := compileAndRunEnum(t, src, "get_critical")
@@ -138,7 +138,7 @@ fun get_critical() -> u8 {
 	}
 	// LOW=0, NORMAL=5, HIGH=6, CRITICAL=7
 	if got != 7 {
-		t.Errorf("Prio::CRITICAL: want 7, got %d", got)
+		t.Errorf("Prio.CRITICAL: want 7, got %d", got)
 	}
 }
 
@@ -166,7 +166,7 @@ func TestEnum_E2E_InExpression(t *testing.T) {
 }
 
 fun add_bases() -> u8 {
-    return (Base::TEN + Base::TWENTY)
+    return (Base.TEN + Base.TWENTY)
 }
 `
 	got, err := compileAndRunEnum(t, src, "add_bases")
@@ -174,6 +174,6 @@ fun add_bases() -> u8 {
 		t.Fatalf("compile/run: %v", err)
 	}
 	if got != 30 {
-		t.Errorf("Base::TEN + Base::TWENTY: want 30, got %d", got)
+		t.Errorf("Base.TEN + Base.TWENTY: want 30, got %d", got)
 	}
 }

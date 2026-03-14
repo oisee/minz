@@ -2489,11 +2489,11 @@ enum Color {
 }
 
 fun get_state() -> u8 {
-    return State::IDLE
+    return State.IDLE
 }
 
 fun get_color() -> u8 {
-    return Color::BLUE
+    return Color.BLUE
 }
 `
 	m, err := nanz.Parse(src, "enum_test")
@@ -2504,8 +2504,8 @@ fun get_color() -> u8 {
 		t.Fatalf("funcs: want 2, got %d", len(m.Funcs))
 	}
 
-	// get_state should return State::IDLE = 0
-	// get_color should return Color::BLUE = 4
+	// get_state should return State.IDLE = 0
+	// get_color should return Color.BLUE = 4
 	// Compile to verify no errors
 	_, err = pipeline.CompileHIR(m)
 	if err != nil {
@@ -2522,14 +2522,14 @@ func TestEnumAutoNumber(t *testing.T) {
 }
 
 fun test() -> u8 {
-    return Dir::RIGHT
+    return Dir.RIGHT
 }
 `
 	m, err := nanz.Parse(src, "enum_auto_test")
 	if err != nil {
 		t.Fatalf("parse: %v", err)
 	}
-	// Dir::RIGHT should be 3 (auto-numbered 0,1,2,3)
+	// Dir.RIGHT should be 3 (auto-numbered 0,1,2,3)
 	f := m.Funcs[0]
 	if len(f.Body.Body) != 1 {
 		t.Fatalf("body: want 1 stmt, got %d", len(f.Body.Body))
@@ -2543,7 +2543,7 @@ fun test() -> u8 {
 		t.Fatalf("return val: want IntLitExpr, got %T", ret.Val)
 	}
 	if lit.Val != 3 {
-		t.Errorf("Dir::RIGHT: want 3, got %d", lit.Val)
+		t.Errorf("Dir.RIGHT: want 3, got %d", lit.Val)
 	}
 }
 
@@ -2556,7 +2556,7 @@ func TestEnumExplicitValues(t *testing.T) {
 }
 
 fun test() -> u8 {
-    return Flags::EXEC
+    return Flags.EXEC
 }
 `
 	m, err := nanz.Parse(src, "enum_explicit_test")
@@ -2567,7 +2567,7 @@ fun test() -> u8 {
 	ret := f.Body.Body[0].(*hir.ReturnStmt)
 	lit := ret.Val.(*hir.IntLitExpr)
 	if lit.Val != 4 {
-		t.Errorf("Flags::EXEC: want 4, got %d", lit.Val)
+		t.Errorf("Flags.EXEC: want 4, got %d", lit.Val)
 	}
 }
 
@@ -2577,7 +2577,7 @@ func TestEnumWithTypeAlias(t *testing.T) {
 enum State { IDLE, RUN }
 
 fun init() -> Byte {
-    return State::RUN
+    return State.RUN
 }
 `
 	m, err := nanz.Parse(src, "combo_test")
@@ -2591,17 +2591,17 @@ fun init() -> Byte {
 	ret := f.Body.Body[0].(*hir.ReturnStmt)
 	lit := ret.Val.(*hir.IntLitExpr)
 	if lit.Val != 1 {
-		t.Errorf("State::RUN: want 1, got %d", lit.Val)
+		t.Errorf("State.RUN: want 1, got %d", lit.Val)
 	}
 }
 
 func TestEnumUnknownVariant(t *testing.T) {
 	src := `enum State { IDLE, RUN }
-fun test() -> u8 { return State::INVALID }
+fun test() -> u8 { return State.INVALID }
 `
 	_, err := nanz.Parse(src, "bad_enum_test")
 	if err == nil {
-		t.Fatal("expected error for unknown variant State::INVALID")
+		t.Fatal("expected error for unknown variant State.INVALID")
 	}
 	if !strings.Contains(err.Error(), "unknown variant") {
 		t.Errorf("error should mention 'unknown variant', got: %v", err)

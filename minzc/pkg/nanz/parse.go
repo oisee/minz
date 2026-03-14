@@ -2706,17 +2706,17 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			}
 			return &hir.RangeSourceExpr{Lo: lo, Hi: hi, Rev: rev}, nil
 		}
-		// Enum qualified access: State::IDLE → IntLitExpr
-		if variants, ok := p.enums[t.val]; ok && p.l.peekN(1).kind == tokColonColon {
+		// Enum qualified access: State.IDLE → IntLitExpr
+		if variants, ok := p.enums[t.val]; ok && p.l.peekN(1).kind == tokDot {
 			p.l.next() // consume enum name
-			p.l.next() // consume '::'
+			p.l.next() // consume '.'
 			vTok, err := p.l.eat(tokIdent)
 			if err != nil {
-				return nil, fmt.Errorf("line %d: %s:: expected variant name", t.line, t.val)
+				return nil, fmt.Errorf("line %d: %s. expected variant name", t.line, t.val)
 			}
 			val, ok := variants[vTok.val]
 			if !ok {
-				return nil, fmt.Errorf("line %d: %s::%s: unknown variant", vTok.line, t.val, vTok.val)
+				return nil, fmt.Errorf("line %d: %s.%s: unknown variant", vTok.line, t.val, vTok.val)
 			}
 			return &hir.IntLitExpr{Val: val, Ty: p.enumBaseTy[t.val]}, nil
 		}

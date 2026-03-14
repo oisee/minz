@@ -40,7 +40,7 @@ enum Color {
 
 - Base type is `u8` by default (values 0-255)
 - Auto-numbered from 0 unless explicit values given
-- Qualified access: `State::IDLE`
+- Dot access: `State.IDLE` — consistent with field access and imports
 - Z80 output: `State$IDLE EQU 0` — zero runtime cost
 - No associated data (that's algebraic types — future work)
 
@@ -114,7 +114,7 @@ pipe_step   = 'use' IDENT
             | 'take' '(' expr ')'
             | 'skip' '(' expr ')'
 
-primary     = ... | IDENT '::' IDENT          // enum qualified access
+primary     = ... | IDENT '.' IDENT           // enum dot access (same as field/import)
 
 postfix_expr = ... | '.apply' '(' (IDENT | pipe_anon) ')'
 pipe_anon    = ('pipe' | 'trans') '{' pipe_step* '}'
