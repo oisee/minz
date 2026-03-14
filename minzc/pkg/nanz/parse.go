@@ -78,10 +78,11 @@ const (
 	tokAmp     // &
 	tokPipe    // |
 	tokCaret   // ^ (also used as pointer dereference)
-	tokTilde   // ~
-	tokLtLt   // <<
-	tokGtGt   // >>
-	tokAt      // @
+	tokTilde      // ~
+	tokLtLt       // <<
+	tokGtGt       // >>
+	tokColonColon // ::
+	tokAt         // @
 )
 
 type token struct {
@@ -160,6 +161,8 @@ func (l *lexer) tokenize() {
 			l.emit(tokLtLt, "<<", line); l.pos += 2; continue
 		case ch == '>' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
 			l.emit(tokGtGt, ">>", line); l.pos += 2; continue
+		case ch == ':' && l.pos+1 < len(l.src) && l.src[l.pos+1] == ':':
+			l.emit(tokColonColon, "::", line); l.pos += 2; continue
 		}
 
 		// Single-char
@@ -384,7 +387,10 @@ type parser struct {
 	warnings    []string        // accumulated diagnostic warnings
 	// function return type table — populated as functions are parsed so that
 	// call expressions can get the correct Ty instead of TyVoid.
-	funcSigs map[string]mir2.Ty
+	funcSigs    map[string]mir2.Ty
+	typeAliases map[string]mir2.Ty              // type X = Y — structural alias
+	enums       map[string]map[string]int64     // enumName → {variantName → value}
+	enumBaseTy  map[string]mir2.Ty              // enumName → base type (default TyU8)
 }
 
 // exprTy returns the known type of an expression, consulting varTypes and
@@ -461,6 +467,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.varInterfaceTypes = make(map[string]string)
 	p.varPtrElem = make(map[string]*mir2.StructTy)
 	p.uninitVars = make(map[string]int)
+	p.typeAliases = make(map[string]mir2.Ty)
+	p.enums = make(map[string]map[string]int64)
+	p.enumBaseTy = make(map[string]mir2.Ty)
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -531,6 +540,16 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				return nil, fmt.Errorf("line %d: unexpected @%s", attr.line, attr.val)
 			}
 
+		case t.kind == tokIdent && t.val == "type":
+			if err := p.parseTypeAlias(); err != nil {
+				return nil, err
+			}
+
+		case t.kind == tokIdent && t.val == "enum":
+			if err := p.parseEnumDecl(); err != nil {
+				return nil, err
+			}
+
 		case t.kind == tokIdent && t.val == "assert":
 			a, err := p.parseAssert()
 			if err != nil {
@@ -553,6 +572,78 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	m.Funcs = append(m.Funcs, p.lambdas...)
 	m.Warnings = p.warnings
 	return m, nil
+}
+
+// parseTypeAlias parses: type Name = ExistingType
+// Structural alias — Name and ExistingType are fully interchangeable.
+func (p *parser) parseTypeAlias() error {
+	p.l.next() // consume "type"
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return fmt.Errorf("line %d: type alias: expected name", p.l.line)
+	}
+	if _, err := p.l.eat(tokEq); err != nil {
+		return fmt.Errorf("line %d: type alias: expected '='", nameTok.line)
+	}
+	ty, err := p.parseType()
+	if err != nil {
+		return fmt.Errorf("line %d: type alias %s: %v", nameTok.line, nameTok.val, err)
+	}
+	p.typeAliases[nameTok.val] = ty
+	return nil
+}
+
+// parseEnumDecl parses: enum Name { VARIANT, VARIANT = N, ... }
+// Compile-time integer constants.  Z80: emitted as EQU labels.
+func (p *parser) parseEnumDecl() error {
+	p.l.next() // consume "enum"
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return fmt.Errorf("line %d: enum: expected name", p.l.line)
+	}
+	if _, err := p.l.eat(tokLBrace); err != nil {
+		return fmt.Errorf("line %d: enum %s: expected '{'", nameTok.line, nameTok.val)
+	}
+
+	variants := make(map[string]int64)
+	var nextVal int64
+
+	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		vTok, err := p.l.eat(tokIdent)
+		if err != nil {
+			return fmt.Errorf("line %d: enum %s: expected variant name", p.l.line, nameTok.val)
+		}
+		if p.l.is(tokEq) {
+			p.l.next() // consume '='
+			valTok, err := p.l.eat(tokInt)
+			if err != nil {
+				return fmt.Errorf("line %d: enum %s::%s: expected integer value", p.l.line, nameTok.val, vTok.val)
+			}
+			v, err := strconv.ParseInt(valTok.val, 0, 64)
+			if err != nil {
+				return fmt.Errorf("line %d: enum %s::%s: invalid value %q", valTok.line, nameTok.val, vTok.val, valTok.val)
+			}
+			nextVal = v
+		}
+		if nextVal > 255 {
+			return fmt.Errorf("line %d: enum %s::%s: value %d exceeds u8 (0-255)", vTok.line, nameTok.val, vTok.val, nextVal)
+		}
+		variants[vTok.val] = nextVal
+		nextVal++
+
+		// Optional comma between variants
+		if p.l.is(tokComma) {
+			p.l.next()
+		}
+	}
+
+	if _, err := p.l.eat(tokRBrace); err != nil {
+		return fmt.Errorf("line %d: enum %s: expected '}'", p.l.line, nameTok.val)
+	}
+
+	p.enums[nameTok.val] = variants
+	p.enumBaseTy[nameTok.val] = mir2.TyU8
+	return nil
 }
 
 // parseAssert parses: assert fn(arg, ...) == expected
@@ -1242,6 +1333,14 @@ func (p *parser) parseType() (mir2.Ty, error) {
 			// Fixed-point types reserved; arithmetic semantics (>>fracBits after mul) not yet codegen'd.
 			return nil, fmt.Errorf("line %d: fixed-point type %q not yet available in Nanz (coming soon)", t.line, t.val)
 		default:
+			// Type alias (structural)
+			if aliased, ok := p.typeAliases[t.val]; ok {
+				return aliased, nil
+			}
+			// Enum type → base type (u8)
+			if ty, ok := p.enumBaseTy[t.val]; ok {
+				return ty, nil
+			}
 			// Named struct type
 			if st, ok := p.structs[t.val]; ok {
 				return st, nil
@@ -1275,6 +1374,14 @@ func (p *parser) resolveTypeSize(name string, line int) (int, error) {
 	case "u32", "i32":
 		return 4, nil
 	default:
+		// Type alias → resolve and recurse
+		if aliased, ok := p.typeAliases[name]; ok {
+			return mir2.ByteWidth(aliased), nil
+		}
+		// Enum → always u8 (1 byte)
+		if _, ok := p.enums[name]; ok {
+			return 1, nil
+		}
 		if st, ok := p.structs[name]; ok {
 			return mir2.ByteWidth(st), nil
 		}
@@ -2598,6 +2705,20 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				rev = true
 			}
 			return &hir.RangeSourceExpr{Lo: lo, Hi: hi, Rev: rev}, nil
+		}
+		// Enum qualified access: State::IDLE → IntLitExpr
+		if variants, ok := p.enums[t.val]; ok && p.l.peekN(1).kind == tokColonColon {
+			p.l.next() // consume enum name
+			p.l.next() // consume '::'
+			vTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return nil, fmt.Errorf("line %d: %s:: expected variant name", t.line, t.val)
+			}
+			val, ok := variants[vTok.val]
+			if !ok {
+				return nil, fmt.Errorf("line %d: %s::%s: unknown variant", vTok.line, t.val, vTok.val)
+			}
+			return &hir.IntLitExpr{Val: val, Ty: p.enumBaseTy[t.val]}, nil
 		}
 		// Struct literal: StructName { field: val, ... }
 		if st, ok := p.structs[t.val]; ok && p.l.peekN(1).kind == tokLBrace {

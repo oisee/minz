@@ -2446,3 +2446,164 @@ assert sum_range(10) == 55 via z80
 		t.Fatalf("z80-only assert failed: %v", err)
 	}
 }
+
+func TestTypeAlias(t *testing.T) {
+	src := `type PlayerID = u8
+type Score = u16
+
+fun damage(target: PlayerID, amount: u8) -> Score {
+    return u16(amount)
+}
+`
+	m, err := nanz.Parse(src, "type_alias_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if len(m.Funcs) != 1 {
+		t.Fatalf("funcs: want 1, got %d", len(m.Funcs))
+	}
+	f := m.Funcs[0]
+	// PlayerID resolves to u8
+	if f.Params[0].Ty != mir2.TyU8 {
+		t.Errorf("target type: want TyU8, got %v", f.Params[0].Ty)
+	}
+	// Score resolves to u16 (return type)
+	if f.RetTy != mir2.TyU16 {
+		t.Errorf("return type: want TyU16, got %v", f.RetTy)
+	}
+}
+
+func TestEnum(t *testing.T) {
+	src := `enum State {
+    IDLE,
+    RUNNING,
+    PAUSED,
+    GAME_OVER
+}
+
+enum Color {
+    RED = 1,
+    GREEN = 2,
+    BLUE = 4,
+    WHITE = 7
+}
+
+fun get_state() -> u8 {
+    return State::IDLE
+}
+
+fun get_color() -> u8 {
+    return Color::BLUE
+}
+`
+	m, err := nanz.Parse(src, "enum_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if len(m.Funcs) != 2 {
+		t.Fatalf("funcs: want 2, got %d", len(m.Funcs))
+	}
+
+	// get_state should return State::IDLE = 0
+	// get_color should return Color::BLUE = 4
+	// Compile to verify no errors
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+}
+
+func TestEnumAutoNumber(t *testing.T) {
+	src := `enum Dir {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+}
+
+fun test() -> u8 {
+    return Dir::RIGHT
+}
+`
+	m, err := nanz.Parse(src, "enum_auto_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	// Dir::RIGHT should be 3 (auto-numbered 0,1,2,3)
+	f := m.Funcs[0]
+	if len(f.Body.Body) != 1 {
+		t.Fatalf("body: want 1 stmt, got %d", len(f.Body.Body))
+	}
+	ret, ok := f.Body.Body[0].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("stmt[0]: want ReturnStmt, got %T", f.Body.Body[0])
+	}
+	lit, ok := ret.Val.(*hir.IntLitExpr)
+	if !ok {
+		t.Fatalf("return val: want IntLitExpr, got %T", ret.Val)
+	}
+	if lit.Val != 3 {
+		t.Errorf("Dir::RIGHT: want 3, got %d", lit.Val)
+	}
+}
+
+func TestEnumExplicitValues(t *testing.T) {
+	src := `enum Flags {
+    NONE = 0,
+    READ = 1,
+    WRITE = 2,
+    EXEC = 4
+}
+
+fun test() -> u8 {
+    return Flags::EXEC
+}
+`
+	m, err := nanz.Parse(src, "enum_explicit_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	f := m.Funcs[0]
+	ret := f.Body.Body[0].(*hir.ReturnStmt)
+	lit := ret.Val.(*hir.IntLitExpr)
+	if lit.Val != 4 {
+		t.Errorf("Flags::EXEC: want 4, got %d", lit.Val)
+	}
+}
+
+func TestEnumWithTypeAlias(t *testing.T) {
+	// Combine both features
+	src := `type Byte = u8
+enum State { IDLE, RUN }
+
+fun init() -> Byte {
+    return State::RUN
+}
+`
+	m, err := nanz.Parse(src, "combo_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	f := m.Funcs[0]
+	if f.RetTy != mir2.TyU8 {
+		t.Errorf("return type (Byte alias): want TyU8, got %v", f.RetTy)
+	}
+	ret := f.Body.Body[0].(*hir.ReturnStmt)
+	lit := ret.Val.(*hir.IntLitExpr)
+	if lit.Val != 1 {
+		t.Errorf("State::RUN: want 1, got %d", lit.Val)
+	}
+}
+
+func TestEnumUnknownVariant(t *testing.T) {
+	src := `enum State { IDLE, RUN }
+fun test() -> u8 { return State::INVALID }
+`
+	_, err := nanz.Parse(src, "bad_enum_test")
+	if err == nil {
+		t.Fatal("expected error for unknown variant State::INVALID")
+	}
+	if !strings.Contains(err.Error(), "unknown variant") {
+		t.Errorf("error should mention 'unknown variant', got: %v", err)
+	}
+}
