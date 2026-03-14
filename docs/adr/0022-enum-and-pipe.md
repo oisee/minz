@@ -1,4 +1,4 @@
-# ADR-0022: Enums and Pipe/Trans Declarations
+# ADR-0022: Enums, Pipe/Trans, and Type Aliases
 
 ## Status
 Accepted
@@ -63,10 +63,46 @@ range(0..64).apply(on_screen).fold(0, |acc, _| acc + 1)
 - **Zero new codegen** — lowerer expands pipe into `iterChain.stages`, then calls
   existing `lowerFusedForEach`/`lowerFusedFold`
 
+### Type Aliases: structural (`type`) and nominal (`newtype`)
+
+```nanz
+type PlayerID = u8
+type Score = u16
+type Coord = u8          // change to u16 for larger screens
+
+fun damage(target: PlayerID, amount: u8) -> void {
+    hp[target] = hp[target] - amount
+}
+
+let p: PlayerID = 3
+let x: u8 = p            // OK — structural, PlayerID IS u8
+```
+
+- `type X = Y` — structural alias.  `X` and `Y` are fully interchangeable, no cast needed
+- Parser-level substitution: `typeAliases map[string]string` in parser, resolved before HIR
+- Zero runtime cost, zero HIR/MIR2 impact — aliases erased before lowering
+- Works with any type: `type Pair = (u8, u8)`, `type Buf = u8[64]`
+
+**Future: `newtype` for nominal types**
+
+```nanz
+newtype PlayerID = u8    // distinct type, NOT assignable to u8
+
+let p: PlayerID = PlayerID(3)
+let x: u8 = u8(p)       // explicit cast required
+```
+
+- `newtype X = Y` — nominal.  `X` and `Y` are distinct types, explicit cast required
+- Same zero runtime cost (same representation), but type checker rejects implicit mixing
+- Deferred to post-v1 — structural aliases cover 90% of use cases
+
 ### Grammar additions
 
 ```ebnf
-top_decl    = ... | enum_decl | pipe_decl
+top_decl    = ... | enum_decl | pipe_decl | type_alias
+
+type_alias  = 'type' IDENT '=' type
+            | 'newtype' IDENT '=' type         // future: nominal
 
 enum_decl   = 'enum' IDENT '{' enum_value (',' enum_value)* '}'
 enum_value  = IDENT ('=' INT)?
@@ -89,11 +125,13 @@ pipe_anon    = ('pipe' | 'trans') '{' pipe_step* '}'
 ### Positive
 - Enums: readable code, zero runtime cost, unblocks @error and frontends
 - Pipe: DRY (define once, apply many), composable, testable via sandbox
-- Both are compile-time only — no runtime overhead on Z80
+- Type aliases: self-documenting code, portability, frontend compatibility (Pascal TYPE, C typedef)
+- All three are compile-time only — no runtime overhead on Z80
 - Pipe reuses existing fusion machinery — no new codegen needed
+- Type aliases: ~30 lines in parser, no HIR/MIR2 changes
 
 ### Negative
-- Two new keywords (`enum`, `pipe`/`trans`) — minimal language complexity
+- New keywords (`enum`, `pipe`/`trans`, `type`, future `newtype`) — minimal language complexity
 - Pipe `use` semantics must be clearly documented (snapshot, not reference)
 
 ### Neutral
@@ -112,6 +150,11 @@ same level as `fun`/`struct`.  `pipe name { }` is semantically honest.
 ### `xform` keyword instead of `pipe`/`trans`
 Rejected: `xform` is not a real word.  `pipe` is universally understood (Unix
 pipes).  `trans` added as synonym for those who prefer it.
+
+### Nominal type aliases from day one
+Rejected: `newtype` adds type checker complexity (cast insertion, error messages).
+Structural `type` covers 90% of use cases (readability, portability).  `newtype`
+can be added later without breaking existing code.
 
 ## References
 - [Report #070](../../reports/2026-03-14-070-Language_Frontends_Gaps_Roadmap.md) §2, §5
