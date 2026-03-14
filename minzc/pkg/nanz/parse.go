@@ -758,6 +758,16 @@ func (p *parser) parsePipeDecl() error {
 
 	var steps []pipeStep
 	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		// Optional |> prefix before each step
+		if p.l.is(tokPipe) {
+			p.l.next()
+			if p.l.is(tokGt) {
+				p.l.next()
+			}
+		}
+		if p.l.is(tokRBrace) {
+			break
+		}
 		stepTok := p.l.peek()
 		if stepTok.kind != tokIdent {
 			return fmt.Errorf("line %d: pipe %s: expected step (map, filter, use)", stepTok.line, nameTok.val)

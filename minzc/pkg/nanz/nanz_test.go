@@ -2743,3 +2743,29 @@ fun main() {
 		t.Errorf("error should mention 'unknown pipe', got: %v", err)
 	}
 }
+
+func TestPipePipeOperatorSyntax(t *testing.T) {
+	src := `
+pipe base {
+    |> map(|x: u8| x + x)
+}
+trans extended {
+    |> use base
+    |> filter(|x: u8| x > 3)
+}
+
+fun print_u8(x: u8) {}
+global buf: [u8; 4] = [1, 2, 3, 4]
+
+fun main() {
+    buf.apply(extended).forEach(print_u8, 4)
+}
+`
+	m, err := nanz.Parse(src, "pipe_op_test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	if len(m.Funcs) < 2 {
+		t.Errorf("expected at least 2 funcs, got %d", len(m.Funcs))
+	}
+}
