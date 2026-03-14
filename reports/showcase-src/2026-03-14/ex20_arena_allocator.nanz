@@ -1,0 +1,105 @@
+// ex20_arena_allocator.nanz — Struct-based bump allocator
+//
+// Features demonstrated:
+//   - struct Arena { ptr, end } — 4 bytes of state
+//   - ^Arena pointer receiver methods (zero-cost UFCS)
+//   - sizeof(Type) — compile-time constant
+//   - arena_split — chain multiple arenas from one memory pool
+//   - sandbox blocks — shared VM state across asserts
+
+struct Arena {
+    ptr: u16
+    end: u16
+}
+
+struct Enemy {
+    x: u8
+    y: u8
+    hp: u8
+    sprite: u8
+}
+
+// --- Core API ---
+
+fun Arena.init(self: ^Arena, base: u16, size: u16) {
+    self.ptr = base
+    self.end = base + size
+}
+
+fun Arena.alloc(self: ^Arena, n: u16) -> u16 {
+    let result: u16 = self.ptr
+    let next: u16 = result + n
+    if next > self.end {
+        return 0
+    }
+    self.ptr = next
+    return result
+}
+
+fun Arena.reset(self: ^Arena, base: u16) {
+    self.ptr = base
+}
+
+fun Arena.remaining(self: ^Arena) -> u16 {
+    return self.end - self.ptr
+}
+
+fun arena_split(a: ^Arena, start: u16, size: u16) -> u16 {
+    a.init(start, size)
+    return start + size
+}
+
+// --- Tests ---
+
+global perm: Arena
+global level: Arena
+global frame: Arena
+
+fun test_split_and_alloc() -> u16 {
+    // Chain 3 arenas from 0xC000
+    let next = arena_split(&perm,  0xC000, 256)
+    let next2 = arena_split(&level, next,  2048)
+    let next3 = arena_split(&frame, next2, 1024)
+
+    if next != 0xC100 { return 1 }
+    if next2 != 0xC900 { return 2 }
+    if next3 != 0xCD00 { return 3 }
+
+    // Typed alloc with sizeof
+    let e = perm.alloc(sizeof(Enemy))
+    if e != 0xC000 { return 4 }
+
+    let e2 = perm.alloc(sizeof(Enemy))
+    if e2 != 0xC004 { return 5 }
+
+    // Frame alloc + reset
+    let tmp = frame.alloc(64)
+    if tmp != 0xC900 { return 6 }
+
+    frame.reset(0xC900)
+    let tmp2 = frame.alloc(32)
+    if tmp2 != 0xC900 { return 7 }
+
+    return 0
+}
+
+assert test_split_and_alloc() == 0 via mir2
+
+// Sandbox: shared state across asserts
+global a: Arena
+
+fun init_a() -> u16 {
+    a.init(0xC000, 1024)
+    return a.remaining()
+}
+
+fun alloc_enemy() -> u16 {
+    return a.alloc(sizeof(Enemy))
+}
+
+sandbox "sequential_alloc" {
+    assert init_a() == 1024 via mir2
+    assert alloc_enemy() == 0xC000 via mir2
+    assert alloc_enemy() == 0xC004 via mir2
+    assert alloc_enemy() == 0xC008 via mir2
+}

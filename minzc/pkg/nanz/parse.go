@@ -538,6 +538,13 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			}
 			m.Asserts = append(m.Asserts, a)
 
+		case t.kind == tokIdent && t.val == "sandbox":
+			sb, err := p.parseSandbox()
+			if err != nil {
+				return nil, err
+			}
+			m.Sandboxes = append(m.Sandboxes, sb)
+
 		default:
 			return nil, fmt.Errorf("line %d: unexpected token %q at module level", t.line, t.val)
 		}
@@ -697,6 +704,56 @@ func (p *parser) parseAssertVia() string {
 		return target
 	}
 	return ""
+}
+
+// parseSandbox parses:
+//
+//	sandbox "name" {
+//	    assert fn() == expected [via mir2|z80]
+//	    assert fn2() == expected2 [via mir2|z80]
+//	}
+func (p *parser) parseSandbox() (hir.Sandbox, error) {
+	line := p.l.peek().line
+	if err := p.l.eatIdent("sandbox"); err != nil {
+		return hir.Sandbox{}, err
+	}
+
+	// Expect string literal for the sandbox name.
+	if !p.l.is(tokString) {
+		return hir.Sandbox{}, fmt.Errorf("line %d: expected sandbox name (string), got %q", p.l.peek().line, p.l.peek().val)
+	}
+	name := p.l.peek().val
+	p.l.next()
+
+	// Expect opening brace.
+	if !p.l.is(tokLBrace) {
+		return hir.Sandbox{}, fmt.Errorf("line %d: expected '{' after sandbox name", p.l.peek().line)
+	}
+	p.l.next()
+
+	var asserts []hir.Assert
+	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		if p.l.is(tokIdent) && p.l.peek().val == "assert" {
+			a, err := p.parseAssert()
+			if err != nil {
+				return hir.Sandbox{}, err
+			}
+			asserts = append(asserts, a)
+		} else {
+			return hir.Sandbox{}, fmt.Errorf("line %d: expected 'assert' inside sandbox, got %q", p.l.peek().line, p.l.peek().val)
+		}
+	}
+
+	if !p.l.is(tokRBrace) {
+		return hir.Sandbox{}, fmt.Errorf("line %d: expected '}' to close sandbox", p.l.peek().line)
+	}
+	p.l.next()
+
+	return hir.Sandbox{
+		Name:    name,
+		Asserts: asserts,
+		Line:    line,
+	}, nil
 }
 
 func intSliceStr(vs []int64) string {
@@ -1204,6 +1261,25 @@ func (p *parser) parseType() (mir2.Ty, error) {
 	}
 
 	return nil, fmt.Errorf("line %d: expected type, got %q", t.line, t.val)
+}
+
+// resolveTypeSize returns the byte size of a named type (for sizeof()).
+func (p *parser) resolveTypeSize(name string, line int) (int, error) {
+	switch name {
+	case "u8", "i8", "bool":
+		return 1, nil
+	case "u16", "i16", "ptr":
+		return 2, nil
+	case "u24", "i24":
+		return 3, nil
+	case "u32", "i32":
+		return 4, nil
+	default:
+		if st, ok := p.structs[name]; ok {
+			return mir2.ByteWidth(st), nil
+		}
+		return 0, fmt.Errorf("line %d: sizeof: unknown type %q", line, name)
+	}
 }
 
 // parseTypeWithIface is like parseType but also returns the interface name when
@@ -2474,6 +2550,27 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				return nil, err
 			}
 			return &hir.CastExpr{X: x, Ty: ty}, nil
+		}
+		// sizeof(TypeName) — compile-time constant, resolves to byte size of type.
+		if t.val == "sizeof" && p.l.peekN(1).kind == tokLParen {
+			p.l.next() // consume "sizeof"
+			p.l.next() // consume "("
+			nameTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return nil, fmt.Errorf("line %d: sizeof: expected type name", t.line)
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, fmt.Errorf("line %d: sizeof: expected ')'", t.line)
+			}
+			size, err := p.resolveTypeSize(nameTok.val, t.line)
+			if err != nil {
+				return nil, err
+			}
+			ty := mir2.Ty(mir2.TyU8)
+			if size > 255 {
+				ty = mir2.TyU16
+			}
+			return &hir.IntLitExpr{Val: int64(size), Ty: ty}, nil
 		}
 		// range(lo..hi) or range(hi..lo) — counter-based iterator source.
 		// Produces a RangeSourceExpr; Rev=true when lo > hi (back-counting).

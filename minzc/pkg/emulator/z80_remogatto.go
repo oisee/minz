@@ -512,6 +512,13 @@ func (z *RemogattoZ80) IsHalted() bool {
 	return z.halted
 }
 
+// Unhalt clears the halted state so Run() can be called again.
+// Memory and registers are preserved — only the halt flag is cleared.
+func (z *RemogattoZ80) Unhalt() {
+	z.halted = false
+	z.cpu.Halted = false
+}
+
 // SetMemory sets a memory location
 func (z *RemogattoZ80) SetMemory(address uint16, value byte) {
 	z.memory.data[address] = value

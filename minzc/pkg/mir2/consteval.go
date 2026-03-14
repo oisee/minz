@@ -96,5 +96,44 @@ func isConstEliminableCall(inst *Inst, m *Module) bool {
 	if callee.Attrs.IsRecursive {
 		return false
 	}
+	// Functions that access globals are not pure — their result depends on
+	// mutable state that ConstantCallElim's fresh VM doesn't reproduce.
+	// Folding them would produce wrong results (e.g. arena_alloc returning 0
+	// because arena_init was never called in the evaluation VM).
+	if funcAccessesGlobals(callee, m) {
+		return false
+	}
 	return true
+}
+
+// funcAccessesGlobals returns true if f (or any function it calls transitively)
+// contains an OpAddrOf instruction referencing a module global.
+func funcAccessesGlobals(f *Func, m *Module) bool {
+	globalNames := make(map[string]bool, len(m.Globals))
+	for _, g := range m.Globals {
+		globalNames[g.Name] = true
+	}
+	return funcAccessesGlobalsRec(f, m, globalNames, make(map[string]bool))
+}
+
+func funcAccessesGlobalsRec(f *Func, m *Module, globalNames, visited map[string]bool) bool {
+	if visited[f.Name] {
+		return false
+	}
+	visited[f.Name] = true
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op == OpAddrOf && globalNames[inst.Sym] {
+				return true
+			}
+			// Check callees transitively.
+			if inst.Op == OpCall && inst.Sym != "" {
+				callee := m.FuncByName(inst.Sym)
+				if callee != nil && funcAccessesGlobalsRec(callee, m, globalNames, visited) {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }

@@ -54,6 +54,20 @@ type Assert struct {
 	Via            string   // "" = both MIR2+Z80; "mir2" = MIR2 VM only; "z80" = Z80 only
 }
 
+// Sandbox groups compile-time assertions that share a single VM instance.
+// Globals mutated by one assert are visible to subsequent asserts in the
+// same sandbox (sequential execution, shared heap).
+//
+//	sandbox "arena" {
+//	    assert test_alloc_sequence() == 0 via mir2
+//	    assert test_oom() == 0 via mir2
+//	}
+type Sandbox struct {
+	Name    string   // user-given label (for diagnostics)
+	Asserts []Assert // executed sequentially on one shared VM
+	Line    int      // source line of the sandbox keyword
+}
+
 // Module is the top-level HIR unit.
 type Module struct {
 	Name       string
@@ -63,7 +77,8 @@ type Module struct {
 	Interfaces []*InterfaceDecl   // interface declarations (zero-cost, monomorphised)
 	Strings    []string           // interned string literals (index = position)
 	Warnings   []string           // use-before-init and other diagnostic warnings
-	Asserts    []Assert           // compile-time assertions (checked via MIR2 VM)
+	Asserts    []Assert           // top-level compile-time assertions (each gets fresh VM)
+	Sandboxes  []Sandbox          // grouped assertions (shared VM per sandbox)
 }
 
 // FuncByName returns the first HIR function with the given name, or nil.
