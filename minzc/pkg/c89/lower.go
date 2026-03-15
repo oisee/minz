@@ -377,9 +377,157 @@ func (fl *funcLow) lowerSelection(ss *cc.SelectionStatement) ([]hir.Stmt, error)
 		}
 		return []hir.Stmt{hir.If(cond, hir.Blk(then...), hir.Blk(els...))}, nil
 
+	case cc.SelectionStatementSwitch:
+		return fl.lowerSwitch(ss)
+
 	default:
 		return nil, nil
 	}
+}
+
+// lowerSwitch lowers a C switch statement into a chain of if/else:
+//
+//	switch (expr) { case 1: A; break; case 2: B; break; default: C; }
+//	→ if (expr == 1) { A } else if (expr == 2) { B } else { C }
+//
+// Limitations: fall-through between cases is NOT supported (each case is
+// treated as if it ends with break). This matches the vast majority of
+// real-world switch usage.
+func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
+	// Lower the switch expression.
+	switchExpr, err := fl.lowerExprAsExpr(ss.ExpressionList)
+	if err != nil {
+		return nil, err
+	}
+	switchTy := switchExpr.ExprTy()
+
+	// Collect case arms by walking the body.
+	type caseArm struct {
+		val  hir.Expr   // nil for default
+		body []hir.Stmt // statements until next case/break
+	}
+	var arms []caseArm
+	var defaultArm *caseArm
+
+	// The switch body is a compound statement.  Walk its block items
+	// and split at case/default labels.
+	if ss.Statement == nil || ss.Statement.CompoundStatement == nil {
+		return nil, nil
+	}
+	cs := ss.Statement.CompoundStatement
+
+	var curBody []hir.Stmt
+	var curVal hir.Expr   // nil = not yet in a case
+	isDefault := false
+	inCase := false
+
+	// flushArm saves the current arm being built.
+	flushArm := func() {
+		if !inCase {
+			return
+		}
+		arm := caseArm{val: curVal, body: curBody}
+		if isDefault {
+			defaultArm = &arm
+		} else {
+			arms = append(arms, arm)
+		}
+		curBody = nil
+		curVal = nil
+		isDefault = false
+		inCase = false
+	}
+
+	// Walk block items.
+	for bi := cs.BlockItemList; bi != nil; bi = bi.BlockItemList {
+		item := bi.BlockItem
+		if item == nil {
+			continue
+		}
+		switch item.Case {
+		case cc.BlockItemStmt:
+			stmt := item.Statement
+			if stmt == nil {
+				continue
+			}
+			// Check for labeled statement (case/default).
+			if stmt.Case == cc.StatementLabeled && stmt.LabeledStatement != nil {
+				ls := stmt.LabeledStatement
+				switch ls.Case {
+				case cc.LabeledStatementCaseLabel:
+					flushArm()
+					// Lower the case constant.
+					caseExpr, err := fl.lowerExprAsExpr(ls.ConstantExpression)
+					if err != nil {
+						return nil, err
+					}
+					curVal = caseExpr
+					inCase = true
+					// The labeled statement may have a body statement.
+					if ls.Statement != nil {
+						stmts, err := fl.lowerStmt(ls.Statement)
+						if err != nil {
+							return nil, err
+						}
+						curBody = append(curBody, stmts...)
+					}
+					continue
+				case cc.LabeledStatementDefault:
+					flushArm()
+					isDefault = true
+					inCase = true
+					if ls.Statement != nil {
+						stmts, err := fl.lowerStmt(ls.Statement)
+						if err != nil {
+							return nil, err
+						}
+						curBody = append(curBody, stmts...)
+					}
+					continue
+				}
+			}
+			// Check for break — end of this case arm.
+			if stmt.Case == cc.StatementJump && stmt.JumpStatement != nil &&
+				stmt.JumpStatement.Case == cc.JumpStatementBreak {
+				flushArm()
+				continue
+			}
+			// Regular statement — append to current body.
+			stmts, err := fl.lowerStmt(stmt)
+			if err != nil {
+				return nil, err
+			}
+			curBody = append(curBody, stmts...)
+
+		case cc.BlockItemDecl:
+			stmts, err := fl.lowerLocalDecl(item.Declaration)
+			if err != nil {
+				return nil, err
+			}
+			curBody = append(curBody, stmts...)
+		}
+	}
+	flushArm() // flush last arm
+
+	// Build if/else chain from bottom up.
+	// Start with default (or nil if no default).
+	var result *hir.Block
+	if defaultArm != nil {
+		result = hir.Blk(defaultArm.body...)
+	}
+	for i := len(arms) - 1; i >= 0; i-- {
+		arm := arms[i]
+		cond := &hir.BinExpr{Op: "==", L: switchExpr, R: arm.val, Ty: mir2.TyBool}
+		thenBlk := hir.Blk(arm.body...)
+		ifStmt := hir.If(cond, thenBlk, result)
+		result = hir.Blk(ifStmt)
+		_ = switchTy
+	}
+
+	if result == nil {
+		return nil, nil
+	}
+	return result.Body, nil
 }
 
 func (fl *funcLow) lowerIteration(is *cc.IterationStatement) ([]hir.Stmt, error) {
@@ -676,6 +824,9 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 		}
 		return wrapExpr(&hir.CondExpr{Cond: cond, Then: then, Else: els, Ty: fl.low.mapType(x.Type())}), nil
 
+	case *cc.ConstantExpression:
+		return fl.lowerExpr(x.ConditionalExpression)
+
 	case *cc.AssignmentExpression:
 		return fl.lowerAssignment(x)
 
@@ -701,6 +852,21 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 	case cc.PrimaryExpressionIdent:
 		tok := pe.Token
 		name := tok.SrcStr()
+		// Enum constants: check if identifier resolves to a constant value.
+		// cc/v4 may type enum constants as Int (not Enum), so check Value() for
+		// identifiers that aren't known locals, globals, or functions.
+		if _, isLocal := fl.locals[name]; !isLocal {
+			if _, isGlobal := fl.low.globals[name]; !isGlobal {
+				t := pe.Type()
+				isFunc := t != nil && (t.Kind() == cc.Function || t.Kind() == cc.Ptr)
+				if !isFunc {
+					if v := pe.Value(); v != nil {
+						ty := fl.low.mapType(t)
+						return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: ty}), nil
+					}
+				}
+			}
+		}
 		ty := fl.typeOf(name)
 		return wrapExpr(hir.Var(name, ty)), nil
 
@@ -1027,15 +1193,6 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 			mty = lty
 		// "+", "*", "<<" — do NOT narrow, overflow loses information
 		}
-	}
-
-	// Rewrite modulo: a % b → a - (a / b) * b
-	// HIR lowerer doesn't support "%" directly; this decomposition works
-	// for both signed and unsigned types on Z80.
-	if op == "%" {
-		div := &hir.BinExpr{Op: "/", L: l, R: r, Ty: mty}
-		mul := &hir.BinExpr{Op: "*", L: div, R: r, Ty: mty}
-		return wrapExpr(&hir.BinExpr{Op: "-", L: l, R: mul, Ty: mty}), nil
 	}
 
 	return wrapExpr(&hir.BinExpr{Op: op, L: l, R: r, Ty: mty}), nil
