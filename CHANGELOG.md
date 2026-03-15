@@ -6,6 +6,23 @@ For pre-MIR2 history (v0.1–v0.15, 2025), see git log.
 
 ---
 
+## 2026-03-15
+
+**42 commits. 8 reports (#073–#080). [Full context →](reports/2026-03-15_u7_context.md)**
+
+- **[Five Frontends, Universal Assert](reports/2026-03-15-080-Five_Frontends_Universal_Assert.md)** — Nanz, Lanz, Lizp, PL/M-80, Pascal all compile through one HIR → MIR2 → Z80 pipeline. Compile-time assert in all 5 frontends (45/45 verified). Pascal → CP/M hello world.
+- **[Nanz Language Book v5.3](docs/Nanz_Language_Book_v5.md)** — 21 chapters + 8 appendices (3195 lines). Five-frontend architecture, universal assert syntax, cross-language imports, transpilation. [PDF](releases/v0.21.4/Nanz_Language_Book_v5.pdf) / [EPUB](releases/v0.21.4/Nanz_Language_Book_v5.epub).
+- **[ZX Spectrum Tetris](examples/zx/tetris.nanz)** — 853 LOC Nanz → 2176 lines Z80 asm (48 functions). SRS wall kicks, hold/next/ghost piece, T-spin scoring, attribute-based rendering.
+- **[Tetris + Asm Phase 1 + ptr() + Value Pipe](reports/2026-03-15-074-Tetris_AsmPhase1_PtrCast_ValuePipe.md)** — `ptr(addr)^` peek/poke, `|>` value pipe with constant folding, `asm (ret A) (clob A,F)` precise clobbers, auto-clobber analysis.
+- **[Nanz Language Sprint](reports/2026-03-15-073-Nanz_Language_Sprint_Six_Features.md)** — enums, type aliases, module imports (4 styles), three string types, pipe/trans named pipelines.
+- **[Lizp Frontend](reports/2026-03-15-078-Lizp_Frontend_And_Cross_Lang_Import.md)** — Scheme/Lisp dialect: `defmacro`, threading (`->`, `->>`), `cond`/`when`/`unless`. Desugars to Lanz.
+- **[Pascal Frontend](reports/2026-03-15-079-Pascal_Frontend_Corpus_And_Feature_Matrix.md)** — TP3.0 subset → HIR → Z80. Records, arrays, `for`/`while`/`repeat`/`case`. `WriteLn` → BDOS via inline asm.
+- **Lanz Frontend** — S-expression IR, 1:1 HIR mapping, round-trips via `--emit=lanz`. Used internally by `@derive_*`.
+- **Cross-language imports** — `import mathlib { double }` resolves `.nanz`/`.lanz`/`.lizp`/`.plm`/`.pas` automatically. Circular detection across boundaries.
+- **MetaRuntime** — compile-time introspection + emit via Lanz + MIR2 VM. Native Go metafunctions.
+- **MZD** — recursive descent analysis now default mode.
+- **Bug fixes** — `defextern` hex desugaring, Pascal BDOS registers, array index load, `OpAddrOf` 8-bit guard, `InlineTrivial` ptr-op exclusion, `ADD HL,IX` guard. BUG-009 through BUG-014 documented.
+
 ## 2026-03-13
 
 - **[Nanz Language Book v4](docs/Nanz_Language_Book_v4.md)** — 14 chapters + 4 appendices. New: `as` cast, signed comparison, PreallocCoalesce, trivial inliner, 6502 backend, `mzn` native compiler, `@smc`. Available as [PDF](releases/v0.21.2/Nanz_Language_Book_v4.pdf) / [EPUB](releases/v0.21.2/Nanz_Language_Book_v4.epub).
