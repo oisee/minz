@@ -544,6 +544,10 @@ func (r *exprResult) toStmt() hir.Stmt {
 		return nil
 	}
 	if r.isAssign() {
+		// *ptr = val → StoreStmt (not Assign to LoadExpr)
+		if load, ok := r.target.(*hir.LoadExpr); ok {
+			return &hir.StoreStmt{Ptr: load.Ptr, Val: r.val}
+		}
 		return hir.Assign(r.target, r.val)
 	}
 	if r.expr != nil {
@@ -942,6 +946,13 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 
 	mty := fl.low.mapType(ty)
 
+	// Selectively undo C integer promotion for 8-bit operations.
+	// Only narrow for ops where u8 overflow doesn't lose information:
+	// subtraction, division, bitwise ops. Do NOT narrow addition or
+	// multiplication — those can legitimately overflow u8 (e.g. 200+200).
+	lty, rty := l.ExprTy(), r.ExprTy()
+	narrow8 := (lty == mir2.TyU8 || lty == mir2.TyI8) && lty == rty
+
 	op := ""
 	switch v := caseVal.(type) {
 	case cc.MultiplicativeExpressionCase:
@@ -998,6 +1009,16 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 	if op == "" {
 		return wrapExpr(l), nil
 	}
+
+	// Apply u8 narrowing only for safe operators.
+	if narrow8 {
+		switch op {
+		case "-", "/", "%", "&", "|", "^": // safe: result fits in u8
+			mty = lty
+		// "+", "*", "<<" — do NOT narrow, overflow loses information
+		}
+	}
+
 	return wrapExpr(&hir.BinExpr{Op: op, L: l, R: r, Ty: mty}), nil
 }
 

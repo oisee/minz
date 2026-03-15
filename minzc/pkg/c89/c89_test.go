@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/pipeline"
 )
 
 func TestCompile_VoidFunc(t *testing.T) {
@@ -183,4 +184,111 @@ int abs(int x) {
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
+}
+
+func TestCompile_CommentAsserts(t *testing.T) {
+	src := `
+int twice(int x) { return x + x; }
+int add(int a, int b) { return a + b; }
+// assert twice(5) == 10
+// assert add(3, 4) == 7
+// assert twice(0) == 0
+`
+	m, err := Compile(src, "assert.c")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	if len(m.Asserts) != 3 {
+		t.Fatalf("expected 3 asserts, got %d", len(m.Asserts))
+	}
+	a := m.Asserts[0]
+	if a.FuncName != "twice" {
+		t.Errorf("assert[0] func = %q, want twice", a.FuncName)
+	}
+	if len(a.Args) != 1 || a.Args[0] != 5 {
+		t.Errorf("assert[0] args = %v, want [5]", a.Args)
+	}
+	if a.Expected != 10 {
+		t.Errorf("assert[0] expected = %d, want 10", a.Expected)
+	}
+	a1 := m.Asserts[1]
+	if a1.FuncName != "add" || len(a1.Args) != 2 || a1.Args[0] != 3 || a1.Args[1] != 4 || a1.Expected != 7 {
+		t.Errorf("assert[1] = %+v, want add(3,4)==7", a1)
+	}
+}
+
+func TestCompile_AssertVia(t *testing.T) {
+	src := `
+int f(int x) { return x; }
+// assert f(42) == 42 via mir2
+`
+	m, err := Compile(src, "via.c")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	if len(m.Asserts) != 1 {
+		t.Fatalf("expected 1 assert, got %d", len(m.Asserts))
+	}
+	if m.Asserts[0].Via != "mir2" {
+		t.Errorf("via = %q, want mir2", m.Asserts[0].Via)
+	}
+}
+
+func TestCompile_Sandbox(t *testing.T) {
+	src := `
+int counter = 0;
+int inc(void) { counter = counter + 1; return counter; }
+int get(void) { return counter; }
+// sandbox "inc test"
+// assert inc() == 1
+// assert inc() == 2
+// assert get() == 2
+// end sandbox
+// assert inc() == 1
+`
+	m, err := Compile(src, "sandbox.c")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	// 1 top-level assert (outside sandbox).
+	if len(m.Asserts) != 1 {
+		t.Fatalf("expected 1 top-level assert, got %d", len(m.Asserts))
+	}
+	if m.Asserts[0].FuncName != "inc" {
+		t.Errorf("top-level assert func = %q, want inc", m.Asserts[0].FuncName)
+	}
+	// 1 sandbox with 3 asserts.
+	if len(m.Sandboxes) != 1 {
+		t.Fatalf("expected 1 sandbox, got %d", len(m.Sandboxes))
+	}
+	sb := m.Sandboxes[0]
+	if sb.Name != "inc test" {
+		t.Errorf("sandbox name = %q, want %q", sb.Name, "inc test")
+	}
+	if len(sb.Asserts) != 3 {
+		t.Errorf("sandbox asserts = %d, want 3", len(sb.Asserts))
+	}
+}
+
+func TestAssert_E2E_Pipeline(t *testing.T) {
+	src := `
+int twice(int x) { return x + x; }
+int add(int a, int b) { return a + b; }
+// assert twice(5) == 10 via mir2
+// assert twice(0) == 0 via mir2
+// assert add(3, 4) == 7 via mir2
+// assert add(0, 0) == 0 via mir2
+`
+	hm, err := Compile(src, "e2e.c")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	if len(hm.Asserts) != 4 {
+		t.Fatalf("expected 4 asserts, got %d", len(hm.Asserts))
+	}
+	_, err = pipeline.CompileHIR(hm)
+	if err != nil {
+		t.Fatalf("pipeline (asserts should pass): %v", err)
+	}
+	t.Logf("C89 E2E: %d asserts passed via MIR2 VM", len(hm.Asserts))
 }

@@ -16,6 +16,8 @@ package c89
 import (
 	"encoding/binary"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	cc "modernc.org/cc/v4"
@@ -119,5 +121,94 @@ func Compile(src, name string) (*hir.Module, error) {
 		return nil, fmt.Errorf("c89 lower: %w", err)
 	}
 
+	// Parse comment-based asserts and sandboxes.
+	l.hm.Asserts, l.hm.Sandboxes = parseCommentDirectives(src)
+
 	return l.hm, nil
+}
+
+// assertRe matches: // assert fn(1, 2, 0xAB) == 42 [via mir2|z80]
+var assertRe = regexp.MustCompile(
+	`//\s*assert\s+(\w+)\s*\(([^)]*)\)\s*==\s*(-?(?:0[xX][0-9a-fA-F]+|\d+))(?:\s+via\s+(mir2|z80))?\s*$`,
+)
+
+// sandboxStartRe matches: // sandbox "name"
+var sandboxStartRe = regexp.MustCompile(`//\s*sandbox\s+"([^"]+)"`)
+
+// sandboxEndRe matches: // end sandbox
+var sandboxEndRe = regexp.MustCompile(`//\s*end\s+sandbox`)
+
+func parseAssertLine(line string, lineNo int) (hir.Assert, bool) {
+	m := assertRe.FindStringSubmatch(line)
+	if m == nil {
+		return hir.Assert{}, false
+	}
+	funcName := m[1]
+	argsStr := strings.TrimSpace(m[2])
+	expectedStr := m[3]
+	via := m[4]
+
+	var args []int64
+	if argsStr != "" {
+		for _, s := range strings.Split(argsStr, ",") {
+			s = strings.TrimSpace(s)
+			v, err := strconv.ParseInt(s, 0, 64) // base 0: auto-detect 0x, 0b, octal
+			if err != nil {
+				continue
+			}
+			args = append(args, v)
+		}
+	}
+
+	expected, _ := strconv.ParseInt(expectedStr, 0, 64) // base 0: auto-detect hex
+	return hir.Assert{
+		FuncName: funcName,
+		Args:     args,
+		Expected: expected,
+		Source:   line,
+		Line:     lineNo,
+		Via:      via,
+	}, true
+}
+
+// parseCommentDirectives scans C source for assert and sandbox directives in comments.
+func parseCommentDirectives(src string) ([]hir.Assert, []hir.Sandbox) {
+	var asserts []hir.Assert
+	var sandboxes []hir.Sandbox
+
+	var curSandbox *hir.Sandbox
+
+	for i, line := range strings.Split(src, "\n") {
+		line = strings.TrimSpace(line)
+		lineNo := i + 1
+
+		// Check sandbox start.
+		if m := sandboxStartRe.FindStringSubmatch(line); m != nil {
+			curSandbox = &hir.Sandbox{Name: m[1], Line: lineNo}
+			continue
+		}
+
+		// Check sandbox end.
+		if sandboxEndRe.MatchString(line) && curSandbox != nil {
+			sandboxes = append(sandboxes, *curSandbox)
+			curSandbox = nil
+			continue
+		}
+
+		// Check assert.
+		if a, ok := parseAssertLine(line, lineNo); ok {
+			if curSandbox != nil {
+				curSandbox.Asserts = append(curSandbox.Asserts, a)
+			} else {
+				asserts = append(asserts, a)
+			}
+		}
+	}
+
+	// Auto-close unclosed sandbox.
+	if curSandbox != nil && len(curSandbox.Asserts) > 0 {
+		sandboxes = append(sandboxes, *curSandbox)
+	}
+
+	return asserts, sandboxes
 }

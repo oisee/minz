@@ -1,4 +1,4 @@
-/* C89 frontend: assert test */
+/* MinZ vs SDCC benchmark — small Z80-relevant functions */
 
 int twice(int x) {
     return x + x;
@@ -18,22 +18,18 @@ unsigned char abs_diff(unsigned char a, unsigned char b) {
     return b - a;
 }
 
+int sum_to(int n) {
+    int total = 0;
+    int i = 0;
+    while (i < n) {
+        total = total + i;
+        i = i + 1;
+    }
+    return total;
+}
+
 unsigned char clamp8(unsigned char val, unsigned char lo, unsigned char hi) {
     if (val < lo) return lo;
     if (val > hi) return hi;
     return val;
 }
-
-// assert twice(5) == 10
-// assert twice(0) == 0
-// assert add(3, 4) == 7
-// assert add(0, 0) == 0
-// assert max(3, 7) == 7
-// assert max(7, 3) == 7
-// assert max(5, 5) == 5
-// assert abs_diff(10, 3) == 7
-// assert abs_diff(3, 10) == 7
-// assert abs_diff(5, 5) == 0
-// assert clamp8(50, 10, 100) == 50
-// assert clamp8(5, 10, 100) == 10
-// assert clamp8(200, 10, 100) == 100
