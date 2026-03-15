@@ -369,7 +369,7 @@ fun main() {
 }
 ```
 
-## 📊 Current Metrics (v0.19.5, verified 2026-03-04)
+## 📊 Current Metrics (v0.19.6, verified 2026-03-15)
 
 | Metric | Value |
 |--------|-------|
@@ -378,11 +378,14 @@ fun main() {
 | Stdlib modules | 12 documented (real), ~35-40 of 55 files compile |
 | Z80 emulator coverage | 100% (1335/1335 FUSE) |
 | Peephole patterns | 67 (asm) + MIR passes |
-| Production backends | 1 (Z80) + 1 partial (C) + 8 experimental/broken |
+| Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
 | MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
+| Frontends | 6 (Nanz, C89, PL/M, Lanz, Lizp, Pascal) — all route through HIR→MIR2→Z80 |
+| C89 corpus | 191/191 asserts, 14 files |
+| E2E Z80 tests | 24 (fibonacci, flag-return, div8, div16, mod8, divmod-combined + 6502) |
 | Parser | Participle (native Go, zero deps) |
-| Toolchain binaries | 8 working (mz, mza, mze, mzx, mzd, mzlsp, mzrun, mztap) + mzv (works) + mzr (broken); mzd has register analysis + ABI verification |
-| Go test packages | 20/20 pass, 0 fail |
+| Toolchain binaries | 9 working (mz, mza, mze, mzx, mzd, mzlsp, mzrun, mztap, mzv2) + mzv1 (MIR1) + mzr (broken) |
+| Go test packages | 26/26 pass, 0 fail |
 
 ---
 
@@ -398,7 +401,8 @@ fun main() {
 | **MZLSP** | ✅ DONE | Language Server Protocol (diagnostics, hover, goto-def, completion) |
 | **MZRUN** | ✅ DONE | Remote runner (DZRP) |
 | **MZTAP** | ✅ DONE | TAP file loader |
-| **MZV** | ✅ DONE | MIR Virtual Machine runner (breakpoints, tracing, PNG export) |
+| **MZV1** | ✅ DONE | MIR1 Virtual Machine runner (breakpoints, tracing, PNG export) |
+| **MZV2** | ✅ DONE | MIR2 VM runner with TUI display + ZX font OCR (Tetris verified) |
 | **MZR** | ❌ BROKEN | Interactive REPL (compileModule returns empty, :run unimplemented) |
 | **DAP** | 📋 TOBE | Debug Adapter Protocol (native, beyond DeZog) |
 
