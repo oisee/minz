@@ -63,6 +63,15 @@ func PromoteStructReturns(m *hir.Module) {
 	for _, fn := range m.Funcs {
 		rewriteCallSites(fn.Body, eligible)
 	}
+
+	// Phase 4: eliminate dead struct VarDecls left over from promotion.
+	// After rewriting returns to tuples, the StructLitExpr VarDecls are
+	// dead code — removing them prevents unnecessary stack allocation.
+	for _, fn := range m.Funcs {
+		if _, ok := eligible[fn.Name]; ok {
+			eliminateDeadStructDecls(fn.Body)
+		}
+	}
 }
 
 // ── Struct index ─────────────────────────────────────────────────────────────
@@ -161,66 +170,100 @@ func findEligibleFunctions(m *hir.Module, idx structIndex) map[string]*promotion
 //   - Indirect via brace init: `Pair res = {a, b}; return res;`
 //   - Pointer return via field assign: `res.q = a; res.r = b; return &res;`
 func findReturnedStruct(fn *hir.Func, idx structIndex) *mir2.StructTy {
-	// First pass: collect variables initialized from StructLitExpr.
-	structVars := make(map[string]*hir.StructLitExpr)
-	walkStmts(fn.Body, func(s hir.Stmt) bool {
-		if decl, ok := s.(*hir.VarDeclStmt); ok {
-			if lit, isLit := decl.Init.(*hir.StructLitExpr); isLit && lit.St != nil {
-				structVars[decl.Name] = lit
-			}
-		}
-		return true
-	})
-
 	// Also track variables built via field assignments (pointer return pattern).
 	fieldAssigned := collectFieldAssigned(fn.Body, idx)
 
-	// Second pass: check all return statements.
+	// Walk all returns and check they all return the same SSS struct type.
+	// Uses block-local resolution to avoid cross-block variable shadowing.
 	var found *mir2.StructTy
-	ok := walkStmts(fn.Body, func(s hir.Stmt) bool {
-		ret, isRet := s.(*hir.ReturnStmt)
-		if !isRet {
-			return true
-		}
-		// Direct struct literal return.
-		if lit, isLit := ret.Val.(*hir.StructLitExpr); isLit && lit.St != nil {
-			if found == nil {
-				found = lit.St
-			} else if found.Name != lit.St.Name {
-				return false
-			}
-			return true
-		}
-		// Indirect: return varName where varName was struct-initialized.
-		if ref, isRef := ret.Val.(*hir.VarRefExpr); isRef {
-			if lit, ok := structVars[ref.Name]; ok {
-				if found == nil {
-					found = lit.St
-				} else if found.Name != lit.St.Name {
-					return false
-				}
-				return true
-			}
-		}
-		// Pointer return: return &varName where varName was field-assigned.
-		if unary, isUnary := ret.Val.(*hir.UnaryExpr); isUnary && unary.Op == "&" {
-			if ref, isRef := unary.X.(*hir.VarRefExpr); isRef {
-				if st, ok := fieldAssigned[ref.Name]; ok {
-					if found == nil {
-						found = st
-					} else if found.Name != st.Name {
-						return false
-					}
-					return true
-				}
-			}
-		}
-		return false // returns something else → not eligible
-	})
+	ok := findReturnedStructInBlock(fn.Body, idx, fieldAssigned, &found, nil)
 	if !ok || found == nil {
 		return nil
 	}
 	return found
+}
+
+// findReturnedStructInBlock checks returns in a block using scoped struct var tracking.
+// parentVars provides declarations from enclosing blocks; local declarations shadow them.
+func findReturnedStructInBlock(blk *hir.Block, idx structIndex, fieldAssigned map[string]*mir2.StructTy, found **mir2.StructTy, parentVars map[string]*hir.StructLitExpr) bool {
+	if blk == nil {
+		return true
+	}
+
+	// Build scoped vars: parent + local (local shadows parent).
+	scopeVars := make(map[string]*hir.StructLitExpr, len(parentVars))
+	for k, v := range parentVars {
+		scopeVars[k] = v
+	}
+	for _, s := range blk.Body {
+		if decl, ok := s.(*hir.VarDeclStmt); ok {
+			if lit, isLit := decl.Init.(*hir.StructLitExpr); isLit && lit.St != nil {
+				scopeVars[decl.Name] = lit
+			}
+		}
+	}
+
+	for _, s := range blk.Body {
+		// Recurse into nested blocks with current scope.
+		switch st := s.(type) {
+		case *hir.IfStmt:
+			if !findReturnedStructInBlock(st.Then, idx, fieldAssigned, found, scopeVars) {
+				return false
+			}
+			if !findReturnedStructInBlock(st.Else, idx, fieldAssigned, found, scopeVars) {
+				return false
+			}
+		case *hir.WhileStmt:
+			if !findReturnedStructInBlock(st.Body, idx, fieldAssigned, found, scopeVars) {
+				return false
+			}
+		case *hir.ForRangeStmt:
+			if !findReturnedStructInBlock(st.Body, idx, fieldAssigned, found, scopeVars) {
+				return false
+			}
+		}
+
+		ret, isRet := s.(*hir.ReturnStmt)
+		if !isRet {
+			continue
+		}
+
+		var st *mir2.StructTy
+
+		// Direct struct literal return.
+		if lit, isLit := ret.Val.(*hir.StructLitExpr); isLit && lit.St != nil {
+			st = lit.St
+		}
+
+		// Indirect: return varName — use scoped resolution.
+		if st == nil {
+			if ref, isRef := ret.Val.(*hir.VarRefExpr); isRef {
+				if lit, ok := scopeVars[ref.Name]; ok {
+					st = lit.St
+				}
+			}
+		}
+
+		// Pointer return: return &varName where varName was field-assigned.
+		if st == nil {
+			if unary, isUnary := ret.Val.(*hir.UnaryExpr); isUnary && unary.Op == "&" {
+				if ref, isRef := unary.X.(*hir.VarRefExpr); isRef {
+					st = fieldAssigned[ref.Name]
+				}
+			}
+		}
+
+		if st == nil {
+			return false // returns something else → not eligible
+		}
+
+		if *found == nil {
+			*found = st
+		} else if (*found).Name != st.Name {
+			return false
+		}
+	}
+	return true
 }
 
 // collectFieldAssigned finds local variables that are fully populated via
@@ -279,37 +322,68 @@ func collectFieldAssigned(blk *hir.Block, idx structIndex) map[string]*mir2.Stru
 //   - Indirect via brace init: `Pair res = {a, b}; return res;` → `return (a, b)`
 //   - Pointer return: `res.q = a; res.r = b; return &res;` → `return (a, b)`
 func rewriteReturns(fn *hir.Func, info *promotionInfo) {
-	// Collect struct-initialized variables for indirect return resolution.
-	structVars := make(map[string]*hir.StructLitExpr)
-	walkStmts(fn.Body, func(s hir.Stmt) bool {
-		if decl, ok := s.(*hir.VarDeclStmt); ok {
-			if lit, isLit := decl.Init.(*hir.StructLitExpr); isLit {
-				structVars[decl.Name] = lit
-			}
-		}
-		return true
-	})
-
 	// Collect field assignments for pointer-return pattern.
 	fieldAssigns := collectFieldAssigns(fn.Body)
 
-	walkStmtsMut(fn.Body, func(s hir.Stmt, replace func(hir.Stmt)) {
-		ret, isRet := s.(*hir.ReturnStmt)
-		if !isRet {
-			return
+	// Rewrite returns block-by-block with scoped variable resolution.
+	// Different blocks may define the same variable name with different
+	// values (e.g. if/else branches), so we use lexical scoping.
+	rewriteReturnsInBlock(fn.Body, info, fieldAssigns, nil)
+
+	// For pointer-return pattern: remove the field-assign statements that
+	// were consumed into the tuple return.
+	removePtrReturnAssigns(fn.Body, info, fieldAssigns)
+}
+
+// rewriteReturnsInBlock processes one block with scoped variable resolution.
+// parentVars provides declarations from enclosing blocks.
+func rewriteReturnsInBlock(blk *hir.Block, info *promotionInfo, fieldAssigns map[string]map[string]hir.Expr, parentVars map[string]*hir.StructLitExpr) {
+	if blk == nil {
+		return
+	}
+
+	// Build scoped vars: parent + local (local shadows parent).
+	scopeVars := make(map[string]*hir.StructLitExpr)
+	for k, v := range parentVars {
+		scopeVars[k] = v
+	}
+	for _, s := range blk.Body {
+		if decl, ok := s.(*hir.VarDeclStmt); ok {
+			if lit, isLit := decl.Init.(*hir.StructLitExpr); isLit {
+				scopeVars[decl.Name] = lit
+			}
+		}
+	}
+
+	for i, s := range blk.Body {
+		// Recurse into nested blocks with current scope.
+		switch st := s.(type) {
+		case *hir.IfStmt:
+			rewriteReturnsInBlock(st.Then, info, fieldAssigns, scopeVars)
+			rewriteReturnsInBlock(st.Else, info, fieldAssigns, scopeVars)
+		case *hir.WhileStmt:
+			rewriteReturnsInBlock(st.Body, info, fieldAssigns, scopeVars)
+		case *hir.ForRangeStmt:
+			rewriteReturnsInBlock(st.Body, info, fieldAssigns, scopeVars)
 		}
 
-		// Pattern 1+2: direct StructLitExpr or indirect via variable.
-		var lit *hir.StructLitExpr
-		if l, ok := ret.Val.(*hir.StructLitExpr); ok {
-			lit = l
-		} else if ref, ok := ret.Val.(*hir.VarRefExpr); ok {
-			lit = structVars[ref.Name]
+		ret, isRet := s.(*hir.ReturnStmt)
+		if !isRet {
+			continue
 		}
-		if lit != nil {
-			vals := structLitToTuple(lit, info)
-			replace(&hir.ReturnStmt{Vals: vals})
-			return
+
+		// Pattern 1: direct StructLitExpr.
+		if l, ok := ret.Val.(*hir.StructLitExpr); ok {
+			blk.Body[i] = &hir.ReturnStmt{Vals: structLitToTuple(l, info)}
+			continue
+		}
+
+		// Pattern 2: indirect via variable — use scoped resolution.
+		if ref, ok := ret.Val.(*hir.VarRefExpr); ok {
+			if lit, found := scopeVars[ref.Name]; found {
+				blk.Body[i] = &hir.ReturnStmt{Vals: structLitToTuple(lit, info)}
+				continue
+			}
 		}
 
 		// Pattern 3: return &varName where varName was field-assigned.
@@ -322,15 +396,11 @@ func rewriteReturns(fn *hir.Func, info *promotionInfo) {
 							vals[pos] = expr
 						}
 					}
-					replace(&hir.ReturnStmt{Vals: vals})
+					blk.Body[i] = &hir.ReturnStmt{Vals: vals}
 				}
 			}
 		}
-	})
-
-	// For pointer-return pattern: remove the field-assign statements that
-	// were consumed into the tuple return.
-	removePtrReturnAssigns(fn.Body, info, fieldAssigns)
+	}
 }
 
 // structLitToTuple converts a StructLitExpr to tuple values using promotionInfo.
@@ -874,6 +944,122 @@ func rewriteOutParamCallSites(blk *hir.Block, eligible map[string]*outParamInfo)
 			blk.Body[j] = rewriteFieldRefs(blk.Body[j], varName, fieldVars, pInfo)
 		}
 	}
+}
+
+// ── Dead struct decl elimination ─────────────────────────────────────────────
+
+// eliminateDeadStructDecls removes VarDeclStmt with StructLitExpr init where
+// the variable is not referenced elsewhere in the block. This cleans up dead
+// code left after struct→tuple promotion.
+func eliminateDeadStructDecls(blk *hir.Block) {
+	if blk == nil {
+		return
+	}
+
+	// Recurse first.
+	for _, s := range blk.Body {
+		switch st := s.(type) {
+		case *hir.IfStmt:
+			eliminateDeadStructDecls(st.Then)
+			eliminateDeadStructDecls(st.Else)
+		case *hir.WhileStmt:
+			eliminateDeadStructDecls(st.Body)
+		case *hir.ForRangeStmt:
+			eliminateDeadStructDecls(st.Body)
+		}
+	}
+
+	// Collect names of struct-initialized variables.
+	structDecls := make(map[string]bool)
+	for _, s := range blk.Body {
+		if decl, ok := s.(*hir.VarDeclStmt); ok {
+			if _, isLit := decl.Init.(*hir.StructLitExpr); isLit {
+				structDecls[decl.Name] = true
+			}
+		}
+	}
+	if len(structDecls) == 0 {
+		return
+	}
+
+	// Check which are still referenced in the remaining body.
+	used := make(map[string]bool)
+	for _, s := range blk.Body {
+		// Skip the VarDeclStmt itself.
+		if decl, ok := s.(*hir.VarDeclStmt); ok {
+			if structDecls[decl.Name] {
+				continue
+			}
+		}
+		for name := range structDecls {
+			if !used[name] && stmtUsesVar(s, name) {
+				used[name] = true
+			}
+		}
+	}
+
+	// Remove unused struct decls.
+	var filtered []hir.Stmt
+	for _, s := range blk.Body {
+		if decl, ok := s.(*hir.VarDeclStmt); ok {
+			if structDecls[decl.Name] && !used[decl.Name] {
+				continue // dead — remove
+			}
+		}
+		filtered = append(filtered, s)
+	}
+	blk.Body = filtered
+}
+
+// stmtUsesVar checks if any expression in a statement references a variable.
+func stmtUsesVar(s hir.Stmt, name string) bool {
+	switch st := s.(type) {
+	case *hir.VarDeclStmt:
+		return exprUsesVar(st.Init, name)
+	case *hir.AssignStmt:
+		return exprUsesVar(st.Target, name) || exprUsesVar(st.Val, name)
+	case *hir.ReturnStmt:
+		if exprUsesVar(st.Val, name) {
+			return true
+		}
+		for _, v := range st.Vals {
+			if exprUsesVar(v, name) {
+				return true
+			}
+		}
+	case *hir.ExprStmt:
+		return exprUsesVar(st.Expr, name)
+	case *hir.IfStmt:
+		if exprUsesVar(st.Cond, name) {
+			return true
+		}
+		if blockUsesVar(st.Then, name) || blockUsesVar(st.Else, name) {
+			return true
+		}
+	case *hir.WhileStmt:
+		if exprUsesVar(st.Cond, name) {
+			return true
+		}
+		return blockUsesVar(st.Body, name)
+	case *hir.ForRangeStmt:
+		return blockUsesVar(st.Body, name)
+	case *hir.TupleLetStmt:
+		return exprUsesVar(st.Call, name)
+	}
+	return false
+}
+
+// blockUsesVar checks if any statement in a block references a variable.
+func blockUsesVar(blk *hir.Block, name string) bool {
+	if blk == nil {
+		return false
+	}
+	for _, s := range blk.Body {
+		if stmtUsesVar(s, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // ── Statement walkers ────────────────────────────────────────────────────────
