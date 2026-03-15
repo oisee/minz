@@ -75,7 +75,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **MZA** - Z80 Assembler (table-driven, `[addr]` bracket syntax)
 - **MZE** - Z80 Emulator (100% coverage via remogatto/z80)
 - **MZX** - ZX Spectrum Emulator (T-state accurate, AY sound, Ebitengine)
-- **MZD** - Z80 Disassembler (IDA-like analysis, ABI propagation)
+- **MZD** - Z80 Disassembler (IDA-like analysis, ABI propagation, register tracking)
 - **MZR** - Interactive REPL
 - **MZRUN** - Remote runner (DZRP protocol)
 
@@ -274,6 +274,35 @@ mz program.minz -b c -o program.c           # C99 (testing)
 mz program.minz -b crystal -o program.cr    # Crystal (testing)
 ```
 
+### Codegen Debugging with mzd
+```bash
+# 1. Compile to .a80 (has ABI comments) and binary
+mz program.minz -o program.a80
+mza program.a80 -o program.bin
+
+# 2. Disassemble with register annotations
+mzd --regs program.bin               # shows IN/OUT/CLOBBER per function
+
+# 3. Verify codegen against compiler-declared ABI
+mzd --regs --verify-abi program.a80 program.bin
+# Output: "ABI verify: 5/5 functions matched, all OK"
+# ...or mismatches like:
+#   board_set  IN: extra=D (declared=A,C,B detected=A,C,B,D)  ← codegen bug!
+
+# 4. Other useful mzd flags
+mzd --cycles program.bin              # T-state counts per instruction
+mzd --regs --stats program.com        # full analysis with statistics
+mzd -t cpm --regs program.com         # CP/M platform (auto-detect BDOS ABI)
+```
+
+**How --verify-abi works:**
+- Parses `; fun name(p: type = REG) -> type = REG ; clobbers: REG` from .a80
+- Assembles .a80 internally to resolve label→address mapping
+- Compares declared IN/OUT/CLOBBER vs detected (provenance-tracked) register usage
+- Mismatches = likely codegen bugs (register allocator, calling convention, clobber)
+
+**Provenance tracking** traces values through `EX DE,HL`, `LD r,r'`, and PUSH/POP chains. ABI-aware CALL consumption uses BDOS/ROM profiles to avoid false inputs.
+
 ## 📁 Project Structure
 
 ```
@@ -352,7 +381,7 @@ fun main() {
 | Production backends | 1 (Z80) + 1 partial (C) + 8 experimental/broken |
 | MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
 | Parser | Participle (native Go, zero deps) |
-| Toolchain binaries | 8 working (mz, mza, mze, mzx, mzd, mzlsp, mzrun, mztap) + mzv (works) + mzr (broken) |
+| Toolchain binaries | 8 working (mz, mza, mze, mzx, mzd, mzlsp, mzrun, mztap) + mzv (works) + mzr (broken); mzd has register analysis + ABI verification |
 | Go test packages | 20/20 pass, 0 fail |
 
 ---
@@ -365,7 +394,7 @@ fun main() {
 | **MZA** | ✅ DONE | Z80 Assembler (table-driven encoder) |
 | **MZE** | ✅ DONE | Z80 Emulator (1335/1335 FUSE tests) |
 | **MZX** | ✅ DONE | ZX Spectrum emulator (T-state accurate, Ebitengine) |
-| **MZD** | ✅ DONE | Z80 Disassembler (IDA-like analysis engine) |
+| **MZD** | ✅ DONE | Z80 Disassembler (IDA-like analysis, `--regs` IN/OUT/CLOBBER, `--verify-abi`) |
 | **MZLSP** | ✅ DONE | Language Server Protocol (diagnostics, hover, goto-def, completion) |
 | **MZRUN** | ✅ DONE | Remote runner (DZRP) |
 | **MZTAP** | ✅ DONE | TAP file loader |
