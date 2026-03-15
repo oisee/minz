@@ -2769,3 +2769,67 @@ fun main() {
 		t.Errorf("expected at least 2 funcs, got %d", len(m.Funcs))
 	}
 }
+
+func TestValuePipe(t *testing.T) {
+	src := `
+fun double(x: u8) -> u8 { return (x + x) }
+fun inc(x: u8) -> u8 { return (x + 1) }
+
+fun test() -> u8 {
+    return 5 |> double |> inc
+}
+`
+	m, err := nanz.Parse(src, "value_pipe_test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	// Should have double, inc, test
+	if len(m.Funcs) < 3 {
+		t.Errorf("expected at least 3 funcs, got %d", len(m.Funcs))
+	}
+}
+
+func TestValuePipeWithArgs(t *testing.T) {
+	src := `
+fun add(a: u8, b: u8) -> u8 { return (a + b) }
+fun mul(a: u8, b: u8) -> u8 { return (a * b) }
+
+fun test() -> u8 {
+    return 5 |> add(3) |> mul(2)
+}
+`
+	m, err := nanz.Parse(src, "value_pipe_args_test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	if len(m.Funcs) < 3 {
+		t.Errorf("expected at least 3 funcs, got %d", len(m.Funcs))
+	}
+}
+
+func TestLambdaTypeInference(t *testing.T) {
+	src := `
+fun add_acc(acc: u8, x: u8) -> u8 { return (acc + x) }
+
+fun test() -> u8 {
+    return range(0..5).map(|x| x + x).fold(0, add_acc)
+}
+`
+	m, err := nanz.Parse(src, "lambda_infer_test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	// lambda_0 should exist with u8 param (inferred from chain)
+	found := false
+	for _, f := range m.Funcs {
+		if len(f.Name) > 6 && f.Name[:7] == "lambda_" {
+			found = true
+			if len(f.Params) != 1 {
+				t.Errorf("lambda params: want 1, got %d", len(f.Params))
+			}
+		}
+	}
+	if !found {
+		t.Error("expected a lambda function to be generated")
+	}
+}

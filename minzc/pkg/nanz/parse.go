@@ -100,6 +100,7 @@ const (
 	tokTilde      // ~
 	tokLtLt       // <<
 	tokGtGt       // >>
+	tokPipeGt     // |>
 	tokColonColon // ::
 	tokAt         // @
 )
@@ -182,6 +183,8 @@ func (l *lexer) tokenize() {
 			l.emit(tokGtGt, ">>", line); l.pos += 2; continue
 		case ch == ':' && l.pos+1 < len(l.src) && l.src[l.pos+1] == ':':
 			l.emit(tokColonColon, "::", line); l.pos += 2; continue
+		case ch == '|' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
+			l.emit(tokPipeGt, "|>", line); l.pos += 2; continue
 		}
 
 		// Single-char
@@ -467,6 +470,7 @@ type parser struct {
 	importedModules map[string]string               // modPath → mangled prefix (for qualified access)
 	funcAliases     map[string]string               // local name → mangled name (for unqualified imports)
 	pipes           map[string][]pipeStep           // pipe/trans name → stages
+	lambdaHintTy    mir2.Ty                         // type hint for untyped lambda params (set by chain context)
 }
 
 // pipeStep is one stage in a named pipe/trans declaration.
@@ -487,6 +491,38 @@ func (p *parser) exprTy(e hir.Expr) mir2.Ty {
 		}
 	}
 	return e.ExprTy()
+}
+
+// inferChainElemTy infers the element type flowing through an iterator chain.
+// For map/filter calls, the element type is the return type of the previous
+// stage's callback. For range sources and raw expressions, it's the expression type.
+func (p *parser) inferChainElemTy(base hir.Expr) mir2.Ty {
+	// If base is a call to map/filter, the element type is the callback's return type
+	if call, ok := base.(*hir.CallExpr); ok {
+		switch call.Fn {
+		case "map":
+			// map(source, cb) — element type is cb's return type
+			if len(call.Args) >= 2 {
+				if ref, ok2 := call.Args[1].(*hir.VarRefExpr); ok2 {
+					if sig, hasSig := p.funcSigs[ref.Name]; hasSig {
+						return sig
+					}
+				}
+				return call.Args[1].ExprTy()
+			}
+		case "filter":
+			// filter doesn't change element type — recurse into source
+			if len(call.Args) >= 1 {
+				return p.inferChainElemTy(call.Args[0])
+			}
+		}
+	}
+	// Default: base expression's type
+	ty := p.exprTy(base)
+	if ty != nil {
+		return ty
+	}
+	return mir2.TyU8
 }
 
 // opToFuncName maps an operator token kind to a mangled function name.
@@ -761,7 +797,9 @@ func (p *parser) parsePipeDecl() error {
 	var steps []pipeStep
 	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
 		// Optional |> prefix before each step
-		if p.l.is(tokPipe) {
+		if p.l.is(tokPipeGt) {
+			p.l.next()
+		} else if p.l.is(tokPipe) {
 			p.l.next()
 			if p.l.is(tokGt) {
 				p.l.next()
@@ -2870,6 +2908,29 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 			lhs = &hir.CastExpr{X: lhs, Ty: ty}
 			continue
 		}
+		// |> value pipe: expr |> f → f(expr), expr |> f(a) → f(expr, a)
+		if t.kind == tokPipeGt && minPrec < 1 {
+			p.l.next() // consume |>
+			rhs, err := p.parseUnary()
+			if err != nil {
+				return nil, err
+			}
+			// If rhs is a call f(args...), insert lhs as first arg
+			if call, ok := rhs.(*hir.CallExpr); ok {
+				call.Args = append([]hir.Expr{lhs}, call.Args...)
+				lhs = call
+			} else if ref, ok := rhs.(*hir.VarRefExpr); ok {
+				// Bare function name: f → f(lhs)
+				retTy := mir2.Ty(mir2.TyU8)
+				if sig, hasSig := p.funcSigs[ref.Name]; hasSig {
+					retTy = sig
+				}
+				lhs = &hir.CallExpr{Fn: ref.Name, Args: []hir.Expr{lhs}, Ty: retTy}
+			} else {
+				return nil, fmt.Errorf("line %d: |> pipe: right side must be a function name or call", t.line)
+			}
+			continue
+		}
 		bo, ok := binops[t.kind]
 		if !ok || bo.prec <= minPrec {
 			break
@@ -3091,6 +3152,12 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				// Method call: base.method(a, b) → method(base, a, b)
 				p.l.next()
 				args := []hir.Expr{base}
+				// Set lambda type hint for iterator chain methods
+				savedHint := p.lambdaHintTy
+				switch fieldTok.val {
+				case "map", "filter", "forEach", "fold", "reduce":
+					p.lambdaHintTy = p.inferChainElemTy(base)
+				}
 				for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
 					a, err := p.parseExpr()
 					if err != nil {
@@ -3101,6 +3168,7 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 						p.l.next()
 					}
 				}
+				p.lambdaHintTy = savedHint
 				if _, err := p.l.eat(tokRParen); err != nil {
 					return nil, err
 				}
@@ -3539,6 +3607,9 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 			return nil, fmt.Errorf("line %d: lambda: expected parameter name: %w", pname.line, err)
 		}
 		pty := mir2.Ty(mir2.TyU8) // default type
+		if p.lambdaHintTy != nil {
+			pty = p.lambdaHintTy
+		}
 		if p.l.is(tokColon) {
 			p.l.next()
 			pty, err = p.parseType()

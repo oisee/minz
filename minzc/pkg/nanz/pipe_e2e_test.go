@@ -52,3 +52,60 @@ fun sum_composed() -> u8 {
 		t.Errorf("sum_composed: want 15, got %d", got)
 	}
 }
+
+func TestValuePipe_E2E(t *testing.T) {
+	// 5 |> double |> inc → inc(double(5)) = inc(10) = 11
+	src := `
+fun double(x: u8) -> u8 { return (x + x) }
+fun inc(x: u8) -> u8 { return (x + 1) }
+
+fun piped() -> u8 {
+    return 5 |> double |> inc
+}
+`
+	got, err := compileAndRunEnum(t, src, "piped")
+	if err != nil {
+		t.Fatalf("compile/run: %v", err)
+	}
+	if got != 11 {
+		t.Errorf("piped: want 11, got %d", got)
+	}
+}
+
+func TestValuePipeWithArgs_E2E(t *testing.T) {
+	// 5 |> add(3) |> mul(2) → mul(add(5,3), 2) = mul(8,2) = 16
+	src := `
+fun add(a: u8, b: u8) -> u8 { return (a + b) }
+fun mul(a: u8, b: u8) -> u8 { return (a * b) }
+
+fun piped() -> u8 {
+    return 5 |> add(3) |> mul(2)
+}
+`
+	got, err := compileAndRunEnum(t, src, "piped")
+	if err != nil {
+		t.Fatalf("compile/run: %v", err)
+	}
+	if got != 16 {
+		t.Errorf("piped: want 16, got %d", got)
+	}
+}
+
+func TestLambdaInference_E2E(t *testing.T) {
+	// range(0..5).map(|x| x + x).fold(0, add_acc) — no type annotation on lambda
+	// Same as TestPipe_E2E_RangeFold but without explicit u8
+	src := `
+fun add_acc(acc: u8, x: u8) -> u8 { return (acc + x) }
+
+fun sum_doubled() -> u8 {
+    return range(0..5).map(|x| x + x).fold(0, add_acc)
+}
+`
+	got, err := compileAndRunEnum(t, src, "sum_doubled")
+	if err != nil {
+		t.Fatalf("compile/run: %v", err)
+	}
+	if got != 30 {
+		t.Errorf("sum_doubled: want 30, got %d", got)
+	}
+}
