@@ -2,20 +2,38 @@ package pascal
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lizp"
 	"github.com/minz/minzc/pkg/mir2"
 )
 
+// CompileOpts configures the Pascal compilation.
+type CompileOpts struct {
+	StdlibDir string // path to stdlib/ root; empty = no auto-import
+}
+
 // Compile is the top-level entry point: Pascal source → HIR module.
-func Compile(src, name string) (*hir.Module, error) {
+func Compile(src, name string, opts ...CompileOpts) (*hir.Module, error) {
 	prog, err := ParseProgram(src)
 	if err != nil {
 		return nil, fmt.Errorf("pascal parse: %w", err)
 	}
+	var o CompileOpts
+	if len(opts) > 0 {
+		o = opts[0]
+	}
 	hm, err := LowerProgram(prog, name)
 	if err != nil {
 		return nil, fmt.Errorf("pascal lower: %w", err)
+	}
+	// Auto-import system unit if stdlib is available and program uses runtime.
+	if o.StdlibDir != "" {
+		if err := autoImportSystem(hm, o.StdlibDir); err != nil {
+			return nil, fmt.Errorf("pascal system import: %w", err)
+		}
 	}
 	return hm, nil
 }
@@ -383,12 +401,11 @@ func (pl *procLow) lowerWrite(args []Expr) ([]hir.Stmt, error) {
 	for _, a := range args {
 		switch a := a.(type) {
 		case *StrLit:
-			// Write each character
-			for _, ch := range []byte(a.Val) {
-				stmts = append(stmts, &hir.ExprStmt{
-					Expr: hir.Call("ConOut", mir2.TyVoid, hir.U8(int64(ch))),
-				})
-			}
+			// Intern string as $-terminated, call WriteStr(addr)
+			sym := pl.low.internString(a.Val)
+			stmts = append(stmts, &hir.ExprStmt{
+				Expr: hir.Call("WriteStr", mir2.TyVoid, &hir.AddrOfExpr{Sym: sym}),
+			})
 		case *CharLit:
 			stmts = append(stmts, &hir.ExprStmt{
 				Expr: hir.Call("ConOut", mir2.TyVoid, hir.U8(int64(a.Val))),
@@ -827,6 +844,17 @@ func (pl *procLow) lowerExprs(exprs []Expr) ([]hir.Expr, error) {
 
 // ── Type helpers ─────────────────────────────────────────────────────────────
 
+// internString adds a $-terminated string to the module's string pool
+// and returns the symbol name for its address.
+func (l *lowerer) internString(s string) string {
+	// Append '$' terminator for BDOS function 9
+	terminated := s + "$"
+	sym := fmt.Sprintf("__str_%d", len(l.hm.Strings))
+	l.hm.Strings = append(l.hm.Strings, terminated)
+	l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
+	return sym
+}
+
 func (l *lowerer) resolveType(t PasType) PasType {
 	if tr, ok := t.(*TypeRef); ok {
 		if resolved, ok := l.types[tr.Name]; ok {
@@ -876,4 +904,141 @@ func pasResultTy(l, r mir2.Ty, op string) mir2.Ty {
 		return mir2.TyPtr
 	}
 	return mir2.TyU8
+}
+
+// ── Auto-import system unit ──────────────────────────────────────────────────
+
+// needsSystem returns true if the HIR module references any runtime function
+// that lives in the Pascal system unit (ConOut, WriteCrLf, WriteU8, etc.).
+func needsSystem(hm *hir.Module) bool {
+	runtimeFuncs := map[string]bool{
+		"ConOut": true, "ConIn": true, "KeyPressed": true, "ReadKey": true,
+		"WriteCrLf": true, "WriteStr": true, "WriteU8": true, "WriteI16": true, "PascalHalt": true,
+	}
+	// Check if any of the runtime funcs are called but not defined in this module.
+	defined := map[string]bool{}
+	for _, f := range hm.Funcs {
+		defined[f.Name] = true
+	}
+	for name := range runtimeFuncs {
+		if !defined[name] && moduleReferences(hm, name) {
+			return true
+		}
+	}
+	return false
+}
+
+// moduleReferences checks if a function name is called anywhere in the module.
+func moduleReferences(hm *hir.Module, name string) bool {
+	for _, f := range hm.Funcs {
+		if f.Body != nil && blockReferences(f.Body, name) {
+			return true
+		}
+	}
+	return false
+}
+
+func blockReferences(blk *hir.Block, name string) bool {
+	for _, s := range blk.Body {
+		if stmtReferences(s, name) {
+			return true
+		}
+	}
+	return false
+}
+
+func stmtReferences(s hir.Stmt, name string) bool {
+	switch s := s.(type) {
+	case *hir.ExprStmt:
+		return exprReferences(s.Expr, name)
+	case *hir.AssignStmt:
+		return exprReferences(s.Val, name)
+	case *hir.IfStmt:
+		if exprReferences(s.Cond, name) {
+			return true
+		}
+		if s.Then != nil && blockReferences(s.Then, name) {
+			return true
+		}
+		if s.Else != nil && blockReferences(s.Else, name) {
+			return true
+		}
+	case *hir.WhileStmt:
+		if exprReferences(s.Cond, name) {
+			return true
+		}
+		if s.Body != nil && blockReferences(s.Body, name) {
+			return true
+		}
+	case *hir.Block:
+		return blockReferences(s, name)
+	case *hir.ReturnStmt:
+		if s.Val != nil && exprReferences(s.Val, name) {
+			return true
+		}
+	}
+	return false
+}
+
+func exprReferences(e hir.Expr, name string) bool {
+	if e == nil {
+		return false
+	}
+	switch e := e.(type) {
+	case *hir.CallExpr:
+		if e.Fn == name {
+			return true
+		}
+		for _, a := range e.Args {
+			if exprReferences(a, name) {
+				return true
+			}
+		}
+	case *hir.BinExpr:
+		return exprReferences(e.L, name) || exprReferences(e.R, name)
+	case *hir.UnaryExpr:
+		return exprReferences(e.X, name)
+	case *hir.CastExpr:
+		return exprReferences(e.X, name)
+	}
+	return false
+}
+
+// autoImportSystem compiles stdlib/pascal/system.lizp and merges it into hm.
+func autoImportSystem(hm *hir.Module, stdlibDir string) error {
+	if !needsSystem(hm) {
+		return nil
+	}
+
+	sysPath := filepath.Join(stdlibDir, "pascal", "system.lizp")
+	src, err := os.ReadFile(sysPath)
+	if err != nil {
+		return fmt.Errorf("read system unit: %w (looked in %s)", err, sysPath)
+	}
+
+	sysMod, err := lizp.Compile(string(src), "system")
+	if err != nil {
+		return fmt.Errorf("compile system unit: %w", err)
+	}
+
+	// Merge: add system functions/globals that don't already exist in hm.
+	existing := map[string]bool{}
+	for _, f := range hm.Funcs {
+		existing[f.Name] = true
+	}
+	for _, f := range sysMod.Funcs {
+		if !existing[f.Name] {
+			hm.Funcs = append(hm.Funcs, f)
+		}
+	}
+	existingGlobals := map[string]bool{}
+	for _, g := range hm.Globals {
+		existingGlobals[g.Name] = true
+	}
+	for _, g := range sysMod.Globals {
+		if !existingGlobals[g.Name] {
+			hm.Globals = append(hm.Globals, g)
+		}
+	}
+	return nil
 }

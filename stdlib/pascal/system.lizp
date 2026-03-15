@@ -38,6 +38,11 @@
   (call ConOut 10)
   (return))
 
+;; Write a $-terminated string at address (BDOS function 9)
+(defun WriteStr ((addr u16)) -> void
+  (call bdos_call 9 addr)
+  (return))
+
 ;; Write an unsigned byte as decimal
 (defun WriteU8 ((val u8)) -> void
   (let ((hundreds u8 0)
