@@ -389,14 +389,52 @@ func SimplifyIdentities(f *Func) bool {
 	changed := false
 	for _, b := range f.Blocks {
 		for i, inst := range b.Insts {
-			if inst.Op == OpPtrAdd {
+			switch inst.Op {
+			case OpPtrAdd:
+				// PtrAdd(x, 0) → Move(x)
 				if v, ok := consts[inst.Src[1]]; ok && v == 0 {
 					b.Insts[i] = &Inst{
-						Op:  OpMove,
-						Dst: inst.Dst,
-						Src: [2]Reg{inst.Src[0]},
-						Ty:  inst.Ty,
-						Cls: inst.Cls,
+						Op: OpMove, Dst: inst.Dst,
+						Src: [2]Reg{inst.Src[0]}, Ty: inst.Ty, Cls: inst.Cls,
+					}
+					changed = true
+				}
+			case OpSub:
+				// Sub(0, x) → Neg(x)
+				if v, ok := consts[inst.Src[0]]; ok && v == 0 {
+					b.Insts[i] = &Inst{
+						Op: OpNeg, Dst: inst.Dst,
+						Src: [2]Reg{inst.Src[1]}, Ty: inst.Ty, Cls: inst.Cls,
+					}
+					changed = true
+				}
+			case OpAdd:
+				// Add(x, 0) or Add(0, x) → Move(x)
+				if v, ok := consts[inst.Src[1]]; ok && v == 0 {
+					b.Insts[i] = &Inst{
+						Op: OpMove, Dst: inst.Dst,
+						Src: [2]Reg{inst.Src[0]}, Ty: inst.Ty, Cls: inst.Cls,
+					}
+					changed = true
+				} else if v, ok := consts[inst.Src[0]]; ok && v == 0 {
+					b.Insts[i] = &Inst{
+						Op: OpMove, Dst: inst.Dst,
+						Src: [2]Reg{inst.Src[1]}, Ty: inst.Ty, Cls: inst.Cls,
+					}
+					changed = true
+				}
+			case OpMul:
+				// Mul(x, 1) → Move(x), Mul(1, x) → Move(x)
+				if v, ok := consts[inst.Src[1]]; ok && v == 1 {
+					b.Insts[i] = &Inst{
+						Op: OpMove, Dst: inst.Dst,
+						Src: [2]Reg{inst.Src[0]}, Ty: inst.Ty, Cls: inst.Cls,
+					}
+					changed = true
+				} else if v, ok := consts[inst.Src[0]]; ok && v == 1 {
+					b.Insts[i] = &Inst{
+						Op: OpMove, Dst: inst.Dst,
+						Src: [2]Reg{inst.Src[1]}, Ty: inst.Ty, Cls: inst.Cls,
 					}
 					changed = true
 				}
