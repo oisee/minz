@@ -6,7 +6,8 @@
 // Attribute-based rendering: each board cell = one 8×8 character cell.
 // All pixels are pre-filled with 0xFF; only attribute bytes change per frame.
 //
-// Controls:  O = left,  P = right,  Q = rotate,  A = soft drop,  SPACE = hard drop
+// Controls:  O = left,  P = right,  Q = rotate,  A = soft drop,
+//            SPACE = hard drop,  H = hold piece
 //
 // Build & run:
 //   cd minzc && ./mz ../examples/zx/tetris.nanz -o /tmp/tetris.a80
@@ -64,6 +65,12 @@ global lines_cleared: u16 = 0
 global game_over: u8 = 0
 global prev_keys: u8 = 0
 global rng_state: u16 = 0xACE1
+
+// Hold/Next piece
+global next_type: u8 = 0      // next piece to spawn
+global hold_type: u8 = 255    // 255 = empty hold slot
+global hold_used: u8 = 0      // 1 = already held this turn (prevent infinite swap)
+global last_was_tspin: u8 = 0  // T-spin detection flag
 
 // ── PRNG ────────────────────────────────────────────────────────────────────
 
@@ -307,6 +314,122 @@ fun piece_dy(t: u8, r: u8, c: u8) -> u8 {
     return 2
 }
 
+// ── Wall kicks (SRS-lite) ────────────────────────────────────────────────────
+//
+// When basic rotation fails, try 4 offset positions:
+//   (±1, 0), (0, -1), (±1, -1)
+// For I piece, also try (±2, 0).
+// Returns 1 if rotation succeeded (cur_x/cur_y/cur_rot updated), 0 if failed.
+
+fun try_rotate() -> u8 {
+    let nr: u8 = (cur_rot + 1) & 3
+    // Test 0: basic rotation
+    if can_place(cur_type, nr, cur_x, cur_y) {
+        cur_rot = nr
+        return 1
+    }
+    // Test 1: shift right
+    if cur_x < 9 {
+        if can_place(cur_type, nr, cur_x + 1, cur_y) {
+            cur_x = cur_x + 1
+            cur_rot = nr
+            return 1
+        }
+    }
+    // Test 2: shift left
+    if cur_x > 0 {
+        if can_place(cur_type, nr, cur_x - 1, cur_y) {
+            cur_x = cur_x - 1
+            cur_rot = nr
+            return 1
+        }
+    }
+    // Test 3: shift up
+    if cur_y > 0 {
+        if can_place(cur_type, nr, cur_x, cur_y - 1) {
+            cur_y = cur_y - 1
+            cur_rot = nr
+            return 1
+        }
+    }
+    // Test 4: shift right+up
+    if (cur_x < 9) & (cur_y > 0) {
+        if can_place(cur_type, nr, cur_x + 1, cur_y - 1) {
+            cur_x = cur_x + 1
+            cur_y = cur_y - 1
+            cur_rot = nr
+            return 1
+        }
+    }
+    // Test 5: shift left+up
+    if (cur_x > 0) & (cur_y > 0) {
+        if can_place(cur_type, nr, cur_x - 1, cur_y - 1) {
+            cur_x = cur_x - 1
+            cur_y = cur_y - 1
+            cur_rot = nr
+            return 1
+        }
+    }
+    // I piece: try ±2 horizontal
+    if cur_type == 0 {
+        if cur_x < 8 {
+            if can_place(cur_type, nr, cur_x + 2, cur_y) {
+                cur_x = cur_x + 2
+                cur_rot = nr
+                return 1
+            }
+        }
+        if cur_x > 1 {
+            if can_place(cur_type, nr, cur_x - 2, cur_y) {
+                cur_x = cur_x - 2
+                cur_rot = nr
+                return 1
+            }
+        }
+    }
+    return 0
+}
+
+// ── T-spin detection ────────────────────────────────────────────────────────
+//
+// A T-spin occurs when:
+// 1. The piece is a T (type 2)
+// 2. The last move was a rotation
+// 3. At least 3 of the 4 diagonal corners around the T center are filled
+
+fun check_tspin() -> u8 {
+    if cur_type != 2 { return 0 }
+    // T center is at (cur_x+1, cur_y+1) for rot 0, varies by rotation
+    // Simplified: check corners around (cur_x+1, cur_y) which is always near center
+    let cx: u8 = cur_x + 1
+    let cy: u8 = cur_y
+    var corners: u8 = 0
+    // Top-left
+    if (cx == 0) | (cy == 0) { corners = corners + 1 }
+    else { if board_get(cx - 1, cy - 1) != 0 { corners = corners + 1 } }
+    // Top-right
+    if (cx >= 9) | (cy == 0) { corners = corners + 1 }
+    else { if board_get(cx + 1, cy - 1) != 0 { corners = corners + 1 } }
+    // Bottom-left
+    if (cx == 0) | (cy >= 19) { corners = corners + 1 }
+    else { if board_get(cx - 1, cy + 1) != 0 { corners = corners + 1 } }
+    // Bottom-right
+    if (cx >= 9) | (cy >= 19) { corners = corners + 1 }
+    else { if board_get(cx + 1, cy + 1) != 0 { corners = corners + 1 } }
+    if corners >= 3 { return 1 }
+    return 0
+}
+
+// ── Ghost piece (drop shadow) ───────────────────────────────────────────────
+
+fun ghost_y() -> u8 {
+    var gy: u8 = cur_y
+    while can_place(cur_type, cur_rot, cur_x, gy + 1) {
+        gy = gy + 1
+    }
+    return gy
+}
+
 // ── Board operations ────────────────────────────────────────────────────────
 
 fun board_get(x: u8, y: u8) -> u8 {
@@ -376,15 +499,40 @@ fun clear_lines() -> u8 {
     return cleared
 }
 
-fun spawn_piece() -> void {
+fun random_piece() -> u8 {
     var rval: u8 = rng_next()
     while rval >= 7 { rval = rval - 7 }
-    cur_type = rval
+    return rval
+}
+
+fun spawn_piece() -> void {
+    cur_type = next_type
+    next_type = random_piece()
     cur_rot = 0
     cur_x = 3
     cur_y = 0
+    hold_used = 0
+    last_was_tspin = 0
     if can_place(cur_type, cur_rot, cur_x, cur_y) == false {
         game_over = 1
+    }
+}
+
+fun hold_piece() -> void {
+    if hold_used == 1 { return }
+    hold_used = 1
+    if hold_type == 255 {
+        // First hold: stash current, spawn next
+        hold_type = cur_type
+        spawn_piece()
+    } else {
+        // Swap hold and current
+        let tmp: u8 = cur_type
+        cur_type = hold_type
+        hold_type = tmp
+        cur_rot = 0
+        cur_x = 3
+        cur_y = 0
     }
 }
 
@@ -461,6 +609,31 @@ fun init_screen() -> void {
     zx_border(0)
 }
 
+// Render a mini-piece preview at screen position (sx, sy)
+fun render_preview(t: u8, sx: u8, sy: u8) -> void {
+    // Clear 4×4 preview area
+    var py: u8 = 0
+    while py < 4 {
+        var px: u8 = 0
+        while px < 4 {
+            zx_poke(zx_attr_addr(sx + px, sy + py), 0x00)
+            px = px + 1
+        }
+        py = py + 1
+    }
+    // Draw piece cells
+    if t < 7 {
+        let pc: u8 = piece_color(t)
+        var c: u8 = 0
+        while c < 4 {
+            let dx: u8 = piece_dx(t, 0, c)
+            let dy: u8 = piece_dy(t, 0, c)
+            zx_poke(zx_attr_addr(sx + dx, sy + dy), pc)
+            c = c + 1
+        }
+    }
+}
+
 fun render() -> void {
     // Render board
     var y: u8 = 0
@@ -474,7 +647,27 @@ fun render() -> void {
         }
         y = y + 1
     }
-    // Overlay current piece
+
+    // Ghost piece (dim version at landing position)
+    let gy: u8 = ghost_y()
+    if gy != cur_y {
+        // Ghost color: same piece color but dim (no bright, ink only)
+        let gc: u8 = (piece_color(cur_type) >> 3) & 7  // extract paper, use as ink
+        var c: u8 = 0
+        while c < 4 {
+            let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
+            let cy: u8 = gy + piece_dy(cur_type, cur_rot, c)
+            if (cx < 10) & (cy < 20) {
+                // Only draw ghost if cell is empty on board
+                if board_get(cx, cy) == 0 {
+                    zx_poke(zx_attr_addr(11 + cx, 2 + cy), gc)
+                }
+            }
+            c = c + 1
+        }
+    }
+
+    // Current piece (bright, on top)
     let pc: u8 = piece_color(cur_type)
     var c: u8 = 0
     while c < 4 {
@@ -485,6 +678,12 @@ fun render() -> void {
         }
         c = c + 1
     }
+
+    // Next piece preview (right side, col 23, row 3)
+    render_preview(next_type, 23, 3)
+
+    // Hold piece preview (left side, col 5, row 3)
+    render_preview(hold_type, 5, 3)
 }
 
 // ── Input ───────────────────────────────────────────────────────────────────
@@ -500,10 +699,49 @@ fun read_input() -> u8 {
     if (row_fd & 1) == 0 { keys = keys | 8 }    // A = soft drop
     let row_7f: u8 = zx_key_row(0x7F)
     if (row_7f & 1) == 0 { keys = keys | 16 }   // SPACE = hard drop
+    // H key: row 0xBF, bit 4 (H is 5th key: ENTER,L,K,J,H)
+    let row_bf: u8 = zx_key_row(0xBF)
+    if (row_bf & 16) == 0 { keys = keys | 32 }  // H = hold
     return keys
 }
 
 // ── Main ────────────────────────────────────────────────────────────────────
+
+// Score cleared lines, with T-spin bonus
+fun score_lines(cl: u8) -> void {
+    if cl == 0 {
+        // T-spin no lines = 400 pts
+        if last_was_tspin == 1 { score = score + 400 }
+        return
+    }
+    if last_was_tspin == 1 {
+        // T-spin line clears: 800, 1200, 1600
+        if cl == 1 { score = score + 800 }
+        if cl == 2 { score = score + 1200 }
+        if cl == 3 { score = score + 1600 }
+    } else {
+        // Normal scoring
+        if cl == 1 { score = score + 100 }
+        if cl == 2 { score = score + 300 }
+        if cl == 3 { score = score + 500 }
+        if cl == 4 { score = score + 800 }
+    }
+    lines_cleared = lines_cleared + u16(cl)
+    // Speed up every 8 lines
+    if drop_speed > 5 {
+        if (u8(lines_cleared) & 0x07) == 0 {
+            drop_speed = drop_speed - 2
+        }
+    }
+}
+
+fun do_lock_and_clear() -> void {
+    last_was_tspin = check_tspin()
+    lock_piece()
+    let cl: u8 = clear_lines()
+    score_lines(cl)
+    spawn_piece()
+}
 
 fun main() -> void {
     // Clear board
@@ -512,7 +750,26 @@ fun main() -> void {
         board[i] = 0
         i = i + 1
     }
+    // Initialize next piece
+    next_type = random_piece()
     init_screen()
+
+    // Fill preview areas with solid pixels
+    var py: u8 = 3
+    while py < 7 {
+        var px: u8 = 5
+        while px < 9 {
+            fill_cell(px, py)
+            px = px + 1
+        }
+        px = 23
+        while px < 27 {
+            fill_cell(px, py)
+            px = px + 1
+        }
+        py = py + 1
+    }
+
     spawn_piece()
 
     // Game loop
@@ -531,6 +788,7 @@ fun main() -> void {
             if cur_x > 0 {
                 if can_place(cur_type, cur_rot, cur_x - 1, cur_y) {
                     cur_x = cur_x - 1
+                    last_was_tspin = 0
                 }
             }
         }
@@ -538,14 +796,12 @@ fun main() -> void {
         if (new_keys & 2) != 0 {
             if can_place(cur_type, cur_rot, cur_x + 1, cur_y) {
                 cur_x = cur_x + 1
+                last_was_tspin = 0
             }
         }
-        // Rotate
+        // Rotate (with wall kicks)
         if (new_keys & 4) != 0 {
-            let nr: u8 = (cur_rot + 1) & 3
-            if can_place(cur_type, nr, cur_x, cur_y) {
-                cur_rot = nr
-            }
+            try_rotate()
         }
         // Soft drop
         if (keys & 8) != 0 {
@@ -557,15 +813,12 @@ fun main() -> void {
                 cur_y = cur_y + 1
                 score = score + 2
             }
-            lock_piece()
-            let cl: u8 = clear_lines()
-            if cl == 1 { score = score + 100 }
-            if cl == 2 { score = score + 300 }
-            if cl == 3 { score = score + 500 }
-            if cl == 4 { score = score + 800 }
-            lines_cleared = lines_cleared + u16(cl)
-            spawn_piece()
+            do_lock_and_clear()
             drop_timer = 0
+        }
+        // Hold
+        if (new_keys & 32) != 0 {
+            hold_piece()
         }
 
         // Gravity
@@ -575,19 +828,7 @@ fun main() -> void {
             if can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
                 cur_y = cur_y + 1
             } else {
-                lock_piece()
-                let cl: u8 = clear_lines()
-                if cl == 1 { score = score + 100 }
-                if cl == 2 { score = score + 300 }
-                if cl == 3 { score = score + 500 }
-                if cl == 4 { score = score + 800 }
-                lines_cleared = lines_cleared + u16(cl)
-                if drop_speed > 5 {
-                    if (u8(lines_cleared) & 0x07) == 0 {
-                        drop_speed = drop_speed - 2
-                    }
-                }
-                spawn_piece()
+                do_lock_and_clear()
             }
         }
 
