@@ -438,6 +438,91 @@ fun platform_init() {
 
 Inline assembly blocks emit Z80 instructions verbatim. The `asm(z80)` variant is only included when compiling for Z80 — `asm(mir2)` runs on the MIR2 VM instead.
 
+#### Input Operands and Register Contracts
+
+Use `(in varname)` to declare which variables the asm block reads. Combine with `@z80_*` parameter annotations to pin inputs to specific registers:
+
+```nanz
+fun zx_poke(@z80_hl addr: u16, @z80_a val: u8) {
+    asm z80 (in addr, val) { LD (HL), A }
+}
+// Z80 output:
+//   zx_poke:
+//       LD (HL), A    ; addr already in HL, val already in A
+//       RET
+```
+
+The `@z80_hl` annotation tells PBQP to assign `addr` to HL. The `(in addr, val)` tells the IR that the asm block consumes these variables — the allocator will not reassign their registers before the block executes.
+
+#### Returning Values from asm
+
+If a function ends with an asm block and has no explicit `return`, the compiler assumes the return value is already in the correct register (A for u8, HL for u16):
+
+```nanz
+fun zx_peek(@z80_hl addr: u16) -> u8 {
+    asm z80 (in addr) { LD A, (HL) }
+}
+// Z80 output:
+//   zx_peek:
+//       LD A, (HL)    ; result in A
+//       RET           ; compiler adds RET automatically
+
+fun zx_key_row(@z80_a port: u8) -> u8 {
+    asm z80 (in port) { IN A, (0xFE) }
+}
+// Z80 output:
+//   zx_key_row:
+//       IN A, (0xFE)  ; result in A
+//       RET
+```
+
+**Common mistake:** Do not add `return 0` after an asm block that sets the return register — it compiles to `LD A, 0` which overwrites the result:
+
+```nanz
+// WRONG — return 0 overwrites A
+fun zx_peek(addr: u16) -> u8 {
+    asm { LD A, (HL) }
+    return 0           // → LD A, 0; RET — result destroyed!
+}
+
+// CORRECT — implicit return, register annotations
+fun zx_peek(@z80_hl addr: u16) -> u8 {
+    asm z80 (in addr) { LD A, (HL) }
+}
+```
+
+#### Complete I/O Example
+
+Hardware I/O functions for ZX Spectrum using this pattern:
+
+```nanz
+// Memory read/write
+fun zx_peek(@z80_hl addr: u16) -> u8 {
+    asm z80 (in addr) { LD A, (HL) }
+}
+
+fun zx_poke(@z80_hl addr: u16, @z80_a val: u8) {
+    asm z80 (in addr, val) { LD (HL), A }
+}
+
+// Keyboard: read row via port 0xFE
+fun zx_key_row(@z80_a port: u8) -> u8 {
+    asm z80 (in port) { IN A, (0xFE) }
+}
+
+// Console output (emulator stdout port)
+fun console_log(@z80_a n: u8) {
+    asm z80 (in n) { OUT (0x23), A }
+}
+
+// Border color
+fun set_border(@z80_a col: u8) {
+    asm z80 (in col) { OUT (0xFE), A }
+}
+```
+
+Each function compiles to exactly 2 instructions (operation + RET). The annotations ensure zero register shuffling.
+
 ### 2.15 sizeof(Type)
 
 `sizeof(Type)` is a compile-time constant expression that evaluates to the size in bytes of a type. It is resolved at parse time via `resolveTypeSize()`.
@@ -2525,7 +2610,7 @@ return_stmt    = 'return' (expr | '(' expr (',' expr)* ')')?
 switch_stmt    = 'switch' expr '{' case_clause* default_clause? '}'
 case_clause    = 'case' INT ':' stmt*
 default_clause = 'default' ':' stmt*
-asm_block      = 'asm' ('(' IDENT ')')? '{' asm_line* '}'
+asm_block      = 'asm' IDENT? ('(' 'in' IDENT (',' IDENT)* ')')? '{' asm_line* '}'
 block          = '{' stmt* '}'
 
 expr_stmt      = expr ('=' expr)?

@@ -748,6 +748,113 @@ Inline assembly blocks emit Z80 instructions verbatim. The
 \texttt{asm(z80)} variant is only included when compiling for Z80 ---
 \texttt{asm(mir2)} runs on the MIR2 VM instead.
 
+\hypertarget{input-operands-and-register-contracts}{%
+\paragraph{Input Operands and Register
+Contracts}\label{input-operands-and-register-contracts}}
+
+Use \texttt{(in\ varname)} to declare which variables the asm block
+reads. Combine with \texttt{@z80\_*} parameter annotations to pin inputs
+to specific registers:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun zx\_poke(@z80\_hl addr: u16, @z80\_a val: u8) \{}
+\NormalTok{    asm z80 (in addr, val) \{ LD (HL), A \}}
+\NormalTok{\}}
+\NormalTok{// Z80 output:}
+\NormalTok{//   zx\_poke:}
+\NormalTok{//       LD (HL), A    ; addr already in HL, val already in A}
+\NormalTok{//       RET}
+\end{Highlighting}
+\end{Shaded}
+
+The \texttt{@z80\_hl} annotation tells PBQP to assign \texttt{addr} to
+HL. The \texttt{(in\ addr,\ val)} tells the IR that the asm block
+consumes these variables --- the allocator will not reassign their
+registers before the block executes.
+
+\hypertarget{returning-values-from-asm}{%
+\paragraph{Returning Values from asm}\label{returning-values-from-asm}}
+
+If a function ends with an asm block and has no explicit
+\texttt{return}, the compiler assumes the return value is already in the
+correct register (A for u8, HL for u16):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fun zx\_peek(@z80\_hl addr: u16) {-}\textgreater{} u8 \{}
+\NormalTok{    asm z80 (in addr) \{ LD A, (HL) \}}
+\NormalTok{\}}
+\NormalTok{// Z80 output:}
+\NormalTok{//   zx\_peek:}
+\NormalTok{//       LD A, (HL)    ; result in A}
+\NormalTok{//       RET           ; compiler adds RET automatically}
+
+\NormalTok{fun zx\_key\_row(@z80\_a port: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    asm z80 (in port) \{ IN A, (0xFE) \}}
+\NormalTok{\}}
+\NormalTok{// Z80 output:}
+\NormalTok{//   zx\_key\_row:}
+\NormalTok{//       IN A, (0xFE)  ; result in A}
+\NormalTok{//       RET}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Common mistake:} Do not add \texttt{return\ 0} after an asm
+block that sets the return register --- it compiles to
+\texttt{LD\ A,\ 0} which overwrites the result:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{// WRONG — return 0 overwrites A}
+\NormalTok{fun zx\_peek(addr: u16) {-}\textgreater{} u8 \{}
+\NormalTok{    asm \{ LD A, (HL) \}}
+\NormalTok{    return 0           // → LD A, 0; RET — result destroyed!}
+\NormalTok{\}}
+
+\NormalTok{// CORRECT — implicit return, register annotations}
+\NormalTok{fun zx\_peek(@z80\_hl addr: u16) {-}\textgreater{} u8 \{}
+\NormalTok{    asm z80 (in addr) \{ LD A, (HL) \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{complete-io-example}{%
+\paragraph{Complete I/O Example}\label{complete-io-example}}
+
+Hardware I/O functions for ZX Spectrum using this pattern:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{// Memory read/write}
+\NormalTok{fun zx\_peek(@z80\_hl addr: u16) {-}\textgreater{} u8 \{}
+\NormalTok{    asm z80 (in addr) \{ LD A, (HL) \}}
+\NormalTok{\}}
+
+\NormalTok{fun zx\_poke(@z80\_hl addr: u16, @z80\_a val: u8) \{}
+\NormalTok{    asm z80 (in addr, val) \{ LD (HL), A \}}
+\NormalTok{\}}
+
+\NormalTok{// Keyboard: read row via port 0xFE}
+\NormalTok{fun zx\_key\_row(@z80\_a port: u8) {-}\textgreater{} u8 \{}
+\NormalTok{    asm z80 (in port) \{ IN A, (0xFE) \}}
+\NormalTok{\}}
+
+\NormalTok{// Console output (emulator stdout port)}
+\NormalTok{fun console\_log(@z80\_a n: u8) \{}
+\NormalTok{    asm z80 (in n) \{ OUT (0x23), A \}}
+\NormalTok{\}}
+
+\NormalTok{// Border color}
+\NormalTok{fun set\_border(@z80\_a col: u8) \{}
+\NormalTok{    asm z80 (in col) \{ OUT (0xFE), A \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Each function compiles to exactly 2 instructions (operation + RET). The
+annotations ensure zero register shuffling.
+
 \hypertarget{sizeoftype}{%
 \subsubsection{2.15 sizeof(Type)}\label{sizeoftype}}
 
@@ -3796,7 +3903,7 @@ Test & Covers \\
 \NormalTok{switch\_stmt    = \textquotesingle{}switch\textquotesingle{} expr \textquotesingle{}\{\textquotesingle{} case\_clause* default\_clause? \textquotesingle{}\}\textquotesingle{}}
 \NormalTok{case\_clause    = \textquotesingle{}case\textquotesingle{} INT \textquotesingle{}:\textquotesingle{} stmt*}
 \NormalTok{default\_clause = \textquotesingle{}default\textquotesingle{} \textquotesingle{}:\textquotesingle{} stmt*}
-\NormalTok{asm\_block      = \textquotesingle{}asm\textquotesingle{} (\textquotesingle{}(\textquotesingle{} IDENT \textquotesingle{})\textquotesingle{})? \textquotesingle{}\{\textquotesingle{} asm\_line* \textquotesingle{}\}\textquotesingle{}}
+\NormalTok{asm\_block      = \textquotesingle{}asm\textquotesingle{} IDENT? (\textquotesingle{}(\textquotesingle{} \textquotesingle{}in\textquotesingle{} IDENT (\textquotesingle{},\textquotesingle{} IDENT)* \textquotesingle{})\textquotesingle{})? \textquotesingle{}\{\textquotesingle{} asm\_line* \textquotesingle{}\}\textquotesingle{}}
 \NormalTok{block          = \textquotesingle{}\{\textquotesingle{} stmt* \textquotesingle{}\}\textquotesingle{}}
 
 \NormalTok{expr\_stmt      = expr (\textquotesingle{}=\textquotesingle{} expr)?}
