@@ -18,6 +18,7 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
+	"github.com/minz/minzc/pkg/pascal"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/plm"
 	"github.com/minz/minzc/pkg/semantic"
@@ -232,7 +233,7 @@ func compile(sourceFile string) error {
 	ext := filepath.Ext(sourceFile)
 
 	// PL/M-80, Nanz, and HIR text: routed through the new HIR→MIR2→Z80 pipeline.
-	if ext == ".plm" || ext == ".nanz" || ext == ".hir" || ext == ".lanz" || ext == ".lizp" {
+	if ext == ".plm" || ext == ".nanz" || ext == ".hir" || ext == ".lanz" || ext == ".lizp" || ext == ".pas" {
 		if emitFormat == "nanz" && ext != ".hir" && ext != ".lanz" {
 			return compilePLMToNanz(sourceFile)
 		}
@@ -741,6 +742,11 @@ func compileViaHIR(sourceFile string) error {
 		hirMod, err = lizp.Compile(string(src), filepath.Base(sourceFile))
 		if err != nil {
 			return fmt.Errorf("Lizp compile: %w", err)
+		}
+	case ".pas":
+		hirMod, err = pascal.Compile(string(src), filepath.Base(sourceFile))
+		if err != nil {
+			return fmt.Errorf("Pascal compile: %w", err)
 		}
 	default:
 		return fmt.Errorf("unsupported extension for HIR pipeline: %s", ext)

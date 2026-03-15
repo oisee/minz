@@ -36,6 +36,7 @@ import (
 	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/lizp"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/pascal"
 	"github.com/minz/minzc/pkg/plm"
 )
 
@@ -1058,6 +1059,8 @@ func (p *parser) parseImport() error {
 		imported, err = lizp.Compile(string(src), modPath)
 	case ".plm":
 		imported, err = plm.Compile(string(src))
+	case ".pas":
+		imported, err = pascal.Compile(string(src), modPath)
 	default: // .nanz
 		childOpts := ParseOpts{
 			BaseDir:   filepath.Dir(filePath),
@@ -1225,7 +1228,7 @@ func (p *parser) childTypeAliases(_ *hir.Module) map[string]mir2.Ty {
 // Tries extensions in priority order: .nanz, .lanz, .plm.
 func (p *parser) resolveModulePath(modPath string, line int) (string, error) {
 	basePath := strings.ReplaceAll(modPath, ".", string(filepath.Separator))
-	exts := []string{".nanz", ".lanz", ".lizp", ".plm"}
+	exts := []string{".nanz", ".lanz", ".lizp", ".plm", ".pas"}
 	dirs := []string{}
 	if p.opts.BaseDir != "" {
 		dirs = append(dirs, p.opts.BaseDir)
