@@ -18,12 +18,12 @@
 
 ### Latest
 
-- **[Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)** — 21 chapters + 6 appendices. New: enums, type aliases, modules, strings, pipe/trans, @derive metaprogramming, cross-language imports (Nanz/Lanz/PL/M-80). 2818 lines.
+- **[Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)** — 21 chapters, 2818 lines. Available as [PDF](releases/v0.21.4/Nanz_Language_Book_v5.pdf), [EPUB](releases/v0.21.4/Nanz_Language_Book_v5.epub), and [LaTeX](releases/v0.21.4/Nanz_Language_Book_v5.tex).
+- **[@derive metaprogramming + cross-language imports](docs/Nanz_Language_Book_v5.md#chapter-20-metaprogramming-derive-and-introspection)** — `@derive_eq`, `@derive_debug`, `@derive_sizeof` generate struct-specific code at compile time. Import `.lanz` and `.plm` modules from Nanz — three languages, one pipeline.
 - **[Nanz Language Sprint: 6 features](reports/2026-03-15-073-Nanz_Language_Sprint_Six_Features.md)** — enums, type aliases, module imports, three string types (SString/LString/CString), pipe/trans named pipelines with DJNZ fusion. 9 showcase examples, all E2E verified.
-- **[Arena allocator + sandbox + sizeof](reports/2026-03-14-069-Arena_Allocator_Sandbox_Sizeof.md)** — struct-based bump allocator with `^Arena` pointer receiver, `arena_split` chaining, `sizeof(Type)` compile-time constant, `sandbox` blocks for shared VM state. All E2E verified.
-- **[PreallocCoalesce delivers](reports/2026-03-13-068-Showcase_ForEachEdge_SignedCmp_PreallocImpact.md)** — `mapInPlace` loop: 5 instructions → **1 DJNZ**. `factorial_fold`: entire mul16 routine eliminated. 6/23 showcase files produce tighter Z80.
+- **[Arena allocator + sandbox + sizeof](reports/2026-03-14-069-Arena_Allocator_Sandbox_Sizeof.md)** — struct-based bump allocator with `^Arena` pointer receiver, `arena_split` chaining, `sizeof(Type)` compile-time constant, `sandbox` blocks for shared VM state.
+- **[PreallocCoalesce delivers](reports/2026-03-13-068-Showcase_ForEachEdge_SignedCmp_PreallocImpact.md)** — `mapInPlace` loop: 5 instructions → **1 DJNZ**. `factorial_fold`: entire mul16 routine eliminated.
 - **[MOS 6502 backend alive](reports/2026-03-13-067-6502_Backend_E2E_Harness.md)** — 35/35 tests, dual-VM oracle (MIR2 VM vs sim6502), console I/O for Apple II/C64/BBC Micro.
-- **[MinZ vs Nanz Feature Gap](docs/MinZ_vs_Nanz_Feature_Gap.md)** — what Nanz is missing and how to close each gap. [PDF](releases/v0.21.2/MinZ_vs_Nanz_Feature_Gap.pdf).
 
 [Full changelog →](CHANGELOG.md)
 
