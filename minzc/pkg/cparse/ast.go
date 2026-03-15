@@ -2336,6 +2336,11 @@ type ExternalDeclaration struct {
 	Declaration        *Declaration
 	FunctionDefinition *FunctionDefinition
 	Token              Token
+
+	// ObjC extensions (MinZ fork)
+	ObjCInterface      *ObjCInterfaceDecl
+	ObjCImplementation *ObjCImplementationDecl
+	ObjCProtocol       *ObjCProtocolDecl
 }
 
 // String implements fmt.Stringer.
@@ -3859,6 +3864,7 @@ const (
 	PrimaryExpressionExpr
 	PrimaryExpressionStmt
 	PrimaryExpressionGeneric
+	PrimaryExpressionObjCMessage // ObjC [receiver message:arg] (MinZ fork)
 )
 
 // String implements fmt.Stringer
@@ -3915,6 +3921,9 @@ type PrimaryExpression struct {
 	GenericSelection  *GenericSelection
 	Token             Token
 	Token2            Token
+
+	// ObjC extensions (MinZ fork)
+	ObjCMessage *ObjCMessageExpr
 }
 
 // String implements fmt.Stringer.

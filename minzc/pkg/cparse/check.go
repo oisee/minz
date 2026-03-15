@@ -702,6 +702,10 @@ func (n *ExternalDeclaration) check(c *ctx) {
 		n.AsmStatement.check(c)
 	case ExternalDeclarationEmpty: // ';'
 		c.errors.add(errorf("TODO %v", n.Case))
+	case ExternalDeclarationObjCInterface,
+		ExternalDeclarationObjCImplementation,
+		ExternalDeclarationObjCProtocol:
+		// ObjC declarations: skip type checking (handled in ObjC lowerer)
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}

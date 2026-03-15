@@ -104,12 +104,6 @@ var defaultKeywords = map[string]rune{
 	"asm":           rune(ASM),
 	"typeof":        rune(TYPEOF),
 
-	// ObjC keywords (MinZ fork)
-	"YES":   rune(OBJC_YES),
-	"NO":    rune(OBJC_NO),
-	"nil":   rune(OBJC_NIL),
-	"self":  rune(OBJC_SELF),
-	"super": rune(OBJC_SUPER),
 }
 
 type parser struct {
@@ -413,6 +407,16 @@ again:
 		return &ExternalDeclaration{Case: ExternalDeclarationAsmStmt, AsmStatement: p.asmStatement()}
 	case rune(STATICASSERT), rune(AUTOTYPE):
 		return &ExternalDeclaration{Case: ExternalDeclarationDecl, Declaration: p.declaration(nil, nil, false)}
+	// ObjC extensions (MinZ fork)
+	case rune(OBJC_INTERFACE):
+		return &ExternalDeclaration{Case: ExternalDeclarationObjCInterface, ObjCInterface: p.objcInterface()}
+	case rune(OBJC_IMPLEMENTATION):
+		return &ExternalDeclaration{Case: ExternalDeclarationObjCImplementation, ObjCImplementation: p.objcImplementation()}
+	case rune(OBJC_PROTOCOL):
+		return &ExternalDeclaration{Case: ExternalDeclarationObjCProtocol, ObjCProtocol: p.objcProtocol()}
+	case rune(OBJC_END):
+		p.shift(false) // stray @end — skip
+		goto again
 	}
 
 	ds, ok := p.declarationSpecifiers()
@@ -2363,6 +2367,19 @@ func (p *parser) primaryExpression(checkTypeName bool) (r *PrimaryExpression) {
 		}
 	case rune(GENERIC):
 		return &PrimaryExpression{Case: PrimaryExpressionGeneric, GenericSelection: p.genericSelection()}
+	case '[':
+		// ObjC message expression: [receiver message:arg]
+		return &PrimaryExpression{Case: PrimaryExpressionObjCMessage, ObjCMessage: p.objcMessageExpr()}
+	case rune(OBJC_YES):
+		r = &PrimaryExpression{Case: PrimaryExpressionInt, Token: p.shift(false)}
+	case rune(OBJC_NO):
+		r = &PrimaryExpression{Case: PrimaryExpressionInt, Token: p.shift(false)}
+	case rune(OBJC_NIL):
+		r = &PrimaryExpression{Case: PrimaryExpressionInt, Token: p.shift(false)}
+	case rune(OBJC_SELF):
+		r = &PrimaryExpression{Case: PrimaryExpressionIdent, Token: p.shift(false), lexicalScope: (*lexicalScope)(p.scope)}
+	case rune(OBJC_SUPER):
+		r = &PrimaryExpression{Case: PrimaryExpressionIdent, Token: p.shift(false), lexicalScope: (*lexicalScope)(p.scope)}
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected primary expression", t.Position(), runeName(t.Ch))
