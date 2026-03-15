@@ -207,17 +207,106 @@ all .a80 files → mzd --extract-sequences 2 → frequency count
 
 ---
 
+## Idea 9: Dynamic Function Testing via Built-in Emulator
+
+**Key insight:** mze (Z80 emulator, 1335/1335 FUSE) is already in the codebase. Instead of static heuristics, EXECUTE functions with random inputs and observe actual behavior.
+
+### Implementation
+1. For each function in binary, set up emulator:
+   - Load binary into memory
+   - SP = 0xFFF0, push return sentinel address onto stack
+   - Randomize A, BC, DE, HL, F (N trials, e.g. 256)
+2. Execute until RET (or timeout)
+3. Observe:
+   - **SP delta**: `SP_after != SP_before` → stack balance bug (100% certain)
+   - **Register diff**: which regs changed → ground truth OUT/CLOBBER
+   - **Memory writes**: which addresses written → side effect map
+   - **Determinism**: same inputs → same outputs across trials?
+
+### What this detects FOR FREE
+
+| Property | Detection | Optimization unlocked |
+|----------|-----------|----------------------|
+| **Stack balance** | SP_after != SP_before | Bug report (no false positives from SP tricks) |
+| **Pure function** | No mem writes (except stack), no I/O, deterministic | CSE, loop hoisting, memoize, reorder |
+| **Idempotent** | f(f(x)) == f(x) | Deduplicate repeated calls |
+| **Involution** | f(f(x)) == x | Eliminate paired calls |
+| **Constant function** | Same output regardless of input | Replace CALL with constant |
+| **Identity on reg** | Output reg == input reg for some reg | Eliminate if only called for that reg |
+| **Commutative** | f(a,b) == f(b,a) | Canonicalize operand order |
+| **Nilpotent** | f(x); f(x) → f(x) (second call is no-op) | Dead call elimination |
+
+### Cross-check with static analysis
+```
+mzd static:  IN: A, HL  OUT: A  CLOBBER: BC
+mze dynamic: IN: A, HL  OUT: A  CLOBBER: BC, F
+→ mismatch on F — mzd missed flag clobber on conditional path
+```
+
+### Value
+- Ground truth (dynamic beats static for correctness)
+- Handles ALL SP tricks, conditional paths, self-modifying code
+- Property detection (pure/idempotent/etc.) impossible statically on Z80
+- Already have the emulator, just need the harness (~100 lines)
+
+---
+
+## Idea 10: Superopt Whole-Function Replacement
+
+**Requires:** Idea 9 (dynamic testing) + pure function detection
+
+**Idea:** If a function is pure and small (< 20 bytes), z80-optimizer can brute-force search for a SHORTER equivalent function body.
+
+```
+; Original: 8 bytes, 40T
+piece_color:
+    LD DE, PIECE_COLORS
+    ADD A, E
+    LD E, A
+    LD A, (DE)
+    RET
+
+; Superopt might find: 5 bytes, 28T (hypothetical)
+piece_color:
+    ADD A, LOW(PIECE_COLORS)
+    LD L, A
+    LD H, HIGH(PIECE_COLORS)
+    LD A, (HL)
+    RET
+```
+
+### Implementation
+1. Detect pure functions via Idea 9
+2. Extract function bytes
+3. Build input→output test vectors from emulator runs
+4. Feed to `z80opt stoke` as verification oracle
+5. If shorter sequence found that passes all test vectors → proven replacement
+
+### Value
+- Optimizes at FUNCTION level, not just instruction pairs
+- Only possible because we can dynamically verify equivalence
+- Pure functions are safe to replace (no side effects to preserve)
+
+---
+
 ## Priority Matrix
 
 | Idea | Impact | Effort | Dependencies |
 |------|--------|--------|-------------|
-| 4. Stack balance | HIGH (finds real bugs) | LOW | None |
+| 9. Dynamic testing (emulator) | **VERY HIGH** (ground truth for everything) | LOW (~100 lines) | mze already exists |
+| 4. Stack balance | HIGH (finds real bugs) | FREE with idea 9 | Idea 9 |
 | 5. Tail call | MEDIUM (easy wins) | LOW | None |
 | 8. Inter-proc IN | HIGH (precision) | MEDIUM | None |
 | 1. Sample harvester | HIGH (new rules) | MEDIUM | z80opt stoke |
 | 7. Corpus prioritization | MEDIUM (perf) | LOW | All .a80 files |
 | 6. Dead store | MEDIUM (codegen quality) | MEDIUM | Provenance |
-| 3. ABI-aware superopt | HIGH (more rules) | HIGH | mzd liveness + z80opt changes |
-| 2. Dynamic verification | MEDIUM (confidence) | HIGH | z80opt executor |
+| 3. ABI-aware superopt | HIGH (more rules) | HIGH | mzd liveness + z80opt |
+| 10. Whole-function superopt | **VERY HIGH** (function-level optimization) | MEDIUM | Idea 9 + z80opt stoke |
+| 2. Dynamic ABI verification | FREE with idea 9 | FREE | Idea 9 |
 
-**Recommended next:** Stack balance (4) → Inter-proc IN (8) → Sample harvester (1)
+**Recommended path:**
+1. **Idea 9** (dynamic emulator harness) — unlocks everything else
+2. Stack balance + pure detection + ABI verify come FREE from idea 9
+3. Inter-proc IN (8) — improves static analysis
+4. Whole-function superopt (10) — the moonshot, enabled by pure detection
+5. Sample harvester (1) — feeds new patterns to z80-optimizer
