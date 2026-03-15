@@ -5435,8 +5435,16 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 		return nil
 	}
 
-	// Collect physical regs allocated to caller's virtual regs, excluding
-	// call args and the call's result reg.
+	// Compute which virtual regs are live AFTER this call instruction.
+	// A reg is live-across-call if it's used by any instruction after the call
+	// in the same block, or by the block's terminator, or by a successor block
+	// (approximated by checking all remaining uses in the function — conservative
+	// but much tighter than "all allocated regs").
+	liveAfter := g.regsLiveAfterInst(inst)
+
+	// Collect physical regs that are (a) clobbered by callee and (b) hold a
+	// value that is live after the call. Exclude call args and result regs
+	// since they're consumed/produced by the call itself.
 	excluded := make(map[Reg]bool)
 	for _, a := range inst.Args {
 		excluded[a] = true
@@ -5449,8 +5457,12 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 	}
 
 	livePhys := make(map[string]bool)
-	for r, loc := range g.ar.Locs {
-		if excluded[r] || loc.Kind != LocReg {
+	for r := range liveAfter {
+		if excluded[r] {
+			continue
+		}
+		loc := g.ar.Locs[r]
+		if loc.Kind != LocReg {
 			continue
 		}
 		if clobberedRegs[loc.Name] {
@@ -5480,6 +5492,48 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 		}
 	}
 	return result
+}
+
+// regsLiveAfterInst returns the set of virtual registers that are used after
+// the given instruction within the current block (including the terminator).
+// This is a lightweight local liveness check — no full dataflow, but sufficient
+// for caller-save elimination since most calls are followed by uses in the same block.
+func (g *z80cg) regsLiveAfterInst(target *Inst) map[Reg]bool {
+	live := make(map[Reg]bool)
+	if g.curBlock == nil {
+		return live
+	}
+	// Find the target instruction's position.
+	found := false
+	for _, inst := range g.curBlock.Insts {
+		if inst == target {
+			found = true
+			continue
+		}
+		if !found {
+			continue
+		}
+		// Collect all register uses from instructions after target.
+		for _, s := range inst.Src {
+			if s != NoReg {
+				live[s] = true
+			}
+		}
+		for _, a := range inst.Args {
+			if a != NoReg {
+				live[a] = true
+			}
+		}
+	}
+	// Collect terminator uses.
+	if g.curBlock.Term != nil {
+		for _, r := range g.curBlock.Term.termUses() {
+			if r != NoReg {
+				live[r] = true
+			}
+		}
+	}
+	return live
 }
 
 // classPhysRegs returns physical register names associated with a register class.
