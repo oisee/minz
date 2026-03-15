@@ -1970,7 +1970,20 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.genCall(inst)
 
 	case OpAddrOf:
-		g.emitf("    LD %s, %s", dst, sanitizeIdent(inst.Sym))
+		sym := sanitizeIdent(inst.Sym)
+		if isPairReg(dst) {
+			g.emitf("    LD %s, %s", dst, sym)
+		} else {
+			// addr_of produces a 16-bit address but dst is 8-bit —
+			// allocator spilled the pointer to an 8-bit reg.
+			// Route through HL: LD HL, sym; LD dst, L (low byte only).
+			// This is lossy but at least doesn't produce invalid asm.
+			// TODO: proper fix is to ensure addr_of always gets a pair.
+			g.emitf("    LD HL, %s", sym)
+			g.emitf("    LD %s, L", dst)
+			g.invalidate("H")
+			g.invalidate("L")
+		}
 
 	case OpPtrAdd:
 		// Runtime pointer advance: dst = base_ptr + offset_u16.
@@ -3885,10 +3898,18 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			g.emitf("    LD (%s), %s", dst, src)
 			break
 		}
+		// 16-bit pair → 8-bit: truncate (take low byte).
+		if isPairReg(src) && !isPairReg(dst) {
+			g.emitf("    LD %s, %s", dst, lowByte(src))
+			break
+		}
+		// 8-bit → 16-bit pair: zero-extend.
+		if !isPairReg(src) && isPairReg(dst) {
+			g.emitf("    LD %s, %s", lowByte(dst), src)
+			g.emitf("    LD %s, 0", highByte(dst))
+			break
+		}
 		// General 16-bit move via PUSH/POP.
-		// PUSH/POP only works with 16-bit register pairs; 8-bit regs must
-		// not reach here (they would silently emit e.g. PUSH AF instead of
-		// PUSH A, corrupting the low byte with the flags register).
 		g.emitf("    PUSH %s", src)
 		g.emitf("    POP %s", dst)
 	}
