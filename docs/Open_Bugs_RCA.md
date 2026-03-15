@@ -1,6 +1,6 @@
 # MIR2 Open Bugs — Root Cause Analysis
 
-**Last updated:** 2026-03-13
+**Last updated:** 2026-03-15
 **Status key:** 🔴 blocking | 🟡 degraded (correct but slow) | 🟢 tracked/deferred
 
 ---
@@ -36,6 +36,15 @@ preferred alignment.
    mismatch.  PBQP then picks the globally cheapest coloring.
 3. **Post-allocation coalescing (Phase 6c already live):** Partially handles
    simple cases (single-block functions) but leaves diamond CFGs unsolved.
+
+**ZX Spectrum impact:** The allocator also spills to `$0000` (absolute address 0), which
+is **ROM on ZX Spectrum** — writes silently fail, reads return ROM bytes.  This makes
+any function with spills produce incorrect results on real hardware.  The spill base
+address must be relocated to RAM (e.g. `$F000+`).
+
+**Tetris impact:** 13 `LD A, ?` (unresolved virtual register name in output) and 9
+`$0000` memory spills across 48 functions.  The game compiles but is un-runnable on
+real ZX Spectrum hardware.
 
 **Priority:** Medium.  GCD is ~25% slower than hand-written Z80 due to this.
 
@@ -117,7 +126,7 @@ and inherited the class from the hoisted instruction without checking width.
 
 ---
 
-## BUG-006 ✅ FIXED Zero-size struct globals (`struct Dog {}`) not emitted
+## BUG-006 🟡 Zero-size struct globals (`struct Dog {}`) not emitted
 
 **Symptom:** `global g_dog: Dog` where `Dog` has no fields emits no bytes.
 Subsequent `LD HL, g_dog` references an undefined symbol, causing MZA to fail.
@@ -134,7 +143,7 @@ operations remain valid.
 
 ---
 
-## BUG-007 ✅ FIXED Spurious adapter LD when caller/callee share convention
+## BUG-007 🟡 Spurious adapter LD when caller/callee share convention
 
 **Symptom:** When two functions share an identical PFCCO contract, the codegen
 emits a spurious `LD` that overwrites the first argument with the second.
@@ -250,6 +259,7 @@ See Report #071 for full analysis.
 | BUG-003 ptr[i] in while loop | HIR/codegen (PtrAdd) | ~~🔴~~ | Medium | ✅ Fixed (37b934d) |
 | BUG-004 Non-zero-lo LUT | Pipeline ordering | 🟡 | Small | ✅ Fixed 2026-03-12 |
 | BUG-005 SubSwapNeg u16 guard | condret.go | 🟡 | Trivial | ✅ Fixed 2026-03-12 |
-| BUG-006 Zero-size struct global | Global emitter | 🔴 | Small | Open |
+| BUG-006 Zero-size struct global | Global emitter | 🟡 | Small | Open |
 | BUG-007 Spurious adapter LD | Codegen (PFCCO+RA) | 🟡 | Medium | Open |
+| BUG-008 Arena IXL,(IX+d) | Allocator+Codegen | 🔴 | Medium | Open |
 | BUG-008 Arena IXL,(IX+d) | Allocator+Codegen | 🔴 | Medium | Open |

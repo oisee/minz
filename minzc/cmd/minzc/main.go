@@ -43,6 +43,7 @@ var (
 	tasReplay    string
 	backend      string
 	target       string  // Target platform (zxspectrum, cpm, etc.)
+	outputFormat string  // Output format (code, sna, tap) — independent of target
 	listBackends bool
 	visualizeMIR string // Output file for MIR visualization
 	showVersion  bool
@@ -196,6 +197,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&pgoDebug, "pgo-debug", false, "show PGO optimization decisions and hot/cold analysis")
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, 6502, wasm, c, crystal, llvm)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
+	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "", "output format: code (raw binary, default), sna, tap")
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
 	rootCmd.Flags().StringVar(&visualizeMIR, "viz", "", "generate MIR visualization in DOT format")
 	rootCmd.Flags().BoolVar(&dumpAST, "dump-ast", false, "dump AST in JSON format to stdout")
@@ -868,7 +870,7 @@ func assembleFile(sourceFile string) error {
 		fmt.Printf("Assembling %s...\n", sourceFile)
 	}
 
-	// Determine target from -t flag or infer from output extension
+	// Determine target platform (symbols, ORG, stdlib)
 	asmTarget := z80asm.TargetGeneric
 	if target != "" {
 		t, err := z80asm.ParseTarget(target)
@@ -876,24 +878,36 @@ func assembleFile(sourceFile string) error {
 			return fmt.Errorf("unknown target: %s", target)
 		}
 		asmTarget = t
-	} else if outputFile != "" {
-		// Infer from output extension
-		switch filepath.Ext(outputFile) {
-		case ".com":
-			asmTarget = z80asm.TargetCPM
-		case ".tap":
-			asmTarget = z80asm.TargetZXSpectrum
-		case ".bin":
-			asmTarget = z80asm.TargetAgonLight2
-		}
 	}
 
-	targetConfig := z80asm.GetTargetConfig(asmTarget)
+	// Determine output format (how to package the binary).
+	// Priority: -f flag > -o extension > default "code"
+	chosenFormat := outputFormat
+	if chosenFormat == "" && outputFile != "" {
+		switch filepath.Ext(outputFile) {
+		case ".sna":
+			chosenFormat = "sna"
+		case ".tap":
+			chosenFormat = "tap"
+		case ".com":
+			chosenFormat = "com"
+		case ".rom":
+			chosenFormat = "msxrom"
+		}
+	}
+	if chosenFormat == "" {
+		chosenFormat = "code" // default: raw binary
+	}
+
+	outFmt := z80asm.LookupOutputFormat(chosenFormat)
+	if outFmt == nil {
+		return fmt.Errorf("unknown output format: %s (available: code, sna, tap, com, msxrom, agon)", chosenFormat)
+	}
 
 	// Determine output filename
 	if outputFile == "" {
 		base := sourceFile[:len(sourceFile)-len(filepath.Ext(sourceFile))]
-		outputFile = base + targetConfig.OutputFormat.Extension
+		outputFile = base + outFmt.Extension
 	}
 
 	// Create and configure assembler
@@ -915,15 +929,11 @@ func assembleFile(sourceFile string) error {
 		return fmt.Errorf("assembly failed with %d errors", len(result.Errors))
 	}
 
-	// Generate output
+	// Generate output using the chosen format
 	var outputData []byte
-	if targetConfig.OutputFormat.Generator != nil {
-		outputData, err = targetConfig.OutputFormat.Generator(result)
-		if err != nil {
-			return fmt.Errorf("failed to generate output: %w", err)
-		}
-	} else {
-		outputData = result.Binary
+	outputData, err = outFmt.Generator(result)
+	if err != nil {
+		return fmt.Errorf("failed to generate %s output: %w", chosenFormat, err)
 	}
 
 	// Write output
@@ -932,7 +942,7 @@ func assembleFile(sourceFile string) error {
 	}
 
 	if debug {
-		fmt.Printf("Assembled %s -> %s (%d bytes)\n", sourceFile, outputFile, len(outputData))
+		fmt.Printf("Assembled %s -> %s (%d bytes, format: %s)\n", sourceFile, outputFile, len(outputData), chosenFormat)
 	}
 
 	// Print warnings

@@ -296,7 +296,15 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 			assigned[r] = pbqpSpillIdx(allLocs) // fake index for conflict avoidance
 		} else {
 			assigned[r] = best
-			result.Locs[r] = allLocs[best]
+			loc := allLocs[best]
+			// LocMem from the cost table has Offset=0 (a template entry).
+			// Assign a fresh spill address so each register gets its own slot.
+			if loc.Kind == LocMem && loc.Offset == 0 {
+				loc.Offset = 0xF000 + nextMem
+				nextMem += (rs.info.Ty.Width() + 7) / 8
+				result.Spilled = append(result.Spilled, r)
+			}
+			result.Locs[r] = loc
 		}
 	}
 
@@ -330,7 +338,13 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 			result.Spilled = append(result.Spilled, r)
 		} else {
 			assigned[r] = best
-			result.Locs[r] = allLocs[best]
+			loc := allLocs[best]
+			if loc.Kind == LocMem && loc.Offset == 0 {
+				loc.Offset = 0xF000 + nextMem
+				nextMem += (states[r].info.Ty.Width() + 7) / 8
+				result.Spilled = append(result.Spilled, r)
+			}
+			result.Locs[r] = loc
 		}
 	}
 

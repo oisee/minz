@@ -23,13 +23,15 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - See [Iterator Implementation Status](docs/Iterator_Implementation_Status.md)
 
 ### 3. MIR2 Open Bugs
-**Status:** 6 tracked bugs, 2 blocking (🔴). See **[docs/Open_Bugs_RCA.md](docs/Open_Bugs_RCA.md)** for full RCA.
-- 🔴 **BUG-003** `ptr[i]` in while loop — invalid `EX DE,HL` / `ADD F,DE` (PtrAdd cycle)
-- 🔴 **BUG-006** Zero-size struct globals not emitted (undefined symbol at link time)
-- 🟡 **BUG-001** GCD parallel-copy bloat (PBQP affinity edges / Union-Find pre-coalescing)
-- 🟡 **BUG-002** forEach constant rematerialization in parallel-copy resolver
-- 🟡 **BUG-004** Non-zero-lo LUT contract opt class mismatch (pipeline ordering)
-- 🟡 **BUG-005** `applySubSwapNeg` missing u16 guard (one-line fix, workaround exists)
+**Status:** 8 tracked bugs (4 fixed, 4 open — 1 blocking 🔴). See **[docs/Open_Bugs_RCA.md](docs/Open_Bugs_RCA.md)** for full RCA.
+- 🔴 **BUG-008** Arena codegen: impossible `LD IXL, (IX+d)` + self-pointer loss (blocks struct methods)
+- 🟡 **BUG-001** GCD parallel-copy bloat + `$0000` ROM spills (PBQP affinity / spill relocation)
+- 🟡 **BUG-006** Zero-size struct globals not emitted (undefined symbol at link time)
+- 🟡 **BUG-007** Spurious adapter LD when caller/callee share PFCCO convention
+- ✅ **BUG-002** forEach constant rematerialization — fixed 2026-03-12
+- ✅ **BUG-003** `ptr[i]` in while loop — fixed 2026-03-12
+- ✅ **BUG-004** Non-zero-lo LUT pipeline ordering — fixed 2026-03-12
+- ✅ **BUG-005** `applySubSwapNeg` u16 guard — fixed 2026-03-12
 
 ### 4. LSP / DAP / Developer Tooling
 **Status:** Not started. Planned after core language stability.

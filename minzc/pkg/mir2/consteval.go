@@ -126,6 +126,11 @@ func funcAccessesGlobalsRec(f *Func, m *Module, globalNames, visited map[string]
 			if inst.Op == OpAddrOf && globalNames[inst.Sym] {
 				return true
 			}
+			// Inline asm has side effects (I/O, register manipulation) that
+			// the VM cannot reproduce — treat as impure.
+			if inst.Op == OpAsm {
+				return true
+			}
 			// Check callees transitively.
 			if inst.Op == OpCall && inst.Sym != "" {
 				callee := m.FuncByName(inst.Sym)

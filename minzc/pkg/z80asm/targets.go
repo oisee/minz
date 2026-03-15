@@ -399,6 +399,53 @@ func (a *Assembler) ValidateMemoryLayout() error {
 	return nil
 }
 
+// ── Standalone output formats ─────────────────────────────────────────────────
+// These are independent of the target platform. The target provides symbols,
+// ORG, and stdlib; the format controls how the assembled binary is packaged.
+
+// OutputFormats maps format names to their generators.
+var OutputFormats = map[string]OutputFormat{
+	"code": {
+		Extension:   ".code",
+		Description: "Raw binary (CODE block) — just the assembled bytes",
+		Generator:   generateBinaryFile,
+	},
+	"sna": {
+		Extension:   ".sna",
+		Description: "ZX Spectrum 48K .SNA snapshot (for emulators)",
+		HeaderSize:  27,
+		Generator:   generateSNASnapshot,
+	},
+	"tap": {
+		Extension:   ".tap",
+		Description: "ZX Spectrum .TAP tape file (LOAD \"\" CODE)",
+		Generator:   generateTAPFile,
+	},
+	"com": {
+		Extension:   ".com",
+		Description: "CP/M .COM executable",
+		Generator:   generateCOMFile,
+	},
+	"msxrom": {
+		Extension:   ".rom",
+		Description: "MSX cartridge ROM",
+		Generator:   generateMSXROM,
+	},
+	"agon": {
+		Extension:   ".bin",
+		Description: "Agon Light 2 MOS executable",
+		Generator:   generateAgonBin,
+	},
+}
+
+// LookupOutputFormat returns the OutputFormat for a given name, or nil.
+func LookupOutputFormat(name string) *OutputFormat {
+	if f, ok := OutputFormats[name]; ok {
+		return &f
+	}
+	return nil
+}
+
 // Output format generators
 
 // generateBinaryFile creates a raw binary file

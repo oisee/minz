@@ -662,9 +662,19 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 				totalUses[src]++
 				switch inst.Op {
 				case OpCmp:
-					// CP imm8: fires when rhs (Src[1]) has a known constant.
-					if src == inst.Src[1] {
-						foldedUses[src]++
+					// CP imm8: fires when rhs (Src[1]) is a known constant
+					// that fits in 8 bits. 16-bit cmp uses SBC HL,DE — rhs
+					// must be in a register and cannot be folded.
+					// Note: inst.Ty is bool (the result), so check the constant
+					// value and its allocation to determine operand width.
+					if src == inst.Src[1] && cv >= 0 && cv <= 0xFF {
+						// Also verify lhs is in an 8-bit register (not a pair).
+						lhsLoc := physName(inst.Src[0])
+						if lhsLoc == "A" || lhsLoc == "B" || lhsLoc == "C" ||
+							lhsLoc == "D" || lhsLoc == "E" || lhsLoc == "H" || lhsLoc == "L" ||
+							lhsLoc == "IXH" || lhsLoc == "IXL" || lhsLoc == "IYH" || lhsLoc == "IYL" {
+							foldedUses[src]++
+						}
 					}
 				case OpAdd, OpSub:
 					// INC/DEC: fires when rhs==1 and the op is in-place (lhs phys == dst phys).

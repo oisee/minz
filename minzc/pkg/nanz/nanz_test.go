@@ -3009,3 +3009,49 @@ fun test() -> void {
 		t.Fatalf("parse error (ptr as variable name): %v", err)
 	}
 }
+
+// TestForwardCallReference verifies that calling a function declared later in
+// the file correctly resolves the return type (not TyVoid).
+func TestForwardCallReference(t *testing.T) {
+	src := `
+fun caller() -> u8 {
+    if callee() { return 1 }
+    return 0
+}
+fun callee() -> bool {
+    return true
+}
+`
+	m, err := nanz.Parse(src, "fwd_ref")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	// Find the CallExpr inside caller — its Ty must be bool, not void.
+	callerFn := m.FuncByName("caller")
+	if callerFn == nil {
+		t.Fatal("caller function not found")
+	}
+	found := false
+	for _, s := range callerFn.Body.Body {
+		if ifSt, ok := s.(*hir.IfStmt); ok {
+			if call, ok := ifSt.Cond.(*hir.CallExpr); ok {
+				if call.Ty == mir2.TyVoid {
+					t.Errorf("forward-referenced call has Ty=void, expected bool")
+				}
+				found = true
+			}
+		}
+	}
+	if !found {
+		t.Error("could not find CallExpr in caller's if-condition")
+	}
+
+	// Also verify it compiles to Z80 without LD A, ?
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile error: %v", err)
+	}
+	if strings.Contains(asm, "LD A, ?") {
+		t.Errorf("forward reference produced LD A, ? in output:\n%s", asm)
+	}
+}
