@@ -250,6 +250,68 @@ See Report #071 for full analysis.
 
 ---
 
+---
+
+## BUG-009 ✅ FIXED Array index generates `load [N]T` instead of addr_of
+
+**Fixed in:** 2026-03-15 (037fbc5)
+
+**Symptom:** `board[i] = 0` (global `board: [200]u8`) generates MIR2:
+`addr_of @board → load [200]u8 → ptr_add → store` — the `load [200]u8`
+tries to load the ENTIRE array as a u16 value, producing garbage pointer.
+
+**RCA:** `lowerExpr` for `VarRefExpr` on a global had a struct special-case
+(return address) but no array case. Arrays fell through to "scalar global:
+load and return the value" — treating `[200]u8` as a scalar to be loaded.
+
+**Fix:** Added `ArrayTy` check alongside `StructTy` in `hir/lower.go:1400`.
+Arrays return `addr_of` (pointer to first element), same as structs.
+
+**Ultimate fix:** Same — this is the correct semantics. Arrays are always
+accessed by address on Z80, never loaded as values.
+
+---
+
+## BUG-010 ✅ FIXED (temp) Caller-save: CALL destroys live registers
+
+**Fixed in:** 2026-03-15 (037fbc5) — temporary PUSH/POP fix
+
+**Symptom:** `fill_cell` calls `zx_screen_addr` which clobbers C and D.
+Loop counter (in D) and y*8 (in C) destroyed → infinite loop.
+
+**RCA:** Z80 codegen had NO caller-save mechanism. When a function CALLs
+another, it assumed all registers survive. But Z80 functions freely use
+B/C/D/E/H/L and there's no callee-save convention.
+
+**Temporary fix:** `callerSavePairs()` in z80codegen.go computes which
+register pairs the callee clobbers (via `computeClobbers`), checks which
+are allocated to virtual regs in the caller, and emits PUSH/POP around
+the CALL. Over-saves (saves all allocated regs, not just live ones) but
+correct.
+
+**Ultimate fix:** PBQP EdgeCost (ADR-0020) — add instruction-level
+constraints so the allocator avoids placing live values in registers that
+the callee will clobber. Eliminates PUSH/POP overhead entirely.
+
+---
+
+## BUG-011 🟡 computeDeadConsts suppresses u16 cmp constants
+
+**Fixed in:** 2026-03-15 (43ddcc6)
+
+**Symptom:** `while addr < 0x5800` compiles to `SBC HL, DE` but DE is
+never loaded — the `LD DE, 22528` is suppressed by dead constant elimination.
+
+**RCA:** `computeDeadConsts` treated `OpCmp` rhs as foldable (like `CP imm8`)
+without checking operand width. For u16, `SBC HL,DE` requires the rhs in
+a register — can't fold. But `inst.Ty` for cmp is `bool` (1 bit), so the
+width check `inst.Ty.Width() <= 8` always passed.
+
+**Fix:** Check lhs physical register — if it's a pair (HL/DE/BC), the rhs
+cannot be folded. Only fold when lhs is an 8-bit register (A/B/C/D/E/H/L).
+
+---
+
 ## Summary table
 
 | Bug | Category | Severity | Fix size | Status |
@@ -262,4 +324,6 @@ See Report #071 for full analysis.
 | BUG-006 Zero-size struct global | Global emitter | 🟡 | Small | Open |
 | BUG-007 Spurious adapter LD | Codegen (PFCCO+RA) | 🟡 | Medium | Open |
 | BUG-008 Arena IXL,(IX+d) | Allocator+Codegen | 🔴 | Medium | Open |
-| BUG-008 Arena IXL,(IX+d) | Allocator+Codegen | 🔴 | Medium | Open |
+| BUG-009 Array load [N]T | HIR lowerer | 🔴 | Trivial | ✅ Fixed 2026-03-15 |
+| BUG-010 Caller-save missing | Codegen | 🔴 | Medium | ✅ Fixed (temp) 2026-03-15 |
+| BUG-011 Dead const u16 cmp | Codegen (DCE) | 🔴 | Small | ✅ Fixed 2026-03-15 |
