@@ -10,6 +10,7 @@ import (
 	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/lizp"
 	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/pascal"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/plm"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -41,6 +42,11 @@ var knownFailures = map[string]string{
 	// PLM asm failures
 	"01_sum_array":      "asm: PLM codegen produces instructions MZA can't encode yet",
 	"01_sum_plm_origin": "asm: PLM codegen produces instructions MZA can't encode yet",
+	// Pascal asm failures (new frontend, codegen gaps)
+	"hello":     "asm: Pascal writeln generates CALL to unresolved runtime",
+	"casetest":  "asm: Pascal case codegen not fully wired",
+	"sieve":     "asm: Pascal array codegen not fully wired",
+	// "factorial" already listed under lizp — covers both .lizp and .pas
 }
 
 // TestShowcaseCompileAssemble compiles every .nanz/.lanz/.plm/.lizp file
@@ -65,7 +71,7 @@ func TestShowcaseCompileAssemble(t *testing.T) {
 				return nil
 			}
 			ext := filepath.Ext(path)
-			if ext == ".nanz" || ext == ".lanz" || ext == ".plm" || ext == ".lizp" {
+			if ext == ".nanz" || ext == ".lanz" || ext == ".plm" || ext == ".lizp" || ext == ".pas" {
 				files = append(files, path)
 			}
 			return nil
@@ -103,6 +109,8 @@ func TestShowcaseCompileAssemble(t *testing.T) {
 				hm, err = plm.Compile(string(src))
 			case ".lizp":
 				hm, err = lizp.Compile(string(src), base)
+			case ".pas":
+				hm, err = pascal.Compile(string(src), base)
 			default:
 				t.Skipf("unsupported extension: %s", ext)
 				return
