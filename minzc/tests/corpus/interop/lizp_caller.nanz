@@ -1,0 +1,13 @@
+// Import a Lizp module from Nanz — cross-language interop!
+import lisplib { double, add3 }
+
+fun use_double(x: u8) -> u8 {
+    return double(x)
+}
+
+fun use_add3(a: u8, b: u8, c: u8) -> u8 {
+    return add3(a, b, c)
+}
+
+assert use_double(5) == 10
+// assert use_add3(1, 2, 3) == 6  // blocked by regalloc bug (BUG-001)

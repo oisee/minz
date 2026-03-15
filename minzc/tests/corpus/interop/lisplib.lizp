@@ -1,0 +1,8 @@
+;; Math library written in Lizp (Scheme-like S-expressions)
+;; Importable from Nanz via: import lisplib { triple, square }
+
+(defun double ((x u8)) -> u8
+  (return (+ x x)))
+
+(defun add3 ((a u8) (b u8) (c u8)) -> u8
+  (return (+ a (+ b c))))
