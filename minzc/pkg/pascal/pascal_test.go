@@ -3,6 +3,8 @@ package pascal
 import (
 	"strings"
 	"testing"
+
+	"github.com/minz/minzc/pkg/pipeline"
 )
 
 func TestParseMinimal(t *testing.T) {
@@ -569,5 +571,25 @@ end.`
 	_, err := Compile(src, "test")
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestAssertE2E(t *testing.T) {
+	src := `program Test;
+function Double(X: Integer): Integer;
+begin
+  Double := X + X;
+end;
+begin
+  assert Double(0) = 0;
+  assert Double(21) = 42;
+end.`
+	hm, err := Compile(src, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = pipeline.CompileHIR(hm)
+	if err != nil {
+		t.Fatalf("pipeline (asserts should pass): %v", err)
 	}
 }

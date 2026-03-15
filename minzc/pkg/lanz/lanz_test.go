@@ -6,6 +6,7 @@ import (
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/pipeline"
 )
 
 func TestParseSExpr(t *testing.T) {
@@ -305,4 +306,73 @@ func TestCompile_CondExpr(t *testing.T) {
 		t.Fatalf("expected CondExpr, got %T", cast.X)
 	}
 	_ = cond
+}
+
+func TestAssert_Parse(t *testing.T) {
+	src := `(fun double ((x u8)) u8 (return (+ x x)))
+(assert double 5 == 10)
+(assert double 0 == 0)`
+	m, err := Compile(src, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(m.Asserts) != 2 {
+		t.Fatalf("expected 2 asserts, got %d", len(m.Asserts))
+	}
+	a := m.Asserts[0]
+	if a.FuncName != "double" {
+		t.Errorf("func = %q, want double", a.FuncName)
+	}
+	if len(a.Args) != 1 || a.Args[0] != 5 {
+		t.Errorf("args = %v, want [5]", a.Args)
+	}
+	if a.Expected != 10 {
+		t.Errorf("expected = %d, want 10", a.Expected)
+	}
+}
+
+func TestAssert_Via(t *testing.T) {
+	src := `(fun id ((x u8)) u8 (return x))
+(assert id 42 == 42 via mir2)`
+	m, err := Compile(src, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(m.Asserts) != 1 {
+		t.Fatalf("expected 1 assert, got %d", len(m.Asserts))
+	}
+	if m.Asserts[0].Via != "mir2" {
+		t.Errorf("via = %q, want mir2", m.Asserts[0].Via)
+	}
+}
+
+func TestAssert_MultiArg(t *testing.T) {
+	src := `(fun add ((a u8) (b u8)) u8 (return (+ a b)))
+(assert add 3 4 == 7)`
+	m, err := Compile(src, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := m.Asserts[0]
+	if len(a.Args) != 2 || a.Args[0] != 3 || a.Args[1] != 4 {
+		t.Errorf("args = %v, want [3, 4]", a.Args)
+	}
+	if a.Expected != 7 {
+		t.Errorf("expected = %d, want 7", a.Expected)
+	}
+}
+
+func TestAssert_E2E(t *testing.T) {
+	src := `(fun double ((x u8)) u8 (return (+ x x)))
+(assert double 0 == 0)
+(assert double 5 == 10)
+(assert double 127 == 254)`
+	m, err := Compile(src, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("pipeline (asserts should pass): %v", err)
+	}
 }

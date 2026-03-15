@@ -1,0 +1,22 @@
+;; Lizp assert test — compile-time verification via MIR2 VM
+
+(defun double ((x u8)) -> u8
+  (return (+ x x)))
+
+(defun add ((a u8) (b u8)) -> u8
+  (return (+ a b)))
+
+(defun max_byte ((a u8) (b u8)) -> u8
+  (if (> a b) (return a) (return b)))
+
+(assert double 0 == 0)
+(assert double 5 == 10)
+(assert double 127 == 254)
+
+(assert add 3 4 == 7)
+(assert add 0 0 == 0)
+(assert add 100 55 == 155)
+
+(assert max_byte 10 20 == 20)
+(assert max_byte 99 1 == 99)
+(assert max_byte 42 42 == 42)

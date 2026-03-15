@@ -121,6 +121,13 @@ func (p *parser) parseModule() (*Module, error) {
 // parseDeclList parses one top-level declaration item and returns 1..N Decls.
 // DECLARE may expand to multiple VarDecls (comma-separated groups).
 func (p *parser) parseDeclList() ([]Decl, error) {
+	if p.l.Is("ASSERT") {
+		ad, err := p.parseAssertDecl()
+		if err != nil {
+			return nil, err
+		}
+		return []Decl{ad}, nil
+	}
 	if p.l.Is("DECLARE") {
 		p.l.Next()
 		vds, err := p.parseVarDeclGroupList()
@@ -1547,4 +1554,47 @@ func parseNumber(s string) (uint64, error) {
 		return strconv.ParseUint(s[:len(s)-1], 2, 64)
 	}
 	return strconv.ParseUint(s, 10, 64)
+}
+
+// parseAssertDecl parses: ASSERT FN(args...) = expected;
+func (p *parser) parseAssertDecl() (*AssertDecl, error) {
+	p.l.Next() // consume ASSERT
+	fnTok, err := p.l.ExpectKind(TokIdent)
+	if err != nil {
+		return nil, fmt.Errorf("assert: expected function name")
+	}
+	if _, err := p.l.ExpectKind(TokLParen); err != nil {
+		return nil, fmt.Errorf("assert: expected '(' after function name")
+	}
+	var args []Expr
+	for !p.l.IsKind(TokRParen) && !p.l.IsKind(TokEOF) {
+		if len(args) > 0 {
+			if _, err := p.l.ExpectKind(TokComma); err != nil {
+				return nil, fmt.Errorf("assert: expected ',' between arguments")
+			}
+		}
+		arg, err := p.parseExpr()
+		if err != nil {
+			return nil, fmt.Errorf("assert argument: %w", err)
+		}
+		args = append(args, arg)
+	}
+	if _, err := p.l.ExpectKind(TokRParen); err != nil {
+		return nil, fmt.Errorf("assert: expected ')'")
+	}
+	if _, err := p.l.ExpectKind(TokEq); err != nil {
+		return nil, fmt.Errorf("assert: expected '=' after call")
+	}
+	expected, err := p.parseExpr()
+	if err != nil {
+		return nil, fmt.Errorf("assert expected value: %w", err)
+	}
+	if _, err := p.l.ExpectKind(TokSemicolon); err != nil {
+		return nil, fmt.Errorf("assert: expected ';'")
+	}
+	return &AssertDecl{
+		FuncName: fnTok.Val,
+		Args:     args,
+		Expected: expected,
+	}, nil
 }

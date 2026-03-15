@@ -73,6 +73,17 @@ type ProcDecl struct {
 
 func (*ProcDecl) plmDecl() {}
 
+// AssertDecl is a compile-time assertion at module level.
+//
+//	ASSERT FN(arg, arg) = expected;
+type AssertDecl struct {
+	FuncName string
+	Args     []Expr
+	Expected Expr
+}
+
+func (*AssertDecl) plmDecl() {}
+
 // ── Statements ────────────────────────────────────────────────────────────────
 
 // Stmt is a PL/M-80 statement.

@@ -2,6 +2,8 @@ package lizp
 
 import (
 	"testing"
+
+	"github.com/minz/minzc/pkg/pipeline"
 )
 
 func TestCompileMinimal(t *testing.T) {
@@ -226,5 +228,70 @@ func TestMacroExpansionRecursive(t *testing.T) {
 	_, err := Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
+	}
+}
+
+func TestAssert_Parse(t *testing.T) {
+	src := `
+(defun double ((x u8)) -> u8
+  (return (+ x x)))
+
+(assert double 5 == 10)
+(assert double 0 == 0)
+`
+	mod, err := Compile(src, "test")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	if len(mod.Asserts) != 2 {
+		t.Fatalf("expected 2 asserts, got %d", len(mod.Asserts))
+	}
+	a := mod.Asserts[0]
+	if a.FuncName != "double" {
+		t.Errorf("func = %q, want double", a.FuncName)
+	}
+	if len(a.Args) != 1 || a.Args[0] != 5 {
+		t.Errorf("args = %v, want [5]", a.Args)
+	}
+	if a.Expected != 10 {
+		t.Errorf("expected = %d, want 10", a.Expected)
+	}
+}
+
+func TestAssert_HexLiteral(t *testing.T) {
+	src := `
+(defun id ((x u8)) -> u8
+  (return x))
+
+(assert id #xFF == 255)
+`
+	mod, err := Compile(src, "test")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	if len(mod.Asserts) != 1 {
+		t.Fatalf("expected 1 assert, got %d", len(mod.Asserts))
+	}
+	if mod.Asserts[0].Args[0] != 255 {
+		t.Errorf("arg = %d, want 255 (#xFF)", mod.Asserts[0].Args[0])
+	}
+}
+
+func TestAssert_E2E(t *testing.T) {
+	src := `
+(defun double ((x u8)) -> u8
+  (return (+ x x)))
+
+(assert double 0 == 0)
+(assert double 5 == 10)
+(assert double 127 == 254)
+`
+	mod, err := Compile(src, "test")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	_, err = pipeline.CompileHIR(mod)
+	if err != nil {
+		t.Fatalf("pipeline (asserts should pass): %v", err)
 	}
 }

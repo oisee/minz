@@ -64,6 +64,12 @@ func (c *compiler) compileModule(nodes []Node) (*hir.Module, error) {
 				return nil, err
 			}
 			m.Structs = append(m.Structs, st)
+		case "assert":
+			a, err := c.compileAssert(n)
+			if err != nil {
+				return nil, err
+			}
+			m.Asserts = append(m.Asserts, a)
 		default:
 			return nil, fmt.Errorf("line %d: unknown top-level form %q", head.Line, head.Atom)
 		}
@@ -131,6 +137,77 @@ func (c *compiler) compileExtern(n Node) (*hir.Func, error) {
 		}
 	}
 	return f, nil
+}
+
+// (assert fn arg1 arg2 ... == expected)
+// (assert fn arg1 arg2 ... == expected via mir2)
+func (c *compiler) compileAssert(n Node) (hir.Assert, error) {
+	// Minimum: (assert fn == expected) — 4 elements
+	if len(n.List) < 4 {
+		return hir.Assert{}, fmt.Errorf("line %d: assert: expected (assert fn args... == expected)", n.Line)
+	}
+	fnName := n.List[1].Atom
+
+	// Find the == separator
+	eqIdx := -1
+	for i := 2; i < len(n.List); i++ {
+		if n.List[i].IsAtom() && n.List[i].Atom == "==" {
+			eqIdx = i
+			break
+		}
+	}
+	if eqIdx < 0 {
+		return hir.Assert{}, fmt.Errorf("line %d: assert: expected '==' separator", n.Line)
+	}
+
+	// Parse args (between fn name and ==)
+	var args []int64
+	for i := 2; i < eqIdx; i++ {
+		v, err := strconv.ParseInt(n.List[i].Atom, 0, 64)
+		if err != nil {
+			return hir.Assert{}, fmt.Errorf("line %d: assert: argument %q is not an integer literal", n.Line, n.List[i].Atom)
+		}
+		args = append(args, v)
+	}
+
+	// Parse expected value (after ==)
+	if eqIdx+1 >= len(n.List) {
+		return hir.Assert{}, fmt.Errorf("line %d: assert: expected value after '=='", n.Line)
+	}
+	expected, err := strconv.ParseInt(n.List[eqIdx+1].Atom, 0, 64)
+	if err != nil {
+		return hir.Assert{}, fmt.Errorf("line %d: assert: expected value %q is not an integer literal", n.Line, n.List[eqIdx+1].Atom)
+	}
+
+	// Optional: via mir2 / via z80
+	via := ""
+	if eqIdx+3 < len(n.List) && n.List[eqIdx+2].IsAtom() && n.List[eqIdx+2].Atom == "via" {
+		via = n.List[eqIdx+3].Atom
+	}
+
+	src := fmt.Sprintf("assert %s(%s) == %d", fnName, intSliceStr(args), expected)
+	if via != "" {
+		src += " via " + via
+	}
+	return hir.Assert{
+		FuncName: fnName,
+		Args:     args,
+		Expected: expected,
+		Source:   src,
+		Line:     n.Line,
+		Via:      via,
+	}, nil
+}
+
+func intSliceStr(vs []int64) string {
+	if len(vs) == 0 {
+		return ""
+	}
+	s := strconv.FormatInt(vs[0], 10)
+	for _, v := range vs[1:] {
+		s += ", " + strconv.FormatInt(v, 10)
+	}
+	return s
 }
 
 // ((p1 ty1) (p2 ty2) ...)

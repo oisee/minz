@@ -90,6 +90,14 @@ func desugar(n lanz.Node, macros map[string]*macro) ([]lanz.Node, error) {
 		return desugarDefglobal(n)
 	case "defextern":
 		return desugarDefextern(n)
+	case "assert":
+		// (assert fn arg1 arg2 == expected) — desugar #x hex literals, pass to Lanz
+		elems := make([]lanz.Node, len(n.List))
+		elems[0] = n.List[0]
+		for i := 1; i < len(n.List); i++ {
+			elems[i] = desugarExpr(n.List[i])
+		}
+		return []lanz.Node{{List: elems, Line: n.Line}}, nil
 	default:
 		// Check if it's a macro invocation
 		if m, ok := macros[head.Atom]; ok {

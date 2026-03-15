@@ -8,6 +8,7 @@ import (
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/plm"
 	"github.com/minz/minzc/pkg/z80asm"
 )
@@ -518,5 +519,77 @@ ORG 0x8000
 		if a != c.want {
 			t.Errorf("maxb(%d,%d) = %d, want %d", c.a, c.b, a, c.want)
 		}
+	}
+}
+
+func TestAssert_Parse(t *testing.T) {
+	src := `T: DO;
+DOUBLE: PROCEDURE (X) BYTE;
+    DECLARE X BYTE;
+    RETURN X + X;
+END DOUBLE;
+ASSERT DOUBLE(5) = 10;
+ASSERT DOUBLE(0) = 0;
+END T;`
+	hm, err := plm.Compile(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(hm.Asserts) != 2 {
+		t.Fatalf("expected 2 asserts, got %d", len(hm.Asserts))
+	}
+	a := hm.Asserts[0]
+	if a.FuncName != "DOUBLE" {
+		t.Errorf("func = %q, want DOUBLE", a.FuncName)
+	}
+	if len(a.Args) != 1 || a.Args[0] != 5 {
+		t.Errorf("args = %v, want [5]", a.Args)
+	}
+	if a.Expected != 10 {
+		t.Errorf("expected = %d, want 10", a.Expected)
+	}
+}
+
+func TestAssert_MultiArg(t *testing.T) {
+	src := `T: DO;
+ADD$BYTES: PROCEDURE (A, B) BYTE;
+    DECLARE (A, B) BYTE;
+    RETURN A + B;
+END ADD$BYTES;
+ASSERT ADD$BYTES(3, 4) = 7;
+END T;`
+	hm, err := plm.Compile(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(hm.Asserts) != 1 {
+		t.Fatalf("expected 1 assert, got %d", len(hm.Asserts))
+	}
+	a := hm.Asserts[0]
+	if len(a.Args) != 2 || a.Args[0] != 3 || a.Args[1] != 4 {
+		t.Errorf("args = %v, want [3, 4]", a.Args)
+	}
+	if a.Expected != 7 {
+		t.Errorf("expected = %d, want 7", a.Expected)
+	}
+}
+
+func TestAssert_E2E(t *testing.T) {
+	src := `T: DO;
+DOUBLE: PROCEDURE (X) BYTE;
+    DECLARE X BYTE;
+    RETURN X + X;
+END DOUBLE;
+ASSERT DOUBLE(0) = 0;
+ASSERT DOUBLE(5) = 10;
+ASSERT DOUBLE(127) = 254;
+END T;`
+	hm, err := plm.Compile(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = pipeline.CompileHIR(hm)
+	if err != nil {
+		t.Fatalf("pipeline (asserts should pass): %v", err)
 	}
 }

@@ -105,9 +105,57 @@ func (l *modLowerer) lower() (*hir.Module, error) {
 				return nil, fmt.Errorf("procedure %s: %w", d.Name, err)
 			}
 			hm.Funcs = append(hm.Funcs, f)
+
+		case *AssertDecl:
+			a, err := l.lowerAssert(d)
+			if err != nil {
+				return nil, fmt.Errorf("assert: %w", err)
+			}
+			hm.Asserts = append(hm.Asserts, a)
 		}
 	}
 	return hm, nil
+}
+
+func (l *modLowerer) lowerAssert(ad *AssertDecl) (hir.Assert, error) {
+	var args []int64
+	for _, a := range ad.Args {
+		v, ok := evalLit(a)
+		if !ok {
+			return hir.Assert{}, fmt.Errorf("assert argument must be an integer literal")
+		}
+		args = append(args, v)
+	}
+	expected, ok := evalLit(ad.Expected)
+	if !ok {
+		return hir.Assert{}, fmt.Errorf("assert expected value must be an integer literal")
+	}
+	src := fmt.Sprintf("assert %s(%s) = %d", ad.FuncName, intSliceStr(args), expected)
+	return hir.Assert{
+		FuncName: ad.FuncName,
+		Args:     args,
+		Expected: expected,
+		Source:   src,
+	}, nil
+}
+
+func evalLit(e Expr) (int64, bool) {
+	switch e := e.(type) {
+	case *NumberLit:
+		return int64(e.Val), true
+	}
+	return 0, false
+}
+
+func intSliceStr(vs []int64) string {
+	if len(vs) == 0 {
+		return ""
+	}
+	s := fmt.Sprintf("%d", vs[0])
+	for _, v := range vs[1:] {
+		s += fmt.Sprintf(", %d", v)
+	}
+	return s
 }
 
 // ── Procedure lowerer ─────────────────────────────────────────────────────────
