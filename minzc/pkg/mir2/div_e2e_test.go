@@ -157,34 +157,57 @@ func compileNanzToMIR2(t *testing.T, src string) *mir2.Module {
 	return m
 }
 
+// parseU8ABI extracts param register names from the assembly ABI annotation.
+// E.g. "; fun div8(a: u8 = D, b: u8 = C) -> u8 = A" → ["D", "C"]
+func parseU8ABI(t *testing.T, funcAsm, funcName string) (param1, param2 string) {
+	t.Helper()
+	for _, line := range strings.Split(funcAsm, "\n") {
+		if !strings.Contains(line, "fun "+funcName+"(") {
+			continue
+		}
+		// Extract "X = REG" patterns
+		parts := strings.Split(line, "= ")
+		if len(parts) >= 3 {
+			// parts[1] = "D, b: u8 ", parts[2] = "C) -> ..."
+			p1 := strings.TrimRight(strings.TrimSpace(parts[1]), ", b:u8")
+			p1 = strings.Split(strings.TrimSpace(parts[1]), ",")[0]
+			p2 := strings.Split(strings.TrimSpace(parts[2]), ")")[0]
+			return strings.TrimSpace(p1), strings.TrimSpace(p2)
+		}
+	}
+	t.Fatalf("could not parse ABI for %s", funcName)
+	return "", ""
+}
+
 func runMod8(t *testing.T, funcAsm string, a, b int) int {
 	t.Helper()
+	p1, p2 := parseU8ABI(t, funcAsm, "mod8")
 	const loadAddr = 0x8000
-	// mod8 ABI: a=D, b=C, returns A (same as div8).
 	bootstrap := fmt.Sprintf(`
     ORG 0x%04X
     LD SP, 0xFF00
-    LD D, %d
-    LD C, %d
+    LD %s, %d
+    LD %s, %d
     CALL mod8
     DI
     HALT
-`, loadAddr, a, b)
+`, loadAddr, p1, a, p2, b)
 	return runAndGetA(t, bootstrap+"\n"+funcAsm, loadAddr)
 }
 
 func runDiv8(t *testing.T, funcAsm string, a, b int) int {
 	t.Helper()
+	p1, p2 := parseU8ABI(t, funcAsm, "div8")
 	const loadAddr = 0x8000
 	bootstrap := fmt.Sprintf(`
     ORG 0x%04X
     LD SP, 0xFF00
-    LD D, %d
-    LD C, %d
+    LD %s, %d
+    LD %s, %d
     CALL div8
     DI
     HALT
-`, loadAddr, a, b)
+`, loadAddr, p1, a, p2, b)
 	return runAndGetA(t, bootstrap+"\n"+funcAsm, loadAddr)
 }
 

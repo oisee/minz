@@ -2923,41 +2923,64 @@ func (g *z80cg) genMul16(inst *Inst) {
 
 	cv, isConst := g.constVals[inst.Src[1]]
 
-	// Ensure lhs is in HL (u16 multiply needs HL for ADD HL,rr).
+	// 16-bit multiply needs HL for ADD HL,rr.
+	// If HL contains a live value that isn't lhs or dst, save it.
+	savedHL := false
+	if lhs != "HL" && dst != "HL" {
+		// HL may hold a live value (e.g. a constant computed earlier).
+		// Save it on stack; restore after multiply into dst.
+		g.emit("    PUSH HL")
+		savedHL = true
+	}
+
+	// Move lhs into HL for the multiply.
 	if lhs != "HL" {
 		g.emitf("    LD H, %s", highByte(lhs))
 		g.emitf("    LD L, %s", lowByte(lhs))
 		g.invalidate("HL")
 	}
-	_ = dst // result ends up in HL
+
+	// mul16Epilogue moves the result from HL to dst and restores saved HL.
+	mul16Epilogue := func() {
+		if dst != "HL" {
+			g.emitf("    LD %s, H", highByte(dst))
+			g.emitf("    LD %s, L", lowByte(dst))
+		}
+		if savedHL {
+			g.emit("    POP HL") // restore pre-mul HL
+		}
+		g.invalidate(dst)
+		if savedHL {
+			g.invalidate("HL")
+		}
+	}
 
 	if isConst {
 		switch cv {
 		case 0:
 			g.emit("    LD H, 0")
 			g.emit("    LD L, 0")
-			g.invalidate("HL")
+			mul16Epilogue()
 			return
 		case 1:
+			mul16Epilogue()
 			return
 		}
 		// Fix A: byte-boundary shift — LD H,L / LD L,0 is cheaper than ADD HL,HL chains.
-		// * 256: LD H,L / LD L,0  (8T, 2B)  vs 8×ADD HL,HL (56T, 16B)
-		// * 512: LD H,L / LD L,0 / ADD HL,HL (19T) vs 9×ADD HL,HL (63T)
 		if cv >= 256 && cv&(cv-1) == 0 {
 			g.emit("    LD H, L")
 			g.emit("    LD L, 0")
 			for n := cv >> 8; n > 1; n >>= 1 {
 				g.emit("    ADD HL, HL")
 			}
-			g.invalidate("HL")
+			mul16Epilogue()
 			return
 		}
 		if cv > 0 && cv&(cv-1) == 0 { // power-of-2: log2(cv) × ADD HL,HL
 			for n := cv; n > 1; n >>= 1 {
 				g.emit("    ADD HL, HL")
 			}
-			g.invalidate("HL")
+			mul16Epilogue()
 			return
 		}
 		// Small multiples via PUSH/POP BC save + shift sequences.
@@ -2966,25 +2989,25 @@ func (g *z80cg) genMul16(inst *Inst) {
 			g.emit("    POP BC")  // BC = x (17T)
 			switch cv {
 			case 3: // x*2 + x
-				g.emit("    ADD HL, HL") // HL = x*2
-				g.emit("    ADD HL, BC") // HL = x*3
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, BC")
 			case 5: // x*4 + x
 				g.emit("    ADD HL, HL")
-				g.emit("    ADD HL, HL") // HL = x*4
-				g.emit("    ADD HL, BC") // HL = x*5
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, BC")
 			case 6: // x*4 + x*2
-				g.emit("    ADD HL, HL")  // HL = x*2
+				g.emit("    ADD HL, HL")
 				g.emit("    PUSH HL")
-				g.emit("    POP BC")       // BC = x*2
-				g.emit("    ADD HL, HL")  // HL = x*4
-				g.emit("    ADD HL, BC")  // HL = x*6
+				g.emit("    POP BC")
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, BC")
 			case 9: // x*8 + x
 				g.emit("    ADD HL, HL")
 				g.emit("    ADD HL, HL")
-				g.emit("    ADD HL, HL") // HL = x*8
-				g.emit("    ADD HL, BC") // HL = x*9
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, BC")
 			}
-			g.invalidate("HL")
+			mul16Epilogue()
 			return
 		}
 	}
@@ -3036,8 +3059,7 @@ func (g *z80cg) genMul16(inst *Inst) {
 	g.emit("    POP BC")              // restore BC
 	g.emit("    POP DE")              // restore old DE (live variables in D/E preserved)
 	g.emit("    POP AF")              // restore old A (live variables in A preserved)
-	g.invalidate("HL")
-	g.invalidate("DE")
+	mul16Epilogue()
 	g.invalidate("BC")
 }
 
