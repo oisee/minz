@@ -43,7 +43,6 @@ var knownFailures = map[string]string{
 	"01_sum_array":      "asm: PLM codegen produces instructions MZA can't encode yet",
 	"01_sum_plm_origin": "asm: PLM codegen produces instructions MZA can't encode yet",
 	// Pascal asm failures (new frontend, codegen gaps)
-	"hello":     "asm: Pascal writeln generates CALL to unresolved runtime",
 	"casetest":  "asm: Pascal case codegen not fully wired",
 	"sieve":     "asm: Pascal array codegen not fully wired",
 	// "factorial" already listed under lizp — covers both .lizp and .pas

@@ -179,10 +179,14 @@ func desugarDefextern(n lanz.Node) ([]lanz.Node, error) {
 	if len(n.List) < 4 {
 		return nil, fmt.Errorf("line %d: defextern: expected (defextern name params rettype [addr])", n.Line)
 	}
-	result := lanz.Node{
-		List: append([]lanz.Node{atom("extern", n.Line)}, n.List[1:]...),
-		Line: n.Line,
+	elems := make([]lanz.Node, len(n.List))
+	elems[0] = atom("extern", n.Line)
+	copy(elems[1:], n.List[1:])
+	// Desugar address token (#x0005 → 0x0005) so strconv.ParseUint recognizes it.
+	if len(elems) >= 5 {
+		elems[4] = desugarExpr(elems[4])
 	}
+	result := lanz.Node{List: elems, Line: n.Line}
 	return []lanz.Node{result}, nil
 }
 

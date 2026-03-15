@@ -2,11 +2,8 @@ package pascal
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/minz/minzc/pkg/hir"
-	"github.com/minz/minzc/pkg/lizp"
 	"github.com/minz/minzc/pkg/mir2"
 )
 
@@ -29,12 +26,11 @@ func Compile(src, name string, opts ...CompileOpts) (*hir.Module, error) {
 	if err != nil {
 		return nil, fmt.Errorf("pascal lower: %w", err)
 	}
-	// Auto-import system unit if stdlib is available and program uses runtime.
-	if o.StdlibDir != "" {
-		if err := autoImportSystem(hm, o.StdlibDir); err != nil {
-			return nil, fmt.Errorf("pascal system import: %w", err)
-		}
-	}
+	// Emit built-in runtime functions (ConOut, WriteStr, etc.) for any
+	// referenced but undefined names.  Uses inline asm with correct CP/M
+	// register conventions — no external Lizp import needed.
+	_ = o // StdlibDir no longer used; runtime is generated directly.
+	emitRuntimeFuncs(hm)
 	return hm, nil
 }
 
@@ -849,10 +845,10 @@ func (pl *procLow) lowerExprs(exprs []Expr) ([]hir.Expr, error) {
 func (l *lowerer) internString(s string) string {
 	// Append '$' terminator for BDOS function 9
 	terminated := s + "$"
-	sym := fmt.Sprintf("__str_%d", len(l.hm.Strings))
+	idx := len(l.hm.Strings)
 	l.hm.Strings = append(l.hm.Strings, terminated)
 	l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
-	return sym
+	return fmt.Sprintf("@mir2.str.%d", idx)
 }
 
 func (l *lowerer) resolveType(t PasType) PasType {
@@ -908,25 +904,6 @@ func pasResultTy(l, r mir2.Ty, op string) mir2.Ty {
 
 // ── Auto-import system unit ──────────────────────────────────────────────────
 
-// needsSystem returns true if the HIR module references any runtime function
-// that lives in the Pascal system unit (ConOut, WriteCrLf, WriteU8, etc.).
-func needsSystem(hm *hir.Module) bool {
-	runtimeFuncs := map[string]bool{
-		"ConOut": true, "ConIn": true, "KeyPressed": true, "ReadKey": true,
-		"WriteCrLf": true, "WriteStr": true, "WriteU8": true, "WriteI16": true, "PascalHalt": true,
-	}
-	// Check if any of the runtime funcs are called but not defined in this module.
-	defined := map[string]bool{}
-	for _, f := range hm.Funcs {
-		defined[f.Name] = true
-	}
-	for name := range runtimeFuncs {
-		if !defined[name] && moduleReferences(hm, name) {
-			return true
-		}
-	}
-	return false
-}
 
 // moduleReferences checks if a function name is called anywhere in the module.
 func moduleReferences(hm *hir.Module, name string) bool {
@@ -1004,41 +981,151 @@ func exprReferences(e hir.Expr, name string) bool {
 	return false
 }
 
-// autoImportSystem compiles stdlib/pascal/system.lizp and merges it into hm.
-func autoImportSystem(hm *hir.Module, stdlibDir string) error {
-	if !needsSystem(hm) {
-		return nil
-	}
-
-	sysPath := filepath.Join(stdlibDir, "pascal", "system.lizp")
-	src, err := os.ReadFile(sysPath)
-	if err != nil {
-		return fmt.Errorf("read system unit: %w (looked in %s)", err, sysPath)
-	}
-
-	sysMod, err := lizp.Compile(string(src), "system")
-	if err != nil {
-		return fmt.Errorf("compile system unit: %w", err)
-	}
-
-	// Merge: add system functions/globals that don't already exist in hm.
-	existing := map[string]bool{}
+// emitRuntimeFuncs generates built-in CP/M runtime functions directly as HIR
+// with inline asm, so BDOS register conventions (C=func, DE=param) are correct.
+// Only functions actually referenced by the module are emitted.
+func emitRuntimeFuncs(hm *hir.Module) {
+	defined := map[string]bool{}
 	for _, f := range hm.Funcs {
-		existing[f.Name] = true
+		defined[f.Name] = true
 	}
-	for _, f := range sysMod.Funcs {
-		if !existing[f.Name] {
-			hm.Funcs = append(hm.Funcs, f)
+
+	need := func(name string) bool {
+		return !defined[name] && moduleReferences(hm, name)
+	}
+
+	// ConOut(ch: u8) -> void — BDOS 2, char in E
+	if need("ConOut") {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "ConOut",
+			Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{Body: []hir.Stmt{
+				&hir.AsmStmt{
+					Target:     "z80",
+					Code:       "LD E, A / LD C, 2 / CALL 0x0005",
+					ClobberAll: true,
+					Ins:        []hir.AsmOperand{{Name: "ch"}},
+				},
+				&hir.ReturnStmt{},
+			}},
+		})
+		defined["ConOut"] = true
+	}
+
+	// WriteCrLf() -> void — output CR+LF
+	if need("WriteCrLf") {
+		// Ensure ConOut is available for WriteCrLf
+		if !defined["ConOut"] {
+			hm.Funcs = append(hm.Funcs, &hir.Func{
+				Name:   "ConOut",
+				Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
+				RetTy:  mir2.TyVoid,
+				Body: &hir.Block{Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target:     "z80",
+						Code:       "LD E, A / LD C, 2 / CALL 0x0005",
+						ClobberAll: true,
+						Ins:        []hir.AsmOperand{{Name: "ch"}},
+					},
+					&hir.ReturnStmt{},
+				}},
+			})
+			defined["ConOut"] = true
 		}
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:  "WriteCrLf",
+			RetTy: mir2.TyVoid,
+			Body: &hir.Block{Body: []hir.Stmt{
+				&hir.ExprStmt{Expr: &hir.CallExpr{Fn: "ConOut", Args: []hir.Expr{&hir.IntLitExpr{Val: 13, Ty: mir2.TyU8}}, Ty: mir2.TyVoid}},
+				&hir.ExprStmt{Expr: &hir.CallExpr{Fn: "ConOut", Args: []hir.Expr{&hir.IntLitExpr{Val: 10, Ty: mir2.TyU8}}, Ty: mir2.TyVoid}},
+				&hir.ReturnStmt{},
+			}},
+		})
+		defined["WriteCrLf"] = true
 	}
-	existingGlobals := map[string]bool{}
-	for _, g := range hm.Globals {
-		existingGlobals[g.Name] = true
+
+	// WriteStr(addr: u16) -> void — BDOS 9, string addr in DE
+	if need("WriteStr") {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "WriteStr",
+			Params: []hir.Param{{Name: "addr", Ty: mir2.TyU16}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{Body: []hir.Stmt{
+				&hir.AsmStmt{
+					Target:     "z80",
+					Code:       "EX DE, HL / LD C, 9 / CALL 0x0005",
+					ClobberAll: true,
+					Ins:        []hir.AsmOperand{{Name: "addr"}},
+				},
+				&hir.ReturnStmt{},
+			}},
+		})
+		defined["WriteStr"] = true
 	}
-	for _, g := range sysMod.Globals {
-		if !existingGlobals[g.Name] {
-			hm.Globals = append(hm.Globals, g)
+
+	// WriteU8(val: u8) -> void — print decimal
+	if need("WriteU8") {
+		// Ensure ConOut is available
+		if !defined["ConOut"] {
+			hm.Funcs = append(hm.Funcs, &hir.Func{
+				Name:   "ConOut",
+				Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
+				RetTy:  mir2.TyVoid,
+				Body: &hir.Block{Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target:     "z80",
+						Code:       "LD E, A / LD C, 2 / CALL 0x0005",
+						ClobberAll: true,
+						Ins:        []hir.AsmOperand{{Name: "ch"}},
+					},
+					&hir.ReturnStmt{},
+				}},
+			})
+			defined["ConOut"] = true
 		}
+		// WriteU8: emit decimal digits via asm for compact output
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "WriteU8",
+			Params: []hir.Param{{Name: "val", Ty: mir2.TyU8}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{Body: []hir.Stmt{
+				// Use inline asm: val is in A, decompose and print digits
+				&hir.AsmStmt{
+					Target: "z80",
+					Code: "LD B, A / LD C, 0 / LD A, B" +
+						" / CP 100 / JR C, .wu8_tens" +
+						" / .wu8_h: SUB 100 / INC C / CP 100 / JR NC, .wu8_h" +
+						" / LD B, A / LD A, C / ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 0x0005 / POP BC / LD A, B" +
+						" / LD C, 1" + // flag: had hundreds
+						" / .wu8_tens: LD B, 0" +
+						" / CP 10 / JR C, .wu8_ones" +
+						" / .wu8_t: SUB 10 / INC B / CP 10 / JR NC, .wu8_t" +
+						" / PUSH AF / LD A, B / ADD A, 48 / LD E, A / LD C, 2 / CALL 0x0005 / POP AF" +
+						" / .wu8_ones: ADD A, 48 / LD E, A / LD C, 2 / CALL 0x0005",
+					ClobberAll: true,
+					Ins:        []hir.AsmOperand{{Name: "val"}},
+				},
+				&hir.ReturnStmt{},
+			}},
+		})
+		defined["WriteU8"] = true
 	}
-	return nil
+
+	// PascalHalt() -> void — BDOS 0
+	if need("PascalHalt") {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:  "PascalHalt",
+			RetTy: mir2.TyVoid,
+			Body: &hir.Block{Body: []hir.Stmt{
+				&hir.AsmStmt{
+					Target:     "z80",
+					Code:       "LD C, 0 / CALL 0x0005",
+					ClobberAll: true,
+				},
+				&hir.ReturnStmt{},
+			}},
+		})
+		defined["PascalHalt"] = true
+	}
 }
