@@ -1,0 +1,89 @@
+// tetris_v2_test.nanz — MIR2 VM assertions for tetris logic
+// Tests that HIR→MIR2 lowering is correct, independent of Z80 codegen.
+// Run: ./mz tetris_v2_test.nanz (asserts run at compile time via MIR2 VM)
+
+// ── Piece geometry LUTs (same as tetris_v2.nanz) ─────────────────────
+
+global PIECE_DX: [u8; 112] = [
+    0,1,2,3, 0,0,0,0, 0,1,2,3, 0,0,0,0,
+    0,1,0,1, 0,1,0,1, 0,1,0,1, 0,1,0,1,
+    1,0,1,2, 0,0,1,0, 0,1,2,1, 1,0,1,1,
+    1,2,0,1, 0,0,1,1, 1,2,0,1, 0,0,1,1,
+    0,1,1,2, 1,0,1,0, 0,1,1,2, 1,0,1,0,
+    2,0,1,2, 0,0,0,1, 0,1,2,0, 0,1,1,1,
+    0,0,1,2, 0,1,0,0, 0,1,2,2, 1,1,0,1
+]
+
+global PIECE_DY: [u8; 112] = [
+    0,0,0,0, 0,1,2,3, 0,0,0,0, 0,1,2,3,
+    0,0,1,1, 0,0,1,1, 0,0,1,1, 0,0,1,1,
+    0,1,1,1, 0,1,1,2, 0,0,0,1, 0,1,1,2,
+    0,0,1,1, 0,1,1,2, 0,0,1,1, 0,1,1,2,
+    0,0,1,1, 0,1,1,2, 0,0,1,1, 0,1,1,2,
+    0,1,1,1, 0,1,2,2, 0,0,0,1, 0,0,1,2,
+    0,1,1,1, 0,0,1,2, 0,0,0,1, 0,1,2,2
+]
+
+global PIECE_COLORS: [u8; 7] = [40, 48, 24, 32, 16, 112, 8]
+global CELL_COLORS:  [u8; 8] = [0, 40, 48, 24, 32, 16, 112, 8]
+
+// ── Functions under test ─────────────────────────────────────────────
+
+fun piece_dx(t: u8, r: u8, c: u8) -> u8 {
+    return PIECE_DX[t * 16 + r * 4 + c]
+}
+
+fun piece_dy(t: u8, r: u8, c: u8) -> u8 {
+    return PIECE_DY[t * 16 + r * 4 + c]
+}
+
+fun piece_color(t: u8) -> u8 {
+    return PIECE_COLORS[t]
+}
+
+fun color_attr(idx: u8) -> u8 {
+    return CELL_COLORS[idx]
+}
+
+// ── Board ────────────────────────────────────────────────────────────
+
+global board: [u8; 200]
+
+fun board_get(x: u8, y: u8) -> u8 {
+    return board[y * 10 + x]
+}
+
+fun board_set(x: u8, y: u8, val: u8) -> void {
+    board[y * 10 + x] = val
+}
+
+// ── Asserts (run on MIR2 VM at compile time) ─────────────────────────
+
+// Piece geometry
+assert piece_dx(0, 0, 0) == 0
+assert piece_dx(0, 0, 1) == 1
+assert piece_dx(0, 0, 2) == 2
+assert piece_dx(0, 0, 3) == 3
+assert piece_dy(0, 0, 0) == 0
+assert piece_dy(0, 0, 1) == 0
+
+// O-piece (index 1): always 0,1,0,1 / 0,0,1,1
+assert piece_dx(1, 0, 0) == 0
+assert piece_dx(1, 0, 1) == 1
+assert piece_dy(1, 0, 2) == 1
+assert piece_dy(1, 0, 3) == 1
+
+// Colors
+assert piece_color(0) == 40
+assert piece_color(1) == 48
+assert piece_color(6) == 8
+assert color_attr(0) == 0
+assert color_attr(1) == 40
+assert color_attr(7) == 8
+
+// Board read/write
+assert board_get(0, 0) == 0
+assert board_get(5, 5) == 0
+
+fun main() -> void {
+}

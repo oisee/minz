@@ -1,30 +1,31 @@
 // ============================================================================
-// zx/tetris.nanz — Tetris for ZX Spectrum
+// zx/tetris_v2.nanz — Tetris for ZX Spectrum (idiomatic Nanz rewrite)
 // ============================================================================
 //
-// A playable Tetris implementation running on Z80 at 3.5 MHz.
-// Attribute-based rendering: each board cell = one 8×8 character cell.
-// All pixels are pre-filled with 0xFF; only attribute bytes change per frame.
+// Beautified version of tetris.nanz using idiomatic Nanz features:
+//   - Enums for piece types and attribute colors
+//   - Array LUTs instead of if-chain piece geometry
+//   - `for i in range` instead of manual while counters
+//   - Named constants for screen layout
+//   - Bitwise AND for fast modulo
 //
 // Controls:  O = left,  P = right,  Q = rotate,  A = soft drop,
 //            SPACE = hard drop,  H = hold piece
 //
 // Build & run:
-//   cd minzc && ./mz ../examples/zx/tetris.nanz -o /tmp/tetris.a80
+//   cd minzc && ./mz ../examples/zx/tetris_v2.nanz -o /tmp/tetris.a80
 //   ./mzx --run /tmp/tetris.bin@8000
 //
 // ============================================================================
 
 // ── ZX Spectrum primitives ──────────────────────────────────────────────────
 
-fun zx_attr_addr(cx: u8, cy: u8) -> u16 {
-    return 0x5800 + u16(cy) * 32 + u16(cx)
+fun zx_poke(@z80_hl addr: u16, @z80_a val: u8) -> void {
+    asm z80 (in addr, val) { LD (HL), A }
 }
 
-fun zx_screen_addr(x_byte: u8, y: u8) -> u16 {
-    let h: u8 = 0x40 + (y >> 6) * 8 + (y & 7)
-    let l: u8 = ((y >> 3) & 7) * 32 + (x_byte & 31)
-    return u16(h) * 256 + u16(l)
+fun zx_peek(@z80_hl addr: u16) -> u8 {
+    asm z80 (in addr) { LD A, (HL) }
 }
 
 fun zx_key_row(@z80_a high_byte: u8) -> u8 {
@@ -39,17 +40,60 @@ fun zx_halt() -> void {
     asm z80 { HALT }
 }
 
+fun zx_attr_addr(cx: u8, cy: u8) -> u16 {
+    return 0x5800 + u16(cy) * 32 + u16(cx)
+}
+
+fun zx_screen_addr(x_byte: u8, y: u8) -> u16 {
+    let h: u8 = 0x40 + (y >> 6) * 8 + (y & 7)
+    let l: u8 = ((y >> 3) & 7) * 32 + (x_byte & 31)
+    return u16(h) * 256 + u16(l)
+}
+
+// ── Enums ───────────────────────────────────────────────────────────────────
+
+enum Piece { I = 0, O, T, S, Z, L, J }
+
+enum Attr {
+    BLACK         = 0x00,
+    BLUE          = 0x08,
+    RED           = 0x10,
+    MAGENTA       = 0x18,
+    GREEN         = 0x20,
+    CYAN          = 0x28,
+    YELLOW        = 0x30,
+    WHITE         = 0x38,
+    BRIGHT_YELLOW = 0x70
+}
+
+// ── Layout constants ────────────────────────────────────────────────────────
+
+global BOARD_X: u8 = 11      // playfield left column (screen chars)
+global BOARD_Y: u8 = 2       // playfield top row
+global BOARD_W: u8 = 10      // board width in cells
+global BOARD_H: u8 = 20      // board height in cells
+global BOARD_SIZE: u16 = 200  // BOARD_W * BOARD_H
+
+global SCREEN_START: u16 = 0x4000
+global SCREEN_END: u16   = 0x5800
+global ATTR_START: u16   = 0x5800
+global ATTR_END: u16     = 0x5B00
+
+global PREVIEW_NEXT_X: u8 = 23
+global PREVIEW_HOLD_X: u8 = 5
+global PREVIEW_Y: u8      = 3
+
 // ── Game state ──────────────────────────────────────────────────────────────
 
-global board: [u8; 200]       // 10×20, row-major. 0=empty, 1-7=color
+global board: [u8; 200]       // 10x20, row-major. 0=empty, 1-7=piece color index
 
-global cur_type: u8 = 0       // 0-6: I, O, T, S, Z, L, J
-global cur_rot: u8 = 0        // 0-3
-global cur_x: u8 = 3          // column
-global cur_y: u8 = 0          // row (top=0)
+global cur_type: u8 = 0
+global cur_rot: u8 = 0
+global cur_x: u8 = 3
+global cur_y: u8 = 0
 
 global drop_timer: u8 = 0
-global drop_speed: u8 = 30    // frames per gravity tick
+global drop_speed: u8 = 30
 global frame_count: u16 = 0
 
 global score: u16 = 0
@@ -58,11 +102,10 @@ global game_over: u8 = 0
 global prev_keys: u8 = 0
 global rng_state: u16 = 0xACE1
 
-// Hold/Next piece
-global next_type: u8 = 0      // next piece to spawn
-global hold_type: u8 = 255    // 255 = empty hold slot
-global hold_used: u8 = 0      // 1 = already held this turn (prevent infinite swap)
-global last_was_tspin: u8 = 0  // T-spin detection flag
+global next_type: u8 = 0
+global hold_type: u8 = 255     // 255 = empty hold slot
+global hold_used: u8 = 0
+global last_was_tspin: u8 = 0
 
 // ── PRNG ────────────────────────────────────────────────────────────────────
 
@@ -75,246 +118,169 @@ fun rng_next() -> u8 {
     return u8(rng_state & 0xFF)
 }
 
-// ── Piece data ──────────────────────────────────────────────────────────────
-//
-// 7 pieces × 4 rotations × 4 cells, encoded as function lookups.
-// Types: 0=I, 1=O, 2=T, 3=S, 4=Z, 5=L, 6=J
-//
-// ZX attribute colors (paper bits):
-//   I=0x28(cyan), O=0x30(yellow), T=0x18(magenta),
-//   S=0x20(green), Z=0x10(red), L=0x70(yellow+bright), J=0x08(blue)
-
-fun piece_color(t: u8) -> u8 {
-    if t == 0 { return 0x28 }
-    if t == 1 { return 0x30 }
-    if t == 2 { return 0x18 }
-    if t == 3 { return 0x20 }
-    if t == 4 { return 0x10 }
-    if t == 5 { return 0x70 }
-    return 0x08
+fun random_piece() -> u8 {
+    let r: u8 = rng_next() & 7
+    if r >= 7 { return 0 }
+    return r
 }
 
-fun piece_dx(t: u8, r: u8, c: u8) -> u8 {
+// ── Piece geometry (array LUTs) ─────────────────────────────────────────────
+//
+// Layout: [piece][rotation][cell] = piece * 16 + rotation * 4 + cell
+// 7 pieces x 4 rotations x 4 cells = 112 entries
+//
+// Pieces: I=0, O=1, T=2, S=3, Z=4, L=5, J=6
+
+global PIECE_DX: [u8; 112] = [
     // I piece
-    if t == 0 {
-        if (r == 0) | (r == 2) { return c }
-        return 0
-    }
-    // O piece
-    if t == 1 {
-        if c == 0 { return 0 }
-        if c == 1 { return 1 }
-        if c == 2 { return 0 }
-        return 1
-    }
+    0,1,2,3,  0,0,0,0,  0,1,2,3,  0,0,0,0,
+    // O piece (same all rotations)
+    0,1,0,1,  0,1,0,1,  0,1,0,1,  0,1,0,1,
     // T piece
-    if t == 2 {
-        if r == 0 {
-            if c == 0 { return 1 }
-            if c == 1 { return 0 }
-            if c == 2 { return 1 }
-            return 2
-        }
-        if r == 1 {
-            if c == 0 { return 0 }
-            if c == 1 { return 0 }
-            if c == 2 { return 1 }
-            return 0
-        }
-        if r == 2 {
-            if c == 0 { return 0 }
-            if c == 1 { return 1 }
-            if c == 2 { return 2 }
-            return 1
-        }
-        if c == 0 { return 1 }
-        if c == 1 { return 0 }
-        if c == 2 { return 1 }
-        return 1
-    }
+    1,0,1,2,  0,0,1,0,  0,1,2,1,  1,0,1,1,
     // S piece
-    if t == 3 {
-        if (r == 0) | (r == 2) {
-            if c == 0 { return 1 }
-            if c == 1 { return 2 }
-            if c == 2 { return 0 }
-            return 1
-        }
-        if c == 0 { return 0 }
-        if c == 1 { return 0 }
-        if c == 2 { return 1 }
-        return 1
-    }
+    1,2,0,1,  0,0,1,1,  1,2,0,1,  0,0,1,1,
     // Z piece
-    if t == 4 {
-        if (r == 0) | (r == 2) {
-            if c == 0 { return 0 }
-            if c == 1 { return 1 }
-            if c == 2 { return 1 }
-            return 2
-        }
-        if c == 0 { return 1 }
-        if c == 1 { return 0 }
-        if c == 2 { return 1 }
-        return 0
-    }
+    0,1,1,2,  1,0,1,0,  0,1,1,2,  1,0,1,0,
     // L piece
-    if t == 5 {
-        if r == 0 {
-            if c == 0 { return 2 }
-            if c == 1 { return 0 }
-            if c == 2 { return 1 }
-            return 2
-        }
-        if r == 1 {
-            if c == 0 { return 0 }
-            if c == 1 { return 0 }
-            if c == 2 { return 0 }
-            return 1
-        }
-        if r == 2 {
-            if c == 0 { return 0 }
-            if c == 1 { return 1 }
-            if c == 2 { return 2 }
-            return 0
-        }
-        if c == 0 { return 0 }
-        if c == 1 { return 1 }
-        if c == 2 { return 1 }
-        return 1
-    }
-    // J piece (t == 6)
-    if r == 0 {
-        if c == 0 { return 0 }
-        if c == 1 { return 0 }
-        if c == 2 { return 1 }
-        return 2
-    }
-    if r == 1 {
-        if c == 0 { return 0 }
-        if c == 1 { return 1 }
-        if c == 2 { return 0 }
-        return 0
-    }
-    if r == 2 {
-        if c == 0 { return 0 }
-        if c == 1 { return 1 }
-        if c == 2 { return 2 }
-        return 2
-    }
-    if c == 0 { return 1 }
-    if c == 1 { return 1 }
-    if c == 2 { return 0 }
-    return 1
+    2,0,1,2,  0,0,0,1,  0,1,2,0,  0,1,1,1,
+    // J piece
+    0,0,1,2,  0,1,0,0,  0,1,2,2,  1,1,0,1
+]
+
+global PIECE_DY: [u8; 112] = [
+    // I piece
+    0,0,0,0,  0,1,2,3,  0,0,0,0,  0,1,2,3,
+    // O piece
+    0,0,1,1,  0,0,1,1,  0,0,1,1,  0,0,1,1,
+    // T piece
+    0,1,1,1,  0,1,1,2,  0,0,0,1,  0,1,1,2,
+    // S piece
+    0,0,1,1,  0,1,1,2,  0,0,1,1,  0,1,1,2,
+    // Z piece
+    0,0,1,1,  0,1,1,2,  0,0,1,1,  0,1,1,2,
+    // L piece
+    0,1,1,1,  0,1,2,2,  0,0,0,1,  0,0,1,2,
+    // J piece
+    0,1,1,1,  0,0,1,2,  0,0,0,1,  0,1,2,2
+]
+
+// Attribute color per piece type (indexed by Piece enum value)
+global PIECE_COLORS: [u8; 7] = [
+    0x28,  // I = cyan
+    0x30,  // O = yellow
+    0x18,  // T = magenta
+    0x20,  // S = green
+    0x10,  // Z = red
+    0x70,  // L = bright yellow
+    0x08   // J = blue
+]
+
+// Attribute color per board cell value (0=empty, 1-7=piece)
+global CELL_COLORS: [u8; 8] = [
+    0x00,  // 0: empty (black)
+    0x28,  // 1: I (cyan)
+    0x30,  // 2: O (yellow)
+    0x18,  // 3: T (magenta)
+    0x20,  // 4: S (green)
+    0x10,  // 5: Z (red)
+    0x70,  // 6: L (bright yellow)
+    0x08   // 7: J (blue)
+]
+
+fun piece_dx(t: u8, r: u8, c: u8) -> u8 {
+    return PIECE_DX[u16(t) * 16 + u16(r) * 4 + u16(c)]
 }
 
 fun piece_dy(t: u8, r: u8, c: u8) -> u8 {
-    // I piece
-    if t == 0 {
-        if (r == 0) | (r == 2) { return 0 }
-        return c
-    }
-    // O piece
-    if t == 1 {
-        if c == 0 { return 0 }
-        if c == 1 { return 0 }
-        if c == 2 { return 1 }
-        return 1
-    }
-    // T piece
-    if t == 2 {
-        if r == 0 {
-            if c == 0 { return 0 }
-            return 1
-        }
-        if r == 1 {
-            if c == 0 { return 0 }
-            if c == 1 { return 1 }
-            if c == 2 { return 1 }
-            return 2
-        }
-        if r == 2 {
-            if c == 3 { return 1 }
-            return 0
-        }
-        if c == 0 { return 0 }
-        if c == 1 { return 1 }
-        if c == 2 { return 1 }
-        return 2
-    }
-    // S piece
-    if t == 3 {
-        if (r == 0) | (r == 2) {
-            if c <= 1 { return 0 }
-            return 1
-        }
-        if c == 0 { return 0 }
-        if c == 1 { return 1 }
-        if c == 2 { return 1 }
-        return 2
-    }
-    // Z piece
-    if t == 4 {
-        if (r == 0) | (r == 2) {
-            if c <= 1 { return 0 }
-            return 1
-        }
-        if c == 0 { return 0 }
-        if c == 1 { return 1 }
-        if c == 2 { return 1 }
-        return 2
-    }
-    // L piece
-    if t == 5 {
-        if r == 0 {
-            if c == 0 { return 0 }
-            return 1
-        }
-        if r == 1 {
-            if c == 0 { return 0 }
-            if c == 1 { return 1 }
-            if c == 2 { return 2 }
-            return 2
-        }
-        if r == 2 {
-            if c == 3 { return 1 }
-            return 0
-        }
-        if c == 0 { return 0 }
-        if c == 1 { return 0 }
-        if c == 2 { return 1 }
-        return 2
-    }
-    // J piece (t == 6)
-    if r == 0 {
-        if c == 0 { return 0 }
-        return 1
-    }
-    if r == 1 {
-        if c == 0 { return 0 }
-        if c == 1 { return 0 }
-        if c == 2 { return 1 }
-        return 2
-    }
-    if r == 2 {
-        if c == 3 { return 1 }
-        return 0
-    }
-    if c == 0 { return 0 }
-    if c == 1 { return 1 }
-    if c == 2 { return 2 }
-    return 2
+    return PIECE_DY[u16(t) * 16 + u16(r) * 4 + u16(c)]
 }
 
-// ── Wall kicks (SRS-lite) ────────────────────────────────────────────────────
-//
-// When basic rotation fails, try 4 offset positions:
-//   (±1, 0), (0, -1), (±1, -1)
-// For I piece, also try (±2, 0).
-// Returns 1 if rotation succeeded (cur_x/cur_y/cur_rot updated), 0 if failed.
+fun piece_color(t: u8) -> u8 {
+    return PIECE_COLORS[t]
+}
+
+fun color_attr(idx: u8) -> u8 {
+    return CELL_COLORS[idx]
+}
+
+// ── Board operations ────────────────────────────────────────────────────────
+
+fun board_get(x: u8, y: u8) -> u8 {
+    return board[u16(y) * u16(BOARD_W) + u16(x)]
+}
+
+fun board_set(x: u8, y: u8, val: u8) -> void {
+    board[u16(y) * u16(BOARD_W) + u16(x)] = val
+}
+
+fun can_place(t: u8, r: u8, px: u8, py: u8) -> bool {
+    for c in 0..4 {
+        let cx: u8 = px + piece_dx(t, r, c)
+        let cy: u8 = py + piece_dy(t, r, c)
+        if cx >= BOARD_W { return false }
+        if cy >= BOARD_H { return false }
+        if board_get(cx, cy) != 0 { return false }
+    }
+    return true
+}
+
+fun lock_piece() -> void {
+    let color_idx: u8 = cur_type + 1
+    for c in 0..4 {
+        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
+        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
+        if (cx < BOARD_W) & (cy < BOARD_H) {
+            board_set(cx, cy, color_idx)
+        }
+    }
+}
+
+fun clear_lines() -> u8 {
+    var cleared: u8 = 0
+    var y: u8 = 19
+    // Reverse scan — can't use for-range (row deletion shifts data)
+    while y < BOARD_H {
+        var full: u8 = 1
+        for x in 0..10 {
+            if board_get(x, y) == 0 { full = 0 }
+        }
+        if full == 1 {
+            // Shift all rows above down by one
+            var sy: u8 = y
+            while sy > 0 {
+                for sx in 0..10 {
+                    board_set(sx, sy, board_get(sx, sy - 1))
+                }
+                sy = sy - 1
+            }
+            // Clear top row
+            for sx in 0..10 {
+                board_set(sx, 0, 0)
+            }
+            cleared = cleared + 1
+        } else {
+            y = y - 1
+        }
+    }
+    return cleared
+}
+
+// ── Ghost piece ─────────────────────────────────────────────────────────────
+
+fun ghost_y() -> u8 {
+    var gy: u8 = cur_y
+    while can_place(cur_type, cur_rot, cur_x, gy + 1) {
+        gy = gy + 1
+    }
+    return gy
+}
+
+// ── Wall kicks (SRS-lite) ───────────────────────────────────────────────────
 
 fun try_rotate() -> u8 {
     let nr: u8 = (cur_rot + 1) & 3
+
     // Test 0: basic rotation
     if can_place(cur_type, nr, cur_x, cur_y) {
         cur_rot = nr
@@ -362,8 +328,8 @@ fun try_rotate() -> u8 {
             return 1
         }
     }
-    // I piece: try ±2 horizontal
-    if cur_type == 0 {
+    // I piece: try +/-2 horizontal
+    if cur_type == Piece.I {
         if cur_x < 8 {
             if can_place(cur_type, nr, cur_x + 2, cur_y) {
                 cur_x = cur_x + 2
@@ -383,19 +349,14 @@ fun try_rotate() -> u8 {
 }
 
 // ── T-spin detection ────────────────────────────────────────────────────────
-//
-// A T-spin occurs when:
-// 1. The piece is a T (type 2)
-// 2. The last move was a rotation
-// 3. At least 3 of the 4 diagonal corners around the T center are filled
 
 fun check_tspin() -> u8 {
-    if cur_type != 2 { return 0 }
-    // T center is at (cur_x+1, cur_y+1) for rot 0, varies by rotation
-    // Simplified: check corners around (cur_x+1, cur_y) which is always near center
+    if cur_type != Piece.T { return 0 }
+
     let cx: u8 = cur_x + 1
     let cy: u8 = cur_y
     var corners: u8 = 0
+
     // Top-left
     if (cx == 0) | (cy == 0) { corners = corners + 1 }
     else { if board_get(cx - 1, cy - 1) != 0 { corners = corners + 1 } }
@@ -408,94 +369,12 @@ fun check_tspin() -> u8 {
     // Bottom-right
     if (cx >= 9) | (cy >= 19) { corners = corners + 1 }
     else { if board_get(cx + 1, cy + 1) != 0 { corners = corners + 1 } }
+
     if corners >= 3 { return 1 }
     return 0
 }
 
-// ── Ghost piece (drop shadow) ───────────────────────────────────────────────
-
-fun ghost_y() -> u8 {
-    var gy: u8 = cur_y
-    while can_place(cur_type, cur_rot, cur_x, gy + 1) {
-        gy = gy + 1
-    }
-    return gy
-}
-
-// ── Board operations ────────────────────────────────────────────────────────
-
-fun board_get(x: u8, y: u8) -> u8 {
-    return board[u16(y) * 10 + u16(x)]
-}
-
-fun board_set(x: u8, y: u8, val: u8) -> void {
-    board[u16(y) * 10 + u16(x)] = val
-}
-
-fun can_place(t: u8, r: u8, px: u8, py: u8) -> bool {
-    var c: u8 = 0
-    while c < 4 {
-        let cx: u8 = px + piece_dx(t, r, c)
-        let cy: u8 = py + piece_dy(t, r, c)
-        if cx >= 10 { return false }
-        if cy >= 20 { return false }
-        if board_get(cx, cy) != 0 { return false }
-        c = c + 1
-    }
-    return true
-}
-
-fun lock_piece() -> void {
-    let color_idx: u8 = cur_type + 1
-    var c: u8 = 0
-    while c < 4 {
-        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
-        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
-        if (cx < 10) & (cy < 20) {
-            board_set(cx, cy, color_idx)
-        }
-        c = c + 1
-    }
-}
-
-fun clear_lines() -> u8 {
-    var cleared: u8 = 0
-    var y: u8 = 19
-    while y < 20 {
-        var full: u8 = 1
-        var x: u8 = 0
-        while x < 10 {
-            if board_get(x, y) == 0 { full = 0 }
-            x = x + 1
-        }
-        if full == 1 {
-            var sy: u8 = y
-            while sy > 0 {
-                var sx: u8 = 0
-                while sx < 10 {
-                    board_set(sx, sy, board_get(sx, sy - 1))
-                    sx = sx + 1
-                }
-                sy = sy - 1
-            }
-            var sx2: u8 = 0
-            while sx2 < 10 {
-                board_set(sx2, 0, 0)
-                sx2 = sx2 + 1
-            }
-            cleared = cleared + 1
-        } else {
-            y = y - 1
-        }
-    }
-    return cleared
-}
-
-fun random_piece() -> u8 {
-    var rval: u8 = rng_next() & 7   // 0..7
-    if rval >= 7 { rval = 0 }       // reject 7 → re-map to 0
-    return rval
-}
+// ── Spawn / Hold ────────────────────────────────────────────────────────────
 
 fun spawn_piece() -> void {
     cur_type = next_type
@@ -514,11 +393,9 @@ fun hold_piece() -> void {
     if hold_used == 1 { return }
     hold_used = 1
     if hold_type == 255 {
-        // First hold: stash current, spawn next
         hold_type = cur_type
         spawn_piece()
     } else {
-        // Swap hold and current
         let tmp: u8 = cur_type
         cur_type = hold_type
         hold_type = tmp
@@ -530,152 +407,109 @@ fun hold_piece() -> void {
 
 // ── Rendering ───────────────────────────────────────────────────────────────
 
-fun color_attr(idx: u8) -> u8 {
-    if idx == 1 { return 0x28 }   // I: cyan
-    if idx == 2 { return 0x30 }   // O: yellow
-    if idx == 3 { return 0x18 }   // T: magenta
-    if idx == 4 { return 0x20 }   // S: green
-    if idx == 5 { return 0x10 }   // Z: red
-    if idx == 6 { return 0x70 }   // L: yellow+bright
-    if idx == 7 { return 0x08 }   // J: blue
-    return 0x00                    // empty: black
-}
-
 fun fill_cell(cx: u8, cy: u8) -> void {
     let py: u8 = cy * 8
-    var line: u8 = 0
-    while line < 8 {
-        ptr(zx_screen_addr(cx, py + line))^ = 0xFF
-        line = line + 1
+    for line in 0..8 {
+        zx_poke(zx_screen_addr(cx, py + line), 0xFF)
     }
 }
 
-// Playfield: columns 11-20, rows 2-21 on screen (character coords)
-
 fun init_screen() -> void {
-    // Clear entire screen
-    var addr: u16 = 0x4000
-    while addr < 0x5800 {
-        ptr(addr)^ = 0x00
+    // Clear pixel RAM
+    var addr: u16 = SCREEN_START
+    while addr < SCREEN_END {
+        zx_poke(addr, 0x00)
         addr = addr + 1
     }
-    addr = 0x5800
-    while addr < 0x5B00 {
-        ptr(addr)^ = 0x00
+    // Clear attribute RAM
+    addr = ATTR_START
+    while addr < ATTR_END {
+        zx_poke(addr, 0x00)
         addr = addr + 1
     }
 
-    // Fill playfield with solid pixels (attribute colors will show)
-    var cy: u8 = 2
-    while cy < 22 {
-        var cx: u8 = 11
-        while cx < 21 {
+    // Fill playfield cells with solid pixels
+    for cy in 2..22 {
+        for cx in 11..21 {
             fill_cell(cx, cy)
-            cx = cx + 1
         }
-        cy = cy + 1
     }
 
     // Border — left wall
-    cy = 2
-    while cy < 22 {
+    for cy in 2..22 {
         fill_cell(10, cy)
-        ptr(zx_attr_addr(10, cy))^ = 0x38
-        cy = cy + 1
+        zx_poke(zx_attr_addr(10, cy), Attr.WHITE)
     }
     // Border — right wall
-    cy = 2
-    while cy < 22 {
+    for cy in 2..22 {
         fill_cell(21, cy)
-        ptr(zx_attr_addr(21, cy))^ = 0x38
-        cy = cy + 1
+        zx_poke(zx_attr_addr(21, cy), Attr.WHITE)
     }
     // Border — bottom
-    var bx: u8 = 10
-    while bx <= 21 {
+    for bx in 10..22 {
         fill_cell(bx, 22)
-        ptr(zx_attr_addr(bx, 22))^ = 0x38
-        bx = bx + 1
+        zx_poke(zx_attr_addr(bx, 22), Attr.WHITE)
     }
 
     zx_border(0)
 }
 
-// Render a mini-piece preview at screen position (sx, sy)
 fun render_preview(t: u8, sx: u8, sy: u8) -> void {
-    // Clear 4×4 preview area
-    var py: u8 = 0
-    while py < 4 {
-        var px: u8 = 0
-        while px < 4 {
-            ptr(zx_attr_addr(sx + px, sy + py))^ = 0x00
-            px = px + 1
+    // Clear 4x4 preview area
+    for py in 0..4 {
+        for px in 0..4 {
+            zx_poke(zx_attr_addr(sx + px, sy + py), Attr.BLACK)
         }
-        py = py + 1
     }
     // Draw piece cells
     if t < 7 {
         let pc: u8 = piece_color(t)
-        var c: u8 = 0
-        while c < 4 {
+        for c in 0..4 {
             let dx: u8 = piece_dx(t, 0, c)
             let dy: u8 = piece_dy(t, 0, c)
-            ptr(zx_attr_addr(sx + dx, sy + dy))^ = pc
-            c = c + 1
+            zx_poke(zx_attr_addr(sx + dx, sy + dy), pc)
         }
     }
 }
 
 fun render() -> void {
     // Render board
-    var y: u8 = 0
-    while y < 20 {
-        var x: u8 = 0
-        while x < 10 {
+    for y in 0..20 {
+        for x in 0..10 {
             let cell: u8 = board_get(x, y)
             let attr: u8 = color_attr(cell)
-            ptr(zx_attr_addr(11 + x, 2 + y))^ = attr
-            x = x + 1
+            zx_poke(zx_attr_addr(BOARD_X + x, BOARD_Y + y), attr)
         }
-        y = y + 1
     }
 
-    // Ghost piece (dim version at landing position)
+    // Ghost piece (dim shadow at landing position)
     let gy: u8 = ghost_y()
     if gy != cur_y {
-        // Ghost color: same piece color but dim (no bright, ink only)
-        let gc: u8 = (piece_color(cur_type) >> 3) & 7  // extract paper, use as ink
-        var c: u8 = 0
-        while c < 4 {
+        let gc: u8 = (piece_color(cur_type) >> 3) & 7
+        for c in 0..4 {
             let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
             let cy: u8 = gy + piece_dy(cur_type, cur_rot, c)
-            if (cx < 10) & (cy < 20) {
-                // Only draw ghost if cell is empty on board
+            if (cx < BOARD_W) & (cy < BOARD_H) {
                 if board_get(cx, cy) == 0 {
-                    ptr(zx_attr_addr(11 + cx, 2 + cy))^ = gc
+                    zx_poke(zx_attr_addr(BOARD_X + cx, BOARD_Y + cy), gc)
                 }
             }
-            c = c + 1
         }
     }
 
     // Current piece (bright, on top)
     let pc: u8 = piece_color(cur_type)
-    var c: u8 = 0
-    while c < 4 {
+    for c in 0..4 {
         let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
         let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
-        if (cx < 10) & (cy < 20) {
-            ptr(zx_attr_addr(11 + cx, 2 + cy))^ = pc
+        if (cx < BOARD_W) & (cy < BOARD_H) {
+            zx_poke(zx_attr_addr(BOARD_X + cx, BOARD_Y + cy), pc)
         }
-        c = c + 1
     }
 
-    // Next piece preview (right side, col 23, row 3)
-    render_preview(next_type, 23, 3)
-
-    // Hold piece preview (left side, col 5, row 3)
-    render_preview(hold_type, 5, 3)
+    // Next / Hold previews
+    render_preview(next_type, PREVIEW_NEXT_X, PREVIEW_Y)
+    render_preview(hold_type, PREVIEW_HOLD_X, PREVIEW_Y)
 }
 
 // ── Input ───────────────────────────────────────────────────────────────────
@@ -691,28 +525,23 @@ fun read_input() -> u8 {
     if (row_fd & 1) == 0 { keys = keys | 8 }    // A = soft drop
     let row_7f: u8 = zx_key_row(0x7F)
     if (row_7f & 1) == 0 { keys = keys | 16 }   // SPACE = hard drop
-    // H key: row 0xBF, bit 4 (H is 5th key: ENTER,L,K,J,H)
     let row_bf: u8 = zx_key_row(0xBF)
     if (row_bf & 16) == 0 { keys = keys | 32 }  // H = hold
     return keys
 }
 
-// ── Main ────────────────────────────────────────────────────────────────────
+// ── Scoring ─────────────────────────────────────────────────────────────────
 
-// Score cleared lines, with T-spin bonus
 fun score_lines(cl: u8) -> void {
     if cl == 0 {
-        // T-spin no lines = 400 pts
         if last_was_tspin == 1 { score = score + 400 }
         return
     }
     if last_was_tspin == 1 {
-        // T-spin line clears: 800, 1200, 1600
         if cl == 1 { score = score + 800 }
         if cl == 2 { score = score + 1200 }
         if cl == 3 { score = score + 1600 }
     } else {
-        // Normal scoring
         if cl == 1 { score = score + 100 }
         if cl == 2 { score = score + 300 }
         if cl == 3 { score = score + 500 }
@@ -735,41 +564,35 @@ fun do_lock_and_clear() -> void {
     spawn_piece()
 }
 
+// ── Main ────────────────────────────────────────────────────────────────────
+
 fun main() -> void {
     // Clear board
-    var i: u16 = 0
-    while i < 200 {
+    for i in 0..200 {
         board[i] = 0
-        i = i + 1
     }
-    // Initialize next piece
+
     next_type = random_piece()
     init_screen()
 
     // Fill preview areas with solid pixels
-    var py: u8 = 3
-    while py < 7 {
-        var px: u8 = 5
-        while px < 9 {
+    for py in 3..7 {
+        for px in 5..9 {
             fill_cell(px, py)
-            px = px + 1
         }
-        px = 23
-        while px < 27 {
+        for px in 23..27 {
             fill_cell(px, py)
-            px = px + 1
         }
-        py = py + 1
     }
 
     spawn_piece()
 
-    // Game loop
+    // ── Game loop ───────────────────────────────────────────────────────
     while game_over == 0 {
         zx_halt()
         frame_count = frame_count + 1
 
-        // Input
+        // Input (edge-detect for single-press actions)
         let keys: u8 = read_input()
         let changed: u8 = keys xor prev_keys
         let new_keys: u8 = keys & changed
@@ -795,11 +618,11 @@ fun main() -> void {
         if (new_keys & 4) != 0 {
             try_rotate()
         }
-        // Soft drop
+        // Soft drop (held = accelerate)
         if (keys & 8) != 0 {
             drop_timer = drop_speed
         }
-        // Hard drop
+        // Hard drop (instant)
         if (new_keys & 16) != 0 {
             while can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
                 cur_y = cur_y + 1
@@ -824,13 +647,11 @@ fun main() -> void {
             }
         }
 
-        // Render
         render()
     }
 
     // Game over — flash border
-    var flash: u8 = 0
-    while flash < 20 {
+    for flash in 0..20 {
         zx_border(2)
         zx_halt()
         zx_halt()
@@ -839,6 +660,5 @@ fun main() -> void {
         zx_halt()
         zx_halt()
         zx_halt()
-        flash = flash + 1
     }
 }

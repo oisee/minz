@@ -477,6 +477,10 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		// Advance pointer by compile-time byte offset (struct field access).
 		result = Value{I: a.I + inst.Imm}
 
+	case OpPtrAdd:
+		// Advance pointer by runtime offset: ptr + offset.
+		result = Value{I: a.I + b.I}
+
 	case OpPtrBump:
 		// Advance iterator pointer by compile-time stride.
 		result = Value{I: a.I + inst.Imm}
