@@ -1,0 +1,99 @@
+;; ╔══════════════════════════════════════════════════════════════╗
+;; ║  Pascal System Unit — minimal runtime for CP/M (MZE)       ║
+;; ║                                                            ║
+;; ║  Written in Lizp, importable from .pas / .nanz / .lanz     ║
+;; ║  Provides: WriteLn, Write, ReadKey, Halt, Inc, Dec, etc.   ║
+;; ╚══════════════════════════════════════════════════════════════╝
+;;
+;; CP/M BDOS: CALL 0x0005, function in C, param in DE
+
+;; ── BDOS raw call ────────────────────────────────────────────
+
+(defextern bdos_call ((func u8) (param u16)) u8 #x0005)
+
+;; ── Console I/O ──────────────────────────────────────────────
+
+;; Write a single character to console (BDOS function 2)
+(defun ConOut ((ch u8)) -> void
+  (call bdos_call 2 (cast ch u16))
+  (return))
+
+;; Read a character from console (BDOS function 1, waits)
+(defun ConIn () -> u8
+  (return (call bdos_call 1 0)))
+
+;; Check if key pressed (BDOS function 11)
+(defun KeyPressed () -> u8
+  (return (call bdos_call 11 0)))
+
+;; Read key without echo (BDOS function 6, param=0xFF)
+(defun ReadKey () -> u8
+  (return (call bdos_call 6 #xFF)))
+
+;; ── WriteLn building blocks ──────────────────────────────────
+
+;; Write a newline (CR+LF)
+(defun WriteCrLf () -> void
+  (call ConOut 13)
+  (call ConOut 10)
+  (return))
+
+;; Write an unsigned byte as decimal
+(defun WriteU8 ((val u8)) -> void
+  (let ((hundreds u8 0)
+        (tens u8 0)
+        (ones u8 0)
+        (v u8 val))
+    ;; Extract hundreds
+    (while (>= v 100)
+      (setq v (- v 100))
+      (setq hundreds (+ hundreds 1)))
+    ;; Extract tens
+    (while (>= v 10)
+      (setq v (- v 10))
+      (setq tens (+ tens 1)))
+    (setq ones v)
+    ;; Print (skip leading zeros)
+    (when (/= hundreds 0)
+      (call ConOut (+ hundreds 48)))
+    (when (or (/= hundreds 0) (/= tens 0))
+      (call ConOut (+ tens 48)))
+    (call ConOut (+ ones 48)))
+  (return))
+
+;; Write a signed 16-bit integer as decimal
+(defun WriteI16 ((val i16)) -> void
+  (when (< val 0)
+    (call ConOut 45)
+    (setq val (- 0 val)))
+  ;; Simple: decompose into digits
+  (let ((d4 u8 0) (d3 u8 0) (d2 u8 0) (d1 u8 0) (d0 u8 0)
+        (v u16 (cast val u16)))
+    (while (>= v 10000)
+      (setq v (- v 10000))
+      (setq d4 (+ d4 1)))
+    (while (>= v 1000)
+      (setq v (- v 1000))
+      (setq d3 (+ d3 1)))
+    (while (>= v 100)
+      (setq v (- v 100))
+      (setq d2 (+ d2 1)))
+    (while (>= v 10)
+      (setq v (- v 10))
+      (setq d1 (+ d1 1)))
+    (setq d0 (cast v u8))
+    ;; Print with leading zero suppression
+    (let ((started u8 0))
+      (when (/= d4 0) (call ConOut (+ d4 48)) (setq started 1))
+      (when (or (/= d3 0) (/= started 0)) (call ConOut (+ d3 48)) (setq started 1))
+      (when (or (/= d2 0) (/= started 0)) (call ConOut (+ d2 48)) (setq started 1))
+      (when (or (/= d1 0) (/= started 0)) (call ConOut (+ d1 48)))
+      (call ConOut (+ d0 48))))
+  (return))
+
+;; ── Program control ──────────────────────────────────────────
+
+;; Halt: warm boot (BDOS function 0)
+(defun PascalHalt () -> void
+  (call bdos_call 0 0)
+  (return))
