@@ -303,8 +303,9 @@ type z80cg struct {
 	cmpNeedsTwo map[Reg]bool    // dst reg → CmpGt/CmpLe with lhs in A, needs two-JP in BrIf
 	callFlags   map[Reg]CmpCond // dst reg of OpCall → FlagCond when callee returns ClassFlag
 	clobberCache map[string]map[string]bool // func name → set of clobbered phys reg names
-	constVals  map[Reg]int64 // virtual reg → compile-time constant value (for peepholes)
-	deadConsts map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
+	constVals      map[Reg]int64 // virtual reg → compile-time constant value (for peepholes)
+	blockParamRegs map[Reg]bool  // regs that are block parameters (loop-variant, not const)
+	deadConsts     map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
 
 	// holdsPhys is a bidirectional alias map for local copy-propagation within a
 	// basic block.  holdsPhys[r] = s means physical register r currently holds the
@@ -737,6 +738,16 @@ func (g *z80cg) genFunc(f *Func) {
 	g.cmpNeedsTwo = make(map[Reg]bool)
 	g.callFlags = make(map[Reg]CmpCond)
 	g.constVals = make(map[Reg]int64)
+	// Build set of block-parameter registers: their values change per iteration
+	// (even if PreallocCoalesce merged an OpConst into the same Reg). Excluding
+	// them from constVals prevents the codegen from treating loop counters as
+	// compile-time constants (BUG-014: ADD A, 0 instead of ADD A, D).
+	g.blockParamRegs = make(map[Reg]bool)
+	for _, b := range f.Blocks {
+		for _, p := range b.Params {
+			g.blockParamRegs[p.Dst] = true
+		}
+	}
 	g.deadConsts = computeDeadConsts(f, g.ar)
 	g.holdsPhys = make(map[string]string)
 	g.physOverride = make(map[Reg]string)
@@ -1389,7 +1400,13 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	switch inst.Op {
 	case OpConst:
-		g.constVals[inst.Dst] = inst.Imm
+		// Only record as constant if the Dst is NOT a block parameter.
+		// After PreallocCoalesce, an OpConst may share a Reg with a block param
+		// (loop counter). The initial value is constant but the param changes
+		// each iteration — treating it as constant produces wrong code.
+		if !g.blockParamRegs[inst.Dst] {
+			g.constVals[inst.Dst] = inst.Imm
+		}
 		if dst == "F" {
 			// Bool constant into flag register: SCF (true) or AND A (false, clears C+sets Z).
 			g.lastFlagsLhs = ""
@@ -2306,7 +2323,12 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		if g.holdsValue("A", lhs) {
 			// A == lhs already — skip LD A, lhs.
 			g.invalidate("A")
-			g.emit8ALU(mnem, rhs)
+			// Use immediate form if rhs is a known constant.
+			if cv, ok := g.constVals[inst.Src[1]]; ok {
+				g.emit8ALUImm(mnem, cv)
+			} else {
+				g.emit8ALU(mnem, rhs)
+			}
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
 				g.setCopy(dst, "A")
@@ -2318,7 +2340,12 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		if isCommutative && g.holdsValue("A", rhs) {
 			// A == rhs, commutative swap: emit OP A, lhs instead.
 			g.invalidate("A")
-			g.emit8ALU(mnem, lhs)
+			// Use immediate form if lhs is a known constant.
+			if cv, ok := g.constVals[inst.Src[0]]; ok {
+				g.emit8ALUImm(mnem, cv)
+			} else {
+				g.emit8ALU(mnem, lhs)
+			}
 			if dst != "A" {
 				g.emitf("    LD %s, A", dst)
 				g.setCopy(dst, "A")
@@ -2657,6 +2684,16 @@ func (g *z80cg) emit8ALU(mnem, src string) {
 		g.emitf("    %s A, %s", mnem, src)
 	default:
 		g.emitf("    %s %s", mnem, src)
+	}
+}
+
+// emit8ALUImm emits an 8-bit ALU instruction with an immediate constant operand.
+func (g *z80cg) emit8ALUImm(mnem string, imm int64) {
+	switch mnem {
+	case "ADD", "ADC":
+		g.emitf("    %s A, %d", mnem, imm)
+	default:
+		g.emitf("    %s %d", mnem, imm)
 	}
 }
 
