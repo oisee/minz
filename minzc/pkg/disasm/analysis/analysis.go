@@ -78,6 +78,9 @@ type Analysis struct {
 	Strings map[uint16]*DetectedString
 	Labels  map[uint16]*Label
 
+	// Register usage per function (populated by AnalyzeRegisters)
+	FuncRegs map[uint16]*FuncRegInfo
+
 	// User overrides
 	CodeOverrides map[uint16]uint16 // start->end forced code
 	DataOverrides map[uint16]uint16 // start->end forced data

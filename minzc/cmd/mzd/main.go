@@ -47,11 +47,12 @@ var (
 	comments     []string
 	markCode     []string
 	markData     []string
-	showCycles   bool
-	noXrefs      bool
-	noABI        bool
-	abiFile      string
+	showCycles    bool
+	noXrefs       bool
+	noABI         bool
+	abiFile       string
 	exportABIFile string
+	showRegs      bool
 )
 
 // parseAddress parses hex (0x, $, suffix h), or decimal addresses.
@@ -172,6 +173,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&noABI, "no-abi", false, "Suppress ABI/syscall annotations")
 	rootCmd.Flags().StringVar(&abiFile, "abi", "", "Load additional .abi file (merged with built-in platform)")
 	rootCmd.Flags().StringVar(&exportABIFile, "export-abi", "", "Export platform ABI profile to .abi file")
+	rootCmd.Flags().BoolVar(&showRegs, "regs", false, "Show IN/OUT/CLOBBER register annotations per function")
 }
 
 func main() {
@@ -410,6 +412,11 @@ func runAnalyzed(inputFile string, data []byte, org uint16) error {
 		fmt.Fprintf(os.Stderr, "Exported ABI profile to %s\n", exportABIFile)
 	}
 
+	// Register analysis
+	if showRegs {
+		a.AnalyzeRegisters()
+	}
+
 	// Recompute stats
 	a.ComputeStats()
 
@@ -466,6 +473,11 @@ func renderAnalyzed(a *analysis.Analysis) {
 				name = fmt.Sprintf("sub_%04X", pc)
 			}
 			fmt.Printf("; ---- %s ($%04X) ----\n", name, pc)
+			if showRegs {
+				if info, ok := a.FuncRegs[pc]; ok {
+					fmt.Printf("; %s\n", analysis.FormatFuncRegInfo(info))
+				}
+			}
 		}
 
 		// Xref comments
