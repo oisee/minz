@@ -211,14 +211,15 @@ for c in 0..4 {
 
 | Metric | Original | Beautified | Change |
 |--------|----------|------------|--------|
-| Total lines | 852 | ~480 | -44% |
+| Total lines | 852 | 488 | -43% |
+| Z80 asm output | 2205 | 2188 | -17 lines |
 | While loops | 25 | 7 | -72% |
 | For loops | 0 | 18 | +18 |
 | Magic numbers | ~30 | 0 | -100% |
 | Enum types | 0 | 2 | +2 |
-| Array LUTs | 0 | 3 | +3 |
+| Array LUTs | 0 | 4 | +4 |
 | Asm inserts | 5 | 5 | same |
-| Behavior | identical | identical | same |
+| Compiles | ✅ | ✅ | both verified |
 
 ---
 
