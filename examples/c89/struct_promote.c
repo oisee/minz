@@ -31,4 +31,31 @@ uint8_t direct_init(void) {
     return d.q + d.r;
 }
 
+// Out-param pattern: void f(..., SSS *out) → promoted to tuple return.
+void divmod_out(uint8_t a, uint8_t b, DivResult *out) {
+    out->q = a / b;
+    out->r = a % b;
+}
+
+uint8_t use_outparam(uint8_t a, uint8_t b) {
+    DivResult res;
+    divmod_out(a, b, &res);
+    return res.q + res.r;
+}
+
+// Pointer-return pattern: SSS* f() → promoted to tuple return.
+DivResult* make_pair(uint8_t a, uint8_t b) {
+    DivResult tmp;
+    tmp.q = a;
+    tmp.r = b;
+    return &tmp;
+}
+
+uint8_t use_ptrreturn(uint8_t a, uint8_t b) {
+    DivResult *p = make_pair(a, b);
+    return p->q + p->r;
+}
+
 // assert direct_init() == 13
+// assert use_outparam(17, 5) == 5
+// assert use_ptrreturn(10, 20) == 30

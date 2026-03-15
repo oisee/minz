@@ -246,6 +246,245 @@ uint8_t test(void) {
 	}
 }
 
+func TestPromote_OutParam(t *testing.T) {
+	// Simulate: void divmod(u8 a, u8 b, DivResult *out) { out->q = a/b; out->r = a%b; }
+	// Caller:   DivResult res; divmod(17, 5, &res); use(res.q + res.r);
+	// Expected: (u8, u8) divmod(u8 a, u8 b) { return (a/b, a%b); }
+	//           let (res_q, res_r) = divmod(17, 5); use(res_q + res_r);
+
+	divResult := &mir2.StructTy{
+		Name: "DivResult",
+		Fields: []mir2.StructField{
+			{Name: "q", Ty: mir2.TyU8},
+			{Name: "r", Ty: mir2.TyU8},
+		},
+	}
+
+	divmod := &hir.Func{
+		Name: "divmod",
+		Params: []hir.Param{
+			{Name: "a", Ty: mir2.TyU8},
+			{Name: "b", Ty: mir2.TyU8},
+			{Name: "out", Ty: mir2.TyPtr},
+		},
+		RetTy: mir2.TyVoid,
+		Body: hir.Blk(
+			// out.q = a / b
+			&hir.AssignStmt{
+				Target: &hir.FieldExpr{X: hir.Var("out", mir2.TyPtr), Field: "q", Ty: mir2.TyU8},
+				Val:    &hir.BinExpr{Op: "/", L: hir.Var("a", mir2.TyU8), R: hir.Var("b", mir2.TyU8), Ty: mir2.TyU8},
+			},
+			// out.r = a % b
+			&hir.AssignStmt{
+				Target: &hir.FieldExpr{X: hir.Var("out", mir2.TyPtr), Field: "r", Ty: mir2.TyU8},
+				Val:    &hir.BinExpr{Op: "%", L: hir.Var("a", mir2.TyU8), R: hir.Var("b", mir2.TyU8), Ty: mir2.TyU8},
+			},
+		),
+	}
+
+	caller := &hir.Func{
+		Name:  "caller",
+		RetTy: mir2.TyU8,
+		Body: hir.Blk(
+			// DivResult res; (zero-init)
+			&hir.VarDeclStmt{Name: "res", Ty: mir2.TyPtr},
+			// divmod(17, 5, &res)
+			&hir.ExprStmt{
+				Expr: &hir.CallExpr{
+					Fn:  "divmod",
+					Ty:  mir2.TyVoid,
+					Args: []hir.Expr{
+						hir.U8(17), hir.U8(5),
+						&hir.UnaryExpr{Op: "&", X: hir.Var("res", mir2.TyPtr), Ty: mir2.TyPtr},
+					},
+				},
+			},
+			// return res.q + res.r
+			&hir.ReturnStmt{
+				Val: hir.Add(
+					&hir.FieldExpr{X: hir.Var("res", mir2.TyPtr), Field: "q", Ty: mir2.TyU8},
+					&hir.FieldExpr{X: hir.Var("res", mir2.TyPtr), Field: "r", Ty: mir2.TyU8},
+					mir2.TyU8,
+				),
+			},
+		),
+	}
+
+	m := &hir.Module{
+		Name:    "test",
+		Funcs:   []*hir.Func{divmod, caller},
+		Structs: []*mir2.StructTy{divResult},
+	}
+
+	PromoteStructReturns(m)
+
+	// Check divmod was promoted to tuple return.
+	if len(divmod.RetTys) != 2 {
+		t.Fatalf("divmod.RetTys = %v, want 2 elements", divmod.RetTys)
+	}
+	if divmod.RetTys[0] != mir2.TyU8 || divmod.RetTys[1] != mir2.TyU8 {
+		t.Errorf("divmod.RetTys = %v, want [u8, u8]", divmod.RetTys)
+	}
+	t.Logf("divmod promoted to tuple return: %v", divmod.RetTys)
+
+	// Check out-param was removed.
+	if len(divmod.Params) != 2 {
+		t.Fatalf("divmod.Params = %d, want 2 (out removed)", len(divmod.Params))
+	}
+	t.Logf("out-param removed: %d params remain", len(divmod.Params))
+
+	// Check body ends with tuple return.
+	lastStmt := divmod.Body.Body[len(divmod.Body.Body)-1]
+	ret, ok := lastStmt.(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("last stmt = %T, want ReturnStmt", lastStmt)
+	}
+	if len(ret.Vals) != 2 {
+		t.Fatalf("ret.Vals = %d, want 2", len(ret.Vals))
+	}
+	t.Logf("tuple return synthesized: %d values", len(ret.Vals))
+
+	// Check caller: VarDeclStmt removed, ExprStmt → TupleLetStmt.
+	tup, ok := caller.Body.Body[0].(*hir.TupleLetStmt)
+	if !ok {
+		t.Fatalf("caller body[0] = %T, want TupleLetStmt", caller.Body.Body[0])
+	}
+	if len(tup.Names) != 2 {
+		t.Errorf("tuple names = %v, want 2", tup.Names)
+	}
+	t.Logf("call site → TupleLetStmt: names=%v", tup.Names)
+
+	// Check field refs were rewritten.
+	retStmt, ok := caller.Body.Body[1].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("caller body[1] = %T, want ReturnStmt", caller.Body.Body[1])
+	}
+	add, ok := retStmt.Val.(*hir.BinExpr)
+	if !ok {
+		t.Fatalf("return val = %T, want BinExpr", retStmt.Val)
+	}
+	lRef, lok := add.L.(*hir.VarRefExpr)
+	rRef, rok := add.R.(*hir.VarRefExpr)
+	if !lok || !rok {
+		t.Fatalf("add operands: L=%T, R=%T — want VarRefExpr", add.L, add.R)
+	}
+	t.Logf("res.q + res.r → %s + %s", lRef.Name, rRef.Name)
+}
+
+func TestPromote_PtrReturn(t *testing.T) {
+	// Simulate: DivResult* make_pair(u8 a, u8 b) { DivResult tmp; tmp.q = a; tmp.r = b; return &tmp; }
+	// Expected: (u8, u8) make_pair(u8 a, u8 b) { return (a, b); }
+
+	divResult := &mir2.StructTy{
+		Name: "DivResult",
+		Fields: []mir2.StructField{
+			{Name: "q", Ty: mir2.TyU8},
+			{Name: "r", Ty: mir2.TyU8},
+		},
+	}
+
+	makePair := &hir.Func{
+		Name: "make_pair",
+		Params: []hir.Param{
+			{Name: "a", Ty: mir2.TyU8},
+			{Name: "b", Ty: mir2.TyU8},
+		},
+		RetTy: mir2.TyPtr, // struct pointer return
+		Body: hir.Blk(
+			// DivResult tmp;
+			&hir.VarDeclStmt{Name: "tmp", Ty: mir2.TyPtr},
+			// tmp.q = a
+			&hir.AssignStmt{
+				Target: &hir.FieldExpr{X: hir.Var("tmp", mir2.TyPtr), Field: "q", Ty: mir2.TyU8},
+				Val:    hir.Var("a", mir2.TyU8),
+			},
+			// tmp.r = b
+			&hir.AssignStmt{
+				Target: &hir.FieldExpr{X: hir.Var("tmp", mir2.TyPtr), Field: "r", Ty: mir2.TyU8},
+				Val:    hir.Var("b", mir2.TyU8),
+			},
+			// return &tmp
+			&hir.ReturnStmt{
+				Val: &hir.UnaryExpr{Op: "&", X: hir.Var("tmp", mir2.TyPtr), Ty: mir2.TyPtr},
+			},
+		),
+	}
+
+	caller := &hir.Func{
+		Name:  "caller",
+		RetTy: mir2.TyU8,
+		Body: hir.Blk(
+			// let res = make_pair(10, 20)
+			&hir.VarDeclStmt{
+				Name: "res",
+				Ty:   mir2.TyPtr,
+				Init: hir.Call("make_pair", mir2.TyPtr, hir.U8(10), hir.U8(20)),
+			},
+			// return res.q + res.r
+			&hir.ReturnStmt{
+				Val: hir.Add(
+					&hir.FieldExpr{X: hir.Var("res", mir2.TyPtr), Field: "q", Ty: mir2.TyU8},
+					&hir.FieldExpr{X: hir.Var("res", mir2.TyPtr), Field: "r", Ty: mir2.TyU8},
+					mir2.TyU8,
+				),
+			},
+		),
+	}
+
+	m := &hir.Module{
+		Name:    "test",
+		Funcs:   []*hir.Func{makePair, caller},
+		Structs: []*mir2.StructTy{divResult},
+	}
+
+	PromoteStructReturns(m)
+
+	// Check make_pair was promoted to tuple return.
+	if len(makePair.RetTys) != 2 {
+		t.Fatalf("make_pair.RetTys = %v, want 2 elements", makePair.RetTys)
+	}
+	t.Logf("make_pair promoted to tuple return: %v", makePair.RetTys)
+
+	// Check body: field assigns and var decl removed, tuple return added.
+	lastStmt := makePair.Body.Body[len(makePair.Body.Body)-1]
+	ret, ok := lastStmt.(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("last stmt = %T, want ReturnStmt", lastStmt)
+	}
+	if len(ret.Vals) != 2 {
+		t.Fatalf("ret.Vals = %d, want 2", len(ret.Vals))
+	}
+	t.Logf("body stmts after promotion: %d (want 1: just the return)", len(makePair.Body.Body))
+	if len(makePair.Body.Body) != 1 {
+		for i, s := range makePair.Body.Body {
+			t.Logf("  [%d] %T", i, s)
+		}
+	}
+
+	// Check caller: call site rewritten to TupleLetStmt.
+	tup, ok := caller.Body.Body[0].(*hir.TupleLetStmt)
+	if !ok {
+		t.Fatalf("caller body[0] = %T, want TupleLetStmt", caller.Body.Body[0])
+	}
+	t.Logf("call site → TupleLetStmt: names=%v", tup.Names)
+
+	// Check field refs rewritten.
+	retStmt, ok := caller.Body.Body[1].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("caller body[1] = %T, want ReturnStmt", caller.Body.Body[1])
+	}
+	add, ok := retStmt.Val.(*hir.BinExpr)
+	if !ok {
+		t.Fatalf("return val = %T, want BinExpr", retStmt.Val)
+	}
+	lRef, lok := add.L.(*hir.VarRefExpr)
+	rRef, rok := add.R.(*hir.VarRefExpr)
+	if !lok || !rok {
+		t.Fatalf("add operands: L=%T, R=%T — want VarRefExpr", add.L, add.R)
+	}
+	t.Logf("res.q + res.r → %s + %s", lRef.Name, rRef.Name)
+}
+
 func TestPromote_SSS_Detection(t *testing.T) {
 	tests := []struct {
 		name string
