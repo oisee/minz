@@ -18,7 +18,7 @@
 
 ### Latest
 
-- **[Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)** — 21 chapters, 2818 lines. Available as [PDF](releases/v0.21.4/Nanz_Language_Book_v5.pdf), [EPUB](releases/v0.21.4/Nanz_Language_Book_v5.epub), and [LaTeX](releases/v0.21.4/Nanz_Language_Book_v5.tex).
+- **[Nanz Language Book v5.1](docs/Nanz_Language_Book_v5.md)** — 21 chapters, 2903 lines. Asm register contracts, implicit return, ZX Spectrum I/O patterns. [PDF](releases/v0.21.4/Nanz_Language_Book_v5.pdf), [EPUB](releases/v0.21.4/Nanz_Language_Book_v5.epub), [LaTeX](releases/v0.21.4/Nanz_Language_Book_v5.tex).
 - **[@derive metaprogramming + cross-language imports](docs/Nanz_Language_Book_v5.md#chapter-20-metaprogramming-derive-and-introspection)** — `@derive_eq`, `@derive_debug`, `@derive_sizeof` generate struct-specific code at compile time. Import `.lanz` and `.plm` modules from Nanz — three languages, one pipeline.
 - **[Nanz Language Sprint: 6 features](reports/2026-03-15-073-Nanz_Language_Sprint_Six_Features.md)** — enums, type aliases, module imports, three string types (SString/LString/CString), pipe/trans named pipelines with DJNZ fusion. 9 showcase examples, all E2E verified.
 - **[Arena allocator + sandbox + sizeof](reports/2026-03-14-069-Arena_Allocator_Sandbox_Sizeof.md)** — struct-based bump allocator with `^Arena` pointer receiver, `arena_split` chaining, `sizeof(Type)` compile-time constant, `sandbox` blocks for shared VM state.

@@ -1,4 +1,4 @@
-# The Nanz Language Book — v5
+# The Nanz Language Book — v5.1
 
 > **Modern language. Vintage iron. Zero overhead.**
 >
