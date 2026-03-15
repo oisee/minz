@@ -384,7 +384,7 @@ fun main() {
 | C89 corpus | 191/191 asserts, 14 files |
 | E2E Z80 tests | 24 (fibonacci, flag-return, div8, div16, mod8, divmod-combined + 6502) |
 | Parser | Participle (native Go, zero deps) |
-| Toolchain binaries | 9 working (mz, mza, mze, mzx, mzd, mzlsp, mzrun, mztap, mzv2) + mzv1 (MIR1) + mzr (broken) |
+| Toolchain binaries | 9 working (mz, mza, mze, mzx, mzd, mzlsp, mzrun, mztap, mzv) + mzv1 (MIR1) + mzr (broken) |
 | Go test packages | 26/26 pass, 0 fail |
 
 ---
@@ -401,8 +401,8 @@ fun main() {
 | **MZLSP** | ✅ DONE | Language Server Protocol (diagnostics, hover, goto-def, completion) |
 | **MZRUN** | ✅ DONE | Remote runner (DZRP) |
 | **MZTAP** | ✅ DONE | TAP file loader |
-| **MZV1** | ✅ DONE | MIR1 Virtual Machine runner (breakpoints, tracing, PNG export) |
-| **MZV2** | ✅ DONE | MIR2 VM runner with TUI display + ZX font OCR (Tetris verified) |
+| **MZV** | ✅ DONE | MIR2 VM runner with TUI display + ZX font OCR (Tetris verified) |
+| **MZV1** | ⏸️ ARCHIVED | MIR1 Virtual Machine runner (superseded by MZV) |
 | **MZR** | ❌ BROKEN | Interactive REPL (compileModule returns empty, :run unimplemented) |
 | **DAP** | 📋 TOBE | Debug Adapter Protocol (native, beyond DeZog) |
 
