@@ -30,3 +30,4 @@ outputs against the previous snapshot.
 | Folder | Compiler state | Report |
 |--------|---------------|--------|
 | `2026-03-10/` | post-sprint (29fabaa..811472a): interface params, HL-chain, lowerExprForRet, use-before-init, LSP | #051 rev 2 |
+| `2026-03-15/` | Lizp frontend, tetris v2, lanz showcase, cross-lang import | #074–#078 |

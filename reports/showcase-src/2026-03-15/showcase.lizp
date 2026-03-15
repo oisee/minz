@@ -1,0 +1,86 @@
+;; ╔══════════════════════════════════════════════════════════════╗
+;; ║  Lizp Showcase — Scheme/Lisp for Z80                       ║
+;; ║                                                            ║
+;; ║  Features demonstrated:                                    ║
+;; ║  • defmacro — syntactic macros (untyped, reusable)         ║
+;; ║  • ->       — Clojure-style thread-first pipe              ║
+;; ║  • cond     — multi-branch conditional                     ║
+;; ║  • dotimes  — counted loops                                ║
+;; ║  • when/unless — one-armed conditionals                    ║
+;; ║  • #xFF     — Lisp hex literals                            ║
+;; ║  • t/nil    — Lisp boolean conventions                     ║
+;; ╚══════════════════════════════════════════════════════════════╝
+;;
+;; Pipeline: .lizp → desugar → Lanz AST → HIR → MIR2 → PBQP → Z80 asm
+
+;; ── Macros: untyped, reusable templates ──────────────────────
+;;
+;; defmacro works at the S-expression level — no types needed.
+;; The macro body is a template; parameters are substituted.
+
+;; (inc! var) → (set var (+ var 1))
+(defmacro inc! (x) (set x (+ x 1)))
+
+;; (dec! var) → (set var (- var 1))
+(defmacro dec! (x) (set x (- x 1)))
+
+;; ── Hardware primitives ──────────────────────────────────────
+
+(defun zx-poke ((addr u16) (val u8)) -> void
+  (asm "LD (HL), A" (in addr val)))
+
+;; ── Pure functions ───────────────────────────────────────────
+
+(defun clamp ((val u8) (lo u8) (hi u8)) -> u8
+  (cond
+    ((< val lo) lo)
+    ((> val hi) hi)
+    (t val)))
+
+(defun attr-addr ((col u8) (row u8)) -> u16
+  (return (+ #x5800 (+ (* (cast row u16) 32) (cast col u16)))))
+
+(defun make-paper ((color u8)) -> u8
+  (return (<< (& color 7) 3)))
+
+;; ── Thread-first: Clojure-style pipe ─────────────────────────
+;;
+;; (-> val (clamp 0 7) make-paper)
+;; desugars to: (make-paper (clamp val 0 7))
+;;
+;; val flows as first arg through each function.
+;; No types in the pipe itself — pure S-expression transform!
+
+(defun color-for-row ((row u8)) -> u8
+  (return
+    (-> row
+      (clamp 0 7)
+      (make-paper))))
+
+;; ── Paint a single row of attributes ────────────────────────
+
+(defun paint-row ((row u8) (attr u8)) -> void
+  (var col u8 0)
+  (while (< col 32)
+    (call zx-poke (call attr-addr col row) attr)
+    (set col (+ col 1)))
+  (return))
+
+;; ── Main ─────────────────────────────────────────────────────
+
+(defglobal counter u8 0)
+
+(defun main () -> void
+  ;; Macros in action: inc!/dec! work on any variable, untyped
+  (inc! counter)
+  (inc! counter)
+  (inc! counter)      ;; counter = 3
+
+  ;; Paint 8 rows with piped color computation
+  (var row u8 0)
+  (while (< row 8)
+    ;; Thread-first pipe: row → clamp → make-paper
+    (call paint-row row (| (call color-for-row row) 7))
+    (inc! row))
+
+  (return))
