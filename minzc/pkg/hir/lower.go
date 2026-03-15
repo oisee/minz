@@ -1611,6 +1611,8 @@ func (l *lowerer) lowerBinExpr(ex *BinExpr) mir2.Reg {
 		return l.bld.Mul(lReg, rReg, ty, cls)
 	case "/":
 		return l.bld.Div(lReg, rReg, ty, cls)
+	case "%":
+		return l.bld.Mod(lReg, rReg, ty, cls)
 	case "&":
 		return l.bld.And(lReg, rReg, ty, cls)
 	case "|":
