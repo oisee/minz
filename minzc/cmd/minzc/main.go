@@ -11,6 +11,7 @@ import (
 	"github.com/minz/minzc/pkg/ctie"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/mir"
 	"github.com/minz/minzc/pkg/module"
 	"github.com/minz/minzc/pkg/nanz"
@@ -204,7 +205,7 @@ func init() {
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
 	rootCmd.Flags().BoolVar(&annotateTStates, "annotate-tstates", false, "annotate each Z80 instruction with its T-state cost")
-	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz (HIR as Nanz syntax), hir (HIR typed tree), mir2-raw, mir2 (works with .plm/.nanz input)")
+	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz (HIR as Nanz syntax), hir (HIR typed tree), lanz (HIR as S-expr), mir2-raw, mir2 (works with .plm/.nanz/.lanz input)")
 }
 
 func main() {
@@ -228,8 +229,8 @@ func compile(sourceFile string) error {
 	ext := filepath.Ext(sourceFile)
 
 	// PL/M-80, Nanz, and HIR text: routed through the new HIR→MIR2→Z80 pipeline.
-	if ext == ".plm" || ext == ".nanz" || ext == ".hir" {
-		if emitFormat == "nanz" && ext != ".hir" {
+	if ext == ".plm" || ext == ".nanz" || ext == ".hir" || ext == ".lanz" {
+		if emitFormat == "nanz" && ext != ".hir" && ext != ".lanz" {
 			return compilePLMToNanz(sourceFile)
 		}
 		return compileViaHIR(sourceFile)
@@ -728,6 +729,11 @@ func compileViaHIR(sourceFile string) error {
 		if err != nil {
 			return fmt.Errorf("HIR parse: %w", err)
 		}
+	case ".lanz":
+		hirMod, err = lanz.Compile(string(src), filepath.Base(sourceFile))
+		if err != nil {
+			return fmt.Errorf("Lanz compile: %w", err)
+		}
 	default:
 		return fmt.Errorf("unsupported extension for HIR pipeline: %s", ext)
 	}
@@ -739,6 +745,19 @@ func compileViaHIR(sourceFile string) error {
 	})
 	if err != nil {
 		return fmt.Errorf("HIR compile: %w", err)
+	}
+
+	// --emit=lanz  → HIR as Lanz S-expressions
+	if emitFormat == "lanz" {
+		text := lanz.Dump(hirMod)
+		if outputFile != "" {
+			if err := os.WriteFile(outputFile, []byte(text), 0644); err != nil {
+				return fmt.Errorf("write %s: %w", outputFile, err)
+			}
+		} else {
+			fmt.Print(text)
+		}
+		return nil
 	}
 
 	// --emit=hir  → HIR structural dump (typed tree, before lowering to MIR2)

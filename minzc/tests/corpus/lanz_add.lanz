@@ -1,0 +1,3 @@
+; Simple add function in Lanz S-expression syntax
+(fun add ((a u8) (b u8)) u8
+  (return (+ a b)))
