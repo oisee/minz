@@ -231,3 +231,95 @@ assert compute(10) == 21
 		t.Fatalf("compile with asserts: %v", err)
 	}
 }
+
+func TestImportLanzModule(t *testing.T) {
+	dir, err := os.MkdirTemp("", "nanz_lanz_import")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	// Create a Lanz module
+	os.WriteFile(filepath.Join(dir, "lanzmath.lanz"), []byte(`
+(fun lanz_double ((x u8)) u8 (return (+ x x)))
+(fun lanz_inc ((x u8)) u8 (return (+ x 1)))
+`), 0o644)
+
+	// Import from Nanz
+	src := `import lanzmath { lanz_double, lanz_inc }
+
+fun compute(x: u8) -> u8 {
+    return lanz_double(x)
+}
+
+fun inc_wrap(x: u8) -> u8 {
+    return lanz_inc(x)
+}
+
+assert compute(5) == 10
+assert inc_wrap(9) == 10
+`
+	m, err := nanz.ParseWithOpts(src, "test.nanz", nanz.ParseOpts{
+		BaseDir: dir,
+	})
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+
+	// Verify functions were imported
+	found := 0
+	for _, f := range m.Funcs {
+		if f.Name == "lanzmath$lanz_double" || f.Name == "lanzmath$lanz_inc" {
+			found++
+		}
+	}
+	if found != 2 {
+		t.Errorf("expected 2 imported lanz functions, found %d", found)
+	}
+
+	// Full pipeline with asserts
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+	t.Log("Nanz → Lanz cross-language import: OK")
+}
+
+func TestImportPLMModule(t *testing.T) {
+	dir, err := os.MkdirTemp("", "nanz_plm_import")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir)
+
+	// Create a PL/M-80 module
+	os.WriteFile(filepath.Join(dir, "legacy.plm"), []byte(`
+plm_add: PROCEDURE(a, b) BYTE;
+    DECLARE (a, b) BYTE;
+    RETURN a + b;
+END plm_add;
+`), 0o644)
+
+	// Import from Nanz — PL/M names are uppercased
+	src := `import legacy { PLM_ADD }
+
+fun use_plm(a: u8, b: u8) -> u8 {
+    return PLM_ADD(a, b)
+}
+
+assert use_plm(5, 1) == 6
+`
+	m, err := nanz.ParseWithOpts(src, "test.nanz", nanz.ParseOpts{
+		BaseDir: dir,
+	})
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+
+	// Full pipeline
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+	t.Log("Nanz → PL/M-80 cross-language import: OK")
+}

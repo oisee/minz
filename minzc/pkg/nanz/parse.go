@@ -33,7 +33,9 @@ import (
 	"strings"
 
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/plm"
 )
 
 // ParseOpts configures module-aware parsing (import resolution).
@@ -910,17 +912,26 @@ func (p *parser) parseImport() error {
 		return fmt.Errorf("line %d: import %s: %w", line, modPath, err)
 	}
 
-	childOpts := ParseOpts{
-		BaseDir:   filepath.Dir(filePath),
-		StdlibDir: p.opts.StdlibDir,
-		Loaded:    make(map[string]bool),
+	// Dispatch to the right parser based on file extension.
+	var imported *hir.Module
+	ext := filepath.Ext(filePath)
+	switch ext {
+	case ".lanz":
+		imported, err = lanz.Compile(string(src), modPath)
+	case ".plm":
+		imported, err = plm.Compile(string(src))
+	default: // .nanz
+		childOpts := ParseOpts{
+			BaseDir:   filepath.Dir(filePath),
+			StdlibDir: p.opts.StdlibDir,
+			Loaded:    make(map[string]bool),
+		}
+		for k, v := range p.opts.Loaded {
+			childOpts.Loaded[k] = v
+		}
+		childOpts.Loaded[absPath] = true
+		imported, err = ParseWithOpts(string(src), modPath, childOpts)
 	}
-	for k, v := range p.opts.Loaded {
-		childOpts.Loaded[k] = v
-	}
-	childOpts.Loaded[absPath] = true
-
-	imported, err := ParseWithOpts(string(src), modPath, childOpts)
 	if err != nil {
 		return fmt.Errorf("line %d: import %s: %w", line, modPath, err)
 	}
@@ -1073,22 +1084,24 @@ func (p *parser) childTypeAliases(_ *hir.Module) map[string]mir2.Ty {
 
 // resolveModulePath converts a dot-separated module path to a filesystem path.
 // Search order: baseDir (local), then stdlibDir.
+// Tries extensions in priority order: .nanz, .lanz, .plm.
 func (p *parser) resolveModulePath(modPath string, line int) (string, error) {
-	relPath := strings.ReplaceAll(modPath, ".", string(filepath.Separator)) + ".nanz"
-
-	// 1. Local: relative to current file
+	basePath := strings.ReplaceAll(modPath, ".", string(filepath.Separator))
+	exts := []string{".nanz", ".lanz", ".plm"}
+	dirs := []string{}
 	if p.opts.BaseDir != "" {
-		candidate := filepath.Join(p.opts.BaseDir, relPath)
-		if _, err := os.Stat(candidate); err == nil {
-			return candidate, nil
-		}
+		dirs = append(dirs, p.opts.BaseDir)
+	}
+	if p.opts.StdlibDir != "" {
+		dirs = append(dirs, p.opts.StdlibDir)
 	}
 
-	// 2. Stdlib
-	if p.opts.StdlibDir != "" {
-		candidate := filepath.Join(p.opts.StdlibDir, relPath)
-		if _, err := os.Stat(candidate); err == nil {
-			return candidate, nil
+	for _, dir := range dirs {
+		for _, ext := range exts {
+			candidate := filepath.Join(dir, basePath+ext)
+			if _, err := os.Stat(candidate); err == nil {
+				return candidate, nil
+			}
 		}
 	}
 

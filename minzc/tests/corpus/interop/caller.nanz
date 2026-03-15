@@ -1,0 +1,13 @@
+// Import a Lanz module from Nanz — cross-language interop!
+import mathlib { double, inc }
+
+fun use_double(x: u8) -> u8 {
+    return double(x)
+}
+
+fun use_inc(x: u8) -> u8 {
+    return inc(x)
+}
+
+assert use_double(5) == 10
+assert use_inc(3) == 4

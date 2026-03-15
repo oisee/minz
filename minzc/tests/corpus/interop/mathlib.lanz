@@ -1,0 +1,3 @@
+; Math library written in Lanz S-expressions
+(fun double ((x u8)) u8 (return (+ x x)))
+(fun inc ((x u8)) u8 (return (+ x 1)))
