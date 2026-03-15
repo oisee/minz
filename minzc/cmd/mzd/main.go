@@ -23,6 +23,7 @@ import (
 
 	"github.com/minz/minzc/pkg/disasm"
 	"github.com/minz/minzc/pkg/disasm/analysis"
+	"github.com/minz/minzc/pkg/z80asm"
 	"github.com/spf13/cobra"
 )
 
@@ -53,6 +54,7 @@ var (
 	abiFile       string
 	exportABIFile string
 	showRegs      bool
+	verifyABI     string
 )
 
 // parseAddress parses hex (0x, $, suffix h), or decimal addresses.
@@ -174,6 +176,7 @@ func init() {
 	rootCmd.Flags().StringVar(&abiFile, "abi", "", "Load additional .abi file (merged with built-in platform)")
 	rootCmd.Flags().StringVar(&exportABIFile, "export-abi", "", "Export platform ABI profile to .abi file")
 	rootCmd.Flags().BoolVar(&showRegs, "regs", false, "Show IN/OUT/CLOBBER register annotations per function")
+	rootCmd.Flags().StringVar(&verifyABI, "verify-abi", "", "Verify detected registers against compiler ABI from .a80 file")
 }
 
 func main() {
@@ -413,8 +416,55 @@ func runAnalyzed(inputFile string, data []byte, org uint16) error {
 	}
 
 	// Register analysis
-	if showRegs {
+	if showRegs || verifyABI != "" {
 		a.AnalyzeRegisters()
+	}
+
+	// ABI verification against compiler-declared annotations
+	if verifyABI != "" {
+		declared, err := analysis.ParseAsmABI(verifyABI)
+		if err != nil {
+			return fmt.Errorf("failed to parse ABI from %s: %w", verifyABI, err)
+		}
+
+		// Assemble the .a80 to get symbol→address mapping
+		asmSource, err := os.ReadFile(verifyABI)
+		if err != nil {
+			return fmt.Errorf("failed to read %s: %w", verifyABI, err)
+		}
+		asm := z80asm.NewAssembler()
+		result, err := asm.AssembleString(string(asmSource))
+		if len(result.Errors) > 0 {
+			fmt.Fprintf(os.Stderr, "Warning: %d assembly errors in %s\n", len(result.Errors), verifyABI)
+		}
+
+		// Build funcMap from assembler symbols
+		funcMap := make(map[string]uint16)
+		for _, df := range declared {
+			if addr, ok := result.Symbols[df.Name]; ok {
+				funcMap[df.Name] = uint16(addr)
+			}
+		}
+
+		// Also inject symbols as labels into the analysis for display
+		for name, addr := range result.Symbols {
+			a.Labels[uint16(addr)] = &analysis.Label{
+				Addr:   uint16(addr),
+				Name:   name,
+				Source: "asm",
+			}
+		}
+
+		mismatches := analysis.VerifyABI(declared, a.FuncRegs, funcMap)
+
+		if len(mismatches) == 0 {
+			fmt.Fprintf(os.Stderr, "ABI verify: %d/%d functions matched, all OK\n", len(funcMap), len(declared))
+		} else {
+			fmt.Fprintf(os.Stderr, "ABI verify: %d/%d functions checked, %d mismatches:\n", len(funcMap), len(declared), len(mismatches))
+			for _, m := range mismatches {
+				fmt.Fprintf(os.Stderr, "  %s\n", m)
+			}
+		}
 	}
 
 	// Recompute stats
