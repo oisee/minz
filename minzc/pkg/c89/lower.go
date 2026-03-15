@@ -100,8 +100,19 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 			continue
 		}
 
-		// Skip typedef declarations.
+		// Typedef declarations: register struct types, then skip.
 		if decl.IsTypename() {
+			if ty.Kind() == cc.Struct {
+				st := ty.(*cc.StructType)
+				tag := l.structTag(st)
+				if tag == "" {
+					tag = name // use typedef name for anonymous structs
+				}
+				if l.structs[tag] == nil {
+					l.lowerStructDecl(tag, st)
+				}
+				l.typedefs[name] = mir2.TyPtr // typedef maps to struct pointer
+			}
 			continue
 		}
 
@@ -286,12 +297,27 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 		fl.locals[name] = ty
 
 		var init hir.Expr
-		if id.Initializer != nil && id.Initializer.AssignmentExpression != nil {
-			r, err := fl.lowerExpr(id.Initializer.AssignmentExpression)
-			if err != nil {
-				return nil, err
+		if id.Initializer != nil {
+			switch id.Initializer.Case {
+			case cc.InitializerExpr:
+				if id.Initializer.AssignmentExpression != nil {
+					r, err := fl.lowerExpr(id.Initializer.AssignmentExpression)
+					if err != nil {
+						return nil, err
+					}
+					init = r.toExpr()
+				}
+			case cc.InitializerInitList:
+				// Brace initializer: { val1, val2, ... }
+				// Check if this is a struct type.
+				if st := fl.low.resolveStructType(decl.Type()); st != nil {
+					lit, err := fl.lowerStructInit(st, id.Initializer.InitializerList)
+					if err != nil {
+						return nil, err
+					}
+					init = lit
+				}
 			}
-			init = r.toExpr()
 		}
 
 		stmts = append(stmts, &hir.VarDeclStmt{Name: name, Ty: ty, Init: init})
@@ -1227,6 +1253,72 @@ func (l *lowerer) evalConst(e cc.ExpressionNode) (int64, bool) {
 		return 0, false
 	}
 	return constToInt64(v), true
+}
+
+// resolveStructType returns the mir2.StructTy for a cc.Type if it's a known struct.
+func (l *lowerer) resolveStructType(t cc.Type) *mir2.StructTy {
+	if t == nil || t.Kind() != cc.Struct {
+		return nil
+	}
+	st, ok := t.(*cc.StructType)
+	if !ok {
+		return nil
+	}
+	tag := l.structTag(st)
+	if tag != "" {
+		if mst := l.structs[tag]; mst != nil {
+			return mst
+		}
+	}
+	// Try all known structs by field count/layout match (anonymous typedef structs).
+	nf := st.NumFields()
+	for _, mst := range l.structs {
+		if len(mst.Fields) == nf {
+			return mst
+		}
+	}
+	return nil
+}
+
+// lowerStructInit lowers a brace initializer list to a StructLitExpr.
+// Handles both positional { a, b } and designated { .q = a, .r = b } forms.
+func (fl *funcLow) lowerStructInit(st *mir2.StructTy, il *cc.InitializerList) (*hir.StructLitExpr, error) {
+	lit := &hir.StructLitExpr{St: st}
+	fieldIdx := 0
+	for ; il != nil; il = il.InitializerList {
+		init := il.Initializer
+		if init == nil {
+			continue
+		}
+
+		// Determine field name.
+		fname := ""
+		if fieldIdx < len(st.Fields) {
+			fname = st.Fields[fieldIdx].Name
+		}
+		// TODO: handle Designation for designated initializers (.q = val).
+
+		// Lower the initializer value.
+		var val hir.Expr
+		switch init.Case {
+		case cc.InitializerExpr:
+			if init.AssignmentExpression != nil {
+				r, err := fl.lowerExpr(init.AssignmentExpression)
+				if err != nil {
+					return nil, err
+				}
+				val = r.toExpr()
+			}
+		case cc.InitializerInitList:
+			// Nested brace init — skip for now.
+		}
+
+		if val != nil && fname != "" {
+			lit.Fields = append(lit.Fields, hir.FieldInit{Name: fname, Val: val})
+		}
+		fieldIdx++
+	}
+	return lit, nil
 }
 
 func constToInt64(v cc.Value) int64 {

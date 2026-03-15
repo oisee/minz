@@ -142,23 +142,48 @@ func findEligibleFunctions(m *hir.Module, idx structIndex) map[string]*promotion
 
 // findReturnedStruct checks if a function returns struct literals of a single
 // SSS type in all its return statements.
+// Handles both direct returns (`return StructLit{...}`) and indirect returns
+// (`Pair res = {...}; return res;`) by tracking struct-initialized variables.
 func findReturnedStruct(fn *hir.Func, idx structIndex) *mir2.StructTy {
+	// First pass: collect variables initialized from StructLitExpr.
+	structVars := make(map[string]*hir.StructLitExpr)
+	walkStmts(fn.Body, func(s hir.Stmt) bool {
+		if decl, ok := s.(*hir.VarDeclStmt); ok {
+			if lit, isLit := decl.Init.(*hir.StructLitExpr); isLit && lit.St != nil {
+				structVars[decl.Name] = lit
+			}
+		}
+		return true
+	})
+
+	// Second pass: check all return statements.
 	var found *mir2.StructTy
 	ok := walkStmts(fn.Body, func(s hir.Stmt) bool {
 		ret, isRet := s.(*hir.ReturnStmt)
 		if !isRet {
 			return true
 		}
-		lit, isLit := ret.Val.(*hir.StructLitExpr)
-		if !isLit || lit.St == nil {
-			return false // returns non-struct-literal → not eligible
+		// Direct struct literal return.
+		if lit, isLit := ret.Val.(*hir.StructLitExpr); isLit && lit.St != nil {
+			if found == nil {
+				found = lit.St
+			} else if found.Name != lit.St.Name {
+				return false
+			}
+			return true
 		}
-		if found == nil {
-			found = lit.St
-		} else if found.Name != lit.St.Name {
-			return false // returns different struct types
+		// Indirect: return varName where varName was struct-initialized.
+		if ref, isRef := ret.Val.(*hir.VarRefExpr); isRef {
+			if lit, ok := structVars[ref.Name]; ok {
+				if found == nil {
+					found = lit.St
+				} else if found.Name != lit.St.Name {
+					return false
+				}
+				return true
+			}
 		}
-		return true
+		return false // returns something else → not eligible
 	})
 	if !ok || found == nil {
 		return nil
@@ -168,15 +193,34 @@ func findReturnedStruct(fn *hir.Func, idx structIndex) *mir2.StructTy {
 
 // ── Return rewriting ─────────────────────────────────────────────────────────
 
-// rewriteReturns converts `return (StructName){a, b}` → `return (a, b)`.
+// rewriteReturns converts struct returns → tuple returns.
+// Handles both direct (`return StructLit{a, b}`) and indirect
+// (`Pair res = {a, b}; return res;`) patterns.
 func rewriteReturns(fn *hir.Func, info *promotionInfo) {
+	// Collect struct-initialized variables for indirect return resolution.
+	structVars := make(map[string]*hir.StructLitExpr)
+	walkStmts(fn.Body, func(s hir.Stmt) bool {
+		if decl, ok := s.(*hir.VarDeclStmt); ok {
+			if lit, isLit := decl.Init.(*hir.StructLitExpr); isLit {
+				structVars[decl.Name] = lit
+			}
+		}
+		return true
+	})
+
 	walkStmtsMut(fn.Body, func(s hir.Stmt, replace func(hir.Stmt)) {
 		ret, isRet := s.(*hir.ReturnStmt)
 		if !isRet {
 			return
 		}
-		lit, isLit := ret.Val.(*hir.StructLitExpr)
-		if !isLit {
+		// Resolve the struct literal — direct or via variable.
+		var lit *hir.StructLitExpr
+		if l, ok := ret.Val.(*hir.StructLitExpr); ok {
+			lit = l
+		} else if ref, ok := ret.Val.(*hir.VarRefExpr); ok {
+			lit = structVars[ref.Name]
+		}
+		if lit == nil {
 			return
 		}
 		// Convert struct literal fields to tuple values.

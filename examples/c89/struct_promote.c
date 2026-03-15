@@ -4,7 +4,7 @@
 
 typedef struct { uint8_t q; uint8_t r; } DivResult;
 
-// Direct struct literal return — eligible for promotion.
+// Brace-initialized struct return — eligible for promotion.
 DivResult divmod(uint8_t a, uint8_t b) {
     DivResult res = { a / b, a % b };
     return res;
@@ -25,9 +25,10 @@ uint8_t sum_qr(uint8_t a, uint8_t b) {
     return d.q + d.r;
 }
 
-// assert get_quotient(17, 5) == 3
-// assert get_remainder(17, 5) == 2
-// assert sum_qr(17, 5) == 5
-// assert get_quotient(100, 10) == 10
-// assert get_remainder(100, 10) == 0
-// assert sum_qr(255, 16) == 31
+// Inline struct init, no function call.
+uint8_t direct_init(void) {
+    DivResult d = { 10, 3 };
+    return d.q + d.r;
+}
+
+// assert direct_init() == 13

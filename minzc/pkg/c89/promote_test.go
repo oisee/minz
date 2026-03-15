@@ -194,6 +194,58 @@ func TestPromote_NotEligible_LargeStruct(t *testing.T) {
 	t.Log("large struct correctly rejected")
 }
 
+func TestPromote_BraceInit_EndToEnd(t *testing.T) {
+	// Compile C with struct brace init and verify StructLitExpr is produced.
+	src := `
+typedef struct { uint8_t q; uint8_t r; } Pair;
+
+uint8_t test(void) {
+    Pair p = { 10, 3 };
+    return p.q + p.r;
+}
+`
+	m, err := Compile(src, "test.c")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+
+	// Check struct was created.
+	if len(m.Structs) == 0 {
+		t.Fatal("no structs found")
+	}
+	t.Logf("structs: %d", len(m.Structs))
+	for _, st := range m.Structs {
+		t.Logf("  struct %s { %d fields }", st.Name, len(st.Fields))
+	}
+
+	// Check that test() was compiled.
+	var testFn *hir.Func
+	for _, f := range m.Funcs {
+		t.Logf("func %s — retTy=%v", f.Name, f.RetTy)
+		if f.Name == "test" {
+			testFn = f
+		}
+	}
+	if testFn == nil {
+		t.Fatal("test function not found")
+	}
+
+	// Walk body to find StructLitExpr or VarDeclStmt with struct init.
+	foundInit := false
+	for _, s := range testFn.Body.Body {
+		if decl, ok := s.(*hir.VarDeclStmt); ok {
+			t.Logf("VarDecl: %s init=%T", decl.Name, decl.Init)
+			if _, isLit := decl.Init.(*hir.StructLitExpr); isLit {
+				foundInit = true
+				t.Log("  → StructLitExpr found!")
+			}
+		}
+	}
+	if !foundInit {
+		t.Error("expected StructLitExpr from brace init { 10, 3 }")
+	}
+}
+
 func TestPromote_SSS_Detection(t *testing.T) {
 	tests := []struct {
 		name string
