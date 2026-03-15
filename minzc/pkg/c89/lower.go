@@ -182,6 +182,10 @@ func (l *lowerer) lowerFunc(fd *cc.FunctionDefinition) (*hir.Func, error) {
 
 	var params []hir.Param
 	for _, p := range ft.Parameters() {
+		// In C, f(void) means no parameters — skip void params.
+		if p.Type() != nil && p.Type().Kind() == cc.Void {
+			continue
+		}
 		pname := p.Name()
 		if pname == "" {
 			pname = fmt.Sprintf("_p%d", len(params))
@@ -1100,6 +1104,10 @@ func (fl *funcLow) lowerAssignment(ae *cc.AssignmentExpression) (*exprResult, er
 		val = &hir.BinExpr{Op: "<<", L: target, R: val, Ty: ty}
 	case cc.AssignmentExpressionRsh:
 		val = &hir.BinExpr{Op: ">>", L: target, R: val, Ty: ty}
+	case cc.AssignmentExpressionDiv:
+		val = &hir.BinExpr{Op: "/", L: target, R: val, Ty: ty}
+	case cc.AssignmentExpressionMod:
+		val = &hir.BinExpr{Op: "%", L: target, R: val, Ty: ty}
 	}
 
 	return wrapAssign(target, val), nil
