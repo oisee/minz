@@ -18,8 +18,8 @@
 
 ### Latest
 
+- **[Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)** — 19 chapters + 6 appendices. New: enums, type aliases, module imports, three string types, pipe/trans named pipelines. 2519 lines, 6/8 MinZ feature gaps closed.
 - **[Nanz Language Sprint: 6 features](reports/2026-03-15-073-Nanz_Language_Sprint_Six_Features.md)** — enums, type aliases, module imports, three string types (SString/LString/CString), pipe/trans named pipelines with DJNZ fusion. 9 showcase examples, all E2E verified.
-- **[Nanz Language Book v4.1](docs/Nanz_Language_Book_v4.1.md)** — 15 chapters + 5 appendices. New: `sizeof(Type)`, `sandbox` blocks, struct-based arena allocator (Chapter 15). Available as [PDF](releases/v0.21.3/Nanz_Language_Book_v4.1.pdf), [EPUB](releases/v0.21.3/Nanz_Language_Book_v4.1.epub), and [LaTeX](releases/v0.21.3/Nanz_Language_Book_v4.1.tex).
 - **[Arena allocator + sandbox + sizeof](reports/2026-03-14-069-Arena_Allocator_Sandbox_Sizeof.md)** — struct-based bump allocator with `^Arena` pointer receiver, `arena_split` chaining, `sizeof(Type)` compile-time constant, `sandbox` blocks for shared VM state. All E2E verified.
 - **[PreallocCoalesce delivers](reports/2026-03-13-068-Showcase_ForEachEdge_SignedCmp_PreallocImpact.md)** — `mapInPlace` loop: 5 instructions → **1 DJNZ**. `factorial_fold`: entire mul16 routine eliminated. 6/23 showcase files produce tighter Z80.
 - **[MOS 6502 backend alive](reports/2026-03-13-067-6502_Backend_E2E_Harness.md)** — 35/35 tests, dual-VM oracle (MIR2 VM vs sim6502), console I/O for Apple II/C64/BBC Micro.
