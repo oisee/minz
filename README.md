@@ -18,7 +18,8 @@
 
 ### Latest
 
-- **[Nanz Language Book v5.2](docs/Nanz_Language_Book_v5.md)** — 21 chapters + 7 appendices. New: `ptr()` cast, `|>` pipe operator, asm `(ret)/(clob)/(in)` clauses, auto-clobber analysis.
+- **[Five Frontends, Universal Assert](reports/2026-03-15-080-Five_Frontends_Universal_Assert.md)** — Nanz, Lanz, Lizp, PL/M-80, Pascal — all compile through one HIR → MIR2 → Z80 pipeline. Compile-time assert works in all 5 (45 verified assertions). Pascal → CP/M hello world runs in MZE.
+- **[Nanz Language Book v5.3](docs/Nanz_Language_Book_v5.md)** — 21 chapters + 8 appendices. New: five-frontend architecture, universal assert syntax, Pascal/Lizp imports, transpilation via `--emit`.
 - **[ZX Spectrum Tetris](examples/zx/tetris.nanz)** — 853 LOC, 7 tetrominoes, SRS wall kicks, hold/next/ghost piece, T-spin scoring. Attribute-based rendering for fast frame updates.
 - **[Nanz Language Sprint: 6 features](reports/2026-03-15-073-Nanz_Language_Sprint_Six_Features.md)** — enums, type aliases, module imports, three string types, pipe/trans named pipelines with DJNZ fusion.
 - **[Arena allocator + sandbox + sizeof](reports/2026-03-14-069-Arena_Allocator_Sandbox_Sizeof.md)** — struct-based bump allocator with `^Arena` pointer receiver, `arena_split` chaining, `sizeof(Type)` compile-time constant.
@@ -48,7 +49,7 @@
 
 MinZ is a compiler toolchain for retro hardware — primarily Z80 and eZ80, with an experimental MOS 6502 backend.
 
-The **active frontend** is **Nanz** (`.nanz`) — a minimal, type-safe language that compiles through the HIR → MIR2 → Z80 pipeline with PBQP register allocation. The original MinZ syntax (`.minz`) is frozen on the older MIR1 backend and will be rewired through the same pipeline once it matures.
+The **primary frontend** is **Nanz** (`.nanz`) — a minimal, type-safe language that compiles through the HIR → MIR2 → Z80 pipeline with PBQP register allocation. Four additional frontends — **Lanz** (S-expressions), **Lizp** (Lisp dialect), **PL/M-80**, and **Pascal** — compile through the same backend. Cross-language imports are first-class.
 
 Self-contained toolchain: compiler, assembler, emulator, disassembler, and remote runner. No external dependencies — pure Go.
 
@@ -573,33 +574,69 @@ the full feature matrix and Z80 vs 6502 comparison.
 
 ### Language Frontends
 
-Three separate source languages compile through the same HIR → MIR2 → Z80 backend:
+Five source languages compile through the same HIR → MIR2 → Z80 backend:
 
-| Frontend | Status | Pipeline | Notes |
-|----------|--------|----------|-------|
-| **Nanz** | Active — primary MIR2 frontend | Nanz → HIR → MIR2 → Z80 | The new surface language; arithmetic, control flow, loops, LUTGen, flag-return ABI, interprocedural CC opt |
-| **PL/M-80** | Working | PL/M-80 → HIR → MIR2 → Z80 | 26/26 Intel 80 Tools corpus (100%); 1338 functions, 11661 statements |
-| **MinZ** | Frozen on MIR1 | MinZ → MIR1 → old Z80 codegen | Waiting for MIR2 infrastructure to mature; will be rewired through HIR→MIR2 |
+```
+  .nanz ──→ nanz.Parse()    ──┐
+  .lanz ──→ lanz.Compile()  ──┤
+  .lizp ──→ lizp.Compile()  ──┼──→ *hir.Module ──→ MIR2 ──→ Z80/6502/QBE
+  .plm  ──→ plm.Compile()   ──┤
+  .pas  ──→ pascal.Compile() ──┘
+```
 
-**Three pipelines, one backend.** `.nanz` and `.plm` files go through `compileViaHIR()` → HIR → MIR2 → Z80. `.minz` files use the old MIR1 path (`pkg/codegen/z80.go`, 5,800 LOC). MIR1 is frozen; all new work goes into MIR2.
+| Frontend | Status | Purpose | Notes |
+|----------|--------|---------|-------|
+| **Nanz** | Primary | Modern systems language | Full-featured: structs, enums, iterators, lambdas, SMC, LUTGen, flag-return ABI |
+| **Lanz** | Working | S-expression IR | 1:1 mapping to HIR. Round-trips perfectly. Used by `@derive_*` metafunctions |
+| **Lizp** | Working | Lisp dialect | Macros, threading (`->`, `->>`), `defmacro`/`cond`/`when`/`dotimes`. Desugars to Lanz |
+| **PL/M-80** | Working | Legacy Intel (1976) | 26/26 Intel 80 Tools corpus (100%); 1338 functions, 11661 statements |
+| **Pascal** | Working | Turbo Pascal | `WriteLn` → CP/M BDOS via inline asm. `mz hello.pas -t cpm -o hello.com` |
+| **MinZ** | Frozen on MIR1 | Legacy syntax | Old MIR1 path; will be rewired through HIR→MIR2 |
 
-**Nanz** is a minimal, type-safe language designed as a clean target for the MIR2 backend. Working features: arithmetic/bitwise ops, if/else, while, for-range, function calls, u8/u16/i8/i16/bool types, `u8<lo..hi>` ranged types for LUT generation, interprocedural calling-convention optimization, flag-return ABI (comparison results passed via carry flag — no bool materialization).
+**Five pipelines, one backend.** `.nanz`, `.lanz`, `.lizp`, `.plm`, and `.pas` files all go through `compileViaHIR()` → HIR → MIR2 → Z80. A function `double(x) = x + x` written in any of the five languages produces the same Z80: `ADD A, A / RET`.
+
+**Cross-language imports** — Nanz can import from any frontend:
+
+```nanz
+import mathlib    // finds mathlib.nanz, .lanz, .lizp, .plm, or .pas
+import legacy { PLM_ADD }           // PL/M-80 procedure
+import macrolib { lizp_double }     // Lizp function
+```
+
+**Universal compile-time assert** — all 5 frontends produce the same `hir.Assert`, verified by dual-VM (MIR2 VM + Z80 binary):
+
+| Frontend | Syntax |
+|----------|--------|
+| Nanz | `assert double(5) == 10` |
+| Lanz | `(assert double 5 == 10)` |
+| Lizp | `(assert double 5 == 10)` |
+| PL/M-80 | `ASSERT DOUBLE(5) = 10;` |
+| Pascal | `assert Double(5) = 10;` |
+
+**Pascal on CP/M** — hello world in one command:
+
+```bash
+mz hello.pas -t cpm -o hello.com && mze -t cpm hello.com
+# Output: Hello from Pascal on Z80!
+```
 
 **PL/M-80 coverage** (Intel 80 Tools corpus): algolm compiler, BASIC-E compiler/parser/synthesizer, ML80 assembler (l81/l82/l83/m81), TeX, CP/M utilities, Kermit — 1338 functions / 943 globals / 11661 statements lowered to HIR from 26 source files. Handles LITERALLY macro chains, `$INCLUDE` with CP/M device designators, binary literals, record field access, EXTERNAL procedures, all PL/M-80 statement forms. See [ADR-0014](docs/adr/0014-plm80-frontend-strategy.md).
 
-**Pipeline emit flags** (works with `.plm` and `.nanz` input):
+**Pipeline emit flags** (works with all frontends):
 
 ```bash
-mz program.plm --emit=nanz       # Transpile to Nanz surface syntax (round-trip)
-mz program.plm --emit=hir        # HIR typed-tree dump (types on every node)
-mz program.plm --emit=mir2-raw   # MIR2 before optimisation (DSE/ReorderBlocks)
+mz program.plm --emit=nanz       # Transpile PL/M → Nanz (round-trip)
+mz program.pas --emit=lanz       # Transpile Pascal → Lanz
+mz program.lanz --emit=nanz      # Transpile Lanz → Nanz
+mz program.plm --emit=hir        # HIR typed-tree dump
 mz program.plm --emit=mir2       # MIR2 after optimisation passes
-mz program.plm                   # .a80 assembly (default)
 mz program.plm -o prog.com -t cpm  # Assemble to CP/M binary
 ```
 
 The Nanz transpiler is lossless: `mz prog.plm --emit=nanz | mz --stdin` produces
 byte-identical assembly to compiling `.plm` directly.
+
+See [Chapter 21 of the Nanz Language Book](docs/Nanz_Language_Book_v5.md) for the full cross-language import guide.
 
 ---
 
@@ -781,14 +818,16 @@ minz/
 
 ## Current Status (March 2026)
 
-**Active pipeline:** Nanz/PL/M-80 → HIR → MIR2 → Z80 (production) / QBE (native) / 6502 (experimental).
+**Active pipeline:** Nanz/Lanz/Lizp/PL/M-80/Pascal → HIR → MIR2 → Z80 (production) / QBE (native) / 6502 (experimental).
 
-**Metrics (verified 2026-03-13):**
+**Metrics (verified 2026-03-15):**
 
 | | |
 |---|---|
-| **Nanz showcase** | 23/23 compile + verify |
-| **Go test packages** | 20/20 pass |
+| **Language frontends** | 5 (Nanz, Lanz, Lizp, PL/M-80, Pascal) |
+| **Nanz showcase** | 34/34 compile + verify |
+| **Compile-time asserts** | 45/45 across all 5 frontends |
+| **Go test packages** | 26/26 pass |
 | **6502 backend** | 35/35 E2E tests |
 | **Z80 emulator** | 1335/1335 FUSE tests (100%) |
 | **PL/M-80 corpus** | 26/26 Intel 80 Tools files (100%) |

@@ -1,4 +1,4 @@
-# The Nanz Language Book — v5.2
+# The Nanz Language Book — v5.3
 
 > **Modern language. Vintage iron. Zero overhead.**
 >
@@ -46,6 +46,7 @@
 - [Appendix E: What's New in v4.1](#appendix-e-whats-new-in-v41)
 - [Appendix F: What's New in v5](#appendix-f-whats-new-in-v5)
 - [Appendix G: What's New in v5.2](#appendix-g-whats-new-in-v52)
+- [Appendix H: What's New in v5.3](#appendix-h-whats-new-in-v53)
 
 ---
 
@@ -2493,21 +2494,55 @@ This is **Rust-style derive, not C++ templates:**
 
 ## Chapter 21: Cross-Language Imports
 
-### 21.1 Three Languages, One Pipeline
+### 21.1 Five Languages, One Pipeline
 
-Nanz can import modules written in three different source languages:
+The MinZ compiler is not a single-language compiler. It is a **multi-frontend compilation system** — five source languages, one shared backend. Every frontend parses to the same HIR (High-level IR), which flows through the same MIR2 optimizer, the same PBQP register allocator, and the same Z80 codegen. Cross-language imports are first-class: no FFI wrappers, no marshalling, no overhead.
 
-| Extension | Language | Parser |
-|---|---|---|
-| `.nanz` | Nanz | Native Participle parser |
-| `.lanz` | Lanz (S-expressions) | Lanz S-expression parser |
-| `.plm` | PL/M-80 | PL/M-80 parser |
+```
+  .nanz ──→ nanz.Parse()    ──┐
+  .lanz ──→ lanz.Compile()  ──┤
+  .lizp ──→ lizp.Compile()  ──┼──→ *hir.Module ──→ MIR2 ──→ Z80/6502/QBE
+  .plm  ──→ plm.Compile()   ──┤
+  .pas  ──→ pascal.Compile() ──┘
+```
 
-All three parse to the same HIR (High-level IR), which then flows through the shared MIR2 → Z80 pipeline. Cross-language imports are first-class — no FFI wrappers, no marshalling, no overhead.
+| Extension | Language | Era | Purpose |
+|---|---|---|---|
+| `.nanz` | Nanz | 2025 | Primary language — modern syntax, full features |
+| `.lanz` | Lanz | 2025 | S-expression IR — compiler interchange format |
+| `.lizp` | Lizp | 2025 | Lisp dialect — desugars macros, threads to Lanz |
+| `.plm` | PL/M-80 | 1976 | Intel's systems language — CP/M legacy code |
+| `.pas` | Pascal | 1983 | Turbo Pascal — retro computing education |
 
-### 21.2 Importing Lanz Modules
+The key insight: **all five produce identical HIR**. A function written in Pascal compiles to the same Z80 instructions as the same function written in Nanz or Lanz. The optimizer doesn't know — or care — which frontend generated the code.
 
-Lanz is the compiler's S-expression representation — compact, unambiguous, ideal for generated code:
+### 21.2 Why Five Frontends?
+
+Each frontend exists for a specific reason:
+
+**Nanz** is the primary development language. It has the richest syntax — structs, enums, iterators, lambdas, `@smc`, `@derive`, pipe operators, pattern matching. If you're writing new code, you write Nanz.
+
+**Lanz** is the compiler's S-expression format. It maps 1:1 to HIR — every HIR node has an exact Lanz representation. This makes Lanz the universal interchange format:
+- `--emit=lanz` dumps any program as Lanz (round-trips perfectly)
+- `@derive_*` metafunctions generate Lanz internally
+- Compiler developers use Lanz to inspect and debug HIR output
+- It's the "assembly language of HIR" — unambiguous, minimal, complete
+
+**Lizp** is a Lisp dialect built on top of Lanz. Where Lanz is minimal, Lizp adds syntactic sugar — `defun`/`defmacro`/`defglobal`, `cond`/`when`/`unless`, `dotimes`, `setq`, `progn`, threading macros (`->`, `->>`), and user-defined macros. Lizp desugars to Lanz before compilation. It's for people who think in s-expressions and want macro power.
+
+**PL/M-80** is Intel's language from 1976 — used to write CP/M, ISIS, and early microcomputer systems software. The MinZ PL/M parser lets you take genuine 1970s/80s source code and compile it through a modern optimizer. Useful for:
+- Importing vintage CP/M utility routines without rewriting
+- Gradual migration of legacy codebases
+- Historical computing research and preservation
+
+**Pascal** is the Turbo Pascal dialect. The MinZ Pascal frontend handles programs with `const`, `var`, `type`, `procedure`, `function`, `record`, `array`, `for`/`while`/`repeat`/`case`, and `uses` clauses. It generates CP/M runtime functions (ConOut, WriteLn, Halt) directly as HIR with inline Z80 asm. Useful for:
+- Teaching — Pascal is widely taught as a first language
+- Retro computing — authentic Turbo Pascal programs running on Z80
+- Cross-validation — same algorithm in different syntax catches bugs
+
+### 21.3 Importing Lanz Modules
+
+Lanz is compact, unambiguous, ideal for generated or machine-readable code:
 
 ```lisp
 ; mathlib.lanz
@@ -2530,7 +2565,27 @@ assert inc(3) == 4
 
 The compiler detects `.lanz` extension, parses S-expressions into HIR, and merges the functions. At Z80 level, `double` compiles to `ADD A, A / RET` — identical to writing it in Nanz.
 
-### 21.3 Importing PL/M-80 Modules
+### 21.4 Importing Lizp Modules
+
+Lizp adds Lisp-style macros and syntactic sugar on top of Lanz:
+
+```lisp
+; macrolib.lizp
+(defmacro inc! (x) (set x (+ x 1)))
+(defun lizp_double ((x u8)) -> u8 (return (+ x x)))
+(defun lizp_inc ((x u8)) -> u8 (return (1+ x)))
+```
+
+```nanz
+import macrolib { lizp_double, lizp_inc }
+
+assert lizp_double(5) == 10
+assert lizp_inc(3) == 4
+```
+
+The Lizp desugarer expands macros, converts `defun` → `fun`, `1+` → `(+ x 1)`, and threading macros into nested calls — all before the Lanz parser sees it. The result is pure HIR, indistinguishable from Nanz-generated code.
+
+### 21.5 Importing PL/M-80 Modules
 
 PL/M-80 is Intel's language from the 1970s — used to write CP/M and early microcomputer software. Nanz can import PL/M procedures directly:
 
@@ -2554,7 +2609,30 @@ assert use_plm(5, 1) == 6
 
 PL/M names are uppercased by convention. The PL/M parser maps `BYTE` → `u8`, `ADDRESS` → `u16`, and PL/M control structures to HIR equivalents.
 
-### 21.4 Module Resolution by Extension
+### 21.6 Importing Pascal Modules
+
+Turbo Pascal programs can be imported just like any other frontend:
+
+```pascal
+{ pascal_math.pas }
+program PascalMath;
+function Double(X: Integer): Integer;
+begin
+  Double := X + X;
+end;
+begin
+end.
+```
+
+```nanz
+import pascal_math { DOUBLE }
+
+assert DOUBLE(21) == 42
+```
+
+Pascal names are uppercased (Turbo Pascal convention). The Pascal frontend maps `Integer` → `i16`, `Byte` → `u8`, `Char` → `u8`, `Boolean` → `bool`, and generates HIR with correct CP/M calling conventions for I/O procedures.
+
+### 21.7 Module Resolution by Extension
 
 The import system resolves modules by searching for files in order:
 
@@ -2564,11 +2642,14 @@ import mylib.math { add }
 
 1. Look for `mylib/math.nanz` → parse as Nanz
 2. Look for `mylib/math.lanz` → parse as Lanz
-3. Look for `mylib/math.plm` → parse as PL/M-80
-4. Look for `mylib.nanz` (single file) → parse as Nanz
-5. Error: module not found
+3. Look for `mylib/math.lizp` → parse as Lizp
+4. Look for `mylib/math.plm` → parse as PL/M-80
+5. Look for `mylib/math.pas` → parse as Pascal
+6. Error: module not found
 
-### 21.5 Safety: Circular Import Detection
+This means you can drop a `.plm` file next to your `.nanz` source and import it without any configuration. The compiler figures out the language from the extension.
+
+### 21.8 Safety: Circular Import Detection
 
 The parser tracks the import stack and rejects circular dependencies:
 
@@ -2581,19 +2662,67 @@ The parser tracks the import stack and rejects circular dependencies:
 error: circular import detected: test.nanz → a.nanz → b.nanz → a.nanz
 ```
 
-### 21.6 Why Cross-Language Matters
+Circular detection works across language boundaries — a `.nanz` → `.lanz` → `.nanz` cycle is caught.
 
-**Legacy code reuse:** Import existing PL/M-80 CP/M utilities without rewriting them. The MinZ PL/M parser handles 26/26 Intel reference files (100%).
+### 21.9 Universal Compile-Time Assertions
+
+All five frontends support compile-time assertions through the same `hir.Assert` pipeline. The syntax differs, but the semantics are identical — every assert runs through dual-VM verification (MIR2 VM + Z80 binary).
+
+**Nanz:**
+```nanz
+assert double(5) == 10
+```
+
+**Lanz:**
+```lisp
+(assert double 5 == 10)
+```
+
+**Lizp:**
+```lisp
+(assert double 5 == 10)
+```
+
+**PL/M-80:**
+```plm
+ASSERT DOUBLE(5) = 10;
+```
+
+**Pascal:**
+```pascal
+assert Double(5) = 10;
+```
+
+All five produce the same `hir.Assert{FuncName: "double", Args: [5], Expected: 10}`. All five run through the same dual-VM verification. This is a powerful cross-validation tool: if you write the same function in two languages and both pass asserts, you've verified both the function logic *and* both frontend parsers.
+
+### 21.10 Transpilation Between Frontends
+
+The `--emit` flag lets you convert between frontends:
+
+```bash
+mz program.plm --emit=nanz -o program.nanz    # PL/M → Nanz
+mz program.pas --emit=lanz -o program.lanz    # Pascal → Lanz
+mz program.lanz --emit=nanz -o program.nanz   # Lanz → Nanz
+mz program.nanz --emit=lanz -o program.lanz   # Nanz → Lanz (round-trips)
+```
+
+This enables gradual migration. Take a PL/M-80 codebase, transpile to Nanz, clean up the output, and you have modern source code that compiles through the same pipeline with the same optimizations.
+
+### 21.11 Why Cross-Language Matters
+
+**Legacy code reuse:** Import existing PL/M-80 CP/M utilities or Turbo Pascal routines without rewriting them. Mixed `.plm` + `.pas` + `.nanz` programs compile through the same pipeline.
 
 **Metaprogramming output:** `@derive_*` metafunctions generate Lanz internally — the same format you can write by hand and import.
 
-**Testing:** Write test modules in Lanz for precise control over HIR, then import from Nanz to verify integration.
+**Bug detection:** Implementing the same algorithm in multiple frontends is a powerful testing technique. If Pascal and Nanz disagree on `gcd(12, 8)`, one of the frontends has a bug. The five-way assert comparison caught real bugs during development — `defextern` hex desugaring in Lizp, register convention issues in Pascal's CP/M runtime.
 
-**Gradual migration:** Port a PL/M codebase to Nanz one module at a time. Mixed `.plm` + `.nanz` programs compile through the same pipeline with the same optimizations.
+**Gradual migration:** Port a PL/M codebase to Nanz one module at a time. Port a Turbo Pascal program to modern Nanz while keeping it running at every step.
 
-### 21.7 Full Test Coverage
+**Education:** Students can start with Pascal (familiar syntax), see the same code in Lanz (understand how the compiler sees it), and graduate to Nanz (unlock iterators, SMC, lambdas).
 
-The import system is tested with 9 test cases:
+### 21.12 Full Test Coverage
+
+The import system is tested with 11 test cases:
 
 | Test | Covers |
 |---|---|
@@ -2606,6 +2735,7 @@ The import system is tested with 9 test cases:
 | `TestImportCircularDetection` | Circular dependency error |
 | `TestImportNotFound` | Missing module error |
 | `TestImportLanzModule` | `.lanz` cross-language import |
+| `TestImportLizpModule` | `.lizp` cross-language import |
 | `TestImportPLMModule` | `.plm` cross-language import |
 
 ---
@@ -3017,6 +3147,47 @@ Features shipped since v5 (2026-03-15):
 cd minzc && ./mz ../examples/zx/tetris.nanz -o /tmp/tetris.a80
 ./mza /tmp/tetris.a80 -o /tmp/tetris.bin && ./mzx --run /tmp/tetris.bin@8000
 ```
+
+---
+
+## Appendix H: What's New in v5.3
+
+Features shipped since v5.2 (2026-03-15):
+
+| Feature | Chapter | Status |
+|---------|---------|--------|
+| Five-frontend architecture | 21 | Nanz, Lanz, Lizp, PL/M-80, Pascal |
+| Pascal frontend | 21.2, 21.6 | Turbo Pascal → HIR → Z80 (CP/M target) |
+| Lizp frontend with macros | 21.2, 21.4 | `defmacro`, threading, desugars to Lanz |
+| Universal compile-time assert | 21.9 | Same `hir.Assert` pipeline in all 5 frontends |
+| Pascal → CP/M hello world | 21.6 | `WriteLn` → BDOS ConOut via inline asm |
+| Cross-frontend bug detection | 21.11 | Same algorithm, five syntaxes → catches parser bugs |
+| Transpilation (`--emit`) | 21.10 | Convert between any pair of frontends |
+| `.lizp` cross-language import | 21.4, 21.12 | `import macrolib { lizp_double }` |
+| `.pas` cross-language import | 21.6, 21.12 | `import pascal_math { DOUBLE }` |
+
+### Five Frontends, One Pipeline
+
+The compiler now supports five source languages, all converging on the same HIR → MIR2 → Z80 pipeline. A function `double(x) = x + x` written in any of the five languages produces the same Z80 output: `ADD A, A / RET`.
+
+The compile-time assert system — dual-VM verification on both MIR2 VM and Z80 binary — works identically across all frontends. This was validated with 9 assert tests per language (double, add, max_byte) across Nanz, Lanz, Lizp, PL/M-80, and Pascal.
+
+### Pascal Hello World on CP/M
+
+```pascal
+program Hello;
+begin
+  WriteLn('Hello from Pascal on Z80!');
+end.
+```
+
+```bash
+mz hello.pas -t cpm -o hello.com
+mze -t cpm hello.com
+# Output: Hello from Pascal on Z80!
+```
+
+The Pascal lowerer generates CP/M BDOS wrappers (ConOut, WriteStr, WriteCrLf) directly as HIR functions with inline Z80 asm, ensuring correct register placement (C=function, DE=parameter, CALL $0005).
 
 ---
 
