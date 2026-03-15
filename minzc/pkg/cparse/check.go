@@ -5062,6 +5062,10 @@ out:
 		n.setPure(false) //TODO can do better
 	case PrimaryExpressionGeneric: // GenericSelection
 		n.typ = n.GenericSelection.check(c, mode, &n.purer, &n.val)
+	case PrimaryExpressionObjCMessage: // [receiver message:args] (MinZ fork)
+		// ObjC messages are type-checked in the ObjC lowerer, not here.
+		// Default to int return type for now.
+		n.typ = c.intT
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}

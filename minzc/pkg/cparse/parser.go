@@ -1101,6 +1101,7 @@ func (p *parser) isExpression(ch rune) bool {
 		'*',
 		'+',
 		'-',
+		'[', // ObjC message expression (MinZ fork)
 		'~',
 		rune(ALIGNOF),
 		rune(ANDAND),
@@ -2172,6 +2173,7 @@ func (p *parser) unaryExpression(lp Token, tn *TypeName, rp Token, checkTypeName
 		}
 	case
 		'(',
+		'[', // ObjC message expression (MinZ fork)
 		rune(CHARCONST),
 		rune(FLOATCONST),
 		rune(GENERIC),

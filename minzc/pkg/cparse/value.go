@@ -1459,6 +1459,8 @@ func (n *PrimaryExpression) eval(c *ctx, mode flags) (r Value) {
 		// nop
 	case PrimaryExpressionGeneric: // GenericSelection
 		// nop
+	case PrimaryExpressionObjCMessage: // [receiver message:args] (MinZ fork)
+		// nop — ObjC messages are not constant-evaluable
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
