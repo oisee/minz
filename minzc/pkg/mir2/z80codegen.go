@@ -302,6 +302,7 @@ type z80cg struct {
 	cmpAndZero  map[Reg]bool    // dst reg → comparison used AND A (rhs=0), use NZ/Z not NC/C
 	cmpNeedsTwo map[Reg]bool    // dst reg → CmpGt/CmpLe with lhs in A, needs two-JP in BrIf
 	callFlags   map[Reg]CmpCond // dst reg of OpCall → FlagCond when callee returns ClassFlag
+	clobberCache map[string]map[string]bool // func name → set of clobbered phys reg names
 	constVals  map[Reg]int64 // virtual reg → compile-time constant value (for peepholes)
 	deadConsts map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
 
@@ -3577,6 +3578,17 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.emitCallArgs(inst.Args, callee.Contract.Params)
 	}
 
+	// ── Caller-save: PUSH registers that the callee clobbers ─────────────
+	// Compute which physical registers the callee will destroy, then save
+	// any that are currently allocated to virtual regs in the caller.
+	var callerSavePairs []string // pairs to PUSH before / POP after CALL
+	if callee != nil {
+		callerSavePairs = g.callerSavePairs(inst, callee)
+		for _, pair := range callerSavePairs {
+			g.emitf("    PUSH %s", pair)
+		}
+	}
+
 	// Tail call optimisation: if this is the tail call instruction detected by
 	// genBlock, emit JP instead of CALL so the callee's RET returns to our caller.
 	if inst == g.tailCallInst {
@@ -3599,6 +3611,11 @@ func (g *z80cg) genCall(inst *Inst) {
 		}
 	} else {
 		g.emitf("    CALL %s", sym)
+	}
+
+	// ── Caller-save: POP in reverse order ────────────────────────────────
+	for i := len(callerSavePairs) - 1; i >= 0; i-- {
+		g.emitf("    POP %s", callerSavePairs[i])
 	}
 
 	// The CALL clobbers A and F (volatile registers on Z80).  Remove physOverride
@@ -5126,6 +5143,100 @@ func isRecursive(f *Func) bool {
 		}
 	}
 	return false
+}
+
+// callerSavePairs returns the Z80 register pairs that must be PUSH'd/POP'd
+// around a CALL to protect live values from the callee's clobbers.
+//
+// Strategy: compute the callee's clobber set (physical reg names), then check
+// which pairs (BC, DE, HL) contain registers allocated to virtual regs in the
+// caller that are NOT arguments or the result of this call.
+// AF is not saved because A is volatile and always clobbered by calls.
+func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
+	if callee == nil {
+		return nil
+	}
+
+	// Get callee's clobbered registers (cached).
+	clobberedRegs, ok := g.clobberCache[inst.Sym]
+	if !ok {
+		clobberedRegs = make(map[string]bool)
+		for _, name := range computeClobbers(callee, g.ar) {
+			clobberedRegs[name] = true
+		}
+		if g.clobberCache == nil {
+			g.clobberCache = make(map[string]map[string]bool)
+		}
+		g.clobberCache[inst.Sym] = clobberedRegs
+	}
+	if len(clobberedRegs) == 0 {
+		return nil
+	}
+
+	// Collect physical regs allocated to caller's virtual regs, excluding
+	// call args and the call's result reg.
+	excluded := make(map[Reg]bool)
+	for _, a := range inst.Args {
+		excluded[a] = true
+	}
+	if inst.Dst != NoReg {
+		excluded[inst.Dst] = true
+	}
+	for _, er := range inst.ExtraRets {
+		excluded[er] = true
+	}
+
+	livePhys := make(map[string]bool)
+	for r, loc := range g.ar.Locs {
+		if excluded[r] || loc.Kind != LocReg {
+			continue
+		}
+		if clobberedRegs[loc.Name] {
+			livePhys[loc.Name] = true
+		}
+	}
+
+	// Map individual registers to PUSH-able pairs.
+	// Z80 can only PUSH/POP pairs: BC, DE, HL (and AF, IX, IY).
+	pairNeeded := make(map[string]bool)
+	regToPair := map[string]string{
+		"B": "BC", "C": "BC",
+		"D": "DE", "E": "DE",
+		"H": "HL", "L": "HL",
+	}
+	for reg := range livePhys {
+		if pair, ok := regToPair[reg]; ok {
+			pairNeeded[pair] = true
+		}
+	}
+
+	// Return in stable order: BC, DE, HL.
+	var result []string
+	for _, pair := range []string{"BC", "DE", "HL"} {
+		if pairNeeded[pair] {
+			result = append(result, pair)
+		}
+	}
+	return result
+}
+
+// classPhysRegs returns physical register names associated with a register class.
+func classPhysRegs(cls RegClass) []string {
+	switch cls {
+	case ClassAcc:
+		return []string{"A"}
+	case ClassCounter:
+		return []string{"B"}
+	case ClassGeneral:
+		return []string{"B", "C", "D", "E", "H", "L"}
+	case ClassPointer:
+		return []string{"H", "L", "D", "E"}
+	case ClassIndex:
+		return []string{"D", "E"}
+	case ClassPair:
+		return []string{"H", "L", "D", "E", "B", "C"}
+	}
+	return nil
 }
 
 // computeClobbers returns the sorted list of physical register names written by f

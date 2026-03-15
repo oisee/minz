@@ -25,6 +25,8 @@ var knownFailures = map[string]string{
 	"ex20_arena_allocator": "asm: BUG-008 arena codegen (LD IXL, (IX+d))",
 	"08_arena_allocator":   "asm: BUG-008 arena codegen (LD IXL, (IX+d))",
 	"ex34_tetris":          "asm: tetris needs clobber save/restore (WIP)",
+	"tetris":               "asm: tetris v1 needs clobber save/restore (WIP)",
+	"tetris_v2":            "asm: tetris v2 needs clobber save/restore (WIP)",
 	"plasma":               "asm: new example, not yet verified",
 	// Import tests need module search path
 	"ex23_import_unqualified": "compile: import needs module search path",

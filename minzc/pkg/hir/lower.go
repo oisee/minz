@@ -1404,6 +1404,11 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 					// FieldExpr uses this address as base for offset computation.
 					return addr
 				}
+				if _, isArray := g.Ty.(*mir2.ArrayTy); isArray {
+					// Array global: return the address (pointer to first element).
+					// IndexExpr uses this address as base for ptr_add.
+					return addr
+				}
 				// Scalar global: load and return the value.
 				return l.bld.Load(addr, g.Ty, classForExpr(g.Ty))
 			}
