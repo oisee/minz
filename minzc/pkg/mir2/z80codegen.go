@@ -1455,6 +1455,11 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsRhs = ""
 		g.genMul(inst)
 
+	case OpDiv, OpSDiv, OpMod:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
+		g.genDivMod(inst)
+
 	case OpAnd:
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
@@ -3146,6 +3151,188 @@ func (g *z80cg) genMul32(inst *Inst) {
 
 	// Fallback for non-HL dst or complex constants.
 	g.comment(fmt.Sprintf("TODO: 32-bit mul by %d in %s", cv, dst))
+}
+
+// ── Division / Modulo ─────────────────────────────────────────────────────────
+//
+// Z80 has no hardware divide. We use:
+//   u8:  repeated subtraction — A / C → B=quotient, A=remainder
+//   u16: shift-and-subtract long division — HL / DE → HL=quotient, DE=remainder
+//
+// OpDiv/OpMod return quotient/remainder respectively.
+// OpSDiv is signed: negate operands, unsigned div, fix sign.
+
+func (g *z80cg) genDivMod(inst *Inst) {
+	w := inst.Ty.Width()
+	if w <= 8 {
+		g.genDivMod8(inst)
+	} else if w <= 16 {
+		g.genDivMod16(inst)
+	} else {
+		g.comment(fmt.Sprintf("TODO: %d-bit div/mod", w))
+	}
+}
+
+// genDivMod8 — 8-bit unsigned division via shift-and-subtract (restoring).
+//
+// Based on DIVU111 from Dark / X-Trade, Spectrum Expert #01 (1997):
+//
+//	Input: B = dividend, C = divisor
+//	Output: B = quotient, A = remainder
+//	Cost: 236–244 T-states
+//
+// Algorithm: binary long division. Shift dividend left through carry
+// into accumulator (A). Try subtracting divisor; if it fits, set the
+// quotient bit via INC B (bit 0 is free after SLA B).
+func (g *z80cg) genDivMod8(inst *Inst) {
+	dst := g.loc(inst.Dst)
+	lhs := g.loc(inst.Src[0])
+	rhs := g.loc(inst.Src[1])
+	idx := g.trampIdx
+	g.trampIdx++
+
+	isSigned := inst.Op == OpSDiv
+	wantMod := inst.Op == OpMod
+
+	if isSigned {
+		g.comment("signed 8-bit div: treating as unsigned (TODO: sign fixup)")
+	}
+
+	// Setup: B = dividend, C = divisor.
+	if lhs == "B" {
+		// already there
+	} else if lhs == "A" {
+		g.emit("    LD B, A")
+	} else {
+		g.emitf("    LD B, %s", lhs)
+	}
+	if rhs != "C" {
+		g.emitf("    LD C, %s", rhs)
+	}
+
+	g.emit("    XOR A")          // clear accumulator (remainder workspace)
+	g.emit("    LD D, 8")        // 8 bits to process
+	g.emitf(".div8_%d:", idx)
+	g.emit("    SLA B")          // shift dividend left — MSB → CF
+	g.emit("    RLA")            // shift CF into accumulator
+	g.emit("    CP C")           // try subtract divisor
+	g.emitf("    JR C, .div8_skip_%d", idx) // A < C → skip
+	g.emit("    SUB C")          // subtract divisor
+	g.emit("    INC B")          // set quotient bit 0 (free after SLA)
+	g.emitf(".div8_skip_%d:", idx)
+	g.emit("    DEC D")
+	g.emitf("    JR NZ, .div8_%d", idx)
+	// Result: B = quotient, A = remainder.
+
+	if wantMod {
+		if dst != "A" {
+			g.emitf("    LD %s, A", dst)
+			g.setCopy(dst, "A")
+		}
+	} else {
+		if dst == "A" {
+			g.emit("    LD A, B")
+		} else if dst != "B" {
+			g.emitf("    LD %s, B", dst)
+		}
+		g.setCopy(dst, "B")
+	}
+	g.invalidate("A")
+	g.invalidate("B")
+	g.invalidate("D")
+	g.invalidate("F")
+}
+
+// genDivMod16 — 16-bit unsigned division via shift-and-subtract long division.
+//
+//	HL / DE → HL=quotient, BC=remainder
+//
+// Classic Z80 restoring division (16 iterations):
+//
+//	BC = 0 (remainder), A = 16 (counter)
+//	loop:
+//	  ADD HL, HL       ; shift dividend left, MSB → CF
+//	  RL C; RL B       ; shift CF into remainder
+//	  PUSH HL; LD H,B; LD L,C; SBC HL,DE  ; trial: remainder - divisor
+//	  if no borrow: BC = HL (accept), POP HL, SET 0,L (quotient bit = 1)
+//	  if borrow:    POP HL (quotient bit stays 0, BC unchanged)
+//	  DEC A; JR NZ loop
+func (g *z80cg) genDivMod16(inst *Inst) {
+	dst := g.loc(inst.Dst)
+	lhs := g.loc(inst.Src[0])
+	rhs := g.loc(inst.Src[1])
+	idx := g.trampIdx
+	g.trampIdx++
+
+	wantMod := inst.Op == OpMod
+	isSigned := inst.Op == OpSDiv
+
+	if isSigned {
+		g.comment("signed 16-bit div: treating as unsigned (TODO: sign fixup)")
+	}
+
+	// Setup: HL = dividend, DE = divisor.
+	if lhs != "HL" {
+		g.emitf("    LD H, %s", highByte(lhs))
+		g.emitf("    LD L, %s", lowByte(lhs))
+	}
+	if rhs != "DE" {
+		g.emitf("    LD D, %s", highByte(rhs))
+		g.emitf("    LD E, %s", lowByte(rhs))
+	}
+
+	// BC = 0 (remainder accumulator), A = 16 (iteration counter).
+	g.emit("    LD BC, 0")
+	g.emit("    LD A, 16")
+
+	// Main loop.
+	g.emitf(".div16_%d:", idx)
+	g.emit("    ADD HL, HL")    // shift dividend left; MSB → CF
+	g.emit("    RL C")          // shift CF into remainder (BC)
+	g.emit("    RL B")
+	g.emit("    PUSH HL")       // save quotient-in-progress
+	g.emit("    LD H, B")       // HL = BC (remainder)
+	g.emit("    LD L, C")
+	g.emit("    OR A")          // clear CF for SBC
+	g.emit("    SBC HL, DE")    // trial subtract: remainder - divisor
+	g.emitf("    JR C, .div16_skip_%d", idx) // borrow → remainder < divisor
+	// Accept: remainder = HL (after subtract).
+	g.emit("    LD B, H")
+	g.emit("    LD C, L")
+	g.emit("    POP HL")        // restore quotient
+	g.emit("    SET 0, L")      // this quotient bit = 1
+	g.emit("    DEC A")
+	g.emitf("    JR NZ, .div16_%d", idx)
+	g.emitf("    JR .div16_done_%d", idx)
+	// Skip: remainder stays, quotient bit stays 0.
+	g.emitf(".div16_skip_%d:", idx)
+	g.emit("    POP HL")        // restore quotient (bit 0 = 0)
+	g.emit("    DEC A")
+	g.emitf("    JR NZ, .div16_%d", idx)
+
+	g.emitf(".div16_done_%d:", idx)
+	// Result: HL = quotient, BC = remainder.
+	if wantMod {
+		// Want remainder (BC) → move to dst.
+		if dst == "HL" {
+			g.emit("    LD H, B")
+			g.emit("    LD L, C")
+		} else if dst != "BC" {
+			g.emitf("    LD %s, B", highByte(dst))
+			g.emitf("    LD %s, C", lowByte(dst))
+		}
+	} else {
+		// Want quotient (HL) → move to dst if needed.
+		if dst != "HL" {
+			g.emitf("    LD %s, H", highByte(dst))
+			g.emitf("    LD %s, L", lowByte(dst))
+		}
+	}
+	g.invalidate("A")
+	g.invalidate("BC")
+	g.invalidate("DE")
+	g.invalidate("HL")
+	g.invalidate("F")
 }
 
 // ── Type conversions ──────────────────────────────────────────────────────────
