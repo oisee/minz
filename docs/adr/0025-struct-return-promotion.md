@@ -1,7 +1,14 @@
 # ADR-0025: Struct-Return Promotion to Tuple
 
 ## Status
-Proposed (2026-03-15)
+**Implemented** (2026-03-15) — `pkg/c89/promote.go`
+
+### Implementation Notes
+- `PromoteStructReturns()` runs automatically after C89 lowering
+- SSS detection: all scalar fields, ≤4 bytes total, ≤4 fields
+- Rewrites: function signature (RetTy→RetTys), return statements (struct lit→tuple), call sites (VarDecl+FieldExpr→TupleLetStmt+VarRefExpr)
+- 3 unit tests: DivmodStruct, NotEligible_LargeStruct, SSS_Detection
+- **Known gap**: C89 lowerer doesn't yet produce StructLitExpr for brace-initialized struct returns (`DivResult res = {a/b, a%b}; return res;`). Only direct struct literal returns are promoted. Tracked for future work.
 
 ## Context
 

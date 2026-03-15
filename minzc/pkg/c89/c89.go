@@ -147,6 +147,10 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		return nil, fmt.Errorf("c89 lower: %w", err)
 	}
 
+	// Struct-return promotion (ADR-0025): small struct returns → tuple returns.
+	// Must run before merge so promoted signatures are visible to importers.
+	PromoteStructReturns(l.hm)
+
 	// Merge imported modules into this module.
 	if len(importedModules) > 0 {
 		interop.MergeInto(l.hm, importedModules)
