@@ -312,6 +312,69 @@ cannot be folded. Only fold when lhs is an 8-bit register (A/B/C/D/E/H/L).
 
 ---
 
+## BUG-012 ✅ FIXED InlineTrivial inlines pointer-heavy functions
+
+**Fixed in:** 2026-03-15 (47f277c)
+
+**Symptom:** `CALL color_attr` and `CALL piece_color` missing from render()
+asm output. Their function bodies (addr_of + ext + ptr_add + load) appeared
+inlined instead, but with 16-bit pointers allocated to 8-bit registers →
+`LD B, (A)`, `POP A` (invalid Z80).
+
+**RCA:** `InlineTrivial(m, 4)` in pipeline.go inlined functions with ≤4
+instructions. `color_attr` has exactly 4 (addr_of, ext, ptr_add, load).
+When inlined into `render()` (high register pressure, 4 CALLs per loop
+iteration), PBQP ran out of pair registers and allocated pointers to
+8-bit regs.
+
+**Discovery:** Added debug comments to genInst — confirmed genInst was
+NEVER called for color_attr/piece_color OpCall instructions. Traced to
+InlineTrivial removing them before codegen.
+
+**Fix:** `isTrivialFunc` now excludes functions containing OpAddrOf or
+OpPtrAdd — they require 16-bit pair registers that may not be available
+in register-starved callers.
+
+---
+
+## BUG-013 ✅ FIXED ADD HL, IX/IY (invalid Z80)
+
+**Fixed in:** 2026-03-15 (47f277c)
+
+**Symptom:** `ADD HL, IX` in board_set — invalid Z80 instruction.
+
+**RCA:** 16-bit ADD codegen emitted `ADD HL, %s` without checking if rhs
+is IX/IY. Z80 ADD HL only accepts BC/DE/HL/SP.
+
+**Fix:** Three code paths in genBinOp ADD guarded — route IX/IY through
+PUSH/POP + temp pair (BC or DE).
+
+---
+
+## BUG-014 🔴 OPEN Tetris v2 screen black — fill_cell + render output
+
+**Status:** Under investigation (profiled 2026-03-15)
+
+**Symptom:** Tetris v2 assembles clean (0 errors), game loop runs (1M
+instructions in 100 frames), but screen is entirely black.
+
+**Profiling data:**
+- zx_screen_addr called 35 times (expected 1600+ from fill_cell)
+- init_screen writes 6912 bytes (correct: 6144 pixel + 768 attr = 0x00)
+- render() calls zx_poke ~12K times but writes don't reach attr area
+- board likely always empty (cell=0 → color_attr(0) = black)
+
+**Hypotheses:**
+1. fill_cell loop exits early (D/C counter corrupted by zx_screen_addr clobbers despite PUSH/POP fix)
+2. board_get always returns 0 (pieces never lock to board)
+3. zx_attr_addr returns wrong addresses (codegen bug in address calculation)
+4. spawn_piece fails silently (piece type/position never set)
+
+**Next steps:** Add border markers, trace board_get return values, verify
+fill_cell loop counter preservation.
+
+---
+
 ## Summary table
 
 | Bug | Category | Severity | Fix size | Status |
@@ -327,3 +390,6 @@ cannot be folded. Only fold when lhs is an 8-bit register (A/B/C/D/E/H/L).
 | BUG-009 Array load [N]T | HIR lowerer | 🔴 | Trivial | ✅ Fixed 2026-03-15 |
 | BUG-010 Caller-save missing | Codegen | 🔴 | Medium | ✅ Fixed (temp) 2026-03-15 |
 | BUG-011 Dead const u16 cmp | Codegen (DCE) | 🔴 | Small | ✅ Fixed 2026-03-15 |
+| BUG-012 InlineTrivial ptr-op | Inliner+Allocator | 🔴 | Small | ✅ Fixed 2026-03-15 |
+| BUG-013 ADD HL, IX/IY | Codegen (16-bit ADD) | 🟡 | Small | ✅ Fixed 2026-03-15 |
+| BUG-014 Tetris black screen | Codegen/Logic | 🔴 | Unknown | Open (profiled) |
