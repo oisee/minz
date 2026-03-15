@@ -36,6 +36,9 @@ func (a *Assembler) processInstruction(line *Line) error {
 
 // encodeInstructionTable uses the table-driven approach to encode instructions
 func (a *Assembler) encodeInstructionTable(line *Line) ([]byte, error) {
+	// Thread JRS flag so encodeJRRel can reserve 3 bytes in pass 1
+	a.currentFromJRS = line.FromJRS
+
 	// Parse ADL suffix (e.g., "RST.LIL" -> "RST", ADLSuffixLIL)
 	baseMnemonic, adlSuffix := a.ParseADLSuffix(line.Mnemonic)
 
@@ -220,17 +223,19 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 		if err != nil {
 			return nil, false
 		}
-		
+
 		// In pass 2, calculate actual offset
-		if a.pass == 2 {
+		if a.pass >= 2 {
 			offset := target - a.currentAddr - 2
-			if offset < -128 || offset > 127 {
-				return nil, false // Out of range
+			if offset >= -128 && offset <= 127 {
+				return int8(offset), true
 			}
-			return int8(offset), true
+			// Out of JR range — return absolute target as int so
+			// encodeJRRel can auto-promote JR → JP (3 bytes).
+			return target, true
 		}
-		
-		// In pass 1, just accept it
+
+		// In pass 1, just accept it (return absolute address)
 		return target, true
 		
 	case OpTypeCondition:

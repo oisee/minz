@@ -113,7 +113,7 @@ fun rng_next() -> u8 {
     let bit: u16 = rng_state & 1
     rng_state = rng_state >> 1
     if bit == 1 {
-        rng_state = rng_state ^ 0xB400
+        rng_state = rng_state xor 0xB400
     }
     return u8(rng_state & 0xFF)
 }
@@ -594,7 +594,7 @@ fun main() -> void {
 
         // Input (edge-detect for single-press actions)
         let keys: u8 = read_input()
-        let changed: u8 = keys ^ prev_keys
+        let changed: u8 = keys xor prev_keys
         let new_keys: u8 = keys & changed
         prev_keys = keys
 

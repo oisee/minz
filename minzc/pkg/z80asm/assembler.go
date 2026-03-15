@@ -71,6 +71,9 @@ type Assembler struct {
 	// Multi-pass convergence for span-dependent optimization (JJ instruction)
 	instructionSizes map[int]int  // Line number -> instruction size from previous pass
 	sizeChanged      bool         // True if any instruction size changed this pass
+
+	// JRS context: set per-instruction so encodeJRRel can reserve 3 bytes in pass 1
+	currentFromJRS bool
 }
 
 // macroDefinitionState tracks a macro being defined
@@ -304,7 +307,7 @@ func NewAssembler() *Assembler {
 	a := &Assembler{
 		AllowUndocumented: true,
 		Strict:            false,
-		CaseSensitive:     false,
+		CaseSensitive:     true,
 		EnableMacros:      true,
 		CPUMode:           CPUModeZ80, // Default: classic Z80
 		symbols:           make(map[string]*Symbol),
@@ -558,10 +561,7 @@ func (a *Assembler) reset() {
 	targetSymbols := make(map[string]*Symbol)
 	if a.target != nil {
 		for symbol, addr := range a.target.Conventions.CommonSymbols {
-			symbolName := symbol
-			if !a.CaseSensitive {
-				symbolName = strings.ToUpper(symbol)
-			}
+			symbolName := a.symbolKey(symbol)
 			targetSymbols[symbolName] = &Symbol{
 				Name:    symbolName,
 				Value:   addr,
@@ -658,11 +658,18 @@ func (a *Assembler) processLine(line *Line) error {
 	return nil
 }
 
+// symbolKey normalises a symbol name for map lookup.
+// Case-insensitive mode upper-cases; case-sensitive mode preserves.
+func (a *Assembler) symbolKey(name string) string {
+	if !a.CaseSensitive {
+		return strings.ToUpper(name)
+	}
+	return name
+}
+
 // defineLabel defines a label at the current address
 func (a *Assembler) defineLabel(label string) error {
-	if !a.CaseSensitive {
-		label = strings.ToUpper(label)
-	}
+	label = a.symbolKey(label)
 
 	if a.pass == 1 {
 		// Check for redefinition
@@ -699,9 +706,7 @@ func (a *Assembler) recalculateSymbols() {
 
 // resolveSymbol resolves a symbol to its value
 func (a *Assembler) resolveSymbol(name string) (int, error) {
-	if !a.CaseSensitive {
-		name = strings.ToUpper(name)
-	}
+	name = a.symbolKey(name)
 	
 	if sym, exists := a.symbols[name]; exists && sym.Defined {
 		return sym.Value, nil

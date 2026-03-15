@@ -108,16 +108,15 @@ func TestZ80CostHierarchy(t *testing.T) {
 		return mir2.PhysLoc{}
 	}
 
-	// For ClassGeneral: A (2) < IXH (8) < stack (21) < mem (28).
-	// Shadow registers are InfCost for ClassGeneral — EXX codegen not yet implemented.
+	// For ClassGeneral: A (2) < IXH (8) < mem (28).
+	// Shadow registers and stack are InfCost — codegen not yet implemented.
 	a := ct.Cost(mir2.ClassGeneral, loc("A"))
 	ixh := ct.Cost(mir2.ClassGeneral, loc("IXH"))
-	stack := ct.Cost(mir2.ClassGeneral, loc("stack"))
 	mem := ct.Cost(mir2.ClassGeneral, loc("mem"))
 
-	if !(a < ixh && ixh < stack && stack < mem) {
-		t.Errorf("ClassGeneral cost hierarchy broken: A=%d IXH=%d stack=%d mem=%d",
-			a, ixh, stack, mem)
+	if !(a < ixh && ixh < mem) {
+		t.Errorf("ClassGeneral cost hierarchy broken: A=%d IXH=%d mem=%d",
+			a, ixh, mem)
 	}
 
 	// For ClassPointer: HL (0) < DE (4) < IX (8) < stack (InfCost or high)
@@ -129,15 +128,14 @@ func TestZ80CostHierarchy(t *testing.T) {
 		t.Errorf("ClassPointer cost hierarchy broken: HL=%d DE=%d IX=%d", hl, de, ix)
 	}
 
-	// For ClassFlag: F (0) < A (8) < stack (21) < mem (28)
+	// For ClassFlag: F (0) < A (8) < mem (28). Stack is InfCost (codegen not implemented).
 	flag := ct.Cost(mir2.ClassFlag, loc("F"))
 	flagA := ct.Cost(mir2.ClassFlag, loc("A"))
-	flagStack := ct.Cost(mir2.ClassFlag, loc("stack"))
 	flagMem := ct.Cost(mir2.ClassFlag, loc("mem"))
 
-	if !(flag < flagA && flagA < flagStack && flagStack < flagMem) {
-		t.Errorf("ClassFlag cost hierarchy broken: F=%d A=%d stack=%d mem=%d",
-			flag, flagA, flagStack, flagMem)
+	if !(flag < flagA && flagA < flagMem) {
+		t.Errorf("ClassFlag cost hierarchy broken: F=%d A=%d mem=%d",
+			flag, flagA, flagMem)
 	}
 }
 
@@ -195,14 +193,12 @@ func TestZ80CostIXYCheaperThanMemory(t *testing.T) {
 		return mir2.PhysLoc{}
 	}
 
-	// For ClassPointer: IX (8) < mem (InfCost — can't do pointer-via-mem!)
-	// Better check ClassPair: IX (8) < stack (21) < mem (28)
+	// For ClassPair: IX (8) < mem (28). Stack is InfCost (codegen not implemented).
 	ixCostPair := ct.Cost(mir2.ClassPair, loc("IX"))
-	stackCost := ct.Cost(mir2.ClassPair, loc("stack"))
 	memCost := ct.Cost(mir2.ClassPair, loc("mem"))
 
-	if !(ixCostPair < stackCost && stackCost < memCost) {
-		t.Errorf("ClassPair tier order: IX=%d stack=%d mem=%d", ixCostPair, stackCost, memCost)
+	if !(ixCostPair < memCost) {
+		t.Errorf("ClassPair tier order: IX=%d mem=%d", ixCostPair, memCost)
 	}
 }
 

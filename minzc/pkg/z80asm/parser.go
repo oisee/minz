@@ -16,6 +16,7 @@ type Line struct {
 	Operands   []string
 	Comment    string
 	IsBlank    bool
+	FromJRS    bool // true when expanded from JRS pseudo-instruction; pass 1 reserves 3 bytes
 }
 
 // ParseLine parses a single line of assembly

@@ -326,11 +326,10 @@ func expandJRS(line *Line) *Line {
 		cond := strings.ToUpper(strings.TrimSpace(line.Operands[0]))
 		switch cond {
 		case "NZ", "Z", "NC", "C":
-			// JR supports these — keep as JR
+			// JR supports these — keep as JR (encodeJRRel auto-promotes to JP)
 		case "PE", "PO", "P", "M":
 			newMnemonic = "JP"
 		}
-		// Unconditional JRS (operand is a label, not a condition) stays JR.
 	}
 	return &Line{
 		Number:   line.Number,
@@ -339,6 +338,7 @@ func expandJRS(line *Line) *Line {
 		Operands: line.Operands,
 		Comment:  line.Comment,
 		IsBlank:  line.IsBlank,
+		FromJRS:  true, // signal to encodeJRRel to reserve 3 bytes in pass 1
 	}
 }
 

@@ -284,10 +284,7 @@ func (a *Assembler) handleEQU(line *Line) error {
 	}
 	
 	// Define the symbol
-	label := line.Label
-	if !a.CaseSensitive {
-		label = strings.ToUpper(label)
-	}
+	label := a.symbolKey(line.Label)
 	
 	if a.pass == 1 {
 		if sym, exists := a.symbols[label]; exists && sym.Defined {

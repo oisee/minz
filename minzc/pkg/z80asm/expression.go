@@ -79,7 +79,7 @@ func (a *Assembler) EvaluateExpression(expr string) (int, error) {
 	
 	// Check for single symbol
 	if isValidSymbol(expr) {
-		if sym, ok := a.symbols[strings.ToUpper(expr)]; ok {
+		if sym, ok := a.symbols[a.symbolKey(expr)]; ok {
 			if sym.Defined || a.pass == 1 {
 				return sym.Value, nil
 			}
@@ -88,7 +88,7 @@ func (a *Assembler) EvaluateExpression(expr string) (int, error) {
 		}
 		// In pass 1, forward references are OK - create placeholder
 		if a.pass == 1 {
-			a.symbols[strings.ToUpper(expr)] = &Symbol{
+			a.symbols[a.symbolKey(expr)] = &Symbol{
 				Name:    expr,
 				Defined: false,
 			}

@@ -528,42 +528,60 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 	result := make([]byte, len(pattern.Encoding))
 	copy(result, pattern.Encoding)
 
+	// FromJRS: this JR was expanded from a JRS pseudo-instruction.
+	// Pass 1 must reserve 3 bytes (worst case = JP) so that pass 2 label
+	// addresses are stable regardless of whether we pick JR or JP.
+	fromJRS := a.currentFromJRS
+
 	// Find relative offset
 	for _, v := range values {
 		if offset, ok := v.(int8); ok {
+			if fromJRS {
+				// Even with a literal offset we reserved 3 bytes — pad with NOP
+				result = append(result, byte(offset), 0x00)
+				return result, nil
+			}
 			result = append(result, byte(offset))
 			return result, nil
 		}
 		// Also accept calculated offset from label
 		if addr, ok := v.(int); ok {
-			// In pass 1, just use a placeholder
+			// In pass 1, use a placeholder
 			if a.pass == 1 {
-				result = append(result, 0) // Placeholder for size calculation
+				if fromJRS {
+					// Reserve 3 bytes so labels stay stable across JR↔JP promotion
+					result = append(result, 0, 0) // 1 opcode + 2 placeholder = 3 bytes
+				} else {
+					result = append(result, 0) // Normal JR: 2 bytes
+				}
 				return result, nil
 			}
-			// In pass 2, calculate relative offset from current position
-			offset := addr - a.currentAddr - 2
-			if offset < -128 || offset > 127 {
-				// Auto-promote JR to JP when out of range
-				var jpOpcode byte
-				if len(pattern.Encoding) > 0 {
-					switch pattern.Encoding[0] {
-					case 0x18:
-						jpOpcode = 0xC3 // JR -> JP
-					case 0x20:
-						jpOpcode = 0xC2 // JR NZ -> JP NZ
-					case 0x28:
-						jpOpcode = 0xCA // JR Z -> JP Z
-					case 0x30:
-						jpOpcode = 0xD2 // JR NC -> JP NC
-					case 0x38:
-						jpOpcode = 0xDA // JR C -> JP C
-					default:
+
+			if fromJRS {
+				// Pass 2: we reserved 3 bytes. Calculate offset from the 3-byte slot.
+				offset := addr - a.currentAddr - 2 // JR offset is relative to PC+2
+				if offset < -128 || offset > 127 {
+					// Out of JR range → emit JP (3 bytes, exact fit)
+					jpOpcode := jrToJPOpcode(pattern.Encoding[0])
+					if jpOpcode == 0 {
 						return nil, fmt.Errorf("relative jump out of range: %d", offset)
 					}
 					return append([]byte{jpOpcode}, a.emitWord(addr)...), nil
 				}
-				return nil, fmt.Errorf("relative jump out of range: %d", offset)
+				// In JR range → emit JR + offset + NOP padding (3 bytes total)
+				result = append(result, byte(offset), 0x00)
+				return result, nil
+			}
+
+			// Normal (non-JRS) JR instruction
+			offset := addr - a.currentAddr - 2
+			if offset < -128 || offset > 127 {
+				// Auto-promote JR to JP when out of range
+				jpOpcode := jrToJPOpcode(pattern.Encoding[0])
+				if jpOpcode == 0 {
+					return nil, fmt.Errorf("relative jump out of range: %d", offset)
+				}
+				return append([]byte{jpOpcode}, a.emitWord(addr)...), nil
 			}
 			result = append(result, byte(offset))
 			return result, nil
@@ -571,6 +589,25 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 	}
 
 	return nil, fmt.Errorf("no relative offset found")
+}
+
+// jrToJPOpcode maps a JR opcode byte to the equivalent JP opcode byte.
+// Returns 0 if the opcode is not a promotable JR.
+func jrToJPOpcode(jrOpcode byte) byte {
+	switch jrOpcode {
+	case 0x18:
+		return 0xC3 // JR -> JP
+	case 0x20:
+		return 0xC2 // JR NZ -> JP NZ
+	case 0x28:
+		return 0xCA // JR Z -> JP Z
+	case 0x30:
+		return 0xD2 // JR NC -> JP NC
+	case 0x38:
+		return 0xDA // JR C -> JP C
+	default:
+		return 0
+	}
 }
 
 // ============================================================================

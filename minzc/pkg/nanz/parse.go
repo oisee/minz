@@ -700,8 +700,105 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	}
 	// Append lambdas generated during parsing (non-capturing anonymous functions).
 	m.Funcs = append(m.Funcs, p.lambdas...)
+
+	// Fix forward-referenced call types: any CallExpr with Ty==TyVoid whose
+	// target function actually returns a value needs its Ty patched.  This
+	// happens when function A calls function B that is declared later in the
+	// file — at parse time B's signature wasn't in funcSigs yet.
+	p.fixForwardCallTypes(m)
+
 	m.Warnings = p.warnings
 	return m, nil
+}
+
+// fixForwardCallTypes walks all functions and patches CallExpr nodes whose Ty
+// is TyVoid but whose target function actually returns a value.  This fixes
+// forward references: when fun A (line 100) calls fun B (line 200), B's
+// signature isn't in funcSigs during the first parse of A.
+func (p *parser) fixForwardCallTypes(m *hir.Module) {
+	for _, f := range m.Funcs {
+		if f.Body != nil {
+			p.fixBlockCallTypes(f.Body)
+		}
+	}
+}
+
+func (p *parser) fixBlockCallTypes(b *hir.Block) {
+	if b == nil {
+		return
+	}
+	for _, s := range b.Body {
+		p.fixStmtCallTypes(s)
+	}
+}
+
+func (p *parser) fixStmtCallTypes(s hir.Stmt) {
+	switch st := s.(type) {
+	case *hir.VarDeclStmt:
+		p.fixExprCallTypes(st.Init)
+	case *hir.AssignStmt:
+		p.fixExprCallTypes(st.Val)
+	case *hir.ReturnStmt:
+		p.fixExprCallTypes(st.Val)
+		for _, v := range st.Vals {
+			p.fixExprCallTypes(v)
+		}
+	case *hir.ExprStmt:
+		p.fixExprCallTypes(st.Expr)
+	case *hir.IfStmt:
+		p.fixExprCallTypes(st.Cond)
+		p.fixBlockCallTypes(st.Then)
+		p.fixBlockCallTypes(st.Else)
+	case *hir.WhileStmt:
+		p.fixExprCallTypes(st.Cond)
+		p.fixBlockCallTypes(st.Body)
+	case *hir.ForRangeStmt:
+		p.fixBlockCallTypes(st.Body)
+	case *hir.StoreStmt:
+		p.fixExprCallTypes(st.Ptr)
+		p.fixExprCallTypes(st.Val)
+	case *hir.TupleLetStmt:
+		p.fixExprCallTypes(st.Call)
+	case *hir.ForEachStmt:
+		p.fixBlockCallTypes(st.Body)
+	}
+}
+
+func (p *parser) fixExprCallTypes(e hir.Expr) {
+	if e == nil {
+		return
+	}
+	switch ex := e.(type) {
+	case *hir.CallExpr:
+		if ex.Ty == mir2.TyVoid {
+			if sig, ok := p.funcSigs[ex.Fn]; ok && sig != mir2.TyVoid {
+				ex.Ty = sig
+			}
+		}
+		for _, a := range ex.Args {
+			p.fixExprCallTypes(a)
+		}
+	case *hir.BinExpr:
+		p.fixExprCallTypes(ex.L)
+		p.fixExprCallTypes(ex.R)
+	case *hir.UnaryExpr:
+		p.fixExprCallTypes(ex.X)
+	case *hir.CastExpr:
+		p.fixExprCallTypes(ex.X)
+	case *hir.FieldExpr:
+		p.fixExprCallTypes(ex.X)
+	case *hir.LoadExpr:
+		p.fixExprCallTypes(ex.Ptr)
+	case *hir.DerefExpr:
+		p.fixExprCallTypes(ex.Ptr)
+	case *hir.IndexExpr:
+		p.fixExprCallTypes(ex.Base)
+		p.fixExprCallTypes(ex.Idx)
+	case *hir.CondExpr:
+		p.fixExprCallTypes(ex.Cond)
+		p.fixExprCallTypes(ex.Then)
+		p.fixExprCallTypes(ex.Else)
+	}
 }
 
 // parseTypeAlias parses: type Name = ExistingType
@@ -2915,9 +3012,10 @@ type binop struct {
 }
 
 var binops = map[tokKind]binop{
-	tokPipe:    {"|", 1},
-	tokCaret:   {"^", 2},  // bitwise XOR when used as infix
-	tokAmp:     {"&", 3},
+	tokPipe: {"|", 1},
+	// XOR uses the `xor` keyword operator (see parseBinary), not ^.
+	// ^ is reserved exclusively for postfix pointer dereference.
+	tokAmp: {"&", 3},
 	tokEqEq:    {"==", 4},
 	tokBangEq:  {"!=", 4},
 	tokLt:      {"<", 5},
@@ -2981,12 +3079,21 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 			}
 			continue
 		}
+		// `xor` keyword operator — bitwise XOR (precedence 2, between | and &).
+		if t.kind == tokIdent && t.val == "xor" && minPrec < 2 {
+			p.l.next()
+			rhs, err := p.parseBinary(2)
+			if err != nil {
+				return nil, err
+			}
+			ty := resultTy(lhs.ExprTy(), rhs.ExprTy(), "^")
+			lhs = &hir.BinExpr{Op: "^", L: lhs, R: rhs, Ty: ty}
+			continue
+		}
 		bo, ok := binops[t.kind]
 		if !ok || bo.prec <= minPrec {
 			break
 		}
-		// ^ is ambiguous: as infix it's XOR; as prefix it's deref.
-		// We only treat ^ as infix here (we're in parseBinary, so lhs is already parsed).
 		p.l.next()
 		rhs, err := p.parseBinary(bo.prec)
 		if err != nil {
@@ -3055,10 +3162,8 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 		t := p.l.peek()
 		switch t.kind {
 		case tokCaret:
-			// expr^ — postfix dereference.
-			// For ^Struct pointers, `self^` is transparent: .field access and method
-			// calls via varPtrElem already handle field resolution correctly on the
-			// pointer itself.  Only emit a LoadExpr for ^primitive (^u8, ^u16) vars.
+			// expr^ — postfix pointer dereference (always).
+			// XOR uses the `xor` keyword operator, not ^.
 			p.l.next()
 			isStructPtr := false
 			if vr, ok := base.(*hir.VarRefExpr); ok {

@@ -146,7 +146,9 @@ func costAcc(loc PhysLoc) int {
 		// EX AF,AF' / EXX not yet implemented in codegen.
 		return InfCost
 	case LocStack:
-		return z80timing.StackRoundTrip
+		// Stack spills (PUSH/POP) are not implemented in codegen — would emit
+		// "AND stack" etc.  Use InfCost until codegen supports SP-relative access.
+		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
@@ -174,7 +176,9 @@ func costCounter(loc PhysLoc) int {
 		// EXX not implemented.
 		return InfCost
 	case LocStack:
-		return z80timing.StackRoundTrip
+		// Stack spills (PUSH/POP) are not implemented in codegen — would emit
+		// "AND stack" etc.  Use InfCost until codegen supports SP-relative access.
+		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
@@ -213,7 +217,9 @@ func costGeneral(loc PhysLoc) int {
 		// EXX not implemented.
 		return InfCost
 	case LocStack:
-		return z80timing.StackRoundTrip
+		// Stack spills (PUSH/POP) are not implemented in codegen — would emit
+		// "AND stack" etc.  Use InfCost until codegen supports SP-relative access.
+		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
@@ -302,7 +308,9 @@ func costPair(loc PhysLoc) int {
 		// HL',DE',BC' via EXX — region overhead ~8T per region
 		return z80timing.EXX * 2
 	case LocStack:
-		return z80timing.StackRoundTrip
+		// Stack spills (PUSH/POP) are not implemented in codegen — would emit
+		// "AND stack" etc.  Use InfCost until codegen supports SP-relative access.
+		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
@@ -337,7 +345,9 @@ func costIX(loc PhysLoc) int {
 	case LocShadow:
 		return InfCost
 	case LocStack:
-		return z80timing.StackRoundTrip
+		// Stack spills (PUSH/POP) are not implemented in codegen — would emit
+		// "AND stack" etc.  Use InfCost until codegen supports SP-relative access.
+		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
@@ -372,7 +382,9 @@ func costIY(loc PhysLoc) int {
 	case LocShadow:
 		return InfCost
 	case LocStack:
-		return z80timing.StackRoundTrip
+		// Stack spills (PUSH/POP) are not implemented in codegen — would emit
+		// "AND stack" etc.  Use InfCost until codegen supports SP-relative access.
+		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2
 	case LocFlag:
@@ -400,7 +412,9 @@ func costIXY8(loc PhysLoc) int {
 	case LocShadow:
 		return z80timing.EXX + z80timing.RegRegMove
 	case LocStack:
-		return z80timing.StackRoundTrip
+		// Stack spills (PUSH/POP) are not implemented in codegen — would emit
+		// "AND stack" etc.  Use InfCost until codegen supports SP-relative access.
+		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2
 	case LocFlag, LocIXY:
@@ -428,7 +442,9 @@ func costShadow(loc PhysLoc) int {
 	case LocIXY8:
 		return z80timing.EXX + z80timing.RegRegMove
 	case LocStack:
-		return z80timing.StackRoundTrip
+		// Stack spills (PUSH/POP) are not implemented in codegen — would emit
+		// "AND stack" etc.  Use InfCost until codegen supports SP-relative access.
+		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2
 	case LocFlag, LocIXY:
@@ -455,7 +471,9 @@ func costAccShadow(loc PhysLoc) int {
 		}
 		return InfCost
 	case LocStack:
-		return z80timing.StackRoundTrip
+		// Stack spills (PUSH/POP) are not implemented in codegen — would emit
+		// "AND stack" etc.  Use InfCost until codegen supports SP-relative access.
+		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2
 	case LocFlag, LocIXY, LocIXY8:
@@ -569,7 +587,8 @@ func costFlag(loc PhysLoc) int {
 		}
 		return InfCost
 	case LocStack:
-		return z80timing.PUSH_rr // PUSH AF
+		// Stack spills not implemented in codegen — would emit "AND stack".
+		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2
 	case LocIXY, LocIXY8, LocShadow:

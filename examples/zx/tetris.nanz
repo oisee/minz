@@ -17,14 +17,6 @@
 
 // ── ZX Spectrum primitives ──────────────────────────────────────────────────
 
-fun zx_poke(@z80_hl addr: u16, @z80_a val: u8) -> void {
-    asm z80 (in addr, val) { LD (HL), A }
-}
-
-fun zx_peek(@z80_hl addr: u16) -> u8 {
-    asm z80 (in addr) { LD A, (HL) }
-}
-
 fun zx_attr_addr(cx: u8, cy: u8) -> u16 {
     return 0x5800 + u16(cy) * 32 + u16(cx)
 }
@@ -78,7 +70,7 @@ fun rng_next() -> u8 {
     let bit: u16 = rng_state & 1
     rng_state = rng_state >> 1
     if bit == 1 {
-        rng_state = rng_state ^ 0xB400
+        rng_state = rng_state xor 0xB400
     }
     return u8(rng_state & 0xFF)
 }
@@ -500,8 +492,8 @@ fun clear_lines() -> u8 {
 }
 
 fun random_piece() -> u8 {
-    var rval: u8 = rng_next()
-    while rval >= 7 { rval = rval - 7 }
+    var rval: u8 = rng_next() & 7   // 0..7
+    if rval >= 7 { rval = 0 }       // reject 7 → re-map to 0
     return rval
 }
 
@@ -553,7 +545,7 @@ fun fill_cell(cx: u8, cy: u8) -> void {
     let py: u8 = cy * 8
     var line: u8 = 0
     while line < 8 {
-        zx_poke(zx_screen_addr(cx, py + line), 0xFF)
+        ptr(zx_screen_addr(cx, py + line))^ = 0xFF
         line = line + 1
     }
 }
@@ -564,12 +556,12 @@ fun init_screen() -> void {
     // Clear entire screen
     var addr: u16 = 0x4000
     while addr < 0x5800 {
-        zx_poke(addr, 0x00)
+        ptr(addr)^ = 0x00
         addr = addr + 1
     }
     addr = 0x5800
     while addr < 0x5B00 {
-        zx_poke(addr, 0x00)
+        ptr(addr)^ = 0x00
         addr = addr + 1
     }
 
@@ -588,21 +580,21 @@ fun init_screen() -> void {
     cy = 2
     while cy < 22 {
         fill_cell(10, cy)
-        zx_poke(zx_attr_addr(10, cy), 0x38)
+        ptr(zx_attr_addr(10, cy))^ = 0x38
         cy = cy + 1
     }
     // Border — right wall
     cy = 2
     while cy < 22 {
         fill_cell(21, cy)
-        zx_poke(zx_attr_addr(21, cy), 0x38)
+        ptr(zx_attr_addr(21, cy))^ = 0x38
         cy = cy + 1
     }
     // Border — bottom
     var bx: u8 = 10
     while bx <= 21 {
         fill_cell(bx, 22)
-        zx_poke(zx_attr_addr(bx, 22), 0x38)
+        ptr(zx_attr_addr(bx, 22))^ = 0x38
         bx = bx + 1
     }
 
@@ -616,7 +608,7 @@ fun render_preview(t: u8, sx: u8, sy: u8) -> void {
     while py < 4 {
         var px: u8 = 0
         while px < 4 {
-            zx_poke(zx_attr_addr(sx + px, sy + py), 0x00)
+            ptr(zx_attr_addr(sx + px, sy + py))^ = 0x00
             px = px + 1
         }
         py = py + 1
@@ -628,7 +620,7 @@ fun render_preview(t: u8, sx: u8, sy: u8) -> void {
         while c < 4 {
             let dx: u8 = piece_dx(t, 0, c)
             let dy: u8 = piece_dy(t, 0, c)
-            zx_poke(zx_attr_addr(sx + dx, sy + dy), pc)
+            ptr(zx_attr_addr(sx + dx, sy + dy))^ = pc
             c = c + 1
         }
     }
@@ -642,7 +634,7 @@ fun render() -> void {
         while x < 10 {
             let cell: u8 = board_get(x, y)
             let attr: u8 = color_attr(cell)
-            zx_poke(zx_attr_addr(11 + x, 2 + y), attr)
+            ptr(zx_attr_addr(11 + x, 2 + y))^ = attr
             x = x + 1
         }
         y = y + 1
@@ -660,7 +652,7 @@ fun render() -> void {
             if (cx < 10) & (cy < 20) {
                 // Only draw ghost if cell is empty on board
                 if board_get(cx, cy) == 0 {
-                    zx_poke(zx_attr_addr(11 + cx, 2 + cy), gc)
+                    ptr(zx_attr_addr(11 + cx, 2 + cy))^ = gc
                 }
             }
             c = c + 1
@@ -674,7 +666,7 @@ fun render() -> void {
         let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
         let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
         if (cx < 10) & (cy < 20) {
-            zx_poke(zx_attr_addr(11 + cx, 2 + cy), pc)
+            ptr(zx_attr_addr(11 + cx, 2 + cy))^ = pc
         }
         c = c + 1
     }
@@ -779,7 +771,7 @@ fun main() -> void {
 
         // Input
         let keys: u8 = read_input()
-        let changed: u8 = keys ^ prev_keys
+        let changed: u8 = keys xor prev_keys
         let new_keys: u8 = keys & changed
         prev_keys = keys
 

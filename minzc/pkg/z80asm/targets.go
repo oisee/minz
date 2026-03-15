@@ -345,10 +345,7 @@ func (a *Assembler) SetTarget(target Target) error {
 	// Add platform-specific symbols
 	for symbol, addr := range config.Conventions.CommonSymbols {
 		// Store symbol in the format expected by the assembler
-		symbolName := symbol
-		if !a.CaseSensitive {
-			symbolName = strings.ToUpper(symbol)
-		}
+		symbolName := a.symbolKey(symbol)
 		a.symbols[symbolName] = &Symbol{
 			Name:    symbolName,
 			Value:   addr,

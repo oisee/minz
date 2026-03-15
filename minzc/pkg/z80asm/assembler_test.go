@@ -251,10 +251,7 @@ func TestErrorHandling(t *testing.T) {
 			name:   "invalid bit number",
 			source: "BIT 8, A",
 		},
-		{
-			name:   "relative jump out of range",
-			source: "ORG $8000\nJR $8100",
-		},
+		// JR out of range now auto-promotes to JP — no longer an error.
 	}
 
 	for _, tt := range tests {
@@ -506,9 +503,9 @@ func TestDollarMangledSymbols(t *testing.T) {
 		t.Fatalf("Assembly with $ mangled symbols failed: %v", err)
 	}
 
-	// Default CaseSensitive=false, so labels are stored upper-cased
-	if _, ok := result.Symbols["OUTER$INNER$DEEP"]; !ok {
-		t.Error("Symbol OUTER$INNER$DEEP not found — '$' should be valid mid-symbol")
+	// Default CaseSensitive=true, so labels preserve their original case
+	if _, ok := result.Symbols["Outer$Inner$Deep"]; !ok {
+		t.Error("Symbol Outer$Inner$Deep not found — '$' should be valid mid-symbol")
 	}
 
 	// Verify CALL is present somewhere in the binary (CD 00 80 = CALL $8000)

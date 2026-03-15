@@ -478,6 +478,13 @@ func (g *z80cg) comment(s string)            { g.emitf("    ; %s", s) }
 // Z80 indexed loads/stores require explicit displacement: (IX+d), never bare (IX).
 func isIXY(reg string) bool { return reg == "IX" || reg == "IY" }
 
+// isIXYReg returns true for the undocumented IXH/IXL/IYH/IYL half-registers.
+// These share the DD/FD prefix with (IX+d)/(IY+d) addressing, so they cannot
+// be combined with (HL) in a single instruction.
+func isIXYReg(reg string) bool {
+	return reg == "IXH" || reg == "IXL" || reg == "IYH" || reg == "IYL"
+}
+
 // ptrIndirect returns the memory-operand string for a pointer register.
 // For IX/IY the Z80 requires an explicit displacement byte — even zero:
 //
@@ -1678,6 +1685,12 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
 				g.invalidate("A")
 				g.emitMov(dst, "A", 8)
+			} else if isIXYReg(dst) && ptr == "HL" {
+				// DD/FD prefix conflict: LD IXH,(HL) encodes as LD IXH,(IX+0) — invalid.
+				// Route through A.
+				g.emitf("    LD A, (HL)")
+				g.invalidate("A")
+				g.emitf("    LD %s, A", dst)
 			} else {
 				g.emitf("    LD %s, %s", dst, ptrIndirect(ptr, 0))
 			}
@@ -1686,11 +1699,58 @@ func (g *z80cg) genInst(inst *Inst) {
 			// LD lo, (IX+0) ; LD hi, (IX+1)  — 2×19T = 38T
 			g.emitf("    LD %s, %s     ; lo", lowByte(dst), ptrIndirect(ptr, 0))
 			g.emitf("    LD %s, %s     ; hi", highByte(dst), ptrIndirect(ptr, 1))
+		} else if strings.HasPrefix(dst, "$") {
+			// 16-bit load into LocMem spill slot: load through HL, then
+			// use LD (nn), HL to store both bytes atomically.
+			if ptr == "HL" {
+				// Self-pointer: LD A,(HL)/INC/LD H,(HL)/LD L,A
+				g.emit("    PUSH HL          ; save ptr for spill load")
+				g.emitf("    LD A, (HL)     ; lo")
+				g.emit("    INC HL")
+				g.emit("    LD H, (HL)     ; hi")
+				g.emit("    LD L, A        ; lo")
+				g.emitf("    LD (%s), HL", dst)
+				g.invalidate("HL")
+				g.invalidate("A")
+				g.emit("    POP HL           ; restore ptr")
+			} else {
+				// BC/DE indirect: only LD A,(rr) is valid, so go through A.
+				g.emitf("    LD A, (%s)     ; lo", ptr)
+				g.emit("    LD L, A")
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD A, (%s)     ; hi", ptr)
+				g.emit("    LD H, A")
+				g.emitf("    DEC %s", ptr)
+				g.emitf("    LD (%s), HL", dst)
+				g.invalidate("HL")
+				g.invalidate("A")
+			}
 		} else {
 			// 16-bit load via HL/DE/BC: INC/DEC trick — little-endian
-			if dst == ptr {
-				// Self-pointer: LD L,(HL) corrupts the address in HL before INC HL.
-				// Use A as scratch: LD A,(HL) / INC HL / LD H,(HL) / LD L,A
+			if ptr == "BC" || ptr == "DE" {
+				// BC/DE indirect: only LD A,(rr) is valid — both bytes must go through A.
+				// Also handles self-pointer (dst==ptr) since LD D,(DE) is invalid.
+				if dst == ptr {
+					// Self-pointer: can't write lo byte before reading hi (corrupts ptr).
+					// LD A,(DE) / INC DE / PUSH AF / LD A,(DE) / LD D,A / POP AF / LD E,A
+					g.emitf("    LD A, (%s)     ; lo", ptr)
+					g.emitf("    INC %s", ptr)
+					g.emit("    PUSH AF")
+					g.emitf("    LD A, (%s)     ; hi", ptr)
+					g.emitf("    LD %s, A", highByte(dst))
+					g.emit("    POP AF")
+					g.emitf("    LD %s, A       ; lo", lowByte(dst))
+				} else {
+					g.emitf("    LD A, (%s)     ; lo", ptr)
+					g.emitf("    LD %s, A", lowByte(dst))
+					g.emitf("    INC %s", ptr)
+					g.emitf("    LD A, (%s)     ; hi", ptr)
+					g.emitf("    LD %s, A", highByte(dst))
+					g.emitf("    DEC %s", ptr)
+				}
+				g.invalidate("A")
+			} else if dst == ptr {
+				// Self-pointer with HL: LD L,(HL) corrupts address. Use A as scratch.
 				g.emitf("    LD A, (%s)     ; lo", ptr)
 				g.emitf("    INC %s", ptr)
 				g.emitf("    LD %s, (%s)     ; hi", highByte(dst), ptr)
@@ -1729,7 +1789,13 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.emitf("    LD (HL), %d", cv)
 				} else {
 					val := g.loc(inst.Src[1])
-					g.emitf("    LD (HL), %s", val)
+					if isIXYReg(val) {
+						g.emitf("    LD A, %s", val)
+						g.invalidate("A")
+						g.emitf("    LD (HL), A")
+					} else {
+						g.emitf("    LD (HL), %s", val)
+					}
 				}
 				if !info.hlLast {
 					g.emitf("    INC HL")
@@ -1822,10 +1888,28 @@ func (g *z80cg) genInst(inst *Inst) {
 		} else if w <= 8 {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				// LD (HL),n = 10T/2B  or  LD (IX+d),n = 19T/4B
-				// Cheaper than: LD r,n (7T) + LD (HL),r (7T) = 14T/3B
-				g.emitf("    LD %s, %d", ptrIndirect(ptr, 0), cv)
+				// Only HL and IX/IY support immediate indirect stores.
+				// BC/DE: LD (DE),n is NOT valid — must go through A.
+				if ptr == "HL" || isIXY(ptr) {
+					g.emitf("    LD %s, %d", ptrIndirect(ptr, 0), cv)
+				} else {
+					g.emitf("    LD A, %d", cv)
+					g.emitf("    LD (%s), A", ptr)
+					g.invalidate("A")
+				}
 			} else {
-				g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), val)
+				// LD (BC),r and LD (DE),r: only r=A is valid.
+				// LD (HL),IXH/IXL: DD prefix conflict — route through A.
+				if (ptr == "BC" || ptr == "DE") && val != "A" {
+					g.emitLDA(val)
+					g.emitf("    LD (%s), A", ptr)
+				} else if ptr == "HL" && isIXYReg(val) {
+					g.emitf("    LD A, %s", val)
+					g.invalidate("A")
+					g.emitf("    LD (HL), A")
+				} else {
+					g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), val)
+				}
 			}
 		} else if isIXY(ptr) {
 			// 16-bit store via IX/IY: use displacement addressing — avoids INC/DEC IX.
@@ -3693,9 +3777,18 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			g.emitLDA(src)
 			g.emitf("    LD (%s), A", dst)
 		default:
-			g.emitf("    LD %s, %s", dst, src)
-			if isSimpleReg(dst) && isSimpleReg(src) {
-				g.setCopy(dst, src)
+			// DD/FD prefix conflict: LD IXH,H encodes as LD IXH,IXH (NOP).
+			// Any move between IXH/IXL/IYH/IYL and H/L must route through A.
+			if (isIXYReg(dst) && (src == "H" || src == "L")) ||
+				(isIXYReg(src) && (dst == "H" || dst == "L")) {
+				g.emitf("    LD A, %s", src)
+				g.emitf("    LD %s, A", dst)
+				g.invalidate("A")
+			} else {
+				g.emitf("    LD %s, %s", dst, src)
+				if isSimpleReg(dst) && isSimpleReg(src) {
+					g.setCopy(dst, src)
+				}
 			}
 		}
 		return
@@ -4567,6 +4660,25 @@ func isPairReg(r string) bool {
 	return false
 }
 
+// parentPair returns the 16-bit register pair containing an 8-bit register.
+func parentPair(r string) string {
+	switch r {
+	case "A":
+		return "AF" // rarely useful; callers should special-case A
+	case "B", "C":
+		return "BC"
+	case "D", "E":
+		return "DE"
+	case "H", "L":
+		return "HL"
+	case "IXH", "IXL":
+		return "IX"
+	case "IYH", "IYL":
+		return "IY"
+	}
+	return r // already a pair or unknown
+}
+
 // genCmp16 emits a 16-bit comparison using SBC HL, rr.
 //
 // Z80 only provides SBC HL, rr for 16-bit arithmetic that sets flags.
@@ -4638,6 +4750,15 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	// True when we moved orig_rhs(HL) to DE and loaded orig_lhs into HL.
 	// After PUSH/SBC/POP the allocator expects HL=orig_rhs again.
 	swappedDE := origRhs == "HL" && origLhs != "HL"
+
+	// SBC HL, rr requires rhs to be a 16-bit register pair (BC/DE/HL/SP).
+	// If rhs is an 8-bit register (e.g. "C" from a u8 value), promote to
+	// its parent pair with high byte zeroed.
+	if isSimpleReg(rhs) && !isPairReg(rhs) {
+		pair := parentPair(rhs)
+		g.emitf("    LD %s, 0", highByte(pair))
+		rhs = pair
+	}
 
 	// lhs is now in HL.  SBC HL, rr clobbers HL; save and restore so the
 	// original lhs value survives for use in taken/not-taken branches.
