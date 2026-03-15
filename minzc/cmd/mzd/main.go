@@ -9,8 +9,8 @@
 //	mzd program.com                   # Auto-detect CP/M (ORG $0100)
 //	mzd program.bin -o 0x8000         # Custom origin address
 //	mzd program.bin --labels           # Auto-generate jump target labels
-//	mzd program.bin --analyze          # IDA-like recursive descent analysis
-//	mzd program.bin --analyze --cycles # Show T-state counts
+//	mzd program.bin --linear           # Force legacy linear disassembly
+//	mzd program.bin --cycles           # Show T-state counts
 package main
 
 import (
@@ -36,7 +36,7 @@ var (
 	noAddr    bool
 
 	// Analysis flags
-	analyze      bool
+	linear       bool
 	target       string
 	entryPoints  []string
 	showStats    bool
@@ -124,19 +124,21 @@ Output formats:
   plain      - Mnemonic only
   hex        - Full hex dump with disassembly
 
-Analysis mode (--analyze):
+Analysis (default):
   Recursive descent disassembly with code/data separation,
   cross-references, string detection, auto-labeling, and
   T-state cycle counting. Similar to IDA Pro.
+  Use --linear to disable and get raw sequential disassembly.
 
 Examples:
   mzd program.bin
   mzd program.com
   mzd program.bin -o 0x8000 --labels
   mzd program.bin -s 0x0010 -e 0x0080
-  mzd program.bin --analyze --stats
-  mzd program.bin --analyze -t cpm --cycles
-  mzd program.bin --analyze --sym labels.sym -R`,
+  mzd program.bin --stats
+  mzd program.bin -t cpm --cycles
+  mzd program.bin --sym labels.sym -R
+  mzd program.bin --linear`,
 	Args: cobra.ExactArgs(1),
 	RunE: runDisasm,
 }
@@ -151,7 +153,10 @@ func init() {
 	rootCmd.Flags().BoolVar(&noAddr, "no-addr", false, "Hide address column")
 
 	// Analysis flags
-	rootCmd.Flags().BoolVarP(&analyze, "analyze", "a", false, "Enable recursive descent analysis")
+	rootCmd.Flags().BoolVar(&linear, "linear", false, "Force legacy linear disassembly (skip analysis)")
+	// Keep --analyze as hidden alias for backwards compatibility
+	rootCmd.Flags().Bool("analyze", false, "")
+	rootCmd.Flags().MarkHidden("analyze")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "", "Platform: generic, cpm, spectrum, agon")
 	rootCmd.Flags().StringArrayVar(&entryPoints, "entry", nil, "Additional entry point address (repeatable)")
 	rootCmd.Flags().BoolVar(&showStats, "stats", false, "Print analysis statistics")
@@ -204,13 +209,12 @@ func runDisasm(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Analysis mode
-	if analyze {
-		return runAnalyzed(inputFile, data, org)
+	// Linear mode is opt-in; analysis is the default
+	if linear {
+		return runLinear(data, org)
 	}
 
-	// --- Legacy linear disassembly mode ---
-	return runLinear(data, org)
+	return runAnalyzed(inputFile, data, org)
 }
 
 func runLinear(data []byte, org uint16) error {
