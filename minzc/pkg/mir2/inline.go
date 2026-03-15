@@ -102,6 +102,11 @@ func isTrivialFunc(f *Func, maxSize int) bool {
 			OpPatch, OpPatchSlot, OpLoadPatched,
 			OpAsm:
 			return false
+		case OpAddrOf, OpPtrAdd:
+			// Functions with pointer operations need 16-bit pair registers.
+			// Inlining them into register-starved callers can force pointers
+			// into 8-bit regs → invalid Z80 instructions.
+			return false
 		}
 	}
 	return true

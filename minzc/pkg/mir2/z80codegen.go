@@ -1967,6 +1967,7 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpCall, OpCallIndirect:
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
+		g.comment(fmt.Sprintf("genCall: %s dst=%v", inst.Sym, inst.Dst))
 		g.genCall(inst)
 
 	case OpAddrOf:
@@ -2390,7 +2391,14 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					if rhs == "HL" {
 						adjustedRhs = "DE" // what was HL is now in DE after EX
 					}
-					g.emitf("    ADD HL, %s", adjustedRhs)
+					if adjustedRhs == "IX" || adjustedRhs == "IY" {
+						g.emit("    PUSH BC")
+						g.emitMov("BC", adjustedRhs, w)
+						g.emit("    ADD HL, BC")
+						g.emit("    POP BC")
+					} else {
+						g.emitf("    ADD HL, %s", adjustedRhs)
+					}
 					g.emit("    EX DE, HL")
 					g.invalidate("HL")
 					g.invalidate("DE")
@@ -2402,7 +2410,14 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					adjustedRhs = "DE" // lhs/dst swap via EX
 				}
 				g.emitMov("HL", lhs, w)
-				g.emitf("    ADD HL, %s", adjustedRhs)
+				if adjustedRhs == "IX" || adjustedRhs == "IY" {
+					g.emit("    PUSH DE")
+					g.emitMov("DE", adjustedRhs, w)
+					g.emit("    ADD HL, DE")
+					g.emit("    POP DE")
+				} else {
+					g.emitf("    ADD HL, %s", adjustedRhs)
+				}
 				g.emitMov(dst, "HL", w)
 				g.invalidate(dst)
 				break
@@ -2411,7 +2426,15 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if lhs != dst {
 				g.emitMov(dst, lhs, w)
 			}
-			g.emitf("    ADD %s, %s", dst, rhs)
+			// ADD HL, rr only accepts BC/DE/HL/SP — not IX/IY.
+			if rhs == "IX" || rhs == "IY" {
+				g.emit("    PUSH DE")
+				g.emitMov("DE", rhs, w)
+				g.emit("    ADD HL, DE")
+				g.emit("    POP DE")
+			} else {
+				g.emitf("    ADD %s, %s", dst, rhs)
+			}
 			g.invalidate(dst)
 		case "SUB":
 			// Z80 only has SBC HL, rr for 16-bit subtraction.
