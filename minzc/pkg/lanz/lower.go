@@ -18,6 +18,13 @@ func Compile(src, name string) (*hir.Module, error) {
 	return c.compileModule(nodes)
 }
 
+// CompileNodes compiles pre-parsed S-expression nodes into a HIR module.
+// Used by frontends (e.g. Lizp) that desugar into Lanz nodes directly.
+func CompileNodes(nodes []Node, name string) (*hir.Module, error) {
+	c := &compiler{name: name}
+	return c.compileModule(nodes)
+}
+
 type compiler struct {
 	name string
 }

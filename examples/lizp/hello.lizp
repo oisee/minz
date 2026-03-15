@@ -1,0 +1,6 @@
+;; Hello World in Lizp — minimal test of the Lizp frontend.
+;;
+;; Pipeline: Lizp → desugar → Lanz S-expr → lanz.Compile → HIR → MIR2 → Z80
+
+(defun main () -> void
+  (return))
