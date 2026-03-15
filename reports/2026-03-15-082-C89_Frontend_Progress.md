@@ -15,25 +15,35 @@ The C89/C99 frontend is live. C source code compiles through the full MinZ pipel
 C source → modernc.org/cc/v4 (parse+typecheck) → HIR → MIR2 → Z80
 ```
 
-- **9 corpus files**, ~51 functions, **68 asserts** (all pass via MIR2 VM)
-- **5/9 files** produce valid Z80 assembly
-- **4/9 files** hit Z80 codegen bugs (invalid instructions for u8 multi-param functions)
+- **18 corpus files**, ~100+ functions, **211 asserts** (all pass via MIR2 VM)
+- **17/18 files** produce valid Z80 assembly (only `import_test.c` fails — multi-file not implemented)
 - Comment-based assert/sandbox directives: `// assert fn(args) == expected [via mir2|z80]`
 
-## Corpus
+## Corpus (updated 2026-03-15, post codegen hardening)
 
 | File | Category | Functions | Asserts | Z80 |
 |------|----------|----------|---------|-----|
 | `assert_test.c` | Integration test | 5 | 13 | OK |
 | `bench.c` | SDCC comparison | 6 | 0 | OK |
+| `bench_extended.c` | Extended benchmark | 12 | 27 | OK |
 | `hello.c` | Smoke test | 4 | 0 | OK |
 | `string8.c` | Pointer ops | 4 | 0 | OK |
 | `math16.c` | 16-bit math | 7 | 10 | OK |
-| `bitops.c` | Bit manipulation | 8 | 6 | Bug |
-| `cpm_io.c` | CP/M helpers | 7 | 14 | Bug |
-| `game_helpers.c` | Retro game utils | 5 | 14 | Bug |
-| `math8.c` | 8-bit math | 5 | 11 | Bug |
-| **Total** | | **51** | **68** | **5/9** |
+| `math8.c` | 8-bit math | 5 | 11 | OK |
+| `bitops.c` | Bit manipulation | 8 | 6 | OK |
+| `cpm_io.c` | CP/M helpers | 7 | 14 | OK |
+| `game_helpers.c` | Retro game utils | 5 | 14 | OK |
+| `logical.c` | &&/\|\| short-circuit | 5 | 18 | OK |
+| `switch.c` | switch/case | 5 | 16 | OK |
+| `c99_control.c` | do-while, for-decl | 5 | 17 | OK |
+| `c99_types.c` | uint8_t, int16_t etc | 6 | 18 | OK |
+| `c99_compound.c` | +=, -=, /=, %= | 7 | 21 | OK |
+| `c99_preproc.c` | #define, #ifdef | 5 | 19 | OK |
+| `imported_math.c` | Library functions | 3 | 0 | OK |
+| `import_test.c` | Multi-file import | 2 | 7 | FAIL (multi-file not implemented) |
+| **Total** | | **~100+** | **211** | **17/18** |
+
+**Previously broken (report #082 original): bitops, math8, game_helpers, cpm_io — all fixed by BUG-A/BUG-B codegen patches.**
 
 ## What Works
 
@@ -71,26 +81,20 @@ Selective narrowing of C integer promotion for Z80 efficiency:
 - Addition, multiplication: kept as i16 (overflow-safe)
 - Result: `abs_diff` generates 10B (was 21B before fix)
 
-## What Doesn't Work
+## What Doesn't Work (updated 2026-03-15)
 
-### Z80 Codegen Bugs
-- **Invalid `LD` instructions** for u8 multi-parameter functions (3+ u8 params)
-- **Invalid `ADD` instructions** in some u8 arithmetic contexts
-- Root cause: Z80 backend generates instructions like `LD A, HL` or `SBC HL, A` which don't exist on Z80
+### Fixed Since Original Report
+- ~~Invalid `LD` instructions (BUG-A)~~ → Fixed: emitMov 8↔16 width handling
+- ~~Invalid `ADD` instructions (BUG-B)~~ → Fixed: zero-extend guard for ADD HL, r8
+- ~~`%` (modulo) panics~~ → Fixed: native OpMod + Dark/X-Trade DIVU111 Z80 codegen
+- ~~`&&` / `||` panics~~ → Fixed: C89 lowerer desugars to CondExpr (short-circuit)
+- ~~`switch`/`case` not implemented~~ → Fixed: if-chain lowering in C89 lowerer
 
-### HIR/MIR2 Backend Limitations
-- `%` (modulo) — HIR lowerer panics
-- `&&` / `||` — HIR lowerer panics (workaround: nested `if`)
+### Remaining Issues
 - `fibonacci` loop with 4 local vars — MIR2 VM returns wrong results (variable init ordering bug)
-
-### Not Yet Implemented
-- `switch`/`case`
-- `do`/`while` (parsed but untested)
-- Arrays (declaration works, indexing untested)
-- `struct` field access through pipeline
-- `typedef`
-- Multi-file compilation
-- `#include` (only predefined headers)
+- Multi-file compilation (`import_test.c` fails)
+- `struct` field access through full pipeline (partial)
+- `typedef` (basic support via modernc.org/cc, not all paths tested)
 
 ## MinZ vs SDCC Comparison
 

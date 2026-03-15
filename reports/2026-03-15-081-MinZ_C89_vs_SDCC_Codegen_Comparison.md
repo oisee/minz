@@ -286,15 +286,17 @@ _clamp8::
 
 ## Summary
 
-| Function   | MinZ | SDCC | Delta | Winner |
-|------------|-----:|-----:|------:|--------|
-| `twice`    |   2B |   3B |   −1B | MinZ   |
-| `add`      |   2B |   3B |   −1B | MinZ   |
-| `max`      |  13B |  12B |   +1B | SDCC   |
-| `abs_diff` |  10B |  11B |   −1B | MinZ   |
-| `sum_to`   |  28B |  25B |   +3B | SDCC   |
-| `clamp8`   |  13B |  30B |  −17B | MinZ   |
-| **TOTAL**  |**68B**|**84B**|**−16B**| **MinZ (−19%)** |
+| Function   | MinZ (v0.19.5) | MinZ (v0.19.6) | SDCC | Winner |
+|------------|-----:|-----:|-----:|--------|
+| `twice`    |   2B |   2B |   3B | MinZ   |
+| `add`      |   2B |   2B |   3B | MinZ   |
+| `max`      |  13B |  13B |  12B | SDCC   |
+| `abs_diff` |  10B |  10B |  11B | MinZ   |
+| `sum_to`   |  28B | **22B** |  25B | **MinZ** (was SDCC) |
+| `clamp8`   |  13B |  13B |  30B | MinZ   |
+| **TOTAL**  |**68B**|**62B**|**84B**| **MinZ (−26%)** |
+
+*v0.19.6 improvements: DeadBlockArgElim eliminated sum_to trampoline (−6B), caller-save liveness removed redundant PUSH/POP.*
 
 ---
 
